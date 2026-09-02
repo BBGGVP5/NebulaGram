@@ -1,7 +1,5 @@
 build/
-vendor/telegram-android/
-vendor/telegram-ios/
-vendor/tdesktop/
+# vendor/* — это сабмодули, они трекаются как gitlink и здесь не игнорируются
 *.aar
 *.xcframework
 *.ipa

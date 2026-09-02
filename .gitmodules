@@ -1,0 +1,7 @@
+[submodule "vendor/telegram-android"]
+	path = vendor/telegram-android
+	url = https://github.com/DrKLO/Telegram
+	branch = master
+	# Рабочее дерево апстрима — всегда артефакт сборки (оверлей + патчи),
+	# поэтому его грязность не должна попадать в git status родителя.
+	ignore = dirty

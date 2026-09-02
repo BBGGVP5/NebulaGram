@@ -30,6 +30,21 @@ if [ -d "$overlay" ]; then
   cp -a "$overlay/." "$tree/"
 fi
 
+# The Go core is a build artifact, not a source file, so it is not part of the
+# overlay; drop it where the patched build script expects it.
+case "$platform" in
+  android)
+    aar="$root/build/nebulalink.aar"
+    if [ -f "$aar" ]; then
+      mkdir -p "$tree/TMessagesProj/libs"
+      cp "$aar" "$tree/TMessagesProj/libs/nebulalink.aar"
+      echo "copied nebulalink.aar into TMessagesProj/libs"
+    else
+      echo "warning: $aar is missing; run scripts/build-core.sh android first" >&2
+    fi
+    ;;
+esac
+
 shopt -s nullglob
 for patch in "$patches"/*.patch; do
   echo "applying $(basename "$patch")"
