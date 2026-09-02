@@ -86,17 +86,23 @@ jobs:
         working-directory: vendor/telegram-android
         run: ./gradlew --no-daemon :TMessagesProj_AppStandalone:assembleAfatRelease
 
-      - name: Name the artifact after the build
-        id: name
+      - name: Collect the APKs
         run: |
           version=$(grep '^APP_VERSION_NAME=' vendor/telegram-android/gradle.properties | cut -d= -f2)
-          echo "apk=NebulaGram-${version}-${GITHUB_SHA::7}.apk" >> "$GITHUB_OUTPUT"
-
-      - name: Collect the APK
-        run: |
-          found=$(find vendor/telegram-android -name '*.apk' -path '*release*' | head -1)
-          test -n "$found" || { echo "::error::no APK was produced"; exit 1; }
-          mkdir -p out && cp "$found" "out/${{ steps.name.outputs.apk }}"
+          mkdir -p out
+          # One file per architecture; see patches/android/0003.
+          found=0
+          while IFS= read -r apk; do
+            abi=$(basename "$apk" .apk | sed 's/^NebulaGram-//')
+            cp "$apk" "out/NebulaGram-${version}-${abi}-${GITHUB_SHA::7}.apk"
+            found=$((found + 1))
+          done < <(find vendor/telegram-android -name 'NebulaGram-*.apk' -path '*release*')
+          if [ "$found" -eq 0 ]; then
+            echo "::error::no APK was produced"
+            exit 1
+          fi
+          echo "collected $found APK(s):"
+          ls -la out
 
       - uses: actions/upload-artifact@v4
         with:

@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="120" height="120" role="img" aria-label="NebulaGram">
+  <title>NebulaGram</title>
+  <!-- Rounding comes from a thick stroke in the fill colour, so the silhouette
+       stays exact at any size and needs no per-density raster. -->
+  <g>
+    <path d="M97 27 28 63 57 74Z" fill="#E8F0FE" stroke="#E8F0FE" stroke-width="16"
+          stroke-linejoin="round" stroke-linecap="round"/>
+    <path d="M97 27 57 74 64 101Z" fill="#A8C7FA" stroke="#A8C7FA" stroke-width="16"
+          stroke-linejoin="round" stroke-linecap="round"/>
+  </g>
+</svg>

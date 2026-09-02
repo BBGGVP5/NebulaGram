@@ -1,0 +1,39 @@
+diff --git a/TMessagesProj_AppStandalone/build.gradle b/TMessagesProj_AppStandalone/build.gradle
+index 96dbbbf0..2cdb34dd 100644
+--- a/TMessagesProj_AppStandalone/build.gradle
++++ b/TMessagesProj_AppStandalone/build.gradle
+@@ -110,6 +110,34 @@ android {
+         }
+     }
+ 
++    // NebulaGram: one APK per architecture instead of one fat file. The Go
++    // tunnel core adds about 11 MB of native code per ABI, so a combined build
++    // would make every user download four copies to run one.
++    ext.nebulaAbiCodes = ["armeabi-v7a": 1, "arm64-v8a": 2, "x86": 3, "x86_64": 4]
++
++    splits {
++        abi {
++            enable true
++            reset()
++            include "armeabi-v7a", "arm64-v8a", "x86", "x86_64"
++            universalApk false
++        }
++    }
++
++    // A second variants block rather than an edit of the one below: each split
++    // needs its own file name and its own version code, and Play — plus every
++    // updater — rejects two APKs sharing a code.
++    applicationVariants.all { variant ->
++        variant.outputs.all { output ->
++            def abi = output.getFilter(com.android.build.OutputFile.ABI)
++            if (abi != null) {
++                outputFileName = "NebulaGram-${abi}.apk"
++                output.versionCodeOverride =
++                        defaultConfig.versionCode * 10 + ext.nebulaAbiCodes.get(abi, 0)
++            }
++        }
++    }
++
+     defaultConfig.versionCode = Integer.parseInt(APP_VERSION_CODE)
+ 
+     applicationVariants.all { variant ->
