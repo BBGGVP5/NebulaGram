@@ -162,9 +162,9 @@ func stamp(servers []model.Server, source string) {
 // response carries none of them (a plain subscription host).
 func infoFromHeaders(h http.Header) *model.SubscriptionInfo {
 	info := &model.SubscriptionInfo{
-		Title:          decodeHeaderTitle(h.Get("profile-title")),
+		Title:          decodeHeaderText(h.Get("profile-title")),
 		SupportURL:     h.Get("support-url"),
-		Announce:       h.Get("announce"),
+		Announce:       decodeHeaderText(h.Get("announce")),
 		ProfileWebPage: h.Get("profile-web-page-url"),
 	}
 	if v, err := strconv.Atoi(h.Get("profile-update-interval")); err == nil {
@@ -201,14 +201,18 @@ func parseUserInfo(value string, info *model.SubscriptionInfo) {
 	}
 }
 
-// decodeHeaderTitle handles the `base64:<payload>` form panels use to keep
-// non-ASCII titles header-safe.
-func decodeHeaderTitle(v string) string {
+// decodeHeaderText handles the `base64:<payload>` form panels use to keep
+// non-ASCII header values safe — both the profile title and the announcement
+// arrive that way, and the announcement is multi-line on top of it.
+func decodeHeaderText(v string) string {
 	payload, ok := strings.CutPrefix(v, "base64:")
 	if !ok {
 		return v
 	}
-	for _, enc := range []*base64.Encoding{base64.StdEncoding, base64.RawStdEncoding} {
+	for _, enc := range []*base64.Encoding{
+		base64.StdEncoding, base64.RawStdEncoding,
+		base64.URLEncoding, base64.RawURLEncoding,
+	} {
 		if b, err := enc.DecodeString(payload); err == nil {
 			return string(b)
 		}

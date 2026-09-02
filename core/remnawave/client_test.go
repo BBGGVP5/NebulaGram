@@ -19,7 +19,7 @@ func TestFetchBase64ListAndHeaders(t *testing.T) {
 		w.Header().Set("profile-title", "base64:"+base64.StdEncoding.EncodeToString([]byte("Креветка")))
 		w.Header().Set("profile-update-interval", "1")
 		w.Header().Set("support-url", "https://t.me/support")
-		w.Header().Set("announce", "Maintenance on Friday")
+		w.Header().Set("announce", "base64:"+base64.StdEncoding.EncodeToString([]byte("Профилактика в пятницу")))
 		_, _ = w.Write([]byte(base64.StdEncoding.EncodeToString([]byte(list))))
 	}))
 	defer srv.Close()
@@ -54,7 +54,7 @@ func TestFetchBase64ListAndHeaders(t *testing.T) {
 	if res.Info.UpdateInterval != 24 {
 		t.Errorf("update interval = %d hours, want 24", res.Info.UpdateInterval)
 	}
-	if res.Info.Announce != "Maintenance on Friday" {
+	if res.Info.Announce != "Профилактика в пятницу" {
 		t.Errorf("announce = %q", res.Info.Announce)
 	}
 }
