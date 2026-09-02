@@ -1,0 +1,939 @@
+<title>NebulaGram Онбординг</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=IBM+Plex+Sans:wght@400;500;600&family=Roboto:wght@300;400;500;700&display=swap">
+<style>
+  /* Page palette. Grounded in real nebula emission lines: O-III teal and
+     H-alpha rose, over a blue-biased ink neutral. */
+  :root {
+    --bg: #EFF1F5;
+    --surface: #FFFFFF;
+    --surface-2: #E6E9EF;
+    --ink: #14161C;
+    --muted: #5B6272;
+    --line: #D3D8E2;
+    --teal: #0B8F82;
+    --rose: #C33453;
+    --shadow: 0 2px 4px rgba(16, 20, 30, .06), 0 18px 40px rgba(16, 20, 30, .10);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #090A0F;
+      --surface: #14161D;
+      --surface-2: #1C1F28;
+      --ink: #E9EBF2;
+      --muted: #949BAC;
+      --line: #262A34;
+      --teal: #35D6C4;
+      --rose: #FF5C7A;
+      --shadow: 0 2px 4px rgba(0, 0, 0, .5), 0 24px 60px rgba(0, 0, 0, .55);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #090A0F;
+    --surface: #14161D;
+    --surface-2: #1C1F28;
+    --ink: #E9EBF2;
+    --muted: #949BAC;
+    --line: #262A34;
+    --teal: #35D6C4;
+    --rose: #FF5C7A;
+    --shadow: 0 2px 4px rgba(0, 0, 0, .5), 0 24px 60px rgba(0, 0, 0, .55);
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: "IBM Plex Sans", system-ui, sans-serif;
+    font-size: 15px;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .wrap { max-width: 1180px; margin: 0 auto; padding: 56px 24px 96px; }
+
+  header.page { display: flex; flex-direction: column; gap: 18px; margin-bottom: 56px; }
+  .eyebrow {
+    font-size: 12px; letter-spacing: .14em; text-transform: uppercase;
+    color: var(--teal); font-weight: 600;
+  }
+  h1 {
+    font-family: "Bricolage Grotesque", Georgia, serif;
+    font-weight: 700; font-size: clamp(32px, 5vw, 52px); line-height: 1.05;
+    margin: 0; text-wrap: balance; letter-spacing: -.02em;
+  }
+  .lede { max-width: 62ch; color: var(--muted); margin: 0; font-size: 17px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+  .chip {
+    border: 1px solid var(--line); border-radius: 999px; padding: 5px 13px;
+    font-size: 13px; color: var(--muted); background: var(--surface);
+  }
+  .chip b { color: var(--ink); font-weight: 600; }
+
+  section { margin-top: 64px; }
+  h2 {
+    font-family: "Bricolage Grotesque", Georgia, serif;
+    font-size: 26px; font-weight: 700; margin: 0 0 6px; letter-spacing: -.01em;
+  }
+  .section-note { color: var(--muted); margin: 0 0 28px; max-width: 68ch; }
+
+  .rail {
+    display: flex; gap: 28px; overflow-x: auto; padding: 8px 4px 28px;
+    scroll-snap-type: x proximity;
+  }
+  .rail::-webkit-scrollbar { height: 8px; }
+  .rail::-webkit-scrollbar-thumb { background: var(--line); border-radius: 4px; }
+  .slot { scroll-snap-align: start; flex: 0 0 auto; display: flex; flex-direction: column; gap: 12px; }
+  .slot figcaption { width: 292px; }
+  .slot .step {
+    font-size: 12px; letter-spacing: .1em; text-transform: uppercase;
+    color: var(--teal); font-weight: 600;
+  }
+  .slot .what { font-size: 14px; color: var(--muted); }
+  .slot .what b { color: var(--ink); font-weight: 600; }
+
+  /* ---------- device frame ---------- */
+  .phone {
+    width: 292px; height: 622px; border-radius: 42px; padding: 9px;
+    background: linear-gradient(160deg, #33363F, #101218 60%);
+    box-shadow: var(--shadow);
+    flex: 0 0 auto;
+  }
+  .screen {
+    position: relative; width: 100%; height: 100%; border-radius: 34px;
+    overflow: hidden; display: flex; flex-direction: column;
+  }
+  .statusbar {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 12px 20px 4px; font-size: 12px; font-weight: 500; flex: 0 0 auto;
+  }
+  .statusbar .icons { display: flex; gap: 5px; align-items: center; }
+  .bar { width: 3px; border-radius: 1px; background: currentColor; }
+  .homebar {
+    height: 4px; width: 108px; border-radius: 2px; margin: 0 auto 8px;
+    background: currentColor; opacity: .35; flex: 0 0 auto;
+  }
+
+  /* ---------- Android Material 3 ---------- */
+  .m3 {
+    /* Tonal roles generated from the seed; this set is the teal seed. */
+    --m3-seed: #35D6C4;
+    --m3-primary: #58DBC9;
+    --m3-on-primary: #00382F;
+    --m3-primary-container: #005046;
+    --m3-on-primary-container: #74F8E4;
+    --m3-surface: #0E1513;
+    --m3-surface-container: #1A2220;
+    --m3-surface-container-high: #242C2A;
+    --m3-on-surface: #DEE4E1;
+    --m3-on-surface-variant: #A8B1AE;
+    --m3-outline: #3B4442;
+    background: var(--m3-surface);
+    color: var(--m3-on-surface);
+    font-family: Roboto, system-ui, sans-serif;
+  }
+  .m3.rose { --m3-primary: #FFB2BC; --m3-on-primary: #67002A; --m3-primary-container: #8E123F;
+             --m3-on-primary-container: #FFD9DE; --m3-surface: #16100F; --m3-surface-container: #221A1A;
+             --m3-surface-container-high: #2D2424; --m3-on-surface: #EDE0DF; --m3-on-surface-variant: #B4A9A8;
+             --m3-outline: #4A403F; }
+  .m3.light { --m3-primary: #006A5E; --m3-on-primary: #FFFFFF; --m3-primary-container: #9FF2E1;
+              --m3-on-primary-container: #00201B; --m3-surface: #F4FBF8; --m3-surface-container: #E8EFEC;
+              --m3-surface-container-high: #E2E9E6; --m3-on-surface: #171D1B; --m3-on-surface-variant: #3F4946;
+              --m3-outline: #6F7976; }
+  .m3.violet { --m3-primary: #CFBCFF; --m3-on-primary: #381E72; --m3-primary-container: #4F378A;
+               --m3-on-primary-container: #E9DDFF; --m3-surface: #131118; --m3-surface-container: #1F1B24;
+               --m3-surface-container-high: #2A252F; --m3-on-surface: #E6E1E9; --m3-on-surface-variant: #ACA6B4;
+               --m3-outline: #423E48; }
+
+  .m3-body { flex: 1; display: flex; flex-direction: column; padding: 0 24px; overflow: hidden; }
+  .m3-art { display: flex; justify-content: center; padding: 26px 0 22px; }
+  .m3-h {
+    font-size: 28px; line-height: 1.18; font-weight: 400; letter-spacing: 0;
+    margin: 0 0 12px; text-wrap: balance;
+  }
+  .m3-h b { font-weight: 500; color: var(--m3-primary); }
+  .m3-sub { font-size: 14px; line-height: 1.45; color: var(--m3-on-surface-variant); margin: 0; }
+
+  .m3-actions { margin-top: auto; padding: 20px 0 10px; display: flex; flex-direction: column; gap: 4px; }
+  .m3-btn {
+    height: 52px; border-radius: 26px; border: none; width: 100%;
+    background: var(--m3-primary); color: var(--m3-on-primary);
+    font-family: Roboto, system-ui, sans-serif; font-size: 15px; font-weight: 500;
+    letter-spacing: .02em; display: flex; align-items: center; justify-content: center;
+  }
+  .m3-text-btn {
+    height: 44px; border-radius: 22px; border: none; background: none;
+    color: var(--m3-primary); font-family: Roboto, system-ui, sans-serif;
+    font-size: 14px; font-weight: 500; display: flex; align-items: center; justify-content: center;
+  }
+  .m3-field {
+    border-radius: 14px; background: var(--m3-surface-container);
+    border: 1px solid var(--m3-outline); padding: 10px 16px; display: flex;
+    flex-direction: column; gap: 2px; margin-top: 4px;
+  }
+  .m3-field .label { font-size: 11px; color: var(--m3-primary); letter-spacing: .03em; }
+  .m3-field .value { font-size: 15px; color: var(--m3-on-surface); }
+  .m3-field .value.dim { color: var(--m3-on-surface-variant); }
+  .m3-caret { display: inline-block; width: 1.5px; height: 17px; background: var(--m3-primary);
+              vertical-align: -3px; margin-left: 1px; }
+
+  .m3-status {
+    display: flex; align-items: center; gap: 8px; align-self: flex-start;
+    background: var(--m3-primary-container); color: var(--m3-on-primary-container);
+    border-radius: 999px; padding: 6px 14px 6px 10px; font-size: 12.5px; font-weight: 500;
+  }
+  .dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+
+  .m3-code { display: flex; gap: 9px; margin-top: 6px; }
+  .m3-code span {
+    flex: 1; height: 56px; border-radius: 14px; background: var(--m3-surface-container);
+    border: 1px solid var(--m3-outline); display: flex; align-items: center;
+    justify-content: center; font-size: 24px; font-weight: 400;
+  }
+  .m3-code span.filled { border-color: var(--m3-primary); border-width: 2px; }
+  .m3-code span.active { border-color: var(--m3-primary); border-width: 2px; color: var(--m3-primary); }
+
+  .m3-progress { display: flex; gap: 6px; justify-content: center; padding: 4px 0 14px; }
+  .m3-progress i { width: 22px; height: 4px; border-radius: 2px; background: var(--m3-outline); }
+  .m3-progress i.on { background: var(--m3-primary); width: 30px; }
+
+  .m3-list-item { display: flex; gap: 14px; align-items: flex-start; padding: 12px 0; }
+  .m3-list-item .ic {
+    width: 40px; height: 40px; border-radius: 12px; flex: 0 0 auto;
+    background: var(--m3-surface-container-high); color: var(--m3-primary);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .m3-list-item .tx strong { display: block; font-size: 14px; font-weight: 500; }
+  .m3-list-item .tx span { font-size: 12.5px; color: var(--m3-on-surface-variant); }
+
+  /* ---------- iOS Liquid Glass ---------- */
+  .ios {
+    font-family: -apple-system, "SF Pro Text", "Segoe UI", system-ui, sans-serif;
+    color: #F2F4F8;
+    background: #05060A;
+    position: relative;
+  }
+  .ios .aurora { position: absolute; inset: -20%; filter: blur(48px); opacity: .95; }
+  .ios .aurora i { position: absolute; display: block; border-radius: 50%; }
+  .ios .aurora .a { width: 60%; height: 38%; left: -8%; top: 4%; background: #1FA89B; }
+  .ios .aurora .b { width: 55%; height: 34%; right: -10%; top: 22%; background: #C0325A; }
+  .ios .aurora .c { width: 70%; height: 40%; left: 6%; bottom: -6%; background: #2B3A8F; }
+  .ios .ios-inner { position: relative; z-index: 1; display: flex; flex-direction: column; height: 100%; }
+  .ios-body { flex: 1; display: flex; flex-direction: column; padding: 0 20px; overflow: hidden; }
+
+  .glass {
+    background: rgba(255, 255, 255, .10);
+    backdrop-filter: blur(22px) saturate(180%);
+    -webkit-backdrop-filter: blur(22px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, .22);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, .35), 0 12px 32px rgba(0, 0, 0, .28);
+  }
+  .ios-card { border-radius: 26px; padding: 20px; margin-top: 18px; }
+  .ios-h { font-size: 27px; font-weight: 700; letter-spacing: -.5px; margin: 0 0 8px; line-height: 1.2; }
+  .ios-sub { font-size: 14px; line-height: 1.45; color: rgba(242, 244, 248, .78); margin: 0; }
+  .ios-actions { margin-top: auto; padding: 16px 0 12px; display: flex; flex-direction: column; gap: 8px; }
+  .ios-btn {
+    height: 52px; border-radius: 26px; font-size: 16px; font-weight: 600;
+    display: flex; align-items: center; justify-content: center;
+    background: rgba(255, 255, 255, .92); color: #08131A; border: none;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, .3);
+  }
+  .ios-btn.glassy {
+    background: rgba(255, 255, 255, .14); color: #FFFFFF;
+    border: 1px solid rgba(255, 255, 255, .3);
+    backdrop-filter: blur(18px) saturate(180%); -webkit-backdrop-filter: blur(18px) saturate(180%);
+  }
+  .ios-text-btn { height: 40px; display: flex; align-items: center; justify-content: center;
+                  font-size: 15px; color: rgba(255, 255, 255, .82); }
+  .ios-field { border-radius: 18px; padding: 12px 16px; display: flex; flex-direction: column; gap: 2px; }
+  .ios-field .label { font-size: 11px; text-transform: uppercase; letter-spacing: .08em;
+                      color: rgba(255, 255, 255, .6); }
+  .ios-field .value { font-size: 16px; }
+  .ios-field .value.dim { color: rgba(255, 255, 255, .55); }
+  .ios-code { display: flex; gap: 8px; }
+  .ios-code span {
+    flex: 1; height: 58px; border-radius: 18px; display: flex; align-items: center;
+    justify-content: center; font-size: 24px; font-weight: 600;
+  }
+  .ios-pill {
+    align-self: flex-start; border-radius: 999px; padding: 7px 14px 7px 10px;
+    display: flex; align-items: center; gap: 8px; font-size: 12.5px; font-weight: 600;
+  }
+  .ios-row { display: flex; align-items: center; gap: 12px; padding: 11px 0; }
+  .ios-row .ic { width: 34px; height: 34px; border-radius: 11px; display: flex;
+                 align-items: center; justify-content: center; background: rgba(255, 255, 255, .16); }
+  .ios-row .tx strong { display: block; font-size: 14.5px; font-weight: 600; }
+  .ios-row .tx span { font-size: 12.5px; color: rgba(242, 244, 248, .7); }
+  .ios-sep { height: 1px; background: rgba(255, 255, 255, .14); }
+
+  /* ---------- palette strip ---------- */
+  .seeds { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px; }
+  .seed-card { background: var(--surface); border: 1px solid var(--line); border-radius: 20px; padding: 20px; }
+  .seed-head { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
+  .seed-dot { width: 34px; height: 34px; border-radius: 10px; flex: 0 0 auto; }
+  .seed-head strong { display: block; font-size: 15px; }
+  .seed-head span { font-size: 13px; color: var(--muted); }
+  .tones { display: flex; border-radius: 10px; overflow: hidden; height: 34px; }
+  .tones i { flex: 1; }
+
+  /* ---------- ownership table ---------- */
+  .own { width: 100%; border-collapse: collapse; font-size: 14.5px; }
+  .own th, .own td { text-align: left; padding: 13px 14px; border-bottom: 1px solid var(--line); }
+  .own th { font-size: 12px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+  .own tbody tr:last-child td { border-bottom: none; }
+  .tag { display: inline-flex; align-items: center; gap: 6px; border-radius: 999px;
+         padding: 3px 11px; font-size: 12.5px; font-weight: 600; }
+  .tag.ours { background: color-mix(in srgb, var(--teal) 16%, transparent); color: var(--teal); }
+  .tag.tg { background: color-mix(in srgb, var(--rose) 16%, transparent); color: var(--rose); }
+  .table-wrap { overflow-x: auto; background: var(--surface); border: 1px solid var(--line);
+                border-radius: 20px; padding: 6px 10px; }
+
+  footer.page { margin-top: 72px; padding-top: 28px; border-top: 1px solid var(--line);
+                color: var(--muted); font-size: 14px; max-width: 70ch; }
+
+  @media (max-width: 640px) {
+    .wrap { padding: 36px 16px 72px; }
+  }
+</style>
+
+<div class="wrap">
+  <header class="page">
+    <div class="eyebrow">Онбординг · экраны первого запуска</div>
+    <h1>Добро пожаловать в NebulaGram</h1>
+    <p class="lede">
+      Четыре экрана до входа в аккаунт. Шаг подключения туннеля стоит вторым, до номера телефона:
+      на заблокированной сети SMS с кодом не придёт, пока NebulaLink не поднят.
+    </p>
+    <div class="chips">
+      <span class="chip"><b>Android</b> · Material 3, динамические цвета</span>
+      <span class="chip"><b>iOS</b> · Liquid Glass</span>
+      <span class="chip">Текст экранов — из <b>core/onboarding</b></span>
+    </div>
+  </header>
+
+  <section>
+    <h2>Android · Material 3</h2>
+    <p class="section-note">
+      Кнопка действия прижата к низу и растянута по ширине, крупный заголовок Display Small,
+      скругления 26 dp у кнопок и 14 dp у полей. Палитра — тональная схема Material You,
+      здесь показана на бирюзовом seed-цвете.
+    </p>
+
+    <div class="rail">
+      <!-- 1. Welcome -->
+      <figure class="slot">
+        <div class="phone">
+          <div class="screen m3">
+            <div class="statusbar">
+              <span>18:37</span>
+              <span class="icons">
+                <svg width="15" height="11" viewBox="0 0 15 11" fill="currentColor" aria-hidden="true"><path d="M7.5 9.6 0 2.6A11 11 0 0 1 15 2.6L7.5 9.6Z" opacity=".9"/></svg>
+                <svg width="20" height="11" viewBox="0 0 20 11" fill="none" aria-hidden="true">
+                  <rect x=".5" y=".5" width="16" height="10" rx="3" stroke="currentColor" opacity=".6"/>
+                  <rect x="2" y="2" width="9" height="7" rx="1.6" fill="currentColor"/>
+                  <rect x="18" y="3.6" width="2" height="3.8" rx="1" fill="currentColor" opacity=".6"/>
+                </svg>
+              </span>
+            </div>
+
+            <div class="m3-body">
+              <div class="m3-art">
+                <svg width="150" height="150" viewBox="0 0 150 150" role="img" aria-label="Знак NebulaGram">
+                  <defs>
+                    <radialGradient id="neb" cx="50%" cy="45%" r="55%">
+                      <stop offset="0%" stop-color="#8CF3E4"/>
+                      <stop offset="55%" stop-color="#2AA79A"/>
+                      <stop offset="100%" stop-color="#0C3B38" stop-opacity="0"/>
+                    </radialGradient>
+                    <linearGradient id="ring" x1="0" y1="0" x2="1" y2="1">
+                      <stop offset="0%" stop-color="#74F8E4"/>
+                      <stop offset="100%" stop-color="#FF7E9B"/>
+                    </linearGradient>
+                  </defs>
+                  <circle cx="75" cy="72" r="52" fill="url(#neb)" opacity=".85"/>
+                  <ellipse cx="75" cy="74" rx="62" ry="26" fill="none" stroke="url(#ring)"
+                           stroke-width="2.5" opacity=".9" transform="rotate(-24 75 74)"/>
+                  <ellipse cx="75" cy="74" rx="46" ry="18" fill="none" stroke="#74F8E4"
+                           stroke-width="1.2" opacity=".45" transform="rotate(-24 75 74)"/>
+                  <circle cx="75" cy="70" r="13" fill="#0E1513"/>
+                  <circle cx="75" cy="70" r="9" fill="#74F8E4"/>
+                  <circle cx="118" cy="46" r="2.6" fill="#FFB2BC"/>
+                  <circle cx="36" cy="100" r="2" fill="#74F8E4" opacity=".8"/>
+                  <circle cx="112" cy="106" r="1.6" fill="#FFFFFF" opacity=".6"/>
+                </svg>
+              </div>
+
+              <h3 class="m3-h">Добро пожаловать<br>в <b>NebulaGram</b></h3>
+              <p class="m3-sub">
+                Telegram со встроенным туннелем. Ваши серверы, ваши ключи,
+                без сторонних релеев и без второго приложения.
+              </p>
+
+              <div class="m3-actions">
+                <div class="m3-progress"><i class="on"></i><i></i><i></i><i></i></div>
+                <div class="m3-btn">Далее</div>
+                <div class="m3-text-btn">Сменить язык · Русский</div>
+              </div>
+            </div>
+            <div class="homebar"></div>
+          </div>
+        </div>
+        <figcaption>
+          <div class="step">Шаг 1</div>
+          <div class="what"><b>Приветствие.</b> Полностью наш экран, апстрим его не знает.</div>
+        </figcaption>
+      </figure>
+
+      <!-- 2. NebulaLink -->
+      <figure class="slot">
+        <div class="phone">
+          <div class="screen m3">
+            <div class="statusbar">
+              <span>18:37</span>
+              <span class="icons">
+                <svg width="15" height="11" viewBox="0 0 15 11" fill="currentColor" aria-hidden="true"><path d="M7.5 9.6 0 2.6A11 11 0 0 1 15 2.6L7.5 9.6Z" opacity=".9"/></svg>
+                <svg width="20" height="11" viewBox="0 0 20 11" fill="none" aria-hidden="true">
+                  <rect x=".5" y=".5" width="16" height="10" rx="3" stroke="currentColor" opacity=".6"/>
+                  <rect x="2" y="2" width="9" height="7" rx="1.6" fill="currentColor"/>
+                  <rect x="18" y="3.6" width="2" height="3.8" rx="1" fill="currentColor" opacity=".6"/>
+                </svg>
+              </span>
+            </div>
+
+            <div class="m3-body">
+              <div class="m3-art" style="padding: 22px 0 16px;">
+                <svg width="112" height="112" viewBox="0 0 112 112" role="img" aria-label="Щит NebulaLink">
+                  <path d="M56 8 96 24v34c0 26-17 41-40 46-23-5-40-20-40-46V24L56 8Z"
+                        fill="#005046" stroke="#74F8E4" stroke-width="2.5"/>
+                  <path d="M46 58l8 9 20-22" fill="none" stroke="#74F8E4" stroke-width="5"
+                        stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </div>
+
+              <h3 class="m3-h">Подключите <b>NebulaLink</b></h3>
+              <p class="m3-sub">
+                Вставьте ссылку на подписку или ключ сервера. Без туннеля код для входа
+                может не дойти.
+              </p>
+
+              <div class="m3-field">
+                <span class="label">Ссылка на подписку или ключ</span>
+                <span class="value">https://subnebulaguard.mooo.com/…<span class="m3-caret"></span></span>
+              </div>
+
+              <div class="m3-list-item">
+                <span class="ic">
+                  <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                    <path d="M3 6h6l2 2h6v7a2 2 0 0 1-2 2H3V6Z" stroke="currentColor" stroke-width="1.6"/>
+                  </svg>
+                </span>
+                <span class="tx">
+                  <strong>Поддерживаются Remnawave и обычные подписки</strong>
+                  <span>VLESS · VMess · Trojan · Shadowsocks · Hysteria2 · TUIC</span>
+                </span>
+              </div>
+
+              <div class="m3-actions">
+                <div class="m3-progress"><i></i><i class="on"></i><i></i><i></i></div>
+                <div class="m3-btn">Подключить</div>
+                <div class="m3-text-btn">Пропустить</div>
+              </div>
+            </div>
+            <div class="homebar"></div>
+          </div>
+        </div>
+        <figcaption>
+          <div class="step">Шаг 2</div>
+          <div class="what"><b>Туннель до номера.</b> Одно поле принимает и подписку, и ключ.</div>
+        </figcaption>
+      </figure>
+
+      <!-- 3. Phone -->
+      <figure class="slot">
+        <div class="phone">
+          <div class="screen m3">
+            <div class="statusbar">
+              <span>18:38</span>
+              <span class="icons">
+                <svg width="12" height="11" viewBox="0 0 12 11" fill="currentColor" aria-hidden="true"><path d="M2 8h2v3H2V8Zm3-2h2v5H5V6Zm3-3h2v8H8V3Z"/></svg>
+                <svg width="15" height="11" viewBox="0 0 15 11" fill="currentColor" aria-hidden="true"><path d="M7.5 9.6 0 2.6A11 11 0 0 1 15 2.6L7.5 9.6Z" opacity=".9"/></svg>
+                <svg width="20" height="11" viewBox="0 0 20 11" fill="none" aria-hidden="true">
+                  <rect x=".5" y=".5" width="16" height="10" rx="3" stroke="currentColor" opacity=".6"/>
+                  <rect x="2" y="2" width="9" height="7" rx="1.6" fill="currentColor"/>
+                  <rect x="18" y="3.6" width="2" height="3.8" rx="1" fill="currentColor" opacity=".6"/>
+                </svg>
+              </span>
+            </div>
+
+            <div class="m3-body">
+              <div style="padding-top: 18px;">
+                <span class="m3-status">
+                  <span class="dot"></span> NebulaLink · Финляндия · 38 мс
+                </span>
+              </div>
+
+              <h3 class="m3-h" style="margin-top: 24px;">Ваш номер телефона</h3>
+              <p class="m3-sub">Подтвердите код страны и введите номер — код придёт в Telegram или SMS.</p>
+
+              <div class="m3-field">
+                <span class="label">Страна</span>
+                <span class="value">🇷🇺 Россия</span>
+              </div>
+              <div class="m3-field">
+                <span class="label">Номер телефона</span>
+                <span class="value">+7 900 123-45-67<span class="m3-caret"></span></span>
+              </div>
+
+              <div class="m3-actions">
+                <div class="m3-progress"><i></i><i></i><i class="on"></i><i></i></div>
+                <div class="m3-btn">Далее</div>
+                <div class="m3-text-btn">Войти по QR-коду</div>
+              </div>
+            </div>
+            <div class="homebar"></div>
+          </div>
+        </div>
+        <figcaption>
+          <div class="step">Шаг 3</div>
+          <div class="what"><b>Номер.</b> Логика — Telegram, оформление — наше. Сверху статус туннеля.</div>
+        </figcaption>
+      </figure>
+
+      <!-- 4. Code -->
+      <figure class="slot">
+        <div class="phone">
+          <div class="screen m3">
+            <div class="statusbar">
+              <span>18:38</span>
+              <span class="icons">
+                <svg width="15" height="11" viewBox="0 0 15 11" fill="currentColor" aria-hidden="true"><path d="M7.5 9.6 0 2.6A11 11 0 0 1 15 2.6L7.5 9.6Z" opacity=".9"/></svg>
+                <svg width="20" height="11" viewBox="0 0 20 11" fill="none" aria-hidden="true">
+                  <rect x=".5" y=".5" width="16" height="10" rx="3" stroke="currentColor" opacity=".6"/>
+                  <rect x="2" y="2" width="9" height="7" rx="1.6" fill="currentColor"/>
+                  <rect x="18" y="3.6" width="2" height="3.8" rx="1" fill="currentColor" opacity=".6"/>
+                </svg>
+              </span>
+            </div>
+
+            <div class="m3-body">
+              <div style="padding-top: 18px;">
+                <span class="m3-status"><span class="dot"></span> NebulaLink · Финляндия · 38 мс</span>
+              </div>
+
+              <h3 class="m3-h" style="margin-top: 24px;">Введите код</h3>
+              <p class="m3-sub">Мы отправили код в Telegram на другое ваше устройство.</p>
+
+              <div class="m3-code">
+                <span class="filled">4</span><span class="filled">1</span><span class="filled">7</span>
+                <span class="active">|</span><span></span>
+              </div>
+
+              <div class="m3-list-item" style="margin-top: 6px;">
+                <span class="ic">
+                  <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                    <circle cx="10" cy="10" r="7.2" stroke="currentColor" stroke-width="1.6"/>
+                    <path d="M10 6v4.4l2.8 1.8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+                  </svg>
+                </span>
+                <span class="tx">
+                  <strong>Отправить SMS через 1:42</strong>
+                  <span>Если код не пришёл, проверьте туннель</span>
+                </span>
+              </div>
+
+              <div class="m3-actions">
+                <div class="m3-progress"><i></i><i></i><i></i><i class="on"></i></div>
+                <div class="m3-btn">Далее</div>
+                <div class="m3-text-btn">Не приходит код?</div>
+              </div>
+            </div>
+            <div class="homebar"></div>
+          </div>
+        </div>
+        <figcaption>
+          <div class="step">Шаг 4</div>
+          <div class="what"><b>Код.</b> Пять ячеек M3, подсказка про туннель вместо тупика.</div>
+        </figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <section>
+    <h2>Material You: экран берёт цвет обоев</h2>
+    <p class="section-note">
+      Один и тот же экран, три seed-цвета. Палитра считается из обоев алгоритмом HCT и
+      раскладывается по ключам темы Telegram — поэтому цвета Material You получает всё
+      приложение, а не только наши экраны. Патчей в апстрим для этого не нужно.
+    </p>
+
+    <div class="rail">
+      <figure class="slot">
+        <div class="phone" style="height: 420px;">
+          <div class="screen m3">
+            <div class="statusbar"><span>18:37</span><span class="icons">100%</span></div>
+            <div class="m3-body">
+              <h3 class="m3-h" style="margin-top: 26px; font-size: 25px;">Добро пожаловать<br>в <b>NebulaGram</b></h3>
+              <p class="m3-sub">Telegram со встроенным туннелем.</p>
+              <div class="m3-actions"><div class="m3-btn">Далее</div><div class="m3-text-btn">Сменить язык</div></div>
+            </div>
+            <div class="homebar"></div>
+          </div>
+        </div>
+        <figcaption><div class="what"><b>Seed #35D6C4</b> — бирюза туманности O III</div></figcaption>
+      </figure>
+
+      <figure class="slot">
+        <div class="phone" style="height: 420px;">
+          <div class="screen m3 rose">
+            <div class="statusbar"><span>18:37</span><span class="icons">100%</span></div>
+            <div class="m3-body">
+              <h3 class="m3-h" style="margin-top: 26px; font-size: 25px;">Добро пожаловать<br>в <b>NebulaGram</b></h3>
+              <p class="m3-sub">Telegram со встроенным туннелем.</p>
+              <div class="m3-actions"><div class="m3-btn">Далее</div><div class="m3-text-btn">Сменить язык</div></div>
+            </div>
+            <div class="homebar"></div>
+          </div>
+        </div>
+        <figcaption><div class="what"><b>Seed #FF5C7A</b> — розовые обои, H-alpha</div></figcaption>
+      </figure>
+
+      <figure class="slot">
+        <div class="phone" style="height: 420px;">
+          <div class="screen m3 violet">
+            <div class="statusbar"><span>18:37</span><span class="icons">100%</span></div>
+            <div class="m3-body">
+              <h3 class="m3-h" style="margin-top: 26px; font-size: 25px;">Добро пожаловать<br>в <b>NebulaGram</b></h3>
+              <p class="m3-sub">Telegram со встроенным туннелем.</p>
+              <div class="m3-actions"><div class="m3-btn">Далее</div><div class="m3-text-btn">Сменить язык</div></div>
+            </div>
+            <div class="homebar"></div>
+          </div>
+        </div>
+        <figcaption><div class="what"><b>Seed #7C4DFF</b> — фиолетовые обои</div></figcaption>
+      </figure>
+
+      <figure class="slot">
+        <div class="phone" style="height: 420px;">
+          <div class="screen m3 light">
+            <div class="statusbar"><span>18:37</span><span class="icons">100%</span></div>
+            <div class="m3-body">
+              <h3 class="m3-h" style="margin-top: 26px; font-size: 25px;">Добро пожаловать<br>в <b>NebulaGram</b></h3>
+              <p class="m3-sub">Telegram со встроенным туннелем.</p>
+              <div class="m3-actions"><div class="m3-btn">Далее</div><div class="m3-text-btn">Сменить язык</div></div>
+            </div>
+            <div class="homebar"></div>
+          </div>
+        </div>
+        <figcaption><div class="what"><b>Светлая схема</b> — та же палитра, тона 40/90</div></figcaption>
+      </figure>
+    </div>
+
+    <div class="seeds">
+      <div class="seed-card">
+        <div class="seed-head">
+          <span class="seed-dot" style="background: #35D6C4;"></span>
+          <span><strong>Primary</strong><span>тона 10 → 90</span></span>
+        </div>
+        <div class="tones">
+          <i style="background:#00201B"></i><i style="background:#00382F"></i><i style="background:#005046"></i>
+          <i style="background:#006A5E"></i><i style="background:#28857A"></i><i style="background:#4CA095"></i>
+          <i style="background:#68BCB0"></i><i style="background:#84D8CB"></i><i style="background:#9FF2E1"></i>
+        </div>
+      </div>
+      <div class="seed-card">
+        <div class="seed-head">
+          <span class="seed-dot" style="background: #FF5C7A;"></span>
+          <span><strong>Secondary</strong><span>акцент уведомлений и ошибок</span></span>
+        </div>
+        <div class="tones">
+          <i style="background:#40000F"></i><i style="background:#67002A"></i><i style="background:#8E123F"></i>
+          <i style="background:#B02D56"></i><i style="background:#CD476D"></i><i style="background:#E96285"></i>
+          <i style="background:#FF8A9F"></i><i style="background:#FFB2BC"></i><i style="background:#FFD9DE"></i>
+        </div>
+      </div>
+      <div class="seed-card">
+        <div class="seed-head">
+          <span class="seed-dot" style="background: #1A2220;"></span>
+          <span><strong>Neutral</strong><span>поверхности, слегка уведённые в бирюзу</span></span>
+        </div>
+        <div class="tones">
+          <i style="background:#0E1513"></i><i style="background:#1A2220"></i><i style="background:#242C2A"></i>
+          <i style="background:#3B4442"></i><i style="background:#6F7976"></i><i style="background:#A8B1AE"></i>
+          <i style="background:#C4CDCA"></i><i style="background:#DEE4E1"></i><i style="background:#F4FBF8"></i>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>iOS · Liquid Glass</h2>
+    <p class="section-note">
+      Те же четыре шага и тот же текст из ядра, но материал другой: полупрозрачные стеклянные
+      панели поверх подсвеченного фона, крупная кнопка-стекло внизу. На iOS ниже 26 —
+      фолбэк на <code>UIBlurEffect</code> с теми же цветами, чтобы сборка оставалась рабочей.
+    </p>
+
+    <div class="rail">
+      <!-- iOS welcome -->
+      <figure class="slot">
+        <div class="phone">
+          <div class="screen ios">
+            <div class="aurora" aria-hidden="true"><i class="a"></i><i class="b"></i><i class="c"></i></div>
+            <div class="ios-inner">
+              <div class="statusbar">
+                <span>18:37</span>
+                <span class="icons">
+                  <svg width="15" height="11" viewBox="0 0 15 11" fill="currentColor" aria-hidden="true"><path d="M7.5 9.6 0 2.6A11 11 0 0 1 15 2.6L7.5 9.6Z"/></svg>
+                  <svg width="20" height="11" viewBox="0 0 20 11" fill="none" aria-hidden="true">
+                    <rect x=".5" y=".5" width="16" height="10" rx="3.4" stroke="currentColor" opacity=".7"/>
+                    <rect x="2" y="2" width="10" height="7" rx="2" fill="currentColor"/>
+                  </svg>
+                </span>
+              </div>
+
+              <div class="ios-body">
+                <div class="m3-art" style="padding: 30px 0 6px;">
+                  <svg width="132" height="132" viewBox="0 0 150 150" role="img" aria-label="Знак NebulaGram">
+                    <defs>
+                      <radialGradient id="neb2" cx="50%" cy="45%" r="55%">
+                        <stop offset="0%" stop-color="#FFFFFF"/>
+                        <stop offset="45%" stop-color="#8CF3E4"/>
+                        <stop offset="100%" stop-color="#2AA79A" stop-opacity="0"/>
+                      </radialGradient>
+                    </defs>
+                    <circle cx="75" cy="72" r="50" fill="url(#neb2)" opacity=".9"/>
+                    <ellipse cx="75" cy="74" rx="62" ry="26" fill="none" stroke="#FFFFFF"
+                             stroke-width="2" opacity=".85" transform="rotate(-24 75 74)"/>
+                    <circle cx="75" cy="70" r="12" fill="rgba(255,255,255,.9)"/>
+                  </svg>
+                </div>
+
+                <div class="glass ios-card">
+                  <h3 class="ios-h">Добро пожаловать в NebulaGram</h3>
+                  <p class="ios-sub">
+                    Telegram со встроенным туннелем. Ваши серверы, ваши ключи,
+                    без сторонних релеев.
+                  </p>
+                </div>
+
+                <div class="ios-actions">
+                  <div class="ios-btn">Далее</div>
+                  <div class="ios-text-btn">Сменить язык · Русский</div>
+                </div>
+              </div>
+              <div class="homebar" style="opacity:.7;"></div>
+            </div>
+          </div>
+        </div>
+        <figcaption>
+          <div class="step">Шаг 1</div>
+          <div class="what"><b>Приветствие.</b> Стеклянная карточка поверх свечения туманности.</div>
+        </figcaption>
+      </figure>
+
+      <!-- iOS tunnel -->
+      <figure class="slot">
+        <div class="phone">
+          <div class="screen ios">
+            <div class="aurora" aria-hidden="true"><i class="a"></i><i class="b"></i><i class="c"></i></div>
+            <div class="ios-inner">
+              <div class="statusbar">
+                <span>18:37</span>
+                <span class="icons">
+                  <svg width="15" height="11" viewBox="0 0 15 11" fill="currentColor" aria-hidden="true"><path d="M7.5 9.6 0 2.6A11 11 0 0 1 15 2.6L7.5 9.6Z"/></svg>
+                  <svg width="20" height="11" viewBox="0 0 20 11" fill="none" aria-hidden="true">
+                    <rect x=".5" y=".5" width="16" height="10" rx="3.4" stroke="currentColor" opacity=".7"/>
+                    <rect x="2" y="2" width="10" height="7" rx="2" fill="currentColor"/>
+                  </svg>
+                </span>
+              </div>
+
+              <div class="ios-body">
+                <h3 class="ios-h" style="margin-top: 26px;">Подключите NebulaLink</h3>
+                <p class="ios-sub">Вставьте ссылку на подписку или ключ сервера.</p>
+
+                <div class="glass ios-field" style="margin-top: 18px;">
+                  <span class="label">Подписка или ключ</span>
+                  <span class="value dim">https://subnebulaguard.mooo.com/…</span>
+                </div>
+
+                <div class="glass ios-card" style="padding: 6px 16px;">
+                  <div class="ios-row">
+                    <span class="ic">
+                      <svg width="17" height="17" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                        <path d="M10 2 17 5v6c0 5-3.4 7.6-7 8.4C6.4 18.6 3 16 3 11V5l7-3Z" stroke="currentColor" stroke-width="1.6"/>
+                      </svg>
+                    </span>
+                    <span class="tx"><strong>Remnawave и обычные подписки</strong><span>Лимит устройств учитывается</span></span>
+                  </div>
+                  <div class="ios-sep"></div>
+                  <div class="ios-row">
+                    <span class="ic">
+                      <svg width="17" height="17" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                        <path d="M3 10h14M10 3v14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                      </svg>
+                    </span>
+                    <span class="tx"><strong>Шесть протоколов</strong><span>VLESS · Trojan · Hysteria2 · TUIC</span></span>
+                  </div>
+                </div>
+
+                <div class="ios-actions">
+                  <div class="ios-btn">Подключить</div>
+                  <div class="ios-text-btn">Пропустить</div>
+                </div>
+              </div>
+              <div class="homebar" style="opacity:.7;"></div>
+            </div>
+          </div>
+        </div>
+        <figcaption>
+          <div class="step">Шаг 2</div>
+          <div class="what"><b>Туннель.</b> Стеклянный список поверх фона, без плотных карточек.</div>
+        </figcaption>
+      </figure>
+
+      <!-- iOS phone -->
+      <figure class="slot">
+        <div class="phone">
+          <div class="screen ios">
+            <div class="aurora" aria-hidden="true"><i class="a"></i><i class="b"></i><i class="c"></i></div>
+            <div class="ios-inner">
+              <div class="statusbar">
+                <span>18:38</span>
+                <span class="icons">
+                  <svg width="15" height="11" viewBox="0 0 15 11" fill="currentColor" aria-hidden="true"><path d="M7.5 9.6 0 2.6A11 11 0 0 1 15 2.6L7.5 9.6Z"/></svg>
+                  <svg width="20" height="11" viewBox="0 0 20 11" fill="none" aria-hidden="true">
+                    <rect x=".5" y=".5" width="16" height="10" rx="3.4" stroke="currentColor" opacity=".7"/>
+                    <rect x="2" y="2" width="10" height="7" rx="2" fill="currentColor"/>
+                  </svg>
+                </span>
+              </div>
+
+              <div class="ios-body">
+                <div style="padding-top: 16px;">
+                  <span class="glass ios-pill"><span class="dot" style="background:#7CF5C8"></span> NebulaLink · 38 мс</span>
+                </div>
+
+                <h3 class="ios-h" style="margin-top: 22px;">Ваш номер телефона</h3>
+                <p class="ios-sub">Подтвердите код страны и введите номер.</p>
+
+                <div class="glass ios-field" style="margin-top: 18px;">
+                  <span class="label">Страна</span><span class="value">🇷🇺 Россия</span>
+                </div>
+                <div class="glass ios-field" style="margin-top: 10px;">
+                  <span class="label">Номер</span><span class="value">+7 900 123-45-67</span>
+                </div>
+
+                <div class="ios-actions">
+                  <div class="ios-btn">Далее</div>
+                  <div class="ios-text-btn">Войти по QR-коду</div>
+                </div>
+              </div>
+              <div class="homebar" style="opacity:.7;"></div>
+            </div>
+          </div>
+        </div>
+        <figcaption>
+          <div class="step">Шаг 3</div>
+          <div class="what"><b>Номер.</b> Стеклянная плашка статуса туннеля закреплена сверху.</div>
+        </figcaption>
+      </figure>
+
+      <!-- iOS code -->
+      <figure class="slot">
+        <div class="phone">
+          <div class="screen ios">
+            <div class="aurora" aria-hidden="true"><i class="a"></i><i class="b"></i><i class="c"></i></div>
+            <div class="ios-inner">
+              <div class="statusbar">
+                <span>18:38</span>
+                <span class="icons">
+                  <svg width="15" height="11" viewBox="0 0 15 11" fill="currentColor" aria-hidden="true"><path d="M7.5 9.6 0 2.6A11 11 0 0 1 15 2.6L7.5 9.6Z"/></svg>
+                  <svg width="20" height="11" viewBox="0 0 20 11" fill="none" aria-hidden="true">
+                    <rect x=".5" y=".5" width="16" height="10" rx="3.4" stroke="currentColor" opacity=".7"/>
+                    <rect x="2" y="2" width="10" height="7" rx="2" fill="currentColor"/>
+                  </svg>
+                </span>
+              </div>
+
+              <div class="ios-body">
+                <div style="padding-top: 16px;">
+                  <span class="glass ios-pill"><span class="dot" style="background:#7CF5C8"></span> NebulaLink · 38 мс</span>
+                </div>
+
+                <h3 class="ios-h" style="margin-top: 22px;">Введите код</h3>
+                <p class="ios-sub">Код отправлен в Telegram на другое устройство.</p>
+
+                <div class="ios-code" style="margin-top: 20px;">
+                  <span class="glass">4</span><span class="glass">1</span><span class="glass">7</span>
+                  <span class="glass" style="border-color: rgba(255,255,255,.55);">|</span>
+                  <span class="glass"></span>
+                </div>
+
+                <div class="ios-actions">
+                  <div class="ios-btn glassy">Далее</div>
+                  <div class="ios-text-btn">Отправить SMS через 1:42</div>
+                </div>
+              </div>
+              <div class="homebar" style="opacity:.7;"></div>
+            </div>
+          </div>
+        </div>
+        <figcaption>
+          <div class="step">Шаг 4</div>
+          <div class="what"><b>Код.</b> Ячейки-стекло, кнопка тоже стеклянная, пока код не введён.</div>
+        </figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <section>
+    <h2>Кто что рисует и кто чем управляет</h2>
+    <p class="section-note">
+      Логику авторизации мы не переписываем никогда — там SMS-retriever, QR-вход,
+      passkeys и антифрод. Мы владеем первыми двумя экранами целиком, а экранам входа
+      отдаём только оформление.
+    </p>
+    <div class="table-wrap">
+      <table class="own">
+        <thead>
+          <tr><th>Экран</th><th>Логика</th><th>Оформление</th><th>Риск при обновлении ТГ</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Приветствие</td>
+            <td><span class="tag ours">наша</span></td>
+            <td><span class="tag ours">наше</span></td>
+            <td>нулевой — файл целиком наш</td>
+          </tr>
+          <tr>
+            <td>Подключение NebulaLink</td>
+            <td><span class="tag ours">наша</span></td>
+            <td><span class="tag ours">наше</span></td>
+            <td>нулевой — вызывает <code>onboarding.connect</code></td>
+          </tr>
+          <tr>
+            <td>Номер телефона</td>
+            <td><span class="tag tg">Telegram</span></td>
+            <td><span class="tag ours">наше</span></td>
+            <td>средний — только цвета и формы через токены</td>
+          </tr>
+          <tr>
+            <td>Код и облачный пароль</td>
+            <td><span class="tag tg">Telegram</span></td>
+            <td><span class="tag ours">наше</span></td>
+            <td>средний — экран остаётся классом апстрима</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <footer class="page">
+    Тексты и порядок шагов заданы в <code>core/onboarding/onboarding.go</code> и одинаковы
+    на трёх платформах — Android, iOS и десктоп рендерят один и тот же спек нативными
+    средствами. Правило «туннель раньше номера» закреплено тестом
+    <code>TestFlowOffersTunnelBeforePhone</code>.
+  </footer>
+</div>
