@@ -42,7 +42,12 @@ jobs:
           fi
 
       - name: Fetch the pinned upstream
-        run: git submodule update --init --depth 1 vendor/telegram-android
+        run: |
+          git submodule update --init --depth 1 vendor/telegram-android
+          # Telegram carries ten submodules of its own — ffmpeg, libvpx, dav1d,
+          # opus, jlatexmath and the rest — and both the native build and the
+          # Gradle configuration need every one of them present.
+          git -C vendor/telegram-android submodule update --init --depth 1 --recursive
 
       - uses: actions/setup-go@v5
         with:

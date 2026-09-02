@@ -43,7 +43,13 @@
 Никак не через git. Дерево `vendor/telegram-android` — артефакт, ключ
 подставляется в него прямо перед сборкой:
 
+Сабмодули тянутся рекурсивно: у самого Telegram их десять — ffmpeg, libvpx,
+dav1d, opus и другие, — и без них сборка не конфигурируется.
+
 ```bash
+git submodule update --init --depth 1 vendor/telegram-android
+git -C vendor/telegram-android submodule update --init --depth 1 --recursive
+
 bash scripts/build-core.sh android          # nebulalink.aar
 bash scripts/apply-overlay.sh android       # оверлей + патчи + aar
 TELEGRAM_APP_ID=1234567 \

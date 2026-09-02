@@ -48,6 +48,10 @@ git -C "$tree" checkout --detach --force FETCH_HEAD 2>/dev/null || git -C "$tree
 git -C "$tree" reset --hard
 git -C "$tree" clean -fdx
 
+# Telegram has submodules of its own; a checkout without them configures but
+# does not build.
+git -C "$tree" submodule update --init --depth 1 --recursive
+
 after="$(git -C "$tree" rev-parse --short HEAD)"
 subject="$(git -C "$tree" log -1 --format='%s (%ad)' --date=short)"
 echo "$platform: $before -> $after — $subject"
