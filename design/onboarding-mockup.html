@@ -1,939 +1,868 @@
 <title>NebulaGram Онбординг</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=IBM+Plex+Sans:wght@400;500;600&family=Roboto:wght@300;400;500;700&display=swap">
 <style>
-  /* Page palette. Grounded in real nebula emission lines: O-III teal and
-     H-alpha rose, over a blue-biased ink neutral. */
   :root {
-    --bg: #EFF1F5;
+    --bg: #EEF1F6;
     --surface: #FFFFFF;
-    --surface-2: #E6E9EF;
-    --ink: #14161C;
-    --muted: #5B6272;
-    --line: #D3D8E2;
+    --ink: #12151C;
+    --muted: #596173;
+    --line: #D2D8E3;
+    --brand: #1E6FD9;      /* синий из вашей иконки */
     --teal: #0B8F82;
-    --rose: #C33453;
-    --shadow: 0 2px 4px rgba(16, 20, 30, .06), 0 18px 40px rgba(16, 20, 30, .10);
+    --shadow: 0 2px 4px rgba(16,20,30,.06), 0 20px 44px rgba(16,20,30,.12);
   }
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) {
-      --bg: #090A0F;
-      --surface: #14161D;
-      --surface-2: #1C1F28;
-      --ink: #E9EBF2;
-      --muted: #949BAC;
-      --line: #262A34;
-      --teal: #35D6C4;
-      --rose: #FF5C7A;
-      --shadow: 0 2px 4px rgba(0, 0, 0, .5), 0 24px 60px rgba(0, 0, 0, .55);
+      --bg: #080A0F; --surface: #13161E; --ink: #E9ECF3; --muted: #939BAD;
+      --line: #242833; --brand: #6FB2FF; --teal: #35D6C4;
+      --shadow: 0 2px 4px rgba(0,0,0,.5), 0 26px 64px rgba(0,0,0,.6);
     }
   }
   :root[data-theme="dark"] {
-    --bg: #090A0F;
-    --surface: #14161D;
-    --surface-2: #1C1F28;
-    --ink: #E9EBF2;
-    --muted: #949BAC;
-    --line: #262A34;
-    --teal: #35D6C4;
-    --rose: #FF5C7A;
-    --shadow: 0 2px 4px rgba(0, 0, 0, .5), 0 24px 60px rgba(0, 0, 0, .55);
+    --bg: #080A0F; --surface: #13161E; --ink: #E9ECF3; --muted: #939BAD;
+    --line: #242833; --brand: #6FB2FF; --teal: #35D6C4;
+    --shadow: 0 2px 4px rgba(0,0,0,.5), 0 26px 64px rgba(0,0,0,.6);
   }
 
   * { box-sizing: border-box; }
-
   body {
-    margin: 0;
-    background: var(--bg);
-    color: var(--ink);
-    font-family: "IBM Plex Sans", system-ui, sans-serif;
-    font-size: 15px;
-    line-height: 1.55;
+    margin: 0; background: var(--bg); color: var(--ink);
+    font-family: "IBM Plex Sans", system-ui, sans-serif; font-size: 15px; line-height: 1.55;
     -webkit-font-smoothing: antialiased;
   }
+  .wrap { max-width: 1160px; margin: 0 auto; padding: 52px 24px 96px; }
 
-  .wrap { max-width: 1180px; margin: 0 auto; padding: 56px 24px 96px; }
-
-  header.page { display: flex; flex-direction: column; gap: 18px; margin-bottom: 56px; }
-  .eyebrow {
-    font-size: 12px; letter-spacing: .14em; text-transform: uppercase;
-    color: var(--teal); font-weight: 600;
-  }
-  h1 {
-    font-family: "Bricolage Grotesque", Georgia, serif;
-    font-weight: 700; font-size: clamp(32px, 5vw, 52px); line-height: 1.05;
-    margin: 0; text-wrap: balance; letter-spacing: -.02em;
-  }
-  .lede { max-width: 62ch; color: var(--muted); margin: 0; font-size: 17px; }
-  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
-  .chip {
-    border: 1px solid var(--line); border-radius: 999px; padding: 5px 13px;
-    font-size: 13px; color: var(--muted); background: var(--surface);
-  }
+  .eyebrow { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--brand); font-weight: 600; }
+  h1 { font-family: "Bricolage Grotesque", Georgia, serif; font-weight: 700;
+       font-size: clamp(30px, 5vw, 50px); line-height: 1.05; margin: 14px 0 16px;
+       letter-spacing: -.02em; text-wrap: balance; }
+  .lede { max-width: 64ch; color: var(--muted); margin: 0; font-size: 17px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+  .chip { border: 1px solid var(--line); border-radius: 999px; padding: 5px 13px;
+          font-size: 13px; color: var(--muted); background: var(--surface); }
   .chip b { color: var(--ink); font-weight: 600; }
 
-  section { margin-top: 64px; }
-  h2 {
-    font-family: "Bricolage Grotesque", Georgia, serif;
-    font-size: 26px; font-weight: 700; margin: 0 0 6px; letter-spacing: -.01em;
-  }
-  .section-note { color: var(--muted); margin: 0 0 28px; max-width: 68ch; }
+  section { margin-top: 68px; }
+  h2 { font-family: "Bricolage Grotesque", Georgia, serif; font-size: 26px; font-weight: 700;
+       margin: 0 0 6px; letter-spacing: -.01em; }
+  .section-note { color: var(--muted); margin: 0 0 30px; max-width: 68ch; }
 
-  .rail {
-    display: flex; gap: 28px; overflow-x: auto; padding: 8px 4px 28px;
-    scroll-snap-type: x proximity;
-  }
-  .rail::-webkit-scrollbar { height: 8px; }
-  .rail::-webkit-scrollbar-thumb { background: var(--line); border-radius: 4px; }
-  .slot { scroll-snap-align: start; flex: 0 0 auto; display: flex; flex-direction: column; gap: 12px; }
-  .slot figcaption { width: 292px; }
-  .slot .step {
-    font-size: 12px; letter-spacing: .1em; text-transform: uppercase;
-    color: var(--teal); font-weight: 600;
-  }
-  .slot .what { font-size: 14px; color: var(--muted); }
-  .slot .what b { color: var(--ink); font-weight: 600; }
+  /* ---------------- device ---------------- */
+  .devices { display: flex; gap: 56px; flex-wrap: wrap; }
+  .device { display: flex; flex-direction: column; gap: 14px; }
+  .device-head { display: flex; align-items: baseline; gap: 10px; }
+  .device-head strong { font-size: 16px; }
+  .device-head span { font-size: 13px; color: var(--muted); }
 
-  /* ---------- device frame ---------- */
-  .phone {
-    width: 292px; height: 622px; border-radius: 42px; padding: 9px;
-    background: linear-gradient(160deg, #33363F, #101218 60%);
-    box-shadow: var(--shadow);
-    flex: 0 0 auto;
-  }
-  .screen {
-    position: relative; width: 100%; height: 100%; border-radius: 34px;
-    overflow: hidden; display: flex; flex-direction: column;
-  }
-  .statusbar {
-    display: flex; justify-content: space-between; align-items: center;
-    padding: 12px 20px 4px; font-size: 12px; font-weight: 500; flex: 0 0 auto;
-  }
+  .phone { width: 300px; height: 640px; border-radius: 44px; padding: 9px;
+           background: linear-gradient(160deg, #3A3E49, #0E1016 62%);
+           box-shadow: var(--shadow); flex: 0 0 auto; }
+  .screen { position: relative; width: 100%; height: 100%; border-radius: 36px;
+            overflow: hidden; display: flex; flex-direction: column; }
+  .statusbar { display: flex; justify-content: space-between; align-items: center;
+               padding: 13px 22px 2px; font-size: 12px; font-weight: 500; flex: 0 0 auto; z-index: 3; }
   .statusbar .icons { display: flex; gap: 5px; align-items: center; }
-  .bar { width: 3px; border-radius: 1px; background: currentColor; }
-  .homebar {
-    height: 4px; width: 108px; border-radius: 2px; margin: 0 auto 8px;
-    background: currentColor; opacity: .35; flex: 0 0 auto;
-  }
+  .homebar { height: 4px; width: 112px; border-radius: 2px; margin: 6px auto 8px;
+             background: currentColor; opacity: .32; flex: 0 0 auto; z-index: 3; }
 
-  /* ---------- Android Material 3 ---------- */
+  .stage { position: relative; flex: 1; overflow: hidden; }
+  .step { position: absolute; inset: 0; display: flex; flex-direction: column;
+          padding: 0 22px; opacity: 0; pointer-events: none; }
+  .step.current { opacity: 1; pointer-events: auto; }
+
+  /* Material 3 shared-axis X for Android, push for iOS. */
+  .m3 .step { transition: opacity .22s cubic-bezier(.2,0,0,1), transform .34s cubic-bezier(.2,0,0,1); }
+  .m3 .step.enter-next { transform: translateX(34px); }
+  .m3 .step.enter-prev { transform: translateX(-34px); }
+  .m3 .step.current { transform: translateX(0); }
+  .m3 .step.leave-next { transform: translateX(-34px); opacity: 0; }
+  .m3 .step.leave-prev { transform: translateX(34px); opacity: 0; }
+
+  .ios .step { transition: opacity .3s ease, transform .42s cubic-bezier(.32,.72,0,1), filter .42s ease; }
+  .ios .step.enter-next { transform: translateX(74%) scale(.98); filter: blur(3px); }
+  .ios .step.enter-prev { transform: translateX(-30%) scale(.98); filter: blur(3px); }
+  .ios .step.current { transform: translateX(0) scale(1); filter: none; }
+  .ios .step.leave-next { transform: translateX(-30%) scale(.97); opacity: 0; filter: blur(3px); }
+  .ios .step.leave-prev { transform: translateX(74%) scale(.98); opacity: 0; filter: blur(3px); }
+
+  /* ---------------- Android Material 3 ---------------- */
   .m3 {
-    /* Tonal roles generated from the seed; this set is the teal seed. */
-    --m3-seed: #35D6C4;
-    --m3-primary: #58DBC9;
-    --m3-on-primary: #00382F;
-    --m3-primary-container: #005046;
-    --m3-on-primary-container: #74F8E4;
-    --m3-surface: #0E1513;
-    --m3-surface-container: #1A2220;
-    --m3-surface-container-high: #242C2A;
-    --m3-on-surface: #DEE4E1;
-    --m3-on-surface-variant: #A8B1AE;
-    --m3-outline: #3B4442;
-    background: var(--m3-surface);
-    color: var(--m3-on-surface);
+    --m3-primary: #A8C7FA; --m3-on-primary: #062E6F; --m3-primary-container: #0842A0;
+    --m3-on-primary-container: #D3E3FD; --m3-surface: #101318; --m3-surface-container: #1B1F26;
+    --m3-surface-high: #252A32; --m3-on-surface: #E1E2E8; --m3-on-surface-variant: #A6ABB7;
+    --m3-outline: #3A3F48;
+    background: var(--m3-surface); color: var(--m3-on-surface);
     font-family: Roboto, system-ui, sans-serif;
   }
-  .m3.rose { --m3-primary: #FFB2BC; --m3-on-primary: #67002A; --m3-primary-container: #8E123F;
-             --m3-on-primary-container: #FFD9DE; --m3-surface: #16100F; --m3-surface-container: #221A1A;
-             --m3-surface-container-high: #2D2424; --m3-on-surface: #EDE0DF; --m3-on-surface-variant: #B4A9A8;
-             --m3-outline: #4A403F; }
-  .m3.light { --m3-primary: #006A5E; --m3-on-primary: #FFFFFF; --m3-primary-container: #9FF2E1;
-              --m3-on-primary-container: #00201B; --m3-surface: #F4FBF8; --m3-surface-container: #E8EFEC;
-              --m3-surface-container-high: #E2E9E6; --m3-on-surface: #171D1B; --m3-on-surface-variant: #3F4946;
-              --m3-outline: #6F7976; }
-  .m3.violet { --m3-primary: #CFBCFF; --m3-on-primary: #381E72; --m3-primary-container: #4F378A;
-               --m3-on-primary-container: #E9DDFF; --m3-surface: #131118; --m3-surface-container: #1F1B24;
-               --m3-surface-container-high: #2A252F; --m3-on-surface: #E6E1E9; --m3-on-surface-variant: #ACA6B4;
-               --m3-outline: #423E48; }
+  .m3.seed-green { --m3-primary: #7FD88F; --m3-on-primary: #003914; --m3-primary-container: #005321;
+    --m3-on-primary-container: #9BF5AA; --m3-surface: #0F1511; --m3-surface-container: #1A211C;
+    --m3-surface-high: #242B26; --m3-on-surface: #DFE4DC; --m3-on-surface-variant: #A6B0A6; --m3-outline: #3B443C; }
+  .m3.seed-rose { --m3-primary: #FFB2BC; --m3-on-primary: #67002A; --m3-primary-container: #8E123F;
+    --m3-on-primary-container: #FFD9DE; --m3-surface: #16100F; --m3-surface-container: #221A1A;
+    --m3-surface-high: #2D2424; --m3-on-surface: #EDE0DF; --m3-on-surface-variant: #B4A9A8; --m3-outline: #4A403F; }
+  .m3.seed-light { --m3-primary: #0B57D0; --m3-on-primary: #FFFFFF; --m3-primary-container: #D3E3FD;
+    --m3-on-primary-container: #041E49; --m3-surface: #F7F9FF; --m3-surface-container: #ECEFF6;
+    --m3-surface-high: #E4E8F1; --m3-on-surface: #191C20; --m3-on-surface-variant: #43474E; --m3-outline: #74777F; }
 
-  .m3-body { flex: 1; display: flex; flex-direction: column; padding: 0 24px; overflow: hidden; }
-  .m3-art { display: flex; justify-content: center; padding: 26px 0 22px; }
-  .m3-h {
-    font-size: 28px; line-height: 1.18; font-weight: 400; letter-spacing: 0;
-    margin: 0 0 12px; text-wrap: balance;
-  }
+  .m3-art { display: flex; justify-content: center; align-items: center; flex: 0 0 auto; }
+  .m3-h { font-size: 26px; line-height: 1.2; font-weight: 400; margin: 0 0 10px; text-wrap: balance; }
   .m3-h b { font-weight: 500; color: var(--m3-primary); }
-  .m3-sub { font-size: 14px; line-height: 1.45; color: var(--m3-on-surface-variant); margin: 0; }
+  .m3-sub { font-size: 13.5px; line-height: 1.45; color: var(--m3-on-surface-variant); margin: 0; }
 
-  .m3-actions { margin-top: auto; padding: 20px 0 10px; display: flex; flex-direction: column; gap: 4px; }
-  .m3-btn {
-    height: 52px; border-radius: 26px; border: none; width: 100%;
-    background: var(--m3-primary); color: var(--m3-on-primary);
-    font-family: Roboto, system-ui, sans-serif; font-size: 15px; font-weight: 500;
-    letter-spacing: .02em; display: flex; align-items: center; justify-content: center;
-  }
-  .m3-text-btn {
-    height: 44px; border-radius: 22px; border: none; background: none;
-    color: var(--m3-primary); font-family: Roboto, system-ui, sans-serif;
-    font-size: 14px; font-weight: 500; display: flex; align-items: center; justify-content: center;
-  }
-  .m3-field {
-    border-radius: 14px; background: var(--m3-surface-container);
-    border: 1px solid var(--m3-outline); padding: 10px 16px; display: flex;
-    flex-direction: column; gap: 2px; margin-top: 4px;
-  }
-  .m3-field .label { font-size: 11px; color: var(--m3-primary); letter-spacing: .03em; }
-  .m3-field .value { font-size: 15px; color: var(--m3-on-surface); }
+  .m3-actions { margin-top: auto; padding-bottom: 6px; display: flex; flex-direction: column; gap: 2px; }
+  .m3-btn { height: 52px; border-radius: 26px; border: none; width: 100%;
+            background: var(--m3-primary); color: var(--m3-on-primary);
+            font: 500 15px/1 Roboto, system-ui, sans-serif; letter-spacing: .02em;
+            display: flex; align-items: center; justify-content: center; cursor: pointer;
+            transition: transform .18s cubic-bezier(.2,0,0,1), filter .18s ease; }
+  .m3-btn:active { transform: scale(.97); filter: brightness(.92); }
+  .m3-text-btn { height: 42px; border: none; background: none; color: var(--m3-primary);
+                 font: 500 13.5px/1 Roboto, system-ui, sans-serif; cursor: pointer;
+                 display: flex; align-items: center; justify-content: center; gap: 7px; }
+  .m3-field { border-radius: 14px; background: var(--m3-surface-container);
+              border: 1px solid var(--m3-outline); padding: 9px 15px; display: flex;
+              flex-direction: column; gap: 1px; margin-top: 10px; }
+  .m3-field.focused { border-color: var(--m3-primary); border-width: 2px; padding: 8px 14px; }
+  .m3-field .label { font-size: 11px; color: var(--m3-primary); }
+  .m3-field .value { font-size: 14.5px; color: var(--m3-on-surface); overflow: hidden;
+                     text-overflow: ellipsis; white-space: nowrap; }
   .m3-field .value.dim { color: var(--m3-on-surface-variant); }
-  .m3-caret { display: inline-block; width: 1.5px; height: 17px; background: var(--m3-primary);
-              vertical-align: -3px; margin-left: 1px; }
+  .caret { display: inline-block; width: 1.6px; height: 16px; background: currentColor;
+           vertical-align: -3px; animation: blink 1.1s steps(1) infinite; }
+  @keyframes blink { 50% { opacity: 0; } }
 
-  .m3-status {
-    display: flex; align-items: center; gap: 8px; align-self: flex-start;
-    background: var(--m3-primary-container); color: var(--m3-on-primary-container);
-    border-radius: 999px; padding: 6px 14px 6px 10px; font-size: 12.5px; font-weight: 500;
-  }
-  .dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+  .m3-status { display: inline-flex; align-items: center; gap: 8px; align-self: flex-start;
+               background: var(--m3-primary-container); color: var(--m3-on-primary-container);
+               border-radius: 999px; padding: 6px 14px 6px 10px; font-size: 12.5px; font-weight: 500; }
+  .dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor;
+         animation: pulse 2s ease-in-out infinite; }
+  @keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: .45; transform: scale(.8); } }
 
-  .m3-code { display: flex; gap: 9px; margin-top: 6px; }
-  .m3-code span {
-    flex: 1; height: 56px; border-radius: 14px; background: var(--m3-surface-container);
-    border: 1px solid var(--m3-outline); display: flex; align-items: center;
-    justify-content: center; font-size: 24px; font-weight: 400;
-  }
+  .m3-code { display: flex; gap: 8px; margin-top: 14px; }
+  .m3-code span { flex: 1 1 0; min-width: 0; height: 54px; border-radius: 14px; background: var(--m3-surface-container);
+                  border: 1px solid var(--m3-outline); display: flex; align-items: center;
+                  justify-content: center; font: 400 23px/1 Roboto, system-ui, sans-serif; }
   .m3-code span.filled { border-color: var(--m3-primary); border-width: 2px; }
-  .m3-code span.active { border-color: var(--m3-primary); border-width: 2px; color: var(--m3-primary); }
+  .m3-code span.active { border-color: var(--m3-primary); border-width: 2px; }
+  .m3-code span.active::after { content: ""; width: 2px; height: 24px; border-radius: 1px;
+                                background: var(--m3-primary); animation: blink 1.1s steps(1) infinite; }
+  .ios-code span.active { border-color: rgba(255,255,255,.62); }
+  .ios-code span.active::after { content: ""; width: 2px; height: 24px; border-radius: 1px;
+                                 background: #fff; animation: blink 1.1s steps(1) infinite; }
 
-  .m3-progress { display: flex; gap: 6px; justify-content: center; padding: 4px 0 14px; }
-  .m3-progress i { width: 22px; height: 4px; border-radius: 2px; background: var(--m3-outline); }
-  .m3-progress i.on { background: var(--m3-primary); width: 30px; }
+  .m3-hint { display: flex; gap: 12px; align-items: center; margin-top: 14px; }
+  .m3-hint .ic { width: 38px; height: 38px; border-radius: 12px; flex: 0 0 auto;
+                 background: var(--m3-surface-high); color: var(--m3-primary);
+                 display: flex; align-items: center; justify-content: center; }
+  .m3-hint .tx strong { display: block; font-size: 13px; font-weight: 500; }
+  .m3-hint .tx span { font-size: 12px; color: var(--m3-on-surface-variant); }
 
-  .m3-list-item { display: flex; gap: 14px; align-items: flex-start; padding: 12px 0; }
-  .m3-list-item .ic {
-    width: 40px; height: 40px; border-radius: 12px; flex: 0 0 auto;
-    background: var(--m3-surface-container-high); color: var(--m3-primary);
-    display: flex; align-items: center; justify-content: center;
-  }
-  .m3-list-item .tx strong { display: block; font-size: 14px; font-weight: 500; }
-  .m3-list-item .tx span { font-size: 12.5px; color: var(--m3-on-surface-variant); }
+  /* Прогресс живёт под кнопками, как в M3 */
+  .progress { display: flex; gap: 6px; justify-content: center; padding: 12px 0 4px; flex: 0 0 auto; }
+  .progress i { width: 20px; height: 4px; border-radius: 2px; background: var(--m3-outline);
+                transition: width .3s cubic-bezier(.2,0,0,1), background .3s ease; }
+  .progress i.on { background: var(--m3-primary); width: 30px; }
 
-  /* ---------- iOS Liquid Glass ---------- */
-  .ios {
-    font-family: -apple-system, "SF Pro Text", "Segoe UI", system-ui, sans-serif;
-    color: #F2F4F8;
-    background: #05060A;
-    position: relative;
+  /* ---------------- iOS Liquid Glass ---------------- */
+  .ios { font-family: -apple-system, "SF Pro Text", "Segoe UI", system-ui, sans-serif;
+         color: #F4F6FA; background: #04070E; position: relative; }
+  /* Глубокий фон: несколько источников света вместо мутного размытия */
+  .ios .backdrop { position: absolute; inset: 0; z-index: 0; overflow: hidden; }
+  .ios .backdrop::before {
+    content: ""; position: absolute; inset: -30%;
+    background:
+      radial-gradient(38% 30% at 22% 12%, rgba(80,150,255,.95), transparent 70%),
+      radial-gradient(34% 26% at 84% 30%, rgba(126,88,255,.85), transparent 72%),
+      radial-gradient(46% 34% at 50% 96%, rgba(20,110,220,.9), transparent 70%),
+      radial-gradient(60% 46% at 50% 55%, rgba(6,16,40,.9), transparent 78%);
+    filter: blur(26px);
+    animation: drift 22s ease-in-out infinite alternate;
   }
-  .ios .aurora { position: absolute; inset: -20%; filter: blur(48px); opacity: .95; }
-  .ios .aurora i { position: absolute; display: block; border-radius: 50%; }
-  .ios .aurora .a { width: 60%; height: 38%; left: -8%; top: 4%; background: #1FA89B; }
-  .ios .aurora .b { width: 55%; height: 34%; right: -10%; top: 22%; background: #C0325A; }
-  .ios .aurora .c { width: 70%; height: 40%; left: 6%; bottom: -6%; background: #2B3A8F; }
-  .ios .ios-inner { position: relative; z-index: 1; display: flex; flex-direction: column; height: 100%; }
-  .ios-body { flex: 1; display: flex; flex-direction: column; padding: 0 20px; overflow: hidden; }
+  .ios .backdrop::after {
+    content: ""; position: absolute; inset: 0;
+    background: linear-gradient(180deg, rgba(2,6,16,.28), rgba(2,6,16,.72));
+  }
+  @keyframes drift {
+    0%   { transform: translate3d(0,0,0) scale(1); }
+    50%  { transform: translate3d(-3%, 2%, 0) scale(1.06); }
+    100% { transform: translate3d(2%, -3%, 0) scale(1.02); }
+  }
+  .ios .grain { position: absolute; inset: 0; z-index: 1; opacity: .16; pointer-events: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)' opacity='.6'/%3E%3C/svg%3E"); }
+  .ios .statusbar, .ios .stage, .ios .homebar { position: relative; z-index: 2; }
 
-  .glass {
-    background: rgba(255, 255, 255, .10);
-    backdrop-filter: blur(22px) saturate(180%);
-    -webkit-backdrop-filter: blur(22px) saturate(180%);
-    border: 1px solid rgba(255, 255, 255, .22);
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, .35), 0 12px 32px rgba(0, 0, 0, .28);
-  }
-  .ios-card { border-radius: 26px; padding: 20px; margin-top: 18px; }
-  .ios-h { font-size: 27px; font-weight: 700; letter-spacing: -.5px; margin: 0 0 8px; line-height: 1.2; }
-  .ios-sub { font-size: 14px; line-height: 1.45; color: rgba(242, 244, 248, .78); margin: 0; }
-  .ios-actions { margin-top: auto; padding: 16px 0 12px; display: flex; flex-direction: column; gap: 8px; }
-  .ios-btn {
-    height: 52px; border-radius: 26px; font-size: 16px; font-weight: 600;
-    display: flex; align-items: center; justify-content: center;
-    background: rgba(255, 255, 255, .92); color: #08131A; border: none;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, .3);
-  }
-  .ios-btn.glassy {
-    background: rgba(255, 255, 255, .14); color: #FFFFFF;
-    border: 1px solid rgba(255, 255, 255, .3);
-    backdrop-filter: blur(18px) saturate(180%); -webkit-backdrop-filter: blur(18px) saturate(180%);
-  }
-  .ios-text-btn { height: 40px; display: flex; align-items: center; justify-content: center;
-                  font-size: 15px; color: rgba(255, 255, 255, .82); }
-  .ios-field { border-radius: 18px; padding: 12px 16px; display: flex; flex-direction: column; gap: 2px; }
-  .ios-field .label { font-size: 11px; text-transform: uppercase; letter-spacing: .08em;
-                      color: rgba(255, 255, 255, .6); }
-  .ios-field .value { font-size: 16px; }
-  .ios-field .value.dim { color: rgba(255, 255, 255, .55); }
-  .ios-code { display: flex; gap: 8px; }
-  .ios-code span {
-    flex: 1; height: 58px; border-radius: 18px; display: flex; align-items: center;
-    justify-content: center; font-size: 24px; font-weight: 600;
-  }
-  .ios-pill {
-    align-self: flex-start; border-radius: 999px; padding: 7px 14px 7px 10px;
-    display: flex; align-items: center; gap: 8px; font-size: 12.5px; font-weight: 600;
-  }
-  .ios-row { display: flex; align-items: center; gap: 12px; padding: 11px 0; }
-  .ios-row .ic { width: 34px; height: 34px; border-radius: 11px; display: flex;
-                 align-items: center; justify-content: center; background: rgba(255, 255, 255, .16); }
-  .ios-row .tx strong { display: block; font-size: 14.5px; font-weight: 600; }
-  .ios-row .tx span { font-size: 12.5px; color: rgba(242, 244, 248, .7); }
-  .ios-sep { height: 1px; background: rgba(255, 255, 255, .14); }
+  .glass { background: rgba(255,255,255,.13);
+           backdrop-filter: blur(26px) saturate(190%); -webkit-backdrop-filter: blur(26px) saturate(190%);
+           border: 1px solid rgba(255,255,255,.26);
+           box-shadow: inset 0 1px 0 rgba(255,255,255,.42), 0 14px 36px rgba(0,0,0,.34); }
+  .ios-card { border-radius: 28px; padding: 20px; }
+  .ios-h { font-size: 26px; font-weight: 700; letter-spacing: -.4px; margin: 0 0 8px; line-height: 1.18; }
+  .ios-sub { font-size: 14px; line-height: 1.45; color: rgba(244,246,250,.8); margin: 0; }
+  .ios-actions { margin-top: auto; padding-bottom: 4px; display: flex; flex-direction: column; gap: 8px; }
+  .ios-btn { height: 52px; border-radius: 26px; font-size: 16px; font-weight: 600; border: none;
+             display: flex; align-items: center; justify-content: center; cursor: pointer;
+             background: rgba(255,255,255,.94); color: #08131F;
+             box-shadow: 0 10px 26px rgba(0,0,0,.34);
+             transition: transform .18s cubic-bezier(.32,.72,0,1), background .2s ease; }
+  .ios-btn:active { transform: scale(.97); }
+  .ios-btn.glassy { background: rgba(255,255,255,.16); color: #fff; border: 1px solid rgba(255,255,255,.34);
+                    backdrop-filter: blur(20px) saturate(180%); -webkit-backdrop-filter: blur(20px) saturate(180%); }
+  .ios-text-btn { height: 40px; display: flex; align-items: center; justify-content: center; gap: 7px;
+                  font-size: 14.5px; color: rgba(255,255,255,.85); background: none; border: none; cursor: pointer; }
+  .ios-field { border-radius: 20px; padding: 11px 16px; display: flex; flex-direction: column;
+               gap: 1px; margin-top: 10px; }
+  .ios-field .label { font-size: 10.5px; text-transform: uppercase; letter-spacing: .08em;
+                      color: rgba(255,255,255,.62); }
+  .ios-field .value { font-size: 15.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .ios-code { display: flex; gap: 8px; margin-top: 16px; }
+  .ios-code span { flex: 1 1 0; min-width: 0; height: 56px; border-radius: 18px; display: flex; align-items: center;
+                   justify-content: center; font-size: 23px; font-weight: 600; }
+  .ios-pill { align-self: flex-start; border-radius: 999px; padding: 7px 14px 7px 10px;
+              display: inline-flex; align-items: center; gap: 8px; font-size: 12.5px; font-weight: 600; }
+  .ios-row { display: flex; align-items: center; gap: 12px; padding: 10px 0; }
+  .ios-row .ic { width: 32px; height: 32px; border-radius: 10px; display: flex; align-items: center;
+                 justify-content: center; background: rgba(255,255,255,.18); flex: 0 0 auto; }
+  .ios-row .tx strong { display: block; font-size: 14px; font-weight: 600; }
+  .ios-row .tx span { font-size: 12px; color: rgba(244,246,250,.72); }
+  .ios-sep { height: 1px; background: rgba(255,255,255,.15); }
+  .ios .progress i { background: rgba(255,255,255,.3); }
+  .ios .progress i.on { background: #fff; }
 
-  /* ---------- palette strip ---------- */
-  .seeds { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px; }
-  .seed-card { background: var(--surface); border: 1px solid var(--line); border-radius: 20px; padding: 20px; }
-  .seed-head { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
-  .seed-dot { width: 34px; height: 34px; border-radius: 10px; flex: 0 0 auto; }
-  .seed-head strong { display: block; font-size: 15px; }
-  .seed-head span { font-size: 13px; color: var(--muted); }
-  .tones { display: flex; border-radius: 10px; overflow: hidden; height: 34px; }
-  .tones i { flex: 1; }
+  /* ---------------- animated marks ---------------- */
+  .mark-plane { filter: drop-shadow(0 10px 20px rgba(0,0,0,.42)); }
+  .mark-plane .body { animation: float 4.6s ease-in-out infinite; transform-origin: 60px 60px; }
+  @keyframes float {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    50%      { transform: translateY(-7px) rotate(-2deg); }
+  }
 
-  /* ---------- ownership table ---------- */
+  .mark-shield .check { stroke-dasharray: 46; stroke-dashoffset: 46;
+                        animation: draw 2.6s cubic-bezier(.2,0,0,1) infinite; }
+  @keyframes draw { 0% { stroke-dashoffset: 46; } 35%, 80% { stroke-dashoffset: 0; } 100% { stroke-dashoffset: 46; } }
+  .mark-shield .halo { transform-origin: 50px 50px; animation: halo 2.6s ease-out infinite; }
+  @keyframes halo { 0% { opacity: .5; transform: scale(.85); } 70%, 100% { opacity: 0; transform: scale(1.25); } }
+
+  /* Набор номера: код страны стоит на месте, следом крутятся цифры. */
+  .mark-digits { position: relative; display: flex; align-items: center; justify-content: center;
+                 gap: 8px; height: 88px; }
+  .reel { position: relative; width: 34px; height: 46px; border-radius: 12px; overflow: hidden;
+          background: var(--m3-surface-container); border: 1px solid var(--m3-outline); }
+  .reel .strip { display: flex; flex-direction: column; animation: roll 4.4s steps(10) infinite; }
+  .reel .strip i { flex: 0 0 46px; height: 46px; display: flex; align-items: center; justify-content: center;
+                   font: 500 21px/1 Roboto, system-ui, sans-serif; font-style: normal; color: var(--m3-primary); }
+  .reel.prefix { width: 46px; display: flex; align-items: center; justify-content: center;
+                 background: var(--m3-primary-container); border-color: transparent;
+                 font: 500 19px/1 Roboto, system-ui, sans-serif; color: var(--m3-on-primary-container); }
+  .ios .reel.prefix { background: rgba(255,255,255,.22); color: #fff; font-weight: 600; }
+  .reel:nth-of-type(2) .strip { animation-duration: 3.6s; }
+  .reel:nth-of-type(3) .strip { animation-duration: 5.2s; }
+  .reel:nth-of-type(4) .strip { animation-duration: 4s; }
+  .reel:nth-of-type(5) .strip { animation-duration: 4.8s; }
+  @keyframes roll { to { transform: translateY(-460px); } }
+  .ios .reel { background: rgba(255,255,255,.14); border-color: rgba(255,255,255,.3);
+               backdrop-filter: blur(16px) saturate(180%); -webkit-backdrop-filter: blur(16px) saturate(180%); }
+  .ios .reel .strip i { color: #fff; font-weight: 600;
+                        font-family: -apple-system, "SF Pro Text", system-ui, sans-serif; }
+
+
+  .mark-key .ring { transform-origin: 50px 50px; animation: spin 9s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .mark-key .digit { animation: rise 2.2s ease-in-out infinite; }
+  .mark-key .digit.b { animation-delay: .35s; }
+  .mark-key .digit.c { animation-delay: .7s; }
+  @keyframes rise { 0%, 100% { transform: translateY(0); opacity: .5; } 50% { transform: translateY(-4px); opacity: 1; } }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation: none !important; transition-duration: .01ms !important; }
+  }
+
+  /* ---------------- supporting sections ---------------- */
+  .mini-rail { display: flex; gap: 22px; overflow-x: auto; padding: 4px 2px 22px; }
+  .mini { flex: 0 0 auto; display: flex; flex-direction: column; gap: 10px; }
+  .mini .phone { width: 208px; height: 400px; border-radius: 32px; padding: 7px; }
+  .mini .screen { border-radius: 26px; }
+  .mini figcaption { width: 208px; font-size: 13px; color: var(--muted); }
+  .mini figcaption b { color: var(--ink); }
+  .mini .m3-h { font-size: 20px; }
+  .mini .m3-sub { font-size: 12px; }
+  .mini .m3-btn { height: 44px; font-size: 14px; }
+  .mini .step { position: static; opacity: 1; pointer-events: auto; padding: 0 16px; }
+
+  .icon-row { display: flex; gap: 22px; flex-wrap: wrap; align-items: flex-end; }
+  .icon-tile { display: flex; flex-direction: column; gap: 10px; align-items: center;
+               font-size: 13px; color: var(--muted); }
+  .tile { width: 108px; height: 108px; border-radius: 26px; display: flex;
+          align-items: center; justify-content: center; }
+  .tile.accent { background: linear-gradient(150deg, #1E6FD9, #0B3D91); box-shadow: var(--shadow); }
+  .tile.plain { background: var(--surface); border: 1px dashed var(--line); }
+
   .own { width: 100%; border-collapse: collapse; font-size: 14.5px; }
   .own th, .own td { text-align: left; padding: 13px 14px; border-bottom: 1px solid var(--line); }
   .own th { font-size: 12px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
   .own tbody tr:last-child td { border-bottom: none; }
-  .tag { display: inline-flex; align-items: center; gap: 6px; border-radius: 999px;
-         padding: 3px 11px; font-size: 12.5px; font-weight: 600; }
-  .tag.ours { background: color-mix(in srgb, var(--teal) 16%, transparent); color: var(--teal); }
-  .tag.tg { background: color-mix(in srgb, var(--rose) 16%, transparent); color: var(--rose); }
+  .tag { display: inline-flex; border-radius: 999px; padding: 3px 11px; font-size: 12.5px; font-weight: 600; }
+  .tag.ours { background: color-mix(in srgb, var(--teal) 18%, transparent); color: var(--teal); }
+  .tag.tg { background: color-mix(in srgb, var(--brand) 18%, transparent); color: var(--brand); }
   .table-wrap { overflow-x: auto; background: var(--surface); border: 1px solid var(--line);
                 border-radius: 20px; padding: 6px 10px; }
 
-  footer.page { margin-top: 72px; padding-top: 28px; border-top: 1px solid var(--line);
-                color: var(--muted); font-size: 14px; max-width: 70ch; }
+  .callout { background: var(--surface); border: 1px solid var(--line); border-radius: 18px;
+             padding: 18px 20px; margin-top: 22px; font-size: 14.5px; color: var(--muted); max-width: 74ch; }
+  .callout b { color: var(--ink); }
+  code { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: .92em;
+         background: color-mix(in srgb, var(--brand) 12%, transparent); padding: 1px 5px; border-radius: 5px; }
 
-  @media (max-width: 640px) {
-    .wrap { padding: 36px 16px 72px; }
-  }
+  footer.page { margin-top: 72px; padding-top: 26px; border-top: 1px solid var(--line);
+                color: var(--muted); font-size: 14px; max-width: 72ch; }
+  @media (max-width: 640px) { .wrap { padding: 32px 16px 72px; } .devices { gap: 40px; } }
 </style>
 
 <div class="wrap">
-  <header class="page">
-    <div class="eyebrow">Онбординг · экраны первого запуска</div>
+  <header>
+    <div class="eyebrow">Онбординг · интерактивный прототип</div>
     <h1>Добро пожаловать в NebulaGram</h1>
     <p class="lede">
-      Четыре экрана до входа в аккаунт. Шаг подключения туннеля стоит вторым, до номера телефона:
-      на заблокированной сети SMS с кодом не придёт, пока NebulaLink не поднят.
+      Экраны кликабельны — нажмите «Далее», чтобы увидеть переходы и анимацию значков.
+      Шаг подключения туннеля идёт до номера телефона и его можно пропустить одной кнопкой.
     </p>
     <div class="chips">
-      <span class="chip"><b>Android</b> · Material 3, динамические цвета</span>
+      <span class="chip"><b>Android</b> · Material 3, цвета берутся из системы</span>
       <span class="chip"><b>iOS</b> · Liquid Glass</span>
-      <span class="chip">Текст экранов — из <b>core/onboarding</b></span>
+      <span class="chip">Полоски прогресса — <b>под кнопками</b></span>
+      <span class="chip">Тексты из <b>core/onboarding</b></span>
     </div>
   </header>
 
   <section>
-    <h2>Android · Material 3</h2>
+    <h2>Прототип</h2>
     <p class="section-note">
-      Кнопка действия прижата к низу и растянута по ширине, крупный заголовок Display Small,
-      скругления 26 dp у кнопок и 14 dp у полей. Палитра — тональная схема Material You,
-      здесь показана на бирюзовом seed-цвете.
+      Android использует Material 3 shared axis: экран уходит влево, следующий приходит справа.
+      На iOS — push со стеклянным размытием и лёгким масштабом, как в системных переходах.
     </p>
 
-    <div class="rail">
-      <!-- 1. Welcome -->
-      <figure class="slot">
+    <div class="devices">
+      <!-- ============ ANDROID ============ -->
+      <div class="device">
+        <div class="device-head"><strong>Android</strong><span>Material 3 · динамические цвета</span></div>
         <div class="phone">
-          <div class="screen m3">
+          <div class="screen m3" data-flow>
             <div class="statusbar">
               <span>18:37</span>
-              <span class="icons">
-                <svg width="15" height="11" viewBox="0 0 15 11" fill="currentColor" aria-hidden="true"><path d="M7.5 9.6 0 2.6A11 11 0 0 1 15 2.6L7.5 9.6Z" opacity=".9"/></svg>
-                <svg width="20" height="11" viewBox="0 0 20 11" fill="none" aria-hidden="true">
-                  <rect x=".5" y=".5" width="16" height="10" rx="3" stroke="currentColor" opacity=".6"/>
-                  <rect x="2" y="2" width="9" height="7" rx="1.6" fill="currentColor"/>
-                  <rect x="18" y="3.6" width="2" height="3.8" rx="1" fill="currentColor" opacity=".6"/>
-                </svg>
-              </span>
-            </div>
-
-            <div class="m3-body">
-              <div class="m3-art">
-                <svg width="150" height="150" viewBox="0 0 150 150" role="img" aria-label="Знак NebulaGram">
-                  <defs>
-                    <radialGradient id="neb" cx="50%" cy="45%" r="55%">
-                      <stop offset="0%" stop-color="#8CF3E4"/>
-                      <stop offset="55%" stop-color="#2AA79A"/>
-                      <stop offset="100%" stop-color="#0C3B38" stop-opacity="0"/>
-                    </radialGradient>
-                    <linearGradient id="ring" x1="0" y1="0" x2="1" y2="1">
-                      <stop offset="0%" stop-color="#74F8E4"/>
-                      <stop offset="100%" stop-color="#FF7E9B"/>
-                    </linearGradient>
-                  </defs>
-                  <circle cx="75" cy="72" r="52" fill="url(#neb)" opacity=".85"/>
-                  <ellipse cx="75" cy="74" rx="62" ry="26" fill="none" stroke="url(#ring)"
-                           stroke-width="2.5" opacity=".9" transform="rotate(-24 75 74)"/>
-                  <ellipse cx="75" cy="74" rx="46" ry="18" fill="none" stroke="#74F8E4"
-                           stroke-width="1.2" opacity=".45" transform="rotate(-24 75 74)"/>
-                  <circle cx="75" cy="70" r="13" fill="#0E1513"/>
-                  <circle cx="75" cy="70" r="9" fill="#74F8E4"/>
-                  <circle cx="118" cy="46" r="2.6" fill="#FFB2BC"/>
-                  <circle cx="36" cy="100" r="2" fill="#74F8E4" opacity=".8"/>
-                  <circle cx="112" cy="106" r="1.6" fill="#FFFFFF" opacity=".6"/>
-                </svg>
-              </div>
-
-              <h3 class="m3-h">Добро пожаловать<br>в <b>NebulaGram</b></h3>
-              <p class="m3-sub">
-                Telegram со встроенным туннелем. Ваши серверы, ваши ключи,
-                без сторонних релеев и без второго приложения.
-              </p>
-
-              <div class="m3-actions">
-                <div class="m3-progress"><i class="on"></i><i></i><i></i><i></i></div>
-                <div class="m3-btn">Далее</div>
-                <div class="m3-text-btn">Сменить язык · Русский</div>
-              </div>
-            </div>
-            <div class="homebar"></div>
-          </div>
-        </div>
-        <figcaption>
-          <div class="step">Шаг 1</div>
-          <div class="what"><b>Приветствие.</b> Полностью наш экран, апстрим его не знает.</div>
-        </figcaption>
-      </figure>
-
-      <!-- 2. NebulaLink -->
-      <figure class="slot">
-        <div class="phone">
-          <div class="screen m3">
-            <div class="statusbar">
-              <span>18:37</span>
-              <span class="icons">
-                <svg width="15" height="11" viewBox="0 0 15 11" fill="currentColor" aria-hidden="true"><path d="M7.5 9.6 0 2.6A11 11 0 0 1 15 2.6L7.5 9.6Z" opacity=".9"/></svg>
-                <svg width="20" height="11" viewBox="0 0 20 11" fill="none" aria-hidden="true">
-                  <rect x=".5" y=".5" width="16" height="10" rx="3" stroke="currentColor" opacity=".6"/>
-                  <rect x="2" y="2" width="9" height="7" rx="1.6" fill="currentColor"/>
-                  <rect x="18" y="3.6" width="2" height="3.8" rx="1" fill="currentColor" opacity=".6"/>
-                </svg>
-              </span>
-            </div>
-
-            <div class="m3-body">
-              <div class="m3-art" style="padding: 22px 0 16px;">
-                <svg width="112" height="112" viewBox="0 0 112 112" role="img" aria-label="Щит NebulaLink">
-                  <path d="M56 8 96 24v34c0 26-17 41-40 46-23-5-40-20-40-46V24L56 8Z"
-                        fill="#005046" stroke="#74F8E4" stroke-width="2.5"/>
-                  <path d="M46 58l8 9 20-22" fill="none" stroke="#74F8E4" stroke-width="5"
-                        stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-              </div>
-
-              <h3 class="m3-h">Подключите <b>NebulaLink</b></h3>
-              <p class="m3-sub">
-                Вставьте ссылку на подписку или ключ сервера. Без туннеля код для входа
-                может не дойти.
-              </p>
-
-              <div class="m3-field">
-                <span class="label">Ссылка на подписку или ключ</span>
-                <span class="value">https://subnebulaguard.mooo.com/…<span class="m3-caret"></span></span>
-              </div>
-
-              <div class="m3-list-item">
-                <span class="ic">
-                  <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-                    <path d="M3 6h6l2 2h6v7a2 2 0 0 1-2 2H3V6Z" stroke="currentColor" stroke-width="1.6"/>
-                  </svg>
-                </span>
-                <span class="tx">
-                  <strong>Поддерживаются Remnawave и обычные подписки</strong>
-                  <span>VLESS · VMess · Trojan · Shadowsocks · Hysteria2 · TUIC</span>
-                </span>
-              </div>
-
-              <div class="m3-actions">
-                <div class="m3-progress"><i></i><i class="on"></i><i></i><i></i></div>
-                <div class="m3-btn">Подключить</div>
-                <div class="m3-text-btn">Пропустить</div>
-              </div>
-            </div>
-            <div class="homebar"></div>
-          </div>
-        </div>
-        <figcaption>
-          <div class="step">Шаг 2</div>
-          <div class="what"><b>Туннель до номера.</b> Одно поле принимает и подписку, и ключ.</div>
-        </figcaption>
-      </figure>
-
-      <!-- 3. Phone -->
-      <figure class="slot">
-        <div class="phone">
-          <div class="screen m3">
-            <div class="statusbar">
-              <span>18:38</span>
               <span class="icons">
                 <svg width="12" height="11" viewBox="0 0 12 11" fill="currentColor" aria-hidden="true"><path d="M2 8h2v3H2V8Zm3-2h2v5H5V6Zm3-3h2v8H8V3Z"/></svg>
                 <svg width="15" height="11" viewBox="0 0 15 11" fill="currentColor" aria-hidden="true"><path d="M7.5 9.6 0 2.6A11 11 0 0 1 15 2.6L7.5 9.6Z" opacity=".9"/></svg>
                 <svg width="20" height="11" viewBox="0 0 20 11" fill="none" aria-hidden="true">
                   <rect x=".5" y=".5" width="16" height="10" rx="3" stroke="currentColor" opacity=".6"/>
-                  <rect x="2" y="2" width="9" height="7" rx="1.6" fill="currentColor"/>
-                  <rect x="18" y="3.6" width="2" height="3.8" rx="1" fill="currentColor" opacity=".6"/>
+                  <rect x="2" y="2" width="10" height="7" rx="1.6" fill="currentColor"/>
                 </svg>
               </span>
             </div>
 
-            <div class="m3-body">
-              <div style="padding-top: 18px;">
-                <span class="m3-status">
-                  <span class="dot"></span> NebulaLink · Финляндия · 38 мс
-                </span>
+            <div class="stage">
+              <!-- 1. Приветствие -->
+              <div class="step current" data-step="0">
+                <div class="m3-art" style="padding: 30px 0 24px;">
+                  <svg class="mark-plane" width="132" height="132" viewBox="0 0 120 120" role="img" aria-label="Значок NebulaGram">
+                    <g class="body">
+                      <path d="M97 27 28 63 57 74Z" fill="#E8F0FE" stroke="#E8F0FE" stroke-width="16" stroke-linejoin="round" stroke-linecap="round"/>
+                      <path d="M97 27 57 74 64 101Z" fill="#A8C7FA" stroke="#A8C7FA" stroke-width="16" stroke-linejoin="round" stroke-linecap="round"/>
+                    </g>
+                  </svg>
+                </div>
+
+                <h3 class="m3-h">Добро пожаловать<br>в <b>NebulaGram</b></h3>
+                <p class="m3-sub">
+                  Telegram со встроенным туннелем. Ваши серверы, ваши ключи,
+                  без сторонних релеев и без второго приложения.
+                </p>
+
+                <div class="m3-actions">
+                  <button class="m3-btn" data-next>Далее</button>
+                  <button class="m3-text-btn">🇷🇺 Русский · сменить язык</button>
+                </div>
               </div>
 
-              <h3 class="m3-h" style="margin-top: 24px;">Ваш номер телефона</h3>
-              <p class="m3-sub">Подтвердите код страны и введите номер — код придёт в Telegram или SMS.</p>
+              <!-- 2. NebulaLink -->
+              <div class="step" data-step="1">
+                <div class="m3-art" style="padding: 24px 0 16px;">
+                  <svg class="mark-shield" width="96" height="96" viewBox="0 0 100 100" role="img" aria-label="Значок NebulaLink">
+                    <circle class="halo" cx="50" cy="50" r="42" fill="none" stroke="#A8C7FA" stroke-width="2"/>
+                    <path d="M50 8 84 22v30c0 23-15 36-34 41-19-5-34-18-34-41V22L50 8Z"
+                          fill="#0842A0" stroke="#A8C7FA" stroke-width="2.4"/>
+                    <path class="check" d="M38 52l9 9 18-21" fill="none" stroke="#D3E3FD"
+                          stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                </div>
 
-              <div class="m3-field">
-                <span class="label">Страна</span>
-                <span class="value">🇷🇺 Россия</span>
+                <h3 class="m3-h">Подключите <b>NebulaLink</b></h3>
+                <p class="m3-sub">Вставьте ссылку на подписку или ключ сервера — без туннеля код для входа может не дойти.</p>
+
+                <div class="m3-field focused">
+                  <span class="label">Подписка или ключ</span>
+                  <span class="value">https://subnebulaguard.mooo.com/…<span class="caret"></span></span>
+                </div>
+
+                <div class="m3-hint">
+                  <span class="ic">
+                    <svg width="19" height="19" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                      <path d="M3 6h5.5l2 2H17v7a2 2 0 0 1-2 2H3V6Z" stroke="currentColor" stroke-width="1.6"/>
+                    </svg>
+                  </span>
+                  <span class="tx">
+                    <strong>Remnawave и обычные подписки</strong>
+                    <span>VLESS · VMess · Trojan · Shadowsocks · Hysteria2 · TUIC</span>
+                  </span>
+                </div>
+
+                <div class="m3-actions">
+                  <button class="m3-btn" data-next>Подключить</button>
+                  <button class="m3-text-btn" data-next>Пропустить</button>
+                </div>
               </div>
-              <div class="m3-field">
-                <span class="label">Номер телефона</span>
-                <span class="value">+7 900 123-45-67<span class="m3-caret"></span></span>
-              </div>
 
-              <div class="m3-actions">
-                <div class="m3-progress"><i></i><i></i><i class="on"></i><i></i></div>
-                <div class="m3-btn">Далее</div>
-                <div class="m3-text-btn">Войти по QR-коду</div>
-              </div>
-            </div>
-            <div class="homebar"></div>
-          </div>
-        </div>
-        <figcaption>
-          <div class="step">Шаг 3</div>
-          <div class="what"><b>Номер.</b> Логика — Telegram, оформление — наше. Сверху статус туннеля.</div>
-        </figcaption>
-      </figure>
+              <!-- 3. Номер -->
+              <div class="step" data-step="2">
+                <div class="m3-art" style="padding: 22px 0 14px;">
+                  <div class="mark-digits" aria-hidden="true">
+                    <span class="reel prefix">+7</span>
+                    <span class="reel"><span class="strip"><i>0</i><i>1</i><i>2</i><i>3</i><i>4</i><i>5</i><i>6</i><i>7</i><i>8</i><i>9</i><i>0</i></span></span>
+                    <span class="reel"><span class="strip"><i>0</i><i>1</i><i>2</i><i>3</i><i>4</i><i>5</i><i>6</i><i>7</i><i>8</i><i>9</i><i>0</i></span></span>
+                    <span class="reel"><span class="strip"><i>0</i><i>1</i><i>2</i><i>3</i><i>4</i><i>5</i><i>6</i><i>7</i><i>8</i><i>9</i><i>0</i></span></span>
+                    <span class="reel"><span class="strip"><i>0</i><i>1</i><i>2</i><i>3</i><i>4</i><i>5</i><i>6</i><i>7</i><i>8</i><i>9</i><i>0</i></span></span>
+                  </div>
+                </div>
 
-      <!-- 4. Code -->
-      <figure class="slot">
-        <div class="phone">
-          <div class="screen m3">
-            <div class="statusbar">
-              <span>18:38</span>
-              <span class="icons">
-                <svg width="15" height="11" viewBox="0 0 15 11" fill="currentColor" aria-hidden="true"><path d="M7.5 9.6 0 2.6A11 11 0 0 1 15 2.6L7.5 9.6Z" opacity=".9"/></svg>
-                <svg width="20" height="11" viewBox="0 0 20 11" fill="none" aria-hidden="true">
-                  <rect x=".5" y=".5" width="16" height="10" rx="3" stroke="currentColor" opacity=".6"/>
-                  <rect x="2" y="2" width="9" height="7" rx="1.6" fill="currentColor"/>
-                  <rect x="18" y="3.6" width="2" height="3.8" rx="1" fill="currentColor" opacity=".6"/>
-                </svg>
-              </span>
-            </div>
-
-            <div class="m3-body">
-              <div style="padding-top: 18px;">
                 <span class="m3-status"><span class="dot"></span> NebulaLink · Финляндия · 38 мс</span>
+
+                <h3 class="m3-h" style="margin-top: 16px;">Ваш номер телефона</h3>
+                <p class="m3-sub">Подтвердите код страны и введите номер — код придёт в Telegram или SMS.</p>
+
+                <div class="m3-field"><span class="label">Страна</span><span class="value">🇷🇺 Россия</span></div>
+                <div class="m3-field focused"><span class="label">Номер телефона</span>
+                  <span class="value">+7 900 123-45-67<span class="caret"></span></span></div>
+
+                <div class="m3-actions">
+                  <button class="m3-btn" data-next>Далее</button>
+                  <button class="m3-text-btn" data-prev>Назад</button>
+                </div>
               </div>
 
-              <h3 class="m3-h" style="margin-top: 24px;">Введите код</h3>
-              <p class="m3-sub">Мы отправили код в Telegram на другое ваше устройство.</p>
-
-              <div class="m3-code">
-                <span class="filled">4</span><span class="filled">1</span><span class="filled">7</span>
-                <span class="active">|</span><span></span>
-              </div>
-
-              <div class="m3-list-item" style="margin-top: 6px;">
-                <span class="ic">
-                  <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-                    <circle cx="10" cy="10" r="7.2" stroke="currentColor" stroke-width="1.6"/>
-                    <path d="M10 6v4.4l2.8 1.8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+              <!-- 4. Код -->
+              <div class="step" data-step="3">
+                <div class="m3-art" style="padding: 22px 0 12px;">
+                  <svg class="mark-key" width="90" height="90" viewBox="0 0 100 100" role="img" aria-label="Значок кода">
+                    <circle class="ring" cx="50" cy="50" r="38" fill="none" stroke="#A8C7FA"
+                            stroke-width="1.6" stroke-dasharray="6 10" opacity=".7"/>
+                    <rect x="24" y="34" width="52" height="34" rx="10" fill="#0842A0" stroke="#A8C7FA" stroke-width="2.2"/>
+                    <circle class="digit" cx="37" cy="51" r="4" fill="#D3E3FD"/>
+                    <circle class="digit b" cx="50" cy="51" r="4" fill="#D3E3FD"/>
+                    <circle class="digit c" cx="63" cy="51" r="4" fill="#D3E3FD"/>
                   </svg>
-                </span>
-                <span class="tx">
-                  <strong>Отправить SMS через 1:42</strong>
-                  <span>Если код не пришёл, проверьте туннель</span>
-                </span>
+                </div>
+
+                <span class="m3-status"><span class="dot"></span> NebulaLink · Финляндия · 38 мс</span>
+
+                <h3 class="m3-h" style="margin-top: 16px;">Введите код</h3>
+                <p class="m3-sub">Код отправлен в Telegram на другое ваше устройство.</p>
+
+                <div class="m3-code">
+                  <span class="filled">4</span><span class="filled">1</span><span class="filled">7</span>
+                  <span class="active"></span><span></span>
+                </div>
+
+                <div class="m3-actions">
+                  <button class="m3-btn" data-reset>Готово · начать заново</button>
+                  <button class="m3-text-btn" data-prev>Не приходит код?</button>
+                </div>
               </div>
+            </div>
 
-              <div class="m3-actions">
-                <div class="m3-progress"><i></i><i></i><i></i><i class="on"></i></div>
-                <div class="m3-btn">Далее</div>
-                <div class="m3-text-btn">Не приходит код?</div>
-              </div>
+            <!-- прогресс под кнопками -->
+            <div class="progress" data-progress>
+              <i class="on"></i><i></i><i></i><i></i>
             </div>
             <div class="homebar"></div>
           </div>
-        </div>
-        <figcaption>
-          <div class="step">Шаг 4</div>
-          <div class="what"><b>Код.</b> Пять ячеек M3, подсказка про туннель вместо тупика.</div>
-        </figcaption>
-      </figure>
-    </div>
-  </section>
-
-  <section>
-    <h2>Material You: экран берёт цвет обоев</h2>
-    <p class="section-note">
-      Один и тот же экран, три seed-цвета. Палитра считается из обоев алгоритмом HCT и
-      раскладывается по ключам темы Telegram — поэтому цвета Material You получает всё
-      приложение, а не только наши экраны. Патчей в апстрим для этого не нужно.
-    </p>
-
-    <div class="rail">
-      <figure class="slot">
-        <div class="phone" style="height: 420px;">
-          <div class="screen m3">
-            <div class="statusbar"><span>18:37</span><span class="icons">100%</span></div>
-            <div class="m3-body">
-              <h3 class="m3-h" style="margin-top: 26px; font-size: 25px;">Добро пожаловать<br>в <b>NebulaGram</b></h3>
-              <p class="m3-sub">Telegram со встроенным туннелем.</p>
-              <div class="m3-actions"><div class="m3-btn">Далее</div><div class="m3-text-btn">Сменить язык</div></div>
-            </div>
-            <div class="homebar"></div>
-          </div>
-        </div>
-        <figcaption><div class="what"><b>Seed #35D6C4</b> — бирюза туманности O III</div></figcaption>
-      </figure>
-
-      <figure class="slot">
-        <div class="phone" style="height: 420px;">
-          <div class="screen m3 rose">
-            <div class="statusbar"><span>18:37</span><span class="icons">100%</span></div>
-            <div class="m3-body">
-              <h3 class="m3-h" style="margin-top: 26px; font-size: 25px;">Добро пожаловать<br>в <b>NebulaGram</b></h3>
-              <p class="m3-sub">Telegram со встроенным туннелем.</p>
-              <div class="m3-actions"><div class="m3-btn">Далее</div><div class="m3-text-btn">Сменить язык</div></div>
-            </div>
-            <div class="homebar"></div>
-          </div>
-        </div>
-        <figcaption><div class="what"><b>Seed #FF5C7A</b> — розовые обои, H-alpha</div></figcaption>
-      </figure>
-
-      <figure class="slot">
-        <div class="phone" style="height: 420px;">
-          <div class="screen m3 violet">
-            <div class="statusbar"><span>18:37</span><span class="icons">100%</span></div>
-            <div class="m3-body">
-              <h3 class="m3-h" style="margin-top: 26px; font-size: 25px;">Добро пожаловать<br>в <b>NebulaGram</b></h3>
-              <p class="m3-sub">Telegram со встроенным туннелем.</p>
-              <div class="m3-actions"><div class="m3-btn">Далее</div><div class="m3-text-btn">Сменить язык</div></div>
-            </div>
-            <div class="homebar"></div>
-          </div>
-        </div>
-        <figcaption><div class="what"><b>Seed #7C4DFF</b> — фиолетовые обои</div></figcaption>
-      </figure>
-
-      <figure class="slot">
-        <div class="phone" style="height: 420px;">
-          <div class="screen m3 light">
-            <div class="statusbar"><span>18:37</span><span class="icons">100%</span></div>
-            <div class="m3-body">
-              <h3 class="m3-h" style="margin-top: 26px; font-size: 25px;">Добро пожаловать<br>в <b>NebulaGram</b></h3>
-              <p class="m3-sub">Telegram со встроенным туннелем.</p>
-              <div class="m3-actions"><div class="m3-btn">Далее</div><div class="m3-text-btn">Сменить язык</div></div>
-            </div>
-            <div class="homebar"></div>
-          </div>
-        </div>
-        <figcaption><div class="what"><b>Светлая схема</b> — та же палитра, тона 40/90</div></figcaption>
-      </figure>
-    </div>
-
-    <div class="seeds">
-      <div class="seed-card">
-        <div class="seed-head">
-          <span class="seed-dot" style="background: #35D6C4;"></span>
-          <span><strong>Primary</strong><span>тона 10 → 90</span></span>
-        </div>
-        <div class="tones">
-          <i style="background:#00201B"></i><i style="background:#00382F"></i><i style="background:#005046"></i>
-          <i style="background:#006A5E"></i><i style="background:#28857A"></i><i style="background:#4CA095"></i>
-          <i style="background:#68BCB0"></i><i style="background:#84D8CB"></i><i style="background:#9FF2E1"></i>
         </div>
       </div>
-      <div class="seed-card">
-        <div class="seed-head">
-          <span class="seed-dot" style="background: #FF5C7A;"></span>
-          <span><strong>Secondary</strong><span>акцент уведомлений и ошибок</span></span>
-        </div>
-        <div class="tones">
-          <i style="background:#40000F"></i><i style="background:#67002A"></i><i style="background:#8E123F"></i>
-          <i style="background:#B02D56"></i><i style="background:#CD476D"></i><i style="background:#E96285"></i>
-          <i style="background:#FF8A9F"></i><i style="background:#FFB2BC"></i><i style="background:#FFD9DE"></i>
-        </div>
-      </div>
-      <div class="seed-card">
-        <div class="seed-head">
-          <span class="seed-dot" style="background: #1A2220;"></span>
-          <span><strong>Neutral</strong><span>поверхности, слегка уведённые в бирюзу</span></span>
-        </div>
-        <div class="tones">
-          <i style="background:#0E1513"></i><i style="background:#1A2220"></i><i style="background:#242C2A"></i>
-          <i style="background:#3B4442"></i><i style="background:#6F7976"></i><i style="background:#A8B1AE"></i>
-          <i style="background:#C4CDCA"></i><i style="background:#DEE4E1"></i><i style="background:#F4FBF8"></i>
-        </div>
-      </div>
-    </div>
-  </section>
 
-  <section>
-    <h2>iOS · Liquid Glass</h2>
-    <p class="section-note">
-      Те же четыре шага и тот же текст из ядра, но материал другой: полупрозрачные стеклянные
-      панели поверх подсвеченного фона, крупная кнопка-стекло внизу. На iOS ниже 26 —
-      фолбэк на <code>UIBlurEffect</code> с теми же цветами, чтобы сборка оставалась рабочей.
-    </p>
-
-    <div class="rail">
-      <!-- iOS welcome -->
-      <figure class="slot">
+      <!-- ============ iOS ============ -->
+      <div class="device">
+        <div class="device-head"><strong>iOS</strong><span>Liquid Glass</span></div>
         <div class="phone">
-          <div class="screen ios">
-            <div class="aurora" aria-hidden="true"><i class="a"></i><i class="b"></i><i class="c"></i></div>
-            <div class="ios-inner">
-              <div class="statusbar">
-                <span>18:37</span>
-                <span class="icons">
-                  <svg width="15" height="11" viewBox="0 0 15 11" fill="currentColor" aria-hidden="true"><path d="M7.5 9.6 0 2.6A11 11 0 0 1 15 2.6L7.5 9.6Z"/></svg>
-                  <svg width="20" height="11" viewBox="0 0 20 11" fill="none" aria-hidden="true">
-                    <rect x=".5" y=".5" width="16" height="10" rx="3.4" stroke="currentColor" opacity=".7"/>
-                    <rect x="2" y="2" width="10" height="7" rx="2" fill="currentColor"/>
-                  </svg>
-                </span>
-              </div>
+          <div class="screen ios" data-flow>
+            <div class="backdrop" aria-hidden="true"></div>
+            <div class="grain" aria-hidden="true"></div>
 
-              <div class="ios-body">
-                <div class="m3-art" style="padding: 30px 0 6px;">
-                  <svg width="132" height="132" viewBox="0 0 150 150" role="img" aria-label="Знак NebulaGram">
-                    <defs>
-                      <radialGradient id="neb2" cx="50%" cy="45%" r="55%">
-                        <stop offset="0%" stop-color="#FFFFFF"/>
-                        <stop offset="45%" stop-color="#8CF3E4"/>
-                        <stop offset="100%" stop-color="#2AA79A" stop-opacity="0"/>
-                      </radialGradient>
-                    </defs>
-                    <circle cx="75" cy="72" r="50" fill="url(#neb2)" opacity=".9"/>
-                    <ellipse cx="75" cy="74" rx="62" ry="26" fill="none" stroke="#FFFFFF"
-                             stroke-width="2" opacity=".85" transform="rotate(-24 75 74)"/>
-                    <circle cx="75" cy="70" r="12" fill="rgba(255,255,255,.9)"/>
+            <div class="statusbar">
+              <span>18:37</span>
+              <span class="icons">
+                <svg width="15" height="11" viewBox="0 0 15 11" fill="currentColor" aria-hidden="true"><path d="M7.5 9.6 0 2.6A11 11 0 0 1 15 2.6L7.5 9.6Z"/></svg>
+                <svg width="20" height="11" viewBox="0 0 20 11" fill="none" aria-hidden="true">
+                  <rect x=".5" y=".5" width="16" height="10" rx="3.4" stroke="currentColor" opacity=".7"/>
+                  <rect x="2" y="2" width="11" height="7" rx="2" fill="currentColor"/>
+                </svg>
+              </span>
+            </div>
+
+            <div class="stage">
+              <!-- 1 -->
+              <div class="step current" data-step="0">
+                <div class="m3-art" style="padding: 34px 0 20px;">
+                  <svg class="mark-plane" width="128" height="128" viewBox="0 0 120 120" role="img" aria-label="Значок NebulaGram">
+                    <g class="body">
+                      <path d="M97 27 28 63 57 74Z" fill="#FFFFFF" stroke="#FFFFFF" stroke-width="16" stroke-linejoin="round" stroke-linecap="round"/>
+                      <path d="M97 27 57 74 64 101Z" fill="#A9C6F5" stroke="#A9C6F5" stroke-width="16" stroke-linejoin="round" stroke-linecap="round"/>
+                    </g>
                   </svg>
                 </div>
 
                 <div class="glass ios-card">
                   <h3 class="ios-h">Добро пожаловать в NebulaGram</h3>
-                  <p class="ios-sub">
-                    Telegram со встроенным туннелем. Ваши серверы, ваши ключи,
-                    без сторонних релеев.
-                  </p>
+                  <p class="ios-sub">Telegram со встроенным туннелем. Ваши серверы, ваши ключи, без сторонних релеев.</p>
                 </div>
 
                 <div class="ios-actions">
-                  <div class="ios-btn">Далее</div>
-                  <div class="ios-text-btn">Сменить язык · Русский</div>
+                  <button class="ios-btn" data-next>Далее</button>
+                  <button class="ios-text-btn">🇷🇺 Русский · сменить язык</button>
                 </div>
               </div>
-              <div class="homebar" style="opacity:.7;"></div>
-            </div>
-          </div>
-        </div>
-        <figcaption>
-          <div class="step">Шаг 1</div>
-          <div class="what"><b>Приветствие.</b> Стеклянная карточка поверх свечения туманности.</div>
-        </figcaption>
-      </figure>
 
-      <!-- iOS tunnel -->
-      <figure class="slot">
-        <div class="phone">
-          <div class="screen ios">
-            <div class="aurora" aria-hidden="true"><i class="a"></i><i class="b"></i><i class="c"></i></div>
-            <div class="ios-inner">
-              <div class="statusbar">
-                <span>18:37</span>
-                <span class="icons">
-                  <svg width="15" height="11" viewBox="0 0 15 11" fill="currentColor" aria-hidden="true"><path d="M7.5 9.6 0 2.6A11 11 0 0 1 15 2.6L7.5 9.6Z"/></svg>
-                  <svg width="20" height="11" viewBox="0 0 20 11" fill="none" aria-hidden="true">
-                    <rect x=".5" y=".5" width="16" height="10" rx="3.4" stroke="currentColor" opacity=".7"/>
-                    <rect x="2" y="2" width="10" height="7" rx="2" fill="currentColor"/>
+              <!-- 2 -->
+              <div class="step" data-step="1">
+                <div class="m3-art" style="padding: 12px 0 4px;">
+                  <svg class="mark-shield" width="74" height="74" viewBox="0 0 100 100" role="img" aria-label="Значок NebulaLink">
+                    <circle class="halo" cx="50" cy="50" r="42" fill="none" stroke="#FFFFFF" stroke-width="1.8"/>
+                    <path d="M50 8 84 22v30c0 23-15 36-34 41-19-5-34-18-34-41V22L50 8Z"
+                          fill="rgba(255,255,255,.16)" stroke="#FFFFFF" stroke-width="2.2"/>
+                    <path class="check" d="M38 52l9 9 18-21" fill="none" stroke="#FFFFFF"
+                          stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round"/>
                   </svg>
-                </span>
-              </div>
+                </div>
 
-              <div class="ios-body">
-                <h3 class="ios-h" style="margin-top: 26px;">Подключите NebulaLink</h3>
+                <h3 class="ios-h">Подключите NebulaLink</h3>
                 <p class="ios-sub">Вставьте ссылку на подписку или ключ сервера.</p>
 
-                <div class="glass ios-field" style="margin-top: 18px;">
+                <div class="glass ios-field">
                   <span class="label">Подписка или ключ</span>
-                  <span class="value dim">https://subnebulaguard.mooo.com/…</span>
+                  <span class="value">https://subnebulaguard.mooo.com/…</span>
                 </div>
 
-                <div class="glass ios-card" style="padding: 6px 16px;">
+                <div class="glass ios-card" style="padding: 2px 14px; margin-top: 10px;">
                   <div class="ios-row">
                     <span class="ic">
-                      <svg width="17" height="17" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                      <svg width="16" height="16" viewBox="0 0 20 20" fill="none" aria-hidden="true">
                         <path d="M10 2 17 5v6c0 5-3.4 7.6-7 8.4C6.4 18.6 3 16 3 11V5l7-3Z" stroke="currentColor" stroke-width="1.6"/>
                       </svg>
                     </span>
-                    <span class="tx"><strong>Remnawave и обычные подписки</strong><span>Лимит устройств учитывается</span></span>
-                  </div>
-                  <div class="ios-sep"></div>
-                  <div class="ios-row">
-                    <span class="ic">
-                      <svg width="17" height="17" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-                        <path d="M3 10h14M10 3v14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-                      </svg>
-                    </span>
-                    <span class="tx"><strong>Шесть протоколов</strong><span>VLESS · Trojan · Hysteria2 · TUIC</span></span>
+                    <span class="tx"><strong>Remnawave и обычные подписки</strong><span>VLESS · Trojan · Hysteria2 · TUIC</span></span>
                   </div>
                 </div>
 
                 <div class="ios-actions">
-                  <div class="ios-btn">Подключить</div>
-                  <div class="ios-text-btn">Пропустить</div>
+                  <button class="ios-btn" data-next>Подключить</button>
+                  <button class="ios-text-btn" data-next>Пропустить</button>
                 </div>
               </div>
-              <div class="homebar" style="opacity:.7;"></div>
-            </div>
-          </div>
-        </div>
-        <figcaption>
-          <div class="step">Шаг 2</div>
-          <div class="what"><b>Туннель.</b> Стеклянный список поверх фона, без плотных карточек.</div>
-        </figcaption>
-      </figure>
 
-      <!-- iOS phone -->
-      <figure class="slot">
-        <div class="phone">
-          <div class="screen ios">
-            <div class="aurora" aria-hidden="true"><i class="a"></i><i class="b"></i><i class="c"></i></div>
-            <div class="ios-inner">
-              <div class="statusbar">
-                <span>18:38</span>
-                <span class="icons">
-                  <svg width="15" height="11" viewBox="0 0 15 11" fill="currentColor" aria-hidden="true"><path d="M7.5 9.6 0 2.6A11 11 0 0 1 15 2.6L7.5 9.6Z"/></svg>
-                  <svg width="20" height="11" viewBox="0 0 20 11" fill="none" aria-hidden="true">
-                    <rect x=".5" y=".5" width="16" height="10" rx="3.4" stroke="currentColor" opacity=".7"/>
-                    <rect x="2" y="2" width="10" height="7" rx="2" fill="currentColor"/>
-                  </svg>
-                </span>
-              </div>
-
-              <div class="ios-body">
-                <div style="padding-top: 16px;">
-                  <span class="glass ios-pill"><span class="dot" style="background:#7CF5C8"></span> NebulaLink · 38 мс</span>
+              <!-- 3 -->
+              <div class="step" data-step="2">
+                <div class="m3-art" style="padding: 26px 0 10px;">
+                  <div class="mark-digits" aria-hidden="true">
+                    <span class="reel prefix">+7</span>
+                    <span class="reel"><span class="strip"><i>0</i><i>1</i><i>2</i><i>3</i><i>4</i><i>5</i><i>6</i><i>7</i><i>8</i><i>9</i><i>0</i></span></span>
+                    <span class="reel"><span class="strip"><i>0</i><i>1</i><i>2</i><i>3</i><i>4</i><i>5</i><i>6</i><i>7</i><i>8</i><i>9</i><i>0</i></span></span>
+                    <span class="reel"><span class="strip"><i>0</i><i>1</i><i>2</i><i>3</i><i>4</i><i>5</i><i>6</i><i>7</i><i>8</i><i>9</i><i>0</i></span></span>
+                    <span class="reel"><span class="strip"><i>0</i><i>1</i><i>2</i><i>3</i><i>4</i><i>5</i><i>6</i><i>7</i><i>8</i><i>9</i><i>0</i></span></span>
+                  </div>
                 </div>
 
-                <h3 class="ios-h" style="margin-top: 22px;">Ваш номер телефона</h3>
+                <span class="glass ios-pill"><span class="dot" style="background:#8FE3B0"></span> NebulaLink · 38 мс</span>
+
+                <h3 class="ios-h" style="margin-top: 16px;">Ваш номер телефона</h3>
                 <p class="ios-sub">Подтвердите код страны и введите номер.</p>
 
-                <div class="glass ios-field" style="margin-top: 18px;">
-                  <span class="label">Страна</span><span class="value">🇷🇺 Россия</span>
-                </div>
-                <div class="glass ios-field" style="margin-top: 10px;">
-                  <span class="label">Номер</span><span class="value">+7 900 123-45-67</span>
-                </div>
+                <div class="glass ios-field"><span class="label">Страна</span><span class="value">🇷🇺 Россия</span></div>
+                <div class="glass ios-field"><span class="label">Номер</span><span class="value">+7 900 123-45-67</span></div>
 
                 <div class="ios-actions">
-                  <div class="ios-btn">Далее</div>
-                  <div class="ios-text-btn">Войти по QR-коду</div>
+                  <button class="ios-btn" data-next>Далее</button>
+                  <button class="ios-text-btn" data-prev>Назад</button>
                 </div>
               </div>
-              <div class="homebar" style="opacity:.7;"></div>
-            </div>
-          </div>
-        </div>
-        <figcaption>
-          <div class="step">Шаг 3</div>
-          <div class="what"><b>Номер.</b> Стеклянная плашка статуса туннеля закреплена сверху.</div>
-        </figcaption>
-      </figure>
 
-      <!-- iOS code -->
-      <figure class="slot">
-        <div class="phone">
-          <div class="screen ios">
-            <div class="aurora" aria-hidden="true"><i class="a"></i><i class="b"></i><i class="c"></i></div>
-            <div class="ios-inner">
-              <div class="statusbar">
-                <span>18:38</span>
-                <span class="icons">
-                  <svg width="15" height="11" viewBox="0 0 15 11" fill="currentColor" aria-hidden="true"><path d="M7.5 9.6 0 2.6A11 11 0 0 1 15 2.6L7.5 9.6Z"/></svg>
-                  <svg width="20" height="11" viewBox="0 0 20 11" fill="none" aria-hidden="true">
-                    <rect x=".5" y=".5" width="16" height="10" rx="3.4" stroke="currentColor" opacity=".7"/>
-                    <rect x="2" y="2" width="10" height="7" rx="2" fill="currentColor"/>
+              <!-- 4 -->
+              <div class="step" data-step="3">
+                <div class="m3-art" style="padding: 26px 0 10px;">
+                  <svg class="mark-key" width="86" height="86" viewBox="0 0 100 100" role="img" aria-label="Значок кода">
+                    <circle class="ring" cx="50" cy="50" r="38" fill="none" stroke="#FFFFFF"
+                            stroke-width="1.4" stroke-dasharray="6 10" opacity=".8"/>
+                    <rect x="24" y="34" width="52" height="34" rx="10" fill="rgba(255,255,255,.18)" stroke="#FFFFFF" stroke-width="2"/>
+                    <circle class="digit" cx="37" cy="51" r="4" fill="#FFFFFF"/>
+                    <circle class="digit b" cx="50" cy="51" r="4" fill="#FFFFFF"/>
+                    <circle class="digit c" cx="63" cy="51" r="4" fill="#FFFFFF"/>
                   </svg>
-                </span>
-              </div>
-
-              <div class="ios-body">
-                <div style="padding-top: 16px;">
-                  <span class="glass ios-pill"><span class="dot" style="background:#7CF5C8"></span> NebulaLink · 38 мс</span>
                 </div>
 
-                <h3 class="ios-h" style="margin-top: 22px;">Введите код</h3>
+                <span class="glass ios-pill"><span class="dot" style="background:#8FE3B0"></span> NebulaLink · 38 мс</span>
+
+                <h3 class="ios-h" style="margin-top: 16px;">Введите код</h3>
                 <p class="ios-sub">Код отправлен в Telegram на другое устройство.</p>
 
-                <div class="ios-code" style="margin-top: 20px;">
+                <div class="ios-code">
                   <span class="glass">4</span><span class="glass">1</span><span class="glass">7</span>
-                  <span class="glass" style="border-color: rgba(255,255,255,.55);">|</span>
+                  <span class="glass active"></span>
                   <span class="glass"></span>
                 </div>
 
                 <div class="ios-actions">
-                  <div class="ios-btn glassy">Далее</div>
-                  <div class="ios-text-btn">Отправить SMS через 1:42</div>
+                  <button class="ios-btn glassy" data-reset>Готово · начать заново</button>
+                  <button class="ios-text-btn" data-prev>Отправить SMS через 1:42</button>
                 </div>
               </div>
-              <div class="homebar" style="opacity:.7;"></div>
             </div>
+
+            <div class="progress" data-progress><i class="on"></i><i></i><i></i><i></i></div>
+            <div class="homebar"></div>
           </div>
         </div>
-        <figcaption>
-          <div class="step">Шаг 4</div>
-          <div class="what"><b>Код.</b> Ячейки-стекло, кнопка тоже стеклянная, пока код не введён.</div>
-        </figcaption>
+      </div>
+    </div>
+
+    <div class="callout">
+      <b>Что изменилось после ваших замечаний.</b> Фон iOS собран из трёх источников света с
+      зерном вместо одного размытого пятна; полоски прогресса переехали под кнопки; второй экран
+      пересобран — поле, подсказка и обе кнопки помещаются без обрезки, «Пропустить» на месте;
+      у выбора языка появился флаг; значки анимированы, между экранами настоящие переходы.
+    </div>
+  </section>
+
+  <section>
+    <h2>Системные цвета Android</h2>
+    <p class="section-note">
+      Палитра не зашита в приложение: она берётся из обоев через Material You и раскладывается по
+      ключам темы Telegram, поэтому системный цвет получают и наши экраны, и чужие. Ниже —
+      один и тот же экран при разных системных палитрах.
+    </p>
+    <div class="mini-rail">
+      <figure class="mini">
+        <div class="phone">
+          <div class="screen m3">
+            <div class="statusbar"><span>18:37</span><span class="icons">100%</span></div>
+            <div class="stage" style="display:flex;">
+              <div class="step current">
+                <div class="m3-art" style="padding: 18px 0 12px;">
+                  <svg class="mark-plane" width="70" height="70" viewBox="0 0 120 120" aria-hidden="true">
+                    <g class="body">
+                      <path d="M97 27 28 63 57 74Z" fill="#A8C7FA" stroke="#A8C7FA" stroke-width="16" stroke-linejoin="round" stroke-linecap="round"/>
+                      <path d="M97 27 57 74 64 101Z" fill="#7FA6E0" stroke="#7FA6E0" stroke-width="16" stroke-linejoin="round" stroke-linecap="round"/>
+                    </g>
+                  </svg>
+                </div>
+                <h3 class="m3-h">Добро пожаловать<br>в <b>NebulaGram</b></h3>
+                <p class="m3-sub">Синие обои</p>
+                <div class="m3-actions"><button class="m3-btn">Далее</button></div>
+              </div>
+            </div>
+            <div class="progress"><i class="on"></i><i></i><i></i><i></i></div>
+            <div class="homebar"></div>
+          </div>
+        </div>
+        <figcaption><b>Тёмная</b> · системный синий</figcaption>
+      </figure>
+
+      <figure class="mini">
+        <div class="phone">
+          <div class="screen m3 seed-green">
+            <div class="statusbar"><span>18:37</span><span class="icons">100%</span></div>
+            <div class="stage" style="display:flex;">
+              <div class="step current">
+                <div class="m3-art" style="padding: 18px 0 12px;">
+                  <svg class="mark-plane" width="70" height="70" viewBox="0 0 120 120" aria-hidden="true">
+                    <g class="body">
+                      <path d="M97 27 28 63 57 74Z" fill="#7FD88F" stroke="#7FD88F" stroke-width="16" stroke-linejoin="round" stroke-linecap="round"/>
+                      <path d="M97 27 57 74 64 101Z" fill="#5CB673" stroke="#5CB673" stroke-width="16" stroke-linejoin="round" stroke-linecap="round"/>
+                    </g>
+                  </svg>
+                </div>
+                <h3 class="m3-h">Добро пожаловать<br>в <b>NebulaGram</b></h3>
+                <p class="m3-sub">Зелёные обои</p>
+                <div class="m3-actions"><button class="m3-btn">Далее</button></div>
+              </div>
+            </div>
+            <div class="progress"><i class="on"></i><i></i><i></i><i></i></div>
+            <div class="homebar"></div>
+          </div>
+        </div>
+        <figcaption><b>Тёмная</b> · системный зелёный</figcaption>
+      </figure>
+
+      <figure class="mini">
+        <div class="phone">
+          <div class="screen m3 seed-rose">
+            <div class="statusbar"><span>18:37</span><span class="icons">100%</span></div>
+            <div class="stage" style="display:flex;">
+              <div class="step current">
+                <div class="m3-art" style="padding: 18px 0 12px;">
+                  <svg class="mark-plane" width="70" height="70" viewBox="0 0 120 120" aria-hidden="true">
+                    <g class="body">
+                      <path d="M97 27 28 63 57 74Z" fill="#FFB2BC" stroke="#FFB2BC" stroke-width="16" stroke-linejoin="round" stroke-linecap="round"/>
+                      <path d="M97 27 57 74 64 101Z" fill="#E08A97" stroke="#E08A97" stroke-width="16" stroke-linejoin="round" stroke-linecap="round"/>
+                    </g>
+                  </svg>
+                </div>
+                <h3 class="m3-h">Добро пожаловать<br>в <b>NebulaGram</b></h3>
+                <p class="m3-sub">Розовые обои</p>
+                <div class="m3-actions"><button class="m3-btn">Далее</button></div>
+              </div>
+            </div>
+            <div class="progress"><i class="on"></i><i></i><i></i><i></i></div>
+            <div class="homebar"></div>
+          </div>
+        </div>
+        <figcaption><b>Тёмная</b> · системный розовый</figcaption>
+      </figure>
+
+      <figure class="mini">
+        <div class="phone">
+          <div class="screen m3 seed-light">
+            <div class="statusbar"><span>18:37</span><span class="icons">100%</span></div>
+            <div class="stage" style="display:flex;">
+              <div class="step current">
+                <div class="m3-art" style="padding: 18px 0 12px;">
+                  <svg class="mark-plane" width="70" height="70" viewBox="0 0 120 120" aria-hidden="true">
+                    <g class="body">
+                      <path d="M97 27 28 63 57 74Z" fill="#0B57D0" stroke="#0B57D0" stroke-width="16" stroke-linejoin="round" stroke-linecap="round"/>
+                      <path d="M97 27 57 74 64 101Z" fill="#08409B" stroke="#08409B" stroke-width="16" stroke-linejoin="round" stroke-linecap="round"/>
+                    </g>
+                  </svg>
+                </div>
+                <h3 class="m3-h">Добро пожаловать<br>в <b>NebulaGram</b></h3>
+                <p class="m3-sub">Светлая тема системы</p>
+                <div class="m3-actions"><button class="m3-btn">Далее</button></div>
+              </div>
+            </div>
+            <div class="progress"><i class="on"></i><i></i><i></i><i></i></div>
+            <div class="homebar"></div>
+          </div>
+        </div>
+        <figcaption><b>Светлая</b> · та же палитра</figcaption>
       </figure>
     </div>
   </section>
 
   <section>
-    <h2>Кто что рисует и кто чем управляет</h2>
+    <h2>Значок приложения</h2>
     <p class="section-note">
-      Логику авторизации мы не переписываем никогда — там SMS-retriever, QR-вход,
-      passkeys и антифрод. Мы владеем первыми двумя экранами целиком, а экранам входа
-      отдаём только оформление.
+      Здесь стоит временный знак — самолётик в орбите туманности. Положите свои файлы в
+      <code>design/icon/</code> (<code>mark.svg</code> без фона и <code>icon-1024.png</code> с
+      акцентной подложкой), и я подставлю их и в мокап, и в ресурсы приложений: адаптивная иконка
+      Android, набор размеров iOS, <code>.ico</code> для десктопа.
+    </p>
+    <div class="icon-row">
+      <div class="icon-tile">
+        <div class="tile accent">
+          <svg class="mark-plane" width="72" height="72" viewBox="0 0 120 120" aria-hidden="true">
+                    <g class="body">
+                      <path d="M97 27 28 63 57 74Z" fill="#FFFFFF" stroke="#FFFFFF" stroke-width="16" stroke-linejoin="round" stroke-linecap="round"/>
+                      <path d="M97 27 57 74 64 101Z" fill="#BBD4F7" stroke="#BBD4F7" stroke-width="16" stroke-linejoin="round" stroke-linecap="round"/>
+                    </g>
+                  </svg>
+        </div>
+        <span>С акцентным фоном</span>
+      </div>
+      <div class="icon-tile">
+        <div class="tile plain">
+          <svg class="mark-plane" width="72" height="72" viewBox="0 0 120 120" aria-hidden="true">
+                    <g class="body">
+                      <path d="M97 27 28 63 57 74Z" fill="#1E6FD9" stroke="#1E6FD9" stroke-width="16" stroke-linejoin="round" stroke-linecap="round"/>
+                      <path d="M97 27 57 74 64 101Z" fill="#12518F" stroke="#12518F" stroke-width="16" stroke-linejoin="round" stroke-linecap="round"/>
+                    </g>
+                  </svg>
+        </div>
+        <span>Без фона</span>
+      </div>
+      <div class="icon-tile">
+        <div class="tile accent" style="border-radius: 54px;">
+          <svg class="mark-plane" width="66" height="66" viewBox="0 0 120 120" aria-hidden="true">
+                    <g class="body">
+                      <path d="M97 27 28 63 57 74Z" fill="#FFFFFF" stroke="#FFFFFF" stroke-width="16" stroke-linejoin="round" stroke-linecap="round"/>
+                      <path d="M97 27 57 74 64 101Z" fill="#BBD4F7" stroke="#BBD4F7" stroke-width="16" stroke-linejoin="round" stroke-linecap="round"/>
+                    </g>
+                  </svg>
+        </div>
+        <span>Круглая маска Android</span>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Кто чем управляет</h2>
+    <p class="section-note">
+      Логику авторизации мы не переписываем: там SMS-retriever, QR-вход, passkeys и антифрод.
+      Первые два экрана наши целиком, экранам входа достаётся только оформление.
     </p>
     <div class="table-wrap">
       <table class="own">
-        <thead>
-          <tr><th>Экран</th><th>Логика</th><th>Оформление</th><th>Риск при обновлении ТГ</th></tr>
-        </thead>
+        <thead><tr><th>Экран</th><th>Логика</th><th>Оформление</th><th>Риск при обновлении ТГ</th></tr></thead>
         <tbody>
-          <tr>
-            <td>Приветствие</td>
-            <td><span class="tag ours">наша</span></td>
-            <td><span class="tag ours">наше</span></td>
-            <td>нулевой — файл целиком наш</td>
-          </tr>
-          <tr>
-            <td>Подключение NebulaLink</td>
-            <td><span class="tag ours">наша</span></td>
-            <td><span class="tag ours">наше</span></td>
-            <td>нулевой — вызывает <code>onboarding.connect</code></td>
-          </tr>
-          <tr>
-            <td>Номер телефона</td>
-            <td><span class="tag tg">Telegram</span></td>
-            <td><span class="tag ours">наше</span></td>
-            <td>средний — только цвета и формы через токены</td>
-          </tr>
-          <tr>
-            <td>Код и облачный пароль</td>
-            <td><span class="tag tg">Telegram</span></td>
-            <td><span class="tag ours">наше</span></td>
-            <td>средний — экран остаётся классом апстрима</td>
-          </tr>
+          <tr><td>Приветствие</td><td><span class="tag ours">наша</span></td><td><span class="tag ours">наше</span></td><td>нулевой — файл целиком наш</td></tr>
+          <tr><td>Подключение NebulaLink</td><td><span class="tag ours">наша</span></td><td><span class="tag ours">наше</span></td><td>нулевой — вызывает <code>onboarding.connect</code></td></tr>
+          <tr><td>Номер телефона</td><td><span class="tag tg">Telegram</span></td><td><span class="tag ours">наше</span></td><td>средний — цвета и формы через токены</td></tr>
+          <tr><td>Код и облачный пароль</td><td><span class="tag tg">Telegram</span></td><td><span class="tag ours">наше</span></td><td>средний — экран остаётся классом апстрима</td></tr>
         </tbody>
       </table>
     </div>
   </section>
 
   <footer class="page">
-    Тексты и порядок шагов заданы в <code>core/onboarding/onboarding.go</code> и одинаковы
-    на трёх платформах — Android, iOS и десктоп рендерят один и тот же спек нативными
-    средствами. Правило «туннель раньше номера» закреплено тестом
-    <code>TestFlowOffersTunnelBeforePhone</code>.
+    Тексты и порядок шагов заданы в <code>core/onboarding/onboarding.go</code> и одинаковы на трёх
+    платформах. Правило «туннель раньше номера» закреплено тестом
+    <code>TestFlowOffersTunnelBeforePhone</code>. Анимации отключаются системной настройкой
+    «уменьшить движение».
   </footer>
 </div>
+
+<script>
+  // Каждый телефон — независимый поток экранов с направленным переходом.
+  document.querySelectorAll("[data-flow]").forEach(function (flow) {
+    var steps = Array.prototype.slice.call(flow.querySelectorAll(".step"));
+    var dots = Array.prototype.slice.call(flow.querySelectorAll("[data-progress] i"));
+    var index = 0;
+    var busy = false;
+
+    function show(target, direction) {
+      if (busy || target === index || target < 0 || target >= steps.length) return;
+      busy = true;
+
+      var from = steps[index];
+      var to = steps[target];
+      var forward = direction === "next";
+
+      to.classList.add(forward ? "enter-next" : "enter-prev");
+      // Принудительный reflow, иначе браузер склеит установку и снятие класса.
+      void to.offsetWidth;
+
+      from.classList.remove("current");
+      from.classList.add(forward ? "leave-next" : "leave-prev");
+      to.classList.remove("enter-next", "enter-prev");
+      to.classList.add("current");
+
+      dots.forEach(function (dot, i) { dot.classList.toggle("on", i === target); });
+      index = target;
+
+      window.setTimeout(function () {
+        from.classList.remove("leave-next", "leave-prev");
+        busy = false;
+      }, 420);
+    }
+
+    flow.addEventListener("click", function (event) {
+      var button = event.target.closest("button");
+      if (!button) return;
+      if (button.hasAttribute("data-next")) show(index + 1, "next");
+      else if (button.hasAttribute("data-prev")) show(index - 1, "prev");
+      else if (button.hasAttribute("data-reset")) show(0, "prev");
+    });
+  });
+</script>
