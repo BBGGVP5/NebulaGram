@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Strings for NebulaGram's own screens.
+
+  A new resource file rather than an edit of Telegram's strings.xml: Gradle
+  merges it automatically, so this costs no patch and can never conflict with an
+  upstream release. Keys are prefixed Nebula for the same reason.
+-->
+<resources>
+    <string name="NebulaAppName">NebulaGram</string>
+    <string name="NebulaLinkName">NebulaLink</string>
+
+    <string name="NebulaWelcomeTitle">Welcome to NebulaGram</string>
+    <string name="NebulaWelcomeSubtitle">Telegram with a built-in tunnel. Your servers, your keys, no third-party relays and no second app.</string>
+    <string name="NebulaNext">Next</string>
+    <string name="NebulaSkip">Skip</string>
+    <string name="NebulaChangeLanguage">Change language</string>
+
+    <string name="NebulaConnectTitle">Connect NebulaLink</string>
+    <string name="NebulaConnectSubtitle">Paste a subscription link or a server key — without a tunnel the login code may never arrive.</string>
+    <string name="NebulaConnectHint">Subscription link or key</string>
+    <string name="NebulaConnect">Connect</string>
+
+    <string name="NebulaConnected">Connected</string>
+    <string name="NebulaDisconnected">Disconnected</string>
+    <string name="NebulaConnecting">Connecting\u2026</string>
+</resources>

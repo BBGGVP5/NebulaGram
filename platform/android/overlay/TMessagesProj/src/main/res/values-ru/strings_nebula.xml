@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="NebulaAppName">NebulaGram</string>
+    <string name="NebulaLinkName">NebulaLink</string>
+
+    <string name="NebulaWelcomeTitle">Добро пожаловать в NebulaGram</string>
+    <string name="NebulaWelcomeSubtitle">Telegram со встроенным туннелем. Ваши серверы, ваши ключи, без сторонних релеев и без второго приложения.</string>
+    <string name="NebulaNext">Далее</string>
+    <string name="NebulaSkip">Пропустить</string>
+    <string name="NebulaChangeLanguage">Сменить язык</string>
+
+    <string name="NebulaConnectTitle">Подключите NebulaLink</string>
+    <string name="NebulaConnectSubtitle">Вставьте ссылку на подписку или ключ сервера — без туннеля код для входа может не дойти.</string>
+    <string name="NebulaConnectHint">Ссылка на подписку или ключ</string>
+    <string name="NebulaConnect">Подключить</string>
+
+    <string name="NebulaConnected">Подключено</string>
+    <string name="NebulaDisconnected">Отключено</string>
+    <string name="NebulaConnecting">Подключение\u2026</string>
+</resources>
