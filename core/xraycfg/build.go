@@ -25,6 +25,11 @@ type Options struct {
 	LogLevel   string // none|error|warning|info|debug
 	StatsAPI   bool   // expose the local stats API for the traffic counters
 	DNS        string // upstream DNS used inside the tunnel, e.g. "1.1.1.1"
+
+	// GeoAssets says whether geoip.dat and geosite.dat are on disk. Without
+	// them Xray refuses to start any configuration that mentions geoip: or
+	// geosite:, which panels use constantly, so Normalize strips those rules.
+	GeoAssets bool
 }
 
 // Defaults returns the options NebulaGram ships with.

@@ -79,17 +79,6 @@ NebulaGram — форк [Telegram для Android](https://github.com/DrKLO/Teleg
 нём нет ничего, кроме заявленного. Производные работы обязаны так же оставаться
 открытыми. Текст лицензии — в [LICENSE](LICENSE).
 
-## Собрать самому
-
-Нужен свой ключ Telegram API и обычный набор Android-разработчика — порядок
-описан в [docs/BUILD-ANDROID.md](docs/BUILD-ANDROID.md).
-
-Как проект устроен внутри — в [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md):
-туннель вынесен в отдельное ядро на Go, общее для будущих версий под iOS и
-десктоп. Почему форк не отстаёт от обновлений Telegram — в
-[docs/UPSTREAM.md](docs/UPSTREAM.md); если коротко, он вмешивается в исходники
-Telegram ровно в 31 строке.
-
 ## Оговорка
 
 Неофициальный форк. Проект не связан с Telegram Messenger Inc., ею не

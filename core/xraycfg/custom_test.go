@@ -28,9 +28,13 @@ const userConfig = `{
   "dns": {"servers": ["8.8.8.8"]}
 }`
 
+// normalized runs the config as if geoip.dat and geosite.dat were installed,
+// which is the case where the panel's rules survive untouched.
 func normalized(t *testing.T) map[string]any {
 	t.Helper()
-	out, err := Normalize([]byte(userConfig), Defaults(10808))
+	options := Defaults(10808)
+	options.GeoAssets = true
+	out, err := Normalize([]byte(userConfig), options)
 	if err != nil {
 		t.Fatalf("Normalize: %v", err)
 	}
@@ -127,5 +131,62 @@ func TestProbeTargetFindsTheEndpoint(t *testing.T) {
 func TestNormalizeRejectsConfigWithoutOutbounds(t *testing.T) {
 	if _, err := Normalize([]byte(`{"inbounds":[]}`), Defaults(10808)); err == nil {
 		t.Fatal("expected an error for a configuration with no outbounds")
+	}
+}
+
+// Without the data files Xray refuses to load a configuration that mentions
+// geoip: or geosite: at all — it fails the whole config, not the rule. Panels
+// ship such rules constantly, so the alternative to stripping them is a server
+// that simply cannot connect.
+func TestNormalizeDropsGeoRulesWithoutTheDataFiles(t *testing.T) {
+	out, err := Normalize([]byte(userConfig), Defaults(10808))
+	if err != nil {
+		t.Fatalf("Normalize: %v", err)
+	}
+	var cfg map[string]any
+	if err := json.Unmarshal(out, &cfg); err != nil {
+		t.Fatal(err)
+	}
+
+	rules := cfg["routing"].(map[string]any)["rules"].([]any)
+	if len(rules) != 1 {
+		t.Fatalf("got %d rules, want only the one that needs no data file", len(rules))
+	}
+	rule := rules[0].(map[string]any)
+	if rule["outboundTag"] != "proxy" || rule["network"] != "tcp,udp" {
+		t.Errorf("the surviving rule is not the plain one: %v", rule)
+	}
+
+	// The rest of the configuration is untouched.
+	if cfg["dns"] == nil {
+		t.Error("the dns section went with the rules")
+	}
+	if len(cfg["outbounds"].([]any)) != 3 {
+		t.Error("outbounds were altered")
+	}
+}
+
+func TestStripLeavesRulesThatMatchOnSomethingElse(t *testing.T) {
+	// A rule mixing a geosite entry with a plain domain keeps the plain one.
+	config := `{"outbounds":[{"tag":"vpn","protocol":"vless","settings":{"vnext":[{"address":"a.example","port":443,"users":[{"id":"u"}]}]}}],
+	  "routing":{"rules":[
+	    {"type":"field","domain":["geosite:ads","example.com"],"outboundTag":"vpn"},
+	    {"type":"field","ip":["geoip:ru"],"outboundTag":"vpn"}]}}`
+
+	out, err := Normalize([]byte(config), Defaults(10808))
+	if err != nil {
+		t.Fatalf("Normalize: %v", err)
+	}
+	var cfg map[string]any
+	if err := json.Unmarshal(out, &cfg); err != nil {
+		t.Fatal(err)
+	}
+	rules := cfg["routing"].(map[string]any)["rules"].([]any)
+	if len(rules) != 1 {
+		t.Fatalf("got %d rules, want the mixed one to survive alone", len(rules))
+	}
+	domains := rules[0].(map[string]any)["domain"].([]any)
+	if len(domains) != 1 || domains[0] != "example.com" {
+		t.Errorf("domains = %v, want just the plain entry", domains)
 	}
 }

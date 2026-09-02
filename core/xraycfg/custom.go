@@ -55,6 +55,14 @@ func Normalize(raw []byte, o Options) ([]byte, error) {
 	if _, ok := cfg["log"]; !ok && o.LogLevel != "" {
 		cfg["log"] = map[string]any{"loglevel": o.LogLevel}
 	}
+	if !o.GeoAssets {
+		// Panels routinely ship rules like geoip:ru or geosite:vk, and Xray
+		// refuses to start the whole configuration when the data files are
+		// missing — not just the rule. Dropping those rules keeps the server
+		// usable; everything they would have sent direct goes through the
+		// tunnel instead, which for a messenger is the safer default anyway.
+		stripGeoRules(cfg)
+	}
 	cfg["inbounds"] = mergeInbounds(cfg["inbounds"], o)
 
 	if tag := renameProxyOutbound(cfg); tag != "" && o.StatsAPI {
@@ -207,4 +215,106 @@ func ConfigName(raw []byte) string {
 		}
 	}
 	return ""
+}
+
+// geoPrefixes are the matchers that need geoip.dat or geosite.dat on disk.
+var geoPrefixes = []string{"geosite:", "geoip:", "ext:"}
+
+func needsGeoData(value string) bool {
+	for _, prefix := range geoPrefixes {
+		if strings.HasPrefix(value, prefix) {
+			return true
+		}
+	}
+	return false
+}
+
+// stripGeoRules removes every matcher that would need a data file, and then
+// drops rules left with nothing to match on. Returns how many rules went.
+func stripGeoRules(cfg map[string]any) int {
+	removed := 0
+	if routing, ok := cfg["routing"].(map[string]any); ok {
+		if rules, ok := routing["rules"].([]any); ok {
+			kept := make([]any, 0, len(rules))
+			for _, item := range rules {
+				rule, ok := item.(map[string]any)
+				if !ok {
+					kept = append(kept, item)
+					continue
+				}
+				for _, field := range []string{"domain", "ip", "source"} {
+					if list, ok := rule[field].([]any); ok {
+						filtered := filterGeo(list)
+						if len(filtered) == 0 {
+							delete(rule, field)
+						} else {
+							rule[field] = filtered
+						}
+					}
+				}
+				if hasMatcher(rule) {
+					kept = append(kept, rule)
+				} else {
+					removed++
+				}
+			}
+			routing["rules"] = kept
+		}
+	}
+	// A DNS server can be scoped to a geosite list as well.
+	if dns, ok := cfg["dns"].(map[string]any); ok {
+		if servers, ok := dns["servers"].([]any); ok {
+			for _, item := range servers {
+				server, ok := item.(map[string]any)
+				if !ok {
+					continue
+				}
+				for _, field := range []string{"domains", "expectIPs"} {
+					if list, ok := server[field].([]any); ok {
+						if filtered := filterGeo(list); len(filtered) == 0 {
+							delete(server, field)
+						} else {
+							server[field] = filtered
+						}
+					}
+				}
+			}
+		}
+	}
+	return removed
+}
+
+func filterGeo(list []any) []any {
+	kept := make([]any, 0, len(list))
+	for _, entry := range list {
+		if text, ok := entry.(string); ok && needsGeoData(text) {
+			continue
+		}
+		kept = append(kept, entry)
+	}
+	return kept
+}
+
+// hasMatcher reports whether a routing rule still selects anything. A rule with
+// only an outboundTag left would send every connection down that outbound.
+func hasMatcher(rule map[string]any) bool {
+	for _, field := range []string{
+		"domain", "ip", "port", "sourcePort", "network", "source",
+		"user", "inboundTag", "protocol", "attrs", "domainMatcher",
+	} {
+		switch value := rule[field].(type) {
+		case []any:
+			if len(value) > 0 {
+				return true
+			}
+		case string:
+			if value != "" {
+				return true
+			}
+		case nil:
+		default:
+			return true
+		}
+	}
+	return false
 }

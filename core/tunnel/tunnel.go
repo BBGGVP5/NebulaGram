@@ -11,6 +11,8 @@ import (
 	"errors"
 	"fmt"
 	"net"
+	"os"
+	"path/filepath"
 	"strconv"
 	"sync"
 	"time"
@@ -72,6 +74,37 @@ func factoryFor(engine model.Engine) (Factory, error) {
 		return nil, fmt.Errorf("tunnel: core %q is not available in this build", engine)
 	}
 	return f, nil
+}
+
+var (
+	assetMu  sync.RWMutex
+	assetDir string
+)
+
+// SetAssetDir tells the manager where geoip.dat and geosite.dat live. The
+// clients pass a directory inside their private storage; when the files are not
+// there, geo-based routing rules are stripped rather than allowed to stop the
+// whole configuration from loading.
+func SetAssetDir(dir string) {
+	assetMu.Lock()
+	assetDir = dir
+	assetMu.Unlock()
+}
+
+// GeoAssetsPresent reports whether both data files are readable.
+func GeoAssetsPresent() bool {
+	assetMu.RLock()
+	dir := assetDir
+	assetMu.RUnlock()
+	if dir == "" {
+		return false
+	}
+	for _, name := range []string{"geoip.dat", "geosite.dat"} {
+		if _, err := os.Stat(filepath.Join(dir, name)); err != nil {
+			return false
+		}
+	}
+	return true
 }
 
 // Observer is notified on every state change, so clients can update the
@@ -264,6 +297,7 @@ func buildConfig(server model.Server, cfg settings.Settings, socksPort, httpPort
 			opts := xraycfg.Defaults(socksPort)
 			opts.HTTPPort = httpPort
 			opts.LogLevel = cfg.LogLevel
+			opts.GeoAssets = GeoAssetsPresent()
 			return xraycfg.Normalize([]byte(server.Config), opts)
 		case model.EngineSingBox:
 			opts := singboxcfg.Defaults(socksPort)

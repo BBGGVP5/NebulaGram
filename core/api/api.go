@@ -15,6 +15,8 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"os"
+	"path/filepath"
 	"strings"
 	"sync"
 	"time"
@@ -156,6 +158,7 @@ var handlers = map[string]handler{
 
 type initRequest struct {
 	Dir       string `json:"dir"`
+	AssetDir  string `json:"asset_dir"`
 	OS        string `json:"os"`
 	OSVersion string `json:"os_version"`
 	Model     string `json:"model"`
@@ -171,6 +174,18 @@ func (c *Core) handleInit(payload []byte) (any, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	// Xray looks for geoip.dat and geosite.dat through this variable. Pointing
+	// it at the client's own directory keeps the files out of the app bundle
+	// and lets a user drop in their own lists.
+	assets := req.AssetDir
+	if assets == "" {
+		assets = filepath.Join(req.Dir, "assets")
+	}
+	if err := os.Setenv("XRAY_LOCATION_ASSET", assets); err != nil {
+		return nil, fmt.Errorf("nebulalink: cannot point the core at %s: %w", assets, err)
+	}
+	tunnel.SetAssetDir(assets)
 
 	c.mu.Lock()
 	c.store = st
@@ -191,9 +206,11 @@ func (c *Core) handleInit(payload []byte) (any, error) {
 		}
 	}
 	return map[string]any{
-		"version":  Version,
-		"settings": st.Settings(),
-		"status":   c.tunnel.Status(),
+		"version":    Version,
+		"settings":   st.Settings(),
+		"status":     c.tunnel.Status(),
+		"asset_dir":  assets,
+		"geo_assets": tunnel.GeoAssetsPresent(),
 	}, nil
 }
 
