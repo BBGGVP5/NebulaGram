@@ -7,3 +7,6 @@ build/
 libnebulalink.*
 .idea/
 .DS_Store
+
+# Локальные ключи сборки — в git не попадают
+.env.local

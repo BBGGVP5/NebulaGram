@@ -1,0 +1,105 @@
+name: android
+
+# Builds the NebulaGram APK: Go core -> AAR, overlay + patches onto the pinned
+# Telegram tree, credentials injected from secrets, then Gradle.
+#
+# Needs two repository secrets (Settings -> Secrets and variables -> Actions):
+#   TELEGRAM_APP_ID    — from my.telegram.org
+#   TELEGRAM_APP_HASH  — from my.telegram.org
+# See docs/BUILD-ANDROID.md.
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'core/**'
+      - 'bind/**'
+      - 'runtime/**'
+      - 'platform/android/**'
+      - 'patches/android/**'
+      - 'scripts/**'
+      - '.github/workflows/android.yml'
+
+# The versions the pinned upstream asks for; a mismatch fails the native build.
+env:
+  NDK_VERSION: 27.2.12479018
+  CMAKE_VERSION: 3.22.1
+
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check the credentials are configured
+        env:
+          APP_ID: ${{ secrets.TELEGRAM_APP_ID }}
+        run: |
+          if [ -z "$APP_ID" ]; then
+            echo "::error::TELEGRAM_APP_ID and TELEGRAM_APP_HASH are not set. Register an app at my.telegram.org and add them as repository secrets — see docs/BUILD-ANDROID.md."
+            exit 1
+          fi
+
+      - name: Fetch the pinned upstream
+        run: git submodule update --init --depth 1 vendor/telegram-android
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.24'
+          cache-dependency-path: '**/go.sum'
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: android-actions/setup-android@v3
+
+      - name: Install the NDK and CMake upstream pins
+        run: |
+          sdkmanager --install "ndk;${NDK_VERSION}" "cmake;${CMAKE_VERSION}"
+          echo "ANDROID_NDK_HOME=$ANDROID_SDK_ROOT/ndk/${NDK_VERSION}" >> "$GITHUB_ENV"
+
+      - name: Cache Gradle
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: gradle-${{ runner.os }}-${{ hashFiles('vendor/telegram-android/gradle/wrapper/gradle-wrapper.properties') }}
+          restore-keys: gradle-${{ runner.os }}-
+
+      - name: Build the NebulaLink core
+        run: bash scripts/build-core.sh android
+
+      - name: Prepare the tree
+        run: bash scripts/apply-overlay.sh android
+
+      - name: Install the credentials
+        env:
+          TELEGRAM_APP_ID: ${{ secrets.TELEGRAM_APP_ID }}
+          TELEGRAM_APP_HASH: ${{ secrets.TELEGRAM_APP_HASH }}
+        run: bash scripts/inject-keys.sh android
+
+      - name: Assemble
+        working-directory: vendor/telegram-android
+        run: ./gradlew --no-daemon :TMessagesProj_AppStandalone:assembleAfatRelease
+
+      - name: Name the artifact after the build
+        id: name
+        run: |
+          version=$(grep '^APP_VERSION_NAME=' vendor/telegram-android/gradle.properties | cut -d= -f2)
+          echo "apk=NebulaGram-${version}-${GITHUB_SHA::7}.apk" >> "$GITHUB_OUTPUT"
+
+      - name: Collect the APK
+        run: |
+          found=$(find vendor/telegram-android -name '*.apk' -path '*release*' | head -1)
+          test -n "$found" || { echo "::error::no APK was produced"; exit 1; }
+          mkdir -p out && cp "$found" "out/${{ steps.name.outputs.apk }}"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: nebulagram-apk
+          path: out/*.apk
+          if-no-files-found: error
