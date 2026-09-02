@@ -36,7 +36,6 @@ func Defaults(socksPort int) Options {
 		Sniffing:   true,
 		LogLevel:   "warning",
 		StatsAPI:   true,
-		DNS:        "1.1.1.1",
 	}
 }
 
@@ -65,14 +64,21 @@ func Build(s model.Server, o Options) ([]byte, error) {
 		"inbounds":  buildInbounds(o),
 		"outbounds": []any{outbound, directOutbound(), blockOutbound()},
 		"routing": map[string]any{
-			"domainStrategy": "IPIfNonMatch",
+			// AsIs sends the hostname to the server and lets it resolve.
+			// Resolving locally would both leak the destination to whoever
+			// runs the local resolver and break wherever DNS is poisoned or
+			// the upstream resolver is blocked — which is exactly where a
+			// tunnel is needed.
+			"domainStrategy": "AsIs",
 			"rules": []any{
 				map[string]any{"type": "field", "outboundTag": "block", "protocol": []string{"bittorrent"}},
 			},
 		},
 	}
+	// With AsIs routing the client resolves nothing itself, so a DNS section is
+	// only written when the user asked for one.
 	if o.DNS != "" {
-		cfg["dns"] = map[string]any{"servers": []any{o.DNS, "localhost"}}
+		cfg["dns"] = map[string]any{"servers": []any{o.DNS}}
 	}
 	if o.StatsAPI {
 		cfg["stats"] = map[string]any{}

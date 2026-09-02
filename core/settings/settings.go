@@ -75,7 +75,7 @@ func Default() Settings {
 		SwitchOnFailure: false,
 		RouteCalls:      true,
 		DualCore:        false,
-		DNS:             "1.1.1.1",
+		DNS:             "", // empty: the server resolves, see xraycfg
 		LogLevel:        "warning",
 		PerPage:         50,
 	}

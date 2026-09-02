@@ -16,10 +16,6 @@ import (
 	"github.com/xtls/xray-core/features/stats"
 	"github.com/xtls/xray-core/infra/conf/serial"
 
-	// The distro import pulls in every protocol and transport Xray supports;
-	// without it the config parser rejects vless, reality, xhttp and the rest.
-	_ "github.com/xtls/xray-core/main/distro/all"
-
 	"github.com/nebulagram/nebulagram/core/model"
 	"github.com/nebulagram/nebulagram/core/tunnel"
 )

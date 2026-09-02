@@ -10,6 +10,8 @@ package tunnel
 import (
 	"errors"
 	"fmt"
+	"net"
+	"strconv"
 	"sync"
 	"time"
 
@@ -122,7 +124,24 @@ func (m *Manager) Start(server model.Server, cfg settings.Settings) error {
 		m.fail(server, err)
 		return err
 	}
-	config, err := buildConfig(server, cfg)
+	// The configured port may be taken, or reserved by the system — Windows
+	// hands whole ranges to Hyper-V, and another proxy app may already hold the
+	// usual one. Falling back to a free port keeps the tunnel usable; the
+	// clients read the port they should proxy through from the status event.
+	socksPort, err := resolvePort(cfg.SocksPort)
+	if err != nil {
+		m.fail(server, err)
+		return err
+	}
+	httpPort := 0
+	if cfg.HTTPPort > 0 {
+		if httpPort, err = resolvePort(cfg.HTTPPort); err != nil {
+			m.fail(server, err)
+			return err
+		}
+	}
+
+	config, err := buildConfig(server, cfg, socksPort, httpPort)
 	if err != nil {
 		m.fail(server, err)
 		return err
@@ -140,8 +159,8 @@ func (m *Manager) Start(server model.Server, cfg settings.Settings) error {
 		Server:    &shown,
 		Engine:    engine,
 		Mode:      string(cfg.Mode),
-		SocksPort: cfg.SocksPort,
-		HTTPPort:  cfg.HTTPPort,
+		SocksPort: socksPort,
+		HTTPPort:  httpPort,
 	}
 	m.mu.Unlock()
 	m.notify()
@@ -213,9 +232,28 @@ func (m *Manager) notify() {
 	}
 }
 
+// resolvePort returns the wanted port when it can be bound, and a free one
+// otherwise. There is an unavoidable gap between the check and the core
+// binding, but nothing else on the device is racing us for an ephemeral port.
+func resolvePort(wanted int) (int, error) {
+	if wanted > 0 {
+		listener, err := net.Listen("tcp", net.JoinHostPort("127.0.0.1", strconv.Itoa(wanted)))
+		if err == nil {
+			_ = listener.Close()
+			return wanted, nil
+		}
+	}
+	listener, err := net.Listen("tcp", "127.0.0.1:0")
+	if err != nil {
+		return 0, fmt.Errorf("tunnel: no local port is available: %w", err)
+	}
+	defer listener.Close()
+	return listener.Addr().(*net.TCPAddr).Port, nil
+}
+
 // buildConfig renders the core config for a server.
-func buildConfig(server model.Server, cfg settings.Settings) ([]byte, error) {
-	if cfg.SocksPort <= 0 {
+func buildConfig(server model.Server, cfg settings.Settings, socksPort, httpPort int) ([]byte, error) {
+	if socksPort <= 0 {
 		return nil, errors.New("tunnel: socks port is not configured")
 	}
 	// A pasted configuration is run as the user wrote it; we only graft our
@@ -223,13 +261,13 @@ func buildConfig(server model.Server, cfg settings.Settings) ([]byte, error) {
 	if server.Config != "" {
 		switch server.Engine() {
 		case model.EngineXray:
-			opts := xraycfg.Defaults(cfg.SocksPort)
-			opts.HTTPPort = cfg.HTTPPort
+			opts := xraycfg.Defaults(socksPort)
+			opts.HTTPPort = httpPort
 			opts.LogLevel = cfg.LogLevel
 			return xraycfg.Normalize([]byte(server.Config), opts)
 		case model.EngineSingBox:
-			opts := singboxcfg.Defaults(cfg.SocksPort)
-			opts.HTTPPort = cfg.HTTPPort
+			opts := singboxcfg.Defaults(socksPort)
+			opts.HTTPPort = httpPort
 			return singboxcfg.Normalize([]byte(server.Config), server.ConfigTag, opts)
 		default:
 			return nil, fmt.Errorf("tunnel: %s configurations are not supported yet", server.Engine())
@@ -238,14 +276,14 @@ func buildConfig(server model.Server, cfg settings.Settings) ([]byte, error) {
 
 	switch server.Engine() {
 	case model.EngineXray:
-		opts := xraycfg.Defaults(cfg.SocksPort)
-		opts.HTTPPort = cfg.HTTPPort
+		opts := xraycfg.Defaults(socksPort)
+		opts.HTTPPort = httpPort
 		opts.LogLevel = cfg.LogLevel
 		opts.DNS = cfg.DNS
 		return xraycfg.Build(server, opts)
 	case model.EngineSingBox:
-		opts := singboxcfg.Defaults(cfg.SocksPort)
-		opts.HTTPPort = cfg.HTTPPort
+		opts := singboxcfg.Defaults(socksPort)
+		opts.HTTPPort = httpPort
 		opts.DNS = cfg.DNS
 		return singboxcfg.Build(server, opts)
 	default:
