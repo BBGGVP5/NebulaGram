@@ -1,11 +1,11 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="120" height="120" role="img" aria-label="NebulaGram">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200" role="img" aria-label="NebulaGram">
   <title>NebulaGram</title>
-  <!-- Rounding comes from a thick stroke in the fill colour, so the silhouette
-       stays exact at any size and needs no per-density raster. -->
-  <g>
-    <path d="M97 27 28 63 57 74Z" fill="#E8F0FE" stroke="#E8F0FE" stroke-width="16"
-          stroke-linejoin="round" stroke-linecap="round"/>
-    <path d="M97 27 57 74 64 101Z" fill="#A8C7FA" stroke="#A8C7FA" stroke-width="16"
-          stroke-linejoin="round" stroke-linecap="round"/>
-  </g>
+  <!-- Знак без фона. Скругление даёт обводка в цвет заливки, поэтому силуэт
+       одинаков и в вебе, и в векторе Android, и в растре. -->
+  <path d="M148 52 96 138 88 104 54 96Z" fill="#EEF4FF" stroke="#EEF4FF"
+        stroke-width="13" stroke-linejoin="round" stroke-linecap="round"/>
+  <path d="M44 148c14-6 26-9 38-9" fill="none" stroke="#BBD6FF" stroke-width="9"
+        stroke-linecap="round" opacity=".85"/>
+  <path d="M40 124c9-4 17-6 25-6" fill="none" stroke="#BBD6FF" stroke-width="7"
+        stroke-linecap="round" opacity=".55"/>
 </svg>

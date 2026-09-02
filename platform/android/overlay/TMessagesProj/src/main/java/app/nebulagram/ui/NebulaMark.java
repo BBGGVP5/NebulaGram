@@ -3,7 +3,6 @@ package app.nebulagram.ui;
 import android.animation.ValueAnimator;
 import android.graphics.Canvas;
 import android.graphics.ColorFilter;
-import android.graphics.CornerPathEffect;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.PixelFormat;
@@ -15,8 +14,8 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 /**
- * The NebulaGram mark: a two-tone plane with softly rounded corners, drifting
- * gently up and down.
+ * The NebulaGram mark: a rounded dart with a comet trail, drifting gently up
+ * and down.
  *
  * <p>Drawn rather than shipped as a bitmap so it takes its colours from the
  * current palette — on Android 12 that means the mark follows the wallpaper
@@ -25,29 +24,35 @@ import androidx.annotation.Nullable;
  */
 public class NebulaMark extends Drawable {
 
-    /** Geometry on a 120x120 canvas, scaled to whatever bounds we are given. */
-    private static final float CANVAS = 120f;
-    private static final float TIP_X = 97f, TIP_Y = 27f;
-    private static final float WING_X = 28f, WING_Y = 63f;
-    private static final float NOTCH_X = 57f, NOTCH_Y = 74f;
-    private static final float TAIL_X = 64f, TAIL_Y = 101f;
+    /** Geometry on a 200x200 canvas, the same one the icon generator uses. */
+    private static final float CANVAS = 200f;
+    private static final float[] DART = {148f, 52f, 96f, 138f, 88f, 104f, 54f, 96f};
 
-    private final Paint upper = new Paint(Paint.ANTI_ALIAS_FLAG);
-    private final Paint lower = new Paint(Paint.ANTI_ALIAS_FLAG);
+    /** The comet trail: two cubic curves behind the dart. */
+    private static final float[][] TRAILS = {
+            {44f, 148f, 58f, 142f, 70f, 139f, 82f, 139f},
+            {40f, 124f, 49f, 120f, 57f, 118f, 65f, 118f},
+    };
+    private static final float DART_STROKE = 13f;
+
+    private final Paint body = new Paint(Paint.ANTI_ALIAS_FLAG);
+    private final Paint trail = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Path path = new Path();
 
     private ValueAnimator drift;
     private float phase;
     private boolean animated = true;
 
-    public NebulaMark(int lightTone, int darkTone) {
-        upper.setColor(lightTone);
-        lower.setColor(darkTone);
-        // Rounding the path itself, rather than faking it with a thick stroke,
-        // keeps the silhouette exact at every size.
-        CornerPathEffect corners = new CornerPathEffect(8f);
-        upper.setPathEffect(corners);
-        lower.setPathEffect(corners);
+    public NebulaMark(int dartTone, int trailTone) {
+        body.setColor(dartTone);
+        body.setStyle(Paint.Style.FILL_AND_STROKE);
+        body.setStrokeWidth(DART_STROKE);
+        body.setStrokeJoin(Paint.Join.ROUND);
+        body.setStrokeCap(Paint.Cap.ROUND);
+
+        trail.setColor(trailTone);
+        trail.setStyle(Paint.Style.STROKE);
+        trail.setStrokeCap(Paint.Cap.ROUND);
     }
 
     /** Turns the drift off, for a static mark in a list row. */
@@ -73,19 +78,25 @@ public class NebulaMark extends Drawable {
         canvas.translate(offsetX, offsetY);
         canvas.scale(scale, scale);
 
+        // Filling and stroking with one paint rounds the corners, which is the
+        // same trick the SVG and the launcher icon use, so the three agree.
         path.reset();
-        path.moveTo(TIP_X, TIP_Y);
-        path.lineTo(WING_X, WING_Y);
-        path.lineTo(NOTCH_X, NOTCH_Y);
+        path.moveTo(DART[0], DART[1]);
+        for (int i = 2; i < DART.length; i += 2) {
+            path.lineTo(DART[i], DART[i + 1]);
+        }
         path.close();
-        canvas.drawPath(path, upper);
+        canvas.drawPath(path, body);
 
-        path.reset();
-        path.moveTo(TIP_X, TIP_Y);
-        path.lineTo(NOTCH_X, NOTCH_Y);
-        path.lineTo(TAIL_X, TAIL_Y);
-        path.close();
-        canvas.drawPath(path, lower);
+        for (int i = 0; i < TRAILS.length; i++) {
+            float[] curve = TRAILS[i];
+            trail.setStrokeWidth(i == 0 ? 9f : 7f);
+            trail.setAlpha(i == 0 ? 218 : 140);
+            path.reset();
+            path.moveTo(curve[0], curve[1]);
+            path.cubicTo(curve[2], curve[3], curve[4], curve[5], curve[6], curve[7]);
+            canvas.drawPath(path, trail);
+        }
 
         canvas.restoreToCount(saved);
     }
@@ -124,15 +135,14 @@ public class NebulaMark extends Drawable {
 
     @Override
     public void setAlpha(int alpha) {
-        upper.setAlpha(alpha);
-        lower.setAlpha(alpha);
+        body.setAlpha(alpha);
         invalidateSelf();
     }
 
     @Override
     public void setColorFilter(@Nullable ColorFilter colorFilter) {
-        upper.setColorFilter(colorFilter);
-        lower.setColorFilter(colorFilter);
+        body.setColorFilter(colorFilter);
+        trail.setColorFilter(colorFilter);
         invalidateSelf();
     }
 

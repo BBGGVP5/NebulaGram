@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Монохромный слой: Android 13+ перекрашивает его под тему. Только силуэт,
+     без хвоста — на мелком размере в один цвет хвост сливается. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="200"
+    android:viewportHeight="200">
+    <group android:scaleX="0.52" android:scaleY="0.52" android:pivotX="100" android:pivotY="100">
+        <path
+            android:pathData="M148,52 L96,138 L88,104 L54,96 Z"
+            android:fillColor="#FFFFFFFF"
+            android:strokeColor="#FFFFFFFF"
+            android:strokeWidth="13"
+            android:strokeLineJoin="round" />
+    </group>
+</vector>

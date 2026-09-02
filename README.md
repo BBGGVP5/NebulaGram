@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="design/icon/logo.svg" width="128" alt="NebulaGram">
+<img src="design/icon/icon-1024.png" width="120" alt="NebulaGram">
 
 # NebulaGram
 
