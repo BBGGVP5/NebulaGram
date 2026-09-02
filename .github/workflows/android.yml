@@ -20,6 +20,12 @@ on:
       - 'scripts/**'
       - '.github/workflows/android.yml'
 
+# A push while a build is running makes the older one pointless: it can only
+# produce an APK that is already out of date.
+concurrency:
+  group: android-${{ github.ref }}
+  cancel-in-progress: true
+
 # The versions the pinned upstream asks for; a mismatch fails the native build.
 env:
   NDK_VERSION: 27.2.12479018
