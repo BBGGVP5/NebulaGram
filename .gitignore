@@ -1,0 +1,11 @@
+build/
+vendor/telegram-android/
+vendor/telegram-ios/
+vendor/tdesktop/
+*.aar
+*.xcframework
+*.ipa
+*.apk
+libnebulalink.*
+.idea/
+.DS_Store

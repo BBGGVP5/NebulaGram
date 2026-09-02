@@ -1,0 +1,43 @@
+name: upstream-watch
+
+# Checks every morning whether our patch series still applies to the latest
+# release of each Telegram client. A broken hook is found the day the Telegram
+# version ships, not the day we sit down to update.
+
+on:
+  schedule:
+    - cron: '0 6 * * *'
+  workflow_dispatch:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        platform: [android, ios, desktop]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          fetch-depth: 0
+
+      - name: Try the patch series against the newest upstream tag
+        id: sync
+        run: |
+          set +e
+          bash scripts/sync-upstream.sh ${{ matrix.platform }} 2>&1 | tee report.txt
+          echo "status=${PIPESTATUS[0]}" >> "$GITHUB_OUTPUT"
+
+      - name: Open an issue when a hook broke
+        if: steps.sync.outputs.status != '0'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          title="[$(date +%F)] ${{ matrix.platform }}: patches no longer apply upstream"
+          existing=$(gh issue list --state open --search "$title" --json number --jq '.[0].number')
+          if [ -n "$existing" ]; then
+            gh issue comment "$existing" --body-file report.txt
+          else
+            gh issue create --title "$title" --body-file report.txt --label upstream
+          fi

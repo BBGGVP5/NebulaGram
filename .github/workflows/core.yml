@@ -1,0 +1,86 @@
+name: core
+
+on:
+  push:
+    paths: ['core/**', '.github/workflows/core.yml']
+  pull_request:
+    paths: ['core/**']
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.24'
+          cache-dependency-path: core/go.sum
+      - name: Formatting
+        working-directory: core
+        run: test -z "$(gofmt -l .)" || { gofmt -l .; echo 'run gofmt -w .'; exit 1; }
+      - name: Vet
+        working-directory: core
+        run: go vet ./...
+      - name: Test
+        working-directory: core
+        run: go test -race ./...
+
+  android-aar:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.24'
+      - uses: nttld/setup-ndk@v1
+        id: ndk
+        with:
+          ndk-version: r27c
+      - name: Build nebulalink.aar
+        env:
+          ANDROID_NDK_HOME: ${{ steps.ndk.outputs.ndk-path }}
+        run: bash scripts/build-core.sh android
+      - uses: actions/upload-artifact@v4
+        with:
+          name: nebulalink-aar
+          path: build/nebulalink.aar
+
+  ios-xcframework:
+    needs: test
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.24'
+      - name: Build NebulaLink.xcframework
+        run: bash scripts/build-core.sh ios
+      - name: Package
+        run: cd build && zip -qry NebulaLink.xcframework.zip NebulaLink.xcframework
+      - uses: actions/upload-artifact@v4
+        with:
+          name: nebulalink-xcframework
+          path: build/NebulaLink.xcframework.zip
+
+  desktop-lib:
+    needs: test
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.24'
+      - name: Build shared library
+        shell: bash
+        run: bash scripts/build-core.sh desktop
+      - uses: actions/upload-artifact@v4
+        with:
+          name: nebulalink-${{ matrix.os }}
+          path: |
+            build/libnebulalink.*
