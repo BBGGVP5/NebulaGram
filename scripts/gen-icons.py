@@ -133,6 +133,26 @@ def foreground_layer(size):
     return canvas.resize((size, size), Image.LANCZOS)
 
 
+def rounded(image, radius_ratio=0.225):
+    """A rounded copy, for places that show the icon as a picture.
+
+    The app icon itself must stay square — the launcher masks it — but a README
+    or a web page draws the file as-is, where a bare square reads as unfinished.
+    The ratio matches what Android and iOS apply to a launcher tile.
+    """
+    size = image.size[0]
+    scale = 4  # mask drawn large and shrunk, so the curve has no stairsteps
+    mask = Image.new("L", (size * scale, size * scale), 0)
+    ImageDraw.Draw(mask).rounded_rectangle(
+        [0, 0, size * scale - 1, size * scale - 1],
+        radius=int(size * scale * radius_ratio), fill=255)
+    mask = mask.resize((size, size), Image.LANCZOS)
+
+    out = image.convert("RGBA")
+    out.putalpha(mask)
+    return out
+
+
 def write(path, image):
     os.makedirs(os.path.dirname(path), exist_ok=True)
     image.save(path, "PNG", optimize=True)
@@ -144,7 +164,12 @@ def main():
     densities = {"mdpi": 1, "hdpi": 1.5, "xhdpi": 2, "xxhdpi": 3, "xxxhdpi": 4}
 
     print("master:")
-    write(os.path.join(DESIGN, "icon-1024.png"), square_icon(1024))
+    master = square_icon(1024)
+    write(os.path.join(DESIGN, "icon-1024.png"), master)
+    # Same artwork, rounded, for the README and anywhere else it is shown as a
+    # picture rather than installed as an icon.
+    write(os.path.join(DESIGN, "icon-rounded.png"),
+          rounded(master.resize((512, 512), Image.LANCZOS)))
 
     print("legacy launcher (pre-Android 8):")
     for bucket, factor in densities.items():
