@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Build;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.telegram.messenger.AndroidUtilities;
@@ -43,20 +44,26 @@ public final class NebulaLink {
     private NebulaLink() {
     }
 
-    /** Result of one core call. */
+    /**
+     * Result of one core call. Some methods answer with an object and some with
+     * an array — menu.get returns the screens as a list — so both are carried
+     * and the caller reads whichever it expects.
+     */
     public static final class Result {
         public final boolean ok;
         public final String error;
         public final JSONObject data;
+        public final JSONArray array;
 
-        Result(boolean ok, String error, JSONObject data) {
+        Result(boolean ok, String error, JSONObject data, JSONArray array) {
             this.ok = ok;
             this.error = error;
             this.data = data;
+            this.array = array;
         }
 
         static Result failure(String message) {
-            return new Result(false, message, null);
+            return new Result(false, message, null, null);
         }
     }
 
@@ -123,7 +130,10 @@ public final class NebulaLink {
             if (!envelope.optBoolean("ok", false)) {
                 return Result.failure(envelope.optString("error", "unknown error"));
             }
-            return new Result(true, null, envelope.optJSONObject("data"));
+            Object body = envelope.opt("data");
+            return new Result(true, null,
+                    body instanceof JSONObject ? (JSONObject) body : null,
+                    body instanceof JSONArray ? (JSONArray) body : null);
         } catch (Throwable e) {
             FileLog.e(e);
             return Result.failure(String.valueOf(e.getMessage()));

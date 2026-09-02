@@ -14,6 +14,8 @@
     <string name="NebulaConnectHint">Ссылка на подписку или ключ</string>
     <string name="NebulaConnect">Подключить</string>
 
+    <string name="NebulaDisconnect">Отключить</string>
+
     <string name="NebulaConnected">Подключено</string>
     <string name="NebulaDisconnected">Отключено</string>
     <string name="NebulaConnecting">Подключение\u2026</string>

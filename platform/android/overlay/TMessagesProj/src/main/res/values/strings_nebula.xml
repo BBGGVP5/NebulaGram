@@ -21,6 +21,8 @@
     <string name="NebulaConnectHint">Subscription link or key</string>
     <string name="NebulaConnect">Connect</string>
 
+    <string name="NebulaDisconnect">Disconnect</string>
+
     <string name="NebulaConnected">Connected</string>
     <string name="NebulaDisconnected">Disconnected</string>
     <string name="NebulaConnecting">Connecting\u2026</string>
