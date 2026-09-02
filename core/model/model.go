@@ -19,6 +19,9 @@ const (
 	Shadowsocks Protocol = "shadowsocks"
 	Hysteria2   Protocol = "hysteria2"
 	TUIC        Protocol = "tuic"
+	// Custom is a complete core configuration the user pasted in, run as
+	// written instead of generated from the fields above.
+	Custom Protocol = "custom"
 )
 
 // Engine is the tunnel core able to run a given protocol.
@@ -74,6 +77,18 @@ type Server struct {
 	AllowInsecure bool   `json:"allow_insecure,omitempty"`
 
 	// Provenance and presentation.
+	// Config holds a whole Xray (or sing-box) configuration for Custom
+	// servers. CoreHint says which core it is written for, because the
+	// protocol field cannot tell us.
+	// A subscription may hand out a whole template per server instead of a
+	// share link, so Config keeps that document verbatim. ConfigTag names the
+	// outbound to route through when one document describes several servers,
+	// which is how sing-box profiles are shaped.
+	Config    string `json:"config,omitempty"`
+	ConfigTag string `json:"config_tag,omitempty"`
+	ConfigRef string `json:"config_ref,omitempty"` // pool key, used on disk only
+	CoreHint  Engine `json:"core_hint,omitempty"`
+
 	Source  string `json:"source,omitempty"`  // subscription / provider name
 	Country string `json:"country,omitempty"` // ISO 3166-1 alpha-2, best effort
 	Flag    string `json:"flag,omitempty"`    // emoji flag pulled from the name
@@ -85,7 +100,12 @@ type Server struct {
 }
 
 // Engine reports which tunnel core runs this server.
-func (s Server) Engine() Engine { return EngineFor(s.Protocol) }
+func (s Server) Engine() Engine {
+	if s.CoreHint != "" {
+		return s.CoreHint
+	}
+	return EngineFor(s.Protocol)
+}
 
 // Subscription is a saved remote source of servers.
 type Subscription struct {
@@ -152,7 +172,26 @@ type Status struct {
 // user's selection would be lost on every subscription refresh.
 func (s Server) StableID() string {
 	h := sha256.New()
-	fmt.Fprintf(h, "%s|%s|%d|%s|%s|%s|%s|%s",
-		s.Protocol, s.Address, s.Port, s.UUID, s.Password, s.Network, s.Path, s.PublicKey)
+	fmt.Fprintf(h, "%s|%s|%d|%s|%s|%s|%s|%s|%s",
+		s.Protocol, s.Address, s.Port, s.UUID, s.Password, s.Network, s.Path, s.PublicKey, s.Config)
 	return hex.EncodeToString(h.Sum(nil))[:16]
+}
+
+// ForClient strips the template from a server before it crosses into the UI.
+// A panel profile runs to tens of kilobytes per server, and a list of fifty
+// would put megabytes through the binding on every screen refresh — the clients
+// never read the document, they only ever pass the id back.
+func (s Server) ForClient() Server {
+	s.Config = ""
+	s.ConfigRef = ""
+	return s
+}
+
+// ForClientAll maps ForClient over a list.
+func ForClientAll(servers []Server) []Server {
+	out := make([]Server, len(servers))
+	for i, s := range servers {
+		out[i] = s.ForClient()
+	}
+	return out
 }

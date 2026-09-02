@@ -139,6 +139,11 @@ type sbProfile struct {
 }
 
 // ParseProfile reads a sing-box subscription profile into servers.
+//
+// One profile describes every server at once, so each server keeps the whole
+// document and remembers which outbound tag is its own; Normalize later points
+// the routing at that tag. That way the panel's own DNS and routing rules are
+// preserved instead of being flattened into an endpoint.
 func ParseProfile(data []byte) ([]model.Server, error) {
 	var p sbProfile
 	if err := json.Unmarshal(data, &p); err != nil {
@@ -150,6 +155,9 @@ func ParseProfile(data []byte) ([]model.Server, error) {
 		if err != nil {
 			continue
 		}
+		s.Config = string(data)
+		s.ConfigTag = o.Tag
+		s.CoreHint = model.EngineSingBox
 		s.ID = s.StableID()
 		servers = append(servers, s)
 	}
@@ -241,4 +249,68 @@ func splitCSV(v string) []string {
 		parts[i] = strings.TrimSpace(parts[i])
 	}
 	return parts
+}
+
+// Normalize adapts a sing-box profile the user or a panel supplied: it swaps
+// the profile's own listeners for our local mixed inbound and routes everything
+// to the chosen outbound. A tun inbound in particular cannot survive, since
+// proxy mode holds no privileges to open one.
+func Normalize(raw []byte, tag string, o Options) ([]byte, error) {
+	if o.SocksPort == 0 {
+		return nil, errors.New("singboxcfg: socks port is required")
+	}
+	if o.ListenAddr == "" {
+		o.ListenAddr = "127.0.0.1"
+	}
+	if o.LogLevel == "" {
+		o.LogLevel = "warn"
+	}
+
+	var cfg map[string]any
+	if err := json.Unmarshal(raw, &cfg); err != nil {
+		return nil, fmt.Errorf("singboxcfg: cannot parse the profile: %w", err)
+	}
+	outbounds, ok := cfg["outbounds"].([]any)
+	if !ok || len(outbounds) == 0 {
+		return nil, errors.New("singboxcfg: the profile has no outbounds")
+	}
+	if tag == "" {
+		return nil, errors.New("singboxcfg: no outbound was selected")
+	}
+	if !hasTag(outbounds, tag) {
+		return nil, fmt.Errorf("singboxcfg: the profile has no outbound tagged %q", tag)
+	}
+
+	cfg["inbounds"] = []any{map[string]any{
+		"type":        "mixed",
+		"tag":         "mixed-in",
+		"listen":      o.ListenAddr,
+		"listen_port": o.SocksPort,
+		"sniff":       true,
+	}}
+	if _, ok := cfg["log"]; !ok {
+		cfg["log"] = map[string]any{"level": o.LogLevel, "timestamp": false}
+	}
+
+	route, ok := cfg["route"].(map[string]any)
+	if !ok {
+		route = map[string]any{}
+	}
+	route["final"] = tag
+	cfg["route"] = route
+
+	return json.MarshalIndent(cfg, "", "  ")
+}
+
+func hasTag(outbounds []any, tag string) bool {
+	for _, item := range outbounds {
+		outbound, ok := item.(map[string]any)
+		if !ok {
+			continue
+		}
+		if name, _ := outbound["tag"].(string); name == tag {
+			return true
+		}
+	}
+	return false
 }

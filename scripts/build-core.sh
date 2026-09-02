@@ -14,7 +14,7 @@ target="${1:?usage: build-core.sh <android|ios|desktop>}"
 root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 out="$root/build"
 mkdir -p "$out"
-cd "$root/core"
+cd "$root/bind"   # the bindings module links the core and the engines
 
 ensure_gomobile() {
   if ! command -v gomobile >/dev/null 2>&1; then
@@ -31,7 +31,7 @@ case "$target" in
     ensure_gomobile
     gomobile bind -target=android -androidapi 21 \
       -ldflags "-s -w" \
-      -o "$out/nebulalink.aar" ./bind/mobile
+      -o "$out/nebulalink.aar" ./mobile
     ;;
   ios)
     if [ "$(uname -s)" != "Darwin" ]; then
@@ -41,7 +41,7 @@ case "$target" in
     ensure_gomobile
     gomobile bind -target=ios,iossimulator \
       -ldflags "-s -w" \
-      -o "$out/NebulaLink.xcframework" ./bind/mobile
+      -o "$out/NebulaLink.xcframework" ./mobile
     ;;
   desktop)
     case "$(uname -s)" in
@@ -50,7 +50,7 @@ case "$target" in
       *)               lib="libnebulalink.so" ;;
     esac
     CGO_ENABLED=1 go build -buildmode=c-shared -ldflags "-s -w" \
-      -o "$out/$lib" ./bind/cabi
+      -o "$out/$lib" ./cabi
     echo "header: ${out}/${lib%.*}.h"
     ;;
   *)

@@ -128,6 +128,8 @@ func (m *Manager) Start(server model.Server, cfg settings.Settings) error {
 		return err
 	}
 
+	shown := server.ForClient()
+
 	m.mu.Lock()
 	if m.instance != nil {
 		_ = m.instance.Stop()
@@ -135,7 +137,7 @@ func (m *Manager) Start(server model.Server, cfg settings.Settings) error {
 	}
 	m.status = model.Status{
 		State:     model.StateConnecting,
-		Server:    &server,
+		Server:    &shown,
 		Engine:    engine,
 		Mode:      string(cfg.Mode),
 		SocksPort: cfg.SocksPort,
@@ -189,10 +191,11 @@ func (m *Manager) Running() bool {
 }
 
 func (m *Manager) fail(server model.Server, err error) {
+	shown := server.ForClient()
 	m.mu.Lock()
 	m.status = model.Status{
 		State:     model.StateFailed,
-		Server:    &server,
+		Server:    &shown,
 		Engine:    server.Engine(),
 		LastError: err.Error(),
 	}
@@ -215,6 +218,24 @@ func buildConfig(server model.Server, cfg settings.Settings) ([]byte, error) {
 	if cfg.SocksPort <= 0 {
 		return nil, errors.New("tunnel: socks port is not configured")
 	}
+	// A pasted configuration is run as the user wrote it; we only graft our
+	// local inbound onto it.
+	if server.Config != "" {
+		switch server.Engine() {
+		case model.EngineXray:
+			opts := xraycfg.Defaults(cfg.SocksPort)
+			opts.HTTPPort = cfg.HTTPPort
+			opts.LogLevel = cfg.LogLevel
+			return xraycfg.Normalize([]byte(server.Config), opts)
+		case model.EngineSingBox:
+			opts := singboxcfg.Defaults(cfg.SocksPort)
+			opts.HTTPPort = cfg.HTTPPort
+			return singboxcfg.Normalize([]byte(server.Config), server.ConfigTag, opts)
+		default:
+			return nil, fmt.Errorf("tunnel: %s configurations are not supported yet", server.Engine())
+		}
+	}
+
 	switch server.Engine() {
 	case model.EngineXray:
 		opts := xraycfg.Defaults(cfg.SocksPort)

@@ -7,9 +7,15 @@
 package store
 
 import (
+	"bytes"
+	"compress/gzip"
+	"crypto/sha256"
+	"encoding/base64"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 	"sort"
@@ -22,11 +28,18 @@ import (
 )
 
 // State is the on-disk document.
+//
+// Server templates do not live inside the server entries: a panel profile is
+// tens of kilobytes and a subscription of ninety servers would write megabytes
+// on every latency update. Instead each distinct document is compressed once
+// into Templates and referenced by content hash, which also collapses the
+// sing-box case, where every server shares one profile.
 type State struct {
 	Version       int                  `json:"version"`
 	Settings      settings.Settings    `json:"settings"`
 	Servers       []model.Server       `json:"servers"`
 	Subscriptions []model.Subscription `json:"subscriptions"`
+	Templates     map[string]string    `json:"templates,omitempty"`
 }
 
 // CurrentVersion is bumped whenever State needs a migration.
@@ -65,6 +78,7 @@ func Open(dir string) (*Store, error) {
 		s.state = defaultState()
 		return s, s.save()
 	}
+	s.expandTemplates()
 	s.migrate()
 	return s, nil
 }
@@ -320,11 +334,98 @@ func (s *Store) reselectLocked() {
 	s.state.Settings.SelectedServerID = ""
 }
 
+// expandTemplates puts each server's document back in place after a load.
+func (s *Store) expandTemplates() {
+	for i := range s.state.Servers {
+		ref := s.state.Servers[i].ConfigRef
+		if ref == "" {
+			continue
+		}
+		document, err := inflate(s.state.Templates[ref])
+		if err != nil {
+			// A template we cannot read means this server cannot start; drop
+			// the reference so the failure is a clear error later rather than
+			// a config built from half a document.
+			s.state.Servers[i].ConfigRef = ""
+			continue
+		}
+		s.state.Servers[i].Config = document
+	}
+}
+
+// collapseTemplates moves the documents into the pool, returning the servers as
+// they should be written.
+func collapseTemplates(servers []model.Server) ([]model.Server, map[string]string, error) {
+	out := make([]model.Server, len(servers))
+	pool := make(map[string]string)
+	for i, server := range servers {
+		if server.Config == "" {
+			server.ConfigRef = ""
+			out[i] = server
+			continue
+		}
+		sum := sha256.Sum256([]byte(server.Config))
+		ref := hex.EncodeToString(sum[:8])
+		if _, ok := pool[ref]; !ok {
+			packed, err := deflate(server.Config)
+			if err != nil {
+				return nil, nil, err
+			}
+			pool[ref] = packed
+		}
+		server.ConfigRef = ref
+		server.Config = ""
+		out[i] = server
+	}
+	return out, pool, nil
+}
+
+func deflate(document string) (string, error) {
+	var buf bytes.Buffer
+	writer := gzip.NewWriter(&buf)
+	if _, err := writer.Write([]byte(document)); err != nil {
+		return "", fmt.Errorf("store: cannot compress a template: %w", err)
+	}
+	if err := writer.Close(); err != nil {
+		return "", fmt.Errorf("store: cannot compress a template: %w", err)
+	}
+	return base64.StdEncoding.EncodeToString(buf.Bytes()), nil
+}
+
+func inflate(packed string) (string, error) {
+	if packed == "" {
+		return "", errors.New("store: missing template")
+	}
+	raw, err := base64.StdEncoding.DecodeString(packed)
+	if err != nil {
+		return "", err
+	}
+	reader, err := gzip.NewReader(bytes.NewReader(raw))
+	if err != nil {
+		return "", err
+	}
+	defer reader.Close()
+	document, err := io.ReadAll(reader)
+	if err != nil {
+		return "", err
+	}
+	return string(document), nil
+}
+
 // save writes the state through a temporary file so a crash mid-write cannot
 // leave the user with an unreadable state.
 func (s *Store) save() error {
 	s.state.Version = CurrentVersion
-	data, err := json.MarshalIndent(s.state, "", "  ")
+
+	servers, templates, err := collapseTemplates(s.state.Servers)
+	if err != nil {
+		return err
+	}
+	onDisk := s.state
+	onDisk.Servers = servers
+	onDisk.Templates = templates
+
+	data, err := json.MarshalIndent(onDisk, "", "  ")
 	if err != nil {
 		return fmt.Errorf("store: cannot encode state: %w", err)
 	}

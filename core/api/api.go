@@ -27,6 +27,7 @@ import (
 	"github.com/nebulagram/nebulagram/core/settings"
 	"github.com/nebulagram/nebulagram/core/store"
 	"github.com/nebulagram/nebulagram/core/tunnel"
+	"github.com/nebulagram/nebulagram/core/xraycfg"
 )
 
 // Version is the NebulaLink core version, surfaced in the About screen.
@@ -321,7 +322,7 @@ func (c *Core) handleServersList(payload []byte) (any, error) {
 	end := min(start+perPage, len(all))
 
 	return map[string]any{
-		"servers":  all[start:end],
+		"servers":  model.ForClientAll(all[start:end]),
 		"total":    len(all),
 		"page":     page,
 		"pages":    pages,
@@ -342,7 +343,11 @@ func (c *Core) handleServerSelect(payload []byte) (any, error) {
 	if err := c.st().Select(req.ID); err != nil {
 		return nil, err
 	}
-	return c.st().Selected(), nil
+	selected := c.st().Selected()
+	if selected == nil {
+		return nil, errors.New("nebulalink: the server disappeared while selecting it")
+	}
+	return selected.ForClient(), nil
 }
 
 type linkRequest struct {
@@ -355,13 +360,20 @@ func (c *Core) handleServerAddLink(payload []byte) (any, error) {
 	if err := decode(payload, &req); err != nil {
 		return nil, err
 	}
-	servers := link.ParseMany(req.Link, orDefault(req.Source, "Manual"))
+	source := orDefault(req.Source, "Manual")
+	servers, err := parsePastedConfig(strings.TrimSpace(req.Link), source)
+	if err != nil {
+		return nil, err
+	}
+	if servers == nil {
+		servers = link.ParseMany(req.Link, source)
+	}
 	if len(servers) == 0 {
 		single, err := link.Parse(req.Link)
 		if err != nil {
 			return nil, err
 		}
-		single.Source = orDefault(req.Source, "Manual")
+		single.Source = source
 		servers = []model.Server{single}
 	}
 	added, err := c.st().AddServers(servers)
@@ -369,6 +381,42 @@ func (c *Core) handleServerAddLink(payload []byte) (any, error) {
 		return nil, err
 	}
 	return map[string]any{"added": added, "parsed": len(servers)}, nil
+}
+
+// parsePastedConfig recognises the two JSON shapes a user can paste. An array
+// is a v2ray-json subscription profile and yields one server per entry; a
+// single object is a complete Xray configuration, kept verbatim and run as
+// written, so hand-tuned routing, DNS and fragmentation survive. Returns nil
+// when the payload is not JSON at all, which sends it down the share-link path.
+func parsePastedConfig(input, source string) ([]model.Server, error) {
+	raw := []byte(input)
+	switch {
+	case strings.HasPrefix(input, "["):
+		servers, err := xraycfg.ParseV2RayJSON(raw)
+		if err != nil {
+			return nil, err
+		}
+		for i := range servers {
+			servers[i].Source = source
+		}
+		return servers, nil
+
+	case strings.HasPrefix(input, "{"):
+		if !xraycfg.LooksLikeConfig(raw) {
+			return nil, errors.New("nebulalink: this JSON is not an Xray configuration")
+		}
+		server := model.Server{
+			Protocol: model.Custom,
+			CoreHint: model.EngineXray,
+			Config:   input,
+			Source:   source,
+			Name:     orDefault(xraycfg.ConfigName(raw), "Custom Xray config"),
+		}
+		server.Address, server.Port = xraycfg.ProbeTarget(raw)
+		server.ID = server.StableID()
+		return []model.Server{server}, nil
+	}
+	return nil, nil
 }
 
 func (c *Core) handleServerClear([]byte) (any, error) {

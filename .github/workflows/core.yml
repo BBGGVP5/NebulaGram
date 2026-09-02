@@ -2,28 +2,32 @@ name: core
 
 on:
   push:
-    paths: ['core/**', '.github/workflows/core.yml']
+    paths: ['core/**', 'bind/**', 'runtime/**', 'go.work', '.github/workflows/core.yml']
   pull_request:
-    paths: ['core/**']
+    paths: ['core/**', 'bind/**', 'runtime/**', 'go.work']
   workflow_dispatch:
 
 jobs:
   test:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        module: [core, runtime/xray, bind]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
         with:
           go-version: '1.24'
-          cache-dependency-path: core/go.sum
+          cache-dependency-path: '**/go.sum'
       - name: Formatting
-        working-directory: core
+        working-directory: ${{ matrix.module }}
         run: test -z "$(gofmt -l .)" || { gofmt -l .; echo 'run gofmt -w .'; exit 1; }
       - name: Vet
-        working-directory: core
+        working-directory: ${{ matrix.module }}
         run: go vet ./...
       - name: Test
-        working-directory: core
+        working-directory: ${{ matrix.module }}
         run: go test -race ./...
 
   android-aar:

@@ -16,6 +16,13 @@ type v2rayProfile struct {
 	Outbounds []json.RawMessage `json:"outbounds"`
 }
 
+// profileDocument keeps the untouched JSON of one profile alongside the fields
+// we read, because the profile is what actually gets run.
+type profileDocument struct {
+	profile v2rayProfile
+	raw     json.RawMessage
+}
+
 // ParseV2RayJSON reads the v2ray-json subscription format: an array of configs,
 // a single config, or a bare array of outbounds. Entries we cannot represent
 // are skipped rather than failing the whole subscription.
@@ -25,40 +32,29 @@ func ParseV2RayJSON(data []byte) ([]model.Server, error) {
 		return nil, errors.New("xraycfg: empty profile")
 	}
 
-	var profiles []v2rayProfile
-	if trimmed[0] == '[' {
-		if err := json.Unmarshal(data, &profiles); err != nil {
-			return nil, err
-		}
-		// A bare array of outbounds parses as profiles with no outbounds.
-		if len(profiles) > 0 && allEmpty(profiles) {
-			var outbounds []json.RawMessage
-			if err := json.Unmarshal(data, &outbounds); err != nil {
-				return nil, err
-			}
-			profiles = []v2rayProfile{{Outbounds: outbounds}}
-		}
-	} else {
-		var single v2rayProfile
-		if err := json.Unmarshal(data, &single); err != nil {
-			return nil, err
-		}
-		profiles = []v2rayProfile{single}
+	documents, err := splitProfiles(data, trimmed[0] == '[')
+	if err != nil {
+		return nil, err
 	}
 
 	var servers []model.Server
-	for _, p := range profiles {
-		for _, raw := range p.Outbounds {
+	for _, doc := range documents {
+		for _, raw := range doc.profile.Outbounds {
 			s, err := ParseOutbound(raw)
 			if err != nil {
 				continue
 			}
-			if p.Remarks != "" {
-				s.Name = p.Remarks
+			if doc.profile.Remarks != "" {
+				s.Name = doc.profile.Remarks
 			}
 			if s.Name == "" {
 				s.Name = fmt.Sprintf("%s %s:%d", s.Protocol, s.Address, s.Port)
 			}
+			// The panel may ship routing, DNS or fragmentation with the
+			// profile, so the whole document is what we run later; the fields
+			// above only drive the list UI and the latency probe.
+			s.Config = string(doc.raw)
+			s.CoreHint = model.EngineXray
 			s.ID = s.StableID()
 			servers = append(servers, s)
 			break // one proxy outbound per profile; the rest are direct/block
@@ -70,13 +66,47 @@ func ParseV2RayJSON(data []byte) ([]model.Server, error) {
 	return servers, nil
 }
 
-func allEmpty(profiles []v2rayProfile) bool {
-	for _, p := range profiles {
-		if len(p.Outbounds) > 0 {
-			return false
+// splitProfiles reads the three shapes of the v2ray-json format: an array of
+// configs, a single config, or a bare array of outbounds.
+func splitProfiles(data []byte, isArray bool) ([]profileDocument, error) {
+	if !isArray {
+		var single v2rayProfile
+		if err := json.Unmarshal(data, &single); err != nil {
+			return nil, err
 		}
+		return []profileDocument{{profile: single, raw: data}}, nil
 	}
-	return true
+
+	var rawProfiles []json.RawMessage
+	if err := json.Unmarshal(data, &rawProfiles); err != nil {
+		return nil, err
+	}
+	documents := make([]profileDocument, 0, len(rawProfiles))
+	bareOutbounds := make([]json.RawMessage, 0, len(rawProfiles))
+	for _, raw := range rawProfiles {
+		var profile v2rayProfile
+		if err := json.Unmarshal(raw, &profile); err != nil {
+			continue
+		}
+		if len(profile.Outbounds) == 0 {
+			bareOutbounds = append(bareOutbounds, raw)
+			continue
+		}
+		documents = append(documents, profileDocument{profile: profile, raw: raw})
+	}
+	if len(documents) == 0 && len(bareOutbounds) > 0 {
+		// The array held outbounds rather than configs; wrap them into one
+		// document so they still become servers.
+		wrapped, err := json.Marshal(map[string]any{"outbounds": bareOutbounds})
+		if err != nil {
+			return nil, err
+		}
+		return []profileDocument{{
+			profile: v2rayProfile{Outbounds: bareOutbounds},
+			raw:     wrapped,
+		}}, nil
+	}
+	return documents, nil
 }
 
 // rawOutbound mirrors the parts of an Xray outbound NebulaLink understands.
