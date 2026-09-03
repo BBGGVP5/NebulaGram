@@ -75,4 +75,51 @@ grep -q "public static String APP_HASH = \"${app_hash}\";" "$build_vars" ||
 grep -q "^APP_PACKAGE=${package}$" "$properties" ||
   { echo "gradle.properties no longer declares APP_PACKAGE" >&2; exit 1; }
 
+# The Google Services plugin refuses to build a package it cannot find in
+# google-services.json, and the file shipped upstream lists Telegram's own three
+# packages. Adding an entry for ours keeps the build going; push notifications
+# still belong to Telegram's Firebase project, so a fork that wants working push
+# has to drop in its own file here.
+# Probe rather than just look up the name: on Windows "python3" resolves to a
+# Microsoft Store stub that exits instead of running anything.
+python_bin=""
+for candidate in python3 python; do
+  if command -v "$candidate" >/dev/null 2>&1 && "$candidate" -c "import json" >/dev/null 2>&1; then
+    python_bin="$candidate"
+    break
+  fi
+done
+if [ -z "$python_bin" ]; then
+  echo "a working python is required to adjust google-services.json" >&2
+  exit 1
+fi
+
+for services in $(find "$tree" -maxdepth 2 -name google-services.json); do
+  "$python_bin" - "$services" "$package" <<'PYTHON'
+import json
+import sys
+
+path, package = sys.argv[1], sys.argv[2]
+with open(path, encoding="utf-8") as handle:
+    config = json.load(handle)
+
+clients = config.get("client") or []
+if not clients:
+    sys.exit(f"{path} has no client entries")
+
+def package_of(client):
+    return client.get("client_info", {}).get("android_client_info", {}).get("package_name")
+
+if not any(package_of(client) == package for client in clients):
+    # Copy the first client so the api key and app id stay valid JSON, and give
+    # the copy our package name.
+    entry = json.loads(json.dumps(clients[0]))
+    entry["client_info"]["android_client_info"]["package_name"] = package
+    clients.append(entry)
+    config["client"] = clients
+    with open(path, "w", encoding="utf-8") as handle:
+        json.dump(config, handle, indent=2, ensure_ascii=False)
+PYTHON
+done
+
 echo "credentials installed: app id ${app_id}, package ${package}"
