@@ -67,7 +67,10 @@ public final class NebulaBottomBar {
      */
     public static boolean positionEnabled(int position) {
         if (!enabled()) {
-            return position == 0; // панель выключена — остаются одни чаты
+            // Панель выключена — но страницы никуда не делись, и свайп по ним
+            // остаётся единственным способом до них добраться. Раньше здесь
+            // разрешались только чаты, и свайпы пропадали совсем.
+            return true;
         }
         switch (position) {
             case 1:

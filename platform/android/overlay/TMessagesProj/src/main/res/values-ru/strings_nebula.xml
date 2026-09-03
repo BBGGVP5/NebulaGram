@@ -98,4 +98,5 @@
     <string name="NebulaNextMediaTapSub">Касание края видео переводит к следующему</string>
     <string name="NebulaStreamMedia">Потоковое воспроизведение</string>
     <string name="NebulaStreamMediaSub">Начинать воспроизведение до полной загрузки файла</string>
+    <string name="NebulaAppearanceTitle">Оформление</string>
 </resources>

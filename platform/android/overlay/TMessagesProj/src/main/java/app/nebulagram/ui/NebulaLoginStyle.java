@@ -178,23 +178,32 @@ public final class NebulaLoginStyle {
 
     /** Same outline, hint, focus and error animator, with a rounded filled surface. */
     public static class Field extends OutlineTextContainerView {
+        /**
+         * Скругление поля — ровно там, где Telegram начинает вырез под
+         * заголовок (PADDING_LEFT - PADDING_TEXT = 10dp). При большем радиусе
+         * вырез попадал внутрь дуги: заголовок наезжал на закругление, а концы
+         * линий висели в воздухе. Теперь линия начинается точно в точке
+         * касания, и подгонять на глаз нечего.
+         */
+        private static final int RADIUS = 10;
+
         private boolean rounded;
 
         public Field(Context context, boolean rounded) {
             super(context);
             this.rounded = rounded;
-            if (rounded) setBackground(surface(18));
+            if (rounded) setBackground(surface(RADIUS));
         }
 
         @Override
         protected float getCornerRadius() {
-            return rounded ? AndroidUtilities.dp(18) : super.getCornerRadius();
+            return rounded ? AndroidUtilities.dp(RADIUS) : super.getCornerRadius();
         }
 
         @Override
         public void updateColor() {
             super.updateColor();
-            if (rounded) setBackground(surface(18));
+            if (rounded) setBackground(surface(RADIUS));
         }
 
         /**

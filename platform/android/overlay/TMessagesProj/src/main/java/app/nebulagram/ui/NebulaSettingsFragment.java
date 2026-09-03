@@ -82,7 +82,7 @@ public class NebulaSettingsFragment extends BaseFragment {
                 R.string.NebulaSectionGeneral, R.string.NebulaGeneralSub,
                 NebulaSectionFragment.SECTION_GENERAL));
         sections.add(section(context, R.drawable.msg_customize,
-                R.string.NebulaSectionLook, R.string.NebulaAppearanceSub,
+                R.string.NebulaAppearanceTitle, R.string.NebulaAppearanceSub,
                 NebulaSectionFragment.SECTION_APPEARANCE));
         sections.add(section(context, R.drawable.msg_discussion,
                 R.string.NebulaSectionChats, R.string.NebulaChatsSub,

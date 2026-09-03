@@ -227,60 +227,97 @@ public class NebulaPreview extends View {
         float top = centerY - height / 2f;
         float circle = height / 2f;
 
+        float fieldLeft, fieldRight;
         if (ios) {
             // Кнопки отдельными кружками, поле — самостоятельная пилюля.
             paint.setColor(theme.surfaceContainer());
             canvas.drawCircle(margin + circle, centerY, circle, paint);
+            paint.setColor(theme.primary());
             canvas.drawCircle(getWidth() - margin - circle, centerY, circle, paint);
 
-            rect.set(margin + height + AndroidUtilities.dp(8), top,
-                    getWidth() - margin - height - AndroidUtilities.dp(8), top + height);
+            fieldLeft = margin + height + AndroidUtilities.dp(8);
+            fieldRight = getWidth() - margin - height - AndroidUtilities.dp(8);
+            paint.setColor(theme.surfaceContainer());
+            rect.set(fieldLeft, top, fieldRight, top + height);
             canvas.drawRoundRect(rect, circle, circle, paint);
 
             paint.setColor(theme.onSurfaceVariant());
             drawClip(canvas, margin + circle, centerY);
-            paint.setColor(theme.primary());
+            paint.setColor(theme.onPrimary());
             drawMic(canvas, getWidth() - margin - circle, centerY);
         } else {
-            // Стоковый вид: всё в одной полосе во всю ширину.
+            // Стоковый вид: всё в одной полосе во всю ширину, углы почти прямые.
             paint.setColor(theme.surfaceContainer());
             rect.set(margin, top, getWidth() - margin, top + height);
             canvas.drawRoundRect(rect, AndroidUtilities.dp(6), AndroidUtilities.dp(6), paint);
+            fieldLeft = margin;
+            fieldRight = getWidth() - margin;
 
             paint.setColor(theme.onSurfaceVariant());
-            drawClip(canvas, margin + AndroidUtilities.dp(22), centerY);
-            drawMic(canvas, getWidth() - margin - AndroidUtilities.dp(22), centerY);
+            drawClip(canvas, fieldLeft + AndroidUtilities.dp(22), centerY);
+            drawMic(canvas, fieldRight - AndroidUtilities.dp(22), centerY);
         }
 
+        // Смайл у правого края поля — он есть в обоих вариантах и помогает
+        // узнать в фигуре именно строку сообщения.
+        paint.setColor(theme.onSurfaceVariant());
+        drawSmile(canvas, fieldRight - AndroidUtilities.dp(ios ? 20 : 48), centerY);
+
         // Строка подсказки "Сообщение".
-        float textLeft = margin + (ios ? height + AndroidUtilities.dp(24) : AndroidUtilities.dp(44));
+        float textLeft = fieldLeft + AndroidUtilities.dp(ios ? 18 : 44);
         paint.setColor(NebulaTheme.stateLayer(theme.onSurfaceVariant(), 0.5f));
         rect.set(textLeft, centerY - AndroidUtilities.dp(3),
-                textLeft + AndroidUtilities.dp(64), centerY + AndroidUtilities.dp(3));
+                textLeft + AndroidUtilities.dp(58), centerY + AndroidUtilities.dp(3));
         canvas.drawRoundRect(rect, AndroidUtilities.dp(3), AndroidUtilities.dp(3), paint);
     }
 
+    /** Скрепка: вытянутая петля под наклоном — форма узнаётся и в 14dp. */
     private void drawClip(Canvas canvas, float cx, float cy) {
-        float size = AndroidUtilities.dp(7);
+        float h = AndroidUtilities.dp(7);
+        float w = AndroidUtilities.dp(3.4f);
         paint.setStyle(Paint.Style.STROKE);
-        paint.setStrokeWidth(AndroidUtilities.dp(1.6f));
+        paint.setStrokeWidth(AndroidUtilities.dp(1.5f));
+        paint.setStrokeCap(Paint.Cap.ROUND);
+        canvas.save();
+        canvas.rotate(35, cx, cy);
         path.reset();
-        path.moveTo(cx + size * 0.5f, cy - size);
-        path.lineTo(cx - size * 0.5f, cy);
-        path.lineTo(cx + size * 0.2f, cy + size * 0.8f);
+        path.moveTo(cx + w, cy - h);
+        path.lineTo(cx + w, cy + h * 0.45f);
+        path.addArc(cx - w, cy + h * 0.05f, cx + w, cy + h * 0.85f, 0, 180);
+        path.moveTo(cx - w, cy + h * 0.45f);
+        path.lineTo(cx - w, cy - h * 0.55f);
+        path.addArc(cx - w, cy - h * 1.1f, cx + w * 0.2f, cy - h * 0.25f, 180, 180);
         canvas.drawPath(path, paint);
+        canvas.restore();
         paint.setStyle(Paint.Style.FILL);
     }
 
+    /** Микрофон: капсула, дужка и ножка — без ножки читался как силуэт человека. */
     private void drawMic(Canvas canvas, float cx, float cy) {
-        float size = AndroidUtilities.dp(6);
-        rect.set(cx - size * 0.55f, cy - size, cx + size * 0.55f, cy + size * 0.35f);
-        canvas.drawRoundRect(rect, size * 0.55f, size * 0.55f, paint);
+        float size = AndroidUtilities.dp(4.6f);
+        rect.set(cx - size * 0.62f, cy - size * 1.7f, cx + size * 0.62f, cy + size * 0.25f);
+        canvas.drawRoundRect(rect, size * 0.62f, size * 0.62f, paint);
+
         paint.setStyle(Paint.Style.STROKE);
         paint.setStrokeWidth(AndroidUtilities.dp(1.4f));
-        rect.set(cx - size, cy - size * 0.2f, cx + size, cy + size * 1.1f);
-        canvas.drawArc(rect, 20, 140, false, paint);
+        paint.setStrokeCap(Paint.Cap.ROUND);
+        rect.set(cx - size, cy - size * 0.55f, cx + size, cy + size * 0.9f);
+        canvas.drawArc(rect, 15, 150, false, paint);
+        canvas.drawLine(cx, cy + size * 0.9f, cx, cy + size * 1.7f, paint);
         paint.setStyle(Paint.Style.FILL);
+    }
+
+    /** Смайл: кружок с точками и дугой. */
+    private void drawSmile(Canvas canvas, float cx, float cy) {
+        float r = AndroidUtilities.dp(6.5f);
+        paint.setStyle(Paint.Style.STROKE);
+        paint.setStrokeWidth(AndroidUtilities.dp(1.4f));
+        canvas.drawCircle(cx, cy, r, paint);
+        rect.set(cx - r * 0.55f, cy - r * 0.25f, cx + r * 0.55f, cy + r * 0.55f);
+        canvas.drawArc(rect, 25, 130, false, paint);
+        paint.setStyle(Paint.Style.FILL);
+        canvas.drawCircle(cx - r * 0.35f, cy - r * 0.28f, AndroidUtilities.dp(0.9f), paint);
+        canvas.drawCircle(cx + r * 0.35f, cy - r * 0.28f, AndroidUtilities.dp(0.9f), paint);
     }
 
     /** Когда панель выключена, показываем это словами формы, а не пустотой. */

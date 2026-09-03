@@ -105,4 +105,5 @@
     <string name="NebulaNextMediaTapSub">Tapping the edge of a video moves to the next one</string>
     <string name="NebulaStreamMedia">Stream media</string>
     <string name="NebulaStreamMediaSub">Start playing before the file has fully downloaded</string>
+    <string name="NebulaAppearanceTitle">Appearance</string>
 </resources>
