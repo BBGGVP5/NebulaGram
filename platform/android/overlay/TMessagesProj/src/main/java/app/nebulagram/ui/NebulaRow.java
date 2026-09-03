@@ -12,7 +12,6 @@ import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.Switch;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -38,7 +37,7 @@ public class NebulaRow extends FrameLayout {
     private final TextView title;
     private final TextView subtitle;
     private final ImageView icon;
-    private Switch toggle;
+    private NebulaSwitch toggle;
 
     public NebulaRow(@NonNull Context context) {
         super(context);
@@ -147,9 +146,7 @@ public class NebulaRow extends FrameLayout {
             params.gravity = Gravity.CENTER_VERTICAL | Gravity.END;
             addView(chevron, params);
         } else if (kind == TRAIL_SWITCH) {
-            toggle = new Switch(getContext());
-            toggle.setClickable(false);
-            toggle.setFocusable(false);
+            toggle = new NebulaSwitch(getContext());
             LayoutParams params = new LayoutParams(
                     ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
             params.gravity = Gravity.CENTER_VERTICAL | Gravity.END;
@@ -167,7 +164,9 @@ public class NebulaRow extends FrameLayout {
     /** Sets the switch state without firing a listener. */
     public NebulaRow checked(boolean value) {
         if (toggle != null) {
-            toggle.setChecked(value);
+            // Без анимации: строка только что создана, и переключатель должен
+            // сразу стоять в нужном положении, а не переезжать на глазах.
+            toggle.setChecked(value, false);
         }
         return this;
     }

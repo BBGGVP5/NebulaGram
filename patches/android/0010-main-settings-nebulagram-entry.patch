@@ -1,15 +1,16 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/SettingsActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/SettingsActivity.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/SettingsActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/SettingsActivity.java
-@@ -688,6 +688,7 @@
+@@ -688,6 +688,8 @@
              items.add(UItem.asShadow(null));
          }
 
 +        items.add(SettingCell.Factory.of(0x4e42, IconBackgroundColors.BLUE.top, IconBackgroundColors.BLUE.bottom, R.drawable.nebula_settings_mark, getString(R.string.NebulaSettings), getString(R.string.NebulaSettingsSub)));
++        items.add(UItem.asShadow(null)); // NebulaGram отдельной карточкой
          items.add(SettingCell.Factory.of(1, IconBackgroundColors.BLUE.top, IconBackgroundColors.BLUE.bottom, R.drawable.settings_account, getString(R.string.SettingsAccount), getString(R.string.SettingsAccountInfo)));
          items.add(SettingCell.Factory.of(2, IconBackgroundColors.ORANGE.top, IconBackgroundColors.ORANGE.bottom, R.drawable.settings_chat, getString(R.string.SettingsChat), getString(R.string.SettingsChatInfo)));
          items.add(SettingCell.Factory.of(3, IconBackgroundColors.GREEN.top, IconBackgroundColors.GREEN.bottom, R.drawable.settings_privacy, getString(R.string.SettingsPrivacySecurity), getString(R.string.SettingsPrivacySecurityInfo)));
-@@ -809,6 +810,9 @@
+@@ -809,6 +811,9 @@
              return;
          }
          switch (item.id) {

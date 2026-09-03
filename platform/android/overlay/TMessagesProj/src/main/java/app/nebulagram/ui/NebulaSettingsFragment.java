@@ -71,17 +71,14 @@ public class NebulaSettingsFragment extends BaseFragment {
     private void build(Context context, NebulaTheme theme) {
         content.removeAllViews();
 
+        // Подписки живут внутри NebulaLink, на экране "Источник и фильтры":
+        // отдельная строка рядом дублировала тот же экран и заставляла гадать,
+        // чем одно отличается от другого.
         content.addView(NebulaCard.header(context,
                 LocaleController.getString(R.string.NebulaSectionTunnel)));
         NebulaCard tunnel = new NebulaCard(context);
         tunnel.add(new NebulaLinkRow(context)
                 .withClick(v -> presentFragment(new NebulaMenuFragment())));
-        tunnel.add(new NebulaRow(context)
-                .icon(R.drawable.files_folder)
-                .title(LocaleController.getString(R.string.NebulaSubscriptions))
-                .subtitle(LocaleController.getString(R.string.nl_add_sub_sub), false)
-                .trailing(NebulaRow.TRAIL_CHEVRON)
-                .withClick(v -> presentFragment(new NebulaSubscriptionsFragment())));
         content.addView(tunnel, cardParams());
 
         content.addView(NebulaCard.header(context,

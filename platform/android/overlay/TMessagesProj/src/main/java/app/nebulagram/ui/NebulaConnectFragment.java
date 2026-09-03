@@ -100,6 +100,18 @@ public class NebulaConnectFragment extends BaseFragment {
 
         TextView hint = NebulaIntroFragment.text(context, 12, theme.onSurfaceVariant(), false);
         hint.setText(LocaleController.getString(R.string.NebulaAuthLinkFormats));
+        // Значок папки перед перечислением: строка длинная, и без якоря слева
+        // она читается как продолжение подписи поля, а не как отдельная справка.
+        android.graphics.drawable.Drawable folder =
+                androidx.core.content.ContextCompat.getDrawable(context, R.drawable.files_folder);
+        if (folder != null) {
+            folder.setColorFilter(theme.onSurfaceVariant(), android.graphics.PorterDuff.Mode.SRC_IN);
+            int size = AndroidUtilities.dp(16);
+            folder.setBounds(0, 0, size, size);
+            hint.setCompoundDrawablesRelative(folder, null, null, null);
+            hint.setCompoundDrawablePadding(AndroidUtilities.dp(8));
+            hint.setGravity(android.view.Gravity.CENTER_VERTICAL);
+        }
         LinearLayout.LayoutParams hintParams = NebulaIntroFragment.width();
         hintParams.topMargin = AndroidUtilities.dp(12);
         root.content.addView(hint, hintParams);

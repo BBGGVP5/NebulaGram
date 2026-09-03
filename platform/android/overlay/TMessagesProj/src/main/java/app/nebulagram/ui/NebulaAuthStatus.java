@@ -39,6 +39,14 @@ public final class NebulaAuthStatus extends TextView {
         String phase = status == null ? "disconnected" : status.optString("state");
         boolean connected = "connected".equals(phase) && NebulaLink.isRoutingThroughTunnel();
         boolean connecting = "connecting".equals(phase);
+        // Плашка сообщает о туннеле. Когда его нет, сообщать нечего: строка
+        // "Прямое подключение" выглядела кнопкой, которая никуда не ведёт, и
+        // занимала место под настоящими действиями экрана.
+        if (!connected && !connecting) {
+            setVisibility(GONE);
+            return;
+        }
+        setVisibility(VISIBLE);
         NebulaTheme palette = NebulaTheme.of(getContext());
         int color = connected ? (telegramTheme
                 ? (Theme.isCurrentThemeDark() ? 0xFF81D99A : 0xFF236C3D) : palette.success())
