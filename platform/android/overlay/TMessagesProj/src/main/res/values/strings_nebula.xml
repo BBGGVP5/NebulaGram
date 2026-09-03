@@ -92,7 +92,7 @@
     <string name="NebulaTextSection">Text and emoji</string>
     <string name="NebulaMediaSection">Media</string>
     <string name="NebulaSystemEmoji">System emoji</string>
-    <string name="NebulaSystemEmojiSub">Your phone's emoji instead of the built-in set</string>
+    <string name="NebulaSystemEmojiSub">Emoji from the phone instead of the built-in set</string>
     <string name="NebulaSystemFont">System bold font</string>
     <string name="NebulaSystemFontSub">Bold text uses the system typeface</string>
     <string name="NebulaBigEmoji">Large emoji</string>
