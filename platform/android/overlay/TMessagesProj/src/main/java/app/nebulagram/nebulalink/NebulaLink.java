@@ -11,6 +11,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.telegram.messenger.AndroidUtilities;
+import org.telegram.messenger.ApplicationLoader;
 import org.telegram.messenger.FileLog;
 import org.telegram.messenger.MessagesController;
 import org.telegram.messenger.NotificationCenter;
@@ -246,6 +247,7 @@ public final class NebulaLink {
                 // On resume rather than on create: the wallpaper, and therefore
                 // the palette, can change while the app sits in the background.
                 app.nebulagram.ui.NebulaTheme.applyMaterialYou(activity);
+                watchThemeChanges();
             }
 
             @Override
@@ -272,5 +274,28 @@ public final class NebulaLink {
             public void onActivityDestroyed(Activity activity) {
             }
         });
+    }
+
+    private static boolean watchingTheme;
+
+    /**
+     * Пересобирать палитру приходится не только при появлении экрана: Telegram
+     * применяет свою тему при старте и при смене день/ночь, и наш акцент при
+     * этом затирается. Отсюда и жалоба на "иногда старые цвета Telegram".
+     */
+    private static void watchThemeChanges() {
+        if (watchingTheme) {
+            return;
+        }
+        watchingTheme = true;
+
+        NotificationCenter.NotificationCenterDelegate watcher = (id, account, args) -> {
+            // applyMaterialYou выходит сразу, если акцент уже наш, поэтому
+            // повторный вызов из-за собственного уведомления не зациклится.
+            app.nebulagram.ui.NebulaTheme.applyMaterialYou(ApplicationLoader.applicationContext);
+        };
+        NotificationCenter center = NotificationCenter.getGlobalInstance();
+        center.addObserver(watcher, NotificationCenter.didSetNewTheme);
+        center.addObserver(watcher, NotificationCenter.needSetDayNightTheme);
     }
 }

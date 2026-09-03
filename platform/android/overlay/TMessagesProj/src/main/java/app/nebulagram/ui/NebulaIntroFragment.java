@@ -43,12 +43,15 @@ public class NebulaIntroFragment extends BaseFragment {
     private Runnable onContinue;
 
     /**
-     * Whether the welcome screen still has to be shown. Once it is passed, the
-     * app falls back to Telegram's own intro, so the hook in LaunchActivity
-     * stays a single line and the upstream flow is left alone.
+     * Показывать ли наш экран приветствия.
+     *
+     * <p>Всегда, пока пользователь не вошёл: хук в LaunchActivity срабатывает
+     * только в этом случае. Раньше здесь стоял флажок "уже видел", и при
+     * перезапуске вместо нашего экрана появлялась карусель Telegram — то есть
+     * ровно то, что мы заменяем.
      */
     public static boolean shouldShow() {
-        return !prefs().getBoolean(KEY_SEEN, false);
+        return true;
     }
 
     private static SharedPreferences prefs() {
