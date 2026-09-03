@@ -115,6 +115,31 @@ public class NebulaSettingsFragment extends BaseFragment {
         look.add(login);
         content.addView(look, cardParams());
 
+        // Нижняя панель: своя, а не спрятанная чужая, поэтому и выключается
+        // целиком, и собирается по вкладкам.
+        content.addView(NebulaCard.header(context,
+                LocaleController.getString(R.string.NebulaSectionPanel)));
+        NebulaCard panel = new NebulaCard(context);
+
+        NebulaRow bar = new NebulaRow(context)
+                .icon(R.drawable.msg_customize)
+                .title(LocaleController.getString(R.string.NebulaBottomBarTitle))
+                .subtitle(LocaleController.getString(R.string.NebulaBottomBarSub), false)
+                .trailing(NebulaRow.TRAIL_SWITCH)
+                .checked(NebulaBottomBar.enabled());
+        bar.setOnClickListener(v -> NebulaBottomBar.setEnabled(bar.toggleChecked()));
+        panel.add(bar);
+
+        panel.add(tabRow(context, NebulaBottomBar.TAB_CONTACTS,
+                R.drawable.msg_contacts, R.string.NebulaTabContacts));
+        panel.add(tabRow(context, NebulaBottomBar.TAB_SETTINGS,
+                R.drawable.msg_settings, R.string.NebulaTabSettings));
+        panel.add(tabRow(context, NebulaBottomBar.TAB_PROFILE,
+                R.drawable.msg_openprofile, R.string.NebulaTabProfile));
+        content.addView(panel, cardParams());
+        content.addView(NebulaMenuFragment.placeholder(context,
+                LocaleController.getString(R.string.NebulaBottomBarHint)));
+
         NebulaCard about = new NebulaCard(context);
         NebulaRow versions = new NebulaRow(context)
                 .icon(R.drawable.msg_info)
@@ -141,6 +166,17 @@ public class NebulaSettingsFragment extends BaseFragment {
             text.append(key).append(' ').append(versions.optString(key));
         }
         return text.toString();
+    }
+
+    /** Переключатель одной вкладки: три строки отличаются только значком и словом. */
+    private NebulaRow tabRow(android.content.Context context, String tab, int icon, int title) {
+        NebulaRow row = new NebulaRow(context)
+                .icon(icon)
+                .title(LocaleController.getString(title))
+                .trailing(NebulaRow.TRAIL_SWITCH)
+                .checked(NebulaBottomBar.tabEnabled(tab));
+        row.setOnClickListener(v -> NebulaBottomBar.setTabEnabled(tab, row.toggleChecked()));
+        return row;
     }
 
     private LinearLayout.LayoutParams cardParams() {

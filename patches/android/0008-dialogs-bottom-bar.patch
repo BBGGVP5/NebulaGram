@@ -1,0 +1,13 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
+index b04f149f..df65eaf3 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
+@@ -5644,6 +5644,8 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+         checkUi_searchFieldStyle();
+ 
+         ViewCompat.setOnApplyWindowInsetsListener(fragmentView, this::onApplyWindowInsets);
++        // NebulaGram: собственная нижняя панель вкладок.
++        app.nebulagram.ui.NebulaBottomBar.attach(this, contentView, floatingButton3);
+         return fragmentView;
+     }
+ 

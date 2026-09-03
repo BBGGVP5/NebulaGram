@@ -38,4 +38,12 @@
     <string name="NebulaShownOf">Показано %1$d из %2$d</string>
     <string name="NebulaSelected">Выбран</string>
     <string name="NebulaMs">мс</string>
+    <string name="NebulaTabChats">Чаты</string>
+    <string name="NebulaTabContacts">Контакты</string>
+    <string name="NebulaTabSettings">Настройки</string>
+    <string name="NebulaTabProfile">Профиль</string>
+    <string name="NebulaSectionPanel">Нижняя панель</string>
+    <string name="NebulaBottomBarTitle">Показывать панель</string>
+    <string name="NebulaBottomBarSub">Вкладки внизу экрана вместо боковой шторки</string>
+    <string name="NebulaBottomBarHint">Изменения применятся при следующем открытии списка чатов</string>
 </resources>

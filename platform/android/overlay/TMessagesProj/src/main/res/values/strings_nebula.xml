@@ -45,4 +45,12 @@
     <string name="NebulaShownOf">Showing %1$d of %2$d</string>
     <string name="NebulaSelected">Selected</string>
     <string name="NebulaMs">ms</string>
+    <string name="NebulaTabChats">Chats</string>
+    <string name="NebulaTabContacts">Contacts</string>
+    <string name="NebulaTabSettings">Settings</string>
+    <string name="NebulaTabProfile">Profile</string>
+    <string name="NebulaSectionPanel">Bottom bar</string>
+    <string name="NebulaBottomBarTitle">Show the bottom bar</string>
+    <string name="NebulaBottomBarSub">Tabs at the bottom instead of reaching for the side drawer</string>
+    <string name="NebulaBottomBarHint">Changes apply the next time the chat list opens</string>
 </resources>
