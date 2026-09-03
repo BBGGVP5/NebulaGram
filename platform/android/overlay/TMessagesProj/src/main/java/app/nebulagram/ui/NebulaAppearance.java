@@ -112,4 +112,33 @@ public final class NebulaAppearance {
     public static void setHideSearchField(boolean enabled) {
         preferences().edit().putBoolean("hide_search_field", enabled).apply();
     }
+
+    // --- флаги самого Telegram ----------------------------------------------
+    //
+    // Эти настройки Telegram читает при запуске из "mainconfig" и держит в
+    // статических полях SharedConfig. Своего экрана у части из них нет, хотя
+    // код им пользуется. Пишем в тот же файл и обновляем поле, чтобы новое
+    // значение действовало сразу, а не только после перезапуска.
+
+    private static android.content.SharedPreferences main() {
+        return org.telegram.messenger.MessagesController.getGlobalMainSettings();
+    }
+
+    public static boolean systemEmoji() {
+        return org.telegram.messenger.SharedConfig.useSystemEmoji;
+    }
+
+    public static void setSystemEmoji(boolean enabled) {
+        org.telegram.messenger.SharedConfig.useSystemEmoji = enabled;
+        main().edit().putBoolean("useSystemEmoji", enabled).apply();
+    }
+
+    public static boolean systemBoldFont() {
+        return org.telegram.messenger.SharedConfig.useSystemBoldFont;
+    }
+
+    public static void setSystemBoldFont(boolean enabled) {
+        org.telegram.messenger.SharedConfig.useSystemBoldFont = enabled;
+        main().edit().putBoolean("useSystemBoldFont", enabled).apply();
+    }
 }

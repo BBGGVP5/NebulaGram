@@ -35,6 +35,7 @@ public class NebulaSectionFragment extends BaseFragment {
     public static final int SECTION_CHATS = 1;
     public static final int SECTION_TABS = 2;
     public static final int SECTION_ABOUT = 3;
+    public static final int SECTION_GENERAL = 4;
 
     private final int section;
     private LinearLayout content;
@@ -91,6 +92,8 @@ public class NebulaSectionFragment extends BaseFragment {
                 return R.string.NebulaSectionPanel;
             case SECTION_ABOUT:
                 return R.string.NebulaSectionAbout;
+            case SECTION_GENERAL:
+                return R.string.NebulaSectionGeneral;
             default:
                 return R.string.NebulaSectionLook;
         }
@@ -108,6 +111,9 @@ public class NebulaSectionFragment extends BaseFragment {
                 break;
             case SECTION_ABOUT:
                 buildAbout(context);
+                break;
+            case SECTION_GENERAL:
+                buildGeneral(context);
                 break;
             default:
                 buildAppearance(context, theme);
@@ -215,6 +221,51 @@ public class NebulaSectionFragment extends BaseFragment {
         content.addView(side, cardParams());
         content.addView(NebulaMenuFragment.placeholder(context,
                 LocaleController.getString(R.string.NebulaBottomBarHint)));
+    }
+
+    /**
+     * Настройки самого Telegram, у которых нет своего экрана. Код ими
+     * пользуется, а включить их было негде — поэтому это не наши выдумки, а
+     * доступ к тому, что уже написано.
+     */
+    private void buildGeneral(Context context) {
+        content.addView(NebulaCard.header(context,
+                LocaleController.getString(R.string.NebulaTextSection)));
+        NebulaCard text = new NebulaCard(context);
+        text.add(toggle(context, R.drawable.msg_emoji_smiles,
+                R.string.NebulaSystemEmoji, R.string.NebulaSystemEmojiSub,
+                NebulaAppearance.systemEmoji(), NebulaAppearance::setSystemEmoji));
+        text.add(toggle(context, R.drawable.msg_edit,
+                R.string.NebulaSystemFont, R.string.NebulaSystemFontSub,
+                NebulaAppearance.systemBoldFont(), NebulaAppearance::setSystemBoldFont));
+        text.add(toggle(context, R.drawable.msg_emoji_smiles,
+                R.string.NebulaBigEmoji, R.string.NebulaBigEmojiSub,
+                org.telegram.messenger.SharedConfig.allowBigEmoji,
+                value -> org.telegram.messenger.SharedConfig.toggleBigEmoji()));
+        content.addView(text, cardParams());
+
+        content.addView(NebulaCard.header(context,
+                LocaleController.getString(R.string.NebulaMediaSection)));
+        NebulaCard media = new NebulaCard(context);
+        media.add(toggle(context, R.drawable.msg_voice_unmuted,
+                R.string.NebulaRaiseToSpeak, R.string.NebulaRaiseToSpeakSub,
+                org.telegram.messenger.SharedConfig.raiseToSpeak,
+                value -> org.telegram.messenger.SharedConfig.toggleRaiseToSpeak()));
+        media.add(toggle(context, R.drawable.msg_played,
+                R.string.NebulaPauseOnRecord, R.string.NebulaPauseOnRecordSub,
+                org.telegram.messenger.SharedConfig.pauseMusicOnRecord,
+                value -> org.telegram.messenger.SharedConfig.togglePauseMusicOnRecord()));
+        media.add(toggle(context, R.drawable.msg_played,
+                R.string.NebulaNextMediaTap, R.string.NebulaNextMediaTapSub,
+                org.telegram.messenger.SharedConfig.nextMediaTap,
+                value -> org.telegram.messenger.SharedConfig.toggleNextMediaTap()));
+        media.add(toggle(context, R.drawable.msg_download,
+                R.string.NebulaStreamMedia, R.string.NebulaStreamMediaSub,
+                org.telegram.messenger.SharedConfig.streamMedia,
+                value -> org.telegram.messenger.SharedConfig.toggleStreamMedia()));
+        content.addView(media, cardParams());
+        content.addView(NebulaMenuFragment.placeholder(context,
+                LocaleController.getString(R.string.NebulaRestartHint)));
     }
 
     private void buildAbout(Context context) {

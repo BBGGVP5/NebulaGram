@@ -87,4 +87,22 @@
     <string name="NebulaHideSearchField">Hide the search field</string>
     <string name="NebulaHideSearchFieldSub">In the chat list header. Search stays available from its tab</string>
     <string name="NebulaListSection">Chat list</string>
+    <string name="NebulaSectionGeneral">General</string>
+    <string name="NebulaGeneralSub">Emoji, font, media</string>
+    <string name="NebulaTextSection">Text and emoji</string>
+    <string name="NebulaMediaSection">Media</string>
+    <string name="NebulaSystemEmoji">System emoji</string>
+    <string name="NebulaSystemEmojiSub">Your phone's emoji instead of the built-in set</string>
+    <string name="NebulaSystemFont">System bold font</string>
+    <string name="NebulaSystemFontSub">Bold text uses the system typeface</string>
+    <string name="NebulaBigEmoji">Large emoji</string>
+    <string name="NebulaBigEmojiSub">A message of emoji alone is shown bigger</string>
+    <string name="NebulaRaiseToSpeak">Raise to listen</string>
+    <string name="NebulaRaiseToSpeakSub">Play and record voice messages by holding the phone to your ear</string>
+    <string name="NebulaPauseOnRecord">Pause music while recording</string>
+    <string name="NebulaPauseOnRecordSub">Playback resumes once the voice message is sent</string>
+    <string name="NebulaNextMediaTap">Next video on tap</string>
+    <string name="NebulaNextMediaTapSub">Tapping the edge of a video moves to the next one</string>
+    <string name="NebulaStreamMedia">Stream media</string>
+    <string name="NebulaStreamMediaSub">Start playing before the file has fully downloaded</string>
 </resources>

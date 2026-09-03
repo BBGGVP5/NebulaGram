@@ -78,6 +78,9 @@ public class NebulaSettingsFragment extends BaseFragment {
         content.addView(NebulaCard.header(context,
                 LocaleController.getString(R.string.NebulaSectionSetup)));
         NebulaCard sections = new NebulaCard(context);
+        sections.add(section(context, R.drawable.msg_settings,
+                R.string.NebulaSectionGeneral, R.string.NebulaGeneralSub,
+                NebulaSectionFragment.SECTION_GENERAL));
         sections.add(section(context, R.drawable.msg_customize,
                 R.string.NebulaSectionLook, R.string.NebulaAppearanceSub,
                 NebulaSectionFragment.SECTION_APPEARANCE));

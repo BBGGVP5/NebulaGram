@@ -80,4 +80,22 @@
     <string name="NebulaHideSearchField">Скрыть поле поиска</string>
     <string name="NebulaHideSearchFieldSub">В шапке списка чатов. Поиск остаётся доступен со своей вкладки</string>
     <string name="NebulaListSection">Список чатов</string>
+    <string name="NebulaSectionGeneral">Основные</string>
+    <string name="NebulaGeneralSub">Эмодзи, шрифт, медиа</string>
+    <string name="NebulaTextSection">Текст и эмодзи</string>
+    <string name="NebulaMediaSection">Медиа</string>
+    <string name="NebulaSystemEmoji">Системные эмодзи</string>
+    <string name="NebulaSystemEmojiSub">Эмодзи телефона вместо встроенных</string>
+    <string name="NebulaSystemFont">Системный жирный шрифт</string>
+    <string name="NebulaSystemFontSub">Жирный текст берёт шрифт системы</string>
+    <string name="NebulaBigEmoji">Крупные эмодзи</string>
+    <string name="NebulaBigEmojiSub">Сообщение из одних эмодзи показывается больше</string>
+    <string name="NebulaRaiseToSpeak">Поднести к уху</string>
+    <string name="NebulaRaiseToSpeakSub">Слушать и записывать голосовые, поднеся телефон к уху</string>
+    <string name="NebulaPauseOnRecord">Пауза музыки при записи</string>
+    <string name="NebulaPauseOnRecordSub">Воспроизведение продолжится после отправки голосового</string>
+    <string name="NebulaNextMediaTap">Следующее видео по касанию</string>
+    <string name="NebulaNextMediaTapSub">Касание края видео переводит к следующему</string>
+    <string name="NebulaStreamMedia">Потоковое воспроизведение</string>
+    <string name="NebulaStreamMediaSub">Начинать воспроизведение до полной загрузки файла</string>
 </resources>
