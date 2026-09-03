@@ -19,4 +19,16 @@
     <string name="NebulaConnected">Подключено</string>
     <string name="NebulaDisconnected">Отключено</string>
     <string name="NebulaConnecting">Подключение\u2026</string>
+    <string name="NebulaNoSubscriptions">Подписок пока нет</string>
+    <string name="NebulaRemove">Удалить</string>
+    <string name="NebulaServersShort">серверов</string>
+    <string name="NebulaSettings">NebulaGram</string>
+    <string name="NebulaSettingsSub">Туннель, оформление и всё, что добавляет форк</string>
+    <string name="NebulaSectionTunnel">ТУННЕЛЬ</string>
+    <string name="NebulaSectionLook">ОФОРМЛЕНИЕ</string>
+    <string name="NebulaSubscriptions">Подписки</string>
+    <string name="NebulaMaterialYou">Material You</string>
+    <string name="NebulaMaterialYouSub">Брать цвета из обоев</string>
+    <string name="NebulaLoginStyleTitle">Оформлять экраны входа</string>
+    <string name="NebulaLoginStyleSub">Наша типографика на экранах Telegram</string>
 </resources>

@@ -26,4 +26,16 @@
     <string name="NebulaConnected">Connected</string>
     <string name="NebulaDisconnected">Disconnected</string>
     <string name="NebulaConnecting">Connecting\u2026</string>
+    <string name="NebulaNoSubscriptions">No subscriptions yet</string>
+    <string name="NebulaRemove">Remove</string>
+    <string name="NebulaServersShort">servers</string>
+    <string name="NebulaSettings">NebulaGram</string>
+    <string name="NebulaSettingsSub">Tunnel, appearance and everything this fork adds</string>
+    <string name="NebulaSectionTunnel">TUNNEL</string>
+    <string name="NebulaSectionLook">APPEARANCE</string>
+    <string name="NebulaSubscriptions">Subscriptions</string>
+    <string name="NebulaMaterialYou">Material You</string>
+    <string name="NebulaMaterialYouSub">Take colours from the wallpaper</string>
+    <string name="NebulaLoginStyleTitle">Restyle the login screens</string>
+    <string name="NebulaLoginStyleSub">Our typography on the screens Telegram owns</string>
 </resources>

@@ -147,6 +147,12 @@ public class NebulaRow extends FrameLayout {
         return this;
     }
 
+    /** Цепочечный вариант setOnClickListener, чтобы строка собиралась в одно выражение. */
+    public NebulaRow withClick(OnClickListener listener) {
+        setOnClickListener(listener);
+        return this;
+    }
+
     /** Sets the switch state without firing a listener. */
     public NebulaRow checked(boolean value) {
         if (toggle != null) {

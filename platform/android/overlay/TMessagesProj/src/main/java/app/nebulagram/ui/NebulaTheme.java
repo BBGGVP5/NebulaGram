@@ -1,12 +1,14 @@
 package app.nebulagram.ui;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.os.Build;
 
 import androidx.core.content.ContextCompat;
 
 import org.telegram.messenger.AndroidUtilities;
+import org.telegram.messenger.ApplicationLoader;
 import org.telegram.messenger.FileLog;
 import org.telegram.ui.ActionBar.Theme;
 
@@ -174,8 +176,8 @@ public final class NebulaTheme {
      * replacements of Telegram's screens would not.
      */
     public static void applyMaterialYou(Context context) {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) {
-            return; // no system palette to follow
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S || !materialYouEnabled()) {
+            return; // нечего брать или пользователь отказался
         }
         try {
             int accent = NebulaTheme.of(context).primary();
@@ -194,6 +196,25 @@ public final class NebulaTheme {
             // starting, and the upstream API may move between releases.
             FileLog.e(e);
         }
+    }
+
+    private static final String PREFS = "nebulagram";
+    private static final String KEY_MATERIAL_YOU = "material_you";
+
+    /** Следовать ли палитре обоев. По умолчанию да — это и есть Material You. */
+    public static boolean materialYouEnabled() {
+        try {
+            SharedPreferences prefs =
+                    ApplicationLoader.applicationContext.getSharedPreferences(PREFS, 0);
+            return prefs.getBoolean(KEY_MATERIAL_YOU, true);
+        } catch (Throwable e) {
+            return false;
+        }
+    }
+
+    public static void setMaterialYouEnabled(boolean value) {
+        ApplicationLoader.applicationContext.getSharedPreferences(PREFS, 0)
+                .edit().putBoolean(KEY_MATERIAL_YOU, value).apply();
     }
 
     /**

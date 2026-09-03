@@ -1,0 +1,73 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
+index 40634647..2f775b74 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
+@@ -626,6 +626,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+     private int settingsSectionRow2;
+     private int notificationRow;
+     private int languageRow;
++    private int nebulaRow; // NebulaGram
+     private int privacyRow;
+     private int dataRow;
+     private int chatRow;
+@@ -4573,6 +4574,8 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+                 });
+                 builder1.setNegativeButton(LocaleController.getString(R.string.Cancel), null);
+                 showDialog(builder1.create());
++            } else if (position == nebulaRow) { // NebulaGram
++                presentFragment(new app.nebulagram.ui.NebulaSettingsFragment());
+             } else if (position == languageRow) {
+                 presentFragment(new LanguageSelectActivity());
+             } else if (position == setUsernameRow) {
+@@ -10469,6 +10472,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+         settingsSectionRow2 = -1;
+         notificationRow = -1;
+         languageRow = -1;
++        nebulaRow = -1; // NebulaGram
+         premiumRow = -1;
+         starsRow = -1;
+         tonRow = -1;
+@@ -10649,6 +10653,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+                 }
+                 devicesRow = rowCount++;
+                 languageRow = rowCount++;
++                nebulaRow = rowCount++; // NebulaGram
+                 devicesSectionRow = rowCount++;
+                 if (!getMessagesController().premiumFeaturesBlocked()) {
+                     premiumRow = rowCount++;
+@@ -13830,6 +13835,9 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+                         textCell.setText(LocaleController.getString(R.string.ReportUserLocation), false);
+                         textCell.setColors(-1, Theme.key_text_RedRegular);
+                         textCell.setColors(-1, Theme.key_text_RedRegular);
++                    } else if (position == nebulaRow) { // NebulaGram
++                        textCell.setTextAndValueAndIcon(LocaleController.getString(R.string.NebulaSettings), "", false, R.drawable.msg_secret, true);
++                        textCell.setImageLeft(23);
+                     } else if (position == languageRow) {
+                         textCell.setTextAndValueAndIcon(LocaleController.getString(R.string.Language), LocaleController.getCurrentLanguageName(), false, R.drawable.msg2_language, false);
+                         textCell.setImageLeft(23);
+@@ -14279,7 +14287,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+             if (notificationRow != -1) {
+                 int position = holder.getAdapterPosition();
+                 return position == notificationRow || position == numberRow || position == privacyRow ||
+-                        position == languageRow || position == setUsernameRow || position == bioRow ||
++                        position == languageRow || position == nebulaRow || position == setUsernameRow || position == bioRow ||
+                         position == versionRow || position == dataRow || position == chatRow ||
+                         position == questionRow || position == devicesRow || position == filtersRow || position == stickersRow ||
+                         position == faqRow || position == policyRow || position == sendLogsRow || position == sendLastLogsRow ||
+@@ -14326,7 +14334,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+                     position == subscribersRow || position == subscribersRequestsRow || position == administratorsRow || position == settingsRow || position == blockedUsersRow ||
+                     position == addMemberRow || position == joinRow || position == unblockRow ||
+                     position == sendMessageRow || position == notificationRow || position == privacyRow ||
+-                    position == languageRow || position == dataRow || position == chatRow ||
++                    position == languageRow || position == nebulaRow || position == dataRow || position == chatRow ||
+                     position == questionRow || position == devicesRow || position == filtersRow || position == stickersRow ||
+                     position == faqRow || position == policyRow || position == sendLogsRow || position == sendLastLogsRow ||
+                     position == clearLogsRow || position == switchBackendRow || position == setAvatarRow || position == addToGroupButtonRow ||
+@@ -15683,6 +15691,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+             put(++pointer, settingsSectionRow2, sparseIntArray);
+             put(++pointer, notificationRow, sparseIntArray);
+             put(++pointer, languageRow, sparseIntArray);
++            put(++pointer, nebulaRow, sparseIntArray); // NebulaGram
+             put(++pointer, premiumRow, sparseIntArray);
+             put(++pointer, starsRow, sparseIntArray);
+             put(++pointer, businessRow, sparseIntArray);

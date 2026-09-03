@@ -145,6 +145,7 @@ var handlers = map[string]handler{
 	"subscription.add":        (*Core).handleSubscriptionAdd,
 	"subscription.list":       (*Core).handleSubscriptionList,
 	"subscription.remove":     (*Core).handleSubscriptionRemove,
+	"subscription.refresh":    (*Core).handleSubscriptionRefreshOne,
 	"subscription.refreshAll": (*Core).handleSubscriptionRefresh,
 	"probe.servers":           (*Core).handleProbe,
 	"probe.url":               (*Core).handleProbeURL,
@@ -478,6 +479,23 @@ func (c *Core) handleSubscriptionRemove(payload []byte) (any, error) {
 		return nil, err
 	}
 	return nil, c.st().RemoveSubscription(req.ID)
+}
+
+// handleSubscriptionRefreshOne updates a single source. With several
+// subscriptions saved, refreshing all of them to fix one is both slow and
+// noisy: a panel that is down would report an error for a source the user did
+// not touch.
+func (c *Core) handleSubscriptionRefreshOne(payload []byte) (any, error) {
+	var req idRequest
+	if err := decode(payload, &req); err != nil {
+		return nil, err
+	}
+	for _, sub := range c.st().Subscriptions() {
+		if sub.ID == req.ID {
+			return c.refresh(sub)
+		}
+	}
+	return nil, fmt.Errorf("nebulalink: no subscription with id %q", req.ID)
 }
 
 func (c *Core) handleSubscriptionRefresh([]byte) (any, error) {

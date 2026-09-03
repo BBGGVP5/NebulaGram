@@ -2,6 +2,7 @@ package api
 
 import (
 	"encoding/json"
+	"strings"
 	"testing"
 
 	"github.com/nebulagram/nebulagram/core/model"
@@ -186,5 +187,17 @@ func TestMenuIsRenderable(t *testing.T) {
 				}
 			}
 		}
+	}
+}
+
+func TestRefreshOneSubscriptionNeedsAKnownId(t *testing.T) {
+	c := newCore(t)
+	var resp Response
+	_ = json.Unmarshal([]byte(c.Call("subscription.refresh", `{"id":"nope"}`)), &resp)
+	if resp.OK {
+		t.Fatal("refreshing an unknown subscription should fail")
+	}
+	if !strings.Contains(resp.Error, "nope") {
+		t.Errorf("error should name the id, got %q", resp.Error)
 	}
 }
