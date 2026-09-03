@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Строки экранов NebulaLink. Сгенерировано scripts/gen-menu-strings.py из
+  core/settings/menu.go — руками не править, правка потеряется.
+-->
+<resources>
+    <string name="nl_about">About NebulaLink</string>
+    <string name="nl_add_key">Add server key</string>
+    <string name="nl_add_key_sub">VLESS, VMess, Trojan, Shadowsocks, Hysteria2 or TUIC</string>
+    <string name="nl_add_sub">Add subscription</string>
+    <string name="nl_add_sub_sub">HTTP or HTTPS link to a Remnawave panel</string>
+    <string name="nl_advanced">Advanced</string>
+    <string name="nl_advanced_sub">Latency method, device id and cores</string>
+    <string name="nl_all_protocols">All protocols</string>
+    <string name="nl_auto_ping">Automatic latency check</string>
+    <string name="nl_auto_ping_sub">Periodic, always over TCP so the tunnel is never interrupted</string>
+    <string name="nl_call_state">Call state</string>
+    <string name="nl_call_state_sub">Hooks / requests / matched / sent / received</string>
+    <string name="nl_check_page">Check page</string>
+    <string name="nl_check_page_sub">Measures the servers currently visible</string>
+    <string name="nl_clear">Clear servers</string>
+    <string name="nl_clear_sub">Subscriptions are kept, the tunnel is stopped</string>
+    <string name="nl_connection">Connection</string>
+    <string name="nl_current_server">Current server</string>
+    <string name="nl_dns">DNS inside the tunnel</string>
+    <string name="nl_dual_core">Both cores at once</string>
+    <string name="nl_dual_core_sub">Keeps Xray and sing-box loaded, so switching protocols is instant</string>
+    <string name="nl_export_logs">Export logs</string>
+    <string name="nl_hwid">HWID</string>
+    <string name="nl_hwid_sub">Device id sent to a device-limited panel</string>
+    <string name="nl_mode">Tunnel mode</string>
+    <string name="nl_mode_proxy">Messenger only (local proxy)</string>
+    <string name="nl_mode_sub">Messenger only, or the whole device</string>
+    <string name="nl_mode_vpn">Whole device (VPN)</string>
+    <string name="nl_open_provider">Open provider page</string>
+    <string name="nl_open_provider_sub">Top up, renew or read announcements</string>
+    <string name="nl_per_page">Servers per page</string>
+    <string name="nl_per_page_sub">More servers at once, less paging</string>
+    <string name="nl_ping_tcp">TCP</string>
+    <string name="nl_ping_type">Ping type</string>
+    <string name="nl_ping_url">URL</string>
+    <string name="nl_protocol">Protocol</string>
+    <string name="nl_protocol_sub">Show only the selected protocol</string>
+    <string name="nl_provider">Provider</string>
+    <string name="nl_provider_sub">Pick a built-in or custom source</string>
+    <string name="nl_refresh">Refresh subscriptions</string>
+    <string name="nl_refresh_on_start">Refresh subscriptions on launch</string>
+    <string name="nl_refresh_on_start_sub">On open, when the lists are stale</string>
+    <string name="nl_refresh_sub">Fetch fresh servers from saved sources</string>
+    <string name="nl_reset">Reset NebulaLink settings</string>
+    <string name="nl_route_calls">Calls through NebulaLink</string>
+    <string name="nl_route_calls_sub">Call media goes through your server, with no third-party relays</string>
+    <string name="nl_search">Search</string>
+    <string name="nl_search_sub">By server or source name</string>
+    <string name="nl_sec_actions">ACTIONS</string>
+    <string name="nl_sec_calls">CALLS</string>
+    <string name="nl_sec_core">CORE</string>
+    <string name="nl_sec_servers">SERVERS</string>
+    <string name="nl_sec_source">SOURCE AND FILTERS</string>
+    <string name="nl_server_list">Server list</string>
+    <string name="nl_servers">NebulaLink servers</string>
+    <string name="nl_socks_port">Local SOCKS port</string>
+    <string name="nl_source">Server source</string>
+    <string name="nl_source_sub">Subscriptions, manual keys and filters</string>
+    <string name="nl_switch_on_failure">Switch server on failure</string>
+    <string name="nl_title">NebulaLink</string>
+    <string name="nl_versions">Component versions</string>
+</resources>

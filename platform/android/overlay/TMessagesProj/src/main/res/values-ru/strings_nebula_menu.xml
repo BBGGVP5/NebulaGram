@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Строки экранов NebulaLink. Сгенерировано scripts/gen-menu-strings.py из
+  core/settings/menu.go — руками не править, правка потеряется.
+-->
+<resources>
+    <string name="nl_about">О NebulaLink</string>
+    <string name="nl_add_key">Добавить ключ сервера</string>
+    <string name="nl_add_key_sub">VLESS, VMess, Trojan, Shadowsocks, Hysteria2 или TUIC</string>
+    <string name="nl_add_sub">Добавить подписку</string>
+    <string name="nl_add_sub_sub">Ссылка на панель Remnawave или обычную подписку</string>
+    <string name="nl_advanced">Дополнительно</string>
+    <string name="nl_advanced_sub">Способ замера, идентификатор и ядра</string>
+    <string name="nl_all_protocols">Все протоколы</string>
+    <string name="nl_auto_ping">Автопроверка задержки</string>
+    <string name="nl_auto_ping_sub">Периодически и всегда по TCP, чтобы не рвать соединение</string>
+    <string name="nl_call_state">Состояние звонков</string>
+    <string name="nl_call_state_sub">Перехваты, запросы, отправлено, получено</string>
+    <string name="nl_check_page">Проверить задержку</string>
+    <string name="nl_check_page_sub">Измеряет серверы на текущей странице</string>
+    <string name="nl_clear">Очистить серверы</string>
+    <string name="nl_clear_sub">Подписки сохранятся, туннель отключится</string>
+    <string name="nl_connection">Соединение</string>
+    <string name="nl_current_server">Текущий сервер</string>
+    <string name="nl_dns">DNS внутри туннеля</string>
+    <string name="nl_dual_core">Оба ядра сразу</string>
+    <string name="nl_dual_core_sub">Xray и sing-box загружены вместе, переключение мгновенное</string>
+    <string name="nl_export_logs">Выгрузить журнал</string>
+    <string name="nl_hwid">Идентификатор устройства</string>
+    <string name="nl_hwid_sub">Отправляется панели с лимитом устройств</string>
+    <string name="nl_mode">Режим туннеля</string>
+    <string name="nl_mode_proxy">Только мессенджер</string>
+    <string name="nl_mode_sub">Только мессенджер или всё устройство</string>
+    <string name="nl_mode_vpn">Всё устройство (VPN)</string>
+    <string name="nl_open_provider">Страница провайдера</string>
+    <string name="nl_open_provider_sub">Пополнить, продлить, прочитать объявления</string>
+    <string name="nl_per_page">Серверов на странице</string>
+    <string name="nl_per_page_sub">Больше сразу — меньше перелистывания</string>
+    <string name="nl_ping_tcp">TCP</string>
+    <string name="nl_ping_type">Тип проверки</string>
+    <string name="nl_ping_url">URL</string>
+    <string name="nl_protocol">Протокол</string>
+    <string name="nl_protocol_sub">Показывать только выбранный</string>
+    <string name="nl_provider">Провайдер</string>
+    <string name="nl_provider_sub">Встроенный или свой источник</string>
+    <string name="nl_refresh">Обновить подписки</string>
+    <string name="nl_refresh_on_start">Обновлять подписки при запуске</string>
+    <string name="nl_refresh_on_start_sub">При открытии, если списки устарели</string>
+    <string name="nl_refresh_sub">Загрузить свежие серверы из сохранённых источников</string>
+    <string name="nl_reset">Сбросить настройки NebulaLink</string>
+    <string name="nl_route_calls">Звонки через NebulaLink</string>
+    <string name="nl_route_calls_sub">Медиа звонка идёт через ваш сервер, без сторонних релеев</string>
+    <string name="nl_search">Поиск</string>
+    <string name="nl_search_sub">По имени сервера или источника</string>
+    <string name="nl_sec_actions">ДЕЙСТВИЯ</string>
+    <string name="nl_sec_calls">ЗВОНКИ</string>
+    <string name="nl_sec_core">ЯДРО</string>
+    <string name="nl_sec_servers">СЕРВЕРЫ</string>
+    <string name="nl_sec_source">ИСТОЧНИК И ФИЛЬТРЫ</string>
+    <string name="nl_server_list">Список серверов</string>
+    <string name="nl_servers">Серверы NebulaLink</string>
+    <string name="nl_socks_port">Локальный порт SOCKS</string>
+    <string name="nl_source">Источник серверов</string>
+    <string name="nl_source_sub">Подписки, ключи и фильтры</string>
+    <string name="nl_switch_on_failure">Менять сервер при обрыве</string>
+    <string name="nl_title">NebulaLink</string>
+    <string name="nl_versions">Версии компонентов</string>
+</resources>

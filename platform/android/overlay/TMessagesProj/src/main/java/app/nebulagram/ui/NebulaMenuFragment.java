@@ -218,7 +218,18 @@ public class NebulaMenuFragment extends BaseFragment {
                     view.destructive();
                 }
                 String command = row.optString("command");
-                view.setOnClickListener(v -> runCommand(command, title));
+                view.setOnClickListener(v -> {
+                    // Часть команд без данных бессмысленна: подписку и ключ
+                    // сначала надо куда-то вставить. Раньше строка молча
+                    // отправляла пустой запрос, и было непонятно, куда вводить.
+                    if ("subscription.add".equals(command)) {
+                        askAndRun(context, title, command, "url");
+                    } else if ("server.addLink".equals(command)) {
+                        askAndRun(context, title, command, "link");
+                    } else {
+                        runCommand(command, title);
+                    }
+                });
                 break;
 
             case "card":
@@ -350,6 +361,49 @@ public class NebulaMenuFragment extends BaseFragment {
                 report(result.error);
             }
         });
+    }
+
+    /**
+     * Спрашивает строку и отправляет её команде. Одно поле на оба случая:
+     * ядро само разбирает, подписка это, ключ или целый конфиг.
+     */
+    private void askAndRun(Context context, String title, String command, String field) {
+        NebulaTheme theme = NebulaTheme.of(context);
+
+        EditTextBoldCursor field_ = new EditTextBoldCursor(context);
+        field_.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 16);
+        field_.setTextColor(theme.onSurface());
+        field_.setHintTextColor(theme.onSurfaceVariant());
+        field_.setHint(LocaleController.getString(R.string.NebulaConnectHint));
+        field_.setBackground(null);
+        field_.setSingleLine();
+        field_.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_URI);
+        field_.setPadding(AndroidUtilities.dp(24), AndroidUtilities.dp(8),
+                AndroidUtilities.dp(24), AndroidUtilities.dp(8));
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(context);
+        builder.setTitle(title);
+        builder.setView(field_);
+        builder.setPositiveButton(LocaleController.getString(R.string.OK), (dialog, which) -> {
+            String typed = field_.getText().toString().trim();
+            if (typed.isEmpty()) {
+                return;
+            }
+            JSONObject payload = new JSONObject();
+            try {
+                payload.put(field, typed);
+            } catch (JSONException e) {
+                return;
+            }
+            NebulaLink.call(command, payload, result -> {
+                report(result.ok ? title : result.error);
+                if (result.ok) {
+                    load();
+                }
+            });
+        });
+        builder.setNegativeButton(LocaleController.getString(R.string.Cancel), null);
+        showDialog(builder.create());
     }
 
     private void runCommand(String command, String title) {
