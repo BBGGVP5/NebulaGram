@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "765004849451",
+    "project_id": "nebulagram-eb5a4",
+    "storage_bucket": "nebulagram-eb5a4.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:765004849451:android:434c8bf04b18d90478656e",
+        "android_client_info": {
+          "package_name": "app.nebulagram.messenger"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBB4UMv-XEn100i426-1NByJd1lOGjJVng"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
