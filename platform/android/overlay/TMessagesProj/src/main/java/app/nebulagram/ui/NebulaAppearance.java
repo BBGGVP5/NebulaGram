@@ -74,4 +74,17 @@ public final class NebulaAppearance {
     public static void setDisableNextChannel(boolean enabled) {
         preferences().edit().putBoolean("disable_next_channel", enabled).apply();
     }
+
+    /**
+     * Убирать ли линии между чатами. В Material 3 списки разделяют отступом и
+     * плотностью, а не чертой; линия остаётся полезной там, где строки
+     * одинаковые по высоте, поэтому это выбор, а не умолчание.
+     */
+    public static boolean hideDividers() {
+        return preferences().getBoolean("hide_dividers", false);
+    }
+
+    public static void setHideDividers(boolean enabled) {
+        preferences().edit().putBoolean("hide_dividers", enabled).apply();
+    }
 }

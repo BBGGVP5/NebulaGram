@@ -73,4 +73,6 @@
     <string name="NebulaNoNextChannel">Не переходить к следующему каналу</string>
     <string name="NebulaNoNextChannelSub">Протягивание в конце канала оставляет вас на месте</string>
     <string name="NebulaChatBehaviour">Поведение</string>
+    <string name="NebulaHideDividers">Убрать разделители</string>
+    <string name="NebulaHideDividersSub">Без линий между чатами в списке</string>
 </resources>

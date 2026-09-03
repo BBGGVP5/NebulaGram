@@ -137,6 +137,9 @@ public class NebulaSectionFragment extends BaseFragment {
         card.add(toggle(context, R.drawable.msg_openprofile,
                 R.string.NebulaProfileStyle, R.string.NebulaProfileStyleInfo,
                 NebulaAppearance.profileStyle(), NebulaAppearance::setProfileStyle));
+        card.add(toggle(context, R.drawable.msg_list,
+                R.string.NebulaHideDividers, R.string.NebulaHideDividersSub,
+                NebulaAppearance.hideDividers(), NebulaAppearance::setHideDividers));
         content.addView(card, cardParams());
         content.addView(NebulaMenuFragment.placeholder(context,
                 LocaleController.getString(R.string.NebulaRestartHint)));

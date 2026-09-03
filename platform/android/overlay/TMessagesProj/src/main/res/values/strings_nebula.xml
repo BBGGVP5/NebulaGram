@@ -80,4 +80,6 @@
     <string name="NebulaNoNextChannel">Do not switch to the next channel</string>
     <string name="NebulaNoNextChannelSub">Pulling up at the end of a channel keeps you where you are</string>
     <string name="NebulaChatBehaviour">Behaviour</string>
+    <string name="NebulaHideDividers">Hide dividers</string>
+    <string name="NebulaHideDividersSub">No lines between chats in the list</string>
 </resources>

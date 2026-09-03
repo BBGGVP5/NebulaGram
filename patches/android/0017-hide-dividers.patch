@@ -1,0 +1,13 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Cells/DialogCell.java b/TMessagesProj/src/main/java/org/telegram/ui/Cells/DialogCell.java
+index 790e4493..85ba4893 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Cells/DialogCell.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Cells/DialogCell.java
+@@ -4768,7 +4768,7 @@ public class DialogCell extends BaseCell implements StoriesListPlaceProvider.Ava
+             canvas.restore();
+         }
+ 
+-        if (useSeparator) {
++        if (useSeparator && !app.nebulagram.ui.NebulaAppearance.hideDividers()) {
+             int left;
+             if (fullSeparator || currentDialogFolderId != 0 && archiveHidden && !fullSeparator2 || fullSeparator2 && !archiveHidden) {
+                 left = 0;
