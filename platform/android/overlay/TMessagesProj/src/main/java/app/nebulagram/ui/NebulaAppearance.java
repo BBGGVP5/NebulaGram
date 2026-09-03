@@ -49,4 +49,29 @@ public final class NebulaAppearance {
     public static void setHideAttachCamera(boolean enabled) {
         preferences().edit().putBoolean("hide_attach_camera", enabled).apply();
     }
+
+    /**
+     * Прятать ли кнопку выбора отправителя. Она нужна тем, кто пишет от имени
+     * канала; всем остальным занимает место слева от поля ввода.
+     */
+    public static boolean hideSendAs() {
+        return preferences().getBoolean("hide_send_as", false);
+    }
+
+    public static void setHideSendAs(boolean enabled) {
+        preferences().edit().putBoolean("hide_send_as", enabled).apply();
+    }
+
+    /**
+     * Отключать ли переход к следующему каналу протягиванием вверх. Жест
+     * срабатывает при обычной прокрутке к концу ленты и уводит из чата, чего
+     * от прокрутки не ждёшь.
+     */
+    public static boolean disableNextChannel() {
+        return preferences().getBoolean("disable_next_channel", false);
+    }
+
+    public static void setDisableNextChannel(boolean enabled) {
+        preferences().edit().putBoolean("disable_next_channel", enabled).apply();
+    }
 }

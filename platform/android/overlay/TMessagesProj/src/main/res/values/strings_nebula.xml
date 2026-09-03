@@ -75,4 +75,9 @@
     <string name="NebulaHideCameraSub">In the attachment menu. Saves battery and stops the camera indicator</string>
     <string name="NebulaRestartHint">Changes apply when the screen is opened again</string>
     <string name="NebulaSectionSetup">Setup</string>
+    <string name="NebulaHideSendAs">Hide “Send as”</string>
+    <string name="NebulaHideSendAsSub">The sender picker left of the message field</string>
+    <string name="NebulaNoNextChannel">Do not switch to the next channel</string>
+    <string name="NebulaNoNextChannelSub">Pulling up at the end of a channel keeps you where you are</string>
+    <string name="NebulaChatBehaviour">Behaviour</string>
 </resources>

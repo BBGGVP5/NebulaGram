@@ -68,4 +68,9 @@
     <string name="NebulaHideCameraSub">В меню вложений. Экономит батарею и убирает индикатор камеры</string>
     <string name="NebulaRestartHint">Изменения применяются при следующем открытии экрана</string>
     <string name="NebulaSectionSetup">Настройка</string>
+    <string name="NebulaHideSendAs">Скрыть «Отправить как»</string>
+    <string name="NebulaHideSendAsSub">Выбор отправителя слева от поля ввода</string>
+    <string name="NebulaNoNextChannel">Не переходить к следующему каналу</string>
+    <string name="NebulaNoNextChannelSub">Протягивание в конце канала оставляет вас на месте</string>
+    <string name="NebulaChatBehaviour">Поведение</string>
 </resources>

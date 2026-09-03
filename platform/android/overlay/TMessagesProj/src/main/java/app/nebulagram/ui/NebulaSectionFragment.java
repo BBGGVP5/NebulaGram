@@ -163,6 +163,18 @@ public class NebulaSectionFragment extends BaseFragment {
                 R.string.NebulaHideCameraTitle, R.string.NebulaHideCameraSub,
                 NebulaAppearance.hideAttachCamera(), NebulaAppearance::setHideAttachCamera));
         content.addView(composer, cardParams());
+
+        content.addView(NebulaCard.header(context,
+                LocaleController.getString(R.string.NebulaChatBehaviour)));
+        NebulaCard behaviour = new NebulaCard(context);
+        behaviour.add(toggle(context, R.drawable.msg_channel,
+                R.string.NebulaHideSendAs, R.string.NebulaHideSendAsSub,
+                NebulaAppearance.hideSendAs(), NebulaAppearance::setHideSendAs));
+        behaviour.add(toggle(context, R.drawable.msg_discussion,
+                R.string.NebulaNoNextChannel, R.string.NebulaNoNextChannelSub,
+                NebulaAppearance.disableNextChannel(), NebulaAppearance::setDisableNextChannel));
+        content.addView(behaviour, cardParams());
+
         content.addView(NebulaMenuFragment.placeholder(context,
                 LocaleController.getString(R.string.NebulaRestartHint)));
     }

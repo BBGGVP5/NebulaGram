@@ -1,0 +1,26 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
+index ab7cfead..a6ddf2f8 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
+@@ -5109,7 +5109,7 @@ public class ChatActivity extends BaseFragment implements
+                 }
+                 if (pullingDownOffset != 0 && (e.getAction() == MotionEvent.ACTION_UP || e.getAction() == MotionEvent.ACTION_CANCEL)) {
+                     float progress = Math.min(1f, pullingDownOffset / AndroidUtilities.dp(110));
+-                    if (e.getAction() == MotionEvent.ACTION_UP && progress == 1 && pullingDownDrawable != null && !pullingDownDrawable.emptyStub) {
++                    if (e.getAction() == MotionEvent.ACTION_UP && progress == 1 && pullingDownDrawable != null && !pullingDownDrawable.emptyStub && !app.nebulagram.ui.NebulaAppearance.disableNextChannel()) {
+                         if (pullingDownDrawable.animationIsRunning()) {
+                             ValueAnimator animator = ValueAnimator.ofFloat(pullingDownOffset, pullingDownOffset + AndroidUtilities.dp(8));
+                             pullingDownBackAnimator = animator;
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
+index 45fb515d..544e3051 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
+@@ -11097,7 +11097,7 @@ public class ChatActivityEnterView extends FrameLayout implements
+         if (defPeer == null && delegate.getSendAsPeers() != null && !delegate.getSendAsPeers().peers.isEmpty()) {
+             defPeer = delegate.getSendAsPeers().peers.get(0).peer;
+         }
+-        final boolean isVisible = !forceHide && defPeer != null
++        final boolean isVisible = !forceHide && !app.nebulagram.ui.NebulaAppearance.hideSendAs() && defPeer != null
+             && (delegate.getSendAsPeers() == null || delegate.getSendAsPeers().peers.size() > 1)
+             && !isEditingMessage() && !isRecordingAudioVideo()
+             && (recordedAudioPanel == null || recordedAudioPanel.getVisibility() != View.VISIBLE)
