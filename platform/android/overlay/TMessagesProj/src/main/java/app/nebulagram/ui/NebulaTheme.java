@@ -7,6 +7,8 @@ import android.os.Build;
 import androidx.core.content.ContextCompat;
 
 import org.telegram.messenger.AndroidUtilities;
+import org.telegram.messenger.FileLog;
+import org.telegram.ui.ActionBar.Theme;
 
 /**
  * Material 3 colour roles for NebulaGram's own screens.
@@ -158,6 +160,40 @@ public final class NebulaTheme {
             return system(android.R.color.system_neutral2_500);
         }
         return dark ? BRAND_OUTLINE_DARK : BRAND_OUTLINE_LIGHT;
+    }
+
+    /**
+     * Hands the wallpaper's accent to Telegram's own theming, so the whole app
+     * follows Material You — including the screens we do not own, such as the
+     * login flow.
+     *
+     * <p>This is deliberately not a restyling of individual screens. Telegram
+     * derives its entire palette from one accent colour, and setting that
+     * accent is a supported, public path — the same one its own appearance
+     * settings use. It therefore survives upstream releases, whereas hand-drawn
+     * replacements of Telegram's screens would not.
+     */
+    public static void applyMaterialYou(Context context) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) {
+            return; // no system palette to follow
+        }
+        try {
+            int accent = NebulaTheme.of(context).primary();
+            Theme.ThemeInfo active = Theme.getActiveTheme();
+            if (active == null) {
+                return;
+            }
+            Theme.ThemeAccent current = active.getAccent(false);
+            if (current == null || current.accentColor == accent) {
+                return; // nothing to do, or already following the wallpaper
+            }
+            current.accentColor = accent;
+            Theme.refreshThemeColors();
+        } catch (Throwable e) {
+            // Theming is cosmetic: a failure here must never keep the app from
+            // starting, and the upstream API may move between releases.
+            FileLog.e(e);
+        }
     }
 
     /**

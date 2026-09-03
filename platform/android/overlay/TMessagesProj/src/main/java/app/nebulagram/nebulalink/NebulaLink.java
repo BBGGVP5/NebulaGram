@@ -1,8 +1,11 @@
 package app.nebulagram.nebulalink;
 
+import android.app.Activity;
+import android.app.Application;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Build;
+import android.os.Bundle;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -81,6 +84,7 @@ public final class NebulaLink {
             return;
         }
         initialised = true;
+        followSystemPalette(context);
         final File directory = new File(context.getFilesDir(), "nebulalink");
 
         EXECUTOR.execute(() -> {
@@ -225,5 +229,48 @@ public final class NebulaLink {
     /** Whether call media currently goes through the tunnel. */
     public static boolean callsThroughTunnel() {
         return MessagesController.getGlobalMainSettings().getBoolean("proxy_enabled_calls", false);
+    }
+
+    /**
+     * Applies the wallpaper palette once the first screen appears. It cannot be
+     * done from Application.onCreate: Telegram's theme is not loaded yet at
+     * that point, and there would be nothing to recolour.
+     */
+    private static void followSystemPalette(Context context) {
+        if (!(context instanceof Application)) {
+            return;
+        }
+        ((Application) context).registerActivityLifecycleCallbacks(new Application.ActivityLifecycleCallbacks() {
+            @Override
+            public void onActivityResumed(Activity activity) {
+                // On resume rather than on create: the wallpaper, and therefore
+                // the palette, can change while the app sits in the background.
+                app.nebulagram.ui.NebulaTheme.applyMaterialYou(activity);
+            }
+
+            @Override
+            public void onActivityCreated(Activity activity, Bundle state) {
+            }
+
+            @Override
+            public void onActivityStarted(Activity activity) {
+            }
+
+            @Override
+            public void onActivityPaused(Activity activity) {
+            }
+
+            @Override
+            public void onActivityStopped(Activity activity) {
+            }
+
+            @Override
+            public void onActivitySaveInstanceState(Activity activity, Bundle state) {
+            }
+
+            @Override
+            public void onActivityDestroyed(Activity activity) {
+            }
+        });
     }
 }
