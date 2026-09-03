@@ -1,0 +1,13 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/LoginActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/LoginActivity.java
+index b09347dc..41c3ebe4 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/LoginActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/LoginActivity.java
+@@ -686,6 +686,8 @@ public class LoginActivity extends BaseFragment implements NotificationCenter.No
+         views[VIEW_CODE_PHRASE] = new LoginActivityPhraseView(context, AUTH_TYPE_PHRASE);
+         views[VIEW_PAY] = new LoginPayView(context);
+ 
++        app.nebulagram.ui.NebulaLoginStyle.apply(views); // NebulaGram
++
+         for (int a = 0; a < views.length; a++) {
+             views[a].setVisibility(a == 0 ? View.VISIBLE : View.GONE);
+             final boolean needsTopMargin = a != VIEW_PAY;

@@ -14,7 +14,18 @@
 | `0004-launch-show-welcome.patch` | `TMessagesProj/src/main/java/org/telegram/ui/LaunchActivity.java` | перед `return new IntroActivity();` | показывает наш экран приветствия, пока он не пройден | 3 |
 | `0005-proxy-screen-nebulalink-entry.patch` | `TMessagesProj/src/main/java/org/telegram/ui/ProxyListActivity.java` | поле рядов, начало `updateRows`, обработчик клика, `getItemViewType`, привязка ячейки | пункт входа в NebulaLink на экране прокси | 13 |
 
-Итого **72 вставленные строки**, ни одной изменённой.
+| `0006-login-typography.patch` | `TMessagesProj/src/main/java/org/telegram/ui/LoginActivity.java` | после сборки массива `views` со слайдами входа | отдаёт готовые вью нашему оформителю | 2 |
+
+Итого **74 вставленные строки**, ни одной изменённой.
+
+Про экраны входа отдельно. Полностью своя вёрстка там невозможна без риска
+сломать вход: `PhoneView` и `LoginActivitySmsView` — внутренние классы
+`LoginActivity`, работающие с его приватным состоянием, а завершение
+авторизации `onAuthSuccess` приватно и заканчивается `needFinishActivity` на
+самом фрагменте, то есть снаружи не вызывается. Поэтому хук отдаёт уже
+собранные вью оформителю, который правит их по типу элемента, не касаясь ни
+логики, ни приватных полей. Если апстрим перестроит разметку, оформитель
+найдёт меньше элементов, и экран останется штатным.
 
 Про выбор экрана прокси для точки входа: экран настроек `ProfileActivity` —
 17 тысяч строк и меняется каждый релиз, `ProxyListActivity` — тысяча и меняется
