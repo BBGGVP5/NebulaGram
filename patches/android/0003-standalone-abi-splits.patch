@@ -1,8 +1,8 @@
 diff --git a/TMessagesProj_AppStandalone/build.gradle b/TMessagesProj_AppStandalone/build.gradle
-index 96dbbbf0..84638bbb 100644
+index 96dbbbf0..339e54e5 100644
 --- a/TMessagesProj_AppStandalone/build.gradle
 +++ b/TMessagesProj_AppStandalone/build.gradle
-@@ -110,6 +110,37 @@ android {
+@@ -110,6 +110,43 @@ android {
          }
      }
  
@@ -22,6 +22,12 @@ index 96dbbbf0..84638bbb 100644
 +    // проекте Firebase, иначе токен для пушей не выдаётся.
 +    buildTypes.standalone.applicationIdSuffix = ""
 +
++    // Выключатель минификации для диагностики. R8 выбрасывает код, на который
++    // не видит ссылок, и отличить его работу от нашей ошибки можно только
++    // сборкой без него: -PnebulaMinify=false.
++    buildTypes.standalone.minifyEnabled =
++            Boolean.parseBoolean((project.findProperty("nebulaMinify") ?: "true").toString())
++
 +    // Набор архитектур задаётся снаружи: сборка одной вместо четырёх занимает
 +    // четверть времени, а для проверки изменения этого достаточно. Без
 +    // параметра собираются все, поэтому релиз ничего не теряет.
@@ -40,7 +46,7 @@ index 96dbbbf0..84638bbb 100644
      defaultConfig.versionCode = Integer.parseInt(APP_VERSION_CODE)
  
      applicationVariants.all { variant ->
-@@ -119,6 +150,20 @@ android {
+@@ -119,6 +156,20 @@ android {
          }
      }
  

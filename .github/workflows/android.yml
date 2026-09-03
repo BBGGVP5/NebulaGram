@@ -10,6 +10,11 @@ name: android
 
 on:
   workflow_dispatch:
+    inputs:
+      minify:
+        description: 'Сжимать код R8. Выключите, чтобы проверить, не он ли ломает поведение'
+        type: boolean
+        default: true
   push:
     paths:
       - 'core/**'
@@ -97,12 +102,13 @@ jobs:
           # основное время. На обычный пуш хватает одной; все четыре собираются
           # по кнопке Run workflow, то есть для релиза.
           NEBULA_ABIS: ${{ github.event_name == 'workflow_dispatch' && 'armeabi-v7a,arm64-v8a,x86,x86_64' || 'arm64-v8a' }}
+          NEBULA_MINIFY: ${{ github.event_name == 'workflow_dispatch' && inputs.minify || 'true' }}
         run: |
           echo "архитектуры: $NEBULA_ABIS"
           # Maven Central отвечает 429, когда раннеры GitHub стучатся к нему
           # пачкой. Один повтор дешевле, чем потерянные двадцать минут сборки.
           for attempt in 1 2; do
-            if ./gradlew --no-daemon -PnebulaAbis="$NEBULA_ABIS"                 :TMessagesProj_AppStandalone:assembleAfatStandalone; then
+            if ./gradlew --no-daemon -PnebulaAbis="$NEBULA_ABIS" -PnebulaMinify="$NEBULA_MINIFY"                 :TMessagesProj_AppStandalone:assembleAfatStandalone; then
               exit 0
             fi
             echo "::warning::попытка $attempt не удалась, повтор через 60 секунд"
