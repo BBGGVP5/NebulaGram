@@ -55,7 +55,7 @@ bash scripts/apply-overlay.sh android       # оверлей + патчи + aar
 TELEGRAM_APP_ID=1234567 \
 TELEGRAM_APP_HASH=ваш_хеш \
   bash scripts/inject-keys.sh android
-cd vendor/telegram-android && ./gradlew :TMessagesProj_AppStandalone:assembleAfatRelease
+cd vendor/telegram-android && ./gradlew :TMessagesProj_AppStandalone:assembleAfatStandalone
 ```
 
 `inject-keys.sh` заодно меняет `APP_PACKAGE` на `app.nebulagram.messenger`:
@@ -82,6 +82,14 @@ keytool -genkeypair -v -keystore nebulagram.keystore \
 не коммитом) и передайте `RELEASE_KEY_ALIAS`/`RELEASE_KEY_PASSWORD` через
 `-P` или `gradle.properties`. **Потеряете keystore — обновлять установленные
 сборки станет нечем**, придётся переустанавливать с потерей данных.
+
+## Почему именно `assembleAfatStandalone`
+
+У модуля `TMessagesProj_AppStandalone` объявлены типы сборки `debug` и
+`standalone`; типа `release` там нет, но Gradle создаёт его сам — **без
+подписи**. Собранный так APK Android отказывается ставить со словами «возникла
+проблема с файлом приложения». Подпись, минификация и нужный манифест есть
+только у `standalone`.
 
 ## Push-уведомления
 

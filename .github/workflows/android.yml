@@ -102,7 +102,7 @@ jobs:
           # Maven Central отвечает 429, когда раннеры GitHub стучатся к нему
           # пачкой. Один повтор дешевле, чем потерянные двадцать минут сборки.
           for attempt in 1 2; do
-            if ./gradlew --no-daemon -PnebulaAbis="$NEBULA_ABIS"                 :TMessagesProj_AppStandalone:assembleAfatRelease; then
+            if ./gradlew --no-daemon -PnebulaAbis="$NEBULA_ABIS"                 :TMessagesProj_AppStandalone:assembleAfatStandalone; then
               exit 0
             fi
             echo "::warning::попытка $attempt не удалась, повтор через 60 секунд"
@@ -112,6 +112,9 @@ jobs:
 
       - name: Collect the APKs
         run: |
+          # Тип сборки standalone, а не release: release у этого модуля не
+          # объявлен, Gradle создаёт его по умолчанию и без подписи, а
+          # неподписанный APK Android не ставит.
           version=$(grep '^APP_VERSION_NAME=' vendor/telegram-android/gradle.properties | cut -d= -f2)
           mkdir -p out
           # One file per architecture; see patches/android/0003.
@@ -120,7 +123,7 @@ jobs:
             abi=$(basename "$apk" .apk | sed 's/^NebulaGram-//')
             cp "$apk" "out/NebulaGram-${version}-${abi}-${GITHUB_SHA::7}.apk"
             found=$((found + 1))
-          done < <(find vendor/telegram-android -name 'NebulaGram-*.apk' -path '*release*')
+          done < <(find vendor/telegram-android -name 'NebulaGram-*.apk')
           if [ "$found" -eq 0 ]; then
             echo "::error::no APK was produced"
             exit 1

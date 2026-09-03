@@ -1,8 +1,8 @@
 diff --git a/TMessagesProj_AppStandalone/build.gradle b/TMessagesProj_AppStandalone/build.gradle
-index 96dbbbf0..ab4ded4f 100644
+index 96dbbbf0..84638bbb 100644
 --- a/TMessagesProj_AppStandalone/build.gradle
 +++ b/TMessagesProj_AppStandalone/build.gradle
-@@ -110,6 +110,31 @@ android {
+@@ -110,6 +110,37 @@ android {
          }
      }
  
@@ -15,6 +15,12 @@ index 96dbbbf0..ab4ded4f 100644
 +    // их объявляет. Очищаем коллекцию вместо правки строк апстрима — так патч
 +    // остаётся вставкой и не конфликтует при обновлении.
 +    productFlavors.afat.ndk.abiFilters.clear()
++
++    // Апстрим добавляет sideload-сборке суффикс ".web", чтобы отличать её от
++    // магазинной. Форку это не нужно, а лишний суффикс ломает и Firebase, и
++    // ожидания пользователя: пакет должен совпадать с тем, что заведено в
++    // проекте Firebase, иначе токен для пушей не выдаётся.
++    buildTypes.standalone.applicationIdSuffix = ""
 +
 +    // Набор архитектур задаётся снаружи: сборка одной вместо четырёх занимает
 +    // четверть времени, а для проверки изменения этого достаточно. Без
@@ -34,7 +40,7 @@ index 96dbbbf0..ab4ded4f 100644
      defaultConfig.versionCode = Integer.parseInt(APP_VERSION_CODE)
  
      applicationVariants.all { variant ->
-@@ -119,6 +144,20 @@ android {
+@@ -119,6 +150,20 @@ android {
          }
      }
  
