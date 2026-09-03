@@ -75,11 +75,16 @@ grep -q "public static String APP_HASH = \"${app_hash}\";" "$build_vars" ||
 grep -q "^APP_PACKAGE=${package}$" "$properties" ||
   { echo "gradle.properties no longer declares APP_PACKAGE" >&2; exit 1; }
 
-# The Google Services plugin refuses to build a package it cannot find in
-# google-services.json, and the file shipped upstream lists Telegram's own three
-# packages. Adding an entry for ours keeps the build going; push notifications
-# still belong to Telegram's Firebase project, so a fork that wants working push
-# has to drop in its own file here.
+# Push notifications: Telegram's servers deliver through Firebase, and they use
+# the FCM service-account credentials registered for your api_id on
+# my.telegram.org. That means a fork needs its own Firebase project, its own
+# google-services.json listing this package, and that service account uploaded
+# to my.telegram.org — see docs/BUILD-ANDROID.md.
+#
+# When such a file is present in the overlay it is already in place by now and
+# lists the right package, so nothing below changes it. Otherwise we patch
+# Telegram's file just enough for the Google Services plugin to accept the build:
+# the app will run, but push will not arrive.
 # Probe rather than just look up the name: on Windows "python3" resolves to a
 # Microsoft Store stub that exits instead of running anything.
 python_bin=""

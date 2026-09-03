@@ -83,6 +83,54 @@ keytool -genkeypair -v -keystore nebulagram.keystore \
 `-P` или `gradle.properties`. **Потеряете keystore — обновлять установленные
 сборки станет нечем**, придётся переустанавливать с потерей данных.
 
+## Push-уведомления
+
+Пуш в Telegram устроен так: приложение получает токен от **вашего** Firebase,
+отдаёт его серверам Telegram (`account.registerDevice`, `token_type = 2`), а
+Telegram шлёт уведомление через Firebase, используя credentials, которые вы
+привязали к своему `api_id`. Само сообщение приходит потом по MTProto — пуш
+только будит приложение.
+
+Отсюда следует, что своим Firebase-проектом дело не ограничивается: серверам
+Telegram нужно разрешение отправлять через него. Без этого регистрация токена
+заканчивается ошибкой `APP_PUSH_APIKEY_MISSING`, а пуши не приходят.
+
+Порядок:
+
+1. **Firebase Console** → создать проект → добавить приложение Android.
+   Имя пакета указать **точно** то же, что собирает CI:
+
+   ```
+   app.nebulagram.messenger
+   ```
+
+   Отличается хоть одним символом — токен не выдастся. Имя задаётся переменной
+   `APP_PACKAGE` в `scripts/inject-keys.sh`; если хотите другое, меняйте в обоих
+   местах сразу.
+
+2. Скачать **`google-services.json`** и положить в оверлей:
+
+   ```
+   platform/android/overlay/TMessagesProj/google-services.json
+   platform/android/overlay/TMessagesProj_AppStandalone/google-services.json
+   ```
+
+   Оверлей перекрывает файлы Telegram при сборке, патч не нужен. Секретом этот
+   файл не является — он и так лежит внутри любого APK.
+
+3. **Firebase Console** → *Project settings* → *Service accounts* →
+   *Generate new private key*. Получится второй файл, и вот он **секретный** — в
+   репозиторий не кладётся.
+
+4. **my.telegram.org** → ваше приложение → загрузить этот service-account JSON
+   в настройки push/FCM. Так серверы Telegram получают право отправлять через
+   ваш Firebase.
+
+Пока шаги 1–4 не сделаны, сборка всё равно проходит: скрипт подстановки ключей
+дописывает наш пакет в файл Telegram, чтобы плагин Google Services не остановил
+сборку. Приложение работает, но пуши не приходят — сообщения появляются, пока
+живо соединение.
+
 ## Google-сервисы
 
 `google-services.json` в репозитории уже лежит — это конфигурация Telegram для
