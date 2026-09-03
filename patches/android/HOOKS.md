@@ -11,7 +11,18 @@
 | `0002-application-loader-start-core.patch` | `TMessagesProj/src/main/java/org/telegram/messenger/ApplicationLoader.java` | сразу после `super.onCreate();` в `onCreate()` | запускает ядро при старте приложения | 2 |
 | `0003-standalone-abi-splits.patch` | `TMessagesProj_AppStandalone/build.gradle` | перед строкой `defaultConfig.versionCode = ...` и после блока `applicationVariants.all` апстрима | по одному APK на архитектуру; список архитектур задаётся параметром `-PnebulaAbis` | 40 |
 
-Итого **43 вставленные строки**, ни одной изменённой.
+| `0004-launch-show-welcome.patch` | `TMessagesProj/src/main/java/org/telegram/ui/LaunchActivity.java` | перед `return new IntroActivity();` | показывает наш экран приветствия, пока он не пройден | 3 |
+| `0005-proxy-screen-nebulalink-entry.patch` | `TMessagesProj/src/main/java/org/telegram/ui/ProxyListActivity.java` | поле рядов, начало `updateRows`, обработчик клика, `getItemViewType`, привязка ячейки | пункт входа в NebulaLink на экране прокси | 13 |
+
+Итого **72 вставленные строки**, ни одной изменённой.
+
+Про выбор экрана прокси для точки входа: экран настроек `ProfileActivity` —
+17 тысяч строк и меняется каждый релиз, `ProxyListActivity` — тысяча и меняется
+редко. Тематически это то же самое: NebulaLink и есть поставщик прокси.
+
+Про приветствие: вставка проверяет `NebulaIntroFragment.shouldShow()`, поэтому
+после первого прохода управление возвращается штатному интро Telegram, и наш
+код перестаёт участвовать в этом пути вообще.
 
 Про третий патч: ядро Xray добавляет ~11 МБ нативного кода на каждую
 архитектуру, и в общем APK пользователь качал бы четыре копии ради одной.

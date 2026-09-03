@@ -1,0 +1,14 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/LaunchActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/LaunchActivity.java
+index 470be57c..25b7cb13 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/LaunchActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/LaunchActivity.java
+@@ -1086,6 +1086,9 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
+         if (LoginActivity.loadCurrentState(false, currentAccount).getInt("currentViewNum", 0) != 0) {
+             return new LoginActivity();
+         }
++        if (app.nebulagram.ui.NebulaIntroFragment.shouldShow()) { // NebulaGram
++            return new app.nebulagram.ui.NebulaIntroFragment();
++        }
+         return new IntroActivity();
+     }
+ 

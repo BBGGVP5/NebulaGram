@@ -14,7 +14,10 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import android.content.SharedPreferences;
+
 import org.telegram.messenger.AndroidUtilities;
+import org.telegram.messenger.ApplicationLoader;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.R;
 import org.telegram.ui.ActionBar.BaseFragment;
@@ -33,8 +36,24 @@ public class NebulaIntroFragment extends BaseFragment {
     private static final int STEPS = 4;
     private static final int STEP_INDEX = 0;
 
+    private static final String PREFS = "nebulagram";
+    private static final String KEY_SEEN = "intro_seen";
+
     private NebulaMark mark;
     private Runnable onContinue;
+
+    /**
+     * Whether the welcome screen still has to be shown. Once it is passed, the
+     * app falls back to Telegram's own intro, so the hook in LaunchActivity
+     * stays a single line and the upstream flow is left alone.
+     */
+    public static boolean shouldShow() {
+        return !prefs().getBoolean(KEY_SEEN, false);
+    }
+
+    private static SharedPreferences prefs() {
+        return ApplicationLoader.applicationContext.getSharedPreferences(PREFS, 0);
+    }
 
     /** What to do when the user taps Next; defaults to closing the screen. */
     public NebulaIntroFragment onContinue(Runnable action) {
@@ -129,10 +148,13 @@ public class NebulaIntroFragment extends BaseFragment {
         NebulaButton next = new NebulaButton(context, NebulaButton.STYLE_FILLED);
         next.setText(LocaleController.getString(R.string.NebulaNext));
         next.setOnClickListener(v -> {
+            prefs().edit().putBoolean(KEY_SEEN, true).apply();
             if (onContinue != null) {
                 onContinue.run();
             } else {
-                finishFragment();
+                // Hand over to Telegram's own first-run flow, replacing this
+                // screen so Back does not return to it.
+                presentFragment(new org.telegram.ui.IntroActivity(), true);
             }
         });
         next.setLayoutParams(new LinearLayout.LayoutParams(

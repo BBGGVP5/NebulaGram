@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Имя приложения. Лежит в модуле приложения, потому что его ресурсы перекрывают
+  библиотечные; файл создаётся для каждой языковой папки, где апстрим объявил
+  AppName. Сгенерировано scripts/gen-app-name.py, руками не править.
+-->
+<resources>
+    <string name="AppName">NebulaGram</string>
+    <string name="NebulaAppName">NebulaGram</string>
+</resources>
