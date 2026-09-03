@@ -122,6 +122,15 @@ public class NebulaRow extends FrameLayout {
         return this;
     }
 
+    public NebulaRow connected(boolean connected) {
+        int accent = connected ? theme.success() : theme.primary();
+        title.setTextColor(connected ? accent : theme.onSurface());
+        subtitle.setTextColor(connected ? accent : theme.onSurfaceVariant());
+        icon.setColorFilter(accent, PorterDuff.Mode.SRC_IN);
+        ((GradientDrawable) icon.getBackground()).setColor(NebulaTheme.stateLayer(accent, 0.14f));
+        return this;
+    }
+
     public NebulaRow destructive() {
         title.setTextColor(0xFFFF6E6E);
         icon.setColorFilter(0xFFFF6E6E, PorterDuff.Mode.SRC_IN);

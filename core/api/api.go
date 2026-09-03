@@ -346,6 +346,7 @@ func (c *Core) handleServersList(payload []byte) (any, error) {
 		"pages":    pages,
 		"per_page": perPage,
 		"selected": c.st().Settings().SelectedServerID,
+		"sort":     c.st().Settings().ServerSort,
 	}, nil
 }
 

@@ -1,0 +1,25 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
+@@ -7118,11 +7118,13 @@
+                         if (intent != null) {
+                             try {
+                                 getParentActivity().startActivity(intent);
++                                MessagesController.getGlobalNotificationsSettings().edit().putBoolean("askedAboutMiuiLockscreen", true).commit();
+                             } catch (Exception x) {
+                                 try {
+                                     intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+                                     intent.setData(Uri.parse("package:" + ApplicationLoader.applicationContext.getPackageName()));
+                                     getParentActivity().startActivity(intent);
++                                    MessagesController.getGlobalNotificationsSettings().edit().putBoolean("askedAboutMiuiLockscreen", true).commit();
+                                 } catch (Exception xx) {
+                                     FileLog.e(xx);
+                                 }
+@@ -7146,6 +7148,7 @@
+                         if (intent != null) {
+                             try {
+                                 getParentActivity().startActivity(intent);
++                                MessagesController.getGlobalNotificationsSettings().edit().putBoolean("askedAboutFSILockscreen", true).commit();
+                             } catch (Exception x) {
+                                 FileLog.e(x);
+                             }

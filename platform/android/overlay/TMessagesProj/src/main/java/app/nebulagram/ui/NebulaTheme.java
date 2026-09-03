@@ -84,6 +84,11 @@ public final class NebulaTheme {
         return dark;
     }
 
+    /** Connection success stays green regardless of the wallpaper accent. */
+    public int success() {
+        return dark ? 0xFF81D99A : 0xFF236C3D;
+    }
+
     /** Whether the palette came from the system rather than the fallback. */
     public boolean isDynamic() {
         return Build.VERSION.SDK_INT >= Build.VERSION_CODES.S;

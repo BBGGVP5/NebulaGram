@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Notification silhouette from design/icon/mark.svg. The anydpi qualifier
+     takes precedence over Telegram's density-specific notification.webp assets.
+     Use white paths on transparency so System UI can apply its own tint. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <group
+        android:scaleX="0.1694915"
+        android:scaleY="0.1694915"
+        android:translateX="-4.18644"
+        android:translateY="-4.77966">
+        <path
+            android:pathData="M148,52 L96,138 L88,104 L54,96 Z"
+            android:fillColor="#FFFFFFFF"
+            android:strokeColor="#FFFFFFFF"
+            android:strokeWidth="13"
+            android:strokeLineJoin="round"
+            android:strokeLineCap="round" />
+        <path
+            android:pathData="M44,148 C58,142 70,139 82,139"
+            android:fillColor="#00000000"
+            android:strokeColor="#FFFFFFFF"
+            android:strokeWidth="9"
+            android:strokeLineCap="round" />
+        <path
+            android:pathData="M40,124 C49,120 57,118 65,118"
+            android:fillColor="#00000000"
+            android:strokeColor="#FFFFFFFF"
+            android:strokeWidth="7"
+            android:strokeLineCap="round" />
+    </group>
+</vector>

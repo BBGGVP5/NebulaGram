@@ -1,0 +1,70 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ProxyListActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ProxyListActivity.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/ProxyListActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/ProxyListActivity.java
+@@ -88,6 +88,7 @@
+     private boolean useProxyForCalls;
+
+     private int rowCount;
++    private int nebulaManagedInfoRow = -1; // NebulaGram
+     @Keep
+     private int useProxyRow;
+     private int useProxyShadowRow;
+@@ -627,6 +628,24 @@
+
+     private void updateRows(boolean notify) {
+         rowCount = 0;
++        boolean wasNebulaManaged = nebulaManagedInfoRow >= 0;
++        nebulaManagedInfoRow = -1;
++        if (app.nebulagram.nebulalink.NebulaLink.isRoutingThroughTunnel()) {
++            useProxyRow = useProxyShadowRow = rotationRow = rotationTimeoutRow = rotationTimeoutInfoRow = -1;
++            connectionsHeaderRow = proxyStartRow = proxyEndRow = proxyAddRow = proxyShadowRow = -1;
++            callsRow = callsDetailRow = deleteAllRow = -1;
++            nebulaManagedInfoRow = rowCount++;
++            proxyList.clear();
++            if (notify && listAdapter != null) {
++                listAdapter.clearSelected();
++                listAdapter.notifyDataSetChanged();
++            }
++            return;
++        }
++        if (wasNebulaManaged) {
++            useProxySettings = MessagesController.getGlobalMainSettings().getBoolean("proxy_enabled", false);
++            useProxyForCalls = MessagesController.getGlobalMainSettings().getBoolean("proxy_enabled_calls", false);
++        }
+         useProxyRow = rowCount++;
+         if (useProxySettings && SharedConfig.currentProxy != null && SharedConfig.proxyList.size() > 1 && IS_PROXY_ROTATION_AVAILABLE) {
+             rotationRow = rowCount++;
+@@ -651,7 +670,11 @@
+
+         if (notify) {
+             proxyList.clear();
+-            proxyList.addAll(SharedConfig.proxyList);
++            for (SharedConfig.ProxyInfo proxy : SharedConfig.proxyList) {
++                if (!app.nebulagram.nebulalink.NebulaLink.isTunnelProxy(proxy)) {
++                    proxyList.add(proxy);
++                }
++            }
+
+             boolean checking = false;
+             if (!wasCheckedAllList) {
+@@ -917,7 +940,9 @@
+                 }
+                 case VIEW_TYPE_INFO: {
+                     TextInfoPrivacyCell cell = (TextInfoPrivacyCell) holder.itemView;
+-                    if (position == callsDetailRow) {
++                    if (position == nebulaManagedInfoRow) {
++                        cell.setText(getString(R.string.NebulaProxyManagedHint));
++                    } else if (position == callsDetailRow) {
+                         cell.setText(getString(R.string.UseProxyForCallsInfo));
+                     } else if (position == rotationTimeoutInfoRow) {
+                         cell.setText(getString(R.string.ProxyRotationTimeoutInfo));
+@@ -1067,6 +1092,9 @@
+
+         @Override
+         public int getItemViewType(int position) {
++            if (position == nebulaManagedInfoRow) {
++                return VIEW_TYPE_INFO;
++            }
+             if (position == useProxyShadowRow || position == proxyShadowRow) {
+                 return VIEW_TYPE_SHADOW;
+             } else if (position == proxyAddRow || position == deleteAllRow) {

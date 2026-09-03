@@ -16,9 +16,10 @@ import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.R;
 import org.telegram.ui.ActionBar.ActionBar;
 import org.telegram.ui.ActionBar.BaseFragment;
+import org.telegram.ui.ActionBar.AlertDialog;
 
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Locale;
 import java.util.List;
 
 import app.nebulagram.nebulalink.NebulaLink;
@@ -30,8 +31,8 @@ import app.nebulagram.nebulalink.NebulaLink;
  * приходящий из ядра. Поэтому экран свой: он спрашивает у ядра servers.list,
  * рисует строки и отправляет обратно server.select.
  *
- * <p>Сортировка по задержке, а не по имени: когда серверов много, единственный
- * вопрос к списку — какой из них быстрый.
+ * <p>Порядок подписки сохраняется по умолчанию. Сортировку по задержке
+ * пользователь выбирает отдельно; ядро применяет её до разбивки на страницы.
  */
 public class NebulaServersFragment extends BaseFragment {
 
@@ -41,6 +42,32 @@ public class NebulaServersFragment extends BaseFragment {
     private LinearLayout content;
     private String selectedId = "";
     private boolean probing;
+    private JSONObject lastData;
+    private final NebulaLink.StatusListener statusListener = status -> {
+        if (lastData != null) {
+            render(lastData);
+        }
+    };
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        NebulaLink.addStatusListener(statusListener);
+        load();
+    }
+
+    @Override
+    public void onPause() {
+        NebulaLink.removeStatusListener(statusListener);
+        super.onPause();
+    }
+
+    @Override
+    public void onFragmentDestroy() {
+        NebulaLink.removeStatusListener(statusListener);
+        content = null;
+        super.onFragmentDestroy();
+    }
 
     @Override
     public View createView(Context context) {
@@ -102,10 +129,11 @@ public class NebulaServersFragment extends BaseFragment {
         if (content == null) {
             return;
         }
+        lastData = data;
         Context context = content.getContext();
         content.removeAllViews();
 
-        List<JSONObject> servers = sorted(data.optJSONArray("servers"));
+        List<JSONObject> servers = serverList(data.optJSONArray("servers"));
 
         NebulaCard actions = new NebulaCard(context);
         actions.add(new NebulaRow(context)
@@ -114,6 +142,13 @@ public class NebulaServersFragment extends BaseFragment {
                         ? R.string.NebulaProbing : R.string.NebulaProbe))
                 .subtitle(LocaleController.getString(R.string.NebulaProbeSub), false)
                 .withClick(v -> probe()));
+        boolean byLatency = "latency".equals(data.optString("sort", "default"));
+        actions.add(new NebulaRow(context).icon(R.drawable.msg_customize)
+                .title(LocaleController.getString(R.string.NebulaServerSort))
+                .subtitle(LocaleController.getString(byLatency
+                        ? R.string.NebulaSortLatency : R.string.NebulaSortDefault), true)
+                .trailing(NebulaRow.TRAIL_CHEVRON)
+                .withClick(v -> chooseSort()));
         content.addView(actions, cardParams());
 
         if (servers.isEmpty()) {
@@ -133,11 +168,8 @@ public class NebulaServersFragment extends BaseFragment {
         content.addView(list, cardParams());
     }
 
-    /**
-     * Быстрые сверху, непроверенные внизу. Ноль в latency_ms означает "не
-     * измеряли", и без этого разделения такой сервер выглядел бы мгновенным.
-     */
-    private List<JSONObject> sorted(JSONArray raw) {
+    /** The core has already ordered the complete list before pagination. */
+    private List<JSONObject> serverList(JSONArray raw) {
         List<JSONObject> servers = new ArrayList<>();
         if (raw == null) {
             return servers;
@@ -148,36 +180,61 @@ public class NebulaServersFragment extends BaseFragment {
                 servers.add(server);
             }
         }
-        Collections.sort(servers, (a, b) -> Integer.compare(latencyOrLast(a), latencyOrLast(b)));
         return servers;
     }
 
-    private int latencyOrLast(JSONObject server) {
-        int latency = server.optInt("latency_ms");
-        return latency > 0 ? latency : Integer.MAX_VALUE;
+    private void chooseSort() {
+        if (getParentActivity() == null) {
+            return;
+        }
+        showDialog(new AlertDialog.Builder(getParentActivity())
+                .setTitle(LocaleController.getString(R.string.NebulaServerSort))
+                .setItems(new CharSequence[]{
+                        LocaleController.getString(R.string.NebulaSortDefault),
+                        LocaleController.getString(R.string.NebulaSortLatency)
+                }, (dialog, which) -> {
+                    JSONObject settings = new JSONObject();
+                    try {
+                        settings.put("server_sort", which == 1 ? "latency" : "default");
+                    } catch (JSONException e) {
+                        return;
+                    }
+                    NebulaLink.call("settings.set", settings, result -> {
+                        if (result.ok) {
+                            load();
+                        } else {
+                            report(result.error);
+                        }
+                    });
+                }).create());
     }
 
     private View buildRow(Context context, JSONObject server) {
         String id = server.optString("id");
-        String flag = server.optString("flag");
-        String name = server.optString("name");
-        String label = flag.isEmpty() ? name : flag + "  " + name;
+        String label = NebulaLinkRow.serverLabel(server);
 
         NebulaRow row = new NebulaRow(context)
                 .icon(R.drawable.msg_language)
                 .title(label.isEmpty() ? server.optString("address") : label);
 
         boolean selected = !id.isEmpty() && id.equals(selectedId);
-        row.subtitle(describe(server, selected), selected);
+        JSONObject status = NebulaLink.status();
+        JSONObject active = status == null ? null : status.optJSONObject("server");
+        boolean connected = active != null && "connected".equals(status.optString("state"))
+                && id.equals(active.optString("id")) && NebulaLink.isRoutingThroughTunnel();
+        row.subtitle(describe(server, selected, connected), selected);
+        if (connected) {
+            row.connected(true);
+        }
         row.withClick(v -> select(id));
         return row;
     }
 
     /** "Выбран · 120 мс · VLESS" — состояние, скорость, протокол, в этом порядке. */
-    private String describe(JSONObject server, boolean selected) {
+    private String describe(JSONObject server, boolean selected, boolean connected) {
         StringBuilder line = new StringBuilder();
-        if (selected) {
-            line.append(LocaleController.getString(R.string.NebulaSelected));
+        if (connected || selected) {
+            line.append(LocaleController.getString(connected ? R.string.NebulaConnected : R.string.NebulaSelected));
         }
         int latency = server.optInt("latency_ms");
         if (latency > 0) {
@@ -191,7 +248,7 @@ public class NebulaServersFragment extends BaseFragment {
             if (line.length() > 0) {
                 line.append(" · ");
             }
-            line.append(protocol.toUpperCase());
+            line.append(protocol.toUpperCase(Locale.ROOT));
         }
         return line.toString();
     }

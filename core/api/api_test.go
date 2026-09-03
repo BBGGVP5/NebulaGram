@@ -126,6 +126,36 @@ func TestAddLinkRejectsGarbage(t *testing.T) {
 	}
 }
 
+func TestServerSortingPrecedesPagination(t *testing.T) {
+	c := newCore(t)
+	payload, _ := json.Marshal(linkRequest{Link: "vless://uuid@z.example.com:443#Z-first\nvless://uuid@a.example.com:443#A-second"})
+	call(t, c, "server.addLink", string(payload))
+	servers := c.st().Servers()
+	if err := c.st().UpdateServerLatency(map[string]int{servers[0].ID: 100, servers[1].ID: 10}); err != nil {
+		t.Fatal(err)
+	}
+	for _, test := range []struct {
+		sort string
+		id   string
+	}{
+		{"default", servers[0].ID},
+		{"latency", servers[1].ID},
+		{"default", servers[0].ID},
+	} {
+		call(t, c, "settings.set", `{"server_sort":"`+test.sort+`"}`)
+		var page struct {
+			Servers []model.Server `json:"servers"`
+			Sort    string         `json:"sort"`
+		}
+		if err := json.Unmarshal(call(t, c, "servers.list", `{"page":1,"per_page":1}`), &page); err != nil {
+			t.Fatal(err)
+		}
+		if page.Sort != test.sort || len(page.Servers) != 1 || page.Servers[0].ID != test.id {
+			t.Fatalf("sort %s returned the wrong first page: %+v", test.sort, page)
+		}
+	}
+}
+
 func TestTunnelStartWithoutCoreFails(t *testing.T) {
 	c := newCore(t)
 	payload, _ := json.Marshal(linkRequest{Link: "vless://uuid@de.example.com:443#DE"})

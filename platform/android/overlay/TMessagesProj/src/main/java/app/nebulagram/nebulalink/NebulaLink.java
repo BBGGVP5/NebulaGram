@@ -19,6 +19,7 @@ import org.telegram.messenger.SharedConfig;
 import org.telegram.tgnet.ConnectionsManager;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -44,6 +45,37 @@ public final class NebulaLink {
 
     private static volatile boolean initialised;
     private static SharedConfig.ProxyInfo installedProxy;
+    private static JSONObject tunnelStatus;
+    private static final ArrayList<StatusListener> statusListeners = new ArrayList<>();
+
+    /** Status and listeners are accessed on the main thread. */
+    public interface StatusListener {
+        void onStatus(JSONObject status);
+    }
+
+    public static JSONObject status() {
+        return tunnelStatus;
+    }
+
+    public static void addStatusListener(StatusListener listener) {
+        if (!statusListeners.contains(listener)) {
+            statusListeners.add(listener);
+        }
+        listener.onStatus(tunnelStatus);
+    }
+
+    public static void removeStatusListener(StatusListener listener) {
+        statusListeners.remove(listener);
+    }
+
+    public static boolean isTunnelProxy(SharedConfig.ProxyInfo proxy) {
+        return proxy != null && proxy == installedProxy;
+    }
+
+    public static boolean isRoutingThroughTunnel() {
+        return isTunnelProxy(SharedConfig.currentProxy)
+                && MessagesController.getGlobalMainSettings().getBoolean("proxy_enabled", false);
+    }
 
     private NebulaLink() {
     }
@@ -163,11 +195,16 @@ public final class NebulaLink {
             final String state = status.optString("state");
             final int socksPort = status.optInt("socks_port");
             AndroidUtilities.runOnUIThread(() -> {
+                tunnelStatus = status;
                 if ("connected".equals(state) && socksPort > 0) {
                     useTunnelAsProxy(socksPort);
                 } else if ("disconnected".equals(state) || "failed".equals(state)) {
                     stopUsingTunnel();
                 }
+                for (StatusListener listener : new ArrayList<>(statusListeners)) {
+                    listener.onStatus(status);
+                }
+                NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.proxySettingsChanged);
             });
         } catch (JSONException e) {
             FileLog.e(e);
@@ -179,8 +216,11 @@ public final class NebulaLink {
      * built-in proxy screen takes, so the app sees an ordinary SOCKS5 proxy.
      */
     public static void useTunnelAsProxy(int socksPort) {
-        SharedConfig.ProxyInfo proxy = new SharedConfig.ProxyInfo(PROXY_ADDRESS, socksPort, "", "", "");
-        SharedConfig.addProxy(proxy);
+        SharedConfig.ProxyInfo proxy = SharedConfig.addProxy(
+                new SharedConfig.ProxyInfo(PROXY_ADDRESS, socksPort, "", "", ""));
+        if (installedProxy != null && installedProxy != proxy) {
+            stopUsingTunnel();
+        }
         SharedConfig.currentProxy = proxy;
         installedProxy = proxy;
 
@@ -206,17 +246,11 @@ public final class NebulaLink {
         if (installedProxy == null) {
             return;
         }
-        if (SharedConfig.currentProxy == installedProxy) {
-            SharedConfig.currentProxy = null;
-            SharedPreferences.Editor editor = MessagesController.getGlobalMainSettings().edit();
-            editor.putBoolean("proxy_enabled", false);
-            editor.putBoolean("proxy_enabled_calls", false);
-            editor.commit();
-            ConnectionsManager.setProxySettings(false, "", 0, "", "", "");
-            NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.proxySettingsChanged);
-        }
+        // deleteProxy also clears the saved endpoint when this is the current
+        // proxy. Clearing currentProxy first would resurrect it on the next launch.
         SharedConfig.deleteProxy(installedProxy);
         installedProxy = null;
+        NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.proxySettingsChanged);
     }
 
     /**

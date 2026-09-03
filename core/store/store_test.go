@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/nebulagram/nebulagram/core/model"
+	"github.com/nebulagram/nebulagram/core/settings"
 )
 
 func serverWithTemplate(name, document string) model.Server {
@@ -17,6 +18,65 @@ func serverWithTemplate(name, document string) model.Server {
 	}
 	s.ID = s.StableID()
 	return s
+}
+
+func TestServerOrderAfterProbingAndReload(t *testing.T) {
+	dir := t.TempDir()
+	st, err := Open(dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	servers := []model.Server{
+		serverWithTemplate("z-first", ""), serverWithTemplate("a-second", ""),
+		serverWithTemplate("z-tied", ""), serverWithTemplate("a-tied", ""),
+		serverWithTemplate("unmeasured", ""), serverWithTemplate("failed", ""),
+	}
+	if _, err := st.AddServers(servers); err != nil {
+		t.Fatal(err)
+	}
+	assertOrder := func(want ...int) {
+		t.Helper()
+		got := st.Filtered()
+		if len(got) != len(want) {
+			t.Fatalf("got %d servers, want %d", len(got), len(want))
+		}
+		for i, index := range want {
+			if got[i].ID != servers[index].ID {
+				t.Errorf("position %d = %s, want %s", i, got[i].Name, servers[index].Name)
+			}
+		}
+	}
+	assertOrder(0, 1, 2, 3, 4, 5)
+	if err := st.UpdateServerLatency(map[string]int{
+		servers[0].ID: 200, servers[1].ID: 10, servers[2].ID: 50,
+		servers[3].ID: 50, servers[5].ID: -1,
+	}); err != nil {
+		t.Fatal(err)
+	}
+	assertOrder(0, 1, 2, 3, 4, 5)
+	if _, err := st.UpdateSettings(func(s *settings.Settings) { s.ServerSort = "latency" }); err != nil {
+		t.Fatal(err)
+	}
+	assertOrder(1, 2, 3, 0, 4, 5)
+	st, err = Open(dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	assertOrder(1, 2, 3, 0, 4, 5)
+	if _, err := st.UpdateSettings(func(s *settings.Settings) {
+		s.ServerSort = "default"
+		s.SearchQuery = "tied"
+	}); err != nil {
+		t.Fatal(err)
+	}
+	assertOrder(2, 3)
+	if _, err := st.UpdateSettings(func(s *settings.Settings) {
+		s.ServerSort = "unknown-old-value"
+		s.SearchQuery = ""
+	}); err != nil {
+		t.Fatal(err)
+	}
+	assertOrder(0, 1, 2, 3, 4, 5)
 }
 
 func TestTemplatesSurviveAReload(t *testing.T) {

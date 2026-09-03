@@ -5,28 +5,44 @@
 
 Апстрим: `DrKLO/Telegram`, зафиксирован на 12.10.1 (7038), коммит `62b56a07`.
 
-| Патч | Файл апстрима | Якорь | Назначение | Строк |
+| Патч | Файл апстрима | Якорь | Назначение | Добавлено / удалено |
 |---|---|---|---|---|
-| `0001-gradle-link-nebulalink-core.patch` | `TMessagesProj/build.gradle` | первая строка блока `dependencies {` | подключает `libs/nebulalink.aar` — Go-ядро | 1 |
-| `0002-application-loader-start-core.patch` | `TMessagesProj/src/main/java/org/telegram/messenger/ApplicationLoader.java` | сразу после `super.onCreate();` в `onCreate()` | запускает ядро при старте приложения | 2 |
-| `0003-standalone-abi-splits.patch` | `TMessagesProj_AppStandalone/build.gradle` | перед строкой `defaultConfig.versionCode = ...` и после блока `applicationVariants.all` апстрима | по одному APK на архитектуру; список архитектур задаётся параметром `-PnebulaAbis` | 40 |
+| `0001-gradle-link-nebulalink-core.patch` | `TMessagesProj/build.gradle` | dependencies | Подключает Go-ядро | +9 / −0 |
+| `0002-application-loader-start-core.patch` | `ApplicationLoader.java` | onCreate | Инициализирует NebulaLink | +2 / −0 |
+| `0003-standalone-abi-splits.patch` | `TMessagesProj_AppStandalone/build.gradle` | defaultConfig.versionCode; applicationVariants.all | Разделяет APK по архитектурам | +51 / −0 |
+| `0004-launch-show-welcome.patch` | `LaunchActivity.java` | перед return new IntroActivity() | Показывает приветствие NebulaGram | +3 / −0 |
+| `0005-hide-managed-proxy.patch` | `ProxyListActivity.java` | updateRows; ListAdapter | Скрывает служебный прокси и его настройки при активном туннеле | +30 / −2 |
+| `0006-login-typography.patch` | `LoginActivity.java` | после сборки views | Оформляет экраны входа | +2 / −0 |
+| `0007-settings-nebulagram-entry.patch` | `ProfileActivity.java` | строки рядом с languageRow | Вход в NebulaGram из прежних настроек | +11 / −2 |
+| `0008-dialogs-bottom-bar.patch` | `MainTabsActivity.java; DialogsActivity.java` | onResume; checkUi_callTabVisible; checkUi_tabsPosition; checkUi_fadeView; checkUi_menuItems | Настраивает штатные вкладки, вход в боковую панель и отступы | +20 / −6 |
+| `0009-call-permission-prompt.patch` | `DialogsActivity.java` | после успешного startActivity в запросах разрешения | Запоминает переход в настройки полноэкранных звонков Android и экрана блокировки MIUI | +3 / −0 |
+| `0010-main-settings-nebulagram-entry.patch` | `SettingsActivity.java` | fillItems; onClick | Первый пункт «Настройки NebulaGram» в новой вкладке настроек | +4 / −0 |
 
-| `0004-launch-show-welcome.patch` | `TMessagesProj/src/main/java/org/telegram/ui/LaunchActivity.java` | перед `return new IntroActivity();` | показывает наш экран приветствия, пока он не пройден | 3 |
-| `0005-proxy-screen-nebulalink-entry.patch` | `TMessagesProj/src/main/java/org/telegram/ui/ProxyListActivity.java` | поле рядов, начало `updateRows`, обработчик клика, `getItemViewType`, привязка ячейки | пункт входа в NebulaLink на экране прокси | 13 |
-
-| `0006-login-typography.patch` | `TMessagesProj/src/main/java/org/telegram/ui/LoginActivity.java` | после сборки массива `views` со слайдами входа | отдаёт готовые вью нашему оформителю | 2 |
-
-| `0007-settings-nebulagram-entry.patch` | `TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java` | семь мест рядом со строкой языка: поле, сброс, место в списке, нажатие, отрисовка, две проверки типа, карта анимации | пункт «NebulaGram» в настройках Telegram | 11 |
-
-Итого **85 вставленных строк**, ни одной изменённой.
+Java-файлы находятся в `TMessagesProj/src/main/java/org/telegram/ui/`,
+кроме `ApplicationLoader.java` — он находится в `org/telegram/messenger/`.
 
 **Самый уязвимый патч — седьмой.** `ProfileActivity` это 17 тысяч строк, которые
 меняются каждый релиз, и строка списка там прописывается в семи местах сразу.
 Ночная проверка поймает поломку в день выхода новой версии; чинится добавлением
 тех же семи вставок по образцу соседней строки `languageRow`.
 
-Всё остальное живёт в нашем разделе настроек, а не в файлах Telegram: новая
-опция NebulaGram не требует новых патчей вообще.
+Логика новых экранов остаётся в оверлее. Патч навигации управляет штатными
+вкладками Telegram: в DialogsActivity больше не вставляется вторая панель.
+Боковая панель включается в «Настройки → Настройки NebulaGram → Навигация» и открывается
+кнопкой меню на основном экране чатов. Скрытие нижней панели включает боковую,
+чтобы сохранить доступ к настройкам. Отключение боковой панели возвращает все
+нижние вкладки. Изменения применяются при возврате в чаты.
+
+Строка NebulaLink находится в «Настройки → Настройки NebulaGram» и подписана
+фактически подключённым сервером из `tunnel.status`, с зелёным акцентом подключения.
+В настройках прокси перехода в NebulaLink нет. При активном туннеле вместо
+служебного адреса и переключателей показано пояснение, где управлять подключением.
+При отключении служебный SOCKS-прокси удаляется перед обновлением списка.
+Выбранный для следующего подключения сервер и действующий сервер различаются.
+
+Патч разрешений сохраняет существующие флаги только после успешного открытия
+системных настроек. Проверка разрешения Android сохраняется. См.
+[Android 14: full-screen intents](https://developer.android.com/about/versions/14/behavior-changes-14#secure-fsi).
 
 Про экраны входа отдельно. Полностью своя вёрстка там невозможна без риска
 сломать вход: `PhoneView` и `LoginActivitySmsView` — внутренние классы
@@ -37,9 +53,9 @@
 логики, ни приватных полей. Если апстрим перестроит разметку, оформитель
 найдёт меньше элементов, и экран останется штатным.
 
-Про выбор экрана прокси для точки входа: экран настроек `ProfileActivity` —
-17 тысяч строк и меняется каждый релиз, `ProxyListActivity` — тысяча и меняется
-редко. Тематически это то же самое: NebulaLink и есть поставщик прокси.
+Оформление строки NebulaLink и её подписка на состояние остаются в оверлее
+`NebulaLinkRow`; добавление пунктов внутри «Настроек NebulaGram» не требует
+дополнительных изменений в Telegram.
 
 Про приветствие: вставка проверяет `NebulaIntroFragment.shouldShow()`, поэтому
 после первого прохода управление возвращается штатному интро Telegram, и наш
@@ -64,3 +80,12 @@
 Класс `app.nebulagram.nebulalink.NebulaLink` вызывается по полному имени, чтобы
 не трогать блок импортов апстрима: это экономит ещё одну строку патча и одно
 место возможного конфликта.
+
+## Значок уведомлений
+
+`platform/android/overlay/TMessagesProj/src/main/res/drawable-anydpi-v21/notification.xml`
+содержит белый силуэт `design/icon/mark.svg` на прозрачном фоне. Он заменяет
+`R.drawable.notification`, используемый для сообщений и их групповых уведомлений.
+Плотность `anydpi` имеет приоритет над растровыми `notification.webp` апстрима;
+патчи к `NotificationsController` для этого не нужны. См.
+[Android: альтернативные ресурсы](https://developer.android.com/guide/topics/resources/providing-resources).

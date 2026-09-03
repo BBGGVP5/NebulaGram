@@ -22,8 +22,9 @@
     <string name="NebulaNoSubscriptions">Подписок пока нет</string>
     <string name="NebulaRemove">Удалить</string>
     <string name="NebulaServersShort">серверов</string>
-    <string name="NebulaSettings">NebulaGram</string>
-    <string name="NebulaSettingsSub">Туннель, оформление и всё, что добавляет форк</string>
+    <string name="NebulaSettings">Настройки NebulaGram</string>
+    <string name="NebulaSettingsSub">NebulaLink, оформление и навигация</string>
+    <string name="NebulaProxyManagedHint">Подключение управляется в разделе «Настройки NebulaGram». Чтобы настроить обычный прокси, сначала отключите там туннель.</string>
     <string name="NebulaSectionTunnel">ТУННЕЛЬ</string>
     <string name="NebulaSectionLook">ОФОРМЛЕНИЕ</string>
     <string name="NebulaSubscriptions">Подписки</string>
@@ -42,8 +43,13 @@
     <string name="NebulaTabContacts">Контакты</string>
     <string name="NebulaTabSettings">Настройки</string>
     <string name="NebulaTabProfile">Профиль</string>
-    <string name="NebulaSectionPanel">Нижняя панель</string>
-    <string name="NebulaBottomBarTitle">Показывать панель</string>
-    <string name="NebulaBottomBarSub">Вкладки внизу экрана вместо боковой шторки</string>
-    <string name="NebulaBottomBarHint">Изменения применятся при следующем открытии списка чатов</string>
+    <string name="NebulaSectionPanel">Навигация</string>
+    <string name="NebulaBottomBarTitle">Нижняя панель</string>
+    <string name="NebulaBottomBarSub">Вкладки чатов, контактов, настроек и профиля</string>
+    <string name="NebulaBottomBarHint">Изменения применяются при возврате в чаты. При скрытии вкладок включается боковая панель для доступа ко всем разделам.</string>
+    <string name="NebulaSidePanelTitle">Боковая панель</string>
+    <string name="NebulaSidePanelSub">Навигация кнопкой меню в чатах. При отключении возвращаются все нижние вкладки</string>
+    <string name="NebulaServerSort">Сортировка серверов</string>
+    <string name="NebulaSortDefault">По умолчанию (порядок подписки)</string>
+    <string name="NebulaSortLatency">По наименьшему пингу</string>
 </resources>

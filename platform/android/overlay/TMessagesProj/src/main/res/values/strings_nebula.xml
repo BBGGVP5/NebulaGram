@@ -29,8 +29,9 @@
     <string name="NebulaNoSubscriptions">No subscriptions yet</string>
     <string name="NebulaRemove">Remove</string>
     <string name="NebulaServersShort">servers</string>
-    <string name="NebulaSettings">NebulaGram</string>
-    <string name="NebulaSettingsSub">Tunnel, appearance and everything this fork adds</string>
+    <string name="NebulaSettings">NebulaGram Settings</string>
+    <string name="NebulaSettingsSub">NebulaLink, appearance and navigation</string>
+    <string name="NebulaProxyManagedHint">Your connection is managed in NebulaGram Settings. To configure a regular proxy, disconnect the tunnel there first.</string>
     <string name="NebulaSectionTunnel">TUNNEL</string>
     <string name="NebulaSectionLook">APPEARANCE</string>
     <string name="NebulaSubscriptions">Subscriptions</string>
@@ -49,8 +50,13 @@
     <string name="NebulaTabContacts">Contacts</string>
     <string name="NebulaTabSettings">Settings</string>
     <string name="NebulaTabProfile">Profile</string>
-    <string name="NebulaSectionPanel">Bottom bar</string>
+    <string name="NebulaSectionPanel">Navigation</string>
     <string name="NebulaBottomBarTitle">Show the bottom bar</string>
-    <string name="NebulaBottomBarSub">Tabs at the bottom instead of reaching for the side drawer</string>
-    <string name="NebulaBottomBarHint">Changes apply the next time the chat list opens</string>
+    <string name="NebulaBottomBarSub">Chats, contacts, settings and profile tabs</string>
+    <string name="NebulaBottomBarHint">Changes apply when you return to chats. Hiding tabs enables the side panel so all destinations stay accessible.</string>
+    <string name="NebulaSidePanelTitle">Side panel</string>
+    <string name="NebulaSidePanelSub">Navigation from the menu button in chats. Turning this off restores all bottom tabs</string>
+    <string name="NebulaServerSort">Server order</string>
+    <string name="NebulaSortDefault">Default (subscription order)</string>
+    <string name="NebulaSortLatency">Lowest latency</string>
 </resources>

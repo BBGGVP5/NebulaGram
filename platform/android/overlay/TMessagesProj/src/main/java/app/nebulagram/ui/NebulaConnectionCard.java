@@ -41,6 +41,7 @@ public class NebulaConnectionCard extends LinearLayout {
 
     private boolean connected;
     private boolean busy;
+    private final NebulaLink.StatusListener statusListener = this::render;
 
     public NebulaConnectionCard(@NonNull Context context, BaseFragment host) {
         super(context);
@@ -124,14 +125,14 @@ public class NebulaConnectionCard extends LinearLayout {
         String phase = status == null ? "disconnected" : status.optString("state", "disconnected");
         connected = "connected".equals(phase);
 
-        int accent = connected ? theme.primary() : theme.onSurfaceVariant();
+        int accent = connected ? theme.success() : theme.onSurfaceVariant();
         GradientDrawable badgeBackground = new GradientDrawable();
         badgeBackground.setShape(GradientDrawable.OVAL);
         badgeBackground.setColor(NebulaTheme.stateLayer(accent, 0.16f));
         badge.setBackground(badgeBackground);
         badge.setColorFilter(accent, PorterDuff.Mode.SRC_IN);
 
-        state.setTextColor(connected ? theme.onSurface() : theme.onSurfaceVariant());
+        state.setTextColor(accent);
         state.setText(LocaleController.getString(connected
                 ? R.string.NebulaConnected
                 : "connecting".equals(phase) ? R.string.NebulaConnecting : R.string.NebulaDisconnected));
@@ -142,9 +143,12 @@ public class NebulaConnectionCard extends LinearLayout {
         if (connected && server != null) {
             detail.setVisibility(VISIBLE);
             int latency = server.optInt("latency_ms");
-            String name = server.optString("name");
-            detail.setText(latency > 0 ? name + " · " + latency + " ms" : name);
-        } else if (detail.getText().length() == 0) {
+            String name = NebulaLinkRow.serverLabel(server);
+            detail.setTextColor(theme.success());
+            detail.setText(latency > 0 ? name + " · " + latency + " " + LocaleController.getString(R.string.NebulaMs) : name);
+        } else {
+            detail.setText("");
+            detail.setTextColor(theme.onSurfaceVariant());
             detail.setVisibility(GONE);
         }
 
@@ -160,6 +164,13 @@ public class NebulaConnectionCard extends LinearLayout {
     @Override
     protected void onAttachedToWindow() {
         super.onAttachedToWindow();
+        NebulaLink.addStatusListener(statusListener);
         refresh();
+    }
+
+    @Override
+    protected void onDetachedFromWindow() {
+        NebulaLink.removeStatusListener(statusListener);
+        super.onDetachedFromWindow();
     }
 }

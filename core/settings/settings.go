@@ -59,6 +59,7 @@ type Settings struct {
 	SelectedServerID string `json:"selected_server_id,omitempty"`
 	ProtocolFilter   string `json:"protocol_filter,omitempty"`
 	SearchQuery      string `json:"search_query,omitempty"`
+	ServerSort       string `json:"server_sort"` // default = subscription order; latency = measured delay
 	PerPage          int    `json:"per_page,omitempty"`
 }
 
@@ -78,6 +79,7 @@ func Default() Settings {
 		DNS:             "", // empty: the server resolves, see xraycfg
 		LogLevel:        "warning",
 		PerPage:         50,
+		ServerSort:      "default",
 	}
 }
 
@@ -102,6 +104,9 @@ func (s *Settings) Normalize() {
 	}
 	if s.PerPage <= 0 || s.PerPage > 500 {
 		s.PerPage = def.PerPage
+	}
+	if s.ServerSort != "default" && s.ServerSort != "latency" {
+		s.ServerSort = def.ServerSort
 	}
 	if s.LogLevel == "" {
 		s.LogLevel = def.LogLevel

@@ -272,8 +272,8 @@ func (s *Store) UpdateServerLatency(results map[string]int) error {
 	return s.save()
 }
 
-// Filtered applies the current search and protocol filter, and sorts by
-// latency (measured first, fastest first) then by name.
+// Filtered preserves subscription order by default. Explicit latency ordering
+// is stable and applied before the API paginates the result.
 func (s *Store) Filtered() []model.Server {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
@@ -291,13 +291,11 @@ func (s *Store) Filtered() []model.Server {
 		}
 		out = append(out, srv)
 	}
-	sort.SliceStable(out, func(i, j int) bool {
-		li, lj := rank(out[i].LatencyMs), rank(out[j].LatencyMs)
-		if li != lj {
-			return li < lj
-		}
-		return out[i].Name < out[j].Name
-	})
+	if s.state.Settings.ServerSort == "latency" {
+		sort.SliceStable(out, func(i, j int) bool {
+			return rank(out[i].LatencyMs) < rank(out[j].LatencyMs)
+		})
+	}
 	return out
 }
 

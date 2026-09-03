@@ -64,17 +64,17 @@ public class NebulaSettingsFragment extends BaseFragment {
         return root;
     }
 
+    private void rebuild() {
+        build(content.getContext(), NebulaTheme.of(content.getContext()));
+    }
+
     private void build(Context context, NebulaTheme theme) {
         content.removeAllViews();
 
         content.addView(NebulaCard.header(context,
                 LocaleController.getString(R.string.NebulaSectionTunnel)));
         NebulaCard tunnel = new NebulaCard(context);
-        tunnel.add(new NebulaRow(context)
-                .icon(R.drawable.msg_secret)
-                .title(LocaleController.getString(R.string.NebulaLinkName))
-                .subtitle(LocaleController.getString(R.string.nl_source_sub), false)
-                .trailing(NebulaRow.TRAIL_CHEVRON)
+        tunnel.add(new NebulaLinkRow(context)
                 .withClick(v -> presentFragment(new NebulaMenuFragment())));
         tunnel.add(new NebulaRow(context)
                 .icon(R.drawable.files_folder)
@@ -115,8 +115,7 @@ public class NebulaSettingsFragment extends BaseFragment {
         look.add(login);
         content.addView(look, cardParams());
 
-        // Нижняя панель: своя, а не спрятанная чужая, поэтому и выключается
-        // целиком, и собирается по вкладкам.
+        // Настройки штатных вкладок и отдельной боковой панели.
         content.addView(NebulaCard.header(context,
                 LocaleController.getString(R.string.NebulaSectionPanel)));
         NebulaCard panel = new NebulaCard(context);
@@ -127,8 +126,23 @@ public class NebulaSettingsFragment extends BaseFragment {
                 .subtitle(LocaleController.getString(R.string.NebulaBottomBarSub), false)
                 .trailing(NebulaRow.TRAIL_SWITCH)
                 .checked(NebulaBottomBar.enabled());
-        bar.setOnClickListener(v -> NebulaBottomBar.setEnabled(bar.toggleChecked()));
+        bar.setOnClickListener(v -> {
+            NebulaBottomBar.setEnabled(bar.toggleChecked());
+            rebuild();
+        });
         panel.add(bar);
+
+        NebulaRow sidebar = new NebulaRow(context)
+                .icon(R.drawable.msg_customize)
+                .title(LocaleController.getString(R.string.NebulaSidePanelTitle))
+                .subtitle(LocaleController.getString(R.string.NebulaSidePanelSub), false)
+                .trailing(NebulaRow.TRAIL_SWITCH)
+                .checked(NebulaBottomBar.sidebarEnabled());
+        sidebar.setOnClickListener(v -> {
+            NebulaBottomBar.setSidebarEnabled(sidebar.toggleChecked());
+            rebuild();
+        });
+        panel.add(sidebar);
 
         panel.add(tabRow(context, NebulaBottomBar.TAB_CONTACTS,
                 R.drawable.msg_contacts, R.string.NebulaTabContacts));
@@ -175,7 +189,10 @@ public class NebulaSettingsFragment extends BaseFragment {
                 .title(LocaleController.getString(title))
                 .trailing(NebulaRow.TRAIL_SWITCH)
                 .checked(NebulaBottomBar.tabEnabled(tab));
-        row.setOnClickListener(v -> NebulaBottomBar.setTabEnabled(tab, row.toggleChecked()));
+        row.setOnClickListener(v -> {
+            NebulaBottomBar.setTabEnabled(tab, row.toggleChecked());
+            rebuild();
+        });
         return row;
     }
 
