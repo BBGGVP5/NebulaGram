@@ -141,6 +141,17 @@ public class NebulaSectionFragment extends BaseFragment {
                 R.string.NebulaHideDividers, R.string.NebulaHideDividersSub,
                 NebulaAppearance.hideDividers(), NebulaAppearance::setHideDividers));
         content.addView(card, cardParams());
+
+        content.addView(NebulaCard.header(context,
+                LocaleController.getString(R.string.NebulaListSection)));
+        NebulaCard list = new NebulaCard(context);
+        list.add(toggle(context, R.drawable.msg_search,
+                R.string.NebulaHideSearchField, R.string.NebulaHideSearchFieldSub,
+                NebulaAppearance.hideSearchField(), NebulaAppearance::setHideSearchField));
+        list.add(toggle(context, R.drawable.files_folder,
+                R.string.NebulaHideTabCounters, R.string.NebulaHideTabCountersSub,
+                NebulaAppearance.hideTabCounters(), NebulaAppearance::setHideTabCounters));
+        content.addView(list, cardParams());
         content.addView(NebulaMenuFragment.placeholder(context,
                 LocaleController.getString(R.string.NebulaRestartHint)));
     }

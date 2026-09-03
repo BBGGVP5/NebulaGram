@@ -82,4 +82,9 @@
     <string name="NebulaChatBehaviour">Behaviour</string>
     <string name="NebulaHideDividers">Hide dividers</string>
     <string name="NebulaHideDividersSub">No lines between chats in the list</string>
+    <string name="NebulaHideTabCounters">Hide counters on folder tabs</string>
+    <string name="NebulaHideTabCountersSub">Unread chats stay marked in the list itself</string>
+    <string name="NebulaHideSearchField">Hide the search field</string>
+    <string name="NebulaHideSearchFieldSub">In the chat list header. Search stays available from its tab</string>
+    <string name="NebulaListSection">Chat list</string>
 </resources>

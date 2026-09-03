@@ -87,4 +87,29 @@ public final class NebulaAppearance {
     public static void setHideDividers(boolean enabled) {
         preferences().edit().putBoolean("hide_dividers", enabled).apply();
     }
+
+    /**
+     * Прятать ли счётчики непрочитанного на вкладках папок. Цифры на каждой
+     * вкладке превращают ряд папок в пёструю ленту; сами непрочитанные при
+     * этом никуда не деваются и видны в списке чатов.
+     */
+    public static boolean hideTabCounters() {
+        return preferences().getBoolean("hide_tab_counters", false);
+    }
+
+    public static void setHideTabCounters(boolean enabled) {
+        preferences().edit().putBoolean("hide_tab_counters", enabled).apply();
+    }
+
+    /**
+     * Прятать ли поле поиска в шапке списка чатов. Освобождает строку экрана;
+     * поиск остаётся доступен со своей вкладки и из меню.
+     */
+    public static boolean hideSearchField() {
+        return preferences().getBoolean("hide_search_field", false);
+    }
+
+    public static void setHideSearchField(boolean enabled) {
+        preferences().edit().putBoolean("hide_search_field", enabled).apply();
+    }
 }

@@ -75,4 +75,9 @@
     <string name="NebulaChatBehaviour">Поведение</string>
     <string name="NebulaHideDividers">Убрать разделители</string>
     <string name="NebulaHideDividersSub">Без линий между чатами в списке</string>
+    <string name="NebulaHideTabCounters">Скрыть счётчики на вкладках папок</string>
+    <string name="NebulaHideTabCountersSub">Непрочитанные остаются отмечены в самом списке</string>
+    <string name="NebulaHideSearchField">Скрыть поле поиска</string>
+    <string name="NebulaHideSearchFieldSub">В шапке списка чатов. Поиск остаётся доступен со своей вкладки</string>
+    <string name="NebulaListSection">Список чатов</string>
 </resources>

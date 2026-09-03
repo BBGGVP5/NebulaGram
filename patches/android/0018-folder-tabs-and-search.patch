@@ -1,0 +1,26 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/FilterTabsView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/FilterTabsView.java
+index 52238e83..b140f8a8 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Components/FilterTabsView.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/FilterTabsView.java
+@@ -366,7 +366,7 @@ public class FilterTabsView extends FrameLayout {
+             boolean animateCounterRemove = animateFromTabCount > 0 && currentTab.counter == 0 && animateTabCounter;
+             boolean animateCounterReplace = animateFromTabCount > 0 && currentTab.counter > 0 && animateTabCounter;
+ 
+-            if (currentTab.counter > 0 || animateCounterRemove) {
++            if ((currentTab.counter > 0 || animateCounterRemove) && !app.nebulagram.ui.NebulaAppearance.hideTabCounters()) {
+                 if (animateCounterRemove) {
+                     counterText = String.format("%d", animateFromTabCount);
+                 } else {
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
+index 2a545dce..ebd5a845 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
+@@ -14052,7 +14052,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+         final float actionModeVisible = Math.max(progressToActionMode, animatorActionModeVisible.getFloatValue());
+         final float searchFieldVisible = animatorSearchVisible.getFloatValue();
+ 
+-        final float factor0 = isSupportSearch() ? 1 : 0;
++        final float factor0 = isSupportSearch() && !app.nebulagram.ui.NebulaAppearance.hideSearchField() ? 1 : 0;
+         final float factor1 = (1f - actionModeVisible) * (1f - animatorDoneButtonVisible.getFloatValue());
+         final float factor2 = Math.max(searchFieldVisible, alphaByScrollOffset * (1f - getRightSlidingProgress()));
+ 
