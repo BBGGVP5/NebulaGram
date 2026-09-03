@@ -22,7 +22,23 @@ jobs:
           submodules: recursive
           fetch-depth: 0
 
+      - name: Пропустить платформу, апстрим которой ещё не подключён
+        id: present
+        run: |
+          case "${{ matrix.platform }}" in
+            android) tree=vendor/telegram-android ;;
+            ios)     tree=vendor/telegram-ios ;;
+            desktop) tree=vendor/tdesktop ;;
+          esac
+          if [ -e "$tree/.git" ]; then
+            echo "ready=yes" >> "$GITHUB_OUTPUT"
+          else
+            echo "ready=no" >> "$GITHUB_OUTPUT"
+            echo "::notice::$tree ещё не подключён, проверять нечего"
+          fi
+
       - name: Try the patch series against the newest upstream tag
+        if: steps.present.outputs.ready == 'yes'
         id: sync
         run: |
           set +e
@@ -39,5 +55,5 @@ jobs:
           if [ -n "$existing" ]; then
             gh issue comment "$existing" --body-file report.txt
           else
-            gh issue create --title "$title" --body-file report.txt --label upstream
+            gh issue create --title "$title" --body-file report.txt
           fi
