@@ -226,6 +226,8 @@ public class NebulaMenuFragment extends BaseFragment {
                         askAndRun(context, title, command, "url");
                     } else if ("server.addLink".equals(command)) {
                         askAndRun(context, title, command, "link");
+                    } else if ("provider.open".equals(command)) {
+                        openProvider();
                     } else {
                         runCommand(command, title);
                     }
@@ -257,7 +259,7 @@ public class NebulaMenuFragment extends BaseFragment {
                 .title(title)
                 .trailing(NebulaRow.TRAIL_CHEVRON);
         if ("selected_server".equals(key) || "server_list".equals(key)) {
-            row.setOnClickListener(v -> presentFragment(new NebulaMenuFragment("nebulalink.servers")));
+            row.setOnClickListener(v -> presentFragment(new NebulaServersFragment()));
         }
         return row;
     }
@@ -404,6 +406,23 @@ public class NebulaMenuFragment extends BaseFragment {
         });
         builder.setNegativeButton(LocaleController.getString(R.string.Cancel), null);
         showDialog(builder.create());
+    }
+
+    /**
+     * Личный кабинет провайдера. Ядро знает только адрес, открыть его может
+     * лишь платформа — без этого строка выполнялась и никуда не вела.
+     */
+    private void openProvider() {
+        NebulaLink.call("provider.open", null, result -> {
+            if (!result.ok || result.data == null) {
+                report(result.error);
+                return;
+            }
+            String url = result.data.optString("url");
+            if (!url.isEmpty() && getParentActivity() != null) {
+                org.telegram.messenger.browser.Browser.openUrl(getParentActivity(), url);
+            }
+        });
     }
 
     private void runCommand(String command, String title) {

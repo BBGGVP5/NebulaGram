@@ -38,4 +38,11 @@
     <string name="NebulaMaterialYouSub">Take colours from the wallpaper</string>
     <string name="NebulaLoginStyleTitle">Restyle the login screens</string>
     <string name="NebulaLoginStyleSub">Our typography on the screens Telegram owns</string>
+    <string name="NebulaProbe">Check speed</string>
+    <string name="NebulaProbing">Checking…</string>
+    <string name="NebulaProbeSub">Measure the delay to every server</string>
+    <string name="NebulaNoServers">No servers yet. Add a subscription or a key.</string>
+    <string name="NebulaShownOf">Showing %1$d of %2$d</string>
+    <string name="NebulaSelected">Selected</string>
+    <string name="NebulaMs">ms</string>
 </resources>

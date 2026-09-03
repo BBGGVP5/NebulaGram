@@ -31,4 +31,11 @@
     <string name="NebulaMaterialYouSub">Брать цвета из обоев</string>
     <string name="NebulaLoginStyleTitle">Оформлять экраны входа</string>
     <string name="NebulaLoginStyleSub">Наша типографика на экранах Telegram</string>
+    <string name="NebulaProbe">Проверить скорость</string>
+    <string name="NebulaProbing">Проверяю…</string>
+    <string name="NebulaProbeSub">Измерить задержку до каждого сервера</string>
+    <string name="NebulaNoServers">Серверов пока нет. Добавьте подписку или ключ.</string>
+    <string name="NebulaShownOf">Показано %1$d из %2$d</string>
+    <string name="NebulaSelected">Выбран</string>
+    <string name="NebulaMs">мс</string>
 </resources>
