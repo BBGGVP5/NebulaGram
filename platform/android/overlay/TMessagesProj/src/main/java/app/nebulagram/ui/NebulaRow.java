@@ -46,6 +46,7 @@ public class NebulaRow extends FrameLayout {
 
         setPadding(AndroidUtilities.dp(12), AndroidUtilities.dp(10),
                 AndroidUtilities.dp(16), AndroidUtilities.dp(10));
+        setMinimumHeight(AndroidUtilities.dp(56));
         setForeground(new RippleDrawable(
                 ColorStateList.valueOf(NebulaTheme.stateLayer(theme.onSurface(), 0.08f)), null, null));
 
@@ -115,6 +116,7 @@ public class NebulaRow extends FrameLayout {
             return this;
         }
         subtitle.setVisibility(VISIBLE);
+        setMinimumHeight(AndroidUtilities.dp(72));
         subtitle.setText(value);
         subtitle.setTextColor(isValue ? theme.primary() : theme.onSurfaceVariant());
         return this;
@@ -174,14 +176,6 @@ public class NebulaRow extends FrameLayout {
         return toggle.isChecked();
     }
 
-    @Override
-    protected void onMeasure(int widthSpec, int heightSpec) {
-        int minimum = subtitle.getVisibility() == VISIBLE
-                ? AndroidUtilities.dp(72) : AndroidUtilities.dp(56);
-        super.onMeasure(widthSpec, MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED));
-        int height = Math.max(minimum, getMeasuredHeight());
-        super.onMeasure(widthSpec, MeasureSpec.makeMeasureSpec(height, MeasureSpec.EXACTLY));
-    }
 
     /** A hairline divider drawn between rows inside one card. */
     public static View divider(Context context) {

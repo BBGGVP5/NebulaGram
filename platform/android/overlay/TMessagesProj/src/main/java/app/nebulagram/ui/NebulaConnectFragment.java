@@ -54,7 +54,10 @@ public class NebulaConnectFragment extends BaseFragment {
         LinearLayout content = new LinearLayout(context);
         content.setOrientation(LinearLayout.VERTICAL);
         content.setGravity(Gravity.CENTER_VERTICAL);
-        content.setPadding(AndroidUtilities.dp(24), AndroidUtilities.dp(24),
+        // Панель действий мы прячем, поэтому отступ под строку состояния
+        // приходится держать самим — иначе содержимое лезет под часы.
+        content.setPadding(AndroidUtilities.dp(24),
+                AndroidUtilities.dp(24) + AndroidUtilities.statusBarHeight,
                 AndroidUtilities.dp(24), AndroidUtilities.dp(160));
         content.addView(buildMark(context, theme));
         content.addView(buildTitle(context, theme));

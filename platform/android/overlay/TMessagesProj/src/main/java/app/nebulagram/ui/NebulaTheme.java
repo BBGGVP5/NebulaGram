@@ -175,11 +175,23 @@ public final class NebulaTheme {
      * settings use. It therefore survives upstream releases, whereas hand-drawn
      * replacements of Telegram's screens would not.
      */
+    private static boolean applying;
+    private static long appliedAt;
+
     public static void applyMaterialYou(Context context) {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S || !materialYouEnabled()) {
             return; // нечего брать или пользователь отказался
         }
+        // refreshThemeColors сам рассылает уведомление о смене темы, на которое
+        // мы подписаны. Без этих двух заслонок Telegram и мы могли перекрашивать
+        // друг друга по кругу — а пересчёт палитры перерисовывает весь экран,
+        // отсюда и подтормаживания интерфейса с клавиатурой.
+        long now = android.os.SystemClock.elapsedRealtime();
+        if (applying || now - appliedAt < 1000L) {
+            return;
+        }
         try {
+            applying = true;
             int accent = NebulaTheme.of(context).primary();
             Theme.ThemeInfo active = Theme.getActiveTheme();
             if (active == null) {
@@ -191,10 +203,13 @@ public final class NebulaTheme {
             }
             current.accentColor = accent;
             Theme.refreshThemeColors();
+            appliedAt = android.os.SystemClock.elapsedRealtime();
         } catch (Throwable e) {
             // Theming is cosmetic: a failure here must never keep the app from
             // starting, and the upstream API may move between releases.
             FileLog.e(e);
+        } finally {
+            applying = false;
         }
     }
 
