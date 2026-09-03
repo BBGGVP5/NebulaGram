@@ -92,11 +92,17 @@ jobs:
 
       - name: Assemble
         working-directory: vendor/telegram-android
+        env:
+          # Нативная часть собирается заново на каждую архитектуру и занимает
+          # основное время. На обычный пуш хватает одной; все четыре собираются
+          # по кнопке Run workflow, то есть для релиза.
+          NEBULA_ABIS: ${{ github.event_name == 'workflow_dispatch' && 'armeabi-v7a,arm64-v8a,x86,x86_64' || 'arm64-v8a' }}
         run: |
+          echo "архитектуры: $NEBULA_ABIS"
           # Maven Central отвечает 429, когда раннеры GitHub стучатся к нему
           # пачкой. Один повтор дешевле, чем потерянные двадцать минут сборки.
           for attempt in 1 2; do
-            if ./gradlew --no-daemon :TMessagesProj_AppStandalone:assembleAfatRelease; then
+            if ./gradlew --no-daemon -PnebulaAbis="$NEBULA_ABIS"                 :TMessagesProj_AppStandalone:assembleAfatRelease; then
               exit 0
             fi
             echo "::warning::попытка $attempt не удалась, повтор через 60 секунд"

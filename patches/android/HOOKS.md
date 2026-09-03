@@ -9,9 +9,9 @@
 |---|---|---|---|---|
 | `0001-gradle-link-nebulalink-core.patch` | `TMessagesProj/build.gradle` | первая строка блока `dependencies {` | подключает `libs/nebulalink.aar` — Go-ядро | 1 |
 | `0002-application-loader-start-core.patch` | `TMessagesProj/src/main/java/org/telegram/messenger/ApplicationLoader.java` | сразу после `super.onCreate();` в `onCreate()` | запускает ядро при старте приложения | 2 |
-| `0003-standalone-abi-splits.patch` | `TMessagesProj_AppStandalone/build.gradle` | перед строкой `defaultConfig.versionCode = ...` | по одному APK на архитектуру вместо одного «жирного» | 28 |
+| `0003-standalone-abi-splits.patch` | `TMessagesProj_AppStandalone/build.gradle` | перед строкой `defaultConfig.versionCode = ...` и после блока `applicationVariants.all` апстрима | по одному APK на архитектуру; список архитектур задаётся параметром `-PnebulaAbis` | 40 |
 
-Итого **31 вставленная строка**, ни одной изменённой.
+Итого **43 вставленные строки**, ни одной изменённой.
 
 Про третий патч: ядро Xray добавляет ~11 МБ нативного кода на каждую
 архитектуру, и в общем APK пользователь качал бы четыре копии ради одной.

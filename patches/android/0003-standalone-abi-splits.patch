@@ -1,8 +1,8 @@
 diff --git a/TMessagesProj_AppStandalone/build.gradle b/TMessagesProj_AppStandalone/build.gradle
-index 96dbbbf0..d307d3c9 100644
+index 96dbbbf0..ab4ded4f 100644
 --- a/TMessagesProj_AppStandalone/build.gradle
 +++ b/TMessagesProj_AppStandalone/build.gradle
-@@ -110,6 +110,25 @@ android {
+@@ -110,6 +110,31 @@ android {
          }
      }
  
@@ -16,11 +16,17 @@ index 96dbbbf0..d307d3c9 100644
 +    // остаётся вставкой и не конфликтует при обновлении.
 +    productFlavors.afat.ndk.abiFilters.clear()
 +
++    // Набор архитектур задаётся снаружи: сборка одной вместо четырёх занимает
++    // четверть времени, а для проверки изменения этого достаточно. Без
++    // параметра собираются все, поэтому релиз ничего не теряет.
++    def nebulaAbis = (project.findProperty("nebulaAbis")
++            ?: "armeabi-v7a,arm64-v8a,x86,x86_64").toString().split(",").collect { it.trim() }
++
 +    splits {
 +        abi {
 +            enable true
 +            reset()
-+            include "armeabi-v7a", "arm64-v8a", "x86", "x86_64"
++            include(*nebulaAbis)
 +            universalApk false
 +        }
 +    }
@@ -28,7 +34,7 @@ index 96dbbbf0..d307d3c9 100644
      defaultConfig.versionCode = Integer.parseInt(APP_VERSION_CODE)
  
      applicationVariants.all { variant ->
-@@ -119,6 +138,20 @@ android {
+@@ -119,6 +144,20 @@ android {
          }
      }
  

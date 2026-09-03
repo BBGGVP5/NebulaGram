@@ -1,0 +1,15 @@
+# Во всём репозитории — LF, включая рабочие копии на Windows.
+#
+# Иначе Git отдаёт файлы с CRLF, и два вида файлов ломаются молча: патчи
+# перестают применяться (git apply сверяет контекст побайтово), а shell-скрипты
+# падают на Linux с "\r: command not found".
+* text=auto eol=lf
+
+# Бинарники не трогать.
+*.png binary
+*.webp binary
+*.jar binary
+*.aar binary
+*.dat binary
+*.keystore binary
+*.ico binary

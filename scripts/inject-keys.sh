@@ -99,12 +99,18 @@ if [ -z "$python_bin" ]; then
   exit 1
 fi
 
+# Two modules apply the Google Services plugin and each checks its own package:
+# TMessagesProj is a library with namespace org.telegram.messenger, while the
+# app module carries our renamed applicationId. A file listing only one of them
+# fails the other, so both are ensured here.
 for services in $(find "$tree" -maxdepth 2 -name google-services.json); do
-  "$python_bin" - "$services" "$package" <<'PYTHON'
+  "$python_bin" - "$services" "$package" org.telegram.messenger <<'PYTHON'
 import json
 import sys
 
-path, package = sys.argv[1], sys.argv[2]
+path = sys.argv[1]
+required = sys.argv[2:]
+
 with open(path, encoding="utf-8") as handle:
     config = json.load(handle)
 
@@ -112,15 +118,25 @@ clients = config.get("client") or []
 if not clients:
     sys.exit(f"{path} has no client entries")
 
+
 def package_of(client):
     return client.get("client_info", {}).get("android_client_info", {}).get("package_name")
 
-if not any(package_of(client) == package for client in clients):
-    # Copy the first client so the api key and app id stay valid JSON, and give
-    # the copy our package name.
+
+known = {package_of(client) for client in clients}
+added = False
+for package in required:
+    if package in known:
+        continue
+    # Copy the first client so the api key and app id stay structurally valid,
+    # and give the copy the package this module expects.
     entry = json.loads(json.dumps(clients[0]))
     entry["client_info"]["android_client_info"]["package_name"] = package
     clients.append(entry)
+    known.add(package)
+    added = True
+
+if added:
     config["client"] = clients
     with open(path, "w", encoding="utf-8") as handle:
         json.dump(config, handle, indent=2, ensure_ascii=False)
