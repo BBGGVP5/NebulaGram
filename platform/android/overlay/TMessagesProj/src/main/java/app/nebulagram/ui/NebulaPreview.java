@@ -235,8 +235,8 @@ public class NebulaPreview extends View {
             paint.setColor(theme.primary());
             canvas.drawCircle(getWidth() - margin - circle, centerY, circle, paint);
 
-            fieldLeft = margin + height + AndroidUtilities.dp(8);
-            fieldRight = getWidth() - margin - height - AndroidUtilities.dp(8);
+            fieldLeft = margin + height + AndroidUtilities.dp(10);
+            fieldRight = getWidth() - margin - height - AndroidUtilities.dp(10);
             paint.setColor(theme.surfaceContainer());
             rect.set(fieldLeft, top, fieldRight, top + height);
             canvas.drawRoundRect(rect, circle, circle, paint);

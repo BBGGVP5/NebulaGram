@@ -102,7 +102,11 @@ public final class NebulaComposerStyle {
         original.set(background.getBounds());
         padded.set(background.getPaddedBounds());
         int diameter = AndroidUtilities.dp(44);
-        int gap = AndroidUtilities.dp(6);
+        // Шесть точек между кружком и полем на тёмных обоях сливались в одну
+        // фигуру: у всех трёх поверхностей одинаковый фон, и узкая щель между
+        // ними просто не читается. Десять — минимум, при котором видно, что
+        // кнопок три, а не одна широкая панель.
+        int gap = AndroidUtilities.dp(10);
         int padding = padded.left - original.left;
         if (padded.width() < diameter * 2 + gap * 2 + AndroidUtilities.dp(100)
                 || padded.height() < diameter - AndroidUtilities.dp(2)) return false;
