@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Анимация боковой панели. Отдельный стиль, потому что окну диалога
+         анимацию можно задать только стилем, не кодом. -->
+    <style name="NebulaDrawerAnimation">
+        <item name="android:windowEnterAnimation">@anim/nebula_drawer_enter</item>
+        <item name="android:windowExitAnimation">@anim/nebula_drawer_exit</item>
+    </style>
+</resources>

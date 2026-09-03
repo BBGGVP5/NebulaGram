@@ -196,6 +196,33 @@ public final class NebulaLoginStyle {
             super.updateColor();
             if (rounded) setBackground(surface(18));
         }
+
+        /**
+         * Обводку с вырезом под заголовок Telegram рисует прямыми линиями от
+         * края до края, рассчитывая на своё скругление в 8dp. При наших 18dp
+         * верхняя грань короче, и концы линий выходили на дугу — та самая
+         * кривизна углов. Обрезаем по форме поля: линия кончается там, где
+         * начинается закругление.
+         */
+        @Override
+        protected void onDraw(android.graphics.Canvas canvas) {
+            if (!rounded) {
+                super.onDraw(canvas);
+                return;
+            }
+            float radius = getCornerRadius();
+            clip.reset();
+            bounds.set(getPaddingLeft(), getPaddingTop(),
+                    getWidth() - getPaddingRight(), getHeight() - getPaddingBottom());
+            clip.addRoundRect(bounds, radius, radius, android.graphics.Path.Direction.CW);
+            canvas.save();
+            canvas.clipPath(clip);
+            super.onDraw(canvas);
+            canvas.restore();
+        }
+
+        private final android.graphics.Path clip = new android.graphics.Path();
+        private final android.graphics.RectF bounds = new android.graphics.RectF();
     }
 
     /** Native OTP input/autofill/backspace/error handling, with adaptive cell geometry. */

@@ -71,11 +71,10 @@ public final class NebulaSidePanel {
         Bundle profileArgs = new Bundle();
         profileArgs.putLong("user_id", userId);
         profileArgs.putBoolean("my_profile", true);
-        String name = UserObject.getUserName(MessagesController.getInstance(account).getUser(userId));
-        content.addView(new NebulaRow(context).icon(R.drawable.msg_openprofile)
-                .title(name).subtitle(LocaleController.getString(R.string.NebulaTabProfile), false)
-                .withClick(v -> open(dialog, host, new ProfileActivity(profileArgs))));
-        content.addView(NebulaRow.divider(context));
+        org.telegram.tgnet.TLRPC.User self =
+                MessagesController.getInstance(account).getUser(userId);
+        content.addView(header(context, theme, self,
+                v -> open(dialog, host, new ProfileActivity(profileArgs))));
         add(content, dialog, host, R.drawable.msg_discussion, R.string.NebulaTabChats, null);
         add(content, dialog, host, R.drawable.msg_contacts, R.string.NebulaTabContacts,
                 new ContactsActivity(null));
@@ -102,10 +101,67 @@ public final class NebulaSidePanel {
         window.addFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND);
         window.setDimAmount(0.45f);
         window.setGravity(Gravity.START | Gravity.TOP);
+        window.setWindowAnimations(R.style.NebulaDrawerAnimation);
         if (host.showDialog(dialog) != null) {
             int width = Math.min(AndroidUtilities.dp(320), context.getResources().getDisplayMetrics().widthPixels - AndroidUtilities.dp(32));
             window.setLayout(width, ViewGroup.LayoutParams.MATCH_PARENT);
         }
+    }
+
+    /**
+     * Шапка со своей аватаркой, именем и номером — то, с чего начиналась
+     * шторка в старом Telegram. Без неё панель читается как безымянный список
+     * ссылок: непонятно, к какому аккаунту он относится.
+     */
+    private static View header(Context context, NebulaTheme theme,
+                               org.telegram.tgnet.TLRPC.User self, View.OnClickListener click) {
+        LinearLayout box = new LinearLayout(context);
+        box.setOrientation(LinearLayout.VERTICAL);
+        box.setPadding(AndroidUtilities.dp(16), AndroidUtilities.dp(18),
+                AndroidUtilities.dp(16), AndroidUtilities.dp(18));
+        android.graphics.drawable.GradientDrawable background =
+                new android.graphics.drawable.GradientDrawable();
+        background.setCornerRadius(NebulaTheme.cornerMedium());
+        background.setColor(NebulaTheme.stateLayer(theme.primary(), 0.16f));
+        box.setBackground(background);
+        box.setOnClickListener(click);
+
+        org.telegram.ui.Components.BackupImageView avatar =
+                new org.telegram.ui.Components.BackupImageView(context);
+        avatar.setRoundRadius(AndroidUtilities.dp(30));
+        if (self != null) {
+            avatar.setForUserOrChat(self, new org.telegram.ui.Components.AvatarDrawable(self));
+        }
+        box.addView(avatar, new LinearLayout.LayoutParams(
+                AndroidUtilities.dp(60), AndroidUtilities.dp(60)));
+
+        android.widget.TextView name = new android.widget.TextView(context);
+        name.setTextSize(android.util.TypedValue.COMPLEX_UNIT_DIP, 16);
+        name.setTypeface(AndroidUtilities.bold());
+        name.setTextColor(theme.onSurface());
+        name.setText(self == null ? "" : UserObject.getUserName(self));
+        LinearLayout.LayoutParams nameParams = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        nameParams.topMargin = AndroidUtilities.dp(12);
+        box.addView(name, nameParams);
+
+        android.widget.TextView phone = new android.widget.TextView(context);
+        phone.setTextSize(android.util.TypedValue.COMPLEX_UNIT_DIP, 13);
+        phone.setTextColor(theme.onSurfaceVariant());
+        if (self != null && self.phone != null && !self.phone.isEmpty()) {
+            phone.setText(org.telegram.PhoneFormat.PhoneFormat.getInstance().format("+" + self.phone));
+        }
+        LinearLayout.LayoutParams phoneParams = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        phoneParams.topMargin = AndroidUtilities.dp(2);
+        phoneParams.bottomMargin = AndroidUtilities.dp(2);
+        box.addView(phone, phoneParams);
+
+        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        params.bottomMargin = AndroidUtilities.dp(8);
+        box.setLayoutParams(params);
+        return box;
     }
 
     private static void add(LinearLayout content, Dialog dialog, BaseFragment host,

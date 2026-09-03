@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Выезд шторки слева: как в старом Telegram, где панель приезжала из-за
+     края экрана, а не появлялась на месте. -->
+<set xmlns:android="http://schemas.android.com/apk/res/android"
+    android:interpolator="@android:interpolator/decelerate_quint">
+    <translate android:fromXDelta="-100%" android:toXDelta="0" android:duration="220" />
+    <alpha android:fromAlpha="0.7" android:toAlpha="1" android:duration="140" />
+</set>
