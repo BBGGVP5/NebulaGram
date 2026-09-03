@@ -56,4 +56,16 @@
     <string name="NebulaSubsRefreshed">Подписки обновлены</string>
     <string name="NebulaSubAdded">Подписка добавлена</string>
     <string name="NebulaSubRemoved">Подписка удалена</string>
+    <string name="NebulaSectionChats">Чаты</string>
+    <string name="NebulaSectionAbout">О программе</string>
+    <string name="NebulaAppearanceSub">Цвета, экраны входа, профиль</string>
+    <string name="NebulaChatsSub">Шапка чата и поле ввода</string>
+    <string name="NebulaPanelSub">Нижние вкладки и боковая панель</string>
+    <string name="NebulaAboutSub">Версии компонентов</string>
+    <string name="NebulaChatHeaderSection">Шапка чата</string>
+    <string name="NebulaComposerSection">Поле ввода</string>
+    <string name="NebulaHideCameraTitle">Скрыть живую камеру</string>
+    <string name="NebulaHideCameraSub">В меню вложений. Экономит батарею и убирает индикатор камеры</string>
+    <string name="NebulaRestartHint">Изменения применяются при следующем открытии экрана</string>
+    <string name="NebulaSectionSetup">Настройка</string>
 </resources>

@@ -34,4 +34,19 @@ public final class NebulaAppearance {
     public static void setProfileStyle(boolean enabled) {
         preferences().edit().putBoolean("profile_style", enabled).apply();
     }
+
+    /**
+     * Прятать ли живую камеру в меню вложений.
+     *
+     * <p>Она включает камеру при каждом открытии меню — это заметно по расходу
+     * батареи и по индикатору доступа к камере в статусной строке. По
+     * умолчанию оставляем как в Telegram: скрытие меняет привычное поведение.
+     */
+    public static boolean hideAttachCamera() {
+        return preferences().getBoolean("hide_attach_camera", false);
+    }
+
+    public static void setHideAttachCamera(boolean enabled) {
+        preferences().edit().putBoolean("hide_attach_camera", enabled).apply();
+    }
 }

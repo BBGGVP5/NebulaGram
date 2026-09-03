@@ -1,0 +1,21 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAttachAlertPhotoLayout.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAttachAlertPhotoLayout.java
+index 5b6f2ba2..5f50c400 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAttachAlertPhotoLayout.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAttachAlertPhotoLayout.java
+@@ -2400,6 +2400,16 @@ public class ChatAttachAlertPhotoLayout extends ChatAttachAlert.AttachAlertLayou
+         if (parentAlert.destroyed || !needCamera) {
+             return;
+         }
++        // NebulaGram: скрытая камера не должна и запускаться — иначе
++        // индикатор доступа горит, а ячейки всё равно нет.
++        if (app.nebulagram.ui.NebulaAppearance.hideAttachCamera()) {
++            if (deviceHasGoodCamera && adapter != null) {
++                deviceHasGoodCamera = false;
++                adapter.notifyDataSetChanged();
++            }
++            deviceHasGoodCamera = false;
++            return;
++        }
+         boolean old = deviceHasGoodCamera;
+         boolean old2 = noCameraPermissions;
+         BaseFragment fragment = parentAlert.baseFragment;

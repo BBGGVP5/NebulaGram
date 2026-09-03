@@ -13,14 +13,13 @@ import org.telegram.messenger.R;
 import org.telegram.ui.ActionBar.ActionBar;
 import org.telegram.ui.ActionBar.BaseFragment;
 
-import app.nebulagram.nebulalink.NebulaLink;
-
 /**
- * Раздел «NebulaGram» — всё, что форк добавляет к Telegram, в одном месте.
+ * Настройки NebulaGram: входная страница.
  *
- * <p>Собственный экран, а не строки, вкраплённые в настройки Telegram: так
- * добавление новой опции не требует правки чужого файла, а наш след в апстриме
- * остаётся одной строкой перехода сюда.
+ * <p>Раньше это был один длинный список, в котором туннель, цвета, шапка чата
+ * и вкладки шли подряд. Разделы решают ту же задачу, что и в самом Telegram:
+ * искать нужное глазами по трём строкам быстрее, чем по пятнадцати, а каждый
+ * раздел может начинаться с превью — на общем списке для них нет места.
  */
 public class NebulaSettingsFragment extends BaseFragment {
 
@@ -60,20 +59,15 @@ public class NebulaSettingsFragment extends BaseFragment {
         scroll.addView(content, new ScrollView.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
 
-        build(context, theme);
+        build(context);
         return root;
     }
 
-    private void rebuild() {
-        build(content.getContext(), NebulaTheme.of(content.getContext()));
-    }
-
-    private void build(Context context, NebulaTheme theme) {
+    private void build(Context context) {
         content.removeAllViews();
 
-        // Подписки живут внутри NebulaLink, на экране "Источник и фильтры":
-        // отдельная строка рядом дублировала тот же экран и заставляла гадать,
-        // чем одно отличается от другого.
+        // Туннель отдельной карточкой: это не настройка внешнего вида, а
+        // состояние — строка показывает, подключены мы сейчас или нет.
         content.addView(NebulaCard.header(context,
                 LocaleController.getString(R.string.NebulaSectionTunnel)));
         NebulaCard tunnel = new NebulaCard(context);
@@ -82,141 +76,30 @@ public class NebulaSettingsFragment extends BaseFragment {
         content.addView(tunnel, cardParams());
 
         content.addView(NebulaCard.header(context,
-                LocaleController.getString(R.string.NebulaSectionLook)));
-        NebulaCard look = new NebulaCard(context);
-
-        // Material You имеет смысл только там, где система вообще отдаёт
-        // палитру; на Android 11 и старше строка была бы обманом.
-        if (theme.isDynamic()) {
-            NebulaRow dynamic = new NebulaRow(context)
-                    .icon(R.drawable.msg_customize)
-                    .title(LocaleController.getString(R.string.NebulaMaterialYou))
-                    .subtitle(LocaleController.getString(R.string.NebulaMaterialYouSub), false)
-                    .trailing(NebulaRow.TRAIL_SWITCH)
-                    .checked(NebulaTheme.materialYouEnabled());
-            dynamic.setOnClickListener(v -> {
-                boolean enabled = dynamic.toggleChecked();
-                NebulaTheme.setMaterialYouEnabled(enabled);
-                NebulaTheme.applyMaterialYou(context);
-            });
-            look.add(dynamic);
-        }
-
-        NebulaRow login = new NebulaRow(context)
-                .icon(R.drawable.msg_edit)
-                .title(LocaleController.getString(R.string.NebulaLoginStyleTitle))
-                .subtitle(LocaleController.getString(R.string.NebulaLoginStyleSub), false)
-                .trailing(NebulaRow.TRAIL_SWITCH)
-                .checked(NebulaLoginStyle.enabled());
-        login.setOnClickListener(v -> NebulaLoginStyle.setEnabled(login.toggleChecked()));
-        look.add(login);
-        NebulaRow composer = new NebulaRow(context)
-                .icon(R.drawable.msg_edit)
-                .title(LocaleController.getString(R.string.NebulaIosComposer))
-                .subtitle(LocaleController.getString(R.string.NebulaIosComposerInfo), false)
-                .trailing(NebulaRow.TRAIL_SWITCH)
-                .checked(NebulaAppearance.iosComposer());
-        composer.setOnClickListener(v -> NebulaAppearance.setIosComposer(composer.toggleChecked()));
-        look.add(composer);
-
-        NebulaRow header = new NebulaRow(context)
-                .icon(R.drawable.msg_customize)
-                .title(LocaleController.getString(R.string.NebulaFloatingHeader))
-                .subtitle(LocaleController.getString(R.string.NebulaFloatingHeaderInfo), false)
-                .trailing(NebulaRow.TRAIL_SWITCH)
-                .checked(NebulaAppearance.chatHeader());
-        header.setOnClickListener(v -> NebulaAppearance.setChatHeader(header.toggleChecked()));
-        look.add(header);
-
-        NebulaRow information = new NebulaRow(context)
-                .icon(R.drawable.msg_info)
-                .title(LocaleController.getString(R.string.NebulaProfileStyle))
-                .subtitle(LocaleController.getString(R.string.NebulaProfileStyleInfo), false)
-                .trailing(NebulaRow.TRAIL_SWITCH)
-                .checked(NebulaAppearance.profileStyle());
-        information.setOnClickListener(v -> NebulaAppearance.setProfileStyle(information.toggleChecked()));
-        look.add(information);
-        content.addView(look, cardParams());
-
-        // Настройки штатных вкладок и отдельной боковой панели.
-        content.addView(NebulaCard.header(context,
-                LocaleController.getString(R.string.NebulaSectionPanel)));
-        NebulaCard panel = new NebulaCard(context);
-
-        NebulaRow bar = new NebulaRow(context)
-                .icon(R.drawable.msg_customize)
-                .title(LocaleController.getString(R.string.NebulaBottomBarTitle))
-                .subtitle(LocaleController.getString(R.string.NebulaBottomBarSub), false)
-                .trailing(NebulaRow.TRAIL_SWITCH)
-                .checked(NebulaBottomBar.enabled());
-        bar.setOnClickListener(v -> {
-            NebulaBottomBar.setEnabled(bar.toggleChecked());
-            rebuild();
-        });
-        panel.add(bar);
-
-        NebulaRow sidebar = new NebulaRow(context)
-                .icon(R.drawable.msg_customize)
-                .title(LocaleController.getString(R.string.NebulaSidePanelTitle))
-                .subtitle(LocaleController.getString(R.string.NebulaSidePanelSub), false)
-                .trailing(NebulaRow.TRAIL_SWITCH)
-                .checked(NebulaBottomBar.sidebarEnabled());
-        sidebar.setOnClickListener(v -> {
-            NebulaBottomBar.setSidebarEnabled(sidebar.toggleChecked());
-            rebuild();
-        });
-        panel.add(sidebar);
-
-        panel.add(tabRow(context, NebulaBottomBar.TAB_CONTACTS,
-                R.drawable.msg_contacts, R.string.NebulaTabContacts));
-        panel.add(tabRow(context, NebulaBottomBar.TAB_SETTINGS,
-                R.drawable.msg_settings, R.string.NebulaTabSettings));
-        panel.add(tabRow(context, NebulaBottomBar.TAB_PROFILE,
-                R.drawable.msg_openprofile, R.string.NebulaTabProfile));
-        content.addView(panel, cardParams());
-        content.addView(NebulaMenuFragment.placeholder(context,
-                LocaleController.getString(R.string.NebulaBottomBarHint)));
-
-        NebulaCard about = new NebulaCard(context);
-        NebulaRow versions = new NebulaRow(context)
-                .icon(R.drawable.msg_info)
-                .title(LocaleController.getString(R.string.nl_versions));
-        about.add(versions);
-        content.addView(about, cardParams());
-
-        // Версии спрашиваем у ядра: так строка не врёт после обновления Xray.
-        NebulaLink.call("core.versions", null, result -> {
-            if (result.ok && result.data != null) {
-                versions.subtitle(describe(result.data), true);
-            }
-        });
+                LocaleController.getString(R.string.NebulaSectionSetup)));
+        NebulaCard sections = new NebulaCard(context);
+        sections.add(section(context, R.drawable.msg_customize,
+                R.string.NebulaSectionLook, R.string.NebulaAppearanceSub,
+                NebulaSectionFragment.SECTION_APPEARANCE));
+        sections.add(section(context, R.drawable.msg_discussion,
+                R.string.NebulaSectionChats, R.string.NebulaChatsSub,
+                NebulaSectionFragment.SECTION_CHATS));
+        sections.add(section(context, R.drawable.msg_list,
+                R.string.NebulaSectionPanel, R.string.NebulaPanelSub,
+                NebulaSectionFragment.SECTION_TABS));
+        sections.add(section(context, R.drawable.msg_info,
+                R.string.NebulaSectionAbout, R.string.NebulaAboutSub,
+                NebulaSectionFragment.SECTION_ABOUT));
+        content.addView(sections, cardParams());
     }
 
-    private String describe(org.json.JSONObject versions) {
-        StringBuilder text = new StringBuilder();
-        java.util.Iterator<String> keys = versions.keys();
-        while (keys.hasNext()) {
-            String key = keys.next();
-            if (text.length() > 0) {
-                text.append(" · ");
-            }
-            text.append(key).append(' ').append(versions.optString(key));
-        }
-        return text.toString();
-    }
-
-    /** Переключатель одной вкладки: три строки отличаются только значком и словом. */
-    private NebulaRow tabRow(android.content.Context context, String tab, int icon, int title) {
-        NebulaRow row = new NebulaRow(context)
+    private NebulaRow section(Context context, int icon, int title, int subtitle, int id) {
+        return new NebulaRow(context)
                 .icon(icon)
                 .title(LocaleController.getString(title))
-                .trailing(NebulaRow.TRAIL_SWITCH)
-                .checked(NebulaBottomBar.tabEnabled(tab));
-        row.setOnClickListener(v -> {
-            NebulaBottomBar.setTabEnabled(tab, row.toggleChecked());
-            rebuild();
-        });
-        return row;
+                .subtitle(LocaleController.getString(subtitle), false)
+                .trailing(NebulaRow.TRAIL_CHEVRON)
+                .withClick(v -> presentFragment(new NebulaSectionFragment(id)));
     }
 
     private LinearLayout.LayoutParams cardParams() {
@@ -224,5 +107,10 @@ public class NebulaSettingsFragment extends BaseFragment {
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         params.topMargin = AndroidUtilities.dp(6);
         return params;
+    }
+
+    @Override
+    public boolean isLightStatusBar() {
+        return !NebulaTheme.of(getContext()).isDark();
     }
 }

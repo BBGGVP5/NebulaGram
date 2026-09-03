@@ -63,4 +63,16 @@
     <string name="NebulaSubsRefreshed">Subscriptions updated</string>
     <string name="NebulaSubAdded">Subscription added</string>
     <string name="NebulaSubRemoved">Subscription removed</string>
+    <string name="NebulaSectionChats">Chats</string>
+    <string name="NebulaSectionAbout">About</string>
+    <string name="NebulaAppearanceSub">Colours, login screens, profile</string>
+    <string name="NebulaChatsSub">Chat header and message field</string>
+    <string name="NebulaPanelSub">Bottom tabs and side panel</string>
+    <string name="NebulaAboutSub">Versions of the parts</string>
+    <string name="NebulaChatHeaderSection">Chat header</string>
+    <string name="NebulaComposerSection">Message field</string>
+    <string name="NebulaHideCameraTitle">Hide the live camera</string>
+    <string name="NebulaHideCameraSub">In the attachment menu. Saves battery and stops the camera indicator</string>
+    <string name="NebulaRestartHint">Changes apply when the screen is opened again</string>
+    <string name="NebulaSectionSetup">Setup</string>
 </resources>
