@@ -252,6 +252,10 @@ public final class NebulaLink {
 
             @Override
             public void onActivityCreated(Activity activity, Bundle state) {
+                // Раньше красили только при возврате к экрану, и запуск из
+                // уведомления успевал показать чужие цвета.
+                app.nebulagram.ui.NebulaTheme.applyMaterialYou(activity);
+                watchThemeChanges();
             }
 
             @Override

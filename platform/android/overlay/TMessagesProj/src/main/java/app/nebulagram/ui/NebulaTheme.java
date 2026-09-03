@@ -187,7 +187,7 @@ public final class NebulaTheme {
         // друг друга по кругу — а пересчёт палитры перерисовывает весь экран,
         // отсюда и подтормаживания интерфейса с клавиатурой.
         long now = android.os.SystemClock.elapsedRealtime();
-        if (applying || now - appliedAt < 1000L) {
+        if (applying || now - appliedAt < 250L) {
             return;
         }
         try {
@@ -202,6 +202,10 @@ public final class NebulaTheme {
                 return; // nothing to do, or already following the wallpaper
             }
             current.accentColor = accent;
+            // Сохраняем, а не только держим в памяти: при запуске из
+            // уведомления Telegram применяет свою тему раньше, чем до нас
+            // доходит очередь, и несохранённый акцент терялся.
+            Theme.saveThemeAccents(active, true, false, false, false);
             Theme.refreshThemeColors();
             appliedAt = android.os.SystemClock.elapsedRealtime();
         } catch (Throwable e) {
