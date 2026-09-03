@@ -1,0 +1,22 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/MainTabsActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/MainTabsActivity.java
+index 18411328..38030b4a 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/MainTabsActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/MainTabsActivity.java
+@@ -105,6 +105,17 @@ public class MainTabsActivity extends ViewPagerActivity implements NotificationC
+         return index > 2 ? index - 1 : index;
+     }
+ 
++    // NebulaGram: скрытая вкладка не должна открываться свайпом.
++    @Override
++    protected boolean canScrollForward(android.view.MotionEvent ev) {
++        return app.nebulagram.ui.NebulaBottomBar.canSwipe(viewPager.getCurrentPosition(), 1);
++    }
++
++    @Override
++    protected boolean canScrollBackward(android.view.MotionEvent ev) {
++        return app.nebulagram.ui.NebulaBottomBar.canSwipe(viewPager.getCurrentPosition(), -1);
++    }
++
+     private static final int ANIMATOR_ID_TABS_VISIBLE = 0;
+     private final BoolAnimator animatorTabsVisible = new BoolAnimator(ANIMATOR_ID_TABS_VISIBLE,
+         this, CubicBezierInterpolator.EASE_OUT_QUINT, 380, true);

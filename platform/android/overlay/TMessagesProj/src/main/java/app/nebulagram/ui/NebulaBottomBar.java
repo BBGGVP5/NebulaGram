@@ -60,6 +60,41 @@ public final class NebulaBottomBar {
         editor.apply();
     }
 
+    /**
+     * Доступна ли страница пейджера. Скрытая вкладка убирала только кнопку,
+     * а страница оставалась — до неё доезжали свайпом, и получалось, что
+     * настройка ничего не выключает.
+     */
+    public static boolean positionEnabled(int position) {
+        if (!enabled()) {
+            return position == 0; // панель выключена — остаются одни чаты
+        }
+        switch (position) {
+            case 1:
+                return tabEnabled(TAB_CONTACTS);
+            case 2:
+                return tabEnabled(TAB_SETTINGS);
+            case 3:
+                return tabEnabled(TAB_PROFILE);
+            default:
+                return true;
+        }
+    }
+
+    /**
+     * Можно ли уехать свайпом с текущей страницы в сторону direction (+1 вперёд,
+     * -1 назад). Через скрытую страницу не перескакиваем: пейджер этого не умеет,
+     * а рывок через чужой экран выглядел бы поломкой. Кнопка вкладки по-прежнему
+     * открывает свою страницу напрямую.
+     */
+    public static boolean canSwipe(int from, int direction) {
+        int target = from + direction;
+        if (target < 0 || target > 3) {
+            return true; // край списка — решает сам пейджер
+        }
+        return positionEnabled(target);
+    }
+
     /** Native indices: chats, contacts, settings, calls, profile. */
     public static void applyTabs(MainTabsLayout layout, GlassTabView[] tabs,
                                  boolean callsVisible, boolean animated) {

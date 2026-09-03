@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Заставка запуска: тот же знак, что и на иконке, — комета со следом.
+     Фон рисует тема (windowSplashScreenBackground), поэтому здесь только
+     сам знак на прозрачном холсте: система накладывает свою круглую маску. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="200dp"
+    android:height="200dp"
+    android:viewportWidth="200"
+    android:viewportHeight="200">
+    <group android:scaleX="0.86" android:scaleY="0.86"
+        android:pivotX="100" android:pivotY="100"
+        android:translateX="6">
+        <!-- След: две сужающиеся линии, вторая слабее — так читается движение. -->
+        <path
+            android:pathData="M44,148 C58,142 70,139 82,139"
+            android:strokeColor="#DABBD6FF"
+            android:strokeWidth="9"
+            android:strokeLineCap="round" />
+        <path
+            android:pathData="M40,124 C49,120 57,118 65,118"
+            android:strokeColor="#8CBBD6FF"
+            android:strokeWidth="7"
+            android:strokeLineCap="round" />
+        <!-- Сам знак: обводка того же цвета скругляет углы, как на иконке. -->
+        <path
+            android:pathData="M148,52 L96,138 L88,104 L54,96 Z"
+            android:fillColor="#FFEEF4FF"
+            android:strokeColor="#FFEEF4FF"
+            android:strokeWidth="13"
+            android:strokeLineJoin="round" />
+    </group>
+</vector>

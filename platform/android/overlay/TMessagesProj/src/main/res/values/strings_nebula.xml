@@ -59,4 +59,8 @@
     <string name="NebulaServerSort">Server order</string>
     <string name="NebulaSortDefault">Default (subscription order)</string>
     <string name="NebulaSortLatency">Lowest latency</string>
+    <string name="NebulaDone">Done</string>
+    <string name="NebulaSubsRefreshed">Subscriptions updated</string>
+    <string name="NebulaSubAdded">Subscription added</string>
+    <string name="NebulaSubRemoved">Subscription removed</string>
 </resources>

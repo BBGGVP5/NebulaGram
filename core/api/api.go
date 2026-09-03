@@ -15,6 +15,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"net/url"
 	"os"
 	"path/filepath"
 	"strings"
@@ -453,13 +454,29 @@ type subscriptionRequest struct {
 	Kind string `json:"kind"`
 }
 
+// subscriptionName даёт подписке имя до того, как панель сообщит своё:
+// адрес узла узнаваем, а слово "Subscription" в русском списке выглядело
+// недопереведённым — и одинаково у всех подписок сразу.
+func subscriptionName(raw string) string {
+	if parsed, err := url.Parse(raw); err == nil && parsed.Host != "" {
+		return parsed.Host
+	}
+	return "NebulaLink"
+}
+
 func (c *Core) handleSubscriptionAdd(payload []byte) (any, error) {
 	var req subscriptionRequest
 	if err := decode(payload, &req); err != nil {
 		return nil, err
 	}
+	// Пустой адрес рождал подписку, которая существует только чтобы показывать
+	// ошибку панели. Отказ на входе честнее, чем строка, которую нечем чинить.
+	req.URL = strings.TrimSpace(req.URL)
+	if req.URL == "" {
+		return nil, errors.New("nebulalink: the subscription address is empty")
+	}
 	sub := model.Subscription{
-		Name: orDefault(req.Name, "Subscription"),
+		Name: orDefault(req.Name, subscriptionName(req.URL)),
 		URL:  req.URL,
 		Kind: orDefault(req.Kind, "remnawave"),
 	}

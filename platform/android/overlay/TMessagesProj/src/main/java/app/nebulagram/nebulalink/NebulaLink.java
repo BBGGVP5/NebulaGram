@@ -140,6 +140,11 @@ public final class NebulaLink {
                         handleEvent(json);
                     }
                 });
+                if (wasConnected()) {
+                    // Молча: согласие пользователь дал, когда подключался, и
+                    // спрашивать заново на каждом запуске было бы навязчиво.
+                    callBlocking("tunnel.start", null);
+                }
             } catch (JSONException e) {
                 FileLog.e(e);
             }
@@ -177,6 +182,28 @@ public final class NebulaLink {
         }
     }
 
+    private static final String PREFS = "nebulagram";
+    private static final String KEY_WAS_CONNECTED = "tunnel_was_connected";
+
+    /** Был ли туннель поднят, когда приложение в прошлый раз закрылось. */
+    public static boolean wasConnected() {
+        try {
+            return ApplicationLoader.applicationContext
+                    .getSharedPreferences(PREFS, 0).getBoolean(KEY_WAS_CONNECTED, false);
+        } catch (Throwable e) {
+            return false;
+        }
+    }
+
+    private static void rememberConnected(boolean value) {
+        try {
+            ApplicationLoader.applicationContext.getSharedPreferences(PREFS, 0)
+                    .edit().putBoolean(KEY_WAS_CONNECTED, value).apply();
+        } catch (Throwable e) {
+            FileLog.e(e);
+        }
+    }
+
     /** Version of the linked core, for the About screen. */
     public static String version() {
         return Nebulalink.version();
@@ -194,6 +221,13 @@ public final class NebulaLink {
             }
             final String state = status.optString("state");
             final int socksPort = status.optInt("socks_port");
+            // Состояние переживает перезапуск: если процесс убили подключённым,
+            // события "disconnected" не будет — при следующем старте это видно.
+            if ("connected".equals(state)) {
+                rememberConnected(true);
+            } else if ("disconnected".equals(state)) {
+                rememberConnected(false);
+            }
             AndroidUtilities.runOnUIThread(() -> {
                 tunnelStatus = status;
                 if ("connected".equals(state) && socksPort > 0) {

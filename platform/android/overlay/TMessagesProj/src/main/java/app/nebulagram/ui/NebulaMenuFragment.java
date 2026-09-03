@@ -398,7 +398,7 @@ public class NebulaMenuFragment extends BaseFragment {
                 return;
             }
             NebulaLink.call(command, payload, result -> {
-                report(result.ok ? title : result.error);
+                report(result.ok ? LocaleController.getString(R.string.NebulaDone) : result.error);
                 if (result.ok) {
                     load();
                 }
@@ -431,7 +431,7 @@ public class NebulaMenuFragment extends BaseFragment {
         }
         NebulaLink.call(command, null, result -> {
             if (result.ok) {
-                report(title);
+                report(LocaleController.getString(R.string.NebulaDone));
                 load();
             } else {
                 report(result.error);

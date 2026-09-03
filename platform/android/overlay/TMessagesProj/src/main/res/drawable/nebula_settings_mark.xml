@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Знак NebulaGram для строки настроек. Сплошной силуэт в белом: и ячейка
+     настроек, и строка профиля перекрашивают значок под свою тему, поэтому
+     собственных цветов здесь быть не должно. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="200"
+    android:viewportHeight="200"
+    android:tint="#FFFFFFFF">
+    <group android:scaleX="0.92" android:scaleY="0.92"
+        android:pivotX="100" android:pivotY="100" android:translateX="4">
+        <path
+            android:pathData="M44,148 C58,142 70,139 82,139"
+            android:strokeColor="#FFFFFFFF"
+            android:strokeWidth="10"
+            android:strokeLineCap="round" />
+        <path
+            android:pathData="M148,52 L96,138 L88,104 L54,96 Z"
+            android:fillColor="#FFFFFFFF"
+            android:strokeColor="#FFFFFFFF"
+            android:strokeWidth="14"
+            android:strokeLineJoin="round" />
+    </group>
+</vector>

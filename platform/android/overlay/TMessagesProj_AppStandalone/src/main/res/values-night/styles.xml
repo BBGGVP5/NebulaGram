@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Экран запуска NebulaGram.
+
+     Перекрывает тему из библиотеки: там зашит фирменный синий Telegram и его
+     логотип, а приложение называется иначе и выглядит иначе. Имена ресурсов
+     совпадают с исходными, поэтому при сборке наши значения замещают их.
+     Фон один и в светлой, и в тёмной теме: знак светлый, на белом его не видно. -->
+<resources>
+    <style name="Theme.TMessages.Start" parent="Theme.AppCompat.DayNight">
+        <item name="android:windowActionBar">false</item>
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:actionBarStyle">@style/ActionBar.Transparent.TMessages.Start</item>
+        <item name="android:colorBackground">#0A317A</item>
+        <item name="android:windowBackground">#0A317A</item>
+        <item name="android:windowContentOverlay">@null</item>
+        <item name="android:colorPrimaryDark">#082657</item>
+        <item name="android:colorPrimary">#0A317A</item>
+        <item name="android:navigationBarColor">#000000</item>
+        <item name="android:forceDarkAllowed">false</item>
+        <item name="android:windowSplashScreenAnimatedIcon">@drawable/tg_splash_320</item>
+        <item name="android:windowSplashScreenAnimationDuration">@integer/splash_screen_duration</item>
+        <item name="android:windowSplashScreenBackground">#0A317A</item>
+    </style>
+</resources>

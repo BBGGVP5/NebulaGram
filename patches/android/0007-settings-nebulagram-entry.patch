@@ -40,7 +40,7 @@ index 40634647..2f775b74 100644
                          textCell.setColors(-1, Theme.key_text_RedRegular);
                          textCell.setColors(-1, Theme.key_text_RedRegular);
 +                    } else if (position == nebulaRow) { // NebulaGram
-+                        textCell.setTextAndValueAndIcon(LocaleController.getString(R.string.NebulaSettings), "", false, R.drawable.msg_secret, true);
++                        textCell.setTextAndValueAndIcon(LocaleController.getString(R.string.NebulaSettings), "", false, R.drawable.nebula_settings_mark, true);
 +                        textCell.setImageLeft(23);
                      } else if (position == languageRow) {
                          textCell.setTextAndValueAndIcon(LocaleController.getString(R.string.Language), LocaleController.getCurrentLanguageName(), false, R.drawable.msg2_language, false);

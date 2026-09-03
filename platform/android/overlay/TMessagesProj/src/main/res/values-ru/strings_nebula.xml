@@ -52,4 +52,8 @@
     <string name="NebulaServerSort">Сортировка серверов</string>
     <string name="NebulaSortDefault">По умолчанию (порядок подписки)</string>
     <string name="NebulaSortLatency">По наименьшему пингу</string>
+    <string name="NebulaDone">Готово</string>
+    <string name="NebulaSubsRefreshed">Подписки обновлены</string>
+    <string name="NebulaSubAdded">Подписка добавлена</string>
+    <string name="NebulaSubRemoved">Подписка удалена</string>
 </resources>

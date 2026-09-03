@@ -206,6 +206,13 @@ public final class NebulaTheme {
             if (current == null || current.accentColor == accent) {
                 return; // nothing to do, or already following the wallpaper
             }
+            // Запоминаем, каким акцент был до нас: иначе выключить Material You
+            // невозможно — цвет обоев уже сохранён в теме, и возвращать нечего.
+            SharedPreferences prefs =
+                    ApplicationLoader.applicationContext.getSharedPreferences(PREFS, 0);
+            if (!prefs.contains(KEY_SAVED_ACCENT)) {
+                prefs.edit().putInt(KEY_SAVED_ACCENT, current.accentColor).apply();
+            }
             current.accentColor = accent;
             // Сохраняем, а не только держим в памяти: при запуске из
             // уведомления Telegram применяет свою тему раньше, чем до нас
@@ -224,6 +231,7 @@ public final class NebulaTheme {
 
     private static final String PREFS = "nebulagram";
     private static final String KEY_MATERIAL_YOU = "material_you";
+    private static final String KEY_SAVED_ACCENT = "accent_before_material_you";
 
     /** Следовать ли палитре обоев. По умолчанию да — это и есть Material You. */
     public static boolean materialYouEnabled() {
@@ -237,8 +245,44 @@ public final class NebulaTheme {
     }
 
     public static void setMaterialYouEnabled(boolean value) {
-        ApplicationLoader.applicationContext.getSharedPreferences(PREFS, 0)
-                .edit().putBoolean(KEY_MATERIAL_YOU, value).apply();
+        SharedPreferences prefs =
+                ApplicationLoader.applicationContext.getSharedPreferences(PREFS, 0);
+        prefs.edit().putBoolean(KEY_MATERIAL_YOU, value).apply();
+        if (!value) {
+            restoreAccent(prefs);
+        }
+    }
+
+    /**
+     * Возвращает акцент, который стоял до Material You.
+     *
+     * <p>Без этого переключатель выглядел сломанным: он честно переставал
+     * красить, но цвет обоев оставался — Telegram хранит акцент в теме, а не
+     * пересчитывает его на каждом запуске.
+     */
+    private static void restoreAccent(SharedPreferences prefs) {
+        if (!prefs.contains(KEY_SAVED_ACCENT)) {
+            return;
+        }
+        try {
+            applying = true;
+            Theme.ThemeInfo active = Theme.getActiveTheme();
+            if (active == null) {
+                return;
+            }
+            Theme.ThemeAccent current = active.getAccent(false);
+            if (current == null) {
+                return;
+            }
+            current.accentColor = prefs.getInt(KEY_SAVED_ACCENT, current.accentColor);
+            Theme.saveThemeAccents(active, true, false, false, false);
+            Theme.refreshThemeColors();
+            prefs.edit().remove(KEY_SAVED_ACCENT).apply();
+        } catch (Throwable e) {
+            FileLog.e(e);
+        } finally {
+            applying = false;
+        }
     }
 
     /**

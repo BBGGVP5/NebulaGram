@@ -98,7 +98,7 @@ public class NebulaSubscriptionsFragment extends BaseFragment {
                 .icon(R.drawable.msg_retry)
                 .title(LocaleController.getString(R.string.nl_refresh))
                 .withClick(v -> NebulaLink.call("subscription.refreshAll", null, result -> {
-                    report(result.ok ? LocaleController.getString(R.string.nl_refresh) : result.error);
+                    report(result.ok ? LocaleController.getString(R.string.NebulaSubsRefreshed) : result.error);
                     load();
                 })));
         content.addView(actions, cardParams());
@@ -169,7 +169,7 @@ public class NebulaSubscriptionsFragment extends BaseFragment {
             }
             String command = which == 0 ? "subscription.refresh" : "subscription.remove";
             NebulaLink.call(command, payload, result -> {
-                report(result.ok ? name : result.error);
+                report(result.ok ? LocaleController.getString(R.string.NebulaDone) : result.error);
                 load();
             });
         });
@@ -205,7 +205,7 @@ public class NebulaSubscriptionsFragment extends BaseFragment {
                 return;
             }
             NebulaLink.call("subscription.add", payload, result -> {
-                report(result.ok ? LocaleController.getString(R.string.nl_add_sub) : result.error);
+                report(result.ok ? LocaleController.getString(R.string.NebulaSubAdded) : result.error);
                 load();
             });
         });
