@@ -76,25 +76,30 @@ public class NebulaIntroFragment extends BaseFragment {
         FrameLayout root = new FrameLayout(context);
         root.setBackgroundColor(theme.surface());
 
-        LinearLayout column = new LinearLayout(context);
-        column.setOrientation(LinearLayout.VERTICAL);
-        column.setPadding(AndroidUtilities.dp(22), 0, AndroidUtilities.dp(22), AndroidUtilities.dp(10));
-        root.addView(column, new FrameLayout.LayoutParams(
+        // Содержимое живёт по центру, кнопки прижаты к низу. Раньше всё висело
+        // сверху, и между текстом и кнопками зияла пустая половина экрана.
+        LinearLayout content = new LinearLayout(context);
+        content.setOrientation(LinearLayout.VERTICAL);
+        content.setGravity(Gravity.CENTER_VERTICAL);
+        content.setPadding(AndroidUtilities.dp(24), AndroidUtilities.dp(24),
+                AndroidUtilities.dp(24), AndroidUtilities.dp(160));
+        content.addView(buildMark(context, theme));
+        content.addView(buildTitle(context, theme));
+        content.addView(buildSubtitle(context, theme));
+        root.addView(content, new FrameLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
 
-        column.addView(buildMark(context, theme));
-        column.addView(buildTitle(context, theme));
-        column.addView(buildSubtitle(context, theme));
+        LinearLayout actions = new LinearLayout(context);
+        actions.setOrientation(LinearLayout.VERTICAL);
+        actions.setPadding(AndroidUtilities.dp(24), 0, AndroidUtilities.dp(24), AndroidUtilities.dp(12));
+        actions.addView(buildPrimaryAction(context));
+        actions.addView(buildLanguageAction(context));
+        actions.addView(NebulaProgress.build(context, STEPS, STEP_INDEX));
 
-        View spacer = new View(context);
-        column.addView(spacer, new LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f));
-
-        column.addView(buildPrimaryAction(context));
-        column.addView(buildLanguageAction(context));
-        // Material 3 puts the progress under the actions, not above the copy:
-        // it is a status line, not a heading.
-        column.addView(NebulaProgress.build(context, STEPS, STEP_INDEX));
+        FrameLayout.LayoutParams actionParams = new FrameLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        actionParams.gravity = Gravity.BOTTOM;
+        root.addView(actions, actionParams);
 
         return root;
     }
@@ -105,17 +110,16 @@ public class NebulaIntroFragment extends BaseFragment {
         view.setImageDrawable(mark);
 
         LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
-                AndroidUtilities.dp(132), AndroidUtilities.dp(132));
+                AndroidUtilities.dp(120), AndroidUtilities.dp(120));
         params.gravity = Gravity.CENTER_HORIZONTAL;
-        params.topMargin = AndroidUtilities.dp(40);
-        params.bottomMargin = AndroidUtilities.dp(24);
+        params.bottomMargin = AndroidUtilities.dp(28);
         view.setLayoutParams(params);
         return view;
     }
 
     private View buildTitle(Context context, NebulaTheme theme) {
         TextView title = new TextView(context);
-        title.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 26);
+        title.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 30);
         title.setTextColor(theme.onSurface());
         title.setLineSpacing(AndroidUtilities.dp(2), 1f);
 
@@ -135,14 +139,14 @@ public class NebulaIntroFragment extends BaseFragment {
 
     private View buildSubtitle(Context context, NebulaTheme theme) {
         TextView subtitle = new TextView(context);
-        subtitle.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 14);
+        subtitle.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 15);
         subtitle.setTextColor(theme.onSurfaceVariant());
         subtitle.setLineSpacing(AndroidUtilities.dp(3), 1f);
         subtitle.setText(LocaleController.getString(R.string.NebulaWelcomeSubtitle));
 
         LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        params.topMargin = AndroidUtilities.dp(10);
+        params.topMargin = AndroidUtilities.dp(12);
         subtitle.setLayoutParams(params);
         return subtitle;
     }

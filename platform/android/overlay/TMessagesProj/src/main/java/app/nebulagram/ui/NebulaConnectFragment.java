@@ -50,25 +50,32 @@ public class NebulaConnectFragment extends BaseFragment {
         FrameLayout root = new FrameLayout(context);
         root.setBackgroundColor(theme.surface());
 
-        LinearLayout column = new LinearLayout(context);
-        column.setOrientation(LinearLayout.VERTICAL);
-        column.setPadding(AndroidUtilities.dp(22), 0, AndroidUtilities.dp(22), AndroidUtilities.dp(10));
-        root.addView(column, new FrameLayout.LayoutParams(
+        // Как и на приветствии: содержимое по центру, действия внизу.
+        LinearLayout content = new LinearLayout(context);
+        content.setOrientation(LinearLayout.VERTICAL);
+        content.setGravity(Gravity.CENTER_VERTICAL);
+        content.setPadding(AndroidUtilities.dp(24), AndroidUtilities.dp(24),
+                AndroidUtilities.dp(24), AndroidUtilities.dp(160));
+        content.addView(buildMark(context, theme));
+        content.addView(buildTitle(context, theme));
+        content.addView(buildSubtitle(context, theme));
+        content.addView(buildInput(context, theme));
+        content.addView(buildHint(context, theme));
+        content.addView(buildStatus(context, theme));
+        root.addView(content, new FrameLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
 
-        column.addView(buildMark(context, theme));
-        column.addView(buildTitle(context, theme));
-        column.addView(buildSubtitle(context, theme));
-        column.addView(buildInput(context, theme));
-        column.addView(buildStatus(context, theme));
+        LinearLayout actions = new LinearLayout(context);
+        actions.setOrientation(LinearLayout.VERTICAL);
+        actions.setPadding(AndroidUtilities.dp(24), 0, AndroidUtilities.dp(24), AndroidUtilities.dp(12));
+        actions.addView(buildConnect(context));
+        actions.addView(buildSkip(context));
+        actions.addView(NebulaProgress.build(context, STEPS, STEP_INDEX));
 
-        View spacer = new View(context);
-        column.addView(spacer, new LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f));
-
-        column.addView(buildConnect(context));
-        column.addView(buildSkip(context));
-        column.addView(NebulaProgress.build(context, STEPS, STEP_INDEX));
+        FrameLayout.LayoutParams actionParams = new FrameLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        actionParams.gravity = Gravity.BOTTOM;
+        root.addView(actions, actionParams);
 
         return root;
     }
@@ -79,17 +86,16 @@ public class NebulaConnectFragment extends BaseFragment {
         view.setImageDrawable(mark);
 
         LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
-                AndroidUtilities.dp(96), AndroidUtilities.dp(96));
+                AndroidUtilities.dp(104), AndroidUtilities.dp(104));
         params.gravity = Gravity.CENTER_HORIZONTAL;
-        params.topMargin = AndroidUtilities.dp(36);
-        params.bottomMargin = AndroidUtilities.dp(20);
+        params.bottomMargin = AndroidUtilities.dp(26);
         view.setLayoutParams(params);
         return view;
     }
 
     private View buildTitle(Context context, NebulaTheme theme) {
         TextView title = new TextView(context);
-        title.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 26);
+        title.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 30);
         title.setTextColor(theme.onSurface());
         title.setText(LocaleController.getString(R.string.NebulaConnectTitle));
         return title;
@@ -97,7 +103,7 @@ public class NebulaConnectFragment extends BaseFragment {
 
     private View buildSubtitle(Context context, NebulaTheme theme) {
         TextView subtitle = new TextView(context);
-        subtitle.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 14);
+        subtitle.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 15);
         subtitle.setTextColor(theme.onSurfaceVariant());
         subtitle.setLineSpacing(AndroidUtilities.dp(3), 1f);
         subtitle.setText(LocaleController.getString(R.string.NebulaConnectSubtitle));
@@ -131,6 +137,22 @@ public class NebulaConnectFragment extends BaseFragment {
         params.topMargin = AndroidUtilities.dp(20);
         input.setLayoutParams(params);
         return input;
+    }
+
+    /** Что принимает поле — иначе непонятно, откуда брать ссылку. */
+    private View buildHint(Context context, NebulaTheme theme) {
+        TextView hint = new TextView(context);
+        hint.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 13);
+        hint.setTextColor(theme.onSurfaceVariant());
+        hint.setText("Remnawave и обычные подписки · VLESS, VMess, Trojan, Shadowsocks, Hysteria2, TUIC");
+        hint.setLineSpacing(AndroidUtilities.dp(2), 1f);
+
+        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        params.topMargin = AndroidUtilities.dp(12);
+        params.leftMargin = AndroidUtilities.dp(4);
+        hint.setLayoutParams(params);
+        return hint;
     }
 
     private View buildStatus(Context context, NebulaTheme theme) {
