@@ -13,3 +13,7 @@
 *.dat binary
 *.keystore binary
 *.ico binary
+
+# Строка контекста для пустой строки в unified diff — один пробел.
+# Это синтаксис патча, а не пробел в исходном коде.
+patches/android/*.patch whitespace=-trailing-space

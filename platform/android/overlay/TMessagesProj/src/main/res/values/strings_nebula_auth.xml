@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <item type="id" name="nebula_auth_step" />
+    <string name="NebulaAuthWelcomeTitle">A little closer.\nWith NebulaGram.</string>
+    <string name="NebulaAuthWelcomeSubtitle">Your conversations, familiar Telegram features and a connection that stays with you.</string>
+    <string name="NebulaAuthWelcomeFeature">NebulaLink inside</string>
+    <string name="NebulaAuthWelcomeFeatureSub">Connect your subscription here, then sign in to your account.</string>
+    <string name="NebulaAuthStart">Get started</string>
+    <string name="NebulaAuthLinkTitle">Your connection</string>
+    <string name="NebulaAuthLinkSubtitle">Add a subscription or server key to connect through NebulaLink. You can also continue directly.</string>
+    <string name="NebulaAuthLinkField">Subscription or server key</string>
+    <string name="NebulaAuthLinkHint">Paste a link</string>
+    <string name="NebulaAuthLinkFormats">Subscriptions and server keys · VLESS, VMess, Trojan, Shadowsocks, Hysteria2, TUIC</string>
+    <string name="NebulaAuthLinkOptional">You can change your connection later in NebulaGram Settings.</string>
+    <string name="NebulaAuthDirectAction">Continue without NebulaLink</string>
+    <string name="NebulaAuthRouteConnected">NebulaLink connected</string>
+    <string name="NebulaAuthRouteDirect">Direct connection</string>
+    <string name="NebulaAuthPhoneEyebrow">YOUR ACCOUNT</string>
+    <string name="NebulaAuthCodeEyebrow">CONFIRM IT IS YOU</string>
+    <string name="NebulaAuthPasswordEyebrow">ONE MORE STEP</string>
+    <string name="NebulaAuthPasswordTitle">Your password</string>
+    <string name="NebulaAuthPhoneTitle">Your phone number</string>
+    <string name="NebulaAuthSignIn">Sign in</string>
+</resources>

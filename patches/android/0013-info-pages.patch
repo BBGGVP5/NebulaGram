@@ -1,0 +1,287 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
+@@ -3877,7 +3877,7 @@
+                 }
+             });
+ 
+-            actionsView = new ProfileActionsView(context, dp(74));
++            actionsView = app.nebulagram.ui.NebulaProfileStyle.actions(context, dp(74), resourcesProvider); // NebulaGram
+             setActionsMode();
+             updateNotifications(false);
+ 
+@@ -4218,7 +4218,7 @@
+                 updateBottomButtonY();
+             }
+         };
+-        listView.setSections();
++        app.nebulagram.ui.NebulaProfileStyle.sections(listView, resourcesProvider); // NebulaGram
+         listView.applyPaddingToSections = false;
+         listView.setBackgroundColor(getThemedColor(Theme.key_windowBackgroundGray));
+         listView.setVerticalScrollBarEnabled(false);
+@@ -5232,10 +5232,14 @@
+         };
+         avatarContainer2 = new FrameLayout(context) {
+ 
++            final app.nebulagram.ui.NebulaProfileArt.Hero nebulaHero = new app.nebulagram.ui.NebulaProfileArt.Hero();
+             CanvasButton canvasButton;
+ 
+             @Override
+             protected void dispatchDraw(Canvas canvas) {
++                if (!isInLandscapeMode) {
++                    nebulaHero.draw(canvas, getWidth(), avatarContainer, nameTextView[1], onlineTextView[1], calculateHeaderExtraDiff(), currentExpandAnimatorValue, mediaHeaderAnimationProgress, openAnimationInProgress ? avatarAnimationProgress : 1f, resourcesProvider);
++                }
+                 super.dispatchDraw(canvas);
+                 if (transitionOnlineText != null) {
+                     canvas.save();
+@@ -6025,9 +6029,9 @@
+ 
+     private int getHeaderOnlyExtraHeight() {
+         if (getActionsExtraHeight() == 0) {
+-            return dp(168f);
+-        }
+-        return dp(152f);
++            return dp(168f) + app.nebulagram.ui.NebulaProfileStyle.titleSpacing(isInLandscapeMode);
++        }
++        return dp(152f) + app.nebulagram.ui.NebulaProfileStyle.titleSpacing(isInLandscapeMode);
+     }
+ 
+     private int getActionsExtraHeight() {
+@@ -6377,8 +6381,8 @@
+         onlineTextView[1].setTextColor(ColorUtils.blendARGB(applyPeerColor(statusColor, true, online), 0xB3FFFFFF, value));
+         if (extraHeight > getHeaderOnlyExtraHeight()) {
+             nameTextView[1].setPivotY(AndroidUtilities.lerp(0, nameTextView[1].getMeasuredHeight(), value));
+-            nameTextView[1].setScaleX(AndroidUtilities.lerp(1f + 0.12f * diff, 1.38f, value));
+-            nameTextView[1].setScaleY(AndroidUtilities.lerp(1f + 0.12f * diff, 1.38f, value));
++            nameTextView[1].setScaleX(AndroidUtilities.lerp(app.nebulagram.ui.NebulaProfileStyle.titleScale(diff, isInLandscapeMode), 1.38f, value));
++            nameTextView[1].setScaleY(AndroidUtilities.lerp(app.nebulagram.ui.NebulaProfileStyle.titleScale(diff, isInLandscapeMode), 1.38f, value));
+         }
+         needLayoutText(Math.min(1f, diff));
+ 
+@@ -8716,7 +8720,7 @@
+                 if (giftsView != null) {
+                     giftsView.setCollapseProgress(diff, openAnimationInProgress);
+                 }
+-                final float nameScale = 1.0f + 0.12f * diff;
++                final float nameScale = app.nebulagram.ui.NebulaProfileStyle.titleScale(diff, isInLandscapeMode);
+                 if (expandAnimator == null || !expandAnimator.isRunning()) {
+                     avatarContainer.setScaleX(avatarScale);
+                     avatarContainer.setScaleY(avatarScale);
+@@ -8741,7 +8745,7 @@
+                 }
+                 final float avatarBottom = (float) Math.floor(endNameY) + (avatarContainer.getHeight() * avatarContainer.getScaleY() + dpf2(8)) * (openAnimationInProgress ? avatarAnimationProgress : diff);
+                 nameY = avatarBottom + dp(1.3f) + dp(7) * diff + titleAnimationsYDiff * (1f - avatarAnimationProgress);
+-                onlineY = avatarBottom + dp(24) + (float) Math.floor(11 * AndroidUtilities.density) * diff;
++                onlineY = avatarBottom + dp(24) + ((float) Math.floor(11 * AndroidUtilities.density) + app.nebulagram.ui.NebulaProfileStyle.titleSpacing(isInLandscapeMode)) * diff;
+                 final float minimizedX = openAnimationInProgress ? (prevAvatarTranslation - dp(109) + dp(48)) : -dpf2(42 + 4);
+ 
+                 if (showStatusButton != null) {
+@@ -8834,7 +8838,7 @@
+ 
+         needLayoutText(1f);
+ 
+-        float nameScale = 1.0f + 0.12f;
++        float nameScale = app.nebulagram.ui.NebulaProfileStyle.titleScale(1f, isInLandscapeMode);
+         for (int a = 0; a < nameTextView.length; a++) {
+             if (nameTextView[a] == null) {
+                 continue;
+@@ -8938,10 +8942,10 @@
+         if (extraHeight > getHeaderExtraHeight() || expandAnimator != null && expandAnimator.isRunning()) {
+             minScale = maxScale = nameTextView[1].getScaleX();
+         } else if (diff >= 1f){
+-            minScale = maxScale = Math.max(nameTextView[1].getScaleX(), 1.12f);
++            minScale = maxScale = Math.max(nameTextView[1].getScaleX(), app.nebulagram.ui.NebulaProfileStyle.titleScale(1f, isInLandscapeMode));
+         } else {
+             minScale = 1f;
+-            maxScale = 1.12f;
++            maxScale = app.nebulagram.ui.NebulaProfileStyle.titleScale(1f, isInLandscapeMode);
+         }
+ 
+         int viewWidth = AndroidUtilities.isTablet() ? AndroidUtilities.dp(490) : AndroidUtilities.displaySize.x;
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatEditActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ChatEditActivity.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/ChatEditActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/ChatEditActivity.java
+@@ -1615,6 +1615,7 @@
+         }
+         setAvatar();
+         updateFields(true, false);
++        app.nebulagram.ui.NebulaProfileStyle.editor(scrollView, linearLayout, avatarContainer, nameTextView.getEditText(), descriptionTextView, resourceProvider); // NebulaGram
+ 
+         return fragmentView;
+     }
+@@ -2762,7 +2763,7 @@
+     @Override
+     public void onInsets(int left, int top, int right, int bottom) {
+         if (linearLayout != null) {
+-            linearLayout.setPadding(dp(12), dp(4), dp(12), dp(12) + bottom);
++            app.nebulagram.ui.NebulaProfileStyle.editorInsets(linearLayout, left, right, bottom); // NebulaGram
+         }
+         if (undoView != null) {
+             undoView.setTranslationY(-bottom);
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatUsersActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ChatUsersActivity.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/ChatUsersActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/ChatUsersActivity.java
+@@ -773,7 +773,7 @@
+                 }
+             }
+         };
+-        listView.setSections();
++        app.nebulagram.ui.NebulaProfileStyle.sections(listView, getResourceProvider()); // NebulaGram
+         listView.setLayoutManager(layoutManager = new LinearLayoutManager(context, LinearLayoutManager.VERTICAL, false) {
+             @Override
+             public int scrollVerticallyBy(int dy, RecyclerView.Recycler recycler, RecyclerView.State state) {
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ThemeActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ThemeActivity.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/ThemeActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/ThemeActivity.java
+@@ -1096,7 +1096,11 @@
+         fragmentView = frameLayout;
+ 
+         listView = new RecyclerListView(context);
+-        listView.setSections();
++        if (currentType == THEME_TYPE_BASIC) {
++            app.nebulagram.ui.NebulaProfileStyle.sections(listView, getResourceProvider()); // NebulaGram
++        } else {
++            listView.setSections();
++        }
+         listView.setLayoutManager(layoutManager = new LinearLayoutManager(context, LinearLayoutManager.VERTICAL, false));
+         listView.setVerticalScrollBarEnabled(false);
+         listView.setAdapter(listAdapter);
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/SharedMediaLayout.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/SharedMediaLayout.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Components/SharedMediaLayout.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/SharedMediaLayout.java
+@@ -7383,7 +7383,9 @@
+             }
+             final boolean photos = mediaPages[a].selectedType == TAB_PHOTOVIDEO || isAnyStoryPageType(mediaPages[a].selectedType);
+             mediaPages[a].progressView.setLayoutParams(LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT, Gravity.FILL, photos ? 0 : 12, 48 + (photos ? 8 : 12), photos ? 0 : 12, photos ? 0 : 12));
+-            if (sections) {
++            if (sections && viewType == VIEW_TYPE_PROFILE_ACTIVITY) {
++                app.nebulagram.ui.NebulaProfileStyle.sections(mediaPages[a].listView, resourcesProvider); // NebulaGram
++            } else if (sections) {
+                 mediaPages[a].listView.setSections(false);
+             } else {
+                 mediaPages[a].listView.disableSections();
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/SectionsScrollView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/SectionsScrollView.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Components/SectionsScrollView.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/SectionsScrollView.java
+@@ -57,18 +57,32 @@
+ 
+         contentView.setPadding(dp(12), dp(enableTopPadding ? 12 : 4), dp(12), dp(12));
+ 
++        setSectionRadius(dp(16));
++    }
++
++    // NebulaGram: instance-local geometry; other screens keep the upstream radius.
++    public void setSectionRadius(float radius) {
++        sectionRadius = Math.max(0, radius);
+         this.sectionRadiusTop = new float[] {
+-            dp(16), dp(16),
+-            dp(16), dp(16),
++            sectionRadius, sectionRadius,
++            sectionRadius, sectionRadius,
+             0, 0,
+             0, 0
+         };
+         this.sectionRadiusBottom = new float[] {
+             0, 0,
+             0, 0,
+-            dp(16), dp(16),
+-            dp(16), dp(16)
++            sectionRadius, sectionRadius,
++            sectionRadius, sectionRadius
+         };
++        invalidate();
++        contentView.invalidate();
++    }
++
++    private org.telegram.messenger.Utilities.Callback5<Canvas, android.graphics.RectF, Float, Float, Float> sectionBackground;
++    public void setSectionBackground(org.telegram.messenger.Utilities.Callback5<Canvas, android.graphics.RectF, Float, Float, Float> drawing) {
++        sectionBackground = drawing;
++        invalidate();
+     }
+ 
+     private ArrayList<Runnable> onScroll = new ArrayList<>();
+@@ -149,12 +163,16 @@
+ 
+         AndroidUtilities.rectTmp.set(
+             contentView.getX() + getChildX(from),
+-            Math.max(getScrollY() - dp(16), contentView.getY() + getChildY(from) - fromTopMargin),
++            Math.max(getScrollY() - sectionRadius, contentView.getY() + getChildY(from) - fromTopMargin),
+             contentView.getX() + getChildX(from) + from.getWidth(),
+-            Math.min(getHeight() + dp(16) + getScrollY(), contentView.getY() + getChildY(to) + to.getHeight() + toBottomMargin)
++            Math.min(getHeight() + sectionRadius + getScrollY(), contentView.getY() + getChildY(to) + to.getHeight() + toBottomMargin)
+         );
+         if (AndroidUtilities.rectTmp.bottom < AndroidUtilities.rectTmp.top) return;
+-        RecyclerListView.drawBackgroundRect(canvas, AndroidUtilities.rectTmp, dp(16), dp(16), from.getAlpha(), resourcesProvider);
++        if (sectionBackground != null) {
++            sectionBackground.run(canvas, AndroidUtilities.rectTmp, sectionRadius, sectionRadius, from.getAlpha());
++        } else {
++            RecyclerListView.drawBackgroundRect(canvas, AndroidUtilities.rectTmp, sectionRadius, sectionRadius, from.getAlpha(), resourcesProvider);
++        }
+     }
+ 
+     @Override
+@@ -182,9 +200,9 @@
+ 
+         AndroidUtilities.rectTmp.set(
+             child.getX(),
+-            Math.max(getScrollY() - dp(16), contentView.getY() + child.getY()),
++            Math.max(getScrollY() - sectionRadius, contentView.getY() + child.getY()),
+             child.getX() + child.getWidth(),
+-            Math.min(getHeight() + getScrollY() + dp(16), contentView.getY() + child.getY() + child.getHeight())
++            Math.min(getHeight() + getScrollY() + sectionRadius, contentView.getY() + child.getY() + child.getHeight())
+         );
+         if (prev && next) {
+             prev = child.getY() >= AndroidUtilities.rectTmp.top;
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ProfileActionsView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ProfileActionsView.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ProfileActionsView.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ProfileActionsView.java
+@@ -324,6 +324,7 @@
+                         shaderPaint.setAlpha(wasAlpha2);
+                     }
+                     paint.setAlpha(wasAlpha);
++                    drawActionSurface(canvas, AndroidUtilities.rectTmp, action.key, r, action.getAlpha() * alphaFraction1); // NebulaGram
+                 }
+             }
+         }
+@@ -415,10 +416,11 @@
+             useFilledWhiteIcon = 0f;
+         }
+ 
+-        final int textColor = ColorUtils.blendARGB(Color.BLACK, Color.WHITE, useFilledWhiteIcon);
+-        if (lastColorFilter == null || lastColorFilterColor != textColor) {
+-            lastColorFilterColor = textColor;
+-            lastColorFilter = new PorterDuffColorFilter(textColor, PorterDuff.Mode.SRC_IN);
++        final int textColor = actionTextColor(ColorUtils.blendARGB(Color.BLACK, Color.WHITE, useFilledWhiteIcon));
++        final int iconColor = actionIconColor(textColor, action.key);
++        if (lastColorFilter == null || lastColorFilterColor != iconColor) {
++            lastColorFilterColor = iconColor;
++            lastColorFilter = new PorterDuffColorFilter(iconColor, PorterDuff.Mode.SRC_IN);
+         }
+ 
+         canvas.save();
+@@ -430,8 +432,9 @@
+         canvas.clipRect(action.rect);
+ 
+         updateBounds(action);
+-
+-        final float textY = action.bounds.bottom + action.bounds.top - action.text.getHeight() * action.textScale / 2.0f - dp(4.66f);
++        drawActionIconBackground(canvas, action.bounds, action.key, action.text.getLineCount(), alpha);
++
++        final float textY = actionTextY(action.bounds.bottom + action.bounds.top - action.text.getHeight() * action.textScale / 2.0f - dp(4.66f), action.text.getLineCount());
+         canvas.save();
+         canvas.scale(action.textScale, action.textScale, cx, textY + action.text.getHeight() * action.textScale / 2.0f);
+         action.text.draw(canvas, cx - action.text.getWidth() / 2f, textY, textColor, alpha);
+@@ -508,6 +511,13 @@
+             action.loadingDrawable.draw(canvas);
+         }
+     }
++
++    // NebulaGram: drawing extension points; native actions and geometry stay owned here.
++    protected void drawActionSurface(Canvas canvas, RectF rect, int key, float radius, float alpha) { }
++    protected void drawActionIconBackground(Canvas canvas, Rect bounds, int key, int lines, float alpha) { }
++    protected int actionTextColor(int color) { return color; }
++    protected int actionIconColor(int color, int key) { return color; }
++    protected float actionTextY(float y, int lines) { return y; }
+ 
+     public float getRoundRadius() {
+         return dp(16);

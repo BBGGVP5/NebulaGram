@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="NebulaAuthWelcomeTitle">Ближе друг к другу.\nС NebulaGram.</string>
+    <string name="NebulaAuthWelcomeSubtitle">Ваши разговоры, привычные возможности Telegram и подключение, которое всегда рядом.</string>
+    <string name="NebulaAuthWelcomeFeature">NebulaLink внутри</string>
+    <string name="NebulaAuthWelcomeFeatureSub">Подключите свою подписку прямо здесь, а затем войдите в аккаунт.</string>
+    <string name="NebulaAuthStart">Начать общение</string>
+    <string name="NebulaAuthLinkTitle">Ваше подключение</string>
+    <string name="NebulaAuthLinkSubtitle">Добавьте подписку или ключ сервера для подключения через NebulaLink. Можно продолжить и напрямую.</string>
+    <string name="NebulaAuthLinkField">Подписка или ключ сервера</string>
+    <string name="NebulaAuthLinkHint">Вставьте ссылку</string>
+    <string name="NebulaAuthLinkFormats">Подписки и ключи серверов · VLESS, VMess, Trojan, Shadowsocks, Hysteria2, TUIC</string>
+    <string name="NebulaAuthLinkOptional">Позже подключение можно изменить в настройках NebulaGram.</string>
+    <string name="NebulaAuthDirectAction">Продолжить без NebulaLink</string>
+    <string name="NebulaAuthRouteConnected">NebulaLink подключён</string>
+    <string name="NebulaAuthRouteDirect">Прямое подключение</string>
+    <string name="NebulaAuthPhoneEyebrow">ВАШ АККАУНТ</string>
+    <string name="NebulaAuthCodeEyebrow">ПОДТВЕРДИТЕ ВХОД</string>
+    <string name="NebulaAuthPasswordEyebrow">ЕЩЁ ОДИН ШАГ</string>
+    <string name="NebulaAuthPasswordTitle">Ваш пароль</string>
+    <string name="NebulaAuthPhoneTitle">Ваш номер телефона</string>
+    <string name="NebulaAuthSignIn">Войти</string>
+</resources>

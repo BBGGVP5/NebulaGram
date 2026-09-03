@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="NebulaIosComposer">iOS-style message bar</string>
+    <string name="NebulaIosComposerInfo">Separate attachment and voice buttons. Turn off to use the standard Telegram bar.</string>
+    <string name="NebulaFloatingHeader">Floating chat header</string>
+    <string name="NebulaFloatingHeaderInfo">Round back and menu buttons, with the chat title above the wallpaper.</string>
+    <string name="NebulaProfileStyle">Updated chat information</string>
+    <string name="NebulaProfileStyleInfo">Matching rounded cards for profiles, members and chat settings.</string>
+</resources>

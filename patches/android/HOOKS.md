@@ -12,19 +12,22 @@
 | `0003-standalone-abi-splits.patch` | `TMessagesProj_AppStandalone/build.gradle` | defaultConfig.versionCode; applicationVariants.all | Разделяет APK по архитектурам | +51 / −0 |
 | `0004-launch-show-welcome.patch` | `LaunchActivity.java` | перед return new IntroActivity() | Показывает приветствие NebulaGram | +3 / −0 |
 | `0005-hide-managed-proxy.patch` | `ProxyListActivity.java` | updateRows; ListAdapter | Скрывает служебный прокси и его настройки при активном туннеле | +30 / −2 |
-| `0006-login-typography.patch` | `LoginActivity.java` | после сборки views | Оформляет экраны входа | +2 / −0 |
+| `0006-login-typography.patch` | `LoginActivity.java; OutlineTextContainerView.java; CodeFieldContainer.java` | создание экранов и нижней кнопки | Оформляет номер, код и пароль поверх нативной логики Telegram | +50 / −15 |
 | `0007-settings-nebulagram-entry.patch` | `ProfileActivity.java` | строки рядом с languageRow | Вход в NebulaGram из прежних настроек | +11 / −2 |
 | `0008-dialogs-bottom-bar.patch` | `MainTabsActivity.java; DialogsActivity.java` | onResume; checkUi_callTabVisible; checkUi_tabsPosition; checkUi_fadeView; checkUi_menuItems | Настраивает штатные вкладки, вход в боковую панель и отступы | +20 / −6 |
 | `0009-call-permission-prompt.patch` | `DialogsActivity.java` | после успешного startActivity в запросах разрешения | Запоминает переход в настройки полноэкранных звонков Android и экрана блокировки MIUI | +3 / −0 |
 | `0010-main-settings-nebulagram-entry.patch` | `SettingsActivity.java` | fillItems; onClick | Первый пункт «Настройки NebulaGram» в новой вкладке настроек | +4 / −0 |
+| `0011-chat-chrome.patch` | `ChatActivity.java; ChatActivityEnterView.java; ChatInputViewsContainer.java; ActionBar.java` | создание/измерение поля ввода; фон action bar | Добавляет переключаемые iOS-панель сообщения и плавающую шапку чата, используя штатные контролы | +43 / −6 |
+| `0013-info-pages.patch` | `ProfileActivity.java; ChatEditActivity.java; ChatUsersActivity.java; ThemeActivity.java; SharedMediaLayout.java; SectionsScrollView.java; ProfileActionsView.java` | создание секций и карточек действий | Обновляет экраны информации и редактирования чата без замены адаптеров и обработчиков | +77 / −38 |
 
 Java-файлы находятся в `TMessagesProj/src/main/java/org/telegram/ui/`,
 кроме `ApplicationLoader.java` — он находится в `org/telegram/messenger/`.
 
-**Самый уязвимый патч — седьмой.** `ProfileActivity` это 17 тысяч строк, которые
-меняются каждый релиз, и строка списка там прописывается в семи местах сразу.
-Ночная проверка поймает поломку в день выхода новой версии; чинится добавлением
-тех же семи вставок по образцу соседней строки `languageRow`.
+**Самые уязвимые патчи — 0011 и 0013.** `ChatActivity` и `ProfileActivity`
+крупные и часто меняются в апстриме. Ночная проверка поймает поломку в день
+выхода новой версии; при обновлении надо перенести только вызовы оформителя,
+ориентируясь на соседние штатные блоки, а не копировать в них собственную
+логику Telegram.
 
 Логика новых экранов остаётся в оверлее. Патч навигации управляет штатными
 вкладками Telegram: в DialogsActivity больше не вставляется вторая панель.
@@ -44,14 +47,26 @@ Java-файлы находятся в `TMessagesProj/src/main/java/org/telegram/
 системных настроек. Проверка разрешения Android сохраняется. См.
 [Android 14: full-screen intents](https://developer.android.com/about/versions/14/behavior-changes-14#secure-fsi).
 
-Про экраны входа отдельно. Полностью своя вёрстка там невозможна без риска
-сломать вход: `PhoneView` и `LoginActivitySmsView` — внутренние классы
-`LoginActivity`, работающие с его приватным состоянием, а завершение
-авторизации `onAuthSuccess` приватно и заканчивается `needFinishActivity` на
-самом фрагменте, то есть снаружи не вызывается. Поэтому хук отдаёт уже
-собранные вью оформителю, который правит их по типу элемента, не касаясь ни
-логики, ни приватных полей. Если апстрим перестроит разметку, оформитель
-найдёт меньше элементов, и экран останется штатным.
+Про экраны входа отдельно. `PhoneView` и `LoginActivitySmsView` остаются
+внутренними классами `LoginActivity`, поэтому оформление получает уже
+собранные поля, OTP, пароль, кнопку и клавиатуру. Оно меняет только вёрстку:
+все слушатели, SMS-retriever, автозаполнение, повторная отправка, восстановление
+пароля и завершение авторизации остаются в Telegram. Хук включается лишь для
+обычного входа и поддерживаемых шагов; остальные сценарии используют штатный
+экран. Если апстрим перестроит разметку, это ограничит внешний вид, а не
+доступ к авторизации.
+
+Панель сообщения не подменяет `ChatActivityEnterView`: новая отрисовка лишь
+разделяет его штатный размытый фон на три поверхности и раскладывает уже
+существующие кнопки. Короткое нажатие на микрофон всё ещё переключает видео,
+а удержание, отмена и блокировка записи остаются в исходном обработчике.
+Стиль пропускает запись, редактирование, ботов и другие переходные состояния;
+переключатель в «Настройках NebulaGram» возвращает стандартный вид.
+
+Карточки информации также используют исходные списки, действия, роли,
+переходы к медиа и проверки прав. В оверлее находятся только фон, заголовок
+и акценты; на экранах чата и настроек можно вернуть стандартный вид отдельными
+переключателями.
 
 Оформление строки NebulaLink и её подписка на состояние остаются в оверлее
 `NebulaLinkRow`; добавление пунктов внутри «Настроек NebulaGram» не требует

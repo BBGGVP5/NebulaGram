@@ -113,6 +113,32 @@ public class NebulaSettingsFragment extends BaseFragment {
                 .checked(NebulaLoginStyle.enabled());
         login.setOnClickListener(v -> NebulaLoginStyle.setEnabled(login.toggleChecked()));
         look.add(login);
+        NebulaRow composer = new NebulaRow(context)
+                .icon(R.drawable.msg_edit)
+                .title(LocaleController.getString(R.string.NebulaIosComposer))
+                .subtitle(LocaleController.getString(R.string.NebulaIosComposerInfo), false)
+                .trailing(NebulaRow.TRAIL_SWITCH)
+                .checked(NebulaAppearance.iosComposer());
+        composer.setOnClickListener(v -> NebulaAppearance.setIosComposer(composer.toggleChecked()));
+        look.add(composer);
+
+        NebulaRow header = new NebulaRow(context)
+                .icon(R.drawable.msg_customize)
+                .title(LocaleController.getString(R.string.NebulaFloatingHeader))
+                .subtitle(LocaleController.getString(R.string.NebulaFloatingHeaderInfo), false)
+                .trailing(NebulaRow.TRAIL_SWITCH)
+                .checked(NebulaAppearance.chatHeader());
+        header.setOnClickListener(v -> NebulaAppearance.setChatHeader(header.toggleChecked()));
+        look.add(header);
+
+        NebulaRow information = new NebulaRow(context)
+                .icon(R.drawable.msg_info)
+                .title(LocaleController.getString(R.string.NebulaProfileStyle))
+                .subtitle(LocaleController.getString(R.string.NebulaProfileStyleInfo), false)
+                .trailing(NebulaRow.TRAIL_SWITCH)
+                .checked(NebulaAppearance.profileStyle());
+        information.setOnClickListener(v -> NebulaAppearance.setProfileStyle(information.toggleChecked()));
+        look.add(information);
         content.addView(look, cardParams());
 
         // Настройки штатных вкладок и отдельной боковой панели.
