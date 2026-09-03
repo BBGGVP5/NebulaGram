@@ -1,8 +1,139 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
+index 0a9ed5a9..03b5c6d5 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
+@@ -207,6 +207,57 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
+         this.chatAvatarContainer = chatAvatarContainer;
+     }
+ 
++    /**
++     * The ordinary chat keeps Telegram's original avatar container.  The
++     * optional Nebula header uses the same container only while its centred
++     * glass layout is enabled, so turning the style off is a real restore.
++     */
++    private ChatAvatarContainer nebulaChatAvatarContainer;
++    private int nebulaAvatarWidth = Integer.MIN_VALUE;
++    private int nebulaAvatarLeftMargin;
++    private int nebulaAvatarRightMargin;
++
++    public void setNebulaChatAvatarContainer(ChatAvatarContainer container) {
++        if (nebulaChatAvatarContainer == container) return;
++        restoreNebulaAvatarLayout();
++        nebulaChatAvatarContainer = container;
++        updateNebulaAvatarLayout();
++    }
++
++    private void updateNebulaAvatarLayout() {
++        if (nebulaChatAvatarContainer == null) return;
++        FrameLayout.LayoutParams params = (FrameLayout.LayoutParams) nebulaChatAvatarContainer.getLayoutParams();
++        if (params == null) return;
++        if (nebulaFloatingChatHeader) {
++            if (nebulaAvatarWidth == Integer.MIN_VALUE) {
++                nebulaAvatarWidth = params.width;
++                nebulaAvatarLeftMargin = params.leftMargin;
++                nebulaAvatarRightMargin = params.rightMargin;
++            }
++            params.width = ViewGroup.LayoutParams.MATCH_PARENT;
++            params.leftMargin = dp(58);
++            params.rightMargin = dp(58);
++            nebulaChatAvatarContainer.setNebulaCenteredTitle(true);
++            nebulaChatAvatarContainer.setLayoutParams(params);
++        } else {
++            restoreNebulaAvatarLayout();
++        }
++        requestLayout();
++    }
++
++    private void restoreNebulaAvatarLayout() {
++        if (nebulaChatAvatarContainer == null || nebulaAvatarWidth == Integer.MIN_VALUE) return;
++        FrameLayout.LayoutParams params = (FrameLayout.LayoutParams) nebulaChatAvatarContainer.getLayoutParams();
++        if (params != null) {
++            params.width = nebulaAvatarWidth;
++            params.leftMargin = nebulaAvatarLeftMargin;
++            params.rightMargin = nebulaAvatarRightMargin;
++            nebulaChatAvatarContainer.setNebulaCenteredTitle(false);
++            nebulaChatAvatarContainer.setLayoutParams(params);
++        }
++        nebulaAvatarWidth = Integer.MIN_VALUE;
++    }
++
+     public void setupGlass(BlurredBackgroundDrawableViewFactory factory, BlurredBackgroundColorProvider colorProvider) {
+         setupGlass(factory, colorProvider, false);
+     }
+@@ -2217,6 +2268,15 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
+     }
+ 
+     public boolean doNotDrawGlassMenu;
++    private boolean nebulaFloatingChatHeader;
++
++    public void setNebulaFloatingChatHeader(boolean enabled) {
++        if (nebulaFloatingChatHeader != enabled) {
++            nebulaFloatingChatHeader = enabled;
++            updateNebulaAvatarLayout();
++            invalidate();
++        }
++    }
+ 
+     @Override
+     protected void dispatchDraw(Canvas canvas) {
+@@ -2240,7 +2300,19 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
+             final int rightDefault = getWidth() - rightOffset;
+             final int widthDefault = rightDefault - leftDefault;
+             final int left, right;
+-            if (chatAvatarContainer != null) {
++            final ChatAvatarContainer centeredNebulaAvatar = nebulaFloatingChatHeader
++                    && actionModeFactor == 0f && searchFactor == 0f ? nebulaChatAvatarContainer : null;
++            if (centeredNebulaAvatar != null) {
++                // The title, subtitle and image have independent places: a
++                // compact real glass capsule stays centred, while the avatar
++                // remains a reachable round control at the trailing edge.
++                final int width = Math.min(widthDefault,
++                        Math.max(dp(138), centeredNebulaAvatar.getNebulaCenteredHeaderWidth()));
++                left = (getWidth() - width) / 2;
++                right = left + width;
++                centeredNebulaAvatar.setTranslationX(0);
++                centeredNebulaAvatar.setPivotX(centeredNebulaAvatar.getMeasuredWidth() / 2f);
++            } else if (chatAvatarContainer != null) {
+                 final int width = lerp(Math.min(widthDefault, (int) animatorAvatarContainerWidth.getFactor() + p * 2), widthDefault, Math.max(searchFactor, actionModeFactor));
+                 left = (rightDefault + leftDefault - width) / 2;
+                 right = left + width;
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
+index 26d82ff8..b463c712 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
+@@ -4577,6 +4577,10 @@ public class ChatActivity extends BaseFragment implements
+             glassBackgroundDrawableFactory,
+             BlurredBackgroundProviderImpl.topPanelChatActivity(themeDelegate),
+             ChatObject.isForum(currentChat));
++        if (chatMode == 0 && !isComments && !ChatObject.isForum(currentChat)) {
++            actionBar.setNebulaChatAvatarContainer(avatarContainer);
++        }
++        app.nebulagram.ui.NebulaChatStyle.header(actionBar, chatMode == 0 && !isComments && !ChatObject.isForum(currentChat));
+ 
+         if (chatMode == MODE_PINNED) {
+             actionBar.setChatAvatarContainer(avatarContainer);
+@@ -8076,6 +8080,7 @@ public class ChatActivity extends BaseFragment implements
+         checkSendButtonBlockedByTyping(false);
+ 
+         chatInputBubbleContainer.addView(chatActivityEnterView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.LEFT | Gravity.BOTTOM, 7, 0, 7, 0));
++        chatInputViewsContainer.nebulaComposerStyle = chatActivityEnterView.nebulaComposerStyle;
+ 
+         int chatListIndex = contentView.indexOfChild(chatListView);
+         chatListIndex = chatListIndex < 0 ? contentView.getChildCount() : (chatListIndex + 1);
+@@ -29753,6 +29758,8 @@ public class ChatActivity extends BaseFragment implements
+     @Override
+     public void onResume() {
+         super.onResume();
++        app.nebulagram.ui.NebulaChatStyle.header(actionBar, chatMode == 0 && !isComments && !ChatObject.isForum(currentChat));
++        if (chatActivityEnterView != null) chatActivityEnterView.requestLayout();
+         checkShowBlur(false);
+         activityResumeTime = System.currentTimeMillis();
+         if (openImport && getSendMessagesHelper().getImportingHistory(dialog_id) != null) {
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
-index ac402db585fc02173215c2ab5a462648163f5c27..45fb515de2570040caf85c0d9e50c44e0c3df9e3 100644
+index ac402db5..45fb515d 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
-@@ -668,6 +668,7 @@
+@@ -668,6 +668,7 @@ public class ChatActivityEnterView extends FrameLayout implements
      @Nullable
      private RecordCircle recordCircle;
      public ControlsView controlsView;
@@ -10,15 +141,15 @@ index ac402db585fc02173215c2ab5a462648163f5c27..45fb515de2570040caf85c0d9e50c44e
      private CloseProgressDrawable2 progressDrawable;
      private Paint dotPaint;
      private int searchingType;
-@@ -14421,6 +14422,7 @@
-
+@@ -14421,6 +14422,7 @@ public class ChatActivityEnterView extends FrameLayout implements
+ 
      @Override
      protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
 +        nebulaComposerStyle.restoreInsets();
          int wasHeight = textFieldContainer.getMeasuredHeight();
          if (botCommandsMenuButton != null && botCommandsMenuButton.getTag() != null) {
              botCommandsMenuButton.measure(widthMeasureSpec, heightMeasureSpec);
-@@ -14460,6 +14462,22 @@
+@@ -14460,6 +14462,22 @@ public class ChatActivityEnterView extends FrameLayout implements
              }
          }
          updateBotCommandsMenuContainerTopPadding();
@@ -39,9 +170,9 @@ index ac402db585fc02173215c2ab5a462648163f5c27..45fb515de2570040caf85c0d9e50c44e
 +                && (slowModeButton == null || slowModeButton.getVisibility() != VISIBLE)
 +                && emojiButtonPaddingAlpha > 0.99f && attachLayoutPaddingAlpha > 0.99f);
          super.onMeasure(widthMeasureSpec, heightMeasureSpec);
-
+ 
          if (botWebViewButton != null) {
-@@ -14500,6 +14518,7 @@
+@@ -14500,6 +14518,7 @@ public class ChatActivityEnterView extends FrameLayout implements
      @Override
      protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
          super.onLayout(changed, left, top, right, bottom);
@@ -49,86 +180,108 @@ index ac402db585fc02173215c2ab5a462648163f5c27..45fb515de2570040caf85c0d9e50c44e
          if (botCommandLastPosition != -1 && botCommandsMenuContainer != null) {
              LinearLayoutManager layoutManager = (LinearLayoutManager) botCommandsMenuContainer.listView.getLayoutManager();
              if (layoutManager != null) {
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarContainer.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarContainer.java
+index 1238632a..892788ed 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarContainer.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarContainer.java
+@@ -664,7 +664,9 @@ public class ChatAvatarContainer extends FrameLayout implements FactorAnimator.T
+     @Override
+     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+         final int width = MeasureSpec.getSize(widthMeasureSpec);
+-        final int availableWidth = width - dp((avatarImageView.getVisibility() == VISIBLE ? 54 : 0) + 16);
++        final int availableWidth = width - dp(nebulaCenteredTitle
++                ? (avatarImageView.getVisibility() == VISIBLE ? 112 : 48)
++                : (avatarImageView.getVisibility() == VISIBLE ? 54 : 16));
+         avatarImageView.measure(MeasureSpec.makeMeasureSpec(dp(avatarSizeInDp) - 2, MeasureSpec.EXACTLY), MeasureSpec.makeMeasureSpec(dp(avatarSizeInDp) - 2, MeasureSpec.EXACTLY));
+         titleTextView.measure(MeasureSpec.makeMeasureSpec(availableWidth, MeasureSpec.AT_MOST), MeasureSpec.makeMeasureSpec(dp(24 + 8), MeasureSpec.AT_MOST));
+         if (subtitleTextView != null) {
+@@ -754,6 +756,26 @@ public class ChatAvatarContainer extends FrameLayout implements FactorAnimator.T
+     }
+ 
+     private boolean glassMode;
++    private boolean nebulaCenteredTitle;
++
++    /** Used only by the optional centred Liquid Glass chat header. */
++    public void setNebulaCenteredTitle(boolean enabled) {
++        if (nebulaCenteredTitle == enabled) return;
++        nebulaCenteredTitle = enabled;
++        titleTextView.setGravity(enabled ? Gravity.CENTER : Gravity.LEFT);
++        if (subtitleTextView != null) subtitleTextView.setGravity(enabled ? Gravity.CENTER : Gravity.LEFT);
++        if (animatedSubtitleTextView != null) animatedSubtitleTextView.setGravity(enabled ? Gravity.CENTER : Gravity.LEFT);
++        requestLayout();
++    }
++
++    /** The compact glass capsule contains text only; the avatar has its own circle. */
++    public int getNebulaCenteredHeaderWidth() {
++        int title = (int) Math.ceil(titleTextView.getExactWidthIncludeDrawables());
++        View subtitle = getSubtitleTextView();
++        int status = subtitle != null && subtitle.getVisibility() == VISIBLE ? subtitle.getMeasuredWidth() : 0;
++        return Math.max(dp(138), Math.max(title, status) + dp(42));
++    }
++
+     public void setGlassMode() {
+         if (titleTextView != null) {
+             titleTextView.setTextSizePx(dp(17.5f));
+@@ -770,6 +792,41 @@ public class ChatAvatarContainer extends FrameLayout implements FactorAnimator.T
+         final int viewTop = (actionBarHeight - avatarImageView.getMeasuredHeight() - 2) / 2 + (occupyStatusBar ? AndroidUtilities.statusBarHeight : 0);
+         final int subtitleTop = viewTop + dp(glassMode ? 23.66f : 24);
+ 
++        if (nebulaCenteredTitle) {
++            final int avatarLeft = getWidth() - avatarImageView.getMeasuredWidth();
++            final int titleLeft = Math.max(dp(4), (getWidth() - titleTextView.getMeasuredWidth()) / 2);
++            final View subtitle = getSubtitleTextView();
++            final int subtitleLeft = subtitle == null ? titleLeft : Math.max(dp(4), (getWidth() - subtitle.getMeasuredWidth()) / 2);
++            avatarImageView.layout(avatarLeft, 1 + viewTop, avatarLeft + avatarImageView.getMeasuredWidth(),
++                    1 + viewTop + avatarImageView.getMeasuredHeight());
++            if (subtitle != null && subtitle.getVisibility() != GONE) {
++                titleTextView.layout(titleLeft, viewTop + dp(1.66f) - titleTextView.getPaddingTop(),
++                        titleLeft + titleTextView.getMeasuredWidth(), viewTop + titleTextView.getTextHeight() + dp(1.66f)
++                                - titleTextView.getPaddingTop() + titleTextView.getPaddingBottom());
++                subtitle.layout(subtitleLeft, subtitleTop, subtitleLeft + subtitle.getMeasuredWidth(),
++                        subtitleTop + subtitle.getMeasuredHeight());
++            } else {
++                titleTextView.layout(titleLeft, viewTop + dp(11) - titleTextView.getPaddingTop(),
++                        titleLeft + titleTextView.getMeasuredWidth(), viewTop + titleTextView.getTextHeight() + dp(11)
++                                - titleTextView.getPaddingTop() + titleTextView.getPaddingBottom());
++            }
++            SimpleTextView titleCopy = titleTextLargerCopyView.get();
++            if (titleCopy != null) titleCopy.layout(titleLeft, titleTextView.getTop(),
++                    titleLeft + titleCopy.getMeasuredWidth(), titleTextView.getTop() + titleCopy.getTextHeight());
++            SimpleTextView subtitleCopy = subtitleTextLargerCopyView.get();
++            if (subtitleCopy != null && subtitle != null) subtitleCopy.layout(subtitleLeft, subtitleTop,
++                    subtitleLeft + subtitleCopy.getMeasuredWidth(), subtitleTop + subtitleCopy.getTextHeight());
++            if (communityItem != null) communityItem.layout(avatarLeft + dp(28), viewTop + dp(27.33f),
++                    avatarLeft + dp(28) + communityItem.getMeasuredWidth(), viewTop + dp(27.33f) + communityItem.getMeasuredHeight());
++            if (timeItem != null) timeItem.layout(avatarLeft + dp(18), viewTop - dp(8),
++                    avatarLeft + dp(18) + timeItem.getMeasuredWidth(), viewTop - dp(8) + timeItem.getMeasuredHeight());
++            if (starBgItem != null) starBgItem.layout(avatarLeft + dp(27), viewTop + dp(24),
++                    avatarLeft + dp(27) + starBgItem.getMeasuredWidth(), viewTop + dp(24) + starBgItem.getMeasuredHeight());
++            if (starFgItem != null) starFgItem.layout(avatarLeft + dp(27), viewTop + dp(24),
++                    avatarLeft + dp(27) + starFgItem.getMeasuredWidth(), viewTop + dp(24) + starFgItem.getMeasuredHeight());
++            return;
++        }
++
+         avatarImageView.layout(1 + leftPadding, 1 + viewTop, 1 + leftPadding + avatarImageView.getMeasuredWidth(), 1 + viewTop + avatarImageView.getMeasuredHeight());
+         int l = leftPadding + (avatarImageView.getVisibility() == VISIBLE ? dp(glassMode ? 49.66f : 55) : dp(glassMode ? 13 : 1)) + rightAvatarPadding;
+         SimpleTextView titleTextLargerCopyView = this.titleTextLargerCopyView.get();
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/chat/ChatInputViewsContainer.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/chat/ChatInputViewsContainer.java
-index 78c3b9e1be25a4020db02a406218fd444ac61266..4e8ca2b4f5ba28a386d584b6b56958e085c71279 100644
+index 78c3b9e1..4e8ca2b4 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/chat/ChatInputViewsContainer.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/chat/ChatInputViewsContainer.java
-@@ -73,6 +73,7 @@
-
+@@ -73,6 +73,7 @@ public class ChatInputViewsContainer extends FrameLayout {
  
-
+ 
+ 
 +    public app.nebulagram.ui.NebulaComposerStyle nebulaComposerStyle;
      public boolean drawInputBackground = true;
      public BlurredBackgroundDrawable blurredBackgroundDrawable;
      private BlurredBackgroundDrawable underKeyboardBackgroundDrawable;
-@@ -269,7 +270,7 @@
+@@ -269,7 +270,7 @@ public class ChatInputViewsContainer extends FrameLayout {
          tmpRect.offset(0, blurTop + (int) bubbleInputTranlationY);
-
+ 
          blurredBackgroundDrawable.setBounds(tmpRect);
 -        if (drawInputBackground)
 +        if (drawInputBackground && (nebulaComposerStyle == null || !nebulaComposerStyle.draw(canvas, blurredBackgroundDrawable)))
              blurredBackgroundDrawable.draw(canvas);
-
+ 
          if (needDrawInAppKeyboard) {
-diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
-index 0a9ed5a93512b9b705c27f62e15cfd95a07cf847..d4ccc5b35ffe9014df970888611877c91bc480dd 100644
---- a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
-+++ b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
-@@ -2217,6 +2217,15 @@
-     }
-
-     public boolean doNotDrawGlassMenu;
-+    private boolean nebulaFloatingChatHeader;
-+    private final app.nebulagram.ui.NebulaChatStyle.TitleSurface nebulaTitleSurface = new app.nebulagram.ui.NebulaChatStyle.TitleSurface();
-+
-+    public void setNebulaFloatingChatHeader(boolean enabled) {
-+        if (nebulaFloatingChatHeader != enabled) {
-+            nebulaFloatingChatHeader = enabled;
-+            invalidate();
-+        }
-+    }
-
-     @Override
-     protected void dispatchDraw(Canvas canvas) {
-@@ -2257,7 +2266,11 @@
-             }
-
-             glassDrawable.setBounds(left, t, right, b);
--            glassDrawable.draw(canvas);
-+            if (nebulaFloatingChatHeader && actionModeFactor == 0f && searchFactor == 0f) {
-+                nebulaTitleSurface.draw(canvas, glassDrawable.getPaddedBounds(), getThemedColor(Theme.key_actionBarDefaultTitle), getThemedColor(Theme.key_actionBarDefault));
-+            } else {
-+                glassDrawable.draw(canvas);
-+            }
-         }
-         if (glassDrawableBack != null && hasBackButton) {
-             glassDrawableBack.setBounds(0, t, s + p * 2, b);
-diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
-index 26d82ff828f2176ca728a44ed3cdcaf29cc7b2fb..ab7cfead45ae011e29c6a1d58f05969b36a6fa4b 100644
---- a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
-+++ b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
-@@ -4577,6 +4577,7 @@
-             glassBackgroundDrawableFactory,
-             BlurredBackgroundProviderImpl.topPanelChatActivity(themeDelegate),
-             ChatObject.isForum(currentChat));
-+        app.nebulagram.ui.NebulaChatStyle.header(actionBar, chatMode == 0 && !isComments && !ChatObject.isForum(currentChat));
-
-         if (chatMode == MODE_PINNED) {
-             actionBar.setChatAvatarContainer(avatarContainer);
-@@ -8076,6 +8077,7 @@
-         checkSendButtonBlockedByTyping(false);
-
-         chatInputBubbleContainer.addView(chatActivityEnterView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.LEFT | Gravity.BOTTOM, 7, 0, 7, 0));
-+        chatInputViewsContainer.nebulaComposerStyle = chatActivityEnterView.nebulaComposerStyle;
-
-         int chatListIndex = contentView.indexOfChild(chatListView);
-         chatListIndex = chatListIndex < 0 ? contentView.getChildCount() : (chatListIndex + 1);
-@@ -29753,6 +29755,8 @@
-     @Override
-     public void onResume() {
-         super.onResume();
-+        app.nebulagram.ui.NebulaChatStyle.header(actionBar, chatMode == 0 && !isComments && !ChatObject.isForum(currentChat));
-+        if (chatActivityEnterView != null) chatActivityEnterView.requestLayout();
-         checkShowBlur(false);
-         activityResumeTime = System.currentTimeMillis();
-         if (openImport && getSendMessagesHelper().getImportingHistory(dialog_id) != null) {

@@ -128,7 +128,7 @@ public class NebulaSectionFragment extends BaseFragment {
 
         // Material You имеет смысл только там, где система отдаёт палитру;
         // на Android 11 и старше строка была бы обманом.
-        if (theme.isDynamic()) {
+        if (NebulaTheme.supportsDynamic()) {
             card.add(toggle(context, R.drawable.msg_customize,
                     R.string.NebulaMaterialYou, R.string.NebulaMaterialYouSub,
                     NebulaTheme.materialYouEnabled(),
@@ -143,6 +143,9 @@ public class NebulaSectionFragment extends BaseFragment {
         card.add(toggle(context, R.drawable.msg_openprofile,
                 R.string.NebulaProfileStyle, R.string.NebulaProfileStyleInfo,
                 NebulaAppearance.profileStyle(), NebulaAppearance::setProfileStyle));
+        card.add(toggle(context, R.drawable.msg_photo_settings,
+                R.string.NebulaProfilePhotoBanner, R.string.NebulaProfilePhotoBannerInfo,
+                NebulaAppearance.profilePhotoBanner(), NebulaAppearance::setProfilePhotoBanner));
         card.add(toggle(context, R.drawable.msg_list,
                 R.string.NebulaHideDividers, R.string.NebulaHideDividersSub,
                 NebulaAppearance.hideDividers(), NebulaAppearance::setHideDividers));

@@ -8,8 +8,11 @@ import android.graphics.RectF;
 import android.view.View;
 
 import androidx.annotation.NonNull;
+import androidx.core.graphics.ColorUtils;
 
 import org.telegram.messenger.AndroidUtilities;
+import org.telegram.messenger.LocaleController;
+import org.telegram.messenger.R;
 
 /**
  * Живое превью элемента интерфейса прямо над его настройками.
@@ -52,19 +55,21 @@ public class NebulaPreview extends View {
 
     @Override
     protected void onMeasure(int widthSpec, int heightSpec) {
-        int height = AndroidUtilities.dp(kind == KIND_TABS ? 96 : 84);
+        int height = AndroidUtilities.dp(kind == KIND_TABS ? 126 : kind == KIND_HEADER ? 118 : 126);
         setMeasuredDimension(MeasureSpec.getSize(widthSpec), height);
     }
 
     @Override
     protected void onDraw(Canvas canvas) {
-        // Подложка изображает экран приложения, иначе панель висела бы в
-        // пустоте и её края нельзя было бы оценить.
+        // Превью должно быть тем же фрагментом чата, а не карточкой со
+        // случайными геометрическими фигурами. Так сразу видно, что именно
+        // включит переключатель поверх реальных обоев.
         paint.setStyle(Paint.Style.FILL);
-        paint.setColor(NebulaTheme.stateLayer(theme.onSurface(), 0.05f));
+        paint.setColor(theme.surface());
         rect.set(0, 0, getWidth(), getHeight());
         float radius = NebulaTheme.cornerMedium();
         canvas.drawRoundRect(rect, radius, radius, paint);
+        if (kind != KIND_TABS) drawWallpaper(canvas);
 
         switch (kind) {
             case KIND_TABS:
@@ -84,18 +89,34 @@ public class NebulaPreview extends View {
     // --- нижняя панель ------------------------------------------------------
 
     private void drawTabs(Canvas canvas) {
-        float margin = AndroidUtilities.dp(14);
+        float margin = AndroidUtilities.dp(12);
         float height = AndroidUtilities.dp(56);
-        float top = getHeight() - height - AndroidUtilities.dp(12);
+        float top = getHeight() - height - AndroidUtilities.dp(10);
 
         if (!NebulaBottomBar.enabled()) {
-            drawCentredNote(canvas);
+            drawSidePanelPreview(canvas);
             return;
         }
 
-        paint.setColor(theme.surfaceContainer());
+        // Рисуем кусочек настоящего списка чатов, чтобы нижняя панель не
+        // висела в пустоте и было понятно, что это именно навигация.
+        float contentLeft = AndroidUtilities.dp(18);
+        paint.setTypeface(AndroidUtilities.bold());
+        paint.setTextSize(AndroidUtilities.dp(13));
+        paint.setTextAlign(Paint.Align.LEFT);
+        paint.setColor(theme.onSurface());
+        canvas.drawText(LocaleController.getString(R.string.MainTabsChats), contentLeft,
+                AndroidUtilities.dp(24), paint);
+        paint.setTypeface(null);
+
+        drawPreviewChatRow(canvas, contentLeft, AndroidUtilities.dp(28),
+                AndroidUtilities.dp(24), true);
+
+        // Та же плашка и те же подписи, что в реальной нижней панели. На
+        // маленьком экране это читается намного лучше, чем отдельные линии.
+        drawGlassSurface(canvas, new RectF(margin, top, getWidth() - margin, top + height),
+                height / 2f);
         rect.set(margin, top, getWidth() - margin, top + height);
-        canvas.drawRoundRect(rect, height / 2f, height / 2f, paint);
 
         boolean[] shown = {
                 true,
@@ -110,24 +131,87 @@ public class NebulaPreview extends View {
             }
         }
         float step = (rect.width()) / count;
-        float centerY = top + height / 2f;
+        float iconY = top + AndroidUtilities.dp(20);
+        float labelY = top + AndroidUtilities.dp(44);
+        String[] labels = {
+                LocaleController.getString(R.string.MainTabsChats),
+                LocaleController.getString(R.string.MainTabsContacts),
+                LocaleController.getString(R.string.Settings),
+                LocaleController.getString(R.string.MainTabsProfile),
+        };
         int index = 0;
         for (int i = 0; i < shown.length; i++) {
             if (!shown[i]) {
                 continue;
             }
             float centerX = rect.left + step * index + step / 2f;
-            // Первая вкладка выбрана: так видно, чем выбранная отличается.
+            // Первая вкладка выбрана: так видно, чем выбранная отличается,
+            // а включённые тумблеры ниже сразу меняют набор подписей.
             boolean active = index == 0;
+            if (active) {
+                float pillWidth = Math.min(step - AndroidUtilities.dp(10), AndroidUtilities.dp(56));
+                paint.setColor(NebulaTheme.stateLayer(theme.primary(), .22f));
+                rect.set(centerX - pillWidth / 2f, top + AndroidUtilities.dp(6),
+                        centerX + pillWidth / 2f, top + AndroidUtilities.dp(34));
+                canvas.drawRoundRect(rect, AndroidUtilities.dp(15), AndroidUtilities.dp(15), paint);
+            }
             paint.setColor(active ? theme.primary() : theme.onSurfaceVariant());
-            drawTabGlyph(canvas, i, centerX, centerY - AndroidUtilities.dp(7));
-            paint.setColor(active
-                    ? theme.primary() : NebulaTheme.stateLayer(theme.onSurfaceVariant(), 0.55f));
-            rect.set(centerX - AndroidUtilities.dp(11), centerY + AndroidUtilities.dp(7),
-                    centerX + AndroidUtilities.dp(11), centerY + AndroidUtilities.dp(11));
-            canvas.drawRoundRect(rect, AndroidUtilities.dp(2), AndroidUtilities.dp(2), paint);
+            drawTabGlyph(canvas, i, centerX, iconY);
+            paint.setTextSize(AndroidUtilities.dp(8));
+            paint.setTextAlign(Paint.Align.CENTER);
+            paint.setTypeface(active ? AndroidUtilities.bold() : null);
+            paint.setColor(active ? theme.primary()
+                    : NebulaTheme.stateLayer(theme.onSurfaceVariant(), .8f));
+            canvas.drawText(labels[i], centerX, labelY, paint);
             index++;
         }
+        paint.setTextAlign(Paint.Align.LEFT);
+        paint.setTypeface(null);
+    }
+
+    private void drawPreviewChatRow(Canvas canvas, float left, float top, float height, boolean unread) {
+        float avatar = height / 2f;
+        paint.setColor(unread ? NebulaTheme.stateLayer(theme.primary(), .45f)
+                : NebulaTheme.stateLayer(theme.onSurfaceVariant(), .34f));
+        canvas.drawCircle(left + avatar, top + avatar, avatar, paint);
+        float lineLeft = left + height + AndroidUtilities.dp(9);
+        paint.setColor(NebulaTheme.stateLayer(theme.onSurface(), .82f));
+        rect.set(lineLeft, top + AndroidUtilities.dp(7),
+                lineLeft + AndroidUtilities.dp(unread ? 102 : 76), top + AndroidUtilities.dp(12));
+        canvas.drawRoundRect(rect, AndroidUtilities.dp(3), AndroidUtilities.dp(3), paint);
+        paint.setColor(NebulaTheme.stateLayer(theme.onSurfaceVariant(), .55f));
+        rect.set(lineLeft, top + AndroidUtilities.dp(19), lineLeft + AndroidUtilities.dp(132),
+                top + AndroidUtilities.dp(23));
+        canvas.drawRoundRect(rect, AndroidUtilities.dp(2), AndroidUtilities.dp(2), paint);
+        if (unread) {
+            paint.setColor(theme.primary());
+            canvas.drawCircle(getWidth() - AndroidUtilities.dp(31), top + avatar,
+                    AndroidUtilities.dp(5), paint);
+        }
+    }
+
+    private void drawSidePanelPreview(Canvas canvas) {
+        float left = AndroidUtilities.dp(16);
+        float top = AndroidUtilities.dp(14);
+        paint.setColor(theme.surfaceContainer());
+        rect.set(left, top, getWidth() - left, getHeight() - top);
+        canvas.drawRoundRect(rect, AndroidUtilities.dp(18), AndroidUtilities.dp(18), paint);
+        paint.setColor(theme.primary());
+        paint.setStrokeWidth(AndroidUtilities.dp(2));
+        for (int i = 0; i < 3; i++) {
+            float y = top + AndroidUtilities.dp(24 + i * 18);
+            canvas.drawRoundRect(new RectF(left + AndroidUtilities.dp(16), y,
+                    left + AndroidUtilities.dp(34), y + AndroidUtilities.dp(2)),
+                    AndroidUtilities.dp(1), AndroidUtilities.dp(1), paint);
+        }
+        paint.setColor(theme.onSurface());
+        paint.setTextSize(AndroidUtilities.dp(12));
+        canvas.drawText(LocaleController.getString(R.string.NebulaSidePanelTitle),
+                left + AndroidUtilities.dp(48), top + AndroidUtilities.dp(30), paint);
+        paint.setColor(theme.onSurfaceVariant());
+        paint.setTextSize(AndroidUtilities.dp(9));
+        canvas.drawText(LocaleController.getString(R.string.NebulaSidePanelSub),
+                left + AndroidUtilities.dp(48), top + AndroidUtilities.dp(48), paint);
     }
 
     /** Значки вкладок: узнаваемая форма важнее точного повторения иконки. */
@@ -174,21 +258,23 @@ public class NebulaPreview extends View {
     private void drawHeader(Canvas canvas) {
         boolean styled = NebulaAppearance.chatHeader();
         float margin = AndroidUtilities.dp(14);
-        float height = AndroidUtilities.dp(52);
-        float top = (getHeight() - height) / 2f;
-
-        paint.setColor(theme.surfaceContainer());
-        rect.set(margin, top, getWidth() - margin, top + height);
-        float radius = styled ? height / 2f : AndroidUtilities.dp(4);
-        canvas.drawRoundRect(rect, radius, radius, paint);
-
+        float height = AndroidUtilities.dp(48);
+        float top = AndroidUtilities.dp(20);
         float centerY = top + height / 2f;
+
+        if (!styled) {
+            paint.setColor(theme.surfaceContainer());
+            rect.set(margin, top, getWidth() - margin, top + height);
+            canvas.drawRoundRect(rect, AndroidUtilities.dp(8), AndroidUtilities.dp(8), paint);
+        }
 
         // Стрелка назад — она есть в обоих вариантах.
         paint.setColor(theme.onSurfaceVariant());
         paint.setStyle(Paint.Style.STROKE);
         paint.setStrokeWidth(AndroidUtilities.dp(1.8f));
-        float arrowX = margin + AndroidUtilities.dp(18);
+        float arrowX = styled ? margin + height / 2f : margin + AndroidUtilities.dp(18);
+        if (styled) drawGlassCircle(canvas, arrowX, centerY, height / 2f);
+        paint.setColor(theme.onSurface());
         path.reset();
         path.moveTo(arrowX + AndroidUtilities.dp(4), centerY - AndroidUtilities.dp(5));
         path.lineTo(arrowX - AndroidUtilities.dp(2), centerY);
@@ -196,16 +282,21 @@ public class NebulaPreview extends View {
         canvas.drawPath(path, paint);
         paint.setStyle(Paint.Style.FILL);
 
-        // В нашем стиле имя по центру, аватарка справа; в стоковом — слева
-        // подряд, как у Telegram. Разница видна сразу, без подписи.
-        float avatarX = styled ? getWidth() - margin - AndroidUtilities.dp(20)
-                : margin + AndroidUtilities.dp(48);
+        // В Liquid Glass имя по центру и аватар отдельно справа. Поэтому
+        // видна ключевая разница, которую даёт переключатель в реальном чате.
+        float avatarX = styled ? getWidth() - margin - height / 2f : margin + AndroidUtilities.dp(48);
+        if (styled) drawGlassCircle(canvas, avatarX, centerY, height / 2f);
         paint.setColor(NebulaTheme.stateLayer(theme.primary(), 0.35f));
-        canvas.drawCircle(avatarX, centerY, AndroidUtilities.dp(14), paint);
+        canvas.drawCircle(avatarX, centerY, AndroidUtilities.dp(styled ? 15 : 14), paint);
 
-        float textLeft = styled ? 0 : avatarX + AndroidUtilities.dp(22);
+        float textLeft = avatarX + AndroidUtilities.dp(22);
         float titleWidth = AndroidUtilities.dp(84);
         float titleX = styled ? (getWidth() - titleWidth) / 2f : textLeft;
+        if (styled) {
+            rect.set(titleX - AndroidUtilities.dp(18), top + AndroidUtilities.dp(4),
+                    titleX + titleWidth + AndroidUtilities.dp(18), top + height - AndroidUtilities.dp(4));
+            drawGlassSurface(canvas, rect, AndroidUtilities.dp(20));
+        }
         paint.setColor(theme.onSurface());
         rect.set(titleX, centerY - AndroidUtilities.dp(9), titleX + titleWidth, centerY - AndroidUtilities.dp(2));
         canvas.drawRoundRect(rect, AndroidUtilities.dp(3), AndroidUtilities.dp(3), paint);
@@ -223,27 +314,24 @@ public class NebulaPreview extends View {
         boolean ios = NebulaAppearance.iosComposer();
         float margin = AndroidUtilities.dp(14);
         float height = AndroidUtilities.dp(44);
-        float centerY = getHeight() / 2f;
+        float centerY = getHeight() - AndroidUtilities.dp(34);
         float top = centerY - height / 2f;
         float circle = height / 2f;
 
         float fieldLeft, fieldRight;
         if (ios) {
             // Кнопки отдельными кружками, поле — самостоятельная пилюля.
-            paint.setColor(theme.surfaceContainer());
-            canvas.drawCircle(margin + circle, centerY, circle, paint);
-            paint.setColor(theme.primary());
-            canvas.drawCircle(getWidth() - margin - circle, centerY, circle, paint);
+            drawGlassCircle(canvas, margin + circle, centerY, circle);
+            drawGlassCircle(canvas, getWidth() - margin - circle, centerY, circle);
 
-            fieldLeft = margin + height + AndroidUtilities.dp(10);
-            fieldRight = getWidth() - margin - height - AndroidUtilities.dp(10);
-            paint.setColor(theme.surfaceContainer());
+            fieldLeft = margin + height + AndroidUtilities.dp(12);
+            fieldRight = getWidth() - margin - height - AndroidUtilities.dp(12);
             rect.set(fieldLeft, top, fieldRight, top + height);
-            canvas.drawRoundRect(rect, circle, circle, paint);
+            drawGlassSurface(canvas, rect, circle);
 
             paint.setColor(theme.onSurfaceVariant());
             drawClip(canvas, margin + circle, centerY);
-            paint.setColor(theme.onPrimary());
+            paint.setColor(theme.onSurface());
             drawMic(canvas, getWidth() - margin - circle, centerY);
         } else {
             // Стоковый вид: всё в одной полосе во всю ширину, углы почти прямые.
@@ -269,6 +357,35 @@ public class NebulaPreview extends View {
         rect.set(textLeft, centerY - AndroidUtilities.dp(3),
                 textLeft + AndroidUtilities.dp(58), centerY + AndroidUtilities.dp(3));
         canvas.drawRoundRect(rect, AndroidUtilities.dp(3), AndroidUtilities.dp(3), paint);
+    }
+
+    private void drawWallpaper(Canvas canvas) {
+        paint.setStyle(Paint.Style.STROKE);
+        paint.setStrokeWidth(AndroidUtilities.dp(1));
+        paint.setColor(NebulaTheme.stateLayer(theme.primary(), .16f));
+        for (int i = 0; i < 6; i++) {
+            float x = AndroidUtilities.dp(18 + i * 54);
+            float y = AndroidUtilities.dp(16 + (i % 3) * 25);
+            rect.set(x, y, x + AndroidUtilities.dp(26), y + AndroidUtilities.dp(18));
+            canvas.drawArc(rect, 20 + i * 23, 210, false, paint);
+        }
+        paint.setStyle(Paint.Style.FILL);
+    }
+
+    private void drawGlassCircle(Canvas canvas, float cx, float cy, float radius) {
+        rect.set(cx - radius, cy - radius, cx + radius, cy + radius);
+        drawGlassSurface(canvas, rect, radius);
+    }
+
+    private void drawGlassSurface(Canvas canvas, RectF bounds, float radius) {
+        paint.setStyle(Paint.Style.FILL);
+        paint.setColor(ColorUtils.blendARGB(theme.surfaceContainer(), theme.primary(), .08f));
+        canvas.drawRoundRect(bounds, radius, radius, paint);
+        paint.setStyle(Paint.Style.STROKE);
+        paint.setStrokeWidth(AndroidUtilities.dpf2(.75f));
+        paint.setColor(NebulaTheme.stateLayer(theme.onSurface(), .18f));
+        canvas.drawRoundRect(bounds, radius, radius, paint);
+        paint.setStyle(Paint.Style.FILL);
     }
 
     /** Скрепка: вытянутая петля под наклоном — форма узнаётся и в 14dp. */

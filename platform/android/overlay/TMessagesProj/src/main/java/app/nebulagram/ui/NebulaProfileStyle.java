@@ -44,7 +44,7 @@ public final class NebulaProfileStyle {
             list.setSections();
             return;
         }
-        final NebulaProfileArt.Surface surface = new NebulaProfileArt.Surface(provider);
+        final NebulaProfileArt.Surface surface = new NebulaProfileArt.Surface(list.getContext(), provider);
         // These are the native section boundaries. Special rows and shared
         // media retain the tags and grouping chosen by their own adapters.
         list.setSections(view -> !(view instanceof TextInfoPrivacyCell ||
@@ -92,13 +92,13 @@ public final class NebulaProfileStyle {
                               Theme.ResourcesProvider provider) {
         if (!NebulaAppearance.profileStyle() || scroll == null || content == null) return;
         scroll.setSectionRadius(AndroidUtilities.dp(24));
-        scroll.setSectionBackground(new NebulaProfileArt.Surface(provider)::draw);
+        scroll.setSectionBackground(new NebulaProfileArt.Surface(content.getContext(), provider)::draw);
         editorInsets(content, 0, 0,
                 Math.max(0, content.getPaddingBottom() - AndroidUtilities.dp(12)));
 
         final int identityPosition = content.indexOfChild(identity);
         if (identityPosition >= 0) {
-            identity.setBackground(new NebulaProfileArt.IdentityBackground(provider));
+            identity.setBackground(new NebulaProfileArt.IdentityBackground(content.getContext(), provider));
             identity.setPadding(identity.getPaddingLeft(), AndroidUtilities.dp(12),
                     identity.getPaddingRight(), AndroidUtilities.dp(12));
             View gap = new View(content.getContext());
@@ -140,7 +140,7 @@ public final class NebulaProfileStyle {
         text.setLetterSpacing(.04f);
         text.setAllCaps(true);
         text.setPadding(AndroidUtilities.dp(10), 0, AndroidUtilities.dp(10), 0);
-        text.setBackground(new NebulaProfileArt.LabelBackground(provider));
+        text.setBackground(new NebulaProfileArt.LabelBackground(cell.getContext(), provider));
     }
 
     public static void editorInsets(LinearLayout content, int left, int right, int bottom) {

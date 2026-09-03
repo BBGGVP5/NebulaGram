@@ -14,11 +14,12 @@
 | `0005-hide-managed-proxy.patch` | `ProxyListActivity.java` | updateRows; ListAdapter | Скрывает служебный прокси и его настройки при активном туннеле | +30 / −2 |
 | `0006-login-typography.patch` | `LoginActivity.java; OutlineTextContainerView.java; CodeFieldContainer.java` | создание экранов и нижней кнопки | Оформляет номер, код и пароль поверх нативной логики Telegram | +50 / −15 |
 | `0007-settings-nebulagram-entry.patch` | `ProfileActivity.java` | строки рядом с languageRow | Вход в NebulaGram из прежних настроек | +11 / −2 |
-| `0008-dialogs-bottom-bar.patch` | `MainTabsActivity.java; DialogsActivity.java` | onResume; checkUi_callTabVisible; checkUi_tabsPosition; checkUi_fadeView; checkUi_menuItems | Настраивает штатные вкладки, вход в боковую панель и отступы | +20 / −6 |
+| `0008-dialogs-bottom-bar.patch` | `MainTabsActivity.java; DialogsActivity.java` | onResume; `canParentTabsSlide`; checkUi_callTabVisible; checkUi_tabsPosition; checkUi_fadeView; checkUi_menuItems | Настраивает штатные вкладки, запуск свайпа на списке чатов, вход в боковую панель и отступы | +27 / −6 |
 | `0009-call-permission-prompt.patch` | `DialogsActivity.java` | после успешного startActivity в запросах разрешения | Запоминает переход в настройки полноэкранных звонков Android и экрана блокировки MIUI | +3 / −0 |
 | `0010-main-settings-nebulagram-entry.patch` | `SettingsActivity.java` | fillItems; onClick | Первый пункт «Настройки NebulaGram» в новой вкладке настроек | +4 / −0 |
-| `0011-chat-chrome.patch` | `ChatActivity.java; ChatActivityEnterView.java; ChatInputViewsContainer.java; ActionBar.java` | создание/измерение поля ввода; фон action bar | Добавляет переключаемые iOS-панель сообщения и плавающую шапку чата, используя штатные контролы | +43 / −6 |
+| `0011-chat-chrome.patch` | `ChatActivity.java; ChatActivityEnterView.java; ChatInputViewsContainer.java; ChatAvatarContainer.java; ActionBar.java` | создание/измерение поля ввода; фон action bar; размещение аватара и заголовка | Добавляет переключаемые iOS-панель сообщения и центрированную шапку чата на штатном Liquid Glass | +159 / −3 |
 | `0013-info-pages.patch` | `ProfileActivity.java; ChatEditActivity.java; ChatUsersActivity.java; ThemeActivity.java; SharedMediaLayout.java; SectionsScrollView.java; ProfileActionsView.java` | создание секций и карточек действий | Обновляет экраны информации и редактирования чата без замены адаптеров и обработчиков | +77 / −38 |
+| `0014-main-tabs-swipe.patch` | `MainTabsActivity.java` | `canScrollForward`; `canScrollBackward` | Не даёт жесту открыть отключённую вкладку нижней панели | +5 / −2 |
 
 Java-файлы находятся в `TMessagesProj/src/main/java/org/telegram/ui/`,
 кроме `ApplicationLoader.java` — он находится в `org/telegram/messenger/`.
@@ -34,7 +35,9 @@ Java-файлы находятся в `TMessagesProj/src/main/java/org/telegram/
 Боковая панель включается в «Настройки → Настройки NebulaGram → Навигация» и открывается
 кнопкой меню на основном экране чатов. Скрытие нижней панели включает боковую,
 чтобы сохранить доступ к настройкам. Отключение боковой панели возвращает все
-нижние вкладки. Изменения применяются при возврате в чаты.
+нижние вкладки. Когда нижняя панель включена, горизонтальный жест на списке
+чатов открывает только соседнюю включённую вкладку; поиск, шторки и режим
+редактирования папок его блокируют. Изменения применяются при возврате в чаты.
 
 Строка NebulaLink находится в «Настройки → Настройки NebulaGram» и подписана
 фактически подключённым сервером из `tunnel.status`, с зелёным акцентом подключения.
@@ -62,6 +65,12 @@ Java-файлы находятся в `TMessagesProj/src/main/java/org/telegram/
 а удержание, отмена и блокировка записи остаются в исходном обработчике.
 Стиль пропускает запись, редактирование, ботов и другие переходные состояния;
 переключатель в «Настройках NebulaGram» возвращает стандартный вид.
+
+Шапка чата не рисует непрозрачный прямоугольник поверх Telegram. Включённый
+стиль меняет размещение штатного `ChatAvatarContainer`: заголовок остаётся по
+центру внутри настоящей стеклянной капсулы Telegram, а аватар — отдельной
+кнопкой справа. На выключенном стиле исходные размеры и отступы контейнера
+восстанавливаются.
 
 Карточки информации также используют исходные списки, действия, роли,
 переходы к медиа и проверки прав. В оверлее находятся только фон, заголовок

@@ -1,74 +1,19 @@
-diff --git a/TMessagesProj/src/main/java/org/telegram/ui/MainTabsActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/MainTabsActivity.java
---- a/TMessagesProj/src/main/java/org/telegram/ui/MainTabsActivity.java
-+++ b/TMessagesProj/src/main/java/org/telegram/ui/MainTabsActivity.java
-@@ -274,6 +274,12 @@
-         blur3_updateColors();
-         checkContactsTabBadge();
-         checkUnreadCount(true);
-+        checkUi_callTabVisible(getUserConfig().showCallsTab, false);
-+        checkUi_tabsPosition();
-+        checkUi_fadeView();
-+        if (!app.nebulagram.ui.NebulaBottomBar.enabled() && viewPager.getCurrentPosition() != POSITION_CHATS) {
-+            viewPager.scrollToPosition(POSITION_CHATS);
-+        }
-
-         showAccountChangeHint();
-     }
-@@ -393,6 +399,7 @@
-
-         updateLayout();
-         checkUnreadCount(false);
-+        checkUi_callTabVisible(getUserConfig().showCallsTab, false);
-         return contentView;
-     }
-
-@@ -1066,7 +1073,7 @@
-         final float isProfile = 1f - MathUtils.clamp(Math.abs(POSITION_PROFILE - animatedPosition), 0, 1);
-         final float hide = 1f - AndroidUtilities.getNavigationBarThirdButtonsFactor(0, 1f, navigationBarHeight);
-         float alpha = (1f - isProfile * hide) * animatorTabsVisible.getFloatValue();
--        if (tabletLayout) {
-+        if (tabletLayout || !app.nebulagram.ui.NebulaBottomBar.enabled()) {
-             alpha = 0.0f;
-         }
-
-@@ -1081,10 +1088,11 @@
-         final int normalY = -(updateLayoutHeight);
-         final int hiddenY = normalY + dp(40);
-
--        final float factor = animatorTabsVisible.getFloatValue();
-+        final float factor = app.nebulagram.ui.NebulaBottomBar.enabled() ? animatorTabsVisible.getFloatValue() : 0;
-         final float scale = lerp(0.85f, 1f, factor);
-
-         tabsViewWrapper.setTranslationY(lerp(hiddenY, normalY, factor));
-+        tabsViewWrapper.setVisibility(factor > 0 ? View.VISIBLE : View.GONE);
-         tabsView.setClickable(factor > 1);
-         tabsView.setEnabled(factor > 1);
-         tabsView.setAlpha(factor);
-@@ -1093,8 +1101,7 @@
-
-     private void checkUi_callTabVisible(boolean callTabsVisible, boolean animated) {
-         if (tabsView != null) {
--            tabsView.setViewVisible(tabs[INDEX_SETTINGS], !callTabsVisible, animated);
--            tabsView.setViewVisible(tabs[INDEX_CALLS], callTabsVisible, animated);
-+            app.nebulagram.ui.NebulaBottomBar.applyTabs(tabsView, tabs, callTabsVisible, animated);
-         }
-     }
-
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
+index b04f149f..f51af98a 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
-@@ -2979,8 +2979,8 @@
+@@ -2979,8 +2979,8 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
          }
-
+ 
          BirthdayController.getInstance(currentAccount).check();
 -        additionNavigationBarHeight = hasMainTabs ? dp(MAIN_TABS_HEIGHT_WITH_MARGINS) : 0;
 -        additionFloatingButtonOffset = hasMainTabs ? dp(DialogsActivity.MAIN_TABS_HEIGHT + DialogsActivity.MAIN_TABS_MARGIN) : 0;
 +        additionNavigationBarHeight = hasMainTabs && app.nebulagram.ui.NebulaBottomBar.enabled() ? dp(MAIN_TABS_HEIGHT_WITH_MARGINS) : 0;
 +        additionFloatingButtonOffset = hasMainTabs && app.nebulagram.ui.NebulaBottomBar.enabled() ? dp(DialogsActivity.MAIN_TABS_HEIGHT + DialogsActivity.MAIN_TABS_MARGIN) : 0;
-
+ 
          return true;
      }
-@@ -7023,6 +7023,12 @@
+@@ -7023,6 +7023,12 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
      @Override
      public void onResume() {
          super.onResume();
@@ -81,11 +26,82 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/
          if (dialogStoriesCell != null) {
              dialogStoriesCell.onResume();
          }
-@@ -14067,6 +14073,7 @@
+@@ -13615,6 +13621,13 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+             return false;
+         }
+ 
++        // Нижняя панель делает горизонтальный жест переходом между её
++        // включёнными разделами. Поиск, шторки и редактирование папок выше
++        // уже вернули false, поэтому они этот жест не перехватывают.
++        if (app.nebulagram.ui.NebulaBottomBar.enabled()) {
++            return true;
++        }
++
+         final boolean isActionBarTouch = ev.getY() < actionBar.getMeasuredHeight();
+         if (isActionBarTouch) {
+             return true;
+@@ -14067,6 +14080,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
      }
-
+ 
      private void checkUi_menuItems() {
 +        app.nebulagram.ui.NebulaSidePanel.update(this, !onlySelect && !searching && progressToActionMode == 0 && getRightSlidingProgress() == 0);
          checkUi_itemBackButtonVisibility();
          checkUi_itemOptionsVisibility();
          checkUi_itemDownloadsVisibility();
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/MainTabsActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/MainTabsActivity.java
+index 18411328..7c2b0bcb 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/MainTabsActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/MainTabsActivity.java
+@@ -274,6 +274,12 @@ public class MainTabsActivity extends ViewPagerActivity implements NotificationC
+         blur3_updateColors();
+         checkContactsTabBadge();
+         checkUnreadCount(true);
++        checkUi_callTabVisible(getUserConfig().showCallsTab, false);
++        checkUi_tabsPosition();
++        checkUi_fadeView();
++        if (!app.nebulagram.ui.NebulaBottomBar.enabled() && viewPager.getCurrentPosition() != POSITION_CHATS) {
++            viewPager.scrollToPosition(POSITION_CHATS);
++        }
+ 
+         showAccountChangeHint();
+     }
+@@ -393,6 +399,7 @@ public class MainTabsActivity extends ViewPagerActivity implements NotificationC
+ 
+         updateLayout();
+         checkUnreadCount(false);
++        checkUi_callTabVisible(getUserConfig().showCallsTab, false);
+         return contentView;
+     }
+ 
+@@ -1066,7 +1073,7 @@ public class MainTabsActivity extends ViewPagerActivity implements NotificationC
+         final float isProfile = 1f - MathUtils.clamp(Math.abs(POSITION_PROFILE - animatedPosition), 0, 1);
+         final float hide = 1f - AndroidUtilities.getNavigationBarThirdButtonsFactor(0, 1f, navigationBarHeight);
+         float alpha = (1f - isProfile * hide) * animatorTabsVisible.getFloatValue();
+-        if (tabletLayout) {
++        if (tabletLayout || !app.nebulagram.ui.NebulaBottomBar.enabled()) {
+             alpha = 0.0f;
+         }
+ 
+@@ -1081,10 +1088,11 @@ public class MainTabsActivity extends ViewPagerActivity implements NotificationC
+         final int normalY = -(updateLayoutHeight);
+         final int hiddenY = normalY + dp(40);
+ 
+-        final float factor = animatorTabsVisible.getFloatValue();
++        final float factor = app.nebulagram.ui.NebulaBottomBar.enabled() ? animatorTabsVisible.getFloatValue() : 0;
+         final float scale = lerp(0.85f, 1f, factor);
+ 
+         tabsViewWrapper.setTranslationY(lerp(hiddenY, normalY, factor));
++        tabsViewWrapper.setVisibility(factor > 0 ? View.VISIBLE : View.GONE);
+         tabsView.setClickable(factor > 1);
+         tabsView.setEnabled(factor > 1);
+         tabsView.setAlpha(factor);
+@@ -1093,8 +1101,7 @@ public class MainTabsActivity extends ViewPagerActivity implements NotificationC
+ 
+     private void checkUi_callTabVisible(boolean callTabsVisible, boolean animated) {
+         if (tabsView != null) {
+-            tabsView.setViewVisible(tabs[INDEX_SETTINGS], !callTabsVisible, animated);
+-            tabsView.setViewVisible(tabs[INDEX_CALLS], callTabsVisible, animated);
++            app.nebulagram.ui.NebulaBottomBar.applyTabs(tabsView, tabs, callTabsVisible, animated);
+         }
+     }
+ 

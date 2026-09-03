@@ -6,4 +6,6 @@
     <string name="NebulaFloatingHeaderInfo">Round back and menu buttons, with the chat title above the wallpaper.</string>
     <string name="NebulaProfileStyle">Updated chat information</string>
     <string name="NebulaProfileStyleInfo">Matching rounded cards for profiles, members and chat settings.</string>
+    <string name="NebulaProfilePhotoBanner">Chat photo banner</string>
+    <string name="NebulaProfilePhotoBannerInfo">A darkened photo behind the avatar and group title. No photo means no banner.</string>
 </resources>

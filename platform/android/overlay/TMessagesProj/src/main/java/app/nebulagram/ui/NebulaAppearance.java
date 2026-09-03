@@ -35,6 +35,15 @@ public final class NebulaAppearance {
         preferences().edit().putBoolean("profile_style", enabled).apply();
     }
 
+    /** Show a darkened cover made from the group's existing avatar, when it has one. */
+    public static boolean profilePhotoBanner() {
+        return preferences().getBoolean("profile_photo_banner", true);
+    }
+
+    public static void setProfilePhotoBanner(boolean enabled) {
+        preferences().edit().putBoolean("profile_photo_banner", enabled).apply();
+    }
+
     /**
      * Прятать ли живую камеру в меню вложений.
      *

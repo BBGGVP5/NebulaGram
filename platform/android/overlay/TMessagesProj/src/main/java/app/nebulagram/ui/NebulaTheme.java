@@ -90,8 +90,12 @@ public final class NebulaTheme {
     }
 
     /** Whether the palette came from the system rather than the fallback. */
-    public boolean isDynamic() {
+    public static boolean supportsDynamic() {
         return Build.VERSION.SDK_INT >= Build.VERSION_CODES.S;
+    }
+
+    public boolean isDynamic() {
+        return supportsDynamic() && materialYouEnabled();
     }
 
     public int primary() {

@@ -13,13 +13,16 @@ import android.graphics.Shader;
 import android.graphics.ColorFilter;
 import android.graphics.drawable.Drawable;
 import android.view.View;
+import android.view.ViewGroup;
 
 import androidx.core.graphics.ColorUtils;
 
 import org.telegram.messenger.AndroidUtilities;
+import org.telegram.messenger.ImageReceiver;
 import org.telegram.messenger.LocaleController;
 import org.telegram.ui.ActionBar.SimpleTextView;
 import org.telegram.ui.ActionBar.Theme;
+import org.telegram.ui.Components.BackupImageView;
 import org.telegram.ui.Components.ProfileActionsView;
 
 /** Decorative rendering only; Telegram owns the content and interaction. */
@@ -41,10 +44,17 @@ public final class NebulaProfileArt {
     /** Tinted surfaces remain in the native section drawing/blur capture path. */
     public static final class Surface {
         private final Theme.ResourcesProvider provider;
+        private final NebulaTheme material;
         private final Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
         private final Path path = new Path();
         private final float[] radii = new float[8];
-        public Surface(Theme.ResourcesProvider provider) { this.provider = provider; }
+        public Surface(Context context, Theme.ResourcesProvider provider) {
+            this.provider = provider;
+            material = NebulaTheme.of(context);
+        }
+
+        private int accentColor() { return material.isDynamic() ? material.primary() : accent(provider); }
+        private int surfaceColor() { return material.isDynamic() ? material.surfaceContainer() : surface(provider); }
 
         public void draw(Canvas canvas, RectF rect, float top, float bottom, float alpha) {
             radii[0] = radii[1] = radii[2] = radii[3] = top;
@@ -52,11 +62,11 @@ public final class NebulaProfileArt {
             path.rewind();
             path.addRoundRect(rect, radii, Path.Direction.CW);
             paint.setStyle(Paint.Style.FILL);
-            paint.setColor(Theme.multAlpha(ColorUtils.blendARGB(surface(provider), accent(provider), .065f), alpha));
+            paint.setColor(Theme.multAlpha(ColorUtils.blendARGB(surfaceColor(), accentColor(), .065f), alpha));
             canvas.drawPath(path, paint);
             paint.setStyle(Paint.Style.STROKE);
             paint.setStrokeWidth(dp(1));
-            paint.setColor(Theme.multAlpha(accent(provider), alpha * .12f));
+            paint.setColor(Theme.multAlpha(accentColor(), alpha * .12f));
             canvas.drawPath(path, paint);
             paint.setStyle(Paint.Style.FILL);
         }
@@ -68,6 +78,7 @@ public final class NebulaProfileArt {
         private final RectF rect = new RectF();
         private final RectF ornament = new RectF();
         private final Path clip = new Path();
+        private final Path bannerClip = new Path();
         private LinearGradient gradient;
         private int previousStart, previousEnd;
         private float previousTop, previousBottom;
@@ -83,7 +94,13 @@ public final class NebulaProfileArt {
             final float bottom = subtitle.getY() + subtitle.getHeight() + dp(14);
             if (bottom <= top + dp(64)) return;
             rect.set(dp(12), top, width - dp(12), bottom);
-            int base = surface(provider);
+            final BackupImageView photo = findPhoto(avatar);
+            final boolean banner = NebulaAppearance.profilePhotoBanner() && photo != null
+                    && photo.getImageReceiver().hasImageLoaded();
+            if (banner) drawPhotoBanner(canvas, photo.getImageReceiver(), rect, alpha);
+            final NebulaTheme material = NebulaTheme.of(avatar.getContext());
+            final int accent = material.isDynamic() ? material.primary() : accent(provider);
+            int base = material.isDynamic() ? material.surfaceContainer() : surface(provider);
             final int titleColor = title.getTextPaint().getColor() | 0xff000000;
             // Peer-selected profile colours can make the native title white
             // in a light theme. Keep its chosen contrast instead of recolouring it.
@@ -91,7 +108,7 @@ public final class NebulaProfileArt {
                 base = ColorUtils.blendARGB(base,
                         ColorUtils.calculateLuminance(titleColor) > .5 ? Color.BLACK : Color.WHITE, .85f);
             }
-            final int start = ColorUtils.blendARGB(base, accent(provider), .2f);
+            final int start = ColorUtils.blendARGB(base, accent, .2f);
             if (gradient == null || previousStart != start || previousEnd != base ||
                     previousTop != top || previousBottom != bottom) {
                 gradient = new LinearGradient(0, top, width, bottom, start, base, Shader.TileMode.CLAMP);
@@ -102,12 +119,14 @@ public final class NebulaProfileArt {
             }
             paint.setStyle(Paint.Style.FILL);
             paint.setShader(gradient);
-            paint.setAlpha((int) (255 * alpha));
+            // A photo becomes the hero surface. Keep only a light colour veil
+            // above it, so its darkened forms remain recognisable.
+            paint.setAlpha((int) (255 * alpha * (banner ? .20f : 1f)));
             canvas.drawRoundRect(rect, dp(28), dp(28), paint);
             paint.setShader(null);
             paint.setStyle(Paint.Style.STROKE);
             paint.setStrokeWidth(dp(1));
-            paint.setColor(Theme.multAlpha(accent(provider), .24f * alpha));
+            paint.setColor(Theme.multAlpha(accent, .24f * alpha));
             canvas.drawRoundRect(rect, dp(28), dp(28), paint);
 
             // The arcs sit at the outside corner, clear of the title and avatar.
@@ -117,28 +136,65 @@ public final class NebulaProfileArt {
             canvas.clipPath(clip);
             final float x = LocaleController.isRTL ? rect.left : rect.right;
             ornament.set(x - dp(54), top - dp(40), x + dp(54), top + dp(68));
-            paint.setColor(Theme.multAlpha(accent(provider), .1f * alpha));
+            paint.setColor(Theme.multAlpha(accent, .1f * alpha));
             paint.setStrokeWidth(dp(12));
             canvas.drawOval(ornament, paint);
             ornament.inset(dp(20), dp(20));
             paint.setStrokeWidth(dp(1));
-            paint.setColor(Theme.multAlpha(accent(provider), .22f * alpha));
+            paint.setColor(Theme.multAlpha(accent, .22f * alpha));
             canvas.drawOval(ornament, paint);
             canvas.restoreToCount(save);
             paint.setStyle(Paint.Style.FILL);
+        }
+
+        private BackupImageView findPhoto(View root) {
+            if (root instanceof BackupImageView) return (BackupImageView) root;
+            if (!(root instanceof ViewGroup)) return null;
+            ViewGroup group = (ViewGroup) root;
+            for (int i = 0; i < group.getChildCount(); i++) {
+                BackupImageView photo = findPhoto(group.getChildAt(i));
+                if (photo != null) return photo;
+            }
+            return null;
+        }
+
+        private void drawPhotoBanner(Canvas canvas, ImageReceiver receiver, RectF target, float alpha) {
+            final float imageX = receiver.getImageX();
+            final float imageY = receiver.getImageY();
+            final float imageW = receiver.getImageWidth();
+            final float imageH = receiver.getImageHeight();
+            final float imageAlpha = receiver.getAlpha();
+            int save = canvas.save();
+            bannerClip.rewind();
+            bannerClip.addRoundRect(target, dp(28), dp(28), Path.Direction.CW);
+            canvas.clipPath(bannerClip);
+            receiver.setImageCoords(target);
+            receiver.setAlpha(.78f * alpha);
+            receiver.draw(canvas);
+            paint.setColor(0xD8000000);
+            paint.setAlpha((int) (190 * alpha));
+            canvas.drawRect(target, paint);
+            canvas.restoreToCount(save);
+            receiver.setAlpha(imageAlpha);
+            receiver.setImageCoords(imageX, imageY, imageW, imageH);
         }
     }
 
     /** Native actions with accent badges and comfortable label separation. */
     public static final class Actions extends ProfileActionsView {
         private final Theme.ResourcesProvider provider;
+        private final NebulaTheme material;
         private final Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
         private final RectF badge = new RectF();
         private float expanded;
         public Actions(Context context, int height, Theme.ResourcesProvider provider) {
             super(context, height);
             this.provider = provider;
+            material = NebulaTheme.of(context);
         }
+        private int accentColor() { return material.isDynamic() ? material.primary() : accent(provider); }
+        private int surfaceColor() { return material.isDynamic() ? material.surfaceContainer() : surface(provider); }
+        private int inkColor() { return material.isDynamic() ? material.onSurface() : ink(provider); }
         @Override public void setParentExpanded(float value) {
             expanded = clamp(value);
             super.setParentExpanded(value);
@@ -147,9 +203,9 @@ public final class NebulaProfileArt {
         @Override protected void drawActionSurface(Canvas canvas, RectF rect, int key, float radius, float alpha) {
             alpha *= 1f - expanded;
             if (alpha <= 0) return;
-            final int color = accent(provider);
+            final int color = accentColor();
             paint.setStyle(Paint.Style.FILL);
-            paint.setColor(Theme.multAlpha(ColorUtils.blendARGB(surface(provider), color,
+            paint.setColor(Theme.multAlpha(ColorUtils.blendARGB(surfaceColor(), color,
                     key == KEY_MESSAGE || key == KEY_JOIN ? .22f : .09f), alpha));
             canvas.drawRoundRect(rect, radius, radius, paint);
             paint.setStyle(Paint.Style.STROKE);
@@ -159,10 +215,10 @@ public final class NebulaProfileArt {
             paint.setStyle(Paint.Style.FILL);
         }
         @Override protected int actionTextColor(int original) {
-            return ColorUtils.blendARGB(ink(provider), original, expanded);
+            return ColorUtils.blendARGB(inkColor(), original, expanded);
         }
         @Override protected int actionIconColor(int original, int key) {
-            return ColorUtils.blendARGB(accent(provider), original, expanded);
+            return ColorUtils.blendARGB(accentColor(), original, expanded);
         }
         @Override protected float actionTextY(float original, int lines) {
             return original + (lines <= 2 ? dp(5) * (1f - expanded) : 0f);
@@ -170,20 +226,25 @@ public final class NebulaProfileArt {
         @Override protected void drawActionIconBackground(Canvas canvas, Rect bounds, int key, int lines, float alpha) {
             if (lines > 2 || expanded >= 1f) return;
             badge.set(bounds.left - dp(4), bounds.top - dp(4), bounds.right + dp(4), bounds.bottom + dp(4));
-            paint.setColor(Theme.multAlpha(accent(provider), .14f * alpha * (1f - expanded)));
+            paint.setColor(Theme.multAlpha(accentColor(), .14f * alpha * (1f - expanded)));
             canvas.drawRoundRect(badge, dp(10), dp(10), paint);
         }
     }
 
     public static class LabelBackground extends Drawable {
         final Theme.ResourcesProvider provider;
+        final NebulaTheme material;
         final Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
         final RectF rect = new RectF();
         int alpha = 255;
-        public LabelBackground(Theme.ResourcesProvider provider) { this.provider = provider; }
+        public LabelBackground(Context context, Theme.ResourcesProvider provider) {
+            this.provider = provider;
+            material = NebulaTheme.of(context);
+        }
         @Override public void draw(Canvas canvas) {
             rect.set(getBounds());
-            paint.setColor(Theme.multAlpha(accent(provider), .12f * alpha / 255f));
+            int accentColor = material.isDynamic() ? material.primary() : accent(provider);
+            paint.setColor(Theme.multAlpha(accentColor, .12f * alpha / 255f));
             canvas.drawRoundRect(rect, dp(10), dp(10), paint);
         }
         @Override public void setAlpha(int alpha) { this.alpha = alpha; invalidateSelf(); }
@@ -192,12 +253,14 @@ public final class NebulaProfileArt {
     }
 
     public static final class IdentityBackground extends LabelBackground {
-        public IdentityBackground(Theme.ResourcesProvider provider) { super(provider); }
+        public IdentityBackground(Context context, Theme.ResourcesProvider provider) { super(context, provider); }
         @Override public void draw(Canvas canvas) {
             rect.set(getBounds());
+            int base = material.isDynamic() ? material.surfaceContainer() : surface(provider);
+            int accentColor = material.isDynamic() ? material.primary() : accent(provider);
             paint.setShader(new LinearGradient(rect.left, rect.top, rect.right, rect.bottom,
-                    ColorUtils.blendARGB(surface(provider), accent(provider), .22f),
-                    ColorUtils.blendARGB(surface(provider), accent(provider), .04f), Shader.TileMode.CLAMP));
+                    ColorUtils.blendARGB(base, accentColor, .22f),
+                    ColorUtils.blendARGB(base, accentColor, .04f), Shader.TileMode.CLAMP));
             paint.setAlpha(alpha);
             canvas.drawRoundRect(rect, dp(24), dp(24), paint);
             paint.setShader(null);
