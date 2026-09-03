@@ -91,7 +91,7 @@ public class NebulaIntroFragment extends BaseFragment {
         column.addView(buildLanguageAction(context));
         // Material 3 puts the progress under the actions, not above the copy:
         // it is a status line, not a heading.
-        column.addView(buildProgress(context, theme));
+        column.addView(NebulaProgress.build(context, STEPS, STEP_INDEX));
 
         return root;
     }
@@ -152,9 +152,9 @@ public class NebulaIntroFragment extends BaseFragment {
             if (onContinue != null) {
                 onContinue.run();
             } else {
-                // Hand over to Telegram's own first-run flow, replacing this
-                // screen so Back does not return to it.
-                presentFragment(new org.telegram.ui.IntroActivity(), true);
+                // Дальше наш же шаг с туннелем; карусель Telegram пропускаем —
+                // её работу только что сделал этот экран.
+                presentFragment(new NebulaConnectFragment(), true);
             }
         });
         next.setLayoutParams(new LinearLayout.LayoutParams(
@@ -173,32 +173,6 @@ public class NebulaIntroFragment extends BaseFragment {
         return language;
     }
 
-    private View buildProgress(Context context, NebulaTheme theme) {
-        LinearLayout row = new LinearLayout(context);
-        row.setOrientation(LinearLayout.HORIZONTAL);
-        row.setGravity(Gravity.CENTER);
-
-        for (int i = 0; i < STEPS; i++) {
-            boolean active = i == STEP_INDEX;
-            View dash = new View(context);
-            GradientDrawable shape = new GradientDrawable();
-            shape.setCornerRadius(AndroidUtilities.dp(2));
-            shape.setColor(active ? theme.primary() : theme.outline());
-            dash.setBackground(shape);
-
-            LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
-                    AndroidUtilities.dp(active ? 30 : 20), AndroidUtilities.dp(4));
-            params.leftMargin = i == 0 ? 0 : AndroidUtilities.dp(6);
-            row.addView(dash, params);
-        }
-
-        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        params.topMargin = AndroidUtilities.dp(12);
-        params.bottomMargin = AndroidUtilities.dp(4);
-        row.setLayoutParams(params);
-        return row;
-    }
 
     @Override
     public void onFragmentDestroy() {

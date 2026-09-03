@@ -2,9 +2,7 @@ package app.nebulagram.ui;
 
 import android.content.Context;
 import android.content.res.ColorStateList;
-import android.graphics.Canvas;
-import android.graphics.Paint;
-import android.graphics.RectF;
+import android.graphics.drawable.GradientDrawable;
 import android.graphics.drawable.RippleDrawable;
 import android.graphics.drawable.ShapeDrawable;
 import android.graphics.drawable.shapes.RoundRectShape;
@@ -32,8 +30,6 @@ public class NebulaButton extends TextView {
     /** Text: secondary actions, "skip" and the like. */
     public static final int STYLE_TEXT = 1;
 
-    private final Paint background = new Paint(Paint.ANTI_ALIAS_FLAG);
-    private final RectF rect = new RectF();
     private final int style;
     private final float radius;
 
@@ -49,19 +45,18 @@ public class NebulaButton extends TextView {
         setTypeface(AndroidUtilities.bold());
 
         if (style == STYLE_FILLED) {
-            background.setColor(theme.primary());
             setTextColor(theme.onPrimary());
             setTextSize(TypedValue.COMPLEX_UNIT_DIP, 15);
             setLetterSpacing(0.02f);
             setMinimumHeight(AndroidUtilities.dp(52));
             setPadding(AndroidUtilities.dp(20), 0, AndroidUtilities.dp(20), 0);
-            setRipple(theme.onPrimary());
+            setRipple(theme.onPrimary(), theme.primary());
         } else {
             setTextColor(theme.primary());
             setTextSize(TypedValue.COMPLEX_UNIT_DIP, 14);
             setMinimumHeight(AndroidUtilities.dp(44));
             setPadding(AndroidUtilities.dp(16), 0, AndroidUtilities.dp(16), 0);
-            setRipple(theme.primary());
+            setRipple(theme.primary(), 0);
         }
     }
 
@@ -70,24 +65,25 @@ public class NebulaButton extends TextView {
      * rectangular ripple on a fully rounded button is the tell-tale sign of a
      * control that was never restyled.
      */
-    private void setRipple(int contentColor) {
+    private void setRipple(int contentColor, int fillColor) {
         float[] corners = new float[8];
         for (int i = 0; i < corners.length; i++) {
             corners[i] = radius;
         }
         ShapeDrawable mask = new ShapeDrawable(new RoundRectShape(corners, null, null));
+
+        // Заливка — обычный drawable, а не рисование в onDraw: так её видно
+        // всегда, а ripple остаётся ограничен формой кнопки.
+        GradientDrawable fill = null;
+        if (fillColor != 0) {
+            fill = new GradientDrawable();
+            fill.setCornerRadius(radius);
+            fill.setColor(fillColor);
+        }
         setBackground(new RippleDrawable(
-                ColorStateList.valueOf(NebulaTheme.stateLayer(contentColor, 0.12f)), null, mask));
+                ColorStateList.valueOf(NebulaTheme.stateLayer(contentColor, 0.14f)), fill, mask));
         setClickable(true);
         setFocusable(true);
     }
 
-    @Override
-    protected void onDraw(Canvas canvas) {
-        if (style == STYLE_FILLED) {
-            rect.set(0, 0, getWidth(), getHeight());
-            canvas.drawRoundRect(rect, radius, radius, background);
-        }
-        super.onDraw(canvas);
-    }
 }
