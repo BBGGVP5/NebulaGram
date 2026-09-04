@@ -30,6 +30,8 @@ public final class NebulaComposerStyle {
     private ChatActivityEnterView host;
     /** Ширина настоящей кнопки вложений — она же диаметр стеклянных кружков. */
     private int buttonSize;
+    /** Видна ли кнопка вложений: под скрытой стеклянный кружок не рисуем. */
+    private boolean attachmentVisible = true;
 
     /**
      * Рисуется ли сейчас наша панель. Нужно снаружи: пока она активна,
@@ -84,6 +86,10 @@ public final class NebulaComposerStyle {
         if (attachment.getMeasuredWidth() > 0) {
             buttonSize = attachment.getMeasuredWidth();
         }
+        // При пересылке и ответе Telegram прячет кнопку вложений; кружок под
+        // ней оставался пустым стеклянным кругом.
+        attachmentVisible = attachment.getVisibility() == View.VISIBLE
+                && attachment.getAlpha() > 0.5f;
         if (active) {
             ViewGroup parent = (ViewGroup) emoji.getParent();
             // Derive from stable parent geometry, never from our previous layout.
