@@ -294,8 +294,12 @@ public final class NebulaLoginStyle {
             // сдвига края заливки и обводки не совпадали — грань выглядела
             // двойной.
             final int inset = Math.max(2, AndroidUtilities.dp(0.5f));
+            // Сверху отступ больше на те шесть точек, которые Telegram
+            // оставляет под заголовок: рамка начинается под ними, а заливка
+            // шла от самого верха и торчала над рамкой на всю эту полоску.
+            final int top = AndroidUtilities.dp(6) + inset;
             setBackground(new android.graphics.drawable.InsetDrawable(
-                    surface(RADIUS), inset, inset, inset, inset));
+                    surface(RADIUS), inset, top, inset, inset));
             setPadding(0, AndroidUtilities.dp(6), 0, 0);
         }
 
