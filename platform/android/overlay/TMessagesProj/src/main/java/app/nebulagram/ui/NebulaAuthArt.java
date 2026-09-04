@@ -192,7 +192,7 @@ public class NebulaAuthArt extends Drawable {
             paint.setStrokeWidth(unit * 1.8f);
             paint.setColor(accent);
             paint.setAlpha((int) (128 * (1f - halo)));
-            canvas.drawCircle(unit * 50, unit * 50, unit * (36 + 17 * halo), paint);
+            canvas.drawCircle(unit * 50, unit * 50, unit * (34 + 15 * halo), paint);
             paint.setAlpha(255);
         }
 

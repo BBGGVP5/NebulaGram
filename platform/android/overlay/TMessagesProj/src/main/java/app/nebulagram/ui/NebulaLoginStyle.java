@@ -178,7 +178,8 @@ public final class NebulaLoginStyle {
                 Theme.getColor(Theme.key_windowBackgroundWhiteGrayText), artAccent, .25f);
         final android.graphics.drawable.Drawable art;
         final Runnable release;
-        if (step == 2 || step == 3) {
+        final boolean animated = step == 2 || step == 3;
+        if (animated) {
             final NebulaAuthArt animation = new NebulaAuthArt(
                     step == 2 ? NebulaAuthArt.KIND_PHONE : NebulaAuthArt.KIND_CODE,
                     artAccent, artMuted);
@@ -198,9 +199,15 @@ public final class NebulaLoginStyle {
             }
         };
         badge.setImageDrawable(art);
-        badge.setBackground(surface(28));
+        // Под рисунком шага плитки нет: в макетах её не было, а здесь она ещё
+        // и срезала бы движение по краям квадрата. Знак приложения на прочих
+        // шагах остаётся на своей подложке.
+        if (!animated) {
+            badge.setBackground(surface(28));
+        }
         badge.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
-        LinearLayout.LayoutParams badgeParams = new LinearLayout.LayoutParams(AndroidUtilities.dp(88), AndroidUtilities.dp(88));
+        final int side = AndroidUtilities.dp(animated ? 124 : 88);
+        LinearLayout.LayoutParams badgeParams = new LinearLayout.LayoutParams(side, side);
         badgeParams.gravity = Gravity.CENTER_HORIZONTAL;
         badgeParams.bottomMargin = AndroidUtilities.dp(22);
         slide.addView(badge, 0, badgeParams);

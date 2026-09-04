@@ -42,18 +42,17 @@ public class NebulaConnectFragment extends BaseFragment {
         ImageView image = new ImageView(context);
         image.setImageDrawable(art);
         image.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
-        GradientDrawable badge = new GradientDrawable();
-        badge.setColor(theme.primaryContainer());
-        badge.setCornerRadius(AndroidUtilities.dp(32));
-        image.setBackground(badge);
-        LinearLayout.LayoutParams badgeParams = new LinearLayout.LayoutParams(AndroidUtilities.dp(104), AndroidUtilities.dp(104));
+        // Плитки под рисунком нет: в макетах её не было, а здесь она ещё и
+        // срезала расходящуюся волну по краям квадрата.
+        LinearLayout.LayoutParams badgeParams = new LinearLayout.LayoutParams(AndroidUtilities.dp(148), AndroidUtilities.dp(148));
         badgeParams.gravity = Gravity.CENTER_HORIZONTAL;
-        badgeParams.bottomMargin = AndroidUtilities.dp(24);
+        badgeParams.bottomMargin = AndroidUtilities.dp(16);
         root.content.addView(image, badgeParams);
 
         TextView title = NebulaIntroFragment.text(context, 30, theme.onSurface(), true);
         title.setGravity(Gravity.CENTER);
-        title.setText(LocaleController.getString(R.string.NebulaAuthLinkTitle));
+        title.setText(NebulaIntroFragment.highlight(
+                LocaleController.getString(R.string.NebulaAuthLinkTitle), "NebulaLink", theme.primary()));
         root.content.addView(title, NebulaIntroFragment.width());
         TextView subtitle = NebulaIntroFragment.text(context, 15, theme.onSurfaceVariant(), false);
         subtitle.setGravity(Gravity.CENTER);

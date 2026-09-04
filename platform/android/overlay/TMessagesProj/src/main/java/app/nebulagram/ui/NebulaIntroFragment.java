@@ -53,11 +53,8 @@ public class NebulaIntroFragment extends BaseFragment {
 
         TextView title = text(context, 32, theme.onSurface(), true);
         title.setGravity(Gravity.CENTER);
-        String message = LocaleController.getString(R.string.NebulaAuthWelcomeTitle);
-        SpannableStringBuilder highlighted = new SpannableStringBuilder(message);
-        int brand = message.indexOf("NebulaGram");
-        if (brand >= 0) highlighted.setSpan(new ForegroundColorSpan(theme.primary()), brand, brand + 10, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-        title.setText(highlighted);
+        title.setText(highlight(LocaleController.getString(R.string.NebulaAuthWelcomeTitle),
+                "NebulaGram", theme.primary()));
         root.content.addView(title, width());
 
         TextView subtitle = text(context, 16, theme.onSurfaceVariant(), false);
@@ -103,6 +100,17 @@ public class NebulaIntroFragment extends BaseFragment {
         root.actions.addView(NebulaProgress.build(context, 4, 0));
         fragmentView = root;
         return root;
+    }
+
+    /** Красит название акцентом: тем же приёмом, что и заголовок приветствия. */
+    static CharSequence highlight(String message, String word, int color) {
+        SpannableStringBuilder highlighted = new SpannableStringBuilder(message);
+        int at = message.indexOf(word);
+        if (at >= 0) {
+            highlighted.setSpan(new ForegroundColorSpan(color), at, at + word.length(),
+                    Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+        }
+        return highlighted;
     }
 
     static TextView text(Context context, float size, int color, boolean bold) {
