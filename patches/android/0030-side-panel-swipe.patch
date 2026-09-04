@@ -1,0 +1,17 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/MainTabsActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/MainTabsActivity.java
+index 114c2fe5..2361108f 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/MainTabsActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/MainTabsActivity.java
+@@ -916,6 +916,12 @@ public class MainTabsActivity extends ViewPagerActivity implements NotificationC
+ 
+     @Override
+     protected boolean canScrollBackward(MotionEvent ev) {
++        // NebulaGram: с первой вкладки движение слева направо открывает
++        // боковую панель — вместо кнопки, которая занимала место в шапке.
++        if (viewPager != null && viewPager.getCurrentPosition() == 0
++                && app.nebulagram.ui.NebulaSidePanel.openOnSwipe(getCurrentVisibleFragment())) {
++            return false;
++        }
+         return canScrollInternal(ev, false);
+     }
+ 

@@ -33,23 +33,41 @@ public final class NebulaSidePanel {
 
     private NebulaSidePanel() { }
 
+    /**
+     * Панель открывается жестом, а не кнопкой.
+     *
+     * <p>Кнопка занимала место в шапке ради того, что и так делается движением
+     * пальца: смахнуть слева направо на первой вкладке. Прежняя кнопка при
+     * обновлении убирается, чтобы не осталась висеть у тех, кто уже её видел.
+     */
     public static void update(DialogsActivity host, boolean menuVisible) {
         if (host.getActionBar() == null || !host.isMainDialogList()
                 || host.isArchive() || host.isCommunity()) {
             return;
         }
-        ActionBarMenu menu = host.getActionBar().createMenu();
-        ActionBarMenuItem item = menu.getItem(MENU_ID);
-        boolean visible = NebulaBottomBar.sidebarEnabled() && menuVisible;
-        if (item == null && visible) {
-            item = menu.addItem(MENU_ID, R.drawable.menu_intro);
-            item.setContentDescription(LocaleController.getString(R.string.NebulaSidePanelTitle));
-            item.setOnClickListener(v -> show(host));
-        }
+        ActionBarMenuItem item = host.getActionBar().createMenu().getItem(MENU_ID);
         if (item != null) {
-            item.setVisibility(visible ? View.VISIBLE : View.GONE);
+            item.setVisibility(View.GONE);
         }
     }
+
+    /**
+     * Открывает панель по свайпу слева направо с первой вкладки.
+     *
+     * @return true, если панель открыта и жест дальше передавать не нужно
+     */
+    public static boolean openOnSwipe(BaseFragment host) {
+        if (host == null || !NebulaBottomBar.sidebarEnabled() || host.getParentActivity() == null) {
+            return false;
+        }
+        if (showing) {
+            return true;
+        }
+        show(host);
+        return true;
+    }
+
+    private static boolean showing;
 
     private static void show(BaseFragment host) {
         Context context = host.getParentActivity();
@@ -102,6 +120,8 @@ public final class NebulaSidePanel {
         window.setDimAmount(0.45f);
         window.setGravity(Gravity.START | Gravity.TOP);
         window.setWindowAnimations(R.style.NebulaDrawerAnimation);
+        showing = true;
+        dialog.setOnDismissListener(d -> showing = false);
         if (host.showDialog(dialog) != null) {
             int width = Math.min(AndroidUtilities.dp(320), context.getResources().getDisplayMetrics().widthPixels - AndroidUtilities.dp(32));
             window.setLayout(width, ViewGroup.LayoutParams.MATCH_PARENT);

@@ -155,13 +155,18 @@ public final class NebulaComposerStyle {
         if (availableForGaps < gap * 2) {
             gap = Math.max(AndroidUtilities.dp(3), Math.max(0, availableForGaps / 2));
         }
-        int editorLeft = padded.left + diameter + gap;
+        // При пересылке и ответе Telegram убирает кнопку вложений: кружок под
+        // ней оставался пустым стеклянным кругом. Поле в этом случае начинается
+        // от самого края и занимает освободившееся место.
+        int editorLeft = attachmentVisible ? padded.left + diameter + gap : padded.left;
         int editorRight = padded.right - diameter - gap;
         if (editorRight <= editorLeft) return false;
 
         // Preserve the exact upstream insets and alpha, including IME animation.
-        drawSurface(canvas, background, padded.left, padded.bottom - diameter,
-                padded.left + diameter, padded.bottom, padding);
+        if (attachmentVisible) {
+            drawSurface(canvas, background, padded.left, padded.bottom - diameter,
+                    padded.left + diameter, padded.bottom, padding);
+        }
         drawSurface(canvas, background, editorLeft, padded.top, editorRight, padded.bottom, padding);
         drawSurface(canvas, background, padded.right - diameter, padded.bottom - diameter,
                 padded.right, padded.bottom, padding);
