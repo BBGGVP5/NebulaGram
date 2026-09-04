@@ -50,7 +50,12 @@ public class NebulaAuthArt extends Drawable {
     private static final int[] REEL_TURNS = {3, 4, 2, 5};
 
     /** Длина цикла для каждого вида, мс. */
-    private static final int[] DURATION = {12000, 18000, 2600};
+    private static final int[] DURATION = {12000, 18000, 3200};
+
+    /** Доли цикла подключения: рисование галочки, начало и время растворения. */
+    private static final float DRAW_UNTIL = 0.28f;
+    private static final float FADE_FROM = 0.76f;
+    private static final float FADE_TIME = 0.16f;
 
     private final Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Paint digits = new Paint(Paint.ANTI_ALIAS_FLAG);
@@ -184,14 +189,14 @@ public class NebulaAuthArt extends Drawable {
 
     /** Подключение: щит ставит галочку, вокруг расходится волна. */
     private void drawLink(Canvas canvas, float unit) {
-        // Волна расходится и гаснет за первые семьдесят процентов цикла,
-        // остальное — пауза: без неё кольцо мельтешит без остановки.
-        float halo = Math.min(1f, phase / 0.7f);
-        if (halo < 1f) {
+        // Волна расходится, когда галочка дорисована: это подтверждение, а не
+        // постоянный фон. До того её нет вовсе.
+        if (phase > DRAW_UNTIL) {
+            final float halo = (phase - DRAW_UNTIL) / (1f - DRAW_UNTIL);
             paint.setStyle(Paint.Style.STROKE);
             paint.setStrokeWidth(unit * 1.8f);
             paint.setColor(accent);
-            paint.setAlpha((int) (128 * (1f - halo)));
+            paint.setAlpha((int) (140 * (1f - halo)));
             canvas.drawCircle(unit * 50, unit * 50, unit * (34 + 15 * halo), paint);
             paint.setAlpha(255);
         }
@@ -214,26 +219,28 @@ public class NebulaAuthArt extends Drawable {
         paint.setStrokeJoin(Paint.Join.ROUND);
         canvas.drawPath(path, paint);
 
-        // Галочка рисуется, держится и стирается — отметка ставится заново.
-        float draw;
-        if (phase < 0.35f) {
-            draw = phase / 0.35f;
-        } else if (phase < 0.8f) {
-            draw = 1f;
-        } else {
-            draw = 1f - (phase - 0.8f) / 0.2f;
+        // Галочка рисуется, держится, растворяется целиком — и цикл начинается
+        // заново. Раньше она стиралась задом наперёд, будто её отматывают, и
+        // на стыке цикла оставался огрызок линии.
+        final float draw = Math.min(1f, phase / DRAW_UNTIL);
+        final int alpha = phase < FADE_FROM ? 255
+                : (int) (255 * Math.max(0f, 1f - (phase - FADE_FROM) / FADE_TIME));
+        if (alpha > 0) {
+            path.reset();
+            path.moveTo(unit * 36, unit * 52);
+            path.lineTo(unit * 46, unit * 62);
+            path.lineTo(unit * 65, unit * 39);
+            measure.setPath(path, false);
+            segment.reset();
+            measure.getSegment(0, measure.getLength() * draw, segment, true);
+            paint.setStrokeWidth(unit * 5.5f);
+            paint.setStrokeCap(Paint.Cap.ROUND);
+            paint.setColor(accent);
+            paint.setAlpha(alpha);
+            canvas.drawPath(segment, paint);
+            paint.setAlpha(255);
+            paint.setStrokeCap(Paint.Cap.BUTT);
         }
-        path.reset();
-        path.moveTo(unit * 36, unit * 52);
-        path.lineTo(unit * 46, unit * 62);
-        path.lineTo(unit * 65, unit * 39);
-        measure.setPath(path, false);
-        segment.reset();
-        measure.getSegment(0, measure.getLength() * draw, segment, true);
-        paint.setStrokeWidth(unit * 5.5f);
-        paint.setStrokeCap(Paint.Cap.ROUND);
-        canvas.drawPath(segment, paint);
-        paint.setStrokeCap(Paint.Cap.BUTT);
         paint.setStyle(Paint.Style.FILL);
     }
 
