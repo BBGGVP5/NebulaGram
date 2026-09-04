@@ -1,0 +1,13 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Stories/DialogStoriesCell.java b/TMessagesProj/src/main/java/org/telegram/ui/Stories/DialogStoriesCell.java
+index ac5d4b7e..a8cb2440 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Stories/DialogStoriesCell.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Stories/DialogStoriesCell.java
+@@ -336,6 +336,8 @@ public class DialogStoriesCell extends FrameLayout implements NotificationCenter
+         telegramLogoView.setContentDescription(getString(R.string.AppName));
+         telegramLogoView.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
+         telegramLogoView.setImageResource(R.drawable.telegram_logo_2);
++        // NebulaGram: слово в векторе подменить нельзя, рисуем своё текстом.
++        app.nebulagram.ui.NebulaWordmark.apply(telegramLogoView);
+         telegramLogoView.setColorFilter(getTextLogoColor(), PorterDuff.Mode.MULTIPLY);
+         telegramLogoView.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_YES);
+         telegramLogoView.setFocusableInTouchMode(true);
