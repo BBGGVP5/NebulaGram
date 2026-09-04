@@ -109,11 +109,11 @@ public class NebulaAuthArt extends Drawable {
      * прокрутка списка.
      */
     private void drawPhone(Canvas canvas, float unit) {
-        final float height = unit * 28;
-        final float reel = unit * 12;
-        final float gap = unit * 3.5f;
-        final float prefix = unit * 16;
-        final float radius = unit * 6;
+        final float height = unit * 42;
+        final float reel = unit * 15;
+        final float gap = unit * 4;
+        final float prefix = unit * 20;
+        final float radius = unit * 8;
         final float total = prefix + gap + REELS * reel + (REELS - 1) * gap;
         final float top = unit * 50 - height / 2f;
         float left = (unit * 100 - total) / 2f;
@@ -126,7 +126,7 @@ public class NebulaAuthArt extends Drawable {
         canvas.drawRoundRect(rect, radius, radius, paint);
         paint.setAlpha(255);
 
-        digits.setTextSize(unit * 15);
+        digits.setTextSize(unit * 22);
         digits.setColor(accent);
         final float baseline = rect.centerY() - (digits.ascent() + digits.descent()) / 2f;
         canvas.drawText("+", rect.centerX(), baseline, digits);
@@ -135,7 +135,7 @@ public class NebulaAuthArt extends Drawable {
         for (int i = 0; i < REELS; i++) {
             rect.set(left, top, left + reel, top + height);
             paint.setStyle(Paint.Style.STROKE);
-            paint.setStrokeWidth(unit * 2);
+            paint.setStrokeWidth(unit * 2.6f);
             paint.setColor(muted);
             canvas.drawRoundRect(rect, radius, radius, paint);
 
@@ -153,24 +153,24 @@ public class NebulaAuthArt extends Drawable {
         // Кольцо делает за цикл два полных оборота, поэтому на стыке цикла
         // пунктир не дёргается.
         paint.setStyle(Paint.Style.STROKE);
-        paint.setStrokeWidth(unit * 1.8f);
+        paint.setStrokeWidth(unit * 2.2f);
         paint.setColor(muted);
-        paint.setPathEffect(new DashPathEffect(new float[]{unit * 6, unit * 10}, 0));
+        paint.setPathEffect(new DashPathEffect(new float[]{unit * 7, unit * 11}, 0));
         canvas.save();
         canvas.rotate(phase * 720f, unit * 50, unit * 50);
-        canvas.drawCircle(unit * 50, unit * 50, unit * 38, paint);
+        canvas.drawCircle(unit * 50, unit * 50, unit * 46, paint);
         canvas.restore();
         paint.setPathEffect(null);
 
-        rect.set(unit * 24, unit * 34, unit * 76, unit * 68);
+        rect.set(unit * 19, unit * 29, unit * 81, unit * 71);
         paint.setStyle(Paint.Style.FILL);
         paint.setColor(accent);
         paint.setAlpha(48);
-        canvas.drawRoundRect(rect, unit * 10, unit * 10, paint);
+        canvas.drawRoundRect(rect, unit * 13, unit * 13, paint);
         paint.setAlpha(255);
         paint.setStyle(Paint.Style.STROKE);
-        paint.setStrokeWidth(unit * 2.4f);
-        canvas.drawRoundRect(rect, unit * 10, unit * 10, paint);
+        paint.setStrokeWidth(unit * 3);
+        canvas.drawRoundRect(rect, unit * 13, unit * 13, paint);
 
         // Точки всплывают одна за другой со сдвигом — знак приходящего кода.
         paint.setStyle(Paint.Style.FILL);
@@ -182,7 +182,7 @@ public class NebulaAuthArt extends Drawable {
             float wave = (float) (0.5 - 0.5 * Math.cos(local * 2 * Math.PI));
             paint.setColor(accent);
             paint.setAlpha((int) (128 + 127 * wave));
-            canvas.drawCircle(unit * (37 + 13 * i), unit * 51 - unit * 4 * wave, unit * 4, paint);
+            canvas.drawCircle(unit * (34 + 16 * i), unit * 50 - unit * 5 * wave, unit * 5.5f, paint);
         }
         paint.setAlpha(255);
     }
@@ -197,17 +197,17 @@ public class NebulaAuthArt extends Drawable {
             paint.setStrokeWidth(unit * 1.8f);
             paint.setColor(accent);
             paint.setAlpha((int) (140 * (1f - halo)));
-            canvas.drawCircle(unit * 50, unit * 50, unit * (34 + 15 * halo), paint);
+            canvas.drawCircle(unit * 50, unit * 50, unit * (38 + 11 * halo), paint);
             paint.setAlpha(255);
         }
 
         path.reset();
-        path.moveTo(unit * 50, unit * 10);
-        path.lineTo(unit * 83, unit * 24);
-        path.lineTo(unit * 83, unit * 53);
-        path.cubicTo(unit * 83, unit * 74, unit * 69, unit * 85, unit * 50, unit * 91);
-        path.cubicTo(unit * 31, unit * 85, unit * 17, unit * 74, unit * 17, unit * 53);
-        path.lineTo(unit * 17, unit * 24);
+        path.moveTo(unit * 50, unit * 6);
+        path.lineTo(unit * 87, unit * 21);
+        path.lineTo(unit * 87, unit * 53);
+        path.cubicTo(unit * 87, unit * 77, unit * 71, unit * 89, unit * 50, unit * 95);
+        path.cubicTo(unit * 29, unit * 89, unit * 13, unit * 77, unit * 13, unit * 53);
+        path.lineTo(unit * 13, unit * 21);
         path.close();
         paint.setStyle(Paint.Style.FILL);
         paint.setColor(accent);
@@ -215,7 +215,7 @@ public class NebulaAuthArt extends Drawable {
         canvas.drawPath(path, paint);
         paint.setAlpha(255);
         paint.setStyle(Paint.Style.STROKE);
-        paint.setStrokeWidth(unit * 2.6f);
+        paint.setStrokeWidth(unit * 3);
         paint.setStrokeJoin(Paint.Join.ROUND);
         canvas.drawPath(path, paint);
 
@@ -227,13 +227,13 @@ public class NebulaAuthArt extends Drawable {
                 : (int) (255 * Math.max(0f, 1f - (phase - FADE_FROM) / FADE_TIME));
         if (alpha > 0) {
             path.reset();
-            path.moveTo(unit * 36, unit * 52);
-            path.lineTo(unit * 46, unit * 62);
-            path.lineTo(unit * 65, unit * 39);
+            path.moveTo(unit * 33, unit * 52);
+            path.lineTo(unit * 45, unit * 64);
+            path.lineTo(unit * 68, unit * 37);
             measure.setPath(path, false);
             segment.reset();
             measure.getSegment(0, measure.getLength() * draw, segment, true);
-            paint.setStrokeWidth(unit * 5.5f);
+            paint.setStrokeWidth(unit * 6.5f);
             paint.setStrokeCap(Paint.Cap.ROUND);
             paint.setColor(accent);
             paint.setAlpha(alpha);
