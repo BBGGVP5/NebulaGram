@@ -76,7 +76,7 @@ public final class NebulaComposerStyle {
         }
     }
 
-    public void layout(View emoji, View attachment) {
+    public void layout(View emoji, View attachment, View senderSelect) {
         if (emoji == null || attachment == null || !(emoji.getParent() instanceof ViewGroup)) return;
         // Размер кружков берём у настоящей кнопки, а не из константы: при
         // зашитых 44dp поле начиналось под кнопкой, если та оказывалась шире,
@@ -90,10 +90,22 @@ public final class NebulaComposerStyle {
             move(emoji, parent.getWidth() - parent.getPaddingRight()
                     - emoji.getMeasuredWidth() - AndroidUtilities.dp(6));
             move(attachment, parent.getPaddingLeft());
+            // In channels Telegram places “send as” over the attachment
+            // button. Keep both actions: the paperclip owns the left circle
+            // and the sender avatar becomes the leading control of the input
+            // pill, before the text it already reserves space for.
+            if (senderSelect != null && senderSelect.getVisibility() == View.VISIBLE
+                    && senderSelect.getParent() == parent) {
+                move(senderSelect, parent.getPaddingLeft() + attachment.getMeasuredWidth()
+                        + AndroidUtilities.dp(12));
+            }
             controlsMoved = true;
         } else if (controlsMoved) {
             restoreControl(emoji);
             restoreControl(attachment);
+            if (senderSelect != null && senderSelect.getParent() == emoji.getParent()) {
+                restoreControl(senderSelect);
+            }
             controlsMoved = false;
         }
     }
@@ -115,28 +127,38 @@ public final class NebulaComposerStyle {
     }
 
     public boolean draw(Canvas canvas, BlurredBackgroundDrawable background) {
-        if (!active || host == null || host.isRecordingAudioVideo() || host.isEditingMessage()) return false;
+        // `prepare` already excludes every transitional state.  Do not repeat
+        // a dimension-based fallback here: Telegram's bubble can be shorter
+        // than the 48dp touch target, and falling back to its one wide
+        // drawable is precisely what joins the editor and microphone again.
+        if (!active || host == null) return false;
         original.set(background.getBounds());
         padded.set(background.getPaddedBounds());
-        int diameter = buttonSize > 0 ? buttonSize : AndroidUtilities.dp(44);
+        if (padded.width() <= 0 || padded.height() <= 0) return false;
+
+        // Touch targets stay at Telegram's original 48dp.  The visible glass
+        // circle is allowed to be slightly smaller so it always fits the
+        // actual blur path during IME and inset animations.
+        int diameter = Math.min(buttonSize > 0 ? buttonSize : AndroidUtilities.dp(44), padded.height());
+        if (diameter <= 0) return false;
         int padding = padded.left - original.left;
-        // Каждая поверхность рисуется расширенной на padding: размытие держит
-        // там свою кайму. Зазор меньше двух таких кайм означает, что соседние
-        // поверхности перекрываются, а два наложенных полупрозрачных стекла
-        // дают тёмную дугу — круг, просвечивающий из-под поля ввода. Поэтому
-        // расстояние считается от каймы, а не берётся на глаз.
-        // Keep a clearly visible interval between the three glass islands.
-        // The drawable's shadow extends beyond its visible path, therefore a
-        // small nominal gap still looked like one continuous brown strip.
-        int gap = 2 * padding + AndroidUtilities.dp(18);
-        if (padded.width() < diameter * 2 + gap * 2 + AndroidUtilities.dp(100)
-                || padded.height() < diameter - AndroidUtilities.dp(2)) return false;
+        // The gap is in visible coordinates. `drawSurface` expands each
+        // bounds by drawable padding, then the drawable removes it again, so
+        // the three paths never meet even while the keyboard is animating.
+        int minimumEditorWidth = AndroidUtilities.dp(88);
+        int gap = AndroidUtilities.dp(10);
+        int availableForGaps = padded.width() - diameter * 2 - minimumEditorWidth;
+        if (availableForGaps < gap * 2) {
+            gap = Math.max(AndroidUtilities.dp(3), Math.max(0, availableForGaps / 2));
+        }
+        int editorLeft = padded.left + diameter + gap;
+        int editorRight = padded.right - diameter - gap;
+        if (editorRight <= editorLeft) return false;
 
         // Preserve the exact upstream insets and alpha, including IME animation.
         drawSurface(canvas, background, padded.left, padded.bottom - diameter,
                 padded.left + diameter, padded.bottom, padding);
-        drawSurface(canvas, background, padded.left + diameter + gap, padded.top,
-                padded.right - diameter - gap, padded.bottom, padding);
+        drawSurface(canvas, background, editorLeft, padded.top, editorRight, padded.bottom, padding);
         drawSurface(canvas, background, padded.right - diameter, padded.bottom - diameter,
                 padded.right, padded.bottom, padding);
         background.setBounds(original);
