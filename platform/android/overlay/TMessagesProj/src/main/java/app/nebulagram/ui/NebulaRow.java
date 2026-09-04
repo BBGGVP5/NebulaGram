@@ -37,6 +37,7 @@ public class NebulaRow extends FrameLayout {
     private final TextView title;
     private final TextView subtitle;
     private final ImageView icon;
+    private final LinearLayout text;
     private NebulaSwitch toggle;
 
     public NebulaRow(@NonNull Context context) {
@@ -63,7 +64,7 @@ public class NebulaRow extends FrameLayout {
         iconParams.gravity = Gravity.CENTER_VERTICAL | Gravity.START;
         addView(icon, iconParams);
 
-        LinearLayout text = new LinearLayout(context);
+        text = new LinearLayout(context);
         text.setOrientation(LinearLayout.VERTICAL);
 
         title = new TextView(context);
@@ -146,6 +147,12 @@ public class NebulaRow extends FrameLayout {
             params.gravity = Gravity.CENTER_VERTICAL | Gravity.END;
             addView(chevron, params);
         } else if (kind == TRAIL_SWITCH) {
+            // Переключатель шире стрелки: 52dp против 24dp. С прежним отступом
+            // в 36dp текст заезжал под него на треть — отсюда обрезанные
+            // подписи во всех наших списках. Считаем от его настоящей ширины.
+            LayoutParams textParams = (LayoutParams) text.getLayoutParams();
+            textParams.rightMargin = AndroidUtilities.dp(64);
+            text.setLayoutParams(textParams);
             toggle = new NebulaSwitch(getContext());
             LayoutParams params = new LayoutParams(
                     ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);

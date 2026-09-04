@@ -1,0 +1,19 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarContainer.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarContainer.java
+index e6d07794..0008229e 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarContainer.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarContainer.java
+@@ -792,7 +792,13 @@ public class ChatAvatarContainer extends FrameLayout implements FactorAnimator.T
+         int title = (int) Math.ceil(titleTextView.getExactWidthIncludeDrawables());
+         View subtitle = getSubtitleTextView();
+         int status = subtitle != null && subtitle.getVisibility() == VISIBLE ? subtitle.getMeasuredWidth() : 0;
+-        return Math.max(dp(138), Math.max(title, status) + dp(42));
++        // Капсула должна облегать содержимое, а не тянуться во всю ширину.
++        // Раньше её раздувала длинная подпись вроде «476.4K подписчиков»,
++        // и заголовок болтался в пустоте. Ограничиваем долей экрана: что
++        // не поместилось, доедет бегущей строкой.
++        final int content = Math.max(title, status) + dp(28);
++        final int cap = (int) (AndroidUtilities.displaySize.x * 0.58f);
++        return Math.max(dp(112), Math.min(content, cap));
+     }
+ 
+     public void setGlassMode() {
