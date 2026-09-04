@@ -31,6 +31,15 @@ public final class NebulaComposerStyle {
     /** Ширина настоящей кнопки вложений — она же диаметр стеклянных кружков. */
     private int buttonSize;
 
+    /**
+     * Рисуется ли сейчас наша панель. Нужно снаружи: пока она активна,
+     * Telegram не должен подкладывать под микрофон акцентный кружок — в нашем
+     * оформлении все три поверхности однотонные, без цветных пятен.
+     */
+    public boolean isActive() {
+        return active;
+    }
+
     public void restoreInsets() {
         if (insetEditor == null) return;
         ViewGroup.MarginLayoutParams params = (ViewGroup.MarginLayoutParams) insetEditor.getLayoutParams();

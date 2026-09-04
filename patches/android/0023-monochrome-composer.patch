@@ -1,0 +1,13 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
+index 4665a951..f11db3d7 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
+@@ -3190,7 +3190,7 @@ public class ChatActivityEnterView extends FrameLayout implements
+ 
+             @Override
+             protected void dispatchDraw(@NonNull Canvas canvas) {
+-                if (!audioVideoButtonContainerForbidden) {
++                if (!audioVideoButtonContainerForbidden && !nebulaComposerStyle.isActive()) {
+                     float s = 1;
+                     if (expandStickersButton != null) {
+                         if (expandStickersButton.getVisibility() == View.VISIBLE) {
