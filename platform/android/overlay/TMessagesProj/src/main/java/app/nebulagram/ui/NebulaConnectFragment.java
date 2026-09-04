@@ -44,7 +44,7 @@ public class NebulaConnectFragment extends BaseFragment {
         image.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
         // Плитки под рисунком нет: в макетах её не было, а здесь она ещё и
         // срезала расходящуюся волну по краям квадрата.
-        LinearLayout.LayoutParams badgeParams = new LinearLayout.LayoutParams(AndroidUtilities.dp(196), AndroidUtilities.dp(196));
+        LinearLayout.LayoutParams badgeParams = new LinearLayout.LayoutParams(AndroidUtilities.dp(248), AndroidUtilities.dp(248));
         badgeParams.gravity = Gravity.CENTER_HORIZONTAL;
         badgeParams.bottomMargin = AndroidUtilities.dp(16);
         root.content.addView(image, badgeParams);

@@ -206,7 +206,7 @@ public final class NebulaLoginStyle {
             badge.setBackground(surface(28));
         }
         badge.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
-        final int side = AndroidUtilities.dp(animated ? 168 : 88);
+        final int side = AndroidUtilities.dp(animated ? 200 : 88);
         LinearLayout.LayoutParams badgeParams = new LinearLayout.LayoutParams(side, side);
         badgeParams.gravity = Gravity.CENTER_HORIZONTAL;
         badgeParams.bottomMargin = AndroidUtilities.dp(22);

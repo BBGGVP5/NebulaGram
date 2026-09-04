@@ -109,9 +109,9 @@ public class NebulaAuthArt extends Drawable {
      * прокрутка списка.
      */
     private void drawPhone(Canvas canvas, float unit) {
-        final float height = unit * 42;
-        final float reel = unit * 15;
-        final float gap = unit * 4;
+        final float height = unit * 44;
+        final float reel = unit * 16;
+        final float gap = unit * 3.5f;
         final float prefix = unit * 20;
         final float radius = unit * 8;
         final float total = prefix + gap + REELS * reel + (REELS - 1) * gap;
@@ -126,7 +126,7 @@ public class NebulaAuthArt extends Drawable {
         canvas.drawRoundRect(rect, radius, radius, paint);
         paint.setAlpha(255);
 
-        digits.setTextSize(unit * 22);
+        digits.setTextSize(unit * 24);
         digits.setColor(accent);
         final float baseline = rect.centerY() - (digits.ascent() + digits.descent()) / 2f;
         canvas.drawText("+", rect.centerX(), baseline, digits);
@@ -158,19 +158,19 @@ public class NebulaAuthArt extends Drawable {
         paint.setPathEffect(new DashPathEffect(new float[]{unit * 7, unit * 11}, 0));
         canvas.save();
         canvas.rotate(phase * 720f, unit * 50, unit * 50);
-        canvas.drawCircle(unit * 50, unit * 50, unit * 46, paint);
+        canvas.drawCircle(unit * 50, unit * 50, unit * 48, paint);
         canvas.restore();
         paint.setPathEffect(null);
 
-        rect.set(unit * 19, unit * 29, unit * 81, unit * 71);
+        rect.set(unit * 16, unit * 26, unit * 84, unit * 74);
         paint.setStyle(Paint.Style.FILL);
         paint.setColor(accent);
         paint.setAlpha(48);
-        canvas.drawRoundRect(rect, unit * 13, unit * 13, paint);
+        canvas.drawRoundRect(rect, unit * 15, unit * 15, paint);
         paint.setAlpha(255);
         paint.setStyle(Paint.Style.STROKE);
         paint.setStrokeWidth(unit * 3);
-        canvas.drawRoundRect(rect, unit * 13, unit * 13, paint);
+        canvas.drawRoundRect(rect, unit * 15, unit * 15, paint);
 
         // Точки всплывают одна за другой со сдвигом — знак приходящего кода.
         paint.setStyle(Paint.Style.FILL);
@@ -182,7 +182,7 @@ public class NebulaAuthArt extends Drawable {
             float wave = (float) (0.5 - 0.5 * Math.cos(local * 2 * Math.PI));
             paint.setColor(accent);
             paint.setAlpha((int) (128 + 127 * wave));
-            canvas.drawCircle(unit * (34 + 16 * i), unit * 50 - unit * 5 * wave, unit * 5.5f, paint);
+            canvas.drawCircle(unit * (32 + 18 * i), unit * 50 - unit * 6 * wave, unit * 6.5f, paint);
         }
         paint.setAlpha(255);
     }
@@ -194,20 +194,23 @@ public class NebulaAuthArt extends Drawable {
         if (phase > DRAW_UNTIL) {
             final float halo = (phase - DRAW_UNTIL) / (1f - DRAW_UNTIL);
             paint.setStyle(Paint.Style.STROKE);
-            paint.setStrokeWidth(unit * 1.8f);
+            paint.setStrokeWidth(unit * 2.6f);
             paint.setColor(accent);
-            paint.setAlpha((int) (140 * (1f - halo)));
-            canvas.drawCircle(unit * 50, unit * 50, unit * (38 + 11 * halo), paint);
+            paint.setAlpha((int) (150 * (1f - halo)));
+            // Больше волне расти некуда: сорок девять долей из пятидесяти —
+            // это уже граница квадрата. Поэтому вместе с ней подрос и сам
+            // квадрат, а щит внутри стал компактнее.
+            canvas.drawCircle(unit * 50, unit * 50, unit * (32 + 17 * halo), paint);
             paint.setAlpha(255);
         }
 
         path.reset();
-        path.moveTo(unit * 50, unit * 6);
-        path.lineTo(unit * 87, unit * 21);
-        path.lineTo(unit * 87, unit * 53);
-        path.cubicTo(unit * 87, unit * 77, unit * 71, unit * 89, unit * 50, unit * 95);
-        path.cubicTo(unit * 29, unit * 89, unit * 13, unit * 77, unit * 13, unit * 53);
-        path.lineTo(unit * 13, unit * 21);
+        path.moveTo(unit * 50, unit * 14);
+        path.lineTo(unit * 80, unit * 26);
+        path.lineTo(unit * 80, unit * 52);
+        path.cubicTo(unit * 80, unit * 71, unit * 67, unit * 81, unit * 50, unit * 86);
+        path.cubicTo(unit * 33, unit * 81, unit * 20, unit * 71, unit * 20, unit * 52);
+        path.lineTo(unit * 20, unit * 26);
         path.close();
         paint.setStyle(Paint.Style.FILL);
         paint.setColor(accent);
@@ -227,13 +230,13 @@ public class NebulaAuthArt extends Drawable {
                 : (int) (255 * Math.max(0f, 1f - (phase - FADE_FROM) / FADE_TIME));
         if (alpha > 0) {
             path.reset();
-            path.moveTo(unit * 33, unit * 52);
-            path.lineTo(unit * 45, unit * 64);
-            path.lineTo(unit * 68, unit * 37);
+            path.moveTo(unit * 36, unit * 52);
+            path.lineTo(unit * 46, unit * 62);
+            path.lineTo(unit * 65, unit * 40);
             measure.setPath(path, false);
             segment.reset();
             measure.getSegment(0, measure.getLength() * draw, segment, true);
-            paint.setStrokeWidth(unit * 6.5f);
+            paint.setStrokeWidth(unit * 5.4f);
             paint.setStrokeCap(Paint.Cap.ROUND);
             paint.setColor(accent);
             paint.setAlpha(alpha);
