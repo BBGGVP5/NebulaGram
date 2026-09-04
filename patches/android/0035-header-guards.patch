@@ -1,0 +1,39 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarContainer.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarContainer.java
+index 19f3a964..4fb0c44e 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarContainer.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarContainer.java
+@@ -821,18 +821,29 @@ public class ChatAvatarContainer extends FrameLayout implements FactorAnimator.T
+             // Считаем от родителя, а не от себя: контейнер уже экрана на
+             // величину своих отступов, и привязка к его краю уводила
+             // аватарку внутрь, а заголовок — левее середины экрана.
+-            final int parentWidth = getParent() instanceof View
+-                    ? ((View) getParent()).getWidth() : getWidth();
+-            final int offset = getLeft();
++            // На первом проходе разметки родитель ещё нулевой ширины.
++            // Раньше это давало отрицательные координаты: аватарка
++            // укладывалась задом наперёд и пропадала, а заголовок терял
++            // ширину и исчезал совсем. Пока родитель не измерен,
++            // считаем по себе — это верно, просто менее точно.
++            final int measuredParent = getParent() instanceof View
++                    ? ((View) getParent()).getWidth() : 0;
++            final boolean parentReady = measuredParent > getWidth();
++            final int parentWidth = parentReady ? measuredParent : getWidth();
++            final int offset = parentReady ? getLeft() : 0;
+             int avatarRight = parentWidth - offset - dp(6);
+             if (getParent() instanceof ActionBar) {
+                 avatarRight -= ((ActionBar) getParent()).getNebulaChatAvatarTrailingInset();
+             }
++            avatarRight = Math.max(avatarImageView.getMeasuredWidth(), avatarRight);
+             final int avatarLeft = avatarRight - avatarImageView.getMeasuredWidth();
+             // Ширину ограничиваем капсулой: без этого длинное имя вылезало
+             // за неё, и бегущая строка шла поверх стекла и по краям экрана.
+-            final int capsule = getNebulaCenteredHeaderWidth() - dp(24);
+-            final int titleWidth = Math.min(titleTextView.getMeasuredWidth(), capsule);
++            // Капсула не может быть уже осмысленного минимума: иначе
++            // ограничение обнуляло ширину, и название пропадало.
++            final int capsule = Math.max(dp(80), getNebulaCenteredHeaderWidth() - dp(24));
++            final int titleWidth = Math.max(dp(24),
++                    Math.min(titleTextView.getMeasuredWidth(), capsule));
+             final int titleLeft = Math.max(dp(4), parentWidth / 2 - offset - titleWidth / 2);
+             final View subtitle = getSubtitleTextView();
+             final int subtitleLeft = subtitle == null ? titleLeft

@@ -122,6 +122,11 @@ public final class NebulaLoginStyle {
         slide.setPadding(0, AndroidUtilities.dp(42), 0, AndroidUtilities.dp(24));
         slide.setLayoutDirection(LocaleController.isRTL ? View.LAYOUT_DIRECTION_RTL : View.LAYOUT_DIRECTION_LTR);
 
+        // Нажатие мимо поля убирает клавиатуру. Пустое место экрана иначе
+        // ничем не занято, а клавиатура закрывала кнопку и подсказки.
+        slide.setClickable(true);
+        slide.setOnClickListener(v -> AndroidUtilities.hideKeyboard(v));
+
         ImageView badge = new ImageView(slide.getContext());
         badge.setImageDrawable(new NebulaMark(Theme.getColor(Theme.key_windowBackgroundWhiteBlueText4),
                 Theme.getColor(Theme.key_windowBackgroundWhiteValueText)).still());
