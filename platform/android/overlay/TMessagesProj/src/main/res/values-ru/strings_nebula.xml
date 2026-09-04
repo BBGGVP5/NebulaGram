@@ -103,4 +103,5 @@
     <string name="NebulaTabLabelsSub">Названия под значками нижней панели</string>
     <string name="NebulaSeconds">Показывать секунды</string>
     <string name="NebulaSecondsSub">Время сообщения в виде 12:34:56</string>
+    <string name="NebulaTabsEditorHint">Нажмите на вкладку, чтобы выключить или вернуть её</string>
 </resources>

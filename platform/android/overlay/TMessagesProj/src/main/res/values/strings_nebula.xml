@@ -110,4 +110,5 @@
     <string name="NebulaTabLabelsSub">Names under the icons in the bottom bar</string>
     <string name="NebulaSeconds">Show seconds</string>
     <string name="NebulaSecondsSub">Message time as 12:34:56</string>
+    <string name="NebulaTabsEditorHint">Tap a tab to turn it off or back on</string>
 </resources>
