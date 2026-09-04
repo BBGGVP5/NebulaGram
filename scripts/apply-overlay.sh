@@ -48,7 +48,12 @@ esac
 shopt -s nullglob
 for patch in "$patches"/*.patch; do
   echo "applying $(basename "$patch")"
-  git -C "$tree" apply --3way "$patch"
+  # Сначала трёхсторонним слиянием: оно переживает сдвиги после обновления
+  # upstream. В мелком клоне нужных объектов может не быть — тогда обычное
+  # применение по контексту, которое их не требует.
+  if ! git -C "$tree" apply --3way "$patch" 2>/dev/null; then
+    git -C "$tree" apply "$patch"
+  fi
 done
 shopt -u nullglob
 

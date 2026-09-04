@@ -60,43 +60,13 @@ public final class NebulaBottomBar {
         editor.apply();
     }
 
-    /**
-     * Доступна ли страница пейджера. Скрытая вкладка убирала только кнопку,
-     * а страница оставалась — до неё доезжали свайпом, и получалось, что
-     * настройка ничего не выключает.
-     */
-    public static boolean positionEnabled(int position) {
-        if (!enabled()) {
-            // Панель выключена — но страницы никуда не делись, и свайп по ним
-            // остаётся единственным способом до них добраться. Раньше здесь
-            // разрешались только чаты, и свайпы пропадали совсем.
-            return true;
-        }
-        switch (position) {
-            case 1:
-                return tabEnabled(TAB_CONTACTS);
-            case 2:
-                return tabEnabled(TAB_SETTINGS);
-            case 3:
-                return tabEnabled(TAB_PROFILE);
-            default:
-                return true;
-        }
-    }
-
-    /**
-     * Можно ли уехать свайпом с текущей страницы в сторону direction (+1 вперёд,
-     * -1 назад). Через скрытую страницу не перескакиваем: пейджер этого не умеет,
-     * а рывок через чужой экран выглядел бы поломкой. Кнопка вкладки по-прежнему
-     * открывает свою страницу напрямую.
-     */
-    public static boolean canSwipe(int from, int direction) {
-        int target = from + direction;
-        if (target < 0 || target > 3) {
-            return true; // край списка — решает сам пейджер
-        }
-        return positionEnabled(target);
-    }
+    // Ограничение свайпов убрано намеренно.
+    //
+    // Скрытая вкладка убирает кнопку, но страница остаётся в пейджере, а
+    // перепрыгнуть через неё он не умеет. Пока запрет стоял, скрытые
+    // «Контакты» на позиции 1 отрезали и всё, что за ними: свайпы пропадали
+    // целиком. Свободный свайп с кнопкой-невидимкой честнее запрета,
+    // который ломает жест до соседних экранов.
 
     /** Native indices: chats, contacts, settings, calls, profile. */
     public static void applyTabs(MainTabsLayout layout, GlassTabView[] tabs,

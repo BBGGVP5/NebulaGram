@@ -41,10 +41,67 @@ public class NebulaPreview extends View {
     private final int kind;
     private NebulaTheme theme;
 
+    /**
+     * Настоящие аватарка и имя аккаунта. Серые плашки вместо них требовали
+     * догадываться, что именно окажется в шапке; со своим лицом и своим
+     * именем превью читается как снимок будущего экрана, а не как схема.
+     */
+    private final org.telegram.messenger.ImageReceiver avatar =
+            new org.telegram.messenger.ImageReceiver(this);
+    private String accountName = "";
+    private String accountStatus = "";
+
     public NebulaPreview(@NonNull Context context, int kind) {
         super(context);
         this.kind = kind;
         theme = NebulaTheme.of(context);
+        loadAccount();
+    }
+
+    private void loadAccount() {
+        try {
+            int account = org.telegram.messenger.UserConfig.selectedAccount;
+            org.telegram.tgnet.TLRPC.User self = org.telegram.messenger.MessagesController
+                    .getInstance(account)
+                    .getUser(org.telegram.messenger.UserConfig.getInstance(account).clientUserId);
+            if (self == null) {
+                return;
+            }
+            accountName = org.telegram.messenger.UserObject.getUserName(self);
+            accountStatus = LocaleController.getString(R.string.Online);
+            avatar.setForUserOrChat(self,
+                    new org.telegram.ui.Components.AvatarDrawable(self));
+        } catch (Throwable e) {
+            // Превью — украшение: без аватарки оно всё равно показывает форму.
+        }
+    }
+
+    @Override
+    protected void onAttachedToWindow() {
+        super.onAttachedToWindow();
+        avatar.onAttachedToWindow();
+    }
+
+    @Override
+    protected void onDetachedFromWindow() {
+        avatar.onDetachedFromWindow();
+        super.onDetachedFromWindow();
+    }
+
+    /** Рисует текст, обрезая по ширине: длинное имя не должно лезть за край. */
+    private void drawLabel(Canvas canvas, String text, float x, float y,
+                           float maxWidth, Paint.Align align, boolean bold, int color) {
+        if (text == null || text.isEmpty()) {
+            return;
+        }
+        paint.setTypeface(bold ? AndroidUtilities.bold() : null);
+        paint.setTextAlign(align);
+        paint.setColor(color);
+        String shown = android.text.TextUtils.ellipsize(text, new android.text.TextPaint(paint),
+                maxWidth, android.text.TextUtils.TruncateAt.END).toString();
+        canvas.drawText(shown, x, y, paint);
+        paint.setTypeface(null);
+        paint.setTextAlign(Paint.Align.LEFT);
     }
 
     /** Перерисовать после изменения настройки. */
@@ -286,8 +343,11 @@ public class NebulaPreview extends View {
         // видна ключевая разница, которую даёт переключатель в реальном чате.
         float avatarX = styled ? getWidth() - margin - height / 2f : margin + AndroidUtilities.dp(48);
         if (styled) drawGlassCircle(canvas, avatarX, centerY, height / 2f);
-        paint.setColor(NebulaTheme.stateLayer(theme.primary(), 0.35f));
-        canvas.drawCircle(avatarX, centerY, AndroidUtilities.dp(styled ? 15 : 14), paint);
+        float avatarRadius = AndroidUtilities.dp(styled ? 15 : 14);
+        avatar.setRoundRadius((int) avatarRadius);
+        avatar.setImageCoords(avatarX - avatarRadius, centerY - avatarRadius,
+                avatarRadius * 2, avatarRadius * 2);
+        avatar.draw(canvas);
 
         float textLeft = avatarX + AndroidUtilities.dp(22);
         float titleWidth = AndroidUtilities.dp(84);
@@ -297,15 +357,18 @@ public class NebulaPreview extends View {
                     titleX + titleWidth + AndroidUtilities.dp(18), top + height - AndroidUtilities.dp(4));
             drawGlassSurface(canvas, rect, AndroidUtilities.dp(20));
         }
-        paint.setColor(theme.onSurface());
-        rect.set(titleX, centerY - AndroidUtilities.dp(9), titleX + titleWidth, centerY - AndroidUtilities.dp(2));
-        canvas.drawRoundRect(rect, AndroidUtilities.dp(3), AndroidUtilities.dp(3), paint);
+        paint.setTextSize(AndroidUtilities.dp(13));
+        drawLabel(canvas, accountName,
+                styled ? getWidth() / 2f : textLeft, centerY - AndroidUtilities.dp(2),
+                titleWidth + AndroidUtilities.dp(36),
+                styled ? Paint.Align.CENTER : Paint.Align.LEFT, true, theme.onSurface());
 
-        float subWidth = AndroidUtilities.dp(46);
-        float subX = styled ? (getWidth() - subWidth) / 2f : textLeft;
-        paint.setColor(NebulaTheme.stateLayer(theme.onSurfaceVariant(), 0.6f));
-        rect.set(subX, centerY + AndroidUtilities.dp(2), subX + subWidth, centerY + AndroidUtilities.dp(8));
-        canvas.drawRoundRect(rect, AndroidUtilities.dp(3), AndroidUtilities.dp(3), paint);
+        paint.setTextSize(AndroidUtilities.dp(10));
+        drawLabel(canvas, accountStatus,
+                styled ? getWidth() / 2f : textLeft, centerY + AndroidUtilities.dp(10),
+                titleWidth + AndroidUtilities.dp(36),
+                styled ? Paint.Align.CENTER : Paint.Align.LEFT, false,
+                NebulaTheme.stateLayer(theme.onSurfaceVariant(), 0.85f));
     }
 
     // --- поле ввода ---------------------------------------------------------
