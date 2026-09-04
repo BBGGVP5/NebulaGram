@@ -1,0 +1,14 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarContainer.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarContainer.java
+index 0009ef40..e6d07794 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarContainer.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarContainer.java
+@@ -779,6 +779,9 @@ public class ChatAvatarContainer extends FrameLayout implements FactorAnimator.T
+         }
+         nebulaAvatarHiddenForSavedMessages = hideAvatar;
+         titleTextView.setGravity(enabled ? Gravity.CENTER : Gravity.LEFT);
++        // Длинное имя не влезает в капсулу и обрезалось с двух сторон.
++        // Бегущая строка — родной механизм Telegram для этого случая.
++        titleTextView.setScrollNonFitText(enabled);
+         if (subtitleTextView != null) subtitleTextView.setGravity(enabled ? Gravity.CENTER : Gravity.LEFT);
+         if (animatedSubtitleTextView != null) animatedSubtitleTextView.setGravity(enabled ? Gravity.CENTER : Gravity.LEFT);
+         requestLayout();

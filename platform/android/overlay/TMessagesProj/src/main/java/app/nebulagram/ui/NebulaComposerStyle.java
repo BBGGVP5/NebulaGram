@@ -132,6 +132,10 @@ public final class NebulaComposerStyle {
         // than the 48dp touch target, and falling back to its one wide
         // drawable is precisely what joins the editor and microphone again.
         if (!active || host == null) return false;
+        // В каналах и там, где писать нельзя, поле ввода скрыто, а внизу стоит
+        // своя панель Telegram. Наши три поверхности рисовались и там — отсюда
+        // пустые кружки вокруг надписи «Убрать звук».
+        if (host.getVisibility() != View.VISIBLE || host.getAlpha() < 0.9f) return false;
         original.set(background.getBounds());
         padded.set(background.getPaddedBounds());
         if (padded.width() <= 0 || padded.height() <= 0) return false;
