@@ -16,6 +16,8 @@ import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.Cells.CollapseTextCell;
 import org.telegram.ui.Cells.GraySectionCell;
 import org.telegram.ui.Cells.HeaderCell;
+import org.telegram.ui.Business.ProfileHoursCell;
+import org.telegram.ui.Business.ProfileLocationCell;
 import org.telegram.ui.Cells.ShadowSectionCell;
 import org.telegram.ui.Cells.TextInfoPrivacyCell;
 import org.telegram.ui.Components.ProfileActionsView;
@@ -60,6 +62,13 @@ public final class NebulaProfileStyle {
                 @Override
                 public void onChildViewAttachedToWindow(View view) {
                     if (view instanceof HeaderCell) header((HeaderCell) view, provider);
+                    // Часы работы и адрес рисуют собственный непрозрачный фон
+                    // поверх нашей карточки — отсюда тёмная полоса ровно на
+                    // этом блоке. Секция под ними уже нарисована, свой фон им
+                    // не нужен.
+                    if (view instanceof ProfileHoursCell || view instanceof ProfileLocationCell) {
+                        view.setBackground(null);
+                    }
                 }
                 @Override
                 public void onChildViewDetachedFromWindow(View view) { }

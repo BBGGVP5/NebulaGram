@@ -28,6 +28,8 @@ public final class NebulaComposerStyle {
     private final Rect padded = new Rect();
     private final Rect working = new Rect();
     private ChatActivityEnterView host;
+    /** Ширина настоящей кнопки вложений — она же диаметр стеклянных кружков. */
+    private int buttonSize;
 
     public void restoreInsets() {
         if (insetEditor == null) return;
@@ -67,6 +69,12 @@ public final class NebulaComposerStyle {
 
     public void layout(View emoji, View attachment) {
         if (emoji == null || attachment == null || !(emoji.getParent() instanceof ViewGroup)) return;
+        // Размер кружков берём у настоящей кнопки, а не из константы: при
+        // зашитых 44dp поле начиналось под кнопкой, если та оказывалась шире,
+        // и стеклянные поверхности наезжали друг на друга.
+        if (attachment.getMeasuredWidth() > 0) {
+            buttonSize = attachment.getMeasuredWidth();
+        }
         if (active) {
             ViewGroup parent = (ViewGroup) emoji.getParent();
             // Derive from stable parent geometry, never from our previous layout.
@@ -101,7 +109,7 @@ public final class NebulaComposerStyle {
         if (!active || host == null || host.isRecordingAudioVideo() || host.isEditingMessage()) return false;
         original.set(background.getBounds());
         padded.set(background.getPaddedBounds());
-        int diameter = AndroidUtilities.dp(44);
+        int diameter = buttonSize > 0 ? buttonSize : AndroidUtilities.dp(44);
         int padding = padded.left - original.left;
         // Каждая поверхность рисуется расширенной на padding: размытие держит
         // там свою кайму. Зазор меньше двух таких кайм означает, что соседние

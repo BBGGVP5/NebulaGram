@@ -28,6 +28,23 @@ public final class NebulaChatStyle {
      * панели живёт в отрыве от жизненного цикла загрузки картинок, и
      * ImageReceiver здесь пришлось бы держать вручную.
      */
+    /** Обёртка, сообщающая размер: без неё ImageView не знает, что рисовать. */
+    private static android.graphics.drawable.Drawable sized(
+            android.graphics.drawable.Drawable source, int size) {
+        return new android.graphics.drawable.LayerDrawable(
+                new android.graphics.drawable.Drawable[]{source}) {
+            @Override
+            public int getIntrinsicWidth() {
+                return size;
+            }
+
+            @Override
+            public int getIntrinsicHeight() {
+                return size;
+            }
+        };
+    }
+
     public static void menuIcon(ActionBarMenuItem item, TLRPC.User user, TLRPC.Chat chat) {
         if (item == null || !NebulaAppearance.chatHeader()) {
             return;
@@ -42,7 +59,10 @@ public final class NebulaChatStyle {
                 return;
             }
             avatar.setTextSize(AndroidUtilities.dp(9));
-            item.setIcon(avatar);
+            // AvatarDrawable не сообщает своего размера, а ImageView без него
+            // рисует пустоту — отсюда и пустой круг вместо лица. Оборачиваем
+            // в обёртку с явными размерами значка панели.
+            item.setIcon(sized(avatar, AndroidUtilities.dp(28)));
         } catch (Throwable e) {
             // Значок — украшение: кнопка обязана остаться рабочей в любом случае.
             FileLog.e(e);
