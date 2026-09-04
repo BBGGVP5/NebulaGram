@@ -150,4 +150,17 @@ public final class NebulaAppearance {
         org.telegram.messenger.SharedConfig.useSystemBoldFont = enabled;
         main().edit().putBoolean("useSystemBoldFont", enabled).apply();
     }
+
+    /**
+     * Показывать ли секунды у времени сообщения. Telegram уже умеет такой
+     * формат — им пользуются экраны, где важна точность, — но переключателя
+     * для чатов нет.
+     */
+    public static boolean secondsInTime() {
+        return preferences().getBoolean("seconds_in_time", false);
+    }
+
+    public static void setSecondsInTime(boolean enabled) {
+        preferences().edit().putBoolean("seconds_in_time", enabled).apply();
+    }
 }

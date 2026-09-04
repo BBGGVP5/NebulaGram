@@ -1,0 +1,16 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/LocaleController.java b/TMessagesProj/src/main/java/org/telegram/messenger/LocaleController.java
+index df646cf4..8113b2bb 100644
+--- a/TMessagesProj/src/main/java/org/telegram/messenger/LocaleController.java
++++ b/TMessagesProj/src/main/java/org/telegram/messenger/LocaleController.java
+@@ -73,6 +73,11 @@ public class LocaleController {
+ 
+     private volatile FastDateFormat formatterDay;
+     public FastDateFormat getFormatterDay() {
++        // NebulaGram: секунды у времени сообщения. Формат у Telegram уже
++        // есть — не хватало только переключателя.
++        if (app.nebulagram.ui.NebulaAppearance.secondsInTime()) {
++            return getFormatterDayWithSeconds();
++        }
+         if (formatterDay == null) {
+             synchronized (this) {
+                 if (formatterDay == null) {

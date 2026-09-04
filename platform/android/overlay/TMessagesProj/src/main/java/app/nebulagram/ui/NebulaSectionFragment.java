@@ -190,6 +190,9 @@ public class NebulaSectionFragment extends BaseFragment {
         content.addView(NebulaCard.header(context,
                 LocaleController.getString(R.string.NebulaChatBehaviour)));
         NebulaCard behaviour = new NebulaCard(context);
+        behaviour.add(toggle(context, R.drawable.msg_calls,
+                R.string.NebulaSeconds, R.string.NebulaSecondsSub,
+                NebulaAppearance.secondsInTime(), NebulaAppearance::setSecondsInTime));
         behaviour.add(toggle(context, R.drawable.msg_channel,
                 R.string.NebulaHideSendAs, R.string.NebulaHideSendAsSub,
                 NebulaAppearance.hideSendAs(), NebulaAppearance::setHideSendAs));
@@ -209,6 +212,9 @@ public class NebulaSectionFragment extends BaseFragment {
         card.add(toggle(context, R.drawable.msg_customize,
                 R.string.NebulaBottomBarTitle, R.string.NebulaBottomBarSub,
                 NebulaBottomBar.enabled(), NebulaBottomBar::setEnabled));
+        card.add(toggle(context, R.drawable.msg_photo_settings,
+                R.string.NebulaTabLabels, R.string.NebulaTabLabelsSub,
+                NebulaBottomBar.tabLabels(), NebulaBottomBar::setTabLabels));
         card.add(tabToggle(context, NebulaBottomBar.TAB_CONTACTS,
                 R.drawable.msg_contacts, R.string.NebulaTabContacts));
         card.add(tabToggle(context, NebulaBottomBar.TAB_SETTINGS,

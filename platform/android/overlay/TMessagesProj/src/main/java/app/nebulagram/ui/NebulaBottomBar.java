@@ -60,6 +60,42 @@ public final class NebulaBottomBar {
         editor.apply();
     }
 
+    private static final String KEY_TAB_LABELS = "tab_labels";
+
+    /** Показывать ли подписи под значками вкладок. */
+    public static boolean tabLabels() {
+        try {
+            return prefs().getBoolean(KEY_TAB_LABELS, true);
+        } catch (Throwable e) {
+            return true;
+        }
+    }
+
+    public static void setTabLabels(boolean value) {
+        prefs().edit().putBoolean(KEY_TAB_LABELS, value).apply();
+    }
+
+    /**
+     * Прячет подпись вкладки и ставит значок по центру.
+     *
+     * <p>Без подписи значок остаётся прижатым к верху и висит над пустотой:
+     * место под текст в разметке никуда не девается. Поэтому мало скрыть
+     * TextView — надо переопустить и сам значок.
+     */
+    public static void applyTabLabel(android.view.View icon, android.view.View label) {
+        if (tabLabels() || label == null) {
+            return;
+        }
+        label.setVisibility(android.view.View.GONE);
+        if (icon != null && icon.getLayoutParams() instanceof android.widget.FrameLayout.LayoutParams) {
+            android.widget.FrameLayout.LayoutParams params =
+                    (android.widget.FrameLayout.LayoutParams) icon.getLayoutParams();
+            params.gravity = android.view.Gravity.CENTER;
+            params.topMargin = 0;
+            icon.setLayoutParams(params);
+        }
+    }
+
     // Ограничение свайпов убрано намеренно.
     //
     // Скрытая вкладка убирает кнопку, но страница остаётся в пейджере, а

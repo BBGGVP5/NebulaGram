@@ -99,4 +99,8 @@
     <string name="NebulaStreamMedia">Потоковое воспроизведение</string>
     <string name="NebulaStreamMediaSub">Начинать воспроизведение до полной загрузки файла</string>
     <string name="NebulaAppearanceTitle">Оформление</string>
+    <string name="NebulaTabLabels">Подписи вкладок</string>
+    <string name="NebulaTabLabelsSub">Названия под значками нижней панели</string>
+    <string name="NebulaSeconds">Показывать секунды</string>
+    <string name="NebulaSecondsSub">Время сообщения в виде 12:34:56</string>
 </resources>

@@ -1,0 +1,13 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/glass/GlassTabView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/glass/GlassTabView.java
+index 3c29acb0..859f86a3 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Components/glass/GlassTabView.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/glass/GlassTabView.java
+@@ -94,6 +94,8 @@ public class GlassTabView extends FrameLayout implements MainTabsLayout.Tab, Fac
+ 
+         defaultTextPaint = new TextPaint(textView.getPaint());
+         addView(textView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.CENTER_HORIZONTAL | Gravity.TOP, 0, 28.33f, 0, 0));
++        // NebulaGram: подписи под значками можно скрыть.
++        app.nebulagram.ui.NebulaBottomBar.applyTabLabel(imageView, textView);
+ 
+         counter = new AnimatedTextView.AnimatedTextDrawable();
+         counter.setTypeface(AndroidUtilities.bold());

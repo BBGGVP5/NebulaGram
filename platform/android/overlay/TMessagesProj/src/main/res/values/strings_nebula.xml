@@ -106,4 +106,8 @@
     <string name="NebulaStreamMedia">Stream media</string>
     <string name="NebulaStreamMediaSub">Start playing before the file has fully downloaded</string>
     <string name="NebulaAppearanceTitle">Appearance</string>
+    <string name="NebulaTabLabels">Show tab labels</string>
+    <string name="NebulaTabLabelsSub">Names under the icons in the bottom bar</string>
+    <string name="NebulaSeconds">Show seconds</string>
+    <string name="NebulaSecondsSub">Message time as 12:34:56</string>
 </resources>
