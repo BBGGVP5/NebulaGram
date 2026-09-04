@@ -112,7 +112,7 @@ public class NebulaPreview extends View {
 
     @Override
     protected void onMeasure(int widthSpec, int heightSpec) {
-        int height = AndroidUtilities.dp(kind == KIND_TABS ? 126 : kind == KIND_HEADER ? 118 : 126);
+        int height = AndroidUtilities.dp(kind == KIND_TABS ? 104 : kind == KIND_HEADER ? 92 : 100);
         setMeasuredDimension(MeasureSpec.getSize(widthSpec), height);
     }
 
@@ -312,9 +312,12 @@ public class NebulaPreview extends View {
                             cy + (float) Math.sin(angle) * size * 0.95f, paint);
                 }
                 break;
-            default: // профиль — сплошной кружок вместо аватарки
+            default: // профиль — своя аватарка, как и в настоящей панели
                 paint.setStyle(Paint.Style.FILL);
-                canvas.drawCircle(cx, cy, size * 0.85f, paint);
+                float r = size * 0.85f;
+                avatar.setRoundRadius((int) r);
+                avatar.setImageCoords(cx - r, cy - r, r * 2, r * 2);
+                avatar.draw(canvas);
                 break;
         }
         paint.setStyle(Paint.Style.FILL);
@@ -342,11 +345,18 @@ public class NebulaPreview extends View {
         float arrowX = styled ? margin + height / 2f : margin + AndroidUtilities.dp(18);
         if (styled) drawGlassCircle(canvas, arrowX, centerY, height / 2f);
         paint.setColor(theme.onSurface());
+        // Стрелка целиком: остриё плюс древко. Без древка «галочка» читалась
+        // как знак «меньше», а не как кнопка возврата.
+        paint.setStrokeCap(Paint.Cap.ROUND);
+        paint.setStrokeJoin(Paint.Join.ROUND);
+        float arrowSize = AndroidUtilities.dp(5);
         path.reset();
-        path.moveTo(arrowX + AndroidUtilities.dp(4), centerY - AndroidUtilities.dp(5));
-        path.lineTo(arrowX - AndroidUtilities.dp(2), centerY);
-        path.lineTo(arrowX + AndroidUtilities.dp(4), centerY + AndroidUtilities.dp(5));
+        path.moveTo(arrowX + arrowSize * 0.8f, centerY - arrowSize);
+        path.lineTo(arrowX - arrowSize * 0.4f, centerY);
+        path.lineTo(arrowX + arrowSize * 0.8f, centerY + arrowSize);
         canvas.drawPath(path, paint);
+        canvas.drawLine(arrowX - arrowSize * 0.4f, centerY,
+                arrowX + arrowSize * 1.7f, centerY, paint);
         paint.setStyle(Paint.Style.FILL);
 
         // В Liquid Glass имя по центру и аватар отдельно справа. Поэтому
