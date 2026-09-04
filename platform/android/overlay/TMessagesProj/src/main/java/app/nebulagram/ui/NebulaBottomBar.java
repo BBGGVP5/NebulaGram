@@ -2,6 +2,7 @@ package app.nebulagram.ui;
 
 import android.content.SharedPreferences;
 
+import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.ApplicationLoader;
 import org.telegram.ui.MainTabsLayout;
 import org.telegram.ui.Components.glass.GlassTabView;
