@@ -95,7 +95,8 @@ public class NebulaSectionFragment extends BaseFragment {
             case SECTION_GENERAL:
                 return R.string.NebulaSectionGeneral;
             default:
-                return R.string.NebulaSectionLook;
+                // Заголовок экрана, а не шапка карточки: та написана капсом.
+                return R.string.NebulaAppearanceTitle;
         }
     }
 
