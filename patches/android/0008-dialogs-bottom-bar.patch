@@ -26,20 +26,6 @@ index b04f149f..f51af98a 100644
          if (dialogStoriesCell != null) {
              dialogStoriesCell.onResume();
          }
-@@ -13615,6 +13621,13 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
-             return false;
-         }
- 
-+        // Нижняя панель делает горизонтальный жест переходом между её
-+        // включёнными разделами. Поиск, шторки и редактирование папок выше
-+        // уже вернули false, поэтому они этот жест не перехватывают.
-+        if (app.nebulagram.ui.NebulaBottomBar.enabled()) {
-+            return true;
-+        }
-+
-         final boolean isActionBarTouch = ev.getY() < actionBar.getMeasuredHeight();
-         if (isActionBarTouch) {
-             return true;
 @@ -14067,6 +14080,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
      }
  

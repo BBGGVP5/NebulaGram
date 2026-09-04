@@ -93,7 +93,9 @@ public final class NebulaProfileArt {
             final float top = Math.max(dp(4), avatar.getY() - dp(14));
             final float bottom = subtitle.getY() + subtitle.getHeight() + dp(14);
             if (bottom <= top + dp(64)) return;
-            rect.set(dp(12), top, width - dp(12), bottom);
+            // Во всю ширину и до верхнего края: карточка с отступами читалась
+            // как виджет внутри экрана, а не как шапка профиля.
+            rect.set(0, 0, width, bottom);
             final BackupImageView photo = findPhoto(avatar);
             final boolean banner = NebulaAppearance.profilePhotoBanner() && photo != null
                     && photo.getImageReceiver().hasImageLoaded();
@@ -122,17 +124,13 @@ public final class NebulaProfileArt {
             // A photo becomes the hero surface. Keep only a light colour veil
             // above it, so its darkened forms remain recognisable.
             paint.setAlpha((int) (255 * alpha * (banner ? .20f : 1f)));
-            canvas.drawRoundRect(rect, dp(28), dp(28), paint);
+            heroPath(clip, rect);
+            canvas.drawPath(clip, paint);
             paint.setShader(null);
-            paint.setStyle(Paint.Style.STROKE);
-            paint.setStrokeWidth(dp(1));
-            paint.setColor(Theme.multAlpha(accent, .24f * alpha));
-            canvas.drawRoundRect(rect, dp(28), dp(28), paint);
 
             // The arcs sit at the outside corner, clear of the title and avatar.
             int save = canvas.save();
-            clip.rewind();
-            clip.addRoundRect(rect, dp(28), dp(28), Path.Direction.CW);
+            heroPath(clip, rect);
             canvas.clipPath(clip);
             final float x = LocaleController.isRTL ? rect.left : rect.right;
             ornament.set(x - dp(54), top - dp(40), x + dp(54), top + dp(68));
@@ -158,6 +156,19 @@ public final class NebulaProfileArt {
             return null;
         }
 
+        /**
+         * Форма шапки: скругление только снизу. Сверху она упирается в край
+         * экрана, и круглые углы там повисли бы в воздухе.
+         */
+        private static void heroPath(Path path, RectF bounds) {
+            final float r = dp(28);
+            HERO_RADII[4] = HERO_RADII[5] = HERO_RADII[6] = HERO_RADII[7] = r;
+            path.rewind();
+            path.addRoundRect(bounds, HERO_RADII, Path.Direction.CW);
+        }
+
+        private static final float[] HERO_RADII = new float[8];
+
         private void drawPhotoBanner(Canvas canvas, ImageReceiver receiver, RectF target, float alpha) {
             final float imageX = receiver.getImageX();
             final float imageY = receiver.getImageY();
@@ -165,8 +176,7 @@ public final class NebulaProfileArt {
             final float imageH = receiver.getImageHeight();
             final float imageAlpha = receiver.getAlpha();
             int save = canvas.save();
-            bannerClip.rewind();
-            bannerClip.addRoundRect(target, dp(28), dp(28), Path.Direction.CW);
+            heroPath(bannerClip, target);
             canvas.clipPath(bannerClip);
             receiver.setImageCoords(target);
             receiver.setAlpha(.78f * alpha);

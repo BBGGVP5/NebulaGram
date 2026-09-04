@@ -96,6 +96,51 @@ public final class NebulaBottomBar {
         }
     }
 
+    /** Последняя позиция, на которой мы законно остановились. */
+    private static int lastPosition;
+
+    /** Доступна ли страница пейджера: у скрытой вкладки нет кнопки. */
+    public static boolean positionEnabled(int position) {
+        if (!enabled()) {
+            return true; // без панели скрывать нечего
+        }
+        switch (position) {
+            case 1:
+                return tabEnabled(TAB_CONTACTS);
+            case 2:
+                return tabEnabled(TAB_SETTINGS);
+            case 3:
+                return tabEnabled(TAB_PROFILE);
+            default:
+                return true;
+        }
+    }
+
+    /**
+     * Куда доехать, если свайп остановился на скрытой вкладке.
+     *
+     * <p>Запрещать свайп нельзя: скрытые «Контакты» стоят посередине и
+     * отрезали бы всё, что за ними. Поэтому пропускаем страницу — едем дальше
+     * в ту же сторону до первой включённой, а если её нет, возвращаемся туда,
+     * откуда пришли.
+     *
+     * @return позиция, на которую нужно доехать, или -1, если всё в порядке
+     */
+    public static int redirectPosition(int landed) {
+        if (positionEnabled(landed)) {
+            lastPosition = landed;
+            return -1;
+        }
+        int direction = landed >= lastPosition ? 1 : -1;
+        for (int position = landed + direction; position >= 0 && position <= 3; position += direction) {
+            if (positionEnabled(position)) {
+                lastPosition = position;
+                return position;
+            }
+        }
+        return lastPosition;
+    }
+
     // Ограничение свайпов убрано намеренно.
     //
     // Скрытая вкладка убирает кнопку, но страница остаётся в пейджере, а

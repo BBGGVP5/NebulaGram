@@ -1,0 +1,19 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/MainTabsActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/MainTabsActivity.java
+index 7c2b0bcb..a44a0ae8 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/MainTabsActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/MainTabsActivity.java
+@@ -731,6 +731,14 @@ public class MainTabsActivity extends ViewPagerActivity implements NotificationC
+ 
+     @Override
+     protected void onViewPagerScrollEnd() {
++        // NebulaGram: свайп не должен оставаться на скрытой вкладке.
++        if (viewPager != null) {
++            final int nebulaTarget = app.nebulagram.ui.NebulaBottomBar.redirectPosition(viewPager.getCurrentPosition());
++            if (nebulaTarget >= 0) {
++                viewPager.scrollToPosition(nebulaTarget);
++                return;
++            }
++        }
+         if (tabsView != null) {
+             selectTab(viewPager.getCurrentPosition(), true);
+             setGestureSelectedOverride(0, false);
