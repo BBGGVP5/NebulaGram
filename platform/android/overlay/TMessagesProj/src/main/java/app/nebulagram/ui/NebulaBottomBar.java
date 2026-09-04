@@ -132,15 +132,21 @@ public final class NebulaBottomBar {
      * TextView — надо переопустить и сам значок.
      */
     public static void applyTabLabel(android.view.View icon, android.view.View label) {
-        if (tabLabels() || label == null) {
+        if (label == null) {
             return;
         }
-        label.setVisibility(android.view.View.GONE);
+        boolean show = tabLabels();
+        label.setVisibility(show ? android.view.View.VISIBLE : android.view.View.GONE);
         if (icon != null && icon.getLayoutParams() instanceof android.widget.FrameLayout.LayoutParams) {
             android.widget.FrameLayout.LayoutParams params =
                     (android.widget.FrameLayout.LayoutParams) icon.getLayoutParams();
-            params.gravity = android.view.Gravity.CENTER;
-            params.topMargin = 0;
+            // Без подписи значок встаёт по центру, с подписью — под верх, как
+            // задумано в Telegram. Возврат важен не меньше скрытия: иначе
+            // включить подписи обратно означало бы перезапуск.
+            params.gravity = show
+                    ? (android.view.Gravity.CENTER_HORIZONTAL | android.view.Gravity.TOP)
+                    : android.view.Gravity.CENTER;
+            params.topMargin = show ? AndroidUtilities.dp(4) : 0;
             icon.setLayoutParams(params);
         }
     }
@@ -229,6 +235,13 @@ public final class NebulaBottomBar {
                 layout.bringChildToFront(tabs[3]);
             } else if (TAB_PROFILE.equals(tab)) {
                 layout.bringChildToFront(tabs[4]);
+            }
+        }
+                // Подписи применяем здесь же: экран настроек вызывает обновление при
+        // возврате в чаты, и перезапуск приложения не нужен.
+        for (GlassTabView tab : tabs) {
+            if (tab != null) {
+                tab.nebulaApplyLabel();
             }
         }
         layout.setViewVisible(tabs[0], true, animated);

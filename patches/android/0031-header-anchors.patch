@@ -1,0 +1,30 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarContainer.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarContainer.java
+index 0008229e..40a09a5d 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarContainer.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarContainer.java
+@@ -818,14 +818,22 @@ public class ChatAvatarContainer extends FrameLayout implements FactorAnimator.T
+         final int subtitleTop = viewTop + dp(glassMode ? 23.66f : 24);
+ 
+         if (nebulaCenteredTitle) {
+-            int avatarRight = getWidth();
++            // Считаем от родителя, а не от себя: контейнер уже экрана на
++            // величину своих отступов, и привязка к его краю уводила
++            // аватарку внутрь, а заголовок — левее середины экрана.
++            final int parentWidth = getParent() instanceof View
++                    ? ((View) getParent()).getWidth() : getWidth();
++            final int offset = getLeft();
++            int avatarRight = parentWidth - offset - dp(6);
+             if (getParent() instanceof ActionBar) {
+                 avatarRight -= ((ActionBar) getParent()).getNebulaChatAvatarTrailingInset();
+             }
+             final int avatarLeft = avatarRight - avatarImageView.getMeasuredWidth();
+-            final int titleLeft = Math.max(dp(4), (getWidth() - titleTextView.getMeasuredWidth()) / 2);
++            final int titleLeft = Math.max(dp(4),
++                    parentWidth / 2 - offset - titleTextView.getMeasuredWidth() / 2);
+             final View subtitle = getSubtitleTextView();
+-            final int subtitleLeft = subtitle == null ? titleLeft : Math.max(dp(4), (getWidth() - subtitle.getMeasuredWidth()) / 2);
++            final int subtitleLeft = subtitle == null ? titleLeft
++                    : Math.max(dp(4), parentWidth / 2 - offset - subtitle.getMeasuredWidth() / 2);
+             avatarImageView.layout(avatarLeft, 1 + viewTop, avatarLeft + avatarImageView.getMeasuredWidth(),
+                     1 + viewTop + avatarImageView.getMeasuredHeight());
+             if (subtitle != null && subtitle.getVisibility() != GONE) {
