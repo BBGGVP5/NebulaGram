@@ -1,0 +1,98 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ViewPagerFixed.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ViewPagerFixed.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ViewPagerFixed.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ViewPagerFixed.java
+@@ -514,8 +514,14 @@ public class ViewPagerFixed extends FrameLayout {
+ 
+     }
+ 
++    /** Lets a pager skip destinations without exposing their page mid-gesture. */
++    protected int resolveSwipeTarget(boolean forward) {
++        return currentPosition + (forward ? 1 : -1);
++    }
++
+     private boolean prepareForMoving(MotionEvent ev, boolean forward) {
+-        if ((!forward && currentPosition == 0 && !onBackProgress(backProgress = 0)) || (forward && currentPosition == adapter.getItemCount() - 1) || manualScrolling != null) {
++        final int targetPosition = resolveSwipeTarget(forward);
++        if ((!forward && targetPosition < 0 && !onBackProgress(backProgress = 0)) || (forward && targetPosition >= adapter.getItemCount()) || targetPosition == currentPosition || manualScrolling != null) {
+             return false;
+         }
+         if (!canScroll(ev)) {
+@@ -528,7 +534,7 @@ public class ViewPagerFixed extends FrameLayout {
+             return false;
+         }
+ 
+-        if (adapter != null && !adapter.canScrollTo(currentPosition + (forward ? +1 : -1))) {
++        if (adapter != null && !adapter.canScrollTo(targetPosition)) {
+             return false;
+         }
+ 
+@@ -543,7 +549,7 @@ public class ViewPagerFixed extends FrameLayout {
+ 
+         notificationsLocker.lock();
+         animatingForward = forward;
+-        nextPosition = currentPosition + (forward ? 1 : -1);
++        nextPosition = targetPosition;
+         updateViewForIndex(1);
+         if (viewPages[1] != null) {
+             if (forward) {
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ViewPagerActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ViewPagerActivity.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/ViewPagerActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/ViewPagerActivity.java
+@@ -137,6 +137,10 @@ public abstract class ViewPagerActivity extends BaseFragment {
+         return true;
+     }
+ 
++    protected int resolveViewPagerSwipeTarget(int currentPosition, boolean forward) {
++        return currentPosition + (forward ? 1 : -1);
++    }
++
+     @Override
+     public ActionBar createActionBar(Context context) {
+         return null;
+@@ -481,6 +485,11 @@ public abstract class ViewPagerActivity extends BaseFragment {
+             return ViewPagerActivity.this.canScrollForward(e);
+         }
+ 
++        @Override
++        protected int resolveSwipeTarget(boolean forward) {
++            return ViewPagerActivity.this.resolveViewPagerSwipeTarget(currentPosition, forward);
++        }
++
+         @Override
+         protected long getManualScrollDuration() {
+             return 320L;
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/MainTabsActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/MainTabsActivity.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/MainTabsActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/MainTabsActivity.java
+@@ -763,14 +763,28 @@ public class MainTabsActivity extends ViewPagerActivity implements NotificationC
+     }
+ 
+     @Override
++    protected int resolveViewPagerSwipeTarget(int currentPosition, boolean forward) {
++        return app.nebulagram.ui.NebulaBottomBar.nextEnabledPosition(currentPosition, forward);
++    }
++
++    @Override
+     protected void onViewPagerTabAnimationUpdate(boolean manual) {
+         final boolean isDragByGesture = !manual;
+ 
+         if (tabsView != null) {
+-            final float position = viewPager.getPositionAnimated();
+-            setGestureSelectedOverride(position, isDragByGesture);
+             if (isDragByGesture) {
+-                selectTab(Math.round(position), true);
++                final int current = viewPager.getCurrentPosition();
++                final int next = viewPager.getNextPosition();
++                final float nextAlpha = viewPager.getNextPositionAlpha();
++                for (int index = 0; index < tabs.length; index++) {
++                    final int position = indexToPosition(index);
++                    final float visibility = position == current ? 1f - nextAlpha
++                            : position == next ? nextAlpha : 0f;
++                    tabs[index].setGestureSelectedOverride(visibility, true);
++                }
++                selectTab(nextAlpha > 0.5f ? next : current, true);
++            } else {
++                setGestureSelectedOverride(viewPager.getPositionAnimated(), false);
+             }
+         }
+ 

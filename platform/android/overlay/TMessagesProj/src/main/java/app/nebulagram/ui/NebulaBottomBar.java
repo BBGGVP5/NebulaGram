@@ -165,6 +165,18 @@ public final class NebulaBottomBar {
         }
     }
 
+    /** Target for a swipe, skipping pages whose bottom tabs are hidden. */
+    public static int nextEnabledPosition(int current, boolean forward) {
+        int direction = forward ? 1 : -1;
+        for (int position = current + direction; position >= 0 && position <= 3;
+             position += direction) {
+            if (positionEnabled(position)) {
+                return position;
+            }
+        }
+        return forward ? 4 : -1;
+    }
+
     /**
      * Куда доехать, если свайп остановился на скрытой вкладке.
      *
