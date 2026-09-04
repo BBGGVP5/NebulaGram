@@ -1,0 +1,82 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
+@@ -238,8 +238,11 @@
+             // The title capsule is centred in the full bar.  Symmetric small
+             // margins keep the original avatar at the trailing edge instead
+             // of placing it inside the title capsule.
+-            params.leftMargin = dp(8);
+-            params.rightMargin = dp(8);
++            // Шесть точек — ровно столько же отступает стеклянный кружок
++            // кнопки «назад» от левого края. Аватарка справа встаёт с ним
++            // симметрично, а середина контейнера совпадает с серединой экрана.
++            params.leftMargin = dp(6);
++            params.rightMargin = dp(6);
+             nebulaChatAvatarContainer.setNebulaCenteredTitle(true, nebulaSavedMessagesHeader);
+             nebulaChatAvatarContainer.setLayoutParams(params);
+         } else {
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarContainer.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarContainer.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarContainer.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarContainer.java
+@@ -789,7 +789,11 @@
+ 
+     /** The compact glass capsule contains text only; the avatar has its own circle. */
+     public int getNebulaCenteredHeaderWidth() {
+-        int title = (int) Math.ceil(titleTextView.getExactWidthIncludeDrawables());
++        // Значок «без звука» Telegram рисует за текстом, и в точную ширину
++        // текста он не входит. Берём заодно измеренную ширину — она значок
++        // учитывает, иначе капсула срезала его вместе с последней буквой.
++        int title = Math.max((int) Math.ceil(titleTextView.getExactWidthIncludeDrawables()),
++                titleTextView.getMeasuredWidth());
+         View subtitle = getSubtitleTextView();
+         int status = subtitle != null && subtitle.getVisibility() == VISIBLE ? subtitle.getMeasuredWidth() : 0;
+         // Капсула должна облегать содержимое, а не тянуться во всю ширину.
+@@ -818,25 +822,43 @@
+         final int subtitleTop = viewTop + dp(glassMode ? 23.66f : 24);
+ 
+         if (nebulaCenteredTitle) {
++            // Всё считаем от собственной ширины: ActionBar растягивает
++            // контейнер на всю панель с полями в шесть точек, поэтому его
++            // середина — это середина экрана, а правый край — правый край
++            // экрана. Пересчёт от родителя давал то же самое, но на первом
++            // проходе разметки, пока родитель ещё нулевой ширины, выдавал
++            // отрицательные координаты: аватарка укладывалась задом наперёд
++            // и пропадала, а название теряло ширину и исчезало совсем.
+             int avatarRight = getWidth();
+             if (getParent() instanceof ActionBar) {
+                 avatarRight -= ((ActionBar) getParent()).getNebulaChatAvatarTrailingInset();
+             }
++            avatarRight = Math.max(avatarImageView.getMeasuredWidth(), avatarRight);
+             final int avatarLeft = avatarRight - avatarImageView.getMeasuredWidth();
+-            final int titleLeft = Math.max(dp(4), (getWidth() - titleTextView.getMeasuredWidth()) / 2);
++            // Ширину ограничиваем капсулой: без этого длинное имя вылезало за
++            // неё, и бегущая строка шла поверх стекла и по краям экрана. Ниже
++            // осмысленного минимума не опускаемся: обнулённая капсула прятала
++            // название целиком.
++            final int capsule = Math.max(dp(80), getNebulaCenteredHeaderWidth() - dp(24));
++            final int titleWidth = Math.max(dp(24),
++                    Math.min(titleTextView.getMeasuredWidth(), capsule));
++            final int titleLeft = Math.max(dp(4), (getWidth() - titleWidth) / 2);
+             final View subtitle = getSubtitleTextView();
+-            final int subtitleLeft = subtitle == null ? titleLeft : Math.max(dp(4), (getWidth() - subtitle.getMeasuredWidth()) / 2);
++            final int subtitleWidth = subtitle == null ? 0
++                    : Math.min(subtitle.getMeasuredWidth(), capsule);
++            final int subtitleLeft = subtitle == null ? titleLeft
++                    : Math.max(dp(4), (getWidth() - subtitleWidth) / 2);
+             avatarImageView.layout(avatarLeft, 1 + viewTop, avatarLeft + avatarImageView.getMeasuredWidth(),
+                     1 + viewTop + avatarImageView.getMeasuredHeight());
+             if (subtitle != null && subtitle.getVisibility() != GONE) {
+                 titleTextView.layout(titleLeft, viewTop + dp(1.66f) - titleTextView.getPaddingTop(),
+-                        titleLeft + titleTextView.getMeasuredWidth(), viewTop + titleTextView.getTextHeight() + dp(1.66f)
++                        titleLeft + titleWidth, viewTop + titleTextView.getTextHeight() + dp(1.66f)
+                                 - titleTextView.getPaddingTop() + titleTextView.getPaddingBottom());
+-                subtitle.layout(subtitleLeft, subtitleTop, subtitleLeft + subtitle.getMeasuredWidth(),
++                subtitle.layout(subtitleLeft, subtitleTop, subtitleLeft + subtitleWidth,
+                         subtitleTop + subtitle.getMeasuredHeight());
+             } else {
+                 titleTextView.layout(titleLeft, viewTop + dp(11) - titleTextView.getPaddingTop(),
+-                        titleLeft + titleTextView.getMeasuredWidth(), viewTop + titleTextView.getTextHeight() + dp(11)
++                        titleLeft + titleWidth, viewTop + titleTextView.getTextHeight() + dp(11)
+                                 - titleTextView.getPaddingTop() + titleTextView.getPaddingBottom());
+             }
+             SimpleTextView titleCopy = titleTextLargerCopyView.get();

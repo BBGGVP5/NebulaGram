@@ -1,0 +1,26 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/LoginActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/LoginActivity.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/LoginActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/LoginActivity.java
+@@ -694,7 +694,8 @@
+ 
+         if (activityMode == MODE_LOGIN && app.nebulagram.ui.NebulaLoginStyle.enabled()) {
+             PhoneView phone = (PhoneView) views[VIEW_PHONE_INPUT];
+-            app.nebulagram.ui.NebulaLoginStyle.phone(phone, phone.titleView, phone.subtitleView, phone.countryOutlineView, phone.phoneOutlineView);
++            app.nebulagram.ui.NebulaLoginStyle.phone(phone, phone.titleView, phone.subtitleView, phone.countryOutlineView, phone.phoneOutlineView,
++                    phone.phoneField, visible -> setCustomKeyboardVisible(visible, true));
+             for (int index : new int[] { VIEW_CODE_MESSAGE, VIEW_CODE_SMS, VIEW_CODE_CALL, VIEW_CODE_FRAGMENT_SMS }) {
+                 LoginActivitySmsView code = (LoginActivitySmsView) views[index];
+                 app.nebulagram.ui.NebulaLoginStyle.code(code, code.titleTextView, code.confirmTextView,
+@@ -864,6 +865,12 @@
+     }
+ 
+     private boolean isCustomKeyboardVisible() {
++        // Наше оформление убирает цифровую клавиатуру, когда номер набран
++        // целиком. Тогда и место под неё резервировать нельзя, иначе кнопка
++        // «Продолжить» осталась бы висеть над пустотой.
++        if (nebulaLoginStyle != null && !customKeyboardWasVisible) {
++            return false;
++        }
+         return views[currentViewNum].hasCustomKeyboard() && !isCustomKeyboardForceDisabled();
+     }
+ 

@@ -23,7 +23,7 @@ import app.nebulagram.nebulalink.NebulaLink;
 
 /** Optional connection before login; content and actions scroll together under IME. */
 public class NebulaConnectFragment extends BaseFragment {
-    private NebulaMark mark;
+    private NebulaAuthArt art;
     private EditTextBoldCursor input;
     private NebulaButton connect;
     private TextView status;
@@ -38,9 +38,9 @@ public class NebulaConnectFragment extends BaseFragment {
         actionBar.setVisibility(View.GONE);
         NebulaOnboardingLayout root = new NebulaOnboardingLayout(context);
 
-        mark = new NebulaMark(theme.primary(), theme.primaryShade());
+        art = new NebulaAuthArt(NebulaAuthArt.KIND_LINK, theme.primary(), theme.onSurfaceVariant());
         ImageView image = new ImageView(context);
-        image.setImageDrawable(mark);
+        image.setImageDrawable(art);
         image.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
         GradientDrawable badge = new GradientDrawable();
         badge.setColor(theme.primaryContainer());
@@ -193,8 +193,8 @@ public class NebulaConnectFragment extends BaseFragment {
     @Override
     public void onFragmentDestroy() {
         destroyed = true;
-        if (mark != null) mark.detach();
-        mark = null;
+        if (art != null) art.detach();
+        art = null;
         super.onFragmentDestroy();
     }
 

@@ -34,6 +34,15 @@ public final class NebulaComposerStyle {
     private boolean attachmentVisible = true;
     /** Левый край кнопки вложений в координатах панели, -1 пока не измерен. */
     private int attachmentLeft = -1;
+    /**
+     * Правый край группы отправки в координатах панели, -1 пока не измерен.
+     *
+     * <p>Раньше правый кружок считался зеркально от левого. Пока справа стоял
+     * микрофон, зеркало совпадало со кнопкой, но при вводе текста на его место
+     * встаёт кнопка отправки другой ширины — и кружок уезжал с неё. Считаем по
+     * настоящему контейнеру: он не двигается, что бы в нём ни лежало.
+     */
+    private int sendRight = -1;
 
     /**
      * Рисуется ли сейчас наша панель. Нужно снаружи: пока она активна,
@@ -80,7 +89,7 @@ public final class NebulaComposerStyle {
         }
     }
 
-    public void layout(View emoji, View attachment, View senderSelect) {
+    public void layout(View emoji, View attachment, View senderSelect, View sendContainer) {
         if (emoji == null || attachment == null || !(emoji.getParent() instanceof ViewGroup)) return;
         // Размер кружков берём у настоящей кнопки, а не из константы: при
         // зашитых 44dp поле начиналось под кнопкой, если та оказывалась шире,
@@ -101,11 +110,30 @@ public final class NebulaComposerStyle {
             view = view.getParent() instanceof View ? (View) view.getParent() : null;
         }
         attachmentLeft = offset;
+        sendRight = -1;
+        if (sendContainer != null && sendContainer.getMeasuredWidth() > 0) {
+            int right = sendContainer.getMeasuredWidth();
+            for (View view = sendContainer; view != null && view != host; ) {
+                right += view.getLeft();
+                view = view.getParent() instanceof View ? (View) view.getParent() : null;
+            }
+            sendRight = right;
+        }
         if (active) {
             ViewGroup parent = (ViewGroup) emoji.getParent();
-            // Derive from stable parent geometry, never from our previous layout.
-            move(emoji, parent.getWidth() - parent.getPaddingRight()
-                    - emoji.getMeasuredWidth() - AndroidUtilities.dp(6));
+            // Значок наклеек живёт внутри пилюли, у её правого края. Раньше он
+            // вставал по краю своего контейнера, а тот шире пилюли на кружок
+            // микрофона — значок оказывался снаружи, на стекле.
+            int parentOffset = 0;
+            for (View view = parent; view != null && view != host; ) {
+                parentOffset += view.getLeft();
+                view = view.getParent() instanceof View ? (View) view.getParent() : null;
+            }
+            final int pill = pillRight();
+            move(emoji, pill >= 0
+                    ? pill - parentOffset - AndroidUtilities.dp(6) - emoji.getMeasuredWidth()
+                    : parent.getWidth() - parent.getPaddingRight()
+                            - emoji.getMeasuredWidth() - AndroidUtilities.dp(6));
             move(attachment, parent.getPaddingLeft());
             // In channels Telegram places “send as” over the attachment
             // button. Keep both actions: the paperclip owns the left circle
@@ -125,6 +153,22 @@ public final class NebulaComposerStyle {
             }
             controlsMoved = false;
         }
+    }
+
+    /** Диаметр стеклянных кружков: берём у настоящей кнопки вложений. */
+    private int diameter() {
+        return buttonSize > 0 ? buttonSize : AndroidUtilities.dp(44);
+    }
+
+    /** Правый край пилюли ввода в координатах панели, -1 пока не измерен. */
+    private int pillRight() {
+        if (sendRight < 0) {
+            return -1;
+        }
+        // Границы стекла известны с первой отрисовки: до неё считаем по краю
+        // группы отправки, потом — по видимому краю панели, как и сама пилюля.
+        final int right = padded.right > 0 ? Math.min(padded.right, sendRight) : sendRight;
+        return right - diameter() - AndroidUtilities.dp(10);
     }
 
     private static void move(View view, int left) {
@@ -149,11 +193,6 @@ public final class NebulaComposerStyle {
         // than the 48dp touch target, and falling back to its one wide
         // drawable is precisely what joins the editor and microphone again.
         if (!active || host == null) return false;
-        // При наборе текста Telegram перестраивает правую группу: появляется
-        // кнопка отправки другой ширины, прячется скрепка, едут отступы. Наши
-        // три поверхности в этот момент считались по старым краям и налезали
-        // друг на друга. Пока текст набирается, отдаём панель штатной отрисовке.
-        if (host.isSendButtonVisible()) return false;
         // В каналах и там, где писать нельзя, поле ввода скрыто, а внизу стоит
         // своя панель Telegram. Наши три поверхности рисовались и там — отсюда
         // пустые кружки вокруг надписи «Убрать звук».
@@ -165,7 +204,7 @@ public final class NebulaComposerStyle {
         // Touch targets stay at Telegram's original 48dp.  The visible glass
         // circle is allowed to be slightly smaller so it always fits the
         // actual blur path during IME and inset animations.
-        int diameter = Math.min(buttonSize > 0 ? buttonSize : AndroidUtilities.dp(44), padded.height());
+        int diameter = Math.min(diameter(), padded.height());
         if (diameter <= 0) return false;
         int padding = padded.left - original.left;
         // The gap is in visible coordinates. `drawSurface` expands each
@@ -183,7 +222,11 @@ public final class NebulaComposerStyle {
         // Край панели берём по кнопке, а не по фону: между ними была разница,
         // из-за которой кружки стояли не на своих местах.
         final int edge = attachmentLeft >= 0 ? Math.max(padded.left, attachmentLeft) : padded.left;
-        final int mirrored = padded.right - (edge - padded.left);
+        // Правый край — по кнопке отправки. Зеркало от левого края держалось,
+        // только пока справа стоял микрофон; при вводе текста кружок съезжал.
+        final int mirrored = sendRight >= 0
+                ? Math.min(padded.right, sendRight)
+                : padded.right - (edge - padded.left);
         int editorLeft = attachmentVisible ? edge + diameter + gap : padded.left;
         int editorRight = mirrored - diameter - gap;
         if (editorRight <= editorLeft) return false;

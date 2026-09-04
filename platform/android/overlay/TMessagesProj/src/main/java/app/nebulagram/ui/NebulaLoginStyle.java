@@ -2,6 +2,8 @@ package app.nebulagram.ui;
 
 import android.content.Context;
 import android.graphics.Canvas;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.graphics.Outline;
 import android.graphics.drawable.GradientDrawable;
 import android.util.TypedValue;
@@ -27,6 +29,7 @@ import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.CodeFieldContainer;
 import org.telegram.ui.Components.CustomPhoneKeyboardView;
 import org.telegram.ui.Components.FragmentFloatingButton;
+import org.telegram.ui.Components.HintEditText;
 import org.telegram.ui.Components.OutlineTextContainerView;
 import org.telegram.ui.Components.SlideView;
 
@@ -53,10 +56,16 @@ public final class NebulaLoginStyle {
         return slide != null && slide.getTag(R.id.nebula_auth_step) instanceof Integer;
     }
 
+    /** Встроенная цифровая клавиатура Telegram: её показывает сам экран входа. */
+    public interface Keyboard {
+        void setVisible(boolean visible);
+    }
+
     public static void phone(SlideView slide, TextView title, TextView subtitle,
-                             View country, View phone) {
+                             View country, View phone, View field, Keyboard keyboard) {
         decorate(slide, title, subtitle, 2, R.string.NebulaAuthPhoneEyebrow);
         title.setText(LocaleController.getString(R.string.NebulaAuthPhoneTitle));
+        hideKeyboardWhenComplete(field, keyboard);
         fieldMargins(country, 26, 6);
         fieldMargins(phone, 8, 12);
         for (int i = 0; i < slide.getChildCount(); i++) {
@@ -70,6 +79,40 @@ public final class NebulaLoginStyle {
                 params.setMarginEnd(0);
             }
         }
+    }
+
+    /**
+     * Убирает цифровую клавиатуру, когда номер набран целиком.
+     *
+     * <p>Полноту определяем по подсказке поля: Telegram держит там образец
+     * номера для выбранной страны и дорисовывает нули на месте недостающих
+     * цифр. Как только дорисовывать нечего — номер введён, и клавиатура
+     * только закрывает кнопку «Продолжить».
+     *
+     * <p>Нажатие по полю возвращает её обратно: без этого исправить набранный
+     * номер было бы нечем.
+     */
+    private static void hideKeyboardWhenComplete(View field, Keyboard keyboard) {
+        if (!(field instanceof HintEditText) || keyboard == null) {
+            return;
+        }
+        final HintEditText input = (HintEditText) field;
+        input.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence text, int start, int count, int after) { }
+
+            @Override
+            public void onTextChanged(CharSequence text, int start, int before, int count) { }
+
+            @Override
+            public void afterTextChanged(Editable text) {
+                String hint = input.getHintText();
+                if (hint != null && hint.length() > 0 && input.length() >= hint.length()) {
+                    keyboard.setVisible(false);
+                }
+            }
+        });
+        input.setOnClickListener(v -> keyboard.setVisible(true));
     }
 
     public static void code(SlideView slide, TextView title, TextView subtitle,

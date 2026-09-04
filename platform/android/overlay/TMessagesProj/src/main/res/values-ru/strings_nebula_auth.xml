@@ -5,8 +5,8 @@
     <string name="NebulaAuthWelcomeFeature">NebulaLink внутри</string>
     <string name="NebulaAuthWelcomeFeatureSub">Подключите свою подписку прямо здесь, а затем войдите в аккаунт.</string>
     <string name="NebulaAuthStart">Начать общение</string>
-    <string name="NebulaAuthLinkTitle">Ваше подключение</string>
-    <string name="NebulaAuthLinkSubtitle">Добавьте подписку или ключ сервера для подключения через NebulaLink. Можно продолжить и напрямую.</string>
+    <string name="NebulaAuthLinkTitle">Подключите NebulaLink</string>
+    <string name="NebulaAuthLinkSubtitle">Вставьте ссылку на подписку или ключ сервера — без туннеля код для входа может не дойти.</string>
     <string name="NebulaAuthLinkField">Подписка или ключ сервера</string>
     <string name="NebulaAuthLinkHint">Вставьте ссылку</string>
     <string name="NebulaAuthLinkFormats">Подписки и ключи серверов · VLESS, VMess, Trojan, Shadowsocks, Hysteria2, TUIC</string>
