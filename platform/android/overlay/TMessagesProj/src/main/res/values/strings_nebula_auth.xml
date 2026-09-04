@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <item type="id" name="nebula_auth_step" />
-    <string name="NebulaAuthWelcomeTitle">A little closer.\nWith NebulaGram.</string>
+    <string name="NebulaAuthWelcomeTitle">A little closer\nwith NebulaGram</string>
     <string name="NebulaAuthWelcomeSubtitle">Your conversations, familiar Telegram features and a connection that stays with you.</string>
     <string name="NebulaAuthWelcomeFeature">NebulaLink inside</string>
     <string name="NebulaAuthWelcomeFeatureSub">Connect your subscription here, then sign in to your account.</string>

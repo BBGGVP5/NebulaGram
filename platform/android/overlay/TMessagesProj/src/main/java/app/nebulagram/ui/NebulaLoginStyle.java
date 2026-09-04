@@ -127,9 +127,19 @@ public final class NebulaLoginStyle {
         slide.setClickable(true);
         slide.setOnClickListener(v -> AndroidUtilities.hideKeyboard(v));
 
-        ImageView badge = new ImageView(slide.getContext());
-        badge.setImageDrawable(new NebulaMark(Theme.getColor(Theme.key_windowBackgroundWhiteBlueText4),
-                Theme.getColor(Theme.key_windowBackgroundWhiteValueText)).still());
+        // Знак живой, а не замороженный: на этих экранах ждут кода и связи,
+        // и лёгкое движение показывает, что приложение работает. Анимацию
+        // останавливаем вместе с экраном, иначе она крутилась бы и в фоне.
+        final NebulaMark mark = new NebulaMark(Theme.getColor(Theme.key_windowBackgroundWhiteBlueText4),
+                Theme.getColor(Theme.key_windowBackgroundWhiteValueText));
+        ImageView badge = new ImageView(slide.getContext()) {
+            @Override
+            protected void onDetachedFromWindow() {
+                mark.detach();
+                super.onDetachedFromWindow();
+            }
+        };
+        badge.setImageDrawable(mark);
         badge.setBackground(surface(28));
         badge.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
         LinearLayout.LayoutParams badgeParams = new LinearLayout.LayoutParams(AndroidUtilities.dp(88), AndroidUtilities.dp(88));
@@ -214,7 +224,13 @@ public final class NebulaLoginStyle {
          * исчезало, и у «Страны» с «Номером телефона» срезало верх букв.
          */
         private void applySurface() {
-            setBackground(surface(RADIUS));
+            // Заливку сдвигаем внутрь на толщину обводки: Telegram рисует её
+            // по прямоугольнику, отступающему от края на эту величину, и без
+            // сдвига края заливки и обводки не совпадали — грань выглядела
+            // двойной.
+            final int inset = Math.max(2, AndroidUtilities.dp(0.5f));
+            setBackground(new android.graphics.drawable.InsetDrawable(
+                    surface(RADIUS), inset, inset, inset, inset));
             setPadding(0, AndroidUtilities.dp(6), 0, 0);
         }
 

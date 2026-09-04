@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="NebulaAuthWelcomeTitle">Ближе друг к другу\nс NebulaGram.</string>
+    <string name="NebulaAuthWelcomeTitle">Ближе друг к другу\nс NebulaGram</string>
     <string name="NebulaAuthWelcomeSubtitle">Ваши разговоры, привычные возможности Telegram и подключение, которое всегда рядом.</string>
     <string name="NebulaAuthWelcomeFeature">NebulaLink внутри</string>
     <string name="NebulaAuthWelcomeFeatureSub">Подключите свою подписку прямо здесь, а затем войдите в аккаунт.</string>
