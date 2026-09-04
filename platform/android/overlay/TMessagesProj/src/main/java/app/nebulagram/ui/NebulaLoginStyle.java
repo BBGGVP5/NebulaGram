@@ -416,8 +416,9 @@ public final class NebulaLoginStyle {
          * когда её отъезд уже закончился. Разметка тогда пересчитывалась одним
          * кадром, и кнопка «Продолжить» прыгала на всю высоту клавиатуры.
          */
-        private int lastKeyboardHeight = -1;
         private Boolean keyboardVisible;
+        private int lastButtonBottom = -1;
+        private int lastScrollHeight = -1;
         private ValueAnimator settle;
         private final ViewOutlineProvider originalOutline;
 
@@ -520,12 +521,20 @@ public final class NebulaLoginStyle {
             }
             label.setVisibility(active && !button.getProgressVisible() ? View.VISIBLE : View.GONE);
             if (changed) updateColors();
-            if (active && lastKeyboardHeight >= 0 && lastKeyboardHeight != keyboardHeight) {
-                settle(keyboardHeight - lastKeyboardHeight,
-                        current.getMeasuredHeight() > 0
-                                && current.getMeasuredHeight() < scrollParams.height);
+            // Сдвиг считаем по самой разметке, а не по высоте клавиатуры: кнопка
+            // стоит от нижнего края и уезжает совсем не на её высоту. Пока
+            // сдвигом считалась высота клавиатуры, кнопка на время движения
+            // улетала втрое дальше нужного — вместе с областью нажатия.
+            final boolean centred = current.getMeasuredHeight() > 0
+                    && current.getMeasuredHeight() < scrollParams.height;
+            if (active && lastButtonBottom >= 0
+                    && (lastButtonBottom != buttonParams.bottomMargin
+                        || lastScrollHeight != scrollParams.height)) {
+                settle(buttonParams.bottomMargin - lastButtonBottom,
+                        centred ? (lastScrollHeight - scrollParams.height) / 2f : 0f);
             }
-            lastKeyboardHeight = keyboardHeight;
+            lastButtonBottom = active ? buttonParams.bottomMargin : -1;
+            lastScrollHeight = scrollParams.height;
         }
 
         /**
@@ -537,15 +546,17 @@ public final class NebulaLoginStyle {
          * по центру, поэтому едет вдвое меньше — если оно вообще помещается
          * целиком; иначе оно прижато к верху и никуда не двигается.
          */
-        private void settle(int delta, boolean contentCentred) {
-            if (delta == 0) {
+        private void settle(int delta, float contentShift) {
+            if (delta == 0 && contentShift == 0f) {
                 return;
             }
             if (settle != null) {
                 settle.cancel();
             }
+            // Отступ снизу уменьшился — значит кнопка уехала вниз ровно на эту
+            // разницу. Ставим её обратно и отпускаем.
             final float from = delta;
-            final float content = contentCentred ? delta / 2f : 0f;
+            final float content = contentShift;
             settle = ValueAnimator.ofFloat(1f, 0f);
             settle.setDuration(180);
             settle.setInterpolator(CubicBezierInterpolator.EASE_OUT_QUINT);

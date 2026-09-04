@@ -19,7 +19,6 @@ import androidx.core.graphics.ColorUtils;
 
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.ImageReceiver;
-import org.telegram.messenger.LocaleController;
 import org.telegram.ui.ActionBar.SimpleTextView;
 import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.Components.BackupImageView;
@@ -76,7 +75,6 @@ public final class NebulaProfileArt {
     public static final class Hero {
         private final Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
         private final RectF rect = new RectF();
-        private final RectF ornament = new RectF();
         private final Path clip = new Path();
         private final Path bannerClip = new Path();
         private LinearGradient gradient;
@@ -128,20 +126,8 @@ public final class NebulaProfileArt {
             canvas.drawPath(clip, paint);
             paint.setShader(null);
 
-            // The arcs sit at the outside corner, clear of the title and avatar.
-            int save = canvas.save();
-            heroPath(clip, rect);
-            canvas.clipPath(clip);
-            final float x = LocaleController.isRTL ? rect.left : rect.right;
-            ornament.set(x - dp(54), top - dp(40), x + dp(54), top + dp(68));
-            paint.setColor(Theme.multAlpha(accent, .1f * alpha));
-            paint.setStrokeWidth(dp(12));
-            canvas.drawOval(ornament, paint);
-            ornament.inset(dp(20), dp(20));
-            paint.setStrokeWidth(dp(1));
-            paint.setColor(Theme.multAlpha(accent, .22f * alpha));
-            canvas.drawOval(ornament, paint);
-            canvas.restoreToCount(save);
+            // Дуги в углу убраны намеренно: на фотографии они читались как
+            // засветка стекла, а не как украшение шапки.
             paint.setStyle(Paint.Style.FILL);
         }
 
@@ -157,17 +143,16 @@ public final class NebulaProfileArt {
         }
 
         /**
-         * Форма шапки: скругление только снизу. Сверху она упирается в край
-         * экрана, и круглые углы там повисли бы в воздухе.
+         * Форма шапки — прямоугольник во всю ширину, без скруглений.
+         *
+         * <p>Скругление снизу выглядело как рамка вокруг фотографии: она
+         * обрывалась, не доходя до краёв, и шапка читалась как карточка,
+         * вставленная в экран, а не как сам верх профиля.
          */
         private static void heroPath(Path path, RectF bounds) {
-            final float r = dp(28);
-            HERO_RADII[4] = HERO_RADII[5] = HERO_RADII[6] = HERO_RADII[7] = r;
             path.rewind();
-            path.addRoundRect(bounds, HERO_RADII, Path.Direction.CW);
+            path.addRect(bounds, Path.Direction.CW);
         }
-
-        private static final float[] HERO_RADII = new float[8];
 
         private void drawPhotoBanner(Canvas canvas, ImageReceiver receiver, RectF target, float alpha) {
             final float imageX = receiver.getImageX();

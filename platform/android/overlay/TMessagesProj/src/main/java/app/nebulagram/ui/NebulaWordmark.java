@@ -1,12 +1,16 @@
 package app.nebulagram.ui;
 
 import android.graphics.Canvas;
+import android.text.TextUtils;
 import android.graphics.ColorFilter;
 import android.graphics.Paint;
 import android.graphics.PixelFormat;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
+import android.view.ViewGroup;
 import android.widget.ImageView;
+
+import java.lang.ref.WeakReference;
 
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.LocaleController;
@@ -36,6 +40,19 @@ public final class NebulaWordmark extends Drawable {
      */
     private static CharSequence current;
 
+    /**
+     * Куда мы подставили надпись.
+     *
+     * <p>Картинка у Telegram фиксированной ширины и меняться не должна была,
+     * поэтому при смене названия папки её никто не перемеряет и не
+     * перерисовывает: в шапке оставалось прежнее слово. Держим вью, чтобы
+     * толкнуть её самим.
+     */
+    private static WeakReference<ImageView> holder;
+
+    /** Дальше половины экрана надпись не растёт: справа стоят поиск и меню. */
+    private static final float MAX_FRACTION = 0.5f;
+
     private final Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
 
     private NebulaWordmark() {
@@ -46,7 +63,21 @@ public final class NebulaWordmark extends Drawable {
 
     /** Задаёт надпись: то же значение, что и в заголовке панели. */
     public static void setText(CharSequence text) {
+        if (TextUtils.equals(current, text)) {
+            return;
+        }
         current = text;
+        ImageView view = holder == null ? null : holder.get();
+        if (view != null) {
+            // Ширина у надписи своя, поэтому нужен и перемер, и перерисовка.
+            ViewGroup.LayoutParams params = view.getLayoutParams();
+            if (params != null && params.width != ViewGroup.LayoutParams.WRAP_CONTENT) {
+                params.width = ViewGroup.LayoutParams.WRAP_CONTENT;
+                view.setLayoutParams(params);
+            }
+            view.requestLayout();
+            view.invalidate();
+        }
     }
 
     private static String text() {
@@ -62,7 +93,26 @@ public final class NebulaWordmark extends Drawable {
         if (view == null) {
             return;
         }
+        // Без выравнивания по левому краю длинная надпись ужималась под
+        // отведённые картинке точки и становилась мельче заголовка.
+        view.setScaleType(ImageView.ScaleType.FIT_START);
         view.setImageDrawable(new NebulaWordmark());
+        holder = new WeakReference<>(view);
+    }
+
+    /** Надпись, укороченная до отведённой ширины. */
+    private String fitted() {
+        final String value = text();
+        final float max = AndroidUtilities.displaySize.x * MAX_FRACTION;
+        if (max <= 0 || paint.measureText(value) <= max) {
+            return value;
+        }
+        final float dots = paint.measureText("…");
+        int end = value.length();
+        while (end > 1 && paint.measureText(value, 0, end) + dots > max) {
+            end--;
+        }
+        return value.substring(0, end) + "…";
     }
 
     @Override
@@ -70,12 +120,12 @@ public final class NebulaWordmark extends Drawable {
         Rect bounds = getBounds();
         Paint.FontMetrics metrics = paint.getFontMetrics();
         float baseline = bounds.centerY() - (metrics.ascent + metrics.descent) / 2f;
-        canvas.drawText(text(), bounds.left, baseline, paint);
+        canvas.drawText(fitted(), bounds.left, baseline, paint);
     }
 
     @Override
     public int getIntrinsicWidth() {
-        return (int) Math.ceil(paint.measureText(text()));
+        return (int) Math.ceil(paint.measureText(fitted()));
     }
 
     @Override

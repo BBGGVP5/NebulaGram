@@ -1,0 +1,19 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
+@@ -4525,7 +4525,14 @@
+ 
+         if (chatMode == 0 && (!isThreadChat() || isTopic) && !isReport()) {
+             attachItem = menu.lazilyAddItem(chat_menu_attach, otherIcon, themeDelegate);
+-            attachItem.onView(cell -> otherIcon.addView(cell.getIconView()));
++            attachItem.onView(cell -> {
++                otherIcon.addView(cell.getIconView());
++                // При наборе текста Telegram прячет пункт с нашим значком и
++                // показывает этот, с тремя точками. В «Избранном» значок из-за
++                // этого пропадал прямо во время письма.
++                app.nebulagram.ui.NebulaChatStyle.savedMessagesMenuIcon(cell,
++                        UserObject.isUserSelf(currentUser));
++            });
+             attachItem.setOverrideMenuClick(true);
+             attachItem.setAllowCloseAnimation(false);
+             attachItem.setContentDescription(LocaleController.getString(R.string.AccDescrMoreOptions));
