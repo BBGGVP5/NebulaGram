@@ -197,7 +197,20 @@ public final class NebulaLoginStyle {
         public Field(Context context, boolean rounded) {
             super(context);
             this.rounded = rounded;
-            if (rounded) setBackground(surface(RADIUS));
+            if (rounded) applySurface();
+        }
+
+        /**
+         * Ставит фон, не потеряв отступ сверху.
+         *
+         * <p>Конструктор Telegram задаёт полю отступ в шесть точек — это место,
+         * куда рисуется заголовок поверх рамки. Установка фона сбрасывает
+         * отступы вью на отступы самого фона, а у заливки их нет: место
+         * исчезало, и у «Страны» с «Номером телефона» срезало верх букв.
+         */
+        private void applySurface() {
+            setBackground(surface(RADIUS));
+            setPadding(0, AndroidUtilities.dp(6), 0, 0);
         }
 
         @Override
@@ -208,7 +221,7 @@ public final class NebulaLoginStyle {
         @Override
         public void updateColor() {
             super.updateColor();
-            if (rounded) setBackground(surface(RADIUS));
+            if (rounded) applySurface();
         }
 
         // Обрезка по форме поля здесь была и оказалась вредной: заголовок
