@@ -127,19 +127,34 @@ public final class NebulaLoginStyle {
         slide.setClickable(true);
         slide.setOnClickListener(v -> AndroidUtilities.hideKeyboard(v));
 
-        // Знак живой, а не замороженный: на этих экранах ждут кода и связи,
-        // и лёгкое движение показывает, что приложение работает. Анимацию
-        // останавливаем вместе с экраном, иначе она крутилась бы и в фоне.
-        final NebulaMark mark = new NebulaMark(Theme.getColor(Theme.key_windowBackgroundWhiteBlueText4),
-                Theme.getColor(Theme.key_windowBackgroundWhiteValueText));
+        // Картинка объясняет шаг: на экране номера цифры набираются сами, на
+        // экране кода заполняются ячейки. Знак приложения там был не к месту —
+        // он одинаков везде и о шаге ничего не говорит.
+        final int artAccent = Theme.getColor(Theme.key_windowBackgroundWhiteBlueText4);
+        final int artMuted = ColorUtils.blendARGB(
+                Theme.getColor(Theme.key_windowBackgroundWhiteGrayText), artAccent, .25f);
+        final android.graphics.drawable.Drawable art;
+        final Runnable release;
+        if (step == 2 || step == 3) {
+            final NebulaAuthArt animation = new NebulaAuthArt(
+                    step == 2 ? NebulaAuthArt.KIND_PHONE : NebulaAuthArt.KIND_CODE,
+                    artAccent, artMuted);
+            art = animation;
+            release = animation::detach;
+        } else {
+            final NebulaMark mark = new NebulaMark(artAccent,
+                    Theme.getColor(Theme.key_windowBackgroundWhiteValueText));
+            art = mark;
+            release = mark::detach;
+        }
         ImageView badge = new ImageView(slide.getContext()) {
             @Override
             protected void onDetachedFromWindow() {
-                mark.detach();
+                release.run();
                 super.onDetachedFromWindow();
             }
         };
-        badge.setImageDrawable(mark);
+        badge.setImageDrawable(art);
         badge.setBackground(surface(28));
         badge.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
         LinearLayout.LayoutParams badgeParams = new LinearLayout.LayoutParams(AndroidUtilities.dp(88), AndroidUtilities.dp(88));
