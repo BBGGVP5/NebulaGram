@@ -28,14 +28,33 @@ public final class NebulaWordmark extends Drawable {
     /** Высота исходной картинки Telegram: держим её, чтобы не поехала разметка. */
     private static final float HEIGHT_DP = 20.4f;
 
-    private final Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
-    private final String text;
+    /**
+     * Что написано на месте логотипа. Меняется вместе с заголовком: при
+     * включённой настройке там стоит название текущей папки, иначе имя
+     * приложения. Значение общее, потому что и заголовок, и логотип
+     * показывают одно и то же — просто в разных состояниях историй.
+     */
+    private static CharSequence current;
 
-    private NebulaWordmark(String text) {
-        this.text = text;
+    private final Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
+
+    private NebulaWordmark() {
         paint.setTypeface(AndroidUtilities.bold());
         paint.setColor(0xFFFFFFFF);
         paint.setTextSize(AndroidUtilities.dp(HEIGHT_DP));
+    }
+
+    /** Задаёт надпись: то же значение, что и в заголовке панели. */
+    public static void setText(CharSequence text) {
+        current = text;
+    }
+
+    private static String text() {
+        CharSequence value = current;
+        if (value == null || value.length() == 0) {
+            value = LocaleController.getString(R.string.NebulaAppName);
+        }
+        return value.toString();
     }
 
     /** Ставит наше название вместо картинки с чужим. */
@@ -43,8 +62,7 @@ public final class NebulaWordmark extends Drawable {
         if (view == null) {
             return;
         }
-        view.setImageDrawable(new NebulaWordmark(
-                LocaleController.getString(R.string.NebulaAppName)));
+        view.setImageDrawable(new NebulaWordmark());
     }
 
     @Override
@@ -52,12 +70,12 @@ public final class NebulaWordmark extends Drawable {
         Rect bounds = getBounds();
         Paint.FontMetrics metrics = paint.getFontMetrics();
         float baseline = bounds.centerY() - (metrics.ascent + metrics.descent) / 2f;
-        canvas.drawText(text, bounds.left, baseline, paint);
+        canvas.drawText(text(), bounds.left, baseline, paint);
     }
 
     @Override
     public int getIntrinsicWidth() {
-        return (int) Math.ceil(paint.measureText(text));
+        return (int) Math.ceil(paint.measureText(text()));
     }
 
     @Override

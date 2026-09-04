@@ -41,6 +41,9 @@ public final class NebulaDialogsTitle {
                 }
             }
         }
+        // Свёрнутые истории показывают не заголовок, а логотип: передаём ему
+        // ту же надпись, иначе название папки видно только в развёрнутом виде.
+        NebulaWordmark.setText(title);
         actionBar.setTitle(title, statusDrawable);
         SimpleTextView titleView = actionBar.getTitleTextView();
         if (titleView != null) {

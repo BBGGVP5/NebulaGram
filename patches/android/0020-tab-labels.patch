@@ -1,13 +1,44 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/glass/GlassTabView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/glass/GlassTabView.java
-index 3c29acb0..859f86a3 100644
+index 859f86a3..2e2018ce 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/glass/GlassTabView.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/glass/GlassTabView.java
-@@ -94,6 +94,8 @@ public class GlassTabView extends FrameLayout implements MainTabsLayout.Tab, Fac
+@@ -410,6 +410,9 @@ public class GlassTabView extends FrameLayout implements MainTabsLayout.Tab, Fac
+         tab.colorSelected = Theme.getColor(Theme.key_glass_tabSelected, resourcesProvider);
+         tab.colorSelectedText = Theme.getColor(Theme.key_glass_tabSelectedText, resourcesProvider);
+         tab.updateColors();
++        // NebulaGram: фабрика переустанавливает разметку значка после
++        // конструктора, поэтому подписи прячем здесь — последними.
++        app.nebulagram.ui.NebulaBottomBar.applyTabLabel(tab.imageView, tab.textView);
+         return tab;
+     }
  
-         defaultTextPaint = new TextPaint(textView.getPaint());
-         addView(textView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.CENTER_HORIZONTAL | Gravity.TOP, 0, 28.33f, 0, 0));
-+        // NebulaGram: подписи под значками можно скрыть.
-+        app.nebulagram.ui.NebulaBottomBar.applyTabLabel(imageView, textView);
+@@ -431,6 +434,9 @@ public class GlassTabView extends FrameLayout implements MainTabsLayout.Tab, Fac
+         tab.colorSelected = Theme.getColor(Theme.key_glass_tabSelected, resourcesProvider);
+         tab.colorSelectedText = Theme.getColor(Theme.key_glass_tabSelectedText, resourcesProvider);
+         tab.updateColors();
++        // NebulaGram: фабрика переустанавливает разметку значка после
++        // конструктора, поэтому подписи прячем здесь — последними.
++        app.nebulagram.ui.NebulaBottomBar.applyTabLabel(tab.imageView, tab.textView);
+         return tab;
+     }
  
-         counter = new AnimatedTextView.AnimatedTextDrawable();
-         counter.setTypeface(AndroidUtilities.bold());
+@@ -452,6 +458,9 @@ public class GlassTabView extends FrameLayout implements MainTabsLayout.Tab, Fac
+         tab.colorSelected = Theme.getColor(Theme.key_glass_tabSelected, resourcesProvider);
+         tab.colorSelectedText = Theme.getColor(Theme.key_glass_tabSelectedText, resourcesProvider);
+         tab.updateColors();
++        // NebulaGram: фабрика переустанавливает разметку значка после
++        // конструктора, поэтому подписи прячем здесь — последними.
++        app.nebulagram.ui.NebulaBottomBar.applyTabLabel(tab.imageView, tab.textView);
+         return tab;
+     }
+ 
+@@ -469,6 +478,9 @@ public class GlassTabView extends FrameLayout implements MainTabsLayout.Tab, Fac
+         tab.colorSelected = Theme.getColor(Theme.key_glass_tabSelected, resourcesProvider);
+         tab.colorSelectedText = Theme.getColor(Theme.key_glass_tabSelectedText, resourcesProvider);
+         tab.updateColors();
++        // NebulaGram: фабрика переустанавливает разметку значка после
++        // конструктора, поэтому подписи прячем здесь — последними.
++        app.nebulagram.ui.NebulaBottomBar.applyTabLabel(tab.imageView, tab.textView);
+         return tab;
+     }
+ 
