@@ -32,6 +32,8 @@ public final class NebulaComposerStyle {
     private int buttonSize;
     /** Видна ли кнопка вложений: под скрытой стеклянный кружок не рисуем. */
     private boolean attachmentVisible = true;
+    /** Левый край кнопки вложений в координатах панели, -1 пока не измерен. */
+    private int attachmentLeft = -1;
 
     /**
      * Рисуется ли сейчас наша панель. Нужно снаружи: пока она активна,
@@ -90,6 +92,15 @@ public final class NebulaComposerStyle {
         // ней оставался пустым стеклянным кругом.
         attachmentVisible = attachment.getVisibility() == View.VISIBLE
                 && attachment.getAlpha() > 0.5f;
+        // Кружок должен лечь ровно на кнопку. Границы фона размытия для этого
+        // не годятся: они шире панели, и круг уезжал влево от скрепки.
+        // Считаем положение кнопки в координатах самой панели.
+        int offset = 0;
+        for (View view = attachment; view != null && view != host; ) {
+            offset += view.getLeft();
+            view = view.getParent() instanceof View ? (View) view.getParent() : null;
+        }
+        attachmentLeft = offset;
         if (active) {
             ViewGroup parent = (ViewGroup) emoji.getParent();
             // Derive from stable parent geometry, never from our previous layout.
@@ -164,18 +175,22 @@ public final class NebulaComposerStyle {
         // При пересылке и ответе Telegram убирает кнопку вложений: кружок под
         // ней оставался пустым стеклянным кругом. Поле в этом случае начинается
         // от самого края и занимает освободившееся место.
-        int editorLeft = attachmentVisible ? padded.left + diameter + gap : padded.left;
-        int editorRight = padded.right - diameter - gap;
+        // Край панели берём по кнопке, а не по фону: между ними была разница,
+        // из-за которой кружки стояли не на своих местах.
+        final int edge = attachmentLeft >= 0 ? Math.max(padded.left, attachmentLeft) : padded.left;
+        final int mirrored = padded.right - (edge - padded.left);
+        int editorLeft = attachmentVisible ? edge + diameter + gap : padded.left;
+        int editorRight = mirrored - diameter - gap;
         if (editorRight <= editorLeft) return false;
 
         // Preserve the exact upstream insets and alpha, including IME animation.
         if (attachmentVisible) {
-            drawSurface(canvas, background, padded.left, padded.bottom - diameter,
-                    padded.left + diameter, padded.bottom, padding);
+            drawSurface(canvas, background, edge, padded.bottom - diameter,
+                    edge + diameter, padded.bottom, padding);
         }
         drawSurface(canvas, background, editorLeft, padded.top, editorRight, padded.bottom, padding);
-        drawSurface(canvas, background, padded.right - diameter, padded.bottom - diameter,
-                padded.right, padded.bottom, padding);
+        drawSurface(canvas, background, mirrored - diameter, padded.bottom - diameter,
+                mirrored, padded.bottom, padding);
         background.setBounds(original);
         return true;
     }
