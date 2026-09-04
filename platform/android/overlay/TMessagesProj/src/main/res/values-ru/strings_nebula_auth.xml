@@ -10,6 +10,7 @@
     <string name="NebulaAuthLinkField">Подписка или ключ сервера</string>
     <string name="NebulaAuthLinkHint">Вставьте ссылку</string>
     <string name="NebulaAuthLinkFormats">Подписки и ключи серверов · VLESS, VMess, Trojan, Shadowsocks, Hysteria2, TUIC</string>
+    <string name="NebulaAuthLinkEmpty">Вставьте ссылку на подписку или ключ сервера — либо продолжите без NebulaLink.</string>
     <string name="NebulaAuthLinkOptional">Позже подключение можно изменить в настройках NebulaGram.</string>
     <string name="NebulaAuthDirectAction">Продолжить без NebulaLink</string>
     <string name="NebulaAuthRouteConnected">NebulaLink подключён</string>

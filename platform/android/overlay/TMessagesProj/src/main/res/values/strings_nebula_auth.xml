@@ -11,6 +11,7 @@
     <string name="NebulaAuthLinkField">Subscription or server key</string>
     <string name="NebulaAuthLinkHint">Paste a link</string>
     <string name="NebulaAuthLinkFormats">Subscriptions and server keys · VLESS, VMess, Trojan, Shadowsocks, Hysteria2, TUIC</string>
+    <string name="NebulaAuthLinkEmpty">Paste a subscription link or a server key — or continue without NebulaLink.</string>
     <string name="NebulaAuthLinkOptional">You can change your connection later in NebulaGram Settings.</string>
     <string name="NebulaAuthDirectAction">Continue without NebulaLink</string>
     <string name="NebulaAuthRouteConnected">NebulaLink connected</string>

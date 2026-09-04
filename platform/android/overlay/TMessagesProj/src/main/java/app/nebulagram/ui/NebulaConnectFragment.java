@@ -148,7 +148,14 @@ public class NebulaConnectFragment extends BaseFragment {
         if (busy || destroyed) return;
         String pasted = input.getText().toString().trim();
         if (pasted.isEmpty()) {
-            openLogin();
+            // Пустое поле — это не согласие пропустить шаг: для пропуска рядом
+            // стоит своя кнопка. Раньше «Подключить» молча уводила дальше, и
+            // выглядело это так, будто подключение прошло.
+            show(LocaleController.getString(R.string.NebulaAuthLinkEmpty));
+            status.setTextColor(org.telegram.ui.ActionBar.Theme.getColor(
+                    org.telegram.ui.ActionBar.Theme.key_text_RedRegular));
+            AndroidUtilities.shakeView(input);
+            input.requestFocus();
             return;
         }
         JSONObject payload = new JSONObject();
