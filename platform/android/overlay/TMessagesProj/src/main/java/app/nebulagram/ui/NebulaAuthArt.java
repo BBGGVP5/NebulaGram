@@ -50,7 +50,7 @@ public class NebulaAuthArt extends Drawable {
     private static final int[] REEL_TURNS = {3, 4, 2, 5};
 
     /** Длина цикла для каждого вида, мс. */
-    private static final int[] DURATION = {12000, 18000, 3200};
+    private static final int[] DURATION = {9000, 13500, 2400};
 
     /** Доли цикла подключения: рисование галочки, начало и время растворения. */
     private static final float DRAW_UNTIL = 0.28f;
@@ -84,7 +84,12 @@ public class NebulaAuthArt extends Drawable {
         if (bounds.isEmpty()) {
             return;
         }
-        float side = Math.min(bounds.width(), bounds.height());
+        // Ряд барабанов — широкая полоса, и ей квадрат не нужен: масштаб берём
+        // от ширины, чтобы коробку можно было прижать по высоте к самой полосе
+        // и не оставлять пустоту сверху и снизу. Круглым рисункам нужна
+        // меньшая из сторон, иначе они вылезут за край.
+        float side = kind == KIND_PHONE
+                ? bounds.width() : Math.min(bounds.width(), bounds.height());
         float unit = side / 100f;
         canvas.save();
         canvas.translate(bounds.centerX() - side / 2f, bounds.centerY() - side / 2f);

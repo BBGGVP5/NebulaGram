@@ -98,6 +98,8 @@ public final class NebulaLoginStyle {
         }
         final HintEditText input = (HintEditText) field;
         input.addTextChangedListener(new TextWatcher() {
+            private int previous = input.length();
+
             @Override
             public void beforeTextChanged(CharSequence text, int start, int count, int after) { }
 
@@ -106,8 +108,14 @@ public final class NebulaLoginStyle {
 
             @Override
             public void afterTextChanged(Editable text) {
+                final int now = input.length();
+                // Прячем только когда номер дописывают. При стирании подсказка
+                // укорачивается вслед за текстом, условие «номер набран»
+                // срабатывало снова, и клавиатура пропадала посреди правки.
+                final boolean grew = now > previous;
+                previous = now;
                 String hint = input.getHintText();
-                if (hint != null && hint.length() > 0 && input.length() >= hint.length()) {
+                if (grew && hint != null && hint.length() > 0 && now >= hint.length()) {
                     keyboard.setVisible(false);
                 }
             }
@@ -207,7 +215,10 @@ public final class NebulaLoginStyle {
         }
         badge.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
         final int side = AndroidUtilities.dp(animated ? 200 : 88);
-        LinearLayout.LayoutParams badgeParams = new LinearLayout.LayoutParams(side, side);
+        // Экрану номера высота квадрата ни к чему: там широкая полоса
+        // барабанов, и под ней с над ней оставалась пустота в треть картинки.
+        final int tall = step == 2 ? AndroidUtilities.dp(112) : side;
+        LinearLayout.LayoutParams badgeParams = new LinearLayout.LayoutParams(side, tall);
         badgeParams.gravity = Gravity.CENTER_HORIZONTAL;
         badgeParams.bottomMargin = AndroidUtilities.dp(22);
         slide.addView(badge, 0, badgeParams);
