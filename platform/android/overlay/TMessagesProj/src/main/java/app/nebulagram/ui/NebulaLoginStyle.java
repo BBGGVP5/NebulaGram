@@ -145,6 +145,11 @@ public final class NebulaLoginStyle {
         title.setTextSize(TypedValue.COMPLEX_UNIT_SP, 30);
         title.setTypeface(AndroidUtilities.bold());
         title.setGravity(Gravity.CENTER);
+        // Длинный заголовок обрезался: тридцать пунктов в одну строку не
+        // помещаются на узком экране. Даём вторую строку вместо многоточия.
+        title.setSingleLine(false);
+        title.setMaxLines(2);
+        title.setEllipsize(null);
         title.setLineSpacing(AndroidUtilities.dp(2), 1f);
         margins(title, 0, 0, 0, 0);
         subtitle.setTextSize(TypedValue.COMPLEX_UNIT_SP, 15);

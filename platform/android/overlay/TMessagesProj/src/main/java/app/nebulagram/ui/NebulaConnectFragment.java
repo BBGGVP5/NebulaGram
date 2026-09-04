@@ -184,7 +184,10 @@ public class NebulaConnectFragment extends BaseFragment {
     private void openLogin() {
         if (destroyed) return;
         AndroidUtilities.hideKeyboard(input);
-        presentFragment(new org.telegram.ui.LoginActivity(), true);
+        // Без удаления предыдущего экрана: с параметром true стек оставался
+        // пустым, и с ввода номера некуда было вернуться — ни кнопкой, ни
+        // жестом от края. Приветствие остаётся позади, как и ожидается.
+        presentFragment(new org.telegram.ui.LoginActivity());
     }
 
     @Override
