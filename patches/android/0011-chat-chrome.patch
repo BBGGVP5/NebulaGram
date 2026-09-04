@@ -2,7 +2,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.jav
 index 0a9ed5a9..03b5c6d5 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
-@@ -207,6 +207,57 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
+@@ -207,6 +207,60 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
          this.chatAvatarContainer = chatAvatarContainer;
      }
  
@@ -34,8 +34,11 @@ index 0a9ed5a9..03b5c6d5 100644
 +                nebulaAvatarRightMargin = params.rightMargin;
 +            }
 +            params.width = ViewGroup.LayoutParams.MATCH_PARENT;
-+            params.leftMargin = dp(58);
-+            params.rightMargin = dp(58);
++            // The title capsule is centred in the full bar.  Symmetric small
++            // margins keep the original avatar at the trailing edge instead
++            // of placing it inside the title capsule.
++            params.leftMargin = dp(8);
++            params.rightMargin = dp(8);
 +            nebulaChatAvatarContainer.setNebulaCenteredTitle(true);
 +            nebulaChatAvatarContainer.setLayoutParams(params);
 +        } else {
@@ -60,18 +63,32 @@ index 0a9ed5a9..03b5c6d5 100644
      public void setupGlass(BlurredBackgroundDrawableViewFactory factory, BlurredBackgroundColorProvider colorProvider) {
          setupGlass(factory, colorProvider, false);
      }
-@@ -2217,6 +2268,15 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
+@@ -2217,6 +2268,29 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
      }
  
      public boolean doNotDrawGlassMenu;
 +    private boolean nebulaFloatingChatHeader;
 +
-+    public void setNebulaFloatingChatHeader(boolean enabled) {
-+        if (nebulaFloatingChatHeader != enabled) {
++    private boolean nebulaChatMenuHidden;
++
++    public void setNebulaFloatingChatHeader(boolean enabled, boolean hideMenu) {
++        if (nebulaFloatingChatHeader != enabled || nebulaChatMenuHidden != hideMenu) {
 +            nebulaFloatingChatHeader = enabled;
++            nebulaChatMenuHidden = hideMenu;
++            if (menu != null) {
++                menu.setVisibility(hideMenu ? GONE : VISIBLE);
++            }
 +            updateNebulaAvatarLayout();
++            requestLayout();
 +            invalidate();
 +        }
++    }
++
++    /** Space occupied by Saved Messages actions to the right of its avatar. */
++    public int getNebulaChatAvatarTrailingInset() {
++        if (!nebulaFloatingChatHeader || nebulaChatMenuHidden || menu == null
++                || menu.getVisibility() != VISIBLE) return 0;
++        return menu.getMeasuredWidth() + dp(4);
 +    }
  
      @Override
@@ -101,14 +118,16 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
 index 26d82ff8..b463c712 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
-@@ -4577,6 +4577,10 @@ public class ChatActivity extends BaseFragment implements
+@@ -4577,6 +4577,12 @@ public class ChatActivity extends BaseFragment implements
              glassBackgroundDrawableFactory,
              BlurredBackgroundProviderImpl.topPanelChatActivity(themeDelegate),
              ChatObject.isForum(currentChat));
 +        if (chatMode == 0 && !isComments && !ChatObject.isForum(currentChat)) {
 +            actionBar.setNebulaChatAvatarContainer(avatarContainer);
 +        }
-+        app.nebulagram.ui.NebulaChatStyle.header(actionBar, chatMode == 0 && !isComments && !ChatObject.isForum(currentChat));
++        app.nebulagram.ui.NebulaChatStyle.header(actionBar,
++                chatMode == 0 && !isComments && !ChatObject.isForum(currentChat),
++                UserObject.isUserSelf(currentUser));
  
          if (chatMode == MODE_PINNED) {
              actionBar.setChatAvatarContainer(avatarContainer);
@@ -120,11 +139,13 @@ index 26d82ff8..b463c712 100644
  
          int chatListIndex = contentView.indexOfChild(chatListView);
          chatListIndex = chatListIndex < 0 ? contentView.getChildCount() : (chatListIndex + 1);
-@@ -29753,6 +29758,8 @@ public class ChatActivity extends BaseFragment implements
+@@ -29753,6 +29758,10 @@ public class ChatActivity extends BaseFragment implements
      @Override
      public void onResume() {
          super.onResume();
-+        app.nebulagram.ui.NebulaChatStyle.header(actionBar, chatMode == 0 && !isComments && !ChatObject.isForum(currentChat));
++        app.nebulagram.ui.NebulaChatStyle.header(actionBar,
++                chatMode == 0 && !isComments && !ChatObject.isForum(currentChat),
++                UserObject.isUserSelf(currentUser));
 +        if (chatActivityEnterView != null) chatActivityEnterView.requestLayout();
          checkShowBlur(false);
          activityResumeTime = System.currentTimeMillis();
@@ -149,26 +170,15 @@ index ac402db5..45fb515d 100644
          int wasHeight = textFieldContainer.getMeasuredHeight();
          if (botCommandsMenuButton != null && botCommandsMenuButton.getTag() != null) {
              botCommandsMenuButton.measure(widthMeasureSpec, heightMeasureSpec);
-@@ -14460,6 +14462,22 @@ public class ChatActivityEnterView extends FrameLayout implements
+@@ -14460,6 +14462,11 @@ public class ChatActivityEnterView extends FrameLayout implements
              }
          }
          updateBotCommandsMenuContainerTopPadding();
 +        nebulaComposerStyle.prepare(this, messageEditText, MeasureSpec.getSize(widthMeasureSpec),
 +                isChat && !isStories && !isLiveComment && parentFragment != null && parentFragment.getChatMode() == 0
-+                && !isEditingMessage() && !isRecordingAudioVideo() && !topViewShowed
++                && !isEditingMessage() && !isRecordingAudioVideo()
 +                && (recordedAudioPanel == null || recordedAudioPanel.getVisibility() != VISIBLE)
-+                && (richDraftPreview == null || richDraftPreview.getVisibility() != VISIBLE)
-+                && (senderSelectView == null || senderSelectView.getVisibility() != VISIBLE)
-+                && (botCommandsMenuButton == null || botCommandsMenuButton.getTag() == null)
-+                && (botWebViewButton == null || botWebViewButton.getVisibility() != VISIBLE)
-+                && (botButton == null || botButton.getVisibility() != VISIBLE)
-+                && (notifyButton == null || notifyButton.getVisibility() != VISIBLE)
-+                && (scheduledButton == null || scheduledButton.getVisibility() != VISIBLE)
-+                && (giftButton == null || giftButton.getVisibility() != VISIBLE)
-+                && (suggestButton == null || suggestButton.getVisibility() != VISIBLE)
-+                && (sendButton == null || sendButton.width() <= dp(44))
-+                && (slowModeButton == null || slowModeButton.getVisibility() != VISIBLE)
-+                && emojiButtonPaddingAlpha > 0.99f && attachLayoutPaddingAlpha > 0.99f);
++                && (richDraftPreview == null || richDraftPreview.getVisibility() != VISIBLE));
          super.onMeasure(widthMeasureSpec, heightMeasureSpec);
  
          if (botWebViewButton != null) {
@@ -222,12 +232,16 @@ index 1238632a..892788ed 100644
      public void setGlassMode() {
          if (titleTextView != null) {
              titleTextView.setTextSizePx(dp(17.5f));
-@@ -770,6 +792,41 @@ public class ChatAvatarContainer extends FrameLayout implements FactorAnimator.T
+@@ -770,6 +792,45 @@ public class ChatAvatarContainer extends FrameLayout implements FactorAnimator.T
          final int viewTop = (actionBarHeight - avatarImageView.getMeasuredHeight() - 2) / 2 + (occupyStatusBar ? AndroidUtilities.statusBarHeight : 0);
          final int subtitleTop = viewTop + dp(glassMode ? 23.66f : 24);
  
 +        if (nebulaCenteredTitle) {
-+            final int avatarLeft = getWidth() - avatarImageView.getMeasuredWidth();
++            int avatarRight = getWidth();
++            if (getParent() instanceof ActionBar) {
++                avatarRight -= ((ActionBar) getParent()).getNebulaChatAvatarTrailingInset();
++            }
++            final int avatarLeft = avatarRight - avatarImageView.getMeasuredWidth();
 +            final int titleLeft = Math.max(dp(4), (getWidth() - titleTextView.getMeasuredWidth()) / 2);
 +            final View subtitle = getSubtitleTextView();
 +            final int subtitleLeft = subtitle == null ? titleLeft : Math.max(dp(4), (getWidth() - subtitle.getMeasuredWidth()) / 2);

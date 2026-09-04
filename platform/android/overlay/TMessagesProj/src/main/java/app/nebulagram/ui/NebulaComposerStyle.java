@@ -125,7 +125,10 @@ public final class NebulaComposerStyle {
         // поверхности перекрываются, а два наложенных полупрозрачных стекла
         // дают тёмную дугу — круг, просвечивающий из-под поля ввода. Поэтому
         // расстояние считается от каймы, а не берётся на глаз.
-        int gap = 2 * padding + AndroidUtilities.dp(8);
+        // Keep a clearly visible interval between the three glass islands.
+        // The drawable's shadow extends beyond its visible path, therefore a
+        // small nominal gap still looked like one continuous brown strip.
+        int gap = 2 * padding + AndroidUtilities.dp(18);
         if (padded.width() < diameter * 2 + gap * 2 + AndroidUtilities.dp(100)
                 || padded.height() < diameter - AndroidUtilities.dp(2)) return false;
 

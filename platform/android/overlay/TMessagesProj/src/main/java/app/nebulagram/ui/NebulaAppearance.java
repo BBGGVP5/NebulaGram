@@ -27,6 +27,15 @@ public final class NebulaAppearance {
         preferences().edit().putBoolean("floating_chat_header", enabled).apply();
     }
 
+    /** Replace the home title with the selected folder name or emoji. */
+    public static boolean folderTitle() {
+        return preferences().getBoolean("folder_title", true);
+    }
+
+    public static void setFolderTitle(boolean enabled) {
+        preferences().edit().putBoolean("folder_title", enabled).apply();
+    }
+
     public static boolean profileStyle() {
         return preferences().getBoolean("profile_style", true);
     }

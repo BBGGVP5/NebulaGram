@@ -6,13 +6,20 @@ import org.telegram.messenger.ApplicationLoader;
 import org.telegram.ui.MainTabsLayout;
 import org.telegram.ui.Components.glass.GlassTabView;
 
+import java.util.Arrays;
+
 /** Preferences for Telegram's native tabs and NebulaGram's optional side panel. */
 public final class NebulaBottomBar {
     private static final String KEY_ENABLED = "bottom_bar";
     private static final String KEY_SIDEBAR = "side_panel";
+    private static final String KEY_TAB_ORDER = "bottom_bar_order";
+    public static final String TAB_CHATS = "chats";
     public static final String TAB_CONTACTS = "contacts";
     public static final String TAB_SETTINGS = "settings";
     public static final String TAB_PROFILE = "profile";
+    private static final String[] DEFAULT_TAB_ORDER = {
+            TAB_CHATS, TAB_CONTACTS, TAB_SETTINGS, TAB_PROFILE
+    };
 
     private NebulaBottomBar() { }
 
@@ -58,6 +65,48 @@ public final class NebulaBottomBar {
             editor.putBoolean(KEY_SIDEBAR, true);
         }
         editor.apply();
+    }
+
+    /** Ordered logical tabs. Settings and Calls share the same pager slot. */
+    public static String[] tabOrder() {
+        String[] order = prefs().getString(KEY_TAB_ORDER, "").split(",");
+        if (!validOrder(order)) {
+            return DEFAULT_TAB_ORDER.clone();
+        }
+        return order;
+    }
+
+    public static void setTabOrder(String[] order) {
+        if (!validOrder(order)) {
+            return;
+        }
+        prefs().edit().putString(KEY_TAB_ORDER, android.text.TextUtils.join(",", order)).apply();
+    }
+
+    public static void moveTab(int from, int to) {
+        String[] order = tabOrder();
+        if (from < 0 || from >= order.length || to < 0 || to >= order.length || from == to) {
+            return;
+        }
+        String moving = order[from];
+        if (from < to) {
+            System.arraycopy(order, from + 1, order, from, to - from);
+        } else {
+            System.arraycopy(order, to, order, to + 1, from - to);
+        }
+        order[to] = moving;
+        setTabOrder(order);
+    }
+
+    private static boolean validOrder(String[] order) {
+        if (order == null || order.length != DEFAULT_TAB_ORDER.length) {
+            return false;
+        }
+        String[] sorted = order.clone();
+        String[] expected = DEFAULT_TAB_ORDER.clone();
+        Arrays.sort(sorted);
+        Arrays.sort(expected);
+        return Arrays.equals(sorted, expected);
     }
 
     private static final String KEY_TAB_LABELS = "tab_labels";
@@ -152,13 +201,29 @@ public final class NebulaBottomBar {
     /** Native indices: chats, contacts, settings, calls, profile. */
     public static void applyTabs(MainTabsLayout layout, GlassTabView[] tabs,
                                  boolean callsVisible, boolean animated) {
-        if (layout == null || tabs == null) {
+        if (layout == null || tabs == null || tabs.length < 5) {
             return;
+        }
+
+        // Reorder the real native views. Their click handlers keep the pager
+        // destinations intact, while the bar follows the organizer.
+        for (String tab : tabOrder()) {
+            if (TAB_CHATS.equals(tab)) {
+                layout.bringChildToFront(tabs[0]);
+            } else if (TAB_CONTACTS.equals(tab)) {
+                layout.bringChildToFront(tabs[1]);
+            } else if (TAB_SETTINGS.equals(tab)) {
+                layout.bringChildToFront(tabs[2]);
+                layout.bringChildToFront(tabs[3]);
+            } else if (TAB_PROFILE.equals(tab)) {
+                layout.bringChildToFront(tabs[4]);
+            }
         }
         layout.setViewVisible(tabs[0], true, animated);
         layout.setViewVisible(tabs[1], tabEnabled(TAB_CONTACTS), animated);
         layout.setViewVisible(tabs[2], tabEnabled(TAB_SETTINGS) && !callsVisible, animated);
         layout.setViewVisible(tabs[3], tabEnabled(TAB_SETTINGS) && callsVisible, animated);
         layout.setViewVisible(tabs[4], tabEnabled(TAB_PROFILE), animated);
+        layout.requestLayout();
     }
 }

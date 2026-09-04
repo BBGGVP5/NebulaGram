@@ -206,29 +206,32 @@ public class NebulaSectionFragment extends BaseFragment {
     }
 
     private void buildTabs(Context context) {
-        content.addView(preview(context, NebulaPreview.KIND_TABS));
-
-        // Вкладки включаются нажатием по самой полосе, а не тремя строками
-        // ниже: там было сказано, что включено, но не показано, как это
-        // выглядит. Здесь одно действие — и панель сразу перерисовывается.
-        NebulaTabsEditor editor = new NebulaTabsEditor(context);
-        editor.setOnChanged(this::refreshPreviews);
-        LinearLayout.LayoutParams editorParams = new LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        editorParams.topMargin = AndroidUtilities.dp(2);
-        content.addView(editor, editorParams);
-        content.addView(NebulaMenuFragment.placeholder(context,
-                LocaleController.getString(R.string.NebulaTabsEditorHint)));
-
+        content.addView(NebulaCard.header(context,
+                LocaleController.getString(R.string.NebulaTabsSection)));
         NebulaCard card = new NebulaCard(context);
         card.add(toggle(context, R.drawable.msg_customize,
                 R.string.NebulaBottomBarTitle, R.string.NebulaBottomBarSub,
                 NebulaBottomBar.enabled(), NebulaBottomBar::setEnabled));
-        card.add(toggle(context, R.drawable.msg_photo_settings,
-                R.string.NebulaTabLabels, R.string.NebulaTabLabelsSub,
-                NebulaBottomBar.tabLabels(), NebulaBottomBar::setTabLabels));
-
         content.addView(card, cardParams());
+
+        content.addView(NebulaCard.header(context,
+                LocaleController.getString(R.string.NebulaAppearanceTitle)));
+        NebulaTabsEditor editor = new NebulaTabsEditor(context);
+        editor.setOnChanged(editor::refresh);
+        NebulaCard appearance = new NebulaCard(context);
+        appearance.add(editor);
+        appearance.add(toggle(context, R.drawable.msg_photo_settings,
+                R.string.NebulaTabLabels, R.string.NebulaTabLabelsSub,
+                NebulaBottomBar.tabLabels(), value -> {
+                    NebulaBottomBar.setTabLabels(value);
+                    editor.refresh();
+                }));
+        appearance.add(toggle(context, R.drawable.msg_folders,
+                R.string.NebulaFolderTitle, R.string.NebulaFolderTitleSub,
+                NebulaAppearance.folderTitle(), NebulaAppearance::setFolderTitle));
+        content.addView(appearance, cardParams());
+        content.addView(NebulaMenuFragment.placeholder(context,
+                LocaleController.getString(R.string.NebulaTabsEditorHint)));
 
         NebulaCard side = new NebulaCard(context);
         side.add(toggle(context, R.drawable.msg_list,

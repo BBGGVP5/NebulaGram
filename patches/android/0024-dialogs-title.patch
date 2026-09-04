@@ -1,0 +1,39 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
+@@ -3517,11 +3517,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter
+                 statusDrawable = new AnimatedEmojiDrawable.SwapAnimatedEmojiDrawable(null, dp(26));
+                 statusDrawable.center = true;
+-                logoDrawable = context.getResources().getDrawable(R.drawable.telegram_logo_2).mutate();
+-                logoDrawable.setBounds(0, dp(2), logoDrawable.getIntrinsicWidth(), dp(2) + logoDrawable.getIntrinsicHeight());
+-                logoDrawable.setColorFilter(getThemedColor(Theme.key_telegram_color_dialogsLogo), PorterDuff.Mode.MULTIPLY);
+-                SpannableStringBuilder ssb = new SpannableStringBuilder(getString(R.string.AppName));
+-                ssb.setSpan(new ImageSpan(logoDrawable), 0, ssb.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+-                actionBar.setTitle(ssb, statusDrawable);
++                app.nebulagram.ui.NebulaDialogsTitle.apply(actionBar,
++                        getMessagesController(), 0, statusDrawable);
+                 updateStatus(UserConfig.getInstance(currentAccount).getCurrentUser(), false);
+             }
+             if (folderId == 0) {
+@@ -3630,6 +3626,8 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter
+                     if (!tab.isDefault && (tab.id < 0 || tab.id >= dialogFilters.size())) {
+                         return;
+                     }
++                    app.nebulagram.ui.NebulaDialogsTitle.apply(actionBar,
++                            getMessagesController(), tab.id, statusDrawable);
+                     viewPages[1].selectedType = tab.id;
+                     viewPages[1].setVisibility(View.VISIBLE);
+                     viewPages[1].setTranslationX(viewPages[0].getMeasuredWidth());
+@@ -7024,6 +7022,12 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter
+     public void onResume() {
+         super.onResume();
+         checkUi_menuItems();
++        if (statusDrawable != null) {
++            int selectedType = filterTabsView == null
++                    ? 0 : filterTabsView.getCurrentTabId();
++            app.nebulagram.ui.NebulaDialogsTitle.apply(actionBar,
++                    getMessagesController(), selectedType, statusDrawable);
++        }
+         additionNavigationBarHeight = hasMainTabs && app.nebulagram.ui.NebulaBottomBar.enabled() ? dp(MAIN_TABS_HEIGHT_WITH_MARGINS) : 0;
+         additionFloatingButtonOffset = hasMainTabs && app.nebulagram.ui.NebulaBottomBar.enabled() ? dp(MAIN_TABS_HEIGHT + MAIN_TABS_MARGIN) : 0;
+         if (fragmentView != null) {

@@ -110,5 +110,8 @@
     <string name="NebulaTabLabelsSub">Names under the icons in the bottom bar</string>
     <string name="NebulaSeconds">Show seconds</string>
     <string name="NebulaSecondsSub">Message time as 12:34:56</string>
-    <string name="NebulaTabsEditorHint">Tap a tab to turn it off or back on</string>
+    <string name="NebulaTabsSection">Tabs</string>
+    <string name="NebulaTabsEditorHint">Tap to enable or disable. Hold and drag to change the order</string>
+    <string name="NebulaFolderTitle">Folder name in the header</string>
+    <string name="NebulaFolderTitleSub">Show the current folder name or emoji while swiping</string>
 </resources>
