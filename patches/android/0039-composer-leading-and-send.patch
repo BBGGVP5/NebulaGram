@@ -1,0 +1,37 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
+@@ -14507,7 +14507,7 @@
+     @Override
+     protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
+         super.onLayout(changed, left, top, right, bottom);
+-        nebulaComposerStyle.layout(emojiButton, attachButton, senderSelectView, sendButtonContainer);
++        nebulaComposerStyle.layout(emojiButton, attachButton, senderSelectView, sendButtonContainer, aiButton);
+         if (botCommandLastPosition != -1 && botCommandsMenuContainer != null) {
+             LinearLayoutManager layoutManager = (LinearLayoutManager) botCommandsMenuContainer.listView.getLayoutManager();
+             if (layoutManager != null) {
+@@ -15343,7 +15343,12 @@
+         private int drawableColor;
+ 
+         public void updateColors() {
+-            int color = isNewDesignSendButton ? Color.WHITE : Theme.getColor(Theme.key_chat_messagePanelSend, resourcesProvider);
++            // В нашем оформлении кнопка отправки — такой же стеклянный кружок,
++            // как микрофон рядом: цветного пятна под самолётиком быть не должно.
++            final boolean mono = isNewDesignSendButton
++                    && app.nebulagram.ui.NebulaComposerStyle.monochrome();
++            int color = mono ? Theme.getColor(Theme.key_glass_defaultIcon, resourcesProvider)
++                    : isNewDesignSendButton ? Color.WHITE : Theme.getColor(Theme.key_chat_messagePanelSend, resourcesProvider);
+             if (color != drawableColor) {
+                 drawableColor = color;
+                 drawable.setColorFilter(new PorterDuffColorFilter(color, PorterDuff.Mode.SRC_IN));
+@@ -15351,7 +15356,9 @@
+                 inactiveDrawable.setColorFilter(new PorterDuffColorFilter(Color.argb(0xb4, Color.red(c), Color.green(c), Color.blue(c)), PorterDuff.Mode.SRC_IN));
+                 drawableInverse.setColorFilter(new PorterDuffColorFilter(Theme.getColor(Theme.key_chat_messagePanelVoicePressed, resourcesProvider), PorterDuff.Mode.SRC_IN));
+             }
+-            if (isNewDesignSendButton) {
++            if (mono) {
++                backgroundPaint.setColor(Color.TRANSPARENT);
++            } else if (isNewDesignSendButton) {
+                 backgroundPaint.setColor(Theme.getColor(Theme.key_chat_messagePanelSend, resourcesProvider));
+             } else if (shouldDrawBackground()) {
+                 backgroundPaint.setColor(getFillColor());

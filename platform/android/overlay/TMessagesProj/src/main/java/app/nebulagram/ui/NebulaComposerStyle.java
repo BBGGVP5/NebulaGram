@@ -53,6 +53,18 @@ public final class NebulaComposerStyle {
         return active;
     }
 
+    /**
+     * Однотонная ли кнопка отправки.
+     *
+     * <p>Признак статический: кнопку рисует свой класс, у которого нашей
+     * панели под рукой нет. Настройка та же, что включает и три поверхности,
+     * поэтому расхождения не будет: акцентный кружок исчезает ровно там, где
+     * появляется стеклянный.
+     */
+    public static boolean monochrome() {
+        return NebulaAppearance.iosComposer();
+    }
+
     public void restoreInsets() {
         if (insetEditor == null) return;
         ViewGroup.MarginLayoutParams params = (ViewGroup.MarginLayoutParams) insetEditor.getLayoutParams();
@@ -89,7 +101,8 @@ public final class NebulaComposerStyle {
         }
     }
 
-    public void layout(View emoji, View attachment, View senderSelect, View sendContainer) {
+    public void layout(View emoji, View attachment, View senderSelect, View sendContainer,
+                       View leading) {
         if (emoji == null || attachment == null || !(emoji.getParent() instanceof ViewGroup)) return;
         // Размер кружков берём у настоящей кнопки, а не из константы: при
         // зашитых 44dp поле начиналось под кнопкой, если та оказывалась шире,
@@ -99,13 +112,25 @@ public final class NebulaComposerStyle {
         }
         // При пересылке и ответе Telegram прячет кнопку вложений; кружок под
         // ней оставался пустым стеклянным кругом.
-        attachmentVisible = attachment.getVisibility() == View.VISIBLE
+        //
+        // При наборе текста скрепка уезжает в верхнюю панель, а её место слева
+        // занимает кнопка редактора. Кружок тогда достаётся ей: без этого он
+        // пропадал, а пилюля начиналась от самого края экрана.
+        final boolean shown = attachment.getVisibility() == View.VISIBLE
                 && attachment.getAlpha() > 0.5f;
+        final boolean leadingShown = !shown && leading != null
+                && leading.getVisibility() == View.VISIBLE && leading.getAlpha() > 0.5f
+                && leading.getMeasuredWidth() > 0;
+        final View anchor = shown ? attachment : leadingShown ? leading : attachment;
+        attachmentVisible = shown || leadingShown;
+        if (leadingShown) {
+            buttonSize = leading.getMeasuredWidth();
+        }
         // Кружок должен лечь ровно на кнопку. Границы фона размытия для этого
         // не годятся: они шире панели, и круг уезжал влево от скрепки.
         // Считаем положение кнопки в координатах самой панели.
         int offset = 0;
-        for (View view = attachment; view != null && view != host; ) {
+        for (View view = anchor; view != null && view != host; ) {
             offset += view.getLeft();
             view = view.getParent() instanceof View ? (View) view.getParent() : null;
         }

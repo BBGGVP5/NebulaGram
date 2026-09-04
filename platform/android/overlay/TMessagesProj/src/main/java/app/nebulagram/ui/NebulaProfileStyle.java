@@ -13,6 +13,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.ui.ActionBar.Theme;
+import org.telegram.ui.Cells.AboutLinkCell;
 import org.telegram.ui.Cells.CollapseTextCell;
 import org.telegram.ui.Cells.GraySectionCell;
 import org.telegram.ui.Cells.HeaderCell;
@@ -69,10 +70,32 @@ public final class NebulaProfileStyle {
                     if (view instanceof ProfileHoursCell || view instanceof ProfileLocationCell) {
                         view.setBackground(null);
                     }
+                    if (view instanceof AboutLinkCell) hideBioShadow((ViewGroup) view);
                 }
                 @Override
                 public void onChildViewDetachedFromWindow(View view) { }
             });
+        }
+    }
+
+    /**
+     * Убирает полоску-затенение под текстом «О себе».
+     *
+     * <p>Она нужна, чтобы длинный текст истаивал у нижнего края, и залита
+     * цветом строки. У Telegram строка того же цвета, и полоски не видно, а на
+     * нашей карточке — другой оттенок, и между «О себе» и именем пользователя
+     * проступала тёмная полоса в двенадцать точек. Прозрачности у полоски нет:
+     * она рисуется всегда, даже когда текст помещается целиком.
+     */
+    private static void hideBioShadow(ViewGroup cell) {
+        final int height = AndroidUtilities.dp(12);
+        for (int i = 0; i < cell.getChildCount(); i++) {
+            View child = cell.getChildAt(i);
+            ViewGroup.LayoutParams params = child.getLayoutParams();
+            if (child instanceof android.widget.FrameLayout && params != null
+                    && params.height == height) {
+                child.setBackground(null);
+            }
         }
     }
 
