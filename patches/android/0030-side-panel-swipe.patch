@@ -1,17 +1,16 @@
-diff --git a/TMessagesProj/src/main/java/org/telegram/ui/MainTabsActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/MainTabsActivity.java
-index 114c2fe5..2361108f 100644
---- a/TMessagesProj/src/main/java/org/telegram/ui/MainTabsActivity.java
-+++ b/TMessagesProj/src/main/java/org/telegram/ui/MainTabsActivity.java
-@@ -916,6 +916,12 @@ public class MainTabsActivity extends ViewPagerActivity implements NotificationC
- 
-     @Override
-     protected boolean canScrollBackward(MotionEvent ev) {
-+        // NebulaGram: с первой вкладки движение слева направо открывает
-+        // боковую панель — вместо кнопки, которая занимала место в шапке.
-+        if (viewPager != null && viewPager.getCurrentPosition() == 0
-+                && app.nebulagram.ui.NebulaSidePanel.openOnSwipe(getCurrentVisibleFragment())) {
-+            return false;
-+        }
-         return canScrollInternal(ev, false);
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
+index 0de4a995..c1670351 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
+@@ -13639,6 +13639,11 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+         if (forward) {
+             return isLastTab && !isFirstTab;
+         } else {
++            // NebulaGram: левее первой папки идти некуда, и это движение
++            // ничем не занято — им открывается боковая панель.
++            if (isFirstTab && app.nebulagram.ui.NebulaSidePanel.openOnSwipe(this)) {
++                return false;
++            }
+             return isFirstTab;
+         }
      }
- 
