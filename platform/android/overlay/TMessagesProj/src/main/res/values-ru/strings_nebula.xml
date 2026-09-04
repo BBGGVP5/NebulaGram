@@ -107,4 +107,5 @@
     <string name="NebulaTabsEditorHint">Нажмите, чтобы включить или выключить. Удерживайте и перетаскивайте для смены порядка</string>
     <string name="NebulaFolderTitle">Название папки в шапке</string>
     <string name="NebulaFolderTitleSub">Показывать имя или эмодзи текущей папки при свайпе</string>
+    <string name="NebulaProfileRowSub">Номер, имя пользователя, «О себе»</string>
 </resources>

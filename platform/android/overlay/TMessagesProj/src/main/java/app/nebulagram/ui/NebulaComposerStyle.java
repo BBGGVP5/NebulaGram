@@ -149,6 +149,11 @@ public final class NebulaComposerStyle {
         // than the 48dp touch target, and falling back to its one wide
         // drawable is precisely what joins the editor and microphone again.
         if (!active || host == null) return false;
+        // При наборе текста Telegram перестраивает правую группу: появляется
+        // кнопка отправки другой ширины, прячется скрепка, едут отступы. Наши
+        // три поверхности в этот момент считались по старым краям и налезали
+        // друг на друга. Пока текст набирается, отдаём панель штатной отрисовке.
+        if (host.isSendButtonVisible()) return false;
         // В каналах и там, где писать нельзя, поле ввода скрыто, а внизу стоит
         // своя панель Telegram. Наши три поверхности рисовались и там — отсюда
         // пустые кружки вокруг надписи «Убрать звук».

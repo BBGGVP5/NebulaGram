@@ -114,4 +114,5 @@
     <string name="NebulaTabsEditorHint">Tap to enable or disable. Hold and drag to change the order</string>
     <string name="NebulaFolderTitle">Folder name in the header</string>
     <string name="NebulaFolderTitleSub">Show the current folder name or emoji while swiping</string>
+    <string name="NebulaProfileRowSub">Number, username, bio</string>
 </resources>

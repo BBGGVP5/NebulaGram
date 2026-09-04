@@ -1,0 +1,33 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/SettingsActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/SettingsActivity.java
+index 5eea004e..db74d8b9 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/SettingsActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/SettingsActivity.java
+@@ -689,6 +689,14 @@ public class SettingsActivity extends BaseFragment implements NotificationCenter
+         }
+ 
+         items.add(SettingCell.Factory.of(0x4e42, IconBackgroundColors.BLUE.top, IconBackgroundColors.BLUE.bottom, R.drawable.nebula_settings_mark, getString(R.string.NebulaSettings), getString(R.string.NebulaSettingsSub)));
++        // Скрытая вкладка профиля не должна лишать доступа к нему: строка
++        // появляется здесь ровно тогда, когда внизу её нет.
++        if (!app.nebulagram.ui.NebulaBottomBar.tabEnabled(
++                app.nebulagram.ui.NebulaBottomBar.TAB_PROFILE)) {
++            items.add(SettingCell.Factory.of(0x4e43, IconBackgroundColors.BLUE.top,
++                    IconBackgroundColors.BLUE.bottom, R.drawable.msg_openprofile,
++                    getString(R.string.NebulaTabProfile), getString(R.string.NebulaProfileRowSub)));
++        }
+         items.add(UItem.asShadow(null)); // NebulaGram отдельной карточкой
+         items.add(SettingCell.Factory.of(1, IconBackgroundColors.BLUE.top, IconBackgroundColors.BLUE.bottom, R.drawable.settings_account, getString(R.string.SettingsAccount), getString(R.string.SettingsAccountInfo)));
+         items.add(SettingCell.Factory.of(2, IconBackgroundColors.ORANGE.top, IconBackgroundColors.ORANGE.bottom, R.drawable.settings_chat, getString(R.string.SettingsChat), getString(R.string.SettingsChatInfo)));
+@@ -814,6 +822,13 @@ public class SettingsActivity extends BaseFragment implements NotificationCenter
+             case 0x4e42:
+                 presentSettingFragment(new app.nebulagram.ui.NebulaSettingsFragment());
+                 break;
++            case 0x4e43: {
++                Bundle profileArgs = new Bundle();
++                profileArgs.putLong("user_id", getUserConfig().clientUserId);
++                profileArgs.putBoolean("my_profile", true);
++                presentSettingFragment(new ProfileActivity(profileArgs));
++                break;
++            }
+             case 1:
+                 presentSettingFragment(new UserInfoActivity());
+                 break;
