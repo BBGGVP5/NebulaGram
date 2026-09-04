@@ -205,13 +205,13 @@ public class NebulaPreview extends View {
             // Первая вкладка выбрана: так видно, чем выбранная отличается,
             // а включённые тумблеры ниже сразу меняют набор подписей.
             boolean active = index == 0;
-            boolean labels = NebulaBottomBar.tabLabels();
+            boolean showLabels = NebulaBottomBar.tabLabels();
             if (active) {
                 float pillWidth = Math.min(step - AndroidUtilities.dp(10), AndroidUtilities.dp(56));
                 paint.setColor(NebulaTheme.stateLayer(theme.primary(), .22f));
                 // Без подписей плашка выделения тоже переезжает к центру:
                 // иначе значок стоял бы по центру, а подсветка — над ним.
-                float pillTop = labels ? top + AndroidUtilities.dp(6)
+                float pillTop = showLabels ? top + AndroidUtilities.dp(6)
                         : top + height / 2f - AndroidUtilities.dp(14);
                 rect.set(centerX - pillWidth / 2f, pillTop,
                         centerX + pillWidth / 2f, pillTop + AndroidUtilities.dp(28));
@@ -219,8 +219,8 @@ public class NebulaPreview extends View {
             }
             paint.setColor(active ? theme.primary() : theme.onSurfaceVariant());
             // Без подписей значок встаёт по центру плашки — как и в панели.
-            drawTabGlyph(canvas, i, centerX, labels ? iconY : top + height / 2f);
-            if (!labels) {
+            drawTabGlyph(canvas, i, centerX, showLabels ? iconY : top + height / 2f);
+            if (!showLabels) {
                 index++;
                 continue;
             }
