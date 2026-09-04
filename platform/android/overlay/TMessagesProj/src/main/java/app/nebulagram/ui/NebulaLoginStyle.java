@@ -1,5 +1,6 @@
 package app.nebulagram.ui;
 
+import android.animation.ValueAnimator;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.text.Editable;
@@ -27,6 +28,7 @@ import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.R;
 import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.CodeFieldContainer;
+import org.telegram.ui.Components.CubicBezierInterpolator;
 import org.telegram.ui.Components.CustomPhoneKeyboardView;
 import org.telegram.ui.Components.FragmentFloatingButton;
 import org.telegram.ui.Components.HintEditText;
@@ -406,6 +408,17 @@ public final class NebulaLoginStyle {
         private View progress;
         private int step = -1;
         private boolean active;
+        /**
+         * Сколько места занимала клавиатура на прошлом измерении, и видима ли
+         * она сейчас по мнению самого экрана входа.
+         *
+         * <p>По видимости вью судить нельзя: она становится скрытой только
+         * когда её отъезд уже закончился. Разметка тогда пересчитывалась одним
+         * кадром, и кнопка «Продолжить» прыгала на всю высоту клавиатуры.
+         */
+        private int lastKeyboardHeight = -1;
+        private Boolean keyboardVisible;
+        private ValueAnimator settle;
         private final ViewOutlineProvider originalOutline;
 
         public Chrome(FrameLayout root, ScrollView scroll, LinearLayout originalKeyboardParent,
@@ -444,8 +457,19 @@ public final class NebulaLoginStyle {
         }
 
         /** Called after native keyboard/bulletin margins have been calculated. */
+        /** Экран входа сообщает о своём решении раньше, чем клавиатура уедет. */
+        public void setKeyboardVisible(boolean visible) {
+            if (keyboardVisible != null && keyboardVisible == visible) {
+                return;
+            }
+            keyboardVisible = visible;
+            root.requestLayout();
+        }
+
         public void measure(int width, int height, SlideView current) {
-            int keyboardHeight = keyboard.getVisibility() == View.GONE ? 0 : keyboard.getLayoutParams().height;
+            boolean shown = keyboardVisible != null
+                    ? keyboardVisible : keyboard.getVisibility() != View.GONE;
+            int keyboardHeight = shown ? keyboard.getLayoutParams().height : 0;
             FrameLayout.LayoutParams scrollParams = (FrameLayout.LayoutParams) scroll.getLayoutParams();
             scrollParams.height = Math.max(1, height - keyboardHeight);
             scrollParams.gravity = Gravity.TOP;
@@ -496,6 +520,42 @@ public final class NebulaLoginStyle {
             }
             label.setVisibility(active && !button.getProgressVisible() ? View.VISIBLE : View.GONE);
             if (changed) updateColors();
+            if (active && lastKeyboardHeight >= 0 && lastKeyboardHeight != keyboardHeight) {
+                settle(keyboardHeight - lastKeyboardHeight,
+                        current.getMeasuredHeight() > 0
+                                && current.getMeasuredHeight() < scrollParams.height);
+            }
+            lastKeyboardHeight = keyboardHeight;
+        }
+
+        /**
+         * Сглаживает перестановку при появлении и уходе клавиатуры.
+         *
+         * <p>Разметка меняется одним кадром, поэтому кнопка и полоски прыгали
+         * на всю высоту клавиатуры разом. Ставим их туда, где они были, и
+         * возвращаем на место коротким движением. Содержимое над ними стоит
+         * по центру, поэтому едет вдвое меньше — если оно вообще помещается
+         * целиком; иначе оно прижато к верху и никуда не двигается.
+         */
+        private void settle(int delta, boolean contentCentred) {
+            if (delta == 0) {
+                return;
+            }
+            if (settle != null) {
+                settle.cancel();
+            }
+            final float from = delta;
+            final float content = contentCentred ? delta / 2f : 0f;
+            settle = ValueAnimator.ofFloat(1f, 0f);
+            settle.setDuration(180);
+            settle.setInterpolator(CubicBezierInterpolator.EASE_OUT_QUINT);
+            settle.addUpdateListener(animation -> {
+                final float value = (float) animation.getAnimatedValue();
+                button.setTranslationY(from * value);
+                footer.setTranslationY(from * value);
+                scroll.setTranslationY(content * value);
+            });
+            settle.start();
         }
 
         public void setProgressVisible(boolean visible) {

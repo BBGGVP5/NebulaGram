@@ -24,3 +24,17 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/LoginActivity.java b/TM
          return views[currentViewNum].hasCustomKeyboard() && !isCustomKeyboardForceDisabled();
      }
  
+@@ -873,6 +880,13 @@
+ 
+         if (isCustomKeyboardForceDisabled()) {
+             visible = false;
++        }
++
++        // Своё оформление узнаёт о решении сразу, а не когда клавиатура
++        // домчит вниз: иначе разметка пересчитывалась одним кадром в самом
++        // конце и кнопка «Продолжить» прыгала на всю её высоту.
++        if (nebulaLoginStyle != null) {
++            nebulaLoginStyle.setKeyboardVisible(visible);
+         }
+ 
+         if (visible) {
