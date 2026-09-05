@@ -3,7 +3,8 @@ package app.nebulagram.ui;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Paint;
-import android.graphics.Path;
+import android.graphics.PorterDuff;
+import android.graphics.drawable.Drawable;
 import android.graphics.RectF;
 import android.view.View;
 
@@ -19,7 +20,7 @@ public class NebulaPreview extends View {
 
     private final Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final RectF rect = new RectF();
-    private final Path path = new Path();
+    private final Drawable backArrow;
     private NebulaTheme theme;
 
     /**
@@ -35,6 +36,7 @@ public class NebulaPreview extends View {
     public NebulaPreview(@NonNull Context context) {
         super(context);
         theme = NebulaTheme.of(context);
+        backArrow = context.getResources().getDrawable(R.drawable.ic_ab_back).mutate();
         loadAccount();
     }
 
@@ -92,21 +94,12 @@ public class NebulaPreview extends View {
 
     @Override
     protected void onMeasure(int widthSpec, int heightSpec) {
-        int height = AndroidUtilities.dp(92);
+        int height = AndroidUtilities.dp(72);
         setMeasuredDimension(MeasureSpec.getSize(widthSpec), height);
     }
 
     @Override
     protected void onDraw(Canvas canvas) {
-        // Превью должно быть тем же фрагментом чата, а не карточкой со
-        // случайными геометрическими фигурами. Так сразу видно, что именно
-        // включит переключатель поверх реальных обоев.
-        paint.setStyle(Paint.Style.FILL);
-        paint.setColor(theme.surface());
-        rect.set(0, 0, getWidth(), getHeight());
-        float radius = NebulaTheme.cornerMedium();
-        canvas.drawRoundRect(rect, radius, radius, paint);
-        drawWallpaper(canvas);
         drawHeader(canvas);
     }
 
@@ -114,9 +107,9 @@ public class NebulaPreview extends View {
 
     private void drawHeader(Canvas canvas) {
         boolean styled = NebulaAppearance.chatHeader();
-        float margin = AndroidUtilities.dp(14);
-        float height = AndroidUtilities.dp(48);
-        float top = AndroidUtilities.dp(20);
+        float margin = AndroidUtilities.dp(8);
+        float height = AndroidUtilities.dp(44);
+        float top = (getHeight() - height) / 2f;
         float centerY = top + height / 2f;
 
         if (!styled) {
@@ -125,26 +118,13 @@ public class NebulaPreview extends View {
             canvas.drawRoundRect(rect, AndroidUtilities.dp(8), AndroidUtilities.dp(8), paint);
         }
 
-        // Стрелка назад — она есть в обоих вариантах.
-        paint.setColor(theme.onSurfaceVariant());
-        paint.setStyle(Paint.Style.STROKE);
-        paint.setStrokeWidth(AndroidUtilities.dp(1.8f));
         float arrowX = styled ? margin + height / 2f : margin + AndroidUtilities.dp(18);
         if (styled) drawGlassCircle(canvas, arrowX, centerY, height / 2f);
-        paint.setColor(theme.onSurface());
-        // Стрелка целиком: остриё плюс древко. Без древка «галочка» читалась
-        // как знак «меньше», а не как кнопка возврата.
-        paint.setStrokeCap(Paint.Cap.ROUND);
-        paint.setStrokeJoin(Paint.Join.ROUND);
-        float arrowSize = AndroidUtilities.dp(5);
-        path.reset();
-        path.moveTo(arrowX + arrowSize * 0.8f, centerY - arrowSize);
-        path.lineTo(arrowX - arrowSize * 0.4f, centerY);
-        path.lineTo(arrowX + arrowSize * 0.8f, centerY + arrowSize);
-        canvas.drawPath(path, paint);
-        canvas.drawLine(arrowX - arrowSize * 0.4f, centerY,
-                arrowX + arrowSize * 1.7f, centerY, paint);
-        paint.setStyle(Paint.Style.FILL);
+        int arrowHalf = AndroidUtilities.dp(12);
+        backArrow.setColorFilter(theme.onSurface(), PorterDuff.Mode.SRC_IN);
+        backArrow.setBounds(Math.round(arrowX) - arrowHalf, Math.round(centerY) - arrowHalf,
+                Math.round(arrowX) + arrowHalf, Math.round(centerY) + arrowHalf);
+        backArrow.draw(canvas);
 
         // В Liquid Glass имя по центру и аватар отдельно справа. Поэтому
         // видна ключевая разница, которую даёт переключатель в реальном чате.
@@ -160,8 +140,8 @@ public class NebulaPreview extends View {
         float titleWidth = AndroidUtilities.dp(84);
         float titleX = styled ? (getWidth() - titleWidth) / 2f : textLeft;
         if (styled) {
-            rect.set(titleX - AndroidUtilities.dp(18), top + AndroidUtilities.dp(4),
-                    titleX + titleWidth + AndroidUtilities.dp(18), top + height - AndroidUtilities.dp(4));
+            rect.set(titleX - AndroidUtilities.dp(18), top + AndroidUtilities.dp(2),
+                    titleX + titleWidth + AndroidUtilities.dp(18), top + height - AndroidUtilities.dp(2));
             drawGlassSurface(canvas, rect, AndroidUtilities.dp(20));
         }
         paint.setTextSize(AndroidUtilities.dp(13));
@@ -176,19 +156,6 @@ public class NebulaPreview extends View {
                 titleWidth + AndroidUtilities.dp(36),
                 styled ? Paint.Align.CENTER : Paint.Align.LEFT, false,
                 NebulaTheme.stateLayer(theme.onSurfaceVariant(), 0.85f));
-    }
-
-    private void drawWallpaper(Canvas canvas) {
-        paint.setStyle(Paint.Style.STROKE);
-        paint.setStrokeWidth(AndroidUtilities.dp(1));
-        paint.setColor(NebulaTheme.stateLayer(theme.primary(), .16f));
-        for (int i = 0; i < 6; i++) {
-            float x = AndroidUtilities.dp(18 + i * 54);
-            float y = AndroidUtilities.dp(16 + (i % 3) * 25);
-            rect.set(x, y, x + AndroidUtilities.dp(26), y + AndroidUtilities.dp(18));
-            canvas.drawArc(rect, 20 + i * 23, 210, false, paint);
-        }
-        paint.setStyle(Paint.Style.FILL);
     }
 
     private void drawGlassCircle(Canvas canvas, float cx, float cy, float radius) {

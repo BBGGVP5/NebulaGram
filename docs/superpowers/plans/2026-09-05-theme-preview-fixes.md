@@ -16,3 +16,10 @@
 No device is attached; compilation and source-level regression checks do not establish pixel-perfect rendering on a phone.
 
 Validation: the previous controller fails the new restoration regression; the updated controller passes 26 checks. All 39 Android patches apply to 33 pristine upstream files. The final prepared Android tree compiled successfully in 4m 29s. Native tab avatar positioning now targets BackupImageView when labels are hidden.
+
+Follow-up from the compact-preview screenshots:
+- [x] Retain each native tab view and its selected/Lottie state during settings changes. Reorder existing children only when the order changes; update labels and opacity in place.
+- [x] Remove the rectangular wallpaper from the composer preview and the decorative background from the header preview. Use the settings surface beneath the composer glass.
+- [x] Replace the hand-drawn header arrow with `R.drawable.ic_ab_back`. Use 44dp header buttons, 72dp header/composer previews and an 80dp navigation editor.
+
+Verification: 100 refresh/reorder cycles preserve tab identities, selection state, ordering and enabled opacity. Android Java compilation passed in 36s. Device rendering remains unverified locally.

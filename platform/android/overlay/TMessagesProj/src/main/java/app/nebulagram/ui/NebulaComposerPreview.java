@@ -3,7 +3,6 @@ package app.nebulagram.ui;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.PorterDuff;
-import android.graphics.drawable.Drawable;
 import android.text.TextUtils;
 import android.util.TypedValue;
 import android.view.Gravity;
@@ -28,7 +27,6 @@ public final class NebulaComposerPreview extends FrameLayout {
     private final ChatActivityEnterViewAnimatedIconView emoji;
     private final TextView hint;
     private final BlurredBackgroundDrawable[] surfaces = new BlurredBackgroundDrawable[3];
-    private Drawable wallpaper;
     private boolean separate;
     private int fieldLeft, fieldRight, top;
 
@@ -53,7 +51,7 @@ public final class NebulaComposerPreview extends FrameLayout {
         addView(hint);
 
         BlurredBackgroundSourceColor source = new BlurredBackgroundSourceColor();
-        source.setColor(Theme.getColor(Theme.key_chat_wallpaper));
+        source.setColor(NebulaTheme.of(context).surface());
         BlurredBackgroundDrawableViewFactory factory = new BlurredBackgroundDrawableViewFactory(source);
         BlurredBackgroundColorProviderThemed colors =
                 new BlurredBackgroundColorProviderThemed(null, Theme.key_chat_messagePanelBackground);
@@ -61,10 +59,6 @@ public final class NebulaComposerPreview extends FrameLayout {
             surfaces[i] = factory.create(this, colors);
             surfaces[i].setRadius(AndroidUtilities.dp(22));
             surfaces[i].setPadding(AndroidUtilities.dp(7));
-        }
-        Drawable cached = Theme.getCachedWallpaperNonBlocking();
-        if (cached != null && cached.getConstantState() != null) {
-            wallpaper = cached.getConstantState().newDrawable().mutate();
         }
         refresh();
     }
@@ -91,7 +85,7 @@ public final class NebulaComposerPreview extends FrameLayout {
 
     @Override protected void onMeasure(int widthSpec, int heightSpec) {
         int width = MeasureSpec.getSize(widthSpec);
-        setMeasuredDimension(width, AndroidUtilities.dp(100));
+        setMeasuredDimension(width, AndroidUtilities.dp(72));
         int diameter = AndroidUtilities.dp(44), margin = AndroidUtilities.dp(8);
         fieldLeft = margin + (separate ? diameter + AndroidUtilities.dp(6) : 0);
         fieldRight = width - fieldLeft;
@@ -118,14 +112,6 @@ public final class NebulaComposerPreview extends FrameLayout {
         bounds(surfaces[0], margin, margin + diameter, diameter);
         bounds(surfaces[1], fieldLeft, fieldRight, diameter);
         bounds(surfaces[2], getWidth() - margin - diameter, getWidth() - margin, diameter);
-        if (wallpaper != null) {
-            float scale = Math.max(getWidth() / (float) Math.max(1, wallpaper.getIntrinsicWidth()),
-                    getHeight() / (float) Math.max(1, wallpaper.getIntrinsicHeight()));
-            int w = Math.round(wallpaper.getIntrinsicWidth() * scale);
-            int h = Math.round(wallpaper.getIntrinsicHeight() * scale);
-            wallpaper.setBounds((getWidth() - w) / 2, (getHeight() - h) / 2,
-                    (getWidth() + w) / 2, (getHeight() + h) / 2);
-        }
     }
 
     private void bounds(BlurredBackgroundDrawable drawable, int left, int right, int height) {
@@ -134,8 +120,6 @@ public final class NebulaComposerPreview extends FrameLayout {
     }
 
     @Override protected void onDraw(Canvas canvas) {
-        canvas.drawColor(Theme.getColor(Theme.key_chat_wallpaper));
-        if (wallpaper != null) wallpaper.draw(canvas);
         if (separate) { surfaces[0].draw(canvas); surfaces[2].draw(canvas); }
         surfaces[1].draw(canvas);
     }

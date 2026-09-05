@@ -24,6 +24,7 @@ import org.telegram.ui.Components.blur3.source.BlurredBackgroundSourceColor;
 /** Native Telegram tabs with NebulaGram's tap/drag organization gestures. */
 public class NebulaTabsEditor extends FrameLayout {
     private final MainTabsLayout tabs;
+    private final java.util.Map<String, GlassTabView> tabViews = new java.util.HashMap<>();
     private final int touchSlop;
     private Runnable onChanged;
     private String[] order = NebulaBottomBar.tabOrder();
@@ -72,31 +73,44 @@ public class NebulaTabsEditor extends FrameLayout {
 
     public void refresh() {
         order = NebulaBottomBar.tabOrder();
-        tabs.removeAllViews();
-        for (String key : order) {
-            GlassTabView tab;
-            if (NebulaBottomBar.TAB_PROFILE.equals(key)) {
-                tab = GlassTabView.createAvatar(getContext(), null, UserConfig.selectedAccount, R.string.MainTabsProfile);
-            } else {
-                GlassTabView.TabAnimation animation = NebulaBottomBar.TAB_CONTACTS.equals(key)
-                        ? GlassTabView.TabAnimation.CONTACTS : NebulaBottomBar.TAB_SETTINGS.equals(key)
-                        ? GlassTabView.TabAnimation.SETTINGS : GlassTabView.TabAnimation.CHATS;
-                int label = NebulaBottomBar.TAB_CONTACTS.equals(key) ? R.string.MainTabsContacts
-                        : NebulaBottomBar.TAB_SETTINGS.equals(key) ? R.string.Settings : R.string.MainTabsChats;
-                tab = GlassTabView.createMainTab(getContext(), null, animation, label);
-            }
-            boolean chats = NebulaBottomBar.TAB_CHATS.equals(key);
-            tab.setTag(key);
-            tab.setSelected(chats, false);
-            tab.setAlpha(chats || NebulaBottomBar.tabEnabled(key) ? 1f : .4f);
-            tabs.addView(tab);
-            tabs.setViewVisible(tab, true, false);
+        boolean reorder = tabs.getChildCount() != order.length;
+        for (int i = 0; !reorder && i < order.length; i++) {
+            reorder = !order[i].equals(tabs.getChildAt(i).getTag());
         }
+        for (String key : order) {
+            boolean chats = NebulaBottomBar.TAB_CHATS.equals(key);
+            GlassTabView tab = tabViews.get(key);
+            if (tab == null) {
+                tab = createTab(key);
+                tab.setTag(key);
+                tab.setSelected(chats, false);
+                tabViews.put(key, tab);
+                tabs.addView(tab);
+                tabs.setViewVisible(tab, true, false);
+            }
+            // Keep the native selection/Lottie state when labels or visibility change.
+            tab.nebulaApplyLabel();
+            tab.setAlpha(chats || NebulaBottomBar.tabEnabled(key) ? 1f : .4f);
+        }
+        if (reorder) for (String key : order) tabs.bringChildToFront(tabViews.get(key));
+        tabs.requestLayout();
         requestLayout();
     }
 
+    private GlassTabView createTab(String key) {
+        if (NebulaBottomBar.TAB_PROFILE.equals(key)) {
+            return GlassTabView.createAvatar(getContext(), null, UserConfig.selectedAccount, R.string.MainTabsProfile);
+        }
+        GlassTabView.TabAnimation animation = NebulaBottomBar.TAB_CONTACTS.equals(key)
+                ? GlassTabView.TabAnimation.CONTACTS : NebulaBottomBar.TAB_SETTINGS.equals(key)
+                ? GlassTabView.TabAnimation.SETTINGS : GlassTabView.TabAnimation.CHATS;
+        int label = NebulaBottomBar.TAB_CONTACTS.equals(key) ? R.string.MainTabsContacts
+                : NebulaBottomBar.TAB_SETTINGS.equals(key) ? R.string.Settings : R.string.MainTabsChats;
+        return GlassTabView.createMainTab(getContext(), null, animation, label);
+    }
+
     @Override protected void onMeasure(int widthSpec, int heightSpec) {
-        super.onMeasure(widthSpec, MeasureSpec.makeMeasureSpec(AndroidUtilities.dp(88), MeasureSpec.EXACTLY));
+        super.onMeasure(widthSpec, MeasureSpec.makeMeasureSpec(AndroidUtilities.dp(80), MeasureSpec.EXACTLY));
     }
 
     @Override public boolean onInterceptTouchEvent(MotionEvent event) { return true; }
