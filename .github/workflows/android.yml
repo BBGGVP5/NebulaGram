@@ -152,6 +152,24 @@ jobs:
           mkdir -p out && cp "$found" "out/${{ steps.name.outputs.apk }}"
           ls -la out
 
+      - name: Check the packaged architectures
+        run: |
+          python3 - <<'PY'
+          import os
+          from pathlib import Path
+          from zipfile import ZipFile
+          expected = set(os.environ['NEBULA_ABIS'].split(','))
+          apk, = Path('out').glob('*.apk')
+          with ZipFile(apk) as archive:
+              files = set(archive.namelist())
+          actual = {name.split('/')[1] for name in files if name.startswith('lib/') and name.endswith('.so')}
+          assert actual == expected, f'Packaged ABIs {actual} differ from requested ABIs {expected}'
+          for abi in expected:
+              assert f'lib/{abi}/libgojni.so' in files, f'NebulaLink missing for {abi}'
+              assert any(name.startswith(f'lib/{abi}/libtmessages.') and name.endswith('.so') for name in files), f'Telegram missing for {abi}'
+          print('Verified native libraries for: ' + ', '.join(sorted(actual)))
+          PY
+
       - uses: actions/upload-artifact@v4
         with:
           name: nebulagram-apk

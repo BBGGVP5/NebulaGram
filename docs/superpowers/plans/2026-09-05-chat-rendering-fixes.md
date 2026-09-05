@@ -34,3 +34,5 @@ Follow-up from the next device screenshots:
 Follow-up verification: 37 patches apply to 33 pristine upstream files. Added 24 checks of native premium/mute icon placement (the previous code fails), 14 folder bindings across two independent headers, and a check for the extra 4dp left text inset. Profile actions retain native drawing and hit targets, with a dark translucent surface and filled white icons.
 
 Follow-up Android compilation passed in 3m 25s after synchronizing the complete overlay resources into the local verification tree. Also checked 36 foreground/background combinations against the real AndroidX ColorUtils implementation; all met 4.5:1 and already readable theme colors were preserved.
+
+APK inspection found that a language-identification AAR still added three unrequested ABIs even though Telegram and NebulaLink used the selected arm64 target. Apply `nebulaAbis` to the standalone application's packaging filters too, and verify the exact packaged ABI set and both native cores in CI. Preserve one arm64 APK on push and one four-architecture universal APK on manual dispatch.

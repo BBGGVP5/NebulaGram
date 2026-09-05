@@ -1,0 +1,14 @@
+diff --git a/TMessagesProj_AppStandalone/build.gradle b/TMessagesProj_AppStandalone/build.gradle
+--- a/TMessagesProj_AppStandalone/build.gradle
++++ b/TMessagesProj_AppStandalone/build.gradle
+@@ -99,7 +99,9 @@
+     productFlavors {
+         afat {
+             ndk {
+-                abiFilters "armeabi-v7a", "arm64-v8a", "x86", "x86_64"
++                // Apply the same ABI selection to libraries brought in by AAR dependencies.
++                abiFilters(*((project.findProperty("nebulaAbis")
++                        ?: "armeabi-v7a,arm64-v8a,x86,x86_64").toString().split(",")))
+             }
+             ext {
+                 abiVersionCode = 9
