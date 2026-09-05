@@ -2,20 +2,10 @@ diff --git a/TMessagesProj_AppStandalone/build.gradle b/TMessagesProj_AppStandal
 index 96dbbbf0..339e54e5 100644
 --- a/TMessagesProj_AppStandalone/build.gradle
 +++ b/TMessagesProj_AppStandalone/build.gradle
-@@ -110,6 +110,43 @@ android {
+@@ -110,6 +110,18 @@ android {
          }
      }
  
-+    // NebulaGram: по одному APK на архитектуру вместо одного общего. Ядро
-+    // туннеля добавляет ~11 МБ нативного кода на каждую ABI, и в общем файле
-+    // пользователь качал бы четыре копии ради одной.
-+    def nebulaAbiCodes = ["armeabi-v7a": 1, "arm64-v8a": 2, "x86": 3, "x86_64": 4]
-+
-+    // AGP не разрешает ndk.abiFilters одновременно с abi splits, а флейвор afat
-+    // их объявляет. Очищаем коллекцию вместо правки строк апстрима — так патч
-+    // остаётся вставкой и не конфликтует при обновлении.
-+    productFlavors.afat.ndk.abiFilters.clear()
-+
 +    // Апстрим добавляет sideload-сборке суффикс ".web", чтобы отличать её от
 +    // магазинной. Форку это не нужно, а лишний суффикс ломает и Firebase, и
 +    // ожидания пользователя: пакет должен совпадать с тем, что заведено в
@@ -28,42 +18,6 @@ index 96dbbbf0..339e54e5 100644
 +    buildTypes.standalone.minifyEnabled =
 +            Boolean.parseBoolean((project.findProperty("nebulaMinify") ?: "true").toString())
 +
-+    // Набор архитектур задаётся снаружи: сборка одной вместо четырёх занимает
-+    // четверть времени, а для проверки изменения этого достаточно. Без
-+    // параметра собираются все, поэтому релиз ничего не теряет.
-+    def nebulaAbis = (project.findProperty("nebulaAbis")
-+            ?: "armeabi-v7a,arm64-v8a,x86,x86_64").toString().split(",").collect { it.trim() }
-+
-+    splits {
-+        abi {
-+            enable true
-+            reset()
-+            include(*nebulaAbis)
-+            universalApk false
-+        }
-+    }
-+
      defaultConfig.versionCode = Integer.parseInt(APP_VERSION_CODE)
  
      applicationVariants.all { variant ->
-@@ -119,6 +156,20 @@ android {
-         }
-     }
- 
-+    // Идёт после блока апстрима намеренно: тот присваивает всем выходам имя
-+    // app.apk, а каждому сплиту нужно своё имя и свой versionCode — апдейтеры
-+    // отвергают два APK с одинаковым кодом.
-+    applicationVariants.all { variant ->
-+        variant.outputs.all { output ->
-+            def abi = output.getFilter(com.android.build.OutputFile.ABI)
-+            if (abi != null) {
-+                outputFileName = "NebulaGram-${abi}.apk"
-+                output.versionCodeOverride =
-+                        defaultConfig.versionCode * 10 + nebulaAbiCodes.get(abi, 0)
-+            }
-+        }
-+    }
-+
-     variantFilter { variant ->
-         def names = variant.flavors*.name
-         if (variant.buildType.name != "release" && !names.contains("afat")) {

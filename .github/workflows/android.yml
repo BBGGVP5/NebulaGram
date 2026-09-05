@@ -98,13 +98,12 @@ jobs:
       - name: Assemble
         working-directory: vendor/telegram-android
         env:
-          # Нативная часть собирается заново на каждую архитектуру и занимает
-          # основное время. На обычный пуш хватает одной; все четыре собираются
-          # по кнопке Run workflow, то есть для релиза.
-          NEBULA_ABIS: ${{ github.event_name == 'workflow_dispatch' && 'armeabi-v7a,arm64-v8a,x86,x86_64' || 'arm64-v8a' }}
+          # Один универсальный APK содержит все поддерживаемые ABI, поэтому
+          # всегда собираем весь набор, как в предыдущих сборках NebulaGram.
+          NEBULA_ABIS: armeabi-v7a,arm64-v8a,x86,x86_64
           NEBULA_MINIFY: ${{ github.event_name == 'workflow_dispatch' && inputs.minify || 'true' }}
         run: |
-          echo "архитектуры: $NEBULA_ABIS"
+          echo "универсальный APK, архитектуры: $NEBULA_ABIS"
           # Maven Central отвечает 429, когда раннеры GitHub стучатся к нему
           # пачкой. Один повтор дешевле, чем потерянные двадцать минут сборки.
           for attempt in 1 2; do
@@ -116,25 +115,21 @@ jobs:
           done
           exit 1
 
-      - name: Collect the APKs
+      - name: Name the universal APK
+        id: name
+        run: |
+          version=$(grep '^APP_VERSION_NAME=' vendor/telegram-android/gradle.properties | cut -d= -f2)
+          echo "apk=NebulaGram-${version}-${GITHUB_SHA::7}.apk" >> "$GITHUB_OUTPUT"
+
+      - name: Collect the universal APK
         run: |
           # Тип сборки standalone, а не release: release у этого модуля не
           # объявлен, Gradle создаёт его по умолчанию и без подписи, а
           # неподписанный APK Android не ставит.
           version=$(grep '^APP_VERSION_NAME=' vendor/telegram-android/gradle.properties | cut -d= -f2)
-          mkdir -p out
-          # One file per architecture; see patches/android/0003.
-          found=0
-          while IFS= read -r apk; do
-            abi=$(basename "$apk" .apk | sed 's/^NebulaGram-//')
-            cp "$apk" "out/NebulaGram-${version}-${abi}-${GITHUB_SHA::7}.apk"
-            found=$((found + 1))
-          done < <(find vendor/telegram-android -name 'NebulaGram-*.apk')
-          if [ "$found" -eq 0 ]; then
-            echo "::error::no APK was produced"
-            exit 1
-          fi
-          echo "collected $found APK(s):"
+          found=$(find vendor/telegram-android -name app.apk -path '*afatStandalone*' | head -1)
+          test -n "$found" || { echo "::error::universal APK was not produced"; exit 1; }
+          mkdir -p out && cp "$found" "out/${{ steps.name.outputs.apk }}"
           ls -la out
 
       - uses: actions/upload-artifact@v4

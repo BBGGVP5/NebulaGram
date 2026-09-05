@@ -9,7 +9,7 @@
 |---|---|---|---|---|
 | `0001-gradle-link-nebulalink-core.patch` | `TMessagesProj/build.gradle` | dependencies | Подключает Go-ядро | +9 / −0 |
 | `0002-application-loader-start-core.patch` | `ApplicationLoader.java` | onCreate | Инициализирует NebulaLink | +2 / −0 |
-| `0003-standalone-abi-splits.patch` | `TMessagesProj_AppStandalone/build.gradle` | defaultConfig.versionCode; applicationVariants.all | Разделяет APK по архитектурам | +51 / −0 |
+| `0003-standalone-abi-splits.patch` | `TMessagesProj_AppStandalone/build.gradle` | перед defaultConfig.versionCode | Сохраняет подписанный sideload-пакет и собирает единый APK для всех ABI | +12 / −0 |
 | `0004-launch-show-welcome.patch` | `LaunchActivity.java` | перед return new IntroActivity() | Показывает приветствие NebulaGram | +3 / −0 |
 | `0005-hide-managed-proxy.patch` | `ProxyListActivity.java` | updateRows; ListAdapter | Скрывает служебный прокси и его настройки при активном туннеле | +30 / −2 |
 | `0006-login-typography.patch` | `LoginActivity.java; OutlineTextContainerView.java; CodeFieldContainer.java` | создание экранов и нижней кнопки | Оформляет номер, код и пароль поверх нативной логики Telegram | +50 / −15 |
@@ -91,11 +91,11 @@ AI, разворачивание и закрытие пересылки полу
 после первого прохода управление возвращается штатному интро Telegram, и наш
 код перестаёт участвовать в этом пути вообще.
 
-Про третий патч: ядро Xray добавляет ~11 МБ нативного кода на каждую
-архитектуру, и в общем APK пользователь качал бы четыре копии ради одной.
-Патч только вставляет блоки — существующий `applicationVariants.all` апстрима
-не трогается, рядом добавляется второй, который даёт каждому файлу своё имя и
-свой versionCode (иначе апдейтеры отвергнут два APK с одинаковым кодом).
+Про третий патч: приложение выпускается одним универсальным APK, который
+содержит все ABI из штатного `afat`-флейвора Telegram. Патч только сохраняет
+идентификатор NebulaGram и настраиваемую минификацию для подписанного
+`standalone`-варианта; существующие `applicationVariants.all` апстрима не
+меняются.
 
 ## Чего здесь намеренно нет
 
