@@ -6,16 +6,15 @@
 
 **Ваш Telegram. Ваш стиль. Ваше подключение.**
 
-Неофициальный клиент Telegram для Android со встроенным NebulaLink,
+Неофициальный клиент Telegram для Android и iOS со встроенным NebulaLink,
 плавающими панелями и гибкой настройкой интерфейса.
 
-[![Android APK](https://github.com/BBGGVP5/NebulaGram/actions/workflows/android.yml/badge.svg)](https://github.com/BBGGVP5/NebulaGram/actions/workflows/android.yml)
-[![Платформа](https://img.shields.io/badge/платформа-Android-3DDC84?logo=android&logoColor=white)](#скачать-apk)
+[![Android](https://img.shields.io/badge/Android-APK-3DDC84?logo=android&logoColor=white)](https://github.com/BBGGVP5/NebulaGram/releases)
+[![iOS](https://img.shields.io/badge/iOS-IPA%20unsigned-818CF8?logo=apple&logoColor=white)](https://github.com/BBGGVP5/NebulaGram/releases)
 [![Лицензия](https://img.shields.io/badge/лицензия-GPL--2.0--or--later-7C6CF0)](LICENSE)
 
-[**Скачать APK**](https://github.com/BBGGVP5/NebulaGram/actions/workflows/android.yml) ·
+[**Скачать APK / IPA**](https://github.com/BBGGVP5/NebulaGram/releases) ·
 [Возможности](#возможности) ·
-[Сборка](docs/BUILD-ANDROID.md) ·
 [Сообщить об ошибке](https://github.com/BBGGVP5/NebulaGram/issues)
 
 </div>
@@ -42,28 +41,22 @@ VPN-приложение для этого не требуется.
 Превью шапки и поля ввода используют текущие обои; дополнительные параметры
 собраны в сворачиваемые разделы.
 
-## Скачать APK
+## Скачать
 
-Актуальные сборки публикуются в [GitHub Actions](https://github.com/BBGGVP5/NebulaGram/actions/workflows/android.yml).
+Сборки для Android и iOS будут публиковаться в [Releases](https://github.com/BBGGVP5/NebulaGram/releases).
+Откройте нужную версию и выберите файл в разделе **Assets**.
 
-1. Откройте завершённый успешный запуск нужного коммита.
-2. Внизу страницы, в **Artifacts**, скачайте `nebulagram-apk`.
-3. Распакуйте ZIP и откройте APK на устройстве Android.
-
-Для скачивания артефактов Actions потребуется вход в GitHub.
-Если Android запросит разрешение на установку из выбранного источника, разрешите его.
-
-| Сборка | Архитектуры | Имя файла |
+| Платформа | Файл | Установка |
 | :--- | :--- | :--- |
-| После изменений приложения | `arm64-v8a` — устройства с поддержкой 64-битных ARM-приложений | `NebulaGram-<версия>-arm64-v8a-<коммит>.apk` |
-| Ручной запуск **Run workflow** | `armeabi-v7a`, `arm64-v8a`, `x86`, `x86_64` в одном APK | `NebulaGram-<версия>-universal-<коммит>.apk` |
+| **Android** | `.apk` | Скачайте APK и откройте его на устройстве. |
+| **iOS** | Неподписанный `.ipa` | Скачайте IPA и подпишите его выбранным способом перед установкой. |
 
-Версии нативного ядра NebulaLink и Telegram собираются для одного и того же
-набора архитектур. Универсальный APK больше и собирается дольше.
+На Android при запросе системы разрешите установку из выбранного источника.
+NebulaGram устанавливается рядом с официальным Telegram: у Android-приложения
+отдельный пакет `app.nebulagram.messenger`.
 
-NebulaGram устанавливается рядом с официальным Telegram: у приложения отдельный
-пакет `app.nebulagram.messenger`. Опубликованные релизы, когда они доступны,
-можно найти в [Releases](https://github.com/BBGGVP5/NebulaGram/releases).
+Неподписанный IPA не устанавливается простым открытием файла: для установки
+на iPhone или iPad нужна подпись.
 
 ## Подключить NebulaLink
 
@@ -80,45 +73,10 @@ NebulaGram устанавливается рядом с официальным T
 свой сервер или сервис выбранного провайдера. Сетевые функции самого Telegram
 продолжают работать в рамках его инфраструктуры.
 
-## Собрать из исходников
-
-Исходники NebulaGram, Android-оверлей и патчи открыты. Версия Telegram закреплена
-в Git-сабмодуле; зависимости Go указаны в файлах `go.mod` и `go.sum`.
-
-```bash
-git clone --recurse-submodules https://github.com/BBGGVP5/NebulaGram.git
-cd NebulaGram
-```
-
-Далее следуйте [инструкции сборки Android](docs/BUILD-ANDROID.md): понадобятся
-Android SDK/NDK, Java, Go и собственные `api_id` / `api_hash` Telegram.
-Для GitHub Actions ключи задаются секретами `TELEGRAM_APP_ID` и `TELEGRAM_APP_HASH`.
-Зафиксированные версии инструментов и порядок шагов находятся в
-[workflow Android](.github/workflows/android.yml).
-
-<details>
-<summary><strong>Как устроен репозиторий</strong></summary>
-
-| Каталог | Назначение |
-| :--- | :--- |
-| `core/` | Подписки, серверы, настройки и управление туннелем. |
-| `runtime/xray/` | Интеграция Xray-core. |
-| `bind/` | Биндинги NebulaLink для приложения. |
-| `platform/android/overlay/` | Интерфейс, ресурсы и интеграция NebulaGram. |
-| `patches/android/` | Изменения исходного клиента Telegram. |
-| `vendor/telegram-android/` | Закреплённая ревизия Telegram Android. |
-| `scripts/` | Сборка, применение патчей и проверки. |
-
-[Архитектура](docs/ARCHITECTURE.md) ·
-[Обновление Telegram](docs/UPSTREAM.md) ·
-[Точки интеграции](patches/android/HOOKS.md)
-
-</details>
-
 ## Обратная связь
 
 Ошибки и предложения — в [Issues](https://github.com/BBGGVP5/NebulaGram/issues).
-Для ошибки укажите версию APK или коммит, модель устройства, версию Android
+Для ошибки укажите версию приложения, модель устройства, версию Android или iOS
 и шаги воспроизведения. Для проблем оформления полезен скриншот с выбранными
 настройками темы. Удалите из вложений ключи серверов, ссылки на подписки и личные данные.
 
