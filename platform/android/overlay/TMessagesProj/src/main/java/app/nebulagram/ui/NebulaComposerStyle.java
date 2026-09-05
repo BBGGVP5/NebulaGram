@@ -10,7 +10,9 @@ import android.widget.FrameLayout;
 
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.ui.Components.ChatActivityEnterView;
+import org.telegram.ui.Components.blur3.BlurredBackgroundDrawableViewFactory;
 import org.telegram.ui.Components.blur3.drawable.BlurredBackgroundDrawable;
+import org.telegram.ui.Components.blur3.drawable.color.BlurredBackgroundColorProvider;
 
 /** Lays out Telegram's real controls and draws their separate glass surfaces. */
 public final class NebulaComposerStyle {
@@ -19,10 +21,24 @@ public final class NebulaComposerStyle {
     private EditText insetEditor, measuredEditor;
     private int baseLeft, baseRight, insetLeft, insetRight;
     private int measuredLeft = -1, measuredRight = -1;
-    private View attachment, replyPreview, replyClose, aiButton, expandButton;
-    private final Rect original = new Rect(), padded = new Rect();
+    private View attachment, replyPreview, replyClose, aiButton, expandButton, botMenu;
+    private final Rect padded = new Rect();
+    private final BlurredBackgroundDrawable[] surfaces = new BlurredBackgroundDrawable[6];
 
     public boolean isActive() { return active; }
+
+    public void createSurfaces(BlurredBackgroundDrawableViewFactory factory, View drawingParent,
+                               BlurredBackgroundColorProvider provider) {
+        // Hardware canvases retain RenderNode references until frame playback.
+        // Each shape needs its own node, with bounds/alpha left intact after draw().
+        for (int i = 0; i < surfaces.length; i++) {
+            surfaces[i] = factory.create(drawingParent, provider);
+            surfaces[i].setPadding(AndroidUtilities.dp(7));
+            surfaces[i].setRadius(AndroidUtilities.dp(22));
+        }
+    }
+
+    public void setBotMenu(View botMenu) { this.botMenu = botMenu; }
 
     public void setPreview(View replyPreview, View replyClose) {
         this.replyPreview = replyPreview;
@@ -99,11 +115,13 @@ public final class NebulaComposerStyle {
             if (senderSelect != null && senderSelect.getVisibility() == View.VISIBLE && senderSelect.getParent() == parent) {
                 move(senderSelect, AndroidUtilities.dp(54));
             }
+            if (botMenu != null && botMenu.getParent() == parent) move(botMenu, AndroidUtilities.dp(54));
             controlsMoved = true;
         } else if (controlsMoved) {
             restoreControl(emoji);
             restoreControl(attachment);
             if (senderSelect != null && senderSelect.getParent() == emoji.getParent()) restoreControl(senderSelect);
+            if (botMenu != null && botMenu.getParent() == emoji.getParent()) restoreControl(botMenu);
             controlsMoved = false;
         }
     }
@@ -122,11 +140,10 @@ public final class NebulaComposerStyle {
     }
 
     public boolean draw(Canvas canvas, BlurredBackgroundDrawable background, View drawingParent) {
-        if (!active || host == null || host.getVisibility() != View.VISIBLE) return false;
-        original.set(background.getBounds());
+        if (!active || host == null || host.getVisibility() != View.VISIBLE || surfaces[0] == null) return false;
         padded.set(background.getPaddedBounds());
         if (padded.isEmpty()) return true;
-        int padding = padded.left - original.left;
+        int padding = AndroidUtilities.dp(7);
         int diameter = Math.min(AndroidUtilities.dp(44), padded.height());
         int gap = AndroidUtilities.dp(6);
         int left = Math.max(padded.left, Math.round(position(host, drawingParent, true)));
@@ -134,18 +151,15 @@ public final class NebulaComposerStyle {
         int editorLeft = left + diameter + gap;
         int editorRight = right - diameter - gap;
         if (editorRight <= editorLeft) return true;
-        try {
-            if (attachment != null && attachment.getVisibility() == View.VISIBLE) {
-                surface(canvas, background, left, padded.bottom - diameter, left + diameter, padded.bottom, padding);
-            }
-            surface(canvas, background, editorLeft, padded.top, editorRight, padded.bottom, padding);
-            surface(canvas, background, right - diameter, padded.bottom - diameter, right, padded.bottom, padding);
-            smallButtonSurface(canvas, background, drawingParent, replyClose, padding);
-            smallButtonSurface(canvas, background, drawingParent, aiButton, padding);
-            smallButtonSurface(canvas, background, drawingParent, expandButton, padding);
-        } finally {
-            background.setBounds(original);
+        for (BlurredBackgroundDrawable drawable : surfaces) drawable.setAlpha(background.getAlpha());
+        if (attachment != null && attachment.getVisibility() == View.VISIBLE) {
+            surface(canvas, surfaces[0], left, padded.bottom - diameter, left + diameter, padded.bottom, padding);
         }
+        surface(canvas, surfaces[1], editorLeft, padded.top, editorRight, padded.bottom, padding);
+        surface(canvas, surfaces[2], right - diameter, padded.bottom - diameter, right, padded.bottom, padding);
+        smallButtonSurface(canvas, surfaces[3], drawingParent, replyClose, padding);
+        smallButtonSurface(canvas, surfaces[4], drawingParent, aiButton, padding);
+        smallButtonSurface(canvas, surfaces[5], drawingParent, expandButton, padding);
         return true;
     }
 
@@ -165,13 +179,8 @@ public final class NebulaComposerStyle {
         if (size <= 0) return;
         int left = Math.round(position(button, drawingParent, true) + (button.getWidth() - size) / 2f);
         int top = Math.round(position(button, drawingParent, false) + (button.getHeight() - size) / 2f);
-        int originalAlpha = background.getAlpha();
-        try {
-            background.setAlpha(Math.round(originalAlpha * alpha));
-            surface(canvas, background, left, top, left + size, top + size, padding);
-        } finally {
-            background.setAlpha(originalAlpha);
-        }
+        background.setAlpha(Math.round(background.getAlpha() * alpha));
+        surface(canvas, background, left, top, left + size, top + size, padding);
     }
 
     /** Includes the input island's IME translation and its 7dp host margin. */

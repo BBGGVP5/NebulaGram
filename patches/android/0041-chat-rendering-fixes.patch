@@ -1,0 +1,413 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
+@@ -8091,6 +8091,8 @@
+ 
+         chatInputBubbleContainer.addView(chatActivityEnterView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.LEFT | Gravity.BOTTOM, 7, 0, 7, 0));
+         chatInputViewsContainer.nebulaComposerStyle = chatActivityEnterView.nebulaComposerStyle;
++        chatActivityEnterView.nebulaComposerStyle.createSurfaces(
++                glassBackgroundDrawableFactory, chatInputViewsContainer, blurredBackgroundColorProvider);
+ 
+         int chatListIndex = contentView.indexOfChild(chatListView);
+         chatListIndex = chatListIndex < 0 ? contentView.getChildCount() : (chatListIndex + 1);
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
+@@ -4605,7 +4605,7 @@
+         }
+         if (botCommandsMenuButton != null) {
+             boolean wasExpanded = botCommandsMenuButton.expanded;
+-            botCommandsMenuButton.setExpanded(shouldBeExpanded, true);
++            botCommandsMenuButton.setExpanded(shouldBeExpanded && !nebulaComposerStyle.isActive(), true);
+             if (wasExpanded != botCommandsMenuButton.expanded) {
+                 beginDelayedTransition();
+             }
+@@ -14419,6 +14419,22 @@
+     @Override
+     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+         nebulaComposerStyle.restoreInsets();
++        boolean nebulaSupported = isChat && !isStories && !isLiveComment && parentFragment != null && parentFragment.getChatMode() == 0
++                && !isEditingMessage() && !isRecordingAudioVideo()
++                && (recordedAudioPanel == null || recordedAudioPanel.getVisibility() != VISIBLE)
++                && (richDraftPreview == null || richDraftPreview.getVisibility() != VISIBLE);
++        boolean compactBotMenu = nebulaSupported && app.nebulagram.ui.NebulaAppearance.iosComposer()
++                && MeasureSpec.getSize(widthMeasureSpec) >= dp(260);
++        if (botCommandsMenuButton != null) {
++            if (compactBotMenu) {
++                botCommandsMenuButton.setExpanded(false, false);
++            } else if (nebulaComposerStyle.isActive()) {
++                botCommandsMenuButton.setExpanded((messageEditText == null || TextUtils.isEmpty(messageEditText.getText()))
++                        && !(keyboardVisible || waitingForKeyboardOpen || isPopupShowing()), false);
++            }
++        }
++        nebulaComposerStyle.setBotMenu(botCommandsMenuButton != null && botCommandsMenuButton.getTag() != null
++                ? botCommandsMenuButton : null);
+         int wasHeight = textFieldContainer.getMeasuredHeight();
+         if (botCommandsMenuButton != null && botCommandsMenuButton.getTag() != null) {
+             botCommandsMenuButton.measure(widthMeasureSpec, heightMeasureSpec);
+@@ -14458,11 +14474,7 @@
+             }
+         }
+         updateBotCommandsMenuContainerTopPadding();
+-        nebulaComposerStyle.prepare(this, messageEditText, MeasureSpec.getSize(widthMeasureSpec),
+-                isChat && !isStories && !isLiveComment && parentFragment != null && parentFragment.getChatMode() == 0
+-                && !isEditingMessage() && !isRecordingAudioVideo()
+-                && (recordedAudioPanel == null || recordedAudioPanel.getVisibility() != VISIBLE)
+-                && (richDraftPreview == null || richDraftPreview.getVisibility() != VISIBLE));
++        nebulaComposerStyle.prepare(this, messageEditText, MeasureSpec.getSize(widthMeasureSpec), nebulaSupported);
+         super.onMeasure(widthMeasureSpec, heightMeasureSpec);
+ 
+         if (botWebViewButton != null) {
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAttachAlertPhotoLayout.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAttachAlertPhotoLayout.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAttachAlertPhotoLayout.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAttachAlertPhotoLayout.java
+@@ -132,6 +132,11 @@
+     private static final int VIEW_TYPE_AVATAR_CONSTRUCTOR = 4;
+     private static final int SHOW_FAST_SCROLL_MIN_COUNT = 30;
+     private final boolean needCamera;
++    private boolean cameraTileHidden;
++
++    private boolean isCameraTileEnabled() {
++        return needCamera && !app.nebulagram.ui.NebulaAppearance.hideAttachCamera();
++    }
+ 
+     private RecyclerListView cameraPhotoRecyclerView;
+     private LinearLayoutManager cameraPhotoLayoutManager;
+@@ -658,7 +663,7 @@
+                 if (adapter.hasCameraSpaceRow && position > itemsPerRow) {
+                     position--;
+                 }
+-                if (adapter.needCamera && selectedAlbumEntry == galleryAlbumEntry) {
++                if (adapter.isCameraTileEnabled() && selectedAlbumEntry == galleryAlbumEntry) {
+                     position--;
+                 }
+                 MediaController.PhotoEntry photoEntry = getPhotoEntryAtPosition(position);
+@@ -680,7 +685,7 @@
+                 if (adapter.hasCameraSpaceRow && position > itemsPerRow) {
+                     position--;
+                 }
+-                if (adapter.needCamera && selectedAlbumEntry == galleryAlbumEntry) {
++                if (adapter.isCameraTileEnabled() && selectedAlbumEntry == galleryAlbumEntry) {
+                     position--;
+                 }
+                 MediaController.PhotoEntry photoEntry = getPhotoEntryAtPosition(position);
+@@ -918,7 +923,7 @@
+                 return;
+             }
+             if (Build.VERSION.SDK_INT >= 23) {
+-                if (adapter.needCamera && selectedAlbumEntry == galleryAlbumEntry && position == 0 && noCameraPermissions) {
++                if (adapter.isCameraTileEnabled() && selectedAlbumEntry == galleryAlbumEntry && position == 0 && noCameraPermissions) {
+                     try {
+                         fragment.getParentActivity().requestPermissions(new String[]{Manifest.permission.CAMERA}, 18);
+                     } catch (Exception ignore) {
+@@ -943,11 +948,11 @@
+                 return;
+             }
+ 
+-            if (position != 0 || !needCamera || selectedAlbumEntry != galleryAlbumEntry) {
++            if (position != 0 || !isCameraTileEnabled() || selectedAlbumEntry != galleryAlbumEntry) {
+                 if (adapter.hasCameraSpaceRow && position > itemsPerRow) {
+                     position--;
+                 }
+-                if (selectedAlbumEntry == galleryAlbumEntry && needCamera) {
++                if (selectedAlbumEntry == galleryAlbumEntry && isCameraTileEnabled()) {
+                     position--;
+                 }
+                 if (showAvatarConstructor) {
+@@ -2400,14 +2405,17 @@
+         if (parentAlert.destroyed || !needCamera) {
+             return;
+         }
+-        // NebulaGram: скрытая камера не должна и запускаться — иначе
+-        // индикатор доступа горит, а ячейки всё равно нет.
+-        if (app.nebulagram.ui.NebulaAppearance.hideAttachCamera()) {
+-            if (deviceHasGoodCamera && adapter != null) {
+-                deviceHasGoodCamera = false;
+-                adapter.notifyDataSetChanged();
++        boolean hidden = app.nebulagram.ui.NebulaAppearance.hideAttachCamera();
++        boolean tileChanged = cameraTileHidden != hidden;
++        cameraTileHidden = hidden;
++        if (hidden) {
++            if (tileChanged && cameraView != null) {
++                if (cameraOpened) closeCamera(false);
++                cameraView.setVisibility(INVISIBLE);
++                hideCamera(true);
+             }
+             deviceHasGoodCamera = false;
++            if (tileChanged && adapter != null) adapter.notifyDataSetChanged();
+             return;
+         }
+         boolean old = deviceHasGoodCamera;
+@@ -2445,7 +2453,7 @@
+                 deviceHasGoodCamera = CameraController.getInstance().isCameraInitied();
+             }
+         }
+-        if ((old != deviceHasGoodCamera || old2 != noCameraPermissions) && adapter != null) {
++        if ((tileChanged || old != deviceHasGoodCamera || old2 != noCameraPermissions) && adapter != null) {
+             adapter.notifyDataSetChanged();
+         }
+         if (!parentAlert.destroyed && parentAlert.isShowing() && deviceHasGoodCamera && parentAlert.getBackDrawable().getAlpha() != 0 && !cameraOpened) {
+@@ -2581,7 +2589,7 @@
+     }
+ 
+     public void showCamera() {
+-        if (parentAlert.paused || !mediaEnabled || !CameraView.isCameraAllowed()) {
++        if (!isCameraTileEnabled() || parentAlert.paused || !mediaEnabled || !CameraView.isCameraAllowed()) {
+             return;
+         }
+         if (cameraView == null) {
+@@ -3037,7 +3045,7 @@
+         if (holder != null) {
+             holder.itemView.invalidateOutline();
+         }
+-        if (!adapter.needCamera || !deviceHasGoodCamera || selectedAlbumEntry != galleryAlbumEntry) {
++        if (!adapter.isCameraTileEnabled() || !deviceHasGoodCamera || selectedAlbumEntry != galleryAlbumEntry) {
+             holder = gridView.findViewHolderForAdapterPosition(0);
+             if (holder != null) {
+                 holder.itemView.invalidateOutline();
+@@ -3178,7 +3186,7 @@
+                     if (adapter.hasCameraSpaceRow && position > itemsPerRow) {
+                         position--;
+                     }
+-                    if (adapter.needCamera && selectedAlbumEntry == galleryAlbumEntry) {
++                    if (adapter.isCameraTileEnabled() && selectedAlbumEntry == galleryAlbumEntry) {
+                         position--;
+                     }
+ 
+@@ -3188,7 +3196,7 @@
+                     }
+                     MediaController.PhotoEntry photoEntry = getPhotoEntryAtPosition(position);
+                     if (photoEntry != null) {
+-                        cell.setPhotoEntry(photoEntry, selectedPhotos.size() > 1, adapter.needCamera && selectedAlbumEntry == galleryAlbumEntry, position == adapter.getItemCount() - 1, parentAlert != null && parentAlert.allowLivePhotos);
++                        cell.setPhotoEntry(photoEntry, selectedPhotos.size() > 1, adapter.isCameraTileEnabled() && selectedAlbumEntry == galleryAlbumEntry, position == adapter.getItemCount() - 1, parentAlert != null && parentAlert.allowLivePhotos);
+                         if (parentAlert.baseFragment instanceof ChatActivity && parentAlert.allowOrder) {
+                             cell.setChecked(selectedPhotosOrder.indexOf(photoEntry.imageId), selectedPhotos.containsKey(photoEntry.imageId), false);
+                         } else {
+@@ -3923,7 +3931,7 @@
+     }
+ 
+     private void onPhotoEditModeChanged(boolean isEditMode) {
+-//        if (needCamera && !noCameraPermissions) {
++//        if (isCameraTileEnabled() && !noCameraPermissions) {
+ //            if (isEditMode) {
+ //                if (cameraView != null) {
+ //                    isCameraFrontfaceBeforeEnteringEditMode = cameraView.isFrontface();
+@@ -3941,7 +3949,7 @@
+     }
+ 
+     public void pauseCamera(boolean pause) {
+-        if (needCamera && !noCameraPermissions) {
++        if (isCameraTileEnabled() && !noCameraPermissions) {
+             if (pause) {
+                 if (cameraView != null) {
+                     isCameraFrontfaceBeforeEnteringEditMode = cameraView.isFrontface();
+@@ -4285,6 +4293,10 @@
+ 
+         private final Context mContext;
+         private final boolean needCamera;
++
++        private boolean isCameraTileEnabled() {
++            return needCamera && !app.nebulagram.ui.NebulaAppearance.hideAttachCamera();
++        }
+         private boolean hasCamera;
+         private boolean hasCameraSpaceRow;
+         private final ArrayList<RecyclerListView.Holder> viewsCache = new ArrayList<>(8);
+@@ -4337,7 +4349,7 @@
+                             return;
+                         }
+                         int position = (Integer) photoCell.getTag();
+-                        if (needCamera && selectedAlbumEntry == galleryAlbumEntry && !noCameraPermissions) {
++                        if (isCameraTileEnabled() && selectedAlbumEntry == galleryAlbumEntry && !noCameraPermissions) {
+                             position++;
+                         }
+                         if (showAvatarConstructor) {
+@@ -4395,7 +4407,7 @@
+                 addToSelectedPhotos(photoEntry, index);
+                 int updateIndex = index;
+                 if (PhotoAttachAdapter.this == cameraAttachAdapter) {
+-                    if (adapter.needCamera && selectedAlbumEntry == galleryAlbumEntry) {
++                    if (adapter.isCameraTileEnabled() && selectedAlbumEntry == galleryAlbumEntry) {
+                         updateIndex++;
+                     }
+                     if (adapter.hasCameraSpaceRow && updateIndex >= itemsPerRow) {
+@@ -4417,7 +4429,7 @@
+             if (hasCameraSpaceRow && position > itemsPerRow) {
+                 position--;
+             }
+-            if (needCamera && selectedAlbumEntry == galleryAlbumEntry) {
++            if (isCameraTileEnabled() && selectedAlbumEntry == galleryAlbumEntry) {
+                 position--;
+             }
+             return getPhotoEntryAtPosition(position);
+@@ -4430,7 +4442,7 @@
+                     if (hasCameraSpaceRow && position > itemsPerRow) {
+                         position--;
+                     }
+-                    if (needCamera && selectedAlbumEntry == galleryAlbumEntry) {
++                    if (isCameraTileEnabled() && selectedAlbumEntry == galleryAlbumEntry) {
+                         position--;
+                     }
+                     if (showAvatarConstructor) {
+@@ -4452,7 +4464,7 @@
+                     if (photoEntry == null) {
+                         return;
+                     }
+-                    cell.setPhotoEntry(photoEntry, selectedPhotos.size() > 1, needCamera && selectedAlbumEntry == galleryAlbumEntry, position == getItemCount() - 1, parentAlert != null && parentAlert.allowLivePhotos);
++                    cell.setPhotoEntry(photoEntry, selectedPhotos.size() > 1, isCameraTileEnabled() && selectedAlbumEntry == galleryAlbumEntry, position == getItemCount() - 1, parentAlert != null && parentAlert.allowLivePhotos);
+                     if (parentAlert.baseFragment instanceof ChatActivity && parentAlert.allowOrder) {
+                         cell.setChecked(selectedPhotosOrder.indexOf(photoEntry.imageId), selectedPhotos.containsKey(photoEntry.imageId), false);
+                     } else {
+@@ -4477,7 +4489,7 @@
+                 case VIEW_TYPE_CELL_PERMISSION: {
+                     PhotoAttachPermissionCell cell = (PhotoAttachPermissionCell) holder.itemView;
+                     cell.setItemSize(itemSize);
+-                    cell.setType(needCamera && noCameraPermissions && position == 0 ? 0 : 1);
++                    cell.setType(isCameraTileEnabled() && noCameraPermissions && position == 0 ? 0 : 1);
+                     break;
+                 }
+                 case VIEW_TYPE_EMPTY: {
+@@ -4584,7 +4596,7 @@
+             }
+ 
+             int count = 0;
+-            if (needCamera && selectedAlbumEntry == galleryAlbumEntry) {
++            if (isCameraTileEnabled() && selectedAlbumEntry == galleryAlbumEntry) {
+                 hasCamera = true;
+                 count++;
+             }
+@@ -4625,7 +4637,7 @@
+             }
+ 
+             int localPosition = position;
+-            if (needCamera && position == 0 && selectedAlbumEntry == galleryAlbumEntry) {
++            if (isCameraTileEnabled() && position == 0 && selectedAlbumEntry == galleryAlbumEntry) {
+                 if (noCameraPermissions) {
+                     return VIEW_TYPE_CAMERA_PERMISSION_BUTTON;
+                 } else {
+@@ -4638,7 +4650,7 @@
+             if (hasCameraSpaceRow && position > itemsPerRow) {
+                 localPosition--;
+             }
+-            if (needCamera) {
++            if (isCameraTileEnabled() && selectedAlbumEntry == galleryAlbumEntry) {
+                 localPosition--;
+             }
+             if (showAvatarConstructor && localPosition == 0) {
+@@ -4751,7 +4763,7 @@
+         }
+ 
+         private void draw(@Nullable Canvas c, @NonNull RecyclerView parent, @Nullable IBlur3Hash builder, @Nullable RectF position) {
+-            if (cameraAnimationInProgress || cameraOpened || !adapter.hasCamera || noCameraPermissions || noGalleryPermissions) {
++            if (!adapter.isCameraTileEnabled() || cameraAnimationInProgress || cameraOpened || !adapter.hasCamera || noCameraPermissions || noGalleryPermissions) {
+                 if (builder != null) {
+                     builder.unsupported();
+                 }
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarContainer.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarContainer.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarContainer.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarContainer.java
+@@ -687,6 +687,16 @@
+         } else if (animatedSubtitleTextView != null) {
+             animatedSubtitleTextView.measure(MeasureSpec.makeMeasureSpec(availableWidth, MeasureSpec.EXACTLY), MeasureSpec.makeMeasureSpec(dp(20), MeasureSpec.AT_MOST));
+         }
++        if (nebulaCenteredTitle) {
++            nebulaHeaderWidth = measureNebulaHeaderWidth(width + dp(12));
++            final int textWidth = Math.max(0, nebulaHeaderWidth - dp(40));
++            final int textWidthSpec = MeasureSpec.makeMeasureSpec(textWidth, MeasureSpec.EXACTLY);
++            titleTextView.setGravity(titleTextView.getExactWidthIncludeDrawables() > textWidth ? Gravity.LEFT : Gravity.CENTER);
++            // SimpleTextView caches its center offset during measure, not layout.
++            // Rebuild at the actual shared text width before positioning either line.
++            titleTextView.measure(textWidthSpec, MeasureSpec.makeMeasureSpec(dp(32), MeasureSpec.AT_MOST));
++            getSubtitleTextView().measure(textWidthSpec, MeasureSpec.makeMeasureSpec(dp(20), MeasureSpec.AT_MOST));
++        }
+         if (communityItem != null) {
+             communityItem.measure(MeasureSpec.makeMeasureSpec(dp(14), MeasureSpec.EXACTLY), MeasureSpec.makeMeasureSpec(dp(14), MeasureSpec.EXACTLY));
+         }
+@@ -700,7 +710,7 @@
+             starFgItem.measure(MeasureSpec.makeMeasureSpec(dp(20), MeasureSpec.EXACTLY), MeasureSpec.makeMeasureSpec(dp(20), MeasureSpec.EXACTLY));
+         }
+         setMeasuredDimension(width, MeasureSpec.getSize(heightMeasureSpec));
+-        if (lastWidth != -1 && lastWidth != width && lastWidth > width) {
++        if (!nebulaCenteredTitle && lastWidth != -1 && lastWidth != width && lastWidth > width) {
+             fadeOutToLessWidth(lastWidth);
+         }
+         SimpleTextView titleTextLargerCopyView = this.titleTextLargerCopyView.get();
+@@ -770,6 +780,7 @@
+ 
+     private boolean glassMode;
+     private boolean nebulaCenteredTitle;
++    private int nebulaHeaderWidth;
+     private boolean nebulaAvatarHiddenForSavedMessages;
+     private int nebulaAvatarOriginalVisibility = -1;
+ 
+@@ -795,22 +806,31 @@
+         // Длинное имя не влезает в капсулу и обрезалось с двух сторон.
+         // Бегущая строка — родной механизм Telegram для этого случая.
+         titleTextView.setScrollNonFitText(enabled);
+-        if (subtitleTextView != null) subtitleTextView.setGravity(enabled ? Gravity.CENTER : Gravity.LEFT);
+-        if (animatedSubtitleTextView != null) animatedSubtitleTextView.setGravity(enabled ? Gravity.CENTER : Gravity.LEFT);
++        if (subtitleTextView != null) {
++            subtitleTextView.setGravity(enabled ? Gravity.CENTER : Gravity.LEFT);
++            subtitleTextView.setPadding(0, 0, enabled ? 0 : dp(10), 0);
++        }
++        if (animatedSubtitleTextView != null) {
++            animatedSubtitleTextView.setGravity(enabled ? Gravity.CENTER : Gravity.LEFT);
++            animatedSubtitleTextView.setPadding(0, 0, enabled ? 0 : dp(10), 0);
++        }
+         requestLayout();
+     }
+ 
+     /** Shared by text layout, hit testing and the ActionBar's glass bounds. */
+     public int getNebulaCenteredHeaderWidth() {
++        return nebulaHeaderWidth;
++    }
++
++    private int measureNebulaHeaderWidth(int barWidth) {
+         int titleWidth = (int) Math.ceil(titleTextView.getExactWidthIncludeDrawables());
+         View subtitle = getSubtitleTextView();
+         int statusWidth = 0;
+         if (subtitle != null && subtitle.getVisibility() == VISIBLE) {
+             statusWidth = subtitle instanceof SimpleTextView
+                     ? (int) Math.ceil(((SimpleTextView) subtitle).getExactWidthIncludeDrawables())
+-                    : subtitle.getMeasuredWidth();
+-        }
+-        int barWidth = getMeasuredWidth() + dp(12);
++                    : (int) Math.ceil(animatedSubtitleTextView.getDrawable().getAnimateToWidth());
++        }
+         return app.nebulagram.ui.NebulaChatStyle.headerWidth(barWidth, Math.max(titleWidth, statusWidth));
+     }
+ 
+@@ -844,19 +864,11 @@
+             }
+             avatarRight = Math.max(avatarImageView.getMeasuredWidth(), avatarRight);
+             final int avatarLeft = avatarRight - avatarImageView.getMeasuredWidth();
+-            // Ширину ограничиваем капсулой: без этого длинное имя вылезало за
+-            // неё, и бегущая строка шла поверх стекла и по краям экрана. Ниже
+-            // осмысленного минимума не опускаемся: обнулённая капсула прятала
+-            // название целиком.
+-            final int capsule = Math.max(dp(24), getNebulaCenteredHeaderWidth() - dp(40));
+-            final int titleWidth = Math.max(dp(24),
+-                    Math.min(titleTextView.getMeasuredWidth(), capsule));
+-            final int titleLeft = Math.max(dp(4), (getWidth() - titleWidth) / 2);
++            final int titleWidth = titleTextView.getMeasuredWidth();
++            final int titleLeft = (getWidth() - titleWidth) / 2;
+             final View subtitle = getSubtitleTextView();
+-            final int subtitleWidth = subtitle == null ? 0
+-                    : Math.min(subtitle.getMeasuredWidth(), capsule);
+-            final int subtitleLeft = subtitle == null ? titleLeft
+-                    : Math.max(dp(4), (getWidth() - subtitleWidth) / 2);
++            final int subtitleWidth = subtitle == null ? 0 : subtitle.getMeasuredWidth();
++            final int subtitleLeft = (getWidth() - subtitleWidth) / 2;
+             avatarImageView.layout(avatarLeft, 1 + viewTop, avatarLeft + avatarImageView.getMeasuredWidth(),
+                     1 + viewTop + avatarImageView.getMeasuredHeight());
+             if (subtitle != null && subtitle.getVisibility() != GONE) {
+@@ -1823,6 +1835,10 @@
+     }
+ 
+     private void checkActionBar(boolean animated) {
++        if (nebulaCenteredTitle && getMeasuredWidth() > 0
++                && nebulaHeaderWidth != measureNebulaHeaderWidth(getMeasuredWidth() + dp(12))) {
++            requestLayout();
++        }
+         if (actionBar != null) {
+             actionBar.checkAvatarContainerWidth(animated);
+         }

@@ -104,6 +104,11 @@ jobs:
       - name: Prepare the tree
         run: bash scripts/apply-overlay.sh android
 
+      - name: Check chat layout regressions
+        run: |
+          python3 scripts/check-chat-layout.py
+          python3 scripts/check-chat-native.py vendor/telegram-android
+
       - name: Install the credentials
         env:
           TELEGRAM_APP_ID: ${{ secrets.TELEGRAM_APP_ID }}

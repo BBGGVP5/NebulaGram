@@ -23,6 +23,7 @@
 | `0014-main-tabs-swipe.patch` | `MainTabsActivity.java` | `canScrollForward`; `canScrollBackward` | Не даёт жесту открыть отключённую вкладку нижней панели | +5 / −2 |
 | `0034-profile-row.patch` | `SettingsActivity.java` | `fillItems`; обработчик `0x4e43` | Добавляет вход в профиль при скрытой вкладке; иконка `settings_account` на бирюзово-зелёном градиенте как в Cherrygram | +15 / −0 |
 | `0040-chat-reference-layout.patch` | `ActionBar.java; ChatAvatarContainer.java; ChatActivityEnterView.java; ChatInputViewsContainer.java; ChatActivityChannelButtonsLayout.java; ChatActivity.java` | измерение шапки; `dispatchDraw`; создание скрепки; `onLayout`; `updateColors`; `updateBottomOverlay` | Центрирует динамическую плашку и отделяет аватар; разделяет панель ввода, сохраняет скрепку, AI и разворачивание, возвращает акцентную отправку с анимацией Telegram; размещает пересылку и действия канала | +108 / −50 |
+| `0041-chat-rendering-fixes.patch` | `ChatActivity.java; ChatAvatarContainer.java; ChatActivityEnterView.java; ChatAttachAlertPhotoLayout.java` | создание фонов; onMeasure/onLayout; checkActionBar; адаптер и декорация галереи | Независимые RenderNode-фоны, измерение текста по ширине капсулы, компактное меню бота и полное скрытие плитки камеры | +94 / −52 |
 
 Java-файлы находятся в `TMessagesProj/src/main/java/org/telegram/ui/`,
 кроме `ApplicationLoader.java` — он находится в `org/telegram/messenger/`.
@@ -63,7 +64,9 @@ Java-файлы находятся в `TMessagesProj/src/main/java/org/telegram/
 доступ к авторизации.
 
 Панель сообщения не подменяет `ChatActivityEnterView`: новая отрисовка
-разделяет его штатный размытый фон на скрепку, поле ввода и правую кнопку.
+создаёт независимые штатные размытые фоны для скрепки, поля ввода и правой
+кнопки. Каждый фон получает собственный RenderNode через фабрику Telegram;
+его границы и прозрачность сохраняются до воспроизведения кадра.
 AI, разворачивание и закрытие пересылки получают отдельные малые круги,
 которые следуют видимости и анимациям исходных кнопок. При наборе текста
 скрепка остаётся слева, а штатная анимация меняет микрофон на акцентную
@@ -91,8 +94,9 @@ AI, разворачивание и закрытие пересылки полу
 после первого прохода управление возвращается штатному интро Telegram, и наш
 код перестаёт участвовать в этом пути вообще.
 
-Про третий патч: приложение выпускается одним универсальным APK, который
-содержит все ABI из штатного `afat`-флейвора Telegram. Патч только сохраняет
+Про третий патч: приложение выпускается одним APK. На обычный push он
+содержит arm64-v8a, при ручном запуске — все четыре ABI в универсальном файле.
+Один список `NEBULA_ABIS` задаёт архитектуры Telegram и ядра NebulaLink. Патч только сохраняет
 идентификатор NebulaGram и настраиваемую минификацию для подписанного
 `standalone`-варианта; существующие `applicationVariants.all` апстрима не
 меняются.
