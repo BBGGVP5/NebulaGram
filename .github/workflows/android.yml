@@ -109,6 +109,7 @@ jobs:
           python3 scripts/check-chat-layout.py
           python3 scripts/check-navigation.py
           python3 scripts/check-folder-animation.py
+          python3 scripts/check-folder-title-timing.py vendor/telegram-android
           python3 scripts/check-theme-toggle.py
           python3 scripts/check-chat-native.py vendor/telegram-android
 

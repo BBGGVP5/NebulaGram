@@ -1,0 +1,45 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
+@@ -1425,6 +1425,7 @@
+                             viewPages[0].setTranslationX(0);
+                             viewPages[1].setTranslationX(animatingForward ? viewPages[0].getMeasuredWidth() : -viewPages[0].getMeasuredWidth());
+                             filterTabsView.selectTabWithId(viewPages[1].selectedType, 0);
++                            updateNebulaFolderTitle();
+                         }
+                     }
+                     if (maybeStartTracking && !startedTracking) {
+@@ -1490,6 +1491,7 @@
+                         }
+                         float dx;
+                         if (backAnimation) {
++                            updateNebulaFolderTitle();
+                             dx = Math.abs(x);
+                             if (animatingForward) {
+                                 tabsAnimation.playTogether(
+@@ -6805,9 +6807,13 @@
+     }
+ 
+     private void updateNebulaFolderTitle() {
+-        if (statusDrawable != null && viewPages != null && viewPages.length > 0) {
++        updateNebulaFolderTitle(0);
++    }
++
++    private void updateNebulaFolderTitle(int page) {
++        if (statusDrawable != null && viewPages != null && page >= 0 && page < viewPages.length) {
+             app.nebulagram.ui.NebulaDialogsTitle.apply(actionBar, getMessagesController(),
+-                    viewPages[0].selectedType, statusDrawable);
++                    viewPages[page].selectedType, statusDrawable);
+         }
+     }
+ 
+@@ -6821,6 +6827,9 @@
+             return;
+         }
+         MessagesController.DialogFilter filter = getMessagesController().getDialogFilters().get(viewPages[a].selectedType);
++        // Swipe and tab taps update both headers when the transition starts.
++        // A locked folder only rubber-bands and must keep the current title.
++        if (animated) updateNebulaFolderTitle(filter.locked ? 0 : a);
+         if (filter.isDefault()) {
+             viewPages[a].dialogsType = initialDialogsType;
+             viewPages[a].listView.updatePullState();
