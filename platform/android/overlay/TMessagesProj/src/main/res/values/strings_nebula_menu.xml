@@ -12,6 +12,8 @@
     <string name="nl_advanced">Advanced</string>
     <string name="nl_advanced_sub">Latency method, device id and cores</string>
     <string name="nl_all_protocols">All protocols</string>
+    <string name="nl_auto_connect">Connect automatically</string>
+    <string name="nl_auto_connect_sub">Connect to the selected server when Telegram starts</string>
     <string name="nl_auto_ping">Automatic latency check</string>
     <string name="nl_auto_ping_sub">Periodic, always over TCP so the tunnel is never interrupted</string>
     <string name="nl_call_state">Call state</string>
@@ -54,6 +56,7 @@
     <string name="nl_search_sub">By server or source name</string>
     <string name="nl_sec_actions">ACTIONS</string>
     <string name="nl_sec_calls">CALLS</string>
+    <string name="nl_sec_connection">CONNECTION</string>
     <string name="nl_sec_core">CORE</string>
     <string name="nl_sec_servers">SERVERS</string>
     <string name="nl_sec_source">SOURCE AND FILTERS</string>

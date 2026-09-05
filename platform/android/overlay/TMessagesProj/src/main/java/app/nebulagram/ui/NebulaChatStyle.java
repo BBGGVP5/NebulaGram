@@ -14,6 +14,12 @@ import org.telegram.ui.Components.AvatarDrawable;
 public final class NebulaChatStyle {
     private NebulaChatStyle() { }
 
+    /** Outer blur bounds; 6dp of drawable padding surrounds each visible surface. */
+    public static int headerWidth(int barWidth, int textWidth) {
+        return Math.max(0, Math.min(Math.max(AndroidUtilities.dp(112), textWidth + AndroidUtilities.dp(40)),
+                barWidth - AndroidUtilities.dp(128)));
+    }
+
     public static void header(ActionBar bar, boolean normalChat, boolean savedMessages) {
         if (bar != null) {
             boolean enabled = normalChat && NebulaAppearance.chatHeader();

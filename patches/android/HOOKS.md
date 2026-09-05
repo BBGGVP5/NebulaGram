@@ -21,6 +21,8 @@
 | `0026-ios-chat-chrome-repair.patch` | `ChatActivity.java; ChatActivityEnterView.java; ChatAvatarContainer.java; ActionBar.java` | `headerItem`; `onLayout`; `setNebulaCenteredTitle`; `setNebulaFloatingChatHeader` | Переносит знак «Избранного» в правое меню, не даёт iOS-шапке дублировать его рядом с заголовком и раскладывает «Отправить как» рядом с полем | +26 / −6 |
 | `0013-info-pages.patch` | `ProfileActivity.java; ChatEditActivity.java; ChatUsersActivity.java; ThemeActivity.java; SharedMediaLayout.java; SectionsScrollView.java; ProfileActionsView.java` | создание секций и карточек действий | Обновляет экраны информации и редактирования чата без замены адаптеров и обработчиков | +77 / −38 |
 | `0014-main-tabs-swipe.patch` | `MainTabsActivity.java` | `canScrollForward`; `canScrollBackward` | Не даёт жесту открыть отключённую вкладку нижней панели | +5 / −2 |
+| `0034-profile-row.patch` | `SettingsActivity.java` | `fillItems`; обработчик `0x4e43` | Добавляет вход в профиль при скрытой вкладке; иконка `settings_account` на бирюзово-зелёном градиенте как в Cherrygram | +15 / −0 |
+| `0040-chat-reference-layout.patch` | `ActionBar.java; ChatAvatarContainer.java; ChatActivityEnterView.java; ChatInputViewsContainer.java; ChatActivityChannelButtonsLayout.java; ChatActivity.java` | измерение шапки; `dispatchDraw`; создание скрепки; `onLayout`; `updateColors`; `updateBottomOverlay` | Центрирует динамическую плашку и отделяет аватар; разделяет панель ввода, сохраняет скрепку, AI и разворачивание, возвращает акцентную отправку с анимацией Telegram; размещает пересылку и действия канала | +108 / −50 |
 
 Java-файлы находятся в `TMessagesProj/src/main/java/org/telegram/ui/`,
 кроме `ApplicationLoader.java` — он находится в `org/telegram/messenger/`.
@@ -60,11 +62,14 @@ Java-файлы находятся в `TMessagesProj/src/main/java/org/telegram/
 экран. Если апстрим перестроит разметку, это ограничит внешний вид, а не
 доступ к авторизации.
 
-Панель сообщения не подменяет `ChatActivityEnterView`: новая отрисовка лишь
-разделяет его штатный размытый фон на три поверхности и раскладывает уже
-существующие кнопки. Короткое нажатие на микрофон всё ещё переключает видео,
+Панель сообщения не подменяет `ChatActivityEnterView`: новая отрисовка
+разделяет его штатный размытый фон на скрепку, поле ввода и правую кнопку.
+AI, разворачивание и закрытие пересылки получают отдельные малые круги,
+которые следуют видимости и анимациям исходных кнопок. При наборе текста
+скрепка остаётся слева, а штатная анимация меняет микрофон на акцентную
+отправку с самолётиком. Короткое нажатие на микрофон всё ещё переключает видео,
 а удержание, отмена и блокировка записи остаются в исходном обработчике.
-Стиль пропускает запись, редактирование, ботов и другие переходные состояния;
+Стиль пропускает запись, редактирование и расширенный редактор;
 переключатель в «Настройках NebulaGram» возвращает стандартный вид.
 
 Шапка чата не рисует непрозрачный прямоугольник поверх Telegram. Включённый

@@ -141,7 +141,10 @@ func advancedScreen() Screen {
 	return Screen{
 		ID: ScreenAdvanced, TitleKey: "nl_advanced", Title: "Advanced",
 		Sections: []Section{
-			{Rows: []Row{
+			{TitleKey: "nl_sec_connection", Title: "CONNECTION", Rows: []Row{
+				{Key: "auto_connect", Type: RowSwitch, Icon: "refresh",
+					TitleKey: "nl_auto_connect", Title: "Connect automatically",
+					SubtitleKey: "nl_auto_connect_sub", Subtitle: "Connect to the selected server when Telegram starts"},
 				{Key: "mode", Type: RowSelect, Icon: "route", VisibleIf: "vpn_supported",
 					TitleKey: "nl_mode", Title: "Tunnel mode",
 					SubtitleKey: "nl_mode_sub", Subtitle: "Messenger only, or the whole device",

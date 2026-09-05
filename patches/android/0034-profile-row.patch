@@ -10,8 +10,8 @@ index 5eea004e..db74d8b9 100644
 +        // появляется здесь ровно тогда, когда внизу её нет.
 +        if (!app.nebulagram.ui.NebulaBottomBar.tabEnabled(
 +                app.nebulagram.ui.NebulaBottomBar.TAB_PROFILE)) {
-+            items.add(SettingCell.Factory.of(0x4e43, IconBackgroundColors.BLUE.top,
-+                    IconBackgroundColors.BLUE.bottom, R.drawable.msg_openprofile,
++            items.add(SettingCell.Factory.of(0x4e43, 0xFF27B5D2,
++                    0xFF38A244, R.drawable.settings_account,
 +                    getString(R.string.NebulaTabProfile), getString(R.string.NebulaProfileRowSub)));
 +        }
          items.add(UItem.asShadow(null)); // NebulaGram отдельной карточкой

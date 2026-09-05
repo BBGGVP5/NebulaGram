@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -120,7 +121,9 @@ public final class NebulaLink {
         followSystemPalette(context);
         final File directory = new File(context.getFilesDir(), "nebulalink");
 
-        EXECUTOR.execute(() -> {
+        // The application hook precedes Telegram's handler/native initialization.
+        // Enqueue after onCreate returns so proxy cleanup and status events cannot be dropped.
+        new Handler(context.getMainLooper()).post(() -> EXECUTOR.execute(() -> {
             try {
                 JSONObject payload = new JSONObject();
                 payload.put("dir", directory.getAbsolutePath());
@@ -134,21 +137,39 @@ public final class NebulaLink {
                     FileLog.e("NebulaLink: core.init failed: " + result.error);
                     return;
                 }
+                JSONObject settings = result.data == null ? null : result.data.optJSONObject("settings");
+                SharedPreferences preferences = context.getSharedPreferences(PREFS, 0);
+                // Older builds remembered the last connection instead of an explicit choice.
+                boolean previouslyConnected = preferences.getBoolean(KEY_WAS_CONNECTED, false);
+                int previousPort = preferences.getInt(KEY_PROXY_PORT,
+                        previouslyConnected && settings != null ? settings.optInt("socks_port") : 0);
+                AndroidUtilities.runOnUIThread(() -> clearPreviousProxy(previousPort));
+                if (settings != null && preferences.contains(KEY_WAS_CONNECTED)) {
+                    JSONObject migration = new JSONObject();
+                    migration.put("auto_connect", previouslyConnected);
+                    Result migrated = callBlocking("settings.set", migration);
+                    if (migrated.ok && migrated.data != null) {
+                        settings = migrated.data;
+                        preferences.edit().remove(KEY_WAS_CONNECTED).apply();
+                    }
+                }
                 Nebulalink.setEventSink(new EventSink() {
                     @Override
                     public void onEvent(String json) {
                         handleEvent(json);
                     }
                 });
-                if (wasConnected()) {
-                    // Молча: согласие пользователь дал, когда подключался, и
-                    // спрашивать заново на каждом запуске было бы навязчиво.
-                    callBlocking("tunnel.start", null);
+                if (settings != null && settings.optBoolean("auto_connect")
+                        && !settings.optString("selected_server_id").isEmpty()) {
+                    Result started = callBlocking("tunnel.start", null);
+                    if (!started.ok) {
+                        FileLog.e("NebulaLink: automatic connection failed: " + started.error);
+                    }
                 }
             } catch (JSONException e) {
                 FileLog.e(e);
             }
-        });
+        }));
     }
 
     /** Runs a core method and delivers the result on the main thread. */
@@ -184,24 +205,24 @@ public final class NebulaLink {
 
     private static final String PREFS = "nebulagram";
     private static final String KEY_WAS_CONNECTED = "tunnel_was_connected";
+    private static final String KEY_PROXY_PORT = "tunnel_proxy_port";
 
-    /** Был ли туннель поднят, когда приложение в прошлый раз закрылось. */
-    public static boolean wasConnected() {
-        try {
-            return ApplicationLoader.applicationContext
-                    .getSharedPreferences(PREFS, 0).getBoolean(KEY_WAS_CONNECTED, false);
-        } catch (Throwable e) {
-            return false;
+    /** A killed process leaves its SOCKS entry behind, even when startup is disabled. */
+    private static void clearPreviousProxy(int port) {
+        if (port > 0) {
+            boolean routeCalls = callsThroughTunnel();
+            SharedConfig.loadProxyList();
+            for (SharedConfig.ProxyInfo proxy : new ArrayList<>(SharedConfig.proxyList)) {
+                if (PROXY_ADDRESS.equals(proxy.address) && proxy.port == port
+                        && proxy.username.isEmpty() && proxy.password.isEmpty() && proxy.secret.isEmpty()) {
+                    SharedConfig.deleteProxy(proxy);
+                }
+            }
+            // deleteProxy clears this preference as well; keep the user's call routing choice.
+            setCallsThroughTunnel(routeCalls);
         }
-    }
-
-    private static void rememberConnected(boolean value) {
-        try {
-            ApplicationLoader.applicationContext.getSharedPreferences(PREFS, 0)
-                    .edit().putBoolean(KEY_WAS_CONNECTED, value).apply();
-        } catch (Throwable e) {
-            FileLog.e(e);
-        }
+        ApplicationLoader.applicationContext.getSharedPreferences(PREFS, 0)
+                .edit().remove(KEY_PROXY_PORT).apply();
     }
 
     /** Version of the linked core, for the About screen. */
@@ -221,13 +242,6 @@ public final class NebulaLink {
             }
             final String state = status.optString("state");
             final int socksPort = status.optInt("socks_port");
-            // Состояние переживает перезапуск: если процесс убили подключённым,
-            // события "disconnected" не будет — при следующем старте это видно.
-            if ("connected".equals(state)) {
-                rememberConnected(true);
-            } else if ("disconnected".equals(state)) {
-                rememberConnected(false);
-            }
             AndroidUtilities.runOnUIThread(() -> {
                 tunnelStatus = status;
                 if ("connected".equals(state) && socksPort > 0) {
@@ -257,6 +271,8 @@ public final class NebulaLink {
         }
         SharedConfig.currentProxy = proxy;
         installedProxy = proxy;
+        ApplicationLoader.applicationContext.getSharedPreferences(PREFS, 0)
+                .edit().putInt(KEY_PROXY_PORT, socksPort).apply();
 
         SharedPreferences preferences = MessagesController.getGlobalMainSettings();
         SharedPreferences.Editor editor = preferences.edit();
@@ -284,6 +300,8 @@ public final class NebulaLink {
         // proxy. Clearing currentProxy first would resurrect it on the next launch.
         SharedConfig.deleteProxy(installedProxy);
         installedProxy = null;
+        ApplicationLoader.applicationContext.getSharedPreferences(PREFS, 0)
+                .edit().remove(KEY_PROXY_PORT).apply();
         NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.proxySettingsChanged);
     }
 

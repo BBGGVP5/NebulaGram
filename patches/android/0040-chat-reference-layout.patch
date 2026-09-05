@@ -1,0 +1,380 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
+@@ -1556,6 +1556,13 @@
+             if (child.getVisibility() == GONE || child == titleTextView[0] || child == titleTextView[1] || child == additionalSubTitleOverlayContainer || child == subtitleTextView || child == menu || child == backButtonImageView || child == additionalSubtitleTextView || child == avatarSearchImageView) {
+                 continue;
+             }
++            if (child == nebulaChatAvatarContainer && nebulaFloatingChatHeader) {
++                // ChatActivity updates margins during transitions; do not request a
++                // second layout from onMeasure while restoring the island geometry.
++                LayoutParams avatarParams = (LayoutParams) child.getLayoutParams();
++                avatarParams.width = ViewGroup.LayoutParams.MATCH_PARENT;
++                avatarParams.leftMargin = avatarParams.rightMargin = dp(6);
++            }
+             measureChildWithMargins(child, widthMeasureSpec, 0, MeasureSpec.makeMeasureSpec(getMeasuredHeight(), MeasureSpec.EXACTLY), 0);
+         }
+     }
+@@ -2329,8 +2336,7 @@
+                 // The title, subtitle and image have independent places: a
+                 // compact real glass capsule stays centred, while the avatar
+                 // remains a reachable round control at the trailing edge.
+-                final int width = Math.min(widthDefault,
+-                        Math.max(dp(138), centeredNebulaAvatar.getNebulaCenteredHeaderWidth()));
++                final int width = centeredNebulaAvatar.getNebulaCenteredHeaderWidth();
+                 left = (getWidth() - width) / 2;
+                 right = left + width;
+                 centeredNebulaAvatar.setTranslationX(0);
+@@ -2358,7 +2364,15 @@
+             glassDrawableBack.setBounds(0, t, s + p * 2, b);
+             glassDrawableBack.draw(canvas);
+         }
+-        if (glassDrawableMenu != null && menuWidth > 0 && !glassOnlyBack && !doNotDrawGlassMenu) {
++        final boolean separateAvatar = nebulaFloatingChatHeader && nebulaChatMenuHidden
++                && nebulaChatAvatarContainer != null && getActionModeFactor() == 0f && searchFactor == 0f;
++        if (glassDrawableMenu != null && separateAvatar) {
++            if (nebulaChatAvatarContainer.hasVisibleAvatar()) {
++                glassDrawableMenu.setBounds(getWidth() - s - p * 2, t, getWidth(), b);
++                glassDrawableMenu.setAlpha(255);
++                glassDrawableMenu.draw(canvas);
++            }
++        } else if (glassDrawableMenu != null && menuWidth > 0 && !glassOnlyBack && !doNotDrawGlassMenu) {
+             glassDrawableMenu.setBounds(getWidth() - Math.max(s, menuWidth) - p * 2, t, getWidth(), b);
+             glassDrawableMenu.setAlpha(hasForcedMenuWidth ? 255 : (int) (255 * animatorHasMenuItems.getFloatValue()));
+             glassDrawableMenu.draw(canvas);
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
+@@ -8247,6 +8247,7 @@
+         replyCloseImageView.setScaleType(ImageView.ScaleType.CENTER);
+         replyCloseImageView.setBackgroundDrawable(Theme.createSelectorDrawable(getThemedColor(Theme.key_listSelector), 1, AndroidUtilities.dp(19)));
+         chatActivityEnterTopView.addView(replyCloseImageView, LayoutHelper.createFrame(52, 46, Gravity.RIGHT | Gravity.TOP, 0, 0.5f, 0, 0));
++        chatActivityEnterView.nebulaComposerStyle.setPreview(replyLayout, replyCloseImageView);
+         replyCloseImageView.setOnClickListener(v -> {
+             messageSuggestionParams = null;
+             if (fieldPanelShown == 2) {
+@@ -8382,6 +8383,7 @@
+         bottomChannelButtonsLayout.setVisibility(View.INVISIBLE);
+         bottomChannelButtonsLayout.setClipChildren(false);
+         bottomChannelButtonsLayout.setAccentColor(getThemedColor(Theme.key_featuredStickers_addButton));
++        bottomChannelButtonsLayout.setButtonOnClickListener(ChatActivityChannelButtonsLayout.BUTTON_MUTE, v -> toggleMute(true));
+         bottomChannelButtonsLayout.setButtonOnClickListener(ChatActivityChannelButtonsLayout.BUTTON_SEARCH, v -> {
+             openSearchWithText(isSupportedTags() ? "" : null);
+         });
+@@ -8518,6 +8520,12 @@
+         bottomChannelButtonsLayout.getContainer().addView(bottomOverlayChatText, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT, 0));
+         bottomOverlayChatText.setOnClickListener(view -> {
+             if (getParentActivity() == null || pullingDownOffset != 0) {
++                return;
++            }
++            if (hasNebulaDiscussion()) {
++                Bundle discussionArgs = new Bundle();
++                discussionArgs.putLong("chat_id", chatInfo.linked_chat_id);
++                presentFragment(new ChatActivity(discussionArgs));
+                 return;
+             }
+             if (chatMode == MODE_SAVED) {
+@@ -28058,6 +28066,12 @@
+ 
+         bottomOverlayChatText.setTextColorKey(accentTextButton ? Theme.key_featuredStickers_buttonText : Theme.key_glass_defaultText);
+ 
++        boolean separateDiscussion = hasNebulaDiscussion() && bottomChannelButtonsLayout.getVisibility() == View.VISIBLE;
++        bottomChannelButtonsLayout.setDiscussionMode(separateDiscussion,
++                getMessagesController().isDialogMuted(dialog_id, getTopicId()), animated);
++        if (separateDiscussion) {
++            bottomOverlayChatText.setText(LocaleController.getString(R.string.Discussion));
++        }
+         bottomChannelButtonsLayout.setCenterAccentBackground(accentTextButton, animated);
+         bottomChannelButtonsLayout.updateWrappingVisible(animated);
+         bottomChannelButtonsLayout.showButton(ChatActivityChannelButtonsLayout.BUTTON_SEARCH, showSearchButton && bottomChannelButtonsLayout.getVisibility() == View.VISIBLE, animated);
+@@ -28066,6 +28080,12 @@
+         bottomChannelButtonsLayout.showButton(ChatActivityChannelButtonsLayout.BUTTON_GIGA_GROUP_INFO, showGigaGroupButton && bottomChannelButtonsLayout.getVisibility() == View.VISIBLE, animated);
+ 
+         checkRaiseSensors();
++    }
++
++    private boolean hasNebulaDiscussion() {
++        return app.nebulagram.ui.NebulaAppearance.iosComposer() && chatMode == 0
++                && !isThreadChat() && !isComments && ChatObject.isChannelAndNotMegaGroup(currentChat)
++                && !ChatObject.isNotInChat(currentChat) && chatInfo != null && chatInfo.linked_chat_id != 0;
+     }
+ 
+     private boolean shouldDisplaySwipeToLeftToReplyInForum() {
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/chat/ChatInputViewsContainer.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/chat/ChatInputViewsContainer.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Components/chat/ChatInputViewsContainer.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/chat/ChatInputViewsContainer.java
+@@ -270,7 +270,7 @@
+         tmpRect.offset(0, blurTop + (int) bubbleInputTranlationY);
+ 
+         blurredBackgroundDrawable.setBounds(tmpRect);
+-        if (drawInputBackground && (nebulaComposerStyle == null || !nebulaComposerStyle.draw(canvas, blurredBackgroundDrawable)))
++        if (drawInputBackground && (nebulaComposerStyle == null || !nebulaComposerStyle.draw(canvas, blurredBackgroundDrawable, this)))
+             blurredBackgroundDrawable.draw(canvas);
+ 
+         if (needDrawInAppKeyboard) {
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/chat/layouts/ChatActivityChannelButtonsLayout.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/chat/layouts/ChatActivityChannelButtonsLayout.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Components/chat/layouts/ChatActivityChannelButtonsLayout.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/chat/layouts/ChatActivityChannelButtonsLayout.java
+@@ -40,7 +40,8 @@
+     public static final int BUTTON_DIRECT = 2;
+     public static final int BUTTON_GIGA_GROUP_INFO = 3;
+     public static final int BUTTON_RECENT_ACTIONS_INFO = 4;
+-    private static final int BUTTONS_COUNT = 5;
++    public static final int BUTTON_MUTE = 5;
++    private static final int BUTTONS_COUNT = 6;
+ 
+     private final ButtonHolder[] buttonHolders = new ButtonHolder[BUTTONS_COUNT];
+     private final OnClickListener[] onClickListeners = new OnClickListener[BUTTONS_COUNT];
+@@ -55,7 +56,8 @@
+         R.drawable.input_gift_s,
+         R.drawable.input_message,
+         R.drawable.msg_help,
+-        R.drawable.msg_help
++        R.drawable.msg_help,
++        R.drawable.msg_unmute
+     };
+     private static final int[] buttonsOrderLeft = new int[] {
+         BUTTON_SEARCH
+@@ -67,6 +69,30 @@
+         BUTTON_RECENT_ACTIONS_INFO
+     };
+ 
++    private boolean discussionMode;
++    private static final int[] discussionLeft = { BUTTON_MUTE };
++    private static final int[] discussionRight = {
++        BUTTON_SEARCH, BUTTON_GIFT, BUTTON_DIRECT, BUTTON_GIGA_GROUP_INFO, BUTTON_RECENT_ACTIONS_INFO
++    };
++
++    private int[] leftButtons() { return discussionMode ? discussionLeft : buttonsOrderLeft; }
++    private int[] rightButtons() { return discussionMode ? discussionRight : buttonsOrderRight; }
++
++    public void setDiscussionMode(boolean enabled, boolean muted, boolean animated) {
++        if (discussionMode != enabled) {
++            discussionMode = enabled;
++            checkContainerPaddings(true);
++            checkButtonsPositionsAndVisibility();
++            requestLayout();
++        }
++        showButton(BUTTON_MUTE, enabled, animated);
++        if (buttonHolders[BUTTON_MUTE] != null) {
++            buttonHolders[BUTTON_MUTE].button.setIcon(muted ? R.drawable.msg_mute : R.drawable.msg_unmute);
++            buttonHolders[BUTTON_MUTE].button.setContentDescription(getString(muted
++                    ? R.string.ChannelUnmuteNoCaps : R.string.ChannelMuteNoCaps));
++        }
++    }
++
+     private final Theme.ResourcesProvider resourcesProvider;
+     private final BlurredBackgroundDrawableViewFactory blurredBackgroundDrawableViewFactory;
+     private final BlurredBackgroundColorProvider colorProvider;
+@@ -264,7 +290,7 @@
+ 
+     private void checkContainerPaddings(boolean canRequestLayout) {
+         int paddingLeft = dp(7), paddingRight = dp(7);
+-        for (final int buttonId : buttonsOrderLeft) {
++        for (final int buttonId : leftButtons()) {
+             final ButtonHolder holder = buttonHolders[buttonId];
+             if (holder == null) {
+                 continue;
+@@ -272,7 +298,7 @@
+             paddingLeft += holder.visibilityAnimator.getValue() ? dp(44 + 10) : 0;
+         }
+ 
+-        for (final int buttonId : buttonsOrderRight) {
++        for (final int buttonId : rightButtons()) {
+             final ButtonHolder holder = buttonHolders[buttonId];
+             if (holder == null) {
+                 continue;
+@@ -307,7 +333,7 @@
+             holder.button.setScaleY(lerp(0.4f, 1f, visibility));
+         }
+ 
+-        for (final int buttonId : buttonsOrderLeft) {
++        for (final int buttonId : leftButtons()) {
+             final ButtonHolder holder = buttonHolders[buttonId];
+             if (holder == null) {
+                 continue;
+@@ -318,7 +344,7 @@
+             totalWidthLeft += width;
+         }
+ 
+-        for (final int buttonId : buttonsOrderRight) {
++        for (final int buttonId : rightButtons()) {
+             final ButtonHolder holder = buttonHolders[buttonId];
+             if (holder == null) {
+                 continue;
+@@ -330,7 +356,7 @@
+         }
+ 
+         if (totalVisibilityFactor < 1) {
+-            for (final int buttonId : buttonsOrderLeft) {
++            for (final int buttonId : leftButtons()) {
+                 final ButtonHolder holder = buttonHolders[buttonId];
+                 if (holder == null) {
+                     continue;
+@@ -339,7 +365,7 @@
+                 holder.button.setTranslationX(holder.button.getTranslationX() - totalWidthLeft * (1 - totalVisibilityFactor));
+             }
+ 
+-            for (final int buttonId : buttonsOrderRight) {
++            for (final int buttonId : rightButtons()) {
+                 final ButtonHolder holder = buttonHolders[buttonId];
+                 if (holder == null) {
+                     continue;
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
+@@ -2793,20 +2793,15 @@
+                 });
+             }
+ 
+-            attachButton = new ImageView(context) {
+-                @Override
+-                public boolean dispatchTouchEvent(MotionEvent event) {
+-                    if (getAlpha() < 0.5f) return false;
+-                    return super.dispatchTouchEvent(event);
+-                }
+-            };
++            attachButton = new app.nebulagram.ui.NebulaAttachmentButton(context, nebulaComposerStyle);
+             attachButton.setScaleType(ImageView.ScaleType.CENTER);
+             attachButton.setColorFilter(new PorterDuffColorFilter(getThemedColor(Theme.key_glass_defaultIcon), PorterDuff.Mode.MULTIPLY));
+             attachButton.setImageResource(R.drawable.msg_input_attach2);
+             attachButton.setBackground(Theme.createSelectorDrawable(getThemedColor(Theme.key_listSelector)));
+             messageEditTextContainer.addView(attachButton, LayoutHelper.createFrame(DEFAULT_HEIGHT, DEFAULT_HEIGHT, Gravity.BOTTOM | Gravity.RIGHT));
+             attachButton.setOnClickListener(v -> {
+-                if (adjustPanLayoutHelper != null && adjustPanLayoutHelper.animationInProgress() || attachLayoutPaddingAlpha == 0f) {
++                if (adjustPanLayoutHelper != null && adjustPanLayoutHelper.animationInProgress()
++                        || attachLayoutPaddingAlpha == 0f && !nebulaComposerStyle.isActive()) {
+                     return;
+                 }
+                 delegate.didPressAttachButton();
+@@ -8092,7 +8087,8 @@
+             } else {
+                 color = getThemedColor(Theme.key_chat_messagePanelSend);
+             }
+-            boolean captionNearAttach = messageEditText != null && (!TextUtils.isEmpty(messageEditText.getCaption()) || messageEditText.isNearRightCaption(dp(DEFAULT_HEIGHT))) || LocaleController.isRTL;
++            boolean captionNearAttach = !nebulaComposerStyle.isActive() && (messageEditText != null
++                    && (!TextUtils.isEmpty(messageEditText.getCaption()) || messageEditText.isNearRightCaption(dp(DEFAULT_HEIGHT))) || LocaleController.isRTL);
+ 
+             if (color != sendButtonBackgroundColor) {
+                 sendButtonBackgroundColor = color;
+@@ -14507,7 +14503,7 @@
+     @Override
+     protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
+         super.onLayout(changed, left, top, right, bottom);
+-        nebulaComposerStyle.layout(emojiButton, attachButton, senderSelectView, sendButtonContainer, aiButton);
++        nebulaComposerStyle.layout(emojiButton, attachButton, senderSelectView, aiButton, richButton);
+         if (botCommandLastPosition != -1 && botCommandsMenuContainer != null) {
+             LinearLayoutManager layoutManager = (LinearLayoutManager) botCommandsMenuContainer.listView.getLayoutManager();
+             if (layoutManager != null) {
+@@ -15343,12 +15339,7 @@
+         private int drawableColor;
+ 
+         public void updateColors() {
+-            // В нашем оформлении кнопка отправки — такой же стеклянный кружок,
+-            // как микрофон рядом: цветного пятна под самолётиком быть не должно.
+-            final boolean mono = isNewDesignSendButton
+-                    && app.nebulagram.ui.NebulaComposerStyle.monochrome();
+-            int color = mono ? Theme.getColor(Theme.key_glass_defaultIcon, resourcesProvider)
+-                    : isNewDesignSendButton ? Color.WHITE : Theme.getColor(Theme.key_chat_messagePanelSend, resourcesProvider);
++            int color = isNewDesignSendButton ? Color.WHITE : Theme.getColor(Theme.key_chat_messagePanelSend, resourcesProvider);
+             if (color != drawableColor) {
+                 drawableColor = color;
+                 drawable.setColorFilter(new PorterDuffColorFilter(color, PorterDuff.Mode.SRC_IN));
+@@ -15356,9 +15347,7 @@
+                 inactiveDrawable.setColorFilter(new PorterDuffColorFilter(Color.argb(0xb4, Color.red(c), Color.green(c), Color.blue(c)), PorterDuff.Mode.SRC_IN));
+                 drawableInverse.setColorFilter(new PorterDuffColorFilter(Theme.getColor(Theme.key_chat_messagePanelVoicePressed, resourcesProvider), PorterDuff.Mode.SRC_IN));
+             }
+-            if (mono) {
+-                backgroundPaint.setColor(Color.TRANSPARENT);
+-            } else if (isNewDesignSendButton) {
++            if (isNewDesignSendButton) {
+                 backgroundPaint.setColor(Theme.getColor(Theme.key_chat_messagePanelSend, resourcesProvider));
+             } else if (shouldDrawBackground()) {
+                 backgroundPaint.setColor(getFillColor());
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarContainer.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarContainer.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarContainer.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarContainer.java
+@@ -457,6 +457,19 @@
+     public boolean ignoreTouches;
+     @Override
+     public boolean dispatchTouchEvent(MotionEvent ev) {
++        if (nebulaCenteredTitle && ev.getActionMasked() == MotionEvent.ACTION_DOWN) {
++            float x = ev.getX();
++            float y = ev.getY();
++            int capsuleWidth = getNebulaCenteredHeaderWidth() - dp(12);
++            float capsuleLeft = (getWidth() - capsuleWidth) / 2f;
++            boolean inTitle = x >= capsuleLeft && x <= capsuleLeft + capsuleWidth
++                    && y >= titleTextView.getTop() - dp(6)
++                    && y <= titleTextView.getTop() + dp(46);
++            boolean inAvatar = avatarImageView.getVisibility() == VISIBLE
++                    && x >= avatarImageView.getLeft() - dp(2) && x <= avatarImageView.getRight() + dp(2)
++                    && y >= avatarImageView.getTop() - dp(2) && y <= avatarImageView.getBottom() + dp(2);
++            if (!inTitle && !inAvatar) return false;
++        }
+         if (ignoreTouches) return false;
+         return super.dispatchTouchEvent(ev);
+     }
+@@ -664,9 +677,9 @@
+     @Override
+     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+         final int width = MeasureSpec.getSize(widthMeasureSpec);
+-        final int availableWidth = width - dp(nebulaCenteredTitle
+-                ? (avatarImageView.getVisibility() == VISIBLE ? 112 : 48)
+-                : (avatarImageView.getVisibility() == VISIBLE ? 54 : 16));
++        final int availableWidth = nebulaCenteredTitle
++                ? Math.max(0, width - dp(156))
++                : width - dp(avatarImageView.getVisibility() == VISIBLE ? 54 : 16);
+         avatarImageView.measure(MeasureSpec.makeMeasureSpec(dp(avatarSizeInDp) - 2, MeasureSpec.EXACTLY), MeasureSpec.makeMeasureSpec(dp(avatarSizeInDp) - 2, MeasureSpec.EXACTLY));
+         titleTextView.measure(MeasureSpec.makeMeasureSpec(availableWidth, MeasureSpec.AT_MOST), MeasureSpec.makeMeasureSpec(dp(24 + 8), MeasureSpec.AT_MOST));
+         if (subtitleTextView != null) {
+@@ -787,22 +800,18 @@
+         requestLayout();
+     }
+ 
+-    /** The compact glass capsule contains text only; the avatar has its own circle. */
++    /** Shared by text layout, hit testing and the ActionBar's glass bounds. */
+     public int getNebulaCenteredHeaderWidth() {
+-        // Значок «без звука» Telegram рисует за текстом, и в точную ширину
+-        // текста он не входит. Берём заодно измеренную ширину — она значок
+-        // учитывает, иначе капсула срезала его вместе с последней буквой.
+-        int title = Math.max((int) Math.ceil(titleTextView.getExactWidthIncludeDrawables()),
+-                titleTextView.getMeasuredWidth());
++        int titleWidth = (int) Math.ceil(titleTextView.getExactWidthIncludeDrawables());
+         View subtitle = getSubtitleTextView();
+-        int status = subtitle != null && subtitle.getVisibility() == VISIBLE ? subtitle.getMeasuredWidth() : 0;
+-        // Капсула должна облегать содержимое, а не тянуться во всю ширину.
+-        // Раньше её раздувала длинная подпись вроде «476.4K подписчиков»,
+-        // и заголовок болтался в пустоте. Ограничиваем долей экрана: что
+-        // не поместилось, доедет бегущей строкой.
+-        final int content = Math.max(title, status) + dp(28);
+-        final int cap = (int) (AndroidUtilities.displaySize.x * 0.58f);
+-        return Math.max(dp(112), Math.min(content, cap));
++        int statusWidth = 0;
++        if (subtitle != null && subtitle.getVisibility() == VISIBLE) {
++            statusWidth = subtitle instanceof SimpleTextView
++                    ? (int) Math.ceil(((SimpleTextView) subtitle).getExactWidthIncludeDrawables())
++                    : subtitle.getMeasuredWidth();
++        }
++        int barWidth = getMeasuredWidth() + dp(12);
++        return app.nebulagram.ui.NebulaChatStyle.headerWidth(barWidth, Math.max(titleWidth, statusWidth));
+     }
+ 
+     public void setGlassMode() {
+@@ -829,7 +838,7 @@
+             // проходе разметки, пока родитель ещё нулевой ширины, выдавал
+             // отрицательные координаты: аватарка укладывалась задом наперёд
+             // и пропадала, а название теряло ширину и исчезало совсем.
+-            int avatarRight = getWidth();
++            int avatarRight = getWidth() - dp(2);
+             if (getParent() instanceof ActionBar) {
+                 avatarRight -= ((ActionBar) getParent()).getNebulaChatAvatarTrailingInset();
+             }
+@@ -839,7 +848,7 @@
+             // неё, и бегущая строка шла поверх стекла и по краям экрана. Ниже
+             // осмысленного минимума не опускаемся: обнулённая капсула прятала
+             // название целиком.
+-            final int capsule = Math.max(dp(80), getNebulaCenteredHeaderWidth() - dp(24));
++            final int capsule = Math.max(dp(24), getNebulaCenteredHeaderWidth() - dp(40));
+             final int titleWidth = Math.max(dp(24),
+                     Math.min(titleTextView.getMeasuredWidth(), capsule));
+             final int titleLeft = Math.max(dp(4), (getWidth() - titleWidth) / 2);

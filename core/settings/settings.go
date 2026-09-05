@@ -46,6 +46,7 @@ type Settings struct {
 	AutoPingMin int      `json:"auto_ping_min,omitempty"`
 
 	// Behaviour.
+	AutoConnect     bool `json:"auto_connect"`
 	RefreshOnStart  bool `json:"refresh_on_start"`
 	SwitchOnFailure bool `json:"switch_on_failure"`
 	RouteCalls      bool `json:"route_calls"`

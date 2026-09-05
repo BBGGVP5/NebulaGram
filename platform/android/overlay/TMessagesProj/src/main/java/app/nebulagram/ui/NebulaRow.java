@@ -17,6 +17,7 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 
 import org.telegram.messenger.AndroidUtilities;
+import org.telegram.messenger.Emoji;
 
 /**
  * One line of a NebulaLink screen, in the Material 3 list-item shape: a rounded
@@ -38,6 +39,8 @@ public class NebulaRow extends FrameLayout {
     private final TextView subtitle;
     private final ImageView icon;
     private final LinearLayout text;
+    private TextView emojiIcon;
+    private TextView badge;
     private NebulaSwitch toggle;
 
     public NebulaRow(@NonNull Context context) {
@@ -85,12 +88,15 @@ public class NebulaRow extends FrameLayout {
         LayoutParams textParams = new LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         textParams.gravity = Gravity.CENTER_VERTICAL;
-        textParams.leftMargin = AndroidUtilities.dp(64);
-        textParams.rightMargin = AndroidUtilities.dp(36);
+        textParams.setMarginStart(AndroidUtilities.dp(64));
+        textParams.setMarginEnd(AndroidUtilities.dp(36));
         addView(text, textParams);
     }
 
     public NebulaRow icon(int resource) {
+        if (emojiIcon != null) {
+            emojiIcon.setVisibility(GONE);
+        }
         if (resource == 0) {
             icon.setVisibility(GONE);
         } else {
@@ -98,6 +104,69 @@ public class NebulaRow extends FrameLayout {
             icon.setImageResource(resource);
         }
         return this;
+    }
+
+    /** Country emoji keeps its colours instead of inheriting the icon tint. */
+    public NebulaRow emojiIcon(String flag) {
+        if (flag == null || flag.isEmpty()) {
+            return this;
+        }
+        icon.setVisibility(GONE);
+        if (emojiIcon == null) {
+            emojiIcon = new TextView(getContext());
+            emojiIcon.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 25);
+            emojiIcon.setGravity(Gravity.CENTER);
+            emojiIcon.setIncludeFontPadding(false);
+            emojiIcon.setImportantForAccessibility(IMPORTANT_FOR_ACCESSIBILITY_NO);
+            emojiIcon.setBackground(icon.getBackground());
+            LayoutParams params = new LayoutParams(AndroidUtilities.dp(40), AndroidUtilities.dp(40));
+            params.gravity = Gravity.CENTER_VERTICAL | Gravity.START;
+            addView(emojiIcon, params);
+        }
+        emojiIcon.setVisibility(VISIBLE);
+        emojiIcon.setText(Emoji.replaceEmoji(flag, emojiIcon.getPaint().getFontMetricsInt(), false));
+        return this;
+    }
+
+    /** A compact value at the end, with space reserved from its measured width. */
+    public NebulaRow badge(CharSequence value, int color) {
+        if (badge == null) {
+            badge = new TextView(getContext());
+            badge.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 12);
+            badge.setTypeface(AndroidUtilities.bold());
+            badge.setSingleLine();
+            badge.setGravity(Gravity.CENTER);
+            badge.setPadding(AndroidUtilities.dp(9), AndroidUtilities.dp(5),
+                    AndroidUtilities.dp(9), AndroidUtilities.dp(5));
+            LayoutParams params = new LayoutParams(
+                    ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+            params.gravity = Gravity.CENTER_VERTICAL | Gravity.END;
+            addView(badge, params);
+        }
+        badge.setText(value);
+        badge.setTextColor(color);
+        GradientDrawable background = new GradientDrawable();
+        background.setCornerRadius(AndroidUtilities.dp(10));
+        background.setColor(NebulaTheme.stateLayer(color, 0.14f));
+        badge.setBackground(background);
+        return this;
+    }
+
+    public NebulaRow selection(boolean selected) {
+        setSelected(selected);
+        setBackgroundColor(selected ? NebulaTheme.stateLayer(theme.primary(), 0.08f) : 0);
+        title.setTextColor(selected ? theme.primary() : theme.onSurface());
+        return this;
+    }
+
+    @Override
+    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+        if (badge != null) {
+            measureChildWithMargins(badge, widthMeasureSpec, 0, heightMeasureSpec, 0);
+            LayoutParams params = (LayoutParams) text.getLayoutParams();
+            params.setMarginEnd(badge.getMeasuredWidth() + AndroidUtilities.dp(12));
+        }
+        super.onMeasure(widthMeasureSpec, heightMeasureSpec);
     }
 
     public NebulaRow title(CharSequence value) {
@@ -151,7 +220,7 @@ public class NebulaRow extends FrameLayout {
             // в 36dp текст заезжал под него на треть — отсюда обрезанные
             // подписи во всех наших списках. Считаем от его настоящей ширины.
             LayoutParams textParams = (LayoutParams) text.getLayoutParams();
-            textParams.rightMargin = AndroidUtilities.dp(64);
+            textParams.setMarginEnd(AndroidUtilities.dp(64));
             text.setLayoutParams(textParams);
             toggle = new NebulaSwitch(getContext());
             LayoutParams params = new LayoutParams(

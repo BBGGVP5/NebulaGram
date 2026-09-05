@@ -37,7 +37,9 @@
     <string name="NebulaProbeSub">Измерить задержку до каждого сервера</string>
     <string name="NebulaNoServers">Серверов пока нет. Добавьте подписку или ключ.</string>
     <string name="NebulaShownOf">Показано %1$d из %2$d</string>
-    <string name="NebulaSelected">Выбран</string>
+    <string name="NebulaSelected">Для подключения</string>
+    <string name="NebulaNoReply">Нет ответа</string>
+    <string name="NebulaLatencyUnknown">—</string>
     <string name="NebulaMs">мс</string>
     <string name="NebulaTabChats">Чаты</string>
     <string name="NebulaTabContacts">Контакты</string>

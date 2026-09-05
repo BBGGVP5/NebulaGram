@@ -211,11 +211,13 @@ public class NebulaServersFragment extends BaseFragment {
 
     private View buildRow(Context context, JSONObject server) {
         String id = server.optString("id");
-        String label = NebulaLinkRow.serverLabel(server);
+        NebulaServerLabel label = new NebulaServerLabel(server.optString("name"),
+                server.optString("address"), server.optString("flag"));
 
         NebulaRow row = new NebulaRow(context)
                 .icon(R.drawable.msg_language)
-                .title(label.isEmpty() ? server.optString("address") : label);
+                .emojiIcon(label.flag)
+                .title(label.title);
 
         boolean selected = !id.isEmpty() && id.equals(selectedId);
         JSONObject status = NebulaLink.status();
@@ -223,25 +225,27 @@ public class NebulaServersFragment extends BaseFragment {
         boolean connected = active != null && "connected".equals(status.optString("state"))
                 && id.equals(active.optString("id")) && NebulaLink.isRoutingThroughTunnel();
         row.subtitle(describe(server, selected, connected), selected);
+        row.selection(selected);
         if (connected) {
             row.connected(true);
         }
+        NebulaTheme theme = NebulaTheme.of(context);
+        int latency = server.optInt("latency_ms");
+        String latencyLabel = latency > 0
+                ? latency + " " + LocaleController.getString(R.string.NebulaMs)
+                : LocaleController.getString(latency < 0 ? R.string.NebulaNoReply : R.string.NebulaLatencyUnknown);
+        int latencyColor = latency < 0 ? (theme.isDark() ? 0xFFFFB4AB : 0xFFBA1A1A)
+                : latency > 0 && latency < 300 ? theme.success() : theme.onSurfaceVariant();
+        row.badge(latencyLabel, latencyColor);
         row.withClick(v -> select(id));
         return row;
     }
 
-    /** "Выбран · 120 мс · VLESS" — состояние, скорость, протокол, в этом порядке. */
+    /** Latency lives in the trailing badge; the subtitle names protocol and state. */
     private String describe(JSONObject server, boolean selected, boolean connected) {
         StringBuilder line = new StringBuilder();
         if (connected || selected) {
             line.append(LocaleController.getString(connected ? R.string.NebulaConnected : R.string.NebulaSelected));
-        }
-        int latency = server.optInt("latency_ms");
-        if (latency > 0) {
-            if (line.length() > 0) {
-                line.append(" · ");
-            }
-            line.append(latency).append(" ").append(LocaleController.getString(R.string.NebulaMs));
         }
         String protocol = server.optString("protocol");
         if (!protocol.isEmpty()) {

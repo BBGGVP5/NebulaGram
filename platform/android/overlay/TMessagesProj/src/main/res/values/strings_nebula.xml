@@ -44,7 +44,9 @@
     <string name="NebulaProbeSub">Measure the delay to every server</string>
     <string name="NebulaNoServers">No servers yet. Add a subscription or a key.</string>
     <string name="NebulaShownOf">Showing %1$d of %2$d</string>
-    <string name="NebulaSelected">Selected</string>
+    <string name="NebulaSelected">For connection</string>
+    <string name="NebulaNoReply">No reply</string>
+    <string name="NebulaLatencyUnknown">—</string>
     <string name="NebulaMs">ms</string>
     <string name="NebulaTabChats">Chats</string>
     <string name="NebulaTabContacts">Contacts</string>

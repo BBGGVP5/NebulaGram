@@ -12,6 +12,8 @@
     <string name="nl_advanced">Дополнительно</string>
     <string name="nl_advanced_sub">Способ замера, идентификатор и ядра</string>
     <string name="nl_all_protocols">Все протоколы</string>
+    <string name="nl_auto_connect">Автоподключение</string>
+    <string name="nl_auto_connect_sub">Подключаться к выбранному серверу при запуске Telegram</string>
     <string name="nl_auto_ping">Автопроверка задержки</string>
     <string name="nl_auto_ping_sub">Периодически и всегда по TCP, чтобы не рвать соединение</string>
     <string name="nl_call_state">Состояние звонков</string>
@@ -54,6 +56,7 @@
     <string name="nl_search_sub">По имени сервера или источника</string>
     <string name="nl_sec_actions">ДЕЙСТВИЯ</string>
     <string name="nl_sec_calls">ЗВОНКИ</string>
+    <string name="nl_sec_connection">ПОДКЛЮЧЕНИЕ</string>
     <string name="nl_sec_core">ЯДРО</string>
     <string name="nl_sec_servers">СЕРВЕРЫ</string>
     <string name="nl_sec_source">ИСТОЧНИК И ФИЛЬТРЫ</string>

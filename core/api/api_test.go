@@ -78,6 +78,48 @@ func TestSettingsSetIsPartial(t *testing.T) {
 	}
 }
 
+func TestAutoConnectSurvivesRestartAndManualStop(t *testing.T) {
+	dir := t.TempDir()
+	initPayload, _ := json.Marshal(initRequest{Dir: dir, OS: "Android"})
+	c := New()
+	call(t, c, "core.init", string(initPayload))
+	readSettings := func() settings.Settings {
+		t.Helper()
+		var cfg settings.Settings
+		if err := json.Unmarshal(call(t, c, "settings.get", ""), &cfg); err != nil {
+			t.Fatal(err)
+		}
+		return cfg
+	}
+	if readSettings().AutoConnect {
+		t.Fatal("new installations must opt in to automatic connection")
+	}
+	call(t, c, "server.addLink", `{"link":"vless://uuid@fi.example.com:443#Finland"}`)
+	selected := readSettings().SelectedServerID
+	if selected == "" {
+		t.Fatal("the startup server must be saved")
+	}
+	for _, enabled := range []bool{true, false} {
+		payload, _ := json.Marshal(map[string]bool{"auto_connect": enabled})
+		call(t, c, "settings.set", string(payload))
+		call(t, c, "settings.set", `{"server_sort":"latency"}`)
+		call(t, c, "tunnel.stop", "")
+		c = New()
+		var initialized struct {
+			Settings settings.Settings `json:"settings"`
+		}
+		if err := json.Unmarshal(call(t, c, "core.init", string(initPayload)), &initialized); err != nil {
+			t.Fatal(err)
+		}
+		if initialized.Settings.AutoConnect != enabled || initialized.Settings.SelectedServerID != selected {
+			t.Fatalf("startup settings lost after restart: %+v", initialized.Settings)
+		}
+		if got := readSettings(); got.AutoConnect != enabled || got.SelectedServerID != selected {
+			t.Fatalf("settings.get disagrees with startup: %+v", got)
+		}
+	}
+}
+
 func TestAddLinkSelectAndList(t *testing.T) {
 	c := newCore(t)
 	links := "vless://uuid@de.example.com:443?type=tcp&security=tls#DE\n" +
