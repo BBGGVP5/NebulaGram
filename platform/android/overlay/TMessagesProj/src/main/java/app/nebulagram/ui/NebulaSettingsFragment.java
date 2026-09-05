@@ -24,6 +24,8 @@ import org.telegram.ui.ActionBar.BaseFragment;
 public class NebulaSettingsFragment extends BaseFragment {
 
     private LinearLayout content;
+    private FrameLayout root;
+    private int paletteSurface, palettePrimary;
 
     @Override
     public View createView(Context context) {
@@ -44,7 +46,9 @@ public class NebulaSettingsFragment extends BaseFragment {
             }
         });
 
-        FrameLayout root = new FrameLayout(context);
+        root = new FrameLayout(context);
+        paletteSurface = theme.surface();
+        palettePrimary = theme.primary();
         root.setBackgroundColor(theme.surface());
 
         ScrollView scroll = new ScrollView(context);
@@ -94,6 +98,21 @@ public class NebulaSettingsFragment extends BaseFragment {
                 R.string.NebulaSectionAbout, R.string.NebulaAboutSub,
                 NebulaSectionFragment.SECTION_ABOUT));
         content.addView(sections, cardParams());
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        if (root == null) return;
+        NebulaTheme theme = NebulaTheme.of(root.getContext());
+        if (paletteSurface == theme.surface() && palettePrimary == theme.primary()) return;
+        paletteSurface = theme.surface();
+        palettePrimary = theme.primary();
+        root.setBackgroundColor(theme.surface());
+        actionBar.setBackgroundColor(theme.surface());
+        actionBar.setTitleColor(theme.onSurface());
+        actionBar.setItemsColor(theme.onSurface(), false);
+        build(root.getContext());
     }
 
     private NebulaRow section(Context context, int icon, int title, int subtitle, int id) {

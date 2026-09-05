@@ -111,7 +111,7 @@ public class NebulaSwitch extends View {
         if (progress < 1f) {
             paint.setStyle(Paint.Style.STROKE);
             paint.setStrokeWidth(Math.max(1, AndroidUtilities.dp(2)));
-            paint.setColor(withAlpha(theme.outline(), 1f - progress));
+            paint.setColor(withAlpha(theme.onSurfaceVariant(), 1f - progress));
             float inset = paint.getStrokeWidth() / 2f;
             track.set(inset, inset, width - inset, height - inset);
             canvas.drawRoundRect(track, radius, radius, paint);
@@ -125,7 +125,7 @@ public class NebulaSwitch extends View {
         float right = width - margin - thumb / 2f;
         float centerX = left + (right - left) * progress;
 
-        paint.setColor(blend(theme.outline(), theme.onPrimary(), progress));
+        paint.setColor(blend(theme.onSurfaceVariant(), theme.onPrimary(), progress));
         canvas.drawCircle(centerX, height / 2f, thumb / 2f, paint);
     }
 

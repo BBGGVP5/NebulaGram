@@ -39,6 +39,9 @@ public class NebulaSectionFragment extends BaseFragment {
 
     private final int section;
     private LinearLayout content;
+    private FrameLayout root;
+    private ScrollView scroll;
+    private int paletteSurface, palettePrimary;
     /** Превью раздела: их перерисовываем после каждого переключателя. */
     private final List<NebulaPreview> previews = new ArrayList<>();
 
@@ -49,6 +52,8 @@ public class NebulaSectionFragment extends BaseFragment {
     @Override
     public View createView(Context context) {
         NebulaTheme theme = NebulaTheme.of(context);
+        paletteSurface = theme.surface();
+        palettePrimary = theme.primary();
 
         actionBar.setBackButtonImage(R.drawable.ic_ab_back);
         actionBar.setAllowOverlayTitle(true);
@@ -65,10 +70,10 @@ public class NebulaSectionFragment extends BaseFragment {
             }
         });
 
-        FrameLayout root = new FrameLayout(context);
+        root = new FrameLayout(context);
         root.setBackgroundColor(theme.surface());
 
-        ScrollView scroll = new ScrollView(context);
+        scroll = new ScrollView(context);
         scroll.setVerticalScrollBarEnabled(false);
         root.addView(scroll, new FrameLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
@@ -103,6 +108,7 @@ public class NebulaSectionFragment extends BaseFragment {
     private void build(Context context, NebulaTheme theme) {
         content.removeAllViews();
         previews.clear();
+        composerPreview = null;
         switch (section) {
             case SECTION_CHATS:
                 buildChats(context);
@@ -136,6 +142,7 @@ public class NebulaSectionFragment extends BaseFragment {
                     value -> {
                         NebulaTheme.setMaterialYouEnabled(value);
                         NebulaTheme.applyMaterialYou(context);
+                        refreshPalette();
                     }));
         }
         card.add(toggle(context, R.drawable.msg_edit,
@@ -169,7 +176,7 @@ public class NebulaSectionFragment extends BaseFragment {
     private void buildChats(Context context) {
         content.addView(NebulaCard.header(context,
                 LocaleController.getString(R.string.NebulaChatHeaderSection)));
-        content.addView(preview(context, NebulaPreview.KIND_HEADER));
+        content.addView(headerPreview(context));
         NebulaCard header = new NebulaCard(context);
         header.add(toggle(context, R.drawable.msg_customize,
                 R.string.NebulaFloatingHeader, R.string.NebulaFloatingHeaderInfo,
@@ -178,7 +185,8 @@ public class NebulaSectionFragment extends BaseFragment {
 
         content.addView(NebulaCard.header(context,
                 LocaleController.getString(R.string.NebulaComposerSection)));
-        content.addView(preview(context, NebulaPreview.KIND_COMPOSER));
+        composerPreview = new NebulaComposerPreview(context);
+        content.addView(composerPreview);
         NebulaCard composer = new NebulaCard(context);
         composer.add(toggle(context, R.drawable.msg_edit,
                 R.string.NebulaIosComposer, R.string.NebulaIosComposerInfo,
@@ -340,8 +348,8 @@ public class NebulaSectionFragment extends BaseFragment {
         return row;
     }
 
-    private View preview(Context context, int kind) {
-        NebulaPreview view = new NebulaPreview(context, kind);
+    private View headerPreview(Context context) {
+        NebulaPreview view = new NebulaPreview(context);
         previews.add(view);
         LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
@@ -352,9 +360,39 @@ public class NebulaSectionFragment extends BaseFragment {
     }
 
     private void refreshPreviews() {
+        if (composerPreview != null) composerPreview.refresh();
         for (NebulaPreview view : previews) {
             view.refresh();
         }
+    }
+
+    private NebulaComposerPreview composerPreview;
+
+    private void refreshPalette() {
+        if (root == null || content == null) return;
+        int y = scroll.getScrollY();
+        NebulaTheme theme = NebulaTheme.of(root.getContext());
+        paletteSurface = theme.surface();
+        palettePrimary = theme.primary();
+        root.setBackgroundColor(theme.surface());
+        actionBar.setBackgroundColor(theme.surface());
+        actionBar.setTitleColor(theme.onSurface());
+        actionBar.setItemsColor(theme.onSurface(), false);
+        build(root.getContext(), theme);
+        scroll.post(() -> scroll.scrollTo(0, y));
+    }
+
+    @Override
+    public boolean isLightStatusBar() {
+        return !NebulaTheme.of(getContext()).isDark();
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        if (root == null) return;
+        NebulaTheme theme = NebulaTheme.of(root.getContext());
+        if (paletteSurface != theme.surface() || palettePrimary != theme.primary()) refreshPalette();
     }
 
     private LinearLayout.LayoutParams cardParams() {

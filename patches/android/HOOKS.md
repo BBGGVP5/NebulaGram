@@ -26,6 +26,7 @@
 | `0041-chat-rendering-fixes.patch` | `ChatActivity.java; ChatAvatarContainer.java; ChatActivityEnterView.java; ChatAttachAlertPhotoLayout.java` | создание фонов; onMeasure/onLayout; checkActionBar; адаптер и декорация галереи | Независимые RenderNode-фоны, измерение текста по ширине капсулы, компактное меню бота и полное скрытие плитки камеры | +94 / −52 |
 | `0042-header-profile-folder-colors.patch` | `ActionBar.java; SimpleTextView.java; ChatAvatarContainer.java; ChatActivity.java; DialogsActivity.java; DialogStoriesCell.java; ProfileActivity.java` | измерение/рисование; ThemeDelegate; завершение свайпа; фон профиля | Центрирует премиум-эмодзи, сохраняет скрытие меню, исправляет контраст, выводит названия папок штатным текстом и продлевает баннер под действия | +45 / −18 |
 | `0043-package-selected-abis.patch` | `TMessagesProj_AppStandalone/build.gradle` | afat.ndk.abiFilters | Применяет общий список архитектур и к нативным библиотекам из AAR-зависимостей при упаковке APK | +3 / −1 |
+| `0044-tab-avatar-alignment.patch` | `GlassTabView.java` | createAvatar; nebulaApplyLabel | Применяет положение значка без подписи к видимой аватарке вкладки, включая превью навигации | +2 / −2 |
 
 Java-файлы находятся в `TMessagesProj/src/main/java/org/telegram/ui/`,
 кроме `ApplicationLoader.java` — он находится в `org/telegram/messenger/`.

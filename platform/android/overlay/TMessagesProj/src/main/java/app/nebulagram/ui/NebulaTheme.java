@@ -63,11 +63,13 @@ public final class NebulaTheme {
     }
 
     private final boolean dark;
+    private final boolean dynamic;
     private final Context context;
 
     private NebulaTheme(Context context, boolean dark) {
         this.context = context;
         this.dark = dark;
+        this.dynamic = supportsDynamic() && materialYouEnabled();
     }
 
     /**
@@ -95,7 +97,7 @@ public final class NebulaTheme {
     }
 
     public boolean isDynamic() {
-        return supportsDynamic() && materialYouEnabled();
+        return dynamic;
     }
 
     public int primary() {
@@ -214,8 +216,10 @@ public final class NebulaTheme {
             // невозможно — цвет обоев уже сохранён в теме, и возвращать нечего.
             SharedPreferences prefs =
                     ApplicationLoader.applicationContext.getSharedPreferences(PREFS, 0);
-            if (!prefs.contains(KEY_SAVED_ACCENT)) {
-                prefs.edit().putInt(KEY_SAVED_ACCENT, current.accentColor).apply();
+            String backup = accentBackupKey(active, current);
+            if (!prefs.contains(backup)) {
+                prefs.edit().putInt(backup, prefs.getInt(KEY_SAVED_ACCENT, current.accentColor))
+                        .remove(KEY_SAVED_ACCENT).apply();
             }
             current.accentColor = accent;
             // Сохраняем, а не только держим в памяти: при запуске из
@@ -252,6 +256,7 @@ public final class NebulaTheme {
         SharedPreferences prefs =
                 ApplicationLoader.applicationContext.getSharedPreferences(PREFS, 0);
         prefs.edit().putBoolean(KEY_MATERIAL_YOU, value).apply();
+        appliedAt = 0;
         if (!value) {
             restoreAccent(prefs);
         }
@@ -265,28 +270,46 @@ public final class NebulaTheme {
      * пересчитывает его на каждом запуске.
      */
     private static void restoreAccent(SharedPreferences prefs) {
-        if (!prefs.contains(KEY_SAVED_ACCENT)) {
-            return;
-        }
         try {
             applying = true;
             Theme.ThemeInfo active = Theme.getActiveTheme();
-            if (active == null) {
-                return;
+            // Older versions kept one backup. Associate it with the active accent once.
+            if (active != null && active.getAccent(false) != null && prefs.contains(KEY_SAVED_ACCENT)) {
+                String key = accentBackupKey(active, active.getAccent(false));
+                prefs.edit().putInt(key, prefs.getInt(key, prefs.getInt(KEY_SAVED_ACCENT, 0)))
+                        .remove(KEY_SAVED_ACCENT).apply();
             }
-            Theme.ThemeAccent current = active.getAccent(false);
-            if (current == null) {
-                return;
+            if (Theme.themes != null) {
+                for (Theme.ThemeInfo info : Theme.themes) restoreThemeAccents(prefs, info);
             }
-            current.accentColor = prefs.getInt(KEY_SAVED_ACCENT, current.accentColor);
-            Theme.saveThemeAccents(active, true, false, false, false);
+            if (active != null) restoreThemeAccents(prefs, active);
             Theme.refreshThemeColors();
-            prefs.edit().remove(KEY_SAVED_ACCENT).apply();
         } catch (Throwable e) {
             FileLog.e(e);
         } finally {
             applying = false;
         }
+    }
+
+    private static String accentBackupKey(Theme.ThemeInfo info, Theme.ThemeAccent accent) {
+        return KEY_SAVED_ACCENT + ":" + info.getKey() + ":" + accent.id;
+    }
+
+    private static void restoreThemeAccents(SharedPreferences prefs, Theme.ThemeInfo info) {
+        if (info.themeAccents == null) return;
+        java.util.ArrayList<String> restored = new java.util.ArrayList<>();
+        for (Theme.ThemeAccent accent : info.themeAccents) {
+            String key = accentBackupKey(info, accent);
+            if (prefs.contains(key)) {
+                accent.accentColor = prefs.getInt(key, accent.accentColor);
+                restored.add(key);
+            }
+        }
+        if (restored.isEmpty()) return;
+        Theme.saveThemeAccents(info, true, false, false, false);
+        SharedPreferences.Editor editor = prefs.edit();
+        for (String key : restored) editor.remove(key);
+        editor.apply();
     }
 
     /**

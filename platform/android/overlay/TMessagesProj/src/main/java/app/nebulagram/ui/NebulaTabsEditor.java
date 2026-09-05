@@ -1,210 +1,119 @@
 package app.nebulagram.ui;
 
 import android.content.Context;
-import android.graphics.Canvas;
-import android.graphics.Paint;
-import android.graphics.RectF;
+import android.view.Gravity;
 import android.view.HapticFeedbackConstants;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewConfiguration;
-
-import androidx.annotation.NonNull;
+import android.widget.FrameLayout;
 
 import org.telegram.messenger.AndroidUtilities;
-import org.telegram.messenger.LocaleController;
-import org.telegram.messenger.MessagesController;
 import org.telegram.messenger.R;
 import org.telegram.messenger.UserConfig;
-import org.telegram.tgnet.TLRPC;
-import org.telegram.ui.Components.AvatarDrawable;
+import org.telegram.ui.ActionBar.Theme;
+import org.telegram.ui.DialogsActivity;
+import org.telegram.ui.MainTabsLayout;
+import org.telegram.ui.Components.LayoutHelper;
+import org.telegram.ui.Components.glass.GlassTabView;
+import org.telegram.ui.Components.blur3.BlurredBackgroundDrawableViewFactory;
+import org.telegram.ui.Components.blur3.drawable.BlurredBackgroundDrawable;
+import org.telegram.ui.Components.blur3.drawable.color.impl.BlurredBackgroundProviderImpl;
+import org.telegram.ui.Components.blur3.source.BlurredBackgroundSourceColor;
 
-/** Compact bottom-tab organizer: tap to toggle, hold and drag to reorder. */
-public class NebulaTabsEditor extends View {
-
-    private final Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
-    private final RectF rect = new RectF();
-    private final org.telegram.messenger.ImageReceiver avatar =
-            new org.telegram.messenger.ImageReceiver(this);
+/** Native Telegram tabs with NebulaGram's tap/drag organization gestures. */
+public class NebulaTabsEditor extends FrameLayout {
+    private final MainTabsLayout tabs;
     private final int touchSlop;
-    private NebulaTheme theme;
     private Runnable onChanged;
     private String[] order = NebulaBottomBar.tabOrder();
-    private int pressed = -1;
-    private int dragIndex = -1;
-    private boolean dragging;
-    private boolean tapCancelled;
-    private float downX;
-    private float downY;
+    private int pressed = -1, dragIndex = -1;
+    private boolean dragging, tapCancelled;
+    private float downX, downY;
 
     private final Runnable startDrag = () -> {
-        if (pressed < 0) {
-            return;
-        }
+        if (pressed < 0) return;
         dragging = true;
         dragIndex = pressed;
         performHapticFeedback(HapticFeedbackConstants.LONG_PRESS);
-        if (getParent() != null) {
-            getParent().requestDisallowInterceptTouchEvent(true);
-        }
+        if (getParent() != null) getParent().requestDisallowInterceptTouchEvent(true);
         invalidate();
     };
 
-    public NebulaTabsEditor(@NonNull Context context) {
+    public NebulaTabsEditor(Context context) {
         super(context);
-        theme = NebulaTheme.of(context);
         touchSlop = ViewConfiguration.get(context).getScaledTouchSlop();
         setClickable(true);
-        loadAvatar();
+        tabs = new MainTabsLayout(context, null) {
+            @Override protected void setChildVisibilityFactor(View view, float factor) {
+                super.setChildVisibilityFactor(view, factor);
+                String key = (String) view.getTag();
+                boolean enabled = NebulaBottomBar.TAB_CHATS.equals(key) || NebulaBottomBar.tabEnabled(key);
+                view.setAlpha(factor * (enabled ? 1f : .4f));
+            }
+        };
+        tabs.setClipChildren(false);
+        int padding = AndroidUtilities.dp(DialogsActivity.MAIN_TABS_MARGIN + 4);
+        tabs.setPadding(padding, padding, padding, padding);
+        tabs.setMaxWidth(AndroidUtilities.dp(328 + DialogsActivity.MAIN_TABS_MARGIN * 2));
+        BlurredBackgroundSourceColor source = new BlurredBackgroundSourceColor();
+        source.setColor(Theme.getColor(Theme.key_windowBackgroundWhite));
+        BlurredBackgroundDrawable background = new BlurredBackgroundDrawableViewFactory(source)
+                .create(tabs, BlurredBackgroundProviderImpl.mainTabs(null));
+        background.setRadius(AndroidUtilities.dp(DialogsActivity.MAIN_TABS_HEIGHT / 2f));
+        background.setPadding(AndroidUtilities.dp(DialogsActivity.MAIN_TABS_MARGIN - .334f));
+        tabs.setBackground(background);
+        addView(tabs, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT,
+                DialogsActivity.MAIN_TABS_HEIGHT_WITH_MARGINS, Gravity.CENTER));
+        refresh();
     }
 
-    public void setOnChanged(Runnable listener) {
-        onChanged = listener;
-    }
+    public void setOnChanged(Runnable listener) { onChanged = listener; }
 
     public void refresh() {
-        theme = NebulaTheme.of(getContext());
         order = NebulaBottomBar.tabOrder();
-        invalidate();
-    }
-
-    private void loadAvatar() {
-        try {
-            int account = UserConfig.selectedAccount;
-            TLRPC.User self = MessagesController.getInstance(account)
-                    .getUser(UserConfig.getInstance(account).clientUserId);
-            if (self != null) {
-                avatar.setForUserOrChat(self, new AvatarDrawable(self));
+        tabs.removeAllViews();
+        for (String key : order) {
+            GlassTabView tab;
+            if (NebulaBottomBar.TAB_PROFILE.equals(key)) {
+                tab = GlassTabView.createAvatar(getContext(), null, UserConfig.selectedAccount, R.string.MainTabsProfile);
+            } else {
+                GlassTabView.TabAnimation animation = NebulaBottomBar.TAB_CONTACTS.equals(key)
+                        ? GlassTabView.TabAnimation.CONTACTS : NebulaBottomBar.TAB_SETTINGS.equals(key)
+                        ? GlassTabView.TabAnimation.SETTINGS : GlassTabView.TabAnimation.CHATS;
+                int label = NebulaBottomBar.TAB_CONTACTS.equals(key) ? R.string.MainTabsContacts
+                        : NebulaBottomBar.TAB_SETTINGS.equals(key) ? R.string.Settings : R.string.MainTabsChats;
+                tab = GlassTabView.createMainTab(getContext(), null, animation, label);
             }
-        } catch (Throwable ignore) {
+            boolean chats = NebulaBottomBar.TAB_CHATS.equals(key);
+            tab.setTag(key);
+            tab.setSelected(chats, false);
+            tab.setAlpha(chats || NebulaBottomBar.tabEnabled(key) ? 1f : .4f);
+            tabs.addView(tab);
+            tabs.setViewVisible(tab, true, false);
         }
+        requestLayout();
     }
 
-    @Override
-    protected void onAttachedToWindow() {
-        super.onAttachedToWindow();
-        avatar.onAttachedToWindow();
+    @Override protected void onMeasure(int widthSpec, int heightSpec) {
+        super.onMeasure(widthSpec, MeasureSpec.makeMeasureSpec(AndroidUtilities.dp(88), MeasureSpec.EXACTLY));
     }
 
-    @Override
-    protected void onDetachedFromWindow() {
+    @Override public boolean onInterceptTouchEvent(MotionEvent event) { return true; }
+
+    @Override protected void onDetachedFromWindow() {
         removeCallbacks(startDrag);
-        avatar.onDetachedFromWindow();
+        finishGesture();
         super.onDetachedFromWindow();
     }
 
-    @Override
-    protected void onMeasure(int widthSpec, int heightSpec) {
-        setMeasuredDimension(MeasureSpec.getSize(widthSpec), AndroidUtilities.dp(88));
-    }
-
-    @Override
-    protected void onDraw(Canvas canvas) {
-        boolean labels = NebulaBottomBar.tabLabels();
-        float left = AndroidUtilities.dp(14);
-        float right = getWidth() - left;
-        float height = AndroidUtilities.dp(labels ? 62 : 54);
-        float top = (getHeight() - height) / 2f;
-        rect.set(left, top, right, top + height);
-
-        paint.setStyle(Paint.Style.FILL);
-        paint.setColor(NebulaTheme.stateLayer(theme.onSurface(), 0.035f));
-        canvas.drawRoundRect(rect, height / 2f, height / 2f, paint);
-        paint.setStyle(Paint.Style.STROKE);
-        paint.setStrokeWidth(AndroidUtilities.dp(1));
-        paint.setColor(NebulaTheme.stateLayer(theme.onSurfaceVariant(), 0.22f));
-        canvas.drawRoundRect(rect, height / 2f, height / 2f, paint);
-        paint.setStyle(Paint.Style.FILL);
-
-        float step = (right - left) / order.length;
-        float iconY = labels ? top + AndroidUtilities.dp(23) : top + height / 2f;
-        for (int i = 0; i < order.length; i++) {
-            String tab = order[i];
-            boolean on = NebulaBottomBar.TAB_CHATS.equals(tab) || NebulaBottomBar.tabEnabled(tab);
-            float centerX = left + step * i + step / 2f;
-
-            if (i == pressed || i == dragIndex) {
-                paint.setColor(NebulaTheme.stateLayer(theme.primary(), dragging ? 0.18f : 0.10f));
-                canvas.drawCircle(centerX, top + height / 2f,
-                        height / 2f - AndroidUtilities.dp(4), paint);
-            }
-
-            int color = on ? theme.primary()
-                    : NebulaTheme.stateLayer(theme.onSurfaceVariant(), 0.42f);
-            paint.setColor(color);
-            if (NebulaBottomBar.TAB_PROFILE.equals(tab)) {
-                drawProfile(canvas, centerX, iconY, on);
-            } else {
-                glyph(canvas, tab, centerX, iconY);
-            }
-
-            if (labels) {
-                paint.setTextSize(AndroidUtilities.dp(9.5f));
-                paint.setTextAlign(Paint.Align.CENTER);
-                paint.setTypeface(on ? AndroidUtilities.bold() : null);
-                paint.setColor(color);
-                canvas.drawText(label(tab), centerX,
-                        top + height - AndroidUtilities.dp(9), paint);
-                paint.setTypeface(null);
-                paint.setTextAlign(Paint.Align.LEFT);
-            }
-        }
-    }
-
-    private String label(String tab) {
-        if (NebulaBottomBar.TAB_CONTACTS.equals(tab)) {
-            return LocaleController.getString(R.string.NebulaTabContacts);
-        } else if (NebulaBottomBar.TAB_SETTINGS.equals(tab)) {
-            return LocaleController.getString(R.string.NebulaTabSettings);
-        } else if (NebulaBottomBar.TAB_PROFILE.equals(tab)) {
-            return LocaleController.getString(R.string.NebulaTabProfile);
-        }
-        return LocaleController.getString(R.string.NebulaTabChats);
-    }
-
-    private void drawProfile(Canvas canvas, float cx, float cy, boolean on) {
-        float r = AndroidUtilities.dp(11);
-        avatar.setRoundRadius((int) r);
-        avatar.setImageCoords(cx - r, cy - r, r * 2, r * 2);
-        avatar.setAlpha(on ? 1f : 0.42f);
-        avatar.draw(canvas);
-    }
-
-    private void glyph(Canvas canvas, String tab, float cx, float cy) {
-        float size = AndroidUtilities.dp(10);
-        paint.setStyle(Paint.Style.STROKE);
-        paint.setStrokeWidth(AndroidUtilities.dp(1.7f));
-        paint.setStrokeCap(Paint.Cap.ROUND);
-        if (NebulaBottomBar.TAB_CONTACTS.equals(tab)) {
-            canvas.drawCircle(cx, cy - size * 0.35f, size * 0.4f, paint);
-            rect.set(cx - size * 0.72f, cy + size * 0.05f,
-                    cx + size * 0.72f, cy + size * 1.15f);
-            canvas.drawArc(rect, 200, 140, false, paint);
-        } else if (NebulaBottomBar.TAB_SETTINGS.equals(tab)) {
-            canvas.drawCircle(cx, cy, size * 0.42f, paint);
-            for (int i = 0; i < 6; i++) {
-                double angle = Math.PI * i / 3;
-                canvas.drawLine(
-                        cx + (float) Math.cos(angle) * size * 0.58f,
-                        cy + (float) Math.sin(angle) * size * 0.58f,
-                        cx + (float) Math.cos(angle) * size * 0.92f,
-                        cy + (float) Math.sin(angle) * size * 0.92f, paint);
-            }
-        } else {
-            rect.set(cx - size, cy - size * 0.78f,
-                    cx + size, cy + size * 0.48f);
-            canvas.drawRoundRect(rect, size * 0.5f, size * 0.5f, paint);
-            canvas.drawLine(cx - size * 0.3f, cy + size * 0.48f,
-                    cx - size * 0.1f, cy + size, paint);
-        }
-        paint.setStyle(Paint.Style.FILL);
-    }
-
     private int indexAt(float x) {
-        float left = AndroidUtilities.dp(14);
-        float width = getWidth() - left * 2f;
-        int index = (int) ((x - left) / (width / order.length));
-        return index >= 0 && index < order.length ? index : -1;
+        float localX = x - tabs.getX();
+        for (int i = 0; i < tabs.getChildCount(); i++) {
+            View child = tabs.getChildAt(i);
+            if (localX >= child.getX() && localX < child.getX() + child.getWidth()) return i;
+        }
+        return -1;
     }
 
     @Override
