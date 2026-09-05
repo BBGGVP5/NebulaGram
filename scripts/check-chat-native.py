@@ -40,6 +40,7 @@ start = draw.index('        if (rightDrawable != null && rightDrawableOutside)')
 status_draw = method(draw[start:], 'if (rightDrawable != null && rightDrawableOutside)')
 start = draw.index('        if (rightDrawable2 != null && rightDrawableOutside)', start)
 status_draw += '\n' + method(draw[start:], 'if (rightDrawable2 != null && rightDrawableOutside)')
+header_methods = header_methods.replace('app.nebulagram.ui.NebulaAppearance.chatHeader()', 'floating').replace('app.nebulagram.ui.NebulaHeaderCounter.backWidth()', 'dp(58)')
 header_methods = header_methods.replace('app.nebulagram.ui.NebulaChatStyle.headerWidth', 'headerWidth').replace('app.nebulagram.ui.NebulaChatStyle.headerLeft', 'headerLeft').replace('app.nebulagram.ui.NebulaChatStyle.headerTextLeft', 'headerTextLeft')
 camera_methods = '\n'.join(method(adapter, signature) for signature in [
     'public int getItemCount()', 'public int getItemViewType(', 'private MediaController.PhotoEntry getPhoto('])
@@ -52,7 +53,7 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 public class CheckChatNative {
 static int VISIBLE=0, INVISIBLE=4, GONE=8;
-static float density=1;
+static float density=1; static boolean floating=true;
 static int dp(float x){return (int)Math.ceil(x*density);}
 static void check(boolean ok,String message){if(!ok)throw new AssertionError(message);}
 static class MeasureSpec {static int EXACTLY=1<<30,AT_MOST=1<<31;static int getSize(int s){return s&0x3fffffff;}static int makeMeasureSpec(int s,int m){return s|m;}}
@@ -69,17 +70,17 @@ static class View {
 }
 // SimpleTextView caches center offset in onMeasure. Its onLayout does not recalculate it.
 static class SimpleTextView extends View {
- int naturalWidth,offset,textWidth;
- SimpleTextView(int w){naturalWidth=w;} void setGravity(int g){} SimpleTextView getDrawable(){return this;} float getAnimateToWidth(){return naturalWidth;}
- protected void onMeasure(int w,int h){super.onMeasure(w,h);textWidth=Math.min(mw,naturalWidth);offset=(mw-textWidth)/2;}
+ int naturalWidth,offset,textWidth,gravity=1;
+ SimpleTextView(int w){naturalWidth=w;} void setGravity(int g){gravity=g;} SimpleTextView getDrawable(){return this;} float getAnimateToWidth(){return naturalWidth;}
+ protected void onMeasure(int w,int h){super.onMeasure(w,h);textWidth=Math.min(mw,naturalWidth);offset=gravity==3?0:(mw-textWidth)/2;}
  float getExactWidthIncludeDrawables(){return naturalWidth;}int getTextHeight(){return mh;}
 }
 static class Gravity {static int LEFT=3,CENTER=17,CENTER_HORIZONTAL=1,HORIZONTAL_GRAVITY_MASK=7,VERTICAL_GRAVITY_MASK=112,CENTER_VERTICAL=16;}
 static class ActionBar {static int getCurrentActionBarHeight(){return dp(56);}int getNebulaChatAvatarTrailingInset(){return 0;}}
 static class AndroidUtilities {static int statusBarHeight=0;}
-static int headerLeft(int width,int capsule){return (width-capsule)/2;}
-static int headerTextLeft(int width,int capsule,int text){return (width-text)/2;}
-static int headerWidth(int barWidth,int content){return Math.max(0,Math.min(Math.max(dp(112),content+dp(40)),barWidth-dp(128)));}
+static int headerLeft(int width,int capsule){return floating?(width-capsule)/2:dp(58);}
+static int headerTextLeft(int width,int capsule,int text){return floating?(width-text)/2:dp(58)+dp(54);}
+static int headerWidth(int barWidth,int content){if(!floating)return barWidth-dp(58)-dp(58);return Math.max(0,Math.min(Math.max(dp(112),content+dp(40)),barWidth-dp(128)));}
 static class Header extends View {
  boolean nebulaCenteredTitle=true,glassMode=true,occupyStatusBar=false;
  int avatarSizeInDp=44,lastWidth=-1,largerWidth,nebulaHeaderWidth;
@@ -125,13 +126,14 @@ public static void main(String[] args){
   check(t.rightDrawable.left==offset+textWidth+4,"premium emoji fails to follow centered title offset");
   if(second)check(t.rightDrawable2.left==t.rightDrawable.right+4,"mute/verified icon overlaps premium status");
  }
- for(float d:new float[]{1,2.25f,3})for(int width:new int[]{320,360,448,800})for(int title:new int[]{12,100,600})for(int status:new int[]{0,80,650}){
-  density=d;Header h=new Header();h.titleTextView.naturalWidth=dp(title);h.subtitleTextView.naturalWidth=dp(status);h.subtitleTextView.visibility=status==0?GONE:VISIBLE;
+ for(boolean layoutFloating:new boolean[]{false,true})for(float d:new float[]{1,2.25f,3})for(int width:new int[]{320,360,448,800})for(int title:new int[]{12,100,600})for(int status:new int[]{0,80,650}){
+  density=d;floating=layoutFloating;Header h=new Header();h.subtitleTextView.setGravity(floating?1:3);h.titleTextView.naturalWidth=dp(title);h.subtitleTextView.naturalWidth=dp(status);h.subtitleTextView.visibility=status==0?GONE:VISIBLE;
   for(int w:new int[]{width,width-30,width}){
    int content=dp(w)-dp(12);h.measure(MeasureSpec.makeMeasureSpec(content,MeasureSpec.EXACTLY),MeasureSpec.makeMeasureSpec(dp(56),MeasureSpec.EXACTLY));h.layout(0,0,content,dp(56));
    for(SimpleTextView text:new SimpleTextView[]{h.titleTextView,h.subtitleTextView})if(text.getVisibility()!=GONE){
     check(text.getWidth()==text.getMeasuredWidth(),"header lays out text narrower than its cached measure width");
-    check(Math.abs(text.l+text.offset+text.textWidth/2f-content/2f)<=1,"title/status center differs from capsule center");
+    if(floating)check(Math.abs(text.l+text.offset+text.textWidth/2f-content/2f)<=1,"title/status center differs from capsule center");
+    else {check(text.l>=h.avatarImageView.r+dp(6),"avatar collides with title");check(text.l+text.getMeasuredWidth()<=content-dp(58),"title overlaps menu");check(text.offset==0,"nonfloating title/subtitle not left aligned");}
     check(text.getWidth()<=h.getNebulaCenteredHeaderWidth()-dp(40),"header text exceeds capsule");
    }
    headers++;

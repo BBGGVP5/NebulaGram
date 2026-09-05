@@ -45,7 +45,7 @@
     <string name="NebulaTabContacts">Контакты</string>
     <string name="NebulaTabSettings">Настройки</string>
     <string name="NebulaTabProfile">Профиль</string>
-    <string name="NebulaSectionPanel">Навигация</string>
+    <string name="NebulaSectionPanel">Организатор нижних вкладок</string>
     <string name="NebulaBottomBarTitle">Нижняя панель</string>
     <string name="NebulaBottomBarSub">Вкладки чатов, контактов, настроек и профиля</string>
     <string name="NebulaBottomBarHint">Изменения применяются при возврате в чаты. Если вкладка настроек скрыта, настройки доступны через три точки на главном экране.</string>

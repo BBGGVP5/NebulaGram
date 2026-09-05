@@ -16,25 +16,27 @@ public final class NebulaChatStyle {
 
     /** Outer blur bounds; 6dp of drawable padding surrounds each visible surface. */
     public static int headerWidth(int barWidth, int textWidth) {
-        if (!NebulaAppearance.adaptiveHeader()) return Math.max(0, barWidth - AndroidUtilities.dp(128));
+        if (!NebulaAppearance.chatHeader()) return Math.max(0, barWidth - NebulaHeaderCounter.backWidth() - AndroidUtilities.dp(58));
+        if (!NebulaAppearance.adaptiveHeader()) return Math.max(0, barWidth - NebulaHeaderCounter.backWidth() - AndroidUtilities.dp(70));
         return Math.max(0, Math.min(Math.max(AndroidUtilities.dp(112), textWidth + AndroidUtilities.dp(40)),
-                barWidth - AndroidUtilities.dp(128)));
+                barWidth - NebulaHeaderCounter.backWidth() - AndroidUtilities.dp(70)));
     }
 
     public static int headerLeft(int barWidth, int headerWidth) {
-        return NebulaAppearance.centeredHeader() ? (barWidth - headerWidth) / 2 : AndroidUtilities.dp(58);
+        return NebulaAppearance.chatHeader() && NebulaAppearance.centeredHeader()
+                ? Math.max(NebulaHeaderCounter.backWidth(), (barWidth - headerWidth) / 2) : NebulaHeaderCounter.backWidth();
     }
 
     public static int headerTextLeft(int containerWidth, int capsuleWidth, int textWidth) {
-        if (NebulaAppearance.centeredHeader()) return (containerWidth - textWidth) / 2;
+        if (!NebulaAppearance.chatHeader()) return NebulaHeaderCounter.backWidth() + AndroidUtilities.dp(54);
         return headerLeft(containerWidth + AndroidUtilities.dp(12), capsuleWidth)
                 - AndroidUtilities.dp(12) / 2 + (capsuleWidth - textWidth) / 2;
     }
 
     public static void header(ActionBar bar, boolean normalChat, boolean savedMessages) {
         if (bar != null) {
-            boolean enabled = normalChat && NebulaAppearance.chatHeader();
-            bar.setNebulaFloatingChatHeader(enabled, enabled && !savedMessages, enabled && savedMessages);
+            boolean enabled = normalChat;
+            bar.setNebulaFloatingChatHeader(enabled, enabled && NebulaAppearance.chatHeader() && !savedMessages, enabled && savedMessages);
         }
     }
 

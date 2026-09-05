@@ -37,6 +37,8 @@ public class NebulaSectionFragment extends BaseFragment {
     public static final int SECTION_ABOUT = 3;
     public static final int SECTION_GENERAL = 4;
 
+    public static final int SECTION_FOLDERS = 5, SECTION_MESSAGES = 6, SECTION_PROFILE = 7,
+            SECTION_SWITCHES = 8, SECTION_CHAT_ACTIONS = 9;
     private final int section;
     private LinearLayout content;
     private FrameLayout root;
@@ -92,6 +94,11 @@ public class NebulaSectionFragment extends BaseFragment {
 
     private int titleKey() {
         switch (section) {
+            case SECTION_FOLDERS: return R.string.NebulaSectionFolders;
+            case SECTION_MESSAGES: return R.string.NebulaSectionMessages;
+            case SECTION_PROFILE: return R.string.NebulaSectionProfile;
+            case SECTION_SWITCHES: return R.string.NebulaSwitches;
+            case SECTION_CHAT_ACTIONS: return R.string.NebulaMenuActions;
             case SECTION_CHATS:
                 return R.string.NebulaSectionChats;
             case SECTION_TABS:
@@ -112,6 +119,11 @@ public class NebulaSectionFragment extends BaseFragment {
         wallpaperPreviews.clear();
         composerPreview = null;
         switch (section) {
+            case SECTION_FOLDERS: buildFolders(context); break;
+            case SECTION_MESSAGES: buildMessages(context); break;
+            case SECTION_PROFILE: buildProfile(context); break;
+            case SECTION_SWITCHES: buildSwitches(context); break;
+            case SECTION_CHAT_ACTIONS: buildChatActions(context); break;
             case SECTION_CHATS:
                 buildChats(context);
                 break;
@@ -142,6 +154,8 @@ public class NebulaSectionFragment extends BaseFragment {
                     refreshPalette();
                 }));
 
+        card.add(link(context, R.drawable.msg_customize, R.string.NebulaSwitches, R.string.NebulaSwitchesInfo, SECTION_SWITCHES));
+        card.add(new NebulaControlsPreview(context, NebulaControlsPreview.ICONS));
         // Material You имеет смысл только там, где система отдаёт палитру;
         // на Android 11 и старше строка была бы обманом.
         if (NebulaTheme.supportsDynamic()) {
@@ -157,12 +171,6 @@ public class NebulaSectionFragment extends BaseFragment {
         card.add(toggle(context, R.drawable.msg_edit,
                 R.string.NebulaLoginStyleTitle, R.string.NebulaLoginStyleSub,
                 NebulaLoginStyle.enabled(), NebulaLoginStyle::setEnabled));
-        card.add(toggle(context, R.drawable.msg_openprofile,
-                R.string.NebulaProfileStyle, R.string.NebulaProfileStyleInfo,
-                NebulaAppearance.profileStyle(), NebulaAppearance::setProfileStyle));
-        card.add(toggle(context, R.drawable.msg_photo_settings,
-                R.string.NebulaProfilePhotoBanner, R.string.NebulaProfilePhotoBannerInfo,
-                NebulaAppearance.profilePhotoBanner(), NebulaAppearance::setProfilePhotoBanner));
         card.add(toggle(context, R.drawable.msg_list,
                 R.string.NebulaHideDividers, R.string.NebulaHideDividersSub,
                 NebulaAppearance.hideDividers(), NebulaAppearance::setHideDividers));
@@ -174,9 +182,6 @@ public class NebulaSectionFragment extends BaseFragment {
         list.add(toggle(context, R.drawable.msg_search,
                 R.string.NebulaHideSearchField, R.string.NebulaHideSearchFieldSub,
                 NebulaAppearance.hideSearchField(), NebulaAppearance::setHideSearchField));
-        list.add(toggle(context, R.drawable.files_folder,
-                R.string.NebulaHideTabCounters, R.string.NebulaHideTabCountersSub,
-                NebulaAppearance.hideTabCounters(), NebulaAppearance::setHideTabCounters));
         content.addView(list, cardParams());
         content.addView(NebulaMenuFragment.placeholder(context,
                 LocaleController.getString(R.string.NebulaRestartHint)));
@@ -193,6 +198,23 @@ public class NebulaSectionFragment extends BaseFragment {
         header.add(toggle(context, R.drawable.msg_photo_settings,
                 R.string.NebulaAdaptiveHeader, R.string.NebulaAdaptiveHeaderInfo,
                 NebulaAppearance.adaptiveHeader(), NebulaAppearance::setAdaptiveHeader));
+        final NebulaRow iosCount = toggle(context, R.drawable.msg_customize,
+                R.string.NebulaUnreadIos, R.string.NebulaUnreadIosInfo,
+                NebulaAppearance.iosUnread(), NebulaAppearance::setIosUnread);
+        header.add(toggle(context, R.drawable.msg_msgbubble,
+                R.string.NebulaUnread, R.string.NebulaUnreadInfo,
+                NebulaAppearance.headerUnread(), value -> {
+                    NebulaAppearance.setHeaderUnread(value);
+                    iosCount.setVisibility(value ? View.VISIBLE : View.GONE);
+                }));
+        iosCount.setVisibility(NebulaAppearance.headerUnread() ? View.VISIBLE : View.GONE);
+        header.add(iosCount);
+        header.add(toggle(context, R.drawable.msg_customize,
+                R.string.NebulaHighlights, R.string.NebulaHighlightsInfo,
+                NebulaAppearance.glassHighlights(), value -> {
+                    NebulaAppearance.setGlassHighlights(value);
+                    org.telegram.ui.ActionBar.Theme.reloadAllResources(context);
+                }));
         expandablePreview(context, "header", R.string.NebulaChatHeaderSection, headerPreview(context), header);
 
         composerPreview = new NebulaComposerPreview(context);
@@ -211,12 +233,12 @@ public class NebulaSectionFragment extends BaseFragment {
         content.addView(NebulaCard.header(context,
                 LocaleController.getString(R.string.NebulaChatBehaviour)));
         NebulaCard behaviour = new NebulaCard(context);
-        behaviour.add(toggle(context, R.drawable.msg_calls,
-                R.string.NebulaSeconds, R.string.NebulaSecondsSub,
-                NebulaAppearance.secondsInTime(), NebulaAppearance::setSecondsInTime));
         behaviour.add(toggle(context, R.drawable.msg_discussion,
                 R.string.NebulaNoNextChannel, R.string.NebulaNoNextChannelSub,
                 NebulaAppearance.disableNextChannel(), NebulaAppearance::setDisableNextChannel));
+        behaviour.add(link(context, R.drawable.msg_list, R.string.NebulaMenuActions, R.string.NebulaMenuActionsInfo, SECTION_CHAT_ACTIONS));
+        behaviour.add(link(context, R.drawable.msg_discussion, R.string.NebulaSectionMessages, R.string.NebulaMessagesInfo, SECTION_MESSAGES));
+        behaviour.add(link(context, R.drawable.msg_openprofile, R.string.NebulaSectionProfile, R.string.NebulaProfileInfo, SECTION_PROFILE));
         content.addView(behaviour, cardParams());
 
         content.addView(NebulaMenuFragment.placeholder(context,
@@ -250,15 +272,135 @@ public class NebulaSectionFragment extends BaseFragment {
                     NebulaBottomBar.setTabLabels(value);
                     editor.refresh();
                 }));
-        appearance.add(toggle(context, R.drawable.msg_folders,
-                R.string.NebulaFolderTitle, R.string.NebulaFolderTitleSub,
-                NebulaAppearance.folderTitle(), NebulaAppearance::setFolderTitle));
         content.addView(appearance, cardParams());
         content.addView(NebulaMenuFragment.placeholder(context,
                 LocaleController.getString(R.string.NebulaTabsEditorHint)));
 
         content.addView(NebulaMenuFragment.placeholder(context,
                 LocaleController.getString(R.string.NebulaBottomBarHint)));
+    }
+
+    private NebulaRow link(Context context, int icon, int title, int subtitle, int target) {
+        return new NebulaRow(context).icon(icon).title(LocaleController.getString(title))
+                .subtitle(LocaleController.getString(subtitle), false).trailing(NebulaRow.TRAIL_CHEVRON)
+                .withClick(v -> presentFragment(new NebulaSectionFragment(target)));
+    }
+
+    private void sample(Context context, int kind) {
+        NebulaWallpaperPreview wallpaper = new NebulaWallpaperPreview(context);
+        wallpaper.addView(new NebulaControlsPreview(context, kind));
+        wallpaperPreviews.add(wallpaper);
+        content.addView(wallpaper, cardParams());
+    }
+
+    private void buildSwitches(Context context) {
+        String[] styles = {"Material", "iOS", "One UI", "Android"};
+        for (int i = 0; i < styles.length; i++) {
+            final int style = i;
+            NebulaCard card = new NebulaCard(context);
+            NebulaRow row = new NebulaRow(context).icon(R.drawable.msg_customize).title(styles[i])
+                    .trailing(NebulaRow.TRAIL_SWITCH).checked(NebulaAppearance.switchStyle() == i);
+            row.setOnClickListener(v -> { NebulaAppearance.setSwitchStyle(style); refreshPalette(); });
+            card.add(row);
+            android.widget.LinearLayout samples = new android.widget.LinearLayout(context);
+            samples.setGravity(android.view.Gravity.CENTER);
+            samples.setPadding(0, AndroidUtilities.dp(8), 0, AndroidUtilities.dp(16));
+            for (boolean on : new boolean[] {false, true}) {
+                NebulaSwitch control = new NebulaSwitch(context);
+                control.setPreviewStyle(style);
+                control.setChecked(on, false);
+                android.widget.LinearLayout.LayoutParams lp = new android.widget.LinearLayout.LayoutParams(AndroidUtilities.dp(52), AndroidUtilities.dp(32));
+                lp.leftMargin = lp.rightMargin = AndroidUtilities.dp(16);
+                samples.addView(control, lp);
+            }
+            card.add(samples);
+            content.addView(card, cardParams());
+        }
+    }
+
+    private void buildFolders(Context context) {
+        sample(context, NebulaControlsPreview.FOLDERS);
+        NebulaCard card = new NebulaCard(context);
+        card.add(toggle(context, R.drawable.files_folder, R.string.NebulaHideAllChats, R.string.NebulaHideAllChatsInfo,
+                NebulaAppearance.hideAllChats(), NebulaAppearance::setHideAllChats));
+        card.add(toggle(context, R.drawable.files_folder, R.string.NebulaHideTabCounters, R.string.NebulaHideTabCountersSub,
+                NebulaAppearance.hideTabCounters(), NebulaAppearance::setHideTabCounters));
+        int[] styles = {R.string.NebulaFolderLabels, R.string.NebulaFolderIcons, R.string.NebulaFolderBoth};
+        NebulaRow style = new NebulaRow(context).icon(R.drawable.files_folder).title(LocaleController.getString(R.string.NebulaFolderStyle))
+                .subtitle(LocaleController.getString(styles[NebulaAppearance.folderStyle()]), false).trailing(NebulaRow.TRAIL_CHEVRON);
+        style.setOnClickListener(v -> new org.telegram.ui.ActionBar.AlertDialog.Builder(context)
+                .setTitle(LocaleController.getString(R.string.NebulaFolderStyle))
+                .setItems(new CharSequence[] {LocaleController.getString(styles[0]), LocaleController.getString(styles[1]), LocaleController.getString(styles[2])},
+                    (d, which) -> { NebulaAppearance.setFolderStyle(which); refreshPalette(); }).show());
+        card.add(style);
+        card.add(toggle(context, R.drawable.files_folder, R.string.NebulaFolderOutline, R.string.NebulaFolderOutlineInfo,
+                NebulaAppearance.folderOutline(), NebulaAppearance::setFolderOutline));
+        card.add(toggle(context, R.drawable.files_folder, R.string.NebulaFolderTitle, R.string.NebulaFolderTitleSub,
+                NebulaAppearance.folderTitle(), NebulaAppearance::setFolderTitle));
+        card.add(new NebulaRow(context).icon(R.drawable.files_folder).title(LocaleController.getString(R.string.Filters))
+                .trailing(NebulaRow.TRAIL_CHEVRON).withClick(v -> presentFragment(new org.telegram.ui.FiltersSetupActivity())));
+        content.addView(card, cardParams());
+    }
+
+    private void buildMessages(Context context) {
+        sample(context, NebulaControlsPreview.MESSAGE);
+        NebulaCard card = new NebulaCard(context);
+        card.add(toggle(context, R.drawable.msg_calls, R.string.NebulaSeconds, R.string.NebulaSecondsSub,
+                NebulaAppearance.secondsInTime(), NebulaAppearance::setSecondsInTime));
+        card.add(toggle(context, R.drawable.msg_customize, R.string.NebulaHidePremium, R.string.NebulaHidePremiumInfo,
+                NebulaAppearance.hidePremiumStatus(), NebulaAppearance::setHidePremiumStatus));
+        card.add(toggle(context, R.drawable.menu_reply, R.string.NebulaReplyBackground, R.string.NebulaReplyBackgroundInfo,
+                NebulaAppearance.replyBackground(), NebulaAppearance::setReplyBackground));
+        card.add(toggle(context, R.drawable.menu_reply, R.string.NebulaReplyColors, R.string.NebulaReplyColorsInfo,
+                NebulaAppearance.replyColors(), NebulaAppearance::setReplyColors));
+        card.add(toggle(context, R.drawable.menu_reply, R.string.NebulaReplyEmoji, R.string.NebulaReplyEmojiInfo,
+                NebulaAppearance.replyEmoji(), NebulaAppearance::setReplyEmoji));
+        content.addView(card, cardParams());
+        NebulaCard menu = new NebulaCard(context);
+        NebulaRow below = toggle(context, R.drawable.msg_list, R.string.NebulaMenuBelow, R.string.NebulaMenuBelowInfo,
+                NebulaAppearance.messageMenuBelow(), NebulaAppearance::setMessageMenuBelow);
+        below.setVisibility(NebulaAppearance.messageMenuBlur() ? View.VISIBLE : View.GONE);
+        menu.add(toggle(context, R.drawable.msg_customize, R.string.NebulaMenuBlur, R.string.NebulaMenuBlurInfo,
+                NebulaAppearance.messageMenuBlur(), value -> {
+                    NebulaAppearance.setMessageMenuBlur(value);
+                    android.transition.TransitionManager.beginDelayedTransition(menu);
+                    below.setVisibility(value ? View.VISIBLE : View.GONE);
+                }));
+        menu.add(below);
+        content.addView(menu, cardParams());
+    }
+
+    private void buildProfile(Context context) {
+        sample(context, NebulaControlsPreview.PROFILE);
+        NebulaCard card = new NebulaCard(context);
+        card.add(toggle(context, R.drawable.msg_openprofile, R.string.NebulaProfileStyle, R.string.NebulaProfileStyleInfo,
+                NebulaAppearance.profileStyle(), NebulaAppearance::setProfileStyle));
+        card.add(toggle(context, R.drawable.msg_photo_settings, R.string.NebulaProfilePhotoBanner, R.string.NebulaProfilePhotoBannerInfo,
+                NebulaAppearance.profilePhotoBanner(), NebulaAppearance::setProfilePhotoBanner));
+        card.add(toggle(context, R.drawable.msg_openprofile, R.string.NebulaProfileChannel, R.string.NebulaProfileVisible,
+                NebulaAppearance.profileChannel(), NebulaAppearance::setProfileChannel));
+        card.add(toggle(context, R.drawable.msg_openprofile, R.string.NebulaProfileBirthday, R.string.NebulaProfileVisible,
+                NebulaAppearance.profileBirthday(), NebulaAppearance::setProfileBirthday));
+        card.add(toggle(context, R.drawable.msg_openprofile, R.string.NebulaProfileBusiness, R.string.NebulaProfileVisible,
+                NebulaAppearance.profileBusiness(), NebulaAppearance::setProfileBusiness));
+        card.add(toggle(context, R.drawable.msg_openprofile, R.string.NebulaProfileBackground, R.string.NebulaProfileVisible,
+                NebulaAppearance.profileBackground(), NebulaAppearance::setProfileBackground));
+        card.add(toggle(context, R.drawable.msg_openprofile, R.string.NebulaProfileEmoji, R.string.NebulaProfileVisible,
+                NebulaAppearance.profileEmoji(), NebulaAppearance::setProfileEmoji));
+        content.addView(card, cardParams());
+    }
+
+    private void buildChatActions(Context context) {
+        NebulaCard card = new NebulaCard(context);
+        card.add(toggle(context, R.drawable.msg_calls, R.string.NebulaMenuCall, R.string.NebulaMenuActionHint,
+                NebulaAppearance.menuCall(), NebulaAppearance::setMenuCall));
+        card.add(toggle(context, R.drawable.msg_calls, R.string.NebulaMenuVideo, R.string.NebulaMenuActionHint,
+                NebulaAppearance.menuVideo(), NebulaAppearance::setMenuVideo));
+        card.add(toggle(context, R.drawable.msg_search, R.string.NebulaMenuSearch, R.string.NebulaMenuActionHint,
+                NebulaAppearance.menuSearch(), NebulaAppearance::setMenuSearch));
+        card.add(toggle(context, R.drawable.msg_notifications, R.string.NebulaMenuMute, R.string.NebulaMenuActionHint,
+                NebulaAppearance.menuMute(), NebulaAppearance::setMenuMute));
+        content.addView(card, cardParams());
     }
 
     /**
@@ -370,7 +512,10 @@ public class NebulaSectionFragment extends BaseFragment {
     }
 
     private void refreshPreviews() {
-        for (NebulaWallpaperPreview view : wallpaperPreviews) view.invalidate();
+        for (NebulaWallpaperPreview view : wallpaperPreviews) {
+            view.invalidate();
+            for (int i = 0; i < view.getChildCount(); i++) view.getChildAt(i).invalidate();
+        }
         if (composerPreview != null) composerPreview.refresh();
         for (NebulaPreview view : previews) {
             view.refresh();

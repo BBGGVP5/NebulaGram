@@ -33,7 +33,21 @@ public class NebulaSwitch extends View {
 
     private final Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final RectF track = new RectF();
-    private final NebulaTheme theme;
+    private NebulaTheme theme;
+
+    private int previewStyle = -1;
+    public void setPreviewStyle(int style) { previewStyle = style; invalidate(); }
+
+    /** Draw inside a native Telegram switch while retaining its touch/accessibility logic. */
+    public void drawNative(Canvas canvas, float value, int width, int height) {
+        progress = value;
+        float scale = Math.min(width / (float) AndroidUtilities.dp(52), height / (float) AndroidUtilities.dp(32));
+        canvas.save();
+        canvas.translate((width - AndroidUtilities.dp(52) * scale) / 2, (height - AndroidUtilities.dp(32) * scale) / 2);
+        canvas.scale(scale, scale);
+        onDraw(canvas);
+        canvas.restore();
+    }
 
     private boolean checked;
     /** 0 — выключен, 1 — включён; дробное значение во время анимации. */
@@ -95,6 +109,9 @@ public class NebulaSwitch extends View {
 
     @Override
     protected void onDraw(Canvas canvas) {
+        theme = NebulaTheme.of(getContext());
+        int style = previewStyle < 0 ? NebulaAppearance.switchStyle() : previewStyle;
+        if (style != 0) { drawAlternative(canvas, style); return; }
         float height = AndroidUtilities.dp(TRACK_HEIGHT);
         float width = AndroidUtilities.dp(TRACK_WIDTH);
         float radius = height / 2f;
@@ -123,10 +140,35 @@ public class NebulaSwitch extends View {
         float margin = AndroidUtilities.dp(4);
         float left = margin + thumb / 2f;
         float right = width - margin - thumb / 2f;
-        float centerX = left + (right - left) * progress;
+        float position = getLayoutDirection() == LAYOUT_DIRECTION_RTL ? 1 - progress : progress;
+        float centerX = left + (right - left) * position;
 
         paint.setColor(blend(theme.onSurfaceVariant(), theme.onPrimary(), progress));
         canvas.drawCircle(centerX, height / 2f, thumb / 2f, paint);
+    }
+
+    private void drawAlternative(Canvas canvas, int style) {
+        float density = AndroidUtilities.dpf2(1);
+        canvas.save();
+        canvas.scale(density, density);
+        float h = style == 1 ? 30 : style == 2 ? 24 : 14;
+        float w = style == 1 ? 50 : style == 2 ? 46 : 40;
+        float x = (52 - w) / 2, y = (32 - h) / 2;
+        paint.setStyle(Paint.Style.FILL);
+        paint.setColor(blend(NebulaTheme.stateLayer(theme.onSurfaceVariant(), .32f),
+                style == 3 ? NebulaTheme.stateLayer(theme.primary(), .5f) : theme.primary(), progress));
+        track.set(x, y, x + w, y + h);
+        canvas.drawRoundRect(track, h / 2, h / 2, paint);
+        float radius = style == 1 ? 13 : style == 2 ? 10 : 10;
+        float from = style == 3 ? x + 2 : x + h / 2;
+        float to = style == 3 ? x + w - 2 : x + w - h / 2;
+        float position = getLayoutDirection() == LAYOUT_DIRECTION_RTL ? 1 - progress : progress;
+        float cx = from + (to - from) * position;
+        paint.setColor(NebulaTheme.stateLayer(0xff000000, .12f));
+        canvas.drawCircle(cx, 16.6f, radius + .4f, paint);
+        paint.setColor(style == 3 ? blend(theme.onSurfaceVariant(), theme.primary(), progress) : 0xffffffff);
+        canvas.drawCircle(cx, 16, radius, paint);
+        canvas.restore();
     }
 
     /** Линейное смешивание по каналам: цвета берутся из палитры, не из ресурсов. */

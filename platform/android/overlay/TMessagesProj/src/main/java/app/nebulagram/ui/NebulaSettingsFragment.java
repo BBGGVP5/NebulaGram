@@ -94,6 +94,9 @@ public class NebulaSettingsFragment extends BaseFragment {
         sections.add(section(context, R.drawable.msg_list,
                 R.string.NebulaSectionPanel, R.string.NebulaPanelSub,
                 NebulaSectionFragment.SECTION_TABS));
+        sections.add(section(context, R.drawable.files_folder, R.string.NebulaSectionFolders, R.string.NebulaFoldersInfo, NebulaSectionFragment.SECTION_FOLDERS));
+        sections.add(section(context, R.drawable.msg_discussion, R.string.NebulaSectionMessages, R.string.NebulaMessagesInfo, NebulaSectionFragment.SECTION_MESSAGES));
+        sections.add(section(context, R.drawable.msg_openprofile, R.string.NebulaSectionProfile, R.string.NebulaProfileInfo, NebulaSectionFragment.SECTION_PROFILE));
         sections.add(section(context, R.drawable.msg_info,
                 R.string.NebulaSectionAbout, R.string.NebulaAboutSub,
                 NebulaSectionFragment.SECTION_ABOUT));

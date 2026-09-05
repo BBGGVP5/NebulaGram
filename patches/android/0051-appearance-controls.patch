@@ -1,0 +1,639 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/UserObject.java b/TMessagesProj/src/main/java/org/telegram/messenger/UserObject.java
+--- a/TMessagesProj/src/main/java/org/telegram/messenger/UserObject.java
++++ b/TMessagesProj/src/main/java/org/telegram/messenger/UserObject.java
+@@ -156,6 +156,7 @@
+     }
+ 
+     public static Long getEmojiStatusDocumentId(TLRPC.EmojiStatus emojiStatus) {
++        if (app.nebulagram.ui.NebulaAppearance.hidePremiumStatus()) return null;
+         if (emojiStatus == null) {
+             return null;
+         }
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
+@@ -2060,6 +2060,7 @@
+     protected void onAttachedToWindow() {
+         super.onAttachedToWindow();
+         attached = true;
++        updateNebulaUnreadObserver();
+         updateAttachState();
+         if (actionModeVisible) {
+             final int color = actionModeColor == 0 ? actionBarColor : actionModeColor;
+@@ -2080,6 +2081,7 @@
+     protected void onDetachedFromWindow() {
+         super.onDetachedFromWindow();
+         attached = false;
++        updateNebulaUnreadObserver();
+         updateAttachState();
+         if (actionModeVisible) {
+             if (actionBarColor == 0 || actionModeColor == 0 || glassMode) {
+@@ -2290,6 +2292,24 @@
+     private boolean nebulaChatMenuHidden;
+     private boolean nebulaSavedMessagesHeader;
+ 
++    private int nebulaObservedAccount = -1;
++    private final NotificationCenter.NotificationCenterDelegate nebulaUnreadObserver = (id, account, args) -> invalidate();
++    private void updateNebulaUnreadObserver() {
++        int account = attached && nebulaFloatingChatHeader ? nebulaHeaderAccount : -1;
++        if (account == nebulaObservedAccount) return;
++        if (nebulaObservedAccount >= 0) {
++            NotificationCenter center = NotificationCenter.getInstance(nebulaObservedAccount);
++            center.removeObserver(nebulaUnreadObserver, NotificationCenter.dialogsNeedReload);
++            center.removeObserver(nebulaUnreadObserver, NotificationCenter.updateInterfaces);
++        }
++        nebulaObservedAccount = account;
++        if (account >= 0) {
++            NotificationCenter center = NotificationCenter.getInstance(account);
++            center.addObserver(nebulaUnreadObserver, NotificationCenter.dialogsNeedReload);
++            center.addObserver(nebulaUnreadObserver, NotificationCenter.updateInterfaces);
++        }
++    }
++
+     public void setNebulaFloatingChatHeader(boolean enabled, boolean hideMenu, boolean savedMessages) {
+         if (nebulaFloatingChatHeader != enabled || nebulaChatMenuHidden != hideMenu
+                 || nebulaSavedMessagesHeader != savedMessages) {
+@@ -2303,6 +2323,7 @@
+             requestLayout();
+             invalidate();
+         }
++        updateNebulaUnreadObserver();
+     }
+ 
+     /** Space occupied by Saved Messages actions to the right of its avatar. */
+@@ -2365,7 +2386,7 @@
+             glassDrawable.draw(canvas);
+         }
+         if (glassDrawableBack != null && hasBackButton) {
+-            glassDrawableBack.setBounds(0, t, s + p * 2, b);
++            glassDrawableBack.setBounds(0, t, nebulaFloatingChatHeader ? app.nebulagram.ui.NebulaHeaderCounter.backWidth() : s + p * 2, b);
+             glassDrawableBack.draw(canvas);
+         }
+         final boolean separateAvatar = nebulaFloatingChatHeader && nebulaChatMenuHidden
+@@ -2398,7 +2419,13 @@
+         }
+ 
+         super.dispatchDraw(canvas);
+-    }
++        if (nebulaFloatingChatHeader && hasBackButton && actionModeFactor == 0 && searchFactor == 0) {
++            app.nebulagram.ui.NebulaHeaderCounter.draw(canvas, getContext(), 0, (t + b) / 2f,
++                    org.telegram.messenger.MessagesController.getInstance(nebulaHeaderAccount).unreadUnmutedDialogs);
++        }
++    }
++
++    public int nebulaHeaderAccount = org.telegram.messenger.UserConfig.selectedAccount;
+ 
+     public void setForceSkipTouches(boolean forceSkipTouches) {
+         this.forceSkipTouches = forceSkipTouches;
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
+@@ -1026,6 +1026,7 @@
+     private float scrimPaintAlpha = 0f;
+     private boolean scrimProgressDirection;
+     private View scrimView;
++    private float nebulaScrimTop, nebulaScrimSourceTop, nebulaScrimScale = 1f;
+     private float scrimViewAlpha = 1f;
+     private float scrimViewProgress = 0f;
+     private Integer scrimViewReaction;
+@@ -4396,6 +4397,8 @@
+                     }
+                 });
+                 muteItemGap = headerItem.lazilyAddColoredGap();
++                muteItem.setVisibility(app.nebulagram.ui.NebulaAppearance.menuMute() ? View.VISIBLE : View.GONE);
++                muteItemGap.setVisibility(app.nebulagram.ui.NebulaAppearance.menuMute() ? View.VISIBLE : View.GONE);
+             }
+             if (currentChat != null) {
+                 headerItem.lazilyAddSubItem(open_direct, R.drawable.msg_markunread, getString(R.string.ChannelOpenDirect));
+@@ -4405,9 +4408,9 @@
+                 headerItem.lazilyAddSubItem(call, R.drawable.msg_callback, LocaleController.getString(R.string.Call));
+                 headerItem.lazilyAddSubItem(video_call, R.drawable.msg_videocall, LocaleController.getString(R.string.VideoCall));
+                 if (userFull != null && userFull.phone_calls_available) {
+-                    headerItem.showSubItem(call);
++                    if (app.nebulagram.ui.NebulaAppearance.menuCall()) headerItem.showSubItem(call); else headerItem.hideSubItem(call);
+                     if (userFull.video_calls_available) {
+-                        headerItem.showSubItem(video_call);
++                        if (app.nebulagram.ui.NebulaAppearance.menuVideo()) headerItem.showSubItem(video_call); else headerItem.hideSubItem(video_call);
+                     } else {
+                         headerItem.hideSubItem(video_call);
+                     }
+@@ -4419,6 +4422,7 @@
+ 
+             if (searchItem != null) {
+                 headerItem.lazilyAddSubItem(search, R.drawable.msg_search, LocaleController.getString(R.string.Search));
++                headerItem.setSubItemShown(search, app.nebulagram.ui.NebulaAppearance.menuSearch());
+             }
+             if (ChatObject.isBoostSupported(currentChat) && (getUserConfig().isPremium() || ChatObject.isBoosted(chatInfo) || ChatObject.hasAdminRights(currentChat))) {
+                 RLottieDrawable drawable = new RLottieDrawable(R.raw.boosts, "" + R.raw.boosts, dp(24), dp(24));
+@@ -4588,6 +4592,8 @@
+         if (chatMode == 0 && !isComments) {
+             actionBar.setNebulaChatAvatarContainer(avatarContainer);
+         }
++        actionBar.nebulaHeaderAccount = currentAccount;
++        actionBar.invalidate();
+         app.nebulagram.ui.NebulaChatStyle.header(actionBar,
+                 chatMode == 0 && !isComments,
+                 UserObject.isUserSelf(currentUser));
+@@ -10761,6 +10767,9 @@
+ 
+     private void dimBehindView(float value, boolean blur, boolean hidePagedownButtons) {
+         boolean enable = value > 0;
++        if (enable && scrimView instanceof ChatMessageCell && scrimViewReaction == null && scrimViewTask == null) {
++            blur |= app.nebulagram.ui.NebulaAppearance.messageMenuBlur();
++        }
+         if (scrimView instanceof ChatMessageCell) {
+             ChatMessageCell cell = (ChatMessageCell) scrimView;
+             cell.setInvalidatesParent(enable);
+@@ -10833,6 +10842,8 @@
+                         cell.invalidate();
+                     }
+                     setScrimView(null);
++                    nebulaScrimScale = 1f;
++                    nebulaScrimTop = nebulaScrimSourceTop = 0;
+                     scrimViewTask = null;
+                     scrimViewReaction = null;
+                     contentView.invalidate();
+@@ -17808,6 +17819,13 @@
+                 invalidate();
+             }
+ 
++            int nebulaScrimSave = canvas.save();
++            if (scrimView instanceof ChatMessageCell && nebulaScrimSourceTop != 0) {
++                float fraction = Utilities.clamp(scrimViewProgress, 1f, 0f);
++                canvas.translate(0, (nebulaScrimTop - nebulaScrimSourceTop) * fraction);
++                float scale = 1f + (nebulaScrimScale - 1f) * fraction;
++                canvas.scale(scale, scale, getWidth() / 2f, nebulaScrimSourceTop);
++            }
+             if (scrimView != null) {
+                 if (scrimView == sideControlsButtonsLayout) {
+                     if (scrimViewAlpha < 1f) {
+@@ -18150,6 +18168,7 @@
+                     }
+                 }
+             }
++            canvas.restoreToCount(nebulaScrimSave);
+ 
+             if (scrimView != null || messageEnterTransitionContainer.isRunning()) {
+                 if (mentionContainer == null || mentionContainer.getVisibility() != View.VISIBLE) {
+@@ -18297,7 +18316,7 @@
+                     }
+                 } else {
+                     if (headerItem != null) {
+-                        headerItem.showSubItem(search);
++                        if (app.nebulagram.ui.NebulaAppearance.menuSearch()) headerItem.showSubItem(search); else headerItem.hideSubItem(search);
+                     }
+                     if (searchIconItem != null) {
+                         searchIconItem.setVisibility(View.GONE);
+@@ -18311,7 +18330,7 @@
+                     if (showAudioCallAsIcon) {
+                         headerItem.hideSubItem(call);
+                     } else if (userInfo != null && userInfo.phone_calls_available) {
+-                        headerItem.showSubItem(call, true);
++                        if (app.nebulagram.ui.NebulaAppearance.menuCall()) headerItem.showSubItem(call, true); else headerItem.hideSubItem(call);
+                     }
+                 }
+                 globalIgnoreLayout = false;
+@@ -21925,6 +21944,7 @@
+                 chatActivityEnterView.updateSendButtonPaid();
+             }
+         } else if (id == NotificationCenter.updateInterfaces) {
++            actionBar.invalidate();
+             int updateMask = (Integer) args[0];
+             if ((updateMask & MessagesController.UPDATE_MASK_NAME) != 0 || (updateMask & MessagesController.UPDATE_MASK_CHAT_NAME) != 0 || (updateMask & MessagesController.UPDATE_MASK_EMOJI_STATUS) != 0) {
+                 if (currentChat != null) {
+@@ -23965,10 +23985,10 @@
+                                 audioCallIconItem.setVisibility(View.VISIBLE);
+                             }
+                         } else {
+-                            headerItem.showSubItem(call, true);
++                            if (app.nebulagram.ui.NebulaAppearance.menuCall()) headerItem.showSubItem(call, true); else headerItem.hideSubItem(call);
+                         }
+                         if (userInfo.video_calls_available) {
+-                            headerItem.showSubItem(video_call, true);
++                            if (app.nebulagram.ui.NebulaAppearance.menuVideo()) headerItem.showSubItem(video_call, true); else headerItem.hideSubItem(video_call);
+                         } else {
+                             headerItem.hideSubItem(video_call);
+                         }
+@@ -28003,8 +28023,8 @@
+                     muteItem.setVisibility(View.GONE);
+                     muteItemGap.setVisibility(View.GONE);
+                 } else {
+-                    muteItem.setVisibility(View.VISIBLE);
+-                    muteItemGap.setVisibility(View.VISIBLE);
++                    muteItem.setVisibility(app.nebulagram.ui.NebulaAppearance.menuMute() ? View.VISIBLE : View.GONE);
++                    muteItemGap.setVisibility(app.nebulagram.ui.NebulaAppearance.menuMute() ? View.VISIBLE : View.GONE);
+                 }
+             }
+             if (isInsideContainer || forceNoBottom) {
+@@ -29790,6 +29810,8 @@
+     @Override
+     public void onResume() {
+         super.onResume();
++        actionBar.nebulaHeaderAccount = currentAccount;
++        actionBar.invalidate();
+         app.nebulagram.ui.NebulaChatStyle.header(actionBar,
+                 chatMode == 0 && !isComments,
+                 UserObject.isUserSelf(currentUser));
+@@ -32433,6 +32455,36 @@
+                 popupY = Utilities.clamp(popupY, maxY, minY);
+             } else {
+                 popupY = inBubbleMode ? 0 : AndroidUtilities.statusBarHeight;
++            }
++            nebulaScrimScale = 1f;
++            nebulaScrimTop = nebulaScrimSourceTop = 0;
++            if (app.nebulagram.ui.NebulaAppearance.messageMenuBlur()
++                    && app.nebulagram.ui.NebulaAppearance.messageMenuBelow()
++                    && v instanceof ChatMessageCell && !isInsideContainer) {
++                // Cap the scrolling menu so a visible message always fits above it.
++                int menuLimit = Math.max(dp(96), totalHeight - minY - dp(120));
++                scrimPopupContainerLayout.setMaxHeight(menuLimit);
++                scrimPopupContainerLayout.measure(View.MeasureSpec.makeMeasureSpec(dp(1000), View.MeasureSpec.AT_MOST),
++                        View.MeasureSpec.makeMeasureSpec(menuLimit, View.MeasureSpec.AT_MOST));
++                height = scrimPopupContainerLayout.getMeasuredHeight();
++                float sourceBottom = chatListView.getY() + v.getY() + v.getHeight();
++                nebulaScrimSourceTop = chatListView.getY() + v.getY();
++                MessageObject.GroupedMessages group = ((ChatMessageCell) v).getCurrentMessagesGroup();
++                if (group != null) {
++                    for (int i = 0; i < chatListView.getChildCount(); i++) {
++                        View child = chatListView.getChildAt(i);
++                        if (child instanceof ChatMessageCell && ((ChatMessageCell) child).getCurrentMessagesGroup() == group) {
++                            nebulaScrimSourceTop = Math.min(nebulaScrimSourceTop, chatListView.getY() + child.getY());
++                            sourceBottom = Math.max(sourceBottom, chatListView.getY() + child.getY() + child.getHeight());
++                        }
++                    }
++                }
++                app.nebulagram.ui.NebulaMessageMenuLayout placement = app.nebulagram.ui.NebulaMessageMenuLayout.calculate(
++                        nebulaScrimSourceTop, sourceBottom - nebulaScrimSourceTop, minY, totalHeight - dp(16), height, dp(8));
++                nebulaScrimTop = placement.top;
++                nebulaScrimScale = placement.scale;
++                popupY = (int) placement.menuTop;
++                maxY = totalHeight - height - dp(8);
+             }
+             final int finalPopupX = scrimPopupX = popupX;
+             final int finalPopupY = scrimPopupY = popupY;
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/drawable/BlurredBackgroundDrawable.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/drawable/BlurredBackgroundDrawable.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/drawable/BlurredBackgroundDrawable.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/drawable/BlurredBackgroundDrawable.java
+@@ -205,8 +205,8 @@
+ 
+         backgroundColor = colorProvider.getBackgroundColor();
+         shadowColor = colorProvider.getShadowColor();
+-        strokeColorTop = colorProvider.getStrokeColorTop();
+-        strokeColorBottom = colorProvider.getStrokeColorBottom();
++        strokeColorTop = app.nebulagram.ui.NebulaAppearance.glassHighlights() ? colorProvider.getStrokeColorTop() : 0;
++        strokeColorBottom = app.nebulagram.ui.NebulaAppearance.glassHighlights() ? colorProvider.getStrokeColorBottom() : 0;
+     }
+ 
+ 
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterViewAnimatedIconView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterViewAnimatedIconView.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterViewAnimatedIconView.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterViewAnimatedIconView.java
+@@ -47,15 +47,7 @@
+         }
+         State fromState = currentState;
+         currentState = state;
+-        if (app.nebulagram.ui.NebulaIcons.enabled() && state != State.GIF) {
+-            if (state == State.VOICE) setContentDescription(LocaleController.getString(R.string.AccDescrVoiceMessage));
+-            else if (state == State.VIDEO) setContentDescription(LocaleController.getString(R.string.AccDescrVideoMessage));
+-            setImageResource(state == State.VOICE ? R.drawable.nebula_ios_mic
+-                    : state == State.VIDEO ? R.drawable.nebula_ios_video
+-                    : state == State.KEYBOARD ? R.drawable.nebula_ios_keyboard
+-                    : state == State.STICKER ? R.drawable.nebula_ios_sticker : R.drawable.nebula_ios_smile);
+-            return;
+-        }
++
+         if (!animate || fromState == null || getState(fromState, currentState) == null) {
+             RLottieDrawable drawable = stateMap.get(getAnyState(currentState));
+             drawable.stop();
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarContainer.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarContainer.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarContainer.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarContainer.java
+@@ -689,9 +689,9 @@
+         }
+         if (nebulaCenteredTitle) {
+             nebulaHeaderWidth = measureNebulaHeaderWidth(width + dp(12));
+-            final int textWidth = Math.max(0, nebulaHeaderWidth - dp(40));
++            final int textWidth = Math.max(0, nebulaHeaderWidth - dp(app.nebulagram.ui.NebulaAppearance.chatHeader() ? 40 : 68));
+             final int textWidthSpec = MeasureSpec.makeMeasureSpec(textWidth, MeasureSpec.EXACTLY);
+-            titleTextView.setGravity(titleTextView.getExactWidthIncludeDrawables() > textWidth ? Gravity.LEFT : Gravity.CENTER_HORIZONTAL);
++            titleTextView.setGravity(!app.nebulagram.ui.NebulaAppearance.chatHeader() || titleTextView.getExactWidthIncludeDrawables() > textWidth ? Gravity.LEFT : Gravity.CENTER_HORIZONTAL);
+             // SimpleTextView caches its center offset during measure, not layout.
+             // Rebuild at the actual shared text width before positioning either line.
+             titleTextView.measure(textWidthSpec, MeasureSpec.makeMeasureSpec(dp(32), MeasureSpec.AT_MOST));
+@@ -780,6 +780,7 @@
+ 
+     private boolean glassMode;
+     private boolean nebulaCenteredTitle;
++    private boolean nebulaWasFloating;
+     private int nebulaHeaderWidth;
+     private boolean nebulaAvatarHiddenForSavedMessages;
+     private int nebulaAvatarOriginalVisibility = -1;
+@@ -792,7 +793,9 @@
+     /** Saved Messages puts its mark into the menu slot, never beside its title. */
+     public void setNebulaCenteredTitle(boolean enabled, boolean hideAvatarForSavedMessages) {
+         boolean hideAvatar = enabled && hideAvatarForSavedMessages;
+-        if (nebulaCenteredTitle == enabled && nebulaAvatarHiddenForSavedMessages == hideAvatar) return;
++        if (nebulaCenteredTitle == enabled && nebulaAvatarHiddenForSavedMessages == hideAvatar
++                && nebulaWasFloating == app.nebulagram.ui.NebulaAppearance.chatHeader()) return;
++        nebulaWasFloating = app.nebulagram.ui.NebulaAppearance.chatHeader();
+         nebulaCenteredTitle = enabled;
+         if (hideAvatar) {
+             nebulaAvatarOriginalVisibility = avatarImageView.getVisibility();
+@@ -802,16 +805,16 @@
+             nebulaAvatarOriginalVisibility = -1;
+         }
+         nebulaAvatarHiddenForSavedMessages = hideAvatar;
+-        titleTextView.setGravity(enabled ? Gravity.CENTER_HORIZONTAL : Gravity.LEFT);
++        titleTextView.setGravity(enabled && app.nebulagram.ui.NebulaAppearance.chatHeader() ? Gravity.CENTER_HORIZONTAL : Gravity.LEFT);
+         // Длинное имя не влезает в капсулу и обрезалось с двух сторон.
+         // Бегущая строка — родной механизм Telegram для этого случая.
+         titleTextView.setScrollNonFitText(enabled);
+         if (subtitleTextView != null) {
+-            subtitleTextView.setGravity(enabled ? Gravity.CENTER_HORIZONTAL : Gravity.LEFT);
++            subtitleTextView.setGravity(enabled && app.nebulagram.ui.NebulaAppearance.chatHeader() ? Gravity.CENTER_HORIZONTAL : Gravity.LEFT);
+             subtitleTextView.setPadding(0, 0, enabled ? 0 : dp(10), 0);
+         }
+         if (animatedSubtitleTextView != null) {
+-            animatedSubtitleTextView.setGravity(enabled ? Gravity.CENTER_HORIZONTAL : Gravity.LEFT);
++            animatedSubtitleTextView.setGravity(enabled && app.nebulagram.ui.NebulaAppearance.chatHeader() ? Gravity.CENTER_HORIZONTAL : Gravity.LEFT);
+             animatedSubtitleTextView.setPadding(0, 0, enabled ? 0 : dp(10), 0);
+         }
+         requestLayout();
+@@ -868,7 +871,9 @@
+                 avatarRight -= ((ActionBar) getParent()).getNebulaChatAvatarTrailingInset();
+             }
+             avatarRight = Math.max(avatarImageView.getMeasuredWidth(), avatarRight);
+-            final int avatarLeft = avatarRight - avatarImageView.getMeasuredWidth();
++            final int avatarLeft = app.nebulagram.ui.NebulaAppearance.chatHeader()
++                    ? avatarRight - avatarImageView.getMeasuredWidth()
++                    : app.nebulagram.ui.NebulaHeaderCounter.backWidth() + dp(4);
+             final int titleWidth = titleTextView.getMeasuredWidth();
+             final int titleLeft = app.nebulagram.ui.NebulaChatStyle.headerTextLeft(getWidth(), nebulaHeaderWidth, titleWidth);
+             final View subtitle = getSubtitleTextView();
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/FilterTabsView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/FilterTabsView.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Components/FilterTabsView.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/FilterTabsView.java
+@@ -119,6 +119,7 @@
+     public class Tab {
+         public int id;
+         public CharSequence title;
++        private CharSequence nebulaOriginalTitle;
+         public int titleWidth;
+         public int counter;
+         public boolean isDefault;
+@@ -127,7 +128,8 @@
+ 
+         public Tab(int i, CharSequence title, boolean noanimate) {
+             this.id = i;
+-            this.title = title;
++            nebulaOriginalTitle = title.toString();
++            this.title = app.nebulagram.ui.NebulaFolderStyle.title(title, textPaint);
+             this.noanimate = noanimate;
+         }
+ 
+@@ -161,13 +163,15 @@
+         }
+ 
+         public boolean setTitle(String newTitle, ArrayList<TLRPC.MessageEntity> newEntities, boolean noanimate) {
+-            if (TextUtils.equals(title, newTitle)) {
++            if (TextUtils.equals(nebulaOriginalTitle, newTitle)) {
+                 return false;
+             }
++            nebulaOriginalTitle = newTitle;
+             title = new SpannableStringBuilder(newTitle);
+             title = Emoji.replaceEmoji(title, textPaint.getFontMetricsInt(), false);
+ //            MessageObject.addEntitiesToText(title, newEntities, false, false, false, true);
+             title = MessageObject.replaceAnimatedEmoji(title, newEntities, textPaint.getFontMetricsInt());
++            title = app.nebulagram.ui.NebulaFolderStyle.title(title, textPaint);
+             this.noanimate = noanimate;
+             return true;
+         }
+@@ -1444,6 +1448,11 @@
+         }
+         return result;
+     }
++
++    private int nebulaDefaultTabId;
++    public void setNebulaDefaultTabId(int id) { nebulaDefaultTabId = id; }
++
++    private final Paint nebulaOutlinePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+ 
+     private void drawSelector(Canvas canvas) {
+         final int height = getMeasuredHeight();
+@@ -1510,6 +1519,15 @@
+             selectorDrawable.setBounds((int) (indicatorX - dp(TAB_INTERNAL_PADDING) - add), y, (int) (indicatorX + indicatorWidth + dp(TAB_INTERNAL_PADDING) + add), y + dp(28));
+             selectorDrawable.setAlpha(31);
+             selectorDrawable.draw(canvas);
++            if (app.nebulagram.ui.NebulaAppearance.folderOutline()) {
++                Paint outline = nebulaOutlinePaint;
++                outline.setStyle(Paint.Style.STROKE);
++                outline.setStrokeWidth(dp(1.5f));
++                outline.setColor(Theme.getColor(activeTextColorKey));
++                RectF bounds = new RectF(selectorDrawable.getBounds());
++                bounds.inset(dp(1), dp(1));
++                canvas.drawRoundRect(bounds, dp(14), dp(14), outline);
++            }
+             canvas.restore();
+         }
+     }
+@@ -1986,7 +2004,7 @@
+     public int getDefaultTabId() {
+         Tab defaultTab = findDefaultTab();
+         if (defaultTab == null) {
+-            return -1;
++            return nebulaDefaultTabId;
+         }
+         return defaultTab.id;
+     }
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/glass/GlassTabView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/glass/GlassTabView.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Components/glass/GlassTabView.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/glass/GlassTabView.java
+@@ -124,6 +124,7 @@
+         if (hasVisualWidth) {
+             final float offset = (visualWidth - getMeasuredWidth()) / 2f;
+             imageView.setTranslationX(offset);
++            if (backupImageView != null) backupImageView.setTranslationX(offset);
+             textView.setTranslationX(offset);
+         }
+     }
+@@ -278,11 +279,6 @@
+     private long lastBotIconId;
+ 
+     private void checkPlayAnimation(boolean animated) {
+-        if (tabAnimation == TabAnimation.SETTINGS) {
+-            imageView.setImageResource(R.drawable.nebula_settings_mark);
+-            updateColors();
+-            return;
+-        }
+         final boolean isSelected = isSelectedAnimator.getValue();
+ 
+         if (tabAnimationBot !=  null) {
+@@ -403,6 +399,12 @@
+     }
+ 
+     public static GlassTabView createMainTab(Context context, Theme.ResourcesProvider resourcesProvider, TabAnimation tabAnimation, @StringRes int stringRes) {
++        if (tabAnimation == TabAnimation.SETTINGS) {
++            TLRPC.User self = UserConfig.getInstance(UserConfig.selectedAccount).getCurrentUser();
++            if (self != null && self.photo != null && self.photo.photo_id != 0) {
++                return createAvatar(context, resourcesProvider, UserConfig.selectedAccount, stringRes);
++            }
++        }
+         GlassTabView tab = new GlassTabView(context);
+         tab.resourcesProvider = resourcesProvider;
+         tab.tabAnimation = tabAnimation;
+@@ -483,7 +485,7 @@
+         tab.updateColors();
+         // NebulaGram: фабрика переустанавливает разметку значка после
+         // конструктора, поэтому подписи прячем здесь — последними.
+-        app.nebulagram.ui.NebulaBottomBar.applyTabLabel(tab.imageView, tab.textView);
++        app.nebulagram.ui.NebulaBottomBar.applyTabLabel(tab.backupImageView, tab.textView);
+         return tab;
+     }
+ 
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ReplyMessageLine.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ReplyMessageLine.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ReplyMessageLine.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ReplyMessageLine.java
+@@ -134,6 +134,7 @@
+     private int wasColorId;
+     private long wasCollectionId;
+     private void resolveColor(MessageObject messageObject, int colorId, Theme.ResourcesProvider resourcesProvider) {
++        if (!app.nebulagram.ui.NebulaAppearance.replyColors()) colorId = 5;
+         final boolean dark = resourcesProvider != null ? resourcesProvider.isDark() : Theme.isCurrentThemeDark();
+         if (wasColorId != colorId) {
+             final int msgId = messageObject != null ? messageObject.getId() : 0;
+@@ -652,7 +653,7 @@
+     }
+ 
+     public void drawBackground(Canvas canvas, RectF rect, float alpha, boolean hasQuote, boolean emojiOnly) {
+-        if (!emojiOnly) {
++        if (!emojiOnly && app.nebulagram.ui.NebulaAppearance.replyBackground()) {
+             backgroundPaint.setColor(Theme.multAlpha(backgroundColorAnimated.set(backgroundColor), alpha));
+             if (RadiiUtils.radiiAreSame(radii)) {
+                 canvas.drawRoundRect(rect, radii[0], radii[0], backgroundPaint);
+@@ -663,7 +664,7 @@
+             }
+         }
+ 
+-        if (emoji != null) {
++        if (emoji != null && app.nebulagram.ui.NebulaAppearance.replyEmoji()) {
+             final float loadedScale = emojiLoadedT.set(isEmojiLoaded());
+ 
+             if (loadedScale > 0 && emojiAlpha > 0) {
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/Switch.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/Switch.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Components/Switch.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/Switch.java
+@@ -371,8 +371,16 @@
+         invalidate();
+     }
+ 
++    private app.nebulagram.ui.NebulaSwitch nebulaSwitch;
++
+     @Override
+     protected void onDraw(Canvas canvas) {
++        if (iconDrawable == null && drawIconType == 0) {
++            if (nebulaSwitch == null) nebulaSwitch = new app.nebulagram.ui.NebulaSwitch(getContext());
++            nebulaSwitch.setLayoutDirection(getLayoutDirection());
++            nebulaSwitch.drawNative(canvas, progress, getMeasuredWidth(), getMeasuredHeight());
++            return;
++        }
+         if (getVisibility() != VISIBLE) {
+             return;
+         }
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
+@@ -6895,8 +6895,16 @@
+                     filterTabsView.resetTabId();
+                     selectWithStableId = true;
+                 }
++                boolean nebulaHideAll = app.nebulagram.ui.NebulaAppearance.hideAllChats() && filters.size() > 1;
++                int nebulaFirstFolder = -1;
++                for (int i = 0; i < filters.size(); i++) {
++                    if (!filters.get(i).isDefault() && !filters.get(i).locked) { nebulaFirstFolder = i; break; }
++                }
++                nebulaHideAll &= nebulaFirstFolder >= 0;
+                 filterTabsView.removeTabs();
+                 for (int a = 0, N = filters.size(); a < N; a++) {
++                    if (filters.get(a).isDefault()) filterTabsView.setNebulaDefaultTabId(a);
++                    if (nebulaHideAll && filters.get(a).isDefault()) continue;
+                     if (filters.get(a).isDefault()) {
+                         filterTabsView.addTab(a, 0, LocaleController.getString(R.string.FilterAllChats), null, false, true, filters.get(a).locked);
+                     } else {
+@@ -6925,6 +6933,11 @@
+                         viewPages[a].selectedType = filters.size() - 1;
+                     }
+                     viewPages[a].listView.setScrollingTouchSlop(RecyclerView.TOUCH_SLOP_PAGING);
++                }
++                if (nebulaHideAll && filters.get(viewPages[0].selectedType).isDefault()) {
++                    for (ViewPage page : viewPages) page.selectedType = nebulaFirstFolder;
++                    filterTabsView.selectTabWithId(nebulaFirstFolder, 1f);
++                    updateCurrentTab = true;
+                 }
+                 filterTabsView.finishAddingTabs(animatedUpdateItems);
+                 if (updateCurrentTab) {
+@@ -13800,7 +13813,7 @@
+         }
+         app.nebulagram.ui.NebulaMainMenu.addNavigation(this, io);
+         if (app.nebulagram.ui.NebulaBottomBar.settingsInOverflow(getUserConfig().showCallsTab)) {
+-            io.add(R.drawable.nebula_settings_mark, getString(R.string.Settings), () -> {
++            io.add(R.drawable.msg_settings, getString(R.string.Settings), () -> {
+                 presentFragment(new SettingsActivity());
+             });
+         }
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
+@@ -10705,7 +10705,7 @@
+                     unofficialSecurityRiskDividerRow = rowCount++;
+                 }
+ 
+-                if (userInfo != null && (userInfo.flags2 & 64) != 0 && (profileChannelMessageFetcher == null || !profileChannelMessageFetcher.loaded || !profileChannelMessageFetcher.messageObjects.isEmpty())) {
++                if (app.nebulagram.ui.NebulaAppearance.profileChannel() && userInfo != null && (userInfo.flags2 & 64) != 0 && (profileChannelMessageFetcher == null || !profileChannelMessageFetcher.loaded || !profileChannelMessageFetcher.messageObjects.isEmpty())) {
+                     final TLRPC.Chat channel = getMessagesController().getChat(userInfo.personal_channel_id);
+                     if (channel != null && (ChatObject.isPublic(channel) || !ChatObject.isNotInChat(channel))) {
+                         channelRow = rowCount++;
+@@ -10723,13 +10723,13 @@
+                     usernameRow = rowCount++;
+                 }
+                 if (userInfo != null) {
+-                    if (userInfo.birthday != null) {
++                    if (app.nebulagram.ui.NebulaAppearance.profileBirthday() && userInfo.birthday != null) {
+                         birthdayRow = rowCount++;
+                     }
+-                    if (userInfo.business_work_hours != null) {
++                    if (app.nebulagram.ui.NebulaAppearance.profileBusiness() && userInfo.business_work_hours != null) {
+                         bizHoursRow = rowCount++;
+                     }
+-                    if (userInfo.business_location != null) {
++                    if (app.nebulagram.ui.NebulaAppearance.profileBusiness() && userInfo.business_location != null) {
+                         bizLocationRow = rowCount++;
+                     }
+                     if (userInfo.note != null) {
+@@ -11318,11 +11318,12 @@
+                 final MessagesController.PeerColors peerColors = MessagesController.getInstance(currentAccount).profilePeerColors;
+                 peerColor = peerColors == null ? null : peerColors.getColor(colorId);
+             }
++            if (!app.nebulagram.ui.NebulaAppearance.profileBackground()) peerColor = null;
+             if (wasPeerColor != peerColor) {
+                 updatedPeerColor();
+             }
+             if (topView != null) {
+-                topView.setBackgroundEmojiId(UserObject.getProfileEmojiId(user), user != null && user.emoji_status instanceof TLRPC.TL_emojiStatusCollectible, true);
++                topView.setBackgroundEmojiId(app.nebulagram.ui.NebulaAppearance.profileBackground() && app.nebulagram.ui.NebulaAppearance.profileEmoji() ? UserObject.getProfileEmojiId(user) : 0, user != null && user.emoji_status instanceof TLRPC.TL_emojiStatusCollectible, true);
+             }
+             if (ratingView != null) {
+                 ratingView.updateColors(peerColor);
+@@ -11633,11 +11634,12 @@
+                 MessagesController.PeerColors peerColors = MessagesController.getInstance(currentAccount).profilePeerColors;
+                 peerColor = peerColors == null ? null : peerColors.getColor(colorId);
+             }
++            if (!app.nebulagram.ui.NebulaAppearance.profileBackground()) peerColor = null;
+             if (wasPeerColor != peerColor) {
+                 updatedPeerColor();
+             }
+             if (topView != null) {
+-                topView.setBackgroundEmojiId(ChatObject.getProfileEmojiId(chat), chat != null && chat.emoji_status instanceof TLRPC.TL_emojiStatusCollectible, true);
++                topView.setBackgroundEmojiId(app.nebulagram.ui.NebulaAppearance.profileBackground() && app.nebulagram.ui.NebulaAppearance.profileEmoji() ? ChatObject.getProfileEmojiId(chat) : 0, chat != null && chat.emoji_status instanceof TLRPC.TL_emojiStatusCollectible, true);
+             }
+             setCollectibleGiftStatus(chat.emoji_status instanceof TLRPC.TL_emojiStatusCollectible ? (TLRPC.TL_emojiStatusCollectible) chat.emoji_status : null);
+ 

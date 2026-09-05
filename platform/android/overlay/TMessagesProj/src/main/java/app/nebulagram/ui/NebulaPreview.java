@@ -106,60 +106,47 @@ public class NebulaPreview extends View {
     // --- шапка чата ---------------------------------------------------------
 
     private void drawHeader(Canvas canvas) {
-        boolean styled = NebulaAppearance.chatHeader();
-        float margin = AndroidUtilities.dp(8);
-        float height = AndroidUtilities.dp(44);
-        float top = (getHeight() - height) / 2f;
-        float centerY = top + height / 2f;
-
-        if (!styled) {
-            paint.setColor(theme.surfaceContainer());
-            rect.set(margin, top, getWidth() - margin, top + height);
-            canvas.drawRoundRect(rect, AndroidUtilities.dp(8), AndroidUtilities.dp(8), paint);
-        }
-
-        float arrowX = styled ? margin + height / 2f : margin + AndroidUtilities.dp(18);
-        if (styled) drawGlassCircle(canvas, arrowX, centerY, height / 2f);
+        boolean floating = NebulaAppearance.chatHeader();
+        float top = AndroidUtilities.dp(14), height = AndroidUtilities.dp(44);
+        float centerY = top + height / 2;
+        float backWidth = NebulaHeaderCounter.backWidth();
+        rect.set(AndroidUtilities.dp(6), top, backWidth - AndroidUtilities.dp(6), top + height);
+        drawGlassSurface(canvas, rect, height / 2);
         int arrowHalf = AndroidUtilities.dp(12);
+        int arrowX = AndroidUtilities.dp(29);
         backArrow.setColorFilter(theme.onSurface(), PorterDuff.Mode.SRC_IN);
-        backArrow.setBounds(Math.round(arrowX) - arrowHalf, Math.round(centerY) - arrowHalf,
-                Math.round(arrowX) + arrowHalf, Math.round(centerY) + arrowHalf);
+        backArrow.setBounds(arrowX - arrowHalf, (int) centerY - arrowHalf, arrowX + arrowHalf, (int) centerY + arrowHalf);
         backArrow.draw(canvas);
+        NebulaHeaderCounter.draw(canvas, getContext(), 0, centerY, 10);
 
-        // В Liquid Glass имя по центру и аватар отдельно справа. Поэтому
-        // видна ключевая разница, которую даёт переключатель в реальном чате.
-        float avatarX = styled ? getWidth() - margin - height / 2f : margin + AndroidUtilities.dp(48);
-        if (styled) drawGlassCircle(canvas, avatarX, centerY, height / 2f);
-        float avatarRadius = AndroidUtilities.dp(styled ? 20 : 14);
-        avatar.setRoundRadius((int) avatarRadius);
-        avatar.setImageCoords(avatarX - avatarRadius, centerY - avatarRadius,
-                avatarRadius * 2, avatarRadius * 2);
-        avatar.draw(canvas);
-
-        float textLeft = avatarX + AndroidUtilities.dp(22);
-        paint.setTextSize(AndroidUtilities.dp(13));
+        paint.setTextSize(AndroidUtilities.dp(17.5f));
+        paint.setTypeface(AndroidUtilities.bold());
         float capsuleWidth = NebulaChatStyle.headerWidth(getWidth(), (int) paint.measureText(accountName));
-        float titleWidth = Math.max(0, capsuleWidth - AndroidUtilities.dp(36));
         float capsuleLeft = NebulaChatStyle.headerLeft(getWidth(), (int) capsuleWidth);
-        float titleX = styled ? capsuleLeft + AndroidUtilities.dp(18) : textLeft;
-        float titleCenter = capsuleLeft + capsuleWidth / 2f;
-        if (styled) {
-            rect.set(titleX - AndroidUtilities.dp(18), top + AndroidUtilities.dp(2),
-                    titleX + titleWidth + AndroidUtilities.dp(18), top + height - AndroidUtilities.dp(2));
-            drawGlassSurface(canvas, rect, AndroidUtilities.dp(20));
-        }
-        paint.setTextSize(AndroidUtilities.dp(13));
-        drawLabel(canvas, accountName,
-                styled ? titleCenter : textLeft, centerY - AndroidUtilities.dp(2),
-                titleWidth + AndroidUtilities.dp(36),
-                styled ? Paint.Align.CENTER : Paint.Align.LEFT, true, theme.onSurface());
+        rect.set(capsuleLeft + AndroidUtilities.dp(6), top,
+                capsuleLeft + capsuleWidth - AndroidUtilities.dp(6), top + height);
+        drawGlassSurface(canvas, rect, height / 2);
 
-        paint.setTextSize(AndroidUtilities.dp(10));
-        drawLabel(canvas, accountStatus,
-                styled ? titleCenter : textLeft, centerY + AndroidUtilities.dp(10),
-                titleWidth + AndroidUtilities.dp(36),
-                styled ? Paint.Align.CENTER : Paint.Align.LEFT, false,
-                NebulaTheme.stateLayer(theme.onSurfaceVariant(), 0.85f));
+        float avatarX = floating ? getWidth() - AndroidUtilities.dp(29) : capsuleLeft + AndroidUtilities.dp(30);
+        if (floating) drawGlassCircle(canvas, avatarX, centerY, height / 2);
+        float r = AndroidUtilities.dp(20);
+        avatar.setRoundRadius((int) r);
+        avatar.setImageCoords(avatarX - r, centerY - r, r * 2, r * 2);
+        avatar.draw(canvas);
+        if (!floating) {
+            float menuX = getWidth() - AndroidUtilities.dp(29);
+            drawGlassCircle(canvas, menuX, centerY, height / 2);
+            paint.setColor(theme.onSurface());
+            for (int i = -1; i <= 1; i++) canvas.drawCircle(menuX, centerY + AndroidUtilities.dp(6) * i, AndroidUtilities.dpf2(1.6f), paint);
+        }
+        float textX = floating ? capsuleLeft + capsuleWidth / 2 : avatarX + AndroidUtilities.dp(30);
+        float textWidth = capsuleWidth - AndroidUtilities.dp(floating ? 40 : 68);
+        paint.setTextSize(AndroidUtilities.dp(17.5f));
+        drawLabel(canvas, accountName, textX, centerY - AndroidUtilities.dp(2), Math.max(0, textWidth),
+                floating ? Paint.Align.CENTER : Paint.Align.LEFT, true, theme.onSurface());
+        paint.setTextSize(AndroidUtilities.dp(12.5f));
+        drawLabel(canvas, accountStatus, textX, centerY + AndroidUtilities.dp(13), Math.max(0, textWidth),
+                floating ? Paint.Align.CENTER : Paint.Align.LEFT, false, NebulaTheme.stateLayer(theme.onSurfaceVariant(), .85f));
     }
 
     private void drawGlassCircle(Canvas canvas, float cx, float cy, float radius) {
@@ -171,6 +158,7 @@ public class NebulaPreview extends View {
         paint.setStyle(Paint.Style.FILL);
         paint.setColor(ColorUtils.blendARGB(theme.surfaceContainer(), theme.primary(), .08f));
         canvas.drawRoundRect(bounds, radius, radius, paint);
+        if (!NebulaAppearance.glassHighlights()) return;
         paint.setStyle(Paint.Style.STROKE);
         paint.setStrokeWidth(AndroidUtilities.dpf2(.75f));
         paint.setColor(NebulaTheme.stateLayer(theme.onSurface(), .18f));

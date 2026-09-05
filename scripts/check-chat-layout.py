@@ -47,6 +47,7 @@ public static class MarginLayoutParams {public int width,height,leftMargin,right
 'android/widget/EditText.java': 'package android.widget; public class EditText extends android.view.View {}',
 'android/widget/ImageView.java': 'package android.widget; public class ImageView extends android.view.View {public ImageView(android.content.Context c){super(c);}}',
 'org/telegram/messenger/AndroidUtilities.java': 'package org.telegram.messenger; public class AndroidUtilities {public static float density=1; public static int dp(float v){return (int)Math.ceil(v*density);}}',
+'app/nebulagram/ui/NebulaHeaderCounter.java': 'package app.nebulagram.ui; public class NebulaHeaderCounter {public static int backWidth(){return org.telegram.messenger.AndroidUtilities.dp(58);}}',
 'app/nebulagram/ui/NebulaAppearance.java': 'package app.nebulagram.ui; public class NebulaAppearance {public static boolean enabled=true; public static boolean iosComposer(){return enabled;} public static boolean chatHeader(){return enabled;} public static boolean adaptiveHeader(){return true;} public static boolean centeredHeader(){return true;} public static boolean folderTitle(){return enabled;}}',
 'org/telegram/ui/ActionBar/ActionBar.java': 'package org.telegram.ui.ActionBar; public class ActionBar {public SimpleTextView title=new SimpleTextView();public SimpleTextView getTitleTextView(){return title;} public SimpleTextView getTitleTextView2(){return null;} public void setTitleAnimated(CharSequence text,boolean bottom,long duration,Object interpolator){title.setText(text);} public void setTitle(CharSequence text,android.graphics.drawable.Drawable icon){title.setText(text);}public void setNebulaFloatingChatHeader(boolean a,boolean b,boolean c){}}',
 'org/telegram/ui/ActionBar/ActionBarMenuItem.java': 'package org.telegram.ui.ActionBar; public class ActionBarMenuItem {public void setIcon(android.graphics.drawable.Drawable d){}}',
@@ -134,7 +135,7 @@ ai.setVisibility(View.GONE);expand.setAlpha(0);bg.surfaces.clear();bg.alphas.cle
 style.draw(new Canvas(),bg,root);check(bg.surfaces.size()==3,"hidden AI/expand left background");
 }
 int shortHeader=NebulaChatStyle.headerWidth(w,dp(120));int longHeader=NebulaChatStyle.headerWidth(w,dp(1000));
-check(shortHeader<=longHeader&&longHeader==w-dp(128),"dynamic header width");
+check(shortHeader<=longHeader&&longHeader==w-dp(58)-dp(70),"dynamic header width");
 check((w-shortHeader)/2>=dp(64)-1,"header collides with back/avatar");
 style.restoreInsets();NebulaAppearance.enabled=false;style.prepare(host,editor,host.getWidth(),true);style.layout(emoji,attach,null,ai,expand);
 check(attach.getAlpha()==0&&attach.getScaleX()==.5f&&attach.getTranslationX()==dp(20),"native attachment style not restored");

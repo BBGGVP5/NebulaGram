@@ -52,7 +52,7 @@
     <string name="NebulaTabContacts">Contacts</string>
     <string name="NebulaTabSettings">Settings</string>
     <string name="NebulaTabProfile">Profile</string>
-    <string name="NebulaSectionPanel">Navigation</string>
+    <string name="NebulaSectionPanel">Bottom tab organizer</string>
     <string name="NebulaBottomBarTitle">Show the bottom bar</string>
     <string name="NebulaBottomBarSub">Chats, contacts, settings and profile tabs</string>
     <string name="NebulaBottomBarHint">Changes apply when you return to chats. When the settings tab is hidden, Settings stays available in the three-dot menu on the main screen.</string>

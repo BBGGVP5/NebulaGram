@@ -177,4 +177,48 @@ public final class NebulaAppearance {
     public static void setSecondsInTime(boolean enabled) {
         preferences().edit().putBoolean("seconds_in_time", enabled).apply();
     }
+    public static boolean headerUnread() { return preferences().getBoolean("header_unread", false); }
+    public static void setHeaderUnread(boolean value) { preferences().edit().putBoolean("header_unread", value).apply(); }
+    public static boolean iosUnread() { return preferences().getBoolean("ios_unread", true); }
+    public static void setIosUnread(boolean value) { preferences().edit().putBoolean("ios_unread", value).apply(); }
+    public static boolean glassHighlights() { return preferences().getBoolean("glass_highlights", true); }
+    public static void setGlassHighlights(boolean value) { preferences().edit().putBoolean("glass_highlights", value).apply(); }
+    public static boolean messageMenuBlur() { return preferences().getBoolean("message_menu_blur", false); }
+    public static void setMessageMenuBlur(boolean value) { preferences().edit().putBoolean("message_menu_blur", value).apply(); }
+    public static boolean messageMenuBelow() { return preferences().getBoolean("message_menu_below", false); }
+    public static void setMessageMenuBelow(boolean value) { preferences().edit().putBoolean("message_menu_below", value).apply(); }
+    public static boolean hideAllChats() { return preferences().getBoolean("hide_all_chats", false); }
+    public static void setHideAllChats(boolean value) { preferences().edit().putBoolean("hide_all_chats", value).apply(); }
+    public static boolean folderOutline() { return preferences().getBoolean("folder_outline", false); }
+    public static void setFolderOutline(boolean value) { preferences().edit().putBoolean("folder_outline", value).apply(); }
+    public static boolean replyBackground() { return preferences().getBoolean("reply_background", true); }
+    public static void setReplyBackground(boolean value) { preferences().edit().putBoolean("reply_background", value).apply(); }
+    public static boolean replyColors() { return preferences().getBoolean("reply_colors", true); }
+    public static void setReplyColors(boolean value) { preferences().edit().putBoolean("reply_colors", value).apply(); }
+    public static boolean replyEmoji() { return preferences().getBoolean("reply_emoji", true); }
+    public static void setReplyEmoji(boolean value) { preferences().edit().putBoolean("reply_emoji", value).apply(); }
+    public static boolean profileChannel() { return preferences().getBoolean("profile_channel", true); }
+    public static void setProfileChannel(boolean value) { preferences().edit().putBoolean("profile_channel", value).apply(); }
+    public static boolean profileBirthday() { return preferences().getBoolean("profile_birthday", true); }
+    public static void setProfileBirthday(boolean value) { preferences().edit().putBoolean("profile_birthday", value).apply(); }
+    public static boolean profileBusiness() { return preferences().getBoolean("profile_business", true); }
+    public static void setProfileBusiness(boolean value) { preferences().edit().putBoolean("profile_business", value).apply(); }
+    public static boolean profileBackground() { return preferences().getBoolean("profile_background", true); }
+    public static void setProfileBackground(boolean value) { preferences().edit().putBoolean("profile_background", value).apply(); }
+    public static boolean profileEmoji() { return preferences().getBoolean("profile_emoji", true); }
+    public static void setProfileEmoji(boolean value) { preferences().edit().putBoolean("profile_emoji", value).apply(); }
+    public static boolean hidePremiumStatus() { return preferences().getBoolean("hide_premium_status", false); }
+    public static void setHidePremiumStatus(boolean value) { preferences().edit().putBoolean("hide_premium_status", value).apply(); }
+    public static boolean menuCall() { return preferences().getBoolean("menu_call", true); }
+    public static void setMenuCall(boolean value) { preferences().edit().putBoolean("menu_call", value).apply(); }
+    public static boolean menuVideo() { return preferences().getBoolean("menu_video", true); }
+    public static void setMenuVideo(boolean value) { preferences().edit().putBoolean("menu_video", value).apply(); }
+    public static boolean menuSearch() { return preferences().getBoolean("menu_search", true); }
+    public static void setMenuSearch(boolean value) { preferences().edit().putBoolean("menu_search", value).apply(); }
+    public static boolean menuMute() { return preferences().getBoolean("menu_mute", true); }
+    public static void setMenuMute(boolean value) { preferences().edit().putBoolean("menu_mute", value).apply(); }
+    public static int switchStyle() { return Math.max(0, Math.min(3, preferences().getInt("switch_style", 0))); }
+    public static void setSwitchStyle(int value) { preferences().edit().putInt("switch_style", Math.max(0, Math.min(3, value))).apply(); }
+    public static int folderStyle() { return Math.max(0, Math.min(2, preferences().getInt("folder_style", 0))); }
+    public static void setFolderStyle(int value) { preferences().edit().putInt("folder_style", Math.max(0, Math.min(2, value))).apply(); }
 }

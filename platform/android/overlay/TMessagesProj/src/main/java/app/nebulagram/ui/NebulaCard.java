@@ -41,7 +41,9 @@ public class NebulaCard extends LinearLayout {
     /** Adds a row, with a divider between neighbours. */
     public NebulaCard add(View row) {
         if (hasRows) {
-            addView(NebulaRow.divider(getContext()));
+            View divider = NebulaRow.divider(getContext());
+            divider.setTag("nebula-divider");
+            addView(divider);
         }
         addView(row, new LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
@@ -51,6 +53,19 @@ public class NebulaCard extends LinearLayout {
 
     public boolean isEmpty() {
         return !hasRows;
+    }
+
+    @Override
+    protected void onMeasure(int width, int height) {
+        boolean hasVisibleRow = false;
+        for (int i = 0; i < getChildCount(); i++) {
+            View child = getChildAt(i);
+            if ("nebula-divider".equals(child.getTag())) {
+                boolean nextVisible = i + 1 < getChildCount() && getChildAt(i + 1).getVisibility() != GONE;
+                child.setVisibility(hasVisibleRow && nextVisible && !NebulaAppearance.hideDividers() ? VISIBLE : GONE);
+            } else if (child.getVisibility() != GONE) hasVisibleRow = true;
+        }
+        super.onMeasure(width, height);
     }
 
     /**
