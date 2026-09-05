@@ -126,7 +126,8 @@ Android SDK/NDK, Java, Go и собственные `api_id` / `api_hash` Telegr
 
 NebulaGram разрабатывает [BBGGVP5](https://github.com/BBGGVP5).
 Собственный код проекта распространяется под **GNU GPL v2 или более поздней версией**
-(`GPL-2.0-or-later`). Уведомление об авторстве и полный текст — в [LICENSE](LICENSE).
+(`GPL-2.0-or-later`). Авторство и область действия указаны в [NOTICE.md](NOTICE.md),
+полный текст GPL — в [LICENSE](LICENSE).
 
 Проект основан на [Telegram для Android](https://github.com/DrKLO/Telegram).
 Авторство Telegram и условия сторонних компонентов сохраняются;
