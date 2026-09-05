@@ -95,15 +95,27 @@ jobs:
           TELEGRAM_APP_HASH: ${{ secrets.TELEGRAM_APP_HASH }}
         run: bash scripts/inject-keys.sh android
 
+      - name: Choose the architectures
+        run: |
+          # Нативная часть — ffmpeg, webrtc, dav1d, opus — собирается заново под
+          # каждую архитектуру и занимает больше половины времени сборки. На
+          # обычный пуш хватает одной: arm64 стоит на любом телефоне не старше
+          # десяти лет. Все четыре собираются по кнопке Run workflow, то есть
+          # для релиза, и складываются в один универсальный APK.
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "NEBULA_ABIS=armeabi-v7a,arm64-v8a,x86,x86_64" >> "$GITHUB_ENV"
+            echo "NEBULA_KIND=universal" >> "$GITHUB_ENV"
+          else
+            echo "NEBULA_ABIS=arm64-v8a" >> "$GITHUB_ENV"
+            echo "NEBULA_KIND=arm64-v8a" >> "$GITHUB_ENV"
+          fi
+
       - name: Assemble
         working-directory: vendor/telegram-android
         env:
-          # Один универсальный APK содержит все поддерживаемые ABI, поэтому
-          # всегда собираем весь набор, как в предыдущих сборках NebulaGram.
-          NEBULA_ABIS: armeabi-v7a,arm64-v8a,x86,x86_64
           NEBULA_MINIFY: ${{ github.event_name == 'workflow_dispatch' && inputs.minify || 'true' }}
         run: |
-          echo "универсальный APK, архитектуры: $NEBULA_ABIS"
+          echo "архитектуры: $NEBULA_ABIS"
           # Maven Central отвечает 429, когда раннеры GitHub стучатся к нему
           # пачкой. Один повтор дешевле, чем потерянные двадцать минут сборки.
           for attempt in 1 2; do
@@ -115,20 +127,23 @@ jobs:
           done
           exit 1
 
-      - name: Name the universal APK
+      - name: Name the APK
         id: name
         run: |
           version=$(grep '^APP_VERSION_NAME=' vendor/telegram-android/gradle.properties | cut -d= -f2)
-          echo "apk=NebulaGram-${version}-${GITHUB_SHA::7}.apk" >> "$GITHUB_OUTPUT"
+          echo "apk=NebulaGram-${version}-${NEBULA_KIND}-${GITHUB_SHA::7}.apk" >> "$GITHUB_OUTPUT"
 
-      - name: Collect the universal APK
+      - name: Collect the APK
         run: |
           # Тип сборки standalone, а не release: release у этого модуля не
           # объявлен, Gradle создаёт его по умолчанию и без подписи, а
           # неподписанный APK Android не ставит.
-          version=$(grep '^APP_VERSION_NAME=' vendor/telegram-android/gradle.properties | cut -d= -f2)
-          found=$(find vendor/telegram-android -name app.apk -path '*afatStandalone*' | head -1)
-          test -n "$found" || { echo "::error::universal APK was not produced"; exit 1; }
+          #
+          # Каталог у AGP складывается из флейвора и типа через косую черту —
+          # apk/afat/standalone, а не afatStandalone. По имени задачи файл не
+          # находился, и готовая сборка выбрасывалась на последнем шаге.
+          found=$(find vendor/telegram-android -path '*/outputs/apk/afat/standalone/*' -name 'app.apk' | head -1)
+          test -n "$found" || { echo "::error::APK не собрался"; exit 1; }
           mkdir -p out && cp "$found" "out/${{ steps.name.outputs.apk }}"
           ls -la out
 
