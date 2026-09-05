@@ -11,10 +11,20 @@ import org.telegram.ui.ActionBar.SimpleTextView;
 import org.telegram.ui.Components.AnimatedEmojiDrawable;
 
 import java.util.ArrayList;
+import java.util.WeakHashMap;
+import java.lang.ref.WeakReference;
 
 /** Supplies the branded home title and the optional live folder title. */
 public final class NebulaDialogsTitle {
     private NebulaDialogsTitle() { }
+    private static final WeakHashMap<ActionBar, WeakReference<SimpleTextView>> collapsedTitles = new WeakHashMap<>();
+
+    public static void bind(ActionBar bar, SimpleTextView view) {
+        if (bar == null) return;
+        collapsedTitles.put(bar, new WeakReference<>(view));
+        SimpleTextView title = bar.getTitleTextView();
+        if (title != null) view.setText(title.getText());
+    }
 
     public static void apply(ActionBar actionBar, MessagesController controller,
                              int selectedType, Drawable statusDrawable) {
@@ -41,15 +51,19 @@ public final class NebulaDialogsTitle {
                 }
             }
         }
-        // Свёрнутые истории показывают не заголовок, а логотип: передаём ему
-        // ту же надпись, иначе название папки видно только в развёрнутом виде.
-        NebulaWordmark.setText(title);
         actionBar.setTitle(title, statusDrawable);
+        int cacheType = selected != null && selected.title_noanimate
+                ? AnimatedEmojiDrawable.CACHE_TYPE_NOANIMATE_FOLDER : AnimatedEmojiDrawable.CACHE_TYPE_MESSAGES;
+        WeakReference<SimpleTextView> reference = collapsedTitles.get(actionBar);
+        SimpleTextView collapsed = reference == null ? null : reference.get();
+        if (collapsed != null) {
+            collapsed.setEmojiCacheType(cacheType);
+            collapsed.setText(title);
+            collapsed.requestLayout();
+        }
         SimpleTextView titleView = actionBar.getTitleTextView();
         if (titleView != null) {
-            titleView.setEmojiCacheType(selected != null && selected.title_noanimate
-                    ? AnimatedEmojiDrawable.CACHE_TYPE_NOANIMATE_FOLDER
-                    : AnimatedEmojiDrawable.CACHE_TYPE_MESSAGES);
+            titleView.setEmojiCacheType(cacheType);
         }
     }
 }

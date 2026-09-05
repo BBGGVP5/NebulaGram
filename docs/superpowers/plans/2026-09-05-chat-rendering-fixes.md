@@ -20,3 +20,17 @@ No Android device is connected. Compilation and geometry/recorded-drawable check
 Validation: the original implementation fails the retained-drawable identity check and the native header measure/layout contract. The fixes pass 72 composer cases, 324 header measurements and 240 camera row/index cases. Both regression scripts are now run after applying patches in GitHub Actions. All 36 patches apply to pristine copies of the 32 touched upstream files.
 
 Final Android Java compilation passed (`:TMessagesProj:compileStandaloneJavaWithJavac`, 3m 17s). No device or emulator was available for visual verification.
+
+
+Follow-up from the next device screenshots:
+- [x] Center premium/status drawables together with chat titles, including the outside-drawable path.
+- [x] Extend the profile hero behind the actions row and use native expanded-style buttons with filled white icons on a dark translucent surface.
+- [x] Resolve chat chrome foreground colors against the actual panel/submenu background, preserving theme colors when they have adequate contrast.
+- [x] Replace the collapsed stories logo with a native span-aware title view bound to its own ActionBar. Update titles after swipe completion, cancellation, tab selection and filter changes.
+- [x] Enforce hidden chat-menu visibility after native search/action-mode transitions, retaining Saved Messages actions.
+- [x] Draw server flags with opaque white text paint, so EmojiSpan does not inherit disabled-text alpha.
+- [ ] Package the follow-up patch, compile, run regressions, push and deliver the new APK.
+
+Follow-up verification: 37 patches apply to 33 pristine upstream files. Added 24 checks of native premium/mute icon placement (the previous code fails), 14 folder bindings across two independent headers, and a check for the extra 4dp left text inset. Profile actions retain native drawing and hit targets, with a dark translucent surface and filled white icons.
+
+Follow-up Android compilation passed in 3m 25s after synchronizing the complete overlay resources into the local verification tree. Also checked 36 foreground/background combinations against the real AndroidX ColorUtils implementation; all met 4.5:1 and already readable theme colors were preserved.

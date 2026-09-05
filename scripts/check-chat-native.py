@@ -34,6 +34,12 @@ header_methods = '\n'.join(method(header, signature) for signature in [
 if 'private int measureNebulaHeaderWidth(' in header:
     header_methods += '\n' + method(header, 'private int measureNebulaHeaderWidth(')
 header_methods += '\n' + layout
+simple = (java / 'ActionBar/SimpleTextView.java').read_text(encoding='utf-8')
+draw = method(simple, 'protected void onDraw(')
+start = draw.index('        if (rightDrawable != null && rightDrawableOutside)')
+status_draw = method(draw[start:], 'if (rightDrawable != null && rightDrawableOutside)')
+start = draw.index('        if (rightDrawable2 != null && rightDrawableOutside)', start)
+status_draw += '\n' + method(draw[start:], 'if (rightDrawable2 != null && rightDrawableOutside)')
 header_methods = header_methods.replace('app.nebulagram.ui.NebulaChatStyle.headerWidth', 'headerWidth')
 camera_methods = '\n'.join(method(adapter, signature) for signature in [
     'public int getItemCount()', 'public int getItemViewType(', 'private MediaController.PhotoEntry getPhoto('])
@@ -68,7 +74,7 @@ static class SimpleTextView extends View {
  protected void onMeasure(int w,int h){super.onMeasure(w,h);textWidth=Math.min(mw,naturalWidth);offset=(mw-textWidth)/2;}
  float getExactWidthIncludeDrawables(){return naturalWidth;}int getTextHeight(){return mh;}
 }
-static class Gravity {static int LEFT=3,CENTER=17;}
+static class Gravity {static int LEFT=3,CENTER=17,CENTER_HORIZONTAL=1,HORIZONTAL_GRAVITY_MASK=7,VERTICAL_GRAVITY_MASK=112,CENTER_VERTICAL=16;}
 static class ActionBar {static int getCurrentActionBarHeight(){return dp(56);}int getNebulaChatAvatarTrailingInset(){return 0;}}
 static class AndroidUtilities {static int statusBarHeight=0;}
 static int headerWidth(int barWidth,int content){return Math.max(0,Math.min(Math.max(dp(112),content+dp(40)),barWidth-dp(128)));}
@@ -83,6 +89,18 @@ static class Header extends View {
 HEADER_METHODS
 }
 static class Album {ArrayList<Integer> photos=new ArrayList<>();}
+static class StatusTitle {
+ int gravity=1,offsetX,textWidth,drawablePadding=4,textOffsetX,scrollingOffset=0,nextScrollX=900,paddingRight=0;
+ int rightDrawableX,rightDrawableY,rightDrawableTopPadding=0,textHeight=20;
+ float rightDrawableScale=1;boolean rightDrawableOutside=true;
+ Icon rightDrawable=new Icon(),rightDrawable2;
+ Object canvas=null;
+ int getMaxTextWidth(){return 300;}int getMeasuredHeight(){return 30;}int getPaddingTop(){return 6;}
+ void draw(){STATUS_DRAW}
+}
+static class Icon {int left,right; int getIntrinsicWidth(){return 24;}int getIntrinsicHeight(){return 24;}
+ void setBounds(int l,int t,int r,int b){left=l;right=r;}void draw(Object canvas){}
+}
 static class Camera {
  boolean hidden,mediaEnabled=true,noGalleryPermissions,noCameraPermissions,showAvatarConstructor;
  int itemsPerRow=3;
@@ -100,6 +118,11 @@ CAMERA_METHODS
 }
 public static void main(String[] args){
  int headers=0,cameras=0;
+ for(int offset:new int[]{0,15,40,80})for(int textWidth:new int[]{10,60,120})for(boolean second:new boolean[]{false,true}){
+  StatusTitle t=new StatusTitle();t.offsetX=offset;t.textWidth=textWidth;if(second)t.rightDrawable2=new Icon();t.draw();
+  check(t.rightDrawable.left==offset+textWidth+4,"premium emoji fails to follow centered title offset");
+  if(second)check(t.rightDrawable2.left==t.rightDrawable.right+4,"mute/verified icon overlaps premium status");
+ }
  for(float d:new float[]{1,2.25f,3})for(int width:new int[]{320,360,448,800})for(int title:new int[]{12,100,600})for(int status:new int[]{0,80,650}){
   density=d;Header h=new Header();h.titleTextView.naturalWidth=dp(title);h.subtitleTextView.naturalWidth=dp(status);h.subtitleTextView.visibility=status==0?GONE:VISIBLE;
   for(int w:new int[]{width,width-30,width}){
@@ -128,9 +151,9 @@ public static void main(String[] args){
   c.hidden=false;c.adapter.getItemCount();check(c.adapter.hasCamera==gallery,"toggle fails to restore camera in all-media album");
   cameras++;
  }
- System.out.println(headers+" header measurements and "+cameras+" camera-grid cases passed");
+ System.out.println(headers+" header measurements and "+cameras+" camera-grid cases plus 24 status-icon cases passed");
 }}
-'''.replace('HEADER_METHODS', header_methods).replace('CAMERA_METHODS', camera_methods)
+'''.replace('HEADER_METHODS', header_methods).replace('CAMERA_METHODS', camera_methods).replace('STATUS_DRAW', status_draw)
 target = work / 'CheckChatNative.java'
 target.write_text(source, encoding='utf-8')
 subprocess.run(['javac','-encoding','UTF-8','-d',str(work),str(target)], check=True)

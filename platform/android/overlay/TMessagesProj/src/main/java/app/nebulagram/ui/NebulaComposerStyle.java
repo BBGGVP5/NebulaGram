@@ -63,7 +63,7 @@ public final class NebulaComposerStyle {
             insetEditor = editor;
             baseLeft = params.leftMargin;
             baseRight = params.rightMargin;
-            params.leftMargin = insetLeft = baseLeft + AndroidUtilities.dp(10);
+            params.leftMargin = insetLeft = baseLeft + AndroidUtilities.dp(14);
             // Emoji remains inside the input even when native code hides the paperclip.
             params.rightMargin = insetRight = Math.max(baseRight, AndroidUtilities.dp(50)) + AndroidUtilities.dp(6);
         }

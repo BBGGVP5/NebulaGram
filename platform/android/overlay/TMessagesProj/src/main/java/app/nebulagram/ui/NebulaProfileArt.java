@@ -82,14 +82,16 @@ public final class NebulaProfileArt {
         private float previousTop, previousBottom;
 
         public void draw(Canvas canvas, int width, View avatar, SimpleTextView title,
-                         View subtitle, float progress, float expanded, float media,
+                         View subtitle, View actions, float progress, float expanded, float media,
                          float opening, Theme.ResourcesProvider provider) {
             if (!NebulaAppearance.profileStyle() || avatar == null || title == null || subtitle == null) return;
             final float alpha = clamp((progress - .25f) / .75f) * (1f - clamp(expanded * 3f))
                     * (1f - clamp(media)) * clamp(opening);
             if (alpha <= .01f || width < dp(240)) return;
             final float top = Math.max(dp(4), avatar.getY() - dp(14));
-            final float bottom = subtitle.getY() + subtitle.getHeight() + dp(14);
+            final float bottom = Math.max(subtitle.getY() + subtitle.getHeight() + dp(14),
+                    actions != null && actions.getVisibility() == View.VISIBLE
+                            ? actions.getY() + dp(74) : 0);
             if (bottom <= top + dp(64)) return;
             // Во всю ширину и до верхнего края: карточка с отступами читалась
             // как виджет внутри экрана, а не как шапка профиля.
@@ -160,10 +162,12 @@ public final class NebulaProfileArt {
             final float imageW = receiver.getImageWidth();
             final float imageH = receiver.getImageHeight();
             final float imageAlpha = receiver.getAlpha();
+            final int[] imageRadii = receiver.getRoundRadius().clone();
             int save = canvas.save();
             heroPath(bannerClip, target);
             canvas.clipPath(bannerClip);
             receiver.setImageCoords(target);
+            receiver.setRoundRadius(0);
             receiver.setAlpha(.78f * alpha);
             receiver.draw(canvas);
             paint.setColor(0xD8000000);
@@ -171,59 +175,21 @@ public final class NebulaProfileArt {
             canvas.drawRect(target, paint);
             canvas.restoreToCount(save);
             receiver.setAlpha(imageAlpha);
+            receiver.setRoundRadius(imageRadii);
             receiver.setImageCoords(imageX, imageY, imageW, imageH);
         }
     }
 
-    /** Native actions with accent badges and comfortable label separation. */
+    /** Match Telegram's expanded profile actions over the continuous banner. */
     public static final class Actions extends ProfileActionsView {
-        private final Theme.ResourcesProvider provider;
-        private final NebulaTheme material;
-        private final Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        private final RectF badge = new RectF();
-        private float expanded;
         public Actions(Context context, int height, Theme.ResourcesProvider provider) {
             super(context, height);
-            this.provider = provider;
-            material = NebulaTheme.of(context);
         }
-        private int accentColor() { return material.isDynamic() ? material.primary() : accent(provider); }
-        private int surfaceColor() { return material.isDynamic() ? material.surfaceContainer() : surface(provider); }
-        private int inkColor() { return material.isDynamic() ? material.onSurface() : ink(provider); }
-        @Override public void setParentExpanded(float value) {
-            expanded = clamp(value);
-            super.setParentExpanded(value);
+        @Override public void setActionsColor(int color, boolean hasColorById) {
+            // Native drawing chooses its filled white icons from this dark surface.
+            super.setActionsColor(0x660D1016, false);
         }
-        @Override public float getRoundRadius() { return dp(20 - 4 * expanded); }
-        @Override protected void drawActionSurface(Canvas canvas, RectF rect, int key, float radius, float alpha) {
-            alpha *= 1f - expanded;
-            if (alpha <= 0) return;
-            final int color = accentColor();
-            paint.setStyle(Paint.Style.FILL);
-            paint.setColor(Theme.multAlpha(ColorUtils.blendARGB(surfaceColor(), color,
-                    key == KEY_MESSAGE || key == KEY_JOIN ? .22f : .09f), alpha));
-            canvas.drawRoundRect(rect, radius, radius, paint);
-            paint.setStyle(Paint.Style.STROKE);
-            paint.setStrokeWidth(dp(1));
-            paint.setColor(Theme.multAlpha(color, alpha * .17f));
-            canvas.drawRoundRect(rect, radius, radius, paint);
-            paint.setStyle(Paint.Style.FILL);
-        }
-        @Override protected int actionTextColor(int original) {
-            return ColorUtils.blendARGB(inkColor(), original, expanded);
-        }
-        @Override protected int actionIconColor(int original, int key) {
-            return ColorUtils.blendARGB(accentColor(), original, expanded);
-        }
-        @Override protected float actionTextY(float original, int lines) {
-            return original + (lines <= 2 ? dp(5) * (1f - expanded) : 0f);
-        }
-        @Override protected void drawActionIconBackground(Canvas canvas, Rect bounds, int key, int lines, float alpha) {
-            if (lines > 2 || expanded >= 1f) return;
-            badge.set(bounds.left - dp(4), bounds.top - dp(4), bounds.right + dp(4), bounds.bottom + dp(4));
-            paint.setColor(Theme.multAlpha(accentColor(), .14f * alpha * (1f - expanded)));
-            canvas.drawRoundRect(badge, dp(10), dp(10), paint);
-        }
+        @Override public float getRoundRadius() { return dp(16); }
     }
 
     public static class LabelBackground extends Drawable {

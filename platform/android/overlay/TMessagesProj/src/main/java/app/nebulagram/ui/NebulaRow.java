@@ -115,6 +115,9 @@ public class NebulaRow extends FrameLayout {
         if (emojiIcon == null) {
             emojiIcon = new TextView(getContext());
             emojiIcon.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 25);
+            // EmojiSpan inherits TextPaint alpha. Android's default secondary
+            // text color is translucent, which made otherwise untinted flags dim.
+            emojiIcon.setTextColor(0xFFFFFFFF);
             emojiIcon.setGravity(Gravity.CENTER);
             emojiIcon.setIncludeFontPadding(false);
             emojiIcon.setImportantForAccessibility(IMPORTANT_FOR_ACCESSIBILITY_NO);
