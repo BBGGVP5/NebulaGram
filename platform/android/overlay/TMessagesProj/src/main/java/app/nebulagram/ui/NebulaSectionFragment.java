@@ -44,6 +44,7 @@ public class NebulaSectionFragment extends BaseFragment {
     private int paletteSurface, palettePrimary;
     /** Превью раздела: их перерисовываем после каждого переключателя. */
     private final List<NebulaPreview> previews = new ArrayList<>();
+    private final List<NebulaWallpaperPreview> wallpaperPreviews = new ArrayList<>();
 
     public NebulaSectionFragment(int section) {
         this.section = section;
@@ -108,6 +109,7 @@ public class NebulaSectionFragment extends BaseFragment {
     private void build(Context context, NebulaTheme theme) {
         content.removeAllViews();
         previews.clear();
+        wallpaperPreviews.clear();
         composerPreview = null;
         switch (section) {
             case SECTION_CHATS:
@@ -132,6 +134,13 @@ public class NebulaSectionFragment extends BaseFragment {
 
     private void buildAppearance(Context context, NebulaTheme theme) {
         NebulaCard card = new NebulaCard(context);
+        card.add(toggle(context, R.drawable.msg_customize,
+                R.string.NebulaIosIcons, R.string.NebulaIosIconsInfo,
+                NebulaIcons.enabled(), value -> {
+                    NebulaIcons.setEnabled(value);
+                    org.telegram.ui.ActionBar.Theme.reloadAllResources(context);
+                    refreshPalette();
+                }));
 
         // Material You имеет смысл только там, где система отдаёт палитру;
         // на Android 11 и старше строка была бы обманом.
@@ -174,19 +183,19 @@ public class NebulaSectionFragment extends BaseFragment {
     }
 
     private void buildChats(Context context) {
-        content.addView(NebulaCard.header(context,
-                LocaleController.getString(R.string.NebulaChatHeaderSection)));
-        content.addView(headerPreview(context));
         NebulaCard header = new NebulaCard(context);
         header.add(toggle(context, R.drawable.msg_customize,
                 R.string.NebulaFloatingHeader, R.string.NebulaFloatingHeaderInfo,
                 NebulaAppearance.chatHeader(), NebulaAppearance::setChatHeader));
-        content.addView(header, cardParams());
+        header.add(toggle(context, R.drawable.msg_customize,
+                R.string.NebulaCenterHeader, R.string.NebulaCenterHeaderInfo,
+                NebulaAppearance.centeredHeader(), NebulaAppearance::setCenteredHeader));
+        header.add(toggle(context, R.drawable.msg_photo_settings,
+                R.string.NebulaAdaptiveHeader, R.string.NebulaAdaptiveHeaderInfo,
+                NebulaAppearance.adaptiveHeader(), NebulaAppearance::setAdaptiveHeader));
+        expandablePreview(context, "header", R.string.NebulaChatHeaderSection, headerPreview(context), header);
 
-        content.addView(NebulaCard.header(context,
-                LocaleController.getString(R.string.NebulaComposerSection)));
         composerPreview = new NebulaComposerPreview(context);
-        content.addView(composerPreview);
         NebulaCard composer = new NebulaCard(context);
         composer.add(toggle(context, R.drawable.msg_edit,
                 R.string.NebulaIosComposer, R.string.NebulaIosComposerInfo,
@@ -194,7 +203,10 @@ public class NebulaSectionFragment extends BaseFragment {
         composer.add(toggle(context, R.drawable.msg_photo_settings,
                 R.string.NebulaHideCameraTitle, R.string.NebulaHideCameraSub,
                 NebulaAppearance.hideAttachCamera(), NebulaAppearance::setHideAttachCamera));
-        content.addView(composer, cardParams());
+        composer.add(toggle(context, R.drawable.msg_channel,
+                R.string.NebulaHideSendAs, R.string.NebulaHideSendAsSub,
+                NebulaAppearance.hideSendAs(), NebulaAppearance::setHideSendAs));
+        expandablePreview(context, "composer", R.string.NebulaComposerSection, composerPreview, composer);
 
         content.addView(NebulaCard.header(context,
                 LocaleController.getString(R.string.NebulaChatBehaviour)));
@@ -202,9 +214,6 @@ public class NebulaSectionFragment extends BaseFragment {
         behaviour.add(toggle(context, R.drawable.msg_calls,
                 R.string.NebulaSeconds, R.string.NebulaSecondsSub,
                 NebulaAppearance.secondsInTime(), NebulaAppearance::setSecondsInTime));
-        behaviour.add(toggle(context, R.drawable.msg_channel,
-                R.string.NebulaHideSendAs, R.string.NebulaHideSendAsSub,
-                NebulaAppearance.hideSendAs(), NebulaAppearance::setHideSendAs));
         behaviour.add(toggle(context, R.drawable.msg_discussion,
                 R.string.NebulaNoNextChannel, R.string.NebulaNoNextChannelSub,
                 NebulaAppearance.disableNextChannel(), NebulaAppearance::setDisableNextChannel));
@@ -229,6 +238,12 @@ public class NebulaSectionFragment extends BaseFragment {
         editor.setOnChanged(editor::refresh);
         NebulaCard appearance = new NebulaCard(context);
         appearance.add(editor);
+        appearance.add(toggle(context, R.drawable.msg_customize,
+                R.string.NebulaCompactTabs, R.string.NebulaCompactTabsInfo,
+                NebulaBottomBar.compact(), value -> {
+                    NebulaBottomBar.setCompact(value);
+                    editor.refresh();
+                }));
         appearance.add(toggle(context, R.drawable.msg_photo_settings,
                 R.string.NebulaTabLabels, R.string.NebulaTabLabelsSub,
                 NebulaBottomBar.tabLabels(), value -> {
@@ -360,6 +375,7 @@ public class NebulaSectionFragment extends BaseFragment {
     }
 
     private void refreshPreviews() {
+        for (NebulaWallpaperPreview view : wallpaperPreviews) view.invalidate();
         if (composerPreview != null) composerPreview.refresh();
         for (NebulaPreview view : previews) {
             view.refresh();
@@ -387,12 +403,52 @@ public class NebulaSectionFragment extends BaseFragment {
         return !NebulaTheme.of(getContext()).isDark();
     }
 
+    private final java.util.Map<String, Boolean> expandedPreviews = new java.util.HashMap<>();
+
+    private void expandablePreview(Context context, String key, int title, View preview, View settings) {
+        LinearLayout group = new LinearLayout(context);
+        group.setOrientation(LinearLayout.VERTICAL);
+        NebulaCard heading = new NebulaCard(context);
+        NebulaRow row = new NebulaRow(context).icon(R.drawable.msg_customize)
+                .title(LocaleController.getString(title)).trailing(NebulaRow.TRAIL_CHEVRON);
+        View chevron = row.getChildAt(row.getChildCount() - 1);
+        heading.add(row);
+        group.addView(heading);
+        LinearLayout details = new LinearLayout(context);
+        details.setOrientation(LinearLayout.VERTICAL);
+        NebulaWallpaperPreview wallpaper = new NebulaWallpaperPreview(context);
+        wallpaperPreviews.add(wallpaper);
+        wallpaper.addView(preview, new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT));
+        LinearLayout.LayoutParams previewParams = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        previewParams.topMargin = previewParams.bottomMargin = AndroidUtilities.dp(12);
+        details.addView(wallpaper, previewParams);
+        details.addView(settings);
+        boolean expanded = expandedPreviews.containsKey(key) ? expandedPreviews.get(key) : "header".equals(key);
+        details.setVisibility(expanded ? View.VISIBLE : View.GONE);
+        chevron.setRotation(expanded ? -90 : 90);
+        row.setSelected(expanded);
+        row.setOnClickListener(v -> {
+            boolean open = details.getVisibility() != View.VISIBLE;
+            expandedPreviews.put(key, open);
+            android.transition.TransitionManager.beginDelayedTransition(group,
+                    new android.transition.AutoTransition().setDuration(220));
+            details.setVisibility(open ? View.VISIBLE : View.GONE);
+            chevron.animate().rotation(open ? -90 : 90).setDuration(220).start();
+            row.setSelected(open);
+        });
+        group.addView(details);
+        content.addView(group, cardParams());
+    }
+
     @Override
     public void onResume() {
         super.onResume();
         if (root == null) return;
         NebulaTheme theme = NebulaTheme.of(root.getContext());
         if (paletteSurface != theme.surface() || palettePrimary != theme.primary()) refreshPalette();
+        else refreshPreviews();
     }
 
     private LinearLayout.LayoutParams cardParams() {

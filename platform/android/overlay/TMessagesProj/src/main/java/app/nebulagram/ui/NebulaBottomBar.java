@@ -41,7 +41,7 @@ public final class NebulaBottomBar {
     }
 
     public static boolean sidebarEnabled() {
-        return prefs().getBoolean(KEY_SIDEBAR, false) || !enabled();
+        return prefs().getBoolean(KEY_SIDEBAR, false) || !enabled() || !tabEnabled(TAB_SETTINGS);
     }
 
     public static void setSidebarEnabled(boolean value) {
@@ -123,6 +123,19 @@ public final class NebulaBottomBar {
 
     public static void setTabLabels(boolean value) {
         prefs().edit().putBoolean(KEY_TAB_LABELS, value).apply();
+    }
+
+    public static boolean compact() {
+        return prefs().getBoolean("compact_bottom_bar", false);
+    }
+
+    public static void setCompact(boolean value) {
+        prefs().edit().putBoolean("compact_bottom_bar", value).apply();
+    }
+
+    /** Labels can grow beyond this minimum; touch targets stay at least 72 dp wide. */
+    public static int minimumTabsWidth(int visibleCount) {
+        return compact() ? Math.min(320, Math.max(1, visibleCount) * 72) : 320;
     }
 
     /**

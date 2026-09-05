@@ -40,7 +40,7 @@ start = draw.index('        if (rightDrawable != null && rightDrawableOutside)')
 status_draw = method(draw[start:], 'if (rightDrawable != null && rightDrawableOutside)')
 start = draw.index('        if (rightDrawable2 != null && rightDrawableOutside)', start)
 status_draw += '\n' + method(draw[start:], 'if (rightDrawable2 != null && rightDrawableOutside)')
-header_methods = header_methods.replace('app.nebulagram.ui.NebulaChatStyle.headerWidth', 'headerWidth')
+header_methods = header_methods.replace('app.nebulagram.ui.NebulaChatStyle.headerWidth', 'headerWidth').replace('app.nebulagram.ui.NebulaChatStyle.headerLeft', 'headerLeft').replace('app.nebulagram.ui.NebulaChatStyle.headerTextLeft', 'headerTextLeft')
 camera_methods = '\n'.join(method(adapter, signature) for signature in [
     'public int getItemCount()', 'public int getItemViewType(', 'private MediaController.PhotoEntry getPhoto('])
 camera_methods = camera_methods.replace('MediaController.PhotoEntry', 'Integer')
@@ -77,6 +77,8 @@ static class SimpleTextView extends View {
 static class Gravity {static int LEFT=3,CENTER=17,CENTER_HORIZONTAL=1,HORIZONTAL_GRAVITY_MASK=7,VERTICAL_GRAVITY_MASK=112,CENTER_VERTICAL=16;}
 static class ActionBar {static int getCurrentActionBarHeight(){return dp(56);}int getNebulaChatAvatarTrailingInset(){return 0;}}
 static class AndroidUtilities {static int statusBarHeight=0;}
+static int headerLeft(int width,int capsule){return (width-capsule)/2;}
+static int headerTextLeft(int width,int capsule,int text){return (width-text)/2;}
 static int headerWidth(int barWidth,int content){return Math.max(0,Math.min(Math.max(dp(112),content+dp(40)),barWidth-dp(128)));}
 static class Header extends View {
  boolean nebulaCenteredTitle=true,glassMode=true,occupyStatusBar=false;

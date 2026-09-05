@@ -125,6 +125,8 @@ public final class NebulaSidePanel {
         if (host.showDialog(dialog) != null) {
             int width = Math.min(AndroidUtilities.dp(320), context.getResources().getDisplayMetrics().widthPixels - AndroidUtilities.dp(32));
             window.setLayout(width, ViewGroup.LayoutParams.MATCH_PARENT);
+        } else {
+            showing = false;
         }
     }
 
@@ -165,12 +167,10 @@ public final class NebulaSidePanel {
         nameParams.topMargin = AndroidUtilities.dp(12);
         box.addView(name, nameParams);
 
-        android.widget.TextView phone = new android.widget.TextView(context);
+        android.widget.TextView phone = new org.telegram.ui.Components.spoilers.SpoilersTextView(context);
         phone.setTextSize(android.util.TypedValue.COMPLEX_UNIT_DIP, 13);
         phone.setTextColor(theme.onSurfaceVariant());
-        if (self != null && self.phone != null && !self.phone.isEmpty()) {
-            phone.setText(org.telegram.PhoneFormat.PhoneFormat.getInstance().format("+" + self.phone));
-        }
+        phone.setText(NebulaNavigation.privateSubtitle(self));
         LinearLayout.LayoutParams phoneParams = new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         phoneParams.topMargin = AndroidUtilities.dp(2);

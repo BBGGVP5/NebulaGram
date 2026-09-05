@@ -26,8 +26,10 @@ public final class NebulaComposerPreview extends FrameLayout {
     private final ImageView attachment, microphone;
     private final ChatActivityEnterViewAnimatedIconView emoji;
     private final TextView hint;
+    private final org.telegram.ui.Components.BackupImageView sender;
     private final BlurredBackgroundDrawable[] surfaces = new BlurredBackgroundDrawable[3];
     private boolean separate;
+    private boolean showSender;
     private int fieldLeft, fieldRight, top;
 
     public NebulaComposerPreview(Context context) {
@@ -49,6 +51,12 @@ public final class NebulaComposerPreview extends FrameLayout {
         hint.setSingleLine();
         hint.setEllipsize(TextUtils.TruncateAt.END);
         addView(hint);
+        sender = new org.telegram.ui.Components.BackupImageView(context);
+        sender.setRoundRadius(AndroidUtilities.dp(16));
+        org.telegram.tgnet.TLRPC.User self = org.telegram.messenger.UserConfig.getInstance(
+                org.telegram.messenger.UserConfig.selectedAccount).getCurrentUser();
+        if (self != null) sender.setForUserOrChat(self, new org.telegram.ui.Components.AvatarDrawable(self));
+        addView(sender);
 
         BlurredBackgroundSourceColor source = new BlurredBackgroundSourceColor();
         source.setColor(NebulaTheme.of(context).surface());
@@ -73,6 +81,11 @@ public final class NebulaComposerPreview extends FrameLayout {
 
     public void refresh() {
         separate = NebulaAppearance.iosComposer();
+        showSender = !NebulaAppearance.hideSendAs();
+        sender.setVisibility(showSender ? VISIBLE : GONE);
+        attachment.setImageResource(R.drawable.msg_input_attach2);
+        microphone.setImageResource(R.drawable.input_mic);
+        emoji.setState(ChatActivityEnterViewAnimatedIconView.State.SMILE, false);
         int background = Theme.getColor(Theme.key_chat_messagePanelBackground);
         int color = NebulaChatColors.foreground(Theme.getColor(Theme.key_glass_defaultIcon), background);
         attachment.setColorFilter(color, PorterDuff.Mode.SRC_IN);
@@ -89,7 +102,7 @@ public final class NebulaComposerPreview extends FrameLayout {
         int diameter = AndroidUtilities.dp(44), margin = AndroidUtilities.dp(8);
         fieldLeft = margin + (separate ? diameter + AndroidUtilities.dp(6) : 0);
         fieldRight = width - fieldLeft;
-        int textLeft = fieldLeft + AndroidUtilities.dp(separate ? 14 : 50);
+        int textLeft = fieldLeft + AndroidUtilities.dp(separate ? (showSender ? 46 : 14) : (showSender ? 84 : 50));
         int textRight = fieldRight - AndroidUtilities.dp(separate ? 44 : 88);
         int exact = MeasureSpec.EXACTLY;
         for (View view : new View[] {attachment, microphone, emoji}) {
@@ -97,6 +110,8 @@ public final class NebulaComposerPreview extends FrameLayout {
         }
         hint.measure(MeasureSpec.makeMeasureSpec(Math.max(0, textRight - textLeft), exact),
                 MeasureSpec.makeMeasureSpec(diameter, exact));
+        sender.measure(MeasureSpec.makeMeasureSpec(AndroidUtilities.dp(32), exact),
+                MeasureSpec.makeMeasureSpec(AndroidUtilities.dp(32), exact));
     }
 
     @Override protected void onLayout(boolean changed, int l, int t, int r, int b) {
@@ -107,7 +122,10 @@ public final class NebulaComposerPreview extends FrameLayout {
         microphone.layout(getWidth() - margin - diameter, top, getWidth() - margin, top + diameter);
         int emojiRight = separate ? fieldRight : margin + AndroidUtilities.dp(2) + diameter;
         emoji.layout(emojiRight - diameter, top, emojiRight, top + diameter);
-        int textLeft = fieldLeft + AndroidUtilities.dp(separate ? 14 : 50);
+        int senderLeft = fieldLeft + AndroidUtilities.dp(separate ? 8 : 46);
+        sender.layout(senderLeft, top + AndroidUtilities.dp(6), senderLeft + sender.getMeasuredWidth(),
+                top + AndroidUtilities.dp(6) + sender.getMeasuredHeight());
+        int textLeft = fieldLeft + AndroidUtilities.dp(separate ? (showSender ? 46 : 14) : (showSender ? 84 : 50));
         hint.layout(textLeft, top, textLeft + hint.getMeasuredWidth(), top + diameter);
         bounds(surfaces[0], margin, margin + diameter, diameter);
         bounds(surfaces[1], fieldLeft, fieldRight, diameter);

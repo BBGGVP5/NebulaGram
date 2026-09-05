@@ -47,8 +47,8 @@ public static class MarginLayoutParams {public int width,height,leftMargin,right
 'android/widget/EditText.java': 'package android.widget; public class EditText extends android.view.View {}',
 'android/widget/ImageView.java': 'package android.widget; public class ImageView extends android.view.View {public ImageView(android.content.Context c){super(c);}}',
 'org/telegram/messenger/AndroidUtilities.java': 'package org.telegram.messenger; public class AndroidUtilities {public static float density=1; public static int dp(float v){return (int)Math.ceil(v*density);}}',
-'app/nebulagram/ui/NebulaAppearance.java': 'package app.nebulagram.ui; public class NebulaAppearance {public static boolean enabled=true; public static boolean iosComposer(){return enabled;} public static boolean chatHeader(){return enabled;} public static boolean folderTitle(){return enabled;}}',
-'org/telegram/ui/ActionBar/ActionBar.java': 'package org.telegram.ui.ActionBar; public class ActionBar {public SimpleTextView title=new SimpleTextView();public SimpleTextView getTitleTextView(){return title;} public void setTitle(CharSequence text,android.graphics.drawable.Drawable icon){title.setText(text);}public void setNebulaFloatingChatHeader(boolean a,boolean b,boolean c){}}',
+'app/nebulagram/ui/NebulaAppearance.java': 'package app.nebulagram.ui; public class NebulaAppearance {public static boolean enabled=true; public static boolean iosComposer(){return enabled;} public static boolean chatHeader(){return enabled;} public static boolean adaptiveHeader(){return true;} public static boolean centeredHeader(){return true;} public static boolean folderTitle(){return enabled;}}',
+'org/telegram/ui/ActionBar/ActionBar.java': 'package org.telegram.ui.ActionBar; public class ActionBar {public SimpleTextView title=new SimpleTextView();public SimpleTextView getTitleTextView(){return title;} public SimpleTextView getTitleTextView2(){return null;} public void setTitleAnimated(CharSequence text,boolean bottom,long duration,Object interpolator){title.setText(text);} public void setTitle(CharSequence text,android.graphics.drawable.Drawable icon){title.setText(text);}public void setNebulaFloatingChatHeader(boolean a,boolean b,boolean c){}}',
 'org/telegram/ui/ActionBar/ActionBarMenuItem.java': 'package org.telegram.ui.ActionBar; public class ActionBarMenuItem {public void setIcon(android.graphics.drawable.Drawable d){}}',
 'org/telegram/ui/Components/AvatarDrawable.java': 'package org.telegram.ui.Components; public class AvatarDrawable extends android.graphics.drawable.Drawable {public static int AVATAR_TYPE_SAVED=1;public void setAvatarType(int i){} public void draw(android.graphics.Canvas c){}}',
 'org/telegram/ui/Components/ChatActivityEnterView.java': 'package org.telegram.ui.Components; public class ChatActivityEnterView extends android.widget.FrameLayout {}',
@@ -60,9 +60,12 @@ public int getAlpha(){return alpha;} public void setAlpha(int a){alpha=a;} publi
 public Rect getBounds(){return bounds;} public Rect getPaddedBounds(){return new Rect(bounds.left+padding,bounds.top+padding,bounds.right-padding,bounds.bottom-padding);}
 public void setBounds(Rect r){bounds.set(r);} public void setBounds(int l,int t,int r,int b){bounds.set(l,t,r,b);} public void draw(Canvas c){nodes.add(this);surfaces.add(getPaddedBounds());alphas.add(alpha);}
 }''',
-'android/text/TextUtils.java': 'package android.text; public class TextUtils {public static boolean isEmpty(CharSequence s){return s==null||s.length()==0;}}',
+'android/text/TextUtils.java': 'package android.text; public class TextUtils {public static boolean isEmpty(CharSequence s){return s==null||s.length()==0;} public static boolean equals(CharSequence a,CharSequence b){return a==b || a!=null&&b!=null&&a.toString().equals(b.toString());}}',
+ 'android/view/ViewPropertyAnimator.java': 'package android.view; public class ViewPropertyAnimator {public ViewPropertyAnimator setListener(Object o){return this;} public void cancel(){}}',
+'org/telegram/ui/Components/CubicBezierInterpolator.java': 'package org.telegram.ui.Components; public class CubicBezierInterpolator {public static Object EASE_OUT_QUINT=new Object();}',
+'app/nebulagram/ui/NebulaFolderTitleView.java': 'package app.nebulagram.ui; public class NebulaFolderTitleView extends org.telegram.ui.ActionBar.SimpleTextView {public boolean showStatus;public void setTitle(CharSequence text,int cache,boolean status,boolean animated){setText(text);setEmojiCacheType(cache);showStatus=status;}}',
 'android/graphics/Paint.java': 'package android.graphics; public class Paint {public Object getFontMetricsInt(){return null;}}',
-'org/telegram/ui/ActionBar/SimpleTextView.java': 'package org.telegram.ui.ActionBar; public class SimpleTextView extends android.view.View {public CharSequence text;public int cache;public void setText(CharSequence t){text=t;}public CharSequence getText(){return text;}public android.graphics.Paint getPaint(){return new android.graphics.Paint();}public void setEmojiCacheType(int type){cache=type;}}',
+'org/telegram/ui/ActionBar/SimpleTextView.java': 'package org.telegram.ui.ActionBar; public class SimpleTextView extends android.view.View {public CharSequence text;public int cache;public boolean isAttachedToWindow(){return false;} public android.view.ViewPropertyAnimator animate(){return new android.view.ViewPropertyAnimator();}public void setText(CharSequence t){text=t;}public CharSequence getText(){return text;}public android.graphics.Paint getPaint(){return new android.graphics.Paint();}public void setEmojiCacheType(int type){cache=type;}}',
 'org/telegram/messenger/MessagesController.java': 'package org.telegram.messenger; public class MessagesController {public java.util.ArrayList<DialogFilter> filters=new java.util.ArrayList<>();public java.util.ArrayList<DialogFilter> getDialogFilters(){return filters;}public static class DialogFilter {public CharSequence name;public Object entities;public boolean title_noanimate,standard;public boolean isDefault(){return standard;}}}',
 'org/telegram/messenger/MessageObject.java': 'package org.telegram.messenger;public class MessageObject {public static CharSequence replaceAnimatedEmoji(CharSequence text,Object entities,Object metrics){return text;}}',
 'org/telegram/messenger/Emoji.java': 'package org.telegram.messenger;public class Emoji {public static CharSequence replaceEmoji(CharSequence text,Object metrics,boolean reuse){return text;}}',
@@ -98,7 +101,7 @@ style.prepare(host,editor,host.getWidth(),true);style.layout(emoji,attach,null,a
 if(bot)check(botMenu.getLeft()>=dp(50)&&botMenu.getRight()<params.leftMargin,"bot menu covers attachment or text");
 attach.setAlpha(0);attach.setScaleX(.5f);attach.setTranslationX(dp(20));
 check(attach.getLeft()==0&&attach.getAlpha()==1&&attach.getScaleX()==1&&attach.getTranslationX()==0,"attachment lost during typing");
-check(params.leftMargin==dp(bot?97:50)+dp(14),"input left padding missing");
+check(params.leftMargin==dp(bot?97:50)+dp(bot?20:14),"input left padding missing");
 check(params.rightMargin>=dp(56),"text overlaps emoji after typing");
 BlurredBackgroundDrawable bg=new BlurredBackgroundDrawable();bg.padding=margin;bg.setBounds(0,dp(500)-margin,w,dp(500)+h+margin);Rect original=new Rect(bg.getBounds());
 bg.nodes.clear();bg.surfaces.clear();bg.alphas.clear();
@@ -137,13 +140,14 @@ style.restoreInsets();NebulaAppearance.enabled=false;style.prepare(host,editor,h
 check(attach.getAlpha()==0&&attach.getScaleX()==.5f&&attach.getTranslationX()==dp(20),"native attachment style not restored");
 check(params.leftMargin==dp(bot?97:50)&&params.rightMargin==dp(50),"input insets not restored");cases++;}
 org.telegram.ui.ActionBar.ActionBar bar1=new org.telegram.ui.ActionBar.ActionBar(),bar2=new org.telegram.ui.ActionBar.ActionBar();
-org.telegram.ui.ActionBar.SimpleTextView collapsed1=new org.telegram.ui.ActionBar.SimpleTextView(),collapsed2=new org.telegram.ui.ActionBar.SimpleTextView();
+NebulaFolderTitleView collapsed1=new NebulaFolderTitleView(),collapsed2=new NebulaFolderTitleView();
 org.telegram.messenger.MessagesController controller=new org.telegram.messenger.MessagesController();
 for(int i=0;i<8;i++){org.telegram.messenger.MessagesController.DialogFilter filter=new org.telegram.messenger.MessagesController.DialogFilter();filter.standard=i==0;filter.name="Folder "+i+" 🇫🇮 😀";filter.title_noanimate=i%2==0;controller.filters.add(filter);}
 NebulaAppearance.enabled=true;NebulaDialogsTitle.bind(bar1,collapsed1);NebulaDialogsTitle.bind(bar2,collapsed2);NebulaDialogsTitle.apply(bar2,controller,6,null);
 for(int i:new int[]{0,1,2,3,4,5,6,7,6,4,2,0,-1,15}){NebulaDialogsTitle.apply(bar1,controller,i,null);
 CharSequence expected=i>0&&i<8?controller.filters.get(i).name:"NebulaGram";
 check(collapsed1.getText()==expected&&bar1.title.getText()==expected,"folder text/spans lost between collapsed and expanded header");
+check(collapsed1.showStatus==(i<=0||i>=8),"premium status leaked into folder title");
 check(collapsed2.getText()==controller.filters.get(6).name,"folder leaked into another ActionBar");
 if(i>0&&i<8)check(collapsed1.cache==(controller.filters.get(i).title_noanimate?1:2),"folder animation preference lost");}
 System.out.println("14 folder bindings passed across two headers");

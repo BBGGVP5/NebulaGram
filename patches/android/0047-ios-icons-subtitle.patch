@@ -1,0 +1,126 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/ApplicationLoader.java b/TMessagesProj/src/main/java/org/telegram/messenger/ApplicationLoader.java
+--- a/TMessagesProj/src/main/java/org/telegram/messenger/ApplicationLoader.java
++++ b/TMessagesProj/src/main/java/org/telegram/messenger/ApplicationLoader.java
+@@ -49,6 +49,14 @@
+ import java.util.Locale;
+ 
+ public class ApplicationLoader extends Application {
++    private android.content.res.Resources nebulaIconResources;
++
++    @Override
++    public android.content.res.Resources getResources() {
++        nebulaIconResources = app.nebulagram.ui.NebulaIconResources.wrap(super.getResources(), nebulaIconResources);
++        return nebulaIconResources;
++    }
++
+ 
+     public static ApplicationLoader applicationLoaderInstance;
+ 
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/LaunchActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/LaunchActivity.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/LaunchActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/LaunchActivity.java
+@@ -257,6 +257,14 @@
+ import java.util.zip.ZipInputStream;
+ 
+ public class LaunchActivity extends BasePermissionsActivity implements INavigationLayout.INavigationLayoutDelegate, NotificationCenter.NotificationCenterDelegate, DialogsActivity.DialogsActivityDelegate, IPipActivity {
++    private android.content.res.Resources nebulaIconResources;
++
++    @Override
++    public android.content.res.Resources getResources() {
++        nebulaIconResources = app.nebulagram.ui.NebulaIconResources.wrap(super.getResources(), nebulaIconResources);
++        return nebulaIconResources;
++    }
++
+     public final static String EXTRA_FORCE_NOT_INTERNAL_APPS = "force_not_internal_apps";
+     public final static String EXTRA_FORCE_REQUEST = "force_request";
+     public final static Pattern PREFIX_T_ME_PATTERN = Pattern.compile("^(?:http(?:s|)://|)([A-z0-9-]+?)\\.t\\.me");
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/BackDrawable.java b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/BackDrawable.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/BackDrawable.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/BackDrawable.java
+@@ -134,7 +134,13 @@
+             canvas.rotate(135 + currentRotation * (reverseAngle ? -180 : 180));
+             rotation = 1.0f;
+         }
++        boolean ios = app.nebulagram.ui.NebulaIcons.enabled();
++        paint.setStrokeCap(ios ? Paint.Cap.ROUND : Paint.Cap.BUTT);
++        if (ios) canvas.translate(AndroidUtilities.dp(3) * (1f - rotation), 0);
++        int previousAlpha = paint.getAlpha();
++        if (ios) paint.setAlpha((int) (previousAlpha * rotation));
+         canvas.drawLine(AndroidUtilities.dp(AndroidUtilities.lerp(-6.75f, -8f, rotation)), 0, AndroidUtilities.dp(8) - (paint.getStrokeWidth() / 2f) * (1f - rotation), 0, paint);
++        paint.setAlpha(previousAlpha);
+         float startYDiff = AndroidUtilities.dp(-0.25f);
+         float endYDiff = AndroidUtilities.dp(AndroidUtilities.lerp(7f, 8f, rotation)) - (paint.getStrokeWidth() / 4f) * (1f - rotation);
+         float startXDiff = AndroidUtilities.dp(AndroidUtilities.lerp(-7f - 0.25f, 0f, rotation));
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/glass/GlassTabView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/glass/GlassTabView.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Components/glass/GlassTabView.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/glass/GlassTabView.java
+@@ -283,6 +283,16 @@
+             updateColors();
+             return;
+         }
++        if (app.nebulagram.ui.NebulaIcons.enabled() && tabAnimation != null) {
++            int icon = tabAnimation == TabAnimation.CHATS ? R.drawable.nebula_ios_chat
++                    : tabAnimation == TabAnimation.CONTACTS ? R.drawable.nebula_ios_profile
++                    : tabAnimation == TabAnimation.CALLS ? R.drawable.nebula_ios_phone : 0;
++            if (icon != 0) {
++                imageView.setImageResource(icon);
++                updateColors();
++                return;
++            }
++        }
+         final boolean isSelected = isSelectedAnimator.getValue();
+ 
+         if (tabAnimationBot !=  null) {
+@@ -640,6 +650,7 @@
+ 
+     /** NebulaGram: применить настройку подписей к этой вкладке. */
+     public void nebulaApplyLabel() {
++        checkPlayAnimation(false);
+         app.nebulagram.ui.NebulaBottomBar.applyTabLabel(backupImageView != null ? backupImageView : imageView, textView);
+     }
+ 
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterViewAnimatedIconView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterViewAnimatedIconView.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterViewAnimatedIconView.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterViewAnimatedIconView.java
+@@ -47,6 +47,15 @@
+         }
+         State fromState = currentState;
+         currentState = state;
++        if (app.nebulagram.ui.NebulaIcons.enabled() && state != State.GIF) {
++            if (state == State.VOICE) setContentDescription(LocaleController.getString(R.string.AccDescrVoiceMessage));
++            else if (state == State.VIDEO) setContentDescription(LocaleController.getString(R.string.AccDescrVideoMessage));
++            setImageResource(state == State.VOICE ? R.drawable.nebula_ios_mic
++                    : state == State.VIDEO ? R.drawable.nebula_ios_video
++                    : state == State.KEYBOARD ? R.drawable.nebula_ios_keyboard
++                    : state == State.STICKER ? R.drawable.nebula_ios_sticker : R.drawable.nebula_ios_smile);
++            return;
++        }
+         if (!animate || fromState == null || getState(fromState, currentState) == null) {
+             RLottieDrawable drawable = stateMap.get(getAnyState(currentState));
+             drawable.stop();
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarContainer.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarContainer.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarContainer.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarContainer.java
+@@ -756,7 +756,7 @@
+         this.subtitleTextLargerCopyView.set(subtitleTextLargerCopyView);
+         subtitleTextLargerCopyView.setTextColor(getThemedColor(Theme.key_actionBarDefaultSubtitle));
+         subtitleTextLargerCopyView.setTag(Theme.key_actionBarDefaultSubtitle);
+-        subtitleTextLargerCopyView.setTextSizePx(dp(glassMode ? 13.5f : 14));
++        subtitleTextLargerCopyView.setTextSizePx(dp(glassMode ? 12.5f : 14));
+         subtitleTextLargerCopyView.setGravity(Gravity.LEFT);
+         if (subtitleTextView != null) {
+             subtitleTextLargerCopyView.setText(subtitleTextView.getText());
+@@ -839,7 +839,12 @@
+             titleTextView.setTextSizePx(dp(17.5f));
+         }
+         if (subtitleTextView != null) {
+-            subtitleTextView.setTextSizePx(dp(13.5f));
++            subtitleTextView.setTextSizePx(dp(12.5f));
++            subtitleTextView.setAlpha(0.85f);
++        }
++        if (animatedSubtitleTextView != null) {
++            animatedSubtitleTextView.setTextSize(dp(12.5f));
++            animatedSubtitleTextView.setAlpha(0.85f);
+         }
+         glassMode = true;
+     }

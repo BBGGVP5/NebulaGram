@@ -1,0 +1,95 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Stories/DialogStoriesCell.java b/TMessagesProj/src/main/java/org/telegram/ui/Stories/DialogStoriesCell.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Stories/DialogStoriesCell.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Stories/DialogStoriesCell.java
+@@ -158,7 +158,7 @@
+     LinearLayoutManager layoutManager;
+     AnimatedTextView titleView;
+     ActionBarAnimatedSubtitleOverlayContainer subtitleOverlayContainer;
+-    SimpleTextView telegramLogoView;
++    app.nebulagram.ui.NebulaFolderTitleView telegramLogoView;
+     ImageView emojiStatusView;
+     AnimatedEmojiDrawable.SwapAnimatedEmojiDrawable statusDrawable;
+     boolean drawCircleForce;
+@@ -334,6 +334,7 @@
+ 
+         telegramLogoView = new app.nebulagram.ui.NebulaFolderTitleView(context);
+         telegramLogoView.setText(getString(R.string.NebulaAppName));
++        telegramLogoView.setOnAnimationUpdate(this::checkUi_titleVisibility);
+         telegramLogoView.setTextColor(getTextLogoColor());
+         telegramLogoView.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_YES);
+         telegramLogoView.setFocusableInTouchMode(true);
+@@ -2220,8 +2221,9 @@
+             telegramLogoView.setVisibility(logoAlpha > 0 ? VISIBLE : GONE);
+         }
+         if (emojiStatusView != null) {
+-            emojiStatusView.setAlpha(logoAlpha);
+-            emojiStatusView.setVisibility(logoAlpha > 0 ? VISIBLE : GONE);
++            float statusAlpha = logoAlpha * telegramLogoView.getStatusAlpha();
++            emojiStatusView.setAlpha(statusAlpha);
++            emojiStatusView.setVisibility(statusAlpha > 0 ? VISIBLE : GONE);
+         }
+         if (subtitleOverlayContainer != null) {
+             subtitleOverlayContainer.setAlpha(progress);
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
+@@ -2341,7 +2341,7 @@
+                 // compact real glass capsule stays centred, while the avatar
+                 // remains a reachable round control at the trailing edge.
+                 final int width = centeredNebulaAvatar.getNebulaCenteredHeaderWidth();
+-                left = (getWidth() - width) / 2;
++                left = app.nebulagram.ui.NebulaChatStyle.headerLeft(getWidth(), width);
+                 right = left + width;
+                 centeredNebulaAvatar.setTranslationX(0);
+                 centeredNebulaAvatar.setPivotX(centeredNebulaAvatar.getMeasuredWidth() / 2f);
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarContainer.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarContainer.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarContainer.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarContainer.java
+@@ -461,7 +461,7 @@
+             float x = ev.getX();
+             float y = ev.getY();
+             int capsuleWidth = getNebulaCenteredHeaderWidth() - dp(12);
+-            float capsuleLeft = (getWidth() - capsuleWidth) / 2f;
++            float capsuleLeft = app.nebulagram.ui.NebulaChatStyle.headerLeft(getWidth() + dp(12), capsuleWidth + dp(12));
+             boolean inTitle = x >= capsuleLeft && x <= capsuleLeft + capsuleWidth
+                     && y >= titleTextView.getTop() - dp(6)
+                     && y <= titleTextView.getTop() + dp(46);
+@@ -865,10 +865,10 @@
+             avatarRight = Math.max(avatarImageView.getMeasuredWidth(), avatarRight);
+             final int avatarLeft = avatarRight - avatarImageView.getMeasuredWidth();
+             final int titleWidth = titleTextView.getMeasuredWidth();
+-            final int titleLeft = (getWidth() - titleWidth) / 2;
++            final int titleLeft = app.nebulagram.ui.NebulaChatStyle.headerTextLeft(getWidth(), nebulaHeaderWidth, titleWidth);
+             final View subtitle = getSubtitleTextView();
+             final int subtitleWidth = subtitle == null ? 0 : subtitle.getMeasuredWidth();
+-            final int subtitleLeft = (getWidth() - subtitleWidth) / 2;
++            final int subtitleLeft = app.nebulagram.ui.NebulaChatStyle.headerTextLeft(getWidth(), nebulaHeaderWidth, subtitleWidth);
+             avatarImageView.layout(avatarLeft, 1 + viewTop, avatarLeft + avatarImageView.getMeasuredWidth(),
+                     1 + viewTop + avatarImageView.getMeasuredHeight());
+             if (subtitle != null && subtitle.getVisibility() != GONE) {
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
+@@ -4585,11 +4585,11 @@
+             glassBackgroundDrawableFactory,
+             BlurredBackgroundProviderImpl.topPanelChatActivity(themeDelegate),
+             ChatObject.isForum(currentChat));
+-        if (chatMode == 0 && !isComments && !ChatObject.isForum(currentChat)) {
++        if (chatMode == 0 && !isComments) {
+             actionBar.setNebulaChatAvatarContainer(avatarContainer);
+         }
+         app.nebulagram.ui.NebulaChatStyle.header(actionBar,
+-                chatMode == 0 && !isComments && !ChatObject.isForum(currentChat),
++                chatMode == 0 && !isComments,
+                 UserObject.isUserSelf(currentUser));
+ 
+         if (chatMode == MODE_PINNED) {
+@@ -29791,7 +29791,7 @@
+     public void onResume() {
+         super.onResume();
+         app.nebulagram.ui.NebulaChatStyle.header(actionBar,
+-                chatMode == 0 && !isComments && !ChatObject.isForum(currentChat),
++                chatMode == 0 && !isComments,
+                 UserObject.isUserSelf(currentUser));
+         if (chatActivityEnterView != null) chatActivityEnterView.requestLayout();
+         checkShowBlur(false);

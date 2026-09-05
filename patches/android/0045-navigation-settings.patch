@@ -1,0 +1,397 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/glass/GlassTabView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/glass/GlassTabView.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Components/glass/GlassTabView.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/glass/GlassTabView.java
+@@ -278,6 +278,11 @@
+     private long lastBotIconId;
+ 
+     private void checkPlayAnimation(boolean animated) {
++        if (tabAnimation == TabAnimation.SETTINGS) {
++            imageView.setImageResource(R.drawable.nebula_settings_mark);
++            updateColors();
++            return;
++        }
+         final boolean isSelected = isSelectedAnimator.getValue();
+ 
+         if (tabAnimationBot !=  null) {
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ViewPagerFixed.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ViewPagerFixed.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ViewPagerFixed.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ViewPagerFixed.java
+@@ -519,8 +519,19 @@
+         return currentPosition + (forward ? 1 : -1);
+     }
+ 
++    /** Called only for an outward gesture at a page boundary. */
++    protected boolean onEdgeSwipe(MotionEvent ev, boolean forward, float startX) {
++        return false;
++    }
++
+     private boolean prepareForMoving(MotionEvent ev, boolean forward) {
+         final int targetPosition = resolveSwipeTarget(forward);
++        if (adapter != null && (targetPosition < 0 || targetPosition >= adapter.getItemCount())
++                && manualScrolling == null && canScroll(ev)
++                && onEdgeSwipe(ev, forward, startedTrackingX)) {
++            maybeStartTracking = false;
++            return false;
++        }
+         if ((!forward && targetPosition < 0 && !onBackProgress(backProgress = 0)) || (forward && targetPosition >= adapter.getItemCount()) || targetPosition == currentPosition || manualScrolling != null) {
+             return false;
+         }
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
+@@ -13627,6 +13627,17 @@
+         }
+     }
+ 
++    public int nebulaSelectedFolderId() {
++        return filterTabsView == null ? 0 : filterTabsView.getCurrentTabId();
++    }
++
++    public boolean nebulaCanOpenSidePanel(MotionEvent ev) {
++        return !actionBar.isActionModeShowed()
++                && (filterTabsView == null || filterTabsView.getTabsCount() < 2
++                    || filterTabsView.getCurrentTabId() == filterTabsView.getFirstTabId())
++                && canParentTabsSlide(ev, false);
++    }
++
+     @Override
+     public boolean canParentTabsSlide(MotionEvent ev, boolean forward) {
+         if (searchIsShowed || rightSlidingDialogContainer != null && rightSlidingDialogContainer.hasFragment()) {
+@@ -13650,11 +13661,6 @@
+         if (forward) {
+             return isLastTab && !isFirstTab;
+         } else {
+-            // NebulaGram: левее первой папки идти некуда, и это движение
+-            // ничем не занято — им открывается боковая панель.
+-            if (isFirstTab && app.nebulagram.ui.NebulaSidePanel.openOnSwipe(this)) {
+-                return false;
+-            }
+             return isFirstTab;
+         }
+     }
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/MainTabsActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/MainTabsActivity.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/MainTabsActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/MainTabsActivity.java
+@@ -326,6 +326,7 @@
+         tabs[INDEX_CONTACTS].setOnLongClickListener(this::openContactsSelector);
+         tabs[INDEX_CALLS].setOnLongClickListener(this::openCallsSelector);
+         tabs[INDEX_PROFILE].setOnLongClickListener(this::openAccountSelector);
++        tabs[INDEX_SETTINGS].setOnLongClickListener(this::openAccountSelector);
+ 
+         tabsView.addTabToIgnoreClick(tabs[INDEX_CHATS]);
+         tabsView.addTabToIgnoreClick(tabs[INDEX_CONTACTS]);
+@@ -428,6 +429,10 @@
+             args.putBoolean("needFinishFragment", false);
+             presentFragment(new CallLogActivity(args));
+         });
++        o.addGap();
++        o.add(R.drawable.msg_customize, getString(R.string.NebulaTabsOrganizer), () ->
++                presentFragment(new app.nebulagram.ui.NebulaSectionFragment(
++                        app.nebulagram.ui.NebulaSectionFragment.SECTION_TABS)));
+         o.setBlur(true);
+         o.translate(0, -dp(4));
+         o.setGravity(Gravity.LEFT);
+@@ -455,6 +460,10 @@
+                 NotificationCenter.getInstance(currentAccount).postNotificationName(NotificationCenter.callTabsVisibleToggled);
+             });
+         }
++        o.addGap();
++        o.add(R.drawable.msg_customize, getString(R.string.NebulaTabsOrganizer), () ->
++                presentFragment(new app.nebulagram.ui.NebulaSectionFragment(
++                        app.nebulagram.ui.NebulaSectionFragment.SECTION_TABS)));
+         o.setBlur(true);
+         o.translate(0, -dp(4));
+         final ShapeDrawable bg = Theme.createRoundRectDrawable(dp(28), getThemedColor(Theme.key_windowBackgroundWhite));
+@@ -469,10 +478,17 @@
+     private boolean openFoldersSelector(View anchor) {
+         if (getContext() == null || getParentActivity() == null) return false;
+         final ArrayList<MessagesController.DialogFilter> filters = getMessagesController().getDialogFilters();
+-        if (filters == null || filters.size() <= 1) return false;
++        
+ 
+         final ItemOptions o = ItemOptions.makeOptions(this, anchor);
+-        for (int i = 0; i < filters.size(); i++) {
++        o.add(R.drawable.msg_folders, getString(R.string.FilterEditAll), () -> presentFragment(new FiltersSetupActivity()));
++        o.addGap();
++        final int selectedFolderId = dialogsActivity == null ? 0 : dialogsActivity.nebulaSelectedFolderId();
++        if (filters == null || filters.isEmpty()) {
++            o.add(R.drawable.msg_discussion, getString(R.string.FilterAllChats), () -> openFolder(0));
++            o.putCheck();
++        }
++        for (int i = 0; filters != null && i < filters.size(); i++) {
+             final MessagesController.DialogFilter folder = filters.get(i);
+             final ActionBarMenuSubItem folderItem = new ActionBarMenuSubItem(getParentActivity(), 2, false, false, getResourceProvider());
+             folderItem.setPadding(dp(18), 0, dp(18), 0);
+@@ -507,14 +523,26 @@
+             final int color = getMessagesController().folderTags ? folder.color : -1;
+             folderItem.setTextAndIcon(title, 0, new FolderDrawable(getContext(), R.drawable.msg_folders, color));
+             folderItem.getTextView().setEmojiColor(getThemedColor(Theme.key_featuredStickers_addButton));
+-            folderItem.setMinimumWidth(160);
++            folderItem.setMinimumWidth(dp(200));
++            if (folder.id == selectedFolderId) folderItem.setRightIcon(R.drawable.msg_text_check);
+             folderItem.setOnClickListener(e -> {
+                 o.dismiss();
+                 openFolder(folder.id);
+             });
+             o.addView(folderItem, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT));
+         }
+-//        o.setBlur(true);
++        o.addGap();
++        o.add(R.drawable.msg_archive, getString(R.string.ArchivedChats), () -> {
++            Bundle args = new Bundle();
++            args.putInt("folderId", 1);
++            presentFragment(new DialogsActivity(args));
++        });
++        o.add(R.drawable.msg_saved, getString(R.string.SavedMessages), () -> {
++            Bundle args = new Bundle();
++            args.putLong("user_id", getUserConfig().getClientUserId());
++            presentFragment(new ChatActivity(args));
++        });
++        o.setBlur(true);
+         o.translate(-dp(8), -dp(4));
+         o.setMaxHeight(dp(400));
+         final ShapeDrawable bg = Theme.createRoundRectDrawable(dp(28), getThemedColor(Theme.key_windowBackgroundWhite));
+@@ -628,28 +656,8 @@
+         });
+ 
+         ItemOptions o = ItemOptions.makeOptions(this, button);
+-        if (UserConfig.getActivatedAccountsCount() < UserConfig.MAX_ACCOUNT_COUNT) {
+-            o.add(R.drawable.msg_addbot, getString(R.string.AddAccount), () -> {
+-                int freeAccounts = 0;
+-                Integer availableAccount = null;
+-                for (int a = UserConfig.MAX_ACCOUNT_COUNT - 1; a >= 0; a--) {
+-                    if (!UserConfig.getInstance(a).isClientActivated()) {
+-                        freeAccounts++;
+-                        if (availableAccount == null) {
+-                            availableAccount = a;
+-                        }
+-                    }
+-                }
+-                if (!UserConfig.hasPremiumOnAccounts()) {
+-                    freeAccounts -= (UserConfig.MAX_ACCOUNT_COUNT - UserConfig.MAX_ACCOUNT_DEFAULT_COUNT);
+-                }
+-                if (freeAccounts > 0 && availableAccount != null) {
+-                    presentFragment(new LoginActivity(availableAccount));
+-                } else if (!UserConfig.hasPremiumOnAccounts()) {
+-                    showDialog(new LimitReachedBottomSheet(this, getContext(), TYPE_ACCOUNTS, currentAccount, null));
+-                }
+-            });
+-        }
++        o.add(R.drawable.msg_addbot, getString(R.string.AddAccount), () ->
++                app.nebulagram.ui.NebulaNavigation.addAccount(this));
+ 
+         if (BuildConfig.DEBUG_PRIVATE_VERSION) {
+             o.add(R.drawable.menu_download_round, "Dump Canvas", () -> AndroidUtilities.runOnUIThread(this::dumpCanvas, 1000));
+@@ -671,6 +679,10 @@
+             }
+         }
+ 
++        o.addGap();
++        o.add(R.drawable.msg_customize, getString(R.string.NebulaTabsOrganizer), () ->
++                presentFragment(new app.nebulagram.ui.NebulaSectionFragment(
++                        app.nebulagram.ui.NebulaSectionFragment.SECTION_TABS)));
+         o.setBlur(true);
+         o.translate(0, -dp(4));
+         final ShapeDrawable bg = Theme.createRoundRectDrawable(dp(28), getThemedColor(Theme.key_windowBackgroundWhite));
+@@ -724,7 +736,21 @@
+         textView.setText(UserObject.getUserName(user));
+         textView.setMaxLines(2);
+         textView.setEllipsize(TextUtils.TruncateAt.END);
+-        btn.addView(textView, LayoutHelper.createLinear(0, LayoutHelper.WRAP_CONTENT, 1f, Gravity.CENTER_VERTICAL, 13, 0, 14, 0));
++        CharSequence accountName = Emoji.replaceEmoji(UserObject.getUserName(user), textView.getPaint().getFontMetricsInt(), false);
++        textView.setText(accountName);
++        btn.addView(textView, LayoutHelper.createLinear(0, LayoutHelper.WRAP_CONTENT, 1f, Gravity.CENTER_VERTICAL, 13, 0, 8, 0));
++        int unread = MessagesStorage.getInstance(account).getMainUnreadCount();
++        if (unread > 0) {
++            TextView counter = new TextView(getContext());
++            counter.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 12);
++            counter.setText(String.valueOf(unread));
++            counter.setGravity(Gravity.CENTER);
++            counter.setMinWidth(dp(20));
++            counter.setPadding(dp(5), 0, dp(5), 0);
++            counter.setTextColor(getThemedColor(Theme.key_chats_unreadCounterText));
++            counter.setBackground(Theme.createRoundRectDrawable(dp(10), getThemedColor(Theme.key_chats_unreadCounter)));
++            btn.addView(counter, LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, 20, Gravity.CENTER_VERTICAL, 0, 0, 14, 0));
++        }
+ 
+         return btn;
+     }
+@@ -919,6 +945,15 @@
+         return canScrollInternal(ev, false);
+     }
+ 
++    @Override
++    protected boolean onPagerEdgeSwipe(MotionEvent ev, boolean forward, float startX) {
++        if (forward || startX > dp(32)) return false;
++        BaseFragment fragment = getCurrentVisibleFragment();
++        if (!(fragment instanceof DialogsActivity)
++                || !((DialogsActivity) fragment).nebulaCanOpenSidePanel(ev)) return false;
++        return app.nebulagram.ui.NebulaSidePanel.openOnSwipe(this);
++    }
++
+     private boolean canScrollInternal(MotionEvent ev, boolean forward) {
+         final BaseFragment fragment = getCurrentVisibleFragment();
+         if (fragment instanceof TabFragmentDelegate) {
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/MainTabsLayout.java b/TMessagesProj/src/main/java/org/telegram/ui/MainTabsLayout.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/MainTabsLayout.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/MainTabsLayout.java
+@@ -66,7 +66,12 @@
+         }
+ 
+         final int maxTotalWidthForTabs = width - getPaddingLeft() - getPaddingRight();
+-        final int minTotalWidthForTabs = Math.min(dp(320), maxTotalWidthForTabs);
++        int visibleTabs = 0;
++        for (int a = 0; a < getChildCount(); a++) {
++            if (isViewVisible(getChildAt(a))) visibleTabs++;
++        }
++        final int minTotalWidthForTabs = Math.min(
++                dp(app.nebulagram.ui.NebulaBottomBar.minimumTabsWidth(visibleTabs)), maxTotalWidthForTabs);
+ 
+         int chosenPass = PASS_TEXT_SIZES_DP.length - 1;
+         float lastMeasuredTextSize = -1;
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/SettingsActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/SettingsActivity.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/SettingsActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/SettingsActivity.java
+@@ -459,7 +459,7 @@
+         titleView.setEllipsize(TextUtils.TruncateAt.END);
+         topView.addView(titleView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.CENTER_HORIZONTAL | Gravity.TOP, 16, 138.333f - 12, 16, 0));
+ 
+-        subtitleView = new TextView(context);
++        subtitleView = new org.telegram.ui.Components.spoilers.SpoilersTextView(context);
+         subtitleView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 13);
+         subtitleView.setGravity(Gravity.CENTER);
+         subtitleView.setSingleLine();
+@@ -499,6 +499,14 @@
+     }
+ 
+     @Override
++    public void onResume() {
++        super.onResume();
++        if (subtitleView != null) {
++            subtitleView.setText(app.nebulagram.ui.NebulaNavigation.privateSubtitle(getUserConfig().getCurrentUser()));
++        }
++    }
++
++    @Override
+     public void onFragmentDestroy() {
+         super.onFragmentDestroy();
+ 
+@@ -534,15 +542,7 @@
+         avatarDrawable.setInfo(user);
+         avatarView.setForUserOrChat(user, avatarDrawable);
+         titleView.setText(UserObject.getUserName(user));
+-        final StringBuilder sb = new StringBuilder();
+-        if (user != null) {
+-            sb.append(PhoneFormat.getInstance().format("+" + user.phone));
+-        }
+-        final String username = UserObject.getPublicUsername(user);
+-        if (username != null) {
+-            sb.append(" • @").append(username);
+-        }
+-        subtitleView.setText(sb);
++        subtitleView.setText(app.nebulagram.ui.NebulaNavigation.privateSubtitle(user));
+ 
+         versionView.setText(getVersionName());
+     }
+@@ -680,25 +680,23 @@
+             items.add(UItem.asShadow(null));
+         }
+ 
+-        if (accountNumbers.size() > 0) {
+-            items.add(UItem.asHeader(getString(R.string.SettingsAccounts)));
+-            for (int i = 0; i < accountNumbers.size(); ++i) {
+-                items.add(AccountCell.Factory.of(i, accountNumbers.get(i)));
+-            }
+-            items.add(UItem.asShadow(null));
+-        }
+-
+-        items.add(SettingCell.Factory.of(0x4e42, IconBackgroundColors.BLUE.top, IconBackgroundColors.BLUE.bottom, R.drawable.nebula_settings_mark, getString(R.string.NebulaSettings), getString(R.string.NebulaSettingsSub)));
+-        // Скрытая вкладка профиля не должна лишать доступа к нему: строка
+-        // появляется здесь ровно тогда, когда внизу её нет.
+-        if (!app.nebulagram.ui.NebulaBottomBar.tabEnabled(
+-                app.nebulagram.ui.NebulaBottomBar.TAB_PROFILE)) {
+-            items.add(SettingCell.Factory.of(0x4e43, 0xFF27B5D2,
+-                    0xFF38A244, R.drawable.settings_account,
+-                    getString(R.string.NebulaTabProfile), getString(R.string.NebulaProfileRowSub)));
+-        }
+-        items.add(UItem.asShadow(null)); // NebulaGram отдельной карточкой
+-        items.add(SettingCell.Factory.of(1, IconBackgroundColors.BLUE.top, IconBackgroundColors.BLUE.bottom, R.drawable.settings_account, getString(R.string.SettingsAccount), getString(R.string.SettingsAccountInfo)));
++        items.add(UItem.asHeader(getString(R.string.SettingsAccounts)));
++        for (int i = 0; i < accountNumbers.size(); ++i) {
++            items.add(AccountCell.Factory.of(i, accountNumbers.get(i)));
++        }
++        items.add(SettingCell.Factory.of(0x4e44, IconBackgroundColors.BLUE.top, IconBackgroundColors.BLUE.bottom,
++                R.drawable.msg_addbot, getString(R.string.AddAccount)));
++        items.add(UItem.asShadow(null));
++
++        items.add(SettingCell.Factory.of(1, IconBackgroundColors.GREEN.top, IconBackgroundColors.GREEN.bottom,
++                R.drawable.settings_account, getString(R.string.MyProfile), getString(R.string.SettingsAccountInfo)));
++        items.add(SettingCell.Factory.of(0x4e45, IconBackgroundColors.BLUE_DEEP.top, IconBackgroundColors.BLUE_DEEP.bottom,
++                R.drawable.msg_saved, getString(R.string.SavedMessages)));
++        items.add(UItem.asShadow(null));
++
++        items.add(SettingCell.Factory.of(0x4e42, IconBackgroundColors.BLUE.top, IconBackgroundColors.BLUE.bottom,
++                R.drawable.nebula_settings_mark, getString(R.string.NebulaSettings), getString(R.string.NebulaSettingsSub)));
++        items.add(UItem.asShadow(null));
+         items.add(SettingCell.Factory.of(2, IconBackgroundColors.ORANGE.top, IconBackgroundColors.ORANGE.bottom, R.drawable.settings_chat, getString(R.string.SettingsChat), getString(R.string.SettingsChatInfo)));
+         items.add(SettingCell.Factory.of(3, IconBackgroundColors.GREEN.top, IconBackgroundColors.GREEN.bottom, R.drawable.settings_privacy, getString(R.string.SettingsPrivacySecurity), getString(R.string.SettingsPrivacySecurityInfo)));
+         items.add(SettingCell.Factory.of(5, IconBackgroundColors.RED.top, IconBackgroundColors.RED.bottom, R.drawable.settings_sounds, getString(R.string.SettingsNotifications), getString(R.string.SettingsNotificationsInfo)));
+@@ -822,16 +820,22 @@
+             case 0x4e42:
+                 presentSettingFragment(new app.nebulagram.ui.NebulaSettingsFragment());
+                 break;
+-            case 0x4e43: {
+-                Bundle profileArgs = new Bundle();
+-                profileArgs.putLong("user_id", getUserConfig().clientUserId);
+-                profileArgs.putBoolean("my_profile", true);
+-                presentSettingFragment(new ProfileActivity(profileArgs));
+-                break;
+-            }
+-            case 1:
+-                presentSettingFragment(new UserInfoActivity());
+-                break;
++            case 0x4e44:
++                app.nebulagram.ui.NebulaNavigation.addAccount(this);
++                break;
++            case 0x4e45: {
++                Bundle args = new Bundle();
++                args.putLong("user_id", getUserConfig().getClientUserId());
++                presentSettingFragment(new ChatActivity(args));
++                break;
++            }
++            case 1: {
++                Bundle args = new Bundle();
++                args.putLong("user_id", getUserConfig().getClientUserId());
++                args.putBoolean("my_profile", true);
++                presentSettingFragment(new ProfileActivity(args));
++                break;
++            }
+             case 2:
+                 presentSettingFragment(new ThemeActivity(ThemeActivity.THEME_TYPE_BASIC));
+                 break;
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ViewPagerActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ViewPagerActivity.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/ViewPagerActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/ViewPagerActivity.java
+@@ -130,6 +130,10 @@
+         fragmentsArr.put(position, new FragmentState(fragment));
+     }
+ 
++    protected boolean onPagerEdgeSwipe(MotionEvent ev, boolean forward, float startX) {
++        return false;
++    }
++
+     protected boolean canScrollBackward(MotionEvent ev) {
+         return true;
+     }
+@@ -476,6 +480,11 @@
+         }
+ 
+         @Override
++        protected boolean onEdgeSwipe(MotionEvent e, boolean forward, float startX) {
++            return ViewPagerActivity.this.onPagerEdgeSwipe(e, forward, startX);
++        }
++
++        @Override
+         protected boolean canScrollBackward(MotionEvent e) {
+             return ViewPagerActivity.this.canScrollBackward(e);
+         }

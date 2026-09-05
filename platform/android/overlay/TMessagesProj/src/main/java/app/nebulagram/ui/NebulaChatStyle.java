@@ -16,8 +16,19 @@ public final class NebulaChatStyle {
 
     /** Outer blur bounds; 6dp of drawable padding surrounds each visible surface. */
     public static int headerWidth(int barWidth, int textWidth) {
+        if (!NebulaAppearance.adaptiveHeader()) return Math.max(0, barWidth - AndroidUtilities.dp(128));
         return Math.max(0, Math.min(Math.max(AndroidUtilities.dp(112), textWidth + AndroidUtilities.dp(40)),
                 barWidth - AndroidUtilities.dp(128)));
+    }
+
+    public static int headerLeft(int barWidth, int headerWidth) {
+        return NebulaAppearance.centeredHeader() ? (barWidth - headerWidth) / 2 : AndroidUtilities.dp(58);
+    }
+
+    public static int headerTextLeft(int containerWidth, int capsuleWidth, int textWidth) {
+        if (NebulaAppearance.centeredHeader()) return (containerWidth - textWidth) / 2;
+        return headerLeft(containerWidth + AndroidUtilities.dp(12), capsuleWidth)
+                - AndroidUtilities.dp(12) / 2 + (capsuleWidth - textWidth) / 2;
     }
 
     public static void header(ActionBar bar, boolean normalChat, boolean savedMessages) {

@@ -8,4 +8,13 @@
     <string name="NebulaProfileStyleInfo">Единые скруглённые карточки профилей, участников и настроек чатов.</string>
     <string name="NebulaProfilePhotoBanner">Баннер из фотографии чата</string>
     <string name="NebulaProfilePhotoBannerInfo">Затемнённая фотография за аватаром и названием группы. Без фотографии баннера не будет.</string>
+    <string name="NebulaCompactTabs">Компактная панель</string>
+    <string name="NebulaCompactTabsInfo">Ширина по числу видимых вкладок</string>
+    <string name="NebulaTabsOrganizer">Органайзер нижних вкладок</string>
+    <string name="NebulaCenterHeader">Центрирование заголовка</string>
+    <string name="NebulaCenterHeaderInfo">Размещать пилюлю с названием по центру шапки</string>
+    <string name="NebulaAdaptiveHeader">Адаптивная ширина пилюли</string>
+    <string name="NebulaAdaptiveHeaderInfo">Подстраивать ширину под название и статус</string>
+    <string name="NebulaIosIcons">Иконки в стиле iOS</string>
+    <string name="NebulaIosIconsInfo">Округлые контурные значки. Выключите для значков Telegram; изменения — при повторном открытии экрана.</string>
 </resources>

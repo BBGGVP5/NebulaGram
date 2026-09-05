@@ -27,6 +27,10 @@
 | `0042-header-profile-folder-colors.patch` | `ActionBar.java; SimpleTextView.java; ChatAvatarContainer.java; ChatActivity.java; DialogsActivity.java; DialogStoriesCell.java; ProfileActivity.java` | измерение/рисование; ThemeDelegate; завершение свайпа; фон профиля | Центрирует премиум-эмодзи, сохраняет скрытие меню, исправляет контраст, выводит названия папок штатным текстом и продлевает баннер под действия | +45 / −18 |
 | `0043-package-selected-abis.patch` | `TMessagesProj_AppStandalone/build.gradle` | afat.ndk.abiFilters | Применяет общий список архитектур и к нативным библиотекам из AAR-зависимостей при упаковке APK | +3 / −1 |
 | `0044-tab-avatar-alignment.patch` | `GlassTabView.java` | createAvatar; nebulaApplyLabel | Применяет положение значка без подписи к видимой аватарке вкладки, включая превью навигации | +2 / −2 |
+| `0045-navigation-settings.patch` | 7 файлов навигации и настроек | MainTabsLayout, MainTabsActivity, ViewPagerFixed, ViewPagerActivity, DialogsActivity, SettingsActivity, GlassTabView | Компактная панель, жест от левого края, нативные меню удержания, группы настроек и скрытый номер | +147 / −72 |
+| `0046-theme-header-followup.patch` | DialogStoriesCell, ActionBar, ChatAvatarContainer, ChatActivity | Заголовки папок и топиков | Плавная смена папок, исчезновение статуса, общая геометрия и настройки пилюли, шапка топиков | +12 / −10 |
+| `0047-ios-icons-subtitle.patch` | ApplicationLoader, LaunchActivity, BackDrawable, GlassTabView, ChatActivityEnterViewAnimatedIconView, ChatAvatarContainer | Загрузка иконок и вторичная строка шапки | Переключаемые контурные значки, стрелка iOS, компактный приглушённый статус | +49 / −2 |
+| `0048-message-panel-spacing.patch` | ChatMessageCell, ChatActivityTopPanelLayout | getExtraTextX; checkBoundsAndClipping | Отступы текста внутри сообщений и скругление верхней панели темы | +4 / −4 |
 
 Java-файлы находятся в `TMessagesProj/src/main/java/org/telegram/ui/`,
 кроме `ApplicationLoader.java` — он находится в `org/telegram/messenger/`.

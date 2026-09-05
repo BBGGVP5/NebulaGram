@@ -9,6 +9,7 @@ import org.telegram.messenger.MessagesController;
 import org.telegram.ui.ActionBar.ActionBar;
 import org.telegram.ui.ActionBar.SimpleTextView;
 import org.telegram.ui.Components.AnimatedEmojiDrawable;
+import org.telegram.ui.Components.CubicBezierInterpolator;
 
 import java.util.ArrayList;
 import java.util.WeakHashMap;
@@ -17,9 +18,9 @@ import java.lang.ref.WeakReference;
 /** Supplies the branded home title and the optional live folder title. */
 public final class NebulaDialogsTitle {
     private NebulaDialogsTitle() { }
-    private static final WeakHashMap<ActionBar, WeakReference<SimpleTextView>> collapsedTitles = new WeakHashMap<>();
+    private static final WeakHashMap<ActionBar, WeakReference<NebulaFolderTitleView>> collapsedTitles = new WeakHashMap<>();
 
-    public static void bind(ActionBar bar, SimpleTextView view) {
+    public static void bind(ActionBar bar, NebulaFolderTitleView view) {
         if (bar == null) return;
         collapsedTitles.put(bar, new WeakReference<>(view));
         SimpleTextView title = bar.getTitleTextView();
@@ -51,15 +52,21 @@ public final class NebulaDialogsTitle {
                 }
             }
         }
-        actionBar.setTitle(title, statusDrawable);
+        SimpleTextView previous = actionBar.getTitleTextView();
+        boolean changed = previous != null && !TextUtils.equals(previous.getText(), title);
+        if (changed && previous.isAttachedToWindow() && previous.getWidth() > 0) {
+            previous.animate().setListener(null).cancel();
+            SimpleTextView outgoing = actionBar.getTitleTextView2();
+            if (outgoing != null) outgoing.animate().setListener(null).cancel();
+            actionBar.setTitleAnimated(title, false, 240, CubicBezierInterpolator.EASE_OUT_QUINT);
+        }
+        actionBar.setTitle(title, selected == null ? statusDrawable : null);
         int cacheType = selected != null && selected.title_noanimate
                 ? AnimatedEmojiDrawable.CACHE_TYPE_NOANIMATE_FOLDER : AnimatedEmojiDrawable.CACHE_TYPE_MESSAGES;
-        WeakReference<SimpleTextView> reference = collapsedTitles.get(actionBar);
-        SimpleTextView collapsed = reference == null ? null : reference.get();
+        WeakReference<NebulaFolderTitleView> reference = collapsedTitles.get(actionBar);
+        NebulaFolderTitleView collapsed = reference == null ? null : reference.get();
         if (collapsed != null) {
-            collapsed.setEmojiCacheType(cacheType);
-            collapsed.setText(title);
-            collapsed.requestLayout();
+            collapsed.setTitle(title, cacheType, selected == null, changed);
         }
         SimpleTextView titleView = actionBar.getTitleTextView();
         if (titleView != null) {

@@ -63,7 +63,7 @@ public final class NebulaComposerStyle {
             insetEditor = editor;
             baseLeft = params.leftMargin;
             baseRight = params.rightMargin;
-            params.leftMargin = insetLeft = baseLeft + AndroidUtilities.dp(14);
+            params.leftMargin = insetLeft = baseLeft + AndroidUtilities.dp(baseLeft > AndroidUtilities.dp(50) ? 20 : 14);
             // Emoji remains inside the input even when native code hides the paperclip.
             params.rightMargin = insetRight = Math.max(baseRight, AndroidUtilities.dp(50)) + AndroidUtilities.dp(6);
         }
@@ -113,9 +113,9 @@ public final class NebulaComposerStyle {
             move(attachment, parent.getPaddingLeft());
             move(emoji, parent.getWidth() - parent.getPaddingRight() - AndroidUtilities.dp(6) - emoji.getMeasuredWidth());
             if (senderSelect != null && senderSelect.getVisibility() == View.VISIBLE && senderSelect.getParent() == parent) {
-                move(senderSelect, AndroidUtilities.dp(54));
+                move(senderSelect, AndroidUtilities.dp(60));
             }
-            if (botMenu != null && botMenu.getParent() == parent) move(botMenu, AndroidUtilities.dp(54));
+            if (botMenu != null && botMenu.getParent() == parent) move(botMenu, AndroidUtilities.dp(60));
             controlsMoved = true;
         } else if (controlsMoved) {
             restoreControl(emoji);

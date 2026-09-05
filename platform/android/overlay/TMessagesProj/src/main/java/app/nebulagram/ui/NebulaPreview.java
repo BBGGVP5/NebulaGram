@@ -130,15 +130,19 @@ public class NebulaPreview extends View {
         // видна ключевая разница, которую даёт переключатель в реальном чате.
         float avatarX = styled ? getWidth() - margin - height / 2f : margin + AndroidUtilities.dp(48);
         if (styled) drawGlassCircle(canvas, avatarX, centerY, height / 2f);
-        float avatarRadius = AndroidUtilities.dp(styled ? 15 : 14);
+        float avatarRadius = AndroidUtilities.dp(styled ? 20 : 14);
         avatar.setRoundRadius((int) avatarRadius);
         avatar.setImageCoords(avatarX - avatarRadius, centerY - avatarRadius,
                 avatarRadius * 2, avatarRadius * 2);
         avatar.draw(canvas);
 
         float textLeft = avatarX + AndroidUtilities.dp(22);
-        float titleWidth = AndroidUtilities.dp(84);
-        float titleX = styled ? (getWidth() - titleWidth) / 2f : textLeft;
+        paint.setTextSize(AndroidUtilities.dp(13));
+        float capsuleWidth = NebulaChatStyle.headerWidth(getWidth(), (int) paint.measureText(accountName));
+        float titleWidth = Math.max(0, capsuleWidth - AndroidUtilities.dp(36));
+        float capsuleLeft = NebulaChatStyle.headerLeft(getWidth(), (int) capsuleWidth);
+        float titleX = styled ? capsuleLeft + AndroidUtilities.dp(18) : textLeft;
+        float titleCenter = capsuleLeft + capsuleWidth / 2f;
         if (styled) {
             rect.set(titleX - AndroidUtilities.dp(18), top + AndroidUtilities.dp(2),
                     titleX + titleWidth + AndroidUtilities.dp(18), top + height - AndroidUtilities.dp(2));
@@ -146,13 +150,13 @@ public class NebulaPreview extends View {
         }
         paint.setTextSize(AndroidUtilities.dp(13));
         drawLabel(canvas, accountName,
-                styled ? getWidth() / 2f : textLeft, centerY - AndroidUtilities.dp(2),
+                styled ? titleCenter : textLeft, centerY - AndroidUtilities.dp(2),
                 titleWidth + AndroidUtilities.dp(36),
                 styled ? Paint.Align.CENTER : Paint.Align.LEFT, true, theme.onSurface());
 
         paint.setTextSize(AndroidUtilities.dp(10));
         drawLabel(canvas, accountStatus,
-                styled ? getWidth() / 2f : textLeft, centerY + AndroidUtilities.dp(10),
+                styled ? titleCenter : textLeft, centerY + AndroidUtilities.dp(10),
                 titleWidth + AndroidUtilities.dp(36),
                 styled ? Paint.Align.CENTER : Paint.Align.LEFT, false,
                 NebulaTheme.stateLayer(theme.onSurfaceVariant(), 0.85f));

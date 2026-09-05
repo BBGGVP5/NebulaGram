@@ -8,4 +8,13 @@
     <string name="NebulaProfileStyleInfo">Matching rounded cards for profiles, members and chat settings.</string>
     <string name="NebulaProfilePhotoBanner">Chat photo banner</string>
     <string name="NebulaProfilePhotoBannerInfo">A darkened photo behind the avatar and group title. No photo means no banner.</string>
+    <string name="NebulaCompactTabs">Compact bar</string>
+    <string name="NebulaCompactTabsInfo">Fit the bar to the number of visible tabs</string>
+    <string name="NebulaTabsOrganizer">Organize bottom tabs</string>
+    <string name="NebulaCenterHeader">Center chat title</string>
+    <string name="NebulaCenterHeaderInfo">Place the title capsule in the center of the header</string>
+    <string name="NebulaAdaptiveHeader">Adaptive capsule width</string>
+    <string name="NebulaAdaptiveHeaderInfo">Fit the capsule to the title and status</string>
+    <string name="NebulaIosIcons">iOS-style icons</string>
+    <string name="NebulaIosIconsInfo">Rounded outline icons. Turn off for Telegram icons; reopen the screen to apply.</string>
 </resources>

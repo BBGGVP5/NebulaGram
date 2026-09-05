@@ -27,6 +27,11 @@ public final class NebulaAppearance {
         preferences().edit().putBoolean("floating_chat_header", enabled).apply();
     }
 
+    public static boolean centeredHeader() { return preferences().getBoolean("centered_chat_header", true); }
+    public static void setCenteredHeader(boolean value) { preferences().edit().putBoolean("centered_chat_header", value).apply(); }
+    public static boolean adaptiveHeader() { return preferences().getBoolean("adaptive_chat_header", true); }
+    public static void setAdaptiveHeader(boolean value) { preferences().edit().putBoolean("adaptive_chat_header", value).apply(); }
+
     /** Replace the home title with the selected folder name or emoji. */
     public static boolean folderTitle() {
         return preferences().getBoolean("folder_title", true);
