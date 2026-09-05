@@ -36,3 +36,12 @@ NebulaGram.
 NebulaGram — независимый неофициальный клиент. Упоминание Telegram и других
 проектов обозначает используемые технологии и не означает их одобрения
 или участия в разработке NebulaGram.
+
+## Иконки Solar
+
+Используются иконки Solar от 480 Design (CC BY 4.0), Android-векторы и
+сопоставления ресурсов адаптированы из Cherrygram (GPL-2.0-or-later,
+Copyright github.com/arsLan4k1390, 2022–2026). Изменены имена ресурсов и выбор
+заменяемых значков; индикаторы доставки Telegram сохранены.
+Источник, ревизия и ссылки на условия включены в APK:
+[nebula-icon-notices.txt](platform/android/overlay/TMessagesProj/src/main/assets/nebula-icon-notices.txt).

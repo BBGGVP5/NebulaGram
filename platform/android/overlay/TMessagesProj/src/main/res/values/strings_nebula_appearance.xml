@@ -15,6 +15,6 @@
     <string name="NebulaCenterHeaderInfo">Place the title capsule in the center of the header</string>
     <string name="NebulaAdaptiveHeader">Adaptive capsule width</string>
     <string name="NebulaAdaptiveHeaderInfo">Fit the capsule to the title and status</string>
-    <string name="NebulaIosIcons">iOS-style icons</string>
-    <string name="NebulaIosIconsInfo">Rounded outline icons. Turn off for Telegram icons; reopen the screen to apply.</string>
+    <string name="NebulaIosIcons">Solar icon pack</string>
+    <string name="NebulaIosIconsInfo">Menu and button icons like Cherrygram. Message delivery marks stay native to Telegram. Turn off to restore Telegram icons.</string>
 </resources>

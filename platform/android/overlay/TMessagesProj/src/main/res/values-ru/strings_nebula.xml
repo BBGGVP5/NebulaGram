@@ -48,9 +48,7 @@
     <string name="NebulaSectionPanel">Навигация</string>
     <string name="NebulaBottomBarTitle">Нижняя панель</string>
     <string name="NebulaBottomBarSub">Вкладки чатов, контактов, настроек и профиля</string>
-    <string name="NebulaBottomBarHint">Изменения применяются при возврате в чаты. При скрытии вкладок включается боковая панель для доступа ко всем разделам.</string>
-    <string name="NebulaSidePanelTitle">Боковая панель</string>
-    <string name="NebulaSidePanelSub">Навигация кнопкой меню в чатах. При отключении возвращаются все нижние вкладки</string>
+    <string name="NebulaBottomBarHint">Изменения применяются при возврате в чаты. Если вкладка настроек скрыта, настройки доступны через три точки на главном экране.</string>
     <string name="NebulaServerSort">Сортировка серверов</string>
     <string name="NebulaSortDefault">По умолчанию (порядок подписки)</string>
     <string name="NebulaSortLatency">По наименьшему пингу</string>
@@ -110,4 +108,6 @@
     <string name="NebulaFolderTitle">Название папки в шапке</string>
     <string name="NebulaFolderTitleSub">Показывать имя или эмодзи текущей папки при свайпе</string>
     <string name="NebulaProfileRowSub">Номер, имя пользователя, «О себе»</string>
+    <string name="NebulaScanQr">Сканировать QR-код</string>
+    <string name="NebulaMyQr">Создать QR-код</string>
 </resources>

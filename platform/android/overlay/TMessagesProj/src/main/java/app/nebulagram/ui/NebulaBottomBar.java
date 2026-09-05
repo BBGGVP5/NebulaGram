@@ -9,10 +9,9 @@ import org.telegram.ui.Components.glass.GlassTabView;
 
 import java.util.Arrays;
 
-/** Preferences for Telegram's native tabs and NebulaGram's optional side panel. */
+/** Preferences for Telegram's native tabs and overflow navigation. */
 public final class NebulaBottomBar {
     private static final String KEY_ENABLED = "bottom_bar";
-    private static final String KEY_SIDEBAR = "side_panel";
     private static final String KEY_TAB_ORDER = "bottom_bar_order";
     public static final String TAB_CHATS = "chats";
     public static final String TAB_CONTACTS = "contacts";
@@ -33,26 +32,12 @@ public final class NebulaBottomBar {
     }
 
     public static void setEnabled(boolean value) {
-        SharedPreferences.Editor editor = prefs().edit().putBoolean(KEY_ENABLED, value);
-        if (!value) {
-            editor.putBoolean(KEY_SIDEBAR, true);
-        }
-        editor.apply();
+        prefs().edit().putBoolean(KEY_ENABLED, value).apply();
     }
 
-    public static boolean sidebarEnabled() {
-        return prefs().getBoolean(KEY_SIDEBAR, false) || !enabled() || !tabEnabled(TAB_SETTINGS);
-    }
-
-    public static void setSidebarEnabled(boolean value) {
-        SharedPreferences.Editor editor = prefs().edit().putBoolean(KEY_SIDEBAR, value);
-        if (!value) {
-            editor.putBoolean(KEY_ENABLED, true);
-            editor.putBoolean("bottom_bar_" + TAB_CONTACTS, true);
-            editor.putBoolean("bottom_bar_" + TAB_SETTINGS, true);
-            editor.putBoolean("bottom_bar_" + TAB_PROFILE, true);
-        }
-        editor.apply();
+    /** Calls share the settings slot in Telegram. Keep settings reachable in every layout. */
+    public static boolean settingsInOverflow(boolean callsTabVisible) {
+        return !enabled() || !tabEnabled(TAB_SETTINGS) || callsTabVisible;
     }
 
     public static boolean tabEnabled(String tab) {
@@ -60,12 +45,7 @@ public final class NebulaBottomBar {
     }
 
     public static void setTabEnabled(String tab, boolean value) {
-        SharedPreferences.Editor editor = prefs().edit().putBoolean("bottom_bar_" + tab, value);
-        // The side panel keeps every destination reachable when tabs are hidden.
-        if (!value) {
-            editor.putBoolean(KEY_SIDEBAR, true);
-        }
-        editor.apply();
+        prefs().edit().putBoolean("bottom_bar_" + tab, value).apply();
     }
 
     /** Ordered logical tabs. Settings and Calls share the same pager slot. */

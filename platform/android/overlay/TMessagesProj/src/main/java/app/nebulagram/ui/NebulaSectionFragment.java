@@ -257,11 +257,6 @@ public class NebulaSectionFragment extends BaseFragment {
         content.addView(NebulaMenuFragment.placeholder(context,
                 LocaleController.getString(R.string.NebulaTabsEditorHint)));
 
-        NebulaCard side = new NebulaCard(context);
-        side.add(toggle(context, R.drawable.msg_list,
-                R.string.NebulaSidePanelTitle, R.string.NebulaSidePanelSub,
-                NebulaBottomBar.sidebarEnabled(), NebulaBottomBar::setSidebarEnabled));
-        content.addView(side, cardParams());
         content.addView(NebulaMenuFragment.placeholder(context,
                 LocaleController.getString(R.string.NebulaBottomBarHint)));
     }

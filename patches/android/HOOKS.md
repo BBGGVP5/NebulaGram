@@ -130,3 +130,16 @@ AI, разворачивание и закрытие пересылки полу
 Плотность `anydpi` имеет приоритет над растровыми `notification.webp` апстрима;
 патчи к `NotificationsController` для этого не нужны. См.
 [Android: альтернативные ресурсы](https://developer.android.com/guide/topics/resources/providing-resources).
+
+## Меню главного экрана и иконки
+
+Патч `0049-main-menu-navigation.patch` заменяет боковую панель меню в трёх
+точках. `NebulaMainMenu` добавляет канал, архив, звонки и QR-коды;
+`NebulaBottomBar.settingsInOverflow` сохраняет доступ к настройкам, если
+нижняя панель или вкладка настроек скрыта либо её место занимают звонки.
+Настройка старой боковой панели больше не используется.
+
+Набор Solar подключён через `NebulaIcons` и `NebulaIconResources` с сохранением
+переключателя. Галочки доставки/прочтения не подменяются. `GlassTabView`
+использует штатные анимированные значки Telegram; логотип настроек остаётся
+NebulaGram. Атрибуция иконок включена в `assets/nebula-icon-notices.txt`.

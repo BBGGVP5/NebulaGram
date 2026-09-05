@@ -1,0 +1,84 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/MainTabsActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/MainTabsActivity.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/MainTabsActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/MainTabsActivity.java
+@@ -945,15 +945,6 @@
+         return canScrollInternal(ev, false);
+     }
+ 
+-    @Override
+-    protected boolean onPagerEdgeSwipe(MotionEvent ev, boolean forward, float startX) {
+-        if (forward || startX > dp(32)) return false;
+-        BaseFragment fragment = getCurrentVisibleFragment();
+-        if (!(fragment instanceof DialogsActivity)
+-                || !((DialogsActivity) fragment).nebulaCanOpenSidePanel(ev)) return false;
+-        return app.nebulagram.ui.NebulaSidePanel.openOnSwipe(this);
+-    }
+-
+     private boolean canScrollInternal(MotionEvent ev, boolean forward) {
+         final BaseFragment fragment = getCurrentVisibleFragment();
+         if (fragment instanceof TabFragmentDelegate) {
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
+@@ -13631,13 +13631,6 @@
+         return filterTabsView == null ? 0 : filterTabsView.getCurrentTabId();
+     }
+ 
+-    public boolean nebulaCanOpenSidePanel(MotionEvent ev) {
+-        return !actionBar.isActionModeShowed()
+-                && (filterTabsView == null || filterTabsView.getTabsCount() < 2
+-                    || filterTabsView.getCurrentTabId() == filterTabsView.getFirstTabId())
+-                && canParentTabsSlide(ev, false);
+-    }
+-
+     @Override
+     public boolean canParentTabsSlide(MotionEvent ev, boolean forward) {
+         if (searchIsShowed || rightSlidingDialogContainer != null && rightSlidingDialogContainer.hasFragment()) {
+@@ -13763,6 +13756,7 @@
+             Bundle args = new Bundle();
+             presentFragment(new GroupCreateActivity(args));
+         });
++        app.nebulagram.ui.NebulaMainMenu.addChatActions(this, io);
+         io.add(R.drawable.outline_saved_24, getString(R.string.SavedMessages), () -> {
+             Bundle args = new Bundle();
+             args.putLong("user_id", UserConfig.getInstance(currentAccount).getClientUserId());
+@@ -13795,8 +13789,9 @@
+                 }
+             }
+         }
+-        if (getUserConfig().showCallsTab) {
+-            io.add(R.drawable.msg_settings_old, getString(R.string.Settings), () -> {
++        app.nebulagram.ui.NebulaMainMenu.addNavigation(this, io);
++        if (app.nebulagram.ui.NebulaBottomBar.settingsInOverflow(getUserConfig().showCallsTab)) {
++            io.add(R.drawable.nebula_settings_mark, getString(R.string.Settings), () -> {
+                 presentFragment(new SettingsActivity());
+             });
+         }
+@@ -14102,7 +14097,6 @@
+     }
+ 
+     private void checkUi_menuItems() {
+-        app.nebulagram.ui.NebulaSidePanel.update(this, !onlySelect && !searching && progressToActionMode == 0 && getRightSlidingProgress() == 0);
+         checkUi_itemBackButtonVisibility();
+         checkUi_itemOptionsVisibility();
+         checkUi_itemDownloadsVisibility();
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/glass/GlassTabView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/glass/GlassTabView.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Components/glass/GlassTabView.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/glass/GlassTabView.java
+@@ -283,16 +283,6 @@
+             updateColors();
+             return;
+         }
+-        if (app.nebulagram.ui.NebulaIcons.enabled() && tabAnimation != null) {
+-            int icon = tabAnimation == TabAnimation.CHATS ? R.drawable.nebula_ios_chat
+-                    : tabAnimation == TabAnimation.CONTACTS ? R.drawable.nebula_ios_profile
+-                    : tabAnimation == TabAnimation.CALLS ? R.drawable.nebula_ios_phone : 0;
+-            if (icon != 0) {
+-                imageView.setImageResource(icon);
+-                updateColors();
+-                return;
+-            }
+-        }
+         final boolean isSelected = isSelectedAnimator.getValue();
+ 
+         if (tabAnimationBot !=  null) {

@@ -1,0 +1,13 @@
+Solar Icon Set — 480 Design
+Artwork license: Creative Commons Attribution 4.0 International (CC BY 4.0)
+https://creativecommons.org/licenses/by/4.0/
+https://www.figma.com/community/file/1166831539721848736
+
+Android vectors and resource mapping adapted from Cherrygram.
+Copyright github.com/arsLan4k1390, 2022-2026. GPL-2.0-or-later.
+https://github.com/arsLan4k1390/Cherrygram
+Source: TMessagesProj/src/main/res-solar and core/icons/icon_replaces/SolarIconReplace.kt
+Revision: 8ce96a21579ed7caa3822b6b3be277c909888e07
+
+NebulaGram adaptations by BBGGVP5, 2026: resource names, mapping selection and
+composer aliases. Telegram delivery marks and animated tab icons are retained.

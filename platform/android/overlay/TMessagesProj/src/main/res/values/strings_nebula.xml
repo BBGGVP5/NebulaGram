@@ -55,9 +55,7 @@
     <string name="NebulaSectionPanel">Navigation</string>
     <string name="NebulaBottomBarTitle">Show the bottom bar</string>
     <string name="NebulaBottomBarSub">Chats, contacts, settings and profile tabs</string>
-    <string name="NebulaBottomBarHint">Changes apply when you return to chats. Hiding tabs enables the side panel so all destinations stay accessible.</string>
-    <string name="NebulaSidePanelTitle">Side panel</string>
-    <string name="NebulaSidePanelSub">Navigation from the menu button in chats. Turning this off restores all bottom tabs</string>
+    <string name="NebulaBottomBarHint">Changes apply when you return to chats. When the settings tab is hidden, Settings stays available in the three-dot menu on the main screen.</string>
     <string name="NebulaServerSort">Server order</string>
     <string name="NebulaSortDefault">Default (subscription order)</string>
     <string name="NebulaSortLatency">Lowest latency</string>
@@ -117,4 +115,6 @@
     <string name="NebulaFolderTitle">Folder name in the header</string>
     <string name="NebulaFolderTitleSub">Show the current folder name or emoji while swiping</string>
     <string name="NebulaProfileRowSub">Number, username, bio</string>
+    <string name="NebulaScanQr">Scan QR code</string>
+    <string name="NebulaMyQr">Create QR code</string>
 </resources>

@@ -5,7 +5,7 @@ r=Path(__file__).resolve().parent.parent
 work=r/'build/navigation-settings/check';work.mkdir(parents=True,exist_ok=True)
 overlay=r/'platform/android/overlay/TMessagesProj/src/main/java/app/nebulagram/ui'
 icons=(overlay/'NebulaIcons.java').read_text(encoding='utf-8')
-names=sorted(set(re.findall(r'R.drawable.(\w+)',icons)))
+names=sorted(set(re.findall(r'R.drawable.(\w+)',icons)) | {'msg_check_s'})
 stubs={
 'android/content/SharedPreferences.java': '''package android.content; public class SharedPreferences {
 public final java.util.Map<String,Object> values=new java.util.HashMap<>();
@@ -29,13 +29,15 @@ public static void main(String[] args){
 android.content.SharedPreferences prefs=ApplicationLoader.applicationContext.p;
 for(int mask=0;mask<16;mask++){
  prefs.values.clear();prefs.edit().putBoolean("side_panel",(mask&1)!=0).putBoolean("bottom_bar",(mask&2)!=0).putBoolean("bottom_bar_settings",(mask&4)!=0).putBoolean("bottom_bar_profile",(mask&8)!=0).apply();
- check(NebulaBottomBar.sidebarEnabled()||NebulaBottomBar.enabled()&&NebulaBottomBar.tabEnabled("settings"),"settings unreachable for legacy state "+mask);
+ check(NebulaBottomBar.settingsInOverflow(false)||NebulaBottomBar.enabled()&&NebulaBottomBar.tabEnabled("settings"),"settings unreachable for legacy state "+mask);
 }
-prefs.values.clear();NebulaBottomBar.setTabEnabled("settings",false);check(NebulaBottomBar.sidebarEnabled(),"hidden settings lost drawer");
-NebulaBottomBar.setSidebarEnabled(false);check(NebulaBottomBar.enabled()&&NebulaBottomBar.tabEnabled("settings"),"disabling drawer lost settings");
-NebulaBottomBar.setEnabled(false);check(NebulaBottomBar.sidebarEnabled(),"no bar and no drawer");
+prefs.values.clear();NebulaBottomBar.setTabEnabled("settings",false);check(NebulaBottomBar.settingsInOverflow(false),"hidden settings lost overflow entry");
+NebulaBottomBar.setEnabled(false);check(NebulaBottomBar.settingsInOverflow(false),"no bar and no settings entry");
 for(int mask=0;mask<8;mask++){
  prefs.values.clear();String[] tabs={"contacts","settings","profile"};for(int i=0;i<3;i++)NebulaBottomBar.setTabEnabled(tabs[i],(mask&(1<<i))!=0);
+ check(NebulaBottomBar.settingsInOverflow(false)==!NebulaBottomBar.tabEnabled("settings"),"settings fallback mismatch");
+ check(NebulaBottomBar.settingsInOverflow(true),"calls displaced settings without fallback");
+ NebulaBottomBar.setEnabled(false);check(NebulaBottomBar.settingsInOverflow(false),"hidden bar lost settings");NebulaBottomBar.setEnabled(true);
  int pos=0,steps=0;while((pos=NebulaBottomBar.nextEnabledPosition(pos,true))<4){check(NebulaBottomBar.positionEnabled(pos),"swipe visited hidden page");check(++steps<=3,"swipe loop");}
  pos=4;while((pos=NebulaBottomBar.nextEnabledPosition(pos,false))>=0)check(NebulaBottomBar.positionEnabled(pos),"reverse swipe visited hidden page");
 }
@@ -48,6 +50,7 @@ for(String name:new String[]{NAMES})try{
  check(NebulaIcons.resource(mapped)==mapped,"recursive icon remapping");
  NebulaIcons.setEnabled(false);check(NebulaIcons.resource(id)==id,"native icon not restored "+name);
 }catch(ReflectiveOperationException e){throw new RuntimeException(e);}
+NebulaIcons.setEnabled(true);check(NebulaIcons.resource(R.drawable.msg_check_s)==R.drawable.msg_check_s,"delivery checks replaced");
 check(NebulaIcons.resource(-123)==-123,"unknown resource changed");
 System.out.println("Navigation passed: 16 legacy states, all hidden-tab combinations, compact width, and every icon mapping restored on disable");}}
 '''.replace('NAMES',','.join('"'+n+'"' for n in re.findall(r'ICONS.put\(R.drawable.(\w+)',icons)))

@@ -15,6 +15,6 @@
     <string name="NebulaCenterHeaderInfo">Размещать пилюлю с названием по центру шапки</string>
     <string name="NebulaAdaptiveHeader">Адаптивная ширина пилюли</string>
     <string name="NebulaAdaptiveHeaderInfo">Подстраивать ширину под название и статус</string>
-    <string name="NebulaIosIcons">Иконки в стиле iOS</string>
-    <string name="NebulaIosIconsInfo">Округлые контурные значки. Выключите для значков Telegram; изменения — при повторном открытии экрана.</string>
+    <string name="NebulaIosIcons">Набор иконок Solar</string>
+    <string name="NebulaIosIconsInfo">Значки меню и кнопок как в Cherrygram. Галочки сообщений остаются стандартными Telegram. Выключите для исходных иконок.</string>
 </resources>
