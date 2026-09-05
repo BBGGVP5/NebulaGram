@@ -52,6 +52,21 @@ jobs:
             exit 1
           fi
 
+      - name: Choose the architectures
+        run: |
+          # Нативная часть — ffmpeg, webrtc, dav1d, opus — собирается заново под
+          # каждую архитектуру и занимает больше половины времени сборки. На
+          # обычный пуш хватает одной: arm64 стоит на любом телефоне не старше
+          # десяти лет. Все четыре собираются по кнопке Run workflow, то есть
+          # для релиза, и складываются в один универсальный APK.
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "NEBULA_ABIS=armeabi-v7a,arm64-v8a,x86,x86_64" >> "$GITHUB_ENV"
+            echo "NEBULA_KIND=universal" >> "$GITHUB_ENV"
+          else
+            echo "NEBULA_ABIS=arm64-v8a" >> "$GITHUB_ENV"
+            echo "NEBULA_KIND=arm64-v8a" >> "$GITHUB_ENV"
+          fi
+
       - name: Fetch the pinned upstream
         run: |
           git submodule update --init --depth 1 vendor/telegram-android
@@ -94,21 +109,6 @@ jobs:
           TELEGRAM_APP_ID: ${{ secrets.TELEGRAM_APP_ID }}
           TELEGRAM_APP_HASH: ${{ secrets.TELEGRAM_APP_HASH }}
         run: bash scripts/inject-keys.sh android
-
-      - name: Choose the architectures
-        run: |
-          # Нативная часть — ffmpeg, webrtc, dav1d, opus — собирается заново под
-          # каждую архитектуру и занимает больше половины времени сборки. На
-          # обычный пуш хватает одной: arm64 стоит на любом телефоне не старше
-          # десяти лет. Все четыре собираются по кнопке Run workflow, то есть
-          # для релиза, и складываются в один универсальный APK.
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            echo "NEBULA_ABIS=armeabi-v7a,arm64-v8a,x86,x86_64" >> "$GITHUB_ENV"
-            echo "NEBULA_KIND=universal" >> "$GITHUB_ENV"
-          else
-            echo "NEBULA_ABIS=arm64-v8a" >> "$GITHUB_ENV"
-            echo "NEBULA_KIND=arm64-v8a" >> "$GITHUB_ENV"
-          fi
 
       - name: Assemble
         working-directory: vendor/telegram-android

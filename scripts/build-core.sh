@@ -29,7 +29,23 @@ case "$target" in
   android)
     : "${ANDROID_NDK_HOME:?ANDROID_NDK_HOME must point at an installed NDK}"
     ensure_gomobile
-    gomobile bind -target=android -androidapi 21 \
+    # Архитектуры задаёт NEBULA_ABIS — тот же список, что уходит в Gradle.
+    # Без него gomobile собирает все четыре, и в APK попадали три лишние
+    # копии ядра по тридцать мегабайт каждая: сборка под одну архитектуру
+    # всё равно тащила за собой остальные.
+    targets=""
+    for abi in $(printf '%s' "${NEBULA_ABIS:-armeabi-v7a,arm64-v8a,x86,x86_64}" | tr ',' ' '); do
+      case "$abi" in
+        armeabi-v7a) t=android/arm ;;
+        arm64-v8a)   t=android/arm64 ;;
+        x86)         t=android/386 ;;
+        x86_64)      t=android/amd64 ;;
+        *) echo "неизвестная архитектура: $abi" >&2; exit 1 ;;
+      esac
+      targets="${targets:+$targets,}$t"
+    done
+    echo "ядро для: $targets"
+    gomobile bind -target="$targets" -androidapi 21 \
       -ldflags "-s -w" \
       -o "$out/nebulalink.aar" ./mobile
     ;;
