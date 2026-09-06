@@ -79,7 +79,7 @@ public final class NebulaTheme {
      */
     public static NebulaTheme of(Context context) {
         int mode = context.getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK;
-        return new NebulaTheme(context, mode == Configuration.UI_MODE_NIGHT_YES);
+        return new NebulaTheme(context, Theme.isCurrentThemeDark());
     }
 
     public boolean isDark() {
@@ -101,6 +101,7 @@ public final class NebulaTheme {
     }
 
     public int primary() {
+        if (!materialYouEnabled()) return Theme.getColor(Theme.key_windowBackgroundWhiteBlueText);
         if (isDynamic()) {
             return system(dark ? android.R.color.system_accent1_200 : android.R.color.system_accent1_600);
         }
@@ -129,6 +130,7 @@ public final class NebulaTheme {
     }
 
     public int surface() {
+        if (!materialYouEnabled()) return Theme.getColor(Theme.key_windowBackgroundGray);
         if (isDynamic()) {
             return system(dark ? android.R.color.system_neutral1_900 : android.R.color.system_neutral1_50);
         }
@@ -136,6 +138,7 @@ public final class NebulaTheme {
     }
 
     public int surfaceContainer() {
+        if (!materialYouEnabled()) return Theme.getColor(Theme.key_windowBackgroundWhite);
         if (isDynamic()) {
             return system(dark ? android.R.color.system_neutral1_800 : android.R.color.system_neutral1_100);
         }
@@ -143,6 +146,7 @@ public final class NebulaTheme {
     }
 
     public int onSurface() {
+        if (!materialYouEnabled()) return Theme.getColor(Theme.key_windowBackgroundWhiteBlackText);
         if (isDynamic()) {
             return system(dark ? android.R.color.system_neutral1_100 : android.R.color.system_neutral1_900);
         }
@@ -150,6 +154,7 @@ public final class NebulaTheme {
     }
 
     public int onSurfaceVariant() {
+        if (!materialYouEnabled()) return Theme.getColor(Theme.key_windowBackgroundWhiteGrayText);
         if (isDynamic()) {
             return system(dark ? android.R.color.system_neutral2_200 : android.R.color.system_neutral2_700);
         }
@@ -169,6 +174,7 @@ public final class NebulaTheme {
     }
 
     public int outline() {
+        if (!materialYouEnabled()) return Theme.getColor(Theme.key_divider);
         if (isDynamic()) {
             return system(android.R.color.system_neutral2_500);
         }

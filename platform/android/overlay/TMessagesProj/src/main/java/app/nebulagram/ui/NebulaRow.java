@@ -47,7 +47,7 @@ public class NebulaRow extends FrameLayout {
         super(context);
         theme = NebulaTheme.of(context);
 
-        setPadding(AndroidUtilities.dp(12), AndroidUtilities.dp(10),
+        setPadding(AndroidUtilities.dp(16), AndroidUtilities.dp(10),
                 AndroidUtilities.dp(16), AndroidUtilities.dp(10));
         setMinimumHeight(AndroidUtilities.dp(56));
         setForeground(new RippleDrawable(
@@ -88,7 +88,7 @@ public class NebulaRow extends FrameLayout {
         LayoutParams textParams = new LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         textParams.gravity = Gravity.CENTER_VERTICAL;
-        textParams.setMarginStart(AndroidUtilities.dp(64));
+        textParams.setMarginStart(AndroidUtilities.dp(60));
         textParams.setMarginEnd(AndroidUtilities.dp(36));
         addView(text, textParams);
     }
@@ -127,7 +127,7 @@ public class NebulaRow extends FrameLayout {
             addView(emojiIcon, params);
         }
         emojiIcon.setVisibility(VISIBLE);
-        emojiIcon.setText(Emoji.replaceEmoji(flag, emojiIcon.getPaint().getFontMetricsInt(), false));
+        emojiIcon.setText(flag);
         return this;
     }
 

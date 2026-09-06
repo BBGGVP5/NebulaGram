@@ -25,6 +25,7 @@ public final class NebulaControlsPreview extends View {
     private final TextPaint paint = new TextPaint(Paint.ANTI_ALIAS_FLAG);
     private final RectF rect = new RectF();
     private final ImageReceiver avatar = new ImageReceiver(this);
+    private final ImageReceiver cover = new ImageReceiver(this);
     private String name = "NebulaGram";
 
     public NebulaControlsPreview(Context context, int kind) {
@@ -34,11 +35,12 @@ public final class NebulaControlsPreview extends View {
         if (user != null) {
             name = UserObject.getUserName(user);
             avatar.setForUserOrChat(user, new AvatarDrawable(user));
+            if (user.photo != null) cover.setForUserOrChat(user, null);
         }
         setImportantForAccessibility(IMPORTANT_FOR_ACCESSIBILITY_NO);
     }
-    @Override protected void onAttachedToWindow() { super.onAttachedToWindow(); avatar.onAttachedToWindow(); }
-    @Override protected void onDetachedFromWindow() { avatar.onDetachedFromWindow(); super.onDetachedFromWindow(); }
+    @Override protected void onAttachedToWindow() { super.onAttachedToWindow(); avatar.onAttachedToWindow(); cover.onAttachedToWindow(); }
+    @Override protected void onDetachedFromWindow() { cover.onDetachedFromWindow(); avatar.onDetachedFromWindow(); super.onDetachedFromWindow(); }
     @Override protected void onMeasure(int w, int h) {
         setMeasuredDimension(MeasureSpec.getSize(w), AndroidUtilities.dp(kind == MESSAGE ? 240 : kind == PROFILE ? 236 : 76));
     }
@@ -51,6 +53,11 @@ public final class NebulaControlsPreview extends View {
         paint.setTextSize(dp(size)); paint.setColor(color); paint.setTypeface(bold ? AndroidUtilities.bold() : null);
         paint.setTextAlign(Paint.Align.LEFT);
         c.drawText(TextUtils.ellipsize(value, paint, Math.max(0, width), TextUtils.TruncateAt.END).toString(), x, y, paint);
+    }
+    private void centered(Canvas c, String text, float w, float y, float size, int color, boolean bold) {
+        paint.setTextSize(dp(size)); paint.setTypeface(bold ? AndroidUtilities.bold() : null);
+        String value = TextUtils.ellipsize(text, paint, w - dp(48), TextUtils.TruncateAt.END).toString();
+        text(c, value, (w - paint.measureText(value)) / 2, y, w - dp(48), size, color, bold);
     }
     private void icon(Canvas c, int id, float x, float y, int color) {
         Drawable d = getContext().getResources().getDrawable(NebulaIcons.resource(id)).mutate();
@@ -101,17 +108,18 @@ public final class NebulaControlsPreview extends View {
         } else {
             int surface = NebulaAppearance.profileBackground() ? androidx.core.graphics.ColorUtils.blendARGB(t.surfaceContainer(), t.primary(), .15f) : t.surface();
             box(c, dp(8), dp(8), w - dp(8), dp(226), surface, NebulaAppearance.profileStyle() ? 20 : 0);
-            if (NebulaAppearance.profilePhotoBanner()) {
-                avatar.setRoundRadius(AndroidUtilities.dp(20)); avatar.setImageCoords(dp(8), dp(8), w - dp(16), dp(148));
-                avatar.draw(c); box(c, dp(8), dp(8), w - dp(8), dp(156), 0x99000000, 20);
+            if (NebulaAppearance.profilePhotoBanner() && cover.hasImageSet()) {
+                cover.setRoundRadius(AndroidUtilities.dp(20)); cover.setImageCoords(dp(8), dp(8), w - dp(16), dp(82)); cover.draw(c);
+                box(c, dp(8), dp(8), w - dp(8), dp(90), 0x66000000, 20);
             }
             if (NebulaAppearance.profileBackground() && NebulaAppearance.profileEmoji()) {
                 paint.setColor(NebulaTheme.stateLayer(t.primary(), .18f));
                 for (int i = 0; i < 12; i++) c.drawCircle(dp(25) + (w - dp(50)) * (i % 4) / 3, dp(28 + 45 * (i / 4)), dp(3), paint);
             }
-            avatar.setRoundRadius(AndroidUtilities.dp(32)); avatar.setImageCoords(w / 2 - dp(32), dp(22), dp(64), dp(64)); avatar.draw(c);
-            text(c, name, dp(24), dp(112), w - dp(48), 17, t.onSurface(), true);
-            text(c, LocaleController.getString(R.string.Online), dp(24), dp(132), w - dp(48), 12, t.onSurfaceVariant(), false);
+            avatar.setRoundRadius(AndroidUtilities.dp(32)); avatar.setImageCoords(w / 2 - dp(32), dp(18), dp(64), dp(64)); avatar.draw(c);
+            centered(c, name, w, dp(110), 17, t.onSurface(), true);
+            centered(c, LocaleController.getString(R.string.Online), w, dp(131), 13, t.onSurfaceVariant(), false);
+            box(c, dp(8), dp(148), w - dp(8), dp(226), t.surfaceContainer(), 16);
             if (NebulaAppearance.profileChannel()) text(c, LocaleController.getString(R.string.NebulaProfileChannel), dp(24), dp(166), w - dp(48), 13, t.primary(), true);
             if (NebulaAppearance.profileBirthday()) text(c, LocaleController.getString(R.string.NebulaProfileBirthday), dp(24), dp(188), w - dp(48), 12, t.onSurfaceVariant(), false);
             if (NebulaAppearance.profileBusiness()) text(c, LocaleController.getString(R.string.NebulaProfileBusiness), dp(24), dp(210), w - dp(48), 12, t.onSurfaceVariant(), false);

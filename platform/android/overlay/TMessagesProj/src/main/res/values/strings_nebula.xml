@@ -67,7 +67,7 @@
     <string name="NebulaSectionAbout">About</string>
     <string name="NebulaAppearanceSub">Colours, login screens, profile</string>
     <string name="NebulaChatsSub">Chat header and message field</string>
-    <string name="NebulaPanelSub">Bottom tabs and side panel</string>
+    <string name="NebulaPanelSub">Tab order, visibility and appearance</string>
     <string name="NebulaAboutSub">Versions of the parts</string>
     <string name="NebulaChatHeaderSection">Chat header</string>
     <string name="NebulaComposerSection">Message field</string>
@@ -117,4 +117,9 @@
     <string name="NebulaProfileRowSub">Number, username, bio</string>
     <string name="NebulaScanQr">Scan QR code</string>
     <string name="NebulaMyQr">Create QR code</string>
+    <string name="NebulaProfileChannelInfo">Personal channel in user information</string>
+    <string name="NebulaProfileBirthdayInfo">Birthday in user information</string>
+    <string name="NebulaProfileBusinessInfo">Business profile opening hours and address</string>
+    <string name="NebulaProfileBackgroundInfo">Profile background chosen by its owner</string>
+    <string name="NebulaProfileEmojiInfo">Emoji pattern on the profile background</string>
 </resources>

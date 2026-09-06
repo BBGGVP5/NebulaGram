@@ -17,6 +17,9 @@ public final class NebulaChatColors {
                 || key == Theme.key_glass_defaultText || key == Theme.key_glass_defaultIcon) {
             return Theme.key_chat_messagePanelBackground;
         }
+        if (key == Theme.key_chat_messagePanelText || key == Theme.key_chat_messagePanelIcons
+                || key == Theme.key_chat_messagePanelSend || key == Theme.key_chat_replyPanelIcons
+                || key == Theme.key_chat_searchPanelIcons || key == Theme.key_chat_botButtonText) return Theme.key_chat_messagePanelBackground;
         return -1;
     }
 

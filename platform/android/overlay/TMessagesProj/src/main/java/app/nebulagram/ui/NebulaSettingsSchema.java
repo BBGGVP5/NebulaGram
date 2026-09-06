@@ -1,0 +1,64 @@
+package app.nebulagram.ui;
+import java.util.*;
+/** Only presentation keys are portable. Credentials and internal state never enter this allowlist. */
+public final class NebulaSettingsSchema {
+    public static final Map<String, Class<?>> types;
+    static {
+        Map<String, Class<?>> map = new HashMap<>();
+        map.put("adaptive_chat_header", Boolean.class);
+        map.put("avatar_round", Integer.class);
+        map.put("bottom_bar", Boolean.class);
+        map.put("bottom_bar_order", String.class);
+        map.put("bottom_bar_contacts", Boolean.class);
+        map.put("bottom_bar_profile", Boolean.class);
+        map.put("bottom_bar_settings", Boolean.class);
+        map.put("center_home", Boolean.class);
+        map.put("centered_chat_header", Boolean.class);
+        map.put("compact_bottom_bar", Boolean.class);
+        map.put("disable_next_channel", Boolean.class);
+        map.put("floating_chat_header_v2", Boolean.class);
+        map.put("folder_outline", Boolean.class);
+        map.put("folder_style", Integer.class);
+        map.put("folder_title", Boolean.class);
+        map.put("glass_highlights", Boolean.class);
+        map.put("header_unread", Boolean.class);
+        map.put("hide_all_chats", Boolean.class);
+        map.put("hide_attach_camera", Boolean.class);
+        map.put("hide_dividers", Boolean.class);
+        map.put("hide_premium_status", Boolean.class);
+        map.put("hide_search_field", Boolean.class);
+        map.put("hide_send_as", Boolean.class);
+        map.put("hide_tab_counters", Boolean.class);
+        map.put("icon_pack", Integer.class);
+        map.put("ios_composer", Boolean.class);
+        map.put("ios_icons", Boolean.class);
+        map.put("ios_unread", Boolean.class);
+        map.put("liquid_animations", Boolean.class);
+        map.put("login_style", Boolean.class);
+        map.put("material_you", Boolean.class);
+        map.put("menu_call", Boolean.class);
+        map.put("menu_mute", Boolean.class);
+        map.put("menu_search", Boolean.class);
+        map.put("menu_video", Boolean.class);
+        map.put("message_menu_below", Boolean.class);
+        map.put("message_menu_blur", Boolean.class);
+        map.put("own_double_tap", Integer.class);
+        map.put("profile_background", Boolean.class);
+        map.put("profile_birthday", Boolean.class);
+        map.put("profile_business", Boolean.class);
+        map.put("profile_channel", Boolean.class);
+        map.put("profile_emoji", Boolean.class);
+        map.put("profile_photo_banner", Boolean.class);
+        map.put("profile_style", Boolean.class);
+        map.put("reply_background", Boolean.class);
+        map.put("reply_colors", Boolean.class);
+        map.put("reply_emoji", Boolean.class);
+        map.put("seconds_in_time", Boolean.class);
+        map.put("switch_style", Integer.class);
+        map.put("tab_labels", Boolean.class);
+        map.put("uniform_avatars", Boolean.class);
+        map.put("useSystemBoldFont", Boolean.class);
+        map.put("useSystemEmoji", Boolean.class);
+        types = Collections.unmodifiableMap(map);
+    }
+}

@@ -36,8 +36,14 @@ public final class NebulaWallpaperPreview extends FrameLayout {
             h = Math.round(naturalH * scale);
         }
         int left = (getWidth() - w) / 2, top = (getHeight() - h) / 2;
-        wallpaper.setBounds(left, top, left + w, top + h);
-        wallpaper.draw(canvas);
-        wallpaper.setBounds(previous);
+        int save = canvas.save();
+        canvas.clipRect(0, 0, getWidth(), getHeight());
+        try {
+            wallpaper.setBounds(left, top, left + w, top + h);
+            wallpaper.draw(canvas);
+        } finally {
+            wallpaper.setBounds(previous);
+            canvas.restoreToCount(save);
+        }
     }
 }

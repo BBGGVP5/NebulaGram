@@ -20,11 +20,11 @@ public final class NebulaAppearance {
     }
 
     public static boolean chatHeader() {
-        return preferences().getBoolean("floating_chat_header", true);
+        return preferences().getBoolean("floating_chat_header_v2", false);
     }
 
     public static void setChatHeader(boolean enabled) {
-        preferences().edit().putBoolean("floating_chat_header", enabled).apply();
+        preferences().edit().putBoolean("floating_chat_header_v2", enabled).apply();
     }
 
     public static boolean centeredHeader() { return preferences().getBoolean("centered_chat_header", true); }
@@ -221,4 +221,14 @@ public final class NebulaAppearance {
     public static void setSwitchStyle(int value) { preferences().edit().putInt("switch_style", Math.max(0, Math.min(3, value))).apply(); }
     public static int folderStyle() { return Math.max(0, Math.min(2, preferences().getInt("folder_style", 0))); }
     public static void setFolderStyle(int value) { preferences().edit().putInt("folder_style", Math.max(0, Math.min(2, value))).apply(); }
+    public static boolean centerHome() { return preferences().getBoolean("center_home", false); }
+    public static void setCenterHome(boolean value) { preferences().edit().putBoolean("center_home", value).apply(); }
+    public static boolean liquidAnimations() { return preferences().getBoolean("liquid_animations", true); }
+    public static void setLiquidAnimations(boolean value) { preferences().edit().putBoolean("liquid_animations", value).apply(); }
+    public static boolean uniformAvatars() { return preferences().getBoolean("uniform_avatars", true); }
+    public static void setUniformAvatars(boolean value) { preferences().edit().putBoolean("uniform_avatars", value).apply(); }
+    public static int avatarRound() { return Math.max(0, Math.min(100, preferences().getInt("avatar_round", 100))); }
+    public static void setAvatarRound(int value) { preferences().edit().putInt("avatar_round", value).apply(); }
+    public static int ownDoubleTap() { return Math.max(0, Math.min(4, preferences().getInt("own_double_tap", 0))); }
+    public static void setOwnDoubleTap(int value) { preferences().edit().putInt("own_double_tap", value).apply(); }
 }

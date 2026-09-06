@@ -10,6 +10,8 @@ import subprocess
 root = Path(__file__).resolve().parent.parent
 work = root / 'build/chat-fixes/composer-check'
 stubs = {
+'app/nebulagram/ui/NebulaTheme.java': 'package app.nebulagram.ui; public class NebulaTheme {public static boolean materialYouEnabled(){return true;}}',
+
 'android/content/Context.java': 'package android.content; public class Context {}',
 'android/graphics/Canvas.java': 'package android.graphics; public class Canvas {}',
 'android/graphics/ColorFilter.java': 'package android.graphics; public class ColorFilter {}',

@@ -55,6 +55,10 @@ def main():
             public class FileLog { public static void e(Throwable e){throw new AssertionError(e);} }''')
         put('org/telegram/ui/ActionBar/Theme.java', '''package org.telegram.ui.ActionBar;
             public class Theme {
+                public static final int key_windowBackgroundWhiteBlueText=1,key_windowBackgroundGray=2,key_windowBackgroundWhite=3,key_windowBackgroundWhiteBlackText=4,key_windowBackgroundWhiteGrayText=5,key_divider=6;
+                public static boolean isCurrentThemeDark(){return true;}
+                public static int getColor(int key){return active.getAccent(false).accentColor;}
+
                 public static java.util.ArrayList<ThemeInfo> themes=new java.util.ArrayList<>();
                 public static ThemeInfo active;
                 public static class ThemeAccent { public int accentColor,id;
@@ -103,8 +107,8 @@ def main():
                         eq(day.themeAccents.get(0).accentColor,0xff1144aa);
                         eq(day.themeAccents.get(1).accentColor,0xffbb2233);
                         eq(night.getAccent(false).accentColor,0xff447788);
-                        eq(snapshot.primary(),ContextCompat.wallpaper);
-                        eq(NebulaTheme.of(c).primary(),0xffa8c7fa);
+                        eq(snapshot.primary(),Theme.getColor(Theme.key_windowBackgroundWhiteBlueText));
+                        eq(NebulaTheme.of(c).primary(),Theme.getColor(Theme.key_windowBackgroundWhiteBlueText));
                         eq((int)p.values.keySet().stream().filter(k->k.startsWith("accent_before_material_you")).count(),0);
                         Theme.active=day;
                     }
@@ -114,7 +118,7 @@ def main():
                     NebulaTheme.setMaterialYouEnabled(true); NebulaTheme.applyMaterialYou(c);
                     eq(day.getAccent(false).accentColor,ContextCompat.wallpaper);
                     NebulaTheme.setMaterialYouEnabled(false); eq(day.getAccent(false).accentColor,0xff229955);
-                    c.resources.config.uiMode=0; eq(NebulaTheme.of(c).primary(),0xff0b57d0);
+                    c.resources.config.uiMode=0; eq(NebulaTheme.of(c).primary(),Theme.getColor(Theme.key_windowBackgroundWhiteBlueText));
                     android.os.Build.VERSION.SDK_INT=30; NebulaTheme.setMaterialYouEnabled(true); apply(c);
                     eq(day.getAccent(false).accentColor,0xff229955);
                     System.out.println(checks+" palette/accent restoration checks passed");

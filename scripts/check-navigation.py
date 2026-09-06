@@ -9,8 +9,8 @@ names=sorted(set(re.findall(r'R.drawable.(\w+)',icons)) | {'msg_check_s'})
 stubs={
 'android/content/SharedPreferences.java': '''package android.content; public class SharedPreferences {
 public final java.util.Map<String,Object> values=new java.util.HashMap<>();
-public boolean getBoolean(String k,boolean d){return (Boolean)values.getOrDefault(k,d);} public String getString(String k,String d){return (String)values.getOrDefault(k,d);} public Editor edit(){return new Editor();}
-public class Editor {public Editor putBoolean(String k,boolean v){values.put(k,v);return this;}public Editor putString(String k,String v){values.put(k,v);return this;}public void apply(){}}}''',
+public int getInt(String k,int d){return (Integer)values.getOrDefault(k,d);} public boolean getBoolean(String k,boolean d){return (Boolean)values.getOrDefault(k,d);} public String getString(String k,String d){return (String)values.getOrDefault(k,d);} public Editor edit(){return new Editor();}
+public class Editor {public Editor putInt(String k,int v){values.put(k,v);return this;} public Editor putBoolean(String k,boolean v){values.put(k,v);return this;}public Editor putString(String k,String v){values.put(k,v);return this;}public void apply(){}}}''',
 'android/content/Context.java': '''package android.content; public class Context {public final SharedPreferences p=new SharedPreferences(); public SharedPreferences getSharedPreferences(String n,int m){return p;}}''',
 'org/telegram/messenger/ApplicationLoader.java': '''package org.telegram.messenger; public class ApplicationLoader {public static android.content.Context applicationContext=new android.content.Context();}''',
 'org/telegram/messenger/AndroidUtilities.java': '''package org.telegram.messenger; public class AndroidUtilities {public static int dp(float v){return (int)Math.ceil(v);}}''',

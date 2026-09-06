@@ -106,7 +106,7 @@ public class NebulaTabsEditor extends FrameLayout {
                 ? GlassTabView.TabAnimation.SETTINGS : GlassTabView.TabAnimation.CHATS;
         int label = NebulaBottomBar.TAB_CONTACTS.equals(key) ? R.string.MainTabsContacts
                 : NebulaBottomBar.TAB_SETTINGS.equals(key) ? R.string.Settings : R.string.MainTabsChats;
-        return GlassTabView.createMainTab(getContext(), null, animation, label);
+        return GlassTabView.createMainTab(getContext(), null, animation, label, false);
     }
 
     @Override protected void onMeasure(int widthSpec, int heightSpec) {

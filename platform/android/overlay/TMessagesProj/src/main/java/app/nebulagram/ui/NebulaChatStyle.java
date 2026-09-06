@@ -35,7 +35,7 @@ public final class NebulaChatStyle {
 
     public static void header(ActionBar bar, boolean normalChat, boolean savedMessages) {
         if (bar != null) {
-            boolean enabled = normalChat;
+            boolean enabled = normalChat && !savedMessages && NebulaTheme.materialYouEnabled();
             bar.setNebulaFloatingChatHeader(enabled, enabled && NebulaAppearance.chatHeader() && !savedMessages, enabled && savedMessages);
         }
     }
@@ -45,10 +45,7 @@ public final class NebulaChatStyle {
      * visible affordance is the familiar bookmark mark rather than dots.
      */
     public static void savedMessagesMenuIcon(ActionBarMenuItem item, boolean savedMessages) {
-        if (item == null || !savedMessages || !NebulaAppearance.chatHeader()) return;
-        AvatarDrawable icon = new AvatarDrawable();
-        icon.setAvatarType(AvatarDrawable.AVATAR_TYPE_SAVED);
-        item.setIcon(new SizedDrawable(icon, AndroidUtilities.dp(30)));
+        // Saved Messages uses Telegram's native header and overflow icon.
     }
 
     private static final class SizedDrawable extends Drawable {

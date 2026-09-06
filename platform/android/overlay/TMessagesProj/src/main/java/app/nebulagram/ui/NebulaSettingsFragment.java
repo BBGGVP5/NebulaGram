@@ -40,12 +40,14 @@ public class NebulaSettingsFragment extends BaseFragment {
         actionBar.setActionBarMenuOnItemClick(new ActionBar.ActionBarMenuOnItemClick() {
             @Override
             public void onItemClick(int id) {
+                if (id >= NebulaSettingsTransfer.EXPORT) { NebulaSettingsTransfer.action(NebulaSettingsFragment.this, id); return; }
                 if (id == -1) {
                     finishFragment();
                 }
             }
         });
 
+        NebulaSettingsTransfer.menu(this);
         root = new FrameLayout(context);
         paletteSurface = theme.surface();
         palettePrimary = theme.primary();
@@ -64,9 +66,13 @@ public class NebulaSettingsFragment extends BaseFragment {
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
 
         build(context);
-        return root;
+        return fragmentView = root;
     }
 
+    @Override public void onActivityResultFragment(int request, int result, android.content.Intent data) {
+        if (!NebulaSettingsTransfer.result(this, request, result, data)) super.onActivityResultFragment(request, result, data);
+        else if (root != null) build(root.getContext());
+    }
     private void build(Context context) {
         content.removeAllViews();
 
@@ -100,6 +106,9 @@ public class NebulaSettingsFragment extends BaseFragment {
         sections.add(section(context, R.drawable.msg_info,
                 R.string.NebulaSectionAbout, R.string.NebulaAboutSub,
                 NebulaSectionFragment.SECTION_ABOUT));
+        sections.add(new NebulaRow(context).icon(R.drawable.msg_customize).title(NebulaText.text("Искусственный интеллект", "AI assistant"))
+                .subtitle("Gemini · Claude · GPT · API", false).trailing(NebulaRow.TRAIL_CHEVRON)
+                .withClick(v -> presentFragment(new NebulaAiFragment())));
         content.addView(sections, cardParams());
     }
 

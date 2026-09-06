@@ -58,9 +58,9 @@
     <string name="NebulaSubRemoved">Подписка удалена</string>
     <string name="NebulaSectionChats">Чаты</string>
     <string name="NebulaSectionAbout">О программе</string>
-    <string name="NebulaAppearanceSub">Цвета, экраны входа, профиль</string>
+    <string name="NebulaAppearanceSub">Цвета, иконки, тумблеры и аватарки</string>
     <string name="NebulaChatsSub">Шапка чата и поле ввода</string>
-    <string name="NebulaPanelSub">Нижние вкладки и боковая панель</string>
+    <string name="NebulaPanelSub">Порядок, видимость и оформление вкладок</string>
     <string name="NebulaAboutSub">Версии компонентов</string>
     <string name="NebulaChatHeaderSection">Шапка чата</string>
     <string name="NebulaComposerSection">Поле ввода</string>
@@ -110,4 +110,9 @@
     <string name="NebulaProfileRowSub">Номер, имя пользователя, «О себе»</string>
     <string name="NebulaScanQr">Сканировать QR-код</string>
     <string name="NebulaMyQr">Создать QR-код</string>
+    <string name="NebulaProfileChannelInfo">Личный канал в информации пользователя</string>
+    <string name="NebulaProfileBirthdayInfo">Дата рождения в информации пользователя</string>
+    <string name="NebulaProfileBusinessInfo">Расписание и адрес бизнес-профиля</string>
+    <string name="NebulaProfileBackgroundInfo">Цветной фон, выбранный владельцем профиля</string>
+    <string name="NebulaProfileEmojiInfo">Рисунок из эмодзи на фоне профиля</string>
 </resources>

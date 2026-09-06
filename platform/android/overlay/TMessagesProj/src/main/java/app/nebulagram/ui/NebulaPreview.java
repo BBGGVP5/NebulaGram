@@ -125,7 +125,7 @@ public class NebulaPreview extends View {
         float capsuleLeft = NebulaChatStyle.headerLeft(getWidth(), (int) capsuleWidth);
         rect.set(capsuleLeft + AndroidUtilities.dp(6), top,
                 capsuleLeft + capsuleWidth - AndroidUtilities.dp(6), top + height);
-        drawGlassSurface(canvas, rect, height / 2);
+        if (floating) drawGlassSurface(canvas, rect, height / 2);
 
         float avatarX = floating ? getWidth() - AndroidUtilities.dp(29) : capsuleLeft + AndroidUtilities.dp(30);
         if (floating) drawGlassCircle(canvas, avatarX, centerY, height / 2);
