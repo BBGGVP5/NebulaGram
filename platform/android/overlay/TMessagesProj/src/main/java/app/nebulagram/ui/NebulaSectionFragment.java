@@ -472,16 +472,19 @@ public class NebulaSectionFragment extends BaseFragment {
         identity.addView(NebulaCard.header(context, NebulaText.text("Информация", "Information")));
         String version = org.telegram.messenger.BuildVars.BUILD_VERSION_STRING;
         try { version = context.getPackageManager().getPackageInfo(context.getPackageName(), 0).versionName; } catch (Exception ignored) { }
-        identity.add(new NebulaRow(context).title("NebulaGram · " + version)
+        identity.add(new NebulaRow(context).icon(R.drawable.msg_info).title("NebulaGram · " + version)
                 .subtitle(NebulaText.text("Модификация Telegram для Android: настройка интерфейса, NebulaLink и инструменты ИИ.",
                         "A Telegram for Android modification with interface customization, NebulaLink and AI tools."), false));
-        identity.add(projectLink(context, R.drawable.msg_download, NebulaText.text("Обновления и релизы", "Updates and releases"),
-                NebulaText.text("Скачать сборку и посмотреть изменения", "Downloads and release notes"), "https://github.com/BBGGVP5/NebulaGram/releases"));
+        identity.add(new NebulaRow(context).icon(R.drawable.msg_download).title(NebulaText.text("Обновления", "Updates"))
+                .subtitle(NebulaText.text("Проверить, скачать и установить новую версию", "Check, download and install a new version"), false)
+                .trailing(NebulaRow.TRAIL_CHEVRON).withClick(v -> presentFragment(new NebulaUpdatesFragment())));
         content.addView(identity, cardParams());
         NebulaCard links = new NebulaCard(context);
         links.addView(NebulaCard.header(context, NebulaText.text("Ссылки", "Links")));
         links.add(projectLink(context, R.drawable.msg_discussion, NebulaText.text("Канал NebulaGram", "NebulaGram channel"),
-                NebulaText.text("Новости, обновления и новые возможности", "News, updates and new features"), "https://t.me/getnebulagram"));
+                NebulaText.text("Новости и развитие проекта", "Project news and development"), "https://t.me/ngram_official"));
+        links.add(projectLink(context, R.drawable.msg_download, NebulaText.text("Канал релизов", "Release channel"),
+                NebulaText.text("APK и списки изменений", "APKs and changelogs"), "https://t.me/" + NebulaRelease.CHANNEL));
         links.add(projectLink(context, R.drawable.msg_link, NebulaText.text("Исходный код", "Source code"), "GitHub · BBGGVP5/NebulaGram", "https://github.com/BBGGVP5/NebulaGram"));
         links.add(projectLink(context, R.drawable.msg_discussion, NebulaText.text("Сообщить об ошибке", "Report an issue"),
                 NebulaText.text("Ошибки и предложения", "Bugs and suggestions"), "https://github.com/BBGGVP5/NebulaGram/issues"));
@@ -489,9 +492,9 @@ public class NebulaSectionFragment extends BaseFragment {
         content.addView(links, cardParams());
         NebulaCard components = new NebulaCard(context);
         components.addView(NebulaCard.header(context, NebulaText.text("Компоненты", "Components")));
-        components.add(new NebulaRow(context).title("Telegram " + org.telegram.messenger.BuildVars.BUILD_VERSION_STRING)
+        components.add(new NebulaRow(context).icon(R.drawable.msg_settings).title("Telegram " + org.telegram.messenger.BuildVars.BUILD_VERSION_STRING)
                 .subtitle(versions(), false));
-        components.add(new NebulaRow(context).title("Solar Icon Set").subtitle("Design480 · CC BY 4.0", false));
+        components.add(new NebulaRow(context).icon(R.drawable.msg_theme).title("Solar Icon Set").subtitle("Design480 · CC BY 4.0", false));
         content.addView(components, cardParams());
         content.addView(NebulaMenuFragment.placeholder(context, NebulaText.text("На основе Telegram для Android. Версии компонентов указаны для установленной сборки.", "Based on Telegram for Android. Component versions refer to the installed build.")));
     }

@@ -1,0 +1,39 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Cells/AboutLinkCell.java b/TMessagesProj/src/main/java/org/telegram/ui/Cells/AboutLinkCell.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Cells/AboutLinkCell.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Cells/AboutLinkCell.java
+@@ -254,8 +254,21 @@
+     }
+ 
+     private Paint backgroundPaint = new Paint();
++    private boolean nebulaSectionSurface;
++    private Integer nebulaSurfaceColor;
++    public void setNebulaSectionSurface(boolean value) { nebulaSectionSurface = value; nebulaSurfaceColor = null; invalidate(); }
+     @Override
+     public void draw(Canvas canvas) {
++        if (nebulaSectionSurface) {
++            int color = app.nebulagram.ui.NebulaAppearance.profileStyle()
++                    ? app.nebulagram.ui.NebulaProfileArt.sectionColor(getContext(), resourcesProvider)
++                    : Theme.getColor(Theme.key_windowBackgroundWhite, resourcesProvider);
++            if (nebulaSurfaceColor == null || nebulaSurfaceColor != color) {
++                nebulaSurfaceColor = color;
++                showMoreBackgroundDrawable.setColorFilter(new PorterDuffColorFilter(color, PorterDuff.Mode.SRC_IN));
++                backgroundPaint.setColor(color);
++            }
++        }
+         super.draw(canvas);
+ 
+         View parent = (View) getParent();
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
+@@ -4159,10 +4159,6 @@
+         avatarContainer = new ChatAvatarContainer(context, this, currentEncryptedChat != null, themeDelegate) {
+             @Override
+             protected boolean onAvatarClick() {
+-                if (headerItem != null && !actionBar.isActionModeShowed()) {
+-                    headerItem.toggleSubMenu(null, getAvatarImageView());
+-                    return true;
+-                }
+                 if (currentUser != null && currentUser.linked_community_id != 0) {
+                     showDialog(new CommunitySheet(ChatActivity.this, currentUser.linked_community_id));
+                     return true;

@@ -15,8 +15,11 @@ import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.R;
 import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.UserObject;
+import org.telegram.messenger.MessagesController;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.Components.AvatarDrawable;
+import org.telegram.ui.Components.AnimatedEmojiDrawable;
+import org.telegram.ui.ActionBar.Theme;
 
 /** Live preference samples. Uses the account identity and the current theme. */
 public final class NebulaControlsPreview extends View {
@@ -27,10 +30,14 @@ public final class NebulaControlsPreview extends View {
     private final ImageReceiver avatar = new ImageReceiver(this);
     private final ImageReceiver cover = new ImageReceiver(this);
     private String name = "NebulaGram";
+    private final int account = UserConfig.selectedAccount;
+    private final AnimatedEmojiDrawable.SwapAnimatedEmojiDrawable profileEmoji =
+            new AnimatedEmojiDrawable.SwapAnimatedEmojiDrawable(this, AndroidUtilities.dp(20));
 
     public NebulaControlsPreview(Context context, int kind) {
         super(context);
         this.kind = kind;
+        profileEmoji.setCurrentAccount(account);
         TLRPC.User user = UserConfig.getInstance(UserConfig.selectedAccount).getCurrentUser();
         if (user != null) {
             name = UserObject.getUserName(user);
@@ -39,8 +46,8 @@ public final class NebulaControlsPreview extends View {
         }
         setImportantForAccessibility(IMPORTANT_FOR_ACCESSIBILITY_NO);
     }
-    @Override protected void onAttachedToWindow() { super.onAttachedToWindow(); avatar.onAttachedToWindow(); cover.onAttachedToWindow(); }
-    @Override protected void onDetachedFromWindow() { cover.onDetachedFromWindow(); avatar.onDetachedFromWindow(); super.onDetachedFromWindow(); }
+    @Override protected void onAttachedToWindow() { super.onAttachedToWindow(); avatar.onAttachedToWindow(); cover.onAttachedToWindow(); profileEmoji.attach(); }
+    @Override protected void onDetachedFromWindow() { profileEmoji.detach(); cover.onDetachedFromWindow(); avatar.onDetachedFromWindow(); super.onDetachedFromWindow(); }
     @Override protected void onMeasure(int w, int h) {
         setMeasuredDimension(MeasureSpec.getSize(w), AndroidUtilities.dp(kind == MESSAGE ? 240 : kind == PROFILE ? 186 + 38 * ((NebulaAppearance.profileChannel() ? 1 : 0) + (NebulaAppearance.profileBirthday() ? 1 : 0) + (NebulaAppearance.profileBusiness() ? 1 : 0)) : 76));
     }
@@ -107,9 +114,21 @@ public final class NebulaControlsPreview extends View {
             text(c, NebulaAppearance.secondsInTime() ? "12:34:56" : "12:34", right - dp(66), dp(212), dp(58), 10, t.onSurfaceVariant(), false);
         } else {
             float radius = NebulaAppearance.profileStyle() ? 20 : 0;
-            int surface = NebulaAppearance.profileBackground() ? androidx.core.graphics.ColorUtils.blendARGB(t.surfaceContainer(), t.primary(), .13f) : t.surfaceContainer();
+            TLRPC.User user = UserConfig.getInstance(account).getCurrentUser();
+            MessagesController.PeerColor peer = null;
+            if (NebulaAppearance.profileBackground() && user != null) {
+                peer = MessagesController.PeerColor.fromCollectible(user.emoji_status);
+                MessagesController.PeerColors colors = MessagesController.getInstance(account).profilePeerColors;
+                if (peer == null && colors != null) peer = colors.getColor(UserObject.getProfileColorId(user));
+            }
+            int surface = Theme.getColor(Theme.key_windowBackgroundGray);
             box(c, 0, 0, w, dp(166), surface, radius);
             boolean photo = NebulaAppearance.profilePhotoBanner() && cover.hasImageSet();
+            if (!photo && peer != null) {
+                paint.setShader(new android.graphics.RadialGradient(w / 2, dp(42), Math.max(w / 2, dp(166)),
+                        peer.getBgColor1(Theme.isCurrentThemeDark()), peer.getBgColor2(Theme.isCurrentThemeDark()), android.graphics.Shader.TileMode.CLAMP));
+                rect.set(0, 0, w, dp(166)); c.drawRoundRect(rect, dp(radius), dp(radius), paint); paint.setShader(null);
+            }
             if (photo) {
                 int save = c.save();
                 android.graphics.Path clip = new android.graphics.Path();
@@ -119,17 +138,22 @@ public final class NebulaControlsPreview extends View {
                 paint.setShader(new android.graphics.LinearGradient(0, 0, 0, dp(166), 0x55000000, 0xCC000000, android.graphics.Shader.TileMode.CLAMP));
                 c.drawRect(0, 0, w, dp(166), paint); paint.setShader(null); c.restoreToCount(save);
             }
-            if (!photo && NebulaAppearance.profileBackground() && NebulaAppearance.profileEmoji()) {
-                paint.setColor(NebulaTheme.stateLayer(t.primary(), .12f));
+            long emojiId = !photo && user != null && NebulaAppearance.profileBackground() && NebulaAppearance.profileEmoji()
+                    ? UserObject.getProfileEmojiId(user) : 0;
+            profileEmoji.set(emojiId, false);
+            if (emojiId != 0) {
+                profileEmoji.setColor(peer != null && peer.patternColor != 0 ? peer.patternColor : t.onSurfaceVariant());
+                profileEmoji.setAlpha(70);
                 for (int i = 0; i < 6; i++) {
                     float x = (i % 2 == 0 ? dp(34) : w - dp(34)), y = dp(32 + i / 2 * 44);
-                    c.drawCircle(x, y, dp(3), paint);
+                    profileEmoji.setBounds((int)(x - dp(10)), (int)(y - dp(10)), (int)(x + dp(10)), (int)(y + dp(10)));
+                    profileEmoji.draw(c);
                 }
             }
             box(c, w / 2 - dp(36), dp(20), w / 2 + dp(36), dp(92), photo ? 0xCCFFFFFF : t.surface(), 36);
             avatar.setRoundRadius(AndroidUtilities.dp(32)); avatar.setImageCoords(w / 2 - dp(32), dp(24), dp(64), dp(64)); avatar.draw(c);
-            centered(c, name, w, dp(119), 18, photo ? 0xFFFFFFFF : t.onSurface(), true);
-            centered(c, LocaleController.getString(R.string.Online), w, dp(142), 13, photo ? 0xDDFFFFFF : t.onSurfaceVariant(), false);
+            centered(c, name, w, dp(119), 18, photo || peer != null ? 0xFFFFFFFF : Theme.getColor(Theme.key_windowBackgroundWhiteBlackText), true);
+            centered(c, LocaleController.getString(R.string.Online), w, dp(142), 13, photo || peer != null ? 0xDDFFFFFF : Theme.getColor(Theme.key_windowBackgroundWhiteGrayText), false);
             float y = dp(194);
             if (NebulaAppearance.profileChannel()) {
                 icon(c, R.drawable.msg_discussion, dp(30), y - dp(4), t.primary());

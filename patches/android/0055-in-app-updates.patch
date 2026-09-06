@@ -1,0 +1,173 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/LaunchActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/LaunchActivity.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/LaunchActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/LaunchActivity.java
+@@ -556,6 +556,11 @@
+         });
+         actionBarLayout.setDelegate(this);
+         app.nebulagram.ui.NebulaTheme.applyMaterialYou(this);
++        // Fork updates come from our channel, never Telegram's official update feed.
++        if (SharedConfig.pendingAppUpdate != null) {
++            SharedConfig.pendingAppUpdate = null;
++            SharedConfig.saveConfig();
++        }
+         Theme.loadWallpaper(true);
+ 
+         checkCurrentAccount();
+@@ -1554,6 +1559,9 @@
+                 return false;
+             }
+         }
++        boolean nebulaUpdateLink = !restore && (flags & Intent.FLAG_ACTIVITY_LAUNCHED_FROM_HISTORY) == 0
++                && app.nebulagram.ui.NebulaTelegramUpdates.isUpdateLink(intent.getDataString());
++        if (nebulaUpdateLink) intent.setData(null);
+         boolean pushOpened = false;
+         long push_user_id = 0;
+         long push_chat_id = 0;
+@@ -3353,6 +3361,10 @@
+         }
+ 
+         intent.setAction(null);
++        if (nebulaUpdateLink) {
++            AndroidUtilities.runOnUIThread(() -> checkAppUpdate(true, progress));
++            return true;
++        }
+         return pushOpened;
+     }
+ 
+@@ -5963,102 +5975,8 @@
+         return foundContacts;
+     }
+ 
+-    private boolean firstAppUpdateCheck = true;
+     public void checkAppUpdate(boolean force, Browser.Progress progress) {
+-        if (!ApplicationLoader.isStandaloneBuild() && !ApplicationLoader.isBetaBuild()) {
+-            return;
+-        }
+-        if (!force && !BuildVars.CHECK_UPDATES) {
+-            return;
+-        }
+-        if (ApplicationLoader.applicationLoaderInstance.isCustomUpdate()) {
+-            final BetaUpdate prevUpdate = ApplicationLoader.applicationLoaderInstance.getUpdate();
+-            final boolean first = firstAppUpdateCheck;
+-            firstAppUpdateCheck = false;
+-            ApplicationLoader.applicationLoaderInstance.checkUpdate(force, () -> {
+-                final BetaUpdate pendingUpdate = ApplicationLoader.applicationLoaderInstance.getUpdate();
+-                if (progress != null) {
+-                    progress.end();
+-                    if (pendingUpdate == null) {
+-                        BaseFragment fragment = getLastFragment();
+-                        if (fragment != null) {
+-                            BulletinFactory.of(fragment).createSimpleBulletin(R.raw.chats_infotip, LocaleController.getString(R.string.YourVersionIsLatest)).show();
+-                        }
+-                    }
+-                }
+-                if (pendingUpdate != null && !ApplicationLoader.applicationLoaderInstance.isDownloadingUpdate() && (first || prevUpdate == null || pendingUpdate.higherThan(prevUpdate))) {
+-                    ApplicationLoader.applicationLoaderInstance.showCustomUpdateAppPopup(LaunchActivity.this, pendingUpdate, currentAccount);
+-                }
+-            });
+-            return;
+-        }
+-        if (!force && Math.abs(System.currentTimeMillis() - SharedConfig.lastUpdateCheckTime) < MessagesController.getInstance(0).updateCheckDelay * 1000) {
+-            return;
+-        }
+-        final TLRPC.TL_help_getAppUpdate req = new TLRPC.TL_help_getAppUpdate();
+-        try {
+-            req.source = ApplicationLoader.applicationContext.getPackageManager().getInstallerPackageName(ApplicationLoader.applicationContext.getPackageName());
+-        } catch (Exception ignore) {
+-
+-        }
+-        if (req.source == null) {
+-            req.source = "";
+-        }
+-        final int accountNum = currentAccount;
+-        int reqId = ConnectionsManager.getInstance(currentAccount).sendRequest(req, (response, error) -> {
+-            SharedConfig.lastUpdateCheckTime = System.currentTimeMillis();
+-            SharedConfig.saveConfig();
+-            if (response instanceof TLRPC.TL_help_appUpdate) {
+-                final TLRPC.TL_help_appUpdate res = (TLRPC.TL_help_appUpdate) response;
+-                AndroidUtilities.runOnUIThread(() -> {
+-                    if (SharedConfig.pendingAppUpdate != null && SharedConfig.pendingAppUpdate.version.equals(res.version)) {
+-                        return;
+-                    }
+-                    final boolean newVersionAvailable = SharedConfig.setNewAppVersionAvailable(res);
+-                    if (newVersionAvailable) {
+-                        if (res.can_not_skip) {
+-                            showUpdateActivity(accountNum, res, false);
+-                        } else if (ApplicationLoader.isStandaloneBuild() || BuildVars.DEBUG_VERSION) {
+-                            ApplicationLoader.applicationLoaderInstance.showUpdateAppPopup(LaunchActivity.this, res, accountNum);
+-                        }
+-                        NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.appUpdateAvailable);
+-                    }
+-                    if (progress != null) {
+-                        progress.end();
+-                        if (!newVersionAvailable) {
+-                            BaseFragment fragment = getLastFragment();
+-                            if (fragment != null) {
+-                                BulletinFactory.of(fragment).createSimpleBulletin(R.raw.chats_infotip, LocaleController.getString(R.string.YourVersionIsLatest)).show();
+-                            }
+-                        }
+-                    }
+-                });
+-            } else if (response instanceof TLRPC.TL_help_noAppUpdate) {
+-                AndroidUtilities.runOnUIThread(() -> {
+-                    if (progress != null) {
+-                        progress.end();
+-                        BaseFragment fragment = getLastFragment();
+-                        if (fragment != null) {
+-                            BulletinFactory.of(fragment).createSimpleBulletin(R.raw.chats_infotip, LocaleController.getString(R.string.YourVersionIsLatest)).show();
+-                        }
+-                    }
+-                });
+-            } else if (error != null) {
+-                AndroidUtilities.runOnUIThread(() -> {
+-                    if (progress != null) {
+-                        progress.end();
+-                        BaseFragment fragment = getLastFragment();
+-                        if (fragment != null) {
+-                            BulletinFactory.of(fragment).showForError(error);
+-                        }
+-                    }
+-                });
+-            }
+-        });
+-        if (progress != null) {
+-            progress.init();
+-            progress.onCancel(() -> ConnectionsManager.getInstance(currentAccount).cancelRequest(reqId, true));
+-        }
++        app.nebulagram.ui.NebulaTelegramUpdates.checkFromLaunch(this, force, progress);
+     }
+ 
+     public Dialog showAlertDialog(AlertDialog.Builder builder) {
+diff --git a/TMessagesProj/src/main/res/xml/provider_paths.xml b/TMessagesProj/src/main/res/xml/provider_paths.xml
+--- a/TMessagesProj/src/main/res/xml/provider_paths.xml
++++ b/TMessagesProj/src/main/res/xml/provider_paths.xml
+@@ -4,4 +4,5 @@
+     <files-path name="logs" path="/logs/"/>
+     <files-path name="cache" path="/cache/"/>
+     <root-path name="external_files" path="/storage/" />
++    <cache-path name="nebula_updates" path="nebula-updates/" />
+ </paths>
+\ No newline at end of file
+diff --git a/TMessagesProj_AppStandalone/build.gradle b/TMessagesProj_AppStandalone/build.gradle
+--- a/TMessagesProj_AppStandalone/build.gradle
++++ b/TMessagesProj_AppStandalone/build.gradle
+@@ -129,7 +129,9 @@
+     applicationVariants.all { variant ->
+         variant.outputs.all { output ->
+             outputFileName = "app.apk"
+-            output.versionCodeOverride = defaultConfig.versionCode * 10 + variant.productFlavors.get(0).abiVersionCode
++            output.versionCodeOverride = project.hasProperty("nebulaVersionCode")
++                    ? Integer.parseInt(project.property("nebulaVersionCode").toString())
++                    : defaultConfig.versionCode * 10 + variant.productFlavors.get(0).abiVersionCode
+         }
+     }
+ 
+@@ -143,7 +145,7 @@
+     defaultConfig {
+         minSdkVersion 21
+         targetSdkVersion 36
+-        versionName APP_VERSION_NAME
++        versionName (project.findProperty("nebulaVersionName") ?: "1.0.0").toString()
+         ndkVersion "27.2.12479018"
+ 
+         multiDexEnabled true

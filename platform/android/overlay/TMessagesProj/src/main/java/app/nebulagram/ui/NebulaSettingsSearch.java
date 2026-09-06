@@ -19,11 +19,13 @@ public final class NebulaSettingsSearch {
             if (section == -1) f.presentFragment(new NebulaSettingsFragment());
             else if (section == -10 || section == -11) f.presentFragment(new NebulaDesignFragment(section == -11));
             else if (section == -12) f.presentFragment(new NebulaAiFragment());
+            else if (section == -13) f.presentFragment(new NebulaUpdatesFragment());
             else f.presentFragment(new NebulaSectionFragment(section).focus(title));
         }
     }
     public static ArrayList<Entry> all() {
         ArrayList<Entry> result = new ArrayList<>();
+        result.add(new Entry(-13, NebulaText.text("Обновления NebulaGram", "NebulaGram updates"), NebulaText.text("Версия, APK, скачать и установить", "Version, APK, download and install"), R.drawable.msg_download));
         result.add(new Entry(0, R.string.NebulaMaterialYou, R.string.NebulaMaterialYouSub, R.drawable.msg_customize));
         result.add(new Entry(0, R.string.NebulaLoginStyleTitle, R.string.NebulaLoginStyleSub, R.drawable.msg_edit));
         result.add(new Entry(0, R.string.NebulaHideDividers, R.string.NebulaHideDividersSub, R.drawable.msg_list));

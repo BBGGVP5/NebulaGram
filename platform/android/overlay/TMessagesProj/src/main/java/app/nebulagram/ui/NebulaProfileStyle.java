@@ -70,7 +70,10 @@ public final class NebulaProfileStyle {
                     if (view instanceof ProfileHoursCell || view instanceof ProfileLocationCell) {
                         view.setBackground(null);
                     }
-                    if (view instanceof AboutLinkCell) hideBioShadow((ViewGroup) view);
+                    if (view instanceof AboutLinkCell) {
+                        ((AboutLinkCell) view).setNebulaSectionSurface(true);
+                        hideBioShadow((ViewGroup) view);
+                    }
                 }
                 @Override
                 public void onChildViewDetachedFromWindow(View view) { }

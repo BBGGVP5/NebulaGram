@@ -1,0 +1,14 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/Switch.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/Switch.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Components/Switch.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/Switch.java
+@@ -235,7 +235,9 @@
+ 
+     private void animateToCheckedState(boolean newCheckedState) {
+         checkAnimator = ObjectAnimator.ofFloat(this, "progress", newCheckedState ? 1 : 0);
+-        checkAnimator.setDuration(200);
++        int style = app.nebulagram.ui.NebulaAppearance.switchStyle();
++        checkAnimator.setDuration(app.nebulagram.ui.NebulaSwitch.animationDuration(style));
++        checkAnimator.setInterpolator(app.nebulagram.ui.NebulaSwitch.animationInterpolator(style));
+         checkAnimator.addListener(new AnimatorListenerAdapter() {
+             @Override
+             public void onAnimationEnd(Animator animation) {

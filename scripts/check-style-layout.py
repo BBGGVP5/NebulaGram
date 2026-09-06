@@ -24,6 +24,7 @@ bar = (tree / 'TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.j
 center = method(bar, 'private boolean nebulaCenterTitle()')
 expanded = method(source, 'public boolean nebulaIsHeaderExpanded()')
 draw = method(switch, 'private void drawAlternative(Canvas canvas, int style)')
+motion = method(switch, 'public static int animationDuration(int style)') + method(switch, 'public static android.animation.TimeInterpolator animationInterpolator(int style)')
 java = '''class StyleLayoutCheck {
  static void check(boolean b,String why){if(!b)throw new AssertionError(why);}
  static float density=1;
@@ -58,9 +59,21 @@ java = '''class StyleLayoutCheck {
   int getLayoutDirection(){return direction;}
   float progress;Paint paint=new Paint();RectF track=new RectF();NebulaTheme theme=new NebulaTheme();
   int blend(int a,int b,float p){return 0;}
-''' + draw + '''
+''' + draw + motion + '''
  }
  public static void main(String[] args){
+  java.util.Set<Integer> durations=new java.util.HashSet<>();
+  for(int style=0;style<4;style++){
+   durations.add(Toggle.animationDuration(style));
+   android.animation.TimeInterpolator motion=Toggle.animationInterpolator(style);
+   check(motion.getInterpolation(0)==0&&motion.getInterpolation(1)==1,"Switch animation does not settle exactly");
+   float last=0;
+   for(int frame=0;frame<=100;frame++){
+    float p=motion.getInterpolation(frame/100f);
+    check(p>=last&&p>=0&&p<=1,"Switch animation leaves bounds or reverses");last=p;
+   }
+  }
+  check(durations.size()==4,"Switch styles share one timing");
   int cases=0;
   for(float d:new float[]{1,2,2.75f,3.5f})for(boolean stories:new boolean[]{false,true})
   for(float p:new float[]{0,.5f,1})for(float slide:new float[]{0,.5f,1}){
@@ -97,6 +110,8 @@ stub = work / 'app/nebulagram/ui/NebulaAppearance.java'
 stub.parent.mkdir(parents=True, exist_ok=True)
 stub.write_text('package app.nebulagram.ui; public class NebulaAppearance {public static boolean hidden,center;public static boolean centerHome(){return center;}public static boolean hideSearchField(){return hidden;}}', encoding='utf-8')
 extra=[]
+interpolator=work/'android/animation/TimeInterpolator.java';interpolator.parent.mkdir(parents=True,exist_ok=True)
+interpolator.write_text('package android.animation; public interface TimeInterpolator {float getInterpolation(float t);}',encoding='utf-8');extra.append(str(interpolator))
 for name,body in [('DialogsActivity','public boolean expanded;public boolean nebulaIsHeaderExpanded(){return expanded;}'),('ChatActivity','')]:
     file=work / ('org/telegram/ui/'+name+'.java');file.parent.mkdir(parents=True,exist_ok=True)
     file.write_text('package org.telegram.ui; public class '+name+' {'+body+'}',encoding='utf-8');extra.append(str(file))

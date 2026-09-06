@@ -1,0 +1,113 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarPopupWindow.java b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarPopupWindow.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarPopupWindow.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarPopupWindow.java
+@@ -894,10 +894,10 @@
+                 childtranslations
+         );
+         if (app.nebulagram.ui.NebulaAppearance.liquidAnimations()) {
+-            windowAnimatorSet.playTogether(ObjectAnimator.ofFloat(content, View.SCALE_X, .88f, 1f),
+-                    ObjectAnimator.ofFloat(content, View.SCALE_Y, .94f, 1f));
+-            windowAnimatorSet.setInterpolator(org.telegram.ui.Components.CubicBezierInterpolator.EASE_OUT_QUINT);
+-            windowAnimatorSet.setDuration(240);
++            windowAnimatorSet.playTogether(ObjectAnimator.ofFloat(content, View.SCALE_X, .88f, 1.025f, .994f, 1f),
++                    ObjectAnimator.ofFloat(content, View.SCALE_Y, .93f, .99f, 1.015f, 1f));
++            windowAnimatorSet.setInterpolator(new android.view.animation.LinearInterpolator());
++            windowAnimatorSet.setDuration(320);
+         } else {
+             windowAnimatorSet.setDuration(150 + 16 * visibleCount);
+         }
+@@ -970,10 +970,10 @@
+                     ObjectAnimator.ofFloat(content, "backScaleY", 0.0f, finalScaleY),
+                     ObjectAnimator.ofInt(content, "backAlpha", 0, 255));
+             if (app.nebulagram.ui.NebulaAppearance.liquidAnimations()) {
+-            windowAnimatorSet.playTogether(ObjectAnimator.ofFloat(content, View.SCALE_X, .88f, 1f),
+-                    ObjectAnimator.ofFloat(content, View.SCALE_Y, .94f, 1f));
+-            windowAnimatorSet.setInterpolator(org.telegram.ui.Components.CubicBezierInterpolator.EASE_OUT_QUINT);
+-            windowAnimatorSet.setDuration(240);
++            windowAnimatorSet.playTogether(ObjectAnimator.ofFloat(content, View.SCALE_X, .88f, 1.025f, .994f, 1f),
++                    ObjectAnimator.ofFloat(content, View.SCALE_Y, .93f, .99f, 1.015f, 1f));
++            windowAnimatorSet.setInterpolator(new android.view.animation.LinearInterpolator());
++            windowAnimatorSet.setDuration(320);
+         } else {
+             windowAnimatorSet.setDuration(150 + 16 * visibleCount);
+         }
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/drawable/color/impl/BlurredBackgroundProviderImpl.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/drawable/color/impl/BlurredBackgroundProviderImpl.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/drawable/color/impl/BlurredBackgroundProviderImpl.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/drawable/color/impl/BlurredBackgroundProviderImpl.java
+@@ -95,7 +95,8 @@
+                     if (!LiteMode.isEnabled(LiteMode.FLAG_CHAT_BLUR)) {
+                         return Theme.getColor(Theme.key_actionBarDefaultSubmenuBackground);
+                     }
+-                    return Theme.multAlpha(Theme.getColor(Theme.key_actionBarDefaultSubmenuBackground), isDark ? 0.85f : 0.825f);
++                    return Theme.multAlpha(Theme.getColor(Theme.key_actionBarDefaultSubmenuBackground, r),
++                        app.nebulagram.ui.NebulaAppearance.liquidAnimations() ? (isDark ? .68f : .76f) : (isDark ? .85f : .825f));
+                 })
+                 .setStrokeColorTop(0x44FFFFFF, 0)
+                 .setStrokeColorBottom(0x22FFFFFF, 0)
+@@ -108,7 +109,8 @@
+     public static BlurredBackgroundProvider scrimMenuBackground(Theme.ResourcesProvider resourcesProvider) {
+         return new BlurredBackgroundProviderBuilder(resourcesProvider)
+             .setBackgroundColor((r, isDark) ->
+-                Theme.multAlpha(Theme.getColor(Theme.key_actionBarDefaultSubmenuBackground), isDark ? 0.85f : 0.825f))
++                Theme.multAlpha(Theme.getColor(Theme.key_actionBarDefaultSubmenuBackground, r),
++                        app.nebulagram.ui.NebulaAppearance.liquidAnimations() ? (isDark ? .68f : .76f) : (isDark ? .85f : .825f)))
+             .setStrokeColorTop(0x44FFFFFF, 0)
+             .setStrokeColorBottom(0x22FFFFFF, 0)
+             .setShadowColor(0x26000000, 0)
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAttachAlert.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAttachAlert.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAttachAlert.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAttachAlert.java
+@@ -5309,10 +5309,14 @@
+     protected boolean onCustomOpenAnimation() {
+         super.containerView.animate().cancel();
+         super.containerView.setScaleX(1f);
++        super.containerView.setScaleY(1f);
+         if (app.nebulagram.ui.NebulaAppearance.liquidAnimations()) {
+             super.containerView.setPivotX(super.containerView.getMeasuredWidth() / 2f);
+-            super.containerView.setScaleX(.96f);
+-            super.containerView.animate().scaleX(1f).setDuration(300).setInterpolator(CubicBezierInterpolator.EASE_OUT_QUINT).start();
++            super.containerView.setPivotY(super.containerView.getMeasuredHeight());
++            super.containerView.setScaleX(.94f);
++            super.containerView.setScaleY(.975f);
++            super.containerView.animate().scaleX(1f).scaleY(1f).setDuration(380)
++                    .setInterpolator(new android.view.animation.OvershootInterpolator(1.3f)).start();
+         }
+         photoLayout.setTranslationX(0);
+         mediaPreviewView.setAlpha(0);
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ItemOptions.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ItemOptions.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ItemOptions.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ItemOptions.java
+@@ -1259,6 +1259,8 @@
+             }
+         }
+ 
++        if (app.nebulagram.ui.NebulaAppearance.liquidAnimations()
++                && org.telegram.messenger.LiteMode.isEnabled(org.telegram.messenger.LiteMode.FLAG_CHAT_BLUR)) blurForMenu = true;
+         if ((blur || blurForMenu) && scrimBlur3SourceBitmap == null) {
+             scrimBlur3SourceBitmap = new BlurredBackgroundSourceBitmap();
+         }
+@@ -1487,7 +1489,10 @@
+ 
+         if (blurForMenu && scrimBlur3SourceBitmap != null) {
+             setGapBackgroundColor(Theme.multAlpha(Theme.getColor(Theme.key_actionBarDefaultSubmenuItem, resourcesProvider), 0.06f));
+-            BlurredBackgroundDrawable bg = new BlurredBackgroundDrawableViewFactory(scrimBlur3SourceBitmap)
++            BlurredBackgroundDrawableViewFactory menuFactory = new BlurredBackgroundDrawableViewFactory(scrimBlur3SourceBitmap);
++            menuFactory.setLiquidGlassEffectAllowed(app.nebulagram.ui.NebulaAppearance.liquidAnimations()
++                        && org.telegram.messenger.LiteMode.isEnabled(org.telegram.messenger.LiteMode.FLAG_LIQUID_GLASS));
++            BlurredBackgroundDrawable bg = menuFactory
+                 .create(layout, true)
+                 .setColorProvider(BlurredBackgroundProviderImpl.scrimMenuBackground(resourcesProvider))
+                 .setPadding(dp(8))
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/MainTabsLayout.java b/TMessagesProj/src/main/java/org/telegram/ui/MainTabsLayout.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/MainTabsLayout.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/MainTabsLayout.java
+@@ -643,7 +643,9 @@
+     @Override
+     public boolean dispatchTouchEvent(MotionEvent ev) {
+         int action = ev.getActionMasked();
++        if (action == MotionEvent.ACTION_UP || action == MotionEvent.ACTION_CANCEL) nebulaLens.setPressed(false);
+         if (action == MotionEvent.ACTION_DOWN) {
++            if (app.nebulagram.ui.NebulaAppearance.liquidAnimations()) nebulaLens.setPressed(true);
+             nebulaTouchX = ev.getX(); nebulaTouchY = ev.getY(); nebulaDragging = false;
+             nebulaDragOrigin = findSelectedTab();
+             // The pager must not steal a drag that started on its navigation bar.

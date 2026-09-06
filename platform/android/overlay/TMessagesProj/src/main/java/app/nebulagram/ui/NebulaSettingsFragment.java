@@ -76,6 +76,11 @@ public class NebulaSettingsFragment extends BaseFragment {
     private void build(Context context) {
         content.removeAllViews();
 
+        content.addView(NebulaCard.header(context, NebulaText.text("Туннель", "Tunnel")));
+        NebulaCard tunnel = new NebulaCard(context);
+        tunnel.add(new NebulaLinkRow(context).withClick(v -> presentFragment(new NebulaMenuFragment())));
+        content.addView(tunnel, cardParams());
+
         content.addView(NebulaCard.header(context, NebulaText.text("Приложение", "Application")));
         NebulaCard app = new NebulaCard(context);
         app.add(section(context, R.drawable.msg_settings, R.string.NebulaSectionGeneral, R.string.NebulaGeneralSub, NebulaSectionFragment.SECTION_GENERAL));
@@ -97,7 +102,6 @@ public class NebulaSettingsFragment extends BaseFragment {
 
         content.addView(NebulaCard.header(context, NebulaText.text("Инструменты", "Tools")));
         NebulaCard tools = new NebulaCard(context);
-        tools.add(new NebulaLinkRow(context).withClick(v -> presentFragment(new NebulaMenuFragment())));
         tools.add(new NebulaRow(context).icon(R.drawable.msg_emoji_smiles).title(NebulaText.text("Искусственный интеллект", "AI assistant"))
                 .subtitle("Gemini · Claude · GPT", false).trailing(NebulaRow.TRAIL_CHEVRON)
                 .withClick(v -> presentFragment(new NebulaAiFragment())));

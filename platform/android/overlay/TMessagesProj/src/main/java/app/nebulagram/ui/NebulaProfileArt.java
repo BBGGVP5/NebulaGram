@@ -40,6 +40,12 @@ public final class NebulaProfileArt {
         return Theme.getColor(Theme.key_windowBackgroundWhiteBlackText, provider);
     }
 
+    public static int sectionColor(Context context, Theme.ResourcesProvider provider) {
+        NebulaTheme material = NebulaTheme.of(context);
+        return ColorUtils.blendARGB(material.isDynamic() ? material.surfaceContainer() : surface(provider),
+                material.isDynamic() ? material.primary() : accent(provider), .065f);
+    }
+
     /** Tinted surfaces remain in the native section drawing/blur capture path. */
     public static final class Surface {
         private final Theme.ResourcesProvider provider;
@@ -99,6 +105,8 @@ public final class NebulaProfileArt {
             final BackupImageView photo = findPhoto(avatar);
             final boolean banner = NebulaAppearance.profilePhotoBanner() && photo != null
                     && photo.getImageReceiver().hasImageLoaded();
+            // Telegram's TopView already renders the peer's colour/emoji or the standard header.
+            if (!banner) return;
             if (banner) drawPhotoBanner(canvas, photo.getImageReceiver(), rect, alpha);
             final NebulaTheme material = NebulaTheme.of(avatar.getContext());
             final int accent = material.isDynamic() ? material.primary() : accent(provider);
@@ -167,9 +175,11 @@ public final class NebulaProfileArt {
             heroPath(bannerClip, target);
             canvas.clipPath(bannerClip);
             receiver.setImageCoords(target);
-            receiver.setRoundRadius(0);
+            // Decorative banner rendering must not change the avatar's base radius.
+            receiver.setRoundRadius(new int[] {0, 0, 0, 0});
             receiver.setAlpha(.78f * alpha);
-            receiver.draw(canvas);
+            // The one-argument draw applies the user's avatar shape; bypass it here.
+            receiver.draw(canvas, null);
             paint.setColor(0xD8000000);
             paint.setAlpha((int) (190 * alpha));
             canvas.drawRect(target, paint);
@@ -187,7 +197,8 @@ public final class NebulaProfileArt {
         }
         @Override public void setActionsColor(int color, boolean hasColorById) {
             // Native drawing chooses its filled white icons from this dark surface.
-            super.setActionsColor(0x660D1016, false);
+            if (NebulaAppearance.profilePhotoBanner()) super.setActionsColor(0x660D1016, false);
+            else super.setActionsColor(color, hasColorById);
         }
         @Override public float getRoundRadius() { return dp(16); }
     }

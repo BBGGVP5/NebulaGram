@@ -67,6 +67,9 @@ jobs:
             echo "NEBULA_KIND=arm64-v8a" >> "$GITHUB_ENV"
           fi
 
+      - name: Set the NebulaGram version
+        run: python3 scripts/android-version.py prepare --run-number "$GITHUB_RUN_NUMBER" --github-env "$GITHUB_ENV"
+
       - name: Fetch the pinned upstream
         run: |
           git submodule update --init --depth 1 vendor/telegram-android
@@ -115,6 +118,7 @@ jobs:
           python3 scripts/check-theme-toggle.py
           python3 scripts/check-chat-native.py vendor/telegram-android
           python3 scripts/check-style-layout.py vendor/telegram-android
+          python3 scripts/check-telegram-updates.py
 
       - name: Install the credentials
         env:
@@ -131,7 +135,7 @@ jobs:
           # Maven Central отвечает 429, когда раннеры GitHub стучатся к нему
           # пачкой. Один повтор дешевле, чем потерянные двадцать минут сборки.
           for attempt in 1 2; do
-            if ./gradlew --no-daemon -PnebulaAbis="$NEBULA_ABIS" -PnebulaMinify="$NEBULA_MINIFY"                 :TMessagesProj_AppStandalone:assembleAfatStandalone; then
+            if ./gradlew --no-daemon -PnebulaAbis="$NEBULA_ABIS" -PnebulaMinify="$NEBULA_MINIFY" -PnebulaVersionName="$NEBULA_VERSION" -PnebulaVersionCode="$NEBULA_BUILD_CODE" :TMessagesProj_AppStandalone:assembleAfatStandalone; then
               exit 0
             fi
             echo "::warning::попытка $attempt не удалась, повтор через 60 секунд"
@@ -143,7 +147,7 @@ jobs:
         id: name
         run: |
           version=$(grep '^APP_VERSION_NAME=' vendor/telegram-android/gradle.properties | cut -d= -f2)
-          echo "apk=NebulaGram-${version}-${NEBULA_KIND}-${GITHUB_SHA::7}.apk" >> "$GITHUB_OUTPUT"
+          echo "apk=NebulaGram-${NEBULA_VERSION}-TG-${version}-b${NEBULA_BUILD_CODE}-${NEBULA_KIND}.apk" >> "$GITHUB_OUTPUT"
 
       - name: Collect the APK
         run: |
@@ -158,6 +162,9 @@ jobs:
           test -n "$found" || { echo "::error::APK не собрался"; exit 1; }
           mkdir -p out && cp "$found" "out/${{ steps.name.outputs.apk }}"
           ls -la out
+
+      - name: Verify the update version in the APK
+        run: python3 scripts/android-version.py verify --aapt "$ANDROID_HOME/build-tools/36.0.0/aapt" --apk "out/${{ steps.name.outputs.apk }}" --version "$NEBULA_VERSION" --code "$NEBULA_BUILD_CODE"
 
       - name: Check the packaged architectures
         run: |

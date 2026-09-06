@@ -85,13 +85,24 @@ public class NebulaSwitch extends View {
             return;
         }
         animator = ValueAnimator.ofFloat(progress, value ? 1f : 0f);
-        animator.setDuration(180);
-        animator.setInterpolator(new DecelerateInterpolator());
+        int style = previewStyle < 0 ? NebulaAppearance.switchStyle() : previewStyle;
+        animator.setDuration(animationDuration(style));
+        animator.setInterpolator(animationInterpolator(style));
         animator.addUpdateListener(a -> {
             progress = (float) a.getAnimatedValue();
             invalidate();
         });
         animator.start();
+    }
+
+    public static int animationDuration(int style) {
+        return style == 1 ? 300 : style == 2 ? 240 : style == 3 ? 180 : 230;
+    }
+
+    public static android.animation.TimeInterpolator animationInterpolator(int style) {
+        return t -> style == 1 ? 1f - (float) Math.pow(1f - t, 3)
+                : style == 2 ? (1f - (float) Math.cos(Math.PI * t)) * .5f
+                : style == 3 ? 1f - (1f - t) * (1f - t) : t * t * (3f - 2f * t);
     }
 
     public void setChecked(boolean value) {
@@ -137,7 +148,7 @@ public class NebulaSwitch extends View {
 
         float thumb = AndroidUtilities.dp(THUMB_OFF)
                 + (AndroidUtilities.dp(THUMB_ON) - AndroidUtilities.dp(THUMB_OFF)) * progress;
-        float margin = AndroidUtilities.dp(4);
+        float margin = AndroidUtilities.dpf2(6 - 2 * progress);
         float left = margin + thumb / 2f;
         float right = width - margin - thumb / 2f;
         float position = getLayoutDirection() == LAYOUT_DIRECTION_RTL ? 1 - progress : progress;
@@ -159,15 +170,19 @@ public class NebulaSwitch extends View {
                 style == 3 ? NebulaTheme.stateLayer(theme.primary(), .5f) : theme.primary(), progress));
         track.set(x, y, x + w, y + h);
         canvas.drawRoundRect(track, h / 2, h / 2, paint);
-        float radius = style == 1 ? 14 : style == 2 ? 12 : 14;
-        float from = radius + 1;
-        float to = 52 - radius - 1;
+        float radius = style == 1 ? 13 : style == 2 ? 11 : 13;
+        float from = radius + 3;
+        float to = 52 - radius - 3;
         float position = getLayoutDirection() == LAYOUT_DIRECTION_RTL ? 1 - progress : progress;
         float cx = from + (to - from) * position;
+        float elongation = (float) Math.sin(Math.PI * progress) * (style == 1 ? 2f : style == 2 ? .7f : 0f);
         paint.setColor(NebulaTheme.stateLayer(0xff000000, .12f));
-        canvas.drawCircle(cx, 16.6f, radius + .4f, paint);
+        track.set(cx - radius - elongation - .4f, 16.6f - radius - .4f,
+                cx + radius + elongation + .4f, 16.6f + radius + .4f);
+        canvas.drawRoundRect(track, radius, radius, paint);
         paint.setColor(style == 3 ? blend(theme.onSurfaceVariant(), theme.primary(), progress) : 0xffffffff);
-        canvas.drawCircle(cx, 16, radius, paint);
+        track.set(cx - radius - elongation, 16 - radius, cx + radius + elongation, 16 + radius);
+        canvas.drawRoundRect(track, radius, radius, paint);
         canvas.restore();
     }
 
