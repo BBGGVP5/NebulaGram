@@ -1,0 +1,82 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/drawable/color/impl/BlurredBackgroundProviderImpl.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/drawable/color/impl/BlurredBackgroundProviderImpl.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/drawable/color/impl/BlurredBackgroundProviderImpl.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/drawable/color/impl/BlurredBackgroundProviderImpl.java
+@@ -21,13 +21,18 @@
+     public static BlurredBackgroundProvider mainTabs(Theme.ResourcesProvider resourcesProvider) {
+         return new BlurredBackgroundProviderBuilder(resourcesProvider)
+             .setBackgroundColor((r, isDark) -> {
++                if (app.nebulagram.ui.NebulaAppearance.liquidAnimations()) {
++                    return Theme.multAlpha(Theme.getColor(Theme.key_windowBackgroundWhite, r), isDark ? .58f : .68f);
++                }
+                 final float alpha = LiteMode.isEnabled(LiteMode.FLAG_LIQUID_GLASS) ? 0.85f : 0.76f;
+                 final int colorBg = Theme.getColor(Theme.key_windowBackgroundWhite, r);
+                 final int colorTarget = Theme.getColor(Theme.key_glass_targetMainTabs, r);
+                 return solveSrcColor(colorBg, colorTarget, alpha);
+             })
+-            .setStrokeColorTop(0x11000000, 0x06FFFFFF)
+-            .setStrokeColorBottom(0x20000000, 0x11FFFFFF)
++            .setStrokeColorTop((r, dark) -> app.nebulagram.ui.NebulaAppearance.liquidAnimations()
++                    ? (dark ? 0x40FFFFFF : 0xA0FFFFFF) : (dark ? 0x06FFFFFF : 0x11000000))
++            .setStrokeColorBottom((r, dark) -> app.nebulagram.ui.NebulaAppearance.liquidAnimations()
++                    ? (dark ? 0x18FFFFFF : 0x24000000) : (dark ? 0x11FFFFFF : 0x20000000))
+             .setShadowColor(0x20000000, 0x04FFFFFF)
+             .setShadowLayer(dpf2(2.667f), 0, dpf2(0.85f))
+             .setStrokeWidth(dpf2(0.4f), dpf2(0.4f))
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/MainTabsLayout.java b/TMessagesProj/src/main/java/org/telegram/ui/MainTabsLayout.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/MainTabsLayout.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/MainTabsLayout.java
+@@ -37,6 +37,13 @@
+ public class MainTabsLayout extends AnimatedLinearLayout {
+ 
+     private final Theme.ResourcesProvider resourcesProvider;
++    private final app.nebulagram.ui.NebulaTabLens nebulaLens = new app.nebulagram.ui.NebulaTabLens(this);
++
++    @Override
++    protected void onDetachedFromWindow() {
++        nebulaLens.reset();
++        super.onDetachedFromWindow();
++    }
+ 
+     public MainTabsLayout(Context context, Theme.ResourcesProvider resourcesProvider) {
+         super(context);
+@@ -314,15 +321,36 @@
+ 
+     @Override
+     protected void dispatchDraw(@NonNull Canvas canvas) {
++        boolean liquid = app.nebulagram.ui.NebulaAppearance.liquidAnimations();
++        for (int i = 0; i < getChildCount(); i++) {
++            View child = getChildAt(i);
++            if (child instanceof GlassTabView) ((GlassTabView) child).setSkipDrawSelector(liquid || drawCustomSelector);
++        }
++        if (!liquid) nebulaLens.reset();
++        if (liquid && !drawCustomSelector) {
++            View selected = findSelectedTab();
++            if (selected != null) {
++                nebulaLens.draw(canvas, selected.getX(), getPaddingTop(), selected.getX() + selected.getWidth(),
++                        getHeight() - getPaddingBottom(), Theme.getColor(Theme.key_glass_tabSelected, resourcesProvider));
++            } else {
++                nebulaLens.reset();
++            }
++        }
+         if (drawCustomSelector) {
+             final float x = animatedLongSelectedViewCenterX + animatedLongSelectedViewOffsetX;
+             final float sWidth = getInterpolatedWidthByX(x, this);
+             final float sHeight = getHeight() - getPaddingTop() - getPaddingBottom();
+ 
+-            canvas.drawRoundRect(
+-                    x - sWidth / 2f, (getHeight() - sHeight) / 2f,
+-                    x + sWidth / 2f, (getHeight() + sHeight) / 2f,
+-                    sHeight / 2f, sHeight / 2f, selectorPaint);
++            if (liquid) {
++                nebulaLens.drawDrag(canvas, x - sWidth / 2f, (getHeight() - sHeight) / 2f,
++                        x + sWidth / 2f, (getHeight() + sHeight) / 2f,
++                        Theme.getColor(Theme.key_glass_tabSelected, resourcesProvider));
++            } else {
++                canvas.drawRoundRect(
++                        x - sWidth / 2f, (getHeight() - sHeight) / 2f,
++                        x + sWidth / 2f, (getHeight() + sHeight) / 2f,
++                        sHeight / 2f, sHeight / 2f, selectorPaint);
++            }
+         }
+ 
+         super.dispatchDraw(canvas);
