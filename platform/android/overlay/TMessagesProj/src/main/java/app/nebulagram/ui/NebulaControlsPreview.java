@@ -119,7 +119,8 @@ public final class NebulaControlsPreview extends View {
             if (NebulaAppearance.profileBackground() && user != null) {
                 peer = MessagesController.PeerColor.fromCollectible(user.emoji_status);
                 MessagesController.PeerColors colors = MessagesController.getInstance(account).profilePeerColors;
-                if (peer == null && colors != null) peer = colors.getColor(UserObject.getProfileColorId(user));
+                int profileColorId = UserObject.getProfileColorId(user);
+                if (peer == null && colors != null && profileColorId >= 0) peer = colors.getColor(profileColorId);
             }
             int surface = Theme.getColor(Theme.key_windowBackgroundGray);
             box(c, 0, 0, w, dp(166), surface, radius);
@@ -139,7 +140,7 @@ public final class NebulaControlsPreview extends View {
                 c.drawRect(0, 0, w, dp(166), paint); paint.setShader(null); c.restoreToCount(save);
             }
             long emojiId = !photo && user != null && NebulaAppearance.profileBackground() && NebulaAppearance.profileEmoji()
-                    ? UserObject.getProfileEmojiId(user) : 0;
+                    ? UserObject.getOnlyProfileEmojiId(user) : 0;
             profileEmoji.set(emojiId, false);
             if (emojiId != 0) {
                 profileEmoji.setColor(peer != null && peer.patternColor != 0 ? peer.patternColor : t.onSurfaceVariant());

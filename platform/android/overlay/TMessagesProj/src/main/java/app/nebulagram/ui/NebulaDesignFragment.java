@@ -57,7 +57,11 @@ public final class NebulaDesignFragment extends BaseFragment {
             if (active) {
                 ImageView check = new ImageView(c); check.setImageResource(R.drawable.msg_check_s); check.setColorFilter(NebulaTheme.of(c).primary());
                 row.addView(check, LayoutHelper.createFrame(22, 22, Gravity.RIGHT | Gravity.CENTER_VERTICAL, 0, 0, 14, 0));
-                row.setBackground(Theme.createRoundRectDrawable(dp(16), NebulaTheme.stateLayer(NebulaTheme.of(c).primary(), .08f)));
+                android.graphics.drawable.GradientDrawable selectedSurface = new android.graphics.drawable.GradientDrawable();
+                selectedSurface.setCornerRadius(dp(24));
+                selectedSurface.setColor(NebulaTheme.stateLayer(NebulaTheme.of(c).primary(), .10f));
+                selectedSurface.setStroke(dp(1), NebulaTheme.stateLayer(NebulaTheme.of(c).primary(), .6f));
+                row.setBackground(new android.graphics.drawable.InsetDrawable(selectedSurface, dp(6), dp(5), dp(6), dp(5)));
             }
             row.setContentDescription(names[pack] + (active ? text(", выбрано", ", selected") : ""));
             row.setOnClickListener(v -> { NebulaIcons.setPack(selected); Theme.reloadAllResources(c); buildPacks(c); });

@@ -49,21 +49,22 @@ public final class NebulaTabLens {
             start.set(current);
             target.set(left, top, right, bottom);
             final float travel = Math.abs(target.centerX() - start.centerX());
-            final float bulge = Math.min(AndroidUtilities.dpf2(10), travel * .10f);
+            final float bulge = Math.min(AndroidUtilities.dpf2(20), travel * .20f);
             animation = ValueAnimator.ofFloat(0, 1);
-            animation.setDuration(320);
-            animation.setInterpolator(CubicBezierInterpolator.EASE_OUT_QUINT);
+            animation.setDuration(280);
+            animation.setInterpolator(new android.view.animation.LinearInterpolator());
             animation.addUpdateListener(a -> {
-                float p = (float) a.getAnimatedValue();
+                float time = (float) a.getAnimatedValue();
+                float p = CubicBezierInterpolator.EASE_OUT_QUINT.getInterpolation(time);
                 current.set(mix(start.left, target.left, p), mix(start.top, target.top, p),
                         mix(start.right, target.right, p), mix(start.bottom, target.bottom, p));
-                stretch = (float) Math.sin(Math.PI * p) * bulge;
+                stretch = (float) Math.sin(Math.PI * time) * bulge;
                 host.invalidate();
             });
             animation.start();
         }
         draw.set(current);
-        draw.inset(-stretch, stretch * .12f);
+        draw.inset(-stretch, stretch * .24f);
         paint(canvas, draw, accent);
     }
 
@@ -79,14 +80,14 @@ public final class NebulaTabLens {
         lastDragTime = now; lastDragX = x;
         current.set(left, top, right, bottom); target.set(current); initialized = true;
         draw.set(current);
-        draw.inset(-draw.width() * dragSpeed * .06f, draw.height() * dragSpeed * .09f);
+        draw.inset(-draw.width() * dragSpeed * .10f, draw.height() * dragSpeed * .13f);
         paint(canvas, draw, accent);
         if (dragSpeed > .01f) host.postInvalidateOnAnimation();
     }
 
     private void paint(Canvas canvas, RectF bounds, int accent) {
-        bounds.inset(bounds.width() * (pressure * .035f - bubble * .11f),
-                bounds.height() * (pressure * .06f + bubble * .14f));
+        bounds.inset(bounds.width() * (pressure * .05f - bubble * .16f),
+                bounds.height() * (pressure * .095f + bubble * .20f));
         // Limit overshoot to the inside of the glass capsule, including compact bars.
         bounds.left = Math.max(host.getPaddingLeft(), bounds.left);
         bounds.right = Math.min(host.getWidth() - host.getPaddingRight(), bounds.right);
@@ -109,7 +110,7 @@ public final class NebulaTabLens {
     public void pulse() {
         if (pulse != null) pulse.cancel();
         pulse = ValueAnimator.ofFloat(0, 1);
-        pulse.setDuration(500);
+        pulse.setDuration(380);
         pulse.setInterpolator(new android.view.animation.LinearInterpolator());
         pulse.addUpdateListener(a -> {
             float t = (float) a.getAnimatedValue();
