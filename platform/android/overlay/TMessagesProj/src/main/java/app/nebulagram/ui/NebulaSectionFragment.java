@@ -480,6 +480,8 @@ public class NebulaSectionFragment extends BaseFragment {
         content.addView(identity, cardParams());
         NebulaCard links = new NebulaCard(context);
         links.addView(NebulaCard.header(context, NebulaText.text("Ссылки", "Links")));
+        links.add(projectLink(context, R.drawable.msg_discussion, NebulaText.text("Канал NebulaGram", "NebulaGram channel"),
+                NebulaText.text("Новости, обновления и новые возможности", "News, updates and new features"), "https://t.me/getnebulagram"));
         links.add(projectLink(context, R.drawable.msg_link, NebulaText.text("Исходный код", "Source code"), "GitHub · BBGGVP5/NebulaGram", "https://github.com/BBGGVP5/NebulaGram"));
         links.add(projectLink(context, R.drawable.msg_discussion, NebulaText.text("Сообщить об ошибке", "Report an issue"),
                 NebulaText.text("Ошибки и предложения", "Bugs and suggestions"), "https://github.com/BBGGVP5/NebulaGram/issues"));
