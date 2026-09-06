@@ -193,20 +193,14 @@ public final class NebulaTheme {
      * replacements of Telegram's screens would not.
      */
     private static boolean applying;
-    private static long appliedAt;
 
     public static void applyMaterialYou(Context context) {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S || !materialYouEnabled()) {
             return; // нечего брать или пользователь отказался
         }
-        // refreshThemeColors сам рассылает уведомление о смене темы, на которое
-        // мы подписаны. Без этих двух заслонок Telegram и мы могли перекрашивать
-        // друг друга по кругу — а пересчёт палитры перерисовывает весь экран,
-        // отсюда и подтормаживания интерфейса с клавиатурой.
-        long now = android.os.SystemClock.elapsedRealtime();
-        if (applying || now - appliedAt < 250L) {
-            return;
-        }
+        // Guard synchronous callbacks. Queued callbacks stop at the accent equality
+        // check below, so a second theme loaded during startup is never throttled away.
+        if (applying) return;
         try {
             applying = true;
             int accent = NebulaTheme.of(context).primary();
@@ -233,7 +227,6 @@ public final class NebulaTheme {
             // доходит очередь, и несохранённый акцент терялся.
             Theme.saveThemeAccents(active, true, false, false, false);
             Theme.refreshThemeColors();
-            appliedAt = android.os.SystemClock.elapsedRealtime();
         } catch (Throwable e) {
             // Theming is cosmetic: a failure here must never keep the app from
             // starting, and the upstream API may move between releases.
@@ -262,7 +255,6 @@ public final class NebulaTheme {
         SharedPreferences prefs =
                 ApplicationLoader.applicationContext.getSharedPreferences(PREFS, 0);
         prefs.edit().putBoolean(KEY_MATERIAL_YOU, value).apply();
-        appliedAt = 0;
         if (!value) {
             restoreAccent(prefs);
         }

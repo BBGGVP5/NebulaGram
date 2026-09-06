@@ -23,6 +23,11 @@ public final class NebulaIconResources extends Resources {
         return new NebulaIconResources(original);
     }
 
+    public static Drawable originalDrawable(Resources resources, int id) {
+        while (resources instanceof NebulaIconResources) resources = ((NebulaIconResources) resources).original;
+        return resources.getDrawable(id);
+    }
+
     @Override public Drawable getDrawable(int id) throws NotFoundException {
         return original.getDrawable(NebulaIcons.resource(id));
     }

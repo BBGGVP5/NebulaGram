@@ -271,7 +271,7 @@ public class NebulaRow extends FrameLayout {
         line.setBackgroundColor(NebulaTheme.stateLayer(theme.outline(), 0.35f));
         LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, Math.max(1, AndroidUtilities.dp(0.5f)));
-        params.leftMargin = AndroidUtilities.dp(64);
+        params.leftMargin = params.rightMargin = AndroidUtilities.dp(16);
         line.setLayoutParams(params);
         return line;
     }

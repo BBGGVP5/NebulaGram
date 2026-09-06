@@ -292,7 +292,15 @@ public class NebulaSectionFragment extends BaseFragment {
                 .withClick(v -> presentFragment(new NebulaSectionFragment(target)));
     }
 
+    private NebulaControlsPreview profilePreview;
+
     private void sample(Context context, int kind) {
+        if (kind == NebulaControlsPreview.PROFILE) {
+            NebulaCard card = new NebulaCard(context);
+            card.add(profilePreview = new NebulaControlsPreview(context, kind));
+            content.addView(card, cardParams());
+            return;
+        }
         NebulaWallpaperPreview wallpaper = new NebulaWallpaperPreview(context);
         wallpaper.addView(new NebulaControlsPreview(context, kind));
         wallpaperPreviews.add(wallpaper);
@@ -301,11 +309,17 @@ public class NebulaSectionFragment extends BaseFragment {
 
     private void buildSwitches(Context context) {
         String[] styles = {"Material", "iOS", "One UI", "Android"};
+        int[] platformIcons = {R.drawable.nebula_platform_material, R.drawable.nebula_platform_apple, R.drawable.nebula_platform_oneui, R.drawable.nebula_platform_android};
         for (int i = 0; i < styles.length; i++) {
             final int style = i;
             NebulaCard card = new NebulaCard(context);
-            NebulaRow row = new NebulaRow(context).icon(R.drawable.msg_customize).title(styles[i])
-                    .trailing(NebulaRow.TRAIL_SWITCH).checked(NebulaAppearance.switchStyle() == i);
+            NebulaRow row = new NebulaRow(context).icon(platformIcons[i]).title(styles[i]);
+            if (NebulaAppearance.switchStyle() == i) {
+                android.widget.ImageView check = new android.widget.ImageView(context); check.setImageResource(R.drawable.msg_check_s);
+                check.setColorFilter(NebulaTheme.of(context).primary());
+                row.addView(check, org.telegram.ui.Components.LayoutHelper.createFrame(22, 22, android.view.Gravity.RIGHT | android.view.Gravity.CENTER_VERTICAL, 0, 0, 18, 0));
+                row.setContentDescription(styles[i] + NebulaText.text(", выбрано", ", selected"));
+            }
             row.setOnClickListener(v -> { NebulaAppearance.setSwitchStyle(style); refreshPalette(); });
             card.add(row);
             android.widget.LinearLayout samples = new android.widget.LinearLayout(context);
@@ -325,8 +339,6 @@ public class NebulaSectionFragment extends BaseFragment {
     }
 
     private void buildFolders(Context context) {
-        folderPreview = new NebulaFoldersPreview(context);
-        content.addView(folderPreview, cardParams());
         NebulaCard card = new NebulaCard(context);
         card.add(toggle(context, R.drawable.nebula_cupertino_archive, R.string.NebulaHideAllChats, R.string.NebulaHideAllChatsInfo,
                 NebulaAppearance.hideAllChats(), NebulaAppearance::setHideAllChats));
@@ -456,12 +468,35 @@ public class NebulaSectionFragment extends BaseFragment {
     }
 
     private void buildAbout(Context context) {
-        NebulaCard card = new NebulaCard(context);
-        card.add(new NebulaRow(context)
-                .icon(R.drawable.msg_info)
-                .title(LocaleController.getString(R.string.nl_versions))
-                .subtitle(versions(), true));
-        content.addView(card, cardParams());
+        NebulaCard identity = new NebulaCard(context);
+        identity.addView(NebulaCard.header(context, NebulaText.text("Информация", "Information")));
+        String version = org.telegram.messenger.BuildVars.BUILD_VERSION_STRING;
+        try { version = context.getPackageManager().getPackageInfo(context.getPackageName(), 0).versionName; } catch (Exception ignored) { }
+        identity.add(new NebulaRow(context).title("NebulaGram · " + version)
+                .subtitle(NebulaText.text("Модификация Telegram для Android: настройка интерфейса, NebulaLink и инструменты ИИ.",
+                        "A Telegram for Android modification with interface customization, NebulaLink and AI tools."), false));
+        identity.add(projectLink(context, R.drawable.msg_download, NebulaText.text("Обновления и релизы", "Updates and releases"),
+                NebulaText.text("Скачать сборку и посмотреть изменения", "Downloads and release notes"), "https://github.com/BBGGVP5/NebulaGram/releases"));
+        content.addView(identity, cardParams());
+        NebulaCard links = new NebulaCard(context);
+        links.addView(NebulaCard.header(context, NebulaText.text("Ссылки", "Links")));
+        links.add(projectLink(context, R.drawable.msg_link, NebulaText.text("Исходный код", "Source code"), "GitHub · BBGGVP5/NebulaGram", "https://github.com/BBGGVP5/NebulaGram"));
+        links.add(projectLink(context, R.drawable.msg_discussion, NebulaText.text("Сообщить об ошибке", "Report an issue"),
+                NebulaText.text("Ошибки и предложения", "Bugs and suggestions"), "https://github.com/BBGGVP5/NebulaGram/issues"));
+        links.add(projectLink(context, R.drawable.msg_openprofile, NebulaText.text("Разработчик", "Developer"), "BBGGVP5", "https://github.com/BBGGVP5"));
+        content.addView(links, cardParams());
+        NebulaCard components = new NebulaCard(context);
+        components.addView(NebulaCard.header(context, NebulaText.text("Компоненты", "Components")));
+        components.add(new NebulaRow(context).title("Telegram " + org.telegram.messenger.BuildVars.BUILD_VERSION_STRING)
+                .subtitle(versions(), false));
+        components.add(new NebulaRow(context).title("Solar Icon Set").subtitle("Design480 · CC BY 4.0", false));
+        content.addView(components, cardParams());
+        content.addView(NebulaMenuFragment.placeholder(context, NebulaText.text("На основе Telegram для Android. Версии компонентов указаны для установленной сборки.", "Based on Telegram for Android. Component versions refer to the installed build.")));
+    }
+
+    private NebulaRow projectLink(Context context, int icon, String title, String info, String url) {
+        return new NebulaRow(context).icon(icon).title(title).subtitle(info, false).trailing(NebulaRow.TRAIL_CHEVRON)
+                .withClick(v -> org.telegram.messenger.browser.Browser.openUrl(context, url));
     }
 
     private String versions() {
@@ -519,6 +554,7 @@ public class NebulaSectionFragment extends BaseFragment {
     }
 
     private void refreshPreviews() {
+        if (profilePreview != null) { profilePreview.requestLayout(); profilePreview.invalidate(); }
         if (folderPreview != null) folderPreview.refresh();
         for (NebulaWallpaperPreview view : wallpaperPreviews) {
             view.invalidate();

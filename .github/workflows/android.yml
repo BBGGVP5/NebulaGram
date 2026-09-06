@@ -114,6 +114,7 @@ jobs:
           python3 scripts/check-ai-protocol.py
           python3 scripts/check-theme-toggle.py
           python3 scripts/check-chat-native.py vendor/telegram-android
+          python3 scripts/check-style-layout.py vendor/telegram-android
 
       - name: Install the credentials
         env:

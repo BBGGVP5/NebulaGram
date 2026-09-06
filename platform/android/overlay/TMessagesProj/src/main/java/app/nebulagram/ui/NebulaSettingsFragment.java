@@ -76,40 +76,37 @@ public class NebulaSettingsFragment extends BaseFragment {
     private void build(Context context) {
         content.removeAllViews();
 
-        // Туннель отдельной карточкой: это не настройка внешнего вида, а
-        // состояние — строка показывает, подключены мы сейчас или нет.
-        content.addView(NebulaCard.header(context,
-                LocaleController.getString(R.string.NebulaSectionTunnel)));
-        NebulaCard tunnel = new NebulaCard(context);
-        tunnel.add(new NebulaLinkRow(context)
-                .withClick(v -> presentFragment(new NebulaMenuFragment())));
-        content.addView(tunnel, cardParams());
+        content.addView(NebulaCard.header(context, NebulaText.text("Приложение", "Application")));
+        NebulaCard app = new NebulaCard(context);
+        app.add(section(context, R.drawable.msg_settings, R.string.NebulaSectionGeneral, R.string.NebulaGeneralSub, NebulaSectionFragment.SECTION_GENERAL));
+        app.add(section(context, R.drawable.msg_customize, R.string.NebulaAppearanceTitle, R.string.NebulaAppearanceSub, NebulaSectionFragment.SECTION_APPEARANCE));
+        content.addView(app, cardParams());
 
-        content.addView(NebulaCard.header(context,
-                LocaleController.getString(R.string.NebulaSectionSetup)));
-        NebulaCard sections = new NebulaCard(context);
-        sections.add(section(context, R.drawable.msg_settings,
-                R.string.NebulaSectionGeneral, R.string.NebulaGeneralSub,
-                NebulaSectionFragment.SECTION_GENERAL));
-        sections.add(section(context, R.drawable.msg_customize,
-                R.string.NebulaAppearanceTitle, R.string.NebulaAppearanceSub,
-                NebulaSectionFragment.SECTION_APPEARANCE));
-        sections.add(section(context, R.drawable.msg_discussion,
-                R.string.NebulaSectionChats, R.string.NebulaChatsSub,
-                NebulaSectionFragment.SECTION_CHATS));
-        sections.add(section(context, R.drawable.msg_list,
-                R.string.NebulaSectionPanel, R.string.NebulaPanelSub,
-                NebulaSectionFragment.SECTION_TABS));
-        sections.add(section(context, R.drawable.files_folder, R.string.NebulaSectionFolders, R.string.NebulaFoldersInfo, NebulaSectionFragment.SECTION_FOLDERS));
-        sections.add(section(context, R.drawable.msg_discussion, R.string.NebulaSectionMessages, R.string.NebulaMessagesInfo, NebulaSectionFragment.SECTION_MESSAGES));
-        sections.add(section(context, R.drawable.msg_openprofile, R.string.NebulaSectionProfile, R.string.NebulaProfileInfo, NebulaSectionFragment.SECTION_PROFILE));
-        sections.add(section(context, R.drawable.msg_info,
-                R.string.NebulaSectionAbout, R.string.NebulaAboutSub,
-                NebulaSectionFragment.SECTION_ABOUT));
-        sections.add(new NebulaRow(context).icon(R.drawable.msg_customize).title(NebulaText.text("Искусственный интеллект", "AI assistant"))
-                .subtitle("Gemini · Claude · GPT · API", false).trailing(NebulaRow.TRAIL_CHEVRON)
+        content.addView(NebulaCard.header(context, NebulaText.text("Навигация", "Navigation")));
+        NebulaCard navigation = new NebulaCard(context);
+        navigation.add(section(context, R.drawable.msg_list, R.string.NebulaSectionPanel, R.string.NebulaPanelSub, NebulaSectionFragment.SECTION_TABS));
+        navigation.add(section(context, R.drawable.files_folder, R.string.NebulaSectionFolders, R.string.NebulaFoldersInfo, NebulaSectionFragment.SECTION_FOLDERS));
+        content.addView(navigation, cardParams());
+
+        content.addView(NebulaCard.header(context, NebulaText.text("Чаты и профиль", "Chats and profile")));
+        NebulaCard chats = new NebulaCard(context);
+        chats.add(section(context, R.drawable.msg_discussion, R.string.NebulaSectionChats, R.string.NebulaChatsSub, NebulaSectionFragment.SECTION_CHATS));
+        chats.add(section(context, R.drawable.menu_reply, R.string.NebulaSectionMessages, R.string.NebulaMessagesInfo, NebulaSectionFragment.SECTION_MESSAGES));
+        chats.add(section(context, R.drawable.msg_openprofile, R.string.NebulaSectionProfile, R.string.NebulaProfileInfo, NebulaSectionFragment.SECTION_PROFILE));
+        content.addView(chats, cardParams());
+
+        content.addView(NebulaCard.header(context, NebulaText.text("Инструменты", "Tools")));
+        NebulaCard tools = new NebulaCard(context);
+        tools.add(new NebulaLinkRow(context).withClick(v -> presentFragment(new NebulaMenuFragment())));
+        tools.add(new NebulaRow(context).icon(R.drawable.msg_emoji_smiles).title(NebulaText.text("Искусственный интеллект", "AI assistant"))
+                .subtitle("Gemini · Claude · GPT", false).trailing(NebulaRow.TRAIL_CHEVRON)
                 .withClick(v -> presentFragment(new NebulaAiFragment())));
-        content.addView(sections, cardParams());
+        content.addView(tools, cardParams());
+
+        NebulaCard about = new NebulaCard(context);
+        about.add(section(context, R.drawable.msg_info, R.string.NebulaSectionAbout, R.string.NebulaAboutSub, NebulaSectionFragment.SECTION_ABOUT));
+        LinearLayout.LayoutParams bottom = cardParams(); bottom.topMargin = org.telegram.messenger.AndroidUtilities.dp(22);
+        content.addView(about, bottom);
     }
 
     @Override

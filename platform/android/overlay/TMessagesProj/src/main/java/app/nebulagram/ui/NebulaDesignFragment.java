@@ -39,28 +39,32 @@ public final class NebulaDesignFragment extends BaseFragment {
         content.addView(NebulaCard.header(c, text("Базовые наборы", "Base packs")));
         NebulaCard card = new NebulaCard(c);
         String[] names = {text("По умолчанию", "Default"), "iOS Outline", "Solar Icon Set"};
-        String[] authors = {"Telegram", "NebulaGram", "Design480 · CC BY 4.0"};
-        int[] icons = {R.drawable.msg_discussion, R.drawable.msg_link, R.drawable.menu_reply, R.drawable.msg_gallery};
+        String[] authors = {text("Классические значки Telegram", "Classic Telegram icons"), text("Тонкие контуры", "Fine outlines"), text("Мягкие линии и скругления", "Soft lines and rounded shapes")};
+        int[] icons = {R.drawable.msg_saved, R.drawable.msg_search, R.drawable.msg_calls, R.drawable.msg_sendfile};
         for (int pack = 0; pack < names.length; pack++) {
             final int selected = pack;
-            FrameLayout row = new FrameLayout(c); row.setMinimumHeight(dp(96));
+            FrameLayout row = new FrameLayout(c); row.setMinimumHeight(dp(84));
             LinearLayout labels = new LinearLayout(c); labels.setOrientation(LinearLayout.VERTICAL);
             labels.addView(label(c, names[pack], 17, NebulaTheme.of(c).onSurface()));
             labels.addView(label(c, authors[pack], 13, NebulaTheme.of(c).onSurfaceVariant()));
-            row.addView(labels, LayoutHelper.createFrame(-1, -2, Gravity.CENTER_VERTICAL, 82, 12, 50, 12));
+            row.addView(labels, LayoutHelper.createFrame(-1, -2, Gravity.CENTER_VERTICAL, 70, 10, 40, 10));
             for (int i = 0; i < 4; i++) {
-                ImageView image = new ImageView(c); image.setImageResource(NebulaIcons.previewResource(icons[i], pack));
+                ImageView image = new ImageView(c); image.setImageDrawable(NebulaIconResources.originalDrawable(c.getResources(), NebulaIcons.previewResource(icons[i], pack)).mutate());
                 image.setColorFilter(NebulaTheme.of(c).onSurfaceVariant(), PorterDuff.Mode.SRC_IN);
-                row.addView(image, LayoutHelper.createFrame(22, 22, Gravity.TOP | Gravity.LEFT, 16 + i % 2 * 28, 22 + i / 2 * 28, 0, 0));
+                row.addView(image, LayoutHelper.createFrame(18, 18, Gravity.TOP | Gravity.LEFT, 16 + i % 2 * 22, 22 + i / 2 * 22, 0, 0));
             }
-            RadioButton radio = new RadioButton(c); radio.setChecked(NebulaIcons.pack() == pack); radio.setClickable(false);
-            radio.setButtonTintList(android.content.res.ColorStateList.valueOf(NebulaTheme.of(c).primary()));
-            row.addView(radio, LayoutHelper.createFrame(40, 48, Gravity.RIGHT | Gravity.CENTER_VERTICAL, 0, 0, 8, 0));
+            boolean active = NebulaIcons.pack() == pack;
+            if (active) {
+                ImageView check = new ImageView(c); check.setImageResource(R.drawable.msg_check_s); check.setColorFilter(NebulaTheme.of(c).primary());
+                row.addView(check, LayoutHelper.createFrame(22, 22, Gravity.RIGHT | Gravity.CENTER_VERTICAL, 0, 0, 14, 0));
+                row.setBackground(Theme.createRoundRectDrawable(dp(16), NebulaTheme.stateLayer(NebulaTheme.of(c).primary(), .08f)));
+            }
+            row.setContentDescription(names[pack] + (active ? text(", выбрано", ", selected") : ""));
             row.setOnClickListener(v -> { NebulaIcons.setPack(selected); Theme.reloadAllResources(c); buildPacks(c); });
             card.add(row);
         }
         content.addView(card);
-        content.addView(NebulaMenuFragment.placeholder(c, text("Набор заменяет поддерживаемые значки. Эмодзи, анимации статуса файлов и стикеры сохраняют собственный вид.", "A pack replaces supported icons. Emoji, file status animations and stickers retain their own appearance.")));
+        content.addView(NebulaMenuFragment.placeholder(c, text("Выберите стиль значков приложения. Превью показывает каждый набор независимо от выбранного.", "Choose the app icon style. Each preview shows its own pack.")));
     }
     private TextView label(Context c, String value, int size, int color) {
         TextView v = new TextView(c); v.setText(value); v.setTextSize(size); v.setTextColor(color); return v;

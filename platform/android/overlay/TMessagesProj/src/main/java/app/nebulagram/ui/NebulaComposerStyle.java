@@ -105,6 +105,8 @@ public final class NebulaComposerStyle {
         this.attachment = attachment;
         this.aiButton = aiButton;
         this.expandButton = expandButton;
+        layoutAccessory(aiButton);
+        layoutAccessory(expandButton);
         if (emoji == null || attachment == null || !(emoji.getParent() instanceof ViewGroup)) return;
         if (attachment instanceof NebulaAttachmentButton) ((NebulaAttachmentButton) attachment).refreshStyle();
         if (active) {
@@ -124,6 +126,15 @@ public final class NebulaComposerStyle {
             if (botMenu != null && botMenu.getParent() == emoji.getParent()) restoreControl(botMenu);
             controlsMoved = false;
         }
+    }
+
+    private void layoutAccessory(View view) {
+        if (view == null || !(view.getParent() instanceof ViewGroup)) return;
+        ViewGroup parent = (ViewGroup) view.getParent();
+        ViewGroup.MarginLayoutParams params = (ViewGroup.MarginLayoutParams) view.getLayoutParams();
+        // Absolute position prevents drift over repeated multiline layouts.
+        int top = parent.getPaddingTop() + params.topMargin - AndroidUtilities.dp(active ? 8 : 0);
+        view.layout(view.getLeft(), top, view.getRight(), top + view.getMeasuredHeight());
     }
 
     private static void move(View view, int left) {

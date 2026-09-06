@@ -69,7 +69,7 @@ def main():
                     public String getKey(){return key;} public ThemeAccent getAccent(boolean create){return themeAccents.get(index);} }
                 public static ThemeInfo getActiveTheme(){return active;}
                 public static void saveThemeAccents(ThemeInfo info,boolean a,boolean b,boolean c,boolean d){}
-                public static void refreshThemeColors(){}
+                public static void refreshThemeColors(){app.nebulagram.ui.NebulaTheme.applyMaterialYou(org.telegram.messenger.ApplicationLoader.applicationContext);}
             }''')
         put('CheckTheme.java', '''import android.content.*;
             import app.nebulagram.ui.NebulaTheme;
@@ -88,7 +88,7 @@ def main():
                 }
                 static int checks;
                 static void eq(int actual,int expected){checks++;if(actual!=expected)throw new AssertionError(actual+" != "+expected);}
-                static void apply(Context c){android.os.SystemClock.now+=300;NebulaTheme.applyMaterialYou(c);}
+                static void apply(Context c){NebulaTheme.applyMaterialYou(c);}
                 public static void main(String[] args){
                     Context c=new Context(); Prefs p=new Prefs(); c.prefs=p; ApplicationLoader.applicationContext=c;
                     Theme.ThemeInfo day=new Theme.ThemeInfo("day",0xff1144aa,0xffbb2233);
@@ -114,7 +114,7 @@ def main():
                     }
                     p.putInt("accent_before_material_you",0xff229955); day.getAccent(false).accentColor=ContextCompat.wallpaper;
                     NebulaTheme.setMaterialYouEnabled(false); eq(day.getAccent(false).accentColor,0xff229955);
-                    // Rapid explicit toggles must bypass the automatic notification debounce.
+                    // Rapid toggles and consecutive startup themes must apply without a time delay.
                     NebulaTheme.setMaterialYouEnabled(true); NebulaTheme.applyMaterialYou(c);
                     eq(day.getAccent(false).accentColor,ContextCompat.wallpaper);
                     NebulaTheme.setMaterialYouEnabled(false); eq(day.getAccent(false).accentColor,0xff229955);

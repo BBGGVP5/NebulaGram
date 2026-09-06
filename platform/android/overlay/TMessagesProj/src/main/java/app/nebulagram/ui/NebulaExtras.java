@@ -24,10 +24,10 @@ public final class NebulaExtras {
                 .trailing(NebulaRow.TRAIL_CHEVRON).withClick(v -> f.presentFragment(new NebulaDesignFragment(false))));
         card.add(new NebulaRow(c).icon(R.drawable.nebula_cupertino_person).title(text("Закругление аватарок", "Avatar corners"))
                 .trailing(NebulaRow.TRAIL_CHEVRON).withClick(v -> f.presentFragment(new NebulaDesignFragment(true))));
-        card.add(toggle(c, R.drawable.nebula_cupertino_list, text("Центрировать заголовок на главной", "Center the home title"),
-                text("Название приложения или текущей папки", "App or current folder name"), NebulaAppearance.centerHome(), NebulaAppearance::setCenterHome));
+        card.add(toggle(c, R.drawable.nebula_cupertino_list, text("Центрировать заголовки", "Center titles"),
+                text("В настройках и развёрнутой шапке главной", "In settings and the expanded home header"), NebulaAppearance.centerHome(), NebulaAppearance::setCenterHome));
         card.add(toggle(c, R.drawable.nebula_cupertino_sliders, text("Анимации Liquid Glass", "Liquid Glass animations"),
-                text("Плавное раскрытие меню и изменение ширины шапки", "Fluid menus and title width changes"), NebulaAppearance.liquidAnimations(), NebulaAppearance::setLiquidAnimations));
+                text("Меню, шапка чата и пузырь нижней панели", "Menus, chat header and bottom bar bubble"), NebulaAppearance.liquidAnimations(), NebulaAppearance::setLiquidAnimations));
         content.addView(card);
     }
     public static void messages(BaseFragment f, LinearLayout content) {

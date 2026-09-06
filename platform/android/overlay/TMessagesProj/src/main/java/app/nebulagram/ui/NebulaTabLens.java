@@ -23,7 +23,8 @@ public final class NebulaTabLens {
             new int[]{0x66ffffff, 0x0affffff, 0x24ffffff}, new float[]{0, .55f, 1}, Shader.TileMode.CLAMP);
     private ValueAnimator animation;
     private boolean initialized;
-    private float stretch;
+    private float stretch, bubble;
+    private ValueAnimator pulse;
 
     public NebulaTabLens(View host) {
         this.host = host;
@@ -63,12 +64,15 @@ public final class NebulaTabLens {
     }
 
     public void drawDrag(Canvas canvas, float left, float top, float right, float bottom, int accent) {
-        reset();
-        draw.set(left, top, right, bottom);
+        if (animation != null) { animation.cancel(); animation = null; }
+        stretch = 0;
+        current.set(left, top, right, bottom); target.set(current); initialized = true;
+        draw.set(current);
         paint(canvas, draw, accent);
     }
 
     private void paint(Canvas canvas, RectF bounds, int accent) {
+        bounds.inset(-bounds.width() * bubble * .055f, bounds.height() * bubble * .075f);
         // Limit overshoot to the inside of the glass capsule, including compact bars.
         bounds.left = Math.max(host.getPaddingLeft(), bounds.left);
         bounds.right = Math.min(host.getWidth() - host.getPaddingRight(), bounds.right);
@@ -86,7 +90,22 @@ public final class NebulaTabLens {
         canvas.drawRoundRect(bounds, radius, radius, edge);
     }
 
+    public void pulse() {
+        if (pulse != null) pulse.cancel();
+        pulse = ValueAnimator.ofFloat(0, 1);
+        pulse.setDuration(420);
+        pulse.setInterpolator(new android.view.animation.LinearInterpolator());
+        pulse.addUpdateListener(a -> {
+            float t = (float) a.getAnimatedValue();
+            bubble = (float) (Math.sin(t * Math.PI * 2) * Math.exp(-3 * t));
+            host.invalidate();
+        });
+        pulse.start();
+    }
+
     public void reset() {
+        if (pulse != null) { pulse.cancel(); pulse = null; }
+        bubble = 0;
         if (animation != null) { animation.cancel(); animation = null; }
         initialized = false;
         stretch = 0;

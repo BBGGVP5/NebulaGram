@@ -11,6 +11,19 @@ stubs={
 public final java.util.Map<String,Object> values=new java.util.HashMap<>();
 public int getInt(String k,int d){return (Integer)values.getOrDefault(k,d);} public boolean getBoolean(String k,boolean d){return (Boolean)values.getOrDefault(k,d);} public String getString(String k,String d){return (String)values.getOrDefault(k,d);} public Editor edit(){return new Editor();}
 public class Editor {public Editor putInt(String k,int v){values.put(k,v);return this;} public Editor putBoolean(String k,boolean v){values.put(k,v);return this;}public Editor putString(String k,String v){values.put(k,v);return this;}public void apply(){}}}''',
+ 'android/graphics/drawable/Drawable.java': 'package android.graphics.drawable; public class Drawable {public final int id;public Drawable(int id){this.id=id;}}',
+'android/util/TypedValue.java': 'package android.util; public class TypedValue {public int resourceId;}',
+'android/content/res/Resources.java': """package android.content.res; public class Resources {
+public static class NotFoundException extends RuntimeException{} public static class Theme{}
+public Resources(Object a,Object b,Object c){} public Object getAssets(){return this;}public Object getDisplayMetrics(){return this;}public Object getConfiguration(){return this;}
+public void updateConfiguration(Object c,Object d){}
+public android.graphics.drawable.Drawable getDrawable(int id){return new android.graphics.drawable.Drawable(id);}
+public android.graphics.drawable.Drawable getDrawable(int id,Theme t){return getDrawable(id);}
+public android.graphics.drawable.Drawable getDrawableForDensity(int id,int d){return getDrawable(id);}
+public android.graphics.drawable.Drawable getDrawableForDensity(int id,int d,Theme t){return getDrawable(id);}
+public void getValue(int id,android.util.TypedValue out,boolean resolve){out.resourceId=id;}
+public void getValueForDensity(int id,int d,android.util.TypedValue out,boolean resolve){out.resourceId=id;}
+}""",
 'android/content/Context.java': '''package android.content; public class Context {public final SharedPreferences p=new SharedPreferences(); public SharedPreferences getSharedPreferences(String n,int m){return p;}}''',
 'org/telegram/messenger/ApplicationLoader.java': '''package org.telegram.messenger; public class ApplicationLoader {public static android.content.Context applicationContext=new android.content.Context();}''',
 'org/telegram/messenger/AndroidUtilities.java': '''package org.telegram.messenger; public class AndroidUtilities {public static int dp(float v){return (int)Math.ceil(v);}}''',
@@ -52,12 +65,23 @@ for(String name:new String[]{NAMES})try{
 }catch(ReflectiveOperationException e){throw new RuntimeException(e);}
 NebulaIcons.setEnabled(true);check(NebulaIcons.resource(R.drawable.msg_check_s)==R.drawable.msg_check_s,"delivery checks replaced");
 check(NebulaIcons.resource(-123)==-123,"unknown resource changed");
+android.content.res.Resources base=new android.content.res.Resources(null,null,null);
+android.content.res.Resources wrapped=new NebulaIconResources(new NebulaIconResources(base));
+for(int active=0;active<3;active++)for(int preview=0;preview<3;preview++) {
+ NebulaIcons.setPack(active);
+ for(int id:new int[]{R.drawable.msg_saved,R.drawable.msg_search,R.drawable.msg_calls,R.drawable.msg_sendfile}) {
+  int expected=NebulaIcons.previewResource(id,preview);
+  check(NebulaIconResources.originalDrawable(wrapped,expected).id==expected,"pack preview contaminated by active pack");
+  check(wrapped.getDrawable(id).id==NebulaIcons.resource(id),"normal icon substitution bypassed");
+ }
+}
+System.out.println("Icon previews passed: all 9 active/preview pack combinations through nested resource wrappers");
 System.out.println("Navigation passed: 16 legacy states, all hidden-tab combinations, compact width, and every icon mapping restored on disable");}}
 '''.replace('NAMES',','.join('"'+n+'"' for n in re.findall(r'ICONS.put\(R.drawable.(\w+)',icons)))
 }
 sources=[]
 for n,text in stubs.items():
  p=work/n;p.parent.mkdir(parents=True,exist_ok=True);p.write_text(text,encoding='utf-8');sources.append(str(p))
-sources += [str(overlay/n) for n in ['NebulaBottomBar.java','NebulaIcons.java']]
+sources += [str(overlay/n) for n in ['NebulaBottomBar.java','NebulaIcons.java','NebulaIconResources.java']]
 subprocess.run(['javac','-encoding','UTF-8','-d',str(work/'classes'),*sources],check=True)
 subprocess.run(['java','-cp',str(work/'classes'),'CheckNavigation'],check=True)

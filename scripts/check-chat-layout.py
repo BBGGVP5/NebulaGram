@@ -10,7 +10,7 @@ import subprocess
 root = Path(__file__).resolve().parent.parent
 work = root / 'build/chat-fixes/composer-check'
 stubs = {
-'app/nebulagram/ui/NebulaTheme.java': 'package app.nebulagram.ui; public class NebulaTheme {public static boolean materialYouEnabled(){return true;}}',
+'app/nebulagram/ui/NebulaTheme.java': 'package app.nebulagram.ui; public class NebulaTheme {public static boolean enabled=true;public static boolean materialYouEnabled(){return enabled;}}',
 
 'android/content/Context.java': 'package android.content; public class Context {}',
 'android/graphics/Canvas.java': 'package android.graphics; public class Canvas {}',
@@ -37,13 +37,13 @@ public void forceLayout(){} public void requestLayout(){} public void layout(int
 public int getWidth(){return r-l;} public int getHeight(){return b-t;} public int getMeasuredWidth(){return getWidth();} public int getMeasuredHeight(){return getHeight();}
 public int getLeft(){return l;} public int getRight(){return r;} public int getTop(){return t;} public int getBottom(){return b;}
 public float getX(){return l+tx;} public float getY(){return t+ty;} public int getScrollX(){return 0;} public int getScrollY(){return 0;}
-public int getPaddingLeft(){return 0;} public int getPaddingRight(){return 0;} public int getLayoutDirection(){return 0;}
+public int getPaddingTop(){return 0;} public int getPaddingLeft(){return 0;} public int getPaddingRight(){return 0;} public int getLayoutDirection(){return 0;}
 public void setAlpha(float a){alpha=a;} public float getAlpha(){return alpha;} public void setScaleX(float s){sx=s;} public void setScaleY(float s){sy=s;}
 public float getScaleX(){return sx;} public float getScaleY(){return sy;} public void setTranslationX(float x){tx=x;} public float getTranslationX(){return tx;} public void setTranslationY(float y){ty=y;}
 public int getVisibility(){return visibility;} public void setVisibility(int v){visibility=v;} public boolean dispatchTouchEvent(MotionEvent e){return true;}
 }''',
 'android/view/ViewGroup.java': '''package android.view; public class ViewGroup extends View {
-public static class MarginLayoutParams {public int width,height,leftMargin,rightMargin;} public void addView(View v){v.parent=this;}
+public static class MarginLayoutParams {public int width,height,leftMargin,rightMargin,topMargin;} public void addView(View v){v.parent=this;}
 }''',
 'android/widget/FrameLayout.java': 'package android.widget; public class FrameLayout extends android.view.ViewGroup {public static class LayoutParams extends MarginLayoutParams {public int gravity=3;}}',
 'android/widget/EditText.java': 'package android.widget; public class EditText extends android.view.View {}',
@@ -51,7 +51,7 @@ public static class MarginLayoutParams {public int width,height,leftMargin,right
 'org/telegram/messenger/AndroidUtilities.java': 'package org.telegram.messenger; public class AndroidUtilities {public static float density=1; public static int dp(float v){return (int)Math.ceil(v*density);}}',
 'app/nebulagram/ui/NebulaHeaderCounter.java': 'package app.nebulagram.ui; public class NebulaHeaderCounter {public static int backWidth(){return org.telegram.messenger.AndroidUtilities.dp(58);}}',
 'app/nebulagram/ui/NebulaAppearance.java': 'package app.nebulagram.ui; public class NebulaAppearance {public static boolean enabled=true; public static boolean iosComposer(){return enabled;} public static boolean chatHeader(){return enabled;} public static boolean adaptiveHeader(){return true;} public static boolean centeredHeader(){return true;} public static boolean folderTitle(){return enabled;}}',
-'org/telegram/ui/ActionBar/ActionBar.java': 'package org.telegram.ui.ActionBar; public class ActionBar {public SimpleTextView title=new SimpleTextView();public SimpleTextView getTitleTextView(){return title;} public SimpleTextView getTitleTextView2(){return null;} public void setTitleAnimated(CharSequence text,boolean bottom,long duration,Object interpolator){title.setText(text);} public void setTitle(CharSequence text,android.graphics.drawable.Drawable icon){title.setText(text);}public void setNebulaFloatingChatHeader(boolean a,boolean b,boolean c){}}',
+'org/telegram/ui/ActionBar/ActionBar.java': 'package org.telegram.ui.ActionBar; public class ActionBar {public SimpleTextView title=new SimpleTextView();public SimpleTextView getTitleTextView(){return title;} public SimpleTextView getTitleTextView2(){return null;} public void setTitleAnimated(CharSequence text,boolean bottom,long duration,Object interpolator){title.setText(text);} public void setTitle(CharSequence text,android.graphics.drawable.Drawable icon){title.setText(text);}public boolean floating,hidden,savedClassic;public void setNebulaClassicSavedHeader(boolean v){savedClassic=v;}public void setNebulaFloatingChatHeader(boolean a,boolean b,boolean c){floating=a;hidden=b;}}',
 'org/telegram/ui/ActionBar/ActionBarMenuItem.java': 'package org.telegram.ui.ActionBar; public class ActionBarMenuItem {public void setIcon(android.graphics.drawable.Drawable d){}}',
 'org/telegram/ui/Components/AvatarDrawable.java': 'package org.telegram.ui.Components; public class AvatarDrawable extends android.graphics.drawable.Drawable {public static int AVATAR_TYPE_SAVED=1;public void setAvatarType(int i){} public void draw(android.graphics.Canvas c){}}',
 'org/telegram/ui/Components/ChatActivityEnterView.java': 'package org.telegram.ui.Components; public class ChatActivityEnterView extends android.widget.FrameLayout {}',
@@ -79,7 +79,16 @@ import org.telegram.ui.Components.blur3.drawable.BlurredBackgroundDrawable;
 public class CheckChatLayout {
 static int dp(float v){return AndroidUtilities.dp(v);} static void check(boolean ok,String message){if(!ok)throw new AssertionError(message);}
 static <T extends View> T add(ViewGroup parent,T view,int l,int t,int r,int b){parent.addView(view);view.layout(l,t,r,b);return view;}
-public static void main(String[] args){int cases=0;for(boolean bot:new boolean[]{false,true})for(float density:new float[]{1,2.25f,3})for(int width:new int[]{320,360,448,800})for(int height:new int[]{44,92,140}){
+public static void main(String[] args){
+for(boolean material:new boolean[]{false,true})for(boolean normal:new boolean[]{false,true})for(boolean saved:new boolean[]{false,true}) {
+ app.nebulagram.ui.NebulaTheme.enabled=material;
+ org.telegram.ui.ActionBar.ActionBar bar=new org.telegram.ui.ActionBar.ActionBar();
+ NebulaChatStyle.header(bar,normal,saved);
+ check(bar.savedClassic==(material&&normal&&saved),"Saved Messages Material header gate");
+ check(bar.floating==(material&&normal&&!saved),"Saved Messages never uses floating header");
+}
+app.nebulagram.ui.NebulaTheme.enabled=true;
+int cases=0;for(boolean bot:new boolean[]{false,true})for(float density:new float[]{1,2.25f,3})for(int width:new int[]{320,360,448,800})for(int height:new int[]{44,92,140}){
 AndroidUtilities.density=density; NebulaAppearance.enabled=true; int w=dp(width),d=dp(44),margin=dp(7),h=dp(height);
 FrameLayout root=new FrameLayout();root.layout(0,0,w,dp(900));
 FrameLayout island=add(root,new FrameLayout(),0,dp(600),w,dp(800));island.setTranslationY(-dp(100));
@@ -94,7 +103,7 @@ NebulaAttachmentButton attach=add(parent,new NebulaAttachmentButton(new android.
 attach.setAlpha(0);attach.setScaleX(.5f);attach.setTranslationX(dp(20));
 View emoji=add(parent,new View(),0,parent.getHeight()-d,d,parent.getHeight());
 View ai=add(field,new View(),0,dp(1),d,dp(1)+d);View expand=add(field,new View(),field.getWidth()-d,dp(1),field.getWidth(),dp(1)+d);
-for(View button:new View[]{ai,expand}){button.setVisibility(height==140?View.VISIBLE:View.GONE);button.setAlpha(.5f);button.setScaleX(.8f);button.setScaleY(.8f);button.setTranslationY(dp(12));}
+for(View button:new View[]{ai,expand}){((FrameLayout.LayoutParams)button.getLayoutParams()).topMargin=dp(1);button.setVisibility(height==140?View.VISIBLE:View.GONE);button.setAlpha(.5f);button.setScaleX(.8f);button.setScaleY(.8f);button.setTranslationY(dp(12));}
 FrameLayout top=add(host,new FrameLayout(),0,0,host.getWidth(),dp(48));
 View preview=add(top,new View(),0,0,host.getWidth()-dp(52),dp(48)); View close=add(top,new View(),host.getWidth()-d,0,host.getWidth(),dp(46));
 top.setVisibility(height==92?View.VISIBLE:View.GONE);style.setPreview(preview,close);
@@ -130,9 +139,11 @@ Rect circle=bg.surfaces.get(i);check(circle.width()==Math.round(dp(32)*.8f)&&cir
 check(bg.alphas.get(i)==128,"utility circle lost native fade");
 float centerX=i==3?margin+d/2f:w-margin-d/2f;
 check(Math.abs((circle.left+circle.right)/2f-centerX)<=1,"AI/expand not above side buttons");
-check(Math.abs((circle.top+circle.bottom)/2f-(dp(500)+dp(1)+dp(12)+d/2f))<=1,"AI/expand translation lost");
+check(Math.abs((circle.top+circle.bottom)/2f-(dp(500)+dp(1)-dp(8)+dp(12)+d/2f))<=1,"AI/expand translation lost");
 }
 check(bg.getAlpha()==255,"utility fade leaked into input");
+int stableTop=ai.getTop();for(int repeat=0;repeat<20;repeat++)style.layout(emoji,attach,null,ai,expand);
+check(ai.getTop()==stableTop&&expand.getTop()==stableTop,"accessory gap accumulates across layouts");
 ai.setVisibility(View.GONE);expand.setAlpha(0);bg.surfaces.clear();bg.alphas.clear();
 style.draw(new Canvas(),bg,root);check(bg.surfaces.size()==3,"hidden AI/expand left background");
 }
@@ -140,6 +151,7 @@ int shortHeader=NebulaChatStyle.headerWidth(w,dp(120));int longHeader=NebulaChat
 check(shortHeader<=longHeader&&longHeader==w-dp(58)-dp(70),"dynamic header width");
 check((w-shortHeader)/2>=dp(64)-1,"header collides with back/avatar");
 style.restoreInsets();NebulaAppearance.enabled=false;style.prepare(host,editor,host.getWidth(),true);style.layout(emoji,attach,null,ai,expand);
+check(ai.getTop()==dp(1)&&expand.getTop()==dp(1),"accessory position not restored");
 check(attach.getAlpha()==0&&attach.getScaleX()==.5f&&attach.getTranslationX()==dp(20),"native attachment style not restored");
 check(params.leftMargin==dp(bot?97:50)&&params.rightMargin==dp(50),"input insets not restored");cases++;}
 org.telegram.ui.ActionBar.ActionBar bar1=new org.telegram.ui.ActionBar.ActionBar(),bar2=new org.telegram.ui.ActionBar.ActionBar();

@@ -1,0 +1,505 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
+@@ -602,6 +602,14 @@
+ 
+     private boolean isCenterTitle;
+ 
++    private boolean nebulaCenterTitle() {
++        if (!app.nebulagram.ui.NebulaAppearance.centerHome() || isSearchFieldVisible || getActionModeFactor() != 0) return false;
++        if (parentFragment instanceof org.telegram.ui.DialogsActivity) {
++            return ((org.telegram.ui.DialogsActivity) parentFragment).nebulaIsHeaderExpanded();
++        }
++        return !(parentFragment instanceof org.telegram.ui.ChatActivity);
++    }
++
+     public void centerTitle() {
+         isCenterTitle = true;
+         if (titleTextView != null) {
+@@ -1526,8 +1534,8 @@
+ 
+                 if (titleTextView[i] != null && titleTextView[i].getVisibility() != GONE) {
+                     int titleAvailableWidth = availableWidth;
+-                    if (parentFragment instanceof org.telegram.ui.DialogsActivity) {
+-                        boolean centerHome = app.nebulagram.ui.NebulaAppearance.centerHome() && !isSearchFieldVisible;
++                    if (!(parentFragment instanceof org.telegram.ui.ChatActivity)) {
++                        boolean centerHome = nebulaCenterTitle();
+                         titleTextView[i].setGravity(centerHome ? Gravity.CENTER_HORIZONTAL : (isCenterTitle ? Gravity.CENTER : Gravity.LEFT | Gravity.CENTER_VERTICAL));
+                         if (centerHome) {
+                             int end = menu != null && menu.getVisibility() != GONE ? menu.getMeasuredWidth() + dp(16) : dp(16);
+@@ -1621,7 +1629,7 @@
+                     }
+                 }
+                 int titleLeft = textLeft;
+-                if (parentFragment instanceof org.telegram.ui.DialogsActivity && app.nebulagram.ui.NebulaAppearance.centerHome() && !isSearchFieldVisible) {
++                if (nebulaCenterTitle()) {
+                     titleLeft = Math.max(textLeft, (getMeasuredWidth() - titleTextView[i].getMeasuredWidth()) / 2);
+                 }
+                 titleTextView[i].layout(titleLeft, additionalTop + textTop - titleTextView[i].getPaddingTop(), titleLeft + titleTextView[i].getMeasuredWidth(), additionalTop + textTop + titleTextView[i].getTextHeight() - titleTextView[i].getPaddingTop() + titleTextView[i].getPaddingBottom());
+@@ -2305,6 +2313,16 @@
+ 
+     private boolean nebulaChatMenuHidden;
+     private boolean nebulaSavedMessagesHeader;
++    private boolean nebulaClassicSavedHeader;
++    private final Paint nebulaHeaderShade = new Paint(Paint.ANTI_ALIAS_FLAG);
++    private int nebulaShadeHeight;
++
++    public void setNebulaClassicSavedHeader(boolean enabled) {
++        if (nebulaClassicSavedHeader != enabled) {
++            nebulaClassicSavedHeader = enabled;
++            invalidate();
++        }
++    }
+ 
+     private int nebulaObservedAccount = -1;
+     private final NotificationCenter.NotificationCenterDelegate nebulaUnreadObserver = (id, account, args) -> invalidate();
+@@ -2349,6 +2367,14 @@
+ 
+     @Override
+     protected void dispatchDraw(Canvas canvas) {
++        if ((nebulaFloatingChatHeader || nebulaClassicSavedHeader) && getActionModeFactor() == 0f && searchFactor == 0f) {
++            if (nebulaShadeHeight != getHeight()) {
++                nebulaShadeHeight = getHeight();
++                nebulaHeaderShade.setShader(new android.graphics.LinearGradient(0, 0, 0, Math.max(1, nebulaShadeHeight),
++                        new int[] {0x70000000, 0x35000000, 0x00000000}, new float[] {0, .45f, 1}, android.graphics.Shader.TileMode.CLAMP));
++            }
++            canvas.drawRect(0, 0, getWidth(), getHeight(), nebulaHeaderShade);
++        }
+         final int p = dp(6);
+         final int s = dp(46);
+ 
+@@ -2397,7 +2423,7 @@
+             }
+ 
+             glassDrawable.setBounds(left, t, right, b);
+-            if (!(nebulaFloatingChatHeader && !app.nebulagram.ui.NebulaAppearance.chatHeader() && actionModeFactor == 0f && searchFactor == 0f)) glassDrawable.draw(canvas);
++            if (!((nebulaClassicSavedHeader || nebulaFloatingChatHeader && !app.nebulagram.ui.NebulaAppearance.chatHeader()) && actionModeFactor == 0f && searchFactor == 0f)) glassDrawable.draw(canvas);
+         }
+         if (glassDrawableBack != null && hasBackButton) {
+             glassDrawableBack.setBounds(0, t, nebulaFloatingChatHeader ? app.nebulagram.ui.NebulaHeaderCounter.backWidth() : s + p * 2, b);
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
+@@ -3008,6 +3008,7 @@
+             .add(NotificationCenter.emojiLoaded)
+             .add(NotificationCenter.invalidateMotionBackground)
+             .add(NotificationCenter.didSetNewWallpapper)
++            .add(NotificationCenter.didSetNewTheme)
+             .add(NotificationCenter.didApplyNewTheme)
+             .add(NotificationCenter.goingToPreviewTheme);
+ 
+@@ -3149,6 +3150,7 @@
+         }
+ 
+ 
++        app.nebulagram.ui.NebulaTheme.applyMaterialYou(ApplicationLoader.applicationContext);
+         themeDelegate = parentThemeDelegate != null ? parentThemeDelegate : new ThemeDelegate();
+         if (themeDelegate.isThemeChangeAvailable(false)) {
+             globalObserversGroup.add(NotificationCenter.needSetDayNightTheme);
+@@ -4283,7 +4285,7 @@
+ 
+         if (chatMode == 0 && (threadMessageId == 0 || isTopic) && !UserObject.isReplyUser(currentUser) && !isReport()) {
+             TLRPC.UserFull userFull = null;
+-            if (currentUser != null) {
++            if (currentUser != null && !app.nebulagram.ui.NebulaTheme.materialYouEnabled()) {
+                 audioCallIconItem = menu.lazilyAddItem(call, R.drawable.call, themeDelegate);
+                 audioCallIconItem.setContentDescription(LocaleController.getString(R.string.Call));
+                 userFull = getMessagesController().getUserFull(currentUser.id);
+@@ -4610,6 +4612,7 @@
+         if (chatMode == 0 && !isComments) {
+             actionBar.setNebulaChatAvatarContainer(avatarContainer);
+         }
++        nebulaRefreshPalette();
+         actionBar.nebulaHeaderAccount = currentAccount;
+         actionBar.invalidate();
+         app.nebulagram.ui.NebulaChatStyle.header(actionBar,
+@@ -18322,6 +18325,7 @@
+                 }*/ else {
+                     showSearchAsIcon = false;
+                 }
++                if (app.nebulagram.ui.NebulaTheme.materialYouEnabled()) showSearchAsIcon = false;
+                 if (showSearchAsIcon || showAudioCallAsIcon || UserObject.isBotForumWithEditableTopics(currentUser)) {
+                     if (avatarContainer != null && avatarContainer.getLayoutParams() != null) {
+                         ((ViewGroup.MarginLayoutParams) avatarContainer.getLayoutParams()).rightMargin = AndroidUtilities.dp(chatMode == MODE_SAVED ? 52 : 92);
+@@ -20555,6 +20559,10 @@
+ 
+     @Override
+     public void didReceivedNotification(int id, int account, final Object... args) {
++        if (id == NotificationCenter.didSetNewTheme) {
++            nebulaRefreshPalette();
++            return;
++        }
+         if (id == NotificationCenter.messagesDidLoad) {
+             didReceivedNotification_messagesDidLoad(id, account, args);
+         } else {
+@@ -29829,11 +29837,33 @@
+         }
+     }
+ 
++    private boolean nebulaRefreshingPalette;
++
++    private void nebulaRefreshPalette() {
++        if (!app.nebulagram.ui.NebulaTheme.materialYouEnabled() || nebulaRefreshingPalette
++                || fragmentView == null || themeDelegate == null || themeDelegate.chatTheme != null
++                || forceDisallowRedrawThemeDescriptions || isPauseOnThemePreview) return;
++        nebulaRefreshingPalette = true;
++        try {
++            ArrayList<ThemeDescription> descriptions = getThemeDescriptions();
++            if (descriptions == null) return;
++            for (ThemeDescription description : descriptions) {
++                description.setColor(Theme.getColor(description.getCurrentKey(), description.resourcesProvider), false, false);
++            }
++            updateBackground();
++            if (chatListView != null) chatListView.invalidateViews();
++            fragmentView.invalidate();
++        } finally {
++            nebulaRefreshingPalette = false;
++        }
++    }
++
+     Bulletin.Delegate bulletinDelegate;
+ 
+     @Override
+     public void onResume() {
+         super.onResume();
++        nebulaRefreshPalette();
+         actionBar.nebulaHeaderAccount = currentAccount;
+         actionBar.invalidate();
+         app.nebulagram.ui.NebulaChatStyle.header(actionBar,
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
+@@ -867,7 +867,7 @@
+                 h += storiesHeight * (1f - searchAnimationProgress) * (1f - rightSlidingProgress) * (1f - progressToActionMode);
+             }
+             h += storiesOverscroll;
+-            h += dp(SEARCH_FIELD_HEIGHT) * (1f - progressToActionMode) * (1f - searchAnimationProgress) * (1f - rightSlidingProgress);
++            h += dp(nebulaSearchSlotHeight()) * (1f - progressToActionMode) * (1f - searchAnimationProgress) * (1f - rightSlidingProgress);
+ 
+             return (int) h;
+         }
+@@ -1045,8 +1045,8 @@
+             tabsYOffset = 0;
+             storiesYOffset = 0;
+             tabsYOffset -= Math.min(
+-                dp(hasStories ? DialogStoriesCell.HEIGHT_IN_DP : 0) + dp(SEARCH_FIELD_HEIGHT) + scrollYOffset,
+-                progressToActionMode * (dp(hasStories ? DialogStoriesCell.HEIGHT_IN_DP : 0) + dp(SEARCH_FIELD_HEIGHT))
++                dp(hasStories ? DialogStoriesCell.HEIGHT_IN_DP : 0) + dp(nebulaSearchSlotHeight()) + scrollYOffset,
++                progressToActionMode * (dp(hasStories ? DialogStoriesCell.HEIGHT_IN_DP : 0) + dp(nebulaSearchSlotHeight()))
+             );
+             storiesYOffset = tabsYOffset;
+             if ((rightSlidingDialogContainer != null && rightSlidingDialogContainer.hasFragment())) {
+@@ -1072,7 +1072,7 @@
+                 if (hasStories) {
+                     addH += dp(DialogStoriesCell.HEIGHT_IN_DP);
+                 }
+-                addH += dp(SEARCH_FIELD_HEIGHT);
++                addH += dp(nebulaSearchSlotHeight());
+                 addH *= rightSlidingDialogContainer.openedProgress;
+ 
+                 viewPages[0].setTranslationY(rightFragmentOffset - addH);
+@@ -1080,7 +1080,7 @@
+                 if (fragmentSearchField != null) {
+                     fragmentSearchField.setTranslationY(lerp(
+                         scrollYOffset + tabsYOffset + storiesOverscroll - dp(4),
+-                        -dp(SEARCH_FIELD_HEIGHT + (hasStories ? DialogStoriesCell.HEIGHT_IN_DP : 0)),
++                        -dp(nebulaSearchSlotHeight() + (hasStories ? DialogStoriesCell.HEIGHT_IN_DP : 0)),
+                         searchAnimationProgress
+                     ));
+                 }
+@@ -1171,7 +1171,7 @@
+                         if (hasStories) {
+                             h += dp(DialogStoriesCell.HEIGHT_IN_DP);
+                         }
+-                        h += dp(SEARCH_FIELD_HEIGHT);
++                        h += dp(nebulaSearchSlotHeight());
+                     }
+                     h += actionModeAdditionalHeight;
+                     if (actionBarColorAnimator == null) {
+@@ -1285,10 +1285,10 @@
+                 if (child == fragmentSearchField || child == searchTabsAndFiltersLayout || child == dialogStoriesCell) {
+                     childTop = actionBar.getMeasuredHeight();
+                     if (child != fragmentSearchField && child != dialogStoriesCell && child != searchTabsAndFiltersLayout) {
+-                        childTop += dp(SEARCH_FIELD_HEIGHT);
++                        childTop += dp(nebulaSearchSlotHeight());
+                     }
+                     //if (rightSlidingDialogContainer != null && rightSlidingDialogContainer.hasFragment() && (child == searchTabsView || child == filtersView)) {
+-                    //    childTop -= dp(SEARCH_FIELD_HEIGHT);
++                    //    childTop -= dp(nebulaSearchSlotHeight());
+                     //}
+                     if (hasStories && child == fragmentSearchField) {
+                         childTop += dp(DialogStoriesCell.HEIGHT_IN_DP);
+@@ -1310,7 +1310,7 @@
+                     childTop = 0;
+                 } else if (child == topPanelLayout || child == topBubblesFadeView || child == filterTabsView) {
+                     childTop += actionBar.getMeasuredHeight();
+-                    childTop += dp(SEARCH_FIELD_HEIGHT);
++                    childTop += dp(nebulaSearchSlotHeight());
+                 } else if (dialogStoriesCell != null && dialogStoriesCell.getPremiumHint() == child) {
+                     continue;
+                 }
+@@ -2070,7 +2070,7 @@
+                 t += dp(DialogStoriesCell.HEIGHT_IN_DP);
+             }
+             if (!actionModeFullyShowed) {
+-                t += dp(SEARCH_FIELD_HEIGHT);
++                t += dp(nebulaSearchSlotHeight());
+             }
+             additionalPadding = 0;
+ 
+@@ -2381,7 +2381,7 @@
+                         offset += dp(DialogStoriesCell.HEIGHT_IN_DP);
+                     }
+                     if (backward) {
+-                        offset += dp(SEARCH_FIELD_HEIGHT);
++                        offset += dp(nebulaSearchSlotHeight());
+                         // offset += canShowFilterTabsView ? dp(50) : 0;
+                     }
+                     if (p >= 0) {
+@@ -4217,13 +4217,13 @@
+                                 }
+                                 int canScrollDy = -(view.getTop() - pTop) + viewsH;
+                                 if (!rightSlidingDialogContainer.hasFragment() && !(actionBar != null && actionBar.isActionModeShowed())) {
+-                                    canScrollDy -= dp(SEARCH_FIELD_HEIGHT);
++                                    canScrollDy -= dp(nebulaSearchSlotHeight());
+                                 }
+                                 if (hasStories && (viewPage.scroller.isRunning() || dialogStoriesCell.isExpanded()) && !rightSlidingDialogContainer.hasFragment() && !fixScrollYAfterArchiveOpened) {
+                                     canScrollDy += dp(DialogStoriesCell.HEIGHT_IN_DP);
+                                 }
+                                 if ((viewPage.scroller.isRunning() || dialogStoriesCell.isExpanded()) && !rightSlidingDialogContainer.hasFragment() && !fixScrollYAfterArchiveOpened && !(actionBar != null && actionBar.isActionModeShowed())) {
+-                                    canScrollDy += dp(SEARCH_FIELD_HEIGHT);
++                                    canScrollDy += dp(nebulaSearchSlotHeight());
+                                 }
+                                 int positiveDy = Math.abs(dy);
+                                 if (canScrollDy < positiveDy) {
+@@ -4586,7 +4586,7 @@
+                         if (applyScrollY) {
+                             int maxScrollYOffset = getMaxScrollYOffset();
+                             if (!(filterTabsView != null && filterTabsView.getVisibility() == View.VISIBLE && animatorFilterTabsVisible.getValue())) {
+-                                maxScrollYOffset = dp(SEARCH_FIELD_HEIGHT);
++                                maxScrollYOffset = dp(nebulaSearchSlotHeight());
+                             }
+                             if (newTranslation < -maxScrollYOffset) {
+                                 newTranslation = -maxScrollYOffset;
+@@ -5721,7 +5721,7 @@
+                 }
+ 
+                 if (actionBarHeightNoSearch < scrollY && scrollY < actionBarHeight) {
+-                    int h = dp(SEARCH_FIELD_HEIGHT);
++                    int h = dp(nebulaSearchSlotHeight());
+                     int s = scrollY - actionBarHeightNoSearch;
+                     if (s < h / 2) {
+                         viewPage.scroller.smoothScrollBy(-s);
+@@ -5759,9 +5759,9 @@
+ 
+     private int getMaxScrollYOffset() {
+         if (hasStories) {
+-            return dp(DialogStoriesCell.HEIGHT_IN_DP) + dp(SEARCH_FIELD_HEIGHT);
++            return dp(DialogStoriesCell.HEIGHT_IN_DP) + dp(nebulaSearchSlotHeight());
+         } else {
+-            return dp(SEARCH_FIELD_HEIGHT);
++            return dp(nebulaSearchSlotHeight());
+         }
+     }
+ 
+@@ -7054,6 +7054,11 @@
+     @Override
+     public void onResume() {
+         super.onResume();
++        checkUi_searchFieldVisibility();
++        if (fragmentView != null) {
++            setScrollY(Math.max(scrollYOffset, -getMaxScrollYOffset()));
++            fragmentView.requestLayout();
++        }
+         checkUi_menuItems();
+         if (statusDrawable != null) {
+             int selectedType = filterTabsView == null
+@@ -7233,7 +7238,7 @@
+                     (filterTabsView != null && filterTabsView.getVisibility() == View.VISIBLE ? filterTabsView.getMeasuredHeight() : 0) +
+                     (topPanelLayout != null ? topPanelLayout.getHeight() : 0) +
+                     (dialogStoriesCell != null && dialogStoriesCellVisible ? (int) ((1f - dialogStoriesCell.getCollapsedProgress()) * dp(DialogStoriesCell.HEIGHT_IN_DP)) : 0) +
+-                    (dp(SEARCH_FIELD_HEIGHT))
++                    (dp(nebulaSearchSlotHeight()))
+                 );
+             }
+ 
+@@ -7612,7 +7617,7 @@
+             if (searchViewPager != null) {
+                 animators.add(ObjectAnimator.ofFloat(searchViewPager, View.ALPHA, show ? 1.0f : 0.0f));
+                 if (hasStories) {
+-                    float translationY = dp(DialogStoriesCell.HEIGHT_IN_DP) + scrollYOffset + dp(SEARCH_FIELD_HEIGHT);
++                    float translationY = dp(DialogStoriesCell.HEIGHT_IN_DP) + scrollYOffset + dp(nebulaSearchSlotHeight());
+                     animators.add(ObjectAnimator.ofFloat(searchViewPager, SEARCH_TRANSLATION_Y, show ? translationY : 0, show ? 0 : translationY));
+                 }
+                 if (!budget) {
+@@ -8971,6 +8976,10 @@
+         }, 300);
+     }
+ 
++    public boolean nebulaIsHeaderExpanded() {
++        return scrollYOffset >= -dp(2) && !searching;
++    }
++
+     private void setScrollY(float value) {
+         if (viewPages != null) {
+             int glowOffset = viewPages[0].listView.getPaddingTop() + (int) value;
+@@ -8981,7 +8990,9 @@
+         if (fragmentView == null || value == scrollYOffset) {
+             return;
+         }
++        boolean wasExpanded = nebulaIsHeaderExpanded();
+         scrollYOffset = value;
++        if (actionBar != null && wasExpanded != nebulaIsHeaderExpanded()) actionBar.requestLayout();
+         if (topBulletin != null) {
+             topBulletin.updatePosition();
+         }
+@@ -9092,7 +9103,7 @@
+                 viewPages[i].listView.cancelClickRunnables(true);
+             }
+         }
+-        translateListHeight = Math.max(0, dp((hasStories ? DialogStoriesCell.HEIGHT_IN_DP : 0) + SEARCH_FIELD_HEIGHT) + scrollYOffset);
++        translateListHeight = Math.max(0, dp((hasStories ? DialogStoriesCell.HEIGHT_IN_DP : 0) + nebulaSearchSlotHeight()) + scrollYOffset);
+         float finalTranslateListHeight = translateListHeight;
+         actionBarColorAnimator = ValueAnimator.ofFloat(progressToActionMode, 0);
+         actionBarColorAnimator.addUpdateListener(valueAnimator -> {
+@@ -9118,7 +9129,7 @@
+                 invalidateScrollY = true;
+                 fixScrollYAfterArchiveOpened = true;
+                 fragmentView.invalidate();
+-                scrollAdditionalOffset = -(dp((hasStories ? DialogStoriesCell.HEIGHT_IN_DP : 0) + SEARCH_FIELD_HEIGHT) - finalTranslateListHeight);
++                scrollAdditionalOffset = -(dp((hasStories ? DialogStoriesCell.HEIGHT_IN_DP : 0) + nebulaSearchSlotHeight()) - finalTranslateListHeight);
+                 viewPages[0].setTranslationY(0);
+                 for (int i = 0; i < viewPages.length; i++) {
+                     if (viewPages[i] != null) {
+@@ -10106,7 +10117,7 @@
+                     viewPages[i].listView.cancelClickRunnables(true);
+                 }
+             }
+-            translateListHeight = Math.max(0, dp((hasStories ? DialogStoriesCell.HEIGHT_IN_DP : 0) + SEARCH_FIELD_HEIGHT) + scrollYOffset);
++            translateListHeight = Math.max(0, dp((hasStories ? DialogStoriesCell.HEIGHT_IN_DP : 0) + nebulaSearchSlotHeight()) + scrollYOffset);
+             if (translateListHeight != 0) {
+                 actionModeAdditionalHeight = (int) translateListHeight;
+                 fragmentView.requestLayout();
+@@ -10133,7 +10144,7 @@
+                     actionBarColorAnimator = null;
+                     actionModeAdditionalHeight = 0;
+                     actionModeFullyShowed = true;
+-                    scrollAdditionalOffset = dp((hasStories ? DialogStoriesCell.HEIGHT_IN_DP : 0) + SEARCH_FIELD_HEIGHT) - finalTranslateListHeight;
++                    scrollAdditionalOffset = dp((hasStories ? DialogStoriesCell.HEIGHT_IN_DP : 0) + nebulaSearchSlotHeight()) - finalTranslateListHeight;
+                     viewPages[0].setTranslationY(0);
+                     for (int i = 0; i < viewPages.length; i++) {
+                         if (viewPages[i] != null) {
+@@ -14099,7 +14110,7 @@
+         final float actionModeVisible = Math.max(progressToActionMode, animatorActionModeVisible.getFloatValue());
+         final float searchFieldVisible = animatorSearchVisible.getFloatValue();
+ 
+-        final float factor0 = isSupportSearch() && !app.nebulagram.ui.NebulaAppearance.hideSearchField() ? 1 : 0;
++        final float factor0 = isSupportSearch() && (!app.nebulagram.ui.NebulaAppearance.hideSearchField() || searchFieldVisible > 0) ? 1 : 0;
+         final float factor1 = (1f - actionModeVisible) * (1f - animatorDoneButtonVisible.getFloatValue());
+         final float factor2 = Math.max(searchFieldVisible, alphaByScrollOffset * (1f - getRightSlidingProgress()));
+ 
+@@ -14190,6 +14201,10 @@
+         }
+     }
+ 
++    private int nebulaSearchSlotHeight() {
++        return app.nebulagram.ui.NebulaAppearance.hideSearchField() ? 0 : SEARCH_FIELD_HEIGHT;
++    }
++
+     private boolean isSupportSearch() {
+         return initialDialogsType != DIALOGS_TYPE_ADD_USERS_TO;
+     }
+@@ -14232,7 +14247,7 @@
+         final int mainTabTop = mainTabBottom - dp(DialogsActivity.MAIN_TABS_HEIGHT);
+ 
+         final int actionBarHeight = actionBar.getMeasuredHeight()
+-            + dp(DialogsActivity.SEARCH_FIELD_HEIGHT)
++            + dp(nebulaSearchSlotHeight())
+             + dp(hasStories ? DialogStoriesCell.HEIGHT_IN_DP : 0)
+             + (filterTabsView != null && filterTabsView.getVisibility() == View.VISIBLE ? filterTabsView.getMeasuredHeight() : 0)
+             + (topPanelLayout != null && topPanelLayout.getVisibility() == View.VISIBLE ? topPanelLayout.getSumHeightOfAllVisibleChild() : 0)
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/LaunchActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/LaunchActivity.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/LaunchActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/LaunchActivity.java
+@@ -555,6 +555,7 @@
+             }
+         });
+         actionBarLayout.setDelegate(this);
++        app.nebulagram.ui.NebulaTheme.applyMaterialYou(this);
+         Theme.loadWallpaper(true);
+ 
+         checkCurrentAccount();
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/MainTabsLayout.java b/TMessagesProj/src/main/java/org/telegram/ui/MainTabsLayout.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/MainTabsLayout.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/MainTabsLayout.java
+@@ -435,7 +435,7 @@
+                 animatedLongSelectedViewCenterX = selected.getX() + selected.getWidth() / 2f;
+                 animatedLongSelectedViewOffsetX = animatedLongSelectedViewCenterX - x;
+                 selectedTabPositionOffsetX.animateToFinalPosition(0);
+-                if (selected != found && found != null) {
++                if (selected != found && found != null && !nebulaDragging) {
+                     found.performClick();
+                 }
+             }
+@@ -636,10 +636,60 @@
+         view.setPivotY(pivotY);
+     }
+ 
++    private float nebulaTouchX, nebulaTouchY;
++    private boolean nebulaDragging;
++    private View nebulaDragOrigin;
++
+     @Override
+     public boolean dispatchTouchEvent(MotionEvent ev) {
++        int action = ev.getActionMasked();
++        if (action == MotionEvent.ACTION_DOWN) {
++            nebulaTouchX = ev.getX(); nebulaTouchY = ev.getY(); nebulaDragging = false;
++            nebulaDragOrigin = findSelectedTab();
++            // The pager must not steal a drag that started on its navigation bar.
++            if (getParent() != null) getParent().requestDisallowInterceptTouchEvent(true);
++        }
++        float dx = ev.getX() - nebulaTouchX, dy = ev.getY() - nebulaTouchY;
++        int slop = android.view.ViewConfiguration.get(getContext()).getScaledTouchSlop();
++        if (action == MotionEvent.ACTION_MOVE && !isInLongPress && !nebulaDragging
++                && Math.abs(dx) > slop && Math.abs(dx) > Math.abs(dy) * 1.2f) {
++            MotionEvent cancel = MotionEvent.obtain(ev); cancel.setAction(MotionEvent.ACTION_CANCEL);
++            clickHelper.onTouchEvent(this, cancel);
++            super.dispatchTouchEvent(cancel); cancel.recycle();
++            nebulaDragging = true;
++            AndroidUtilities.cancelRunOnUIThread(restoreDrawSelector);
++            setSkipDrawSelector(true);
++            animatorIsScaled.setValue(true, app.nebulagram.ui.NebulaAppearance.liquidAnimations());
++            checkLongMove(ev.getX(), ev.getY(), true, false);
++        }
++        if (nebulaDragging) {
++            if (action == MotionEvent.ACTION_MOVE) {
++                checkLongMove(ev.getX(), ev.getY(), false, false);
++            } else if (action == MotionEvent.ACTION_UP || action == MotionEvent.ACTION_CANCEL) {
++                if (action == MotionEvent.ACTION_UP) {
++                    checkLongMove(ev.getX(), ev.getY(), false, true);
++                    if (lastLongSelectedView != null) lastLongSelectedView.performClick();
++                } else if (nebulaDragOrigin != null) {
++                    setTabSelected(nebulaDragOrigin, false);
++                }
++                lastLongSelectedView = null; nebulaDragging = false;
++                setSkipDrawSelector(false);
++                animatorIsScaled.setValue(false, app.nebulagram.ui.NebulaAppearance.liquidAnimations());
++                if (action == MotionEvent.ACTION_UP && app.nebulagram.ui.NebulaAppearance.liquidAnimations()) nebulaLens.pulse();
++                if (getParent() != null) getParent().requestDisallowInterceptTouchEvent(false);
++            }
++            invalidate();
++            return true;
++        }
++        boolean wasLongPress = isInLongPress;
+         clickHelper.onTouchEvent(this, ev);
+-        return super.dispatchTouchEvent(ev);
++        boolean handled = super.dispatchTouchEvent(ev);
++        if (action == MotionEvent.ACTION_UP || action == MotionEvent.ACTION_CANCEL) {
++            if (action == MotionEvent.ACTION_UP && !wasLongPress && Math.abs(dx) < slop && Math.abs(dy) < slop
++                    && app.nebulagram.ui.NebulaAppearance.liquidAnimations()) nebulaLens.pulse();
++            if (getParent() != null) getParent().requestDisallowInterceptTouchEvent(false);
++        }
++        return handled;
+     }
+ 
+ 

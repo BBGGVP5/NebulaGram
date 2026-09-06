@@ -26,6 +26,7 @@ public final class NebulaAiSecrets {
         if (provider < 0 || provider > 3) throw new IllegalArgumentException();
         return new AtomicFile(new File(ApplicationLoader.applicationContext.getNoBackupFilesDir(), "ai-key-" + provider));
     }
+    public static boolean exists(int provider) { return file(provider).getBaseFile().exists(); }
     public static synchronized void save(int provider, String value) throws Exception {
         AtomicFile file = file(provider);
         if (value.isEmpty()) { file.delete(); return; }

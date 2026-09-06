@@ -57,11 +57,11 @@
     <string name="NebulaSubAdded">Подписка добавлена</string>
     <string name="NebulaSubRemoved">Подписка удалена</string>
     <string name="NebulaSectionChats">Чаты</string>
-    <string name="NebulaSectionAbout">О программе</string>
+    <string name="NebulaSectionAbout">О NebulaGram</string>
     <string name="NebulaAppearanceSub">Цвета, иконки, тумблеры и аватарки</string>
     <string name="NebulaChatsSub">Шапка чата и поле ввода</string>
     <string name="NebulaPanelSub">Порядок, видимость и оформление вкладок</string>
-    <string name="NebulaAboutSub">Версии компонентов</string>
+    <string name="NebulaAboutSub">Версия, обновления и ссылки</string>
     <string name="NebulaChatHeaderSection">Шапка чата</string>
     <string name="NebulaComposerSection">Поле ввода</string>
     <string name="NebulaHideCameraTitle">Скрыть живую камеру</string>

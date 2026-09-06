@@ -151,17 +151,17 @@ public class NebulaSwitch extends View {
         float density = AndroidUtilities.dpf2(1);
         canvas.save();
         canvas.scale(density, density);
-        float h = style == 1 ? 30 : style == 2 ? 24 : 14;
-        float w = style == 1 ? 50 : style == 2 ? 46 : 40;
+        float h = style == 1 ? 32 : style == 2 ? 28 : 18;
+        float w = style == 3 ? 44 : 52;
         float x = (52 - w) / 2, y = (32 - h) / 2;
         paint.setStyle(Paint.Style.FILL);
         paint.setColor(blend(NebulaTheme.stateLayer(theme.onSurfaceVariant(), .32f),
                 style == 3 ? NebulaTheme.stateLayer(theme.primary(), .5f) : theme.primary(), progress));
         track.set(x, y, x + w, y + h);
         canvas.drawRoundRect(track, h / 2, h / 2, paint);
-        float radius = style == 1 ? 13 : style == 2 ? 10 : 10;
-        float from = style == 3 ? x + 2 : x + h / 2;
-        float to = style == 3 ? x + w - 2 : x + w - h / 2;
+        float radius = style == 1 ? 14 : style == 2 ? 12 : 14;
+        float from = radius + 1;
+        float to = 52 - radius - 1;
         float position = getLayoutDirection() == LAYOUT_DIRECTION_RTL ? 1 - progress : progress;
         float cx = from + (to - from) * position;
         paint.setColor(NebulaTheme.stateLayer(0xff000000, .12f));
