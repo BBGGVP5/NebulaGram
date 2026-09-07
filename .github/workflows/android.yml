@@ -116,6 +116,8 @@ jobs:
         run: |
           python3 scripts/check-chat-layout.py
           python3 scripts/check-navigation.py
+          python3 scripts/check-tab-release.py vendor/telegram-android
+          python3 scripts/check-menu-colors.py
           python3 scripts/check-folder-animation.py
           python3 scripts/check-folder-title-timing.py vendor/telegram-android
           python3 scripts/check-appearance-controls.py vendor/telegram-android

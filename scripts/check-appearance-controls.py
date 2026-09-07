@@ -15,8 +15,9 @@ public static void main(String[] args) {
  for(float menu:new float[]{60,100,180,300,700}) {
   float boundedMenu=Math.min(menu,screen-160);
   var layout=NebulaMessageMenuLayout.calculate(source,message,32,screen-16,boundedMenu,8);
-  if(layout.top<31.99 || layout.scale<=0 || layout.scale>1 || layout.menuTop+boundedMenu>screen-15.99
-    || Math.abs(layout.menuTop-layout.top-message*layout.scale-8)>.01)
+  if(layout.top<31.99 || layout.scale<.8999 || layout.scale>1 || layout.menuTop+boundedMenu>screen-15.99
+    || layout.visibleHeight>message*layout.scale+.01 || layout.visibleHeight<=0
+    || Math.abs(layout.menuTop-layout.top-layout.visibleHeight-8)>.01)
       throw new AssertionError("message/menu overlap or off-screen menu");
   tested++;
  }

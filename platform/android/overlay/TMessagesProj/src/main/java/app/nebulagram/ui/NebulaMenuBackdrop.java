@@ -34,6 +34,7 @@ public final class NebulaMenuBackdrop {
         BlurredBackgroundDrawable material = factory.create(popup, true)
                 .setColorProvider(NebulaMenuStyle.provider(provider)).setRadius(NebulaMenuStyle.radius())
                 .setPadding(AndroidUtilities.dp(8)).setHasPadding(true);
+        material.setThickness(AndroidUtilities.dp(5)); material.setIntensity(.22f);
         popup.setBackground(material);
         int[] origin = new int[2], position = new int[2];
         ViewTreeObserver.OnPreDrawListener capture = () -> {

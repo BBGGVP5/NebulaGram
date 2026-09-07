@@ -18,7 +18,7 @@ public final class NebulaChatStyle {
     public static int headerWidth(int barWidth, int textWidth) {
         if (!NebulaAppearance.chatHeader()) return Math.max(0, barWidth - NebulaHeaderCounter.backWidth() - AndroidUtilities.dp(58));
         if (!NebulaAppearance.adaptiveHeader()) return Math.max(0, barWidth - NebulaHeaderCounter.backWidth() - AndroidUtilities.dp(70));
-        return Math.max(0, Math.min(Math.max(AndroidUtilities.dp(112), textWidth + AndroidUtilities.dp(40)),
+        return Math.max(0, Math.min(Math.max(AndroidUtilities.dp(144), textWidth + AndroidUtilities.dp(52)),
                 barWidth - NebulaHeaderCounter.backWidth() - AndroidUtilities.dp(70)));
     }
 
