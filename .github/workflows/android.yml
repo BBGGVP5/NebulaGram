@@ -1,5 +1,4 @@
 name: Сборка Android
-run-name: Сборка Android №${{ github.run_number }} — ${{ github.actor }}
 
 # Builds the NebulaGram APK: Go core -> AAR, overlay + patches onto the pinned
 # Telegram tree, credentials injected from secrets, then Gradle.
