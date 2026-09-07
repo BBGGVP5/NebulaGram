@@ -1,4 +1,5 @@
-name: android
+name: Сборка Android
+run-name: Сборка Android №${{ github.run_number }} — ${{ github.actor }}
 
 # Builds the NebulaGram APK: Go core -> AAR, overlay + patches onto the pinned
 # Telegram tree, credentials injected from secrets, then Gradle.
@@ -38,12 +39,14 @@ env:
 
 jobs:
   apk:
+    name: Сборка APK
     runs-on: ubuntu-latest
     timeout-minutes: 120
     steps:
-      - uses: actions/checkout@v4
+      - name: Загрузка репозитория
+        uses: actions/checkout@v4
 
-      - name: Check the credentials are configured
+      - name: Проверка настроек доступа
         env:
           APP_ID: ${{ secrets.TELEGRAM_APP_ID }}
         run: |
@@ -52,7 +55,7 @@ jobs:
             exit 1
           fi
 
-      - name: Choose the architectures
+      - name: Выбор архитектур
         run: |
           # Нативная часть — ffmpeg, webrtc, dav1d, opus — собирается заново под
           # каждую архитектуру и занимает больше половины времени сборки. На
@@ -67,10 +70,10 @@ jobs:
             echo "NEBULA_KIND=arm64-v8a" >> "$GITHUB_ENV"
           fi
 
-      - name: Set the NebulaGram version
+      - name: Настройка версии NebulaGram
         run: python3 scripts/android-version.py prepare --run-number "$GITHUB_RUN_NUMBER" --github-env "$GITHUB_ENV"
 
-      - name: Fetch the pinned upstream
+      - name: Загрузка исходников Telegram
         run: |
           git submodule update --init --depth 1 vendor/telegram-android
           # Telegram carries ten submodules of its own — ffmpeg, libvpx, dav1d,
@@ -78,36 +81,39 @@ jobs:
           # Gradle configuration need every one of them present.
           git -C vendor/telegram-android submodule update --init --depth 1 --recursive
 
-      - uses: actions/setup-go@v5
+      - name: Установка Go
+        uses: actions/setup-go@v5
         with:
           go-version: '1.24'
           cache-dependency-path: '**/go.sum'
 
-      - uses: actions/setup-java@v4
+      - name: Установка Java
+        uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '17'
 
-      - uses: android-actions/setup-android@v3
+      - name: Установка Android SDK
+        uses: android-actions/setup-android@v3
 
-      - name: Install the NDK and CMake upstream pins
+      - name: Установка NDK и CMake
         run: |
           sdkmanager --install "ndk;${NDK_VERSION}" "cmake;${CMAKE_VERSION}"
           echo "ANDROID_NDK_HOME=$ANDROID_SDK_ROOT/ndk/${NDK_VERSION}" >> "$GITHUB_ENV"
 
-      - name: Cache Gradle
+      - name: Кэширование Gradle
         uses: gradle/actions/setup-gradle@v4
         with:
           build-root-directory: vendor/telegram-android
           cache-read-only: false
 
-      - name: Build the NebulaLink core
+      - name: Сборка ядра NebulaLink
         run: bash scripts/build-core.sh android
 
-      - name: Prepare the tree
+      - name: Применение изменений NebulaGram
         run: bash scripts/apply-overlay.sh android
 
-      - name: Check chat layout regressions
+      - name: Проверка интерфейса и регрессий
         run: |
           python3 scripts/check-chat-layout.py
           python3 scripts/check-navigation.py
@@ -115,18 +121,19 @@ jobs:
           python3 scripts/check-folder-title-timing.py vendor/telegram-android
           python3 scripts/check-appearance-controls.py vendor/telegram-android
           python3 scripts/check-ai-protocol.py
+          python3 scripts/check-ai-availability.py
           python3 scripts/check-theme-toggle.py
           python3 scripts/check-chat-native.py vendor/telegram-android
           python3 scripts/check-style-layout.py vendor/telegram-android
           python3 scripts/check-telegram-updates.py
 
-      - name: Install the credentials
+      - name: Настройка доступа к Telegram API
         env:
           TELEGRAM_APP_ID: ${{ secrets.TELEGRAM_APP_ID }}
           TELEGRAM_APP_HASH: ${{ secrets.TELEGRAM_APP_HASH }}
         run: bash scripts/inject-keys.sh android
 
-      - name: Assemble
+      - name: Сборка приложения
         working-directory: vendor/telegram-android
         env:
           NEBULA_MINIFY: ${{ github.event_name == 'workflow_dispatch' && inputs.minify || 'true' }}
@@ -143,13 +150,13 @@ jobs:
           done
           exit 1
 
-      - name: Name the APK
+      - name: Формирование имени APK
         id: name
         run: |
           version=$(grep '^APP_VERSION_NAME=' vendor/telegram-android/gradle.properties | cut -d= -f2)
           echo "apk=NebulaGram-${NEBULA_VERSION}-TG-${version}-b${NEBULA_BUILD_CODE}-${NEBULA_KIND}.apk" >> "$GITHUB_OUTPUT"
 
-      - name: Collect the APK
+      - name: Подготовка APK
         run: |
           # Тип сборки standalone, а не release: release у этого модуля не
           # объявлен, Gradle создаёт его по умолчанию и без подписи, а
@@ -163,10 +170,10 @@ jobs:
           mkdir -p out && cp "$found" "out/${{ steps.name.outputs.apk }}"
           ls -la out
 
-      - name: Verify the update version in the APK
+      - name: Проверка версии APK
         run: python3 scripts/android-version.py verify --aapt "$ANDROID_HOME/build-tools/36.0.0/aapt" --apk "out/${{ steps.name.outputs.apk }}" --version "$NEBULA_VERSION" --code "$NEBULA_BUILD_CODE"
 
-      - name: Check the packaged architectures
+      - name: Проверка архитектур и библиотек APK
         run: |
           python3 - <<'PY'
           import os
@@ -184,7 +191,8 @@ jobs:
           print('Verified native libraries for: ' + ', '.join(sorted(actual)))
           PY
 
-      - uses: actions/upload-artifact@v4
+      - name: Сохранение APK
+        uses: actions/upload-artifact@v4
         with:
           name: nebulagram-apk
           path: out/*.apk

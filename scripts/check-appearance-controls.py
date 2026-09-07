@@ -41,7 +41,7 @@ if len(sys.argv) > 1:
     target=work/'CheckUnread.java'
     target.write_text('''import java.util.*;
 public class CheckUnread {
-boolean attached,nebulaFloatingChatHeader; int nebulaHeaderAccount,invalidations;
+boolean attached,nebulaFloatingChatHeader,nebulaClassicSavedHeader; int nebulaHeaderAccount,invalidations;
 void invalidate(){invalidations++;}
 static class NotificationCenter {
  static final int dialogsNeedReload=1,updateInterfaces=2;
@@ -55,7 +55,10 @@ static class NotificationCenter {
 }
 '''+block+'''
 public static void main(String[] args){
- CheckUnread bar=new CheckUnread();bar.attached=true;bar.nebulaFloatingChatHeader=true;
+ for(boolean saved:new boolean[]{false,true}) {
+ NotificationCenter.centers.clear();
+ CheckUnread bar=new CheckUnread();bar.attached=true;
+ bar.nebulaFloatingChatHeader=!saved;bar.nebulaClassicSavedHeader=saved;
  bar.updateNebulaUnreadObserver();bar.updateNebulaUnreadObserver();
  NotificationCenter.getInstance(0).send(1);if(bar.invalidations!=1)throw new AssertionError("missing or duplicate observer");
  bar.nebulaHeaderAccount=1;bar.updateNebulaUnreadObserver();
@@ -63,7 +66,14 @@ public static void main(String[] args){
  if(bar.invalidations!=2)throw new AssertionError("counter follows wrong account");
  bar.attached=false;bar.updateNebulaUnreadObserver();NotificationCenter.getInstance(1).send(1);
  if(bar.invalidations!=2)throw new AssertionError("observer leaked after detach");
- System.out.println("Unread counter passed: live updates, account switch and detach cleanup");
+ bar.attached=true;bar.updateNebulaUnreadObserver();
+ NotificationCenter.getInstance(1).send(1);
+ if(bar.invalidations!=3)throw new AssertionError("observer missing after reattach");
+ bar.nebulaFloatingChatHeader=false;bar.nebulaClassicSavedHeader=false;bar.updateNebulaUnreadObserver();
+ NotificationCenter.getInstance(1).send(1);
+ if(bar.invalidations!=3)throw new AssertionError("observer active with both header styles disabled");
+ }
+ System.out.println("Unread counter passed: ordinary chat and Saved Messages, live updates, account switch, detach/reattach and disabled headers");
 }}
 ''',encoding='utf-8')
     subprocess.run(['javac','-encoding','UTF-8','-d',str(work),str(target)],check=True)
