@@ -1,0 +1,386 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
+@@ -228,7 +228,7 @@
+         if (nebulaChatAvatarContainer == null) return;
+         FrameLayout.LayoutParams params = (FrameLayout.LayoutParams) nebulaChatAvatarContainer.getLayoutParams();
+         if (params == null) return;
+-        if (nebulaFloatingChatHeader) {
++        if (nebulaFloatingChatHeader || nebulaClassicSavedHeader) {
+             if (nebulaAvatarWidth == Integer.MIN_VALUE) {
+                 nebulaAvatarWidth = params.width;
+                 nebulaAvatarLeftMargin = params.leftMargin;
+@@ -241,9 +241,9 @@
+             // Шесть точек — ровно столько же отступает стеклянный кружок
+             // кнопки «назад» от левого края. Аватарка справа встаёт с ним
+             // симметрично, а середина контейнера совпадает с серединой экрана.
+-            params.leftMargin = dp(6);
+-            params.rightMargin = dp(6);
+-            nebulaChatAvatarContainer.setNebulaCenteredTitle(true, nebulaSavedMessagesHeader);
++            params.leftMargin = nebulaClassicSavedHeader ? nebulaAvatarLeftMargin + app.nebulagram.ui.NebulaHeaderCounter.backWidth() - dp(58) : dp(6);
++            params.rightMargin = nebulaClassicSavedHeader ? nebulaAvatarRightMargin : dp(6);
++            nebulaChatAvatarContainer.setNebulaCenteredTitle(!nebulaClassicSavedHeader, nebulaSavedMessagesHeader);
+             nebulaChatAvatarContainer.setLayoutParams(params);
+         } else {
+             restoreNebulaAvatarLayout();
+@@ -275,6 +275,9 @@
+         setClipChildren(false);
+         glassMode = true;
+         glassModeIsForum = isForum;
++        if (app.nebulagram.ui.NebulaMenuStyle.enabled() && parentFragment instanceof org.telegram.ui.ChatActivity) {
++            colorProvider = app.nebulagram.ui.NebulaMenuStyle.provider(resourcesProvider);
++        }
+ 
+         glassDrawable = factory.create(this)
+             .setColorProvider(colorProvider)
+@@ -2320,6 +2323,8 @@
+     public void setNebulaClassicSavedHeader(boolean enabled) {
+         if (nebulaClassicSavedHeader != enabled) {
+             nebulaClassicSavedHeader = enabled;
++            updateNebulaAvatarLayout();
++            updateNebulaUnreadObserver();
+             invalidate();
+         }
+     }
+@@ -2327,7 +2332,7 @@
+     private int nebulaObservedAccount = -1;
+     private final NotificationCenter.NotificationCenterDelegate nebulaUnreadObserver = (id, account, args) -> invalidate();
+     private void updateNebulaUnreadObserver() {
+-        int account = attached && nebulaFloatingChatHeader ? nebulaHeaderAccount : -1;
++        int account = attached && (nebulaFloatingChatHeader || nebulaClassicSavedHeader) ? nebulaHeaderAccount : -1;
+         if (account == nebulaObservedAccount) return;
+         if (nebulaObservedAccount >= 0) {
+             NotificationCenter center = NotificationCenter.getInstance(nebulaObservedAccount);
+@@ -2426,7 +2431,7 @@
+             if (!((nebulaClassicSavedHeader || nebulaFloatingChatHeader && !app.nebulagram.ui.NebulaAppearance.chatHeader()) && actionModeFactor == 0f && searchFactor == 0f)) glassDrawable.draw(canvas);
+         }
+         if (glassDrawableBack != null && hasBackButton) {
+-            glassDrawableBack.setBounds(0, t, nebulaFloatingChatHeader ? app.nebulagram.ui.NebulaHeaderCounter.backWidth() : s + p * 2, b);
++            glassDrawableBack.setBounds(0, t, (nebulaFloatingChatHeader || nebulaClassicSavedHeader) ? app.nebulagram.ui.NebulaHeaderCounter.backWidth() : s + p * 2, b);
+             glassDrawableBack.draw(canvas);
+         }
+         final boolean separateAvatar = nebulaFloatingChatHeader && nebulaChatMenuHidden
+@@ -2459,7 +2464,7 @@
+         }
+ 
+         super.dispatchDraw(canvas);
+-        if (nebulaFloatingChatHeader && hasBackButton && actionModeFactor == 0 && searchFactor == 0) {
++        if ((nebulaFloatingChatHeader || nebulaClassicSavedHeader) && hasBackButton && actionModeFactor == 0 && searchFactor == 0) {
+             app.nebulagram.ui.NebulaHeaderCounter.draw(canvas, getContext(), 0, (t + b) / 2f,
+                     org.telegram.messenger.MessagesController.getInstance(nebulaHeaderAccount).unreadUnmutedDialogs);
+         }
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarMenuItem.java b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarMenuItem.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarMenuItem.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarMenuItem.java
+@@ -794,6 +794,9 @@
+             ((ViewGroup) popupLayout.getParent()).removeView(popupLayout);
+         }
+         ViewGroup container = popupLayout;
++        if (app.nebulagram.ui.NebulaMenuStyle.enabled()) {
++            app.nebulagram.ui.NebulaMenuBackdrop.attach(popupLayout, this, resourcesProvider);
++        }
+         app.nebulagram.ui.NebulaMenuStyle.styleRows(popupLayout, resourcesProvider);
+         View setMinWidth = null;
+         if (topView != null) {
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
+@@ -4584,6 +4584,9 @@
+         }
+         removingFromParent = false;
+         fragmentView = contentView = new ChatActivityFragmentView(context, parentLayout);
++        if (app.nebulagram.ui.NebulaMenuStyle.enabled()) {
++            contentView.setBackgroundColor(app.nebulagram.ui.NebulaMenuStyle.surface(themeDelegate));
++        }
+         invalidateBlurredSourcesView = new OnPostDrawView(context, true, this::invalidateMergedVisibleBlurredPositionsAndSourcesImpl);
+         contentView.addView(invalidateBlurredSourcesView);
+ 
+@@ -32266,7 +32269,7 @@
+                         }
+                     });
+ 
+-                    LinearLayout.LayoutParams params = LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, (int) (52 + reactionsLayout.getTopOffset() / AndroidUtilities.density + pad), Gravity.RIGHT, 0, 50, 0, -20);
++                    LinearLayout.LayoutParams params = LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, (int) (52 + reactionsLayout.getTopOffset() / AndroidUtilities.density + pad), Gravity.RIGHT, 0, app.nebulagram.ui.NebulaAppearance.messageMenuBelow() ? 0 : 50, 0, app.nebulagram.ui.NebulaAppearance.messageMenuBelow() ? 0 : -20);
+                     scrimPopupContainerLayout.addView(reactionsLayout, params);
+                     scrimPopupContainerLayout.setReactionsLayout(reactionsLayout);
+                     scrimPopupContainerLayout.setClipChildren(false);
+@@ -33488,7 +33491,7 @@
+         boolean preserveDim = false;
+         switch (option) {
+             case 7911:
+-                presentFragment(new app.nebulagram.ui.NebulaAiFragment(selectedObject.messageOwner.message));
++                if (app.nebulagram.ui.NebulaAiAvailability.available()) presentFragment(new app.nebulagram.ui.NebulaAiFragment(selectedObject.messageOwner.message));
+                 break;
+ 
+             case OPTION_RETRY: {
+@@ -42719,7 +42722,7 @@
+             }
+             if (scrimPopupWindow != null) {
+                 final View contentView = scrimPopupWindow.getContentView();
+-                contentView.setBackgroundColor(getThemedColor(Theme.key_actionBarDefaultSubmenuBackground));
++                contentView.setBackgroundColor(app.nebulagram.ui.NebulaMenuStyle.enabled() ? app.nebulagram.ui.NebulaMenuStyle.surface(themeDelegate) : getThemedColor(Theme.key_actionBarDefaultSubmenuBackground));
+                 contentView.invalidate();
+             }
+             if (pinnedLineView != null) {
+@@ -43616,7 +43619,7 @@
+         public int getColor(int key) {
+             int color = getRawColor(key);
+             int backgroundKey = app.nebulagram.ui.NebulaChatColors.backgroundKey(key);
+-            return backgroundKey < 0 ? color : app.nebulagram.ui.NebulaChatColors.foreground(color, getRawColor(backgroundKey));
++            return backgroundKey < 0 ? color : app.nebulagram.ui.NebulaChatColors.foreground(color, app.nebulagram.ui.NebulaChatColors.isHeader(key) ? app.nebulagram.ui.NebulaMenuStyle.surface(this) : getRawColor(backgroundKey));
+         }
+ 
+         private int getRawColor(int key) {
+@@ -43653,7 +43656,7 @@
+             int color = getRawCurrentColor(key, ignoreAnimation);
+             int backgroundKey = app.nebulagram.ui.NebulaChatColors.backgroundKey(key);
+             return backgroundKey < 0 ? color : app.nebulagram.ui.NebulaChatColors.foreground(color,
+-                    getRawCurrentColor(backgroundKey, ignoreAnimation));
++                    app.nebulagram.ui.NebulaChatColors.isHeader(key) ? app.nebulagram.ui.NebulaMenuStyle.surface(this) : getRawCurrentColor(backgroundKey, ignoreAnimation));
+         }
+ 
+         private int getRawCurrentColor(int key, boolean ignoreAnimation) {
+@@ -45902,7 +45905,7 @@
+         }
+         allowPin = allowPin && message.getId() > 0 && (message.messageOwner.action == null || message.messageOwner.action instanceof TLRPC.TL_messageActionEmpty) && !message.isExpiredStory() && message.type != MessageObject.TYPE_STORY_MENTION;
+         boolean noforwards = isPeerNoForwards() || message.messageOwner.noforwards || getDialogId() == UserObject.VERIFY;
+-        if (!noforwards && !TextUtils.isEmpty(message.messageOwner.message)) {
++        if (app.nebulagram.ui.NebulaAiAvailability.available() && !noforwards && !TextUtils.isEmpty(message.messageOwner.message)) {
+             items.add(app.nebulagram.ui.NebulaText.text("Спросить ИИ", "Ask AI"));
+             icons.add(R.drawable.msg_customize);
+             options.add(7911);
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/BlurredBackgroundDrawableViewFactory.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/BlurredBackgroundDrawableViewFactory.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/BlurredBackgroundDrawableViewFactory.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/BlurredBackgroundDrawableViewFactory.java
+@@ -77,8 +77,17 @@
+     }
+ 
+     public BlurredBackgroundDrawable create(View view, BlurredBackgroundColorProvider provider, boolean multiwindow) {
+-        final BlurredBackgroundDrawable drawable = source.createDrawable();
+-        if (isLiquidGlassEffectAllowed && Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
++        final BlurredBackgroundDrawable drawable = app.nebulagram.ui.NebulaMenuStyle.animated()
++                && Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q
++                && source instanceof org.telegram.ui.Components.blur3.source.BlurredBackgroundSourceBitmap
++                ? new BlurredBackgroundDrawableRenderNode(source) {
++                    @Override public void draw(android.graphics.Canvas canvas) {
++                        // The bitmap arrives asynchronously after the popup's first frame.
++                        invalidateDisplayList();
++                        super.draw(canvas);
++                    }
++                } : source.createDrawable();
++        if ((isLiquidGlassEffectAllowed || app.nebulagram.ui.NebulaMenuStyle.animated()) && Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+             if (drawable instanceof BlurredBackgroundDrawableRenderNode) {
+                 ((BlurredBackgroundDrawableRenderNode) drawable).setLiquidGlassEffectAllowed();
+             }
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAttachAlert.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAttachAlert.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAttachAlert.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAttachAlert.java
+@@ -2738,7 +2738,7 @@
+ 
+         containerView.addView(bottomFadeView, LayoutHelper.createFrameMatchParent());
+ 
+-        BlurredBackgroundDrawable tabsViewBackground = iBlur3FactoryLiquidGlass.create(buttonsRecyclerViewWrapper, BlurredBackgroundProviderImpl.mainTabs(resourcesProvider));
++        BlurredBackgroundDrawable tabsViewBackground = iBlur3FactoryLiquidGlass.create(buttonsRecyclerViewWrapper, app.nebulagram.ui.NebulaMenuStyle.enabled() ? app.nebulagram.ui.NebulaMenuStyle.provider(resourcesProvider) : BlurredBackgroundProviderImpl.mainTabs(resourcesProvider));
+         tabsViewBackground.setRadius(dp(56 / 2f));
+         tabsViewBackground.setPadding(dp(7));
+         buttonsRecyclerViewWrapper.setBackground(tabsViewBackground);
+@@ -6530,6 +6530,7 @@
+ 
+         private Context mContext;
+         private int galleryButton;
++        private int cameraButton;
+ 
+         private int attachBotsStartRow;
+         private int attachBotsEndRow;
+@@ -6583,6 +6584,9 @@
+                         attachButton.setTextAndIcon(1, getString(R.string.ChatGallery), GlassTabView.TabAnimation.GALLERY);
+                         attachButton.setTag(1);
+                         err = !checkPhotoAndCameraPermission(mContext);
++                    } else if (position == cameraButton) {
++                        attachButton.setTextAndIcon(0, app.nebulagram.ui.NebulaText.text("Камера", "Camera"), GlassTabView.TabAnimation.CAMERA);
++                        attachButton.setTag(0);
+                     } else if (position == documentButton) {
+                         attachButton.setTextAndIcon(4, getString(R.string.ChatDocument), GlassTabView.TabAnimation.FILES);
+                         attachButton.setTag(4);
+@@ -6667,6 +6671,7 @@
+         public void notifyDataSetChanged() {
+             buttonsCount = 0;
+             galleryButton = -1;
++            cameraButton = -1;
+             documentButton = -1;
+             musicButton = -1;
+             pollButton = -1;
+@@ -6728,6 +6733,9 @@
+                 TLRPC.Chat chat = baseFragment instanceof ChatActivity ? ((ChatActivity) baseFragment).getCurrentChat() : null;
+                 final boolean paidUser = user != null && ((ChatActivity) baseFragment).getMessagesController().getSendPaidMessagesStars(user.id) > 0;
+                 galleryButton = buttonsCount++;
++                if (app.nebulagram.ui.NebulaAppearance.hideAttachCamera() && (photosEnabled || videosEnabled)) {
++                    cameraButton = buttonsCount++;
++                }
+                 if ((photosEnabled || videosEnabled) && !paidUser && (chat == null || !ChatObject.isMonoForum(chat))) {
+                     if (baseFragment instanceof ChatActivity && !((ChatActivity) baseFragment).isInScheduleMode() && !((ChatActivity) baseFragment).isSecretChat() && ((ChatActivity) baseFragment).getChatMode() != ChatActivity.MODE_QUICK_REPLIES) {
+                         ChatActivity chatActivity = (ChatActivity) baseFragment;
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAttachAlertPhotoLayout.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAttachAlertPhotoLayout.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAttachAlertPhotoLayout.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAttachAlertPhotoLayout.java
+@@ -828,6 +828,14 @@
+         gridView.addItemDecoration(cameraViewItemDecoration = new CameraViewItemDecoration(gridView));
+         adapter.createCache();
+         gridView.setClipToPadding(false);
++        gridView.setOutlineProvider(new android.view.ViewOutlineProvider() {
++            @Override public void getOutline(View view, android.graphics.Outline outline) {
++                float radius = app.nebulagram.ui.NebulaMenuStyle.enabled() ? AndroidUtilities.dp(24) : 0;
++                // Only the exposed top edge of the photo sheet is rounded.
++                outline.setRoundRect(0, 0, view.getWidth(), view.getHeight() + (int) radius, radius);
++            }
++        });
++        gridView.setClipToOutline(true);
+         gridView.setItemAnimator(null);
+         gridView.setLayoutAnimation(null);
+         gridView.setVerticalScrollBarEnabled(false);
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarContainer.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarContainer.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarContainer.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarContainer.java
+@@ -852,6 +852,7 @@
+             animatedSubtitleTextView.setAlpha(0.85f);
+         }
+         glassMode = true;
++        updateColors();
+     }
+ 
+     @Override
+@@ -1819,6 +1820,14 @@
+     }
+ 
+     public void updateColors() {
++        if (app.nebulagram.ui.NebulaMenuStyle.enabled()) {
++            int background = app.nebulagram.ui.NebulaMenuStyle.surface(resourcesProvider);
++            int title = app.nebulagram.ui.NebulaChatColors.foreground(getThemedColor(Theme.key_actionBarDefaultTitle), background);
++            int subtitle = app.nebulagram.ui.NebulaChatColors.foreground(getThemedColor(lastSubtitleColorKey >= 0 ? lastSubtitleColorKey : Theme.key_actionBarDefaultSubtitle), background);
++            titleTextView.setTextColor(title);
++            if (subtitleTextView != null) subtitleTextView.setTextColor(subtitle);
++            if (animatedSubtitleTextView != null) animatedSubtitleTextView.setTextColor(subtitle);
++        }
+         if (currentTypingDrawable != null) {
+             currentTypingDrawable.setColor(getThemedColor(Theme.key_chat_status));
+         }
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/glass/GlassTabView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/glass/GlassTabView.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Components/glass/GlassTabView.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/glass/GlassTabView.java
+@@ -585,6 +585,7 @@
+     }
+ 
+     public enum TabAnimation {
++        CAMERA(TabAnimationType.STATIC, R.drawable.nebula_cupertino_camera),
+         CONTACTS(R.raw.tab_contacts),
+         CALLS(R.raw.tab_calls),
+         CHATS(R.raw.tab_chats),
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ItemOptions.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ItemOptions.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ItemOptions.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ItemOptions.java
+@@ -1382,7 +1382,7 @@
+         actionBarPopupWindow.setOutsideTouchable(true);
+         actionBarPopupWindow.setFocusable(!dontFocus);
+         actionBarPopupWindow.setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+-        actionBarPopupWindow.setAnimationStyle(R.style.PopupContextAnimation);
++        actionBarPopupWindow.setAnimationStyle(app.nebulagram.ui.NebulaMenuStyle.animated() ? 0 : R.style.PopupContextAnimation);
+         if (allowShowingOnTopOfKeyboard) {
+             actionBarPopupWindow.setInputMethodMode(ActionBarPopupWindow.INPUT_METHOD_NOT_NEEDED);
+             actionBarPopupWindow.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_UNSPECIFIED);
+@@ -1512,6 +1512,10 @@
+             (int) (offsetY = (Y + this.translateY))
+         );
+ 
++        if (app.nebulagram.ui.NebulaMenuStyle.animated()) {
++            actionBarPopupWindow.setScaleOut(true);
++            actionBarPopupWindow.startAnimation();
++        }
+         if (longPressSelectionEnabled) {
+             installHoverReleaseListener();
+         }
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ViewPagerFixed.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ViewPagerFixed.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ViewPagerFixed.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ViewPagerFixed.java
+@@ -219,7 +219,7 @@
+ 
+     private ValueAnimator manualScrolling;
+     public boolean scrollToPosition(int page) {
+-        if (page == currentPosition || (manualScrolling != null && nextPosition == page)) {
++        if ((page == currentPosition && manualScrolling == null) || (manualScrolling != null && nextPosition == page)) {
+             return false;
+         }
+         if (manualScrolling != null) {
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/MainTabsActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/MainTabsActivity.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/MainTabsActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/MainTabsActivity.java
+@@ -338,11 +338,11 @@
+ 
+             final int position = indexToPosition(index);
+             tabs[index].setOnClickListener(v -> {
+-                if (viewPager.isManualScrolling() || viewPager.isTouch()) {
++                if (viewPager.isTouch()) {
+                     return;
+                 }
+ 
+-                if (viewPager.getCurrentPosition() == position) {
++                if (viewPager.getCurrentPosition() == position && !viewPager.isManualScrolling()) {
+                     final BaseFragment fragment = getCurrentVisibleFragment();
+                     if (fragment instanceof MainTabsActivity.TabFragmentDelegate) {
+                         ((MainTabsActivity.TabFragmentDelegate) fragment).onParentScrollToTop();
+@@ -350,8 +350,8 @@
+                     return;
+                 }
+ 
++                viewPager.scrollToPosition(position);
+                 selectTab(position, true);
+-                viewPager.scrollToPosition(position);
+             });
+ 
+             tabsView.addView(tabs[index]);
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/MainTabsLayout.java b/TMessagesProj/src/main/java/org/telegram/ui/MainTabsLayout.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/MainTabsLayout.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/MainTabsLayout.java
+@@ -448,6 +448,9 @@
+         }
+ 
+         if (found != null) {
++            if (found != lastLongSelectedView && found != findSelectedTab() && !tabsWithIgnoreClick.contains(found)) {
++                found.performClick();
++            }
+             lastLongSelectedView = found;
+             setTabSelected(found, true);
+ 
+@@ -524,9 +527,7 @@
+             checkLongMove(x, y, false, true);
+             isInLongPress = false;
+             AndroidUtilities.runOnUIThread(restoreDrawSelector, 450);
+-            if (lastLongSelectedView != null) {
+-                lastLongSelectedView.performClick();
+-            }
++
+             lastLongSelectedView = null;
+             invalidate();
+             longTouchEnd();
+@@ -670,8 +671,9 @@
+             } else if (action == MotionEvent.ACTION_UP || action == MotionEvent.ACTION_CANCEL) {
+                 if (action == MotionEvent.ACTION_UP) {
+                     checkLongMove(ev.getX(), ev.getY(), false, true);
+-                    if (lastLongSelectedView != null) lastLongSelectedView.performClick();
++
+                 } else if (nebulaDragOrigin != null) {
++                    nebulaDragOrigin.performClick();
+                     setTabSelected(nebulaDragOrigin, false);
+                 }
+                 lastLongSelectedView = null; nebulaDragging = false;
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ViewPagerActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ViewPagerActivity.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/ViewPagerActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/ViewPagerActivity.java
+@@ -501,7 +501,7 @@
+ 
+         @Override
+         protected long getManualScrollDuration() {
+-            return 320L;
++            return ViewPagerActivity.this instanceof MainTabsActivity && app.nebulagram.ui.NebulaAppearance.liquidAnimations() ? 280L : 320L;
+         }
+ 
+         @Override

@@ -41,6 +41,11 @@ public final class NebulaAiFragment extends BaseFragment {
         content.removeAllViews();
         content.addView(NebulaCard.header(c, text("Подключение", "Connection")));
         NebulaCard settings = new NebulaCard(c);
+        settings.add(new NebulaRow(c).icon(R.drawable.msg_customize)
+                .title(text("Включить ИИ", "Enable AI"))
+                .subtitle(text("Пункт в меню сообщений доступен после настройки подключения", "Available in message menus after a connection is configured"), false)
+                .trailing(NebulaRow.TRAIL_SWITCH).checked(NebulaAiAvailability.enabled())
+                .withClick(v -> NebulaAiAvailability.setEnabled(((NebulaRow) v).toggleChecked())));
         settings.add(new NebulaRow(c).icon(R.drawable.msg_customize).title(text("Провайдер", "Provider")).subtitle(PROVIDERS[provider], false)
                 .trailing(NebulaRow.TRAIL_CHEVRON).withClick(v -> showDialog(new AlertDialog.Builder(c).setTitle(text("Провайдер", "Provider"))
                 .setItems(PROVIDERS, (d, which) -> {

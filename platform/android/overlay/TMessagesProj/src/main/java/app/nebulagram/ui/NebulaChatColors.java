@@ -7,6 +7,10 @@ import org.telegram.ui.ActionBar.Theme;
 /** Repair incomplete per-chat palettes against the surface actually drawn. */
 public final class NebulaChatColors {
     private NebulaChatColors() { }
+    public static boolean isHeader(int key) {
+        return key == Theme.key_actionBarDefaultTitle || key == Theme.key_actionBarDefaultSubtitle
+                || key == Theme.key_glass_defaultText || key == Theme.key_glass_defaultIcon;
+    }
 
     public static int backgroundKey(int key) {
         if (!NebulaAppearance.chatHeader() && !NebulaAppearance.iosComposer()) return -1;

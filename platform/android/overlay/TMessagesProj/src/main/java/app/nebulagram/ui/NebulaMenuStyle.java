@@ -26,6 +26,10 @@ public final class NebulaMenuStyle {
     public static boolean animated() { return enabled() && NebulaAppearance.liquidAnimations(); }
     public static int radius() { return AndroidUtilities.dp(enabled() ? 24 : 12); }
     public static int surface(Theme.ResourcesProvider provider) {
+        if (NebulaTheme.materialYouEnabled()) {
+            NebulaTheme theme = NebulaTheme.of(org.telegram.messenger.ApplicationLoader.applicationContext);
+            return ColorUtils.blendARGB(theme.surface(), theme.primary(), .07f);
+        }
         int base = Theme.getColor(Theme.key_windowBackgroundWhite, provider) | 0xff000000;
         int accent = Theme.getColor(Theme.key_windowBackgroundWhiteBlueText, provider);
         return ColorUtils.blendARGB(base, accent, .09f);
@@ -33,7 +37,7 @@ public final class NebulaMenuStyle {
     public static BlurredBackgroundProvider provider(Theme.ResourcesProvider provider) {
         return new BlurredBackgroundProviderBuilder(provider)
                 .setBackgroundColor((r, dark) -> Theme.multAlpha(surface(r),
-                        LiteMode.isEnabled(LiteMode.FLAG_CHAT_BLUR) ? .78f : 1f))
+                        LiteMode.isEnabled(LiteMode.FLAG_CHAT_BLUR) ? .58f : 1f))
                 .setStrokeColorTop(0x66ffffff, 0x66ffffff)
                 .setStrokeColorBottom(0x22000000, 0x28ffffff)
                 .setStrokeWidth(AndroidUtilities.dpf2(.8f), AndroidUtilities.dpf2(.55f))
@@ -57,7 +61,7 @@ public final class NebulaMenuStyle {
             // Keep semantic colours (destructive actions, subscription actions).
             float[] hsv = new float[3]; Color.colorToHSV(color, hsv);
             if (hsv[1] < .25f) {
-                color = NebulaChatColors.foreground(color, surface(provider));
+                color = NebulaChatColors.foreground(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText, provider), surface(provider));
                 row.setTextColor(color); row.setIconColor(color);
             }
             row.setSelectorColor(Theme.multAlpha(color, .08f));
@@ -70,21 +74,21 @@ public final class NebulaMenuStyle {
         content.setBackScaleY(finalScaleY); content.setBackAlpha(255);
         content.setPivotX(content.getMeasuredWidth() - AndroidUtilities.dp(28));
         content.setPivotY(content.shownFromBottom ? content.getMeasuredHeight() - AndroidUtilities.dp(28) : AndroidUtilities.dp(28));
-        content.setScaleX(.66f); content.setScaleY(.76f); content.setAlpha(0);
+        content.setScaleX(.38f); content.setScaleY(.26f); content.setAlpha(0);
         ValueAnimator frame = ValueAnimator.ofFloat(0f, 1f);
         frame.setInterpolator(new android.view.animation.LinearInterpolator());
         frame.addUpdateListener(a -> {
             float t=(float)a.getAnimatedValue();
-            float p=(float)(1-Math.exp(-8*t)*Math.cos(7*t));
-            content.setScaleX(.66f+.34f*p); content.setScaleY(.76f+.24f*p);
-            content.setAlpha(Math.min(1,t*5));
+            float p=(float)(1-Math.exp(-9*t)*Math.cos(5*t));
+            content.setScaleX(.38f+.62f*p); content.setScaleY(.26f+.74f*p);
+            content.setAlpha(Math.min(1,t*7));
             for(int i=0;i<content.getItemsCount();i++) {
                 View child=content.getItemAt(i);
                 child.setAlpha(Math.min(1, t*3)*(child.isEnabled()?1f:.5f));
                 child.setTranslationY(AndroidUtilities.dp(5)*(1-Math.min(1,t*2.5f)));
             }
         });
-        AnimatorSet set=new AnimatorSet(); set.playTogether(frame); set.setDuration(260);
+        AnimatorSet set=new AnimatorSet(); set.playTogether(frame); set.setDuration(220);
         set.addListener(new AnimatorListenerAdapter() {
             @Override public void onAnimationEnd(Animator animation) {
                 content.setScaleX(1); content.setScaleY(1); content.setAlpha(1);
