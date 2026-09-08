@@ -1,0 +1,220 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarPopupWindow.java b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarPopupWindow.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarPopupWindow.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarPopupWindow.java
+@@ -611,7 +611,12 @@
+         @Override
+         public boolean dispatchTouchEvent(android.view.MotionEvent event) {
+             nebulaReveal.onTouch(event);
+-            return super.dispatchTouchEvent(event);
++            android.view.MotionEvent contentEvent = nebulaReveal.contentTouchEvent(event);
++            try {
++                return super.dispatchTouchEvent(contentEvent);
++            } finally {
++                if (contentEvent != event) contentEvent.recycle();
++            }
+         }
+ 
+         @Override
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
+@@ -17998,6 +17998,16 @@
+                         viewClipTop += clipTop;
+                         viewClipBottom -= clipBottom;
+ 
++                        // The lifted preview is no longer in the scrolled list's coordinate space.
++                        // Invert its transform before clipping; otherwise an offscreen photo is
++                        // still cut at the old list edge and only its caption survives.
++                        if (scrimView instanceof ChatMessageCell && nebulaScrimSourceTop != 0) {
++                            viewClipTop = app.nebulagram.ui.NebulaMessageMenuLayout.sourceY(
++                                    viewClipTop, nebulaScrimSourceTop, nebulaScrimTop, nebulaScrimScale, scrimViewProgress);
++                            viewClipBottom = app.nebulagram.ui.NebulaMessageMenuLayout.sourceY(
++                                    viewClipBottom, nebulaScrimSourceTop, nebulaScrimTop, nebulaScrimScale, scrimViewProgress);
++                        }
++
+                         if (cell == null || !cell.getTransitionParams().animateBackgroundBoundsInner) {
+                             viewClipLeft = Math.max(viewClipLeft, chatListView.getLeft() + child.getX());
+                             viewClipTop = Math.max(viewClipTop, chatListView.getY() + child.getY());
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/FilterTabsView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/FilterTabsView.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Components/FilterTabsView.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/FilterTabsView.java
+@@ -864,18 +864,17 @@
+             }
+             long newTime = SystemClock.elapsedRealtime();
+             long dt = (newTime - lastAnimationTime);
+-            if (dt > 17) {
+-                dt = 17;
+-            }
+-            animationTime += dt / 320.0f;
++            lastAnimationTime = newTime;
++            animationTime = app.nebulagram.ui.NebulaFolderMotion.advance(animationTime, dt);
+             setAnimationIdicatorProgress(interpolator.getInterpolation(animationTime));
+             if (animationTime > 1.0f) {
+                 animationTime = 1.0f;
+             }
+             if (animationTime < 1.0f) {
+-                AndroidUtilities.runOnUIThread(animationRunnable);
++                postOnAnimation(this);
+             } else {
+                 animatingIndicator = false;
++                nebulaReleaseFromDrag = false;
+                 setEnabled(true);
+                 if (delegate != null) {
+                     delegate.onPageScrolled(1.0f);
+@@ -1159,7 +1158,9 @@
+     }
+ 
+     public void stopAnimatingIndicator() {
++        removeCallbacks(animationRunnable);
+         animatingIndicator = false;
++        setEnabled(true);
+     }
+ 
+     BlurredBackgroundDrawable blurredBackgroundDrawable;
+@@ -1183,7 +1184,7 @@
+         selectedTabId = tab.id;
+ 
+         if (animatingIndicator) {
+-            AndroidUtilities.cancelRunOnUIThread(animationRunnable);
++            removeCallbacks(animationRunnable);
+             animatingIndicator = false;
+         }
+ 
+@@ -1192,7 +1193,8 @@
+         animatingIndicator = true;
+         setEnabled(false);
+ 
+-        AndroidUtilities.runOnUIThread(animationRunnable, 16);
++        lastAnimationTime = SystemClock.elapsedRealtime();
++        postOnAnimation(animationRunnable);
+ 
+         if (delegate != null) {
+             delegate.onPageSelected(tab, scrollingForward);
+@@ -1456,10 +1458,13 @@
+ 
+     private final app.nebulagram.ui.NebulaTabLens nebulaLens = new app.nebulagram.ui.NebulaTabLens(this);
+     private boolean nebulaTracking, nebulaDragging;
+-    private float nebulaDownX, nebulaDragX;
++    private float nebulaDownX, nebulaDragX, nebulaDragOffsetX;
++    private boolean nebulaReleaseFromDrag;
++    private float nebulaReleaseCenter, nebulaReleaseWidth;
+     private int nebulaHover = -1;
+     @Override protected void onDetachedFromWindow() {
+-        nebulaTracking = nebulaDragging = false;
++        nebulaTracking = nebulaDragging = nebulaReleaseFromDrag = false;
++        stopAnimatingIndicator();
+         nebulaHover = -1;
+         nebulaLens.reset();
+         super.onDetachedFromWindow();
+@@ -1473,7 +1478,10 @@
+             nebulaTracking = selected != null && delegate.canPerformActions()
+                     && !delegate.isTabMenuVisible() && x >= selected.getLeft() && x <= selected.getRight()
+                     && event.getY() >= listView.getTop() && event.getY() <= listView.getBottom();
+-            nebulaDragging = false; nebulaDownX = nebulaDragX = x;
++            nebulaDragging = nebulaReleaseFromDrag = false;
++            nebulaDownX = x;
++            nebulaDragOffsetX = selected == null ? 0 : selected.getX() + selected.getWidth() / 2f - x;
++            nebulaDragX = x + nebulaDragOffsetX;
+             nebulaLens.setPressed(nebulaTracking); nebulaHover = currentPosition;
+         } else if (action == android.view.MotionEvent.ACTION_MOVE && nebulaTracking && !delegate.isTabMenuVisible()) {
+             if (!nebulaDragging && Math.abs(x-nebulaDownX) > android.view.ViewConfiguration.get(getContext()).getScaledTouchSlop()) {
+@@ -1483,7 +1491,7 @@
+                 if (getParent() != null) getParent().requestDisallowInterceptTouchEvent(true);
+             }
+             if (nebulaDragging) {
+-                nebulaDragX = Math.max(dp(12), Math.min(listView.getWidth()-dp(12), x));
++                nebulaDragX = Math.max(dp(12), Math.min(listView.getWidth()-dp(12), x + nebulaDragOffsetX));
+                 View over = listView.findChildViewUnder(nebulaDragX, listView.getHeight()/2f);
+                 int position = over == null ? -1 : listView.getChildAdapterPosition(over);
+                 if (position >= 0 && position != nebulaHover) { nebulaHover = position; app.nebulagram.ui.NebulaHaptics.tick(this); }
+@@ -1493,9 +1501,10 @@
+             boolean dragged = nebulaDragging; nebulaTracking = nebulaDragging = false;
+             nebulaLens.setPressed(false);
+             if (dragged) {
++                nebulaReleaseFromDrag = true;
+                 if (getParent() != null) getParent().requestDisallowInterceptTouchEvent(false);
+                 if (action == android.view.MotionEvent.ACTION_UP && nebulaHover >= 0 && nebulaHover < tabs.size() && delegate.canPerformActions()) {
+-                    scrollToTab(tabs.get(nebulaHover), nebulaHover); nebulaLens.pulse();
++                    scrollToTab(tabs.get(nebulaHover), nebulaHover);
+                 }
+                 invalidate(); return true;
+             }
+@@ -1538,6 +1547,16 @@
+                         indicatorX = lerp(prevX, newX, animatingIndicatorProgress) - (x - holder.itemView.getLeft()) + dp(TAB_PADDING_WIDTH / 2f);
+                     }
+                     indicatorWidth = lerp(prevW, newW, animatingIndicatorProgress);
++                    if (nebulaReleaseFromDrag && animatingIndicator) {
++                        float targetX = newX + dp(TAB_PADDING_WIDTH / 2f);
++                        if (additionalTabWidth == 0) {
++                            targetX -= positionToX.get(position) - holder.itemView.getLeft();
++                        }
++                        indicatorX = app.nebulagram.ui.NebulaFolderMotion.release(
++                                nebulaReleaseCenter - nebulaReleaseWidth / 2f, targetX, animatingIndicatorProgress);
++                        indicatorWidth = app.nebulagram.ui.NebulaFolderMotion.release(
++                                nebulaReleaseWidth, newW, animatingIndicatorProgress);
++                    }
+                     counterVisible = lerp(prevH, newH, animatingIndicatorProgress);
+                 }
+             }
+@@ -1571,8 +1590,17 @@
+             selectorDrawable.setAlpha(31);
+             if (app.nebulagram.ui.NebulaAppearance.liquidAnimations()) {
+                 android.graphics.Rect r = selectorDrawable.getBounds();
+-                if (nebulaDragging) nebulaLens.drawDrag(canvas, nebulaDragX-r.width()/2f, r.top, nebulaDragX+r.width()/2f, r.bottom, Theme.getColor(activeTextColorKey));
+-                else nebulaLens.drawDrag(canvas, r.left, r.top, r.right, r.bottom, Theme.getColor(activeTextColorKey));
++                if (nebulaDragging) {
++                    nebulaReleaseCenter = nebulaDragX;
++                    nebulaReleaseWidth = indicatorWidth;
++                    nebulaLens.drawDrag(canvas, nebulaDragX-r.width()/2f, r.top, nebulaDragX+r.width()/2f, r.bottom, Theme.getColor(activeTextColorKey));
++                } else if (nebulaReleaseFromDrag && !animatingIndicator && manualScrollingToPosition == -1) {
++                    // A cancelled/locked drag returns gently without selecting a page.
++                    nebulaLens.draw(canvas, r.left, r.top, r.right, r.bottom, Theme.getColor(activeTextColorKey));
++                } else {
++                    // Native page progress already supplies the animation: do not animate it twice.
++                    nebulaLens.drawDrag(canvas, r.left, r.top, r.right, r.bottom, Theme.getColor(activeTextColorKey));
++                }
+             } else selectorDrawable.draw(canvas);
+             if (app.nebulagram.ui.NebulaAppearance.folderOutline()) {
+                 Paint outline = nebulaOutlinePaint;
+@@ -1677,7 +1705,7 @@
+             prevLayoutWidth = r - l;
+             scrollingToChild = -1;
+             if (animatingIndicator) {
+-                AndroidUtilities.cancelRunOnUIThread(animationRunnable);
++                removeCallbacks(animationRunnable);
+                 animatingIndicator = false;
+                 setEnabled(true);
+                 if (delegate != null) {
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ScrimOptions.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ScrimOptions.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ScrimOptions.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ScrimOptions.java
+@@ -355,9 +355,12 @@
+             bitmapBg.setHasAlpha(false);
+ 
+             final ColorMatrix colorMatrixOptions = new ColorMatrix();
+-            colorMatrixOptions.setSaturation(Theme.isCurrentThemeDark() ? 2 : 3);
+-            if (!Theme.isCurrentThemeDark()) {
+-                AndroidUtilities.adjustBrightnessColorMatrix(colorMatrixOptions, Theme.isCurrentThemeDark() ? -.2f : -.07f);
++            // Nebula's material applies the tint once, over the unmodified blur source.
++            if (!app.nebulagram.ui.NebulaMenuStyle.enabled()) {
++                colorMatrixOptions.setSaturation(Theme.isCurrentThemeDark() ? 2 : 3);
++                if (!Theme.isCurrentThemeDark()) {
++                    AndroidUtilities.adjustBrightnessColorMatrix(colorMatrixOptions, -.07f);
++                }
+             }
+             final Bitmap bitmapOptions = AndroidUtilities.applyColorMatrix(bitmap, colorMatrixOptions);
+             bitmapOptions.setHasAlpha(false);
+@@ -392,8 +395,11 @@
+             bitmapBg.setHasAlpha(false);
+ 
+             final ColorMatrix colorMatrixOptions = new ColorMatrix();
+-            colorMatrixOptions.setSaturation(Theme.isCurrentThemeDark() ? 2 : 3);
+-            AndroidUtilities.adjustBrightnessColorMatrix(colorMatrixOptions, Theme.isCurrentThemeDark() ? -.2f : -.07f);
++            // Match the uncropped overload; pre-darkening crushes dark wallpapers to black.
++            if (!app.nebulagram.ui.NebulaMenuStyle.enabled()) {
++                colorMatrixOptions.setSaturation(Theme.isCurrentThemeDark() ? 2 : 3);
++                AndroidUtilities.adjustBrightnessColorMatrix(colorMatrixOptions, Theme.isCurrentThemeDark() ? -.2f : -.07f);
++            }
+             final Bitmap bitmapOptions = AndroidUtilities.applyColorMatrix(bitmap, colorMatrixOptions);
+             bitmapOptions.setHasAlpha(false);
+ 

@@ -1,6 +1,7 @@
 package app.nebulagram.ui;
 
 import android.graphics.Canvas;
+import android.graphics.Matrix;
 import android.graphics.Path;
 import android.graphics.Rect;
 import android.graphics.RectF;
@@ -22,6 +23,8 @@ public final class NebulaMenuReveal {
     private final RectF bounds = new RectF();
     private final Rect contentBounds = new Rect();
     private final Path clip = new Path();
+    private final Matrix contentTransform = new Matrix();
+    private final Matrix inverseContentTransform = new Matrix();
     private final int[] location = new int[2];
     private float progress = 1, originX, originY;
     private float pullX, pullY, touchX, touchY;
@@ -136,6 +139,26 @@ public final class NebulaMenuReveal {
         bounds.inset(AndroidUtilities.dp(8), AndroidUtilities.dp(8));
         clip.rewind(); clip.addRoundRect(bounds, radius, radius, Path.Direction.CW);
         canvas.clipPath(clip);
+        // Map the content's padded edges to the same stretched edges as the glass.
+        // Clipping alone left the labels/icons stationary under a moving surface.
+        updateContentTransform();
+        canvas.concat(contentTransform);
+    }
+    private void updateContentTransform() {
+        float padding = AndroidUtilities.dp(8);
+        float width = host.getMeasuredWidth(), height = host.getMeasuredHeight();
+        contentTransform.setScale(NebulaMenuMotion.stretchScale(pullX, width, padding),
+                NebulaMenuMotion.stretchScale(pullY, height, padding));
+        contentTransform.postTranslate(NebulaMenuMotion.stretchOffset(pullX, width, padding),
+                NebulaMenuMotion.stretchOffset(pullY, height, padding));
+    }
+    public MotionEvent contentTouchEvent(MotionEvent event) {
+        if (pullX == 0 && pullY == 0) return event;
+        updateContentTransform();
+        if (!contentTransform.invert(inverseContentTransform)) return event;
+        MotionEvent copy = MotionEvent.obtain(event);
+        copy.transform(inverseContentTransform);
+        return copy;
     }
     public void finish() {
         setProgress(1);

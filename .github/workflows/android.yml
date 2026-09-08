@@ -118,10 +118,13 @@ jobs:
           python3 scripts/check-navigation.py
           python3 scripts/check-tab-release.py vendor/telegram-android
           python3 scripts/check-menu-colors.py vendor/telegram-android
+          python3 scripts/check-menu-drag.py vendor/telegram-android
+          python3 scripts/check-menu-preview.py
           python3 scripts/check-menu-state.py vendor/telegram-android
           python3 scripts/check-menu-feedback.py vendor/telegram-android
           python3 scripts/check-status-bounds.py vendor/telegram-android
           python3 scripts/check-link-shortcut.py vendor/telegram-android
+          python3 scripts/check-folder-swipe.py vendor/telegram-android
           python3 scripts/check-folder-animation.py
           python3 scripts/check-folder-title-timing.py vendor/telegram-android
           python3 scripts/check-appearance-controls.py vendor/telegram-android

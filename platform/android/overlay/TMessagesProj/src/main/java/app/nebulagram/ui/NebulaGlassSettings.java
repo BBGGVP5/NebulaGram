@@ -1,18 +1,20 @@
 package app.nebulagram.ui;
 
 import android.content.Context;
-import android.graphics.BlurMaskFilter;
+import android.graphics.Bitmap;
 import android.graphics.Canvas;
-import android.graphics.LinearGradient;
 import android.graphics.Paint;
+import android.graphics.Path;
 import android.graphics.RectF;
-import android.graphics.Shader;
+import android.graphics.drawable.Drawable;
 import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.R;
+import org.telegram.messenger.Utilities;
+import org.telegram.ui.ActionBar.Theme;
 
 public final class NebulaGlassSettings {
     private NebulaGlassSettings() { }
@@ -54,17 +56,58 @@ public final class NebulaGlassSettings {
     private static int dp(float n){return AndroidUtilities.dp(n);}
     private static final class Preview extends View {
         final Paint paint=new Paint(3);final RectF rect=new RectF();
-        Preview(Context c){super(c);setContentDescription(NebulaText.text("Предпросмотр стекла", "Glass preview"));setLayerType(LAYER_TYPE_SOFTWARE,null);}
+        final RectF wallpaperBounds = new RectF();
+        final Path clip = new Path();
+        Bitmap blurredWallpaper;
+        Drawable cachedWallpaper;
+        int cachedWidth, cachedHeight, cachedBlur = -1;
+        Preview(Context c){super(c);setContentDescription(NebulaText.text("Предпросмотр стекла", "Glass preview"));}
         @Override protected void onDraw(Canvas canvas){
             NebulaTheme theme=NebulaTheme.of(getContext());
-            paint.setShader(new LinearGradient(0,0,getWidth(),getHeight(),new int[]{theme.primary(),0xff5e77cf,0xff368a94},null,Shader.TileMode.CLAMP));
-            rect.set(dp(16),dp(12),getWidth()-dp(16),getHeight()-dp(12));canvas.drawRoundRect(rect,dp(24),dp(24),paint);paint.setShader(null);
-            paint.setColor(0x99ffffff);paint.setMaskFilter(NebulaGlass.blur()>0?new BlurMaskFilter(dp(NebulaGlass.blur()),BlurMaskFilter.Blur.NORMAL):null);
-            canvas.drawCircle(getWidth()*.35f,getHeight()*.45f,dp(24),paint);paint.setMaskFilter(null);
-            rect.inset(dp(22),dp(20));paint.setColor(NebulaMenuStyle.surface(null));paint.setAlpha(Math.round(NebulaGlass.opacity()*255));canvas.drawRoundRect(rect,dp(24),dp(24),paint);paint.setAlpha(255);
+            rect.set(dp(16),dp(12),getWidth()-dp(16),getHeight()-dp(12));
+            if (rect.width() <= 0 || rect.height() <= 0) return;
+            wallpaperBounds.set(rect);
+            clip.rewind();clip.addRoundRect(rect,dp(24),dp(24),Path.Direction.CW);
+            int save = canvas.save();
+            canvas.clipPath(clip);canvas.translate(rect.left,rect.top);
+            NebulaWallpaperPreview.drawWallpaper(canvas,(int)rect.width(),(int)rect.height());
+            canvas.restoreToCount(save);
+            updateBlur();
+            rect.inset(dp(22),dp(20));
+            if (blurredWallpaper != null) {
+                clip.rewind();clip.addRoundRect(rect,dp(24),dp(24),Path.Direction.CW);
+                save = canvas.save();canvas.clipPath(clip);
+                paint.setColor(0xffffffff);
+                canvas.drawBitmap(blurredWallpaper,null,wallpaperBounds,paint);
+                canvas.restoreToCount(save);
+            }
+            paint.setColor(NebulaMenuStyle.surface(null));paint.setAlpha(Math.round(NebulaGlass.opacity()*255));canvas.drawRoundRect(rect,dp(24),dp(24),paint);paint.setAlpha(255);
             if(NebulaAppearance.glassHighlights()){paint.setStyle(Paint.Style.STROKE);paint.setStrokeWidth(dp(.5f+NebulaGlass.refraction()*2));paint.setColor(0x77ffffff);canvas.drawRoundRect(rect,dp(24),dp(24),paint);paint.setStyle(Paint.Style.FILL);}
             paint.setColor(NebulaChatColors.foreground(theme.onSurface(),NebulaMenuStyle.surface(null)));paint.setTextAlign(Paint.Align.CENTER);paint.setTextSize(dp(16));
             canvas.drawText(NebulaText.text("Жидкое стекло", "Liquid Glass"),rect.centerX(),rect.centerY()+dp(5),paint);
+        }
+        private void updateBlur() {
+            Drawable wallpaper = Theme.getCachedWallpaperNonBlocking();
+            int width = (int) wallpaperBounds.width(), height = (int) wallpaperBounds.height();
+            int blur = Math.round(dp(NebulaGlass.blur()) / 4f);
+            if (blurredWallpaper != null && cachedWallpaper == wallpaper && cachedWidth == width
+                    && cachedHeight == height && cachedBlur == blur) return;
+            releaseBlur();
+            cachedWallpaper = wallpaper;cachedWidth = width;cachedHeight = height;cachedBlur = blur;
+            if (blur == 0) return;
+            blurredWallpaper = Bitmap.createBitmap(Math.max(1,width/4),Math.max(1,height/4),Bitmap.Config.ARGB_8888);
+            Canvas capture = new Canvas(blurredWallpaper);
+            capture.scale(blurredWallpaper.getWidth()/(float)width,blurredWallpaper.getHeight()/(float)height);
+            NebulaWallpaperPreview.drawWallpaper(capture,width,height);
+            Utilities.stackBlurBitmap(blurredWallpaper,blur);
+        }
+        private void releaseBlur() {
+            if (blurredWallpaper != null) { blurredWallpaper.recycle();blurredWallpaper = null; }
+            cachedWallpaper = null;
+        }
+        @Override protected void onDetachedFromWindow() {
+            releaseBlur();
+            super.onDetachedFromWindow();
         }
     }
 }

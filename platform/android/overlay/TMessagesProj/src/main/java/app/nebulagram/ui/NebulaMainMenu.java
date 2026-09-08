@@ -34,7 +34,7 @@ public final class NebulaMainMenu {
             host.presentFragment(new CallLogActivity(args));
         });
         menu.addGap();
-        menu.add(R.drawable.msg_qrcode, LocaleController.getString(R.string.NebulaScanQr), () -> {
+        menu.add(new NebulaQrIcon(true), LocaleController.getString(R.string.NebulaScanQr), () -> {
             android.app.Activity activity = host.getParentActivity();
             if (activity == null) return;
             if (android.os.Build.VERSION.SDK_INT >= 23
@@ -52,7 +52,7 @@ public final class NebulaMainMenu {
                             }
                         });
         });
-        menu.add(R.drawable.msg_qrcode, LocaleController.getString(R.string.NebulaMyQr), () -> {
+        menu.add(new NebulaQrIcon(false), LocaleController.getString(R.string.NebulaMyQr), () -> {
             Bundle args = new Bundle();
             args.putLong("user_id", host.getUserConfig().getClientUserId());
             host.presentFragment(new QrActivity(args));

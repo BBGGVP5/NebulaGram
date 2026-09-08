@@ -4,7 +4,9 @@ package app.nebulagram.ui;
 public final class NebulaMenuPalette {
     private NebulaMenuPalette() { }
     public static int surface(boolean dark) { return dark ? 0xff242426 : 0xfff5f5f7; }
-    public static float opacity(float requested) { return Math.max(.78f, Math.min(1f, requested)); }
+    // 64% leaves the backdrop visible while keeping white labels readable even
+    // against a white blur source (including the drawable's 8-bit alpha rounding).
+    public static float opacity(float requested) { return Math.max(.64f, Math.min(1f, requested)); }
     public static int contrastSurface(int surface, float opacity) {
         // The opposite underlay is the worst case for the palette's text polarity.
         boolean dark = (surface & 255) < 128;

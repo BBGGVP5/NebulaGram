@@ -40,6 +40,14 @@ public class CheckMenuState {
  COUNTER
  WIDTH
  public static void main(String[] args) {
+  for(float top:new float[]{-1500,-400,0,300})
+  for(float scale:new float[]{.9f,1f})
+  for(float p:new float[]{0,.2f,.5f,1f})
+  for(float y:new float[]{0,100,400,900}) {
+   float source=app.nebulagram.ui.NebulaMessageMenuLayout.sourceY(y,top,100,scale,p);
+   float drawn=top+(source-top)*(1+(scale-1)*p)+(100-top)*p;
+   check(Math.abs(drawn-y)<.002f,"lifted message clip must be inverse-mapped");
+  }
   for(float density:new float[]{1f,1.5f,2f,2.75f,3f}) {
    AndroidUtilities.density=density;
    for(boolean show:new boolean[]{false,true})
@@ -74,7 +82,7 @@ public class CheckMenuState {
             method(counter, "public static int backWidth(int count)")).replace("WIDTH", width)
 target = work / "CheckMenuState.java"
 target.write_text(source, encoding="utf-8")
-subprocess.run(["javac", "-encoding", "UTF-8", "-d", str(work), str(target)], check=True)
+subprocess.run(["javac", "-encoding", "UTF-8", "-d", str(work), str(target), str(overlay / "NebulaMessageMenuLayout.java")], check=True)
 subprocess.run(["java", "-cp", str(work), "CheckMenuState"], check=True)
 
 bar = (native / "ActionBar/ActionBar.java").read_text(encoding="utf-8")
@@ -93,6 +101,7 @@ assert "nebulaReveal.reset()" in method(popup, "protected void onDetachedFromWin
 assert "NebulaMenuStyle.styleRows" in method(popup, "protected void dispatchDraw(")
 assert "nebulaReveal.onTouch" in method(popup, "public boolean dispatchTouchEvent(")
 chat = (native / "ChatActivity.java").read_text(encoding="utf-8")
+assert chat.count("NebulaMessageMenuLayout.sourceY(") == 2
 assert "skipDraw && !nebulaLiftedMessage" in chat, "lifted original is rendered twice"
 assert "popupLayout.nebulaReveal.setAnchor(v)" in chat
 assert "if (app.nebulagram.ui.NebulaMenuStyle.animated()) scrimPopupWindow.startAnimation();" in chat

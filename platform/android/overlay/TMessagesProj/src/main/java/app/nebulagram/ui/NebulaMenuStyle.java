@@ -37,7 +37,8 @@ public final class NebulaMenuStyle {
         return NebulaMenuPalette.surface(provider != null ? provider.isDark() : Theme.isCurrentThemeDark());
     }
     public static float opacity() {
-        return LiteMode.isEnabled(LiteMode.FLAG_CHAT_BLUR) ? NebulaMenuPalette.opacity(NebulaGlass.opacity()) : 1f;
+        return LiteMode.isEnabled(LiteMode.FLAG_CHAT_BLUR)
+                ? NebulaMenuPalette.opacity(NebulaGlass.custom() ? NebulaGlass.opacity() : .64f) : 1f;
     }
     public static int foreground(int original, Theme.ResourcesProvider provider) {
         return NebulaChatColors.foreground(original, NebulaMenuPalette.contrastSurface(surface(provider), opacity()));

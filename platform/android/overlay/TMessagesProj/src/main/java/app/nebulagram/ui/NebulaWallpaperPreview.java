@@ -22,22 +22,26 @@ public final class NebulaWallpaperPreview extends FrameLayout {
     }
 
     @Override protected void onDraw(Canvas canvas) {
+        drawWallpaper(canvas, getWidth(), getHeight());
+    }
+
+    public static void drawWallpaper(Canvas canvas, int width, int height) {
         Drawable wallpaper = Theme.getCachedWallpaperNonBlocking();
         if (wallpaper == null) {
             canvas.drawColor(Theme.getColor(Theme.key_chat_wallpaper));
             return;
         }
         Rect previous = new Rect(wallpaper.getBounds());
-        int w = getWidth(), h = getHeight();
+        int w = width, h = height;
         int naturalW = wallpaper.getIntrinsicWidth(), naturalH = wallpaper.getIntrinsicHeight();
         if (naturalW > 0 && naturalH > 0) {
             float scale = Math.max(w / (float) naturalW, h / (float) naturalH);
             w = Math.round(naturalW * scale);
             h = Math.round(naturalH * scale);
         }
-        int left = (getWidth() - w) / 2, top = (getHeight() - h) / 2;
+        int left = (width - w) / 2, top = (height - h) / 2;
         int save = canvas.save();
-        canvas.clipRect(0, 0, getWidth(), getHeight());
+        canvas.clipRect(0, 0, width, height);
         try {
             wallpaper.setBounds(left, top, left + w, top + h);
             wallpaper.draw(canvas);

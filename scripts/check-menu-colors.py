@@ -29,7 +29,7 @@ public class CheckMenuColors {
   static final int key_actionBarDefaultSubmenuItem=1;
   static class ResourcesProvider{boolean dark;public int getColor(int key){return 0xff211a16;}}
   static int getColor(int key,ResourcesProvider p){return 0xff211a16;}
-  static int multAlpha(int c,float a){return (Math.round((c>>>24)*a)<<24)|(c&0xffffff);}
+  static int multAlpha(int c,float a){return ((int)((c>>>24)*a)<<24)|(c&0xffffff);}
  }
  static class Color {static final int WHITE=0xffffffff,BLACK=0xff000000;static int alpha(int c){return c>>>24;}}
  static class ColorUtils {
@@ -107,9 +107,11 @@ public class CheckMenuColors {
    count++;
   }
   int translucent=0;
-  for(boolean dark:new boolean[]{false,true})for(float requested:new float[]{.25f,.5f,.72f,.9f,1f})
+  if(Math.abs(NebulaMenuPalette.opacity(.25f)-.64f)>.0001f)throw new AssertionError("Menu is too opaque");
+  if(NebulaMenuPalette.opacity(1)!=1)throw new AssertionError("Custom opaque setting lost");
+  for(boolean dark:new boolean[]{false,true})for(float requested:new float[]{.25f,.5f,.64f,.72f,.9f,1f})
   for(int backdrop:new int[]{0xff000000,0xffffffff,0xff805025})for(int original:new int[]{0xff000000,0xffffffff,0xffff6666}) {
-   int base=NebulaMenuPalette.surface(dark);float alpha=NebulaMenuPalette.opacity(requested);
+   int base=NebulaMenuPalette.surface(dark);float alpha=(int)(255*NebulaMenuPalette.opacity(requested))/255f;
    int actual=0xff000000;
    for(int shift:new int[]{0,8,16})actual|=Math.round(((base>>>shift)&255)*alpha+((backdrop>>>shift)&255)*(1-alpha))<<shift;
    int text=NebulaChatColors.foreground(original,NebulaMenuPalette.contrastSurface(base,alpha));
