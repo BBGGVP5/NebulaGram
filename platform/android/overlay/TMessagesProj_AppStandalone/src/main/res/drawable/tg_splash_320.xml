@@ -8,8 +8,7 @@
     android:viewportWidth="200"
     android:viewportHeight="200">
     <group android:scaleX="0.86" android:scaleY="0.86"
-        android:pivotX="100" android:pivotY="100"
-        android:translateX="6">
+        android:pivotX="100" android:pivotY="100">
         <!-- След: две сужающиеся линии, вторая слабее — так читается движение. -->
         <path
             android:pathData="M44,148 C58,142 70,139 82,139"
@@ -21,12 +20,9 @@
             android:strokeColor="#8CBBD6FF"
             android:strokeWidth="7"
             android:strokeLineCap="round" />
-        <!-- Сам знак: обводка того же цвета скругляет углы, как на иконке. -->
+        <!-- Явные дуги сохраняют круглые углы и форму знака при системном масштабировании. -->
         <path
-            android:pathData="M148,52 L96,138 L88,104 L54,96 Z"
-            android:fillColor="#FFEEF4FF"
-            android:strokeColor="#FFEEF4FF"
-            android:strokeWidth="13"
-            android:strokeLineJoin="round" />
+            android:pathData="M145.2444,46.1130 A6.5,6.5 0 0,1 153.5623,55.3632 L101.5623,141.3632 A6.5,6.5 0 0,1 89.6728,139.4888 L82.5944,109.4056 L52.5112,102.3272 A6.5,6.5 0 0,1 51.2444,90.1130 Z"
+            android:fillColor="#FFEEF4FF" />
     </group>
 </vector>

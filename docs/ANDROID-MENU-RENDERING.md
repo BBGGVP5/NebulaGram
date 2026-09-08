@@ -109,3 +109,47 @@ regression fails on the pre-fix renderer. Physical-device acceptance of this
 follow-up is pending: ADB had no connected device when the new work was tested.
 
 Follow-up source validation: standalone Java compilation passed; all 21 workflow checks passed; 0067 applies cleanly after the 61-patch baseline. Compiled bytecode was checked for the new preview, clip and edit-row methods. No follow-up APK was installed while the phone was disconnected.
+
+
+## 2026-09-08: album captions and nested reactions/readers
+
+The album-caption reproduction is separate from text-block culling fixed in
+0067. The selected caption cell can still be attached while upper album cells
+have been recycled. ChatActivity's scrim iterates only attached recycler
+children, so lifting the group background alone cannot bring those photos back.
+Patch 0068 reserves extra layout space for the album before measuring the popup,
+posts creation after layout, and keeps the cells attached until dismissal.
+Native/non-blurred menus and document groups do not take this path. Cancellation,
+rebound/detached cells, failed menu creation and fragment destruction clear it.
+Image receivers still obey native download, viewer visibility and spoiler rules.
+
+The same patch removes PopupSwipeBackLayout's default opaque foreground rectangle
+for Nebula menus. The popup host remains the single material; old rows fade out
+under the incoming page rather than showing through it. Explicit foreground
+colours retain native behavior.
+
+The lifted cell also avoids recycler-relative alpha-layer clipping, updates media
+frames within the preview scope, and restores local drawing flags afterwards.
+Popup placement stays below the status bar. The splash uses an explicit rounded
+vector contour instead of a thick stroked dart; the two brand trails are retained.
+
+Validation: `scripts/check-preview-surfaces.py` executes extracted production
+methods for preview state restoration, album preparation/cancellation and page
+material policy. All 22 workflow regression commands passed locally. These are
+not substitutes for runtime photo loading, swipe-back animation, or system splash
+acceptance on Android; ADB was disconnected during this change.
+
+
+Device acceptance still required:
+- Loaded single photo and 2/4/10-item albums, opened through a long caption after
+  scrolling the upper media fully off screen; close/reopen and compare pictures.
+- Mixed video/photo album, native media-spoiler state, and media not yet downloaded.
+- Open reactions/readers, swipe back partway and release; no brown page fill,
+  no overlapping old labels, and normal scrolling after dismissal.
+- Background the app while an album popup is being prepared, then return; no
+  delayed popup or permanently expanded recycler reservation.
+- System launch in light/dark mode, retaining the same rounded brand mark.
+
+Final Java 21 compilation passed (7m19s); javap confirmed the latest album/pause
+cleanup, receiver restoration and nested-page policy. AAPT2 compiled the splash
+resource; a local SVG rendering was visually inspected. No new APK was installed.

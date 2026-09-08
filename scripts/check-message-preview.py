@@ -19,6 +19,8 @@ src='''public class PreviewScopeCheck {
  static void check(boolean ok,String message){if(!ok)throw new AssertionError(message);}
  static class Canvas {}
  static class Cell {
+  static class Image {boolean skip;void setSkipUpdateFrame(boolean x){skip=x;}} Image photoImage=new Image();
+  boolean drawingMenuPreview,skipFrameUpdate;float alphaInternal=1f;
   boolean fullyDraw,needNewVisiblePart=true,fail; int firstVisibleBlockNum=8,lastVisibleBlockNum=9,painted;
   void draw(Canvas c){
    check(fullyDraw,"stale list culling used in popup");

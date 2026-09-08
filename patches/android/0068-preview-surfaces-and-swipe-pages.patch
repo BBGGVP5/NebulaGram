@@ -1,0 +1,236 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Cells/ChatMessageCell.java b/TMessagesProj/src/main/java/org/telegram/ui/Cells/ChatMessageCell.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Cells/ChatMessageCell.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Cells/ChatMessageCell.java
+@@ -5766,16 +5766,29 @@
+         overridenDuration = duration;
+     }
+ 
+-    /** The list's text-block culling is invalid after a message is lifted into a popup. */
++    private boolean drawingMenuPreview;
++
++    /** The list's culling and animation bounds are invalid in the lifted preview. */
+     public void drawMenuPreview(Canvas canvas) {
++        boolean previousPreview = drawingMenuPreview;
++        boolean previousSkipFrame = skipFrameUpdate;
++        float previousAlpha = alphaInternal;
+         boolean previousFullyDraw = fullyDraw;
+         int previousFirst = firstVisibleBlockNum, previousLast = lastVisibleBlockNum;
+         boolean previousNeedVisiblePart = needNewVisiblePart;
++        drawingMenuPreview = true;
++        skipFrameUpdate = false;
++        // ChatActivity already applies the cell alpha around this draw.
++        alphaInternal = 1f;
+         fullyDraw = true;
+         needNewVisiblePart = false;
+         try {
+             draw(canvas);
+         } finally {
++            drawingMenuPreview = previousPreview;
++            skipFrameUpdate = previousSkipFrame;
++            photoImage.setSkipUpdateFrame(previousSkipFrame);
++            alphaInternal = previousAlpha;
+             fullyDraw = previousFullyDraw;
+             firstVisibleBlockNum = previousFirst;
+             lastVisibleBlockNum = previousLast;
+@@ -16909,10 +16922,10 @@
+                         if (caption) {
+                             rect.set(getCurrentBackgroundLeft() - dp(10), top, currentBackgroundDrawable.getBounds().right + dp(10), bottom);
+                         } else {
+-                            if (getY() < 0) {
++                            if (!drawingMenuPreview && getY() < 0) {
+                                 top = (int) -getY();
+                             }
+-                            if (getY() + getMeasuredHeight() > parentHeight) {
++                            if (!drawingMenuPreview && getY() + getMeasuredHeight() > parentHeight) {
+                                 bottom = (int) (parentHeight - getY());
+                             }
+                             rect.set(getCurrentBackgroundLeft(), top, currentBackgroundDrawable.getBounds().right, bottom);
+@@ -20223,10 +20236,10 @@
+                     right += dp(8 + 32);
+                 }
+             }
+-            if (getY() < 0) {
++            if (!drawingMenuPreview && getY() < 0) {
+                 top = (int) -getY();
+             }
+-            if (getY() + getMeasuredHeight() > parentHeight) {
++            if (!drawingMenuPreview && getY() + getMeasuredHeight() > parentHeight) {
+                 bottom = (int) (parentHeight - getY());
+             }
+             rect.set(left, top, right, bottom);
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
+@@ -3379,6 +3379,7 @@
+ 
+     @Override
+     public void onFragmentDestroy() {
++        clearNebulaAlbumPreview();
+         super.onFragmentDestroy();
+         if (messageMetricsView != null) {
+             messageMetricsView.finish();
+@@ -6560,6 +6561,15 @@
+         }
+ 
+         chatLayoutManager = new GridLayoutManagerFixed(context, 1000, LinearLayoutManager.VERTICAL, !reversed) {
++            @Override
++            protected void calculateExtraLayoutSpace(RecyclerView.State state, int[] extraLayoutSpace) {
++                super.calculateExtraLayoutSpace(state, extraLayoutSpace);
++                if (nebulaAlbumExtraSpace > 0) {
++                    extraLayoutSpace[0] = Math.max(extraLayoutSpace[0], nebulaAlbumExtraSpace);
++                    extraLayoutSpace[1] = Math.max(extraLayoutSpace[1], nebulaAlbumExtraSpace);
++                }
++            }
++
+ 
+             boolean computingScroll;
+ 
+@@ -10760,7 +10770,81 @@
+         dimBehindView(value, false, view != sideControlsButtonsLayout);
+     }
+ 
++    private int nebulaAlbumExtraSpace;
++    private boolean nebulaAlbumMenuReady;
++    private int nebulaAlbumRequest;
++    private View.OnLayoutChangeListener nebulaAlbumLayoutListener;
++
++    private void clearNebulaAlbumPreview() {
++        nebulaAlbumRequest++;
++        if (chatListView != null && nebulaAlbumLayoutListener != null) {
++            chatListView.removeOnLayoutChangeListener(nebulaAlbumLayoutListener);
++        }
++        nebulaAlbumLayoutListener = null;
++        if (nebulaAlbumExtraSpace != 0) {
++            nebulaAlbumExtraSpace = 0;
++            if (chatListView != null) chatListView.requestLayout();
++        }
++    }
++
++    private boolean prepareNebulaAlbumMenu(View view, boolean single, boolean listView,
++            float x, float y, boolean searchGroup, boolean longpress, boolean suggestEdit) {
++        if (single || nebulaAlbumMenuReady || !app.nebulagram.ui.NebulaAppearance.messageMenuBlur()
++                || !(view instanceof ChatMessageCell) || chatListView == null) return false;
++        ChatMessageCell cell = (ChatMessageCell) view;
++        MessageObject.GroupedMessages group = cell.getCurrentMessagesGroup();
++        if (group == null || group.isDocuments || group.messages.size() < 2) return false;
++        if (nebulaAlbumLayoutListener != null) return true;
++        final MessageObject selected = cell.getMessageObject();
++        // Layout all album rows before reading their bounds. A caption can remain
++        // attached after RecyclerView has recycled the photographs above it.
++        int rows = 1;
++        for (MessageObject.GroupedMessagePosition position : group.posArray) {
++            rows = Math.max(rows, position.maxY + 1);
++        }
++        float[] heights = new float[rows];
++        for (MessageObject.GroupedMessagePosition position : group.posArray) {
++            for (int row = position.minY; row <= position.maxY; row++) {
++                int index = row - position.minY;
++                float height = position.siblingHeights != null && index < position.siblingHeights.length
++                        ? position.siblingHeights[index] : position.ph / (position.maxY - position.minY + 1);
++                heights[row] = Math.max(heights[row], height);
++            }
++        }
++        float albumHeight = dp(12) * rows;
++        float unit = Math.max(chatListView.getWidth(), AndroidUtilities.displaySize.y) * .5f;
++        for (float height : heights) albumHeight += unit * height;
++        nebulaAlbumExtraSpace = Math.max(chatListView.getHeight(), (int) Math.ceil(albumHeight) + cell.getMeasuredHeight());
++        final int request = ++nebulaAlbumRequest;
++        nebulaAlbumLayoutListener = new View.OnLayoutChangeListener() {
++            @Override
++            public void onLayoutChange(View v, int l, int t, int r, int b, int ol, int ot, int or, int ob) {
++                v.removeOnLayoutChangeListener(this);
++                nebulaAlbumLayoutListener = null;
++                // Leave RecyclerView's layout transaction before creating a popup.
++                v.post(() -> {
++                    if (request != nebulaAlbumRequest) return;
++                    if (!cell.isAttachedToWindow() || cell.getMessageObject() != selected || paused) {
++                        clearNebulaAlbumPreview();
++                        return;
++                    }
++                    nebulaAlbumMenuReady = true;
++                    try {
++                        createMenu(view, single, listView, x, y, searchGroup, longpress, suggestEdit);
++                    } finally {
++                        nebulaAlbumMenuReady = false;
++                        if (scrimPopupWindow == null) clearNebulaAlbumPreview();
++                    }
++                });
++            }
++        };
++        chatListView.addOnLayoutChangeListener(nebulaAlbumLayoutListener);
++        chatListView.requestLayout();
++        return true;
++    }
++
+     private void setScrimView(View scrimView) {
++        if (scrimView == null) clearNebulaAlbumPreview();
+         if (this.scrimView == scrimView) {
+             return;
+         }
+@@ -30117,6 +30201,7 @@
+ 
+     @Override
+     public void onPause() {
++        clearNebulaAlbumPreview();
+         super.onPause();
+         scrolling = false;
+         if (scrimPopupWindow != null) {
+@@ -30856,6 +30941,9 @@
+             factCheckHint.hide(false);
+         }
+         FileLog.d("open menu msg_id=" + message.getId() + (message.getDocument() != null ? " doc_id=" + message.getDocument().id : ""));
++        if (prepareNebulaAlbumMenu(v, single, listView, x, y, searchGroup, longpress, suggestEdit)) {
++            return true;
++        }
+         final int type = getMessageType(message);
+         if (single) {
+             boolean isGiveawayResultsMessage = false;
+@@ -32531,6 +32619,9 @@
+             }
+             int popupY;
+             int minY = (int) (chatListView.getY() + dp(24));
++            if (app.nebulagram.ui.NebulaAppearance.messageMenuBlur()) {
++                minY = Math.max(minY, AndroidUtilities.statusBarHeight + dp(8));
++            }
+             int maxY = totalHeight - height - dp(8);
+             if (height < totalHeight) {
+                 popupY = (int) (chatListView.getY() + v.getTop() + y);
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/PopupSwipeBackLayout.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/PopupSwipeBackLayout.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Components/PopupSwipeBackLayout.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/PopupSwipeBackLayout.java
+@@ -129,11 +129,17 @@
+         onSwipeBackProgressListeners.add(onSwipeBackProgressListener);
+     }
+ 
++    // The popup host already paints glass; a second opaque page hides it.
++    // Explicit foreground colours still belong to the native caller.
++    private boolean usesNebulaGlass() {
++        return foregroundColor == 0 && app.nebulagram.ui.NebulaMenuStyle.enabled();
++    }
++
+     @Override
+     protected boolean drawChild(Canvas canvas, View child, long drawingTime) {
+         int i = indexOfChild(child);
+         int s = canvas.save();
+-        if (i != 0) {
++        if (i != 0 && !usesNebulaGlass()) {
+             if (foregroundColor == 0) {
+                 foregroundPaint.setColor(Theme.getColor(Theme.key_actionBarDefaultSubmenuBackground, resourcesProvider));
+             } else {
+@@ -142,7 +148,7 @@
+             canvas.drawRect(child.getX(), 0, child.getX() + child.getMeasuredWidth(), getMeasuredHeight(), foregroundPaint);
+         }
+         boolean b = super.drawChild(canvas, child, drawingTime);
+-        if (i == 0) {
++        if (i == 0 && !usesNebulaGlass()) {
+             overlayPaint.setAlpha((int) (transitionProgress * 0x40));
+             canvas.drawRect(0, 0, getWidth(), getHeight(), overlayPaint);
+         }
+@@ -174,6 +180,7 @@
+         if (currentForegroundIndex >= 0 && currentForegroundIndex < getChildCount()) {
+             foregroundView = getChildAt(currentForegroundIndex);
+         }
++        backgroundView.setAlpha(usesNebulaGlass() ? 1f - transitionProgress : 1f);
+         backgroundView.setTranslationX(-transitionProgress * getWidth() * 0.5f);
+         float bSc = 0.95f + (1f - transitionProgress) * 0.05f;
+         backgroundView.setScaleX(bSc);
