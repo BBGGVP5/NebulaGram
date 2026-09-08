@@ -75,10 +75,14 @@ public final class NebulaDesignFragment extends BaseFragment {
     }
     private void buildAvatars(Context c) {
         NebulaCard card = new NebulaCard(c);
+        NebulaExpand details = new NebulaExpand(c, NebulaAppearance.customAvatars());
+        card.add(NebulaExtras.toggle(c, R.drawable.msg_customize, text("Закругление аватарок", "Avatar corners"), null,
+            NebulaAppearance.customAvatars(), enabled -> { NebulaAppearance.customAvatars(enabled); details.expand(enabled); details.invalidate(); }));
+        card.add(details);
         TextView value = label(c, "", 16, NebulaTheme.of(c).primary());
-        value.setPadding(dp(16), dp(16), dp(16), dp(8)); card.add(value);
+        value.setPadding(dp(16), dp(16), dp(16), dp(8)); details.addView(value);
         SeekBar slider = new SeekBar(c); slider.setMax(100); slider.setProgress(NebulaAppearance.avatarRound());
-        slider.setPadding(dp(20), dp(12), dp(20), dp(12)); card.add(slider);
+        slider.setPadding(dp(20), dp(12), dp(20), dp(12)); details.addView(slider);
         View sample = new View(c) {
             final Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG); final RectF rect = new RectF();
             @Override protected void onMeasure(int w, int h) { setMeasuredDimension(MeasureSpec.getSize(w), dp(120)); }
@@ -91,7 +95,7 @@ public final class NebulaDesignFragment extends BaseFragment {
             }
         };
         Runnable update = () -> { value.setText(text("Квадрат", "Square") + "  ·  " + NebulaAppearance.avatarRound() + "%  ·  " + text("Круг", "Circle")); sample.invalidate(); };
-        update.run(); card.add(sample);
+        update.run(); details.addView(sample);
         slider.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override public void onProgressChanged(SeekBar s, int n, boolean user) { if (user) { NebulaAppearance.setAvatarRound(n); update.run(); } }
             @Override public void onStartTrackingTouch(SeekBar s) { }

@@ -28,13 +28,13 @@ public final class NebulaMenuBackdrop {
         BlurredBackgroundSourceColor fallback = new BlurredBackgroundSourceColor();
         fallback.setColor(NebulaMenuStyle.surface(provider));
         BlurredBackgroundSourceRenderNode source = new BlurredBackgroundSourceRenderNode(fallback);
-        source.setBlur(AndroidUtilities.dpf2(12));
+        source.setBlur(AndroidUtilities.dpf2(NebulaGlass.blur()));
         BlurredBackgroundDrawableViewFactory factory = new BlurredBackgroundDrawableViewFactory(source);
         factory.setLiquidGlassEffectAllowed(NebulaMenuStyle.animated());
         BlurredBackgroundDrawable material = factory.create(popup, true)
                 .setColorProvider(NebulaMenuStyle.provider(provider)).setRadius(NebulaMenuStyle.radius())
                 .setPadding(AndroidUtilities.dp(8)).setHasPadding(true);
-        material.setThickness(AndroidUtilities.dp(5)); material.setIntensity(.22f);
+        material.setThickness(AndroidUtilities.dp(5)); material.setIntensity(NebulaGlass.refraction());
         popup.setBackground(material);
         int[] origin = new int[2], position = new int[2];
         ViewTreeObserver.OnPreDrawListener capture = () -> {

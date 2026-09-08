@@ -227,7 +227,9 @@ public final class NebulaAppearance {
     public static void setLiquidAnimations(boolean value) { preferences().edit().putBoolean("liquid_animations", value).apply(); }
     public static boolean uniformAvatars() { return preferences().getBoolean("uniform_avatars", true); }
     public static void setUniformAvatars(boolean value) { preferences().edit().putBoolean("uniform_avatars", value).apply(); }
-    public static int avatarRound() { return Math.max(0, Math.min(100, preferences().getInt("avatar_round", 100))); }
+    public static boolean customAvatars() { return preferences().getBoolean("custom_avatar_corners", preferences().contains("avatar_round")); }
+    public static void customAvatars(boolean value) { preferences().edit().putBoolean("custom_avatar_corners", value).apply(); }
+    public static int avatarRound() { if (!customAvatars()) return 100; return Math.max(0, Math.min(100, preferences().getInt("avatar_round", 100))); }
     public static void setAvatarRound(int value) { preferences().edit().putInt("avatar_round", value).apply(); }
     public static int ownDoubleTap() { return Math.max(0, Math.min(4, preferences().getInt("own_double_tap", 0))); }
     public static void setOwnDoubleTap(int value) { preferences().edit().putInt("own_double_tap", value).apply(); }

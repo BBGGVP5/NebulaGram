@@ -46,7 +46,9 @@ public class NebulaSectionFragment extends BaseFragment {
             android.graphics.Rect rect = new android.graphics.Rect(); view.getDrawingRect(rect);
             content.offsetDescendantRectToMyCoords(view, rect);
             scroll.smoothScrollTo(0, Math.max(0, rect.top - AndroidUtilities.dp(32)));
-            View row = (View) view.getParent(); row.setPressed(true); row.postDelayed(() -> row.setPressed(false), 900);
+            View row = view;
+            while (!(row instanceof NebulaRow) && row.getParent() instanceof View) row = (View) row.getParent();
+            if (row instanceof NebulaRow) ((NebulaRow) row).highlight();
         } else if (view instanceof ViewGroup) {
             ViewGroup group = (ViewGroup) view;
             for (int i = 0; i < group.getChildCount(); i++) focusRow(group.getChildAt(i));
@@ -161,6 +163,7 @@ public class NebulaSectionFragment extends BaseFragment {
 
     private void buildAppearance(Context context, NebulaTheme theme) {
         NebulaExtras.appearance(this, content);
+        NebulaGlassSettings.add(content);
         NebulaCard card = new NebulaCard(context);
         card.add(link(context, R.drawable.msg_customize, R.string.NebulaSwitches, R.string.NebulaSwitchesInfo, SECTION_SWITCHES));
 
@@ -257,9 +260,13 @@ public class NebulaSectionFragment extends BaseFragment {
         NebulaCard card = new NebulaCard(context);
         card.add(toggle(context, R.drawable.msg_customize,
                 R.string.NebulaBottomBarTitle, R.string.NebulaBottomBarSub,
-                NebulaBottomBar.enabled(), NebulaBottomBar::setEnabled));
+                NebulaBottomBar.enabled(), value -> {
+                    NebulaBottomBar.setEnabled(value);
+                    refreshPalette();
+                }));
         content.addView(card, cardParams());
 
+        if (!NebulaBottomBar.enabled()) return;
         content.addView(NebulaCard.header(context,
                 LocaleController.getString(R.string.NebulaAppearanceTitle)));
         NebulaTabsEditor editor = new NebulaTabsEditor(context);
@@ -279,11 +286,6 @@ public class NebulaSectionFragment extends BaseFragment {
                     editor.refresh();
                 }));
         content.addView(appearance, cardParams());
-        content.addView(NebulaMenuFragment.placeholder(context,
-                LocaleController.getString(R.string.NebulaTabsEditorHint)));
-
-        content.addView(NebulaMenuFragment.placeholder(context,
-                LocaleController.getString(R.string.NebulaBottomBarHint)));
     }
 
     private NebulaRow link(Context context, int icon, int title, int subtitle, int target) {

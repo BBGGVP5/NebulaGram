@@ -16,6 +16,7 @@ source = r'''
 import java.util.*;
 public class CheckMenuColors {
  static int background;
+ static final WeakHashMap<View,Integer> rowColors=new WeakHashMap<>();
  static boolean enabled(){return true;}
  static int surface(Theme.ResourcesProvider p){return background;}
  static class Theme {
@@ -40,7 +41,8 @@ public class CheckMenuColors {
  static class ViewGroup extends View {
   List<View> children=new ArrayList<>();int getChildCount(){return children.size();}View getChildAt(int i){return children.get(i);}
  }
- static class Text {int color;int getCurrentTextColor(){return color;}void setTextColor(int c){color=c;}}
+ static class Text extends View {int color;int getCurrentTextColor(){return color;}void setTextColor(int c){color=c;}}
+ static class SimpleText extends View {int color;int getTextColor(){return color;}void setTextColor(int c){color=c;}}
  static class CheckBox {
   Theme.ResourcesProvider provider;
   CheckBox getCheckBoxBase(){return this;}void setResourcesProvider(Theme.ResourcesProvider p){provider=p;}
@@ -59,6 +61,8 @@ public class CheckMenuColors {
    background=bg;
    ViewGroup root=new ViewGroup(),nested=new ViewGroup();root.children.add(nested);
    ActionBarMenuSubItem row=new ActionBarMenuSubItem();row.text.color=fg;nested.children.add(row);
+   Text account=new Text();account.color=fg;nested.children.add(account);
+   SimpleText update=new SimpleText();update.color=fg;nested.children.add(update);
    boolean readable=ColorUtils.calculateContrast(fg,bg)>=4.5;
    styleRows(root,null);
    if(ColorUtils.calculateContrast(row.text.color,bg)<4.5||row.text.color!=row.icon)
@@ -66,6 +70,11 @@ public class CheckMenuColors {
    if(row.checkView.provider.getColor(Theme.key_actionBarDefaultSubmenuItem)!=row.text.color)
     throw new AssertionError("Invisible folder selection check mark");
    if(readable&&fg!=row.text.color)throw new AssertionError("Readable semantic colour discarded");
+   if(ColorUtils.calculateContrast(account.color,bg)<4.5||ColorUtils.calculateContrast(update.color,bg)<4.5)
+    throw new AssertionError("Custom account/update rows have unreadable text");
+   Theme.ResourcesProvider cached=row.checkView.provider;
+   styleRows(root,null);
+   if(cached!=row.checkView.provider)throw new AssertionError("Provider allocated every draw");
    // A theme update bypasses the row cache, as ThemeDescription does.
    row.text.color=0xff211a16;styleRows(root,null);
    if(ColorUtils.calculateContrast(row.text.color,bg)<4.5)throw new AssertionError("Stale row colour cache");
@@ -75,7 +84,8 @@ public class CheckMenuColors {
  }
 }
 '''.replace('FOREGROUND', method(overlay/'NebulaChatColors.java','public static int foreground(')).replace(
-    'STYLE', method(overlay/'NebulaMenuStyle.java','public static void styleRows('))
+    'STYLE', method(overlay/'NebulaMenuStyle.java','public static void styleRows(').replace(
+        'android.widget.TextView', 'Text').replace('org.telegram.ui.ActionBar.SimpleTextView', 'SimpleText'))
 work=root/'build/menu-colors-check';work.mkdir(parents=True,exist_ok=True)
 target=work/'CheckMenuColors.java';target.write_text(source,encoding='utf-8')
 subprocess.run(['javac','-encoding','UTF-8','-d',str(work),str(target)],check=True)

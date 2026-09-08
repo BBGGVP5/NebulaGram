@@ -5,7 +5,7 @@ r=Path(__file__).resolve().parent.parent
 work=r/'build/navigation-settings/check';work.mkdir(parents=True,exist_ok=True)
 overlay=r/'platform/android/overlay/TMessagesProj/src/main/java/app/nebulagram/ui'
 icons=(overlay/'NebulaIcons.java').read_text(encoding='utf-8')
-names=sorted(set(re.findall(r'R.drawable.(\w+)',icons)) | {'msg_check_s'})
+names=sorted(set(re.findall(r'R.drawable.(\w+)',icons)) | {'msg_check_s', 'input_video', 'input_video_pressed'})
 stubs={
 'android/content/SharedPreferences.java': '''package android.content; public class SharedPreferences {
 public final java.util.Map<String,Object> values=new java.util.HashMap<>();
@@ -68,7 +68,12 @@ check(NebulaIcons.resource(-123)==-123,"unknown resource changed");
 android.content.res.Resources base=new android.content.res.Resources(null,null,null);
 android.content.res.Resources wrapped=new NebulaIconResources(new NebulaIconResources(base));
 for(int active=0;active<3;active++)for(int preview=0;preview<3;preview++) {
- NebulaIcons.setPack(active);
+  NebulaIcons.setPack(active);
+  for(int id:new int[]{R.drawable.input_video,R.drawable.input_video_pressed}) {
+   check(NebulaIcons.resource(id)==id,"video-message recording icon replaced");
+   check(NebulaIcons.previewResource(id,preview)==id,"video-message preview icon replaced");
+   check(wrapped.getDrawable(id).id==id,"nested resources replaced video-message recording icon");
+  }
  for(int id:new int[]{R.drawable.msg_saved,R.drawable.msg_search,R.drawable.msg_calls,R.drawable.msg_sendfile}) {
   int expected=NebulaIcons.previewResource(id,preview);
   check(NebulaIconResources.originalDrawable(wrapped,expected).id==expected,"pack preview contaminated by active pack");

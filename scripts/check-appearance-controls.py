@@ -29,6 +29,7 @@ subprocess.run(['java','-cp',str(work),'CheckAppearance'],check=True)
 icons=(overlay/'java/app/nebulagram/ui/NebulaIcons.java').read_text(encoding='utf-8')
 names=re.findall(r'ICONS.put\(R.drawable.(\w+)',icons)
 for name in names:
+    assert name not in {'input_video', 'input_video_pressed'}, name
     assert not any(k in name for k in ['check','emoji','sticker','smile','download_settings','clock']),name
 for p in overlay.glob('res/drawable/nebula_cupertino_*.xml'):
     root=ET.parse(p).getroot()
@@ -44,6 +45,7 @@ if len(sys.argv) > 1:
 public class CheckUnread {
 boolean attached,nebulaFloatingChatHeader,nebulaClassicSavedHeader; int nebulaHeaderAccount,invalidations;
 void invalidate(){invalidations++;}
+void updateNebulaAvatarLayout(){}
 static class NotificationCenter {
  static final int dialogsNeedReload=1,updateInterfaces=2;
  interface NotificationCenterDelegate {void didReceivedNotification(int id,int account,Object... args);}

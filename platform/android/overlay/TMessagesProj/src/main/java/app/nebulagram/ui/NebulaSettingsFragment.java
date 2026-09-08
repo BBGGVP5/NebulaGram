@@ -100,17 +100,13 @@ public class NebulaSettingsFragment extends BaseFragment {
         chats.add(section(context, R.drawable.msg_openprofile, R.string.NebulaSectionProfile, R.string.NebulaProfileInfo, NebulaSectionFragment.SECTION_PROFILE));
         content.addView(chats, cardParams());
 
-        content.addView(NebulaCard.header(context, NebulaText.text("Инструменты", "Tools")));
+        content.addView(NebulaCard.header(context, NebulaText.text("Инструменты и приложение", "Tools and app")));
         NebulaCard tools = new NebulaCard(context);
         tools.add(new NebulaRow(context).icon(R.drawable.msg_emoji_smiles).title(NebulaText.text("Искусственный интеллект", "AI assistant"))
                 .subtitle("Gemini · Claude · GPT", false).trailing(NebulaRow.TRAIL_CHEVRON)
                 .withClick(v -> presentFragment(new NebulaAiFragment())));
+        tools.add(section(context, R.drawable.msg_info, R.string.NebulaSectionAbout, R.string.NebulaAboutSub, NebulaSectionFragment.SECTION_ABOUT));
         content.addView(tools, cardParams());
-
-        NebulaCard about = new NebulaCard(context);
-        about.add(section(context, R.drawable.msg_info, R.string.NebulaSectionAbout, R.string.NebulaAboutSub, NebulaSectionFragment.SECTION_ABOUT));
-        LinearLayout.LayoutParams bottom = cardParams(); bottom.topMargin = org.telegram.messenger.AndroidUtilities.dp(22);
-        content.addView(about, bottom);
     }
 
     @Override

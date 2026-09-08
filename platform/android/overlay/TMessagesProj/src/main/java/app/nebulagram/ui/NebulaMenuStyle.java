@@ -21,6 +21,7 @@ import org.telegram.ui.Components.blur3.drawable.color.BlurredBackgroundProvider
 
 /** One material, colour basis and motion for iOS-style menus. */
 public final class NebulaMenuStyle {
+    private static final java.util.WeakHashMap<View, Integer> rowColors = new java.util.WeakHashMap<>();
     private NebulaMenuStyle() { }
     public static boolean enabled() { return NebulaAppearance.iosComposer() || NebulaAppearance.chatHeader(); }
     public static boolean animated() { return enabled() && NebulaAppearance.liquidAnimations(); }
@@ -28,7 +29,8 @@ public final class NebulaMenuStyle {
     public static int surface(Theme.ResourcesProvider provider) {
         if (NebulaTheme.materialYouEnabled()) {
             NebulaTheme theme = NebulaTheme.of(org.telegram.messenger.ApplicationLoader.applicationContext);
-            return ColorUtils.blendARGB(theme.surfaceContainer(), theme.primary(), .035f);
+            int base = ColorUtils.blendARGB(theme.surfaceContainer(), theme.primary(), .035f);
+            return ColorUtils.calculateLuminance(base) < .15 ? ColorUtils.blendARGB(base, Color.WHITE, .10f) : base;
         }
         int base = Theme.getColor(Theme.key_windowBackgroundWhite, provider) | 0xff000000;
         int accent = Theme.getColor(Theme.key_windowBackgroundWhiteBlueText, provider);
@@ -37,7 +39,7 @@ public final class NebulaMenuStyle {
     public static BlurredBackgroundProvider provider(Theme.ResourcesProvider provider) {
         return new Material(provider)
                 .setBackgroundColor((r, dark) -> Theme.multAlpha(surface(r),
-                        LiteMode.isEnabled(LiteMode.FLAG_CHAT_BLUR) ? .72f : 1f))
+                        LiteMode.isEnabled(LiteMode.FLAG_CHAT_BLUR) ? NebulaGlass.opacity() : 1f))
                 .setStrokeColorTop(0x30ffffff, 0x30ffffff)
                 .setStrokeColorBottom(0x12000000, 0x14ffffff)
                 .setStrokeWidth(AndroidUtilities.dpf2(.55f), AndroidUtilities.dpf2(.4f))
@@ -71,8 +73,10 @@ public final class NebulaMenuStyle {
             color = NebulaChatColors.foreground(color, surface(provider));
             row.setTextColor(color); row.setIconColor(color);
             // ThemeDescription can update TextView directly, bypassing the row's cache.
-            row.getTextView().setTextColor(color);
-            if (row.checkView != null) {
+            if (row.getTextView().getCurrentTextColor() != color) row.getTextView().setTextColor(color);
+            Integer previous = rowColors.get(row);
+            if (previous == null || previous != color) rowColors.put(row, color);
+            if ((previous == null || previous != color) && row.checkView != null) {
                 final int checkColor = color;
                 row.checkView.getCheckBoxBase().setResourcesProvider(new Theme.ResourcesProvider() {
                     @Override public int getColor(int key) {
@@ -80,7 +84,15 @@ public final class NebulaMenuStyle {
                     }
                 });
             }
-            row.setSelectorColor(Theme.multAlpha(color, .08f));
+            if (previous == null || previous != color) row.setSelectorColor(Theme.multAlpha(color, .08f));
+        } else if (view instanceof android.widget.TextView) {
+            android.widget.TextView text = (android.widget.TextView) view;
+            int color = NebulaChatColors.foreground(text.getCurrentTextColor(), surface(provider));
+            if (color != text.getCurrentTextColor()) text.setTextColor(color);
+        } else if (view instanceof org.telegram.ui.ActionBar.SimpleTextView) {
+            org.telegram.ui.ActionBar.SimpleTextView text = (org.telegram.ui.ActionBar.SimpleTextView) view;
+            int color = NebulaChatColors.foreground(text.getTextColor(), surface(provider));
+            if (color != text.getTextColor()) text.setTextColor(color);
         } else if (view instanceof ViewGroup) {
             ViewGroup group = (ViewGroup) view;
             for (int i=0;i<group.getChildCount();i++) styleRows(group.getChildAt(i), provider);
@@ -96,6 +108,7 @@ public final class NebulaMenuStyle {
             float t=(float)a.getAnimatedValue();
             float p=1-(float)Math.pow(1-t, 4);
             content.nebulaReveal.setProgress(p);
+            content.nebulaReveal.setOpeningBounce(t);
             content.setAlpha(Math.min(1,t*9));
             for(int i=0;i<content.getItemsCount();i++) {
                 View child=content.getItemAt(i);
@@ -116,6 +129,7 @@ public final class NebulaMenuStyle {
         return set;
     }
     public static AnimatorSet closing(ActionBarPopupWindowLayout content) {
+        content.nebulaReveal.prepareClose();
         ValueAnimator frame = ValueAnimator.ofFloat(1f, 0f);
         frame.setInterpolator(new android.view.animation.AccelerateInterpolator());
         frame.addUpdateListener(a -> {

@@ -25,6 +25,8 @@ public final class NebulaSettingsSearch {
     }
     public static ArrayList<Entry> all() {
         ArrayList<Entry> result = new ArrayList<>();
+        result.add(new Entry(0, NebulaText.text("Настроить стекло", "Customize glass"), NebulaText.text("Прозрачность, размытие, блики", "Transparency, blur, highlights"), R.drawable.msg_customize));
+        result.add(new Entry(0, NebulaText.text("Виброотклик стекла", "Glass haptics"), "NebulaGram", R.drawable.msg_customize));
         result.add(new Entry(-13, NebulaText.text("Обновления NebulaGram", "NebulaGram updates"), NebulaText.text("Версия, APK, скачать и установить", "Version, APK, download and install"), R.drawable.msg_download));
         result.add(new Entry(0, R.string.NebulaMaterialYou, R.string.NebulaMaterialYouSub, R.drawable.msg_customize));
         result.add(new Entry(0, R.string.NebulaLoginStyleTitle, R.string.NebulaLoginStyleSub, R.drawable.msg_edit));

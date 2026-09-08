@@ -93,6 +93,26 @@ public class NebulaRow extends FrameLayout {
         addView(text, textParams);
     }
 
+    private android.animation.ValueAnimator highlightAnimation;
+    private android.graphics.drawable.Drawable normalForeground;
+    public void highlight() {
+        if (highlightAnimation != null) highlightAnimation.cancel();
+        if (normalForeground == null) normalForeground = getForeground();
+        GradientDrawable glow = new GradientDrawable();
+        glow.setColor(theme.primary()); glow.setCornerRadius(NebulaTheme.cornerSmall());
+        setForeground(glow);
+        highlightAnimation = android.animation.ValueAnimator.ofFloat(0f, 1f);
+        highlightAnimation.setDuration(1400);
+        highlightAnimation.addUpdateListener(a -> {
+            float t = (float) a.getAnimatedValue();
+            glow.setAlpha(Math.round(55 * Math.min(1f, t / .12f) * Math.min(1f, (1f-t) / .35f)));
+        });
+        highlightAnimation.addListener(new android.animation.AnimatorListenerAdapter() {
+            @Override public void onAnimationEnd(android.animation.Animator a) { setForeground(normalForeground); }
+        });
+        highlightAnimation.start();
+    }
+
     public NebulaRow icon(int resource) {
         if (emojiIcon != null) {
             emojiIcon.setVisibility(GONE);

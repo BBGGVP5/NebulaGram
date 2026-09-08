@@ -23,9 +23,8 @@ public final class NebulaIcons {
         ICONS.put(R.drawable.msg_permissions, R.drawable.nebula_cupertino_lock);
         ICONS.put(R.drawable.msg_calls, R.drawable.nebula_cupertino_phone);
         ICONS.put(R.drawable.msg_videocall, R.drawable.nebula_cupertino_video);
-        ICONS.put(R.drawable.input_video, R.drawable.nebula_cupertino_video);
+        // Keep Telegram's video-message recording outline and pressed asset native.
         ICONS.put(R.drawable.input_mic_pressed, R.drawable.nebula_cupertino_mic);
-        ICONS.put(R.drawable.input_video_pressed, R.drawable.nebula_cupertino_video);
         ICONS.put(R.drawable.input_mic, R.drawable.nebula_cupertino_mic);
         ICONS.put(R.drawable.input_attach, R.drawable.nebula_cupertino_attach);
         ICONS.put(R.drawable.msg_gallery, R.drawable.nebula_cupertino_photo);

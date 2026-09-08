@@ -13,7 +13,11 @@ public final class NebulaHeaderCounter {
     private NebulaHeaderCounter() { }
 
     public static int backWidth() {
-        return AndroidUtilities.dp(NebulaAppearance.headerUnread() && NebulaAppearance.iosUnread() ? 76 : 58);
+        return backWidth(1);
+    }
+
+    public static int backWidth(int count) {
+        return AndroidUtilities.dp(count > 0 && NebulaAppearance.headerUnread() && NebulaAppearance.iosUnread() ? 68 : 58);
     }
 
     public static void draw(Canvas canvas, Context context, float left, float centerY, int count) {
@@ -22,11 +26,11 @@ public final class NebulaHeaderCounter {
         boolean ios = NebulaAppearance.iosUnread();
         String text = count > 99 ? "99+" : Integer.toString(count);
         paint.setTypeface(AndroidUtilities.bold());
-        paint.setTextSize(AndroidUtilities.dp(ios ? 12 : 10));
+        paint.setTextSize(AndroidUtilities.dp(ios ? 9 : 10));
         paint.setTextAlign(Paint.Align.CENTER);
-        float height = AndroidUtilities.dp(ios ? 22 : 18);
-        float width = Math.max(height, paint.measureText(text) + AndroidUtilities.dp(8));
-        float x = left + AndroidUtilities.dp(ios ? 52 : 43);
+        float height = AndroidUtilities.dp(ios ? 17 : 18);
+        float width = Math.max(height, paint.measureText(text) + AndroidUtilities.dp(ios ? 6 : 8));
+        float x = left + AndroidUtilities.dp(ios ? 48 : 43);
         float y = centerY - AndroidUtilities.dp(ios ? 0 : 17);
         bounds.set(x - width / 2, y - height / 2, x + width / 2, y + height / 2);
         paint.setColor(ios ? theme.onSurface() : theme.primary());
