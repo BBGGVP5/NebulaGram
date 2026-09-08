@@ -45,7 +45,7 @@ public final class NebulaLinkShortcut extends View {
 
     private NebulaLinkShortcut(Context context, BaseFragment owner, ActionBarMenuItem item, int preview) {
         super(context); this.owner = owner; this.item = item; this.preview = preview;
-        icon = NebulaIconResources.originalDrawable(context.getResources(), R.drawable.msg_link).mutate();
+        icon = context.getResources().getDrawable(R.drawable.nebula_link_shield).mutate();
         setImportantForAccessibility(preview >= 0 ? IMPORTANT_FOR_ACCESSIBILITY_YES : IMPORTANT_FOR_ACCESSIBILITY_NO);
         if (preview >= 0) setContentDescription(label(preview));
     }
@@ -61,17 +61,26 @@ public final class NebulaLinkShortcut extends View {
     public static void addSettings(LinearLayout content) {
         Context c = content.getContext();
         NebulaCard card = new NebulaCard(c);
-        card.add(NebulaExtras.toggle(c, R.drawable.msg_link, NebulaText.text("NebulaLink на главной", "NebulaLink on home"),
+        card.add(NebulaExtras.toggle(c, R.drawable.nebula_link_shield, NebulaText.text("NebulaLink на главной", "NebulaLink on home"),
                 NebulaText.text("Нажатие — соединение, удержание — сервер и пинг", "Tap to connect; hold for server and ping"),
                 visible(), NebulaLinkShortcut::visible));
         LinearLayout samples = new LinearLayout(c);
+        samples.setOrientation(LinearLayout.VERTICAL);
+        samples.setPadding(dp(8), dp(4), dp(8), dp(8));
+        LinearLayout pair = null;
         for (int state = 0; state < 4; state++) {
-            LinearLayout column = new LinearLayout(c); column.setOrientation(LinearLayout.VERTICAL);
-            column.setGravity(android.view.Gravity.CENTER);
+            if (state % 2 == 0) {
+                pair = new LinearLayout(c);
+                samples.addView(pair, new LinearLayout.LayoutParams(-1, -2));
+            }
+            LinearLayout column = new LinearLayout(c);
+            column.setGravity(android.view.Gravity.CENTER_VERTICAL);
+            column.setMinimumHeight(dp(52));
             column.addView(new NebulaLinkShortcut(c, null, null, state), new LinearLayout.LayoutParams(dp(46), dp(46)));
             android.widget.TextView text = new android.widget.TextView(c); text.setText(label(state));
-            text.setTextSize(10); text.setGravity(android.view.Gravity.CENTER); text.setTextColor(NebulaTheme.of(c).onSurfaceVariant());
-            column.addView(text); samples.addView(column, new LinearLayout.LayoutParams(0, dp(78), 1));
+            text.setTextSize(13); text.setTextColor(NebulaTheme.of(c).onSurfaceVariant());
+            column.addView(text, new LinearLayout.LayoutParams(0, -2, 1));
+            pair.addView(column, new LinearLayout.LayoutParams(0, -2, 1));
         }
         card.add(samples); content.addView(card);
     }
@@ -164,10 +173,18 @@ public final class NebulaLinkShortcut extends View {
                 : state == NebulaLinkShortcutState.CONNECTING ? theme.primary() : theme.onSurfaceVariant();
         int x = getWidth()/2, y = getHeight()/2;
         icon.setColorFilter(color, PorterDuff.Mode.SRC_IN); icon.setBounds(x-dp(12),y-dp(12),x+dp(12),y+dp(12)); icon.draw(canvas);
-        paint.setColor(color); paint.setStyle(Paint.Style.FILL); canvas.drawCircle(x+dp(12), y+dp(10), dp(3), paint);
+        paint.setColor(color); paint.setStyle(Paint.Style.STROKE); paint.setStrokeWidth(dp(1.7f));
+        paint.setStrokeCap(Paint.Cap.ROUND);
+        if (state == NebulaLinkShortcutState.ON) {
+            canvas.drawLine(x-dp(4), y, x-dp(1), y+dp(3), paint);
+            canvas.drawLine(x-dp(1), y+dp(3), x+dp(4), y-dp(3), paint);
+        } else if (state == NebulaLinkShortcutState.ERROR) {
+            canvas.drawLine(x, y-dp(4), x, y, paint);
+            paint.setStyle(Paint.Style.FILL); canvas.drawCircle(x, y+dp(3), dp(.9f), paint);
+        }
         if (state == NebulaLinkShortcutState.CONNECTING) {
             paint.setStyle(Paint.Style.STROKE); paint.setStrokeWidth(dp(1.5f));
-            arc.set(x-dp(17),y-dp(17),x+dp(17),y+dp(17));
+            arc.set(x-dp(4),y-dp(4),x+dp(4),y+dp(4));
             canvas.drawArc(arc, preview >= 0 ? -90 : android.os.SystemClock.uptimeMillis()%1200*360f/1200, 100, false, paint);
             if (preview < 0 && isShown()) postInvalidateDelayed(32);
         }

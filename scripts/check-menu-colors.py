@@ -1,6 +1,7 @@
 """Run actual menu colour traversal, including nested menus and tinted dark text."""
 from pathlib import Path
 import subprocess
+import sys
 
 root = Path(__file__).resolve().parent.parent
 overlay = root / 'platform/android/overlay/TMessagesProj/src/main/java/app/nebulagram/ui'
@@ -19,12 +20,12 @@ public class CheckMenuColors {
  static int background;
  static final WeakHashMap<View,Integer> rowColors=new WeakHashMap<>();
  static boolean enabled(){return true;}
- static int surface(Theme.ResourcesProvider p){return background;}
+ static int surface(Theme.ResourcesProvider p){return p==null?background:NebulaMenuPalette.surface(p.dark);}
  static float opacity(){return .78f;}
  MENU_FOREGROUND
  static class Theme {
   static final int key_actionBarDefaultSubmenuItem=1;
-  static class ResourcesProvider{public int getColor(int key){return 0xff211a16;}}
+  static class ResourcesProvider{boolean dark;public int getColor(int key){return 0xff211a16;}}
   static int getColor(int key,ResourcesProvider p){return 0xff211a16;}
   static int multAlpha(int c,float a){return c;}
  }
@@ -40,9 +41,16 @@ public class CheckMenuColors {
   }
  }
  static class NebulaChatColors { FOREGROUND }
- static class View {}
+ interface ViewParent {ViewParent getParent();}
+ static class View implements ViewParent {ViewParent parent; public ViewParent getParent(){return parent;}}
+ static class Canvas {}
  static class ViewGroup extends View {
   List<View> children=new ArrayList<>();int getChildCount(){return children.size();}View getChildAt(int i){return children.get(i);}
+  protected void dispatchDraw(Canvas canvas){}
+ }
+ static class ActionBarPopupWindowLayout extends ViewGroup {
+  Theme.ResourcesProvider provider;
+  Theme.ResourcesProvider getNebulaResourcesProvider(){return provider;}
  }
  static class Text extends View {int color;int getCurrentTextColor(){return color;}void setTextColor(int c){color=c;}}
  static class SimpleText extends View {int color;int getTextColor(){return color;}void setTextColor(int c){color=c;}}
@@ -52,10 +60,13 @@ public class CheckMenuColors {
  }
  static class ActionBarMenuSubItem extends ViewGroup {
   CheckBox checkView=new CheckBox();
-  Text text=new Text();int cached=Color.WHITE,icon;
+  Text text=new Text(),subtextView=new Text();int cached=Color.WHITE,icon;
   Text getTextView(){return text;}void setTextColor(int c){if(cached!=c){cached=c;text.color=c;}}
   void setIconColor(int c){icon=c;}void setSelectorColor(int c){}
+  Theme.ResourcesProvider resourcesProvider;
+  NATIVE_DRAW
  }
+ OWNER_PROVIDER
  STYLE
  public static void main(String[] args){
   int count=0;
@@ -95,12 +106,42 @@ public class CheckMenuColors {
   }
   System.out.println(translucent+" translucent palette cases passed, including unready black and white blur sources");
   System.out.println(count+" nested menu palette cases passed, including direct theme updates");
+  NATIVE_TEST
  }
 }
 '''.replace('MENU_FOREGROUND', method(overlay/'NebulaMenuStyle.java','public static int foreground(')).replace('FOREGROUND', method(overlay/'NebulaChatColors.java','public static int foreground(')).replace(
     'STYLE', method(overlay/'NebulaMenuStyle.java','public static void styleRows(').replace(
         'android.widget.TextView', 'Text').replace('org.telegram.ui.ActionBar.SimpleTextView', 'SimpleText'))
+source = source.replace('OWNER_PROVIDER', method(overlay/'NebulaMenuStyle.java', 'public static Theme.ResourcesProvider ownerProvider(').replace('android.view.ViewParent', 'ViewParent'))
+if len(sys.argv) > 1:
+    native = Path(sys.argv[1])/'TMessagesProj/src/main/java/org/telegram/ui/ActionBar'
+    draw = method(native/'ActionBarMenuSubItem.java', 'protected void dispatchDraw(')
+    source = source.replace('NATIVE_DRAW', draw.replace('android.graphics.Canvas', 'Canvas').replace('app.nebulagram.ui.NebulaMenuStyle.', ''))
+    source = source.replace('NATIVE_TEST', r'''
+      ActionBarPopupWindowLayout popup=new ActionBarPopupWindowLayout();
+      popup.provider=new Theme.ResourcesProvider();popup.provider.dark=true;
+      ActionBarMenuSubItem item=new ActionBarMenuSubItem();item.resourcesProvider=new Theme.ResourcesProvider();
+      ViewGroup scroll=new ViewGroup();scroll.parent=popup;item.parent=scroll;
+      item.text.color=Color.BLACK;item.subtextView.color=Color.BLACK;item.icon=Color.BLACK;
+      item.dispatchDraw(new Canvas());
+      if(item.text.color!=Color.WHITE || item.icon!=Color.WHITE || item.subtextView.color!=Color.WHITE)
+        throw new AssertionError("Late black theme update or light row provider overrode dark popup");
+      popup.provider.dark=false;item.dispatchDraw(new Canvas());
+      if(item.text.color!=Color.BLACK || item.icon!=Color.BLACK)throw new AssertionError("Live light theme not applied");
+      System.out.println("Actual native row draw hook repairs late colors using the owning popup palette");
+    ''')
+else:
+    source = source.replace('NATIVE_DRAW', '').replace('NATIVE_TEST', '')
 work=root/'build/menu-colors-check';work.mkdir(parents=True,exist_ok=True)
 target=work/'CheckMenuColors.java';target.write_text(source,encoding='utf-8')
 subprocess.run(['javac','-encoding','UTF-8','-d',str(work),str(target),str(overlay/'NebulaMenuPalette.java')],check=True)
 subprocess.run(['java','-cp',str(work),'CheckMenuColors'],check=True)
+if len(sys.argv) > 1:
+    native = Path(sys.argv[1])/'TMessagesProj/src/main/java/org/telegram/ui/ActionBar'
+    popup = (native/'ActionBarPopupWindow.java').read_text(encoding='utf-8')
+    assert 'addOnPreDrawListener(nebulaPaletteListener)' in popup
+    assert 'removeOnPreDrawListener(nebulaPaletteListener)' in popup
+    assert 'setForceDarkAllowed(false)' in popup
+    row = method(native/'ActionBarMenuSubItem.java', 'protected void dispatchDraw(')
+    assert row.index('NebulaMenuStyle.styleRows') < row.index('super.dispatchDraw')
+    print('Native popup pre-draw, platform recoloring opt-out and row draw-time palette hooks passed')

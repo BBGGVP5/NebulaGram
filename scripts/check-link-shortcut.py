@@ -77,5 +77,8 @@ assert 'payload.put("ids", new JSONArray().put(id))' in method('private void pro
 assert 'result.data.optInt(id, -1)' in method('private void probe(')
 assert 'getBoolean(KEY, true)' in code and 'state < 4' in code
 assert 'if (!onlySelect && folderId == 0) app.nebulagram.ui.NebulaLinkShortcut.install(this, menu);' in (native / 'DialogsActivity.java').read_text()
-assert 'NebulaLinkShortcut.addSettings(content)' in (ui / 'NebulaSectionFragment.java').read_text(encoding='utf-8')
+assert 'NebulaLinkShortcut.addSettings(content)' not in (ui / 'NebulaSectionFragment.java').read_text(encoding='utf-8')
+assert 'if (SCREEN_HOME.equals(screenId)) NebulaLinkShortcut.addSettings(content);' in (ui / 'NebulaMenuFragment.java').read_text(encoding='utf-8')
+assert 'R.drawable.nebula_link_shield' in code and 'R.drawable.msg_link' not in code
+assert 'state % 2 == 0' in code and 'text.setTextSize(13)' in code
 print('Shortcut home guard, four inert previews, listeners, visibility switch and selected-only ping wiring passed')

@@ -163,7 +163,6 @@ public class NebulaSectionFragment extends BaseFragment {
 
     private void buildAppearance(Context context, NebulaTheme theme) {
         NebulaExtras.appearance(this, content);
-        NebulaLinkShortcut.addSettings(content);
         NebulaGlassSettings.add(content);
         NebulaCard card = new NebulaCard(context);
         card.add(link(context, R.drawable.msg_customize, R.string.NebulaSwitches, R.string.NebulaSwitchesInfo, SECTION_SWITCHES));

@@ -1,0 +1,61 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarMenuSubItem.java b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarMenuSubItem.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarMenuSubItem.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarMenuSubItem.java
+@@ -258,6 +258,15 @@
+         if (this.textColor != textColor || textView.getCurrentTextColor() != textColor) {
+             textView.setTextColor(this.textColor = textColor);
+         }
++    }
++
++    @Override
++    protected void dispatchDraw(android.graphics.Canvas canvas) {
++        // A row may be recolored after the popup was measured or its theme changed.
++        // Use the owning material's provider, not a separately themed row provider.
++        app.nebulagram.ui.NebulaMenuStyle.styleRows(this,
++                app.nebulagram.ui.NebulaMenuStyle.ownerProvider(this, resourcesProvider));
++        super.dispatchDraw(canvas);
+     }
+ 
+     public void setIconColor(int iconColor) {
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarPopupWindow.java b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarPopupWindow.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarPopupWindow.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarPopupWindow.java
+@@ -136,6 +136,13 @@
+ 
+         private boolean fitItems;
+         private final Theme.ResourcesProvider resourcesProvider;
++        public Theme.ResourcesProvider getNebulaResourcesProvider() { return resourcesProvider; }
++        private final ViewTreeObserver.OnPreDrawListener nebulaPaletteListener = this::refreshNebulaPalette;
++        private boolean refreshNebulaPalette() {
++            app.nebulagram.ui.NebulaMenuStyle.prepare(this, resourcesProvider);
++            app.nebulagram.ui.NebulaMenuStyle.styleRows(this, resourcesProvider);
++            return true;
++        }
+         private View topView;
+         protected ActionBarPopupWindow window;
+ 
+@@ -161,6 +168,9 @@
+         public ActionBarPopupWindowLayout(Context context, int resId, Theme.ResourcesProvider resourcesProvider, int flags) {
+             super(context);
+             this.resourcesProvider = resourcesProvider;
++            // This window draws its own dark/light material, including RenderNode blur.
++            // Do not let platform Force Dark reinterpret foreground display lists.
++            if (android.os.Build.VERSION.SDK_INT >= 29) setForceDarkAllowed(false);
+ 
+             if (resId != 0) {
+                 backgroundDrawable = getResources().getDrawable(resId).mutate();
+@@ -605,7 +615,14 @@
+         }
+ 
+         @Override
++        protected void onAttachedToWindow() {
++            super.onAttachedToWindow();
++            getViewTreeObserver().addOnPreDrawListener(nebulaPaletteListener);
++        }
++
++        @Override
+         protected void onDetachedFromWindow() {
++            if (getViewTreeObserver().isAlive()) getViewTreeObserver().removeOnPreDrawListener(nebulaPaletteListener);
+             nebulaReveal.reset();
+             super.onDetachedFromWindow();
+         }

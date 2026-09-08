@@ -85,6 +85,16 @@ public final class NebulaMenuStyle {
         int gray = ColorUtils.calculateLuminance(background) < .35 ? 0xffb2b2b2 : 0xff595959;
         return foreground(gray, provider);
     }
+    public static Theme.ResourcesProvider ownerProvider(View view, Theme.ResourcesProvider fallback) {
+        android.view.ViewParent parent = view.getParent();
+        while (parent != null) {
+            if (parent instanceof ActionBarPopupWindowLayout) {
+                return ((ActionBarPopupWindowLayout) parent).getNebulaResourcesProvider();
+            }
+            parent = parent.getParent();
+        }
+        return fallback;
+    }
     public static void styleRows(View view, Theme.ResourcesProvider provider) {
         if (!enabled()) return;
         if (view instanceof ActionBarMenuSubItem) {
@@ -96,6 +106,10 @@ public final class NebulaMenuStyle {
             row.setTextColor(color); row.setIconColor(color);
             // ThemeDescription can update TextView directly, bypassing the row's cache.
             if (row.getTextView().getCurrentTextColor() != color) row.getTextView().setTextColor(color);
+            if (row.subtextView != null) {
+                int subColor = foreground(row.subtextView.getCurrentTextColor(), provider);
+                if (row.subtextView.getCurrentTextColor() != subColor) row.subtextView.setTextColor(subColor);
+            }
             Integer previous = rowColors.get(row);
             if (previous == null || previous != color) rowColors.put(row, color);
             if ((previous == null || previous != color) && row.checkView != null) {

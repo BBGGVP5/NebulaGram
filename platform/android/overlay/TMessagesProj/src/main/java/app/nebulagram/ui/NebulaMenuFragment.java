@@ -128,11 +128,13 @@ public class NebulaMenuFragment extends BaseFragment {
 
     /** Draws the screen from scratch; cheap enough to call after every change. */
     private void rebuild() {
-        if (content == null || screen == null) {
+        if (content == null) {
             return;
         }
         Context context = content.getContext();
         content.removeAllViews();
+        if (SCREEN_HOME.equals(screenId)) NebulaLinkShortcut.addSettings(content);
+        if (screen == null) return;
         actionBar.setTitle(localized(screen.optString("title_key"), screen.optString("title")));
 
         JSONArray sections = screen.optJSONArray("sections");
