@@ -1,0 +1,165 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Cells/ChatMessageCell.java b/TMessagesProj/src/main/java/org/telegram/ui/Cells/ChatMessageCell.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Cells/ChatMessageCell.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Cells/ChatMessageCell.java
+@@ -5764,6 +5764,23 @@
+     private long overridenDuration = -1;
+     public void overrideDuration(long duration) {
+         overridenDuration = duration;
++    }
++
++    /** The list's text-block culling is invalid after a message is lifted into a popup. */
++    public void drawMenuPreview(Canvas canvas) {
++        boolean previousFullyDraw = fullyDraw;
++        int previousFirst = firstVisibleBlockNum, previousLast = lastVisibleBlockNum;
++        boolean previousNeedVisiblePart = needNewVisiblePart;
++        fullyDraw = true;
++        needNewVisiblePart = false;
++        try {
++            draw(canvas);
++        } finally {
++            fullyDraw = previousFullyDraw;
++            firstVisibleBlockNum = previousFirst;
++            lastVisibleBlockNum = previousLast;
++            needNewVisiblePart = previousNeedVisiblePart;
++        }
+     }
+ 
+     public void setFullyDraw(boolean draw) {
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
+@@ -8336,6 +8336,7 @@
+             }
+         });
+         chatActivityEnterTopView.addEditView(editView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT, Gravity.NO_GRAVITY, 0, 0, 48, 0));
++        chatActivityEnterView.nebulaComposerStyle.setEditPreview(editView);
+ 
+         for (int i = 0; i < 2; i++) {
+             final boolean firstButton = i == 0;
+@@ -17724,12 +17725,20 @@
+             return false;
+         }
+ 
++        private float nebulaPreviewClipY(float edge, boolean bottom) {
++            if (!(scrimView instanceof ChatMessageCell) || nebulaScrimSourceTop == 0) return edge;
++            float progress = Utilities.clamp(scrimViewProgress, 1f, 0f);
++            float screenEdge = edge + ((bottom ? getHeight() : 0) - edge) * progress;
++            return app.nebulagram.ui.NebulaMessageMenuLayout.sourceY(screenEdge,
++                    nebulaScrimSourceTop, nebulaScrimTop, nebulaScrimScale, progress);
++        }
++
+         private void drawChildElement(Canvas canvas, float listTop, ChatMessageCell cell, int type) {
+             int restoreCount = canvas.save();
+             float canvasOffsetX = chatListView.getLeft() + cell.getX();
+             float canvasOffsetY = chatListView.getY() + cell.getY() + cell.getPaddingTop();
+             float alpha = cell.shouldDrawAlphaLayer() ? cell.getAlpha() : 1f;
+-            canvas.clipRect(chatListView.getLeft(), listTop, chatListView.getRight(), chatListView.getY() + chatListView.getMeasuredHeight() - blurredViewBottomOffset - windowInsetsStateHolder.getCurrentMaxBottomInset() - inputIslandHeightCurrent - dp(9));
++            canvas.clipRect(chatListView.getLeft(), nebulaPreviewClipY(listTop, false), chatListView.getRight(), nebulaPreviewClipY(chatListView.getY() + chatListView.getMeasuredHeight() - blurredViewBottomOffset - windowInsetsStateHolder.getCurrentMaxBottomInset() - inputIslandHeightCurrent - dp(9), true));
+             canvas.translate(canvasOffsetX, canvasOffsetY);
+             cell.setInvalidatesParent(true);
+             if (type == 0) {
+@@ -17942,11 +17951,11 @@
+                                 b += scrimGroup.transitionParams.cell.getTranslationY();
+                             }
+ 
+-                            if (t < chatListViewPaddingTop - chatListViewPaddingVisibleOffset - AndroidUtilities.dp(20)) {
++                            if (nebulaScrimSourceTop == 0 && t < chatListViewPaddingTop - chatListViewPaddingVisibleOffset - AndroidUtilities.dp(20)) {
+                                 t = chatListViewPaddingTop - chatListViewPaddingVisibleOffset - AndroidUtilities.dp(20);
+                             }
+ 
+-                            if (b > chatListView.getMeasuredHeight() + AndroidUtilities.dp(20)) {
++                            if (nebulaScrimSourceTop == 0 && b > chatListView.getMeasuredHeight() + AndroidUtilities.dp(20)) {
+                                 b = chatListView.getMeasuredHeight() + AndroidUtilities.dp(20);
+                             }
+ 
+@@ -17967,7 +17976,7 @@
+                                     - dp(9)
+                                     - (mentionContainer != null ? mentionContainer.clipBottom() : 0);
+ 
+-                            canvas.clipRect(0, listTop + (mentionContainer != null ? mentionContainer.clipTop() : 0), getMeasuredWidth(), viewClipBottom2);
++                            canvas.clipRect(0, nebulaPreviewClipY(listTop + (mentionContainer != null ? mentionContainer.clipTop() : 0), false), getMeasuredWidth(), nebulaPreviewClipY(viewClipBottom2, true));
+                             canvas.translate(0, chatListView.getY());
+                             scrimGroup.transitionParams.cell.drawBackground(canvas, (int) l, (int) t, (int) r, (int) b, scrimGroup.transitionParams.pinnedTop, scrimGroup.transitionParams.pinnedBotton, selected, 0);
+                             canvas.restore();
+@@ -17998,15 +18007,9 @@
+                         viewClipTop += clipTop;
+                         viewClipBottom -= clipBottom;
+ 
+-                        // The lifted preview is no longer in the scrolled list's coordinate space.
+-                        // Invert its transform before clipping; otherwise an offscreen photo is
+-                        // still cut at the old list edge and only its caption survives.
+-                        if (scrimView instanceof ChatMessageCell && nebulaScrimSourceTop != 0) {
+-                            viewClipTop = app.nebulagram.ui.NebulaMessageMenuLayout.sourceY(
+-                                    viewClipTop, nebulaScrimSourceTop, nebulaScrimTop, nebulaScrimScale, scrimViewProgress);
+-                            viewClipBottom = app.nebulagram.ui.NebulaMessageMenuLayout.sourceY(
+-                                    viewClipBottom, nebulaScrimSourceTop, nebulaScrimTop, nebulaScrimScale, scrimViewProgress);
+-                        }
++                        // The outer preview clip owns the lifted message's visible area.
++                        viewClipTop = nebulaPreviewClipY(viewClipTop, false);
++                        viewClipBottom = nebulaPreviewClipY(viewClipBottom, true);
+ 
+                         if (cell == null || !cell.getTransitionParams().animateBackgroundBoundsInner) {
+                             viewClipLeft = Math.max(viewClipLeft, chatListView.getLeft() + child.getX());
+@@ -18044,7 +18047,11 @@
+                                 cell.drawBackgroundInternal(canvas, true);
+                                 canvas.restore();
+                             }
+-                            child.draw(canvas);
++                            if (cell != null && nebulaScrimSourceTop != 0) {
++                                cell.drawMenuPreview(canvas);
++                            } else {
++                                child.draw(canvas);
++                            }
+                             if (cell != null && cell.hasOutboundsContent()) {
+                                 canvas.save();
+                                 canvas.translate(0, cell.getPaddingTop());
+@@ -32547,7 +32554,7 @@
+             if (app.nebulagram.ui.NebulaAppearance.messageMenuBelow()
+                     && v instanceof ChatMessageCell && !isInsideContainer) {
+                 // Cap the scrolling menu so a visible message always fits above it.
+-                int menuLimit = Math.max(dp(96), (int) ((totalHeight - minY - dp(16)) * .56f));
++                int menuLimit = Math.max(dp(96), (int) ((totalHeight - minY - dp(16)) * .48f));
+                 scrimPopupContainerLayout.setMaxHeight(menuLimit);
+                 scrimPopupContainerLayout.measure(View.MeasureSpec.makeMeasureSpec(dp(1000), View.MeasureSpec.AT_MOST),
+                         View.MeasureSpec.makeMeasureSpec(menuLimit, View.MeasureSpec.AT_MOST));
+@@ -32591,7 +32598,7 @@
+                         popupY = (int) sourceTop - height - dp(8);
+                     } else {
+                         // Wide media cannot fit beside the menu. Keep both visible instead of covering the bubble.
+-                        int menuLimit = Math.max(dp(96), (int) ((totalHeight - minY - dp(16)) * .56f));
++                        int menuLimit = Math.max(dp(96), (int) ((totalHeight - minY - dp(16)) * .48f));
+                         scrimPopupContainerLayout.setMaxHeight(menuLimit);
+                         scrimPopupContainerLayout.measure(View.MeasureSpec.makeMeasureSpec(dp(1000), View.MeasureSpec.AT_MOST),
+                                 View.MeasureSpec.makeMeasureSpec(menuLimit, View.MeasureSpec.AT_MOST));
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterTopView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterTopView.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterTopView.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterTopView.java
+@@ -74,6 +74,28 @@
+             }
+         }
+ 
++        @Override
++        protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
++            int visible = 0;
++            for (EditViewButton button : buttons) {
++                if (button != null && button.getVisibility() != GONE) visible++;
++            }
++            boolean glass = app.nebulagram.ui.NebulaAppearance.iosComposer()
++                    && MeasureSpec.getMode(widthMeasureSpec) != MeasureSpec.UNSPECIFIED;
++            int available = Math.max(0, MeasureSpec.getSize(widthMeasureSpec) - getPaddingLeft() - getPaddingRight());
++            for (int i = 0; i < buttons.length; i++) {
++                EditViewButton button = buttons[i];
++                if (button == null) continue;
++                LayoutParams params = (LayoutParams) button.getLayoutParams();
++                boolean label = button.getTextView() != null && button.getTextView().getVisibility() != GONE;
++                params.width = glass && label ? available / Math.max(1, visible) : LayoutParams.WRAP_CONTENT;
++                if (label) button.getTextView().setMaxWidth(glass
++                        ? Math.max(0, params.width - button.getPaddingLeft() - button.getPaddingRight() - org.telegram.messenger.AndroidUtilities.dp(34))
++                        : i == 0 && button.isEditButton() ? org.telegram.messenger.AndroidUtilities.dp(116) : Integer.MAX_VALUE);
++            }
++            super.onMeasure(widthMeasureSpec, heightMeasureSpec);
++        }
++
+         public EditViewButton[] getButtons() {
+             return buttons;
+         }

@@ -21,6 +21,8 @@ public final class NebulaComposerStyle {
     private EditText insetEditor, measuredEditor;
     private int baseLeft, baseRight, insetLeft, insetRight;
     private int measuredLeft = -1, measuredRight = -1;
+    private View editPreview;
+    private boolean editPreviewInset;
     private View attachment, replyPreview, replyClose, aiButton, expandButton, botMenu;
     private final Rect padded = new Rect();
     private final BlurredBackgroundDrawable[] surfaces = new BlurredBackgroundDrawable[6];
@@ -44,6 +46,8 @@ public final class NebulaComposerStyle {
         this.replyPreview = replyPreview;
         this.replyClose = replyClose;
     }
+
+    public void setEditPreview(View view) { editPreview = view; }
 
     public void restoreInsets() {
         if (insetEditor == null) return;
@@ -82,6 +86,20 @@ public final class NebulaComposerStyle {
                 preview.rightMargin = right;
                 forceMeasure(replyPreview);
             }
+        }
+        if (editPreview != null) {
+            ViewGroup.MarginLayoutParams edit = (ViewGroup.MarginLayoutParams) editPreview.getLayoutParams();
+            // Paid-suggestion icon-only rows have an explicit width; leave them native.
+            boolean inset = active && edit.width == -1;
+            if (inset || editPreviewInset) {
+                int left = inset ? AndroidUtilities.dp(50) : 0;
+                int right = AndroidUtilities.dp(inset ? 50 : 48);
+                if (edit.leftMargin != left || edit.rightMargin != right) {
+                    edit.leftMargin = left; edit.rightMargin = right;
+                    forceMeasure(editPreview);
+                }
+            }
+            editPreviewInset = inset;
         }
         if (replyClose != null) {
             ViewGroup.MarginLayoutParams close = (ViewGroup.MarginLayoutParams) replyClose.getLayoutParams();

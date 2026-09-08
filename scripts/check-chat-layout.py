@@ -107,9 +107,13 @@ for(View button:new View[]{ai,expand}){((FrameLayout.LayoutParams)button.getLayo
 FrameLayout top=add(host,new FrameLayout(),0,0,host.getWidth(),dp(48));
 View preview=add(top,new View(),0,0,host.getWidth()-dp(52),dp(48)); View close=add(top,new View(),host.getWidth()-d,0,host.getWidth(),dp(46));
 top.setVisibility(height==92?View.VISIBLE:View.GONE);style.setPreview(preview,close);
+View editRow=add(top,new View(),0,0,host.getWidth()-dp(48),dp(48));
+FrameLayout.LayoutParams editParams=(FrameLayout.LayoutParams)editRow.getLayoutParams();editParams.width=-1;editParams.rightMargin=dp(48);style.setEditPreview(editRow);
+
 View botMenu=null;
 if(bot){botMenu=add(parent,new View(),dp(8),parent.getHeight()-dp(38),dp(48),parent.getHeight()-dp(6));params.leftMargin=dp(97);style.setBotMenu(botMenu);}
 style.prepare(host,editor,host.getWidth(),true);style.layout(emoji,attach,null,ai,expand);
+check(editParams.leftMargin==dp(50)&&editParams.rightMargin==dp(50),"media edit row outside composer pill");
 if(bot)check(botMenu.getLeft()>=dp(50)&&botMenu.getRight()<params.leftMargin,"bot menu covers attachment or text");
 attach.setAlpha(0);attach.setScaleX(.5f);attach.setTranslationX(dp(20));
 check(attach.getLeft()==0&&attach.getAlpha()==1&&attach.getScaleX()==1&&attach.getTranslationX()==0,"attachment lost during typing");
@@ -152,6 +156,7 @@ check(shortHeader<=longHeader&&longHeader==w-dp(58)-dp(70),"dynamic header width
 check((w-shortHeader)/2>=dp(64)-1,"header collides with back/avatar");
 style.restoreInsets();NebulaAppearance.enabled=false;style.prepare(host,editor,host.getWidth(),true);style.layout(emoji,attach,null,ai,expand);
 check(ai.getTop()==dp(1)&&expand.getTop()==dp(1),"accessory position not restored");
+check(editParams.leftMargin==0&&editParams.rightMargin==dp(48),"media edit native margins not restored");
 check(attach.getAlpha()==0&&attach.getScaleX()==.5f&&attach.getTranslationX()==dp(20),"native attachment style not restored");
 check(params.leftMargin==dp(bot?97:50)&&params.rightMargin==dp(50),"input insets not restored");cases++;}
 org.telegram.ui.ActionBar.ActionBar bar1=new org.telegram.ui.ActionBar.ActionBar(),bar2=new org.telegram.ui.ActionBar.ActionBar();

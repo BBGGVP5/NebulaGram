@@ -15,7 +15,7 @@ public final class NebulaMessageMenuLayout {
             float minTop, float bottom, float menuHeight, float gap) {
         float available = Math.max(1, bottom - minTop - menuHeight - gap);
         // Long posts get a clipped preview instead of unreadable miniature text.
-        float scale = Math.max(.9f, Math.min(1, available / Math.max(1, messageHeight)));
+        float scale = Math.max(.65f, Math.min(1, available / Math.max(1, messageHeight)));
         float visible = Math.min(available, Math.max(1, messageHeight) * scale);
         float top = Math.max(minTop, Math.min(sourceTop, bottom - menuHeight - gap - visible));
         return new NebulaMessageMenuLayout(top, scale, top + visible + gap, visible);

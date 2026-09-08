@@ -80,3 +80,32 @@ Remaining coverage limits: the exact long-caption screenshot and grouped-media
 edge cases have not all been reproduced on the device; no full-device frame-time
 benchmark or exhaustive light/dark/OEM matrix was run. Pure geometry checks do
 not establish those results. Native libraries were not rebuilt locally.
+
+## Follow-up: blank long-text previews and media edit controls
+
+The subsequent user screenshots still showed blank or heavily clipped previews.
+The earlier photo-only acceptance did not cover the text-block culling cache.
+Patch 0067 introduces a scoped `ChatMessageCell.drawMenuPreview`: render all text
+blocks for the lifted cell without querying its old list-visible rectangle, then
+restore `fullyDraw`, block indices and the pending visible-part flag in `finally`.
+It does not change spoiler visibility or the underlying message.
+
+All three clipping paths (cell, grouped background, and deferred caption/name/time
+passes) now use the same inverse-mapped viewport. The old chat header/input bounds
+relax during the lift; the outer preview clip still keeps content above the menu.
+The menu's maximum share decreases from 56% to 48% and long previews can scale to
+65%, rather than being clipped immediately at 90%. Extremely long posts still
+use a bounded preview; this is not a full-message viewer.
+
+The media edit row is separate from the reply row. Its margins now follow the
+composer pill, and visible edit/replace actions share its measured width with
+ellipsized labels. Disabling the glass composer restores native margins/widths;
+paid-suggestion icon-only rows retain their explicit layout.
+
+`check-message-preview.py` exercises the real scoped drawing method (including
+exception restoration), the real clipping helper and edit-row measurement.
+`check-chat-layout.py` also checks active/native edit-row margins. This new
+regression fails on the pre-fix renderer. Physical-device acceptance of this
+follow-up is pending: ADB had no connected device when the new work was tested.
+
+Follow-up source validation: standalone Java compilation passed; all 21 workflow checks passed; 0067 applies cleanly after the 61-patch baseline. Compiled bytecode was checked for the new preview, clip and edit-row methods. No follow-up APK was installed while the phone was disconnected.

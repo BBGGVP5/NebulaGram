@@ -121,6 +121,7 @@ jobs:
           python3 scripts/check-menu-drag.py vendor/telegram-android
           python3 scripts/check-menu-preview.py
           python3 scripts/check-menu-state.py vendor/telegram-android
+          python3 scripts/check-message-preview.py vendor/telegram-android
           python3 scripts/check-menu-feedback.py vendor/telegram-android
           python3 scripts/check-status-bounds.py vendor/telegram-android
           python3 scripts/check-link-shortcut.py vendor/telegram-android
