@@ -153,3 +153,49 @@ Device acceptance still required:
 Final Java 21 compilation passed (7m19s); javap confirmed the latest album/pause
 cleanup, receiver restoration and nested-page policy. AAPT2 compiled the splash
 resource; a local SVG rendering was visually inspected. No new APK was installed.
+
+## Discussion profiles, input panels and Rich previews (2026-09-08, patch 0069)
+
+- Discussion-group profiles reuse `ProfileChannelCell` for the linked broadcast
+  channel, above the bio. The cell and fetcher use the fragment's account. A zero
+  message id requests channel history, not `getMessages([0])`; responses are sorted,
+  empty history terminates loading, and cached content remains available on errors.
+  Topics and inaccessible private channels do not get a linked-channel card.
+- The floating chat header restores the menu containing the search EditText when
+  search opens. Search result counts/indexing are unchanged. The search island and
+  emoji panel sample Telegram's wallpaper backdrop instead of the empty area under
+  the list. Profile overflow uses the live profile blur factory and Nebula material.
+- Native attachment sheet bodies share a backdrop captured from the originating
+  window, with separate drawables for multiple passes. Same-window embedding,
+  unsupported Android versions, disabled blur and custom web-app backgrounds keep
+  the native fallback. The location wrapper no longer paints over a valid backdrop;
+  map tiles and content are not modified. Profile action borders preserve native
+  avatar blur, and obey the highlight setting.
+- Emoji/GIF/sticker type tabs support horizontal scrubbing with a moving lens.
+  Compact native attachment strips use the same release-only gesture and existing
+  permission-checking callbacks. Long attachment strips remain horizontally
+  scrollable; bot launches are deliberately excluded from scrub targets.
+- Rich previews skip recycler-viewport clipping only inside the lifted cell's draw
+  scope. Rich rendering itself, media and collapsed details remain native. Preview
+  isolation is also used when the source top happens to be zero.
+- Releasing a folder lens on the same folder is now a no-op. Programmatic folder
+  switches settle the previous destination first, and disabled/settling tabs cannot
+  start another scrub. Progress callbacks without a visible destination cannot
+  move the primary page offscreen; completed transitions explicitly normalize it.
+
+Validation: all 24 workflow checks passed, including production-method Java tests
+for Rich/list clipping, search visibility, account routing, gesture cancellation,
+and 60 interrupted folder cycles. Reintroducing the old same-folder transition or
+Rich clipping causes the new tests to fail. A fresh reconstruction from vendor HEAD
+and all applicable patches matches all 13 changed native files.
+
+Device acceptance remains required (ADB has no connected device): Rich messages
+with tables/media/collapsed details; repeated same-folder scrubs and rapid reversals;
+search opening/closing with the keyboard; channel cards on multiple accounts;
+emoji type switching; photo/file/audio/contact/location sheets and custom web apps;
+light/dark themes, reduced motion and disabled blur. No APK has been installed for
+this change, and these source tests are not a claim of runtime visual acceptance.
+
+Final patch-0069 Java compilation passed (2m40s). Bytecode checks confirmed Rich
+preview isolation, folder settlement, both emoji-tab setup paths, channel history,
+profile highlight preference and separate-window sheet capture.

@@ -123,10 +123,12 @@ jobs:
           python3 scripts/check-menu-state.py vendor/telegram-android
           python3 scripts/check-message-preview.py vendor/telegram-android
           python3 scripts/check-preview-surfaces.py vendor/telegram-android
+          python3 scripts/check-discussion-input.py vendor/telegram-android
           python3 scripts/check-menu-feedback.py vendor/telegram-android
           python3 scripts/check-status-bounds.py vendor/telegram-android
           python3 scripts/check-link-shortcut.py vendor/telegram-android
           python3 scripts/check-folder-swipe.py vendor/telegram-android
+          python3 scripts/check-folder-page-state.py vendor/telegram-android
           python3 scripts/check-folder-animation.py
           python3 scripts/check-folder-title-timing.py vendor/telegram-android
           python3 scripts/check-appearance-controls.py vendor/telegram-android

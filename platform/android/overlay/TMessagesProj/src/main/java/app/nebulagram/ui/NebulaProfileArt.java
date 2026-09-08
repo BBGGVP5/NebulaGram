@@ -192,6 +192,7 @@ public final class NebulaProfileArt {
 
     /** Match Telegram's expanded profile actions over the continuous banner. */
     public static final class Actions extends ProfileActionsView {
+        private final Paint edge = new Paint(Paint.ANTI_ALIAS_FLAG);
         public Actions(Context context, int height, Theme.ResourcesProvider provider) {
             super(context, height);
         }
@@ -201,6 +202,14 @@ public final class NebulaProfileArt {
             else super.setActionsColor(color, hasColorById);
         }
         @Override public float getRoundRadius() { return dp(16); }
+        @Override protected void drawActionSurface(Canvas canvas, RectF rect, int key, float radius, float alpha) {
+            if (!NebulaMenuStyle.enabled() || !NebulaAppearance.glassHighlights()) return;
+            // Keep the native avatar blur and action fill; add only the material edge.
+            edge.setStyle(Paint.Style.STROKE);
+            edge.setStrokeWidth(AndroidUtilities.dpf2(.6f));
+            edge.setColor(Theme.multAlpha(0x38ffffff, alpha));
+            canvas.drawRoundRect(rect, radius, radius, edge);
+        }
     }
 
     public static class LabelBackground extends Drawable {
