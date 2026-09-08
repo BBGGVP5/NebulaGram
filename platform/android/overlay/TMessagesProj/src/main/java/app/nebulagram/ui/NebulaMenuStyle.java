@@ -22,24 +22,46 @@ import org.telegram.ui.Components.blur3.drawable.color.BlurredBackgroundProvider
 /** One material, colour basis and motion for iOS-style menus. */
 public final class NebulaMenuStyle {
     private static final java.util.WeakHashMap<View, Integer> rowColors = new java.util.WeakHashMap<>();
+    private static final java.util.WeakHashMap<View, SurfaceBinding> surfaces = new java.util.WeakHashMap<>();
+    private static final class SurfaceBinding {
+        Drawable drawable;
+        int color;
+        float opacity;
+    }
     private NebulaMenuStyle() { }
-    public static boolean enabled() { return NebulaAppearance.iosComposer() || NebulaAppearance.chatHeader(); }
+    public static boolean enabled() { return NebulaAppearance.liquidAnimations() || NebulaAppearance.iosComposer() || NebulaAppearance.chatHeader(); }
     public static boolean animated() { return enabled() && NebulaAppearance.liquidAnimations(); }
     public static int radius() { return AndroidUtilities.dp(enabled() ? 24 : 12); }
     public static int surface(Theme.ResourcesProvider provider) {
-        if (NebulaTheme.materialYouEnabled()) {
-            NebulaTheme theme = NebulaTheme.of(org.telegram.messenger.ApplicationLoader.applicationContext);
-            int base = ColorUtils.blendARGB(theme.surfaceContainer(), theme.primary(), .035f);
-            return ColorUtils.calculateLuminance(base) < .15 ? ColorUtils.blendARGB(base, Color.WHITE, .10f) : base;
+        return NebulaMenuPalette.surface(provider != null ? provider.isDark() : Theme.isCurrentThemeDark());
+    }
+    public static float opacity() {
+        return LiteMode.isEnabled(LiteMode.FLAG_CHAT_BLUR) ? NebulaMenuPalette.opacity(NebulaGlass.opacity()) : 1f;
+    }
+    public static int foreground(int original, Theme.ResourcesProvider provider) {
+        return NebulaChatColors.foreground(original, NebulaMenuPalette.contrastSurface(surface(provider), opacity()));
+    }
+    public static void prepare(ActionBarPopupWindowLayout host, Theme.ResourcesProvider provider) {
+        if (!enabled()) return;
+        Drawable drawable = host.getBackgroundDrawable();
+        if (drawable == null) return; // A transparent swipe-back page is not a second surface.
+        int color = surface(provider);
+        float alpha = opacity();
+        SurfaceBinding binding = surfaces.get(host);
+        if (binding == null) { binding = new SurfaceBinding(); surfaces.put(host, binding); }
+        if (binding.drawable != drawable || binding.color != color || binding.opacity != alpha) {
+            if (drawable instanceof org.telegram.ui.Components.blur3.drawable.BlurredBackgroundDrawable) {
+                ((org.telegram.ui.Components.blur3.drawable.BlurredBackgroundDrawable) drawable).setColorProvider(provider(provider));
+            } else {
+                host.setBackgroundDrawable(drawable = fallback(provider));
+            }
+            binding.drawable = drawable; binding.color = color; binding.opacity = alpha;
         }
-        int base = Theme.getColor(Theme.key_windowBackgroundWhite, provider) | 0xff000000;
-        int accent = Theme.getColor(Theme.key_windowBackgroundWhiteBlueText, provider);
-        return ColorUtils.blendARGB(base, accent, .09f);
     }
     public static BlurredBackgroundProvider provider(Theme.ResourcesProvider provider) {
         return new Material(provider)
                 .setBackgroundColor((r, dark) -> Theme.multAlpha(surface(r),
-                        LiteMode.isEnabled(LiteMode.FLAG_CHAT_BLUR) ? NebulaGlass.opacity() : 1f))
+                        opacity()))
                 .setStrokeColorTop(0x30ffffff, 0x30ffffff)
                 .setStrokeColorBottom(0x12000000, 0x14ffffff)
                 .setStrokeWidth(AndroidUtilities.dpf2(.55f), AndroidUtilities.dpf2(.4f))
@@ -61,7 +83,7 @@ public final class NebulaMenuStyle {
     public static int secondary(Theme.ResourcesProvider provider) {
         int background = surface(provider);
         int gray = ColorUtils.calculateLuminance(background) < .35 ? 0xffb2b2b2 : 0xff595959;
-        return NebulaChatColors.foreground(gray, background);
+        return foreground(gray, provider);
     }
     public static void styleRows(View view, Theme.ResourcesProvider provider) {
         if (!enabled()) return;
@@ -70,7 +92,7 @@ public final class NebulaMenuStyle {
             int color = row.getTextView().getCurrentTextColor();
             // A near-black wallpaper tint is still ordinary text. Test contrast,
             // not saturation; retain semantic colours whenever they are readable.
-            color = NebulaChatColors.foreground(color, surface(provider));
+            color = foreground(color, provider);
             row.setTextColor(color); row.setIconColor(color);
             // ThemeDescription can update TextView directly, bypassing the row's cache.
             if (row.getTextView().getCurrentTextColor() != color) row.getTextView().setTextColor(color);
@@ -87,11 +109,11 @@ public final class NebulaMenuStyle {
             if (previous == null || previous != color) row.setSelectorColor(Theme.multAlpha(color, .08f));
         } else if (view instanceof android.widget.TextView) {
             android.widget.TextView text = (android.widget.TextView) view;
-            int color = NebulaChatColors.foreground(text.getCurrentTextColor(), surface(provider));
+            int color = foreground(text.getCurrentTextColor(), provider);
             if (color != text.getCurrentTextColor()) text.setTextColor(color);
         } else if (view instanceof org.telegram.ui.ActionBar.SimpleTextView) {
             org.telegram.ui.ActionBar.SimpleTextView text = (org.telegram.ui.ActionBar.SimpleTextView) view;
-            int color = NebulaChatColors.foreground(text.getTextColor(), surface(provider));
+            int color = foreground(text.getTextColor(), provider);
             if (color != text.getTextColor()) text.setTextColor(color);
         } else if (view instanceof ViewGroup) {
             ViewGroup group = (ViewGroup) view;
@@ -100,44 +122,30 @@ public final class NebulaMenuStyle {
     }
     public static AnimatorSet opening(ActionBarPopupWindowLayout content, float finalScaleY) {
         content.setBackScaleY(finalScaleY); content.setBackAlpha(255);
-        content.setScaleX(1); content.setScaleY(1); content.setAlpha(0);
+        for (int i = 0; i < content.getItemsCount(); i++) {
+            View child = content.getItemAt(i);
+            child.setTranslationY(0); child.setAlpha(child.isEnabled() ? 1f : .5f);
+        }
         content.nebulaReveal.begin();
         ValueAnimator frame = ValueAnimator.ofFloat(0f, 1f);
-        frame.setInterpolator(new android.view.animation.LinearInterpolator());
-        frame.addUpdateListener(a -> {
-            float t=(float)a.getAnimatedValue();
-            float p=1-(float)Math.pow(1-t, 4);
-            content.nebulaReveal.setProgress(p);
-            content.nebulaReveal.setOpeningBounce(t);
-            content.setAlpha(Math.min(1,t*9));
-            for(int i=0;i<content.getItemsCount();i++) {
-                View child=content.getItemAt(i);
-                child.setAlpha(Math.max(0,Math.min(1, (t-.12f)*3))*(child.isEnabled()?1f:.5f));
-                child.setTranslationY(AndroidUtilities.dp(content.shownFromBottom ? 6 : -6)*(1-p));
-            }
-        });
-        AnimatorSet set=new AnimatorSet(); set.playTogether(frame); set.setDuration(240);
+        frame.setInterpolator(new android.view.animation.DecelerateInterpolator(2f));
+        frame.addUpdateListener(a -> content.nebulaReveal.setProgress((float) a.getAnimatedValue()));
+        AnimatorSet set = new AnimatorSet(); set.playTogether(frame); set.setDuration(260);
         set.addListener(new AnimatorListenerAdapter() {
+            private boolean cancelled;
+            @Override public void onAnimationCancel(Animator animation) { cancelled = true; }
             @Override public void onAnimationEnd(Animator animation) {
-                content.setScaleX(1); content.setScaleY(1); content.setAlpha(1);
-                content.nebulaReveal.finish();
-                for(int i=0;i<content.getItemsCount();i++) {
-                    View child=content.getItemAt(i); child.setTranslationY(0); child.setAlpha(child.isEnabled()?1f:.5f);
-                }
+                if (!cancelled) content.nebulaReveal.finish();
             }
         });
         return set;
     }
     public static AnimatorSet closing(ActionBarPopupWindowLayout content) {
         content.nebulaReveal.prepareClose();
-        ValueAnimator frame = ValueAnimator.ofFloat(1f, 0f);
-        frame.setInterpolator(new android.view.animation.AccelerateInterpolator());
-        frame.addUpdateListener(a -> {
-            float p=(float)a.getAnimatedValue();
-            content.nebulaReveal.setProgress(p);
-            content.setAlpha(p);
-        });
-        AnimatorSet set = new AnimatorSet(); set.playTogether(frame); set.setDuration(160);
+        ValueAnimator frame = ValueAnimator.ofFloat(content.nebulaReveal.getProgress(), 0f);
+        frame.setInterpolator(new android.view.animation.AccelerateInterpolator(1.5f));
+        frame.addUpdateListener(a -> content.nebulaReveal.setProgress((float) a.getAnimatedValue()));
+        AnimatorSet set = new AnimatorSet(); set.playTogether(frame); set.setDuration(150);
         return set;
     }
 }

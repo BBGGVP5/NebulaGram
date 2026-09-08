@@ -14,11 +14,14 @@ def method(file, signature):
 
 source = r'''
 import java.util.*;
+import app.nebulagram.ui.NebulaMenuPalette;
 public class CheckMenuColors {
  static int background;
  static final WeakHashMap<View,Integer> rowColors=new WeakHashMap<>();
  static boolean enabled(){return true;}
  static int surface(Theme.ResourcesProvider p){return background;}
+ static float opacity(){return .78f;}
+ MENU_FOREGROUND
  static class Theme {
   static final int key_actionBarDefaultSubmenuItem=1;
   static class ResourcesProvider{public int getColor(int key){return 0xff211a16;}}
@@ -63,7 +66,7 @@ public class CheckMenuColors {
    ActionBarMenuSubItem row=new ActionBarMenuSubItem();row.text.color=fg;nested.children.add(row);
    Text account=new Text();account.color=fg;nested.children.add(account);
    SimpleText update=new SimpleText();update.color=fg;nested.children.add(update);
-   boolean readable=ColorUtils.calculateContrast(fg,bg)>=4.5;
+   boolean readable=ColorUtils.calculateContrast(fg,NebulaMenuPalette.contrastSurface(bg,opacity()))>=4.5;
    styleRows(root,null);
    if(ColorUtils.calculateContrast(row.text.color,bg)<4.5||row.text.color!=row.icon)
     throw new AssertionError("Invisible nested menu text/icons: "+Integer.toHexString(bg));
@@ -80,13 +83,24 @@ public class CheckMenuColors {
    if(ColorUtils.calculateContrast(row.text.color,bg)<4.5)throw new AssertionError("Stale row colour cache");
    count++;
   }
+  int translucent=0;
+  for(boolean dark:new boolean[]{false,true})for(float requested:new float[]{.25f,.5f,.72f,.9f,1f})
+  for(int backdrop:new int[]{0xff000000,0xffffffff,0xff805025})for(int original:new int[]{0xff000000,0xffffffff,0xffff6666}) {
+   int base=NebulaMenuPalette.surface(dark);float alpha=NebulaMenuPalette.opacity(requested);
+   int actual=0xff000000;
+   for(int shift:new int[]{0,8,16})actual|=Math.round(((base>>>shift)&255)*alpha+((backdrop>>>shift)&255)*(1-alpha))<<shift;
+   int text=NebulaChatColors.foreground(original,NebulaMenuPalette.contrastSurface(base,alpha));
+   if(ColorUtils.calculateContrast(text,actual)<4.5)throw new AssertionError("Unreadable real translucent menu");
+   translucent++;
+  }
+  System.out.println(translucent+" translucent palette cases passed, including unready black and white blur sources");
   System.out.println(count+" nested menu palette cases passed, including direct theme updates");
  }
 }
-'''.replace('FOREGROUND', method(overlay/'NebulaChatColors.java','public static int foreground(')).replace(
+'''.replace('MENU_FOREGROUND', method(overlay/'NebulaMenuStyle.java','public static int foreground(')).replace('FOREGROUND', method(overlay/'NebulaChatColors.java','public static int foreground(')).replace(
     'STYLE', method(overlay/'NebulaMenuStyle.java','public static void styleRows(').replace(
         'android.widget.TextView', 'Text').replace('org.telegram.ui.ActionBar.SimpleTextView', 'SimpleText'))
 work=root/'build/menu-colors-check';work.mkdir(parents=True,exist_ok=True)
 target=work/'CheckMenuColors.java';target.write_text(source,encoding='utf-8')
-subprocess.run(['javac','-encoding','UTF-8','-d',str(work),str(target)],check=True)
+subprocess.run(['javac','-encoding','UTF-8','-d',str(work),str(target),str(overlay/'NebulaMenuPalette.java')],check=True)
 subprocess.run(['java','-cp',str(work),'CheckMenuColors'],check=True)

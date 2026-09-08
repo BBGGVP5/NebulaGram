@@ -163,6 +163,7 @@ public class NebulaSectionFragment extends BaseFragment {
 
     private void buildAppearance(Context context, NebulaTheme theme) {
         NebulaExtras.appearance(this, content);
+        NebulaLinkShortcut.addSettings(content);
         NebulaGlassSettings.add(content);
         NebulaCard card = new NebulaCard(context);
         card.add(link(context, R.drawable.msg_customize, R.string.NebulaSwitches, R.string.NebulaSwitchesInfo, SECTION_SWITCHES));
@@ -471,7 +472,7 @@ public class NebulaSectionFragment extends BaseFragment {
 
     private void buildAbout(Context context) {
         NebulaCard identity = new NebulaCard(context);
-        identity.addView(NebulaCard.header(context, NebulaText.text("Информация", "Information")));
+        content.addView(NebulaCard.header(context, NebulaText.text("Информация", "Information")));
         String version = org.telegram.messenger.BuildVars.BUILD_VERSION_STRING;
         try { version = context.getPackageManager().getPackageInfo(context.getPackageName(), 0).versionName; } catch (Exception ignored) { }
         identity.add(new NebulaRow(context).icon(R.drawable.msg_info).title("NebulaGram · " + version)
@@ -482,7 +483,7 @@ public class NebulaSectionFragment extends BaseFragment {
                 .trailing(NebulaRow.TRAIL_CHEVRON).withClick(v -> presentFragment(new NebulaUpdatesFragment())));
         content.addView(identity, cardParams());
         NebulaCard links = new NebulaCard(context);
-        links.addView(NebulaCard.header(context, NebulaText.text("Ссылки", "Links")));
+        content.addView(NebulaCard.header(context, NebulaText.text("Ссылки", "Links")));
         links.add(projectLink(context, R.drawable.msg_discussion, NebulaText.text("Канал NebulaGram", "NebulaGram channel"),
                 NebulaText.text("Новости и развитие проекта", "Project news and development"), "https://t.me/ngram_official"));
         links.add(projectLink(context, R.drawable.msg_download, NebulaText.text("Канал релизов", "Release channel"),
@@ -493,7 +494,7 @@ public class NebulaSectionFragment extends BaseFragment {
         links.add(projectLink(context, R.drawable.msg_openprofile, NebulaText.text("Разработчик", "Developer"), "BBGGVP5", "https://github.com/BBGGVP5"));
         content.addView(links, cardParams());
         NebulaCard components = new NebulaCard(context);
-        components.addView(NebulaCard.header(context, NebulaText.text("Компоненты", "Components")));
+        content.addView(NebulaCard.header(context, NebulaText.text("Компоненты", "Components")));
         components.add(new NebulaRow(context).icon(R.drawable.msg_settings).title("Telegram " + org.telegram.messenger.BuildVars.BUILD_VERSION_STRING)
                 .subtitle(versions(), false));
         components.add(new NebulaRow(context).icon(R.drawable.msg_theme).title("Solar Icon Set").subtitle("Design480 · CC BY 4.0", false));

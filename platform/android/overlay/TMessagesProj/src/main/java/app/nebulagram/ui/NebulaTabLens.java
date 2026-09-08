@@ -19,6 +19,7 @@ public final class NebulaTabLens {
     private final RectF current = new RectF(), target = new RectF(), start = new RectF(), draw = new RectF();
     private final Paint tint = new Paint(Paint.ANTI_ALIAS_FLAG), edge = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Matrix gradientMatrix = new Matrix();
+    private final RectF paintedBounds = new RectF(), outlineBounds = new RectF();
     private final LinearGradient highlight = new LinearGradient(0, 0, 0, 1,
             new int[]{0x66ffffff, 0x0affffff, 0x24ffffff}, new float[]{0, .55f, 1}, Shader.TileMode.CLAMP);
     private ValueAnimator animation;
@@ -94,6 +95,7 @@ public final class NebulaTabLens {
         bounds.top = Math.max(0, bounds.top);
         bounds.bottom = Math.min(host.getHeight(), bounds.bottom);
         if (bounds.width() <= 0) return;
+        paintedBounds.set(bounds);
         float radius = Math.min(bounds.width(), bounds.height()) * .5f;
         tint.setColor(Theme.multAlpha(accent, Theme.isCurrentThemeDark() ? .16f : .11f));
         canvas.drawRoundRect(bounds, radius, radius, tint);
@@ -118,6 +120,14 @@ public final class NebulaTabLens {
             host.invalidate();
         });
         pulse.start();
+    }
+
+    public void drawOutline(Canvas canvas, Paint outline) {
+        if (paintedBounds.isEmpty()) return;
+        outlineBounds.set(paintedBounds);
+        outlineBounds.inset(outline.getStrokeWidth() / 2f, outline.getStrokeWidth() / 2f);
+        float radius = Math.min(outlineBounds.width(), outlineBounds.height()) / 2f;
+        canvas.drawRoundRect(outlineBounds, radius, radius, outline);
     }
 
     public void setPressed(boolean pressed) {
