@@ -19,6 +19,8 @@ import app.nebulagram.ui.NebulaMenuPalette;
 public class CheckMenuColors {
  static int background;
  static final WeakHashMap<View,Integer> rowColors=new WeakHashMap<>();
+ static class SurfaceBinding {Drawable drawable;int color;float opacity;}
+ static final WeakHashMap<View,SurfaceBinding> surfaces=new WeakHashMap<>();
  static boolean enabled(){return true;}
  static int surface(Theme.ResourcesProvider p){return p==null?background:NebulaMenuPalette.surface(p.dark);}
  static float opacity(){return .78f;}
@@ -27,9 +29,9 @@ public class CheckMenuColors {
   static final int key_actionBarDefaultSubmenuItem=1;
   static class ResourcesProvider{boolean dark;public int getColor(int key){return 0xff211a16;}}
   static int getColor(int key,ResourcesProvider p){return 0xff211a16;}
-  static int multAlpha(int c,float a){return c;}
+  static int multAlpha(int c,float a){return (Math.round((c>>>24)*a)<<24)|(c&0xffffff);}
  }
- static class Color {static final int WHITE=0xffffffff,BLACK=0xff000000;}
+ static class Color {static final int WHITE=0xffffffff,BLACK=0xff000000;static int alpha(int c){return c>>>24;}}
  static class ColorUtils {
   static double channel(int n){double v=n/255.0;return v<=.04045?v/12.92:Math.pow((v+.055)/1.055,2.4);}
   static double luminance(int c){return .2126*channel((c>>>16)&255)+.7152*channel((c>>>8)&255)+.0722*channel(c&255);}
@@ -42,7 +44,16 @@ public class CheckMenuColors {
  }
  static class NebulaChatColors { FOREGROUND }
  interface ViewParent {ViewParent getParent();}
- static class View implements ViewParent {ViewParent parent; public ViewParent getParent(){return parent;}}
+ static class Drawable {}
+ static class Material {int tint;Material(int c){tint=c;}int getBackgroundColor(){return tint;}}
+ static class BlurredBackgroundDrawable extends Drawable {int tint;Material material;
+  BlurredBackgroundDrawable(int c){setColorProvider(new Material(c));}int getBackgroundTint(){return tint;}
+  Material getColorProvider(){return material;}void setColorProvider(Material m){material=m;updateColors();}
+  void updateColors(){tint=material.tint;}}
+ static class MenuBackground extends Drawable {int tint;}
+ static Drawable fallback(Theme.ResourcesProvider p){MenuBackground m=new MenuBackground();m.tint=surface(p);return m;}
+ static Material provider(Theme.ResourcesProvider p){return new Material(Theme.multAlpha(surface(p),opacity()));}
+ static class View implements ViewParent {ViewParent parent;Drawable backgroundDrawable; public ViewParent getParent(){return parent;} Drawable getBackground(){return backgroundDrawable;}void setBackgroundDrawable(Drawable d){backgroundDrawable=d;}}
  static class Canvas {}
  static class ViewGroup extends View {
   List<View> children=new ArrayList<>();int getChildCount(){return children.size();}View getChildAt(int i){return children.get(i);}
@@ -51,6 +62,7 @@ public class CheckMenuColors {
  static class ActionBarPopupWindowLayout extends ViewGroup {
   Theme.ResourcesProvider provider;
   Theme.ResourcesProvider getNebulaResourcesProvider(){return provider;}
+  Drawable getBackgroundDrawable(){return backgroundDrawable;}
  }
  static class Text extends View {int color;int getCurrentTextColor(){return color;}void setTextColor(int c){color=c;}}
  static class SimpleText extends View {int color;int getTextColor(){return color;}void setTextColor(int c){color=c;}}
@@ -112,7 +124,8 @@ public class CheckMenuColors {
 '''.replace('MENU_FOREGROUND', method(overlay/'NebulaMenuStyle.java','public static int foreground(')).replace('FOREGROUND', method(overlay/'NebulaChatColors.java','public static int foreground(')).replace(
     'STYLE', method(overlay/'NebulaMenuStyle.java','public static void styleRows(').replace(
         'android.widget.TextView', 'Text').replace('org.telegram.ui.ActionBar.SimpleTextView', 'SimpleText'))
-source = source.replace('OWNER_PROVIDER', method(overlay/'NebulaMenuStyle.java', 'public static Theme.ResourcesProvider ownerProvider(').replace('android.view.ViewParent', 'ViewParent'))
+source = source.replace('OWNER_PROVIDER', '\n'.join(method(overlay/'NebulaMenuStyle.java', sig).replace('android.view.ViewParent', 'ViewParent').replace('org.telegram.ui.Components.blur3.drawable.BlurredBackgroundDrawable', 'BlurredBackgroundDrawable') for sig in [
+    'public static Theme.ResourcesProvider ownerProvider(', 'public static int drawnTint(', 'public static int foreground(View', 'public static void prepare(']))
 if len(sys.argv) > 1:
     native = Path(sys.argv[1])/'TMessagesProj/src/main/java/org/telegram/ui/ActionBar'
     draw = method(native/'ActionBarMenuSubItem.java', 'protected void dispatchDraw(')
@@ -128,6 +141,27 @@ if len(sys.argv) > 1:
         throw new AssertionError("Late black theme update or light row provider overrode dark popup");
       popup.provider.dark=false;item.dispatchDraw(new Canvas());
       if(item.text.color!=Color.BLACK || item.icon!=Color.BLACK)throw new AssertionError("Live light theme not applied");
+      popup.backgroundDrawable=new BlurredBackgroundDrawable(0xc7242426);
+      prepare(popup,popup.provider);
+      if(((BlurredBackgroundDrawable)popup.backgroundDrawable).getBackgroundTint()!=0xc7242426)
+        throw new AssertionError("prepare rebound the source material to the wrong host provider");
+      item.dispatchDraw(new Canvas());
+      if(item.text.color!=Color.WHITE || item.icon!=Color.WHITE || item.subtextView.color!=Color.WHITE)
+        throw new AssertionError("Dark DRAWN material with light provider is unreadable");
+      popup.provider.dark=true;popup.backgroundDrawable=new BlurredBackgroundDrawable(0xc7f5f5f7);
+      item.dispatchDraw(new Canvas());
+      if(item.text.color!=Color.BLACK || item.icon!=Color.BLACK)throw new AssertionError("Light DRAWN material with dark provider is unreadable");
+      ActionBarPopupWindowLayout transparent=new ActionBarPopupWindowLayout();transparent.parent=popup;scroll.parent=transparent;
+      popup.backgroundDrawable=new BlurredBackgroundDrawable(0xc7242426);
+      item.dispatchDraw(new Canvas());
+      if(item.text.color!=Color.WHITE)throw new AssertionError("Transparent nested page did not inherit material");
+      Text customAccount=new Text();customAccount.parent=scroll;customAccount.color=Color.BLACK;
+      styleRows(customAccount,item.resourcesProvider);
+      if(customAccount.color!=Color.WHITE)throw new AssertionError("Custom account row skipped actual material");
+      BlurredBackgroundDrawable glass=(BlurredBackgroundDrawable)popup.backgroundDrawable;
+      glass.material.tint=0xc7f5f5f7;prepare(popup,popup.provider);item.dispatchDraw(new Canvas());
+      if(item.text.color!=Color.BLACK)throw new AssertionError("Source material theme update was not refreshed");
+      System.out.println("Installed material/host mismatch, transparent page, custom row and source theme refresh passed");
       System.out.println("Actual native row draw hook repairs late colors using the owning popup palette");
     ''')
 else:

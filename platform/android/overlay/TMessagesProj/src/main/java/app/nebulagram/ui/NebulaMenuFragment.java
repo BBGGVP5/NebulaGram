@@ -38,6 +38,7 @@ import app.nebulagram.nebulalink.NebulaLink;
 public class NebulaMenuFragment extends BaseFragment {
 
     public static final String SCREEN_HOME = "nebulalink.home";
+    public static final String SCREEN_ADVANCED = "nebulalink.advanced";
 
     private final String screenId;
 
@@ -133,7 +134,7 @@ public class NebulaMenuFragment extends BaseFragment {
         }
         Context context = content.getContext();
         content.removeAllViews();
-        if (SCREEN_HOME.equals(screenId)) NebulaLinkShortcut.addSettings(content);
+        if (SCREEN_ADVANCED.equals(screenId)) NebulaLinkShortcut.addSettings(content);
         if (screen == null) return;
         actionBar.setTitle(localized(screen.optString("title_key"), screen.optString("title")));
 

@@ -18,6 +18,7 @@ import org.telegram.ui.ActionBar.ActionBarPopupWindow.ActionBarPopupWindowLayout
 import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.Components.blur3.drawable.color.BlurredBackgroundProvider;
 import org.telegram.ui.Components.blur3.drawable.color.BlurredBackgroundProviderBuilder;
+import org.telegram.ui.Components.blur3.drawable.BlurredBackgroundDrawable;
 
 /** One material, colour basis and motion for iOS-style menus. */
 public final class NebulaMenuStyle {
@@ -41,10 +42,36 @@ public final class NebulaMenuStyle {
     public static int foreground(int original, Theme.ResourcesProvider provider) {
         return NebulaChatColors.foreground(original, NebulaMenuPalette.contrastSurface(surface(provider), opacity()));
     }
+    public static int drawnTint(View view, Theme.ResourcesProvider provider) {
+        View current = view;
+        while (current != null) {
+            Drawable drawable = current instanceof ActionBarPopupWindowLayout
+                    ? ((ActionBarPopupWindowLayout) current).getBackgroundDrawable() : current.getBackground();
+            if (drawable instanceof BlurredBackgroundDrawable) return ((BlurredBackgroundDrawable) drawable).getBackgroundTint();
+            if (drawable instanceof MenuBackground) return ((MenuBackground) drawable).tint;
+            android.view.ViewParent parent = current.getParent();
+            current = parent instanceof View ? (View) parent : null;
+        }
+        return Theme.multAlpha(surface(provider), opacity());
+    }
+    public static int foreground(View view, int original, Theme.ResourcesProvider provider) {
+        int tint = drawnTint(view, provider);
+        return NebulaChatColors.foreground(original,
+                NebulaMenuPalette.contrastSurface(tint | 0xff000000, Color.alpha(tint) / 255f));
+    }
     public static void prepare(ActionBarPopupWindowLayout host, Theme.ResourcesProvider provider) {
         if (!enabled()) return;
         Drawable drawable = host.getBackgroundDrawable();
         if (drawable == null) return; // A transparent swipe-back page is not a second surface.
+        if (drawable instanceof BlurredBackgroundDrawable) {
+            BlurredBackgroundDrawable glass = (BlurredBackgroundDrawable) drawable;
+            // The source window can have a different provider than its popup container.
+            // Preserve the installed menu material instead of rebinding it to the host.
+            if (glass.getColorProvider() instanceof Material) {
+                if (glass.getBackgroundTint() != glass.getColorProvider().getBackgroundColor()) glass.updateColors();
+                return;
+            }
+        }
         int color = surface(provider);
         float alpha = opacity();
         SurfaceBinding binding = surfaces.get(host);
@@ -75,10 +102,13 @@ public final class NebulaMenuStyle {
         GradientDrawable fill = new GradientDrawable(GradientDrawable.Orientation.TL_BR,
                 new int[] {ColorUtils.blendARGB(surface(provider), Color.WHITE, .06f), surface(provider)});
         fill.setCornerRadius(radius()); fill.setStroke(AndroidUtilities.dp(1), 0x28ffffff);
-        return new InsetDrawable(fill, AndroidUtilities.dp(8)) {
-            // Native callers tint the old monochrome popup asset. This surface already has its palette.
-            @Override public void setColorFilter(android.graphics.ColorFilter filter) { }
-        };
+        return new MenuBackground(fill, surface(provider));
+    }
+    private static final class MenuBackground extends InsetDrawable {
+        final int tint;
+        MenuBackground(Drawable fill, int tint) { super(fill, AndroidUtilities.dp(8)); this.tint = tint; }
+        // Native callers tint the old monochrome popup asset. This surface owns its palette.
+        @Override public void setColorFilter(android.graphics.ColorFilter filter) { }
     }
     public static int secondary(Theme.ResourcesProvider provider) {
         int background = surface(provider);
@@ -102,12 +132,12 @@ public final class NebulaMenuStyle {
             int color = row.getTextView().getCurrentTextColor();
             // A near-black wallpaper tint is still ordinary text. Test contrast,
             // not saturation; retain semantic colours whenever they are readable.
-            color = foreground(color, provider);
+            color = foreground(view, color, provider);
             row.setTextColor(color); row.setIconColor(color);
             // ThemeDescription can update TextView directly, bypassing the row's cache.
             if (row.getTextView().getCurrentTextColor() != color) row.getTextView().setTextColor(color);
             if (row.subtextView != null) {
-                int subColor = foreground(row.subtextView.getCurrentTextColor(), provider);
+                int subColor = foreground(view, row.subtextView.getCurrentTextColor(), provider);
                 if (row.subtextView.getCurrentTextColor() != subColor) row.subtextView.setTextColor(subColor);
             }
             Integer previous = rowColors.get(row);
@@ -123,11 +153,11 @@ public final class NebulaMenuStyle {
             if (previous == null || previous != color) row.setSelectorColor(Theme.multAlpha(color, .08f));
         } else if (view instanceof android.widget.TextView) {
             android.widget.TextView text = (android.widget.TextView) view;
-            int color = foreground(text.getCurrentTextColor(), provider);
+            int color = foreground(view, text.getCurrentTextColor(), provider);
             if (color != text.getCurrentTextColor()) text.setTextColor(color);
         } else if (view instanceof org.telegram.ui.ActionBar.SimpleTextView) {
             org.telegram.ui.ActionBar.SimpleTextView text = (org.telegram.ui.ActionBar.SimpleTextView) view;
-            int color = foreground(text.getTextColor(), provider);
+            int color = foreground(view, text.getTextColor(), provider);
             if (color != text.getTextColor()) text.setTextColor(color);
         } else if (view instanceof ViewGroup) {
             ViewGroup group = (ViewGroup) view;

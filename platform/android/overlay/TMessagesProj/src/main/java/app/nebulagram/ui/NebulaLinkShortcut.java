@@ -61,7 +61,7 @@ public final class NebulaLinkShortcut extends View {
     public static void addSettings(LinearLayout content) {
         Context c = content.getContext();
         NebulaCard card = new NebulaCard(c);
-        card.add(NebulaExtras.toggle(c, R.drawable.nebula_link_shield, NebulaText.text("NebulaLink на главной", "NebulaLink on home"),
+        card.add(NebulaExtras.toggle(c, R.drawable.nebula_link_shield, NebulaText.text("Кнопка NebulaLink", "NebulaLink button"),
                 NebulaText.text("Нажатие — соединение, удержание — сервер и пинг", "Tap to connect; hold for server and ping"),
                 visible(), NebulaLinkShortcut::visible));
         LinearLayout samples = new LinearLayout(c);
