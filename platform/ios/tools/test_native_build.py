@@ -52,6 +52,11 @@ class NativeBuildTests(unittest.TestCase):
             with self.assertRaises(ValueError): native.copy_overlay(dest, overlay)
             self.assertEqual(list(outside.iterdir()), [])
 
+    def test_libraries_target_ios_simulator_not_host_macos(self):
+        self.assertIn('--cpu=ios_sim_arm64', native.SIMULATOR_FLAGS)
+        self.assertIn('--apple_platform_type=ios', native.SIMULATOR_FLAGS)
+        self.assertIn('--ios_minimum_os=13.0', native.SIMULATOR_FLAGS)
+
     def test_input_inventory_and_compile_only_configuration(self):
         self.assertEqual(len(native.pin()), 40)
         first = native.inputs()
