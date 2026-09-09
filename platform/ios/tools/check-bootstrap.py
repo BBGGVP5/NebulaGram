@@ -5,6 +5,7 @@
 compiles/runs the actual Bazel-side Foundation sources without SWIFT_PACKAGE.
 """
 import argparse
+import json
 import re
 import subprocess
 import sys
@@ -83,7 +84,7 @@ def main():
             main_file = temp / 'main.swift'
             main_file.write_text('''import Foundation
 let catalog = try SettingsCatalog.bundled()
-precondition(catalog.settings.count == 63)
+precondition(catalog.settings.count == __CATALOG_COUNT__)
 let suite = "NebulaBazelSmoke.\\(UUID().uuidString)"
 let defaults = UserDefaults(suiteName: suite)!
 defer { defaults.removePersistentDomain(forName: suite) }
@@ -92,7 +93,7 @@ precondition(!store.hasLoadError && !store.hideTabCounters)
 try store.set(.boolean(true), for: "hide_tab_counters")
 precondition(NebulaSettingsStore(defaults: defaults).hideTabCounters)
 print("OK: embedded catalog and Bazel-side Foundation store compiled and ran")
-''', encoding='utf-8')
+'''.replace('__CATALOG_COUNT__', str(len(json.loads((ROOT / 'shared/settings/catalog.json').read_text(encoding='utf-8'))['settings']))), encoding='utf-8')
             executable = temp / 'smoke'
             subprocess.run(['swiftc', '-swift-version', '5', '-warnings-as-errors', *map(str, contract), str(main_file), '-o', str(executable)], check=True)
             subprocess.run([str(executable)], check=True)
