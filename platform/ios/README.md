@@ -131,3 +131,9 @@ passed all 11 Swift tests, the embedded mirror checks and a real iOS simulator
 SDK typecheck of the UIKit-only file-transfer adapter. The complete Telegram
 settings screen is still syntax-checked only; iPhone/iPad/iCloud interaction
 and full application compilation remain the acceptance gate above.
+
+### Notification delivery gate
+
+See [NOTIFICATIONS.md](NOTIFICATIONS.md) for the audited native delivery path,
+APNs/provider configuration, Apple capability limits and signed-device checklist.
+Push delivery is not enabled or proven by this compile-only workflow.
