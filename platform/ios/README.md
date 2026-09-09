@@ -26,6 +26,8 @@ App-global presentation settings are a versioned `SettingsDocument` stored as
 Data under `app.nebulagram.presentation.settings.v1` in UserDefaults. No Telegram
 account state is moved or overwritten. Missing settings use consumer defaults;
 opening the screen does not save defaults or discard damaged data.
+If storage cannot be loaded, the screen disables editing and shows an error
+instead of presenting a toggle that cannot be saved.
 
 The import/export **API**, not yet a file-picker UI, validates all values before
 replacing the document. Existing transferable Android keys without consumers
@@ -73,3 +75,9 @@ the entire app merely to check six source paths.
 Keep feature logic in the platform adapter and Foundation module. On an upstream
 upgrade, check patches, compile, then run device scenarios before changing the
 pin. A clean patch application alone is not an API compatibility guarantee.
+
+Validation evidence: macOS run
+[34334236650](https://github.com/BBGGVP5/NebulaGram/actions/runs/34334236650)
+passed eight Swift tests, patch/overlay checks, native syntax parsing and the
+embedded Foundation compile/run. No full Telegram typecheck or device test is
+included in that result.

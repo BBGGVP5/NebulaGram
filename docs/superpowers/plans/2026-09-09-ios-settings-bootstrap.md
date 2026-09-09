@@ -12,5 +12,5 @@
 - [x] Generate a Bazel-compatible embedded catalog and mirrored Swift sources from the same contract. Add overlay BUILD target; keep SPM/macOS tests working.
 - [x] Add native `nebulaSettingsController(context:)` in SettingsUI with one functioning switch (`hide_tab_counters`) and an explicit development-status footer, not 63 fake controls.
 - [x] Patch PeerInfo settings enum, entry and route plus module deps. Patch badge visibility/width and observe changes in the folder strip; retain count models and accessibility text.
-- [ ] Add read-only iOS preparation/checking tool and CI checks. Verify ordered patch application to pinned vendor, generated source parity and Swift tests; typecheck UIKit adapter where possible. Document full Telegram build/device validation separately.
-- [ ] Publish iOS source/CI changes without cancelling the already-running Android job if possible; report actual run status and remaining signing/device requirements.
+- [x] Add read-only iOS preparation/checking tool and CI checks. Verified ordered patches, generated parity, eight Swift tests and actual Foundation mirror compile/run in macOS run 34334236650. Native hooks parsed only, not typechecked against all Telegram modules. Full Telegram build/device gate is documented in platform/ios/README.md.
+- [x] Publish iOS source/CI changes (08f82b6) without cancelling Android run 34332607529. Settings contract run 34334236447 passed. Full iOS signing/device validation remains a separate acceptance gate, not claimed complete.

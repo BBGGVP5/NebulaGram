@@ -17,7 +17,7 @@ private final class NebulaSettingsArguments {
 
 private enum NebulaSettingsEntry: ItemListNodeEntry {
     case header(String)
-    case hideCounters(String, Bool)
+    case hideCounters(String, Bool, Bool)
     case footer(String)
 
     var section: ItemListSectionId { return 0 }
@@ -38,8 +38,8 @@ private enum NebulaSettingsEntry: ItemListNodeEntry {
         switch self {
         case let .header(text):
             return ItemListSectionHeaderItem(presentationData: presentationData, text: text, sectionId: section)
-        case let .hideCounters(title, value):
-            return ItemListSwitchItem(presentationData: presentationData, systemStyle: .glass, title: title, value: value, sectionId: section, style: .blocks, updated: arguments.update)
+        case let .hideCounters(title, value, enabled):
+            return ItemListSwitchItem(presentationData: presentationData, systemStyle: .glass, title: title, value: value, enabled: enabled, sectionId: section, style: .blocks, updated: arguments.update)
         case let .footer(text):
             return ItemListTextItem(presentationData: presentationData, text: .markdown(text), sectionId: section)
         }
@@ -80,7 +80,7 @@ public func nebulaSettingsController(context: AccountContext) -> ViewController 
         }
         let entries: [NebulaSettingsEntry] = [
             .header(ru ? "Папки чатов" : "Chat folders"),
-            .hideCounters(ru ? "Скрыть счётчики папок" : "Hide folder counters", hideCounters),
+            .hideCounters(ru ? "Скрыть счётчики папок" : "Hide folder counters", hideCounters, !store.hasLoadError),
             .footer(footer)
         ]
         let data = ItemListPresentationData(presentationData)

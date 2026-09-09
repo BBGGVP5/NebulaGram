@@ -72,6 +72,9 @@ def main():
         assert 'case nebulaGram' in (peer / 'PeerInfoScreen.swift').read_text(encoding='utf-8')
         assert 'interaction.openSettings(.nebulaGram)' in (peer / 'PeerInfoSettingsItems.swift').read_text(encoding='utf-8')
         assert 'push(nebulaSettingsController(context: self.context))' in (peer / 'PeerInfoScreenSettingsActions.swift').read_text(encoding='utf-8')
+        controller = (temp / 'submodules/SettingsUI/Sources/NebulaSettingsController.swift').read_text(encoding='utf-8')
+        assert 'hideCounters, !store.hasLoadError)' in controller
+        assert 'value: value, enabled: enabled' in controller
         print(f'OK: {len(patches)} ordered iOS patch(es), {len(paths)} upstream paths, overlay/hooks, pin {revision}', flush=True)
         if args.swift:
             for source in sorted(temp.rglob('*.swift')):
