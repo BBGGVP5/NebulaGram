@@ -269,3 +269,9 @@ Liquid Glass. Стиль применяется при включённом iOS-
 - MainTabsActivity/MainTabsLayout: feed current/next view and actual pager fraction to the liquid lens; draw directly without a second 280ms tween, snap on completion/cancel. Native pointer drag retains priority.
 - General settings: independent history show/save, confirmed clear, and chat-list story strip visibility controls. New search entries appended to preserve positional history IDs.
 - Validation: scripts/check-search-stories-pager.py, contract checks and Java compilation. Device visual acceptance remains separate.
+
+### 0076 — adaptive centered title without stories
+- ActionBar measurement: measure native text/spans and status drawable in the full usable interval before selecting the centered slot. Do not mirror a large right menu into unused left space.
+- ActionBar layout: clamp that slot between the existing start inset and real menu boundary; include title margin and the stories title-container translation. Both animated title views use the same calculation.
+- NebulaHomeTitleGeometry keeps short titles centered, shifts only when necessary, and leaves native ellipsis for genuinely oversized titles. Center-home preference, stories gate, search/selection and chat-header behavior stay intact.
+- Validation: scripts/check-home-title.py (2016 production geometry combinations + native hooks), story/pager/style checks, ordered patch application and Java compilation; device rendering remains a separate check.

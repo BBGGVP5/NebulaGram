@@ -1,0 +1,54 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
+@@ -605,6 +605,15 @@
+ 
+     private boolean isCenterTitle;
+ 
++    private int nebulaTitleEndInset() {
++        // Titles inside the stories animation container carry a small translation.
++        // Reserve it at the trailing edge as well, so the status icon stays clear.
++        int translation = useContainerForTitles && titlesContainer != null
++                ? (int) Math.ceil(Math.max(0f, titlesContainer.getTranslationX())) : 0;
++        return (menu != null && menu.getVisibility() != GONE ? menu.getMeasuredWidth() : 0)
++                + dp(16) + titleRightMargin + translation;
++    }
++
+     private boolean nebulaCenterTitle() {
+         if (!app.nebulagram.ui.NebulaAppearance.centerHome() || isSearchFieldVisible || getActionModeFactor() != 0) return false;
+         if (parentFragment instanceof org.telegram.ui.DialogsActivity) {
+@@ -1545,11 +1554,22 @@
+                         boolean centerHome = nebulaCenterTitle();
+                         titleTextView[i].setGravity(centerHome ? Gravity.CENTER_HORIZONTAL : (isCenterTitle ? Gravity.CENTER : Gravity.LEFT | Gravity.CENTER_VERTICAL));
+                         if (centerHome) {
+-                            int end = menu != null && menu.getVisibility() != GONE ? menu.getMeasuredWidth() + dp(16) : dp(16);
+-                            titleAvailableWidth = Math.max(0, width - 2 * Math.max(textLeft, end));
++                            // First measure the real text (including emoji spans) against
++                            // all free space, rather than mirroring the menu on the left.
++                            titleAvailableWidth = Math.max(0, width - textLeft - nebulaTitleEndInset());
+                         }
+                     }
+                     titleTextView[i].measure(MeasureSpec.makeMeasureSpec(titleAvailableWidth, MeasureSpec.AT_MOST), MeasureSpec.makeMeasureSpec(dp(24) + titleTextView[i].getPaddingTop() + titleTextView[i].getPaddingBottom(), MeasureSpec.AT_MOST));
++                    if (nebulaCenterTitle()) {
++                        int contentWidth = titleTextView[i].getTextWidth() + titleTextView[i].getSideDrawablesSize()
++                                + titleTextView[i].getPaddingLeft() + titleTextView[i].getPaddingRight();
++                        int centeredWidth = app.nebulagram.ui.NebulaHomeTitleGeometry.width(
++                                width, textLeft, width - textLeft - titleAvailableWidth, contentWidth);
++                        if (centeredWidth != titleAvailableWidth) {
++                            titleTextView[i].measure(MeasureSpec.makeMeasureSpec(centeredWidth, MeasureSpec.AT_MOST),
++                                    MeasureSpec.makeMeasureSpec(dp(24) + titleTextView[i].getPaddingTop() + titleTextView[i].getPaddingBottom(), MeasureSpec.AT_MOST));
++                        }
++                    }
+                     if (centerScale) {
+                         CharSequence text = titleTextView[i].getText();
+                         titleTextView[i].setPivotX(titleTextView[i].getTextPaint().measureText(text, 0, text.length()) / 2f);
+@@ -1637,7 +1657,8 @@
+                 }
+                 int titleLeft = textLeft;
+                 if (nebulaCenterTitle()) {
+-                    titleLeft = Math.max(textLeft, (getMeasuredWidth() - titleTextView[i].getMeasuredWidth()) / 2);
++                    titleLeft = app.nebulagram.ui.NebulaHomeTitleGeometry.left(
++                            getMeasuredWidth(), textLeft, nebulaTitleEndInset(), titleTextView[i].getMeasuredWidth());
+                 }
+                 titleTextView[i].layout(titleLeft, additionalTop + textTop - titleTextView[i].getPaddingTop(), titleLeft + titleTextView[i].getMeasuredWidth(), additionalTop + textTop + titleTextView[i].getTextHeight() - titleTextView[i].getPaddingTop() + titleTextView[i].getPaddingBottom());
+             }

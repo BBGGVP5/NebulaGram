@@ -143,6 +143,7 @@ jobs:
           python3 scripts/check-theme-toggle.py
           python3 scripts/check-chat-native.py vendor/telegram-android
           python3 scripts/check-style-layout.py vendor/telegram-android
+          python3 scripts/check-home-title.py vendor/telegram-android
           python3 scripts/check-telegram-updates.py
 
       - name: Настройка доступа к Telegram API
