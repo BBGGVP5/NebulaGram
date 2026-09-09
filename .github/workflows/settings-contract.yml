@@ -1,0 +1,33 @@
+name: Settings contract
+on:
+  push:
+    paths: ['shared/settings/**', 'platform/ios/NebulaSettingsContract/**', 'platform/android/overlay/**', 'patches/**', 'scripts/*settings-contract.py', 'scripts/report-upstream-surface.py', '.github/workflows/settings-contract.yml']
+  pull_request:
+    paths: ['shared/settings/**', 'platform/ios/NebulaSettingsContract/**', 'platform/android/overlay/**', 'patches/**', 'scripts/*settings-contract.py', 'scripts/report-upstream-surface.py', '.github/workflows/settings-contract.yml']
+  workflow_dispatch:
+jobs:
+  schema:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - run: python scripts/check-settings-contract.py
+      - name: Record upstream integration surface
+        run: |
+          python scripts/report-upstream-surface.py android > android-surface.json
+          python scripts/report-upstream-surface.py ios > ios-surface.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: upstream-surface
+          path: '*-surface.json'
+  swift:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: swift test --package-path platform/ios/NebulaSettingsContract

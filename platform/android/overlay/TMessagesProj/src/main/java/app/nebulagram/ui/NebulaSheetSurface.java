@@ -25,6 +25,8 @@ public final class NebulaSheetSurface implements View.OnAttachStateChangeListene
     private static final class Sections {
         final java.util.ArrayList<BlurredBackgroundDrawable> drawables = new java.util.ArrayList<>();
         int used;
+        boolean ready;
+        int x, y;
     }
     private final java.util.WeakHashMap<View, Sections> sections = new java.util.WeakHashMap<>();
     private final int[] sectionPosition = new int[2];
@@ -60,11 +62,15 @@ public final class NebulaSheetSurface implements View.OnAttachStateChangeListene
     public boolean isReady() { return ready && NebulaMenuStyle.enabled(); }
 
     @Override public boolean onPreDraw() {
+        final boolean wasReady = ready;
         ready = false;
         for (Sections bucket : sections.values()) bucket.used = 0;
         // Never sample the sheet itself, including when hosted in a same-window bubble.
         if (!root.isAttachedToWindow() || host.getRootView() == root || root.getWidth() <= 0
-                || root.getHeight() <= 0 || source.inRecording()) return true;
+                || root.getHeight() <= 0 || source.inRecording()) {
+            updateSectionViews(wasReady);
+            return true;
+        }
         Canvas capture = source.beginRecording(root.getWidth(), root.getHeight());
         try { root.draw(capture); } finally { source.endRecording(); }
         root.getLocationOnScreen(origin);
@@ -72,7 +78,30 @@ public final class NebulaSheetSurface implements View.OnAttachStateChangeListene
         for (BlurredBackgroundDrawable material : materials)
             material.setSourceOffset(position[0] - origin[0], position[1] - origin[1]);
         ready = true;
+        updateSectionViews(wasReady);
         return true;
+    }
+
+    /** Track fallback draws too: a cached opaque section must redraw when capture becomes ready. */
+    public void trackSection(View view) {
+        if (!sections.containsKey(view)) sections.put(view, new Sections());
+    }
+
+    private void updateSectionViews(boolean wasReady) {
+        if (wasReady != ready) host.invalidate();
+        for (java.util.Map.Entry<View, Sections> entry : sections.entrySet()) {
+            View view = entry.getKey();
+            if (view == null || !view.isAttachedToWindow()) continue;
+            Sections bucket = entry.getValue();
+            view.getLocationOnScreen(sectionPosition);
+            int x = sectionPosition[0] - origin[0], y = sectionPosition[1] - origin[1];
+            boolean changed = bucket.ready != ready || ready && (bucket.x != x || bucket.y != y);
+            bucket.ready = ready;
+            bucket.x = x;
+            bucket.y = y;
+            // No unconditional invalidation: idle sheets must not schedule a redraw loop.
+            if (changed) view.invalidate();
+        }
     }
 
     public boolean draw(Canvas canvas, Rect bounds, int insetX, int insetTop, int alpha, int slot) {
@@ -85,9 +114,9 @@ public final class NebulaSheetSurface implements View.OnAttachStateChangeListene
     }
 
     public boolean drawSection(View view, Canvas canvas, RectF bounds, float topRadius, float bottomRadius, float alpha) {
+        trackSection(view);
         if (!isReady() || !canvas.isHardwareAccelerated() || bounds.isEmpty()) return false;
         Sections bucket = sections.get(view);
-        if (bucket == null) { bucket = new Sections(); sections.put(view, bucket); }
         // Draw slots are reset once per window frame, not between blur and onscreen passes.
         if (bucket.used == bucket.drawables.size()) {
             BlurredBackgroundDrawable drawable = factory.create().setColorProvider(NebulaMenuStyle.provider(provider));

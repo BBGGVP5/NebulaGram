@@ -23,6 +23,7 @@ on:
       - 'platform/android/**'
       - 'patches/android/**'
       - 'scripts/**'
+      - 'shared/settings/**'
       - '.github/workflows/android.yml'
 
 # A push while a build is running makes the older one pointless: it can only
@@ -125,6 +126,7 @@ jobs:
           python3 scripts/check-preview-surfaces.py vendor/telegram-android
           python3 scripts/check-discussion-input.py vendor/telegram-android
           python3 scripts/check-input-controls.py vendor/telegram-android
+          python3 scripts/check-settings-contract.py
           python3 scripts/check-menu-feedback.py vendor/telegram-android
           python3 scripts/check-status-bounds.py vendor/telegram-android
           python3 scripts/check-link-shortcut.py vendor/telegram-android

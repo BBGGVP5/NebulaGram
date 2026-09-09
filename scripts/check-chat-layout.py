@@ -84,8 +84,8 @@ for(boolean material:new boolean[]{false,true})for(boolean normal:new boolean[]{
  app.nebulagram.ui.NebulaTheme.enabled=material;
  org.telegram.ui.ActionBar.ActionBar bar=new org.telegram.ui.ActionBar.ActionBar();
  NebulaChatStyle.header(bar,normal,saved);
- check(bar.savedClassic==(material&&normal&&saved),"Saved Messages Material header gate");
- check(bar.floating==(material&&normal&&!saved),"Saved Messages never uses floating header");
+ check(bar.savedClassic==(normal&&saved),"Saved Messages layout must not depend on palette");
+ check(bar.floating==(normal&&!saved),"Saved Messages never uses floating header");
 }
 app.nebulagram.ui.NebulaTheme.enabled=true;
 int cases=0;for(boolean bot:new boolean[]{false,true})for(float density:new float[]{1,2.25f,3})for(int width:new int[]{320,360,448,800})for(int height:new int[]{44,92,140}){

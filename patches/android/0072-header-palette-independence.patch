@@ -1,0 +1,20 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
+@@ -4166,7 +4166,6 @@
+             @Override
+             protected boolean onAvatarClick() {
+                 if (app.nebulagram.ui.NebulaAppearance.chatHeader()
+-                        && app.nebulagram.ui.NebulaTheme.materialYouEnabled()
+                         && chatMode == 0 && !isInPreviewMode() && !inBubbleMode && !searching
+                         && headerItem != null && headerItem.hasSubMenu()) {
+                     headerItem.toggleSubMenu(null, avatarContainer.getAvatarImageView());
+@@ -4294,7 +4293,7 @@
+ 
+         if (chatMode == 0 && (threadMessageId == 0 || isTopic) && !UserObject.isReplyUser(currentUser) && !isReport()) {
+             TLRPC.UserFull userFull = null;
+-            if (currentUser != null && !app.nebulagram.ui.NebulaTheme.materialYouEnabled()) {
++            if (currentUser != null && !app.nebulagram.ui.NebulaAppearance.chatHeader()) {
+                 audioCallIconItem = menu.lazilyAddItem(call, R.drawable.call, themeDelegate);
+                 audioCallIconItem.setContentDescription(LocaleController.getString(R.string.Call));
+                 userFull = getMessagesController().getUserFull(currentUser.id);

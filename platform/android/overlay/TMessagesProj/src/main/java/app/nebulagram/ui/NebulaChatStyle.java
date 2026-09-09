@@ -35,8 +35,8 @@ public final class NebulaChatStyle {
 
     public static void header(ActionBar bar, boolean normalChat, boolean savedMessages) {
         if (bar != null) {
-            bar.setNebulaClassicSavedHeader(normalChat && savedMessages && NebulaTheme.materialYouEnabled());
-            boolean enabled = normalChat && !savedMessages && NebulaTheme.materialYouEnabled();
+            bar.setNebulaClassicSavedHeader(normalChat && savedMessages);
+            boolean enabled = normalChat && !savedMessages;
             bar.setNebulaFloatingChatHeader(enabled, enabled && NebulaAppearance.chatHeader() && !savedMessages, enabled && savedMessages);
         }
     }

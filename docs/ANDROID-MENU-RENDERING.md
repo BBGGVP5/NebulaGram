@@ -228,3 +228,48 @@ Evidence is under `build/input-controls-0909/`. These are source/build checks, n
 visual acceptance: ADB lists no device. Test light/dark themes, emoji scrubbing,
 files/polls/todos, disabled blur, header/avatar taps and settings return on Android.
 No APK was installed or published for patch 0070.
+
+## Attachment first-frame refresh (2026-09-09, patch 0071)
+
+Reported symptom: attachment cards initially show an opaque fill; touching or
+moving the sheet makes them glass. The section view was not registered while the
+native readiness guard returned fallback, and a successful source capture did not
+invalidate a previously recorded section display list.
+
+Register section consumers before that guard. After pre-draw capture, invalidate
+the host on readiness transitions and registered attached lists on readiness or
+source-relative position changes. Steady frames do not invalidate them again.
+Unavailable sources retain the native fallback, and reattachment/recovery updates
+the lists again. Weak view keys, detach cleanup, distinct per-frame draw slots and
+the separate originating-window capture guard remain in place.
+
+The first-ready invalidation assertion fails against the previous implementation.
+Production-method tests now cover recovery, late consumers, relative movement,
+detach and 100 stable frames without additional invalidations. All 25 workflow
+regression commands passed. Vendor reconstruction with all 6 touching patches
+matches the native source. Evidence: `build/sheet-first-frame-0909/`.
+
+ADB has no attached devices: first-open visual acceptance in files/polls/todos,
+light/dark themes and reduced-motion/disabled-glass modes remains pending.
+
+Patch 0071 Java compilation passed (2m45s); bytecode verifies registration before
+section readiness and the conditional invalidation method. No APK was published or
+installed for this change.
+
+## Header/palette independence (2026-09-09, patch 0072)
+
+The header controller incorrectly used Material You as a layout gate. Turning
+dynamic colors off restored native avatar/title placement even with the floating
+centered header selected. Header/saved-message layout now depends on the chat mode
+and presentation preferences only; palette selection remains in the theme layer.
+The floating avatar menu and separate call-button policy follow header style,
+not Material You. The previous coupled-policy test was changed to assert layout
+independence and failed against the old controller before the fix.
+
+The new shared settings foundation preserves the existing 56-key transfer map;
+see `CROSS-PLATFORM-SETTINGS.md` for the 63-entry catalog and explicit iOS gaps.
+
+Patch 0072 verification: all 26 Android workflow checks passed, Java compilation
+succeeded (3m23s), and vendor reconstruction matches ChatActivity. Header bytecode
+no longer depends on Material You. On-device theme-toggle acceptance is pending
+(no ADB device); no new APK was published for this change.

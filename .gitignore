@@ -10,3 +10,9 @@ libnebulalink.*
 
 # Локальные ключи сборки — в git не попадают
 .env.local
+
+# Local Python/Swift tooling artifacts
+__pycache__/
+*.py[cod]
+/platform/ios/**/.build/
+/platform/ios/**/.swiftpm/

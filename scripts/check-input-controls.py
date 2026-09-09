@@ -100,6 +100,11 @@ section=method((n/'Components/RecyclerListView.java').read_text(encoding='utf-8'
 assert 'parent instanceof ChatAttachAlert.AttachAlertLayout' in section
 assert 'alert.drawNebulaSection(this, canvas, rect, topRadius, bottomRadius, alpha)' in section
 assert 'drawBackgroundRect(canvas, rect, topRadius, bottomRadius, alpha, resourcesProvider)' in section
+chat=(n/'ChatActivity.java').read_text(encoding='utf-8')
+avatar_click=method(chat,'protected boolean onAvatarClick()')
+assert 'NebulaTheme.materialYouEnabled' not in avatar_click
+assert 'NebulaAppearance.chatHeader()' in avatar_click
+assert 'if (currentUser != null && !app.nebulagram.ui.NebulaAppearance.chatHeader())' in chat
 surface=(o/'src/main/java/app/nebulagram/ui/NebulaSheetSurface.java').read_text(encoding='utf-8')
 assert 'bucket.used = 0' in method(surface,'@Override public boolean onPreDraw()')
 assert 'bucket.drawables.get(bucket.used++)' in surface
@@ -110,6 +115,11 @@ print('Settings, localized strings, native fallback, per-frame section slots and
 # Execute the actual per-card allocation/coordinate code, not just its call sites.
 section_draw=method(surface,'public boolean drawSection(')
 pre_draw=method(surface,'@Override public boolean onPreDraw()').replace('@Override ','')
+track=method(surface,'public void trackSection(View view)')
+update_views=method(surface,'private void updateSectionViews(boolean wasReady)')
+bucket=method(surface,'private static final class Sections').replace('private static final class','static final class')
+route=method((n/'Components/ChatAttachAlert.java').read_text(encoding='utf-8'),'public boolean drawNebulaSection(')
+assert route.index('trackSection(view)') < route.index('hasNebulaSheetGlass()')
 detach=method(surface,'@Override public void onViewDetachedFromWindow(View view)').replace('@Override ','')
 pool='''import java.util.*;
 class SectionPoolCheck {
@@ -117,9 +127,9 @@ class SectionPoolCheck {
  static class RectF {float left,top,right,bottom;RectF(float l,float t,float r,float b){left=l;top=t;right=r;bottom=b;}boolean isEmpty(){return right<=left||bottom<=top;}}
  static class Canvas {boolean hardware=true;boolean isHardwareAccelerated(){return hardware;}}
  static class Observer {boolean isAlive(){return true;}void removeOnPreDrawListener(Object o){}}
- static class View {int x,y,draws;View root=this;boolean attached=true;
+ static class View {int x,y,draws,invalidations;View root=this;boolean attached=true;
  boolean isAttachedToWindow(){return attached;}View getRootView(){return root;}int getWidth(){return 400;}int getHeight(){return 800;}
- void draw(Canvas c){draws++;}void getLocationOnScreen(int[] p){p[0]=x;p[1]=y;}Observer getViewTreeObserver(){return new Observer();}}
+ void invalidate(){invalidations++;}void draw(Canvas c){draws++;}void getLocationOnScreen(int[] p){p[0]=x;p[1]=y;}Observer getViewTreeObserver(){return new Observer();}}
  static class AndroidUtilities {static int dp(int x){return x;}}
  static class NebulaGlass {static float refraction(){return .2f;}}
  static class NebulaMenuStyle {static Object provider(Object p){return p;}}
@@ -130,10 +140,12 @@ class SectionPoolCheck {
  static class Factory {BlurredBackgroundDrawable create(){return new BlurredBackgroundDrawable();}}
  static class Source {boolean recording;boolean inRecording(){return recording;}Canvas beginRecording(int w,int h){recording=true;return new Canvas();}void endRecording(){recording=false;}}
  static class Host {View root=new View(),host=new View();Source source=new Source();boolean ready;Object provider;
- static class Sections {ArrayList<BlurredBackgroundDrawable> drawables=new ArrayList<>();int used;}
+ BUCKET
  WeakHashMap<View,Sections> sections=new WeakHashMap<>();Factory factory=new Factory();int[] origin=new int[2],position=new int[2],sectionPosition=new int[2];
  BlurredBackgroundDrawable[] materials={new BlurredBackgroundDrawable(),new BlurredBackgroundDrawable(),new BlurredBackgroundDrawable()};
  boolean isReady(){return ready;}
+ TRACK
+ UPDATE_VIEWS
  SECTION_DRAW
  PRE_DRAW
  DETACH
@@ -141,18 +153,30 @@ class SectionPoolCheck {
  public static void main(String[] args){
  Host h=new Host();h.root.x=10;h.root.y=20;h.host.x=30;h.host.y=40;
  View list=new View();list.x=50;list.y=90;Canvas c=new Canvas();RectF r=new RectF(12,18,300,180);
- check(!h.drawSection(list,c,r,16,8,1));check(h.onPreDraw());check(h.ready&&h.root.draws==1&&!h.source.recording);
+ check(!h.drawSection(list,c,r,16,8,1));check(h.onPreDraw());check(list.invalidations==1);check(h.ready&&h.root.draws==1&&!h.source.recording);
  check(h.drawSection(list,c,r,16,8,.5f));Host.Sections b=h.sections.get(list);BlurredBackgroundDrawable first=b.drawables.get(0);
  check(first.x==40&&first.y==70&&first.alpha==128&&first.r1==16&&first.r2==8);
  r.top=250;r.bottom=400;check(h.drawSection(list,c,r,8,16,1));check(b.used==2&&b.drawables.get(1)!=first&&first.top==18);
- h.onPreDraw();check(b.used==0);h.drawSection(list,c,r,8,16,1);check(b.drawables.size()==2&&b.drawables.get(0)==first);
+ h.onPreDraw();check(list.invalidations==1&&h.host.invalidations==1);check(b.used==0);h.drawSection(list,c,r,8,16,1);check(b.drawables.size()==2&&b.drawables.get(0)==first);
  c.hardware=false;check(!h.drawSection(list,c,r,8,8,1));c.hardware=true;
  h.host.root=h.root;h.onPreDraw();check(!h.ready&&h.root.draws==2); // No recursive same-window capture
+ check(list.invalidations==2&&h.host.invalidations==2);
+ h.onPreDraw();check(list.invalidations==2); // Unavailable source is not a redraw loop
+ h.host.root=h.host;h.onPreDraw();check(h.ready&&list.invalidations==3&&h.host.invalidations==3);
+ list.y+=17;h.onPreDraw();check(list.invalidations==4&&h.host.invalidations==3);
+ h.onPreDraw();check(list.invalidations==4); // Stable coordinates, no additional invalidation
+ h.root.y+=9;h.onPreDraw();check(list.invalidations==5); // Relative source movement
+ View late=new View();h.trackSection(late);h.onPreDraw();check(late.invalidations==1&&list.invalidations==5);
+ late.attached=false;h.root.y+=1;h.onPreDraw();check(late.invalidations==1);
+ late.attached=true;h.onPreDraw();check(late.invalidations==2);
+ h.root.attached=false;h.onPreDraw();check(!h.ready&&late.invalidations==3);
+ h.root.attached=true;h.onPreDraw();check(h.ready&&late.invalidations==4);
+ int before=list.invalidations;for(int i=0;i<100;i++)h.onPreDraw();check(list.invalidations==before&&late.invalidations==4);
  h.onViewDetachedFromWindow(h.host);check(h.sections.isEmpty()&&!h.ready);
- System.out.println("Section slots, frame reuse, original-window coordinates, fallback and detach passed");
+ System.out.println("Section slots, first-ready refresh, 100 idle frames, position changes, fallback recovery and detach passed");
  }
 }'''
-for k,v in [('SECTION_DRAW',section_draw),('PRE_DRAW',pre_draw),('DETACH',detach)]:pool=pool.replace(k,v)
+for k,v in [('BUCKET',bucket),('TRACK',track),('UPDATE_VIEWS',update_views),('SECTION_DRAW',section_draw),('PRE_DRAW',pre_draw),('DETACH',detach)]:pool=pool.replace(k,v)
 p=w/'SectionPoolCheck.java';p.write_text(pool,encoding='utf-8')
 subprocess.run(['javac','-encoding','UTF-8','-d',str(w),str(p)],check=True)
 subprocess.run(['java','-cp',str(w),'SectionPoolCheck'],check=True)

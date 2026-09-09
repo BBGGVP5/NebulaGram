@@ -223,3 +223,18 @@ Liquid Glass. Стиль применяется при включённом iOS-
 подмены `NebulaIcons`: все наборы используют стандартные ресурсы Telegram.
 `check-navigation.py` проверяет оба состояния во всех комбинациях активного
 набора/превью, включая вложенные обёртки ресурсов. Видеозвонки не затронуты.
+
+## 0071 — первый кадр стеклянных секций
+
+- `ChatAttachAlert.java`, `drawNebulaSection`: одна строка регистрации списка
+  перед проверкой готовности источника. Логика условной перерисовки находится
+  в оверлее `NebulaSheetSurface`, проверяется `check-input-controls.py`.
+
+## 0072 — компоновка шапки независимо от Material You
+
+- `ChatActivity.java`, `avatarContainer.onAvatarClick`: удалена зависимость
+  меню аватара от палитры; сохранены проверки режима чата/поиска/preview.
+- `ChatActivity.java`, создание `audioCallIconItem`: отдельная кнопка звонка
+  зависит от отключённой плавающей шапки, а не от источника цветов.
+- Оверлей `NebulaChatStyle.header` выбирает normal/saved-компоновку независимо
+  от Material You. Проверки: `check-chat-layout.py`, `check-input-controls.py`.
