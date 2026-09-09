@@ -5,3 +5,6 @@
 	# Рабочее дерево апстрима — всегда артефакт сборки (оверлей + патчи),
 	# поэтому его грязность не должна попадать в git status родителя.
 	ignore = dirty
+[submodule "vendor/telegram-ios"]
+	path = vendor/telegram-ios
+	url = https://github.com/TelegramMessenger/Telegram-iOS.git

@@ -1,0 +1,28 @@
+name: iOS bootstrap checks
+on:
+  push:
+    paths: ['platform/ios/**', 'patches/ios/**', 'shared/settings/**', '.gitmodules', 'vendor/telegram-ios', '.github/workflows/ios-bootstrap.yml']
+  pull_request:
+    paths: ['platform/ios/**', 'patches/ios/**', 'shared/settings/**', '.gitmodules', 'vendor/telegram-ios', '.github/workflows/ios-bootstrap.yml']
+  workflow_dispatch:
+jobs:
+  bootstrap:
+    runs-on: macos-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Fetch pinned upstream without nested submodules
+        run: |
+          pin=$(git ls-tree HEAD vendor/telegram-ios | awk '{print $3}')
+          url=$(git config -f .gitmodules --get submodule.vendor/telegram-ios.url)
+          git clone --filter=blob:none --no-checkout --depth 1 "$url" vendor/telegram-ios
+          git -C vendor/telegram-ios fetch --depth 1 origin "$pin"
+          git -C vendor/telegram-ios sparse-checkout init --cone
+          git -C vendor/telegram-ios checkout --detach "$pin"
+      - name: Test shared contract and persistent store
+        run: swift test --package-path platform/ios/NebulaSettingsContract
+      - name: Verify patches, parse native hooks, compile embedded Foundation module
+        run: python platform/ios/tools/check-bootstrap.py --swift

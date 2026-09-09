@@ -1,0 +1,106 @@
+diff --git a/submodules/SettingsUI/BUILD b/submodules/SettingsUI/BUILD
+--- a/submodules/SettingsUI/BUILD
++++ b/submodules/SettingsUI/BUILD
+@@ -10,6 +10,7 @@
+         "-warnings-as-errors",
+     ],
+     deps = [
++        "//submodules/NebulaSettingsContract:NebulaSettingsContract",
+         "//submodules/SSignalKit/SwiftSignalKit:SwiftSignalKit",
+         "//submodules/AsyncDisplayKit:AsyncDisplayKit",
+         "//submodules/Display:Display",
+diff --git a/submodules/TelegramUI/Components/ChatList/ChatListFilterTabContainerNode/BUILD b/submodules/TelegramUI/Components/ChatList/ChatListFilterTabContainerNode/BUILD
+--- a/submodules/TelegramUI/Components/ChatList/ChatListFilterTabContainerNode/BUILD
++++ b/submodules/TelegramUI/Components/ChatList/ChatListFilterTabContainerNode/BUILD
+@@ -10,6 +10,7 @@
+         "-warnings-as-errors",
+     ],
+     deps = [
++        "//submodules/NebulaSettingsContract:NebulaSettingsContract",
+         "//submodules/AsyncDisplayKit",
+         "//submodules/Display",
+         "//submodules/TelegramCore",
+diff --git a/submodules/TelegramUI/Components/ChatList/ChatListFilterTabContainerNode/Sources/ChatListFilterTabContainerNode.swift b/submodules/TelegramUI/Components/ChatList/ChatListFilterTabContainerNode/Sources/ChatListFilterTabContainerNode.swift
+--- a/submodules/TelegramUI/Components/ChatList/ChatListFilterTabContainerNode/Sources/ChatListFilterTabContainerNode.swift
++++ b/submodules/TelegramUI/Components/ChatList/ChatListFilterTabContainerNode/Sources/ChatListFilterTabContainerNode.swift
+@@ -1,4 +1,5 @@
+ import Foundation
++import NebulaSettingsContract
+ import UIKit
+ import AsyncDisplayKit
+ import Display
+@@ -206,6 +207,7 @@
+     }
+     
+     func updateText(strings: PresentationStrings, title: ChatFolderTitle, shortTitle: ChatFolderTitle, unreadCount: Int, unreadHasUnmuted: Bool, isNoFilter: Bool, selectionFraction: CGFloat, isEditing: Bool, isReordering: Bool, canReorderAllChats: Bool, isDisabled: Bool, presentationData: PresentationData, transition: ContainedViewLayoutTransition) {
++        self.badgeContainerNode.isHidden = NebulaSettingsStore.shared.hideTabCounters
+         self.isEditing = isEditing
+         self.isDisabled = isDisabled
+         
+@@ -364,7 +366,7 @@
+         self.badgeTextNode.frame = CGRect(origin: CGPoint(x: floorToScreenPixels((badgeBackgroundFrame.width - badgeSize.width) / 2.0), y: floor((badgeBackgroundFrame.height - badgeSize.height) / 2.0)), size: badgeSize)
+         
+         let width: CGFloat
+-        if self.unreadCount == 0 || self.isReordering || self.isEditing || self.isDisabled {
++        if self.unreadCount == 0 || self.isReordering || self.isEditing || self.isDisabled || self.badgeContainerNode.isHidden {
+             if !self.isReordering {
+                 self.badgeContainerNode.alpha = 0.0
+             }
+@@ -684,8 +686,18 @@
+         self.reorderingGesture = reorderingGesture
+         self.view.addGestureRecognizer(reorderingGesture)
+         reorderingGesture.isEnabled = false
+-    }
+-    
++        self.nebulaSettingsObservation = NebulaSettingsStore.shared.observe { [weak self] in
++            guard let self, let p = self.currentParams else { return }
++            self.update(size: p.size, sideInset: p.sideInset, filters: p.filters,
++                selectedFilter: p.selectedFilter, isReordering: p.isReordering,
++                isEditing: p.isEditing, canReorderAllChats: p.canReorderAllChats,
++                filtersLimit: p.filtersLimit, transitionFraction: p.transitionFraction,
++                presentationData: p.presentationData, transition: .immediate)
++        }
++    }
++
++    private var nebulaSettingsObservation: SettingsObservation?
++
+     private var previousSelectedAbsFrame: CGRect?
+     private var previousSelectedFrame: CGRect?
+     
+diff --git a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoScreen.swift b/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoScreen.swift
+--- a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoScreen.swift
++++ b/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoScreen.swift
+@@ -166,6 +166,7 @@
+     case passwordSetup
+     case dataAndStorage
+     case appearance
++    case nebulaGram
+     case language
+     case stickers
+     case premium
+diff --git a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoScreenSettingsActions.swift b/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoScreenSettingsActions.swift
+--- a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoScreenSettingsActions.swift
++++ b/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoScreenSettingsActions.swift
+@@ -141,6 +141,8 @@
+             push(controller)
+         case .dataAndStorage:
+             push(dataAndStorageController(context: self.context))
++        case .nebulaGram:
++            push(nebulaSettingsController(context: self.context))
+         case .appearance:
+             push(themeSettingsController(context: self.context))
+         case .language:
+diff --git a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoSettingsItems.swift b/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoSettingsItems.swift
+--- a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoSettingsItems.swift
++++ b/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoSettingsItems.swift
+@@ -244,6 +244,10 @@
+         interaction.openSettings(.powerSaving)
+     }))
+     
++    items[.advanced]!.append(PeerInfoScreenDisclosureItem(id: 9700, text: "NebulaGram", icon: PresentationResourcesSettings.appearance, action: {
++        interaction.openSettings(.nebulaGram)
++    }))
++
+     let languageName = presentationData.strings.primaryComponent.localizedName
+     items[.advanced]!.append(PeerInfoScreenDisclosureItem(id: 4, label: .text(languageName.isEmpty ? presentationData.strings.Localization_LanguageName : languageName), text: presentationData.strings.Settings_AppLanguage, icon: PresentationResourcesSettings.language, action: {
+         interaction.openSettings(.language)
