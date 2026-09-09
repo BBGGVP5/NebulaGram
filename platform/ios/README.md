@@ -68,6 +68,39 @@ the entire app merely to check six source paths.
 
 ## Next acceptance gate
 
+### Real native module build
+
+The manually dispatched `iOS native integration build` workflow prepares a fresh
+checkout of the pin, initializes recursive dependencies, applies the ordered
+patches and copies the overlay with collision checks. It compiles the **actual**
+SettingsUI, PeerInfoScreen and ChatListFilterTabContainerNode Bazel targets via
+`NebulaIntegrationChecks`, using the upstream arm64 simulator configuration.
+No Telegram interfaces are stubbed. It requires the exact pinned Xcode 26.2
+on Apple Silicon and never silently overrides the version.
+
+Equivalent commands on a suitable Mac, from the repository root:
+
+```sh
+python platform/ios/tools/test_native_build.py
+python platform/ios/tools/native-build.py preflight --xcode 26.2
+python platform/ios/tools/native-build.py prepare --destination "$HOME/nebula-ios-native-check"
+python platform/ios/tools/native-build.py build --tree "$HOME/nebula-ios-native-check" --jobs 2
+```
+
+The destination must not exist: the tool never resets/deletes an existing tree
+or reuses the vendor checkout. The preparation manifest records the pin and
+input/source hashes. Build refuses changed inputs. Failed preparation leaves its
+directory intact for diagnosis; use a new path for a new attempt.
+
+This is a compile-only module target with **dummy API id 0 and no real signing
+credentials**, not an installable/login-capable app. Fixture configuration stays
+inside the disposable build tree and must not be reused for distribution.
+The evidence artifact includes logs and a result whose `status` is `compiled`
+only after native Bazel compilation succeeds. Passing standalone Swift checks,
+preparation or syntax parsing alone is not that result.
+
+### App and device acceptance (still separate)
+
 1. Prepare a separate full build tree at the pin; initialize nested dependencies.
    Apply sorted iOS patches, then copy the iOS overlay to that tree.
 2. Use the upstream build procedure/tool versions, the app's own Telegram API

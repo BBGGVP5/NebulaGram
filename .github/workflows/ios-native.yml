@@ -1,0 +1,45 @@
+name: iOS native integration build
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: ios-native-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  native:
+    runs-on: macos-latest
+    timeout-minutes: 120
+    env:
+      PYTHONUNBUFFERED: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Safety tests and pinned toolchain preflight
+        run: |
+          set -o pipefail
+          mkdir -p native-logs
+          echo "NEBULA_IOS_TREE=$RUNNER_TEMP/nebulagram-ios-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT" >> "$GITHUB_ENV"
+          python platform/ios/tools/test_native_build.py
+          python platform/ios/tools/native-build.py preflight --xcode 26.2 2>&1 | tee native-logs/preflight.log
+      - name: Prepare actual Telegram sources, dependencies and overlay
+        run: |
+          set -o pipefail
+          python platform/ios/tools/native-build.py prepare --destination "$NEBULA_IOS_TREE" 2>&1 | tee native-logs/prepare.log
+      - name: Compile real SettingsUI, PeerInfoScreen and folder tab modules
+        run: |
+          set -o pipefail
+          python platform/ios/tools/native-build.py build --tree "$NEBULA_IOS_TREE" --jobs 2 2>&1 | tee native-logs/build.log
+      - name: Save build evidence (not an IPA)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-native-evidence
+          if-no-files-found: warn
+          include-hidden-files: true
+          path: |
+            native-logs/*.log
+            ${{ env.NEBULA_IOS_TREE }}/.nebula-ios-build.json
+            ${{ env.NEBULA_IOS_TREE }}/nebula-native-result.json
