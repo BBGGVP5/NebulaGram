@@ -101,14 +101,14 @@ public struct SettingsCatalog: Decodable {
     }
 
     /// Validate present keys only. Never fill missing values or silently activate planned UI.
-    public func validate(_ document: SettingsDocument) throws {
+    public func validate(_ document: SettingsDocument, localKeys: Set<String> = []) throws {
         guard document.format == "NebulaGram-settings", document.version == 1 else {
             throw ContractError.invalidDocument
         }
         let definitions = Dictionary(uniqueKeysWithValues: settings.map { ($0.key, $0) })
         for (key, value) in document.settings {
             guard let definition = definitions[key] else { throw ContractError.unknownSetting(key) }
-            guard definition.transferV1 else { throw ContractError.invalidValue(key) }
+            guard definition.transferV1 || localKeys.contains(key) else { throw ContractError.invalidValue(key) }
             try definition.validate(value)
         }
     }

@@ -183,7 +183,16 @@ public func nebulaSettingsController(context: AccountContext) -> ViewController 
     arguments.openPrivacy = { [weak controller] in
         guard let controller = controller, controller.presentedViewController == nil else { return }
         let ru = context.sharedContext.currentPresentationData.with { $0 }.strings.baseLanguageCode.lowercased().hasPrefix("ru")
-        controller.present(UINavigationController(rootViewController: NebulaPrivacyController(context: context, russian: ru)), animated: true)
+        let privacy = NebulaPrivacyController(context: context, russian: ru)
+        privacy.openAppLock = { [weak controller] in
+            let push: (ViewController) -> Void = { [weak controller] next in
+                (controller?.navigationController as? NavigationController)?.pushViewController(next)
+            }
+            let _ = passcodeOptionsAccessController(context: context, pushController: push, completion: { _ in
+                push(passcodeOptionsController(context: context))
+            }).start(next: { next in if let next = next { push(next) } })
+        }
+        controller.present(UINavigationController(rootViewController: privacy), animated: true)
     }
     return controller
 }

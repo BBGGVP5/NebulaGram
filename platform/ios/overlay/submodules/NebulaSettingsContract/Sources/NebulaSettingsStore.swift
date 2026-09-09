@@ -52,7 +52,7 @@ public final class NebulaSettingsStore {
         do {
             guard let data = stored as? Data else { throw SettingsStoreError.unavailable }
             let document = try JSONDecoder().decode(SettingsDocument.self, from: data)
-            try catalog.validate(document)
+            try catalog.validate(document, localKeys: Self.editableKeys)
             values = document.settings
         } catch {
             // Keep corrupt/unsupported bytes intact. Only an explicit valid import
@@ -88,7 +88,9 @@ public final class NebulaSettingsStore {
     public func exportData() throws -> Data {
         lock.lock(); defer { lock.unlock() }
         guard !failedToLoad else { throw SettingsStoreError.unavailable }
-        return try JSONEncoder().encode(SettingsDocument(settings: values))
+        guard let catalog else { throw SettingsStoreError.unavailable }
+        let transferKeys = Set(catalog.settings.filter(\.transferV1).map(\.key))
+        return try JSONEncoder().encode(SettingsDocument(settings: values.filter { transferKeys.contains($0.key) }))
     }
 
     public func set(_ value: SettingValue, for key: String) throws {
@@ -105,7 +107,13 @@ public final class NebulaSettingsStore {
     @discardableResult
     public func importData(_ data: Data) throws -> Set<String> {
         let preview = try previewImport(data)
-        try mutate(recover: true) { _ in preview.document }
+        try mutate(recover: true) { current in
+            guard let catalog = self.catalog else { throw SettingsStoreError.unavailable }
+            let localKeys = Set(catalog.settings.filter { !$0.transferV1 }.map(\.key))
+            var next = current.filter { localKeys.contains($0.key) }
+            next.merge(preview.document.settings) { _, imported in imported }
+            return SettingsDocument(settings: next)
+        }
         return preview.pendingKeys
     }
 
@@ -121,12 +129,12 @@ public final class NebulaSettingsStore {
             pendingKeys: Set(document.settings.keys).subtracting(Self.editableKeys))
     }
 
-    private func mutate(recover: Bool, document: ([String: SettingValue]) -> SettingsDocument) throws {
+    private func mutate(recover: Bool, document: ([String: SettingValue]) throws -> SettingsDocument) throws {
         lock.lock()
         do {
             guard let catalog, recover || !failedToLoad else { throw SettingsStoreError.unavailable }
-            let next = document(values)
-            try catalog.validate(next)
+            let next = try document(values)
+            try catalog.validate(next, localKeys: Self.editableKeys)
             let data = try JSONEncoder().encode(next)
             let didChange = failedToLoad || values != next.settings
             if didChange {

@@ -7,6 +7,12 @@ import NebulaSettingsContract
 public enum NebulaDeletedMessages {
     private static let tag = LocalMessageTags(rawValue: 1 << 29)
     public static func isRetained(_ message: Message) -> Bool { message.localTags.contains(tag) }
+    public static func excluded(account: Account, peer: PeerId) -> Bool {
+        NebulaDeletedArchive.shared.excluded(account: account.peerId.toInt64(), peer: peer.toInt64())
+    }
+    public static func setExcluded(account: Account, peer: PeerId, value: Bool) {
+        NebulaDeletedArchive.shared.setExcluded(account: account.peerId.toInt64(), peer: peer.toInt64(), value: value)
+    }
     public static var icon: String { NebulaDeletedArchive.shared.icon }
     private static func messageId(_ entry: NebulaDeletedEntry) -> MessageId {
         MessageId(peerId: PeerId(entry.peer), namespace: entry.namespace ?? Namespaces.Message.Cloud, id: entry.id)
@@ -30,11 +36,11 @@ public enum NebulaDeletedMessages {
         let account = accountPeerId.toInt64()
         do {
             let all = try archive.entries(account: account)
-            var entries = NebulaDeletedArchive.pruned(all)
+            var entries = archive.prunedForAccount(all, account: account)
             var retained = Set(entries.map(messageId))
-            var changed: [MessageId] = []
             if archive.enabled(account: account) {
                 for id in ids.prefix(NebulaDeletedArchive.limit) {
+                    if archive.excluded(account: account, peer: id.peerId.toInt64()) { continue }
                     let secret = id.peerId.namespace == Namespaces.Peer.SecretChat
                     guard (id.namespace == Namespaces.Message.Cloud || secret && archive.saveSecret(account: account)),
                           let message = transaction.getMessage(id), message.flags.contains(.Incoming),
@@ -48,18 +54,17 @@ public enum NebulaDeletedMessages {
                     if let cached = transaction.getPeerCachedData(peerId: id.peerId) as? CachedUserData, cached.flags.contains(.copyProtectionEnabled) { continue }
                     if retained.insert(id).inserted {
                         entries.append(NebulaDeletedEntry(peer: id.peerId.toInt64(), id: id.id, timestamp: message.timestamp, text: message.text, namespace: id.namespace))
-                        changed.append(id)
                     }
                 }
             }
-            entries = NebulaDeletedArchive.pruned(entries)
+            entries = archive.prunedForAccount(entries, account: account)
             retained = Set(entries.map(messageId))
             try archive.replace(entries, account: account) // Persist marker before suppressing a deletion.
             for entry in all where !retained.contains(messageId(entry)) {
                 let id = messageId(entry)
                 if let message = transaction.getMessage(id), isRetained(message) { transaction.deleteMessages([id], forEachMedia: nil) }
             }
-            for id in changed where retained.contains(id) {
+            for id in ids where retained.contains(id) {
                 transaction.updateMessage(id, update: { current in
                     var forward: StoreMessageForwardInfo?
                     if let f = current.forwardInfo {

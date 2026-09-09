@@ -41,7 +41,7 @@ def main():
         if not pairs:
             raise SystemExit(f'Empty patch: {patch.name}')
         for a, b in pairs:
-            if a != b or not a.startswith('submodules/') or '..' in Path(a).parts or '\\' in a:
+            if a != b or not (a.startswith('submodules/') or a in {'Telegram/BUILD', 'Telegram/WidgetKitWidget/TodayViewController.swift'}) or '..' in Path(a).parts or '\\' in a:
                 raise SystemExit('Unexpected patch path: ' + a)
             paths.add(a)
     with tempfile.TemporaryDirectory(prefix='nebula-ios-bootstrap-') as temporary:
@@ -78,6 +78,20 @@ def main():
         assert 'hideCounters, !store.hasLoadError)' in controller
         assert 'value: value, enabled: enabled' in controller
         check_onboarding(temp, tree, revision)
+        widget = (temp / 'Telegram/WidgetKitWidget/NebulaQuickActionsWidget.swift').read_text(encoding='utf-8')
+        assert '.policy' not in widget or 'Timeline' in widget
+        assert 'policy: .never' in widget and 'UserDefaults' not in widget and 'Postbox' not in widget
+        assert 'NebulaQuickActionsWidget()' in (temp / 'Telegram/WidgetKitWidget/TodayViewController.swift').read_text(encoding='utf-8')
+        routes = (temp / 'submodules/SettingsUI/Sources/NebulaQuickActions.swift').read_text(encoding='utf-8')
+        assert 'route == "nebula/settings"' in routes and 'route == "nebula/link"' in routes
+        assert 'tunnel.start' not in routes and 'NebulaDeletedArchive' not in routes
+        handler = (temp / 'submodules/SettingsUI/Sources/Search/SettingsSearchableItems.swift').read_text(encoding='utf-8')
+        assert 'if nebulaOpenQuickAction(context: context, path: path, navigationController: navigationController)' in handler
+        assert 'NebulaAppShortcuts.swift' in (temp / 'Telegram/BUILD').read_text(encoding='utf-8')
+        integration = (temp / 'submodules/NebulaIntegrationChecks/BUILD').read_text(encoding='utf-8')
+        for target in ['//Telegram:Lib', '//Telegram:WidgetExtensionLib', '//submodules/TelegramUI:TelegramUI']:
+            assert target in integration
+
         print(f'OK: {len(patches)} ordered iOS patch(es), {len(paths)} upstream paths, overlay/hooks, pin {revision}', flush=True)
         if args.swift:
             for source in sorted(temp.rglob('*.swift')):

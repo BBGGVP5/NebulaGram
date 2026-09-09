@@ -82,6 +82,26 @@ public final class NebulaDeletedArchive {
             if !text.isEmpty { defaults.set(text, forKey: "nebula.privacy.deletedIcon") }
         }
     }
+    public func retentionDays(account: Int64) -> Int {
+        let value = defaults.integer(forKey: "nebula.privacy.retentionDays.\(account)")
+        return [1, 7, 30].contains(value) ? value : 7
+    }
+    public func setRetentionDays(account: Int64, value: Int) {
+        guard [1, 7, 30].contains(value) else { return }
+        defaults.set(value, forKey: "nebula.privacy.retentionDays.\(account)")
+    }
+    public func excluded(account: Int64, peer: Int64) -> Bool {
+        (defaults.stringArray(forKey: "nebula.privacy.excluded.\(account)") ?? []).contains(String(peer))
+    }
+    public func setExcluded(account: Int64, peer: Int64, value: Bool) {
+        let key = "nebula.privacy.excluded.\(account)"
+        var peers = Set(defaults.stringArray(forKey: key) ?? [])
+        if value { peers.insert(String(peer)) } else { peers.remove(String(peer)) }
+        defaults.set(peers.sorted(), forKey: key)
+    }
+    public func prunedForAccount(_ entries: [NebulaDeletedEntry], account: Int64, now: TimeInterval = Date().timeIntervalSince1970) -> [NebulaDeletedEntry] {
+        Self.pruned(entries, now: now, retention: TimeInterval(retentionDays(account: account)) * 86400)
+    }
     public func saveSecret(account: Int64) -> Bool { defaults.bool(forKey: "nebula.privacy.secret.\(account)") }
     public func setSaveSecret(account: Int64, value: Bool) { defaults.set(value, forKey: "nebula.privacy.secret.\(account)") }
     public func saveExpiring(account: Int64) -> Bool { defaults.bool(forKey: "nebula.privacy.expiring.\(account)") }
@@ -89,7 +109,7 @@ public final class NebulaDeletedArchive {
     public func replace(_ entries: [NebulaDeletedEntry], account: Int64) throws {
         try queue.sync { try write(entries, account: account) }
     }
-    public static func pruned(_ entries: [NebulaDeletedEntry], now: TimeInterval = Date().timeIntervalSince1970) -> [NebulaDeletedEntry] {
+    public static func pruned(_ entries: [NebulaDeletedEntry], now: TimeInterval = Date().timeIntervalSince1970, retention: TimeInterval = NebulaDeletedArchive.retention) -> [NebulaDeletedEntry] {
         Array(entries.filter { $0.deletedAt >= now - retention && $0.deletedAt <= now + 60 }.sorted { $0.deletedAt > $1.deletedAt }.prefix(limit))
     }
     public func entries(account: Int64) throws -> [NebulaDeletedEntry] {

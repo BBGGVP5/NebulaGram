@@ -7,6 +7,9 @@ ios_build_test(
     name = "NebulaIntegrationChecks",
     minimum_os_version = "13.0",
     targets = [
+        "//Telegram:Lib",
+        "//Telegram:WidgetExtensionLib",
+        "//submodules/TelegramUI:TelegramUI",
         "//submodules/AuthorizationUI:AuthorizationUI",
         "//submodules/NebulaLinkUI:NebulaLinkUI",
         "//submodules/SettingsUI:SettingsUI",

@@ -25,6 +25,13 @@ final class DeletedArchiveTests: XCTestCase {
         XCTAssertFalse(archive.enabled(account: 1));XCTAssertFalse(archive.saveSecret(account: 1));XCTAssertFalse(archive.saveExpiring(account: 1))
         archive.setEnabled(account: 1, value: true);archive.setSaveSecret(account: 1, value: true)
         XCTAssertFalse(archive.enabled(account: 2));XCTAssertFalse(archive.saveSecret(account: 2))
+        archive.setExcluded(account: 1, peer: 42, value: true)
+        XCTAssertTrue(archive.excluded(account: 1, peer: 42)); XCTAssertFalse(archive.excluded(account: 2, peer: 42))
+        archive.setExcluded(account: 1, peer: 42, value: false); XCTAssertFalse(archive.excluded(account: 1, peer: 42))
+        archive.setRetentionDays(account: 1, value: 1); XCTAssertEqual(archive.retentionDays(account: 1), 1)
+        archive.setRetentionDays(account: 1, value: -1); XCTAssertEqual(archive.retentionDays(account: 1), 1)
+        XCTAssertEqual(archive.retentionDays(account: 2), 7)
+        XCTAssertTrue(archive.prunedForAccount([NebulaDeletedEntry(peer: 42, id: 1, timestamp: 1, deletedAt: 1, text: "old")], account: 1, now: 86402).isEmpty)
         archive.icon = " 👨‍👩‍👧‍👦 "
         XCTAssertEqual(archive.icon, "👨‍👩‍👧‍👦")
         let media = NebulaDeletedEntry(peer: 42, id: 5, timestamp: 50, text: "", namespace: 123)
@@ -64,5 +71,13 @@ final class DeletedArchiveTests: XCTestCase {
         try store.set(.boolean(false), for: "settings_search_history")
         let loaded = NebulaSettingsStore(defaults: defaults)
         XCTAssertFalse(loaded.showStories);XCTAssertFalse(loaded.settingsSearchHistory)
+        try loaded.set(.integer(2), for: "glass_quality")
+        XCTAssertEqual(loaded.glassQuality, 2)
+        XCTAssertThrowsError(try loaded.set(.integer(3), for: "glass_quality"))
+        let exported = try JSONDecoder().decode(SettingsDocument.self, from: loaded.exportData())
+        XCTAssertNil(exported.settings["show_stories"])
+        try SettingsCatalog.bundled().validate(exported)
+        try loaded.importData(JSONEncoder().encode(SettingsDocument(settings: ["glass_quality": .integer(1)])))
+        XCTAssertFalse(loaded.showStories); XCTAssertEqual(loaded.glassQuality, 1)
     }
 }

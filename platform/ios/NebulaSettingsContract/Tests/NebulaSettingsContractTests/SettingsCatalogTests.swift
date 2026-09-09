@@ -5,8 +5,8 @@ import XCTest
 final class SettingsCatalogTests: XCTestCase {
     func testCatalogAndImplementationStatus() throws {
         let catalog = try SettingsCatalog.bundled()
-        XCTAssertEqual(catalog.settings.count, 65)
-        XCTAssertEqual(catalog.settings.filter(\.transferV1).count, 56)
+        XCTAssertEqual(catalog.settings.count, 66)
+        XCTAssertEqual(catalog.settings.filter(\.transferV1).count, 57)
         XCTAssertFalse(catalog.settings.contains(where: \.isImplementedOnIOS))
         XCTAssertEqual(catalog.settings.first { $0.key == "material_you" }?.iosStatus, "unsupported")
         XCTAssertEqual(catalog.settings.first { $0.key == "centered_chat_header" }?.defaultValue, .boolean(true))

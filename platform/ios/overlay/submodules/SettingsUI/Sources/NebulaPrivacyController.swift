@@ -9,6 +9,7 @@ import NebulaSettingsContract
 final class NebulaPrivacyController: UITableViewController {
     private let context: AccountContext
     private let ru: Bool
+    var openAppLock: (() -> Void)?
     private var operation: Disposable?
     private var busy = false
     private var account: Int64 { context.account.peerId.toInt64() }
@@ -28,17 +29,18 @@ final class NebulaPrivacyController: UITableViewController {
         tableView.estimatedRowHeight = 60
     }
     @objc private func close() { dismiss(animated: true) }
-    override func numberOfSections(in tableView: UITableView) -> Int { 3 }
-    override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int { section == 0 ? 3 : 1 }
+    override func numberOfSections(in tableView: UITableView) -> Int { 4 }
+    override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int { section == 0 ? 3 : (section == 3 ? 2 : 1) }
     override func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
-        [text("Удалённые сообщения", "Deleted messages"), text("Оформление", "Appearance"), text("Локальный кэш", "Local cache")][section]
+        [text("Удалённые сообщения", "Deleted messages"), text("Оформление", "Appearance"), text("Локальный кэш", "Local cache"), text("Защита", "Protection")][section]
     }
     override func tableView(_ tableView: UITableView, titleForFooterInSection section: Int) -> String? {
         if section == 0 {
             return text("Полученные сообщения остаются на своём месте в чате. Секретные и исчезающие — только при отдельных включённых переключателях. Защита от копирования сохраняется. Фоновая работа возможна только когда iOS позволяет приложению обрабатывать обновления.", "Received messages remain in place. Secret and expiring messages require their separate switches. Copy protection is respected. Background retention requires iOS to allow the app to process updates.")
         }
         if section == 1 { return text("Вместо слова «Удалено» — выбранный значок. Сохранённые сообщения отображаются приглушённо.", "The chosen icon replaces the word Deleted. Retained messages are visually muted.") }
-        return text("До 500 сообщений за 7 дней; просроченные копии очищаются при обработке удалений. Текст и медиа остаются в обычном локальном хранилище приложения. Уже загруженные вложения доступны, пока их не очистит стандартный медиакэш. Удаление кэша здесь не отправляет запросов на сервер и не удаляет обычную переписку. Выключение сохранения не очищает прежние копии.", "Up to 500 messages for 7 days; expired copies are pruned while processing deletion updates. Text and media stay in the app’s normal local storage. Downloaded attachments remain available until standard media cache eviction. Clearing here is local only and does not erase ordinary history. Turning retention off keeps existing copies.")
+        if section == 3 { return text("Блокировка приложения защищает и сообщения в переписке. Отдельной блокировки только экрана архива недостаточно. Исключить чат из сохранения можно через меню очистки удалённых сообщений; старые копии очищаются отдельно.", "The app lock also protects inline messages. A lock on the archive settings alone would not. Exclude a chat using its retained-message cleanup menu; clear old copies separately.") }
+        return text("До 500 сообщений; просроченные копии очищаются при обработке удалений. Текст и медиа остаются в обычном локальном хранилище приложения. Уже загруженные вложения доступны, пока их не очистит стандартный медиакэш. Удаление кэша здесь не отправляет запросов на сервер и не удаляет обычную переписку. Выключение сохранения не очищает прежние копии.", "Up to 500 messages; expired copies are pruned while processing deletion updates. Text and media stay in the app’s normal local storage. Downloaded attachments remain available until standard media cache eviction. Clearing here is local only and does not erase ordinary history. Turning retention off keeps existing copies.")
     }
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = UITableViewCell(style: .value1, reuseIdentifier: nil)
@@ -55,6 +57,10 @@ final class NebulaPrivacyController: UITableViewController {
         } else if indexPath.section == 1 {
             cell.textLabel?.text = text("Значок сообщения", "Message icon")
             cell.detailTextLabel?.text = archive.icon;cell.accessoryType = .disclosureIndicator
+        } else if indexPath.section == 3 {
+            cell.textLabel?.text = indexPath.row == 0 ? text("Код-пароль / Face ID приложения", "App passcode / Face ID") : text("Срок хранения", "Retention period")
+            cell.accessoryType = .disclosureIndicator
+            if indexPath.row == 1 { cell.detailTextLabel?.text = "\(archive.retentionDays(account: account)) " + text("дн.", "days") }
         } else {
             cell.textLabel?.text = busy ? text("Очистка…", "Clearing…") : text("Очистить кэш удалённых сообщений", "Clear retained-message cache")
             cell.textLabel?.textColor = .systemRed
@@ -80,6 +86,17 @@ final class NebulaPrivacyController: UITableViewController {
         tableView.deselectRow(at: indexPath, animated: true)
         guard !busy else { return }
         if indexPath.section == 1 { pickIcon() }
+        if indexPath.section == 3 {
+            if indexPath.row == 0 { let open = openAppLock; dismiss(animated: true) { open?() }; return }
+            let alert = UIAlertController(title: text("Срок хранения", "Retention period"), message: text("Просроченные копии очищаются при следующей обработке удалений, не по фоновому таймеру. Уменьшение срока необратимо после очистки.", "Expired copies are pruned on the next deletion update, not by a background timer. Pruning after shortening the period is irreversible."), preferredStyle: .alert)
+            for days in [1, 7, 30] {
+                alert.addAction(UIAlertAction(title: "\(days) " + text("дн.", "days"), style: .default) { [weak self] _ in
+                    guard let self = self else { return }
+                    self.archive.setRetentionDays(account: self.account, value: days); self.tableView.reloadData()
+                })
+            }
+            alert.addAction(UIAlertAction(title: text("Отмена", "Cancel"), style: .cancel)); present(alert, animated: true)
+        }
         if indexPath.section == 2 {
             let alert = UIAlertController(title: text("Очистить все сохранённые копии?", "Clear all retained copies?"), message: text("Только текущий аккаунт на этом устройстве. Обычная переписка и общий медиакэш не удаляются.", "Only this account on this device. Ordinary history and shared media cache are not deleted."), preferredStyle: .alert)
             alert.addAction(UIAlertAction(title: text("Отмена", "Cancel"), style: .cancel))
