@@ -22,3 +22,8 @@
 
 ## Acceptance boundaries
 No guarantees of background delivery or permanent cached media. Full parity is not established by generating a settings screen. Preserve unrelated design artifacts and NebulaMenuBackdrop changes.
+
+## Delivery checkpoint
+Android adaptive policy, app-lifetime observers, reversible native shader/blur consumers, mode picker and transfer key are implemented. Policy/restore/hot-path tests, 33 Android regressions, Java compilation and 78-patch reproduction passed. Commit 762aafb was dispatched, but its dependency download failed. Commits e483017/ad1f9d9 pin Go tooling and add tested bounded retries; replacement Android run is 34379577262.
+
+On iOS, policy/shared glass consumer, archive retention/exclusions + native whole-app lock route, quick-action commands/widget, Contacts visibility/order are wired. Full native compile and signed-device behavior remain unverified. `platform/ios/PARITY.md` inventories every catalog key, and explicitly lists remaining consumer groups. Shared-store XCTest at 76ce9ea passed after fixing local-only settings validation; the latest tab-order change has another bootstrap run.
