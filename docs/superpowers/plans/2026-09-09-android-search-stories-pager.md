@@ -9,7 +9,7 @@
 - [x] Add regression checks for history read/write suppression, clear isolation/refresh, story visibility gating and continuous selector positions.
 - [x] Add preferences in NebulaAppearance, history helper, General UI controls and appended search entries (preserve existing numeric IDs). Catalog entries planned iOS, not added to legacy v1 export.
 - [x] Generate 0075 patch for ProfileActivity history, DialogsActivity story strip and MainTabsActivity/MainTabsLayout pager drawing. Record hooks.
-- [x] Run regression/contract checks and compile Java; push owned changes once to trigger Android CI. Check iOS native result separately. Push signing verifier plan remains pending while these requested Android fixes take priority.
+- [x] Run regression/contract checks and compile Java; push owned changes once to trigger Android CI. Check iOS native result separately. Push signing verifier is tracked in the separate iOS plan.
 
 ## Verification
 - All 70 patches applied in order to pinned upstream sources.
@@ -17,3 +17,5 @@
 - Full :TMessagesProj:compileStandaloneJavaWithJavac passed in 2m55s after fixing captured visibility to remain final.
 - Logs: build/search-stories-pager-0909/checks.log and compile.log. No connected-device rendering/gesture claim.
 - iOS native module build 34341129456 passed at ab32b65; the two new catalog preferences remain planned on iOS, not exposed as implemented.
+
+Android build dispatched by push at 6df444a: [34344367072](https://github.com/BBGGVP5/NebulaGram/actions/runs/34344367072); latest observed step is app compilation, not yet an APK success claim.
