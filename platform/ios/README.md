@@ -29,7 +29,12 @@ opening the screen does not save defaults or discard damaged data.
 If storage cannot be loaded, the screen disables editing and shows an error
 instead of presenting a toggle that cannot be saved.
 
-The import/export **API**, not yet a file-picker UI, validates all values before
+The native import/export actions open the system Files picker. Imports use a
+coordinated, security-scoped, bounded read off the main thread (maximum 1 MiB),
+then validate all values and show counts of connected/pending keys before an
+explicit replacement confirmation. Cancelling preview does not write anything.
+Export uses an app-owned temporary JSON file, cleaned after copy/cancellation;
+the chosen destination is never deleted. The API validates all values before
 replacing the document. Existing transferable Android keys without consumers
 are retained and returned as pending keys, not activated. Importing a valid
 document is the explicit recovery operation for corrupt storage. Unknown keys,
@@ -55,7 +60,9 @@ The bootstrap checker reads the pinned git objects into a disposable directory,
 applies the ordered patch series, adds the overlay and checks integration
 anchors. `--swift` parses native Swift sources and compiles/runs the actual
 Foundation mirror. It does **not** typecheck the Telegram-dependent screen or
-produce an app. No vendor reset, clean or checkout is performed by the checker.
+produce an app. The UIKit-only file-transfer adapter and contract also undergo
+a real iOS simulator SDK typecheck, without Telegram stubs. No vendor reset,
+clean or checkout is performed by the checker.
 The CI fetch uses a sparse clone without nested submodules to avoid downloading
 the entire app merely to check six source paths.
 
@@ -69,7 +76,10 @@ the entire app merely to check six source paths.
 3. On iPhone: open Settings → NebulaGram; toggle counter hiding; return to a
    folder strip with unread badges; check layout, swiping, editing/reordering,
    account switch, relaunch, themes and VoiceOver with hiding on and off.
-4. Verify failed/corrupt preference handling without resetting existing data.
+4. Test Files import/export locally and through iCloud on iPhone/iPad; cancel
+   selection and confirmation; reject invalid/oversized/unavailable files; reopen
+   and relaunch after a valid import. Verify failed/corrupt preference handling
+   without resetting existing data.
    Only then promote the catalog status and distribute a test build.
 
 Keep feature logic in the platform adapter and Foundation module. On an upstream

@@ -96,6 +96,17 @@ print("OK: embedded catalog and Bazel-side Foundation store compiled and ran")
             executable = temp / 'smoke'
             subprocess.run(['swiftc', '-swift-version', '5', '-warnings-as-errors', *map(str, contract), str(main_file), '-o', str(executable)], check=True)
             subprocess.run([str(executable)], check=True)
+            # Real SDK typecheck for the UIKit-only transfer adapter. This is not
+            # a mock of Telegram, nor a full SettingsUI/Telegram application build.
+            sdk = run('xcrun', '--sdk', 'iphonesimulator', '--show-sdk-path', text=True).strip()
+            ios_flags = ['-swift-version', '5', '-warnings-as-errors', '-sdk', sdk,
+                         '-target', 'arm64-apple-ios13.0-simulator']
+            subprocess.run(['swiftc', *ios_flags, '-emit-module', '-parse-as-library',
+                            '-module-name', 'NebulaSettingsContract', *map(str, contract),
+                            '-emit-module-path', str(temp / 'NebulaSettingsContract.swiftmodule')], check=True)
+            transfer = temp / 'submodules/SettingsUI/Sources/NebulaSettingsFileTransfer.swift'
+            subprocess.run(['swiftc', *ios_flags, '-typecheck', '-I', str(temp), str(transfer)], check=True)
+            print('OK: UIKit file-transfer adapter typechecked against the real iOS simulator SDK')
             print('Native hooks parsed only. Full Telegram/Bazel build and iPhone acceptance remain required.')
 
 

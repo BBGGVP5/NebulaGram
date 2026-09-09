@@ -34,6 +34,7 @@ public final class NebulaSettingsStore {
     public static let shared = NebulaSettingsStore(defaults: .standard)
     public static let storageKey = "app.nebulagram.presentation.settings.v1"
     public static let editableKeys: Set<String> = ["hide_tab_counters"]
+    public static let maximumTransferBytes = 1024 * 1024
 
     private let defaults: UserDefaults
     private let catalog: SettingsCatalog?
@@ -90,9 +91,21 @@ public final class NebulaSettingsStore {
     /// Returns keys retained for future ports, not currently activated on iOS.
     @discardableResult
     public func importData(_ data: Data) throws -> Set<String> {
+        let preview = try previewImport(data)
+        try mutate(recover: true) { _ in preview.document }
+        return preview.pendingKeys
+    }
+
+    /// Read-only validation for confirmation UI; even a recovery import is not
+    /// committed until the user confirms. The supplied bytes are bounded first.
+    public func previewImport(_ data: Data) throws -> SettingsTransferPreview {
+        guard data.count <= Self.maximumTransferBytes else { throw ContractError.invalidDocument }
+        guard let catalog else { throw SettingsStoreError.unavailable }
         let document = try JSONDecoder().decode(SettingsDocument.self, from: data)
-        try mutate(recover: true) { _ in document }
-        return Set(document.settings.keys).subtracting(Self.editableKeys)
+        try catalog.validate(document)
+        return SettingsTransferPreview(document: document,
+            activeKeys: Set(document.settings.keys).intersection(Self.editableKeys),
+            pendingKeys: Set(document.settings.keys).subtracting(Self.editableKeys))
     }
 
     private func mutate(recover: Bool, document: ([String: SettingValue]) -> SettingsDocument) throws {
