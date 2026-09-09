@@ -14,6 +14,11 @@
     <string name="NebulaAuthLinkEmpty">Paste a subscription link or a server key — or continue without NebulaLink.</string>
     <string name="NebulaAuthLinkOptional">You can change your connection later in NebulaGram Settings.</string>
     <string name="NebulaAuthDirectAction">Continue without NebulaLink</string>
+    <string name="NebulaAuthPickTitle">Choose a server</string>
+    <string name="NebulaAuthPickSubtitle">The subscription is saved. Pick the server to connect through — you can change it later.</string>
+    <string name="NebulaAuthPickEmpty">This subscription has no servers. Check the link or continue without NebulaLink.</string>
+    <string name="NebulaAuthPickMore">%1$d more servers are waiting in NebulaGram settings.</string>
+    <string name="NebulaAuthPickAnother">Paste another link</string>
     <string name="NebulaAuthRouteConnected">NebulaLink connected</string>
     <string name="NebulaAuthRouteDirect">Direct connection</string>
     <string name="NebulaAuthPhoneEyebrow">YOUR ACCOUNT</string>
