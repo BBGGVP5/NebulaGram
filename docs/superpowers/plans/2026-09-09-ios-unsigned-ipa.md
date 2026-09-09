@@ -17,7 +17,9 @@
 ### Task 2: CI and dispatch
 - [x] Add manual `.github/workflows/ios-ipa.yml`, fail early on missing API secrets/toolchain, prepare fresh tree, build with bounded resources, upload successful artifacts only.
 - [x] Add IPA tooling tests to iOS bootstrap CI and document signing/device/push limitations in `platform/ios/BUILD-IPA.md`.
-- [ ] Run overlay/bootstrap/static checks, inspect diff and commit only task files, push and dispatch workflow.
-- [ ] Confirm real run ID/status and report build link. Do not call a queued/running build or unsigned IPA device-tested; APNs delivery remains a separate gate.
+- [x] Run overlay/bootstrap/static checks, inspect diff and commit only task files, push and dispatch workflow.
+- [x] Confirm real run ID/status and report build link. Do not call a queued/running build or unsigned IPA device-tested; APNs delivery remains a separate gate.
 
 Local evidence: 7 IPA-tooling tests and 6 native-preparation tests pass. Overlay generation check and bootstrap patch/hook check pass against the committed pin. YAML parsed successfully. These are tooling checks, not device compilation/installation evidence.
+
+Dispatched: https://github.com/BBGGVP5/NebulaGram/actions/runs/34345902543 at commit 98bebce. Initial status queued; this is not a successful IPA build claim. Existing Android run 34344367072 remains in progress. User clarified welcome/login screens: this first IPA retains upstream authentication UI; custom Nebula welcome/phone/code design is not ported.
