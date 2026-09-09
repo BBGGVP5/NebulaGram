@@ -13,6 +13,10 @@ private final class NebulaSettingsArguments {
     let update: (Bool) -> Void
     let transfer: NebulaSettingsFileTransfer
     var openLink: (() -> Void)?
+    var openGlass: (() -> Void)?
+    var openPrivacy: (() -> Void)?
+    var updateKey: ((String, Bool) -> Void)?
+    var clearHistory: (() -> Void)?
 
     init(transfer: NebulaSettingsFileTransfer, update: @escaping (Bool) -> Void) {
         self.transfer = transfer
@@ -21,7 +25,12 @@ private final class NebulaSettingsArguments {
 }
 
 private enum NebulaSettingsEntry: ItemListNodeEntry {
+    case glass(String)
     case link(String)
+    case privacy(String)
+    case stories(String, Bool, Bool)
+    case history(String, Bool, Bool)
+    case clearHistory(String)
     case header(String)
     case hideCounters(String, Bool, Bool)
     case footer(String)
@@ -33,7 +42,12 @@ private enum NebulaSettingsEntry: ItemListNodeEntry {
     var section: ItemListSectionId { return stableId < 3 ? 0 : (stableId < 7 ? 1 : 2) }
     var stableId: Int32 {
         switch self {
+        case .glass: return 12
         case .link: return 7
+        case .privacy: return 8
+        case .stories: return 9
+        case .history: return 10
+        case .clearHistory: return 11
         case .header: return 0
         case .hideCounters: return 1
         case .footer: return 2
@@ -57,6 +71,16 @@ private enum NebulaSettingsEntry: ItemListNodeEntry {
             return ItemListSwitchItem(presentationData: presentationData, systemStyle: .glass, title: title, value: value, enabled: enabled, sectionId: section, style: .blocks, updated: arguments.update)
         case let .footer(text), let .transferFooter(text):
             return ItemListTextItem(presentationData: presentationData, text: .markdown(text), sectionId: section)
+        case let .stories(title, value, enabled):
+            return ItemListSwitchItem(presentationData: presentationData, systemStyle: .glass, title: title, value: value, enabled: enabled, sectionId: section, style: .blocks, updated: { arguments.updateKey?("show_stories", $0) })
+        case let .history(title, value, enabled):
+            return ItemListSwitchItem(presentationData: presentationData, systemStyle: .glass, title: title, value: value, enabled: enabled, sectionId: section, style: .blocks, updated: { arguments.updateKey?("settings_search_history", $0) })
+        case let .clearHistory(title):
+            return ItemListActionItem(presentationData: presentationData, systemStyle: .glass, title: title, kind: .generic, alignment: .natural, sectionId: section, style: .blocks, action: { arguments.clearHistory?() })
+        case let .privacy(title):
+            return ItemListActionItem(presentationData: presentationData, systemStyle: .glass, title: title, kind: .generic, alignment: .natural, sectionId: section, style: .blocks, action: { arguments.openPrivacy?() })
+        case let .glass(title):
+            return ItemListActionItem(presentationData: presentationData, systemStyle: .glass, title: title, kind: .generic, alignment: .natural, sectionId: section, style: .blocks, action: { arguments.openGlass?() })
         case let .link(title):
             return ItemListActionItem(presentationData: presentationData, systemStyle: .glass, title: title, kind: .generic, alignment: .natural, sectionId: section, style: .blocks, action: { arguments.openLink?() })
         case let .importFile(title):
@@ -110,21 +134,56 @@ public func nebulaSettingsController(context: AccountContext) -> ViewController 
             .importFile(ru ? "Импорт из файла" : "Import from file"),
             .exportFile(ru ? "Экспорт в файл" : "Export to file", !store.hasLoadError),
             .transferFooter(ru
-                ? "Формат NebulaGram JSON v1. Импорт заменяет настройки после подтверждения. Пока на iOS применяется только скрытие счётчиков папок; остальные допустимые параметры сохраняются для будущего переноса. Аккаунты и ключи доступа не экспортируются."
-                : "NebulaGram JSON v1. Import replaces preferences after confirmation. Only folder counter hiding is currently applied on iOS; other valid settings are retained for future ports. Accounts and access keys are not exported."),
-            .link("NebulaLink")
+                ? "Формат NebulaGram JSON v1. Импорт заменяет настройки после подтверждения. На iOS применяются счётчики папок, показ историй и история поиска настроек; остальные допустимые параметры сохраняются для будущего переноса. Аккаунты и ключи доступа не экспортируются."
+                : "NebulaGram JSON v1. Import replaces preferences after confirmation. Folder counters, story visibility and settings search history are applied on iOS; other valid settings are retained for future ports. Accounts and access keys are not exported."),
+            .link("NebulaLink"),
+            .privacy(ru ? "Конфиденциальность" : "Privacy"),
+            .stories(ru ? "Показывать истории" : "Show stories", store.showStories, !store.hasLoadError),
+            .history(ru ? "Сохранять и показывать историю поиска настроек" : "Save and show settings search history", store.settingsSearchHistory, !store.hasLoadError),
+            .clearHistory(ru ? "Очистить историю поиска настроек" : "Clear settings search history"),
+            .glass(ru ? "Адаптивное стекло" : "Adaptive glass")
         ]
         let data = ItemListPresentationData(presentationData)
-        let state = ItemListControllerState(presentationData: data, title: .text("NebulaGram"), leftNavigationButton: nil, rightNavigationButton: nil, backNavigationButton: ItemListBackButton(title: presentationData.strings.Common_Back))
+        let state = ItemListControllerState(presentationData: data, title: .text(ru ? "Настройки NebulaGram" : "NebulaGram Settings"), leftNavigationButton: nil, rightNavigationButton: nil, backNavigationButton: ItemListBackButton(title: presentationData.strings.Common_Back))
         return (state, (ItemListNodeState(presentationData: data, entries: entries, style: .blocks, animateChanges: true), arguments))
     }
     let controller = ItemListController(context: context, state: signal)
     transfer.host = controller
+    arguments.updateKey = { key, value in
+        do { try store.set(.boolean(value), for: key);writeFailed.set(false) }
+        catch { writeFailed.set(true) }
+    }
+    arguments.clearHistory = { [weak controller] in
+        guard let controller = controller else { return }
+        let ru = context.sharedContext.currentPresentationData.with { $0 }.strings.baseLanguageCode.lowercased().hasPrefix("ru")
+        let alert = UIAlertController(title: ru ? "Очистить историю поиска настроек?" : "Clear settings search history?", message: nil, preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: ru ? "Отмена" : "Cancel", style: .cancel))
+        alert.addAction(UIAlertAction(title: ru ? "Очистить" : "Clear", style: .destructive) { _ in clearRecentSettingsSearchItems(engine: context.engine) })
+        controller.present(alert, animated: true)
+    }
     arguments.openLink = { [weak controller] in
         guard let controller = controller, controller.presentedViewController == nil else { return }
         NebulaLinkService.shared.configure(accountManager: context.sharedContext.accountManager)
         let ru = context.sharedContext.currentPresentationData.with { $0 }.strings.baseLanguageCode.lowercased().hasPrefix("ru")
         controller.present(UINavigationController(rootViewController: NebulaLinkController(russian: ru)), animated: true)
+    }
+    arguments.openGlass = { [weak controller] in
+        guard let controller = controller else { return }
+        let ru = context.sharedContext.currentPresentationData.with { $0 }.strings.baseLanguageCode.lowercased().hasPrefix("ru")
+        let alert = UIAlertController(title: ru ? "Адаптивное стекло" : "Adaptive glass", message: ru ? "Авто облегчает эффекты при энергосбережении и нагреве. Системное уменьшение прозрачности учитывается во всех режимах." : "Auto reduces effects during Low Power Mode and thermal pressure. Reduce Transparency is respected in every mode.", preferredStyle: .alert)
+        for (mode, title) in (ru ? ["Автоматически", "Полное", "Облегчённое"] : ["Automatic", "Full", "Light"]).enumerated() {
+            alert.addAction(UIAlertAction(title: (store.glassQuality == mode ? "✓ " : "") + title, style: .default) { _ in
+                do { try store.set(.integer(mode), for: "glass_quality"); writeFailed.set(false) }
+                catch { writeFailed.set(true) }
+            })
+        }
+        alert.addAction(UIAlertAction(title: ru ? "Отмена" : "Cancel", style: .cancel))
+        controller.present(alert, animated: true)
+    }
+    arguments.openPrivacy = { [weak controller] in
+        guard let controller = controller, controller.presentedViewController == nil else { return }
+        let ru = context.sharedContext.currentPresentationData.with { $0 }.strings.baseLanguageCode.lowercased().hasPrefix("ru")
+        controller.present(UINavigationController(rootViewController: NebulaPrivacyController(context: context, russian: ru)), animated: true)
     }
     return controller
 }

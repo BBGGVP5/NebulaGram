@@ -1,0 +1,36 @@
+diff --git a/submodules/TelegramUI/Sources/Chat/ChatControllerNavigationButtonAction.swift b/submodules/TelegramUI/Sources/Chat/ChatControllerNavigationButtonAction.swift
+--- a/submodules/TelegramUI/Sources/Chat/ChatControllerNavigationButtonAction.swift
++++ b/submodules/TelegramUI/Sources/Chat/ChatControllerNavigationButtonAction.swift
+@@ -267,6 +267,14 @@
+                     
+                     let actionSheet = ActionSheetController(presentationData: strongSelf.presentationData)
+                     var items: [ActionSheetItem] = []
++                    if case .scheduledMessages = strongSelf.presentationInterfaceState.subject {
++                    } else {
++                        let ru = strongSelf.presentationData.strings.baseLanguageCode.lowercased().hasPrefix("ru")
++                        items.append(ActionSheetButtonItem(title: ru ? "Очистить удалённые сообщения" : "Clear retained messages", color: .accent, action: { [weak self, weak actionSheet] in
++                            actionSheet?.dismissAnimated()
++                            self?.nebulaConfirmClearRetained(peerId: peerId)
++                        }))
++                    }
+                     
+                     if case .scheduledMessages = strongSelf.presentationInterfaceState.subject {
+                         items.append(ActionSheetButtonItem(title: strongSelf.presentationData.strings.ScheduledMessages_ClearAllConfirmation, color: .destructive, action: { [weak actionSheet] in
+diff --git a/submodules/TelegramUI/Sources/Chat/ChatControllerOpenPeer.swift b/submodules/TelegramUI/Sources/Chat/ChatControllerOpenPeer.swift
+--- a/submodules/TelegramUI/Sources/Chat/ChatControllerOpenPeer.swift
++++ b/submodules/TelegramUI/Sources/Chat/ChatControllerOpenPeer.swift
+@@ -335,6 +335,14 @@
+         let strings = self.presentationData.strings
+         
+         var items: [ContextMenuItem] = []
++        let ru = strings.baseLanguageCode.lowercased().hasPrefix("ru")
++        items.append(.action(ContextMenuActionItem(text: ru ? "Очистить удалённые сообщения" : "Clear retained messages", icon: { theme in
++            generateTintedImage(image: UIImage(bundleImageName: "Chat/Context Menu/Clear"), color: theme.contextMenu.primaryColor)
++        }, action: { [weak self] _, completion in
++            completion(.default)
++            self?.nebulaConfirmClearRetained(peerId: peerId)
++        })))
++
+         
+         if let _ = self.chatLocation.threadId {
+         } else {

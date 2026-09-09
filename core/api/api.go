@@ -135,6 +135,7 @@ var handlers = map[string]handler{
 	"menu.get":                (*Core).handleMenu,
 	"onboarding.flow":         (*Core).handleOnboardingFlow,
 	"onboarding.connect":      (*Core).handleOnboardingConnect,
+	"onboarding.import":       (*Core).handleOnboardingImport,
 	"settings.get":            (*Core).handleSettingsGet,
 	"settings.set":            (*Core).handleSettingsSet,
 	"settings.reset":          (*Core).handleSettingsReset,
@@ -235,7 +236,7 @@ func (c *Core) handleOnboardingFlow([]byte) (any, error) {
 // handleOnboardingConnect takes whatever the user pasted on the welcome flow —
 // a subscription URL or a single share link — works out which it is, and brings
 // the tunnel up. One entry point keeps the first-run screen to a single field.
-func (c *Core) handleOnboardingConnect(payload []byte) (any, error) {
+func (c *Core) handleOnboardingImport(payload []byte) (any, error) {
 	var req struct {
 		Input string `json:"input"`
 		Name  string `json:"name"`
@@ -260,6 +261,15 @@ func (c *Core) handleOnboardingConnect(payload []byte) (any, error) {
 		}
 	}
 
+	return c.handleServersList(nil)
+}
+
+// Import is useful even when the first endpoint cannot be connected on this platform.
+// Keep the existing Android connect API, but let clients choose before starting.
+func (c *Core) handleOnboardingConnect(payload []byte) (any, error) {
+	if _, err := c.handleOnboardingImport(payload); err != nil {
+		return nil, err
+	}
 	server := c.st().Selected()
 	if server == nil {
 		return nil, errors.New("nebulalink: nothing to connect to")

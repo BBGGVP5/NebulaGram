@@ -40,6 +40,11 @@ public final class NebulaBottomBar {
         return !enabled() || !tabEnabled(TAB_SETTINGS) || callsTabVisible;
     }
 
+    /** Keep the account photo on Settings only when there is no separate Profile tab. */
+    public static boolean settingsUsesAvatar(boolean hasPhoto) {
+        return hasPhoto && !tabEnabled(TAB_PROFILE);
+    }
+
     public static boolean tabEnabled(String tab) {
         return prefs().getBoolean("bottom_bar_" + tab, true);
     }

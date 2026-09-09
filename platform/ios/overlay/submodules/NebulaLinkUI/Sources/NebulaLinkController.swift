@@ -91,7 +91,7 @@ public final class NebulaLinkController: UITableViewController, UITextFieldDeleg
         switch section {
         case 0: return 2
         case 1: return 4
-        case 2: return servers.count + (pages > 1 ? 1 : 0)
+        case 2: return max(1, servers.count + (pages > 1 ? 1 : 0))
         default: return 1
         }
     }
@@ -106,7 +106,7 @@ public final class NebulaLinkController: UITableViewController, UITextFieldDeleg
     public override func tableView(_ tableView: UITableView, titleForFooterInSection section: Int) -> String? {
         if section == 0 { return explanation.text }
         if section == 1 { return message.isEmpty ? probeText : message }
-        if section == 2 { return text("Работает внутри приложения. Фоновая работа зависит от ограничений iOS; уведомления доставляются отдельно через APNs.", "Runs inside the app. Background activity is subject to iOS limits; notifications use APNs separately.") }
+        if section == 2 { return text("Выберите сервер, затем нажмите «Подключить выбранный сервер». Работает внутри приложения. Фоновая работа зависит от ограничений iOS; уведомления доставляются отдельно через APNs.", "Select a server, then tap Connect selected server. Runs inside the app. Background activity is subject to iOS limits; notifications use APNs separately.") }
         return nil
     }
     public override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
@@ -128,12 +128,15 @@ public final class NebulaLinkController: UITableViewController, UITextFieldDeleg
             ])
             cell.selectionStyle = .none
         } else if indexPath.section == 0 {
-            cell.textLabel?.text = text("Подключить", "Connect")
+            cell.textLabel?.text = text("Добавить подписку или ключ", "Add subscription or key")
             cell.imageView?.image = UIImage(systemName: "link")
         } else if indexPath.section == 1 {
             cell.textLabel?.text = [text("Подключить выбранный сервер", "Connect selected server"), text("Отключить", "Disconnect"), text("Проверить соединение", "Test connection"), text("Обновить подписки", "Refresh subscriptions")][indexPath.row]
         } else if indexPath.section == 2 {
-            if indexPath.row == servers.count {
+            if servers.isEmpty {
+                cell.textLabel?.text = text("Добавьте подписку или ключ выше", "Add a subscription or key above")
+                cell.selectionStyle = .none
+            } else if indexPath.row == servers.count {
                 cell.textLabel?.text = text("Страница \(page) из \(pages) · Далее", "Page \(page) of \(pages) · Next")
             } else {
                 let server = servers[indexPath.row]
@@ -154,10 +157,12 @@ public final class NebulaLinkController: UITableViewController, UITextFieldDeleg
         case (0, 1):
             let value = (input.text ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
             guard !value.isEmpty else { input.becomeFirstResponder(); return }
-            request("onboarding.connect", ["input": value]) { [weak self] _ in
-                self?.input.text = ""; self?.reloadServers()
+            request("onboarding.import", ["input": value]) { [weak self] _ in
+                self?.input.text = ""; self?.page = 1; self?.reloadServers()
             }
-        case (1, 0): request("tunnel.start")
+        case (1, 0):
+            guard !selected.isEmpty else { return }
+            request("tunnel.start", ["id": selected])
         case (1, 1): request("tunnel.stop")
         case (1, 2):
             // Explicit user action, fixed public endpoint; no arbitrary invisible background probes.
@@ -167,11 +172,11 @@ public final class NebulaLinkController: UITableViewController, UITextFieldDeleg
             }
         case (1, 3): request("subscription.refreshAll") { [weak self] _ in self?.reloadServers() }
         case (2, _):
+            guard !servers.isEmpty else { return }
             if indexPath.row == servers.count { page = page % pages + 1; reloadServers() }
             else if let id = servers[indexPath.row]["id"] as? String {
                 request("server.select", ["id": id]) { [weak self] _ in
                     self?.selected = id
-                    self?.request("tunnel.start")
                 }
             }
         case (3, _):

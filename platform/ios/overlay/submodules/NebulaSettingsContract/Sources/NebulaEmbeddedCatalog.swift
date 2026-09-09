@@ -282,6 +282,20 @@ enum NebulaEmbeddedCatalog {
       "max": 100
     },
     {
+      "key": "glass_quality",
+      "type": "integer",
+      "feature": "appearance.glass",
+      "android_store": "nebulagram",
+      "android_source": "NebulaGlass.java",
+      "transfer_v1": true,
+      "ios_status": "planned",
+      "ios_mapping": "adapt",
+      "default": 0,
+      "min": 0,
+      "max": 2,
+      "literal_default_binding": true
+    },
+    {
       "key": "glass_refraction",
       "type": "integer",
       "feature": "appearance.glass",

@@ -1,0 +1,128 @@
+diff --git a/submodules/TelegramCore/Sources/State/AccountStateManagementUtils.swift b/submodules/TelegramCore/Sources/State/AccountStateManagementUtils.swift
+--- a/submodules/TelegramCore/Sources/State/AccountStateManagementUtils.swift
++++ b/submodules/TelegramCore/Sources/State/AccountStateManagementUtils.swift
+@@ -4440,21 +4440,24 @@
+                     }
+                 }
+             case let .DeleteMessagesWithGlobalIds(ids):
+-                NebulaDeletedCapture.capture(transaction: transaction, accountPeerId: accountPeerId, ids: transaction.messageIdsForGlobalIds(ids))
++                let localIds = transaction.messageIdsForGlobalIds(ids)
++                let removeIds = Set(NebulaDeletedMessages.retain(transaction: transaction, accountPeerId: accountPeerId, ids: localIds))
++                let retainedIds = Set(localIds.filter { !removeIds.contains($0) }.map { $0.id })
++                let remainingGlobalIds = ids.filter { !retainedIds.contains($0) }
+                 var resourceIds: [MediaResourceId] = []
+-                transaction.deleteMessagesWithGlobalIds(ids, forEachMedia: { media in
++                transaction.deleteMessagesWithGlobalIds(remainingGlobalIds, forEachMedia: { media in
+                     addMessageMediaResourceIdsToRemove(media: media, resourceIds: &resourceIds)
+                 })
+                 if !resourceIds.isEmpty {
+                     let _ = mediaBox.removeCachedResources(Array(Set(resourceIds)), force: true).start()
+                 }
+-                deletedMessageIds.append(contentsOf: ids.map { .global($0) })
++                deletedMessageIds.append(contentsOf: remainingGlobalIds.map { .global($0) })
+             case let .DeleteMessages(ids):
+-                NebulaDeletedCapture.capture(transaction: transaction, accountPeerId: accountPeerId, ids: ids)
+-                _internal_deleteMessages(transaction: transaction, mediaBox: mediaBox, ids: ids, manualAddMessageThreadStatsDifference: { id, add, remove in
++                let remainingIds = NebulaDeletedMessages.retain(transaction: transaction, accountPeerId: accountPeerId, ids: ids)
++                _internal_deleteMessages(transaction: transaction, mediaBox: mediaBox, ids: remainingIds, manualAddMessageThreadStatsDifference: { id, add, remove in
+                     addMessageThreadStatsDifference(threadKey: id, remove: remove, addedMessagePeer: nil, addedMessageId: nil, isOutgoing: false)
+                 })
+-                deletedMessageIds.append(contentsOf: ids.map { .messageId($0) })
++                deletedMessageIds.append(contentsOf: remainingIds.map { .messageId($0) })
+             case let .UpdateMinAvailableMessage(id):
+                 if let message = transaction.getMessage(id) {
+                     updatePeerChatInclusionWithMinTimestamp(transaction: transaction, id: id.peerId, minTimestamp: message.timestamp, forceRootGroupIfNotExists: false)
+@@ -5949,7 +5952,7 @@
+         inner: while true {
+             let keychain = (transaction.getPeerChatState(peerId) as? SecretChatState)?.keychain
+             if processSecretChatIncomingEncryptedOperations(transaction: transaction, peerId: peerId) {
+-                let processResult = processSecretChatIncomingDecryptedOperations(encryptionProvider: encryptionProvider, mediaBox: mediaBox, transaction: transaction, peerId: peerId)
++                let processResult = processSecretChatIncomingDecryptedOperations(encryptionProvider: encryptionProvider, mediaBox: mediaBox, transaction: transaction, peerId: peerId, accountPeerId: accountPeerId)
+                 if !processResult.addedMessages.isEmpty {
+                     let currentInclusion = transaction.getPeerChatListInclusion(peerId)
+                     if let groupId = currentInclusion.groupId, groupId == Namespaces.PeerGroup.archive, !keepArchivedUnmuted {
+diff --git a/submodules/TelegramCore/Sources/State/ProcessSecretChatIncomingDecryptedOperations.swift b/submodules/TelegramCore/Sources/State/ProcessSecretChatIncomingDecryptedOperations.swift
+--- a/submodules/TelegramCore/Sources/State/ProcessSecretChatIncomingDecryptedOperations.swift
++++ b/submodules/TelegramCore/Sources/State/ProcessSecretChatIncomingDecryptedOperations.swift
+@@ -64,7 +64,7 @@
+     let addedMessages: [StoreMessage]
+ }
+ 
+-func processSecretChatIncomingDecryptedOperations(encryptionProvider: EncryptionProvider, mediaBox: MediaBox, transaction: Transaction, peerId: PeerId) -> SecretChatOperationProcessResult {
++func processSecretChatIncomingDecryptedOperations(encryptionProvider: EncryptionProvider, mediaBox: MediaBox, transaction: Transaction, peerId: PeerId, accountPeerId: PeerId) -> SecretChatOperationProcessResult {
+     if let state = transaction.getPeerChatState(peerId) as? SecretChatState, let peer = transaction.getPeer(peerId) as? TelegramSecretChat {
+         var removeTagLocalIndices: [Int32] = []
+         var updatedState = state
+@@ -295,6 +295,7 @@
+                                                 }
+                                             }
+                                         }
++                                        filteredMessageIds = NebulaDeletedMessages.retain(transaction: transaction, accountPeerId: accountPeerId, ids: filteredMessageIds)
+                                         _internal_deleteMessages(transaction: transaction, mediaBox: mediaBox, ids: filteredMessageIds)
+                                     }
+                                 case .clearHistory:
+diff --git a/submodules/TelegramCore/Sources/State/ManagedAutoremoveMessageOperations.swift b/submodules/TelegramCore/Sources/State/ManagedAutoremoveMessageOperations.swift
+--- a/submodules/TelegramCore/Sources/State/ManagedAutoremoveMessageOperations.swift
++++ b/submodules/TelegramCore/Sources/State/ManagedAutoremoveMessageOperations.swift
+@@ -37,7 +37,7 @@
+     }
+ }
+ 
+-func managedAutoremoveMessageOperations(network: Network, postbox: Postbox, isRemove: Bool) -> Signal<Void, NoError> {
++func managedAutoremoveMessageOperations(network: Network, postbox: Postbox, isRemove: Bool, accountPeerId: PeerId) -> Signal<Void, NoError> {
+     return Signal { _ in
+         let helper = Atomic(value: ManagedAutoremoveMessageOperationsHelper())
+         
+@@ -82,6 +82,10 @@
+                     Logger.shared.log("Autoremove", "Performing autoremove for \(entry.messageId), isRemove: \(isRemove)")
+ 
+                     if let message = transaction.getMessage(entry.messageId) {
++                        if NebulaDeletedMessages.retain(transaction: transaction, accountPeerId: accountPeerId, ids: [entry.messageId]).isEmpty {
++                            transaction.clearTimestampBasedAttribute(id: entry.messageId, tag: tag)
++                            return
++                        }
+                         if message.id.peerId.namespace == Namespaces.Peer.SecretChat || isRemove {
+                             _internal_deleteMessages(transaction: transaction, mediaBox: postbox.mediaBox, ids: [entry.messageId])
+                         } else {
+diff --git a/submodules/TelegramCore/Sources/Account/Account.swift b/submodules/TelegramCore/Sources/Account/Account.swift
+--- a/submodules/TelegramCore/Sources/Account/Account.swift
++++ b/submodules/TelegramCore/Sources/Account/Account.swift
+@@ -1416,8 +1416,8 @@
+         
+         self.managedOperationsDisposable.add(managedSecretChatOutgoingOperations(auxiliaryMethods: auxiliaryMethods, postbox: self.postbox, network: self.network, accountPeerId: peerId, mode: .all).start())
+         self.managedOperationsDisposable.add(managedCloudChatRemoveMessagesOperations(postbox: self.postbox, network: self.network, stateManager: self.stateManager).start())
+-        self.managedOperationsDisposable.add(managedAutoremoveMessageOperations(network: self.network, postbox: self.postbox, isRemove: true).start())
+-        self.managedOperationsDisposable.add(managedAutoremoveMessageOperations(network: self.network, postbox: self.postbox, isRemove: false).start())
++        self.managedOperationsDisposable.add(managedAutoremoveMessageOperations(network: self.network, postbox: self.postbox, isRemove: true, accountPeerId: self.peerId).start())
++        self.managedOperationsDisposable.add(managedAutoremoveMessageOperations(network: self.network, postbox: self.postbox, isRemove: false, accountPeerId: self.peerId).start())
+         self.managedOperationsDisposable.add(managedAutoexpireStoryOperations(network: self.network, postbox: self.postbox).start())
+         self.managedOperationsDisposable.add(managedPeerTimestampAttributeOperations(network: self.network, postbox: self.postbox).start())
+         self.managedOperationsDisposable.add(managedSynchronizeViewStoriesOperations(postbox: self.postbox, network: self.network, stateManager: self.stateManager).start())
+diff --git a/submodules/TelegramUI/Components/Chat/ChatMessageDateAndStatusNode/Sources/StringForMessageTimestampStatus.swift b/submodules/TelegramUI/Components/Chat/ChatMessageDateAndStatusNode/Sources/StringForMessageTimestampStatus.swift
+--- a/submodules/TelegramUI/Components/Chat/ChatMessageDateAndStatusNode/Sources/StringForMessageTimestampStatus.swift
++++ b/submodules/TelegramUI/Components/Chat/ChatMessageDateAndStatusNode/Sources/StringForMessageTimestampStatus.swift
+@@ -248,5 +248,5 @@
+         }
+     }
+     
+-    return dateText
+-}
++    return NebulaDeletedMessages.isRetained(message._asMessage()) ? "\(NebulaDeletedMessages.icon) \(dateText)" : dateText
++}
+diff --git a/submodules/TelegramUI/Components/Chat/ChatMessageItemView/Sources/ChatMessageItemView.swift b/submodules/TelegramUI/Components/Chat/ChatMessageItemView/Sources/ChatMessageItemView.swift
+--- a/submodules/TelegramUI/Components/Chat/ChatMessageItemView/Sources/ChatMessageItemView.swift
++++ b/submodules/TelegramUI/Components/Chat/ChatMessageItemView/Sources/ChatMessageItemView.swift
+@@ -654,7 +654,12 @@
+ open class ChatMessageItemView: ListViewItemNode, ChatMessageItemNodeProtocol {
+     public let layoutConstants = (ChatMessageItemLayoutConstants.compact, ChatMessageItemLayoutConstants.regular)
+     
+-    open var item: ChatMessageItem?
++    open var item: ChatMessageItem? {
++        didSet {
++            // Restore full opacity when this reusable native node is rebound to ordinary history.
++            self.alpha = item.map { NebulaDeletedMessages.isRetained($0.message) } == true ? 0.72 : 1.0
++        }
++    }
+     open var accessibilityData: ChatMessageAccessibilityData?
+     open var safeInsets = UIEdgeInsets()
+     

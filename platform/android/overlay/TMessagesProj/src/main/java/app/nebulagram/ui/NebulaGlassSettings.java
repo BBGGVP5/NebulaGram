@@ -32,6 +32,21 @@ public final class NebulaGlassSettings {
             NebulaAppearance.glassHighlights(),v->{NebulaAppearance.setGlassHighlights(v);preview.invalidate();}));
         card.add(NebulaExtras.toggle(c,R.drawable.msg_customize,NebulaText.text("Настроить стекло", "Customize glass"),null,
             NebulaGlass.custom(),v->{NebulaGlass.custom(v);details.expand(v);preview.invalidate();}));
+        NebulaRow quality = new NebulaRow(c);
+        String[] modes = {NebulaText.text("Автоматически", "Automatic"), NebulaText.text("Полное", "Full"), NebulaText.text("Облегчённое", "Light")};
+        quality.title(NebulaText.text("Качество стекла: ", "Glass quality: ") + modes[NebulaGlass.quality()]);
+        quality.trailing(NebulaRow.TRAIL_CHEVRON).withClick(v -> new org.telegram.ui.ActionBar.AlertDialog.Builder(c)
+            .setTitle(NebulaText.text("Адаптивное стекло", "Adaptive glass"))
+            .setItems(modes, (dialog, which) -> {
+                NebulaGlass.quality(which);
+                quality.title(NebulaText.text("Качество стекла: ", "Glass quality: ") + modes[which]);
+                preview.invalidate();
+            }).show());
+        card.add(quality);
+        TextView hint = new TextView(c);
+        hint.setText(NebulaText.text("Авто облегчает размытие и отключает преломление при энергосбережении, нагреве или малом объёме ОЗУ. Ваши настройки сохраняются.", "Auto reduces blur and disables refraction during power saving, thermal pressure or on low-RAM devices. Your settings are preserved."));
+        hint.setTextColor(NebulaTheme.of(c).onSurfaceVariant()); hint.setTextSize(14); hint.setPadding(dp(18), dp(8), dp(18), dp(12));
+        card.add(hint);
         card.add(details);parent.addView(card);
         NebulaCard haptics=new NebulaCard(c);
         NebulaExpand hapticDetails=new NebulaExpand(c,NebulaHaptics.enabled());

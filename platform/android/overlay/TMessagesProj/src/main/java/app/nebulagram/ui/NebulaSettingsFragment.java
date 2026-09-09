@@ -84,6 +84,9 @@ public class NebulaSettingsFragment extends BaseFragment {
         content.addView(NebulaCard.header(context, NebulaText.text("Приложение", "Application")));
         NebulaCard app = new NebulaCard(context);
         app.add(section(context, R.drawable.msg_settings, R.string.NebulaSectionGeneral, R.string.NebulaGeneralSub, NebulaSectionFragment.SECTION_GENERAL));
+        app.add(new NebulaRow(context).icon(R.drawable.msg_secret).title(NebulaText.text("Конфиденциальность", "Privacy"))
+                .subtitle(NebulaText.text("Локальный архив удалённых сообщений", "Local deleted-message archive"), false)
+                .trailing(NebulaRow.TRAIL_CHEVRON).withClick(v -> presentFragment(new NebulaPrivacyFragment())));
         app.add(section(context, R.drawable.msg_customize, R.string.NebulaAppearanceTitle, R.string.NebulaAppearanceSub, NebulaSectionFragment.SECTION_APPEARANCE));
         content.addView(app, cardParams());
 

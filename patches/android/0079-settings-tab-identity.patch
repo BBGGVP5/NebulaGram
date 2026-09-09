@@ -1,0 +1,92 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/glass/GlassTabView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/glass/GlassTabView.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Components/glass/GlassTabView.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/glass/GlassTabView.java
+@@ -409,16 +409,11 @@
+     }
+ 
+     public static GlassTabView createMainTab(Context context, Theme.ResourcesProvider resourcesProvider, TabAnimation tabAnimation, int stringRes, boolean accountAvatar) {
+-        if (accountAvatar && tabAnimation == TabAnimation.SETTINGS) {
+-            TLRPC.User self = UserConfig.getInstance(UserConfig.selectedAccount).getCurrentUser();
+-            if (self != null && self.photo != null && self.photo.photo_id != 0) {
+-                return createAvatar(context, resourcesProvider, UserConfig.selectedAccount, stringRes);
+-            }
+-        }
+         GlassTabView tab = new GlassTabView(context);
+         tab.resourcesProvider = resourcesProvider;
+         tab.tabAnimation = tabAnimation;
+         tab.nebulaSettingsPreview = !accountAvatar && tabAnimation == TabAnimation.SETTINGS;
++        tab.nebulaSettingsTab = accountAvatar && tabAnimation == TabAnimation.SETTINGS;
+         tab.textView.setText(LocaleController.getString(stringRes));
+         tab.checkPlayAnimation(false);
+         tab.imageView.setLayoutParams(LayoutHelper.createFrame(24, 24, Gravity.CENTER_HORIZONTAL | Gravity.TOP, 0, 4, 0, 0));
+@@ -429,6 +424,7 @@
+         // NebulaGram: фабрика переустанавливает разметку значка после
+         // конструктора, поэтому подписи прячем здесь — последними.
+         app.nebulagram.ui.NebulaBottomBar.applyTabLabel(tab.imageView, tab.textView);
++        tab.nebulaUpdateSettingsIcon(UserConfig.selectedAccount);
+         return tab;
+     }
+ 
+@@ -454,6 +450,32 @@
+         // конструктора, поэтому подписи прячем здесь — последними.
+         app.nebulagram.ui.NebulaBottomBar.applyTabLabel(backupImageView, tab.textView);
+         return tab;
++    }
++
++    private boolean nebulaSettingsTab;
++    private int nebulaSettingsAccount;
++
++    public void nebulaUpdateSettingsIcon(int account) {
++        if (!nebulaSettingsTab) return;
++        nebulaSettingsAccount = account;
++        TLRPC.User user = UserConfig.getInstance(account).getCurrentUser();
++        boolean showAvatar = app.nebulagram.ui.NebulaBottomBar.settingsUsesAvatar(
++                user != null && user.photo != null && user.photo.photo_id != 0);
++        if (showAvatar) {
++            if (backupImageView == null) {
++                backupImageView = new BackupImageView(getContext());
++                backupImageView.setRoundRadius(dp(11));
++                addView(backupImageView, LayoutHelper.createFrame(22, 22, Gravity.CENTER_HORIZONTAL | Gravity.TOP, 0, 5, 0, 0));
++            }
++            backupImageView.setForUserOrChat(user, new AvatarDrawable(user));
++            backupImageView.setVisibility(VISIBLE);
++        } else if (backupImageView != null) {
++            backupImageView.setVisibility(GONE);
++            backupImageView.clearImage();
++        }
++        imageView.setVisibility(showAvatar ? GONE : VISIBLE);
++        app.nebulagram.ui.NebulaBottomBar.applyTabLabel(showAvatar ? backupImageView : imageView, textView);
++        checkVisualWidth();
+     }
+ 
+     public void updateUserAvatar(int currentAccount) {
+@@ -666,8 +688,9 @@
+ 
+     /** NebulaGram: применить настройку подписей к этой вкладке. */
+     public void nebulaApplyLabel() {
++        nebulaUpdateSettingsIcon(nebulaSettingsAccount);
+         checkPlayAnimation(false);
+-        app.nebulagram.ui.NebulaBottomBar.applyTabLabel(backupImageView != null ? backupImageView : imageView, textView);
++        app.nebulagram.ui.NebulaBottomBar.applyTabLabel(backupImageView != null && backupImageView.getVisibility() == VISIBLE ? backupImageView : imageView, textView);
+     }
+ 
+     public void setText(CharSequence text) {
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/MainTabsActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/MainTabsActivity.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/MainTabsActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/MainTabsActivity.java
+@@ -320,6 +320,7 @@
+         tabs[INDEX_CHATS] = GlassTabView.createMainTab(context, resourceProvider, GlassTabView.TabAnimation.CHATS, R.string.MainTabsChats);
+         tabs[INDEX_CONTACTS] = GlassTabView.createMainTab(context, resourceProvider, GlassTabView.TabAnimation.CONTACTS, R.string.MainTabsContacts);
+         tabs[INDEX_SETTINGS] = GlassTabView.createMainTab(context, resourceProvider, GlassTabView.TabAnimation.SETTINGS, R.string.Settings);
++        tabs[INDEX_SETTINGS].nebulaUpdateSettingsIcon(currentAccount);
+         tabs[INDEX_CALLS] = GlassTabView.createMainTab(context, resourceProvider, GlassTabView.TabAnimation.CALLS, R.string.MainTabsCalls);
+         tabs[INDEX_PROFILE] = GlassTabView.createAvatar(context, resourceProvider, currentAccount, R.string.MainTabsProfile);
+         tabs[INDEX_CHATS].setOnLongClickListener(this::openFoldersSelector);
+@@ -1074,6 +1075,7 @@
+         } else if (id == NotificationCenter.mainUserInfoChanged) {
+             if (tabs != null && tabs[INDEX_PROFILE] != null) {
+                 tabs[INDEX_PROFILE].updateUserAvatar(currentAccount);
++                tabs[INDEX_SETTINGS].nebulaUpdateSettingsIcon(currentAccount);
+             }
+         } else if (id == NotificationCenter.contactsPermissionBadgeCheck) {
+             checkContactsTabBadge();

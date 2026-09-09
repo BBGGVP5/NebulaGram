@@ -50,6 +50,7 @@ for(int mask=0;mask<8;mask++){
  prefs.values.clear();String[] tabs={"contacts","settings","profile"};for(int i=0;i<3;i++)NebulaBottomBar.setTabEnabled(tabs[i],(mask&(1<<i))!=0);
  check(NebulaBottomBar.settingsInOverflow(false)==!NebulaBottomBar.tabEnabled("settings"),"settings fallback mismatch");
  check(NebulaBottomBar.settingsInOverflow(true),"calls displaced settings without fallback");
+ for(boolean photo:new boolean[]{false,true}) check(NebulaBottomBar.settingsUsesAvatar(photo)==(photo&&!NebulaBottomBar.tabEnabled("profile")),"settings/avatar identity mismatch");
  NebulaBottomBar.setEnabled(false);check(NebulaBottomBar.settingsInOverflow(false),"hidden bar lost settings");NebulaBottomBar.setEnabled(true);
  int pos=0,steps=0;while((pos=NebulaBottomBar.nextEnabledPosition(pos,true))<4){check(NebulaBottomBar.positionEnabled(pos),"swipe visited hidden page");check(++steps<=3,"swipe loop");}
  pos=4;while((pos=NebulaBottomBar.nextEnabledPosition(pos,false))>=0)check(NebulaBottomBar.positionEnabled(pos),"reverse swipe visited hidden page");

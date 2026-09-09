@@ -1,0 +1,108 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/ApplicationLoader.java b/TMessagesProj/src/main/java/org/telegram/messenger/ApplicationLoader.java
+--- a/TMessagesProj/src/main/java/org/telegram/messenger/ApplicationLoader.java
++++ b/TMessagesProj/src/main/java/org/telegram/messenger/ApplicationLoader.java
+@@ -298,6 +298,7 @@
+         super.onCreate();
+ 
+         app.nebulagram.nebulalink.NebulaLink.init(this); // NebulaGram
++        app.nebulagram.ui.NebulaGlassRuntime.init(this);
+ 
+         // AndroidUtilities must be initialized before FileLog
+         final String helloWorld = AndroidUtilities.getHelloWorld();
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/source/BlurredBackgroundSourceRenderNode.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/source/BlurredBackgroundSourceRenderNode.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/source/BlurredBackgroundSourceRenderNode.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/source/BlurredBackgroundSourceRenderNode.java
+@@ -61,15 +61,19 @@
+ 
+     private float nebulaBlurRadius = Float.NaN;
+     private RenderEffect nebulaBlurInput;
++    private float nebulaRequestedRadius;
++    private RenderEffect nebulaRequestedInput;
++    private boolean nebulaBlurConfigured;
+ 
+     @RequiresApi(api = Build.VERSION_CODES.S)
+     public void setBlur(float radius) {
+-        if (app.nebulagram.ui.NebulaGlass.custom()) radius = org.telegram.messenger.AndroidUtilities.dpf2(app.nebulagram.ui.NebulaGlass.blur());
++        nebulaRequestedRadius = radius; nebulaRequestedInput = null; nebulaBlurConfigured = true;
+         nebulaSetBlur(radius, null);
+     }
+ 
+     @RequiresApi(api = Build.VERSION_CODES.S)
+     public void setBlur(float radius, RenderEffect effect) {
++        nebulaRequestedRadius = radius; nebulaRequestedInput = effect; nebulaBlurConfigured = true;
+         nebulaSetBlur(radius, effect);
+     }
+ 
+@@ -77,6 +81,8 @@
+ 
+     @RequiresApi(api = Build.VERSION_CODES.S)
+     private void nebulaSetBlur(float radius, RenderEffect input) {
++        if (app.nebulagram.ui.NebulaGlass.custom()) radius = org.telegram.messenger.AndroidUtilities.dpf2(app.nebulagram.ui.NebulaGlass.blur());
++        if (app.nebulagram.ui.NebulaGlass.reduced()) radius = Math.min(radius, org.telegram.messenger.AndroidUtilities.dpf2(6f));
+         radius = Math.max(0f, radius);
+         if (nebulaBlurRadius == radius && nebulaBlurInput == input) return;
+         RenderEffect effect = input;
+@@ -132,6 +138,7 @@
+ 
+     @Override
+     public void draw(Canvas canvas, float left, float top, float right, float bottom) {
++        if (Build.VERSION.SDK_INT >= 31 && nebulaBlurConfigured) nebulaSetBlur(nebulaRequestedRadius, nebulaRequestedInput);
+         if (!canvas.isHardwareAccelerated()) {
+             if (fallbackSource != null) {
+                 fallbackSource.draw(canvas, left, top, right, bottom);
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/drawable/BlurredBackgroundDrawableRenderNode.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/drawable/BlurredBackgroundDrawableRenderNode.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/drawable/BlurredBackgroundDrawableRenderNode.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/drawable/BlurredBackgroundDrawableRenderNode.java
+@@ -53,6 +53,7 @@
+     }
+ 
+     private LiquidGlassEffect liquidGlassEffect;
++    private boolean nebulaReduced;
+ 
+     @RequiresApi(api = Build.VERSION_CODES.TIRAMISU)
+     public void setLiquidGlassEffectAllowed() {
+@@ -112,7 +113,8 @@
+         c = renderNodeFill.beginRecording();
+         c.save();
+         c.translate(-sL, -sT);
+-        if (liquidGlassEffect != null && Build.VERSION.SDK_INT >= 33) {
++        if (liquidGlassEffect != null && Build.VERSION.SDK_INT >= 33) liquidGlassEffect.setEnabled(!nebulaReduced);
++        if (!nebulaReduced && liquidGlassEffect != null && Build.VERSION.SDK_INT >= 33) {
+             final int thickness = Math.max(Math.min(
+                 boundProps.liquidThickness <= 0 ? dp(11) : boundProps.liquidThickness,
+                 Math.min(boundProps.boundsWithPadding.width(), boundProps.boundsWithPadding.height()) / 5), 1);
+@@ -136,7 +138,7 @@
+             c.drawColor(backgroundColor);
+         } else {
+             c.drawRenderNode(renderNodeFill);
+-            if (liquidGlassEffect == null && Color.alpha(backgroundColor) != 0) {
++            if ((liquidGlassEffect == null || nebulaReduced) && Color.alpha(backgroundColor) != 0) {
+                 c.drawColor(backgroundColor);
+             }
+         }
+@@ -166,6 +168,8 @@
+ 
+     @Override
+     public void draw(@NonNull Canvas canvas) {
++        boolean reduced = app.nebulagram.ui.NebulaGlass.reduced();
++        if (nebulaReduced != reduced) { nebulaReduced = reduced; renderNodeInvalidated = true; }
+         if (boundProps.boundsWithPadding.isEmpty()) {
+             return;
+         }
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/LiquidGlassEffect.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/LiquidGlassEffect.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/LiquidGlassEffect.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/LiquidGlassEffect.java
+@@ -22,6 +22,13 @@
+         final String code = AndroidUtilities.readRes(R.raw.liquid_glass_shader);
+         shader = new RuntimeShader(code);
+         node.setRenderEffect(effect = RenderEffect.createRuntimeShaderEffect(shader, "img"));
++    }
++
++    private boolean enabled = true;
++    public void setEnabled(boolean enabled) {
++        if (this.enabled == enabled) return;
++        this.enabled = enabled;
++        node.setRenderEffect(enabled ? effect : null);
+     }
+ 
+     private float resolutionX, resolutionY;

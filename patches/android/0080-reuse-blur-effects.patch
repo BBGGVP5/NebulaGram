@@ -1,0 +1,44 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/source/BlurredBackgroundSourceRenderNode.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/source/BlurredBackgroundSourceRenderNode.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/source/BlurredBackgroundSourceRenderNode.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/source/BlurredBackgroundSourceRenderNode.java
+@@ -59,18 +59,35 @@
+         this.underSource = underSource;
+     }
+ 
++    private float nebulaBlurRadius = Float.NaN;
++    private RenderEffect nebulaBlurInput;
++
+     @RequiresApi(api = Build.VERSION_CODES.S)
+     public void setBlur(float radius) {
+         if (app.nebulagram.ui.NebulaGlass.custom()) radius = org.telegram.messenger.AndroidUtilities.dpf2(app.nebulagram.ui.NebulaGlass.blur());
+-        renderNode.setRenderEffect(radius > 0 ? RenderEffect.createBlurEffect(radius, radius, Shader.TileMode.CLAMP) : null);
++        nebulaSetBlur(radius, null);
+     }
+ 
+     @RequiresApi(api = Build.VERSION_CODES.S)
+     public void setBlur(float radius, RenderEffect effect) {
+-        renderNode.setRenderEffect(RenderEffect.createChainEffect(RenderEffect.createBlurEffect(radius, radius, Shader.TileMode.CLAMP), effect));
+-    }
+-
+-
++        nebulaSetBlur(radius, effect);
++    }
++
++
++
++    @RequiresApi(api = Build.VERSION_CODES.S)
++    private void nebulaSetBlur(float radius, RenderEffect input) {
++        radius = Math.max(0f, radius);
++        if (nebulaBlurRadius == radius && nebulaBlurInput == input) return;
++        RenderEffect effect = input;
++        if (radius > 0f) {
++            RenderEffect blur = RenderEffect.createBlurEffect(radius, radius, Shader.TileMode.CLAMP);
++            effect = input == null ? blur : RenderEffect.createChainEffect(blur, input);
++        }
++        renderNode.setRenderEffect(effect);
++        nebulaBlurRadius = radius;
++        nebulaBlurInput = input;
++    }
+ 
+     public void noClip() {
+         this.noClip = true;

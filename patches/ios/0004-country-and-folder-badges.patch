@@ -1,0 +1,162 @@
+diff --git a/submodules/AuthorizationUI/Sources/AuthorizationSequencePhoneEntryControllerNode.swift b/submodules/AuthorizationUI/Sources/AuthorizationSequencePhoneEntryControllerNode.swift
+--- a/submodules/AuthorizationUI/Sources/AuthorizationSequencePhoneEntryControllerNode.swift
++++ b/submodules/AuthorizationUI/Sources/AuthorizationSequencePhoneEntryControllerNode.swift
+@@ -40,37 +40,11 @@
+         
+         let inset: CGFloat = 24.0
+         
+-        let countryButtonBackground = generateImage(CGSize(width: 136.0, height: 67.0), rotatedContext: { size, context in
+-            let arrowSize: CGFloat = 10.0
+-            let lineWidth = UIScreenPixel
+-            context.clear(CGRect(origin: CGPoint(), size: size))
+-            context.setStrokeColor(theme.list.itemPlainSeparatorColor.cgColor)
+-            context.setLineWidth(lineWidth)
+-            context.move(to: CGPoint(x: inset, y: lineWidth / 2.0))
+-            context.addLine(to: CGPoint(x: size.width - inset, y: lineWidth / 2.0))
+-            context.strokePath()
+-            
+-            context.move(to: CGPoint(x: size.width - inset, y: size.height - arrowSize - lineWidth / 2.0))
+-            context.addLine(to: CGPoint(x: 69.0, y: size.height - arrowSize - lineWidth / 2.0))
+-            context.addLine(to: CGPoint(x: 69.0 - arrowSize, y: size.height - lineWidth / 2.0))
+-            context.addLine(to: CGPoint(x: 69.0 - arrowSize - arrowSize, y: size.height - arrowSize - lineWidth / 2.0))
+-            context.addLine(to: CGPoint(x: inset, y: size.height - arrowSize - lineWidth / 2.0))
+-            context.strokePath()
+-        })?.stretchableImage(withLeftCapWidth: 69, topCapHeight: 1)
+-        
+-        let countryButtonHighlightedBackground = generateImage(CGSize(width: 70.0, height: 67.0), rotatedContext: { size, context in
+-            let arrowSize: CGFloat = 10.0
+-            context.clear(CGRect(origin: CGPoint(), size: size))
++        let countryButtonHighlightedBackground = generateImage(CGSize(width: 1.0, height: 1.0), rotatedContext: { size, context in
+             context.setFillColor(theme.list.itemHighlightedBackgroundColor.cgColor)
+-            context.fill(CGRect(origin: CGPoint(), size: CGSize(width: size.width, height: size.height - arrowSize)))
+-            context.move(to: CGPoint(x: size.width, y: size.height - arrowSize))
+-            context.addLine(to: CGPoint(x: size.width - 1.0, y: size.height - arrowSize))
+-            context.addLine(to: CGPoint(x: size.width - 1.0 - arrowSize, y: size.height))
+-            context.addLine(to: CGPoint(x: size.width - 1.0 - arrowSize - arrowSize, y: size.height - arrowSize))
+-            context.closePath()
+-            context.fillPath()
+-        })?.stretchableImage(withLeftCapWidth: 69, topCapHeight: 2)
+-        
++            context.fill(CGRect(origin: .zero, size: size))
++        })
++
+         let phoneInputBackground = generateImage(CGSize(width: 96.0, height: 57.0), rotatedContext: { size, context in
+             let lineWidth = UIScreenPixel
+             context.clear(CGRect(origin: CGPoint(), size: size))
+@@ -86,7 +60,9 @@
+         
+         self.countryButton = ASButtonNode()
+         self.countryButton.displaysAsynchronously = false
+-        self.countryButton.setBackgroundImage(countryButtonBackground, for: [])
++        self.countryButton.clipsToBounds = true
++        self.countryButton.cornerRadius = 20.0
++        self.countryButton.layer.maskedCorners = [.layerMinXMinYCorner, .layerMaxXMinYCorner]
+         self.countryButton.titleNode.maximumNumberOfLines = 1
+         self.countryButton.titleNode.truncationMode = .byTruncatingTail
+         self.countryButton.setBackgroundImage(countryButtonHighlightedBackground, for: .highlighted)
+@@ -126,7 +102,7 @@
+         self.phoneInputNode.countryCodeField.textField.disableAutomaticKeyboardHandling = [.forward]
+         self.phoneInputNode.numberField.textField.disableAutomaticKeyboardHandling = [.forward]
+         
+-        self.countryButton.contentEdgeInsets = UIEdgeInsets(top: 0.0, left: 24.0 + 16.0, bottom: 10.0, right: 0.0)
++        self.countryButton.contentEdgeInsets = UIEdgeInsets(top: 0.0, left: 28.0, bottom: 0.0, right: 44.0)
+         self.countryButton.contentHorizontalAlignment = .left
+         
+         self.countryButton.addTarget(self, action: #selector(self.countryPressed), forControlEvents: .touchUpInside)
+@@ -245,11 +221,11 @@
+         let size = self.bounds.size
+         let inset: CGFloat = 24.0
+         
+-        self.countryButton.frame = CGRect(origin: CGPoint(), size: CGSize(width: size.width, height: 67.0))
++        self.countryButton.frame = CGRect(x: 12.0, y: 0.0, width: max(0.0, size.width - 24.0), height: 57.0)
+         self.phoneBackground.frame = CGRect(origin: CGPoint(x: 0.0, y: size.height - 57.0), size: CGSize(width: size.width - inset, height: 57.0))
+         
+         if let image = self.countryButtonArrow.image {
+-            self.countryButtonArrow.frame = CGRect(origin: CGPoint(x: size.width - image.size.width - 24.0 - 3.0, y: 16.0 + UIScreenPixel), size: image.size)
++            self.countryButtonArrow.frame = CGRect(x: max(0.0, self.countryButton.bounds.width - image.size.width - 16.0), y: floor((57.0 - image.size.height) / 2.0), width: image.size.width, height: image.size.height)
+         }
+         
+         let countryCodeFrame = CGRect(origin: CGPoint(x: 18.0, y: size.height - 58.0), size: CGSize(width: 71.0, height: 57.0))
+diff --git a/submodules/ChatListUI/Sources/ChatListControllerNode.swift b/submodules/ChatListUI/Sources/ChatListControllerNode.swift
+--- a/submodules/ChatListUI/Sources/ChatListControllerNode.swift
++++ b/submodules/ChatListUI/Sources/ChatListControllerNode.swift
+@@ -1,4 +1,5 @@
+ import Foundation
++import NebulaSettingsContract
+ import UIKit
+ import AsyncDisplayKit
+ import Display
+@@ -1119,6 +1120,7 @@
+ }
+ 
+ final class ChatListControllerNode: ASDisplayNode, ASGestureRecognizerDelegate {
++    private var nebulaSettingsObservation: SettingsObservation?
+     private let context: AccountContext
+     private let location: ChatListControllerLocation
+     private var presentationData: PresentationData
+@@ -1271,6 +1273,9 @@
+             controller.push(self.context.sharedContext.makeArchiveSettingsController(context: self.context))
+         }
+         
++        self.nebulaSettingsObservation = NebulaSettingsStore.shared.observe { [weak self] in
++            self?.controller?.requestLayout(transition: .immediate)
++        }
+         self.mainContainerNode.onFilterSwitch = { [weak self] in
+             if let strongSelf = self {
+                 strongSelf.controller?.dismissAllUndoControllers()
+@@ -1559,7 +1564,7 @@
+                         case let .filter(idValue, text, unread):
+                             id = AnyHashable(idValue)
+                             title = HorizontalTabsComponent.Tab.Title(text: text.text, entities: text.entities, enableAnimations: text.enableAnimations)
+-                            if unread.value != 0 {
++                            if unread.value != 0 && !NebulaSettingsStore.shared.hideTabCounters {
+                                 badge = HorizontalTabsComponent.Tab.Badge(
+                                     title: "\(unread.value)",
+                                     isAccent: unread.hasUnmuted
+diff --git a/submodules/ChatListUI/BUILD b/submodules/ChatListUI/BUILD
+--- a/submodules/ChatListUI/BUILD
++++ b/submodules/ChatListUI/BUILD
+@@ -10,6 +10,7 @@
+         "-warnings-as-errors",
+     ],
+     deps = [
++        "//submodules/NebulaSettingsContract:NebulaSettingsContract",
+         "//submodules/SSignalKit/SwiftSignalKit:SwiftSignalKit",
+         "//submodules/AsyncDisplayKit:AsyncDisplayKit",
+         "//submodules/Display:Display",
+diff --git a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoSettingsItems.swift b/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoSettingsItems.swift
+--- a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoSettingsItems.swift
++++ b/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoSettingsItems.swift
+@@ -244,7 +244,7 @@
+         interaction.openSettings(.powerSaving)
+     }))
+     
+-    items[.advanced]!.append(PeerInfoScreenDisclosureItem(id: 9700, text: "NebulaGram", icon: PresentationResourcesSettings.appearance, action: {
++    items[.advanced]!.append(PeerInfoScreenDisclosureItem(id: 9700, text: presentationData.strings.baseLanguageCode.lowercased().hasPrefix("ru") ? "Настройки NebulaGram" : "NebulaGram Settings", icon: PresentationResourcesSettings.appearance, action: {
+         interaction.openSettings(.nebulaGram)
+     }))
+ 
+diff --git a/submodules/AuthorizationUI/Sources/AuthorizationSequencePhoneEntryControllerNode.swift b/submodules/AuthorizationUI/Sources/AuthorizationSequencePhoneEntryControllerNode.swift
+--- a/submodules/AuthorizationUI/Sources/AuthorizationSequencePhoneEntryControllerNode.swift
++++ b/submodules/AuthorizationUI/Sources/AuthorizationSequencePhoneEntryControllerNode.swift
+@@ -598,7 +598,7 @@
+         let inset: CGFloat = 24.0
+         let maximumWidth: CGFloat = min(430.0, layout.size.width)
+         
+-        let animationSize = CGSize(width: 100.0, height: 100.0)
++        let animationSize = CGSize(width: min(260.0, max(100.0, layout.size.width - 64.0)), height: 100.0)
+         let titleSize = self.titleNode.measure(CGSize(width: maximumWidth, height: CGFloat.greatestFiniteMagnitude))
+         
+         let noticeInset: CGFloat = self.account == nil ? 32.0 : 0.0
+diff --git a/submodules/AuthorizationUI/Sources/AuthorizationSequenceCodeEntryControllerNode.swift b/submodules/AuthorizationUI/Sources/AuthorizationSequenceCodeEntryControllerNode.swift
+--- a/submodules/AuthorizationUI/Sources/AuthorizationSequenceCodeEntryControllerNode.swift
++++ b/submodules/AuthorizationUI/Sources/AuthorizationSequenceCodeEntryControllerNode.swift
+@@ -584,7 +584,7 @@
+             self.animationNode.visibility = false
+         }
+         
+-        let animationSize = CGSize(width: 100.0, height: 100.0)
++        let animationSize = CGSize(width: min(260.0, max(100.0, layout.size.width - 64.0)), height: 100.0)
+         let titleSize = self.titleNode.updateLayout(CGSize(width: maximumWidth, height: CGFloat.greatestFiniteMagnitude))
+         
+         let currentOptionSize = self.currentOptionNode.updateLayout(CGSize(width: maximumWidth - 48.0, height: CGFloat.greatestFiniteMagnitude))

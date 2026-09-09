@@ -1,0 +1,116 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/MessagesController.java b/TMessagesProj/src/main/java/org/telegram/messenger/MessagesController.java
+--- a/TMessagesProj/src/main/java/org/telegram/messenger/MessagesController.java
++++ b/TMessagesProj/src/main/java/org/telegram/messenger/MessagesController.java
+@@ -21005,7 +21005,20 @@
+         LongSparseArray<ArrayList<Integer>> scheduledDeletedMessagesFinal = scheduledDeletedMessages;
+         LongSparseArray<ArrayList<Integer>> scheduledDeletedMessagesSentFinal = scheduledDeletedMessagesSent;
+         LongSparseIntArray clearHistoryMessagesFinal = clearHistoryMessages;
+-        getMessagesStorage().getStorageQueue().postRunnable(() -> AndroidUtilities.runOnUIThread(() -> {
++        getMessagesStorage().getStorageQueue().postRunnable(() -> {
++            LongSparseArray<ArrayList<Integer>> nebulaNotificationDeletes = new LongSparseArray<>();
++            if (deletedMessagesFinal != null) {
++                for (int i = 0; i < deletedMessagesFinal.size(); i++) {
++                    long peer = deletedMessagesFinal.keyAt(i);
++                    ArrayList<Integer> original = deletedMessagesFinal.valueAt(i);
++                    if (original == null) continue;
++                    nebulaNotificationDeletes.put(peer, new ArrayList<>(original));
++                    ArrayList<Integer> remove = app.nebulagram.ui.NebulaDeletedArchive.retain(currentAccount, peer, original);
++                    original.clear(); original.addAll(remove);
++                }
++            }
++            AndroidUtilities.runOnUIThread(() -> {
++            if (nebulaNotificationDeletes.size() > 0) getNotificationsController().removeDeletedMessagesFromNotifications(nebulaNotificationDeletes, false);
+             int updateMask = 0;
+             if (markAsReadMessagesInboxFinal != null || markAsReadMessagesOutboxFinal != null) {
+                 getNotificationCenter().postNotificationName(NotificationCenter.messagesRead, markAsReadMessagesInboxFinal, markAsReadMessagesOutboxFinal);
+@@ -21168,7 +21181,8 @@
+             if (updateMask != 0) {
+                 getNotificationCenter().postNotificationName(NotificationCenter.updateInterfaces, updateMask);
+             }
+-        }));
++            });
++        });
+ 
+         if (webPages != null) {
+             getMessagesStorage().putWebPages(webPages);
+@@ -21212,7 +21226,6 @@
+                 long key = deletedMessages.keyAt(a);
+                 ArrayList<Integer> arrayList = deletedMessages.valueAt(a);
+                 getMessagesStorage().getStorageQueue().postRunnable(() -> {
+-                    app.nebulagram.ui.NebulaDeletedArchive.capture(currentAccount, key, arrayList);
+                     ArrayList<Long> dialogIds = getMessagesStorage().markMessagesAsDeleted(key, arrayList, false, true, 0, 0);
+                     getMessagesStorage().updateDialogsWithDeletedMessages(key, -key, arrayList, dialogIds);
+                 });
+diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/MessagesStorage.java b/TMessagesProj/src/main/java/org/telegram/messenger/MessagesStorage.java
+--- a/TMessagesProj/src/main/java/org/telegram/messenger/MessagesStorage.java
++++ b/TMessagesProj/src/main/java/org/telegram/messenger/MessagesStorage.java
+@@ -386,6 +386,7 @@
+                 }
+             }
+             databaseCreated = true;
++            app.nebulagram.ui.NebulaDeletedArchive.initialize(currentAccount);
+         } catch (Exception e) {
+             FileLog.e(e);
+             if (openTries < 3 && e.getMessage() != null && e.getMessage().contains("malformed")) {
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Cells/ChatMessageCell.java b/TMessagesProj/src/main/java/org/telegram/ui/Cells/ChatMessageCell.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Cells/ChatMessageCell.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Cells/ChatMessageCell.java
+@@ -18549,6 +18549,9 @@
+                 currentTimeString = TextUtils.concat(formatString(R.string.MessageScheduledRepeatSeconds, period), ", ", currentTimeString);
+             }
+         }
++        if (app.nebulagram.ui.NebulaDeletedArchive.isDeleted(currentAccount, messageObject.getDialogId(), messageObject.getId())) {
++            currentTimeString = TextUtils.concat(app.nebulagram.ui.NebulaDeletedArchive.icon(), " ", currentTimeString);
++        }
+         timeTextWidth = timeWidth = (int) Math.ceil(Theme.chat_timePaint.measureText(currentTimeString, 0, currentTimeString == null ? 0 : currentTimeString.length()));
+         if (currentMessageObject.scheduled && currentMessageObject.messageOwner.date == 0x7FFFFFFE || currentMessageObject.notime) {
+             timeWidth -= dp(8);
+@@ -20153,7 +20156,25 @@
+     protected void onDraw(Canvas canvas) {
+         drawInternal(canvas);
+     }
++    private Paint nebulaDeletedPaint;
+     public void drawInternal(Canvas canvas) {
++        boolean retained = currentMessageObject != null && app.nebulagram.ui.NebulaDeletedArchive.isDeleted(currentAccount, currentMessageObject.getDialogId(), currentMessageObject.getId());
++        int layer = -1;
++        if (retained) {
++            if (nebulaDeletedPaint == null) {
++                nebulaDeletedPaint = new Paint();
++                android.graphics.ColorMatrix matrix = new android.graphics.ColorMatrix();
++                matrix.setSaturation(.18f);
++                nebulaDeletedPaint.setColorFilter(new android.graphics.ColorMatrixColorFilter(matrix));
++                nebulaDeletedPaint.setAlpha(210);
++            }
++            layer = canvas.saveLayer(0, 0, getWidth(), getHeight(), nebulaDeletedPaint);
++        }
++        try { drawNebulaMessageInternal(canvas); }
++        finally { if (layer != -1) canvas.restoreToCount(layer); }
++    }
++
++    private void drawNebulaMessageInternal(Canvas canvas) {
+         if (currentMessageObject == null) {
+             return;
+         }
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
+@@ -3719,6 +3719,10 @@
+         actionBar.setActionBarMenuOnItemClick(new ActionBar.ActionBarMenuOnItemClick() {
+             @Override
+             public void onItemClick(final int id) {
++                if (id == 0x4e4443) {
++                    app.nebulagram.ui.NebulaPrivacyFragment.confirmClear(ChatActivity.this, currentAccount, dialog_id, null);
++                    return;
++                }
+                 if (id == -1) {
+                     if (isInPollAddOptionMode()) {
+                         pollAddOptionModeClose();
+@@ -4333,6 +4337,8 @@
+             }
+             headerItem = menu.addItem(chat_menu_options, otherIcon);
+             app.nebulagram.ui.NebulaChatStyle.savedMessagesMenuIcon(headerItem, UserObject.isUserSelf(currentUser));
++            headerItem.lazilyAddSubItem(0x4e4443, R.drawable.msg_delete,
++                    app.nebulagram.ui.NebulaText.text("Очистить удалённые сообщения", "Clear retained messages"));
+             headerItem.setSubMenuDelegate(new ActionBarMenuItem.ActionBarSubMenuItemDelegate() {
+                 @Override
+                 public void onShowSubMenu() {

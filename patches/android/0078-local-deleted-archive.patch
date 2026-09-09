@@ -1,0 +1,11 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/MessagesController.java b/TMessagesProj/src/main/java/org/telegram/messenger/MessagesController.java
+--- a/TMessagesProj/src/main/java/org/telegram/messenger/MessagesController.java
++++ b/TMessagesProj/src/main/java/org/telegram/messenger/MessagesController.java
+@@ -21212,6 +21212,7 @@
+                 long key = deletedMessages.keyAt(a);
+                 ArrayList<Integer> arrayList = deletedMessages.valueAt(a);
+                 getMessagesStorage().getStorageQueue().postRunnable(() -> {
++                    app.nebulagram.ui.NebulaDeletedArchive.capture(currentAccount, key, arrayList);
+                     ArrayList<Long> dialogIds = getMessagesStorage().markMessagesAsDeleted(key, arrayList, false, true, 0, 0);
+                     getMessagesStorage().updateDialogsWithDeletedMessages(key, -key, arrayList, dialogIds);
+                 });

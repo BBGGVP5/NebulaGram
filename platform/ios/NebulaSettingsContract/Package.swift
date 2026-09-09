@@ -3,6 +3,7 @@ import PackageDescription
 
 let package = Package(
     name: "NebulaSettingsContract",
+    platforms: [.macOS(.v10_15), .iOS(.v13)],
     products: [.library(name: "NebulaSettingsContract", targets: ["NebulaSettingsContract"])],
     targets: [
         .target(name: "NebulaSettingsContract", resources: [.process("Resources")]),

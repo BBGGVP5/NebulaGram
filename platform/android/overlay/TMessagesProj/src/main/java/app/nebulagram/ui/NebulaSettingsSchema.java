@@ -23,6 +23,7 @@ public final class NebulaSettingsSchema {
         map.put("folder_style", Integer.class);
         map.put("folder_title", Boolean.class);
         map.put("glass_highlights", Boolean.class);
+        map.put("glass_quality", Integer.class);
         map.put("header_unread", Boolean.class);
         map.put("hide_all_chats", Boolean.class);
         map.put("hide_attach_camera", Boolean.class);

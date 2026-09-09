@@ -60,7 +60,7 @@ def check(temp, vendor, revision):
         assert required in service, required
     assert 'NEPacketTunnelProvider' not in service
     ui = (temp / 'submodules/NebulaLinkUI/Sources/NebulaLinkController.swift').read_text(encoding='utf-8')
-    for command in ['onboarding.connect', 'servers.list', 'server.select', 'tunnel.start', 'tunnel.stop', 'probe.url', 'subscription.refreshAll']:
+    for command in ['onboarding.import', 'servers.list', 'server.select', 'tunnel.start', 'tunnel.stop', 'probe.url', 'subscription.refreshAll']:
         assert '"' + command + '"' in ui
     assert 'String(describing: error)' not in service + ui
     shared = (temp / 'submodules/TelegramUI/Sources/SharedAccountContext.swift').read_text(encoding='utf-8')

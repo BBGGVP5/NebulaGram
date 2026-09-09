@@ -20,7 +20,10 @@ base = contract.JAVA.parent
 entries = {row['key']: row for row in doc['settings']}
 java_types = {'boolean': 'Boolean', 'integer': 'Integer', 'string': 'String'}
 legacy = json.loads((ROOT / 'shared/settings/legacy-v1-types.json').read_text(encoding='utf-8'))
-assert {key: java_types[row['type']] for key, row in entries.items() if row['transfer_v1']} == legacy
+transfer = {key: java_types[row['type']] for key, row in entries.items() if row['transfer_v1']}
+assert all(transfer.get(key) == value for key, value in legacy.items())
+assert set(transfer) - set(legacy) == {'glass_quality'}
+assert transfer['glass_quality'] == 'Integer'
 assert not any(row['ios_status'] == 'implemented' for row in entries.values()), 'Add native iOS acceptance tests before promoting status'
 bindings = 0
 for row in entries.values():
@@ -46,7 +49,7 @@ for value in (False, -1, 101, 1.5, '40', None):
 contract.validate_value(entries['avatar_round'], 0)
 contract.validate_value(entries['avatar_round'], 100)
 rejects(lambda: contract.validate_value(entries['centered_chat_header'], 1))
-rejects(lambda: contract.validate_value(entries['bottom_bar_order'], '🫧' * 513))
+rejects(lambda: contract.validate_value(entries['bottom_bar_order'], 'рџ«§' * 513))
 for mutate in (
     lambda d: d['settings'].append(copy.deepcopy(d['settings'][0])),
     lambda d: d.update(schema_version=2),
@@ -64,7 +67,7 @@ with tempfile.TemporaryDirectory(prefix='nebula-contract-') as tmp:
     tmp = Path(tmp)
     checks = '\n'.join(f'if (NebulaSettingsSchema.types.get("{key}") != {typ}.class) throw new AssertionError("{key}");' for key, typ in sorted(legacy.items()))
     source = 'import app.nebulagram.ui.NebulaSettingsSchema; class ContractCheck { public static void main(String[] args) {' + checks
-    source += f'if (NebulaSettingsSchema.types.size() != {len(legacy)}) throw new AssertionError();'
+    source += f'if (NebulaSettingsSchema.types.size() != {len(transfer)}) throw new AssertionError();'
     source += 'try { NebulaSettingsSchema.types.put("api_key", String.class); throw new AssertionError(); } catch (UnsupportedOperationException expected) {} }}'
     java = tmp / 'ContractCheck.java'
     java.write_text(source, encoding='utf-8')
