@@ -71,6 +71,7 @@ public final class NebulaLoginStyle {
         fieldMargins(country, 26, 6);
         fieldMargins(phone, 8, 12);
         centerFieldContent(country);
+
         for (int i = 0; i < slide.getChildCount(); i++) {
             View child = slide.getChildAt(i);
             if (child instanceof Space) child.setVisibility(View.GONE);
@@ -270,14 +271,24 @@ public final class NebulaLoginStyle {
     /**
      * Ставит содержимое поля по центру его рамки.
      *
-     * <p>«Страна» держит флаг с названием в единственном потомке высотой во всё
-     * поле, прижатом к верху. Пока Telegram задавал полю точную высоту, потомок
-     * получал её же и центрировал строку сам. Наша высота — по содержимому с
-     * минимумом в 64 точки: FrameLayout пересчитывает потомков во всю высоту
-     * только когда их больше одного, поэтому единственный потомок остаётся
-     * высотой по своему тексту и вместе с ним встаёт под верхний край. Отсюда
-     * и перекос: у «Страны» текст выше середины, у «Номера телефона» — по
-     * центру, потому что там потомок центрируется сам.
+     * <p>Рамку и заливку Telegram рисует от верхнего отступа в шесть точек до
+     * нижнего края, так что середина поля известна. Дальше всё зависит от
+     * разметки, которую он собрал внутри, и у «Страны» там три места, где
+     * содержимое уезжает вверх:
+     *
+     * <ul>
+     * <li>единственный потомок поля объявлен во всю высоту, но FrameLayout
+     *     растягивает потомков до своей высоты только когда их больше одного,
+     *     поэтому он остаётся высотой по тексту и прижимается к верху;
+     * <li>у стрелки в разметке гравитация ноль, а ноль — это не «не задана»:
+     *     LinearLayout подставляет свою CENTER_VERTICAL только для −1, а ноль
+     *     проходит в switch мимо всех веток и кладёт стрелку к верху;
+     * <li>надписи внутри переключателя названий добавлены без параметров, то
+     *     есть во всю высоту, а вертикальной гравитации у них нет — текст
+     *     рисуется по верхнему краю растянутой надписи.
+     * </ul>
+     *
+     * <p>Поэтому центрируем не только сам блок, но и каждый его элемент.
      */
     private static void centerFieldContent(View field) {
         if (!(field instanceof ViewGroup)) {
@@ -286,14 +297,41 @@ public final class NebulaLoginStyle {
         ViewGroup group = (ViewGroup) field;
         for (int i = 0; i < group.getChildCount(); i++) {
             View child = group.getChildAt(i);
-            if (!(child.getLayoutParams() instanceof FrameLayout.LayoutParams)) {
-                continue;
+            if (child.getLayoutParams() instanceof FrameLayout.LayoutParams) {
+                FrameLayout.LayoutParams params = (FrameLayout.LayoutParams) child.getLayoutParams();
+                params.height = ViewGroup.LayoutParams.WRAP_CONTENT;
+                params.gravity = centered(params.gravity);
+                child.setLayoutParams(params);
             }
-            FrameLayout.LayoutParams params = (FrameLayout.LayoutParams) child.getLayoutParams();
-            params.height = ViewGroup.LayoutParams.WRAP_CONTENT;
-            params.gravity = (params.gravity & ~Gravity.VERTICAL_GRAVITY_MASK) | Gravity.CENTER_VERTICAL;
-            child.setLayoutParams(params);
+            centerChildren(child);
         }
+    }
+
+    private static void centerChildren(View view) {
+        if (!(view instanceof ViewGroup)) {
+            return;
+        }
+        ViewGroup group = (ViewGroup) view;
+        for (int i = 0; i < group.getChildCount(); i++) {
+            View child = group.getChildAt(i);
+            ViewGroup.LayoutParams params = child.getLayoutParams();
+            if (params instanceof LinearLayout.LayoutParams) {
+                ((LinearLayout.LayoutParams) params).gravity = centered(((LinearLayout.LayoutParams) params).gravity);
+                child.setLayoutParams(params);
+            } else if (params instanceof FrameLayout.LayoutParams) {
+                ((FrameLayout.LayoutParams) params).gravity = centered(((FrameLayout.LayoutParams) params).gravity);
+                child.setLayoutParams(params);
+            }
+            if (child instanceof TextView) {
+                ((TextView) child).setGravity(centered(((TextView) child).getGravity()));
+            }
+            centerChildren(child);
+        }
+    }
+
+    /** Отрицательная гравитация означает «не задана»: её нельзя маскировать. */
+    private static int centered(int gravity) {
+        return (gravity < 0 ? 0 : gravity & ~Gravity.VERTICAL_GRAVITY_MASK) | Gravity.CENTER_VERTICAL;
     }
 
     private static GradientDrawable surface(int radius) {

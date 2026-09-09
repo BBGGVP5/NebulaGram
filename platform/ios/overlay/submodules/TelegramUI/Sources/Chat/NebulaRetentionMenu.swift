@@ -1,6 +1,10 @@
 import Foundation
 import TelegramCore
 import SwiftSignalKit
+// TextAlertAction объявлен в Display, а не в AlertUI: без этого импорта
+// TelegramUI не собирался, хотя сам textAlertController приходит из
+// PresentationDataUtils и импорт AlertUI проходил молча.
+import Display
 import AlertUI
 import PresentationDataUtils
 
