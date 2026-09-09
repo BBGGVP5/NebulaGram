@@ -1,0 +1,39 @@
+diff --git a/submodules/TelegramUI/Sources/SharedAccountContext.swift b/submodules/TelegramUI/Sources/SharedAccountContext.swift
+--- a/submodules/TelegramUI/Sources/SharedAccountContext.swift
++++ b/submodules/TelegramUI/Sources/SharedAccountContext.swift
+@@ -1,4 +1,5 @@
+ import Foundation
++import NebulaLinkUI
+ import UIKit
+ import AsyncDisplayKit
+ import Postbox
+@@ -312,6 +313,7 @@
+         self.basePath = basePath
+         self.networkArguments = networkArguments
+         self.accountManager = accountManager
++        NebulaLinkService.shared.configure(accountManager: accountManager)
+         self.navigateToChatImpl = navigateToChat
+         self.displayUpgradeProgress = displayUpgradeProgress
+         self.appLockContext = appLockContext
+diff --git a/submodules/TelegramUI/BUILD b/submodules/TelegramUI/BUILD
+--- a/submodules/TelegramUI/BUILD
++++ b/submodules/TelegramUI/BUILD
+@@ -49,6 +49,7 @@
+         "-warnings-as-errors",
+     ],
+     deps = [
++        "//submodules/NebulaLinkUI:NebulaLinkUI",
+         "//third-party/recaptcha:RecaptchaEnterprise",
+         "//submodules/SSignalKit/SwiftSignalKit:SwiftSignalKit",
+         "//submodules/SSignalKit/SSignalKit:SSignalKit",
+diff --git a/submodules/SettingsUI/BUILD b/submodules/SettingsUI/BUILD
+--- a/submodules/SettingsUI/BUILD
++++ b/submodules/SettingsUI/BUILD
+@@ -10,6 +10,7 @@
+         "-warnings-as-errors",
+     ],
+     deps = [
++        "//submodules/NebulaLinkUI:NebulaLinkUI",
+         "//submodules/NebulaSettingsContract:NebulaSettingsContract",
+         "//submodules/SSignalKit/SwiftSignalKit:SwiftSignalKit",
+         "//submodules/AsyncDisplayKit:AsyncDisplayKit",

@@ -17,6 +17,12 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: bind/go.mod
+          cache-dependency-path: |
+            bind/go.sum
+            runtime/xray/go.sum
       - name: Safety tests and pinned toolchain preflight
         run: |
           set -o pipefail

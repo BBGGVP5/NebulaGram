@@ -21,6 +21,21 @@ spec = importlib.util.spec_from_file_location('native_build', Path(__file__).wit
 native = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(native)
 TARGET = '//Telegram:Telegram'
+RULES_PIN = '1791d916de4083388f22e20248d8b010d23f0d6b'
+RULES_SOURCE_SHA256 = '900fe828aa2d5f9ac236aec3555cf4f01944a012273ea03a12f9b52e8b601540'
+
+
+def prepare_unsigned_rules(tree):
+    # Only a freshly prepared build tree, never the user's vendor checkout.
+    rules = tree / 'build-system/bazel-rules/rules_apple'
+    if native.output('git', '-C', str(rules), 'rev-parse', 'HEAD') != RULES_PIN:
+        raise ValueError('Unexpected rules_apple revision')
+    source = rules / 'apple/internal/ios_rules.bzl'
+    if hashlib.sha256(source.read_bytes()).hexdigest() != RULES_SOURCE_SHA256:
+        raise ValueError('rules_apple source is modified or already prepared; use a fresh tree')
+    patch = native.ROOT / 'platform/ios/build-patches/0001-explicit-unsigned-profile-embedding.patch'
+    native.run('git', '-C', rules, 'apply', '--check', patch)
+    native.run('git', '-C', rules, 'apply', patch)
 
 
 def configuration(env, bundle_id):
@@ -118,6 +133,7 @@ def build(tree, destination, jobs, bundle_id, build_number):
     if not re.fullmatch(r'[1-9][0-9]{0,9}', build_number): raise ValueError('Invalid build number')
     destination = native.require_fresh(destination)
     tree, _ = native.validate_tree(tree)
+    prepare_unsigned_rules(tree)
     versions = json.loads((tree / 'versions.json').read_text(encoding='utf-8'))
     native.select_xcode(versions['xcode'])
     os.chdir(tree)
@@ -141,7 +157,7 @@ def build(tree, destination, jobs, bundle_id, build_number):
     variables.chmod(0o600)
     # Verified in pinned rules_apple/codesigning_support.bzl: short-circuits signing
     # before device provisioning-profile validation. Do not invent apple.codesign flags.
-    command.common_build_args += ['--features=disable_legacy_signing', '--jobs=' + str(jobs),
+    command.common_build_args += ['--features=disable_legacy_signing', '--features=nebula_unsigned_ipa', '--jobs=' + str(jobs),
                                   '--local_resources=memory=HOST_RAM*0.65', '--color=no']
     command.common_args.remove('--verbose_failures')  # Avoid generated configuration command dumps.
     command.set_configuration('release_arm64')

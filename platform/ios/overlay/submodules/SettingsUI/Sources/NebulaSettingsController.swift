@@ -1,4 +1,6 @@
 import Foundation
+import UIKit
+import NebulaLinkUI
 import Display
 import SwiftSignalKit
 import TelegramPresentationData
@@ -10,6 +12,7 @@ import NebulaSettingsContract
 private final class NebulaSettingsArguments {
     let update: (Bool) -> Void
     let transfer: NebulaSettingsFileTransfer
+    var openLink: (() -> Void)?
 
     init(transfer: NebulaSettingsFileTransfer, update: @escaping (Bool) -> Void) {
         self.transfer = transfer
@@ -18,6 +21,7 @@ private final class NebulaSettingsArguments {
 }
 
 private enum NebulaSettingsEntry: ItemListNodeEntry {
+    case link(String)
     case header(String)
     case hideCounters(String, Bool, Bool)
     case footer(String)
@@ -26,9 +30,10 @@ private enum NebulaSettingsEntry: ItemListNodeEntry {
     case exportFile(String, Bool)
     case transferFooter(String)
 
-    var section: ItemListSectionId { return stableId < 3 ? 0 : 1 }
+    var section: ItemListSectionId { return stableId < 3 ? 0 : (stableId < 7 ? 1 : 2) }
     var stableId: Int32 {
         switch self {
+        case .link: return 7
         case .header: return 0
         case .hideCounters: return 1
         case .footer: return 2
@@ -52,6 +57,8 @@ private enum NebulaSettingsEntry: ItemListNodeEntry {
             return ItemListSwitchItem(presentationData: presentationData, systemStyle: .glass, title: title, value: value, enabled: enabled, sectionId: section, style: .blocks, updated: arguments.update)
         case let .footer(text), let .transferFooter(text):
             return ItemListTextItem(presentationData: presentationData, text: .markdown(text), sectionId: section)
+        case let .link(title):
+            return ItemListActionItem(presentationData: presentationData, systemStyle: .glass, title: title, kind: .generic, alignment: .natural, sectionId: section, style: .blocks, action: { arguments.openLink?() })
         case let .importFile(title):
             return ItemListActionItem(presentationData: presentationData, systemStyle: .glass, title: title, kind: .generic, alignment: .natural, sectionId: section, style: .blocks, action: { arguments.transfer.importFile() })
         case let .exportFile(title, enabled):
@@ -104,7 +111,8 @@ public func nebulaSettingsController(context: AccountContext) -> ViewController 
             .exportFile(ru ? "Экспорт в файл" : "Export to file", !store.hasLoadError),
             .transferFooter(ru
                 ? "Формат NebulaGram JSON v1. Импорт заменяет настройки после подтверждения. Пока на iOS применяется только скрытие счётчиков папок; остальные допустимые параметры сохраняются для будущего переноса. Аккаунты и ключи доступа не экспортируются."
-                : "NebulaGram JSON v1. Import replaces preferences after confirmation. Only folder counter hiding is currently applied on iOS; other valid settings are retained for future ports. Accounts and access keys are not exported.")
+                : "NebulaGram JSON v1. Import replaces preferences after confirmation. Only folder counter hiding is currently applied on iOS; other valid settings are retained for future ports. Accounts and access keys are not exported."),
+            .link("NebulaLink")
         ]
         let data = ItemListPresentationData(presentationData)
         let state = ItemListControllerState(presentationData: data, title: .text("NebulaGram"), leftNavigationButton: nil, rightNavigationButton: nil, backNavigationButton: ItemListBackButton(title: presentationData.strings.Common_Back))
@@ -112,5 +120,11 @@ public func nebulaSettingsController(context: AccountContext) -> ViewController 
     }
     let controller = ItemListController(context: context, state: signal)
     transfer.host = controller
+    arguments.openLink = { [weak controller] in
+        guard let controller = controller, controller.presentedViewController == nil else { return }
+        NebulaLinkService.shared.configure(accountManager: context.sharedContext.accountManager)
+        let ru = context.sharedContext.currentPresentationData.with { $0 }.strings.baseLanguageCode.lowercased().hasPrefix("ru")
+        controller.present(UINavigationController(rootViewController: NebulaLinkController(russian: ru)), animated: true)
+    }
     return controller
 }

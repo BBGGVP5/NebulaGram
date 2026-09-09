@@ -1,0 +1,69 @@
+diff --git a/apple/internal/ios_rules.bzl b/apple/internal/ios_rules.bzl
+--- a/apple/internal/ios_rules.bzl
++++ b/apple/internal/ios_rules.bzl
+@@ -438,7 +438,9 @@
+         ),
+     )
+ 
+-    if platform_prerequisites.platform.is_device:
++    if (platform_prerequisites.platform.is_device and not (
++        "nebula_unsigned_ipa" in ctx.features and "disable_legacy_signing" in ctx.features
++    )):
+         processor_partials.append(
+             partials.provisioning_profile_partial(
+                 actions = actions,
+@@ -773,7 +775,9 @@
+         ),
+     ]
+ 
+-    if platform_prerequisites.platform.is_device:
++    if (platform_prerequisites.platform.is_device and not (
++        "nebula_unsigned_ipa" in ctx.features and "disable_legacy_signing" in ctx.features
++    )):
+         processor_partials.append(
+             partials.provisioning_profile_partial(
+                 actions = actions,
+@@ -1401,7 +1405,9 @@
+         ),
+     ]
+ 
+-    if platform_prerequisites.platform.is_device:
++    if (platform_prerequisites.platform.is_device and not (
++        "nebula_unsigned_ipa" in ctx.features and "disable_legacy_signing" in ctx.features
++    )):
+         processor_partials.append(
+             partials.provisioning_profile_partial(
+                 actions = actions,
+@@ -2067,7 +2073,9 @@
+         ),
+     ]
+ 
+-    if platform_prerequisites.platform.is_device:
++    if (platform_prerequisites.platform.is_device and not (
++        "nebula_unsigned_ipa" in ctx.features and "disable_legacy_signing" in ctx.features
++    )):
+         processor_partials.append(
+             partials.provisioning_profile_partial(
+                 actions = actions,
+@@ -2328,7 +2336,9 @@
+         ),
+     ]
+ 
+-    if platform_prerequisites.platform.is_device:
++    if (platform_prerequisites.platform.is_device and not (
++        "nebula_unsigned_ipa" in ctx.features and "disable_legacy_signing" in ctx.features
++    )):
+         processor_partials.append(
+             partials.provisioning_profile_partial(
+                 actions = actions,
+@@ -2533,7 +2543,9 @@
+         ),
+     ]
+ 
+-    if platform_prerequisites.platform.is_device:
++    if (platform_prerequisites.platform.is_device and not (
++        "nebula_unsigned_ipa" in ctx.features and "disable_legacy_signing" in ctx.features
++    )):
+         processor_partials.append(
+             partials.provisioning_profile_partial(
+                 actions = actions,

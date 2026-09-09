@@ -1,0 +1,417 @@
+diff --git a/submodules/AuthorizationUI/Sources/AuthorizationSequenceSplashController.swift b/submodules/AuthorizationUI/Sources/AuthorizationSequenceSplashController.swift
+--- a/submodules/AuthorizationUI/Sources/AuthorizationSequenceSplashController.swift
++++ b/submodules/AuthorizationUI/Sources/AuthorizationSequenceSplashController.swift
+@@ -8,7 +8,7 @@
+ import TelegramPresentationData
+ import LegacyComponents
+ import SolidRoundedButtonNode
+-import RMIntro
++import NebulaLinkUI
+ 
+ public final class AuthorizationSequenceSplashController: ViewController {
+     private var controllerNode: AuthorizationSequenceSplashControllerNode {
+@@ -19,7 +19,7 @@
+     private let account: UnauthorizedAccount
+     private let theme: PresentationTheme
+     
+-    private let controller: RMIntroViewController
++    private let controller: NebulaWelcomeController
+     
+     private var validLayout: ContainerViewLayout?
+     
+@@ -37,42 +37,10 @@
+         
+         self.suggestedLocalization.set(.single(nil)
+         |> then(TelegramEngineUnauthorized(account: self.account).localization.currentlySuggestedLocalization(extractKeys: ["Login.ContinueWithLocalization"])))
+-        let suggestedLocalization = self.suggestedLocalization
+-        
+-        let localizationSignal = SSignal(generator: { subscriber in
+-            let disposable = suggestedLocalization.get().start(next: { localization in
+-                guard let localization = localization else {
+-                    return
+-                }
+-                
+-                var continueWithLanguageString: String = "Continue"
+-                for entry in localization.extractedEntries {
+-                    switch entry {
+-                        case let .string(key, value):
+-                            if key == "Login.ContinueWithLocalization" {
+-                                continueWithLanguageString = value
+-                            }
+-                        default:
+-                            break
+-                    }
+-                }
+-                
+-                if let available = localization.availableLocalizations.first, available.languageCode != "en" {
+-                    let value = TGSuggestedLocalization(info: TGAvailableLocalization(title: available.title, localizedTitle: available.localizedTitle, code: available.languageCode), continueWithLanguageString: continueWithLanguageString, chooseLanguageString: "Choose Language", chooseLanguageOtherString: "Choose Language", englishLanguageNameString: "English")
+-                    subscriber.putNext(value)
+-                }
+-            }, completed: {
+-                subscriber.putCompletion()
+-            })
+-            
+-            return SBlockDisposable(block: {
+-                disposable.dispose()
+-            })
+-        })
+-        
+-        self.controller = RMIntroViewController(backgroundColor: theme.list.plainBackgroundColor, primaryColor: theme.list.itemPrimaryTextColor, buttonColor: theme.intro.startButtonColor, accentColor: theme.list.itemAccentColor, regularDotColor: theme.intro.dotColor, highlightedDotColor: theme.list.itemAccentColor, suggestedLocalizationSignal: localizationSignal)
+-        
+-        self.startButton = SolidRoundedButtonNode(title: "Start Messaging", theme: SolidRoundedButtonTheme(theme: theme), glass: false, height: 50.0, cornerRadius: 50.0 * 0.5, isShimmering: true)
++        self.controller = NebulaWelcomeController(backgroundColor: theme.list.plainBackgroundColor, primaryColor: theme.list.itemPrimaryTextColor, accentColor: theme.list.itemAccentColor)
++        NebulaLinkService.shared.configure(accountManager: accountManager)
++
++        self.startButton = SolidRoundedButtonNode(title: NebulaAuthCopy(self.controller.selectedLanguage).start, theme: SolidRoundedButtonTheme(theme: theme), glass: false, height: 50.0, cornerRadius: 50.0 * 0.5, isShimmering: false)
+         self.startButton.accessibilityIdentifier = "Auth.Welcome.StartButton"
+ 
+         super.init(navigationBarPresentationData: nil)
+@@ -84,7 +52,7 @@
+         self.statusBar.statusBarStyle = theme.intro.statusBarStyle.style
+         
+         self.controller.startMessaging = { [weak self] in
+-            self?.activateLocalization("en")
++            self?.openNebulaLink()
+         }
+         self.controller.startMessagingInAlternativeLanguage = { [weak self] code in
+             if let code = code {
+@@ -93,9 +61,12 @@
+         }
+         
+         self.startButton.pressed = { [weak self] in
+-            self?.activateLocalization("en")
+-        }
+-        
++            self?.openNebulaLink()
++        }
++
++        self.controller.languageChanged = { [weak self] language in
++            self?.startButton.title = NebulaAuthCopy(language).start
++        }
+         self.controller.createStartButton = { [weak self] width in
+             let _ = self?.startButton.updateLayout(width: width, transition: .immediate)
+             return self?.startButton.view
+@@ -188,6 +159,17 @@
+         }
+     }
+     
++    private func openNebulaLink() {
++        guard self.presentedViewController == nil else { return }
++        let link = NebulaLinkController(russian: self.controller.selectedLanguage == "ru", continueAction: { [weak self] in
++            guard let self = self else { return }
++            self.activateLocalization(self.controller.selectedLanguage)
++        })
++        let navigation = UINavigationController(rootViewController: link)
++        navigation.view.tintColor = self.theme.list.itemAccentColor
++        self.present(navigation, animated: true)
++    }
++
+     private func activateLocalization(_ code: String) {
+         let currentCode = self.accountManager.transaction { transaction -> String in
+             if let current = transaction.getSharedData(SharedDataKeys.localizationSettings)?.get(LocalizationSettings.self) {
+diff --git a/submodules/AuthorizationUI/Sources/AuthorizationSequencePhoneEntryControllerNode.swift b/submodules/AuthorizationUI/Sources/AuthorizationSequencePhoneEntryControllerNode.swift
+--- a/submodules/AuthorizationUI/Sources/AuthorizationSequencePhoneEntryControllerNode.swift
++++ b/submodules/AuthorizationUI/Sources/AuthorizationSequencePhoneEntryControllerNode.swift
+@@ -272,7 +272,7 @@
+     init(theme: PresentationTheme, strings: PresentationStrings) {
+         self.titleNode = ImmediateTextNode()
+         self.titleNode.maximumNumberOfLines = 1
+-        self.titleNode.attributedText = NSAttributedString(string: strings.Privacy_ContactsSync, font: Font.regular(17.0), textColor: theme.list.itemPrimaryTextColor)
++        self.titleNode.attributedText = NSAttributedString(string: strings.Privacy_ContactsSync, font: Font.regular(17.0), textColor: theme.list.itemAccentColor)
+         self.switchNode = SwitchNode()
+         self.switchNode.frameColor = theme.list.itemSwitchColors.frameColor
+         self.switchNode.contentColor = theme.list.itemSwitchColors.contentColor
+@@ -311,6 +311,8 @@
+     private let hasOtherAccounts: Bool
+     
+     private let animationNode: AnimatedStickerNode
++    private let nebulaArtwork: NebulaAuthArtNode
++    private let nebulaBackdrop: NebulaAuthBackdropNode
+     private let managedAnimationNode: ManagedPhoneAnimationNode
+     private let titleNode: ASTextNode
+     private let titleActivateAreaNode: AccessibilityAreaNode
+@@ -395,6 +397,9 @@
+         self.debugAction = debugAction
+         self.hasOtherAccounts = hasOtherAccounts
+         
++        self.nebulaArtwork = NebulaAuthArtNode(kind: .phone, accent: theme.list.itemAccentColor)
++        self.nebulaBackdrop = NebulaAuthBackdropNode(theme: theme)
++
+         self.animationNode = DefaultAnimatedStickerNodeImpl()
+         self.animationNode.setup(source: AnimatedStickerNodeLocalFileSource(name: "IntroPhone"), width: 256, height: 256, playbackMode: .once, mode: .direct(cachePathPrefix: nil))
+         
+@@ -404,7 +409,7 @@
+         self.titleNode = ASTextNode()
+         self.titleNode.isUserInteractionEnabled = true
+         self.titleNode.displaysAsynchronously = false
+-        self.titleNode.attributedText = NSAttributedString(string: account == nil ? strings.Login_NewNumber : strings.Login_PhoneTitle, font: Font.light(30.0), textColor: theme.list.itemPrimaryTextColor)
++        self.titleNode.attributedText = NSAttributedString(string: account == nil ? strings.Login_NewNumber : NebulaAuthCopy(strings.baseLanguageCode).phone, font: Font.light(30.0), textColor: theme.list.itemAccentColor)
+         
+         self.titleActivateAreaNode = AccessibilityAreaNode()
+         self.titleActivateAreaNode.accessibilityTraits = .staticText
+@@ -436,6 +441,8 @@
+         })
+         
+         self.backgroundColor = theme.list.plainBackgroundColor
++        self.addSubnode(self.nebulaBackdrop)
++        self.addSubnode(self.nebulaArtwork)
+         
+         self.addSubnode(self.titleNode)
+         self.addSubnode(self.noticeNode)
+@@ -599,6 +606,7 @@
+     }
+     
+     func containerLayoutUpdated(_ layout: ContainerViewLayout, navigationBarHeight: CGFloat, transition: ContainedViewLayoutTransition) {
++        transition.updateFrame(node: self.nebulaBackdrop, frame: CGRect(origin: .zero, size: layout.size))
+         var insets = layout.insets(options: [])
+         insets.top = layout.statusBarHeight ?? 20.0
+         if let inputHeight = layout.inputHeight, !inputHeight.isZero {
+@@ -608,7 +616,7 @@
+         let titleInset: CGFloat = layout.size.width > 320.0 ? 18.0 : 0.0
+         let additionalBottomInset: CGFloat = layout.size.width > 320.0 ? 80.0 : 10.0
+         
+-        self.titleNode.attributedText = NSAttributedString(string: self.account == nil ? self.strings.Login_NewNumber : self.strings.Login_PhoneTitle, font: Font.bold(28.0), textColor: self.theme.list.itemPrimaryTextColor)
++        self.titleNode.attributedText = NSAttributedString(string: self.account == nil ? self.strings.Login_NewNumber : NebulaAuthCopy(self.strings.baseLanguageCode).phone, font: Font.bold(28.0), textColor: self.theme.list.itemAccentColor)
+         self.titleActivateAreaNode.accessibilityLabel = self.titleNode.attributedText?.string ?? ""
+         
+         let inset: CGFloat = 24.0
+@@ -630,13 +638,15 @@
+         ]
+         
+         if layout.size.width > 320.0 {
+-            items.insert(AuthorizationLayoutItem(node: self.animationNode, size: animationSize, spacingBefore: AuthorizationLayoutItemSpacing(weight: 10.0, maxValue: 10.0), spacingAfter: AuthorizationLayoutItemSpacing(weight: 0.0, maxValue: 0.0)), at: 0)
++            items.insert(AuthorizationLayoutItem(node: self.nebulaArtwork, size: animationSize, spacingBefore: AuthorizationLayoutItemSpacing(weight: 10.0, maxValue: 10.0), spacingAfter: AuthorizationLayoutItemSpacing(weight: 0.0, maxValue: 0.0)), at: 0)
+             self.proceedNode.isHidden = false
+-            self.animationNode.isHidden = false
+-            self.animationNode.visibility = true
++            self.animationNode.isHidden = true
++            self.nebulaArtwork.isHidden = false
++            self.animationNode.visibility = false
+         } else {
+             insets.top = navigationBarHeight
+             self.proceedNode.isHidden = true
++            self.nebulaArtwork.isHidden = true
+             self.animationNode.isHidden = true
+             self.managedAnimationNode.isHidden = true
+         }
+@@ -664,6 +674,7 @@
+         
+         transition.updateFrame(node: self.managedAnimationNode, frame: self.animationNode.frame)
+         
++        self.nebulaBackdrop.setFieldFrame(self.phoneAndCountryNode.frame.insetBy(dx: 12, dy: -6))
+         self.titleActivateAreaNode.frame = self.titleNode.frame
+         self.noticeActivateAreaNode.accessibilityLabel = self.noticeNode.attributedText?.string ?? ""
+         self.noticeActivateAreaNode.frame = self.noticeNode.frame
+diff --git a/submodules/AuthorizationUI/Sources/AuthorizationSequenceCodeEntryControllerNode.swift b/submodules/AuthorizationUI/Sources/AuthorizationSequenceCodeEntryControllerNode.swift
+--- a/submodules/AuthorizationUI/Sources/AuthorizationSequenceCodeEntryControllerNode.swift
++++ b/submodules/AuthorizationUI/Sources/AuthorizationSequenceCodeEntryControllerNode.swift
+@@ -21,6 +21,9 @@
+     private let theme: PresentationTheme
+     
+     private let animationNode: AnimatedStickerNode
++    private let nebulaArtwork: NebulaAuthArtNode
++    private let nebulaBackdrop: NebulaAuthBackdropNode
++    private var nebulaLegacyArtConfigured = false
+     private let titleNode: ImmediateTextNode
+     private let titleActivateAreaNode: AccessibilityAreaNode
+     private let titleIconNode: ASImageNode
+@@ -121,6 +124,9 @@
+         self.strings = strings
+         self.theme = theme
+         
++        self.nebulaArtwork = NebulaAuthArtNode(kind: .code, accent: theme.list.itemAccentColor)
++        self.nebulaBackdrop = NebulaAuthBackdropNode(theme: theme)
++
+         self.animationNode = DefaultAnimatedStickerNodeImpl()
+         
+         self.titleNode = ImmediateTextNode()
+@@ -264,6 +270,8 @@
+         })
+         
+         self.backgroundColor = self.theme.list.plainBackgroundColor
++        self.addSubnode(self.nebulaBackdrop)
++        self.addSubnode(self.nebulaArtwork)
+         
+         self.textField.textField.delegate = self
+         
+@@ -503,6 +511,7 @@
+     }
+     
+     func containerLayoutUpdated(_ layout: ContainerViewLayout, navigationBarHeight: CGFloat, transition: ContainedViewLayoutTransition) {
++        transition.updateFrame(node: self.nebulaBackdrop, frame: CGRect(origin: .zero, size: layout.size))
+         let previousInputHeight = self.layoutArguments?.0.inputHeight ?? 0.0
+         let newInputHeight = layout.inputHeight ?? 0.0
+         
+@@ -525,14 +534,14 @@
+         if let codeType = self.codeType {
+             switch codeType {
+             case .missedCall:
+-                self.titleNode.attributedText = NSAttributedString(string: self.strings.Login_EnterMissingDigits, font: Font.semibold(28.0), textColor: self.theme.list.itemPrimaryTextColor)
++                self.titleNode.attributedText = NSAttributedString(string: self.strings.Login_EnterMissingDigits, font: Font.semibold(28.0), textColor: self.theme.list.itemAccentColor)
+             case .email:
+-                self.titleNode.attributedText = NSAttributedString(string: self.strings.Login_EnterCodeEmailTitle, font: Font.semibold(28.0), textColor: self.theme.list.itemPrimaryTextColor)
++                self.titleNode.attributedText = NSAttributedString(string: self.strings.Login_EnterCodeEmailTitle, font: Font.semibold(28.0), textColor: self.theme.list.itemAccentColor)
+                 animationName = "IntroLetter"
+             case .sms:
+-                self.titleNode.attributedText = NSAttributedString(string: self.strings.Login_EnterCodeSMSTitle, font: Font.semibold(28.0), textColor: self.theme.list.itemPrimaryTextColor)
++                self.titleNode.attributedText = NSAttributedString(string: self.strings.Login_EnterCodeSMSTitle, font: Font.semibold(28.0), textColor: self.theme.list.itemAccentColor)
+             case .fragment:
+-                self.titleNode.attributedText = NSAttributedString(string: self.strings.Login_EnterCodeFragmentTitle, font: Font.semibold(28.0), textColor: self.theme.list.itemPrimaryTextColor)
++                self.titleNode.attributedText = NSAttributedString(string: self.strings.Login_EnterCodeFragmentTitle, font: Font.semibold(28.0), textColor: self.theme.list.itemAccentColor)
+                
+                 self.proceedNode.title = self.strings.Login_OpenFragment
+                 self.proceedNode.updateTheme(SolidRoundedButtonTheme(backgroundColor: UIColor(rgb: 0x37475a), foregroundColor: .white))
+@@ -542,16 +551,16 @@
+                 animationPlaybackMode = .count(3)
+                 self.proceedNode.animation = "anim_fragment"
+             case .word:
+-                self.titleNode.attributedText = NSAttributedString(string: self.strings.Login_EnterWordTitle, font: Font.semibold(28.0), textColor: self.theme.list.itemPrimaryTextColor)
++                self.titleNode.attributedText = NSAttributedString(string: self.strings.Login_EnterWordTitle, font: Font.semibold(28.0), textColor: self.theme.list.itemAccentColor)
+                 textFieldPlaceholder = self.strings.Login_EnterWordPlaceholder
+             case .phrase:
+-                self.titleNode.attributedText = NSAttributedString(string: self.strings.Login_EnterPhraseTitle, font: Font.semibold(28.0), textColor: self.theme.list.itemPrimaryTextColor)
++                self.titleNode.attributedText = NSAttributedString(string: self.strings.Login_EnterPhraseTitle, font: Font.semibold(28.0), textColor: self.theme.list.itemAccentColor)
+                 textFieldPlaceholder = self.strings.Login_EnterPhrasePlaceholder
+             default:
+-                self.titleNode.attributedText = NSAttributedString(string: self.strings.Login_EnterCodeTelegramTitle, font: Font.semibold(28.0), textColor: self.theme.list.itemPrimaryTextColor)
++                self.titleNode.attributedText = NSAttributedString(string: self.strings.Login_EnterCodeTelegramTitle, font: Font.semibold(28.0), textColor: self.theme.list.itemAccentColor)
+             }
+         } else {
+-            self.titleNode.attributedText = NSAttributedString(string: self.strings.Login_EnterCodeTelegramTitle, font: Font.semibold(40.0), textColor: self.theme.list.itemPrimaryTextColor)
++            self.titleNode.attributedText = NSAttributedString(string: self.strings.Login_EnterCodeTelegramTitle, font: Font.semibold(40.0), textColor: self.theme.list.itemAccentColor)
+         }
+         
+         self.textField.textField.attributedPlaceholder = NSAttributedString(string: textFieldPlaceholder, font: Font.regular(20.0), textColor: self.theme.list.itemPlaceholderTextColor)
+@@ -569,9 +578,10 @@
+             }
+         }
+         
+-        if !self.animationNode.visibility {
++        if !self.nebulaLegacyArtConfigured {
++            self.nebulaLegacyArtConfigured = true
+             self.animationNode.setup(source: AnimatedStickerNodeLocalFileSource(name: animationName), width: 256, height: 256, playbackMode: animationPlaybackMode, mode: .direct(cachePathPrefix: nil))
+-            self.animationNode.visibility = true
++            self.animationNode.visibility = false
+         }
+         
+         let animationSize = CGSize(width: 100.0, height: 100.0)
+@@ -633,12 +643,14 @@
+         
+         var items: [AuthorizationLayoutItem] = []
+         if layout.size.width > 320.0 {
+-            items.append(AuthorizationLayoutItem(node: self.animationNode, size: animationSize, spacingBefore: AuthorizationLayoutItemSpacing(weight: 10.0, maxValue: 10.0), spacingAfter: AuthorizationLayoutItemSpacing(weight: 0.0, maxValue: 0.0)))
++            items.append(AuthorizationLayoutItem(node: self.nebulaArtwork, size: animationSize, spacingBefore: AuthorizationLayoutItemSpacing(weight: 10.0, maxValue: 10.0), spacingAfter: AuthorizationLayoutItemSpacing(weight: 0.0, maxValue: 0.0)))
+             self.animationNode.updateLayout(size: animationSize)
+-            self.animationNode.isHidden = false
+-            self.animationNode.visibility = true
++            self.animationNode.isHidden = true
++            self.nebulaArtwork.isHidden = false
++            self.animationNode.visibility = false
+         } else {
+             insets.top = navigationBarHeight
++            self.nebulaArtwork.isHidden = true
+             self.animationNode.isHidden = true
+         }
+         
+@@ -883,6 +895,7 @@
+             self.nextOptionArrowNode.frame = CGRect(origin: CGPoint(x: self.nextOptionTitleNode.frame.maxX + 7.0, y: self.nextOptionTitleNode.frame.midY - icon.size.height / 2.0), size: icon.size)
+         }
+         
++        self.nebulaBackdrop.setFieldFrame((self.codeInputView.isHidden ? self.textField.frame : self.codeInputView.frame).insetBy(dx: -8, dy: -6))
+         self.titleActivateAreaNode.frame = self.titleNode.frame
+         self.currentOptionActivateAreaNode.frame = self.currentOptionNode.frame
+         self.currentOptionInfoActivateAreaNode.frame = self.currentOptionInfoNode.frame
+diff --git a/submodules/AuthorizationUI/Sources/AuthorizationSequencePasswordEntryControllerNode.swift b/submodules/AuthorizationUI/Sources/AuthorizationSequencePasswordEntryControllerNode.swift
+--- a/submodules/AuthorizationUI/Sources/AuthorizationSequencePasswordEntryControllerNode.swift
++++ b/submodules/AuthorizationUI/Sources/AuthorizationSequencePasswordEntryControllerNode.swift
+@@ -14,6 +14,8 @@
+     private let theme: PresentationTheme
+     
+     private let animationNode: AnimatedStickerNode
++    private let nebulaArtwork: NebulaAuthArtNode
++    private let nebulaBackdrop: NebulaAuthBackdropNode
+     private let titleNode: ASTextNode
+     private let titleActivateAreaNode: AccessibilityAreaNode
+     private let noticeNode: ASTextNode
+@@ -62,13 +64,16 @@
+         self.strings = strings
+         self.theme = theme
+         
++        self.nebulaArtwork = NebulaAuthArtNode(kind: .password, accent: theme.list.itemAccentColor)
++        self.nebulaBackdrop = NebulaAuthBackdropNode(theme: theme)
++
+         self.animationNode = DefaultAnimatedStickerNodeImpl()
+         self.animationNode.setup(source: AnimatedStickerNodeLocalFileSource(name: "IntroPassword"), width: 256, height: 256, playbackMode: .still(.start), mode: .direct(cachePathPrefix: nil))
+         
+         self.titleNode = ASTextNode()
+         self.titleNode.isUserInteractionEnabled = false
+         self.titleNode.displaysAsynchronously = false
+-        self.titleNode.attributedText = NSAttributedString(string: strings.LoginPassword_Title, font: Font.semibold(28.0), textColor: self.theme.list.itemPrimaryTextColor)
++        self.titleNode.attributedText = NSAttributedString(string: NebulaAuthCopy(strings.baseLanguageCode).password, font: Font.semibold(28.0), textColor: self.theme.list.itemAccentColor)
+         
+         self.titleActivateAreaNode = AccessibilityAreaNode()
+         self.titleActivateAreaNode.accessibilityTraits = .staticText
+@@ -118,6 +123,8 @@
+         })
+         
+         self.backgroundColor = self.theme.list.plainBackgroundColor
++        self.addSubnode(self.nebulaBackdrop)
++        self.addSubnode(self.nebulaArtwork)
+         
+         self.codeField.textField.delegate = self
+         self.codeField.textField.addTarget(self, action: #selector(self.textDidChange), for: .editingChanged)
+@@ -162,6 +169,7 @@
+     }
+     
+     func containerLayoutUpdated(_ layout: ContainerViewLayout, navigationBarHeight: CGFloat, transition: ContainedViewLayoutTransition) {
++        transition.updateFrame(node: self.nebulaBackdrop, frame: CGRect(origin: .zero, size: layout.size))
+         let previousInputHeight = self.layoutArguments?.0.inputHeight ?? 0.0
+         let newInputHeight = layout.inputHeight ?? 0.0
+         
+@@ -184,7 +192,7 @@
+         let titleInset: CGFloat = layout.size.width > 320.0 ? 18.0 : 0.0
+         let additionalBottomInset: CGFloat = layout.size.width > 320.0 ? 110.0 : 20.0
+         
+-        self.titleNode.attributedText = NSAttributedString(string: self.strings.LoginPassword_Title, font: Font.semibold(28.0), textColor: self.theme.list.itemPrimaryTextColor)
++        self.titleNode.attributedText = NSAttributedString(string: NebulaAuthCopy(self.strings.baseLanguageCode).password, font: Font.semibold(28.0), textColor: self.theme.list.itemAccentColor)
+         
+         let animationSize = CGSize(width: 100.0, height: 100.0)
+         let titleSize = self.titleNode.measure(CGSize(width: maximumWidth, height: CGFloat.greatestFiniteMagnitude))
+@@ -212,13 +220,15 @@
+         }
+         
+         if layout.size.width > 320.0 {
+-            items.insert(AuthorizationLayoutItem(node: self.animationNode, size: animationSize, spacingBefore: AuthorizationLayoutItemSpacing(weight: 10.0, maxValue: 10.0), spacingAfter: AuthorizationLayoutItemSpacing(weight: 0.0, maxValue: 0.0)), at: 0)
++            items.insert(AuthorizationLayoutItem(node: self.nebulaArtwork, size: animationSize, spacingBefore: AuthorizationLayoutItemSpacing(weight: 10.0, maxValue: 10.0), spacingAfter: AuthorizationLayoutItemSpacing(weight: 0.0, maxValue: 0.0)), at: 0)
+             self.proceedNode.isHidden = false
+-            self.animationNode.isHidden = false
+-            self.animationNode.visibility = true
++            self.animationNode.isHidden = true
++            self.nebulaArtwork.isHidden = false
++            self.animationNode.visibility = false
+         } else {
+             insets.top = navigationBarHeight
+             self.proceedNode.isHidden = true
++            self.nebulaArtwork.isHidden = true
+             self.animationNode.isHidden = true
+         }
+         
+@@ -231,6 +241,7 @@
+         self.titleActivateAreaNode.accessibilityLabel = self.titleNode.attributedText?.string ?? ""
+         self.noticeActivateAreaNode.accessibilityLabel = self.noticeNode.attributedText?.string ?? ""
+         
++        self.nebulaBackdrop.setFieldFrame(self.codeField.frame.insetBy(dx: -12, dy: -6))
+         self.titleActivateAreaNode.frame = self.titleNode.frame
+         self.noticeActivateAreaNode.frame = self.noticeNode.frame
+     }
+diff --git a/submodules/AuthorizationUI/BUILD b/submodules/AuthorizationUI/BUILD
+--- a/submodules/AuthorizationUI/BUILD
++++ b/submodules/AuthorizationUI/BUILD
+@@ -10,6 +10,7 @@
+         "-warnings-as-errors",
+     ],
+     deps = [
++        "//submodules/NebulaLinkUI:NebulaLinkUI",
+         "//submodules/AsyncDisplayKit:AsyncDisplayKit",
+         "//submodules/TelegramCore:TelegramCore",
+         "//submodules/Display:Display",

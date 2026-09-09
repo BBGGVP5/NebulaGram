@@ -11,6 +11,7 @@ import subprocess
 import sys
 import tempfile
 from pathlib import Path
+from check_onboarding import check as check_onboarding
 
 ROOT = Path(__file__).resolve().parents[3]
 
@@ -76,6 +77,7 @@ def main():
         controller = (temp / 'submodules/SettingsUI/Sources/NebulaSettingsController.swift').read_text(encoding='utf-8')
         assert 'hideCounters, !store.hasLoadError)' in controller
         assert 'value: value, enabled: enabled' in controller
+        check_onboarding(temp, tree, revision)
         print(f'OK: {len(patches)} ordered iOS patch(es), {len(paths)} upstream paths, overlay/hooks, pin {revision}', flush=True)
         if args.swift:
             for source in sorted(temp.rglob('*.swift')):
@@ -107,6 +109,9 @@ print("OK: embedded catalog and Bazel-side Foundation store compiled and ran")
                             '-emit-module-path', str(temp / 'NebulaSettingsContract.swiftmodule')], check=True)
             transfer = temp / 'submodules/SettingsUI/Sources/NebulaSettingsFileTransfer.swift'
             subprocess.run(['swiftc', *ios_flags, '-typecheck', '-I', str(temp), str(transfer)], check=True)
+            auth = temp / 'submodules/AuthorizationUI/Sources'
+            subprocess.run(['swiftc', *ios_flags, '-typecheck', str(auth / 'NebulaAuthPresentation.swift'),
+                            str(auth / 'NebulaWelcomeController.swift')], check=True)
             print('OK: UIKit file-transfer adapter typechecked against the real iOS simulator SDK')
             print('Native hooks parsed only. Full Telegram/Bazel build and iPhone acceptance remain required.')
 

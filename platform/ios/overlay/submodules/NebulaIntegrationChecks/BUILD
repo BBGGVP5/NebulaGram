@@ -7,6 +7,8 @@ ios_build_test(
     name = "NebulaIntegrationChecks",
     minimum_os_version = "13.0",
     targets = [
+        "//submodules/AuthorizationUI:AuthorizationUI",
+        "//submodules/NebulaLinkUI:NebulaLinkUI",
         "//submodules/SettingsUI:SettingsUI",
         "//submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen:PeerInfoScreen",
         "//submodules/TelegramUI/Components/ChatList/ChatListFilterTabContainerNode:ChatListFilterTabContainerNode",

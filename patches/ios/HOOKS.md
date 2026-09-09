@@ -18,3 +18,17 @@
 Адаптер и сгенерированный модуль находятся в `platform/ios/overlay/`, не копируют
 целиком изменённые классы Telegram. Статус: экспериментальная интеграция;
 проверка применения/синтаксиса не заменяет сборку Telegram и проверку на iPhone.
+# Onboarding and NebulaLink additions (2026-09-09)
+
+- `0002-nebula-onboarding.patch`: AuthorizationUI BUILD + welcome controller and
+  phone/code/password display nodes. New views come from the overlay; native
+  account/code/password actions are unchanged. Compact layout still hides art.
+- `0003-nebulalink-proxy-lifecycle.patch`: TelegramUI shared-context startup and
+  two module dependencies. NebulaLink uses Telegram's public proxy preferences,
+  not changes to TelegramCore or MTProto session logic.
+- `platform/ios/build-patches/0001-explicit-unsigned-profile-embedding.patch` is
+  **not** a Telegram source-series patch. The IPA tool applies it only to the
+  verified nested rules_apple checkout in a disposable build tree, never vendor.
+- `check_onboarding.py` compares native auth handlers to the pinned originals.
+  `--swift` also SDK-typechecks the UIKit-only artwork/welcome views. Whole-module
+  AuthorizationUI/NebulaLinkUI compilation belongs to the native/IPA build gates.

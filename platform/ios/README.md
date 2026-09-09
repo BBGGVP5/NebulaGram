@@ -16,9 +16,11 @@ not a claim that the full app has been built here.
   as well as pixels, refreshes the folder strip on changes and preserves actual
   unread values, notification behavior and VoiceOver labels.
 
-Other settings remain planned in the catalog until native build/device
-acceptance. There are no dummy controls, IPA, signing configuration or
-automatic Android-to-iOS sync in this stage.
+Other settings remain planned in the catalog until native build/device acceptance.
+There are no dummy settings or automatic Android-to-iOS sync. Device IPA tooling,
+current Nebula onboarding and the shared-core NebulaLink proxy integration are
+documented in [BUILD-IPA.md](BUILD-IPA.md); native/device acceptance is not implied
+by the presence of that code.
 
 ## Storage and transfer
 

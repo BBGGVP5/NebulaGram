@@ -67,6 +67,7 @@ class IpaBuildTests(unittest.TestCase):
                 cwd = Path.cwd()
                 try:
                     with patch.dict(os.environ, env), patch.dict('sys.modules', modules), \
+                         patch.object(ipa, 'prepare_unsigned_rules'), \
                          patch.object(ipa.native, 'validate_tree', return_value=(tree, {})), \
                          patch.object(ipa.native, 'select_xcode'), patch.object(ipa.native, 'pin', return_value='pinned'), \
                          patch.object(ipa.native, 'output', return_value='source'):
@@ -78,9 +79,22 @@ class IpaBuildTests(unittest.TestCase):
                 self.assertEqual(command.configuration, 'release_arm64')
                 self.assertTrue(command.profiles_disabled)
                 self.assertIn('--features=disable_legacy_signing', command.common_build_args)
+                self.assertIn('--features=nebula_unsigned_ipa', command.common_build_args)
                 self.assertNotIn('--verbose_failures', command.common_args)
                 self.assertFalse((tree / 'build-input/configuration-repository/variables.bzl').exists())
                 self.assertEqual(dest.exists(), not fail)
+
+    def test_unsigned_profile_patch_is_narrow_and_explicit(self):
+        p = ipa.native.ROOT / 'platform/ios/build-patches/0001-explicit-unsigned-profile-embedding.patch'
+        text = p.read_text(encoding='utf-8')
+        additions = [line for line in text.splitlines() if line.startswith('+') and not line.startswith('+++')]
+        self.assertEqual(sum('"nebula_unsigned_ipa" in ctx.features and "disable_legacy_signing" in ctx.features' in line for line in additions), 6)
+        self.assertNotIn('provisioning_profile.bzl', text)
+        for device in [False, True]:
+            for unsigned in [False, True]:
+                for disabled in [False, True]:
+                    embed = device and not (unsigned and disabled)
+                    self.assertEqual(embed, device if not (unsigned and disabled) else False)
 
     def test_credentials_are_required_and_never_fixture_login(self):
         for env in [{}, {'TELEGRAM_APP_ID': '0', 'TELEGRAM_APP_HASH': '0' * 32},

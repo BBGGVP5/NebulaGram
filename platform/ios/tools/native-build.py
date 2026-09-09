@@ -40,6 +40,10 @@ def inputs():
     paths = sorted((ROOT / 'patches/ios').glob('*.patch'))
     paths += sorted(p for p in (ROOT / 'platform/ios/overlay').rglob('*') if p.is_file())
     paths.append(Path(__file__).resolve())
+    paths.append(ROOT / 'platform/ios/tools/prepare-link.py')
+    for directory in ['bind', 'core', 'runtime']:
+        paths += sorted(p for p in (ROOT / directory).rglob('*') if p.is_file() and (p.suffix == '.go' or p.name in ('go.mod', 'go.sum')))
+    paths += [p for p in [ROOT / 'go.work', ROOT / 'go.work.sum'] if p.exists()]
     return {p.relative_to(ROOT).as_posix(): hashlib.sha256(p.read_bytes()).hexdigest() for p in paths}
 
 
@@ -85,10 +89,16 @@ def prepare(destination):
         run('git', '-C', destination, 'apply', '--check', patch)
         run('git', '-C', destination, 'apply', patch)
     copy_overlay(destination, ROOT / 'platform/ios/overlay')
+    versions = json.loads((destination / 'versions.json').read_text(encoding='utf-8'))
+    select_xcode(versions['xcode'])
+    run(sys.executable, ROOT / 'platform/ios/tools/prepare-link.py', '--tree', destination)
     manifest = {'revision': revision, 'inputs': inputs(), 'target': TARGET,
                 'configuration': 'debug_sim_arm64', 'purpose': 'compile-only; no login, app or signing'}
     changed = output('git', '-C', str(destination), 'diff', '--name-only').splitlines()
     manifest['native_files'] = {p: hashlib.sha256((destination / p).read_bytes()).hexdigest() for p in changed}
+    framework = destination / 'submodules/NebulaLinkCore/NebulaLink.xcframework'
+    manifest['native_files'].update({p.relative_to(destination).as_posix(): hashlib.sha256(p.read_bytes()).hexdigest()
+                                     for p in framework.rglob('*') if p.is_file()})
     (destination / MARKER).write_text(json.dumps(manifest, indent=2) + '\n', encoding='utf-8')
     print('Prepared:', destination, flush=True)
 
