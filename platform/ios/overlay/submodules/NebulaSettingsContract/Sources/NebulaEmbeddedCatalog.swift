@@ -718,6 +718,30 @@ enum NebulaEmbeddedCatalog {
       "literal_default_binding": true
     },
     {
+      "key": "settings_search_history",
+      "type": "boolean",
+      "feature": "settings.search",
+      "android_store": "nebulagram",
+      "android_source": "NebulaAppearance.java",
+      "transfer_v1": false,
+      "ios_status": "planned",
+      "ios_mapping": "native",
+      "default": true,
+      "literal_default_binding": true
+    },
+    {
+      "key": "show_stories",
+      "type": "boolean",
+      "feature": "stories.visibility",
+      "android_store": "nebulagram",
+      "android_source": "NebulaAppearance.java",
+      "transfer_v1": false,
+      "ios_status": "planned",
+      "ios_mapping": "native",
+      "default": true,
+      "literal_default_binding": true
+    },
+    {
       "key": "switch_style",
       "type": "integer",
       "feature": "appearance.general",

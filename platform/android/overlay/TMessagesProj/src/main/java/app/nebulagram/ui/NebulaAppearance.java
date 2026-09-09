@@ -237,4 +237,18 @@ public final class NebulaAppearance {
     public static void setAvatarRound(int value) { preferences().edit().putInt("avatar_round", value).apply(); }
     public static int ownDoubleTap() { return Math.max(0, Math.min(4, preferences().getInt("own_double_tap", 0))); }
     public static void setOwnDoubleTap(int value) { preferences().edit().putInt("own_double_tap", value).apply(); }
+    public static boolean settingsSearchHistory() { return preferences().getBoolean("settings_search_history", true); }
+    public static void setSettingsSearchHistory(boolean value) {
+        preferences().edit().putBoolean("settings_search_history", value).apply();
+        NebulaSettingsHistory.refresh();
+    }
+    public static boolean showStories() { return preferences().getBoolean("show_stories", true); }
+    public static void setShowStories(boolean value) {
+        preferences().edit().putBoolean("show_stories", value).apply();
+        for (int account = 0; account < org.telegram.messenger.UserConfig.MAX_ACCOUNT_COUNT; account++) {
+            org.telegram.messenger.NotificationCenter.getInstance(account).postNotificationName(
+                    org.telegram.messenger.NotificationCenter.storiesUpdated);
+        }
+    }
+
 }

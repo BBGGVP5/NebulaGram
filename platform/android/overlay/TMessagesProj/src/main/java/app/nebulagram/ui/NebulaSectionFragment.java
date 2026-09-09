@@ -439,6 +439,38 @@ public class NebulaSectionFragment extends BaseFragment {
      * доступ к тому, что уже написано.
      */
     private void buildGeneral(Context context) {
+        content.addView(NebulaCard.header(context, NebulaText.text("Поиск настроек", "Settings search")));
+        NebulaCard searchHistory = new NebulaCard(context);
+        NebulaRow historyToggle = new NebulaRow(context).icon(R.drawable.msg_recent)
+                .title(NebulaText.text("История поиска настроек", "Settings search history"))
+                .subtitle(NebulaText.text("Показывать и сохранять недавно открытые настройки", "Show and save recently opened settings"), false)
+                .trailing(NebulaRow.TRAIL_SWITCH).checked(NebulaAppearance.settingsSearchHistory());
+        historyToggle.setOnClickListener(v -> NebulaAppearance.setSettingsSearchHistory(historyToggle.toggleChecked()));
+        searchHistory.add(historyToggle);
+        NebulaRow clearHistory = new NebulaRow(context).icon(R.drawable.msg_delete)
+                .title(NebulaText.text("Очистить историю поиска настроек", "Clear settings search history"))
+                .subtitle(NebulaText.text("Не затрагивает поиск чатов и сообщения", "Does not affect chat search or messages"), false);
+        clearHistory.setOnClickListener(v -> showDialog(new org.telegram.ui.ActionBar.AlertDialog.Builder(context)
+                .setTitle(NebulaText.text("Очистить историю поиска настроек?", "Clear settings search history?"))
+                .setMessage(NebulaText.text("Список недавно открытых настроек будет удалён для всех аккаунтов на этом устройстве.", "Recently opened settings will be removed for all accounts on this device."))
+                .setNegativeButton(LocaleController.getString(R.string.Cancel), null)
+                .setPositiveButton(LocaleController.getString(R.string.ClearButton), (dialog, which) -> {
+                    NebulaSettingsHistory.clear();
+                    clearHistory.subtitle(NebulaText.text("История очищена", "History cleared"), false);
+                }).create()));
+        searchHistory.add(clearHistory);
+        content.addView(searchHistory, cardParams());
+        content.addView(NebulaMenuFragment.placeholder(context, NebulaText.text(
+                "При отключении история скрыта и не пополняется. Ранее сохранённое можно удалить кнопкой выше.",
+                "When disabled, history is hidden and no new entries are saved. Clear existing entries with the button above.")));
+        NebulaCard stories = new NebulaCard(context);
+        NebulaRow storyToggle = new NebulaRow(context).icon(R.drawable.msg_photo_settings)
+                .title(NebulaText.text("Истории в списке чатов", "Stories in the chat list"))
+                .subtitle(NebulaText.text("Показывать ленту историй на главной и в архиве", "Show the story strip on home and in the archive"), false)
+                .trailing(NebulaRow.TRAIL_SWITCH).checked(NebulaAppearance.showStories());
+        storyToggle.setOnClickListener(v -> NebulaAppearance.setShowStories(storyToggle.toggleChecked()));
+        stories.add(storyToggle);
+        content.addView(stories, cardParams());
         content.addView(NebulaCard.header(context,
                 LocaleController.getString(R.string.NebulaTextSection)));
         NebulaCard text = new NebulaCard(context);

@@ -95,6 +95,10 @@ public final class NebulaSettingsSearch {
         result.add(new Entry(0, NebulaText.text("Анимации Liquid Glass", "Liquid Glass animations"), "NebulaGram", R.drawable.msg_customize));
         result.add(new Entry(3, NebulaText.text("О программе", "About"), "NebulaGram", R.drawable.msg_info));
         result.add(new Entry(3, NebulaText.text("Релизы", "Releases"), "GitHub NebulaGram", R.drawable.msg_download));
+        // Append, never insert before existing entries: their history IDs are positional.
+        result.add(new Entry(4, NebulaText.text("История поиска настроек", "Settings search history"), "NebulaGram", R.drawable.msg_recent));
+        result.add(new Entry(4, NebulaText.text("Очистить историю поиска настроек", "Clear settings search history"), "NebulaGram", R.drawable.msg_delete));
+        result.add(new Entry(4, NebulaText.text("Истории в списке чатов", "Stories in the chat list"), NebulaText.text("Сторисы, главная, архив", "Stories, home, archive"), R.drawable.msg_photo_settings));
         return result;
     }
     private static String normalize(String s) { return s.toLowerCase(Locale.ROOT).replace('ё', 'е').trim(); }

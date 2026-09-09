@@ -1,0 +1,138 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
+@@ -14527,6 +14527,7 @@
+         }
+ 
+         private void updateSearchArray() {
++            recentSearches.clear();
+             HashMap<Integer, SearchResult> resultHashMap = new HashMap<>();
+             for (int a = 0; a < searchArray.length; a++) {
+                 if (searchArray[a] == null) {
+@@ -14534,7 +14535,8 @@
+                 }
+                 resultHashMap.put(searchArray[a].guid, searchArray[a]);
+             }
+-            Set<String> set = MessagesController.getGlobalMainSettings().getStringSet("settingsSearchRecent2", null);
++            Set<String> set = app.nebulagram.ui.NebulaAppearance.settingsSearchHistory()
++                    ? MessagesController.getGlobalMainSettings().getStringSet("settingsSearchRecent2", null) : null;
+             if (set != null) {
+                 for (String value : set) {
+                     try {
+@@ -15065,6 +15067,7 @@
+         }
+ 
+         public void addRecent(Object object) {
++            if (!app.nebulagram.ui.NebulaAppearance.settingsSearchHistory()) return;
+             int index = recentSearches.indexOf(object);
+             if (index >= 0) {
+                 recentSearches.remove(index);
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
+@@ -12822,14 +12822,19 @@
+             animated = false;
+         }
+         boolean onlySelfStories = !isArchive() && getStoriesController().hasOnlySelfStories();
+-        boolean newVisibility;
++        boolean rawVisibility;
+         if (communityId != 0) {
+-            newVisibility = false;
++            rawVisibility = false;
+         } else if (isArchive()) {
+-            newVisibility = !getStoriesController().getHiddenList().isEmpty();
++            rawVisibility = !getStoriesController().getHiddenList().isEmpty();
+         } else {
+-            newVisibility = !onlySelfStories && getStoriesController().hasStories();
++            rawVisibility = !onlySelfStories && getStoriesController().hasStories();
+             onlySelfStories = getStoriesController().hasOnlySelfStories();
++        }
++
++        final boolean newVisibility = app.nebulagram.ui.NebulaAppearance.showStories() && rawVisibility;
++        if (!app.nebulagram.ui.NebulaAppearance.showStories()) {
++            onlySelfStories = false;
+         }
+ 
+         hasOnlySlefStories = onlySelfStories;
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/MainTabsActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/MainTabsActivity.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/MainTabsActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/MainTabsActivity.java
+@@ -773,6 +773,7 @@
+         if (tabsView != null) {
+             selectTab(viewPager.getCurrentPosition(), true);
+             setGestureSelectedOverride(0, false);
++            tabsView.clearNebulaPagerSelection();
+         }
+         blur3_invalidateBlur();
+ 
+@@ -801,6 +802,16 @@
+     @Override
+     protected void onViewPagerTabAnimationUpdate(boolean manual) {
+         final boolean isDragByGesture = !manual;
++
++        if (tabsView != null && viewPager != null) {
++            View from = null, to = null;
++            for (int index = 0; index < tabs.length; index++) {
++                int position = indexToPosition(index);
++                if (position == viewPager.getCurrentPosition()) from = tabs[index];
++                if (position == viewPager.getNextPosition()) to = tabs[index];
++            }
++            tabsView.setNebulaPagerSelection(from, to, viewPager.getNextPositionAlpha());
++        }
+ 
+         if (tabsView != null) {
+             if (isDragByGesture) {
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/MainTabsLayout.java b/TMessagesProj/src/main/java/org/telegram/ui/MainTabsLayout.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/MainTabsLayout.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/MainTabsLayout.java
+@@ -282,6 +282,23 @@
+ 
+ 
+ 
++    private View nebulaPagerFrom, nebulaPagerTo;
++    private float nebulaPagerProgress;
++    private boolean nebulaSnapSelection;
++
++    public void setNebulaPagerSelection(View from, View to, float progress) {
++        nebulaPagerFrom = from;
++        nebulaPagerTo = to != null ? to : from;
++        nebulaPagerProgress = Math.max(0f, Math.min(1f, progress));
++        invalidate();
++    }
++
++    public void clearNebulaPagerSelection() {
++        nebulaPagerFrom = nebulaPagerTo = null;
++        nebulaSnapSelection = true;
++        invalidate();
++    }
++
+     public void setTabSelected(View tab, boolean animated) {
+         for (int a = 0, N = getChildCount(); a < N; a++) {
+             final View child = getChildAt(a);
+@@ -344,9 +361,23 @@
+         if (!liquid) nebulaLens.reset();
+         if (liquid && !drawCustomSelector) {
+             View selected = findSelectedTab();
+-            if (selected != null) {
+-                nebulaLens.draw(canvas, selected.getX(), getPaddingTop(), selected.getX() + selected.getWidth(),
+-                        getHeight() - getPaddingBottom(), Theme.getColor(Theme.key_glass_tabSelected, resourcesProvider));
++            if (nebulaPagerFrom != null && nebulaPagerTo != null
++                    && nebulaPagerFrom.getVisibility() == View.VISIBLE && nebulaPagerTo.getVisibility() == View.VISIBLE) {
++                float p = nebulaPagerProgress;
++                float left = app.nebulagram.ui.NebulaPagerMotion.edge(nebulaPagerFrom.getX(), nebulaPagerTo.getX(), p);
++                float right = app.nebulagram.ui.NebulaPagerMotion.edge(nebulaPagerFrom.getX() + nebulaPagerFrom.getWidth(),
++                        nebulaPagerTo.getX() + nebulaPagerTo.getWidth(), p);
++                nebulaLens.drawDrag(canvas, left, getPaddingTop(), right, getHeight() - getPaddingBottom(),
++                        Theme.getColor(Theme.key_glass_tabSelected, resourcesProvider));
++            } else if (selected != null) {
++                if (nebulaSnapSelection) {
++                    nebulaLens.drawDrag(canvas, selected.getX(), getPaddingTop(), selected.getX() + selected.getWidth(),
++                            getHeight() - getPaddingBottom(), Theme.getColor(Theme.key_glass_tabSelected, resourcesProvider));
++                    nebulaSnapSelection = false;
++                } else {
++                    nebulaLens.draw(canvas, selected.getX(), getPaddingTop(), selected.getX() + selected.getWidth(),
++                            getHeight() - getPaddingBottom(), Theme.getColor(Theme.key_glass_tabSelected, resourcesProvider));
++                }
+             } else {
+                 nebulaLens.reset();
+             }

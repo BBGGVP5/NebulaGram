@@ -262,3 +262,10 @@ Liquid Glass. Стиль применяется при включённом iOS-
   Обычные клики, запреты вкладок, отмена и мультитач сохраняют прежнее поведение.
 - Проверки: `check-emoji-panel.py`, `check-discussion-input.py`,
   `check-input-controls.py`, Java-компиляция; тестирование на телефоне обязательно.
+
+### 0075 — search history, story strip and pager selection
+- ProfileActivity.SearchAdapter: clear/reload recent settings idempotently; suppress loading and new writes while history is disabled. Existing updateSearchSettings notification refreshes all open adapters.
+- DialogsActivity.updateStoriesVisibility: gate both full strip and self-only stories; server story state is untouched.
+- MainTabsActivity/MainTabsLayout: feed current/next view and actual pager fraction to the liquid lens; draw directly without a second 280ms tween, snap on completion/cancel. Native pointer drag retains priority.
+- General settings: independent history show/save, confirmed clear, and chat-list story strip visibility controls. New search entries appended to preserve positional history IDs.
+- Validation: scripts/check-search-stories-pager.py, contract checks and Java compilation. Device visual acceptance remains separate.
