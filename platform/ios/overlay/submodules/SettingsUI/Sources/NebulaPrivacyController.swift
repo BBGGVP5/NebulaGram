@@ -40,7 +40,7 @@ final class NebulaPrivacyController: UITableViewController {
         }
         if section == 1 { return text("Вместо слова «Удалено» — выбранный значок. Сохранённые сообщения отображаются приглушённо.", "The chosen icon replaces the word Deleted. Retained messages are visually muted.") }
         if section == 3 { return text("Блокировка приложения защищает и сообщения в переписке. Отдельной блокировки только экрана архива недостаточно. Исключить чат из сохранения можно через меню очистки удалённых сообщений; старые копии очищаются отдельно.", "The app lock also protects inline messages. A lock on the archive settings alone would not. Exclude a chat using its retained-message cleanup menu; clear old copies separately.") }
-        return text("До 500 сообщений; просроченные копии очищаются при обработке удалений. Текст и медиа остаются в обычном локальном хранилище приложения. Уже загруженные вложения доступны, пока их не очистит стандартный медиакэш. Удаление кэша здесь не отправляет запросов на сервер и не удаляет обычную переписку. Выключение сохранения не очищает прежние копии.", "Up to 500 messages; expired copies are pruned while processing deletion updates. Text and media stay in the app’s normal local storage. Downloaded attachments remain available until standard media cache eviction. Clearing here is local only and does not erase ordinary history. Turning retention off keeps existing copies.")
+        return text("Число сохранённых сообщений не ограничено, срок хранения — по умолчанию бессрочный. Текст и медиа остаются в обычном локальном хранилище приложения. Уже загруженные вложения доступны, пока их не очистит стандартный медиакэш. Удаление кэша здесь не отправляет запросов на сервер и не удаляет обычную переписку. Выключение сохранения не очищает прежние копии.", "The number of retained messages is not limited and retention is unlimited by default. Text and media stay in the app’s normal local storage. Downloaded attachments remain available until standard media cache eviction. Clearing here is local only and does not erase ordinary history. Turning retention off keeps existing copies.")
     }
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = UITableViewCell(style: .value1, reuseIdentifier: nil)
@@ -60,7 +60,7 @@ final class NebulaPrivacyController: UITableViewController {
         } else if indexPath.section == 3 {
             cell.textLabel?.text = indexPath.row == 0 ? text("Код-пароль / Face ID приложения", "App passcode / Face ID") : text("Срок хранения", "Retention period")
             cell.accessoryType = .disclosureIndicator
-            if indexPath.row == 1 { cell.detailTextLabel?.text = "\(archive.retentionDays(account: account)) " + text("дн.", "days") }
+            if indexPath.row == 1 { cell.detailTextLabel?.text = retentionTitle(archive.retentionDays(account: account)) }
         } else {
             cell.textLabel?.text = busy ? text("Очистка…", "Clearing…") : text("Очистить кэш удалённых сообщений", "Clear retained-message cache")
             cell.textLabel?.textColor = .systemRed
@@ -88,9 +88,9 @@ final class NebulaPrivacyController: UITableViewController {
         if indexPath.section == 1 { pickIcon() }
         if indexPath.section == 3 {
             if indexPath.row == 0 { let open = openAppLock; dismiss(animated: true) { open?() }; return }
-            let alert = UIAlertController(title: text("Срок хранения", "Retention period"), message: text("Просроченные копии очищаются при следующей обработке удалений, не по фоновому таймеру. Уменьшение срока необратимо после очистки.", "Expired copies are pruned on the next deletion update, not by a background timer. Pruning after shortening the period is irreversible."), preferredStyle: .alert)
-            for days in [1, 7, 30] {
-                alert.addAction(UIAlertAction(title: "\(days) " + text("дн.", "days"), style: .default) { [weak self] _ in
+            let alert = UIAlertController(title: text("Срок хранения", "Retention period"), message: text("По умолчанию копии хранятся бессрочно. Если задать срок, просроченные копии очищаются при следующей обработке удалений, не по фоновому таймеру, и после очистки это необратимо.", "By default copies are kept indefinitely. If a period is set, expired copies are pruned on the next deletion update, not by a background timer, and pruning is irreversible."), preferredStyle: .alert)
+            for days in NebulaDeletedArchive.retentionChoices {
+                alert.addAction(UIAlertAction(title: retentionTitle(days), style: .default) { [weak self] _ in
                     guard let self = self else { return }
                     self.archive.setRetentionDays(account: self.account, value: days); self.tableView.reloadData()
                 })
@@ -103,6 +103,9 @@ final class NebulaPrivacyController: UITableViewController {
             alert.addAction(UIAlertAction(title: text("Очистить", "Clear"), style: .destructive) { [weak self] _ in self?.clear() })
             present(alert, animated: true)
         }
+    }
+    private func retentionTitle(_ days: Int) -> String {
+        days == 0 ? text("Бессрочно", "Unlimited") : "\(days) " + text("дн.", "days")
     }
     private func pickIcon() {
         let alert = UIAlertController(title: text("Значок вместо «Удалено»", "Icon instead of Deleted"), message: nil, preferredStyle: .alert)

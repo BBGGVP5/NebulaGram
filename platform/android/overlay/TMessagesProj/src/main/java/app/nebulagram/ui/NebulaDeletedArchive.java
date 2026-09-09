@@ -24,7 +24,8 @@ import javax.crypto.spec.GCMParameterSpec;
 public final class NebulaDeletedArchive {
     private NebulaDeletedArchive() { }
     private static final String ALIAS = "NebulaGram.DeletedArchive.v1";
-    private static final long RETENTION = 7L * 24 * 60 * 60 * 1000;
+    /** Признак испорченного файла, а не квота хранения: см. {@link #read(long)}. */
+    private static final long MAX_ARCHIVE_BYTES = 64L * 1024 * 1024;
     public static long owner(int account) { return UserConfig.getInstance(account).getClientUserId(); }
     public static boolean enabled(long owner) { return owner != 0 && ApplicationLoader.applicationContext.getSharedPreferences("nebulagram", 0).getBoolean("deleted_archive_" + owner, false); }
     public static void setEnabled(long owner, boolean enabled) { ApplicationLoader.applicationContext.getSharedPreferences("nebulagram", 0).edit().putBoolean("deleted_archive_" + owner, enabled).apply(); }
@@ -69,7 +70,11 @@ public final class NebulaDeletedArchive {
     private static JSONArray read(long owner) throws Exception {
         File file = file(owner);
         if (!file.exists()) return new JSONArray();
-        if (file.length() > 10 * 1024 * 1024 || file.length() < 28) throw new IllegalStateException("Invalid archive");
+        // Архив не ограничен ни числом сообщений, ни сроком: чистит его только
+        // сам пользователь. Верхняя граница здесь — защита от повреждённого
+        // файла, а не лимит хранения: индекс целиком читается в память, и без
+        // потолка испорченная длина превратилась бы в OutOfMemory.
+        if (file.length() > MAX_ARCHIVE_BYTES || file.length() < 28) throw new IllegalStateException("Invalid archive");
         byte[] bytes = new android.util.AtomicFile(file).readFully();
         Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
         cipher.init(Cipher.DECRYPT_MODE, key(), new GCMParameterSpec(128, bytes, 0, 12));
@@ -85,12 +90,17 @@ public final class NebulaDeletedArchive {
         try { output = target.startWrite(); output.write(cipher.getIV()); output.write(bytes); target.finishWrite(output); }
         catch (Exception e) { target.failWrite(output); throw e; }
     }
+    /**
+     * Приводит индекс в порядок, ничего не выбрасывая по сроку или количеству:
+     * записи хранятся, пока их не удалит сам пользователь. Отбрасываются лишь
+     * записи из будущего — их дата пришла бы только из испорченного файла.
+     */
     private static JSONArray prune(JSONArray input) throws Exception {
         ArrayList<JSONObject> values = new ArrayList<>(); long now = System.currentTimeMillis();
         for (int i=0;i<input.length();i++) { JSONObject entry=input.getJSONObject(i);long date=entry.getLong("deletedAt");
-            if(date >= now-RETENTION && date <= now+60000) values.add(entry); }
+            if(date <= now+60000) values.add(entry); }
         values.sort((a,b)->Long.compare(b.optLong("deletedAt"),a.optLong("deletedAt")));
-        JSONArray result=new JSONArray(); for(int i=0;i<Math.min(500,values.size());i++) result.put(values.get(i)); return result;
+        JSONArray result=new JSONArray(); for(JSONObject value:values) result.put(value); return result;
     }
     private static final java.util.concurrent.ConcurrentHashMap<Long, java.util.Set<String>> markers = new java.util.concurrent.ConcurrentHashMap<>();
     private static String marker(long peer, int id) { return peer + ":" + id; }
@@ -168,8 +178,8 @@ public final class NebulaDeletedArchive {
         try {
             JSONArray before=read(owner), entries=prune(before);
             java.util.Map<Long,ArrayList<TLRPC.Message>> changed=new java.util.HashMap<>();
-            if(enabled(owner))for(int offset=0;offset<Math.min(ids.size(),500);offset+=100) {
-                ArrayList<Integer> batch=new ArrayList<>(ids.subList(offset,Math.min(Math.min(ids.size(),500),offset+100)));
+            if(enabled(owner))for(int offset=0;offset<ids.size();offset+=100) {
+                ArrayList<Integer> batch=new ArrayList<>(ids.subList(offset,Math.min(ids.size(),offset+100)));
                 String condition=dialog==0?"is_channel = 0":"uid = "+dialog;
                 SQLiteCursor cursor=MessagesStorage.getInstance(account).getDatabase().queryFinalized("SELECT uid,data,mid,read_state,ttl FROM messages_v2 WHERE mid IN("+TextUtils.join(",",batch)+") AND "+condition);
                 try {while(cursor.next()) {

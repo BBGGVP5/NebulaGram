@@ -39,7 +39,7 @@ public enum NebulaDeletedMessages {
             var entries = archive.prunedForAccount(all, account: account)
             var retained = Set(entries.map(messageId))
             if archive.enabled(account: account) {
-                for id in ids.prefix(NebulaDeletedArchive.limit) {
+                for id in ids {
                     if archive.excluded(account: account, peer: id.peerId.toInt64()) { continue }
                     let secret = id.peerId.namespace == Namespaces.Peer.SecretChat
                     guard (id.namespace == Namespaces.Message.Cloud || secret && archive.saveSecret(account: account)),

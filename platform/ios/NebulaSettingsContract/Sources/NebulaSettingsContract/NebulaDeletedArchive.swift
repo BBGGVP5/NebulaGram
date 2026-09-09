@@ -19,8 +19,8 @@ public struct NebulaDeletedEntry: Codable, Equatable {
 /// Separate, opt-in per-account archive. Never puts a deleted message back into Telegram.
 public final class NebulaDeletedArchive {
     public static let shared = NebulaDeletedArchive()
-    public static let limit = 500
-    public static let retention: TimeInterval = 7 * 24 * 60 * 60
+    /// Ноль — без ограничения: архив живёт, пока его не очистит сам пользователь.
+    public static let unlimited: TimeInterval = 0
     private let queue = DispatchQueue(label: "app.nebulagram.deleted-archive")
     private let defaults: UserDefaults
     private let directory: URL?
@@ -60,8 +60,11 @@ public final class NebulaDeletedArchive {
     private func read(_ account: Int64) throws -> [NebulaDeletedEntry] {
         let file = try file(account)
         guard FileManager.default.fileExists(atPath: file.path) else { return [] }
+        // Признак испорченного файла, а не квота хранения: архив читается в
+        // память целиком, и без потолка испорченная длина стала бы нехваткой
+        // памяти. Числом записей и сроком архив не ограничен.
         let size = try file.resourceValues(forKeys: [.fileSizeKey]).fileSize ?? 0
-        guard size <= 10 * 1024 * 1024 else { throw Failure.invalidArchive }
+        guard size <= 64 * 1024 * 1024 else { throw Failure.invalidArchive }
         let bytes = try Data(contentsOf: file)
         let plain = try AES.GCM.open(AES.GCM.SealedBox(combined: bytes), using: key(), authenticating: Data(String(account).utf8))
         return try JSONDecoder().decode([NebulaDeletedEntry].self, from: plain)
@@ -82,12 +85,14 @@ public final class NebulaDeletedArchive {
             if !text.isEmpty { defaults.set(text, forKey: "nebula.privacy.deletedIcon") }
         }
     }
+    /// Ноль — хранить бессрочно; это и есть значение по умолчанию.
+    public static let retentionChoices = [0, 1, 7, 30]
     public func retentionDays(account: Int64) -> Int {
         let value = defaults.integer(forKey: "nebula.privacy.retentionDays.\(account)")
-        return [1, 7, 30].contains(value) ? value : 7
+        return Self.retentionChoices.contains(value) ? value : 0
     }
     public func setRetentionDays(account: Int64, value: Int) {
-        guard [1, 7, 30].contains(value) else { return }
+        guard Self.retentionChoices.contains(value) else { return }
         defaults.set(value, forKey: "nebula.privacy.retentionDays.\(account)")
     }
     public func excluded(account: Int64, peer: Int64) -> Bool {
@@ -109,8 +114,11 @@ public final class NebulaDeletedArchive {
     public func replace(_ entries: [NebulaDeletedEntry], account: Int64) throws {
         try queue.sync { try write(entries, account: account) }
     }
-    public static func pruned(_ entries: [NebulaDeletedEntry], now: TimeInterval = Date().timeIntervalSince1970, retention: TimeInterval = NebulaDeletedArchive.retention) -> [NebulaDeletedEntry] {
-        Array(entries.filter { $0.deletedAt >= now - retention && $0.deletedAt <= now + 60 }.sorted { $0.deletedAt > $1.deletedAt }.prefix(limit))
+    /// Ничего не выбрасывает по количеству. По сроку — только если пользователь
+    /// сам задал срок; записи из будущего пришли бы из испорченного файла.
+    public static func pruned(_ entries: [NebulaDeletedEntry], now: TimeInterval = Date().timeIntervalSince1970, retention: TimeInterval = NebulaDeletedArchive.unlimited) -> [NebulaDeletedEntry] {
+        entries.filter { (retention <= 0 || $0.deletedAt >= now - retention) && $0.deletedAt <= now + 60 }
+            .sorted { $0.deletedAt > $1.deletedAt }
     }
     public func entries(account: Int64) throws -> [NebulaDeletedEntry] {
         try queue.sync { try read(account) }

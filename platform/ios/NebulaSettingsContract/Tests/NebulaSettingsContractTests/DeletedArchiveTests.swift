@@ -30,8 +30,11 @@ final class DeletedArchiveTests: XCTestCase {
         archive.setExcluded(account: 1, peer: 42, value: false); XCTAssertFalse(archive.excluded(account: 1, peer: 42))
         archive.setRetentionDays(account: 1, value: 1); XCTAssertEqual(archive.retentionDays(account: 1), 1)
         archive.setRetentionDays(account: 1, value: -1); XCTAssertEqual(archive.retentionDays(account: 1), 1)
-        XCTAssertEqual(archive.retentionDays(account: 2), 7)
-        XCTAssertTrue(archive.prunedForAccount([NebulaDeletedEntry(peer: 42, id: 1, timestamp: 1, deletedAt: 1, text: "old")], account: 1, now: 86402).isEmpty)
+        // Без явно выбранного срока архив бессрочный и ничего не выбрасывает.
+        XCTAssertEqual(archive.retentionDays(account: 2), 0)
+        let old = NebulaDeletedEntry(peer: 42, id: 1, timestamp: 1, deletedAt: 1, text: "old")
+        XCTAssertTrue(archive.prunedForAccount([old], account: 1, now: 86402).isEmpty)
+        XCTAssertEqual(archive.prunedForAccount([old], account: 2, now: 86402), [old])
         archive.icon = " 👨‍👩‍👧‍👦 "
         XCTAssertEqual(archive.icon, "👨‍👩‍👧‍👦")
         let media = NebulaDeletedEntry(peer: 42, id: 5, timestamp: 50, text: "", namespace: 123)
@@ -55,11 +58,20 @@ final class DeletedArchiveTests: XCTestCase {
     }
     func testRetentionBounds() {
         let now: TimeInterval = 1_000_000
+        let week: TimeInterval = 7 * 24 * 60 * 60
         var entries = (0..<510).map { NebulaDeletedEntry(peer: 1, id: Int32($0 + 1), timestamp: 1, deletedAt: now - Double($0), text: "") }
-        entries.append(NebulaDeletedEntry(peer: 1, id: 700, timestamp: 1, deletedAt: now - NebulaDeletedArchive.retention - 1, text: "old"))
+        entries.append(NebulaDeletedEntry(peer: 1, id: 700, timestamp: 1, deletedAt: now - week - 1, text: "old"))
         entries.append(NebulaDeletedEntry(peer: 1, id: 701, timestamp: 1, deletedAt: now + 100, text: "future"))
-        let result = NebulaDeletedArchive.pruned(entries, now: now)
-        XCTAssertEqual(result.count, 500);XCTAssertEqual(result.first?.id, 1);XCTAssertEqual(result.last?.id, 500)
+        // Ни числом, ни сроком архив не ограничен: без выбранного срока остаётся
+        // всё, кроме записи из будущего.
+        let unlimited = NebulaDeletedArchive.pruned(entries, now: now)
+        XCTAssertEqual(unlimited.count, 511)
+        XCTAssertEqual(unlimited.first?.id, 1);XCTAssertEqual(unlimited.last?.id, 700)
+        XCTAssertFalse(unlimited.contains { $0.id == 701 })
+        // Выбранный пользователем срок по-прежнему чистит просроченное.
+        let weekly = NebulaDeletedArchive.pruned(entries, now: now, retention: week)
+        XCTAssertEqual(weekly.count, 510)
+        XCTAssertFalse(weekly.contains { $0.id == 700 || $0.id == 701 })
     }
     func testNewNativeControlsPersist() throws {
         let suite = "NebulaControls.\(UUID().uuidString)"
