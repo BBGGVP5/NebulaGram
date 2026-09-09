@@ -24,6 +24,8 @@ jobs:
           git -C vendor/telegram-ios checkout --detach "$pin"
       - name: Test shared contract and persistent store
         run: swift test --package-path platform/ios/NebulaSettingsContract
+      - name: Test notification signing diagnostics
+        run: python platform/ios/tools/test_notification_signing.py
       - name: Test native build preparation safety
         run: python platform/ios/tools/test_native_build.py
       - name: Verify patches, parse native hooks, compile embedded Foundation module

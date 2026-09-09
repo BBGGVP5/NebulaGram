@@ -3,6 +3,34 @@
 Status: architecture and release gate, **not configured or delivery-tested**.
 Audited against Telegram iOS `6ad963e5b62d354da79040f388ae2b9132fb17b8` on 2026-09-09.
 
+## Product requirement: user-certificate signing
+
+**Уведомления должны работать при подписи NebulaGram сертификатом пользователя,
+а не только при нашей подписи или установке через TestFlight.**
+
+User-certificate signing is a required supported distribution scenario, not an
+optional workaround. Status: **required, not implemented or verified**. Do not
+mark notification delivery complete based only on our own signed build.
+
+Implementation must account for the installed signing identity, bundle ID, APNs
+environment and App Group access, and establish a matching provider delivery
+configuration. A signing certificate alone is not proof that this path works.
+Do not restrict delivery merely because the signing team is not ours. Where a
+profile lacks required capabilities or provider setup is missing, show the
+specific issue and remediation rather than reporting push as working. Do not
+request users' signing private keys in chat or include them in settings exports.
+
+Acceptance for this requirement:
+- [ ] Install an IPA signed with a user's valid certificate/profile; document
+      the signing method and required capabilities without retaining private keys.
+- [ ] Verify actual message delivery in background and on the locked screen,
+      notification content, taps and the correct account/chat on a physical iPhone.
+- [ ] Verify notification delivery after re-signing/reinstalling, token changes
+      and supported identity/bundle changes; re-establish matching registration.
+- [ ] Verify incoming calls separately; message delivery does not prove VoIP.
+- [ ] Test missing capabilities/configuration and expose an actionable diagnostic,
+      not a false success state or a promise of support for every certificate.
+
 ## Delivery path
 
 Keep Telegram's native pipeline: Telegram -> APNs -> NebulaGram / its Notification
@@ -88,3 +116,30 @@ Focus, notification permissions and OS scheduling remain under the user's contro
 - [Apple notification filtering entitlement](https://developer.apple.com/documentation/bundleresources/entitlements/com.apple.developer.usernotifications.filtering)
 - [Apple background execution limits](https://developer.apple.com/forums/thread/685525)
 - [Apple PushKit/CallKit handling](https://developer.apple.com/documentation/pushkit/responding-to-voip-notifications-from-pushkit)
+
+## Local user-signing prerequisite checker
+
+On macOS, use the `.app` inside an already extracted IPA (the checker does not
+extract archives, re-sign, upload profiles or ask for private keys):
+
+```sh
+python platform/ios/tools/check-notification-signing.py \
+  --app /absolute/path/Payload/NebulaGram.app --expected-environment production
+```
+
+Supply the environment the build registers with Telegram: the current upstream
+DEBUG build uses `development`, release uses `production`. The checker compares
+it to the **signed** APS entitlement and embedded profile. It accepts user teams
+and legacy App ID prefixes, checks signature integrity with macOS codesign,
+profile expiry/permissions, App Group sharing and the actual notification service
+extension. It reports fixed diagnostic codes instead of profile contents/UDIDs.
+
+`prerequisites-pass` is only local configuration validation; it is NOT evidence
+of provider setup, online certificate validity/revocation, device installability
+or notification delivery. `delivery_verified` remains false. Missing filtering
+is a warning requiring the separate fallback audit above, not blanket rejection
+of a user's certificate. Stripped/App Store profiles require a different release
+verification path; this command targets re-signed IPA artifacts with embedded
+profiles. Physical-device/provider acceptance is still pending.
+
+Tool reference: [Apple provisioning profile structure and signed entitlements](https://developer.apple.com/documentation/technotes/tn3125-inside-code-signing-provisioning-profiles).

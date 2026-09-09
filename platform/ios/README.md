@@ -128,12 +128,19 @@ included in that result.
 Transfer validation evidence: macOS run
 [34336821790](https://github.com/BBGGVP5/NebulaGram/actions/runs/34336821790)
 passed all 11 Swift tests, the embedded mirror checks and a real iOS simulator
-SDK typecheck of the UIKit-only file-transfer adapter. The complete Telegram
-settings screen is still syntax-checked only; iPhone/iPad/iCloud interaction
-and full application compilation remain the acceptance gate above.
+SDK typecheck of the UIKit-only file-transfer adapter. That earlier run did not compile the full Telegram settings screen.
+iPhone/iPad/iCloud interaction and full application compilation remain the
+acceptance gate above.
 
 ### Notification delivery gate
 
 See [NOTIFICATIONS.md](NOTIFICATIONS.md) for the audited native delivery path,
 APNs/provider configuration, Apple capability limits and signed-device checklist.
 Push delivery is not enabled or proven by this compile-only workflow.
+
+Native module evidence: [34341129456](https://github.com/BBGGVP5/NebulaGram/actions/runs/34341129456)
+passed at `ab32b65`: actual SettingsUI, PeerInfoScreen and folder-tab modules,
+1591 build actions, about 28 minutes of Bazel compilation with pinned Xcode 26.2.
+This is a library build check, not an app/IPA or a notification delivery test.
+The later catalog adds two planned Android preferences; bootstrap rechecks that
+catalog independently and does not promote them to implemented iOS features.

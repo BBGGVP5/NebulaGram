@@ -29,7 +29,7 @@
   rules_apple ios_build_test; CPU flags alone were not sufficient under this
   toolchain. No upstream version override or fake UIKit interfaces used.
 - Native run [34341129456](https://github.com/BBGGVP5/NebulaGram/actions/runs/34341129456)
-  at ab32b65 is compiling. **Full native compilation is not yet confirmed.**
-- Follow-up: inspect its compiler log/result, fix any actual native integration
-  errors before reporting the module gate passed. Full app/signing/device and
+  at ab32b65 passed: **native module compilation confirmed**, 1591 build actions,
+  1690 seconds. This is not full app packaging or device acceptance.
+- Native compiler log inspected: module gate passed. Full app/signing/device and
   notification delivery gates remain separate.
