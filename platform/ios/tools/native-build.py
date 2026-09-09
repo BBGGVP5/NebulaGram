@@ -168,7 +168,10 @@ def build(tree, jobs):
     BuildConfiguration(**fixture_configuration()).write_to_variables_file(
         bazel_path=bazel, use_xcode_managed_codesigning=False, aps_environment='development',
         path=str(config / 'variables.bzl'))
-    command.common_build_args += ['--jobs=' + str(jobs), '--local_resources=memory=HOST_RAM*0.65', '--color=no']
+    # --keep_going: одна неудача — один отчёт обо всех сломанных целях.
+    # Иначе каждая следующая ошибка компиляции стоит отдельного часового прогона.
+    command.common_build_args += ['--jobs=' + str(jobs), '--local_resources=memory=HOST_RAM*0.65',
+                                  '--color=no', '--keep_going']
     command.set_configuration('debug_sim_arm64')
     command.set_disable_provisioning_profiles()
     command.set_build_number('1')

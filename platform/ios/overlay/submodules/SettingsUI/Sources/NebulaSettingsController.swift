@@ -195,7 +195,11 @@ public func nebulaSettingsController(context: AccountContext) -> ViewController 
         guard let controller = controller else { return }
         let ru = context.sharedContext.currentPresentationData.with { $0 }.strings.baseLanguageCode.lowercased().hasPrefix("ru")
         let alert = UIAlertController(title: ru ? "Адаптивное стекло" : "Adaptive glass", message: ru ? "Авто облегчает эффекты при энергосбережении и нагреве. Системное уменьшение прозрачности учитывается во всех режимах." : "Auto reduces effects during Low Power Mode and thermal pressure. Reduce Transparency is respected in every mode.", preferredStyle: .alert)
-        for (mode, title) in (ru ? ["Автоматически", "Полное", "Облегчённое"] : ["Automatic", "Full", "Light"]).enumerated() {
+        // Тип задан явно и список вынесен из выражения: перечислять тернарник
+        // прямо на месте компилятор отказывался — до разбора образца пары он
+        // не успевал вывести элемент последовательности.
+        let modes: [String] = ru ? ["Автоматически", "Полное", "Облегчённое"] : ["Automatic", "Full", "Light"]
+        for (mode, title) in modes.enumerated() {
             alert.addAction(UIAlertAction(title: (store.glassQuality == mode ? "✓ " : "") + title, style: .default) { _ in
                 do { try store.set(.integer(mode), for: "glass_quality"); writeFailed.set(false) }
                 catch { writeFailed.set(true) }
