@@ -126,6 +126,8 @@ jobs:
           python3 scripts/check-preview-surfaces.py vendor/telegram-android
           python3 scripts/check-discussion-input.py vendor/telegram-android
           python3 scripts/check-input-controls.py vendor/telegram-android
+          python3 scripts/check-header-text-clip.py --tree vendor/telegram-android
+          python3 scripts/check-emoji-panel.py vendor/telegram-android
           python3 scripts/check-settings-contract.py
           python3 scripts/check-menu-feedback.py vendor/telegram-android
           python3 scripts/check-status-bounds.py vendor/telegram-android

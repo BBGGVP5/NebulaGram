@@ -67,6 +67,13 @@ class GestureCheck {
  check(t.commits==0);g.draw(new Canvas(),0);check(Math.abs((NebulaTabLens.left+NebulaTabLens.right)/2-(end*100+50))<.1);
  check(event(g,1,end*100+50,20,1));check(t.commits==(start==end?0:1));check(t.selected==end);check(!g.isDragging());
  }
+ // A captured horizontal drag tolerates a small vertical lift drift. Native
+ // tab text has vertical padding; lifting there must not undo the selection.
+ for(float y:new float[]{-4,54}) {
+ Tabs t=new Tabs();t.selected=2;NebulaTabGesture g=new NebulaTabGesture(new View(),t);
+ event(g,0,250,20,1);check(event(g,2,150,20,1));
+ check(event(g,1,150,y,1));check(t.selected==1&&t.commits==1);
+ }
  for(int cancel=0;cancel<5;cancel++){
  Tabs t=new Tabs();NebulaTabGesture g=new NebulaTabGesture(new View(),t);
  event(g,0,20,20,1);event(g,2,140,20,1);check(g.takeChildCancel());
@@ -135,7 +142,7 @@ assert 'Collections.sort(res.messages,' in cell and 'loading = messageObjects ==
 assert 'fetcher.fetch(linkedId, 0);' in profile and 'profileChannelMessageFetcher == fetcher && !isFinished' in profile
 assert 'getChat(nebulaProfileChannelId())' in profile and 'args.putLong("chat_id", linkedChannelId)' in profile
 chat = (native/'ui/ChatActivity.java').read_text(encoding='utf-8')
-assert 'return navbarContentDrawableFactory.create(view)' in chat
+assert 'return glassBackgroundDrawableFactory.create(view)' in method(chat, 'public org.telegram.ui.Components.blur3.drawable.BlurredBackgroundDrawable createNebulaEmojiBackground(')
 assert 'chatInputViewsContainer.setNebulaSearchBackground(searchContainer,' in chat
 assert 'hideMenu && !isSearchFieldVisible' in bar
 assert 'layout.draw(canvas, padLeft, padRight, transitionParams);' in (native/'ui/Cells/ChatMessageCell.java').read_text(encoding='utf-8')

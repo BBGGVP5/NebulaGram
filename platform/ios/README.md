@@ -91,3 +91,10 @@ Validation evidence: macOS run
 passed eight Swift tests, patch/overlay checks, native syntax parsing and the
 embedded Foundation compile/run. No full Telegram typecheck or device test is
 included in that result.
+
+Transfer validation evidence: macOS run
+[34336821790](https://github.com/BBGGVP5/NebulaGram/actions/runs/34336821790)
+passed all 11 Swift tests, the embedded mirror checks and a real iOS simulator
+SDK typecheck of the UIKit-only file-transfer adapter. The complete Telegram
+settings screen is still syntax-checked only; iPhone/iPad/iCloud interaction
+and full application compilation remain the acceptance gate above.

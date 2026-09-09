@@ -1,0 +1,96 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
+@@ -416,7 +416,7 @@
+     private final @NonNull BlurredBackgroundDrawableViewFactory glassBackgroundDrawableFactory;
+     private final @NonNull BlurredBackgroundDrawableViewFactory glassBackgroundDrawableFactoryFrosted;
+     public org.telegram.ui.Components.blur3.drawable.BlurredBackgroundDrawable createNebulaEmojiBackground(View view) {
+-        return navbarContentDrawableFactory.create(view)
++        return glassBackgroundDrawableFactory.create(view)
+                 .setColorProvider(app.nebulagram.ui.NebulaMenuStyle.provider(themeDelegate))
+                 .setRadius(dp(22));
+     }
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/EmojiView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/EmojiView.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Components/EmojiView.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/EmojiView.java
+@@ -1560,13 +1560,18 @@
+     private final BlurredBackgroundSourceColor blurredBackgroundSourceColor;
+     private final BlurredBackgroundDrawableViewFactory blurredBackgroundDrawableFactory;
+ 
+-    public EmojiView(BaseFragment fragment, boolean needAnimatedEmoji, boolean needStickers, boolean needGif, final Context context, boolean needSearch, final TLRPC.ChatFull chatFull, ViewGroup parentView, boolean shouldDrawBackground, Theme.ResourcesProvider resourcesProvider, boolean frozenAtStart, boolean glassDesign) {
++    public EmojiView(BaseFragment fragment, boolean needAnimatedEmoji, boolean needStickers, boolean needGif, final Context context, boolean needSearch, final TLRPC.ChatFull chatFull, ViewGroup parentView, boolean drawBackground, Theme.ResourcesProvider resourcesProvider, boolean frozenAtStart, boolean glassDesign) {
+         super(context);
++        final boolean nebulaGlassPanel = fragment instanceof org.telegram.ui.ChatActivity
++                && app.nebulagram.ui.NebulaMenuStyle.enabled();
++        // Set before constructing children: otherwise search/category strips keep
++        // their original opaque backgrounds even when the root is glass.
++        final boolean shouldDrawBackground = drawBackground && !nebulaGlassPanel;
+         this.shouldDrawBackground = shouldDrawBackground;
+         this.fragment = fragment;
+         this.allowAnimatedEmoji = needAnimatedEmoji;
+         this.resourcesProvider = resourcesProvider;
+-        glassDesign = glassDesign || app.nebulagram.ui.NebulaAppearance.iosComposer();
++        glassDesign = glassDesign || nebulaGlassPanel;
+         this.glassDesign = glassDesign;
+ 
+         blurredBackgroundSourceColor = new BlurredBackgroundSourceColor();
+@@ -2899,10 +2904,9 @@
+ 
+         setBlurredBackgroundDrawableFactory(blurredBackgroundDrawableFactory);
+         if (glassDesign && app.nebulagram.ui.NebulaMenuStyle.enabled()) hideBottomTabContainerBackground();
+-        if (app.nebulagram.ui.NebulaAppearance.iosComposer() && fragment instanceof org.telegram.ui.ChatActivity) {
++        if (nebulaGlassPanel) {
+             nebulaPanelBackground = ((org.telegram.ui.ChatActivity) fragment).createNebulaEmojiBackground(this);
+-            setShouldDrawBackground(false);
+-            setBackground(nebulaPanelBackground);
++            updateColors();
+         }
+     }
+ 
+@@ -4526,8 +4530,7 @@
+             invalidateBlurCaptures();
+ 
+             final RecordingCanvas c = blurredBackgroundSourceRenderNode.beginRecording(getMeasuredWidth(), getMeasuredHeight());
+-            c.drawColor(getThemedColor(app.nebulagram.ui.NebulaMenuStyle.enabled()
+-                    ? Theme.key_chat_emojiPanelBackground : Theme.key_windowBackgroundWhite));
++            drawNebulaPanelBackdrop(c);
+             if (SharedConfig.chatBlurEnabled()) {
+                 scrollableViewNoiseSuppressor.draw(c, DownscaleScrollableNoiseSuppressor.DRAW_GLASS);
+             }
+@@ -4536,6 +4539,18 @@
+ 
+         updateBottomTabContainerPosition();
+         super.dispatchDraw(canvas);
++    }
++
++    private void drawNebulaPanelBackdrop(Canvas canvas) {
++        if (nebulaPanelBackground != null) {
++            // Sample the separate chat source, never this panel's own capture.
++            // The tab bar sees the same material plus stickers, not an opaque fill.
++            nebulaPanelBackground.setBounds(0, 0, getMeasuredWidth(), getMeasuredHeight());
++            nebulaPanelBackground.draw(canvas);
++        } else {
++            canvas.drawColor(getThemedColor(app.nebulagram.ui.NebulaMenuStyle.enabled()
++                    ? Theme.key_chat_emojiPanelBackground : Theme.key_windowBackgroundWhite));
++        }
+     }
+ 
+     private void invalidateBlurCaptures() {
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/PagerSlidingTabStrip.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/PagerSlidingTabStrip.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Components/PagerSlidingTabStrip.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/PagerSlidingTabStrip.java
+@@ -66,6 +66,14 @@
+                 float x = tabsContainer.getX() - getScrollX();
+                 out.set(x + tab.getLeft() + tab.getPaddingLeft() - AndroidUtilities.dp(11), getPaddingTop(),
+                         x + tab.getRight() - tab.getPaddingRight() + AndroidUtilities.dp(11), getHeight() - getPaddingBottom());
++                return true;
++            }
++            public boolean hitBounds(int index, android.graphics.RectF out) {
++                if (!bounds(index, out)) return false;
++                View tab = getTab(index);
++                float x = tabsContainer.getX() - getScrollX();
++                // Full touch cells, not the smaller text/lens rectangle.
++                out.set(x + tab.getLeft(), 0, x + tab.getRight(), getHeight());
+                 return true;
+             }
+             public void select(int index) { getTab(index).performClick(); }

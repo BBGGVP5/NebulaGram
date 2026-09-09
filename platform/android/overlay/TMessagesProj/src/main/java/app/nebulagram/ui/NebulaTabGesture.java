@@ -12,6 +12,8 @@ public final class NebulaTabGesture {
         int count();
         int selected();
         boolean bounds(int index, RectF out);
+        /** Touch cells may include padding; keep the visible lens bounds separate. */
+        default boolean hitBounds(int index, RectF out) { return bounds(index, out); }
         void select(int index);
     }
     private final View host;
@@ -58,13 +60,13 @@ public final class NebulaTabGesture {
                 if (host.getParent() != null) host.getParent().requestDisallowInterceptTouchEvent(true);
             }
             if (dragging) {
-                fingerX = event.getX(); target = hit(fingerX, event.getY());
+                fingerX = event.getX(); target = hitDrag(fingerX, event.getY());
                 host.invalidate();
                 return true;
             }
         } else if (action == MotionEvent.ACTION_UP) {
             boolean consumed = dragging;
-            int chosen = dragging ? hit(event.getX(), event.getY()) : -1;
+            int chosen = dragging ? hitDrag(event.getX(), event.getY()) : -1;
             tracking = dragging = false; target = -1;
             lens.setPressed(false);
             if (host.getParent() != null) host.getParent().requestDisallowInterceptTouchEvent(false);
@@ -77,7 +79,15 @@ public final class NebulaTabGesture {
 
     private int hit(float x, float y) {
         for (int i = 0; i < tabs.count(); i++) {
-            if (tabs.bounds(i, rect) && rect.contains(x, y)) return i;
+            if (tabs.hitBounds(i, rect) && rect.contains(x, y)) return i;
+        }
+        return -1;
+    }
+
+    private int hitDrag(float x, float y) {
+        for (int i = 0; i < tabs.count(); i++) {
+            if (tabs.hitBounds(i, rect) && x >= rect.left && x < rect.right
+                    && y >= rect.top - slop && y < rect.bottom + slop) return i;
         }
         return -1;
     }

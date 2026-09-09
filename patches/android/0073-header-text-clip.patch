@@ -1,0 +1,27 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarContainer.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarContainer.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarContainer.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarContainer.java
+@@ -429,12 +429,20 @@
+ 
+     @Override
+     protected boolean drawChild(@NonNull Canvas canvas, View child, long drawingTime) {
+-        if (nebulaCenteredTitle && app.nebulagram.ui.NebulaAppearance.chatHeader()
++        if (nebulaCenteredTitle
+                 && (child == titleTextView || child == subtitleTextView || child == animatedSubtitleTextView
+                     || child == titleTextLargerCopyView.get() || child == subtitleTextLargerCopyView.get())) {
+             int save = canvas.save();
+-            float scale = bounce.getScale(.02f);
+-            canvas.scale(scale, scale, getWidth() / 2f, getHeight() - ActionBar.getCurrentActionBarHeight() / 2f);
++            // The container deliberately allows avatar decorations/transition copies
++            // outside child bounds. Constrain text only, including larger copies,
++            // to the live measured text viewport in both header layouts.
++            View textBounds = child == subtitleTextView || child == animatedSubtitleTextView
++                    || child == subtitleTextLargerCopyView.get() ? getSubtitleTextView() : titleTextView;
++            canvas.clipRect(textBounds.getX(), 0, textBounds.getX() + textBounds.getWidth(), getHeight());
++            if (app.nebulagram.ui.NebulaAppearance.chatHeader()) {
++                float scale = bounce.getScale(.02f);
++                canvas.scale(scale, scale, getWidth() / 2f, getHeight() - ActionBar.getCurrentActionBarHeight() / 2f);
++            }
+             boolean drawn = super.drawChild(canvas, child, drawingTime);
+             canvas.restoreToCount(save);
+             return drawn;
