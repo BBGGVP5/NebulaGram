@@ -1,0 +1,107 @@
+diff --git a/submodules/TelegramUI/Sources/TelegramRootController.swift b/submodules/TelegramUI/Sources/TelegramRootController.swift
+--- a/submodules/TelegramUI/Sources/TelegramRootController.swift
++++ b/submodules/TelegramUI/Sources/TelegramRootController.swift
+@@ -1,5 +1,6 @@
+ import Foundation
+ import UIKit
++import NebulaSettingsContract
+ import Display
+ import AsyncDisplayKit
+ import TelegramCore
+@@ -73,6 +74,8 @@
+ public final class TelegramRootController: NavigationController, TelegramRootControllerInterface {
+     private let context: AccountContext
+     
++    private var nebulaNavigationObservation: SettingsObservation?
++    private var nebulaShowCalls = false
+     public var rootTabController: TabBarController?
+     
+     public var contactsController: ContactsController?
+@@ -199,6 +202,7 @@
+     }
+     
+     public func addRootControllers(showCallsTab: Bool) {
++        self.nebulaShowCalls = showCallsTab
+         let tabBarController = TabBarControllerImpl(theme: self.presentationData.theme, strings: self.presentationData.strings)
+         tabBarController.navigationPresentation = .master
+         let chatListController = self.context.sharedContext.makeChatListController(context: self.context, location: .chatList(groupId: .root), controlsHistoryPreload: true, hideNetworkActivityStatus: false, previewing: false, enableDebugActions: !GlobalExperimentalSettings.isAppStoreBuild)
+@@ -239,7 +243,9 @@
+         accountSettingsController.parentController = self
+         controllers.append(accountSettingsController)
+                 
+-        tabBarController.setControllers(controllers, selectedIndex: restoreSettignsController != nil ? (controllers.count - 1) : (controllers.count - 2))
++        controllers = nebulaOrderedControllers(controllers)
++        let initial: ViewController = restoreSettignsController != nil ? accountSettingsController : chatListController
++        tabBarController.setControllers(controllers, selectedIndex: controllers.firstIndex(where: { $0 === initial }) ?? 0)
+         
+         self.contactsController = contactsController
+         self.callListController = callListController
+@@ -247,9 +253,14 @@
+         self.accountSettingsController = accountSettingsController
+         self.rootTabController = tabBarController
+         self.pushViewController(tabBarController, animated: false)
++        self.nebulaNavigationObservation = NebulaSettingsStore.shared.observe { [weak self] in
++            guard let self = self else { return }
++            self.updateRootControllers(showCallsTab: self.nebulaShowCalls)
++        }
+     }
+         
+     public func updateRootControllers(showCallsTab: Bool) {
++        self.nebulaShowCalls = showCallsTab
+         guard let rootTabController = self.rootTabController as? TabBarControllerImpl else {
+             return
+         }
+@@ -261,9 +272,30 @@
+         controllers.append(self.chatListController!)
+         controllers.append(self.accountSettingsController!)
+         
+-        rootTabController.setControllers(controllers, selectedIndex: nil)
+-    }
+-    
++        controllers = nebulaOrderedControllers(controllers)
++        // Preserve selected controller identity, not an index that moved with the order.
++        if rootTabController.controllers.count != controllers.count || zip(rootTabController.controllers, controllers).contains(where: { pair in pair.0 !== pair.1 }) {
++            let old = rootTabController.controllers.indices.contains(rootTabController.selectedIndex) ? rootTabController.controllers[rootTabController.selectedIndex] : nil
++            rootTabController.setControllers(controllers, selectedIndex: controllers.firstIndex(where: { $0 === old }) ?? controllers.firstIndex(where: { $0 is ChatListController }) ?? 0)
++        }
++    }
++
++    private func nebulaOrderedControllers(_ source: [ViewController]) -> [ViewController] {
++        let store = NebulaSettingsStore.shared
++        var result: [ViewController] = []
++        for key in store.bottomTabOrder {
++            switch key {
++            case "contacts":
++                if store.showContactsTab, let value = source.first(where: { $0 is ContactsController }) { result.append(value) }
++                if let value = source.first(where: { $0 is CallListController }) { result.append(value) }
++            case "chats": if let value = source.first(where: { $0 is ChatListController }) { result.append(value) }
++            case "settings": if let value = source.first(where: { $0 is PeerInfoScreenImpl }) { result.append(value) }
++            default: break
++            }
++        }
++        return result
++    }
++
+     public func openChatsController(activateSearch: Bool, filter: ChatListSearchFilter = .chats, query: String? = nil) {
+         guard let rootTabController = self.rootTabController else {
+             return
+@@ -803,6 +835,8 @@
+     
+         if let index = rootTabController.controllers.firstIndex(where: { $0 is ContactsController }) {
+             rootTabController.selectedIndex = index
++        } else {
++            self.pushViewController(ContactsController(context: self.context), animated: true)
+         }
+     }
+         
+diff --git a/submodules/TelegramUI/BUILD b/submodules/TelegramUI/BUILD
+--- a/submodules/TelegramUI/BUILD
++++ b/submodules/TelegramUI/BUILD
+@@ -49,6 +49,7 @@
+         "-warnings-as-errors",
+     ],
+     deps = [
++        "//submodules/NebulaSettingsContract:NebulaSettingsContract",
+         "//submodules/NebulaLinkUI:NebulaLinkUI",
+         "//third-party/recaptcha:RecaptchaEnterprise",
+         "//submodules/SSignalKit/SwiftSignalKit:SwiftSignalKit",

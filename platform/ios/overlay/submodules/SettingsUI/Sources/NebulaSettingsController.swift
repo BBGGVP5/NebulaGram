@@ -13,6 +13,7 @@ private final class NebulaSettingsArguments {
     let update: (Bool) -> Void
     let transfer: NebulaSettingsFileTransfer
     var openLink: (() -> Void)?
+    var openNavigation: (() -> Void)?
     var openGlass: (() -> Void)?
     var openPrivacy: (() -> Void)?
     var updateKey: ((String, Bool) -> Void)?
@@ -25,6 +26,8 @@ private final class NebulaSettingsArguments {
 }
 
 private enum NebulaSettingsEntry: ItemListNodeEntry {
+    case navigation(String)
+    case contacts(String, Bool, Bool)
     case glass(String)
     case link(String)
     case privacy(String)
@@ -42,6 +45,8 @@ private enum NebulaSettingsEntry: ItemListNodeEntry {
     var section: ItemListSectionId { return stableId < 3 ? 0 : (stableId < 7 ? 1 : 2) }
     var stableId: Int32 {
         switch self {
+        case .navigation: return 13
+        case .contacts: return 14
         case .glass: return 12
         case .link: return 7
         case .privacy: return 8
@@ -79,6 +84,10 @@ private enum NebulaSettingsEntry: ItemListNodeEntry {
             return ItemListActionItem(presentationData: presentationData, systemStyle: .glass, title: title, kind: .generic, alignment: .natural, sectionId: section, style: .blocks, action: { arguments.clearHistory?() })
         case let .privacy(title):
             return ItemListActionItem(presentationData: presentationData, systemStyle: .glass, title: title, kind: .generic, alignment: .natural, sectionId: section, style: .blocks, action: { arguments.openPrivacy?() })
+        case let .contacts(title, value, enabled):
+            return ItemListSwitchItem(presentationData: presentationData, systemStyle: .glass, title: title, value: value, enabled: enabled, sectionId: section, style: .blocks, updated: { arguments.updateKey?("bottom_bar_contacts", $0) })
+        case let .navigation(title):
+            return ItemListActionItem(presentationData: presentationData, systemStyle: .glass, title: title, kind: .generic, alignment: .natural, sectionId: section, style: .blocks, action: { arguments.openNavigation?() })
         case let .glass(title):
             return ItemListActionItem(presentationData: presentationData, systemStyle: .glass, title: title, kind: .generic, alignment: .natural, sectionId: section, style: .blocks, action: { arguments.openGlass?() })
         case let .link(title):
@@ -134,14 +143,16 @@ public func nebulaSettingsController(context: AccountContext) -> ViewController 
             .importFile(ru ? "Импорт из файла" : "Import from file"),
             .exportFile(ru ? "Экспорт в файл" : "Export to file", !store.hasLoadError),
             .transferFooter(ru
-                ? "Формат NebulaGram JSON v1. Импорт заменяет настройки после подтверждения. На iOS применяются счётчики папок, показ историй и история поиска настроек; остальные допустимые параметры сохраняются для будущего переноса. Аккаунты и ключи доступа не экспортируются."
-                : "NebulaGram JSON v1. Import replaces preferences after confirmation. Folder counters, story visibility and settings search history are applied on iOS; other valid settings are retained for future ports. Accounts and access keys are not exported."),
+                ? "Формат NebulaGram JSON v1. Импорт заменяет настройки после подтверждения. На iOS из файла применяются счётчики папок, качество стекла, порядок вкладок и показ контактов. Локальные настройки историй и поиска сохраняются отдельно; остальные допустимые параметры ожидают переноса. Аккаунты и ключи доступа не экспортируются."
+                : "NebulaGram JSON v1. Import replaces preferences after confirmation. Folder counters, glass quality, tab order and Contacts visibility are applied from files. Local story/search settings are preserved separately; other valid settings await porting. Accounts and access keys are not exported."),
             .link("NebulaLink"),
             .privacy(ru ? "Конфиденциальность" : "Privacy"),
             .stories(ru ? "Показывать истории" : "Show stories", store.showStories, !store.hasLoadError),
             .history(ru ? "Сохранять и показывать историю поиска настроек" : "Save and show settings search history", store.settingsSearchHistory, !store.hasLoadError),
             .clearHistory(ru ? "Очистить историю поиска настроек" : "Clear settings search history"),
-            .glass(ru ? "Адаптивное стекло" : "Adaptive glass")
+            .glass(ru ? "Адаптивное стекло" : "Adaptive glass"),
+            .navigation(ru ? "Порядок нижних вкладок" : "Bottom tab order"),
+            .contacts(ru ? "Контакты на нижней панели" : "Contacts in bottom bar", store.showContactsTab, !store.hasLoadError)
         ]
         let data = ItemListPresentationData(presentationData)
         let state = ItemListControllerState(presentationData: data, title: .text(ru ? "Настройки NebulaGram" : "NebulaGram Settings"), leftNavigationButton: nil, rightNavigationButton: nil, backNavigationButton: ItemListBackButton(title: presentationData.strings.Common_Back))
@@ -166,6 +177,19 @@ public func nebulaSettingsController(context: AccountContext) -> ViewController 
         NebulaLinkService.shared.configure(accountManager: context.sharedContext.accountManager)
         let ru = context.sharedContext.currentPresentationData.with { $0 }.strings.baseLanguageCode.lowercased().hasPrefix("ru")
         controller.present(UINavigationController(rootViewController: NebulaLinkController(russian: ru)), animated: true)
+    }
+    arguments.openNavigation = { [weak controller] in
+        guard let controller = controller else { return }
+        let ru = context.sharedContext.currentPresentationData.with { $0 }.strings.baseLanguageCode.hasPrefix("ru")
+        let alert = UIAlertController(title: ru ? "Первой показывать" : "Show first", message: ru ? "Звонки остаются рядом с контактами. Отдельная вкладка профиля пока не перенесена." : "Calls remain next to Contacts. A separate Profile tab is not yet ported.", preferredStyle: .alert)
+        for (key, title) in [("chats", ru ? "Чаты" : "Chats"), ("contacts", ru ? "Контакты" : "Contacts"), ("settings", ru ? "Настройки" : "Settings")] {
+            alert.addAction(UIAlertAction(title: title, style: .default) { _ in
+                var order = store.bottomTabOrder; order.removeAll { $0 == key }; order.insert(key, at: 0)
+                do { try store.set(.string(order.joined(separator: ",")), for: "bottom_bar_order"); writeFailed.set(false) }
+                catch { writeFailed.set(true) }
+            })
+        }
+        alert.addAction(UIAlertAction(title: ru ? "Отмена" : "Cancel", style: .cancel)); controller.present(alert, animated: true)
     }
     arguments.openGlass = { [weak controller] in
         guard let controller = controller else { return }
