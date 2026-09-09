@@ -52,10 +52,14 @@ class NativeBuildTests(unittest.TestCase):
             with self.assertRaises(ValueError): native.copy_overlay(dest, overlay)
             self.assertEqual(list(outside.iterdir()), [])
 
-    def test_libraries_target_ios_simulator_not_host_macos(self):
-        self.assertIn('--cpu=ios_sim_arm64', native.SIMULATOR_FLAGS)
-        self.assertIn('--apple_platform_type=ios', native.SIMULATOR_FLAGS)
-        self.assertIn('--ios_minimum_os=13.0', native.SIMULATOR_FLAGS)
+    def test_libraries_have_an_apple_platform_transition(self):
+        build = (native.ROOT / 'platform/ios/overlay/submodules/NebulaIntegrationChecks/BUILD').read_text(encoding='utf-8')
+        self.assertIn('ios_build_test(', build)
+        self.assertNotIn('filegroup(', build)
+        self.assertIn('minimum_os_version = "13.0"', build)
+        for target in ['SettingsUI:SettingsUI', 'PeerInfoScreen:PeerInfoScreen',
+                       'ChatListFilterTabContainerNode:ChatListFilterTabContainerNode']:
+            self.assertIn(target, build)
 
     def test_input_inventory_and_compile_only_configuration(self):
         self.assertEqual(len(native.pin()), 40)

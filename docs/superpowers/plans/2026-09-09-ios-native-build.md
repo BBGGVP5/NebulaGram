@@ -7,7 +7,7 @@
 **Tech Stack:** Python unittest, Git, pinned Telegram build-system, Bazel 8.4.2, Xcode 26.2, GitHub macOS runner.
 
 ## Files / steps
-- [ ] Create platform/ios/overlay/submodules/NebulaIntegrationChecks/BUILD as a filegroup of the three real module targets (not a mocked Swift interface).
+- [ ] Create platform/ios/overlay/submodules/NebulaIntegrationChecks/BUILD as an `ios_build_test` (Apple platform transition) for the three real module targets (not a mocked Swift interface).
 - [ ] Create platform/ios/tools/native-build.py: prepare into a nonexistent destination only; fetch exact gitlink; initialize recursive submodules; apply sorted patches then collision-checked overlay. Record pin and input hashes. Never reset/clean a user/vendor checkout.
 - [ ] Build subcommand verifies preparation, macOS/arm64/Xcode pin, uses upstream BazelLocation and BazelCommandLine with debug_sim_arm64 and provisioning disabled. Generate a compile-only build_configuration repository with no real API keys/team/profiles. Emit a success report only after Bazel exits successfully.
 - [ ] Create platform/ios/tools/test_native_build.py to test path/collision refusal, source fingerprinting, deterministic overlay and fixture values; execute on Windows and in bootstrap CI.
