@@ -84,7 +84,7 @@ jobs:
       - name: Установка Go
         uses: actions/setup-go@v5
         with:
-          go-version: '1.24'
+          go-version-file: 'bind/go.mod'
           cache-dependency-path: '**/go.sum'
 
       - name: Установка Java
@@ -106,6 +106,9 @@ jobs:
         with:
           build-root-directory: vendor/telegram-android
           cache-read-only: false
+
+      - name: Проверка повторов сетевых загрузок
+        run: python3 scripts/check-build-core.py
 
       - name: Сборка ядра NebulaLink
         run: bash scripts/build-core.sh android

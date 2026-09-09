@@ -16,13 +16,19 @@ out="$root/build"
 mkdir -p "$out"
 cd "$root/bind"   # the bindings module links the core and the engines
 
+source "$root/scripts/retry-network.sh"
+
 ensure_gomobile() {
-  if ! command -v gomobile >/dev/null 2>&1; then
-    echo "installing gomobile"
-    go install golang.org/x/mobile/cmd/gomobile@latest
-    go install golang.org/x/mobile/cmd/gobind@latest
-  fi
-  gomobile init
+  # Use the exact module graph in bind/go.mod, shared with iOS. Never install @latest
+  # or reuse a random gomobile/gobind from the runner's global PATH.
+  local tooling="$out/nebula-go-tools"
+  mkdir -p "$tooling"
+  retry_network go mod download
+  go mod verify
+  retry_network go build -o "$tooling/gomobile" golang.org/x/mobile/cmd/gomobile
+  retry_network go build -o "$tooling/gobind" golang.org/x/mobile/cmd/gobind
+  export PATH="$tooling:$PATH"
+  retry_network gomobile init
 }
 
 case "$target" in
@@ -45,7 +51,7 @@ case "$target" in
       targets="${targets:+$targets,}$t"
     done
     echo "ядро для: $targets"
-    gomobile bind -target="$targets" -androidapi 21 \
+    retry_network gomobile bind -target="$targets" -androidapi 21 \
       -ldflags "-s -w" \
       -o "$out/nebulalink.aar" ./mobile
     ;;
@@ -55,7 +61,7 @@ case "$target" in
       exit 1
     fi
     ensure_gomobile
-    gomobile bind -target=ios,iossimulator \
+    retry_network gomobile bind -target=ios,iossimulator \
       -ldflags "-s -w" \
       -o "$out/NebulaLink.xcframework" ./mobile
     ;;
