@@ -87,7 +87,11 @@ def main():
         assert 'tunnel.start' not in routes and 'NebulaDeletedArchive' not in routes
         handler = (temp / 'submodules/SettingsUI/Sources/Search/SettingsSearchableItems.swift').read_text(encoding='utf-8')
         assert 'if nebulaOpenQuickAction(context: context, path: path, navigationController: navigationController)' in handler
-        assert 'NebulaAppShortcuts.swift' in (temp / 'Telegram/BUILD').read_text(encoding='utf-8')
+        app_build = (temp / 'Telegram/BUILD').read_text(encoding='utf-8')
+        assert 'NebulaAppShortcuts.swift' in app_build
+        # //Telegram:Lib and :WidgetExtensionLib are private to their own package
+        # upstream; without the grant the integration check fails Bazel analysis.
+        assert app_build.count('visibility = ["//submodules/NebulaIntegrationChecks:__pkg__"],') == 2
         integration = (temp / 'submodules/NebulaIntegrationChecks/BUILD').read_text(encoding='utf-8')
         for target in ['//Telegram:Lib', '//Telegram:WidgetExtensionLib', '//submodules/TelegramUI:TelegramUI']:
             assert target in integration

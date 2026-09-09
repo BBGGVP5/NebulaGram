@@ -1,0 +1,19 @@
+diff --git a/Telegram/BUILD b/Telegram/BUILD
+--- a/Telegram/BUILD
++++ b/Telegram/BUILD
+@@ -395,6 +395,7 @@
+         "//third-party/boringssl:crypto",
+         "//submodules/BuildConfig:BuildConfig",
+     ],
++    visibility = ["//submodules/NebulaIntegrationChecks:__pkg__"],
+ )
+ 
+ plist_fragment(
+@@ -1209,6 +1210,7 @@
+         "//submodules/OpenSSLEncryptionProvider:OpenSSLEncryptionProvider",
+         "//Telegram:GeneratedSources",
+     ],
++    visibility = ["//submodules/NebulaIntegrationChecks:__pkg__"],
+ )
+ 
+ genrule(
