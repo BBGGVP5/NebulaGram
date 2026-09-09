@@ -22,7 +22,7 @@ jobs:
           set -o pipefail
           mkdir -p native-logs
           echo "NEBULA_IOS_TREE=$RUNNER_TEMP/nebulagram-ios-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT" >> "$GITHUB_ENV"
-          python platform/ios/tools/test_native_build.py
+          python platform/ios/tools/test_native_build.py 2>&1 | tee native-logs/safety.log
           python platform/ios/tools/native-build.py preflight --xcode 26.2 2>&1 | tee native-logs/preflight.log
       - name: Prepare actual Telegram sources, dependencies and overlay
         run: |

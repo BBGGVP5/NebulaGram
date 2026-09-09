@@ -18,7 +18,8 @@ class NativeBuildTests(unittest.TestCase):
             with self.assertRaises(ValueError): native.require_fresh(tree)
             self.assertEqual(sentinel.read_text(), 'keep')
             with self.assertRaises(ValueError): native.require_fresh(sentinel)
-            self.assertEqual(native.require_fresh(tree / 'fresh'), tree / 'fresh')
+            # macOS exposes /var via /private/var; compare canonical paths.
+            self.assertEqual(native.require_fresh(tree / 'fresh'), (tree / 'fresh').resolve())
 
     def test_vendor_destination_refused(self):
         with self.assertRaises(ValueError):
