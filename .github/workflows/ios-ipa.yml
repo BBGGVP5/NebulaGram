@@ -1,0 +1,57 @@
+name: iOS unsigned IPA
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: ios-ipa-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  ipa:
+    runs-on: macos-latest
+    timeout-minutes: 240
+    env:
+      PYTHONUNBUFFERED: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Check device build configuration and pinned Xcode
+        env:
+          TELEGRAM_APP_ID: ${{ secrets.TELEGRAM_APP_ID }}
+          TELEGRAM_APP_HASH: ${{ secrets.TELEGRAM_APP_HASH }}
+        run: |
+          python platform/ios/tools/test_native_build.py
+          python platform/ios/tools/test_ipa_build.py
+          python platform/ios/tools/ipa-build.py --preflight
+          echo "NEBULA_IOS_TREE=$RUNNER_TEMP/nebulagram-ipa-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT" >> "$GITHUB_ENV"
+      - name: Prepare pinned Telegram and Nebula integration
+        run: python platform/ios/tools/native-build.py prepare --destination "$NEBULA_IOS_TREE"
+      - name: Build and validate full arm64 device IPA (user signing required)
+        env:
+          TELEGRAM_APP_ID: ${{ secrets.TELEGRAM_APP_ID }}
+          TELEGRAM_APP_HASH: ${{ secrets.TELEGRAM_APP_HASH }}
+        run: |
+          python platform/ios/tools/ipa-build.py --tree "$NEBULA_IOS_TREE" --output "$GITHUB_WORKSPACE/ipa-artifacts" --build-number "$GITHUB_RUN_NUMBER" --jobs 2
+      - name: Upload validated IPA only (no configuration, profiles or build cache)
+        uses: actions/upload-artifact@v4
+        with:
+          name: NebulaGram-unsigned-ipa
+          if-no-files-found: error
+          retention-days: 14
+          compression-level: 0
+          path: |
+            ipa-artifacts/NebulaGram-unsigned.ipa
+            ipa-artifacts/build-result.json
+      - name: Explain installation requirements
+        run: |
+          cat >> "$GITHUB_STEP_SUMMARY" <<'EOF'
+          ## NebulaGram iOS development IPA
+          Full release_arm64 application + current Nebula iOS integration, not feature parity with Android.
+          Download `NebulaGram-unsigned-ipa` and sign the app and embedded extensions before installing.
+          No Apple provisioning profile or distribution signature is included. Preserve App Groups and
+          provision entitlements for the user's team and bundle IDs. A signing certificate alone does
+          not guarantee APNs delivery: registration/provider configuration and device tests remain required.
+          See `platform/ios/BUILD-IPA.md` and `platform/ios/NOTIFICATIONS.md`.
+          EOF

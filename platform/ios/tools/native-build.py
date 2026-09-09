@@ -120,7 +120,7 @@ def select_xcode(version):
     raise ValueError('Pinned Xcode ' + version + ' is unavailable; found: ' + ', '.join(p.name for p in applications))
 
 
-def build(tree, jobs):
+def validate_tree(tree):
     tree = Path(tree).resolve()
     manifest = json.loads((tree / MARKER).read_text(encoding='utf-8'))
     if manifest['revision'] != pin() or manifest['inputs'] != inputs() or manifest['target'] != TARGET:
@@ -133,6 +133,11 @@ def build(tree, jobs):
     for relative, digest in expected.items():
         if hashlib.sha256((tree / relative).read_bytes()).hexdigest() != digest:
             raise ValueError('Prepared source changed: ' + relative)
+    return tree, manifest
+
+
+def build(tree, jobs):
+    tree, manifest = validate_tree(tree)
     versions = json.loads((tree / 'versions.json').read_text(encoding='utf-8'))
     select_xcode(versions['xcode'])
     os.chdir(tree)
