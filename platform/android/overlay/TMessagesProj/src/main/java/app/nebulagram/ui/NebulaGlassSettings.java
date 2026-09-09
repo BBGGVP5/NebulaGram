@@ -32,7 +32,7 @@ public final class NebulaGlassSettings {
             NebulaAppearance.glassHighlights(),v->{NebulaAppearance.setGlassHighlights(v);preview.invalidate();}));
         card.add(NebulaExtras.toggle(c,R.drawable.msg_customize,NebulaText.text("Настроить стекло", "Customize glass"),null,
             NebulaGlass.custom(),v->{NebulaGlass.custom(v);details.expand(v);preview.invalidate();}));
-        NebulaRow quality = new NebulaRow(c);
+        NebulaRow quality = new NebulaRow(c).icon(R.drawable.msg_photo_settings);
         String[] modes = {NebulaText.text("Автоматически", "Automatic"), NebulaText.text("Полное", "Full"), NebulaText.text("Облегчённое", "Light")};
         quality.title(NebulaText.text("Качество стекла: ", "Glass quality: ") + modes[NebulaGlass.quality()]);
         quality.trailing(NebulaRow.TRAIL_CHEVRON).withClick(v -> new org.telegram.ui.ActionBar.AlertDialog.Builder(c)

@@ -70,6 +70,7 @@ public final class NebulaLoginStyle {
         hideKeyboardWhenComplete(field, keyboard);
         fieldMargins(country, 26, 6);
         fieldMargins(phone, 8, 12);
+        centerFieldContent(country);
         for (int i = 0; i < slide.getChildCount(); i++) {
             View child = slide.getChildAt(i);
             if (child instanceof Space) child.setVisibility(View.GONE);
@@ -264,6 +265,35 @@ public final class NebulaLoginStyle {
         margins(view, 0, top, 0, bottom);
         view.getLayoutParams().height = ViewGroup.LayoutParams.WRAP_CONTENT;
         view.setMinimumHeight(AndroidUtilities.dp(64));
+    }
+
+    /**
+     * Ставит содержимое поля по центру его рамки.
+     *
+     * <p>«Страна» держит флаг с названием в единственном потомке высотой во всё
+     * поле, прижатом к верху. Пока Telegram задавал полю точную высоту, потомок
+     * получал её же и центрировал строку сам. Наша высота — по содержимому с
+     * минимумом в 64 точки: FrameLayout пересчитывает потомков во всю высоту
+     * только когда их больше одного, поэтому единственный потомок остаётся
+     * высотой по своему тексту и вместе с ним встаёт под верхний край. Отсюда
+     * и перекос: у «Страны» текст выше середины, у «Номера телефона» — по
+     * центру, потому что там потомок центрируется сам.
+     */
+    private static void centerFieldContent(View field) {
+        if (!(field instanceof ViewGroup)) {
+            return;
+        }
+        ViewGroup group = (ViewGroup) field;
+        for (int i = 0; i < group.getChildCount(); i++) {
+            View child = group.getChildAt(i);
+            if (!(child.getLayoutParams() instanceof FrameLayout.LayoutParams)) {
+                continue;
+            }
+            FrameLayout.LayoutParams params = (FrameLayout.LayoutParams) child.getLayoutParams();
+            params.height = ViewGroup.LayoutParams.WRAP_CONTENT;
+            params.gravity = (params.gravity & ~Gravity.VERTICAL_GRAVITY_MASK) | Gravity.CENTER_VERTICAL;
+            child.setLayoutParams(params);
+        }
     }
 
     private static GradientDrawable surface(int radius) {

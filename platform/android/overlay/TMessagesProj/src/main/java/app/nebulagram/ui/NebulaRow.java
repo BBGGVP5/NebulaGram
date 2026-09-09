@@ -62,6 +62,10 @@ public class NebulaRow extends FrameLayout {
         icon.setBackground(iconBackground);
         icon.setPadding(AndroidUtilities.dp(9), AndroidUtilities.dp(9),
                 AndroidUtilities.dp(9), AndroidUtilities.dp(9));
+        // Контейнер значка нарисован ещё до того, как значок задан. Пока его
+        // нет, показывать пустой скруглённый квадрат нечем оправдать: строка
+        // без значка должна начинаться с текста, как в Material 3.
+        icon.setVisibility(GONE);
 
         LayoutParams iconParams = new LayoutParams(AndroidUtilities.dp(40), AndroidUtilities.dp(40));
         iconParams.gravity = Gravity.CENTER_VERTICAL | Gravity.START;
@@ -88,9 +92,16 @@ public class NebulaRow extends FrameLayout {
         LayoutParams textParams = new LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         textParams.gravity = Gravity.CENTER_VERTICAL;
-        textParams.setMarginStart(AndroidUtilities.dp(60));
+        textParams.setMarginStart(0);
         textParams.setMarginEnd(AndroidUtilities.dp(36));
         addView(text, textParams);
+    }
+
+    /** Отступ текста под значок — только когда значок действительно есть. */
+    private void indent(boolean leading) {
+        LayoutParams params = (LayoutParams) text.getLayoutParams();
+        params.setMarginStart(leading ? AndroidUtilities.dp(60) : 0);
+        text.setLayoutParams(params);
     }
 
     private android.animation.ValueAnimator highlightAnimation;
@@ -123,6 +134,7 @@ public class NebulaRow extends FrameLayout {
             icon.setVisibility(VISIBLE);
             icon.setImageResource(resource);
         }
+        indent(resource != 0);
         return this;
     }
 
@@ -148,6 +160,7 @@ public class NebulaRow extends FrameLayout {
         }
         emojiIcon.setVisibility(VISIBLE);
         emojiIcon.setText(flag);
+        indent(true);
         return this;
     }
 
