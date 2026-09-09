@@ -255,6 +255,15 @@ public class NebulaSectionFragment extends BaseFragment {
     }
 
     private void buildTabs(Context context) {
+        NebulaCard home = new NebulaCard(context);
+        home.add(toggle(context, R.drawable.outline_fab_story_24,
+                R.string.NebulaHideHomeCamera, R.string.NebulaHideHomeCameraInfo,
+                NebulaAppearance.hideHomeCamera(), NebulaAppearance::setHideHomeCamera));
+        home.add(toggle(context, R.drawable.filled_fab_compose_32,
+                R.string.NebulaHideHomeCompose, R.string.NebulaHideHomeComposeInfo,
+                NebulaAppearance.hideHomeCompose(), NebulaAppearance::setHideHomeCompose));
+        content.addView(home, cardParams());
+
         content.addView(NebulaCard.header(context,
                 LocaleController.getString(R.string.NebulaTabsSection)));
         NebulaCard card = new NebulaCard(context);

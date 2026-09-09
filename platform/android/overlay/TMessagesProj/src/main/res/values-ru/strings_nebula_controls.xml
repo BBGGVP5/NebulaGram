@@ -48,4 +48,8 @@
     <string name="NebulaProfileVisible">Показывать, если пользователь добавил эту информацию</string>
     <string name="NebulaPreviewMessage">Так выглядит сообщение с ответом и ссылкой</string>
     <string name="NebulaPreviewReply">Ваше исходное сообщение</string>
+    <string name="NebulaHideHomeCamera">Скрыть кнопку камеры</string>
+    <string name="NebulaHideHomeCameraInfo">Убрать быстрый переход к съёмке истории на главной</string>
+    <string name="NebulaHideHomeCompose">Скрыть кнопку нового чата</string>
+    <string name="NebulaHideHomeComposeInfo">Убрать плавающую кнопку нового сообщения на главной</string>
 </resources>

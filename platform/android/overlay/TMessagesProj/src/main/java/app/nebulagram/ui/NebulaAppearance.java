@@ -187,6 +187,10 @@ public final class NebulaAppearance {
     public static void setMessageMenuBlur(boolean value) { preferences().edit().putBoolean("message_menu_blur", value).apply(); }
     public static boolean messageMenuBelow() { return preferences().getBoolean("message_menu_below", false); }
     public static void setMessageMenuBelow(boolean value) { preferences().edit().putBoolean("message_menu_below", value).apply(); }
+    public static boolean hideHomeCamera() { return preferences().getBoolean("hide_home_camera", false); }
+    public static void setHideHomeCamera(boolean value) { preferences().edit().putBoolean("hide_home_camera", value).apply(); }
+    public static boolean hideHomeCompose() { return preferences().getBoolean("hide_home_compose", false); }
+    public static void setHideHomeCompose(boolean value) { preferences().edit().putBoolean("hide_home_compose", value).apply(); }
     public static boolean hideAllChats() { return preferences().getBoolean("hide_all_chats", false); }
     public static void setHideAllChats(boolean value) { preferences().edit().putBoolean("hide_all_chats", value).apply(); }
     public static boolean folderOutline() { return preferences().getBoolean("folder_outline", false); }

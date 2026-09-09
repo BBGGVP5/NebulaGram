@@ -199,3 +199,32 @@ this change, and these source tests are not a claim of runtime visual acceptance
 Final patch-0069 Java compilation passed (2m40s). Bytecode checks confirmed Rich
 preview isolation, folder settlement, both emoji-tab setup paths, channel history,
 profile highlight preference and separate-window sheet capture.
+
+## Input controls and section material (2026-09-09, patch 0070)
+
+- Two independent switches in the bottom-tab organizer hide the home camera and
+  new-chat FAB. Both default to false and participate in the settings schema.
+  Selection-mode Done is preserved. Hiding compose lowers the camera into the
+  vacant position; returning from settings reapplies visibility and positioning.
+- Emoji type scrub selection reads ViewPager's authoritative destination instead
+  of the last scroll callback. Selection and idle callbacks reset the interpolation
+  offset. The extra bottom backing view is hidden in Nebula glass mode, without
+  removing the sticker body or the glass buttons. Content can extend beneath the
+  controls, and blur capture uses the emoji panel's background color.
+- Attachment list sections now use the same originating-window source as the sheet.
+  Section grouping, corner radii and native content remain unchanged. Separate
+  material slots are reused each frame so successive sections and blur passes do
+  not overwrite each other's RenderNodes. Original-window coordinate mapping and
+  detach cleanup are covered by executable production-method tests. Missing source,
+  software canvas, disabled glass and unsupported/custom layouts retain fallback.
+- Floating-header title feedback scales only the title/subtitle children, not the
+  avatar. Existing avatar/story hit handling is retained. Cancelled title gestures
+  no longer open the profile, and release is consumed once.
+
+Validation: all 25 workflow regression commands passed; a fresh vendor-plus-patches
+reconstruction matches all 6 changed native files. Java compilation succeeded in
+4m; bytecode confirms the current controls, section routing and pager setters.
+Evidence is under `build/input-controls-0909/`. These are source/build checks, not
+visual acceptance: ADB lists no device. Test light/dark themes, emoji scrubbing,
+files/polls/todos, disabled blur, header/avatar taps and settings return on Android.
+No APK was installed or published for patch 0070.

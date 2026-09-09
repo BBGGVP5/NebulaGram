@@ -59,6 +59,8 @@ public final class NebulaSettingsSchema {
         map.put("uniform_avatars", Boolean.class);
         map.put("useSystemBoldFont", Boolean.class);
         map.put("useSystemEmoji", Boolean.class);
+        map.put("hide_home_camera", Boolean.class);
+        map.put("hide_home_compose", Boolean.class);
         types = Collections.unmodifiableMap(map);
     }
 }

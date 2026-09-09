@@ -48,4 +48,8 @@
     <string name="NebulaProfileVisible">Show when the user has provided this information</string>
     <string name="NebulaPreviewMessage">This is a message with a reply and link</string>
     <string name="NebulaPreviewReply">Your original message</string>
+    <string name="NebulaHideHomeCamera">Hide camera button</string>
+    <string name="NebulaHideHomeCameraInfo">Hide the story camera shortcut on the home screen</string>
+    <string name="NebulaHideHomeCompose">Hide new chat button</string>
+    <string name="NebulaHideHomeComposeInfo">Hide the floating new message button on the home screen</string>
 </resources>

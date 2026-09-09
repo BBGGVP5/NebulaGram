@@ -2,6 +2,7 @@ package app.nebulagram.ui;
 
 import android.graphics.Canvas;
 import android.graphics.Rect;
+import android.graphics.RectF;
 import android.os.Build;
 import android.view.View;
 import android.view.ViewTreeObserver;
@@ -19,6 +20,14 @@ public final class NebulaSheetSurface implements View.OnAttachStateChangeListene
     private final View host, root;
     private final BlurredBackgroundSourceRenderNode source;
     private final BlurredBackgroundDrawable[] materials = new BlurredBackgroundDrawable[3];
+    private final BlurredBackgroundDrawableViewFactory factory;
+    private final Theme.ResourcesProvider provider;
+    private static final class Sections {
+        final java.util.ArrayList<BlurredBackgroundDrawable> drawables = new java.util.ArrayList<>();
+        int used;
+    }
+    private final java.util.WeakHashMap<View, Sections> sections = new java.util.WeakHashMap<>();
+    private final int[] sectionPosition = new int[2];
     private final int[] origin = new int[2], position = new int[2];
     private boolean ready;
 
@@ -31,11 +40,12 @@ public final class NebulaSheetSurface implements View.OnAttachStateChangeListene
     private NebulaSheetSurface(View host, View root, Theme.ResourcesProvider provider) {
         this.host = host;
         this.root = root;
+        this.provider = provider;
         BlurredBackgroundSourceColor fallback = new BlurredBackgroundSourceColor();
         fallback.setColor(NebulaMenuStyle.surface(provider));
         source = new BlurredBackgroundSourceRenderNode(fallback);
         source.setBlur(AndroidUtilities.dpf2(NebulaGlass.blur()));
-        BlurredBackgroundDrawableViewFactory factory = new BlurredBackgroundDrawableViewFactory(source);
+        factory = new BlurredBackgroundDrawableViewFactory(source);
         factory.setLiquidGlassEffectAllowed(NebulaMenuStyle.animated());
         for (int i = 0; i < materials.length; i++) {
             materials[i] = factory.create(host).setColorProvider(NebulaMenuStyle.provider(provider));
@@ -51,6 +61,7 @@ public final class NebulaSheetSurface implements View.OnAttachStateChangeListene
 
     @Override public boolean onPreDraw() {
         ready = false;
+        for (Sections bucket : sections.values()) bucket.used = 0;
         // Never sample the sheet itself, including when hosted in a same-window bubble.
         if (!root.isAttachedToWindow() || host.getRootView() == root || root.getWidth() <= 0
                 || root.getHeight() <= 0 || source.inRecording()) return true;
@@ -73,12 +84,34 @@ public final class NebulaSheetSurface implements View.OnAttachStateChangeListene
         return true;
     }
 
+    public boolean drawSection(View view, Canvas canvas, RectF bounds, float topRadius, float bottomRadius, float alpha) {
+        if (!isReady() || !canvas.isHardwareAccelerated() || bounds.isEmpty()) return false;
+        Sections bucket = sections.get(view);
+        if (bucket == null) { bucket = new Sections(); sections.put(view, bucket); }
+        // Draw slots are reset once per window frame, not between blur and onscreen passes.
+        if (bucket.used == bucket.drawables.size()) {
+            BlurredBackgroundDrawable drawable = factory.create().setColorProvider(NebulaMenuStyle.provider(provider));
+            drawable.setThickness(AndroidUtilities.dp(4));
+            drawable.setIntensity(NebulaGlass.refraction());
+            bucket.drawables.add(drawable);
+        }
+        BlurredBackgroundDrawable drawable = bucket.drawables.get(bucket.used++);
+        view.getLocationOnScreen(sectionPosition);
+        drawable.setSourceOffset(sectionPosition[0] - origin[0], sectionPosition[1] - origin[1]);
+        drawable.setRadius(topRadius, topRadius, bottomRadius, bottomRadius);
+        drawable.setBounds(Math.round(bounds.left), Math.round(bounds.top), Math.round(bounds.right), Math.round(bounds.bottom));
+        drawable.setAlpha(Math.round(255 * Math.max(0f, Math.min(1f, alpha))));
+        drawable.draw(canvas);
+        return true;
+    }
+
     @Override public void onViewAttachedToWindow(View view) {
         view.getViewTreeObserver().removeOnPreDrawListener(this);
         view.getViewTreeObserver().addOnPreDrawListener(this);
     }
     @Override public void onViewDetachedFromWindow(View view) {
         ready = false;
+        sections.clear();
         if (view.getViewTreeObserver().isAlive()) view.getViewTreeObserver().removeOnPreDrawListener(this);
     }
 }
