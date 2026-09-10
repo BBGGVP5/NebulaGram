@@ -1,7 +1,15 @@
 diff --git a/Telegram/BUILD b/Telegram/BUILD
 --- a/Telegram/BUILD
 +++ b/Telegram/BUILD
-@@ -392,6 +392,7 @@
+@@ -371,6 +371,7 @@
+     module_name = "Lib",
+     srcs = glob([
+         "Telegram-iOS/Application.swift",
++        "Telegram-iOS/NebulaAppShortcuts.swift",
+     ]),
+     data = [
+         ":Icons",
+@@ -392,6 +393,7 @@
      deps = [
          "//submodules/TelegramUI:TelegramUI",
          "//third-party/boringssl:crypto",

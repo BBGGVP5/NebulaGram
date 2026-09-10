@@ -32,20 +32,3 @@
 - `check_onboarding.py` compares native auth handlers to the pinned originals.
   `--swift` also SDK-typechecks the UIKit-only artwork/welcome views. Whole-module
   AuthorizationUI/NebulaLinkUI compilation belongs to the native/IPA build gates.
-
-# Siri shortcuts are not in the application (2026-09-10)
-
-`NebulaAppShortcuts.swift` declared an `AppShortcutsProvider`. AppIntents is
-the only modern-intents user anywhere in the tree — upstream Telegram ships
-SiriIntents through `swift_intent_library` instead — and the framework needs
-an `appintentsmetadataprocessor` step at build time that Xcode runs and this
-Bazel build does not. An application that declares a provider without that
-metadata is a launch-time failure on recent iOS, which is what the first IPA
-carrying the file showed: a black screen instead of the welcome view.
-
-The provider is therefore out of `//Telegram:Lib`. The quick actions
-themselves are unaffected: the widget (`NebulaQuickActionsWidget.swift`,
-WidgetKit, which upstream already builds) and the URL routes in
-`NebulaQuickActions.swift` stay. Restoring Siri phrases means teaching the
-Bazel build to emit the metadata first, not putting the file back.
-
