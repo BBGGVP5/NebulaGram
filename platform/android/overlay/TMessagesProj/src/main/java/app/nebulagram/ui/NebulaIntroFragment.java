@@ -46,12 +46,13 @@ public class NebulaIntroFragment extends BaseFragment {
                 new int[] {theme.primaryContainer(), NebulaTheme.stateLayer(theme.primaryContainer(), 0.15f)});
         glow.setCornerRadius(AndroidUtilities.dp(44));
         image.setBackground(glow);
-        LinearLayout.LayoutParams iconParams = new LinearLayout.LayoutParams(AndroidUtilities.dp(144), AndroidUtilities.dp(144));
+        int mark = NebulaLoginStyle.compact(144);
+        LinearLayout.LayoutParams iconParams = new LinearLayout.LayoutParams(mark, mark);
         iconParams.gravity = Gravity.CENTER_HORIZONTAL;
-        iconParams.bottomMargin = AndroidUtilities.dp(32);
+        iconParams.bottomMargin = NebulaLoginStyle.compact(32);
         root.content.addView(image, iconParams);
 
-        TextView title = text(context, 32, theme.onSurface(), true);
+        TextView title = text(context, 26 + 6 * NebulaLoginStyle.vertical(), theme.onSurface(), true);
         title.setGravity(Gravity.CENTER);
         title.setText(highlight(LocaleController.getString(R.string.NebulaAuthWelcomeTitle),
                 "NebulaGram", theme.primary()));
@@ -80,7 +81,7 @@ public class NebulaIntroFragment extends BaseFragment {
         featureTextParams.topMargin = AndroidUtilities.dp(6);
         feature.addView(featureSubtitle, featureTextParams);
         LinearLayout.LayoutParams featureParams = width();
-        featureParams.topMargin = AndroidUtilities.dp(28);
+        featureParams.topMargin = NebulaLoginStyle.compact(28);
         root.content.addView(feature, featureParams);
 
         NebulaButton next = new NebulaButton(context, NebulaButton.STYLE_FILLED);

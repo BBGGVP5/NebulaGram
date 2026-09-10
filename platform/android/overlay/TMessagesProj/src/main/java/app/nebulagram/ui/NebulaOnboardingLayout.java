@@ -26,8 +26,8 @@ public final class NebulaOnboardingLayout extends FrameLayout {
         scroll.setFillViewport(true);
         scroll.setClipToPadding(false);
         scroll.setVerticalScrollBarEnabled(false);
-        scroll.setPadding(AndroidUtilities.dp(24), AndroidUtilities.statusBarHeight + AndroidUtilities.dp(20),
-                AndroidUtilities.dp(24), AndroidUtilities.dp(16));
+        scroll.setPadding(AndroidUtilities.dp(24), AndroidUtilities.statusBarHeight + NebulaLoginStyle.compact(20),
+                AndroidUtilities.dp(24), NebulaLoginStyle.compact(16));
         addView(scroll, new FrameLayout.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
 
         FrameLayout bounded = new FrameLayout(context);
@@ -46,7 +46,9 @@ public final class NebulaOnboardingLayout extends FrameLayout {
         content = new LinearLayout(context);
         content.setOrientation(LinearLayout.VERTICAL);
         content.setGravity(Gravity.CENTER_VERTICAL);
-        content.setPadding(0, AndroidUtilities.dp(24), 0, AndroidUtilities.dp(32));
+        // Отступы колонки тоже доля от высоты: на коротком экране именно они
+        // съедают место, которого не хватает картинке и полям.
+        content.setPadding(0, NebulaLoginStyle.compact(24), 0, NebulaLoginStyle.compact(32));
         column.addView(content, new LinearLayout.LayoutParams(LayoutParams.MATCH_PARENT,
                 LayoutParams.WRAP_CONTENT, 1f));
 

@@ -57,12 +57,13 @@ public class NebulaConnectFragment extends BaseFragment {
         image.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
         // Плитки под рисунком нет: в макетах её не было, а здесь она ещё и
         // срезала расходящуюся волну по краям квадрата.
-        LinearLayout.LayoutParams badgeParams = new LinearLayout.LayoutParams(AndroidUtilities.dp(248), AndroidUtilities.dp(248));
+        int badge = NebulaLoginStyle.compact(248);
+        LinearLayout.LayoutParams badgeParams = new LinearLayout.LayoutParams(badge, badge);
         badgeParams.gravity = Gravity.CENTER_HORIZONTAL;
-        badgeParams.bottomMargin = AndroidUtilities.dp(16);
+        badgeParams.bottomMargin = NebulaLoginStyle.compact(16);
         root.content.addView(image, badgeParams);
 
-        title = NebulaIntroFragment.text(context, 30, theme.onSurface(), true);
+        title = NebulaIntroFragment.text(context, 24 + 6 * NebulaLoginStyle.vertical(), theme.onSurface(), true);
         title.setGravity(Gravity.CENTER);
         title.setText(NebulaIntroFragment.highlight(
                 LocaleController.getString(R.string.NebulaAuthLinkTitle), "NebulaLink", theme.primary()));
@@ -107,7 +108,7 @@ public class NebulaConnectFragment extends BaseFragment {
         });
         field.addView(input, NebulaIntroFragment.width());
         LinearLayout.LayoutParams fieldParams = NebulaIntroFragment.width();
-        fieldParams.topMargin = AndroidUtilities.dp(28);
+        fieldParams.topMargin = NebulaLoginStyle.compact(28);
         root.content.addView(field, fieldParams);
 
         hint = NebulaIntroFragment.text(context, 12, theme.onSurfaceVariant(), false);

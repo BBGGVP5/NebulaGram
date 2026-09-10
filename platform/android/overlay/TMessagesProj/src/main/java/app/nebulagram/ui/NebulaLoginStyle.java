@@ -54,6 +54,35 @@ public final class NebulaLoginStyle {
                 .edit().putBoolean("login_style", value).apply();
     }
 
+    /**
+     * Во сколько раз ужать вертикаль на этом экране.
+     *
+     * <p>Размеры входа подобраны на экране высотой около семисот точек. На
+     * коротком сумма «картинка, надпись, поля, кнопка» перестаёт помещаться:
+     * содержимое центрируется в полосе выше кнопки, а всё, что не влезло,
+     * уходит под неё — на снимке с экрана ячейки кода наполовину закрыты
+     * «Продолжить». Поэтому вертикальные размеры берутся долей от того, что
+     * есть, а не фиксированными точками.
+     *
+     * <p>Нижняя граница не даёт ужать до нечитаемого: дальше экран прокручивается.
+     */
+    static float vertical() {
+        float density = AndroidUtilities.density;
+        if (density <= 0 || AndroidUtilities.displaySize == null) {
+            return 1f;
+        }
+        float points = AndroidUtilities.displaySize.y / density;
+        if (points <= 0) {
+            return 1f;
+        }
+        return Math.max(0.62f, Math.min(1f, (points - 120f) / 580f));
+    }
+
+    /** Точки, ужатые под высоту экрана. */
+    static int compact(float points) {
+        return AndroidUtilities.dp(points * vertical());
+    }
+
     public static boolean styled(View slide) {
         return slide != null && slide.getTag(R.id.nebula_auth_step) instanceof Integer;
     }
@@ -68,8 +97,8 @@ public final class NebulaLoginStyle {
         decorate(slide, title, subtitle, 2, R.string.NebulaAuthPhoneEyebrow);
         title.setText(LocaleController.getString(R.string.NebulaAuthPhoneTitle));
         hideKeyboardWhenComplete(field, keyboard);
-        fieldMargins(country, 26, 6);
-        fieldMargins(phone, 8, 12);
+        fieldMargins(country, Math.round(26 * vertical()), 6);
+        fieldMargins(phone, 8, Math.round(12 * vertical()));
         centerFieldContent(country);
 
         for (int i = 0; i < slide.getChildCount(); i++) {
@@ -135,8 +164,8 @@ public final class NebulaLoginStyle {
         decorate(slide, title, subtitle, 3, R.string.NebulaAuthCodeEyebrow);
         LinearLayout.LayoutParams digitParams = (LinearLayout.LayoutParams) digits.getLayoutParams();
         digitParams.height = ViewGroup.LayoutParams.WRAP_CONTENT;
-        digitParams.topMargin = AndroidUtilities.dp(28);
-        digitParams.bottomMargin = AndroidUtilities.dp(8);
+        digitParams.topMargin = compact(28);
+        digitParams.bottomMargin = compact(8);
         if (bottom != null) {
             LinearLayout.LayoutParams params = (LinearLayout.LayoutParams) bottom.getLayoutParams();
             params.height = ViewGroup.LayoutParams.WRAP_CONTENT;
@@ -157,7 +186,7 @@ public final class NebulaLoginStyle {
         }
         decorate(slide, title, subtitle, 4, R.string.NebulaAuthPasswordEyebrow);
         title.setText(LocaleController.getString(R.string.NebulaAuthPasswordTitle));
-        fieldMargins(field, 28, 8);
+        fieldMargins(field, Math.round(28 * vertical()), 8);
         recovery.setTextSize(TypedValue.COMPLEX_UNIT_SP, 15);
         recovery.setGravity(Gravity.CENTER);
         recovery.setMinimumHeight(AndroidUtilities.dp(48));
@@ -174,7 +203,7 @@ public final class NebulaLoginStyle {
     private static void decorate(SlideView slide, TextView title, TextView subtitle, int step, int eyebrow) {
         slide.setTag(R.id.nebula_auth_step, step);
         slide.setGravity(Gravity.CENTER_VERTICAL);
-        slide.setPadding(0, AndroidUtilities.dp(42), 0, AndroidUtilities.dp(24));
+        slide.setPadding(0, compact(42), 0, compact(24));
         slide.setLayoutDirection(LocaleController.isRTL ? View.LAYOUT_DIRECTION_RTL : View.LAYOUT_DIRECTION_LTR);
 
         // Нажатие мимо поля убирает клавиатуру. Пустое место экрана иначе
@@ -218,13 +247,13 @@ public final class NebulaLoginStyle {
             badge.setBackground(surface(28));
         }
         badge.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
-        final int side = AndroidUtilities.dp(animated ? 200 : 88);
+        final int side = compact(animated ? 200 : 88);
         // Экрану номера высота квадрата ни к чему: там широкая полоса
         // барабанов, и под ней с над ней оставалась пустота в треть картинки.
-        final int tall = step == 2 ? AndroidUtilities.dp(112) : side;
+        final int tall = step == 2 ? compact(112) : side;
         LinearLayout.LayoutParams badgeParams = new LinearLayout.LayoutParams(side, tall);
         badgeParams.gravity = Gravity.CENTER_HORIZONTAL;
-        badgeParams.bottomMargin = AndroidUtilities.dp(22);
+        badgeParams.bottomMargin = compact(22);
         slide.addView(badge, 0, badgeParams);
         TextView stepLabel = new TextView(slide.getContext());
         stepLabel.setText(LocaleController.getString(eyebrow));
@@ -234,10 +263,11 @@ public final class NebulaLoginStyle {
         stepLabel.setGravity(Gravity.CENTER);
         stepLabel.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlueText4));
         LinearLayout.LayoutParams stepParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        stepParams.bottomMargin = AndroidUtilities.dp(10);
+        stepParams.bottomMargin = compact(10);
         slide.addView(stepLabel, 1, stepParams);
 
-        title.setTextSize(TypedValue.COMPLEX_UNIT_SP, 30);
+        // Кегль ужимается вдвое медленнее отступов: читаемость важнее места.
+        title.setTextSize(TypedValue.COMPLEX_UNIT_SP, 24 + 6 * vertical());
         title.setTypeface(AndroidUtilities.bold());
         title.setGravity(Gravity.CENTER);
         // Длинный заголовок обрезался: тридцать пунктов в одну строку не
@@ -247,10 +277,10 @@ public final class NebulaLoginStyle {
         title.setEllipsize(null);
         title.setLineSpacing(AndroidUtilities.dp(2), 1f);
         margins(title, 0, 0, 0, 0);
-        subtitle.setTextSize(TypedValue.COMPLEX_UNIT_SP, 15);
+        subtitle.setTextSize(TypedValue.COMPLEX_UNIT_SP, 13.5f + 1.5f * vertical());
         subtitle.setGravity(Gravity.CENTER);
         subtitle.setLineSpacing(AndroidUtilities.dp(3), 1f);
-        margins(subtitle, 4, 12, 4, 0);
+        margins(subtitle, 4, Math.round(12 * vertical()), 4, 0);
     }
 
     private static void margins(View view, int left, int top, int right, int bottom) {
@@ -424,7 +454,7 @@ public final class NebulaLoginStyle {
                 int gap = AndroidUtilities.dp(count > 6 ? 5 : 8);
                 int available = MeasureSpec.getSize(widthMeasureSpec);
                 int width = Math.min(AndroidUtilities.dp(50), Math.max(1, (available - gap * (count - 1)) / count));
-                int height = AndroidUtilities.dp(60);
+                int height = compact(60);
                 for (int i = 0; i < count; i++) {
                     LinearLayout.LayoutParams params = (LinearLayout.LayoutParams) codeField[i].getLayoutParams();
                     params.width = width;
@@ -574,7 +604,7 @@ public final class NebulaLoginStyle {
                 buttonParams.bottomMargin = nativeButtonBottom + footer.getMeasuredHeight() + AndroidUtilities.dp(10);
                 iconParams.gravity = Gravity.END | Gravity.CENTER_VERTICAL;
                 iconParams.setMarginEnd(AndroidUtilities.dp(8));
-                int reserved = footer.getMeasuredHeight() + buttonParams.height + AndroidUtilities.dp(38);
+                int reserved = footer.getMeasuredHeight() + buttonParams.height + compact(38);
                 if (current.getPaddingBottom() != reserved) {
                     current.setPadding(0, current.getPaddingTop(), 0, reserved);
                 }
