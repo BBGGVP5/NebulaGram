@@ -115,4 +115,8 @@
     <string name="NebulaProfileBusinessInfo">Расписание и адрес бизнес-профиля</string>
     <string name="NebulaProfileBackgroundInfo">Цветной фон, выбранный владельцем профиля</string>
     <string name="NebulaProfileEmojiInfo">Рисунок из эмодзи на фоне профиля</string>
+    <string name="NebulaLinkLoading">Загружаем NebulaLink…</string>
+    <string name="NebulaLinkUnavailable">NebulaLink не ответил. Возможно, ядро ещё запускается.</string>
+    <string name="NebulaLinkNoScreen">Этого экрана нет в схеме ядра.</string>
+    <string name="NebulaLinkRetry">Повторить</string>
 </resources>

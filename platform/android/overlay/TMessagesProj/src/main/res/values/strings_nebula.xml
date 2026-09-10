@@ -122,4 +122,8 @@
     <string name="NebulaProfileBusinessInfo">Business profile opening hours and address</string>
     <string name="NebulaProfileBackgroundInfo">Profile background chosen by its owner</string>
     <string name="NebulaProfileEmojiInfo">Emoji pattern on the profile background</string>
+    <string name="NebulaLinkLoading">Loading NebulaLink…</string>
+    <string name="NebulaLinkUnavailable">NebulaLink did not answer. The core may still be starting.</string>
+    <string name="NebulaLinkNoScreen">This NebulaLink screen is missing from the core schema.</string>
+    <string name="NebulaLinkRetry">Try again</string>
 </resources>

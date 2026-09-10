@@ -7,15 +7,8 @@ import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.EditText;
-import org.json.JSONArray;
-import org.json.JSONObject;
 import org.telegram.messenger.AndroidUtilities;
-import org.telegram.messenger.DialogObject;
-import org.telegram.messenger.MessagesController;
 import org.telegram.messenger.R;
-import org.telegram.messenger.UserObject;
-import org.telegram.messenger.Utilities;
-import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.ActionBar.ActionBar;
 import org.telegram.ui.ActionBar.AlertDialog;
 import org.telegram.ui.ActionBar.BaseFragment;
@@ -28,12 +21,8 @@ import org.telegram.ui.ActionBar.BaseFragment;
  * есть значок, пояснения стоят под карточкой мелким кеглем.
  */
 public final class NebulaPrivacyFragment extends BaseFragment {
-    /** Сколько последних записей показывать в предпросмотре под настройками. */
-    private static final int PREVIEW = 50;
-
     private LinearLayout content;
     private long owner;
-    private int generation;
 
     private String text(String ru, String en) { return NebulaText.text(ru, en); }
 
@@ -100,7 +89,6 @@ public final class NebulaPrivacyFragment extends BaseFragment {
 
     private void rebuild() {
         if (content == null) return;
-        int version = ++generation;
         content.removeAllViews();
 
         header(text("Удалённые сообщения", "Deleted messages"));
@@ -134,100 +122,13 @@ public final class NebulaPrivacyFragment extends BaseFragment {
                 .destructive()
                 .withClick(v -> confirmClear(this, currentAccount, 0, this::rebuild)));
 
-        Utilities.globalQueue.postRunnable(() -> {
-            try {
-                JSONArray entries = NebulaDeletedArchive.entries(owner);
-                AndroidUtilities.runOnUIThread(() -> {
-                    if (content == null || version != generation) return;
-                    entries(entries);
-                });
-            } catch (Exception e) { error(); }
-        });
-    }
-
-    /** Предпросмотр архива: последние записи, чтобы список не рос без границ. */
-    private void entries(JSONArray entries) {
-        Context context = content.getContext();
+        // The archive preview is gone: retained messages live in the chat
+        // itself, so a second copy of them here only duplicated the
+        // conversation and put other people's text on a settings screen.
         if (NebulaDeletedArchive.hasError(owner)) {
-            header(text("Сохранённые сообщения", "Retained messages"));
             note(text("Часть сообщений не удалось сохранить. Архив не сброшен.",
                     "Some messages could not be saved. The archive was not reset."));
         }
-        int count = entries.length();
-        if (count == 0) {
-            header(text("Сохранённые сообщения", "Retained messages"));
-            content.addView(NebulaMenuFragment.placeholder(context, text("Архив пока пуст", "The archive is empty")));
-            return;
-        }
-        int shown = Math.min(PREVIEW, count);
-        header(shown < count
-                ? text("Последние ", "Latest ") + shown + text(" из ", " of ") + count
-                : text("Сохранённые сообщения", "Retained messages"));
-        for (int i = 0; i < shown; i++) {
-            JSONObject entry = entries.optJSONObject(i);
-            if (entry == null) continue;
-            content.addView(entry(context, entry), cardMargin());
-        }
-    }
-
-    private LinearLayout.LayoutParams cardMargin() {
-        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        params.topMargin = AndroidUtilities.dp(6);
-        return params;
-    }
-
-    /** Одна сохранённая запись: чат и дата шапкой, под ними сам текст. */
-    private View entry(Context context, JSONObject entry) {
-        NebulaTheme theme = NebulaTheme.of(context);
-        NebulaCard card = new NebulaCard(context);
-
-        LinearLayout column = new LinearLayout(context);
-        column.setOrientation(LinearLayout.VERTICAL);
-        column.setPadding(AndroidUtilities.dp(16), AndroidUtilities.dp(12),
-                AndroidUtilities.dp(16), AndroidUtilities.dp(14));
-
-        TextView caption = new TextView(context);
-        caption.setText(NebulaDeletedArchive.icon() + "  " + peer(entry.optLong("peer")) + "  ·  "
-                + java.text.DateFormat.getDateTimeInstance(java.text.DateFormat.SHORT, java.text.DateFormat.SHORT)
-                        .format(new java.util.Date(entry.optLong("deletedAt"))));
-        caption.setTextSize(13);
-        caption.setTextColor(theme.primary());
-        caption.setTypeface(AndroidUtilities.bold());
-        column.addView(caption);
-
-        // У сообщения с одним вложением текста нет: пустая карточка выглядела
-        // бы сломанной, поэтому пишем, что именно сохранено.
-        String body = entry.optString("text");
-        TextView message = new TextView(context);
-        message.setText(body.isEmpty() ? text("Без текста — вложение", "No text — attachment") : body);
-        message.setTextSize(15);
-        message.setTextColor(body.isEmpty() ? theme.onSurfaceVariant() : theme.onSurface());
-        message.setLineSpacing(AndroidUtilities.dp(2), 1f);
-        message.setTextIsSelectable(true);
-        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        params.topMargin = AndroidUtilities.dp(4);
-        column.addView(message, params);
-
-        card.add(column);
-        return card;
-    }
-
-    /** Имя чата вместо его номера: номер ни о чём не говорит. */
-    private String peer(long id) {
-        if (id == 0) return text("Чат", "Chat");
-        if (DialogObject.isEncryptedDialog(id)) return text("Секретный чат", "Secret chat");
-        MessagesController controller = MessagesController.getInstance(currentAccount);
-        if (id < 0) {
-            TLRPC.Chat chat = controller.getChat(-id);
-            if (chat != null && chat.title != null && !chat.title.isEmpty()) return chat.title;
-        } else {
-            TLRPC.User user = controller.getUser(id);
-            String name = user == null ? null : UserObject.getUserName(user);
-            if (name != null && !name.isEmpty()) return name;
-        }
-        return text("Чат ", "Chat ") + id;
     }
 
     private NebulaRow extraToggle(boolean secret) {
@@ -273,11 +174,5 @@ public final class NebulaPrivacyFragment extends BaseFragment {
             }).create());
     }
 
-    private void error() {
-        AndroidUtilities.runOnUIThread(() -> {
-            if (content != null) note(text("Не удалось прочитать или изменить архив. Данные не сброшены.", "Could not read or change the archive. Data was not reset."));
-        });
-    }
-
-    @Override public void onFragmentDestroy() { generation++; content = null; super.onFragmentDestroy(); }
+    @Override public void onFragmentDestroy() { content = null; super.onFragmentDestroy(); }
 }

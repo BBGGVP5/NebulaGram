@@ -45,6 +45,9 @@ public class NebulaMenuFragment extends BaseFragment {
     private JSONObject screen;
     private JSONObject settings;
     private LinearLayout content;
+    /** Текст ошибки последней загрузки схемы; null — всё в порядке. */
+    private String failure;
+    private boolean loading;
 
     public NebulaMenuFragment() {
         this(SCREEN_HOME);
@@ -60,20 +63,57 @@ public class NebulaMenuFragment extends BaseFragment {
         return super.onFragmentCreate();
     }
 
-    /** Pulls the schema and the current values, then draws. */
+    /**
+     * Pulls the schema and the current values, then draws.
+     *
+     * <p>Неудачу видно на экране. Раньше отказ {@code menu.get} просто выходил
+     * из обработчика: экран оставался пустым чёрным полем под своим
+     * заголовком, без единой строки и без способа повторить — а повторной
+     * загрузки не было даже при возврате на экран.
+     */
     private void load() {
+        if (loading) {
+            return;
+        }
+        loading = true;
         NebulaLink.call("menu.get", null, menuResult -> {
             if (!menuResult.ok) {
+                loading = false;
+                failed(menuResult.error);
                 return;
             }
             screen = findScreen(menuResult.array);
+            if (screen == null) {
+                loading = false;
+                failed(LocaleController.getString(R.string.NebulaLinkNoScreen));
+                return;
+            }
             NebulaLink.call("settings.get", null, settingsResult -> {
+                loading = false;
                 if (settingsResult.ok) {
                     settings = settingsResult.data;
+                    failure = null;
+                } else {
+                    failure = settingsResult.error;
                 }
                 rebuild();
             });
         });
+    }
+
+    private void failed(String message) {
+        failure = message == null || message.isEmpty()
+                ? LocaleController.getString(R.string.NebulaLinkUnavailable) : message;
+        rebuild();
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        // Ядро могло подняться уже после того, как экран сдался.
+        if (screen == null) {
+            load();
+        }
     }
 
     private JSONObject findScreen(JSONArray screens) {
@@ -135,7 +175,10 @@ public class NebulaMenuFragment extends BaseFragment {
         Context context = content.getContext();
         content.removeAllViews();
         if (SCREEN_ADVANCED.equals(screenId)) NebulaLinkShortcut.addSettings(content);
-        if (screen == null) return;
+        if (screen == null) {
+            content.addView(unavailable(context));
+            return;
+        }
         actionBar.setTitle(localized(screen.optString("title_key"), screen.optString("title")));
 
         JSONArray sections = screen.optJSONArray("sections");
@@ -167,6 +210,31 @@ public class NebulaMenuFragment extends BaseFragment {
                 content.addView(card, params);
             }
         }
+    }
+
+    /** Экран не загрузился: объясняем и даём повторить, а не молчим. */
+    private View unavailable(Context context) {
+        NebulaCard card = new NebulaCard(context);
+        TextView message = new TextView(context);
+        message.setText(loading
+                ? LocaleController.getString(R.string.NebulaLinkLoading)
+                : failure == null ? LocaleController.getString(R.string.NebulaLinkUnavailable) : failure);
+        message.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 15);
+        message.setTextColor(NebulaTheme.of(context).onSurfaceVariant());
+        message.setGravity(Gravity.CENTER);
+        message.setPadding(AndroidUtilities.dp(20), AndroidUtilities.dp(22),
+                AndroidUtilities.dp(20), loading ? AndroidUtilities.dp(22) : AndroidUtilities.dp(6));
+        card.add(message);
+        if (!loading) {
+            card.add(new NebulaRow(context).icon(R.drawable.msg_retry)
+                    .title(LocaleController.getString(R.string.NebulaLinkRetry))
+                    .withClick(v -> { failure = null; rebuild(); load(); }));
+        }
+        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        params.topMargin = AndroidUtilities.dp(6);
+        card.setLayoutParams(params);
+        return card;
     }
 
     private View buildRow(Context context, JSONObject row) {
