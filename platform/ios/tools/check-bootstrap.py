@@ -88,7 +88,10 @@ def main():
         handler = (temp / 'submodules/SettingsUI/Sources/Search/SettingsSearchableItems.swift').read_text(encoding='utf-8')
         assert 'if nebulaOpenQuickAction(context: context, path: path, navigationController: navigationController)' in handler
         app_build = (temp / 'Telegram/BUILD').read_text(encoding='utf-8')
-        assert 'NebulaAppShortcuts.swift' in app_build
+        # AppIntents needs metadata this Bazel build does not produce, and the
+        # app is the only thing in the tree that would use the framework, so
+        # the provider stays out of the application target. See HOOKS.md.
+        assert 'NebulaAppShortcuts.swift' not in app_build
         # //Telegram:Lib and :WidgetExtensionLib are private to their own package
         # upstream; without the grant the integration check fails Bazel analysis.
         assert app_build.count('visibility = ["//submodules/NebulaIntegrationChecks:__pkg__"],') == 2
