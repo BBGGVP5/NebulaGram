@@ -623,7 +623,17 @@ func (c *Core) handleProbe(payload []byte) (any, error) {
 	if timeout <= 0 {
 		timeout = 5 * time.Second
 	}
-	probe.Batch(context.Background(), targets, 16, timeout)
+	// The "Ping type" setting used to describe a choice nothing acted on:
+	// every check was a TCP handshake regardless. URL measures the running
+	// tunnel and cannot rank servers, so it falls back to TCP here.
+	method := probe.MethodTCP
+	if c.st().Settings().PingType == settings.PingHTTP {
+		method = probe.MethodHTTP
+		if timeout < 8*time.Second {
+			timeout = 8 * time.Second
+		}
+	}
+	probe.Batch(context.Background(), targets, 16, timeout, method)
 
 	results := make(map[string]int, len(targets))
 	for _, s := range targets {

@@ -65,6 +65,7 @@ RUSSIAN = {
     "nl_mode_vpn": "Всё устройство (VPN)",
     "nl_ping_type": "Тип проверки",
     "nl_ping_tcp": "TCP",
+    "nl_ping_http": "HTTP GET",
     "nl_ping_url": "URL",
     "nl_hwid": "Идентификатор устройства",
     "nl_hwid_sub": "Отправляется панели с лимитом устройств",

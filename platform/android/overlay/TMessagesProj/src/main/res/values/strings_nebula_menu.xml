@@ -38,6 +38,7 @@
     <string name="nl_open_provider_sub">Top up, renew or read announcements</string>
     <string name="nl_per_page">Servers per page</string>
     <string name="nl_per_page_sub">More servers at once, less paging</string>
+    <string name="nl_ping_http">HTTP GET</string>
     <string name="nl_ping_tcp">TCP</string>
     <string name="nl_ping_type">Ping type</string>
     <string name="nl_ping_url">URL</string>

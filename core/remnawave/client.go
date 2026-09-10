@@ -45,9 +45,20 @@ type Client struct {
 }
 
 // DefaultUserAgent is what we send when the caller sets none. Panels use the
-// UA to decide the payload format, and an unknown UA yields the base64 list,
-// which is exactly the format we prefer.
+// UA to decide the payload format, and an unknown UA usually yields the base64
+// list, which is the format we prefer.
 const DefaultUserAgent = "NebulaLink/1.0"
+
+// CompatibleUserAgent is asked second, and only when asking as ourselves
+// produced nothing usable.
+//
+// Some panels answer an unrecognised client with a stub — one server named
+// "client not supported" pointing at 0.0.0.0:1 — instead of the list. The
+// name below is sing-box for Android, whose profile format this package
+// already parses, so it is what we ask for rather than a browser's name: it
+// describes a payload we genuinely support. Pin Settings.UserAgent to keep a
+// panel's own identity and skip this entirely.
+const CompatibleUserAgent = "SFA/1.11.0"
 
 // Result is one successful subscription fetch.
 type Result struct {
@@ -58,7 +69,31 @@ type Result struct {
 }
 
 // Fetch downloads and parses a subscription URL.
+//
+// The panel is asked as NebulaLink first. If that answers with nothing we can
+// connect to — an empty list, or only the stub a panel returns for a client it
+// does not know — it is asked once more as a client whose format we support.
+// A user-pinned UserAgent is never second-guessed.
 func (c *Client) Fetch(ctx context.Context, rawURL, sourceName string) (*Result, error) {
+	res, err := c.fetch(ctx, rawURL, sourceName, c.userAgent())
+	if err == nil || c.Device.UserAgent != "" {
+		return res, err
+	}
+	retry, retryErr := c.fetch(ctx, rawURL, sourceName, CompatibleUserAgent)
+	if retryErr != nil {
+		return nil, err // the first answer is the one worth reporting
+	}
+	return retry, nil
+}
+
+func (c *Client) userAgent() string {
+	if c.Device.UserAgent != "" {
+		return c.Device.UserAgent
+	}
+	return DefaultUserAgent
+}
+
+func (c *Client) fetch(ctx context.Context, rawURL, sourceName, userAgent string) (*Result, error) {
 	if strings.TrimSpace(rawURL) == "" {
 		return nil, errors.New("remnawave: empty subscription url")
 	}
@@ -66,7 +101,7 @@ func (c *Client) Fetch(ctx context.Context, rawURL, sourceName string) (*Result,
 	if err != nil {
 		return nil, fmt.Errorf("remnawave: bad url: %w", err)
 	}
-	c.applyHeaders(req)
+	c.applyHeaders(req, userAgent)
 
 	resp, err := c.httpClient().Do(req)
 	if err != nil {
@@ -84,6 +119,7 @@ func (c *Client) Fetch(ctx context.Context, rawURL, sourceName string) (*Result,
 
 	res := &Result{Raw: string(body), Info: infoFromHeaders(resp.Header)}
 	res.Servers, res.Format = parseBody(res.Raw, sourceName)
+	res.Servers = usable(res.Servers)
 	if len(res.Servers) == 0 {
 		return nil, errors.New("remnawave: subscription contains no usable servers")
 	}
@@ -95,8 +131,36 @@ func (c *Client) Fetch(ctx context.Context, rawURL, sourceName string) (*Result,
 	return res, nil
 }
 
-func (c *Client) applyHeaders(req *http.Request) {
-	ua := c.Device.UserAgent
+// usable drops entries that cannot be connected to. A panel that does not
+// recognise the client sends its refusal as a server: a placeholder endpoint
+// with a name explaining the refusal, which would otherwise sit in the list
+// looking selectable and fail on every attempt.
+func usable(servers []model.Server) []model.Server {
+	kept := servers[:0]
+	for _, s := range servers {
+		if placeholder(s) {
+			continue
+		}
+		kept = append(kept, s)
+	}
+	return kept
+}
+
+// Only addresses that can never name an endpoint, and the all-zero identity a
+// refusal stub carries. Loopback stays allowed: someone running a local proxy
+// is unusual, not impossible, and it is not this package's call to forbid it.
+func placeholder(s model.Server) bool {
+	switch strings.TrimSpace(s.Address) {
+	case "", "0.0.0.0", "::":
+		return true
+	}
+	if s.Port <= 0 || s.Port > 65535 {
+		return true
+	}
+	return s.UUID == "00000000-0000-0000-0000-000000000000"
+}
+
+func (c *Client) applyHeaders(req *http.Request, ua string) {
 	if ua == "" {
 		ua = DefaultUserAgent
 	}

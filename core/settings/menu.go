@@ -156,6 +156,7 @@ func advancedScreen() Screen {
 					TitleKey: "nl_ping_type", Title: "Ping type",
 					Options: []Option{
 						{Value: string(PingTCP), TitleKey: "nl_ping_tcp", Title: "TCP"},
+						{Value: string(PingHTTP), TitleKey: "nl_ping_http", Title: "HTTP GET"},
 						{Value: string(PingURL), TitleKey: "nl_ping_url", Title: "URL"},
 					}},
 				{Key: "hwid", Type: RowText, Icon: "edit",

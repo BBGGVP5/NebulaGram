@@ -38,6 +38,7 @@
     <string name="nl_open_provider_sub">Пополнить, продлить, прочитать объявления</string>
     <string name="nl_per_page">Серверов на странице</string>
     <string name="nl_per_page_sub">Больше сразу — меньше перелистывания</string>
+    <string name="nl_ping_http">HTTP GET</string>
     <string name="nl_ping_tcp">TCP</string>
     <string name="nl_ping_type">Тип проверки</string>
     <string name="nl_ping_url">URL</string>

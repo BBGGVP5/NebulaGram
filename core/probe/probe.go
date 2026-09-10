@@ -1,13 +1,17 @@
 // Package probe measures server latency.
 //
-// Two methods, matching the "Ping type" setting: TCP measures the handshake to
-// the endpoint and never disturbs a live tunnel, while URL measures a real HTTP
-// round trip through the local SOCKS proxy and therefore reflects what the user
-// actually experiences.
+// Three methods, matching the "Ping type" setting. TCP measures the handshake
+// to the endpoint and never disturbs a live tunnel. HTTP GET goes further and
+// completes TLS and a real request against the endpoint itself, which is what
+// separates a reachable server from one whose handshake is answered by a
+// filter that then stalls. URL measures a round trip through the local SOCKS
+// proxy and therefore reflects what the user actually experiences, but it only
+// works for the server the tunnel is already running on.
 package probe
 
 import (
 	"context"
+	"crypto/tls"
 	"errors"
 	"fmt"
 	"io"
@@ -18,6 +22,16 @@ import (
 	"time"
 
 	"github.com/nebulagram/nebulagram/core/model"
+)
+
+// Method is how Batch measures one server.
+type Method string
+
+const (
+	// MethodTCP times a bare TCP handshake with the endpoint.
+	MethodTCP Method = "tcp"
+	// MethodHTTP times TLS plus one HTTP GET against the endpoint.
+	MethodHTTP Method = "http"
 )
 
 // Failed is the latency stored for a server that did not answer.
@@ -87,9 +101,69 @@ func URL(ctx context.Context, testURL string, socksAddr string, timeout time.Dur
 	return elapsed, nil
 }
 
+// HTTPGet times a complete request to the server's own endpoint: TCP, TLS and
+// the response head. Any answer counts, including 403 and 404 — a Reality
+// endpoint deliberately serves someone else's site, and what is being measured
+// is whether bytes come back at all.
+//
+// The certificate is not verified. Nothing is sent and nothing is read into the
+// app beyond the status line, so there is no channel to protect; verification
+// would only turn "reachable" into "failed" for every endpoint that fronts a
+// hostname it has no certificate for, which is most of them.
+func HTTPGet(ctx context.Context, s model.Server, timeout time.Duration) int {
+	if timeout <= 0 {
+		timeout = 8 * time.Second
+	}
+	ctx, cancel := context.WithTimeout(ctx, timeout)
+	defer cancel()
+
+	addr := net.JoinHostPort(s.Address, strconv.Itoa(s.Port))
+	name := s.SNI
+	if name == "" {
+		name = s.Host
+	}
+	if name == "" {
+		name = s.Address
+	}
+	client := &http.Client{
+		Timeout: timeout,
+		Transport: &http.Transport{
+			DisableKeepAlives: true,
+			TLSClientConfig:   &tls.Config{InsecureSkipVerify: true, ServerName: name},
+			// Always the endpoint under test, whatever the URL says.
+			DialContext: func(ctx context.Context, network, _ string) (net.Conn, error) {
+				var d net.Dialer
+				return d.DialContext(ctx, "tcp", addr)
+			},
+		},
+		CheckRedirect: func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse },
+	}
+	scheme := "https://"
+	if s.Security == "" || s.Security == "none" {
+		scheme = "http://"
+		client.Transport.(*http.Transport).TLSClientConfig = nil
+	}
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, scheme+name+"/", nil)
+	if err != nil {
+		return Failed
+	}
+	start := time.Now()
+	resp, err := client.Do(req)
+	if err != nil {
+		return Failed
+	}
+	defer resp.Body.Close()
+	_, _ = io.Copy(io.Discard, io.LimitReader(resp.Body, 4096))
+	elapsed := int(time.Since(start).Milliseconds())
+	if elapsed == 0 {
+		elapsed = 1
+	}
+	return elapsed
+}
+
 // Batch measures many servers concurrently and writes the result back into the
 // slice. It is what the "Check page" action calls for the visible page.
-func Batch(ctx context.Context, servers []model.Server, concurrency int, timeout time.Duration) {
+func Batch(ctx context.Context, servers []model.Server, concurrency int, timeout time.Duration, method Method) {
 	if concurrency <= 0 {
 		concurrency = 16
 	}
@@ -102,7 +176,11 @@ func Batch(ctx context.Context, servers []model.Server, concurrency int, timeout
 			defer wg.Done()
 			sem <- struct{}{}
 			defer func() { <-sem }()
-			servers[idx].LatencyMs = TCP(ctx, servers[idx], timeout)
+			if method == MethodHTTP {
+				servers[idx].LatencyMs = HTTPGet(ctx, servers[idx], timeout)
+			} else {
+				servers[idx].LatencyMs = TCP(ctx, servers[idx], timeout)
+			}
 			servers[idx].CheckedAt = now
 		}(i)
 	}

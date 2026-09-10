@@ -25,7 +25,10 @@ type PingType string
 
 const (
 	PingTCP PingType = "tcp"
-	PingURL PingType = "url"
+	// PingHTTP completes TLS and one GET against the endpoint, so a filter
+	// that answers the handshake and then stalls is reported as failed.
+	PingHTTP PingType = "http"
+	PingURL  PingType = "url"
 )
 
 // Settings is the complete tunnel configuration. It is persisted as JSON and
@@ -97,7 +100,7 @@ func (s *Settings) Normalize() {
 	if s.HTTPPort < 0 || s.HTTPPort > 65535 {
 		s.HTTPPort = 0
 	}
-	if s.PingType != PingTCP && s.PingType != PingURL {
+	if s.PingType != PingTCP && s.PingType != PingHTTP && s.PingType != PingURL {
 		s.PingType = def.PingType
 	}
 	if s.AutoPingMin <= 0 {
