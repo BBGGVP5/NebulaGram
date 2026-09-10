@@ -32,3 +32,24 @@
 - `check_onboarding.py` compares native auth handlers to the pinned originals.
   `--swift` also SDK-typechecks the UIKit-only artwork/welcome views. Whole-module
   AuthorizationUI/NebulaLinkUI compilation belongs to the native/IPA build gates.
+
+# Launch without an App Group (2026-09-10)
+
+- `0013-app-group-fallback.patch`: `submodules/TelegramUI/Sources/AppDelegate.swift`.
+  Anchors: the container lookup in `application(_:didFinishLaunchingWithOptions:)`
+  and `sharedContainerIdentifier` on the background URLSession. 12 lines.
+
+  Upstream needs `group.<bundle id>` and, without it, presents "Error 2" on a
+  window it has not filled — a black screen. A sideloaded build normally has
+  no such group: a personal Apple team cannot create App Groups at all, and a
+  re-signing tool that rewrites the bundle id rarely registers a matching one.
+  The lookup now falls back to the application's own Application Support
+  container, and the background session only claims the group when it exists.
+
+  Only the main app is patched. The nine other lookups belong to extensions
+  (share, notification service/content, widget, Siri, broadcast upload), which
+  a build without the group cannot run anyway; they keep failing as before.
+  A properly provisioned build never reaches the fallback, so nothing about
+  it changes — and data written to the private container does not migrate if
+  the group later appears.
+

@@ -1,0 +1,53 @@
+diff --git a/submodules/TelegramUI/Sources/AppDelegate.swift b/submodules/TelegramUI/Sources/AppDelegate.swift
+--- a/submodules/TelegramUI/Sources/AppDelegate.swift
++++ b/submodules/TelegramUI/Sources/AppDelegate.swift
+@@ -214,6 +214,22 @@
+     )
+ }
+ 
++/// Where a build without an App Group keeps what the group would have held.
++///
++/// Only reached when the container is genuinely unavailable, so a properly
++/// provisioned build never takes this path and nothing about it changes.
++private func nebulaPrivateContainerUrl() -> URL? {
++    let manager = FileManager.default
++    guard let base = manager.urls(for: .applicationSupportDirectory, in: .userDomainMask).first else {
++        return nil
++    }
++    let url = base.appendingPathComponent("NebulaGramContainer", isDirectory: true)
++    if !manager.fileExists(atPath: url.path) {
++        try? manager.createDirectory(at: url, withIntermediateDirectories: true, attributes: nil)
++    }
++    return manager.fileExists(atPath: url.path) ? url : nil
++}
++
+ @objc(AppDelegate) class AppDelegate: UIResponder, UIApplicationDelegate, PKPushRegistryDelegate, UNUserNotificationCenterDelegate, URLSessionDelegate, URLSessionTaskDelegate {
+     @objc var window: UIWindow?
+     var nativeWindow: (UIWindow & WindowHost)?
+@@ -290,7 +306,9 @@
+         let appGroupName = "group.\(baseAppBundleId)"
+ 
+         let configuration = URLSessionConfiguration.background(withIdentifier: identifier)
+-        configuration.sharedContainerIdentifier = appGroupName
++        if FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: appGroupName) != nil {
++            configuration.sharedContainerIdentifier = appGroupName
++        }
+         configuration.isDiscretionary = false
+         let session = URLSession(configuration: configuration, delegate: self, delegateQueue: .main)
+         self.urlSessions.append(session)
+@@ -529,7 +547,15 @@
+         
+         let baseAppBundleId = Bundle.main.bundleIdentifier!
+         let appGroupName = "group.\(baseAppBundleId)"
++        // NebulaGram: a sideloaded build usually has no App Group. A personal
++        // Apple team cannot create one at all, and a re-signing tool that swaps
++        // the bundle id rarely registers group.<new id> either. Every path below
++        // needs a container, so upstream gives up here — it asks a window it has
++        // not filled yet to show "Error 2", and what the user sees is a black
++        // screen. Fall back to this app's own sandbox instead: the extensions
++        // that share the group stay broken, the app itself runs.
+         let maybeAppGroupUrl = FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: appGroupName)
++            ?? nebulaPrivateContainerUrl()
+         
+         let buildConfig = BuildConfig(baseAppBundleId: baseAppBundleId)
+         self.buildConfig = buildConfig
