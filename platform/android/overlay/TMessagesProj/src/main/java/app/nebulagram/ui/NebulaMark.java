@@ -38,6 +38,8 @@ public class NebulaMark extends Drawable {
     private final Paint body = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Paint trail = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Path path = new Path();
+    /** Границы читаются каждый кадр; выделять под них объект незачем. */
+    private final RectF bounds = new RectF();
 
     private ValueAnimator drift;
     private float phase;
@@ -64,7 +66,7 @@ public class NebulaMark extends Drawable {
 
     @Override
     public void draw(@NonNull Canvas canvas) {
-        RectF bounds = new RectF(getBounds());
+        bounds.set(getBounds());
         if (bounds.isEmpty()) {
             return;
         }

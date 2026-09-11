@@ -2,7 +2,6 @@ package app.nebulagram.ui;
 
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.content.res.Configuration;
 import android.os.Build;
 
 import androidx.core.content.ContextCompat;
@@ -66,11 +65,22 @@ public final class NebulaTheme {
     private final boolean dynamic;
     private final Context context;
 
-    private NebulaTheme(Context context, boolean dark) {
+    private NebulaTheme(Context context, boolean dark, boolean dynamic) {
         this.context = context;
         this.dark = dark;
-        this.dynamic = supportsDynamic() && materialYouEnabled();
+        this.dynamic = dynamic;
     }
+
+    /**
+     * Последняя выданная палитра.
+     *
+     * <p>Контекст здесь всегда контекст приложения, так что статика ничего не
+     * удерживает: динамические цвета — общие для приложения ресурсы
+     * {@code android.R.color.system_*}, и из активности они разрешаются в то же
+     * самое. Тема светлая или тёмная решается нашим флагом, а не квалификатором
+     * ресурса, поэтому от контекста тут ничего не зависит.
+     */
+    private static volatile NebulaTheme cached;
 
     /**
      * Resolves the palette for the current configuration. Cheap enough to call
@@ -78,8 +88,16 @@ public final class NebulaTheme {
      * therefore the palette, can change while the app is running.
      */
     public static NebulaTheme of(Context context) {
-        int mode = context.getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK;
-        return new NebulaTheme(context, Theme.isCurrentThemeDark());
+        boolean dark = Theme.isCurrentThemeDark();
+        boolean dynamic = supportsDynamic() && materialYouEnabled();
+        NebulaTheme theme = cached;
+        if (theme != null && theme.dark == dark && theme.dynamic == dynamic) {
+            return theme;
+        }
+        Context application = context == null ? ApplicationLoader.applicationContext : context.getApplicationContext();
+        theme = new NebulaTheme(application == null ? context : application, dark, dynamic);
+        cached = theme;
+        return theme;
     }
 
     public boolean isDark() {
@@ -240,12 +258,33 @@ public final class NebulaTheme {
     private static final String KEY_MATERIAL_YOU = "material_you";
     private static final String KEY_SAVED_ACCENT = "accent_before_material_you";
 
-    /** Следовать ли палитре обоев. По умолчанию да — это и есть Material You. */
+    /**
+     * Следовать ли палитре обоев. По умолчанию да — это и есть Material You.
+     *
+     * <p>Значение держим в памяти: {@link #of(Context)} зовут в том числе из
+     * onDraw, а там это был поход в SharedPreferences на каждый кадр.
+     * SharedPreferences держит слушателей слабо, поэтому ссылка на него —
+     * своя, и она не удерживает ни View, ни Activity.
+     */
+    private static volatile Boolean materialYou;
+    private static final SharedPreferences.OnSharedPreferenceChangeListener materialYouListener =
+            (preferences, key) -> { if (key == null || KEY_MATERIAL_YOU.equals(key)) { materialYou = null; cached = null; } };
+
     public static boolean materialYouEnabled() {
+        Boolean value = materialYou;
+        if (value != null) {
+            return value;
+        }
         try {
             SharedPreferences prefs =
                     ApplicationLoader.applicationContext.getSharedPreferences(PREFS, 0);
-            return prefs.getBoolean(KEY_MATERIAL_YOU, true);
+            synchronized (NebulaTheme.class) {
+                if (materialYou == null) {
+                    prefs.registerOnSharedPreferenceChangeListener(materialYouListener);
+                    materialYou = prefs.getBoolean(KEY_MATERIAL_YOU, true);
+                }
+                return materialYou;
+            }
         } catch (Throwable e) {
             return false;
         }
@@ -255,6 +294,8 @@ public final class NebulaTheme {
         SharedPreferences prefs =
                 ApplicationLoader.applicationContext.getSharedPreferences(PREFS, 0);
         prefs.edit().putBoolean(KEY_MATERIAL_YOU, value).apply();
+        materialYou = value;
+        cached = null;
         if (!value) {
             restoreAccent(prefs);
         }

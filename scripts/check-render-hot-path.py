@@ -122,3 +122,26 @@ class GlassPrefsCheck {
     p=work/'BlurReuseCheck.java';p.write_text(java,encoding='utf-8')
     subprocess.run(['javac','-encoding','UTF-8',str(p)],check=True)
     subprocess.run(['java','-cp',str(work),'BlurReuseCheck'],check=True)
+
+    # NebulaTheme.of is called from onDraw and onMeasure in eight of our views.
+    # Every call used to read a preference, ask for the resource configuration
+    # and allocate a palette, which is a preference lock and garbage per frame.
+    theme = (root / 'platform/android/overlay/TMessagesProj/src/main/java/app/nebulagram/ui/NebulaTheme.java').read_text(encoding='utf-8')
+    body = method(theme, 'public static NebulaTheme of(Context context)')
+    assert 'getSharedPreferences' not in body, 'NebulaTheme.of reads preferences on a draw path'
+    assert 'getConfiguration' not in body, 'NebulaTheme.of asks for the configuration on a draw path'
+    assert 'cached' in body, 'NebulaTheme.of does not reuse the palette'
+    assert 'private static volatile Boolean materialYou;' in theme, 'the Material You flag is not cached'
+    assert 'registerOnSharedPreferenceChangeListener(materialYouListener)' in theme, 'the cached flag is never invalidated'
+    # A static holding an Activity outlives it; the palette keeps the application.
+    assert 'getApplicationContext()' in body, 'the cached palette may hold an Activity'
+
+    # Shaders are native objects, and rebuilding one makes the paint recompile
+    # its fill program. The profile header draws on every scroll frame.
+    art = (root / 'platform/android/overlay/TMessagesProj/src/main/java/app/nebulagram/ui/NebulaProfileArt.java').read_text(encoding='utf-8')
+    for name in ['IdentityBackground']:
+        start = art.index('class ' + name)
+        section = art[start:art.index(chr(10) + '    }', start)]
+        assert 'new LinearGradient' in section and 'gradient == null' in section, name + ' rebuilds its shader every frame'
+    print('Palette and shader reuse: theme cached with invalidation, profile gradients rebuilt only on change')
+

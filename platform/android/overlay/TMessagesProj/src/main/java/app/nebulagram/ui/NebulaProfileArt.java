@@ -235,13 +235,31 @@ public final class NebulaProfileArt {
 
     public static final class IdentityBackground extends LabelBackground {
         public IdentityBackground(Context context, Theme.ResourcesProvider provider) { super(context, provider); }
+        /**
+         * Готовый градиент. Шейдер — нативный объект, и его сборка на каждый
+         * кадр заставляет краску пересобирать программу заливки; шапка профиля
+         * при прокрутке рисуется постоянно. Соседний градиент выше по файлу
+         * кэшируется ровно так же.
+         */
+        private LinearGradient gradient;
+        private int previousStart, previousEnd;
+        private float previousLeft, previousTop, previousRight, previousBottom;
         @Override public void draw(Canvas canvas) {
             rect.set(getBounds());
             int base = material.isDynamic() ? material.surfaceContainer() : surface(provider);
             int accentColor = material.isDynamic() ? material.primary() : accent(provider);
-            paint.setShader(new LinearGradient(rect.left, rect.top, rect.right, rect.bottom,
-                    ColorUtils.blendARGB(base, accentColor, .22f),
-                    ColorUtils.blendARGB(base, accentColor, .04f), Shader.TileMode.CLAMP));
+            int start = ColorUtils.blendARGB(base, accentColor, .22f);
+            int end = ColorUtils.blendARGB(base, accentColor, .04f);
+            if (gradient == null || previousStart != start || previousEnd != end
+                    || previousLeft != rect.left || previousTop != rect.top
+                    || previousRight != rect.right || previousBottom != rect.bottom) {
+                gradient = new LinearGradient(rect.left, rect.top, rect.right, rect.bottom,
+                        start, end, Shader.TileMode.CLAMP);
+                previousStart = start; previousEnd = end;
+                previousLeft = rect.left; previousTop = rect.top;
+                previousRight = rect.right; previousBottom = rect.bottom;
+            }
+            paint.setShader(gradient);
             paint.setAlpha(alpha);
             canvas.drawRoundRect(rect, dp(24), dp(24), paint);
             paint.setShader(null);
