@@ -103,4 +103,14 @@ func TestPlaceholderEndpointsNeverReachTheList(t *testing.T) {
 	if placeholder(endpoint("example.org", 443)) {
 		t.Error("a real endpoint was dropped")
 	}
+	// A panel refusing an unknown client sometimes points every entry at a
+	// site it does not operate; those are a refusal, not a server list.
+	for _, address := range []string{"google.com", "www.google.com", "GOOGLE.COM", "apple.com"} {
+		if !placeholder(endpoint(address, 456)) {
+			t.Errorf("%q accepted as a real endpoint", address)
+		}
+	}
+	if placeholder(endpoint("node.google.com.example.net", 443)) {
+		t.Error("a host that merely contains a decoy name was dropped")
+	}
 }

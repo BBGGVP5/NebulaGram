@@ -135,6 +135,19 @@ func (c *Client) fetch(ctx context.Context, rawURL, sourceName, userAgent string
 // recognise the client sends its refusal as a server: a placeholder endpoint
 // with a name explaining the refusal, which would otherwise sit in the list
 // looking selectable and fail on every attempt.
+// Hosts nobody runs a node on. Deliberately short: this is a signature of one
+// refusal style, not a blocklist, and an address missing from it only means the
+// entry is kept and fails to connect the way it would have before.
+func decoyHost(address string) bool {
+	host := strings.ToLower(strings.TrimSpace(address))
+	host = strings.TrimPrefix(host, "www.")
+	switch host {
+	case "google.com", "gstatic.com", "cloudflare.com", "apple.com", "microsoft.com":
+		return true
+	}
+	return false
+}
+
 func usable(servers []model.Server) []model.Server {
 	kept := servers[:0]
 	for _, s := range servers {
@@ -155,6 +168,14 @@ func placeholder(s model.Server) bool {
 		return true
 	}
 	if s.Port <= 0 || s.Port > 65535 {
+		return true
+	}
+	// A panel that will not serve an unknown client sometimes dresses its
+	// refusal as a list, pointing every entry at a site it plainly does not
+	// operate. Those connect to nothing, and keeping them costs the user a
+	// server picker full of servers that cannot work — worse than an empty
+	// answer, which at least makes us ask again as a client the panel knows.
+	if decoyHost(s.Address) {
 		return true
 	}
 	return s.UUID == "00000000-0000-0000-0000-000000000000"

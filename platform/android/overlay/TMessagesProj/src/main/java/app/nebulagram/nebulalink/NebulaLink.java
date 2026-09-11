@@ -69,8 +69,18 @@ public final class NebulaLink {
         statusListeners.remove(listener);
     }
 
+    /**
+     * Наш ли это прокси.
+     *
+     * <p>По ссылке на статику судить нельзя: после перезапуска процесса она
+     * пуста, а запись в списке и включённый прокси остаются с прошлого раза.
+     * Тогда «подключено» пропадало из интерфейса, а снять такой прокси было
+     * некому. Узнаём по адресу — петля без логина и пароля принадлежит нам.
+     */
     public static boolean isTunnelProxy(SharedConfig.ProxyInfo proxy) {
-        return proxy != null && proxy == installedProxy;
+        return proxy != null && (proxy == installedProxy
+                || PROXY_ADDRESS.equals(proxy.address) && proxy.username.isEmpty()
+                        && proxy.password.isEmpty() && proxy.secret.isEmpty());
     }
 
     public static boolean isRoutingThroughTunnel() {
@@ -252,7 +262,10 @@ public final class NebulaLink {
                 for (StatusListener listener : new ArrayList<>(statusListeners)) {
                     listener.onStatus(status);
                 }
-                NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.proxySettingsChanged);
+                // Об изменении прокси сообщают те две ветки выше, и только
+                // когда он действительно изменился. Безусловное извещение
+                // заставляло Telegram пересобирать сессии на каждое событие
+                // туннеля, включая «подключаюсь», которое ничего не меняет.
             });
         } catch (JSONException e) {
             FileLog.e(e);
@@ -264,6 +277,13 @@ public final class NebulaLink {
      * built-in proxy screen takes, so the app sees an ordinary SOCKS5 proxy.
      */
     public static void useTunnelAsProxy(int socksPort) {
+        // Повторная установка того же прокси рвёт соединения: Telegram на
+        // setProxySettings поднимает сессии заново. Событие «подключено»
+        // приходит не только при первом подключении, и каждый раз это стоило
+        // пользователю обрыва — отсюда и вечное «Соединение».
+        if (installedProxy != null && installedProxy.port == socksPort && isRoutingThroughTunnel()) {
+            return;
+        }
         SharedConfig.ProxyInfo proxy = SharedConfig.addProxy(
                 new SharedConfig.ProxyInfo(PROXY_ADDRESS, socksPort, "", "", ""));
         if (installedProxy != null && installedProxy != proxy) {
@@ -293,13 +313,31 @@ public final class NebulaLink {
      * is left alone: only the entry we installed is withdrawn.
      */
     public static void stopUsingTunnel() {
-        if (installedProxy == null) {
-            return;
-        }
         // deleteProxy also clears the saved endpoint when this is the current
         // proxy. Clearing currentProxy first would resurrect it on the next launch.
-        SharedConfig.deleteProxy(installedProxy);
-        installedProxy = null;
+        if (installedProxy != null) {
+            SharedConfig.deleteProxy(installedProxy);
+            installedProxy = null;
+        } else {
+            // Ядро могло умереть, не сказав, или процесс — перезапуститься.
+            // Запись тогда остаётся, а снять её по ссылке уже нечем.
+            SharedConfig.loadProxyList();
+            for (SharedConfig.ProxyInfo proxy : new ArrayList<>(SharedConfig.proxyList)) {
+                if (isTunnelProxy(proxy)) {
+                    SharedConfig.deleteProxy(proxy);
+                }
+            }
+        }
+        // deleteProxy выключает прокси только если удаляемый был текущим. Если
+        // текущим стал чужой, а в настройках всё ещё наш адрес, Telegram будет
+        // стучаться в мёртвый порт, пока его не выключить руками.
+        SharedPreferences settings = MessagesController.getGlobalMainSettings();
+        if (settings.getBoolean("proxy_enabled", false)
+                && PROXY_ADDRESS.equals(settings.getString("proxy_ip", ""))) {
+            settings.edit().putBoolean("proxy_enabled", false).putBoolean("proxy_enabled_calls", false)
+                    .putString("proxy_ip", "").putInt("proxy_port", 1080).commit();
+            ConnectionsManager.setProxySettings(false, "", 0, "", "", "");
+        }
         ApplicationLoader.applicationContext.getSharedPreferences(PREFS, 0)
                 .edit().remove(KEY_PROXY_PORT).apply();
         NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.proxySettingsChanged);
