@@ -57,6 +57,10 @@ public final class NebulaDeletedArchive {
         if (owner == 0) throw new IllegalArgumentException("No account");
         return new File(ApplicationLoader.applicationContext.getNoBackupFilesDir(), "deleted-" + owner + ".enc");
     }
+    /** Есть ли что защищать: файл архива заведён только после включения. */
+    private static boolean present(long owner) {
+        try { return file(owner).exists(); } catch (Exception e) { return false; }
+    }
     private static SecretKey key() throws Exception {
         KeyStore store = KeyStore.getInstance("AndroidKeyStore"); store.load(null);
         if (!store.containsAlias(ALIAS)) {
@@ -122,7 +126,16 @@ public final class NebulaDeletedArchive {
     // Must run on the account's storage queue after its database has opened.
     public static synchronized void initialize(int account) {
         long owner=owner(account); if(owner==0)return;
-        try { JSONArray all=read(owner), kept=prune(all); purgeDifference(account,all,kept);write(owner,kept);publish(owner,kept); }
+        // Выходим до первого обращения к хранилищу ключей. Этот метод вызывает
+        // MessagesStorage сразу после открытия базы, на её же очереди: пока он
+        // не вернётся, база не отвечает ни на один запрос. Для тех, кто архив
+        // не включал, здесь была пара операций AndroidKeyStore и запись файла
+        // на каждый запуск — и список чатов ждал их.
+        if(!enabled(owner)&&!present(owner))return;
+        try { JSONArray all=read(owner), kept=prune(all);
+            if(kept.length()==all.length())
+                { publish(owner,kept); return; } // Ничего не изменилось — не переписываем.
+            purgeDifference(account,all,kept);write(owner,kept);publish(owner,kept); }
         catch(Exception e){failed(owner);}
     }
     private static boolean contains(JSONArray entries, long peer, int id) {
@@ -175,8 +188,18 @@ public final class NebulaDeletedArchive {
     public static synchronized ArrayList<Integer> retain(int account, long dialog, ArrayList<Integer> ids) {
         long owner=owner(account);ArrayList<Integer> result=new ArrayList<>(ids);
         if(owner==0||ids.isEmpty())return result;
+        // Тот же выход, что и в initialize, и по той же причине: это тоже
+        // очередь базы, а события удаления идут потоком — их шлёт каждый канал.
+        // Выключенный архив без файла не должен стоить ни одной операции с
+        // ключом. Если файл есть, войти придётся: даже с выключенным
+        // сохранением уже сохранённые сообщения нельзя отдавать на удаление.
+        if(!enabled(owner)&&!present(owner))return result;
         try {
             JSONArray before=read(owner), entries=prune(before);
+            // Считаем изменения честно, а не по длине: prune может выбросить
+            // запись ровно тогда, когда цикл добавит новую, и длина совпадёт
+            // при разном содержимом — тогда мы бы молча потеряли сохранённое.
+            boolean dropped=entries.length()!=before.length();
             java.util.Map<Long,ArrayList<TLRPC.Message>> changed=new java.util.HashMap<>();
             if(enabled(owner))for(int offset=0;offset<ids.size();offset+=100) {
                 ArrayList<Integer> batch=new ArrayList<>(ids.subList(offset,Math.min(ids.size(),offset+100)));
@@ -200,8 +223,13 @@ public final class NebulaDeletedArchive {
                 }}finally{cursor.dispose();}
             }
             entries=prune(entries);
-            write(owner,entries); // Fail closed: do not retain new messages if the index cannot be persisted.
-            purgeDifference(account,before,entries);publish(owner,entries);
+            // Запись — самая дорогая часть: шифрование и перезапись всего файла.
+            // Событие удаления, из которого нечего сохранять, её не стоит.
+            if(dropped||!changed.isEmpty()) {
+                write(owner,entries); // Fail closed: do not retain new messages if the index cannot be persisted.
+                purgeDifference(account,before,entries);
+            }
+            publish(owner,entries);
             for(int i=0;i<entries.length();i++) {JSONObject e=entries.getJSONObject(i);if(e.optBoolean("inline")&&e.optLong("scope")==dialog)result.remove(Integer.valueOf(e.optInt("id")));}
             for(java.util.Map.Entry<Long,ArrayList<TLRPC.Message>> group:changed.entrySet()) {
                 long peer=group.getKey();ArrayList<TLRPC.Message> retained=new ArrayList<>();
