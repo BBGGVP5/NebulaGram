@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="NebulaLauncherBlue">Nebula</string>
+    <string name="NebulaLauncherOcean">Океан</string>
+    <string name="NebulaLauncherAurora">Аврора</string>
+    <string name="NebulaLauncherSunset">Закат</string>
+    <string name="NebulaLauncherGraphite">Графит</string>
+    <string name="NebulaLauncherPearl">Жемчуг</string>
+</resources>

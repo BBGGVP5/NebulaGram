@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="NebulaLauncherBlue">Nebula</string>
+    <string name="NebulaLauncherOcean">Ocean</string>
+    <string name="NebulaLauncherAurora">Aurora</string>
+    <string name="NebulaLauncherSunset">Sunset</string>
+    <string name="NebulaLauncherGraphite">Graphite</string>
+    <string name="NebulaLauncherPearl">Pearl</string>
+</resources>

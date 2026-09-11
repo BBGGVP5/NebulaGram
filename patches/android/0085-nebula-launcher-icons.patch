@@ -1,0 +1,161 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/LauncherIconController.java b/TMessagesProj/src/main/java/org/telegram/ui/LauncherIconController.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/LauncherIconController.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/LauncherIconController.java
+@@ -33,13 +33,15 @@
+         }
+     }
+ 
++    // Keep alias keys stable: Android remembers the selected component across upgrades.
++    // All six artworks are original NebulaGram assets, not Telegram Premium icons.
+     public enum LauncherIcon {
+-        DEFAULT("DefaultIcon", R.drawable.icon_background_sa, R.mipmap.icon_foreground_sa, R.string.AppIconDefault),
+-        VINTAGE("VintageIcon", R.drawable.icon_6_background_sa, R.mipmap.icon_6_foreground_sa, R.string.AppIconVintage),
+-        AQUA("AquaIcon", R.drawable.icon_4_background_sa, R.mipmap.icon_foreground_sa, R.string.AppIconAqua),
+-        PREMIUM("PremiumIcon", R.drawable.icon_3_background_sa, R.mipmap.icon_3_foreground_sa, R.string.AppIconPremium, true),
+-        TURBO("TurboIcon", R.drawable.icon_5_background_sa, R.mipmap.icon_5_foreground_sa, R.string.AppIconTurbo, true),
+-        NOX("NoxIcon", R.mipmap.icon_2_background_sa, R.mipmap.icon_foreground_sa, R.string.AppIconNox, true);
++        DEFAULT("DefaultIcon", R.drawable.nebula_launcher_blue_background, R.mipmap.nebula_launcher_blue_foreground, R.string.NebulaLauncherBlue),
++        VINTAGE("VintageIcon", R.drawable.nebula_launcher_ocean_background, R.mipmap.nebula_launcher_ocean_foreground, R.string.NebulaLauncherOcean),
++        AQUA("AquaIcon", R.drawable.nebula_launcher_aurora_background, R.mipmap.nebula_launcher_aurora_foreground, R.string.NebulaLauncherAurora),
++        PREMIUM("PremiumIcon", R.drawable.nebula_launcher_sunset_background, R.mipmap.nebula_launcher_sunset_foreground, R.string.NebulaLauncherSunset),
++        TURBO("TurboIcon", R.drawable.nebula_launcher_graphite_background, R.mipmap.nebula_launcher_graphite_foreground, R.string.NebulaLauncherGraphite),
++        NOX("NoxIcon", R.drawable.nebula_launcher_pearl_background, R.mipmap.nebula_launcher_pearl_foreground, R.string.NebulaLauncherPearl);
+ 
+         public final String key;
+         public final int background;
+diff --git a/TMessagesProj/src/main/AndroidManifest.xml b/TMessagesProj/src/main/AndroidManifest.xml
+--- a/TMessagesProj/src/main/AndroidManifest.xml
++++ b/TMessagesProj/src/main/AndroidManifest.xml
+@@ -116,6 +116,8 @@
+         <activity-alias
+             android:enabled="true"
+             android:name="org.telegram.messenger.DefaultIcon"
++            android:icon="@mipmap/nebula_launcher_blue"
++            android:roundIcon="@mipmap/nebula_launcher_blue"
+             android:targetActivity="org.telegram.ui.LaunchActivity"
+             android:exported="true">
+ 
+@@ -131,8 +133,8 @@
+             android:enabled="false"
+             android:name="org.telegram.messenger.VintageIcon"
+             android:targetActivity="org.telegram.ui.LaunchActivity"
+-            android:icon="@mipmap/icon_6_launcher"
+-            android:roundIcon="@mipmap/icon_6_launcher_round"
++            android:icon="@mipmap/nebula_launcher_ocean"
++            android:roundIcon="@mipmap/nebula_launcher_ocean"
+             android:exported="true">
+ 
+             <intent-filter>
+@@ -147,8 +149,8 @@
+             android:enabled="false"
+             android:name="org.telegram.messenger.AquaIcon"
+             android:targetActivity="org.telegram.ui.LaunchActivity"
+-            android:icon="@mipmap/icon_4_launcher"
+-            android:roundIcon="@mipmap/icon_4_launcher_round"
++            android:icon="@mipmap/nebula_launcher_aurora"
++            android:roundIcon="@mipmap/nebula_launcher_aurora"
+             android:exported="true">
+ 
+             <intent-filter>
+@@ -163,8 +165,8 @@
+             android:enabled="false"
+             android:name="org.telegram.messenger.PremiumIcon"
+             android:targetActivity="org.telegram.ui.LaunchActivity"
+-            android:icon="@mipmap/icon_3_launcher"
+-            android:roundIcon="@mipmap/icon_3_launcher_round"
++            android:icon="@mipmap/nebula_launcher_sunset"
++            android:roundIcon="@mipmap/nebula_launcher_sunset"
+             android:exported="true">
+ 
+             <intent-filter>
+@@ -179,8 +181,8 @@
+             android:enabled="false"
+             android:name="org.telegram.messenger.TurboIcon"
+             android:targetActivity="org.telegram.ui.LaunchActivity"
+-            android:icon="@mipmap/icon_5_launcher"
+-            android:roundIcon="@mipmap/icon_5_launcher_round"
++            android:icon="@mipmap/nebula_launcher_graphite"
++            android:roundIcon="@mipmap/nebula_launcher_graphite"
+             android:exported="true">
+ 
+             <intent-filter>
+@@ -195,8 +197,8 @@
+             android:enabled="false"
+             android:name="org.telegram.messenger.NoxIcon"
+             android:targetActivity="org.telegram.ui.LaunchActivity"
+-            android:icon="@mipmap/icon_2_launcher"
+-            android:roundIcon="@mipmap/icon_2_launcher_round"
++            android:icon="@mipmap/nebula_launcher_pearl"
++            android:roundIcon="@mipmap/nebula_launcher_pearl"
+             android:exported="true">
+ 
+             <intent-filter>
+diff --git a/TMessagesProj/config/release/AndroidManifest_standalone.xml b/TMessagesProj/config/release/AndroidManifest_standalone.xml
+--- a/TMessagesProj/config/release/AndroidManifest_standalone.xml
++++ b/TMessagesProj/config/release/AndroidManifest_standalone.xml
+@@ -34,8 +34,8 @@
+     <uses-permission android:name="android.permission.SEND_SMS" />
+ 
+     <application
+-        android:icon="@mipmap/ic_launcher_sa"
+-        android:roundIcon="@mipmap/ic_launcher_sa"
++        android:icon="@mipmap/nebula_launcher_blue"
++        android:roundIcon="@mipmap/nebula_launcher_blue"
+         android:label="@string/AppName"
+         android:theme="@style/Theme.TMessages.Start"
+         android:hardwareAccelerated="true"
+@@ -48,8 +48,8 @@
+             android:enabled="false"
+             android:name="org.telegram.messenger.VintageIcon"
+             android:targetActivity="org.telegram.ui.LaunchActivity"
+-            android:icon="@mipmap/icon_6_launcher_sa"
+-            android:roundIcon="@mipmap/icon_6_launcher_sa"
++            android:icon="@mipmap/nebula_launcher_ocean"
++            android:roundIcon="@mipmap/nebula_launcher_ocean"
+             android:exported="true"
+             tools:node="replace">
+ 
+@@ -64,8 +64,8 @@
+             android:enabled="false"
+             android:name="org.telegram.messenger.AquaIcon"
+             android:targetActivity="org.telegram.ui.LaunchActivity"
+-            android:icon="@mipmap/icon_4_launcher_sa"
+-            android:roundIcon="@mipmap/icon_4_launcher_sa"
++            android:icon="@mipmap/nebula_launcher_aurora"
++            android:roundIcon="@mipmap/nebula_launcher_aurora"
+             android:exported="true"
+             tools:node="replace">
+ 
+@@ -80,8 +80,8 @@
+             android:enabled="false"
+             android:name="org.telegram.messenger.PremiumIcon"
+             android:targetActivity="org.telegram.ui.LaunchActivity"
+-            android:icon="@mipmap/icon_3_launcher_sa"
+-            android:roundIcon="@mipmap/icon_3_launcher_sa"
++            android:icon="@mipmap/nebula_launcher_sunset"
++            android:roundIcon="@mipmap/nebula_launcher_sunset"
+             android:exported="true"
+             tools:node="replace">
+ 
+@@ -96,8 +96,8 @@
+             android:enabled="false"
+             android:name="org.telegram.messenger.TurboIcon"
+             android:targetActivity="org.telegram.ui.LaunchActivity"
+-            android:icon="@mipmap/icon_5_launcher_sa"
+-            android:roundIcon="@mipmap/icon_5_launcher_sa"
++            android:icon="@mipmap/nebula_launcher_graphite"
++            android:roundIcon="@mipmap/nebula_launcher_graphite"
+             android:exported="true"
+             tools:node="replace">
+ 
+@@ -112,8 +112,8 @@
+             android:enabled="false"
+             android:name="org.telegram.messenger.NoxIcon"
+             android:targetActivity="org.telegram.ui.LaunchActivity"
+-            android:icon="@mipmap/icon_2_launcher_sa"
+-            android:roundIcon="@mipmap/icon_2_launcher_sa"
++            android:icon="@mipmap/nebula_launcher_pearl"
++            android:roundIcon="@mipmap/nebula_launcher_pearl"
+             android:exported="true"
+             tools:node="replace">
+ 

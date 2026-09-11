@@ -275,3 +275,9 @@ Liquid Glass. Стиль применяется при включённом iOS-
 - ActionBar layout: clamp that slot between the existing start inset and real menu boundary; include title margin and the stories title-container translation. Both animated title views use the same calculation.
 - NebulaHomeTitleGeometry keeps short titles centered, shifts only when necessary, and leaves native ellipsis for genuinely oversized titles. Center-home preference, stories gate, search/selection and chat-header behavior stay intact.
 - Validation: scripts/check-home-title.py (2016 production geometry combinations + native hooks), story/pager/style checks, ordered patch application and Java compilation; device rendering remains a separate check.
+
+### 0085 — original NebulaGram launcher choices
+- `LauncherIconController.LauncherIcon`: six original palettes and localized titles; stable component keys preserve the installed selection across updates. Original artwork does not require Telegram Premium.
+- Main and standalone manifests: alias icon/roundIcon resources match the native selector's backgrounds and foregrounds. Default standalone application icon matches the blue variant.
+- `scripts/gen-launcher-variants.py`: deterministic assets derived from the existing NebulaGram mark, five legacy/foreground densities, adaptive and monochrome layers. Launcher shape masking remains the system's responsibility.
+- `scripts/check-launcher-icons.py`: actual controller compiled against a fake PackageManager; all 36 selection transitions, choice preservation, all-disabled recovery and free availability. Checks manifest/preview agreement, localized titles, dimensions and palette uniqueness. Launcher cache refresh and OEM visual behavior still require device testing.
