@@ -16,6 +16,7 @@ private final class NebulaSettingsArguments {
     var openNavigation: (() -> Void)?
     var openGlass: (() -> Void)?
     var openPrivacy: (() -> Void)?
+    var openAi: (() -> Void)?
     var updateKey: ((String, Bool) -> Void)?
     var clearHistory: (() -> Void)?
 
@@ -31,6 +32,7 @@ private enum NebulaSettingsEntry: ItemListNodeEntry {
     case glass(String)
     case link(String)
     case privacy(String)
+    case ai(String)
     case stories(String, Bool, Bool)
     case history(String, Bool, Bool)
     case clearHistory(String)
@@ -50,6 +52,7 @@ private enum NebulaSettingsEntry: ItemListNodeEntry {
         case .glass: return 12
         case .link: return 7
         case .privacy: return 8
+        case .ai: return 15
         case .stories: return 9
         case .history: return 10
         case .clearHistory: return 11
@@ -84,6 +87,8 @@ private enum NebulaSettingsEntry: ItemListNodeEntry {
             return ItemListActionItem(presentationData: presentationData, systemStyle: .glass, title: title, kind: .generic, alignment: .natural, sectionId: section, style: .blocks, action: { arguments.clearHistory?() })
         case let .privacy(title):
             return ItemListActionItem(presentationData: presentationData, systemStyle: .glass, title: title, kind: .generic, alignment: .natural, sectionId: section, style: .blocks, action: { arguments.openPrivacy?() })
+        case let .ai(title):
+            return ItemListActionItem(presentationData: presentationData, systemStyle: .glass, title: title, kind: .generic, alignment: .natural, sectionId: section, style: .blocks, action: { arguments.openAi?() })
         case let .contacts(title, value, enabled):
             return ItemListSwitchItem(presentationData: presentationData, systemStyle: .glass, title: title, value: value, enabled: enabled, sectionId: section, style: .blocks, updated: { arguments.updateKey?("bottom_bar_contacts", $0) })
         case let .navigation(title):
@@ -152,7 +157,8 @@ public func nebulaSettingsController(context: AccountContext) -> ViewController 
             .clearHistory(ru ? "Очистить историю поиска настроек" : "Clear settings search history"),
             .glass(ru ? "Адаптивное стекло" : "Adaptive glass"),
             .navigation(ru ? "Порядок нижних вкладок" : "Bottom tab order"),
-            .contacts(ru ? "Контакты на нижней панели" : "Contacts in bottom bar", store.showContactsTab, !store.hasLoadError)
+            .contacts(ru ? "Контакты на нижней панели" : "Contacts in bottom bar", store.showContactsTab, !store.hasLoadError),
+            .ai(ru ? "Искусственный интеллект" : "AI assistant")
         ]
         let data = ItemListPresentationData(presentationData)
         let state = ItemListControllerState(presentationData: data, title: .text(ru ? "Настройки NebulaGram" : "NebulaGram Settings"), leftNavigationButton: nil, rightNavigationButton: nil, backNavigationButton: ItemListBackButton(title: presentationData.strings.Common_Back))
@@ -207,6 +213,11 @@ public func nebulaSettingsController(context: AccountContext) -> ViewController 
         }
         alert.addAction(UIAlertAction(title: ru ? "Отмена" : "Cancel", style: .cancel))
         controller.present(alert, animated: true)
+    }
+    arguments.openAi = { [weak controller] in
+        guard let controller = controller, controller.presentedViewController == nil else { return }
+        let ru = context.sharedContext.currentPresentationData.with { $0 }.strings.baseLanguageCode.lowercased().hasPrefix("ru")
+        controller.present(UINavigationController(rootViewController: NebulaAiController(russian: ru)), animated: true)
     }
     arguments.openPrivacy = { [weak controller] in
         guard let controller = controller, controller.presentedViewController == nil else { return }
