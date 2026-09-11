@@ -13,7 +13,10 @@ final class NebulaWelcomeController: UIViewController {
     private let art: NebulaAuthArtView
     private let titleLabel = UILabel()
     private let subtitleLabel = UILabel()
-    private let featureLabel = UILabel()
+    private let featureCard = UIView()
+    private let featureTitle = UILabel()
+    private let featureSubtitle = UILabel()
+    private let progress: NebulaAuthProgressView
     private let scroll = UIScrollView()
     private let languageButton = UIButton(type: .system)
     private var primary: UIView?
@@ -23,6 +26,8 @@ final class NebulaWelcomeController: UIViewController {
     init(backgroundColor: UIColor, primaryColor: UIColor, accentColor: UIColor) {
         accent = accentColor
         textColor = primaryColor
+        progress = NebulaAuthProgressView(current: 0, accent: accentColor,
+                                          muted: primaryColor.withAlphaComponent(0.18))
         backdrop = NebulaAuthBackdropView(accent: accentColor, surface: backgroundColor)
         art = NebulaAuthArtView(kind: .welcome, accent: accentColor)
         super.init(nibName: nil, bundle: nil)
@@ -33,7 +38,7 @@ final class NebulaWelcomeController: UIViewController {
         view.addSubview(backdrop)
         view.addSubview(scroll)
         scroll.alwaysBounceVertical = false
-        for label in [titleLabel, subtitleLabel, featureLabel] {
+        for label in [titleLabel, subtitleLabel] {
             label.numberOfLines = 0
             label.textAlignment = .center
             label.textColor = textColor
@@ -42,9 +47,21 @@ final class NebulaWelcomeController: UIViewController {
         }
         titleLabel.accessibilityTraits = .header
         subtitleLabel.alpha = 0.8
-        featureLabel.layer.cornerRadius = 24
-        featureLabel.clipsToBounds = true
-        featureLabel.backgroundColor = accent.withAlphaComponent(0.08)
+        // Карточка, а не одна надпись с двумя переводами строки: на Android
+        // здесь заголовок акцентом и приглушённое пояснение под ним, с полями.
+        // У UILabel полей не бывает, и текст лежал вплотную к скруглению.
+        featureCard.layer.cornerRadius = 24
+        featureCard.clipsToBounds = true
+        featureCard.backgroundColor = textColor.withAlphaComponent(0.06)
+        for label in [featureTitle, featureSubtitle] {
+            label.numberOfLines = 0
+            label.adjustsFontForContentSizeCategory = true
+            featureCard.addSubview(label)
+        }
+        featureTitle.textColor = accent
+        featureSubtitle.textColor = textColor.withAlphaComponent(0.7)
+        scroll.addSubview(featureCard)
+        view.addSubview(progress)
         scroll.addSubview(art)
         languageButton.accessibilityIdentifier = "Nebula.Welcome.Language"
         languageButton.addTarget(self, action: #selector(changeLanguage), for: .touchUpInside)
@@ -57,7 +74,8 @@ final class NebulaWelcomeController: UIViewController {
         title.addAttribute(.foregroundColor, value: accent, range: (copy.welcome as NSString).range(of: "NebulaGram"))
         titleLabel.attributedText = title
         subtitleLabel.text = copy.subtitle
-        featureLabel.text = "\(copy.linkTitle)\n\n\(copy.linkSubtitle)"
+        featureTitle.text = copy.linkTitle
+        featureSubtitle.text = copy.linkSubtitle
         languageButton.setTitle(copy.russian ? "Язык · Русский / English" : "Language · English / Русский", for: .normal)
         languageButton.tintColor = accent
         languageChanged?(selectedLanguage)
@@ -72,25 +90,41 @@ final class NebulaWelcomeController: UIViewController {
         backdrop.frame = view.bounds
         let width = max(1, min(430, view.bounds.width - 48))
         let x = (view.bounds.width - width) / 2
-        languageButton.frame = CGRect(x: x, y: view.bounds.height - view.safeAreaInsets.bottom - 52, width: width, height: 44)
+        let progressWidth = NebulaAuthProgressView.width()
+        progress.frame = CGRect(x: (view.bounds.width - progressWidth) / 2,
+                                y: view.bounds.height - view.safeAreaInsets.bottom - 26,
+                                width: progressWidth, height: 4)
+        languageButton.frame = CGRect(x: x, y: progress.frame.minY - 52, width: width, height: 44)
         if primary == nil, let button = createStartButton?(width) {
             primary = button
             view.addSubview(button)
         } else { _ = createStartButton?(width) }
         primary?.frame = CGRect(x: x, y: languageButton.frame.minY - 62, width: width, height: 50)
-        scroll.frame = CGRect(x: 0, y: view.safeAreaInsets.top + 12, width: view.bounds.width,
-                              height: max(1, languageButton.frame.minY - 86 - view.safeAreaInsets.top))
+        let scrollTop = view.safeAreaInsets.top + 12
+        let contentBottom = (primary?.frame.minY ?? languageButton.frame.minY) - 24
+        scroll.frame = CGRect(x: 0, y: scrollTop, width: view.bounds.width,
+                              height: max(1, contentBottom - scrollTop))
         titleLabel.font = UIFontMetrics(forTextStyle: .largeTitle).scaledFont(for: .systemFont(ofSize: 32, weight: .bold))
         subtitleLabel.font = .preferredFont(forTextStyle: .body)
-        featureLabel.font = .preferredFont(forTextStyle: .subheadline)
+        featureTitle.font = UIFontMetrics(forTextStyle: .headline).scaledFont(for: .systemFont(ofSize: 16, weight: .semibold))
+        featureSubtitle.font = .preferredFont(forTextStyle: .subheadline)
         art.frame = CGRect(x: (view.bounds.width - 144) / 2, y: 12, width: 144, height: 144)
         var y: CGFloat = art.frame.maxY + 28
-        for label in [titleLabel, subtitleLabel, featureLabel] {
-            let inset: CGFloat = label === featureLabel ? 32 : 0
-            let height = label.sizeThatFits(CGSize(width: width - inset, height: .greatestFiniteMagnitude)).height + inset
+        for label in [titleLabel, subtitleLabel] {
+            let height = label.sizeThatFits(CGSize(width: width, height: .greatestFiniteMagnitude)).height
             label.frame = CGRect(x: x, y: y, width: width, height: height)
             y += height + 20
         }
+        // Поля карточки те же, что на Android: 20 по бокам, 18 сверху и снизу,
+        // 6 между заголовком и пояснением.
+        let cardInset: CGFloat = 20
+        let cardWidth = width - cardInset * 2
+        let titleHeight = featureTitle.sizeThatFits(CGSize(width: cardWidth, height: .greatestFiniteMagnitude)).height
+        let subtitleHeight = featureSubtitle.sizeThatFits(CGSize(width: cardWidth, height: .greatestFiniteMagnitude)).height
+        featureTitle.frame = CGRect(x: cardInset, y: 18, width: cardWidth, height: titleHeight)
+        featureSubtitle.frame = CGRect(x: cardInset, y: featureTitle.frame.maxY + 6, width: cardWidth, height: subtitleHeight)
+        featureCard.frame = CGRect(x: x, y: y, width: width, height: featureSubtitle.frame.maxY + 18)
+        y = featureCard.frame.maxY + 20
         scroll.contentSize = CGSize(width: view.bounds.width, height: y)
     }
     func animateIn() {

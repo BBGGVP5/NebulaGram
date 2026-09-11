@@ -5,12 +5,12 @@ struct NebulaAuthCopy {
     let russian: Bool
     init(_ language: String) { russian = language.lowercased().hasPrefix("ru") }
     var welcome: String { russian ? "Ближе друг к другу\nс NebulaGram" : "A little closer\nwith NebulaGram" }
-    var subtitle: String { russian ? "Ваши разговоры. Ваш стиль. Ваш Telegram." : "Your conversations. Your style. Your Telegram." }
+    var subtitle: String { russian ? "Ваши разговоры, привычные возможности Telegram и подключение, которое всегда рядом." : "Your conversations, familiar Telegram features and a connection that stays with you." }
     var start: String { russian ? "Начать общение" : "Start messaging" }
     var phone: String { russian ? "Ваш номер телефона" : "Your phone number" }
     var password: String { russian ? "Ваш пароль" : "Your password" }
     var linkTitle: String { russian ? "NebulaLink внутри" : "NebulaLink inside" }
-    var linkSubtitle: String { russian ? "Подключите подписку или ключ сервера перед входом. Можно продолжить без прокси." : "Connect a subscription or server key before signing in. You can also continue without a proxy." }
+    var linkSubtitle: String { russian ? "Подключите свою подписку прямо здесь, а затем войдите в аккаунт." : "Connect your subscription here, then sign in to your account." }
 }
 
 final class NebulaAuthArtView: UIView {
@@ -134,6 +134,49 @@ final class NebulaAuthArtView: UIView {
             UIColor.secondarySystemBackground.setFill()
             UIBezierPath(ovalIn: badge).fill()
             UIImage(systemName: symbol)?.withTintColor(accent, renderingMode: .alwaysOriginal).draw(in: badge.insetBy(dx: 14, dy: 14))
+        }
+    }
+}
+
+/// Шаги первого запуска — те же полоски, что на Android: активная шире и
+/// акцентная, остальные короче и приглушены, под кнопками, а не над заголовком.
+final class NebulaAuthProgressView: UIView {
+    static let steps = 4
+    private let accent: UIColor
+    private let muted: UIColor
+    private let current: Int
+    private var dashes: [UIView] = []
+
+    init(current: Int, accent: UIColor, muted: UIColor) {
+        self.current = current
+        self.accent = accent
+        self.muted = muted
+        super.init(frame: .zero)
+        isUserInteractionEnabled = false
+        isAccessibilityElement = true
+        accessibilityLabel = "\(current + 1) / \(Self.steps)"
+        for index in 0..<Self.steps {
+            let dash = UIView()
+            dash.backgroundColor = index == current ? accent : muted
+            dash.layer.cornerRadius = 2
+            addSubview(dash)
+            dashes.append(dash)
+        }
+    }
+    required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
+
+    /// Ширина ряда: активная полоска 30, прочие 20, промежуток 6.
+    static func width(steps: Int = steps) -> CGFloat {
+        CGFloat(steps - 1) * 26 + 30
+    }
+
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        var x: CGFloat = 0
+        for (index, dash) in dashes.enumerated() {
+            let width: CGFloat = index == current ? 30 : 20
+            dash.frame = CGRect(x: x, y: 0, width: width, height: 4)
+            x += width + 6
         }
     }
 }
