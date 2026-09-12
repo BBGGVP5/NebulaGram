@@ -1,0 +1,36 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarContainer.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarContainer.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarContainer.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarContainer.java
+@@ -849,12 +849,17 @@
+ 
+     private int measureNebulaHeaderWidth(int barWidth) {
+         int titleWidth = (int) Math.ceil(titleTextView.getExactWidthIncludeDrawables());
+-        View subtitle = getSubtitleTextView();
++        // Обе подписи, а не первая существующая: «печатает» и «выбирает стикер»
++        // живут на обычной, рядом со своим значком, а спокойный статус — на
++        // анимированной. Мерить только одну значило не заметить вторую, и
++        // капсула оставалась узкой, обрезая строку с двух сторон.
+         int statusWidth = 0;
+-        if (subtitle != null && subtitle.getVisibility() == VISIBLE) {
+-            statusWidth = subtitle instanceof SimpleTextView
+-                    ? (int) Math.ceil(((SimpleTextView) subtitle).getExactWidthIncludeDrawables())
+-                    : (int) Math.ceil(animatedSubtitleTextView.getDrawable().getAnimateToWidth());
++        if (subtitleTextView != null && subtitleTextView.getVisibility() == VISIBLE) {
++            statusWidth = (int) Math.ceil(subtitleTextView.getExactWidthIncludeDrawables());
++        }
++        if (animatedSubtitleTextView != null && animatedSubtitleTextView.getVisibility() == VISIBLE) {
++            statusWidth = Math.max(statusWidth,
++                    (int) Math.ceil(animatedSubtitleTextView.getDrawable().getAnimateToWidth()));
+         }
+         return app.nebulagram.ui.NebulaChatStyle.headerWidth(barWidth, Math.max(titleWidth, statusWidth));
+     }
+@@ -1236,6 +1241,9 @@
+                 }
+             }
+         }
++        // Ширина капсулы кэширована, и пересчитать её здесь было некому:
++        // действие собеседника приходит и уходит само, без смены заголовка.
++        checkActionBar(true);
+     }
+ 
+     public void updateSubtitle() {

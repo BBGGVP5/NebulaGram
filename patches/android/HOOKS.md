@@ -281,3 +281,9 @@ Liquid Glass. Стиль применяется при включённом iOS-
 - Main and standalone manifests: alias icon/roundIcon resources match the native selector's backgrounds and foregrounds. Default standalone application icon matches the blue variant.
 - `scripts/gen-launcher-variants.py`: deterministic assets derived from the existing NebulaGram mark, five legacy/foreground densities, adaptive and monochrome layers. Launcher shape masking remains the system's responsibility.
 - `scripts/check-launcher-icons.py`: actual controller compiled against a fake PackageManager; all 36 selection transitions, choice preservation, all-disabled recovery and free availability. Checks manifest/preview agreement, localized titles, dimensions and palette uniqueness. Launcher cache refresh and OEM visual behavior still require device testing.
+
+### 0086 — заголовок чата растёт под действие собеседника
+- `ChatAvatarContainer.measureNebulaHeaderWidth`: меряем обе подписи, а не первую существующую. «Печатает» и «выбирает стикер» живут на обычной подписи вместе со своим значком, спокойный статус — на анимированной; учёт только одной оставлял капсулу узкой, и строка обрезалась с двух сторон.
+- `ChatAvatarContainer.setTypingAnimation`: в конце `checkActionBar(true)`. Ширина капсулы кэшируется в `nebulaHeaderWidth`, а действие собеседника приходит и уходит само, без смены заголовка, — пересчитать её было некому.
+- Ширина может только вырасти относительно прежнего расчёта, так что правило «капсула облегает содержимое» не меняется.
+- Проверка: применение всей цепочки из семнадцати патчей по этому файлу; поведение на устройстве — отдельно.
