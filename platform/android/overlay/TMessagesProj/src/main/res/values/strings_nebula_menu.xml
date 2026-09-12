@@ -28,6 +28,8 @@
     <string name="nl_dual_core">Both cores at once</string>
     <string name="nl_dual_core_sub">Keeps Xray and sing-box loaded, so switching protocols is instant</string>
     <string name="nl_export_logs">Export logs</string>
+    <string name="nl_guard">NebulaGuard</string>
+    <string name="nl_guard_sub">Subscriptions and support in Telegram</string>
     <string name="nl_hwid">HWID</string>
     <string name="nl_hwid_sub">Device id sent to a device-limited panel</string>
     <string name="nl_mode">Tunnel mode</string>

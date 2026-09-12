@@ -155,6 +155,7 @@ var handlers = map[string]handler{
 	"tunnel.stop":             (*Core).handleTunnelStop,
 	"tunnel.status":           (*Core).handleTunnelStatus,
 	"provider.open":           (*Core).handleProviderOpen,
+	"guard.open":              (*Core).handleGuardOpen,
 }
 
 // --- core lifecycle ---------------------------------------------------------
@@ -698,6 +699,18 @@ func (c *Core) handleTunnelStatus([]byte) (any, error) {
 }
 
 // --- provider ---------------------------------------------------------------
+
+// NebulaGuardBot is where the subscriptions this client speaks to come from.
+// A constant rather than a setting: it names one service, and a link the user
+// cannot verify against anything is worse than no link at all.
+const NebulaGuardBot = "https://t.me/nebulaguardd_bot"
+
+// handleGuardOpen hands the client a fixed address to open. It reads nothing
+// and sends nothing; the row exists so the service is reachable from inside
+// the app instead of from memory.
+func (c *Core) handleGuardOpen([]byte) (any, error) {
+	return map[string]string{"url": NebulaGuardBot}, nil
+}
 
 // handleProviderOpen returns the page the client should open in a browser: the
 // panel's own profile page when the subscription advertises one.

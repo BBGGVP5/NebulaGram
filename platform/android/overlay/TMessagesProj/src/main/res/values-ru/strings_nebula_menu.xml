@@ -28,6 +28,8 @@
     <string name="nl_dual_core">Оба ядра сразу</string>
     <string name="nl_dual_core_sub">Xray и sing-box загружены вместе, переключение мгновенное</string>
     <string name="nl_export_logs">Выгрузить журнал</string>
+    <string name="nl_guard">NebulaGuard</string>
+    <string name="nl_guard_sub">Подписки и поддержка в Telegram</string>
     <string name="nl_hwid">Идентификатор устройства</string>
     <string name="nl_hwid_sub">Отправляется панели с лимитом устройств</string>
     <string name="nl_mode">Режим туннеля</string>

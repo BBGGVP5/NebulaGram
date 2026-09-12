@@ -501,12 +501,19 @@ public class NebulaMenuFragment extends BaseFragment {
             return;
         }
         NebulaLink.call(command, null, result -> {
-            if (result.ok) {
-                report(LocaleController.getString(R.string.NebulaDone));
-                load();
-            } else {
+            if (!result.ok) {
                 report(result.error);
+                return;
             }
+            // Команда, ответившая адресом, — это ссылка, а не действие: открываем
+            // её вместо того, чтобы отчитаться «Готово» и никуда не повести.
+            String url = result.data == null ? "" : result.data.optString("url");
+            if (!url.isEmpty() && getParentActivity() != null) {
+                org.telegram.messenger.browser.Browser.openUrl(getParentActivity(), url);
+                return;
+            }
+            report(LocaleController.getString(R.string.NebulaDone));
+            load();
         });
     }
 
