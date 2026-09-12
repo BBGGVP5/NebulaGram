@@ -6,6 +6,7 @@ import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
+import android.widget.TextView;
 
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.LocaleController;
@@ -439,6 +440,30 @@ public class NebulaSectionFragment extends BaseFragment {
      * доступ к тому, что уже написано.
      */
     private void buildGeneral(Context context) {
+        content.addView(NebulaCard.header(context, NebulaText.text("Идентификаторы", "Identifiers")));
+        NebulaCard ids = new NebulaCard(context);
+        String[] formats = {NebulaText.text("Telegram", "Telegram"), NebulaText.text("Bot API", "Bot API")};
+        NebulaRow format = new NebulaRow(context).icon(R.drawable.msg_copy)
+                .title(NebulaText.text("Формат ID", "ID format"))
+                .subtitle(formats[NebulaIds.format()], true)
+                .trailing(NebulaRow.TRAIL_CHEVRON);
+        format.setOnClickListener(v -> showDialog(new org.telegram.ui.ActionBar.AlertDialog.Builder(context)
+                .setTitle(NebulaText.text("Формат ID", "ID format"))
+                .setItems(formats, (dialog, which) -> {
+                    NebulaIds.setFormat(which);
+                    format.subtitle(formats[NebulaIds.format()], true);
+                }).create()));
+        ids.add(format);
+        content.addView(ids, cardParams());
+        TextView idsNote = new TextView(context);
+        idsNote.setText(NebulaText.text(
+                "У человека оба формата совпадают. Канал и супергруппа в Bot API получают приставку −100, обычная группа — знак минуса. «Скопировать ID» есть в меню профиля.",
+                "For a person both formats agree. Bot API prefixes a channel or supergroup with -100 and signs a basic group; Copy ID lives in the profile menu."));
+        idsNote.setTextSize(13);
+        idsNote.setTextColor(NebulaTheme.of(context).onSurfaceVariant());
+        idsNote.setPadding(AndroidUtilities.dp(16), AndroidUtilities.dp(10), AndroidUtilities.dp(16), AndroidUtilities.dp(4));
+        content.addView(idsNote);
+
         content.addView(NebulaCard.header(context, NebulaText.text("Поиск настроек", "Settings search")));
         NebulaCard searchHistory = new NebulaCard(context);
         NebulaRow historyToggle = new NebulaRow(context).icon(R.drawable.msg_recent)
