@@ -117,6 +117,23 @@ public final class NebulaPrivacyFragment extends BaseFragment {
         note(text("Значок показывается в чате вместо слова «Удалено».",
                 "The icon replaces the word Deleted in the chat."));
 
+        header(text("Ограничения отправителя", "Sender restrictions"));
+        card(row(R.drawable.msg_forward, text("Разрешить снимки и пересылку", "Allow screenshots and forwarding"))
+                .subtitle(text("В чатах, где включена защита содержимого", "In chats with content protection on"), false)
+                .trailing(NebulaRow.TRAIL_SWITCH)
+                .checked(NebulaContentProtection.enabled())
+                .withClick(v -> {
+                    if (NebulaContentProtection.enabled()) { NebulaContentProtection.setEnabled(false); rebuild(); return; }
+                    showDialog(new AlertDialog.Builder(getParentActivity())
+                            .setTitle(text("Снять ограничения отправителя?", "Lift sender restrictions?"))
+                            .setMessage(text("Снимки экрана, пересылка, копирование и сохранение снова заработают в чатах, где отправитель их запретил. Речь только о содержимом, которое уже пришло на это устройство: флаг собеседника никуда не девается, и о снятии ограничения он не узнаёт. Отвечать за то, что делать с чужим содержимым, придётся вам.", "Screenshots, forwarding, copying and saving start working again in chats where the sender disabled them. This applies only to content already delivered to this device: the sender's flag remains, and they are not told it was lifted. What you then do with someone else's content is your responsibility."))
+                            .setNegativeButton(text("Отмена", "Cancel"), null)
+                            .setPositiveButton(text("Снять", "Lift"), (d, w) -> { NebulaContentProtection.setEnabled(true); rebuild(); })
+                            .create());
+                }));
+        note(text("Выключено по умолчанию. Настройка меняет только этот клиент и только на этом устройстве.",
+                "Off by default. The setting changes this client on this device and nothing else."));
+
         header(text("Локальный кэш", "Local cache"));
         card(row(R.drawable.msg_clearcache, text("Очистить кэш удалённых сообщений", "Clear retained-message cache"))
                 .destructive()

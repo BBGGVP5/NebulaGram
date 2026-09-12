@@ -1,0 +1,42 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/FlagSecureReason.java b/TMessagesProj/src/main/java/org/telegram/messenger/FlagSecureReason.java
+--- a/TMessagesProj/src/main/java/org/telegram/messenger/FlagSecureReason.java
++++ b/TMessagesProj/src/main/java/org/telegram/messenger/FlagSecureReason.java
+@@ -74,6 +74,11 @@
+     }
+ 
+     public static boolean isSecuredNow(Window window) {
++        // Единственное место, где ставится FLAG_SECURE. С включённым разрешением
++        // окно перестаёт быть защищённым — снимки экрана и запись снова работают.
++        if (app.nebulagram.ui.NebulaContentProtection.enabled()) {
++            return false;
++        }
+         return currentSecureReasons != null && currentSecureReasons.get(window) != null;
+     }
+ 
+diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/MessagesController.java b/TMessagesProj/src/main/java/org/telegram/messenger/MessagesController.java
+--- a/TMessagesProj/src/main/java/org/telegram/messenger/MessagesController.java
++++ b/TMessagesProj/src/main/java/org/telegram/messenger/MessagesController.java
+@@ -6699,6 +6699,13 @@
+     }
+ 
+     public boolean isChatNoForwards(TLRPC.Chat chat) {
++        // Запрет пересылки и копирования проходит через этот метод и его
++        // пользовательскую пару ниже. Флаг собеседника при этом никуда не
++        // девается — сервер шлёт его как раньше; мы лишь не применяем его к
++        // содержимому, которое уже лежит в кэше этого устройства.
++        if (app.nebulagram.ui.NebulaContentProtection.enabled()) {
++            return false;
++        }
+         if (chat == null) {
+             return false;
+         }
+@@ -6724,6 +6731,9 @@
+     }
+ 
+     public boolean isUserNoForwards(TLRPC.UserFull userFull) {
++        if (app.nebulagram.ui.NebulaContentProtection.enabled()) {
++            return false;
++        }
+         if (userFull == null) {
+             return false;
+         }
