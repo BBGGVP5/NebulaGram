@@ -37,13 +37,16 @@ def main():
             public interface SharedPreferences {
                 boolean contains(String key); int getInt(String key,int fallback);
                 boolean getBoolean(String key,boolean fallback); Editor edit();
+                void registerOnSharedPreferenceChangeListener(OnSharedPreferenceChangeListener listener);
+                interface OnSharedPreferenceChangeListener { void onSharedPreferenceChanged(SharedPreferences prefs,String key); }
                 interface Editor { Editor putInt(String key,int value); Editor putBoolean(String key,boolean value);
                     Editor remove(String key); void apply(); }
             }''')
         put('android/content/Context.java', '''package android.content;
             public class Context { public final android.content.res.Resources resources=new android.content.res.Resources();
                 public SharedPreferences prefs; public android.content.res.Resources getResources(){return resources;}
-                public SharedPreferences getSharedPreferences(String name,int mode){return prefs;} }''')
+                public SharedPreferences getSharedPreferences(String name,int mode){return prefs;}
+                public Context getApplicationContext(){return this;} }''')
         put('androidx/core/content/ContextCompat.java', '''package androidx.core.content;
             public class ContextCompat { public static int wallpaper=0xffeeaa88;
                 public static int getColor(android.content.Context c,int id){ return wallpaper; } }''')
@@ -83,8 +86,12 @@ def main():
                     public int getInt(String k,int d){return (int)values.getOrDefault(k,d);}
                     public boolean getBoolean(String k,boolean d){return (boolean)values.getOrDefault(k,d);}
                     public Editor edit(){return this;} public Editor putInt(String k,int v){values.put(k,v);return this;}
-                    public Editor putBoolean(String k,boolean v){values.put(k,v);return this;}
-                    public Editor remove(String k){values.remove(k);return this;} public void apply(){}
+                    public Editor putBoolean(String k,boolean v){values.put(k,v);notifyChanged(k);return this;}
+                    public Editor remove(String k){values.remove(k);notifyChanged(k);return this;} public void apply(){}
+                    java.util.List<OnSharedPreferenceChangeListener> listeners=new java.util.ArrayList<>();
+                    public void registerOnSharedPreferenceChangeListener(OnSharedPreferenceChangeListener l){listeners.add(l);}
+                    void notifyChanged(String k){for(OnSharedPreferenceChangeListener l:new java.util.ArrayList<>(listeners))l.onSharedPreferenceChanged(this,k);}
+                    int reads;
                 }
                 static int checks;
                 static void eq(int actual,int expected){checks++;if(actual!=expected)throw new AssertionError(actual+" != "+expected);}
