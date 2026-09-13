@@ -12,6 +12,11 @@ public final class NebulaLinkController: UITableViewController, UITextFieldDeleg
     private var busy = false
     private var message = ""
     private var probeText = ""
+    private var probeRequestId: String?
+    private var probeCancelling = false
+    private var probeCompleted = 0
+    private var probeTotal = 0
+    private var urlProbeId: String?
     private let service = NebulaLinkService.shared
 
     public init(russian: Bool, continueAction: (() -> Void)? = nil) {
@@ -41,12 +46,22 @@ public final class NebulaLinkController: UITableViewController, UITextFieldDeleg
         explanation.text = text("Только трафик Telegram, без системного VPN. Вставьте свою подписку или ключ. Ссылку получает указанный вами сервер подписки; она не отправляется разработчикам NebulaGram.", "Telegram traffic only, without a system VPN. Paste your subscription or key. Subscription URLs are requested from the server you specify, not sent to NebulaGram developers.")
         tableView.keyboardDismissMode = .interactive
         NotificationCenter.default.addObserver(self, selector: #selector(statusUpdated), name: NebulaLinkService.statusChanged, object: service)
+        NotificationCenter.default.addObserver(self, selector: #selector(probeUpdated(_:)), name: NebulaLinkService.probeProgress, object: service)
         reloadServers()
     }
     deinit { NotificationCenter.default.removeObserver(self) }
     @objc private func statusUpdated() { tableView.reloadData() }
-    @objc private func close() { if !busy { dismiss(animated: true) } }
+    @objc private func close() {
+        guard !busy else { return }
+        abandonProbes()
+        dismiss(animated: true)
+    }
+    public override func viewDidDisappear(_ animated: Bool) {
+        super.viewDidDisappear(animated)
+        abandonProbes()
+    }
     private func finish() {
+        abandonProbes()
         let action = continueAction
         dismiss(animated: true) { action?() }
     }
@@ -86,11 +101,102 @@ public final class NebulaLinkController: UITableViewController, UITextFieldDeleg
             self.pages = (data["pages"] as? Int) ?? 1
         }
     }
+    private var probeActionTitle: String {
+        guard probeRequestId != nil else { return text("Nimbo Ping · серверы этой страницы", "Nimbo Ping · servers on this page") }
+        return text(probeCancelling ? "Отмена… " : "Отменить Nimbo Ping · ",
+                    probeCancelling ? "Cancelling… " : "Cancel Nimbo Ping · ") + "\(probeCompleted)/\(probeTotal)"
+    }
+    private func serverDetail(_ server: [String: Any]) -> String {
+        let latency = NebulaLatency.format(server["latency_ms"] as? Int ?? 0,
+                method: server["latency_method"] as? String ?? "",
+                checkedAt: (server["checked_at"] as? NSNumber)?.int64Value ?? 0,
+                unit: text("мс", "ms"), unknown: "—", failed: text("Нет ответа", "No reply"))
+        return (server["protocol"] as? String ?? "").uppercased() + " · " + latency
+    }
+    private func probeVisibleServers() {
+        guard probeRequestId == nil else { return }
+        let ids = servers.compactMap { $0["id"] as? String }.filter { !$0.isEmpty }
+        // An empty ids array means ALL backend servers; this action is page-scoped.
+        guard !ids.isEmpty else { return }
+        let requestId = UUID().uuidString
+        probeRequestId = requestId; probeCancelling = false
+        probeCompleted = 0; probeTotal = ids.count; probeText = ""
+        tableView.reloadData()
+        service.call("probe.servers", payload: ["ids": ids, "method": "nimbo", "timeout": 5, "request_id": requestId]) { [weak self] result in
+            guard let self = self, self.probeRequestId == requestId else { return }
+            let cancelled = self.probeCancelling
+            self.probeRequestId = nil; self.probeCancelling = false
+            switch result {
+            case .success:
+                self.probeText = cancelled ? self.text("Проверка отменена", "Check cancelled") : self.text("Проверка завершена", "Check complete")
+            case .failure:
+                self.probeText = cancelled ? self.text("Проверка отменена", "Check cancelled") : self.text("Не удалось проверить серверы", "Could not check servers")
+            }
+            self.tableView.reloadData()
+            self.refreshLatencies()
+        }
+    }
+    private func cancelProbe() {
+        guard let requestId = probeRequestId, !probeCancelling else { return }
+        probeCancelling = true
+        tableView.reloadData()
+        service.call("probe.cancel", payload: ["request_id": requestId]) { _ in }
+    }
+    private func abandonProbes() {
+        cancelProbe()
+        probeRequestId = nil; probeCancelling = false; urlProbeId = nil
+    }
+    @objc private func probeUpdated(_ notification: Notification) {
+        guard let progress = notification.userInfo, let requestId = probeRequestId,
+              progress["request_id"] as? String == requestId else { return }
+        if progress["cancelled"] as? Bool == true { probeCancelling = true }
+        probeCompleted = progress["completed"] as? Int ?? probeCompleted
+        probeTotal = progress["total"] as? Int ?? probeTotal
+        var changed = [IndexPath(row: 0, section: 1)]
+        if let id = progress["id"] as? String, let ms = progress["latency_ms"] as? Int,
+           let index = servers.firstIndex(where: { $0["id"] as? String == id }) {
+            servers[index]["latency_ms"] = ms
+            servers[index]["latency_method"] = progress["latency_method"] as? String ?? ""
+            servers[index]["checked_at"] = progress["checked_at"] as? NSNumber ?? 0
+            changed.append(IndexPath(row: index, section: 2))
+        }
+        let visible = Set(tableView.indexPathsForVisibleRows ?? [])
+        tableView.reloadRows(at: changed.filter { visible.contains($0) }, with: .none)
+    }
+    private func refreshLatencies() {
+        let requestedPage = page
+        service.call("servers.list", payload: ["page": page, "per_page": 20]) { [weak self] result in
+            guard let self = self, self.page == requestedPage, self.probeRequestId == nil, case let .success(data) = result,
+                  let object = data as? [String: Any], let latest = object["servers"] as? [[String: Any]] else { return }
+            // Refresh measurement fields only; a concurrent selection stays selected.
+            for index in self.servers.indices {
+                guard let id = self.servers[index]["id"] as? String,
+                      let server = latest.first(where: { $0["id"] as? String == id }) else { continue }
+                for key in ["latency_ms", "latency_method", "checked_at"] { self.servers[index][key] = server[key] }
+            }
+            self.tableView.reloadData()
+        }
+    }
+    private func probeActiveConnection() {
+        guard urlProbeId == nil else { return }
+        let requestId = UUID().uuidString
+        urlProbeId = requestId
+        tableView.reloadData()
+        // Active-tunnel URL test is unscaled and does not lock connection controls.
+        service.call("probe.url", payload: ["url": "https://telegram.org"]) { [weak self] result in
+            guard let self = self, self.urlProbeId == requestId else { return }
+            self.urlProbeId = nil
+            if case let .success(data) = result, let ms = (data as? [String: Any])?["latency_ms"] as? Int {
+                self.probeText = ms < 0 ? self.text("Нет ответа", "No reply") : self.text("Ответ через прокси: \(ms) мс", "Response through proxy: \(ms) ms")
+            } else { self.probeText = self.text("Не удалось проверить соединение", "Could not test connection") }
+            self.tableView.reloadData()
+        }
+    }
     public override func numberOfSections(in tableView: UITableView) -> Int { continueAction == nil ? 3 : 4 }
     public override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         switch section {
         case 0: return 2
-        case 1: return 4
+        case 1: return 5
         case 2: return max(1, servers.count + (pages > 1 ? 1 : 0))
         default: return 1
         }
@@ -105,7 +211,11 @@ public final class NebulaLinkController: UITableViewController, UITextFieldDeleg
     }
     public override func tableView(_ tableView: UITableView, titleForFooterInSection section: Int) -> String? {
         if section == 0 { return explanation.text }
-        if section == 1 { return message.isEmpty ? probeText : message }
+        if section == 1 {
+            let explanation = text("≈ — оценка: время GET в Nimbo Ping делится на 3,3 и округляется до ближайшей миллисекунды. Проверка соединения через активный прокси показывает исходное время.", "≈ is an estimate: Nimbo Ping GET time divided by 3.3, rounded to the nearest millisecond. The active-proxy connection test shows its original timing.")
+            let status = message.isEmpty ? probeText : message
+            return status.isEmpty ? explanation : status + "\n" + explanation
+        }
         if section == 2 { return text("Выберите сервер, затем нажмите «Подключить выбранный сервер». Работает внутри приложения. Фоновая работа зависит от ограничений iOS; уведомления доставляются отдельно через APNs.", "Select a server, then tap Connect selected server. Runs inside the app. Background activity is subject to iOS limits; notifications use APNs separately.") }
         return nil
     }
@@ -131,7 +241,10 @@ public final class NebulaLinkController: UITableViewController, UITextFieldDeleg
             cell.textLabel?.text = text("Добавить подписку или ключ", "Add subscription or key")
             cell.imageView?.image = UIImage(systemName: "link")
         } else if indexPath.section == 1 {
-            cell.textLabel?.text = [text("Подключить выбранный сервер", "Connect selected server"), text("Отключить", "Disconnect"), text("Проверить соединение", "Test connection"), text("Обновить подписки", "Refresh subscriptions")][indexPath.row]
+            cell.textLabel?.text = [probeActionTitle, text("Подключить выбранный сервер", "Connect selected server"), text("Отключить", "Disconnect"),
+                                   urlProbeId == nil ? text("Проверить соединение", "Test connection") : text("Проверяем соединение…", "Testing connection…"),
+                                   text("Обновить подписки", "Refresh subscriptions")][indexPath.row]
+            if indexPath.row == 0 { cell.accessibilityIdentifier = "NebulaLink.NimboPing" }
         } else if indexPath.section == 2 {
             if servers.isEmpty {
                 cell.textLabel?.text = text("Добавьте подписку или ключ выше", "Add a subscription or key above")
@@ -141,7 +254,9 @@ public final class NebulaLinkController: UITableViewController, UITextFieldDeleg
             } else {
                 let server = servers[indexPath.row]
                 cell.textLabel?.text = server["name"] as? String ?? "Server"
-                cell.detailTextLabel?.text = (server["protocol"] as? String ?? "").uppercased()
+                cell.detailTextLabel?.text = serverDetail(server)
+                cell.detailTextLabel?.numberOfLines = 0
+                cell.detailTextLabel?.adjustsFontForContentSizeCategory = true
                 cell.accessoryType = server["id"] as? String == selected ? .checkmark : .none
             }
         } else {
@@ -161,19 +276,16 @@ public final class NebulaLinkController: UITableViewController, UITextFieldDeleg
                 self?.input.text = ""; self?.page = 1; self?.reloadServers()
             }
         case (1, 0):
+            if probeRequestId == nil { probeVisibleServers() } else { cancelProbe() }
+        case (1, 1):
             guard !selected.isEmpty else { return }
             request("tunnel.start", ["id": selected])
-        case (1, 1): request("tunnel.stop")
-        case (1, 2):
-            // Explicit user action, fixed public endpoint; no arbitrary invisible background probes.
-            request("probe.url", ["url": "https://telegram.org"]) { [weak self] data in
-                guard let self = self, let ms = (data as? [String: Any])?["latency_ms"] as? Int else { return }
-                self.probeText = self.text("Ответ через прокси: \(ms) мс", "Response through proxy: \(ms) ms")
-            }
-        case (1, 3): request("subscription.refreshAll") { [weak self] _ in self?.reloadServers() }
+        case (1, 2): request("tunnel.stop")
+        case (1, 3): probeActiveConnection()
+        case (1, 4): request("subscription.refreshAll") { [weak self] _ in self?.reloadServers() }
         case (2, _):
             guard !servers.isEmpty else { return }
-            if indexPath.row == servers.count { page = page % pages + 1; reloadServers() }
+            if indexPath.row == servers.count { abandonProbes(); page = page % pages + 1; reloadServers() }
             else if let id = servers[indexPath.row]["id"] as? String {
                 request("server.select", ["id": id]) { [weak self] _ in
                     self?.selected = id

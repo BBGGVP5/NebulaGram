@@ -145,7 +145,9 @@ public class NebulaConnectionCard extends LinearLayout {
             int latency = server.optInt("latency_ms");
             String name = NebulaLinkRow.serverLabel(server);
             detail.setTextColor(theme.success());
-            detail.setText(latency > 0 ? name + " · " + latency + " " + LocaleController.getString(R.string.NebulaMs) : name);
+            detail.setText(NebulaLatency.isMeasured(latency, server.optLong("checked_at"))
+                    ? name + " · " + NebulaLatency.format(latency, server.optString("latency_method"),
+                            server.optLong("checked_at"), LocaleController.getString(R.string.NebulaMs), "", "") : name);
         } else {
             detail.setText("");
             detail.setTextColor(theme.onSurfaceVariant());

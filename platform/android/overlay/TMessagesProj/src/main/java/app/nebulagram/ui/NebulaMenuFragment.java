@@ -201,6 +201,11 @@ public class NebulaMenuFragment extends BaseFragment {
                 View view = buildRow(context, rows.optJSONObject(r));
                 if (view != null) {
                     card.add(view);
+                    JSONObject row = rows.optJSONObject(r);
+                    if (row != null && "ping_type".equals(row.optString("key"))) {
+                        card.add(new NebulaRow(context)
+                                .title(LocaleController.getString(R.string.nl_ping_estimate)));
+                    }
                 }
             }
             if (!card.isEmpty()) {
@@ -338,7 +343,8 @@ public class NebulaMenuFragment extends BaseFragment {
     // --- values -------------------------------------------------------------
 
     private String currentValue(String key) {
-        return settings == null ? "" : settings.optString(key, "");
+        String value = settings == null ? "" : settings.optString(key, "");
+        return "ping_type".equals(key) && value.isEmpty() ? "nimbo" : value;
     }
 
     private String displayValue(String key, String fallback) {

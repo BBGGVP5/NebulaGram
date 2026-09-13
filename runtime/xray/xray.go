@@ -17,6 +17,7 @@ import (
 	"github.com/xtls/xray-core/infra/conf/serial"
 
 	"github.com/nebulagram/nebulagram/core/model"
+	"github.com/nebulagram/nebulagram/core/probe"
 	"github.com/nebulagram/nebulagram/core/tunnel"
 )
 
@@ -31,6 +32,7 @@ const (
 // it once during startup.
 func Register() {
 	tunnel.Register(model.EngineXray, func() tunnel.Instance { return &instance{} })
+	probe.RegisterNimbo(Nimbo)
 }
 
 // instance is one running Xray server.
@@ -43,11 +45,16 @@ type instance struct {
 // Start parses the generated JSON config and brings the server up. Starting an
 // already-running instance is refused rather than silently leaking the old one.
 func (i *instance) Start(config []byte) error {
+	beginTransition()
+	defer endTransition()
 	i.mu.Lock()
 	defer i.mu.Unlock()
 
 	if i.server != nil {
 		return errors.New("xray: instance is already running")
+	}
+	if runtimeOwner.active != nil {
+		return errors.New("xray: another managed instance is already running")
 	}
 	if len(config) == 0 {
 		return errors.New("xray: empty configuration")
@@ -67,6 +74,7 @@ func (i *instance) Start(config []byte) error {
 	}
 
 	i.server = server
+	runtimeOwner.active = i
 	// Statistics are optional: a config built without them still runs, the
 	// traffic counters simply stay at zero.
 	if manager, ok := server.GetFeature(stats.ManagerType()).(stats.Manager); ok {
@@ -78,6 +86,8 @@ func (i *instance) Start(config []byte) error {
 // Stop shuts the server down. Stopping a stopped instance is not an error, so
 // the manager can call it unconditionally.
 func (i *instance) Stop() error {
+	beginTransition()
+	defer endTransition()
 	i.mu.Lock()
 	defer i.mu.Unlock()
 
@@ -86,6 +96,9 @@ func (i *instance) Stop() error {
 	}
 	err := i.server.Close()
 	i.server = nil
+	if runtimeOwner.active == i {
+		runtimeOwner.active = nil
+	}
 	i.manager = nil
 	if err != nil {
 		return fmt.Errorf("xray: cannot stop: %w", err)

@@ -23,6 +23,7 @@ import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.Components.ItemOptions;
 import org.telegram.ui.Components.LayoutHelper;
 import app.nebulagram.nebulalink.NebulaLink;
+import java.util.UUID;
 
 /** Home-only control. Rendering/preview never starts a tunnel or a probe. */
 public final class NebulaLinkShortcut extends View {
@@ -34,6 +35,7 @@ public final class NebulaLinkShortcut extends View {
     private final Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final RectF arc = new RectF();
     private boolean pending, failed, probing;
+    private String probeRequestId;
     private final NebulaLink.StatusListener statusListener = status -> { failed = false; refresh(); };
     private final SharedPreferences.OnSharedPreferenceChangeListener preferencesListener = (p, key) -> {
         if (KEY.equals(key)) refresh();
@@ -128,27 +130,48 @@ public final class NebulaLinkShortcut extends View {
         menu.addText("NebulaLink · " + label(state()), 14);
         if (server != null && NebulaLink.isRoutingThroughTunnel()) menu.addText(NebulaLinkRow.serverLabel(server), 13);
         menu.add(R.drawable.msg_language, NebulaText.text("Выбрать сервер", "Choose server"), () -> owner.presentFragment(new NebulaServersFragment()));
-        menu.add(R.drawable.msg_speed, NebulaText.text("Пинг выбранного сервера", "Ping selected server"), this::probe);
+        menu.add(R.drawable.msg_speed, NebulaText.text(probing ? "Отменить проверку" : "Пинг выбранного сервера", probing ? "Cancel check" : "Ping selected server"), this::probe);
         menu.show();
     }
     private void probe() {
-        if (probing) return;
+        if (probing) { cancelProbe(); return; }
         probing = true;
+        String requestId = UUID.randomUUID().toString();
+        probeRequestId = requestId;
         NebulaLink.call("settings.get", null, settings -> {
-            if (!isAttachedToWindow()) { probing = false; return; }
+            if (!requestId.equals(probeRequestId)) return;
+            if (!isAttachedToWindow()) { probing = false; probeRequestId = null; return; }
             String id = settings.data == null ? "" : settings.data.optString("selected_server_id");
-            if (!settings.ok) { probing = false; report(settings.error); return; }
-            if (id.isEmpty()) { probing = false; owner.presentFragment(new NebulaServersFragment()); return; }
+            if (!settings.ok) { probing = false; probeRequestId = null; report(NebulaText.text("Не удалось проверить сервер", "Could not check server")); return; }
+            if (id.isEmpty()) { probing = false; probeRequestId = null; owner.presentFragment(new NebulaServersFragment()); return; }
+            String configuredMethod = settings.data.optString("ping_type", "nimbo");
+            String method = configuredMethod.isEmpty() ? "nimbo" : configuredMethod;
             JSONObject payload = new JSONObject();
-            try { payload.put("ids", new JSONArray().put(id)); } catch (JSONException e) { probing = false; report(e.getMessage()); return; }
+            try {
+                payload.put("ids", new JSONArray().put(id));
+                payload.put("method", method);
+                payload.put("timeout", 5);
+                payload.put("request_id", requestId);
+            } catch (JSONException ignored) { probing = false; probeRequestId = null; return; }
             NebulaLink.call("probe.servers", payload, result -> {
-                probing = false;
+                if (!requestId.equals(probeRequestId)) return;
+                probing = false; probeRequestId = null;
                 if (!isAttachedToWindow()) return;
-                if (!result.ok) { report(result.error); return; }
+                if (!result.ok) { report(NebulaText.text("Не удалось проверить сервер", "Could not check server")); return; }
                 int ms = result.data == null ? -1 : result.data.optInt(id, -1);
-                report(ms > 0 ? "NebulaLink · " + ms + NebulaText.text(" мс", " ms") : NebulaText.text("Сервер недоступен", "Server unreachable"));
+                // Fresh explicit-method result, not a cached value inferred from settings.
+                report("NebulaLink · " + NebulaLatency.format(ms, method, 1,
+                        NebulaText.text("мс", "ms"), "—", NebulaText.text("Сервер недоступен", "Server unreachable")));
             });
         });
+    }
+    private void cancelProbe() {
+        String requestId = probeRequestId;
+        probeRequestId = null; probing = false;
+        if (requestId == null) return;
+        JSONObject payload = new JSONObject();
+        try { payload.put("request_id", requestId); } catch (JSONException ignored) { return; }
+        NebulaLink.call("probe.cancel", payload, null);
     }
     @Override protected void onAttachedToWindow() {
         super.onAttachedToWindow();
@@ -159,6 +182,7 @@ public final class NebulaLinkShortcut extends View {
         refresh();
     }
     @Override protected void onDetachedFromWindow() {
+        cancelProbe();
         if (preview < 0) {
             prefs().unregisterOnSharedPreferenceChangeListener(preferencesListener);
             NebulaLink.removeStatusListener(statusListener);

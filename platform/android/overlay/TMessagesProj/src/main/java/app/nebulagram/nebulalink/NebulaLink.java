@@ -52,6 +52,13 @@ public final class NebulaLink {
         void onStatus(JSONObject status);
     }
 
+    public interface ProbeListener { void onProgress(JSONObject progress); }
+    private static final ArrayList<ProbeListener> probeListeners = new ArrayList<>();
+    public static void addProbeListener(ProbeListener listener) {
+        if (!probeListeners.contains(listener)) probeListeners.add(listener);
+    }
+    public static void removeProbeListener(ProbeListener listener) { probeListeners.remove(listener); }
+
     public static JSONObject status() {
         return tunnelStatus;
     }
@@ -257,6 +264,13 @@ public final class NebulaLink {
     private static void handleEvent(String json) {
         try {
             JSONObject envelope = new JSONObject(json);
+            if ("probe.progress".equals(envelope.optString("event"))) {
+                JSONObject progress = envelope.optJSONObject("data");
+                if (progress != null) AndroidUtilities.runOnUIThread(() -> {
+                    for (ProbeListener listener : new ArrayList<>(probeListeners)) listener.onProgress(progress);
+                });
+                return;
+            }
             if (!"tunnel.status".equals(envelope.optString("event"))) {
                 return;
             }
@@ -282,7 +296,7 @@ public final class NebulaLink {
                 // туннеля, включая «подключаюсь», которое ничего не меняет.
             });
         } catch (JSONException e) {
-            FileLog.e(e);
+            // Ignore malformed events without logging their payload.
         }
     }
 

@@ -45,12 +45,15 @@ type Response struct {
 
 // Core holds the state shared by every call.
 type Core struct {
-	mu      sync.Mutex
-	store   *store.Store
-	tunnel  *tunnel.Manager
-	device  remnawave.Device
-	ready   bool
-	onEvent func(string)
+	mu          sync.Mutex
+	store       *store.Store
+	tunnel      *tunnel.Manager
+	device      remnawave.Device
+	ready       bool
+	onEvent     func(string)
+	probeMu     sync.Mutex
+	probing     *probeBatch
+	probeRecent map[string]time.Time
 }
 
 // New returns an uninitialised core; call "core.init" before anything else.
@@ -150,6 +153,7 @@ var handlers = map[string]handler{
 	"subscription.refresh":    (*Core).handleSubscriptionRefreshOne,
 	"subscription.refreshAll": (*Core).handleSubscriptionRefresh,
 	"probe.servers":           (*Core).handleProbe,
+	"probe.cancel":            (*Core).handleProbeCancel,
 	"probe.url":               (*Core).handleProbeURL,
 	"tunnel.start":            (*Core).handleTunnelStart,
 	"tunnel.stop":             (*Core).handleTunnelStop,
@@ -596,55 +600,6 @@ func (c *Core) deviceInfo() remnawave.Device {
 }
 
 // --- probing ----------------------------------------------------------------
-
-type probeRequest struct {
-	IDs     []string `json:"ids"`     // empty = every server on the current page
-	Timeout int      `json:"timeout"` // seconds, 0 = 5
-}
-
-func (c *Core) handleProbe(payload []byte) (any, error) {
-	var req probeRequest
-	if err := decode(payload, &req); err != nil {
-		return nil, err
-	}
-	wanted := make(map[string]bool, len(req.IDs))
-	for _, id := range req.IDs {
-		wanted[id] = true
-	}
-	var targets []model.Server
-	for _, s := range c.st().Servers() {
-		if len(wanted) == 0 || wanted[s.ID] {
-			targets = append(targets, s)
-		}
-	}
-	if len(targets) == 0 {
-		return nil, errors.New("nebulalink: nothing to check")
-	}
-	timeout := time.Duration(req.Timeout) * time.Second
-	if timeout <= 0 {
-		timeout = 5 * time.Second
-	}
-	// The "Ping type" setting used to describe a choice nothing acted on:
-	// every check was a TCP handshake regardless. URL measures the running
-	// tunnel and cannot rank servers, so it falls back to TCP here.
-	method := probe.MethodTCP
-	if c.st().Settings().PingType == settings.PingHTTP {
-		method = probe.MethodHTTP
-		if timeout < 8*time.Second {
-			timeout = 8 * time.Second
-		}
-	}
-	probe.Batch(context.Background(), targets, 16, timeout, method)
-
-	results := make(map[string]int, len(targets))
-	for _, s := range targets {
-		results[s.ID] = s.LatencyMs
-	}
-	if err := c.st().UpdateServerLatency(results); err != nil {
-		return nil, err
-	}
-	return results, nil
-}
 
 func (c *Core) handleProbeURL(payload []byte) (any, error) {
 	var req struct {
