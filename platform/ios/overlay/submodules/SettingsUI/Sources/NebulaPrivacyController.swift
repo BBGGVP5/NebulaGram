@@ -16,9 +16,9 @@ final class NebulaPrivacyController: UITableViewController {
     private var account: Int64 { context.account.peerId.toInt64() }
     private let archive = NebulaDeletedArchive.shared
     private lazy var hero = NebulaSettingsHero(symbol: "hand.raised",
-        title: text("Под вашим контролем", "You’re in control"),
-        summary: text("Управляйте локальными копиями, их оформлением и очисткой.",
-                      "Manage local copies, their appearance and cleanup."))
+        title: text("Локальные копии", "Local copies"),
+        summary: text("Сохраняйте сообщения в чате. Выбирайте значок и очищайте копии, когда нужно.",
+                      "Keep messages in the chat. Choose their marker and clear copies when needed."))
     init(context: AccountContext, russian: Bool) {
         self.context = context; self.ru = russian
         super.init(style: .insetGrouped)
@@ -35,17 +35,18 @@ final class NebulaPrivacyController: UITableViewController {
     }
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
-        hero.setStatus(archive.enabled(account: account) ? text("Локальное сохранение включено", "Local retention is on")
-            : text("Локальное сохранение выключено", "Local retention is off"))
+        hero.setStatus(archive.enabled(account: account) ? text("Сохранение включено", "Retention on")
+            : text("Сохранение выключено", "Retention off"), active: archive.enabled(account: account))
         hero.fit(in: tableView)
     }
     @objc private func close() { dismiss(animated: true) }
-    override func numberOfSections(in tableView: UITableView) -> Int { 5 }
+    override func numberOfSections(in tableView: UITableView) -> Int { 6 }
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int { section == 0 ? 3 : (section == 3 ? 2 : 1) }
     override func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
-        [text("Удалённые сообщения", "Deleted messages"), text("Оформление", "Appearance"), text("Локальный кэш", "Local cache"), text("Защита", "Protection"), nil][section]
+        [text("Удалённые сообщения", "Deleted messages"), text("Оформление", "Appearance"), text("Локальный кэш", "Local cache"), text("Защита", "Protection"), nil, text("Пересылка", "Forwarding")][section]
     }
     override func tableView(_ tableView: UITableView, titleForFooterInSection section: Int) -> String? {
+        if section == 5 { return text("Редактор текста и подписей в меню пересылки. Вложения и альбомы сохраняются. Копия без автора, отправка вручную.", "Edit text and captions from forwarding options. Keep attachments and albums. An anonymous copy, sent manually.") }
         if section == 4 {
             return helpExpanded ? [details(0), details(2), details(3)].joined(separator: "\n\n") : nil
         }
@@ -67,6 +68,15 @@ final class NebulaPrivacyController: UITableViewController {
         cell.textLabel?.font = .preferredFont(forTextStyle: .body)
         cell.textLabel?.adjustsFontForContentSizeCategory = true
         cell.textLabel?.numberOfLines = 0
+        if indexPath.section == 5 {
+            NebulaSettingsHero.style(cell, symbol: "square.and.pencil")
+            cell.textLabel?.text = text("Редактирование перед пересылкой", "Edit before forwarding")
+            let toggle = UISwitch()
+            toggle.isOn = NebulaForwardEditing.shared.enabled
+            toggle.addTarget(self, action: #selector(forwardEditingChanged(_:)), for: .valueChanged)
+            cell.accessoryView = toggle; cell.selectionStyle = .none
+            return cell
+        }
         if indexPath.section == 4 {
             NebulaSettingsHero.style(cell, symbol: "info.circle")
             cell.textLabel?.text = text("Как работает сохранение", "How retention works")
@@ -97,6 +107,9 @@ final class NebulaPrivacyController: UITableViewController {
             cell.imageView?.tintColor = .systemRed
         }
         return cell
+    }
+    @objc private func forwardEditingChanged(_ toggle: UISwitch) {
+        NebulaForwardEditing.shared.enabled = toggle.isOn
     }
     @objc private func changed(_ toggle: UISwitch) {
         let kind = toggle.tag

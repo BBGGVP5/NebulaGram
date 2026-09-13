@@ -136,6 +136,21 @@ public class NebulaSectionFragment extends BaseFragment {
         previews.clear();
         wallpaperPreviews.clear();
         composerPreview = null;
+        String[] summaries = {
+            "Цвета, фон и оформление интерфейса.", "Шапка чата, жесты и поле ввода.",
+            "Нужные разделы всегда под рукой.", "Версия приложения и полезные ссылки.",
+            "Поведение приложения и удобство каждый день.", "Вкладки, счётчики и переключение чатов.",
+            "Вид сообщений и действия с ними.", "Оформление профилей и быстрые действия.",
+            "Стиль переключателей и элементов управления.", "Соберите удобное меню действий."
+        };
+        String[] english = {"Colors, wallpaper and interface styling.", "Chat header, gestures and composer.",
+            "Keep the sections you need within reach.", "App version and useful links.",
+            "Everyday behavior and convenience.", "Tabs, counters and switching chats.",
+            "Message appearance and actions.", "Profiles and quick actions.",
+            "Switches and control styling.", "Build a menu that suits you."};
+        int summary = section >= 0 && section < summaries.length ? section : 0;
+        content.addView(new NebulaSettingsHero(context, R.drawable.msg_customize,
+                LocaleController.getString(titleKey()), NebulaText.text(summaries[summary], english[summary])));
         switch (section) {
             case SECTION_FOLDERS: buildFolders(context); break;
             case SECTION_MESSAGES: buildMessages(context); break;

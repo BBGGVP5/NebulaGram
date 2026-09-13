@@ -1,0 +1,120 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/MessagePreviewParams.java b/TMessagesProj/src/main/java/org/telegram/messenger/MessagePreviewParams.java
+index 2adb915..c773b6d 100644
+--- a/TMessagesProj/src/main/java/org/telegram/messenger/MessagePreviewParams.java
++++ b/TMessagesProj/src/main/java/org/telegram/messenger/MessagePreviewParams.java
+@@ -140,7 +140,7 @@ public class MessagePreviewParams {
+         }
+ 
+         public Messages checkEdits(ArrayList<MessageObject> replaceMessageObjects) {
+-            if (messages == null || messages.size() > 1 || replaceMessageObjects == null) {
++            if (app.nebulagram.ui.NebulaForwardEditing.isEditedBatch(messages) || messages == null || messages.size() > 1 || replaceMessageObjects == null) {
+                 return null;
+             }
+ 
+@@ -381,6 +381,7 @@ public class MessagePreviewParams {
+     }
+ 
+     public void updateForward(ArrayList<MessageObject> forwardMessages, long dialogId) {
++        if (app.nebulagram.ui.NebulaForwardEditing.isEditedBatch(forwardMessages)) hideForwardSendersName = true;
+         hasCaption = false;
+         hasSenders = false;
+         isSecret = DialogObject.isEncryptedDialog(dialogId);
+diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/SendMessagesHelper.java b/TMessagesProj/src/main/java/org/telegram/messenger/SendMessagesHelper.java
+index 4a6661d..cc3c609 100644
+--- a/TMessagesProj/src/main/java/org/telegram/messenger/SendMessagesHelper.java
++++ b/TMessagesProj/src/main/java/org/telegram/messenger/SendMessagesHelper.java
+@@ -2080,6 +2080,7 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
+         if (messages == null || messages.isEmpty()) {
+             return 0;
+         }
++        if (DialogObject.isEncryptedDialog(peer) && app.nebulagram.ui.NebulaForwardEditing.isEditedBatch(messages)) return 17;
+         int sendResult = 0;
+         long myId = getUserConfig().getClientUserId();
+         boolean isChannel = false;
+@@ -2146,6 +2147,18 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
+                 canSendMusic = ChatObject.canSendMusic(chat);
+             }
+ 
++            if (app.nebulagram.ui.NebulaForwardEditing.isEditedBatch(messages)) {
++                if (chat != null) {
++                    for (MessageObject edited : messages) {
++                        int error = canSendMessageToChat(chat, edited);
++                        if (error != 0) return error;
++                    }
++                }
++                return app.nebulagram.ui.NebulaForwardEditing.sendBatch(this, currentAccount, messages, peer,
++                        hideCaption, notify, scheduleDate, scheduleRepeatPeriod, replyToTopMsg, payStars,
++                        monoForumPeerId, suggestionParams, canSendPhoto, canSendVideo, canSendDocument,
++                        canSendMusic, canSendStickers);
++            }
+             LongSparseArray<Long> groupsMap = new LongSparseArray<>();
+             ArrayList<MessageObject> objArr = new ArrayList<>();
+             ArrayList<TLRPC.Message> arr = new ArrayList<>();
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
+index 6e4ee73..7b0f1a0 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
+@@ -11132,6 +11132,32 @@ public class ChatActivity extends BaseFragment implements
+         keyboardWasVisible = chatActivityEnterView.isKeyboardVisible();
+         forwardingPreviewView = new MessagePreviewView(contentView.getContext(), this, scrimBlur3Factory, messagePreviewParams, currentUser, currentChat, currentAccount, themeDelegate, startTab, replyingQuote != null && replyingQuote.outdated) {
+ 
++            private ArrayList<MessageObject> editableSelection() {
++                ArrayList<MessageObject> selected = new ArrayList<>();
++                if (messagePreviewParams != null && messagePreviewParams.forwardMessages != null)
++                    messagePreviewParams.forwardMessages.getSelectedMessages(selected);
++                return selected;
++            }
++            @Override
++            protected boolean canEditForward() {
++                return !DialogObject.isEncryptedDialog(dialog_id) && editingMessageObject == null
++                        && app.nebulagram.ui.NebulaForwardEditing.canEdit(currentAccount, editableSelection());
++            }
++            @Override
++            protected void editForward() {
++                if (!canEditForward()) return;
++                final ArrayList<MessageObject> selected = editableSelection();
++                app.nebulagram.ui.NebulaForwardEditing.edit(ChatActivity.this, currentAccount, selected, copies -> {
++                    if (chatActivityEnterView == null || getParentActivity() == null || !canEditForward()) return;
++                    // Keep the composer text intact; this only replaces the selected forwarding batch.
++                    if (!editableSelection().equals(selected)) return;
++                    dismiss(false);
++                    showFieldPanelForForward(true, copies);
++                    messagePreviewParams.hideForwardSendersName = true;
++                    messagePreviewParams.hideCaption = false;
++                });
++            }
++
+             @Override
+             protected void removeLink() {
+                 dismiss(true);
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/MessagePreviewView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/MessagePreviewView.java
+index d90a0d4..8a84702 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Components/MessagePreviewView.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/MessagePreviewView.java
+@@ -1033,6 +1033,15 @@ public class MessagePreviewView extends FrameLayout {
+                     captionButton = null;
+                 }
+ 
++                if (canEditForward()) {
++                    ActionBarMenuSubItem editCopy = new ActionBarMenuSubItem(context, true, false, resourcesProvider);
++                    editCopy.setTextAndIcon(app.nebulagram.ui.NebulaText.text("Изменить и отправить", "Edit and send"), R.drawable.msg_edit);
++                    editCopy.setOnClickListener(v -> editForward());
++                    menu.addView(editCopy, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, 48));
++                }
++                if (app.nebulagram.ui.NebulaForwardEditing.isEditedBatch(messagePreviewParams.forwardMessages.messages)) {
++                    sendersNameButton.setEnabled(false); sendersNameButton.setAlpha(.5f);
++                }
+                 ActionBarMenuSubItem changeRecipientView = new ActionBarMenuSubItem(context, true, false, resourcesProvider);
+                 changeRecipientView.setOnClickListener(view -> selectAnotherChat(true));
+                 changeRecipientView.setTextAndIcon(LocaleController.getString(R.string.ChangeRecipient), R.drawable.msg_forward_replace);
+@@ -1998,6 +2007,10 @@ public class MessagePreviewView extends FrameLayout {
+ 
+     }
+ 
++    protected boolean canEditForward() { return false; }
++
++    protected void editForward() { }
++
+     protected void removeForward() {
+ 
+     }

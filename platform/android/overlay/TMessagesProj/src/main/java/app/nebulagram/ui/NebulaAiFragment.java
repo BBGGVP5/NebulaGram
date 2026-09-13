@@ -44,7 +44,7 @@ public final class NebulaAiFragment extends BaseFragment {
     private void build(Context c) {
         content.removeAllViews();
         hero = new NebulaSettingsHero(c, R.drawable.msg_customize,
-                text("Ваш ИИ-помощник", "Your AI assistant"),
+                text("ИИ-помощник", "AI assistant"),
                 text("Ваш провайдер. Ваши инструкции. Только тот текст, который выберете вы.",
                         "Your provider. Your instructions. Only the text you choose."));
         content.addView(hero);
@@ -164,7 +164,7 @@ public final class NebulaAiFragment extends BaseFragment {
         boolean saved = NebulaAiSecrets.exists(provider);
         hero.setStatus(!NebulaAiAvailability.enabled() ? text("ИИ выключен", "AI is off")
                 : NebulaAiAvailability.available() ? text("Подключение настроено · ", "Configured · ") + PROVIDERS[provider]
-                : text("Начните с провайдера, модели и ключа", "Start with a provider, model and key"));
+                : text("Нужна настройка", "Setup needed"), NebulaAiAvailability.available());
         keyStatus.setText(saved ? text("Ключ сохранён на устройстве. Введите новый, чтобы заменить его.", "A key is saved on this device. Enter a new one to replace it.")
                 : text("Нужен API-ключ выбранного провайдера.", "An API key from the selected provider is required."));
         key.setHint(saved ? "••••••••" : text("Введите ключ провайдера", "Enter a provider key"));

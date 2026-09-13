@@ -11,13 +11,14 @@ import org.telegram.messenger.AndroidUtilities;
 /** Lightweight, wrapping settings header. No readbacks, blur or animation loop. */
 public final class NebulaSettingsHero extends LinearLayout {
     private final TextView status;
+    private final GradientDrawable background;
 
     public NebulaSettingsHero(Context context, int icon, String title, String description) {
         super(context);
         NebulaTheme theme = NebulaTheme.of(context);
         setOrientation(VERTICAL);
-        setPadding(dp(22), dp(22), dp(22), dp(22));
-        GradientDrawable background = new GradientDrawable(GradientDrawable.Orientation.TL_BR,
+        setPadding(dp(20), dp(18), dp(20), dp(18));
+        background = new GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT,
                 new int[]{theme.primaryContainer(), theme.surfaceContainer()});
         background.setCornerRadius(dp(26));
         background.setStroke(dp(1), NebulaTheme.stateLayer(theme.primary(), .18f));
@@ -36,9 +37,9 @@ public final class NebulaSettingsHero extends LinearLayout {
         brandParams.setMarginStart(dp(12));
         top.addView(brand, brandParams);
         addView(top);
-        TextView heading = label(title, 28, theme.onSurface());
+        TextView heading = label(title, 24, theme.onSurface());
         heading.setTypeface(AndroidUtilities.bold());
-        LayoutParams headingParams = new LayoutParams(-1, -2); headingParams.topMargin = dp(18);
+        LayoutParams headingParams = new LayoutParams(-1, -2); headingParams.topMargin = dp(12);
         addView(heading, headingParams);
         TextView explanation = label(description, 14, theme.onSurfaceVariant());
         explanation.setLineSpacing(dp(3), 1f);
@@ -46,12 +47,27 @@ public final class NebulaSettingsHero extends LinearLayout {
         addView(explanation, descriptionParams);
         status = label("", 12, theme.primary());
         status.setTypeface(AndroidUtilities.bold());
-        LayoutParams statusParams = new LayoutParams(-1, -2); statusParams.topMargin = dp(16);
+        LayoutParams statusParams = new LayoutParams(-2, -2); statusParams.topMargin = dp(14);
         addView(status, statusParams);
+        setStatus("");
     }
 
-    public void setStatus(String value) {
-        status.setText(value);
+    public void setStatus(String value) { setStatus(value, false); }
+
+    /** Active describes this feature only, never the security of the whole screen. */
+    public void setStatus(String value, boolean active) {
+        NebulaTheme theme = NebulaTheme.of(getContext());
+        int accent = active ? theme.success() : theme.onSurfaceVariant();
+        int right = active ? androidx.core.graphics.ColorUtils.blendARGB(theme.surfaceContainer(), theme.success(), .28f)
+                : theme.surfaceContainer();
+        background.setColors(new int[]{theme.primaryContainer(), right});
+        GradientDrawable badge = new GradientDrawable();
+        badge.setCornerRadius(dp(12)); badge.setColor(NebulaTheme.stateLayer(accent, .12f));
+        badge.setStroke(dp(1), NebulaTheme.stateLayer(accent, .25f));
+        status.setBackground(badge); status.setPadding(dp(10), dp(6), dp(10), dp(6));
+        status.setTextColor(accent);
+        status.setText((active ? "●  " : "○  ") + (value == null ? "" : value));
+        status.setContentDescription(value);
         status.setVisibility(value == null || value.isEmpty() ? GONE : VISIBLE);
     }
 

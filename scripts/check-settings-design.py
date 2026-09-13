@@ -65,3 +65,11 @@ hero = (IOS / "NebulaSettingsHero.swift").read_text(encoding="utf-8")
 assert 'systemLayoutSizeFitting' in hero and 'adjustsFontForContentSizeCategory = true' in hero
 assert 'frame.width - width' in hero and 'frame.height - height' in hero
 print("Settings presentation guards passed (not a substitute for on-device visual QA)")
+
+android_hero = (UI / "NebulaSettingsHero.java").read_text(encoding="utf-8")
+assert 'setStatus(String value, boolean active)' in android_hero
+assert 'active ? theme.success()' in android_hero and 'background.setColors' in android_hero
+assert 'setStatus(String value) { setStatus(value, false); }' in android_hero
+assert 'guard self.active != active || statusLabel.text != value else { return }' in hero
+assert 'UIColor.systemGreen' in hero and 'active: Bool = false' in hero
+print("Header state guards passed: neutral default, explicit active tint, no unconditional layout invalidation")

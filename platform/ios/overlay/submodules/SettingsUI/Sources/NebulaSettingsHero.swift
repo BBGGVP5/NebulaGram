@@ -6,6 +6,7 @@ final class NebulaSettingsHero: UIView {
     private let statusLabel = UILabel()
     private let card = UIView()
     private let wash = CAGradientLayer()
+    private var active = false
 
     init(symbol: String, title: String, summary: String) {
         super.init(frame: .zero)
@@ -44,7 +45,7 @@ final class NebulaSettingsHero: UIView {
         brand.addArrangedSubview(icon)
         brand.addArrangedSubview(label("NEBULAGRAM", style: .caption1, color: .secondaryLabel))
         stack.addArrangedSubview(brand)
-        let heading = label(title, style: .title1, color: .label)
+        let heading = label(title, style: .title2, color: .label)
         heading.accessibilityTraits.insert(.header)
         stack.addArrangedSubview(heading)
         stack.addArrangedSubview(label(summary, style: .subheadline, color: .secondaryLabel))
@@ -52,7 +53,11 @@ final class NebulaSettingsHero: UIView {
         statusLabel.adjustsFontForContentSizeCategory = true
         statusLabel.numberOfLines = 0
         statusLabel.textColor = .systemBlue
+        statusLabel.layer.cornerRadius = 10
+        statusLabel.clipsToBounds = true
+        statusLabel.textAlignment = .center
         stack.addArrangedSubview(statusLabel)
+        statusLabel.isHidden = true
     }
 
     required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
@@ -63,12 +68,20 @@ final class NebulaSettingsHero: UIView {
         CATransaction.setDisableActions(true)
         wash.frame = card.bounds
         wash.colors = [UIColor.systemBlue.resolvedColor(with: traitCollection).withAlphaComponent(0.16).cgColor,
-                       UIColor.clear.cgColor]
+                       active ? UIColor.systemGreen.resolvedColor(with: traitCollection).withAlphaComponent(0.25).cgColor : UIColor.clear.cgColor]
         CATransaction.commit()
     }
 
-    func setStatus(_ text: String) {
-        if statusLabel.text != text { statusLabel.text = text }
+    func setStatus(_ text: String, active: Bool = false) {
+        let value = (active ? "●  " : "○  ") + text
+        guard self.active != active || statusLabel.text != value else { return }
+        self.active = active
+        statusLabel.text = value
+        statusLabel.accessibilityLabel = text
+        statusLabel.isHidden = text.isEmpty
+        statusLabel.textColor = active ? .systemGreen : .secondaryLabel
+        statusLabel.backgroundColor = (active ? UIColor.systemGreen : UIColor.secondaryLabel).withAlphaComponent(0.10)
+        setNeedsLayout()
     }
 
     func fit(in table: UITableView) {

@@ -10,7 +10,7 @@ final class NebulaAiController: UITableViewController {
     private let settings = NebulaAiSettings.shared
     private let secrets = NebulaAiSecrets.shared
     private lazy var hero = NebulaSettingsHero(symbol: "sparkles",
-        title: text("Ваш ИИ-помощник", "Your AI assistant"),
+        title: text("ИИ-помощник", "AI assistant"),
         summary: text("Ваш провайдер. Ваши инструкции. Только тот текст, который выберете вы.",
                       "Your provider. Your instructions. Only the text you choose."))
     private var provider: NebulaAiProvider
@@ -35,7 +35,7 @@ final class NebulaAiController: UITableViewController {
         super.viewDidLayoutSubviews()
         hero.setStatus(!settings.enabled ? text("ИИ выключен", "AI is off")
             : settings.isConfigured(secrets: secrets) ? text("Подключение настроено · ", "Configured · ") + provider.title
-            : text("Начните с провайдера, модели и ключа", "Start with a provider, model and key"))
+            : text("Нужна настройка", "Setup needed"), active: settings.enabled && settings.isConfigured(secrets: secrets))
         hero.fit(in: tableView)
     }
     @objc private func close() { dismiss(animated: true) }

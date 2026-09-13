@@ -92,11 +92,11 @@ public final class NebulaPrivacyFragment extends BaseFragment {
         content.removeAllViews();
 
         NebulaSettingsHero hero = new NebulaSettingsHero(content.getContext(), R.drawable.msg_secret,
-                text("Под вашим контролем", "You’re in control"),
-                text("Управляйте локальными копиями, их оформлением и очисткой.",
-                        "Manage local copies, their appearance and cleanup."));
-        hero.setStatus(NebulaDeletedArchive.enabled(owner) ? text("Локальное сохранение включено", "Local retention is on")
-                : text("Локальное сохранение выключено", "Local retention is off"));
+                text("Локальные копии", "Local copies"),
+                text("Сохраняйте сообщения в чате. Выбирайте значок и очищайте копии, когда нужно.",
+                        "Keep messages in the chat. Choose their marker and clear copies when needed."));
+        hero.setStatus(NebulaDeletedArchive.enabled(owner) ? text("Сохранение включено", "Retention on")
+                : text("Сохранение выключено", "Retention off"), NebulaDeletedArchive.enabled(owner));
         content.addView(hero);
         header(text("Удалённые сообщения", "Deleted messages"));
         card(row(R.drawable.msg_delete, text("Сохранять удалённые сообщения", "Save deleted messages"))
@@ -131,6 +131,13 @@ public final class NebulaPrivacyFragment extends BaseFragment {
                 .withClick(v -> icons()));
         note(text("Значок показывается в чате вместо слова «Удалено».",
                 "The icon replaces the word Deleted in the chat."));
+
+        header(text("Пересылка", "Forwarding"));
+        card(row(R.drawable.msg_edit, text("Редактирование перед пересылкой", "Edit before forwarding"))
+                .subtitle(text("Редактор текста и подписей в меню пересылки. Вложения и альбомы сохраняются.",
+                        "Edit text and captions from forwarding options. Keep attachments and albums."), false)
+                .trailing(NebulaRow.TRAIL_SWITCH).checked(NebulaForwardEditing.enabled())
+                .withClick(v -> { NebulaForwardEditing.setEnabled(!NebulaForwardEditing.enabled()); rebuild(); }));
 
         header(text("Ограничения отправителя", "Sender restrictions"));
         card(row(R.drawable.msg_forward, text("Разрешить снимки и пересылку", "Allow screenshots and forwarding"))

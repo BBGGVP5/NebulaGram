@@ -1,0 +1,30 @@
+diff --git a/submodules/TelegramUI/Sources/Chat/ChatMessageActionOptions.swift b/submodules/TelegramUI/Sources/Chat/ChatMessageActionOptions.swift
+index 4669b24..2a3ed6f 100644
+--- a/submodules/TelegramUI/Sources/Chat/ChatMessageActionOptions.swift
++++ b/submodules/TelegramUI/Sources/Chat/ChatMessageActionOptions.swift
+@@ -305,6 +305,25 @@ private func chatForwardOptions(selfController: ChatControllerImpl, sourceView:
+             items.append(.separator)
+         }
+         
++        if peerId.namespace != Namespaces.Peer.SecretChat && nebulaCanEditForward(messages) {
++            let ru = presentationData.strings.baseLanguageCode.lowercased().hasPrefix("ru")
++            items.append(.action(ContextMenuActionItem(text: ru ? "Изменить и отправить" : "Edit and send", icon: { theme in
++                return generateTintedImage(image: UIImage(bundleImageName: "Chat/Context Menu/Edit"), color: theme.contextMenu.primaryColor)
++            }, action: { [weak selfController, weak chatController] c, f in
++                guard let selfController else { f(.default); return }
++                var selected = messages
++                if let ids = (chatController as? ChatControllerImpl)?.selectedMessageIds, !ids.isEmpty {
++                    selected = messages.filter { ids.contains($0.id) }
++                }
++                guard nebulaCanEditForward(selected) else { f(.default); return }
++                if let c {
++                    c.dismiss(completion: { [weak selfController] in selfController?.nebulaEditForward(selected) })
++                } else {
++                    f(.default)
++                }
++            })))
++        }
++
+         items.append(.action(ContextMenuActionItem(text: presentationData.strings.Conversation_ForwardOptions_ChangeRecipient, icon: { theme in return generateTintedImage(image: UIImage(bundleImageName: "Chat/Context Menu/Replace"), color: theme.contextMenu.primaryColor) }, action: { [weak selfController] c, f in
+             selfController?.interfaceInteraction?.forwardCurrentForwardMessages()
+             
