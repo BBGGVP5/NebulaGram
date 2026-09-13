@@ -37,6 +37,7 @@ public final class NebulaTelegramUpdates implements NotificationCenter.Notificat
     private int request, generation;
     private boolean cancelledDownload;
     private Runnable timeout;
+    private WeakReference<NebulaUpdateSheet> activeOffer = new WeakReference<>(null);
     public boolean checking, verifying;
     public String error;
 
@@ -276,38 +277,30 @@ public final class NebulaTelegramUpdates implements NotificationCenter.Notificat
             LaunchActivity a = target.get();
             if (a == null || a.isFinishing() || a.isDestroyed() || !updater.available() || updater.error != null || updater.downloading() || updater.verifying) return;
             if (UserConfig.selectedAccount != updater.account || SharedConfig.isWaitingForPasscodeEnter || SharedConfig.appLocked || ApplicationLoader.mainInterfacePaused) return;
-            if (!force && (!updater.automatic() || updater.prefs.getInt("prompted", 0) == updater.release().versionCode)) return;
-            updater.prefs.edit().putInt("prompted", updater.release().versionCode).apply();
+            if (!force && (!updater.automatic() || !NebulaUpdatePromptPolicy.shouldOffer(
+                    updater.release().versionCode, updater.prefs.getInt("prompted", 0),
+                    updater.prefs.getLong("prompted_at", 0), System.currentTimeMillis()))) return;
             updater.showOffer(a);
         });
     }
+    public boolean currentAccountSelected() {
+        return account == UserConfig.selectedAccount && UserConfig.getInstance(account).isClientActivated();
+    }
+    public void markPrompted() {
+        if (available()) prefs.edit().putInt("prompted", release().versionCode)
+                .putLong("prompted_at", System.currentTimeMillis()).apply();
+    }
     public void showOffer(Activity activity) {
-        if (!available()) return;
-        final int offeredCode = release().versionCode;
-        final long offeredDocument = document().id;
-        final String offeredPost = postUrl();
-        android.widget.LinearLayout content = new android.widget.LinearLayout(activity);
-        content.setOrientation(android.widget.LinearLayout.VERTICAL);
-        content.setPadding(AndroidUtilities.dp(24), AndroidUtilities.dp(8), AndroidUtilities.dp(24), AndroidUtilities.dp(8));
-        android.widget.TextView details = new android.widget.TextView(activity);
-        details.setTextSize(13); details.setTextColor(NebulaTheme.of(activity).onSurfaceVariant());
-        details.setText("Telegram " + release().telegramVersion + " · " + AndroidUtilities.formatFileSize(document().size));
-        content.addView(details);
-        NebulaChangelogView changelog = new NebulaChangelogView(activity); changelog.setPost(post());
-        android.widget.LinearLayout.LayoutParams lp = new android.widget.LinearLayout.LayoutParams(-1, -2); lp.topMargin = AndroidUtilities.dp(16);
-        content.addView(changelog, lp);
-        new AlertDialog.Builder(activity).setTitle("NebulaGram " + release().versionName)
-                .setView(content)
-                .setPositiveButton(downloaded() ? text("Установить", "Install") : text("Скачать", "Download"), (dialog, which) -> {
-                    if (!available()) return;
-                    if (release().versionCode != offeredCode || document().id != offeredDocument) { showOffer(activity); return; }
-                    if (downloaded()) install(activity); else download();
-                    if (activity instanceof LaunchActivity) {
-                        BaseFragment last = ((LaunchActivity) activity).getLastFragment();
-                        if (last != null && !(last instanceof NebulaUpdatesFragment)) last.presentFragment(new NebulaUpdatesFragment());
-                    }
-                })
-                .setNeutralButton(text("Открыть пост", "Open post"), (dialog, which) -> Browser.openUrl(activity, offeredPost))
-                .setNegativeButton(text("Позже", "Later"), null).show();
+        if (!available() || !currentAccountSelected() || activity == null || activity.isFinishing() || activity.isDestroyed()
+                || SharedConfig.isWaitingForPasscodeEnter || SharedConfig.appLocked || ApplicationLoader.mainInterfacePaused) return;
+        NebulaUpdateSheet previous = activeOffer.get();
+        if (previous != null && previous.isShowing()) return;
+        NebulaUpdateSheet sheet = new NebulaUpdateSheet(activity, this);
+        activeOffer = new WeakReference<>(sheet);
+        sheet.setOnDismissListener(dialog -> {
+            if (activeOffer.get() == sheet) activeOffer.clear();
+        });
+        sheet.show();
+        if (sheet.isShowing()) markPrompted();
     }
 }
