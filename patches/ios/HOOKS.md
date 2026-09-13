@@ -53,3 +53,18 @@
   it changes — and data written to the private container does not migrate if
   the group later appears.
 
+
+# Native tab-bar appearance (2026-09-13)
+
+- `0015-native-tab-bar-appearance.patch`: `GlassBackgroundComponent.swift` and
+  `TabBarComponent.swift`. Marks the existing native tab-bar container; its glass
+  descendants retain upstream appearance even when Nebula adaptive quality reduces
+  other surfaces. No tab/control replacement, custom dimensions, or new icons.
+- `0011-bottom-navigation.patch` continues to filter/reorder native controllers,
+  retaining selected controller identity. Search, liquid selection, badge and
+  gesture implementations remain upstream. The bootstrap test compares the entire
+  TabBarComponent against the pin after removing the single marker assignment.
+- Other adaptive-glass fallback surfaces now explicitly clip their material.
+  Verification on an iPhone (including low-power mode, hidden Contacts, reordered
+  tabs, search and dark/light appearance) is still required; patch tests are not a
+  UIKit/IPA compilation or device screenshot test.

@@ -1,0 +1,39 @@
+diff --git a/submodules/TelegramUI/Components/GlassBackgroundComponent/Sources/GlassBackgroundComponent.swift b/submodules/TelegramUI/Components/GlassBackgroundComponent/Sources/GlassBackgroundComponent.swift
+--- a/submodules/TelegramUI/Components/GlassBackgroundComponent/Sources/GlassBackgroundComponent.swift
++++ b/submodules/TelegramUI/Components/GlassBackgroundComponent/Sources/GlassBackgroundComponent.swift
+@@ -549,2 +549,3 @@
+         nebulaFallback.isUserInteractionEnabled = false
++        nebulaFallback.clipsToBounds = true
+         insertSubview(nebulaFallback, at: 0)
+@@ -610,1 +611,12 @@
++    private var nebulaInNativeContainer: Bool {
++        var ancestor = self.superview
++        while let view = ancestor {
++            if let container = view as? GlassBackgroundContainerView, container.nebulaPreservesNativeAppearance {
++                return true
++            }
++            ancestor = view.superview
++        }
++        return false
++    }
++
+     @objc private func nebulaRefreshGlass() {
+@@ -628,3 +640,3 @@
+         nebulaSize = size
+-        let reduced = NebulaGlassPolicy.reduced(mode: NebulaSettingsStore.shared.glassQuality,
++        let reduced = !self.nebulaInNativeContainer && NebulaGlassPolicy.reduced(mode: NebulaSettingsStore.shared.glassQuality,
+             lowPower: ProcessInfo.processInfo.isLowPowerModeEnabled,
+@@ -876,2 +888,6 @@
+ public final class GlassBackgroundContainerView: UIView {
++    /// Keep Telegram's own glass/legacy rendering for native navigation surfaces.
++    /// Read by descendants at layout time; no replacement views or style overrides.
++    public var nebulaPreservesNativeAppearance: Bool = false
++
+     private final class ContentView: UIView {
+diff --git a/submodules/TelegramUI/Components/TabBarComponent/Sources/TabBarComponent.swift b/submodules/TelegramUI/Components/TabBarComponent/Sources/TabBarComponent.swift
+--- a/submodules/TelegramUI/Components/TabBarComponent/Sources/TabBarComponent.swift
++++ b/submodules/TelegramUI/Components/TabBarComponent/Sources/TabBarComponent.swift
+@@ -445,2 +445,3 @@
+             self.addSubview(self.backgroundContainer)
++            self.backgroundContainer.nebulaPreservesNativeAppearance = true
+             self.backgroundContainer.contentView.addSubview(self.contextGestureContainerView)

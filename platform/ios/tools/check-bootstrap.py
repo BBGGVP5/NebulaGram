@@ -96,6 +96,25 @@ def main():
         for target in ['//Telegram:Lib', '//Telegram:WidgetExtensionLib', '//submodules/TelegramUI:TelegramUI']:
             assert target in integration
 
+        # Tab visibility/order must not replace Telegram's original bar, lens, search,
+        # gestures, badges, layout or drawing. The only change is an opt-out marker.
+        native_tab_path = 'submodules/TelegramUI/Components/TabBarComponent/Sources/TabBarComponent.swift'
+        native_tab = (temp / native_tab_path).read_text(encoding='utf-8')
+        marker = '            self.backgroundContainer.nebulaPreservesNativeAppearance = true\n'
+        assert native_tab.count(marker) == 1
+        original_tab = run('git', '-C', str(tree), 'show', revision + ':' + native_tab_path).decode('utf-8')
+        assert native_tab.replace(marker, '') == original_tab
+        glass = (temp / 'submodules/TelegramUI/Components/GlassBackgroundComponent/Sources/GlassBackgroundComponent.swift').read_text(encoding='utf-8')
+        assert 'let reduced = !self.nebulaInNativeContainer && NebulaGlassPolicy.reduced(' in glass
+        assert 'while let view = ancestor' in glass and 'ancestor = view.superview' in glass
+        assert 'public var nebulaPreservesNativeAppearance: Bool = false' in glass
+        assert 'nebulaFallback.clipsToBounds = true' in glass
+        root_controller = (temp / 'submodules/TelegramUI/Sources/TelegramRootController.swift').read_text(encoding='utf-8')
+        assert 'controllers = nebulaOrderedControllers(controllers)' in root_controller
+        assert 'pair.0 !== pair.1' in root_controller and '$0 === old' in root_controller
+        assert 'if store.showContactsTab' in root_controller
+        print('OK: native Telegram tab bar is unchanged except its scoped adaptive-glass opt-out; order/hiding retain native controllers', flush=True)
+
         print(f'OK: {len(patches)} ordered iOS patch(es), {len(paths)} upstream paths, overlay/hooks, pin {revision}', flush=True)
         if args.swift:
             for source in sorted(temp.rglob('*.swift')):
