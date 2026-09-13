@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="1024" height="1024">
+<title>NebulaGram — Monogram</title>
+<defs><linearGradient id="bg" x2="1" y2="1"><stop stop-color="#EAF0F9"/><stop offset="1" stop-color="#D2DBEC"/></linearGradient></defs>
+<path fill="url(#bg)" d="M0 0H200V200H0Z"/>
+<g transform="translate(10 10) scale(.9)" stroke-linecap="round" stroke-linejoin="round">
+<path d="M59,145 L59,55 L80,55 L122,110 L122,55 L143,55 L143,145 L122,145 L80,90 L80,145 Z" fill="#273957" stroke="#273957" stroke-width="3"/>
+</g></svg>

@@ -6,4 +6,14 @@
     <string name="NebulaLauncherSunset">Sunset</string>
     <string name="NebulaLauncherGraphite">Graphite</string>
     <string name="NebulaLauncherPearl">Pearl</string>
+    <string name="NebulaLauncherInk">Ink</string>
+    <string name="NebulaLauncherPaper">Paper</string>
+    <string name="NebulaLauncherMint">Mint</string>
+    <string name="NebulaLauncherLavender">Lavender</string>
+    <string name="NebulaLauncherTangerine">Tangerine</string>
+    <string name="NebulaLauncherRose">Rose</string>
+    <string name="NebulaLauncherOrbit">Orbit</string>
+    <string name="NebulaLauncherBlueprint">Blueprint</string>
+    <string name="NebulaLauncherNova">Nova</string>
+    <string name="NebulaLauncherMonogram">Monogram</string>
 </resources>

@@ -17,13 +17,17 @@ source = (TREE / 'TMessagesProj/src/main/java/org/telegram/ui/LauncherIconContro
 variants = [('DEFAULT', 'DefaultIcon', 'blue'), ('VINTAGE', 'VintageIcon', 'ocean'),
             ('AQUA', 'AquaIcon', 'aurora'), ('PREMIUM', 'PremiumIcon', 'sunset'),
             ('TURBO', 'TurboIcon', 'graphite'), ('NOX', 'NoxIcon', 'pearl')]
+variants += [(key.upper(), 'Nebula' + key.title() + 'Icon', key) for key in
+             ['ink', 'paper', 'mint', 'lavender', 'tangerine', 'rose', 'orbit', 'blueprint', 'nova', 'monogram']]
 for enum, component, key in variants:
     expected = f'{enum}("{component}", R.drawable.nebula_launcher_{key}_background, R.mipmap.nebula_launcher_{key}_foreground, R.string.NebulaLauncher{key.title()})'
     assert expected in source, f'Native selector still uses upstream artwork: {enum}'
     adaptive = ET.parse(RES / f'mipmap-anydpi-v26/nebula_launcher_{key}.xml').getroot()
     assert adaptive.find('background').get(A + 'drawable') == f'@drawable/nebula_launcher_{key}_background'
     assert adaptive.find('foreground').get(A + 'drawable') == f'@mipmap/nebula_launcher_{key}_foreground'
-    assert adaptive.find('monochrome').get(A + 'drawable') == '@drawable/nebula_launcher_monochrome'
+    mono = f'nebula_launcher_{key}_monochrome' if key in ['nova','monogram'] else 'nebula_launcher_monochrome'
+    assert adaptive.find('monochrome').get(A + 'drawable') == '@drawable/' + mono
+    assert (RES / f'drawable/{mono}.xml').exists()
     for density, factor in [('mdpi', 1), ('hdpi', 1.5), ('xhdpi', 2), ('xxhdpi', 3), ('xxxhdpi', 4)]:
         for suffix, dp in [('', 48), ('_foreground', 108)]:
             png = (RES / f'mipmap-{density}/nebula_launcher_{key}{suffix}.png').read_bytes()
@@ -33,10 +37,12 @@ for enum, component, key in variants:
         labels = ET.parse(RES / locale / 'nebula_launcher.xml').getroot()
         assert labels.find(f"string[@name='NebulaLauncher{key.title()}']").text
 
-assert len({hashlib.sha256((RES / f'mipmap-xxxhdpi/nebula_launcher_{k}.png').read_bytes()).digest() for _, _, k in variants}) == 6
+assert len({hashlib.sha256((RES / f'mipmap-xxxhdpi/nebula_launcher_{k}.png').read_bytes()).digest() for _, _, k in variants}) == 16
 main = ET.parse(TREE / 'TMessagesProj/src/main/AndroidManifest.xml').getroot().find('application')
 standalone = ET.parse(TREE / 'TMessagesProj/config/release/AndroidManifest_standalone.xml').getroot().find('application')
 for app in [main, standalone]:
+    names = [alias.get(A + 'name') for alias in app.findall('activity-alias')]
+    assert len(names) == len(set(names)), 'Duplicate launcher component'
     for _, component, key in variants:
         alias = app.find(f"activity-alias[@{A}name='org.telegram.messenger.{component}']")
         if alias is None:
@@ -73,7 +79,7 @@ public class LauncherCheck {
   }
   for(LauncherIcon i:LauncherIcon.values())ApplicationLoader.applicationContext.pm.setComponentEnabledSetting(i.getComponentName(ApplicationLoader.applicationContext),2,1);
   LauncherIconController.tryFixLauncherIconIfNeeded();check(LauncherIcon.DEFAULT);
-  System.out.println("PASS: 36 switches, retained choice, recovery, no Premium gate");
+  System.out.println("PASS: " + (LauncherIcon.values().length * LauncherIcon.values().length) + " switches, retained choice, recovery, no Premium gate");
  }
 }''',
     }
@@ -94,4 +100,4 @@ public class LauncherCheck {
     subprocess.run([javac, '-encoding', 'UTF-8', '-d', str(work)] + [str(work / f) for f in files], check=True)
     java = str(Path(javac).with_name('java.exe' if javac.endswith('.exe') else 'java'))
     subprocess.run([java, '-cp', str(work), 'LauncherCheck'], check=True)
-print('PASS: six branded previews/aliases, legacy densities, adaptive layers and RU/EN titles')
+print('PASS: 16 branded previews/aliases, legacy densities, adaptive layers and RU/EN titles')

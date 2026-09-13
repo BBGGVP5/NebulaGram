@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="1024" height="1024">
+<title>NebulaGram — Lavender</title>
+<defs><linearGradient id="bg" x2="1" y2="1"><stop stop-color="#EBDEFF"/><stop offset="1" stop-color="#BBA3EE"/></linearGradient></defs>
+<path fill="url(#bg)" d="M0 0H200V200H0Z"/>
+<g transform="translate(10 10) scale(.9)" stroke-linecap="round" stroke-linejoin="round">
+
+<path d="M148 52 96 138 88 104 54 96Z" fill="#4C2D7B" stroke="#4C2D7B" stroke-width="13"/>
+<path d="M44 148c14-6 26-9 38-9" fill="none" stroke="#72569E" stroke-width="9" opacity=".855"/>
+<path d="M40 124c9-4 17-6 25-6" fill="none" stroke="#72569E" stroke-width="7" opacity=".549"/>
+</g></svg>

@@ -67,3 +67,6 @@ def generate():
 
 if __name__ == '__main__':
     generate()
+    # Regenerating the original set must retain the additional selector labels.
+    import runpy
+    runpy.run_path(str(ROOT / 'scripts/gen-launcher-extras.py'), run_name='__main__')

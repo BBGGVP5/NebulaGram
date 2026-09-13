@@ -6,4 +6,14 @@
     <string name="NebulaLauncherSunset">Закат</string>
     <string name="NebulaLauncherGraphite">Графит</string>
     <string name="NebulaLauncherPearl">Жемчуг</string>
+    <string name="NebulaLauncherInk">Чернила</string>
+    <string name="NebulaLauncherPaper">Бумага</string>
+    <string name="NebulaLauncherMint">Мята</string>
+    <string name="NebulaLauncherLavender">Лаванда</string>
+    <string name="NebulaLauncherTangerine">Мандарин</string>
+    <string name="NebulaLauncherRose">Роза</string>
+    <string name="NebulaLauncherOrbit">Орбита</string>
+    <string name="NebulaLauncherBlueprint">Чертёж</string>
+    <string name="NebulaLauncherNova">Нова</string>
+    <string name="NebulaLauncherMonogram">Монограмма</string>
 </resources>
