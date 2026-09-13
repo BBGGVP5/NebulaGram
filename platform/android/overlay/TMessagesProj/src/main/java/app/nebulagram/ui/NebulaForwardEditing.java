@@ -2,14 +2,8 @@ package app.nebulagram.ui;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import android.content.Context;
-import android.widget.EditText;
-import android.widget.LinearLayout;
-import android.widget.ScrollView;
-import android.widget.TextView;
 import org.telegram.messenger.*;
 import org.telegram.ui.ActionBar.BaseFragment;
-import org.telegram.ui.ActionBar.AlertDialog;
 import org.telegram.messenger.MessageSuggestionParams;
 import org.telegram.messenger.ApplicationLoader;
 import org.telegram.messenger.MessageObject;
@@ -32,9 +26,9 @@ public final class NebulaForwardEditing {
     public static boolean supported(int account, MessageObject object) {
         if (object == null || object.messageOwner == null) return false;
         TLRPC.Message m = object.messageOwner;
-        if (object.getId() <= 0 || DialogObject.isEncryptedDialog(object.getDialogId()) || m.rich_message != null || m.noforwards || m.ttl_period != 0 || m.destroyTime != 0
+        if (object.getId() <= 0 || DialogObject.isEncryptedDialog(object.getDialogId()) || m.rich_message != null || m.ttl_period != 0 || m.destroyTime != 0
                 || object.isSecretMedia() || object.needDrawBluredPreview()
-                || MessagesController.getInstance(account).isPeerNoForwards(object.getDialogId())) return false;
+                || (NebulaProtectedCopies.isProtected(account, object) && !NebulaContentProtection.enabled())) return false;
         if (m.media == null || m.media instanceof TLRPC.TL_messageMediaEmpty || m.media instanceof TLRPC.TL_messageMediaWebPage)
             return object.type == MessageObject.TYPE_TEXT && m.message != null && !m.message.trim().isEmpty();
         if (m.media.ttl_seconds != 0) return false;
@@ -49,6 +43,8 @@ public final class NebulaForwardEditing {
     }
     public static final class EditedMessage extends MessageObject {
         public final MessageObject source;
+        @Override public boolean needResendWhenEdit() { return false; }
+        @Override public boolean canEditMedia() { return false; }
         EditedMessage(int account, TLRPC.Message copy, MessageObject source) {
             super(account, copy, true, true); this.source = source;
         }
@@ -58,7 +54,7 @@ public final class NebulaForwardEditing {
         for (MessageObject message : messages) if (!(message instanceof EditedMessage)) return false;
         return true;
     }
-    private static TLRPC.Message copy(MessageObject source) throws Exception {
+    static TLRPC.Message copy(MessageObject source) throws Exception {
         NativeByteBuffer buffer = new NativeByteBuffer(source.messageOwner.getObjectSize());
         try {
             source.messageOwner.serializeToStream(buffer); buffer.rewind();
@@ -70,64 +66,43 @@ public final class NebulaForwardEditing {
         } finally { buffer.reuse(); }
     }
     public interface Apply { void apply(ArrayList<MessageObject> messages); }
-    public static void edit(BaseFragment fragment, int account, ArrayList<MessageObject> sources, Apply apply) {
+
+    public static ArrayList<MessageObject> copies(int account, ArrayList<MessageObject> sources) throws Exception {
+        ArrayList<MessageObject> result = new ArrayList<>();
+        for (MessageObject source : sources) {
+            result.add(new EditedMessage(account, copy(source), source instanceof EditedMessage ? ((EditedMessage) source).source : source));
+        }
+        return result;
+    }
+
+    public static EditedMessage withText(int account, EditedMessage source, CharSequence text,
+            ArrayList<TLRPC.MessageEntity> entities) throws Exception {
+        TLRPC.Message message = copy(source);
+        message.message = text.toString();
+        message.entities = entities == null ? new ArrayList<>() : entities;
+        if (message.entities.isEmpty()) message.flags &= ~TLRPC.MESSAGE_FLAG_HAS_ENTITIES;
+        else message.flags |= TLRPC.MESSAGE_FLAG_HAS_ENTITIES;
+        return new EditedMessage(account, message, source.source);
+    }
+
+    /** Native caption field, not a dialog. Nothing is sent by its checkmark. */
+    public static void edit(BaseFragment fragment, ChatActivityEnterView composer, int account,
+            ArrayList<MessageObject> sources, Apply apply) {
         if (!canEdit(account, sources) || fragment.getParentActivity() == null) return;
-        Context context = fragment.getParentActivity();
-        LinearLayout fields = new LinearLayout(context); fields.setOrientation(LinearLayout.VERTICAL);
-        fields.setPadding(AndroidUtilities.dp(20), 0, AndroidUtilities.dp(20), AndroidUtilities.dp(12));
-        ArrayList<EditText> editors = new ArrayList<>();
         try {
-            for (int i = 0; i < sources.size(); i++) {
-                MessageObject source = sources.get(i);
-                TextView label = new TextView(context);
-                label.setText((i + 1) + " · " + (source.type == MessageObject.TYPE_TEXT ? NebulaText.text("Текст", "Text")
-                        : source.isVideo() ? NebulaText.text("Видео · подпись", "Video · caption")
-                        : source.messageOwner.media.photo != null ? NebulaText.text("Фото · подпись", "Photo · caption")
-                        : NebulaText.text("Файл · подпись", "File · caption")));
-                label.setTextColor(NebulaTheme.of(context).primary()); label.setTextSize(14);
-                label.setPadding(0, AndroidUtilities.dp(16), 0, AndroidUtilities.dp(6)); fields.addView(label);
-                EditText editor = new EditText(context); editor.setTextColor(NebulaTheme.of(context).onSurface());
-                editor.setTextSize(16); editor.setMinLines(2); editor.setMaxLines(8);
-                editor.setInputType(android.text.InputType.TYPE_CLASS_TEXT | android.text.InputType.TYPE_TEXT_FLAG_MULTI_LINE | android.text.InputType.TYPE_TEXT_FLAG_CAP_SENTENCES);
-                editor.setText(draft(source, editor.getPaint().getFontMetricsInt()));
-                int limit = source.type == MessageObject.TYPE_TEXT ? MessagesController.getInstance(account).maxMessageLength
-                        : MessagesController.getInstance(account).getCaptionMaxLengthLimit();
-                editor.setFilters(new android.text.InputFilter[]{new android.text.InputFilter.LengthFilter(Math.max(editor.length(), limit))});
-                fields.addView(editor, new LinearLayout.LayoutParams(-1, -2)); editors.add(editor);
-            }
-        } catch (Exception error) { android.widget.Toast.makeText(context, NebulaText.text("Не удалось открыть копию", "Could not open a copy"), 0).show(); return; }
-        ScrollView scroll = new ScrollView(context); scroll.addView(fields);
-        AlertDialog dialog = new AlertDialog.Builder(context)
-                .setTitle(NebulaText.text("Изменить и отправить", "Edit and send"))
-                .setMessage(NebulaText.text("Копия без автора. Вложения и альбомы сохранятся. «Применить» вернёт к предпросмотру — отправьте после проверки.",
-                        "An anonymous copy. Attachments and albums are kept. Apply returns to the preview — send after reviewing."))
-                .setView(scroll).setNegativeButton(NebulaText.text("Отмена", "Cancel"), null)
-                .setPositiveButton(NebulaText.text("Применить", "Apply"), (d, w) -> { }).create();
-        fragment.showDialog(dialog);
-        dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v -> {
-            if (!canEdit(account, sources)) { dialog.dismiss(); return; }
-            try {
-                ArrayList<MessageObject> copies = new ArrayList<>();
-                for (int i = 0; i < sources.size(); i++) {
-                    MessageObject source = sources.get(i);
-                    CharSequence[] value = {editors.get(i).getText()};
-                    ArrayList<TLRPC.MessageEntity> entities = MediaDataController.getInstance(account).getEntities(value, true);
-                    if (source.type == MessageObject.TYPE_TEXT && value[0].toString().trim().isEmpty()) {
-                        editors.get(i).setError(NebulaText.text("Введите текст", "Enter text")); return;
-                    }
-                    int max = source.type == MessageObject.TYPE_TEXT ? MessagesController.getInstance(account).maxMessageLength
-                            : MessagesController.getInstance(account).getCaptionMaxLengthLimit();
-                    if (value[0].length() > max) {
-                        editors.get(i).setError(NebulaText.text("Текст слишком длинный", "Text is too long")); return;
-                    }
-                    TLRPC.Message copy = copy(source); copy.message = value[0].toString();
-                    copy.entities = entities == null ? new ArrayList<>() : entities;
-                    if (copy.entities.isEmpty()) copy.flags &= ~TLRPC.MESSAGE_FLAG_HAS_ENTITIES;
-                    else copy.flags |= TLRPC.MESSAGE_FLAG_HAS_ENTITIES;
-                    copies.add(new EditedMessage(account, copy, source instanceof EditedMessage ? ((EditedMessage) source).source : source));
-                }
-                apply.apply(copies); dialog.dismiss();
-            } catch (Exception error) { android.widget.Toast.makeText(context, NebulaText.text("Не удалось подготовить копию", "Could not prepare a copy"), 0).show(); }
+            editNext(fragment, composer, account, copies(account, sources), 0, apply);
+        } catch (Exception error) {
+            NebulaProtectedCopies.error(NebulaText.text("Не удалось открыть копию", "Could not open a copy"));
+        }
+    }
+
+    private static void editNext(BaseFragment fragment, ChatActivityEnterView composer, int account,
+            ArrayList<MessageObject> copies, int index, Apply apply) {
+        if (fragment.getParentActivity() == null || !canEdit(account, copies)) return;
+        if (index == copies.size()) { apply.apply(copies); return; }
+        composer.editNebulaForwardCopy((EditedMessage) copies.get(index), edited -> {
+            copies.set(index, edited);
+            editNext(fragment, composer, account, copies, index + 1, apply);
         });
     }
     /** Called only by the existing Send button, after native paid-message confirmation. */
@@ -145,6 +120,13 @@ public final class NebulaForwardEditing {
             if (message.messageOwner.media instanceof TLRPC.TL_messageMediaDocument && !message.isVideo()
                     && !message.isMusic() && !message.isGif() && !document) return 17;
         }
+        return NebulaProtectedCopies.prepareUploads(account, messages, prepared ->
+                sendPreparedBatch(helper, prepared, peer, hideCaption, notify, date, repeat, topic, stars, monoPeer, suggestion));
+    }
+
+    private static void sendPreparedBatch(SendMessagesHelper helper, ArrayList<MessageObject> messages, long peer,
+            boolean hideCaption, boolean notify, int date, int repeat, MessageObject topic, long stars,
+            long monoPeer, MessageSuggestionParams suggestion) {
         HashMap<Long, Long> groups = new HashMap<>();
         HashMap<Long, Integer> last = new HashMap<>();
         for (int i = 0; i < messages.size(); i++) {
@@ -169,7 +151,6 @@ public final class NebulaForwardEditing {
             p.payStars = stars; p.monoForumPeer = monoPeer; p.suggestionParams = suggestion; p.invert_media = m.invert_media;
             helper.sendMessage(p);
         }
-        return 0;
     }
     public static CharSequence draft(MessageObject object, android.graphics.Paint.FontMetricsInt metrics) throws Exception {
         ArrayList<TLRPC.MessageEntity> entities = new ArrayList<>();

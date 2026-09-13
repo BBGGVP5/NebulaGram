@@ -1,0 +1,215 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/SendMessagesHelper.java b/TMessagesProj/src/main/java/org/telegram/messenger/SendMessagesHelper.java
+--- a/TMessagesProj/src/main/java/org/telegram/messenger/SendMessagesHelper.java
++++ b/TMessagesProj/src/main/java/org/telegram/messenger/SendMessagesHelper.java
+@@ -2080,7 +2080,8 @@
+         if (messages == null || messages.isEmpty()) {
+             return 0;
+         }
+-        if (DialogObject.isEncryptedDialog(peer) && app.nebulagram.ui.NebulaForwardEditing.isEditedBatch(messages)) return 17;
++        if (DialogObject.isEncryptedDialog(peer) && (app.nebulagram.ui.NebulaForwardEditing.isEditedBatch(messages)
++                || app.nebulagram.ui.NebulaProtectedCopies.requiresCopy(currentAccount, messages))) return 17;
+         int sendResult = 0;
+         long myId = getUserConfig().getClientUserId();
+         boolean isChannel = false;
+@@ -2147,17 +2148,25 @@
+                 canSendMusic = ChatObject.canSendMusic(chat);
+             }
+ 
+-            if (app.nebulagram.ui.NebulaForwardEditing.isEditedBatch(messages)) {
++            if (app.nebulagram.ui.NebulaForwardEditing.isEditedBatch(messages)
++                    || app.nebulagram.ui.NebulaProtectedCopies.requiresCopy(currentAccount, messages)) {
+                 if (chat != null) {
+                     for (MessageObject edited : messages) {
+                         int error = canSendMessageToChat(chat, edited);
+                         if (error != 0) return error;
+                     }
+                 }
+-                return app.nebulagram.ui.NebulaForwardEditing.sendBatch(this, currentAccount, messages, peer,
+-                        hideCaption, notify, scheduleDate, scheduleRepeatPeriod, replyToTopMsg, payStars,
+-                        monoForumPeerId, suggestionParams, canSendPhoto, canSendVideo, canSendDocument,
+-                        canSendMusic, canSendStickers);
++                final boolean edited = app.nebulagram.ui.NebulaForwardEditing.isEditedBatch(messages);
++                try {
++                    ArrayList<MessageObject> copies = edited ? messages : app.nebulagram.ui.NebulaProtectedCopies.create(currentAccount, messages, forwardFromMyName, hideCaption);
++                    return app.nebulagram.ui.NebulaForwardEditing.sendBatch(this, currentAccount, copies, peer,
++                            edited && hideCaption, notify, scheduleDate, scheduleRepeatPeriod, replyToTopMsg, payStars,
++                            monoForumPeerId, suggestionParams, canSendPhoto, canSendVideo, canSendDocument,
++                            canSendMusic, canSendStickers);
++                } catch (Exception error) {
++                    app.nebulagram.ui.NebulaProtectedCopies.error(error.getMessage() == null ? "Could not prepare a copy" : error.getMessage());
++                    return 17;
++                }
+             }
+             LongSparseArray<Long> groupsMap = new LongSparseArray<>();
+             ArrayList<MessageObject> objArr = new ArrayList<>();
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
+@@ -8238,6 +8238,7 @@
+ 
+         boolean[] byButtonPress = new boolean[1];
+         replyLayout.setOnClickListener(v -> {
++            if (chatActivityEnterView != null && chatActivityEnterView.isNebulaForwardEditing()) return;
+             if (replyingMessageObject != null && replyingMessageObject.isEphemeral()) {
+                 return;
+             }
+@@ -8307,6 +8308,11 @@
+         chatActivityEnterTopView.addView(replyCloseImageView, LayoutHelper.createFrame(52, 46, Gravity.RIGHT | Gravity.TOP, 0, 0.5f, 0, 0));
+         chatActivityEnterView.nebulaComposerStyle.setPreview(replyLayout, replyCloseImageView);
+         replyCloseImageView.setOnClickListener(v -> {
++            if (chatActivityEnterView != null && chatActivityEnterView.isNebulaForwardEditing()) {
++                chatActivityEnterView.setEditingMessageObject(null, null, false);
++                return;
++            }
++
+             messageSuggestionParams = null;
+             if (fieldPanelShown == 2) {
+                 replyingQuote = null;
+@@ -11141,17 +11147,36 @@
+             @Override
+             protected boolean canEditForward() {
+                 return !DialogObject.isEncryptedDialog(dialog_id) && editingMessageObject == null
++                        && !chatActivityEnterView.isEditingMessage() && !chatActivityEnterView.hasAudioToSend()
+                         && app.nebulagram.ui.NebulaForwardEditing.canEdit(currentAccount, editableSelection());
+             }
+             @Override
+             protected void editForward() {
+                 if (!canEditForward()) return;
+                 final ArrayList<MessageObject> selected = editableSelection();
+-                app.nebulagram.ui.NebulaForwardEditing.edit(ChatActivity.this, currentAccount, selected, copies -> {
++                if (selected.size() == 1 && selected.get(0).type == MessageObject.TYPE_TEXT) {
++                    try {
++                        CharSequence value = app.nebulagram.ui.NebulaForwardEditing.draft(selected.get(0), chatActivityEnterView.getEditField().getPaint().getFontMetricsInt());
++                        android.text.SpannableStringBuilder draft = new android.text.SpannableStringBuilder();
++                        CharSequence comment = chatActivityEnterView.getFieldText();
++                        if (!TextUtils.isEmpty(comment)) draft.append(comment).append("\n\n");
++                        draft.append(value);
++                        // Clear the forwarding payload BEFORE hiding the panel (hiding normally sends it).
++                        messagePreviewParams.updateForward(null, dialog_id);
++                        dismiss(false);
++                        hideFieldPanel(true);
++                        chatActivityEnterView.setFieldText(draft);
++                        chatActivityEnterView.setFieldFocused();
++                        chatActivityEnterView.openKeyboard();
++                    } catch (Exception error) {
++                        app.nebulagram.ui.NebulaProtectedCopies.error(app.nebulagram.ui.NebulaText.text("Не удалось открыть копию", "Could not open a copy"));
++                    }
++                    return;
++                }
++                dismiss(false);
++                app.nebulagram.ui.NebulaForwardEditing.edit(ChatActivity.this, chatActivityEnterView, currentAccount, selected, copies -> {
+                     if (chatActivityEnterView == null || getParentActivity() == null || !canEditForward()) return;
+-                    // Keep the composer text intact; this only replaces the selected forwarding batch.
+                     if (!editableSelection().equals(selected)) return;
+-                    dismiss(false);
+                     showFieldPanelForForward(true, copies);
+                     messagePreviewParams.hideForwardSendersName = true;
+                     messagePreviewParams.hideCaption = false;
+@@ -34955,6 +34980,11 @@
+ 
+     @Override
+     public boolean onBackPressed(boolean invoked) {
++        if (chatActivityEnterView != null && chatActivityEnterView.isNebulaForwardEditing() && !chatActivityEnterView.isKeyboardVisible()) {
++            if (invoked) chatActivityEnterView.setEditingMessageObject(null, null, false);
++            return false;
++        }
++
+         final Bulletin bulletin = Bulletin.getVisibleBulletin();
+         if (bulletin != null && bulletin.getLayout() instanceof Bulletin.LottieLayoutWithReactions) {
+             if (invoked) {
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
+@@ -7596,6 +7596,25 @@
+         });
+     }
+ 
++    private java.util.function.Consumer<app.nebulagram.ui.NebulaForwardEditing.EditedMessage> nebulaForwardEditApply;
++
++    public boolean isNebulaForwardEditing() {
++        return editingMessageObject instanceof app.nebulagram.ui.NebulaForwardEditing.EditedMessage;
++    }
++
++    public void editNebulaForwardCopy(app.nebulagram.ui.NebulaForwardEditing.EditedMessage copy,
++            java.util.function.Consumer<app.nebulagram.ui.NebulaForwardEditing.EditedMessage> apply) {
++        if (isEditingMessage() || hasAudioToSend()) return;
++        // No ChatActivity.startEditingMessageObject: that method requests remote edit data.
++        // No original GroupedMessages: the native preview may mutate their caption position.
++        setEditingMessageObject(copy, null, copy.type != MessageObject.TYPE_TEXT);
++        nebulaForwardEditApply = apply;
++        doneButton.setOnLongClickListener(v -> false);
++        showEditDoneProgress(false, true);
++        setFieldFocused();
++        openKeyboard();
++    }
++
+     public void doneEditingMessage() {
+         if (editingMessageObject == null) {
+             return;
+@@ -7651,6 +7670,21 @@
+             return;
+         }
+         ArrayList<TLRPC.MessageEntity> entities = MediaDataController.getInstance(currentAccount).getEntities(message, supportsSendingNewEntities());
++        if (isNebulaForwardEditing()) {
++            // Native validation above; local apply below. Never issue messages.editMessage.
++            final java.util.function.Consumer<app.nebulagram.ui.NebulaForwardEditing.EditedMessage> apply = nebulaForwardEditApply;
++            if (apply == null) return;
++            try {
++                app.nebulagram.ui.NebulaForwardEditing.EditedMessage copy = app.nebulagram.ui.NebulaForwardEditing.withText(
++                        currentAccount, (app.nebulagram.ui.NebulaForwardEditing.EditedMessage) editingMessageObject, message[0], entities);
++                setEditingMessageObject(null, null, false);
++                apply.accept(copy);
++            } catch (Exception error) {
++                app.nebulagram.ui.NebulaProtectedCopies.error(app.nebulagram.ui.NebulaText.text("Не удалось применить текст", "Could not apply text"));
++            }
++            return;
++        }
++
+         if (!TextUtils.equals(message[0], editingMessageObject.messageText) || entities != null && !entities.isEmpty() || !editingMessageObject.messageOwner.entities.isEmpty() || editingMessageObject.messageOwner.media instanceof TLRPC.TL_messageMediaWebPage) {
+             editingMessageObject.editingMessage = message[0];
+             editingMessageObject.editingMessageEntities = entities;
+@@ -9893,6 +9927,7 @@
+         if (audioToSend != null || videoToSendMessageObject != null || editingMessageObject == messageObject) {
+             return;
+         }
++        nebulaForwardEditApply = null;
+         createMessageEditText();
+         boolean hadEditingMessage = editingMessageObject != null;
+         editingMessageObject = messageObject;
+@@ -13044,7 +13079,8 @@
+     }
+ 
+     public MessageObject getEditingMessageObject() {
+-        return editingMessageObject;
++        // Local drafts must never reach remote attachment-edit or persistence paths.
++        return isNebulaForwardEditing() ? null : editingMessageObject;
+     }
+ 
+     public boolean isEditingCaption() {
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/MessagePreviewView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/MessagePreviewView.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Components/MessagePreviewView.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/MessagePreviewView.java
+@@ -1035,7 +1035,7 @@
+ 
+                 if (canEditForward()) {
+                     ActionBarMenuSubItem editCopy = new ActionBarMenuSubItem(context, true, false, resourcesProvider);
+-                    editCopy.setTextAndIcon(app.nebulagram.ui.NebulaText.text("Изменить и отправить", "Edit and send"), R.drawable.msg_edit);
++                    editCopy.setTextAndIcon(app.nebulagram.ui.NebulaText.text("Изменить перед отправкой", "Edit before sending"), R.drawable.msg_edit);
+                     editCopy.setOnClickListener(v -> editForward());
+                     menu.addView(editCopy, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, 48));
+                 }
+@@ -1303,6 +1303,14 @@
+                             subtitle = LocaleController.getString(R.string.ForwardPreviewSendersNameHiddenGroup);
+                         }
+                     }
++                }
++                if (messagePreviewParams.forwardMessages != null && (
++                        app.nebulagram.ui.NebulaForwardEditing.isEditedBatch(messagePreviewParams.forwardMessages.messages)
++                        || app.nebulagram.ui.NebulaProtectedCopies.requiresCopy(currentAccount, messagePreviewParams.forwardMessages.messages))) {
++                    actionBar.setTitle(app.nebulagram.ui.NebulaText.text("Отправка копий", "Send copies"), animated);
++                    subtitle = messagePreviewParams.hideForwardSendersName
++                            ? app.nebulagram.ui.NebulaText.text("Без автора", "Without an author")
++                            : app.nebulagram.ui.NebulaText.text("Источник будет указан текстом", "The source will be included as text");
+                 }
+                 actionBar.setSubtitle(subtitle, animated);
+             } else if (currentTab == TAB_REPLY) {
