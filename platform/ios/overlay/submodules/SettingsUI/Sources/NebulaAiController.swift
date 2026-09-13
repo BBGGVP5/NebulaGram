@@ -9,6 +9,10 @@ final class NebulaAiController: UITableViewController {
     private let ru: Bool
     private let settings = NebulaAiSettings.shared
     private let secrets = NebulaAiSecrets.shared
+    private lazy var hero = NebulaSettingsHero(symbol: "sparkles",
+        title: text("Ваш ИИ-помощник", "Your AI assistant"),
+        summary: text("Ваш провайдер. Ваши инструкции. Только тот текст, который выберете вы.",
+                      "Your provider. Your instructions. Only the text you choose."))
     private var provider: NebulaAiProvider
 
     init(russian: Bool) {
@@ -26,6 +30,13 @@ final class NebulaAiController: UITableViewController {
         navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .done, target: self, action: #selector(close))
         tableView.rowHeight = UITableView.automaticDimension
         tableView.estimatedRowHeight = 56
+    }
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        hero.setStatus(!settings.enabled ? text("ИИ выключен", "AI is off")
+            : settings.isConfigured(secrets: secrets) ? text("Подключение настроено · ", "Configured · ") + provider.title
+            : text("Начните с провайдера, модели и ключа", "Start with a provider, model and key"))
+        hero.fit(in: tableView)
     }
     @objc private func close() { dismiss(animated: true) }
 
@@ -64,12 +75,14 @@ final class NebulaAiController: UITableViewController {
     }
 
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = UITableViewCell(style: .value1, reuseIdentifier: nil)
+        let cell = UITableViewCell(style: .subtitle, reuseIdentifier: nil)
         cell.textLabel?.font = .preferredFont(forTextStyle: .body)
         cell.textLabel?.adjustsFontForContentSizeCategory = true
         cell.textLabel?.numberOfLines = 0
         cell.detailTextLabel?.numberOfLines = 0
 
+        let symbols = ["sparkles", "slider.horizontal.3", "text.alignleft", "checkmark.circle"]
+        NebulaSettingsHero.style(cell, symbol: symbols[indexPath.section])
         switch (indexPath.section, indexPath.row) {
         case (0, _):
             cell.textLabel?.text = text("Включить ИИ", "Enable AI")
@@ -79,6 +92,7 @@ final class NebulaAiController: UITableViewController {
             cell.accessoryView = toggle
             cell.selectionStyle = .none
         case (1, 0):
+            cell.imageView?.image = UIImage(systemName: "network")
             cell.textLabel?.text = text("Провайдер", "Provider")
             cell.detailTextLabel?.text = provider.title
             cell.accessoryType = .disclosureIndicator
@@ -94,11 +108,14 @@ final class NebulaAiController: UITableViewController {
             cell.detailTextLabel?.text = model.isEmpty ? text("Не задана", "Not set") : model
             cell.accessoryType = .disclosureIndicator
         case (1, let row) where row == (provider == .custom ? 3 : 2):
+            cell.imageView?.image = UIImage(systemName: "key")
             cell.textLabel?.text = text("API-ключ", "API key")
             cell.detailTextLabel?.text = secrets.hasKey(for: provider)
                 ? text("Сохранён", "Stored") : text("Не задан", "Not set")
             cell.accessoryType = .disclosureIndicator
         case (1, _):
+            cell.imageView?.image = UIImage(systemName: "trash")
+            cell.imageView?.tintColor = .systemRed
             cell.textLabel?.text = text("Удалить сохранённый ключ", "Remove stored key")
             cell.textLabel?.textColor = secrets.hasKey(for: provider) ? .systemRed : .tertiaryLabel
             cell.selectionStyle = secrets.hasKey(for: provider) ? .default : .none

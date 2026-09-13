@@ -17,6 +17,10 @@ public final class NebulaAiFragment extends BaseFragment {
     private String initial = "";
     private SharedPreferences prefs;
     private LinearLayout content;
+    private NebulaSettingsHero hero;
+    private final LinearLayout[] pages = new LinearLayout[3];
+    private final TextView[] tabs = new TextView[3];
+    private int selectedPage = -1;
     private EditText key, model, endpoint, prompt, input;
     private TextView answer, keyStatus;
     private NebulaCard responseCard;
@@ -39,13 +43,39 @@ public final class NebulaAiFragment extends BaseFragment {
     private int dp(int n) { return AndroidUtilities.dp(n); }
     private void build(Context c) {
         content.removeAllViews();
-        content.addView(NebulaCard.header(c, text("Подключение", "Connection")));
+        hero = new NebulaSettingsHero(c, R.drawable.msg_customize,
+                text("Ваш ИИ-помощник", "Your AI assistant"),
+                text("Ваш провайдер. Ваши инструкции. Только тот текст, который выберете вы.",
+                        "Your provider. Your instructions. Only the text you choose."));
+        content.addView(hero);
+        LinearLayout navigation = new LinearLayout(c);
+        navigation.setPadding(dp(4), dp(4), dp(4), dp(4));
+        android.graphics.drawable.GradientDrawable track = new android.graphics.drawable.GradientDrawable();
+        track.setColor(NebulaTheme.of(c).surfaceContainer()); track.setCornerRadius(dp(18));
+        navigation.setBackground(track);
+        String[] names = {text("Запрос", "Request"), text("Подключение", "Connection"), text("Инструкции", "Instructions")};
+        for (int i = 0; i < tabs.length; i++) {
+            final int page = i;
+            TextView tab = tabs[i] = label(c, names[i], 13, NebulaTheme.of(c).onSurface());
+            tab.setGravity(android.view.Gravity.CENTER); tab.setTypeface(AndroidUtilities.bold());
+            tab.setMinHeight(dp(48)); tab.setPadding(dp(4), dp(8), dp(4), dp(8));
+            tab.setOnClickListener(v -> selectPage(page));
+            navigation.addView(tab, new LinearLayout.LayoutParams(0, -1, 1));
+        }
+        LinearLayout.LayoutParams navigationParams = new LinearLayout.LayoutParams(-1, -2);
+        navigationParams.topMargin = dp(18); navigationParams.bottomMargin = dp(6);
+        content.addView(navigation, navigationParams);
+        for (int i = 0; i < pages.length; i++) {
+            pages[i] = new LinearLayout(c); pages[i].setOrientation(LinearLayout.VERTICAL);
+            content.addView(pages[i], new LinearLayout.LayoutParams(-1, -2));
+        }
+        pages[1].addView(NebulaCard.header(c, text("Подключение", "Connection")));
         NebulaCard settings = new NebulaCard(c);
         settings.add(new NebulaRow(c).icon(R.drawable.msg_customize)
                 .title(text("Включить ИИ", "Enable AI"))
                 .subtitle(text("Пункт в меню сообщений доступен после настройки подключения", "Available in message menus after a connection is configured"), false)
                 .trailing(NebulaRow.TRAIL_SWITCH).checked(NebulaAiAvailability.enabled())
-                .withClick(v -> NebulaAiAvailability.setEnabled(((NebulaRow) v).toggleChecked())));
+                .withClick(v -> { NebulaAiAvailability.setEnabled(((NebulaRow) v).toggleChecked()); refreshKeyStatus(); }));
         settings.add(new NebulaRow(c).icon(R.drawable.msg_customize).title(text("Провайдер", "Provider")).subtitle(PROVIDERS[provider], false)
                 .trailing(NebulaRow.TRAIL_CHEVRON).withClick(v -> showDialog(new AlertDialog.Builder(c).setTitle(text("Провайдер", "Provider"))
                 .setItems(PROVIDERS, (d, which) -> {
@@ -68,23 +98,23 @@ public final class NebulaAiFragment extends BaseFragment {
         model = field(c, settings, text("Модель", "Model"), text("Выберите из списка или введите ID", "Choose from the list or enter an ID"), prefs.getString("model_" + provider, ""), false, 256);
         load = button(c, settings, text("Выбрать модель из списка", "Choose an available model"), false, v -> request(true));
         button(c, settings, text("Сохранить подключение", "Save connection"), true, v -> { if (save()) toast(text("Настройки сохранены", "Settings saved")); });
-        content.addView(settings);
+        pages[1].addView(settings);
         refreshKeyStatus();
 
-        content.addView(NebulaCard.header(c, text("Инструкции для ИИ", "AI instructions")));
+        pages[2].addView(NebulaCard.header(c, text("Инструкции для ИИ", "AI instructions")));
         NebulaCard instructions = new NebulaCard(c);
         prompt = field(c, instructions, text("Системный промпт · необязательно", "System prompt · optional"),
                 text("Например: отвечай кратко и на русском", "For example: give concise answers"), prefs.getString("prompt", ""), true, 20000);
         button(c, instructions, text("Сохранить инструкции", "Save instructions"), false, v -> { if (save()) toast(text("Инструкции сохранены", "Instructions saved")); });
-        content.addView(instructions);
+        pages[2].addView(instructions);
 
-        content.addView(NebulaCard.header(c, text("Запрос", "Request")));
+        pages[0].addView(NebulaCard.header(c, text("Запрос", "Request")));
         NebulaCard request = new NebulaCard(c);
         input = field(c, request, text("Сообщение для ИИ", "Message for AI"), text("Напишите вопрос или вставьте текст", "Write a question or paste text"), initial, true, 50000);
         TextView info = label(c, text("Провайдер получит этот текст и системный промпт. Ответ появится здесь.", "The provider receives this text and the system prompt. The response appears here."), 13, NebulaTheme.of(c).onSurfaceVariant());
         info.setPadding(dp(16), dp(8), dp(16), dp(8)); request.add(info);
         send = button(c, request, text("Отправить запрос", "Send request"), true, v -> { if (client != null) cancel(); else request(false); });
-        content.addView(request);
+        pages[0].addView(request);
 
         responseCard = new NebulaCard(c);
         responseCard.add(NebulaCard.header(c, text("Ответ", "Response")));
@@ -92,7 +122,22 @@ public final class NebulaAiFragment extends BaseFragment {
         copy = button(c, responseCard, text("Скопировать ответ", "Copy response"), false, v -> AndroidUtilities.addToClipboard(answer.getText()));
         responseCard.setVisibility(View.GONE);
         LinearLayout.LayoutParams resultParams = new LinearLayout.LayoutParams(-1, -2); resultParams.topMargin = dp(18);
-        content.addView(responseCard, resultParams);
+        pages[0].addView(responseCard, resultParams);
+        selectPage(selectedPage < 0 ? (!initial.isEmpty() || NebulaAiAvailability.available() ? 0 : 1) : selectedPage);
+    }
+    private void selectPage(int page) {
+        selectedPage = page;
+        NebulaTheme theme = NebulaTheme.of(content.getContext());
+        for (int i = 0; i < pages.length; i++) {
+            boolean active = page == i;
+            pages[i].setVisibility(active ? View.VISIBLE : View.GONE);
+            tabs[i].setSelected(active);
+            tabs[i].setTextColor(active ? theme.onPrimaryContainer() : theme.onSurfaceVariant());
+            android.graphics.drawable.GradientDrawable background = new android.graphics.drawable.GradientDrawable();
+            background.setCornerRadius(dp(14));
+            background.setColor(active ? theme.primaryContainer() : android.graphics.Color.TRANSPARENT);
+            tabs[i].setBackground(background);
+        }
     }
     private TextView label(Context c, String value, int size, int color) {
         TextView v = new TextView(c); v.setText(value); v.setTextSize(size); v.setTextColor(color); return v;
@@ -117,6 +162,9 @@ public final class NebulaAiFragment extends BaseFragment {
     private void refreshKeyStatus() {
         if (keyStatus == null) return;
         boolean saved = NebulaAiSecrets.exists(provider);
+        hero.setStatus(!NebulaAiAvailability.enabled() ? text("ИИ выключен", "AI is off")
+                : NebulaAiAvailability.available() ? text("Подключение настроено · ", "Configured · ") + PROVIDERS[provider]
+                : text("Начните с провайдера, модели и ключа", "Start with a provider, model and key"));
         keyStatus.setText(saved ? text("Ключ сохранён на устройстве. Введите новый, чтобы заменить его.", "A key is saved on this device. Enter a new one to replace it.")
                 : text("Нужен API-ключ выбранного провайдера.", "An API key from the selected provider is required."));
         key.setHint(saved ? "••••••••" : text("Введите ключ провайдера", "Enter a provider key"));
@@ -167,7 +215,7 @@ public final class NebulaAiFragment extends BaseFragment {
                 final String status = e.getMessage() != null && e.getMessage().matches("HTTP [0-9]{3}") ? e.getMessage() : "";
                 AndroidUtilities.runOnUIThread(() -> {
                     if (client != task || getParentActivity() == null) return;
-                    finishRequest(); responseCard.setVisibility(View.VISIBLE); ((View) copy.getParent()).setVisibility(View.GONE); answer.setText(text("Запрос не выполнен. Проверьте подключение, API-ключ, доступ к модели и квоту. ", "Request failed. Check connectivity, API key, model access and quota. ") + status);
+                    finishRequest(); selectPage(0); responseCard.setVisibility(View.VISIBLE); ((View) copy.getParent()).setVisibility(View.GONE); answer.setText(text("Запрос не выполнен. Проверьте подключение, API-ключ, доступ к модели и квоту. ", "Request failed. Check connectivity, API key, model access and quota. ") + status);
                 });
             }
         }, "NebulaAI").start();

@@ -12,8 +12,13 @@ final class NebulaPrivacyController: UITableViewController {
     var openAppLock: (() -> Void)?
     private var operation: Disposable?
     private var busy = false
+    private var helpExpanded = false
     private var account: Int64 { context.account.peerId.toInt64() }
     private let archive = NebulaDeletedArchive.shared
+    private lazy var hero = NebulaSettingsHero(symbol: "hand.raised",
+        title: text("Под вашим контролем", "You’re in control"),
+        summary: text("Управляйте локальными копиями, их оформлением и очисткой.",
+                      "Manage local copies, their appearance and cleanup."))
     init(context: AccountContext, russian: Bool) {
         self.context = context; self.ru = russian
         super.init(style: .insetGrouped)
@@ -28,13 +33,28 @@ final class NebulaPrivacyController: UITableViewController {
         tableView.rowHeight = UITableView.automaticDimension
         tableView.estimatedRowHeight = 60
     }
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        hero.setStatus(archive.enabled(account: account) ? text("Локальное сохранение включено", "Local retention is on")
+            : text("Локальное сохранение выключено", "Local retention is off"))
+        hero.fit(in: tableView)
+    }
     @objc private func close() { dismiss(animated: true) }
-    override func numberOfSections(in tableView: UITableView) -> Int { 4 }
+    override func numberOfSections(in tableView: UITableView) -> Int { 5 }
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int { section == 0 ? 3 : (section == 3 ? 2 : 1) }
     override func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
-        [text("Удалённые сообщения", "Deleted messages"), text("Оформление", "Appearance"), text("Локальный кэш", "Local cache"), text("Защита", "Protection")][section]
+        [text("Удалённые сообщения", "Deleted messages"), text("Оформление", "Appearance"), text("Локальный кэш", "Local cache"), text("Защита", "Protection"), nil][section]
     }
     override func tableView(_ tableView: UITableView, titleForFooterInSection section: Int) -> String? {
+        if section == 4 {
+            return helpExpanded ? [details(0), details(2), details(3)].joined(separator: "\n\n") : nil
+        }
+        if section == 0 { return text("Секретные и исчезающие сообщения требуют отдельных переключателей. Выключение не очищает прежние копии.", "Secret and expiring messages require separate switches. Turning this off keeps existing copies.") }
+        if section == 1 { return details(1) }
+        if section == 2 { return text("Только локальные копии текущего аккаунта. Обычная переписка не удаляется.", "Only local copies for this account. Ordinary history is not deleted.") }
+        return nil
+    }
+    private func details(_ section: Int) -> String {
         if section == 0 {
             return text("Полученные сообщения остаются на своём месте в чате. Секретные и исчезающие — только при отдельных включённых переключателях. Защита от копирования сохраняется. Фоновая работа возможна только когда iOS позволяет приложению обрабатывать обновления.", "Received messages remain in place. Secret and expiring messages require their separate switches. Copy protection is respected. Background retention requires iOS to allow the app to process updates.")
         }
@@ -43,10 +63,20 @@ final class NebulaPrivacyController: UITableViewController {
         return text("Число сохранённых сообщений не ограничено, срок хранения — по умолчанию бессрочный. Текст и медиа остаются в обычном локальном хранилище приложения. Уже загруженные вложения доступны, пока их не очистит стандартный медиакэш. Удаление кэша здесь не отправляет запросов на сервер и не удаляет обычную переписку. Выключение сохранения не очищает прежние копии.", "The number of retained messages is not limited and retention is unlimited by default. Text and media stay in the app’s normal local storage. Downloaded attachments remain available until standard media cache eviction. Clearing here is local only and does not erase ordinary history. Turning retention off keeps existing copies.")
     }
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = UITableViewCell(style: .value1, reuseIdentifier: nil)
+        let cell = UITableViewCell(style: .subtitle, reuseIdentifier: nil)
         cell.textLabel?.font = .preferredFont(forTextStyle: .body)
         cell.textLabel?.adjustsFontForContentSizeCategory = true
         cell.textLabel?.numberOfLines = 0
+        if indexPath.section == 4 {
+            NebulaSettingsHero.style(cell, symbol: "info.circle")
+            cell.textLabel?.text = text("Как работает сохранение", "How retention works")
+            cell.detailTextLabel?.text = helpExpanded ? text("Скрыть пояснение", "Hide explanation")
+                : text("Медиа, фон и ограничения", "Media, background and limitations")
+            cell.accessoryType = .disclosureIndicator
+            return cell
+        }
+        let symbols = indexPath.section == 0 ? ["archivebox", "lock", "timer"] : ["archivebox", "face.smiling", "trash", "lock.shield"]
+        NebulaSettingsHero.style(cell, symbol: symbols[indexPath.section == 0 ? indexPath.row : indexPath.section])
         if indexPath.section == 0 {
             cell.textLabel?.text = [text("Сохранять удалённые сообщения", "Retain deleted messages"), text("Сохранять в секретных чатах", "Retain in secret chats"), text("Сохранять исчезающие сообщения", "Retain expiring messages")][indexPath.row]
             let toggle = UISwitch(); toggle.tag = indexPath.row
@@ -64,6 +94,7 @@ final class NebulaPrivacyController: UITableViewController {
         } else {
             cell.textLabel?.text = busy ? text("Очистка…", "Clearing…") : text("Очистить кэш удалённых сообщений", "Clear retained-message cache")
             cell.textLabel?.textColor = .systemRed
+            cell.imageView?.tintColor = .systemRed
         }
         return cell
     }
@@ -85,6 +116,7 @@ final class NebulaPrivacyController: UITableViewController {
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
         guard !busy else { return }
+        if indexPath.section == 4 { helpExpanded.toggle(); tableView.reloadData(); return }
         if indexPath.section == 1 { pickIcon() }
         if indexPath.section == 3 {
             if indexPath.row == 0 { let open = openAppLock; dismiss(animated: true) { open?() }; return }

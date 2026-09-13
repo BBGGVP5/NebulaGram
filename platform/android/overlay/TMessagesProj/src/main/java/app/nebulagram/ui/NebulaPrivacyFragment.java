@@ -91,6 +91,13 @@ public final class NebulaPrivacyFragment extends BaseFragment {
         if (content == null) return;
         content.removeAllViews();
 
+        NebulaSettingsHero hero = new NebulaSettingsHero(content.getContext(), R.drawable.msg_secret,
+                text("Под вашим контролем", "You’re in control"),
+                text("Управляйте локальными копиями, их оформлением и очисткой.",
+                        "Manage local copies, their appearance and cleanup."));
+        hero.setStatus(NebulaDeletedArchive.enabled(owner) ? text("Локальное сохранение включено", "Local retention is on")
+                : text("Локальное сохранение выключено", "Local retention is off"));
+        content.addView(hero);
         header(text("Удалённые сообщения", "Deleted messages"));
         card(row(R.drawable.msg_delete, text("Сохранять удалённые сообщения", "Save deleted messages"))
                         .subtitle(text("Остаются на своём месте в чате", "They stay in place in the chat"), false)
@@ -106,8 +113,16 @@ public final class NebulaPrivacyFragment extends BaseFragment {
                                     .create());
                         }),
                 extraToggle(true), extraToggle(false));
-        note(text("Архив хранится столько, сколько нужно вам: ни по числу сообщений, ни по сроку он не ограничен и очищается только вручную. Текст и уже полученные вложения. Медиа может удаляться стандартной очисткой кэша; недоступные файлы восстановить нельзя. Фоновое сохранение возможно лишь при получении приложением события удаления. Выключение не удаляет существующий архив. Клиент собеседника не определяется.",
-                "The archive is kept for as long as you want it: no message-count or time limit, and it is cleared only by hand. Text and received attachments. Standard cache eviction can remove media; unavailable files cannot be recovered. Background capture requires the app to receive the deletion update. Disabling does not erase existing entries. Peer clients are not detected."));
+        note(text("Без лимита сообщений и срока хранения. Выключение не очищает прежние копии.",
+                "No message or time limit. Turning this off keeps existing copies."));
+        card(row(R.drawable.msg_info, text("Как работает сохранение", "How retention works"))
+                .subtitle(text("Медиа, фон и ограничения", "Media, background and limitations"), false)
+                .trailing(NebulaRow.TRAIL_CHEVRON)
+                .withClick(v -> showDialog(new AlertDialog.Builder(getParentActivity())
+                        .setTitle(text("Как работает сохранение", "How retention works"))
+                        .setMessage(text("Архив хранится столько, сколько нужно вам: ни по числу сообщений, ни по сроку он не ограничен и очищается только вручную. Текст и уже полученные вложения. Медиа может удаляться стандартной очисткой кэша; недоступные файлы восстановить нельзя. Фоновое сохранение возможно лишь при получении приложением события удаления. Выключение не удаляет существующий архив. Клиент собеседника не определяется.",
+                "The archive is kept for as long as you want it: no message-count or time limit, and it is cleared only by hand. Text and received attachments. Standard cache eviction can remove media; unavailable files cannot be recovered. Background capture requires the app to receive the deletion update. Disabling does not erase existing entries. Peer clients are not detected."))
+                        .setPositiveButton(text("Понятно", "Got it"), null).create())));
 
         header(text("Оформление", "Appearance"));
         card(row(R.drawable.msg_emoji_smiles, text("Значок удалённого сообщения", "Deleted message icon"))
