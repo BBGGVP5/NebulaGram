@@ -60,7 +60,7 @@
     <string name="NebulaSectionAbout">О NebulaGram</string>
     <string name="NebulaAppearanceSub">Цвета, иконки, тумблеры и аватарки</string>
     <string name="NebulaChatsSub">Шапка чата и поле ввода</string>
-    <string name="NebulaPanelSub">Порядок, видимость и оформление вкладок</string>
+    <string name="NebulaPanelSub">Вкладки, кнопки камеры и нового чата</string>
     <string name="NebulaAboutSub">Версия, обновления и ссылки</string>
     <string name="NebulaChatHeaderSection">Шапка чата</string>
     <string name="NebulaComposerSection">Поле ввода</string>

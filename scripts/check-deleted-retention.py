@@ -24,7 +24,7 @@ assert 'message.serializeToStream(serialized)' in archive and 'message.media.ttl
 assert 'storage.markMessagesAsDeleted(peer,ids,false,false,0,0)' in archive
 assert 'if(owner(account)!=expected)' in archive
 assert 'peer!=0&&entry.optLong("peer")!=peer' in archive
-assert 'if(e.optBoolean("inline")&&!contains(after,peer,id))' in archive
+assert '!kept.contains(marker(peer, id))' in archive
 assert 'TextUtils.isEmpty(message.message)' not in archive # Photo-only messages must survive.
 assert 'sendRequest(' not in archive
 cell=(ui/'ui/Cells/ChatMessageCell.java').read_text(encoding='utf-8')

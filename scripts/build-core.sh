@@ -51,8 +51,14 @@ case "$target" in
       targets="${targets:+$targets,}$t"
     done
     echo "ядро для: $targets"
+    # NDK r27 still defaults to 4 KB ELF segments. Keep the Go shared library
+    # loadable on Android devices using 16 KB pages as well.
+    export CGO_LDFLAGS="${CGO_LDFLAGS:-} -Wl,-z,max-page-size=16384 -Wl,-z,common-page-size=16384"
+    # Xray's Android interface discovery uses anet's net.zoneCache linkname.
+    # Go >=1.23 requires this compatibility flag (github.com/wlynxg/anet#how-to-build).
+    # Keep it Android-only; this does not disable runtime network restrictions.
     retry_network gomobile bind -target="$targets" -androidapi 21 \
-      -ldflags "-s -w" \
+      -ldflags "-s -w -checklinkname=0" \
       -o "$out/nebulalink.aar" ./mobile
     ;;
   ios)

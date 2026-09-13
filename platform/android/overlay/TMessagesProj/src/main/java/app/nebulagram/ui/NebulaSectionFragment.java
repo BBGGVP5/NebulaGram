@@ -256,6 +256,7 @@ public class NebulaSectionFragment extends BaseFragment {
     }
 
     private void buildTabs(Context context) {
+        content.addView(NebulaCard.header(context, NebulaText.text("Кнопки на экране чатов", "Chat list buttons")));
         NebulaCard home = new NebulaCard(context);
         home.add(toggle(context, R.drawable.outline_fab_story_24,
                 R.string.NebulaHideHomeCamera, R.string.NebulaHideHomeCameraInfo,

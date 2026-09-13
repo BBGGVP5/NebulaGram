@@ -99,6 +99,8 @@ public final class NebulaSettingsSearch {
         result.add(new Entry(4, NebulaText.text("История поиска настроек", "Settings search history"), "NebulaGram", R.drawable.msg_recent));
         result.add(new Entry(4, NebulaText.text("Очистить историю поиска настроек", "Clear settings search history"), "NebulaGram", R.drawable.msg_delete));
         result.add(new Entry(4, NebulaText.text("Истории в списке чатов", "Stories in the chat list"), NebulaText.text("Сторисы, главная, архив", "Stories, home, archive"), R.drawable.msg_photo_settings));
+        result.add(new Entry(2, R.string.NebulaHideHomeCamera, R.string.NebulaHideHomeCameraInfo, R.drawable.outline_fab_story_24));
+        result.add(new Entry(2, R.string.NebulaHideHomeCompose, R.string.NebulaHideHomeComposeInfo, R.drawable.filled_fab_compose_32));
         return result;
     }
     private static String normalize(String s) { return s.toLowerCase(Locale.ROOT).replace('ё', 'е').trim(); }

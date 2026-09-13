@@ -71,6 +71,35 @@ public final class NebulaDeletedArchive {
         }
         return (SecretKey) store.getKey(ALIAS, null);
     }
+    // Only the most recently used account is cached. Access is under this class's monitor.
+    // Snapshots are replaced only after a successful AtomicFile commit, never mutated in place.
+    private static long cachedOwner;
+    private static Snapshot cachedSnapshot;
+    private static final class Snapshot {
+        final JSONArray entries;
+        final java.util.Set<String> keys = new java.util.HashSet<>();
+        final java.util.Map<Long, java.util.Set<Integer>> scopes = new java.util.HashMap<>();
+        Snapshot(JSONArray entries) throws Exception {
+            this.entries = entries;
+            for (int i = 0; i < entries.length(); i++) {
+                JSONObject e = entries.getJSONObject(i);
+                if (!e.optBoolean("inline")) continue;
+                keys.add(marker(e.optLong("peer"), e.optInt("id")));
+                scopes.computeIfAbsent(e.optLong("scope"), k -> new java.util.HashSet<>()).add(e.optInt("id"));
+            }
+        }
+        void filter(long scope, ArrayList<Integer> ids) {
+            java.util.Set<Integer> retained = scopes.get(scope);
+            if (retained != null) ids.removeAll(retained);
+        }
+    }
+    private static Snapshot snapshot(long owner) throws Exception {
+        if (cachedSnapshot != null && cachedOwner == owner) return cachedSnapshot;
+        Snapshot loaded = new Snapshot(read(owner));
+        cachedOwner = owner;
+        cachedSnapshot = loaded;
+        return loaded;
+    }
     private static JSONArray read(long owner) throws Exception {
         File file = file(owner);
         if (!file.exists()) return new JSONArray();
@@ -86,6 +115,7 @@ public final class NebulaDeletedArchive {
         return new JSONArray(new String(cipher.doFinal(bytes, 12, bytes.length - 12), java.nio.charset.StandardCharsets.UTF_8));
     }
     private static void write(long owner, JSONArray entries) throws Exception {
+        Snapshot next = new Snapshot(entries);
         Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding"); cipher.init(Cipher.ENCRYPT_MODE, key());
         cipher.updateAAD(Long.toString(owner).getBytes(java.nio.charset.StandardCharsets.UTF_8));
         byte[] bytes = cipher.doFinal(entries.toString().getBytes(java.nio.charset.StandardCharsets.UTF_8));
@@ -93,18 +123,16 @@ public final class NebulaDeletedArchive {
         java.io.FileOutputStream output = null;
         try { output = target.startWrite(); output.write(cipher.getIV()); output.write(bytes); target.finishWrite(output); }
         catch (Exception e) { target.failWrite(output); throw e; }
+        cachedOwner = owner;
+        cachedSnapshot = next;
     }
-    /**
-     * Приводит индекс в порядок, ничего не выбрасывая по сроку или количеству:
-     * записи хранятся, пока их не удалит сам пользователь. Отбрасываются лишь
-     * записи из будущего — их дата пришла бы только из испорченного файла.
-     */
-    private static JSONArray prune(JSONArray input) throws Exception {
-        ArrayList<JSONObject> values = new ArrayList<>(); long now = System.currentTimeMillis();
-        for (int i=0;i<input.length();i++) { JSONObject entry=input.getJSONObject(i);long date=entry.getLong("deletedAt");
-            if(date <= now+60000) values.add(entry); }
-        values.sort((a,b)->Long.compare(b.optLong("deletedAt"),a.optLong("deletedAt")));
-        JSONArray result=new JSONArray(); for(JSONObject value:values) result.put(value); return result;
+    /** Keep persisted order on the sync queue; sorting is only needed by the archive screen. */
+    private static JSONArray copyEntries(JSONArray input) throws Exception {
+        // Preserve all entries, including after clock/timezone corrections. Retention has no TTL.
+        // Clone the array before appending, so the pre-write snapshot remains unchanged on failure.
+        JSONArray result = new JSONArray();
+        for (int i = 0; i < input.length(); i++) result.put(input.getJSONObject(i));
+        return result;
     }
     private static final java.util.concurrent.ConcurrentHashMap<Long, java.util.Set<String>> markers = new java.util.concurrent.ConcurrentHashMap<>();
     private static String marker(long peer, int id) { return peer + ":" + id; }
@@ -112,15 +140,19 @@ public final class NebulaDeletedArchive {
         java.util.Set<String> values = markers.get(owner(account));
         return values != null && values.contains(marker(peer, id));
     }
-    private static void publish(long owner, JSONArray entries) {
-        java.util.Set<String> next = new java.util.HashSet<>();
-        for (int i=0;i<entries.length();i++) {
-            JSONObject e=entries.optJSONObject(i);
-            if(e!=null && e.optBoolean("inline")) next.add(marker(e.optLong("peer"),e.optInt("id")));
-        }
-        markers.put(owner, java.util.Collections.unmodifiableSet(next));
+    private static void publish(long owner, Snapshot snapshot) {
+        markers.put(owner, java.util.Collections.unmodifiableSet(snapshot.keys));
     }
-    public static synchronized JSONArray entries(long owner) throws Exception { return read(owner); }
+    public static synchronized JSONArray entries(long owner) throws Exception {
+        JSONArray stored = snapshot(owner).entries;
+        ArrayList<JSONObject> values = new ArrayList<>();
+        for (int i = 0; i < stored.length(); i++) values.add(stored.getJSONObject(i));
+        values.sort((a,b) -> Long.compare(b.optLong("deletedAt"), a.optLong("deletedAt")));
+        // Do not let callers mutate the committed in-memory snapshot.
+        JSONArray result = new JSONArray();
+        for (JSONObject value : values) result.put(new JSONObject(value.toString()));
+        return result;
+    }
     public static boolean hasError(long owner) { return ApplicationLoader.applicationContext.getSharedPreferences("nebulagram",0).getBoolean("deleted_archive_error_"+owner,false); }
     private static void failed(long owner) { ApplicationLoader.applicationContext.getSharedPreferences("nebulagram",0).edit().putBoolean("deleted_archive_error_"+owner,true).apply(); }
     // Must run on the account's storage queue after its database has opened.
@@ -132,22 +164,31 @@ public final class NebulaDeletedArchive {
         // не включал, здесь была пара операций AndroidKeyStore и запись файла
         // на каждый запуск — и список чатов ждал их.
         if(!enabled(owner)&&!present(owner))return;
-        try { JSONArray all=read(owner), kept=prune(all);
-            if(kept.length()==all.length())
-                { publish(owner,kept); return; } // Ничего не изменилось — не переписываем.
-            purgeDifference(account,all,kept);write(owner,kept);publish(owner,kept); }
+        try { publish(owner, snapshot(owner)); }
         catch(Exception e){failed(owner);}
     }
-    private static boolean contains(JSONArray entries, long peer, int id) {
-        for(int i=0;i<entries.length();i++){JSONObject e=entries.optJSONObject(i);if(e!=null&&e.optBoolean("inline")&&e.optLong("peer")==peer&&e.optInt("id")==id)return true;}
-        return false;
+    // Build membership once per batch, not once for every archived message.
+    private static java.util.Set<String> entryKeys(JSONArray entries) {
+        java.util.Set<String> keys = new java.util.HashSet<>();
+        for (int i = 0; i < entries.length(); i++) {
+            JSONObject e = entries.optJSONObject(i);
+            if (e != null && e.optBoolean("inline")) keys.add(marker(e.optLong("peer"), e.optInt("id")));
+        }
+        return keys;
+    }
+    private static java.util.Map<Long,ArrayList<Integer>> removedEntries(JSONArray before, JSONArray after) throws Exception {
+        java.util.Set<String> kept = entryKeys(after);
+        java.util.Map<Long,ArrayList<Integer>> removed = new java.util.HashMap<>();
+        for (int i = 0; i < before.length(); i++) {
+            JSONObject e = before.getJSONObject(i);
+            long peer = e.getLong("peer"); int id = e.getInt("id");
+            if (e.optBoolean("inline") && !kept.contains(marker(peer, id)))
+                removed.computeIfAbsent(peer, k -> new ArrayList<>()).add(id);
+        }
+        return removed;
     }
     private static void purgeDifference(int account, JSONArray before, JSONArray after) throws Exception {
-        java.util.Map<Long,ArrayList<Integer>> removed=new java.util.HashMap<>();
-        for(int i=0;i<before.length();i++) {
-            JSONObject e=before.getJSONObject(i);long peer=e.getLong("peer");int id=e.getInt("id");
-            if(e.optBoolean("inline")&&!contains(after,peer,id))removed.computeIfAbsent(peer,k->new ArrayList<>()).add(id);
-        }
+        java.util.Map<Long,ArrayList<Integer>> removed = removedEntries(before, after);
         for(java.util.Map.Entry<Long,ArrayList<Integer>> group:removed.entrySet()) {
             long peer=group.getKey();ArrayList<Integer> ids=group.getValue();
             MessagesStorage storage=MessagesStorage.getInstance(account);
@@ -167,10 +208,10 @@ public final class NebulaDeletedArchive {
         MessagesStorage.getInstance(account).getStorageQueue().postRunnable(()->{
             try { synchronized(NebulaDeletedArchive.class) {
                 if(owner(account)!=expected)throw new IllegalStateException("Account changed");
-                JSONArray all=read(expected), kept=new JSONArray();
+                JSONArray all=snapshot(expected).entries, kept=new JSONArray();
                 for(int i=0;i<all.length();i++){JSONObject entry=all.getJSONObject(i);if(peer!=0&&entry.optLong("peer")!=peer)kept.put(entry);}
                 purgeDifference(account,all,kept);
-                write(expected,kept);publish(expected,kept);
+                write(expected,kept);publish(expected,snapshot(expected));
                 ApplicationLoader.applicationContext.getSharedPreferences("nebulagram",0).edit().remove("deleted_archive_error_"+expected).apply();
             }org.telegram.messenger.AndroidUtilities.runOnUIThread(done); }
             catch(Exception e){org.telegram.messenger.AndroidUtilities.runOnUIThread(error);}
@@ -195,11 +236,9 @@ public final class NebulaDeletedArchive {
         // сохранением уже сохранённые сообщения нельзя отдавать на удаление.
         if(!enabled(owner)&&!present(owner))return result;
         try {
-            JSONArray before=read(owner), entries=prune(before);
-            // Считаем изменения честно, а не по длине: prune может выбросить
-            // запись ровно тогда, когда цикл добавит новую, и длина совпадёт
-            // при разном содержимом — тогда мы бы молча потеряли сохранённое.
-            boolean dropped=entries.length()!=before.length();
+            Snapshot before = snapshot(owner);
+            JSONArray entries = null; // No whole-index copy/read/sort for an irrelevant deletion event.
+            java.util.Set<String> addedKeys = new java.util.HashSet<>();
             java.util.Map<Long,ArrayList<TLRPC.Message>> changed=new java.util.HashMap<>();
             if(enabled(owner))for(int offset=0;offset<ids.size();offset+=100) {
                 ArrayList<Integer> batch=new ArrayList<>(ids.subList(offset,Math.min(ids.size(),offset+100)));
@@ -208,6 +247,7 @@ public final class NebulaDeletedArchive {
                 try {while(cursor.next()) {
                     long peer=cursor.longValue(0);int id=cursor.intValue(2), readState=cursor.intValue(3);
                     if(DialogObject.isEncryptedDialog(peer)&&!saveSecret(owner)||peer==777000||peer==owner||protectedPeer(account,peer))continue;
+                    if(before.keys.contains(marker(peer,id)))continue;
                     NativeByteBuffer data=cursor.byteBufferValue(1);if(data==null)continue;
                     TLRPC.Message message;
                     try {message=TLRPC.Message.TLdeserialize(data,data.readInt32(false),false);if(message!=null)message.readAttachPath(data,owner);}finally{data.reuse();}
@@ -215,25 +255,25 @@ public final class NebulaDeletedArchive {
                     boolean secret=DialogObject.isEncryptedDialog(peer);
                     boolean expiring=message.ttl_period>0||cursor.intValue(4)>0||message.media!=null&&message.media.ttl_seconds>0;
                     if(!NebulaRetentionPolicy.allowed(enabled(owner),secret,expiring,saveSecret(owner),saveExpiring(owner),message.noforwards,!message.out,message instanceof TLRPC.TL_messageService,id!=0&&(id>0||secret)))continue;
-                    if(contains(entries,peer,id))continue;
+                    if(!addedKeys.add(marker(peer,id)))continue;
+                    if(entries==null)entries=copyEntries(before.entries);
                     message.id=id;message.dialog_id=peer;message.unread=(readState&1)==0;message.media_unread=(readState&2)==0;
                     entries.put(new JSONObject().put("peer",peer).put("id",id).put("scope",dialog).put("inline",true).put("timestamp",message.date)
                         .put("deletedAt",System.currentTimeMillis()).put("text",message.message==null?"":message.message.substring(0,Math.min(message.message.length(),4096))));
                     changed.computeIfAbsent(peer,k->new ArrayList<>()).add(message);
                 }}finally{cursor.dispose();}
             }
-            entries=prune(entries);
             // Запись — самая дорогая часть: шифрование и перезапись всего файла.
             // Событие удаления, из которого нечего сохранять, её не стоит.
-            if(dropped||!changed.isEmpty()) {
+            if(entries!=null) {
                 write(owner,entries); // Fail closed: do not retain new messages if the index cannot be persisted.
-                purgeDifference(account,before,entries);
             }
-            publish(owner,entries);
-            for(int i=0;i<entries.length();i++) {JSONObject e=entries.getJSONObject(i);if(e.optBoolean("inline")&&e.optLong("scope")==dialog)result.remove(Integer.valueOf(e.optInt("id")));}
+            Snapshot committed = snapshot(owner);
+            if(entries!=null || !markers.containsKey(owner)) publish(owner,committed);
+            committed.filter(dialog,result); // O(incoming IDs), not O(entire archive) per update.
             for(java.util.Map.Entry<Long,ArrayList<TLRPC.Message>> group:changed.entrySet()) {
                 long peer=group.getKey();ArrayList<TLRPC.Message> retained=new ArrayList<>();
-                for(TLRPC.Message message:group.getValue())if(contains(entries,peer,message.id))retained.add(message);
+                for(TLRPC.Message message:group.getValue())if(committed.keys.contains(marker(peer,message.id)))retained.add(message);
                 if(retained.isEmpty())continue;
                 MessagesStorage storage=MessagesStorage.getInstance(account);
                 for(TLRPC.Message message:retained) {

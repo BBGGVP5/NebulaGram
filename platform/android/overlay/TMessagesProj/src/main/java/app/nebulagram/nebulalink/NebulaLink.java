@@ -21,8 +21,6 @@ import org.telegram.tgnet.ConnectionsManager;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import nebulalink.EventSink;
 import nebulalink.Nebulalink;
@@ -39,10 +37,10 @@ import nebulalink.Nebulalink;
  */
 public final class NebulaLink {
 
-    /** The core listens on loopback only; nothing else on the device can reach it. */
+    /** The core listens on loopback only; it is not exposed to the local network. */
     public static final String PROXY_ADDRESS = "127.0.0.1";
 
-    private static final ExecutorService EXECUTOR = Executors.newSingleThreadExecutor();
+    private static final NebulaCommandQueue EXECUTOR = new NebulaCommandQueue();
 
     private static volatile boolean initialised;
     private static SharedConfig.ProxyInfo installedProxy;
@@ -75,12 +73,21 @@ public final class NebulaLink {
      * <p>По ссылке на статику судить нельзя: после перезапуска процесса она
      * пуста, а запись в списке и включённый прокси остаются с прошлого раза.
      * Тогда «подключено» пропадало из интерфейса, а снять такой прокси было
-     * некому. Узнаём по адресу — петля без логина и пароля принадлежит нам.
+     * некому. Проверяем записанный порт: другой локальный прокси не наш.
      */
     public static boolean isTunnelProxy(SharedConfig.ProxyInfo proxy) {
         return proxy != null && (proxy == installedProxy
-                || PROXY_ADDRESS.equals(proxy.address) && proxy.username.isEmpty()
-                        && proxy.password.isEmpty() && proxy.secret.isEmpty());
+                || isRecordedTunnelEndpoint(proxy.address, proxy.port, proxy.username, proxy.password, proxy.secret));
+    }
+
+    private static boolean isRecordedTunnelEndpoint(String address, int port, String user, String password, String secret) {
+        int recorded = ApplicationLoader.applicationContext.getSharedPreferences(PREFS, 0).getInt(KEY_PROXY_PORT, 0);
+        return matchesTunnelEndpoint(recorded, address, port, user, password, secret);
+    }
+
+    private static boolean matchesTunnelEndpoint(int recorded, String address, int port, String user, String password, String secret) {
+        return recorded > 0 && port == recorded && PROXY_ADDRESS.equals(address)
+                && "".equals(user) && "".equals(password) && "".equals(secret);
     }
 
     public static boolean isRoutingThroughTunnel() {
@@ -133,7 +140,12 @@ public final class NebulaLink {
 
         // The application hook precedes Telegram's handler/native initialization.
         // Enqueue after onCreate returns so proxy cleanup and status events cannot be dropped.
-        new Handler(context.getMainLooper()).post(() -> EXECUTOR.execute(() -> {
+        new Handler(context.getMainLooper()).post(() -> {
+            // Withdraw the recorded dead endpoint before core.init, even if the Go core fails.
+            // Otherwise a disabled tunnel can leave Telegram reconnecting to a closed local port.
+            SharedPreferences saved = context.getSharedPreferences(PREFS, 0);
+            clearPreviousProxy(saved.getInt(KEY_PROXY_PORT, 0));
+            EXECUTOR.execute(() -> {
             try {
                 JSONObject payload = new JSONObject();
                 payload.put("dir", directory.getAbsolutePath());
@@ -153,7 +165,7 @@ public final class NebulaLink {
                 boolean previouslyConnected = preferences.getBoolean(KEY_WAS_CONNECTED, false);
                 int previousPort = preferences.getInt(KEY_PROXY_PORT,
                         previouslyConnected && settings != null ? settings.optInt("socks_port") : 0);
-                AndroidUtilities.runOnUIThread(() -> clearPreviousProxy(previousPort));
+                if (previousPort > 0) AndroidUtilities.runOnUIThread(() -> clearPreviousProxy(previousPort));
                 if (settings != null && preferences.contains(KEY_WAS_CONNECTED)) {
                     JSONObject migration = new JSONObject();
                     migration.put("auto_connect", previouslyConnected);
@@ -179,12 +191,13 @@ public final class NebulaLink {
             } catch (JSONException e) {
                 FileLog.e(e);
             }
-        }));
+            });
+        });
     }
 
     /** Runs a core method and delivers the result on the main thread. */
     public static void call(final String method, final JSONObject payload, final Callback callback) {
-        EXECUTOR.execute(() -> {
+        EXECUTOR.execute(method, () -> {
             final Result result = callBlocking(method, payload);
             if (callback != null) {
                 AndroidUtilities.runOnUIThread(() -> callback.onResult(result));
@@ -223,11 +236,12 @@ public final class NebulaLink {
             boolean routeCalls = callsThroughTunnel();
             SharedConfig.loadProxyList();
             for (SharedConfig.ProxyInfo proxy : new ArrayList<>(SharedConfig.proxyList)) {
-                if (PROXY_ADDRESS.equals(proxy.address) && proxy.port == port
-                        && proxy.username.isEmpty() && proxy.password.isEmpty() && proxy.secret.isEmpty()) {
+                if (matchesTunnelEndpoint(port, proxy.address, proxy.port, proxy.username, proxy.password, proxy.secret)) {
                     SharedConfig.deleteProxy(proxy);
                 }
             }
+            // Also handle a missing/stale proxy-list entry before forgetting the recorded port.
+            disableStaleProxy(port);
             // deleteProxy clears this preference as well; keep the user's call routing choice.
             setCallsThroughTunnel(routeCalls);
         }
@@ -313,6 +327,7 @@ public final class NebulaLink {
      * is left alone: only the entry we installed is withdrawn.
      */
     public static void stopUsingTunnel() {
+        boolean routeCalls = callsThroughTunnel();
         // deleteProxy also clears the saved endpoint when this is the current
         // proxy. Clearing currentProxy first would resurrect it on the next launch.
         if (installedProxy != null) {
@@ -328,19 +343,22 @@ public final class NebulaLink {
                 }
             }
         }
-        // deleteProxy выключает прокси только если удаляемый был текущим. Если
-        // текущим стал чужой, а в настройках всё ещё наш адрес, Telegram будет
-        // стучаться в мёртвый порт, пока его не выключить руками.
-        SharedPreferences settings = MessagesController.getGlobalMainSettings();
-        if (settings.getBoolean("proxy_enabled", false)
-                && PROXY_ADDRESS.equals(settings.getString("proxy_ip", ""))) {
-            settings.edit().putBoolean("proxy_enabled", false).putBoolean("proxy_enabled_calls", false)
-                    .putString("proxy_ip", "").putInt("proxy_port", 1080).commit();
-            ConnectionsManager.setProxySettings(false, "", 0, "", "", "");
-        }
+        disableStaleProxy(ApplicationLoader.applicationContext.getSharedPreferences(PREFS, 0).getInt(KEY_PROXY_PORT, 0));
+        setCallsThroughTunnel(routeCalls);
         ApplicationLoader.applicationContext.getSharedPreferences(PREFS, 0)
                 .edit().remove(KEY_PROXY_PORT).apply();
         NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.proxySettingsChanged);
+    }
+
+    private static void disableStaleProxy(int recordedPort) {
+        SharedPreferences settings = MessagesController.getGlobalMainSettings();
+        if (settings.getBoolean("proxy_enabled", false)
+                && matchesTunnelEndpoint(recordedPort, settings.getString("proxy_ip", ""), settings.getInt("proxy_port", 0),
+                        settings.getString("proxy_user", ""), settings.getString("proxy_pass", ""), settings.getString("proxy_secret", ""))) {
+            settings.edit().putBoolean("proxy_enabled", false).putBoolean("proxy_enabled_calls", false)
+                    .putString("proxy_ip", "").putInt("proxy_port", 1080).apply();
+            ConnectionsManager.setProxySettings(false, "", 0, "", "", "");
+        }
     }
 
     /**

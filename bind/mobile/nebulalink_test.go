@@ -26,7 +26,9 @@ func TestMobileSubscriptionSOCKSRouteAndStop(t *testing.T) {
 	port := portListener.Addr().(*net.TCPAddr).Port
 	portListener.Close()
 	uuid := "c914b63b-7f13-44ad-b5de-f68d3af54024"
-	config := fmt.Sprintf(`{"log":{"loglevel":"none"},"inbounds":[{"listen":"127.0.0.1","port":%d,"protocol":"vless","settings":{"clients":[{"id":%q}],"decryption":"none"}}],"outbounds":[{"protocol":"freedom"}]}`, port, uuid)
+	// This test server alone may reach the loopback HTTP fixture. Xray 26.9.9
+	// blocks private targets by default; production outbound rules stay unchanged.
+	config := fmt.Sprintf(`{"log":{"loglevel":"none"},"inbounds":[{"listen":"127.0.0.1","port":%d,"protocol":"vless","settings":{"clients":[{"id":%q}],"decryption":"none"}}],"outbounds":[{"protocol":"freedom","settings":{"finalRules":[{"action":"allow","ip":["127.0.0.1/32"]}]}}]}`, port, uuid)
 	parsed, err := serial.LoadJSONConfig(bytes.NewBufferString(config))
 	if err != nil {
 		t.Fatal(err)
@@ -59,7 +61,7 @@ func TestMobileSubscriptionSOCKSRouteAndStop(t *testing.T) {
 			t.Fatal(err)
 		}
 		if response["ok"] != true {
-			t.Fatalf("%s failed", method)
+			t.Fatalf("%s failed: %v", method, response["error"])
 		}
 		result, _ := response["data"].(map[string]any)
 		return result

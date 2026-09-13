@@ -40,6 +40,11 @@ script = (root/'scripts/build-core.sh').read_text(encoding='utf-8')
 assert '@latest' not in '\n'.join(line for line in script.splitlines() if not line.lstrip().startswith('#'))
 assert 'retry_network gomobile bind' in script
 assert 'go mod verify' in script and 'golang.org/x/mobile/cmd/gobind' in script
+# anet is Android-only; newer Go refuses its zoneCache linkname without this flag.
+android_bind = script[script.index('retry_network gomobile bind -target="$targets"'):script.index('  ios)')]
+assert '-checklinkname=0' in android_bind
+assert 'max-page-size=16384' in script and 'common-page-size=16384' in script
+assert '-checklinkname=0' not in script[script.index('  ios)'):]
 assert 'GOSUMDB=off' not in script and 'GONOSUMDB=*' not in script
 workflow = (root/'.github/workflows/android.yml').read_text(encoding='utf-8')
 assert "go-version-file: 'bind/go.mod'" in workflow

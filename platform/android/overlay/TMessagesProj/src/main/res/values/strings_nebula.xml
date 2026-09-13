@@ -67,7 +67,7 @@
     <string name="NebulaSectionAbout">About NebulaGram</string>
     <string name="NebulaAppearanceSub">Colours, login screens, profile</string>
     <string name="NebulaChatsSub">Chat header and message field</string>
-    <string name="NebulaPanelSub">Tab order, visibility and appearance</string>
+    <string name="NebulaPanelSub">Tabs, camera and new chat buttons</string>
     <string name="NebulaAboutSub">Version, updates and links</string>
     <string name="NebulaChatHeaderSection">Chat header</string>
     <string name="NebulaComposerSection">Message field</string>
