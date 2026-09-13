@@ -149,8 +149,11 @@ public class NebulaSectionFragment extends BaseFragment {
             "Message appearance and actions.", "Profiles and quick actions.",
             "Switches and control styling.", "Build a menu that suits you."};
         int summary = section >= 0 && section < summaries.length ? section : 0;
+        LinearLayout.LayoutParams heroParams = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        heroParams.bottomMargin = AndroidUtilities.dp(12);
         content.addView(new NebulaSettingsHero(context, R.drawable.msg_customize,
-                LocaleController.getString(titleKey()), NebulaText.text(summaries[summary], english[summary])));
+                LocaleController.getString(titleKey()), NebulaText.text(summaries[summary], english[summary])), heroParams);
         switch (section) {
             case SECTION_FOLDERS: buildFolders(context); break;
             case SECTION_MESSAGES: buildMessages(context); break;

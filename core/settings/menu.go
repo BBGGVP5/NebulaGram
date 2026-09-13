@@ -87,7 +87,7 @@ func homeScreen() Screen {
 					SubtitleKey: "nl_open_provider_sub", Subtitle: "Top up, renew or read announcements"},
 				{Key: "guard", Type: RowAction, Command: "guard.open", Icon: "shield",
 					TitleKey: "nl_guard", Title: "NebulaGuard",
-					SubtitleKey: "nl_guard_sub", Subtitle: "Subscriptions and support in Telegram"},
+					SubtitleKey: "nl_guard_sub", Subtitle: "Your go-to service for internet freedom"},
 				{Key: "advanced", Type: RowNav, Screen: ScreenAdvanced, Icon: "settings",
 					TitleKey: "nl_advanced", Title: "Advanced",
 					SubtitleKey: "nl_advanced_sub", Subtitle: "Latency method, device id and cores"},
