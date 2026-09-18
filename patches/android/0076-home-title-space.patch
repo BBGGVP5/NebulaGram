@@ -1,7 +1,7 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
-@@ -605,6 +605,15 @@
+@@ -605,6 +605,15 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
  
      private boolean isCenterTitle;
  
@@ -17,7 +17,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.jav
      private boolean nebulaCenterTitle() {
          if (!app.nebulagram.ui.NebulaAppearance.centerHome() || isSearchFieldVisible || getActionModeFactor() != 0) return false;
          if (parentFragment instanceof org.telegram.ui.DialogsActivity) {
-@@ -1545,11 +1554,22 @@
+@@ -1545,11 +1554,22 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
                          boolean centerHome = nebulaCenterTitle();
                          titleTextView[i].setGravity(centerHome ? Gravity.CENTER_HORIZONTAL : (isCenterTitle ? Gravity.CENTER : Gravity.LEFT | Gravity.CENTER_VERTICAL));
                          if (centerHome) {
@@ -42,7 +42,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.jav
                      if (centerScale) {
                          CharSequence text = titleTextView[i].getText();
                          titleTextView[i].setPivotX(titleTextView[i].getTextPaint().measureText(text, 0, text.length()) / 2f);
-@@ -1637,7 +1657,8 @@
+@@ -1637,7 +1657,8 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
                  }
                  int titleLeft = textLeft;
                  if (nebulaCenterTitle()) {

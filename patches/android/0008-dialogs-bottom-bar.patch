@@ -1,5 +1,4 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
-index b04f149f..f51af98a 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
 @@ -2979,8 +2979,8 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
@@ -26,7 +25,7 @@ index b04f149f..f51af98a 100644
          if (dialogStoriesCell != null) {
              dialogStoriesCell.onResume();
          }
-@@ -14067,6 +14080,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+@@ -14067,6 +14073,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
      }
  
      private void checkUi_menuItems() {
@@ -35,7 +34,6 @@ index b04f149f..f51af98a 100644
          checkUi_itemOptionsVisibility();
          checkUi_itemDownloadsVisibility();
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/MainTabsActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/MainTabsActivity.java
-index 18411328..7c2b0bcb 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/MainTabsActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/MainTabsActivity.java
 @@ -274,6 +274,12 @@ public class MainTabsActivity extends ViewPagerActivity implements NotificationC

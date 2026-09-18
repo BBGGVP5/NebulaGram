@@ -1,7 +1,7 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/FlagSecureReason.java b/TMessagesProj/src/main/java/org/telegram/messenger/FlagSecureReason.java
 --- a/TMessagesProj/src/main/java/org/telegram/messenger/FlagSecureReason.java
 +++ b/TMessagesProj/src/main/java/org/telegram/messenger/FlagSecureReason.java
-@@ -74,6 +74,11 @@
+@@ -74,6 +74,11 @@ public class FlagSecureReason {
      }
  
      public static boolean isSecuredNow(Window window) {
@@ -16,7 +16,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/FlagSecureReason
 diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/MessagesController.java b/TMessagesProj/src/main/java/org/telegram/messenger/MessagesController.java
 --- a/TMessagesProj/src/main/java/org/telegram/messenger/MessagesController.java
 +++ b/TMessagesProj/src/main/java/org/telegram/messenger/MessagesController.java
-@@ -6699,6 +6699,13 @@
+@@ -6699,6 +6699,13 @@ public class MessagesController extends BaseController implements NotificationCe
      }
  
      public boolean isChatNoForwards(TLRPC.Chat chat) {
@@ -30,7 +30,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/MessagesControll
          if (chat == null) {
              return false;
          }
-@@ -6724,6 +6731,9 @@
+@@ -6724,6 +6731,9 @@ public class MessagesController extends BaseController implements NotificationCe
      }
  
      public boolean isUserNoForwards(TLRPC.UserFull userFull) {

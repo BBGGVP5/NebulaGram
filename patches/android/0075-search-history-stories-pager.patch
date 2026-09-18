@@ -1,36 +1,7 @@
-diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
---- a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
-+++ b/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
-@@ -14527,6 +14527,7 @@
-         }
- 
-         private void updateSearchArray() {
-+            recentSearches.clear();
-             HashMap<Integer, SearchResult> resultHashMap = new HashMap<>();
-             for (int a = 0; a < searchArray.length; a++) {
-                 if (searchArray[a] == null) {
-@@ -14534,7 +14535,8 @@
-                 }
-                 resultHashMap.put(searchArray[a].guid, searchArray[a]);
-             }
--            Set<String> set = MessagesController.getGlobalMainSettings().getStringSet("settingsSearchRecent2", null);
-+            Set<String> set = app.nebulagram.ui.NebulaAppearance.settingsSearchHistory()
-+                    ? MessagesController.getGlobalMainSettings().getStringSet("settingsSearchRecent2", null) : null;
-             if (set != null) {
-                 for (String value : set) {
-                     try {
-@@ -15065,6 +15067,7 @@
-         }
- 
-         public void addRecent(Object object) {
-+            if (!app.nebulagram.ui.NebulaAppearance.settingsSearchHistory()) return;
-             int index = recentSearches.indexOf(object);
-             if (index >= 0) {
-                 recentSearches.remove(index);
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
-@@ -12822,14 +12822,19 @@
+@@ -12822,16 +12822,21 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
              animated = false;
          }
          boolean onlySelfStories = !isArchive() && getStoriesController().hasOnlySelfStories();
@@ -46,18 +17,20 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/
 -            newVisibility = !onlySelfStories && getStoriesController().hasStories();
 +            rawVisibility = !onlySelfStories && getStoriesController().hasStories();
              onlySelfStories = getStoriesController().hasOnlySelfStories();
-+        }
-+
+         }
+ 
 +        final boolean newVisibility = app.nebulagram.ui.NebulaAppearance.showStories() && rawVisibility;
 +        if (!app.nebulagram.ui.NebulaAppearance.showStories()) {
 +            onlySelfStories = false;
-         }
- 
++        }
++
          hasOnlySlefStories = onlySelfStories;
+ 
+         boolean oldStoriesCellVisibility = dialogStoriesCellVisible;
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/MainTabsActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/MainTabsActivity.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/MainTabsActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/MainTabsActivity.java
-@@ -773,6 +773,7 @@
+@@ -773,6 +773,7 @@ public class MainTabsActivity extends ViewPagerActivity implements NotificationC
          if (tabsView != null) {
              selectTab(viewPager.getCurrentPosition(), true);
              setGestureSelectedOverride(0, false);
@@ -65,11 +38,10 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/MainTabsActivity.java b
          }
          blur3_invalidateBlur();
  
-@@ -801,6 +802,16 @@
-     @Override
+@@ -802,6 +803,16 @@ public class MainTabsActivity extends ViewPagerActivity implements NotificationC
      protected void onViewPagerTabAnimationUpdate(boolean manual) {
          final boolean isDragByGesture = !manual;
-+
+ 
 +        if (tabsView != null && viewPager != null) {
 +            View from = null, to = null;
 +            for (int index = 0; index < tabs.length; index++) {
@@ -79,13 +51,14 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/MainTabsActivity.java b
 +            }
 +            tabsView.setNebulaPagerSelection(from, to, viewPager.getNextPositionAlpha());
 +        }
- 
++
          if (tabsView != null) {
              if (isDragByGesture) {
+                 final int current = viewPager.getCurrentPosition();
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/MainTabsLayout.java b/TMessagesProj/src/main/java/org/telegram/ui/MainTabsLayout.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/MainTabsLayout.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/MainTabsLayout.java
-@@ -282,6 +282,23 @@
+@@ -282,6 +282,23 @@ public class MainTabsLayout extends AnimatedLinearLayout {
  
  
  
@@ -109,7 +82,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/MainTabsLayout.java b/T
      public void setTabSelected(View tab, boolean animated) {
          for (int a = 0, N = getChildCount(); a < N; a++) {
              final View child = getChildAt(a);
-@@ -344,9 +361,23 @@
+@@ -344,9 +361,23 @@ public class MainTabsLayout extends AnimatedLinearLayout {
          if (!liquid) nebulaLens.reset();
          if (liquid && !drawCustomSelector) {
              View selected = findSelectedTab();
@@ -136,3 +109,32 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/MainTabsLayout.java b/T
              } else {
                  nebulaLens.reset();
              }
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
+@@ -14527,6 +14527,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+         }
+ 
+         private void updateSearchArray() {
++            recentSearches.clear();
+             HashMap<Integer, SearchResult> resultHashMap = new HashMap<>();
+             for (int a = 0; a < searchArray.length; a++) {
+                 if (searchArray[a] == null) {
+@@ -14534,7 +14535,8 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+                 }
+                 resultHashMap.put(searchArray[a].guid, searchArray[a]);
+             }
+-            Set<String> set = MessagesController.getGlobalMainSettings().getStringSet("settingsSearchRecent2", null);
++            Set<String> set = app.nebulagram.ui.NebulaAppearance.settingsSearchHistory()
++                    ? MessagesController.getGlobalMainSettings().getStringSet("settingsSearchRecent2", null) : null;
+             if (set != null) {
+                 for (String value : set) {
+                     try {
+@@ -15065,6 +15067,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+         }
+ 
+         public void addRecent(Object object) {
++            if (!app.nebulagram.ui.NebulaAppearance.settingsSearchHistory()) return;
+             int index = recentSearches.indexOf(object);
+             if (index >= 0) {
+                 recentSearches.remove(index);

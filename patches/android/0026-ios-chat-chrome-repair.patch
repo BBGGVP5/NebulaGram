@@ -1,5 +1,4 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
-index 2c10fdd..e3c8146 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
 @@ -240,7 +240,7 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
@@ -38,10 +37,9 @@ index 2c10fdd..e3c8146 100644
                  menu.setVisibility(hideMenu ? GONE : VISIBLE);
              }
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
-index c70a4b7..37ce3bd 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
-@@ -4303,6 +4303,7 @@ public class ChatActivity extends BaseFragment implements
+@@ -4302,6 +4302,7 @@ public class ChatActivity extends BaseFragment implements
                  userFull = getMessagesController().getUserFull(currentUser.id);
              }
              headerItem = menu.addItem(chat_menu_options, otherIcon);
@@ -49,8 +47,19 @@ index c70a4b7..37ce3bd 100644
              headerItem.setSubMenuDelegate(new ActionBarMenuItem.ActionBarSubMenuItemDelegate() {
                  @Override
                  public void onShowSubMenu() {
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
+@@ -14506,7 +14506,7 @@ public class ChatActivityEnterView extends FrameLayout implements
+     @Override
+     protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
+         super.onLayout(changed, left, top, right, bottom);
+-        nebulaComposerStyle.layout(emojiButton, attachButton);
++        nebulaComposerStyle.layout(emojiButton, attachButton, senderSelectView);
+         if (botCommandLastPosition != -1 && botCommandsMenuContainer != null) {
+             LinearLayoutManager layoutManager = (LinearLayoutManager) botCommandsMenuContainer.listView.getLayoutManager();
+             if (layoutManager != null) {
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarContainer.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarContainer.java
-index 3a32683..0009ef4 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarContainer.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarContainer.java
 @@ -757,11 +757,27 @@ public class ChatAvatarContainer extends FrameLayout implements FactorAnimator.T
@@ -82,16 +91,3 @@ index 3a32683..0009ef4 100644
          titleTextView.setGravity(enabled ? Gravity.CENTER : Gravity.LEFT);
          if (subtitleTextView != null) subtitleTextView.setGravity(enabled ? Gravity.CENTER : Gravity.LEFT);
          if (animatedSubtitleTextView != null) animatedSubtitleTextView.setGravity(enabled ? Gravity.CENTER : Gravity.LEFT);
-diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
-index 45fb515d..f77cff65 100644
---- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
-+++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
-@@ -14518,7 +14518,7 @@ public class ChatActivityEnterView extends FrameLayout implements
-     @Override
-     protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
-         super.onLayout(changed, left, top, right, bottom);
--        nebulaComposerStyle.layout(emojiButton, attachButton);
-+        nebulaComposerStyle.layout(emojiButton, attachButton, senderSelectView);
-         if (botCommandLastPosition != -1 && botCommandsMenuContainer != null) {
-             LinearLayoutManager layoutManager = (LinearLayoutManager) botCommandsMenuContainer.listView.getLayoutManager();
-             if (layoutManager != null) {

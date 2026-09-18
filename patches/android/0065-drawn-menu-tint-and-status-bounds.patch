@@ -1,20 +1,7 @@
-diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/drawable/BlurredBackgroundDrawable.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/drawable/BlurredBackgroundDrawable.java
---- a/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/drawable/BlurredBackgroundDrawable.java
-+++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/drawable/BlurredBackgroundDrawable.java
-@@ -186,6 +186,9 @@
- 
-     protected BlurredBackgroundColorProvider colorProvider;
-     protected int shadowColor, backgroundColor, strokeColorTop, strokeColorBottom;
-+    /** Tint actually consumed by the drawable/render node, not the host theme. */
-+    public int getBackgroundTint() { return backgroundColor; }
-+    public BlurredBackgroundColorProvider getColorProvider() { return colorProvider; }
- 
-     public BlurredBackgroundDrawable setColorProvider(BlurredBackgroundColorProvider colorProvider) {
-         this.colorProvider = colorProvider;
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/PlayingGameDrawable.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/PlayingGameDrawable.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/PlayingGameDrawable.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/PlayingGameDrawable.java
-@@ -75,6 +75,8 @@
+@@ -75,6 +75,8 @@ public class PlayingGameDrawable extends StatusDrawable {
  
      @Override
      public void draw(Canvas canvas) {
@@ -23,7 +10,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/PlayingGameD
          int size = AndroidUtilities.dp(10);
          int y = getBounds().top + (getIntrinsicHeight() - size) / 2;
          if (isChat) {
-@@ -112,6 +114,7 @@
+@@ -112,6 +114,7 @@ public class PlayingGameDrawable extends StatusDrawable {
          paint.setColor(Theme.getColor(isDialogScreen ? Theme.key_windowBackgroundWhite : Theme.key_actionBarDefault));
          canvas.drawCircle(AndroidUtilities.dp(4), y + size / 2 - AndroidUtilities.dp(2), AndroidUtilities.dp(1), paint);
  
@@ -34,7 +21,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/PlayingGameD
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/RecordStatusDrawable.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/RecordStatusDrawable.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/RecordStatusDrawable.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/RecordStatusDrawable.java
-@@ -79,7 +79,7 @@
+@@ -79,7 +79,7 @@ public class RecordStatusDrawable extends StatusDrawable {
              paint.setStrokeWidth(AndroidUtilities.dp(2));
          }
          canvas.save();
@@ -46,7 +33,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/RecordStatus
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/RoundStatusDrawable.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/RoundStatusDrawable.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/RoundStatusDrawable.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/RoundStatusDrawable.java
-@@ -73,9 +73,12 @@
+@@ -73,9 +73,12 @@ public class RoundStatusDrawable extends StatusDrawable {
  
      @Override
      public void draw(Canvas canvas) {
@@ -62,7 +49,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/RoundStatusD
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/SendingFileDrawable.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/SendingFileDrawable.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/SendingFileDrawable.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/SendingFileDrawable.java
-@@ -71,6 +71,8 @@
+@@ -71,6 +71,8 @@ public class SendingFileDrawable extends StatusDrawable {
  
      @Override
      public void draw(Canvas canvas) {
@@ -71,7 +58,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/SendingFileD
          Paint paint = currentPaint == null ? Theme.chat_statusRecordPaint : currentPaint;
          for (int a = 0; a < 3; a++) {
              if (a == 0) {
-@@ -85,6 +87,7 @@
+@@ -85,6 +87,7 @@ public class SendingFileDrawable extends StatusDrawable {
              canvas.drawLine(side, AndroidUtilities.dp(isChat ? 11 : 12), side + AndroidUtilities.dp(4), AndroidUtilities.dp(isChat ? 7 : 8), paint);
          }
  
@@ -79,3 +66,16 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/SendingFileD
          if (started) {
              update();
          }
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/drawable/BlurredBackgroundDrawable.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/drawable/BlurredBackgroundDrawable.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/drawable/BlurredBackgroundDrawable.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/drawable/BlurredBackgroundDrawable.java
+@@ -186,6 +186,9 @@ public abstract class BlurredBackgroundDrawable extends Drawable {
+ 
+     protected BlurredBackgroundColorProvider colorProvider;
+     protected int shadowColor, backgroundColor, strokeColorTop, strokeColorBottom;
++    /** Tint actually consumed by the drawable/render node, not the host theme. */
++    public int getBackgroundTint() { return backgroundColor; }
++    public BlurredBackgroundColorProvider getColorProvider() { return colorProvider; }
+ 
+     public BlurredBackgroundDrawable setColorProvider(BlurredBackgroundColorProvider colorProvider) {
+         this.colorProvider = colorProvider;

@@ -1,7 +1,7 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarPopupWindow.java b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarPopupWindow.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarPopupWindow.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarPopupWindow.java
-@@ -894,10 +894,10 @@
+@@ -894,10 +894,10 @@ public class ActionBarPopupWindow extends PopupWindow {
                  childtranslations
          );
          if (app.nebulagram.ui.NebulaAppearance.liquidAnimations()) {
@@ -16,7 +16,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarPopu
          } else {
              windowAnimatorSet.setDuration(150 + 16 * visibleCount);
          }
-@@ -970,10 +970,10 @@
+@@ -970,10 +970,10 @@ public class ActionBarPopupWindow extends PopupWindow {
                      ObjectAnimator.ofFloat(content, "backScaleY", 0.0f, finalScaleY),
                      ObjectAnimator.ofInt(content, "backAlpha", 0, 255));
              if (app.nebulagram.ui.NebulaAppearance.liquidAnimations()) {
@@ -31,33 +31,10 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarPopu
          } else {
              windowAnimatorSet.setDuration(150 + 16 * visibleCount);
          }
-diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/drawable/color/impl/BlurredBackgroundProviderImpl.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/drawable/color/impl/BlurredBackgroundProviderImpl.java
---- a/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/drawable/color/impl/BlurredBackgroundProviderImpl.java
-+++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/drawable/color/impl/BlurredBackgroundProviderImpl.java
-@@ -95,7 +95,8 @@
-                     if (!LiteMode.isEnabled(LiteMode.FLAG_CHAT_BLUR)) {
-                         return Theme.getColor(Theme.key_actionBarDefaultSubmenuBackground);
-                     }
--                    return Theme.multAlpha(Theme.getColor(Theme.key_actionBarDefaultSubmenuBackground), isDark ? 0.85f : 0.825f);
-+                    return Theme.multAlpha(Theme.getColor(Theme.key_actionBarDefaultSubmenuBackground, r),
-+                        app.nebulagram.ui.NebulaAppearance.liquidAnimations() ? (isDark ? .68f : .76f) : (isDark ? .85f : .825f));
-                 })
-                 .setStrokeColorTop(0x44FFFFFF, 0)
-                 .setStrokeColorBottom(0x22FFFFFF, 0)
-@@ -108,7 +109,8 @@
-     public static BlurredBackgroundProvider scrimMenuBackground(Theme.ResourcesProvider resourcesProvider) {
-         return new BlurredBackgroundProviderBuilder(resourcesProvider)
-             .setBackgroundColor((r, isDark) ->
--                Theme.multAlpha(Theme.getColor(Theme.key_actionBarDefaultSubmenuBackground), isDark ? 0.85f : 0.825f))
-+                Theme.multAlpha(Theme.getColor(Theme.key_actionBarDefaultSubmenuBackground, r),
-+                        app.nebulagram.ui.NebulaAppearance.liquidAnimations() ? (isDark ? .68f : .76f) : (isDark ? .85f : .825f)))
-             .setStrokeColorTop(0x44FFFFFF, 0)
-             .setStrokeColorBottom(0x22FFFFFF, 0)
-             .setShadowColor(0x26000000, 0)
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAttachAlert.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAttachAlert.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAttachAlert.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAttachAlert.java
-@@ -5309,10 +5309,14 @@
+@@ -5309,10 +5309,14 @@ public class ChatAttachAlert extends BottomSheet implements NotificationCenter.N
      protected boolean onCustomOpenAnimation() {
          super.containerView.animate().cancel();
          super.containerView.setScaleX(1f);
@@ -77,7 +54,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAttachAl
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ItemOptions.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ItemOptions.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ItemOptions.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ItemOptions.java
-@@ -1259,6 +1259,8 @@
+@@ -1259,6 +1259,8 @@ public class ItemOptions {
              }
          }
  
@@ -86,7 +63,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ItemOptions.
          if ((blur || blurForMenu) && scrimBlur3SourceBitmap == null) {
              scrimBlur3SourceBitmap = new BlurredBackgroundSourceBitmap();
          }
-@@ -1487,7 +1489,10 @@
+@@ -1487,7 +1489,10 @@ public class ItemOptions {
  
          if (blurForMenu && scrimBlur3SourceBitmap != null) {
              setGapBackgroundColor(Theme.multAlpha(Theme.getColor(Theme.key_actionBarDefaultSubmenuItem, resourcesProvider), 0.06f));
@@ -98,10 +75,33 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ItemOptions.
                  .create(layout, true)
                  .setColorProvider(BlurredBackgroundProviderImpl.scrimMenuBackground(resourcesProvider))
                  .setPadding(dp(8))
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/drawable/color/impl/BlurredBackgroundProviderImpl.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/drawable/color/impl/BlurredBackgroundProviderImpl.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/drawable/color/impl/BlurredBackgroundProviderImpl.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/drawable/color/impl/BlurredBackgroundProviderImpl.java
+@@ -105,7 +105,8 @@ public class BlurredBackgroundProviderImpl {
+                     if (!LiteMode.isEnabled(LiteMode.FLAG_CHAT_BLUR)) {
+                         return Theme.getColor(Theme.key_actionBarDefaultSubmenuBackground);
+                     }
+-                    return Theme.multAlpha(Theme.getColor(Theme.key_actionBarDefaultSubmenuBackground), isDark ? 0.85f : 0.825f);
++                    return Theme.multAlpha(Theme.getColor(Theme.key_actionBarDefaultSubmenuBackground, r),
++                        app.nebulagram.ui.NebulaAppearance.liquidAnimations() ? (isDark ? .68f : .76f) : (isDark ? .85f : .825f));
+                 })
+                 .setStrokeColorTop(0x44FFFFFF, 0)
+                 .setStrokeColorBottom(0x22FFFFFF, 0)
+@@ -118,7 +119,8 @@ public class BlurredBackgroundProviderImpl {
+     public static BlurredBackgroundProvider scrimMenuBackground(Theme.ResourcesProvider resourcesProvider) {
+         return new BlurredBackgroundProviderBuilder(resourcesProvider)
+             .setBackgroundColor((r, isDark) ->
+-                Theme.multAlpha(Theme.getColor(Theme.key_actionBarDefaultSubmenuBackground), isDark ? 0.85f : 0.825f))
++                Theme.multAlpha(Theme.getColor(Theme.key_actionBarDefaultSubmenuBackground, r),
++                        app.nebulagram.ui.NebulaAppearance.liquidAnimations() ? (isDark ? .68f : .76f) : (isDark ? .85f : .825f)))
+             .setStrokeColorTop(0x44FFFFFF, 0)
+             .setStrokeColorBottom(0x22FFFFFF, 0)
+             .setShadowColor(0x26000000, 0)
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/MainTabsLayout.java b/TMessagesProj/src/main/java/org/telegram/ui/MainTabsLayout.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/MainTabsLayout.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/MainTabsLayout.java
-@@ -643,7 +643,9 @@
+@@ -643,7 +643,9 @@ public class MainTabsLayout extends AnimatedLinearLayout {
      @Override
      public boolean dispatchTouchEvent(MotionEvent ev) {
          int action = ev.getActionMasked();

@@ -1,7 +1,7 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
-@@ -1425,6 +1425,7 @@
+@@ -1425,6 +1425,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                              viewPages[0].setTranslationX(0);
                              viewPages[1].setTranslationX(animatingForward ? viewPages[0].getMeasuredWidth() : -viewPages[0].getMeasuredWidth());
                              filterTabsView.selectTabWithId(viewPages[1].selectedType, 0);
@@ -9,7 +9,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/
                          }
                      }
                      if (maybeStartTracking && !startedTracking) {
-@@ -1490,6 +1491,7 @@
+@@ -1490,6 +1491,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                          }
                          float dx;
                          if (backAnimation) {
@@ -17,7 +17,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/
                              dx = Math.abs(x);
                              if (animatingForward) {
                                  tabsAnimation.playTogether(
-@@ -6805,9 +6807,13 @@
+@@ -6805,9 +6807,13 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
      }
  
      private void updateNebulaFolderTitle() {
@@ -33,7 +33,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/
          }
      }
  
-@@ -6821,6 +6827,9 @@
+@@ -6821,6 +6827,9 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
              return;
          }
          MessagesController.DialogFilter filter = getMessagesController().getDialogFilters().get(viewPages[a].selectedType);

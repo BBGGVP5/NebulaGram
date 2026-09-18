@@ -17,6 +17,7 @@ import org.telegram.messenger.FileLog;
 import org.telegram.messenger.MessagesController;
 import org.telegram.messenger.NotificationCenter;
 import org.telegram.messenger.SharedConfig;
+import org.telegram.proxy.ProxySettings;
 import org.telegram.tgnet.ConnectionsManager;
 
 import java.io.File;
@@ -79,29 +80,27 @@ public final class NebulaLink {
      *
      * <p>По ссылке на статику судить нельзя: после перезапуска процесса она
      * пуста, а запись в списке и включённый прокси остаются с прошлого раза.
-     * Записанный порт тоже не опора — он пропадает ровно в том случае, ради
-     * которого проверка и заведена: снятие туннеля стирает его последним, и
-     * повторный проход уже не узнавал собственную запись.
-     *
-     * <p>Адрес обратной петли без логина и пароля считаем своим: чужой прокси
-     * живёт на другой машине, а локальный SOCKS без нашего ядра всё равно мёртв.
+     * Тогда «подключено» пропадало из интерфейса, а снять такой прокси было
+     * некому. Проверяем записанный порт: другой локальный прокси не наш — на
+     * той же петле может слушать чужое приложение, и трогать его мы не вправе.
      */
     public static boolean isTunnelProxy(SharedConfig.ProxyInfo proxy) {
-        return proxy != null && (proxy == installedProxy
-                || isTunnelEndpoint(proxy.address, proxy.username, proxy.password, proxy.secret));
+        return proxy != null && (proxy == installedProxy || isRecordedTunnelEndpoint(proxy.settings));
     }
 
-    /** Тот же признак для сырых значений из настроек Telegram. */
-    private static boolean isTunnelEndpoint(String address, String user, String password, String secret) {
-        return isLoopback(address) && isEmpty(user) && isEmpty(password) && isEmpty(secret);
+    private static boolean isRecordedTunnelEndpoint(ProxySettings settings) {
+        return settings != null && isRecordedTunnelEndpoint(settings.getAddress(), settings.getPort(),
+                settings.getUser(), settings.getPassword(), settings.getSecret());
     }
 
-    private static boolean isLoopback(String address) {
-        return PROXY_ADDRESS.equals(address) || "localhost".equals(address) || "::1".equals(address);
+    private static boolean isRecordedTunnelEndpoint(String address, int port, String user, String password, String secret) {
+        int recorded = ApplicationLoader.applicationContext.getSharedPreferences(PREFS, 0).getInt(KEY_PROXY_PORT, 0);
+        return matchesTunnelEndpoint(recorded, address, port, user, password, secret);
     }
 
-    private static boolean isEmpty(String value) {
-        return value == null || value.isEmpty();
+    private static boolean matchesTunnelEndpoint(int recorded, String address, int port, String user, String password, String secret) {
+        return recorded > 0 && port == recorded && PROXY_ADDRESS.equals(address)
+                && "".equals(user) && "".equals(password) && "".equals(secret);
     }
 
     public static boolean isRoutingThroughTunnel() {
@@ -255,7 +254,7 @@ public final class NebulaLink {
                 }
             }
             // Also handle a missing/stale proxy-list entry before forgetting the recorded port.
-            disableStaleProxy();
+            disableStaleProxy(port);
         }
         ApplicationLoader.applicationContext.getSharedPreferences(PREFS, 0)
                 .edit().remove(KEY_PROXY_PORT).apply();
@@ -314,11 +313,20 @@ public final class NebulaLink {
         // setProxySettings поднимает сессии заново. Событие «подключено»
         // приходит не только при первом подключении, и каждый раз это стоило
         // пользователю обрыва — отсюда и вечное «Соединение».
-        if (installedProxy != null && installedProxy.port == socksPort && isRoutingThroughTunnel()) {
+        if (installedProxy != null && installedProxy.settings.getPort() == socksPort && isRoutingThroughTunnel()) {
             return;
         }
-        SharedConfig.ProxyInfo proxy = SharedConfig.addProxy(
-                new SharedConfig.ProxyInfo(PROXY_ADDRESS, socksPort, "", "", ""));
+        // Локальный SOCKS5 без логина: тип указываем явно, потому что сборщик
+        // настроек по умолчанию его не угадывает.
+        ProxySettings settings = ProxySettings.builder()
+                .setType(ProxySettings.Type.SOCKS5)
+                .setAddress(PROXY_ADDRESS)
+                .setPort(socksPort)
+                .setUser("")
+                .setPassword("")
+                .setSecret("")
+                .build();
+        SharedConfig.ProxyInfo proxy = SharedConfig.addProxy(new SharedConfig.ProxyInfo(settings));
         if (installedProxy != null && installedProxy != proxy) {
             stopUsingTunnel();
         }
@@ -330,14 +338,13 @@ public final class NebulaLink {
         SharedPreferences preferences = MessagesController.getGlobalMainSettings();
         SharedPreferences.Editor editor = preferences.edit();
         editor.putBoolean("proxy_enabled", true);
-        editor.putString("proxy_ip", proxy.address);
-        editor.putInt("proxy_port", proxy.port);
-        editor.putString("proxy_user", proxy.username);
-        editor.putString("proxy_pass", proxy.password);
-        editor.putString("proxy_secret", proxy.secret);
+        // Раскладку по ключам знает сам класс настроек: у SOCKS5, MTProto и
+        // веб-прокси она разная, и переписывать её у себя значит расходиться
+        // с экраном прокси при следующем изменении апстрима.
+        proxy.settings.toSharedPreferences(editor);
         editor.commit();
 
-        ConnectionsManager.setProxySettings(true, proxy.address, proxy.port, proxy.username, proxy.password, proxy.secret);
+        ConnectionsManager.setProxySettings(true, proxy.settings);
         // Прокси снова существует — только теперь выбор «звонки через NebulaLink»
         // снова что-то значит для Telegram.
         setCallsThroughTunnel(callsThroughTunnel());
@@ -364,7 +371,8 @@ public final class NebulaLink {
                 SharedConfig.deleteProxy(proxy);
             }
         }
-        disableStaleProxy();
+        disableStaleProxy(ApplicationLoader.applicationContext
+                .getSharedPreferences(PREFS, 0).getInt(KEY_PROXY_PORT, 0));
         ApplicationLoader.applicationContext.getSharedPreferences(PREFS, 0)
                 .edit().remove(KEY_PROXY_PORT).apply();
         NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.proxySettingsChanged);
@@ -380,19 +388,23 @@ public final class NebulaLink {
      * включённым с адресом 127.0.0.1, и клиент бесконечно стучался в мёртвый
      * порт. Отсюда «не работает и без него».
      */
-    private static void disableStaleProxy() {
+    private static void disableStaleProxy(int recordedPort) {
         SharedPreferences settings = MessagesController.getGlobalMainSettings();
-        if (!isTunnelEndpoint(settings.getString("proxy_ip", ""), settings.getString("proxy_user", ""),
-                settings.getString("proxy_pass", ""), settings.getString("proxy_secret", ""))) {
+        if (!matchesTunnelEndpoint(recordedPort, settings.getString("proxy_ip", ""), settings.getInt("proxy_port", 0),
+                settings.getString("proxy_user", ""), settings.getString("proxy_pass", ""),
+                settings.getString("proxy_secret", ""))) {
             return;
         }
+        // Проверка «включён ли прокси» здесь была лишней и вредной: запись
+        // могла остаться выключенной наполовину — адрес наш, флаг снят, — и
+        // тогда прежний код уходил, не сняв ни ссылку, ни настройки ядра.
         if (SharedConfig.currentProxy != null && isTunnelProxy(SharedConfig.currentProxy)) {
             SharedConfig.currentProxy = null;
         }
         settings.edit().putBoolean("proxy_enabled", false).putBoolean("proxy_enabled_calls", false)
                 .putString("proxy_ip", "").putString("proxy_user", "").putString("proxy_pass", "")
                 .putString("proxy_secret", "").putInt("proxy_port", 1080).apply();
-        ConnectionsManager.setProxySettings(false, "", 0, "", "", "");
+        ConnectionsManager.setProxySettings(false, ProxySettings.EMPTY);
     }
 
     /**

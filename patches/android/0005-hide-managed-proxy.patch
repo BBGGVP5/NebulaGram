@@ -1,16 +1,16 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ProxyListActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ProxyListActivity.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ProxyListActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ProxyListActivity.java
-@@ -88,6 +88,7 @@
+@@ -89,6 +89,7 @@ public class ProxyListActivity extends BaseFragment implements NotificationCente
      private boolean useProxyForCalls;
-
+ 
      private int rowCount;
 +    private int nebulaManagedInfoRow = -1; // NebulaGram
      @Keep
      private int useProxyRow;
      private int useProxyShadowRow;
-@@ -627,6 +628,24 @@
-
+@@ -621,6 +622,24 @@ public class ProxyListActivity extends BaseFragment implements NotificationCente
+ 
      private void updateRows(boolean notify) {
          rowCount = 0;
 +        boolean wasNebulaManaged = nebulaManagedInfoRow >= 0;
@@ -32,10 +32,10 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ProxyListActivity.java 
 +            useProxyForCalls = MessagesController.getGlobalMainSettings().getBoolean("proxy_enabled_calls", false);
 +        }
          useProxyRow = rowCount++;
-         if (useProxySettings && SharedConfig.currentProxy != null && SharedConfig.proxyList.size() > 1 && IS_PROXY_ROTATION_AVAILABLE) {
+         if (useProxySettings && SharedConfig.currentProxy != null && SharedConfig.currentProxy.settings.getType() != ProxySettings.Type.WEB && SharedConfig.proxyList.size() > 1 && IS_PROXY_ROTATION_AVAILABLE) {
              rotationRow = rowCount++;
-@@ -651,7 +670,11 @@
-
+@@ -645,7 +664,11 @@ public class ProxyListActivity extends BaseFragment implements NotificationCente
+ 
          if (notify) {
              proxyList.clear();
 -            proxyList.addAll(SharedConfig.proxyList);
@@ -44,10 +44,10 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ProxyListActivity.java 
 +                    proxyList.add(proxy);
 +                }
 +            }
-
+ 
              boolean checking = false;
              if (!wasCheckedAllList) {
-@@ -917,7 +940,9 @@
+@@ -911,7 +934,9 @@ public class ProxyListActivity extends BaseFragment implements NotificationCente
                  }
                  case VIEW_TYPE_INFO: {
                      TextInfoPrivacyCell cell = (TextInfoPrivacyCell) holder.itemView;
@@ -58,8 +58,8 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ProxyListActivity.java 
                          cell.setText(getString(R.string.UseProxyForCallsInfo));
                      } else if (position == rotationTimeoutInfoRow) {
                          cell.setText(getString(R.string.ProxyRotationTimeoutInfo));
-@@ -1067,6 +1092,9 @@
-
+@@ -1061,6 +1086,9 @@ public class ProxyListActivity extends BaseFragment implements NotificationCente
+ 
          @Override
          public int getItemViewType(int position) {
 +            if (position == nebulaManagedInfoRow) {

@@ -146,7 +146,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/ImageLoader.java
 diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/MediaController.java b/TMessagesProj/src/main/java/org/telegram/messenger/MediaController.java
 --- a/TMessagesProj/src/main/java/org/telegram/messenger/MediaController.java
 +++ b/TMessagesProj/src/main/java/org/telegram/messenger/MediaController.java
-@@ -5259,7 +5259,7 @@ public class MediaController implements AudioManager.OnAudioFocusChangeListener,
+@@ -5263,7 +5263,7 @@ public class MediaController implements AudioManager.OnAudioFocusChangeListener,
              if (Build.VERSION.SDK_INT >= 29) {
                  final ContentValues cv = new ContentValues();
                  final Uri uriToInsert = MediaStore.Downloads.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY);
@@ -155,7 +155,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/MediaController.
                  cv.put(MediaStore.MediaColumns.RELATIVE_PATH, dirDest + File.separator);
                  cv.put(MediaStore.Downloads.DISPLAY_NAME, filename);
                  cv.put(MediaStore.MediaColumns.MIME_TYPE, outputMime);
-@@ -5281,7 +5281,7 @@ public class MediaController implements AudioManager.OnAudioFocusChangeListener,
+@@ -5285,7 +5285,7 @@ public class MediaController implements AudioManager.OnAudioFocusChangeListener,
                      }
                  }
              } else {
@@ -164,7 +164,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/MediaController.
                  destDir.mkdirs();
                  File destFile = new File(destDir, filename);
                  if (!destFile.exists()) {
-@@ -5501,11 +5501,11 @@ public class MediaController implements AudioManager.OnAudioFocusChangeListener,
+@@ -5505,11 +5505,11 @@ public class MediaController implements AudioManager.OnAudioFocusChangeListener,
                      } else {
                          File destFile;
                          if (type == 0) {
@@ -178,7 +178,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/MediaController.
                              destFile.mkdirs();
                              destFile = new File(destFile, AndroidUtilities.generateFileName(1, FileLoader.getFileExtension(sourceFile)));
                          } else {
-@@ -5515,7 +5515,7 @@ public class MediaController implements AudioManager.OnAudioFocusChangeListener,
+@@ -5519,7 +5519,7 @@ public class MediaController implements AudioManager.OnAudioFocusChangeListener,
                              } else {
                                  dir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MUSIC);
                              }
@@ -187,7 +187,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/MediaController.
                              dir.mkdirs();
                              destFile = new File(dir, name);
                              if (destFile.exists()) {
-@@ -5813,7 +5813,7 @@ public class MediaController implements AudioManager.OnAudioFocusChangeListener,
+@@ -5817,7 +5817,7 @@ public class MediaController implements AudioManager.OnAudioFocusChangeListener,
                      filename = AndroidUtilities.generateFileName(0, extension);
                  }
                  uriToInsert = MediaStore.Images.Media.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY);
@@ -196,7 +196,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/MediaController.
                  contentValues.put(MediaStore.MediaColumns.RELATIVE_PATH, dirDest + File.separator);
                  contentValues.put(MediaStore.Images.Media.DISPLAY_NAME, filename);
                  contentValues.put(MediaStore.Images.Media.MIME_TYPE, mimeType);
-@@ -5821,7 +5821,7 @@ public class MediaController implements AudioManager.OnAudioFocusChangeListener,
+@@ -5825,7 +5825,7 @@ public class MediaController implements AudioManager.OnAudioFocusChangeListener,
                  if (filename == null) {
                      filename = AndroidUtilities.generateFileName(1, extension);
                  }
@@ -205,7 +205,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/MediaController.
                  contentValues.put(MediaStore.MediaColumns.RELATIVE_PATH, dirDest + File.separator);
                  uriToInsert = MediaStore.Video.Media.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY);
                  contentValues.put(MediaStore.Video.Media.DISPLAY_NAME, filename);
-@@ -5829,7 +5829,7 @@ public class MediaController implements AudioManager.OnAudioFocusChangeListener,
+@@ -5833,7 +5833,7 @@ public class MediaController implements AudioManager.OnAudioFocusChangeListener,
                  if (filename == null) {
                      filename = sourceFile.getName();
                  }
@@ -214,7 +214,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/MediaController.
                  contentValues.put(MediaStore.MediaColumns.RELATIVE_PATH, dirDest + File.separator);
                  uriToInsert = MediaStore.Downloads.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY);
                  contentValues.put(MediaStore.Downloads.DISPLAY_NAME, filename);
-@@ -5837,7 +5837,7 @@ public class MediaController implements AudioManager.OnAudioFocusChangeListener,
+@@ -5841,7 +5841,7 @@ public class MediaController implements AudioManager.OnAudioFocusChangeListener,
                  if (filename == null) {
                      filename = sourceFile.getName();
                  }
@@ -226,7 +226,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/MediaController.
 diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/SharedConfig.java b/TMessagesProj/src/main/java/org/telegram/messenger/SharedConfig.java
 --- a/TMessagesProj/src/main/java/org/telegram/messenger/SharedConfig.java
 +++ b/TMessagesProj/src/main/java/org/telegram/messenger/SharedConfig.java
-@@ -1553,10 +1553,10 @@ public class SharedConfig {
+@@ -1536,10 +1536,10 @@ public class SharedConfig {
      public static void checkSaveToGalleryFiles() {
          Utilities.globalQueue.postRunnable(() -> {
              try {

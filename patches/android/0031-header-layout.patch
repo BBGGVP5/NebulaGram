@@ -1,7 +1,7 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
-@@ -238,8 +238,11 @@
+@@ -238,8 +238,11 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
              // The title capsule is centred in the full bar.  Symmetric small
              // margins keep the original avatar at the trailing edge instead
              // of placing it inside the title capsule.
@@ -18,7 +18,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.jav
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarContainer.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarContainer.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarContainer.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarContainer.java
-@@ -789,7 +789,11 @@
+@@ -789,7 +789,11 @@ public class ChatAvatarContainer extends FrameLayout implements FactorAnimator.T
  
      /** The compact glass capsule contains text only; the avatar has its own circle. */
      public int getNebulaCenteredHeaderWidth() {
@@ -31,7 +31,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarCo
          View subtitle = getSubtitleTextView();
          int status = subtitle != null && subtitle.getVisibility() == VISIBLE ? subtitle.getMeasuredWidth() : 0;
          // Капсула должна облегать содержимое, а не тянуться во всю ширину.
-@@ -818,25 +822,43 @@
+@@ -818,25 +822,43 @@ public class ChatAvatarContainer extends FrameLayout implements FactorAnimator.T
          final int subtitleTop = viewTop + dp(glassMode ? 23.66f : 24);
  
          if (nebulaCenteredTitle) {

@@ -1,7 +1,7 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
-@@ -445,6 +445,7 @@
+@@ -445,6 +445,7 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
  
      @Override
      protected boolean drawChild(Canvas canvas, View child, long drawingTime) {
@@ -9,7 +9,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.jav
          if (parentFragment != null && parentFragment.getParentLayout() != null && parentFragment.getParentLayout().isActionBarInCrossfade()) {
              return false;
          }
-@@ -1151,7 +1152,7 @@
+@@ -1151,7 +1152,7 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
              }
          }
          if (menu != null) {
@@ -18,7 +18,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.jav
          }
          if (backButtonImageView != null) {
              Drawable drawable = backButtonImageView.getDrawable();
-@@ -1439,6 +1440,9 @@
+@@ -1439,6 +1440,9 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
  
      @Override
      protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
@@ -31,7 +31,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.jav
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/SimpleTextView.java b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/SimpleTextView.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/SimpleTextView.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/SimpleTextView.java
-@@ -1119,6 +1119,7 @@
+@@ -1119,6 +1119,7 @@ public class SimpleTextView extends View implements Drawable.Callback {
          }
          if (rightDrawable != null && rightDrawableOutside) {
              int x = Math.min(textOffsetX + textWidth + drawablePadding + (scrollingOffset == 0 ? -nextScrollX : (int) -scrollingOffset) + nextScrollX, getMaxTextWidth() - paddingRight + drawablePadding);
@@ -39,7 +39,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/SimpleTextVie
              int dw = (int) (rightDrawable.getIntrinsicWidth() * rightDrawableScale);
              int dh = (int) (rightDrawable.getIntrinsicHeight() * rightDrawableScale);
              int y;
-@@ -1140,6 +1141,7 @@
+@@ -1140,6 +1141,7 @@ public class SimpleTextView extends View implements Drawable.Callback {
              if (rightDrawable != null) {
                  x += (int) (rightDrawable.getIntrinsicWidth() * rightDrawableScale) + drawablePadding;
              }
@@ -50,7 +50,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/SimpleTextVie
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
-@@ -43462,6 +43462,12 @@
+@@ -43455,6 +43455,12 @@ public class ChatActivity extends BaseFragment implements
  
          @Override
          public int getColor(int key) {
@@ -63,7 +63,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
              if (animatingColors != null) {
                  int index = animatingColors.indexOfKey(key);
                  if (index >= 0) {
-@@ -43492,6 +43498,13 @@
+@@ -43485,6 +43491,13 @@ public class ChatActivity extends BaseFragment implements
          }
  
          public int getCurrentColor(int key, boolean ignoreAnimation) {
@@ -80,7 +80,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarContainer.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarContainer.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarContainer.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarContainer.java
-@@ -691,7 +691,7 @@
+@@ -691,7 +691,7 @@ public class ChatAvatarContainer extends FrameLayout implements FactorAnimator.T
              nebulaHeaderWidth = measureNebulaHeaderWidth(width + dp(12));
              final int textWidth = Math.max(0, nebulaHeaderWidth - dp(40));
              final int textWidthSpec = MeasureSpec.makeMeasureSpec(textWidth, MeasureSpec.EXACTLY);
@@ -89,7 +89,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarCo
              // SimpleTextView caches its center offset during measure, not layout.
              // Rebuild at the actual shared text width before positioning either line.
              titleTextView.measure(textWidthSpec, MeasureSpec.makeMeasureSpec(dp(32), MeasureSpec.AT_MOST));
-@@ -802,16 +802,16 @@
+@@ -802,16 +802,16 @@ public class ChatAvatarContainer extends FrameLayout implements FactorAnimator.T
              nebulaAvatarOriginalVisibility = -1;
          }
          nebulaAvatarHiddenForSavedMessages = hideAvatar;
@@ -112,7 +112,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarCo
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
-@@ -1542,11 +1542,13 @@
+@@ -1542,11 +1542,13 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                                      viewPages[0] = viewPages[1];
                                      viewPages[1] = tempPage;
                                      filterTabsView.selectTabWithId(viewPages[0].selectedType, 1.0f);
@@ -126,7 +126,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/
                                  showScrollbars(true);
                                  tabsAnimationInProgress = false;
                                  maybeStartTracking = false;
-@@ -3659,6 +3661,7 @@
+@@ -3659,6 +3661,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                          viewPages[0] = viewPages[1];
                          viewPages[1] = tempPage;
                          viewPages[1].setVisibility(View.GONE);
@@ -134,7 +134,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/
                          showScrollbars(true);
                          updateCounters(false);
                          filterTabsView.stopAnimatingIndicator();
-@@ -6801,7 +6804,15 @@
+@@ -6801,7 +6804,15 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
          }
      }
  
@@ -153,7 +153,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
-@@ -5241,7 +5241,7 @@
+@@ -5241,7 +5241,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
              @Override
              protected void dispatchDraw(Canvas canvas) {
                  if (!isInLandscapeMode) {
@@ -165,7 +165,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java b/
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Stories/DialogStoriesCell.java b/TMessagesProj/src/main/java/org/telegram/ui/Stories/DialogStoriesCell.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Stories/DialogStoriesCell.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Stories/DialogStoriesCell.java
-@@ -158,7 +158,7 @@
+@@ -158,7 +158,7 @@ public class DialogStoriesCell extends FrameLayout implements NotificationCenter
      LinearLayoutManager layoutManager;
      AnimatedTextView titleView;
      ActionBarAnimatedSubtitleOverlayContainer subtitleOverlayContainer;
@@ -174,7 +174,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Stories/DialogStoriesCe
      ImageView emojiStatusView;
      AnimatedEmojiDrawable.SwapAnimatedEmojiDrawable statusDrawable;
      boolean drawCircleForce;
-@@ -332,16 +332,12 @@
+@@ -332,16 +332,12 @@ public class DialogStoriesCell extends FrameLayout implements NotificationCenter
          titleView.setFocusableInTouchMode(true);
          addView(titleView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT));
  
@@ -195,7 +195,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Stories/DialogStoriesCe
  
          statusDrawable = new AnimatedEmojiDrawable.SwapAnimatedEmojiDrawable(null, dp(26));
          statusDrawable.center = true;
-@@ -640,7 +636,7 @@
+@@ -640,7 +636,7 @@ public class DialogStoriesCell extends FrameLayout implements NotificationCenter
              titleView.setText(currentTitle, animated && !LocaleController.isRTL);
          }
  
@@ -204,7 +204,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Stories/DialogStoriesCe
  
          miniItems.clear();
          for (int i = 0; i < items.size(); i++) {
-@@ -944,7 +940,7 @@
+@@ -944,7 +940,7 @@ public class DialogStoriesCell extends FrameLayout implements NotificationCenter
              titleView.getDrawable().setRightPadding(lastViewRight - dp(12) + actionBar.menu.getVisibleItemsMeasuredWidthWithAlpha() * progress);
  
              telegramLogoView.setTranslationX(titleView.getTranslationX() + dp(1));
@@ -213,7 +213,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Stories/DialogStoriesCe
  
              emojiStatusView.setTranslationX(titleView.getTranslationX() - dpf2(3.33f) + telegramLogoView.getMeasuredWidth());
              emojiStatusView.setTranslationY(bottomY + dp(14 - 11 + FAKE_TOP_PADDING + 4.333f) + translationOffset);
-@@ -1158,7 +1154,7 @@
+@@ -1158,7 +1154,7 @@ public class DialogStoriesCell extends FrameLayout implements NotificationCenter
          if (subtitleOverlayContainer != null) {
              subtitleOverlayContainer.updateColors();
          }
@@ -222,7 +222,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Stories/DialogStoriesCe
          AndroidUtilities.forEachViews(recyclerListView, view -> {
              StoryCell cell = (StoryCell) view;
              cell.invalidate();
-@@ -1358,6 +1354,7 @@
+@@ -1358,6 +1354,7 @@ public class DialogStoriesCell extends FrameLayout implements NotificationCenter
  
      public void setActionBar(ActionBar actionBar) {
          this.actionBar = actionBar;

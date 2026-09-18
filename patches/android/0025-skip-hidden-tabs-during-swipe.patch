@@ -35,44 +35,19 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ViewPagerFix
          updateViewForIndex(1);
          if (viewPages[1] != null) {
              if (forward) {
-diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ViewPagerActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ViewPagerActivity.java
---- a/TMessagesProj/src/main/java/org/telegram/ui/ViewPagerActivity.java
-+++ b/TMessagesProj/src/main/java/org/telegram/ui/ViewPagerActivity.java
-@@ -137,6 +137,10 @@ public abstract class ViewPagerActivity extends BaseFragment {
-         return true;
-     }
- 
-+    protected int resolveViewPagerSwipeTarget(int currentPosition, boolean forward) {
-+        return currentPosition + (forward ? 1 : -1);
-+    }
-+
-     @Override
-     public ActionBar createActionBar(Context context) {
-         return null;
-@@ -481,6 +485,11 @@ public abstract class ViewPagerActivity extends BaseFragment {
-             return ViewPagerActivity.this.canScrollForward(e);
-         }
- 
-+        @Override
-+        protected int resolveSwipeTarget(boolean forward) {
-+            return ViewPagerActivity.this.resolveViewPagerSwipeTarget(currentPosition, forward);
-+        }
-+
-         @Override
-         protected long getManualScrollDuration() {
-             return 320L;
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/MainTabsActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/MainTabsActivity.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/MainTabsActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/MainTabsActivity.java
-@@ -763,14 +763,28 @@ public class MainTabsActivity extends ViewPagerActivity implements NotificationC
+@@ -762,15 +762,29 @@ public class MainTabsActivity extends ViewPagerActivity implements NotificationC
+ 
      }
  
-     @Override
++    @Override
 +    protected int resolveViewPagerSwipeTarget(int currentPosition, boolean forward) {
 +        return app.nebulagram.ui.NebulaBottomBar.nextEnabledPosition(currentPosition, forward);
 +    }
 +
-+    @Override
+     @Override
      protected void onViewPagerTabAnimationUpdate(boolean manual) {
          final boolean isDragByGesture = !manual;
  
@@ -96,3 +71,29 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/MainTabsActivity.java b
              }
          }
  
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ViewPagerActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ViewPagerActivity.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/ViewPagerActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/ViewPagerActivity.java
+@@ -138,6 +138,10 @@ public abstract class ViewPagerActivity extends BaseFragment {
+         return true;
+     }
+ 
++    protected int resolveViewPagerSwipeTarget(int currentPosition, boolean forward) {
++        return currentPosition + (forward ? 1 : -1);
++    }
++
+     @Override
+     public ActionBar createActionBar(Context context) {
+         return null;
+@@ -481,6 +485,11 @@ public abstract class ViewPagerActivity extends BaseFragment {
+             return ViewPagerActivity.this.canScrollForward(e);
+         }
+ 
++        @Override
++        protected int resolveSwipeTarget(boolean forward) {
++            return ViewPagerActivity.this.resolveViewPagerSwipeTarget(currentPosition, forward);
++        }
++
+         @Override
+         protected long getManualScrollDuration() {
+             return 320L;

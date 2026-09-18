@@ -1,7 +1,7 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/LoginActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/LoginActivity.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/LoginActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/LoginActivity.java
-@@ -694,7 +694,8 @@
+@@ -694,7 +694,8 @@ public class LoginActivity extends BaseFragment implements NotificationCenter.No
  
          if (activityMode == MODE_LOGIN && app.nebulagram.ui.NebulaLoginStyle.enabled()) {
              PhoneView phone = (PhoneView) views[VIEW_PHONE_INPUT];
@@ -11,7 +11,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/LoginActivity.java b/TM
              for (int index : new int[] { VIEW_CODE_MESSAGE, VIEW_CODE_SMS, VIEW_CODE_CALL, VIEW_CODE_FRAGMENT_SMS }) {
                  LoginActivitySmsView code = (LoginActivitySmsView) views[index];
                  app.nebulagram.ui.NebulaLoginStyle.code(code, code.titleTextView, code.confirmTextView,
-@@ -864,6 +865,12 @@
+@@ -864,6 +865,12 @@ public class LoginActivity extends BaseFragment implements NotificationCenter.No
      }
  
      private boolean isCustomKeyboardVisible() {
@@ -24,17 +24,17 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/LoginActivity.java b/TM
          return views[currentViewNum].hasCustomKeyboard() && !isCustomKeyboardForceDisabled();
      }
  
-@@ -873,6 +880,13 @@
- 
-         if (isCustomKeyboardForceDisabled()) {
+@@ -875,6 +882,13 @@ public class LoginActivity extends BaseFragment implements NotificationCenter.No
              visible = false;
-+        }
-+
+         }
+ 
 +        // Своё оформление узнаёт о решении сразу, а не когда клавиатура
 +        // домчит вниз: иначе разметка пересчитывалась одним кадром в самом
 +        // конце и кнопка «Продолжить» прыгала на всю её высоту.
 +        if (nebulaLoginStyle != null) {
 +            nebulaLoginStyle.setKeyboardVisible(visible);
-         }
- 
++        }
++
          if (visible) {
+             AndroidUtilities.hideKeyboard(fragmentView);
+             AndroidUtilities.requestAltFocusable(getParentActivity(), classGuid);

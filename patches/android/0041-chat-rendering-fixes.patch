@@ -1,7 +1,7 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
-@@ -8091,6 +8091,8 @@
+@@ -8090,6 +8090,8 @@ public class ChatActivity extends BaseFragment implements
  
          chatInputBubbleContainer.addView(chatActivityEnterView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.LEFT | Gravity.BOTTOM, 7, 0, 7, 0));
          chatInputViewsContainer.nebulaComposerStyle = chatActivityEnterView.nebulaComposerStyle;
@@ -13,7 +13,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
-@@ -4605,7 +4605,7 @@
+@@ -4604,7 +4604,7 @@ public class ChatActivityEnterView extends FrameLayout implements
          }
          if (botCommandsMenuButton != null) {
              boolean wasExpanded = botCommandsMenuButton.expanded;
@@ -22,7 +22,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivity
              if (wasExpanded != botCommandsMenuButton.expanded) {
                  beginDelayedTransition();
              }
-@@ -14419,6 +14419,22 @@
+@@ -14418,6 +14418,22 @@ public class ChatActivityEnterView extends FrameLayout implements
      @Override
      protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
          nebulaComposerStyle.restoreInsets();
@@ -45,7 +45,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivity
          int wasHeight = textFieldContainer.getMeasuredHeight();
          if (botCommandsMenuButton != null && botCommandsMenuButton.getTag() != null) {
              botCommandsMenuButton.measure(widthMeasureSpec, heightMeasureSpec);
-@@ -14458,11 +14474,7 @@
+@@ -14457,11 +14473,7 @@ public class ChatActivityEnterView extends FrameLayout implements
              }
          }
          updateBotCommandsMenuContainerTopPadding();
@@ -61,7 +61,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivity
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAttachAlertPhotoLayout.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAttachAlertPhotoLayout.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAttachAlertPhotoLayout.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAttachAlertPhotoLayout.java
-@@ -132,6 +132,11 @@
+@@ -132,6 +132,11 @@ public class ChatAttachAlertPhotoLayout extends ChatAttachAlert.AttachAlertLayou
      private static final int VIEW_TYPE_AVATAR_CONSTRUCTOR = 4;
      private static final int SHOW_FAST_SCROLL_MIN_COUNT = 30;
      private final boolean needCamera;
@@ -73,7 +73,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAttachAl
  
      private RecyclerListView cameraPhotoRecyclerView;
      private LinearLayoutManager cameraPhotoLayoutManager;
-@@ -658,7 +663,7 @@
+@@ -658,7 +663,7 @@ public class ChatAttachAlertPhotoLayout extends ChatAttachAlert.AttachAlertLayou
                  if (adapter.hasCameraSpaceRow && position > itemsPerRow) {
                      position--;
                  }
@@ -82,7 +82,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAttachAl
                      position--;
                  }
                  MediaController.PhotoEntry photoEntry = getPhotoEntryAtPosition(position);
-@@ -680,7 +685,7 @@
+@@ -680,7 +685,7 @@ public class ChatAttachAlertPhotoLayout extends ChatAttachAlert.AttachAlertLayou
                  if (adapter.hasCameraSpaceRow && position > itemsPerRow) {
                      position--;
                  }
@@ -91,7 +91,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAttachAl
                      position--;
                  }
                  MediaController.PhotoEntry photoEntry = getPhotoEntryAtPosition(position);
-@@ -918,7 +923,7 @@
+@@ -918,7 +923,7 @@ public class ChatAttachAlertPhotoLayout extends ChatAttachAlert.AttachAlertLayou
                  return;
              }
              if (Build.VERSION.SDK_INT >= 23) {
@@ -100,7 +100,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAttachAl
                      try {
                          fragment.getParentActivity().requestPermissions(new String[]{Manifest.permission.CAMERA}, 18);
                      } catch (Exception ignore) {
-@@ -943,11 +948,11 @@
+@@ -943,11 +948,11 @@ public class ChatAttachAlertPhotoLayout extends ChatAttachAlert.AttachAlertLayou
                  return;
              }
  
@@ -114,7 +114,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAttachAl
                      position--;
                  }
                  if (showAvatarConstructor) {
-@@ -2400,14 +2405,17 @@
+@@ -2400,14 +2405,17 @@ public class ChatAttachAlertPhotoLayout extends ChatAttachAlert.AttachAlertLayou
          if (parentAlert.destroyed || !needCamera) {
              return;
          }
@@ -138,7 +138,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAttachAl
              return;
          }
          boolean old = deviceHasGoodCamera;
-@@ -2445,7 +2453,7 @@
+@@ -2445,7 +2453,7 @@ public class ChatAttachAlertPhotoLayout extends ChatAttachAlert.AttachAlertLayou
                  deviceHasGoodCamera = CameraController.getInstance().isCameraInitied();
              }
          }
@@ -147,7 +147,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAttachAl
              adapter.notifyDataSetChanged();
          }
          if (!parentAlert.destroyed && parentAlert.isShowing() && deviceHasGoodCamera && parentAlert.getBackDrawable().getAlpha() != 0 && !cameraOpened) {
-@@ -2581,7 +2589,7 @@
+@@ -2581,7 +2589,7 @@ public class ChatAttachAlertPhotoLayout extends ChatAttachAlert.AttachAlertLayou
      }
  
      public void showCamera() {
@@ -156,7 +156,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAttachAl
              return;
          }
          if (cameraView == null) {
-@@ -3037,7 +3045,7 @@
+@@ -3037,7 +3045,7 @@ public class ChatAttachAlertPhotoLayout extends ChatAttachAlert.AttachAlertLayou
          if (holder != null) {
              holder.itemView.invalidateOutline();
          }
@@ -165,7 +165,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAttachAl
              holder = gridView.findViewHolderForAdapterPosition(0);
              if (holder != null) {
                  holder.itemView.invalidateOutline();
-@@ -3178,7 +3186,7 @@
+@@ -3178,7 +3186,7 @@ public class ChatAttachAlertPhotoLayout extends ChatAttachAlert.AttachAlertLayou
                      if (adapter.hasCameraSpaceRow && position > itemsPerRow) {
                          position--;
                      }
@@ -174,7 +174,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAttachAl
                          position--;
                      }
  
-@@ -3188,7 +3196,7 @@
+@@ -3188,7 +3196,7 @@ public class ChatAttachAlertPhotoLayout extends ChatAttachAlert.AttachAlertLayou
                      }
                      MediaController.PhotoEntry photoEntry = getPhotoEntryAtPosition(position);
                      if (photoEntry != null) {
@@ -183,7 +183,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAttachAl
                          if (parentAlert.baseFragment instanceof ChatActivity && parentAlert.allowOrder) {
                              cell.setChecked(selectedPhotosOrder.indexOf(photoEntry.imageId), selectedPhotos.containsKey(photoEntry.imageId), false);
                          } else {
-@@ -3923,7 +3931,7 @@
+@@ -3923,7 +3931,7 @@ public class ChatAttachAlertPhotoLayout extends ChatAttachAlert.AttachAlertLayou
      }
  
      private void onPhotoEditModeChanged(boolean isEditMode) {
@@ -192,7 +192,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAttachAl
  //            if (isEditMode) {
  //                if (cameraView != null) {
  //                    isCameraFrontfaceBeforeEnteringEditMode = cameraView.isFrontface();
-@@ -3941,7 +3949,7 @@
+@@ -3941,7 +3949,7 @@ public class ChatAttachAlertPhotoLayout extends ChatAttachAlert.AttachAlertLayou
      }
  
      public void pauseCamera(boolean pause) {
@@ -201,7 +201,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAttachAl
              if (pause) {
                  if (cameraView != null) {
                      isCameraFrontfaceBeforeEnteringEditMode = cameraView.isFrontface();
-@@ -4285,6 +4293,10 @@
+@@ -4285,6 +4293,10 @@ public class ChatAttachAlertPhotoLayout extends ChatAttachAlert.AttachAlertLayou
  
          private final Context mContext;
          private final boolean needCamera;
@@ -212,7 +212,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAttachAl
          private boolean hasCamera;
          private boolean hasCameraSpaceRow;
          private final ArrayList<RecyclerListView.Holder> viewsCache = new ArrayList<>(8);
-@@ -4337,7 +4349,7 @@
+@@ -4337,7 +4349,7 @@ public class ChatAttachAlertPhotoLayout extends ChatAttachAlert.AttachAlertLayou
                              return;
                          }
                          int position = (Integer) photoCell.getTag();
@@ -221,7 +221,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAttachAl
                              position++;
                          }
                          if (showAvatarConstructor) {
-@@ -4395,7 +4407,7 @@
+@@ -4395,7 +4407,7 @@ public class ChatAttachAlertPhotoLayout extends ChatAttachAlert.AttachAlertLayou
                  addToSelectedPhotos(photoEntry, index);
                  int updateIndex = index;
                  if (PhotoAttachAdapter.this == cameraAttachAdapter) {
@@ -230,7 +230,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAttachAl
                          updateIndex++;
                      }
                      if (adapter.hasCameraSpaceRow && updateIndex >= itemsPerRow) {
-@@ -4417,7 +4429,7 @@
+@@ -4417,7 +4429,7 @@ public class ChatAttachAlertPhotoLayout extends ChatAttachAlert.AttachAlertLayou
              if (hasCameraSpaceRow && position > itemsPerRow) {
                  position--;
              }
@@ -239,7 +239,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAttachAl
                  position--;
              }
              return getPhotoEntryAtPosition(position);
-@@ -4430,7 +4442,7 @@
+@@ -4430,7 +4442,7 @@ public class ChatAttachAlertPhotoLayout extends ChatAttachAlert.AttachAlertLayou
                      if (hasCameraSpaceRow && position > itemsPerRow) {
                          position--;
                      }
@@ -248,7 +248,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAttachAl
                          position--;
                      }
                      if (showAvatarConstructor) {
-@@ -4452,7 +4464,7 @@
+@@ -4452,7 +4464,7 @@ public class ChatAttachAlertPhotoLayout extends ChatAttachAlert.AttachAlertLayou
                      if (photoEntry == null) {
                          return;
                      }
@@ -257,7 +257,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAttachAl
                      if (parentAlert.baseFragment instanceof ChatActivity && parentAlert.allowOrder) {
                          cell.setChecked(selectedPhotosOrder.indexOf(photoEntry.imageId), selectedPhotos.containsKey(photoEntry.imageId), false);
                      } else {
-@@ -4477,7 +4489,7 @@
+@@ -4477,7 +4489,7 @@ public class ChatAttachAlertPhotoLayout extends ChatAttachAlert.AttachAlertLayou
                  case VIEW_TYPE_CELL_PERMISSION: {
                      PhotoAttachPermissionCell cell = (PhotoAttachPermissionCell) holder.itemView;
                      cell.setItemSize(itemSize);
@@ -266,7 +266,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAttachAl
                      break;
                  }
                  case VIEW_TYPE_EMPTY: {
-@@ -4584,7 +4596,7 @@
+@@ -4584,7 +4596,7 @@ public class ChatAttachAlertPhotoLayout extends ChatAttachAlert.AttachAlertLayou
              }
  
              int count = 0;
@@ -275,7 +275,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAttachAl
                  hasCamera = true;
                  count++;
              }
-@@ -4625,7 +4637,7 @@
+@@ -4625,7 +4637,7 @@ public class ChatAttachAlertPhotoLayout extends ChatAttachAlert.AttachAlertLayou
              }
  
              int localPosition = position;
@@ -284,7 +284,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAttachAl
                  if (noCameraPermissions) {
                      return VIEW_TYPE_CAMERA_PERMISSION_BUTTON;
                  } else {
-@@ -4638,7 +4650,7 @@
+@@ -4638,7 +4650,7 @@ public class ChatAttachAlertPhotoLayout extends ChatAttachAlert.AttachAlertLayou
              if (hasCameraSpaceRow && position > itemsPerRow) {
                  localPosition--;
              }
@@ -293,7 +293,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAttachAl
                  localPosition--;
              }
              if (showAvatarConstructor && localPosition == 0) {
-@@ -4751,7 +4763,7 @@
+@@ -4751,7 +4763,7 @@ public class ChatAttachAlertPhotoLayout extends ChatAttachAlert.AttachAlertLayou
          }
  
          private void draw(@Nullable Canvas c, @NonNull RecyclerView parent, @Nullable IBlur3Hash builder, @Nullable RectF position) {
@@ -305,7 +305,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAttachAl
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarContainer.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarContainer.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarContainer.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarContainer.java
-@@ -687,6 +687,16 @@
+@@ -687,6 +687,16 @@ public class ChatAvatarContainer extends FrameLayout implements FactorAnimator.T
          } else if (animatedSubtitleTextView != null) {
              animatedSubtitleTextView.measure(MeasureSpec.makeMeasureSpec(availableWidth, MeasureSpec.EXACTLY), MeasureSpec.makeMeasureSpec(dp(20), MeasureSpec.AT_MOST));
          }
@@ -322,7 +322,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarCo
          if (communityItem != null) {
              communityItem.measure(MeasureSpec.makeMeasureSpec(dp(14), MeasureSpec.EXACTLY), MeasureSpec.makeMeasureSpec(dp(14), MeasureSpec.EXACTLY));
          }
-@@ -700,7 +710,7 @@
+@@ -700,7 +710,7 @@ public class ChatAvatarContainer extends FrameLayout implements FactorAnimator.T
              starFgItem.measure(MeasureSpec.makeMeasureSpec(dp(20), MeasureSpec.EXACTLY), MeasureSpec.makeMeasureSpec(dp(20), MeasureSpec.EXACTLY));
          }
          setMeasuredDimension(width, MeasureSpec.getSize(heightMeasureSpec));
@@ -331,7 +331,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarCo
              fadeOutToLessWidth(lastWidth);
          }
          SimpleTextView titleTextLargerCopyView = this.titleTextLargerCopyView.get();
-@@ -770,6 +780,7 @@
+@@ -770,6 +780,7 @@ public class ChatAvatarContainer extends FrameLayout implements FactorAnimator.T
  
      private boolean glassMode;
      private boolean nebulaCenteredTitle;
@@ -339,7 +339,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarCo
      private boolean nebulaAvatarHiddenForSavedMessages;
      private int nebulaAvatarOriginalVisibility = -1;
  
-@@ -795,22 +806,31 @@
+@@ -795,22 +806,31 @@ public class ChatAvatarContainer extends FrameLayout implements FactorAnimator.T
          // Длинное имя не влезает в капсулу и обрезалось с двух сторон.
          // Бегущая строка — родной механизм Telegram для этого случая.
          titleTextView.setScrollNonFitText(enabled);
@@ -369,14 +369,13 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarCo
              statusWidth = subtitle instanceof SimpleTextView
                      ? (int) Math.ceil(((SimpleTextView) subtitle).getExactWidthIncludeDrawables())
 -                    : subtitle.getMeasuredWidth();
--        }
--        int barWidth = getMeasuredWidth() + dp(12);
 +                    : (int) Math.ceil(animatedSubtitleTextView.getDrawable().getAnimateToWidth());
-+        }
+         }
+-        int barWidth = getMeasuredWidth() + dp(12);
          return app.nebulagram.ui.NebulaChatStyle.headerWidth(barWidth, Math.max(titleWidth, statusWidth));
      }
  
-@@ -844,19 +864,11 @@
+@@ -844,19 +864,11 @@ public class ChatAvatarContainer extends FrameLayout implements FactorAnimator.T
              }
              avatarRight = Math.max(avatarImageView.getMeasuredWidth(), avatarRight);
              final int avatarLeft = avatarRight - avatarImageView.getMeasuredWidth();
@@ -400,7 +399,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarCo
              avatarImageView.layout(avatarLeft, 1 + viewTop, avatarLeft + avatarImageView.getMeasuredWidth(),
                      1 + viewTop + avatarImageView.getMeasuredHeight());
              if (subtitle != null && subtitle.getVisibility() != GONE) {
-@@ -1823,6 +1835,10 @@
+@@ -1823,6 +1835,10 @@ public class ChatAvatarContainer extends FrameLayout implements FactorAnimator.T
      }
  
      private void checkActionBar(boolean animated) {

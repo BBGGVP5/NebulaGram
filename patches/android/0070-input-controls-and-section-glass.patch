@@ -1,21 +1,21 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAttachAlert.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAttachAlert.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAttachAlert.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAttachAlert.java
-@@ -1133,6 +1133,10 @@
-     private ValueAnimator topBackgroundAnimator;
+@@ -1134,6 +1134,10 @@ public class ChatAttachAlert extends BottomSheet implements NotificationCenter.N
  
      private app.nebulagram.ui.NebulaSheetSurface nebulaSheetSurface;
-+
+ 
 +    public boolean drawNebulaSection(View view, Canvas canvas, RectF bounds, float topRadius, float bottomRadius, float alpha) {
 +        return hasNebulaSheetGlass() && nebulaSheetSurface.drawSection(view, canvas, bounds, topRadius, bottomRadius, alpha);
 +    }
- 
++
      public boolean hasNebulaSheetGlass() {
          return nebulaSheetSurface != null && nebulaSheetSurface.isReady()
+                 && currentAttachLayout != null && !currentAttachLayout.hasCustomBackground()
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarContainer.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarContainer.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarContainer.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarContainer.java
-@@ -401,10 +401,11 @@
+@@ -401,10 +401,11 @@ public class ChatAvatarContainer extends FrameLayout implements FactorAnimator.T
              if (pressed) {
                  bounce.setPressed(false);
                  pressed = false;
@@ -28,7 +28,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarCo
              }
          }
          return super.onTouchEvent(ev);
-@@ -420,13 +421,24 @@
+@@ -420,13 +421,24 @@ public class ChatAvatarContainer extends FrameLayout implements FactorAnimator.T
      protected void dispatchDraw(Canvas canvas) {
          canvas.save();
          final float s = bounce.getScale(.02f);
@@ -57,7 +57,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarCo
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/EmojiView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/EmojiView.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/EmojiView.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/EmojiView.java
-@@ -2898,6 +2898,7 @@
+@@ -2898,6 +2898,7 @@ public class EmojiView extends FrameLayout implements
          };
  
          setBlurredBackgroundDrawableFactory(blurredBackgroundDrawableFactory);
@@ -65,7 +65,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/EmojiView.ja
          if (app.nebulagram.ui.NebulaAppearance.iosComposer() && fragment instanceof org.telegram.ui.ChatActivity) {
              nebulaPanelBackground = ((org.telegram.ui.ChatActivity) fragment).createNebulaEmojiBackground(this);
              setShouldDrawBackground(false);
-@@ -4525,7 +4526,8 @@
+@@ -4525,7 +4526,8 @@ public class EmojiView extends FrameLayout implements
              invalidateBlurCaptures();
  
              final RecordingCanvas c = blurredBackgroundSourceRenderNode.beginRecording(getMeasuredWidth(), getMeasuredHeight());
@@ -75,7 +75,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/EmojiView.ja
              if (SharedConfig.chatBlurEnabled()) {
                  scrollableViewNoiseSuppressor.draw(c, DownscaleScrollableNoiseSuppressor.DRAW_GLASS);
              }
-@@ -4562,7 +4564,8 @@
+@@ -4562,7 +4564,8 @@ public class EmojiView extends FrameLayout implements
              canvas.save();
              if (bottomTabContainer.getVisibility() != View.GONE) {
                  if (needEmojiSearch) {
@@ -88,7 +88,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/EmojiView.ja
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/PagerSlidingTabStrip.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/PagerSlidingTabStrip.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/PagerSlidingTabStrip.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/PagerSlidingTabStrip.java
-@@ -57,7 +57,7 @@
+@@ -57,7 +57,7 @@ public class PagerSlidingTabStrip extends HorizontalScrollView {
          nebulaGesture = !enabled ? null : new app.nebulagram.ui.NebulaTabGesture(this,
                  new app.nebulagram.ui.NebulaTabGesture.Tabs() {
              public int count() { return tabCount; }
@@ -97,7 +97,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/PagerSliding
              public boolean bounds(int index, android.graphics.RectF out) {
                  View tab = getTab(index);
                  if (tab == null || !tab.isEnabled() || tab.getVisibility() != VISIBLE || pager == null
-@@ -375,6 +375,9 @@
+@@ -375,6 +375,9 @@ public class PagerSlidingTabStrip extends HorizontalScrollView {
          @Override
          public void onPageScrollStateChanged(int state) {
              if (state == ViewPager.SCROLL_STATE_IDLE) {
@@ -107,7 +107,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/PagerSliding
                  scrollToChild(pager.getCurrentItem(), 0);
              }
              if (delegatePageListener != null) {
-@@ -384,6 +387,9 @@
+@@ -384,6 +387,9 @@ public class PagerSlidingTabStrip extends HorizontalScrollView {
  
          @Override
          public void onPageSelected(int position) {
@@ -120,7 +120,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/PagerSliding
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/RecyclerListView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/RecyclerListView.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/RecyclerListView.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/RecyclerListView.java
-@@ -3606,6 +3606,16 @@
+@@ -3606,6 +3606,16 @@ public class RecyclerListView extends RecyclerView implements IBlur3Capture {
          }
      }
      public void drawBackgroundRect(Canvas canvas, RectF rect, float topRadius, float bottomRadius, float alpha) {
@@ -140,7 +140,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/RecyclerList
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
-@@ -7062,6 +7062,8 @@
+@@ -7062,6 +7062,8 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
              setScrollY(Math.max(scrollYOffset, -getMaxScrollYOffset()));
              fragmentView.requestLayout();
          }
@@ -149,7 +149,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/
          checkUi_menuItems();
          if (statusDrawable != null) {
              int selectedType = filterTabsView == null
-@@ -8910,10 +8912,10 @@
+@@ -8910,10 +8912,10 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
          final boolean isVisible = !(onlySelect && initialDialogsType != 10 || folderId != 0 || communityId != 0 || inPreviewMode || (searching && !onlySelect) || floatingButtonHidden);
  
          if (floatingButton3 != null) {
@@ -162,7 +162,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/
          }
      }
  
-@@ -8926,9 +8928,10 @@
+@@ -8926,9 +8928,10 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
              floatingButton3.setTranslationY(baseTranslationY);
          }
          if (floatingButtonStories != null) {

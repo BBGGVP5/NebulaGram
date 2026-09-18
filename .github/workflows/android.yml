@@ -76,9 +76,10 @@ jobs:
       - name: Загрузка исходников Telegram
         run: |
           git submodule update --init --depth 1 vendor/telegram-android
-          # Telegram carries ten submodules of its own — ffmpeg, libvpx, dav1d,
-          # opus, jlatexmath and the rest — and both the native build and the
-          # Gradle configuration need every one of them present.
+          # Telegram carries submodules of its own — ffmpeg, libvpx, dav1d,
+          # opus, jlatexmath, and since 12.10.3 the media3 fork whose
+          # core_settings.gradle settings.gradle applies while configuring.
+          # Both the native build and the Gradle configuration need all of them.
           git -C vendor/telegram-android submodule update --init --depth 1 --recursive
 
       - name: Установка Go

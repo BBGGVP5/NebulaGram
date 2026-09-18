@@ -1,7 +1,7 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
-@@ -416,7 +416,7 @@
+@@ -415,7 +415,7 @@ public class ChatActivity extends BaseFragment implements
      private final @NonNull BlurredBackgroundDrawableViewFactory glassBackgroundDrawableFactory;
      private final @NonNull BlurredBackgroundDrawableViewFactory glassBackgroundDrawableFactoryFrosted;
      public org.telegram.ui.Components.blur3.drawable.BlurredBackgroundDrawable createNebulaEmojiBackground(View view) {
@@ -13,7 +13,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/EmojiView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/EmojiView.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/EmojiView.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/EmojiView.java
-@@ -1560,13 +1560,18 @@
+@@ -1560,13 +1560,18 @@ public class EmojiView extends FrameLayout implements
      private final BlurredBackgroundSourceColor blurredBackgroundSourceColor;
      private final BlurredBackgroundDrawableViewFactory blurredBackgroundDrawableFactory;
  
@@ -34,7 +34,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/EmojiView.ja
          this.glassDesign = glassDesign;
  
          blurredBackgroundSourceColor = new BlurredBackgroundSourceColor();
-@@ -2899,10 +2904,9 @@
+@@ -2899,10 +2904,9 @@ public class EmojiView extends FrameLayout implements
  
          setBlurredBackgroundDrawableFactory(blurredBackgroundDrawableFactory);
          if (glassDesign && app.nebulagram.ui.NebulaMenuStyle.enabled()) hideBottomTabContainerBackground();
@@ -47,7 +47,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/EmojiView.ja
          }
      }
  
-@@ -4526,8 +4530,7 @@
+@@ -4526,8 +4530,7 @@ public class EmojiView extends FrameLayout implements
              invalidateBlurCaptures();
  
              final RecordingCanvas c = blurredBackgroundSourceRenderNode.beginRecording(getMeasuredWidth(), getMeasuredHeight());
@@ -57,12 +57,10 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/EmojiView.ja
              if (SharedConfig.chatBlurEnabled()) {
                  scrollableViewNoiseSuppressor.draw(c, DownscaleScrollableNoiseSuppressor.DRAW_GLASS);
              }
-@@ -4536,6 +4539,18 @@
- 
-         updateBottomTabContainerPosition();
+@@ -4538,6 +4541,18 @@ public class EmojiView extends FrameLayout implements
          super.dispatchDraw(canvas);
-+    }
-+
+     }
+ 
 +    private void drawNebulaPanelBackdrop(Canvas canvas) {
 +        if (nebulaPanelBackground != null) {
 +            // Sample the separate chat source, never this panel's own capture.
@@ -73,24 +71,26 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/EmojiView.ja
 +            canvas.drawColor(getThemedColor(app.nebulagram.ui.NebulaMenuStyle.enabled()
 +                    ? Theme.key_chat_emojiPanelBackground : Theme.key_windowBackgroundWhite));
 +        }
-     }
- 
++    }
++
      private void invalidateBlurCaptures() {
+         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && scrollableViewNoiseSuppressor != null) {
+             ViewPositionWatcher.computeRectInParent(typeTabs, this, blurredRectF);
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/PagerSlidingTabStrip.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/PagerSlidingTabStrip.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/PagerSlidingTabStrip.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/PagerSlidingTabStrip.java
-@@ -66,6 +66,14 @@
-                 float x = tabsContainer.getX() - getScrollX();
-                 out.set(x + tab.getLeft() + tab.getPaddingLeft() - AndroidUtilities.dp(11), getPaddingTop(),
+@@ -68,6 +68,14 @@ public class PagerSlidingTabStrip extends HorizontalScrollView {
                          x + tab.getRight() - tab.getPaddingRight() + AndroidUtilities.dp(11), getHeight() - getPaddingBottom());
-+                return true;
-+            }
+                 return true;
+             }
 +            public boolean hitBounds(int index, android.graphics.RectF out) {
 +                if (!bounds(index, out)) return false;
 +                View tab = getTab(index);
 +                float x = tabsContainer.getX() - getScrollX();
 +                // Full touch cells, not the smaller text/lens rectangle.
 +                out.set(x + tab.getLeft(), 0, x + tab.getRight(), getHeight());
-                 return true;
-             }
++                return true;
++            }
              public void select(int index) { getTab(index).performClick(); }
+         });
+         invalidate();

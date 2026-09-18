@@ -1,7 +1,7 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarContainer.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarContainer.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarContainer.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarContainer.java
-@@ -849,12 +849,17 @@
+@@ -849,12 +849,17 @@ public class ChatAvatarContainer extends FrameLayout implements FactorAnimator.T
  
      private int measureNebulaHeaderWidth(int barWidth) {
          int titleWidth = (int) Math.ceil(titleTextView.getExactWidthIncludeDrawables());
@@ -24,7 +24,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarCo
          }
          return app.nebulagram.ui.NebulaChatStyle.headerWidth(barWidth, Math.max(titleWidth, statusWidth));
      }
-@@ -1236,6 +1241,9 @@
+@@ -1236,6 +1241,9 @@ public class ChatAvatarContainer extends FrameLayout implements FactorAnimator.T
                  }
              }
          }

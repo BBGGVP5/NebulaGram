@@ -38,7 +38,7 @@ public final class NebulaCallState {
 
         SharedConfig.ProxyInfo proxy = SharedConfig.currentProxy;
         line(text, NebulaText.text("Через", "Via"), routed && proxy != null
-                ? proxy.address + ":" + proxy.port
+                ? proxy.settings.getAddress() + ":" + proxy.settings.getPort()
                 : NebulaText.text("напрямую, серверами Telegram", "directly, over Telegram servers"));
 
         text.append('\n');

@@ -1,7 +1,7 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
-@@ -1894,27 +1894,22 @@
+@@ -1893,27 +1893,22 @@ public class ChatActivity extends BaseFragment implements
              createMenu(view, true, false, x, y, false);
          }
  
@@ -37,7 +37,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
              MessageObject messageObject;
              if (view instanceof ChatMessageCell) {
                  messageObject = ((ChatMessageCell) view).getPrimaryMessageObject();
-@@ -1923,7 +1918,7 @@
+@@ -1922,7 +1917,7 @@ public class ChatActivity extends BaseFragment implements
              } else {
                  return false;
              }
@@ -46,7 +46,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
          }
  
          @Override
-@@ -1942,9 +1937,10 @@
+@@ -1941,9 +1936,10 @@ public class ChatActivity extends BaseFragment implements
              } else {
                  return;
              }
@@ -60,11 +60,12 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
                  else if (action == 2) showFieldPanelForReply(messageObject);
                  else if (action == 3) AndroidUtilities.addToClipboard(messageObject.messageOwner.message);
                  return;
-@@ -1956,14 +1952,24 @@
+@@ -1955,14 +1951,24 @@ public class ChatActivity extends BaseFragment implements
                  return;
              }
  
-+            String reactionString = getMediaDataController().getDoubleTapReaction();
+-            ReactionsEffectOverlay.removeCurrent(false);
+             String reactionString = getMediaDataController().getDoubleTapReaction();
 +            TLRPC.TL_availableReaction configuredReaction = getMediaDataController().getReactionsMap().get(reactionString);
 +            boolean available = reactionString != null && (reactionString.startsWith("animated_") || configuredReaction != null)
 +                    && (dialog_id >= 0 || (chatInfo != null && ChatObject.reactionIsAvailable(chatInfo, reactionString)));
@@ -75,35 +76,32 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
 +                }
 +                return;
 +            }
-             ReactionsEffectOverlay.removeCurrent(false);
--            String reactionString = getMediaDataController().getDoubleTapReaction();
++            ReactionsEffectOverlay.removeCurrent(false);
              if (reactionString.startsWith("animated_")) {
 -                boolean available = dialog_id >= 0;
 -                if (!available && chatInfo != null) {
 -                    available = ChatObject.reactionIsAvailable(chatInfo, reactionString);
--                }
--                if (!available) {
 +                boolean allowed = dialog_id >= 0;
 +                if (!allowed && chatInfo != null) {
 +                    allowed = ChatObject.reactionIsAvailable(chatInfo, reactionString);
-+                }
+                 }
+-                if (!available) {
 +                if (!allowed) {
                      return;
                  }
                  selectReaction(view, messageObject, null, null, x, y, ReactionsLayoutInBubble.VisibleReaction.fromEmojicon(reactionString), true, false, false, false);
-@@ -1972,11 +1978,11 @@
+@@ -1971,11 +1977,11 @@ public class ChatActivity extends BaseFragment implements
                  if (reaction == null || messageObject.isSponsored()) {
                      return;
                  }
 -                boolean available = dialog_id >= 0;
 -                if (!available && chatInfo != null) {
 -                    available = ChatObject.reactionIsAvailable(chatInfo, reaction.reaction);
--                }
--                if (!available) {
 +                boolean allowed = dialog_id >= 0;
 +                if (!allowed && chatInfo != null) {
 +                    allowed = ChatObject.reactionIsAvailable(chatInfo, reaction.reaction);
-+                }
+                 }
+-                if (!available) {
 +                if (!allowed) {
                      return;
                  }
@@ -111,7 +109,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAttachAlert.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAttachAlert.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAttachAlert.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAttachAlert.java
-@@ -6801,6 +6801,11 @@
+@@ -6801,6 +6801,11 @@ public class ChatAttachAlert extends BottomSheet implements NotificationCenter.N
                  if (app.nebulagram.ui.NebulaAppearance.hideAttachCamera() && (photosEnabled || videosEnabled)) {
                      cameraButton = buttonsCount++;
                  }
@@ -123,13 +121,13 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAttachAl
                  if ((photosEnabled || videosEnabled) && !paidUser && (chat == null || !ChatObject.isMonoForum(chat))) {
                      if (baseFragment instanceof ChatActivity && !((ChatActivity) baseFragment).isInScheduleMode() && !((ChatActivity) baseFragment).isSecretChat() && ((ChatActivity) baseFragment).getChatMode() != ChatActivity.MODE_QUICK_REPLIES) {
                          ChatActivity chatActivity = (ChatActivity) baseFragment;
-@@ -6821,9 +6826,6 @@
- 
+@@ -6822,9 +6827,6 @@ public class ChatAttachAlert extends BottomSheet implements NotificationCenter.N
                  if (plainTextEnabled) {
                      locationButton = buttonsCount++;
--                }
+                 }
 -                if (plainTextEnabled && MessagesController.getInstance(currentAccount).richEditorAvailable()) {
 -                    richButton = buttonsCount++;
-                 }
+-                }
  
                  if (pollsEnabled) {
+                     pollButton = buttonsCount++;

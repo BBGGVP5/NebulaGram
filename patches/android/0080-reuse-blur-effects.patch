@@ -1,7 +1,7 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/source/BlurredBackgroundSourceRenderNode.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/source/BlurredBackgroundSourceRenderNode.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/source/BlurredBackgroundSourceRenderNode.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/source/BlurredBackgroundSourceRenderNode.java
-@@ -59,18 +59,35 @@
+@@ -59,19 +59,36 @@ public class BlurredBackgroundSourceRenderNode implements BlurredBackgroundSourc
          this.underSource = underSource;
      }
  
@@ -18,14 +18,11 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/source
      @RequiresApi(api = Build.VERSION_CODES.S)
      public void setBlur(float radius, RenderEffect effect) {
 -        renderNode.setRenderEffect(RenderEffect.createChainEffect(RenderEffect.createBlurEffect(radius, radius, Shader.TileMode.CLAMP), effect));
--    }
--
--
 +        nebulaSetBlur(radius, effect);
-+    }
-+
-+
-+
+     }
+ 
+ 
+ 
 +    @RequiresApi(api = Build.VERSION_CODES.S)
 +    private void nebulaSetBlur(float radius, RenderEffect input) {
 +        radius = Math.max(0f, radius);
@@ -39,6 +36,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/source
 +        nebulaBlurRadius = radius;
 +        nebulaBlurInput = input;
 +    }
- 
++
      public void noClip() {
          this.noClip = true;
+     }

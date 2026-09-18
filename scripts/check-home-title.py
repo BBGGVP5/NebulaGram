@@ -47,7 +47,10 @@ bar = (tree / 'TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.j
 assert 'width - 2 * Math.max(textLeft, end)' not in bar, 'Obsolete symmetric-only measurement'
 assert 'NebulaHomeTitleGeometry.width(' in bar and 'NebulaHomeTitleGeometry.left(' in bar
 assert 'titleTextView[i].getTextWidth() + titleTextView[i].getSideDrawablesSize()' in bar
-assert bar.count('nebulaTitleEndInset()') == 3, 'Measurement/layout must use the same menu boundary'
+# Definition, title measurement, title layout, and the subtitle overlay laid
+# out under that title: one boundary for everything sharing the centred slot.
+assert bar.count('nebulaTitleEndInset()') == 4, 'Measurement/layout must use the same menu boundary'
+assert 'additionalSubTitleOverlayContainer.getMeasuredWidth())' in bar, 'Overlay subtitle must sit under the centred title'
 assert 'titlesContainer.getTranslationX()' in bar
 assert 'if (nebulaCenterTitle())' in bar
 print('PASS: native title slots include status drawable and share menu/translation bounds')

@@ -1,7 +1,7 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
-@@ -7118,11 +7118,13 @@
+@@ -7118,11 +7118,13 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                          if (intent != null) {
                              try {
                                  getParentActivity().startActivity(intent);
@@ -15,7 +15,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/
                                  } catch (Exception xx) {
                                      FileLog.e(xx);
                                  }
-@@ -7146,6 +7148,7 @@
+@@ -7146,6 +7148,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                          if (intent != null) {
                              try {
                                  getParentActivity().startActivity(intent);

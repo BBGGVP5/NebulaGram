@@ -1,5 +1,4 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/FilterTabsView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/FilterTabsView.java
-index 52238e83..b140f8a8 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/FilterTabsView.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/FilterTabsView.java
 @@ -366,7 +366,7 @@ public class FilterTabsView extends FrameLayout {
@@ -12,7 +11,6 @@ index 52238e83..b140f8a8 100644
                      counterText = String.format("%d", animateFromTabCount);
                  } else {
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
-index 2a545dce..ebd5a845 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
 @@ -14052,7 +14052,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.

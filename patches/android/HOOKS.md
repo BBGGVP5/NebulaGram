@@ -9,7 +9,7 @@
 |---|---|---|---|---|
 | `0001-gradle-link-nebulalink-core.patch` | `TMessagesProj/build.gradle` | dependencies | Подключает Go-ядро | +9 / −0 |
 | `0002-application-loader-start-core.patch` | `ApplicationLoader.java` | onCreate | Инициализирует NebulaLink | +2 / −0 |
-| `0003-standalone-abi-splits.patch` | `TMessagesProj_AppStandalone/build.gradle` | перед defaultConfig.versionCode | Сохраняет подписанный sideload-пакет и собирает единый APK для всех ABI | +12 / −0 |
+| `0003-standalone-abi-splits.patch` | `TMessagesProj_AppStandalone/build.gradle` | перед defaultConfig.versionCode | Сохраняет подписанный sideload-пакет, собирает единый APK для всех ABI и держит снятие ресурсов в паре с минификацией | +17 / −0 |
 | `0004-launch-show-welcome.patch` | `LaunchActivity.java` | перед return new IntroActivity() | Показывает приветствие NebulaGram | +3 / −0 |
 | `0005-hide-managed-proxy.patch` | `ProxyListActivity.java` | updateRows; ListAdapter | Скрывает служебный прокси и его настройки при активном туннеле | +30 / −2 |
 | `0006-login-typography.patch` | `LoginActivity.java; OutlineTextContainerView.java; CodeFieldContainer.java` | создание экранов и нижней кнопки | Оформляет номер, код и пароль поверх нативной логики Telegram | +50 / −15 |
@@ -333,3 +333,20 @@ Liquid Glass. Стиль применяется при включённом iOS-
 - `InstantCameraView.switchCamera`: разворот запоминается, для режима «как в прошлый раз».
 - Где сохранять удалённое (личные чаты, группы, каналы, боты) решает `NebulaDeletedStyle.retains` внутри `NebulaDeletedArchive.retain` — это оверлей, патча не требует.
 - Проверка: применение цепочки, компиляция; отрисовка и камера на устройстве — отдельно.
+
+### Апстрим 12.10.3 (7089)
+
+- `SharedConfig.ProxyInfo` больше не хранит адрес и порт полями: всё лежит в
+  `ProxySettings`, а `ConnectionsManager.setProxySettings` принимает этот объект
+  вместо шести аргументов. `NebulaLink` переписан под новый вид; раскладку по
+  ключам настроек теперь делает сам `ProxySettings.toSharedPreferences`, а не мы.
+- `LocaleController.getStringInternal` берёт облачную строку через
+  `localizationExternal`. Наш короткий ответ для `AppName` встал перед ним —
+  смысл прежний: имя форка не должно приходить из чужого языкового пакета.
+- `TMessagesProj_AppStandalone` включает `shrinkResources` у сборки standalone.
+  Снятие ресурсов требует включённого R8, поэтому диагностическая сборка
+  `-PnebulaMinify=false` падала при настройке; теперь флаги идут в паре.
+- У Telegram появился одиннадцатый сабмодуль — `TMessagesProj_Modules/media`.
+  `settings.gradle` применяет его `core_settings.gradle` при настройке, так что
+  без него проект не конфигурируется вовсе.
+

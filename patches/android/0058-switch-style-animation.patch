@@ -1,7 +1,7 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/Switch.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/Switch.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/Switch.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/Switch.java
-@@ -235,7 +235,9 @@
+@@ -235,7 +235,9 @@ public class Switch extends View {
  
      private void animateToCheckedState(boolean newCheckedState) {
          checkAnimator = ObjectAnimator.ofFloat(this, "progress", newCheckedState ? 1 : 0);

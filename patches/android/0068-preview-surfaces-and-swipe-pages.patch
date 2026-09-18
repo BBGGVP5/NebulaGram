@@ -1,7 +1,7 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Cells/ChatMessageCell.java b/TMessagesProj/src/main/java/org/telegram/ui/Cells/ChatMessageCell.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Cells/ChatMessageCell.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Cells/ChatMessageCell.java
-@@ -5766,16 +5766,29 @@
+@@ -5764,16 +5764,29 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
          overridenDuration = duration;
      }
  
@@ -32,7 +32,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Cells/ChatMessageCell.j
              fullyDraw = previousFullyDraw;
              firstVisibleBlockNum = previousFirst;
              lastVisibleBlockNum = previousLast;
-@@ -16909,10 +16922,10 @@
+@@ -16907,10 +16920,10 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
                          if (caption) {
                              rect.set(getCurrentBackgroundLeft() - dp(10), top, currentBackgroundDrawable.getBounds().right + dp(10), bottom);
                          } else {
@@ -45,7 +45,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Cells/ChatMessageCell.j
                                  bottom = (int) (parentHeight - getY());
                              }
                              rect.set(getCurrentBackgroundLeft(), top, currentBackgroundDrawable.getBounds().right, bottom);
-@@ -20223,10 +20236,10 @@
+@@ -20221,10 +20234,10 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
                      right += dp(8 + 32);
                  }
              }
@@ -61,7 +61,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Cells/ChatMessageCell.j
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
-@@ -3379,6 +3379,7 @@
+@@ -3378,6 +3378,7 @@ public class ChatActivity extends BaseFragment implements
  
      @Override
      public void onFragmentDestroy() {
@@ -69,7 +69,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
          super.onFragmentDestroy();
          if (messageMetricsView != null) {
              messageMetricsView.finish();
-@@ -6560,6 +6561,15 @@
+@@ -6559,6 +6560,15 @@ public class ChatActivity extends BaseFragment implements
          }
  
          chatLayoutManager = new GridLayoutManagerFixed(context, 1000, LinearLayoutManager.VERTICAL, !reversed) {
@@ -85,7 +85,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
  
              boolean computingScroll;
  
-@@ -10760,7 +10770,81 @@
+@@ -10759,7 +10769,81 @@ public class ChatActivity extends BaseFragment implements
          dimBehindView(value, false, view != sideControlsButtonsLayout);
      }
  
@@ -167,7 +167,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
          if (this.scrimView == scrimView) {
              return;
          }
-@@ -30117,6 +30201,7 @@
+@@ -30110,6 +30194,7 @@ public class ChatActivity extends BaseFragment implements
  
      @Override
      public void onPause() {
@@ -175,7 +175,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
          super.onPause();
          scrolling = false;
          if (scrimPopupWindow != null) {
-@@ -30856,6 +30941,9 @@
+@@ -30849,6 +30934,9 @@ public class ChatActivity extends BaseFragment implements
              factCheckHint.hide(false);
          }
          FileLog.d("open menu msg_id=" + message.getId() + (message.getDocument() != null ? " doc_id=" + message.getDocument().id : ""));
@@ -185,7 +185,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
          final int type = getMessageType(message);
          if (single) {
              boolean isGiveawayResultsMessage = false;
-@@ -32531,6 +32619,9 @@
+@@ -32524,6 +32612,9 @@ public class ChatActivity extends BaseFragment implements
              }
              int popupY;
              int minY = (int) (chatListView.getY() + dp(24));
@@ -198,7 +198,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/PopupSwipeBackLayout.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/PopupSwipeBackLayout.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/PopupSwipeBackLayout.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/PopupSwipeBackLayout.java
-@@ -129,11 +129,17 @@
+@@ -129,11 +129,17 @@ public class PopupSwipeBackLayout extends FrameLayout {
          onSwipeBackProgressListeners.add(onSwipeBackProgressListener);
      }
  
@@ -217,7 +217,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/PopupSwipeBa
              if (foregroundColor == 0) {
                  foregroundPaint.setColor(Theme.getColor(Theme.key_actionBarDefaultSubmenuBackground, resourcesProvider));
              } else {
-@@ -142,7 +148,7 @@
+@@ -142,7 +148,7 @@ public class PopupSwipeBackLayout extends FrameLayout {
              canvas.drawRect(child.getX(), 0, child.getX() + child.getMeasuredWidth(), getMeasuredHeight(), foregroundPaint);
          }
          boolean b = super.drawChild(canvas, child, drawingTime);
@@ -226,7 +226,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/PopupSwipeBa
              overlayPaint.setAlpha((int) (transitionProgress * 0x40));
              canvas.drawRect(0, 0, getWidth(), getHeight(), overlayPaint);
          }
-@@ -174,6 +180,7 @@
+@@ -174,6 +180,7 @@ public class PopupSwipeBackLayout extends FrameLayout {
          if (currentForegroundIndex >= 0 && currentForegroundIndex < getChildCount()) {
              foregroundView = getChildAt(currentForegroundIndex);
          }

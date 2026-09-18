@@ -1,7 +1,7 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAttachAlert.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAttachAlert.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAttachAlert.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAttachAlert.java
-@@ -1135,6 +1135,7 @@
+@@ -1135,6 +1135,7 @@ public class ChatAttachAlert extends BottomSheet implements NotificationCenter.N
      private app.nebulagram.ui.NebulaSheetSurface nebulaSheetSurface;
  
      public boolean drawNebulaSection(View view, Canvas canvas, RectF bounds, float topRadius, float bottomRadius, float alpha) {

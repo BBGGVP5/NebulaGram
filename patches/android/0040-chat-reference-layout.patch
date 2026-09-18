@@ -1,7 +1,7 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
-@@ -1556,6 +1556,13 @@
+@@ -1556,6 +1556,13 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
              if (child.getVisibility() == GONE || child == titleTextView[0] || child == titleTextView[1] || child == additionalSubTitleOverlayContainer || child == subtitleTextView || child == menu || child == backButtonImageView || child == additionalSubtitleTextView || child == avatarSearchImageView) {
                  continue;
              }
@@ -15,7 +15,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.jav
              measureChildWithMargins(child, widthMeasureSpec, 0, MeasureSpec.makeMeasureSpec(getMeasuredHeight(), MeasureSpec.EXACTLY), 0);
          }
      }
-@@ -2329,8 +2336,7 @@
+@@ -2329,8 +2336,7 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
                  // The title, subtitle and image have independent places: a
                  // compact real glass capsule stays centred, while the avatar
                  // remains a reachable round control at the trailing edge.
@@ -25,7 +25,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.jav
                  left = (getWidth() - width) / 2;
                  right = left + width;
                  centeredNebulaAvatar.setTranslationX(0);
-@@ -2358,7 +2364,15 @@
+@@ -2358,7 +2364,15 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
              glassDrawableBack.setBounds(0, t, s + p * 2, b);
              glassDrawableBack.draw(canvas);
          }
@@ -45,7 +45,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.jav
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
-@@ -8247,6 +8247,7 @@
+@@ -8246,6 +8246,7 @@ public class ChatActivity extends BaseFragment implements
          replyCloseImageView.setScaleType(ImageView.ScaleType.CENTER);
          replyCloseImageView.setBackgroundDrawable(Theme.createSelectorDrawable(getThemedColor(Theme.key_listSelector), 1, AndroidUtilities.dp(19)));
          chatActivityEnterTopView.addView(replyCloseImageView, LayoutHelper.createFrame(52, 46, Gravity.RIGHT | Gravity.TOP, 0, 0.5f, 0, 0));
@@ -53,7 +53,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
          replyCloseImageView.setOnClickListener(v -> {
              messageSuggestionParams = null;
              if (fieldPanelShown == 2) {
-@@ -8382,6 +8383,7 @@
+@@ -8381,6 +8382,7 @@ public class ChatActivity extends BaseFragment implements
          bottomChannelButtonsLayout.setVisibility(View.INVISIBLE);
          bottomChannelButtonsLayout.setClipChildren(false);
          bottomChannelButtonsLayout.setAccentColor(getThemedColor(Theme.key_featuredStickers_addButton));
@@ -61,20 +61,20 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
          bottomChannelButtonsLayout.setButtonOnClickListener(ChatActivityChannelButtonsLayout.BUTTON_SEARCH, v -> {
              openSearchWithText(isSupportedTags() ? "" : null);
          });
-@@ -8518,6 +8520,12 @@
-         bottomChannelButtonsLayout.getContainer().addView(bottomOverlayChatText, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT, 0));
-         bottomOverlayChatText.setOnClickListener(view -> {
+@@ -8519,6 +8521,12 @@ public class ChatActivity extends BaseFragment implements
              if (getParentActivity() == null || pullingDownOffset != 0) {
-+                return;
-+            }
+                 return;
+             }
 +            if (hasNebulaDiscussion()) {
 +                Bundle discussionArgs = new Bundle();
 +                discussionArgs.putLong("chat_id", chatInfo.linked_chat_id);
 +                presentFragment(new ChatActivity(discussionArgs));
-                 return;
-             }
++                return;
++            }
              if (chatMode == MODE_SAVED) {
-@@ -28058,6 +28066,12 @@
+                 Bundle args = new Bundle();
+                 long dialogId = getSavedDialogId();
+@@ -28051,6 +28059,12 @@ public class ChatActivity extends BaseFragment implements
  
          bottomOverlayChatText.setTextColorKey(accentTextButton ? Theme.key_featuredStickers_buttonText : Theme.key_glass_defaultText);
  
@@ -87,143 +87,23 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
          bottomChannelButtonsLayout.setCenterAccentBackground(accentTextButton, animated);
          bottomChannelButtonsLayout.updateWrappingVisible(animated);
          bottomChannelButtonsLayout.showButton(ChatActivityChannelButtonsLayout.BUTTON_SEARCH, showSearchButton && bottomChannelButtonsLayout.getVisibility() == View.VISIBLE, animated);
-@@ -28066,6 +28080,12 @@
-         bottomChannelButtonsLayout.showButton(ChatActivityChannelButtonsLayout.BUTTON_GIGA_GROUP_INFO, showGigaGroupButton && bottomChannelButtonsLayout.getVisibility() == View.VISIBLE, animated);
- 
+@@ -28061,6 +28075,12 @@ public class ChatActivity extends BaseFragment implements
          checkRaiseSensors();
-+    }
-+
+     }
+ 
 +    private boolean hasNebulaDiscussion() {
 +        return app.nebulagram.ui.NebulaAppearance.iosComposer() && chatMode == 0
 +                && !isThreadChat() && !isComments && ChatObject.isChannelAndNotMegaGroup(currentChat)
 +                && !ChatObject.isNotInChat(currentChat) && chatInfo != null && chatInfo.linked_chat_id != 0;
-     }
- 
-     private boolean shouldDisplaySwipeToLeftToReplyInForum() {
-diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/chat/ChatInputViewsContainer.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/chat/ChatInputViewsContainer.java
---- a/TMessagesProj/src/main/java/org/telegram/ui/Components/chat/ChatInputViewsContainer.java
-+++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/chat/ChatInputViewsContainer.java
-@@ -270,7 +270,7 @@
-         tmpRect.offset(0, blurTop + (int) bubbleInputTranlationY);
- 
-         blurredBackgroundDrawable.setBounds(tmpRect);
--        if (drawInputBackground && (nebulaComposerStyle == null || !nebulaComposerStyle.draw(canvas, blurredBackgroundDrawable)))
-+        if (drawInputBackground && (nebulaComposerStyle == null || !nebulaComposerStyle.draw(canvas, blurredBackgroundDrawable, this)))
-             blurredBackgroundDrawable.draw(canvas);
- 
-         if (needDrawInAppKeyboard) {
-diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/chat/layouts/ChatActivityChannelButtonsLayout.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/chat/layouts/ChatActivityChannelButtonsLayout.java
---- a/TMessagesProj/src/main/java/org/telegram/ui/Components/chat/layouts/ChatActivityChannelButtonsLayout.java
-+++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/chat/layouts/ChatActivityChannelButtonsLayout.java
-@@ -40,7 +40,8 @@
-     public static final int BUTTON_DIRECT = 2;
-     public static final int BUTTON_GIGA_GROUP_INFO = 3;
-     public static final int BUTTON_RECENT_ACTIONS_INFO = 4;
--    private static final int BUTTONS_COUNT = 5;
-+    public static final int BUTTON_MUTE = 5;
-+    private static final int BUTTONS_COUNT = 6;
- 
-     private final ButtonHolder[] buttonHolders = new ButtonHolder[BUTTONS_COUNT];
-     private final OnClickListener[] onClickListeners = new OnClickListener[BUTTONS_COUNT];
-@@ -55,7 +56,8 @@
-         R.drawable.input_gift_s,
-         R.drawable.input_message,
-         R.drawable.msg_help,
--        R.drawable.msg_help
-+        R.drawable.msg_help,
-+        R.drawable.msg_unmute
-     };
-     private static final int[] buttonsOrderLeft = new int[] {
-         BUTTON_SEARCH
-@@ -67,6 +69,30 @@
-         BUTTON_RECENT_ACTIONS_INFO
-     };
- 
-+    private boolean discussionMode;
-+    private static final int[] discussionLeft = { BUTTON_MUTE };
-+    private static final int[] discussionRight = {
-+        BUTTON_SEARCH, BUTTON_GIFT, BUTTON_DIRECT, BUTTON_GIGA_GROUP_INFO, BUTTON_RECENT_ACTIONS_INFO
-+    };
-+
-+    private int[] leftButtons() { return discussionMode ? discussionLeft : buttonsOrderLeft; }
-+    private int[] rightButtons() { return discussionMode ? discussionRight : buttonsOrderRight; }
-+
-+    public void setDiscussionMode(boolean enabled, boolean muted, boolean animated) {
-+        if (discussionMode != enabled) {
-+            discussionMode = enabled;
-+            checkContainerPaddings(true);
-+            checkButtonsPositionsAndVisibility();
-+            requestLayout();
-+        }
-+        showButton(BUTTON_MUTE, enabled, animated);
-+        if (buttonHolders[BUTTON_MUTE] != null) {
-+            buttonHolders[BUTTON_MUTE].button.setIcon(muted ? R.drawable.msg_mute : R.drawable.msg_unmute);
-+            buttonHolders[BUTTON_MUTE].button.setContentDescription(getString(muted
-+                    ? R.string.ChannelUnmuteNoCaps : R.string.ChannelMuteNoCaps));
-+        }
 +    }
 +
-     private final Theme.ResourcesProvider resourcesProvider;
-     private final BlurredBackgroundDrawableViewFactory blurredBackgroundDrawableViewFactory;
-     private final BlurredBackgroundColorProvider colorProvider;
-@@ -264,7 +290,7 @@
- 
-     private void checkContainerPaddings(boolean canRequestLayout) {
-         int paddingLeft = dp(7), paddingRight = dp(7);
--        for (final int buttonId : buttonsOrderLeft) {
-+        for (final int buttonId : leftButtons()) {
-             final ButtonHolder holder = buttonHolders[buttonId];
-             if (holder == null) {
-                 continue;
-@@ -272,7 +298,7 @@
-             paddingLeft += holder.visibilityAnimator.getValue() ? dp(44 + 10) : 0;
-         }
- 
--        for (final int buttonId : buttonsOrderRight) {
-+        for (final int buttonId : rightButtons()) {
-             final ButtonHolder holder = buttonHolders[buttonId];
-             if (holder == null) {
-                 continue;
-@@ -307,7 +333,7 @@
-             holder.button.setScaleY(lerp(0.4f, 1f, visibility));
-         }
- 
--        for (final int buttonId : buttonsOrderLeft) {
-+        for (final int buttonId : leftButtons()) {
-             final ButtonHolder holder = buttonHolders[buttonId];
-             if (holder == null) {
-                 continue;
-@@ -318,7 +344,7 @@
-             totalWidthLeft += width;
-         }
- 
--        for (final int buttonId : buttonsOrderRight) {
-+        for (final int buttonId : rightButtons()) {
-             final ButtonHolder holder = buttonHolders[buttonId];
-             if (holder == null) {
-                 continue;
-@@ -330,7 +356,7 @@
-         }
- 
-         if (totalVisibilityFactor < 1) {
--            for (final int buttonId : buttonsOrderLeft) {
-+            for (final int buttonId : leftButtons()) {
-                 final ButtonHolder holder = buttonHolders[buttonId];
-                 if (holder == null) {
-                     continue;
-@@ -339,7 +365,7 @@
-                 holder.button.setTranslationX(holder.button.getTranslationX() - totalWidthLeft * (1 - totalVisibilityFactor));
-             }
- 
--            for (final int buttonId : buttonsOrderRight) {
-+            for (final int buttonId : rightButtons()) {
-                 final ButtonHolder holder = buttonHolders[buttonId];
-                 if (holder == null) {
-                     continue;
+     private boolean shouldDisplaySwipeToLeftToReplyInForum() {
+         return (
+             isForumInViewAsMessagesMode() && replyingMessageObject == null && editingMessageObject == null && !canSendMessageToGeneralTopic()
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
-@@ -2793,20 +2793,15 @@
+@@ -2792,20 +2792,15 @@ public class ChatActivityEnterView extends FrameLayout implements
                  });
              }
  
@@ -247,7 +127,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivity
                      return;
                  }
                  delegate.didPressAttachButton();
-@@ -8092,7 +8087,8 @@
+@@ -8091,7 +8086,8 @@ public class ChatActivityEnterView extends FrameLayout implements
              } else {
                  color = getThemedColor(Theme.key_chat_messagePanelSend);
              }
@@ -257,7 +137,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivity
  
              if (color != sendButtonBackgroundColor) {
                  sendButtonBackgroundColor = color;
-@@ -14507,7 +14503,7 @@
+@@ -14506,7 +14502,7 @@ public class ChatActivityEnterView extends FrameLayout implements
      @Override
      protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
          super.onLayout(changed, left, top, right, bottom);
@@ -266,7 +146,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivity
          if (botCommandLastPosition != -1 && botCommandsMenuContainer != null) {
              LinearLayoutManager layoutManager = (LinearLayoutManager) botCommandsMenuContainer.listView.getLayoutManager();
              if (layoutManager != null) {
-@@ -15343,12 +15339,7 @@
+@@ -15342,12 +15338,7 @@ public class ChatActivityEnterView extends FrameLayout implements
          private int drawableColor;
  
          public void updateColors() {
@@ -280,7 +160,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivity
              if (color != drawableColor) {
                  drawableColor = color;
                  drawable.setColorFilter(new PorterDuffColorFilter(color, PorterDuff.Mode.SRC_IN));
-@@ -15356,9 +15347,7 @@
+@@ -15355,9 +15346,7 @@ public class ChatActivityEnterView extends FrameLayout implements
                  inactiveDrawable.setColorFilter(new PorterDuffColorFilter(Color.argb(0xb4, Color.red(c), Color.green(c), Color.blue(c)), PorterDuff.Mode.SRC_IN));
                  drawableInverse.setColorFilter(new PorterDuffColorFilter(Theme.getColor(Theme.key_chat_messagePanelVoicePressed, resourcesProvider), PorterDuff.Mode.SRC_IN));
              }
@@ -294,7 +174,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivity
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarContainer.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarContainer.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarContainer.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarContainer.java
-@@ -457,6 +457,19 @@
+@@ -457,6 +457,19 @@ public class ChatAvatarContainer extends FrameLayout implements FactorAnimator.T
      public boolean ignoreTouches;
      @Override
      public boolean dispatchTouchEvent(MotionEvent ev) {
@@ -314,7 +194,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarCo
          if (ignoreTouches) return false;
          return super.dispatchTouchEvent(ev);
      }
-@@ -664,9 +677,9 @@
+@@ -664,9 +677,9 @@ public class ChatAvatarContainer extends FrameLayout implements FactorAnimator.T
      @Override
      protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
          final int width = MeasureSpec.getSize(widthMeasureSpec);
@@ -327,7 +207,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarCo
          avatarImageView.measure(MeasureSpec.makeMeasureSpec(dp(avatarSizeInDp) - 2, MeasureSpec.EXACTLY), MeasureSpec.makeMeasureSpec(dp(avatarSizeInDp) - 2, MeasureSpec.EXACTLY));
          titleTextView.measure(MeasureSpec.makeMeasureSpec(availableWidth, MeasureSpec.AT_MOST), MeasureSpec.makeMeasureSpec(dp(24 + 8), MeasureSpec.AT_MOST));
          if (subtitleTextView != null) {
-@@ -787,22 +800,18 @@
+@@ -787,22 +800,18 @@ public class ChatAvatarContainer extends FrameLayout implements FactorAnimator.T
          requestLayout();
      }
  
@@ -360,7 +240,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarCo
      }
  
      public void setGlassMode() {
-@@ -829,7 +838,7 @@
+@@ -829,7 +838,7 @@ public class ChatAvatarContainer extends FrameLayout implements FactorAnimator.T
              // проходе разметки, пока родитель ещё нулевой ширины, выдавал
              // отрицательные координаты: аватарка укладывалась задом наперёд
              // и пропадала, а название теряло ширину и исчезало совсем.
@@ -369,7 +249,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarCo
              if (getParent() instanceof ActionBar) {
                  avatarRight -= ((ActionBar) getParent()).getNebulaChatAvatarTrailingInset();
              }
-@@ -839,7 +848,7 @@
+@@ -839,7 +848,7 @@ public class ChatAvatarContainer extends FrameLayout implements FactorAnimator.T
              // неё, и бегущая строка шла поверх стекла и по краям экрана. Ниже
              // осмысленного минимума не опускаемся: обнулённая капсула прятала
              // название целиком.
@@ -378,3 +258,123 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarCo
              final int titleWidth = Math.max(dp(24),
                      Math.min(titleTextView.getMeasuredWidth(), capsule));
              final int titleLeft = Math.max(dp(4), (getWidth() - titleWidth) / 2);
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/chat/ChatInputViewsContainer.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/chat/ChatInputViewsContainer.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Components/chat/ChatInputViewsContainer.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/chat/ChatInputViewsContainer.java
+@@ -270,7 +270,7 @@ public class ChatInputViewsContainer extends FrameLayout {
+         tmpRect.offset(0, blurTop + (int) bubbleInputTranlationY);
+ 
+         blurredBackgroundDrawable.setBounds(tmpRect);
+-        if (drawInputBackground && (nebulaComposerStyle == null || !nebulaComposerStyle.draw(canvas, blurredBackgroundDrawable)))
++        if (drawInputBackground && (nebulaComposerStyle == null || !nebulaComposerStyle.draw(canvas, blurredBackgroundDrawable, this)))
+             blurredBackgroundDrawable.draw(canvas);
+ 
+         if (needDrawInAppKeyboard) {
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/chat/layouts/ChatActivityChannelButtonsLayout.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/chat/layouts/ChatActivityChannelButtonsLayout.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Components/chat/layouts/ChatActivityChannelButtonsLayout.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/chat/layouts/ChatActivityChannelButtonsLayout.java
+@@ -40,7 +40,8 @@ public class ChatActivityChannelButtonsLayout extends FrameLayout implements Fac
+     public static final int BUTTON_DIRECT = 2;
+     public static final int BUTTON_GIGA_GROUP_INFO = 3;
+     public static final int BUTTON_RECENT_ACTIONS_INFO = 4;
+-    private static final int BUTTONS_COUNT = 5;
++    public static final int BUTTON_MUTE = 5;
++    private static final int BUTTONS_COUNT = 6;
+ 
+     private final ButtonHolder[] buttonHolders = new ButtonHolder[BUTTONS_COUNT];
+     private final OnClickListener[] onClickListeners = new OnClickListener[BUTTONS_COUNT];
+@@ -55,7 +56,8 @@ public class ChatActivityChannelButtonsLayout extends FrameLayout implements Fac
+         R.drawable.input_gift_s,
+         R.drawable.input_message,
+         R.drawable.msg_help,
+-        R.drawable.msg_help
++        R.drawable.msg_help,
++        R.drawable.msg_unmute
+     };
+     private static final int[] buttonsOrderLeft = new int[] {
+         BUTTON_SEARCH
+@@ -67,6 +69,30 @@ public class ChatActivityChannelButtonsLayout extends FrameLayout implements Fac
+         BUTTON_RECENT_ACTIONS_INFO
+     };
+ 
++    private boolean discussionMode;
++    private static final int[] discussionLeft = { BUTTON_MUTE };
++    private static final int[] discussionRight = {
++        BUTTON_SEARCH, BUTTON_GIFT, BUTTON_DIRECT, BUTTON_GIGA_GROUP_INFO, BUTTON_RECENT_ACTIONS_INFO
++    };
++
++    private int[] leftButtons() { return discussionMode ? discussionLeft : buttonsOrderLeft; }
++    private int[] rightButtons() { return discussionMode ? discussionRight : buttonsOrderRight; }
++
++    public void setDiscussionMode(boolean enabled, boolean muted, boolean animated) {
++        if (discussionMode != enabled) {
++            discussionMode = enabled;
++            checkContainerPaddings(true);
++            checkButtonsPositionsAndVisibility();
++            requestLayout();
++        }
++        showButton(BUTTON_MUTE, enabled, animated);
++        if (buttonHolders[BUTTON_MUTE] != null) {
++            buttonHolders[BUTTON_MUTE].button.setIcon(muted ? R.drawable.msg_mute : R.drawable.msg_unmute);
++            buttonHolders[BUTTON_MUTE].button.setContentDescription(getString(muted
++                    ? R.string.ChannelUnmuteNoCaps : R.string.ChannelMuteNoCaps));
++        }
++    }
++
+     private final Theme.ResourcesProvider resourcesProvider;
+     private final BlurredBackgroundDrawableViewFactory blurredBackgroundDrawableViewFactory;
+     private final BlurredBackgroundColorProvider colorProvider;
+@@ -264,7 +290,7 @@ public class ChatActivityChannelButtonsLayout extends FrameLayout implements Fac
+ 
+     private void checkContainerPaddings(boolean canRequestLayout) {
+         int paddingLeft = dp(7), paddingRight = dp(7);
+-        for (final int buttonId : buttonsOrderLeft) {
++        for (final int buttonId : leftButtons()) {
+             final ButtonHolder holder = buttonHolders[buttonId];
+             if (holder == null) {
+                 continue;
+@@ -272,7 +298,7 @@ public class ChatActivityChannelButtonsLayout extends FrameLayout implements Fac
+             paddingLeft += holder.visibilityAnimator.getValue() ? dp(44 + 10) : 0;
+         }
+ 
+-        for (final int buttonId : buttonsOrderRight) {
++        for (final int buttonId : rightButtons()) {
+             final ButtonHolder holder = buttonHolders[buttonId];
+             if (holder == null) {
+                 continue;
+@@ -307,7 +333,7 @@ public class ChatActivityChannelButtonsLayout extends FrameLayout implements Fac
+             holder.button.setScaleY(lerp(0.4f, 1f, visibility));
+         }
+ 
+-        for (final int buttonId : buttonsOrderLeft) {
++        for (final int buttonId : leftButtons()) {
+             final ButtonHolder holder = buttonHolders[buttonId];
+             if (holder == null) {
+                 continue;
+@@ -318,7 +344,7 @@ public class ChatActivityChannelButtonsLayout extends FrameLayout implements Fac
+             totalWidthLeft += width;
+         }
+ 
+-        for (final int buttonId : buttonsOrderRight) {
++        for (final int buttonId : rightButtons()) {
+             final ButtonHolder holder = buttonHolders[buttonId];
+             if (holder == null) {
+                 continue;
+@@ -330,7 +356,7 @@ public class ChatActivityChannelButtonsLayout extends FrameLayout implements Fac
+         }
+ 
+         if (totalVisibilityFactor < 1) {
+-            for (final int buttonId : buttonsOrderLeft) {
++            for (final int buttonId : leftButtons()) {
+                 final ButtonHolder holder = buttonHolders[buttonId];
+                 if (holder == null) {
+                     continue;
+@@ -339,7 +365,7 @@ public class ChatActivityChannelButtonsLayout extends FrameLayout implements Fac
+                 holder.button.setTranslationX(holder.button.getTranslationX() - totalWidthLeft * (1 - totalVisibilityFactor));
+             }
+ 
+-            for (final int buttonId : buttonsOrderRight) {
++            for (final int buttonId : rightButtons()) {
+                 final ButtonHolder holder = buttonHolders[buttonId];
+                 if (holder == null) {
+                     continue;

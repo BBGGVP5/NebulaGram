@@ -45,7 +45,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarCo
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/LaunchActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/LaunchActivity.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/LaunchActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/LaunchActivity.java
-@@ -8139,8 +8139,10 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
+@@ -8141,8 +8141,10 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
              title = "Updating";
              titleId = R.string.Updating;
          } else if (currentConnectionState == ConnectionsManager.ConnectionStateConnectingToProxy) {
@@ -58,7 +58,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/LaunchActivity.java b/T
          } else if (currentConnectionState == ConnectionsManager.ConnectionStateConnecting) {
              title = "Connecting";
              titleId = R.string.Connecting;
-@@ -8157,6 +8159,13 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
+@@ -8159,6 +8161,13 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
                          lastFragment = mainFragmentsStack.get(mainFragmentsStack.size() - 1);
                      }
                  }

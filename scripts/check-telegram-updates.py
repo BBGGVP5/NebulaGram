@@ -12,7 +12,7 @@ for n in [0,-1,2147483647]:
     except ValueError:pass
     else:raise AssertionError('Invalid build number accepted')
 versions.verify_badging("package: name='app.nebulagram.messenger' versionCode='1000001' versionName='1.0.0'",'1.0.0',1000001,'app.nebulagram.messenger')
-for package,code,version in [('org.telegram.messenger',1000001,'1.0.0'),('app.nebulagram.messenger',2,'1.0.0'),('app.nebulagram.messenger',1000001,'12.10.1')]:
+for package,code,version in [('org.telegram.messenger',1000001,'1.0.0'),('app.nebulagram.messenger',2,'1.0.0'),('app.nebulagram.messenger',1000001,'12.10.3')]:
     try:versions.verify_badging(f"package: name='{package}' versionCode='{code}' versionName='{version}'",'1.0.0',1000001,'app.nebulagram.messenger')
     except ValueError:pass
     else:raise AssertionError('Mismatched APK metadata accepted')

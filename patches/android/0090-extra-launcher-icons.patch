@@ -1,193 +1,3 @@
-diff --git a/TMessagesProj/src/main/java/org/telegram/ui/LauncherIconController.java b/TMessagesProj/src/main/java/org/telegram/ui/LauncherIconController.java
---- a/TMessagesProj/src/main/java/org/telegram/ui/LauncherIconController.java
-+++ b/TMessagesProj/src/main/java/org/telegram/ui/LauncherIconController.java
-@@ -34,14 +34,24 @@
-     }
- 
-     // Keep alias keys stable: Android remembers the selected component across upgrades.
--    // All six artworks are original NebulaGram assets, not Telegram Premium icons.
-+    // All artworks are original NebulaGram assets, not Telegram Premium icons.
-     public enum LauncherIcon {
-         DEFAULT("DefaultIcon", R.drawable.nebula_launcher_blue_background, R.mipmap.nebula_launcher_blue_foreground, R.string.NebulaLauncherBlue),
-         VINTAGE("VintageIcon", R.drawable.nebula_launcher_ocean_background, R.mipmap.nebula_launcher_ocean_foreground, R.string.NebulaLauncherOcean),
-         AQUA("AquaIcon", R.drawable.nebula_launcher_aurora_background, R.mipmap.nebula_launcher_aurora_foreground, R.string.NebulaLauncherAurora),
-         PREMIUM("PremiumIcon", R.drawable.nebula_launcher_sunset_background, R.mipmap.nebula_launcher_sunset_foreground, R.string.NebulaLauncherSunset),
-         TURBO("TurboIcon", R.drawable.nebula_launcher_graphite_background, R.mipmap.nebula_launcher_graphite_foreground, R.string.NebulaLauncherGraphite),
--        NOX("NoxIcon", R.drawable.nebula_launcher_pearl_background, R.mipmap.nebula_launcher_pearl_foreground, R.string.NebulaLauncherPearl);
-+        NOX("NoxIcon", R.drawable.nebula_launcher_pearl_background, R.mipmap.nebula_launcher_pearl_foreground, R.string.NebulaLauncherPearl),
-+        INK("NebulaInkIcon", R.drawable.nebula_launcher_ink_background, R.mipmap.nebula_launcher_ink_foreground, R.string.NebulaLauncherInk),
-+        PAPER("NebulaPaperIcon", R.drawable.nebula_launcher_paper_background, R.mipmap.nebula_launcher_paper_foreground, R.string.NebulaLauncherPaper),
-+        MINT("NebulaMintIcon", R.drawable.nebula_launcher_mint_background, R.mipmap.nebula_launcher_mint_foreground, R.string.NebulaLauncherMint),
-+        LAVENDER("NebulaLavenderIcon", R.drawable.nebula_launcher_lavender_background, R.mipmap.nebula_launcher_lavender_foreground, R.string.NebulaLauncherLavender),
-+        TANGERINE("NebulaTangerineIcon", R.drawable.nebula_launcher_tangerine_background, R.mipmap.nebula_launcher_tangerine_foreground, R.string.NebulaLauncherTangerine),
-+        ROSE("NebulaRoseIcon", R.drawable.nebula_launcher_rose_background, R.mipmap.nebula_launcher_rose_foreground, R.string.NebulaLauncherRose),
-+        ORBIT("NebulaOrbitIcon", R.drawable.nebula_launcher_orbit_background, R.mipmap.nebula_launcher_orbit_foreground, R.string.NebulaLauncherOrbit),
-+        BLUEPRINT("NebulaBlueprintIcon", R.drawable.nebula_launcher_blueprint_background, R.mipmap.nebula_launcher_blueprint_foreground, R.string.NebulaLauncherBlueprint),
-+        NOVA("NebulaNovaIcon", R.drawable.nebula_launcher_nova_background, R.mipmap.nebula_launcher_nova_foreground, R.string.NebulaLauncherNova),
-+        MONOGRAM("NebulaMonogramIcon", R.drawable.nebula_launcher_monogram_background, R.mipmap.nebula_launcher_monogram_foreground, R.string.NebulaLauncherMonogram);
- 
-         public final String key;
-         public final int background;
-diff --git a/TMessagesProj/src/main/AndroidManifest.xml b/TMessagesProj/src/main/AndroidManifest.xml
---- a/TMessagesProj/src/main/AndroidManifest.xml
-+++ b/TMessagesProj/src/main/AndroidManifest.xml
-@@ -700,6 +700,156 @@
-             android:name="com.google.android.gms.cast.framework.OPTIONS_PROVIDER_CLASS_NAME"
-             android:value="org.telegram.messenger.chromecast.ChromecastOptionsProvider" />
- 
-+        <activity-alias
-+            android:enabled="false"
-+            android:name="org.telegram.messenger.NebulaInkIcon"
-+            android:targetActivity="org.telegram.ui.LaunchActivity"
-+            android:icon="@mipmap/nebula_launcher_ink"
-+            android:roundIcon="@mipmap/nebula_launcher_ink"
-+            android:exported="true">
-+            <intent-filter>
-+                <action android:name="android.intent.action.MAIN" />
-+                <category android:name="android.intent.category.LAUNCHER" />
-+                <category android:name="android.intent.category.MULTIWINDOW_LAUNCHER" />
-+            </intent-filter>
-+            <meta-data android:name="android.app.shortcuts" android:resource="@xml/shortcuts" />
-+        </activity-alias>
-+
-+        <activity-alias
-+            android:enabled="false"
-+            android:name="org.telegram.messenger.NebulaPaperIcon"
-+            android:targetActivity="org.telegram.ui.LaunchActivity"
-+            android:icon="@mipmap/nebula_launcher_paper"
-+            android:roundIcon="@mipmap/nebula_launcher_paper"
-+            android:exported="true">
-+            <intent-filter>
-+                <action android:name="android.intent.action.MAIN" />
-+                <category android:name="android.intent.category.LAUNCHER" />
-+                <category android:name="android.intent.category.MULTIWINDOW_LAUNCHER" />
-+            </intent-filter>
-+            <meta-data android:name="android.app.shortcuts" android:resource="@xml/shortcuts" />
-+        </activity-alias>
-+
-+        <activity-alias
-+            android:enabled="false"
-+            android:name="org.telegram.messenger.NebulaMintIcon"
-+            android:targetActivity="org.telegram.ui.LaunchActivity"
-+            android:icon="@mipmap/nebula_launcher_mint"
-+            android:roundIcon="@mipmap/nebula_launcher_mint"
-+            android:exported="true">
-+            <intent-filter>
-+                <action android:name="android.intent.action.MAIN" />
-+                <category android:name="android.intent.category.LAUNCHER" />
-+                <category android:name="android.intent.category.MULTIWINDOW_LAUNCHER" />
-+            </intent-filter>
-+            <meta-data android:name="android.app.shortcuts" android:resource="@xml/shortcuts" />
-+        </activity-alias>
-+
-+        <activity-alias
-+            android:enabled="false"
-+            android:name="org.telegram.messenger.NebulaLavenderIcon"
-+            android:targetActivity="org.telegram.ui.LaunchActivity"
-+            android:icon="@mipmap/nebula_launcher_lavender"
-+            android:roundIcon="@mipmap/nebula_launcher_lavender"
-+            android:exported="true">
-+            <intent-filter>
-+                <action android:name="android.intent.action.MAIN" />
-+                <category android:name="android.intent.category.LAUNCHER" />
-+                <category android:name="android.intent.category.MULTIWINDOW_LAUNCHER" />
-+            </intent-filter>
-+            <meta-data android:name="android.app.shortcuts" android:resource="@xml/shortcuts" />
-+        </activity-alias>
-+
-+        <activity-alias
-+            android:enabled="false"
-+            android:name="org.telegram.messenger.NebulaTangerineIcon"
-+            android:targetActivity="org.telegram.ui.LaunchActivity"
-+            android:icon="@mipmap/nebula_launcher_tangerine"
-+            android:roundIcon="@mipmap/nebula_launcher_tangerine"
-+            android:exported="true">
-+            <intent-filter>
-+                <action android:name="android.intent.action.MAIN" />
-+                <category android:name="android.intent.category.LAUNCHER" />
-+                <category android:name="android.intent.category.MULTIWINDOW_LAUNCHER" />
-+            </intent-filter>
-+            <meta-data android:name="android.app.shortcuts" android:resource="@xml/shortcuts" />
-+        </activity-alias>
-+
-+        <activity-alias
-+            android:enabled="false"
-+            android:name="org.telegram.messenger.NebulaRoseIcon"
-+            android:targetActivity="org.telegram.ui.LaunchActivity"
-+            android:icon="@mipmap/nebula_launcher_rose"
-+            android:roundIcon="@mipmap/nebula_launcher_rose"
-+            android:exported="true">
-+            <intent-filter>
-+                <action android:name="android.intent.action.MAIN" />
-+                <category android:name="android.intent.category.LAUNCHER" />
-+                <category android:name="android.intent.category.MULTIWINDOW_LAUNCHER" />
-+            </intent-filter>
-+            <meta-data android:name="android.app.shortcuts" android:resource="@xml/shortcuts" />
-+        </activity-alias>
-+
-+        <activity-alias
-+            android:enabled="false"
-+            android:name="org.telegram.messenger.NebulaOrbitIcon"
-+            android:targetActivity="org.telegram.ui.LaunchActivity"
-+            android:icon="@mipmap/nebula_launcher_orbit"
-+            android:roundIcon="@mipmap/nebula_launcher_orbit"
-+            android:exported="true">
-+            <intent-filter>
-+                <action android:name="android.intent.action.MAIN" />
-+                <category android:name="android.intent.category.LAUNCHER" />
-+                <category android:name="android.intent.category.MULTIWINDOW_LAUNCHER" />
-+            </intent-filter>
-+            <meta-data android:name="android.app.shortcuts" android:resource="@xml/shortcuts" />
-+        </activity-alias>
-+
-+        <activity-alias
-+            android:enabled="false"
-+            android:name="org.telegram.messenger.NebulaBlueprintIcon"
-+            android:targetActivity="org.telegram.ui.LaunchActivity"
-+            android:icon="@mipmap/nebula_launcher_blueprint"
-+            android:roundIcon="@mipmap/nebula_launcher_blueprint"
-+            android:exported="true">
-+            <intent-filter>
-+                <action android:name="android.intent.action.MAIN" />
-+                <category android:name="android.intent.category.LAUNCHER" />
-+                <category android:name="android.intent.category.MULTIWINDOW_LAUNCHER" />
-+            </intent-filter>
-+            <meta-data android:name="android.app.shortcuts" android:resource="@xml/shortcuts" />
-+        </activity-alias>
-+
-+        <activity-alias
-+            android:enabled="false"
-+            android:name="org.telegram.messenger.NebulaNovaIcon"
-+            android:targetActivity="org.telegram.ui.LaunchActivity"
-+            android:icon="@mipmap/nebula_launcher_nova"
-+            android:roundIcon="@mipmap/nebula_launcher_nova"
-+            android:exported="true">
-+            <intent-filter>
-+                <action android:name="android.intent.action.MAIN" />
-+                <category android:name="android.intent.category.LAUNCHER" />
-+                <category android:name="android.intent.category.MULTIWINDOW_LAUNCHER" />
-+            </intent-filter>
-+            <meta-data android:name="android.app.shortcuts" android:resource="@xml/shortcuts" />
-+        </activity-alias>
-+
-+        <activity-alias
-+            android:enabled="false"
-+            android:name="org.telegram.messenger.NebulaMonogramIcon"
-+            android:targetActivity="org.telegram.ui.LaunchActivity"
-+            android:icon="@mipmap/nebula_launcher_monogram"
-+            android:roundIcon="@mipmap/nebula_launcher_monogram"
-+            android:exported="true">
-+            <intent-filter>
-+                <action android:name="android.intent.action.MAIN" />
-+                <category android:name="android.intent.category.LAUNCHER" />
-+                <category android:name="android.intent.category.MULTIWINDOW_LAUNCHER" />
-+            </intent-filter>
-+            <meta-data android:name="android.app.shortcuts" android:resource="@xml/shortcuts" />
-+        </activity-alias>
-+
-     </application>
- 
- </manifest>
 diff --git a/TMessagesProj/config/release/AndroidManifest_standalone.xml b/TMessagesProj/config/release/AndroidManifest_standalone.xml
 --- a/TMessagesProj/config/release/AndroidManifest_standalone.xml
 +++ b/TMessagesProj/config/release/AndroidManifest_standalone.xml
@@ -358,3 +168,193 @@ diff --git a/TMessagesProj/config/release/AndroidManifest_standalone.xml b/TMess
      </application>
  
  </manifest>
+diff --git a/TMessagesProj/src/main/AndroidManifest.xml b/TMessagesProj/src/main/AndroidManifest.xml
+--- a/TMessagesProj/src/main/AndroidManifest.xml
++++ b/TMessagesProj/src/main/AndroidManifest.xml
+@@ -700,6 +700,156 @@
+             android:name="com.google.android.gms.cast.framework.OPTIONS_PROVIDER_CLASS_NAME"
+             android:value="org.telegram.messenger.chromecast.ChromecastOptionsProvider" />
+ 
++        <activity-alias
++            android:enabled="false"
++            android:name="org.telegram.messenger.NebulaInkIcon"
++            android:targetActivity="org.telegram.ui.LaunchActivity"
++            android:icon="@mipmap/nebula_launcher_ink"
++            android:roundIcon="@mipmap/nebula_launcher_ink"
++            android:exported="true">
++            <intent-filter>
++                <action android:name="android.intent.action.MAIN" />
++                <category android:name="android.intent.category.LAUNCHER" />
++                <category android:name="android.intent.category.MULTIWINDOW_LAUNCHER" />
++            </intent-filter>
++            <meta-data android:name="android.app.shortcuts" android:resource="@xml/shortcuts" />
++        </activity-alias>
++
++        <activity-alias
++            android:enabled="false"
++            android:name="org.telegram.messenger.NebulaPaperIcon"
++            android:targetActivity="org.telegram.ui.LaunchActivity"
++            android:icon="@mipmap/nebula_launcher_paper"
++            android:roundIcon="@mipmap/nebula_launcher_paper"
++            android:exported="true">
++            <intent-filter>
++                <action android:name="android.intent.action.MAIN" />
++                <category android:name="android.intent.category.LAUNCHER" />
++                <category android:name="android.intent.category.MULTIWINDOW_LAUNCHER" />
++            </intent-filter>
++            <meta-data android:name="android.app.shortcuts" android:resource="@xml/shortcuts" />
++        </activity-alias>
++
++        <activity-alias
++            android:enabled="false"
++            android:name="org.telegram.messenger.NebulaMintIcon"
++            android:targetActivity="org.telegram.ui.LaunchActivity"
++            android:icon="@mipmap/nebula_launcher_mint"
++            android:roundIcon="@mipmap/nebula_launcher_mint"
++            android:exported="true">
++            <intent-filter>
++                <action android:name="android.intent.action.MAIN" />
++                <category android:name="android.intent.category.LAUNCHER" />
++                <category android:name="android.intent.category.MULTIWINDOW_LAUNCHER" />
++            </intent-filter>
++            <meta-data android:name="android.app.shortcuts" android:resource="@xml/shortcuts" />
++        </activity-alias>
++
++        <activity-alias
++            android:enabled="false"
++            android:name="org.telegram.messenger.NebulaLavenderIcon"
++            android:targetActivity="org.telegram.ui.LaunchActivity"
++            android:icon="@mipmap/nebula_launcher_lavender"
++            android:roundIcon="@mipmap/nebula_launcher_lavender"
++            android:exported="true">
++            <intent-filter>
++                <action android:name="android.intent.action.MAIN" />
++                <category android:name="android.intent.category.LAUNCHER" />
++                <category android:name="android.intent.category.MULTIWINDOW_LAUNCHER" />
++            </intent-filter>
++            <meta-data android:name="android.app.shortcuts" android:resource="@xml/shortcuts" />
++        </activity-alias>
++
++        <activity-alias
++            android:enabled="false"
++            android:name="org.telegram.messenger.NebulaTangerineIcon"
++            android:targetActivity="org.telegram.ui.LaunchActivity"
++            android:icon="@mipmap/nebula_launcher_tangerine"
++            android:roundIcon="@mipmap/nebula_launcher_tangerine"
++            android:exported="true">
++            <intent-filter>
++                <action android:name="android.intent.action.MAIN" />
++                <category android:name="android.intent.category.LAUNCHER" />
++                <category android:name="android.intent.category.MULTIWINDOW_LAUNCHER" />
++            </intent-filter>
++            <meta-data android:name="android.app.shortcuts" android:resource="@xml/shortcuts" />
++        </activity-alias>
++
++        <activity-alias
++            android:enabled="false"
++            android:name="org.telegram.messenger.NebulaRoseIcon"
++            android:targetActivity="org.telegram.ui.LaunchActivity"
++            android:icon="@mipmap/nebula_launcher_rose"
++            android:roundIcon="@mipmap/nebula_launcher_rose"
++            android:exported="true">
++            <intent-filter>
++                <action android:name="android.intent.action.MAIN" />
++                <category android:name="android.intent.category.LAUNCHER" />
++                <category android:name="android.intent.category.MULTIWINDOW_LAUNCHER" />
++            </intent-filter>
++            <meta-data android:name="android.app.shortcuts" android:resource="@xml/shortcuts" />
++        </activity-alias>
++
++        <activity-alias
++            android:enabled="false"
++            android:name="org.telegram.messenger.NebulaOrbitIcon"
++            android:targetActivity="org.telegram.ui.LaunchActivity"
++            android:icon="@mipmap/nebula_launcher_orbit"
++            android:roundIcon="@mipmap/nebula_launcher_orbit"
++            android:exported="true">
++            <intent-filter>
++                <action android:name="android.intent.action.MAIN" />
++                <category android:name="android.intent.category.LAUNCHER" />
++                <category android:name="android.intent.category.MULTIWINDOW_LAUNCHER" />
++            </intent-filter>
++            <meta-data android:name="android.app.shortcuts" android:resource="@xml/shortcuts" />
++        </activity-alias>
++
++        <activity-alias
++            android:enabled="false"
++            android:name="org.telegram.messenger.NebulaBlueprintIcon"
++            android:targetActivity="org.telegram.ui.LaunchActivity"
++            android:icon="@mipmap/nebula_launcher_blueprint"
++            android:roundIcon="@mipmap/nebula_launcher_blueprint"
++            android:exported="true">
++            <intent-filter>
++                <action android:name="android.intent.action.MAIN" />
++                <category android:name="android.intent.category.LAUNCHER" />
++                <category android:name="android.intent.category.MULTIWINDOW_LAUNCHER" />
++            </intent-filter>
++            <meta-data android:name="android.app.shortcuts" android:resource="@xml/shortcuts" />
++        </activity-alias>
++
++        <activity-alias
++            android:enabled="false"
++            android:name="org.telegram.messenger.NebulaNovaIcon"
++            android:targetActivity="org.telegram.ui.LaunchActivity"
++            android:icon="@mipmap/nebula_launcher_nova"
++            android:roundIcon="@mipmap/nebula_launcher_nova"
++            android:exported="true">
++            <intent-filter>
++                <action android:name="android.intent.action.MAIN" />
++                <category android:name="android.intent.category.LAUNCHER" />
++                <category android:name="android.intent.category.MULTIWINDOW_LAUNCHER" />
++            </intent-filter>
++            <meta-data android:name="android.app.shortcuts" android:resource="@xml/shortcuts" />
++        </activity-alias>
++
++        <activity-alias
++            android:enabled="false"
++            android:name="org.telegram.messenger.NebulaMonogramIcon"
++            android:targetActivity="org.telegram.ui.LaunchActivity"
++            android:icon="@mipmap/nebula_launcher_monogram"
++            android:roundIcon="@mipmap/nebula_launcher_monogram"
++            android:exported="true">
++            <intent-filter>
++                <action android:name="android.intent.action.MAIN" />
++                <category android:name="android.intent.category.LAUNCHER" />
++                <category android:name="android.intent.category.MULTIWINDOW_LAUNCHER" />
++            </intent-filter>
++            <meta-data android:name="android.app.shortcuts" android:resource="@xml/shortcuts" />
++        </activity-alias>
++
+     </application>
+ 
+ </manifest>
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/LauncherIconController.java b/TMessagesProj/src/main/java/org/telegram/ui/LauncherIconController.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/LauncherIconController.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/LauncherIconController.java
+@@ -34,14 +34,24 @@ public class LauncherIconController {
+     }
+ 
+     // Keep alias keys stable: Android remembers the selected component across upgrades.
+-    // All six artworks are original NebulaGram assets, not Telegram Premium icons.
++    // All artworks are original NebulaGram assets, not Telegram Premium icons.
+     public enum LauncherIcon {
+         DEFAULT("DefaultIcon", R.drawable.nebula_launcher_blue_background, R.mipmap.nebula_launcher_blue_foreground, R.string.NebulaLauncherBlue),
+         VINTAGE("VintageIcon", R.drawable.nebula_launcher_ocean_background, R.mipmap.nebula_launcher_ocean_foreground, R.string.NebulaLauncherOcean),
+         AQUA("AquaIcon", R.drawable.nebula_launcher_aurora_background, R.mipmap.nebula_launcher_aurora_foreground, R.string.NebulaLauncherAurora),
+         PREMIUM("PremiumIcon", R.drawable.nebula_launcher_sunset_background, R.mipmap.nebula_launcher_sunset_foreground, R.string.NebulaLauncherSunset),
+         TURBO("TurboIcon", R.drawable.nebula_launcher_graphite_background, R.mipmap.nebula_launcher_graphite_foreground, R.string.NebulaLauncherGraphite),
+-        NOX("NoxIcon", R.drawable.nebula_launcher_pearl_background, R.mipmap.nebula_launcher_pearl_foreground, R.string.NebulaLauncherPearl);
++        NOX("NoxIcon", R.drawable.nebula_launcher_pearl_background, R.mipmap.nebula_launcher_pearl_foreground, R.string.NebulaLauncherPearl),
++        INK("NebulaInkIcon", R.drawable.nebula_launcher_ink_background, R.mipmap.nebula_launcher_ink_foreground, R.string.NebulaLauncherInk),
++        PAPER("NebulaPaperIcon", R.drawable.nebula_launcher_paper_background, R.mipmap.nebula_launcher_paper_foreground, R.string.NebulaLauncherPaper),
++        MINT("NebulaMintIcon", R.drawable.nebula_launcher_mint_background, R.mipmap.nebula_launcher_mint_foreground, R.string.NebulaLauncherMint),
++        LAVENDER("NebulaLavenderIcon", R.drawable.nebula_launcher_lavender_background, R.mipmap.nebula_launcher_lavender_foreground, R.string.NebulaLauncherLavender),
++        TANGERINE("NebulaTangerineIcon", R.drawable.nebula_launcher_tangerine_background, R.mipmap.nebula_launcher_tangerine_foreground, R.string.NebulaLauncherTangerine),
++        ROSE("NebulaRoseIcon", R.drawable.nebula_launcher_rose_background, R.mipmap.nebula_launcher_rose_foreground, R.string.NebulaLauncherRose),
++        ORBIT("NebulaOrbitIcon", R.drawable.nebula_launcher_orbit_background, R.mipmap.nebula_launcher_orbit_foreground, R.string.NebulaLauncherOrbit),
++        BLUEPRINT("NebulaBlueprintIcon", R.drawable.nebula_launcher_blueprint_background, R.mipmap.nebula_launcher_blueprint_foreground, R.string.NebulaLauncherBlueprint),
++        NOVA("NebulaNovaIcon", R.drawable.nebula_launcher_nova_background, R.mipmap.nebula_launcher_nova_foreground, R.string.NebulaLauncherNova),
++        MONOGRAM("NebulaMonogramIcon", R.drawable.nebula_launcher_monogram_background, R.mipmap.nebula_launcher_monogram_foreground, R.string.NebulaLauncherMonogram);
+ 
+         public final String key;
+         public final int background;

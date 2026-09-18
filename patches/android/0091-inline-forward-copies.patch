@@ -1,7 +1,7 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/SendMessagesHelper.java b/TMessagesProj/src/main/java/org/telegram/messenger/SendMessagesHelper.java
 --- a/TMessagesProj/src/main/java/org/telegram/messenger/SendMessagesHelper.java
 +++ b/TMessagesProj/src/main/java/org/telegram/messenger/SendMessagesHelper.java
-@@ -2080,7 +2080,8 @@
+@@ -2080,7 +2080,8 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
          if (messages == null || messages.isEmpty()) {
              return 0;
          }
@@ -11,7 +11,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/SendMessagesHelp
          int sendResult = 0;
          long myId = getUserConfig().getClientUserId();
          boolean isChannel = false;
-@@ -2147,17 +2148,25 @@
+@@ -2147,17 +2148,25 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
                  canSendMusic = ChatObject.canSendMusic(chat);
              }
  
@@ -45,7 +45,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/SendMessagesHelp
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
-@@ -8238,6 +8238,7 @@
+@@ -8237,6 +8237,7 @@ public class ChatActivity extends BaseFragment implements
  
          boolean[] byButtonPress = new boolean[1];
          replyLayout.setOnClickListener(v -> {
@@ -53,7 +53,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
              if (replyingMessageObject != null && replyingMessageObject.isEphemeral()) {
                  return;
              }
-@@ -8307,6 +8308,11 @@
+@@ -8306,6 +8307,11 @@ public class ChatActivity extends BaseFragment implements
          chatActivityEnterTopView.addView(replyCloseImageView, LayoutHelper.createFrame(52, 46, Gravity.RIGHT | Gravity.TOP, 0, 0.5f, 0, 0));
          chatActivityEnterView.nebulaComposerStyle.setPreview(replyLayout, replyCloseImageView);
          replyCloseImageView.setOnClickListener(v -> {
@@ -65,7 +65,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
              messageSuggestionParams = null;
              if (fieldPanelShown == 2) {
                  replyingQuote = null;
-@@ -11141,17 +11147,36 @@
+@@ -11140,17 +11146,36 @@ public class ChatActivity extends BaseFragment implements
              @Override
              protected boolean canEditForward() {
                  return !DialogObject.isEncryptedDialog(dialog_id) && editingMessageObject == null
@@ -105,7 +105,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
                      showFieldPanelForForward(true, copies);
                      messagePreviewParams.hideForwardSendersName = true;
                      messagePreviewParams.hideCaption = false;
-@@ -34955,6 +34980,11 @@
+@@ -34948,6 +34973,11 @@ public class ChatActivity extends BaseFragment implements
  
      @Override
      public boolean onBackPressed(boolean invoked) {
@@ -120,7 +120,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
-@@ -7596,6 +7596,25 @@
+@@ -7595,6 +7595,25 @@ public class ChatActivityEnterView extends FrameLayout implements
          });
      }
  
@@ -146,7 +146,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivity
      public void doneEditingMessage() {
          if (editingMessageObject == null) {
              return;
-@@ -7651,6 +7670,21 @@
+@@ -7650,6 +7669,21 @@ public class ChatActivityEnterView extends FrameLayout implements
              return;
          }
          ArrayList<TLRPC.MessageEntity> entities = MediaDataController.getInstance(currentAccount).getEntities(message, supportsSendingNewEntities());
@@ -168,7 +168,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivity
          if (!TextUtils.equals(message[0], editingMessageObject.messageText) || entities != null && !entities.isEmpty() || !editingMessageObject.messageOwner.entities.isEmpty() || editingMessageObject.messageOwner.media instanceof TLRPC.TL_messageMediaWebPage) {
              editingMessageObject.editingMessage = message[0];
              editingMessageObject.editingMessageEntities = entities;
-@@ -9893,6 +9927,7 @@
+@@ -9892,6 +9926,7 @@ public class ChatActivityEnterView extends FrameLayout implements
          if (audioToSend != null || videoToSendMessageObject != null || editingMessageObject == messageObject) {
              return;
          }
@@ -176,7 +176,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivity
          createMessageEditText();
          boolean hadEditingMessage = editingMessageObject != null;
          editingMessageObject = messageObject;
-@@ -13044,7 +13079,8 @@
+@@ -13043,7 +13078,8 @@ public class ChatActivityEnterView extends FrameLayout implements
      }
  
      public MessageObject getEditingMessageObject() {
@@ -189,7 +189,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivity
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/MessagePreviewView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/MessagePreviewView.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/MessagePreviewView.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/MessagePreviewView.java
-@@ -1035,7 +1035,7 @@
+@@ -1034,7 +1034,7 @@ public class MessagePreviewView extends FrameLayout {
  
                  if (canEditForward()) {
                      ActionBarMenuSubItem editCopy = new ActionBarMenuSubItem(context, true, false, resourcesProvider);
@@ -198,11 +198,10 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/MessagePrevi
                      editCopy.setOnClickListener(v -> editForward());
                      menu.addView(editCopy, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, 48));
                  }
-@@ -1303,6 +1303,14 @@
-                             subtitle = LocaleController.getString(R.string.ForwardPreviewSendersNameHiddenGroup);
+@@ -1303,6 +1303,14 @@ public class MessagePreviewView extends FrameLayout {
                          }
                      }
-+                }
+                 }
 +                if (messagePreviewParams.forwardMessages != null && (
 +                        app.nebulagram.ui.NebulaForwardEditing.isEditedBatch(messagePreviewParams.forwardMessages.messages)
 +                        || app.nebulagram.ui.NebulaProtectedCopies.requiresCopy(currentAccount, messagePreviewParams.forwardMessages.messages))) {
@@ -210,6 +209,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/MessagePrevi
 +                    subtitle = messagePreviewParams.hideForwardSendersName
 +                            ? app.nebulagram.ui.NebulaText.text("Без автора", "Without an author")
 +                            : app.nebulagram.ui.NebulaText.text("Источник будет указан текстом", "The source will be included as text");
-                 }
++                }
                  actionBar.setSubtitle(subtitle, animated);
              } else if (currentTab == TAB_REPLY) {
+                 if (messagePreviewParams.quote != null && messagePreviewParams.replyMessage.hasText) {

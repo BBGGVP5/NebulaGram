@@ -1,7 +1,7 @@
 diff --git a/TMessagesProj_AppStandalone/build.gradle b/TMessagesProj_AppStandalone/build.gradle
 --- a/TMessagesProj_AppStandalone/build.gradle
 +++ b/TMessagesProj_AppStandalone/build.gradle
-@@ -99,7 +99,9 @@
+@@ -102,7 +102,9 @@ android {
      productFlavors {
          afat {
              ndk {

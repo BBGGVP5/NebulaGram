@@ -1,12 +1,10 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarMenuSubItem.java b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarMenuSubItem.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarMenuSubItem.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarMenuSubItem.java
-@@ -258,6 +258,15 @@
-         if (this.textColor != textColor || textView.getCurrentTextColor() != textColor) {
-             textView.setTextColor(this.textColor = textColor);
+@@ -260,6 +260,15 @@ public class ActionBarMenuSubItem extends FrameLayout {
          }
-+    }
-+
+     }
+ 
 +    @Override
 +    protected void dispatchDraw(android.graphics.Canvas canvas) {
 +        // A row may be recolored after the popup was measured or its theme changed.
@@ -14,13 +12,15 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarMenu
 +        app.nebulagram.ui.NebulaMenuStyle.styleRows(this,
 +                app.nebulagram.ui.NebulaMenuStyle.ownerProvider(this, resourcesProvider));
 +        super.dispatchDraw(canvas);
-     }
- 
++    }
++
      public void setIconColor(int iconColor) {
+         setIconColor(iconColor, PorterDuff.Mode.SRC_IN);
+     }
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarPopupWindow.java b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarPopupWindow.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarPopupWindow.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarPopupWindow.java
-@@ -136,6 +136,13 @@
+@@ -136,6 +136,13 @@ public class ActionBarPopupWindow extends PopupWindow {
  
          private boolean fitItems;
          private final Theme.ResourcesProvider resourcesProvider;
@@ -34,7 +34,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarPopu
          private View topView;
          protected ActionBarPopupWindow window;
  
-@@ -161,6 +168,9 @@
+@@ -161,6 +168,9 @@ public class ActionBarPopupWindow extends PopupWindow {
          public ActionBarPopupWindowLayout(Context context, int resId, Theme.ResourcesProvider resourcesProvider, int flags) {
              super(context);
              this.resourcesProvider = resourcesProvider;
@@ -44,16 +44,17 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarPopu
  
              if (resId != 0) {
                  backgroundDrawable = getResources().getDrawable(resId).mutate();
-@@ -605,7 +615,14 @@
+@@ -604,8 +614,15 @@ public class ActionBarPopupWindow extends PopupWindow {
+             return super.dispatchTouchEvent(event);
          }
  
-         @Override
++        @Override
 +        protected void onAttachedToWindow() {
 +            super.onAttachedToWindow();
 +            getViewTreeObserver().addOnPreDrawListener(nebulaPaletteListener);
 +        }
 +
-+        @Override
+         @Override
          protected void onDetachedFromWindow() {
 +            if (getViewTreeObserver().isAlive()) getViewTreeObserver().removeOnPreDrawListener(nebulaPaletteListener);
              nebulaReveal.reset();

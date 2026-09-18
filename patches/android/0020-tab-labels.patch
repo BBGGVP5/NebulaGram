@@ -1,8 +1,7 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/glass/GlassTabView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/glass/GlassTabView.java
-index 859f86a3..2e2018ce 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/glass/GlassTabView.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/glass/GlassTabView.java
-@@ -410,6 +410,9 @@ public class GlassTabView extends FrameLayout implements MainTabsLayout.Tab, Fac
+@@ -408,6 +408,9 @@ public class GlassTabView extends FrameLayout implements MainTabsLayout.Tab, Fac
          tab.colorSelected = Theme.getColor(Theme.key_glass_tabSelected, resourcesProvider);
          tab.colorSelectedText = Theme.getColor(Theme.key_glass_tabSelectedText, resourcesProvider);
          tab.updateColors();
@@ -12,7 +11,7 @@ index 859f86a3..2e2018ce 100644
          return tab;
      }
  
-@@ -431,6 +434,9 @@ public class GlassTabView extends FrameLayout implements MainTabsLayout.Tab, Fac
+@@ -429,6 +432,9 @@ public class GlassTabView extends FrameLayout implements MainTabsLayout.Tab, Fac
          tab.colorSelected = Theme.getColor(Theme.key_glass_tabSelected, resourcesProvider);
          tab.colorSelectedText = Theme.getColor(Theme.key_glass_tabSelectedText, resourcesProvider);
          tab.updateColors();
@@ -22,7 +21,7 @@ index 859f86a3..2e2018ce 100644
          return tab;
      }
  
-@@ -452,6 +458,9 @@ public class GlassTabView extends FrameLayout implements MainTabsLayout.Tab, Fac
+@@ -450,6 +456,9 @@ public class GlassTabView extends FrameLayout implements MainTabsLayout.Tab, Fac
          tab.colorSelected = Theme.getColor(Theme.key_glass_tabSelected, resourcesProvider);
          tab.colorSelectedText = Theme.getColor(Theme.key_glass_tabSelectedText, resourcesProvider);
          tab.updateColors();
@@ -32,7 +31,7 @@ index 859f86a3..2e2018ce 100644
          return tab;
      }
  
-@@ -469,6 +478,9 @@ public class GlassTabView extends FrameLayout implements MainTabsLayout.Tab, Fac
+@@ -467,6 +476,9 @@ public class GlassTabView extends FrameLayout implements MainTabsLayout.Tab, Fac
          tab.colorSelected = Theme.getColor(Theme.key_glass_tabSelected, resourcesProvider);
          tab.colorSelectedText = Theme.getColor(Theme.key_glass_tabSelectedText, resourcesProvider);
          tab.updateColors();

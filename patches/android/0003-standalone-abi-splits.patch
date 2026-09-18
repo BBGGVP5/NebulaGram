@@ -1,8 +1,7 @@
 diff --git a/TMessagesProj_AppStandalone/build.gradle b/TMessagesProj_AppStandalone/build.gradle
-index 96dbbbf0..339e54e5 100644
 --- a/TMessagesProj_AppStandalone/build.gradle
 +++ b/TMessagesProj_AppStandalone/build.gradle
-@@ -110,6 +110,18 @@ android {
+@@ -113,6 +113,23 @@ android {
          }
      }
  
@@ -17,6 +16,11 @@ index 96dbbbf0..339e54e5 100644
 +    // сборкой без него: -PnebulaMinify=false.
 +    buildTypes.standalone.minifyEnabled =
 +            Boolean.parseBoolean((project.findProperty("nebulaMinify") ?: "true").toString())
++
++    // Снятие неиспользуемых ресурсов идёт в паре с минификацией: без R8 Gradle
++    // отказывается настраивать проект вовсе. С 12.10.3 апстрим включает его у
++    // standalone, и сборка с -PnebulaMinify=false падала ещё до компиляции.
++    buildTypes.standalone.shrinkResources = buildTypes.standalone.minifyEnabled
 +
      defaultConfig.versionCode = Integer.parseInt(APP_VERSION_CODE)
  

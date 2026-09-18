@@ -1,7 +1,7 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/drawable/color/impl/BlurredBackgroundProviderImpl.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/drawable/color/impl/BlurredBackgroundProviderImpl.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/drawable/color/impl/BlurredBackgroundProviderImpl.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/drawable/color/impl/BlurredBackgroundProviderImpl.java
-@@ -21,13 +21,18 @@
+@@ -21,13 +21,18 @@ public class BlurredBackgroundProviderImpl {
      public static BlurredBackgroundProvider mainTabs(Theme.ResourcesProvider resourcesProvider) {
          return new BlurredBackgroundProviderBuilder(resourcesProvider)
              .setBackgroundColor((r, isDark) -> {
@@ -25,7 +25,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/drawab
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/MainTabsLayout.java b/TMessagesProj/src/main/java/org/telegram/ui/MainTabsLayout.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/MainTabsLayout.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/MainTabsLayout.java
-@@ -37,6 +37,13 @@
+@@ -37,6 +37,13 @@ import me.vkryl.android.util.ClickHelper;
  public class MainTabsLayout extends AnimatedLinearLayout {
  
      private final Theme.ResourcesProvider resourcesProvider;
@@ -39,7 +39,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/MainTabsLayout.java b/T
  
      public MainTabsLayout(Context context, Theme.ResourcesProvider resourcesProvider) {
          super(context);
-@@ -314,15 +321,36 @@
+@@ -314,15 +321,36 @@ public class MainTabsLayout extends AnimatedLinearLayout {
  
      @Override
      protected void dispatchDraw(@NonNull Canvas canvas) {

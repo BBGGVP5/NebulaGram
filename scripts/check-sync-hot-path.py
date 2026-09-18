@@ -103,13 +103,15 @@ public class CommandQueueCheck {
 
 bridge = (link / 'NebulaLink.java').read_text(encoding='utf-8')
 proxy_helpers = '\n'.join(method(bridge, s) for s in [
-    'private static boolean matchesTunnelEndpoint(', 'private static void disableStaleProxy(',
+    'private static boolean matchesTunnelEndpoint(', 'private static boolean isRecordedTunnelEndpoint(String',
+    'private static boolean isRecordedTunnelEndpoint(ProxySettings', 'public static boolean isTunnelProxy(',
+    'private static void disableStaleProxy(',
     'private static void clearPreviousProxy(', 'public static void setCallsThroughTunnel(',
-    'public static boolean callsThroughTunnel('])
+    'public static boolean callsThroughTunnel(', 'public static boolean isRoutingThroughTunnel('])
 proxy_test = r'''
 import java.util.*;
 class ProxyCleanupCheck {
- static final String PROXY_ADDRESS="127.0.0.1",PREFS="nebulagram",KEY_PROXY_PORT="tunnel_proxy_port";
+ static final String PROXY_ADDRESS="127.0.0.1",PREFS="nebulagram",KEY_PROXY_PORT="tunnel_proxy_port",KEY_ROUTE_CALLS="tunnel_route_calls";
  static class SharedPreferences {
   Map<String,Object> data=new HashMap<>();
   boolean getBoolean(String k,boolean d){return (boolean)data.getOrDefault(k,d);}
@@ -128,14 +130,21 @@ class ProxyCleanupCheck {
  }
  static SharedPreferences settings=new SharedPreferences(),saved=new SharedPreferences();
  static class MessagesController {static SharedPreferences getGlobalMainSettings(){return settings;}}
+ static class ProxySettings {
+  static final ProxySettings EMPTY=new ProxySettings("",0);
+  private final String address;private final int port;
+  ProxySettings(String a,int p){address=a;port=p;}
+  String getAddress(){return address;} int getPort(){return port;}
+  String getUser(){return "";} String getPassword(){return "";} String getSecret(){return "";}
+ }
  static class ConnectionsManager {
   static int disconnects;
-  static void setProxySettings(boolean enabled,String ip,int port,String u,String p,String s){if(enabled)throw new AssertionError();disconnects++;}
+  static void setProxySettings(boolean enabled,ProxySettings settings){if(enabled)throw new AssertionError();disconnects++;}
  }
  static class SharedConfig {
   static class ProxyInfo {
-   String address,username="",password="",secret="";int port;
-   ProxyInfo(String a,int p){address=a;port=p;}
+   final ProxySettings settings;
+   ProxyInfo(String a,int p){settings=new ProxySettings(a,p);}
   }
   static ArrayList<ProxyInfo> proxyList=new ArrayList<>();
   static ProxyInfo currentProxy;
@@ -145,11 +154,13 @@ class ProxyCleanupCheck {
    if(p==currentProxy){currentProxy=null;settings.putBoolean("proxy_enabled",false).putBoolean("proxy_enabled_calls",false);}
   }
  }
+ static SharedConfig.ProxyInfo installedProxy;
  HELPERS
  static void reset(int port){
   settings=new SharedPreferences();saved=new SharedPreferences();
   settings.putBoolean("proxy_enabled",true).putBoolean("proxy_enabled_calls",true).putString("proxy_ip","127.0.0.1").putInt("proxy_port",port);
-  saved.putInt(KEY_PROXY_PORT,19080);SharedConfig.proxyList.clear();SharedConfig.currentProxy=null;ConnectionsManager.disconnects=0;
+  saved.putInt(KEY_PROXY_PORT,19080);SharedConfig.proxyList.clear();SharedConfig.currentProxy=null;
+  installedProxy=null;ConnectionsManager.disconnects=0;
  }
  public static void main(String[] args){
   if(!matchesTunnelEndpoint(19080,"127.0.0.1",19080,"","",""))throw new AssertionError();
@@ -160,8 +171,10 @@ class ProxyCleanupCheck {
    if(matchesTunnelEndpoint(19080,"127.0.0.1",19080,auth[0],auth[1],auth[2]))throw new AssertionError();
   }
   // Native prefs can survive while the proxy-list object has gone missing.
-  reset(19080);clearPreviousProxy(19080);
+  reset(19080);setCallsThroughTunnel(true);clearPreviousProxy(19080);
   if(settings.getBoolean("proxy_enabled",true)||ConnectionsManager.disconnects!=1||saved.getInt(KEY_PROXY_PORT,0)!=0||!callsThroughTunnel())throw new AssertionError("Stale endpoint survived");
+  // Выбор сохранён у нас, но Telegram больше не считает, что звонки идут через прокси.
+  if(settings.getBoolean("proxy_enabled_calls",false))throw new AssertionError("Calls still routed through a proxy that is gone");
   // A different local app's proxy must stay active and in the user's proxy list.
   reset(19081);
   SharedConfig.ProxyInfo foreign=new SharedConfig.ProxyInfo("127.0.0.1",19081);
@@ -170,9 +183,13 @@ class ProxyCleanupCheck {
   if(!settings.getBoolean("proxy_enabled",false)||ConnectionsManager.disconnects!=0||SharedConfig.currentProxy!=foreign||!SharedConfig.proxyList.contains(foreign))throw new AssertionError("Foreign proxy removed");
   reset(19080);settings.putString("proxy_user","user");clearPreviousProxy(19080);
   if(!settings.getBoolean("proxy_enabled",false))throw new AssertionError("Authenticated user proxy removed");
-  reset(19080);SharedConfig.ProxyInfo ours=new SharedConfig.ProxyInfo("127.0.0.1",19080);
+  reset(19080);setCallsThroughTunnel(true);SharedConfig.ProxyInfo ours=new SharedConfig.ProxyInfo("127.0.0.1",19080);
   SharedConfig.proxyList.add(ours);SharedConfig.currentProxy=ours;clearPreviousProxy(19080);
   if(SharedConfig.currentProxy!=null||SharedConfig.proxyList.contains(ours)||!callsThroughTunnel())throw new AssertionError("Delete/call preference mismatch");
+  // Наполовину снятая запись: адрес наш, флаг уже выключен. Ядру всё равно
+  // надо сказать, что прокси больше нет, иначе клиент стучится в мёртвый порт.
+  reset(19080);settings.putBoolean("proxy_enabled",false);clearPreviousProxy(19080);
+  if(ConnectionsManager.disconnects!=1||!settings.getString("proxy_ip","x").isEmpty())throw new AssertionError("Half-removed endpoint left in place");
   System.out.println("PASS: recorded proxy cleanup, missing list entry, foreign proxy/credentials preserved, call preference kept");
  }
 }'''.replace('HELPERS', proxy_helpers)
@@ -199,6 +216,10 @@ init = method(bridge, 'public static void init(')
 assert init.index('clearPreviousProxy(saved.getInt') < init.index('callBlocking("core.init"')
 assert 'EXECUTOR.execute(method,' in bridge
 assert 'disableStaleProxy(port);' in method(bridge, 'private static void clearPreviousProxy(')
+# Снятие туннеля проходит по списку всегда, а не только когда ссылки нет:
+# Telegram мог пересобрать список, и тогда наш объект в нём уже не тот.
+stop = method(bridge, 'public static void stopUsingTunnel(')
+assert stop.count('isTunnelProxy(proxy)') == 1 and 'else {' not in stop
 search = (ui / 'NebulaSettingsSearch.java').read_text(encoding='utf-8')
 assert search.index('R.string.NebulaHideHomeCamera') > search.index('Истории в списке чатов')
 assert 'new Entry(2, R.string.NebulaHideHomeCompose' in search
