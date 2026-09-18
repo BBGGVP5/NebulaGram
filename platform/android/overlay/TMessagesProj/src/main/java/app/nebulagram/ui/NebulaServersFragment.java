@@ -21,6 +21,8 @@ import org.telegram.ui.ActionBar.AlertDialog;
 import java.util.ArrayList;
 import java.util.Locale;
 import java.util.List;
+import java.util.HashMap;
+import java.util.UUID;
 
 import app.nebulagram.nebulalink.NebulaLink;
 
@@ -42,6 +44,12 @@ public class NebulaServersFragment extends BaseFragment {
     private LinearLayout content;
     private String selectedId = "";
     private boolean probing;
+    private boolean cancelling;
+    private String probeRequestId;
+    private int probeCompleted, probeTotal;
+    private NebulaRow probeAction;
+    private final HashMap<String, NebulaRow> serverRows = new HashMap<>();
+    private final NebulaLink.ProbeListener probeListener = this::onProbeProgress;
     private JSONObject lastData;
     private final NebulaLink.StatusListener statusListener = status -> {
         if (lastData != null) {
@@ -53,6 +61,7 @@ public class NebulaServersFragment extends BaseFragment {
     public void onResume() {
         super.onResume();
         NebulaLink.addStatusListener(statusListener);
+        NebulaLink.addProbeListener(probeListener);
         load();
     }
 
@@ -64,7 +73,12 @@ public class NebulaServersFragment extends BaseFragment {
 
     @Override
     public void onFragmentDestroy() {
+        cancelProbe();
+        probeRequestId = null;
+        NebulaLink.removeProbeListener(probeListener);
         NebulaLink.removeStatusListener(statusListener);
+        serverRows.clear();
+        probeAction = null;
         content = null;
         super.onFragmentDestroy();
     }
@@ -132,16 +146,17 @@ public class NebulaServersFragment extends BaseFragment {
         lastData = data;
         Context context = content.getContext();
         content.removeAllViews();
+        serverRows.clear();
 
         List<JSONObject> servers = serverList(data.optJSONArray("servers"));
 
         NebulaCard actions = new NebulaCard(context);
-        actions.add(new NebulaRow(context)
-                .icon(R.drawable.msg_speed)
-                .title(LocaleController.getString(probing
-                        ? R.string.NebulaProbing : R.string.NebulaProbe))
-                .subtitle(LocaleController.getString(R.string.NebulaProbeSub), false)
-                .withClick(v -> probe()));
+        probeAction = new NebulaRow(context).icon(R.drawable.msg_speed)
+                .subtitle(LocaleController.getString(R.string.NebulaProbeSub) + "\n"
+                        + LocaleController.getString(R.string.nl_ping_estimate), false)
+                .withClick(v -> { if (probing) cancelProbe(); else probe(); });
+        updateProbeAction();
+        actions.add(probeAction);
         boolean byLatency = "latency".equals(data.optString("sort", "default"));
         actions.add(new NebulaRow(context).icon(R.drawable.msg_customize)
                 .title(LocaleController.getString(R.string.NebulaServerSort))
@@ -229,16 +244,24 @@ public class NebulaServersFragment extends BaseFragment {
         if (connected) {
             row.connected(true);
         }
-        NebulaTheme theme = NebulaTheme.of(context);
-        int latency = server.optInt("latency_ms");
-        String latencyLabel = latency > 0
-                ? latency + " " + LocaleController.getString(R.string.NebulaMs)
-                : LocaleController.getString(latency < 0 ? R.string.NebulaNoReply : R.string.NebulaLatencyUnknown);
-        int latencyColor = latency < 0 ? (theme.isDark() ? 0xFFFFB4AB : 0xFFBA1A1A)
-                : latency > 0 && latency < 300 ? theme.success() : theme.onSurfaceVariant();
-        row.badge(latencyLabel, latencyColor);
+        updateLatency(row, server);
+        serverRows.put(id, row);
         row.withClick(v -> select(id));
         return row;
+    }
+
+    private void updateLatency(NebulaRow row, JSONObject server) {
+        NebulaTheme theme = NebulaTheme.of(row.getContext());
+        int latency = server.optInt("latency_ms");
+        String method = server.optString("latency_method");
+        long checkedAt = server.optLong("checked_at");
+        row.badge(NebulaLatency.format(latency, method, checkedAt,
+                        LocaleController.getString(R.string.NebulaMs),
+                        LocaleController.getString(R.string.NebulaLatencyUnknown),
+                        LocaleController.getString(R.string.NebulaNoReply)),
+                latency < 0 ? (theme.isDark() ? 0xFFFFB4AB : 0xFFBA1A1A)
+                        : NebulaLatency.isMeasured(latency, checkedAt) && NebulaLatency.displayMillis(latency, method) < 300
+                        ? theme.success() : theme.onSurfaceVariant());
     }
 
     /** Latency lives in the trailing badge; the subtitle names protocol and state. */
@@ -277,23 +300,71 @@ public class NebulaServersFragment extends BaseFragment {
         });
     }
 
-    /**
-     * Замер идёт по всем серверам сразу и занимает секунды, поэтому строка
-     * меняет подпись: иначе непонятно, нажалось ли.
-     */
-    private void probe() {
-        if (probing) {
-            return;
+    private void updateProbeAction() {
+        if (probeAction == null) return;
+        probeAction.title(probing
+                ? NebulaText.text(cancelling ? "Отмена… " : "Отменить проверку · ",
+                        cancelling ? "Cancelling… " : "Cancel check · ") + probeCompleted + "/" + probeTotal
+                : LocaleController.getString(R.string.NebulaProbe));
+    }
+
+    private void onProbeProgress(JSONObject progress) {
+        if (probeRequestId == null || !probeRequestId.equals(progress.optString("request_id"))) return;
+        if (progress.optBoolean("cancelled")) cancelling = true;
+        probeCompleted = progress.optInt("completed", probeCompleted);
+        probeTotal = progress.optInt("total", probeTotal);
+        updateProbeAction();
+        String id = progress.optString("id");
+        if (lastData == null || id.isEmpty() || !progress.has("latency_ms")) return;
+        for (JSONObject server : serverList(lastData.optJSONArray("servers"))) {
+            if (!id.equals(server.optString("id"))) continue;
+            try {
+                server.put("latency_ms", progress.optInt("latency_ms"));
+                server.put("latency_method", progress.optString("latency_method"));
+                server.put("checked_at", progress.optLong("checked_at"));
+            } catch (JSONException ignored) { return; }
+            NebulaRow row = serverRows.get(id);
+            if (row != null) updateLatency(row, server);
+            break;
         }
-        probing = true;
-        load();
-        NebulaLink.call("probe.servers", null, result -> {
-            probing = false;
-            if (!result.ok) {
-                report(result.error);
-            }
-            load();
+    }
+
+    private void probe() {
+        if (probing || lastData == null) return;
+        JSONArray ids = new JSONArray();
+        for (JSONObject server : serverList(lastData.optJSONArray("servers"))) {
+            String id = server.optString("id");
+            if (!id.isEmpty()) ids.put(id);
+        }
+        // Empty ids means all servers to the backend; never send it for an empty page.
+        if (ids.length() == 0) return;
+        String requestId = UUID.randomUUID().toString();
+        JSONObject payload = new JSONObject();
+        try {
+            payload.put("ids", ids);
+            payload.put("timeout", 5);
+            payload.put("request_id", requestId);
+        } catch (JSONException ignored) { return; }
+        probeRequestId = requestId;
+        probing = true; cancelling = false; probeCompleted = 0; probeTotal = ids.length();
+        updateProbeAction();
+        NebulaLink.call("probe.servers", payload, result -> {
+            if (!requestId.equals(probeRequestId)) return;
+            boolean wasCancelled = cancelling;
+            probeRequestId = null; probing = false; cancelling = false;
+            if (!result.ok && !wasCancelled) report(NebulaText.text("Не удалось проверить серверы", "Could not check servers"));
+            updateProbeAction();
+            if (content != null) load();
         });
+    }
+
+    private void cancelProbe() {
+        if (probeRequestId == null || cancelling) return;
+        JSONObject payload = new JSONObject();
+        try { payload.put("request_id", probeRequestId); } catch (JSONException ignored) { return; }
+        cancelling = true;
+        updateProbeAction();
+        NebulaLink.call("probe.cancel", payload, null);
     }
 
     private void report(String message) {

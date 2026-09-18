@@ -1,0 +1,19 @@
+🇷🇺 Новое в NebulaGram для Android ✈️
+
+🤖 ИИ: свой провайдер, модель и инструкции. Нужен свой API-ключ.
+🛡 NebulaLink: серверы, подписки и подключение внутри приложения.
+👋 Новое приветствие и настройка NebulaLink до входа.
+🎨 10 новых иконок, включая «Нову» и «Монограмму».
+
+Какую иконку выберешь? 👇
+
+———
+
+🇬🇧 What's new in NebulaGram for Android ✈️
+
+🤖 AI: your provider, model and instructions. Your own API key is required.
+🛡 NebulaLink: servers, subscriptions and connection controls built in.
+👋 A new welcome, with NebulaLink setup before signing in.
+🎨 10 new icons, including Nova and Monogram.
+
+Which icon will you pick? 👇

@@ -327,12 +327,15 @@ public class NebulaConnectFragment extends BaseFragment {
         row.selection(active);
         NebulaTheme theme = NebulaTheme.of(context);
         int latency = server.optInt("latency_ms");
-        row.badge(latency > 0
-                        ? latency + " " + LocaleController.getString(R.string.NebulaMs)
-                        : LocaleController.getString(latency < 0
-                                ? R.string.NebulaNoReply : R.string.NebulaLatencyUnknown),
+        String method = server.optString("latency_method");
+        long checkedAt = server.optLong("checked_at");
+        row.badge(NebulaLatency.format(latency, method, checkedAt,
+                        LocaleController.getString(R.string.NebulaMs),
+                        LocaleController.getString(R.string.NebulaLatencyUnknown),
+                        LocaleController.getString(R.string.NebulaNoReply)),
                 latency < 0 ? (theme.isDark() ? 0xFFFFB4AB : 0xFFBA1A1A)
-                        : latency > 0 && latency < 300 ? theme.success() : theme.onSurfaceVariant());
+                        : NebulaLatency.isMeasured(latency, checkedAt) && NebulaLatency.displayMillis(latency, method) < 300
+                        ? theme.success() : theme.onSurfaceVariant());
         row.withClick(v -> {
             if (busy || id.isEmpty() || id.equals(selected)) return;
             selected = id;

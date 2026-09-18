@@ -176,6 +176,7 @@ func (s *Store) ReplaceSource(source string, fresh []model.Server) error {
 		if old, ok := previous[fresh[i].ID]; ok {
 			fresh[i].LatencyMs = old.LatencyMs
 			fresh[i].CheckedAt = old.CheckedAt
+			fresh[i].LatencyMethod = old.LatencyMethod
 		}
 	}
 	s.state.Servers = append(kept, fresh...)
@@ -260,13 +261,19 @@ func (s *Store) RemoveSubscription(id string) error {
 
 // UpdateServerLatency stores probe results.
 func (s *Store) UpdateServerLatency(results map[string]int) error {
+	return s.UpdateServerLatencyMethod(results, "", time.Now().Unix())
+}
+
+// UpdateServerLatencyMethod persists values and provenance atomically. Unknown
+// legacy callers must not inherit an earlier measurement method.
+func (s *Store) UpdateServerLatencyMethod(results map[string]int, method string, checkedAt int64) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	now := time.Now().Unix()
 	for i := range s.state.Servers {
 		if ms, ok := results[s.state.Servers[i].ID]; ok {
 			s.state.Servers[i].LatencyMs = ms
-			s.state.Servers[i].CheckedAt = now
+			s.state.Servers[i].CheckedAt = checkedAt
+			s.state.Servers[i].LatencyMethod = method
 		}
 	}
 	return s.save()
@@ -293,7 +300,7 @@ func (s *Store) Filtered() []model.Server {
 	}
 	if s.state.Settings.ServerSort == "latency" {
 		sort.SliceStable(out, func(i, j int) bool {
-			return rank(out[i].LatencyMs) < rank(out[j].LatencyMs)
+			return latencyRank(out[i]) < latencyRank(out[j])
 		})
 	}
 	return out
@@ -303,6 +310,13 @@ func matches(s model.Server, query string) bool {
 	return strings.Contains(strings.ToLower(s.Name), query) ||
 		strings.Contains(strings.ToLower(s.Source), query) ||
 		strings.Contains(strings.ToLower(s.Address), query)
+}
+
+func latencyRank(s model.Server) int {
+	if s.LatencyMs == 0 && s.CheckedAt > 0 {
+		return 0
+	}
+	return rank(s.LatencyMs)
 }
 
 // rank orders measured servers ahead of unmeasured ones, failures last.

@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200" role="img" aria-label="NebulaGram">
+  <title>NebulaGram</title>
+  <!-- Знак без фона. Скругление даёт обводка в цвет заливки, поэтому силуэт
+       одинаков и в вебе, и в векторе Android, и в растре. -->
+  <path d="M148 52 96 138 88 104 54 96Z" fill="#EEF4FF" stroke="#EEF4FF"
+        stroke-width="13" stroke-linejoin="round" stroke-linecap="round"/>
+  <path d="M44 148c14-6 26-9 38-9" fill="none" stroke="#BBD6FF" stroke-width="9"
+        stroke-linecap="round" opacity=".85"/>
+  <path d="M40 124c9-4 17-6 25-6" fill="none" stroke="#BBD6FF" stroke-width="7"
+        stroke-linecap="round" opacity=".55"/>
+</svg>

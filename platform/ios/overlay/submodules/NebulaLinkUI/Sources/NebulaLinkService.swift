@@ -10,6 +10,8 @@ import SwiftSignalKit
 public final class NebulaLinkService: NSObject {
     public static let shared = NebulaLinkService()
     private let queue = DispatchQueue(label: "app.nebulagram.nebulalink")
+    private let probeQueue = DispatchQueue(label: "app.nebulagram.nebulalink.probes")
+    private var progressSink: NebulaProbeProgressSink?
     private var accountManager: AccountManager<TelegramAccountManagerTypes>?
     private var initialized = false
     private var wanted = UserDefaults.standard.bool(forKey: "nebula.link.wanted")
@@ -19,6 +21,7 @@ public final class NebulaLinkService: NSObject {
     private let proxyDisposable = MetaDisposable()
     private var routing = false
     private var routeActions: [(@escaping () -> Void) -> Void] = []
+    public static let probeProgress = Notification.Name("NebulaLinkProbeProgress")
     public static let statusChanged = Notification.Name("NebulaLinkStatusChanged")
     // Updated/read on main only. 'connected' means local proxy enabled, not APNs delivery.
     public private(set) var state = "disconnected"
@@ -69,6 +72,9 @@ public final class NebulaLinkService: NSObject {
         try directory.setResourceValues(resourceValues)
         _ = try Self.raw("core.init", ["dir": directory.path, "os": "iOS", "os_version": ProcessInfo.processInfo.operatingSystemVersionString, "model": "iPhone/iPad", "user_agent": "NebulaGram/iOS"])
         _ = try Self.raw("settings.set", ["mode": "proxy"])
+        let sink = NebulaProbeProgressSink()
+        progressSink = sink
+        NebulalinkSetEventSink(sink)
         initialized = true
     }
     private enum Failure: Error { case core, input, unavailable }
@@ -120,6 +126,19 @@ public final class NebulaLinkService: NSObject {
         queue.async {
             do {
                 try self.initializeCore()
+                // Initialization is serialized above. A synchronous probe must never occupy
+                // the control queue used by stop, selection, status or probe.cancel.
+                if method == "probe.servers" || method == "probe.url" {
+                    self.probeQueue.async {
+                        do {
+                            let result = try Self.raw(method, payload)
+                            DispatchQueue.main.async { completion(.success(result)) }
+                        } catch {
+                            DispatchQueue.main.async { completion(.failure(Failure.core)) }
+                        }
+                    }
+                    return
+                }
                 let result = try Self.raw(method, payload)
                 if method == "onboarding.connect" || method == "tunnel.start" {
                     self.wanted = true
@@ -221,5 +240,21 @@ public final class NebulaLinkService: NSObject {
             SecItemDelete(Self.keychainQuery as CFDictionary)
             completion()
         }))
+    }
+}
+
+// gomobile emits an ObjC class and protocol named NebulalinkEventSink;
+// Swift imports the protocol as NebulalinkEventSinkProtocol.
+private final class NebulaProbeProgressSink: NSObject, NebulalinkEventSinkProtocol {
+    func onEvent(_ json: String?) {
+        guard let bytes = json?.data(using: .utf8),
+              let event = (try? JSONSerialization.jsonObject(with: bytes)) as? [String: Any],
+              event["event"] as? String == "probe.progress",
+              let progress = event["data"] as? [String: Any] else { return }
+        // No payload logging: other core events may contain subscription credentials.
+        DispatchQueue.main.async {
+            NotificationCenter.default.post(name: NebulaLinkService.probeProgress,
+                                            object: NebulaLinkService.shared, userInfo: progress)
+        }
     }
 }

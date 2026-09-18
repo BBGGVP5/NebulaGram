@@ -24,7 +24,8 @@ const (
 type PingType string
 
 const (
-	PingTCP PingType = "tcp"
+	PingNimbo PingType = "nimbo"
+	PingTCP   PingType = "tcp"
 	// PingHTTP completes TLS and one GET against the endpoint, so a filter
 	// that answers the handshake and then stalls is reported as failed.
 	PingHTTP PingType = "http"
@@ -73,7 +74,7 @@ func Default() Settings {
 		Mode:            ModeProxy,
 		SocksPort:       10808,
 		HTTPPort:        0,
-		PingType:        PingTCP,
+		PingType:        PingNimbo,
 		AutoPing:        false,
 		AutoPingMin:     15,
 		RefreshOnStart:  false,
@@ -100,7 +101,7 @@ func (s *Settings) Normalize() {
 	if s.HTTPPort < 0 || s.HTTPPort > 65535 {
 		s.HTTPPort = 0
 	}
-	if s.PingType != PingTCP && s.PingType != PingHTTP && s.PingType != PingURL {
+	if s.PingType != PingNimbo && s.PingType != PingTCP && s.PingType != PingHTTP && s.PingType != PingURL {
 		s.PingType = def.PingType
 	}
 	if s.AutoPingMin <= 0 {

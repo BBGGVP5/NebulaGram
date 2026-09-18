@@ -95,8 +95,9 @@ type Server struct {
 	Raw     string `json:"raw,omitempty"`     // original share link
 
 	// Measurement, filled in by the probe package.
-	LatencyMs int   `json:"latency_ms,omitempty"` // 0 = never measured, -1 = failed
-	CheckedAt int64 `json:"checked_at,omitempty"` // unix seconds
+	LatencyMs     int    `json:"latency_ms"`               // raw milliseconds; -1 = failed; zero is valid when CheckedAt > 0
+	CheckedAt     int64  `json:"checked_at,omitempty"`     // unix seconds; 0 = never measured
+	LatencyMethod string `json:"latency_method,omitempty"` // actual measured method; empty = legacy unknown
 }
 
 // Engine reports which tunnel core runs this server.
