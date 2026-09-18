@@ -383,6 +383,13 @@ public class NebulaSectionFragment extends BaseFragment {
     }
 
     private void buildFolders(Context context) {
+        // Превью показывает те же вкладки, что и список чатов: стиль, обводку и
+        // счётчики видно сразу, без ухода на главный экран и обратно.
+        folderPreview = new NebulaFoldersPreview(context);
+        LinearLayout.LayoutParams previewParams = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        previewParams.bottomMargin = AndroidUtilities.dp(10);
+        content.addView(folderPreview, previewParams);
         NebulaCard card = new NebulaCard(context);
         card.add(toggle(context, R.drawable.nebula_cupertino_archive, R.string.NebulaHideAllChats, R.string.NebulaHideAllChatsInfo,
                 NebulaAppearance.hideAllChats(), NebulaAppearance::setHideAllChats));
@@ -414,6 +421,13 @@ public class NebulaSectionFragment extends BaseFragment {
 
     private void buildMessages(Context context) {
         NebulaExtras.messages(this, content);
+        NebulaCard camera = new NebulaCard(context);
+        camera.add(new NebulaRow(context).icon(R.drawable.msg_videocall)
+                .title(NebulaText.text("Камера кружка", "Round video camera"))
+                .subtitle(NebulaRoundCamera.title(), true)
+                .trailing(NebulaRow.TRAIL_CHEVRON)
+                .withClick(v -> roundCamera(context)));
+        content.addView(camera, cardParams());
         sample(context, NebulaControlsPreview.MESSAGE);
         NebulaCard card = new NebulaCard(context);
         card.add(toggle(context, R.drawable.msg_recent, R.string.NebulaSeconds, R.string.NebulaSecondsSub,
@@ -438,6 +452,20 @@ public class NebulaSectionFragment extends BaseFragment {
                 }));
         menu.add(below);
         content.addView(menu, cardParams());
+    }
+
+    /** С какой камеры открывается запись видеосообщения. */
+    private void roundCamera(Context context) {
+        CharSequence[] titles = {
+                NebulaText.text("Как в прошлый раз", "Last used"),
+                NebulaText.text("Фронтальная", "Front"),
+                NebulaText.text("Основная", "Rear"),
+                NebulaText.text("Спрашивать", "Ask"),
+        };
+        new org.telegram.ui.ActionBar.AlertDialog.Builder(context)
+                .setTitle(NebulaText.text("Камера кружка", "Round video camera"))
+                .setItems(titles, (d, which) -> { NebulaRoundCamera.setMode(which); refreshPalette(); })
+                .show();
     }
 
     private void buildProfile(Context context) {

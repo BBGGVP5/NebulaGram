@@ -102,14 +102,6 @@ public class NebulaConnectionCard extends LinearLayout {
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         actionParams.topMargin = AndroidUtilities.dp(16);
         addView(action, actionParams);
-        TextView scope = new TextView(context);
-        scope.setText(NebulaText.text("Только Telegram · без системного VPN", "Telegram only · no system VPN"));
-        scope.setTextSize(12);
-        scope.setTextColor(theme.onSurfaceVariant());
-        scope.setGravity(Gravity.CENTER);
-        LayoutParams scopeParams = new LayoutParams(-1, -2);
-        scopeParams.topMargin = AndroidUtilities.dp(12);
-        addView(scope, scopeParams);
 
         render(null);
         refresh();

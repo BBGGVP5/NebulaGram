@@ -146,14 +146,6 @@ public final class NebulaPrivacyFragment extends BaseFragment {
         note(text("Значок показывается в чате вместо слова «Удалено».",
                 "The icon replaces the word Deleted in the chat."));
 
-        header(text("Видеосообщения", "Video messages"));
-        card(row(R.drawable.msg_videocall, text("Камера кружка", "Round video camera"))
-                .subtitle(NebulaRoundCamera.title(), true)
-                .trailing(NebulaRow.TRAIL_CHEVRON)
-                .withClick(v -> roundCamera()));
-        note(text("С какой камеры открывается запись видеосообщения. «Спрашивать» задаёт вопрос при переходе в режим кружка — не во время записи, иначе вопрос съел бы жест. Развернуть камеру во время записи можно как раньше.",
-                "Which camera a video message opens with. Ask puts the question on the tap that switches into round-video mode, not during recording, where it would eat the gesture. Flipping the camera while recording works as before."));
-
         header(text("Пересылка", "Forwarding"));
         card(row(R.drawable.msg_edit, text("Редактирование перед пересылкой", "Edit before forwarding"))
                 .subtitle(text("Редактор текста и подписей в меню пересылки. Вложения и альбомы сохраняются.",
@@ -252,20 +244,6 @@ public final class NebulaPrivacyFragment extends BaseFragment {
         showDialog(new AlertDialog.Builder(getParentActivity())
                 .setTitle(text("Цвет выделения", "Marker colour"))
                 .setItems(titles, (d, which) -> { NebulaDeletedStyle.setColourIndex(which); rebuild(); })
-                .create());
-    }
-
-    private void roundCamera() {
-        if (getParentActivity() == null) return;
-        String[] titles = {
-                text("Как в прошлый раз", "Last used"),
-                text("Фронтальная", "Front"),
-                text("Основная", "Rear"),
-                text("Спрашивать", "Ask"),
-        };
-        showDialog(new AlertDialog.Builder(getParentActivity())
-                .setTitle(text("Камера кружка", "Round video camera"))
-                .setItems(titles, (d, which) -> { NebulaRoundCamera.setMode(which); rebuild(); })
                 .create());
     }
 

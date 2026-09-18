@@ -67,13 +67,19 @@ public class NebulaServersFragment extends BaseFragment {
 
     @Override
     public void onPause() {
+        // Уходя с экрана, проверку прекращаем: девяносто серверов продолжали
+        // опрашиваться в фоне, хотя смотреть на результат стало некому.
+        cancelProbe();
+        stopPendingAnimation();
         NebulaLink.removeStatusListener(statusListener);
+        NebulaLink.removeProbeListener(probeListener);
         super.onPause();
     }
 
     @Override
     public void onFragmentDestroy() {
         cancelProbe();
+        stopPendingAnimation();
         probeRequestId = null;
         NebulaLink.removeProbeListener(probeListener);
         NebulaLink.removeStatusListener(statusListener);
@@ -250,6 +256,46 @@ public class NebulaServersFragment extends BaseFragment {
         return row;
     }
 
+    /** Идентификаторы серверов, ответа по которым в этом проходе ещё нет. */
+    private final java.util.HashSet<String> pending = new java.util.HashSet<>();
+    private int pendingFrame;
+    private final Runnable pendingTick = new Runnable() {
+        @Override public void run() {
+            if (pending.isEmpty() || content == null) return;
+            pendingFrame = (pendingFrame + 1) % 3;
+            NebulaTheme theme = NebulaTheme.of(content.getContext());
+            String dots = "···".substring(0, pendingFrame + 1);
+            for (String id : pending) {
+                NebulaRow row = serverRows.get(id);
+                if (row != null) row.badge(dots, theme.onSurfaceVariant());
+            }
+            AndroidUtilities.runOnUIThread(this, 350);
+        }
+    };
+
+    private void startPendingAnimation(java.util.Collection<String> ids) {
+        pending.clear();
+        pending.addAll(ids);
+        pendingFrame = -1;
+        AndroidUtilities.cancelRunOnUIThread(pendingTick);
+        AndroidUtilities.runOnUIThread(pendingTick);
+    }
+
+    private void stopPendingAnimation() {
+        if (pending.isEmpty()) return;
+        java.util.ArrayList<String> stale = new java.util.ArrayList<>(pending);
+        pending.clear();
+        AndroidUtilities.cancelRunOnUIThread(pendingTick);
+        // Вернуть строкам их настоящее значение: анимация подменяла только текст.
+        if (lastData != null) {
+            for (JSONObject server : serverList(lastData.optJSONArray("servers"))) {
+                if (!stale.contains(server.optString("id"))) continue;
+                NebulaRow row = serverRows.get(server.optString("id"));
+                if (row != null) updateLatency(row, server);
+            }
+        }
+    }
+
     private void updateLatency(NebulaRow row, JSONObject server) {
         NebulaTheme theme = NebulaTheme.of(row.getContext());
         int latency = server.optInt("latency_ms");
@@ -323,6 +369,7 @@ public class NebulaServersFragment extends BaseFragment {
                 server.put("latency_method", progress.optString("latency_method"));
                 server.put("checked_at", progress.optLong("checked_at"));
             } catch (JSONException ignored) { return; }
+            pending.remove(id);
             NebulaRow row = serverRows.get(id);
             if (row != null) updateLatency(row, server);
             break;
@@ -347,11 +394,15 @@ public class NebulaServersFragment extends BaseFragment {
         } catch (JSONException ignored) { return; }
         probeRequestId = requestId;
         probing = true; cancelling = false; probeCompleted = 0; probeTotal = ids.length();
+        java.util.ArrayList<String> waiting = new java.util.ArrayList<>();
+        for (int i = 0; i < ids.length(); i++) waiting.add(ids.optString(i));
+        startPendingAnimation(waiting);
         updateProbeAction();
         NebulaLink.call("probe.servers", payload, result -> {
             if (!requestId.equals(probeRequestId)) return;
             boolean wasCancelled = cancelling;
             probeRequestId = null; probing = false; cancelling = false;
+            stopPendingAnimation();
             if (!result.ok && !wasCancelled) report(NebulaText.text("Не удалось проверить серверы", "Could not check servers"));
             updateProbeAction();
             if (content != null) load();
