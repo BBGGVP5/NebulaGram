@@ -75,8 +75,14 @@ public class NebulaSettingsFragment extends BaseFragment {
     }
     private void build(Context context) {
         content.removeAllViews();
+        LinearLayout.LayoutParams overviewParams = new LinearLayout.LayoutParams(-1, -2);
+        overviewParams.bottomMargin = AndroidUtilities.dp(8);
+        content.addView(new NebulaSettingsHero(context, R.drawable.msg_settings,
+                NebulaText.text("Настройте под себя", "Make it yours"),
+                NebulaText.text("Подключение, интерфейс и инструменты — каждый в своём разделе.",
+                        "Connection, interface and tools — each in its own section.")), overviewParams);
 
-        content.addView(NebulaCard.header(context, NebulaText.text("Туннель", "Tunnel")));
+        content.addView(NebulaCard.header(context, NebulaText.text("Подключение", "Connection")));
         NebulaCard tunnel = new NebulaCard(context);
         tunnel.add(new NebulaLinkRow(context).withClick(v -> presentFragment(new NebulaMenuFragment())));
         content.addView(tunnel, cardParams());

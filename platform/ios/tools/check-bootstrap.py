@@ -115,6 +115,15 @@ def main():
         assert 'if store.showContactsTab' in root_controller
         print('OK: native Telegram tab bar is unchanged except its scoped adaptive-glass opt-out; order/hiding retain native controllers', flush=True)
 
+        input_panel = (temp / 'submodules/TelegramUI/Components/Chat/ChatTextInputPanelNode/Sources/ChatTextInputPanelNode.swift').read_text(encoding='utf-8')
+        assert 'let isExpandInputEnabled = self.enableRichTextInput\n' in input_panel
+        assert 'let isTallPanel = actualTextFieldFrame.height >= 70.0' in input_panel
+        assert 'self.interfaceInteraction?.openExpandedInput()' in input_panel
+        chat = (temp / 'submodules/TelegramUI/Sources/ChatController.swift').read_text(encoding='utf-8')
+        assert chat.count('guard let chosenReaction = chosenReaction else {\n                        itemNode.openMessageContextMenu()') == 2
+        assert 'if !canSendReactionsToChat(strongSelf.presentationInterfaceState)' in chat
+        print('OK: native rich editor independent of AI; missing quick reaction opens native menu, permission checks retained', flush=True)
+
         print(f'OK: {len(patches)} ordered iOS patch(es), {len(paths)} upstream paths, overlay/hooks, pin {revision}', flush=True)
         if args.swift:
             for source in sorted(temp.rglob('*.swift')):

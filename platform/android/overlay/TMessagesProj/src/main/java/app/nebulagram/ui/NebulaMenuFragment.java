@@ -191,6 +191,10 @@ public class NebulaMenuFragment extends BaseFragment {
                 continue;
             }
             String header = localized(section.optString("title_key"), section.optString("title"));
+            if (SCREEN_HOME.equals(screenId) && (header == null || header.isEmpty())) {
+                header = s == 0 ? NebulaText.text("Подключение", "Connection")
+                        : NebulaText.text("Серверы и сервис", "Servers and service");
+            }
             if (header != null && header.length() > 0) {
                 content.addView(NebulaCard.header(context, header));
             }
@@ -207,6 +211,7 @@ public class NebulaMenuFragment extends BaseFragment {
                 LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
                         ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
                 params.topMargin = AndroidUtilities.dp(6);
+                params.bottomMargin = AndroidUtilities.dp(8);
                 content.addView(card, params);
             }
         }
@@ -330,6 +335,7 @@ public class NebulaMenuFragment extends BaseFragment {
                 .title(title)
                 .trailing(NebulaRow.TRAIL_CHEVRON);
         if ("selected_server".equals(key) || "server_list".equals(key)) {
+            row.subtitle(NebulaText.text("Выбор сервера и проверка отклика", "Choose a server and check latency"), false);
             row.setOnClickListener(v -> presentFragment(new NebulaServersFragment()));
         }
         return row;

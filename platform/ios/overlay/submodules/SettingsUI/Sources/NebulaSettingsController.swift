@@ -27,6 +27,9 @@ private final class NebulaSettingsArguments {
 }
 
 private enum NebulaSettingsEntry: ItemListNodeEntry {
+    case toolsHeader(String)
+    case appearanceHeader(String)
+    case privacyHeader(String)
     case navigation(String)
     case contacts(String, Bool, Bool)
     case glass(String)
@@ -44,9 +47,43 @@ private enum NebulaSettingsEntry: ItemListNodeEntry {
     case exportFile(String, Bool)
     case transferFooter(String)
 
-    var section: ItemListSectionId { return stableId < 3 ? 0 : (stableId < 7 ? 1 : 2) }
+    var section: ItemListSectionId {
+        switch self {
+        case .toolsHeader, .link, .ai: return 0
+        case .appearanceHeader, .glass, .navigation, .contacts, .stories: return 1
+        case .header, .hideCounters, .footer: return 2
+        case .privacyHeader, .privacy, .history, .clearHistory: return 3
+        case .transferHeader, .importFile, .exportFile, .transferFooter: return 4
+        }
+    }
+    private var order: Int {
+        switch self {
+        case .toolsHeader: return 0
+        case .link: return 1
+        case .ai: return 2
+        case .appearanceHeader: return 3
+        case .glass: return 4
+        case .navigation: return 5
+        case .contacts: return 6
+        case .stories: return 7
+        case .header: return 8
+        case .hideCounters: return 9
+        case .footer: return 10
+        case .privacyHeader: return 11
+        case .privacy: return 12
+        case .history: return 13
+        case .clearHistory: return 14
+        case .transferHeader: return 15
+        case .importFile: return 16
+        case .exportFile: return 17
+        case .transferFooter: return 18
+        }
+    }
     var stableId: Int32 {
         switch self {
+        case .toolsHeader: return 16
+        case .appearanceHeader: return 17
+        case .privacyHeader: return 18
         case .navigation: return 13
         case .contacts: return 14
         case .glass: return 12
@@ -67,13 +104,13 @@ private enum NebulaSettingsEntry: ItemListNodeEntry {
     }
 
     static func < (lhs: NebulaSettingsEntry, rhs: NebulaSettingsEntry) -> Bool {
-        return lhs.stableId < rhs.stableId
+        return lhs.order < rhs.order
     }
 
     func item(presentationData: ItemListPresentationData, arguments: Any) -> ListViewItem {
         let arguments = arguments as! NebulaSettingsArguments
         switch self {
-        case let .header(text), let .transferHeader(text):
+        case let .header(text), let .transferHeader(text), let .toolsHeader(text), let .appearanceHeader(text), let .privacyHeader(text):
             return ItemListSectionHeaderItem(presentationData: presentationData, text: text, sectionId: section)
         case let .hideCounters(title, value, enabled):
             return ItemListSwitchItem(presentationData: presentationData, systemStyle: .glass, title: title, value: value, enabled: enabled, sectionId: section, style: .blocks, updated: arguments.update)
@@ -133,14 +170,17 @@ public func nebulaSettingsController(context: AccountContext) -> ViewController 
         let presentationData = presentationData.withUpdated(theme: presentationData.theme.withModalBlocksBackground())
         let ru = presentationData.strings.baseLanguageCode.lowercased().hasPrefix("ru")
         var footer = ru
-            ? "Скрывает числа на вкладках папок. Непрочитанные сообщения и уведомления не изменяются.\n\nЭкспериментальный перенос NebulaGram на iOS. Остальные настройки появятся постепенно."
-            : "Hides numbers on folder tabs. Unread messages and notifications are unchanged.\n\nExperimental NebulaGram port for iOS. More settings will be added gradually."
+            ? "Скрывает числа на вкладках папок. Непрочитанные сообщения и уведомления не изменяются."
+            : "Hides numbers on folder tabs. Unread messages and notifications are unchanged."
         if failed || store.hasLoadError {
             footer += ru
                 ? "\n\nНе удалось прочитать или сохранить настройки. Сохранённые данные не сброшены."
                 : "\n\nCould not read or save preferences. Stored data has not been reset."
         }
-        let entries: [NebulaSettingsEntry] = [
+        var entries: [NebulaSettingsEntry] = [
+            .toolsHeader(ru ? "Подключение и инструменты" : "Connection and tools"),
+            .appearanceHeader(ru ? "Интерфейс и навигация" : "Interface and navigation"),
+            .privacyHeader(ru ? "Конфиденциальность и поиск" : "Privacy and search"),
             .header(ru ? "Папки чатов" : "Chat folders"),
             .hideCounters(ru ? "Скрыть счётчики папок" : "Hide folder counters", hideCounters, !store.hasLoadError),
             .footer(footer),
@@ -160,6 +200,7 @@ public func nebulaSettingsController(context: AccountContext) -> ViewController 
             .contacts(ru ? "Контакты на нижней панели" : "Contacts in bottom bar", store.showContactsTab, !store.hasLoadError),
             .ai(ru ? "Искусственный интеллект" : "AI assistant")
         ]
+        entries.sort()
         let data = ItemListPresentationData(presentationData)
         let state = ItemListControllerState(presentationData: data, title: .text(ru ? "Настройки NebulaGram" : "NebulaGram Settings"), leftNavigationButton: nil, rightNavigationButton: nil, backNavigationButton: ItemListBackButton(title: presentationData.strings.Common_Back))
         return (state, (ItemListNodeState(presentationData: data, entries: entries, style: .blocks, animateChanges: true), arguments))

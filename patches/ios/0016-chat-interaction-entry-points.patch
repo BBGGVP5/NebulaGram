@@ -1,0 +1,31 @@
+diff --git a/submodules/TelegramUI/Components/Chat/ChatTextInputPanelNode/Sources/ChatTextInputPanelNode.swift b/submodules/TelegramUI/Components/Chat/ChatTextInputPanelNode/Sources/ChatTextInputPanelNode.swift
+--- a/submodules/TelegramUI/Components/Chat/ChatTextInputPanelNode/Sources/ChatTextInputPanelNode.swift
++++ b/submodules/TelegramUI/Components/Chat/ChatTextInputPanelNode/Sources/ChatTextInputPanelNode.swift
+@@ -3833,7 +3833,7 @@
+             )
+         }
+         
+-        let isExpandInputEnabled = self.enableRichTextInput && self.isAIEnabled
++        let isExpandInputEnabled = self.enableRichTextInput
+ 
+         if isExpandInputEnabled {
+             let expandButton: (button: HighlightTrackingButton, icon: UIImageView)
+diff --git a/submodules/TelegramUI/Sources/ChatController.swift b/submodules/TelegramUI/Sources/ChatController.swift
+--- a/submodules/TelegramUI/Sources/ChatController.swift
++++ b/submodules/TelegramUI/Sources/ChatController.swift
+@@ -1766,6 +1766,7 @@
+                     }
+                     
+                     guard let chosenReaction = chosenReaction else {
++                        itemNode.openMessageContextMenu()
+                         return
+                     }
+                     
+@@ -1824,6 +1825,7 @@
+                     }
+                     
+                     guard let chosenReaction = chosenReaction else {
++                        itemNode.openMessageContextMenu()
+                         return
+                     }
+                     

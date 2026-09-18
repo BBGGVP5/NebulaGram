@@ -1,0 +1,135 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
+@@ -1894,27 +1894,22 @@
+             createMenu(view, true, false, x, y, false);
+         }
+ 
++        private int nebulaDoubleTapAction(MessageObject message) {
++            return app.nebulagram.ui.NebulaMessageActions.doubleTap(
++                    app.nebulagram.ui.NebulaAppearance.ownDoubleTap(), message.isOutOwner(),
++                    message.messageOwner.post || ChatObject.isChannelAndNotMegaGroup(currentChat),
++                    message.canEditMessage(currentChat), !TextUtils.isEmpty(message.messageOwner.message));
++        }
++
+         @Override
+         public boolean hasDoubleTap(View view, int position) {
+             if (view instanceof ChatMessageCell && app.nebulagram.ui.NebulaAppearance.ownDoubleTap() != 0) {
+                 MessageObject own = ((ChatMessageCell) view).getPrimaryMessageObject();
+-                if (own != null && own.isOutOwner()) return !own.isSending() && !own.isEditing() && !own.isDateObject
++                if (own != null && nebulaDoubleTapAction(own) != 0) return !own.isSending() && !own.isEditing() && !own.isDateObject
+                         && !actionBar.isActionModeShowed() && !isSecretChat() && !isInScheduleMode() && !isInPreviewMode()
+                         && !isQuickRepliesOrWelcomeMessagesMode() && !own.isSponsored();
+             }
+             if (isQuickRepliesOrWelcomeMessagesMode()) return false;
+-            String reactionStringSetting = getMediaDataController().getDoubleTapReaction();
+-            TLRPC.TL_availableReaction reaction = getMediaDataController().getReactionsMap().get(reactionStringSetting);
+-            if (reaction == null && (reactionStringSetting == null || !reactionStringSetting.startsWith("animated_"))) {
+-                return false;
+-            }
+-            boolean available = dialog_id >= 0;
+-            if (!available && chatInfo != null) {
+-                available = ChatObject.reactionIsAvailable(chatInfo, reaction == null ? reactionStringSetting : reaction.reaction);
+-            }
+-            if (!available) {
+-                return false;
+-            }
+             MessageObject messageObject;
+             if (view instanceof ChatMessageCell) {
+                 messageObject = ((ChatMessageCell) view).getPrimaryMessageObject();
+@@ -1923,7 +1918,7 @@
+             } else {
+                 return false;
+             }
+-            return messageObject != null && !messageObject.isDateObject && !messageObject.isSending() && (messageObject.canSetReaction() || (messageObject.isOutOwner() && app.nebulagram.ui.NebulaAppearance.ownDoubleTap() != 0)) && !messageObject.isEditing() && !actionBar.isActionModeShowed() && !isSecretChat() && !isInScheduleMode() && !messageObject.isSponsored();
++            return messageObject != null && !messageObject.isDateObject && !messageObject.isSending() && messageObject.canSetReaction() && !messageObject.isEditing() && !actionBar.isActionModeShowed() && !isSecretChat() && !isInScheduleMode() && !messageObject.isSponsored();
+         }
+ 
+         @Override
+@@ -1942,9 +1937,10 @@
+             } else {
+                 return;
+             }
+-            if (messageObject.isOutOwner() && app.nebulagram.ui.NebulaAppearance.ownDoubleTap() != 0) {
+-                int action = app.nebulagram.ui.NebulaAppearance.ownDoubleTap();
+-                if (action == 1 && messageObject.canEditMessage(currentChat)) startEditingMessageObject(messageObject);
++            if (messageObject == null) return;
++            int action = nebulaDoubleTapAction(messageObject);
++            if (action != 0) {
++                if (action == 1) startEditingMessageObject(messageObject);
+                 else if (action == 2) showFieldPanelForReply(messageObject);
+                 else if (action == 3) AndroidUtilities.addToClipboard(messageObject.messageOwner.message);
+                 return;
+@@ -1956,14 +1952,24 @@
+                 return;
+             }
+ 
++            String reactionString = getMediaDataController().getDoubleTapReaction();
++            TLRPC.TL_availableReaction configuredReaction = getMediaDataController().getReactionsMap().get(reactionString);
++            boolean available = reactionString != null && (reactionString.startsWith("animated_") || configuredReaction != null)
++                    && (dialog_id >= 0 || (chatInfo != null && ChatObject.reactionIsAvailable(chatInfo, reactionString)));
++            if (!available) {
++                // Restricted channels may not allow the user's quick reaction. Let them choose.
++                if (messageObject.canSetReaction()) {
++                    createMenu(view, false, false, x, y, false);
++                }
++                return;
++            }
+             ReactionsEffectOverlay.removeCurrent(false);
+-            String reactionString = getMediaDataController().getDoubleTapReaction();
+             if (reactionString.startsWith("animated_")) {
+-                boolean available = dialog_id >= 0;
+-                if (!available && chatInfo != null) {
+-                    available = ChatObject.reactionIsAvailable(chatInfo, reactionString);
+-                }
+-                if (!available) {
++                boolean allowed = dialog_id >= 0;
++                if (!allowed && chatInfo != null) {
++                    allowed = ChatObject.reactionIsAvailable(chatInfo, reactionString);
++                }
++                if (!allowed) {
+                     return;
+                 }
+                 selectReaction(view, messageObject, null, null, x, y, ReactionsLayoutInBubble.VisibleReaction.fromEmojicon(reactionString), true, false, false, false);
+@@ -1972,11 +1978,11 @@
+                 if (reaction == null || messageObject.isSponsored()) {
+                     return;
+                 }
+-                boolean available = dialog_id >= 0;
+-                if (!available && chatInfo != null) {
+-                    available = ChatObject.reactionIsAvailable(chatInfo, reaction.reaction);
+-                }
+-                if (!available) {
++                boolean allowed = dialog_id >= 0;
++                if (!allowed && chatInfo != null) {
++                    allowed = ChatObject.reactionIsAvailable(chatInfo, reaction.reaction);
++                }
++                if (!allowed) {
+                     return;
+                 }
+                 selectReaction(view, messageObject, null, null, x, y, ReactionsLayoutInBubble.VisibleReaction.fromEmojicon(reaction), true, false, false, false);
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAttachAlert.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAttachAlert.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAttachAlert.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAttachAlert.java
+@@ -6801,6 +6801,11 @@
+                 if (app.nebulagram.ui.NebulaAppearance.hideAttachCamera() && (photosEnabled || videosEnabled)) {
+                     cameraButton = buttonsCount++;
+                 }
++                // Keep the native editor visible before an arbitrary number of attachment bots.
++                if (plainTextEnabled && !((ChatActivity) baseFragment).isSecretChat()
++                        && MessagesController.getInstance(currentAccount).richEditorAvailable()) {
++                    richButton = buttonsCount++;
++                }
+                 if ((photosEnabled || videosEnabled) && !paidUser && (chat == null || !ChatObject.isMonoForum(chat))) {
+                     if (baseFragment instanceof ChatActivity && !((ChatActivity) baseFragment).isInScheduleMode() && !((ChatActivity) baseFragment).isSecretChat() && ((ChatActivity) baseFragment).getChatMode() != ChatActivity.MODE_QUICK_REPLIES) {
+                         ChatActivity chatActivity = (ChatActivity) baseFragment;
+@@ -6821,9 +6826,6 @@
+ 
+                 if (plainTextEnabled) {
+                     locationButton = buttonsCount++;
+-                }
+-                if (plainTextEnabled && MessagesController.getInstance(currentAccount).richEditorAvailable()) {
+-                    richButton = buttonsCount++;
+                 }
+ 
+                 if (pollsEnabled) {

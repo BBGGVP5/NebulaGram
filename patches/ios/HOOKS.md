@@ -68,3 +68,17 @@
   Verification on an iPhone (including low-power mode, hidden Contacts, reordered
   tabs, search and dark/light appearance) is still required; patch tests are not a
   UIKit/IPA compilation or device screenshot test.
+
+# Chat entry points (2026-09-18)
+
+- `0016-chat-interaction-entry-points.patch`: the expanded-input button in
+  `ChatTextInputPanelNode.swift` follows the native rich-input capability, not
+  `isAIEnabled`. The upstream multiline height/empty-text conditions, input-mode
+  kill switch, editor handoff, draft synchronization and send validation remain.
+- `ChatController.swift`: when no default reaction can be resolved, open the
+  existing message context menu rather than silently consuming a double tap.
+  Existing reaction eligibility, channel restrictions and paid-reaction flow
+  are unchanged. This does not promise reactions in channels that disable them.
+- `check-bootstrap.py` applies the full series against the pin and checks these
+  anchors alongside the native-tab-bar invariant. iPhone interaction tests and
+  an Apple SDK build remain required.

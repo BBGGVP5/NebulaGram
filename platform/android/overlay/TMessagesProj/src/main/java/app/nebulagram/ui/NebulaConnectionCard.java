@@ -39,8 +39,10 @@ public class NebulaConnectionCard extends LinearLayout {
     private final TextView detail;
     private final NebulaButton action;
 
+    private JSONObject lastStatus;
     private boolean connected;
     private boolean busy;
+    private final GradientDrawable statusBackground = new GradientDrawable();
     private final NebulaLink.StatusListener statusListener = this::render;
 
     public NebulaConnectionCard(@NonNull Context context, BaseFragment host) {
@@ -49,6 +51,10 @@ public class NebulaConnectionCard extends LinearLayout {
         this.theme = NebulaTheme.of(context);
 
         setOrientation(VERTICAL);
+        statusBackground.setOrientation(GradientDrawable.Orientation.TL_BR);
+        statusBackground.setCornerRadius(AndroidUtilities.dp(24));
+        setBackground(statusBackground);
+        setClipToOutline(true);
         setPadding(AndroidUtilities.dp(16), AndroidUtilities.dp(16),
                 AndroidUtilities.dp(16), AndroidUtilities.dp(16));
 
@@ -67,7 +73,8 @@ public class NebulaConnectionCard extends LinearLayout {
         labels.setOrientation(VERTICAL);
 
         state = new TextView(context);
-        state.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 20);
+        state.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 24);
+        state.setAccessibilityLiveRegion(View.ACCESSIBILITY_LIVE_REGION_POLITE);
         state.setTypeface(AndroidUtilities.bold());
         labels.addView(state, new LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
@@ -75,23 +82,34 @@ public class NebulaConnectionCard extends LinearLayout {
         detail = new TextView(context);
         detail.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 13);
         detail.setTextColor(theme.onSurfaceVariant());
+        detail.setMaxLines(3);
+        detail.setEllipsize(android.text.TextUtils.TruncateAt.END);
         detail.setVisibility(GONE);
         labels.addView(detail, new LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
 
-        LayoutParams labelParams = new LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        labelParams.leftMargin = AndroidUtilities.dp(14);
+        LayoutParams labelParams = new LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f);
+        labelParams.setMarginStart(AndroidUtilities.dp(14));
         header.addView(labels, labelParams);
         addView(header, new LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
 
         action = new NebulaButton(context, NebulaButton.STYLE_FILLED);
         action.setOnClickListener(v -> toggle());
+        action.setSingleLine(false);
+        action.setMaxLines(2);
         LayoutParams actionParams = new LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT, AndroidUtilities.dp(52));
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         actionParams.topMargin = AndroidUtilities.dp(16);
         addView(action, actionParams);
+        TextView scope = new TextView(context);
+        scope.setText(NebulaText.text("Только Telegram · без системного VPN", "Telegram only · no system VPN"));
+        scope.setTextSize(12);
+        scope.setTextColor(theme.onSurfaceVariant());
+        scope.setGravity(Gravity.CENTER);
+        LayoutParams scopeParams = new LayoutParams(-1, -2);
+        scopeParams.topMargin = AndroidUtilities.dp(12);
+        addView(scope, scopeParams);
 
         render(null);
         refresh();
@@ -99,7 +117,7 @@ public class NebulaConnectionCard extends LinearLayout {
 
     /** Asks the core where the tunnel currently stands. */
     public void refresh() {
-        NebulaLink.call("tunnel.status", null, result -> render(result.ok ? result.data : null));
+        NebulaLink.call("tunnel.status", null, result -> { if (result.ok) render(result.data); });
     }
 
     private void toggle() {
@@ -107,25 +125,33 @@ public class NebulaConnectionCard extends LinearLayout {
             return;
         }
         busy = true;
-        action.setText(LocaleController.getString(R.string.NebulaConnecting));
+        action.setEnabled(false);
+        action.setAlpha(.65f);
+        action.setText(NebulaText.text("Подождите…", "Please wait…"));
 
         NebulaLink.call(connected ? "tunnel.stop" : "tunnel.start", null, result -> {
             busy = false;
             if (result.ok) {
                 render(result.data);
             } else {
-                render(null);
+                render(lastStatus);
                 detail.setVisibility(VISIBLE);
-                detail.setText(result.error);
+                // Errors can contain subscription credentials: never echo raw core output.
+                detail.setText(NebulaText.text("Не удалось выполнить действие. Проверьте сервер и повторите.",
+                        "Could not complete the action. Check the server and try again."));
             }
         });
     }
 
     private void render(JSONObject status) {
+        lastStatus = status;
         String phase = status == null ? "disconnected" : status.optString("state", "disconnected");
         connected = "connected".equals(phase);
 
-        int accent = connected ? theme.success() : theme.onSurfaceVariant();
+        int accent = connected ? theme.success() : theme.primary();
+        statusBackground.setColors(new int[]{theme.primaryContainer(),
+                androidx.core.graphics.ColorUtils.blendARGB(theme.surfaceContainer(), accent, connected ? .22f : .06f)});
+        statusBackground.setStroke(AndroidUtilities.dp(1), NebulaTheme.stateLayer(accent, .2f));
         GradientDrawable badgeBackground = new GradientDrawable();
         badgeBackground.setShape(GradientDrawable.OVAL);
         badgeBackground.setColor(NebulaTheme.stateLayer(accent, 0.16f));
@@ -152,7 +178,9 @@ public class NebulaConnectionCard extends LinearLayout {
             detail.setVisibility(GONE);
         }
 
-        action.setText(LocaleController.getString(connected
+        action.setEnabled(!busy);
+        action.setAlpha(busy ? .65f : 1f);
+        action.setText(busy ? NebulaText.text("Подождите…", "Please wait…") : LocaleController.getString(connected
                 ? R.string.NebulaDisconnect : R.string.NebulaConnect));
     }
 
