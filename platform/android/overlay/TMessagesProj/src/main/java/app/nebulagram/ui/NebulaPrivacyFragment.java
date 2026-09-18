@@ -115,6 +115,15 @@ public final class NebulaPrivacyFragment extends BaseFragment {
                 extraToggle(true), extraToggle(false));
         note(text("Без лимита сообщений и срока хранения. Выключение не очищает прежние копии.",
                 "No message or time limit. Turning this off keeps existing copies."));
+
+        header(text("Где сохранять", "Where to save"));
+        card(scopeToggle(NebulaDeletedStyle.PRIVATE), scopeToggle(NebulaDeletedStyle.GROUPS),
+                scopeToggle(NebulaDeletedStyle.CHANNELS), scopeToggle(NebulaDeletedStyle.BOTS));
+        note(NebulaDeletedStyle.scopeCount() == 0
+                ? text("Не выбрано ничего — сохранять будет нечего.",
+                        "Nothing is selected, so nothing will be kept.")
+                : text("Удаление из остальных чатов проходит как обычно.",
+                        "Deletions elsewhere go through as usual."));
         card(row(R.drawable.msg_info, text("Как работает сохранение", "How retention works"))
                 .subtitle(text("Медиа, фон и ограничения", "Media, background and limitations"), false)
                 .trailing(NebulaRow.TRAIL_CHEVRON)
@@ -126,11 +135,24 @@ public final class NebulaPrivacyFragment extends BaseFragment {
 
         header(text("Оформление", "Appearance"));
         card(row(R.drawable.msg_emoji_smiles, text("Значок удалённого сообщения", "Deleted message icon"))
-                .subtitle(NebulaDeletedArchive.icon(), true)
-                .trailing(NebulaRow.TRAIL_CHEVRON)
-                .withClick(v -> icons()));
+                        .subtitle(NebulaDeletedArchive.icon(), true)
+                        .trailing(NebulaRow.TRAIL_CHEVRON)
+                        .withClick(v -> icons()),
+                row(R.drawable.msg_palette, text("Как выделять", "How to mark"))
+                        .subtitle(NebulaDeletedStyle.markTitle(), true)
+                        .trailing(NebulaRow.TRAIL_CHEVRON)
+                        .withClick(v -> marks()),
+                colourRow());
         note(text("Значок показывается в чате вместо слова «Удалено».",
                 "The icon replaces the word Deleted in the chat."));
+
+        header(text("Видеосообщения", "Video messages"));
+        card(row(R.drawable.msg_videocall, text("Камера кружка", "Round video camera"))
+                .subtitle(NebulaRoundCamera.title(), true)
+                .trailing(NebulaRow.TRAIL_CHEVRON)
+                .withClick(v -> roundCamera()));
+        note(text("С какой камеры открывается запись видеосообщения. Развернуть её во время записи можно как раньше.",
+                "Which camera a video message opens with. Flipping it while recording works as before."));
 
         header(text("Пересылка", "Forwarding"));
         card(row(R.drawable.msg_edit, text("Редактирование перед пересылкой", "Edit before forwarding"))
@@ -168,6 +190,82 @@ public final class NebulaPrivacyFragment extends BaseFragment {
             note(text("Часть сообщений не удалось сохранить. Архив не сброшен.",
                     "Some messages could not be saved. The archive was not reset."));
         }
+    }
+
+    /** Один вид собеседника: сохранять из него удалённое или нет. */
+    private NebulaRow scopeToggle(int kind) {
+        final int icon;
+        switch (kind) {
+            case NebulaDeletedStyle.GROUPS: icon = R.drawable.msg_groups; break;
+            case NebulaDeletedStyle.CHANNELS: icon = R.drawable.msg_channel; break;
+            case NebulaDeletedStyle.BOTS: icon = R.drawable.msg_bot; break;
+            default: icon = R.drawable.msg_contacts; break;
+        }
+        return row(icon, NebulaDeletedStyle.scopeTitle(kind))
+                .trailing(NebulaRow.TRAIL_SWITCH)
+                .checked(NebulaDeletedStyle.scope(kind))
+                .withClick(v -> {
+                    NebulaDeletedStyle.setScope(kind, !NebulaDeletedStyle.scope(kind));
+                    rebuild();
+                });
+    }
+
+    private void marks() {
+        if (getParentActivity() == null) return;
+        String[] titles = {
+                text("Не выделять", "Do not mark"),
+                text("Приглушением", "By fading"),
+                text("Цветом", "With colour"),
+        };
+        showDialog(new AlertDialog.Builder(getParentActivity())
+                .setTitle(text("Как выделять удалённые", "How to mark deleted messages"))
+                .setItems(titles, (d, which) -> { NebulaDeletedStyle.setMark(which); rebuild(); })
+                .create());
+    }
+
+    /** Цвет подложки нужен только тогда, когда подложка вообще рисуется. */
+    private NebulaRow colourRow() {
+        NebulaRow row = row(R.drawable.msg_colors, text("Цвет выделения", "Marker colour"))
+                .subtitle(colourName(NebulaDeletedStyle.colourIndex()), true)
+                .trailing(NebulaRow.TRAIL_CHEVRON)
+                .withClick(v -> colours());
+        if (NebulaDeletedStyle.mark() != NebulaDeletedStyle.MARK_TINT) {
+            row.setAlpha(.45f);
+            row.setEnabled(false);
+        }
+        return row;
+    }
+
+    private String colourName(int index) {
+        String[] names = {
+                text("Как в теме", "Theme accent"), text("Красный", "Red"), text("Оранжевый", "Orange"),
+                text("Жёлтый", "Yellow"), text("Зелёный", "Green"), text("Синий", "Blue"),
+                text("Фиолетовый", "Purple"), text("Розовый", "Pink"),
+        };
+        return index >= 0 && index < names.length ? names[index] : names[0];
+    }
+
+    private void colours() {
+        if (getParentActivity() == null) return;
+        String[] titles = new String[NebulaDeletedStyle.PALETTE.length];
+        for (int i = 0; i < titles.length; i++) titles[i] = colourName(i);
+        showDialog(new AlertDialog.Builder(getParentActivity())
+                .setTitle(text("Цвет выделения", "Marker colour"))
+                .setItems(titles, (d, which) -> { NebulaDeletedStyle.setColourIndex(which); rebuild(); })
+                .create());
+    }
+
+    private void roundCamera() {
+        if (getParentActivity() == null) return;
+        String[] titles = {
+                text("Как в прошлый раз", "Last used"),
+                text("Фронтальная", "Front"),
+                text("Основная", "Rear"),
+        };
+        showDialog(new AlertDialog.Builder(getParentActivity())
+                .setTitle(text("Камера кружка", "Round video camera"))
+                .setItems(titles, (d, which) -> { NebulaRoundCamera.setMode(which); rebuild(); })
+                .create());
     }
 
     private NebulaRow extraToggle(boolean secret) {

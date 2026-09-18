@@ -1,0 +1,17 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/FloatingToolbar.java b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/FloatingToolbar.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/FloatingToolbar.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/FloatingToolbar.java
+@@ -1498,6 +1498,13 @@ public final class FloatingToolbar {
+                 .create(contentContainer, true)
+                 .setColorProvider(BlurredBackgroundProviderImpl.photoViewerMenu(resourcesProvider))
+                 .setRadius(dp(12)));
++        } else if (currentStyle != STYLE_BLACK) {
++            // РџР°РЅРµР»СЊ РІС‹РґРµР»РµРЅРёСЏ С‚РµРєСЃС‚Р° вЂ” С‚Р°РєРѕРµ Р¶Рµ РІСЃРїР»С‹РІР°СЋС‰РµРµ РјРµРЅСЋ, РєР°Рє РѕСЃС‚Р°Р»СЊРЅС‹Рµ,
++            // Рё Р¶РёРІС‘С‚ РІ РѕС‚РґРµР»СЊРЅРѕРј РѕРєРЅРµ: СЃРІРѕРµРіРѕ С„РѕРЅР° Сѓ РЅРµС‘ РЅРµС‚, РїРѕСЌС‚РѕРјСѓ СЃС‚РµРєР»Рѕ РµР№
++            // РїСЂРёРЅРѕСЃРёС‚ С‚РѕС‚ Р¶Рµ СЃРЅРёРјРѕРє РѕРєРЅР°-РёСЃС‚РѕС‡РЅРёРєР°, С‡С‚Рѕ Рё РјРµРЅСЋ СЃРѕРѕР±С‰РµРЅРёСЏ.
++            // РўС‘РјРЅС‹Р№ СЃС‚РёР»СЊ РїРѕРІРµСЂС… С„РѕС‚РѕРіСЂР°С„РёРё РѕСЃС‚Р°РІР»СЏРµРј РїР»РѕСЃРєРёРј: С‚Р°Рј РїРѕРґ РїР°РЅРµР»СЊСЋ
++            // РЅРµ РѕР±РѕРё, Р° СЃР°РјР° С„РѕС‚РѕРіСЂР°С„РёСЏ, Рё СЂР°Р·РјС‹РІР°С‚СЊ РµС‘ РЅРµР·Р°С‡РµРј.
++            app.nebulagram.ui.NebulaMenuBackdrop.attach(contentContainer, mWindowView, resourcesProvider);
+         } else {
+             GradientDrawable shape = new GradientDrawable();
+             shape.setShape(GradientDrawable.RECTANGLE);

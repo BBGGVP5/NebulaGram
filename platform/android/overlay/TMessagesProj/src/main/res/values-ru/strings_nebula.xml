@@ -119,4 +119,6 @@
     <string name="NebulaLinkUnavailable">NebulaLink не ответил. Возможно, ядро ещё запускается.</string>
     <string name="NebulaLinkNoScreen">Этого экрана нет в схеме ядра.</string>
     <string name="NebulaLinkRetry">Повторить</string>
+    <string name="NebulaConnectingLinkWithDots">Подключение к NebulaLink…</string>
+    <string name="NebulaConnectingLink">Подключение к NebulaLink</string>
 </resources>

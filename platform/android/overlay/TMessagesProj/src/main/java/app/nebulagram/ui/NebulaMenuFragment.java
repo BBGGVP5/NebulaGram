@@ -205,6 +205,11 @@ public class NebulaMenuFragment extends BaseFragment {
                 View view = buildRow(context, rows.optJSONObject(r));
                 if (view != null) {
                     card.add(view);
+                    JSONObject row = rows.optJSONObject(r);
+                    if (row != null && "ping_type".equals(row.optString("key"))) {
+                        card.add(new NebulaRow(context)
+                                .title(LocaleController.getString(R.string.nl_ping_estimate)));
+                    }
                 }
             }
             if (!card.isEmpty()) {
@@ -304,6 +309,9 @@ public class NebulaMenuFragment extends BaseFragment {
                         askAndRun(context, title, command, "link");
                     } else if ("provider.open".equals(command)) {
                         openProvider();
+                    } else if ("calls.stats".equals(command)) {
+                        // Клиентская команда: о звонках знает устройство, а не ядро.
+                        showCallState(context);
                     } else {
                         runCommand(command, title);
                     }
@@ -344,7 +352,8 @@ public class NebulaMenuFragment extends BaseFragment {
     // --- values -------------------------------------------------------------
 
     private String currentValue(String key) {
-        return settings == null ? "" : settings.optString(key, "");
+        String value = settings == null ? "" : settings.optString(key, "");
+        return "ping_type".equals(key) && value.isEmpty() ? "nimbo" : value;
     }
 
     private String displayValue(String key, String fallback) {
@@ -500,6 +509,18 @@ public class NebulaMenuFragment extends BaseFragment {
                 org.telegram.messenger.browser.Browser.openUrl(getParentActivity(), url);
             }
         });
+    }
+
+    /**
+     * «Состояние звонков». Ядро сюда не ходит: маршрут и счётчики живут на
+     * устройстве, и запрос {@code calls.stats} возвращал «unknown method».
+     */
+    private void showCallState(Context context) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(context);
+        builder.setTitle(NebulaCallState.title());
+        builder.setMessage(NebulaCallState.report());
+        builder.setPositiveButton(LocaleController.getString(R.string.OK), null);
+        showDialog(builder.create());
     }
 
     private void runCommand(String command, String title) {

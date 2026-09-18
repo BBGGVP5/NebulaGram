@@ -247,6 +247,9 @@ public final class NebulaDeletedArchive {
                 try {while(cursor.next()) {
                     long peer=cursor.longValue(0);int id=cursor.intValue(2), readState=cursor.intValue(3);
                     if(DialogObject.isEncryptedDialog(peer)&&!saveSecret(owner)||peer==777000||peer==owner||protectedPeer(account,peer))continue;
+                    // Где сохранять — выбор пользователя: личные чаты, группы,
+                    // каналы и боты включаются по отдельности.
+                    if(!NebulaDeletedStyle.retains(account,peer))continue;
                     if(before.keys.contains(marker(peer,id)))continue;
                     NativeByteBuffer data=cursor.byteBufferValue(1);if(data==null)continue;
                     TLRPC.Message message;

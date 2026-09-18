@@ -1,0 +1,98 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
+@@ -1665,7 +1665,16 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
+         }
+         if (additionalSubTitleOverlayContainer != null) {
+             int textTop = getCurrentActionBarHeight() / 2 + (getCurrentActionBarHeight() / 2 - additionalSubTitleOverlayContainer.getMeasuredHeight()) / 2 - dp(2);
+-            additionalSubTitleOverlayContainer.layout(textLeft, additionalTop + textTop, textLeft + additionalSubTitleOverlayContainer.getMeasuredWidth(), additionalTop + textTop + additionalSubTitleOverlayContainer.getMeasuredHeight());
++            // Подпись принадлежит заголовку и должна стоять под ним. С центрированным
++            // заголовком она оставалась у левого края, и «настроить прокси» висело
++            // само по себе в углу. Считаем по той же геометрии, что и заголовок.
++            int overlayLeft = textLeft;
++            if (nebulaCenterTitle()) {
++                overlayLeft = app.nebulagram.ui.NebulaHomeTitleGeometry.left(
++                        getMeasuredWidth(), textLeft, nebulaTitleEndInset(),
++                        additionalSubTitleOverlayContainer.getMeasuredWidth());
++            }
++            additionalSubTitleOverlayContainer.layout(overlayLeft, additionalTop + textTop, overlayLeft + additionalSubTitleOverlayContainer.getMeasuredWidth(), additionalTop + textTop + additionalSubTitleOverlayContainer.getMeasuredHeight());
+         }
+         if (subtitleTextView != null && subtitleTextView.getVisibility() != GONE) {
+             int textTop = getCurrentActionBarHeight() / 2 + (getCurrentActionBarHeight() / 2 - subtitleTextView.getTextHeight()) / 2 - dp(2);
+@@ -1783,7 +1792,9 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
+ 
+         if (additionalSubTitleOverlayContainer != null) {
+             final CharSequence textToSet;
+-            if (titleId == R.string.ConnectingToProxyWithDots) {
++            // Свой туннель настраивают в NebulaLink, а не в чужом списке прокси:
++            // предлагать «настроить прокси» там некуда и незачем.
++            if (app.nebulagram.ui.NebulaConnection.offersProxySettings(titleId)) {
+                 textToSet = AndroidUtilities.replaceArrows(getString(R.string.TitleSetupProxy), true, dp(8f / 3f), dp(2));
+             } else {
+                 textToSet = null;
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarContainer.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarContainer.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarContainer.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarContainer.java
+@@ -1758,7 +1758,7 @@ public class ChatAvatarContainer extends FrameLayout implements FactorAnimator.T
+         } else if (currentConnectionState == ConnectionsManager.ConnectionStateUpdating) {
+             title = getString(R.string.Updating);
+         } else if (currentConnectionState == ConnectionsManager.ConnectionStateConnectingToProxy) {
+-            title = getString(R.string.ConnectingToProxy);
++            title = getString(app.nebulagram.ui.NebulaConnection.connectingId(false));
+         }
+         if (title == null) {
+             if (lastSubtitle != null) {
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/LaunchActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/LaunchActivity.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/LaunchActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/LaunchActivity.java
+@@ -8139,8 +8139,10 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
+             title = "Updating";
+             titleId = R.string.Updating;
+         } else if (currentConnectionState == ConnectionsManager.ConnectionStateConnectingToProxy) {
+-            title = "ConnectingToProxyWithDots";
+-            titleId = R.string.ConnectingToProxyWithDots;
++            // Пользователь включал NebulaLink, а не «прокси»: слово из чужого
++            // словаря ему ничего не объясняет, когда через туннель идём мы сами.
++            title = app.nebulagram.ui.NebulaConnection.connectingKey(true);
++            titleId = app.nebulagram.ui.NebulaConnection.connectingId(true);
+         } else if (currentConnectionState == ConnectionsManager.ConnectionStateConnecting) {
+             title = "Connecting";
+             titleId = R.string.Connecting;
+@@ -8157,6 +8159,13 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
+                         lastFragment = mainFragmentsStack.get(mainFragmentsStack.size() - 1);
+                     }
+                 }
++                if (app.nebulagram.ui.NebulaConnection.throughLink()) {
++                    if (lastFragment instanceof app.nebulagram.ui.NebulaMenuFragment) {
++                        return;
++                    }
++                    presentFragment(new app.nebulagram.ui.NebulaMenuFragment());
++                    return;
++                }
+                 if (lastFragment instanceof ProxyListActivity || lastFragment instanceof ProxySettingsActivity) {
+                     return;
+                 }
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
+@@ -11319,7 +11319,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+         } else if (currentConnectionState == ConnectionsManager.ConnectionStateUpdating) {
+             onlineTextOverride = LocaleController.getString(R.string.Updating);
+         } else if (currentConnectionState == ConnectionsManager.ConnectionStateConnectingToProxy) {
+-            onlineTextOverride = LocaleController.getString(R.string.ConnectingToProxy);
++            onlineTextOverride = LocaleController.getString(app.nebulagram.ui.NebulaConnection.connectingId(false));
+         } else {
+             onlineTextOverride = null;
+         }
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Stories/DialogStoriesCell.java b/TMessagesProj/src/main/java/org/telegram/ui/Stories/DialogStoriesCell.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Stories/DialogStoriesCell.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Stories/DialogStoriesCell.java
+@@ -1270,7 +1270,7 @@ public class DialogStoriesCell extends FrameLayout implements NotificationCenter
+ 
+     public void setTitleOverlayText(String titleOverlayText, int textId) {
+         final CharSequence subtitleToSet;
+-        if (textId == R.string.ConnectingToProxyWithDots) {
++        if (app.nebulagram.ui.NebulaConnection.offersProxySettings(textId)) {
+             subtitleToSet = AndroidUtilities.replaceArrows(getString(R.string.TitleSetupProxy), true, dp(8f / 3f), dp(2));
+         } else {
+             subtitleToSet = null;

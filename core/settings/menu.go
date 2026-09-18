@@ -158,6 +158,7 @@ func advancedScreen() Screen {
 				{Key: "ping_type", Type: RowSelect, Icon: "gauge",
 					TitleKey: "nl_ping_type", Title: "Ping type",
 					Options: []Option{
+						{Value: string(PingNimbo), TitleKey: "nl_ping_nimbo", Title: "Nimbo Ping"},
 						{Value: string(PingTCP), TitleKey: "nl_ping_tcp", Title: "TCP"},
 						{Value: string(PingHTTP), TitleKey: "nl_ping_http", Title: "HTTP GET"},
 						{Value: string(PingURL), TitleKey: "nl_ping_url", Title: "URL"},
@@ -175,7 +176,7 @@ func advancedScreen() Screen {
 			{TitleKey: "nl_sec_calls", Title: "CALLS", Rows: []Row{
 				{Key: "call_state", Type: RowAction, Command: "calls.stats", Icon: "chart",
 					TitleKey: "nl_call_state", Title: "Call state",
-					SubtitleKey: "nl_call_state_sub", Subtitle: "Hooks / requests / matched / sent / received"},
+					SubtitleKey: "nl_call_state_sub", Subtitle: "Route, airtime, sent and received"},
 				{Key: "route_calls", Type: RowSwitch, Icon: "lock",
 					TitleKey: "nl_route_calls", Title: "Calls through NebulaLink",
 					SubtitleKey: "nl_route_calls_sub", Subtitle: "Call media goes through your server, with no third-party relays"},

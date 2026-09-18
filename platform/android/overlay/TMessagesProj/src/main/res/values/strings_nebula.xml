@@ -126,4 +126,6 @@
     <string name="NebulaLinkUnavailable">NebulaLink did not answer. The core may still be starting.</string>
     <string name="NebulaLinkNoScreen">This NebulaLink screen is missing from the core schema.</string>
     <string name="NebulaLinkRetry">Try again</string>
+    <string name="NebulaConnectingLinkWithDots">Connecting to NebulaLink…</string>
+    <string name="NebulaConnectingLink">Connecting to NebulaLink</string>
 </resources>

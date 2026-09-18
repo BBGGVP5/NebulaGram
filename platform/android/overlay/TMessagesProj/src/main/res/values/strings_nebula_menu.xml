@@ -17,7 +17,7 @@
     <string name="nl_auto_ping">Automatic latency check</string>
     <string name="nl_auto_ping_sub">Periodic, always over TCP so the tunnel is never interrupted</string>
     <string name="nl_call_state">Call state</string>
-    <string name="nl_call_state_sub">Hooks / requests / matched / sent / received</string>
+    <string name="nl_call_state_sub">Route, airtime, sent and received</string>
     <string name="nl_check_page">Check page</string>
     <string name="nl_check_page_sub">Measures the servers currently visible</string>
     <string name="nl_clear">Clear servers</string>
@@ -40,6 +40,8 @@
     <string name="nl_open_provider_sub">Top up, renew or read announcements</string>
     <string name="nl_per_page">Servers per page</string>
     <string name="nl_per_page_sub">More servers at once, less paging</string>
+    <string name="nl_ping_nimbo">Nimbo Ping</string>
+    <string name="nl_ping_estimate">≈ marks an estimate: Nimbo Ping GET time divided by 3.3, rounded to the nearest millisecond. Other checks keep their original meaning.</string>
     <string name="nl_ping_http">HTTP GET</string>
     <string name="nl_ping_tcp">TCP</string>
     <string name="nl_ping_type">Ping type</string>

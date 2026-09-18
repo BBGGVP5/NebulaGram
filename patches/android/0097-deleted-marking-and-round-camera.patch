@@ -1,0 +1,81 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Cells/ChatMessageCell.java b/TMessagesProj/src/main/java/org/telegram/ui/Cells/ChatMessageCell.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Cells/ChatMessageCell.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Cells/ChatMessageCell.java
+@@ -20157,18 +20157,43 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
+         drawInternal(canvas);
+     }
+     private Paint nebulaDeletedPaint;
++    private int nebulaDeletedPaintKey;
++
++    /**
++     * РЎР»РѕР№, РєРѕС‚РѕСЂС‹Рј РІС‹РґРµР»СЏРµС‚СЃСЏ СЃРѕС…СЂР°РЅС‘РЅРЅРѕРµ СѓРґР°Р»С‘РЅРЅРѕРµ СЃРѕРѕР±С‰РµРЅРёРµ.
++     *
++     * <p>РЎРїРѕСЃРѕР± РІС‹Р±РёСЂР°РµС‚ РїРѕР»СЊР·РѕРІР°С‚РµР»СЊ: РЅРµ РІС‹РґРµР»СЏС‚СЊ СЃРѕРІСЃРµРј, РїСЂРёРіР»СѓС€РёС‚СЊ вЂ” РєР°Рє Р±С‹Р»Рѕ
++     * СЂР°РЅСЊС€Рµ вЂ” РёР»Рё РїРѕРґР»РѕР¶РёС‚СЊ С†РІРµС‚. Р¦РІРµС‚ РЅР°РєР»Р°РґС‹РІР°РµС‚СЃСЏ С„РёР»СЊС‚СЂРѕРј РїРѕРІРµСЂС… СѓР¶Рµ
++     * РЅР°СЂРёСЃРѕРІР°РЅРЅРѕРіРѕ, РїРѕСЌС‚РѕРјСѓ РѕРєСЂР°С€РёРІР°РµС‚СЃСЏ СЂРѕРІРЅРѕ РїСѓР·С‹СЂСЊ СЃРѕРѕР±С‰РµРЅРёСЏ, Р° РЅРµ СЃС‚СЂРѕРєР°
++     * С†РµР»РёРєРѕРј: РЅРё Р°РІР°С‚Р°СЂРєР°, РЅРё РїСѓСЃС‚РѕРµ РјРµСЃС‚Рѕ СЂСЏРґРѕРј РЅРµ С‚СЂРѕРіР°СЋС‚СЃСЏ.
++     */
++    private Paint nebulaDeletedPaint(int mark) {
++        final int key = mark == app.nebulagram.ui.NebulaDeletedStyle.MARK_TINT
++                ? mark * 31 + app.nebulagram.ui.NebulaDeletedStyle.tint() : mark;
++        if (nebulaDeletedPaint != null && nebulaDeletedPaintKey == key) {
++            return nebulaDeletedPaint;
++        }
++        Paint paint = new Paint();
++        if (mark == app.nebulagram.ui.NebulaDeletedStyle.MARK_TINT) {
++            paint.setColorFilter(new android.graphics.PorterDuffColorFilter(
++                    app.nebulagram.ui.NebulaDeletedStyle.tint(), android.graphics.PorterDuff.Mode.SRC_ATOP));
++        } else {
++            android.graphics.ColorMatrix matrix = new android.graphics.ColorMatrix();
++            matrix.setSaturation(.18f);
++            paint.setColorFilter(new android.graphics.ColorMatrixColorFilter(matrix));
++            paint.setAlpha(210);
++        }
++        nebulaDeletedPaint = paint;
++        nebulaDeletedPaintKey = key;
++        return paint;
++    }
++
+     public void drawInternal(Canvas canvas) {
+         boolean retained = currentMessageObject != null && app.nebulagram.ui.NebulaDeletedArchive.isDeleted(currentAccount, currentMessageObject.getDialogId(), currentMessageObject.getId());
++        int mark = retained ? app.nebulagram.ui.NebulaDeletedStyle.mark() : app.nebulagram.ui.NebulaDeletedStyle.MARK_NONE;
+         int layer = -1;
+-        if (retained) {
+-            if (nebulaDeletedPaint == null) {
+-                nebulaDeletedPaint = new Paint();
+-                android.graphics.ColorMatrix matrix = new android.graphics.ColorMatrix();
+-                matrix.setSaturation(.18f);
+-                nebulaDeletedPaint.setColorFilter(new android.graphics.ColorMatrixColorFilter(matrix));
+-                nebulaDeletedPaint.setAlpha(210);
+-            }
+-            layer = canvas.saveLayer(0, 0, getWidth(), getHeight(), nebulaDeletedPaint);
++        if (mark != app.nebulagram.ui.NebulaDeletedStyle.MARK_NONE) {
++            layer = canvas.saveLayer(0, 0, getWidth(), getHeight(), nebulaDeletedPaint(mark));
+         }
+         try { drawNebulaMessageInternal(canvas); }
+         finally { if (layer != -1) canvas.restoreToCount(layer); }
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/InstantCameraView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/InstantCameraView.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Components/InstantCameraView.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/InstantCameraView.java
+@@ -730,9 +730,10 @@ public class InstantCameraView extends FrameLayout implements NotificationCenter
+         cameraReady = false;
+         selectedCamera = null;
+         if (!fromPaused) {
+-            if (!useCamera2) {
+-                isFrontface = true;
+-            }
++            // РљР°РјРµСЂСѓ РєСЂСѓР¶РєР° РІС‹Р±РёСЂР°РµС‚ РїРѕР»СЊР·РѕРІР°С‚РµР»СЊ. РЎС‚Р°СЂС‹Р№ Camera1 РІСЃРµРіРґР°
++            // РЅР°С‡РёРЅР°Р» СЃ С„СЂРѕРЅС‚Р°Р»СЊРЅРѕР№, РЅРѕРІС‹Р№ вЂ” СЃ РїСЂРѕС€Р»РѕР№, Рё РїРѕРІР»РёСЏС‚СЊ РЅР° СЌС‚Рѕ Р±С‹Р»Рѕ
++            // РЅРµР»СЊР·СЏ: РєС‚Рѕ СЃРЅРёРјР°РµС‚ РЅРµ СЃРµР±СЏ, СЂР°Р·РІРѕСЂР°С‡РёРІР°Р» РєР°РјРµСЂСѓ РєР°Р¶РґС‹Р№ СЂР°Р·.
++            isFrontface = app.nebulagram.ui.NebulaRoundCamera.frontface(useCamera2 && isFrontface);
+             updateFlash();
+             recordedTime = 0;
+             progress = 0;
+@@ -1134,6 +1135,7 @@ public class InstantCameraView extends FrameLayout implements NotificationCenter
+             }
+         }
+         isFrontface = !isFrontface;
++        app.nebulagram.ui.NebulaRoundCamera.remember(isFrontface);
+         updateFlash();
+         if (useCamera2) {
+             if (bothCameras) {
