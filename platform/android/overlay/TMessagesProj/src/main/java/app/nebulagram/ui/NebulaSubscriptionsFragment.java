@@ -64,13 +64,13 @@ public class NebulaSubscriptionsFragment extends BaseFragment {
 
         content = new LinearLayout(context);
         content.setOrientation(LinearLayout.VERTICAL);
-        content.setPadding(AndroidUtilities.dp(12), AndroidUtilities.dp(6),
-                AndroidUtilities.dp(12), AndroidUtilities.dp(24));
+        content.setPadding(AndroidUtilities.dp(16), AndroidUtilities.dp(12),
+                AndroidUtilities.dp(16), AndroidUtilities.dp(28));
         scroll.addView(content, new ScrollView.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
 
         load();
-        return root;
+        return fragmentView = NebulaSettingsLayout.wrap(context, actionBar, root);
     }
 
     private void load() {

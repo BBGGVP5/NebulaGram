@@ -29,9 +29,9 @@ public final class NebulaDesignFragment extends BaseFragment {
         });
         ScrollView scroll = new ScrollView(c); scroll.setBackgroundColor(t.surface());
         content = new LinearLayout(c); content.setOrientation(LinearLayout.VERTICAL);
-        content.setPadding(dp(12), dp(12), dp(12), dp(24)); scroll.addView(content);
+        content.setPadding(dp(16), dp(12), dp(16), dp(28)); scroll.addView(content);
         if (avatars) buildAvatars(c); else buildPacks(c);
-        return fragmentView = scroll;
+        return fragmentView = NebulaSettingsLayout.wrap(c, actionBar, scroll);
     }
     private int dp(float v) { return AndroidUtilities.dp(v); }
     private void buildPacks(Context c) {

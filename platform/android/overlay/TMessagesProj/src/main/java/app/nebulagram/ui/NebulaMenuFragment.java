@@ -158,13 +158,13 @@ public class NebulaMenuFragment extends BaseFragment {
 
         content = new LinearLayout(context);
         content.setOrientation(LinearLayout.VERTICAL);
-        content.setPadding(AndroidUtilities.dp(12), AndroidUtilities.dp(4),
-                AndroidUtilities.dp(12), AndroidUtilities.dp(24));
+        content.setPadding(AndroidUtilities.dp(16), AndroidUtilities.dp(12),
+                AndroidUtilities.dp(16), AndroidUtilities.dp(28));
         scroll.addView(content, new ScrollView.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
 
         rebuild();
-        return root;
+        return fragmentView = NebulaSettingsLayout.wrap(context, actionBar, root);
     }
 
     /** Draws the screen from scratch; cheap enough to call after every change. */

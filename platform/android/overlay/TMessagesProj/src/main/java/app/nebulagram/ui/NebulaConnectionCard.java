@@ -52,7 +52,7 @@ public class NebulaConnectionCard extends LinearLayout {
 
         setOrientation(VERTICAL);
         statusBackground.setOrientation(GradientDrawable.Orientation.TL_BR);
-        statusBackground.setCornerRadius(AndroidUtilities.dp(24));
+        statusBackground.setCornerRadius(AndroidUtilities.dp(16));
         setBackground(statusBackground);
         setClipToOutline(true);
         setPadding(AndroidUtilities.dp(16), AndroidUtilities.dp(16),
@@ -73,14 +73,14 @@ public class NebulaConnectionCard extends LinearLayout {
         labels.setOrientation(VERTICAL);
 
         state = new TextView(context);
-        state.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 24);
+        state.setTextSize(TypedValue.COMPLEX_UNIT_SP, 20);
         state.setAccessibilityLiveRegion(View.ACCESSIBILITY_LIVE_REGION_POLITE);
         state.setTypeface(AndroidUtilities.bold());
         labels.addView(state, new LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
 
         detail = new TextView(context);
-        detail.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 13);
+        detail.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
         detail.setTextColor(theme.onSurfaceVariant());
         detail.setMaxLines(3);
         detail.setEllipsize(android.text.TextUtils.TruncateAt.END);
@@ -149,8 +149,8 @@ public class NebulaConnectionCard extends LinearLayout {
         connected = "connected".equals(phase);
 
         int accent = connected ? theme.success() : theme.primary();
-        statusBackground.setColors(new int[]{theme.primaryContainer(),
-                androidx.core.graphics.ColorUtils.blendARGB(theme.surfaceContainer(), accent, connected ? .22f : .06f)});
+        statusBackground.setColors(new int[]{theme.surfaceContainer(),
+                androidx.core.graphics.ColorUtils.blendARGB(theme.surfaceContainer(), accent, connected ? .10f : .02f)});
         statusBackground.setStroke(AndroidUtilities.dp(1), NebulaTheme.stateLayer(accent, .2f));
         GradientDrawable badgeBackground = new GradientDrawable();
         badgeBackground.setShape(GradientDrawable.OVAL);

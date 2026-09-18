@@ -31,7 +31,7 @@ public class NebulaCard extends LinearLayout {
         setOrientation(VERTICAL);
 
         GradientDrawable background = new GradientDrawable();
-        background.setCornerRadius(NebulaTheme.cornerMedium());
+        background.setCornerRadius(AndroidUtilities.dp(16));
         background.setColor(theme.surfaceContainer());
         setBackground(background);
         // Rows draw ripples that must be clipped to the rounded shape.
@@ -76,12 +76,11 @@ public class NebulaCard extends LinearLayout {
         NebulaTheme theme = NebulaTheme.of(context);
         TextView view = new TextView(context);
         view.setText(text);
-        view.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 12);
-        view.setTextColor(theme.primary());
+        view.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
+        view.setTextColor(theme.onSurfaceVariant());
         view.setTypeface(AndroidUtilities.bold());
-        view.setLetterSpacing(0.06f);
-        view.setAllCaps(true);
-        view.setPadding(AndroidUtilities.dp(16), AndroidUtilities.dp(18),
+        view.setAllCaps(false);
+        view.setPadding(AndroidUtilities.dp(16), AndroidUtilities.dp(22),
                 AndroidUtilities.dp(16), AndroidUtilities.dp(8));
         return view;
     }

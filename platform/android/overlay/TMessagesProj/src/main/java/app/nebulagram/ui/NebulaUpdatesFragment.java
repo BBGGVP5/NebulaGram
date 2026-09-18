@@ -33,7 +33,7 @@ public final class NebulaUpdatesFragment extends BaseFragment {
         actionBar.setBackgroundColor(theme.surface()); actionBar.setTitleColor(theme.onSurface()); actionBar.setItemsColor(theme.onSurface(), false);
         actionBar.setActionBarMenuOnItemClick(new ActionBar.ActionBarMenuOnItemClick() { @Override public void onItemClick(int id) { if (id == -1) finishFragment(); } });
         ScrollView scroll = new ScrollView(c); scroll.setFillViewport(true); scroll.setBackgroundColor(theme.surface());
-        LinearLayout content = new LinearLayout(c); content.setOrientation(LinearLayout.VERTICAL); content.setPadding(dp(12), dp(10), dp(12), dp(32)); scroll.addView(content);
+        LinearLayout content = new LinearLayout(c); content.setOrientation(LinearLayout.VERTICAL); content.setPadding(dp(16), dp(12), dp(16), dp(28)); scroll.addView(content);
         NebulaCard installed = new NebulaCard(c);
         installed.add(new NebulaRow(c).icon(R.drawable.msg_info).title("NebulaGram " + NebulaTelegramUpdates.installedVersion())
                 .subtitle(text("Установлена · сборка ", "Installed · build ") + NebulaTelegramUpdates.installedCode(), false));
@@ -69,7 +69,7 @@ public final class NebulaUpdatesFragment extends BaseFragment {
         updates.addListener(refresh);
         fragmentView = scroll; refresh();
         updates.check(false, null);
-        return fragmentView;
+        return fragmentView = NebulaSettingsLayout.wrap(c, actionBar, scroll);
     }
     private static int dp(int value) { return AndroidUtilities.dp(value); }
     private TextView label(Context c) {

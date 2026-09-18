@@ -43,14 +43,14 @@ public final class NebulaPrivacyFragment extends BaseFragment {
         scroll.setVerticalScrollBarEnabled(false);
         content = new LinearLayout(context);
         content.setOrientation(LinearLayout.VERTICAL);
-        content.setPadding(AndroidUtilities.dp(12), AndroidUtilities.dp(6),
-                AndroidUtilities.dp(12), AndroidUtilities.dp(24));
+        content.setPadding(AndroidUtilities.dp(16), AndroidUtilities.dp(12),
+                AndroidUtilities.dp(16), AndroidUtilities.dp(28));
         scroll.setBackgroundColor(theme.surface());
         scroll.addView(content, new ScrollView.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
         fragmentView = scroll;
         rebuild();
-        return scroll;
+        return fragmentView = NebulaSettingsLayout.wrap(context, actionBar, scroll);
     }
 
     @Override public boolean isLightStatusBar() {

@@ -100,14 +100,27 @@ public class NebulaSectionFragment extends BaseFragment {
 
         content = new LinearLayout(context);
         content.setOrientation(LinearLayout.VERTICAL);
-        content.setPadding(AndroidUtilities.dp(12), AndroidUtilities.dp(6),
-                AndroidUtilities.dp(12), AndroidUtilities.dp(24));
+        content.setPadding(AndroidUtilities.dp(16), AndroidUtilities.dp(12),
+                AndroidUtilities.dp(16), AndroidUtilities.dp(28));
         scroll.addView(content, new ScrollView.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
 
         build(context, theme);
         if (focusTitle != null) content.post(() -> focusRow(content));
-        return fragmentView = root;
+        return fragmentView = NebulaSettingsLayout.wrap(context, actionBar, root);
+    }
+
+    private int sectionIcon() {
+        switch (section) {
+            case SECTION_FOLDERS: return R.drawable.files_folder;
+            case SECTION_MESSAGES: return R.drawable.menu_reply;
+            case SECTION_PROFILE: return R.drawable.msg_openprofile;
+            case SECTION_CHATS: return R.drawable.msg_discussion;
+            case SECTION_TABS: return R.drawable.msg_list;
+            case SECTION_ABOUT: return R.drawable.msg_info;
+            case SECTION_GENERAL: return R.drawable.msg_settings;
+            default: return R.drawable.msg_customize;
+        }
     }
 
     private int titleKey() {
@@ -126,7 +139,7 @@ public class NebulaSectionFragment extends BaseFragment {
             case SECTION_GENERAL:
                 return R.string.NebulaSectionGeneral;
             default:
-                // Заголовок экрана, а не шапка карточки: та написана капсом.
+                // The same localized name is used in navigation and the compact introduction.
                 return R.string.NebulaAppearanceTitle;
         }
     }
@@ -152,7 +165,7 @@ public class NebulaSectionFragment extends BaseFragment {
         LinearLayout.LayoutParams heroParams = new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         heroParams.bottomMargin = AndroidUtilities.dp(12);
-        content.addView(new NebulaSettingsHero(context, R.drawable.msg_customize,
+        content.addView(new NebulaSettingsHero(context, sectionIcon(),
                 LocaleController.getString(titleKey()), NebulaText.text(summaries[summary], english[summary])), heroParams);
         switch (section) {
             case SECTION_FOLDERS: buildFolders(context); break;

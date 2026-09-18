@@ -60,13 +60,13 @@ public class NebulaSettingsFragment extends BaseFragment {
 
         content = new LinearLayout(context);
         content.setOrientation(LinearLayout.VERTICAL);
-        content.setPadding(AndroidUtilities.dp(12), AndroidUtilities.dp(6),
-                AndroidUtilities.dp(12), AndroidUtilities.dp(24));
+        content.setPadding(AndroidUtilities.dp(16), AndroidUtilities.dp(12),
+                AndroidUtilities.dp(16), AndroidUtilities.dp(28));
         scroll.addView(content, new ScrollView.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
 
         build(context);
-        return fragmentView = root;
+        return fragmentView = NebulaSettingsLayout.wrap(context, actionBar, root);
     }
 
     @Override public void onActivityResultFragment(int request, int result, android.content.Intent data) {
@@ -75,13 +75,6 @@ public class NebulaSettingsFragment extends BaseFragment {
     }
     private void build(Context context) {
         content.removeAllViews();
-        LinearLayout.LayoutParams overviewParams = new LinearLayout.LayoutParams(-1, -2);
-        overviewParams.bottomMargin = AndroidUtilities.dp(8);
-        content.addView(new NebulaSettingsHero(context, R.drawable.msg_settings,
-                NebulaText.text("Настройте под себя", "Make it yours"),
-                NebulaText.text("Подключение, интерфейс и инструменты — каждый в своём разделе.",
-                        "Connection, interface and tools — each in its own section.")), overviewParams);
-
         content.addView(NebulaCard.header(context, NebulaText.text("Подключение", "Connection")));
         NebulaCard tunnel = new NebulaCard(context);
         tunnel.add(new NebulaLinkRow(context).withClick(v -> presentFragment(new NebulaMenuFragment())));

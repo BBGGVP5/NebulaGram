@@ -350,3 +350,18 @@ Liquid Glass. Стиль применяется при включённом iOS-
   `settings.gradle` применяет его `core_settings.gradle` при настройке, так что
   без него проект не конфигурируется вовсе.
 
+### Settings localization and layout (2026-09-18)
+
+- `0098-settings-localization-inputs.patch` extends the existing buildSrc string
+  inputs from `strings.xml` to `strings*.xml` for both default/translated binary
+  dictionaries and language discovery. Nebula strings remain in separate overlay
+  XML files; no fallback masks `LOC_ERR`, and the native stable-ID/shrinker path
+  is retained. `scripts/check-settings-localization.py` checks every overlay file.
+- All nine Nebula settings fragment types use `NebulaSettingsLayout`: the existing
+  ActionBar is embedded once, and the body is measured below its actual height.
+  Login, onboarding, Telegram's profile/settings page and the composer are not
+  wrapped. A JVM layout-contract test covers narrow/wide/short/tall sizes and a
+  hidden bar; this is not an Android device rendering test.
+- Shared cards/rows/introductions/buttons use compact native-style spacing,
+  SP-sized text, sentence-case section headers and theme-aware surfaces. Existing
+  routes, preference keys, switch-style choices and server probe behavior remain.

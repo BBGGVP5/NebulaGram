@@ -36,7 +36,7 @@ public class NebulaButton extends TextView {
     public NebulaButton(@NonNull Context context, int style) {
         super(context);
         this.style = style;
-        this.radius = NebulaTheme.cornerFull();
+        this.radius = AndroidUtilities.dp(14);
 
         NebulaTheme theme = NebulaTheme.of(context);
         setGravity(Gravity.CENTER);
@@ -46,14 +46,14 @@ public class NebulaButton extends TextView {
 
         if (style == STYLE_FILLED) {
             setTextColor(theme.onPrimary());
-            setTextSize(TypedValue.COMPLEX_UNIT_DIP, 15);
-            setLetterSpacing(0.02f);
+            setTextSize(TypedValue.COMPLEX_UNIT_SP, 16);
+            setLetterSpacing(0);
             setMinimumHeight(AndroidUtilities.dp(52));
             setPadding(AndroidUtilities.dp(20), 0, AndroidUtilities.dp(20), 0);
             setRipple(theme.onPrimary(), theme.primary());
         } else {
             setTextColor(theme.primary());
-            setTextSize(TypedValue.COMPLEX_UNIT_DIP, 14);
+            setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
             setMinimumHeight(AndroidUtilities.dp(44));
             setPadding(AndroidUtilities.dp(16), 0, AndroidUtilities.dp(16), 0);
             setRipple(theme.primary(), 0);

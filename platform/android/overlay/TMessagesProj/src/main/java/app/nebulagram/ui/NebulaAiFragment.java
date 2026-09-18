@@ -36,14 +36,14 @@ public final class NebulaAiFragment extends BaseFragment {
         NebulaTheme t = NebulaTheme.of(c); actionBar.setBackgroundColor(t.surface()); actionBar.setTitleColor(t.onSurface()); actionBar.setItemsColor(t.onSurface(), false);
         actionBar.setActionBarMenuOnItemClick(new ActionBar.ActionBarMenuOnItemClick() { @Override public void onItemClick(int id) { if (id == -1) finishFragment(); } });
         ScrollView scroll = new ScrollView(c); scroll.setFillViewport(true); scroll.setBackgroundColor(t.surface());
-        content = new LinearLayout(c); content.setOrientation(LinearLayout.VERTICAL); content.setPadding(dp(12), dp(8), dp(12), dp(32)); scroll.addView(content);
+        content = new LinearLayout(c); content.setOrientation(LinearLayout.VERTICAL); content.setPadding(dp(16), dp(12), dp(16), dp(28)); scroll.addView(content);
         build(c);
-        return fragmentView = scroll;
+        return fragmentView = NebulaSettingsLayout.wrap(c, actionBar, scroll);
     }
     private int dp(int n) { return AndroidUtilities.dp(n); }
     private void build(Context c) {
         content.removeAllViews();
-        hero = new NebulaSettingsHero(c, R.drawable.msg_customize,
+        hero = new NebulaSettingsHero(c, R.drawable.msg_emoji_smiles,
                 text("ИИ-помощник", "AI assistant"),
                 text("Ваш провайдер. Ваши инструкции. Только тот текст, который выберете вы.",
                         "Your provider. Your instructions. Only the text you choose."));

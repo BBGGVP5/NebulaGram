@@ -57,17 +57,17 @@ public class NebulaRow extends FrameLayout {
         icon.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
         icon.setColorFilter(theme.primary(), PorterDuff.Mode.SRC_IN);
         GradientDrawable iconBackground = new GradientDrawable();
-        iconBackground.setCornerRadius(NebulaTheme.cornerSmall());
+        iconBackground.setCornerRadius(AndroidUtilities.dp(9));
         iconBackground.setColor(NebulaTheme.stateLayer(theme.primary(), 0.14f));
         icon.setBackground(iconBackground);
-        icon.setPadding(AndroidUtilities.dp(9), AndroidUtilities.dp(9),
-                AndroidUtilities.dp(9), AndroidUtilities.dp(9));
+        icon.setPadding(AndroidUtilities.dp(6), AndroidUtilities.dp(6),
+                AndroidUtilities.dp(6), AndroidUtilities.dp(6));
         // Контейнер значка нарисован ещё до того, как значок задан. Пока его
         // нет, показывать пустой скруглённый квадрат нечем оправдать: строка
         // без значка должна начинаться с текста, как в Material 3.
         icon.setVisibility(GONE);
 
-        LayoutParams iconParams = new LayoutParams(AndroidUtilities.dp(40), AndroidUtilities.dp(40));
+        LayoutParams iconParams = new LayoutParams(AndroidUtilities.dp(32), AndroidUtilities.dp(32));
         iconParams.gravity = Gravity.CENTER_VERTICAL | Gravity.START;
         addView(icon, iconParams);
 
@@ -75,14 +75,14 @@ public class NebulaRow extends FrameLayout {
         text.setOrientation(LinearLayout.VERTICAL);
 
         title = new TextView(context);
-        title.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 15);
+        title.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16);
         title.setTextColor(theme.onSurface());
-        title.setTypeface(AndroidUtilities.bold());
+        title.setTypeface(android.graphics.Typeface.DEFAULT);
         text.addView(title, new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
 
         subtitle = new TextView(context);
-        subtitle.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 13);
+        subtitle.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
         subtitle.setTextColor(theme.onSurfaceVariant());
         subtitle.setLineSpacing(AndroidUtilities.dp(1), 1f);
         subtitle.setVisibility(GONE);
@@ -100,7 +100,7 @@ public class NebulaRow extends FrameLayout {
     /** Отступ текста под значок — только когда значок действительно есть. */
     private void indent(boolean leading) {
         LayoutParams params = (LayoutParams) text.getLayoutParams();
-        params.setMarginStart(leading ? AndroidUtilities.dp(60) : 0);
+        params.setMarginStart(leading ? AndroidUtilities.dp(48) : 0);
         text.setLayoutParams(params);
     }
 
@@ -133,9 +133,20 @@ public class NebulaRow extends FrameLayout {
         } else {
             icon.setVisibility(VISIBLE);
             icon.setImageResource(resource);
+            int accent = sectionAccent(resource);
+            icon.setColorFilter(accent, PorterDuff.Mode.SRC_IN);
+            ((GradientDrawable) icon.getBackground()).setColor(NebulaTheme.stateLayer(accent, .13f));
         }
         indent(resource != 0);
         return this;
+    }
+
+    private int sectionAccent(int resource) {
+        if (resource == org.telegram.messenger.R.drawable.msg_secret) return theme.success();
+        if (resource == org.telegram.messenger.R.drawable.msg_customize) return theme.isDark() ? 0xFFB69CFF : 0xFF7953BE;
+        if (resource == org.telegram.messenger.R.drawable.msg_settings) return theme.isDark() ? 0xFFF2B76E : 0xFF966019;
+        if (resource == org.telegram.messenger.R.drawable.msg_emoji_smiles) return theme.isDark() ? 0xFF80CEC8 : 0xFF237B76;
+        return theme.primary();
     }
 
     /** Country emoji keeps its colours instead of inheriting the icon tint. */
@@ -154,7 +165,7 @@ public class NebulaRow extends FrameLayout {
             emojiIcon.setIncludeFontPadding(false);
             emojiIcon.setImportantForAccessibility(IMPORTANT_FOR_ACCESSIBILITY_NO);
             emojiIcon.setBackground(icon.getBackground());
-            LayoutParams params = new LayoutParams(AndroidUtilities.dp(40), AndroidUtilities.dp(40));
+            LayoutParams params = new LayoutParams(AndroidUtilities.dp(32), AndroidUtilities.dp(32));
             params.gravity = Gravity.CENTER_VERTICAL | Gravity.START;
             addView(emojiIcon, params);
         }
@@ -171,6 +182,7 @@ public class NebulaRow extends FrameLayout {
             badge.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 12);
             badge.setTypeface(AndroidUtilities.bold());
             badge.setSingleLine();
+            badge.setEllipsize(android.text.TextUtils.TruncateAt.END);
             badge.setGravity(Gravity.CENTER);
             badge.setPadding(AndroidUtilities.dp(9), AndroidUtilities.dp(5),
                     AndroidUtilities.dp(9), AndroidUtilities.dp(5));
@@ -198,6 +210,7 @@ public class NebulaRow extends FrameLayout {
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
         if (badge != null) {
+            badge.setMaxWidth(Math.max(AndroidUtilities.dp(48), MeasureSpec.getSize(widthMeasureSpec) / 3));
             measureChildWithMargins(badge, widthMeasureSpec, 0, heightMeasureSpec, 0);
             LayoutParams params = (LayoutParams) text.getLayoutParams();
             params.setMarginEnd(badge.getMeasuredWidth() + AndroidUtilities.dp(12));
@@ -218,10 +231,11 @@ public class NebulaRow extends FrameLayout {
     public NebulaRow subtitle(CharSequence value, boolean isValue) {
         if (value == null || value.length() == 0) {
             subtitle.setVisibility(GONE);
+            setMinimumHeight(AndroidUtilities.dp(56));
             return this;
         }
         subtitle.setVisibility(VISIBLE);
-        setMinimumHeight(AndroidUtilities.dp(72));
+        setMinimumHeight(AndroidUtilities.dp(68));
         subtitle.setText(value);
         subtitle.setTextColor(isValue ? theme.primary() : theme.onSurfaceVariant());
         return this;

@@ -17,11 +17,10 @@ public final class NebulaSettingsHero extends LinearLayout {
         super(context);
         NebulaTheme theme = NebulaTheme.of(context);
         setOrientation(VERTICAL);
-        setPadding(dp(20), dp(18), dp(20), dp(18));
+        setPadding(dp(16), dp(16), dp(16), dp(16));
         background = new GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT,
-                new int[]{theme.primaryContainer(), theme.surfaceContainer()});
-        background.setCornerRadius(dp(26));
-        background.setStroke(dp(1), NebulaTheme.stateLayer(theme.primary(), .18f));
+                new int[]{theme.surfaceContainer(), theme.surfaceContainer()});
+        background.setCornerRadius(dp(16));
         setBackground(background);
 
         LinearLayout top = new LinearLayout(context);
@@ -31,23 +30,19 @@ public final class NebulaSettingsHero extends LinearLayout {
         image.setColorFilter(theme.primary());
         image.setImportantForAccessibility(IMPORTANT_FOR_ACCESSIBILITY_NO);
         top.addView(image, new LayoutParams(dp(28), dp(28)));
-        TextView brand = label("NEBULAGRAM", 11, theme.onSurfaceVariant());
-        brand.setLetterSpacing(.12f);
-        LayoutParams brandParams = new LayoutParams(0, -2, 1);
-        brandParams.setMarginStart(dp(12));
-        top.addView(brand, brandParams);
-        addView(top);
-        TextView heading = label(title, 24, theme.onSurface());
+        TextView heading = label(title, 18, theme.onSurface());
         heading.setTypeface(AndroidUtilities.bold());
-        LayoutParams headingParams = new LayoutParams(-1, -2); headingParams.topMargin = dp(12);
-        addView(heading, headingParams);
+        LayoutParams headingParams = new LayoutParams(0, -2, 1);
+        headingParams.setMarginStart(dp(12));
+        top.addView(heading, headingParams);
+        addView(top);
         TextView explanation = label(description, 14, theme.onSurfaceVariant());
-        explanation.setLineSpacing(dp(3), 1f);
+        explanation.setLineSpacing(dp(2), 1f);
         LayoutParams descriptionParams = new LayoutParams(-1, -2); descriptionParams.topMargin = dp(8);
         addView(explanation, descriptionParams);
         status = label("", 12, theme.primary());
         status.setTypeface(AndroidUtilities.bold());
-        LayoutParams statusParams = new LayoutParams(-2, -2); statusParams.topMargin = dp(14);
+        LayoutParams statusParams = new LayoutParams(-2, -2); statusParams.topMargin = dp(10);
         addView(status, statusParams);
         setStatus("");
     }
@@ -58,11 +53,11 @@ public final class NebulaSettingsHero extends LinearLayout {
     public void setStatus(String value, boolean active) {
         NebulaTheme theme = NebulaTheme.of(getContext());
         int accent = active ? theme.success() : theme.onSurfaceVariant();
-        int right = active ? androidx.core.graphics.ColorUtils.blendARGB(theme.surfaceContainer(), theme.success(), .28f)
+        int right = active ? androidx.core.graphics.ColorUtils.blendARGB(theme.surfaceContainer(), theme.success(), .10f)
                 : theme.surfaceContainer();
-        background.setColors(new int[]{theme.primaryContainer(), right});
+        background.setColors(new int[]{theme.surfaceContainer(), right});
         GradientDrawable badge = new GradientDrawable();
-        badge.setCornerRadius(dp(12)); badge.setColor(NebulaTheme.stateLayer(accent, .12f));
+        badge.setCornerRadius(dp(8)); badge.setColor(NebulaTheme.stateLayer(accent, .12f));
         badge.setStroke(dp(1), NebulaTheme.stateLayer(accent, .25f));
         status.setBackground(badge); status.setPadding(dp(10), dp(6), dp(10), dp(6));
         status.setTextColor(accent);

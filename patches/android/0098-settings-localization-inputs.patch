@@ -1,0 +1,39 @@
+diff --git a/buildSrc/src/main/kotlin/org/telegram/plugin/TelegramBuildAppPlugin.kt b/buildSrc/src/main/kotlin/org/telegram/plugin/TelegramBuildAppPlugin.kt
+--- a/buildSrc/src/main/kotlin/org/telegram/plugin/TelegramBuildAppPlugin.kt
++++ b/buildSrc/src/main/kotlin/org/telegram/plugin/TelegramBuildAppPlugin.kt
+@@ -27,19 +27,19 @@
+             ) {
+                 stringsXml.from(
+                     telegramModule.fileTree("src/main/res/values") {
+-                        include("strings.xml")
++                        include("strings*.xml")
+                     },
+                     project.fileTree("src/main/res/values") {
+-                        include("strings.xml")
++                        include("strings*.xml")
+                     }
+                 )
+ 
+                 localizationFiles.from(
+                     telegramModule.fileTree("src/main/res") {
+-                        include("values-*/strings.xml")
++                        include("values-*/strings*.xml")
+                     },
+                     project.fileTree("src/main/res") {
+-                        include("values-*/strings.xml")
++                        include("values-*/strings*.xml")
+                     }
+                 )
+ 
+diff --git a/buildSrc/src/main/kotlin/org/telegram/plugin/TelegramBuildPlugin.kt b/buildSrc/src/main/kotlin/org/telegram/plugin/TelegramBuildPlugin.kt
+--- a/buildSrc/src/main/kotlin/org/telegram/plugin/TelegramBuildPlugin.kt
++++ b/buildSrc/src/main/kotlin/org/telegram/plugin/TelegramBuildPlugin.kt
+@@ -21,7 +21,7 @@
+             ) {
+                 localizationFiles.from(
+                     project.fileTree("src/main/res") {
+-                        include("values-*/strings.xml")
++                        include("values-*/strings*.xml")
+                     }
+                 )
+ 
