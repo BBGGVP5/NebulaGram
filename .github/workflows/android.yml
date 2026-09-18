@@ -96,6 +96,12 @@ jobs:
 
       - name: Установка Android SDK
         uses: android-actions/setup-android@v3
+        with:
+          # По умолчанию действие ставит `tools platform-tools`. Пакета `tools`
+          # в репозитории SDK больше нет: sdkmanager отвечает «Failed to find
+          # package» и выходит с ошибкой, и сборка падала ещё до наших
+          # исходников. Перечисляем нужное поимённо; NDK и CMake — следующим шагом.
+          packages: 'platform-tools'
 
       - name: Установка NDK и CMake
         run: |

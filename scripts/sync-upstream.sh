@@ -60,10 +60,19 @@ if [ "$before" = "$after" ]; then
   echo "already up to date"
 fi
 
+# Патчи идут по порядку и опираются друг на друга: по одному файлу их бывает
+# полтора десятка. Проверять каждый по отдельности на чистом дереве значит
+# объявлять сломанным всё, что стоит после первого патча по этому файлу, — и
+# сторож каждый день сообщал о семи «сломанных» патчах iOS на той самой
+# ревизии, на которой они прекрасно ложатся по очереди. Накладываем взаправду.
+#
+# Неудачный патч пропускаем и идём дальше: git apply атомарен, дерево остаётся
+# согласованным. Но следующий по тому же файлу может упасть уже из-за него,
+# поэтому первый в списке — единственный точно свой.
 failed=()
 shopt -s nullglob
 for patch in "$patches"/*.patch; do
-  if git -C "$tree" apply --check "$patch" 2>/dev/null; then
+  if git -C "$tree" apply --whitespace=nowarn "$patch" 2>/dev/null; then
     printf '  ok      %s\n' "$(basename "$patch")"
   else
     printf '  FAILED  %s\n' "$(basename "$patch")"
@@ -72,9 +81,17 @@ for patch in "$patches"/*.patch; do
 done
 shopt -u nullglob
 
+# Дерево апстрима — артефакт сборки, и наложенная серия в нём никому не нужна:
+# её накладывает apply-overlay.sh, когда действительно собирают. Возвращаем
+# чистый checkout, не трогая вложенные сабмодули, которые только что подтянули.
+git -C "$tree" reset --hard --quiet
+git -C "$tree" clean -fd --quiet
+
 if [ ${#failed[@]} -gt 0 ]; then
   echo
   echo "$platform: ${#failed[@]} patch(es) no longer apply to $after."
+  echo "The first one is certainly its own; a later one on the same file may"
+  echo "have failed only because the first was skipped."
   echo "Fix each hook by hand in $submodule, then run:"
   for patch in "${failed[@]}"; do
     echo "  scripts/regen-patch.sh $platform $(basename "$patch" .patch)"
