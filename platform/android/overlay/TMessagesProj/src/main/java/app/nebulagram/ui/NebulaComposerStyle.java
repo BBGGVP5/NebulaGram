@@ -171,7 +171,10 @@ public final class NebulaComposerStyle {
     public boolean draw(Canvas canvas, BlurredBackgroundDrawable background, View drawingParent) {
         if (!active || host == null || host.getVisibility() != View.VISIBLE || surfaces[0] == null) return false;
         padded.set(background.getPaddedBounds());
-        if (padded.isEmpty()) return true;
+        // Ниже два случая, когда трёхчастную раскладку посчитать нельзя. Раньше
+        // они отвечали «нарисовано», ничего не нарисовав: остров не рисовался
+        // тоже, и полоса оставалась вовсе без подложки. Отдаём её острову.
+        if (padded.isEmpty()) return false;
         int padding = AndroidUtilities.dp(7);
         int diameter = Math.min(AndroidUtilities.dp(44), padded.height());
         int gap = AndroidUtilities.dp(6);
@@ -179,7 +182,7 @@ public final class NebulaComposerStyle {
         int right = Math.min(padded.right, Math.round(position(host, drawingParent, true)) + host.getWidth());
         int editorLeft = left + diameter + gap;
         int editorRight = right - diameter - gap;
-        if (editorRight <= editorLeft) return true;
+        if (editorRight <= editorLeft) return false;
         for (BlurredBackgroundDrawable drawable : surfaces) drawable.setAlpha(background.getAlpha());
         if (attachment != null && attachment.getVisibility() == View.VISIBLE) {
             surface(canvas, surfaces[0], left, padded.bottom - diameter, left + diameter, padded.bottom, padding);

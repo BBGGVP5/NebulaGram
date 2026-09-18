@@ -75,6 +75,8 @@ public final class NebulaTelegramUpdates implements NotificationCenter.Notificat
     public long lastCheck() { return prefs.getLong("last_check", 0); }
     public NebulaRelease release() { return release(message); }
     public TLRPC.Message post() { return changelog != null ? changelog : message; }
+    /** Аккаунт, на котором живёт канал релизов. */
+    public int account() { return account; }
     public TLRPC.Document document() { return message == null ? null : MessageObject.getDocument(message); }
     public boolean available() { NebulaRelease r = release(); return r != null && r.versionCode > installedCode(); }
     public static int installedCode() {

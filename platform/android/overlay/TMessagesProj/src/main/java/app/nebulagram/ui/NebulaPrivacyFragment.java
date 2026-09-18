@@ -151,8 +151,8 @@ public final class NebulaPrivacyFragment extends BaseFragment {
                 .subtitle(NebulaRoundCamera.title(), true)
                 .trailing(NebulaRow.TRAIL_CHEVRON)
                 .withClick(v -> roundCamera()));
-        note(text("С какой камеры открывается запись видеосообщения. Развернуть её во время записи можно как раньше.",
-                "Which camera a video message opens with. Flipping it while recording works as before."));
+        note(text("С какой камеры открывается запись видеосообщения. «Спрашивать» задаёт вопрос при переходе в режим кружка — не во время записи, иначе вопрос съел бы жест. Развернуть камеру во время записи можно как раньше.",
+                "Which camera a video message opens with. Ask puts the question on the tap that switches into round-video mode, not during recording, where it would eat the gesture. Flipping the camera while recording works as before."));
 
         header(text("Пересылка", "Forwarding"));
         card(row(R.drawable.msg_edit, text("Редактирование перед пересылкой", "Edit before forwarding"))
@@ -261,6 +261,7 @@ public final class NebulaPrivacyFragment extends BaseFragment {
                 text("Как в прошлый раз", "Last used"),
                 text("Фронтальная", "Front"),
                 text("Основная", "Rear"),
+                text("Спрашивать", "Ask"),
         };
         showDialog(new AlertDialog.Builder(getParentActivity())
                 .setTitle(text("Камера кружка", "Round video camera"))

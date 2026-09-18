@@ -71,9 +71,17 @@ public final class NebulaUpdateSheet extends BottomSheet implements Notification
         body.addView(hero, new LinearLayout.LayoutParams(-1,-2));
 
         TextView heading = label(activity,text("Что нового", "What's new"),18,theme.onSurface(),true);
-        LinearLayout.LayoutParams np = new LinearLayout.LayoutParams(-1,-2); np.setMargins(dp(8),dp(22),dp(8),dp(12)); body.addView(heading,np);
+        LinearLayout.LayoutParams np = new LinearLayout.LayoutParams(-1,-2); np.setMargins(dp(8),dp(22),dp(8),dp(10)); body.addView(heading,np);
+        // Список изменений — такая же поверхность, как шапка: без карточки он
+        // висел прямо на фоне листа и читался как продолжение служебных строк.
+        LinearLayout notesCard = column(activity); notesCard.setPadding(dp(14),dp(12),dp(14),dp(12));
+        GradientDrawable notesShape = new GradientDrawable();
+        notesShape.setColor(theme.surfaceContainer()); notesShape.setCornerRadius(dp(20));
+        notesCard.setBackground(notesShape);
         NebulaChangelogView notes = new NebulaChangelogView(activity); notes.setPost(updates.post()); notes.setLineSpacing(dp(4),1f);
-        notes.setPadding(dp(8),0,dp(8),dp(16)); body.addView(notes,new LinearLayout.LayoutParams(-1,-2));
+        notesCard.addView(notes,new LinearLayout.LayoutParams(-1,-2));
+        LinearLayout.LayoutParams ncp = new LinearLayout.LayoutParams(-1,-2); ncp.bottomMargin = dp(14);
+        body.addView(notesCard,ncp);
         status = label(activity,"",13,theme.onSurfaceVariant(),false);
         status.setPadding(dp(8),dp(8),dp(8),dp(8)); body.addView(status);
         progress = new ProgressBar(activity,null,android.R.attr.progressBarStyleHorizontal); progress.setMax(100);
@@ -86,6 +94,9 @@ public final class NebulaUpdateSheet extends BottomSheet implements Notification
         LinearLayout footer = column(activity); footer.setPadding(dp(20),dp(12),dp(20),dp(8));
         action = button(activity,"",true); action.setOnClickListener(v -> performAction()); footer.addView(action,new LinearLayout.LayoutParams(-1,-2));
         LinearLayout secondary = new LinearLayout(activity);
+        NebulaButton translate = button(activity,text("Перевести", "Translate"),false);
+        translate.setOnClickListener(v -> translateNotes());
+        secondary.addView(translate,new LinearLayout.LayoutParams(0,-2,1f));
         NebulaButton post = button(activity,text("Пост релиза", "Release post"),false);
         final String offeredPost = updates.postUrl();
         post.setOnClickListener(v -> { dismiss(); Browser.openUrl(activity,offeredPost); });
@@ -96,6 +107,21 @@ public final class NebulaUpdateSheet extends BottomSheet implements Notification
         LinearLayout.LayoutParams sp = new LinearLayout.LayoutParams(-1,-2); sp.topMargin=dp(6); footer.addView(secondary,sp);
         setCustomView(new SheetContent(activity,scroll,footer));
         refresh();
+    }
+
+    /**
+     * Список изменений пишут на одном языке, а читают на разных. Переводит его
+     * тот же экран, что и любое сообщение в Telegram, — своего переводчика у
+     * форка нет и заводить его незачем.
+     */
+    private void translateNotes() {
+        org.telegram.tgnet.TLRPC.Message post = updates.post();
+        if (post == null || post.message == null || post.message.isEmpty()) {
+            return;
+        }
+        org.telegram.ui.Components.TranslateAlert2.showAlert(activity, null, updates.account(), null, 0, false,
+                null, org.telegram.messenger.LocaleController.getInstance().getCurrentLocaleInfo().pluralLangCode,
+                post.message, post.entities, false, null, null);
     }
 
     private boolean valid() {

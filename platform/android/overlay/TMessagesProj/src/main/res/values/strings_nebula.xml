@@ -128,4 +128,6 @@
     <string name="NebulaLinkRetry">Try again</string>
     <string name="NebulaConnectingLinkWithDots">Connecting to NebulaLink…</string>
     <string name="NebulaConnectingLink">Connecting to NebulaLink</string>
+    <string name="NebulaMutedInTabCounters">Count muted chats on folder tabs</string>
+    <string name="NebulaMutedInTabCountersInfo">The tab counter shows every unread chat, not only the ones that can ring. Which chats belong to the folder does not change.</string>
 </resources>

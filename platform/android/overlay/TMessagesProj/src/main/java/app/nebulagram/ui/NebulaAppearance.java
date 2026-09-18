@@ -125,6 +125,24 @@ public final class NebulaAppearance {
     }
 
     /**
+     * Считать ли беззвучные чаты в счётчиках на папках.
+     *
+     * <p>Telegram показывает на вкладке только то, что способно позвать: чат без
+     * звука в счётчик не попадает. Кому папка нужна как опись непрочитанного, а
+     * не как список поводов отвлечься, этого мало.
+     *
+     * <p>Меняется только счёт. Какие чаты попадают в папку, по-прежнему решает
+     * сама папка: признак «исключить беззвучные» снимается лишь на время подсчёта.
+     */
+    public static boolean mutedInTabCounters() {
+        return preferences().getBoolean("muted_in_tab_counters", false);
+    }
+
+    public static void setMutedInTabCounters(boolean enabled) {
+        preferences().edit().putBoolean("muted_in_tab_counters", enabled).apply();
+    }
+
+    /**
      * Прятать ли поле поиска в шапке списка чатов. Освобождает строку экрана;
      * поиск остаётся доступен со своей вкладки и из меню.
      */

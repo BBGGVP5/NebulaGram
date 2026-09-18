@@ -388,6 +388,13 @@ public class NebulaSectionFragment extends BaseFragment {
                 NebulaAppearance.hideAllChats(), NebulaAppearance::setHideAllChats));
         card.add(toggle(context, R.drawable.nebula_cupertino_bell, R.string.NebulaHideTabCounters, R.string.NebulaHideTabCountersSub,
                 NebulaAppearance.hideTabCounters(), NebulaAppearance::setHideTabCounters));
+        card.add(toggle(context, R.drawable.msg_mute, R.string.NebulaMutedInTabCounters, R.string.NebulaMutedInTabCountersInfo,
+                NebulaAppearance.mutedInTabCounters(), value -> {
+                    NebulaAppearance.setMutedInTabCounters(value);
+                    // Счётчики считает база; попросим её пересчитать сразу, а не
+                    // ждать следующего события, иначе настройка выглядит мёртвой.
+                    org.telegram.messenger.MessagesStorage.getInstance(currentAccount).nebulaRecountFilters();
+                }));
         int[] styles = {R.string.NebulaFolderLabels, R.string.NebulaFolderIcons, R.string.NebulaFolderBoth};
         NebulaRow style = new NebulaRow(context).icon(R.drawable.files_folder).title(LocaleController.getString(R.string.NebulaFolderStyle))
                 .subtitle(LocaleController.getString(styles[NebulaAppearance.folderStyle()]), false).trailing(NebulaRow.TRAIL_CHEVRON);
@@ -451,6 +458,67 @@ public class NebulaSectionFragment extends BaseFragment {
         card.add(toggle(context, R.drawable.msg_emoji_smiles, R.string.NebulaProfileEmoji, R.string.NebulaProfileEmojiInfo,
                 NebulaAppearance.profileEmoji(), NebulaAppearance::setProfileEmoji));
         content.addView(card, cardParams());
+        buildDonation(context);
+    }
+
+    /**
+     * Значок поддержавшего проект. Проверить пожертвование клиенту нечем, и
+     * притворяться, что он проверил, значок не будет: его ставит себе сам
+     * человек, видит его только он, и чужое имя он не украшает.
+     */
+    private void buildDonation(Context context) {
+        NebulaCard card = new NebulaCard(context);
+        NebulaRow badge = new NebulaRow(context)
+                .icon(R.drawable.msg_premium_badge)
+                .title(NebulaText.text("Значок поддержавшего", "Supporter badge"))
+                .subtitle(NebulaText.text("Рядом с вашим именем в профиле, только у вас на устройстве",
+                        "Next to your name in your profile, on this device only"), false)
+                .trailing(NebulaRow.TRAIL_SWITCH)
+                .checked(NebulaDonation.enabled());
+        badge.setOnClickListener(v -> { NebulaDonation.setEnabled(badge.toggleChecked()); refreshPreviews(); });
+        card.add(badge);
+        card.add(new NebulaRow(context).icon(R.drawable.msg_emoji_smiles)
+                .title(NebulaText.text("Какой значок", "Which badge"))
+                .subtitle(NebulaDonation.icon(), true)
+                .trailing(NebulaRow.TRAIL_CHEVRON)
+                .withClick(v -> chooseDonationIcon(context)));
+        card.add(new NebulaRow(context).icon(R.drawable.msg_link2)
+                .title(NebulaText.text("Поддержать проект", "Support the project"))
+                .subtitle(NebulaDonation.link().isEmpty()
+                        ? NebulaText.text("Ссылка не задана", "No link set") : NebulaDonation.link(), true)
+                .trailing(NebulaRow.TRAIL_CHEVRON)
+                .withClick(v -> donationLink(context)));
+        content.addView(card, cardParams());
+    }
+
+    private void chooseDonationIcon(Context context) {
+        String[] icons = {"💎", "⭐", "❤", "🌟", "🪐"};
+        new org.telegram.ui.ActionBar.AlertDialog.Builder(context)
+                .setTitle(NebulaText.text("Какой значок", "Which badge"))
+                .setItems(icons, (d, which) -> { NebulaDonation.setIcon(icons[which]); refreshPalette(); })
+                .show();
+    }
+
+    private void donationLink(Context context) {
+        String current = NebulaDonation.link();
+        if (!current.isEmpty()) {
+            org.telegram.messenger.browser.Browser.openUrl(context, current);
+            return;
+        }
+        final android.widget.EditText input = new android.widget.EditText(context);
+        input.setHint("https://");
+        input.setTextColor(NebulaTheme.of(context).onSurface());
+        input.setHintTextColor(NebulaTheme.of(context).onSurfaceVariant());
+        input.setPadding(AndroidUtilities.dp(22), AndroidUtilities.dp(8), AndroidUtilities.dp(22), AndroidUtilities.dp(8));
+        new org.telegram.ui.ActionBar.AlertDialog.Builder(context)
+                .setTitle(NebulaText.text("Поддержать проект", "Support the project"))
+                .setMessage(NebulaText.text("Куда ведёт эта строка. Ссылка хранится только на этом устройстве.",
+                        "Where this row leads. The link is kept on this device only."))
+                .setView(input)
+                .setNegativeButton(NebulaText.text("Отмена", "Cancel"), null)
+                .setPositiveButton(NebulaText.text("Сохранить", "Save"),
+                        (d, w) -> { NebulaDonation.setLink(input.getText().toString()); refreshPalette(); })
+                .show();
     }
 
     private void buildChatActions(Context context) {

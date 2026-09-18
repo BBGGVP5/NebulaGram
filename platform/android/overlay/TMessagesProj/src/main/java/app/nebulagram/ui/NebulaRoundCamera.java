@@ -23,23 +23,47 @@ public final class NebulaRoundCamera {
     public static final int FRONT = 1;
     /** Всегда основная. */
     public static final int BACK = 2;
+    /** Спрашивать при переходе в режим кружка. */
+    public static final int ASK = 3;
 
     private NebulaRoundCamera() { }
 
     public static int mode() {
-        return Math.max(LAST, Math.min(BACK, prefs().getInt(KEY, LAST)));
+        return Math.max(LAST, Math.min(ASK, prefs().getInt(KEY, LAST)));
     }
 
     public static void setMode(int value) {
-        prefs().edit().putInt(KEY, Math.max(LAST, Math.min(BACK, value))).apply();
+        prefs().edit().putInt(KEY, Math.max(LAST, Math.min(ASK, value))).apply();
     }
 
     public static String title() {
         switch (mode()) {
             case FRONT: return NebulaText.text("Фронтальная", "Front");
             case BACK: return NebulaText.text("Основная", "Rear");
+            case ASK: return NebulaText.text("Спрашивать", "Ask");
             default: return NebulaText.text("Как в прошлый раз", "Last used");
         }
+    }
+
+    /**
+     * Спросить камеру — но не посреди жеста.
+     *
+     * <p>Запись кружка начинается в то же мгновение, когда палец ложится на
+     * кнопку: вопрос в этот момент съел бы жест. Зато переход в режим кружка —
+     * отдельное короткое нажатие, и спросить там можно, ничему не помешав.
+     * Ответ запоминается и применяется к ближайшей записи.
+     */
+    public static void ask(android.content.Context context, org.telegram.ui.ActionBar.Theme.ResourcesProvider provider) {
+        if (mode() != ASK || context == null) {
+            return;
+        }
+        new org.telegram.ui.ActionBar.AlertDialog.Builder(context, provider)
+                .setTitle(NebulaText.text("Камера кружка", "Round video camera"))
+                .setItems(new CharSequence[]{
+                        NebulaText.text("Фронтальная", "Front"),
+                        NebulaText.text("Основная", "Rear"),
+                }, (dialog, which) -> remember(which == 0))
+                .show();
     }
 
     /**
@@ -50,6 +74,8 @@ public final class NebulaRoundCamera {
         switch (mode()) {
             case FRONT: return true;
             case BACK: return false;
+            // «Спрашивать» тоже опирается на запомненное: ответ уже дан при
+            // переходе в режим кружка, здесь его остаётся применить.
             default: return prefs().getBoolean(KEY_LAST, current);
         }
     }

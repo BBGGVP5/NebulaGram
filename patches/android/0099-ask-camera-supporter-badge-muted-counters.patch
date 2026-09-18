@@ -1,0 +1,80 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/MessagesStorage.java b/TMessagesProj/src/main/java/org/telegram/messenger/MessagesStorage.java
+--- a/TMessagesProj/src/main/java/org/telegram/messenger/MessagesStorage.java
++++ b/TMessagesProj/src/main/java/org/telegram/messenger/MessagesStorage.java
+@@ -2736,6 +2736,26 @@ public class MessagesStorage extends BaseController {
+     private LongSparseArray<Integer> dialogsWithMentions = new LongSparseArray<>();
+     private LongSparseArray<Integer> dialogsWithUnread = new LongSparseArray<>();
+ 
++    /**
++     * РџРµСЂРµСЃС‡РёС‚Р°С‚СЊ СЃС‡С‘С‚С‡РёРєРё РїР°РїРѕРє РїРѕ С‚СЂРµР±РѕРІР°РЅРёСЋ.
++     *
++     * <p>РќСѓР¶РµРЅ СЂРѕРІРЅРѕ РѕРґРЅРѕРјСѓ: РїРµСЂРµРєР»СЋС‡Р°С‚РµР»СЋ В«СѓС‡РёС‚С‹РІР°С‚СЊ С‡Р°С‚С‹ Р±РµР· Р·РІСѓРєР°В». Р‘РµР· РЅРµРіРѕ
++     * РЅР°СЃС‚СЂРѕР№РєР° РІС‹РіР»СЏРґРµР»Р° Р±С‹ РјС‘СЂС‚РІРѕР№ РґРѕ СЃР»РµРґСѓСЋС‰РµРіРѕ СЃРѕР±С‹С‚РёСЏ РѕС‚ СЃРµСЂРІРµСЂР°, РїРѕС‚РѕРјСѓ С‡С‚Рѕ
++     * СЃС‡С‘С‚С‡РёРєРё СЃС‡РёС‚Р°СЋС‚СЃСЏ РѕРґРёРЅ СЂР°Р· Рё РґР°Р»СЊС€Рµ Р»РµР¶Р°С‚ РіРѕС‚РѕРІС‹РјРё.
++     */
++    public void nebulaRecountFilters() {
++        storageQueue.postRunnable(() -> {
++            try {
++                calcUnreadCounters(true);
++            } catch (Exception e) {
++                FileLog.e(e);
++                return;
++            }
++            AndroidUtilities.runOnUIThread(() -> getNotificationCenter()
++                    .postNotificationName(NotificationCenter.dialogFiltersUpdated));
++        });
++    }
++
+     private void calcUnreadCounters(boolean apply) {
+         SQLiteCursor cursor = null;
+         try {
+@@ -2951,6 +2971,12 @@ public class MessagesStorage extends BaseController {
+                         flags |= MessagesController.DIALOG_FILTER_FLAG_ONLY_ARCHIVED;
+                     }
+                 }
++                // В«РЈС‡РёС‚С‹РІР°С‚СЊ С‡Р°С‚С‹ Р±РµР· Р·РІСѓРєР° РІ СЃС‡С‘С‚С‡РёРєР°С…В»: РїСЂРёР·РЅР°Рє СЃРЅРёРјР°РµС‚СЃСЏ С‚РѕР»СЊРєРѕ
++                // Р·РґРµСЃСЊ, РЅР° РІСЂРµРјСЏ РїРѕРґСЃС‡С‘С‚Р°. РљР°РєРёРµ С‡Р°С‚С‹ РїРѕРїР°РґР°СЋС‚ РІ РїР°РїРєСѓ, СЂРµС€Р°РµС‚ СЃР°РјР°
++                // РїР°РїРєР°, Рё РµС‘ РЅР°СЃС‚СЂРѕР№РєСѓ СЌС‚Рѕ РЅРµ С‚СЂРѕРіР°РµС‚ вЂ” РјРµРЅСЏРµС‚СЃСЏ РѕРґРЅРѕ С‡РёСЃР»Рѕ РЅР° РІРєР»Р°РґРєРµ.
++                if (app.nebulagram.ui.NebulaAppearance.mutedInTabCounters()) {
++                    flags &= ~MessagesController.DIALOG_FILTER_FLAG_EXCLUDE_MUTED;
++                }
+                 int unreadCount = 0;
+                 if ((flags & MessagesController.DIALOG_FILTER_FLAG_CONTACTS) != 0) {
+                     if ((flags & MessagesController.DIALOG_FILTER_FLAG_ONLY_ARCHIVED) == 0) {
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
+@@ -3071,8 +3071,16 @@ public class ChatActivityEnterView extends FrameLayout implements
+                         if (recordAudioVideoRunnableStarted) {
+                             AndroidUtilities.cancelRunOnUIThread(recordAudioVideoRunnable);
+                             if (sendVoiceEnabled && sendRoundEnabled) {
+-                                delegate.onSwitchRecordMode(!isInVideoMode());
+-                                setRecordVideoButtonVisible(!isInVideoMode(), true);
++                                // РљРѕСЂРѕС‚РєРѕРµ РЅР°Р¶Р°С‚РёРµ РїРµСЂРµРєР»СЋС‡Р°РµС‚ РіРѕР»РѕСЃ/РєСЂСѓР¶РѕРє. Р­С‚Рѕ
++                                // РµРґРёРЅСЃС‚РІРµРЅРЅС‹Р№ РјРѕРјРµРЅС‚, РєРѕРіРґР° Сѓ РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ РјРѕР¶РЅРѕ
++                                // С‡С‚Рѕ-С‚Рѕ СЃРїСЂРѕСЃРёС‚СЊ: Р·Р°РїРёСЃСЊ РЅР°С‡РёРЅР°РµС‚СЃСЏ СЃСЂР°Р·Сѓ, РєР°Рє РїР°Р»РµС†
++                                // Р»РѕР¶РёС‚СЃСЏ РЅР° РєРЅРѕРїРєСѓ, Рё РІРѕРїСЂРѕСЃ С‚Р°Рј СЃСЉРµР» Р±С‹ Р¶РµСЃС‚.
++                                boolean toVideo = !isInVideoMode();
++                                delegate.onSwitchRecordMode(toVideo);
++                                setRecordVideoButtonVisible(toVideo, true);
++                                if (toVideo) {
++                                    app.nebulagram.ui.NebulaRoundCamera.ask(getContext(), resourcesProvider);
++                                }
+                             } else {
+                                 delegate.needShowMediaBanHint();
+                             }
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
+@@ -11478,7 +11478,10 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+                         (getContactsController().contactsDict.size() != 0 || !getContactsController().isLoadingContacts())) {
+                     nameTextView[a].setText(PhoneFormat.getInstance().format("+" + user.phone));
+                 } else {
+-                    nameTextView[a].setText(newString);
++                    // Р—РЅР°С‡РѕРє РїРѕРґРґРµСЂР¶Р°РІС€РµРіРѕ РґРѕРїРёСЃС‹РІР°РµС‚СЃСЏ Рє РёРјРµРЅРё СЃРїР°РЅРѕРј: СЃРїСЂР°РІР° РѕС‚
++                    // РёРјРµРЅРё Р¶РёРІСѓС‚ РѕС‚РјРµС‚РєР° РїСЂРѕРІРµСЂРµРЅРЅРѕРіРѕ Р°РєРєР°СѓРЅС‚Р° Рё СЌРјРѕРґР·Рё-СЃС‚Р°С‚СѓСЃ.
++                    nameTextView[a].setText(app.nebulagram.ui.NebulaDonation.decorate(
++                            newString, user.id, nameTextView[a].getTextPaint()));
+                 }
+                 if (a == 0 && onlineTextOverride != null) {
+                     onlineTextView[a].setText(onlineTextOverride);

@@ -121,4 +121,6 @@
     <string name="NebulaLinkRetry">Повторить</string>
     <string name="NebulaConnectingLinkWithDots">Подключение к NebulaLink…</string>
     <string name="NebulaConnectingLink">Подключение к NebulaLink</string>
+    <string name="NebulaMutedInTabCounters">Учитывать чаты без звука в счётчиках</string>
+    <string name="NebulaMutedInTabCountersInfo">Счётчик на вкладке считает все непрочитанные чаты, а не только те, что могут позвать. Состав папки не меняется.</string>
 </resources>

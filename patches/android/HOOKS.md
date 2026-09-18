@@ -365,3 +365,10 @@ Liquid Glass. Стиль применяется при включённом iOS-
 - Shared cards/rows/introductions/buttons use compact native-style spacing,
   SP-sized text, sentence-case section headers and theme-aware surfaces. Existing
   routes, preference keys, switch-style choices and server probe behavior remain.
+
+### 0099 — «Спрашивать» у кружка, значок поддержавшего и беззвучные в счётчиках
+- `ChatActivityEnterView`: короткое нажатие, переключающее голос/кружок, — единственное место, где у пользователя можно что-то спросить. Запись кружка начинается в то же мгновение, когда палец ложится на кнопку, и вопрос там съел бы жест. При переходе в режим кружка и режиме «Спрашивать» `NebulaRoundCamera.ask` спрашивает камеру; ответ применяется к ближайшей записи.
+- `ProfileActivity.updateProfileData`: имя проходит через `NebulaDonation.decorate`. Значок дописывается эмодзи-спаном, а не занимает место справа от имени: там живут отметка проверенного аккаунта и эмодзи-статус Telegram. Значок ставится только на собственный профиль и только при включённой настройке; сервер о нём не знает.
+- `MessagesStorage.calcUnreadCounters`: при включённой настройке признак `DIALOG_FILTER_FLAG_EXCLUDE_MUTED` снимается на время подсчёта. Состав папки не меняется — меняется одно число на вкладке.
+- `MessagesStorage.nebulaRecountFilters`: пересчёт по требованию. Счётчики считаются один раз и лежат готовыми, поэтому без него переключатель выглядел бы мёртвым до следующего события от сервера.
+- Проверка: применение всей цепочки, компиляция `:TMessagesProj_AppStandalone:compileAfatStandaloneJavaWithJavac`; жест, значок и счётчики на устройстве — отдельно.
