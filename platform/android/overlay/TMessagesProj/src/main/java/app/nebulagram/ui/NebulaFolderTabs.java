@@ -37,10 +37,39 @@ public final class NebulaFolderTabs {
         // Список чатов — корневой экран, его никто не пересоздаёт при возврате
         // из настроек. Без этого переключатель оживал бы только после полного
         // перезапуска приложения, и выглядел бы сломанным.
-        Runnable listener = onChanged;
-        if (listener != null) {
-            listener.run();
+        notifyChanged();
+    }
+
+    public static final int GLASS = 0, ORDINARY = 1, MINIMAL = 2;
+
+    /** Separate from folder_style, which controls labels versus icons. */
+    public static int panelStyle() {
+        return Math.max(0, Math.min(2, preferences().getInt("folder_panel_style", 0)));
+    }
+
+    public static void setPanelStyle(int value) {
+        preferences().edit().putInt("folder_panel_style", Math.max(0, Math.min(2, value))).apply();
+        notifyChanged();
+    }
+
+    public static String panelStyleTitle(int style) {
+        switch (style) {
+            case ORDINARY: return NebulaText.text("Обычные", "Ordinary");
+            case MINIMAL: return NebulaText.text("Минималистичные", "Minimal");
+            default: return NebulaText.text("iOS — жидкое стекло", "iOS — Liquid Glass");
         }
+    }
+
+    private static void notifyChanged() {
+        Runnable listener = onChanged;
+        if (listener != null) listener.run();
+    }
+
+    /** Compact home has no floating top content requiring a rectangular blur. */
+    public static boolean flatHeader(boolean topFolders, boolean stories, boolean searchSlot,
+            float search, float actionMode, float rightSliding) {
+        return !topFolders && !stories && !searchSlot && search == 0f
+                && actionMode == 0f && rightSliding == 0f;
     }
 
     private static Runnable onChanged;

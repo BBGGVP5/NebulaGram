@@ -180,6 +180,20 @@ enum NebulaEmbeddedCatalog {
       "literal_default_binding": true
     },
     {
+      "key": "folder_panel_style",
+      "type": "integer",
+      "feature": "appearance.folders",
+      "android_store": "nebulagram",
+      "android_source": "NebulaFolderTabs.java",
+      "transfer_v1": false,
+      "ios_status": "planned",
+      "ios_mapping": "adapt",
+      "default": 0,
+      "min": 0,
+      "max": 2,
+      "literal_default_binding": true
+    },
+    {
       "key": "folder_style",
       "type": "integer",
       "feature": "navigation.folders",

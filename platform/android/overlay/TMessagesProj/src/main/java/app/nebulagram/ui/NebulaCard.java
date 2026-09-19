@@ -79,7 +79,7 @@ public class NebulaCard extends LinearLayout {
         NebulaTheme theme = NebulaTheme.of(context);
         TextView view = new TextView(context);
         view.setText(text);
-        view.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
+        view.setTextSize(TypedValue.COMPLEX_UNIT_SP, 12);
         view.setTextColor(theme.primary());
         view.setTypeface(AndroidUtilities.bold());
         view.setAllCaps(false);

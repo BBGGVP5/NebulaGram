@@ -1,0 +1,43 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
+index 9984a5f..b08d327 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
+@@ -1941,7 +1941,7 @@ public class ChatActivity extends BaseFragment implements
+             if (action != 0) {
+                 if (action == 1) startEditingMessageObject(messageObject);
+                 else if (action == 2) showFieldPanelForReply(messageObject);
+-                else if (action == 3) AndroidUtilities.addToClipboard(messageObject.messageOwner.message);
++                else if (action == 3) AndroidUtilities.addToClipboard(getMessageContent(messageObject, 0, false));
+                 return;
+             }
+             if (messageObject.isSecret() || !messageObject.canSetReaction() || messageObject.isExpiredStory() || messageObject.type == MessageObject.TYPE_JOINED_CHANNEL) {
+@@ -30940,7 +30940,7 @@ public class ChatActivity extends BaseFragment implements
+             return messageObject.getVoiceTranscription();
+         }
+         if (messageObject.caption != null) {
+-            return messageObject.caption;
++            return app.nebulagram.ui.NebulaClipboardText.restore(messageObject, messageObject.caption);
+         }
+         if (group == null) {
+             return null;
+@@ -30952,7 +30952,7 @@ public class ChatActivity extends BaseFragment implements
+                 if (caption != null) {
+                     return null;
+                 }
+-                caption = message.caption;
++                caption = app.nebulagram.ui.NebulaClipboardText.restore(message, message.caption);
+                 if (msgId != null) {
+                     msgId[0] = message.getId();
+                 }
+@@ -33577,9 +33577,9 @@ public class ChatActivity extends BaseFragment implements
+         if (!TextUtils.isEmpty(restrictionReason)) {
+             str.append(restrictionReason);
+         } else if (messageObject.caption != null) {
+-            str.append(messageObject.caption);
++            str.append(app.nebulagram.ui.NebulaClipboardText.restore(messageObject, messageObject.caption));
+         } else {
+-            str.append(messageObject.messageText);
++            str.append(app.nebulagram.ui.NebulaClipboardText.restore(messageObject, messageObject.messageText));
+         }
+         return str;
+     }

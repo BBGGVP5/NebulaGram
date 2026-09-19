@@ -41,7 +41,7 @@ public final class NebulaSettingsHero extends LinearLayout {
         headingParams.setMarginStart(dp(12));
         top.addView(heading, headingParams);
         addView(top);
-        TextView explanation = label(description, 14, theme.onSurfaceVariant());
+        TextView explanation = label(description, 13, theme.onSurfaceVariant());
         explanation.setLineSpacing(dp(2), 1f);
         LayoutParams descriptionParams = new LayoutParams(-1, -2); descriptionParams.topMargin = dp(8);
         addView(explanation, descriptionParams);

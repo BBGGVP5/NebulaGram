@@ -36,6 +36,8 @@ public class NebulaSwitch extends View {
     private NebulaTheme theme;
 
     private int previewStyle = -1;
+    private boolean settingsPresentation;
+    public void setSettingsPresentation(boolean value) { settingsPresentation = value; invalidate(); }
     public void setPreviewStyle(int style) { previewStyle = style; invalidate(); }
 
     /** Draw inside a native Telegram switch while retaining its touch/accessibility logic. */
@@ -121,6 +123,21 @@ public class NebulaSwitch extends View {
     @Override
     protected void onDraw(Canvas canvas) {
         theme = NebulaTheme.of(getContext());
+        if (settingsPresentation) {
+            // Compact preview design inside the existing 52x32dp layout slot;
+            // the whole settings row remains the touch/accessibility target.
+            float x = AndroidUtilities.dp(12), y = AndroidUtilities.dp(4);
+            float w = AndroidUtilities.dp(40), h = AndroidUtilities.dp(24);
+            paint.setStyle(Paint.Style.FILL);
+            paint.setColor(blend(theme.isDark() ? 0xFF506072 : 0xFFC6CDD5, theme.primary(), progress));
+            track.set(x, y, x + w, y + h);
+            canvas.drawRoundRect(track, h / 2, h / 2, paint);
+            float p = getLayoutDirection() == LAYOUT_DIRECTION_RTL ? 1f - progress : progress;
+            paint.setColor(0xFFFFFFFF);
+            canvas.drawCircle(x + AndroidUtilities.dp(12) + AndroidUtilities.dp(16) * p,
+                    y + h / 2, AndroidUtilities.dp(10), paint);
+            return;
+        }
         int style = previewStyle < 0 ? NebulaAppearance.switchStyle() : previewStyle;
         if (style != 0) { drawAlternative(canvas, style); return; }
         float height = AndroidUtilities.dp(TRACK_HEIGHT);

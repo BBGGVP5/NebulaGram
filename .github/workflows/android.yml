@@ -158,6 +158,9 @@ jobs:
           python3 scripts/check-settings-design.py
           python3 scripts/check-settings-root.py
           python3 scripts/check-settings-runtime.py vendor/telegram-android
+          python3 scripts/check-folder-panel-style.py vendor/telegram-android
+          python3 scripts/check-premium-emoji-copy.py vendor/telegram-android
+          python3 scripts/check-account-slots.py vendor/telegram-android
           python3 scripts/check-forward-editing.py
           python3 scripts/check-protected-copies.py
           python3 scripts/check-theme-toggle.py

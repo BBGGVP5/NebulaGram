@@ -12,7 +12,7 @@ import org.telegram.messenger.FileLog;
 import org.telegram.ui.ActionBar.Theme;
 
 /**
- * Material 3 colour roles for NebulaGram's own screens.
+ * Settings palette matching the approved preview; Material You supplies accents.
  *
  * <p>On Android 12 and later the palette is the system one: the framework
  * already derives Material You tonal ranges from the wallpaper and publishes
@@ -148,35 +148,19 @@ public final class NebulaTheme {
     }
 
     public int surface() {
-        if (!materialYouEnabled()) return Theme.getColor(Theme.key_windowBackgroundGray);
-        if (isDynamic()) {
-            return system(dark ? android.R.color.system_neutral1_900 : android.R.color.system_neutral1_100);
-        }
-        return dark ? BRAND_SURFACE_DARK : BRAND_SURFACE_LIGHT;
+        return dark ? 0xFF18212C : 0xFFF1F3F6;
     }
 
     public int surfaceContainer() {
-        if (!materialYouEnabled()) return Theme.getColor(Theme.key_windowBackgroundWhite);
-        if (isDynamic()) {
-            return system(dark ? android.R.color.system_neutral1_800 : android.R.color.system_neutral1_0);
-        }
-        return dark ? BRAND_SURFACE_CONTAINER_DARK : BRAND_SURFACE_CONTAINER_LIGHT;
+        return dark ? 0xFF232F3D : 0xFFFFFFFF;
     }
 
     public int onSurface() {
-        if (!materialYouEnabled()) return Theme.getColor(Theme.key_windowBackgroundWhiteBlackText);
-        if (isDynamic()) {
-            return system(dark ? android.R.color.system_neutral1_100 : android.R.color.system_neutral1_900);
-        }
-        return dark ? BRAND_ON_SURFACE_DARK : BRAND_ON_SURFACE_LIGHT;
+        return dark ? 0xFFE7EDF5 : 0xFF202C39;
     }
 
     public int onSurfaceVariant() {
-        if (!materialYouEnabled()) return Theme.getColor(Theme.key_windowBackgroundWhiteGrayText);
-        if (isDynamic()) {
-            return system(dark ? android.R.color.system_neutral2_200 : android.R.color.system_neutral2_700);
-        }
-        return dark ? BRAND_ON_SURFACE_VARIANT_DARK : BRAND_ON_SURFACE_VARIANT_LIGHT;
+        return dark ? 0xFF95A6B9 : 0xFF778491;
     }
 
     /**
@@ -192,11 +176,7 @@ public final class NebulaTheme {
     }
 
     public int outline() {
-        if (!materialYouEnabled()) return Theme.getColor(Theme.key_divider);
-        if (isDynamic()) {
-            return system(android.R.color.system_neutral2_500);
-        }
-        return dark ? BRAND_OUTLINE_DARK : BRAND_OUTLINE_LIGHT;
+        return dark ? 0xFF32404F : 0xFFE9EDF1;
     }
 
     /**

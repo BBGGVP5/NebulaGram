@@ -15,7 +15,7 @@ for route in routes:
     assert f'NebulaSettingsLayout.wrap({context}, actionBar,' in source, route
 assert 'new NebulaSettingsHero' not in (UI / 'NebulaSettingsFragment.java').read_text(encoding='utf-8')
 assert 'setAllCaps(false)' in (UI / 'NebulaCard.java').read_text(encoding='utf-8')
-assert 'COMPLEX_UNIT_SP, 16' in (UI / 'NebulaRow.java').read_text(encoding='utf-8')
+assert 'COMPLEX_UNIT_SP, 15' in (UI / 'NebulaRow.java').read_text(encoding='utf-8')
 
 sources = {
     'android/content/Context.java': 'package android.content; public class Context {}',

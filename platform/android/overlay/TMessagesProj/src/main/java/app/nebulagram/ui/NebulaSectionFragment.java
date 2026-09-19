@@ -405,7 +405,7 @@ public class NebulaSectionFragment extends BaseFragment {
                 }));
         int[] styles = {R.string.NebulaFolderLabels, R.string.NebulaFolderIcons, R.string.NebulaFolderBoth};
         NebulaRow style = new NebulaRow(context).icon(R.drawable.files_folder).title(LocaleController.getString(R.string.NebulaFolderStyle))
-                .subtitle(LocaleController.getString(styles[NebulaAppearance.folderStyle()]), false).trailing(NebulaRow.TRAIL_CHEVRON);
+                .value(LocaleController.getString(styles[NebulaAppearance.folderStyle()])).trailing(NebulaRow.TRAIL_CHEVRON);
         style.setOnClickListener(v -> new org.telegram.ui.ActionBar.AlertDialog.Builder(context)
                 .setTitle(LocaleController.getString(R.string.NebulaFolderStyle))
                 .setItems(new CharSequence[] {LocaleController.getString(styles[0]), LocaleController.getString(styles[1]), LocaleController.getString(styles[2])},
@@ -420,6 +420,16 @@ public class NebulaSectionFragment extends BaseFragment {
                     NebulaFolderTabs.setBottom(value);
                     refreshPreviews();
                 }));
+        NebulaRow panelStyle = new NebulaRow(context).icon(R.drawable.msg_customize)
+                .title(NebulaText.text("Оформление нижних папок", "Bottom folder appearance"))
+                .value(NebulaFolderTabs.panelStyleTitle(NebulaFolderTabs.panelStyle()))
+                .trailing(NebulaRow.TRAIL_CHEVRON);
+        panelStyle.setOnClickListener(v -> new org.telegram.ui.ActionBar.AlertDialog.Builder(context)
+                .setTitle(NebulaText.text("Оформление нижних папок", "Bottom folder appearance"))
+                .setItems(new CharSequence[] {NebulaFolderTabs.panelStyleTitle(0),
+                        NebulaFolderTabs.panelStyleTitle(1), NebulaFolderTabs.panelStyleTitle(2)},
+                        (d, which) -> { NebulaFolderTabs.setPanelStyle(which); refreshPalette(); }).show());
+        card.add(panelStyle);
         card.add(new NebulaRow(context).icon(R.drawable.files_folder).title(LocaleController.getString(R.string.Filters))
                 .trailing(NebulaRow.TRAIL_CHEVRON).withClick(v -> presentFragment(new org.telegram.ui.FiltersSetupActivity())));
         content.addView(card, cardParams());
@@ -622,13 +632,13 @@ public class NebulaSectionFragment extends BaseFragment {
         String[] formats = {NebulaText.text("Telegram", "Telegram"), NebulaText.text("Bot API", "Bot API")};
         NebulaRow format = new NebulaRow(context).icon(R.drawable.msg_copy)
                 .title(NebulaText.text("Формат ID", "ID format"))
-                .subtitle(formats[NebulaIds.format()], true)
+                .value(formats[NebulaIds.format()])
                 .trailing(NebulaRow.TRAIL_CHEVRON);
         format.setOnClickListener(v -> showDialog(new org.telegram.ui.ActionBar.AlertDialog.Builder(context)
                 .setTitle(NebulaText.text("Формат ID", "ID format"))
                 .setItems(formats, (dialog, which) -> {
                     NebulaIds.setFormat(which);
-                    format.subtitle(formats[NebulaIds.format()], true);
+                    format.value(formats[NebulaIds.format()]);
                 }).create()));
         ids.add(format);
         content.addView(ids, cardParams());

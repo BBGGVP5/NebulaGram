@@ -27,6 +27,8 @@ public final class NebulaSettingsSearch {
     }
     public static ArrayList<Entry> all() {
         ArrayList<Entry> result = new ArrayList<>();
+        result.add(new Entry(5, NebulaText.text("Оформление нижних папок", "Bottom folder appearance"),
+                NebulaText.text("iOS, жидкое стекло, обычные, минималистичные", "iOS, Liquid Glass, ordinary, minimal"), R.drawable.files_folder));
         result.add(new Entry(-14, NebulaText.text("Кнопка NebulaLink", "NebulaLink button"), NebulaText.text("Щит на главной, подключение, сервер, пинг", "Shield on home, connection, server, ping"), R.drawable.nebula_link_shield));
         result.add(new Entry(0, NebulaText.text("Настроить стекло", "Customize glass"), NebulaText.text("Прозрачность, размытие, блики", "Transparency, blur, highlights"), R.drawable.msg_customize));
         result.add(new Entry(0, NebulaText.text("Виброотклик стекла", "Glass haptics"), "NebulaGram", R.drawable.msg_customize));

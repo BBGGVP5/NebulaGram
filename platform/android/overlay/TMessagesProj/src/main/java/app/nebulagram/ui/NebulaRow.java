@@ -41,15 +41,16 @@ public class NebulaRow extends FrameLayout {
     private final LinearLayout text;
     private TextView emojiIcon;
     private TextView badge;
+    private boolean valueMode;
     private NebulaSwitch toggle;
 
     public NebulaRow(@NonNull Context context) {
         super(context);
         theme = NebulaTheme.of(context);
 
-        setPadding(AndroidUtilities.dp(16), AndroidUtilities.dp(10),
-                AndroidUtilities.dp(16), AndroidUtilities.dp(10));
-        setMinimumHeight(AndroidUtilities.dp(56));
+        setPadding(AndroidUtilities.dp(16), AndroidUtilities.dp(13),
+                AndroidUtilities.dp(16), AndroidUtilities.dp(13));
+        setMinimumHeight(AndroidUtilities.dp(58));
         setForeground(new RippleDrawable(
                 ColorStateList.valueOf(NebulaTheme.stateLayer(theme.onSurface(), 0.08f)), null, null));
 
@@ -76,14 +77,14 @@ public class NebulaRow extends FrameLayout {
         text.setOrientation(LinearLayout.VERTICAL);
 
         title = new TextView(context);
-        title.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16);
+        title.setTextSize(TypedValue.COMPLEX_UNIT_SP, 15);
         title.setTextColor(theme.onSurface());
         title.setTypeface(android.graphics.Typeface.DEFAULT);
         text.addView(title, new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
 
         subtitle = new TextView(context);
-        subtitle.setTextSize(TypedValue.COMPLEX_UNIT_SP, 13);
+        subtitle.setTextSize(TypedValue.COMPLEX_UNIT_SP, 12);
         subtitle.setTextColor(theme.onSurfaceVariant());
         subtitle.setLineSpacing(AndroidUtilities.dp(1), 1f);
         subtitle.setVisibility(GONE);
@@ -230,13 +231,31 @@ public class NebulaRow extends FrameLayout {
         return this;
     }
 
+    /** Right-aligned selection value, as in the settings prototype. */
+    public NebulaRow value(CharSequence value) {
+        badge(value == null ? "" : value.toString(), theme.primary());
+        valueMode = true;
+        badge.setBackground(null);
+        badge.setPadding(0, 0, 0, 0);
+        badge.setTextSize(TypedValue.COMPLEX_UNIT_SP, 12);
+        badge.setGravity(Gravity.END);
+        LayoutParams params = (LayoutParams) badge.getLayoutParams();
+        params.setMarginEnd(AndroidUtilities.dp(28));
+        badge.setLayoutParams(params);
+        icon.setVisibility(GONE);
+        if (emojiIcon != null) emojiIcon.setVisibility(GONE);
+        indent(false);
+        return this;
+    }
+
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
         if (badge != null) {
-            badge.setMaxWidth(Math.max(AndroidUtilities.dp(48), MeasureSpec.getSize(widthMeasureSpec) / 3));
+            badge.setMaxWidth(valueMode ? Math.min(AndroidUtilities.dp(106), MeasureSpec.getSize(widthMeasureSpec) / 3)
+                    : Math.max(AndroidUtilities.dp(48), MeasureSpec.getSize(widthMeasureSpec) / 3));
             measureChildWithMargins(badge, widthMeasureSpec, 0, heightMeasureSpec, 0);
             LayoutParams params = (LayoutParams) text.getLayoutParams();
-            params.setMarginEnd(badge.getMeasuredWidth() + AndroidUtilities.dp(12));
+            params.setMarginEnd(badge.getMeasuredWidth() + AndroidUtilities.dp(valueMode ? 40 : 12));
         }
         super.onMeasure(widthMeasureSpec, heightMeasureSpec);
     }
@@ -254,11 +273,11 @@ public class NebulaRow extends FrameLayout {
     public NebulaRow subtitle(CharSequence value, boolean isValue) {
         if (value == null || value.length() == 0) {
             subtitle.setVisibility(GONE);
-            setMinimumHeight(AndroidUtilities.dp(56));
+            setMinimumHeight(AndroidUtilities.dp(58));
             return this;
         }
         subtitle.setVisibility(VISIBLE);
-        setMinimumHeight(AndroidUtilities.dp(68));
+        setMinimumHeight(AndroidUtilities.dp(64));
         subtitle.setText(value);
         subtitle.setTextColor(isValue ? theme.primary() : theme.onSurfaceVariant());
         return this;
@@ -302,6 +321,7 @@ public class NebulaRow extends FrameLayout {
             textParams.setMarginEnd(AndroidUtilities.dp(64));
             text.setLayoutParams(textParams);
             toggle = new NebulaSwitch(getContext());
+            toggle.setSettingsPresentation(true);
             LayoutParams params = new LayoutParams(
                     ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
             params.gravity = Gravity.CENTER_VERTICAL | Gravity.END;

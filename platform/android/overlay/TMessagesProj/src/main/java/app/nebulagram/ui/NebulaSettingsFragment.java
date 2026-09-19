@@ -81,7 +81,7 @@ public class NebulaSettingsFragment extends BaseFragment {
         NebulaTheme theme = NebulaTheme.of(context);
         search = new android.widget.EditText(context);
         search.setSingleLine(true);
-        search.setTextSize(16);
+        search.setTextSize(14);
         search.setHint(NebulaText.text("Поиск настроек", "Search settings"));
         search.setContentDescription(NebulaText.text("Поиск настроек", "Search settings"));
         search.setTextColor(theme.onSurface());

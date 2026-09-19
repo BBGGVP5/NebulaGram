@@ -15,6 +15,8 @@ import org.telegram.ui.Components.LayoutHelper;
 public final class NebulaFoldersPreview extends FrameLayout {
     private final FilterTabsView tabs;
     private final View sampleChats;
+    private final org.telegram.ui.Components.blur3.source.BlurredBackgroundSourceColor glassSource =
+            new org.telegram.ui.Components.blur3.source.BlurredBackgroundSourceColor();
     private int style = -1;
     private boolean hidden, counters;
     public NebulaFoldersPreview(Context c) {
@@ -42,6 +44,12 @@ public final class NebulaFoldersPreview extends FrameLayout {
         sampleChats.setImportantForAccessibility(IMPORTANT_FOR_ACCESSIBILITY_NO);
         addView(sampleChats, LayoutHelper.createFrame(-1, 92, Gravity.TOP));
         tabs = new FilterTabsView(c, null);
+        org.telegram.ui.Components.blur3.drawable.BlurredBackgroundDrawable glass =
+                new org.telegram.ui.Components.blur3.BlurredBackgroundDrawableViewFactory(glassSource)
+                        .create(tabs, org.telegram.ui.Components.blur3.drawable.color.impl.BlurredBackgroundProviderImpl.topPanel(null));
+        glass.setRadius(AndroidUtilities.dp(18));
+        glass.setPadding(AndroidUtilities.dp(7));
+        tabs.setBlurredBackground(glass);
         tabs.setPadding(0, AndroidUtilities.dp(7), 0, AndroidUtilities.dp(7));
         tabs.setDelegate(new FilterTabsView.FilterTabsViewDelegate() {
             @Override public void onPageSelected(FilterTabsView.Tab tab, boolean forward) { }
@@ -58,6 +66,8 @@ public final class NebulaFoldersPreview extends FrameLayout {
         refresh();
     }
     public void refresh() {
+        glassSource.setColor(NebulaTheme.of(getContext()).surfaceContainer());
+        tabs.updateColors();
         if (style != NebulaAppearance.folderStyle() || hidden != NebulaAppearance.hideAllChats() || counters != NebulaAppearance.hideTabCounters()) {
             style = NebulaAppearance.folderStyle(); hidden = NebulaAppearance.hideAllChats(); counters = NebulaAppearance.hideTabCounters();
             tabs.removeTabs();
@@ -67,6 +77,7 @@ public final class NebulaFoldersPreview extends FrameLayout {
             tabs.finishAddingTabs(false);
         }
         boolean bottom = NebulaFolderTabs.bottom();
+        tabs.setNebulaBottomPanel(bottom);
         FrameLayout.LayoutParams tabParams = (FrameLayout.LayoutParams) tabs.getLayoutParams();
         tabParams.gravity = bottom ? Gravity.BOTTOM : Gravity.TOP;
         tabs.setLayoutParams(tabParams);

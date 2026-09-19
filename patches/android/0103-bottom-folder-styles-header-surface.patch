@@ -1,0 +1,146 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/FilterTabsView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/FilterTabsView.java
+index 10d6551..5fcb6b5 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Components/FilterTabsView.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/FilterTabsView.java
+@@ -1165,9 +1165,41 @@ public class FilterTabsView extends FrameLayout {
+     }
+ 
+     BlurredBackgroundDrawable blurredBackgroundDrawable;
++    private boolean nebulaBottomPanel;
++    private int nebulaPanelStyle;
+ 
+     public void setBlurredBackground(BlurredBackgroundDrawable drawable) {
+-        setBackground(blurredBackgroundDrawable = drawable);
++        blurredBackgroundDrawable = drawable;
++        applyNebulaPanelStyle();
++    }
++
++    public void setNebulaBottomPanel(boolean bottom) {
++        int style = bottom ? app.nebulagram.ui.NebulaFolderTabs.panelStyle() : 0;
++        if (nebulaBottomPanel == bottom && nebulaPanelStyle == style && getBackground() != null) return;
++        nebulaBottomPanel = bottom;
++        nebulaPanelStyle = style;
++        nebulaLens.reset();
++        applyNebulaPanelStyle();
++    }
++
++    private boolean nebulaLiquidSelector() {
++        return nebulaPanelStyle == app.nebulagram.ui.NebulaFolderTabs.GLASS
++                && app.nebulagram.ui.NebulaAppearance.liquidAnimations();
++    }
++
++    private void applyNebulaPanelStyle() {
++        if (nebulaPanelStyle == app.nebulagram.ui.NebulaFolderTabs.GLASS) {
++            setBackground(blurredBackgroundDrawable);
++        } else if (nebulaPanelStyle == app.nebulagram.ui.NebulaFolderTabs.ORDINARY) {
++            setBackground(new android.graphics.drawable.InsetDrawable(
++                    Theme.createRoundRectDrawable(dp(18), Theme.getColor(Theme.key_windowBackgroundGray, resourcesProvider)),
++                    dp(9), dp(7), dp(9), dp(7)));
++        } else {
++            setBackground(null);
++        }
++        // Drawable padding must not change tab measurement when styles switch.
++        setPadding(0, dp(7), 0, dp(7));
++        invalidate();
+     }
+ 
+     private void finishNebulaTabTransition() {
+@@ -1506,7 +1538,7 @@ public class FilterTabsView extends FrameLayout {
+         super.onDetachedFromWindow();
+     }
+     @Override public boolean dispatchTouchEvent(android.view.MotionEvent event) {
+-        if (!app.nebulagram.ui.NebulaAppearance.liquidAnimations() || isEditing || delegate == null) return super.dispatchTouchEvent(event);
++        if (!nebulaLiquidSelector() || isEditing || delegate == null) return super.dispatchTouchEvent(event);
+         int action = event.getActionMasked();
+         float x = event.getX() - listView.getX();
+         if (action == android.view.MotionEvent.ACTION_DOWN) {
+@@ -1621,10 +1653,19 @@ public class FilterTabsView extends FrameLayout {
+ 
+             final float add = additionalTabWidth / 2f;
+ 
++            if (nebulaPanelStyle == app.nebulagram.ui.NebulaFolderTabs.MINIMAL) {
++                nebulaOutlinePaint.setStyle(Paint.Style.FILL);
++                nebulaOutlinePaint.setColor(Theme.getColor(activeTextColorKey, resourcesProvider));
++                canvas.drawRoundRect(indicatorX - add, height - dp(9),
++                        indicatorX + indicatorWidth + add, height - dp(7), dp(1), dp(1), nebulaOutlinePaint);
++                canvas.restore();
++                return;
++            }
++
+             final int y = height / 2 - dp(14);
+             selectorDrawable.setBounds((int) (indicatorX - dp(TAB_INTERNAL_PADDING) - add), y, (int) (indicatorX + indicatorWidth + dp(TAB_INTERNAL_PADDING) + add), y + dp(28));
+             selectorDrawable.setAlpha(31);
+-            if (app.nebulagram.ui.NebulaAppearance.liquidAnimations()) {
++            if (nebulaLiquidSelector()) {
+                 android.graphics.Rect r = selectorDrawable.getBounds();
+                 if (nebulaDragging) {
+                     nebulaReleaseCenter = nebulaDragX;
+@@ -1643,7 +1684,7 @@ public class FilterTabsView extends FrameLayout {
+                 outline.setStyle(Paint.Style.STROKE);
+                 outline.setStrokeWidth(dp(1.5f));
+                 outline.setColor(Theme.getColor(activeTextColorKey));
+-                if (app.nebulagram.ui.NebulaAppearance.liquidAnimations()) {
++                if (nebulaLiquidSelector()) {
+                     nebulaLens.drawOutline(canvas, outline);
+                 } else {
+                     RectF bounds = new RectF(selectorDrawable.getBounds());
+@@ -1679,7 +1720,7 @@ public class FilterTabsView extends FrameLayout {
+         if (blurredBackgroundDrawable != null) {
+             blurredBackgroundDrawable.updateColors();
+         }
+-        invalidate();
++        applyNebulaPanelStyle();
+     }
+ 
+     @Override
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
+index 2a78bcf..b971645 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
+@@ -930,6 +930,13 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+ 
+         @Override
+         public void drawBlurRect(Canvas canvas, float y, Rect rectTmp, Paint blurScrimPaint, boolean top) {
++            if (top && nebulaFlatHomeHeader()) {
++                int previousColor = blurScrimPaint.getColor();
++                blurScrimPaint.setColor(getThemedColor(Theme.key_windowBackgroundWhite));
++                canvas.drawRect(rectTmp, blurScrimPaint);
++                blurScrimPaint.setColor(previousColor);
++                return;
++            }
+             if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q || !SharedConfig.chatBlurEnabled() || iBlur3SourceGlassFrosted == null || !BlurredBackgroundProviderImpl.checkBlurEnabled(currentAccount, resourceProvider)) {
+                 canvas.drawRect(rectTmp, blurScrimPaint);
+                 return;
+@@ -3000,6 +3007,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+      * под вкладками, а кнопка записи — на них.
+      */
+     private void nebulaApplyBottomReserve() {
++        if (filterTabsView != null) filterTabsView.setNebulaBottomPanel(app.nebulagram.ui.NebulaFolderTabs.bottom());
+         updateNebulaBottomInsets();
+     }
+ 
+@@ -5179,6 +5187,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+             filterTabsViewBackground.setPadding(dp(6.666f));
+             filterTabsView.setPadding(0, dp(7), 0, dp(7));
+             filterTabsView.setBlurredBackground(filterTabsViewBackground);
++            filterTabsView.setNebulaBottomPanel(app.nebulagram.ui.NebulaFolderTabs.bottom());
+             contentView.addView(filterTabsView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 36 + 7 + 7,
+                     app.nebulagram.ui.NebulaFolderTabs.gravity(), 4, 0, 4, 0));
+             // Список чатов — корневой экран: из настроек сюда не возвращаются
+@@ -14425,7 +14434,16 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+         }
+     }
+ 
++    private boolean nebulaFlatHomeHeader() {
++        return !onlySelect && initialDialogsType == DIALOGS_TYPE_DEFAULT && communityId == 0
++                && app.nebulagram.ui.NebulaFolderTabs.flatHeader(
++                    !app.nebulagram.ui.NebulaFolderTabs.bottom() && getFilterTabsVisibilityFactor(true) > 0f,
++                    hasStories, nebulaSearchSlotHeight() > 0, searchAnimationProgress,
++                    progressToActionMode, getRightSlidingProgress());
++    }
++
+     private void drawHeaderShadow(Canvas canvas, int sy) {
++        if (nebulaFlatHomeHeader()) return;
+         if (parentLayout == null || actionBar == null /*|| !actionBar.getCastShadows()*/) {
+             return;
+         }
