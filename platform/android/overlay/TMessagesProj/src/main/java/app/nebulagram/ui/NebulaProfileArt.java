@@ -91,7 +91,11 @@ public final class NebulaProfileArt {
                          View subtitle, View actions, float progress, float expanded, float media,
                          float opening, Theme.ResourcesProvider provider) {
             if (!NebulaAppearance.profileStyle() || avatar == null || title == null || subtitle == null) return;
-            final float alpha = clamp((progress - .25f) / .75f) * (1f - clamp(expanded * 3f))
+            // Баннер уходит ровно за то время, за которое раскрывается аватарка.
+            // Тройной множитель гасил его на первой трети хода, а родная
+            // фотография к этому моменту ещё не закрывала шапку — между ними
+            // оставался кадр с голым фоном, и это читалось как моргание.
+            final float alpha = clamp((progress - .25f) / .75f) * (1f - clamp(expanded))
                     * (1f - clamp(media)) * clamp(opening);
             if (alpha <= .01f || width < dp(240)) return;
             final float top = Math.max(dp(4), avatar.getY() - dp(14));

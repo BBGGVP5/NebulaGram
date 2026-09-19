@@ -34,12 +34,12 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.jav
          if (actionBarColor == 0 || glassMode) {
              NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.needCheckSystemBarColors);
          } else if (ColorUtils.calculateLuminance(actionBarColor) < 0.7f) {
-@@ -2444,13 +2456,19 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
+@@ -2444,13 +2456,23 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
              final int widthDefault = rightDefault - leftDefault;
              final int left, right;
              final ChatAvatarContainer centeredNebulaAvatar = nebulaFloatingChatHeader
 -                    && actionModeFactor == 0f && searchFactor == 0f ? nebulaChatAvatarContainer : null;
-+                    && searchFactor == 0f ? nebulaChatAvatarContainer : null;
++                    ? nebulaChatAvatarContainer : null;
              if (centeredNebulaAvatar != null) {
                  // The title, subtitle and image have independent places: a
                  // compact real glass capsule stays centred, while the avatar
@@ -52,8 +52,12 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.jav
 +                // РїСЂРё РЅСѓР»РµРІРѕРј РєРѕСЌС„С„РёС†РёРµРЅС‚Рµ: РІСЃС‘ Р·Р°С‚СѓС…Р°РЅРёРµ РїР°РЅРµР»СЊ СЂРёСЃРѕРІР°Р»Р°СЃСЊ РІРѕ
 +                // РІСЃСЋ С€РёСЂРёРЅСѓ Рё РІ РїРѕСЃР»РµРґРЅРёР№ РєР°РґСЂ СЃС…Р»РѕРїС‹РІР°Р»Р°СЃСЊ РІ РєР°РїСЃСѓР»Сѓ вЂ” СЌС‚Рѕ Рё
 +                // РІС‹РіР»СЏРґРµР»Рѕ РєР°Рє В«СЂР°Р·РґСѓРІР°РµС‚ С€Р°РїРєСѓ Рё РїРѕС‚РѕРј РѕР±СЂР°С‚РЅРѕ РІ РїРёР»СЋР»СЋВ».
-+                final int width = lerp(capsule, widthDefault, actionModeFactor);
-+                left = lerp(app.nebulagram.ui.NebulaChatStyle.headerLeft(getWidth(), capsule), leftDefault, actionModeFactor);
++                // Поиск раскрывает панель так же, как режим выделения, и закрывается
++                // так же — значит и возвращаться должен тем же переходом, а не
++                // схлопываться в капсулу последним кадром.
++                final float nebulaExpand = Math.max(searchFactor, actionModeFactor);
++                final int width = lerp(capsule, widthDefault, nebulaExpand);
++                left = lerp(app.nebulagram.ui.NebulaChatStyle.headerLeft(getWidth(), capsule), leftDefault, nebulaExpand);
                  right = left + width;
                  centeredNebulaAvatar.setTranslationX(0);
                  centeredNebulaAvatar.setPivotX(centeredNebulaAvatar.getMeasuredWidth() / 2f);

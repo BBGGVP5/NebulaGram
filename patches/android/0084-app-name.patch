@@ -1,7 +1,7 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/LocaleController.java b/TMessagesProj/src/main/java/org/telegram/messenger/LocaleController.java
 --- a/TMessagesProj/src/main/java/org/telegram/messenger/LocaleController.java
 +++ b/TMessagesProj/src/main/java/org/telegram/messenger/LocaleController.java
-@@ -1449,6 +1449,14 @@ public class LocaleController {
+@@ -1449,6 +1449,18 @@ public class LocaleController {
      }
  
      private String getStringInternal(String key, String fallback, int fallbackRes, int res) {
@@ -10,7 +10,11 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/LocaleController
 +        // every notification, dialog title and share sheet built from it read
 +        // "Telegram" no matter what the manifest says. Answer from our own
 +        // resource, which no language pack defines.
-+        if ("AppName".equals(key)) {
++        //
++        // По идентификатору, а не только по имени: getString(int) приходит сюда
++        // с пустым ключом, и именно им зовут заголовок уведомления о загрузке.
++        // Сверка по имени его не ловила — в шторке так и оставалось «Telegram».
++        if ("AppName".equals(key) || res == R.string.AppName) {
 +            return ApplicationLoader.applicationContext.getString(R.string.NebulaAppName);
 +        }
          String value = BuildVars.USE_CLOUD_STRINGS ? localizationExternal.getByResNameOrResId(ApplicationLoader.applicationContext, key, res) : null;
