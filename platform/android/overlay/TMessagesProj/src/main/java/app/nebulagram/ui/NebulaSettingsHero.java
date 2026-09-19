@@ -17,10 +17,10 @@ public final class NebulaSettingsHero extends LinearLayout {
         super(context);
         NebulaTheme theme = NebulaTheme.of(context);
         setOrientation(VERTICAL);
-        setPadding(dp(16), dp(16), dp(16), dp(16));
+        setPadding(dp(20), dp(20), dp(20), dp(20));
         background = new GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT,
                 new int[]{theme.surfaceContainer(), theme.surfaceContainer()});
-        background.setCornerRadius(dp(16));
+        background.setCornerRadius(dp(20));
         setBackground(background);
 
         LinearLayout top = new LinearLayout(context);
@@ -28,9 +28,14 @@ public final class NebulaSettingsHero extends LinearLayout {
         ImageView image = new ImageView(context);
         image.setImageResource(icon);
         image.setColorFilter(theme.primary());
+        GradientDrawable tile = new GradientDrawable();
+        tile.setCornerRadius(dp(14));
+        tile.setColor(NebulaTheme.stateLayer(theme.primary(), .12f));
+        image.setBackground(tile);
+        image.setPadding(dp(10), dp(10), dp(10), dp(10));
         image.setImportantForAccessibility(IMPORTANT_FOR_ACCESSIBILITY_NO);
-        top.addView(image, new LayoutParams(dp(28), dp(28)));
-        TextView heading = label(title, 18, theme.onSurface());
+        top.addView(image, new LayoutParams(dp(48), dp(48)));
+        TextView heading = label(title, 20, theme.onSurface());
         heading.setTypeface(AndroidUtilities.bold());
         LayoutParams headingParams = new LayoutParams(0, -2, 1);
         headingParams.setMarginStart(dp(12));

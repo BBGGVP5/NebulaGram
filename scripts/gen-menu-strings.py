@@ -24,6 +24,9 @@ OVERLAY = os.path.join(ROOT, "platform", "android", "overlay",
 
 RUSSIAN = {
     "nl_title": "NebulaLink",
+    "nl_guard": "NebulaGuard",
+    "nl_guard_sub": "Ваш лучший сервис для свободного интернета",
+    "nl_ping_nimbo": "Nimbo Ping",
     "nl_connection": "Соединение",
     "nl_current_server": "Текущий сервер",
     "nl_auto_connect": "Автоподключение",
@@ -132,6 +135,58 @@ def write(path: str, strings: dict[str, str]) -> None:
     print("  ", os.path.relpath(path, ROOT), f"({len(strings)})")
 
 
+JAVA = os.path.join(ROOT, "platform", "android", "overlay", "TMessagesProj", "src", "main",
+                    "java", "app", "nebulagram", "ui", "NebulaMenuStrings.java")
+
+JAVA_HEADER = """package app.nebulagram.ui;
+
+import java.util.HashMap;
+import java.util.Map;
+
+/**
+ * Подписи экранов NebulaLink. Файл создаёт scripts/gen-menu-strings.py: правьте
+ * схему в core/settings/menu.go и словарь в скрипте, а не этот файл.
+ *
+ * <p>Таблица в коде, а не ресурсы. Сборка Telegram переносит строки в бинарную
+ * локализацию и выписывает исходным ресурсам tools:discard, после чего шринкер
+ * их удаляет. Искать такой ресурс по имени через getIdentifier нельзя — он
+ * вернёт ноль, и весь экран откатится на английский из схемы.
+ */
+public final class NebulaMenuStrings {
+    private NebulaMenuStrings() { }
+
+    private static final Map<String, String[]> TEXTS = new HashMap<>();
+
+    static {
+"""
+
+JAVA_FOOTER = """    }
+
+    /** Перевод по ключу схемы; fallback — английский текст из самой схемы. */
+    public static String text(String key, String fallback) {
+        String[] pair = key == null || key.isEmpty() ? null : TEXTS.get(key);
+        return pair == null ? fallback : NebulaText.text(pair[0], pair[1]);
+    }
+}
+"""
+
+
+def java_escape(value: str) -> str:
+    return value.replace("\\", "\\\\").replace('"', '\\"')
+
+
+def write_java(english: dict[str, str], russian: dict[str, str]) -> None:
+    os.makedirs(os.path.dirname(JAVA), exist_ok=True)
+    with open(JAVA, "w", encoding="utf-8", newline="\n") as handle:
+        handle.write(JAVA_HEADER)
+        for key in sorted(english):
+            ru = java_escape(russian.get(key, english[key]))
+            en = java_escape(english[key])
+            handle.write('        TEXTS.put("%s", new String[]{"%s", "%s"});\n' % (key, ru, en))
+        handle.write(JAVA_FOOTER)
+    print("  ", os.path.relpath(JAVA, ROOT), "(%d)" % len(english))
+
+
 def main() -> None:
     english = collect()
     if not english:
@@ -148,6 +203,7 @@ def main() -> None:
 
     write(os.path.join(OVERLAY, "values", "strings_nebula_menu.xml"), english)
     write(os.path.join(OVERLAY, "values-ru", "strings_nebula_menu.xml"), russian)
+    write_java(english, russian)
 
     if missing:
         print("без перевода (пока по-английски):", ", ".join(sorted(missing)))

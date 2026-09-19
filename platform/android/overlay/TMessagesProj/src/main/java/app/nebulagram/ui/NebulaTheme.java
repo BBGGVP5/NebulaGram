@@ -41,8 +41,8 @@ public final class NebulaTheme {
     private static final int BRAND_ON_PRIMARY_LIGHT = 0xFFFFFFFF;
     private static final int BRAND_PRIMARY_CONTAINER_LIGHT = 0xFFD3E3FD;
     private static final int BRAND_ON_PRIMARY_CONTAINER_LIGHT = 0xFF041E49;
-    private static final int BRAND_SURFACE_LIGHT = 0xFFF7F9FF;
-    private static final int BRAND_SURFACE_CONTAINER_LIGHT = 0xFFECEFF6;
+    private static final int BRAND_SURFACE_LIGHT = 0xFFF2F3F5;
+    private static final int BRAND_SURFACE_CONTAINER_LIGHT = 0xFFFFFFFF;
     private static final int BRAND_ON_SURFACE_LIGHT = 0xFF191C20;
     private static final int BRAND_ON_SURFACE_VARIANT_LIGHT = 0xFF43474E;
     private static final int BRAND_OUTLINE_LIGHT = 0xFF74777F;
@@ -150,7 +150,7 @@ public final class NebulaTheme {
     public int surface() {
         if (!materialYouEnabled()) return Theme.getColor(Theme.key_windowBackgroundGray);
         if (isDynamic()) {
-            return system(dark ? android.R.color.system_neutral1_900 : android.R.color.system_neutral1_50);
+            return system(dark ? android.R.color.system_neutral1_900 : android.R.color.system_neutral1_100);
         }
         return dark ? BRAND_SURFACE_DARK : BRAND_SURFACE_LIGHT;
     }
@@ -158,7 +158,7 @@ public final class NebulaTheme {
     public int surfaceContainer() {
         if (!materialYouEnabled()) return Theme.getColor(Theme.key_windowBackgroundWhite);
         if (isDynamic()) {
-            return system(dark ? android.R.color.system_neutral1_800 : android.R.color.system_neutral1_100);
+            return system(dark ? android.R.color.system_neutral1_800 : android.R.color.system_neutral1_0);
         }
         return dark ? BRAND_SURFACE_CONTAINER_DARK : BRAND_SURFACE_CONTAINER_LIGHT;
     }

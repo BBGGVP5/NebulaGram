@@ -208,7 +208,8 @@ public class NebulaMenuFragment extends BaseFragment {
                     JSONObject row = rows.optJSONObject(r);
                     if (row != null && "ping_type".equals(row.optString("key"))) {
                         card.add(new NebulaRow(context)
-                                .title(LocaleController.getString(R.string.nl_ping_estimate)));
+                                .title(NebulaText.text("≈ означает оценку: время GET в Nimbo Ping делится на 3,3 и округляется до ближайшей миллисекунды. Другие проверки сохраняют исходный смысл.",
+                        "≈ marks an estimate: Nimbo Ping GET time divided by 3.3, rounded to the nearest millisecond. Other checks keep their original meaning.")));
                     }
                 }
             }
@@ -559,12 +560,11 @@ public class NebulaMenuFragment extends BaseFragment {
      * has been translated, which keeps adding an option to one Go file.
      */
     private String localized(String key, String fallback) {
-        if (key == null || key.isEmpty() || getParentActivity() == null) {
-            return fallback;
-        }
-        int id = getParentActivity().getResources().getIdentifier(
-                key, "string", getParentActivity().getPackageName());
-        return id == 0 ? fallback : LocaleController.getString(id);
+        // Таблица в коде, а не поиск ресурса по имени: сборка Telegram уносит
+        // строки в бинарную локализацию и помечает исходные ресурсы
+        // tools:discard, шринкер их удаляет, и getIdentifier возвращает ноль —
+        // экран целиком откатывался на английский из схемы.
+        return NebulaMenuStrings.text(key, fallback);
     }
 
     /** Maps the schema's platform-neutral icon names onto Telegram's assets. */

@@ -21,6 +21,7 @@ public final class NebulaSettingsSearch {
             else if (section == -12) f.presentFragment(new NebulaAiFragment());
             else if (section == -13) f.presentFragment(new NebulaUpdatesFragment());
             else if (section == -14) f.presentFragment(new NebulaMenuFragment(NebulaMenuFragment.SCREEN_ADVANCED));
+            else if (section == -15) f.presentFragment(new NebulaPrivacyFragment());
             else f.presentFragment(new NebulaSectionFragment(section).focus(title));
         }
     }
@@ -101,6 +102,7 @@ public final class NebulaSettingsSearch {
         result.add(new Entry(4, NebulaText.text("Истории в списке чатов", "Stories in the chat list"), NebulaText.text("Сторисы, главная, архив", "Stories, home, archive"), R.drawable.msg_photo_settings));
         result.add(new Entry(2, R.string.NebulaHideHomeCamera, R.string.NebulaHideHomeCameraInfo, R.drawable.outline_fab_story_24));
         result.add(new Entry(2, R.string.NebulaHideHomeCompose, R.string.NebulaHideHomeComposeInfo, R.drawable.filled_fab_compose_32));
+        result.add(new Entry(-15, NebulaText.text("Конфиденциальность", "Privacy"), NebulaText.text("Локальные копии, удалённые сообщения и пересылка", "Local copies, deleted messages and forwarding"), R.drawable.msg_secret));
         return result;
     }
     private static String normalize(String s) { return s.toLowerCase(Locale.ROOT).replace('ё', 'е').trim(); }

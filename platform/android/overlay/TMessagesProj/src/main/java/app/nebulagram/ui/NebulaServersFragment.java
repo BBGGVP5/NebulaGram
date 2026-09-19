@@ -159,7 +159,8 @@ public class NebulaServersFragment extends BaseFragment {
         NebulaCard actions = new NebulaCard(context);
         probeAction = new NebulaRow(context).icon(R.drawable.msg_speed)
                 .subtitle(LocaleController.getString(R.string.NebulaProbeSub) + "\n"
-                        + LocaleController.getString(R.string.nl_ping_estimate), false)
+                        + NebulaText.text("≈ означает оценку: время GET в Nimbo Ping делится на 3,3 и округляется до ближайшей миллисекунды. Другие проверки сохраняют исходный смысл.",
+                        "≈ marks an estimate: Nimbo Ping GET time divided by 3.3, rounded to the nearest millisecond. Other checks keep their original meaning."), false)
                 .withClick(v -> { if (probing) cancelProbe(); else probe(); });
         updateProbeAction();
         actions.add(probeAction);

@@ -1,21 +1,25 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/LocaleController.java b/TMessagesProj/src/main/java/org/telegram/messenger/LocaleController.java
 --- a/TMessagesProj/src/main/java/org/telegram/messenger/LocaleController.java
 +++ b/TMessagesProj/src/main/java/org/telegram/messenger/LocaleController.java
-@@ -1449,6 +1449,18 @@ public class LocaleController {
+@@ -1449,6 +1449,22 @@ public class LocaleController {
      }
  
      private String getStringInternal(String key, String fallback, int fallbackRes, int res) {
-+        // NebulaGram: the fork's name, not Telegram's. AppName is a cloud
-+        // string, and a cloud string wins over the resource we override, so
-+        // every notification, dialog title and share sheet built from it read
-+        // "Telegram" no matter what the manifest says. Answer from our own
-+        // resource, which no language pack defines.
++        // NebulaGram: имя форка, а не Telegram. AppName — облачная строка, и
++        // облако побеждает ресурс, который мы переопределяем: иначе каждое
++        // уведомление, заголовок и меню «Поделиться» читались бы «Telegram».
 +        //
 +        // По идентификатору, а не только по имени: getString(int) приходит сюда
 +        // с пустым ключом, и именно им зовут заголовок уведомления о загрузке.
-+        // Сверка по имени его не ловила — в шторке так и оставалось «Telegram».
++        //
++        // Отвечаем строкой, а не ресурсом. Сборка Telegram переносит строки в
++        // бинарную локализацию и выписывает исходным ресурсам tools:discard —
++        // шринкер их удаляет. getString по такому идентификатору кидает
++        // NotFoundException, и отправка видео падала на заголовке уведомления
++        // VideoEncodingService. Имя форка одинаково на всех языках, переводить
++        // его нечего, и ресурс ему не нужен вовсе.
 +        if ("AppName".equals(key) || res == R.string.AppName) {
-+            return ApplicationLoader.applicationContext.getString(R.string.NebulaAppName);
++            return "NebulaGram";
 +        }
          String value = BuildVars.USE_CLOUD_STRINGS ? localizationExternal.getByResNameOrResId(ApplicationLoader.applicationContext, key, res) : null;
          if (value == null) {

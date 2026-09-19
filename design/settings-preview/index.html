@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <title>NebulaGram — настройки</title>
+  <link rel="icon" href="../icon/icon-rounded.png"><link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="studio-bar"><a class="brand" href="#home"><img src="../icon/icon-rounded.png" alt="">NebulaGram <span> / Настройки</span></a><div class="studio-actions"><span class="preview-label"><i></i>Интерактивное превью</span><button id="theme" class="theme-control" aria-label="Переключить тему"></button><button id="reset" class="reset">Сбросить</button></div></header>
+  <div class="workspace">
+    <aside class="sidebar"><div class="sidebar-caption">ВАШЕ ПРОСТРАНСТВО</div><h1>Всё по-вашему.</h1><p>Знакомый Telegram.<br>Больше ваших настроек.</p><nav id="navigation" aria-label="Разделы настроек"></nav><div class="sidebar-footer">NEBULAGRAM DESIGN<br><span>Демонстрационные данные · Android</span></div></aside>
+    <main class="stage"><div class="stage-heading"><span id="breadcrumb">Настройки</span><span class="size-label">390 × 844</span></div><section class="phone" aria-label="Превью настроек"><div class="status-bar"><b>9:41</b><span>▮▮▮ &nbsp;◔ &nbsp;▰</span></div><div class="appbar"><button id="back" class="icon-button" aria-label="Назад"></button><h2 id="page-title">Настройки NebulaGram</h2><button id="more" class="icon-button" aria-label="Импорт и экспорт"></button></div><div class="phone-scroll" id="screen" tabindex="-1"></div><div class="home-indicator"></div></section></main>
+    <aside class="inspector"><div class="inspector-caption"><span class="live-dot"></span>ВАШ ИНТЕРФЕЙС</div><h2>Детали решают.</h2><p>Настройте оформление и посмотрите, как оно ощущается в переписке.</p><div id="live-chat"></div><div class="swatch-label">Акцент превью</div><div id="swatches" class="swatches"></div><div class="inspector-note"><span id="note-icon"></span><div><b id="note-title">Привычно с первого касания</b><p id="note-text">Разделы, цветные значки и спокойные поверхности. Всё нужное — на своём месте.</p></div></div><p class="demo-note">Это локальное превью дизайна. Подключение к серверам, запросы к ИИ и операции с аккаунтом здесь не выполняются.</p></aside>
+  </div>
+  <dialog id="sheet" aria-labelledby="sheet-title"><form method="dialog"><div class="sheet-grip"></div><h2 id="sheet-title"></h2><div id="sheet-body"></div><button class="sheet-cancel" value="cancel">Закрыть</button></form></dialog>
+  <div id="toast" role="status" aria-live="polite"></div>
+  <script src="native-controls.js"></script><script src="app.js"></script>
+</body></html>

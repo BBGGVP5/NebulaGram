@@ -24,6 +24,9 @@ import org.telegram.ui.ActionBar.BaseFragment;
 public class NebulaSettingsFragment extends BaseFragment {
 
     private LinearLayout content;
+    private LinearLayout sections;
+    private LinearLayout searchResults;
+    private android.widget.EditText search;
     private FrameLayout root;
     private int paletteSurface, palettePrimary;
 
@@ -75,40 +78,91 @@ public class NebulaSettingsFragment extends BaseFragment {
     }
     private void build(Context context) {
         content.removeAllViews();
-        content.addView(NebulaCard.header(context, NebulaText.text("Подключение", "Connection")));
+        NebulaTheme theme = NebulaTheme.of(context);
+        search = new android.widget.EditText(context);
+        search.setSingleLine(true);
+        search.setTextSize(16);
+        search.setHint(NebulaText.text("Поиск настроек", "Search settings"));
+        search.setContentDescription(NebulaText.text("Поиск настроек", "Search settings"));
+        search.setTextColor(theme.onSurface());
+        search.setHintTextColor(theme.onSurfaceVariant());
+        search.setInputType(android.text.InputType.TYPE_CLASS_TEXT);
+        search.setImeOptions(android.view.inputmethod.EditorInfo.IME_ACTION_SEARCH);
+        search.setPadding(AndroidUtilities.dp(16), AndroidUtilities.dp(12), AndroidUtilities.dp(16), AndroidUtilities.dp(12));
+        android.graphics.drawable.GradientDrawable field = new android.graphics.drawable.GradientDrawable();
+        field.setCornerRadius(AndroidUtilities.dp(14));
+        field.setColor(theme.surfaceContainer());
+        search.setBackground(field);
+        content.addView(search, new LinearLayout.LayoutParams(-1, -2));
+        searchResults = new LinearLayout(context);
+        searchResults.setOrientation(LinearLayout.VERTICAL);
+        searchResults.setVisibility(View.GONE);
+        content.addView(searchResults, new LinearLayout.LayoutParams(-1, -2));
+        sections = new LinearLayout(context);
+        sections.setOrientation(LinearLayout.VERTICAL);
+        content.addView(sections, new LinearLayout.LayoutParams(-1, -2));
+        search.addTextChangedListener(new android.text.TextWatcher() {
+            @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) { }
+            @Override public void onTextChanged(CharSequence s, int start, int before, int count) { showSearch(context, s.toString()); }
+            @Override public void afterTextChanged(android.text.Editable s) { }
+        });
+        buildSections(context);
+    }
+
+    private void showSearch(Context context, String query) {
+        boolean searching = query.trim().length() >= 2;
+        sections.setVisibility(searching ? View.GONE : View.VISIBLE);
+        searchResults.setVisibility(searching ? View.VISIBLE : View.GONE);
+        searchResults.removeAllViews();
+        if (!searching) return;
+        java.util.ArrayList<NebulaSettingsSearch.Entry> matches = NebulaSettingsSearch.match(query);
+        searchResults.addView(NebulaCard.header(context, matches.isEmpty()
+                ? NebulaText.text("Ничего не найдено", "No settings found")
+                : NebulaText.text("Результаты поиска", "Search results")));
+        NebulaCard results = new NebulaCard(context);
+        for (NebulaSettingsSearch.Entry entry : matches) {
+            results.add(new NebulaRow(context).icon(entry.icon).title(entry.title)
+                    .subtitle(entry.info, false).trailing(NebulaRow.TRAIL_CHEVRON)
+                    .withClick(v -> { AndroidUtilities.hideKeyboard(search); entry.open(this); }));
+        }
+        if (!matches.isEmpty()) searchResults.addView(results, cardParams());
+    }
+
+    private void buildSections(Context context) {
+        sections.addView(NebulaCard.header(context, NebulaText.text("Подключение", "Connection")));
         NebulaCard tunnel = new NebulaCard(context);
         tunnel.add(new NebulaLinkRow(context).withClick(v -> presentFragment(new NebulaMenuFragment())));
-        content.addView(tunnel, cardParams());
+        sections.addView(tunnel, cardParams());
 
-        content.addView(NebulaCard.header(context, NebulaText.text("Приложение", "Application")));
+        sections.addView(NebulaCard.header(context, NebulaText.text("Приложение", "Application")));
         NebulaCard app = new NebulaCard(context);
         app.add(section(context, R.drawable.msg_settings, R.string.NebulaSectionGeneral, R.string.NebulaGeneralSub, NebulaSectionFragment.SECTION_GENERAL));
         app.add(new NebulaRow(context).icon(R.drawable.msg_secret).title(NebulaText.text("Конфиденциальность", "Privacy"))
                 .subtitle(NebulaText.text("Локальный архив удалённых сообщений", "Local deleted-message archive"), false)
                 .trailing(NebulaRow.TRAIL_CHEVRON).withClick(v -> presentFragment(new NebulaPrivacyFragment())));
         app.add(section(context, R.drawable.msg_customize, R.string.NebulaAppearanceTitle, R.string.NebulaAppearanceSub, NebulaSectionFragment.SECTION_APPEARANCE));
-        content.addView(app, cardParams());
+        sections.addView(app, cardParams());
 
-        content.addView(NebulaCard.header(context, NebulaText.text("Навигация", "Navigation")));
+        sections.addView(NebulaCard.header(context, NebulaText.text("Навигация", "Navigation")));
         NebulaCard navigation = new NebulaCard(context);
         navigation.add(section(context, R.drawable.msg_list, R.string.NebulaSectionPanel, R.string.NebulaPanelSub, NebulaSectionFragment.SECTION_TABS));
         navigation.add(section(context, R.drawable.files_folder, R.string.NebulaSectionFolders, R.string.NebulaFoldersInfo, NebulaSectionFragment.SECTION_FOLDERS));
-        content.addView(navigation, cardParams());
+        sections.addView(navigation, cardParams());
 
-        content.addView(NebulaCard.header(context, NebulaText.text("Чаты и профиль", "Chats and profile")));
+        sections.addView(NebulaCard.header(context, NebulaText.text("Чаты и профиль", "Chats and profile")));
         NebulaCard chats = new NebulaCard(context);
         chats.add(section(context, R.drawable.msg_discussion, R.string.NebulaSectionChats, R.string.NebulaChatsSub, NebulaSectionFragment.SECTION_CHATS));
         chats.add(section(context, R.drawable.menu_reply, R.string.NebulaSectionMessages, R.string.NebulaMessagesInfo, NebulaSectionFragment.SECTION_MESSAGES));
         chats.add(section(context, R.drawable.msg_openprofile, R.string.NebulaSectionProfile, R.string.NebulaProfileInfo, NebulaSectionFragment.SECTION_PROFILE));
-        content.addView(chats, cardParams());
+        sections.addView(chats, cardParams());
 
-        content.addView(NebulaCard.header(context, NebulaText.text("Инструменты и приложение", "Tools and app")));
+        sections.addView(NebulaCard.header(context, NebulaText.text("Инструменты и приложение", "Tools and app")));
         NebulaCard tools = new NebulaCard(context);
         tools.add(new NebulaRow(context).icon(R.drawable.msg_emoji_smiles).title(NebulaText.text("Искусственный интеллект", "AI assistant"))
                 .subtitle("Gemini · Claude · GPT", false).trailing(NebulaRow.TRAIL_CHEVRON)
                 .withClick(v -> presentFragment(new NebulaAiFragment())));
         tools.add(section(context, R.drawable.msg_info, R.string.NebulaSectionAbout, R.string.NebulaAboutSub, NebulaSectionFragment.SECTION_ABOUT));
-        content.addView(tools, cardParams());
+        sections.addView(tools, cardParams());
     }
 
     @Override

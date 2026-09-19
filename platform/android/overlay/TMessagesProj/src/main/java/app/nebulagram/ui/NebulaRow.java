@@ -58,7 +58,7 @@ public class NebulaRow extends FrameLayout {
         icon.setColorFilter(theme.primary(), PorterDuff.Mode.SRC_IN);
         GradientDrawable iconBackground = new GradientDrawable();
         iconBackground.setCornerRadius(AndroidUtilities.dp(9));
-        iconBackground.setColor(NebulaTheme.stateLayer(theme.primary(), 0.14f));
+        iconBackground.setColor(theme.primary());
         icon.setBackground(iconBackground);
         icon.setPadding(AndroidUtilities.dp(6), AndroidUtilities.dp(6),
                 AndroidUtilities.dp(6), AndroidUtilities.dp(6));
@@ -66,6 +66,7 @@ public class NebulaRow extends FrameLayout {
         // нет, показывать пустой скруглённый квадрат нечем оправдать: строка
         // без значка должна начинаться с текста, как в Material 3.
         icon.setVisibility(GONE);
+        icon.setImportantForAccessibility(IMPORTANT_FOR_ACCESSIBILITY_NO);
 
         LayoutParams iconParams = new LayoutParams(AndroidUtilities.dp(32), AndroidUtilities.dp(32));
         iconParams.gravity = Gravity.CENTER_VERTICAL | Gravity.START;
@@ -82,7 +83,7 @@ public class NebulaRow extends FrameLayout {
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
 
         subtitle = new TextView(context);
-        subtitle.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
+        subtitle.setTextSize(TypedValue.COMPLEX_UNIT_SP, 13);
         subtitle.setTextColor(theme.onSurfaceVariant());
         subtitle.setLineSpacing(AndroidUtilities.dp(1), 1f);
         subtitle.setVisibility(GONE);
@@ -102,6 +103,11 @@ public class NebulaRow extends FrameLayout {
         LayoutParams params = (LayoutParams) text.getLayoutParams();
         params.setMarginStart(leading ? AndroidUtilities.dp(48) : 0);
         text.setLayoutParams(params);
+    }
+
+    /** Dividers align with the text, including rows without a leading tile. */
+    public boolean hasLeadingIcon() {
+        return icon.getVisibility() == VISIBLE || (emojiIcon != null && emojiIcon.getVisibility() == VISIBLE);
     }
 
     private android.animation.ValueAnimator highlightAnimation;
@@ -134,19 +140,22 @@ public class NebulaRow extends FrameLayout {
             icon.setVisibility(VISIBLE);
             icon.setImageResource(resource);
             int accent = sectionAccent(resource);
-            icon.setColorFilter(accent, PorterDuff.Mode.SRC_IN);
-            ((GradientDrawable) icon.getBackground()).setColor(NebulaTheme.stateLayer(accent, .13f));
+            icon.setColorFilter(0xFFFFFFFF, PorterDuff.Mode.SRC_IN);
+            ((GradientDrawable) icon.getBackground()).setColor(accent);
         }
         indent(resource != 0);
         return this;
     }
 
     private int sectionAccent(int resource) {
-        if (resource == org.telegram.messenger.R.drawable.msg_secret) return theme.success();
-        if (resource == org.telegram.messenger.R.drawable.msg_customize) return theme.isDark() ? 0xFFB69CFF : 0xFF7953BE;
-        if (resource == org.telegram.messenger.R.drawable.msg_settings) return theme.isDark() ? 0xFFF2B76E : 0xFF966019;
-        if (resource == org.telegram.messenger.R.drawable.msg_emoji_smiles) return theme.isDark() ? 0xFF80CEC8 : 0xFF237B76;
-        return theme.primary();
+        if (resource == org.telegram.messenger.R.drawable.msg_secret) return 0xFF30A76C;
+        if (resource == org.telegram.messenger.R.drawable.msg_customize) return 0xFF8872D8;
+        if (resource == org.telegram.messenger.R.drawable.msg_settings) return 0xFFE99A38;
+        if (resource == org.telegram.messenger.R.drawable.msg_emoji_smiles) return 0xFF26A6A0;
+        if (resource == org.telegram.messenger.R.drawable.msg_openprofile) return 0xFFE7768F;
+        if (resource == org.telegram.messenger.R.drawable.files_folder) return 0xFFEDAA34;
+        if (resource == org.telegram.messenger.R.drawable.menu_reply) return 0xFF5E80D8;
+        return 0xFF3396DB;
     }
 
     /** Country emoji keeps its colours instead of inheriting the icon tint. */
@@ -245,14 +254,16 @@ public class NebulaRow extends FrameLayout {
         int accent = connected ? theme.success() : theme.primary();
         title.setTextColor(connected ? accent : theme.onSurface());
         subtitle.setTextColor(connected ? accent : theme.onSurfaceVariant());
-        icon.setColorFilter(accent, PorterDuff.Mode.SRC_IN);
-        ((GradientDrawable) icon.getBackground()).setColor(NebulaTheme.stateLayer(accent, 0.14f));
+        icon.setColorFilter(0xFFFFFFFF, PorterDuff.Mode.SRC_IN);
+        ((GradientDrawable) icon.getBackground()).setColor(accent);
         return this;
     }
 
     public NebulaRow destructive() {
-        title.setTextColor(0xFFFF6E6E);
-        icon.setColorFilter(0xFFFF6E6E, PorterDuff.Mode.SRC_IN);
+        int color = theme.isDark() ? 0xFFFF8585 : 0xFFC43838;
+        title.setTextColor(color);
+        icon.setColorFilter(0xFFFFFFFF, PorterDuff.Mode.SRC_IN);
+        ((GradientDrawable) icon.getBackground()).setColor(color);
         return this;
     }
 
@@ -266,6 +277,10 @@ public class NebulaRow extends FrameLayout {
             params.gravity = Gravity.CENTER_VERTICAL | Gravity.END;
             addView(chevron, params);
         } else if (kind == TRAIL_SWITCH) {
+            // Setting controls stay quiet; colored tiles identify navigation destinations.
+            icon.setVisibility(GONE);
+            if (emojiIcon != null) emojiIcon.setVisibility(GONE);
+            indent(false);
             // Переключатель шире стрелки: 52dp против 24dp. С прежним отступом
             // в 36dp текст заезжал под него на треть — отсюда обрезанные
             // подписи во всех наших списках. Считаем от его настоящей ширины.

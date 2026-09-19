@@ -13,9 +13,7 @@ import androidx.annotation.NonNull;
 import org.telegram.messenger.AndroidUtilities;
 
 /**
- * A group of rows on one rounded surface — the Material 3 way of showing a
- * settings section, in place of Telegram's own full-width rows on a flat
- * background.
+ * Telegram-style inset group, shared by every Nebula settings route.
  *
  * <p>An optional header sits above the card rather than inside it, which is
  * what keeps a screen of several cards readable at a glance.
@@ -31,7 +29,7 @@ public class NebulaCard extends LinearLayout {
         setOrientation(VERTICAL);
 
         GradientDrawable background = new GradientDrawable();
-        background.setCornerRadius(AndroidUtilities.dp(16));
+        background.setCornerRadius(AndroidUtilities.dp(20));
         background.setColor(theme.surfaceContainer());
         setBackground(background);
         // Rows draw ripples that must be clipped to the rounded shape.
@@ -42,6 +40,11 @@ public class NebulaCard extends LinearLayout {
     public NebulaCard add(View row) {
         if (hasRows) {
             View divider = NebulaRow.divider(getContext());
+            LayoutParams dividerParams = (LayoutParams) divider.getLayoutParams();
+            dividerParams.setMarginStart(AndroidUtilities.dp(row instanceof NebulaRow
+                    && ((NebulaRow) row).hasLeadingIcon() ? 64 : 16));
+            dividerParams.setMarginEnd(0);
+            divider.setLayoutParams(dividerParams);
             divider.setTag("nebula-divider");
             addView(divider);
         }
@@ -77,7 +80,7 @@ public class NebulaCard extends LinearLayout {
         TextView view = new TextView(context);
         view.setText(text);
         view.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
-        view.setTextColor(theme.onSurfaceVariant());
+        view.setTextColor(theme.primary());
         view.setTypeface(AndroidUtilities.bold());
         view.setAllCaps(false);
         view.setPadding(AndroidUtilities.dp(16), AndroidUtilities.dp(22),

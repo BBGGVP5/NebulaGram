@@ -34,6 +34,25 @@ public final class NebulaFolderTabs {
 
     public static void setBottom(boolean value) {
         preferences().edit().putBoolean(KEY, value).apply();
+        // Список чатов — корневой экран, его никто не пересоздаёт при возврате
+        // из настроек. Без этого переключатель оживал бы только после полного
+        // перезапуска приложения, и выглядел бы сломанным.
+        Runnable listener = onChanged;
+        if (listener != null) {
+            listener.run();
+        }
+    }
+
+    private static Runnable onChanged;
+
+    /** Список чатов сообщает, что умеет переставить панель на ходу. */
+    public static void setChangeListener(Runnable listener) {
+        onChanged = listener;
+    }
+
+    /** Гравитация для панели вкладок. */
+    public static int gravity() {
+        return bottom() ? android.view.Gravity.BOTTOM : android.view.Gravity.TOP;
     }
 
     /**
