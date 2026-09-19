@@ -15,5 +15,9 @@
 - [x] Add `platform/ios/overlay/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/NebulaProfileBadgeArtwork.swift`. Embed the exact Android PNGs for supporter/Mira; reproduce the other three existing vector shapes in UIKit. No external image downloads or tinting.
 - [x] Build a disposable sparse tree from the pinned revision and apply the existing patch series. Add `0017-profile-badges.patch` for `PeerInfoHeaderNode.swift`: only user profiles without a topic, weak asynchronous callback with peer identity check, regular/expanded title children, extra title width reservation, native layout refresh.
 - [x] Extend `platform/ios/tools/check-bootstrap.py` with integration and artwork parity assertions, and document the hook in `patches/ios/HOOKS.md`.
-- [ ] Run `python platform/ios/tools/generate-overlay.py`, `python platform/ios/tools/check-bootstrap.py`, and `git diff --check`. Run `swift test --package-path platform/ios/NebulaSettingsContract` and native syntax/SDK checks on macOS CI (no local Swift toolchain).
-- [ ] Commit only scoped tracked files, push, dispatch `gh workflow run ios-ipa.yml --ref main`. Verify Swift CI and report the actual IPA run state. An in-progress build is not an available IPA, and source checks do not establish device rendering quality.
+- [x] Run `python platform/ios/tools/generate-overlay.py`, `python platform/ios/tools/check-bootstrap.py`, and `git diff --check`. Run `swift test --package-path platform/ios/NebulaSettingsContract` and native syntax/SDK checks on macOS CI (no local Swift toolchain).
+- [x] Commit only scoped tracked files, push, dispatch `gh workflow run ios-ipa.yml --ref main`. Verify Swift CI and report the actual IPA run state. An in-progress build is not an available IPA, and source checks do not establish device rendering quality.
+
+## Validation result
+
+Implementation commit: `07f23b6`. Bootstrap run `35467282243` passed all 37 Swift tests (7 badge tests), ordered patch application, native syntax parsing and artwork typechecking against the iOS simulator SDK. IPA run `35467290500` is in progress on that exact implementation commit. Device rendering and a completed installable IPA are not yet verified. Patch-context whitespace is inherited upstream; `git apply --whitespace=error` passes, and non-patch source files pass `git diff --check`.
