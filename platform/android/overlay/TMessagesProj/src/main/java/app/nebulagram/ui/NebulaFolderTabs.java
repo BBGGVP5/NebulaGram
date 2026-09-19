@@ -22,7 +22,7 @@ public final class NebulaFolderTabs {
     private static final String KEY = "folder_tabs_bottom";
 
     /** Высота панели вкладок вместе с её внутренними отступами, в точках. */
-    private static final int HEIGHT_DP = 36 + 7 + 7;
+    public static final int HEIGHT_DP = 36 + 7 + 7;
     /** Зазор между вкладками и списком, чтобы они не слипались. */
     private static final int GAP_DP = 4;
 
@@ -61,6 +61,12 @@ public final class NebulaFolderTabs {
      */
     public static int reserved() {
         return bottom() ? AndroidUtilities.dp(HEIGHT_DP + GAP_DP) : 0;
+    }
+
+    /** Content coordinates; top chrome must never be added to a bottom-anchored tab. */
+    public static int bottomTop(int contentHeight, int tabHeight, int systemBottom, int mainTabsHeight) {
+        return Math.max(0, contentHeight - tabHeight - systemBottom - mainTabsHeight
+                - AndroidUtilities.dp(GAP_DP));
     }
 
     private static SharedPreferences preferences() {

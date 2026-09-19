@@ -14,6 +14,12 @@ import org.telegram.ui.Components.AvatarDrawable;
 public final class NebulaChatStyle {
     private NebulaChatStyle() { }
 
+    /** Share the search/action-mode animation instead of appearing on its final frame. */
+    public static int avatarBackdropAlpha(float search, float actionMode, float avatarAlpha) {
+        float visibility = 1f - Math.max(0f, Math.min(1f, Math.max(search, actionMode)));
+        return Math.round(255f * visibility * Math.max(0f, Math.min(1f, avatarAlpha)));
+    }
+
     /** Outer blur bounds; 6dp of drawable padding surrounds each visible surface. */
     public static int headerWidth(int barWidth, int textWidth) {
         if (!NebulaAppearance.chatHeader()) return Math.max(0, barWidth - NebulaHeaderCounter.backWidth() - AndroidUtilities.dp(58));

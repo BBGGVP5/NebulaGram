@@ -19,6 +19,8 @@ private final class NebulaSettingsArguments {
     var openAi: (() -> Void)?
     var updateKey: ((String, Bool) -> Void)?
     var clearHistory: (() -> Void)?
+    var searchUpdated: ((String) -> Void)?
+    var russian = false
 
     init(transfer: NebulaSettingsFileTransfer, update: @escaping (Bool) -> Void) {
         self.transfer = transfer
@@ -27,12 +29,14 @@ private final class NebulaSettingsArguments {
 }
 
 private enum NebulaSettingsEntry: ItemListNodeEntry {
+    case search(String, String)
+    case empty(String)
     case toolsHeader(String)
     case appearanceHeader(String)
     case privacyHeader(String)
-    case navigation(String)
+    case navigation(String, String)
     case contacts(String, Bool, Bool)
-    case glass(String)
+    case glass(String, String)
     case link(String)
     case privacy(String)
     case ai(String)
@@ -49,6 +53,7 @@ private enum NebulaSettingsEntry: ItemListNodeEntry {
 
     var section: ItemListSectionId {
         switch self {
+        case .search, .empty: return -1
         case .toolsHeader, .link, .ai: return 0
         case .appearanceHeader, .glass, .navigation, .contacts, .stories: return 1
         case .header, .hideCounters, .footer: return 2
@@ -58,6 +63,8 @@ private enum NebulaSettingsEntry: ItemListNodeEntry {
     }
     private var order: Int {
         switch self {
+        case .search: return -2
+        case .empty: return -1
         case .toolsHeader: return 0
         case .link: return 1
         case .ai: return 2
@@ -81,6 +88,8 @@ private enum NebulaSettingsEntry: ItemListNodeEntry {
     }
     var stableId: Int32 {
         switch self {
+        case .search: return 19
+        case .empty: return 20
         case .toolsHeader: return 16
         case .appearanceHeader: return 17
         case .privacyHeader: return 18
@@ -107,9 +116,42 @@ private enum NebulaSettingsEntry: ItemListNodeEntry {
         return lhs.order < rhs.order
     }
 
+    var searchableText: String? {
+        switch self {
+        case let .navigation(title, detail), let .glass(title, detail): return title + " " + detail
+        case let .contacts(title, _, _), let .stories(title, _, _), let .history(title, _, _),
+             let .hideCounters(title, _, _), let .exportFile(title, _): return title
+        case let .link(title), let .privacy(title), let .ai(title), let .clearHistory(title),
+             let .importFile(title): return title
+        default: return nil
+        }
+    }
+
+    var isHeader: Bool {
+        switch self {
+        case .toolsHeader, .appearanceHeader, .privacyHeader, .header, .transferHeader: return true
+        default: return false
+        }
+    }
+
     func item(presentationData: ItemListPresentationData, arguments: Any) -> ListViewItem {
         let arguments = arguments as! NebulaSettingsArguments
+        let ru = arguments.russian
+        func disclosure(_ title: String, _ detail: String, _ symbol: String, _ action: (() -> Void)?) -> ListViewItem {
+            return ItemListDisclosureItem(presentationData: presentationData, systemStyle: .glass,
+                icon: NebulaSettingsStyle.icon(symbol: symbol), title: title,
+                label: detail, labelStyle: .multilineDetailText, sectionId: section,
+                style: .blocks, action: action)
+        }
         switch self {
+        case let .search(value, placeholder):
+            return ItemListSingleLineInputItem(presentationData: presentationData, systemStyle: .glass,
+                title: NSAttributedString(string: ""), text: value, placeholder: placeholder,
+                type: .regular(capitalization: false, autocorrection: false), returnKeyType: .search,
+                clearType: .always, maxLength: 200, sectionId: section,
+                textUpdated: { arguments.searchUpdated?($0) }, action: {})
+        case let .empty(text):
+            return ItemListTextItem(presentationData: presentationData, text: .plain(text), sectionId: section)
         case let .header(text), let .transferHeader(text), let .toolsHeader(text), let .appearanceHeader(text), let .privacyHeader(text):
             return ItemListSectionHeaderItem(presentationData: presentationData, text: text, sectionId: section)
         case let .hideCounters(title, value, enabled):
@@ -123,17 +165,17 @@ private enum NebulaSettingsEntry: ItemListNodeEntry {
         case let .clearHistory(title):
             return ItemListActionItem(presentationData: presentationData, systemStyle: .glass, title: title, kind: .generic, alignment: .natural, sectionId: section, style: .blocks, action: { arguments.clearHistory?() })
         case let .privacy(title):
-            return ItemListActionItem(presentationData: presentationData, systemStyle: .glass, title: title, kind: .generic, alignment: .natural, sectionId: section, style: .blocks, action: { arguments.openPrivacy?() })
+            return disclosure(title, ru ? "Локальные копии и защита" : "Local copies and protection", "hand.raised", { arguments.openPrivacy?() })
         case let .ai(title):
-            return ItemListActionItem(presentationData: presentationData, systemStyle: .glass, title: title, kind: .generic, alignment: .natural, sectionId: section, style: .blocks, action: { arguments.openAi?() })
+            return disclosure(title, ru ? "Провайдер, модель и инструкции" : "Provider, model and instructions", "sparkles", { arguments.openAi?() })
         case let .contacts(title, value, enabled):
             return ItemListSwitchItem(presentationData: presentationData, systemStyle: .glass, title: title, value: value, enabled: enabled, sectionId: section, style: .blocks, updated: { arguments.updateKey?("bottom_bar_contacts", $0) })
-        case let .navigation(title):
-            return ItemListActionItem(presentationData: presentationData, systemStyle: .glass, title: title, kind: .generic, alignment: .natural, sectionId: section, style: .blocks, action: { arguments.openNavigation?() })
-        case let .glass(title):
-            return ItemListActionItem(presentationData: presentationData, systemStyle: .glass, title: title, kind: .generic, alignment: .natural, sectionId: section, style: .blocks, action: { arguments.openGlass?() })
+        case let .navigation(title, detail):
+            return disclosure(title, detail, "rectangle.bottomthird.inset.filled", { arguments.openNavigation?() })
+        case let .glass(title, detail):
+            return disclosure(title, detail, "slider.horizontal.3", { arguments.openGlass?() })
         case let .link(title):
-            return ItemListActionItem(presentationData: presentationData, systemStyle: .glass, title: title, kind: .generic, alignment: .natural, sectionId: section, style: .blocks, action: { arguments.openLink?() })
+            return disclosure(title, ru ? "Подписки, серверы и подключение" : "Subscriptions, servers and connection", "shield", { arguments.openLink?() })
         case let .importFile(title):
             return ItemListActionItem(presentationData: presentationData, systemStyle: .glass, title: title, kind: .generic, alignment: .natural, sectionId: section, style: .blocks, action: { arguments.transfer.importFile() })
         case let .exportFile(title, enabled):
@@ -146,6 +188,7 @@ private enum NebulaSettingsEntry: ItemListNodeEntry {
 public func nebulaSettingsController(context: AccountContext) -> ViewController {
     let store = NebulaSettingsStore.shared
     let writeFailed = ValuePromise(false, ignoreRepeated: true)
+    let searchQuery = ValuePromise("", ignoreRepeated: true)
     let transfer = NebulaSettingsFileTransfer(store: store, isRussian: {
         context.sharedContext.currentPresentationData.with { $0 }.strings.baseLanguageCode.lowercased().hasPrefix("ru")
     }, didImport: { writeFailed.set(false) })
@@ -164,11 +207,17 @@ public func nebulaSettingsController(context: AccountContext) -> ViewController 
         subscriber.putNext(store.hideTabCounters)
         return ActionDisposable { observation.cancel() }
     }
-    let signal = combineLatest(queue: .mainQueue(), context.sharedContext.presentationData, settings, writeFailed.get())
+    arguments.searchUpdated = { searchQuery.set($0) }
+    let signal = combineLatest(queue: .mainQueue(), context.sharedContext.presentationData, settings, writeFailed.get(), searchQuery.get())
     |> deliverOnMainQueue
-    |> map { presentationData, hideCounters, failed -> (ItemListControllerState, (ItemListNodeState, Any)) in
+    |> map { presentationData, hideCounters, failed, query -> (ItemListControllerState, (ItemListNodeState, Any)) in
         let presentationData = presentationData.withUpdated(theme: presentationData.theme.withModalBlocksBackground())
         let ru = presentationData.strings.baseLanguageCode.lowercased().hasPrefix("ru")
+        arguments.russian = ru
+        let modes = ru ? ["Автоматически", "Полное", "Облегчённое"] : ["Automatic", "Full", "Light"]
+        let firstTab = store.bottomTabOrder.first(where: { $0 != "contacts" || store.showContactsTab }) ?? "chats"
+        let tabName = firstTab == "contacts" ? (ru ? "Контакты" : "Contacts")
+            : firstTab == "settings" ? (ru ? "Настройки" : "Settings") : (ru ? "Чаты" : "Chats")
         var footer = ru
             ? "Скрывает числа на вкладках папок. Непрочитанные сообщения и уведомления не изменяются."
             : "Hides numbers on folder tabs. Unread messages and notifications are unchanged."
@@ -178,6 +227,7 @@ public func nebulaSettingsController(context: AccountContext) -> ViewController 
                 : "\n\nCould not read or save preferences. Stored data has not been reset."
         }
         var entries: [NebulaSettingsEntry] = [
+            .search(query, ru ? "Поиск настроек" : "Search settings"),
             .toolsHeader(ru ? "Подключение и инструменты" : "Connection and tools"),
             .appearanceHeader(ru ? "Интерфейс и навигация" : "Interface and navigation"),
             .privacyHeader(ru ? "Конфиденциальность и поиск" : "Privacy and search"),
@@ -195,15 +245,29 @@ public func nebulaSettingsController(context: AccountContext) -> ViewController 
             .stories(ru ? "Показывать истории" : "Show stories", store.showStories, !store.hasLoadError),
             .history(ru ? "Сохранять и показывать историю поиска настроек" : "Save and show settings search history", store.settingsSearchHistory, !store.hasLoadError),
             .clearHistory(ru ? "Очистить историю поиска настроек" : "Clear settings search history"),
-            .glass(ru ? "Адаптивное стекло" : "Adaptive glass"),
-            .navigation(ru ? "Порядок нижних вкладок" : "Bottom tab order"),
+            .glass(ru ? "Адаптивное стекло" : "Adaptive glass", modes[max(0, min(2, store.glassQuality))]),
+            .navigation(ru ? "Порядок нижних вкладок" : "Bottom tab order", (ru ? "Сначала: " : "First: ") + tabName),
             .contacts(ru ? "Контакты на нижней панели" : "Contacts in bottom bar", store.showContactsTab, !store.hasLoadError),
             .ai(ru ? "Искусственный интеллект" : "AI assistant")
         ]
+        if !query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            let matches = entries.filter { entry in
+                guard let title = entry.searchableText else { return false }
+                return NebulaSettingsSearch.matches(query, in: title)
+            }
+            let sections = Set(matches.map { $0.section })
+            entries = entries.filter { entry in
+                if case .search = entry { return true }
+                if case .footer = entry, failed || store.hasLoadError { return true }
+                return matches.contains(where: { $0.stableId == entry.stableId })
+                    || entry.isHeader && sections.contains(entry.section)
+            }
+            if matches.isEmpty { entries.append(.empty(ru ? "Ничего не найдено" : "No settings found")) }
+        }
         entries.sort()
         let data = ItemListPresentationData(presentationData)
         let state = ItemListControllerState(presentationData: data, title: .text(ru ? "Настройки NebulaGram" : "NebulaGram Settings"), leftNavigationButton: nil, rightNavigationButton: nil, backNavigationButton: ItemListBackButton(title: presentationData.strings.Common_Back))
-        return (state, (ItemListNodeState(presentationData: data, entries: entries, style: .blocks, animateChanges: true), arguments))
+        return (state, (ItemListNodeState(presentationData: data, entries: entries, style: .blocks, animateChanges: false), arguments))
     }
     let controller = ItemListController(context: context, state: signal)
     transfer.host = controller

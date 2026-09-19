@@ -2,3 +2,16 @@
 
 /* Match the four native control families in the interactive sample. */
 body[data-switch-style="iOS"] .switch{width:42px;height:26px}body[data-switch-style="iOS"] .switch:after{width:22px;height:22px}body[data-switch-style="One UI"] .switch{height:20px;width:36px}body[data-switch-style="One UI"] .switch:after{height:16px;width:16px}body[data-switch-style="Android"] .switch{height:16px;width:34px}body[data-switch-style="Android"] .switch:after{height:22px;width:22px;top:-3px;left:-1px}body[data-switch-style="Android"] .switch.on:after{transform:translateX(14px)}
+
+.folder-scene{display:flex;flex-direction:column;min-height:164px;padding:8px}
+.folder-scene.bottom .folder-tabs{order:1}
+.folder-tabs{height:50px;flex-shrink:0;padding:7px 4px;gap:8px;overflow-x:auto;align-items:center}
+.folder-tabs button{display:flex;align-items:center;gap:5px;white-space:nowrap;flex-shrink:0;padding:7px 10px;border-radius:18px;font-size:12px;color:var(--muted)}
+.folder-tabs button.selected{color:var(--accent);background:var(--hover)}
+.folder-tabs button.selected.outlined{box-shadow:inset 0 0 0 1px var(--accent)}
+.folder-tabs svg{height:18px;width:18px}.folder-chats{padding:2px 8px;flex:1;display:flex;flex-direction:column;gap:8px;justify-content:center}
+.folder-chats i{display:block;position:relative;height:36px;background:radial-gradient(circle at 18px 18px,color-mix(in srgb,var(--muted),transparent 82%) 16px,transparent 17px)}
+.folder-chats i:before,.folder-chats i:after{content:"";position:absolute;left:48px;height:7px;border-radius:4px;background:var(--muted);opacity:.2;top:7px;width:52%}
+.folder-chats i:after{top:22px;width:77%;opacity:.1}.folder-chats i:last-child:before{width:40%}
+.badge-gallery{display:grid;grid-template-columns:repeat(5,1fr);gap:4px;margin:0 0 18px;padding:18px 6px;background:var(--card);border-radius:20px;text-align:center}
+.badge-gallery svg{width:32px;height:32px;stroke:none;stroke-width:0;display:block;margin:0 auto 9px}.badge-gallery small{display:block;font-size:9px;color:var(--muted)}

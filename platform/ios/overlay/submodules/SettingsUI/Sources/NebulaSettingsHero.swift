@@ -5,18 +5,14 @@ final class NebulaSettingsHero: UIView {
     private let stack = UIStackView()
     private let statusLabel = UILabel()
     private let card = UIView()
-    private let wash = CAGradientLayer()
     private var active = false
 
     init(symbol: String, title: String, summary: String) {
         super.init(frame: .zero)
         card.backgroundColor = .secondarySystemGroupedBackground
-        card.layer.cornerRadius = 26
+        card.layer.cornerRadius = 20
         card.layer.cornerCurve = .continuous
         card.clipsToBounds = true
-        wash.startPoint = CGPoint(x: 0, y: 0)
-        wash.endPoint = CGPoint(x: 1, y: 1)
-        card.layer.insertSublayer(wash, at: 0)
         card.translatesAutoresizingMaskIntoConstraints = false
         addSubview(card)
         stack.axis = .vertical
@@ -24,30 +20,42 @@ final class NebulaSettingsHero: UIView {
         stack.translatesAutoresizingMaskIntoConstraints = false
         card.addSubview(stack)
         NSLayoutConstraint.activate([
-            card.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 20),
-            card.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -20),
+            card.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 16),
+            card.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -16),
             card.topAnchor.constraint(equalTo: topAnchor, constant: 12),
             card.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -12),
-            stack.leadingAnchor.constraint(equalTo: card.leadingAnchor, constant: 22),
-            stack.trailingAnchor.constraint(equalTo: card.trailingAnchor, constant: -22),
-            stack.topAnchor.constraint(equalTo: card.topAnchor, constant: 22),
-            stack.bottomAnchor.constraint(equalTo: card.bottomAnchor, constant: -22)
+            stack.leadingAnchor.constraint(equalTo: card.leadingAnchor, constant: 20),
+            stack.trailingAnchor.constraint(equalTo: card.trailingAnchor, constant: -20),
+            stack.topAnchor.constraint(equalTo: card.topAnchor, constant: 20),
+            stack.bottomAnchor.constraint(equalTo: card.bottomAnchor, constant: -20)
         ])
         let brand = UIStackView()
-        brand.spacing = 10
+        brand.spacing = 12
         brand.alignment = .center
-        let icon = UIImageView(image: UIImage(systemName: symbol))
+        let tile = UIView()
+        tile.backgroundColor = UIColor.systemBlue.withAlphaComponent(0.12)
+        tile.layer.cornerRadius = 14
+        tile.widthAnchor.constraint(equalToConstant: 48).isActive = true
+        tile.heightAnchor.constraint(equalToConstant: 48).isActive = true
+        let icon = UIImageView(image: UIImage(systemName: symbol,
+            withConfiguration: UIImage.SymbolConfiguration(pointSize: 25, weight: .regular)))
         icon.tintColor = .systemBlue
         icon.contentMode = .scaleAspectFit
-        icon.widthAnchor.constraint(equalToConstant: 28).isActive = true
-        icon.heightAnchor.constraint(equalToConstant: 28).isActive = true
+        icon.translatesAutoresizingMaskIntoConstraints = false
+        tile.addSubview(icon)
+        NSLayoutConstraint.activate([
+            icon.centerXAnchor.constraint(equalTo: tile.centerXAnchor),
+            icon.centerYAnchor.constraint(equalTo: tile.centerYAnchor),
+            icon.widthAnchor.constraint(equalToConstant: 28),
+            icon.heightAnchor.constraint(equalToConstant: 28)
+        ])
         icon.isAccessibilityElement = false
-        brand.addArrangedSubview(icon)
-        brand.addArrangedSubview(label("NEBULAGRAM", style: .caption1, color: .secondaryLabel))
-        stack.addArrangedSubview(brand)
-        let heading = label(title, style: .title2, color: .label)
+        brand.addArrangedSubview(tile)
+        let heading = label(title, style: .title3, color: .label)
+        heading.font = UIFontMetrics(forTextStyle: .title3).scaledFont(for: .systemFont(ofSize: 20, weight: .semibold))
         heading.accessibilityTraits.insert(.header)
-        stack.addArrangedSubview(heading)
+        brand.addArrangedSubview(heading)
+        stack.addArrangedSubview(brand)
         stack.addArrangedSubview(label(summary, style: .subheadline, color: .secondaryLabel))
         statusLabel.font = .preferredFont(forTextStyle: .footnote)
         statusLabel.adjustsFontForContentSizeCategory = true
@@ -61,16 +69,6 @@ final class NebulaSettingsHero: UIView {
     }
 
     required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
-
-    override func layoutSubviews() {
-        super.layoutSubviews()
-        CATransaction.begin()
-        CATransaction.setDisableActions(true)
-        wash.frame = card.bounds
-        wash.colors = [UIColor.systemBlue.resolvedColor(with: traitCollection).withAlphaComponent(0.16).cgColor,
-                       active ? UIColor.systemGreen.resolvedColor(with: traitCollection).withAlphaComponent(0.25).cgColor : UIColor.clear.cgColor]
-        CATransaction.commit()
-    }
 
     func setStatus(_ text: String, active: Bool = false) {
         let value = (active ? "●  " : "○  ") + text
@@ -106,9 +104,7 @@ final class NebulaSettingsHero: UIView {
     }
 
     static func style(_ cell: UITableViewCell, symbol: String) {
-        cell.imageView?.image = UIImage(systemName: symbol)
-        cell.imageView?.preferredSymbolConfiguration = UIImage.SymbolConfiguration(pointSize: 22, weight: .regular)
-        cell.imageView?.tintColor = .systemBlue
+        cell.imageView?.image = NebulaSettingsStyle.icon(symbol: symbol)
         cell.textLabel?.font = .preferredFont(forTextStyle: .body)
         cell.textLabel?.adjustsFontForContentSizeCategory = true
         cell.textLabel?.numberOfLines = 0

@@ -418,11 +418,7 @@ public class NebulaSectionFragment extends BaseFragment {
         card.add(toggle(context, R.drawable.nebula_cupertino_download, R.string.NebulaFolderTabsBottom, R.string.NebulaFolderTabsBottomInfo,
                 NebulaFolderTabs.bottom(), value -> {
                     NebulaFolderTabs.setBottom(value);
-                    // Панель создаётся вместе со списком чатов: её место выбирается
-                    // при разметке, и увидеть переезд можно только на новом экране.
-                    Toast.makeText(context, NebulaText.text(
-                            "Применится при следующем открытии списка чатов",
-                            "Applies the next time the chat list opens"), Toast.LENGTH_SHORT).show();
+                    refreshPreviews();
                 }));
         card.add(new NebulaRow(context).icon(R.drawable.files_folder).title(LocaleController.getString(R.string.Filters))
                 .trailing(NebulaRow.TRAIL_CHEVRON).withClick(v -> presentFragment(new org.telegram.ui.FiltersSetupActivity())));
@@ -507,9 +503,9 @@ public class NebulaSectionFragment extends BaseFragment {
         String own = NebulaBadges.own();
         NebulaCard card = new NebulaCard(context);
         card.add(new NebulaRow(context)
-                .icon(R.drawable.msg_premium_badge)
+                .artwork(own == null ? R.drawable.nebula_badge_star : NebulaBadges.iconResource(own))
                 .title(NebulaText.text("Мой значок", "My badge"))
-                .subtitle(own != null ? NebulaBadges.title(own) + "  " + NebulaBadges.icon(own)
+                .subtitle(own != null ? NebulaBadges.title(own)
                         : NebulaText.text("Пока нет", "None yet"), own != null));
         card.add(new NebulaRow(context).icon(R.drawable.msg_link2)
                 .title(NebulaText.text("Поддержать проект", "Support the project"))
@@ -521,41 +517,15 @@ public class NebulaSectionFragment extends BaseFragment {
         buildBadgeAdmin(context);
     }
 
-    /**
-     * Панель выдачи. Показывается, когда задан адрес сервера, — токен вводится
-     * там же. Прятать её надёжнее нечем: исходники открыты, и проверка «свой ли
-     * это человек» на устройстве ничего не охраняет. Охраняет токен, который
-     * проверяет сервер: без него выдача не пройдёт, сколько панель ни открывай.
-     */
+    /** Provisioned administrators keep issuance tools; normal profiles have no service setup. */
     private void buildBadgeAdmin(Context context) {
-        content.addView(NebulaCard.header(context, NebulaText.text("Значки", "Badges")));
+        if (!NebulaBadges.admin()) return;
         NebulaCard card = new NebulaCard(context);
-        card.add(new NebulaRow(context).icon(R.drawable.msg_link2)
-                .title(NebulaText.text("Сервер значков", "Badge server"))
-                .subtitle(NebulaBadges.host().isEmpty()
-                        ? NebulaText.text("Не задан — значки выключены", "Not set, badges are off")
-                        : NebulaBadges.host(), !NebulaBadges.host().isEmpty())
+        card.add(new NebulaRow(context).artwork(R.drawable.nebula_badge_dev)
+                .title(NebulaText.text("Выдать значок", "Grant a badge"))
+                .subtitle(NebulaText.text("По идентификатору пользователя", "By user id"), false)
                 .trailing(NebulaRow.TRAIL_CHEVRON)
-                .withClick(v -> ask(context, NebulaText.text("Сервер значков", "Badge server"),
-                        NebulaText.text("Адрес вида https://example.com", "An address such as https://example.com"),
-                        NebulaBadges.host(), value -> { NebulaBadges.setHost(value); refreshPalette(); })));
-        card.add(new NebulaRow(context).icon(R.drawable.msg_secret)
-                .title(NebulaText.text("Админ-токен", "Admin token"))
-                .subtitle(NebulaBadges.token().isEmpty()
-                        ? NebulaText.text("Не задан", "Not set")
-                        : NebulaText.text("Задан", "Set"), !NebulaBadges.token().isEmpty())
-                .trailing(NebulaRow.TRAIL_CHEVRON)
-                .withClick(v -> ask(context, NebulaText.text("Админ-токен", "Admin token"),
-                        NebulaText.text("Токен хранится только на этом устройстве и уходит только вашему серверу.",
-                                "The token is kept on this device and goes only to your server."),
-                        NebulaBadges.token(), value -> { NebulaBadges.setToken(value); refreshPalette(); })));
-        if (NebulaBadges.admin()) {
-            card.add(new NebulaRow(context).icon(R.drawable.msg_premium_badge)
-                    .title(NebulaText.text("Выдать значок", "Grant a badge"))
-                    .subtitle(NebulaText.text("По идентификатору пользователя", "By user id"), false)
-                    .trailing(NebulaRow.TRAIL_CHEVRON)
-                    .withClick(v -> grantBadge(context)));
-        }
+                .withClick(v -> grantBadge(context)));
         content.addView(card, cardParams());
     }
 
@@ -574,7 +544,7 @@ public class NebulaSectionFragment extends BaseFragment {
                     String[] kinds = NebulaBadges.kinds();
                     CharSequence[] titles = new CharSequence[kinds.length + 1];
                     for (int i = 0; i < kinds.length; i++) {
-                        titles[i] = NebulaBadges.title(kinds[i]) + "  " + NebulaBadges.icon(kinds[i]);
+                        titles[i] = NebulaBadges.label(kinds[i]);
                     }
                     titles[kinds.length] = NebulaText.text("Снять значок", "Remove badge");
                     new org.telegram.ui.ActionBar.AlertDialog.Builder(context)

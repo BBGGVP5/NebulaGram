@@ -141,7 +141,12 @@ public class NebulaRow extends FrameLayout {
             icon.setImageResource(resource);
             int accent = sectionAccent(resource);
             icon.setColorFilter(0xFFFFFFFF, PorterDuff.Mode.SRC_IN);
-            ((GradientDrawable) icon.getBackground()).setColor(accent);
+            GradientDrawable background = new GradientDrawable();
+            background.setCornerRadius(AndroidUtilities.dp(9));
+            background.setColor(accent);
+            icon.setBackground(background);
+            icon.setPadding(AndroidUtilities.dp(6), AndroidUtilities.dp(6),
+                    AndroidUtilities.dp(6), AndroidUtilities.dp(6));
         }
         indent(resource != 0);
         return this;
@@ -156,6 +161,15 @@ public class NebulaRow extends FrameLayout {
         if (resource == org.telegram.messenger.R.drawable.files_folder) return 0xFFEDAA34;
         if (resource == org.telegram.messenger.R.drawable.menu_reply) return 0xFF5E80D8;
         return 0xFF3396DB;
+    }
+
+    /** Preserve the original colors of Nebula's multicolor vector artwork. */
+    public NebulaRow artwork(int resource) {
+        icon(resource);
+        icon.clearColorFilter();
+        icon.setBackground(null);
+        icon.setPadding(0, 0, 0, 0);
+        return this;
     }
 
     /** Country emoji keeps its colours instead of inheriting the icon tint. */

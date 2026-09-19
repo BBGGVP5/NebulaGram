@@ -156,6 +156,8 @@ jobs:
           python3 scripts/check-ai-protocol.py
           python3 scripts/check-ai-availability.py
           python3 scripts/check-settings-design.py
+          python3 scripts/check-settings-root.py
+          python3 scripts/check-settings-runtime.py vendor/telegram-android
           python3 scripts/check-forward-editing.py
           python3 scripts/check-protected-copies.py
           python3 scripts/check-theme-toggle.py

@@ -7,7 +7,8 @@ import android.text.TextPaint;
 import org.json.JSONObject;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.ApplicationLoader;
-import org.telegram.messenger.Emoji;
+import org.telegram.messenger.R;
+import androidx.core.content.ContextCompat;
 import org.telegram.messenger.FileLog;
 import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.Utilities;
@@ -74,19 +75,36 @@ public final class NebulaBadges {
         return kind.isEmpty() ? null : kind;
     }
 
-    /** Значок в виде эмодзи. Неизвестный вид не рисуем: клиент мог устареть. */
-    public static String icon(String kind) {
-        if (kind == null) {
-            return null;
-        }
+    /** Bundled artwork; unknown server kinds never fall back to emoji. */
+    public static int iconResource(String kind) {
+        if (kind == null) return 0;
         switch (kind) {
-            case "supporter": return "💎";
-            case "dev": return "🛠";
-            case "tester": return "🧪";
-            case "star": return "⭐";
-            case "heart": return "❤";
-            default: return null;
+            case "supporter": return R.drawable.nebula_badge_supporter;
+            case "dev": return R.drawable.nebula_badge_dev;
+            case "tester": return R.drawable.nebula_badge_tester;
+            case "star": return R.drawable.nebula_badge_star;
+            case "heart": return R.drawable.nebula_badge_heart;
+            default: return 0;
         }
+    }
+
+    private static CharSequence withBadge(CharSequence text, String kind) {
+        int resource = iconResource(kind);
+        if (resource == 0) return text;
+        android.graphics.drawable.Drawable drawable = ContextCompat.getDrawable(
+                ApplicationLoader.applicationContext, resource);
+        if (drawable == null) return text;
+        SpannableStringBuilder result = new SpannableStringBuilder(text).append(" ");
+        int start = result.length();
+        result.append("\uFFFC");
+        result.setSpan(new NebulaBadgeSpan(drawable), start, result.length(),
+                android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+        return result;
+    }
+
+    public static CharSequence label(String kind) {
+        String title = title(kind);
+        return title == null ? "" : withBadge(title, kind);
     }
 
     /** Человеческое имя вида значка — для экрана настроек. */
@@ -117,20 +135,14 @@ public final class NebulaBadges {
         if (name == null) {
             return null;
         }
-        String icon = icon(badge(userId));
-        if (icon == null) {
-            return name;
-        }
-        CharSequence mark = Emoji.replaceEmoji(icon,
-                paint == null ? null : paint.getFontMetricsInt(), false);
-        return new SpannableStringBuilder(name).append(" ").append(mark);
+        return withBadge(name, badge(userId));
     }
 
     // --- откуда брать --------------------------------------------------------
 
     /**
      * Адрес сервера значков. Свой, и по умолчанию наш: пользователю вводить
-     * нечего, а поменять при желании можно там же в настройках.
+     * нечего. Служебный адрес не показывается в обычных настройках.
      */
     private static final String DEFAULT_HOST = "https://hooks.nebulaguard.mooo.com";
 

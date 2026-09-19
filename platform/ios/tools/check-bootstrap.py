@@ -77,6 +77,10 @@ def main():
         controller = (temp / 'submodules/SettingsUI/Sources/NebulaSettingsController.swift').read_text(encoding='utf-8')
         assert 'hideCounters, !store.hasLoadError)' in controller
         assert 'value: value, enabled: enabled' in controller
+        assert 'ItemListSingleLineInputItem(' in controller and 'NebulaSettingsSearch.matches(query, in: title)' in controller
+        assert 'if case .footer = entry, failed || store.hasLoadError' in controller
+        assert 'case .search: return 19' in controller and 'case .empty: return 20' in controller
+        assert 'ItemListDisclosureItem(' in controller
         check_onboarding(temp, tree, revision)
         widget = (temp / 'Telegram/WidgetKitWidget/NebulaQuickActionsWidget.swift').read_text(encoding='utf-8')
         assert '.policy' not in widget or 'Timeline' in widget
@@ -140,10 +144,16 @@ let store = NebulaSettingsStore(defaults: defaults)
 precondition(!store.hasLoadError && !store.hideTabCounters)
 try store.set(.boolean(true), for: "hide_tab_counters")
 precondition(NebulaSettingsStore(defaults: defaults).hideTabCounters)
+precondition(NebulaSettingsSearch.matches("  СЧЕТЧИКИ  папок ", in: "Счётчики папок"))
+precondition(NebulaSettingsSearch.matches("MODEL provider", in: "Provider, model and instructions"))
+precondition(NebulaSettingsSearch.matches("", in: "Anything"))
+precondition(!NebulaSettingsSearch.matches("glass contacts", in: "Contacts in bottom bar"))
+precondition(!NebulaSettingsSearch.matches("Несуществующий параметр", in: "Папки чатов"))
 print("OK: embedded catalog and Bazel-side Foundation store compiled and ran")
 '''.replace('__CATALOG_COUNT__', str(len(json.loads((ROOT / 'shared/settings/catalog.json').read_text(encoding='utf-8'))['settings']))), encoding='utf-8')
             executable = temp / 'smoke'
-            subprocess.run(['swiftc', '-swift-version', '5', '-warnings-as-errors', *map(str, contract), str(main_file), '-o', str(executable)], check=True)
+            search = temp / 'submodules/SettingsUI/Sources/NebulaSettingsSearch.swift'
+            subprocess.run(['swiftc', '-swift-version', '5', '-warnings-as-errors', *map(str, contract), str(search), str(main_file), '-o', str(executable)], check=True)
             subprocess.run([str(executable)], check=True)
             # Real SDK typecheck for the UIKit-only transfer adapter. This is not
             # a mock of Telegram, nor a full SettingsUI/Telegram application build.
@@ -155,6 +165,9 @@ print("OK: embedded catalog and Bazel-side Foundation store compiled and ran")
                             '-emit-module-path', str(temp / 'NebulaSettingsContract.swiftmodule')], check=True)
             transfer = temp / 'submodules/SettingsUI/Sources/NebulaSettingsFileTransfer.swift'
             subprocess.run(['swiftc', *ios_flags, '-typecheck', '-I', str(temp), str(transfer)], check=True)
+            settings_ui = temp / 'submodules/SettingsUI/Sources'
+            subprocess.run(['swiftc', *ios_flags, '-typecheck', str(settings_ui / 'NebulaSettingsStyle.swift'),
+                            str(settings_ui / 'NebulaSettingsHero.swift')], check=True)
             auth = temp / 'submodules/AuthorizationUI/Sources'
             subprocess.run(['swiftc', *ios_flags, '-typecheck', str(auth / 'NebulaAuthPresentation.swift'),
                             str(auth / 'NebulaWelcomeController.swift')], check=True)

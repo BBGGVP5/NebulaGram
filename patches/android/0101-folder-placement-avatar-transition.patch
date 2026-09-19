@@ -1,0 +1,134 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
+index fb5e29f..47d1acb 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
+@@ -2503,11 +2503,12 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
+             glassDrawableBack.draw(canvas);
+         }
+         final boolean separateAvatar = nebulaFloatingChatHeader && nebulaChatMenuHidden
+-                && nebulaChatAvatarContainer != null && getActionModeFactor() == 0f && searchFactor == 0f;
++                && nebulaChatAvatarContainer != null;
+         if (glassDrawableMenu != null && separateAvatar) {
+             if (nebulaChatAvatarContainer.hasVisibleAvatar()) {
+                 glassDrawableMenu.setBounds(getWidth() - s - p * 2, t, getWidth(), b);
+-                glassDrawableMenu.setAlpha(255);
++                glassDrawableMenu.setAlpha(app.nebulagram.ui.NebulaChatStyle.avatarBackdropAlpha(
++                        searchFactor, actionModeFactor, nebulaChatAvatarContainer.getAlpha()));
+                 glassDrawableMenu.draw(canvas);
+             }
+         } else if (glassDrawableMenu != null && menuWidth > 0 && !glassOnlyBack && !doNotDrawGlassMenu) {
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
+index b3d6f99..2a78bcf 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
+@@ -1029,7 +1029,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+                         drawBlurRect(canvas, 0, blurBounds, actionBarSearchPaint, true);
+                     }
+                     if (fragmentSearchField != null) {
+-                        fragmentSearchField.setTranslationY(top + actionBarHeight - (actionBar.getHeight() + (filterTabsView != null ? filterTabsView.getMeasuredHeight() : 0)) + getSearchFieldAdditionOffset());
++                        fragmentSearchField.setTranslationY(top + actionBarHeight - (actionBar.getHeight() + (filterTabsView != null && !app.nebulagram.ui.NebulaFolderTabs.bottom() ? filterTabsView.getMeasuredHeight() : 0)) + getSearchFieldAdditionOffset());
+                     }
+                 }
+             } else if (!inPreviewMode) {
+@@ -1057,7 +1057,8 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+                 if (dialogStoriesCellVisible) {
+                     storiesAlpha = 1f - Utilities.clamp(rightSlidingProgress / 0.5f, 1f, 0f);
+                 }
+-                if (filterTabsView != null && filterTabsView.getVisibility() == View.VISIBLE) {
++                if (filterTabsView != null && filterTabsView.getVisibility() == View.VISIBLE
++                        && !app.nebulagram.ui.NebulaFolderTabs.bottom()) {
+                     tabsYOffset -= (1f - animatorFilterTabsVisible.getFloatValue()) * filterTabsView.getMeasuredHeight();
+                 }
+                 if (fragmentSearchField != null) {
+@@ -1308,7 +1309,12 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+                     childTop = actionBar.getMeasuredHeight();
+                 } else if (child instanceof ViewPage) {
+                     childTop = 0;
+-                } else if (child == topPanelLayout || child == topBubblesFadeView || child == filterTabsView) {
++                } else if (child == filterTabsView) {
++                    childTop = app.nebulagram.ui.NebulaFolderTabs.bottom()
++                            ? app.nebulagram.ui.NebulaFolderTabs.bottomTop(H, height, navigationBarHeight,
++                                    hasMainTabs && app.nebulagram.ui.NebulaBottomBar.enabled() ? dp(MAIN_TABS_HEIGHT_WITH_MARGINS) : 0)
++                            : getPaddingTop() + actionBar.getMeasuredHeight() + dp(nebulaSearchSlotHeight());
++                } else if (child == topPanelLayout || child == topBubblesFadeView) {
+                     childTop += actionBar.getMeasuredHeight();
+                     childTop += dp(nebulaSearchSlotHeight());
+                 } else if (dialogStoriesCell != null && dialogStoriesCell.getPremiumHint() == child) {
+@@ -2074,7 +2080,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+             }
+             additionalPadding = 0;
+ 
+-            final float filterTabsVisibility = getFilterTabsVisibilityFactor(false);
++            final float filterTabsVisibility = app.nebulagram.ui.NebulaFolderTabs.bottom() ? 0f : getFilterTabsVisibilityFactor(false);
+             final float topPanelsVisibility = topPanelLayout != null ? topPanelLayout.getMetadata().getTotalVisibility() : 0f;
+ 
+             t += (int) (dp(36 + 14) * filterTabsVisibility);
+@@ -2994,10 +3000,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+      * под вкладками, а кнопка записи — на них.
+      */
+     private void nebulaApplyBottomReserve() {
+-        final int bar = hasMainTabs && app.nebulagram.ui.NebulaBottomBar.enabled() ? dp(MAIN_TABS_HEIGHT_WITH_MARGINS) : 0;
+-        final int button = hasMainTabs && app.nebulagram.ui.NebulaBottomBar.enabled() ? dp(MAIN_TABS_HEIGHT + MAIN_TABS_MARGIN) : 0;
+-        additionNavigationBarHeight = bar + app.nebulagram.ui.NebulaFolderTabs.reserved();
+-        additionFloatingButtonOffset = button + app.nebulagram.ui.NebulaFolderTabs.reserved();
++        updateNebulaBottomInsets();
+     }
+ 
+     public static void loadDialogs(AccountInstance accountInstance) {
+@@ -6632,12 +6635,8 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+ 
+         if (filterTabsView != null) {
+             if (app.nebulagram.ui.NebulaFolderTabs.bottom()) {
+-                // Панель стоит внизу и в верхнюю стопку не входит: её высота не
+-                // двигает ни поиск, ни истории, ни список. Поднимаем её ровно на
+-                // нижнюю панель, если та включена, и оставляем на месте, если нет.
+-                filterTabsView.setTranslationY(-(hasMainTabs && app.nebulagram.ui.NebulaBottomBar.enabled()
+-                        ? dp(MAIN_TABS_HEIGHT_WITH_MARGINS) : 0));
+-                filtersTabVisibility = filterTabsView.getAlpha();
++                // onLayout owns the bottom anchor; no top-stack translation or fade.
++                filterTabsView.setTranslationY(0);
+             } else {
+                 filterTabsView.setTranslationY(totalOffset - searchOffset);
+                 filtersTabVisibility = filterTabsView.getAlpha();
+@@ -7109,6 +7108,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+         }
+         nebulaApplyBottomReserve();
+         if (fragmentView != null) {
++            checkUi_filterTabsVisible();
+             ViewCompat.requestApplyInsets(fragmentView);
+         }
+         if (dialogStoriesCell != null) {
+@@ -14136,6 +14136,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+                 viewPages[0].listView.requestLayout();
+             }
+         }
++        updateNebulaBottomInsets();
+         updateContextViewPosition();
+     }
+ 
+@@ -14334,6 +14335,25 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+         }
+     }
+ 
++    private int nebulaFolderTabsReserved() {
++        return filterTabsView != null && filterTabsView.getVisibility() == View.VISIBLE
++                ? Math.round(app.nebulagram.ui.NebulaFolderTabs.reserved() * getFilterTabsVisibilityFactor(true)) : 0;
++    }
++
++    private void updateNebulaBottomInsets() {
++        int main = hasMainTabs && app.nebulagram.ui.NebulaBottomBar.enabled() ? dp(MAIN_TABS_HEIGHT_WITH_MARGINS) : 0;
++        int folders = nebulaFolderTabsReserved();
++        int floating = (hasMainTabs && app.nebulagram.ui.NebulaBottomBar.enabled() ? dp(MAIN_TABS_HEIGHT + MAIN_TABS_MARGIN) : 0) + folders;
++        if (additionNavigationBarHeight == main + folders && additionFloatingButtonOffset == floating) return;
++        additionNavigationBarHeight = main + folders;
++        additionFloatingButtonOffset = floating;
++        if (fragmentView != null) {
++            fragmentView.requestLayout();
++            ViewCompat.requestApplyInsets(fragmentView);
++        }
++        updateFloatingButtonOffset();
++    }
++
+     private int calculateListViewPaddingBottom() {
+         if (commentView != null) {
+             return (int) (windowInsetsStateHolder.getAnimatedMaxBottomInset() + dp(9) + chatInputViewsContainer.getInputBubbleHeight() + dp(7) + dp(2));

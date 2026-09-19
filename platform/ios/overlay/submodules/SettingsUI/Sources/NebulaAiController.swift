@@ -76,6 +76,7 @@ final class NebulaAiController: UITableViewController {
 
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = UITableViewCell(style: .subtitle, reuseIdentifier: nil)
+        defer { NebulaSettingsStyle.finish(cell) }
         cell.textLabel?.font = .preferredFont(forTextStyle: .body)
         cell.textLabel?.adjustsFontForContentSizeCategory = true
         cell.textLabel?.numberOfLines = 0
@@ -92,7 +93,7 @@ final class NebulaAiController: UITableViewController {
             cell.accessoryView = toggle
             cell.selectionStyle = .none
         case (1, 0):
-            cell.imageView?.image = UIImage(systemName: "network")
+            cell.imageView?.image = NebulaSettingsStyle.icon(symbol: "network")
             cell.textLabel?.text = text("Провайдер", "Provider")
             cell.detailTextLabel?.text = provider.title
             cell.accessoryType = .disclosureIndicator
@@ -108,14 +109,13 @@ final class NebulaAiController: UITableViewController {
             cell.detailTextLabel?.text = model.isEmpty ? text("Не задана", "Not set") : model
             cell.accessoryType = .disclosureIndicator
         case (1, let row) where row == (provider == .custom ? 3 : 2):
-            cell.imageView?.image = UIImage(systemName: "key")
+            cell.imageView?.image = NebulaSettingsStyle.icon(symbol: "key")
             cell.textLabel?.text = text("API-ключ", "API key")
             cell.detailTextLabel?.text = secrets.hasKey(for: provider)
                 ? text("Сохранён", "Stored") : text("Не задан", "Not set")
             cell.accessoryType = .disclosureIndicator
         case (1, _):
-            cell.imageView?.image = UIImage(systemName: "trash")
-            cell.imageView?.tintColor = .systemRed
+            cell.imageView?.image = NebulaSettingsStyle.icon(symbol: "trash", color: .systemRed)
             cell.textLabel?.text = text("Удалить сохранённый ключ", "Remove stored key")
             cell.textLabel?.textColor = secrets.hasKey(for: provider) ? .systemRed : .tertiaryLabel
             cell.selectionStyle = secrets.hasKey(for: provider) ? .default : .none

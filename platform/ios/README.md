@@ -22,6 +22,24 @@ current Nebula onboarding and the shared-core NebulaLink proxy integration are
 documented in [BUILD-IPA.md](BUILD-IPA.md); native/device acceptance is not implied
 by the presence of that code.
 
+## Settings presentation
+
+The approved settings design uses compact section introductions, colored 32pt
+navigation tiles and text-first switch rows. The main ItemListUI screen includes
+local RU/EN search, section grouping, disclosure rows and the current glass/tab
+order values. Search is transient and keeps preference errors visible. AI and
+privacy retain their existing UIKit controllers, controls and operations.
+
+Existing preview/overview components are retained. In particular,
+`NebulaLinkOverviewView` and its connection-state/action bindings are unchanged;
+the browser design samples do not replace native content. This is a presentation
+update for supported iOS settings, not activation of Android-only catalog keys.
+
+`check-bootstrap.py --swift` also exercises the actual Foundation search matcher
+and typechecks the shared UIKit heading/icon helpers against the simulator SDK.
+The patch/contract checks run on Windows; a native iOS build and visual acceptance
+still require macOS/Xcode and a simulator or iPhone.
+
 ## Storage and transfer
 
 App-global presentation settings are a versioned `SettingsDocument` stored as

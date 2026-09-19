@@ -65,6 +65,7 @@ final class NebulaPrivacyController: UITableViewController {
     }
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = UITableViewCell(style: .subtitle, reuseIdentifier: nil)
+        defer { NebulaSettingsStyle.finish(cell) }
         cell.textLabel?.font = .preferredFont(forTextStyle: .body)
         cell.textLabel?.adjustsFontForContentSizeCategory = true
         cell.textLabel?.numberOfLines = 0
@@ -104,7 +105,7 @@ final class NebulaPrivacyController: UITableViewController {
         } else {
             cell.textLabel?.text = busy ? text("Очистка…", "Clearing…") : text("Очистить кэш удалённых сообщений", "Clear retained-message cache")
             cell.textLabel?.textColor = .systemRed
-            cell.imageView?.tintColor = .systemRed
+            cell.imageView?.image = NebulaSettingsStyle.icon(symbol: "trash", color: .systemRed)
         }
         return cell
     }
