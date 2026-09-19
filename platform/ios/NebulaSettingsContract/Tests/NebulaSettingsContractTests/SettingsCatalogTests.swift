@@ -5,7 +5,7 @@ import XCTest
 final class SettingsCatalogTests: XCTestCase {
     func testCatalogAndImplementationStatus() throws {
         let catalog = try SettingsCatalog.bundled()
-        XCTAssertEqual(catalog.settings.count, 66)
+        XCTAssertEqual(catalog.settings.count, 67)
         XCTAssertEqual(catalog.settings.filter(\.transferV1).count, 57)
         XCTAssertFalse(catalog.settings.contains(where: \.isImplementedOnIOS))
         XCTAssertEqual(catalog.settings.first { $0.key == "material_you" }?.iosStatus, "unsupported")
@@ -13,6 +13,18 @@ final class SettingsCatalogTests: XCTestCase {
         for setting in catalog.settings {
             if let value = setting.defaultValue { XCTAssertNoThrow(try setting.validate(value)) }
         }
+    }
+
+    func testFolderPanelStyleBoundsAndPlatformStatus() throws {
+        let catalog = try SettingsCatalog.bundled()
+        let setting = try XCTUnwrap(catalog.settings.first { $0.key == "folder_panel_style" })
+        XCTAssertEqual(setting.defaultValue, .integer(0))
+        XCTAssertEqual(setting.iosStatus, "planned")
+        XCTAssertFalse(setting.transferV1)
+        for value in 0...2 { XCTAssertNoThrow(try setting.validate(.integer(value))) }
+        XCTAssertThrowsError(try setting.validate(.integer(-1)))
+        XCTAssertThrowsError(try setting.validate(.integer(3)))
+        XCTAssertThrowsError(try setting.validate(.boolean(true)))
     }
 
     func testTransferValidationDoesNotApplyDefaults() throws {
