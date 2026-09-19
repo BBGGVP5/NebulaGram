@@ -27,6 +27,7 @@ def main():
     args = parser.parse_args()
     tree = args.tree.resolve()
     subprocess.run([sys.executable, str(ROOT / 'platform/ios/tools/generate-overlay.py'), '--check'], check=True)
+    subprocess.run([sys.executable, str(ROOT / 'platform/ios/tools/generate-badge-artwork.py'), '--check'], check=True)
     entry = run('git', '-C', str(ROOT), 'ls-files', '--stage', '--', 'vendor/telegram-ios', text=True).split()
     if not entry or entry[0] != '160000':
         raise SystemExit('Missing pinned iOS gitlink')
@@ -71,6 +72,21 @@ def main():
         for build in [folder / 'BUILD', temp / 'submodules/SettingsUI/BUILD']:
             assert '"//submodules/NebulaSettingsContract:NebulaSettingsContract"' in build.read_text(encoding='utf-8')
         peer = temp / 'submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources'
+        header = (peer / 'PeerInfoHeaderNode.swift').read_text(encoding='utf-8')
+        assert '"//submodules/NebulaSettingsContract:NebulaSettingsContract"' in (peer.parent / 'BUILD').read_text(encoding='utf-8')
+        assert 'case .user = peer, threadData == nil' in header
+        assert 'self.nebulaBadgeUserId == userId else { return }' in header
+        assert 'nebulaTitleConstrainedSize.width - 28.0' in header
+        assert 'TitleNodeStateRegular)?.view.addSubview(self.nebulaBadgeView)' in header
+        assert 'TitleNodeStateExpanded)?.view.addSubview(self.nebulaExpandedBadgeView)' in header
+        # All native icon placement code must survive the extra trailing badge.
+        original_header = run('git', '-C', str(tree), 'show', revision + ':submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoHeaderNode.swift').decode('utf-8')
+        native_start = original_header.index('        if let statusIconSize = self.statusIconSize,')
+        native_end = original_header.index('        var titleFrame: CGRect', native_start)
+        assert original_header[native_start:native_end] in header
+        artwork = (peer / 'NebulaProfileBadgeArtwork.swift').read_text(encoding='utf-8')
+        assert '.alwaysOriginal' in artwork and 'NebulaProfileBadgeImages.star' in artwork
+        print('OK: native profile badge states, user scoping, existing status icons, exact branded artwork', flush=True)
         assert 'case nebulaGram' in (peer / 'PeerInfoScreen.swift').read_text(encoding='utf-8')
         assert 'interaction.openSettings(.nebulaGram)' in (peer / 'PeerInfoSettingsItems.swift').read_text(encoding='utf-8')
         assert 'push(nebulaSettingsController(context: self.context))' in (peer / 'PeerInfoScreenSettingsActions.swift').read_text(encoding='utf-8')
@@ -165,6 +181,10 @@ print("OK: embedded catalog and Bazel-side Foundation store compiled and ran")
                             '-emit-module-path', str(temp / 'NebulaSettingsContract.swiftmodule')], check=True)
             transfer = temp / 'submodules/SettingsUI/Sources/NebulaSettingsFileTransfer.swift'
             subprocess.run(['swiftc', *ios_flags, '-typecheck', '-I', str(temp), str(transfer)], check=True)
+            subprocess.run(['swiftc', *ios_flags, '-typecheck', '-I', str(temp),
+                            str(peer / 'NebulaProfileBadgeArtwork.swift'),
+                            str(peer / 'NebulaProfileBadgeImages.swift')], check=True)
+            print('OK: profile badge artwork typechecked against the real iOS simulator SDK')
             settings_ui = temp / 'submodules/SettingsUI/Sources'
             subprocess.run(['swiftc', *ios_flags, '-typecheck', str(settings_ui / 'NebulaSettingsStyle.swift'),
                             str(settings_ui / 'NebulaSettingsHero.swift')], check=True)

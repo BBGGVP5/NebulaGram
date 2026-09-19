@@ -1,0 +1,125 @@
+diff --git a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/BUILD b/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/BUILD
+index 09315ff..833f07a 100644
+--- a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/BUILD
++++ b/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/BUILD
+@@ -10,6 +10,7 @@ swift_library(
+         "-warnings-as-errors",
+     ],
+     deps = [
++        "//submodules/NebulaSettingsContract:NebulaSettingsContract",
+         "//submodules/AccountContext",
+         "//submodules/AccountUtils",
+         "//submodules/ActionSheetPeerItem",
+diff --git a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoHeaderNode.swift b/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoHeaderNode.swift
+index fdfd1ce..c7bc84d 100644
+--- a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoHeaderNode.swift
++++ b/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoHeaderNode.swift
+@@ -1,4 +1,5 @@
+ import Foundation
++import NebulaSettingsContract
+ import UIKit
+ import AsyncDisplayKit
+ import Display
+@@ -121,6 +122,10 @@ final class PeerInfoHeaderNode: ASDisplayNode {
+     let titleNodeRawContainer: ASDisplayNode
+     let titleNode: MultiScaleTextNode
+     var standardTitle: ComponentView<Empty>?
++    private let nebulaBadgeView = UIImageView()
++    private let nebulaExpandedBadgeView = UIImageView()
++    private var nebulaBadgeUserId: Int64?
++    private var nebulaBadge: NebulaBadge?
+     
+     let titleCredibilityIconView: ComponentHostView<Empty>
+     var credibilityIconSize: CGSize?
+@@ -230,6 +235,15 @@ final class PeerInfoHeaderNode: ASDisplayNode {
+         self.titleNodeRawContainer = ASDisplayNode()
+         self.titleNode = MultiScaleTextNode(stateKeys: [TitleNodeStateRegular, TitleNodeStateExpanded])
+         self.titleNode.displaysAsynchronously = false
++        for view in [self.nebulaBadgeView, self.nebulaExpandedBadgeView] {
++            view.contentMode = .scaleAspectFit
++            view.isHidden = true
++            view.isUserInteractionEnabled = false
++            view.isAccessibilityElement = true
++            view.accessibilityTraits = .image
++        }
++        self.titleNode.stateNode(forKey: TitleNodeStateRegular)?.view.addSubview(self.nebulaBadgeView)
++        self.titleNode.stateNode(forKey: TitleNodeStateExpanded)?.view.addSubview(self.nebulaExpandedBadgeView)
+         
+         self.titleCredibilityIconView = ComponentHostView<Empty>()
+         self.titleNode.stateNode(forKey: TitleNodeStateRegular)?.view.addSubview(self.titleCredibilityIconView)
+@@ -491,6 +505,28 @@ final class PeerInfoHeaderNode: ASDisplayNode {
+     private var currentVerifiedIcon: CredibilityIcon?
+     private var currentStatusIcon: CredibilityIcon?
+     
++    private func updateNebulaBadge(userId: Int64?) {
++        guard self.nebulaBadgeUserId != userId else { return }
++        self.nebulaBadgeUserId = userId
++        self.nebulaBadge = nil
++        self.nebulaBadgeView.image = nil
++        self.nebulaExpandedBadgeView.image = nil
++        self.nebulaBadgeView.isHidden = true
++        self.nebulaExpandedBadgeView.isHidden = true
++        guard let userId = userId else { return }
++        NebulaBadges.shared.badge(for: userId) { [weak self] badge in
++            guard let self = self, self.nebulaBadgeUserId == userId else { return }
++            self.nebulaBadge = badge
++            let image = badge.flatMap { NebulaProfileBadgeArtwork.image(for: $0) }
++            for view in [self.nebulaBadgeView, self.nebulaExpandedBadgeView] {
++                view.image = image
++                view.isHidden = image == nil
++                view.accessibilityLabel = badge?.title
++            }
++            self.requestUpdateLayout?(false)
++        }
++    }
++
+     private var currentPanelStatusData: PeerInfoStatusData?
+     func update(width: CGFloat, containerHeight: CGFloat, containerInset: CGFloat, statusBarHeight: CGFloat, navigationHeight: CGFloat, isModalOverlay: Bool, isMediaOnly: Bool, contentOffset: CGFloat, paneContainerY: CGFloat, presentationData: PresentationData, peer: EnginePeer?, cachedData: EngineCachedPeerData?, threadData: MessageHistoryThreadData?, peerNotificationSettings: TelegramPeerNotificationSettings?, threadNotificationSettings: TelegramPeerNotificationSettings?, globalNotificationSettings: EngineGlobalNotificationSettings?, statusData: PeerInfoStatusData?, panelStatusData: (PeerInfoStatusData?, PeerInfoStatusData?, CGFloat?), isSecretChat: Bool, isContact: Bool, isSettings: Bool, state: PeerInfoState, profileGiftsContext: ProfileGiftsContext?, screenData: PeerInfoScreenData?, isSearching: Bool, metrics: LayoutMetrics, deviceMetrics: DeviceMetrics, transition: ContainedViewLayoutTransition, additive: Bool, animateHeader: Bool) -> CGFloat {
+         if self.appliedCustomNavigationContentNode !== self.customNavigationContentNode {
+@@ -519,6 +555,14 @@ final class PeerInfoHeaderNode: ASDisplayNode {
+         self.state = state
+         self.peer = peer
+         self.threadData = threadData
++        let nebulaBadgeUserId: Int64?
++        if let peer = peer, case .user = peer, threadData == nil,
++           peer.id != self.context.account.peerId || isSettings || self.isMyProfile {
++            nebulaBadgeUserId = peer.id.id._internalGetInt64Value()
++        } else {
++            nebulaBadgeUserId = nil
++        }
++        self.updateNebulaBadge(userId: nebulaBadgeUserId)
+         self.isSearching = isSearching
+         self.avatarListNode.listContainerNode.peer = peer
+         
+@@ -1366,9 +1410,13 @@ final class PeerInfoHeaderNode: ASDisplayNode {
+             titleConstrainedSize.width -= 60.0
+         }
+         
++        var nebulaTitleConstrainedSize = titleConstrainedSize
++        if self.nebulaBadge != nil {
++            nebulaTitleConstrainedSize.width = max(1.0, nebulaTitleConstrainedSize.width - 28.0)
++        }
+         let titleNodeLayout = self.titleNode.updateLayout(text: titleStringText, states: [
+-            TitleNodeStateRegular: MultiScaleTextState(attributes: titleAttributes, constrainedSize: titleConstrainedSize),
+-            TitleNodeStateExpanded: MultiScaleTextState(attributes: smallTitleAttributes, constrainedSize: titleConstrainedSize)
++            TitleNodeStateRegular: MultiScaleTextState(attributes: titleAttributes, constrainedSize: nebulaTitleConstrainedSize),
++            TitleNodeStateExpanded: MultiScaleTextState(attributes: smallTitleAttributes, constrainedSize: nebulaTitleConstrainedSize)
+         ], mainState: TitleNodeStateRegular)
+         
+         let subtitleStates: [AnyHashable: MultiScaleTextState] = [
+@@ -1609,6 +1657,15 @@ final class PeerInfoHeaderNode: ASDisplayNode {
+             }
+         }
+         
++        if self.nebulaBadge != nil {
++            let badgeSize: CGFloat = 24.0
++            let expandedBadgeSize: CGFloat = 20.0
++            titleHorizontalOffset -= (badgeSize + 4.0) / 2.0
++            let collapsedTransitionOffset = -10.0 * (self.navigationTransition?.fraction ?? 0.0)
++            transition.updateFrame(view: self.nebulaBadgeView, frame: CGRect(x: nextIconX + 4.0 + collapsedTransitionOffset, y: floor((titleSize.height - badgeSize) / 2.0), width: badgeSize, height: badgeSize))
++            transition.updateFrame(view: self.nebulaExpandedBadgeView, frame: CGRect(x: nextExpandedIconX + 4.0, y: floor((titleExpandedSize.height - expandedBadgeSize) / 2.0) + 1.0, width: expandedBadgeSize, height: expandedBadgeSize))
++        }
++
+         var titleFrame: CGRect
+         var subtitleFrame: CGRect
+         let usernameFrame: CGRect

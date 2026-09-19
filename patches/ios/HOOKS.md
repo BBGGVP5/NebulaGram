@@ -82,3 +82,24 @@
 - `check-bootstrap.py` applies the full series against the pin and checks these
   anchors alongside the native-tab-bar invariant. iPhone interaction tests and
   an Apple SDK build remain required.
+
+# Profile badges (2026-09-20)
+
+- `0017-profile-badges.patch` adds the NebulaSettingsContract dependency and
+  regular/expanded profile title badge views to PeerInfoScreen. Assignments are
+  fetched only for opened user profiles (including own profile/settings), not
+  groups, topics or Saved Messages. Native Premium/status/verification icons keep
+  their layout and interactions; the new badge reserves its own title width.
+- `NebulaBadges` reads the existing public HTTPS `/v1/badge/{id}` endpoint. It has
+  no admin credentials or exposed server settings. Requests are coalesced, main
+  queue delivery is guaranteed, the 256-entry memory cache stores assignments and
+  empty results for 24 hours, and failures for 60 seconds. Reopening a profile
+  after expiry refetches; there is no background polling or contact enumeration.
+- `NebulaProfileBadgeImages.swift` embeds byte-identical Android supporter and
+  user-selected Mira PNGs. Regenerate with `generate-badge-artwork.py` when changing
+  either artwork; `--check` enforces cross-platform identity. Three other custom
+  badge vectors are drawn by UIKit without emoji or SF Symbols substitutions.
+- XCTest covers the service/cache contract without network access. Bootstrap
+  checks preserve native icon code and SDK-typecheck the UIKit artwork. The full
+  IPA build and physical-device checks (long names, avatar expansion, light/dark
+  appearance, simultaneous Premium/status badges) remain separate validation.
