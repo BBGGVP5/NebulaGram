@@ -11,7 +11,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/FloatingToolb
 +            // РїСЂРёРЅРѕСЃРёС‚ С‚РѕС‚ Р¶Рµ СЃРЅРёРјРѕРє РѕРєРЅР°-РёСЃС‚РѕС‡РЅРёРєР°, С‡С‚Рѕ Рё РјРµРЅСЋ СЃРѕРѕР±С‰РµРЅРёСЏ.
 +            // РўС‘РјРЅС‹Р№ СЃС‚РёР»СЊ РїРѕРІРµСЂС… С„РѕС‚РѕРіСЂР°С„РёРё РѕСЃС‚Р°РІР»СЏРµРј РїР»РѕСЃРєРёРј: С‚Р°Рј РїРѕРґ РїР°РЅРµР»СЊСЋ
 +            // РЅРµ РѕР±РѕРё, Р° СЃР°РјР° С„РѕС‚РѕРіСЂР°С„РёСЏ, Рё СЂР°Р·РјС‹РІР°С‚СЊ РµС‘ РЅРµР·Р°С‡РµРј.
-+            app.nebulagram.ui.NebulaMenuBackdrop.attach(contentContainer, mWindowView, resourcesProvider);
++            app.nebulagram.ui.NebulaMenuBackdrop.attachFlat(contentContainer, mWindowView, resourcesProvider);
          } else {
              GradientDrawable shape = new GradientDrawable();
              shape.setShape(GradientDrawable.RECTANGLE);
