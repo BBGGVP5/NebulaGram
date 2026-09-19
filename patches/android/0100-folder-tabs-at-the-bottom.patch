@@ -1,0 +1,73 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
+@@ -2983,8 +2983,10 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+         }
+ 
+         BirthdayController.getInstance(currentAccount).check();
+-        additionNavigationBarHeight = hasMainTabs && app.nebulagram.ui.NebulaBottomBar.enabled() ? dp(MAIN_TABS_HEIGHT_WITH_MARGINS) : 0;
+-        additionFloatingButtonOffset = hasMainTabs && app.nebulagram.ui.NebulaBottomBar.enabled() ? dp(DialogsActivity.MAIN_TABS_HEIGHT + DialogsActivity.MAIN_TABS_MARGIN) : 0;
++        additionNavigationBarHeight = (hasMainTabs && app.nebulagram.ui.NebulaBottomBar.enabled() ? dp(MAIN_TABS_HEIGHT_WITH_MARGINS) : 0)
++                + app.nebulagram.ui.NebulaFolderTabs.reserved();
++        additionFloatingButtonOffset = (hasMainTabs && app.nebulagram.ui.NebulaBottomBar.enabled() ? dp(DialogsActivity.MAIN_TABS_HEIGHT + DialogsActivity.MAIN_TABS_MARGIN) : 0)
++                + app.nebulagram.ui.NebulaFolderTabs.reserved();
+ 
+         return true;
+     }
+@@ -5165,7 +5167,8 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+             filterTabsViewBackground.setPadding(dp(6.666f));
+             filterTabsView.setPadding(0, dp(7), 0, dp(7));
+             filterTabsView.setBlurredBackground(filterTabsViewBackground);
+-            contentView.addView(filterTabsView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 36 + 7 + 7, Gravity.TOP, 4, 0, 4, 0));
++            contentView.addView(filterTabsView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 36 + 7 + 7,
++                    app.nebulagram.ui.NebulaFolderTabs.bottom() ? Gravity.BOTTOM : Gravity.TOP, 4, 0, 4, 0));
+         }
+ 
+         if (fragmentSearchField != null) {
+@@ -6604,10 +6607,19 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+         float fadeViewT = totalOffset;
+ 
+         if (filterTabsView != null) {
+-            filterTabsView.setTranslationY(totalOffset - searchOffset);
+-            filtersTabVisibility = filterTabsView.getAlpha();
+-            filtersTabHeight = dp(36 + 7) * filtersTabVisibility;
+-            totalOffset += filtersTabHeight;
++            if (app.nebulagram.ui.NebulaFolderTabs.bottom()) {
++                // РџР°РЅРµР»СЊ СЃС‚РѕРёС‚ РІРЅРёР·Сѓ Рё РІ РІРµСЂС…РЅСЋСЋ СЃС‚РѕРїРєСѓ РЅРµ РІС…РѕРґРёС‚: РµС‘ РІС‹СЃРѕС‚Р° РЅРµ
++                // РґРІРёРіР°РµС‚ РЅРё РїРѕРёСЃРє, РЅРё РёСЃС‚РѕСЂРёРё, РЅРё СЃРїРёСЃРѕРє. РџРѕРґРЅРёРјР°РµРј РµС‘ СЂРѕРІРЅРѕ РЅР°
++                // РЅРёР¶РЅСЋСЋ РїР°РЅРµР»СЊ, РµСЃР»Рё С‚Р° РІРєР»СЋС‡РµРЅР°, Рё РѕСЃС‚Р°РІР»СЏРµРј РЅР° РјРµСЃС‚Рµ, РµСЃР»Рё РЅРµС‚.
++                filterTabsView.setTranslationY(-(hasMainTabs && app.nebulagram.ui.NebulaBottomBar.enabled()
++                        ? dp(MAIN_TABS_HEIGHT_WITH_MARGINS) : 0));
++                filtersTabVisibility = filterTabsView.getAlpha();
++            } else {
++                filterTabsView.setTranslationY(totalOffset - searchOffset);
++                filtersTabVisibility = filterTabsView.getAlpha();
++                filtersTabHeight = dp(36 + 7) * filtersTabVisibility;
++                totalOffset += filtersTabHeight;
++            }
+         }
+ 
+         if (topPanelLayout != null) {
+@@ -7071,8 +7083,10 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+             app.nebulagram.ui.NebulaDialogsTitle.apply(actionBar,
+                     getMessagesController(), selectedType, statusDrawable);
+         }
+-        additionNavigationBarHeight = hasMainTabs && app.nebulagram.ui.NebulaBottomBar.enabled() ? dp(MAIN_TABS_HEIGHT_WITH_MARGINS) : 0;
+-        additionFloatingButtonOffset = hasMainTabs && app.nebulagram.ui.NebulaBottomBar.enabled() ? dp(MAIN_TABS_HEIGHT + MAIN_TABS_MARGIN) : 0;
++        additionNavigationBarHeight = (hasMainTabs && app.nebulagram.ui.NebulaBottomBar.enabled() ? dp(MAIN_TABS_HEIGHT_WITH_MARGINS) : 0)
++                + app.nebulagram.ui.NebulaFolderTabs.reserved();
++        additionFloatingButtonOffset = (hasMainTabs && app.nebulagram.ui.NebulaBottomBar.enabled() ? dp(MAIN_TABS_HEIGHT + MAIN_TABS_MARGIN) : 0)
++                + app.nebulagram.ui.NebulaFolderTabs.reserved();
+         if (fragmentView != null) {
+             ViewCompat.requestApplyInsets(fragmentView);
+         }
+@@ -7240,7 +7254,8 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+             public int getTopOffset(int tag) {
+                 return (
+                     (actionBar != null ? actionBar.getMeasuredHeight() : 0) +
+-                    (filterTabsView != null && filterTabsView.getVisibility() == View.VISIBLE ? filterTabsView.getMeasuredHeight() : 0) +
++                    (filterTabsView != null && filterTabsView.getVisibility() == View.VISIBLE
++                            && !app.nebulagram.ui.NebulaFolderTabs.bottom() ? filterTabsView.getMeasuredHeight() : 0) +
+                     (topPanelLayout != null ? topPanelLayout.getHeight() : 0) +
+                     (dialogStoriesCell != null && dialogStoriesCellVisible ? (int) ((1f - dialogStoriesCell.getCollapsedProgress()) * dp(DialogStoriesCell.HEIGHT_IN_DP)) : 0) +
+                     (dp(nebulaSearchSlotHeight()))

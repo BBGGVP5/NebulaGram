@@ -415,6 +415,15 @@ public class NebulaSectionFragment extends BaseFragment {
                 NebulaAppearance.folderOutline(), NebulaAppearance::setFolderOutline));
         card.add(toggle(context, R.drawable.nebula_cupertino_list, R.string.NebulaFolderTitle, R.string.NebulaFolderTitleSub,
                 NebulaAppearance.folderTitle(), NebulaAppearance::setFolderTitle));
+        card.add(toggle(context, R.drawable.nebula_cupertino_download, R.string.NebulaFolderTabsBottom, R.string.NebulaFolderTabsBottomInfo,
+                NebulaFolderTabs.bottom(), value -> {
+                    NebulaFolderTabs.setBottom(value);
+                    // Панель создаётся вместе со списком чатов: её место выбирается
+                    // при разметке, и увидеть переезд можно только на новом экране.
+                    Toast.makeText(context, NebulaText.text(
+                            "Применится при следующем открытии списка чатов",
+                            "Applies the next time the chat list opens"), Toast.LENGTH_SHORT).show();
+                }));
         card.add(new NebulaRow(context).icon(R.drawable.files_folder).title(LocaleController.getString(R.string.Filters))
                 .trailing(NebulaRow.TRAIL_CHEVRON).withClick(v -> presentFragment(new org.telegram.ui.FiltersSetupActivity())));
         content.addView(card, cardParams());
