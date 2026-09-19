@@ -94,3 +94,30 @@ Remnawave**. Пусть отдельный скрипт по расписани�
 проверка ничего не охраняет — её вырезают одной строкой. Охраняет токен,
 который проверяет сервер: без него выдача не пройдёт, сколько панель ни
 открывай.
+
+## Что уже поднято
+
+Сервис работает на NebulaGuard:
+
+| | |
+|---|---|
+| Адрес для приложения | `https://hooks.nebulaguard.mooo.com` (вшит по умолчанию) |
+| Служба | `nebula-badges`, слушает `127.0.0.1:8431`, автозапуск включён |
+| Токен и настройки | `/etc/nebula-badges.env`, права 600 |
+| База | `/var/lib/nebula-badges/badges.json` |
+| Вход снаружи | `location /v1/badge` в блоке `hooks.nebulaguard.mooo.com` |
+| Копия конфига до правки | `/opt/remnawave/nginx.conf.before-badges-*` |
+
+Посмотреть токен: `cat /etc/nebula-badges.env`
+
+Откат целиком:
+
+```bash
+systemctl disable --now nebula-badges
+cp /opt/remnawave/nginx.conf.before-badges-* /opt/remnawave/nginx.conf
+docker exec remnawave-nginx nginx -t && docker exec remnawave-nginx nginx -s reload
+```
+
+Оговорка: `/opt/remnawave/nginx.conf` принадлежит Remnawave. Её обновление,
+которое перегенерирует этот файл, унесёт наш `location` — значки перестанут
+работать, остальное нет. Вернуть — добавить блок заново.

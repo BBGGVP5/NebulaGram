@@ -128,13 +128,19 @@ public final class NebulaBadges {
 
     // --- откуда брать --------------------------------------------------------
 
-    /** Адрес сервера значков. Пусто — значки выключены целиком. */
+    /**
+     * Адрес сервера значков. Свой, и по умолчанию наш: пользователю вводить
+     * нечего, а поменять при желании можно там же в настройках.
+     */
+    private static final String DEFAULT_HOST = "https://hooks.nebulaguard.mooo.com";
+
     public static String host() {
-        return prefs().getString(KEY_HOST, "");
+        return prefs().getString(KEY_HOST, DEFAULT_HOST);
     }
 
+    /** Пустая строка возвращает адрес по умолчанию, а не выключает значки. */
     public static void setHost(String value) {
-        String host = value == null ? "" : value.trim();
+        String host = value == null || value.trim().isEmpty() ? DEFAULT_HOST : value.trim();
         while (host.endsWith("/")) host = host.substring(0, host.length() - 1);
         prefs().edit().putString(KEY_HOST, host).apply();
         forget();
