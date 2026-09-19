@@ -1,14 +1,16 @@
-# Profile badge artwork
+# NebulaGram profile badge artwork
 
-Generated with the built-in ImageGen tool on 2026-09-19. These PNGs are design assets; they have not yet been connected to native profile rendering.
+The selected artwork is integrated into Android profile names, profile settings and the badge grant selector.
 
-- `supporter-modern.png`: the existing NebulaGram plane and two speed strokes, with a restrained blue/periwinkle gradient and transparent background.
-- `mira-modern.png`: a rounded five-point star with a small sparkle cutout, using the same gradient.
+- `supporter-modern.png`: flat NebulaGram logo for supporters.
+- `mira-six-ray.png`: solid six-ray Mira with soft tips and the brand gradient.
 
-The earlier glossy medallion and crystal-star concepts were rejected. The final direction uses flat, simple silhouettes suitable for a small badge beside a username.
+Both designs use sky blue #62C9F7 through periwinkle blue #6680ED, with transparent backgrounds and no glow. Native resources are 128 × 128 RGBA PNGs in `platform/android/overlay/TMessagesProj/src/main/res/drawable-nodpi`. Original resource identifiers and server assignment keys are retained. The service key `star` is displayed as Mira. iOS does not yet contain the Nebula profile badge renderer.
 
-## Final generation prompts
+The artwork was generated with the built-in ImageGen tool. Telegram emoji exports are available in `design/emoji`.
 
-Supporter: Generate one extremely clean flat UI profile badge on a genuinely transparent background. Reproduce exactly the white paper-plane silhouette and its two separate speed strokes from `design/motion/assets/logo.png`, replacing white with a smooth diagonal gradient from #62C9F7 to #6680ED. Remove the square background. Only three solid filled shapes on transparency. No glow, halo, blur, shadow, outline, lighting, bevel or 3D. Center with 15 percent padding. No text, mockup or checkerboard.
+## Final prompts
 
-Mira: One polished flat UI profile badge on transparent alpha. A single bold five-point star with subtly rounded tips, a diagonal gradient from #62C9F7 to #6680ED, and a small transparent four-point sparkle cutout at its center. Designed for 20 pixel inline display. No glow, halo, bloom, blur, shadow, outline, bevel, gloss, 3D or particles. Center at 70 percent of square canvas. No text, watermark, mockup or checkerboard.
+Supporter: Generate a clean flat UI badge using the exact NebulaGram plane silhouette and its two separate speed strokes from `design/motion/assets/logo.png`. Replace white with a smooth diagonal #62C9F7 to #6680ED gradient. Remove the square background. Only three opaque filled shapes on transparency. No glow, halo, blur, shadow, outline, lighting, bevel or 3D. Center with 15 percent padding. No text, mockup or checkerboard.
+
+Mira: Refine the simple badge into exactly six rays: moderately long north and south rays, four shorter diagonal rays, gently concave joins and soft pointed tips. A substantial solid center and one uninterrupted diagonal #62C9F7 to #6680ED gradient. Transparent background with no dots, holes, seams, glow, outline, shadows, texture or 3D. The user requested a shape less similar to Gemini's four-ray sparkle.

@@ -116,7 +116,8 @@ public final class NebulaBadges {
             case "supporter": return NebulaText.text("Поддержал проект", "Supporter");
             case "dev": return NebulaText.text("Разработчик", "Developer");
             case "tester": return NebulaText.text("Тестировщик", "Tester");
-            case "star": return NebulaText.text("Звезда", "Star");
+            // Keep the service key so existing assignments automatically receive Mira artwork.
+            case "star": return "Mira";
             case "heart": return NebulaText.text("Спасибо", "Thanks");
             default: return null;
         }

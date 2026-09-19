@@ -138,11 +138,24 @@ section = (overlay / 'NebulaSectionFragment.java').read_text(encoding='utf-8')
 assert 'Сервер значков' not in section and 'Админ-токен' not in section
 badges = (overlay / 'NebulaBadges.java').read_text(encoding='utf-8')
 assert 'Emoji.replaceEmoji' not in badges and 'new NebulaBadgeSpan(drawable)' in badges
-for kind in ['supporter', 'dev', 'tester', 'star', 'heart']:
+for kind in ['dev', 'tester', 'heart']:
     path = root / f'platform/android/overlay/TMessagesProj/src/main/res/drawable/nebula_badge_{kind}.xml'
     vector = ET.parse(path).getroot()
     assert vector.tag == 'vector' and len(vector.findall('path')) >= 2
-print('Native integration, interactive preview, hidden service controls and five vector badges passed')
+import struct
+for kind in ['supporter', 'star']:
+    resources = root / 'platform/android/overlay/TMessagesProj/src/main/res'
+    artwork = resources / f'drawable-nodpi/nebula_badge_{kind}.png'
+    data = artwork.read_bytes()
+    assert data[:8] == b'\x89PNG\r\n\x1a\n'
+    assert struct.unpack('>II', data[16:24]) == (128, 128)
+    assert data[24:26] == bytes([8, 6]), 'Badge must retain RGBA transparency'
+    assert len(data) < 100_000, 'Inline artwork should stay small'
+    assert not (resources / f'drawable/nebula_badge_{kind}.xml').exists(), 'Duplicate resource name'
+    assert f'case "{kind}": return R.drawable.nebula_badge_{kind};' in badges
+assert 'case "star": return "Mira";' in badges
+assert '.artwork(own == null ? R.drawable.nebula_badge_star : NebulaBadges.iconResource(own))' in section
+print('Native integration, interactive preview, hidden service controls and five local badges passed')
 
 # Compile the actual span against drawing recorders: font scaling and alpha must
 # not alter the line height or leak canvas transforms into the surrounding name.

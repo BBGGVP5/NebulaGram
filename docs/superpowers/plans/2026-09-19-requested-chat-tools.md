@@ -12,7 +12,7 @@ User confirmed all features, with advertising explicitly excluded. Execute inlin
 
 - [x] AI assistant: OpenAI, Claude, Gemini and compatible endpoints, user-supplied credentials, model selection.
 - [x] Own icon packs and launcher icons.
-- [x] Custom profile badge infrastructure. Final artwork is pending: supporter uses the NebulaGram logo; Mira is a star. The user rejected the first glossy generated variants and requested a cleaner modern design.
+- [x] Android profile badge artwork: supporter uses the flat generated NebulaGram logo; the existing `star` service key displays the latest six-ray Mira. Bundled 128px transparent artwork is shared by profile name spans, settings and the grant selector. iOS has no Nebula profile badge integration yet.
 - [x] Story visibility control and native story settings.
 - [x] Settings file import/export on Android and iOS (this is not automatic cloud sync).
 

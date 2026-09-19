@@ -164,7 +164,7 @@ public class NebulaRow extends FrameLayout {
         return 0xFF3396DB;
     }
 
-    /** Preserve the original colors of Nebula's multicolor vector artwork. */
+    /** Preserve the original colors of Nebula's bundled artwork. */
     public NebulaRow artwork(int resource) {
         icon(resource);
         icon.clearColorFilter();

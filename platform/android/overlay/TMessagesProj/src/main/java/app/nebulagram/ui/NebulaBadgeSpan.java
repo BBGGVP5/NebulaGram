@@ -5,7 +5,7 @@ import android.graphics.Paint;
 import android.graphics.drawable.Drawable;
 import android.text.style.ReplacementSpan;
 
-/** A local vector aligned to the name's font metrics, independent of emoji fonts. */
+/** Local artwork aligned to the name's font metrics, independent of emoji fonts. */
 public final class NebulaBadgeSpan extends ReplacementSpan {
     private final Drawable drawable;
 
