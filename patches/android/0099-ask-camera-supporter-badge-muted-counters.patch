@@ -73,7 +73,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java b/
 -                    nameTextView[a].setText(newString);
 +                    // Р—РЅР°С‡РѕРє РїРѕРґРґРµСЂР¶Р°РІС€РµРіРѕ РґРѕРїРёСЃС‹РІР°РµС‚СЃСЏ Рє РёРјРµРЅРё СЃРїР°РЅРѕРј: СЃРїСЂР°РІР° РѕС‚
 +                    // РёРјРµРЅРё Р¶РёРІСѓС‚ РѕС‚РјРµС‚РєР° РїСЂРѕРІРµСЂРµРЅРЅРѕРіРѕ Р°РєРєР°СѓРЅС‚Р° Рё СЌРјРѕРґР·Рё-СЃС‚Р°С‚СѓСЃ.
-+                    nameTextView[a].setText(app.nebulagram.ui.NebulaDonation.decorate(
++                    nameTextView[a].setText(app.nebulagram.ui.NebulaBadges.decorate(
 +                            newString, user.id, nameTextView[a].getTextPaint()));
                  }
                  if (a == 0 && onlineTextOverride != null) {

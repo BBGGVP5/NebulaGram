@@ -7,6 +7,7 @@ import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.LocaleController;
@@ -490,26 +491,17 @@ public class NebulaSectionFragment extends BaseFragment {
     }
 
     /**
-     * Значок поддержавшего проект. Проверить пожертвование клиенту нечем, и
-     * притворяться, что он проверил, значок не будет: его ставит себе сам
-     * человек, видит его только он, и чужое имя он не украшает.
+     * Значки NebulaGram. Кому какой — знает сервер; клиент спрашивает про одного
+     * человека, того, чей профиль открыли, и списком наружу ничего не отдаётся.
      */
     private void buildDonation(Context context) {
+        String own = NebulaBadges.own();
         NebulaCard card = new NebulaCard(context);
-        NebulaRow badge = new NebulaRow(context)
+        card.add(new NebulaRow(context)
                 .icon(R.drawable.msg_premium_badge)
-                .title(NebulaText.text("Значок поддержавшего", "Supporter badge"))
-                .subtitle(NebulaText.text("Рядом с вашим именем в профиле, только у вас на устройстве",
-                        "Next to your name in your profile, on this device only"), false)
-                .trailing(NebulaRow.TRAIL_SWITCH)
-                .checked(NebulaDonation.enabled());
-        badge.setOnClickListener(v -> { NebulaDonation.setEnabled(badge.toggleChecked()); refreshPreviews(); });
-        card.add(badge);
-        card.add(new NebulaRow(context).icon(R.drawable.msg_emoji_smiles)
-                .title(NebulaText.text("Какой значок", "Which badge"))
-                .subtitle(NebulaDonation.icon(), true)
-                .trailing(NebulaRow.TRAIL_CHEVRON)
-                .withClick(v -> chooseDonationIcon(context)));
+                .title(NebulaText.text("Мой значок", "My badge"))
+                .subtitle(own != null ? NebulaBadges.title(own) + "  " + NebulaBadges.icon(own)
+                        : NebulaText.text("Пока нет", "None yet"), own != null));
         card.add(new NebulaRow(context).icon(R.drawable.msg_link2)
                 .title(NebulaText.text("Поддержать проект", "Support the project"))
                 .subtitle(NebulaDonation.link().isEmpty()
@@ -517,13 +509,91 @@ public class NebulaSectionFragment extends BaseFragment {
                 .trailing(NebulaRow.TRAIL_CHEVRON)
                 .withClick(v -> donationLink(context)));
         content.addView(card, cardParams());
+        buildBadgeAdmin(context);
     }
 
-    private void chooseDonationIcon(Context context) {
-        String[] icons = {"💎", "⭐", "❤", "🌟", "🪐"};
+    /**
+     * Панель выдачи. Показывается, когда задан адрес сервера, — токен вводится
+     * там же. Прятать её надёжнее нечем: исходники открыты, и проверка «свой ли
+     * это человек» на устройстве ничего не охраняет. Охраняет токен, который
+     * проверяет сервер: без него выдача не пройдёт, сколько панель ни открывай.
+     */
+    private void buildBadgeAdmin(Context context) {
+        content.addView(NebulaCard.header(context, NebulaText.text("Значки", "Badges")));
+        NebulaCard card = new NebulaCard(context);
+        card.add(new NebulaRow(context).icon(R.drawable.msg_link2)
+                .title(NebulaText.text("Сервер значков", "Badge server"))
+                .subtitle(NebulaBadges.host().isEmpty()
+                        ? NebulaText.text("Не задан — значки выключены", "Not set, badges are off")
+                        : NebulaBadges.host(), !NebulaBadges.host().isEmpty())
+                .trailing(NebulaRow.TRAIL_CHEVRON)
+                .withClick(v -> ask(context, NebulaText.text("Сервер значков", "Badge server"),
+                        NebulaText.text("Адрес вида https://example.com", "An address such as https://example.com"),
+                        NebulaBadges.host(), value -> { NebulaBadges.setHost(value); refreshPalette(); })));
+        card.add(new NebulaRow(context).icon(R.drawable.msg_secret)
+                .title(NebulaText.text("Админ-токен", "Admin token"))
+                .subtitle(NebulaBadges.token().isEmpty()
+                        ? NebulaText.text("Не задан", "Not set")
+                        : NebulaText.text("Задан", "Set"), !NebulaBadges.token().isEmpty())
+                .trailing(NebulaRow.TRAIL_CHEVRON)
+                .withClick(v -> ask(context, NebulaText.text("Админ-токен", "Admin token"),
+                        NebulaText.text("Токен хранится только на этом устройстве и уходит только вашему серверу.",
+                                "The token is kept on this device and goes only to your server."),
+                        NebulaBadges.token(), value -> { NebulaBadges.setToken(value); refreshPalette(); })));
+        if (NebulaBadges.admin()) {
+            card.add(new NebulaRow(context).icon(R.drawable.msg_premium_badge)
+                    .title(NebulaText.text("Выдать значок", "Grant a badge"))
+                    .subtitle(NebulaText.text("По идентификатору пользователя", "By user id"), false)
+                    .trailing(NebulaRow.TRAIL_CHEVRON)
+                    .withClick(v -> grantBadge(context)));
+        }
+        content.addView(card, cardParams());
+    }
+
+    private void grantBadge(Context context) {
+        ask(context, NebulaText.text("Кому", "To whom"),
+                NebulaText.text("Идентификатор пользователя. Его же показывает «Скопировать ID» в профиле.",
+                        "The user id. The profile menu's Copy ID gives the same number."),
+                "", value -> {
+                    final long id;
+                    try {
+                        id = Long.parseLong(value.trim());
+                    } catch (NumberFormatException ignored) {
+                        Toast.makeText(context, NebulaText.text("Это не идентификатор", "Not an id"), Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                    String[] kinds = NebulaBadges.kinds();
+                    CharSequence[] titles = new CharSequence[kinds.length + 1];
+                    for (int i = 0; i < kinds.length; i++) {
+                        titles[i] = NebulaBadges.title(kinds[i]) + "  " + NebulaBadges.icon(kinds[i]);
+                    }
+                    titles[kinds.length] = NebulaText.text("Снять значок", "Remove badge");
+                    new org.telegram.ui.ActionBar.AlertDialog.Builder(context)
+                            .setTitle(NebulaText.text("Какой значок", "Which badge"))
+                            .setItems(titles, (d, which) -> NebulaBadges.grant(id,
+                                    which == kinds.length ? "" : kinds[which],
+                                    error -> Toast.makeText(context, error != null ? error
+                                            : NebulaText.text("Готово", "Done"), Toast.LENGTH_SHORT).show()))
+                            .show();
+                });
+    }
+
+    /** Однострочный ввод в диалоге: адрес, токен, идентификатор. */
+    private void ask(Context context, String title, String message, String current,
+                     org.telegram.messenger.Utilities.Callback<String> done) {
+        final android.widget.EditText input = new android.widget.EditText(context);
+        input.setText(current);
+        input.setSingleLine(true);
+        input.setTextColor(NebulaTheme.of(context).onSurface());
+        input.setHintTextColor(NebulaTheme.of(context).onSurfaceVariant());
+        input.setPadding(AndroidUtilities.dp(22), AndroidUtilities.dp(8), AndroidUtilities.dp(22), AndroidUtilities.dp(8));
         new org.telegram.ui.ActionBar.AlertDialog.Builder(context)
-                .setTitle(NebulaText.text("Какой значок", "Which badge"))
-                .setItems(icons, (d, which) -> { NebulaDonation.setIcon(icons[which]); refreshPalette(); })
+                .setTitle(title)
+                .setMessage(message)
+                .setView(input)
+                .setNegativeButton(NebulaText.text("Отмена", "Cancel"), null)
+                .setPositiveButton(NebulaText.text("Сохранить", "Save"),
+                        (d, w) -> done.run(input.getText().toString()))
                 .show();
     }
 
