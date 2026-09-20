@@ -92,6 +92,10 @@ def main():
         assert 'interaction.openSettings(.nebulaGram)' in (peer / 'PeerInfoSettingsItems.swift').read_text(encoding='utf-8')
         assert 'push(nebulaSettingsController(context: self.context))' in (peer / 'PeerInfoScreenSettingsActions.swift').read_text(encoding='utf-8')
         controller = (temp / 'submodules/SettingsUI/Sources/NebulaSettingsController.swift').read_text(encoding='utf-8')
+        assert 'makeDefaultPresentationTheme(' in controller
+        assert 'UIScreen.main.traitCollection.userInterfaceStyle' in controller
+        assert 'presentationData.withUpdated(theme: settingsTheme)' in controller
+        assert 'presentationData.theme.withModalBlocksBackground()' not in controller
         assert 'hideCounters, !store.hasLoadError)' in controller
         assert 'value: value, enabled: enabled' in controller
         assert 'ItemListSingleLineInputItem(' in controller and 'NebulaSettingsSearch.matches(query, in: title)' in controller

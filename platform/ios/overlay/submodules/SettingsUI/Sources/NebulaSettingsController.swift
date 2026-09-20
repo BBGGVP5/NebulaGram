@@ -211,7 +211,11 @@ public func nebulaSettingsController(context: AccountContext) -> ViewController 
     let signal = combineLatest(queue: .mainQueue(), context.sharedContext.presentationData, settings, writeFailed.get(), searchQuery.get())
     |> deliverOnMainQueue
     |> map { presentationData, hideCounters, failed, query -> (ItemListControllerState, (ItemListNodeState, Any)) in
-        let presentationData = presentationData.withUpdated(theme: presentationData.theme.withModalBlocksBackground())
+        // A custom Telegram theme must not recolor Nebula settings.
+        let settingsTheme = makeDefaultPresentationTheme(
+            reference: UIScreen.main.traitCollection.userInterfaceStyle == .dark ? .night : .day,
+            serviceBackgroundColor: nil).withModalBlocksBackground()
+        let presentationData = presentationData.withUpdated(theme: settingsTheme)
         let ru = presentationData.strings.baseLanguageCode.lowercased().hasPrefix("ru")
         arguments.russian = ru
         let modes = ru ? ["Автоматически", "Полное", "Облегчённое"] : ["Automatic", "Full", "Light"]

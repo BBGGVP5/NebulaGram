@@ -1,7 +1,9 @@
 package app.nebulagram.ui;
 
 import android.content.Context;
+import android.content.ComponentCallbacks;
 import android.content.SharedPreferences;
+import android.content.res.Configuration;
 import android.os.Build;
 
 import androidx.core.content.ContextCompat;
@@ -11,22 +13,12 @@ import org.telegram.messenger.ApplicationLoader;
 import org.telegram.messenger.FileLog;
 import org.telegram.ui.ActionBar.Theme;
 
-/**
- * Settings palette matching the approved preview; Material You supplies accents.
- *
- * <p>On Android 12 and later the palette is the system one: the framework
- * already derives Material You tonal ranges from the wallpaper and publishes
- * them as {@code android.R.color.system_*}, so we get dynamic colour without a
- * single extra dependency — no Material Components, no Compose, nothing that
- * would have to be kept in step with an upstream Telegram release. Older
- * devices fall back to the brand palette.
- *
- * <p>Only our screens read this. Telegram's own screens keep their own theme;
- * see docs/DESIGN.md for how the two layers relate.
+/** Fixed settings palette. System light/dark mode is independent of Telegram themes.
+ * Material You remains an explicit option for the surrounding Telegram interface.
  */
 public final class NebulaTheme {
 
-    // Brand fallback for devices without dynamic colour, in Material 3 tones.
+    // Fixed brand colors for settings, independent of Telegram and wallpaper accents.
     private static final int BRAND_PRIMARY_DARK = 0xFFA8C7FA;
     private static final int BRAND_ON_PRIMARY_DARK = 0xFF062E6F;
     private static final int BRAND_PRIMARY_CONTAINER_DARK = 0xFF0842A0;
@@ -71,33 +63,34 @@ public final class NebulaTheme {
         this.dynamic = dynamic;
     }
 
-    /**
-     * Последняя выданная палитра.
-     *
-     * <p>Контекст здесь всегда контекст приложения, так что статика ничего не
-     * удерживает: динамические цвета — общие для приложения ресурсы
-     * {@code android.R.color.system_*}, и из активности они разрешаются в то же
-     * самое. Тема светлая или тёмная решается нашим флагом, а не квалификатором
-     * ресурса, поэтому от контекста тут ничего не зависит.
-     */
     private static volatile NebulaTheme cached;
 
-    /**
-     * Resolves the palette for the current configuration. Cheap enough to call
-     * from a view's constructor; nothing is cached because the wallpaper, and
-     * therefore the palette, can change while the app is running.
-     */
     public static NebulaTheme of(Context context) {
-        boolean dark = Theme.isCurrentThemeDark();
-        boolean dynamic = supportsDynamic() && materialYouEnabled();
         NebulaTheme theme = cached;
-        if (theme != null && theme.dark == dark && theme.dynamic == dynamic) {
-            return theme;
-        }
+        if (theme != null) return theme;
         Context application = context == null ? ApplicationLoader.applicationContext : context.getApplicationContext();
-        theme = new NebulaTheme(application == null ? context : application, dark, dynamic);
-        cached = theme;
-        return theme;
+        return initialize(application);
+    }
+
+    private static synchronized NebulaTheme initialize(Context application) {
+        if (cached != null) return cached;
+        if (application == null) return new NebulaTheme(null, false, false);
+        cached = fixedPalette(application, application.getResources().getConfiguration());
+        application.registerComponentCallbacks(new ComponentCallbacks() {
+            @Override
+            public void onConfigurationChanged(Configuration configuration) {
+                cached = fixedPalette(application, configuration);
+            }
+
+            @Override
+            public void onLowMemory() { }
+        });
+        return cached;
+    }
+
+    private static NebulaTheme fixedPalette(Context application, Configuration configuration) {
+        boolean dark = (configuration.uiMode & Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES;
+        return new NebulaTheme(application, dark, false);
     }
 
     public boolean isDark() {
@@ -109,7 +102,7 @@ public final class NebulaTheme {
         return dark ? 0xFF81D99A : 0xFF236C3D;
     }
 
-    /** Whether the palette came from the system rather than the fallback. */
+    /** Whether Android can supply a wallpaper accent for Telegram. */
     public static boolean supportsDynamic() {
         return Build.VERSION.SDK_INT >= Build.VERSION_CODES.S;
     }
@@ -119,7 +112,6 @@ public final class NebulaTheme {
     }
 
     public int primary() {
-        if (!materialYouEnabled()) return Theme.getColor(Theme.key_windowBackgroundWhiteBlueText);
         if (isDynamic()) {
             return system(dark ? android.R.color.system_accent1_200 : android.R.color.system_accent1_600);
         }
@@ -201,7 +193,10 @@ public final class NebulaTheme {
         if (applying) return;
         try {
             applying = true;
-            int accent = NebulaTheme.of(context).primary();
+            // This opt-in affects Telegram, never the independent settings palette.
+            Context application = context == null ? ApplicationLoader.applicationContext : context.getApplicationContext();
+            int accent = new NebulaTheme(application == null ? context : application,
+                    Theme.isCurrentThemeDark(), true).primary();
             Theme.ThemeInfo active = Theme.getActiveTheme();
             if (active == null) {
                 return;
@@ -248,7 +243,7 @@ public final class NebulaTheme {
      */
     private static volatile Boolean materialYou;
     private static final SharedPreferences.OnSharedPreferenceChangeListener materialYouListener =
-            (preferences, key) -> { if (key == null || KEY_MATERIAL_YOU.equals(key)) { materialYou = null; cached = null; } };
+            (preferences, key) -> { if (key == null || KEY_MATERIAL_YOU.equals(key)) { materialYou = null; } };
 
     public static boolean materialYouEnabled() {
         Boolean value = materialYou;
@@ -275,7 +270,6 @@ public final class NebulaTheme {
                 ApplicationLoader.applicationContext.getSharedPreferences(PREFS, 0);
         prefs.edit().putBoolean(KEY_MATERIAL_YOU, value).apply();
         materialYou = value;
-        cached = null;
         if (!value) {
             restoreAccent(prefs);
         }

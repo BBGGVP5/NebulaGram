@@ -1,0 +1,28 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
+index 47d1acb..7b5f083 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
+@@ -2504,16 +2504,20 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
+         }
+         final boolean separateAvatar = nebulaFloatingChatHeader && nebulaChatMenuHidden
+                 && nebulaChatAvatarContainer != null;
+-        if (glassDrawableMenu != null && separateAvatar) {
++        if (glassDrawableMenu != null && separateAvatar && actionModeFactor < 1f) {
+             if (nebulaChatAvatarContainer.hasVisibleAvatar()) {
+                 glassDrawableMenu.setBounds(getWidth() - s - p * 2, t, getWidth(), b);
+                 glassDrawableMenu.setAlpha(app.nebulagram.ui.NebulaChatStyle.avatarBackdropAlpha(
+                         searchFactor, actionModeFactor, nebulaChatAvatarContainer.getAlpha()));
+                 glassDrawableMenu.draw(canvas);
+             }
+-        } else if (glassDrawableMenu != null && menuWidth > 0 && !glassOnlyBack && !doNotDrawGlassMenu) {
++        }
++        // Fade the selection capsule in as the separate avatar backdrop fades out.
++        if (glassDrawableMenu != null && menuWidth > 0 && !glassOnlyBack && !doNotDrawGlassMenu
++                && (!separateAvatar || actionModeFactor > 0f)) {
+             glassDrawableMenu.setBounds(getWidth() - Math.max(s, menuWidth) - p * 2, t, getWidth(), b);
+-            glassDrawableMenu.setAlpha(hasForcedMenuWidth ? 255 : (int) (255 * animatorHasMenuItems.getFloatValue()));
++            final float menuAlpha = hasForcedMenuWidth ? 1f : animatorHasMenuItems.getFloatValue();
++            glassDrawableMenu.setAlpha(Math.round(255 * menuAlpha * (separateAvatar ? actionModeFactor : 1f)));
+             glassDrawableMenu.draw(canvas);
+         }
+ 

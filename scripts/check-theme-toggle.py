@@ -32,7 +32,7 @@ def main():
             public int uiMode=32; }''')
         put('android/content/res/Resources.java', '''package android.content.res;
             public class Resources { public Configuration config=new Configuration();
-            public Configuration getConfiguration() { return config; } }''')
+            public int reads; public Configuration getConfiguration() { reads++; return config; } }''')
         put('android/content/SharedPreferences.java', '''package android.content;
             public interface SharedPreferences {
                 boolean contains(String key); int getInt(String key,int fallback);
@@ -42,11 +42,16 @@ def main():
                 interface Editor { Editor putInt(String key,int value); Editor putBoolean(String key,boolean value);
                     Editor remove(String key); void apply(); }
             }''')
+        put('android/content/ComponentCallbacks.java', '''package android.content;
+            public interface ComponentCallbacks { void onConfigurationChanged(android.content.res.Configuration c); void onLowMemory(); }''')
         put('android/content/Context.java', '''package android.content;
             public class Context { public final android.content.res.Resources resources=new android.content.res.Resources();
                 public SharedPreferences prefs; public android.content.res.Resources getResources(){return resources;}
                 public SharedPreferences getSharedPreferences(String name,int mode){return prefs;}
-                public Context getApplicationContext(){return this;} }''')
+                public Context getApplicationContext(){return this;}
+                public java.util.List<ComponentCallbacks> callbacks=new java.util.ArrayList<>();
+                public void registerComponentCallbacks(ComponentCallbacks callback){callbacks.add(callback);}
+                public void night(boolean night){resources.config.uiMode=night?32:0;for(ComponentCallbacks cb:callbacks)cb.onConfigurationChanged(resources.config);} }''')
         put('androidx/core/content/ContextCompat.java', '''package androidx.core.content;
             public class ContextCompat { public static int wallpaper=0xffeeaa88;
                 public static int getColor(android.content.Context c,int id){ return wallpaper; } }''')
@@ -59,7 +64,7 @@ def main():
         put('org/telegram/ui/ActionBar/Theme.java', '''package org.telegram.ui.ActionBar;
             public class Theme {
                 public static final int key_windowBackgroundWhiteBlueText=1,key_windowBackgroundGray=2,key_windowBackgroundWhite=3,key_windowBackgroundWhiteBlackText=4,key_windowBackgroundWhiteGrayText=5,key_divider=6;
-                public static boolean isCurrentThemeDark(){return true;}
+                public static boolean dark=true; public static boolean isCurrentThemeDark(){return dark;}
                 public static int getColor(int key){return active.getAccent(false).accentColor;}
 
                 public static java.util.ArrayList<ThemeInfo> themes=new java.util.ArrayList<>();
@@ -114,8 +119,8 @@ def main():
                         eq(day.themeAccents.get(0).accentColor,0xff1144aa);
                         eq(day.themeAccents.get(1).accentColor,0xffbb2233);
                         eq(night.getAccent(false).accentColor,0xff447788);
-                        eq(snapshot.primary(),Theme.getColor(Theme.key_windowBackgroundWhiteBlueText));
-                        eq(NebulaTheme.of(c).primary(),Theme.getColor(Theme.key_windowBackgroundWhiteBlueText));
+                        eq(snapshot.primary(),0xffa8c7fa);
+                        eq(NebulaTheme.of(c).primary(),0xffa8c7fa);
                         eq((int)p.values.keySet().stream().filter(k->k.startsWith("accent_before_material_you")).count(),0);
                         Theme.active=day;
                     }
@@ -125,7 +130,22 @@ def main():
                     NebulaTheme.setMaterialYouEnabled(true); NebulaTheme.applyMaterialYou(c);
                     eq(day.getAccent(false).accentColor,ContextCompat.wallpaper);
                     NebulaTheme.setMaterialYouEnabled(false); eq(day.getAccent(false).accentColor,0xff229955);
-                    c.resources.config.uiMode=0; eq(NebulaTheme.of(c).primary(),Theme.getColor(Theme.key_windowBackgroundWhiteBlueText));
+                    // Telegram night mode, theme/accent and wallpaper cannot change settings.
+                    int reads=c.resources.reads;
+                    NebulaTheme fixed=NebulaTheme.of(c);
+                    for(int i=0;i<10000;i++){
+                        Theme.dark=(i%2==0); ContextCompat.wallpaper=i;
+                        day.getAccent(false).accentColor=i;
+                        if(NebulaTheme.of(c)!=fixed)throw new AssertionError("uncached palette");
+                        eq(fixed.primary(),0xffa8c7fa); eq(fixed.surface(),0xff18212c);
+                        eq(fixed.surfaceContainer(),0xff232f3d); eq(fixed.onSurface(),0xffe7edf5);
+                    }
+                    eq(c.resources.reads,reads); eq(c.callbacks.size(),1);
+                    day.getAccent(false).accentColor=0xff229955;
+                    c.night(false); eq(NebulaTheme.of(c).primary(),0xff0b57d0);
+                    eq(NebulaTheme.of(c).surface(),0xfff1f3f6);
+                    eq(NebulaTheme.of(c).surfaceContainer(),0xffffffff);
+                    c.night(true); eq(NebulaTheme.of(c).primary(),0xffa8c7fa);
                     android.os.Build.VERSION.SDK_INT=30; NebulaTheme.setMaterialYouEnabled(true); apply(c);
                     eq(day.getAccent(false).accentColor,0xff229955);
                     System.out.println(checks+" palette/accent restoration checks passed");
