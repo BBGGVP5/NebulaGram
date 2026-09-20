@@ -158,6 +158,8 @@ jobs:
           python3 scripts/check-settings-design.py
           python3 scripts/check-settings-root.py
           python3 scripts/check-settings-runtime.py vendor/telegram-android
+          python3 scripts/check-folder-glass.py vendor/telegram-android
+          python3 scripts/generate-settings-icons.py --check
           python3 scripts/check-folder-panel-style.py vendor/telegram-android
           python3 scripts/check-premium-emoji-copy.py vendor/telegram-android
           python3 scripts/check-account-slots.py vendor/telegram-android

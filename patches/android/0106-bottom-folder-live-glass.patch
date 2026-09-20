@@ -1,0 +1,53 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/FilterTabsView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/FilterTabsView.java
+index 5fcb6b5..a4c336d 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Components/FilterTabsView.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/FilterTabsView.java
+@@ -1189,6 +1189,11 @@ public class FilterTabsView extends FrameLayout {
+ 
+     private void applyNebulaPanelStyle() {
+         if (nebulaPanelStyle == app.nebulagram.ui.NebulaFolderTabs.GLASS) {
++            if (blurredBackgroundDrawable != null) {
++                blurredBackgroundDrawable.setColorProvider(nebulaBottomPanel
++                        ? app.nebulagram.ui.NebulaFolderGlass.provider(resourcesProvider)
++                        : org.telegram.ui.Components.blur3.drawable.color.impl.BlurredBackgroundProviderImpl.topPanel(resourcesProvider));
++            }
+             setBackground(blurredBackgroundDrawable);
+         } else if (nebulaPanelStyle == app.nebulagram.ui.NebulaFolderTabs.ORDINARY) {
+             setBackground(new android.graphics.drawable.InsetDrawable(
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
+index b971645..200208e 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
+@@ -14306,7 +14306,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+         final int actionBarHeight = actionBar.getMeasuredHeight()
+             + dp(nebulaSearchSlotHeight())
+             + dp(hasStories ? DialogStoriesCell.HEIGHT_IN_DP : 0)
+-            + (filterTabsView != null && filterTabsView.getVisibility() == View.VISIBLE ? filterTabsView.getMeasuredHeight() : 0)
++            + (!app.nebulagram.ui.NebulaFolderTabs.bottom() && filterTabsView != null && filterTabsView.getVisibility() == View.VISIBLE ? filterTabsView.getMeasuredHeight() : 0)
+             + (topPanelLayout != null && topPanelLayout.getVisibility() == View.VISIBLE ? topPanelLayout.getSumHeightOfAllVisibleChild() : 0)
+             + ((int) scrollYOffset);
+ 
+@@ -14331,6 +14331,23 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+             hasBottomBlur = true;
+         }
+ 
++        // Reuse the second capture region for folders, even with the main bar hidden.
++        // Use translated view bounds so slide/search transitions sample the same pixels
++        // that the drawable's ViewPositionWatcher reads. Capture only chat lists.
++        if (app.nebulagram.ui.NebulaFolderTabs.bottom() && filterTabsView != null
++                && filterTabsView.getVisibility() == View.VISIBLE && filterTabsView.getAlpha() > 0f
++                && filterTabsView.getWidth() > 0 && filterTabsView.getHeight() > 0) {
++            float folderTop = Math.max(0, filterTabsView.getY() - additionalList);
++            float folderBottom = Math.min(fragmentView.getMeasuredHeight(),
++                    filterTabsView.getY() + filterTabsView.getHeight() + additionalList);
++            if (hasBottomBlur) {
++                iBlur3PositionMainTabs.union(0, folderTop, fragmentView.getMeasuredWidth(), folderBottom);
++            } else {
++                iBlur3PositionMainTabs.set(0, folderTop, fragmentView.getMeasuredWidth(), folderBottom);
++            }
++            hasBottomBlur = true;
++        }
++
+         scrollableViewNoiseSuppressor.setupRenderNodes(iBlur3Positions, hasBottomBlur ? 2 : 1);
+         scrollableViewNoiseSuppressor.invalidateResultRenderNodes(iBlur3Capture, fragmentView.getMeasuredWidth(), fragmentView.getMeasuredHeight());
+ 

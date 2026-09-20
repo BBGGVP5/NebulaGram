@@ -20,9 +20,8 @@ import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.Emoji;
 
 /**
- * One line of a NebulaLink screen, in the Material 3 list-item shape: a rounded
- * icon container on the left, title over an optional subtitle, and a trailing
- * value, chevron or switch.
+ * A settings row with a custom glyph on a colored tile, an optional subtitle,
+ * and a trailing value, chevron or switch.
  *
  * <p>The rows are built from the schema the Go core returns, so this class
  * knows nothing about individual settings — only how a row looks.
@@ -139,15 +138,14 @@ public class NebulaRow extends FrameLayout {
             icon.setVisibility(GONE);
         } else {
             icon.setVisibility(VISIBLE);
-            icon.setImageResource(resource);
-            int accent = sectionAccent(resource);
+            icon.setImageResource(NebulaSettingsIcons.resource(resource));
             icon.setColorFilter(0xFFFFFFFF, PorterDuff.Mode.SRC_IN);
             GradientDrawable background = new GradientDrawable();
             background.setCornerRadius(AndroidUtilities.dp(9));
-            background.setColor(accent);
+            background.setColor(sectionAccent(resource));
             icon.setBackground(background);
-            icon.setPadding(AndroidUtilities.dp(6), AndroidUtilities.dp(6),
-                    AndroidUtilities.dp(6), AndroidUtilities.dp(6));
+            icon.setPadding(AndroidUtilities.dp(5), AndroidUtilities.dp(5),
+                    AndroidUtilities.dp(5), AndroidUtilities.dp(5));
         }
         indent(resource != 0);
         return this;

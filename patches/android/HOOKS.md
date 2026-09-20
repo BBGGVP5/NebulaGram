@@ -387,3 +387,19 @@ Liquid Glass. Стиль применяется при включённом iOS-
 - `ActionBar`: круг аватарки меняет прозрачность вместе с поиском, режимом выделения и самой аватаркой вместо включения на последнем кадре.
 - Overlay: интерактивное превью показывает положение папок; значки профиля используют пять собственных векторов и `ReplacementSpan`. Адрес сервиса и токен убраны из обычных настроек.
 - `scripts/check-settings-runtime.py <patched-tree>` исполняет проверки геометрии, резервирования отступов, анимации и выравнивания значков. Проверки JVM не заменяют проверку жестов и отрисовки на телефоне.
+# Bottom-folder live glass (2026-09-20)
+
+- `0106-bottom-folder-live-glass.patch` extends DialogsActivity's existing second
+  blur capture region to the actual translated folder bounds, with a 48dp margin.
+  This applies with or without the main navigation bar. Only the existing chat
+  list capture is used; the glass never captures itself. Bottom folders no longer
+  inflate the top blur area.
+- `NebulaFolderGlass` supplies a translucent tint and edge highlights specifically
+  for bottom folders. Top tabs retain their original material; ordinary/minimal
+  styles and reduced-effects fallbacks remain available.
+- The settings folder preview records its sample chat content into a RenderNode,
+  updating on content/size changes rather than running a perpetual capture loop.
+  No screenshot/bitmap readback or additional screen-wide blur source is added.
+- `scripts/check-folder-glass.py` exercises the production capture block for 432
+  combinations, including hidden bars, hidden tabs, display density, and translated
+  tabs. Full device rendering/scrolling remains a separate acceptance check.

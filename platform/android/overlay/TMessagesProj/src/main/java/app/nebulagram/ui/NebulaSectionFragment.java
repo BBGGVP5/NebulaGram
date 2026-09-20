@@ -111,19 +111,6 @@ public class NebulaSectionFragment extends BaseFragment {
         return fragmentView = NebulaSettingsLayout.wrap(context, actionBar, root);
     }
 
-    private int sectionIcon() {
-        switch (section) {
-            case SECTION_FOLDERS: return R.drawable.files_folder;
-            case SECTION_MESSAGES: return R.drawable.menu_reply;
-            case SECTION_PROFILE: return R.drawable.msg_openprofile;
-            case SECTION_CHATS: return R.drawable.msg_discussion;
-            case SECTION_TABS: return R.drawable.msg_list;
-            case SECTION_ABOUT: return R.drawable.msg_info;
-            case SECTION_GENERAL: return R.drawable.msg_settings;
-            default: return R.drawable.msg_customize;
-        }
-    }
-
     private int titleKey() {
         switch (section) {
             case SECTION_FOLDERS: return R.string.NebulaSectionFolders;
@@ -140,7 +127,7 @@ public class NebulaSectionFragment extends BaseFragment {
             case SECTION_GENERAL:
                 return R.string.NebulaSectionGeneral;
             default:
-                // The same localized name is used in navigation and the compact introduction.
+                // The same localized name is used in navigation and the section title.
                 return R.string.NebulaAppearanceTitle;
         }
     }
@@ -150,24 +137,6 @@ public class NebulaSectionFragment extends BaseFragment {
         previews.clear();
         wallpaperPreviews.clear();
         composerPreview = null;
-        String[] summaries = {
-            "Цвета, фон и оформление интерфейса.", "Шапка чата, жесты и поле ввода.",
-            "Нужные разделы всегда под рукой.", "Версия приложения и полезные ссылки.",
-            "Поведение приложения и удобство каждый день.", "Вкладки, счётчики и переключение чатов.",
-            "Вид сообщений и действия с ними.", "Оформление профилей и быстрые действия.",
-            "Стиль переключателей и элементов управления.", "Соберите удобное меню действий."
-        };
-        String[] english = {"Colors, wallpaper and interface styling.", "Chat header, gestures and composer.",
-            "Keep the sections you need within reach.", "App version and useful links.",
-            "Everyday behavior and convenience.", "Tabs, counters and switching chats.",
-            "Message appearance and actions.", "Profiles and quick actions.",
-            "Switches and control styling.", "Build a menu that suits you."};
-        int summary = section >= 0 && section < summaries.length ? section : 0;
-        LinearLayout.LayoutParams heroParams = new LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        heroParams.bottomMargin = AndroidUtilities.dp(12);
-        content.addView(new NebulaSettingsHero(context, sectionIcon(),
-                LocaleController.getString(titleKey()), NebulaText.text(summaries[summary], english[summary])), heroParams);
         switch (section) {
             case SECTION_FOLDERS: buildFolders(context); break;
             case SECTION_MESSAGES: buildMessages(context); break;

@@ -1,0 +1,13 @@
+{
+  "general": {"android": ["msg_settings", "msg_settings_old"], "ios": ["gearshape", "gear"], "path": "M5,3 L19,3 Q21,3 21,5 L21,19 Q21,21 19,21 L5,21 Q3,21 3,19 L3,5 Q3,3 5,3 Z M7,8 L12,8 M16,8 L17,8 M7,16 L8,16 M12,16 L17,16 M12,6 L16,6 L16,10 L12,10 Z M8,14 L12,14 L12,18 L8,18 Z"},
+  "privacy": {"android": ["msg_secret", "msg_permissions"], "ios": ["hand.raised", "lock.shield", "lock"], "path": "M12,3 L20,6 L20,11 C20,16 17,19 12,22 C7,19 4,16 4,11 L4,6 Z M9,11 L15,11 Q16,11 16,12 L16,15 Q16,16 15,16 L9,16 Q8,16 8,15 L8,12 Q8,11 9,11 Z M10,11 L10,9 C10,6.5 14,6.5 14,9 L14,11"},
+  "appearance": {"android": ["msg_customize"], "ios": ["slider.horizontal.3", "paintpalette"], "path": "M12,3 C7,3 3,7 3,12 C3,17 7,21 12,21 L14,21 C16,21 17,19 15.5,17.5 C14.5,16.5 15,14.5 16.5,14.5 L18,14.5 C20,14.5 21,13 21,11 C21,6.5 17,3 12,3 Z M7,10 L7.01,10 M10,6.5 L10.01,6.5 M15,7 L15.01,7 M7.5,15 L7.51,15"},
+  "navigation": {"android": ["msg_list"], "ios": ["rectangle.bottomthird.inset.filled"], "path": "M7,3 L17,3 Q20,3 20,6 L20,18 Q20,21 17,21 L7,21 Q4,21 4,18 L4,6 Q4,3 7,3 Z M4,15 L20,15 M8,18 L10,18 M14,18 L16,18"},
+  "folder": {"android": ["files_folder", "msg_folders"], "ios": ["folder"], "path": "M3,8 L3,6 Q3,4 5,4 L9,4 L12,7 L19,7 Q21,7 21,9 L21,18 Q21,20 19,20 L5,20 Q3,20 3,18 Z M3,10 L21,10"},
+  "chat": {"android": ["msg_discussion", "msg_discuss"], "ios": ["bubble.left", "bubble.left.and.bubble.right"], "path": "M7,4 L18,4 Q21,4 21,7 L21,13 Q21,16 18,16 L13,16 L8,20 L8,16 L7,16 Q4,16 4,13 L4,7 Q4,4 7,4 Z M8,8.5 L17,8.5 M8,12 L14,12"},
+  "messages": {"android": ["menu_reply"], "ios": ["text.bubble", "text.alignleft"], "path": "M7,3 L17,3 Q20,3 20,6 L20,15 Q20,18 17,18 L10,18 L5,21 L5,18 Q3,17 3,15 L3,6 Q3,3 7,3 Z M7,7 L16,7 M7,11 L16,11 M7,15 L12,15"},
+  "profile": {"android": ["msg_openprofile", "settings_account"], "ios": ["person.crop.circle"], "path": "M12,3 C9.5,3 8,4.5 8,7 C8,9.5 9.5,11 12,11 C14.5,11 16,9.5 16,7 C16,4.5 14.5,3 12,3 Z M5,21 L5,19 C5,15.5 8,14 12,14 C16,14 19,15.5 19,19 L19,21"},
+  "ai": {"android": ["msg_emoji_smiles"], "ios": ["sparkles"], "path": "M8,5 L16,5 Q19,5 19,8 L19,16 Q19,19 16,19 L8,19 Q5,19 5,16 L5,8 Q5,5 8,5 Z M9,2 L9,5 M15,2 L15,5 M9,19 L9,22 M15,19 L15,22 M2,9 L5,9 M2,15 L5,15 M19,9 L22,9 M19,15 L22,15 M9,10 L9.01,10 M15,10 L15.01,10 M9,14 Q12,16 15,14"},
+  "about": {"android": ["msg_info"], "ios": ["info.circle"], "path": "M12,3 C17,3 21,7 21,12 C21,17 17,21 12,21 C7,21 3,17 3,12 C3,7 7,3 12,3 Z M12,7 L12.01,7 M10,11 L12,11 L12,17 M10,17 L14,17"},
+  "link": {"android": ["msg_link"], "ios": ["shield", "link"], "path": "M9,14 L7,16 C5,18 2,15 4,13 L8,9 C10,7 12,8 13,9 M15,10 L17,8 C19,6 22,9 20,11 L16,15 C14,17 12,16 11,15 M8,16 L16,8"}
+}

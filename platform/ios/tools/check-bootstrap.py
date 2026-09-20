@@ -35,6 +35,7 @@ def main():
     actual = run('git', '-C', str(tree), 'rev-parse', 'HEAD', text=True).strip()
     if actual != revision:
         raise SystemExit(f'Upstream revision mismatch: expected {revision}, found {actual}')
+    subprocess.run([sys.executable, str(ROOT / 'scripts/generate-settings-icons.py'), '--check'], check=True)
     patches = sorted((ROOT / 'patches/ios').glob('*.patch'))
     paths = set()
     for patch in patches:
@@ -186,7 +187,7 @@ print("OK: embedded catalog and Bazel-side Foundation store compiled and ran")
                             str(peer / 'NebulaProfileBadgeImages.swift')], check=True)
             print('OK: profile badge artwork typechecked against the real iOS simulator SDK')
             settings_ui = temp / 'submodules/SettingsUI/Sources'
-            subprocess.run(['swiftc', *ios_flags, '-typecheck', str(settings_ui / 'NebulaSettingsStyle.swift'),
+            subprocess.run(['swiftc', *ios_flags, '-typecheck', str(settings_ui / 'NebulaSettingsStyle.swift'), str(settings_ui / 'NebulaSettingsSymbols.swift'),
                             str(settings_ui / 'NebulaSettingsHero.swift')], check=True)
             auth = temp / 'submodules/AuthorizationUI/Sources'
             subprocess.run(['swiftc', *ios_flags, '-typecheck', str(auth / 'NebulaAuthPresentation.swift'),

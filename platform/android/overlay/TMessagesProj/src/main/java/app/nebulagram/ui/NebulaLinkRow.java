@@ -14,7 +14,7 @@ public final class NebulaLinkRow extends NebulaRow {
 
     public NebulaLinkRow(Context context) {
         super(context);
-        icon(R.drawable.msg_secret);
+        icon(R.drawable.msg_link);
         title(LocaleController.getString(R.string.NebulaLinkName));
         trailing(TRAIL_CHEVRON);
         refresh();

@@ -1,73 +1,35 @@
 package app.nebulagram.ui;
 
 import android.content.Context;
-import android.graphics.drawable.GradientDrawable;
-import android.view.Gravity;
-import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import org.telegram.messenger.AndroidUtilities;
 
-/** Lightweight, wrapping settings header. No readbacks, blur or animation loop. */
+/** Plain contextual summary/status. The screen title already lives in the action bar. */
 public final class NebulaSettingsHero extends LinearLayout {
     private final TextView status;
-    private final GradientDrawable background;
 
     public NebulaSettingsHero(Context context, int icon, String title, String description) {
         super(context);
         NebulaTheme theme = NebulaTheme.of(context);
         setOrientation(VERTICAL);
-        setPadding(dp(20), dp(20), dp(20), dp(20));
-        background = new GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT,
-                new int[]{theme.surfaceContainer(), theme.surfaceContainer()});
-        background.setCornerRadius(dp(20));
-        setBackground(background);
-
-        LinearLayout top = new LinearLayout(context);
-        top.setGravity(Gravity.CENTER_VERTICAL);
-        ImageView image = new ImageView(context);
-        image.setImageResource(icon);
-        image.setColorFilter(theme.primary());
-        GradientDrawable tile = new GradientDrawable();
-        tile.setCornerRadius(dp(14));
-        tile.setColor(NebulaTheme.stateLayer(theme.primary(), .12f));
-        image.setBackground(tile);
-        image.setPadding(dp(10), dp(10), dp(10), dp(10));
-        image.setImportantForAccessibility(IMPORTANT_FOR_ACCESSIBILITY_NO);
-        top.addView(image, new LayoutParams(dp(48), dp(48)));
-        TextView heading = label(title, 20, theme.onSurface());
-        heading.setTypeface(AndroidUtilities.bold());
-        LayoutParams headingParams = new LayoutParams(0, -2, 1);
-        headingParams.setMarginStart(dp(12));
-        top.addView(heading, headingParams);
-        addView(top);
+        setPadding(dp(4), dp(4), dp(4), dp(12));
         TextView explanation = label(description, 13, theme.onSurfaceVariant());
         explanation.setLineSpacing(dp(2), 1f);
-        LayoutParams descriptionParams = new LayoutParams(-1, -2); descriptionParams.topMargin = dp(8);
-        addView(explanation, descriptionParams);
+        addView(explanation, new LayoutParams(-1, -2));
         status = label("", 12, theme.primary());
-        status.setTypeface(AndroidUtilities.bold());
-        LayoutParams statusParams = new LayoutParams(-2, -2); statusParams.topMargin = dp(10);
-        addView(status, statusParams);
+        LayoutParams params = new LayoutParams(-1, -2);
+        params.topMargin = dp(6);
+        addView(status, params);
         setStatus("");
     }
 
     public void setStatus(String value) { setStatus(value, false); }
 
-    /** Active describes this feature only, never the security of the whole screen. */
     public void setStatus(String value, boolean active) {
         NebulaTheme theme = NebulaTheme.of(getContext());
-        int accent = active ? theme.success() : theme.onSurfaceVariant();
-        int right = active ? androidx.core.graphics.ColorUtils.blendARGB(theme.surfaceContainer(), theme.success(), .10f)
-                : theme.surfaceContainer();
-        background.setColors(new int[]{theme.surfaceContainer(), right});
-        GradientDrawable badge = new GradientDrawable();
-        badge.setCornerRadius(dp(8)); badge.setColor(NebulaTheme.stateLayer(accent, .12f));
-        badge.setStroke(dp(1), NebulaTheme.stateLayer(accent, .25f));
-        status.setBackground(badge); status.setPadding(dp(10), dp(6), dp(10), dp(6));
-        status.setTextColor(accent);
-        status.setText((active ? "●  " : "○  ") + (value == null ? "" : value));
-        status.setContentDescription(value);
+        status.setTextColor(active ? theme.success() : theme.onSurfaceVariant());
+        status.setText(value);
         status.setVisibility(value == null || value.isEmpty() ? GONE : VISIBLE);
     }
 

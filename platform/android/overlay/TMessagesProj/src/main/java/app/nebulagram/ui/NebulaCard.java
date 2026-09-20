@@ -80,10 +80,10 @@ public class NebulaCard extends LinearLayout {
         TextView view = new TextView(context);
         view.setText(text);
         view.setTextSize(TypedValue.COMPLEX_UNIT_SP, 12);
-        view.setTextColor(theme.primary());
+        view.setTextColor(theme.onSurfaceVariant());
         view.setTypeface(AndroidUtilities.bold());
         view.setAllCaps(false);
-        view.setPadding(AndroidUtilities.dp(16), AndroidUtilities.dp(22),
+        view.setPadding(AndroidUtilities.dp(16), AndroidUtilities.dp(18),
                 AndroidUtilities.dp(16), AndroidUtilities.dp(8));
         return view;
     }

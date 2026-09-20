@@ -68,8 +68,24 @@ print("Settings presentation guards passed (not a substitute for on-device visua
 
 android_hero = (UI / "NebulaSettingsHero.java").read_text(encoding="utf-8")
 assert 'setStatus(String value, boolean active)' in android_hero
-assert 'active ? theme.success()' in android_hero and 'background.setColors' in android_hero
+assert 'active ? theme.success()' in android_hero and 'setBackground(' not in android_hero
 assert 'setStatus(String value) { setStatus(value, false); }' in android_hero
 assert 'guard self.active != active || statusLabel.text != value else { return }' in hero
-assert 'UIColor.systemGreen' in hero and 'active: Bool = false' in hero
-print("Header state guards passed: neutral default, explicit active tint, no unconditional layout invalidation")
+assert '.systemGreen' in hero and 'active: Bool = false' in hero
+assert 'card.backgroundColor' not in hero and 'stack.addArrangedSubview(brand)' not in hero
+print("Plain status headers: no repeated title cards; active tint and layout guards retained")
+
+# Keep the user's colored tiles; only their glyphs and duplicate hero cards change.
+row = (UI / 'NebulaRow.java').read_text(encoding='utf-8')
+assert 'NebulaSettingsIcons.resource(resource)' in row
+assert 'background.setColor(sectionAccent(resource))' in row
+assert 'icon.setColorFilter(0xFFFFFFFF' in row
+ios_style = (IOS / 'NebulaSettingsStyle.swift').read_text(encoding='utf-8')
+assert 'NebulaSettingsSymbols.path(for: symbol)' in ios_style
+assert 'cornerRadius: 9).fill()' in ios_style
+for name in ['NebulaSectionFragment.java', 'NebulaDesignFragment.java']:
+    assert 'new NebulaSettingsHero' not in (UI / name).read_text(encoding='utf-8')
+section = (UI / 'NebulaSectionFragment.java').read_text(encoding='utf-8')
+for preview in ['new NebulaFoldersPreview', 'new NebulaComposerPreview', 'new NebulaPreview']:
+    assert preview in section
+print('Colored tiles retained; new glyphs and existing interactive previews connected')

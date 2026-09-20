@@ -36,7 +36,6 @@ public final class NebulaDesignFragment extends BaseFragment {
     private int dp(float v) { return AndroidUtilities.dp(v); }
     private void buildPacks(Context c) {
         content.removeAllViews();
-        addIntroduction(c, false);
         content.addView(NebulaCard.header(c, text("Базовые наборы", "Base packs")));
         NebulaCard card = new NebulaCard(c);
         String[] names = {text("По умолчанию", "Default"), "iOS Outline", "Solar Icon Set"};
@@ -75,7 +74,6 @@ public final class NebulaDesignFragment extends BaseFragment {
         TextView v = new TextView(c); v.setText(value); v.setTextSize(size); v.setTextColor(color); return v;
     }
     private void buildAvatars(Context c) {
-        addIntroduction(c, true);
         NebulaCard card = new NebulaCard(c);
         NebulaExpand details = new NebulaExpand(c, NebulaAppearance.customAvatars());
         card.add(NebulaExtras.toggle(c, R.drawable.msg_customize, text("Закругление аватарок", "Avatar corners"), null,
@@ -108,13 +106,4 @@ public final class NebulaDesignFragment extends BaseFragment {
         content.addView(card);
     }
 
-    private void addIntroduction(Context c, boolean avatars) {
-        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(-1, -2);
-        params.bottomMargin = dp(12);
-        content.addView(new NebulaSettingsHero(c,
-                avatars ? R.drawable.nebula_cupertino_person : R.drawable.msg_customize,
-                avatars ? text("Закругление аватарок", "Avatar corners") : text("Наборы иконок", "Icon packs"),
-                avatars ? text("Выберите форму. Изменения сразу видны в превью.", "Choose a shape. See every change in the preview.")
-                        : text("Знакомые действия в вашем стиле.", "Familiar actions in your own style.")), params);
-    }
 }

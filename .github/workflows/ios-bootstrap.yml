@@ -1,9 +1,9 @@
 name: iOS bootstrap checks
 on:
   push:
-    paths: ['platform/ios/**', 'patches/ios/**', 'shared/settings/**', '.gitmodules', 'vendor/telegram-ios', '.github/workflows/ios-bootstrap.yml']
+    paths: ['platform/ios/**', 'patches/ios/**', 'shared/settings/**', 'design/settings/icons.json', 'scripts/generate-settings-icons.py', '.gitmodules', 'vendor/telegram-ios', '.github/workflows/ios-bootstrap.yml']
   pull_request:
-    paths: ['platform/ios/**', 'patches/ios/**', 'shared/settings/**', '.gitmodules', 'vendor/telegram-ios', '.github/workflows/ios-bootstrap.yml']
+    paths: ['platform/ios/**', 'patches/ios/**', 'shared/settings/**', 'design/settings/icons.json', 'scripts/generate-settings-icons.py', '.gitmodules', 'vendor/telegram-ios', '.github/workflows/ios-bootstrap.yml']
   workflow_dispatch:
 jobs:
   bootstrap:
