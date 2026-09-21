@@ -103,3 +103,18 @@
   checks preserve native icon code and SDK-typecheck the UIKit artwork. The full
   IPA build and physical-device checks (long names, avatar expansion, light/dark
   appearance, simultaneous Premium/status badges) remain separate validation.
+
+# Wide posts (2026-09-21)
+
+- `0018-wide-posts.patch` routes the opt-in `wide_posts` preference through
+  ChatMessageBubbleItemNode's existing full-width layout. Share buttons,
+  avatars, delivery failures and system message/media limits retain their
+  native insets. Sponsored posts retain their native width policy.
+- The shared store exposes a default-false editable/transferable boolean.
+  Loaded bubble nodes observe changes and request a native message relayout;
+  weak captures and SettingsObservation lifetime release subscriptions.
+- Android uses the same preference key with cached reads, text cache invalidation
+  and native full-width single photo/video/GIF measurement. Albums, stickers
+  and round videos keep their existing native sizing paths.
+- Geometry/default/import/cache regressions and bootstrap checks run in CI;
+  scrolling, media aspect ratio and larger-font visual QA still need devices.

@@ -33,7 +33,7 @@ public final class SettingsObservation {
 public final class NebulaSettingsStore {
     public static let shared = NebulaSettingsStore(defaults: .standard)
     public static let storageKey = "app.nebulagram.presentation.settings.v1"
-    public static let editableKeys: Set<String> = ["hide_tab_counters", "show_stories", "settings_search_history", "glass_quality", "bottom_bar_contacts", "bottom_bar_order"]
+    public static let editableKeys: Set<String> = ["hide_tab_counters", "show_stories", "settings_search_history", "glass_quality", "bottom_bar_contacts", "bottom_bar_order", "wide_posts"]
     public static let maximumTransferBytes = 1024 * 1024
 
     private let defaults: UserDefaults
@@ -85,6 +85,7 @@ public final class NebulaSettingsStore {
         let order = value.split(separator: ",").map(String.init)
         return order.count == 4 && Set(order) == Set(standard) ? order : standard
     }
+    public var widePosts: Bool { boolean("wide_posts", fallback: false) }
     public var showStories: Bool { boolean("show_stories", fallback: true) }
     public var settingsSearchHistory: Bool { boolean("settings_search_history", fallback: true) }
     private func boolean(_ key: String, fallback: Bool) -> Bool {

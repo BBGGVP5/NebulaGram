@@ -125,4 +125,6 @@
     <string name="NebulaMutedInTabCountersInfo">Счётчик на вкладке считает все непрочитанные чаты, а не только те, что могут позвать. Состав папки не меняется.</string>
     <string name="NebulaFolderTabsBottom">Показывать папки снизу</string>
     <string name="NebulaFolderTabsBottomInfo">Вкладки папок переезжают под список чатов, ближе к большому пальцу. Над нижней панелью, если она включена.</string>
+    <string name="NebulaWidePosts">Широкие посты в чатах</string>
+    <string name="NebulaWidePostsSub">Больше места для длинного текста и фото. Отступы для аватарок и кнопок сохраняются.</string>
 </resources>

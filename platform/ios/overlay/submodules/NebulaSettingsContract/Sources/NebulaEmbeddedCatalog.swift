@@ -827,6 +827,18 @@ enum NebulaEmbeddedCatalog {
       "ios_status": "planned",
       "ios_mapping": "adapt",
       "default_policy": "Default and live value owned by Telegram SharedConfig; not the nebulagram store."
+    },
+    {
+      "key": "wide_posts",
+      "type": "boolean",
+      "feature": "chat.layout",
+      "android_store": "nebulagram",
+      "android_source": "NebulaWidePosts.java",
+      "transfer_v1": true,
+      "ios_status": "planned",
+      "ios_mapping": "native",
+      "default": false,
+      "literal_default_binding": true
     }
   ]
 }

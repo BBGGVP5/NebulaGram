@@ -249,6 +249,9 @@ public class NebulaSectionFragment extends BaseFragment {
         behaviour.add(toggle(context, R.drawable.msg_discussion,
                 R.string.NebulaNoNextChannel, R.string.NebulaNoNextChannelSub,
                 NebulaAppearance.disableNextChannel(), NebulaAppearance::setDisableNextChannel));
+        behaviour.add(toggle(context, R.drawable.msg_customize,
+                R.string.NebulaWidePosts, R.string.NebulaWidePostsSub,
+                NebulaWidePosts.enabled(), NebulaWidePosts::setEnabled));
         behaviour.add(link(context, R.drawable.msg_list, R.string.NebulaMenuActions, R.string.NebulaMenuActionsInfo, SECTION_CHAT_ACTIONS));
         content.addView(behaviour, cardParams());
 

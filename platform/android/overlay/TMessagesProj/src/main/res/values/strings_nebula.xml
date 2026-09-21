@@ -132,4 +132,6 @@
     <string name="NebulaMutedInTabCountersInfo">The tab counter shows every unread chat, not only the ones that can ring. Which chats belong to the folder does not change.</string>
     <string name="NebulaFolderTabsBottom">Show folders at the bottom</string>
     <string name="NebulaFolderTabsBottomInfo">Folder tabs move under the chat list, within thumb reach. They sit above the bottom bar when it is on.</string>
+    <string name="NebulaWidePosts">Wide posts in chats</string>
+    <string name="NebulaWidePostsSub">More room for long text and photos. Keeps space for avatars and buttons.</string>
 </resources>

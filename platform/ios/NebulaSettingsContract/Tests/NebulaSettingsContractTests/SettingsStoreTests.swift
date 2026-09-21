@@ -10,6 +10,31 @@ final class SettingsStoreTests: XCTestCase {
         try body(defaults)
     }
 
+    func testWidePostsToggleImportAndReset() throws {
+        try withDefaults { defaults in
+            let store = NebulaSettingsStore(defaults: defaults)
+            XCTAssertFalse(store.widePosts)
+            var notifications = 0
+            let observation = store.observe(queue: nil) { notifications += 1 }
+            defer { observation.cancel() }
+            try store.set(.boolean(true), for: "wide_posts")
+            XCTAssertTrue(store.widePosts)
+            XCTAssertTrue(NebulaSettingsStore(defaults: defaults).widePosts)
+            XCTAssertEqual(notifications, 1)
+            try store.set(.boolean(true), for: "wide_posts")
+            XCTAssertEqual(notifications, 1)
+            let exported = try store.exportData()
+            XCTAssertTrue(try store.previewImport(exported).activeKeys.contains("wide_posts"))
+            XCTAssertThrowsError(try store.set(.integer(1), for: "wide_posts"))
+            XCTAssertTrue(store.widePosts)
+            try store.importData(JSONEncoder().encode(SettingsDocument(settings: [:])))
+            XCTAssertFalse(store.widePosts)
+            try store.importData(exported)
+            XCTAssertTrue(store.widePosts)
+            XCTAssertEqual(notifications, 3)
+        }
+    }
+
     func testDefaultDoesNotWriteAndTogglePersists() throws {
         try withDefaults { defaults in
             let store = NebulaSettingsStore(defaults: defaults)

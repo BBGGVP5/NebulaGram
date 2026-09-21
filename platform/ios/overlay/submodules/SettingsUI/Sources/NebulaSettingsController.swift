@@ -40,6 +40,7 @@ private enum NebulaSettingsEntry: ItemListNodeEntry {
     case link(String)
     case privacy(String)
     case ai(String)
+    case widePosts(String, Bool, Bool)
     case stories(String, Bool, Bool)
     case history(String, Bool, Bool)
     case clearHistory(String)
@@ -55,7 +56,7 @@ private enum NebulaSettingsEntry: ItemListNodeEntry {
         switch self {
         case .search, .empty: return -1
         case .toolsHeader, .link, .ai: return 0
-        case .appearanceHeader, .glass, .navigation, .contacts, .stories: return 1
+        case .appearanceHeader, .glass, .navigation, .contacts, .stories, .widePosts: return 1
         case .header, .hideCounters, .footer: return 2
         case .privacyHeader, .privacy, .history, .clearHistory: return 3
         case .transferHeader, .importFile, .exportFile, .transferFooter: return 4
@@ -66,24 +67,25 @@ private enum NebulaSettingsEntry: ItemListNodeEntry {
         case .search: return -2
         case .empty: return -1
         case .toolsHeader: return 0
-        case .link: return 1
-        case .ai: return 2
-        case .appearanceHeader: return 3
-        case .glass: return 4
-        case .navigation: return 5
-        case .contacts: return 6
-        case .stories: return 7
-        case .header: return 8
-        case .hideCounters: return 9
-        case .footer: return 10
-        case .privacyHeader: return 11
-        case .privacy: return 12
-        case .history: return 13
-        case .clearHistory: return 14
-        case .transferHeader: return 15
-        case .importFile: return 16
-        case .exportFile: return 17
-        case .transferFooter: return 18
+        case .link: return 10
+        case .ai: return 20
+        case .appearanceHeader: return 30
+        case .glass: return 40
+        case .navigation: return 50
+        case .contacts: return 60
+        case .widePosts: return 75
+        case .stories: return 70
+        case .header: return 80
+        case .hideCounters: return 90
+        case .footer: return 100
+        case .privacyHeader: return 110
+        case .privacy: return 120
+        case .history: return 130
+        case .clearHistory: return 140
+        case .transferHeader: return 150
+        case .importFile: return 160
+        case .exportFile: return 170
+        case .transferFooter: return 180
         }
     }
     var stableId: Int32 {
@@ -99,6 +101,7 @@ private enum NebulaSettingsEntry: ItemListNodeEntry {
         case .link: return 7
         case .privacy: return 8
         case .ai: return 15
+        case .widePosts: return 21
         case .stories: return 9
         case .history: return 10
         case .clearHistory: return 11
@@ -119,7 +122,7 @@ private enum NebulaSettingsEntry: ItemListNodeEntry {
     var searchableText: String? {
         switch self {
         case let .navigation(title, detail), let .glass(title, detail): return title + " " + detail
-        case let .contacts(title, _, _), let .stories(title, _, _), let .history(title, _, _),
+        case let .widePosts(title, _, _), let .contacts(title, _, _), let .stories(title, _, _), let .history(title, _, _),
              let .hideCounters(title, _, _), let .exportFile(title, _): return title
         case let .link(title), let .privacy(title), let .ai(title), let .clearHistory(title),
              let .importFile(title): return title
@@ -158,6 +161,8 @@ private enum NebulaSettingsEntry: ItemListNodeEntry {
             return ItemListSwitchItem(presentationData: presentationData, systemStyle: .glass, title: title, value: value, enabled: enabled, sectionId: section, style: .blocks, updated: arguments.update)
         case let .footer(text), let .transferFooter(text):
             return ItemListTextItem(presentationData: presentationData, text: .markdown(text), sectionId: section)
+        case let .widePosts(title, value, enabled):
+            return ItemListSwitchItem(presentationData: presentationData, systemStyle: .glass, title: title, value: value, enabled: enabled, sectionId: section, style: .blocks, updated: { arguments.updateKey?("wide_posts", $0) })
         case let .stories(title, value, enabled):
             return ItemListSwitchItem(presentationData: presentationData, systemStyle: .glass, title: title, value: value, enabled: enabled, sectionId: section, style: .blocks, updated: { arguments.updateKey?("show_stories", $0) })
         case let .history(title, value, enabled):
@@ -242,10 +247,11 @@ public func nebulaSettingsController(context: AccountContext) -> ViewController 
             .importFile(ru ? "Импорт из файла" : "Import from file"),
             .exportFile(ru ? "Экспорт в файл" : "Export to file", !store.hasLoadError),
             .transferFooter(ru
-                ? "Формат NebulaGram JSON v1. Импорт заменяет настройки после подтверждения. На iOS из файла применяются счётчики папок, качество стекла, порядок вкладок и показ контактов. Локальные настройки историй и поиска сохраняются отдельно; остальные допустимые параметры ожидают переноса. Аккаунты и ключи доступа не экспортируются."
-                : "NebulaGram JSON v1. Import replaces preferences after confirmation. Folder counters, glass quality, tab order and Contacts visibility are applied from files. Local story/search settings are preserved separately; other valid settings await porting. Accounts and access keys are not exported."),
+                ? "Формат NebulaGram JSON v1. Импорт заменяет настройки после подтверждения. На iOS из файла применяются счётчики папок, качество стекла, порядок вкладок, показ контактов и широкие посты. Локальные настройки историй и поиска сохраняются отдельно; остальные допустимые параметры ожидают переноса. Аккаунты и ключи доступа не экспортируются."
+                : "NebulaGram JSON v1. Import replaces preferences after confirmation. Folder counters, glass quality, tab order, Contacts visibility and wide posts are applied from files. Local story/search settings are preserved separately; other valid settings await porting. Accounts and access keys are not exported."),
             .link("NebulaLink"),
             .privacy(ru ? "Конфиденциальность" : "Privacy"),
+            .widePosts(ru ? "Широкие посты в чатах" : "Wide posts in chats", store.widePosts, !store.hasLoadError),
             .stories(ru ? "Показывать истории" : "Show stories", store.showStories, !store.hasLoadError),
             .history(ru ? "Сохранять и показывать историю поиска настроек" : "Save and show settings search history", store.settingsSearchHistory, !store.hasLoadError),
             .clearHistory(ru ? "Очистить историю поиска настроек" : "Clear settings search history"),

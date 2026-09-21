@@ -64,6 +64,7 @@ public final class NebulaSettingsSchema {
         map.put("uniform_avatars", Boolean.class);
         map.put("useSystemBoldFont", Boolean.class);
         map.put("useSystemEmoji", Boolean.class);
+        map.put("wide_posts", Boolean.class);
         types = Collections.unmodifiableMap(map);
     }
 }

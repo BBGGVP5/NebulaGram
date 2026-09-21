@@ -1,0 +1,56 @@
+diff --git a/submodules/TelegramUI/Components/Chat/ChatMessageBubbleItemNode/BUILD b/submodules/TelegramUI/Components/Chat/ChatMessageBubbleItemNode/BUILD
+index 1ddd9b8..95ccfe0 100644
+--- a/submodules/TelegramUI/Components/Chat/ChatMessageBubbleItemNode/BUILD
++++ b/submodules/TelegramUI/Components/Chat/ChatMessageBubbleItemNode/BUILD
+@@ -10,6 +10,7 @@ swift_library(
+         "-warnings-as-errors",
+     ],
+     deps = [
++        "//submodules/NebulaSettingsContract:NebulaSettingsContract",
+         "//submodules/AsyncDisplayKit",
+         "//submodules/Display",
+         "//submodules/SSignalKit/SwiftSignalKit",
+diff --git a/submodules/TelegramUI/Components/Chat/ChatMessageBubbleItemNode/Sources/ChatMessageBubbleItemNode.swift b/submodules/TelegramUI/Components/Chat/ChatMessageBubbleItemNode/Sources/ChatMessageBubbleItemNode.swift
+index 2dcfc95..8d96403 100644
+--- a/submodules/TelegramUI/Components/Chat/ChatMessageBubbleItemNode/Sources/ChatMessageBubbleItemNode.swift
++++ b/submodules/TelegramUI/Components/Chat/ChatMessageBubbleItemNode/Sources/ChatMessageBubbleItemNode.swift
+@@ -1,3 +1,4 @@
++import NebulaSettingsContract
+ import Foundation
+ import UIKit
+ import AsyncDisplayKit
+@@ -538,6 +539,9 @@ private func mapVisibility(_ visibility: ListViewItemNodeVisibility, boundsSize:
+ }
+ 
+ public class ChatMessageBubbleItemNode: ChatMessageItemView, ChatMessagePreviewItemNode {
++    private var nebulaWidePosts = NebulaSettingsStore.shared.widePosts
++    private var nebulaWidePostsObservation: SettingsObservation?
++
+     public class ContentContainer {
+         public let contentMessageStableId: UInt32
+         public let sourceNode: ContextExtractedContentContainingNode
+@@ -1268,6 +1272,15 @@ public class ChatMessageBubbleItemNode: ChatMessageItemView, ChatMessagePreviewI
+     
+     override public func didLoad() {
+         super.didLoad()
++        self.nebulaWidePostsObservation = NebulaSettingsStore.shared.observe { [weak self] in
++            guard let self else { return }
++            let enabled = NebulaSettingsStore.shared.widePosts
++            guard enabled != self.nebulaWidePosts else { return }
++            self.nebulaWidePosts = enabled
++            if let item = self.item {
++                item.controllerInteraction.requestMessageUpdate(item.message.id, false, nil)
++            }
++        }
+         
+         let recognizer = TapLongTapOrDoubleTapGestureRecognizer(target: self, action: #selector(self.tapLongTapOrDoubleTapGesture(_:)))
+         recognizer.tapActionAtPoint = { [weak self] point in
+@@ -1985,7 +1998,7 @@ public class ChatMessageBubbleItemNode: ChatMessageItemView, ChatMessagePreviewI
+         }*/
+                         
+         var tmpWidth: CGFloat
+-        if allowFullWidth {
++        if allowFullWidth || (NebulaSettingsStore.shared.widePosts && !isAd) {
+             tmpWidth = baseWidth
+             if (needsShareButton && !isSidePanelOpen) || isAd {
+                 tmpWidth -= 45.0

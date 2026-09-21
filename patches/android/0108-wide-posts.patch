@@ -1,0 +1,109 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/MessageObject.java b/TMessagesProj/src/main/java/org/telegram/messenger/MessageObject.java
+index 12c669c..77c14b9 100644
+--- a/TMessagesProj/src/main/java/org/telegram/messenger/MessageObject.java
++++ b/TMessagesProj/src/main/java/org/telegram/messenger/MessageObject.java
+@@ -350,6 +350,7 @@ public class MessageObject {
+     public int totalAnimatedEmojiCount;
+     private boolean layoutCreated;
+     private int generatedWithMinSize;
++    private boolean generatedWithWidePosts;
+     private float generatedWithDensity;
+     private float generatedWithFontSize;
+     public boolean wasJustSent;
+@@ -6793,7 +6794,7 @@ public class MessageObject {
+         if (layoutCreated) {
+             int newMinSize = AndroidUtilities.isTablet() ? AndroidUtilities.getMinTabletSide() : AndroidUtilities.displaySize.x;
+             float newFontSize = Theme.chat_msgTextPaint != null ? Theme.chat_msgTextPaint.getTextSize() : 0;
+-            if (Math.abs(generatedWithMinSize - newMinSize) > dp(52) || generatedWithDensity != AndroidUtilities.density || generatedWithFontSize != newFontSize) {
++            if (generatedWithWidePosts != app.nebulagram.ui.NebulaWidePosts.enabled() || Math.abs(generatedWithMinSize - newMinSize) > dp(52) || generatedWithDensity != AndroidUtilities.density || generatedWithFontSize != newFontSize) {
+                 layoutCreated = false;
+             }
+         }
+@@ -8448,6 +8449,7 @@ public class MessageObject {
+ 
+     public boolean sideMenuEnabled;
+     public int getMaxMessageTextWidth() {
++        generatedWithWidePosts = app.nebulagram.ui.NebulaWidePosts.enabled();
+         int maxWidth = 0;
+         if (AndroidUtilities.isTablet() && eventId != 0) {
+             generatedWithMinSize = dp(530);
+@@ -8478,7 +8480,8 @@ public class MessageObject {
+         }
+         if (maxWidth == 0) {
+             final boolean needDrawAvatarInternal = needDrawAvatarInternal();
+-            maxWidth = generatedWithMinSize - dp(type == TYPE_ARTICLE ? 40 : 80);
++            maxWidth = generatedWithMinSize - dp(app.nebulagram.ui.NebulaWidePosts.textMargin(
++                    generatedWithWidePosts && !isSponsored(), type == TYPE_ARTICLE, needDrawShareButton() && (isSaved || !isOutOwner())));
+             if (sideMenuEnabled) {
+                 maxWidth -= dp(64);
+             } else if (needDrawAvatarInternal && !isOutOwner() && !messageOwner.isThreadMessage) {
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Cells/ChatMessageCell.java b/TMessagesProj/src/main/java/org/telegram/ui/Cells/ChatMessageCell.java
+index d103d20..92ff5e5 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Cells/ChatMessageCell.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Cells/ChatMessageCell.java
+@@ -6792,9 +6792,13 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
+     }
+ 
+     public MultiLayoutTypingAnimator botDraftTypingAnimator;
++    private boolean nebulaWidePosts;
+ 
+     private void setMessageContent(MessageObject messageObject, MessageObject.GroupedMessages groupedMessages, boolean bottomNear, boolean topNear, boolean firstInChat, boolean lastInChatList) {
+-        if (messageObject.checkLayout() || currentPosition != null && lastHeight != AndroidUtilities.displaySize.y) {
++        boolean widePosts = app.nebulagram.ui.NebulaWidePosts.enabled();
++        boolean widePostsChanged = nebulaWidePosts != widePosts;
++        nebulaWidePosts = widePosts;
++        if (messageObject.checkLayout() || widePostsChanged || currentPosition != null && lastHeight != AndroidUtilities.displaySize.y) {
+             currentMessageObject = null;
+         }
+         messageObject.isOutOwnerCached = null;
+@@ -7419,10 +7423,12 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
+                 boolean measuredReactions = false;
+ 
+                 final boolean isArticle = messageObject.type == MessageObject.TYPE_ARTICLE;
++                final int textMargin = app.nebulagram.ui.NebulaWidePosts.textMargin(
++                        widePosts && !messageObject.isSponsored(), isArticle, checkNeedDrawShareButton(messageObject));
+                 if (AndroidUtilities.isTablet()) {
+-                    maxWidth = AndroidUtilities.getMinTabletSide() - dp((isArticle ? 40 : 80) + (isSideMenuEnabled ? ChatActivity.SIDE_MENU_WIDTH : drawAvatar ? 42 : 0));
++                    maxWidth = AndroidUtilities.getMinTabletSide() - dp(textMargin + (isSideMenuEnabled ? ChatActivity.SIDE_MENU_WIDTH : drawAvatar ? 42 : 0));
+                 } else {
+-                    maxWidth = Math.min(getParentWidth(), AndroidUtilities.displaySize.y) - dp((isArticle ? 40 : 80) + (isSideMenuEnabled ? ChatActivity.SIDE_MENU_WIDTH : drawAvatar ? 42 : 0));
++                    maxWidth = Math.min(getParentWidth(), AndroidUtilities.displaySize.y) - dp(textMargin + (isSideMenuEnabled ? ChatActivity.SIDE_MENU_WIDTH : drawAvatar ? 42 : 0));
+                 }
+                 drawName = drawAvatar || isPinnedChat || isSavedChat && !messageObject.isOutOwner() && (messageObject.getSavedDialogId() < 0 || messageObject.getSavedDialogId() == UserObject.ANONYMOUS) || (messageObject.messageOwner.peer_id != null && messageObject.messageOwner.peer_id.channel_id != 0 && (!messageObject.isOutOwner() || messageObject.isSupergroup())) || messageObject.isImportedForward() && messageObject.messageOwner.fwd_from.from_id == null;
+ 
+@@ -9839,7 +9845,13 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
+                         documentAttach = messageObject.getDocument();
+                         documentAttachType = DOCUMENT_ATTACH_TYPE_ROUND;
+                     } else {
+-                        if (AndroidUtilities.isTablet()) {
++                        if (widePosts && currentPosition == null && (messageObject.type == MessageObject.TYPE_PHOTO
++                                || messageObject.type == MessageObject.TYPE_VIDEO || messageObject.type == MessageObject.TYPE_GIF)) {
++                            int available = AndroidUtilities.isTablet() ? AndroidUtilities.getMinTabletSide()
++                                    : Math.min(getParentWidth(), AndroidUtilities.displaySize.y);
++                            photoWidth = Math.max(dp(1), available - dp(app.nebulagram.ui.NebulaWidePosts.mediaMargin(checkNeedDrawShareButton(messageObject))));
++                            useFullWidth = true;
++                        } else if (AndroidUtilities.isTablet()) {
+                             photoWidth = (int) (AndroidUtilities.getMinTabletSide() * 0.7f);
+                         } else {
+                             if (
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
+index b08d327..f139552 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
+@@ -30040,9 +30040,16 @@ public class ChatActivity extends BaseFragment implements
+ 
+     Bulletin.Delegate bulletinDelegate;
+ 
++    private boolean nebulaWidePosts;
++
+     @Override
+     public void onResume() {
+         super.onResume();
++        boolean widePosts = app.nebulagram.ui.NebulaWidePosts.enabled();
++        if (nebulaWidePosts != widePosts) {
++            nebulaWidePosts = widePosts;
++            updateVisibleRows();
++        }
+         nebulaRefreshPalette();
+         actionBar.nebulaHeaderAccount = currentAccount;
+         actionBar.invalidate();

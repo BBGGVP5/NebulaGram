@@ -96,6 +96,13 @@ def main():
         assert 'UIScreen.main.traitCollection.userInterfaceStyle' in controller
         assert 'presentationData.withUpdated(theme: settingsTheme)' in controller
         assert 'presentationData.theme.withModalBlocksBackground()' not in controller
+        assert '.widePosts(ru ?' in controller and 'store.widePosts, !store.hasLoadError)' in controller
+        bubble_path = temp / 'submodules/TelegramUI/Components/Chat/ChatMessageBubbleItemNode'
+        bubble = (bubble_path / 'Sources/ChatMessageBubbleItemNode.swift').read_text(encoding='utf-8')
+        assert 'allowFullWidth || (NebulaSettingsStore.shared.widePosts && !isAd)' in bubble
+        assert 'nebulaWidePostsObservation = NebulaSettingsStore.shared.observe' in bubble
+        assert 'requestMessageUpdate(item.message.id, false, nil)' in bubble
+        assert '//submodules/NebulaSettingsContract:NebulaSettingsContract' in (bubble_path / 'BUILD').read_text(encoding='utf-8')
         assert 'hideCounters, !store.hasLoadError)' in controller
         assert 'value: value, enabled: enabled' in controller
         assert 'ItemListSingleLineInputItem(' in controller and 'NebulaSettingsSearch.matches(query, in: title)' in controller

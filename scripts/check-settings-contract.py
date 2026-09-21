@@ -22,7 +22,7 @@ java_types = {'boolean': 'Boolean', 'integer': 'Integer', 'string': 'String'}
 legacy = json.loads((ROOT / 'shared/settings/legacy-v1-types.json').read_text(encoding='utf-8'))
 transfer = {key: java_types[row['type']] for key, row in entries.items() if row['transfer_v1']}
 assert all(transfer.get(key) == value for key, value in legacy.items())
-assert set(transfer) - set(legacy) == {'glass_quality'}
+assert set(transfer) - set(legacy) == {'glass_quality', 'wide_posts'}
 assert transfer['glass_quality'] == 'Integer'
 assert not any(row['ios_status'] == 'implemented' for row in entries.values()), 'Add native iOS acceptance tests before promoting status'
 bindings = 0

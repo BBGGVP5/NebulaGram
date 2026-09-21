@@ -183,11 +183,16 @@ public class NebulaServersFragment extends BaseFragment {
         content.addView(NebulaCard.header(context, LocaleController.formatString(
                 R.string.NebulaShownOf, servers.size(), total)));
 
-        NebulaCard list = new NebulaCard(context);
+        // A single subscription can contain hundreds of rows. Keep the rounded
+        // boundaries visible even when the first and last servers are off-screen.
         for (JSONObject server : servers) {
-            list.add(buildRow(context, server));
+            NebulaCard card = new NebulaCard(context);
+            card.add(buildRow(context, server));
+            LinearLayout.LayoutParams params = cardParams();
+            params.topMargin = 0;
+            params.bottomMargin = AndroidUtilities.dp(8);
+            content.addView(card, params);
         }
-        content.addView(list, cardParams());
     }
 
     /** The core has already ordered the complete list before pagination. */

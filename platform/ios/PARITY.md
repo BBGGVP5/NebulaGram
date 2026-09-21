@@ -96,3 +96,7 @@ This inventory distinguishes **wired source** from native build and device accep
 3. Chat header positioning, typography, gestures, emoji/media picker styling and message-menu polish.
 4. AI and credential-dependent integrations need their own secure platform adapters; imported appearance values do not implement them.
 5. Signed-device acceptance: cold launch, authentication, keyboard/Dynamic Type country layout, rapid folder swipes, permission/signing-dependent notifications, widgets/Shortcuts, media cache eviction and retained-message unread behavior.
+
+## 2026-09-21: wide posts
+
+`wide_posts` is wired to a settings switch and the native bubble full-width path, defaults to false, and supports import/export and live layout invalidation. Swift store tests cover persistence, reset, invalid types and change notifications. Native IPA compilation and device layout acceptance are tracked separately.
