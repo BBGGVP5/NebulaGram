@@ -17,6 +17,8 @@ import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * Значки рядом с именем: кому какой, знает сервер.
@@ -44,6 +46,13 @@ public final class NebulaBadges {
     private NebulaBadges() { }
 
     private static final java.util.Set<Long> inFlight = java.util.Collections.synchronizedSet(new java.util.HashSet<>());
+    // Badge HTTP can wait for a remote timeout; it must not occupy Telegram's
+    // shared global queue while dialogs and message updates are loading.
+    private static final ExecutorService NETWORK = Executors.newFixedThreadPool(2, task -> {
+        Thread thread = new Thread(task, "NebulaBadges");
+        thread.setDaemon(true);
+        return thread;
+    });
     private static Runnable onChanged;
 
     /** Экран профиля просит сообщить, когда ответ придёт: имя уже нарисовано. */
@@ -185,7 +194,7 @@ public final class NebulaBadges {
         if (!inFlight.add(userId)) {
             return;
         }
-        Utilities.globalQueue.postRunnable(() -> {
+        NETWORK.execute(() -> {
             String kind = null;
             try {
                 HttpURLConnection connection = open("/v1/badge/" + userId, "GET");
@@ -219,7 +228,7 @@ public final class NebulaBadges {
             if (done != null) done.run(NebulaText.text("Нет адреса сервера или токена", "No server or token"));
             return;
         }
-        Utilities.globalQueue.postRunnable(() -> {
+        NETWORK.execute(() -> {
             String error = null;
             try {
                 HttpURLConnection connection = open("/v1/badge", "POST");
