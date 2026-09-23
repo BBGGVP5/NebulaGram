@@ -37,7 +37,7 @@
     <string name="nl_mode_sub">Messenger only, or the whole device</string>
     <string name="nl_mode_vpn">Whole device (VPN)</string>
     <string name="nl_open_provider">Subscription profile</string>
-    <string name="nl_open_provider_sub">Your provider's payment and support page</string>
+    <string name="nl_open_provider_sub">Payment and support from your provider</string>
     <string name="nl_per_page">Servers per page</string>
     <string name="nl_per_page_sub">More servers at once, less paging</string>
     <string name="nl_ping_http">HTTP GET</string>

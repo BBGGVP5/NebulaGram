@@ -51,7 +51,7 @@ public final class NebulaMenuStrings {
         TEXTS.put("nl_mode_sub", new String[]{"Только мессенджер или всё устройство", "Messenger only, or the whole device"});
         TEXTS.put("nl_mode_vpn", new String[]{"Всё устройство (VPN)", "Whole device (VPN)"});
         TEXTS.put("nl_open_provider", new String[]{"Профиль подписки", "Subscription profile"});
-        TEXTS.put("nl_open_provider_sub", new String[]{"Оплата и поддержка вашего провайдера", "Your provider's payment and support page"});
+        TEXTS.put("nl_open_provider_sub", new String[]{"Оплата и поддержка вашего провайдера", "Payment and support from your provider"});
         TEXTS.put("nl_per_page", new String[]{"Серверов на странице", "Servers per page"});
         TEXTS.put("nl_per_page_sub", new String[]{"Больше сразу — меньше перелистывания", "More servers at once, less paging"});
         TEXTS.put("nl_ping_http", new String[]{"HTTP GET", "HTTP GET"});
