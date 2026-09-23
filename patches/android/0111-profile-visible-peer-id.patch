@@ -1,0 +1,123 @@
+--- a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
+@@ -659,6 +659,7 @@
+     private int userInfoRow;
+     private int channelInfoRow;
+     private int usernameRow;
++    private int nebulaIdRow;
+     private int notificationsDividerRow;
+     private int notificationsRow;
+     private int bizHoursRow;
+@@ -4500,6 +4501,12 @@
+                 openAddMember();
+             } else if (position == usernameRow) {
+                 processOnClickOrPress(position, view, x, y);
++            } else if (position == nebulaIdRow) {
++                String id = nebulaVisibleProfileId();
++                if (!id.isEmpty()) {
++                    AndroidUtilities.addToClipboard(id);
++                    BulletinFactory.of(this).createCopyBulletin(app.nebulagram.ui.NebulaText.text("ID скопирован", "ID copied")).show();
++                }
+             } else if (position == linkedCommunityRow) {
+                 if (currentChat != null) {
+                     showDialog(new CommunitySheet(this, currentChat.linked_community_id));
+@@ -10477,6 +10484,19 @@
+                 ? chatInfo.linked_chat_id : 0;
+     }
+ 
++    private String nebulaVisibleProfileId() {
++        if (userId != 0) {
++            return app.nebulagram.ui.NebulaIds.user(userId);
++        }
++        if (chatId != 0) {
++            TLRPC.Chat chat = currentChat != null ? currentChat : getMessagesController().getChat(chatId);
++            return chat != null && ChatObject.isChannel(chat)
++                    ? app.nebulagram.ui.NebulaIds.channel(chatId)
++                    : app.nebulagram.ui.NebulaIds.group(chatId);
++        }
++        return "";
++    }
++
+     private void updateRowsIds() {
+         updateNotifications(false);
+ 
+@@ -10557,6 +10577,7 @@
+         locationRow = -1;
+         channelInfoRow = -1;
+         usernameRow = -1;
++        nebulaIdRow = -1;
+         settingsTimerRow = -1;
+         settingsKeyRow = -1;
+         notificationsDividerRow = -1;
+@@ -10656,6 +10677,7 @@
+                 }
+                 numberSectionRow = rowCount++;
+                 numberRow = rowCount++;
++                nebulaIdRow = rowCount++;
+                 setUsernameRow = rowCount++;
+                 bioRow = rowCount++;
+ 
+@@ -10750,6 +10772,7 @@
+                 if (user != null && username != null) {
+                     usernameRow = rowCount++;
+                 }
++                nebulaIdRow = rowCount++;
+                 if (userInfo != null) {
+                     if (app.nebulagram.ui.NebulaAppearance.profileBirthday() && userInfo.birthday != null) {
+                         birthdayRow = rowCount++;
+@@ -10874,6 +10897,7 @@
+                 }
+             }
+             usernameRow = rowCount++;
++            nebulaIdRow = rowCount++;
+             if (actionsView == null) {
+                 notificationsSimpleRow = rowCount++;
+             }
+@@ -10934,6 +10958,7 @@
+                     emptyRow = rowCount++;
+                 }
+             }
++            nebulaIdRow = rowCount++;
+             if (actionsView == null) {
+                 if (infoHeaderRow != -1) {
+                     notificationsDividerRow = rowCount++;
+@@ -13560,6 +13585,14 @@
+                         }
+                         isFragmentPhoneNumber = phoneNumber != null && phoneNumber.matches("888\\d{8}");
+                         detailCell.setTextAndValue(text, LocaleController.getString(isFragmentPhoneNumber ? R.string.AnonymousNumber : R.string.PhoneMobile), false);
++                    } else if (position == nebulaIdRow) {
++                        TLRPC.Chat idChat = currentChat != null ? currentChat : getMessagesController().getChat(chatId);
++                        String label = userId != 0
++                                ? app.nebulagram.ui.NebulaText.text("ID пользователя", "User ID")
++                                : idChat != null && ChatObject.isChannel(idChat) && !idChat.megagroup
++                                ? app.nebulagram.ui.NebulaText.text("ID канала", "Channel ID")
++                                : app.nebulagram.ui.NebulaText.text("ID группы", "Group ID");
++                        detailCell.setTextAndValue(nebulaVisibleProfileId(), label, position != infoEndRow);
+                     } else if (position == noteRow) {
+                         final TLRPC.UserFull userInfo = getMessagesController().getUserFull(userId);
+                         if (userInfo == null) return;
+@@ -14343,6 +14376,7 @@
+             if (notificationRow != -1) {
+                 int position = holder.getAdapterPosition();
+                 return position == notificationRow || position == numberRow || position == privacyRow ||
++                        position == nebulaIdRow ||
+                         position == languageRow || position == nebulaRow || position == setUsernameRow || position == bioRow ||
+                         position == versionRow || position == dataRow || position == chatRow ||
+                         position == questionRow || position == devicesRow || position == filtersRow || position == stickersRow ||
+@@ -14378,7 +14412,7 @@
+             if (position == infoHeaderRow || position == membersHeaderRow || position == settingsSectionRow2 ||
+                     position == numberSectionRow || position == helpHeaderRow || position == debugHeaderRow || position == botPermissionsHeader) {
+                 return VIEW_TYPE_HEADER;
+-            } else if (position == phoneRow || position == locationRow || position == numberRow || position == birthdayRow) {
++            } else if (position == phoneRow || position == locationRow || position == numberRow || position == birthdayRow || position == nebulaIdRow) {
+                 return VIEW_TYPE_TEXT_DETAIL;
+             } else if (position == usernameRow || position == setUsernameRow) {
+                 return VIEW_TYPE_TEXT_DETAIL_MULTILINE;
+@@ -15738,6 +15772,7 @@
+             put(++pointer, setAvatarSectionRow, sparseIntArray);
+             put(++pointer, numberSectionRow, sparseIntArray);
+             put(++pointer, numberRow, sparseIntArray);
++            put(++pointer, nebulaIdRow, sparseIntArray);
+             put(++pointer, setUsernameRow, sparseIntArray);
+             put(++pointer, bioRow, sparseIntArray);
+             put(++pointer, phoneSuggestionRow, sparseIntArray);
