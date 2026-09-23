@@ -99,7 +99,8 @@ def main():
         assert '.widePosts(ru ?' in controller and 'store.widePosts, !store.hasLoadError)' in controller
         bubble_path = temp / 'submodules/TelegramUI/Components/Chat/ChatMessageBubbleItemNode'
         bubble = (bubble_path / 'Sources/ChatMessageBubbleItemNode.swift').read_text(encoding='utf-8')
-        assert 'allowFullWidth || (NebulaSettingsStore.shared.widePosts && !isAd)' in bubble
+        assert 'allowFullWidth || (NebulaSettingsStore.shared.widePosts && isBroadcastPost && !isAd)' in bubble
+        assert 'case .broadcast = channel.info' in bubble
         assert 'nebulaWidePostsObservation = NebulaSettingsStore.shared.observe' in bubble
         assert 'requestMessageUpdate(item.message.id, false, nil)' in bubble
         assert '//submodules/NebulaSettingsContract:NebulaSettingsContract' in (bubble_path / 'BUILD').read_text(encoding='utf-8')

@@ -2,6 +2,7 @@ package app.nebulagram.ui;
 
 import android.content.SharedPreferences;
 import org.telegram.messenger.ApplicationLoader;
+import org.telegram.messenger.MessageObject;
 
 /** Cached presentation option: layout does not repeatedly read preferences. */
 public final class NebulaWidePosts {
@@ -22,6 +23,14 @@ public final class NebulaWidePosts {
             }
             return cached;
         }
+    }
+
+    /** Only broadcast channel messages are posts; groups and private chats keep native widths. */
+    public static boolean enabledFor(MessageObject message) {
+        return enabled() && message != null && message.messageOwner != null
+                && message.messageOwner.peer_id != null
+                && message.messageOwner.peer_id.channel_id != 0
+                && !message.isSupergroup();
     }
 
     public static void setEnabled(boolean value) {

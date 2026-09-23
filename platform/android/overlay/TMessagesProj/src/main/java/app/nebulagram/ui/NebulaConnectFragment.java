@@ -323,7 +323,10 @@ public class NebulaConnectFragment extends BaseFragment {
         boolean active = !id.isEmpty() && id.equals(selected);
         String protocol = server.optString("protocol").toUpperCase(java.util.Locale.ROOT);
         String line = LocaleController.getString(R.string.NebulaSelected);
-        row.subtitle(active ? (protocol.isEmpty() ? line : line + " · " + protocol) : protocol, active);
+        String description = server.optString("description").trim();
+        String summary = active ? (protocol.isEmpty() ? line : line + " · " + protocol) : protocol;
+        if (!description.isEmpty()) summary += (summary.isEmpty() ? "" : " · ") + description;
+        row.subtitle(summary, active);
         row.selection(active);
         NebulaTheme theme = NebulaTheme.of(context);
         int latency = server.optInt("latency_ms");

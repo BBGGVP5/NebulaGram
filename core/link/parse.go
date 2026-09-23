@@ -96,7 +96,7 @@ func parseUserInfo(rest string, p model.Protocol) (model.Server, error) {
 	s := model.Server{Protocol: p, Network: "tcp", Security: "none"}
 
 	body, frag, _ := strings.Cut(rest, "#")
-	s.Name = unescape(frag)
+	s.Name, s.Description = splitFragment(frag)
 
 	body, query, _ := strings.Cut(body, "?")
 	cred, hostport, ok := strings.Cut(body, "@")
@@ -217,7 +217,7 @@ func parseVMess(rest string) (model.Server, error) {
 func parseShadowsocks(rest string) (model.Server, error) {
 	s := model.Server{Protocol: model.Shadowsocks, Network: "tcp", Security: "none"}
 	body, frag, _ := strings.Cut(rest, "#")
-	s.Name = unescape(frag)
+	s.Name, s.Description = splitFragment(frag)
 	body, query, _ := strings.Cut(body, "?")
 
 	// Two layouts exist: base64(method:password)@host:port, and the fully
@@ -279,6 +279,41 @@ func parseQuery(q string) map[string]string {
 		m[unescape(k)] = unescape(v)
 	}
 	return m
+}
+
+// Remnawave appends a base64 serverDescription to the link fragment. It is
+// display metadata, not part of the server name or connection parameters.
+func splitFragment(fragment string) (string, string) {
+	name, tail, hasTail := strings.Cut(fragment, "?")
+	if !hasTail {
+		// Some panels percent-encode the separator along with the fragment.
+		if index := strings.Index(strings.ToLower(fragment), "%3f"); index >= 0 {
+			name, tail, hasTail = fragment[:index], fragment[index+3:], true
+		}
+	}
+	if !hasTail {
+		return strings.TrimSpace(unescape(fragment)), ""
+	}
+	var description string
+	foundDescription := false
+	for _, part := range strings.Split(tail, "&") {
+		key, value, _ := strings.Cut(part, "=")
+		switch strings.ToLower(unescape(key)) {
+		case "serverdescription", "server_description", "server-description", "description":
+			foundDescription = true
+			// Preserve '+' in base64: query-style decoding would turn it into a space.
+			value = unescape(strings.ReplaceAll(value, "+", "%2B"))
+			if decoded, ok := decodeBase64(value); ok {
+				description = decoded
+			} else if !strings.EqualFold(value, "null") && len(value) <= 256 {
+				description = value
+			}
+		}
+	}
+	if !foundDescription {
+		return strings.TrimSpace(unescape(fragment)), ""
+	}
+	return strings.TrimSpace(unescape(name)), strings.TrimSpace(description)
 }
 
 // unescape resolves percent-encoding without rejecting the stray "%" that

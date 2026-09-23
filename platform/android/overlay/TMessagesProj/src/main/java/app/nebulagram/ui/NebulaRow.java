@@ -186,7 +186,7 @@ public class NebulaRow extends FrameLayout {
             emojiIcon.setGravity(Gravity.CENTER);
             emojiIcon.setIncludeFontPadding(false);
             emojiIcon.setImportantForAccessibility(IMPORTANT_FOR_ACCESSIBILITY_NO);
-            emojiIcon.setBackground(icon.getBackground());
+            emojiIcon.setBackground(null);
             LayoutParams params = new LayoutParams(AndroidUtilities.dp(32), AndroidUtilities.dp(32));
             params.gravity = Gravity.CENTER_VERTICAL | Gravity.START;
             addView(emojiIcon, params);

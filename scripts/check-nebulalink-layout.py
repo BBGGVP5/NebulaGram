@@ -42,8 +42,8 @@ settings = (ios / 'SettingsUI/Sources/NebulaSettingsController.swift').read_text
 order = settings.split('private var order: Int', 1)[1].split('var stableId:', 1)[0]
 ids = settings.split('var stableId: Int32', 1)[1].split('static func <', 1)[0]
 for block in (order, ids):
-    values = re.findall(r'case \.(\w+): return (\d+)', block)
-    assert len(values) == 19 and len({number for _, number in values}) == 19
+    values = re.findall(r'case \.(\w+): return (-?\d+)', block)
+    assert len(values) == 22 and len({number for _, number in values}) == 22
 assert 'entries.sort()' in settings and 'return lhs.order < rhs.order' in settings
 assert 'case .link: return 7' in ids and 'case .hideCounters: return 1' in ids
-print('OK: NebulaLink layout/lifecycle guards; 19 unique settings identities and order ranks')
+print('OK: NebulaLink layout/lifecycle guards; 22 unique settings identities and order ranks')

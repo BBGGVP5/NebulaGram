@@ -1,5 +1,5 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/MessageObject.java b/TMessagesProj/src/main/java/org/telegram/messenger/MessageObject.java
-index 12c669c..77c14b9 100644
+index 12c669c..2e822fc 100644
 --- a/TMessagesProj/src/main/java/org/telegram/messenger/MessageObject.java
 +++ b/TMessagesProj/src/main/java/org/telegram/messenger/MessageObject.java
 @@ -350,6 +350,7 @@ public class MessageObject {
@@ -15,7 +15,7 @@ index 12c669c..77c14b9 100644
              int newMinSize = AndroidUtilities.isTablet() ? AndroidUtilities.getMinTabletSide() : AndroidUtilities.displaySize.x;
              float newFontSize = Theme.chat_msgTextPaint != null ? Theme.chat_msgTextPaint.getTextSize() : 0;
 -            if (Math.abs(generatedWithMinSize - newMinSize) > dp(52) || generatedWithDensity != AndroidUtilities.density || generatedWithFontSize != newFontSize) {
-+            if (generatedWithWidePosts != app.nebulagram.ui.NebulaWidePosts.enabled() || Math.abs(generatedWithMinSize - newMinSize) > dp(52) || generatedWithDensity != AndroidUtilities.density || generatedWithFontSize != newFontSize) {
++            if (generatedWithWidePosts != app.nebulagram.ui.NebulaWidePosts.enabledFor(this) || Math.abs(generatedWithMinSize - newMinSize) > dp(52) || generatedWithDensity != AndroidUtilities.density || generatedWithFontSize != newFontSize) {
                  layoutCreated = false;
              }
          }
@@ -23,7 +23,7 @@ index 12c669c..77c14b9 100644
  
      public boolean sideMenuEnabled;
      public int getMaxMessageTextWidth() {
-+        generatedWithWidePosts = app.nebulagram.ui.NebulaWidePosts.enabled();
++        generatedWithWidePosts = app.nebulagram.ui.NebulaWidePosts.enabledFor(this);
          int maxWidth = 0;
          if (AndroidUtilities.isTablet() && eventId != 0) {
              generatedWithMinSize = dp(530);
@@ -38,7 +38,7 @@ index 12c669c..77c14b9 100644
                  maxWidth -= dp(64);
              } else if (needDrawAvatarInternal && !isOutOwner() && !messageOwner.isThreadMessage) {
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Cells/ChatMessageCell.java b/TMessagesProj/src/main/java/org/telegram/ui/Cells/ChatMessageCell.java
-index d103d20..92ff5e5 100644
+index d103d20..fd5721e 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Cells/ChatMessageCell.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Cells/ChatMessageCell.java
 @@ -6792,9 +6792,13 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
@@ -49,7 +49,7 @@ index d103d20..92ff5e5 100644
  
      private void setMessageContent(MessageObject messageObject, MessageObject.GroupedMessages groupedMessages, boolean bottomNear, boolean topNear, boolean firstInChat, boolean lastInChatList) {
 -        if (messageObject.checkLayout() || currentPosition != null && lastHeight != AndroidUtilities.displaySize.y) {
-+        boolean widePosts = app.nebulagram.ui.NebulaWidePosts.enabled();
++        boolean widePosts = app.nebulagram.ui.NebulaWidePosts.enabledFor(messageObject);
 +        boolean widePostsChanged = nebulaWidePosts != widePosts;
 +        nebulaWidePosts = widePosts;
 +        if (messageObject.checkLayout() || widePostsChanged || currentPosition != null && lastHeight != AndroidUtilities.displaySize.y) {

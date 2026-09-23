@@ -67,9 +67,7 @@ public class NebulaServersFragment extends BaseFragment {
 
     @Override
     public void onPause() {
-        // Уходя с экрана, проверку прекращаем: девяносто серверов продолжали
-        // опрашиваться в фоне, хотя смотреть на результат стало некому.
-        cancelProbe();
+        // The core owns the batch. Leaving this view must not cancel a probe.
         stopPendingAnimation();
         NebulaLink.removeStatusListener(statusListener);
         NebulaLink.removeProbeListener(probeListener);
@@ -78,7 +76,7 @@ public class NebulaServersFragment extends BaseFragment {
 
     @Override
     public void onFragmentDestroy() {
-        cancelProbe();
+        // Only the explicit Cancel action stops the core's batch.
         stopPendingAnimation();
         probeRequestId = null;
         NebulaLink.removeProbeListener(probeListener);
@@ -123,7 +121,6 @@ public class NebulaServersFragment extends BaseFragment {
         scroll.addView(content, new ScrollView.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
 
-        load();
         return fragmentView = NebulaSettingsLayout.wrap(context, actionBar, root);
     }
 
@@ -264,18 +261,19 @@ public class NebulaServersFragment extends BaseFragment {
 
     /** Идентификаторы серверов, ответа по которым в этом проходе ещё нет. */
     private final java.util.HashSet<String> pending = new java.util.HashSet<>();
+    private static final float[] PENDING_PULSE = {0.45f, 0.68f, 0.85f, 1f, 0.85f, 0.68f};
     private int pendingFrame;
     private final Runnable pendingTick = new Runnable() {
         @Override public void run() {
             if (pending.isEmpty() || content == null) return;
-            pendingFrame = (pendingFrame + 1) % 3;
+            pendingFrame = (pendingFrame + 1) % PENDING_PULSE.length;
             NebulaTheme theme = NebulaTheme.of(content.getContext());
-            String dots = "···".substring(0, pendingFrame + 1);
+            float pulse = PENDING_PULSE[pendingFrame];
             for (String id : pending) {
                 NebulaRow row = serverRows.get(id);
-                if (row != null) row.badge(dots, theme.onSurfaceVariant());
+                if (row != null) row.badge("●", NebulaTheme.stateLayer(theme.primary(), pulse));
             }
-            AndroidUtilities.runOnUIThread(this, 350);
+            AndroidUtilities.runOnUIThread(this, 180);
         }
     };
 
@@ -328,6 +326,11 @@ public class NebulaServersFragment extends BaseFragment {
                 line.append(" · ");
             }
             line.append(protocol.toUpperCase(Locale.ROOT));
+        }
+        String description = server.optString("description").trim();
+        if (!description.isEmpty()) {
+            if (line.length() > 0) line.append(" · ");
+            line.append(description);
         }
         return line.toString();
     }

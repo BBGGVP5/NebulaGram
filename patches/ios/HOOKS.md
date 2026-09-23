@@ -107,7 +107,8 @@
 # Wide posts (2026-09-21)
 
 - `0018-wide-posts.patch` routes the opt-in `wide_posts` preference through
-  ChatMessageBubbleItemNode's existing full-width layout. Share buttons,
+  ChatMessageBubbleItemNode's existing full-width layout for broadcast channels.
+  Private chats and groups retain native widths. Share buttons,
   avatars, delivery failures and system message/media limits retain their
   native insets. Sponsored posts retain their native width policy.
 - The shared store exposes a default-false editable/transferable boolean.

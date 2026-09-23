@@ -60,7 +60,7 @@ func TestFetchBase64ListAndHeaders(t *testing.T) {
 }
 
 func TestFetchV2RayJSONProfile(t *testing.T) {
-	profile := `[{"remarks":"🇩🇪 Germany","outbounds":[
+	profile := `[{"remarks":"🇩🇪 Germany","serverDescription":"Frankfurt · VLESS","outbounds":[
 		{"tag":"proxy","protocol":"vless","settings":{"vnext":[{"address":"de.example.com","port":443,
 		"users":[{"id":"uuid","flow":"xtls-rprx-vision","encryption":"none"}]}]},
 		"streamSettings":{"network":"tcp","security":"reality",
@@ -84,7 +84,7 @@ func TestFetchV2RayJSONProfile(t *testing.T) {
 		t.Fatalf("got %d servers, want 1", len(res.Servers))
 	}
 	s := res.Servers[0]
-	if s.Name != "🇩🇪 Germany" || s.Security != "reality" || s.PublicKey != "pk" {
+	if s.Name != "🇩🇪 Germany" || s.Description != "Frankfurt · VLESS" || s.Security != "reality" || s.PublicKey != "pk" {
 		t.Errorf("unexpected server: %+v", s)
 	}
 	if s.Source != "Panel" {

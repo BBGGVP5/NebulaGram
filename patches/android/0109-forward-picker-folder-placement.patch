@@ -1,0 +1,54 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
+index 200208e..65b514a 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
+@@ -1319,7 +1319,8 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+                 } else if (child == filterTabsView) {
+                     childTop = app.nebulagram.ui.NebulaFolderTabs.bottom()
+                             ? app.nebulagram.ui.NebulaFolderTabs.bottomTop(H, height, navigationBarHeight,
+-                                    hasMainTabs && app.nebulagram.ui.NebulaBottomBar.enabled() ? dp(MAIN_TABS_HEIGHT_WITH_MARGINS) : 0)
++                                    (hasMainTabs && app.nebulagram.ui.NebulaBottomBar.enabled() ? dp(MAIN_TABS_HEIGHT_WITH_MARGINS) : 0)
++                                            + nebulaForwardFolderLift())
+                             : getPaddingTop() + actionBar.getMeasuredHeight() + dp(nebulaSearchSlotHeight());
+                 } else if (child == topPanelLayout || child == topBubblesFadeView) {
+                     childTop += actionBar.getMeasuredHeight();
+@@ -4930,6 +4931,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+                 protected void onChangedIslandTotalHeight(float h) {
+                     chatInputViewsContainer.setInputBubbleHeight(h);
+                     checkUi_chatListViewPaddingsBottom();
++                    if (filterTabsView != null) filterTabsView.requestLayout();
+                     blur3_InvalidateBlur();
+                     checkUi_fadeView();
+                 }
+@@ -14366,6 +14368,16 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+                 ? Math.round(app.nebulagram.ui.NebulaFolderTabs.reserved() * getFilterTabsVisibilityFactor(true)) : 0;
+     }
+ 
++    /** Forward-picker folders stay near the bottom, above its composer and last chat. */
++    private int nebulaForwardFolderLift() {
++        if (initialDialogsType != DIALOGS_TYPE_FORWARD || !onlySelect
++                || !app.nebulagram.ui.NebulaFolderTabs.bottom()
++                || filterTabsView == null || filterTabsView.getVisibility() != View.VISIBLE) return 0;
++        int composer = commentView != null && chatInputViewsContainer != null
++                ? Math.round(chatInputViewsContainer.getInputBubbleHeight()) + dp(16) : 0;
++        return Math.max(dp(68), composer);
++    }
++
+     private void updateNebulaBottomInsets() {
+         int main = hasMainTabs && app.nebulagram.ui.NebulaBottomBar.enabled() ? dp(MAIN_TABS_HEIGHT_WITH_MARGINS) : 0;
+         int folders = nebulaFolderTabsReserved();
+@@ -14382,11 +14394,12 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+ 
+     private int calculateListViewPaddingBottom() {
+         if (commentView != null) {
+-            return (int) (windowInsetsStateHolder.getAnimatedMaxBottomInset() + dp(9) + chatInputViewsContainer.getInputBubbleHeight() + dp(7) + dp(2));
++            return (int) (windowInsetsStateHolder.getAnimatedMaxBottomInset() + dp(9) + chatInputViewsContainer.getInputBubbleHeight() + dp(7) + dp(2))
++                    + nebulaFolderTabsReserved() + nebulaForwardFolderLift();
+         } else if (communityId != 0) {
+             return navigationBarHeight + dp(12 + 48 + 12);
+         } else {
+-            return navigationBarHeight + additionNavigationBarHeight;
++            return navigationBarHeight + additionNavigationBarHeight + nebulaForwardFolderLift();
+         }
+     }
+ 

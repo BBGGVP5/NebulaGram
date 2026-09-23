@@ -55,6 +55,44 @@ func TestParseStableIDIgnoresName(t *testing.T) {
 	}
 }
 
+func TestParseServerDescription(t *testing.T) {
+	description := base64.StdEncoding.EncodeToString([]byte("Финляндия, Хельсинки"))
+	s, err := Parse("vless://uuid@node.example:443#%E2%9C%A8%20EU?serverDescription=" + description)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if s.Name != "✨ EU" || s.Description != "Финляндия, Хельсинки" {
+		t.Fatalf("name/description = %q/%q", s.Name, s.Description)
+	}
+	if s.ForClient().Description != s.Description {
+		t.Fatal("description missing from client payload")
+	}
+	withPlus, err := Parse("vless://uuid@node.example:443#Latvia?serverDescription=VkxFU1Mg8J+MjQ==")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if withPlus.Name != "Latvia" || withPlus.Description != "VLESS 🌍" {
+		t.Fatalf("plus-containing base64 = %q/%q", withPlus.Name, withPlus.Description)
+	}
+	encodedSeparator, err := Parse("vless://uuid@node.example:443#Riga%3FserverDescription=VkxFU1Mg8J+MjQ==")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if encodedSeparator.Name != "Riga" || encodedSeparator.Description != "VLESS 🌍" {
+		t.Fatalf("encoded separator = %q/%q", encodedSeparator.Name, encodedSeparator.Description)
+	}
+	ordinaryFragment, err := Parse("vless://uuid@node.example:443#Name?with%20question")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if ordinaryFragment.Name != "Name?with question" || ordinaryFragment.Description != "" {
+		t.Fatalf("ordinary fragment changed = %q/%q", ordinaryFragment.Name, ordinaryFragment.Description)
+	}
+	if s.ID != ordinaryFragment.ID {
+		t.Fatal("description changed server identity")
+	}
+}
+
 func TestParseVMess(t *testing.T) {
 	payload := `{"v":"2","ps":"Tokyo","add":"jp.example.com","port":"8443",
 		"id":"aaaa-bbbb","aid":"0","net":"ws","path":"/ray","host":"cdn.example.com","tls":"tls"}`

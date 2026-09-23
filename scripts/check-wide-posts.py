@@ -37,6 +37,14 @@ public class ApplicationLoader {
   public android.content.SharedPreferences getSharedPreferences(String name,int mode){return p;}}
  public static Context applicationContext=new Context();
 }""")
+    put('org/telegram/messenger/MessageObject.java', r"""package org.telegram.messenger;
+public class MessageObject {
+ public static class Peer {public long channel_id;}
+ public static class Owner {public Peer peer_id = new Peer();}
+ public Owner messageOwner = new Owner();
+ public boolean supergroup;
+ public boolean isSupergroup(){return supergroup;}
+}""")
     put('WideCheck.java', r"""
 import app.nebulagram.ui.NebulaWidePosts;
 import org.telegram.messenger.ApplicationLoader;
@@ -53,7 +61,7 @@ class WideCheck {
  Object getMedia(Owner o){return game?new TLRPC.TL_messageMediaGame():null;}
  int width(){int maxWidth=0;WIDTH return maxWidth;}
  static class AndroidUtilities {static class Size{int y=800;}static Size displaySize=new Size();}
- static class Message {int checks;boolean stale;boolean checkLayout(){checks++;return stale;}}
+ static class Message extends org.telegram.messenger.MessageObject {int checks;boolean stale;boolean checkLayout(){checks++;return stale;}}
  boolean nebulaWidePosts;Object currentMessageObject=new Object(),currentPosition;int lastHeight=800;
  void refresh(Message messageObject){REFRESH}
  public static void main(String[] args){
@@ -62,6 +70,11 @@ class WideCheck {
   int reads=prefs.reads;for(int i=0;i<10000;i++)NebulaWidePosts.enabled();
   check(prefs.reads==reads,"layout repeatedly reads preferences");
   NebulaWidePosts.setEnabled(true);check(NebulaWidePosts.enabled(),"toggle ignored");
+  Message channel=new Message();channel.messageOwner.peer_id.channel_id=123;
+  check(NebulaWidePosts.enabledFor(channel),"broadcast channel should widen");
+  channel.supergroup=true;check(!NebulaWidePosts.enabledFor(channel),"supergroup must keep native width");
+  channel.supergroup=false;channel.messageOwner.peer_id.channel_id=0;
+  check(!NebulaWidePosts.enabledFor(channel),"private chat must keep native width");
   prefs.edit().putBoolean("wide_posts",false).apply();check(!NebulaWidePosts.enabled(),"import ignored");
   NebulaWidePosts.setEnabled(true);prefs.clear();check(!NebulaWidePosts.enabled(),"reset ignored");
   check(prefs.registrations==1,"duplicate preference listeners");
@@ -83,7 +96,7 @@ class WideCheck {
    }
    cases++;
   }
-  WideCheck c=new WideCheck();Message message=new Message();
+  WideCheck c=new WideCheck();Message message=new Message();message.messageOwner.peer_id.channel_id=123;
   NebulaWidePosts.setEnabled(true);c.refresh(message);check(c.currentMessageObject==null&&message.checks==1,"existing cell/text not invalidated");
   c.currentMessageObject=new Object();c.refresh(message);check(c.currentMessageObject!=null,"stable cell rebuilt");
   NebulaWidePosts.setEnabled(false);c.refresh(message);check(c.currentMessageObject==null,"disable did not restore cached cell");

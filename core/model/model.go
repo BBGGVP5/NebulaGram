@@ -45,11 +45,12 @@ func EngineFor(p Protocol) Engine {
 
 // Server is one outbound endpoint, parsed from a share link or a subscription.
 type Server struct {
-	ID       string   `json:"id"`   // stable, derived from the link contents
-	Name     string   `json:"name"` // display name (fragment of the link)
-	Protocol Protocol `json:"protocol"`
-	Address  string   `json:"address"`
-	Port     int      `json:"port"`
+	ID          string   `json:"id"`                    // stable, derived from the link contents
+	Name        string   `json:"name"`                  // display name (fragment of the link)
+	Description string   `json:"description,omitempty"` // optional serverDescription from the subscription
+	Protocol    Protocol `json:"protocol"`
+	Address     string   `json:"address"`
+	Port        int      `json:"port"`
 
 	// Credentials. UUID doubles as the password for trojan/ss/hysteria2.
 	UUID     string `json:"uuid,omitempty"`

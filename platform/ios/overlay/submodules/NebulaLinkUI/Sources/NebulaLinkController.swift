@@ -148,7 +148,9 @@ public final class NebulaLinkController: UITableViewController, UITextFieldDeleg
                 method: server["latency_method"] as? String ?? "",
                 checkedAt: (server["checked_at"] as? NSNumber)?.int64Value ?? 0,
                 unit: text("мс", "ms"), unknown: "—", failed: text("Нет ответа", "No reply"))
-        return (server["protocol"] as? String ?? "").uppercased() + " · " + latency
+        let protocolName = (server["protocol"] as? String ?? "").uppercased()
+        let description = (server["description"] as? String ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+        return [protocolName, description, latency].filter { !$0.isEmpty }.joined(separator: " · ")
     }
     private func probeVisibleServers() {
         guard probeRequestId == nil else { return }
@@ -180,7 +182,7 @@ public final class NebulaLinkController: UITableViewController, UITextFieldDeleg
         service.call("probe.cancel", payload: ["request_id": requestId]) { _ in }
     }
     private func abandonProbes() {
-        cancelProbe()
+        // The core owns the batch; navigating away must leave it running.
         probeRequestId = nil; probeCancelling = false; urlProbeId = nil
     }
     @objc private func probeUpdated(_ notification: Notification) {

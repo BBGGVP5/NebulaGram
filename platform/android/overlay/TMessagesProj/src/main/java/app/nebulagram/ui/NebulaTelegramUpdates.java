@@ -23,6 +23,7 @@ import java.util.concurrent.Executors;
 public final class NebulaTelegramUpdates implements NotificationCenter.NotificationCenterDelegate {
     private static final Map<Integer, NebulaTelegramUpdates> INSTANCES = new HashMap<>();
     private static final long INTERVAL = 6 * 60 * 60 * 1000L;
+    private static Runnable pendingAutomaticCheck;
     public static NebulaTelegramUpdates get(int account) {
         NebulaTelegramUpdates instance = INSTANCES.get(account);
         if (instance == null) { instance = new NebulaTelegramUpdates(account); INSTANCES.put(account, instance); }
@@ -267,6 +268,28 @@ public final class NebulaTelegramUpdates implements NotificationCenter.Notificat
         return NebulaRelease.isUpdateLink(value);
     }
     public static void checkFromLaunch(LaunchActivity activity, boolean force, Browser.Progress progress) {
+        if (force && pendingAutomaticCheck != null) {
+            AndroidUtilities.cancelRunOnUIThread(pendingAutomaticCheck);
+            pendingAutomaticCheck = null;
+        }
+        if (!force && progress == null) {
+            // LaunchActivity calls this on every resume. Give dialog sync the
+            // first network window, and keep only one pending automatic lookup.
+            if (pendingAutomaticCheck != null) AndroidUtilities.cancelRunOnUIThread(pendingAutomaticCheck);
+            WeakReference<LaunchActivity> pendingActivity = new WeakReference<>(activity);
+            pendingAutomaticCheck = () -> {
+                pendingAutomaticCheck = null;
+                LaunchActivity current = pendingActivity.get();
+                if (current != null && !current.isFinishing() && !current.isDestroyed()
+                        && !ApplicationLoader.mainInterfacePaused) runLaunchCheck(current, false, null);
+            };
+            AndroidUtilities.runOnUIThread(pendingAutomaticCheck, 8000);
+            return;
+        }
+        runLaunchCheck(activity, force, progress);
+    }
+
+    private static void runLaunchCheck(LaunchActivity activity, boolean force, Browser.Progress progress) {
         if (force) {
             BaseFragment last = activity.getLastFragment();
             if (last != null && !(last instanceof NebulaUpdatesFragment)) last.presentFragment(new NebulaUpdatesFragment());

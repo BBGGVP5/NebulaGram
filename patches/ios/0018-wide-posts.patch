@@ -11,7 +11,7 @@ index 1ddd9b8..95ccfe0 100644
          "//submodules/Display",
          "//submodules/SSignalKit/SwiftSignalKit",
 diff --git a/submodules/TelegramUI/Components/Chat/ChatMessageBubbleItemNode/Sources/ChatMessageBubbleItemNode.swift b/submodules/TelegramUI/Components/Chat/ChatMessageBubbleItemNode/Sources/ChatMessageBubbleItemNode.swift
-index 2dcfc95..8d96403 100644
+index 2dcfc95..81f60cb 100644
 --- a/submodules/TelegramUI/Components/Chat/ChatMessageBubbleItemNode/Sources/ChatMessageBubbleItemNode.swift
 +++ b/submodules/TelegramUI/Components/Chat/ChatMessageBubbleItemNode/Sources/ChatMessageBubbleItemNode.swift
 @@ -1,3 +1,4 @@
@@ -45,12 +45,18 @@ index 2dcfc95..8d96403 100644
          
          let recognizer = TapLongTapOrDoubleTapGestureRecognizer(target: self, action: #selector(self.tapLongTapOrDoubleTapGesture(_:)))
          recognizer.tapActionAtPoint = { [weak self] point in
-@@ -1985,7 +1998,7 @@ public class ChatMessageBubbleItemNode: ChatMessageItemView, ChatMessagePreviewI
+@@ -1985,7 +1998,13 @@ public class ChatMessageBubbleItemNode: ChatMessageItemView, ChatMessagePreviewI
          }*/
                          
          var tmpWidth: CGFloat
 -        if allowFullWidth {
-+        if allowFullWidth || (NebulaSettingsStore.shared.widePosts && !isAd) {
++        let isBroadcastPost: Bool
++        if let channel = item.content.firstMessage.peers[item.content.firstMessage.id.peerId] as? TelegramChannel, case .broadcast = channel.info {
++            isBroadcastPost = true
++        } else {
++            isBroadcastPost = false
++        }
++        if allowFullWidth || (NebulaSettingsStore.shared.widePosts && isBroadcastPost && !isAd) {
              tmpWidth = baseWidth
              if (needsShareButton && !isSidePanelOpen) || isAd {
                  tmpWidth -= 45.0

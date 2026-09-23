@@ -251,7 +251,7 @@ public func nebulaSettingsController(context: AccountContext) -> ViewController 
                 : "NebulaGram JSON v1. Import replaces preferences after confirmation. Folder counters, glass quality, tab order, Contacts visibility and wide posts are applied from files. Local story/search settings are preserved separately; other valid settings await porting. Accounts and access keys are not exported."),
             .link("NebulaLink"),
             .privacy(ru ? "Конфиденциальность" : "Privacy"),
-            .widePosts(ru ? "Широкие посты в чатах" : "Wide posts in chats", store.widePosts, !store.hasLoadError),
+            .widePosts(ru ? "Широкие посты в каналах" : "Wide posts in channels", store.widePosts, !store.hasLoadError),
             .stories(ru ? "Показывать истории" : "Show stories", store.showStories, !store.hasLoadError),
             .history(ru ? "Сохранять и показывать историю поиска настроек" : "Save and show settings search history", store.settingsSearchHistory, !store.hasLoadError),
             .clearHistory(ru ? "Очистить историю поиска настроек" : "Clear settings search history"),

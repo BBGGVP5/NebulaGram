@@ -12,8 +12,10 @@ import (
 // v2rayProfile is one entry of a `v2ray-json` subscription: a whole Xray config
 // whose display name lives in "remarks".
 type v2rayProfile struct {
-	Remarks   string            `json:"remarks"`
-	Outbounds []json.RawMessage `json:"outbounds"`
+	Remarks           string            `json:"remarks"`
+	ServerDescription string            `json:"serverDescription"`
+	Description       string            `json:"description"`
+	Outbounds         []json.RawMessage `json:"outbounds"`
 }
 
 // profileDocument keeps the untouched JSON of one profile alongside the fields
@@ -46,6 +48,10 @@ func ParseV2RayJSON(data []byte) ([]model.Server, error) {
 			}
 			if doc.profile.Remarks != "" {
 				s.Name = doc.profile.Remarks
+			}
+			s.Description = strings.TrimSpace(doc.profile.ServerDescription)
+			if s.Description == "" {
+				s.Description = strings.TrimSpace(doc.profile.Description)
 			}
 			if s.Name == "" {
 				s.Name = fmt.Sprintf("%s %s:%d", s.Protocol, s.Address, s.Port)

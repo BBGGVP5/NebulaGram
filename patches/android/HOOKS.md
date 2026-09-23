@@ -403,3 +403,9 @@ Liquid Glass. Стиль применяется при включённом iOS-
 - `scripts/check-folder-glass.py` exercises the production capture block for 432
   combinations, including hidden bars, hidden tabs, display density, and translated
   tabs. Full device rendering/scrolling remains a separate acceptance check.
+
+### 0109 — папки в окне пересылки
+
+- В выборе получателя нижние вкладки остаются снизу, но поднимаются над полем
+  комментария. Отступ списка учитывает высоту вкладок и их новый нижний зазор,
+  чтобы последний чат не оказывался под панелью.
