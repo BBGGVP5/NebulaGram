@@ -54,7 +54,8 @@ public class NebulaConnectionCard extends LinearLayout {
         statusBackground.setOrientation(GradientDrawable.Orientation.TL_BR);
         statusBackground.setCornerRadius(AndroidUtilities.dp(16));
         setBackground(statusBackground);
-        setClipToOutline(true);
+        // Clipping the same drawable that owns the 1dp stroke cuts its rounded corners.
+        // The surrounding card already clips its child rows.
         setPadding(AndroidUtilities.dp(16), AndroidUtilities.dp(16),
                 AndroidUtilities.dp(16), AndroidUtilities.dp(16));
 

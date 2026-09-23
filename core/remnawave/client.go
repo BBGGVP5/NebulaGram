@@ -44,21 +44,18 @@ type Client struct {
 	Timeout time.Duration
 }
 
-// DefaultUserAgent is what we send when the caller sets none. Panels use the
-// UA to decide the payload format, and an unknown UA usually yields the base64
-// list, which is the format we prefer.
-const DefaultUserAgent = "NebulaLink/1.0"
+// DefaultUserAgent requests the panel's complete Xray JSON profile. A plain
+// base64 link list cannot carry its routing and balancer configuration.
+const DefaultUserAgent = "Happ/1.0 NebulaLink"
 
-// CompatibleUserAgent is asked second, and only when asking as ourselves
+// CompatibleUserAgent is asked second, and only when the Xray JSON request
 // produced nothing usable.
 //
 // Some panels answer an unrecognised client with a stub — one server named
 // "client not supported" pointing at 0.0.0.0:1 — instead of the list. The
-// name below is sing-box for Android, whose profile format this package
-// already parses, so it is what we ask for rather than a browser's name: it
-// describes a payload we genuinely support. Pin Settings.UserAgent to keep a
-// panel's own identity and skip this entirely.
-const CompatibleUserAgent = "SFA/1.11.0"
+// The compatibility identity requests the extended Xray link list.
+// Pin Settings.UserAgent to keep a panel's own identity and skip this entirely.
+const CompatibleUserAgent = "NebulaGuard/NebulaLink-Xray"
 
 // Result is one successful subscription fetch.
 type Result struct {

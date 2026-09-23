@@ -1,0 +1,130 @@
+{
+  "version": "1",
+  "rules": [
+    {
+      "name": "Browser Subscription",
+      "description": "System critical: do not delete or disable this rule.",
+      "enabled": true,
+      "operator": "AND",
+      "conditions": [
+        {
+          "headerName": "accept",
+          "operator": "CONTAINS",
+          "value": "text/html",
+          "caseSensitive": true
+        }
+      ],
+      "responseType": "BROWSER"
+    },
+    {
+      "name": "Mihomo Clients",
+      "description": "Response with generated YAML config (Mihomo Template)",
+      "enabled": true,
+      "operator": "AND",
+      "conditions": [
+        {
+          "headerName": "user-agent",
+          "operator": "REGEX",
+          "value": "^(?:FlClash|FlClashX|Flowvy|[Cc]lash-[Vv]erge|[Kk]oala-[Cc]lash|[Cc]lash-?[Mm]eta|[Mm]urge|[Cc]lashX [Mm]eta|[Mm]ihomo|[Cc]lash-nyanpasu|clash.meta|prizrak-box)",
+          "caseSensitive": false
+        }
+      ],
+      "responseType": "MIHOMO"
+    },
+    {
+      "name": "Stash (iOS, macOS)",
+      "description": "Response with generated YAML config (Stash Template)",
+      "enabled": true,
+      "operator": "AND",
+      "conditions": [
+        {
+          "headerName": "user-agent",
+          "operator": "REGEX",
+          "value": "^stash",
+          "caseSensitive": false
+        }
+      ],
+      "responseType": "STASH"
+    },
+    {
+      "name": "Sing-box clients",
+      "description": "Resonse with generated JSON config (Singbox template)",
+      "enabled": true,
+      "operator": "AND",
+      "conditions": [
+        {
+          "headerName": "user-agent",
+          "operator": "REGEX",
+          "value": "^sfa|sfi|sfm|sft|karing|singbox",
+          "caseSensitive": false
+        }
+      ],
+      "responseType": "SINGBOX"
+    },
+    {
+      "name": "Clash Core Clients",
+      "description": "Response with generated YAML config (Clash Template)",
+      "enabled": true,
+      "operator": "AND",
+      "conditions": [
+        {
+          "headerName": "user-agent",
+          "operator": "REGEX",
+          "value": "^clash",
+          "caseSensitive": false
+        }
+      ],
+      "responseType": "CLASH"
+    },
+    {
+      "name": "RouteFlux OpenWrt",
+      "description": "Return Xray base64 for RouteFlux imports",
+      "enabled": true,
+      "operator": "AND",
+      "conditions": [
+        {
+          "headerName": "user-agent",
+          "operator": "REGEX",
+          "value": "(RouteFlux|Chrome/136\\.0\\.0\\.0)",
+          "caseSensitive": false
+        },
+        {
+          "headerName": "accept",
+          "operator": "CONTAINS",
+          "value": "text/plain",
+          "caseSensitive": false
+        }
+      ],
+      "responseType": "XRAY_BASE64"
+    },
+    {
+      "name": "NebulaLink / Happ Xray JSON",
+      "description": "Return the complete Xray JSON profile, including routing and balancers.",
+      "enabled": true,
+      "operator": "AND",
+      "conditions": [
+        {
+          "headerName": "user-agent",
+          "operator": "REGEX",
+          "value": "^(?:Happ|NebulaLink)(?:/|\\s|$)",
+          "caseSensitive": false
+        }
+      ],
+      "responseType": "XRAY_JSON"
+    },
+    {
+      "name": "Fallback Base64",
+      "description": "System critical: do not delete or disable this rule.",
+      "enabled": true,
+      "operator": "AND",
+      "conditions": [],
+      "responseType": "XRAY_BASE64",
+      "responseModifications": {
+        "additionalExtendedClientsRegex": [
+          "^Nimbo",
+          "^NebulaGuard"
+        ]
+      }
+    }
+  ]
+}

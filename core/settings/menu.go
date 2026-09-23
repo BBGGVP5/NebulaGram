@@ -80,17 +80,16 @@ func homeScreen() Screen {
 			}},
 			{Rows: []Row{
 				{Key: "source", Type: RowNav, Screen: ScreenServers, Icon: "folder",
-					TitleKey: "nl_source", Title: "Server source",
-					SubtitleKey: "nl_source_sub", Subtitle: "Subscriptions, manual keys and filters"},
-				{Key: "open_provider", Type: RowAction, Command: "provider.open", Icon: "info",
-					TitleKey: "nl_open_provider", Title: "Open provider page",
-					SubtitleKey: "nl_open_provider_sub", Subtitle: "Top up, renew or read announcements"},
+					TitleKey: "nl_source", Title: "Subscriptions and keys",
+					SubtitleKey: "nl_source_sub", Subtitle: "Import, refresh and manage servers"},
 				{Key: "guard", Type: RowAction, Command: "guard.open", Icon: "shield",
 					TitleKey: "nl_guard", Title: "NebulaGuard",
-					SubtitleKey: "nl_guard_sub", Subtitle: "Your go-to service for internet freedom"},
+					SubtitleKey: "nl_guard_sub", Subtitle: "Top up, renew and get support"},
 				{Key: "advanced", Type: RowNav, Screen: ScreenAdvanced, Icon: "settings",
-					TitleKey: "nl_advanced", Title: "Advanced",
-					SubtitleKey: "nl_advanced_sub", Subtitle: "Latency method, device id and cores"},
+					TitleKey: "nl_advanced", Title: "Connection settings",
+					SubtitleKey: "nl_advanced_sub", Subtitle: "Automatic connection, ping and calls"},
+				{Key: "about", Type: RowNav, Screen: ScreenAbout, Icon: "info",
+					TitleKey: "nl_about", Title: "About NebulaLink"},
 			}},
 		},
 	}
@@ -98,12 +97,12 @@ func homeScreen() Screen {
 
 func serversScreen() Screen {
 	return Screen{
-		ID: ScreenServers, TitleKey: "nl_servers", Title: "NebulaLink servers",
+		ID: ScreenServers, TitleKey: "nl_source", Title: "Subscriptions and keys",
 		Sections: []Section{
 			{TitleKey: "nl_sec_source", Title: "SOURCE AND FILTERS", Rows: []Row{
-				{Key: "provider", Type: RowNav, Screen: "nebulalink.provider", Icon: "folder",
-					TitleKey: "nl_provider", Title: "Provider",
-					SubtitleKey: "nl_provider_sub", Subtitle: "Pick a built-in or custom source"},
+				{Key: "open_provider", Type: RowAction, Command: "provider.open", Icon: "info",
+					TitleKey: "nl_open_provider", Title: "Subscription profile",
+					SubtitleKey: "nl_open_provider_sub", Subtitle: "Your provider's payment and support page"},
 				{Key: "search_query", Type: RowText, Icon: "search",
 					TitleKey: "nl_search", Title: "Search",
 					SubtitleKey: "nl_search_sub", Subtitle: "By server or source name"},
@@ -116,9 +115,6 @@ func serversScreen() Screen {
 				{Key: "refresh", Type: RowAction, Command: "subscription.refreshAll", Icon: "refresh",
 					TitleKey: "nl_refresh", Title: "Refresh subscriptions",
 					SubtitleKey: "nl_refresh_sub", Subtitle: "Fetch fresh servers from saved sources"},
-				{Key: "check_page", Type: RowAction, Command: "probe.servers", Icon: "gauge",
-					TitleKey: "nl_check_page", Title: "Check page",
-					SubtitleKey: "nl_check_page_sub", Subtitle: "Measures the servers currently visible"},
 				{Key: "add_key", Type: RowAction, Command: "server.addLink", Icon: "edit",
 					TitleKey: "nl_add_key", Title: "Add server key",
 					SubtitleKey: "nl_add_key_sub", Subtitle: "VLESS, VMess, Trojan, Shadowsocks, Hysteria2 or TUIC"},
@@ -129,20 +125,13 @@ func serversScreen() Screen {
 					TitleKey: "nl_clear", Title: "Clear servers",
 					SubtitleKey: "nl_clear_sub", Subtitle: "Subscriptions are kept, the tunnel is stopped"},
 			}},
-			{TitleKey: "nl_sec_servers", Title: "SERVERS", Rows: []Row{
-				{Key: "server_list", Type: RowCard, Icon: "list",
-					TitleKey: "nl_server_list", Title: "Server list"},
-				{Key: "per_page", Type: RowNumber, Min: 10, Max: 200, Icon: "chart",
-					TitleKey: "nl_per_page", Title: "Servers per page",
-					SubtitleKey: "nl_per_page_sub", Subtitle: "More servers at once, less paging"},
-			}},
 		},
 	}
 }
 
 func advancedScreen() Screen {
 	return Screen{
-		ID: ScreenAdvanced, TitleKey: "nl_advanced", Title: "Advanced",
+		ID: ScreenAdvanced, TitleKey: "nl_advanced", Title: "Connection settings",
 		Sections: []Section{
 			{TitleKey: "nl_sec_connection", Title: "CONNECTION", Rows: []Row{
 				{Key: "auto_connect", Type: RowSwitch, Icon: "refresh",
@@ -191,8 +180,6 @@ func advancedScreen() Screen {
 					TitleKey: "nl_socks_port", Title: "Local SOCKS port"},
 				{Key: "dns", Type: RowText, Icon: "globe",
 					TitleKey: "nl_dns", Title: "DNS inside the tunnel"},
-				{Key: "versions", Type: RowInfo, Icon: "info",
-					TitleKey: "nl_versions", Title: "Component versions"},
 			}},
 		},
 	}

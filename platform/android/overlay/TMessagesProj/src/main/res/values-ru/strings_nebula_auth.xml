@@ -5,6 +5,16 @@
     <string name="NebulaAuthWelcomeFeature">NebulaLink внутри</string>
     <string name="NebulaAuthWelcomeFeatureSub">Подключите свою подписку прямо здесь, а затем войдите в аккаунт.</string>
     <string name="NebulaAuthStart">Начать общение</string>
+    <string name="NebulaIntroNext">Далее</string>
+    <string name="NebulaIntroSkip">Пропустить обзор</string>
+    <string name="NebulaIntroDesignTitle">NebulaGram под тебя</string>
+    <string name="NebulaIntroDesignSubtitle">Выбирай оформление чатов, настроек и нижних папок. Нужные действия всегда под рукой.</string>
+    <string name="NebulaIntroPrivacyTitle">Больше контроля над чатами</string>
+    <string name="NebulaIntroPrivacySubtitle">Настрой отображение, защити личные экраны и при желании включи архив удалённых сообщений.</string>
+    <string name="NebulaIntroAITitle">ИИ на твоих условиях</string>
+    <string name="NebulaIntroAISubtitle">Подключи поддерживаемую модель в настройках NebulaGram и обращайся к помощнику, когда он нужен.</string>
+    <string name="NebulaIntroLinkTitle">NebulaLink, когда нужен</string>
+    <string name="NebulaIntroLinkSubtitle">Добавь подписку Xray или ключ сервера. Настройка подключения необязательна и доступна прямо в приложении.</string>
     <string name="NebulaAuthLinkTitle">Подключите NebulaLink</string>
     <string name="NebulaAuthLinkSubtitle">Вставьте ссылку на подписку или ключ сервера — без туннеля код для входа может не дойти.</string>
     <string name="NebulaAuthLinkField">Подписка или ключ сервера</string>

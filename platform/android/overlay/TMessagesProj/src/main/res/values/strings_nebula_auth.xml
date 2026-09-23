@@ -6,6 +6,16 @@
     <string name="NebulaAuthWelcomeFeature">NebulaLink inside</string>
     <string name="NebulaAuthWelcomeFeatureSub">Connect your subscription here, then sign in to your account.</string>
     <string name="NebulaAuthStart">Get started</string>
+    <string name="NebulaIntroNext">Next</string>
+    <string name="NebulaIntroSkip">Skip tour</string>
+    <string name="NebulaIntroDesignTitle">Make NebulaGram yours</string>
+    <string name="NebulaIntroDesignSubtitle">Choose the look of chats, settings and bottom folders. Keep the controls that matter close at hand.</string>
+    <string name="NebulaIntroPrivacyTitle">More control over chats</string>
+    <string name="NebulaIntroPrivacySubtitle">Choose what stays visible, protect private screens and turn on the deleted-message archive when you need it.</string>
+    <string name="NebulaIntroAITitle">AI on your terms</string>
+    <string name="NebulaIntroAISubtitle">Connect a supported model in NebulaGram settings and use the built-in assistant when it is useful to you.</string>
+    <string name="NebulaIntroLinkTitle">NebulaLink when you need it</string>
+    <string name="NebulaIntroLinkSubtitle">Import an Xray subscription or a server key. Connection setup is optional and stays inside the app.</string>
     <string name="NebulaAuthLinkTitle">Connect NebulaLink</string>
     <string name="NebulaAuthLinkSubtitle">Paste a subscription link or a server key — without the tunnel the login code may not reach you.</string>
     <string name="NebulaAuthLinkField">Subscription or server key</string>

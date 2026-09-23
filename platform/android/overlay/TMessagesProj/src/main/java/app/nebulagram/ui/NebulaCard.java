@@ -48,8 +48,15 @@ public class NebulaCard extends LinearLayout {
             divider.setTag("nebula-divider");
             addView(divider);
         }
-        addView(row, new LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+        LayoutParams rowParams = new LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        if (row instanceof NebulaConnectionCard) {
+            // Keep the connection card's outline clear of this group's clipping edge
+            // and the following divider/server row.
+            int inset = AndroidUtilities.dp(2);
+            rowParams.setMargins(inset, inset, inset, AndroidUtilities.dp(8));
+        }
+        addView(row, rowParams);
         hasRows = true;
         return this;
     }

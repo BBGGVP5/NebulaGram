@@ -1,7 +1,6 @@
 package app.nebulagram.ui;
 
 import android.content.Context;
-import android.graphics.drawable.GradientDrawable;
 import android.text.SpannableStringBuilder;
 import android.text.Spanned;
 import android.text.style.ForegroundColorSpan;
@@ -9,7 +8,6 @@ import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
@@ -19,9 +17,27 @@ import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.R;
 import org.telegram.ui.ActionBar.BaseFragment;
 
-/** Welcome to NebulaGram, with the same typography and surfaces as sign-in. */
+/** A short, native tour of features NebulaGram actually has before sign-in. */
 public class NebulaIntroFragment extends BaseFragment {
-    private NebulaMark mark;
+    private static final int[] TITLES = {
+            R.string.NebulaAuthWelcomeTitle, R.string.NebulaIntroDesignTitle,
+            R.string.NebulaIntroPrivacyTitle, R.string.NebulaIntroAITitle,
+            R.string.NebulaIntroLinkTitle
+    };
+    private static final int[] SUBTITLES = {
+            R.string.NebulaAuthWelcomeSubtitle, R.string.NebulaIntroDesignSubtitle,
+            R.string.NebulaIntroPrivacySubtitle, R.string.NebulaIntroAISubtitle,
+            R.string.NebulaIntroLinkSubtitle
+    };
+    private int page;
+    private NebulaIntroArt art;
+    private TextView title;
+    private TextView subtitle;
+    private NebulaButton next;
+    private NebulaButton language;
+    private NebulaButton skip;
+    private LinearLayout actions;
+    private View progress;
     private Runnable onContinue;
 
     public static boolean shouldShow() { return true; }
@@ -38,69 +54,66 @@ public class NebulaIntroFragment extends BaseFragment {
         actionBar.setVisibility(View.GONE);
         NebulaOnboardingLayout root = new NebulaOnboardingLayout(context);
 
-        mark = new NebulaMark(theme.primary(), theme.primaryShade());
-        ImageView image = new ImageView(context);
-        image.setImageDrawable(mark);
-        image.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
-        GradientDrawable glow = new GradientDrawable(GradientDrawable.Orientation.TL_BR,
-                new int[] {theme.primaryContainer(), NebulaTheme.stateLayer(theme.primaryContainer(), 0.15f)});
-        glow.setCornerRadius(AndroidUtilities.dp(44));
-        image.setBackground(glow);
-        int mark = NebulaLoginStyle.compact(144);
-        LinearLayout.LayoutParams iconParams = new LinearLayout.LayoutParams(mark, mark);
-        iconParams.gravity = Gravity.CENTER_HORIZONTAL;
-        iconParams.bottomMargin = NebulaLoginStyle.compact(32);
-        root.content.addView(image, iconParams);
+        art = new NebulaIntroArt(context);
+        LinearLayout.LayoutParams artParams = width();
+        artParams.bottomMargin = NebulaLoginStyle.compact(26);
+        root.content.addView(art, artParams);
 
-        TextView title = text(context, 26 + 6 * NebulaLoginStyle.vertical(), theme.onSurface(), true);
+        title = text(context, 26 + 6 * NebulaLoginStyle.vertical(), theme.onSurface(), true);
         title.setGravity(Gravity.CENTER);
-        title.setText(highlight(LocaleController.getString(R.string.NebulaAuthWelcomeTitle),
-                "NebulaGram", theme.primary()));
         root.content.addView(title, width());
 
-        TextView subtitle = text(context, 16, theme.onSurfaceVariant(), false);
+        subtitle = text(context, 16, theme.onSurfaceVariant(), false);
         subtitle.setGravity(Gravity.CENTER);
-        subtitle.setText(LocaleController.getString(R.string.NebulaAuthWelcomeSubtitle));
         LinearLayout.LayoutParams subtitleParams = width();
         subtitleParams.topMargin = AndroidUtilities.dp(14);
         root.content.addView(subtitle, subtitleParams);
 
-        LinearLayout feature = new LinearLayout(context);
-        feature.setOrientation(LinearLayout.VERTICAL);
-        feature.setPadding(AndroidUtilities.dp(20), AndroidUtilities.dp(18), AndroidUtilities.dp(20), AndroidUtilities.dp(18));
-        GradientDrawable card = new GradientDrawable();
-        card.setColor(theme.surfaceContainer());
-        card.setCornerRadius(AndroidUtilities.dp(24));
-        feature.setBackground(card);
-        TextView featureTitle = text(context, 16, theme.primary(), true);
-        featureTitle.setText(LocaleController.getString(R.string.NebulaAuthWelcomeFeature));
-        feature.addView(featureTitle, width());
-        TextView featureSubtitle = text(context, 14, theme.onSurfaceVariant(), false);
-        featureSubtitle.setText(LocaleController.getString(R.string.NebulaAuthWelcomeFeatureSub));
-        LinearLayout.LayoutParams featureTextParams = width();
-        featureTextParams.topMargin = AndroidUtilities.dp(6);
-        feature.addView(featureSubtitle, featureTextParams);
-        LinearLayout.LayoutParams featureParams = width();
-        featureParams.topMargin = NebulaLoginStyle.compact(28);
-        root.content.addView(feature, featureParams);
-
-        NebulaButton next = new NebulaButton(context, NebulaButton.STYLE_FILLED);
-        next.setText(LocaleController.getString(R.string.NebulaAuthStart));
+        next = new NebulaButton(context, NebulaButton.STYLE_FILLED);
         NebulaOnboardingLayout.action(next);
         next.setOnClickListener(v -> {
-            ApplicationLoader.applicationContext.getSharedPreferences("nebulagram", 0).edit().putBoolean("intro_seen", true).apply();
-            if (onContinue != null) onContinue.run();
-            else presentFragment(new NebulaConnectFragment(), true);
+            if (page < TITLES.length - 1) showPage(page + 1);
+            else continueToSignIn();
         });
         root.actions.addView(next);
-        NebulaButton language = new NebulaButton(context, NebulaButton.STYLE_TEXT);
+        language = new NebulaButton(context, NebulaButton.STYLE_TEXT);
         language.setText(LocaleController.getString(R.string.NebulaChangeLanguage));
         NebulaOnboardingLayout.action(language);
         language.setOnClickListener(v -> presentFragment(new org.telegram.ui.LanguageSelectActivity()));
         root.actions.addView(language);
-        root.actions.addView(NebulaProgress.build(context, 4, 0));
+        skip = new NebulaButton(context, NebulaButton.STYLE_TEXT);
+        skip.setText(LocaleController.getString(R.string.NebulaIntroSkip));
+        NebulaOnboardingLayout.action(skip);
+        skip.setOnClickListener(v -> continueToSignIn());
+        root.actions.addView(skip);
+        actions = root.actions;
+        showPage(page);
         fragmentView = root;
         return root;
+    }
+
+    private void showPage(int index) {
+        page = index;
+        art.setPage(index);
+        NebulaTheme theme = NebulaTheme.of(title.getContext());
+        title.setText(highlight(LocaleController.getString(TITLES[index]),
+                index == 4 ? "NebulaLink" : "NebulaGram", theme.primary()));
+        subtitle.setText(LocaleController.getString(SUBTITLES[index]));
+        next.setText(LocaleController.getString(index == TITLES.length - 1
+                ? R.string.NebulaAuthStart : R.string.NebulaIntroNext));
+        language.setVisibility(index == 0 ? View.VISIBLE : View.GONE);
+        skip.setVisibility(index > 0 && index < TITLES.length - 1 ? View.VISIBLE : View.GONE);
+        if (progress != null) actions.removeView(progress);
+        progress = NebulaProgress.build(actions.getContext(), TITLES.length, index);
+        actions.addView(progress);
+        title.announceForAccessibility(title.getText());
+    }
+
+    private void continueToSignIn() {
+        ApplicationLoader.applicationContext.getSharedPreferences("nebulagram", 0)
+                .edit().putBoolean("intro_seen", true).apply();
+        if (onContinue != null) onContinue.run();
+        else presentFragment(new NebulaConnectFragment(), true);
     }
 
     /** Красит название акцентом: тем же приёмом, что и заголовок приветствия. */
@@ -126,13 +139,6 @@ public class NebulaIntroFragment extends BaseFragment {
 
     static LinearLayout.LayoutParams width() {
         return new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-    }
-
-    @Override
-    public void onFragmentDestroy() {
-        if (mark != null) mark.detach();
-        mark = null;
-        super.onFragmentDestroy();
     }
 
     @Override

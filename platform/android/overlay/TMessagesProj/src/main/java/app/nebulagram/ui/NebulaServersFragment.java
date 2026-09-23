@@ -22,7 +22,6 @@ import java.util.ArrayList;
 import java.util.Locale;
 import java.util.List;
 import java.util.HashMap;
-import java.util.UUID;
 
 import app.nebulagram.nebulalink.NebulaLink;
 
@@ -43,13 +42,9 @@ public class NebulaServersFragment extends BaseFragment {
 
     private LinearLayout content;
     private String selectedId = "";
-    private boolean probing;
-    private boolean cancelling;
-    private String probeRequestId;
-    private int probeCompleted, probeTotal;
     private NebulaRow probeAction;
     private final HashMap<String, NebulaRow> serverRows = new HashMap<>();
-    private final NebulaLink.ProbeListener probeListener = this::onProbeProgress;
+    private final NebulaProbeSession.Listener probeListener = this::onProbeProgress;
     private JSONObject lastData;
     private final NebulaLink.StatusListener statusListener = status -> {
         if (lastData != null) {
@@ -61,7 +56,7 @@ public class NebulaServersFragment extends BaseFragment {
     public void onResume() {
         super.onResume();
         NebulaLink.addStatusListener(statusListener);
-        NebulaLink.addProbeListener(probeListener);
+        NebulaProbeSession.addListener(probeListener);
         load();
     }
 
@@ -70,16 +65,15 @@ public class NebulaServersFragment extends BaseFragment {
         // The core owns the batch. Leaving this view must not cancel a probe.
         stopPendingAnimation();
         NebulaLink.removeStatusListener(statusListener);
-        NebulaLink.removeProbeListener(probeListener);
+        NebulaProbeSession.removeListener(probeListener);
         super.onPause();
     }
 
     @Override
     public void onFragmentDestroy() {
-        // Only the explicit Cancel action stops the core's batch.
+        // Only the explicit Cancel action stops the process-owned batch.
         stopPendingAnimation();
-        probeRequestId = null;
-        NebulaLink.removeProbeListener(probeListener);
+        NebulaProbeSession.removeListener(probeListener);
         NebulaLink.removeStatusListener(statusListener);
         serverRows.clear();
         probeAction = null;
@@ -158,7 +152,7 @@ public class NebulaServersFragment extends BaseFragment {
                 .subtitle(LocaleController.getString(R.string.NebulaProbeSub) + "\n"
                         + NebulaText.text("≈ означает оценку: время GET в Nimbo Ping делится на 3,3 и округляется до ближайшей миллисекунды. Другие проверки сохраняют исходный смысл.",
                         "≈ marks an estimate: Nimbo Ping GET time divided by 3.3, rounded to the nearest millisecond. Other checks keep their original meaning."), false)
-                .withClick(v -> { if (probing) cancelProbe(); else probe(); });
+                .withClick(v -> { if (NebulaProbeSession.active()) cancelProbe(); else probe(); });
         updateProbeAction();
         actions.add(probeAction);
         boolean byLatency = "latency".equals(data.optString("sort", "default"));
@@ -190,6 +184,7 @@ public class NebulaServersFragment extends BaseFragment {
             params.bottomMargin = AndroidUtilities.dp(8);
             content.addView(card, params);
         }
+        if (NebulaProbeSession.active()) startPendingAnimation(NebulaProbeSession.pendingIds());
     }
 
     /** The core has already ordered the complete list before pagination. */
@@ -357,18 +352,23 @@ public class NebulaServersFragment extends BaseFragment {
 
     private void updateProbeAction() {
         if (probeAction == null) return;
-        probeAction.title(probing
-                ? NebulaText.text(cancelling ? "Отмена… " : "Отменить проверку · ",
-                        cancelling ? "Cancelling… " : "Cancel check · ") + probeCompleted + "/" + probeTotal
+        probeAction.title(NebulaProbeSession.active()
+                ? NebulaText.text(NebulaProbeSession.cancelling() ? "Отмена… " : "Отменить проверку · ",
+                        NebulaProbeSession.cancelling() ? "Cancelling… " : "Cancel check · ")
+                        + NebulaProbeSession.completed() + "/" + NebulaProbeSession.total()
                 : LocaleController.getString(R.string.NebulaProbe));
     }
 
     private void onProbeProgress(JSONObject progress) {
-        if (probeRequestId == null || !probeRequestId.equals(progress.optString("request_id"))) return;
-        if (progress.optBoolean("cancelled")) cancelling = true;
-        probeCompleted = progress.optInt("completed", probeCompleted);
-        probeTotal = progress.optInt("total", probeTotal);
         updateProbeAction();
+        if (progress == null) {
+            if (!NebulaProbeSession.active()) {
+                stopPendingAnimation();
+                if (NebulaProbeSession.failed()) report(NebulaText.text("Не удалось проверить серверы", "Could not check servers"));
+                if (content != null && lastData != null) load();
+            }
+            return;
+        }
         String id = progress.optString("id");
         if (lastData == null || id.isEmpty() || !progress.has("latency_ms")) return;
         for (JSONObject server : serverList(lastData.optJSONArray("servers"))) {
@@ -386,7 +386,7 @@ public class NebulaServersFragment extends BaseFragment {
     }
 
     private void probe() {
-        if (probing || lastData == null) return;
+        if (NebulaProbeSession.active() || lastData == null) return;
         JSONArray ids = new JSONArray();
         for (JSONObject server : serverList(lastData.optJSONArray("servers"))) {
             String id = server.optString("id");
@@ -394,37 +394,14 @@ public class NebulaServersFragment extends BaseFragment {
         }
         // Empty ids means all servers to the backend; never send it for an empty page.
         if (ids.length() == 0) return;
-        String requestId = UUID.randomUUID().toString();
-        JSONObject payload = new JSONObject();
-        try {
-            payload.put("ids", ids);
-            payload.put("timeout", 5);
-            payload.put("request_id", requestId);
-        } catch (JSONException ignored) { return; }
-        probeRequestId = requestId;
-        probing = true; cancelling = false; probeCompleted = 0; probeTotal = ids.length();
-        java.util.ArrayList<String> waiting = new java.util.ArrayList<>();
-        for (int i = 0; i < ids.length(); i++) waiting.add(ids.optString(i));
-        startPendingAnimation(waiting);
-        updateProbeAction();
-        NebulaLink.call("probe.servers", payload, result -> {
-            if (!requestId.equals(probeRequestId)) return;
-            boolean wasCancelled = cancelling;
-            probeRequestId = null; probing = false; cancelling = false;
-            stopPendingAnimation();
-            if (!result.ok && !wasCancelled) report(NebulaText.text("Не удалось проверить серверы", "Could not check servers"));
+        if (NebulaProbeSession.start(ids)) {
+            startPendingAnimation(NebulaProbeSession.pendingIds());
             updateProbeAction();
-            if (content != null) load();
-        });
+        }
     }
 
     private void cancelProbe() {
-        if (probeRequestId == null || cancelling) return;
-        JSONObject payload = new JSONObject();
-        try { payload.put("request_id", probeRequestId); } catch (JSONException ignored) { return; }
-        cancelling = true;
-        updateProbeAction();
-        NebulaLink.call("probe.cancel", payload, null);
+        NebulaProbeSession.cancel();
     }
 
     private void report(String message) {

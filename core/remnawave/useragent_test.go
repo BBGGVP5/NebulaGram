@@ -3,6 +3,7 @@ package remnawave
 import (
 	"context"
 	"encoding/base64"
+	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -18,11 +19,12 @@ func endpoint(address string, port int) model.Server {
 // like a server list: one entry at 0.0.0.0:1 named "client not supported".
 const refusal = "vless://00000000-0000-0000-0000-000000000000@0.0.0.0:1?encryption=none&type=tcp&security=none#unsupported"
 
-const singboxProfile = `{"outbounds":[
-  {"type":"vless","tag":"Finland","server":"example.org","server_port":443,"uuid":"1f1e2aba-f6ee-481e-a2e6-1851e27f2218","flow":"xtls-rprx-vision",
-   "tls":{"enabled":true,"server_name":"google.com","reality":{"enabled":true,"public_key":"key","short_id":"ab"}}},
-  {"type":"selector","tag":"Autobalance","outbounds":["Finland"]}
-]}`
+const xrayProfile = `[{"remarks":"Autobalance","outbounds":[
+  {"tag":"node-a","protocol":"vless","settings":{"vnext":[{"address":"example.org","port":443,
+   "users":[{"id":"1f1e2aba-f6ee-481e-a2e6-1851e27f2218","flow":"xtls-rprx-vision"}]}]}},
+  {"tag":"direct","protocol":"freedom"}],
+  "routing":{"balancers":[{"tag":"balance","selector":["node-a"]}],
+             "rules":[{"type":"field","network":"tcp,udp","balancerTag":"balance"}]}}]`
 
 func panel(t *testing.T, accepted string) (*httptest.Server, *[]string) {
 	t.Helper()
@@ -32,7 +34,7 @@ func panel(t *testing.T, accepted string) (*httptest.Server, *[]string) {
 		seen = append(seen, ua)
 		if ua == accepted {
 			w.Header().Set("Content-Type", "application/json")
-			_, _ = w.Write([]byte(singboxProfile))
+			_, _ = w.Write([]byte(xrayProfile))
 			return
 		}
 		_, _ = w.Write([]byte(base64.StdEncoding.EncodeToString([]byte(refusal))))
@@ -48,10 +50,10 @@ func TestRefusedClientIsAskedAgainAsOneThePanelServes(t *testing.T) {
 	if err != nil {
 		t.Fatalf("fetch: %v", err)
 	}
-	if res.Format != "sing-box" {
-		t.Fatalf("format = %q, want sing-box", res.Format)
+	if res.Format != "v2ray-json" {
+		t.Fatalf("format = %q, want v2ray-json", res.Format)
 	}
-	if len(res.Servers) != 1 || res.Servers[0].Address != "example.org" {
+	if len(res.Servers) != 1 || res.Servers[0].Address != "example.org" || res.Servers[0].Name != "Autobalance" {
 		t.Fatalf("servers = %+v", res.Servers)
 	}
 	if len(*seen) != 2 || (*seen)[0] != DefaultUserAgent || (*seen)[1] != CompatibleUserAgent {
@@ -79,6 +81,17 @@ func TestOurOwnNameIsKeptWhenItAlreadyWorks(t *testing.T) {
 	}
 	if len(res.Servers) != 1 {
 		t.Fatalf("servers = %+v", res.Servers)
+	}
+	if res.Format != "v2ray-json" || res.Servers[0].CoreHint != model.EngineXray {
+		t.Fatalf("default response = %q, %+v; want an Xray profile", res.Format, res.Servers[0])
+	}
+	var config struct {
+		Routing struct {
+			Balancers []json.RawMessage `json:"balancers"`
+		} `json:"routing"`
+	}
+	if err := json.Unmarshal([]byte(res.Servers[0].Config), &config); err != nil || len(config.Routing.Balancers) != 1 {
+		t.Fatalf("Xray balancer not retained: %v, %+v", err, config.Routing)
 	}
 	if len(*seen) != 1 {
 		t.Fatalf("asked %d times, want one", len(*seen))

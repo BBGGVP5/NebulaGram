@@ -94,6 +94,25 @@ func TestNormalizeRetagsProxyAndRouting(t *testing.T) {
 	}
 }
 
+func TestNormalizePreservesBalancerMemberTags(t *testing.T) {
+	raw := `{"outbounds":[{"tag":"node-a","protocol":"vless","settings":{"vnext":[{"address":"example.org","port":443,"users":[{"id":"uuid"}]}]}}],"routing":{"balancers":[{"tag":"auto","selector":["node-"]}],"rules":[{"type":"field","network":"tcp,udp","balancerTag":"auto"}]}}`
+	out, err := Normalize([]byte(raw), Defaults(10808))
+	if err != nil {
+		t.Fatal(err)
+	}
+	var cfg map[string]any
+	if err := json.Unmarshal(out, &cfg); err != nil {
+		t.Fatal(err)
+	}
+	if tag := cfg["outbounds"].([]any)[0].(map[string]any)["tag"]; tag != "node-a" {
+		t.Fatalf("balancer member tag changed to %v", tag)
+	}
+	route := cfg["routing"].(map[string]any)
+	if tag := route["rules"].([]any)[0].(map[string]any)["balancerTag"]; tag != "auto" {
+		t.Fatalf("balancer route changed to %v", tag)
+	}
+}
+
 func TestNormalizeKeepsUserSections(t *testing.T) {
 	cfg := normalized(t)
 	if cfg["dns"] == nil {

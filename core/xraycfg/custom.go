@@ -33,9 +33,10 @@ func LooksLikeConfig(raw []byte) bool {
 }
 
 // Normalize adapts a user-supplied Xray configuration so NebulaLink can run it:
-// it puts our local SOCKS inbound in front, names the proxy outbound "proxy" so
-// the traffic counters find it, and turns statistics on. Everything else the
-// user wrote — routing, DNS, balancers, fragmentation — is left untouched.
+// it puts our local SOCKS inbound in front and turns statistics on. For profiles
+// without balancers it names the proxy outbound "proxy" for traffic counters;
+// balancer members keep their original tags. Routing, DNS and fragmentation
+// remain under the user's control.
 func Normalize(raw []byte, o Options) ([]byte, error) {
 	if o.SocksPort == 0 {
 		return nil, errors.New("xraycfg: socks port is required")
@@ -65,10 +66,26 @@ func Normalize(raw []byte, o Options) ([]byte, error) {
 	}
 	cfg["inbounds"] = mergeInbounds(cfg["inbounds"], o)
 
-	if tag := renameProxyOutbound(cfg); tag != "" && o.StatsAPI {
+	// A balancer may select outbounds by tag prefix or regular expression. Renaming
+	// one member to "proxy" silently removes it from that group, so keep panel
+	// tags intact for complete configurations that contain balancers.
+	if hasBalancers(cfg) {
+		if o.StatsAPI {
+			enableStats(cfg)
+		}
+	} else if tag := renameProxyOutbound(cfg); tag != "" && o.StatsAPI {
 		enableStats(cfg)
 	}
 	return json.MarshalIndent(cfg, "", "  ")
+}
+
+func hasBalancers(cfg map[string]any) bool {
+	routing, ok := cfg["routing"].(map[string]any)
+	if !ok {
+		return false
+	}
+	balancers, ok := routing["balancers"].([]any)
+	return ok && len(balancers) > 0
 }
 
 // mergeInbounds drops whatever local listeners the config carried — they would

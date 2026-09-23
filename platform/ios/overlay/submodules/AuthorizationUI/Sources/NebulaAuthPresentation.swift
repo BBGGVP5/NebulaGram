@@ -11,6 +11,26 @@ struct NebulaAuthCopy {
     var password: String { russian ? "Ваш пароль" : "Your password" }
     var linkTitle: String { russian ? "NebulaLink внутри" : "NebulaLink inside" }
     var linkSubtitle: String { russian ? "Подключите свою подписку прямо здесь, а затем войдите в аккаунт." : "Connect your subscription here, then sign in to your account." }
+    var next: String { russian ? "Далее" : "Next" }
+    var skip: String { russian ? "Пропустить обзор" : "Skip tour" }
+    func tourTitle(_ page: Int) -> String {
+        let ru = [welcome, "NebulaGram под тебя", "Больше контроля над чатами", "ИИ на твоих условиях", "NebulaLink, когда нужен"]
+        let en = [welcome, "Make NebulaGram yours", "More control over chats", "AI on your terms", "NebulaLink when you need it"]
+        return (russian ? ru : en)[min(max(page, 0), 4)]
+    }
+    func tourSubtitle(_ page: Int) -> String {
+        let ru = [subtitle,
+                  "Выбирай оформление чатов, настроек и нижних папок. Нужные действия всегда под рукой.",
+                  "Настрой отображение, защити личные экраны и при желании включи архив удалённых сообщений.",
+                  "Подключи поддерживаемую модель в настройках NebulaGram и обращайся к помощнику, когда он нужен.",
+                  "Добавь подписку Xray или ключ сервера. Настройка подключения необязательна и доступна прямо в приложении."]
+        let en = [subtitle,
+                  "Choose the look of chats, settings and bottom folders. Keep the controls that matter close at hand.",
+                  "Choose what stays visible, protect private screens and turn on the deleted-message archive when you need it.",
+                  "Connect a supported model in NebulaGram settings and use the built-in assistant when it is useful to you.",
+                  "Import an Xray subscription or a server key. Connection setup is optional and stays inside the app."]
+        return (russian ? ru : en)[min(max(page, 0), 4)]
+    }
 }
 
 final class NebulaAuthArtView: UIView {
@@ -144,18 +164,20 @@ final class NebulaAuthProgressView: UIView {
     static let steps = 4
     private let accent: UIColor
     private let muted: UIColor
-    private let current: Int
+    private let stepCount: Int
+    private var current: Int
     private var dashes: [UIView] = []
 
-    init(current: Int, accent: UIColor, muted: UIColor) {
+    init(current: Int, steps: Int = 4, accent: UIColor, muted: UIColor) {
         self.current = current
+        self.stepCount = steps
         self.accent = accent
         self.muted = muted
         super.init(frame: .zero)
         isUserInteractionEnabled = false
         isAccessibilityElement = true
-        accessibilityLabel = "\(current + 1) / \(Self.steps)"
-        for index in 0..<Self.steps {
+        accessibilityLabel = "\(current + 1) / \(steps)"
+        for index in 0..<steps {
             let dash = UIView()
             dash.backgroundColor = index == current ? accent : muted
             dash.layer.cornerRadius = 2
@@ -164,6 +186,15 @@ final class NebulaAuthProgressView: UIView {
         }
     }
     required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
+
+    func setCurrent(_ value: Int) {
+        current = value
+        accessibilityLabel = "\(value + 1) / \(stepCount)"
+        for (index, dash) in dashes.enumerated() {
+            dash.backgroundColor = index == value ? accent : muted
+        }
+        setNeedsLayout()
+    }
 
     /// Ширина ряда: активная полоска 30, прочие 20, промежуток 6.
     static func width(steps: Int = steps) -> CGFloat {

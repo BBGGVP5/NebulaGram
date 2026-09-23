@@ -75,18 +75,22 @@ diff --git a/submodules/AuthorizationUI/Sources/AuthorizationSequenceSplashContr
          }
          self.controller.startMessagingInAlternativeLanguage = { [weak self] code in
              if let code = code {
-@@ -93,9 +61,12 @@
+@@ -93,9 +61,16 @@
          }
          
          self.startButton.pressed = { [weak self] in
 -            self?.activateLocalization("en")
 -        }
 -        
-+            self?.openNebulaLink()
++            self?.controller.advance()
 +        }
 +
 +        self.controller.languageChanged = { [weak self] language in
-+            self?.startButton.title = NebulaAuthCopy(language).start
++            self?.startButton.title = NebulaAuthCopy(language).next
++        }
++        self.controller.pageChanged = { [weak self] page, language in
++            let copy = NebulaAuthCopy(language)
++            self?.startButton.title = page == 4 ? copy.start : copy.next
 +        }
          self.controller.createStartButton = { [weak self] width in
              let _ = self?.startButton.updateLayout(width: width, transition: .immediate)
