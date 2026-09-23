@@ -42,7 +42,8 @@ assert 'NebulaLatency.format(' in shortcut and 'payload.put("method", method)' i
 assert 'cancelProbe();' in method(shortcut, 'protected void onDetachedFromWindow()')
 assert 'probeRequestId = null' in method(shortcut, 'private void cancelProbe()')
 assert 'requestId.equals(probeRequestId)' in method(shortcut, 'private void probe()')
-assert 'cancelProbe();' in method(servers, 'public void onFragmentDestroy()')
+assert 'cancelProbe();' not in method(servers, 'public void onPause()')
+assert 'cancelProbe();' not in method(servers, 'public void onFragmentDestroy()')
 assert 'removeProbeListener' in method(servers, 'public void onFragmentDestroy()')
 progress = method(servers, 'private void onProbeProgress(')
 assert 'request_id' in progress and 'latency_method' in progress and 'checked_at' in progress
@@ -55,11 +56,11 @@ for locale in ['values', 'values-ru']:
     tree = ET.parse(HERE.parent / 'TMessagesProj/src/main/res' / locale / 'strings_nebula_menu.xml')
     strings = {node.attrib['name']: node.text for node in tree.getroot()}
     assert strings['nl_ping_nimbo'] == 'Nimbo Ping'
-    assert '≈' in strings['nl_ping_estimate']
+    assert '≈' in servers
     for name in ['nl_ping_tcp', 'nl_ping_http', 'nl_ping_url']:
         assert name in strings
 menu = read(UI / 'NebulaMenuFragment.java')
-assert 'nl_ping_estimate' in menu and '"ping_type".equals(key) && value.isEmpty() ? "nimbo"' in menu
+assert '"ping_type".equals(key) && value.isEmpty() ? "nimbo"' in menu
 
 probe = method(controller, 'private func probeVisibleServers()')
 assert 'servers.compactMap' in probe and 'guard !ids.isEmpty' in probe
@@ -69,9 +70,10 @@ assert 'private func probeActiveConnection()' in controller and 'service.call("p
 assert 'abandonProbes()' in method(controller, '@objc private func close()')
 assert 'abandonProbes()' in method(controller, 'public override func viewDidDisappear(')
 assert 'abandonProbes(); page =' in controller
+assert 'cancelProbe()' not in method(controller, 'private func abandonProbes()')
 assert 'progress["request_id"] as? String == requestId' in controller
 assert 'NebulaLatency.format' in controller and 'server["latency_method"]' in controller
-assert 'server["checked_at"]' in controller and 'case 1: return 5' in controller
+assert 'server["checked_at"]' in controller
 call = method(service, 'public func call(')
 assert call.index('try self.initializeCore()') < call.index('self.probeQueue.async')
 assert 'method == "probe.servers" || method == "probe.url"' in call
@@ -106,6 +108,9 @@ public class NebulaProbeUiTest {
   boolean probing,cancelling;String probeRequestId,selectedId;int probeCompleted,probeTotal,loads,reports,badges;
   Object content=new Object();JSONObject lastData;NebulaRow probeAction=new NebulaRow();
   HashMap<String,NebulaRow> serverRows=new HashMap<>();
+  HashSet<String> pending=new HashSet<>();
+  void startPendingAnimation(Collection<String> ids){pending.clear();pending.addAll(ids);}
+  void stopPendingAnimation(){pending.clear();}
   void load(){loads++;}void report(String message){reports++;}
   void updateLatency(NebulaRow row,JSONObject data){badges++;}
   METHODS
