@@ -1,0 +1,28 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
+@@ -14096,6 +14096,11 @@
+             chatInputViewsContainer.getFadeView().setAlpha(factor);
+             chatInputViewsContainer.getFadeView().setVisibility(factor > 0 ? View.VISIBLE : View.GONE);
+         }
++        if (initialDialogsType == DIALOGS_TYPE_FORWARD && onlySelect
++                && app.nebulagram.ui.NebulaFolderTabs.bottom() && filterTabsView != null) {
++            filterTabsView.requestLayout();
++            checkUi_chatListViewPaddingsBottom();
++        }
+     }
+ 
+     private void checkUi_topPanelVisible() {
+@@ -14373,9 +14378,11 @@
+         if (initialDialogsType != DIALOGS_TYPE_FORWARD || !onlySelect
+                 || !app.nebulagram.ui.NebulaFolderTabs.bottom()
+                 || filterTabsView == null || filterTabsView.getVisibility() != View.VISIBLE) return 0;
++        float visible = animatorForwardButtonVisible.getFloatValue();
++        if (visible <= 0f) return 0;
+         int composer = commentView != null && chatInputViewsContainer != null
+                 ? Math.round(chatInputViewsContainer.getInputBubbleHeight()) + dp(16) : 0;
+-        return Math.max(dp(68), composer);
++        return Math.round(Math.max(dp(68), composer) * visible);
+     }
+ 
+     private void updateNebulaBottomInsets() {
