@@ -44,7 +44,12 @@ public class View {
     'app/nebulagram/ui/NebulaTheme.java': '''package app.nebulagram.ui; public class NebulaTheme {
  public static NebulaTheme of(android.content.Context c){return new NebulaTheme();} public int surface(){return 0;}
 }''',
+    'app/nebulagram/ui/NebulaSettingsLinks.java': '''package app.nebulagram.ui; public class NebulaSettingsLinks {
+ public static int calls,section;public static android.view.View body;
+ public static void bind(android.view.View view,int destination){calls++;body=view;section=destination;}
+}''',
     'RootTest.java': '''import android.view.View; import org.telegram.ui.ActionBar.ActionBar; import app.nebulagram.ui.NebulaSettingsLayout;
+import app.nebulagram.ui.NebulaSettingsLinks;
 public class RootTest {
  public static void main(String[] a){
   ActionBar bar=new ActionBar(); View body=new View(); View root=NebulaSettingsLayout.wrap(new android.content.Context(),bar,body);
@@ -55,7 +60,16 @@ public class RootTest {
   }
   bar.visibility=View.GONE;root.measure(390,800);root.layout(0,0,390,800);
   if(body.top!=0 || body.h!=800)throw new AssertionError("hidden bar gap");
-  System.out.println("OK: actual settings-root geometry, 36 size/bar combinations and hidden bar");
+  if(NebulaSettingsLinks.calls!=0)throw new AssertionError("unconfigured screen acquired setting links");
+  for(int section:new int[]{-1,0,9,-12,-15,-100}){
+   int before=NebulaSettingsLinks.calls;
+   root=NebulaSettingsLayout.wrap(new android.content.Context(),bar,body,section);
+   root.measure(390,800);root.layout(0,0,390,800);
+   if(section==-100){if(NebulaSettingsLinks.calls!=before)throw new AssertionError("disabled setting links bound");}
+   else if(NebulaSettingsLinks.calls!=before+1 || NebulaSettingsLinks.section!=section || NebulaSettingsLinks.body!=body)
+    throw new AssertionError("wrong settings link destination or body");
+  }
+  System.out.println("OK: actual settings-root geometry, 36 size/bar combinations, hidden bar and opt-in setting links");
  }
 }'''
 }

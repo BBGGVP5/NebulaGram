@@ -121,6 +121,10 @@ class AlbumCheck {
 p=w/'AlbumCheck.java';p.write_text(java,encoding='utf-8')
 subprocess.run(['javac',str(p)],check=True);subprocess.run(['java','-cp',str(w),'AlbumCheck'],check=True)
 assert 'if (scrimView == null) clearNebulaAlbumPreview();' in chat
-assert 'public void onFragmentDestroy() {\n        clearNebulaAlbumPreview();' in chat
-
-assert "public void onPause() {\n        clearNebulaAlbumPreview();" in chat
+for lifecycle in ('onPause', 'onFragmentDestroy'):
+ body=method(chat,f'public void {lifecycle}()')
+ cleanup=body.index('clearNebulaAlbumPreview();')
+ assert cleanup < body.index(f'super.{lifecycle}();'), f'album cleanup must precede super.{lifecycle}'
+pause=method(chat,'public void onPause()')
+assert pause.index('app.nebulagram.ui.NebulaAutoTranslate.stop(currentAccount, getDialogId());') < pause.index('super.onPause();'), 'translation must stop before pausing'
+print('Pause/destroy cleanup and translation cancellation precede the native lifecycle')
