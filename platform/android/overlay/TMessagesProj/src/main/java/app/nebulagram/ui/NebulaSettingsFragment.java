@@ -140,6 +140,14 @@ public class NebulaSettingsFragment extends BaseFragment {
         app.add(new NebulaRow(context).icon(R.drawable.msg_secret).title(NebulaText.text("Конфиденциальность", "Privacy"))
                 .subtitle(NebulaText.text("Локальный архив удалённых сообщений", "Local deleted-message archive"), false)
                 .trailing(NebulaRow.TRAIL_CHEVRON).withClick(v -> presentFragment(new NebulaPrivacyFragment())));
+        app.add(NebulaFormUi.action(context, R.drawable.msg_secret,
+                NebulaText.text("Пароли чатов", "Chat passwords"),
+                NebulaText.text("Отдельный пароль для каждого чата", "A separate password for each chat"),
+                v -> presentFragment(new NebulaLockedChatsFragment())));
+        app.add(NebulaFormUi.action(context, R.drawable.msg_saved,
+                NebulaText.text("Синхронизация настроек", "Settings sync"),
+                NebulaText.text("Через «Избранное» Telegram", "Via Telegram Saved Messages"),
+                v -> presentFragment(new NebulaSyncFragment())));
         app.add(section(context, R.drawable.msg_customize, R.string.NebulaAppearanceTitle, R.string.NebulaAppearanceSub, NebulaSectionFragment.SECTION_APPEARANCE));
         sections.addView(app, cardParams());
 

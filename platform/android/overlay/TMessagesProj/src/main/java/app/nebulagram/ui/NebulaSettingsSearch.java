@@ -18,6 +18,8 @@ public final class NebulaSettingsSearch {
         public void open(BaseFragment f) {
             if (section == -16) f.presentFragment(new NebulaTasksFragment());
             else if (section == -17) f.presentFragment(new NebulaMessageToolsFragment(null));
+            else if (section == -18) f.presentFragment(new NebulaSyncFragment());
+            else if (section == -19) f.presentFragment(new NebulaLockedChatsFragment());
             else if (section == -1) f.presentFragment(new NebulaSettingsFragment());
             else if (section == -10 || section == -11) f.presentFragment(new NebulaDesignFragment(section == -11));
             else if (section == -12) f.presentFragment(new NebulaAiFragment());
@@ -109,6 +111,8 @@ public final class NebulaSettingsSearch {
         result.add(new Entry(-15, NebulaText.text("Конфиденциальность", "Privacy"), NebulaText.text("Локальные копии, удалённые сообщения и пересылка", "Local copies, deleted messages and forwarding"), R.drawable.msg_secret));
         result.add(new Entry(-16, NebulaText.text("Список дел", "Tasks"), NebulaText.text("Задачи и напоминания", "Tasks and reminders"), R.drawable.msg_calendar));
         result.add(new Entry(-17, NebulaText.text("Инструменты текста", "Text tools"), NebulaText.text("Перевод, голос, краткое содержание", "Translation, speech, summaries"), R.drawable.msg_customize));
+        result.add(new Entry(-18, NebulaText.text("Синхронизация настроек", "Settings sync"), NebulaText.text("Через «Избранное» Telegram", "Via Telegram Saved Messages"), R.drawable.msg_saved));
+        result.add(new Entry(-19, NebulaText.text("Пароли чатов", "Chat passwords"), NebulaText.text("Отдельный пароль для каждого чата", "A separate password for each chat"), R.drawable.msg_secret));
         return result;
     }
     private static String normalize(String s) { return s.toLowerCase(Locale.ROOT).replace('ё', 'е').trim(); }

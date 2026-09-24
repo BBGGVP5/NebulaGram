@@ -59,14 +59,17 @@ public class NebulaIntroFragment extends BaseFragment {
         artParams.bottomMargin = NebulaLoginStyle.compact(18);
         root.content.addView(art, artParams);
 
-        title = text(context, 23, theme.onSurface(), true);
+        title = text(context, 24, theme.onSurface(), true);
         title.setGravity(Gravity.CENTER);
+        title.setMinLines(2);
         root.content.addView(title, width());
 
         subtitle = text(context, 15, theme.onSurfaceVariant(), false);
         subtitle.setGravity(Gravity.CENTER);
+        subtitle.setMinLines(3);
+        title.setMinLines(2);
         LinearLayout.LayoutParams subtitleParams = width();
-        subtitleParams.topMargin = AndroidUtilities.dp(14);
+        subtitleParams.topMargin = AndroidUtilities.dp(8);
         root.content.addView(subtitle, subtitleParams);
 
         next = new NebulaButton(context, NebulaButton.STYLE_FILLED);
@@ -83,8 +86,8 @@ public class NebulaIntroFragment extends BaseFragment {
             else continueToSignIn();
         });
         root.actions.addView(next);
-        root.content.setGravity(Gravity.TOP);
-        root.content.setPadding(0, AndroidUtilities.dp(4), 0, AndroidUtilities.dp(16));
+        root.content.setGravity(Gravity.CENTER_VERTICAL);
+        root.content.setPadding(0, AndroidUtilities.dp(12), 0, AndroidUtilities.dp(12));
         art.setOnTouchListener(new View.OnTouchListener() {
             float down;
             public boolean onTouch(View v, android.view.MotionEvent e) {
@@ -119,14 +122,20 @@ public class NebulaIntroFragment extends BaseFragment {
         art.setPage(index);
         art.animate().alpha(1f).translationY(0).setDuration(220).start();
         NebulaTheme theme = NebulaTheme.of(title.getContext());
-        title.setText(new String[]{NebulaText.text("Добро пожаловать в NebulaGram", "Welcome to NebulaGram"),
+        title.setText(new String[]{NebulaText.text("Добро пожаловать\nв NebulaGram", "Welcome to\nNebulaGram"),
                 NebulaText.text("Настрой под себя", "Make it yours"), NebulaText.text("Твоё личное пространство", "Your private space"),
                 NebulaText.text("Помощник в твоём ритме", "An assistant at your pace"), NebulaText.text("NebulaLink рядом", "NebulaLink, built in")}[index]);
-        subtitle.setText(LocaleController.getString(SUBTITLES[index]));
+        subtitle.setText(new String[]{
+                NebulaText.text("Любимые чаты, близкие люди и больше возможностей для общения.", "Your favorite chats, your people, and more ways to connect."),
+                NebulaText.text("Темы, иконки и папки. Собери удобное пространство для своих разговоров.", "Themes, icons and folders. Make room for the way you chat."),
+                NebulaText.text("Управляй приватностью и защищай приложение кодом или биометрией.", "Manage your privacy and protect the app with a passcode or biometrics."),
+                NebulaText.text("Переводи сообщения и выделяй главное с помощью выбранной тобой модели ИИ.", "Translate messages and find the key points with the AI model you choose."),
+                NebulaText.text("Добавь подписку Xray, выбери сервер и управляй подключением прямо здесь.", "Add an Xray subscription, pick a server, and manage your connection right here.")
+        }[index]);
         next.setText(LocaleController.getString(index == TITLES.length - 1
                 ? R.string.NebulaAuthStart : R.string.NebulaIntroNext));
         language.setVisibility(index == 0 ? View.VISIBLE : View.GONE);
-        skip.setVisibility(index > 0 && index < TITLES.length - 1 ? View.VISIBLE : View.GONE);
+        skip.setVisibility(index == 0 ? View.GONE : index == TITLES.length - 1 ? View.INVISIBLE : View.VISIBLE);
         if (progress != null) actions.removeView(progress);
         progress = dots(actions.getContext(), index);
         actions.addView(progress, 0);

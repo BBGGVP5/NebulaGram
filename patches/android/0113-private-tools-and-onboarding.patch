@@ -1,0 +1,481 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/MediaController.java b/TMessagesProj/src/main/java/org/telegram/messenger/MediaController.java
+index a0c7a7c..16b00b3 100644
+--- a/TMessagesProj/src/main/java/org/telegram/messenger/MediaController.java
++++ b/TMessagesProj/src/main/java/org/telegram/messenger/MediaController.java
+@@ -3620,6 +3620,7 @@ public class MediaController implements AudioManager.OnAudioFocusChangeListener,
+     }
+ 
+     public boolean playMessage(final MessageObject messageObject, boolean silent) {
++        if (app.nebulagram.ui.NebulaChatLocks.locked(messageObject)) return false;
+         if (messageObject == null) {
+             return false;
+         }
+diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/NotificationsController.java b/TMessagesProj/src/main/java/org/telegram/messenger/NotificationsController.java
+index c918dc4..2afbcaf 100644
+--- a/TMessagesProj/src/main/java/org/telegram/messenger/NotificationsController.java
++++ b/TMessagesProj/src/main/java/org/telegram/messenger/NotificationsController.java
+@@ -1799,6 +1799,11 @@ public class NotificationsController extends BaseController implements Notificat
+     }
+ 
+     public String getShortStringForMessage(MessageObject messageObject, String[] userName, boolean[] preview) {
++        if (app.nebulagram.ui.NebulaChatLocks.protectedChat(currentAccount, messageObject.getDialogId())) {
++            if (preview != null) preview[0] = false;
++            if (userName != null && userName.length > 0) userName[0] = LocaleController.getString(R.string.NotificationHiddenName);
++            return LocaleController.getString(R.string.NotificationHiddenMessage);
++        }
+         if (AndroidUtilities.needShowPasscode() || SharedConfig.isWaitingForPasscodeEnter) {
+             return LocaleController.getString(R.string.NotificationHiddenMessage);
+         }
+@@ -2485,6 +2490,10 @@ public class NotificationsController extends BaseController implements Notificat
+     }
+ 
+     private String getStringForMessage(MessageObject messageObject, boolean shortMessage, boolean[] text, boolean[] preview) {
++        if (app.nebulagram.ui.NebulaChatLocks.protectedChat(currentAccount, messageObject.getDialogId())) {
++            if (preview != null) preview[0] = false;
++            return LocaleController.getString(R.string.YouHaveNewMessage);
++        }
+         if (AndroidUtilities.needShowPasscode() || SharedConfig.isWaitingForPasscodeEnter) {
+             return LocaleController.getString(R.string.YouHaveNewMessage);
+         }
+@@ -5103,6 +5112,12 @@ public class NotificationsController extends BaseController implements Notificat
+                 canReply = false;
+             }
+ 
++            if (app.nebulagram.ui.NebulaChatLocks.protectedChat(currentAccount, dialogId)) {
++                name = LocaleController.getString(R.string.NotificationHiddenChatName);
++                photoPath = null;
++                canReply = false;
++            }
++
+             if (photoPath != null) {
+                 avatarFile = getFileLoader().getPathToAttach(photoPath, true);
+                 if (Build.VERSION.SDK_INT < 28) {
+diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/WearReplyReceiver.java b/TMessagesProj/src/main/java/org/telegram/messenger/WearReplyReceiver.java
+index fcc2c87..8a5b321 100644
+--- a/TMessagesProj/src/main/java/org/telegram/messenger/WearReplyReceiver.java
++++ b/TMessagesProj/src/main/java/org/telegram/messenger/WearReplyReceiver.java
+@@ -71,6 +71,7 @@ public class WearReplyReceiver extends BroadcastReceiver {
+     }
+ 
+     private void sendMessage(AccountInstance accountInstance, CharSequence text, long dialog_id, long topicId, int max_id, int[] voiceMsgIds) {
++        if (app.nebulagram.ui.NebulaChatLocks.protectedChat(accountInstance.getCurrentAccount(), dialog_id)) return;
+         MessageObject replyToMsgId = null;
+         MessageObject replyToTopMsgId = null;
+         if (max_id != 0) {
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/BaseFragment.java b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/BaseFragment.java
+index cd61a57..b1df84e 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/BaseFragment.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/BaseFragment.java
+@@ -528,6 +528,7 @@ public abstract class BaseFragment {
+     @CallSuper
+     public void onResume() {
+         isPaused = false;
++        app.nebulagram.ui.NebulaChatLocks.resume(this);
+         if (actionBar != null) {
+             actionBar.onResume();
+         }
+@@ -1473,4 +1474,4 @@ public abstract class BaseFragment {
+     protected void dumpCanvas() {
+         AndroidUtilities.dumpCanvas(fragmentView);
+     }
+-}
+\ No newline at end of file
++}
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Cells/ChatMessageCell.java b/TMessagesProj/src/main/java/org/telegram/ui/Cells/ChatMessageCell.java
+index b19236d..decd6ca 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Cells/ChatMessageCell.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Cells/ChatMessageCell.java
+@@ -4913,6 +4913,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
+ 
+     @Override
+     public boolean onTouchEvent(MotionEvent event) {
++        if (app.nebulagram.ui.NebulaChatLocks.locked(currentMessageObject)) return true;
+         if (app.nebulagram.ui.NebulaMessageFilter.hidden(currentMessageObject)) {
+             if (event.getAction() == MotionEvent.ACTION_UP) {
+                 app.nebulagram.ui.NebulaMessageFilter.reveal(currentMessageObject); invalidate();
+@@ -20171,6 +20172,10 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
+     @SuppressLint("WrongCall")
+     @Override
+     protected void onDraw(Canvas canvas) {
++        if (app.nebulagram.ui.NebulaChatLocks.locked(currentMessageObject)) {
++            app.nebulagram.ui.NebulaChatLocks.mask(canvas, this);
++            return;
++        }
+         if (app.nebulagram.ui.NebulaMessageFilter.hidden(currentMessageObject)) {
+             app.nebulagram.ui.NebulaMessageFilter.draw(canvas, this);
+             return;
+@@ -20178,7 +20183,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
+         drawInternal(canvas);
+     }
+     @Override protected void dispatchDraw(Canvas canvas) {
+-        if (!app.nebulagram.ui.NebulaMessageFilter.hidden(currentMessageObject)) super.dispatchDraw(canvas);
++        if (!app.nebulagram.ui.NebulaChatLocks.locked(currentMessageObject) && !app.nebulagram.ui.NebulaMessageFilter.hidden(currentMessageObject)) super.dispatchDraw(canvas);
+     }
+     private Paint nebulaDeletedPaint;
+     private int nebulaDeletedPaintKey;
+@@ -26783,6 +26788,11 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
+     @Override
+     public void onInitializeAccessibilityNodeInfo(AccessibilityNodeInfo info) {
+         super.onInitializeAccessibilityNodeInfo(info);
++        if (app.nebulagram.ui.NebulaChatLocks.locked(currentMessageObject)) {
++            info.setContentDescription(app.nebulagram.ui.NebulaText.text("Чат под паролем", "Password-protected chat"));
++            info.setClickable(false);
++            return;
++        }
+         if (app.nebulagram.ui.NebulaMessageFilter.hidden(currentMessageObject)) {
+             info.setText(app.nebulagram.ui.NebulaMessageFilter.label());
+             info.setContentDescription(app.nebulagram.ui.NebulaMessageFilter.label());
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Cells/DialogCell.java b/TMessagesProj/src/main/java/org/telegram/ui/Cells/DialogCell.java
+index 85ba489..75c1b8c 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Cells/DialogCell.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Cells/DialogCell.java
+@@ -3759,9 +3759,19 @@ public class DialogCell extends BaseCell implements StoriesListPlaceProvider.Ava
+     private GradientDrawable archiveFadeGradientDrawable;
+     private int archiveFadeGradientDrawableColor;
+ 
++    @Override
++    protected void dispatchDraw(Canvas canvas) {
++        if (app.nebulagram.ui.NebulaChatLocks.protectedChat(currentAccount, currentDialogId)) return;
++        super.dispatchDraw(canvas);
++    }
++
+     @SuppressLint("DrawAllocation")
+     @Override
+     protected void onDraw(Canvas canvas) {
++        if (app.nebulagram.ui.NebulaChatLocks.protectedChat(currentAccount, currentDialogId)) {
++            app.nebulagram.ui.NebulaChatLocks.mask(canvas, this);
++            return;
++        }
+         if (currentDialogId == 0 && customDialog == null) {
+             return;
+         }
+@@ -5469,6 +5479,11 @@ public class DialogCell extends BaseCell implements StoriesListPlaceProvider.Ava
+     @Override
+     public void onInitializeAccessibilityNodeInfo(AccessibilityNodeInfo info) {
+         super.onInitializeAccessibilityNodeInfo(info);
++        if (app.nebulagram.ui.NebulaChatLocks.protectedChat(currentAccount, currentDialogId)) {
++            info.setContentDescription(app.nebulagram.ui.NebulaText.text("Чат защищён паролем", "Password-protected chat"));
++            info.addAction(AccessibilityNodeInfo.ACTION_CLICK);
++            return;
++        }
+         if (isFolderCell() && archivedChatsDrawable != null && SharedConfig.archiveHidden && archivedChatsDrawable.getPullProgress() == 0.0f) {
+             info.setVisibleToUser(false);
+         } else {
+@@ -5488,6 +5503,11 @@ public class DialogCell extends BaseCell implements StoriesListPlaceProvider.Ava
+     @Override
+     public void onPopulateAccessibilityEvent(AccessibilityEvent event) {
+         super.onPopulateAccessibilityEvent(event);
++        if (app.nebulagram.ui.NebulaChatLocks.protectedChat(currentAccount, currentDialogId)) {
++            event.getText().clear();
++            event.getText().add(app.nebulagram.ui.NebulaText.text("Чат защищён паролем", "Password-protected chat"));
++            return;
++        }
+         StringBuilder sb = new StringBuilder();
+         if (titleOverride != null) {
+             sb.append(titleOverride);
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Cells/SharedAudioCell.java b/TMessagesProj/src/main/java/org/telegram/ui/Cells/SharedAudioCell.java
+index 27e392d..313ceab 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Cells/SharedAudioCell.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Cells/SharedAudioCell.java
+@@ -387,6 +387,7 @@ public class SharedAudioCell extends FrameLayout implements DownloadController.F
+ 
+     @Override
+     public boolean onTouchEvent(MotionEvent event) {
++        if (app.nebulagram.ui.NebulaChatLocks.locked(currentMessageObject)) return true;
+         if (currentMessageObject == null) {
+             return super.onTouchEvent(event);
+         }
+@@ -608,6 +609,10 @@ public class SharedAudioCell extends FrameLayout implements DownloadController.F
+     @Override
+     public void onInitializeAccessibilityNodeInfo(AccessibilityNodeInfo info) {
+         super.onInitializeAccessibilityNodeInfo(info);
++        if (app.nebulagram.ui.NebulaChatLocks.locked(currentMessageObject)) {
++            info.setText(app.nebulagram.ui.NebulaText.text("Аудио из чата под паролем", "Audio from a password-protected chat"));
++            return;
++        }
+         info.setEnabled(true);
+         if (currentMessageObject.isMusic()) {
+             info.setText(LocaleController.formatString("AccDescrMusicInfo", R.string.AccDescrMusicInfo, currentMessageObject.getMusicAuthor(), currentMessageObject.getMusicTitle()));
+@@ -662,6 +667,10 @@ public class SharedAudioCell extends FrameLayout implements DownloadController.F
+ 
+     @Override
+     protected void dispatchDraw(Canvas canvas) {
++        if (app.nebulagram.ui.NebulaChatLocks.locked(currentMessageObject)) {
++            app.nebulagram.ui.NebulaChatLocks.mask(canvas, this);
++            return;
++        }
+         if (showName && showNameProgress != 1f) {
+             showNameProgress += 16 / 150f;
+             invalidate();
+@@ -856,4 +865,3 @@ public class SharedAudioCell extends FrameLayout implements DownloadController.F
+         }
+     }
+ }
+-
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Cells/SharedDocumentCell.java b/TMessagesProj/src/main/java/org/telegram/ui/Cells/SharedDocumentCell.java
+index 8495bec..42043ea 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Cells/SharedDocumentCell.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Cells/SharedDocumentCell.java
+@@ -693,6 +693,10 @@ public class SharedDocumentCell extends FrameLayout implements DownloadControlle
+     @Override
+     public void onInitializeAccessibilityNodeInfo(AccessibilityNodeInfo info) {
+         super.onInitializeAccessibilityNodeInfo(info);
++        if (app.nebulagram.ui.NebulaChatLocks.locked(message)) {
++            info.setContentDescription(app.nebulagram.ui.NebulaText.text("Файл из чата под паролем", "File from a password-protected chat"));
++            return;
++        }
+         if (checkBox.isChecked()) {
+             info.setCheckable(true);
+             info.setChecked(checkBox.isChecked());
+@@ -711,6 +715,10 @@ public class SharedDocumentCell extends FrameLayout implements DownloadControlle
+ 
+     @Override
+     protected void dispatchDraw(Canvas canvas) {
++        if (app.nebulagram.ui.NebulaChatLocks.locked(message)) {
++            app.nebulagram.ui.NebulaChatLocks.mask(canvas, this);
++            return;
++        }
+         if (enterAlpha != 1f && globalGradientView != null) {
+             canvas.saveLayerAlpha(0, 0, getMeasuredWidth(), getMeasuredHeight(), (int) ((1f - enterAlpha) * 255), Canvas.ALL_SAVE_FLAG);
+             globalGradientView.setViewType(FlickerLoadingView.FILES_TYPE);
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Cells/SharedLinkCell.java b/TMessagesProj/src/main/java/org/telegram/ui/Cells/SharedLinkCell.java
+index bc066b8..b0075c9 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Cells/SharedLinkCell.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Cells/SharedLinkCell.java
+@@ -651,6 +651,7 @@ public class SharedLinkCell extends FrameLayout {
+ 
+     @Override
+     public boolean onTouchEvent(MotionEvent event) {
++        if (app.nebulagram.ui.NebulaChatLocks.locked(message)) return true;
+         boolean result = false;
+         if (message != null && !linkLayout.isEmpty() && delegate != null && delegate.canPerformActions()) {
+             if (event.getAction() == MotionEvent.ACTION_DOWN || (linkPreviewPressed || spoilerPressed != null) && event.getAction() == MotionEvent.ACTION_UP) {
+@@ -863,8 +864,16 @@ public class SharedLinkCell extends FrameLayout {
+         checkBox.setChecked(checked, animated);
+     }
+ 
++    @Override protected void dispatchDraw(Canvas canvas) {
++        if (!app.nebulagram.ui.NebulaChatLocks.locked(message)) super.dispatchDraw(canvas);
++    }
++
+     @Override
+     protected void onDraw(Canvas canvas) {
++        if (app.nebulagram.ui.NebulaChatLocks.locked(message)) {
++            app.nebulagram.ui.NebulaChatLocks.mask(canvas, this);
++            return;
++        }
+         if (viewType == VIEW_TYPE_GLOBAL_SEARCH) {
+             description2TextPaint.setColor(Theme.getColor(Theme.key_windowBackgroundWhiteGrayText3, resourcesProvider));
+         }
+@@ -976,6 +985,10 @@ public class SharedLinkCell extends FrameLayout {
+     @Override
+     public void onInitializeAccessibilityNodeInfo(AccessibilityNodeInfo info) {
+         super.onInitializeAccessibilityNodeInfo(info);
++        if (app.nebulagram.ui.NebulaChatLocks.locked(message)) {
++            info.setContentDescription(app.nebulagram.ui.NebulaText.text("Ссылка из чата под паролем", "Link from a password-protected chat"));
++            return;
++        }
+         StringBuilder sb = new StringBuilder();
+         if (titleLayout != null) {
+             sb.append(titleLayout.getText());
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Cells/SharedPhotoVideoCell2.java b/TMessagesProj/src/main/java/org/telegram/ui/Cells/SharedPhotoVideoCell2.java
+index 3fce55b..fa7de86 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Cells/SharedPhotoVideoCell2.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Cells/SharedPhotoVideoCell2.java
+@@ -467,6 +467,10 @@ public class SharedPhotoVideoCell2 extends FrameLayout {
+     @Override
+     public void onInitializeAccessibilityNodeInfo(AccessibilityNodeInfo info) {
+         super.onInitializeAccessibilityNodeInfo(info);
++        if (app.nebulagram.ui.NebulaChatLocks.locked(currentMessageObject)) {
++            info.setContentDescription(app.nebulagram.ui.NebulaText.text("Медиа из чата под паролем", "Media from a password-protected chat"));
++            return;
++        }
+         try {
+             if (currentMessageObject != null) {
+                 info.setEnabled(true);
+@@ -575,13 +579,25 @@ public class SharedPhotoVideoCell2 extends FrameLayout {
+ 
+     private final RectF bounds = new RectF();
+ 
++    @Override protected void dispatchDraw(Canvas canvas) {
++        if (!app.nebulagram.ui.NebulaChatLocks.locked(currentMessageObject)) super.dispatchDraw(canvas);
++    }
++
+     @Override
+     protected void onDraw(@NonNull Canvas canvas) {
++        if (app.nebulagram.ui.NebulaChatLocks.locked(currentMessageObject)) {
++            app.nebulagram.ui.NebulaChatLocks.mask(canvas, this);
++            return;
++        }
+         super.onDraw(canvas);
+         drawImpl(canvas, false, 1f, 1f, 1f);
+     }
+ 
+     private void drawImpl(Canvas canvas, boolean useFullSize, float sizeProgress, float receiverAlpha, float customsAlpha) {
++        if (app.nebulagram.ui.NebulaChatLocks.locked(currentMessageObject)) {
++            app.nebulagram.ui.NebulaChatLocks.mask(canvas, this);
++            return;
++        }
+         final float padding = getPadding() * sizeProgress;
+         final float leftpadding = isFirst ? padding : 0;
+         final float rightpadding = padding;
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
+index 8f8ba79..20f8762 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
+@@ -17626,6 +17626,7 @@ public class ChatActivity extends BaseFragment implements
+ 
+         @Override
+         public boolean dispatchTouchEvent(MotionEvent ev) {
++            if (app.nebulagram.ui.NebulaChatLocks.intercept(this, ev)) return true;
+             if (messageMetricsView != null) {
+                 messageMetricsView.setIsUserActive();
+             }
+@@ -17931,6 +17932,7 @@ public class ChatActivity extends BaseFragment implements
+ 
+         @Override
+         protected void dispatchDraw(Canvas canvas) {
++            if (app.nebulagram.ui.NebulaChatLocks.draw(canvas, this)) return;
+             chatActivityEnterView.checkAnimation();
+             updateChatListViewTopPadding();
+             if (invalidateMessagesVisiblePart || (chatListItemAnimator != null && chatListItemAnimator.isRunning())) {
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/MediaActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/MediaActivity.java
+index 20b5161..bba64ac 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Components/MediaActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/MediaActivity.java
+@@ -251,6 +251,7 @@ public class MediaActivity extends BaseFragment implements SharedMediaLayout.Sha
+ 
+             @Override
+             public boolean dispatchTouchEvent(MotionEvent ev) {
++                if (app.nebulagram.ui.NebulaChatLocks.intercept(this, ev)) return true;
+                 if (sharedMediaLayout != null && sharedMediaLayout.isInFastScroll()) {
+                     return sharedMediaLayout.dispatchFastScrollEvent(ev);
+                 }
+@@ -264,6 +265,10 @@ public class MediaActivity extends BaseFragment implements SharedMediaLayout.Sha
+             protected void drawList(Canvas blurCanvas, boolean top, ArrayList<IViewWithInvalidateCallback> views) {
+                 sharedMediaLayout.drawListForBlur(blurCanvas, views);
+             }
++            @Override protected void dispatchDraw(Canvas canvas) {
++                if (app.nebulagram.ui.NebulaChatLocks.draw(canvas, this)) return;
++                super.dispatchDraw(canvas);
++            }
+         };
+         fragmentView.needBlur = true;
+         this.fragmentView = fragmentView;
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/SharedMediaLayout.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/SharedMediaLayout.java
+index 8c5d414..65ed409 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Components/SharedMediaLayout.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/SharedMediaLayout.java
+@@ -7591,6 +7591,7 @@ public class SharedMediaLayout extends FrameLayout implements NotificationCenter
+     }
+ 
+     private boolean onItemLongClick(MessageObject item, View view, int a, boolean allowStoryPreview) {
++        if (app.nebulagram.ui.NebulaChatLocks.locked(item)) return false;
+         if (isActionModeShowed || profileActivity.getParentActivity() == null || item == null) {
+             return false;
+         }
+@@ -7763,6 +7764,7 @@ public class SharedMediaLayout extends FrameLayout implements NotificationCenter
+     }
+ 
+     private void onItemClick(int index, View view, MessageObject message, int a, int selectedMode) {
++        if (app.nebulagram.ui.NebulaChatLocks.locked(message)) return;
+         if (message == null || photoVideoChangeColumnsAnimation) {
+             return;
+         }
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/LaunchActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/LaunchActivity.java
+index 100e30d..057cce3 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/LaunchActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/LaunchActivity.java
+@@ -1212,12 +1212,14 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
+             return;
+         }
+         switchingAccount = true;
++        app.nebulagram.ui.NebulaChatLocks.lockAll();
+ 
+         ConnectionsManager.getInstance(currentAccount).setAppPaused(true, false);
+         UserConfig.selectedAccount = account;
+         UserConfig.getInstance(0).saveConfig(false);
+ 
+         checkCurrentAccount();
++        if (isResumed) app.nebulagram.ui.NebulaSettingsSync.get().start(currentAccount);
+         NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.activeAccountChanged, account);
+         if (AndroidUtilities.isTablet()) {
+             layersActionBarLayout.removeAllFragments();
+@@ -6664,6 +6666,8 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
+ 
+     @Override
+     protected void onPause() {
++        app.nebulagram.ui.NebulaChatLocks.lockAll();
++        app.nebulagram.ui.NebulaSettingsSync.get().pause();
+         super.onPause();
+         isResumed = false;
+         pipActivityHandler.onPause();
+@@ -6900,6 +6904,7 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
+     @Override
+     protected void onResume() {
+         super.onResume();
++        app.nebulagram.ui.NebulaSettingsSync.get().start(currentAccount);
+         isResumed = true;
+         pipActivityHandler.onResume();
+         if (onResumeStaticCallback != null) {
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/PhotoViewer.java b/TMessagesProj/src/main/java/org/telegram/ui/PhotoViewer.java
+index 5263dc8..23d7e45 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/PhotoViewer.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/PhotoViewer.java
+@@ -15612,6 +15612,14 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
+     }
+ 
+     private void setImageIndex(int index, boolean init, boolean animateCaption, boolean force) {
++        if (app.nebulagram.ui.NebulaChatLocks.locked(currentAccount, currentDialogId)) {
++            closePhoto(false, false);
++            return;
++        }
++        if (index >= 0 && index < imagesArr.size() && app.nebulagram.ui.NebulaChatLocks.locked(imagesArr.get(index))) {
++            closePhoto(false, false);
++            return;
++        }
+         if (!force && currentIndex == index || placeProvider == null) {
+             return;
+         }
+@@ -17412,6 +17420,10 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
+     }
+ 
+     public boolean openPhoto(final MessageObject messageObject, final TLRPC.FileLocation fileLocation, final ImageLocation imageLocation, final ImageLocation videoLocation, final ArrayList<MessageObject> messages, final ArrayList<SecureDocument> documents, final ArrayList<Object> photos, final int index, final PhotoViewerProvider provider, ChatActivity chatActivity, long dialogId, long mDialogId, long topicId, boolean fullScreenVideo, PageBlocksAdapter pageBlocksAdapter, Integer embedSeekTime) {
++        if (app.nebulagram.ui.NebulaChatLocks.locked(UserConfig.selectedAccount, dialogId)) return false;
++        if (app.nebulagram.ui.NebulaChatLocks.locked(messageObject) ||
++                messages != null && index >= 0 && index < messages.size() && app.nebulagram.ui.NebulaChatLocks.locked(messages.get(index)) ||
++                chatActivity != null && app.nebulagram.ui.NebulaChatLocks.locked(chatActivity.getCurrentAccount(), chatActivity.getDialogId())) return false;
+         if (parentActivity == null || isVisible || provider == null && checkAnimation() || messageObject == null && fileLocation == null && messages == null && photos == null && documents == null && imageLocation == null && pageBlocksAdapter == null) {
+             return false;
+         }
+@@ -18791,6 +18803,10 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
+     public boolean isVisible() {
+         return isVisible && placeProvider != null;
+     }
++    public boolean isNebulaLocked() {
++        return isVisible() && (app.nebulagram.ui.NebulaChatLocks.locked(currentAccount, currentDialogId)
++                || app.nebulagram.ui.NebulaChatLocks.locked(currentMessageObject));
++    }
+ 
+     private void updateMinMax(float scale) {
+         if (aspectRatioFrameLayout != null && aspectRatioFrameLayout.getVisibility() == View.VISIBLE && textureUploaded) {
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
+index 2326e3f..18ba197 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
+@@ -3017,6 +3017,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+ 
+             @Override
+             public boolean dispatchTouchEvent(MotionEvent ev) {
++                if (app.nebulagram.ui.NebulaChatLocks.intercept(this, ev)) return true;
+                 if (pinchToZoomHelper.isInOverlayMode()) {
+                     return pinchToZoomHelper.onTouchEvent(ev);
+                 }
+@@ -3313,6 +3314,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+ 
+             @Override
+             protected void dispatchDraw(Canvas canvas) {
++                if (app.nebulagram.ui.NebulaChatLocks.draw(canvas, this)) return;
+                 if (Build.VERSION.SDK_INT >= 31 && scrollableViewNoiseSuppressor != null) {
+                     blur3_InvalidateBlur();
+ 

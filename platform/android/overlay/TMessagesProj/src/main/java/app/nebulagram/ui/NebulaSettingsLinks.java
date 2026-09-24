@@ -76,6 +76,8 @@ public final class NebulaSettingsLinks {
             else if (section == -1) host.presentFragment(new NebulaSettingsFragment());
             else if (section == -16) host.presentFragment(new NebulaTasksFragment());
             else if (section == -17) host.presentFragment(new NebulaMessageToolsFragment(null));
+            else if (section == -18) host.presentFragment(new NebulaSyncFragment());
+            else if (section == -19) host.presentFragment(new NebulaLockedChatsFragment());
             else if (section == -12) host.presentFragment(new NebulaAiFragment());
             else if (section == -10 || section == -11) host.presentFragment(new NebulaDesignFragment(section == -11));
             else if (section == -13) host.presentFragment(new NebulaUpdatesFragment());
