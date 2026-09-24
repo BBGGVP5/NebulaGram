@@ -57,19 +57,22 @@ public class NebulaConnectFragment extends BaseFragment {
         image.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
         // Плитки под рисунком нет: в макетах её не было, а здесь она ещё и
         // срезала расходящуюся волну по краям квадрата.
-        int badge = NebulaLoginStyle.compact(248);
+        int badge = NebulaLoginStyle.compact(220);
         LinearLayout.LayoutParams badgeParams = new LinearLayout.LayoutParams(badge, badge);
         badgeParams.gravity = Gravity.CENTER_HORIZONTAL;
-        badgeParams.bottomMargin = NebulaLoginStyle.compact(16);
+        badgeParams.bottomMargin = NebulaLoginStyle.compact(12);
         root.content.addView(image, badgeParams);
 
-        title = NebulaIntroFragment.text(context, 24 + 6 * NebulaLoginStyle.vertical(), theme.onSurface(), true);
+        root.content.setGravity(Gravity.CENTER_VERTICAL);
+        root.content.setPadding(0, NebulaLoginStyle.compact(12), 0, NebulaLoginStyle.compact(12));
+        title = NebulaIntroFragment.text(context, 23 + 3 * NebulaLoginStyle.vertical(), theme.onSurface(), true);
         title.setGravity(Gravity.CENTER);
         title.setText(NebulaIntroFragment.highlight(
                 LocaleController.getString(R.string.NebulaAuthLinkTitle), "NebulaLink", theme.primary()));
         root.content.addView(title, NebulaIntroFragment.width());
-        subtitle = NebulaIntroFragment.text(context, 15, theme.onSurfaceVariant(), false);
+        subtitle = NebulaIntroFragment.text(context, 14, theme.onSurfaceVariant(), false);
         subtitle.setGravity(Gravity.CENTER);
+        subtitle.setMaxLines(3);
         subtitle.setText(LocaleController.getString(R.string.NebulaAuthLinkSubtitle));
         LinearLayout.LayoutParams subtitleParams = NebulaIntroFragment.width();
         subtitleParams.topMargin = AndroidUtilities.dp(12);
@@ -108,7 +111,7 @@ public class NebulaConnectFragment extends BaseFragment {
         });
         field.addView(input, NebulaIntroFragment.width());
         LinearLayout.LayoutParams fieldParams = NebulaIntroFragment.width();
-        fieldParams.topMargin = NebulaLoginStyle.compact(28);
+        fieldParams.topMargin = NebulaLoginStyle.compact(22);
         root.content.addView(field, fieldParams);
 
         hint = NebulaIntroFragment.text(context, 12, theme.onSurfaceVariant(), false);
@@ -147,18 +150,18 @@ public class NebulaConnectFragment extends BaseFragment {
         root.content.addView(status, statusParams);
 
         connect = new NebulaButton(context, NebulaButton.STYLE_FILLED);
-        connect.setText(LocaleController.getString(R.string.NebulaConnect));
+        connect.setText(LocaleController.getString(R.string.NebulaConnect) + (LocaleController.isRTL ? "  ←" : "  →"));
         connect.setOnClickListener(v -> submit());
         NebulaOnboardingLayout.action(connect);
         root.actions.addView(connect);
         another = new NebulaButton(context, NebulaButton.STYLE_TEXT);
-        another.setText(LocaleController.getString(R.string.NebulaAuthPickAnother));
+        another.setText(LocaleController.getString(R.string.NebulaAuthPickAnother) + (LocaleController.isRTL ? "  ←" : "  →"));
         another.setVisibility(View.GONE);
         another.setOnClickListener(v -> paste());
         NebulaOnboardingLayout.action(another);
         root.actions.addView(another);
         NebulaButton skip = new NebulaButton(context, NebulaButton.STYLE_TEXT);
-        skip.setText(LocaleController.getString(R.string.NebulaAuthDirectAction));
+        skip.setText(LocaleController.getString(R.string.NebulaAuthDirectAction) + (LocaleController.isRTL ? "  ←" : "  →"));
         skip.setOnClickListener(v -> openLogin());
         NebulaOnboardingLayout.action(skip);
         root.actions.addView(skip);
@@ -359,7 +362,7 @@ public class NebulaConnectFragment extends BaseFragment {
         busy = false;
         input.setEnabled(true);
         connect.setEnabled(true);
-        connect.setText(LocaleController.getString(R.string.NebulaConnect));
+        connect.setText(LocaleController.getString(R.string.NebulaConnect) + (LocaleController.isRTL ? "  ←" : "  →"));
     }
 
     private void fail(String message) {

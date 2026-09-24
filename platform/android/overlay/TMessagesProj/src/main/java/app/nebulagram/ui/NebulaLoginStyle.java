@@ -202,8 +202,8 @@ public final class NebulaLoginStyle {
 
     private static void decorate(SlideView slide, TextView title, TextView subtitle, int step, int eyebrow) {
         slide.setTag(R.id.nebula_auth_step, step);
-        slide.setGravity(Gravity.CENTER_VERTICAL);
-        slide.setPadding(0, compact(42), 0, compact(24));
+        slide.setGravity(Gravity.CENTER_VERTICAL | Gravity.CENTER_HORIZONTAL);
+        slide.setPadding(AndroidUtilities.dp(8), compact(26), AndroidUtilities.dp(8), compact(20));
         slide.setLayoutDirection(LocaleController.isRTL ? View.LAYOUT_DIRECTION_RTL : View.LAYOUT_DIRECTION_LTR);
 
         // Нажатие мимо поля убирает клавиатуру. Пустое место экрана иначе
@@ -247,7 +247,7 @@ public final class NebulaLoginStyle {
             badge.setBackground(surface(28));
         }
         badge.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
-        final int side = compact(animated ? 200 : 88);
+        final int side = compact(animated ? 188 : 84);
         // Экрану номера высота квадрата ни к чему: там широкая полоса
         // барабанов, и под ней с над ней оставалась пустота в треть картинки.
         final int tall = step == 2 ? compact(112) : side;
@@ -259,15 +259,21 @@ public final class NebulaLoginStyle {
         stepLabel.setText(LocaleController.getString(eyebrow));
         stepLabel.setTextSize(TypedValue.COMPLEX_UNIT_SP, 11);
         stepLabel.setTypeface(AndroidUtilities.bold());
-        stepLabel.setLetterSpacing(0.10f);
+        stepLabel.setLetterSpacing(0.06f);
         stepLabel.setGravity(Gravity.CENTER);
         stepLabel.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlueText4));
-        LinearLayout.LayoutParams stepParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        stepParams.bottomMargin = compact(10);
+        stepLabel.setPadding(AndroidUtilities.dp(12), AndroidUtilities.dp(6), AndroidUtilities.dp(12), AndroidUtilities.dp(6));
+        GradientDrawable stepBackground = new GradientDrawable();
+        stepBackground.setColor(ColorUtils.setAlphaComponent(Theme.getColor(Theme.key_windowBackgroundWhiteBlueText4), 28));
+        stepBackground.setCornerRadius(AndroidUtilities.dp(14));
+        stepLabel.setBackground(stepBackground);
+        LinearLayout.LayoutParams stepParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        stepParams.gravity = Gravity.CENTER_HORIZONTAL;
+        stepParams.bottomMargin = compact(12);
         slide.addView(stepLabel, 1, stepParams);
 
         // Кегль ужимается вдвое медленнее отступов: читаемость важнее места.
-        title.setTextSize(TypedValue.COMPLEX_UNIT_SP, 24 + 6 * vertical());
+        title.setTextSize(TypedValue.COMPLEX_UNIT_SP, 22 + 4 * vertical());
         title.setTypeface(AndroidUtilities.bold());
         title.setGravity(Gravity.CENTER);
         // Длинный заголовок обрезался: тридцать пунктов в одну строку не
@@ -277,10 +283,10 @@ public final class NebulaLoginStyle {
         title.setEllipsize(null);
         title.setLineSpacing(AndroidUtilities.dp(2), 1f);
         margins(title, 0, 0, 0, 0);
-        subtitle.setTextSize(TypedValue.COMPLEX_UNIT_SP, 13.5f + 1.5f * vertical());
+        subtitle.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14 + vertical());
         subtitle.setGravity(Gravity.CENTER);
         subtitle.setLineSpacing(AndroidUtilities.dp(3), 1f);
-        margins(subtitle, 4, Math.round(12 * vertical()), 4, 0);
+        margins(subtitle, 8, Math.round(10 * vertical()), 8, 0);
     }
 
     private static void margins(View view, int left, int top, int right, int bottom) {

@@ -36,7 +36,9 @@ public class NebulaIntroFragment extends BaseFragment {
     private NebulaButton next;
     private NebulaButton language;
     private NebulaButton skip;
+    private NebulaButton previous;
     private LinearLayout actions;
+    private LinearLayout secondaryActions;
     private View progress;
     private Runnable onContinue;
 
@@ -61,13 +63,12 @@ public class NebulaIntroFragment extends BaseFragment {
 
         title = text(context, 24, theme.onSurface(), true);
         title.setGravity(Gravity.CENTER);
-        title.setMinLines(2);
+        title.setMaxLines(2);
         root.content.addView(title, width());
 
         subtitle = text(context, 15, theme.onSurfaceVariant(), false);
         subtitle.setGravity(Gravity.CENTER);
-        subtitle.setMinLines(3);
-        title.setMinLines(2);
+        subtitle.setMaxLines(4);
         LinearLayout.LayoutParams subtitleParams = width();
         subtitleParams.topMargin = AndroidUtilities.dp(8);
         root.content.addView(subtitle, subtitleParams);
@@ -87,7 +88,7 @@ public class NebulaIntroFragment extends BaseFragment {
         });
         root.actions.addView(next);
         root.content.setGravity(Gravity.CENTER_VERTICAL);
-        root.content.setPadding(0, AndroidUtilities.dp(12), 0, AndroidUtilities.dp(12));
+        root.content.setPadding(0, NebulaLoginStyle.compact(14), 0, NebulaLoginStyle.compact(12));
         art.setOnTouchListener(new View.OnTouchListener() {
             float down;
             public boolean onTouch(View v, android.view.MotionEvent e) {
@@ -104,12 +105,21 @@ public class NebulaIntroFragment extends BaseFragment {
         language.setText(LocaleController.getString(R.string.NebulaChangeLanguage));
         NebulaOnboardingLayout.action(language);
         language.setOnClickListener(v -> presentFragment(new org.telegram.ui.LanguageSelectActivity()));
-        root.actions.addView(language);
         skip = new NebulaButton(context, NebulaButton.STYLE_TEXT);
         skip.setText(LocaleController.getString(R.string.NebulaIntroSkip));
         NebulaOnboardingLayout.action(skip);
         skip.setOnClickListener(v -> continueToSignIn());
-        root.actions.addView(skip);
+        previous = new NebulaButton(context, NebulaButton.STYLE_TEXT);
+        previous.setText(NebulaText.text("← Назад", "← Back"));
+        NebulaOnboardingLayout.action(previous);
+        previous.setOnClickListener(v -> showPage(Math.max(0, page - 1)));
+        secondaryActions = new LinearLayout(context);
+        secondaryActions.setOrientation(LinearLayout.HORIZONTAL);
+        secondaryActions.setGravity(Gravity.CENTER);
+        root.actions.addView(secondaryActions);
+        addSecondary(previous);
+        addSecondary(language);
+        addSecondary(skip);
         actions = root.actions;
         showPage(page);
         fragmentView = root;
@@ -133,9 +143,11 @@ public class NebulaIntroFragment extends BaseFragment {
                 NebulaText.text("Добавь подписку Xray, выбери сервер и управляй подключением прямо здесь.", "Add an Xray subscription, pick a server, and manage your connection right here.")
         }[index]);
         next.setText(LocaleController.getString(index == TITLES.length - 1
-                ? R.string.NebulaAuthStart : R.string.NebulaIntroNext));
+                ? R.string.NebulaAuthStart : R.string.NebulaIntroNext)
+                + (LocaleController.isRTL ? "  ←" : "  →"));
+        previous.setVisibility(index == 0 ? View.GONE : View.VISIBLE);
         language.setVisibility(index == 0 ? View.VISIBLE : View.GONE);
-        skip.setVisibility(index == 0 ? View.GONE : index == TITLES.length - 1 ? View.INVISIBLE : View.VISIBLE);
+        skip.setVisibility(index > 0 && index < TITLES.length - 1 ? View.VISIBLE : View.INVISIBLE);
         if (progress != null) actions.removeView(progress);
         progress = dots(actions.getContext(), index);
         actions.addView(progress, 0);
@@ -151,8 +163,21 @@ public class NebulaIntroFragment extends BaseFragment {
             shape.setColor(i==selected ? 0xff65b9ee : NebulaTheme.of(context).outline()); dot.setBackground(shape);
             LinearLayout.LayoutParams size = new LinearLayout.LayoutParams(AndroidUtilities.dp(6),AndroidUtilities.dp(6));
             size.leftMargin=AndroidUtilities.dp(4);size.rightMargin=AndroidUtilities.dp(4);row.addView(dot,size);
+            final int pageIndex = i;
+            dot.setContentDescription(NebulaText.text("Экран " + (i + 1), "Page " + (i + 1)));
+            dot.setOnClickListener(v -> showPage(pageIndex));
+            dot.setClickable(true);
+            dot.setFocusable(true);
         }
         return row;
+    }
+
+    private void addSecondary(NebulaButton button) {
+        button.setSingleLine();
+        button.setTextSize(TypedValue.COMPLEX_UNIT_SP, 13);
+        button.setPadding(AndroidUtilities.dp(4), 0, AndroidUtilities.dp(4), 0);
+        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(0, AndroidUtilities.dp(44), 1f);
+        secondaryActions.addView(button, params);
     }
 
     private void continueToSignIn() {
