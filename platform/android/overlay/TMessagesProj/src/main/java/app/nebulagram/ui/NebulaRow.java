@@ -258,6 +258,8 @@ public class NebulaRow extends FrameLayout {
         super.onMeasure(widthMeasureSpec, heightMeasureSpec);
     }
 
+    public String linkTitle() { return title.getText().toString(); }
+
     public NebulaRow title(CharSequence value) {
         title.setText(value);
         return this;

@@ -56,14 +56,14 @@ public class NebulaIntroFragment extends BaseFragment {
 
         art = new NebulaIntroArt(context);
         LinearLayout.LayoutParams artParams = width();
-        artParams.bottomMargin = NebulaLoginStyle.compact(26);
+        artParams.bottomMargin = NebulaLoginStyle.compact(18);
         root.content.addView(art, artParams);
 
-        title = text(context, 26 + 6 * NebulaLoginStyle.vertical(), theme.onSurface(), true);
+        title = text(context, 23, theme.onSurface(), true);
         title.setGravity(Gravity.CENTER);
         root.content.addView(title, width());
 
-        subtitle = text(context, 16, theme.onSurfaceVariant(), false);
+        subtitle = text(context, 15, theme.onSurfaceVariant(), false);
         subtitle.setGravity(Gravity.CENTER);
         LinearLayout.LayoutParams subtitleParams = width();
         subtitleParams.topMargin = AndroidUtilities.dp(14);
@@ -71,11 +71,32 @@ public class NebulaIntroFragment extends BaseFragment {
 
         next = new NebulaButton(context, NebulaButton.STYLE_FILLED);
         NebulaOnboardingLayout.action(next);
+        android.graphics.drawable.GradientDrawable gradient = new android.graphics.drawable.GradientDrawable(
+                android.graphics.drawable.GradientDrawable.Orientation.LEFT_RIGHT, new int[]{0xff675fe8, 0xff289fc4});
+        gradient.setCornerRadius(AndroidUtilities.dp(28));
+        android.graphics.drawable.GradientDrawable mask = new android.graphics.drawable.GradientDrawable();
+        mask.setColor(-1); mask.setCornerRadius(AndroidUtilities.dp(28));
+        next.setBackground(new android.graphics.drawable.RippleDrawable(android.content.res.ColorStateList.valueOf(0x30ffffff), gradient, mask));
+        next.setTextColor(0xffffffff);
         next.setOnClickListener(v -> {
             if (page < TITLES.length - 1) showPage(page + 1);
             else continueToSignIn();
         });
         root.actions.addView(next);
+        root.content.setGravity(Gravity.TOP);
+        root.content.setPadding(0, AndroidUtilities.dp(4), 0, AndroidUtilities.dp(16));
+        art.setOnTouchListener(new View.OnTouchListener() {
+            float down;
+            public boolean onTouch(View v, android.view.MotionEvent e) {
+                if (e.getAction() == android.view.MotionEvent.ACTION_DOWN) { down = e.getX(); return true; }
+                if (e.getAction() == android.view.MotionEvent.ACTION_UP) {
+                    float dx = e.getX() - down;
+                    if (Math.abs(dx) > AndroidUtilities.dp(45)) showPage(Math.max(0, Math.min(TITLES.length - 1, page + (dx < 0 ? 1 : -1))));
+                    return true;
+                }
+                return true;
+            }
+        });
         language = new NebulaButton(context, NebulaButton.STYLE_TEXT);
         language.setText(LocaleController.getString(R.string.NebulaChangeLanguage));
         NebulaOnboardingLayout.action(language);
@@ -94,19 +115,35 @@ public class NebulaIntroFragment extends BaseFragment {
 
     private void showPage(int index) {
         page = index;
+        art.animate().cancel(); art.setAlpha(0f); art.setTranslationY(AndroidUtilities.dp(8));
         art.setPage(index);
+        art.animate().alpha(1f).translationY(0).setDuration(220).start();
         NebulaTheme theme = NebulaTheme.of(title.getContext());
-        title.setText(highlight(LocaleController.getString(TITLES[index]),
-                index == 4 ? "NebulaLink" : "NebulaGram", theme.primary()));
+        title.setText(new String[]{NebulaText.text("Добро пожаловать в NebulaGram", "Welcome to NebulaGram"),
+                NebulaText.text("Настрой под себя", "Make it yours"), NebulaText.text("Твоё личное пространство", "Your private space"),
+                NebulaText.text("Помощник в твоём ритме", "An assistant at your pace"), NebulaText.text("NebulaLink рядом", "NebulaLink, built in")}[index]);
         subtitle.setText(LocaleController.getString(SUBTITLES[index]));
         next.setText(LocaleController.getString(index == TITLES.length - 1
                 ? R.string.NebulaAuthStart : R.string.NebulaIntroNext));
         language.setVisibility(index == 0 ? View.VISIBLE : View.GONE);
         skip.setVisibility(index > 0 && index < TITLES.length - 1 ? View.VISIBLE : View.GONE);
         if (progress != null) actions.removeView(progress);
-        progress = NebulaProgress.build(actions.getContext(), TITLES.length, index);
-        actions.addView(progress);
+        progress = dots(actions.getContext(), index);
+        actions.addView(progress, 0);
         title.announceForAccessibility(title.getText());
+    }
+
+    private View dots(Context context, int selected) {
+        LinearLayout row = new LinearLayout(context); row.setGravity(Gravity.CENTER);
+        row.setPadding(0, AndroidUtilities.dp(8), 0, AndroidUtilities.dp(18));
+        for (int i=0;i<TITLES.length;i++) {
+            View dot = new View(context); android.graphics.drawable.GradientDrawable shape = new android.graphics.drawable.GradientDrawable();
+            shape.setShape(android.graphics.drawable.GradientDrawable.OVAL);
+            shape.setColor(i==selected ? 0xff65b9ee : NebulaTheme.of(context).outline()); dot.setBackground(shape);
+            LinearLayout.LayoutParams size = new LinearLayout.LayoutParams(AndroidUtilities.dp(6),AndroidUtilities.dp(6));
+            size.leftMargin=AndroidUtilities.dp(4);size.rightMargin=AndroidUtilities.dp(4);row.addView(dot,size);
+        }
+        return row;
     }
 
     private void continueToSignIn() {

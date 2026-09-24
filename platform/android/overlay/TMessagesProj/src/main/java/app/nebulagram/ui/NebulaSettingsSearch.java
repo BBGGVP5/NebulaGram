@@ -16,7 +16,9 @@ public final class NebulaSettingsSearch {
         }
         Entry(int section, String title, String info, int icon) { this.section = section; this.title = title; this.info = info; this.icon = icon; }
         public void open(BaseFragment f) {
-            if (section == -1) f.presentFragment(new NebulaSettingsFragment());
+            if (section == -16) f.presentFragment(new NebulaTasksFragment());
+            else if (section == -17) f.presentFragment(new NebulaMessageToolsFragment(null));
+            else if (section == -1) f.presentFragment(new NebulaSettingsFragment());
             else if (section == -10 || section == -11) f.presentFragment(new NebulaDesignFragment(section == -11));
             else if (section == -12) f.presentFragment(new NebulaAiFragment());
             else if (section == -13) f.presentFragment(new NebulaUpdatesFragment());
@@ -105,6 +107,8 @@ public final class NebulaSettingsSearch {
         result.add(new Entry(2, R.string.NebulaHideHomeCamera, R.string.NebulaHideHomeCameraInfo, R.drawable.outline_fab_story_24));
         result.add(new Entry(2, R.string.NebulaHideHomeCompose, R.string.NebulaHideHomeComposeInfo, R.drawable.filled_fab_compose_32));
         result.add(new Entry(-15, NebulaText.text("Конфиденциальность", "Privacy"), NebulaText.text("Локальные копии, удалённые сообщения и пересылка", "Local copies, deleted messages and forwarding"), R.drawable.msg_secret));
+        result.add(new Entry(-16, NebulaText.text("Список дел", "Tasks"), NebulaText.text("Задачи и напоминания", "Tasks and reminders"), R.drawable.msg_calendar));
+        result.add(new Entry(-17, NebulaText.text("Инструменты текста", "Text tools"), NebulaText.text("Перевод, голос, краткое содержание", "Translation, speech, summaries"), R.drawable.msg_customize));
         return result;
     }
     private static String normalize(String s) { return s.toLowerCase(Locale.ROOT).replace('ё', 'е').trim(); }

@@ -53,6 +53,28 @@ public class AiProtocolCheck {
         for (String url : Arrays.asList("http://example.test", "https://user:password@example.test", "https://example.test?key=secret", "https://example.test#fragment")) {
             try { NebulaAiClient.base(3, url); throw new AssertionError("unsafe base accepted"); } catch (IOException expected) { }
         }
+        File audio = File.createTempFile("nebula-audio-test", ".ogg");
+        try {
+            byte[] bytes = new byte[]{'O','g','g','S',0,1,2,3};
+            java.nio.file.Files.write(audio.toPath(), bytes);
+            responses.add("{\"outputs\":[{\"type\":\"text\",\"text\":\"Transcript\"}]}");
+            check("Transcript".equals(new NebulaAiClient().transcribe(2,"","test-key","models/audio-model",audio,"audio/ogg")), "transcript output");
+            Fake upload = requests.get(requests.size()-1);
+            check(upload.getURL().getPath().endsWith("/interactions"), "transcription endpoint");
+            check(!upload.json().getBoolean("store"), "transcription stored");
+            JSONObject part = upload.json().getJSONArray("input").getJSONObject(1);
+            check("audio".equals(part.getString("type")), "audio input type");
+            check("audio/ogg".equals(part.getString("mime_type")), "audio MIME");
+            check(Arrays.equals(bytes, Base64.getDecoder().decode(part.getString("data"))), "upload integrity");
+            int count = requests.size();
+            NebulaAiClient cancelledAudio = new NebulaAiClient(); cancelledAudio.cancel();
+            try { cancelledAudio.transcribe(2,"","test-key","audio-model",audio,"audio/ogg"); throw new AssertionError("cancelled audio upload"); } catch (InterruptedIOException expected) { }
+            check(requests.size()==count, "cancelled audio must not connect");
+            try { new NebulaAiClient().transcribe(0,"","test-key","audio-model",audio,"audio/ogg"); throw new AssertionError("unsupported audio provider"); } catch (IOException expected) { }
+            try(RandomAccessFile oversized=new RandomAccessFile(audio,"rw")){oversized.setLength(14_000_001);}
+            try { new NebulaAiClient().transcribe(2,"","test-key","audio-model",audio,"audio/ogg"); throw new AssertionError("oversized audio accepted"); } catch (IOException expected) { }
+            check(requests.size()==count, "invalid audio must not connect");
+        } finally { audio.delete(); }
         status = 307;
         try { new NebulaAiClient().models(0, "", "test-key"); throw new AssertionError("redirect accepted"); } catch (IOException expected) { check(expected.getMessage().equals("HTTP 307"), "safe error message"); }
         NebulaAiClient cancelled = new NebulaAiClient(); cancelled.cancel();

@@ -1,172 +1,93 @@
 package app.nebulagram.ui;
 
 import android.content.Context;
-import android.graphics.Canvas;
-import android.graphics.Paint;
-import android.graphics.Path;
-import android.graphics.RectF;
+import android.graphics.*;
 import android.view.View;
-
 import org.telegram.messenger.AndroidUtilities;
+import org.telegram.messenger.R;
 
-/** Small native illustrations for the welcome pages; no screenshot or remote asset. */
+/** Localized product previews with an original illustrated Nebula mascot. */
 public final class NebulaIntroArt extends View {
-    private final Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
-    private final RectF rect = new RectF();
-    private final Path path = new Path();
-    private final NebulaTheme theme;
+    private final Paint p = new Paint(3);
+    private final RectF r = new RectF();
+    private final Bitmap astronaut;
     private int page;
-
+    private final int ink = 0xfff2f5ff, muted = 0xffa9b8cd, cyan = 0xff57dfe0;
     public NebulaIntroArt(Context context) {
         super(context);
-        theme = NebulaTheme.of(context);
+        BitmapFactory.Options options = new BitmapFactory.Options(); options.inSampleSize = 2;
+        astronaut = BitmapFactory.decodeResource(getResources(), R.drawable.nebula_intro_astronaut, options);
         setImportantForAccessibility(IMPORTANT_FOR_ACCESSIBILITY_NO);
     }
-
-    public void setPage(int page) {
-        this.page = page;
-        invalidate();
+    public void setPage(int value) { page = value; invalidate(); }
+    @Override protected void onMeasure(int w, int h) {
+        int width = MeasureSpec.getSize(w);
+        int height = Math.min(Math.round(width * 1.06f), AndroidUtilities.dp(360 * NebulaLoginStyle.vertical()));
+        setMeasuredDimension(width, height);
     }
-
-    @Override protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-        setMeasuredDimension(MeasureSpec.getSize(widthMeasureSpec),
-                AndroidUtilities.dp(250 * NebulaLoginStyle.vertical()));
+    private String t(String ru, String en) { return NebulaText.text(ru, en); }
+    @Override protected void onDraw(Canvas c) {
+        float scale = Math.min(getWidth()/360f, getHeight()/380f);
+        c.save(); c.translate((getWidth()-360*scale)/2, (getHeight()-380*scale)/2); c.scale(scale, scale);
+        p.setShader(new RadialGradient(180,195,180,0x334d60db,0x004d60db,Shader.TileMode.CLAMP));
+        c.drawCircle(180,195,180,p); p.setShader(null);
+        if(page==0) welcome(c); else if(page==1) design(c); else if(page==2) privacy(c); else if(page==3) ai(c); else link(c);
+        c.restore();
     }
-
-    @Override protected void onDraw(Canvas canvas) {
-        super.onDraw(canvas);
-        float scale = Math.min(getWidth() / 320f, getHeight() / 250f);
-        canvas.save();
-        canvas.translate((getWidth() - 320 * scale) / 2f, (getHeight() - 250 * scale) / 2f);
-        canvas.scale(scale, scale);
-        orb(canvas, 160, 124, 104, 0x223BCFD8);
-        orb(canvas, 252, 43, 27, 0x225968F7);
-        switch (page) {
-            case 1: drawDesign(canvas); break;
-            case 2: drawPrivacy(canvas); break;
-            case 3: drawAI(canvas); break;
-            case 4: drawLink(canvas); break;
-            default: drawWelcome(canvas); break;
-        }
-        canvas.restore();
+    private void welcome(Canvas c) {
+        c.save(); c.rotate(-5,180,190);
+        card(c,67,44,296,338,24);
+        text(c,"NebulaGram",85,74,17,ink,true);
+        pill(c,81,87,133,109,t("Все","All"),cyan);
+        text(c,t("Личные   Работа","Personal   Work"),143,102,10,muted,false);
+        String[] names={t("Избранное","Saved Messages"),t("Команда Nebula","Nebula team"),t("Аня","Anna"),t("Планы на выходные","Weekend plans")};
+        String[] messages={t("Всё важное — здесь","Keep what matters"),t("Новая идея ✨","A new idea ✨"),t("Увидимся вечером?","See you tonight?"),t("Фото и хорошие новости","Photos and good news")};
+        for(int i=0;i<4;i++) { float y=140+i*46; circle(c,95,y,13,i%2==0?0xff667ced:0xff32b7bd);text(c,names[i],117,y-3,10,ink,true);text(c,messages[i],117,y+12,8,muted,false); }
+        card(c,91,302,271,329,14); text(c,"●                 ✦                 ◉",115,321,12,cyan,false);
+        c.restore();
+        sticker(c,190,154,361,374);
+        ribbon(c,15,20,325,64,-3,"✦",t("Добро пожаловать домой","Welcome to your space"));
     }
-
-    private void drawWelcome(Canvas c) {
-        box(c, 52, 16, 268, 225, 26, theme.surfaceContainer());
-        box(c, 65, 30, 255, 65, 14, theme.primaryContainer());
-        label(c, "NebulaGram", 80, 53, 17, theme.onPrimaryContainer(), true);
-        for (int i = 0; i < 3; i++) {
-            int y = 82 + i * 42;
-            orb(c, 86, y + 12, 14, i == 1 ? 0xFF776AF2 : 0xFF32BED8);
-            box(c, 110, y, 233, y + 10, 5, theme.outline());
-            box(c, 110, y + 16, 194 + i * 10, y + 23, 4, theme.primaryContainer());
-        }
-        box(c, 74, 201, 246, 216, 8, theme.primaryContainer());
-        for (int i = 0; i < 3; i++) orb(c, 110 + i * 50, 208, 4, theme.primary());
-        sparkle(c, 264, 110, 14, 0xFF61DEEB);
-        sparkle(c, 43, 172, 8, 0xFF8475FF);
+    private void design(Canvas c) {
+        int[] colors={0xff4fc7c9,0xff7565ee,0xffdd91c4,0xff438adf,0xff365172,0xff758acf};
+        for(int i=0;i<6;i++) { int x=37+(i%3)*100,y=86+(i/3)*106;c.save();c.rotate((i%2==0?-9:8),x+40,y+40); gradient(c,x,y,x+78,y+78,22,colors[i],0xff19253b);text(c,i==4?"N":"✦",x+23,y+54,40,ink,true);c.restore(); }
+        ribbon(c,18,30,301,76,-4,"✦",t("Твой стиль общения","Your style of chatting"));
+        ribbon(c,29,290,343,333,4,"◉",t("Папки, темы и иконки","Folders, themes, icons"));
+        ribbon(c,53,340,303,375,-3,"Aa",t("Всё под рукой","Make it yours"));
     }
-
-    private void drawDesign(Canvas c) {
-        box(c, 42, 38, 228, 211, 23, theme.surfaceContainer());
-        box(c, 55, 51, 215, 87, 12, theme.primaryContainer());
-        label(c, "Aa", 72, 77, 22, theme.onPrimaryContainer(), true);
-        for (int i = 0; i < 3; i++) {
-            orb(c, 77 + i * 48, 119, 17,
-                    new int[]{0xFF42D5E1, 0xFF6478EF, 0xFF9A77EA}[i]);
-        }
-        box(c, 55, 157, 215, 190, 16, theme.primaryContainer());
-        box(c, 61, 162, 107, 185, 12, theme.primary());
-        for (int i = 0; i < 3; i++) orb(c, 83 + i * 52, 174, 4, theme.onPrimaryContainer());
-        box(c, 191, 78, 281, 169, 21, 0xFF39475F);
-        box(c, 202, 90, 270, 109, 9, 0xFF5E7CF1);
-        box(c, 202, 119, 254, 129, 5, 0xFF87DBEA);
-        box(c, 202, 138, 264, 148, 5, 0xFFA5B6D3);
-        sparkle(c, 276, 52, 12, 0xFF70DBE8);
+    private void privacy(Canvas c) {
+        gradient(c,70,47,294,350,28,0xff435678,0xff202a3b);
+        text(c,"••••",145,117,30,ink,true);
+        for(int i=0;i<9;i++){int x=114+(i%3)*65,y=174+(i/3)*48;circle(c,x,y,19,0x203cd4d4);text(c,""+(i+1),x-5,y+6,17,ink,false);}
+        ribbon(c,13,18,298,61,-4,"◇",t("Личное остаётся личным","Your space stays yours"));
+        ribbon(c,32,132,328,176,5,"●",t("Код и биометрия","Passcode and biometrics"));
+        ribbon(c,17,303,312,349,-5,"✦",t("Контроль приватности","Privacy controls"));
     }
-
-    private void drawPrivacy(Canvas c) {
-        box(c, 43, 38, 277, 207, 27, theme.surfaceContainer());
-        box(c, 60, 55, 230, 106, 18, theme.primaryContainer());
-        box(c, 73, 69, 193, 79, 5, theme.onPrimaryContainer());
-        box(c, 73, 86, 210, 93, 4, theme.outline());
-        box(c, 90, 121, 259, 174, 18, 0xFF3A62BE);
-        box(c, 108, 136, 230, 146, 5, 0xFFE9F5FF);
-        box(c, 108, 154, 190, 161, 4, 0xFFA9D3FF);
-        orb(c, 58, 175, 29, 0xFF7181F0);
-        paint.setStyle(Paint.Style.STROKE);
-        paint.setStrokeWidth(4);
-        paint.setColor(0xFFFFFFFF);
-        c.drawRoundRect(46, 171, 70, 187, 5, 5, paint);
-        c.drawArc(50, 159, 66, 179, 185, 170, false, paint);
-        paint.setStyle(Paint.Style.FILL);
-        sparkle(c, 265, 78, 12, 0xFF58D8E6);
+    private void ai(Canvas c) {
+        sticker(c,215,10,356,193);
+        ribbon(c,18,25,255,69,-4,"✦","Nebula AI");
+        gradient(c,46,116,317,182,19,0xff7465dc,0xff435fca);
+        text(c,t("Объясни это проще","Make this easier to understand"),62,143,12,ink,true);
+        text(c,t("И выдели главное","And highlight what matters"),62,164,11,ink,false);
+        card(c,21,202,315,302,21);text(c,"Nebula AI",39,228,13,cyan,true);
+        text(c,t("Конечно. Вот краткий ответ:","Of course. Here is a short answer:"),39,251,11,ink,false);
+        text(c,t("1. Самая важная мысль","1. The key idea"),39,272,11,ink,false);
+        text(c,t("2. Что можно сделать дальше","2. What you can do next"),39,289,11,ink,false);
+        ribbon(c,38,327,336,371,3,"✦",t("Твоя модель. Твой выбор.","Your model. Your choice."));
     }
-
-    private void drawAI(Canvas c) {
-        box(c, 51, 24, 269, 215, 28, theme.surfaceContainer());
-        box(c, 67, 39, 252, 86, 17, theme.primaryContainer());
-        label(c, "Nebula AI", 83, 69, 18, theme.onPrimaryContainer(), true);
-        box(c, 89, 111, 240, 143, 15, theme.primaryContainer());
-        box(c, 75, 158, 220, 193, 16, 0xFF3C5FC5);
-        box(c, 92, 171, 182, 179, 4, 0xFFE3F5FF);
-        orb(c, 54, 114, 27, 0xFF52D6E4);
-        sparkle(c, 54, 114, 18, 0xFFFFFFFF);
-        sparkle(c, 270, 179, 15, 0xFF867BFF);
+    private void link(Canvas c) {
+        card(c,46,76,317,330,24);text(c,"NebulaLink",66,107,20,ink,true);
+        circle(c,181,170,36,0xff304f62);text(c,"⏻",157,184,42,cyan,false);
+        text(c,t("Подключено","Connected"),135,229,14,cyan,true);
+        card(c,65,245,299,283,13);text(c,t("Финляндия","Finland"),79,269,12,ink,true);text(c,"89 ms",245,269,11,cyan,false);
+        ribbon(c,14,22,329,67,-4,"◇",t("Подключение внутри","Connection built in"));
+        ribbon(c,20,318,342,363,3,"↗",t("Выбирай свой сервер","Choose your server"));
     }
-
-    private void drawLink(Canvas c) {
-        box(c, 43, 26, 277, 218, 26, theme.surfaceContainer());
-        box(c, 58, 40, 262, 89, 16, theme.primaryContainer());
-        label(c, "NebulaLink", 75, 71, 18, theme.onPrimaryContainer(), true);
-        paint.setColor(theme.primary());
-        paint.setStrokeWidth(4);
-        paint.setStyle(Paint.Style.STROKE);
-        path.reset();
-        path.moveTo(92, 143);
-        path.cubicTo(132, 111, 174, 194, 228, 143);
-        c.drawPath(path, paint);
-        paint.setStyle(Paint.Style.FILL);
-        orb(c, 91, 143, 17, 0xFF4FD5E3);
-        orb(c, 162, 154, 20, 0xFF6A83F0);
-        orb(c, 229, 143, 17, 0xFF52D9C3);
-        box(c, 79, 191, 241, 204, 7, theme.primaryContainer());
-        for (int i = 0; i < 3; i++) orb(c, 105 + i * 55, 197, 3, theme.primary());
-        sparkle(c, 267, 108, 11, 0xFF62DDEA);
-    }
-
-    private void box(Canvas c, float left, float top, float right, float bottom, float radius, int color) {
-        rect.set(left, top, right, bottom);
-        paint.setStyle(Paint.Style.FILL);
-        paint.setShader(null);
-        paint.setColor(color);
-        c.drawRoundRect(rect, radius, radius, paint);
-    }
-
-    private void orb(Canvas c, float x, float y, float radius, int color) {
-        paint.setShader(null);
-        paint.setColor(color);
-        paint.setStyle(Paint.Style.FILL);
-        c.drawCircle(x, y, radius, paint);
-    }
-
-    private void sparkle(Canvas c, float x, float y, float radius, int color) {
-        path.reset();
-        path.moveTo(x, y - radius);
-        path.quadTo(x + radius * .2f, y - radius * .2f, x + radius, y);
-        path.quadTo(x + radius * .2f, y + radius * .2f, x, y + radius);
-        path.quadTo(x - radius * .2f, y + radius * .2f, x - radius, y);
-        path.quadTo(x - radius * .2f, y - radius * .2f, x, y - radius);
-        paint.setColor(color);
-        paint.setStyle(Paint.Style.FILL);
-        c.drawPath(path, paint);
-    }
-
-    private void label(Canvas c, String value, float x, float baseline, float size, int color, boolean bold) {
-        paint.setShader(null);
-        paint.setColor(color);
-        paint.setTextSize(size);
-        paint.setTypeface(bold ? AndroidUtilities.bold() : null);
-        c.drawText(value, x, baseline, paint);
-    }
+    private void sticker(Canvas c,float l,float t,float rr,float b){if(astronaut!=null){p.setColor(-1);float scale=Math.min((rr-l)/astronaut.getWidth(),(b-t)/astronaut.getHeight());float w=astronaut.getWidth()*scale,h=astronaut.getHeight()*scale;r.set((l+rr-w)/2,(t+b-h)/2,(l+rr+w)/2,(t+b+h)/2);c.drawBitmap(astronaut,null,r,p);}}
+    private void card(Canvas c,float l,float t,float rr,float b,float rad){gradient(c,l,t,rr,b,rad,0xff2c384b,0xff192332);}
+    private void gradient(Canvas c,float l,float t,float rr,float b,float rad,int a,int z){r.set(l,t,rr,b);p.setShader(new LinearGradient(l,t,rr,b,a,z,Shader.TileMode.CLAMP));p.setStyle(Paint.Style.FILL);c.drawRoundRect(r,rad,rad,p);p.setShader(null);p.setStyle(Paint.Style.STROKE);p.setStrokeWidth(.8f);p.setColor(0x30ffffff);c.drawRoundRect(r,rad,rad,p);p.setStyle(Paint.Style.FILL);}
+    private void ribbon(Canvas c,float l,float t,float rr,float b,float angle,String icon,String label){c.save();c.rotate(angle,(l+rr)/2,(t+b)/2);card(c,l,t,rr,b,19);circle(c,l+22,(t+b)/2,13,0xff496ddb);text(c,icon,l+14,(t+b)/2+5,15,ink,true);text(c,label,l+43,(t+b)/2+5,13,ink,true);c.restore();}
+    private void pill(Canvas c,float l,float t,float rr,float b,String text,int color){gradient(c,l,t,rr,b,12,0xff385b6b,0xff2e4256);text(c,text,l+12,b-6,10,color,true);}
+    private void circle(Canvas c,float x,float y,float radius,int color){p.setColor(color);c.drawCircle(x,y,radius,p);}
+    private void text(Canvas c,String s,float x,float y,float size,int color,boolean bold){p.setColor(color);p.setTextSize(size);p.setTypeface(bold?AndroidUtilities.bold():Typeface.DEFAULT);c.drawText(s,x,y,p);}
 }

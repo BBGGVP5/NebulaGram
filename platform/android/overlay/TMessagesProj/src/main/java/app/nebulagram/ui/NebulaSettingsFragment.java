@@ -69,7 +69,7 @@ public class NebulaSettingsFragment extends BaseFragment {
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
 
         build(context);
-        return fragmentView = NebulaSettingsLayout.wrap(context, actionBar, root);
+        return fragmentView = NebulaSettingsLayout.wrap(context, actionBar, root, -1);
     }
 
     @Override public void onActivityResultFragment(int request, int result, android.content.Intent data) {
@@ -161,6 +161,12 @@ public class NebulaSettingsFragment extends BaseFragment {
         tools.add(new NebulaRow(context).icon(R.drawable.msg_emoji_smiles).title(NebulaText.text("Искусственный интеллект", "AI assistant"))
                 .subtitle("Gemini · Claude · GPT", false).trailing(NebulaRow.TRAIL_CHEVRON)
                 .withClick(v -> presentFragment(new NebulaAiFragment())));
+        tools.add(new NebulaRow(context).icon(R.drawable.msg_calendar).title(NebulaText.text("Список дел", "Tasks"))
+                .subtitle(NebulaText.text("Задачи, заметки и напоминания", "Tasks, notes and reminders"), false)
+                .trailing(NebulaRow.TRAIL_CHEVRON).withClick(v -> presentFragment(new NebulaTasksFragment())));
+        tools.add(new NebulaRow(context).icon(R.drawable.msg_customize).title(NebulaText.text("Инструменты текста", "Text tools"))
+                .subtitle(NebulaText.text("Перевод, озвучивание и краткое содержание", "Translation, read aloud and summaries"), false)
+                .trailing(NebulaRow.TRAIL_CHEVRON).withClick(v -> presentFragment(new NebulaMessageToolsFragment(null))));
         tools.add(section(context, R.drawable.msg_info, R.string.NebulaSectionAbout, R.string.NebulaAboutSub, NebulaSectionFragment.SECTION_ABOUT));
         sections.addView(tools, cardParams());
     }

@@ -31,7 +31,7 @@ public final class NebulaDesignFragment extends BaseFragment {
         content = new LinearLayout(c); content.setOrientation(LinearLayout.VERTICAL);
         content.setPadding(dp(16), dp(12), dp(16), dp(28)); scroll.addView(content);
         if (avatars) buildAvatars(c); else buildPacks(c);
-        return fragmentView = NebulaSettingsLayout.wrap(c, actionBar, scroll);
+        return fragmentView = NebulaSettingsLayout.wrap(c, actionBar, scroll, avatars ? -11 : -10);
     }
     private int dp(float v) { return AndroidUtilities.dp(v); }
     private void buildPacks(Context c) {

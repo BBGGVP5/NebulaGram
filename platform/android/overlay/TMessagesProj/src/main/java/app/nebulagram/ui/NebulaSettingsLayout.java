@@ -8,11 +8,18 @@ import org.telegram.ui.ActionBar.ActionBar;
 
 /** Settings own one native bar and lay content below it, never behind it. */
 public final class NebulaSettingsLayout extends FrameLayout {
+    private int linkSection = -100;
     private final ActionBar bar;
     private final View body;
 
     public static View wrap(Context context, ActionBar bar, View body) {
         return new NebulaSettingsLayout(context, bar, body);
+    }
+
+    public static View wrap(Context context, ActionBar bar, View body, int section) {
+        NebulaSettingsLayout layout = new NebulaSettingsLayout(context, bar, body);
+        layout.linkSection = section;
+        return layout;
     }
 
     private NebulaSettingsLayout(Context context, ActionBar bar, View body) {
@@ -44,5 +51,6 @@ public final class NebulaSettingsLayout extends FrameLayout {
         int top = bar.getVisibility() == GONE ? 0 : bar.getMeasuredHeight();
         bar.layout(0, 0, getMeasuredWidth(), top);
         body.layout(0, top, getMeasuredWidth(), top + body.getMeasuredHeight());
+        if (linkSection != -100) NebulaSettingsLinks.bind(body, linkSection);
     }
 }

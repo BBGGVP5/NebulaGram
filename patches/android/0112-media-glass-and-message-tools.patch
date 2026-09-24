@@ -1,0 +1,280 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarMenuItem.java b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarMenuItem.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarMenuItem.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarMenuItem.java
+@@ -796,7 +796,7 @@
+             ((ViewGroup) popupLayout.getParent()).removeView(popupLayout);
+         }
+         ViewGroup container = popupLayout;
+-        if (app.nebulagram.ui.NebulaMenuStyle.enabled()) {
++        if (subMenuFactory == null && app.nebulagram.ui.NebulaMenuStyle.enabled()) {
+             app.nebulagram.ui.NebulaMenuBackdrop.attach(popupLayout, this, resourcesProvider);
+         }
+         app.nebulagram.ui.NebulaMenuStyle.styleRows(popupLayout, resourcesProvider);
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/BottomSheet.java b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/BottomSheet.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/BottomSheet.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/BottomSheet.java
+@@ -1389,6 +1389,16 @@
+             containerView.setBackgroundDrawable(shadowDrawable);
+             containerView.setPadding(backgroundPaddingLeft, (applyTopPadding ? dp(8) : 0) + backgroundPaddingTop - 1, backgroundPaddingLeft, (applyBottomPadding ? dp(8) : 0));
+         }
++        if (app.nebulagram.ui.NebulaMenuStyle.enabled()
++                && !(shadowDrawable instanceof app.nebulagram.ui.NebulaSheetDrawable)) {
++            android.app.Activity owner = AndroidUtilities.findActivity(getContext());
++            if (owner != null) {
++                Drawable previous = shadowDrawable;
++                shadowDrawable = new app.nebulagram.ui.NebulaSheetDrawable(previous, containerView,
++                        owner.getWindow().getDecorView(), resourcesProvider);
++                if (containerView.getBackground() == previous) containerView.setBackground(shadowDrawable);
++            }
++        }
+         containerView.setVisibility(View.INVISIBLE);
+         container.addView(containerView, 0, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.BOTTOM));
+ 
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/MainTabsLayout.java b/TMessagesProj/src/main/java/org/telegram/ui/MainTabsLayout.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/MainTabsLayout.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/MainTabsLayout.java
+@@ -44,6 +44,12 @@
+         nebulaLens.reset();
+         removeCallbacks(nebulaWidthFrame);
+         nebulaWidthMotion.reset();
++        animatorIsScaled.setValue(false, false);
++        nebulaDragging = false;
++        isInLongPress = false;
++        drawCustomSelector = false;
++        nebulaPagerFrom = nebulaPagerTo = null;
++        setScaleX(1f); setScaleY(1f);
+         super.onDetachedFromWindow();
+     }
+ 
+@@ -630,8 +636,9 @@
+     }
+ 
+     private void checkLayerType() {
+-        final int layerType = Math.abs(getScaleX() - 1f) < 0.0001f && Math.abs(getScaleY() - 1f) < 0.0001f ?
+-            View.LAYER_TYPE_NONE : View.LAYER_TYPE_HARDWARE;
++        // The backdrop reads a live RenderNode. A hardware layer caches a stale
++        // refracted outline during press/resize and can leave a second contour.
++        final int layerType = View.LAYER_TYPE_NONE;
+ 
+         if (getLayerType() != layerType) {
+             setLayerType(layerType, null);
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/LaunchActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/LaunchActivity.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/LaunchActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/LaunchActivity.java
+@@ -1561,6 +1561,9 @@
+                 return false;
+             }
+         }
++        String nebulaSettingLink = !restore && (flags & Intent.FLAG_ACTIVITY_LAUNCHED_FROM_HISTORY) == 0
++                && app.nebulagram.ui.NebulaSettingsLinks.isLink(intent.getDataString()) ? intent.getDataString() : null;
++        if (nebulaSettingLink != null) intent.setData(null);
+         boolean nebulaUpdateLink = !restore && (flags & Intent.FLAG_ACTIVITY_LAUNCHED_FROM_HISTORY) == 0
+                 && app.nebulagram.ui.NebulaTelegramUpdates.isUpdateLink(intent.getDataString());
+         if (nebulaUpdateLink) intent.setData(null);
+@@ -3363,6 +3366,11 @@
+         }
+ 
+         intent.setAction(null);
++        if (nebulaSettingLink != null) {
++            final String settingLink = nebulaSettingLink;
++            AndroidUtilities.runOnUIThread(() -> app.nebulagram.ui.NebulaSettingsLinks.open(getLastFragment(), settingLink));
++            return true;
++        }
+         if (nebulaUpdateLink) {
+             AndroidUtilities.runOnUIThread(() -> checkAppUpdate(true, progress));
+             return true;
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/PhotoViewer.java b/TMessagesProj/src/main/java/org/telegram/ui/PhotoViewer.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/PhotoViewer.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/PhotoViewer.java
+@@ -5846,6 +5846,9 @@
+         videoItem.setOnMenuDismiss(byClick -> checkProgress(0, false, false));
+ 
+         menuItem = menu.addItem(0, R.drawable.media_more);
++        // Video-aware source: recording windowView again can clear the SurfaceView hole.
++        menuItem.setBlurredBackgroundFactory(iBlur3FactoryFrostedLiquidGlass,
++                BlurredBackgroundProviderImpl.photoViewer(resourcesProvider));
+         menuItem.setContentDescription(getString(R.string.AccDescrMoreOptions));
+         menuItem.setOnClickListener(v -> {
+             if (currentMessageObject != null && currentMessageObject.isSponsored()) {
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
+@@ -30268,6 +30268,7 @@
+ 
+     @Override
+     public void onPause() {
++        app.nebulagram.ui.NebulaAutoTranslate.stop(currentAccount, getDialogId());
+         clearNebulaAlbumPreview();
+         super.onPause();
+         scrolling = false;
+@@ -33689,6 +33690,9 @@
+         }
+         boolean preserveDim = false;
+         switch (option) {
++            case 7912:
++                presentFragment(new app.nebulagram.ui.NebulaMessageToolsFragment(selectedObject));
++                break;
+             case 7911:
+                 if (app.nebulagram.ui.NebulaAiAvailability.available()) presentFragment(new app.nebulagram.ui.NebulaAiFragment(selectedObject.messageOwner.message));
+                 break;
+@@ -46117,6 +46121,11 @@
+             options.add(7911);
+         }
+ 
++        if (!noforwards && !isEphemeral && message.type != MessageObject.TYPE_PAID_MEDIA
++                && (!TextUtils.isEmpty(message.messageOwner.message) || message.isVoice() || message.isRoundVideo() || message.isVideo())) {
++            items.add(app.nebulagram.ui.NebulaText.text("Инструменты сообщения", "Message tools"));
++            icons.add(R.drawable.msg_customize); options.add(7912);
++        }
+         boolean noforwardsOrPaidMedia = noforwards || message.type == MessageObject.TYPE_PAID_MEDIA;
+         boolean allowUnpin = !isEphemeral && message.getDialogId() != mergeDialogId && allowPin && (pinnedMessageObjects.containsKey(message.getId()) || groupedMessages != null && !groupedMessages.messages.isEmpty() && pinnedMessageObjects.containsKey(groupedMessages.messages.get(0).getId())) && !message.isExpiredStory();
+         boolean allowEdit = !isEphemeral && message.canEditMessage(currentChat) && !chatActivityEnterView.hasAudioToSend() && message.getDialogId() != mergeDialogId && message.type != MessageObject.TYPE_STORY && message.type != MessageObject.TYPE_POLL;
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Cells/ChatMessageCell.java b/TMessagesProj/src/main/java/org/telegram/ui/Cells/ChatMessageCell.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Cells/ChatMessageCell.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Cells/ChatMessageCell.java
+@@ -4913,6 +4913,13 @@
+ 
+     @Override
+     public boolean onTouchEvent(MotionEvent event) {
++        if (app.nebulagram.ui.NebulaMessageFilter.hidden(currentMessageObject)) {
++            if (event.getAction() == MotionEvent.ACTION_UP) {
++                app.nebulagram.ui.NebulaMessageFilter.reveal(currentMessageObject); invalidate();
++            }
++            return true;
++        }
++
+         if (currentMessageObject == null || delegate != null && !delegate.canPerformActions() || animationRunning) {
+             if (currentMessageObject != null && currentMessageObject.preview) {
+                 return checkTextSelection(event);
+@@ -20164,7 +20171,14 @@
+     @SuppressLint("WrongCall")
+     @Override
+     protected void onDraw(Canvas canvas) {
++        if (app.nebulagram.ui.NebulaMessageFilter.hidden(currentMessageObject)) {
++            app.nebulagram.ui.NebulaMessageFilter.draw(canvas, this);
++            return;
++        }
+         drawInternal(canvas);
++    }
++    @Override protected void dispatchDraw(Canvas canvas) {
++        if (!app.nebulagram.ui.NebulaMessageFilter.hidden(currentMessageObject)) super.dispatchDraw(canvas);
+     }
+     private Paint nebulaDeletedPaint;
+     private int nebulaDeletedPaintKey;
+@@ -26663,6 +26677,15 @@
+ 
+     @Override
+     public boolean performAccessibilityAction(int action, Bundle arguments) {
++        if (app.nebulagram.ui.NebulaMessageFilter.hidden(currentMessageObject)) {
++            if (action == AccessibilityNodeInfo.ACTION_CLICK) {
++                app.nebulagram.ui.NebulaMessageFilter.reveal(currentMessageObject);
++                invalidate();
++                sendAccessibilityEvent(android.view.accessibility.AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED);
++                return true;
++            }
++            return false;
++        }
+         if (delegate != null && delegate.onAccessibilityAction(action, arguments)) {
+             return false;
+         }
+@@ -26760,6 +26783,11 @@
+     @Override
+     public void onInitializeAccessibilityNodeInfo(AccessibilityNodeInfo info) {
+         super.onInitializeAccessibilityNodeInfo(info);
++        if (app.nebulagram.ui.NebulaMessageFilter.hidden(currentMessageObject)) {
++            info.setText(app.nebulagram.ui.NebulaMessageFilter.label());
++            info.setContentDescription(app.nebulagram.ui.NebulaMessageFilter.label());
++            return;
++        }
+     }
+ 
+     @Override
+diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/TranslateController.java b/TMessagesProj/src/main/java/org/telegram/messenger/TranslateController.java
+--- a/TMessagesProj/src/main/java/org/telegram/messenger/TranslateController.java
++++ b/TMessagesProj/src/main/java/org/telegram/messenger/TranslateController.java
+@@ -201,6 +201,7 @@
+     }
+ 
+     public boolean isTranslateDialogHidden(long dialogId) {
++        if (app.nebulagram.ui.NebulaAutoTranslate.enabled(currentAccount, dialogId)) return false;
+         if (hideTranslateDialogs.contains(dialogId)) {
+             return true;
+         }
+@@ -224,6 +225,7 @@
+     }
+ 
+     public boolean isTranslatingDialog(long dialogId) {
++        if (app.nebulagram.ui.NebulaAutoTranslate.enabled(currentAccount, dialogId)) return true;
+         return isFeatureAvailable(dialogId) && translatingDialogs.get(dialogId, isChatAutoTranslated(dialogId));
+     }
+ 
+@@ -232,6 +234,13 @@
+     }
+ 
+     public boolean toggleTranslatingDialog(long dialogId, boolean value) {
++        if (!value && app.nebulagram.ui.NebulaAutoTranslate.enabled(currentAccount, dialogId)) {
++            app.nebulagram.ui.NebulaAutoTranslate.disable(currentAccount, dialogId);
++            translatingDialogs.put(dialogId, false);
++            cancelTranslations(dialogId);
++            saveTranslatingDialogsCache();
++            return true;
++        }
+         boolean currentValue = isTranslatingDialog(dialogId), notified = false;
+         if (value && !currentValue) {
+             translatingDialogs.put(dialogId, true);
+@@ -263,6 +272,7 @@
+     }
+ 
+     public String getDialogTranslateTo(long dialogId) {
++        if (app.nebulagram.ui.NebulaAutoTranslate.enabled(currentAccount, dialogId)) return app.nebulagram.ui.NebulaAutoTranslate.tag(currentAccount, dialogId);
+         String lang = translateDialogLanguage.get(dialogId);
+         if (lang == null) {
+             lang = TranslateAlert2.getToLanguage();
+@@ -277,6 +287,10 @@
+     }
+ 
+     public void setDialogTranslateTo(long dialogId, String language) {
++        if (app.nebulagram.ui.NebulaAutoTranslate.enabled(currentAccount, dialogId)) {
++            app.nebulagram.ui.NebulaAutoTranslate.setLanguage(currentAccount, dialogId, language);
++            return;
++        }
+         if (TextUtils.equals(getDialogTranslateTo(dialogId), language)) {
+             return;
+         }
+@@ -579,6 +593,11 @@
+         }
+ 
+         final long dialogId = messageObject.getDialogId();
++        if (app.nebulagram.ui.NebulaAutoTranslate.enabled(currentAccount, dialogId)) {
++            if (onScreen) app.nebulagram.ui.NebulaAutoTranslate.request(currentAccount, messageObject);
++            return;
++        }
++
+ 
+         if (onScreen && messageObject.messageOwner.summarizedOpen && messageObject.messageOwner.summaryText == null && !isTranslatingDialog(messageObject.getDialogId())) {
+             final MessageObject finalMessageObject = messageObject;
+diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/UserConfig.java b/TMessagesProj/src/main/java/org/telegram/messenger/UserConfig.java
+--- a/TMessagesProj/src/main/java/org/telegram/messenger/UserConfig.java
++++ b/TMessagesProj/src/main/java/org/telegram/messenger/UserConfig.java
+@@ -122,7 +122,7 @@
+     }
+ 
+     public static int getMaxAccountCount() {
+-        return hasPremiumOnAccounts() ? 5 : 3;
++        return MAX_ACCOUNT_COUNT;
+     }
+ 
+     public int getNewMessageId() {
+diff --git a/TMessagesProj/src/main/AndroidManifest.xml b/TMessagesProj/src/main/AndroidManifest.xml
+--- a/TMessagesProj/src/main/AndroidManifest.xml
++++ b/TMessagesProj/src/main/AndroidManifest.xml
+@@ -850,6 +850,9 @@
+             <meta-data android:name="android.app.shortcuts" android:resource="@xml/shortcuts" />
+         </activity-alias>
+ 
++        <receiver android:name="app.nebulagram.ui.NebulaTaskReminder" android:exported="false">
++            <intent-filter><action android:name="android.intent.action.BOOT_COMPLETED" /></intent-filter>
++        </receiver>
+     </application>
+ 
+ </manifest>

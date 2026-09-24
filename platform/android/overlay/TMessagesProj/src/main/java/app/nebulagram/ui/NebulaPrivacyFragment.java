@@ -50,7 +50,7 @@ public final class NebulaPrivacyFragment extends BaseFragment {
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
         fragmentView = scroll;
         rebuild();
-        return fragmentView = NebulaSettingsLayout.wrap(context, actionBar, scroll);
+        return fragmentView = NebulaSettingsLayout.wrap(context, actionBar, scroll, -15);
     }
 
     @Override public boolean isLightStatusBar() {

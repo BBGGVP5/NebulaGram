@@ -164,7 +164,7 @@ public class NebulaMenuFragment extends BaseFragment {
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
 
         rebuild();
-        return fragmentView = NebulaSettingsLayout.wrap(context, actionBar, root);
+        return fragmentView = NebulaSettingsLayout.wrap(context, actionBar, root, SCREEN_ADVANCED.equals(screenId) ? -14 : -100);
     }
 
     /** Draws the screen from scratch; cheap enough to call after every change. */

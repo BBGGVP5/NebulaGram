@@ -593,6 +593,11 @@ func (c *Core) deviceInfo() remnawave.Device {
 	c.mu.Unlock()
 	cfg := c.st().Settings()
 	device.HWID = cfg.HWID
+	// The app identity is not an explicit subscription-format override. Let
+	// the client request full Xray JSON unless the user pinned an agent.
+	if device.UserAgent == "NebulaGram/Android" || device.UserAgent == "NebulaGram/iOS" {
+		device.UserAgent = ""
+	}
 	if cfg.UserAgent != "" {
 		device.UserAgent = cfg.UserAgent
 	}

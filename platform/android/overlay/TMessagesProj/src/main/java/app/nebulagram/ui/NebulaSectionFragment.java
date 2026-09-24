@@ -108,7 +108,7 @@ public class NebulaSectionFragment extends BaseFragment {
 
         build(context, theme);
         if (focusTitle != null) content.post(() -> focusRow(content));
-        return fragmentView = NebulaSettingsLayout.wrap(context, actionBar, root);
+        return fragmentView = NebulaSettingsLayout.wrap(context, actionBar, root, section);
     }
 
     private int titleKey() {

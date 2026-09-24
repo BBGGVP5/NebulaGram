@@ -69,7 +69,7 @@ public final class NebulaUpdatesFragment extends BaseFragment {
         updates.addListener(refresh);
         fragmentView = scroll; refresh();
         updates.check(false, null);
-        return fragmentView = NebulaSettingsLayout.wrap(c, actionBar, scroll);
+        return fragmentView = NebulaSettingsLayout.wrap(c, actionBar, scroll, -13);
     }
     private static int dp(int value) { return AndroidUtilities.dp(value); }
     private TextView label(Context c) {

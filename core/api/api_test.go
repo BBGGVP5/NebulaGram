@@ -273,3 +273,17 @@ func TestRefreshOneSubscriptionNeedsAKnownId(t *testing.T) {
 		t.Errorf("error should name the id, got %q", resp.Error)
 	}
 }
+
+func TestPlatformIdentityDoesNotOverrideXraySubscriptionAgent(t *testing.T) {
+	for _, platform := range []string{"NebulaGram/Android", "NebulaGram/iOS"} {
+		c := newCore(t)
+		c.device.UserAgent = platform
+		if got := c.deviceInfo().UserAgent; got != "" {
+			t.Fatalf("platform %q overrode subscription negotiation: %q", platform, got)
+		}
+		call(t, c, "settings.set", `{"user_agent":"PinnedClient/1"}`)
+		if got := c.deviceInfo().UserAgent; got != "PinnedClient/1" {
+			t.Fatalf("explicit user agent lost: %q", got)
+		}
+	}
+}

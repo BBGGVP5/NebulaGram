@@ -38,7 +38,7 @@ public final class NebulaAiFragment extends BaseFragment {
         ScrollView scroll = new ScrollView(c); scroll.setFillViewport(true); scroll.setBackgroundColor(t.surface());
         content = new LinearLayout(c); content.setOrientation(LinearLayout.VERTICAL); content.setPadding(dp(16), dp(12), dp(16), dp(28)); scroll.addView(content);
         build(c);
-        return fragmentView = NebulaSettingsLayout.wrap(c, actionBar, scroll);
+        return fragmentView = NebulaSettingsLayout.wrap(c, actionBar, scroll, -12);
     }
     private int dp(int n) { return AndroidUtilities.dp(n); }
     private void build(Context c) {
