@@ -265,6 +265,15 @@ public class NebulaRow extends FrameLayout {
         return this;
     }
 
+    /** Keep names that may begin with RTL text aligned consistently in a left-to-right list. */
+    public NebulaRow leftToRightText() {
+        title.setTextDirection(View.TEXT_DIRECTION_LTR);
+        subtitle.setTextDirection(View.TEXT_DIRECTION_LTR);
+        title.setTextAlignment(View.TEXT_ALIGNMENT_VIEW_START);
+        subtitle.setTextAlignment(View.TEXT_ALIGNMENT_VIEW_START);
+        return this;
+    }
+
     /**
      * The line under the title. In this schema a row's current value and its
      * explanation share that line: the value comes first and takes the accent

@@ -77,9 +77,13 @@ public final class NebulaLanguageFragment extends BaseFragment
         scroll.setFillViewport(true);
         scroll.setVerticalScrollBarEnabled(false);
         scroll.setBackgroundColor(theme.surface());
+        // Nebula's custom onboarding copy falls back to English outside Russian;
+        // keep headers, the search field and mixed-script language names aligned.
+        scroll.setLayoutDirection(View.LAYOUT_DIRECTION_LTR);
 
         LinearLayout content = new LinearLayout(context);
         content.setOrientation(LinearLayout.VERTICAL);
+        content.setLayoutDirection(View.LAYOUT_DIRECTION_LTR);
         content.setPadding(AndroidUtilities.dp(16), AndroidUtilities.dp(14),
                 AndroidUtilities.dp(16), AndroidUtilities.dp(28));
         scroll.addView(content, new ScrollView.LayoutParams(
@@ -102,7 +106,7 @@ public final class NebulaLanguageFragment extends BaseFragment
         NebulaCard currentCard = new NebulaCard(context);
         LocaleController.LocaleInfo selected = LocaleController.getInstance().getCurrentLocaleInfo();
         currentCard.add(new NebulaRow(context).title(displayName(selected))
-                .subtitle(englishName(selected), false));
+                .subtitle(englishName(selected), false).leftToRightText());
         content.addView(currentCard);
 
         LinearLayout search = searchInput(context, theme);
@@ -185,6 +189,7 @@ public final class NebulaLanguageFragment extends BaseFragment
             NebulaRow row = new NebulaRow(languageRows.getContext())
                     .title(displayName(info))
                     .subtitle(englishName(info), false)
+                    .leftToRightText()
                     .selection(selected);
             if (selected) {
                 row.badge("✓", theme.primary());
@@ -194,9 +199,14 @@ public final class NebulaLanguageFragment extends BaseFragment
                 highlight.setStroke(AndroidUtilities.dp(1), NebulaTheme.stateLayer(theme.primary(), 0.42f));
                 row.setBackground(new InsetDrawable(highlight,
                         AndroidUtilities.dp(5), AndroidUtilities.dp(3), AndroidUtilities.dp(5), AndroidUtilities.dp(3)));
+                row.setPadding(AndroidUtilities.dp(16), AndroidUtilities.dp(13),
+                        AndroidUtilities.dp(16), AndroidUtilities.dp(13));
                 row.setContentDescription(displayName(info) + NebulaText.text(", выбрано", ", selected"));
             }
             row.setOnClickListener(v -> applyLanguage(info));
+            if (count > 0) {
+                languageRows.addView(NebulaRow.divider(languageRows.getContext()));
+            }
             languageRows.addView(row, new LinearLayout.LayoutParams(
                     ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
             count++;
