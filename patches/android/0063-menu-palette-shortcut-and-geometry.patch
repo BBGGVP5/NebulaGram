@@ -59,18 +59,23 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/EmojiView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/EmojiView.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/EmojiView.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/EmojiView.java
-@@ -2896,6 +2896,11 @@ public class EmojiView extends FrameLayout implements
+@@ -2863,10 +2863,16 @@ public class EmojiView extends FrameLayout implements
          };
  
          setBlurredBackgroundDrawableFactory(blurredBackgroundDrawableFactory);
+ 
 +        if (app.nebulagram.ui.NebulaAppearance.iosComposer() && fragment instanceof org.telegram.ui.ChatActivity) {
 +            nebulaPanelBackground = ((org.telegram.ui.ChatActivity) fragment).createNebulaEmojiBackground(this);
 +            setShouldDrawBackground(false);
 +            setBackground(nebulaPanelBackground);
 +        }
++
+         glassEngine.setRoot(this);
+         glassEngine.setGlassInvalidationListener(this::invalidateBlurCaptures);
      }
  
      private boolean mForceHideBackspaceButton;
+     private boolean mForceHideSettingsButton;
 @@ -4496,6 +4501,18 @@ public class EmojiView extends FrameLayout implements
      }
  

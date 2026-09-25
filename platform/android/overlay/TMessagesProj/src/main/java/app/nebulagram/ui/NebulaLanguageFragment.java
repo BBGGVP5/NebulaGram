@@ -218,8 +218,6 @@ public final class NebulaLanguageFragment extends BaseFragment
         row.setGravity(Gravity.CENTER_VERTICAL);
         row.setLayoutDirection(View.LAYOUT_DIRECTION_LTR);
         row.setMinimumHeight(AndroidUtilities.dp(72));
-        row.setPadding(AndroidUtilities.dp(16), AndroidUtilities.dp(11),
-                AndroidUtilities.dp(16), AndroidUtilities.dp(11));
         row.setClickable(true);
         row.setFocusable(true);
 
@@ -233,6 +231,9 @@ public final class NebulaLanguageFragment extends BaseFragment
         } else {
             row.setBackgroundColor(android.graphics.Color.TRANSPARENT);
         }
+        // setBackground() imports drawable padding; apply the shared text inset afterwards.
+        row.setPaddingRelative(AndroidUtilities.dp(16), AndroidUtilities.dp(11),
+                AndroidUtilities.dp(16), AndroidUtilities.dp(11));
         GradientDrawable mask = new GradientDrawable();
         mask.setColor(android.graphics.Color.WHITE);
         mask.setCornerRadius(AndroidUtilities.dp(14));

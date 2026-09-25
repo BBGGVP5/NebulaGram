@@ -80,22 +80,16 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.jav
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
-@@ -3007,6 +3007,7 @@ public class ChatActivity extends BaseFragment implements
-             .add(NotificationCenter.emojiLoaded)
-             .add(NotificationCenter.invalidateMotionBackground)
-             .add(NotificationCenter.didSetNewWallpapper)
-+            .add(NotificationCenter.didSetNewTheme)
-             .add(NotificationCenter.didApplyNewTheme)
-             .add(NotificationCenter.goingToPreviewTheme);
+@@ -2991,4 +2991,5 @@ public class ChatActivity extends BaseFragment implements
+             .addGlobal(NotificationCenter.didSetNewWallpapper)
++            .addGlobal(NotificationCenter.didSetNewTheme)
+             .addGlobal(NotificationCenter.didApplyNewTheme)
+             .addGlobal(NotificationCenter.goingToPreviewTheme);
  
-@@ -3148,6 +3149,7 @@ public class ChatActivity extends BaseFragment implements
-         }
- 
- 
+@@ -3132,2 +3133,3 @@ public class ChatActivity extends BaseFragment implements
 +        app.nebulagram.ui.NebulaTheme.applyMaterialYou(ApplicationLoader.applicationContext);
          themeDelegate = parentThemeDelegate != null ? parentThemeDelegate : new ThemeDelegate();
          if (themeDelegate.isThemeChangeAvailable(false)) {
-             globalObserversGroup.add(NotificationCenter.needSetDayNightTheme);
 @@ -4282,7 +4284,7 @@ public class ChatActivity extends BaseFragment implements
  
          if (chatMode == 0 && (threadMessageId == 0 || isTopic) && !UserObject.isReplyUser(currentUser) && !isReport()) {

@@ -1,15 +1,16 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ProxyListActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ProxyListActivity.java
+index d222504b..3370f1cb 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ProxyListActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ProxyListActivity.java
-@@ -89,6 +89,7 @@ public class ProxyListActivity extends BaseFragment implements NotificationCente
-     private boolean useProxyForCalls;
+@@ -88,6 +88,7 @@ public class ProxyListActivity extends BaseFragment implements NotificationCente
+     private boolean useProxySettings;
  
      private int rowCount;
 +    private int nebulaManagedInfoRow = -1; // NebulaGram
      @Keep
      private int useProxyRow;
      private int useProxyShadowRow;
-@@ -621,6 +622,24 @@ public class ProxyListActivity extends BaseFragment implements NotificationCente
+@@ -593,6 +594,24 @@ public class ProxyListActivity extends BaseFragment implements NotificationCente
  
      private void updateRows(boolean notify) {
          rowCount = 0;
@@ -18,23 +19,23 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ProxyListActivity.java 
 +        if (app.nebulagram.nebulalink.NebulaLink.isRoutingThroughTunnel()) {
 +            useProxyRow = useProxyShadowRow = rotationRow = rotationTimeoutRow = rotationTimeoutInfoRow = -1;
 +            connectionsHeaderRow = proxyStartRow = proxyEndRow = proxyAddRow = proxyShadowRow = -1;
-+            callsRow = callsDetailRow = deleteAllRow = -1;
++            deleteAllRow = -1;
 +            nebulaManagedInfoRow = rowCount++;
 +            proxyList.clear();
 +            if (notify && listAdapter != null) {
-+                listAdapter.clearSelected();
++                selectedItems.clear();
++                listAdapter.checkActionMode();
 +                listAdapter.notifyDataSetChanged();
 +            }
 +            return;
 +        }
 +        if (wasNebulaManaged) {
 +            useProxySettings = MessagesController.getGlobalMainSettings().getBoolean("proxy_enabled", false);
-+            useProxyForCalls = MessagesController.getGlobalMainSettings().getBoolean("proxy_enabled_calls", false);
 +        }
          useProxyRow = rowCount++;
-         if (useProxySettings && SharedConfig.currentProxy != null && SharedConfig.currentProxy.settings.getType() != ProxySettings.Type.WEB && SharedConfig.proxyList.size() > 1 && IS_PROXY_ROTATION_AVAILABLE) {
+         if (useProxySettings && SharedConfig.currentProxy != null && SharedConfig.proxyList.size() > 1 && IS_PROXY_ROTATION_AVAILABLE) {
              rotationRow = rowCount++;
-@@ -645,7 +664,11 @@ public class ProxyListActivity extends BaseFragment implements NotificationCente
+@@ -617,7 +636,11 @@ public class ProxyListActivity extends BaseFragment implements NotificationCente
  
          if (notify) {
              proxyList.clear();
@@ -47,18 +48,18 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ProxyListActivity.java 
  
              boolean checking = false;
              if (!wasCheckedAllList) {
-@@ -911,7 +934,9 @@ public class ProxyListActivity extends BaseFragment implements NotificationCente
+@@ -864,7 +887,9 @@ public class ProxyListActivity extends BaseFragment implements NotificationCente
                  }
                  case VIEW_TYPE_INFO: {
                      TextInfoPrivacyCell cell = (TextInfoPrivacyCell) holder.itemView;
--                    if (position == callsDetailRow) {
+-                    if (position == rotationTimeoutInfoRow) {
 +                    if (position == nebulaManagedInfoRow) {
 +                        cell.setText(getString(R.string.NebulaProxyManagedHint));
-+                    } else if (position == callsDetailRow) {
-                         cell.setText(getString(R.string.UseProxyForCallsInfo));
-                     } else if (position == rotationTimeoutInfoRow) {
++                    } else if (position == rotationTimeoutInfoRow) {
                          cell.setText(getString(R.string.ProxyRotationTimeoutInfo));
-@@ -1061,6 +1086,9 @@ public class ProxyListActivity extends BaseFragment implements NotificationCente
+                     }
+                     break;
+@@ -1006,6 +1031,9 @@ public class ProxyListActivity extends BaseFragment implements NotificationCente
  
          @Override
          public int getItemViewType(int position) {

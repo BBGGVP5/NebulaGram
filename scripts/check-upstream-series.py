@@ -3,13 +3,14 @@
 import argparse
 from pathlib import Path
 import re
+import shutil
 import subprocess
 import tempfile
 
 ROOT = Path(__file__).resolve().parent.parent
 
 
-def check_series(platform, tree, ref='HEAD'):
+def check_series(platform, tree, ref='HEAD', keep_temp_on_error=False):
     tree = Path(tree).resolve()
     revision = subprocess.check_output(['git', '-C', str(tree), 'rev-parse', '--verify', '--end-of-options', ref + '^{commit}'], text=True).strip()
     patches = sorted((ROOT / 'patches' / platform).glob('*.patch'))
@@ -34,6 +35,10 @@ def check_series(platform, tree, ref='HEAD'):
         for patch in patches:
             result = subprocess.run(['git', '-C', str(temp), 'apply', '--whitespace=nowarn', str(patch)], capture_output=True)
             if result.returncode:
+                if keep_temp_on_error:
+                    retained = Path(tempfile.mkdtemp(prefix='nebula-upstream-failed-'))
+                    shutil.copytree(temp, retained, dirs_exist_ok=True)
+                    print(f'Failed patch workspace retained at {retained}')
                 raise SystemExit(patch.name + ':\n' + result.stderr.decode('utf-8', errors='replace'))
     print(f'{platform}: {len(patches)} ordered patches apply to {revision}; vendor untouched. Compile/runtime validation still required.')
 
@@ -43,5 +48,6 @@ if __name__ == '__main__':
     parser.add_argument('platform', choices=['android', 'ios', 'desktop'])
     parser.add_argument('--tree', required=True, help='Local upstream git checkout (may contain unrelated working changes)')
     parser.add_argument('--ref', default='HEAD', help='Already fetched revision; this command never fetches')
+    parser.add_argument('--keep-temp-on-error', action='store_true', help='Preserve the disposable patch tree when a patch fails')
     args = parser.parse_args()
-    check_series(args.platform, args.tree, args.ref)
+    check_series(args.platform, args.tree, args.ref, args.keep_temp_on_error)

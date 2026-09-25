@@ -437,9 +437,7 @@ index 5263dc8..23d7e45 100644
          if (!force && currentIndex == index || placeProvider == null) {
              return;
          }
-@@ -17412,6 +17420,10 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
-     }
- 
+@@ -17416,4 +17416,8 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegate
      public boolean openPhoto(final MessageObject messageObject, final TLRPC.FileLocation fileLocation, final ImageLocation imageLocation, final ImageLocation videoLocation, final ArrayList<MessageObject> messages, final ArrayList<SecureDocument> documents, final ArrayList<Object> photos, final int index, final PhotoViewerProvider provider, ChatActivity chatActivity, long dialogId, long mDialogId, long topicId, boolean fullScreenVideo, PageBlocksAdapter pageBlocksAdapter, Integer embedSeekTime) {
 +        if (app.nebulagram.ui.NebulaChatLocks.locked(UserConfig.selectedAccount, dialogId)) return false;
 +        if (app.nebulagram.ui.NebulaChatLocks.locked(messageObject) ||

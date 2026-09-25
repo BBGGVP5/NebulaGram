@@ -57,24 +57,15 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarCo
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/EmojiView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/EmojiView.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/EmojiView.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/EmojiView.java
-@@ -2898,6 +2898,7 @@ public class EmojiView extends FrameLayout implements
+@@ -2898,7 +2898,8 @@ public class EmojiView extends FrameLayout implements
          };
  
          setBlurredBackgroundDrawableFactory(blurredBackgroundDrawableFactory);
+ 
 +        if (glassDesign && app.nebulagram.ui.NebulaMenuStyle.enabled()) hideBottomTabContainerBackground();
          if (app.nebulagram.ui.NebulaAppearance.iosComposer() && fragment instanceof org.telegram.ui.ChatActivity) {
              nebulaPanelBackground = ((org.telegram.ui.ChatActivity) fragment).createNebulaEmojiBackground(this);
              setShouldDrawBackground(false);
-@@ -4525,7 +4526,8 @@ public class EmojiView extends FrameLayout implements
-             invalidateBlurCaptures();
- 
-             final RecordingCanvas c = blurredBackgroundSourceRenderNode.beginRecording(getMeasuredWidth(), getMeasuredHeight());
--            c.drawColor(getThemedColor(Theme.key_windowBackgroundWhite));
-+            c.drawColor(getThemedColor(app.nebulagram.ui.NebulaMenuStyle.enabled()
-+                    ? Theme.key_chat_emojiPanelBackground : Theme.key_windowBackgroundWhite));
-             if (SharedConfig.chatBlurEnabled()) {
-                 scrollableViewNoiseSuppressor.draw(c, DownscaleScrollableNoiseSuppressor.DRAW_GLASS);
-             }
 @@ -4562,7 +4564,8 @@ public class EmojiView extends FrameLayout implements
              canvas.save();
              if (bottomTabContainer.getVisibility() != View.GONE) {

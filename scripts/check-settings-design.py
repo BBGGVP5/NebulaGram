@@ -8,6 +8,12 @@ UI = ROOT / "platform/android/overlay/TMessagesProj/src/main/java/app/nebulagram
 IOS = ROOT / "platform/ios/overlay/submodules/SettingsUI/Sources"
 ai = (UI / "NebulaAiFragment.java").read_text(encoding="utf-8")
 privacy = (UI / "NebulaPrivacyFragment.java").read_text(encoding="utf-8")
+language = (UI / "NebulaLanguageFragment.java").read_text(encoding="utf-8")
+language_row = language[language.index("private LinearLayout languageRow("):language.index("    private boolean matches(")]
+assert language_row.index("row.setPaddingRelative(") > language_row.index("row.setBackgroundColor(android.graphics.Color.TRANSPARENT)")
+assert language_row.index("row.setPaddingRelative(") < language_row.index("row.setForeground(")
+assert "row.setPadding(AndroidUtilities.dp(16)" not in language_row
+print("Language rows: selected and unselected labels retain a shared inset after background setup")
 method = ai[ai.index("    private void selectPage("):ai.index("    private TextView label(")]
 work = ROOT / "build/settings-design-check"
 work.mkdir(parents=True, exist_ok=True)

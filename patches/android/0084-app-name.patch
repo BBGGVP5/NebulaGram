@@ -1,26 +1,12 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/LocaleController.java b/TMessagesProj/src/main/java/org/telegram/messenger/LocaleController.java
 --- a/TMessagesProj/src/main/java/org/telegram/messenger/LocaleController.java
 +++ b/TMessagesProj/src/main/java/org/telegram/messenger/LocaleController.java
-@@ -1449,6 +1449,22 @@ public class LocaleController {
-     }
- 
-     private String getStringInternal(String key, String fallback, int fallbackRes, int res) {
-+        // NebulaGram: имя форка, а не Telegram. AppName — облачная строка, и
-+        // облако побеждает ресурс, который мы переопределяем: иначе каждое
-+        // уведомление, заголовок и меню «Поделиться» читались бы «Telegram».
-+        //
-+        // По идентификатору, а не только по имени: getString(int) приходит сюда
-+        // с пустым ключом, и именно им зовут заголовок уведомления о загрузке.
-+        //
-+        // Отвечаем строкой, а не ресурсом. Сборка Telegram переносит строки в
-+        // бинарную локализацию и выписывает исходным ресурсам tools:discard —
-+        // шринкер их удаляет. getString по такому идентификатору кидает
-+        // NotFoundException, и отправка видео падала на заголовке уведомления
-+        // VideoEncodingService. Имя форка одинаково на всех языках, переводить
-+        // его нечего, и ресурс ему не нужен вовсе.
-+        if ("AppName".equals(key) || res == R.string.AppName) {
-+            return "NebulaGram";
-+        }
-         String value = BuildVars.USE_CLOUD_STRINGS ? localizationExternal.getByResNameOrResId(ApplicationLoader.applicationContext, key, res) : null;
+@@ -1453,7 +1453,8 @@ public class LocaleController {
+     private String getStringInternal(String key, String fallback, int res) {
++        if ("AppName".equals(key) || res == R.string.AppName) return "NebulaGram";
+         final String value = getStringV2(key, res, fallback);
          if (value == null) {
-             if (BuildVars.USE_CLOUD_STRINGS && fallback != null) {
+             return "LOC_ERR:" + key;
+         }
+         return value;
+     }

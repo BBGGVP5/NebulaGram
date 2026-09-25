@@ -12,6 +12,7 @@
 - [x] Recompose all five intro pages around a consistent art box and text position; remove tilted overlapping ribbons.
 - [x] Implement separate chat passwords with authenticated settings changes, automatic lock on background and guarded chat/media/preview routes. Passwords never enter exported settings.
 - [x] Implement opt-in settings synchronization in Saved Messages with bounded data, conflict handling and credential exclusion.
-- [ ] Run Java compilation and relevant CI gates against build/android-release-0923, plus persistence/crypto/sync regression checks. Commit task files and push; user installs independently.
+- [x] Run Android standalone Java compilation and focused persistence/crypto/sync regression checks against the 12.10.4 patch tree. Firebase processing was skipped because the local JSON lacks a standalone client.
+- [ ] Commit the completed task files and push to the build branch; the user installs independently.
 
 Validation commands: python scripts/check-settings-root.py; python scripts/check-local-tasks.py; python scripts/check-settings-contract.py; native :TMessagesProj:compileStandaloneJavaWithJavac --offline. UI on a real device must be distinguished from compilation.
