@@ -1,9 +1,11 @@
 package app.nebulagram.ui;
 
 import android.content.Context;
+import android.content.res.ColorStateList;
 import android.graphics.PorterDuff;
 import android.graphics.drawable.GradientDrawable;
 import android.graphics.drawable.InsetDrawable;
+import android.graphics.drawable.RippleDrawable;
 import android.text.Editable;
 import android.text.TextUtils;
 import android.text.TextWatcher;
@@ -186,24 +188,11 @@ public final class NebulaLanguageFragment extends BaseFragment
         for (LocaleController.LocaleInfo info : languages) {
             if (!matches(info, query)) continue;
             boolean selected = sameLanguage(info, current);
-            NebulaRow row = new NebulaRow(languageRows.getContext())
-                    .title(displayName(info))
-                    .subtitle(englishName(info), false)
-                    .leftToRightText()
-                    .selection(selected);
+            LinearLayout row = languageRow(info, selected, theme);
+            row.setOnClickListener(v -> applyLanguage(info));
             if (selected) {
-                row.badge("✓", theme.primary());
-                GradientDrawable highlight = new GradientDrawable();
-                highlight.setColor(NebulaTheme.stateLayer(theme.primary(), 0.10f));
-                highlight.setCornerRadius(AndroidUtilities.dp(14));
-                highlight.setStroke(AndroidUtilities.dp(1), NebulaTheme.stateLayer(theme.primary(), 0.42f));
-                row.setBackground(new InsetDrawable(highlight,
-                        AndroidUtilities.dp(5), AndroidUtilities.dp(3), AndroidUtilities.dp(5), AndroidUtilities.dp(3)));
-                row.setPadding(AndroidUtilities.dp(16), AndroidUtilities.dp(13),
-                        AndroidUtilities.dp(16), AndroidUtilities.dp(13));
                 row.setContentDescription(displayName(info) + NebulaText.text(", выбрано", ", selected"));
             }
-            row.setOnClickListener(v -> applyLanguage(info));
             if (count > 0) {
                 languageRows.addView(NebulaRow.divider(languageRows.getContext()));
             }
@@ -219,6 +208,86 @@ public final class NebulaLanguageFragment extends BaseFragment
                     AndroidUtilities.dp(16), AndroidUtilities.dp(20));
             languageRows.addView(empty, matchWrap());
         }
+    }
+
+    /** A dedicated row keeps mixed writing systems on the same measured grid. */
+    private LinearLayout languageRow(LocaleController.LocaleInfo info, boolean selected, NebulaTheme theme) {
+        Context context = languageRows.getContext();
+        LinearLayout row = new LinearLayout(context);
+        row.setOrientation(LinearLayout.HORIZONTAL);
+        row.setGravity(Gravity.CENTER_VERTICAL);
+        row.setLayoutDirection(View.LAYOUT_DIRECTION_LTR);
+        row.setMinimumHeight(AndroidUtilities.dp(72));
+        row.setPadding(AndroidUtilities.dp(16), AndroidUtilities.dp(11),
+                AndroidUtilities.dp(16), AndroidUtilities.dp(11));
+        row.setClickable(true);
+        row.setFocusable(true);
+
+        if (selected) {
+            GradientDrawable background = new GradientDrawable();
+            background.setColor(NebulaTheme.stateLayer(theme.primary(), 0.10f));
+            background.setCornerRadius(AndroidUtilities.dp(14));
+            background.setStroke(AndroidUtilities.dp(1), NebulaTheme.stateLayer(theme.primary(), 0.42f));
+            row.setBackground(new InsetDrawable(background,
+                    AndroidUtilities.dp(5), AndroidUtilities.dp(3), AndroidUtilities.dp(5), AndroidUtilities.dp(3)));
+        } else {
+            row.setBackgroundColor(android.graphics.Color.TRANSPARENT);
+        }
+        GradientDrawable mask = new GradientDrawable();
+        mask.setColor(android.graphics.Color.WHITE);
+        mask.setCornerRadius(AndroidUtilities.dp(14));
+        row.setForeground(new RippleDrawable(ColorStateList.valueOf(
+                NebulaTheme.stateLayer(theme.onSurface(), 0.08f)), null, mask));
+
+        LinearLayout labels = new LinearLayout(context);
+        labels.setOrientation(LinearLayout.VERTICAL);
+        labels.setGravity(Gravity.CENTER_VERTICAL | Gravity.LEFT);
+        labels.setLayoutDirection(View.LAYOUT_DIRECTION_LTR);
+
+        TextView name = label(context, displayName(info), 16,
+                selected ? theme.primary() : theme.onSurface(), false);
+        name.setMaxLines(2);
+        name.setEllipsize(TextUtils.TruncateAt.END);
+        name.setTextDirection(View.TEXT_DIRECTION_LTR);
+        name.setTextAlignment(View.TEXT_ALIGNMENT_GRAVITY);
+        name.setGravity(Gravity.LEFT | Gravity.CENTER_VERTICAL);
+        if (!TextUtils.isEmpty(info.shortName)) {
+            name.setTextLocale(java.util.Locale.forLanguageTag(info.shortName.replace('_', '-')));
+        }
+        labels.addView(name, new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+
+        String detail = englishName(info);
+        if (!TextUtils.isEmpty(detail)) {
+            TextView meta = label(context, detail, 13, theme.onSurfaceVariant(), false);
+            meta.setSingleLine(true);
+            meta.setEllipsize(TextUtils.TruncateAt.END);
+            meta.setTextDirection(View.TEXT_DIRECTION_LTR);
+            meta.setTextAlignment(View.TEXT_ALIGNMENT_GRAVITY);
+            meta.setGravity(Gravity.LEFT | Gravity.CENTER_VERTICAL);
+            LinearLayout.LayoutParams metaParams = new LinearLayout.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+            metaParams.topMargin = AndroidUtilities.dp(3);
+            labels.addView(meta, metaParams);
+        }
+        row.addView(labels, new LinearLayout.LayoutParams(0,
+                ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
+
+        TextView check = label(context, selected ? "✓" : "", 18,
+                theme.onPrimaryContainer(), true);
+        check.setGravity(Gravity.CENTER);
+        check.setVisibility(selected ? View.VISIBLE : View.INVISIBLE);
+        if (selected) {
+            GradientDrawable checkBackground = new GradientDrawable();
+            checkBackground.setShape(GradientDrawable.OVAL);
+            checkBackground.setColor(theme.primaryContainer());
+            check.setBackground(checkBackground);
+        }
+        LinearLayout.LayoutParams checkParams = new LinearLayout.LayoutParams(
+                AndroidUtilities.dp(34), AndroidUtilities.dp(34));
+        checkParams.leftMargin = AndroidUtilities.dp(12);
+        row.addView(check, checkParams);
+        return row;
     }
 
     private boolean matches(LocaleController.LocaleInfo info, String query) {
