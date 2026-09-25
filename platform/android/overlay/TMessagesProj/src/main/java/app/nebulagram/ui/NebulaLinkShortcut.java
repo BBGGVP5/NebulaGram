@@ -23,18 +23,21 @@ import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.Components.ItemOptions;
 import org.telegram.ui.Components.LayoutHelper;
 import app.nebulagram.nebulalink.NebulaLink;
+import java.lang.ref.WeakReference;
+import java.util.WeakHashMap;
 import java.util.UUID;
 
 /** Home-only control. Rendering/preview never starts a tunnel or a probe. */
 public final class NebulaLinkShortcut extends View {
     private static final String KEY = "home_nebulalink";
+    private static final WeakHashMap<BaseFragment, WeakReference<NebulaLinkShortcut>> HOST_CONTROLS = new WeakHashMap<>();
     private final BaseFragment owner;
     private final ActionBarMenuItem item;
     private final int preview;
     private final Drawable icon;
     private final Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final RectF arc = new RectF();
-    private boolean pending, failed, probing;
+    private boolean pending, failed, probing, hostSurfaceActive = true;
     private String probeRequestId;
     private final NebulaLink.StatusListener statusListener = status -> { failed = false; refresh(); };
     private final SharedPreferences.OnSharedPreferenceChangeListener preferencesListener = (p, key) -> {
@@ -55,10 +58,19 @@ public final class NebulaLinkShortcut extends View {
         ActionBarMenuItem item = menu.addItemWithWidth(-2401, 0, AndroidUtilities.dp(46));
         item.getIconView().setVisibility(GONE);
         NebulaLinkShortcut control = new NebulaLinkShortcut(menu.getContext(), owner, item, -1);
+        HOST_CONTROLS.put(owner, new WeakReference<>(control));
         item.addView(control, LayoutHelper.createFrame(-1, -1));
         item.setOnClickListener(v -> control.toggle());
         item.setOnLongClickListener(v -> { NebulaHaptics.tick(item); control.showMenu(); return true; });
         control.refresh();
+    }
+    public static void setHostSurfaceActive(BaseFragment owner, boolean active) {
+        WeakReference<NebulaLinkShortcut> reference = HOST_CONTROLS.get(owner);
+        NebulaLinkShortcut control = reference == null ? null : reference.get();
+        if (control != null && control.hostSurfaceActive != active) {
+            control.hostSurfaceActive = active;
+            control.refresh();
+        }
     }
     public static void addSettings(LinearLayout content) {
         Context c = content.getContext();
@@ -98,7 +110,7 @@ public final class NebulaLinkShortcut extends View {
     private int state() { return preview >= 0 ? preview : NebulaLinkShortcutState.resolve(phase(), NebulaLink.isRoutingThroughTunnel(), pending, failed); }
     private void refresh() {
         if (item != null) {
-            item.setVisibility(visible() ? VISIBLE : GONE);
+            item.setVisibility(visible() && hostSurfaceActive ? VISIBLE : GONE);
             item.setEnabled(!pending);
             item.setContentDescription("NebulaLink · " + label(state()) + NebulaText.text(". Удерживайте для выбора сервера и пинга", ". Hold for server and ping"));
         }

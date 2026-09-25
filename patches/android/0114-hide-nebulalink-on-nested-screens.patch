@@ -1,0 +1,17 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
+@@ -5493,5 +5493,6 @@
+             @Override
+             public void openAnimationStarted(boolean open) {
++                if (open) app.nebulagram.ui.NebulaLinkShortcut.setHostSurfaceActive(DialogsActivity.this, false);
+                 rightFragmentTransitionInProgress = true;
+                 rightFragmentTransitionIsOpen = open;
+                 contentView.requestLayout();
+@@ -5568,4 +5569,5 @@
+             @Override
+             public void openAnimationFinished(boolean backward) {
++                app.nebulagram.ui.NebulaLinkShortcut.setHostSurfaceActive(DialogsActivity.this, !hasFragment());
+                 transitionPage.layoutManager.setNeedFixGap(true);
+                 transitionPage.dialogsAdapter.setCollapsedView(hasFragment(), transitionPage.listView);
+                 transitionPage.dialogsAdapter.setDialogsListFrozen(false);
