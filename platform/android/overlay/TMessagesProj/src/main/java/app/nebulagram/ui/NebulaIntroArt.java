@@ -22,8 +22,12 @@ public final class NebulaIntroArt extends View {
     }
     public void setPage(int value) { page = value; invalidate(); }
     @Override protected void onMeasure(int w, int h) {
-        int width = MeasureSpec.getSize(w);
-        int height = Math.min(Math.round(width * .95f), AndroidUtilities.dp(300 * NebulaLoginStyle.vertical()));
+        int maxWidth = MeasureSpec.getSize(w);
+        int maxHeight = AndroidUtilities.dp(340 * NebulaLoginStyle.vertical());
+        // Measure the view to the drawing canvas, instead of forcing a narrow
+        // canvas into the full text column and shrinking the art inside it.
+        int width = Math.min(maxWidth, Math.round(maxHeight * (360f / 340f)));
+        int height = Math.round(width * (340f / 360f));
         setMeasuredDimension(resolveSize(width, w), resolveSize(height, h));
     }
     private String t(String ru, String en) { return NebulaText.text(ru, en); }

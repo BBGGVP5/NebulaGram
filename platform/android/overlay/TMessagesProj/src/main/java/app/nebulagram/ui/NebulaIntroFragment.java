@@ -57,8 +57,10 @@ public class NebulaIntroFragment extends BaseFragment {
         NebulaOnboardingLayout root = new NebulaOnboardingLayout(context);
 
         art = new NebulaIntroArt(context);
-        LinearLayout.LayoutParams artParams = width();
-        artParams.bottomMargin = NebulaLoginStyle.compact(18);
+        LinearLayout.LayoutParams artParams = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        artParams.gravity = Gravity.CENTER_HORIZONTAL;
+        artParams.bottomMargin = NebulaLoginStyle.compact(14);
         root.content.addView(art, artParams);
 
         title = text(context, 24, theme.onSurface(), true);
@@ -88,19 +90,11 @@ public class NebulaIntroFragment extends BaseFragment {
         });
         root.actions.addView(next);
         root.content.setGravity(Gravity.CENTER_VERTICAL);
-        root.content.setPadding(0, NebulaLoginStyle.compact(14), 0, NebulaLoginStyle.compact(12));
-        art.setOnTouchListener(new View.OnTouchListener() {
-            float down;
-            public boolean onTouch(View v, android.view.MotionEvent e) {
-                if (e.getAction() == android.view.MotionEvent.ACTION_DOWN) { down = e.getX(); return true; }
-                if (e.getAction() == android.view.MotionEvent.ACTION_UP) {
-                    float dx = e.getX() - down;
-                    if (Math.abs(dx) > AndroidUtilities.dp(45)) showPage(Math.max(0, Math.min(TITLES.length - 1, page + (dx < 0 ? 1 : -1))));
-                    return true;
-                }
-                return true;
-            }
-        });
+        // Slightly lower the illustration-and-copy group so the visual center
+        // accounts for the anchored pager controls below it.
+        root.content.setPadding(0, NebulaLoginStyle.compact(38), 0, 0);
+        root.setOnSwipeListener(direction -> showPage(Math.max(0,
+                Math.min(TITLES.length - 1, page + direction))));
         language = new NebulaButton(context, NebulaButton.STYLE_TEXT);
         language.setText(LocaleController.getString(R.string.NebulaChangeLanguage));
         NebulaOnboardingLayout.action(language);
@@ -127,11 +121,23 @@ public class NebulaIntroFragment extends BaseFragment {
     }
 
     private void showPage(int index) {
+        if (index == page && title.getText().length() > 0) return;
+        int previousPage = page;
         page = index;
-        art.animate().cancel(); art.setAlpha(0f); art.setTranslationY(AndroidUtilities.dp(8));
+        int direction = Integer.compare(index, previousPage);
+        float offset = AndroidUtilities.dp(14) * (direction == 0 ? 1 : direction);
+        art.animate().cancel();
+        art.setAlpha(0f);
+        art.setTranslationX(offset);
         art.setPage(index);
-        art.animate().alpha(1f).translationY(0).setDuration(220).start();
+        art.animate().alpha(1f).translationX(0).setDuration(220).start();
         NebulaTheme theme = NebulaTheme.of(title.getContext());
+        title.animate().cancel();
+        subtitle.animate().cancel();
+        title.setAlpha(0f);
+        subtitle.setAlpha(0f);
+        title.setTranslationX(offset);
+        subtitle.setTranslationX(offset);
         title.setText(new String[]{NebulaText.text("Добро пожаловать\nв NebulaGram", "Welcome to\nNebulaGram"),
                 NebulaText.text("Настрой под себя", "Make it yours"), NebulaText.text("Твоё личное пространство", "Your private space"),
                 NebulaText.text("Помощник в твоём ритме", "An assistant at your pace"), NebulaText.text("NebulaLink рядом", "NebulaLink, built in")}[index]);
@@ -142,6 +148,8 @@ public class NebulaIntroFragment extends BaseFragment {
                 NebulaText.text("Переводи сообщения и выделяй главное с помощью выбранной тобой модели ИИ.", "Translate messages and find the key points with the AI model you choose."),
                 NebulaText.text("Добавь подписку Xray, выбери сервер и управляй подключением прямо здесь.", "Add an Xray subscription, pick a server, and manage your connection right here.")
         }[index]);
+        title.animate().alpha(1f).translationX(0).setDuration(220).start();
+        subtitle.animate().alpha(1f).translationX(0).setDuration(220).start();
         next.setText(LocaleController.getString(index == TITLES.length - 1
                 ? R.string.NebulaAuthStart : R.string.NebulaIntroNext)
                 + (LocaleController.isRTL ? "  ←" : "  →"));

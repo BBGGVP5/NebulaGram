@@ -148,8 +148,8 @@ public final class NebulaPrivacyFragment extends BaseFragment {
 
         header(text("Пересылка", "Forwarding"));
         card(row(R.drawable.msg_edit, text("Редактирование перед пересылкой", "Edit before forwarding"))
-                .subtitle(text("Редактор текста и подписей в меню пересылки. Вложения и альбомы сохраняются.",
-                        "Edit text and captions from forwarding options. Keep attachments and albums."), false)
+                .subtitle(text("Меняйте текст и подписи до отправки. Несколько сообщений открываются по очереди; вложения и альбомы сохраняются.",
+                        "Edit text and captions before sending. Selected messages open one by one; media and albums stay intact."), false)
                 .trailing(NebulaRow.TRAIL_SWITCH).checked(NebulaForwardEditing.enabled())
                 .withClick(v -> { NebulaForwardEditing.setEnabled(!NebulaForwardEditing.enabled()); rebuild(); }));
 

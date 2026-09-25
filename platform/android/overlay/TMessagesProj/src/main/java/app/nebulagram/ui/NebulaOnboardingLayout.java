@@ -2,7 +2,9 @@ package app.nebulagram.ui;
 
 import android.content.Context;
 import android.view.Gravity;
+import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewConfiguration;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
@@ -16,9 +18,20 @@ public final class NebulaOnboardingLayout extends FrameLayout {
     public final LinearLayout content;
     public final LinearLayout actions;
     private final LinearLayout column;
+    private OnSwipeListener onSwipeListener;
+    private final int touchSlop;
+    private float downX;
+    private float downY;
+    private boolean interceptingSwipe;
+
+    public interface OnSwipeListener {
+        /** direction is +1 for advancing and -1 for going back. */
+        void onSwipe(int direction);
+    }
 
     public NebulaOnboardingLayout(Context context) {
         super(context);
+        touchSlop = ViewConfiguration.get(context).getScaledTouchSlop();
         setBackgroundColor(NebulaTheme.of(context).surface());
         setLayoutDirection(LocaleController.isRTL ? View.LAYOUT_DIRECTION_RTL : View.LAYOUT_DIRECTION_LTR);
 
@@ -55,6 +68,57 @@ public final class NebulaOnboardingLayout extends FrameLayout {
         actions = new LinearLayout(context);
         actions.setOrientation(LinearLayout.VERTICAL);
         column.addView(actions, new LinearLayout.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT));
+    }
+
+    public void setOnSwipeListener(OnSwipeListener listener) {
+        onSwipeListener = listener;
+    }
+
+    @Override
+    public boolean onInterceptTouchEvent(MotionEvent event) {
+        if (onSwipeListener == null) {
+            return super.onInterceptTouchEvent(event);
+        }
+        switch (event.getActionMasked()) {
+            case MotionEvent.ACTION_DOWN:
+                downX = event.getX();
+                downY = event.getY();
+                interceptingSwipe = false;
+                break;
+            case MotionEvent.ACTION_MOVE:
+                float dx = event.getX() - downX;
+                float dy = event.getY() - downY;
+                if (Math.abs(dx) > touchSlop && Math.abs(dx) > Math.abs(dy) * 1.2f) {
+                    interceptingSwipe = true;
+                    return true;
+                }
+                break;
+            case MotionEvent.ACTION_UP:
+            case MotionEvent.ACTION_CANCEL:
+                interceptingSwipe = false;
+                break;
+        }
+        return super.onInterceptTouchEvent(event);
+    }
+
+    @Override
+    public boolean onTouchEvent(MotionEvent event) {
+        if (!interceptingSwipe || onSwipeListener == null) {
+            return super.onTouchEvent(event);
+        }
+        if (event.getActionMasked() == MotionEvent.ACTION_UP) {
+            float dx = event.getX() - downX;
+            float dy = event.getY() - downY;
+            if (Math.abs(dx) > touchSlop && Math.abs(dx) > Math.abs(dy) * 1.2f) {
+                onSwipeListener.onSwipe(dx < 0 ? 1 : -1);
+            }
+            interceptingSwipe = false;
+            return true;
+        } else if (event.getActionMasked() == MotionEvent.ACTION_CANCEL) {
+            interceptingSwipe = false;
+            return true;
+        }
+        return true;
     }
 
     /** Text can wrap at the user's chosen font size without clipping an action. */

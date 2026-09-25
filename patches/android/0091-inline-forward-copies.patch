@@ -189,12 +189,13 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivity
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/MessagePreviewView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/MessagePreviewView.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/MessagePreviewView.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/MessagePreviewView.java
-@@ -1034,7 +1034,7 @@ public class MessagePreviewView extends FrameLayout {
+@@ -1034,7 +1034,8 @@ public class MessagePreviewView extends FrameLayout {
  
                  if (canEditForward()) {
                      ActionBarMenuSubItem editCopy = new ActionBarMenuSubItem(context, true, false, resourcesProvider);
 -                    editCopy.setTextAndIcon(app.nebulagram.ui.NebulaText.text("Изменить и отправить", "Edit and send"), R.drawable.msg_edit);
-+                    editCopy.setTextAndIcon(app.nebulagram.ui.NebulaText.text("Изменить перед отправкой", "Edit before sending"), R.drawable.msg_edit);
++                    editCopy.setTextAndIcon(app.nebulagram.ui.NebulaText.text("Редактировать перед пересылкой", "Edit before forwarding"), R.drawable.msg_edit);
++                    editCopy.setContentDescription(app.nebulagram.ui.NebulaText.text("Изменить текст и подписи вложений перед пересылкой", "Edit the text and media captions before forwarding"));
                      editCopy.setOnClickListener(v -> editForward());
                      menu.addView(editCopy, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, 48));
                  }

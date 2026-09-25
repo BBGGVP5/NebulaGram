@@ -2,6 +2,7 @@ package app.nebulagram.ui;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import android.widget.Toast;
 import org.telegram.messenger.*;
 import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.messenger.MessageSuggestionParams;
@@ -100,6 +101,11 @@ public final class NebulaForwardEditing {
             ArrayList<MessageObject> copies, int index, Apply apply) {
         if (fragment.getParentActivity() == null || !canEdit(account, copies)) return;
         if (index == copies.size()) { apply.apply(copies); return; }
+        if (copies.size() > 1) {
+            String progress = NebulaText.text("Сообщение " + (index + 1) + " из " + copies.size(),
+                    "Message " + (index + 1) + " of " + copies.size());
+            Toast.makeText(fragment.getParentActivity(), progress, Toast.LENGTH_SHORT).show();
+        }
         composer.editNebulaForwardCopy((EditedMessage) copies.get(index), edited -> {
             copies.set(index, edited);
             editNext(fragment, composer, account, copies, index + 1, apply);
