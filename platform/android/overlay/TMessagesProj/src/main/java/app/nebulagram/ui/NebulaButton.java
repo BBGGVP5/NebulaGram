@@ -29,6 +29,10 @@ public class NebulaButton extends TextView {
     public static final int STYLE_FILLED = 0;
     /** Text: secondary actions, "skip" and the like. */
     public static final int STYLE_TEXT = 1;
+    /** Outlined container: a compact utility action such as changing language. */
+    public static final int STYLE_OUTLINED = 2;
+    /** Soft accent container: secondary navigation such as skipping an intro. */
+    public static final int STYLE_TONAL = 3;
 
     private final int style;
     private final float radius;
@@ -50,13 +54,25 @@ public class NebulaButton extends TextView {
             setLetterSpacing(0);
             setMinimumHeight(AndroidUtilities.dp(52));
             setPadding(AndroidUtilities.dp(20), 0, AndroidUtilities.dp(20), 0);
-            setRipple(theme.onPrimary(), theme.primary());
+            setRipple(theme.onPrimary(), theme.primary(), 0);
+        } else if (style == STYLE_OUTLINED) {
+            setTextColor(theme.onSurface());
+            setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
+            setMinimumHeight(AndroidUtilities.dp(44));
+            setPadding(AndroidUtilities.dp(16), 0, AndroidUtilities.dp(16), 0);
+            setRipple(theme.primary(), theme.surfaceContainer(), theme.outline());
+        } else if (style == STYLE_TONAL) {
+            setTextColor(theme.onPrimaryContainer());
+            setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
+            setMinimumHeight(AndroidUtilities.dp(44));
+            setPadding(AndroidUtilities.dp(16), 0, AndroidUtilities.dp(16), 0);
+            setRipple(theme.primary(), theme.primaryContainer(), 0);
         } else {
             setTextColor(theme.primary());
             setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
             setMinimumHeight(AndroidUtilities.dp(44));
             setPadding(AndroidUtilities.dp(16), 0, AndroidUtilities.dp(16), 0);
-            setRipple(theme.primary(), 0);
+            setRipple(theme.primary(), 0, 0);
         }
     }
 
@@ -65,7 +81,7 @@ public class NebulaButton extends TextView {
      * rectangular ripple on a fully rounded button is the tell-tale sign of a
      * control that was never restyled.
      */
-    private void setRipple(int contentColor, int fillColor) {
+    private void setRipple(int contentColor, int fillColor, int strokeColor) {
         float[] corners = new float[8];
         for (int i = 0; i < corners.length; i++) {
             corners[i] = radius;
@@ -79,6 +95,9 @@ public class NebulaButton extends TextView {
             fill = new GradientDrawable();
             fill.setCornerRadius(radius);
             fill.setColor(fillColor);
+            if (strokeColor != 0) {
+                fill.setStroke(AndroidUtilities.dp(1), strokeColor);
+            }
         }
         setBackground(new RippleDrawable(
                 ColorStateList.valueOf(NebulaTheme.stateLayer(contentColor, 0.14f)), fill, mask));
