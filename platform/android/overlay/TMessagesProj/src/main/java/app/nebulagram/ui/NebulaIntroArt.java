@@ -48,11 +48,14 @@ public final class NebulaIntroArt extends View {
         text(c,t("Работа","Work"),190,115,11,muted,false);
         String[] names={t("Избранное","Saved Messages"),t("Команда Nebula","Nebula team"),t("Аня","Anna")};
         String[] messages={t("Всё важное — здесь","Keep what matters"),t("Новая идея","A new idea"),t("Увидимся вечером?","See you tonight?")};
+        String[] times={"16:40","12:30","11:58"};
         for(int i=0;i<3;i++) {
             float y=157+i*47;
             drawChatAvatar(c,75,y,i);
-            fitText(c,names[i],101,y-3,12,130,ink,true);
-            fitText(c,messages[i],101,y+15,10,130,muted,false);
+            fitText(c,names[i],101,y-3,12,153,ink,true);
+            rightText(c,times[i],304,y-3,9,muted,false);
+            fitText(c,messages[i],101,y+15,10,190,muted,false);
+            if(i<2) divider(c,101,y+23,304,y+23);
         }
         sticker(c,278,274,320,322);
     }
@@ -114,9 +117,11 @@ public final class NebulaIntroArt extends View {
     private void gradient(Canvas c,float l,float t,float rr,float b,float rad,int a,int z){r.set(l,t,rr,b);p.setShader(new LinearGradient(l,t,rr,b,a,z,Shader.TileMode.CLAMP));p.setStyle(Paint.Style.FILL);c.drawRoundRect(r,rad,rad,p);p.setShader(null);p.setStyle(Paint.Style.STROKE);p.setStrokeWidth(.8f);p.setColor(0x30ffffff);c.drawRoundRect(r,rad,rad,p);p.setStyle(Paint.Style.FILL);}
     private void ribbon(Canvas c,float l,float t,float rr,float b,String icon,String label){card(c,l,t,rr,b,19);circle(c,l+24,(t+b)/2,14,0xff496ddb);centeredText(c,icon,l+24,(t+b)/2+5,15,ink,true);fitText(c,label,l+48,(t+b)/2+5,13,rr-l-62,ink,true);}
     private void fitText(Canvas c,String s,float x,float y,float size,float available,int color,boolean bold){p.setTypeface(bold?AndroidUtilities.bold():Typeface.DEFAULT);p.setTextSize(size);float measured=p.measureText(s);text(c,s,x,y,measured>available?size*available/measured:size,color,bold);}
-    private void pill(Canvas c,float l,float t,float rr,float b,String text,int color){gradient(c,l,t,rr,b,12,0xff385b6b,0xff2e4256);text(c,text,l+12,b-6,10,color,true);}
+    private void pill(Canvas c,float l,float t,float rr,float b,String text,int color){gradient(c,l,t,rr,b,12,0xff385b6b,0xff2e4256);centeredText(c,text,(l+rr)*.5f,b-7,10,color,true);}
     private void circle(Canvas c,float x,float y,float radius,int color){p.setColor(color);c.drawCircle(x,y,radius,p);}
     private void text(Canvas c,String s,float x,float y,float size,int color,boolean bold){p.setColor(color);p.setTextSize(size);p.setTypeface(bold?AndroidUtilities.bold():Typeface.DEFAULT);c.drawText(s,x,y,p);}
+    private void rightText(Canvas c,String s,float right,float baseline,float size,int color,boolean bold){p.setTypeface(bold?AndroidUtilities.bold():Typeface.DEFAULT);p.setTextSize(size);text(c,s,right-p.measureText(s),baseline,size,color,bold);}
+    private void divider(Canvas c,float sx,float sy,float ex,float ey){p.setColor(0x273a4a60);p.setStrokeWidth(.8f);p.setStyle(Paint.Style.STROKE);c.drawLine(sx,sy,ex,ey,p);p.setStyle(Paint.Style.FILL);}
     private void centeredText(Canvas c,String s,float centerX,float baseline,float size,int color,boolean bold){p.setTypeface(bold?AndroidUtilities.bold():Typeface.DEFAULT);p.setTextSize(size);text(c,s,centerX-p.measureText(s)*.5f,baseline,size,color,bold);}
     private void drawChatAvatar(Canvas c,float x,float y,int type) {
         int save=c.save();Path clip=new Path();clip.addCircle(x,y,15,Path.Direction.CW);c.clipPath(clip);

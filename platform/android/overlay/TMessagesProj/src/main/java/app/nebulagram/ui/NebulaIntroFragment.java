@@ -66,11 +66,13 @@ public class NebulaIntroFragment extends BaseFragment {
         title = text(context, 24, theme.onSurface(), true);
         title.setGravity(Gravity.CENTER);
         title.setMaxLines(2);
+        title.setIncludeFontPadding(false);
         root.content.addView(title, width());
 
         subtitle = text(context, 15, theme.onSurfaceVariant(), false);
         subtitle.setGravity(Gravity.CENTER);
         subtitle.setMaxLines(4);
+        subtitle.setIncludeFontPadding(false);
         LinearLayout.LayoutParams subtitleParams = width();
         subtitleParams.topMargin = AndroidUtilities.dp(8);
         root.content.addView(subtitle, subtitleParams);
