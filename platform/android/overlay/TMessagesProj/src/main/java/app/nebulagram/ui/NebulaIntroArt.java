@@ -106,7 +106,7 @@ public final class NebulaIntroArt extends View {
         card(c,66,190,294,257,14);
         drawFinlandFlag(c,94,223);
         fitText(c,t("Финляндия","Finland"),112,228,13,98,ink,true);
-        pingBadge(c,211,204,282,242,"89 ms");
+        pingBadge(c,211,204,282,242,t("89 мс","89 ms"));
         centeredText(c,t("Сервер можно сменить","Change servers anytime"),180,286,11,muted,false);
     }
     private void sticker(Canvas c,float l,float t,float rr,float b){if(astronaut!=null){p.setColor(-1);float scale=Math.min((rr-l)/astronaut.getWidth(),(b-t)/astronaut.getHeight());float w=astronaut.getWidth()*scale,h=astronaut.getHeight()*scale;r.set((l+rr-w)/2,(t+b-h)/2,(l+rr+w)/2,(t+b+h)/2);c.drawBitmap(astronaut,null,r,p);}}
@@ -140,10 +140,16 @@ public final class NebulaIntroArt extends View {
     }
     private void pingBadge(Canvas c,float l,float top,float rr,float bottom,String label) {
         gradient(c,l,top,rr,bottom,11,0xff304b62,0xff26394f);
-        float base=(top+bottom)*.5f+4;float x=l+9;
+        p.setTypeface(AndroidUtilities.bold());p.setTextSize(10);
+        Paint.FontMetrics metrics=p.getFontMetrics();
+        float baseline=(top+bottom)*.5f-(metrics.ascent+metrics.descent)*.5f;
+        float labelWidth=p.measureText(label), barsWidth=14, gap=5;
+        float groupWidth=barsWidth+gap+labelWidth;
+        float start=(l+rr-groupWidth)*.5f;
+        float x=start+1;
         p.setColor(cyan);p.setStrokeWidth(2.2f);p.setStrokeCap(Paint.Cap.ROUND);
-        float[] heights={4,7,10,13};for(int i=0;i<heights.length;i++)c.drawLine(x+i*4,base,x+i*4,base-heights[i],p);
-        p.setStrokeCap(Paint.Cap.BUTT);fitText(c,label,l+28,base+1,10,rr-l-32,cyan,true);
+        float[] heights={4,7,10,13};for(int i=0;i<heights.length;i++)c.drawLine(x+i*4,baseline+1,x+i*4,baseline+1-heights[i],p);
+        p.setStrokeCap(Paint.Cap.BUTT);text(c,label,start+barsWidth+gap,baseline,10,cyan,true);
     }
     private void annotation(Canvas c,float l,float top,float rr,float bottom,String icon,String label,float targetX,float targetY) {
         arrow(c,(l+rr)*.5f,bottom,targetX,targetY,cyan);
@@ -155,7 +161,8 @@ public final class NebulaIntroArt extends View {
     private void arrow(Canvas c,float sx,float sy,float ex,float ey,int color) {
         float dx=ex-sx,dy=ey-sy;
         float cx=sx+dx*.48f-dy*.12f,cy=sy+dy*.48f+dx*.12f;
-        leader.reset();leader.moveTo(sx,sy);leader.quadTo(cx,cy,ex,ey);
+        leader.reset();leader.moveTo(sx,sy);
+        if(Math.abs(dx)<6) leader.lineTo(ex,ey); else leader.quadTo(cx,cy,ex,ey);
         p.setColor(color);p.setAlpha(210);p.setStyle(Paint.Style.STROKE);p.setStrokeWidth(1.8f);p.setStrokeCap(Paint.Cap.ROUND);p.setStrokeJoin(Paint.Join.ROUND);c.drawPath(leader,p);
         float angle=(float)Math.atan2(dy,dx),size=6;
         leader.reset();leader.moveTo(ex,ey);
