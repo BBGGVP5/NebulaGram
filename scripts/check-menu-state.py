@@ -100,6 +100,10 @@ popup = (native / "ActionBar/ActionBarPopupWindow.java").read_text(encoding="utf
 assert "nebulaReveal.reset()" in method(popup, "protected void onDetachedFromWindow(")
 assert "NebulaMenuStyle.styleRows" in method(popup, "protected void dispatchDraw(")
 assert "nebulaReveal.onTouch" in method(popup, "public boolean dispatchTouchEvent(")
+scrim_options = (native / "Components/ScrimOptions.java").read_text(encoding="utf-8")
+assert ".setBlurBackground(iBlur3Factory" in method(scrim_options, "public void setItemOptions("), "link action sheet must use the rounded glass background"
+menu_style = (overlay / "NebulaMenuStyle.java").read_text(encoding="utf-8")
+assert "glass.setRadius(radius());" in method(menu_style, "public static void prepare("), "menu preparation must normalize radius before the first draw"
 chat = (native / "ChatActivity.java").read_text(encoding="utf-8")
 assert chat.count("NebulaMessageMenuLayout.sourceY(") == 1
 assert "skipDraw && !nebulaLiftedMessage" in chat, "lifted original is rendered twice"

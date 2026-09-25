@@ -22,6 +22,7 @@ public class CheckMenuColors {
  static class SurfaceBinding {Drawable drawable;int color;float opacity;}
  static final WeakHashMap<View,SurfaceBinding> surfaces=new WeakHashMap<>();
  static boolean enabled(){return true;}
+ static int radius(){return 24;}
  static int surface(Theme.ResourcesProvider p){return p==null?background:NebulaMenuPalette.surface(p.dark);}
  static float opacity(){return .78f;}
  MENU_FOREGROUND
@@ -46,8 +47,9 @@ public class CheckMenuColors {
  interface ViewParent {ViewParent getParent();}
  static class Drawable {}
  static class Material {int tint;Material(int c){tint=c;}int getBackgroundColor(){return tint;}}
- static class BlurredBackgroundDrawable extends Drawable {int tint;Material material;
+ static class BlurredBackgroundDrawable extends Drawable {int tint,radius;Material material;
   BlurredBackgroundDrawable(int c){setColorProvider(new Material(c));}int getBackgroundTint(){return tint;}
+  void setRadius(int value){radius=value;}
   Material getColorProvider(){return material;}void setColorProvider(Material m){material=m;updateColors();}
   void updateColors(){tint=material.tint;}}
  static class MenuBackground extends Drawable {int tint;}
@@ -145,6 +147,8 @@ if len(sys.argv) > 1:
       if(item.text.color!=Color.BLACK || item.icon!=Color.BLACK)throw new AssertionError("Live light theme not applied");
       popup.backgroundDrawable=new BlurredBackgroundDrawable(0xc7242426);
       prepare(popup,popup.provider);
+      if(((BlurredBackgroundDrawable)popup.backgroundDrawable).radius!=24)
+        throw new AssertionError("Scrim popup did not receive the shared rounded radius before draw");
       if(((BlurredBackgroundDrawable)popup.backgroundDrawable).getBackgroundTint()!=0xc7242426)
         throw new AssertionError("prepare rebound the source material to the wrong host provider");
       item.dispatchDraw(new Canvas());

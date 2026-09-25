@@ -66,6 +66,9 @@ public final class NebulaMenuStyle {
         if (drawable == null) return; // A transparent swipe-back page is not a second surface.
         if (drawable instanceof BlurredBackgroundDrawable) {
             BlurredBackgroundDrawable glass = (BlurredBackgroundDrawable) drawable;
+            // ScrimOptions installs its blurred background before ItemOptions applies
+            // the animated menu style. Keep the first frame on the same radius too.
+            glass.setRadius(radius());
             // The source window can have a different provider than its popup container.
             // Preserve the installed menu material instead of rebinding it to the host.
             if (glass.getColorProvider() instanceof Material) {
