@@ -32,6 +32,12 @@ public class PrivateFeaturesCheck {
         check(store.verify(100,42,password,32005),"rate limit ends");
         store.remove(100,42,password);
         check(!store.protectedChat(100,42),"remove");
+        check(!store.isPin(100,42),"legacy passwords default to text mode");
+        char[] pin="0427".toCharArray();
+        store.set(100,43,new char[0],pin,true);
+        check(store.isPin(100,43)&&store.verify(100,43,pin,40000),"PIN mode persists and verifies");
+        try{store.set(100,44,new char[0],"12a4".toCharArray(),true);throw new AssertionError("non-numeric PIN accepted");}catch(IllegalArgumentException expected){}
+        try{store.set(100,44,new char[0],"123".toCharArray(),true);throw new AssertionError("short PIN accepted");}catch(IllegalArgumentException expected){}
         System.out.println("private feature model checks passed");
     }
 }

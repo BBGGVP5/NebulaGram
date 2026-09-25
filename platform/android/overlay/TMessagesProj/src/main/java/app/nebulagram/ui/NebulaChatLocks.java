@@ -78,8 +78,9 @@ public final class NebulaChatLocks {
             setBackgroundColor(NebulaTheme.of(getContext()).surface());setClickable(true);setFocusable(true);
             LinearLayout form=NebulaFormUi.column(getContext());form.setGravity(Gravity.CENTER_VERTICAL);
             TextView title=NebulaIntroFragment.text(getContext(),24,NebulaTheme.of(getContext()).onSurface(),true);title.setText(text("Чат под паролем","This chat is locked"));form.addView(title);
-            status=NebulaFormUi.note(getContext(),text("Введи пароль этого чата","Enter this chat's password"));form.addView(status);
-            password=NebulaFormUi.field(getContext(),text("Пароль","Password"),1,128);password.setInputType(InputType.TYPE_CLASS_TEXT|InputType.TYPE_TEXT_VARIATION_PASSWORD);form.addView(password);
+            boolean pin=store().isPin(user(account),dialog);
+            status=NebulaFormUi.note(getContext(),pin?text("Введи PIN-код этого чата","Enter this chat's PIN"):text("Введи пароль этого чата","Enter this chat's password"));form.addView(status);
+            password=NebulaFormUi.field(getContext(),pin?text("PIN-код","PIN code"):text("Пароль","Password"),1,pin?12:128);password.setInputType(pin?InputType.TYPE_CLASS_NUMBER|InputType.TYPE_NUMBER_VARIATION_PASSWORD:InputType.TYPE_CLASS_TEXT|InputType.TYPE_TEXT_VARIATION_PASSWORD);form.addView(password);
             unlock=NebulaFormUi.primary(getContext(),text("Открыть чат","Unlock chat"),v->verify());form.addView(unlock);
             NebulaButton back=new NebulaButton(getContext(),NebulaButton.STYLE_TEXT);back.setText(text("Назад","Back"));back.setOnClickListener(v->host.finishFragment());form.addView(back);
             addView(NebulaFormUi.scroll(getContext(),form),new FrameLayout.LayoutParams(-1,-1));

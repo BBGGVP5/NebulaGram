@@ -30,6 +30,11 @@ public final class NebulaChatLockStore {
         if(user<=0 || dialog==0)return false;
         try{return data(user).has(Long.toString(dialog));}catch(Exception e){return true;}
     }
+    /** Existing records predate PIN support and remain regular passwords. */
+    public synchronized boolean isPin(long user,long dialog) {
+        try { JSONObject record=data(user).optJSONObject(Long.toString(dialog)); return record!=null && record.optBoolean("pin",false); }
+        catch(Exception e) { return false; }
+    }
     public synchronized List<Long> dialogs(long user) throws Exception {
         ArrayList<Long> result=new ArrayList<>();Iterator<String> it=data(user).keys();while(it.hasNext())result.add(Long.parseLong(it.next()));return result;
     }
@@ -64,10 +69,14 @@ public final class NebulaChatLockStore {
         }
     }
     public void set(long user,long dialog,char[] oldPassword,char[] password) throws Exception {
-        if(dialog==0 || password.length<6 || password.length>128)throw new IllegalArgumentException("password length");
+        set(user,dialog,oldPassword,password,false);
+    }
+    public void set(long user,long dialog,char[] oldPassword,char[] password,boolean pin) throws Exception {
+        if(dialog==0 || password.length>(pin?12:128) || password.length<(pin?4:6))throw new IllegalArgumentException("password length");
+        if(pin) for(char digit:password) if(digit<'0'||digit>'9') throw new IllegalArgumentException("pin format");
         if(protectedChat(user,dialog) && !verify(user,dialog,oldPassword,System.currentTimeMillis()))throw new SecurityException("password");
         byte[] salt=new byte[32];new SecureRandom().nextBytes(salt);
-        JSONObject record=new JSONObject().put("version",1).put("salt",hex(salt)).put("hash",hex(derive(password,salt)));
+        JSONObject record=new JSONObject().put("version",1).put("salt",hex(salt)).put("hash",hex(derive(password,salt))).put("pin",pin);
         synchronized(this){JSONObject next=new JSONObject(data(user).toString());next.put(Long.toString(dialog),record);save(user,next);}
     }
     public void remove(long user,long dialog,char[] password) throws Exception {

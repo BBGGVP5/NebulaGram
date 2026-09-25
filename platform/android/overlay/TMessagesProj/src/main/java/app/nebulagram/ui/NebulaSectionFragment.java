@@ -722,6 +722,18 @@ public class NebulaSectionFragment extends BaseFragment {
                 .subtitle(NebulaText.text("Проверить, скачать и установить новую версию", "Check, download and install a new version"), false)
                 .trailing(NebulaRow.TRAIL_CHEVRON).withClick(v -> presentFragment(new NebulaUpdatesFragment())));
         content.addView(identity, cardParams());
+        NebulaCard build = new NebulaCard(context);
+        content.addView(NebulaCard.header(context, NebulaText.text("Сборка", "Build information")));
+        String abi = android.os.Build.SUPPORTED_ABIS.length == 0 ? "unknown" : android.os.Build.SUPPORTED_ABIS[0];
+        String appCode = "";
+        try { appCode = String.valueOf(context.getPackageManager().getPackageInfo(context.getPackageName(), 0).versionCode); } catch (Exception ignored) { }
+        String buildDetails = NebulaText.text(
+                "На основе Telegram v" + org.telegram.messenger.BuildVars.BUILD_VERSION_STRING + " (" + org.telegram.messenger.BuildConfig.TELEGRAM_VERSION_CODE + ")\nОбновления: @" + NebulaRelease.CHANNEL + "\nДата сборки: " + org.telegram.messenger.BuildConfig.NEBULA_BUILD_DATE + (appCode.isEmpty() ? "" : "\nКод сборки: " + appCode),
+                "Based on Telegram v" + org.telegram.messenger.BuildVars.BUILD_VERSION_STRING + " (" + org.telegram.messenger.BuildConfig.TELEGRAM_VERSION_CODE + ")\nUpdates: @" + NebulaRelease.CHANNEL + "\nBuild date: " + org.telegram.messenger.BuildConfig.NEBULA_BUILD_DATE + (appCode.isEmpty() ? "" : "\nBuild number: " + appCode));
+        build.add(new NebulaRow(context).icon(R.drawable.msg_info)
+                .title("NebulaGram Beta v" + version + " (" + abi + ")")
+                .subtitle(buildDetails, false));
+        content.addView(build, cardParams());
         NebulaCard links = new NebulaCard(context);
         content.addView(NebulaCard.header(context, NebulaText.text("Ссылки", "Links")));
         links.add(projectLink(context, R.drawable.msg_discussion, NebulaText.text("Канал NebulaGram", "NebulaGram channel"),
