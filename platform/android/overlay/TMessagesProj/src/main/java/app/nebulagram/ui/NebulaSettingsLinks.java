@@ -29,22 +29,35 @@ public final class NebulaSettingsLinks {
     }
 
     public static void bind(View view, int section) {
+        bind(view, section, new int[]{0});
+    }
+
+    private static void bind(View view, int section, int[] rowIndex) {
         if (view instanceof NebulaRow) {
             NebulaRow row = (NebulaRow) view;
+            int index = rowIndex[0]++;
             row.setOnLongClickListener(v -> {
                 String title = row.linkTitle();
-                Uri.Builder link = new Uri.Builder().scheme("tg").authority("settings").appendPath("nebula")
-                        .appendQueryParameter("section", Integer.toString(destination(section, title)));
-                String resource = resourceName(title);
-                if (resource != null) link.appendQueryParameter("key", resource);
-                else link.appendQueryParameter("focus", title);
+                int target = destination(section, title);
+                Uri.Builder link = new Uri.Builder().scheme("tg").authority("settings").appendPath("nebula");
+                // Section rows navigate to their destination. Individual settings
+                // use a short row index instead of copying a long localized title.
+                if (target == section && (section == -15 || section >= 0 && section <= 9)) {
+                    link.appendQueryParameter("s", Integer.toString(section))
+                            .appendQueryParameter("r", Integer.toString(index));
+                } else {
+                    link.appendQueryParameter("section", Integer.toString(target));
+                    String resource = resourceName(title);
+                    if (resource != null) link.appendQueryParameter("key", resource);
+                    else link.appendQueryParameter("focus", title);
+                }
                 AndroidUtilities.addToClipboard(link.build().toString());
                 Toast.makeText(v.getContext(), NebulaText.text("Ссылка на настройку скопирована", "Setting link copied"), Toast.LENGTH_SHORT).show();
                 return true;
             });
         } else if (view instanceof ViewGroup) {
             ViewGroup group = (ViewGroup) view;
-            for (int i = 0; i < group.getChildCount(); i++) bind(group.getChildAt(i), section);
+            for (int i = 0; i < group.getChildCount(); i++) bind(group.getChildAt(i), section, rowIndex);
         }
     }
 
@@ -66,13 +79,18 @@ public final class NebulaSettingsLinks {
         if (host == null || !isLink(value)) return false;
         try {
             Uri uri = Uri.parse(value);
-            int section = Integer.parseInt(uri.getQueryParameter("section"));
+            String shortSection = uri.getQueryParameter("s");
+            int section = Integer.parseInt(shortSection != null ? shortSection : uri.getQueryParameter("section"));
+            int row = -1;
+            try { row = Integer.parseInt(uri.getQueryParameter("r")); } catch (Exception ignored) { }
             String focus = uri.getQueryParameter("focus");
             String key = uri.getQueryParameter("key");
             if (key != null && key.startsWith("Nebula") && key.length() < 120) {
                 focus = LocaleController.getString(R.string.class.getField(key).getInt(null));
             }
-            if (section >= 0 && section <= 9) host.presentFragment(new NebulaSectionFragment(section).focus(focus));
+            if (section >= 0 && section <= 9) host.presentFragment(row >= 0
+                    ? new NebulaSectionFragment(section).focusRowIndex(row)
+                    : new NebulaSectionFragment(section).focus(focus));
             else if (section == -1) host.presentFragment(new NebulaSettingsFragment());
             else if (section == -16) host.presentFragment(new NebulaTasksFragment());
             else if (section == -17) host.presentFragment(new NebulaMessageToolsFragment(null));
@@ -82,7 +100,9 @@ public final class NebulaSettingsLinks {
             else if (section == -10 || section == -11) host.presentFragment(new NebulaDesignFragment(section == -11));
             else if (section == -13) host.presentFragment(new NebulaUpdatesFragment());
             else if (section == -14) host.presentFragment(new NebulaMenuFragment(NebulaMenuFragment.SCREEN_ADVANCED));
-            else if (section == -15) host.presentFragment(new NebulaPrivacyFragment());
+            else if (section == -15) host.presentFragment(row >= 0
+                    ? new NebulaPrivacyFragment().focusRowIndex(row)
+                    : new NebulaPrivacyFragment().focus(focus));
             else return false;
             return true;
         } catch (Exception ignored) { return false; }

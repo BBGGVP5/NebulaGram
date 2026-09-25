@@ -170,6 +170,7 @@ jobs:
           python3 scripts/check-emoji-panel.py vendor/telegram-android
           python3 scripts/check-search-stories-pager.py vendor/telegram-android
           python3 scripts/check-settings-contract.py
+          python3 scripts/check-settings-links.py
           python3 scripts/check-wide-posts.py vendor/telegram-android
           python3 scripts/check-menu-feedback.py vendor/telegram-android
           python3 scripts/check-status-bounds.py vendor/telegram-android

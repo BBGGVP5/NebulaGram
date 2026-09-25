@@ -42,15 +42,30 @@ public class NebulaSectionFragment extends BaseFragment {
     public static final int SECTION_FOLDERS = 5, SECTION_MESSAGES = 6, SECTION_PROFILE = 7,
             SECTION_SWITCHES = 8, SECTION_CHAT_ACTIONS = 9;
     private String focusTitle;
+    private int focusIndex = -1;
     public NebulaSectionFragment focus(String title) { focusTitle = title; return this; }
+    public NebulaSectionFragment focusRowIndex(int index) { focusIndex = Math.max(0, index); return this; }
+    private void focusRowIndex(View view, int[] index, int target) {
+        if (view instanceof NebulaRow) {
+            if (index[0]++ == target) focusView(view);
+        } else if (view instanceof ViewGroup) {
+            ViewGroup group = (ViewGroup) view;
+            for (int i = 0; i < group.getChildCount() && index[0] <= target; i++) {
+                focusRowIndex(group.getChildAt(i), index, target);
+            }
+        }
+    }
+    private void focusView(View view) {
+        android.graphics.Rect rect = new android.graphics.Rect(); view.getDrawingRect(rect);
+        content.offsetDescendantRectToMyCoords(view, rect);
+        scroll.smoothScrollTo(0, Math.max(0, rect.top - AndroidUtilities.dp(32)));
+        View row = view;
+        while (!(row instanceof NebulaRow) && row.getParent() instanceof View) row = (View) row.getParent();
+        if (row instanceof NebulaRow) ((NebulaRow) row).highlight();
+    }
     private void focusRow(View view) {
         if (view instanceof android.widget.TextView && focusTitle != null && focusTitle.contentEquals(((android.widget.TextView) view).getText())) {
-            android.graphics.Rect rect = new android.graphics.Rect(); view.getDrawingRect(rect);
-            content.offsetDescendantRectToMyCoords(view, rect);
-            scroll.smoothScrollTo(0, Math.max(0, rect.top - AndroidUtilities.dp(32)));
-            View row = view;
-            while (!(row instanceof NebulaRow) && row.getParent() instanceof View) row = (View) row.getParent();
-            if (row instanceof NebulaRow) ((NebulaRow) row).highlight();
+            focusView(view);
         } else if (view instanceof ViewGroup) {
             ViewGroup group = (ViewGroup) view;
             for (int i = 0; i < group.getChildCount(); i++) focusRow(group.getChildAt(i));
@@ -107,7 +122,8 @@ public class NebulaSectionFragment extends BaseFragment {
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
 
         build(context, theme);
-        if (focusTitle != null) content.post(() -> focusRow(content));
+        if (focusIndex >= 0) content.post(() -> focusRowIndex(content, new int[]{0}, focusIndex));
+        else if (focusTitle != null) content.post(() -> focusRow(content));
         return fragmentView = NebulaSettingsLayout.wrap(context, actionBar, root, section);
     }
 

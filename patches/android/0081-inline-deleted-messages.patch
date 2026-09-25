@@ -105,12 +105,15 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
                  if (id == -1) {
                      if (isInPollAddOptionMode()) {
                          pollAddOptionModeClose();
-@@ -4332,6 +4336,8 @@ public class ChatActivity extends BaseFragment implements
-             }
-             headerItem = menu.addItem(chat_menu_options, otherIcon);
-             app.nebulagram.ui.NebulaChatStyle.savedMessagesMenuIcon(headerItem, UserObject.isUserSelf(currentUser));
-+            headerItem.lazilyAddSubItem(0x4e4443, R.drawable.msg_delete,
-+                    app.nebulagram.ui.NebulaText.text("Очистить удалённые сообщения", "Clear retained messages"));
-             headerItem.setSubMenuDelegate(new ActionBarMenuItem.ActionBarSubMenuItemDelegate() {
-                 @Override
-                 public void onShowSubMenu() {
+@@ -4546,6 +4550,11 @@
+             closeTopicItem = headerItem.lazilyAddSubItem(topic_close, R.drawable.msg_topic_close, LocaleController.getString(R.string.CloseTopic));
+             closeTopicItem.setVisibility(currentChat != null && ChatObject.canManageTopic(currentAccount, currentChat, forumTopic) && forumTopic != null && !forumTopic.closed ? View.VISIBLE : View.GONE);
+         }
++        if (headerItem != null) {
++            headerItem.lazilyAddColoredGap();
++            headerItem.lazilyAddSubItem(0x4e4443, R.drawable.msg_clearcache,
++                    app.nebulagram.ui.NebulaText.text("Очистить копии", "Clear copies"));
++        }
+         menu.setVisibility(inMenuMode ? View.GONE : View.VISIBLE);
+ 
+         updateTitle(false);

@@ -23,6 +23,11 @@ import org.telegram.ui.ActionBar.BaseFragment;
 public final class NebulaPrivacyFragment extends BaseFragment {
     private LinearLayout content;
     private long owner;
+    private int focusIndex = -1;
+    private String focusTitle;
+
+    public NebulaPrivacyFragment focusRowIndex(int index) { focusIndex = Math.max(0, index); return this; }
+    public NebulaPrivacyFragment focus(String title) { focusTitle = title; return this; }
 
     private String text(String ru, String en) { return NebulaText.text(ru, en); }
 
@@ -50,6 +55,8 @@ public final class NebulaPrivacyFragment extends BaseFragment {
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
         fragmentView = scroll;
         rebuild();
+        if (focusIndex >= 0) scroll.post(() -> focusRowIndex(content, new int[]{0}, focusIndex));
+        else if (focusTitle != null) scroll.post(() -> focusTitle(content));
         return fragmentView = NebulaSettingsLayout.wrap(context, actionBar, scroll, -15);
     }
 
@@ -72,6 +79,38 @@ public final class NebulaPrivacyFragment extends BaseFragment {
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         params.topMargin = AndroidUtilities.dp(6);
         content.addView(card, params);
+    }
+
+    private void focusRowIndex(View view, int[] index, int target) {
+        if (view instanceof NebulaRow) {
+            if (index[0]++ == target) focusView(view);
+        } else if (view instanceof ViewGroup) {
+            ViewGroup group = (ViewGroup) view;
+            for (int i = 0; i < group.getChildCount() && index[0] <= target; i++) {
+                focusRowIndex(group.getChildAt(i), index, target);
+            }
+        }
+    }
+
+    private void focusTitle(View view) {
+        if (view instanceof android.widget.TextView && focusTitle.contentEquals(((android.widget.TextView) view).getText())) {
+            focusView(view);
+        } else if (view instanceof ViewGroup) {
+            ViewGroup group = (ViewGroup) view;
+            for (int i = 0; i < group.getChildCount(); i++) focusTitle(group.getChildAt(i));
+        }
+    }
+
+    private void focusView(View view) {
+        android.graphics.Rect rect = new android.graphics.Rect();
+        view.getDrawingRect(rect);
+        content.offsetDescendantRectToMyCoords(view, rect);
+        View row = view;
+        while (!(row instanceof NebulaRow) && row.getParent() instanceof View) row = (View) row.getParent();
+        if (row instanceof NebulaRow) ((NebulaRow) row).highlight();
+        if (content.getParent() instanceof ScrollView) {
+            ((ScrollView) content.getParent()).smoothScrollTo(0, Math.max(0, rect.top - AndroidUtilities.dp(32)));
+        }
     }
 
     /** Пояснение под карточкой: мельче и тише текста строк, как в Material 3. */
