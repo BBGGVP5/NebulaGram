@@ -203,6 +203,22 @@ public class NebulaSectionFragment extends BaseFragment {
         card.add(toggle(context, R.drawable.msg_list,
                 R.string.NebulaHideDividers, R.string.NebulaHideDividersSub,
                 NebulaAppearance.hideDividers(), NebulaAppearance::setHideDividers));
+        card.add(new NebulaRow(context).icon(R.drawable.msg_customize)
+                .title(NebulaText.text("Анимация переходов", "Transition animation"))
+                .subtitle(transitionName(NebulaTransitions.style()), false)
+                .trailing(NebulaRow.TRAIL_CHEVRON)
+                .withClick(v -> new org.telegram.ui.ActionBar.AlertDialog.Builder(context)
+                        .setTitle(NebulaText.text("Анимация переходов", "Transition animation"))
+                        .setSingleChoiceItems(new String[]{
+                                NebulaText.text("Стандартная", "Standard"),
+                                NebulaText.text("Системная AOSP", "AOSP system"),
+                                "Spring"
+                        }, NebulaTransitions.style(), (dialog, which) -> {
+                            context.getSharedPreferences("nebulagram", Context.MODE_PRIVATE)
+                                    .edit().putInt("fragment_transition_style", which).apply();
+                            ((NebulaRow) v).subtitle(transitionName(which), false);
+                            dialog.dismiss();
+                        }).setNegativeButton(NebulaText.text("Отмена", "Cancel"), null).show()));
         content.addView(card, cardParams());
 
         content.addView(NebulaCard.header(context,
@@ -214,6 +230,11 @@ public class NebulaSectionFragment extends BaseFragment {
         content.addView(list, cardParams());
         content.addView(NebulaMenuFragment.placeholder(context,
                 LocaleController.getString(R.string.NebulaRestartHint)));
+    }
+
+    private static String transitionName(int style) {
+        return style == NebulaTransitions.AOSP ? NebulaText.text("Системная AOSP", "AOSP system")
+                : style == NebulaTransitions.SPRING ? "Spring" : NebulaText.text("Стандартная", "Standard");
     }
 
     private void buildChats(Context context) {

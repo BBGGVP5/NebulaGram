@@ -8,7 +8,7 @@ import java.util.*;
 
 /** Small REST transport. No retries, automatic chat access, logging or persistent conversations. */
 public final class NebulaAiClient {
-    public static final int OPENAI = 0, CLAUDE = 1, GEMINI = 2, CUSTOM = 3;
+    public static final int OPENAI = 0, CLAUDE = 1, GEMINI = 2, CUSTOM = 3, NANO = 4;
     private volatile HttpURLConnection connection;
     private volatile boolean cancelled;
     public void cancel() { cancelled = true; HttpURLConnection c = connection; if (c != null) c.disconnect(); }
@@ -64,6 +64,7 @@ public final class NebulaAiClient {
         }
     }
     public String generate(int provider, String custom, String key, String model, String prompt, String input) throws Exception {
+        if (provider == NANO) return NebulaNanoAi.generate(prompt, input);
         if (key.isEmpty() || model.trim().isEmpty() || input.trim().isEmpty()) throw new IOException("Key, model and text required");
         if (input.length() > 50000 || prompt.length() > 20000) throw new IOException("Text too long");
         String modelName = model.startsWith("models/") ? model.substring(7) : model;
@@ -98,6 +99,7 @@ public final class NebulaAiClient {
         return result;
     }
     public ArrayList<String> models(int provider, String custom, String key) throws Exception {
+        if (provider == NANO) return new ArrayList<>();
         if (key.isEmpty()) throw new IOException("API key required");
         TreeSet<String> result = new TreeSet<>();
         String next = "";

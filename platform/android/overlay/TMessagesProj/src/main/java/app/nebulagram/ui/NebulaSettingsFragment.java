@@ -148,6 +148,10 @@ public class NebulaSettingsFragment extends BaseFragment {
                 NebulaText.text("Синхронизация настроек", "Settings sync"),
                 NebulaText.text("Через «Избранное» Telegram", "Via Telegram Saved Messages"),
                 v -> presentFragment(new NebulaSyncFragment())));
+        app.add(NebulaFormUi.action(context, R.drawable.msg_customize,
+                NebulaText.text("Иконка приложения", "App icon"),
+                NebulaText.text("Оригинальные иконки NebulaGram", "Original NebulaGram icon collection"),
+                v -> presentFragment(new NebulaIconPickerFragment())));
         app.add(section(context, R.drawable.msg_customize, R.string.NebulaAppearanceTitle, R.string.NebulaAppearanceSub, NebulaSectionFragment.SECTION_APPEARANCE));
         sections.addView(app, cardParams());
 
@@ -167,7 +171,7 @@ public class NebulaSettingsFragment extends BaseFragment {
         sections.addView(NebulaCard.header(context, NebulaText.text("Инструменты и приложение", "Tools and app")));
         NebulaCard tools = new NebulaCard(context);
         tools.add(new NebulaRow(context).icon(R.drawable.msg_emoji_smiles).title(NebulaText.text("Искусственный интеллект", "AI assistant"))
-                .subtitle("Gemini · Claude · GPT", false).trailing(NebulaRow.TRAIL_CHEVRON)
+                .subtitle("Gemini Nano · Gemini · Claude · GPT", false).trailing(NebulaRow.TRAIL_CHEVRON)
                 .withClick(v -> presentFragment(new NebulaAiFragment())));
         tools.add(new NebulaRow(context).icon(R.drawable.msg_calendar).title(NebulaText.text("Список дел", "Tasks"))
                 .subtitle(NebulaText.text("Задачи, заметки и напоминания", "Tasks, notes and reminders"), false)

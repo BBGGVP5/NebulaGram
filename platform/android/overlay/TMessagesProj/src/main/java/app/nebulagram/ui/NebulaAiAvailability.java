@@ -14,8 +14,10 @@ public final class NebulaAiAvailability {
     public static boolean available() {
         SharedPreferences p = prefs();
         int provider = p.getInt("provider", 0);
-        if (!enabled() || provider < 0 || provider > 3
-                || p.getString("model_" + provider, "").trim().isEmpty()
+        if (!enabled() || provider < 0 || provider > NebulaAiClient.NANO
+                || provider == NebulaAiClient.NANO && !NebulaNanoAi.supportedByOs()) return false;
+        if (provider == NebulaAiClient.NANO) return true;
+        if (p.getString("model_" + provider, "").trim().isEmpty()
                 || !NebulaAiSecrets.exists(provider)) return false;
         try {
             NebulaAiClient.base(provider, p.getString("endpoint", "https://api.openai.com/v1"));

@@ -1,0 +1,50 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarLayout.java b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarLayout.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarLayout.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarLayout.java
+@@ -1827,7 +1827,9 @@
+                     dt = 18;
+                 }
+                 lastFrameTime = newTime;
+-                float duration = preview && open ? 190.0f : 150.0f;
++                int transitionStyle = preview ? app.nebulagram.ui.NebulaTransitions.STANDARD : app.nebulagram.ui.NebulaTransitions.style();
++                float duration = preview && open ? 190.0f : transitionStyle == app.nebulagram.ui.NebulaTransitions.SPRING ? 240.0f
++                        : transitionStyle == app.nebulagram.ui.NebulaTransitions.AOSP ? 130.0f : 150.0f;
+                 animationProgress += dt / duration;
+                 if (animationProgress > 1.0f) {
+                     animationProgress = 1.0f;
+@@ -1870,7 +1872,10 @@
+                         interpolated = CubicBezierInterpolator.EASE_OUT_QUINT.getInterpolation(animationProgress);
+                     }
+                 } else {
+-                    interpolated = decelerateInterpolator.getInterpolation(animationProgress);
++                    interpolated = transitionStyle == app.nebulagram.ui.NebulaTransitions.AOSP
++                            ? CubicBezierInterpolator.EASE_OUT_QUINT.getInterpolation(animationProgress)
++                            : transitionStyle == app.nebulagram.ui.NebulaTransitions.SPRING
++                            ? overshootInterpolator.getInterpolation(animationProgress) : decelerateInterpolator.getInterpolation(animationProgress);
+                 }
+                 if (open) {
+                     float clampedInterpolated = MathUtils.clamp(interpolated, 0, 1);
+@@ -1889,7 +1894,10 @@
+                         containerView.invalidate();
+                         invalidate();
+                     } else {
+-                        containerView.setTranslationX(dp(48) * (1.0f - interpolated));
++                        float distance = transitionStyle == app.nebulagram.ui.NebulaTransitions.AOSP ? 16
++                                : transitionStyle == app.nebulagram.ui.NebulaTransitions.SPRING ? 32 : 48;
++                        containerView.setTranslationX(dp(distance) * (1.0f - interpolated));
++                        if (transitionStyle == app.nebulagram.ui.NebulaTransitions.SPRING) containerView.setScaleX(0.96f + 0.04f * clampedInterpolated);
+                     }
+                 } else {
+                     float clampedReverseInterpolated = MathUtils.clamp(1f - interpolated, 0, 1);
+@@ -1904,7 +1912,10 @@
+                         containerView.invalidate();
+                         invalidate();
+                     } else {
+-                        containerViewBack.setTranslationX(dp(48) * interpolated);
++                        float distance = transitionStyle == app.nebulagram.ui.NebulaTransitions.AOSP ? 16
++                                : transitionStyle == app.nebulagram.ui.NebulaTransitions.SPRING ? 32 : 48;
++                        containerViewBack.setTranslationX(dp(distance) * interpolated);
++                        if (transitionStyle == app.nebulagram.ui.NebulaTransitions.SPRING) containerViewBack.setScaleX(0.96f + 0.04f * clampedReverseInterpolated);
+                     }
+                 }
+                 if (animationProgress < 1) {

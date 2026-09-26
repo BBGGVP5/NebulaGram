@@ -22,6 +22,7 @@ public final class NebulaSettingsSchema {
         map.put("folder_outline", Boolean.class);
         map.put("folder_style", Integer.class);
         map.put("folder_title", Boolean.class);
+        map.put("fragment_transition_style", Integer.class);
         map.put("glass_highlights", Boolean.class);
         map.put("glass_quality", Integer.class);
         map.put("header_unread", Boolean.class);

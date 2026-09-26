@@ -13,6 +13,8 @@ import androidx.core.content.ContextCompat;
 import org.telegram.messenger.FileLog;
 import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.Utilities;
+import org.telegram.ui.ActionBar.AlertDialog;
+import org.telegram.ui.ActionBar.BaseFragment;
 
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
@@ -134,6 +136,32 @@ public final class NebulaBadges {
             case "star": return "Mira";
             case "heart": return NebulaText.text("Спасибо", "Thanks");
             default: return null;
+        }
+    }
+
+    /** Popup shown when the badge beside a profile name is tapped. */
+    public static void showInfo(BaseFragment fragment, long userId) {
+        String kind = badge(userId);
+        String title = title(kind);
+        if (fragment == null || title == null) return;
+        String description = description(kind);
+        fragment.showDialog(new AlertDialog.Builder(fragment.getParentActivity())
+                .setTitle(title)
+                .setMessage(description)
+                .setPositiveButton(NebulaText.text("Подробнее", "More details"), (dialog, which) ->
+                        fragment.presentFragment(new NebulaBadgeInfoFragment(kind)))
+                .setNegativeButton(NebulaText.text("Закрыть", "Close"), null).create());
+    }
+
+    public static String description(String kind) {
+        if (kind == null) return "";
+        switch (kind) {
+            case "supporter": return NebulaText.text("Значок участника, который поддерживает развитие NebulaGram.", "A community badge for someone supporting NebulaGram's development.");
+            case "dev": return NebulaText.text("Значок команды разработчиков NebulaGram.", "A badge for the NebulaGram development team.");
+            case "tester": return NebulaText.text("Значок участника тестирования NebulaGram.", "A badge for a NebulaGram beta tester.");
+            case "star": return NebulaText.text("Значок Mira — символ сообщества NebulaGram.", "The Mira badge, a symbol of the NebulaGram community.");
+            case "heart": return NebulaText.text("Особый знак благодарности от команды NebulaGram.", "A special thank-you from the NebulaGram team.");
+            default: return "";
         }
     }
 

@@ -1,0 +1,8 @@
+diff --git a/TMessagesProj/build.gradle b/TMessagesProj/build.gradle
+--- a/TMessagesProj/build.gradle
++++ b/TMessagesProj/build.gradle
+@@ -69,3 +69,4 @@ dependencies {
+     implementation 'com.google.mlkit:language-id:17.0.6'
++    implementation 'com.google.mlkit:genai-prompt:1.0.0-beta4'
+     implementation 'com.android.billingclient:billing:8.0.0'
+     implementation 'com.google.code.gson:gson:2.11.0'

@@ -1,0 +1,9 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
+@@ -11508,4 +11508,5 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+                     nameTextView[a].setText(app.nebulagram.ui.NebulaBadges.decorate(
+                             newString, user.id, nameTextView[a].getTextPaint(), nameTextView[a]));
++                    nameTextView[a].setOnClickListener(v -> app.nebulagram.ui.NebulaBadges.showInfo(this, user.id));
+                 }
+                 if (a == 0 && onlineTextOverride != null) {

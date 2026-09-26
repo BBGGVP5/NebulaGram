@@ -12,5 +12,7 @@ if not jar.exists():
     urllib.request.urlretrieve('https://repo.maven.apache.org/maven2/org/json/json/20240303/json-20240303.jar', jar)
 assert hashlib.sha256(jar.read_bytes()).hexdigest() == sha, 'Unexpected org.json artifact'
 overlay = root / 'platform/android/overlay/TMessagesProj/src/main/java/app/nebulagram/ui'
-subprocess.run(['javac', '-encoding', 'UTF-8', '-cp', str(jar), '-d', str(work), str(root / 'tests/android/AiProtocolCheck.java'), str(overlay / 'NebulaAiClient.java'), str(overlay / 'NebulaSettingsSchema.java')], check=True)
+stub = work / 'NebulaNanoAi.java'
+stub.write_text('package app.nebulagram.ui; public final class NebulaNanoAi { public static String generate(String prompt,String input){return input;} }', encoding='utf-8')
+subprocess.run(['javac', '-encoding', 'UTF-8', '-cp', str(jar), '-d', str(work), str(stub), str(root / 'tests/android/AiProtocolCheck.java'), str(overlay / 'NebulaAiClient.java'), str(overlay / 'NebulaSettingsSchema.java')], check=True)
 subprocess.run(['java', '-cp', os.pathsep.join([str(work), str(jar)]), 'AiProtocolCheck'], check=True)

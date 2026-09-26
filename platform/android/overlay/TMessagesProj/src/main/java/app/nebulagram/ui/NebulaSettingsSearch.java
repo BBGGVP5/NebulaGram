@@ -20,6 +20,8 @@ public final class NebulaSettingsSearch {
             else if (section == -17) f.presentFragment(new NebulaMessageToolsFragment(null));
             else if (section == -18) f.presentFragment(new NebulaSyncFragment());
             else if (section == -19) f.presentFragment(new NebulaLockedChatsFragment());
+            else if (section == -20) f.presentFragment(new NebulaIconPickerFragment());
+            else if (section == -21) f.presentFragment(new NebulaAiHistoryFragment());
             else if (section == -1) f.presentFragment(new NebulaSettingsFragment());
             else if (section == -10 || section == -11) f.presentFragment(new NebulaDesignFragment(section == -11));
             else if (section == -12) f.presentFragment(new NebulaAiFragment());
@@ -113,6 +115,9 @@ public final class NebulaSettingsSearch {
         result.add(new Entry(-17, NebulaText.text("Инструменты текста", "Text tools"), NebulaText.text("Перевод, голос, краткое содержание", "Translation, speech, summaries"), R.drawable.msg_customize));
         result.add(new Entry(-18, NebulaText.text("Синхронизация настроек", "Settings sync"), NebulaText.text("Через «Избранное» Telegram", "Via Telegram Saved Messages"), R.drawable.msg_saved));
         result.add(new Entry(-19, NebulaText.text("Пароли чатов", "Chat passwords"), NebulaText.text("Отдельный пароль для каждого чата", "A separate password for each chat"), R.drawable.msg_secret));
+        result.add(new Entry(-20, NebulaText.text("Иконка приложения", "App icon"), NebulaText.text("Оригинальные значки NebulaGram", "Original NebulaGram icons"), R.drawable.msg_customize));
+        result.add(new Entry(0, NebulaText.text("Анимация переходов", "Transition animation"), NebulaText.text("Стандартная, AOSP или Spring", "Standard, AOSP or Spring"), R.drawable.msg_customize));
+        result.add(new Entry(-21, NebulaText.text("История ИИ-чата", "AI chat history"), NebulaText.text("Локальные запросы, включаются отдельно", "Local requests, opt-in"), R.drawable.msg_recent));
         return result;
     }
     private static String normalize(String s) { return s.toLowerCase(Locale.ROOT).replace('ё', 'е').trim(); }

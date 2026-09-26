@@ -26,7 +26,9 @@ public class ApplicationLoader {
   public android.content.SharedPreferences getSharedPreferences(String n,int m){return prefs;}
  }
 }''',
-    'app/nebulagram/ui/NebulaAiClient.java': 'package app.nebulagram.ui; import java.net.*; import java.io.*; public class NebulaAiClient { public static final int OPENAI=0,CLAUDE=1,GEMINI=2;\n' + base + '}',
+    'app/nebulagram/ui/NebulaAiClient.java': 'package app.nebulagram.ui; import java.net.*; import java.io.*; public class NebulaAiClient { public static final int OPENAI=0,CLAUDE=1,GEMINI=2,CUSTOM=3,NANO=4;\n' + base + '}',
+    'app/nebulagram/ui/NebulaNanoAi.java': '''package app.nebulagram.ui;
+public class NebulaNanoAi {public static boolean supportedByOs(){return true;}}''',
     'app/nebulagram/ui/NebulaAiSecrets.java': '''package app.nebulagram.ui;
 public class NebulaAiSecrets {public static boolean stored; public static boolean exists(int provider){return stored;}}''',
     'Check.java': '''import app.nebulagram.ui.*;
@@ -35,14 +37,16 @@ public class Check {
  public static void main(String[] args) {
   var p=ApplicationLoader.applicationContext.prefs;
   int cases=0;
-  for(int provider=0;provider<4;provider++) for(boolean enabled:new boolean[]{false,true})
+  for(int provider=0;provider<5;provider++) for(boolean enabled:new boolean[]{false,true})
    for(boolean key:new boolean[]{false,true}) for(String model:new String[]{""," ","demo-model"}) {
     p.data.clear(); p.data.put("provider",provider);p.data.put("model_"+provider,model);
     p.data.put("endpoint","https://example.com/v1");NebulaAiSecrets.stored=key;
     NebulaAiAvailability.setEnabled(enabled);
-    if(NebulaAiAvailability.available() != (enabled && key && !model.trim().isEmpty())) throw new AssertionError("Readiness combination");
+    boolean expected=enabled && (provider==4 || key && !model.trim().isEmpty());
+    if(NebulaAiAvailability.available() != expected) throw new AssertionError("Readiness combination");
     cases++;
    }
+  p.data.put("provider",3);
   for(String url:new String[]{"", "http://example.com", "https://user:pass@example.com", "https://example.com?q=1"}) {
    p.data.put("endpoint",url);
    if(NebulaAiAvailability.available()) throw new AssertionError("Invalid custom endpoint"); cases++;
