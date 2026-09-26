@@ -1,0 +1,38 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/SettingsActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/SettingsActivity.java
+index 7c93f3f9..1ad2ce09 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/SettingsActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/SettingsActivity.java
+@@ -947,23 +947,16 @@ public class SettingsActivity extends BaseFragment implements NotificationCenter
+     public String getVersionName() {
+         try {
+             PackageInfo pInfo = ApplicationLoader.applicationContext.getPackageManager().getPackageInfo(ApplicationLoader.applicationContext.getPackageName(), 0);
+-            int code = pInfo.versionCode / 10;
+-            String abi = "";
+-            switch (pInfo.versionCode % 10) {
+-                case 1:
+-                case 2:
+-                    abi = "store bundled " + Build.CPU_ABI + " " + Build.CPU_ABI2;
+-                    break;
+-                default:
+-                case 9:
+-                    if (ApplicationLoader.isStandaloneBuild()) {
+-                        abi = "direct " + Build.CPU_ABI + " " + Build.CPU_ABI2;
+-                    } else {
+-                        abi = "universal " + Build.CPU_ABI + " " + Build.CPU_ABI2;
+-                    }
+-                    break;
+-            }
+-            return formatString(R.string.TelegramVersion, String.format(Locale.US, "v%s (%d)\n%s", pInfo.versionName, code, abi));
++            String[] abis = Build.SUPPORTED_ABIS;
++            String abi = abis == null || abis.length == 0 ? "unknown" : abis[0];
++            String basedOn = app.nebulagram.ui.NebulaText.text("На основе Telegram", "Based on Telegram");
++            String updates = app.nebulagram.ui.NebulaText.text("Обновления", "Updates");
++            String buildDate = app.nebulagram.ui.NebulaText.text("Дата сборки", "Build date");
++            return String.format(Locale.US,
++                    "NebulaGram Beta v%s (%s)\n%s v%s (%d)\n%s: @%s\n%s: %s",
++                    pInfo.versionName, abi, basedOn, BuildVars.BUILD_VERSION_STRING,
++                    BuildConfig.TELEGRAM_VERSION_CODE, updates, app.nebulagram.ui.NebulaRelease.CHANNEL,
++                    buildDate, BuildConfig.NEBULA_BUILD_DATE);
+         } catch (Exception e) {
+             FileLog.e(e);
+         }
