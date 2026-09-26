@@ -1,0 +1,13 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
+index 4a1b61de..e69844b4 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
+@@ -11508,7 +11508,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+                     // Р—РЅР°С‡РѕРє РїРѕРґРґРµСЂР¶Р°РІС€РµРіРѕ РґРѕРїРёСЃС‹РІР°РµС‚СЃСЏ Рє РёРјРµРЅРё СЃРїР°РЅРѕРј: СЃРїСЂР°РІР° РѕС‚
+                     // РёРјРµРЅРё Р¶РёРІСѓС‚ РѕС‚РјРµС‚РєР° РїСЂРѕРІРµСЂРµРЅРЅРѕРіРѕ Р°РєРєР°СѓРЅС‚Р° Рё СЌРјРѕРґР·Рё-СЃС‚Р°С‚СѓСЃ.
+                     nameTextView[a].setText(app.nebulagram.ui.NebulaBadges.decorate(
+-                            newString, user.id, nameTextView[a].getTextPaint()));
++                            newString, user.id, nameTextView[a].getTextPaint(), nameTextView[a]));
+                 }
+                 if (a == 0 && onlineTextOverride != null) {
+                     onlineTextView[a].setText(onlineTextOverride);

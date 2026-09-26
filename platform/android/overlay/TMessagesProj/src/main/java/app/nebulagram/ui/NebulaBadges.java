@@ -3,6 +3,7 @@ package app.nebulagram.ui;
 import android.content.SharedPreferences;
 import android.text.SpannableStringBuilder;
 import android.text.TextPaint;
+import android.view.View;
 
 import org.json.JSONObject;
 import org.telegram.messenger.AndroidUtilities;
@@ -98,6 +99,10 @@ public final class NebulaBadges {
     }
 
     private static CharSequence withBadge(CharSequence text, String kind) {
+        return withBadge(text, kind, null);
+    }
+
+    private static CharSequence withBadge(CharSequence text, String kind, View host) {
         int resource = iconResource(kind);
         if (resource == 0) return text;
         android.graphics.drawable.Drawable drawable = ContextCompat.getDrawable(
@@ -106,7 +111,7 @@ public final class NebulaBadges {
         SpannableStringBuilder result = new SpannableStringBuilder(text).append(" ");
         int start = result.length();
         result.append("\uFFFC");
-        result.setSpan(new NebulaBadgeSpan(drawable), start, result.length(),
+        result.setSpan(new NebulaBadgeSpan(drawable, host), start, result.length(),
                 android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
         return result;
     }
@@ -142,10 +147,15 @@ public final class NebulaBadges {
      * не нужно об этом помнить.
      */
     public static CharSequence decorate(CharSequence name, long userId, TextPaint paint) {
+        return decorate(name, userId, paint, null);
+    }
+
+    /** Adds a small animated halo while the name view is attached to the screen. */
+    public static CharSequence decorate(CharSequence name, long userId, TextPaint paint, View host) {
         if (name == null) {
             return null;
         }
-        return withBadge(name, badge(userId));
+        return withBadge(name, badge(userId), host);
     }
 
     // --- откуда брать --------------------------------------------------------

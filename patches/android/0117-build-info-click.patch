@@ -1,0 +1,37 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/SettingsActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/SettingsActivity.java
+index 7c93f3f9..aee00bbe 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/SettingsActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/SettingsActivity.java
+@@ -187,7 +187,6 @@ public class SettingsActivity extends BaseFragment implements NotificationCenter
+ 
+     private View navigationBar;
+ 
+-    private int versionViewPressCount = 0;
+ 
+     public SettingsActivity() {
+         this(null);
+@@ -478,18 +477,12 @@ public class SettingsActivity extends BaseFragment implements NotificationCenter
+         versionView.setPadding(dp(21), dp(10), dp(21), dp(10));
+         versionView.setGravity(Gravity.CENTER);
+         versionView.setBackground(Theme.createSelectorDrawable(getThemedColor(Theme.key_listSelector), Theme.RIPPLE_MASK_ALL));
+-        versionView.setOnClickListener(v -> {
+-            versionViewPressCount++;
+-            if (versionViewPressCount < 2 && !BuildVars.DEBUG_PRIVATE_VERSION) {
+-                try {
+-                    Toast.makeText(getParentActivity(), getString(R.string.DebugMenuLongPress), Toast.LENGTH_SHORT).show();
+-                } catch (Exception e) {
+-                    FileLog.e(e);
+-                }
+-                return;
+-            }
+-            openDebugMenu();
+-        });
++        versionView.setOnClickListener(v -> new AlertDialog.Builder(getParentActivity(), resourceProvider)
++                .setTitle(app.nebulagram.ui.NebulaText.text("Информация о сборке", "Build information"))
++                .setMessage(getVersionName())
++                .setPositiveButton(getString(R.string.OK), null)
++                .show());
++        versionView.setOnLongClickListener(v -> { openDebugMenu(); return true; });
+ 
+         navigationBar = new View(context);
+ //        fragmentView.addView(navigationBar, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 0, Gravity.BOTTOM | Gravity.FILL_HORIZONTAL));
