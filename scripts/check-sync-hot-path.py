@@ -207,9 +207,11 @@ retain = method(archive, 'public static synchronized ArrayList<Integer> retain('
 assert 'purgeDifference(' not in retain
 assert 'before.keys.contains(marker(peer,id))' in retain
 assert 'if(entries==null)entries=copyEntries(before.entries)' in retain
-assert retain.index('write(owner,entries)') < retain.index('committed.filter(')
-write = method(archive, 'private static void write(')
-assert write.index('target.finishWrite(output)') < write.index('cachedSnapshot = next')
+assert retain.index('cachedSnapshot = next') < retain.index('writeAsync(owner, next)') < retain.index('committed.filter(')
+assert 'private static void writeAsync(long owner, Snapshot snapshot)' in archive
+assert 'writeFile(owner, next.entries)' in archive and 'ARCHIVE_WRITER.execute' in archive
+write_file = method(archive, 'private static void writeFile(')
+assert write_file.index('target.finishWrite(output)') > write_file.index('output.write(bytes)')
 assert '.sort(' not in retain
 bridge = (link / 'NebulaLink.java').read_text(encoding='utf-8')
 init = method(bridge, 'public static void init(')

@@ -75,6 +75,20 @@ public final class NebulaDeletedArchive {
     // Snapshots are replaced only after a successful AtomicFile commit, never mutated in place.
     private static long cachedOwner;
     private static Snapshot cachedSnapshot;
+    // Message deletion runs on Telegram's single storage queue. Re-encrypting and
+    // atomically replacing the entire archive there can stall chat sync for the
+    // full duration of a large archive write. Keep only the newest pending
+    // snapshot per account and serialize file writes on a background worker.
+    private static final java.util.concurrent.ExecutorService ARCHIVE_WRITER =
+            java.util.concurrent.Executors.newSingleThreadExecutor(r -> {
+                Thread thread = new Thread(r, "NebulaDeletedArchive");
+                thread.setPriority(Thread.MIN_PRIORITY);
+                return thread;
+            });
+    private static final java.util.Map<Long, Snapshot> pendingWrites = new java.util.HashMap<>();
+    private static final java.util.Set<Long> writingOwners = new java.util.HashSet<>();
+    private static final java.util.Map<Long, ArrayList<Runnable>> writeDone = new java.util.HashMap<>();
+    private static final java.util.Map<Long, ArrayList<Runnable>> writeError = new java.util.HashMap<>();
     private static final class Snapshot {
         final JSONArray entries;
         final java.util.Set<String> keys = new java.util.HashSet<>();
@@ -116,6 +130,11 @@ public final class NebulaDeletedArchive {
     }
     private static void write(long owner, JSONArray entries) throws Exception {
         Snapshot next = new Snapshot(entries);
+        writeFile(owner, entries);
+        cachedOwner = owner;
+        cachedSnapshot = next;
+    }
+    private static void writeFile(long owner, JSONArray entries) throws Exception {
         Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding"); cipher.init(Cipher.ENCRYPT_MODE, key());
         cipher.updateAAD(Long.toString(owner).getBytes(java.nio.charset.StandardCharsets.UTF_8));
         byte[] bytes = cipher.doFinal(entries.toString().getBytes(java.nio.charset.StandardCharsets.UTF_8));
@@ -123,8 +142,47 @@ public final class NebulaDeletedArchive {
         java.io.FileOutputStream output = null;
         try { output = target.startWrite(); output.write(cipher.getIV()); output.write(bytes); target.finishWrite(output); }
         catch (Exception e) { target.failWrite(output); throw e; }
-        cachedOwner = owner;
-        cachedSnapshot = next;
+    }
+    private static void writeAsync(long owner, Snapshot snapshot) {
+        writeAsync(owner, snapshot, null, null);
+    }
+    private static void writeAsync(long owner, Snapshot snapshot, Runnable done, Runnable error) {
+        synchronized (pendingWrites) {
+            pendingWrites.put(owner, snapshot);
+            if (done != null) writeDone.computeIfAbsent(owner, k -> new ArrayList<>()).add(done);
+            if (error != null) writeError.computeIfAbsent(owner, k -> new ArrayList<>()).add(error);
+            if (!writingOwners.add(owner)) return;
+        }
+        ARCHIVE_WRITER.execute(() -> {
+            boolean persisted = false;
+            while (true) {
+                Snapshot next;
+                ArrayList<Runnable> completed = null, failed = null;
+                synchronized (pendingWrites) {
+                    next = pendingWrites.remove(owner);
+                    if (next == null) {
+                        writingOwners.remove(owner);
+                        completed = writeDone.remove(owner);
+                        failed = writeError.remove(owner);
+                    }
+                }
+                if (next == null) {
+                    ArrayList<Runnable> callbacks = persisted ? completed : failed;
+                    if (callbacks != null) for (Runnable callback : callbacks)
+                        org.telegram.messenger.AndroidUtilities.runOnUIThread(callback);
+                    return;
+                }
+                try {
+                    writeFile(owner, next.entries);
+                    persisted = true;
+                    ApplicationLoader.applicationContext.getSharedPreferences("nebulagram", 0)
+                            .edit().remove("deleted_archive_error_" + owner).apply();
+                } catch (Exception e) {
+                    persisted = false;
+                    failed(owner);
+                }
+            }
+        });
     }
     /** Keep persisted order on the sync queue; sorting is only needed by the archive screen. */
     private static JSONArray copyEntries(JSONArray input) throws Exception {
@@ -211,9 +269,13 @@ public final class NebulaDeletedArchive {
                 JSONArray all=snapshot(expected).entries, kept=new JSONArray();
                 for(int i=0;i<all.length();i++){JSONObject entry=all.getJSONObject(i);if(peer!=0&&entry.optLong("peer")!=peer)kept.put(entry);}
                 purgeDifference(account,all,kept);
-                write(expected,kept);publish(expected,snapshot(expected));
+                Snapshot next = new Snapshot(kept);
+                cachedOwner = expected;
+                cachedSnapshot = next;
+                publish(expected,next);
                 ApplicationLoader.applicationContext.getSharedPreferences("nebulagram",0).edit().remove("deleted_archive_error_"+expected).apply();
-            }org.telegram.messenger.AndroidUtilities.runOnUIThread(done); }
+                writeAsync(expected, cachedSnapshot, done, error);
+            } }
             catch(Exception e){org.telegram.messenger.AndroidUtilities.runOnUIThread(error);}
         });
     }
@@ -266,10 +328,14 @@ public final class NebulaDeletedArchive {
                     changed.computeIfAbsent(peer,k->new ArrayList<>()).add(message);
                 }}finally{cursor.dispose();}
             }
-            // Запись — самая дорогая часть: шифрование и перезапись всего файла.
-            // Событие удаления, из которого нечего сохранять, её не стоит.
+            // Commit the in-memory index before allowing Telegram to delete IDs.
+            // Ciphering and the AtomicFile replacement are coalesced off the sync
+            // queue, so an archive's size cannot hold up loading other chats.
             if(entries!=null) {
-                write(owner,entries); // Fail closed: do not retain new messages if the index cannot be persisted.
+                Snapshot next = new Snapshot(entries);
+                cachedOwner = owner;
+                cachedSnapshot = next;
+                writeAsync(owner, next);
             }
             Snapshot committed = snapshot(owner);
             if(entries!=null || !markers.containsKey(owner)) publish(owner,committed);

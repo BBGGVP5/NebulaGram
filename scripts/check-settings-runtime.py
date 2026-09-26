@@ -137,7 +137,9 @@ assert 'NebulaFolderTabs.bottom()' in preview and 'invalidateViews()' in preview
 section = (overlay / 'NebulaSectionFragment.java').read_text(encoding='utf-8')
 assert 'Сервер значков' not in section and 'Админ-токен' not in section
 badges = (overlay / 'NebulaBadges.java').read_text(encoding='utf-8')
-assert 'Emoji.replaceEmoji' not in badges and 'new NebulaBadgeSpan(drawable)' in badges
+assert 'Emoji.replaceEmoji' not in badges and 'new NebulaBadgeSpan(drawable, host)' in badges
+span = (overlay / 'NebulaBadgeSpan.java').read_text(encoding='utf-8')
+assert 'postInvalidateOnAnimation()' in span and 'canvas.drawCircle' in span
 for kind in ['dev', 'tester', 'heart']:
     path = root / f'platform/android/overlay/TMessagesProj/src/main/res/drawable/nebula_badge_{kind}.xml'
     vector = ET.parse(path).getroot()
@@ -161,13 +163,27 @@ print('Native integration, interactive preview, hidden service controls and five
 # not alter the line height or leak canvas transforms into the surrounding name.
 stubs = {
     'android/graphics/Paint.java': '''package android.graphics; public class Paint {
+      public static final int ANTI_ALIAS_FLAG=1;public int color;
       public static class FontMetricsInt {public int top,ascent,descent,bottom;}
       public FontMetricsInt metrics=new FontMetricsInt();public int alpha;
+      public Paint(){}public Paint(int flags){}public void setColor(int c){color=c;}
+      public void setAlpha(int a){alpha=a;}
       public FontMetricsInt getFontMetricsInt(){return metrics;}public int getAlpha(){return alpha;}}
     ''',
+    'android/graphics/Color.java': '''package android.graphics; public class Color {
+      public static int rgb(int r,int g,int b){return (r<<16)|(g<<8)|b;}}
+    ''',
+    'android/os/SystemClock.java': '''package android.os; public class SystemClock {
+      public static long uptimeMillis(){return 900;}}
+    ''',
+    'android/view/View.java': '''package android.view; public class View {
+      public boolean attached;public int invalidations;public boolean isAttachedToWindow(){return attached;}
+      public void postInvalidateOnAnimation(){invalidations++;}}
+    ''',
     'android/graphics/Canvas.java': '''package android.graphics; public class Canvas {
-      public float x,y;public int restored;public int save(){return 7;}
+      public float x,y;public int restored,circles;public float radius;public int save(){return 7;}
       public void translate(float x,float y){this.x=x;this.y=y;}
+      public void drawCircle(float x,float y,float r,Paint p){circles++;radius=r;}
       public void restoreToCount(int n){restored=n;}}
     ''',
     'android/graphics/drawable/Drawable.java': '''package android.graphics.drawable;
@@ -195,7 +211,7 @@ stubs = {
          check(advance==size+size/4&&span.getSize(p,"x",0,1,null)==advance);
          span.draw(c,"x",0,1,43,0,100,200,p);
          check(d.width==advance&&d.height==advance&&d.alpha==alpha&&d.draws==1);
-         check(c.x==43&&c.y==100-size&&c.restored==7);cases++;
+         check(c.x==43&&c.y==100-size&&c.restored==7&&c.circles==1&&c.radius>0);cases++;
         }System.out.println(cases+" badge font-size/opacity cases passed");
        }
       }
