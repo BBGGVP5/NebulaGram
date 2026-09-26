@@ -2,6 +2,14 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/SettingsActivity.java b
 index 7c93f3f9..1ad2ce09 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/SettingsActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/SettingsActivity.java
+@@ -67,6 +67,7 @@ import org.telegram.messenger.AndroidUtilities;
+ import org.telegram.messenger.AndroidUtilities;
+ import org.telegram.messenger.ApplicationLoader;
++import org.telegram.messenger.BuildConfig;
+ import org.telegram.messenger.AuthTokensHelper;
+ import org.telegram.messenger.BirthdayController;
+ import org.telegram.messenger.BuildVars;
+ import org.telegram.messenger.ChatThemeController;
 @@ -947,23 +947,16 @@ public class SettingsActivity extends BaseFragment implements NotificationCenter
      public String getVersionName() {
          try {
