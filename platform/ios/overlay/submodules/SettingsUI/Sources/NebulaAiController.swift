@@ -30,6 +30,7 @@ final class NebulaAiController: UITableViewController {
         navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .done, target: self, action: #selector(close))
         tableView.rowHeight = UITableView.automaticDimension
         tableView.estimatedRowHeight = 56
+        NotificationCenter.default.addObserver(self, selector: #selector(refreshState), name: UIApplication.didBecomeActiveNotification, object: nil)
     }
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
@@ -43,6 +44,7 @@ final class NebulaAiController: UITableViewController {
         super.viewWillAppear(animated)
         tableView.reloadData()
     }
+    @objc private func refreshState() { tableView.reloadData(); view.setNeedsLayout() }
     @objc private func close() { dismiss(animated: true) }
 
     // Sections: switch, connection, instructions, state, actions.
@@ -93,7 +95,7 @@ final class NebulaAiController: UITableViewController {
         cell.textLabel?.numberOfLines = 0
         cell.detailTextLabel?.numberOfLines = 0
 
-        let symbols = ["sparkles", "slider.horizontal.3", "text.alignleft", "checkmark.circle"]
+        let symbols = ["sparkles", "slider.horizontal.3", "text.alignleft", "checkmark.circle", "sparkles"]
         NebulaSettingsHero.style(cell, symbol: symbols[indexPath.section])
         switch (indexPath.section, indexPath.row) {
         case (0, _):
@@ -153,6 +155,7 @@ final class NebulaAiController: UITableViewController {
                 : provider == .appleIntelligence ? text("Локальная модель недоступна", "On-device model unavailable")
                     : text("Укажите адрес, модель и ключ", "Set an address, a model and a key")
             cell.textLabel?.textColor = ready ? .systemGreen : .secondaryLabel
+            if provider == .appleIntelligence { cell.detailTextLabel?.text = NebulaAiService.localModelStatus(russian: ru) }
             cell.selectionStyle = .none
         }
         return cell
@@ -203,20 +206,12 @@ final class NebulaAiController: UITableViewController {
     }
 
     private func pickProvider() {
-        let alert = UIAlertController(title: text("Провайдер", "Provider"), message: nil, preferredStyle: .actionSheet)
-        for option in NebulaAiProvider.allCases {
-            let mark = option == provider ? "✓ " : ""
-            alert.addAction(UIAlertAction(title: mark + option.title, style: .default) { [weak self] _ in
-                guard let self = self else { return }
-                self.provider = option
-                self.settings.provider = option
-                self.tableView.reloadData()
-            })
+        let options = NebulaAiProvider.allCases
+        NebulaChoiceController.show(from: self, title: text("Провайдер", "Provider"), choices: options.map { $0.title },
+            selected: options.firstIndex(of: provider), russian: ru) { [weak self] index in
+            guard let self = self else { return }
+            self.provider = options[index]; self.settings.provider = self.provider; self.tableView.reloadData()
         }
-        alert.addAction(UIAlertAction(title: text("Отмена", "Cancel"), style: .cancel))
-        alert.popoverPresentationController?.sourceView = tableView
-        alert.popoverPresentationController?.sourceRect = tableView.rectForRow(at: IndexPath(row: 0, section: 1))
-        present(alert, animated: true)
     }
 
     private func edit(title: String, value: String, placeholder: String, secure: Bool,

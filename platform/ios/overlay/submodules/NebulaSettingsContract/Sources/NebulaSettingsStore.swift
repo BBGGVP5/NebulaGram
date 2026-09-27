@@ -33,7 +33,7 @@ public final class SettingsObservation {
 public final class NebulaSettingsStore {
     public static let shared = NebulaSettingsStore(defaults: .standard)
     public static let storageKey = "app.nebulagram.presentation.settings.v1"
-    public static let editableKeys: Set<String> = ["hide_tab_counters", "show_stories", "settings_search_history", "glass_quality", "bottom_bar_contacts", "bottom_bar_order", "wide_posts", "fragment_transition_style"]
+    public static let editableKeys: Set<String> = ["hide_tab_counters", "show_stories", "settings_search_history", "glass_quality", "ios_glass_style", "ios_glass_tint", "bottom_bar_contacts", "bottom_bar_order", "wide_posts", "fragment_transition_style"]
     public static let maximumTransferBytes = 1024 * 1024
 
     private let defaults: UserDefaults
@@ -76,6 +76,13 @@ public final class NebulaSettingsStore {
         lock.lock(); defer { lock.unlock() }
         if case let .integer(value) = values["glass_quality"] { return max(0, min(2, value)) }
         return 0
+    }
+    public var iosGlassStyle: Int { integer("ios_glass_style", fallback: 0) }
+    public var iosGlassTint: Int { integer("ios_glass_tint", fallback: 18) }
+    private func integer(_ key: String, fallback: Int) -> Int {
+        lock.lock(); defer { lock.unlock() }
+        if case let .integer(value) = values[key] { return value }
+        return fallback
     }
     public var transitionStyle: Int {
         lock.lock(); defer { lock.unlock() }

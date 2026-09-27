@@ -330,32 +330,20 @@ public func nebulaSettingsController(context: AccountContext) -> ViewController 
     arguments.openNavigation = { [weak controller] in
         guard let controller = controller else { return }
         let ru = context.sharedContext.currentPresentationData.with { $0 }.strings.baseLanguageCode.hasPrefix("ru")
-        let alert = UIAlertController(title: ru ? "Первой показывать" : "Show first", message: ru ? "Звонки остаются рядом с контактами. Отдельная вкладка профиля пока не перенесена." : "Calls remain next to Contacts. A separate Profile tab is not yet ported.", preferredStyle: .alert)
-        for (key, title) in [("chats", ru ? "Чаты" : "Chats"), ("contacts", ru ? "Контакты" : "Contacts"), ("settings", ru ? "Настройки" : "Settings")] {
-            alert.addAction(UIAlertAction(title: title, style: .default) { _ in
-                var order = store.bottomTabOrder; order.removeAll { $0 == key }; order.insert(key, at: 0)
+        let keys = ["chats", "contacts", "settings"]
+        NebulaChoiceController.show(from: controller, title: ru ? "Первой показывать" : "Show first",
+            choices: ru ? ["Чаты", "Контакты", "Настройки"] : ["Chats", "Contacts", "Settings"],
+            selected: keys.firstIndex(of: store.bottomTabOrder.first ?? "chats"),
+            detail: ru ? "Звонки остаются рядом с контактами. Отдельная вкладка профиля пока не перенесена." : "Calls remain next to Contacts. A separate Profile tab is not yet ported.", russian: ru) { index in
+                var order = store.bottomTabOrder; order.removeAll { $0 == keys[index] }; order.insert(keys[index], at: 0)
                 do { try store.set(.string(order.joined(separator: ",")), for: "bottom_bar_order"); writeFailed.set(false) }
                 catch { writeFailed.set(true) }
-            })
-        }
-        alert.addAction(UIAlertAction(title: ru ? "Отмена" : "Cancel", style: .cancel)); controller.present(alert, animated: true)
+            }
     }
     arguments.openGlass = { [weak controller] in
-        guard let controller = controller else { return }
+        guard let controller = controller, controller.presentedViewController == nil else { return }
         let ru = context.sharedContext.currentPresentationData.with { $0 }.strings.baseLanguageCode.lowercased().hasPrefix("ru")
-        let alert = UIAlertController(title: ru ? "Адаптивное стекло" : "Adaptive glass", message: ru ? "Авто облегчает эффекты при энергосбережении и нагреве. Системное уменьшение прозрачности учитывается во всех режимах." : "Auto reduces effects during Low Power Mode and thermal pressure. Reduce Transparency is respected in every mode.", preferredStyle: .alert)
-        // Тип задан явно и список вынесен из выражения: перечислять тернарник
-        // прямо на месте компилятор отказывался — до разбора образца пары он
-        // не успевал вывести элемент последовательности.
-        let modes: [String] = ru ? ["Автоматически", "Полное", "Облегчённое"] : ["Automatic", "Full", "Light"]
-        for (mode, title) in modes.enumerated() {
-            alert.addAction(UIAlertAction(title: (store.glassQuality == mode ? "✓ " : "") + title, style: .default) { _ in
-                do { try store.set(.integer(mode), for: "glass_quality"); writeFailed.set(false) }
-                catch { writeFailed.set(true) }
-            })
-        }
-        alert.addAction(UIAlertAction(title: ru ? "Отмена" : "Cancel", style: .cancel))
-        controller.present(alert, animated: true)
+        controller.present(UINavigationController(rootViewController: NebulaGlassController(russian: ru)), animated: true)
     }
     arguments.openAi = { [weak controller] in
         guard let controller = controller, controller.presentedViewController == nil else { return }
@@ -375,18 +363,12 @@ public func nebulaSettingsController(context: AccountContext) -> ViewController 
     arguments.openTransitions = { [weak controller] in
         guard let controller = controller else { return }
         let ru = context.sharedContext.currentPresentationData.with { $0 }.strings.baseLanguageCode.lowercased().hasPrefix("ru")
-        let alert = UIAlertController(title: ru ? "Анимация переходов" : "Transition animation", message: ru ? "При включённом уменьшении движения iOS переходы остаются без анимации." : "Reduce Motion turns these animations off.", preferredStyle: .actionSheet)
-        let options = ru ? ["Стандартная", "Системная", "Spring"] : ["Standard", "System", "Spring"]
-        for (style, name) in options.enumerated() {
-            alert.addAction(UIAlertAction(title: (store.transitionStyle == style ? "✓ " : "") + name, style: .default) { _ in
+        NebulaChoiceController.show(from: controller, title: ru ? "Анимация переходов" : "Transition animation",
+            choices: ru ? ["Стандартная", "Системная", "Spring"] : ["Standard", "System", "Spring"], selected: store.transitionStyle,
+            detail: ru ? "При включённом уменьшении движения iOS переходы остаются без анимации." : "Reduce Motion turns these animations off.", russian: ru) { style in
                 do { try store.set(.integer(style), for: "fragment_transition_style"); writeFailed.set(false) }
                 catch { writeFailed.set(true) }
-            })
-        }
-        alert.addAction(UIAlertAction(title: ru ? "Отмена" : "Cancel", style: .cancel))
-        alert.popoverPresentationController?.sourceView = controller.view
-        alert.popoverPresentationController?.sourceRect = CGRect(x: controller.view.bounds.midX, y: controller.view.bounds.midY, width: 1, height: 1)
-        controller.present(alert, animated: true)
+            }
     }
     arguments.openPrivacy = { [weak controller] in
         guard let controller = controller, controller.presentedViewController == nil else { return }

@@ -1,0 +1,65 @@
+diff --git a/submodules/SettingsUI/BUILD b/submodules/SettingsUI/BUILD
+--- a/submodules/SettingsUI/BUILD
++++ b/submodules/SettingsUI/BUILD
+@@ -130,6 +130,7 @@
+         "//submodules/TelegramUI/Components/Settings/PasskeysScreen",
+         "//submodules/TelegramUI/Components/FaceScanScreen",
+         "//submodules/ComponentFlow",
++        "//submodules/TelegramUI/Components/GlassBackgroundComponent",
+         "//submodules/Components/ResizableSheetComponent",
+         "//submodules/Components/ComponentDisplayAdapters",
+         "//submodules/Components/BundleIconComponent",
+diff --git a/submodules/TelegramUI/Components/GlassBackgroundComponent/Sources/GlassBackgroundComponent.swift b/submodules/TelegramUI/Components/GlassBackgroundComponent/Sources/GlassBackgroundComponent.swift
+--- a/submodules/TelegramUI/Components/GlassBackgroundComponent/Sources/GlassBackgroundComponent.swift
++++ b/submodules/TelegramUI/Components/GlassBackgroundComponent/Sources/GlassBackgroundComponent.swift
+@@ -494,6 +494,9 @@
+     private var nebulaSize: CGSize = .zero
+     private var nebulaReduced = false
+     private var nebulaObservation: SettingsObservation?
++    private let nebulaMaterial = UIVisualEffectView()
++    private var nebulaMaterialState: NebulaGlassMaterialState?
++    private lazy var nebulaMaterialClip = ClippingShapeContext(view: self.nebulaMaterial)
+     private let nebulaFallback = UIView()
+     private lazy var nebulaFallbackClip = ClippingShapeContext(view: self.nebulaFallback)
+     public private(set) var params: Params?
+@@ -546,11 +549,14 @@
+         self.contentContainer = ContentContainer(maskContentView: self.maskContentView)
+         
+         super.init(frame: frame)
++        nebulaMaterial.isUserInteractionEnabled = false
++        nebulaMaterial.clipsToBounds = true
++        insertSubview(nebulaMaterial, at: 0)
+         nebulaFallback.isUserInteractionEnabled = false
+         nebulaFallback.clipsToBounds = true
+         insertSubview(nebulaFallback, at: 0)
+         nebulaObservation = NebulaSettingsStore.shared.observe { [weak self] in self?.nebulaRefreshGlass() }
+-        for name in [Notification.Name.NSProcessInfoPowerStateDidChange, ProcessInfo.thermalStateDidChangeNotification, UIAccessibility.reduceTransparencyStatusDidChangeNotification, UIApplication.didBecomeActiveNotification] {
++        for name in [Notification.Name.NSProcessInfoPowerStateDidChange, ProcessInfo.thermalStateDidChangeNotification, UIAccessibility.reduceTransparencyStatusDidChangeNotification, UIAccessibility.reduceMotionStatusDidChangeNotification, UIApplication.didBecomeActiveNotification] {
+             NotificationCenter.default.addObserver(self, selector: #selector(nebulaRefreshGlass), name: name, object: nil)
+         }
+ 
+@@ -866,6 +872,24 @@
+             }
+         }
+         
++        let nebulaStyle = NebulaSettingsStore.shared.iosGlassStyle
++        let nebulaCustom = nebulaStyle != 0 && !nebulaInNativeContainer
++        nebulaMaterial.isHidden = !nebulaCustom || !isVisible
++        if nebulaCustom { nativeView?.effect = nil }
++        legacyView?.isHidden = nebulaCustom || reduced
++        foregroundView?.isHidden = nebulaCustom
++        legacyHighlightContainerView?.isHidden = nebulaCustom || reduced
++        if nebulaCustom {
++            nebulaFallback.isHidden = true
++            nebulaMaterial.frame = CGRect(origin: .zero, size: size)
++            nebulaMaterialClip.update(shape: shape, size: size, transition: transition)
++            let state = NebulaGlassMaterialState(style: nebulaStyle, tint: NebulaSettingsStore.shared.iosGlassTint,
++                dark: isDark, reduced: reduced, opaque: UIAccessibility.isReduceTransparencyEnabled, animated: !UIAccessibility.isReduceMotionEnabled)
++            if nebulaMaterialState != state {
++                nebulaMaterialState = state
++                state.apply(to: nebulaMaterial)
++            }
++        }
+         if let nativeParamsView = self.nativeParamsView {
+             transition.setFrame(view: nativeParamsView, frame: CGRect(origin: CGPoint(x: 0.0, y: 0.0), size: size))
+         }

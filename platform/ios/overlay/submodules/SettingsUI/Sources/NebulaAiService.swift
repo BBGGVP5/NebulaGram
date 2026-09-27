@@ -52,6 +52,22 @@ final class NebulaAiService {
         return false
     }
 
+    static func localModelStatus(russian: Bool) -> String {
+        #if canImport(FoundationModels)
+        if #available(iOS 26.0, *) {
+            switch SystemLanguageModel.default.availability {
+            case .available: return russian ? "Модель готова. Текст обрабатывается на устройстве." : "Ready. Text is processed on this device."
+            case .unavailable(.deviceNotEligible): return russian ? "Это устройство не поддерживает системную модель Apple Intelligence." : "This device does not support the Apple Intelligence system model."
+            case .unavailable(.appleIntelligenceNotEnabled): return russian ? "Включите Apple Intelligence в настройках iOS." : "Enable Apple Intelligence in iOS Settings."
+            case .unavailable(.modelNotReady): return russian ? "iOS ещё подготавливает модель. Проверьте Apple Intelligence и повторите позже." : "iOS is still preparing the model. Check Apple Intelligence and try again later."
+            case .unavailable: return russian ? "Системная модель сейчас недоступна." : "The system model is currently unavailable."
+            @unknown default: return russian ? "Не удалось определить доступность модели." : "Model availability could not be determined."
+            }
+        }
+        #endif
+        return russian ? "Нужны iOS 26 и устройство с поддержкой Apple Intelligence." : "Requires iOS 26 and an Apple Intelligence capable device."
+    }
+
     func generate(input: String) async throws -> String {
         let input = input.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !input.isEmpty else { throw NebulaAiServiceError.emptyInput }

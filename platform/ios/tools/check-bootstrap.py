@@ -215,6 +215,26 @@ def main():
         assert 'if !canSendReactionsToChat(strongSelf.presentationInterfaceState)' in chat
         print('OK: native rich editor independent of AI; missing quick reaction opens native menu, permission checks retained', flush=True)
 
+        capture = (temp / 'submodules/TelegramCore/Sources/State/NebulaDeletedCapture.swift').read_text(encoding='utf-8')
+        assert 'NebulaRetentionPolicy.receivedOrSaved(' in capture and 'scope = .saved' in capture
+        assert 'id.peerId != accountPeerId' not in capture
+        assert 'archive.scheduleReplace(entries, account: account)' in capture
+        assert 'snapshot.keys.contains(key(id))' in capture and 'for id in newlyRetained' in capture
+        assert 'archive.shouldPrune(account: account)' in capture
+        choice = (temp / 'submodules/SettingsUI/Sources/NebulaChoiceController.swift').read_text(encoding='utf-8')
+        assert '.checkmark' in choice and '.formSheet' in choice and '.automaticDimension' in choice
+        assert 'NebulaGlassController(russian: ru)' in controller
+        glass_preview = (temp / 'submodules/SettingsUI/Sources/NebulaGlassController.swift').read_text(encoding='utf-8')
+        assert 'GlassBackgroundView(frame: .zero)' in glass_preview and 'glass.update(size:' in glass_preview
+        assert '"ios_glass_tint"' in glass_preview and '"ios_glass_style"' in glass_preview
+        assert 'if nebulaCustom { nativeView?.effect = nil }' in glass
+        assert 'nativeParamsView?.isHidden = nebulaCustom' not in glass  # Must keep labels/buttons visible.
+        assert 'nebulaMaterialState != state' in glass  # No effect allocation on every pan frame.
+        zoom = (temp / 'submodules/TelegramUI/Components/VideoMessageCameraScreen/Sources/NebulaVideoZoomSlider.swift').read_text(encoding='utf-8')
+        assert 'device.neutralZoomFactor' not in zoom
+        assert 'device.maxAvailableVideoZoomFactor' in zoom
+        print('OK: Saved Messages retention, async archive hook, native choice sheets, live glass preview and public zoom API', flush=True)
+
         print(f'OK: {len(patches)} ordered iOS patch(es), {len(paths)} upstream paths, overlay/hooks, pin {revision}', flush=True)
         if args.swift:
             for source in sorted(temp.rglob('*.swift')):

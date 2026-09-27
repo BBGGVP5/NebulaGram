@@ -177,17 +177,11 @@ public final class NebulaAiChatController: UIViewController {
     }
 
     @objc private func pickAction() {
-        let sheet = UIAlertController(title: text("Что сделать с текстом?", "What should AI do?"), message: nil, preferredStyle: .actionSheet)
-        for option in NebulaAiAction.allCases {
-            sheet.addAction(UIAlertAction(title: (option == action ? "✓ " : "") + option.title(russian: ru), style: .default) { [weak self] _ in
-                self?.action = option
-                self?.refreshStatus()
-            })
+        let options = NebulaAiAction.allCases
+        NebulaChoiceController.show(from: self, title: text("Что сделать с текстом?", "What should AI do?"),
+            choices: options.map { $0.title(russian: ru) }, selected: options.firstIndex(of: action), russian: ru) { [weak self] index in
+            self?.action = options[index]; self?.refreshStatus()
         }
-        sheet.addAction(UIAlertAction(title: text("Отмена", "Cancel"), style: .cancel))
-        sheet.popoverPresentationController?.sourceView = actionButton
-        sheet.popoverPresentationController?.sourceRect = actionButton.bounds
-        present(sheet, animated: true)
     }
 
     @objc private func send() {

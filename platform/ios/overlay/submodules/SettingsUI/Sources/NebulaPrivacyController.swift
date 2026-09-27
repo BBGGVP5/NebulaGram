@@ -40,12 +40,13 @@ final class NebulaPrivacyController: UITableViewController {
         hero.fit(in: tableView)
     }
     @objc private func close() { dismiss(animated: true) }
-    override func numberOfSections(in tableView: UITableView) -> Int { 6 }
-    override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int { section == 0 ? 3 : (section == 3 ? 2 : 1) }
+    override func numberOfSections(in tableView: UITableView) -> Int { 7 }
+    override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int { section == 6 ? NebulaRetentionScope.allCases.count : section == 0 ? 3 : (section == 3 ? 2 : 1) }
     override func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
-        [text("Удалённые сообщения", "Deleted messages"), text("Оформление", "Appearance"), text("Локальный кэш", "Local cache"), text("Защита", "Protection"), nil, text("Пересылка", "Forwarding")][section]
+        [text("Удалённые сообщения", "Deleted messages"), text("Оформление", "Appearance"), text("Локальный кэш", "Local cache"), text("Защита", "Protection"), nil, text("Пересылка", "Forwarding"), text("Где сохранять", "Where to save")][section]
     }
     override func tableView(_ tableView: UITableView, titleForFooterInSection section: Int) -> String? {
+        if section == 6 { return text("В «Избранном» сохраняется уже полученное на iPhone, удалённое с другого устройства. Удаление в этом приложении работает как обычно.", "Saved Messages already received on this iPhone are kept when deleted on another device. Deleting in this app works as usual.") }
         if section == 5 { return text("Редактор текста и подписей в меню пересылки. Вложения и альбомы сохраняются. Копия без автора, отправка вручную.", "Edit text and captions from forwarding options. Keep attachments and albums. An anonymous copy, sent manually.") }
         if section == 4 {
             return helpExpanded ? [details(0), details(2), details(3)].joined(separator: "\n\n") : nil
@@ -69,6 +70,16 @@ final class NebulaPrivacyController: UITableViewController {
         cell.textLabel?.font = .preferredFont(forTextStyle: .body)
         cell.textLabel?.adjustsFontForContentSizeCategory = true
         cell.textLabel?.numberOfLines = 0
+        if indexPath.section == 6 {
+            let scopes = NebulaRetentionScope.allCases
+            cell.textLabel?.text = ru ? ["Личные чаты", "Группы", "Каналы", "Боты", "Избранное"][indexPath.row]
+                : ["Private chats", "Groups", "Channels", "Bots", "Saved Messages"][indexPath.row]
+            let toggle = UISwitch(); toggle.tag = indexPath.row
+            toggle.isOn = archive.scopeEnabled(account: account, scope: scopes[indexPath.row])
+            toggle.addTarget(self, action: #selector(scopeChanged(_:)), for: .valueChanged)
+            cell.accessoryView = toggle; cell.selectionStyle = .none
+            return cell
+        }
         if indexPath.section == 5 {
             NebulaSettingsHero.style(cell, symbol: "square.and.pencil")
             cell.textLabel?.text = text("Редактирование перед пересылкой", "Edit before forwarding")
@@ -109,6 +120,9 @@ final class NebulaPrivacyController: UITableViewController {
         }
         return cell
     }
+    @objc private func scopeChanged(_ toggle: UISwitch) {
+        archive.setScopeEnabled(account: account, scope: NebulaRetentionScope.allCases[toggle.tag], value: toggle.isOn)
+    }
     @objc private func forwardEditingChanged(_ toggle: UISwitch) {
         NebulaForwardEditing.shared.enabled = toggle.isOn
     }
@@ -134,14 +148,13 @@ final class NebulaPrivacyController: UITableViewController {
         if indexPath.section == 1 { pickIcon() }
         if indexPath.section == 3 {
             if indexPath.row == 0 { let open = openAppLock; dismiss(animated: true) { open?() }; return }
-            let alert = UIAlertController(title: text("Срок хранения", "Retention period"), message: text("По умолчанию копии хранятся бессрочно. Если задать срок, просроченные копии очищаются при следующей обработке удалений, не по фоновому таймеру, и после очистки это необратимо.", "By default copies are kept indefinitely. If a period is set, expired copies are pruned on the next deletion update, not by a background timer, and pruning is irreversible."), preferredStyle: .alert)
-            for days in NebulaDeletedArchive.retentionChoices {
-                alert.addAction(UIAlertAction(title: retentionTitle(days), style: .default) { [weak self] _ in
-                    guard let self = self else { return }
-                    self.archive.setRetentionDays(account: self.account, value: days); self.tableView.reloadData()
-                })
+            let choices = NebulaDeletedArchive.retentionChoices
+            NebulaChoiceController.show(from: self, title: text("Срок хранения", "Retention period"),
+                choices: choices.map(retentionTitle), selected: choices.firstIndex(of: archive.retentionDays(account: account)),
+                detail: text("При выбранном сроке старые копии очищаются во время обработки обновлений. По умолчанию — бессрочно.", "A chosen period prunes old copies while processing updates. Unlimited by default."), russian: ru) { [weak self] index in
+                guard let self = self else { return }
+                self.archive.setRetentionDays(account: self.account, value: choices[index]); self.tableView.reloadData()
             }
-            alert.addAction(UIAlertAction(title: text("Отмена", "Cancel"), style: .cancel)); present(alert, animated: true)
         }
         if indexPath.section == 2 {
             let alert = UIAlertController(title: text("Очистить все сохранённые копии?", "Clear all retained copies?"), message: text("Только текущий аккаунт на этом устройстве. Обычная переписка и общий медиакэш не удаляются.", "Only this account on this device. Ordinary history and shared media cache are not deleted."), preferredStyle: .alert)
@@ -154,23 +167,19 @@ final class NebulaPrivacyController: UITableViewController {
         days == 0 ? text("Бессрочно", "Unlimited") : "\(days) " + text("дн.", "days")
     }
     private func pickIcon() {
-        let alert = UIAlertController(title: text("Значок вместо «Удалено»", "Icon instead of Deleted"), message: nil, preferredStyle: .alert)
-        for icon in ["🗑", "✕", "◌"] {
-            alert.addAction(UIAlertAction(title: icon, style: .default) { [weak self] _ in self?.archive.icon = icon;self?.tableView.reloadData() })
-        }
-        alert.addAction(UIAlertAction(title: text("Свой символ / эмодзи", "Custom symbol / emoji"), style: .default) { [weak self] _ in
+        let icons = ["🗑", "✕", "◌"]
+        NebulaChoiceController.show(from: self, title: text("Значок сообщения", "Message icon"),
+            choices: icons + [text("Свой символ / эмодзи", "Custom symbol / emoji")], selected: icons.firstIndex(of: archive.icon), russian: ru) { [weak self] index in
             guard let self = self else { return }
+            if index < icons.count { self.archive.icon = icons[index]; self.tableView.reloadData(); return }
             let custom = UIAlertController(title: self.text("Свой значок", "Custom icon"), message: self.text("До четырёх символов или эмодзи", "Up to four symbols or emoji"), preferredStyle: .alert)
             custom.addTextField { $0.text = self.archive.icon }
             custom.addAction(UIAlertAction(title: self.text("Отмена", "Cancel"), style: .cancel))
             custom.addAction(UIAlertAction(title: self.text("Сохранить", "Save"), style: .default) { [weak self, weak custom] _ in
-                self?.archive.icon = custom?.textFields?.first?.text ?? ""
-                self?.tableView.reloadData()
+                self?.archive.icon = custom?.textFields?.first?.text ?? ""; self?.tableView.reloadData()
             })
             self.present(custom, animated: true)
-        })
-        alert.addAction(UIAlertAction(title: text("Отмена", "Cancel"), style: .cancel))
-        present(alert, animated: true)
+        }
     }
     private func clear() {
         busy = true;tableView.reloadData()

@@ -53,8 +53,68 @@ final class DeletedArchiveTests: XCTestCase {
         var corrupt = try Data(contentsOf: folder.appendingPathComponent("2.enc"))
         corrupt[corrupt.count - 1] ^= 1
         try corrupt.write(to: folder.appendingPathComponent("2.enc"))
-        XCTAssertThrowsError(try archive.entries(account: 2))
+        let reopened = NebulaDeletedArchive(defaults: defaults, directory: folder, key: Data(repeating: 7, count: 32))
+        XCTAssertThrowsError(try reopened.entries(account: 2))
         XCTAssertEqual(try Data(contentsOf: folder.appendingPathComponent("2.enc")), corrupt)
+    }
+    func testSavedMessagesAndScopeIsolation() {
+        XCTAssertTrue(NebulaRetentionPolicy.receivedOrSaved(incoming: false, peer: 42, account: 42))
+        XCTAssertFalse(NebulaRetentionPolicy.receivedOrSaved(incoming: false, peer: 43, account: 42))
+        XCTAssertFalse(NebulaRetentionPolicy.receivedOrSaved(incoming: false, peer: 0, account: 0))
+        XCTAssertTrue(NebulaRetentionPolicy.receivedOrSaved(incoming: true, peer: 43, account: 42))
+        let suite = "NebulaScopes.\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: suite)!
+        defer { defaults.removePersistentDomain(forName: suite) }
+        let archive = NebulaDeletedArchive(defaults: defaults)
+        for scope in NebulaRetentionScope.allCases { XCTAssertTrue(archive.scopeEnabled(account: 42, scope: scope)) }
+        archive.setScopeEnabled(account: 42, scope: .saved, value: false)
+        XCTAssertFalse(archive.scopeEnabled(account: 42, scope: .saved))
+        XCTAssertTrue(archive.scopeEnabled(account: 43, scope: .saved))
+        XCTAssertTrue(archive.scopeEnabled(account: 42, scope: .groups))
+        XCTAssertFalse(archive.shouldPrune(account: 42, now: 1000))
+        archive.setRetentionDays(account: 42, value: 1)
+        XCTAssertTrue(archive.shouldPrune(account: 42, now: 1000))
+        XCTAssertFalse(archive.shouldPrune(account: 42, now: 1001))
+        XCTAssertTrue(archive.shouldPrune(account: 42, now: 1060))
+    }
+    func testQueuedSnapshotPublishesImmediatelyAndPersistsLatest() throws {
+        let suite = "NebulaQueued.\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: suite)!
+        let folder = FileManager.default.temporaryDirectory.appendingPathComponent(suite)
+        defer { defaults.removePersistentDomain(forName: suite); try? FileManager.default.removeItem(at: folder) }
+        let key = Data(repeating: 11, count: 32)
+        let archive = NebulaDeletedArchive(defaults: defaults, directory: folder, key: key)
+        XCTAssertFalse(archive.hasArchive(account: 1))
+        var entries: [NebulaDeletedEntry] = []
+        for id in 1...100 {
+            entries.append(NebulaDeletedEntry(peer: 1, id: Int32(id), timestamp: 1, text: "saved"))
+            archive.scheduleReplace(entries, account: 1)
+            XCTAssertEqual(try archive.snapshot(account: 1).entries.count, id)
+        }
+        entries.append(NebulaDeletedEntry(peer: 1, id: 1, timestamp: 1, text: "different namespace", namespace: 123))
+        try archive.replace(entries, account: 1) // Flush outstanding writes through the serial worker.
+        let snapshot = try archive.snapshot(account: 1)
+        XCTAssertEqual(snapshot.keys.count, 101)
+        XCTAssertTrue(snapshot.keys.contains(NebulaDeletedKey(peer: 1, id: 1)))
+        XCTAssertTrue(snapshot.keys.contains(NebulaDeletedKey(peer: 1, id: 1, namespace: 123)))
+        let reopened = NebulaDeletedArchive(defaults: defaults, directory: folder, key: key)
+        XCTAssertEqual(try reopened.entries(account: 1), entries)
+        XCTAssertFalse(archive.hasCaptureError(account: 1))
+        try archive.clear(account: 1)
+        let cleared = NebulaDeletedArchive(defaults: defaults, directory: folder, key: key)
+        XCTAssertTrue(try cleared.entries(account: 1).isEmpty)
+    }
+    func testWriteFailureRemainsVisibleWithoutDiscardingSnapshot() throws {
+        let suite = "NebulaFailure.\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: suite)!
+        let file = FileManager.default.temporaryDirectory.appendingPathComponent(suite)
+        try Data([1]).write(to: file) // Not a directory: writing the archive must fail.
+        defer { defaults.removePersistentDomain(forName: suite); try? FileManager.default.removeItem(at: file) }
+        let archive = NebulaDeletedArchive(defaults: defaults, directory: file, key: Data(repeating: 7, count: 32))
+        let entries = [NebulaDeletedEntry(peer: 1, id: 1, timestamp: 1, text: "saved")]
+        XCTAssertThrowsError(try archive.replace(entries, account: 1))
+        XCTAssertTrue(archive.hasCaptureError(account: 1))
+        XCTAssertEqual(try archive.entries(account: 1), entries)
     }
     func testRetentionBounds() {
         let now: TimeInterval = 1_000_000
@@ -91,6 +151,11 @@ final class DeletedArchiveTests: XCTestCase {
         try loaded.set(.integer(2), for: "glass_quality")
         XCTAssertEqual(loaded.glassQuality, 2)
         XCTAssertThrowsError(try loaded.set(.integer(3), for: "glass_quality"))
+        try loaded.set(.integer(1), for: "ios_glass_style")
+        try loaded.set(.integer(35), for: "ios_glass_tint")
+        let glass = NebulaSettingsStore(defaults: defaults)
+        XCTAssertEqual(glass.iosGlassStyle, 1); XCTAssertEqual(glass.iosGlassTint, 35)
+        XCTAssertThrowsError(try loaded.set(.integer(61), for: "ios_glass_tint"))
         let exported = try JSONDecoder().decode(SettingsDocument.self, from: loaded.exportData())
         XCTAssertNil(exported.settings["show_stories"])
         try SettingsCatalog.bundled().validate(exported)

@@ -43,7 +43,7 @@ final class NebulaVideoZoomSlider: UIView {
     static func availableMaximum(front: Bool) -> CGFloat {
         let position: AVCaptureDevice.Position = front ? .front : .back
         guard let device = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: position) else { return 2 }
-        return max(1, min(8, device.maxAvailableVideoZoomFactor - device.neutralZoomFactor + 1))
+        return max(1, min(8, device.maxAvailableVideoZoomFactor))
     }
 
     func setRange(front: Bool) {

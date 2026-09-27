@@ -92,7 +92,7 @@ This inventory distinguishes **wired source** from native build and device accep
 
 ## Remaining consumer groups
 1. Separate Profile tab, Settings avatar/gear behavior, tab labels, compact/hide-whole-bar modes and fallback navigation. Contacts visibility and ordering are already wired, preserving selected controller identity.
-2. Native glass custom tint/highlights and per-surface styling. Android blur/refraction sliders cannot simply be mapped to undocumented UIKit properties; supported native adaptations require explicit UI semantics.
+2. Per-surface glass styling and custom highlights remain pending. Native system/liquid/frosted choices, tint and a shared live preview are now wired; Android blur/refraction sliders have no equivalent public UIKit controls.
 3. Chat header positioning, typography, gestures, emoji/media picker styling and message-menu polish.
 4. AI and credential-dependent integrations need their own secure platform adapters; imported appearance values do not implement them.
 5. Signed-device acceptance: cold launch, authentication, keyboard/Dynamic Type country layout, rapid folder swipes, permission/signing-dependent notifications, widgets/Shortcuts, media cache eviction and retained-message unread behavior.
@@ -112,3 +112,13 @@ This inventory distinguishes **wired source** from native build and device accep
 - The native Saved Messages chat is not inserted or forced as a new Nebula row. A per-account, per-chat PIN/password verifier and native chat gate are wired in source. The verifier and retry counter stay in a ThisDeviceOnly Keychain item, outside settings transfer; notification-preview/device acceptance is pending. The app-wide Telegram passcode remains available.
 - The five-page welcome tour has native back/skip/language controls and horizontal swipes. A dedicated Russian/English tour-language screen feeds the native authorization locale route. Other Telegram languages remain available after sign-in; compact-screen visual QA is pending.
 - The remaining Android-only visual switches are still pending native iOS consumers.
+
+## 2026-09-27: recent Android changes adapted to iOS
+
+- Remote deletion capture now includes messages already cached in Saved Messages, even though they are outgoing. The local deletion path is unchanged. Separate per-account retention switches cover private chats, groups, channels, bots and Saved Messages. No recovery of content missing from the local Postbox is promised.
+- The archive caches immutable membership snapshots, skips already retained messages, throttles TTL scans and coalesces encrypted writes on its own worker. The first archive read still decrypts the existing file; full persistence uses an atomic encrypted snapshot. Write failures are recorded and keep the in-memory snapshot; device performance and process-termination testing remain pending.
+- Native choice sheets now cover providers, AI actions, transitions, initial tab, retention period, message marker and glass quality. They use trailing checkmarks, wrapping Dynamic Type labels and iPad form-sheet presentation. Text entry and destructive confirmations retain native alert controls.
+- A dedicated glass screen uses the same GlassBackgroundView as real surfaces. It offers default/system liquid/frosted materials, live tint and a draggable preview, with power/thermal/accessibility status. Liquid Glass requires iOS 26; older devices fall back to supported blur. The native tab bar keeps Telegram's original material. `ios_glass_style` and `ios_glass_tint` are local-only keys, excluded from Android transfer.
+- Apple local AI reports whether hardware is unsupported, Apple Intelligence is disabled or the model is preparing. It refreshes on foregrounding. Gemini Nano remains Android-only; local requests never silently switch to a remote provider.
+- The native round-video zoom build error was corrected: the selected wide-angle device uses the public maximum zoom API. The AI settings screen also no longer indexes beyond its section-icon array.
+- Local ordered-patch validation, settings contract/design guards and build-preparation tests passed. macOS Swift tests, native compilation/IPA and physical-device visual/performance acceptance are tracked separately. This batch does not complete the remaining Android-only visual switches listed above.

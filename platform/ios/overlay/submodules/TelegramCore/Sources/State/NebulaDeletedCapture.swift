@@ -14,6 +14,9 @@ public enum NebulaDeletedMessages {
         NebulaDeletedArchive.shared.setExcluded(account: account.peerId.toInt64(), peer: peer.toInt64(), value: value)
     }
     public static var icon: String { NebulaDeletedArchive.shared.icon }
+    private static func key(_ id: MessageId) -> NebulaDeletedKey {
+        NebulaDeletedKey(peer: id.peerId.toInt64(), id: id.id, namespace: id.namespace)
+    }
     private static func messageId(_ entry: NebulaDeletedEntry) -> MessageId {
         MessageId(peerId: PeerId(entry.peer), namespace: entry.namespace ?? Namespaces.Message.Cloud, id: entry.id)
     }
@@ -34,37 +37,55 @@ public enum NebulaDeletedMessages {
     static func retain(transaction: Transaction, accountPeerId: PeerId, ids: [MessageId]) -> [MessageId] {
         let archive = NebulaDeletedArchive.shared
         let account = accountPeerId.toInt64()
+        guard !ids.isEmpty, archive.enabled(account: account) || archive.hasArchive(account: account) else { return ids }
         do {
-            let all = try archive.entries(account: account)
-            var entries = archive.prunedForAccount(all, account: account)
-            var retained = Set(entries.map(messageId))
+            let snapshot = try archive.snapshot(account: account)
+            let all = snapshot.entries
+            var entries = all
+            var retained = snapshot.keys
+            var expiredEntries: [NebulaDeletedEntry] = []
+            if archive.shouldPrune(account: account) {
+                entries = archive.prunedForAccount(all, account: account)
+                retained = NebulaDeletedSnapshot(entries).keys
+                expiredEntries = all.filter { !retained.contains(key(messageId($0))) }
+            }
+            var newlyRetained = Set<MessageId>()
             if archive.enabled(account: account) {
                 for id in ids {
+                    if snapshot.keys.contains(key(id)) { continue }
                     if archive.excluded(account: account, peer: id.peerId.toInt64()) { continue }
                     let secret = id.peerId.namespace == Namespaces.Peer.SecretChat
                     guard (id.namespace == Namespaces.Message.Cloud || secret && archive.saveSecret(account: account)),
-                          let message = transaction.getMessage(id), message.flags.contains(.Incoming),
+                          let message = transaction.getMessage(id),
+                          NebulaRetentionPolicy.receivedOrSaved(incoming: message.flags.contains(.Incoming), peer: id.peerId.toInt64(), account: account),
                           !message.flags.contains(.CopyProtected),
-                          id.peerId != accountPeerId,
                           id.peerId != PeerId(namespace: Namespaces.Peer.CloudUser, id: PeerId.Id._internalFromInt64Value(777000)) else { continue }
+                    let peer = transaction.getPeer(id.peerId)
+                    let scope: NebulaRetentionScope
+                    if id.peerId == accountPeerId { scope = .saved }
+                    else if let user = peer as? TelegramUser { scope = user.botInfo == nil ? .privateChats : .bots }
+                    else if let channel = peer as? TelegramChannel, case .broadcast = channel.info { scope = .channels }
+                    else { scope = secret ? .privateChats : .groups }
+                    guard archive.scopeEnabled(account: account, scope: scope) else { continue }
                     if message.media.contains(where: { $0 is TelegramMediaAction }) { continue }
                     let expiring = message.attributes.contains(where: { $0 is AutoremoveTimeoutMessageAttribute || $0 is AutoclearTimeoutMessageAttribute })
-                    guard NebulaRetentionPolicy.allowed(enabled: archive.enabled(account: account), secret: secret, expiring: expiring, saveSecret: archive.saveSecret(account: account), saveExpiring: archive.saveExpiring(account: account), protectedContent: message.flags.contains(.CopyProtected), incoming: message.flags.contains(.Incoming), service: message.media.contains(where: { $0 is TelegramMediaAction }), validId: id.id != 0) else { continue }
+                    guard NebulaRetentionPolicy.allowed(enabled: archive.enabled(account: account), secret: secret, expiring: expiring, saveSecret: archive.saveSecret(account: account), saveExpiring: archive.saveExpiring(account: account), protectedContent: message.flags.contains(.CopyProtected), incoming: NebulaRetentionPolicy.receivedOrSaved(incoming: message.flags.contains(.Incoming), peer: id.peerId.toInt64(), account: account), service: message.media.contains(where: { $0 is TelegramMediaAction }), validId: id.id != 0) else { continue }
                     if transaction.getPeer(id.peerId)?.isCopyProtectionEnabled == true { continue }
                     if let cached = transaction.getPeerCachedData(peerId: id.peerId) as? CachedUserData, cached.flags.contains(.copyProtectionEnabled) { continue }
-                    if retained.insert(id).inserted {
+                    if retained.insert(key(id)).inserted {
+                        newlyRetained.insert(id)
                         entries.append(NebulaDeletedEntry(peer: id.peerId.toInt64(), id: id.id, timestamp: message.timestamp, text: message.text, namespace: id.namespace))
                     }
                 }
             }
-            entries = archive.prunedForAccount(entries, account: account)
-            retained = Set(entries.map(messageId))
-            try archive.replace(entries, account: account) // Persist marker before suppressing a deletion.
-            for entry in all where !retained.contains(messageId(entry)) {
+            if !newlyRetained.isEmpty || !expiredEntries.isEmpty {
+                archive.scheduleReplace(entries, account: account)
+            }
+            for entry in expiredEntries {
                 let id = messageId(entry)
                 if let message = transaction.getMessage(id), isRetained(message) { transaction.deleteMessages([id], forEachMedia: nil) }
             }
-            for id in ids where retained.contains(id) {
+            for id in newlyRetained {
                 transaction.updateMessage(id, update: { current in
                     var forward: StoreMessageForwardInfo?
                     if let f = current.forwardInfo {
@@ -73,7 +94,7 @@ public enum NebulaDeletedMessages {
                     return .update(StoreMessage(id: current.id, customStableId: nil, globallyUniqueId: current.globallyUniqueId, groupingKey: current.groupingKey, threadId: current.threadId, timestamp: current.timestamp, flags: StoreMessageFlags(current.flags), tags: current.tags, globalTags: current.globalTags, localTags: current.localTags.union(tag), forwardInfo: forward, authorId: current.author?.id, text: current.text, attributes: current.attributes.filter { !($0 is AutoremoveTimeoutMessageAttribute) && !($0 is AutoclearTimeoutMessageAttribute) }, media: current.media))
                 })
             }
-            return ids.filter { !retained.contains($0) }
+            return ids.filter { !retained.contains(key($0)) }
         } catch { return ids }
     }
 }

@@ -853,6 +853,32 @@ enum NebulaEmbeddedCatalog {
       "ios_mapping": "native",
       "default": false,
       "literal_default_binding": true
+    },
+    {
+      "key": "ios_glass_style",
+      "type": "integer",
+      "feature": "appearance.glass",
+      "android_store": "nebulagram",
+      "android_source": "NebulaGlass.java",
+      "transfer_v1": false,
+      "ios_status": "planned",
+      "ios_mapping": "platform-specific",
+      "default": 0,
+      "min": 0,
+      "max": 2
+    },
+    {
+      "key": "ios_glass_tint",
+      "type": "integer",
+      "feature": "appearance.glass",
+      "android_store": "nebulagram",
+      "android_source": "NebulaGlass.java",
+      "transfer_v1": false,
+      "ios_status": "planned",
+      "ios_mapping": "platform-specific",
+      "default": 18,
+      "min": 0,
+      "max": 60
     }
   ]
 }
