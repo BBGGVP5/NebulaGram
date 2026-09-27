@@ -101,7 +101,8 @@ public final class NebulaFolderTitleView extends FrameLayout {
     }
 
     @Override protected void onMeasure(int widthSpec, int heightSpec) {
-        int width = Math.min(MeasureSpec.getSize(widthSpec), AndroidUtilities.displaySize.x / 2);
-        super.onMeasure(MeasureSpec.makeMeasureSpec(width, MeasureSpec.AT_MOST), heightSpec);
+        // The parent has already reserved room for the buttons. A second
+        // half-screen cap clips folder names even when space is available.
+        super.onMeasure(MeasureSpec.makeMeasureSpec(MeasureSpec.getSize(widthSpec), MeasureSpec.AT_MOST), heightSpec);
     }
 }

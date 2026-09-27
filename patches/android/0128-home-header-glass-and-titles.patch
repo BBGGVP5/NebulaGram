@@ -1,0 +1,120 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
+index 7b5f083..bfc1fd6 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
+@@ -194,6 +194,7 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
+     }
+ 
+     private boolean glassMode;
++    private boolean nebulaHomeGlass;
+     private boolean glassOnlyBack;
+     private boolean glassModeIsForum;
+ 
+@@ -268,6 +269,11 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
+         setupGlass(factory, colorProvider, false);
+     }
+ 
++    public void setNebulaHomeGlass(boolean enabled) {
++        nebulaHomeGlass = enabled;
++        invalidate();
++    }
++
+     public void setupGlass(BlurredBackgroundDrawableViewFactory factory,
+                            BlurredBackgroundColorProvider colorProvider,
+                            boolean isForum) {
+@@ -1537,11 +1543,11 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
+                 availableWidth = Math.max(availableWidth, 0);
+ 
+                 if (((fromBottom && i == 0) || (!fromBottom && i == 1)) && overlayTitleAnimation && titleAnimationRunning) {
+-                    titleTextView[i].setTextSize(glassMode ? 17 : !AndroidUtilities.isTablet() && getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE ? 18 : 20);
++                    titleTextView[i].setTextSize(glassMode && !nebulaHomeGlass ? 17 : !AndroidUtilities.isTablet() && getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE ? 18 : 20);
+                 } else {
+                     if (titleTextView[0] != null && titleTextView[0].getVisibility() != GONE && subtitleTextView != null && subtitleTextView.getVisibility() != GONE) {
+                         if (titleTextView[i] != null) {
+-                            titleTextView[i].setTextSize(glassMode ? 17 : AndroidUtilities.isTablet() ? 20 : 18);
++                            titleTextView[i].setTextSize(glassMode && !nebulaHomeGlass ? 17 : AndroidUtilities.isTablet() ? 20 : 18);
+                         }
+                         subtitleTextView.setTextSize(AndroidUtilities.isTablet() ? 16 : 14);
+                         if (additionalSubtitleTextView != null) {
+@@ -1549,7 +1555,7 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
+                         }
+                     } else {
+                         if (titleTextView[i] != null && titleTextView[i].getVisibility() != GONE) {
+-                            titleTextView[i].setTextSize(glassMode ? 17 : !AndroidUtilities.isTablet() && getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE ? 18 : 20);
++                            titleTextView[i].setTextSize(glassMode && !nebulaHomeGlass ? 17 : !AndroidUtilities.isTablet() && getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE ? 18 : 20);
+                         }
+                         if (subtitleTextView != null && subtitleTextView.getVisibility() != GONE) {
+                             subtitleTextView.setTextSize(!AndroidUtilities.isTablet() && getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE ? 14 : 16);
+@@ -2454,7 +2460,7 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
+             final int leftDefault = lerp(hasBackButton ? nebulaBackWidth - p : 0, nebulaBackWidth - p, chatAvatarContainer == null? 0f : 1f - animatorAvatarContainerHasAvatar.getFloatValue());
+             final int rightDefault = getWidth() - rightOffset;
+             final int widthDefault = rightDefault - leftDefault;
+-            final int left, right;
++            int left, right;
+             final ChatAvatarContainer centeredNebulaAvatar = nebulaFloatingChatHeader
+                     ? nebulaChatAvatarContainer : null;
+             if (centeredNebulaAvatar != null) {
+@@ -2492,6 +2498,17 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
+                 right = rightDefault;
+             }
+ 
++            if (nebulaHomeGlass && actionModeFactor < 0.01f && searchFactor < 0.01f && !isSearchFieldVisible
++                    && titleTextView[0] != null && titleTextView[0].getVisibility() == View.VISIBLE) {
++                // Use the laid-out title, not a guessed width: folder names and
++                // animated emoji keep the full free space without a giant pill.
++                final int titleLeft = titleTextView[0].getLeft();
++                final int titleRight = titleLeft + titleTextView[0].getMeasuredWidth();
++                final int menuLeft = menu != null ? Math.round(menu.getX()) : getWidth();
++                left = Math.max(0, titleLeft - dp(12));
++                right = Math.min(menuLeft - dp(4), titleRight + dp(12));
++                if (right <= left) { left = leftDefault; right = rightDefault; }
++            }
+             glassDrawable.setBounds(left, t, right, b);
+             if (nebulaFloatingChatHeader && app.nebulagram.ui.NebulaAppearance.centeredHeader()) {
+                 glassDrawable.setRadius(Math.min(glassDrawable.getPaddedBounds().height(), glassDrawable.getPaddedBounds().width()) / 2f);
+@@ -2515,10 +2532,25 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
+         // Fade the selection capsule in as the separate avatar backdrop fades out.
+         if (glassDrawableMenu != null && menuWidth > 0 && !glassOnlyBack && !doNotDrawGlassMenu
+                 && (!separateAvatar || actionModeFactor > 0f)) {
+-            glassDrawableMenu.setBounds(getWidth() - Math.max(s, menuWidth) - p * 2, t, getWidth(), b);
+             final float menuAlpha = hasForcedMenuWidth ? 1f : animatorHasMenuItems.getFloatValue();
+-            glassDrawableMenu.setAlpha(Math.round(255 * menuAlpha * (separateAvatar ? actionModeFactor : 1f)));
+-            glassDrawableMenu.draw(canvas);
++            if (nebulaHomeGlass && actionModeFactor < 0.01f && searchFactor < 0.01f
++                    && !isSearchFieldVisible && menu != null) {
++                // Three independent round surfaces follow the actual visible
++                // actions. Passcode/downloads remain accessible when present.
++                final int cy = (t + b) / 2;
++                for (int i = 0; i < menu.getChildCount(); i++) {
++                    final View child = menu.getChildAt(i);
++                    if (child.getVisibility() != View.VISIBLE || child.getWidth() < dp(32) || child.getAlpha() <= 0f) continue;
++                    final int cx = Math.round(menu.getX() + child.getX() + child.getWidth() / 2f);
++                    glassDrawableMenu.setBounds(cx - dp(23), cy - dp(23), cx + dp(23), cy + dp(23));
++                    glassDrawableMenu.setAlpha(Math.round(255 * menuAlpha * child.getAlpha()));
++                    glassDrawableMenu.draw(canvas);
++                }
++            } else {
++                glassDrawableMenu.setBounds(getWidth() - Math.max(s, menuWidth) - p * 2, t, getWidth(), b);
++                glassDrawableMenu.setAlpha(Math.round(255 * menuAlpha * (separateAvatar ? actionModeFactor : 1f)));
++                glassDrawableMenu.draw(canvas);
++            }
+         }
+ 
+         if (blurredBackground && actionBarColor != Color.TRANSPARENT) {
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
+index 1bf4814..21344e3 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
+@@ -3201,6 +3201,12 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+         actionBar.setItemsBackgroundColor(getThemedColor(Theme.key_actionBarActionModeDefaultSelector), true);
+         actionBar.setItemsColor(getThemedColor(Theme.key_actionBarDefaultIcon), false);
+         actionBar.setItemsColor(getThemedColor(Theme.key_actionBarActionModeDefaultIcon), true);
++        if (initialDialogsType == DIALOGS_TYPE_DEFAULT && !onlySelect && !inPreviewMode
++                && folderId == 0 && communityId == 0 && TextUtils.isEmpty(searchString)
++                && app.nebulagram.ui.NebulaAppearance.homeGlassHeader()) {
++            actionBar.setupGlass(iBlur3FactoryLiquidGlass, BlurredBackgroundProviderImpl.topPanel(resourceProvider));
++            actionBar.setNebulaHomeGlass(true);
++        }
+         actionBar.createAdditionalSubTitleOverlayContainer();
+         actionBar.getAdditionalSubTitleOverlayContainer().setTranslationX(dp(4));
+         actionBar.getAdditionalSubTitleOverlayContainer().setTranslationY(-dp(3));
