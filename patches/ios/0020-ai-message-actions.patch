@@ -20,7 +20,7 @@ index 07cef5b..e241193 100644
 +                        let localReady = aiSettings.provider != .appleIntelligence || NebulaAiChatController.onDeviceAvailable
 +                        if aiSettings.enabled && aiSettings.isConfigured() && localReady && !isCopyProtected && messages.count == 1 && message.id.peerId.namespace != Namespaces.Peer.SecretChat {
 +                            let selectedText = messageText
-+                            let russian = presentationData.strings.baseLanguageCode.lowercased().hasPrefix("ru")
++                            let russian = chatPresentationInterfaceState.strings.baseLanguageCode.lowercased().hasPrefix("ru")
 +                            c?.dismiss(completion: {
 +                                controllerInteraction.navigationController()?.present(UINavigationController(rootViewController: NebulaAiChatController(russian: russian, initialText: selectedText, action: .translate)), animated: true)
 +                            })
@@ -39,7 +39,7 @@ index 07cef5b..e241193 100644
 +                    && (aiSettings.provider != .appleIntelligence || NebulaAiChatController.onDeviceAvailable)
 +                if aiReady && !messageText.isEmpty && !isCopyProtected && messages.count == 1 && message.id.peerId.namespace != Namespaces.Peer.SecretChat && messageText.count <= 50_000 {
 +                    let selectedText = messageText
-+                    let russian = presentationData.strings.baseLanguageCode.lowercased().hasPrefix("ru")
++                    let russian = chatPresentationInterfaceState.strings.baseLanguageCode.lowercased().hasPrefix("ru")
 +                    actions.append(.action(ContextMenuActionItem(text: russian ? "Nebula AI · пересказ" : "Nebula AI · Summarize", icon: { theme in
 +                        return generateTintedImage(image: UIImage(bundleImageName: "Chat/Context Menu/Translate"), color: theme.actionSheet.primaryTextColor)
 +                    }, action: { c, f in

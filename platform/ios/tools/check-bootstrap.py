@@ -225,6 +225,9 @@ def main():
         assert '//submodules/NebulaSettingsContract:NebulaSettingsContract' in (temp / 'submodules/TelegramUI/Components/Chat/ChatTextInputPanelNode/BUILD').read_text(encoding='utf-8')
         assert 'self.interfaceInteraction?.openExpandedInput()' in input_panel
         chat = (temp / 'submodules/TelegramUI/Sources/ChatController.swift').read_text(encoding='utf-8')
+        message_menu = (temp / 'submodules/TelegramUI/Sources/ChatInterfaceStateContextMenus.swift').read_text(encoding='utf-8')
+        assert message_menu.count('chatPresentationInterfaceState.strings.baseLanguageCode.lowercased().hasPrefix("ru")') >= 2
+        assert 'let russian = presentationData.strings.baseLanguageCode' not in message_menu
         assert chat.count('guard let chosenReaction = chosenReaction else {\n                        itemNode.openMessageContextMenu()') == 2
         assert 'if !canSendReactionsToChat(strongSelf.presentationInterfaceState)' in chat
         print('OK: native rich editor independent of AI; missing quick reaction opens native menu, permission checks retained', flush=True)
