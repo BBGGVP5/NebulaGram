@@ -39,6 +39,7 @@ public final class NebulaMessageToolsFragment extends BaseFragment {
         NebulaFormUi.group(column, t("Язык перевода и сводки", "Translation and summary language"), target);
 
         NebulaCard ai = new NebulaCard(c);
+        ai.add(action(c, R.drawable.nebula_ai_spark, t("Спросить ИИ", "Ask AI"), t("Открыть чат с этим сообщением", "Open a chat with this message"), v -> presentFragment(new NebulaAiFragment(input.getText().toString()))));
         ai.add(action(c, R.drawable.msg_translate, t("Перевести", "Translate"), t("Сохранить смысл на другом языке", "Keep the meaning in another language"), v -> request(false)));
         ai.add(action(c, R.drawable.msg_list, t("Краткое содержание", "Summarize"), t("Главное из длинного сообщения", "The key points from a long message"), v -> request(true)));
         if (message != null && (message.isVoice() || message.isRoundVideo() || message.isVideo())) {

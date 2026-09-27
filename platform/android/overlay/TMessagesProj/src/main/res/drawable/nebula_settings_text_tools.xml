@@ -1,0 +1,4 @@
+<!-- Generated from design/settings/icons.json. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android" android:width="24dp" android:height="24dp" android:viewportWidth="24" android:viewportHeight="24">
+    <path android:fillColor="@android:color/transparent" android:strokeColor="#FFFFFFFF" android:strokeWidth="1.8" android:strokeLineCap="round" android:strokeLineJoin="round" android:pathData="M4,5 L20,5 M12,5 L12,19 M8,19 L16,19 M5,11 L8,11 M16,11 L19,11" />
+</vector>

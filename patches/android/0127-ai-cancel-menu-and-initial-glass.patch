@@ -1,0 +1,54 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
+index 8a50fa7..f6ccc26 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
+@@ -30076,6 +30076,7 @@ public class ChatActivity extends BaseFragment implements
+         }
+         if (contentView != null) {
+             contentView.onResume();
++            contentView.post(() -> invalidateMergedVisibleBlurredPositionsAndSources(BLUR_INVALIDATE_FLAG_POSITIONS | BLUR_INVALIDATE_FLAG_CLIP));
+         }
+         checkChecksHint();
+ 
+@@ -33691,10 +33692,6 @@ public class ChatActivity extends BaseFragment implements
+             case 7912:
+                 presentFragment(new app.nebulagram.ui.NebulaMessageToolsFragment(selectedObject));
+                 break;
+-            case 7911:
+-                if (app.nebulagram.ui.NebulaAiAvailability.available()) presentFragment(new app.nebulagram.ui.NebulaAiFragment(selectedObject.messageOwner.message));
+-                break;
+-
+             case OPTION_RETRY: {
+                 final MessageObject object = selectedObject;
+                 final MessageObject.GroupedMessages group = selectedObjectGroup;
+@@ -46113,16 +46110,10 @@ public class ChatActivity extends BaseFragment implements
+         }
+         allowPin = allowPin && message.getId() > 0 && (message.messageOwner.action == null || message.messageOwner.action instanceof TLRPC.TL_messageActionEmpty) && !message.isExpiredStory() && message.type != MessageObject.TYPE_STORY_MENTION;
+         boolean noforwards = isPeerNoForwards() || message.messageOwner.noforwards || getDialogId() == UserObject.VERIFY;
+-        if (app.nebulagram.ui.NebulaAiAvailability.available() && !noforwards && !TextUtils.isEmpty(message.messageOwner.message)) {
+-            items.add(app.nebulagram.ui.NebulaText.text("Спросить ИИ", "Ask AI"));
+-            icons.add(R.drawable.msg_customize);
+-            options.add(7911);
+-        }
+-
+         if (!noforwards && !isEphemeral && message.type != MessageObject.TYPE_PAID_MEDIA
+                 && (!TextUtils.isEmpty(message.messageOwner.message) || message.isVoice() || message.isRoundVideo() || message.isVideo())) {
+-            items.add(app.nebulagram.ui.NebulaText.text("Инструменты сообщения", "Message tools"));
+-            icons.add(R.drawable.msg_customize); options.add(7912);
++            items.add(app.nebulagram.ui.NebulaText.text("Инструменты Nebula", "Nebula tools"));
++            icons.add(R.drawable.nebula_ai_spark); options.add(7912);
+         }
+         boolean noforwardsOrPaidMedia = noforwards || message.type == MessageObject.TYPE_PAID_MEDIA;
+         boolean allowUnpin = !isEphemeral && message.getDialogId() != mergeDialogId && allowPin && (pinnedMessageObjects.containsKey(message.getId()) || groupedMessages != null && !groupedMessages.messages.isEmpty() && pinnedMessageObjects.containsKey(groupedMessages.messages.get(0).getId())) && !message.isExpiredStory();
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
+index f3262ac..1bf4814 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
+@@ -7104,6 +7104,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+     public void onResume() {
+         super.onResume();
+         updateNebulaAiShortcut();
++        if (fragmentView != null) fragmentView.post(this::blur3_InvalidateBlur);
+         checkUi_searchFieldVisibility();
+         if (fragmentView != null) {
+             setScrollY(Math.max(scrollYOffset, -getMaxScrollYOffset()));

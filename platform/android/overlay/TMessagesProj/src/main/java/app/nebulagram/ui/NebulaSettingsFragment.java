@@ -88,6 +88,9 @@ public class NebulaSettingsFragment extends BaseFragment {
         search.setHintTextColor(theme.onSurfaceVariant());
         search.setInputType(android.text.InputType.TYPE_CLASS_TEXT);
         search.setImeOptions(android.view.inputmethod.EditorInfo.IME_ACTION_SEARCH);
+        search.setCompoundDrawablesWithIntrinsicBounds(R.drawable.msg_search, 0, 0, 0);
+        search.setCompoundDrawablePadding(AndroidUtilities.dp(10));
+        search.getCompoundDrawables()[0].mutate().setColorFilter(theme.onSurfaceVariant(), android.graphics.PorterDuff.Mode.SRC_IN);
         search.setPadding(AndroidUtilities.dp(16), AndroidUtilities.dp(12), AndroidUtilities.dp(16), AndroidUtilities.dp(12));
         android.graphics.drawable.GradientDrawable field = new android.graphics.drawable.GradientDrawable();
         field.setCornerRadius(AndroidUtilities.dp(14));
@@ -140,7 +143,7 @@ public class NebulaSettingsFragment extends BaseFragment {
         app.add(new NebulaRow(context).icon(R.drawable.msg_secret).title(NebulaText.text("Конфиденциальность", "Privacy"))
                 .subtitle(NebulaText.text("Локальный архив удалённых сообщений", "Local deleted-message archive"), false)
                 .trailing(NebulaRow.TRAIL_CHEVRON).withClick(v -> presentFragment(new NebulaPrivacyFragment())));
-        app.add(NebulaFormUi.action(context, R.drawable.msg_secret,
+        app.add(NebulaFormUi.action(context, R.drawable.nebula_settings_chat_lock,
                 NebulaText.text("Пароли чатов", "Chat passwords"),
                 NebulaText.text("Отдельный пароль для каждого чата", "A separate password for each chat"),
                 v -> presentFragment(new NebulaLockedChatsFragment())));
@@ -148,7 +151,7 @@ public class NebulaSettingsFragment extends BaseFragment {
                 NebulaText.text("Синхронизация настроек", "Settings sync"),
                 NebulaText.text("Через «Избранное» Telegram", "Via Telegram Saved Messages"),
                 v -> presentFragment(new NebulaSyncFragment())));
-        app.add(NebulaFormUi.action(context, R.drawable.msg_customize,
+        app.add(NebulaFormUi.action(context, R.drawable.nebula_settings_app_icon,
                 NebulaText.text("Иконка приложения", "App icon"),
                 NebulaText.text("Оригинальные иконки NebulaGram", "Original NebulaGram icon collection"),
                 v -> presentFragment(new NebulaIconPickerFragment())));
@@ -176,7 +179,7 @@ public class NebulaSettingsFragment extends BaseFragment {
         tools.add(new NebulaRow(context).icon(R.drawable.msg_calendar).title(NebulaText.text("Список дел", "Tasks"))
                 .subtitle(NebulaText.text("Задачи, заметки и напоминания", "Tasks, notes and reminders"), false)
                 .trailing(NebulaRow.TRAIL_CHEVRON).withClick(v -> presentFragment(new NebulaTasksFragment())));
-        tools.add(new NebulaRow(context).icon(R.drawable.msg_customize).title(NebulaText.text("Инструменты текста", "Text tools"))
+        tools.add(new NebulaRow(context).icon(R.drawable.nebula_settings_text_tools).title(NebulaText.text("Инструменты текста", "Text tools"))
                 .subtitle(NebulaText.text("Перевод, озвучивание и краткое содержание", "Translation, read aloud and summaries"), false)
                 .trailing(NebulaRow.TRAIL_CHEVRON).withClick(v -> presentFragment(new NebulaMessageToolsFragment(null))));
         tools.add(section(context, R.drawable.msg_info, R.string.NebulaSectionAbout, R.string.NebulaAboutSub, NebulaSectionFragment.SECTION_ABOUT));
