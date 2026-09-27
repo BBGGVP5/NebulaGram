@@ -1,0 +1,40 @@
+diff --git a/submodules/TelegramUI/Sources/ChatController.swift b/submodules/TelegramUI/Sources/ChatController.swift
+index 23695c2..6bc5423 100644
+--- a/submodules/TelegramUI/Sources/ChatController.swift
++++ b/submodules/TelegramUI/Sources/ChatController.swift
+@@ -46,6 +46,7 @@ import AppBundle
+ import LocalizedPeerData
+ import PhoneNumberFormat
+ import SettingsUI
++import NebulaSettingsContract
+ import UrlWhitelist
+ import TelegramIntents
+ import TooltipUI
+@@ -6008,6 +6009,27 @@ public final class ChatControllerImpl: TelegramBaseController, ChatController, G
+                             f(.dismissWithoutContent)
+                             self?.interfaceInteraction?.beginMessageSearch(.everything, "")
+                         })))
++                        let aiSettings = NebulaAiSettings.shared
++                        let draft = strongSelf.presentationInterfaceState.interfaceState.effectiveInputState.inputText.string
++                        if aiSettings.enabled && aiSettings.isConfigured() && !draft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
++                            && peer.id.namespace != Namespaces.Peer.SecretChat
++                            && (aiSettings.provider != .appleIntelligence || NebulaAiChatController.onDeviceAvailable) {
++                            let russian = strongSelf.presentationData.strings.baseLanguageCode.lowercased().hasPrefix("ru")
++                            items.append(.action(ContextMenuActionItem(text: russian ? "Nebula AI · черновик" : "Nebula AI · Draft", icon: { theme in
++                                return generateTintedImage(image: UIImage(bundleImageName: "Chat/Context Menu/Translate"), color: theme.actionSheet.primaryTextColor)
++                            }, action: { _, f in
++                                f(.dismissWithoutContent)
++                                let editor = NebulaAiChatController(russian: russian, initialText: draft, action: .proofread, applyResult: { [weak self] value in
++                                    guard let self = self else { return }
++                                    self.updateChatPresentationInterfaceState(animated: true, interactive: true, {
++                                        $0.updatedInterfaceState {
++                                            $0.withUpdatedEffectiveInputState(ChatTextInputState(inputText: NSAttributedString(string: value)))
++                                        }
++                                    })
++                                })
++                                strongSelf.present(UINavigationController(rootViewController: editor), animated: true)
++                            })))
++                        }
+                                                 
+                         return items
+                     }

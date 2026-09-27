@@ -33,22 +33,28 @@ final class NebulaAiController: UITableViewController {
     }
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
+        let ready = provider == .appleIntelligence ? NebulaAiService.localModelAvailable : settings.isConfigured(secrets: secrets)
         hero.setStatus(!settings.enabled ? text("ИИ выключен", "AI is off")
-            : settings.isConfigured(secrets: secrets) ? text("Подключение настроено · ", "Configured · ") + provider.title
-            : text("Нужна настройка", "Setup needed"), active: settings.enabled && settings.isConfigured(secrets: secrets))
+            : ready ? text("Доступно · ", "Available · ") + provider.title
+            : text("Нужна настройка или поддерживаемое устройство", "Setup or a supported device needed"), active: settings.enabled && ready)
         hero.fit(in: tableView)
+    }
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        tableView.reloadData()
     }
     @objc private func close() { dismiss(animated: true) }
 
-    // Sections: switch, connection, instructions, state.
-    override func numberOfSections(in tableView: UITableView) -> Int { 4 }
+    // Sections: switch, connection, instructions, state, actions.
+    override func numberOfSections(in tableView: UITableView) -> Int { 5 }
 
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         switch section {
         case 0: return 1
         // Provider, model, key, remove key — plus the address for a custom one.
-        case 1: return provider == .custom ? 5 : 4
+        case 1: return provider == .appleIntelligence ? 1 : provider == .custom ? 5 : 4
         case 2: return 1
+        case 4: return 2
         default: return 1
         }
     }
@@ -57,15 +63,20 @@ final class NebulaAiController: UITableViewController {
         [nil,
          text("Подключение", "Connection"),
          text("Инструкции для ИИ", "AI instructions"),
-         text("Состояние", "State")][section]
+         text("Состояние", "State"),
+         text("Запросы", "Requests")][section]
     }
 
     override func tableView(_ tableView: UITableView, titleForFooterInSection section: Int) -> String? {
         switch section {
         case 0:
-            return text("Пункт в меню сообщений появляется после того, как подключение настроено. Текст, который вы выберете, уходит выбранному провайдеру — это внешний сервис, не Telegram и не NebulaGram.",
-                        "The entry appears in message menus once a connection is configured. Whatever you pick is sent to the provider you chose — an outside service, not Telegram and not NebulaGram.")
+            return text("Запрос выполняется только после нажатия кнопки. Для облачных провайдеров выбранный текст передаётся внешнему сервису.",
+                        "A request runs only after you tap Run. For cloud providers, the selected text is sent to an external service.")
         case 1:
+            if provider == .appleIntelligence {
+                return text("Используется системная модель Apple на устройстве. Она доступна только на поддерживаемых устройствах; автоматического переключения на облачный сервис нет.",
+                            "Uses Apple's system model on this device. It is available only on supported devices; no automatic cloud fallback occurs.")
+            }
             return text("Ключ хранится в связке ключей устройства: он не попадает в iCloud, в резервные копии и в перенос настроек. Обратно на экран он не читается — поле показывает только, сохранён ли он.",
                         "The key is kept in the device keychain: it stays out of iCloud, out of backups and out of the settings transfer. It is never read back into this screen, which only shows whether one is stored.")
         case 2:
@@ -97,6 +108,16 @@ final class NebulaAiController: UITableViewController {
             cell.textLabel?.text = text("Провайдер", "Provider")
             cell.detailTextLabel?.text = provider.title
             cell.accessoryType = .disclosureIndicator
+        case (4, 0):
+            cell.imageView?.image = NebulaSettingsStyle.icon(symbol: "sparkles")
+            cell.textLabel?.text = text("Открыть ИИ-чат", "Open AI chat")
+            cell.detailTextLabel?.text = text("Запрос, перевод, стиль, проверка и пересказ", "Ask, translate, rewrite, proofread and summarize")
+            cell.accessoryType = .disclosureIndicator
+        case (4, 1):
+            cell.imageView?.image = NebulaSettingsStyle.icon(symbol: "clock.arrow.circlepath")
+            cell.textLabel?.text = text("История ИИ", "AI history")
+            cell.detailTextLabel?.text = text("Локальное хранение и очистка", "Local storage and clear")
+            cell.accessoryType = .disclosureIndicator
         case (1, 1) where provider == .custom:
             cell.textLabel?.text = text("Адрес API", "API address")
             let address = settings.customEndpoint
@@ -126,10 +147,11 @@ final class NebulaAiController: UITableViewController {
             cell.textLabel?.textColor = instructions.isEmpty ? .label : .secondaryLabel
             cell.accessoryType = .disclosureIndicator
         default:
-            let ready = settings.isConfigured(secrets: secrets)
+            let ready = provider == .appleIntelligence ? NebulaAiService.localModelAvailable : settings.isConfigured(secrets: secrets)
             cell.textLabel?.text = ready
                 ? text("Подключение настроено", "Connection is configured")
-                : text("Укажите адрес, модель и ключ", "Set an address, a model and a key")
+                : provider == .appleIntelligence ? text("Локальная модель недоступна", "On-device model unavailable")
+                    : text("Укажите адрес, модель и ключ", "Set an address, a model and a key")
             cell.textLabel?.textColor = ready ? .systemGreen : .secondaryLabel
             cell.selectionStyle = .none
         }
@@ -145,6 +167,8 @@ final class NebulaAiController: UITableViewController {
         tableView.deselectRow(at: indexPath, animated: true)
         let custom = provider == .custom
         switch (indexPath.section, indexPath.row) {
+        case (4, 0): navigationController?.pushViewController(NebulaAiChatController(russian: ru), animated: true)
+        case (4, 1): navigationController?.pushViewController(NebulaAiHistoryController(russian: ru), animated: true)
         case (1, 0): pickProvider()
         case (1, 1) where custom:
             edit(title: text("Адрес API", "API address"), value: settings.customEndpoint,

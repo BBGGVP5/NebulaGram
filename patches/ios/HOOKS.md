@@ -11,6 +11,11 @@
 | 0001-nebula-settings-bootstrap.patch | `PeerInfoScreen/Sources/PeerInfoScreenSettingsActions.swift` | `case .appearance` | Переход к нативному экрану | 2 |
 | 0001-nebula-settings-bootstrap.patch | `ChatListFilterTabContainerNode/BUILD` | `deps` | Зависимость полосы папок от store | 1 |
 | 0001-nebula-settings-bootstrap.patch | `ChatListFilterTabContainerNode/Sources/ChatListFilterTabContainerNode.swift` | `updateText`, `updateLayout`, конец `init` | Скрытие счётчиков и их ширины, наблюдение с освобождением токена. Настоящие числа и VoiceOver не меняются | 14 |
+| 0019-profile-badge-interaction.patch | `PeerInfoScreen/Sources/PeerInfoHeaderNode.swift` | `nebulaBadgeTapped`, `updateNebulaBadge` | Анимация значка профиля, карточка с «Подробнее» и нативное окно с описанием; учитывает Reduce Motion и язык интерфейса | 50+ |
+| 0020-ai-message-actions.patch | `TelegramUI/Sources/ChatInterfaceStateContextMenus.swift` | `Conversation_ContextMenuTranslate` | Направляет перевод в выбранный Nebula AI, добавляет пересказ и инструменты для разрешённого одиночного текста | 40+ |
+| 0021-ai-draft-action.patch | `TelegramUI/Sources/ChatController.swift` | `Conversation_Search` | Добавляет ИИ-действие для черновика и вставляет подтверждённый результат обратно в поле ввода | 20+ |
+| 0022-alternate-app-icons.patch | `Telegram/BUILD` | `alternate_icon_folders` | Включает 16 Nebula `.alticon` в пакет iPhone/iPad | 16 |
+| 0022-alternate-app-icons.patch | `Telegram/Telegram-iOS/AlternateIcons.plist`, `AlternateIcons-iPad.plist` | `CFBundleAlternateIcons` | Регистрирует только реально включённые варианты для системного выбора иконки | 96+ |
 
 Полные пути PeerInfoScreen: `submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/`.
 Полные пути ChatListFilterTabContainerNode: `submodules/TelegramUI/Components/ChatList/ChatListFilterTabContainerNode/`.

@@ -11,6 +11,7 @@ public enum NebulaAiProvider: Int, CaseIterable, Codable, Equatable {
     case claude = 1
     case gemini = 2
     case custom = 3
+    case appleIntelligence = 4
 
     /// The default API root. Custom has none: the user supplies it.
     public var endpoint: String? {
@@ -18,7 +19,7 @@ public enum NebulaAiProvider: Int, CaseIterable, Codable, Equatable {
         case .openAI: return "https://api.openai.com/v1"
         case .claude: return "https://api.anthropic.com/v1"
         case .gemini: return "https://generativelanguage.googleapis.com/v1beta"
-        case .custom: return nil
+        case .custom, .appleIntelligence: return nil
         }
     }
 
@@ -28,6 +29,7 @@ public enum NebulaAiProvider: Int, CaseIterable, Codable, Equatable {
         case .claude: return "Claude"
         case .gemini: return "Gemini"
         case .custom: return "Custom"
+        case .appleIntelligence: return "Apple Intelligence · On-device"
         }
     }
 }

@@ -1,0 +1,95 @@
+diff --git a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoHeaderNode.swift b/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoHeaderNode.swift
+index c7bc84d..a0cf39c 100644
+--- a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoHeaderNode.swift
++++ b/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoHeaderNode.swift
+@@ -238,9 +238,10 @@ final class PeerInfoHeaderNode: ASDisplayNode {
+         for view in [self.nebulaBadgeView, self.nebulaExpandedBadgeView] {
+             view.contentMode = .scaleAspectFit
+             view.isHidden = true
+-            view.isUserInteractionEnabled = false
++            view.isUserInteractionEnabled = true
+             view.isAccessibilityElement = true
+-            view.accessibilityTraits = .image
++            view.accessibilityTraits = .button
++            view.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(self.nebulaBadgeTapped)))
+         }
+         self.titleNode.stateNode(forKey: TitleNodeStateRegular)?.view.addSubview(self.nebulaBadgeView)
+         self.titleNode.stateNode(forKey: TitleNodeStateExpanded)?.view.addSubview(self.nebulaExpandedBadgeView)
+@@ -522,11 +523,77 @@ final class PeerInfoHeaderNode: ASDisplayNode {
+                 view.image = image
+                 view.isHidden = image == nil
+                 view.accessibilityLabel = badge?.title
++                view.layer.removeAnimation(forKey: "nebula.badge.pulse")
++                view.layer.removeAnimation(forKey: "nebula.badge.glow")
++                if image != nil && !UIAccessibility.isReduceMotionEnabled {
++                    let pulse = CAKeyframeAnimation(keyPath: "transform.scale")
++                    pulse.values = [1.0, 1.12, 1.0]
++                    pulse.keyTimes = [0.0, 0.5, 1.0]
++                    pulse.duration = 2.4
++                    pulse.repeatCount = .infinity
++                    view.layer.add(pulse, forKey: "nebula.badge.pulse")
++                    let glow = CAKeyframeAnimation(keyPath: "shadowOpacity")
++                    glow.values = [0.0, 0.45, 0.0]
++                    glow.keyTimes = [0.0, 0.5, 1.0]
++                    glow.duration = 2.4
++                    glow.repeatCount = .infinity
++                    view.layer.shadowColor = UIColor(red: 0.42, green: 0.72, blue: 1.0, alpha: 1.0).cgColor
++                    view.layer.shadowRadius = 5.0
++                    view.layer.shadowOffset = .zero
++                    view.layer.add(glow, forKey: "nebula.badge.glow")
++                }
+             }
+             self.requestUpdateLayout?(false)
+         }
+     }
+ 
++    @objc private func nebulaBadgeTapped() {
++        guard let badge = self.nebulaBadge, let controller = self.controller,
++              let presentationData = self.presentationData else { return }
++        let isRussian = presentationData.strings.baseLanguageCode.lowercased().hasPrefix("ru")
++        let badgeTitle: String
++        switch badge {
++        case .supporter: badgeTitle = isRussian ? "Поддержка NebulaGram" : "NebulaGram Supporter"
++        case .dev: badgeTitle = isRussian ? "Разработчик NebulaGram" : "NebulaGram Developer"
++        case .tester: badgeTitle = isRussian ? "Тестер NebulaGram" : "NebulaGram Tester"
++        case .star: badgeTitle = "Mira"
++        case .heart: badgeTitle = isRussian ? "Друг NebulaGram" : "NebulaGram Friend"
++        }
++        let toastText: String
++        switch badge {
++        case .supporter: toastText = isRussian ? "Ты поддержал(а) разработку NebulaGram и получил(а) уникальный значок." : "You supported NebulaGram and received a unique badge."
++        case .dev: toastText = isRussian ? "Этот значок отмечает вклад в разработку NebulaGram." : "This badge recognizes a contribution to NebulaGram development."
++        case .tester: toastText = isRussian ? "Этот значок отмечает помощь в тестировании NebulaGram." : "This badge recognizes help testing NebulaGram."
++        case .star: toastText = isRussian ? "Особый значок NebulaGram." : "A special NebulaGram badge."
++        case .heart: toastText = isRussian ? "Этот значок отмечает дружбу и поддержку NebulaGram." : "This badge recognizes friendship and support for NebulaGram."
++        }
++        let details: String
++        switch badge {
++        case .supporter: details = isRussian ? "Спасибо за поддержку проекта. Уникальный значок отображается в профиле и отмечает твой вклад в развитие NebulaGram." : "Thank you for supporting the project. This unique badge appears on your profile and recognizes your contribution to NebulaGram."
++        case .dev: details = isRussian ? "Значок для участников, которые помогают создавать NebulaGram." : "A badge for people who help build NebulaGram."
++        case .tester: details = isRussian ? "Значок для участников, которые помогают проверять новые версии NebulaGram." : "A badge for people who help test new NebulaGram releases."
++        case .star: details = isRussian ? "Особый значок сообщества NebulaGram." : "A special NebulaGram community badge."
++        case .heart: details = isRussian ? "Значок для друзей проекта, которые поддерживают NebulaGram." : "A badge for friends of the project who support NebulaGram."
++        }
++        let overlay = UndoOverlayController(presentationData: presentationData, content: .universal(animation: "anim_gift", scale: 0.075, colors: [:], title: badgeTitle, text: toastText, customUndoText: isRussian ? "Подробнее" : "Learn more", timeout: 6.0), elevatedLayout: false, position: .bottom, action: { [weak self] action in
++            guard case .undo = action, let self = self, let controller = self.controller else { return false }
++            let sheet = ActionSheetController(presentationData: presentationData)
++            let dismiss: () -> Void = { [weak sheet] in sheet?.dismissAnimated() }
++            sheet.setItemGroups([
++                ActionSheetItemGroup(items: [
++                    ActionSheetTextItem(title: "✦  \(badgeTitle)"),
++                    ActionSheetTextItem(title: details)
++                ]),
++                ActionSheetItemGroup(items: [
++                    ActionSheetButtonItem(title: isRussian ? "Закрыть" : "Close", color: .accent, action: dismiss)
++                ])
++            ])
++            controller.present(sheet, in: .window(.root))
++            return false
++        })
++        controller.present(overlay, in: .current)
++    }
++
+     private var currentPanelStatusData: PeerInfoStatusData?
+     func update(width: CGFloat, containerHeight: CGFloat, containerInset: CGFloat, statusBarHeight: CGFloat, navigationHeight: CGFloat, isModalOverlay: Bool, isMediaOnly: Bool, contentOffset: CGFloat, paneContainerY: CGFloat, presentationData: PresentationData, peer: EnginePeer?, cachedData: EngineCachedPeerData?, threadData: MessageHistoryThreadData?, peerNotificationSettings: TelegramPeerNotificationSettings?, threadNotificationSettings: TelegramPeerNotificationSettings?, globalNotificationSettings: EngineGlobalNotificationSettings?, statusData: PeerInfoStatusData?, panelStatusData: (PeerInfoStatusData?, PeerInfoStatusData?, CGFloat?), isSecretChat: Bool, isContact: Bool, isSettings: Bool, state: PeerInfoState, profileGiftsContext: ProfileGiftsContext?, screenData: PeerInfoScreenData?, isSearching: Bool, metrics: LayoutMetrics, deviceMetrics: DeviceMetrics, transition: ContainedViewLayoutTransition, additive: Bool, animateHeader: Bool) -> CGFloat {
+         if self.appliedCustomNavigationContentNode !== self.customNavigationContentNode {

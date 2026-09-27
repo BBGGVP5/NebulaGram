@@ -28,6 +28,7 @@ def main():
     tree = args.tree.resolve()
     subprocess.run([sys.executable, str(ROOT / 'platform/ios/tools/generate-overlay.py'), '--check'], check=True)
     subprocess.run([sys.executable, str(ROOT / 'platform/ios/tools/generate-badge-artwork.py'), '--check'], check=True)
+    subprocess.run([sys.executable, str(ROOT / 'platform/ios/tools/generate-app-icons.py'), '--check'], check=True)
     entry = run('git', '-C', str(ROOT), 'ls-files', '--stage', '--', 'vendor/telegram-ios', text=True).split()
     if not entry or entry[0] != '160000':
         raise SystemExit('Missing pinned iOS gitlink')
@@ -43,7 +44,7 @@ def main():
         if not pairs:
             raise SystemExit(f'Empty patch: {patch.name}')
         for a, b in pairs:
-            if a != b or not (a.startswith('submodules/') or a in {'Telegram/BUILD', 'Telegram/WidgetKitWidget/TodayViewController.swift'}) or '..' in Path(a).parts or '\\' in a:
+            if a != b or not (a.startswith('submodules/') or a in {'Telegram/BUILD', 'Telegram/WidgetKitWidget/TodayViewController.swift', 'Telegram/Telegram-iOS/AlternateIcons.plist', 'Telegram/Telegram-iOS/AlternateIcons-iPad.plist'}) or '..' in Path(a).parts or '\\' in a:
                 raise SystemExit('Unexpected patch path: ' + a)
             paths.add(a)
     with tempfile.TemporaryDirectory(prefix='nebula-ios-bootstrap-') as temporary:
@@ -80,6 +81,19 @@ def main():
         assert 'nebulaTitleConstrainedSize.width - 28.0' in header
         assert 'TitleNodeStateRegular)?.view.addSubview(self.nebulaBadgeView)' in header
         assert 'TitleNodeStateExpanded)?.view.addSubview(self.nebulaExpandedBadgeView)' in header
+        assert 'UITapGestureRecognizer(target: self, action: #selector(self.nebulaBadgeTapped))' in header
+        assert 'UIAccessibility.isReduceMotionEnabled' in header
+        assert 'customUndoText: isRussian ? "Подробнее" : "Learn more"' in header
+        assert 'ActionSheetTextItem(title: details)' in header
+        assert 'controller.present(sheet, in: .window(.root))' in header
+        ai_menu = (temp / 'submodules/TelegramUI/Sources/ChatInterfaceStateContextMenus.swift').read_text(encoding='utf-8')
+        assert 'NebulaAiSettings.shared' in ai_menu
+        assert 'NebulaAiChatController(russian: russian, initialText: selectedText, action: .translate)' in ai_menu
+        assert 'NebulaAiChatController(russian: russian, initialText: selectedText, action: .summarize)' in ai_menu
+        assert '!isCopyProtected && messages.count == 1' in ai_menu
+        draft_menu = (temp / 'submodules/TelegramUI/Sources/ChatController.swift').read_text(encoding='utf-8')
+        assert 'NebulaAiChatController(russian: russian, initialText: draft, action: .proofread' in draft_menu
+        assert 'withUpdatedEffectiveInputState(ChatTextInputState(inputText: NSAttributedString(string: value)))' in draft_menu
         # All native icon placement code must survive the extra trailing badge.
         original_header = run('git', '-C', str(tree), 'show', revision + ':submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoHeaderNode.swift').decode('utf-8')
         native_start = original_header.index('        if let statusIconSize = self.statusIconSize,')
@@ -122,6 +136,18 @@ def main():
         assert 'if nebulaOpenQuickAction(context: context, path: path, navigationController: navigationController)' in handler
         app_build = (temp / 'Telegram/BUILD').read_text(encoding='utf-8')
         assert 'NebulaAppShortcuts.swift' in app_build
+        for variant in ('Blue', 'Ocean', 'Aurora', 'Sunset', 'Graphite', 'Pearl', 'Ink', 'Paper',
+                        'Mint', 'Lavender', 'Tangerine', 'Rose', 'Orbit', 'Blueprint', 'Nova', 'Monogram'):
+            name = 'Nebula' + variant + 'Icon'
+            assert '"' + name + '"' in app_build
+            for suffix in ('', '-iPad'):
+                icon_plist = (temp / ('Telegram/Telegram-iOS/AlternateIcons' + suffix + '.plist')).read_text(encoding='utf-8')
+                assert '<key>' + name + '</key>' in icon_plist
+            assert (temp / ('Telegram/Telegram-iOS/' + name + '.alticon/' + name + '@3x.png')).is_file()
+        assert 'setAlternateIconName(name)' in (temp / 'submodules/SettingsUI/Sources/NebulaIconController.swift').read_text(encoding='utf-8')
+        build_info = (temp / 'submodules/SettingsUI/Sources/NebulaBuildInfoController.swift').read_text(encoding='utf-8')
+        assert revision in build_info and 'CFBundleShortVersionString' in build_info and 'CFBundleVersion' in build_info
+        assert 'arguments.openBuildInfo' in controller and 'arguments.openIcons' in controller
         # //Telegram:Lib and :WidgetExtensionLib are private to their own package
         # upstream; without the grant the integration check fails Bazel analysis.
         assert app_build.count('visibility = ["//submodules/NebulaIntegrationChecks:__pkg__"],') == 2

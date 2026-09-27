@@ -1,0 +1,63 @@
+diff --git a/submodules/TelegramUI/Sources/ChatInterfaceStateContextMenus.swift b/submodules/TelegramUI/Sources/ChatInterfaceStateContextMenus.swift
+index 07cef5b..e241193 100644
+--- a/submodules/TelegramUI/Sources/ChatInterfaceStateContextMenus.swift
++++ b/submodules/TelegramUI/Sources/ChatInterfaceStateContextMenus.swift
+@@ -31,6 +31,7 @@ import Pasteboard
+ import BrowserUI
+ import ChatRichTextEditorComposer
+ import SettingsUI
++import NebulaSettingsContract
+ import TextNodeWithEntities
+ import ChatControllerInteraction
+ import ChatMessageItemCommon
+@@ -1444,7 +1445,18 @@ func contextMenuForChatPresentationInterfaceState(chatPresentationInterfaceState
+                 if canTranslate {
+                     actions.append(.action(ContextMenuActionItem(text: chatPresentationInterfaceState.strings.Conversation_ContextMenuTranslate, icon: { theme in
+                         return generateTintedImage(image: UIImage(bundleImageName: "Chat/Context Menu/Translate"), color: theme.actionSheet.primaryTextColor)
+-                    }, action: { _, f in
++                    }, action: { c, f in
++                        let aiSettings = NebulaAiSettings.shared
++                        let localReady = aiSettings.provider != .appleIntelligence || NebulaAiChatController.onDeviceAvailable
++                        if aiSettings.enabled && aiSettings.isConfigured() && localReady && !isCopyProtected && messages.count == 1 && message.id.peerId.namespace != Namespaces.Peer.SecretChat {
++                            let selectedText = messageText
++                            let russian = presentationData.strings.baseLanguageCode.lowercased().hasPrefix("ru")
++                            c?.dismiss(completion: {
++                                controllerInteraction.navigationController()?.present(UINavigationController(rootViewController: NebulaAiChatController(russian: russian, initialText: selectedText, action: .translate)), animated: true)
++                            })
++                            if c == nil { f(.default) }
++                            return
++                        }
+                         var messageEntities: [MessageTextEntity]?
+                         for attribute in message.attributes {
+                             if let attribute = attribute as? TextEntitiesMessageAttribute {
+@@ -1457,6 +1469,30 @@ func contextMenuForChatPresentationInterfaceState(chatPresentationInterfaceState
+                     })))
+                 }
+                 
++                let aiSettings = NebulaAiSettings.shared
++                let aiReady = aiSettings.enabled && aiSettings.isConfigured()
++                    && (aiSettings.provider != .appleIntelligence || NebulaAiChatController.onDeviceAvailable)
++                if aiReady && !messageText.isEmpty && !isCopyProtected && messages.count == 1 && message.id.peerId.namespace != Namespaces.Peer.SecretChat && messageText.count <= 50_000 {
++                    let selectedText = messageText
++                    let russian = presentationData.strings.baseLanguageCode.lowercased().hasPrefix("ru")
++                    actions.append(.action(ContextMenuActionItem(text: russian ? "Nebula AI · пересказ" : "Nebula AI · Summarize", icon: { theme in
++                        return generateTintedImage(image: UIImage(bundleImageName: "Chat/Context Menu/Translate"), color: theme.actionSheet.primaryTextColor)
++                    }, action: { c, f in
++                        c?.dismiss(completion: {
++                            controllerInteraction.navigationController()?.present(UINavigationController(rootViewController: NebulaAiChatController(russian: russian, initialText: selectedText, action: .summarize)), animated: true)
++                        })
++                        if c == nil { f(.default) }
++                    })))
++                    actions.append(.action(ContextMenuActionItem(text: russian ? "Nebula AI · инструменты" : "Nebula AI · Tools", icon: { theme in
++                        return generateTintedImage(image: UIImage(bundleImageName: "Chat/Context Menu/Translate"), color: theme.actionSheet.primaryTextColor)
++                    }, action: { c, f in
++                        c?.dismiss(completion: {
++                            controllerInteraction.navigationController()?.present(UINavigationController(rootViewController: NebulaAiChatController(russian: russian, initialText: selectedText)), animated: true)
++                        })
++                        if c == nil { f(.default) }
++                    })))
++                }
++
+                 if isSpeakSelectionEnabled() && !messageText.isEmpty {
+                     actions.append(.action(ContextMenuActionItem(text: chatPresentationInterfaceState.strings.Conversation_ContextMenuSpeak, icon: { theme in
+                         return generateTintedImage(image: UIImage(bundleImageName: "Chat/Context Menu/Message"), color: theme.actionSheet.primaryTextColor)

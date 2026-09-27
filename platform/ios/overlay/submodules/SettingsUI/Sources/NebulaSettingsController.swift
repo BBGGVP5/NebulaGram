@@ -17,6 +17,8 @@ private final class NebulaSettingsArguments {
     var openGlass: (() -> Void)?
     var openPrivacy: (() -> Void)?
     var openAi: (() -> Void)?
+    var openIcons: (() -> Void)?
+    var openBuildInfo: (() -> Void)?
     var updateKey: ((String, Bool) -> Void)?
     var clearHistory: (() -> Void)?
     var searchUpdated: ((String) -> Void)?
@@ -40,6 +42,8 @@ private enum NebulaSettingsEntry: ItemListNodeEntry {
     case link(String)
     case privacy(String)
     case ai(String)
+    case icons(String)
+    case buildInfo(String)
     case widePosts(String, Bool, Bool)
     case stories(String, Bool, Bool)
     case history(String, Bool, Bool)
@@ -55,8 +59,8 @@ private enum NebulaSettingsEntry: ItemListNodeEntry {
     var section: ItemListSectionId {
         switch self {
         case .search, .empty: return -1
-        case .toolsHeader, .link, .ai: return 0
-        case .appearanceHeader, .glass, .navigation, .contacts, .stories, .widePosts: return 1
+        case .toolsHeader, .link, .ai, .buildInfo: return 0
+        case .appearanceHeader, .glass, .navigation, .contacts, .stories, .widePosts, .icons: return 1
         case .header, .hideCounters, .footer: return 2
         case .privacyHeader, .privacy, .history, .clearHistory: return 3
         case .transferHeader, .importFile, .exportFile, .transferFooter: return 4
@@ -69,8 +73,10 @@ private enum NebulaSettingsEntry: ItemListNodeEntry {
         case .toolsHeader: return 0
         case .link: return 10
         case .ai: return 20
+        case .buildInfo: return 25
         case .appearanceHeader: return 30
         case .glass: return 40
+        case .icons: return 45
         case .navigation: return 50
         case .contacts: return 60
         case .widePosts: return 75
@@ -98,9 +104,11 @@ private enum NebulaSettingsEntry: ItemListNodeEntry {
         case .navigation: return 13
         case .contacts: return 14
         case .glass: return 12
+        case .icons: return 22
         case .link: return 7
         case .privacy: return 8
         case .ai: return 15
+        case .buildInfo: return 23
         case .widePosts: return 21
         case .stories: return 9
         case .history: return 10
@@ -124,7 +132,7 @@ private enum NebulaSettingsEntry: ItemListNodeEntry {
         case let .navigation(title, detail), let .glass(title, detail): return title + " " + detail
         case let .widePosts(title, _, _), let .contacts(title, _, _), let .stories(title, _, _), let .history(title, _, _),
              let .hideCounters(title, _, _), let .exportFile(title, _): return title
-        case let .link(title), let .privacy(title), let .ai(title), let .clearHistory(title),
+        case let .link(title), let .privacy(title), let .ai(title), let .icons(title), let .buildInfo(title), let .clearHistory(title),
              let .importFile(title): return title
         default: return nil
         }
@@ -173,6 +181,10 @@ private enum NebulaSettingsEntry: ItemListNodeEntry {
             return disclosure(title, ru ? "Локальные копии и защита" : "Local copies and protection", "hand.raised", { arguments.openPrivacy?() })
         case let .ai(title):
             return disclosure(title, ru ? "Провайдер, модель и инструкции" : "Provider, model and instructions", "sparkles", { arguments.openAi?() })
+        case let .icons(title):
+            return disclosure(title, ru ? "Выбрать иконку NebulaGram" : "Choose a NebulaGram icon", "app", { arguments.openIcons?() })
+        case let .buildInfo(title):
+            return disclosure(title, ru ? "Версия, основа и архитектура" : "Version, source and architecture", "info.circle", { arguments.openBuildInfo?() })
         case let .contacts(title, value, enabled):
             return ItemListSwitchItem(presentationData: presentationData, systemStyle: .glass, title: title, value: value, enabled: enabled, sectionId: section, style: .blocks, updated: { arguments.updateKey?("bottom_bar_contacts", $0) })
         case let .navigation(title, detail):
@@ -256,9 +268,11 @@ public func nebulaSettingsController(context: AccountContext) -> ViewController 
             .history(ru ? "Сохранять и показывать историю поиска настроек" : "Save and show settings search history", store.settingsSearchHistory, !store.hasLoadError),
             .clearHistory(ru ? "Очистить историю поиска настроек" : "Clear settings search history"),
             .glass(ru ? "Адаптивное стекло" : "Adaptive glass", modes[max(0, min(2, store.glassQuality))]),
+            .icons(ru ? "Иконка приложения" : "App icon"),
             .navigation(ru ? "Порядок нижних вкладок" : "Bottom tab order", (ru ? "Сначала: " : "First: ") + tabName),
             .contacts(ru ? "Контакты на нижней панели" : "Contacts in bottom bar", store.showContactsTab, !store.hasLoadError),
-            .ai(ru ? "Искусственный интеллект" : "AI assistant")
+            .ai(ru ? "Искусственный интеллект" : "AI assistant"),
+            .buildInfo(ru ? "О сборке" : "Build information")
         ]
         if !query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
             let matches = entries.filter { entry in
@@ -333,6 +347,16 @@ public func nebulaSettingsController(context: AccountContext) -> ViewController 
         guard let controller = controller, controller.presentedViewController == nil else { return }
         let ru = context.sharedContext.currentPresentationData.with { $0 }.strings.baseLanguageCode.lowercased().hasPrefix("ru")
         controller.present(UINavigationController(rootViewController: NebulaAiController(russian: ru)), animated: true)
+    }
+    arguments.openIcons = { [weak controller] in
+        guard let controller = controller, controller.presentedViewController == nil else { return }
+        let ru = context.sharedContext.currentPresentationData.with { $0 }.strings.baseLanguageCode.lowercased().hasPrefix("ru")
+        controller.present(UINavigationController(rootViewController: NebulaIconController(russian: ru)), animated: true)
+    }
+    arguments.openBuildInfo = { [weak controller] in
+        guard let controller = controller, controller.presentedViewController == nil else { return }
+        let ru = context.sharedContext.currentPresentationData.with { $0 }.strings.baseLanguageCode.lowercased().hasPrefix("ru")
+        controller.present(UINavigationController(rootViewController: NebulaBuildInfoController(russian: ru)), animated: true)
     }
     arguments.openPrivacy = { [weak controller] in
         guard let controller = controller, controller.presentedViewController == nil else { return }

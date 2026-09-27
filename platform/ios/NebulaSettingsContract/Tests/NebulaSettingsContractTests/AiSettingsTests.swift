@@ -32,6 +32,7 @@ final class AiSettingsTests: XCTestCase {
         XCTAssertEqual(settings.model(for: .openAI), "")
         XCTAssertEqual(settings.customEndpoint, "")
         XCTAssertEqual(settings.instructions, "")
+        XCTAssertFalse(settings.historyEnabled)
     }
 
     func testModelIsRememberedPerProvider() {
@@ -53,7 +54,7 @@ final class AiSettingsTests: XCTestCase {
 
     func testOnlyHttpsIsAccepted() {
         // A key travels in a request header; plain http hands it to the network.
-        for address in ["http://example.com/v1", "ftp://example.com", "example.com/v1", "https://", "  ", "not a url at all"] {
+        for address in ["http://example.com/v1", "ftp://example.com", "example.com/v1", "https://", "  ", "not a url at all", "https://user:pass@example.com/v1", "https://example.com/v1?token=1", "https://example.com/v1#fragment"] {
             settings.customEndpoint = address
             XCTAssertNil(settings.endpoint(for: .custom), "accepted \(address)")
         }
@@ -65,6 +66,10 @@ final class AiSettingsTests: XCTestCase {
         let storage = MemoryStorage()
         let secrets = NebulaAiSecrets(storage: storage)
         XCTAssertFalse(settings.isConfigured(secrets: secrets))
+        settings.provider = .appleIntelligence
+        XCTAssertTrue(settings.isConfigured(secrets: secrets), "local model does not require an API key")
+        XCTAssertNil(settings.endpoint(for: .appleIntelligence))
+        settings.provider = .openAI
         settings.setModel("a-model", for: .openAI)
         XCTAssertFalse(settings.isConfigured(secrets: secrets), "a model alone is not a connection")
         try? secrets.setKey("a-key", for: .openAI)

@@ -31,6 +31,12 @@ public final class NebulaAiSettings {
         set { defaults.set(newValue, forKey: name("enabled")) }
     }
 
+    /// Conversation history is local to this installation and stays opt-in.
+    public var historyEnabled: Bool {
+        get { defaults.bool(forKey: name("history_enabled")) }
+        set { defaults.set(newValue, forKey: name("history_enabled")) }
+    }
+
     public var provider: NebulaAiProvider {
         get { NebulaAiProvider(rawValue: defaults.integer(forKey: name("provider"))) ?? .openAI }
         set { defaults.set(newValue.rawValue, forKey: name("provider")) }
@@ -68,14 +74,16 @@ public final class NebulaAiSettings {
         let raw = provider == .custom ? customEndpoint : (provider.endpoint ?? "")
         let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty, let url = URL(string: trimmed),
-              url.scheme?.lowercased() == "https", url.host?.isEmpty == false else { return nil }
+              url.scheme?.lowercased() == "https", url.host?.isEmpty == false,
+              url.user == nil, url.password == nil, url.query == nil, url.fragment == nil else { return nil }
         return url
     }
 
     /// Whether a request could be made right now: somewhere to send it, a model
     /// to name, and a key to sign it with.
     public func isConfigured(secrets: NebulaAiSecrets = .shared) -> Bool {
-        endpoint(for: provider) != nil
+        if provider == .appleIntelligence { return true }
+        return endpoint(for: provider) != nil
             && !model(for: provider).isEmpty
             && secrets.hasKey(for: provider)
     }
