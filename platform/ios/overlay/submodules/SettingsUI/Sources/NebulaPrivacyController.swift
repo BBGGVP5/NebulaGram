@@ -114,7 +114,7 @@ final class NebulaPrivacyController: UITableViewController {
             cell.accessoryType = .disclosureIndicator
             if indexPath.row == 1 { cell.detailTextLabel?.text = retentionTitle(archive.retentionDays(account: account)) }
         } else {
-            cell.textLabel?.text = busy ? text("Очистка…", "Clearing…") : text("Очистить кэш удалённых сообщений", "Clear retained-message cache")
+            cell.textLabel?.text = busy ? text("Очистка…", "Clearing…") : text("Очистить удалёнки", "Clear deleted messages")
             cell.textLabel?.textColor = .systemRed
             cell.imageView?.image = NebulaSettingsStyle.icon(symbol: "trash", color: .systemRed)
         }

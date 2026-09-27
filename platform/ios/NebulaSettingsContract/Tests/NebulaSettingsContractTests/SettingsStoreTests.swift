@@ -3,6 +3,31 @@ import XCTest
 @testable import NebulaSettingsContract
 
 final class SettingsStoreTests: XCTestCase {
+    func testNativeNavigationControlsPersistAndKeepSettingsReachable() throws {
+        try withDefaults { defaults in
+            let store = NebulaSettingsStore(defaults: defaults)
+            XCTAssertTrue(store.showProfileTab)
+            XCTAssertTrue(store.showSettingsTab)
+            XCTAssertTrue(store.showTabLabels)
+            XCTAssertFalse(store.compactBottomBar)
+            try store.set(.boolean(false), for: "bottom_bar_settings")
+            XCTAssertFalse(store.showSettingsTab)
+            try store.set(.boolean(false), for: "bottom_bar_profile")
+            XCTAssertTrue(store.showSettingsTab)
+            try store.set(.boolean(false), for: "tab_labels")
+            try store.set(.boolean(true), for: "compact_bottom_bar")
+            try store.set(.boolean(true), for: "hide_home_camera")
+            try store.set(.boolean(true), for: "hide_home_compose")
+            let restored = NebulaSettingsStore(defaults: defaults)
+            XCTAssertFalse(restored.showTabLabels)
+            XCTAssertTrue(restored.compactBottomBar)
+            XCTAssertTrue(restored.hideHomeCamera)
+            XCTAssertTrue(restored.hideHomeCompose)
+            let preview = try store.previewImport(store.exportData())
+            XCTAssertTrue(preview.activeKeys.contains("bottom_bar_profile"))
+            XCTAssertTrue(preview.activeKeys.contains("hide_home_camera"))
+        }
+    }
     private func withDefaults(_ body: (UserDefaults) throws -> Void) rethrows {
         let name = "NebulaSettingsTests.\(UUID().uuidString)"
         let defaults = UserDefaults(suiteName: name)!

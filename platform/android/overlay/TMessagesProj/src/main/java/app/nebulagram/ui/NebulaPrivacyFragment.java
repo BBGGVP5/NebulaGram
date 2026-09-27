@@ -212,7 +212,7 @@ public final class NebulaPrivacyFragment extends BaseFragment {
                 "Off by default. The setting changes this client on this device and nothing else."));
 
         header(text("Локальный кэш", "Local cache"));
-        card(row(R.drawable.msg_clearcache, text("Очистить кэш удалённых сообщений", "Clear retained-message cache"))
+        card(row(R.drawable.msg_clearcache, text("Очистить удалёнки", "Clear deleted messages"))
                 .destructive()
                 .withClick(v -> confirmClear(this, currentAccount, 0, this::rebuild)));
 

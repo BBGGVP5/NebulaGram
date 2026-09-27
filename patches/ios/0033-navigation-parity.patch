@@ -1,0 +1,273 @@
+diff --git a/submodules/ChatListUI/Sources/ChatListController.swift b/submodules/ChatListUI/Sources/ChatListController.swift
+--- a/submodules/ChatListUI/Sources/ChatListController.swift
++++ b/submodules/ChatListUI/Sources/ChatListController.swift
+@@ -6901,7 +6901,13 @@
+             let token = NotificationCenter.default.addObserver(forName: NebulaAiSettings.homeShortcutChanged, object: nil, queue: .main) { _ in
+                 subscriber.putNext(NebulaAiSettings.shared.homeShortcut)
+             }
+-            return ActionDisposable { NotificationCenter.default.removeObserver(token) }
++            let settingsObservation = NebulaSettingsStore.shared.observe {
++                subscriber.putNext(NebulaAiSettings.shared.homeShortcut)
++            }
++            return ActionDisposable {
++                NotificationCenter.default.removeObserver(token)
++                settingsObservation.cancel()
++            }
+         }
+         let nebulaStoryAvailability = combineLatest(storyPostingAvailable, nebulaHomeChanges)
+         |> map { available, _ in available }
+@@ -7235,13 +7241,15 @@
+                             self?.parentController?.editPressed()
+                         }
+                     )))
+-                } else {
++                } else if !NebulaSettingsStore.shared.hideHomeCompose {
+                     self.rightButton = AnyComponentWithIdentity(id: "compose", component: AnyComponent(NavigationButtonComponent(
+                         content: .icon(imageName: "Chat List/ComposeIcon"),
+                         pressed: { [weak self] _ in
+                             self?.parentController?.composePressed()
+                         }
+                     )))
++                } else {
++                    self.rightButton = nil
+                 }
+                 
+                 if isReorderingTabs {
+@@ -7269,7 +7277,7 @@
+                     }
+                 }
+                 
+-                if storyPostingAvailable || NebulaAiSettings.shared.homeShortcut {
++                if NebulaAiSettings.shared.homeShortcut || (storyPostingAvailable && !NebulaSettingsStore.shared.hideHomeCamera) {
+                     self.storyButton = AnyComponentWithIdentity(id: "story", component: AnyComponent(NavigationButtonComponent(
+                         content: .icon(imageName: NebulaAiSettings.shared.homeShortcut ? "NebulaAI" : "Chat List/AddStoryIcon"),
+                         pressed: { [weak self] _ in
+diff --git a/submodules/TabBarUI/BUILD b/submodules/TabBarUI/BUILD
+--- a/submodules/TabBarUI/BUILD
++++ b/submodules/TabBarUI/BUILD
+@@ -10,6 +10,7 @@
+         "-warnings-as-errors",
+     ],
+     deps = [
++        "//submodules/NebulaSettingsContract:NebulaSettingsContract",
+         "//submodules/AsyncDisplayKit",
+         "//submodules/Display",
+     	"//submodules/SSignalKit/SwiftSignalKit",
+diff --git a/submodules/TabBarUI/Sources/TabBarContollerNode.swift b/submodules/TabBarUI/Sources/TabBarContollerNode.swift
+--- a/submodules/TabBarUI/Sources/TabBarContollerNode.swift
++++ b/submodules/TabBarUI/Sources/TabBarContollerNode.swift
+@@ -1,4 +1,5 @@
+ import Foundation
++import NebulaSettingsContract
+ import UIKit
+ import AsyncDisplayKit
+ import Display
+@@ -72,6 +73,7 @@
+     private var layoutResult: LayoutResult?
+     private var isUpdateRequested: Bool = false
+     private var isChangingSelectedIndex: Bool = false
++    private var nebulaAppearanceObservation: SettingsObservation?
+     
+     func setCurrentController(_ controller: ViewController?) -> () -> Void {
+         guard controller !== self.currentController else {
+@@ -121,6 +123,9 @@
+         self.deactivateSearch = deactivateSearch
+ 
+         super.init()
++        self.nebulaAppearanceObservation = NebulaSettingsStore.shared.observe { [weak self] in
++            self?.requestUpdate()
++        }
+         
+         self.setViewBlock({
+             return View(frame: CGRect())
+diff --git a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoHeaderNavigationButton.swift b/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoHeaderNavigationButton.swift
+--- a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoHeaderNavigationButton.swift
++++ b/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoHeaderNavigationButton.swift
+@@ -217,6 +217,10 @@
+                 text = ""
+                 accessibilityText = presentationData.strings.Common_Back
+                 icon = PresentationResourcesRootController.navigationBackIcon(presentationData.theme)
++            case .settings:
++                text = ""
++                accessibilityText = presentationData.strings.Settings_Title
++                icon = UIImage(systemName: "gearshape")
+             case .edit:
+                 text = presentationData.strings.Common_Edit
+                 accessibilityText = text
+diff --git a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoHeaderNavigationButtonContainerNode.swift b/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoHeaderNavigationButtonContainerNode.swift
+--- a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoHeaderNavigationButtonContainerNode.swift
++++ b/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoHeaderNavigationButtonContainerNode.swift
+@@ -10,6 +10,7 @@
+ 
+ enum PeerInfoHeaderNavigationButtonKey {
+     case back
++    case settings
+     case edit
+     case done
+     case cancel
+diff --git a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoScreen.swift b/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoScreen.swift
+--- a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoScreen.swift
++++ b/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoScreen.swift
+@@ -1,4 +1,5 @@
+ import Foundation
++import NebulaSettingsContract
+ import UIKit
+ import Display
+ import AsyncDisplayKit
+@@ -1636,6 +1637,8 @@
+             switch key {
+             case .back:
+                 strongSelf.controller?.dismiss()
++            case .settings:
++                strongSelf.controller?.parentController?.openSettings(edit: false)
+             case .edit:
+                 if case let .replyThread(message) = strongSelf.chatLocation {
+                     let threadId = message.threadId
+@@ -5919,6 +5922,9 @@
+                     leftNavigationButtons.append(PeerInfoHeaderNavigationButtonSpec(key: .qrCode, isForExpandedView: false))
+                     rightNavigationButtons.append(PeerInfoHeaderNavigationButtonSpec(key: .edit, isForExpandedView: false))
+                 } else if self.isMyProfile {
++                    if !NebulaSettingsStore.shared.showSettingsTab {
++                        leftNavigationButtons.append(PeerInfoHeaderNavigationButtonSpec(key: .settings, isForExpandedView: false))
++                    }
+                     rightNavigationButtons.append(PeerInfoHeaderNavigationButtonSpec(key: .edit, isForExpandedView: false))
+                 } else if peerInfoCanEdit(peer: self.data?.peer, chatLocation: self.chatLocation, threadData: self.data?.threadData, cachedData: self.data?.cachedData, isContact: self.data?.isContact) {
+                     rightNavigationButtons.append(PeerInfoHeaderNavigationButtonSpec(key: .edit, isForExpandedView: false))
+@@ -6717,6 +6723,7 @@
+                 icon = UIImage(bundleImageName: "Chat List/Tabs/IconSettings")
+             }
+             
++            let isMyProfileTab = self.isMyProfile
+             let tabBarItem: Signal<(String, UIImage?, UIImage?, String?, Bool, Bool), NoError> = combineLatest(queue: .mainQueue(), self.context.sharedContext.presentationData, notificationsAuthorizationStatus.get(), notificationsWarningSuppressed.get(), context.engine.notices.getServerProvidedSuggestions(), accountTabBarAvatar, accountTabBarAvatarBadge)
+             |> map { presentationData, notificationsAuthorizationStatus, notificationsWarningSuppressed, suggestions, accountTabBarAvatar, accountTabBarAvatarBadge -> (String, UIImage?, UIImage?, String?, Bool, Bool) in
+                 let notificationsWarning = shouldDisplayNotificationsPermissionWarning(status: notificationsAuthorizationStatus, suppressed:  notificationsWarningSuppressed)
+@@ -6726,7 +6733,12 @@
+                 if accountTabBarAvatarBadge > 0 {
+                     otherAccountsBadge = compactNumericCountString(Int(accountTabBarAvatarBadge), decimalSeparator: presentationData.dateTimeFormat.decimalSeparator)
+                 }
+-                return (presentationData.strings.Settings_Title, accountTabBarAvatar?.0 ?? icon, accountTabBarAvatar?.1 ?? icon, notificationsWarning || phoneNumberWarning || passwordWarning ? "!" : otherAccountsBadge, accountTabBarAvatar != nil, presentationData.reduceMotion)
++                if isMyProfileTab {
++                    let title = presentationData.strings.baseLanguageCode.lowercased().hasPrefix("ru") ? "Профиль" : "Profile"
++                    let profileIcon = accountTabBarAvatar?.0 ?? UIImage(systemName: "person.crop.circle") ?? icon
++                    return (title, profileIcon, accountTabBarAvatar?.1 ?? profileIcon, nil, accountTabBarAvatar != nil, presentationData.reduceMotion)
++                }
++                return (presentationData.strings.Settings_Title, icon, icon, notificationsWarning || phoneNumberWarning || passwordWarning ? "!" : otherAccountsBadge, false, presentationData.reduceMotion)
+             }
+             
+             self.tabBarItemDisposable = (tabBarItem |> deliverOnMainQueue).startStrict(next: { [weak self] title, image, selectedImage, badgeValue, isAvatar, reduceMotion in
+diff --git a/submodules/TelegramUI/Components/TabBarComponent/BUILD b/submodules/TelegramUI/Components/TabBarComponent/BUILD
+--- a/submodules/TelegramUI/Components/TabBarComponent/BUILD
++++ b/submodules/TelegramUI/Components/TabBarComponent/BUILD
+@@ -10,6 +10,7 @@
+         "-warnings-as-errors",
+     ],
+     deps = [
++        "//submodules/NebulaSettingsContract:NebulaSettingsContract",
+         "//submodules/Display",
+         "//submodules/TelegramPresentationData",
+         "//submodules/ComponentFlow",
+diff --git a/submodules/TelegramUI/Components/TabBarComponent/Sources/TabBarComponent.swift b/submodules/TelegramUI/Components/TabBarComponent/Sources/TabBarComponent.swift
+--- a/submodules/TelegramUI/Components/TabBarComponent/Sources/TabBarComponent.swift
++++ b/submodules/TelegramUI/Components/TabBarComponent/Sources/TabBarComponent.swift
+@@ -1,4 +1,5 @@
+ import Foundation
++import NebulaSettingsContract
+ import UIKit
+ import Display
+ import TelegramPresentationData
+@@ -654,7 +655,8 @@
+             let _ = alphaTransition
+ 
+             let innerInset: CGFloat = 4.0
+-            let availableSize = CGSize(width: min(500.0, availableSize.width), height: availableSize.height)
++            let preferredWidth = NebulaSettingsStore.shared.compactBottomBar ? max(160.0, CGFloat(component.items.count) * 72.0 + 8.0) : 500.0
++            let availableSize = CGSize(width: min(preferredWidth, availableSize.width), height: availableSize.height)
+             
+             let previousComponent = self.component
+             self.component = component
+@@ -1291,7 +1293,7 @@
+                     self.contextContainerView.contentView.addSubview(titleView)
+                 }
+                 titleView.frame = titleFrame
+-                alphaTransition.setAlpha(view: titleView, alpha: component.isCompact ? 0.0 : 1.0)
++                alphaTransition.setAlpha(view: titleView, alpha: component.isCompact || !NebulaSettingsStore.shared.showTabLabels ? 0.0 : 1.0)
+             }
+ 
+             if let badgeText = badgeValue, !badgeText.isEmpty {
+diff --git a/submodules/TelegramUI/Sources/TelegramRootController.swift b/submodules/TelegramUI/Sources/TelegramRootController.swift
+--- a/submodules/TelegramUI/Sources/TelegramRootController.swift
++++ b/submodules/TelegramUI/Sources/TelegramRootController.swift
+@@ -82,6 +82,7 @@
+     public var callListController: CallListController?
+     public var chatListController: ChatListController?
+     public var accountSettingsController: PeerInfoScreen?
++    private var nebulaProfileController: PeerInfoScreenImpl?
+     
+     private var permissionsDisposable: Disposable?
+     private var presentationDataDisposable: Disposable?
+@@ -244,15 +245,19 @@
+         }
+         accountSettingsController.parentController = self
+         controllers.append(accountSettingsController)
++        let profileController = PeerInfoScreenImpl(context: self.context, updatedPresentationData: nil, peerId: self.context.account.peerId, avatarInitiallyExpanded: false, isOpenedFromChat: false, reactionSourceMessageId: nil, callMessages: [], isMyProfile: true)
++        profileController.parentController = self
++        controllers.append(profileController)
+                 
+         controllers = nebulaOrderedControllers(controllers)
+-        let initial: ViewController = restoreSettignsController != nil ? accountSettingsController : chatListController
++        let initial: ViewController = restoreSettignsController != nil && NebulaSettingsStore.shared.showSettingsTab ? accountSettingsController : chatListController
+         tabBarController.setControllers(controllers, selectedIndex: controllers.firstIndex(where: { $0 === initial }) ?? 0)
+         
+         self.contactsController = contactsController
+         self.callListController = callListController
+         self.chatListController = chatListController
+         self.accountSettingsController = accountSettingsController
++        self.nebulaProfileController = profileController
+         self.rootTabController = tabBarController
+         self.pushViewController(tabBarController, animated: false)
+         self.nebulaNavigationObservation = NebulaSettingsStore.shared.observe { [weak self] in
+@@ -273,6 +278,9 @@
+         }
+         controllers.append(self.chatListController!)
+         controllers.append(self.accountSettingsController!)
++        if let profileController = self.nebulaProfileController {
++            controllers.append(profileController)
++        }
+         
+         controllers = nebulaOrderedControllers(controllers)
+         // Preserve selected controller identity, not an index that moved with the order.
+@@ -298,7 +306,10 @@
+                 if store.showContactsTab, let value = source.first(where: { $0 is ContactsController }) { result.append(value) }
+                 if let value = source.first(where: { $0 is CallListController }) { result.append(value) }
+             case "chats": if let value = source.first(where: { $0 is ChatListController }) { result.append(value) }
+-            case "settings": if let value = source.first(where: { $0 is PeerInfoScreenImpl }) { result.append(value) }
++            case "settings":
++                if store.showSettingsTab, let value = self.accountSettingsController as? ViewController { result.append(value) }
++            case "profile":
++                if store.showProfileTab, let value = self.nebulaProfileController { result.append(value) }
+             default: break
+             }
+         }
+@@ -342,7 +353,8 @@
+         
+         self.popToRoot(animated: false)
+         
+-        if let index = rootTabController.controllers.firstIndex(where: { $0 is PeerInfoScreenImpl }) {
++        if let settings = self.accountSettingsController as? ViewController,
++           let index = rootTabController.controllers.firstIndex(where: { $0 === settings }) {
+             rootTabController.selectedIndex = index
+         }
+         
+@@ -856,8 +868,11 @@
+         
+         self.popToRoot(animated: false)
+     
+-        if let index = rootTabController.controllers.firstIndex(where: { $0 is PeerInfoScreenImpl }) {
++        if let settings = self.accountSettingsController as? ViewController,
++           let index = rootTabController.controllers.firstIndex(where: { $0 === settings }) {
+             rootTabController.selectedIndex = index
++        } else if let settings = self.accountSettingsController as? ViewController {
++            self.pushViewController(settings, animated: true)
+         }
+         
+         if edit {

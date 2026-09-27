@@ -39,6 +39,7 @@ private enum NebulaSettingsEntry: ItemListNodeEntry {
     case privacyHeader(String)
     case navigation(String, String)
     case contacts(String, Bool, Bool)
+    case navigationToggle(String, String, Bool, Bool)
     case glass(String, String)
     case link(String)
     case privacy(String)
@@ -62,7 +63,7 @@ private enum NebulaSettingsEntry: ItemListNodeEntry {
         switch self {
         case .search, .empty: return -1
         case .toolsHeader, .link, .ai, .buildInfo: return 0
-        case .appearanceHeader, .glass, .navigation, .contacts, .stories, .widePosts, .icons, .transitions: return 1
+        case .appearanceHeader, .glass, .navigation, .contacts, .navigationToggle, .stories, .widePosts, .icons, .transitions: return 1
         case .header, .hideCounters, .footer: return 2
         case .privacyHeader, .privacy, .history, .clearHistory: return 3
         case .transferHeader, .importFile, .exportFile, .transferFooter: return 4
@@ -82,6 +83,15 @@ private enum NebulaSettingsEntry: ItemListNodeEntry {
         case .transitions: return 47
         case .navigation: return 50
         case .contacts: return 60
+        case let .navigationToggle(key, _, _, _):
+            switch key {
+            case "bottom_bar_profile": return 61
+            case "bottom_bar_settings": return 62
+            case "tab_labels": return 63
+            case "compact_bottom_bar": return 64
+            case "hide_home_camera": return 65
+            default: return 66
+            }
         case .widePosts: return 75
         case .stories: return 70
         case .header: return 80
@@ -106,6 +116,15 @@ private enum NebulaSettingsEntry: ItemListNodeEntry {
         case .privacyHeader: return 18
         case .navigation: return 13
         case .contacts: return 14
+        case let .navigationToggle(key, _, _, _):
+            switch key {
+            case "bottom_bar_profile": return 30
+            case "bottom_bar_settings": return 31
+            case "tab_labels": return 32
+            case "compact_bottom_bar": return 33
+            case "hide_home_camera": return 34
+            default: return 35
+            }
         case .glass: return 12
         case .icons: return 22
         case .transitions: return 24
@@ -134,7 +153,7 @@ private enum NebulaSettingsEntry: ItemListNodeEntry {
     var searchableText: String? {
         switch self {
         case let .navigation(title, detail), let .glass(title, detail), let .transitions(title, detail): return title + " " + detail
-        case let .widePosts(title, _, _), let .contacts(title, _, _), let .stories(title, _, _), let .history(title, _, _),
+        case let .widePosts(title, _, _), let .contacts(title, _, _), let .navigationToggle(_, title, _, _), let .stories(title, _, _), let .history(title, _, _),
              let .hideCounters(title, _, _), let .exportFile(title, _): return title
         case let .link(title), let .privacy(title), let .ai(title), let .icons(title), let .buildInfo(title), let .clearHistory(title),
              let .importFile(title): return title
@@ -193,6 +212,8 @@ private enum NebulaSettingsEntry: ItemListNodeEntry {
             return disclosure(title, detail, "square.on.square", { arguments.openTransitions?() })
         case let .contacts(title, value, enabled):
             return ItemListSwitchItem(presentationData: presentationData, systemStyle: .glass, title: title, value: value, enabled: enabled, sectionId: section, style: .blocks, updated: { arguments.updateKey?("bottom_bar_contacts", $0) })
+        case let .navigationToggle(key, title, value, enabled):
+            return ItemListSwitchItem(presentationData: presentationData, systemStyle: .glass, title: title, value: value, enabled: enabled, sectionId: section, style: .blocks, updated: { arguments.updateKey?(key, $0) })
         case let .navigation(title, detail):
             return disclosure(title, detail, "rectangle.bottomthird.inset.filled", { arguments.openNavigation?() })
         case let .glass(title, detail):
@@ -249,9 +270,17 @@ public func nebulaSettingsController(context: AccountContext) -> ViewController 
         arguments.russian = ru
         let modes = ru ? ["Автоматически", "Полное", "Облегчённое"] : ["Automatic", "Full", "Light"]
         let transitionModes = ru ? ["Стандартная", "Системная", "Spring"] : ["Standard", "System", "Spring"]
-        let firstTab = store.bottomTabOrder.first(where: { $0 != "contacts" || store.showContactsTab }) ?? "chats"
+        let firstTab = store.bottomTabOrder.first(where: {
+            switch $0 {
+            case "contacts": return store.showContactsTab
+            case "settings": return store.showSettingsTab
+            case "profile": return store.showProfileTab
+            default: return true
+            }
+        }) ?? "chats"
         let tabName = firstTab == "contacts" ? (ru ? "Контакты" : "Contacts")
-            : firstTab == "settings" ? (ru ? "Настройки" : "Settings") : (ru ? "Чаты" : "Chats")
+            : firstTab == "settings" ? (ru ? "Настройки" : "Settings")
+            : firstTab == "profile" ? (ru ? "Профиль" : "Profile") : (ru ? "Чаты" : "Chats")
         var footer = ru
             ? "Скрывает числа на вкладках папок. Непрочитанные сообщения и уведомления не изменяются."
             : "Hides numbers on folder tabs. Unread messages and notifications are unchanged."
@@ -272,8 +301,8 @@ public func nebulaSettingsController(context: AccountContext) -> ViewController 
             .importFile(ru ? "Импорт из файла" : "Import from file"),
             .exportFile(ru ? "Экспорт в файл" : "Export to file", !store.hasLoadError),
             .transferFooter(ru
-                ? "Формат NebulaGram JSON v1. Импорт заменяет настройки после подтверждения. На iOS из файла применяются счётчики папок, качество стекла, порядок вкладок, показ контактов и широкие посты. Локальные настройки историй и поиска сохраняются отдельно; остальные допустимые параметры ожидают переноса. Аккаунты и ключи доступа не экспортируются."
-                : "NebulaGram JSON v1. Import replaces preferences after confirmation. Folder counters, glass quality, tab order, Contacts visibility and wide posts are applied from files. Local story/search settings are preserved separately; other valid settings await porting. Accounts and access keys are not exported."),
+                ? "Формат NebulaGram JSON v1. Импорт заменяет настройки после подтверждения. Применяются подключённые параметры навигации, папок, стекла и широких постов. Остальные допустимые значения сохраняются до их переноса на iOS. Аккаунты и ключи доступа не экспортируются."
+                : "NebulaGram JSON v1. Import replaces preferences after confirmation. Connected navigation, folder, glass and wide-post options are applied. Other valid values are retained until their iOS port. Accounts and access keys are not exported."),
             .link("NebulaLink"),
             .privacy(ru ? "Конфиденциальность" : "Privacy"),
             .widePosts(ru ? "Широкие посты в каналах" : "Wide posts in channels", store.widePosts, !store.hasLoadError),
@@ -285,6 +314,12 @@ public func nebulaSettingsController(context: AccountContext) -> ViewController 
             .transitions(ru ? "Анимация переходов" : "Transition animation", transitionModes[store.transitionStyle]),
             .navigation(ru ? "Порядок нижних вкладок" : "Bottom tab order", (ru ? "Сначала: " : "First: ") + tabName),
             .contacts(ru ? "Контакты на нижней панели" : "Contacts in bottom bar", store.showContactsTab, !store.hasLoadError),
+            .navigationToggle("bottom_bar_profile", ru ? "Профиль на нижней панели" : "Profile in bottom bar", store.showProfileTab, !store.hasLoadError),
+            .navigationToggle("bottom_bar_settings", ru ? "Настройки на нижней панели" : "Settings in bottom bar", store.showSettingsTab, !store.hasLoadError && store.showProfileTab),
+            .navigationToggle("tab_labels", ru ? "Подписи вкладок" : "Tab labels", store.showTabLabels, !store.hasLoadError),
+            .navigationToggle("compact_bottom_bar", ru ? "Компактная нижняя панель" : "Compact bottom bar", store.compactBottomBar, !store.hasLoadError),
+            .navigationToggle("hide_home_camera", ru ? "Скрыть камеру на главной" : "Hide camera on home", store.hideHomeCamera, !store.hasLoadError),
+            .navigationToggle("hide_home_compose", ru ? "Скрыть кнопку нового чата" : "Hide new-chat button", store.hideHomeCompose, !store.hasLoadError),
             .ai(ru ? "Искусственный интеллект" : "AI assistant"),
             .buildInfo(ru ? "О сборке" : "Build information")
         ]
@@ -330,11 +365,11 @@ public func nebulaSettingsController(context: AccountContext) -> ViewController 
     arguments.openNavigation = { [weak controller] in
         guard let controller = controller else { return }
         let ru = context.sharedContext.currentPresentationData.with { $0 }.strings.baseLanguageCode.hasPrefix("ru")
-        let keys = ["chats", "contacts", "settings"]
+        let keys = ["chats", "contacts", "settings", "profile"]
         NebulaChoiceController.show(from: controller, title: ru ? "Первой показывать" : "Show first",
-            choices: ru ? ["Чаты", "Контакты", "Настройки"] : ["Chats", "Contacts", "Settings"],
+            choices: ru ? ["Чаты", "Контакты", "Настройки", "Профиль"] : ["Chats", "Contacts", "Settings", "Profile"],
             selected: keys.firstIndex(of: store.bottomTabOrder.first ?? "chats"),
-            detail: ru ? "Звонки остаются рядом с контактами. Отдельная вкладка профиля пока не перенесена." : "Calls remain next to Contacts. A separate Profile tab is not yet ported.", russian: ru) { index in
+            detail: ru ? "Звонки остаются рядом с контактами." : "Calls remain next to Contacts.", russian: ru) { index in
                 var order = store.bottomTabOrder; order.removeAll { $0 == keys[index] }; order.insert(keys[index], at: 0)
                 do { try store.set(.string(order.joined(separator: ",")), for: "bottom_bar_order"); writeFailed.set(false) }
                 catch { writeFailed.set(true) }

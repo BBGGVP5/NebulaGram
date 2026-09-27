@@ -28,11 +28,11 @@ This inventory distinguishes **wired source** from native build and device accep
 | `bottom_bar` | navigation.bottom_bar | Pending native consumer | Yes |
 | `bottom_bar_contacts` | navigation.bottom_bar | Wired; native/device QA pending | Yes |
 | `bottom_bar_order` | navigation.bottom_bar | Wired; native/device QA pending | Yes |
-| `bottom_bar_profile` | navigation.bottom_bar | Pending native consumer | Yes |
-| `bottom_bar_settings` | navigation.bottom_bar | Pending native consumer | Yes |
+| `bottom_bar_profile` | navigation.bottom_bar | Wired; native/device QA pending | Yes |
+| `bottom_bar_settings` | navigation.bottom_bar | Wired; native/device QA pending | Yes |
 | `center_home` | navigation.folders | Pending native consumer | Yes |
 | `centered_chat_header` | chat.header | Pending native consumer | Yes |
-| `compact_bottom_bar` | navigation.bottom_bar | Pending native consumer | Yes |
+| `compact_bottom_bar` | navigation.bottom_bar | Wired; native/device QA pending | Yes |
 | `custom_avatar_corners` | appearance.general | Pending native consumer | Local only |
 | `disable_next_channel` | chat.messages | Pending native consumer | Yes |
 | `floating_chat_header_v2` | chat.header | Pending native consumer | Yes |
@@ -51,8 +51,8 @@ This inventory distinguishes **wired source** from native build and device accep
 | `hide_all_chats` | navigation.folders | Pending native consumer | Yes |
 | `hide_attach_camera` | chat.composer | Pending native consumer | Yes |
 | `hide_dividers` | navigation.folders | Pending native consumer | Yes |
-| `hide_home_camera` | navigation.bottom_bar | Pending native consumer | Yes |
-| `hide_home_compose` | navigation.bottom_bar | Pending native consumer | Yes |
+| `hide_home_camera` | navigation.bottom_bar | Wired; native/device QA pending | Yes |
+| `hide_home_compose` | navigation.bottom_bar | Wired; native/device QA pending | Yes |
 | `hide_premium_status` | appearance.general | Pending native consumer | Yes |
 | `hide_search_field` | navigation.folders | Pending native consumer | Yes |
 | `hide_send_as` | chat.composer | Pending native consumer | Yes |
@@ -85,13 +85,13 @@ This inventory distinguishes **wired source** from native build and device accep
 | `settings_search_history` | settings.search | Wired; native/device QA pending | Local only |
 | `show_stories` | stories.visibility | Wired; native/device QA pending | Local only |
 | `switch_style` | appearance.general | Pending native consumer | Yes |
-| `tab_labels` | navigation.bottom_bar | Pending native consumer | Yes |
+| `tab_labels` | navigation.bottom_bar | Wired; native/device QA pending | Yes |
 | `uniform_avatars` | appearance.general | Pending native consumer | Yes |
 | `useSystemBoldFont` | appearance.general | Pending native consumer | Yes |
 | `useSystemEmoji` | appearance.general | Pending native consumer | Yes |
 
 ## Remaining consumer groups
-1. Separate Profile tab, Settings avatar/gear behavior, tab labels, compact/hide-whole-bar modes and fallback navigation. Contacts visibility and ordering are already wired, preserving selected controller identity.
+1. Hiding the entire bottom bar still needs a persistent route to Chats, Profile and Settings. Profile/Settings visibility, tab labels, compact width, Contacts visibility and ordering are wired; native/device QA remains pending.
 2. Per-surface glass styling and custom highlights remain pending. Native system/liquid/frosted choices, tint and a shared live preview are now wired; Android blur/refraction sliders have no equivalent public UIKit controls.
 3. Chat header positioning, typography, gestures, emoji/media picker styling and message-menu polish.
 4. AI and credential-dependent integrations need their own secure platform adapters; imported appearance values do not implement them.

@@ -8,7 +8,7 @@ diff --git a/submodules/TelegramUI/Sources/Chat/ChatControllerNavigationButtonAc
 +                    if case .scheduledMessages = strongSelf.presentationInterfaceState.subject {
 +                    } else {
 +                        let ru = strongSelf.presentationData.strings.baseLanguageCode.lowercased().hasPrefix("ru")
-+                        items.append(ActionSheetButtonItem(title: ru ? "Очистить удалённые сообщения" : "Clear retained messages", color: .accent, action: { [weak self, weak actionSheet] in
++                        items.append(ActionSheetButtonItem(title: ru ? "Очистить удалёнки" : "Clear deleted messages", color: .accent, action: { [weak self, weak actionSheet] in
 +                            actionSheet?.dismissAnimated()
 +                            self?.nebulaConfirmClearRetained(peerId: peerId)
 +                        }))
@@ -24,7 +24,7 @@ diff --git a/submodules/TelegramUI/Sources/Chat/ChatControllerOpenPeer.swift b/s
          
          var items: [ContextMenuItem] = []
 +        let ru = strings.baseLanguageCode.lowercased().hasPrefix("ru")
-+        items.append(.action(ContextMenuActionItem(text: ru ? "Очистить удалённые сообщения" : "Clear retained messages", icon: { theme in
++        items.append(.action(ContextMenuActionItem(text: ru ? "Очистить удалёнки" : "Clear deleted messages", icon: { theme in
 +            generateTintedImage(image: UIImage(bundleImageName: "Chat/Context Menu/Clear"), color: theme.contextMenu.primaryColor)
 +        }, action: { [weak self] _, completion in
 +            completion(.default)

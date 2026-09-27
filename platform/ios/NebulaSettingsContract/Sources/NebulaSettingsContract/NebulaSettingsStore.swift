@@ -33,7 +33,7 @@ public final class SettingsObservation {
 public final class NebulaSettingsStore {
     public static let shared = NebulaSettingsStore(defaults: .standard)
     public static let storageKey = "app.nebulagram.presentation.settings.v1"
-    public static let editableKeys: Set<String> = ["hide_tab_counters", "show_stories", "settings_search_history", "glass_quality", "ios_glass_style", "ios_glass_tint", "bottom_bar_contacts", "bottom_bar_order", "wide_posts", "fragment_transition_style"]
+    public static let editableKeys: Set<String> = ["hide_tab_counters", "show_stories", "settings_search_history", "glass_quality", "ios_glass_style", "ios_glass_tint", "bottom_bar_contacts", "bottom_bar_order", "bottom_bar_profile", "bottom_bar_settings", "tab_labels", "compact_bottom_bar", "hide_home_camera", "hide_home_compose", "wide_posts", "fragment_transition_style"]
     public static let maximumTransferBytes = 1024 * 1024
 
     private let defaults: UserDefaults
@@ -90,6 +90,13 @@ public final class NebulaSettingsStore {
         return 0
     }
     public var showContactsTab: Bool { boolean("bottom_bar_contacts", fallback: true) }
+    public var showProfileTab: Bool { boolean("bottom_bar_profile", fallback: true) }
+    /// The Settings tab is the recovery route when other tabs are hidden.
+    public var showSettingsTab: Bool { boolean("bottom_bar_settings", fallback: true) || !showProfileTab }
+    public var showTabLabels: Bool { boolean("tab_labels", fallback: true) }
+    public var compactBottomBar: Bool { boolean("compact_bottom_bar", fallback: false) }
+    public var hideHomeCamera: Bool { boolean("hide_home_camera", fallback: false) }
+    public var hideHomeCompose: Bool { boolean("hide_home_compose", fallback: false) }
     public var bottomTabOrder: [String] {
         lock.lock(); defer { lock.unlock() }
         let standard = ["chats", "contacts", "settings", "profile"]

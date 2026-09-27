@@ -187,14 +187,23 @@ def main():
         for target in ['//Telegram:Lib', '//Telegram:WidgetExtensionLib', '//submodules/TelegramUI:TelegramUI']:
             assert target in integration
 
-        # Tab visibility/order must not replace Telegram's original bar, lens, search,
-        # gestures, badges, layout or drawing. The only change is an opt-out marker.
+        # Navigation preferences retain Telegram's native bar, lens, search,
+        # gestures, badges and drawing; only width and label visibility change.
         native_tab_path = 'submodules/TelegramUI/Components/TabBarComponent/Sources/TabBarComponent.swift'
         native_tab = (temp / native_tab_path).read_text(encoding='utf-8')
         marker = '            self.backgroundContainer.nebulaPreservesNativeAppearance = true\n'
         assert native_tab.count(marker) == 1
         original_tab = run('git', '-C', str(tree), 'show', revision + ':' + native_tab_path).decode('utf-8')
-        assert native_tab.replace(marker, '') == original_tab
+        expected_tab = original_tab.replace('import Foundation\n', 'import Foundation\nimport NebulaSettingsContract\n', 1)
+        expected_tab = expected_tab.replace('            self.addSubview(self.backgroundContainer)\n', '            self.addSubview(self.backgroundContainer)\n' + marker, 1)
+        expected_tab = expected_tab.replace('            let availableSize = CGSize(width: min(500.0, availableSize.width), height: availableSize.height)\n',
+            '            let preferredWidth = NebulaSettingsStore.shared.compactBottomBar ? max(160.0, CGFloat(component.items.count) * 72.0 + 8.0) : 500.0\n'
+            '            let availableSize = CGSize(width: min(preferredWidth, availableSize.width), height: availableSize.height)\n', 1)
+        expected_tab = expected_tab.replace('                alphaTransition.setAlpha(view: titleView, alpha: component.isCompact ? 0.0 : 1.0)\n',
+            '                alphaTransition.setAlpha(view: titleView, alpha: component.isCompact || !NebulaSettingsStore.shared.showTabLabels ? 0.0 : 1.0)\n', 1)
+        assert native_tab == expected_tab
+        assert '//submodules/NebulaSettingsContract:NebulaSettingsContract' in (temp / 'submodules/TelegramUI/Components/TabBarComponent/BUILD').read_text(encoding='utf-8')
+        assert '//submodules/NebulaSettingsContract:NebulaSettingsContract' in (temp / 'submodules/TabBarUI/BUILD').read_text(encoding='utf-8')
         glass = (temp / 'submodules/TelegramUI/Components/GlassBackgroundComponent/Sources/GlassBackgroundComponent.swift').read_text(encoding='utf-8')
         assert 'let reduced = !self.nebulaInNativeContainer && NebulaGlassPolicy.reduced(' in glass
         assert 'while let view = ancestor' in glass and 'ancestor = view.superview' in glass
@@ -204,7 +213,9 @@ def main():
         assert 'controllers = nebulaOrderedControllers(controllers)' in root_controller
         assert 'pair.0 !== pair.1' in root_controller and '$0 === old' in root_controller
         assert 'if store.showContactsTab' in root_controller
-        print('OK: native Telegram tab bar is unchanged except its scoped adaptive-glass opt-out; order/hiding retain native controllers', flush=True)
+        assert 'if store.showProfileTab' in root_controller and 'if store.showSettingsTab' in root_controller
+        assert 'self.pushViewController(settings, animated: true)' in root_controller
+        print('OK: native Telegram tab bar retains its lens, search, gestures and badges with live labels, compact width and native profile tab', flush=True)
 
         input_panel = (temp / 'submodules/TelegramUI/Components/Chat/ChatTextInputPanelNode/Sources/ChatTextInputPanelNode.swift').read_text(encoding='utf-8')
         assert 'let isExpandInputEnabled = self.enableRichTextInput\n' in input_panel
