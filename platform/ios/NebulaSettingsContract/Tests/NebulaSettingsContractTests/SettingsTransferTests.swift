@@ -14,11 +14,11 @@ final class SettingsTransferTests: XCTestCase {
         let token = store.observe(queue: nil) { calls += 1 }
         defer { token.cancel() }
         let data = try JSONEncoder().encode(SettingsDocument(settings: [
-            "hide_tab_counters": .boolean(true), "centered_chat_header": .boolean(false)
+            "hide_tab_counters": .boolean(true), "adaptive_chat_header": .boolean(false)
         ]))
         let preview = try store.previewImport(data)
         XCTAssertEqual(preview.activeKeys, ["hide_tab_counters"])
-        XCTAssertEqual(preview.pendingKeys, ["centered_chat_header"])
+        XCTAssertEqual(preview.pendingKeys, ["adaptive_chat_header"])
         XCTAssertFalse(store.hideTabCounters)
         XCTAssertEqual(defaults.data(forKey: NebulaSettingsStore.storageKey), saved)
         XCTAssertEqual(calls, 0)
