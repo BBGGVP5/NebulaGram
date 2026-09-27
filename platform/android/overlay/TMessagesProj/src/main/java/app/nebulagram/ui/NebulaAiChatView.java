@@ -34,7 +34,7 @@ public final class NebulaAiChatView extends LinearLayout {
     private boolean disposed;
     private int completed;
     private int activeProvider = -1;
-    private volatile Thread nanoInFlight;
+    private static volatile Thread nanoInFlight;
     private TextView cancellationNotice;
 
     public NebulaAiChatView(Context context, String initial, Runnable settings) {
