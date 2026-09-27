@@ -234,6 +234,17 @@ def main():
         assert 'device.neutralZoomFactor' not in zoom
         assert 'device.maxAvailableVideoZoomFactor' in zoom
         print('OK: Saved Messages retention, async archive hook, native choice sheets, live glass preview and public zoom API', flush=True)
+        ai_chat = (temp / 'submodules/SettingsUI/Sources/NebulaAiChatController.swift').read_text(encoding='utf-8')
+        ai_settings = (temp / 'submodules/SettingsUI/Sources/NebulaAiController.swift').read_text(encoding='utf-8')
+        ai_home = (temp / 'submodules/ChatListUI/Sources/ChatListController.swift').read_text(encoding='utf-8')
+        ai_root = (temp / 'submodules/TelegramUI/Sources/TelegramRootController.swift').read_text(encoding='utf-8')
+        assert 'NebulaAiMarkdown.parse(raw)' in ai_chat and 'self.gate.accepts(id)' in ai_chat
+        assert 'view.keyboardLayoutGuide.topAnchor' in ai_chat and 'work?.cancel()' in ai_chat
+        assert 'homeShortcut' in ai_settings and 'Timer.scheduledTimer' in ai_settings
+        assert 'nebulaStoryAvailability' in ai_home and 'NebulaAiSettings.openHomeChat' in ai_home
+        assert 'NebulaAiChatController.presentSheet(from: self' in ai_root and 'host === self' in ai_root
+        assert 'func move(_ gesture:' not in glass_preview
+        print('OK: iOS chat lifecycle, Markdown, live local readiness and scoped home shortcut hooks', flush=True)
 
         print(f'OK: {len(patches)} ordered iOS patch(es), {len(paths)} upstream paths, overlay/hooks, pin {revision}', flush=True)
         if args.swift:
@@ -279,6 +290,12 @@ print("OK: embedded catalog and Bazel-side Foundation store compiled and ran")
             settings_ui = temp / 'submodules/SettingsUI/Sources'
             subprocess.run(['swiftc', *ios_flags, '-typecheck', str(settings_ui / 'NebulaSettingsStyle.swift'), str(settings_ui / 'NebulaSettingsSymbols.swift'),
                             str(settings_ui / 'NebulaSettingsHero.swift')], check=True)
+            ai_sources = ['NebulaSettingsStyle.swift', 'NebulaSettingsSymbols.swift', 'NebulaSettingsHero.swift',
+                          'NebulaChoiceController.swift', 'NebulaAiChatController.swift', 'NebulaAiController.swift',
+                          'NebulaAiService.swift', 'NebulaAiHistoryController.swift']
+            subprocess.run(['swiftc', *ios_flags, '-I', str(temp), '-warnings-as-errors', '-typecheck',
+                            *[str(settings_ui / name) for name in ai_sources]], check=True)
+            print('OK: AI chat/settings/service typechecked against the real iOS simulator SDK')
             auth = temp / 'submodules/AuthorizationUI/Sources'
             subprocess.run(['swiftc', *ios_flags, '-typecheck', str(auth / 'NebulaAuthPresentation.swift'),
                             str(auth / 'NebulaWelcomeController.swift')], check=True)

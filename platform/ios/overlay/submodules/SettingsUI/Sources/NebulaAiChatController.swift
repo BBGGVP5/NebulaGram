@@ -34,204 +34,310 @@ public enum NebulaAiAction: CaseIterable {
     }
 }
 
-/// A native, user-initiated AI editor. It never sends its output to a Telegram
-/// chat; callers may explicitly apply the result to an existing draft.
-public final class NebulaAiChatController: UIViewController {
+/// Shared full-page and sheet chat. Requests run only on explicit send.
+public final class NebulaAiChatController: UIViewController, UITextViewDelegate {
     public static var onDeviceAvailable: Bool { NebulaAiService.localModelAvailable }
     private let ru: Bool
     private let service = NebulaAiService()
-    private let history = NebulaAiHistory.shared
     private let applyResult: ((String) -> Void)?
     private var action: NebulaAiAction
     private var work: Task<Void, Never>?
-    private var answer = ""
-
+    private var gate = NebulaAiRequestGate()
+    private var conversation = NebulaAiConversation()
+    private var readinessTimer: Timer?
     private let scroll = UIScrollView()
-    private let stack = UIStackView()
-    private let source = UITextView()
-    private let result = UITextView()
+    private let messages = UIStackView()
+    private let composer = UITextView()
     private let providerLabel = UILabel()
     private let actionButton = UIButton(type: .system)
     private let sendButton = UIButton(type: .system)
-    private let copyButton = UIButton(type: .system)
-    private let applyButton = UIButton(type: .system)
-    private let spinner = UIActivityIndicatorView(style: .medium)
+    private var composerHeight: NSLayoutConstraint!
+    private var keyboardBottom: NSLayoutConstraint?
+    private var waiting: UIStackView?
+    private var pulse: NebulaAiPulseView?
+    private var isWelcome = true
+    private var initial: String
 
     public init(russian: Bool, initialText: String = "", action: NebulaAiAction = .ask,
                 applyResult: ((String) -> Void)? = nil) {
-        self.ru = russian
-        self.action = action
-        self.applyResult = applyResult
+        self.ru = russian; self.action = action; self.applyResult = applyResult
+        self.initial = String(initialText.prefix(50_000))
         super.init(nibName: nil, bundle: nil)
-        source.text = String(initialText.prefix(50_000))
-        title = russian ? "ИИ-помощник" : "AI assistant"
+        title = "Nebula AI"
     }
-
     required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
-
     private func text(_ russian: String, _ english: String) -> String { ru ? russian : english }
+
+    public static func presentSheet(from host: UIViewController, russian: Bool) {
+        guard host.presentedViewController == nil else { return }
+        let chat = NebulaAiChatController(russian: russian)
+        let navigation = UINavigationController(rootViewController: chat)
+        navigation.modalPresentationStyle = .pageSheet
+        if #available(iOS 15.0, *) {
+            navigation.sheetPresentationController?.detents = [.large()]
+            navigation.sheetPresentationController?.prefersGrabberVisible = true
+            navigation.sheetPresentationController?.preferredCornerRadius = 28
+        }
+        host.present(navigation, animated: true)
+    }
 
     public override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .systemBackground
-        navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .done, target: self, action: #selector(close))
-
-        scroll.translatesAutoresizingMaskIntoConstraints = false
-        stack.translatesAutoresizingMaskIntoConstraints = false
-        stack.axis = .vertical
-        stack.spacing = 14
-        stack.layoutMargins = UIEdgeInsets(top: 20, left: 18, bottom: 28, right: 18)
-        stack.isLayoutMarginsRelativeArrangement = true
-        view.addSubview(scroll)
-        scroll.addSubview(stack)
+        navigationItem.leftBarButtonItem = UIBarButtonItem(barButtonSystemItem: .close, target: self, action: #selector(close))
+        navigationItem.rightBarButtonItems = [
+            UIBarButtonItem(image: UIImage(systemName: "slider.horizontal.3"), style: .plain, target: self, action: #selector(openSettings)),
+            UIBarButtonItem(image: UIImage(systemName: "square.and.pencil"), style: .plain, target: self, action: #selector(newChat))
+        ]
+        navigationItem.rightBarButtonItems?[0].accessibilityLabel = text("Настройки ИИ", "AI settings")
+        navigationItem.rightBarButtonItems?[1].accessibilityLabel = text("Новый чат", "New chat")
+        let layout = UIStackView(); layout.axis = .vertical; layout.spacing = 8
+        layout.translatesAutoresizingMaskIntoConstraints = false; view.addSubview(layout)
         NSLayoutConstraint.activate([
-            scroll.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor),
-            scroll.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor),
-            scroll.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
-            scroll.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor),
-            stack.leadingAnchor.constraint(equalTo: scroll.contentLayoutGuide.leadingAnchor),
-            stack.trailingAnchor.constraint(equalTo: scroll.contentLayoutGuide.trailingAnchor),
-            stack.topAnchor.constraint(equalTo: scroll.contentLayoutGuide.topAnchor),
-            stack.bottomAnchor.constraint(equalTo: scroll.contentLayoutGuide.bottomAnchor),
-            stack.widthAnchor.constraint(equalTo: scroll.frameLayoutGuide.widthAnchor)
+            layout.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 16),
+            layout.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -16),
+            layout.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 8)
         ])
-
-        addHeading(text("Текст запроса", "Request text"))
-        setupTextView(source, editable: true)
-        source.heightAnchor.constraint(greaterThanOrEqualToConstant: 130).isActive = true
-        stack.addArrangedSubview(source)
-
-        providerLabel.font = .preferredFont(forTextStyle: .footnote)
-        providerLabel.textColor = .secondaryLabel
-        providerLabel.numberOfLines = 0
-        providerLabel.adjustsFontForContentSizeCategory = true
-        stack.addArrangedSubview(providerLabel)
-
+        if #available(iOS 15.0, *) {
+            layout.bottomAnchor.constraint(equalTo: view.keyboardLayoutGuide.topAnchor, constant: -8).isActive = true
+        } else {
+            keyboardBottom = layout.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -8)
+            keyboardBottom?.isActive = true
+            NotificationCenter.default.addObserver(self, selector: #selector(keyboardChanged(_:)), name: UIResponder.keyboardWillChangeFrameNotification, object: nil)
+        }
+        providerLabel.font = .preferredFont(forTextStyle: .caption1); providerLabel.textColor = .secondaryLabel
+        providerLabel.numberOfLines = 2; providerLabel.adjustsFontForContentSizeCategory = true
+        layout.addArrangedSubview(providerLabel)
         actionButton.contentHorizontalAlignment = .leading
         actionButton.addTarget(self, action: #selector(pickAction), for: .touchUpInside)
-        stack.addArrangedSubview(actionButton)
-
-        sendButton.setTitle(text("Выполнить", "Run"), for: .normal)
-        sendButton.titleLabel?.font = .preferredFont(forTextStyle: .headline)
+        actionButton.heightAnchor.constraint(greaterThanOrEqualToConstant: 44).isActive = true
+        layout.addArrangedSubview(actionButton)
+        scroll.keyboardDismissMode = .interactive; scroll.alwaysBounceVertical = true
+        layout.addArrangedSubview(scroll)
+        messages.axis = .vertical; messages.spacing = 18; messages.translatesAutoresizingMaskIntoConstraints = false
+        scroll.addSubview(messages)
+        NSLayoutConstraint.activate([
+            messages.topAnchor.constraint(equalTo: scroll.contentLayoutGuide.topAnchor, constant: 16),
+            messages.bottomAnchor.constraint(equalTo: scroll.contentLayoutGuide.bottomAnchor, constant: -16),
+            messages.leadingAnchor.constraint(equalTo: scroll.contentLayoutGuide.leadingAnchor),
+            messages.trailingAnchor.constraint(equalTo: scroll.contentLayoutGuide.trailingAnchor),
+            messages.widthAnchor.constraint(equalTo: scroll.frameLayoutGuide.widthAnchor)
+        ])
+        let input = UIStackView(); input.axis = .horizontal; input.alignment = .bottom; input.spacing = 8
+        input.isLayoutMarginsRelativeArrangement = true; input.layoutMargins = UIEdgeInsets(top: 6, left: 12, bottom: 6, right: 6)
+        input.backgroundColor = .secondarySystemBackground; input.layer.cornerRadius = 26
+        setupText(composer); composer.isEditable = true; composer.isScrollEnabled = true
+        composer.delegate = self; composer.text = initial; composer.accessibilityLabel = text("Сообщение для ИИ", "Message to AI")
+        composerHeight = composer.heightAnchor.constraint(equalToConstant: 44); composerHeight.isActive = true
+        input.addArrangedSubview(composer)
+        sendButton.backgroundColor = view.tintColor; sendButton.tintColor = .white; sendButton.layer.cornerRadius = 22
+        sendButton.widthAnchor.constraint(equalToConstant: 44).isActive = true
+        sendButton.heightAnchor.constraint(equalToConstant: 44).isActive = true
         sendButton.addTarget(self, action: #selector(send), for: .touchUpInside)
-        sendButton.heightAnchor.constraint(greaterThanOrEqualToConstant: 48).isActive = true
-        stack.addArrangedSubview(sendButton)
-
-        spinner.hidesWhenStopped = true
-        stack.addArrangedSubview(spinner)
-
-        addHeading(text("Результат", "Result"))
-        setupTextView(result, editable: false)
-        result.heightAnchor.constraint(greaterThanOrEqualToConstant: 170).isActive = true
-        stack.addArrangedSubview(result)
-
-        copyButton.setTitle(text("Скопировать результат", "Copy result"), for: .normal)
-        copyButton.addTarget(self, action: #selector(copyAnswer), for: .touchUpInside)
-        stack.addArrangedSubview(copyButton)
-        if applyResult != nil {
-            applyButton.setTitle(text("Вставить в черновик", "Use in draft"), for: .normal)
-            applyButton.addTarget(self, action: #selector(useAnswer), for: .touchUpInside)
-            stack.addArrangedSubview(applyButton)
-        }
-        copyButton.isEnabled = false
-        applyButton.isEnabled = false
-        refreshStatus()
+        input.addArrangedSubview(sendButton); layout.addArrangedSubview(input)
+        let note = label(text("ИИ может ошибаться. Важное проверяйте.", "AI can make mistakes. Check important details."), style: .caption2)
+        note.textColor = .secondaryLabel; note.textAlignment = .center; layout.addArrangedSubview(note)
+        NotificationCenter.default.addObserver(self, selector: #selector(appActive), name: UIApplication.didBecomeActiveNotification, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(appInactive), name: UIApplication.willResignActiveNotification, object: nil)
+        showWelcome(); refreshStatus(); updateSend(); textViewDidChange(composer)
     }
-
+    public override func viewDidAppear(_ animated: Bool) { super.viewDidAppear(animated); appActive() }
     public override func viewWillDisappear(_ animated: Bool) {
-        super.viewWillDisappear(animated)
-        if isMovingFromParent || isBeingDismissed { work?.cancel(); work = nil }
+        super.viewWillDisappear(animated); appInactive()
+        cancel(showMessage: work != nil)
     }
-
-    private func addHeading(_ title: String) {
-        let label = UILabel()
-        label.text = title
-        label.font = .preferredFont(forTextStyle: .headline)
-        label.adjustsFontForContentSizeCategory = true
-        stack.addArrangedSubview(label)
+    deinit { work?.cancel(); readinessTimer?.invalidate(); NotificationCenter.default.removeObserver(self) }
+    @objc private func appActive() {
+        guard isViewLoaded, view.window != nil else { return }
+        refreshStatus(); pulse?.start()
+        readinessTimer?.invalidate()
+        readinessTimer = Timer.scheduledTimer(withTimeInterval: 3, repeats: true) { [weak self] _ in self?.refreshStatus() }
     }
-
-    private func setupTextView(_ field: UITextView, editable: Bool) {
-        field.font = .preferredFont(forTextStyle: .body)
-        field.adjustsFontForContentSizeCategory = true
-        field.isEditable = editable
-        field.isScrollEnabled = true
-        field.backgroundColor = .secondarySystemGroupedBackground
-        field.layer.cornerRadius = 14
-        field.textContainerInset = UIEdgeInsets(top: 14, left: 10, bottom: 14, right: 10)
-        field.textColor = .label
-    }
-
+    @objc private func appInactive() { readinessTimer?.invalidate(); readinessTimer = nil; pulse?.stop() }
     private func refreshStatus() {
-        let provider = NebulaAiSettings.shared.provider
-        if provider == .appleIntelligence {
-            providerLabel.text = NebulaAiService.localModelAvailable
-                ? text("Apple Intelligence работает на этом устройстве. Текст не отправляется на сервер.",
-                       "Apple Intelligence runs on this device. Text is not sent to a server.")
-                : text("Локальная модель недоступна или ещё подготавливается на устройстве.",
-                       "The on-device model is unavailable or still preparing.")
-        } else {
-            providerLabel.text = text("Текст будет отправлен выбранному сервису: ", "Text will be sent to the selected service: ") + provider.title
-        }
-        actionButton.setTitle(text("Действие: ", "Action: ") + action.title(russian: ru) + "  ▾", for: .normal)
+        let settings = NebulaAiSettings.shared
+        let value = !settings.enabled ? text("ИИ выключен · откройте настройки", "AI is off · open settings")
+            : settings.provider == .appleIntelligence ? NebulaAiService.localModelStatus(russian: ru)
+            : settings.provider.title + " · " + (settings.model(for: settings.provider).isEmpty ? text("Нужна настройка", "Setup needed") : settings.model(for: settings.provider))
+        if providerLabel.text != value { providerLabel.text = value }
+        actionButton.setTitle(action.title(russian: ru) + "  ▾", for: .normal)
     }
-
-    @objc private func pickAction() {
-        let options = NebulaAiAction.allCases
-        NebulaChoiceController.show(from: self, title: text("Что сделать с текстом?", "What should AI do?"),
-            choices: options.map { $0.title(russian: ru) }, selected: options.firstIndex(of: action), russian: ru) { [weak self] index in
-            self?.action = options[index]; self?.refreshStatus()
+    private func label(_ value: String, style: UIFont.TextStyle = .body) -> UILabel {
+        let v = UILabel(); v.text = value; v.font = .preferredFont(forTextStyle: style)
+        v.numberOfLines = 0; v.adjustsFontForContentSizeCategory = true; return v
+    }
+    private func setupText(_ v: UITextView) {
+        v.font = .preferredFont(forTextStyle: .body); v.adjustsFontForContentSizeCategory = true
+        v.textColor = .label; v.backgroundColor = .clear; v.isEditable = false; v.isScrollEnabled = false
+        v.textContainerInset = UIEdgeInsets(top: 10, left: 4, bottom: 10, right: 4)
+    }
+    private func removeMessages() { for v in messages.arrangedSubviews { messages.removeArrangedSubview(v); v.removeFromSuperview() } }
+    private func showWelcome() {
+        removeMessages(); isWelcome = true
+        let icon = UIImageView(image: UIImage(systemName: "sparkles")); icon.contentMode = .left; icon.tintColor = .systemPurple
+        icon.heightAnchor.constraint(equalToConstant: 48).isActive = true; messages.addArrangedSubview(icon)
+        messages.addArrangedSubview(label(text("С чего начнём?", "Where shall we start?"), style: .largeTitle))
+        let hint = label(text("Задайте вопрос, разберите текст или придумайте что-нибудь вместе.", "Ask a question, work through a text, or create something together."))
+        hint.textColor = .secondaryLabel; messages.addArrangedSubview(hint)
+        for suggestion in [text("Объясни простыми словами", "Explain in simple terms"), text("Помоги написать текст", "Help me write"), text("Предложи идеи", "Suggest ideas")] {
+            let button = NebulaAiChatButton(title: suggestion + "  ↗") { [weak self] in
+                self?.composer.text = suggestion + " "; self?.composer.becomeFirstResponder()
+                if let self = self { self.textViewDidChange(self.composer) }
+            }
+            button.backgroundColor = .secondarySystemBackground; button.layer.cornerRadius = 18
+            messages.addArrangedSubview(button)
         }
     }
-
+    private func appendUser(_ text: String) {
+        let row = UIStackView(); row.axis = .horizontal
+        let gap = UIView(); gap.widthAnchor.constraint(equalToConstant: 32).isActive = true; row.addArrangedSubview(gap)
+        let bubble = UITextView(); setupText(bubble); bubble.text = text; bubble.backgroundColor = .secondarySystemBackground
+        bubble.layer.cornerRadius = 22; bubble.textContainerInset = UIEdgeInsets(top: 14, left: 12, bottom: 14, right: 12)
+        row.addArrangedSubview(bubble); messages.addArrangedSubview(row)
+    }
+    private func appendAnswer(_ raw: String, actions: Bool = true) {
+        let result = UITextView(); setupText(result)
+        let parsed = NebulaAiMarkdown.parse(raw)
+        let style = NSMutableParagraphStyle(); style.lineSpacing = 4
+        let rich = NSMutableAttributedString(string: parsed.text, attributes: [.font: UIFont.preferredFont(forTextStyle: .body), .foregroundColor: UIColor.label, .paragraphStyle: style])
+        for mark in parsed.marks {
+            let body = UIFont.preferredFont(forTextStyle: .body)
+            let font: UIFont
+            switch mark.kind {
+            case .code: font = .monospacedSystemFont(ofSize: body.pointSize, weight: .regular)
+            case .heading: font = .preferredFont(forTextStyle: .title3)
+            case .bold: font = .boldSystemFont(ofSize: body.pointSize)
+            case .italic: font = .italicSystemFont(ofSize: body.pointSize)
+            }
+            rich.addAttribute(.font, value: font, range: mark.range)
+        }
+        result.attributedText = rich; messages.addArrangedSubview(result)
+        if actions {
+            let controls = UIStackView(); controls.axis = .vertical
+            controls.addArrangedSubview(NebulaAiChatButton(title: text("Копировать", "Copy")) { UIPasteboard.general.string = raw })
+            if applyResult != nil {
+                controls.addArrangedSubview(NebulaAiChatButton(title: text("Вставить в черновик", "Use in draft")) { [weak self] in self?.applyResult?(raw); self?.close() })
+            }
+            messages.addArrangedSubview(controls)
+        }
+        view.layoutIfNeeded()
+        let frame = result.convert(result.bounds, to: scroll)
+        scroll.setContentOffset(CGPoint(x: 0, y: max(0, min(frame.minY, scroll.contentSize.height - scroll.bounds.height))), animated: !UIAccessibility.isReduceMotionEnabled)
+        if !UIAccessibility.isReduceMotionEnabled { result.alpha = 0; UIView.animate(withDuration: 0.22) { result.alpha = 1 } }
+        UIAccessibility.post(notification: .announcement, argument: text("Ответ готов", "Response ready"))
+    }
+    private func startWaiting() {
+        let row = UIStackView(); row.axis = .horizontal; row.spacing = 12; row.alignment = .center
+        let glyph = NebulaAiPulseView(); row.addArrangedSubview(glyph); glyph.widthAnchor.constraint(equalToConstant: 32).isActive = true
+        glyph.heightAnchor.constraint(equalToConstant: 32).isActive = true; row.addArrangedSubview(label(text("Думаю…", "Thinking…")))
+        messages.addArrangedSubview(row); waiting = row; pulse = glyph; glyph.start()
+        view.layoutIfNeeded(); scroll.scrollRectToVisible(row.convert(row.bounds, to: scroll), animated: true)
+    }
+    private func finish() {
+        gate.cancel(); work = nil; pulse?.stop(); pulse = nil
+        if let waiting = waiting { messages.removeArrangedSubview(waiting); waiting.removeFromSuperview() }
+        waiting = nil; updateSend()
+    }
+    private func updateSend() {
+        sendButton.setImage(UIImage(systemName: work == nil ? "arrow.up" : "stop.fill"), for: .normal)
+        sendButton.accessibilityLabel = work == nil ? text("Отправить", "Send") : text("Остановить", "Stop")
+        actionButton.isEnabled = work == nil
+    }
     @objc private func send() {
-        if work != nil { work?.cancel(); work = nil; setBusy(false); return }
-        let input = source.text.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !input.isEmpty else { showError(text("Введите текст запроса.", "Enter request text.")); return }
+        if work != nil { cancel(showMessage: true); return }
+        let input = composer.text.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !input.isEmpty else { return }
+        let settings = NebulaAiSettings.shared
+        guard settings.enabled && settings.isConfigured() else { openSettings(); return }
         let instruction = action.instruction(russian: ru)
-        let request = instruction.isEmpty ? input : "\(instruction)\n\n\(input)"
-        let provider = NebulaAiSettings.shared.provider.title
-        setBusy(true)
-        answer = ""
-        result.text = ""
+        let current = instruction.isEmpty ? input : instruction + "\n\n" + input
+        let identity = "\(settings.provider.rawValue):\(settings.model(for: settings.provider)):\(settings.customEndpoint):\(action)"
+        conversation.select(identity)
+        guard let request = conversation.request(current, limit: settings.provider == .appleIntelligence ? 9_500 : 49_000) else {
+            let alert = UIAlertController(title: text("Сократите сообщение для выбранной модели", "Shorten this message for the selected model"), message: nil, preferredStyle: .alert)
+            alert.addAction(UIAlertAction(title: "OK", style: .default)); present(alert, animated: true); return
+        }
+        if isWelcome { removeMessages(); isWelcome = false }
+        while messages.arrangedSubviews.count > 36 { let old = messages.arrangedSubviews[0]; messages.removeArrangedSubview(old); old.removeFromSuperview() }
+        appendUser(input); composer.text = ""; textViewDidChange(composer); startWaiting()
+        let provider = settings.provider.title; let id = gate.begin()
         work = Task { [weak self] in
             guard let self = self else { return }
             do {
                 let value = try await self.service.generate(input: request)
-                guard !Task.isCancelled else { return }
-                self.answer = value
-                self.result.text = value
-                self.copyButton.isEnabled = true
-                self.applyButton.isEnabled = self.applyResult != nil
-                _ = self.history.append(provider: provider, input: input, output: value)
+                guard !Task.isCancelled, self.gate.accepts(id) else { return }
+                self.finish(); self.conversation.append(input: current, output: value); self.appendAnswer(value)
+                _ = NebulaAiHistory.shared.append(provider: provider, input: input, output: value)
             } catch {
-                if !Task.isCancelled { self.showError(error.localizedDescription) }
+                guard !Task.isCancelled, self.gate.accepts(id) else { return }
+                self.finish(); self.appendAnswer(NebulaAiService.message(for: error, russian: self.ru), actions: false)
+                self.messages.addArrangedSubview(NebulaAiChatButton(title: self.text("Изменить запрос", "Edit request")) { [weak self] in
+                    self?.composer.text = input; self?.composer.becomeFirstResponder()
+                    if let self = self { self.textViewDidChange(self.composer) }
+                })
             }
-            self.work = nil
-            self.setBusy(false)
+        }
+        updateSend()
+    }
+    private func cancel(showMessage: Bool) {
+        let running = work != nil; gate.cancel(); work?.cancel(); finish()
+        if running && showMessage { appendAnswer(text("Ответ остановлен", "Response stopped"), actions: false) }
+    }
+    @objc private func newChat() { cancel(showMessage: false); conversation.clear(); composer.text = ""; textViewDidChange(composer); showWelcome() }
+    @objc private func openSettings() { navigationController?.pushViewController(NebulaAiController(russian: ru), animated: true) }
+    @objc private func pickAction() {
+        let options = NebulaAiAction.allCases
+        NebulaChoiceController.show(from: self, title: text("Что сделать с текстом?", "What should AI do?"), choices: options.map { $0.title(russian: ru) }, selected: options.firstIndex(of: action), russian: ru) { [weak self] index in
+            self?.action = options[index]; self?.refreshStatus()
         }
     }
-
-    private func setBusy(_ busy: Bool) {
-        source.isEditable = !busy
-        actionButton.isEnabled = !busy
-        sendButton.setTitle(busy ? text("Остановить", "Stop") : text("Выполнить", "Run"), for: .normal)
-        busy ? spinner.startAnimating() : spinner.stopAnimating()
+    @objc private func close() {
+        cancel(showMessage: false)
+        if let navigation = navigationController, navigation.viewControllers.first !== self { navigation.popViewController(animated: true) }
+        else { dismiss(animated: true) }
     }
-
-    private func showError(_ message: String) {
-        let alert = UIAlertController(title: text("Запрос не выполнен", "Request failed"), message: message, preferredStyle: .alert)
-        alert.addAction(UIAlertAction(title: "OK", style: .default))
-        present(alert, animated: true)
+    public func textViewDidChange(_ textView: UITextView) {
+        let width = max(120, composer.bounds.width)
+        composerHeight.constant = min(144, max(44, composer.sizeThatFits(CGSize(width: width, height: .greatestFiniteMagnitude)).height))
     }
-
-    @objc private func copyAnswer() { UIPasteboard.general.string = answer }
-    @objc private func useAnswer() {
-        guard !answer.isEmpty else { return }
-        applyResult?(answer)
-        if let navigationController = navigationController, navigationController.viewControllers.first !== self {
-            navigationController.popViewController(animated: true)
-        } else { dismiss(animated: true) }
+    public func textView(_ textView: UITextView, shouldChangeTextIn range: NSRange, replacementText text: String) -> Bool {
+        return (textView.text as NSString).replacingCharacters(in: range, with: text).count <= 50_000
     }
-    @objc private func close() { dismiss(animated: true) }
+    @objc private func keyboardChanged(_ notification: Notification) {
+        guard let frame = notification.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? CGRect else { return }
+        let local = view.convert(frame, from: nil)
+        let overlap = max(0, view.bounds.maxY - local.minY - view.safeAreaInsets.bottom)
+        keyboardBottom?.constant = -8 - overlap
+        UIView.animate(withDuration: 0.25) { self.view.layoutIfNeeded() }
+    }
+}
+
+private final class NebulaAiChatButton: UIButton {
+    private let action: () -> Void
+    init(title: String, action: @escaping () -> Void) {
+        self.action = action; super.init(frame: .zero)
+        setTitle(title, for: .normal); setTitleColor(.systemTeal, for: .normal)
+        titleLabel?.font = .preferredFont(forTextStyle: .subheadline); titleLabel?.numberOfLines = 0
+        titleLabel?.adjustsFontForContentSizeCategory = true
+        heightAnchor.constraint(greaterThanOrEqualToConstant: 48).isActive = true
+        addTarget(self, action: #selector(activate), for: .touchUpInside)
+    }
+    required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
+    @objc private func activate() { action() }
+}
+private final class NebulaAiPulseView: UIImageView {
+    init() {
+        super.init(image: UIImage(systemName: "sparkles")); tintColor = .systemPurple; contentMode = .scaleAspectFit
+        NotificationCenter.default.addObserver(self, selector: #selector(motionChanged), name: UIAccessibility.reduceMotionStatusDidChangeNotification, object: nil)
+    }
+    required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
+    override func didMoveToWindow() { super.didMoveToWindow(); window == nil ? stop() : start() }
+    @objc private func motionChanged() { stop(); if window != nil { start() } }
+    func start() {
+        guard !UIAccessibility.isReduceMotionEnabled, layer.animation(forKey: "thinking") == nil else { return }
+        let animation = CABasicAnimation(keyPath: "transform.scale"); animation.fromValue = 0.78; animation.toValue = 1.05
+        animation.duration = 0.8; animation.autoreverses = true; animation.repeatCount = .infinity
+        animation.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut); layer.add(animation, forKey: "thinking")
+    }
+    func stop() { layer.removeAnimation(forKey: "thinking") }
 }

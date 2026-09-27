@@ -52,6 +52,29 @@ final class NebulaAiService {
         return false
     }
 
+    static var localModelPreparing: Bool {
+        #if canImport(FoundationModels)
+        if #available(iOS 26.0, *), case .unavailable(.modelNotReady) = SystemLanguageModel.default.availability { return true }
+        #endif
+        return false
+    }
+
+    static func message(for error: Error, russian: Bool) -> String {
+        guard let error = error as? NebulaAiServiceError else {
+            return russian ? "Не удалось получить ответ. Проверьте подключение и настройки модели." : "Could not get a response. Check the connection and model settings."
+        }
+        guard russian else { return error.localizedDescription }
+        switch error {
+        case .missingKey: return "Добавьте API-ключ в настройках подключения."
+        case .invalidConfiguration: return "Проверьте модель и HTTPS-адрес сервиса."
+        case .emptyInput: return "Введите сообщение."
+        case .inputTooLong: return "Сократите сообщение или инструкции для выбранной модели."
+        case .localModelUnavailable: return localModelStatus(russian: true)
+        case .invalidResponse: return "Модель не вернула текст. Попробуйте изменить запрос."
+        case let .httpStatus(code): return "Сервис вернул HTTP \(code). Проверьте ключ, модель и лимиты провайдера."
+        }
+    }
+
     static func localModelStatus(russian: Bool) -> String {
         #if canImport(FoundationModels)
         if #available(iOS 26.0, *) {
@@ -59,7 +82,7 @@ final class NebulaAiService {
             case .available: return russian ? "Модель готова. Текст обрабатывается на устройстве." : "Ready. Text is processed on this device."
             case .unavailable(.deviceNotEligible): return russian ? "Это устройство не поддерживает системную модель Apple Intelligence." : "This device does not support the Apple Intelligence system model."
             case .unavailable(.appleIntelligenceNotEnabled): return russian ? "Включите Apple Intelligence в настройках iOS." : "Enable Apple Intelligence in iOS Settings."
-            case .unavailable(.modelNotReady): return russian ? "iOS ещё подготавливает модель. Проверьте Apple Intelligence и повторите позже." : "iOS is still preparing the model. Check Apple Intelligence and try again later."
+            case .unavailable(.modelNotReady): return russian ? "iOS подготавливает модель. Статус обновится автоматически; загрузкой управляет система." : "iOS is preparing the model. Status updates automatically; the system manages the download."
             case .unavailable: return russian ? "Системная модель сейчас недоступна." : "The system model is currently unavailable."
             @unknown default: return russian ? "Не удалось определить доступность модели." : "Model availability could not be determined."
             }
@@ -170,15 +193,19 @@ final class NebulaAiService {
 
     private func data(for request: URLRequest) async throws -> (Data, URLResponse) {
         if #available(iOS 15.0, *) { return try await session.data(for: request) }
-        return try await withCheckedThrowingContinuation { continuation in
-            session.dataTask(with: request) { data, response, error in
-                if let error = error { continuation.resume(throwing: error); return }
-                guard let data = data, let response = response else {
-                    continuation.resume(throwing: NebulaAiServiceError.invalidResponse); return
+        let cancellation = NebulaAiTransferCancellation()
+        return try await withTaskCancellationHandler(operation: {
+            try await withCheckedThrowingContinuation { continuation in
+                let task = session.dataTask(with: request) { data, response, error in
+                    if let error = error { continuation.resume(throwing: error); return }
+                    guard let data = data, let response = response else {
+                        continuation.resume(throwing: NebulaAiServiceError.invalidResponse); return
+                    }
+                    continuation.resume(returning: (data, response))
                 }
-                continuation.resume(returning: (data, response))
-            }.resume()
-        }
+                cancellation.start(task)
+            }
+        }, onCancel: { cancellation.cancel() })
     }
 
     private static func extractOutput(provider: NebulaAiProvider, json: [String: Any]) -> String? {
@@ -210,6 +237,21 @@ final class NebulaAiService {
         }
         let result = values.joined(separator: "\n").trimmingCharacters(in: .whitespacesAndNewlines)
         return result.isEmpty ? nil : result
+    }
+}
+
+private final class NebulaAiTransferCancellation: @unchecked Sendable {
+    private let lock = NSLock()
+    private var task: URLSessionDataTask?
+    private var cancelled = false
+    func start(_ value: URLSessionDataTask) {
+        lock.lock(); task = value; let shouldCancel = cancelled; lock.unlock()
+        if shouldCancel { value.cancel() }
+        value.resume()
+    }
+    func cancel() {
+        lock.lock(); cancelled = true; let value = task; lock.unlock()
+        value?.cancel()
     }
 }
 

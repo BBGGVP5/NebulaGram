@@ -1,6 +1,5 @@
 import Foundation
 import UIKit
-import AccountContext
 import NebulaSettingsContract
 
 /// AI connection settings. The key is written here and never read back into
@@ -14,6 +13,9 @@ final class NebulaAiController: UITableViewController {
         summary: text("Ваш провайдер. Ваши инструкции. Только тот текст, который выберете вы.",
                       "Your provider. Your instructions. Only the text you choose."))
     private var provider: NebulaAiProvider
+    private var readinessTimer: Timer?
+    private var previousReadiness = ""
+    private var visible = false
 
     init(russian: Bool) {
         self.ru = russian
@@ -31,6 +33,7 @@ final class NebulaAiController: UITableViewController {
         tableView.rowHeight = UITableView.automaticDimension
         tableView.estimatedRowHeight = 56
         NotificationCenter.default.addObserver(self, selector: #selector(refreshState), name: UIApplication.didBecomeActiveNotification, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(pauseReadiness), name: UIApplication.willResignActiveNotification, object: nil)
     }
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
@@ -42,9 +45,31 @@ final class NebulaAiController: UITableViewController {
     }
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
+        visible = true
         tableView.reloadData()
+        refreshState()
     }
-    @objc private func refreshState() { tableView.reloadData(); view.setNeedsLayout() }
+    override func viewWillDisappear(_ animated: Bool) { super.viewWillDisappear(animated); visible = false; pauseReadiness() }
+    deinit { readinessTimer?.invalidate(); NotificationCenter.default.removeObserver(self) }
+    @objc private func pauseReadiness() { readinessTimer?.invalidate(); readinessTimer = nil }
+    @objc private func refreshState() {
+        guard isViewLoaded, visible else { return }
+        updateReadiness()
+        pauseReadiness()
+        if UIApplication.shared.applicationState == .active {
+            readinessTimer = Timer.scheduledTimer(withTimeInterval: 3, repeats: true) { [weak self] _ in
+                guard let self = self, self.view.window != nil else { return }
+                self.updateReadiness()
+            }
+        }
+    }
+    private func updateReadiness() {
+        let value = "\(provider.rawValue):\(settings.enabled):" + NebulaAiService.localModelStatus(russian: ru)
+        guard previousReadiness != value else { return }
+        previousReadiness = value
+        tableView.reloadRows(at: [IndexPath(row: 0, section: 3)], with: .none)
+        view.setNeedsLayout()
+    }
     @objc private func close() { dismiss(animated: true) }
 
     // Sections: switch, connection, instructions, state, actions.
@@ -52,7 +77,7 @@ final class NebulaAiController: UITableViewController {
 
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         switch section {
-        case 0: return 1
+        case 0: return 2
         // Provider, model, key, remove key — plus the address for a custom one.
         case 1: return provider == .appleIntelligence ? 1 : provider == .custom ? 5 : 4
         case 2: return 1
@@ -98,7 +123,13 @@ final class NebulaAiController: UITableViewController {
         let symbols = ["sparkles", "slider.horizontal.3", "text.alignleft", "checkmark.circle", "sparkles"]
         NebulaSettingsHero.style(cell, symbol: symbols[indexPath.section])
         switch (indexPath.section, indexPath.row) {
-        case (0, _):
+        case (0, 1):
+            cell.textLabel?.text = text("ИИ на главной", "AI on the home screen")
+            cell.detailTextLabel?.text = text("Чат с ИИ вместо кнопки камеры", "AI chat in place of the camera button")
+            let toggle = UISwitch(); toggle.isOn = settings.homeShortcut
+            toggle.addTarget(self, action: #selector(toggleHome(_:)), for: .valueChanged)
+            cell.accessoryView = toggle; cell.selectionStyle = .none
+        case (0, 0):
             cell.textLabel?.text = text("Включить ИИ", "Enable AI")
             let toggle = UISwitch()
             toggle.isOn = settings.enabled
@@ -155,7 +186,13 @@ final class NebulaAiController: UITableViewController {
                 : provider == .appleIntelligence ? text("Локальная модель недоступна", "On-device model unavailable")
                     : text("Укажите адрес, модель и ключ", "Set an address, a model and a key")
             cell.textLabel?.textColor = ready ? .systemGreen : .secondaryLabel
-            if provider == .appleIntelligence { cell.detailTextLabel?.text = NebulaAiService.localModelStatus(russian: ru) }
+            if provider == .appleIntelligence {
+                cell.detailTextLabel?.text = NebulaAiService.localModelStatus(russian: ru)
+                if NebulaAiService.localModelPreparing {
+                    cell.textLabel?.text = text("Подготовка модели…", "Preparing model…")
+                    let spinner = UIActivityIndicatorView(style: .medium); spinner.startAnimating(); cell.accessoryView = spinner
+                }
+            }
             cell.selectionStyle = .none
         }
         return cell
@@ -165,6 +202,7 @@ final class NebulaAiController: UITableViewController {
         settings.enabled = toggle.isOn
         tableView.reloadData()
     }
+    @objc private func toggleHome(_ toggle: UISwitch) { settings.homeShortcut = toggle.isOn }
 
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)

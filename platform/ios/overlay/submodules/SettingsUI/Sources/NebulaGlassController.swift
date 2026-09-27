@@ -110,7 +110,7 @@ private final class NebulaGlassPreview: UIView {
         addSubview(glass); glass.isUserInteractionEnabled = false
         titleLabel.text = "NebulaGram"; titleLabel.font = .preferredFont(forTextStyle: .headline); titleLabel.textAlignment = .center
         glass.contentView.addSubview(titleLabel)
-        addGestureRecognizer(UIPanGestureRecognizer(target: self, action: #selector(move(_:))))
+        addGestureRecognizer(UIPanGestureRecognizer(target: self, action: #selector(movePreview(_:))))
         isAccessibilityElement = true; accessibilityTraits = [.adjustable]
         accessibilityLabel = russian ? "Превью стекла, положение пилюли" : "Glass preview, capsule position"
     }
@@ -124,7 +124,7 @@ private final class NebulaGlassPreview: UIView {
         titleLabel.frame = CGRect(origin: .zero, size: size)
         accessibilityValue = "\(Int(position * 100))%"
     }
-    @objc private func move(_ gesture: UIPanGestureRecognizer) {
+    @objc private func movePreview(_ gesture: UIPanGestureRecognizer) {
         position = min(1, max(0, (gesture.location(in: self).y - 40) / max(1, bounds.height - 80))); setNeedsLayout()
     }
     override func accessibilityIncrement() { position = min(1, position + 0.2); setNeedsLayout() }

@@ -12,6 +12,16 @@ import Foundation
 /// the two platforms describe the same connection the same way.
 public final class NebulaAiSettings {
     public static let shared = NebulaAiSettings()
+    public static let homeShortcutChanged = Notification.Name("NebulaAiHomeShortcutChanged")
+    public static let openHomeChat = Notification.Name("NebulaAiOpenHomeChat")
+
+    public var homeShortcut: Bool {
+        get { defaults.bool(forKey: name("home_shortcut")) }
+        set {
+            defaults.set(newValue, forKey: name("home_shortcut"))
+            NotificationCenter.default.post(name: Self.homeShortcutChanged, object: nil)
+        }
+    }
 
     private let defaults: UserDefaults
     private let prefix = "nebula.ai."

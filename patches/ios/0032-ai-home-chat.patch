@@ -1,0 +1,96 @@
+diff --git a/submodules/ChatListUI/Sources/ChatListController.swift b/submodules/ChatListUI/Sources/ChatListController.swift
+--- a/submodules/ChatListUI/Sources/ChatListController.swift
++++ b/submodules/ChatListUI/Sources/ChatListController.swift
+@@ -1,4 +1,5 @@
+ import Foundation
++import NebulaSettingsContract
+ import UIKit
+ import Postbox
+ import SwiftSignalKit
+@@ -6895,6 +6896,16 @@
+         }
+         #endif
+         
++        let nebulaHomeChanges = Signal<Bool, NoError> { subscriber in
++            subscriber.putNext(NebulaAiSettings.shared.homeShortcut)
++            let token = NotificationCenter.default.addObserver(forName: NebulaAiSettings.homeShortcutChanged, object: nil, queue: .main) { _ in
++                subscriber.putNext(NebulaAiSettings.shared.homeShortcut)
++            }
++            return ActionDisposable { NotificationCenter.default.removeObserver(token) }
++        }
++        let nebulaStoryAvailability = combineLatest(storyPostingAvailable, nebulaHomeChanges)
++        |> map { available, _ in available }
++
+         switch location {
+         case .chatList:
+             if !hideNetworkActivityStatus {
+@@ -6906,7 +6917,7 @@
+                     isReorderingTabs,
+                     peerStatus,
+                     parentController.updatedPresentationData.1,
+-                    storyPostingAvailable
++                    nebulaStoryAvailability
+                 ).startStrict(next: { [weak self] networkState, proxy, passcode, stateAndFilterId, isReorderingTabs, peerStatus, presentationData, storyPostingAvailable in
+                     guard let self else {
+                         return
+@@ -7258,14 +7269,18 @@
+                     }
+                 }
+                 
+-                if storyPostingAvailable {
++                if storyPostingAvailable || NebulaAiSettings.shared.homeShortcut {
+                     self.storyButton = AnyComponentWithIdentity(id: "story", component: AnyComponent(NavigationButtonComponent(
+-                        content: .icon(imageName: "Chat List/AddStoryIcon"),
++                        content: .icon(imageName: NebulaAiSettings.shared.homeShortcut ? "NebulaAI" : "Chat List/AddStoryIcon"),
+                         pressed: { [weak self] _ in
+                             guard let self, let parentController = self.parentController else {
+                                 return
+                             }
+                             
++                            if NebulaAiSettings.shared.homeShortcut {
++                                NotificationCenter.default.post(name: NebulaAiSettings.openHomeChat, object: parentController.navigationController)
++                                return
++                            }
+                             if let componentView = parentController.chatListHeaderView(), let storyPeerListView = componentView.storyPeerListView(), storyPeerListView.isLiveStreaming {
+                                 parentController.displayContinueLiveStream()
+                             } else {
+diff --git a/submodules/TelegramUI/Sources/TelegramRootController.swift b/submodules/TelegramUI/Sources/TelegramRootController.swift
+--- a/submodules/TelegramUI/Sources/TelegramRootController.swift
++++ b/submodules/TelegramUI/Sources/TelegramRootController.swift
+@@ -202,6 +202,8 @@
+     }
+     
+     public func addRootControllers(showCallsTab: Bool) {
++        NotificationCenter.default.removeObserver(self, name: NebulaAiSettings.openHomeChat, object: nil)
++        NotificationCenter.default.addObserver(self, selector: #selector(nebulaOpenAiChat(_:)), name: NebulaAiSettings.openHomeChat, object: nil)
+         self.nebulaShowCalls = showCallsTab
+         let tabBarController = TabBarControllerImpl(theme: self.presentationData.theme, strings: self.presentationData.strings)
+         tabBarController.navigationPresentation = .master
+@@ -278,6 +280,13 @@
+             let old = rootTabController.controllers.indices.contains(rootTabController.selectedIndex) ? rootTabController.controllers[rootTabController.selectedIndex] : nil
+             rootTabController.setControllers(controllers, selectedIndex: controllers.firstIndex(where: { $0 === old }) ?? controllers.firstIndex(where: { $0 is ChatListController }) ?? 0)
+         }
++    }
++
++    @objc private func nebulaOpenAiChat(_ notification: Notification) {
++        guard let host = notification.object as? UIViewController, host === self,
++              NebulaAiSettings.shared.homeShortcut else { return }
++        let russian = self.presentationData.strings.baseLanguageCode.lowercased().hasPrefix("ru")
++        NebulaAiChatController.presentSheet(from: self, russian: russian)
+     }
+ 
+     private func nebulaOrderedControllers(_ source: [ViewController]) -> [ViewController] {
+diff --git a/submodules/TelegramUI/Components/ChatListHeaderComponent/Sources/NavigationButtonComponent.swift b/submodules/TelegramUI/Components/ChatListHeaderComponent/Sources/NavigationButtonComponent.swift
+--- a/submodules/TelegramUI/Components/ChatListHeaderComponent/Sources/NavigationButtonComponent.swift
++++ b/submodules/TelegramUI/Components/ChatListHeaderComponent/Sources/NavigationButtonComponent.swift
+@@ -165,7 +165,9 @@
+                 }
+                 if self.iconImageName != imageName || themeUpdated {
+                     self.iconImageName = imageName
+-                    iconView.image = generateTintedImage(image: UIImage(bundleImageName: imageName), color: theme.chat.inputPanel.panelControlColor)
++                    let image = imageName == "NebulaAI" ? UIImage(systemName: "sparkles", withConfiguration: UIImage.SymbolConfiguration(pointSize: 22, weight: .medium)) : UIImage(bundleImageName: imageName)
++                    iconView.image = generateTintedImage(image: image, color: theme.chat.inputPanel.panelControlColor)
++                    self.accessibilityLabel = imageName == "NebulaAI" ? "Nebula AI" : nil
+                 }
+                 
+                 if let iconSize = iconView.image?.size {
