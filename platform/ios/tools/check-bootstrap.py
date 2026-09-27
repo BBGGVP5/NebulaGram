@@ -147,7 +147,15 @@ def main():
         assert 'setAlternateIconName(name)' in (temp / 'submodules/SettingsUI/Sources/NebulaIconController.swift').read_text(encoding='utf-8')
         build_info = (temp / 'submodules/SettingsUI/Sources/NebulaBuildInfoController.swift').read_text(encoding='utf-8')
         assert revision in build_info and 'CFBundleShortVersionString' in build_info and 'CFBundleVersion' in build_info
+        upstream_version = json.loads((tree / 'versions.json').read_text(encoding='utf-8'))['app']
+        assert 'sourceVersion = "' + upstream_version + '"' in build_info
         assert 'arguments.openBuildInfo' in controller and 'arguments.openIcons' in controller
+        assert 'arguments.openTransitions' in controller
+        navigation_source = (temp / 'submodules/Display/Source/Navigation/NavigationController.swift').read_text(encoding='utf-8')
+        assert 'NebulaSettingsStore.shared.transitionStyle == 1' in navigation_source
+        assert 'NebulaSettingsStore.shared.transitionStyle == 2' in navigation_source
+        assert 'UIAccessibility.isReduceMotionEnabled' in navigation_source
+        assert '//submodules/NebulaSettingsContract:NebulaSettingsContract' in (temp / 'submodules/Display/BUILD').read_text(encoding='utf-8')
         # //Telegram:Lib and :WidgetExtensionLib are private to their own package
         # upstream; without the grant the integration check fails Bazel analysis.
         assert app_build.count('visibility = ["//submodules/NebulaIntegrationChecks:__pkg__"],') == 2

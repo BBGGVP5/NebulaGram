@@ -4,6 +4,7 @@ import UIKit
 /// source revision. No Android version or CI run time is substituted for them.
 public final class NebulaBuildInfoController: UITableViewController {
     private let russian: Bool
+    private let sourceVersion = "12.9.2"
     private let sourceRevision = "6ad963e5b62d354da79040f388ae2b9132fb17b8"
 
     public init(russian: Bool) {
@@ -37,7 +38,7 @@ public final class NebulaBuildInfoController: UITableViewController {
             (russian ? "Приложение" : "Application", "NebulaGram \(version)"),
             (russian ? "Номер сборки" : "Build number", number),
             (russian ? "Архитектура" : "Architecture", architecture),
-            (russian ? "Основа" : "Based on", "Telegram iOS"),
+            (russian ? "Основа" : "Based on", "Telegram iOS \(sourceVersion)"),
             (russian ? "Версия исходного кода" : "Source revision", sourceRevision)
         ]
         if let date = info["NebulaBuildDate"] as? String, !date.isEmpty {

@@ -30,9 +30,11 @@ final class AiSecretsTests: XCTestCase {
         XCTAssertEqual(NebulaAiProvider.claude.rawValue, 1)
         XCTAssertEqual(NebulaAiProvider.gemini.rawValue, 2)
         XCTAssertEqual(NebulaAiProvider.custom.rawValue, 3)
-        XCTAssertEqual(NebulaAiProvider.allCases.count, 4)
+        XCTAssertEqual(NebulaAiProvider.appleIntelligence.rawValue, 4)
+        XCTAssertEqual(NebulaAiProvider.allCases.count, 5)
         XCTAssertNil(NebulaAiProvider.custom.endpoint)
-        for provider in NebulaAiProvider.allCases where provider != .custom {
+        XCTAssertNil(NebulaAiProvider.appleIntelligence.endpoint)
+        for provider in NebulaAiProvider.allCases where provider != .custom && provider != .appleIntelligence {
             XCTAssertEqual(provider.endpoint?.hasPrefix("https://"), true)
         }
     }
@@ -66,7 +68,7 @@ final class AiSecretsTests: XCTestCase {
         for provider in NebulaAiProvider.allCases {
             try secrets.setKey("key-\(provider.rawValue)", for: provider)
         }
-        XCTAssertEqual(storage.items.count, 4)
+        XCTAssertEqual(storage.items.count, 5)
         try secrets.removeAll()
         XCTAssertTrue(storage.items.isEmpty)
     }

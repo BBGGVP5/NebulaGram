@@ -16,6 +16,7 @@
 | 0021-ai-draft-action.patch | `TelegramUI/Sources/ChatController.swift` | `Conversation_Search` | Добавляет ИИ-действие для черновика и вставляет подтверждённый результат обратно в поле ввода | 20+ |
 | 0022-alternate-app-icons.patch | `Telegram/BUILD` | `alternate_icon_folders` | Включает 16 Nebula `.alticon` в пакет iPhone/iPad | 16 |
 | 0022-alternate-app-icons.patch | `Telegram/Telegram-iOS/AlternateIcons.plist`, `AlternateIcons-iPad.plist` | `CFBundleAlternateIcons` | Регистрирует только реально включённые варианты для системного выбора иконки | 96+ |
+| 0023-native-transition-style.patch | `submodules/Display/BUILD`, `Source/Navigation/NavigationController.swift` | `setViewControllers` | Переключает системную кривую анимации для переходов по настройке, учитывает Reduce Motion и сохраняет нативные жесты | 12 |
 
 Полные пути PeerInfoScreen: `submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/`.
 Полные пути ChatListFilterTabContainerNode: `submodules/TelegramUI/Components/ChatList/ChatListFilterTabContainerNode/`.

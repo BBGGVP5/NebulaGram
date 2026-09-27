@@ -100,3 +100,12 @@ This inventory distinguishes **wired source** from native build and device accep
 ## 2026-09-21: wide posts
 
 `wide_posts` is wired to a settings switch and the native bubble full-width path, defaults to false, and supports import/export and live layout invalidation. Swift store tests cover persistence, reset, invalid types and change notifications. Native IPA compilation and device layout acceptance are tracked separately.
+
+## 2026-09-27: iOS parity work in progress
+
+- The pinned iOS source remains Telegram iOS 12.9.2. The public upstream source currently reports that version; Android's 12.10.5 baseline is not an iOS version.
+- Nebula AI has native HTTPS adapters for OpenAI, Claude, Gemini and a custom OpenAI-compatible endpoint, plus an iOS 26 Foundation Models path when the system model is available. A local model never falls back to the network. Message translate/summarize/tools and draft proofreading routes open an explicit request editor; local history is opt-in and bounded. Native compilation and device checks are pending.
+- Sixteen bundled Nebula app icons have iPhone/iPad metadata and a native picker. Build details read the installed bundle version/build, architecture and the pinned iOS source version/revision. Device acceptance remains pending.
+- `fragment_transition_style` is wired to Telegram's native navigation transition: standard, ease-in-out system style and shorter Spring. Reduce Motion disables the animation. Interactive navigation remains in the upstream controller. Native/device checks are pending.
+- Profile badges have a subtle pulse/glow and tap-to-details route; reduced motion is respected. Physical-device visual checks are pending.
+- The native Saved Messages chat is not inserted or forced as a new Nebula row. A separate per-chat PIN/password lock and the remaining Android-only visual switches do not yet have iOS consumers; the app-wide Telegram passcode remains available.

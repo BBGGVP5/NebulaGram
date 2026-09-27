@@ -1,0 +1,39 @@
+diff --git a/submodules/Display/BUILD b/submodules/Display/BUILD
+--- a/submodules/Display/BUILD
++++ b/submodules/Display/BUILD
+@@ -11,5 +11,6 @@ swift_library(
+         "//submodules/Markdown:Markdown",
+         "//submodules/AsyncDisplayKit:AsyncDisplayKit",
++        "//submodules/NebulaSettingsContract:NebulaSettingsContract",
+     ],
+     visibility = [
+         "//visibility:public",
+diff --git a/submodules/Display/Source/Navigation/NavigationController.swift b/submodules/Display/Source/Navigation/NavigationController.swift
+--- a/submodules/Display/Source/Navigation/NavigationController.swift
++++ b/submodules/Display/Source/Navigation/NavigationController.swift
+@@ -1,5 +1,6 @@
+ import Foundation
+ import UIKit
+ import AsyncDisplayKit
+ import SwiftSignalKit
++import NebulaSettingsContract
+ 
+@@ -1701,7 +1702,17 @@ open class NavigationController: UINavigationController, ContainableController
+             return controller
+         }
+         if let layout = self.validLayout {
+-            self.updateContainers(layout: layout, transition: animated ? .animated(duration: 0.5, curve: .spring) : .immediate, completion: { [weak self] in
++            let transition: ContainedViewLayoutTransition
++            if !animated || UIAccessibility.isReduceMotionEnabled {
++                transition = .immediate
++            } else if NebulaSettingsStore.shared.transitionStyle == 1 {
++                transition = .animated(duration: 0.32, curve: .easeInOut)
++            } else if NebulaSettingsStore.shared.transitionStyle == 2 {
++                transition = .animated(duration: 0.42, curve: .spring)
++            } else {
++                transition = .animated(duration: 0.5, curve: .spring)
++            }
++            self.updateContainers(layout: layout, transition: transition, completion: { [weak self] in
+                 self?.notifyAccessibilityScreenChanged()
+                 completion()
+             })

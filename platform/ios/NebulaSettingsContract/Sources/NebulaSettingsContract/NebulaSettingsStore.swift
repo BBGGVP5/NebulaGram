@@ -77,6 +77,11 @@ public final class NebulaSettingsStore {
         if case let .integer(value) = values["glass_quality"] { return max(0, min(2, value)) }
         return 0
     }
+    public var transitionStyle: Int {
+        lock.lock(); defer { lock.unlock() }
+        if case let .integer(value) = values["fragment_transition_style"] { return max(0, min(2, value)) }
+        return 0
+    }
     public var showContactsTab: Bool { boolean("bottom_bar_contacts", fallback: true) }
     public var bottomTabOrder: [String] {
         lock.lock(); defer { lock.unlock() }

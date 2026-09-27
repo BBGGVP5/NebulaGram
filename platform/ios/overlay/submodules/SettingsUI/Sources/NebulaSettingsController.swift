@@ -19,6 +19,7 @@ private final class NebulaSettingsArguments {
     var openAi: (() -> Void)?
     var openIcons: (() -> Void)?
     var openBuildInfo: (() -> Void)?
+    var openTransitions: (() -> Void)?
     var updateKey: ((String, Bool) -> Void)?
     var clearHistory: (() -> Void)?
     var searchUpdated: ((String) -> Void)?
@@ -44,6 +45,7 @@ private enum NebulaSettingsEntry: ItemListNodeEntry {
     case ai(String)
     case icons(String)
     case buildInfo(String)
+    case transitions(String, String)
     case widePosts(String, Bool, Bool)
     case stories(String, Bool, Bool)
     case history(String, Bool, Bool)
@@ -60,7 +62,7 @@ private enum NebulaSettingsEntry: ItemListNodeEntry {
         switch self {
         case .search, .empty: return -1
         case .toolsHeader, .link, .ai, .buildInfo: return 0
-        case .appearanceHeader, .glass, .navigation, .contacts, .stories, .widePosts, .icons: return 1
+        case .appearanceHeader, .glass, .navigation, .contacts, .stories, .widePosts, .icons, .transitions: return 1
         case .header, .hideCounters, .footer: return 2
         case .privacyHeader, .privacy, .history, .clearHistory: return 3
         case .transferHeader, .importFile, .exportFile, .transferFooter: return 4
@@ -77,6 +79,7 @@ private enum NebulaSettingsEntry: ItemListNodeEntry {
         case .appearanceHeader: return 30
         case .glass: return 40
         case .icons: return 45
+        case .transitions: return 47
         case .navigation: return 50
         case .contacts: return 60
         case .widePosts: return 75
@@ -105,6 +108,7 @@ private enum NebulaSettingsEntry: ItemListNodeEntry {
         case .contacts: return 14
         case .glass: return 12
         case .icons: return 22
+        case .transitions: return 24
         case .link: return 7
         case .privacy: return 8
         case .ai: return 15
@@ -129,7 +133,7 @@ private enum NebulaSettingsEntry: ItemListNodeEntry {
 
     var searchableText: String? {
         switch self {
-        case let .navigation(title, detail), let .glass(title, detail): return title + " " + detail
+        case let .navigation(title, detail), let .glass(title, detail), let .transitions(title, detail): return title + " " + detail
         case let .widePosts(title, _, _), let .contacts(title, _, _), let .stories(title, _, _), let .history(title, _, _),
              let .hideCounters(title, _, _), let .exportFile(title, _): return title
         case let .link(title), let .privacy(title), let .ai(title), let .icons(title), let .buildInfo(title), let .clearHistory(title),
@@ -185,6 +189,8 @@ private enum NebulaSettingsEntry: ItemListNodeEntry {
             return disclosure(title, ru ? "Выбрать иконку NebulaGram" : "Choose a NebulaGram icon", "app", { arguments.openIcons?() })
         case let .buildInfo(title):
             return disclosure(title, ru ? "Версия, основа и архитектура" : "Version, source and architecture", "info.circle", { arguments.openBuildInfo?() })
+        case let .transitions(title, detail):
+            return disclosure(title, detail, "square.on.square", { arguments.openTransitions?() })
         case let .contacts(title, value, enabled):
             return ItemListSwitchItem(presentationData: presentationData, systemStyle: .glass, title: title, value: value, enabled: enabled, sectionId: section, style: .blocks, updated: { arguments.updateKey?("bottom_bar_contacts", $0) })
         case let .navigation(title, detail):
@@ -236,6 +242,7 @@ public func nebulaSettingsController(context: AccountContext) -> ViewController 
         let ru = presentationData.strings.baseLanguageCode.lowercased().hasPrefix("ru")
         arguments.russian = ru
         let modes = ru ? ["Автоматически", "Полное", "Облегчённое"] : ["Automatic", "Full", "Light"]
+        let transitionModes = ru ? ["Стандартная", "Системная", "Spring"] : ["Standard", "System", "Spring"]
         let firstTab = store.bottomTabOrder.first(where: { $0 != "contacts" || store.showContactsTab }) ?? "chats"
         let tabName = firstTab == "contacts" ? (ru ? "Контакты" : "Contacts")
             : firstTab == "settings" ? (ru ? "Настройки" : "Settings") : (ru ? "Чаты" : "Chats")
@@ -269,6 +276,7 @@ public func nebulaSettingsController(context: AccountContext) -> ViewController 
             .clearHistory(ru ? "Очистить историю поиска настроек" : "Clear settings search history"),
             .glass(ru ? "Адаптивное стекло" : "Adaptive glass", modes[max(0, min(2, store.glassQuality))]),
             .icons(ru ? "Иконка приложения" : "App icon"),
+            .transitions(ru ? "Анимация переходов" : "Transition animation", transitionModes[store.transitionStyle]),
             .navigation(ru ? "Порядок нижних вкладок" : "Bottom tab order", (ru ? "Сначала: " : "First: ") + tabName),
             .contacts(ru ? "Контакты на нижней панели" : "Contacts in bottom bar", store.showContactsTab, !store.hasLoadError),
             .ai(ru ? "Искусственный интеллект" : "AI assistant"),
@@ -357,6 +365,22 @@ public func nebulaSettingsController(context: AccountContext) -> ViewController 
         guard let controller = controller, controller.presentedViewController == nil else { return }
         let ru = context.sharedContext.currentPresentationData.with { $0 }.strings.baseLanguageCode.lowercased().hasPrefix("ru")
         controller.present(UINavigationController(rootViewController: NebulaBuildInfoController(russian: ru)), animated: true)
+    }
+    arguments.openTransitions = { [weak controller] in
+        guard let controller = controller else { return }
+        let ru = context.sharedContext.currentPresentationData.with { $0 }.strings.baseLanguageCode.lowercased().hasPrefix("ru")
+        let alert = UIAlertController(title: ru ? "Анимация переходов" : "Transition animation", message: ru ? "При включённом уменьшении движения iOS переходы остаются без анимации." : "Reduce Motion turns these animations off.", preferredStyle: .actionSheet)
+        let options = ru ? ["Стандартная", "Системная", "Spring"] : ["Standard", "System", "Spring"]
+        for (style, name) in options.enumerated() {
+            alert.addAction(UIAlertAction(title: (store.transitionStyle == style ? "✓ " : "") + name, style: .default) { _ in
+                do { try store.set(.integer(style), for: "fragment_transition_style"); writeFailed.set(false) }
+                catch { writeFailed.set(true) }
+            })
+        }
+        alert.addAction(UIAlertAction(title: ru ? "Отмена" : "Cancel", style: .cancel))
+        alert.popoverPresentationController?.sourceView = controller.view
+        alert.popoverPresentationController?.sourceRect = CGRect(x: controller.view.bounds.midX, y: controller.view.bounds.midY, width: 1, height: 1)
+        controller.present(alert, animated: true)
     }
     arguments.openPrivacy = { [weak controller] in
         guard let controller = controller, controller.presentedViewController == nil else { return }

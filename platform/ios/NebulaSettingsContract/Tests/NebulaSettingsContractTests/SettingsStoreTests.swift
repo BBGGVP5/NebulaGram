@@ -10,6 +10,20 @@ final class SettingsStoreTests: XCTestCase {
         try body(defaults)
     }
 
+    func testNativeTransitionChoicePersistsAndTransfers() throws {
+        try withDefaults { defaults in
+            let store = NebulaSettingsStore(defaults: defaults)
+            XCTAssertEqual(store.transitionStyle, 0)
+            try store.set(.integer(2), for: "fragment_transition_style")
+            XCTAssertEqual(store.transitionStyle, 2)
+            XCTAssertEqual(NebulaSettingsStore(defaults: defaults).transitionStyle, 2)
+            let exported = try store.exportData()
+            XCTAssertTrue(try store.previewImport(exported).activeKeys.contains("fragment_transition_style"))
+            XCTAssertThrowsError(try store.set(.integer(3), for: "fragment_transition_style"))
+            XCTAssertEqual(store.transitionStyle, 2)
+        }
+    }
+
     func testWidePostsToggleImportAndReset() throws {
         try withDefaults { defaults in
             let store = NebulaSettingsStore(defaults: defaults)
