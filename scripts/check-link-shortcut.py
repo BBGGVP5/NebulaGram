@@ -76,7 +76,7 @@ assert 'removeObserver' in method('@Override protected void onDetachedFromWindow
 assert 'payload.put("ids", new JSONArray().put(id))' in method('private void probe(')
 assert 'result.data.optInt(id, -1)' in method('private void probe(')
 assert 'getBoolean(KEY, true)' in code and 'state < 4' in code
-assert 'if (!onlySelect && folderId == 0) app.nebulagram.ui.NebulaLinkShortcut.install(this, menu);' in (native / 'DialogsActivity.java').read_text()
+assert 'if (!onlySelect && folderId == 0) app.nebulagram.ui.NebulaLinkShortcut.install(this, menu);' in (native / 'DialogsActivity.java').read_text(encoding='utf-8')
 assert 'NebulaLinkShortcut.addSettings(content)' not in (ui / 'NebulaSectionFragment.java').read_text(encoding='utf-8')
 assert 'if (SCREEN_ADVANCED.equals(screenId)) NebulaLinkShortcut.addSettings(content);' in (ui / 'NebulaMenuFragment.java').read_text(encoding='utf-8')
 assert 'Кнопка NebulaLink' in code and 'NebulaLink на главной' not in code

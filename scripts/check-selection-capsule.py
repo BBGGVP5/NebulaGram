@@ -21,10 +21,17 @@ class CapsuleCheck {
   void draw(Object c){calls.add(new int[]{alpha,left,right});}}
  static class Avatar {boolean visible;boolean hasVisibleAvatar(){return visible;}float getAlpha(){return 1f;}}
  static class Animated {float getFloatValue(){return .6f;}}
+ static class View {static final int VISIBLE=0;int x,width=46,visibility=VISIBLE;float alpha=1f;
+  View(int x){this.x=x;}int getVisibility(){return visibility;}int getWidth(){return width;}
+  float getAlpha(){return alpha;}float getX(){return x;}}
+ static class Menu {int x=240;View[] children={new View(0),new View(46),new View(92),new View(138)};
+  int getChildCount(){return children.length;}View getChildAt(int i){return children[i];}float getX(){return x;}}
  boolean nebulaFloatingChatHeader=true,nebulaChatMenuHidden=true,glassOnlyBack,doNotDrawGlassMenu,hasForcedMenuWidth;
+ boolean nebulaHomeGlass,isSearchFieldVisible;Menu menu=new Menu();
  Avatar nebulaChatAvatarContainer=new Avatar();Draw glassDrawableMenu=new Draw();Animated animatorHasMenuItems=new Animated();
  float actionModeFactor,searchFactor;int menuWidth=96,s=48,p=6,t=0,b=60;Object canvas;
  int getWidth(){return 400;}
+ int dp(int value){return value;}
  ALPHA
  void draw(){ BLOCK }
  public static void main(String[] args){int cases=0;
@@ -42,6 +49,12 @@ class CapsuleCheck {
     check(d[1]==400-Math.max(48,width)-12&&d[2]==400);
    }
    cases++;
+  }
+  CapsuleCheck home=new CapsuleCheck();home.nebulaFloatingChatHeader=false;home.nebulaHomeGlass=true;
+  home.menuWidth=138;home.menu.children[3].visibility=8;home.draw();
+  check(home.glassDrawableMenu.calls.size()==3);
+  for(int i=0;i<3;i++){int[] d=home.glassDrawableMenu.calls.get(i);
+   check(d[0]==Math.round(255*.6f)&&d[1]==240+46*i&&d[2]==286+46*i);
   }
   CapsuleCheck c=new CapsuleCheck();c.glassDrawableMenu=null;c.draw();
   System.out.println(cases+" selection capsule drawing cases passed");
