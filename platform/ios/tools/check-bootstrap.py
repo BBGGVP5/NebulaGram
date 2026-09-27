@@ -82,6 +82,7 @@ def main():
         assert 'TitleNodeStateRegular)?.view.addSubview(self.nebulaBadgeView)' in header
         assert 'TitleNodeStateExpanded)?.view.addSubview(self.nebulaExpandedBadgeView)' in header
         assert 'UITapGestureRecognizer(target: self, action: #selector(self.nebulaBadgeTapped))' in header
+        assert header.index('super.init()', header.index('private let nebulaBadgeView')) < header.index('view.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(self.nebulaBadgeTapped)))')
         assert 'UIAccessibility.isReduceMotionEnabled' in header
         assert 'customUndoText: isRussian ? "Подробнее" : "Learn more"' in header
         assert 'ActionSheetTextItem(title: details)' in header

@@ -1,0 +1,20 @@
+diff --git a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoHeaderNode.swift b/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoHeaderNode.swift
+--- a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoHeaderNode.swift
++++ b/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoHeaderNode.swift
+@@ -240,7 +240,6 @@ final class PeerInfoHeaderNode: ASDisplayNode {
+             view.isUserInteractionEnabled = true
+             view.isAccessibilityElement = true
+             view.accessibilityTraits = .button
+-            view.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(self.nebulaBadgeTapped)))
+         }
+         self.titleNode.stateNode(forKey: TitleNodeStateRegular)?.view.addSubview(self.nebulaBadgeView)
+         self.titleNode.stateNode(forKey: TitleNodeStateExpanded)?.view.addSubview(self.nebulaExpandedBadgeView)
+@@ -313,5 +312,8 @@ final class PeerInfoHeaderNode: ASDisplayNode {
+         self.animationRenderer = context.animationRenderer
+         
+         super.init()
++        for view in [self.nebulaBadgeView, self.nebulaExpandedBadgeView] {
++            view.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(self.nebulaBadgeTapped)))
++        }
+                 
+         requestUpdateLayoutImpl = { [weak self] in
