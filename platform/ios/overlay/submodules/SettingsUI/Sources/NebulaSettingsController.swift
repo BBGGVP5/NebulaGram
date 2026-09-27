@@ -187,10 +187,14 @@ private enum NebulaSettingsEntry: ItemListNodeEntry {
         }
         switch self {
         case let .search(value, placeholder):
+            let magnifier = NSTextAttachment()
+            magnifier.image = UIImage(systemName: "magnifyingglass", withConfiguration: UIImage.SymbolConfiguration(pointSize: 17, weight: .medium))?
+                .withTintColor(presentationData.theme.list.itemSecondaryTextColor, renderingMode: .alwaysOriginal)
+            magnifier.bounds = CGRect(x: 0, y: -2, width: 18, height: 18)
             return ItemListSingleLineInputItem(presentationData: presentationData, systemStyle: .glass,
-                title: NSAttributedString(string: ""), text: value, placeholder: placeholder,
+                title: NSAttributedString(attachment: magnifier), text: value, placeholder: placeholder,
                 type: .regular(capitalization: false, autocorrection: false), returnKeyType: .search,
-                clearType: .always, maxLength: 200, sectionId: section,
+                spacing: 8, clearType: .always, maxLength: 200, sectionId: section,
                 textUpdated: { arguments.searchUpdated?($0) }, action: {})
         case let .empty(text):
             return ItemListTextItem(presentationData: presentationData, text: .plain(text), sectionId: section)
