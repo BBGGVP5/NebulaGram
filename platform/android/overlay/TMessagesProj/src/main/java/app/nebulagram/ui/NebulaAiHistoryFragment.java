@@ -10,7 +10,6 @@ import org.json.JSONObject;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.R;
 import org.telegram.ui.ActionBar.ActionBar;
-import org.telegram.ui.ActionBar.AlertDialog;
 import org.telegram.ui.ActionBar.BaseFragment;
 
 /** Local history viewer; nothing here is uploaded or synchronized. */
@@ -46,7 +45,7 @@ public final class NebulaAiHistoryFragment extends BaseFragment {
         NebulaCard actions = new NebulaCard(context);
         actions.add(new NebulaRow(context).icon(R.drawable.msg_delete)
                 .title(NebulaText.text("Очистить историю", "Clear history"))
-                .trailing(NebulaRow.TRAIL_CHEVRON).withClick(v -> showDialog(new AlertDialog.Builder(context)
+                .trailing(NebulaRow.TRAIL_CHEVRON).withClick(v -> showDialog(new NebulaDialog.Builder(context)
                         .setMessage(NebulaText.text("Удалить сохранённые запросы на этом устройстве?", "Delete saved requests from this device?"))
                         .setNegativeButton(NebulaText.text("Отмена", "Cancel"), null)
                         .setPositiveButton(NebulaText.text("Очистить", "Clear"), (d, which) -> { NebulaAiHistory.clear(); build(context); }).create())));

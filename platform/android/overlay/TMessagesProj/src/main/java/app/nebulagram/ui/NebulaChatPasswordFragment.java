@@ -5,7 +5,6 @@ import android.text.InputType;
 import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-import org.telegram.ui.ActionBar.AlertDialog;
 import org.telegram.messenger.*;
 import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.Components.EditTextBoldCursor;
@@ -39,7 +38,7 @@ public final class NebulaChatPasswordFragment extends BaseFragment {
     private String modeTitle(){return pin?text("PIN-код","PIN code"):text("Пароль","Password");}
     private String modeDescription(){return pin?text("4–12 цифр","4–12 digits"):text("Буквы, цифры и символы","Letters, numbers and symbols");}
     private String passwordHint(){return pin?text("От 4 до 12 цифр","4 to 12 digits"):text("Не менее 6 символов","At least 6 characters");}
-    private void chooseMode(){new AlertDialog.Builder(getContext()).setTitle(text("Тип защиты","Lock type")).setItems(new CharSequence[]{text("Пароль","Password"),text("PIN-код","PIN code")},(d,which)->{pin=which==1;modeRow.title(modeTitle()).subtitle(modeDescription(),false);password.setHint(passwordHint());updateInputModes();}).show();}
+    private void chooseMode(){new NebulaDialog.Builder(getContext()).setTitle(text("Тип защиты","Lock type")).setSelectedIndex(pin ? 1 : 0).setItems(new CharSequence[]{text("Пароль","Password"),text("PIN-код","PIN code")},(d,which)->{pin=which==1;modeRow.title(modeTitle()).subtitle(modeDescription(),false);password.setHint(passwordHint());updateInputModes();}).show();}
     private void updateInputModes(){int type=pin?InputType.TYPE_CLASS_NUMBER|InputType.TYPE_NUMBER_VARIATION_PASSWORD:InputType.TYPE_CLASS_TEXT|InputType.TYPE_TEXT_VARIATION_PASSWORD;password.setInputType(type);password.setFilters(new android.text.InputFilter[]{new android.text.InputFilter.LengthFilter(pin?12:128)});repeat.setInputType(type);repeat.setFilters(new android.text.InputFilter[]{new android.text.InputFilter.LengthFilter(pin?12:128)});}
     private EditTextBoldCursor field(Context c,String hint){EditTextBoldCursor e=NebulaFormUi.field(c,hint,1,128);e.setInputType(InputType.TYPE_CLASS_TEXT|InputType.TYPE_TEXT_VARIATION_PASSWORD);return e;}
     private void change(boolean deleting) {

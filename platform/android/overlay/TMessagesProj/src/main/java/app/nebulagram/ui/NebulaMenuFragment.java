@@ -19,7 +19,6 @@ import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.R;
 import org.telegram.ui.ActionBar.ActionBar;
-import org.telegram.ui.ActionBar.AlertDialog;
 import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.Components.EditTextBoldCursor;
 
@@ -381,8 +380,9 @@ public class NebulaMenuFragment extends BaseFragment {
             values[i] = option.optString("value");
         }
 
-        AlertDialog.Builder builder = new AlertDialog.Builder(context);
+        NebulaDialog.Builder builder = new NebulaDialog.Builder(context);
         builder.setTitle(localized(row.optString("title_key"), row.optString("title")));
+        builder.setSelectedIndex(java.util.Arrays.asList(values).indexOf(currentValue(key)));
         builder.setItems(labels, (dialog, which) -> {
             updateSetting(key, values[which]);
             view.subtitle(labels[which], true);
@@ -406,7 +406,7 @@ public class NebulaMenuFragment extends BaseFragment {
         input.setPadding(AndroidUtilities.dp(24), AndroidUtilities.dp(8),
                 AndroidUtilities.dp(24), AndroidUtilities.dp(8));
 
-        AlertDialog.Builder builder = new AlertDialog.Builder(context);
+        NebulaDialog.Builder builder = new NebulaDialog.Builder(context);
         builder.setTitle(localized(row.optString("title_key"), row.optString("title")));
         builder.setView(input);
         builder.setPositiveButton(LocaleController.getString(R.string.OK), (dialog, which) -> {
@@ -464,7 +464,7 @@ public class NebulaMenuFragment extends BaseFragment {
         field_.setPadding(AndroidUtilities.dp(24), AndroidUtilities.dp(8),
                 AndroidUtilities.dp(24), AndroidUtilities.dp(8));
 
-        AlertDialog.Builder builder = new AlertDialog.Builder(context);
+        NebulaDialog.Builder builder = new NebulaDialog.Builder(context);
         builder.setTitle(title);
         builder.setView(field_);
         builder.setPositiveButton(LocaleController.getString(R.string.OK), (dialog, which) -> {
@@ -511,7 +511,7 @@ public class NebulaMenuFragment extends BaseFragment {
      * устройстве, и запрос {@code calls.stats} возвращал «unknown method».
      */
     private void showCallState(Context context) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(context);
+        NebulaDialog.Builder builder = new NebulaDialog.Builder(context);
         builder.setTitle(NebulaCallState.title());
         builder.setMessage(NebulaCallState.report());
         builder.setPositiveButton(LocaleController.getString(R.string.OK), null);

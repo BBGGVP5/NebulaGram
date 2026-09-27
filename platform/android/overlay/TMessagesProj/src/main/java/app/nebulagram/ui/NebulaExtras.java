@@ -5,7 +5,6 @@ import android.content.Context;
 import android.widget.LinearLayout;
 import org.telegram.messenger.R;
 import org.telegram.ui.ActionBar.BaseFragment;
-import org.telegram.ui.ActionBar.AlertDialog;
 
 /** Additional controls shared by the settings sections. */
 public final class NebulaExtras {
@@ -35,8 +34,8 @@ public final class NebulaExtras {
         String[] labels = {text("Реакция", "Reaction"), text("Редактировать", "Edit"), text("Ответить", "Reply"), text("Копировать текст", "Copy text"), text("Ничего", "Nothing")};
         NebulaRow row = new NebulaRow(c).icon(R.drawable.nebula_cupertino_edit).title(text("Двойной тап по своему сообщению", "Double tap your message"))
                 .subtitle(labels[NebulaAppearance.ownDoubleTap()], false).trailing(NebulaRow.TRAIL_CHEVRON);
-        row.setOnClickListener(v -> new AlertDialog.Builder(c).setTitle(text("Действие двойного нажатия", "Double tap action"))
-                .setItems(labels, (d, i) -> { NebulaAppearance.setOwnDoubleTap(i); row.subtitle(labels[i], false); }).show());
+        row.setOnClickListener(v -> new NebulaDialog.Builder(c).setTitle(text("Действие двойного нажатия", "Double tap action"))
+                .setSelectedIndex(NebulaAppearance.ownDoubleTap()).setItems(labels, (d, i) -> { NebulaAppearance.setOwnDoubleTap(i); row.subtitle(labels[i], false); }).show());
         NebulaCard card = new NebulaCard(c); card.add(row); content.addView(card);
     }
 }

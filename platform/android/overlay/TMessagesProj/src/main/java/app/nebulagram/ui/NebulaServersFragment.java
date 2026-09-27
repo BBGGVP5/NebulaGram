@@ -16,7 +16,6 @@ import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.R;
 import org.telegram.ui.ActionBar.ActionBar;
 import org.telegram.ui.ActionBar.BaseFragment;
-import org.telegram.ui.ActionBar.AlertDialog;
 
 import java.util.ArrayList;
 import java.util.Locale;
@@ -204,7 +203,7 @@ public class NebulaServersFragment extends BaseFragment {
         if (getParentActivity() == null) {
             return;
         }
-        showDialog(new AlertDialog.Builder(getParentActivity())
+        showDialog(new NebulaDialog.Builder(getParentActivity())
                 .setTitle(LocaleController.getString(R.string.NebulaServerSort))
                 .setItems(new CharSequence[]{
                         LocaleController.getString(R.string.NebulaSortDefault),

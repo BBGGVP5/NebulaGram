@@ -98,6 +98,6 @@ public final class NebulaSettingsTransfer {
         return true;
     }
     private static void notice(BaseFragment f, String message) {
-        if (f.getParentActivity() != null) f.showDialog(new AlertDialog.Builder(f.getParentActivity()).setTitle("NebulaGram").setMessage(message).setPositiveButton(text("ОК", "OK"), null).create());
+        if (f.getParentActivity() != null) f.showDialog(new NebulaDialog.Builder(f.getParentActivity()).setTitle("NebulaGram").setMessage(message).setPositiveButton(text("ОК", "OK"), null).create());
     }
 }

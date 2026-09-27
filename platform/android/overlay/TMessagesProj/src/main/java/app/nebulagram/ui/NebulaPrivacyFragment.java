@@ -10,7 +10,6 @@ import android.widget.EditText;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.R;
 import org.telegram.ui.ActionBar.ActionBar;
-import org.telegram.ui.ActionBar.AlertDialog;
 import org.telegram.ui.ActionBar.BaseFragment;
 
 /**
@@ -144,7 +143,7 @@ public final class NebulaPrivacyFragment extends BaseFragment {
                         .checked(NebulaDeletedArchive.enabled(owner))
                         .withClick(v -> {
                             if (NebulaDeletedArchive.enabled(owner)) { NebulaDeletedArchive.setEnabled(owner, false); rebuild(); return; }
-                            showDialog(new AlertDialog.Builder(getParentActivity())
+                            showDialog(new NebulaDialog.Builder(getParentActivity())
                                     .setTitle(text("Включить локальный архив?", "Enable local archive?"))
                                     .setMessage(text("Полученные сообщения останутся на своём месте в чате с отметкой удаления. Их содержимое и вложения остаются в обычном локальном кэше Telegram; на сервер ничего не отправляется. Секретные и исчезающие сообщения требуют отдельных переключателей. Защита от копирования сохраняется.", "Received messages stay in place with a deletion marker. Content and attachments remain in Telegram’s normal local cache; nothing is sent to the server. Secret and expiring messages require separate switches. Copy protection is respected."))
                                     .setNegativeButton(text("Отмена", "Cancel"), null)
@@ -166,7 +165,7 @@ public final class NebulaPrivacyFragment extends BaseFragment {
         card(row(R.drawable.msg_info, text("Как работает сохранение", "How retention works"))
                 .subtitle(text("Медиа, фон и ограничения", "Media, background and limitations"), false)
                 .trailing(NebulaRow.TRAIL_CHEVRON)
-                .withClick(v -> showDialog(new AlertDialog.Builder(getParentActivity())
+                .withClick(v -> showDialog(new NebulaDialog.Builder(getParentActivity())
                         .setTitle(text("Как работает сохранение", "How retention works"))
                         .setMessage(text("Архив хранится столько, сколько нужно вам: ни по числу сообщений, ни по сроку он не ограничен и очищается только вручную. Текст и уже полученные вложения. Медиа может удаляться стандартной очисткой кэша; недоступные файлы восстановить нельзя. Фоновое сохранение возможно лишь при получении приложением события удаления. Выключение не удаляет существующий архив. Клиент собеседника не определяется.",
                 "The archive is kept for as long as you want it: no message-count or time limit, and it is cleared only by hand. Text and received attachments. Standard cache eviction can remove media; unavailable files cannot be recovered. Background capture requires the app to receive the deletion update. Disabling does not erase existing entries. Peer clients are not detected."))
@@ -199,7 +198,7 @@ public final class NebulaPrivacyFragment extends BaseFragment {
                 .checked(NebulaContentProtection.enabled())
                 .withClick(v -> {
                     if (NebulaContentProtection.enabled()) { NebulaContentProtection.setEnabled(false); rebuild(); return; }
-                    showDialog(new AlertDialog.Builder(getParentActivity())
+                    showDialog(new NebulaDialog.Builder(getParentActivity())
                             .setTitle(text("Снять ограничения отправителя?", "Lift sender restrictions?"))
                             .setMessage(text("Снимки экрана, копирование и сохранение доступны для уже полученного содержимого. Из защищённых чатов отправляются обычные копии: с текстовой подписью источника либо без неё, без серверной пометки «Переслано от». Для фото и файлов нужна полная загрузка на устройство. Секретные и исчезающие вложения не поддерживаются. Уважайте приватность собеседника.", "Screenshots, copying and saving apply to content already received. Protected chats send ordinary copies, with an optional source label, not Telegram forwarded headers. Photos and files must be downloaded completely. Secret and disappearing attachments are not supported. Respect the sender's privacy."))
                             .setNegativeButton(text("Отмена", "Cancel"), null)
@@ -248,9 +247,9 @@ public final class NebulaPrivacyFragment extends BaseFragment {
                 text("Приглушением", "By fading"),
                 text("Цветом", "With colour"),
         };
-        showDialog(new AlertDialog.Builder(getParentActivity())
+        showDialog(new NebulaDialog.Builder(getParentActivity())
                 .setTitle(text("Как выделять удалённые", "How to mark deleted messages"))
-                .setItems(titles, (d, which) -> { NebulaDeletedStyle.setMark(which); rebuild(); })
+                .setSelectedIndex(NebulaDeletedStyle.mark()).setItems(titles, (d, which) -> { NebulaDeletedStyle.setMark(which); rebuild(); })
                 .create());
     }
 
@@ -280,9 +279,9 @@ public final class NebulaPrivacyFragment extends BaseFragment {
         if (getParentActivity() == null) return;
         String[] titles = new String[NebulaDeletedStyle.PALETTE.length];
         for (int i = 0; i < titles.length; i++) titles[i] = colourName(i);
-        showDialog(new AlertDialog.Builder(getParentActivity())
+        showDialog(new NebulaDialog.Builder(getParentActivity())
                 .setTitle(text("Цвет выделения", "Marker colour"))
-                .setItems(titles, (d, which) -> { NebulaDeletedStyle.setColourIndex(which); rebuild(); })
+                .setSelectedIndex(NebulaDeletedStyle.colourIndex()).setItems(titles, (d, which) -> { NebulaDeletedStyle.setColourIndex(which); rebuild(); })
                 .create());
     }
 
@@ -293,7 +292,7 @@ public final class NebulaPrivacyFragment extends BaseFragment {
                        : text("Сохранять исчезающие сообщения", "Retain expiring messages"))
                 .trailing(NebulaRow.TRAIL_SWITCH).checked(selected).withClick(v -> {
             if (selected) { NebulaDeletedArchive.setExtra(owner, secret, false); rebuild(); return; }
-            showDialog(new AlertDialog.Builder(getParentActivity())
+            showDialog(new NebulaDialog.Builder(getParentActivity())
                     .setTitle(text("Оставлять локальную копию?", "Keep a local copy?"))
                     .setMessage(text("При включённом сохранении копия останется после удаления или таймера. Это меняет ожидаемое поведение секретных и исчезающих сообщений. Работает только с уже полученным содержимым на этом устройстве.", "When retention is enabled, a local copy remains after deletion or expiry. This changes the expected behavior of secret and expiring messages. Only content already received on this device can be kept."))
                     .setNegativeButton(text("Отмена", "Cancel"), null)
@@ -304,24 +303,26 @@ public final class NebulaPrivacyFragment extends BaseFragment {
 
     public static void confirmClear(BaseFragment fragment, int account, long peer, Runnable done) {
         if (fragment.getParentActivity() == null) return;
-        fragment.showDialog(new AlertDialog.Builder(fragment.getParentActivity())
+        fragment.showDialog(new NebulaDialog.Builder(fragment.getParentActivity())
             .setTitle(NebulaText.text(peer == 0 ? "Очистить все сохранённые удалённые сообщения?" : "Очистить удалённые сообщения этого чата?", peer == 0 ? "Clear all retained messages?" : "Clear retained messages in this chat?"))
             .setMessage(NebulaText.text("Только локальные сохранённые копии. Обычная переписка и общий медиакэш не удаляются.", "Only locally retained copies. Ordinary history and shared media cache are not deleted."))
             .setNegativeButton(NebulaText.text("Отмена", "Cancel"), null)
             .setPositiveButton(NebulaText.text("Очистить", "Clear"), (d, w) -> NebulaDeletedArchive.clearAsync(account, peer, () -> { if (done != null) done.run(); }, () -> {
-                if (fragment.getParentActivity() != null) fragment.showDialog(new AlertDialog.Builder(fragment.getParentActivity()).setMessage(NebulaText.text("Не удалось очистить сохранённые сообщения.", "Could not clear retained messages.")).setPositiveButton("OK", null).create());
+                if (fragment.getParentActivity() != null) fragment.showDialog(new NebulaDialog.Builder(fragment.getParentActivity()).setMessage(NebulaText.text("Не удалось очистить сохранённые сообщения.", "Could not clear retained messages.")).setPositiveButton("OK", null).create());
             })).create());
     }
 
     private void icons() {
-        showDialog(new AlertDialog.Builder(getParentActivity()).setTitle(text("Значок удалённого сообщения", "Deleted message icon"))
+        int selectedIcon = java.util.Arrays.asList("🗑", "✕", "◌").indexOf(NebulaDeletedArchive.icon());
+        showDialog(new NebulaDialog.Builder(getParentActivity()).setTitle(text("Значок удалённого сообщения", "Deleted message icon"))
+            .setSelectedIndex(selectedIcon < 0 ? 3 : selectedIcon)
             .setItems(new CharSequence[]{"🗑", "✕", "◌", text("Свой символ / эмодзи", "Custom symbol / emoji")}, (dialog, which) -> {
                 if (which < 3) { NebulaDeletedArchive.setIcon(new String[]{"🗑", "✕", "◌"}[which]); rebuild(); return; }
                 EditText input = new EditText(getParentActivity());
                 input.setSingleLine(true);
                 input.setText(NebulaDeletedArchive.icon());
                 input.setFilters(new android.text.InputFilter[]{new android.text.InputFilter.LengthFilter(128)});
-                showDialog(new AlertDialog.Builder(getParentActivity()).setTitle(text("Свой значок", "Custom icon"))
+                showDialog(new NebulaDialog.Builder(getParentActivity()).setTitle(text("Свой значок", "Custom icon"))
                     .setMessage(text("До четырёх символов или эмодзи. Значок показывается вместо слова «Удалено».", "Up to four symbols or emoji. The icon replaces the word Deleted."))
                     .setView(input)
                     .setNegativeButton(text("Отмена", "Cancel"), null)

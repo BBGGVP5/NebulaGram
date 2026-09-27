@@ -8,7 +8,6 @@ import android.widget.*;
 import org.json.JSONObject;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.R;
-import org.telegram.ui.ActionBar.AlertDialog;
 import org.telegram.ui.ActionBar.BaseFragment;
 import java.text.DateFormat;
 import java.util.*;
@@ -52,7 +51,7 @@ public final class NebulaTaskEditorFragment extends BaseFragment {
             NebulaButton delete = new NebulaButton(c, NebulaButton.STYLE_TEXT);
             delete.setText(t("Удалить задачу", "Delete task"));
             delete.setTextColor(org.telegram.ui.ActionBar.Theme.getColor(org.telegram.ui.ActionBar.Theme.key_text_RedRegular));
-            delete.setOnClickListener(v -> showDialog(new AlertDialog.Builder(c)
+            delete.setOnClickListener(v -> showDialog(new NebulaDialog.Builder(c)
                     .setTitle(t("Удалить задачу?", "Delete task?")).setMessage(previous.optString("title"))
                     .setNegativeButton(t("Отмена", "Cancel"), null).setPositiveButton(t("Удалить", "Delete"), (d, w) -> {
                         try { NebulaTasks.delete(NebulaTasks.user(currentAccount), previous.getString("id")); finishFragment(); }

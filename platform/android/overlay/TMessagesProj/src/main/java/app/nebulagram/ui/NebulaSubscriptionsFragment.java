@@ -17,7 +17,6 @@ import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.R;
 import org.telegram.ui.ActionBar.ActionBar;
-import org.telegram.ui.ActionBar.AlertDialog;
 import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.Components.EditTextBoldCursor;
 
@@ -158,7 +157,7 @@ public class NebulaSubscriptionsFragment extends BaseFragment {
                 LocaleController.getString(R.string.nl_refresh),
                 LocaleController.getString(R.string.NebulaRemove),
         };
-        AlertDialog.Builder builder = new AlertDialog.Builder(context);
+        NebulaDialog.Builder builder = new NebulaDialog.Builder(context);
         builder.setTitle(name);
         builder.setItems(items, (dialog, which) -> {
             JSONObject payload = new JSONObject();
@@ -190,7 +189,7 @@ public class NebulaSubscriptionsFragment extends BaseFragment {
         input.setPadding(AndroidUtilities.dp(24), AndroidUtilities.dp(8),
                 AndroidUtilities.dp(24), AndroidUtilities.dp(8));
 
-        AlertDialog.Builder builder = new AlertDialog.Builder(context);
+        NebulaDialog.Builder builder = new NebulaDialog.Builder(context);
         builder.setTitle(LocaleController.getString(R.string.nl_add_sub));
         builder.setView(input);
         builder.setPositiveButton(LocaleController.getString(R.string.OK), (dialog, which) -> {

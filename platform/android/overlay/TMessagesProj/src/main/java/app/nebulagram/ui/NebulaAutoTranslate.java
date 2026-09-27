@@ -30,7 +30,7 @@ public final class NebulaAutoTranslate {
     public static void configure(BaseFragment host,long dialog){
         if(dialog==0||DialogObject.isEncryptedDialog(dialog))return;int account=host.getCurrentAccount();Context c=host.getContext();
         EditText language=new EditText(c);language.setText(NebulaAutoTranslate.language(account,dialog));language.setSingleLine();language.setHint("ru / en / de");
-        host.showDialog(new AlertDialog.Builder(c).setTitle(NebulaText.text("Автоперевод чата","Auto-translate chat"))
+        host.showDialog(new NebulaDialog.Builder(c).setTitle(NebulaText.text("Автоперевод чата","Auto-translate chat"))
             .setMessage(NebulaText.text("Видимые текстовые сообщения будут отправляться вашему провайдеру ИИ для перевода. Введите код языка, например ru или en.","Visible text messages will be sent to your configured AI provider. Enter a language code, such as ru or en."))
             .setView(language).setPositiveButton(NebulaText.text("Включить","Enable"),(d,w)->{
                 String code=language.getText().toString().trim().toLowerCase(Locale.ROOT);

@@ -13,7 +13,6 @@ import androidx.core.content.ContextCompat;
 import org.telegram.messenger.FileLog;
 import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.Utilities;
-import org.telegram.ui.ActionBar.AlertDialog;
 import org.telegram.ui.ActionBar.BaseFragment;
 
 import java.io.OutputStream;
@@ -145,7 +144,7 @@ public final class NebulaBadges {
         String title = title(kind);
         if (fragment == null || title == null) return;
         String description = description(kind);
-        fragment.showDialog(new AlertDialog.Builder(fragment.getParentActivity())
+        fragment.showDialog(new NebulaDialog.Builder(fragment.getParentActivity())
                 .setTitle(title)
                 .setMessage(description)
                 .setPositiveButton(NebulaText.text("Подробнее", "More details"), (dialog, which) ->

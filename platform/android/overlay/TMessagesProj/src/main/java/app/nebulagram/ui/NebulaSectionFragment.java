@@ -207,12 +207,12 @@ public class NebulaSectionFragment extends BaseFragment {
                 .title(NebulaText.text("Анимация переходов", "Transition animation"))
                 .subtitle(transitionName(NebulaTransitions.style()), false)
                 .trailing(NebulaRow.TRAIL_CHEVRON)
-                .withClick(v -> new org.telegram.ui.ActionBar.AlertDialog.Builder(context)
+                .withClick(v -> new NebulaDialog.Builder(context)
                         .setTitle(NebulaText.text("Анимация переходов", "Transition animation"))
-                        .setItems(new CharSequence[]{
-                                (NebulaTransitions.style() == NebulaTransitions.STANDARD ? "✓ " : "") + NebulaText.text("Стандартная", "Standard"),
-                                (NebulaTransitions.style() == NebulaTransitions.AOSP ? "✓ " : "") + NebulaText.text("Системная AOSP", "AOSP system"),
-                                (NebulaTransitions.style() == NebulaTransitions.SPRING ? "✓ " : "") + "Spring"
+                        .setSelectedIndex(NebulaTransitions.style()).setItems(new CharSequence[]{
+                                NebulaText.text("Стандартная", "Standard"),
+                                NebulaText.text("Системная AOSP", "AOSP system"),
+                                "Spring"
                         }, (dialog, which) -> {
                             context.getSharedPreferences("nebulagram", Context.MODE_PRIVATE)
                                     .edit().putInt("fragment_transition_style", which).apply();
@@ -415,9 +415,9 @@ public class NebulaSectionFragment extends BaseFragment {
         int[] styles = {R.string.NebulaFolderLabels, R.string.NebulaFolderIcons, R.string.NebulaFolderBoth};
         NebulaRow style = new NebulaRow(context).icon(R.drawable.files_folder).title(LocaleController.getString(R.string.NebulaFolderStyle))
                 .value(LocaleController.getString(styles[NebulaAppearance.folderStyle()])).trailing(NebulaRow.TRAIL_CHEVRON);
-        style.setOnClickListener(v -> new org.telegram.ui.ActionBar.AlertDialog.Builder(context)
+        style.setOnClickListener(v -> new NebulaDialog.Builder(context)
                 .setTitle(LocaleController.getString(R.string.NebulaFolderStyle))
-                .setItems(new CharSequence[] {LocaleController.getString(styles[0]), LocaleController.getString(styles[1]), LocaleController.getString(styles[2])},
+                .setSelectedIndex(NebulaAppearance.folderStyle()).setItems(new CharSequence[] {LocaleController.getString(styles[0]), LocaleController.getString(styles[1]), LocaleController.getString(styles[2])},
                     (d, which) -> { NebulaAppearance.setFolderStyle(which); refreshPalette(); }).show());
         card.add(style);
         card.add(toggle(context, R.drawable.nebula_cupertino_edit, R.string.NebulaFolderOutline, R.string.NebulaFolderOutlineInfo,
@@ -433,9 +433,9 @@ public class NebulaSectionFragment extends BaseFragment {
                 .title(NebulaText.text("Оформление нижних папок", "Bottom folder appearance"))
                 .value(NebulaFolderTabs.panelStyleTitle(NebulaFolderTabs.panelStyle()))
                 .trailing(NebulaRow.TRAIL_CHEVRON);
-        panelStyle.setOnClickListener(v -> new org.telegram.ui.ActionBar.AlertDialog.Builder(context)
+        panelStyle.setOnClickListener(v -> new NebulaDialog.Builder(context)
                 .setTitle(NebulaText.text("Оформление нижних папок", "Bottom folder appearance"))
-                .setItems(new CharSequence[] {NebulaFolderTabs.panelStyleTitle(0),
+                .setSelectedIndex(NebulaFolderTabs.panelStyle()).setItems(new CharSequence[] {NebulaFolderTabs.panelStyleTitle(0),
                         NebulaFolderTabs.panelStyleTitle(1), NebulaFolderTabs.panelStyleTitle(2)},
                         (d, which) -> { NebulaFolderTabs.setPanelStyle(which); refreshPalette(); }).show());
         card.add(panelStyle);
@@ -487,9 +487,9 @@ public class NebulaSectionFragment extends BaseFragment {
                 NebulaText.text("Основная", "Rear"),
                 NebulaText.text("Спрашивать", "Ask"),
         };
-        new org.telegram.ui.ActionBar.AlertDialog.Builder(context)
+        new NebulaDialog.Builder(context)
                 .setTitle(NebulaText.text("Камера кружка", "Round video camera"))
-                .setItems(titles, (d, which) -> { NebulaRoundCamera.setMode(which); refreshPalette(); })
+                .setSelectedIndex(NebulaRoundCamera.mode()).setItems(titles, (d, which) -> { NebulaRoundCamera.setMode(which); refreshPalette(); })
                 .show();
     }
 
@@ -566,7 +566,7 @@ public class NebulaSectionFragment extends BaseFragment {
                         titles[i] = NebulaBadges.label(kinds[i]);
                     }
                     titles[kinds.length] = NebulaText.text("Снять значок", "Remove badge");
-                    new org.telegram.ui.ActionBar.AlertDialog.Builder(context)
+                    new NebulaDialog.Builder(context)
                             .setTitle(NebulaText.text("Какой значок", "Which badge"))
                             .setItems(titles, (d, which) -> NebulaBadges.grant(id,
                                     which == kinds.length ? "" : kinds[which],
@@ -585,7 +585,7 @@ public class NebulaSectionFragment extends BaseFragment {
         input.setTextColor(NebulaTheme.of(context).onSurface());
         input.setHintTextColor(NebulaTheme.of(context).onSurfaceVariant());
         input.setPadding(AndroidUtilities.dp(22), AndroidUtilities.dp(8), AndroidUtilities.dp(22), AndroidUtilities.dp(8));
-        new org.telegram.ui.ActionBar.AlertDialog.Builder(context)
+        new NebulaDialog.Builder(context)
                 .setTitle(title)
                 .setMessage(message)
                 .setView(input)
@@ -606,7 +606,7 @@ public class NebulaSectionFragment extends BaseFragment {
         input.setTextColor(NebulaTheme.of(context).onSurface());
         input.setHintTextColor(NebulaTheme.of(context).onSurfaceVariant());
         input.setPadding(AndroidUtilities.dp(22), AndroidUtilities.dp(8), AndroidUtilities.dp(22), AndroidUtilities.dp(8));
-        new org.telegram.ui.ActionBar.AlertDialog.Builder(context)
+        new NebulaDialog.Builder(context)
                 .setTitle(NebulaText.text("Поддержать проект", "Support the project"))
                 .setMessage(NebulaText.text("Куда ведёт эта строка. Ссылка хранится только на этом устройстве.",
                         "Where this row leads. The link is kept on this device only."))
@@ -643,9 +643,9 @@ public class NebulaSectionFragment extends BaseFragment {
                 .title(NebulaText.text("Формат ID", "ID format"))
                 .value(formats[NebulaIds.format()])
                 .trailing(NebulaRow.TRAIL_CHEVRON);
-        format.setOnClickListener(v -> showDialog(new org.telegram.ui.ActionBar.AlertDialog.Builder(context)
+        format.setOnClickListener(v -> showDialog(new NebulaDialog.Builder(context)
                 .setTitle(NebulaText.text("Формат ID", "ID format"))
-                .setItems(formats, (dialog, which) -> {
+                .setSelectedIndex(NebulaIds.format()).setItems(formats, (dialog, which) -> {
                     NebulaIds.setFormat(which);
                     format.value(formats[NebulaIds.format()]);
                 }).create()));
@@ -671,7 +671,7 @@ public class NebulaSectionFragment extends BaseFragment {
         NebulaRow clearHistory = new NebulaRow(context).icon(R.drawable.msg_delete)
                 .title(NebulaText.text("Очистить историю поиска настроек", "Clear settings search history"))
                 .subtitle(NebulaText.text("Не затрагивает поиск чатов и сообщения", "Does not affect chat search or messages"), false);
-        clearHistory.setOnClickListener(v -> showDialog(new org.telegram.ui.ActionBar.AlertDialog.Builder(context)
+        clearHistory.setOnClickListener(v -> showDialog(new NebulaDialog.Builder(context)
                 .setTitle(NebulaText.text("Очистить историю поиска настроек?", "Clear settings search history?"))
                 .setMessage(NebulaText.text("Список недавно открытых настроек будет удалён для всех аккаунтов на этом устройстве.", "Recently opened settings will be removed for all accounts on this device."))
                 .setNegativeButton(LocaleController.getString(R.string.Cancel), null)

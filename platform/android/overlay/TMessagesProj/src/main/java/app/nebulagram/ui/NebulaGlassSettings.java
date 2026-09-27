@@ -35,9 +35,9 @@ public final class NebulaGlassSettings {
         NebulaRow quality = new NebulaRow(c).icon(R.drawable.msg_photo_settings);
         String[] modes = {NebulaText.text("Автоматически", "Automatic"), NebulaText.text("Полное", "Full"), NebulaText.text("Облегчённое", "Light")};
         quality.title(NebulaText.text("Качество стекла: ", "Glass quality: ") + modes[NebulaGlass.quality()]);
-        quality.trailing(NebulaRow.TRAIL_CHEVRON).withClick(v -> new org.telegram.ui.ActionBar.AlertDialog.Builder(c)
+        quality.trailing(NebulaRow.TRAIL_CHEVRON).withClick(v -> new NebulaDialog.Builder(c)
             .setTitle(NebulaText.text("Адаптивное стекло", "Adaptive glass"))
-            .setItems(modes, (dialog, which) -> {
+            .setSelectedIndex(NebulaGlass.quality()).setItems(modes, (dialog, which) -> {
                 NebulaGlass.quality(which);
                 quality.title(NebulaText.text("Качество стекла: ", "Glass quality: ") + modes[which]);
                 preview.invalidate();

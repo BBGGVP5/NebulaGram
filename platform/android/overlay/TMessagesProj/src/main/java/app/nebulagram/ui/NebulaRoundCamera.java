@@ -57,9 +57,9 @@ public final class NebulaRoundCamera {
         if (mode() != ASK || context == null) {
             return;
         }
-        new org.telegram.ui.ActionBar.AlertDialog.Builder(context, provider)
+        new NebulaDialog.Builder(context, provider)
                 .setTitle(NebulaText.text("Камера кружка", "Round video camera"))
-                .setItems(new CharSequence[]{
+                .setSelectedIndex(prefs().getBoolean(KEY_LAST, true) ? 0 : 1).setItems(new CharSequence[]{
                         NebulaText.text("Фронтальная", "Front"),
                         NebulaText.text("Основная", "Rear"),
                 }, (dialog, which) -> remember(which == 0))
