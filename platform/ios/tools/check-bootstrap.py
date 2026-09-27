@@ -29,6 +29,7 @@ def main():
     subprocess.run([sys.executable, str(ROOT / 'platform/ios/tools/generate-overlay.py'), '--check'], check=True)
     subprocess.run([sys.executable, str(ROOT / 'platform/ios/tools/generate-badge-artwork.py'), '--check'], check=True)
     subprocess.run([sys.executable, str(ROOT / 'platform/ios/tools/generate-app-icons.py'), '--check'], check=True)
+    subprocess.run([sys.executable, str(ROOT / 'platform/ios/tools/generate-primary-icon.py'), '--check'], check=True)
     entry = run('git', '-C', str(ROOT), 'ls-files', '--stage', '--', 'vendor/telegram-ios', text=True).split()
     if not entry or entry[0] != '160000':
         raise SystemExit('Missing pinned iOS gitlink')
@@ -146,6 +147,10 @@ def main():
         handler = (temp / 'submodules/SettingsUI/Sources/Search/SettingsSearchableItems.swift').read_text(encoding='utf-8')
         assert 'if nebulaOpenQuickAction(context: context, path: path, navigationController: navigationController)' in handler
         app_build = (temp / 'Telegram/BUILD').read_text(encoding='utf-8')
+        assert 'composer_icon_folders = ["NebulaGram"]' in app_build
+        primary_icon = temp / 'Telegram/Telegram-iOS/NebulaGram.icon'
+        assert (primary_icon / 'icon.json').is_file()
+        assert (primary_icon / 'Assets/NebulaMark.svg').is_file()
         assert 'NebulaAppShortcuts.swift' in app_build
         for variant in ('Blue', 'Ocean', 'Aurora', 'Sunset', 'Graphite', 'Pearl', 'Ink', 'Paper',
                         'Mint', 'Lavender', 'Tangerine', 'Rose', 'Orbit', 'Blueprint', 'Nova', 'Monogram'):

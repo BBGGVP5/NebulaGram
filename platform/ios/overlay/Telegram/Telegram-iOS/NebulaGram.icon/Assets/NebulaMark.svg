@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 200 200">
+  <title>NebulaGram mark</title>
+  <g transform="translate(10 10) scale(.9)" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M148 52 96 138 88 104 54 96Z" fill="#EEF4FF" stroke="#EEF4FF" stroke-width="13"/>
+    <path d="M44 148c14-6 26-9 38-9" fill="none" stroke="#BBD6FF" stroke-width="9" opacity=".855"/>
+    <path d="M40 124c9-4 17-6 25-6" fill="none" stroke="#BBD6FF" stroke-width="7" opacity=".549"/>
+  </g>
+</svg>

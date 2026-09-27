@@ -21,6 +21,7 @@
 | 0025-welcome-language.patch | `submodules/AuthorizationUI/Sources/AuthorizationSequenceSplashController.swift` | `languageChanged` | Открывает собственный экран выбора языка обзора, сохраняя штатную локализацию при переходе к входу | 8 |
 | 0026-badge-details-artwork.patch | `submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoHeaderNode.swift` | `nebulaBadgeTapped` | Показывает реальный значок в окне «Подробнее»; анимация учитывает Reduce Motion | 2 |
 | 0027-badge-init-order.patch | `submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoHeaderNode.swift` | `init` | Подключает обработчик нажатия после `super.init()`, как требует Swift | 2 |
+| 0028-primary-nebula-icon.patch | `Telegram/BUILD` | `composer_icon_folders` | Делает фирменную иконку NebulaGram основным ресурсом iOS до первого запуска | 1 |
 
 Полные пути PeerInfoScreen: `submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/`.
 Полные пути ChatListFilterTabContainerNode: `submodules/TelegramUI/Components/ChatList/ChatListFilterTabContainerNode/`.

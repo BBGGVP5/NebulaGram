@@ -1,0 +1,10 @@
+diff --git a/Telegram/BUILD b/Telegram/BUILD
+--- a/Telegram/BUILD
++++ b/Telegram/BUILD
+@@ -347,5 +347,5 @@
+     "NebulaMonogramIcon",
+ ]
+ 
+-composer_icon_folders = ["Telegram"]
++composer_icon_folders = ["NebulaGram"]
+ 
