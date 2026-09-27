@@ -214,6 +214,7 @@ def main():
         assert 'pair.0 !== pair.1' in root_controller and '$0 === old' in root_controller
         assert 'if store.showContactsTab' in root_controller
         assert 'if store.showProfileTab' in root_controller and 'if store.showSettingsTab' in root_controller
+        assert root_controller.index('self.nebulaProfileController = profileController') < root_controller.index('controllers = nebulaOrderedControllers(controllers)')
         assert 'self.pushViewController(settings, animated: true)' in root_controller
         print('OK: native Telegram tab bar retains its lens, search, gestures and badges with live labels, compact width and native profile tab', flush=True)
 

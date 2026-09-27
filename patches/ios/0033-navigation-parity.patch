@@ -212,6 +212,8 @@ diff --git a/submodules/TelegramUI/Sources/TelegramRootController.swift b/submod
 +        let profileController = PeerInfoScreenImpl(context: self.context, updatedPresentationData: nil, peerId: self.context.account.peerId, avatarInitiallyExpanded: false, isOpenedFromChat: false, reactionSourceMessageId: nil, callMessages: [], isMyProfile: true)
 +        profileController.parentController = self
 +        controllers.append(profileController)
++        self.accountSettingsController = accountSettingsController
++        self.nebulaProfileController = profileController
                  
          controllers = nebulaOrderedControllers(controllers)
 -        let initial: ViewController = restoreSettignsController != nil ? accountSettingsController : chatListController
@@ -221,8 +223,7 @@ diff --git a/submodules/TelegramUI/Sources/TelegramRootController.swift b/submod
          self.contactsController = contactsController
          self.callListController = callListController
          self.chatListController = chatListController
-         self.accountSettingsController = accountSettingsController
-+        self.nebulaProfileController = profileController
+-        self.accountSettingsController = accountSettingsController
          self.rootTabController = tabBarController
          self.pushViewController(tabBarController, animated: false)
          self.nebulaNavigationObservation = NebulaSettingsStore.shared.observe { [weak self] in
