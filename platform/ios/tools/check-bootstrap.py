@@ -224,8 +224,18 @@ def main():
         assert input_panel.count('if !NebulaSettingsStore.shared.hideSendAs, let sendAsPeers = interfaceState.sendAsPeers') == 3
         assert 'self?.requestLayout()' in input_panel
         assert '//submodules/NebulaSettingsContract:NebulaSettingsContract' in (temp / 'submodules/TelegramUI/Components/Chat/ChatTextInputPanelNode/BUILD').read_text(encoding='utf-8')
+        chat_title = (temp / 'submodules/TelegramUI/Components/ChatTitleView/Sources/ChatTitleView.swift').read_text(encoding='utf-8')
+        assert chat_title.count('NebulaSettingsStore.shared.centeredChatHeader') >= 3
+        assert 'self.requestUpdate?(.immediate)' in chat_title
+        assert '//submodules/NebulaSettingsContract:NebulaSettingsContract' in (temp / 'submodules/TelegramUI/Components/ChatTitleView/BUILD').read_text(encoding='utf-8')
         assert 'self.interfaceInteraction?.openExpandedInput()' in input_panel
         chat = (temp / 'submodules/TelegramUI/Sources/ChatController.swift').read_text(encoding='utf-8')
+        assert '!NebulaSettingsStore.shared.disableNextChannel && contentData.state.offerNextChannelToRead' in chat
+        assert 'self.updateNextChannelToReadVisibility()' in chat
+        assert 'self.updateChatPresentationInterfaceState(transition: .immediate, interactive: false, force: true)' in chat
+        message_times = (temp / 'submodules/TelegramUI/Components/Chat/ChatMessageDateAndStatusNode/Sources/StringForMessageTimestampStatus.swift').read_text(encoding='utf-8')
+        assert message_times.count('withSeconds: showSeconds') == 5
+        assert '//submodules/NebulaSettingsContract:NebulaSettingsContract' in (temp / 'submodules/TelegramUI/Components/Chat/ChatMessageDateAndStatusNode/BUILD').read_text(encoding='utf-8')
         message_menu = (temp / 'submodules/TelegramUI/Sources/ChatInterfaceStateContextMenus.swift').read_text(encoding='utf-8')
         assert message_menu.count('chatPresentationInterfaceState.strings.baseLanguageCode.lowercased().hasPrefix("ru")') >= 2
         assert 'let russian = presentationData.strings.baseLanguageCode' not in message_menu

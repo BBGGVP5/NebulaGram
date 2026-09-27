@@ -31,10 +31,10 @@ This inventory distinguishes **wired source** from native build and device accep
 | `bottom_bar_profile` | navigation.bottom_bar | Wired; native/device QA pending | Yes |
 | `bottom_bar_settings` | navigation.bottom_bar | Wired; native/device QA pending | Yes |
 | `center_home` | navigation.folders | Pending native consumer | Yes |
-| `centered_chat_header` | chat.header | Pending native consumer | Yes |
+| `centered_chat_header` | chat.header | Wired; native/device QA pending | Yes |
 | `compact_bottom_bar` | navigation.bottom_bar | Wired; native/device QA pending | Yes |
 | `custom_avatar_corners` | appearance.general | Pending native consumer | Local only |
-| `disable_next_channel` | chat.messages | Pending native consumer | Yes |
+| `disable_next_channel` | chat.messages | Wired; native/device QA pending | Yes |
 | `floating_chat_header_v2` | chat.header | Pending native consumer | Yes |
 | `folder_outline` | navigation.folders | Pending native consumer | Yes |
 | `folder_style` | navigation.folders | Pending native consumer | Yes |
@@ -81,7 +81,7 @@ This inventory distinguishes **wired source** from native build and device accep
 | `reply_background` | chat.messages | Pending native consumer | Yes |
 | `reply_colors` | chat.messages | Pending native consumer | Yes |
 | `reply_emoji` | chat.messages | Pending native consumer | Yes |
-| `seconds_in_time` | chat.messages | Pending native consumer | Yes |
+| `seconds_in_time` | chat.messages | Wired; native/device QA pending | Yes |
 | `settings_search_history` | settings.search | Wired; native/device QA pending | Local only |
 | `show_stories` | stories.visibility | Wired; native/device QA pending | Local only |
 | `switch_style` | appearance.general | Pending native consumer | Yes |

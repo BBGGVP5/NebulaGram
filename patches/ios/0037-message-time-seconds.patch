@@ -1,0 +1,51 @@
+diff --git a/submodules/TelegramUI/Components/Chat/ChatMessageDateAndStatusNode/BUILD b/submodules/TelegramUI/Components/Chat/ChatMessageDateAndStatusNode/BUILD
+--- a/submodules/TelegramUI/Components/Chat/ChatMessageDateAndStatusNode/BUILD
++++ b/submodules/TelegramUI/Components/Chat/ChatMessageDateAndStatusNode/BUILD
+@@ -10,6 +10,7 @@
+         "-warnings-as-errors",
+     ],
+     deps = [
++        "//submodules/NebulaSettingsContract:NebulaSettingsContract",
+         "//submodules/AsyncDisplayKit",
+         "//submodules/TelegramCore",
+         "//submodules/Display",
+diff --git a/submodules/TelegramUI/Components/Chat/ChatMessageDateAndStatusNode/Sources/StringForMessageTimestampStatus.swift b/submodules/TelegramUI/Components/Chat/ChatMessageDateAndStatusNode/Sources/StringForMessageTimestampStatus.swift
+--- a/submodules/TelegramUI/Components/Chat/ChatMessageDateAndStatusNode/Sources/StringForMessageTimestampStatus.swift
++++ b/submodules/TelegramUI/Components/Chat/ChatMessageDateAndStatusNode/Sources/StringForMessageTimestampStatus.swift
+@@ -1,4 +1,5 @@
+ import Foundation
++import NebulaSettingsContract
+ import TelegramCore
+ import TelegramPresentationData
+ import TelegramUIPreferences
+@@ -107,7 +108,8 @@
+         timestamp = orignalDate
+     }
+     
+-    var dateText = stringForMessageTimestamp(timestamp: timestamp, dateTimeFormat: dateTimeFormat)
++    let showSeconds = NebulaSettingsStore.shared.secondsInTime
++    var dateText = stringForMessageTimestamp(timestamp: timestamp, dateTimeFormat: dateTimeFormat, withSeconds: showSeconds)
+     if timestamp == scheduleWhenOnlineTimestamp {
+         dateText = "         "
+     }
+@@ -171,15 +173,15 @@
+         }
+         if isFullEditedDate {
+             if dayText.isEmpty {
+-                dateText = strings.Message_EditTodayFullDateFormat(stringForMessageTimestamp(timestamp: timestamp, dateTimeFormat: dateTimeFormat)).string
+-            } else {
+-                dateText = strings.Message_EditFullDateFormat(dayText, stringForMessageTimestamp(timestamp: timestamp, dateTimeFormat: dateTimeFormat)).string
++                dateText = strings.Message_EditTodayFullDateFormat(stringForMessageTimestamp(timestamp: timestamp, dateTimeFormat: dateTimeFormat, withSeconds: showSeconds)).string
++            } else {
++                dateText = strings.Message_EditFullDateFormat(dayText, stringForMessageTimestamp(timestamp: timestamp, dateTimeFormat: dateTimeFormat, withSeconds: showSeconds)).string
+             }
+         } else {
+-            dateText = strings.Message_FullDateFormat(dayText, stringForMessageTimestamp(timestamp: timestamp, dateTimeFormat: dateTimeFormat)).string
++            dateText = strings.Message_FullDateFormat(dayText, stringForMessageTimestamp(timestamp: timestamp, dateTimeFormat: dateTimeFormat, withSeconds: showSeconds)).string
+         }
+     } else if let forwardInfo = message.forwardInfo, forwardInfo.flags.contains(.isImported) {
+-        dateText = strings.Message_ImportedDateFormat(dateStringForDay(strings: strings, dateTimeFormat: dateTimeFormat, timestamp: forwardInfo.date), stringForMessageTimestamp(timestamp: forwardInfo.date, dateTimeFormat: dateTimeFormat), dateText).string
++        dateText = strings.Message_ImportedDateFormat(dateStringForDay(strings: strings, dateTimeFormat: dateTimeFormat, timestamp: forwardInfo.date), stringForMessageTimestamp(timestamp: forwardInfo.date, dateTimeFormat: dateTimeFormat, withSeconds: showSeconds), dateText).string
+     }
+     
+     var authorTitle: String?

@@ -1,0 +1,78 @@
+diff --git a/submodules/TelegramUI/Components/ChatTitleView/BUILD b/submodules/TelegramUI/Components/ChatTitleView/BUILD
+--- a/submodules/TelegramUI/Components/ChatTitleView/BUILD
++++ b/submodules/TelegramUI/Components/ChatTitleView/BUILD
+@@ -10,6 +10,7 @@
+         "-warnings-as-errors",
+     ],
+     deps = [
++        "//submodules/NebulaSettingsContract:NebulaSettingsContract",
+         "//submodules/SSignalKit/SwiftSignalKit:SwiftSignalKit",
+         "//submodules/AsyncDisplayKit:AsyncDisplayKit",
+         "//submodules/Display:Display",
+diff --git a/submodules/TelegramUI/Components/ChatTitleView/Sources/ChatTitleView.swift b/submodules/TelegramUI/Components/ChatTitleView/Sources/ChatTitleView.swift
+--- a/submodules/TelegramUI/Components/ChatTitleView/Sources/ChatTitleView.swift
++++ b/submodules/TelegramUI/Components/ChatTitleView/Sources/ChatTitleView.swift
+@@ -1,4 +1,5 @@
+ import Foundation
++import NebulaSettingsContract
+ import UIKit
+ import AsyncDisplayKit
+ import Display
+@@ -213,6 +214,8 @@
+     
+     var manualLayout: Bool = false
+     private var validLayout: CGSize?
++    private var nebulaAlignmentObservation: SettingsObservation?
++    private var nebulaWasCentered = NebulaSettingsStore.shared.centeredChatHeader
+     
+     public var requestUpdate: ((ContainedViewLayoutTransition) -> Void)?
+     
+@@ -798,6 +801,14 @@
+         self.button = HighlightTrackingButtonNode()
+         
+         super.init(frame: CGRect())
++        self.nebulaAlignmentObservation = NebulaSettingsStore.shared.observe { [weak self] in
++            guard let self else { return }
++            let centered = NebulaSettingsStore.shared.centeredChatHeader
++            guard self.nebulaWasCentered != centered else { return }
++            self.nebulaWasCentered = centered
++            self.requestUpdate?(.immediate)
++            self.setNeedsLayout()
++        }
+         
+         self.isAccessibilityElement = true
+         self.accessibilityTraits = .header
+@@ -1043,10 +1054,14 @@
+         let titleInfoSpacing: CGFloat = 0.0
+         
+         var activityFrame = CGRect()
++        let centerTitle = NebulaSettingsStore.shared.centeredChatHeader
+         
+         if activitySize.height.isZero {
+             titleFrame = CGRect(origin: CGPoint(x: floor((size.width - titleSize.width) / 2.0), y: floor((size.height - titleSize.height) / 2.0)), size: titleSize)
+-            if titleFrame.size.width < size.width {
++            if !centerTitle {
++                titleFrame.origin.x = max(20.0, leftIconWidth)
++            }
++            if centerTitle && titleFrame.size.width < size.width {
+                 titleFrame.origin.x = floor((size.width - titleFrame.width) / 2.0)
+             }
+             titleTransition.updateFrameAdditive(view: self.titleContainerView, frame: titleFrame)
+@@ -1059,12 +1074,16 @@
+             contentX = max(contentX, 20.0)
+             
+             titleFrame = CGRect(origin: CGPoint(x: contentX + floor((contentWidth - titleSize.width) / 2.0), y: floor((size.height - combinedHeight) / 2.0)), size: titleSize)
++            if !centerTitle {
++                titleFrame.origin.x = max(20.0, leftIconWidth)
++            }
+             
+             titleFrame.origin.x = max(titleFrame.origin.x, leftIconWidth)
+             titleTransition.updateFrameAdditive(view: self.titleContainerView, frame: titleFrame)
+             titleTransition.updateFrameAdditive(node: self.titleTextNode, frame: CGRect(origin: CGPoint(), size: titleFrame.size))
+             
+-            activityFrame = CGRect(origin: CGPoint(x: titleFrame.minX + floor((titleFrame.width - activitySize.width) / 2.0), y: floor((size.height - combinedHeight) / 2.0) + titleSize.height + titleInfoSpacing), size: activitySize)
++            let activityX = centerTitle ? titleFrame.minX + floor((titleFrame.width - activitySize.width) / 2.0) : titleFrame.minX
++            activityFrame = CGRect(origin: CGPoint(x: activityX, y: floor((size.height - combinedHeight) / 2.0) + titleSize.height + titleInfoSpacing), size: activitySize)
+             titleTransition.updateFrameAdditiveToCenter(node: self.activityNode, frame: activityFrame.offsetBy(dx: activitySize.width * 0.5, dy: 0.0))
+         }
+         

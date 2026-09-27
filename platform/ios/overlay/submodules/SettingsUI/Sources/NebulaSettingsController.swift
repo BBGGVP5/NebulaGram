@@ -91,7 +91,10 @@ private enum NebulaSettingsEntry: ItemListNodeEntry {
             case "compact_bottom_bar": return 64
             case "hide_home_camera": return 65
             case "hide_home_compose": return 66
-            default: return 67
+            case "hide_send_as": return 67
+            case "centered_chat_header": return 68
+            case "disable_next_channel": return 69
+            default: return 72
             }
         case .widePosts: return 75
         case .stories: return 70
@@ -125,7 +128,10 @@ private enum NebulaSettingsEntry: ItemListNodeEntry {
             case "compact_bottom_bar": return 33
             case "hide_home_camera": return 34
             case "hide_home_compose": return 35
-            default: return 36
+            case "hide_send_as": return 36
+            case "centered_chat_header": return 37
+            case "disable_next_channel": return 38
+            default: return 39
             }
         case .glass: return 12
         case .icons: return 22
@@ -323,6 +329,9 @@ public func nebulaSettingsController(context: AccountContext) -> ViewController 
             .navigationToggle("hide_home_camera", ru ? "Скрыть камеру на главной" : "Hide camera on home", store.hideHomeCamera, !store.hasLoadError),
             .navigationToggle("hide_home_compose", ru ? "Скрыть кнопку нового чата" : "Hide new-chat button", store.hideHomeCompose, !store.hasLoadError),
             .navigationToggle("hide_send_as", ru ? "Скрыть «Отправить от имени»" : "Hide Send As", store.hideSendAs, !store.hasLoadError),
+            .navigationToggle("centered_chat_header", ru ? "Заголовок чата по центру" : "Center chat title", store.centeredChatHeader, !store.hasLoadError),
+            .navigationToggle("disable_next_channel", ru ? "Скрыть переход к следующему каналу" : "Hide next-channel prompt", store.disableNextChannel, !store.hasLoadError),
+            .navigationToggle("seconds_in_time", ru ? "Секунды во времени сообщений" : "Show seconds in message times", store.secondsInTime, !store.hasLoadError),
             .ai(ru ? "Искусственный интеллект" : "AI assistant"),
             .buildInfo(ru ? "О сборке" : "Build information")
         ]

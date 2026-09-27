@@ -1,0 +1,39 @@
+diff --git a/submodules/TelegramUI/Sources/ChatController.swift b/submodules/TelegramUI/Sources/ChatController.swift
+--- a/submodules/TelegramUI/Sources/ChatController.swift
++++ b/submodules/TelegramUI/Sources/ChatController.swift
+@@ -241,6 +241,8 @@
+ 
+ public final class ChatControllerImpl: TelegramBaseController, ChatController, GalleryHiddenMediaTarget, UIDropInteractionDelegate {    
+     var validLayout: ContainerViewLayout?
++    private var nebulaNextChannelObservation: SettingsObservation?
++    private var nebulaLastSecondsInTime = NebulaSettingsStore.shared.secondsInTime
+     
+     public weak var parentController: ViewController?
+     public weak var customNavigationController: NavigationController?
+@@ -738,6 +740,17 @@
+         self.moreBarButton.isUserInteractionEnabled = true
+         
+         super.init(context: context, navigationBarPresentationData: navigationBarPresentationData)
++        self.nebulaNextChannelObservation = NebulaSettingsStore.shared.observe { [weak self] in
++            guard let self else { return }
++            let seconds = NebulaSettingsStore.shared.secondsInTime
++            let refreshMessageTimes = self.nebulaLastSecondsInTime != seconds
++            self.nebulaLastSecondsInTime = seconds
++            guard self.isViewLoaded else { return }
++            self.updateNextChannelToReadVisibility()
++            if refreshMessageTimes {
++                self.updateChatPresentationInterfaceState(transition: .immediate, interactive: false, force: true) { $0 }
++            }
++        }
+         
+         self._hasGlassStyle = true
+         
+@@ -11021,7 +11034,7 @@
+         guard let contentData = self.contentData else {
+             return
+         }
+-        self.chatDisplayNode.historyNode.offerNextChannelToRead = contentData.state.offerNextChannelToRead && self.presentationInterfaceState.interfaceState.selectionState == nil
++        self.chatDisplayNode.historyNode.offerNextChannelToRead = !NebulaSettingsStore.shared.disableNextChannel && contentData.state.offerNextChannelToRead && self.presentationInterfaceState.interfaceState.selectionState == nil
+     }
+     
+     func displayGiveawayStatusInfo(messageId: EngineMessage.Id, giveawayInfo: PremiumGiveawayInfo) {
