@@ -151,6 +151,8 @@ def main():
         theme_defaults = (temp / 'submodules/TelegramUIPreferences/Sources/PresentationThemeSettings.swift').read_text(encoding='utf-8')
         assert 'day.index: PresentationThemeAccentColor(index: -1, baseColor: .blue, accentColor: 0x3C8DF0)' in theme_defaults
         assert 'night.index: PresentationThemeAccentColor(index: -1, baseColor: .blue, accentColor: 0xA8C7FA)' in theme_defaults
+        chat_lock = (temp / 'submodules/SettingsUI/Sources/NebulaChatLockController.swift').read_text(encoding='utf-8')
+        assert 'private let newCredential = UITextField()' in chat_lock and 'private let next = UITextField()' not in chat_lock
         primary_icon = temp / 'Telegram/Telegram-iOS/NebulaGram.icon'
         assert (primary_icon / 'icon.json').is_file()
         assert (primary_icon / 'Assets/NebulaMark.svg').is_file()

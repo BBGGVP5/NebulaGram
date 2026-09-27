@@ -128,7 +128,7 @@ public final class NebulaChatLockEditorController: UIViewController {
     private let russian: Bool
     private let mode = UISegmentedControl(items: ["PIN", "Password"])
     private let current = UITextField()
-    private let next = UITextField()
+    private let newCredential = UITextField()
     private let confirm = UITextField()
     private let status = UILabel()
     private let save = UIButton(type: .system)
@@ -174,7 +174,7 @@ public final class NebulaChatLockEditorController: UIViewController {
         mode.setTitle(russian ? "Пароль" : "Password", forSegmentAt: 1)
         mode.addTarget(self, action: #selector(modeChanged), for: .valueChanged)
         stack.addArrangedSubview(mode)
-        for field in [current, next, confirm] {
+        for field in [current, newCredential, confirm] {
             field.borderStyle = .roundedRect
             field.isSecureTextEntry = true
             field.autocorrectionType = .no
@@ -184,7 +184,7 @@ public final class NebulaChatLockEditorController: UIViewController {
             stack.addArrangedSubview(field)
         }
         current.placeholder = russian ? "Текущий PIN или пароль" : "Current PIN or password"
-        next.placeholder = russian ? "Новый PIN" : "New PIN"
+        newCredential.placeholder = russian ? "Новый PIN" : "New PIN"
         confirm.placeholder = russian ? "Повтори PIN" : "Repeat PIN"
         status.numberOfLines = 0
         status.textColor = .secondaryLabel
@@ -216,25 +216,25 @@ public final class NebulaChatLockEditorController: UIViewController {
     @objc private func close() { dismiss(animated: true) }
     @objc private func modeChanged() {
         let pin = mode.selectedSegmentIndex == 0
-        next.keyboardType = pin ? .numberPad : .default
+        newCredential.keyboardType = pin ? .numberPad : .default
         confirm.keyboardType = pin ? .numberPad : .default
-        next.placeholder = pin ? (russian ? "Новый PIN (4–12 цифр)" : "New PIN (4–12 digits)") : (russian ? "Новый пароль (от 6 символов)" : "New password (6+ characters)")
+        newCredential.placeholder = pin ? (russian ? "Новый PIN (4–12 цифр)" : "New PIN (4–12 digits)") : (russian ? "Новый пароль (от 6 символов)" : "New password (6+ characters)")
         confirm.placeholder = pin ? (russian ? "Повтори PIN" : "Repeat PIN") : (russian ? "Повтори пароль" : "Repeat password")
     }
     private func setBusy(_ value: Bool) { busy = value; save.isEnabled = !value; remove.isEnabled = !value }
     @objc private func saveTapped() {
         guard !busy else { return }
-        let value = next.text ?? ""
+        let value = newCredential.text ?? ""
         guard value == confirm.text else { status.text = russian ? "Значения не совпадают." : "Values do not match."; return }
         let old = existing ? current.text : nil
         let selected: NebulaChatLocks.Mode = mode.selectedSegmentIndex == 0 ? .pin : .password
-        current.text = ""; next.text = ""; confirm.text = ""
+        current.text = ""; newCredential.text = ""; confirm.text = ""
         performChange { try NebulaChatLocks.shared.set(account: self.account, peer: self.peer, current: old, new: value, mode: selected) }
     }
     @objc private func removeTapped() {
         guard !busy else { return }
         let old = current.text ?? ""
-        current.text = ""; next.text = ""; confirm.text = ""
+        current.text = ""; newCredential.text = ""; confirm.text = ""
         performChange { try NebulaChatLocks.shared.remove(account: self.account, peer: self.peer, current: old) }
     }
     private func performChange(_ change: @escaping () throws -> Void) {
