@@ -38,6 +38,8 @@ public class NanoStateCheck {
     static void expect(boolean value, String name) { if (!value) throw new AssertionError(name); }
 ''' + method(nano, '    public static String errorText(') + '\n' + method(nano, '    private static <T> T await(') + '''
     static class NebulaAiClient { static final int NANO=4; }
+    static class AndroidUtilities { static void cancelRunOnUIThread(Runnable r){} }
+    Runnable nanoPoll=()->{}; long nanoTotal;
     boolean destroyed, nanoDownloading; int nanoRequest=1, provider=4; Thread nanoWorker;
     Object activity=new Object(); Object getParentActivity() { return activity; }
 ''' + method(fragment, '    private boolean currentNano(') + '\n' + method(fragment, '    private void invalidateNanoCheck(') + '''

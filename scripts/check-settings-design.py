@@ -27,7 +27,7 @@ sources = {
         void setTextColor(int x){} void setBackground(Object x){} }
     static class NebulaTheme { static NebulaTheme of(Object x){return new NebulaTheme();}
         int onPrimaryContainer(){return 1;} int onSurfaceVariant(){return 2;} int primaryContainer(){return 3;} }
-    View content=new View(); View[] pages={new View(),new View(),new View()};
+    View hero=new View(); View content=new View(); View[] pages={new View(),new View(),new View()};
     View[] tabs={new View(),new View(),new View()}; int selectedPage=-1;
     int dp(int x){return x;}
 """ + method + """
@@ -57,8 +57,9 @@ def java_tool(name):
     return str(Path(java_home) / "bin" / (name + (".exe" if os.name == "nt" else ""))) if java_home else name
 subprocess.run([java_tool("javac"), "-encoding", "UTF-8", "-d", str(work), *[str(work / n) for n in sources]], check=True)
 subprocess.run([java_tool("java"), "-cp", str(work), "Check"], check=True)
-assert 'pages[0].addView(responseCard' in ai
-assert 'selectPage(0); responseCard.setVisibility' in ai  # model request errors remain visible
+assert 'new NebulaAiChatView(c, initial' in ai
+assert 'bodies[0].addView(chat' in ai
+assert 'Could not load models.' in ai  # Model errors stay on the settings screen.
 assert 'key.setText(NebulaAiSecrets.read' not in ai
 assert 'client != task || getParentActivity() == null' in ai
 assert 'Как работает сохранение' in privacy and 'Background capture requires' in privacy

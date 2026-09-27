@@ -1,0 +1,68 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Cells/AppIconsSelectorCell.java b/TMessagesProj/src/main/java/org/telegram/ui/Cells/AppIconsSelectorCell.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Cells/AppIconsSelectorCell.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Cells/AppIconsSelectorCell.java
+@@ -276,7 +276,7 @@
+ 
+             MarginLayoutParams params = (MarginLayoutParams) titleView.getLayoutParams();
+             if (icon.premium && !UserConfig.hasPremiumOnAccounts()) {
+-                SpannableString str = new SpannableString("d " + LocaleController.getString(icon.title));
++                SpannableString str = new SpannableString("d " + getContext().getString(icon.title));
+                 ColoredImageSpan span = new ColoredImageSpan(R.drawable.msg_mini_premiumlock);
+                 span.setTopOffset(1);
+                 span.setSize(AndroidUtilities.dp(13));
+@@ -286,7 +286,7 @@
+                 titleView.setText(str);
+             } else {
+                 params.rightMargin = 0;
+-                titleView.setText(LocaleController.getString(icon.title));
++                titleView.setText(getContext().getString(icon.title));
+             }
+             setSelected(LauncherIconController.isEnabled(icon), false);
+         }
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
+@@ -4763,7 +4763,11 @@
+         floatingButtonStories = new FragmentFloatingButton(context, resourceProvider, true);
+         floatingButtonStories.setContentDescription(getString(R.string.StoryPrivacyButtonPost));
+         floatingButtonStories.setImageResource(R.drawable.outline_fab_story_24);
+-        floatingButtonStories.setOnClickListener(v -> openStoriesRecorder());
++        floatingButtonStories.setOnClickListener(v -> {
++            if (!onlySelect && app.nebulagram.ui.NebulaAiSheet.homeEnabled()) app.nebulagram.ui.NebulaAiSheet.show(this);
++            else openStoriesRecorder();
++        });
++        updateNebulaAiShortcut();
+         contentView.addView(floatingButtonStories, FragmentFloatingButton.createSubButtonLayoutParams());
+ 
+         floatingButton3 = new FragmentFloatingButton(context, resourceProvider);
+@@ -7099,6 +7103,7 @@
+     @Override
+     public void onResume() {
+         super.onResume();
++        updateNebulaAiShortcut();
+         checkUi_searchFieldVisibility();
+         if (fragmentView != null) {
+             setScrollY(Math.max(scrollYOffset, -getMaxScrollYOffset()));
+@@ -8951,6 +8956,13 @@
+         return false;
+     }
+ 
++    private void updateNebulaAiShortcut() {
++        if (floatingButtonStories == null) return;
++        boolean ai = !onlySelect && app.nebulagram.ui.NebulaAiSheet.homeEnabled();
++        floatingButtonStories.setImageResource(ai ? R.drawable.nebula_ai_spark : R.drawable.outline_fab_story_24);
++        floatingButtonStories.setContentDescription(ai ? app.nebulagram.ui.NebulaText.text("Открыть ИИ-чат", "Open AI chat") : getString(R.string.StoryPrivacyButtonPost));
++    }
++
+     private void updateFloatingButtonVisibility(boolean animated) {
+         final boolean isVisible = !(onlySelect && initialDialogsType != 10 || folderId != 0 || communityId != 0 || inPreviewMode || (searching && !onlySelect) || floatingButtonHidden);
+ 
+@@ -8958,7 +8970,7 @@
+             floatingButton3.setButtonVisible(isVisible && (onlySelect || !app.nebulagram.ui.NebulaAppearance.hideHomeCompose()), animated);
+         }
+         if (floatingButtonStories != null) {
+-            floatingButtonStories.setButtonVisible(isVisible && !app.nebulagram.ui.NebulaAppearance.hideHomeCamera(), animated);
++            floatingButtonStories.setButtonVisible(isVisible && ((!onlySelect && app.nebulagram.ui.NebulaAiSheet.homeEnabled()) || !app.nebulagram.ui.NebulaAppearance.hideHomeCamera()), animated);
+         }
+     }
+ 

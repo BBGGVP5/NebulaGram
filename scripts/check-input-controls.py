@@ -24,6 +24,8 @@ prefs.write_text('''package app.nebulagram.ui;public class NebulaAppearance {
  public static boolean camera,compose,floating;public static boolean hideHomeCamera(){return camera;}
  public static boolean hideHomeCompose(){return compose;}public static boolean chatHeader(){return floating;}
 }''',encoding='utf-8')
+shortcut=w/'app/nebulagram/ui/NebulaAiSheet.java'
+shortcut.write_text('package app.nebulagram.ui; public class NebulaAiSheet { public static boolean enabled; public static boolean homeEnabled(){return enabled;} }',encoding='utf-8')
 source='''import app.nebulagram.ui.NebulaAppearance;
 class InputControlsCheck {
  static void check(boolean b){if(!b)throw new AssertionError();}
@@ -51,10 +53,10 @@ class InputControlsCheck {
  float getPivotX(){return 200;}int getHeight(){return 56;} TOUCH DRAW }
  public static void main(String[] args){
  int cases=0;
- for(boolean camera:new boolean[]{false,true})for(boolean compose:new boolean[]{false,true})for(boolean select:new boolean[]{false,true})for(boolean hidden:new boolean[]{false,true}){
- NebulaAppearance.camera=camera;NebulaAppearance.compose=compose;Home h=new Home();h.onlySelect=select;h.initialDialogsType=10;h.floatingButtonHidden=hidden;
+ for(boolean ai:new boolean[]{false,true})for(boolean camera:new boolean[]{false,true})for(boolean compose:new boolean[]{false,true})for(boolean select:new boolean[]{false,true})for(boolean hidden:new boolean[]{false,true}){
+ app.nebulagram.ui.NebulaAiSheet.enabled=ai;NebulaAppearance.camera=camera;NebulaAppearance.compose=compose;Home h=new Home();h.onlySelect=select;h.initialDialogsType=10;h.floatingButtonHidden=hidden;
  h.updateFloatingButtonVisibility(false);h.updateFloatingButtonOffset();
- check(h.floatingButton3.visible==(!hidden&&(select||!compose)));check(h.floatingButtonStories.visible==(!hidden&&!camera));
+ check(h.floatingButton3.visible==(!hidden&&(select||!compose)));check(h.floatingButtonStories.visible==(!hidden&&(!select&&ai||!camera)));
  check(h.floatingButton3.y==-95);check(h.floatingButtonStories.y==(-95-(!select&&compose?0:52)));check(h.storyHint.y==h.floatingButtonStories.y);cases++;
  }
  Home h=new Home();h.searching=true;h.updateFloatingButtonVisibility(false);check(!h.floatingButton3.visible&&!h.floatingButtonStories.visible);
@@ -77,7 +79,7 @@ class InputControlsCheck {
 }'''
 for k,v in [('PAGESELECTED',page_selected),('SELECTED',selected),('IDLE',idle),('VIS',visibility),('OFFSET',offset),('TOUCH',touch),('DRAW',draw)]:source=re.sub(r'\b'+k+r'\b',lambda m:v,source)
 p=w/'InputControlsCheck.java';p.write_text(source,encoding='utf-8')
-subprocess.run(['javac','-encoding','UTF-8','-d',str(w),str(prefs),str(p)],check=True)
+subprocess.run(['javac','-encoding','UTF-8','-d',str(w),str(prefs),str(shortcut),str(p)],check=True)
 subprocess.run(['java','-cp',str(w),'InputControlsCheck'],check=True)
 appearance=(o/'src/main/java/app/nebulagram/ui/NebulaAppearance.java').read_text(encoding='utf-8')
 schema=(o/'src/main/java/app/nebulagram/ui/NebulaSettingsSchema.java').read_text(encoding='utf-8')

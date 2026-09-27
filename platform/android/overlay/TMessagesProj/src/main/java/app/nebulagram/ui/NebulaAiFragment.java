@@ -21,13 +21,17 @@ public final class NebulaAiFragment extends BaseFragment {
     private final LinearLayout[] pages = new LinearLayout[3];
     private final TextView[] tabs = new TextView[3];
     private int selectedPage = -1;
-    private EditText key, model, endpoint, prompt, input;
-    private TextView answer, keyStatus;
-    private NebulaCard responseCard;
-    private NebulaButton copy, clear;
-    private NebulaButton send, load;
+    private EditText key, model, endpoint, prompt;
+    private NebulaAiChatView chat;
+    private final LinearLayout[] bodies = new LinearLayout[3];
+    private TextView keyStatus;
+    private NebulaButton clear, load;
     private NebulaCard nanoCard;
     private TextView nanoStatus;
+    private ProgressBar nanoProgressBar;
+    private boolean nanoPaused;
+    private long nanoTotal;
+    private final Runnable nanoPoll = () -> { if (!this.destroyed && !nanoPaused) refreshNanoStatus(); };
     private NebulaAiClient client;
     private NebulaButton nanoAction, nanoFallback, saveConnection;
     private NebulaRow nanoRelease, nanoPerformance;
@@ -35,6 +39,7 @@ public final class NebulaAiFragment extends BaseFragment {
     private int nanoRequest;
     private boolean nanoDownloading, destroyed;
     public NebulaAiFragment() { }
+    public NebulaAiFragment openConnection() { selectedPage = 1; return this; }
     public NebulaAiFragment(String input) { initial = input == null ? "" : input; }
     @Override public View createView(Context c) {
         prefs = c.getSharedPreferences("nebula_ai_settings", 0);
@@ -42,26 +47,25 @@ public final class NebulaAiFragment extends BaseFragment {
         actionBar.setBackButtonImage(R.drawable.ic_ab_back); actionBar.setTitle(text("Искусственный интеллект", "AI assistant"));
         NebulaTheme t = NebulaTheme.of(c); actionBar.setBackgroundColor(t.surface()); actionBar.setTitleColor(t.onSurface()); actionBar.setItemsColor(t.onSurface(), false);
         actionBar.setActionBarMenuOnItemClick(new ActionBar.ActionBarMenuOnItemClick() { @Override public void onItemClick(int id) { if (id == -1) finishFragment(); } });
-        ScrollView scroll = new ScrollView(c); scroll.setFillViewport(true); scroll.setBackgroundColor(t.surface());
-        content = new LinearLayout(c); content.setOrientation(LinearLayout.VERTICAL); content.setPadding(dp(16), dp(12), dp(16), dp(28)); scroll.addView(content);
+        content = new LinearLayout(c); content.setOrientation(LinearLayout.VERTICAL); content.setBackgroundColor(t.surface()); content.setPadding(dp(16), dp(8), dp(16), dp(8));
         build(c);
-        return fragmentView = NebulaSettingsLayout.wrap(c, actionBar, scroll, -12);
+        return fragmentView = NebulaSettingsLayout.wrap(c, actionBar, content, -12);
     }
     private int dp(int n) { return AndroidUtilities.dp(n); }
     private void build(Context c) {
         invalidateNanoCheck();
+        if (chat != null) chat.dispose();
         content.removeAllViews();
         hero = new NebulaSettingsHero(c, R.drawable.msg_emoji_smiles,
                 text("ИИ-помощник", "AI assistant"),
-                text("Ваш провайдер. Ваши инструкции. Только тот текст, который выберете вы.",
-                        "Your provider. Your instructions. Only the text you choose."));
+                text("Чат, модели и ваши инструкции.", "Chat, models and your instructions."));
         content.addView(hero);
         LinearLayout navigation = new LinearLayout(c);
         navigation.setPadding(dp(4), dp(4), dp(4), dp(4));
         android.graphics.drawable.GradientDrawable track = new android.graphics.drawable.GradientDrawable();
         track.setColor(NebulaTheme.of(c).surfaceContainer()); track.setCornerRadius(dp(18));
         navigation.setBackground(track);
-        String[] names = {text("Запрос", "Request"), text("Подключение", "Connection"), text("Инструкции", "Instructions")};
+        String[] names = {text("Чат", "Chat"), text("Подключение", "Connection"), text("Инструкции", "Instructions")};
         for (int i = 0; i < tabs.length; i++) {
             final int page = i;
             TextView tab = tabs[i] = label(c, names[i], 13, NebulaTheme.of(c).onSurface());
@@ -75,15 +79,26 @@ public final class NebulaAiFragment extends BaseFragment {
         content.addView(navigation, navigationParams);
         for (int i = 0; i < pages.length; i++) {
             pages[i] = new LinearLayout(c); pages[i].setOrientation(LinearLayout.VERTICAL);
-            content.addView(pages[i], new LinearLayout.LayoutParams(-1, -2));
+            content.addView(pages[i], new LinearLayout.LayoutParams(-1, 0, 1));
+            bodies[i] = new LinearLayout(c); bodies[i].setOrientation(LinearLayout.VERTICAL);
+            if (i == 0) pages[i].addView(bodies[i], new LinearLayout.LayoutParams(-1, -1));
+            else {
+                ScrollView scroll = new ScrollView(c); scroll.setFillViewport(true); scroll.addView(bodies[i]);
+                pages[i].addView(scroll, new LinearLayout.LayoutParams(-1, -1));
+            }
         }
-        pages[1].addView(NebulaCard.header(c, text("Подключение", "Connection")));
+        bodies[1].addView(NebulaCard.header(c, text("Подключение", "Connection")));
         NebulaCard settings = new NebulaCard(c);
         settings.add(new NebulaRow(c).icon(R.drawable.msg_customize)
                 .title(text("Включить ИИ", "Enable AI"))
                 .subtitle(text("Пункт в меню сообщений доступен после настройки подключения", "Available in message menus after a connection is configured"), false)
                 .trailing(NebulaRow.TRAIL_SWITCH).checked(NebulaAiAvailability.enabled())
                 .withClick(v -> { NebulaAiAvailability.setEnabled(((NebulaRow) v).toggleChecked()); refreshKeyStatus(); }));
+        settings.add(new NebulaRow(c).icon(R.drawable.nebula_ai_spark).title(text("ИИ на главной", "AI on the home screen"))
+                .subtitle(text("Открывать чат с ИИ кнопкой вместо камеры", "Open an AI chat from the camera button"), false)
+                .trailing(NebulaRow.TRAIL_SWITCH).checked(NebulaAiSheet.homeEnabled())
+                .withClick(v -> prefs.edit().putBoolean("home_shortcut", ((NebulaRow) v).toggleChecked()).apply()));
+
         settings.add(new NebulaRow(c).icon(R.drawable.msg_customize).title(text("Провайдер", "Provider")).subtitle(PROVIDERS[provider], false)
                 .trailing(NebulaRow.TRAIL_CHEVRON).withClick(v -> showDialog(new NebulaDialog.Builder(c).setTitle(text("Провайдер", "Provider"))
                 .setSelectedIndex(provider).setDescriptions(new CharSequence[]{
@@ -91,7 +106,7 @@ public final class NebulaAiFragment extends BaseFragment {
                     text("API-ключ Google AI", "Google AI API key"), text("Ваш адрес API и ключ", "Your API address and key"),
                     text("Локально · через Android AICore", "On device · via Android AICore")}).setItems(PROVIDERS, (d, which) -> {
                     if (which == provider || !save()) return;
-                    initial = input.getText().toString(); cancel(); provider = which;
+                    initial = chat == null ? initial : chat.draft(); cancel(); provider = which;
                     prefs.edit().putInt("provider", provider).apply(); build(c);
                 }).create())));
         endpoint = field(c, settings, text("Адрес API", "API address"), "https://example.com/v1", prefs.getString("endpoint", "https://api.openai.com/v1"), false, 1000);
@@ -107,19 +122,25 @@ public final class NebulaAiFragment extends BaseFragment {
             catch (Exception e) { toast(text("Не удалось удалить ключ", "Unable to remove key")); }
         });
         model = field(c, settings, text("Модель", "Model"), text("Выберите из списка или введите ID", "Choose from the list or enter an ID"), prefs.getString("model_" + provider, ""), false, 256);
-        load = button(c, settings, text("Выбрать модель из списка", "Choose an available model"), false, v -> request(true));
+        load = button(c, settings, text("Выбрать модель из списка", "Choose an available model"), false, v -> loadModels());
         saveConnection = button(c, settings, text("Сохранить подключение", "Save connection"), true,
                 v -> { if (save()) toast(text("Настройки сохранены", "Settings saved")); });
-        pages[1].addView(settings);
+        bodies[1].addView(settings);
         nanoCard = new NebulaCard(c);
         LinearLayout.LayoutParams nanoParams = new LinearLayout.LayoutParams(-1, -2);
         nanoParams.topMargin = dp(16);
-        pages[1].addView(nanoCard, nanoParams);
+        bodies[1].addView(nanoCard, nanoParams);
         nanoStatus = label(c, "", 14, NebulaTheme.of(c).onSurfaceVariant());
         nanoStatus.setLineSpacing(dp(3), 1f);
         nanoStatus.setPadding(dp(16), dp(18), dp(16), dp(14));
         nanoStatus.setAccessibilityLiveRegion(View.ACCESSIBILITY_LIVE_REGION_POLITE);
         nanoCard.add(nanoStatus);
+        nanoProgressBar = new ProgressBar(c, null, android.R.attr.progressBarStyleHorizontal);
+        nanoProgressBar.setMax(100); nanoProgressBar.setIndeterminate(true);
+        nanoProgressBar.setProgressTintList(android.content.res.ColorStateList.valueOf(NebulaTheme.of(c).primary()));
+        nanoProgressBar.setIndeterminateTintList(android.content.res.ColorStateList.valueOf(NebulaTheme.of(c).primary()));
+        LinearLayout progressWrap = new LinearLayout(c); progressWrap.setPadding(dp(16), 0, dp(16), dp(12));
+        progressWrap.addView(nanoProgressBar, new LinearLayout.LayoutParams(-1, dp(8))); nanoCard.add(progressWrap);
         nanoRelease = new NebulaRow(c).title(text("Версия модели", "Model release"))
                 .trailing(NebulaRow.TRAIL_CHEVRON).withClick(v -> {
                     if (nanoDownloading) return;
@@ -154,13 +175,13 @@ public final class NebulaAiFragment extends BaseFragment {
         refreshProviderControls();
         refreshKeyStatus();
 
-        pages[2].addView(NebulaCard.header(c, text("Инструкции для ИИ", "AI instructions")));
+        bodies[2].addView(NebulaCard.header(c, text("Инструкции для ИИ", "AI instructions")));
         NebulaCard instructions = new NebulaCard(c);
         prompt = field(c, instructions, text("Системный промпт · необязательно", "System prompt · optional"),
                 text("Например: отвечай кратко и на русском", "For example: give concise answers"), prefs.getString("prompt", ""), true, 20000);
         button(c, instructions, text("Сохранить инструкции", "Save instructions"), false, v -> { if (save()) toast(text("Инструкции сохранены", "Instructions saved")); });
-        pages[2].addView(instructions);
-        pages[2].addView(NebulaCard.header(c, text("История", "History")));
+        bodies[2].addView(instructions);
+        bodies[2].addView(NebulaCard.header(c, text("История", "History")));
         NebulaCard history = new NebulaCard(c);
         history.add(new NebulaRow(c).icon(R.drawable.msg_recent)
                 .title(text("Сохранять историю ИИ", "Save AI history"))
@@ -172,27 +193,17 @@ public final class NebulaAiFragment extends BaseFragment {
                 .subtitle(text("Просмотр и очистка сохранённых запросов", "View and clear saved requests"), false)
                 .trailing(NebulaRow.TRAIL_CHEVRON)
                 .withClick(v -> presentFragment(new NebulaAiHistoryFragment())));
-        pages[2].addView(history);
+        bodies[2].addView(history);
 
-        pages[0].addView(NebulaCard.header(c, text("Запрос", "Request")));
-        NebulaCard request = new NebulaCard(c);
-        input = field(c, request, text("Сообщение для ИИ", "Message for AI"), text("Напишите вопрос или вставьте текст", "Write a question or paste text"), initial, true, 50000);
-        TextView info = label(c, text("Провайдер получит этот текст и системный промпт. Ответ появится здесь.", "The provider receives this text and the system prompt. The response appears here."), 13, NebulaTheme.of(c).onSurfaceVariant());
-        info.setPadding(dp(16), dp(8), dp(16), dp(8)); request.add(info);
-        send = button(c, request, text("Отправить запрос", "Send request"), true, v -> { if (client != null) cancel(); else request(false); });
-        pages[0].addView(request);
 
-        responseCard = new NebulaCard(c);
-        responseCard.add(NebulaCard.header(c, text("Ответ", "Response")));
-        answer = label(c, "", 16, NebulaTheme.of(c).onSurface()); answer.setPadding(dp(16), dp(12), dp(16), dp(12)); answer.setTextIsSelectable(true); responseCard.add(answer);
-        copy = button(c, responseCard, text("Скопировать ответ", "Copy response"), false, v -> AndroidUtilities.addToClipboard(answer.getText()));
-        responseCard.setVisibility(View.GONE);
-        LinearLayout.LayoutParams resultParams = new LinearLayout.LayoutParams(-1, -2); resultParams.topMargin = dp(18);
-        pages[0].addView(responseCard, resultParams);
+
+        chat = new NebulaAiChatView(c, initial, () -> selectPage(1));
+        bodies[0].addView(chat, new LinearLayout.LayoutParams(-1, -1));
         selectPage(selectedPage < 0 ? (!initial.isEmpty() || NebulaAiAvailability.available() ? 0 : 1) : selectedPage);
     }
     private void selectPage(int page) {
         selectedPage = page;
+        hero.setVisibility(page == 0 ? View.GONE : View.VISIBLE);
         NebulaTheme theme = NebulaTheme.of(content.getContext());
         for (int i = 0; i < pages.length; i++) {
             boolean active = page == i;
@@ -266,7 +277,8 @@ public final class NebulaAiFragment extends BaseFragment {
         invalidateNanoCheck(); refreshNanoStatus();
     }
     private void invalidateNanoCheck() {
-        nanoRequest++;
+        nanoRequest++; nanoTotal = 0;
+        AndroidUtilities.cancelRunOnUIThread(nanoPoll);
         if (nanoWorker != null) nanoWorker.interrupt();
         nanoWorker = null; nanoDownloading = false;
     }
@@ -278,16 +290,21 @@ public final class NebulaAiFragment extends BaseFragment {
     private void checkNano(boolean download) {
         if (destroyed || provider != NebulaAiClient.NANO || nanoWorker != null || nanoStatus == null) return;
         if (!NebulaNanoAi.supportedByOs()) {
+            ((View) nanoProgressBar.getParent()).setVisibility(View.GONE);
             nanoStatus.setText(text("Gemini Nano требует Android 8 или новее и совместимый AICore.", "Gemini Nano requires Android 8 or later and compatible AICore."));
             nanoAction.setEnabled(false); return;
         }
         final int request = ++nanoRequest;
         final boolean preview = prefs.getBoolean("nano_preview", false), fast = prefs.getBoolean("nano_fast", false);
-        nanoDownloading = download;
+        AndroidUtilities.cancelRunOnUIThread(nanoPoll);
+        nanoDownloading = download || nanoDownloading;
+        ((View) nanoProgressBar.getParent()).setVisibility(View.VISIBLE);
+        nanoProgressBar.setIndeterminate(true);
         nanoAction.setEnabled(false);
-        nanoRelease.setEnabled(!download); nanoPerformance.setEnabled(!download);
-        nanoFallback.setEnabled(!download);
-        nanoStatus.setText(text("Проверяем выбранную модель…", "Checking the selected model…"));
+        nanoRelease.setEnabled(!nanoDownloading); nanoPerformance.setEnabled(!nanoDownloading);
+        nanoFallback.setEnabled(!nanoDownloading);
+        if (!nanoDownloading) nanoStatus.setText(text("Проверяем выбранную модель…", "Checking the selected model…"));
+        hero.setStatus(nanoDownloading ? text("Модель загружается…", "Downloading model…") : text("Проверяем модель…", "Checking model…"), false);
         nanoAction.setText(text("Проверяем…", "Checking…"));
         ((View) nanoFallback.getParent()).setVisibility(View.GONE);
         nanoWorker = new Thread(() -> {
@@ -298,8 +315,8 @@ public final class NebulaAiFragment extends BaseFragment {
                 if (download && status == com.google.mlkit.genai.common.FeatureStatus.DOWNLOADABLE) {
                     final java.util.concurrent.atomic.AtomicReference<Throwable> downloadError = new java.util.concurrent.atomic.AtomicReference<>();
                     session.download(new com.google.mlkit.genai.common.DownloadCallback() {
-                        @Override public void onDownloadStarted(long bytes) { nanoProgress(request, text("Загрузка модели…", "Downloading model…")); }
-                        @Override public void onDownloadProgress(long bytes) { nanoProgress(request, text("Загружено ", "Downloaded ") + android.text.format.Formatter.formatShortFileSize(ApplicationLoader.applicationContext, bytes)); }
+                        @Override public void onDownloadStarted(long bytes) { nanoBytes(request, 0, bytes); }
+                        @Override public void onDownloadProgress(long bytes) { nanoBytes(request, bytes, -1); }
                         @Override public void onDownloadCompleted() { nanoProgress(request, text("Проверяем загруженную модель…", "Checking the downloaded model…")); }
                         @Override public void onDownloadFailed(com.google.mlkit.genai.common.GenAiException error) { downloadError.set(error); }
                     });
@@ -311,26 +328,56 @@ public final class NebulaAiFragment extends BaseFragment {
             final String error = failure;
             AndroidUtilities.runOnUIThread(() -> {
                 if (!currentNano(request)) return;
-                nanoWorker = null; nanoDownloading = false;
+                nanoWorker = null;
                 nanoAction.setEnabled(true); nanoRelease.setEnabled(true); nanoPerformance.setEnabled(true); nanoFallback.setEnabled(true);
                 boolean ready = error == null && result == com.google.mlkit.genai.common.FeatureStatus.AVAILABLE;
                 boolean downloadable = error == null && result == com.google.mlkit.genai.common.FeatureStatus.DOWNLOADABLE;
                 boolean downloading = error == null && result == com.google.mlkit.genai.common.FeatureStatus.DOWNLOADING;
+                nanoDownloading = downloading;
+                nanoRelease.setEnabled(!downloading); nanoPerformance.setEnabled(!downloading); nanoFallback.setEnabled(!downloading);
+                nanoAction.setEnabled(!downloading);
+                ((View) nanoProgressBar.getParent()).setVisibility(downloading ? View.VISIBLE : View.GONE);
                 String message = error != null ? error : ready
                         ? text("Модель готова. Запросы обрабатываются на устройстве.", "Model ready. Requests are processed on this device.")
                         : downloadable ? text("Модель доступна. Скачайте её один раз для работы на устройстве.", "Model available. Download it once to use it on this device.")
-                        : downloading ? text("AICore загружает модель. Дождитесь завершения и проверьте снова.", "AICore is downloading the model. Wait for it to finish and check again.")
+                        : downloading ? text("Модель скачивается через AICore. Готовность обновится автоматически.", "AICore is downloading the model. Readiness updates automatically.")
                         : (preview || fast)
                         ? text("AICore не предоставил выбранную модель. Попробуйте Stable · Полная или обновите сервис.", "AICore has not provided the selected model. Try Stable · Full or update the service.")
                         : text("AICore пока не предоставил Stable · Полная. Обновите сервис, оставьте устройство в сети и повторите проверку позже.", "AICore has not provided Stable · Full yet. Update the service, keep the device online and check again later.");
                 nanoStatus.setText(message);
                 hero.setStatus(ready ? text("Готово · на устройстве", "Ready · on device")
-                        : text("Gemini Nano · нужна настройка", "Gemini Nano · setup needed"), ready);
-                nanoAction.setText(downloadable ? text("Скачать модель", "Download model") : text("Проверить снова", "Check again"));
+                        : downloading ? text("Модель загружается…", "Downloading model…") : text("Gemini Nano · нужна настройка", "Gemini Nano · setup needed"), ready);
+                nanoAction.setText(downloading ? text("Загрузка…", "Downloading…") : downloadable ? text("Скачать модель", "Download model") : text("Проверить снова", "Check again"));
                 ((View) nanoFallback.getParent()).setVisibility(!ready && !downloading && (preview || fast) ? View.VISIBLE : View.GONE);
+                if (downloading && !nanoPaused) AndroidUtilities.runOnUIThread(nanoPoll, 3000);
             });
         }, "NebulaNanoCheck");
         nanoWorker.start();
+    }
+    private void nanoBytes(int request, long loaded, long total) {
+        AndroidUtilities.runOnUIThread(() -> {
+            if (!currentNano(request)) return;
+            if (total >= 0) nanoTotal = total;
+            nanoProgressBar.setIndeterminate(nanoTotal <= 0);
+            String amount = android.text.format.Formatter.formatShortFileSize(ApplicationLoader.applicationContext, loaded);
+            if (nanoTotal > 0) {
+                int percent = (int) Math.min(99, loaded * 100.0 / nanoTotal);
+                nanoProgressBar.setProgress(percent);
+                amount += " / " + android.text.format.Formatter.formatShortFileSize(ApplicationLoader.applicationContext, nanoTotal) + " · " + percent + "%";
+            }
+            nanoStatus.setText(text("Загрузка модели · ", "Downloading model · ") + amount);
+            nanoAction.setText(text("Загрузка…", "Downloading…"));
+            hero.setStatus(text("Модель загружается…", "Downloading model…"), false);
+        });
+    }
+    @Override public void onResume() {
+        super.onResume(); nanoPaused = false;
+        AndroidUtilities.requestAdjustResize(getParentActivity(), classGuid);
+        if (nanoWorker == null && nanoStatus != null && provider == NebulaAiClient.NANO) refreshNanoStatus();
+        if (chat != null) chat.refreshStatus();
+    }
+    @Override public void onPause() {
+        nanoPaused = true; AndroidUtilities.cancelRunOnUIThread(nanoPoll); super.onPause();
     }
     private void nanoProgress(int request, String message) {
         AndroidUtilities.runOnUIThread(() -> { if (currentNano(request)) { nanoStatus.setText(message); nanoAction.setText(text("Загрузка…", "Downloading…")); } });
@@ -348,60 +395,40 @@ public final class NebulaAiFragment extends BaseFragment {
                     .putString("endpoint", endpoint.getText().toString().trim());
             editor.apply();
             refreshKeyStatus();
+            if (chat != null) chat.refreshStatus();
             return true;
         } catch (Exception e) { toast(text("Не удалось сохранить ключ или адрес API", "Unable to save key or API URL")); return false; }
     }
-    private void request(boolean list) {
-        if (client != null || !save()) return;
+    private void loadModels() {
+        if (client != null || !save() || provider == NebulaAiClient.NANO) return;
         final String secret;
-        if (provider == NebulaAiClient.NANO && list) { downloadNano(); return; }
-        if (provider == NebulaAiClient.NANO) secret = "";
-        else try { secret = NebulaAiSecrets.read(provider); } catch (Exception e) { toast(text("Введите API-ключ заново", "Enter your API key again")); return; }
-        if (provider != NebulaAiClient.NANO && (secret.isEmpty() || !list && model.length() == 0)
-                || !list && input.getText().toString().trim().isEmpty()) { toast(text("Укажите API-ключ, модель и текст", "Enter an API key, model and text")); return; }
+        try { secret = NebulaAiSecrets.read(provider); }
+        catch (Exception e) { toast(text("Введите API-ключ заново", "Enter your API key again")); return; }
+        if (secret.isEmpty()) { toast(text("Введите API-ключ", "Enter an API key")); return; }
         final int selected = provider;
-        final String url = endpoint.getText().toString(), name = model.getText().toString().trim(), instructions = prompt.getText().toString(), message = input.getText().toString();
+        final String url = endpoint.getText().toString();
         final NebulaAiClient task = client = new NebulaAiClient();
-        send.setText(text("Отменить запрос", "Cancel request")); load.setEnabled(false);
-        if (!list) {
-            responseCard.setVisibility(View.VISIBLE); ((View) copy.getParent()).setVisibility(View.GONE);
-            answer.setText(text("Ожидание ответа…", "Waiting for response…"));
-        } else load.setText(text("Загрузка моделей…", "Loading models…"));
+        load.setEnabled(false); load.setText(text("Загрузка моделей…", "Loading models…"));
         new Thread(() -> {
             try {
-                final ArrayList<String> models = list ? task.models(selected, url, secret) : null;
-                final String result = list ? "" : task.generate(selected, url, secret, name, instructions, message);
+                final ArrayList<String> models = task.models(selected, url, secret);
                 AndroidUtilities.runOnUIThread(() -> {
                     if (client != task || getParentActivity() == null) return;
                     finishRequest();
-                    if (list) {
-                        if (models.isEmpty()) toast(text("Список пуст. Имя модели можно ввести вручную.", "The list is empty. You can enter a model name manually."));
-                        else showDialog(new NebulaDialog.Builder(getParentActivity()).setTitle(text("Модель", "Model"))
-                                .setSelectedIndex(models.indexOf(model.getText().toString())).setItems(models.toArray(new String[0]), (d, i) -> { model.setText(models.get(i)); save(); }).create());
-                    } else {
-                        answer.setText(result.isEmpty() ? text("Провайдер не вернул текст. Проверьте модель и запрос.", "The provider returned no text. Check the model and request.") : result);
-                        ((View) copy.getParent()).setVisibility(result.isEmpty() ? View.GONE : View.VISIBLE);
-                        if (!result.isEmpty()) NebulaAiHistory.add(PROVIDERS[selected], message, result);
-                    }
+                    if (models.isEmpty()) toast(text("Список пуст. Введите имя модели вручную.", "The list is empty. Enter a model name manually."));
+                    else showDialog(new NebulaDialog.Builder(getParentActivity()).setTitle(text("Модель", "Model"))
+                        .setSelectedIndex(models.indexOf(model.getText().toString())).setItems(models.toArray(new String[0]), (d, i) -> { model.setText(models.get(i)); save(); }).create());
                 });
             } catch (Exception e) {
-                // Never display/log provider response bodies, headers, URLs with keys or entered text.
-                final String status = e.getMessage() != null && e.getMessage().matches("HTTP [0-9]{3}") ? e.getMessage() : "";
                 AndroidUtilities.runOnUIThread(() -> {
                     if (client != task || getParentActivity() == null) return;
-                    finishRequest(); selectPage(0); responseCard.setVisibility(View.VISIBLE); ((View) copy.getParent()).setVisibility(View.GONE);
-                    String failure = e.getMessage() == null ? "" : e.getMessage();
-                    if (failure.startsWith("GEMINI_NANO_DOWNLOAD_REQUIRED")) answer.setText(text("Сначала скачайте Gemini Nano на вкладке «Подключение».", "Download Gemini Nano first from the Connection tab."));
-                    else if (failure.startsWith("GEMINI_NANO_DOWNLOADING")) answer.setText(text("Gemini Nano ещё загружается. Попробуйте позже.", "Gemini Nano is still downloading. Try again shortly."));
-                    else if (failure.startsWith("GEMINI_NANO_UNAVAILABLE")) answer.setText(text("Эта версия Gemini Nano недоступна на устройстве. Попробуйте Stable · Полная на вкладке «Подключение».", "This Gemini Nano option is unavailable on this device. Try Stable · Full on the Connection tab."));
-                    else if (selected == NebulaAiClient.NANO) answer.setText(NebulaNanoAi.errorText(e));
-                    else answer.setText(text("Запрос не выполнен. Проверьте подключение, API-ключ, доступ к модели и квоту. ", "Request failed. Check connectivity, API key, model access and quota. ") + status);
+                    finishRequest(); toast(text("Не удалось загрузить модели. Проверьте подключение и ключ.", "Could not load models. Check the connection and key."));
                 });
             }
-        }, "NebulaAI").start();
+        }, "NebulaAiModels").start();
     }
-    private void finishRequest() { client = null; send.setText(text("Отправить запрос", "Send request")); load.setEnabled(true); load.setText(text("Выбрать модель из списка", "Choose an available model")); }
-    private void cancel() { if (client != null) { client.cancel(); if (answer != null && responseCard.getVisibility() == View.VISIBLE) answer.setText(text("Запрос отменён", "Request cancelled")); } if (send != null) finishRequest(); }
+    private void finishRequest() { client = null; load.setEnabled(true); load.setText(text("Выбрать модель из списка", "Choose an available model")); }
+    private void cancel() { if (client != null) { client.cancel(); finishRequest(); } }
     private void toast(String message) { if (getParentActivity() != null) Toast.makeText(getParentActivity(), message, Toast.LENGTH_SHORT).show(); }
-    @Override public void onFragmentDestroy() { destroyed = true; invalidateNanoCheck(); cancel(); if (key != null) key.setText(""); super.onFragmentDestroy(); }
+    @Override public void onFragmentDestroy() { destroyed = true; AndroidUtilities.removeAdjustResize(getParentActivity(), classGuid); invalidateNanoCheck(); cancel(); if (chat != null) chat.dispose(); if (key != null) key.setText(""); super.onFragmentDestroy(); }
 }

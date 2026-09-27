@@ -14,6 +14,9 @@ TREE = Path(sys.argv[1]) if len(sys.argv) > 1 else ROOT / 'vendor/telegram-andro
 RES = ROOT / 'platform/android/overlay/TMessagesProj/src/main/res'
 A = '{http://schemas.android.com/apk/res/android}'
 source = (TREE / 'TMessagesProj/src/main/java/org/telegram/ui/LauncherIconController.java').read_text(encoding='utf-8')
+selector = (TREE / 'TMessagesProj/src/main/java/org/telegram/ui/Cells/AppIconsSelectorCell.java').read_text(encoding='utf-8')
+assert 'LocaleController.getString(icon.title)' not in selector, 'Bundled Nebula labels must not use the Telegram remote catalog'
+assert selector.count('getContext().getString(icon.title)') == 2
 variants = [('DEFAULT', 'DefaultIcon', 'blue'), ('VINTAGE', 'VintageIcon', 'ocean'),
             ('AQUA', 'AquaIcon', 'aurora'), ('PREMIUM', 'PremiumIcon', 'sunset'),
             ('TURBO', 'TurboIcon', 'graphite'), ('NOX', 'NoxIcon', 'pearl')]
