@@ -23,6 +23,7 @@
 | 0027-badge-init-order.patch | `submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoHeaderNode.swift` | `init` | Подключает обработчик нажатия после `super.init()`, как требует Swift | 2 |
 | 0028-primary-nebula-icon.patch | `Telegram/BUILD` | `composer_icon_folders` | Делает фирменную иконку NebulaGram основным ресурсом iOS до первого запуска | 1 |
 | 0029-default-nebula-theme.patch | `submodules/TelegramUIPreferences/Sources/PresentationThemeSettings.swift` | `defaultSettings` | Использует фирменный синий акцент при первом запуске, сохраняя выбор темы существующих пользователей | 1 |
+| 0030-round-video-zoom-slider.patch | `submodules/TelegramUI/Components/VideoMessageCameraScreen/Sources/VideoMessageCameraScreen.swift` | `Node` | Добавляет нативный ползунок зума с пределом активной камеры к записи круглого видео | 7 |
 
 Полные пути PeerInfoScreen: `submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/`.
 Полные пути ChatListFilterTabContainerNode: `submodules/TelegramUI/Components/ChatList/ChatListFilterTabContainerNode/`.

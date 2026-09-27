@@ -153,6 +153,9 @@ def main():
         assert 'night.index: PresentationThemeAccentColor(index: -1, baseColor: .blue, accentColor: 0xA8C7FA)' in theme_defaults
         chat_lock = (temp / 'submodules/SettingsUI/Sources/NebulaChatLockController.swift').read_text(encoding='utf-8')
         assert 'private let newCredential = UITextField()' in chat_lock and 'private let next = UITextField()' not in chat_lock
+        round_video = (temp / 'submodules/TelegramUI/Components/VideoMessageCameraScreen/Sources/VideoMessageCameraScreen.swift').read_text(encoding='utf-8')
+        assert 'self.nebulaZoomSlider.onZoomChanged' in round_video
+        assert (temp / 'submodules/TelegramUI/Components/VideoMessageCameraScreen/Sources/NebulaVideoZoomSlider.swift').is_file()
         primary_icon = temp / 'Telegram/Telegram-iOS/NebulaGram.icon'
         assert (primary_icon / 'icon.json').is_file()
         assert (primary_icon / 'Assets/NebulaMark.svg').is_file()

@@ -1,0 +1,101 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/InstantCameraView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/InstantCameraView.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Components/InstantCameraView.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/InstantCameraView.java
+@@ -97,6 +97,7 @@
+ import org.telegram.tgnet.ConnectionsManager;
+ import org.telegram.tgnet.TLRPC;
+ import org.telegram.ui.ActionBar.Theme;
++import app.nebulagram.ui.NebulaZoomSlider;
+ import org.telegram.ui.Components.blur3.BlurredBackgroundDrawableViewFactory;
+ import org.telegram.ui.Components.blur3.drawable.BlurredBackgroundDrawable;
+ import org.telegram.ui.Components.blur3.drawable.color.BlurredBackgroundColorProvider;
+@@ -258,6 +259,7 @@
+     private boolean allowSendingWhileRecording;
+ 
+     private final LinearLayout buttonsLayout;
++    private final NebulaZoomSlider nebulaZoomSlider;
+     private final int buttonsSizePx;
+ 
+ 
+@@ -316,6 +318,11 @@
+ 
+         addView(cameraContainer, new LayoutParams(AndroidUtilities.roundPlayingMessageSize, AndroidUtilities.roundPlayingMessageSize, Gravity.CENTER));
+         addView(flashViews.foregroundView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT, Gravity.FILL));
++        nebulaZoomSlider = new NebulaZoomSlider(context, this::applyNebulaZoom);
++        nebulaZoomSlider.setVisibility(View.GONE);
++        FrameLayout.LayoutParams zoomParams = new FrameLayout.LayoutParams(dp(272), dp(48), Gravity.TOP | Gravity.CENTER_HORIZONTAL);
++        zoomParams.topMargin = dp(56);
++        addView(nebulaZoomSlider, zoomParams);
+ 
+ 
+         buttonsLayout = new LinearLayout(context);
+@@ -376,6 +383,7 @@
+                     cameraContainer.setRotationY(0f);
+                     textureOverlayView.setRotationY(0f);
+                     flipAnimationInProgress = false;
++                    updateNebulaZoomSlider();
+                     invalidate();
+                 }
+             });
+@@ -665,6 +673,7 @@
+         if (recording) {
+             cancelled = recordedTime < 800;
+             recording = false;
++            nebulaZoomSlider.setVisibility(View.GONE);
+             updateFlash();
+             if (cameraThread != null) {
+                 NotificationCenter.getInstance(currentAccount).postNotificationName(NotificationCenter.recordStopped, recordingGuid, cancelled ? 4 : 2);
+@@ -1012,6 +1021,7 @@
+         } else {
+             cancelled = recordedTime < 800;
+             recording = false;
++            nebulaZoomSlider.setVisibility(View.GONE);
+             flashing = false;
+             updateFlash();
+             int reason;
+@@ -1071,6 +1081,7 @@
+         }
+         cancelled = true;
+         recording = false;
++        nebulaZoomSlider.setVisibility(View.GONE);
+         flashing = false;
+         updateFlash();
+         NotificationCenter.getInstance(currentAccount).postNotificationName(NotificationCenter.recordStopped, recordingGuid, byGesture ? 0 : 6);
+@@ -3249,6 +3260,7 @@
+                     recordPlusTime = fromPause ? recordedTime : 0;
+                     recordStartTime = System.currentTimeMillis();
+                     recording = true;
++                    updateNebulaZoomSlider();
+                     updateFlash();
+                     invalidate();
+                     NotificationCenter.getInstance(currentAccount).postNotificationName(NotificationCenter.recordStarted, recordingGuid, false);
+@@ -3720,6 +3732,29 @@
+     }
+ 
+ 
++    private void updateNebulaZoomSlider() {
++        if (!recording || !isCameraSessionInitiated()) {
++            nebulaZoomSlider.setVisibility(View.GONE);
++            return;
++        }
++        float max = useCamera2 && camera2SessionCurrent != null ? camera2SessionCurrent.getMaxZoom() : 2f;
++        if (max <= 1f) {
++            nebulaZoomSlider.setVisibility(View.GONE);
++            return;
++        }
++        nebulaZoomSlider.setRange(max);
++        nebulaZoomSlider.setVisibility(View.VISIBLE);
++    }
++
++    private void applyNebulaZoom(float factor) {
++        if (!recording || !isCameraSessionInitiated()) return;
++        if (useCamera2) {
++            if (camera2SessionCurrent != null) camera2SessionCurrent.setZoom(factor);
++        } else if (cameraSession != null) {
++            cameraSession.setZoom(Math.min(1f, Math.max(0f, factor - 1f)));
++        }
++    }
++
+     @Override
+     public boolean onTouchEvent(MotionEvent ev) {
+         if (ev.getAction() == MotionEvent.ACTION_DOWN && ev.getY() > getMeasuredHeight() - getPaddingBottom()) {

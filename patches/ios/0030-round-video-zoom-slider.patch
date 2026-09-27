@@ -1,0 +1,68 @@
+diff --git a/submodules/TelegramUI/Components/VideoMessageCameraScreen/Sources/VideoMessageCameraScreen.swift b/submodules/TelegramUI/Components/VideoMessageCameraScreen/Sources/VideoMessageCameraScreen.swift
+--- a/submodules/TelegramUI/Components/VideoMessageCameraScreen/Sources/VideoMessageCameraScreen.swift
++++ b/submodules/TelegramUI/Components/VideoMessageCameraScreen/Sources/VideoMessageCameraScreen.swift
+@@ -879,6 +879,7 @@
+         fileprivate var additionalPreviewView: CameraSimplePreviewView
+         private var progressView: RecordingProgressView
+         private let loadingView: LoadingEffectView
++        private let nebulaZoomSlider: NebulaVideoZoomSlider
+         
+         private var resultPreviewView: ResultPreviewView?
+         
+@@ -908,6 +909,10 @@
+                 
+         var cameraState: CameraState {
+             didSet {
++                if self.cameraState.position != oldValue.position {
++                    self.nebulaZoomSlider.setRange(front: self.cameraState.position == .front)
++                }
++                self.nebulaZoomSlider.isHidden = self.cameraState.recording == .none || self.previewState != nil
+                 if self.cameraState.isViewOnceEnabled != oldValue.isViewOnceEnabled {
+                     if self.cameraState.isViewOnceEnabled {
+                         let presentationData = self.context.sharedContext.currentPresentationData.with { $0 }
+@@ -924,6 +929,7 @@
+             didSet {
+                 self.previewStatePromise.set(.single(self.previewState))
+                 self.resultPreviewView?.isMuted = self.previewState?.isMuted ?? true
++                self.nebulaZoomSlider.isHidden = self.previewState != nil || self.cameraState.recording == .none
+             }
+         }
+         var previewStatePromise = Promise<PreviewState?>()
+@@ -958,6 +964,7 @@
+             self.progressView = RecordingProgressView(frame: .zero)
+             
+             self.loadingView = LoadingEffectView(effectAlpha: 0.1, borderAlpha: 0.25, duration: 1.0)
++            self.nebulaZoomSlider = NebulaVideoZoomSlider()
+             
+             self.previewBlurView = BlurView()
+             self.previewBlurView.isUserInteractionEnabled = false
+@@ -988,6 +995,12 @@
+             self.backgroundColor = .clear
+             
+             self.view.addSubview(self.containerView)
++            self.view.addSubview(self.nebulaZoomSlider)
++            self.nebulaZoomSlider.isHidden = true
++            self.nebulaZoomSlider.setRange(front: self.cameraState.position == .front)
++            self.nebulaZoomSlider.onZoomChanged = { [weak self] factor in
++                self?.camera?.setZoomLevel(factor - 1)
++            }
+             
+             self.containerView.addSubview(self.previewContainerView)
+ 
+@@ -1121,6 +1134,7 @@
+                 gestureRecognizer.scale = 1.0
+             case .ended, .cancelled:
+                 camera.rampZoom(1.0, rate: 8.0)
++                self.nebulaZoomSlider.setCurrent(1)
+             default:
+                 break
+             }
+@@ -1453,6 +1467,8 @@
+             }
+             let isFirstTime = self.validLayout == nil
+             self.validLayout = layout
++            let zoomWidth = min(300.0, layout.size.width - 32.0)
++            self.nebulaZoomSlider.frame = CGRect(x: floor((layout.size.width - zoomWidth) / 2.0), y: (layout.statusBarHeight ?? 0.0) + 12.0, width: zoomWidth, height: 50.0)
+             
+             let environment = ViewControllerComponentContainer.Environment(
+                 statusBarHeight: layout.statusBarHeight ?? 0.0,
