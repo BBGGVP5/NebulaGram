@@ -139,9 +139,9 @@ public final class NebulaLinkController: UITableViewController, UITextFieldDeleg
         }
     }
     private var probeActionTitle: String {
-        guard probeRequestId != nil else { return text("Nimbo Ping · серверы этой страницы", "Nimbo Ping · servers on this page") }
-        return text(probeCancelling ? "Отмена… " : "Отменить Nimbo Ping · ",
-                    probeCancelling ? "Cancelling… " : "Cancel Nimbo Ping · ") + "\(probeCompleted)/\(probeTotal)"
+        guard probeRequestId != nil else { return text("Пинг серверов", "Ping servers") }
+        return text(probeCancelling ? "Отмена… " : "Отменить · ",
+                    probeCancelling ? "Cancelling… " : "Cancel · ") + "\(probeCompleted)/\(probeTotal)"
     }
     private func serverDetail(_ server: [String: Any]) -> String {
         let latency = NebulaLatency.format(server["latency_ms"] as? Int ?? 0,
@@ -226,7 +226,7 @@ public final class NebulaLinkController: UITableViewController, UITextFieldDeleg
             guard let self = self, self.urlProbeId == requestId else { return }
             self.urlProbeId = nil
             if case let .success(data) = result, let ms = (data as? [String: Any])?["latency_ms"] as? Int {
-                self.probeText = ms < 0 ? self.text("Нет ответа", "No reply") : self.text("Ответ через прокси: \(ms) мс", "Response through proxy: \(ms) ms")
+                self.probeText = ms < 0 ? self.text("Нет ответа", "No reply") : self.text("\(ms) мс", "\(ms) ms")
             } else { self.probeText = self.text("Не удалось проверить соединение", "Could not test connection") }
             self.reloadPresentation()
         }
@@ -251,9 +251,8 @@ public final class NebulaLinkController: UITableViewController, UITextFieldDeleg
     public override func tableView(_ tableView: UITableView, titleForFooterInSection section: Int) -> String? {
         if section == 0 { return explanation.text }
         if section == 1 {
-            let explanation = text("≈ — оценка: время GET в Nimbo Ping делится на 3,3 и округляется до ближайшей миллисекунды. Проверка соединения через активный прокси показывает исходное время.", "≈ is an estimate: Nimbo Ping GET time divided by 3.3, rounded to the nearest millisecond. The active-proxy connection test shows its original timing.")
             let status = message.isEmpty ? probeText : message
-            return status.isEmpty ? explanation : status + "\n" + explanation
+            return status.isEmpty ? nil : status
         }
         if section == 2 { return text("Выберите сервер, затем нажмите «Подключить». Работает внутри приложения. Фоновая работа зависит от ограничений iOS; уведомления доставляются отдельно через APNs.", "Select a server, then tap Connect. Runs inside the app. Background activity is subject to iOS limits; notifications use APNs separately.") }
         return nil

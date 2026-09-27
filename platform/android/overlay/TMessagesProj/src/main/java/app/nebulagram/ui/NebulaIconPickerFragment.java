@@ -3,10 +3,12 @@ package app.nebulagram.ui;
 import static app.nebulagram.ui.NebulaText.text;
 
 import android.content.Context;
+import android.graphics.Outline;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.LayerDrawable;
 import android.view.Gravity;
 import android.view.View;
+import android.view.ViewOutlineProvider;
 import android.widget.FrameLayout;
 import android.widget.GridLayout;
 import android.widget.ImageView;
@@ -27,6 +29,17 @@ public final class NebulaIconPickerFragment extends BaseFragment {
     private LauncherIconController.LauncherIcon selected;
     private LinearLayout grid;
     private NebulaButton apply;
+    private int columns;
+
+    private static final class SquareTile extends LinearLayout {
+        SquareTile(Context context) { super(context); }
+
+        @Override protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+            int width = View.MeasureSpec.getSize(widthMeasureSpec);
+            super.onMeasure(widthMeasureSpec,
+                    View.MeasureSpec.makeMeasureSpec(width, View.MeasureSpec.EXACTLY));
+        }
+    }
 
     @Override public View createView(Context context) {
         NebulaTheme theme = NebulaTheme.of(context);
@@ -88,22 +101,28 @@ public final class NebulaIconPickerFragment extends BaseFragment {
 
     private void addGrid(Context context) {
         LauncherIconController.LauncherIcon[] icons = LauncherIconController.LauncherIcon.values();
-        int columns = 4;
+        columns = context.getResources().getDisplayMetrics().widthPixels < dp(360) ? 3 : 4;
         for (int start = 0; start < icons.length; start += columns) {
             LinearLayout row = new LinearLayout(context);
             row.setOrientation(LinearLayout.HORIZONTAL);
             for (int index = start; index < Math.min(icons.length, start + columns); index++) {
                 LauncherIconController.LauncherIcon icon = icons[index];
-                LinearLayout tile = new LinearLayout(context);
+                LinearLayout tile = new SquareTile(context);
                 tile.setOrientation(LinearLayout.VERTICAL);
                 tile.setGravity(Gravity.CENTER);
-                tile.setPadding(dp(4), dp(9), dp(4), dp(9));
+                tile.setPadding(dp(4), dp(4), dp(4), dp(4));
                 ImageView image = new ImageView(context);
                 image.setScaleType(ImageView.ScaleType.FIT_CENTER);
                 Drawable background = ApplicationLoader.applicationContext.getDrawable(icon.background).mutate();
                 Drawable foreground = ApplicationLoader.applicationContext.getDrawable(icon.foreground).mutate();
                 image.setImageDrawable(new LayerDrawable(new Drawable[]{background, foreground}));
-                LinearLayout.LayoutParams imageParams = new LinearLayout.LayoutParams(dp(58), dp(58));
+                image.setOutlineProvider(new ViewOutlineProvider() {
+                    @Override public void getOutline(View view, Outline outline) {
+                        outline.setRoundRect(0, 0, view.getWidth(), view.getHeight(), dp(12));
+                    }
+                });
+                image.setClipToOutline(true);
+                LinearLayout.LayoutParams imageParams = new LinearLayout.LayoutParams(dp(48), dp(48));
                 tile.addView(image, imageParams);
                 TextView title = new TextView(context);
                 title.setText(iconTitle(context, icon));
@@ -113,7 +132,7 @@ public final class NebulaIconPickerFragment extends BaseFragment {
                 title.setSingleLine(true);
                 title.setTextColor(NebulaTheme.of(context).onSurface());
                 LinearLayout.LayoutParams titleParams = new LinearLayout.LayoutParams(-1, -2);
-                titleParams.topMargin = dp(6);
+                titleParams.topMargin = dp(4);
                 tile.addView(title, titleParams);
                 tile.setOnClickListener(v -> { selected = icon; updateSelected(); });
                 row.addView(tile, new LinearLayout.LayoutParams(0, -2, 1));
@@ -130,10 +149,9 @@ public final class NebulaIconPickerFragment extends BaseFragment {
     private void updateSelected() {
         if (grid == null) return;
         LauncherIconController.LauncherIcon[] icons = LauncherIconController.LauncherIcon.values();
-        int child = 0;
-        for (int start = 0; start < icons.length; start += 4) {
-            LinearLayout row = (LinearLayout) grid.getChildAt(start / 4);
-            for (int index = start; index < Math.min(icons.length, start + 4); index++) {
+        for (int start = 0; start < icons.length; start += columns) {
+            LinearLayout row = (LinearLayout) grid.getChildAt(start / columns);
+            for (int index = start; index < Math.min(icons.length, start + columns); index++) {
                 View tile = row.getChildAt(index - start);
                 boolean active = icons[index] == selected;
                 android.graphics.drawable.GradientDrawable shape = new android.graphics.drawable.GradientDrawable();
@@ -141,7 +159,6 @@ public final class NebulaIconPickerFragment extends BaseFragment {
                 shape.setColor(active ? NebulaTheme.stateLayer(NebulaTheme.of(tile.getContext()).primary(), .14f) : android.graphics.Color.TRANSPARENT);
                 if (active) shape.setStroke(dp(1), NebulaTheme.stateLayer(NebulaTheme.of(tile.getContext()).primary(), .7f));
                 tile.setBackground(shape);
-                child++;
             }
         }
         if (apply != null) apply.setEnabled(selected != null);

@@ -7,14 +7,14 @@ import Foundation
             precondition(NebulaLatency.format(ms, method: method, checkedAt: checked,
                          unit: "ms", unknown: "unknown", failed: "failed") == expected)
         }
-        expect("≈100 ms", 330, "nimbo", 1)
-        expect("≈1 ms", 4, "nimbo", 1)
-        expect("≈2 ms", 5, "nimbo", 1)
-        expect("≈0 ms", 1, "nimbo", 1)
-        expect("≈0 ms", 0, "nimbo", 1)
+        expect("100 ms", 330, "nimbo", 1)
+        expect("1 ms", 4, "nimbo", 1)
+        expect("2 ms", 5, "nimbo", 1)
+        expect("0 ms", 1, "nimbo", 1)
+        expect("0 ms", 0, "nimbo", 1)
         expect("unknown", 0, "nimbo", 0)
         expect("failed", -1, "nimbo", 1)
-        expect("≈650752620 ms", 2147483647, "nimbo", 1)
+        expect("650752620 ms", 2147483647, "nimbo", 1)
         for method in ["tcp", "http", "url", "", "future", "NIMBO"] {
             expect("330 ms", 330, method, 1)
             expect("0 ms", 0, method, 1)

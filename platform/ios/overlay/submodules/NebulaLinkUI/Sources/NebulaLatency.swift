@@ -10,7 +10,7 @@ enum NebulaLatency {
                        unit: String, unknown: String, failed: String) -> String {
         if rawMs < 0 { return failed }
         if !isMeasured(rawMs, checkedAt: checkedAt) { return unknown }
-        if method == "nimbo" { return "≈\(Int((Double(rawMs) / 3.3).rounded())) \(unit)" }
+        if method == "nimbo" { return "\(Int((Double(rawMs) / 3.3).rounded())) \(unit)" }
         return "\(rawMs) \(unit)"
     }
 }

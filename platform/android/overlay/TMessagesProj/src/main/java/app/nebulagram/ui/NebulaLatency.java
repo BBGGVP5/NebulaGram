@@ -16,6 +16,6 @@ public final class NebulaLatency {
                                 String unit, String unknown, String failed) {
         if (rawMs < 0) return failed;
         if (!isMeasured(rawMs, checkedAt)) return unknown;
-        return ("nimbo".equals(method) ? "≈" : "") + displayMillis(rawMs, method) + " " + unit;
+        return displayMillis(rawMs, method) + " " + unit;
     }
 }

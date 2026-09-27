@@ -205,12 +205,6 @@ public class NebulaMenuFragment extends BaseFragment {
                 View view = buildRow(context, rows.optJSONObject(r));
                 if (view != null) {
                     card.add(view);
-                    JSONObject row = rows.optJSONObject(r);
-                    if (row != null && "ping_type".equals(row.optString("key"))) {
-                        card.add(new NebulaRow(context)
-                                .title(NebulaText.text("≈ означает оценку: время GET в Nimbo Ping делится на 3,3 и округляется до ближайшей миллисекунды. Другие проверки сохраняют исходный смысл.",
-                        "≈ marks an estimate: Nimbo Ping GET time divided by 3.3, rounded to the nearest millisecond. Other checks keep their original meaning.")));
-                    }
                 }
             }
             if (!card.isEmpty()) {
