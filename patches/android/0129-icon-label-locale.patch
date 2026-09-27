@@ -1,0 +1,35 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Cells/AppIconsSelectorCell.java b/TMessagesProj/src/main/java/org/telegram/ui/Cells/AppIconsSelectorCell.java
+index 9c8bb0e..58433e4 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Cells/AppIconsSelectorCell.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Cells/AppIconsSelectorCell.java
+@@ -276,7 +276,7 @@ public class AppIconsSelectorCell extends RecyclerListView implements Notificati
+ 
+             MarginLayoutParams params = (MarginLayoutParams) titleView.getLayoutParams();
+             if (icon.premium && !UserConfig.hasPremiumOnAccounts()) {
+-                SpannableString str = new SpannableString("d " + getContext().getString(icon.title));
++                SpannableString str = new SpannableString("d " + app.nebulagram.ui.NebulaLauncherIconLabels.title(getContext(), icon));
+                 ColoredImageSpan span = new ColoredImageSpan(R.drawable.msg_mini_premiumlock);
+                 span.setTopOffset(1);
+                 span.setSize(AndroidUtilities.dp(13));
+@@ -286,7 +286,7 @@ public class AppIconsSelectorCell extends RecyclerListView implements Notificati
+                 titleView.setText(str);
+             } else {
+                 params.rightMargin = 0;
+-                titleView.setText(getContext().getString(icon.title));
++                titleView.setText(app.nebulagram.ui.NebulaLauncherIconLabels.title(getContext(), icon));
+             }
+             setSelected(LauncherIconController.isEnabled(icon), false);
+         }
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/AppIconBulletinLayout.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/AppIconBulletinLayout.java
+index 7c03890..0f96379 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Components/AppIconBulletinLayout.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/AppIconBulletinLayout.java
+@@ -38,6 +38,7 @@ public class AppIconBulletinLayout extends Bulletin.ButtonLayout {
+         imageView.setOuterPadding(AndroidUtilities.dp(8));
+         imageView.setBackgroundOuterPadding(AndroidUtilities.dp(24));
+         imageView.setForeground(icon.foreground);
+-        textView.setText(AndroidUtilities.replaceTags(LocaleController.formatString(R.string.AppIconChangedTo, LocaleController.getString(icon.title))));
++        textView.setText(AndroidUtilities.replaceTags(LocaleController.formatString(R.string.AppIconChangedTo,
++                app.nebulagram.ui.NebulaLauncherIconLabels.title(context, icon))));
+     }
+ }

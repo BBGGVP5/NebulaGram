@@ -142,8 +142,7 @@ public final class NebulaIconPickerFragment extends BaseFragment {
     }
 
     private String iconTitle(Context context, LauncherIconController.LauncherIcon icon) {
-        try { return context.getString(icon.title); }
-        catch (Exception ignored) { return icon.name(); }
+        return NebulaLauncherIconLabels.title(context, icon);
     }
 
     private void updateSelected() {
