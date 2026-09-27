@@ -13,6 +13,7 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.ApplicationLoader;
@@ -74,7 +75,7 @@ public final class NebulaIconPickerFragment extends BaseFragment {
         apply.setText(text("Использовать иконку", "Use icon"));
         apply.setOnClickListener(v -> {
             LauncherIconController.setIcon(selected);
-            toast(text("Иконка приложения обновлена", "App icon updated"));
+            Toast.makeText(getParentActivity(), text("Иконка приложения обновлена", "App icon updated"), Toast.LENGTH_SHORT).show();
             finishFragment();
         });
         footer.addView(apply, new FrameLayout.LayoutParams(-1, -2, Gravity.CENTER));

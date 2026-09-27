@@ -8,6 +8,7 @@ import com.google.mlkit.genai.common.DownloadCallback;
 import com.google.mlkit.genai.common.FeatureStatus;
 import com.google.mlkit.genai.prompt.Generation;
 import com.google.mlkit.genai.prompt.GenerationConfig;
+import com.google.mlkit.genai.prompt.GenerateContentResponse;
 import com.google.mlkit.genai.prompt.ModelConfig;
 import com.google.mlkit.genai.prompt.ModelPreference;
 import com.google.mlkit.genai.prompt.ModelReleaseStage;
@@ -33,13 +34,13 @@ public final class NebulaNanoAi {
     private static GenerativeModelFutures model() {
         int release = prefs().getBoolean("nano_preview", false) ? ModelReleaseStage.PREVIEW : ModelReleaseStage.STABLE;
         int preference = prefs().getBoolean("nano_fast", true) ? ModelPreference.FAST : ModelPreference.FULL;
-        ModelConfig modelConfig = new ModelConfig.Builder()
-                .setReleaseStage(release)
-                .setPreference(preference)
-                .build();
-        GenerationConfig config = new GenerationConfig.Builder()
-                .setModelConfig(modelConfig)
-                .build();
+        ModelConfig.Builder modelConfigBuilder = new ModelConfig.Builder();
+        modelConfigBuilder.setReleaseStage(release);
+        modelConfigBuilder.setPreference(preference);
+        ModelConfig modelConfig = modelConfigBuilder.build();
+        GenerationConfig.Builder generationConfigBuilder = new GenerationConfig.Builder();
+        generationConfigBuilder.setModelConfig(modelConfig);
+        GenerationConfig config = generationConfigBuilder.build();
         return GenerativeModelFutures.from(Generation.INSTANCE.getClient(config));
     }
 
@@ -76,6 +77,10 @@ public final class NebulaNanoAi {
             prompt.append("Instructions: ").append(instructions.trim()).append('\n');
         }
         prompt.append("User request: ").append(input.trim());
-        return model().generateContent(prompt.toString()).get(3, TimeUnit.MINUTES).getText().trim();
+        GenerateContentResponse response = model().generateContent(prompt.toString()).get(3, TimeUnit.MINUTES);
+        if (response.getCandidates().isEmpty() || response.getCandidates().get(0).getText() == null) {
+            throw new IllegalStateException("Gemini Nano returned no text");
+        }
+        return response.getCandidates().get(0).getText().trim();
     }
 }

@@ -109,7 +109,7 @@ public final class NebulaAiFragment extends BaseFragment {
                 .subtitle(prefs.getBoolean("nano_preview", false) ? "Preview" : "Stable", false)
                 .trailing(NebulaRow.TRAIL_CHEVRON).withClick(v -> showDialog(new AlertDialog.Builder(c)
                         .setTitle(text("Версия Gemini Nano", "Gemini Nano release"))
-                        .setSingleChoiceItems(new String[]{"Stable", "Preview"}, prefs.getBoolean("nano_preview", false) ? 1 : 0, (d, which) -> {
+                        .setItems(new CharSequence[]{prefs.getBoolean("nano_preview", false) ? "✓ Stable" : "Stable", prefs.getBoolean("nano_preview", false) ? "Preview" : "✓ Preview"}, (d, which) -> {
                             prefs.edit().putBoolean("nano_preview", which == 1).apply(); d.dismiss(); build(c);
                         }).setNegativeButton(text("Отмена", "Cancel"), null).create())));
         nanoCard.add(new NebulaRow(c).icon(R.drawable.msg_list)
@@ -117,7 +117,7 @@ public final class NebulaAiFragment extends BaseFragment {
                 .subtitle(prefs.getBoolean("nano_fast", true) ? text("Быстрая модель", "Fast model") : text("Полная модель", "Full model"), false)
                 .trailing(NebulaRow.TRAIL_CHEVRON).withClick(v -> showDialog(new AlertDialog.Builder(c)
                         .setTitle(text("Производительность Gemini Nano", "Gemini Nano performance"))
-                        .setSingleChoiceItems(new String[]{text("Быстрая", "Fast"), text("Полная", "Full")}, prefs.getBoolean("nano_fast", true) ? 0 : 1, (d, which) -> {
+                        .setItems(new CharSequence[]{prefs.getBoolean("nano_fast", true) ? "✓ " + text("Быстрая", "Fast") : text("Быстрая", "Fast"), prefs.getBoolean("nano_fast", true) ? text("Полная", "Full") : "✓ " + text("Полная", "Full")}, (d, which) -> {
                             prefs.edit().putBoolean("nano_fast", which == 0).apply(); d.dismiss(); build(c);
                         }).setNegativeButton(text("Отмена", "Cancel"), null).create())));
         button(c, nanoCard, text("Проверить или скачать модель", "Check or download model"), true, v -> downloadNano());

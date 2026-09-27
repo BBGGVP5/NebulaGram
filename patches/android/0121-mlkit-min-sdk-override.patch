@@ -1,0 +1,20 @@
+diff --git a/TMessagesProj/src/main/AndroidManifest.xml b/TMessagesProj/src/main/AndroidManifest.xml
+--- a/TMessagesProj/src/main/AndroidManifest.xml
++++ b/TMessagesProj/src/main/AndroidManifest.xml
+@@ -84,6 +84,6 @@
+     <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
+ 
+-    <uses-sdk tools:overrideLibrary="com.google.mlkit.vision.segmentation.subject"/>
++    <uses-sdk tools:overrideLibrary="com.google.mlkit.vision.segmentation.subject,com.google.mlkit.genai.prompt"/>
+ 
+     <queries>
+         <package android:name="com.google.android.apps.maps"/>
+diff --git a/TMessagesProj/config/release/AndroidManifest_standalone.xml b/TMessagesProj/config/release/AndroidManifest_standalone.xml
+--- a/TMessagesProj/config/release/AndroidManifest_standalone.xml
++++ b/TMessagesProj/config/release/AndroidManifest_standalone.xml
+@@ -34,3 +34,5 @@
+     <uses-permission android:name="android.permission.SEND_SMS" />
+ 
++    <uses-sdk tools:overrideLibrary="com.google.mlkit.genai.prompt" />
++
+     <application

@@ -209,11 +209,11 @@ public class NebulaSectionFragment extends BaseFragment {
                 .trailing(NebulaRow.TRAIL_CHEVRON)
                 .withClick(v -> new org.telegram.ui.ActionBar.AlertDialog.Builder(context)
                         .setTitle(NebulaText.text("Анимация переходов", "Transition animation"))
-                        .setSingleChoiceItems(new String[]{
-                                NebulaText.text("Стандартная", "Standard"),
-                                NebulaText.text("Системная AOSP", "AOSP system"),
-                                "Spring"
-                        }, NebulaTransitions.style(), (dialog, which) -> {
+                        .setItems(new CharSequence[]{
+                                (NebulaTransitions.style() == NebulaTransitions.STANDARD ? "✓ " : "") + NebulaText.text("Стандартная", "Standard"),
+                                (NebulaTransitions.style() == NebulaTransitions.AOSP ? "✓ " : "") + NebulaText.text("Системная AOSP", "AOSP system"),
+                                (NebulaTransitions.style() == NebulaTransitions.SPRING ? "✓ " : "") + "Spring"
+                        }, (dialog, which) -> {
                             context.getSharedPreferences("nebulagram", Context.MODE_PRIVATE)
                                     .edit().putInt("fragment_transition_style", which).apply();
                             ((NebulaRow) v).subtitle(transitionName(which), false);
