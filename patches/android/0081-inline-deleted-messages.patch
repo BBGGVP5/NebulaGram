@@ -113,7 +113,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
 +        if (headerItem != null) {
 +            headerItem.lazilyAddColoredGap();
 +            headerItem.lazilyAddSubItem(0x4e4443, R.drawable.msg_clearcache,
-+                    app.nebulagram.ui.NebulaText.text("Очистить удалёнки", "Clear deleted messages"));
++                    app.nebulagram.ui.NebulaText.text("Очистить удаленки", "Clear deleted messages"));
 +        }
          menu.setVisibility(inMenuMode ? View.GONE : View.VISIBLE);
  

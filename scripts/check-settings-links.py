@@ -22,6 +22,6 @@ assert 'R.drawable.msg_delete' not in chat
 gap = chat.index('headerItem.lazilyAddColoredGap()')
 action = chat.index('headerItem.lazilyAddSubItem(0x4e4443, R.drawable.msg_clearcache')
 assert gap < action
-assert 'NebulaText.text("Очистить удалёнки", "Clear deleted messages")' in chat
+assert 'NebulaText.text("Очистить удаленки", "Clear deleted messages")' in chat
 assert chat.index('closeTopicItem =') < gap
 print('Compact setting links, legacy-link compatibility, row focus, and separated cache action passed')
