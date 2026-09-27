@@ -10,4 +10,6 @@
 - [x] Glass: native system/liquid/matte choices, tint amount, actual draggable glass preview, power/accessibility status; update existing surfaces through observations.
 - [x] Sheets: reusable rounded UIKit presentation with Dynamic Type rows and trailing checkmark; migrate provider/action/navigation/transition/archive choices; explain local-model availability.
 - [x] Fix the inaccessible camera zoom property reported by native CI.
-- [ ] Regenerate catalogs, validate ordered patches and bootstrap locally, run macOS XCTest and start native/IPA builds; document outstanding device acceptance honestly.
+- [x] Regenerate catalogs, validate ordered patches and bootstrap locally, start macOS XCTest and native/IPA builds; document outstanding device acceptance honestly.
+
+Validation: 31 patches applied to the pinned source; local contract/design/build-preparation checks passed. First macOS run compiled the shared Swift code and passed all archive tests; one stale catalog-count assertion was corrected from 69 to 71. Native compile and IPA runs use commit `0c5c81f`; the follow-up changes tests/documentation only. Device acceptance and full Android visual-switch parity remain open.

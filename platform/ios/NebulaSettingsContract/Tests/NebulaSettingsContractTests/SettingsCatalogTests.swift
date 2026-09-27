@@ -5,7 +5,7 @@ import XCTest
 final class SettingsCatalogTests: XCTestCase {
     func testCatalogAndImplementationStatus() throws {
         let catalog = try SettingsCatalog.bundled()
-        XCTAssertEqual(catalog.settings.count, 69)
+        XCTAssertEqual(catalog.settings.count, 71)
         XCTAssertEqual(catalog.settings.filter(\.transferV1).count, 59)
         XCTAssertFalse(catalog.settings.contains(where: \.isImplementedOnIOS))
         XCTAssertEqual(catalog.settings.first { $0.key == "material_you" }?.iosStatus, "unsupported")
@@ -37,6 +37,8 @@ final class SettingsCatalogTests: XCTestCase {
         let invalid: [[String: SettingValue]] = [
             ["centered_chat_header": .integer(1)], ["avatar_round": .integer(101)],
             ["avatar_round": .integer(-1)], ["api_key": .string("secret")],
+            ["ios_glass_style": .integer(1)], // Local iOS material settings never enter Android transfer.
+            ["ios_glass_tint": .integer(30)],
             ["glass_opacity": .integer(50)], // inventoried, not enabled in legacy v1 transfer
             ["bottom_bar_order": .string(String(repeating: "🫧", count: 513))]
         ]
