@@ -156,7 +156,10 @@ public final class NebulaPrivacyFragment extends BaseFragment {
 
         header(text("Где сохранять", "Where to save"));
         card(scopeToggle(NebulaDeletedStyle.PRIVATE), scopeToggle(NebulaDeletedStyle.GROUPS),
-                scopeToggle(NebulaDeletedStyle.CHANNELS), scopeToggle(NebulaDeletedStyle.BOTS));
+                scopeToggle(NebulaDeletedStyle.CHANNELS), scopeToggle(NebulaDeletedStyle.BOTS),
+                scopeToggle(NebulaDeletedStyle.SAVED));
+        note(text("В «Избранном» сохраняются сообщения, удалённые на другом устройстве, если они уже загружены сюда. Удаление в этом приложении работает как обычно.",
+                "Saved Messages deleted on another device are kept if already loaded here. Deleting in this app works as usual."));
         note(NebulaDeletedStyle.scopeCount() == 0
                 ? text("Не выбрано ничего — сохранять будет нечего.",
                         "Nothing is selected, so nothing will be kept.")
@@ -226,6 +229,7 @@ public final class NebulaPrivacyFragment extends BaseFragment {
     private NebulaRow scopeToggle(int kind) {
         final int icon;
         switch (kind) {
+            case NebulaDeletedStyle.SAVED: icon = R.drawable.msg_saved; break;
             case NebulaDeletedStyle.GROUPS: icon = R.drawable.msg_groups; break;
             case NebulaDeletedStyle.CHANNELS: icon = R.drawable.msg_channel; break;
             case NebulaDeletedStyle.BOTS: icon = R.drawable.msg_bot; break;

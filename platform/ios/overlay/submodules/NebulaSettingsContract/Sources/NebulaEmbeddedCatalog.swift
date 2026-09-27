@@ -332,7 +332,7 @@ enum NebulaEmbeddedCatalog {
       "transfer_v1": false,
       "ios_status": "planned",
       "ios_mapping": "adapt",
-      "default": 44,
+      "default": 0,
       "min": 0,
       "max": 100
     },

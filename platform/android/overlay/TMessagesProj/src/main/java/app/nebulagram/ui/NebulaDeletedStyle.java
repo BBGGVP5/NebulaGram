@@ -15,7 +15,7 @@ import org.telegram.ui.ActionBar.Theme;
  *
  * <p>Раньше архив был один на всё: включил — и остаются сообщения из всех чатов,
  * а выделение было одно, обесцвечивание. Здесь две независимые настройки. Где
- * сохранять — четыре вида собеседника: личные переписки, группы, каналы и боты.
+ * сохранять — личные переписки, группы, каналы, боты и отдельно «Избранное».
  * Как выделять — не выделять совсем, приглушить или подложить цвет.
  *
  * <p>По умолчанию всё как было: сохраняем везде, выделяем приглушением. Это
@@ -32,14 +32,17 @@ public final class NebulaDeletedStyle {
     public static final int GROUPS = 1;
     public static final int CHANNELS = 2;
     public static final int BOTS = 3;
+    public static final int SAVED = 4;
 
     private static final String[] SCOPE_KEYS = {
             "deleted_scope_private", "deleted_scope_groups",
             "deleted_scope_channels", "deleted_scope_bots",
+            "deleted_scope_saved",
     };
 
     public static String scopeTitle(int kind) {
         switch (kind) {
+            case SAVED: return NebulaText.text("Избранное", "Saved Messages");
             case GROUPS: return NebulaText.text("Группы", "Groups");
             case CHANNELS: return NebulaText.text("Каналы", "Channels");
             case BOTS: return NebulaText.text("Боты", "Bots");
@@ -58,7 +61,7 @@ public final class NebulaDeletedStyle {
     /** Сколько видов выбрано — для подписи строки. */
     public static int scopeCount() {
         int count = 0;
-        for (int kind = PRIVATE; kind <= BOTS; kind++) {
+        for (int kind = PRIVATE; kind <= SAVED; kind++) {
             if (scope(kind)) count++;
         }
         return count;
@@ -73,6 +76,9 @@ public final class NebulaDeletedStyle {
      * сообщение хуже, чем сохранить лишнее, — сохранённое всегда можно стереть.
      */
     public static boolean retains(int account, long peer) {
+        if (peer != 0 && peer == org.telegram.messenger.UserConfig.getInstance(account).getClientUserId()) {
+            return scope(SAVED);
+        }
         if (DialogObject.isEncryptedDialog(peer)) {
             // Секретные чаты — личная переписка, и у них есть свой переключатель.
             return scope(PRIVATE);
@@ -86,7 +92,7 @@ public final class NebulaDeletedStyle {
     }
 
     private static int clampScope(int kind) {
-        return Math.max(PRIVATE, Math.min(BOTS, kind));
+        return Math.max(PRIVATE, Math.min(SAVED, kind));
     }
 
     // --- как выделять --------------------------------------------------------

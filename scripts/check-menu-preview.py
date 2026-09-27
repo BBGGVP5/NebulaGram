@@ -48,11 +48,13 @@ target = work/'CheckMenuPreview.java'
 target.write_text(source,encoding='utf-8')
 subprocess.run(['javac','-d',str(work),str(target)],check=True)
 subprocess.run(['java','-cp',str(work),'CheckMenuPreview'],check=True)
-glass = (ui/'NebulaGlassSettings.java').read_text(encoding='utf-8')
-assert glass.count('NebulaWallpaperPreview.drawWallpaper(')==2
-assert 'Utilities.stackBlurBitmap(blurredWallpaper,blur)' in glass
-assert 'cachedWallpaper == wallpaper' in glass and 'cachedBlur == blur' in glass
-assert 'blurredWallpaper.recycle()' in glass and 'onDetachedFromWindow()' in glass
+glass = (ui/'NebulaGlassPreview.java').read_text(encoding='utf-8')
+assert 'NebulaWallpaperPreview.drawWallpaper(' in glass
+assert 'new BlurredBackgroundSourceRenderNode(fallback)' in glass
+assert 'owner.drawScene(capture)' in glass and 'finally { source.endRecording(); }' in glass
+assert 'Utilities.stackBlurBitmap(fallback, radius)' in glass
+assert 'renderedRevision != revision' in glass and 'wallpaper != currentWallpaper' in glass
+assert 'fallback.recycle()' in glass and 'onDetachedFromWindow()' in glass
 assert 'LinearGradient' not in glass and 'drawCircle' not in glass
 menu = (ui/'NebulaMainMenu.java').read_text(encoding='utf-8')
 assert 'new NebulaQrIcon(true)' in menu and 'new NebulaQrIcon(false)' in menu

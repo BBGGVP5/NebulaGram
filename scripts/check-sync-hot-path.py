@@ -38,6 +38,8 @@ class ArchiveIndexCheck {
   JSONArray put(JSONObject e){rows.add(e);return this;}
  }
  static long cachedOwner; static Snapshot cachedSnapshot;
+ static Map<Long,Snapshot> pendingWrites=new HashMap<>(),uncommittedSnapshots=new HashMap<>();
+ static class DialogObject {static boolean isEncryptedDialog(long peer){return peer>1000000000L;}}
  static int diskReads; static boolean readFails; static JSONArray disk;
  static JSONArray read(long owner)throws Exception{diskReads++;if(readFails)throw new Exception("Unreadable");return disk;}
  HELPERS

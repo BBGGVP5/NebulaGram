@@ -1,0 +1,35 @@
+diff --git a/TMessagesProj/src/main/res/raw/liquid_glass_shader.agsl b/TMessagesProj/src/main/res/raw/liquid_glass_shader.agsl
+--- a/TMessagesProj/src/main/res/raw/liquid_glass_shader.agsl
++++ b/TMessagesProj/src/main/res/raw/liquid_glass_shader.agsl
+@@ -22,11 +22,19 @@
+     return half4(outRGB, outA);
+ }
+ 
++// Fade displacement at both edges of the lens band. The center stays stable.
++// The bound also scales with density because thickness is measured in pixels.
++float nebulaEdgeLimit(float sd, float thickness, float intensity) {
++  float edge = clamp(-sd / max(thickness, 1.0), 0.0, 1.0);
++  float envelope = smoothstep(0.0, 0.18, edge) * (1.0 - smoothstep(0.60, 1.0, edge));
++  return thickness * 0.35 * clamp(intensity * 2.0, 0.0, 1.0) * envelope;
++}
++
+ half4 main(in float2 fragCoord) {
+   half2 p = fragCoord - center;
+   half sd = sdfRect(p, radius);
+   half2 uv = fragCoord;
+-  if (sd < 0.0) {
++  if (sd < 0.0 && sd > -thickness && refract_intensity > 0.0) {
+     half sdX = sdfRect(p + half2(1.0, 0.0), radius);
+     half sdY = sdfRect(p + half2(0.0, 1.0), radius);
+ 
+@@ -39,7 +47,9 @@
+     half h = sd < -thickness ? thickness : sqrt(sd * (-2.0 * thickness - sd));
+     half refract_length = (h + 8.0 * thickness) / -refract_vec.z;
+ 
+-    uv += refract_vec.xy * refract_length * refract_intensity;
++    float2 displacement = float2(refract_vec.xy) * refract_length * refract_intensity;
++    float limit = nebulaEdgeLimit(float(sd), thickness, refract_intensity);
++    uv += half2(displacement * min(1.0, limit / max(length(displacement), 0.001)));
+   }
+ 
+   return srcOver(half4(foreground_color_premultiplied), img.eval(uv));
