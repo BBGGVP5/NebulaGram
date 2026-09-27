@@ -148,6 +148,9 @@ def main():
         assert 'if nebulaOpenQuickAction(context: context, path: path, navigationController: navigationController)' in handler
         app_build = (temp / 'Telegram/BUILD').read_text(encoding='utf-8')
         assert 'composer_icon_folders = ["NebulaGram"]' in app_build
+        theme_defaults = (temp / 'submodules/TelegramUIPreferences/Sources/PresentationThemeSettings.swift').read_text(encoding='utf-8')
+        assert 'day.index: PresentationThemeAccentColor(index: -1, baseColor: .blue, accentColor: 0x3C8DF0)' in theme_defaults
+        assert 'night.index: PresentationThemeAccentColor(index: -1, baseColor: .blue, accentColor: 0xA8C7FA)' in theme_defaults
         primary_icon = temp / 'Telegram/Telegram-iOS/NebulaGram.icon'
         assert (primary_icon / 'icon.json').is_file()
         assert (primary_icon / 'Assets/NebulaMark.svg').is_file()

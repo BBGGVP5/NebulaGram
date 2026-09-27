@@ -235,9 +235,15 @@ public func nebulaSettingsController(context: AccountContext) -> ViewController 
     |> deliverOnMainQueue
     |> map { presentationData, hideCounters, failed, query -> (ItemListControllerState, (ItemListNodeState, Any)) in
         // A custom Telegram theme must not recolor Nebula settings.
-        let settingsTheme = makeDefaultPresentationTheme(
+        let baseTheme = makeDefaultPresentationTheme(
             reference: UIScreen.main.traitCollection.userInterfaceStyle == .dark ? .night : .day,
-            serviceBackgroundColor: nil).withModalBlocksBackground()
+            serviceBackgroundColor: nil)
+        let accent = UIScreen.main.traitCollection.userInterfaceStyle == .dark
+            ? UIColor(red: 168.0 / 255.0, green: 199.0 / 255.0, blue: 250.0 / 255.0, alpha: 1)
+            : UIColor(red: 60.0 / 255.0, green: 141.0 / 255.0, blue: 240.0 / 255.0, alpha: 1)
+        let settingsTheme = customizePresentationTheme(baseTheme, editing: true, accentColor: accent,
+            outgoingAccentColor: nil, backgroundColors: [], bubbleColors: [], animateBubbleColors: nil)
+            .withModalBlocksBackground()
         let presentationData = presentationData.withUpdated(theme: settingsTheme)
         let ru = presentationData.strings.baseLanguageCode.lowercased().hasPrefix("ru")
         arguments.russian = ru
