@@ -19,6 +19,7 @@
 | 0023-native-transition-style.patch | `submodules/Display/BUILD`, `Source/Navigation/NavigationController.swift` | `setViewControllers` | Переключает системную кривую анимации для переходов по настройке, учитывает Reduce Motion и сохраняет нативные жесты | 12 |
 | 0024-chat-lock-gate.patch | `submodules/TelegramUI/Sources/ChatController.swift` | меню чата, `viewWillAppear`, `viewWillDisappear` | Настройка PIN/пароля и непрозрачный экран блокировки до показа защищённого чата и при уходе приложения в фон | 20 |
 | 0025-welcome-language.patch | `submodules/AuthorizationUI/Sources/AuthorizationSequenceSplashController.swift` | `languageChanged` | Открывает собственный экран выбора языка обзора, сохраняя штатную локализацию при переходе к входу | 8 |
+| 0026-badge-details-artwork.patch | `submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoHeaderNode.swift` | `nebulaBadgeTapped` | Показывает реальный значок в окне «Подробнее»; анимация учитывает Reduce Motion | 2 |
 
 Полные пути PeerInfoScreen: `submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/`.
 Полные пути ChatListFilterTabContainerNode: `submodules/TelegramUI/Components/ChatList/ChatListFilterTabContainerNode/`.

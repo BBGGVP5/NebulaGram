@@ -85,6 +85,10 @@ def main():
         assert 'UIAccessibility.isReduceMotionEnabled' in header
         assert 'customUndoText: isRussian ? "Подробнее" : "Learn more"' in header
         assert 'ActionSheetTextItem(title: details)' in header
+        assert 'NebulaBadgeArtworkActionSheetItem(badge: badge)' in header
+        details_artwork = (peer / 'NebulaBadgeArtworkActionSheetItem.swift').read_text(encoding='utf-8')
+        assert 'NebulaProfileBadgeArtwork.image(for: badge)' in details_artwork
+        assert 'UIAccessibility.isReduceMotionEnabled' in details_artwork
         assert 'controller.present(sheet, in: .window(.root))' in header
         ai_menu = (temp / 'submodules/TelegramUI/Sources/ChatInterfaceStateContextMenus.swift').read_text(encoding='utf-8')
         assert 'NebulaAiSettings.shared' in ai_menu

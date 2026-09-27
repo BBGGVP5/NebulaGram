@@ -1,0 +1,12 @@
+diff --git a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoHeaderNode.swift b/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoHeaderNode.swift
+--- a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoHeaderNode.swift
++++ b/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoHeaderNode.swift
+@@ -576,6 +576,7 @@ final class PeerInfoHeaderNode: ASDisplayNode {
+             let dismiss: () -> Void = { [weak sheet] in sheet?.dismissAnimated() }
+             sheet.setItemGroups([
+                 ActionSheetItemGroup(items: [
+-                    ActionSheetTextItem(title: "✦  \(badgeTitle)"),
++                    NebulaBadgeArtworkActionSheetItem(badge: badge),
++                    ActionSheetTextItem(title: badgeTitle, font: .large),
+                     ActionSheetTextItem(title: details)
+                 ]),
