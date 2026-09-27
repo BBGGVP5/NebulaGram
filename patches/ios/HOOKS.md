@@ -27,6 +27,7 @@
 
 | 0032-ai-home-chat.patch | `submodules/ChatListUI/Sources/ChatListController.swift`, `submodules/TelegramUI/Sources/TelegramRootController.swift`, `submodules/TelegramUI/Components/ChatListHeaderComponent/Sources/NavigationButtonComponent.swift` | `storyButton`, `addRootControllers`, icon rendering | Опциональная кнопка ИИ на месте камеры со штатным стеклом, живое обновление выбора и открытие UIKit-чата через уведомление, ограниченное текущим root controller | 30+ |
 | 0033-navigation-parity.patch | `TelegramRootController.swift`, `PeerInfoScreen.swift`, `PeerInfoHeaderNavigationButton*.swift`, `ChatListController.swift`, `TabBarContollerNode.swift`, `TabBarComponent.swift` и Bazel `BUILD` | штатные контроллеры вкладок, кнопки шапки и компонент нижней панели | Отдельная вкладка профиля, скрытие профиля/настроек с запасным переходом, подписи и компактная ширина нижней панели, скрытие камеры и создания чата на главной; изменения применяются без перезапуска | 60+ |
+| 0034-hide-send-as.patch | `ChatTextInputPanelNode.swift`, `ChatTextInputPanelNode/BUILD` | `hasSendAsButton`, `displaySendAsAvatarButton`, `requestLayout` | Скрывает аватар «Отправить от имени» в обоих проходах измерения и отрисовки, освобождает место в поле ввода и обновляет панель без смены отправителя | 15 |
 
 Полные пути PeerInfoScreen: `submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/`.
 Полные пути ChatListFilterTabContainerNode: `submodules/TelegramUI/Components/ChatList/ChatListFilterTabContainerNode/`.

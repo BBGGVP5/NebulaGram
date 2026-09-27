@@ -55,7 +55,7 @@ This inventory distinguishes **wired source** from native build and device accep
 | `hide_home_compose` | navigation.bottom_bar | Wired; native/device QA pending | Yes |
 | `hide_premium_status` | appearance.general | Pending native consumer | Yes |
 | `hide_search_field` | navigation.folders | Pending native consumer | Yes |
-| `hide_send_as` | chat.composer | Pending native consumer | Yes |
+| `hide_send_as` | chat.composer | Wired; native/device QA pending | Yes |
 | `hide_tab_counters` | navigation.folders | Wired; native/device QA pending | Yes |
 | `icon_pack` | appearance.general | Pending native consumer | Yes |
 | `ios_composer` | chat.composer | Pending native consumer | Yes |

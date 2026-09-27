@@ -90,7 +90,8 @@ private enum NebulaSettingsEntry: ItemListNodeEntry {
             case "tab_labels": return 63
             case "compact_bottom_bar": return 64
             case "hide_home_camera": return 65
-            default: return 66
+            case "hide_home_compose": return 66
+            default: return 67
             }
         case .widePosts: return 75
         case .stories: return 70
@@ -123,7 +124,8 @@ private enum NebulaSettingsEntry: ItemListNodeEntry {
             case "tab_labels": return 32
             case "compact_bottom_bar": return 33
             case "hide_home_camera": return 34
-            default: return 35
+            case "hide_home_compose": return 35
+            default: return 36
             }
         case .glass: return 12
         case .icons: return 22
@@ -320,6 +322,7 @@ public func nebulaSettingsController(context: AccountContext) -> ViewController 
             .navigationToggle("compact_bottom_bar", ru ? "Компактная нижняя панель" : "Compact bottom bar", store.compactBottomBar, !store.hasLoadError),
             .navigationToggle("hide_home_camera", ru ? "Скрыть камеру на главной" : "Hide camera on home", store.hideHomeCamera, !store.hasLoadError),
             .navigationToggle("hide_home_compose", ru ? "Скрыть кнопку нового чата" : "Hide new-chat button", store.hideHomeCompose, !store.hasLoadError),
+            .navigationToggle("hide_send_as", ru ? "Скрыть «Отправить от имени»" : "Hide Send As", store.hideSendAs, !store.hasLoadError),
             .ai(ru ? "Искусственный интеллект" : "AI assistant"),
             .buildInfo(ru ? "О сборке" : "Build information")
         ]

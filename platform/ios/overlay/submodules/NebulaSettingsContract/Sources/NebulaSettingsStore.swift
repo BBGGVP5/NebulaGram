@@ -33,7 +33,7 @@ public final class SettingsObservation {
 public final class NebulaSettingsStore {
     public static let shared = NebulaSettingsStore(defaults: .standard)
     public static let storageKey = "app.nebulagram.presentation.settings.v1"
-    public static let editableKeys: Set<String> = ["hide_tab_counters", "show_stories", "settings_search_history", "glass_quality", "ios_glass_style", "ios_glass_tint", "bottom_bar_contacts", "bottom_bar_order", "bottom_bar_profile", "bottom_bar_settings", "tab_labels", "compact_bottom_bar", "hide_home_camera", "hide_home_compose", "wide_posts", "fragment_transition_style"]
+    public static let editableKeys: Set<String> = ["hide_tab_counters", "show_stories", "settings_search_history", "glass_quality", "ios_glass_style", "ios_glass_tint", "bottom_bar_contacts", "bottom_bar_order", "bottom_bar_profile", "bottom_bar_settings", "tab_labels", "compact_bottom_bar", "hide_home_camera", "hide_home_compose", "hide_send_as", "wide_posts", "fragment_transition_style"]
     public static let maximumTransferBytes = 1024 * 1024
 
     private let defaults: UserDefaults
@@ -97,6 +97,7 @@ public final class NebulaSettingsStore {
     public var compactBottomBar: Bool { boolean("compact_bottom_bar", fallback: false) }
     public var hideHomeCamera: Bool { boolean("hide_home_camera", fallback: false) }
     public var hideHomeCompose: Bool { boolean("hide_home_compose", fallback: false) }
+    public var hideSendAs: Bool { boolean("hide_send_as", fallback: false) }
     public var bottomTabOrder: [String] {
         lock.lock(); defer { lock.unlock() }
         let standard = ["chats", "contacts", "settings", "profile"]

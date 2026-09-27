@@ -220,6 +220,9 @@ def main():
         input_panel = (temp / 'submodules/TelegramUI/Components/Chat/ChatTextInputPanelNode/Sources/ChatTextInputPanelNode.swift').read_text(encoding='utf-8')
         assert 'let isExpandInputEnabled = self.enableRichTextInput\n' in input_panel
         assert 'let isTallPanel = actualTextFieldFrame.height >= 70.0' in input_panel
+        assert input_panel.count('if !NebulaSettingsStore.shared.hideSendAs, let sendAsPeers = interfaceState.sendAsPeers') == 3
+        assert 'self?.requestLayout()' in input_panel
+        assert '//submodules/NebulaSettingsContract:NebulaSettingsContract' in (temp / 'submodules/TelegramUI/Components/Chat/ChatTextInputPanelNode/BUILD').read_text(encoding='utf-8')
         assert 'self.interfaceInteraction?.openExpandedInput()' in input_panel
         chat = (temp / 'submodules/TelegramUI/Sources/ChatController.swift').read_text(encoding='utf-8')
         assert chat.count('guard let chosenReaction = chosenReaction else {\n                        itemNode.openMessageContextMenu()') == 2
