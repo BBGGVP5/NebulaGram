@@ -66,14 +66,29 @@ public final class NebulaGlassRuntime {
         boolean save = power != null && power.isPowerSaveMode();
         if (NebulaGlass.environment(save, thermalHot, lowRam)) invalidateWindows();
     }
+    private static boolean invalidationPending;
     public static void invalidateWindows() {
+        if (Looper.myLooper() != Looper.getMainLooper()) { main.post(NebulaGlassRuntime::invalidateWindows); return; }
+        if (invalidationPending) return;
+        invalidationPending = true;
         main.post(() -> {
+            invalidationPending = false;
             for (Activity activity : visible) {
                 if (activity != null && activity.getWindow() != null) {
                     android.view.View root = activity.getWindow().getDecorView();
-                    root.requestLayout(); root.invalidate();
+                    invalidateTree(root);
                 }
             }
         });
+    }
+    private static void invalidateTree(android.view.View view) {
+        view.invalidate();
+        if (view instanceof android.view.ViewGroup) {
+            android.view.ViewGroup group = (android.view.ViewGroup) view;
+            for (int i = 0; i < group.getChildCount(); i++) {
+                android.view.View child = group.getChildAt(i);
+                if (child.getVisibility() == android.view.View.VISIBLE) invalidateTree(child);
+            }
+        }
     }
 }

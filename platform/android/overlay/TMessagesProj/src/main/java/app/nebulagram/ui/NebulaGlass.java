@@ -8,23 +8,25 @@ public final class NebulaGlass {
     private NebulaGlass() { }
     private static SharedPreferences preferences;
     private static volatile Snapshot cached;
+    private static volatile long revision;
     private static volatile boolean powerSave, thermalHot, lowRam;
     // SharedPreferences keeps weak listeners. Keep this one strongly, without holding any View/Activity.
     private static final SharedPreferences.OnSharedPreferenceChangeListener listener = (prefs, key) -> {
         if (key == null || "glass_custom".equals(key) || "glass_opacity".equals(key)
-                || "glass_quality".equals(key) || "glass_blur".equals(key) || "glass_refraction".equals(key)) refresh();
+                || "glass_highlights".equals(key) || "glass_quality".equals(key) || "glass_blur".equals(key) || "glass_refraction".equals(key)) refresh();
     };
 
     private static final class Snapshot {
-        final boolean custom;
+        final boolean custom, highlights;
         final int quality;
         final float opacity, blur, refraction;
         Snapshot(SharedPreferences prefs) {
             custom = prefs.getBoolean("glass_custom", false);
+            highlights = prefs.getBoolean("glass_highlights", true);
             quality = Math.max(0, Math.min(2, prefs.getInt("glass_quality", 0)));
             opacity = custom ? .25f + clamp(prefs.getInt("glass_opacity", 63)) * .0075f : .72f;
             blur = custom ? clamp(prefs.getInt("glass_blur", 40)) * .3f : 12f;
-            refraction = custom ? clamp(prefs.getInt("glass_refraction", 44)) * .005f : .22f;
+            refraction = custom ? clamp(prefs.getInt("glass_refraction", 0)) * .005f : 0f;
         }
     }
 
@@ -36,7 +38,7 @@ public final class NebulaGlass {
         }
         return preferences;
     }
-    private static synchronized void refresh() { cached = new Snapshot(prefs()); NebulaGlassRuntime.invalidateWindows(); }
+    private static synchronized void refresh() { cached = new Snapshot(prefs()); revision++; NebulaGlassRuntime.invalidateWindows(); }
     private static Snapshot snapshot() {
         Snapshot value = cached;
         if (value == null) {
@@ -47,6 +49,8 @@ public final class NebulaGlass {
         }
         return value;
     }
+    public static boolean highlights() { return snapshot().highlights; }
+    public static long revision() { snapshot(); return revision; }
     public static boolean custom() { return snapshot().custom; }
     public static void custom(boolean value) {
         prefs().edit().putBoolean("glass_custom", value).apply();
@@ -62,7 +66,9 @@ public final class NebulaGlass {
     public static boolean reduced() { return NebulaGlassPolicy.reduced(quality(), powerSave, thermalHot, lowRam); }
     public static boolean environment(boolean save, boolean hot, boolean low) {
         boolean before = reduced(); powerSave = save; thermalHot = hot; lowRam = low;
-        return before != reduced();
+        boolean changed = before != reduced();
+        if (changed) revision++;
+        return changed;
     }
     public static float opacity() { return reduced() ? Math.max(.85f, snapshot().opacity) : snapshot().opacity; }
     public static float blur() { return reduced() ? Math.min(6f, snapshot().blur) : snapshot().blur; }

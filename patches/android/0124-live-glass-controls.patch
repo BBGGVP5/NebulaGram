@@ -1,0 +1,97 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/drawable/BlurredBackgroundDrawableRenderNode.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/drawable/BlurredBackgroundDrawableRenderNode.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/drawable/BlurredBackgroundDrawableRenderNode.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/drawable/BlurredBackgroundDrawableRenderNode.java
+@@ -54,6 +54,7 @@
+ 
+     private LiquidGlassEffect liquidGlassEffect;
+     private boolean nebulaReduced;
++    private long nebulaRevision = -1;
+ 
+     @RequiresApi(api = Build.VERSION_CODES.TIRAMISU)
+     public void setLiquidGlassEffectAllowed() {
+@@ -115,8 +116,11 @@
+         c = renderNodeFill.beginRecording();
+         c.save();
+         c.translate(-sL, -sT);
+-        if (liquidGlassEffect != null && Build.VERSION.SDK_INT >= 33) liquidGlassEffect.setEnabled(!nebulaReduced);
+-        if (!nebulaReduced && liquidGlassEffect != null && Build.VERSION.SDK_INT >= 33) {
++        final float refraction = app.nebulagram.ui.NebulaGlass.refraction();
++        final boolean refract = !nebulaReduced && refraction > 0f && liquidGlassEffect != null && Build.VERSION.SDK_INT >= 33
++                && org.telegram.messenger.LiteMode.isEnabled(org.telegram.messenger.LiteMode.FLAG_LIQUID_GLASS);
++        if (liquidGlassEffect != null && Build.VERSION.SDK_INT >= 33) liquidGlassEffect.setEnabled(refract);
++        if (refract) {
+             final int thickness = Math.max(Math.min(
+                 boundProps.liquidThickness <= 0 ? dp(11) : boundProps.liquidThickness,
+                 Math.min(boundProps.boundsWithPadding.width(), boundProps.boundsWithPadding.height()) / 5), 1);
+@@ -125,13 +129,13 @@
+                 0, 0, boundProps.boundsWithPadding.width(), boundProps.boundsWithPadding.height(),
+                 boundProps.shaderRadii[0], boundProps.shaderRadii[2], boundProps.shaderRadii[4], boundProps.shaderRadii[6],
+                 thickness,
+-                boundProps.liquidIntensity,
++                refraction,
+                 boundProps.liquidIndex,
+                 backgroundColor
+             );
+         }
+         source.draw(c, sL, sT, sR, sB);
+-        c.save();
++        c.restore();
+         renderNodeFill.endRecording();
+ 
+ 
+@@ -140,16 +144,16 @@
+             c.drawColor(backgroundColor);
+         } else {
+             c.drawRenderNode(renderNodeFill);
+-            if ((liquidGlassEffect == null || nebulaReduced) && Color.alpha(backgroundColor) != 0) {
++            if (!refract && Color.alpha(backgroundColor) != 0) {
+                 c.drawColor(backgroundColor);
+             }
+         }
+-        if (strokeColorTop != 0) {
++        if (strokeColorTop != 0 && app.nebulagram.ui.NebulaGlass.highlights()) {
+             drawStroke(c, 0, 0, boundProps.boundsWithPadding.width(),
+                     boundProps.boundsWithPadding.height(), boundProps.radii,
+                     boundProps.strokeWidthTop, true, paintStrokeTop);
+         }
+-        if (strokeColorBottom != 0) {
++        if (strokeColorBottom != 0 && app.nebulagram.ui.NebulaGlass.highlights()) {
+             drawStroke(c, 0, 0, boundProps.boundsWithPadding.width(),
+                     boundProps.boundsWithPadding.height(), boundProps.radii,
+                     boundProps.strokeWidthBottom, false, paintStrokeBottom);
+@@ -160,6 +164,12 @@
+     @Override
+     public void updateColors() {
+         super.updateColors();
++        // Preserve opaque fallbacks and menu contrast; translucent chat chrome follows the shared controls.
++        if (!(colorProvider instanceof app.nebulagram.ui.NebulaMenuStyle.Material)
++                && (app.nebulagram.ui.NebulaGlass.custom() || app.nebulagram.ui.NebulaGlass.reduced())
++                && Color.alpha(backgroundColor) > 0 && Color.alpha(backgroundColor) < 255) {
++            backgroundColor = Theme.multAlpha(backgroundColor | 0xff000000, app.nebulagram.ui.NebulaGlass.opacity());
++        }
+ 
+         paintShadow.setShadowLayer(shadowLayerRadius, shadowLayerDx, shadowLayerDy, shadowColor);
+         paintStrokeTop.setColor(strokeColorTop);
+@@ -170,6 +180,8 @@
+ 
+     @Override
+     public void draw(@NonNull Canvas canvas) {
++        long revision = app.nebulagram.ui.NebulaGlass.revision();
++        if (nebulaRevision != revision) { nebulaRevision = revision; updateColors(); }
+         boolean reduced = app.nebulagram.ui.NebulaGlass.reduced();
+         if (nebulaReduced != reduced) { nebulaReduced = reduced; renderNodeInvalidated = true; }
+         if (boundProps.boundsWithPadding.isEmpty()) {
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/LiquidGlassEffect.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/LiquidGlassEffect.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/LiquidGlassEffect.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/LiquidGlassEffect.java
+@@ -83,8 +83,8 @@
+             Math.abs(this.radiusRightBottom - radiusRightBottom) > 0.1f ||
+             Math.abs(this.radiusLeftBottom - radiusLeftBottom) > 0.1f ||
+             Math.abs(this.thickness - thickness) > 0.1f ||
+-            Math.abs(this.intensity - intensity) > 0.1f ||
+-            Math.abs(this.index - index) > 0.1f ||
++            Math.abs(this.intensity - intensity) > 0.0001f ||
++            Math.abs(this.index - index) > 0.0001f ||
+             this.foregroundColor != foregroundColor
+         ) {
+             this.foregroundColor = foregroundColor;

@@ -1,20 +1,12 @@
 package app.nebulagram.ui;
 
 import android.content.Context;
-import android.graphics.Bitmap;
-import android.graphics.Canvas;
-import android.graphics.Paint;
-import android.graphics.Path;
-import android.graphics.RectF;
-import android.graphics.drawable.Drawable;
 import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.R;
-import org.telegram.messenger.Utilities;
-import org.telegram.ui.ActionBar.Theme;
 
 public final class NebulaGlassSettings {
     private NebulaGlassSettings() { }
@@ -23,11 +15,21 @@ public final class NebulaGlassSettings {
         parent.addView(NebulaCard.header(c, NebulaText.text("Жидкое стекло", "Liquid Glass")));
         NebulaCard card=new NebulaCard(c);
         NebulaExpand details=new NebulaExpand(c,NebulaGlass.custom());
-        View preview=new Preview(c);
-        details.addView(preview,new LinearLayout.LayoutParams(-1,AndroidUtilities.dp(132)));
-        slider(details,NebulaText.text("Прозрачность", "Transparency"),100-NebulaGlass.value("opacity",63),n->{NebulaGlass.setValue("opacity",100-n);preview.invalidate();});
+        NebulaGlassPreview preview=new NebulaGlassPreview(c);
+        LinearLayout.LayoutParams previewParams = new LinearLayout.LayoutParams(-1, dp(200));
+        previewParams.setMargins(dp(12), dp(12), dp(12), dp(4));
+        parent.addView(preview, previewParams);
+        TextView previewHint = new TextView(c);
+        previewHint.setText(NebulaText.text("Проведи по превью — пилюля движется поверх текста. Настройки применяются сразу.", "Drag the preview: the capsule moves over text. Changes apply immediately."));
+        previewHint.setTextSize(13); previewHint.setTextColor(NebulaTheme.of(c).onSurfaceVariant());
+        previewHint.setPadding(dp(18),dp(8),dp(18),dp(12));parent.addView(previewHint);
+        slider(details,NebulaText.text("Прозрачность", "Transparency"),Math.round(75-NebulaGlass.value("opacity",63)*.75f),75,n->{NebulaGlass.setValue("opacity",Math.round((75-n)/.75f));preview.invalidate();});
         slider(details,NebulaText.text("Размытие", "Blur"),NebulaGlass.value("blur",40),n->{NebulaGlass.setValue("blur",n);preview.invalidate();});
-        slider(details,NebulaText.text("Преломление", "Refraction"),NebulaGlass.value("refraction",44),n->{NebulaGlass.setValue("refraction",n);preview.invalidate();});
+        SeekBar refraction = slider(details,NebulaText.text("Преломление", "Refraction"),NebulaGlass.value("refraction",0),n->{NebulaGlass.setValue("refraction",n);preview.invalidate();});
+        TextView refractionHint = new TextView(c);
+        refractionHint.setText(NebulaText.text("Преломление сдвигает фон у края стекла. Поставь 0%, чтобы текст под пилюлей не искажался.", "Refraction shifts the backdrop near the glass edge. Set it to 0% to keep the text underneath undistorted."));
+        refractionHint.setTextSize(13); refractionHint.setTextColor(NebulaTheme.of(c).onSurfaceVariant());
+        refractionHint.setPadding(dp(18),0,dp(18),dp(12));details.addView(refractionHint);
         details.addView(NebulaExtras.toggle(c,R.drawable.msg_customize,NebulaText.text("Блики", "Highlights"),null,
             NebulaAppearance.glassHighlights(),v->{NebulaAppearance.setGlassHighlights(v);preview.invalidate();}));
         card.add(NebulaExtras.toggle(c,R.drawable.msg_customize,NebulaText.text("Настроить стекло", "Customize glass"),null,
@@ -44,7 +46,17 @@ public final class NebulaGlassSettings {
             }).show());
         card.add(quality);
         TextView hint = new TextView(c);
-        hint.setText(NebulaText.text("Авто облегчает размытие и отключает преломление при энергосбережении, нагреве или малом объёме ОЗУ. Ваши настройки сохраняются.", "Auto reduces blur and disables refraction during power saving, thermal pressure or on low-RAM devices. Your settings are preserved."));
+        Runnable updateStatus = () -> {
+            boolean blur = org.telegram.messenger.LiteMode.isEnabled(org.telegram.messenger.LiteMode.FLAG_CHAT_BLUR);
+            boolean liquid = android.os.Build.VERSION.SDK_INT >= 33 && org.telegram.messenger.LiteMode.isEnabled(org.telegram.messenger.LiteMode.FLAG_LIQUID_GLASS);
+            refraction.setEnabled(blur && liquid && !NebulaGlass.reduced());
+            String status = !blur ? NebulaText.text("Размытие отключено в энергосбережении Telegram: сейчас используется сплошная заливка.", "Blur is disabled in Telegram power saving: an opaque background is used.")
+                    : NebulaGlass.reduced() ? NebulaText.text("Сейчас облегчённый режим: прозрачность до 15%, размытие до 20%, преломление выключено. Авто включает его при энергосбережении, нагреве или нехватке ОЗУ.", "Light mode is active: transparency up to 15%, blur up to 20%, refraction off. Auto enables it during power saving, heat or low RAM.")
+                    : !liquid ? NebulaText.text("Размытие активно. Для преломления нужны Android 13+ и включённые эффекты Liquid Glass.", "Blur is active. Refraction needs Android 13+ and enabled Liquid Glass effects.")
+                    : NebulaText.text("Полный эффект активен. Преломление: ", "Full effect active. Refraction: ") + Math.round(NebulaGlass.refraction()*200) + "%";
+            hint.setText(status + "\n" + NebulaText.text("В меню прозрачность ограничена ради читаемости текста.", "Menu transparency is limited to keep labels readable."));
+        };
+        preview.setStatusChanged(updateStatus); updateStatus.run();
         hint.setTextColor(NebulaTheme.of(c).onSurfaceVariant()); hint.setTextSize(14); hint.setPadding(dp(18), dp(8), dp(18), dp(12));
         card.add(hint);
         card.add(details);parent.addView(card);
@@ -57,72 +69,20 @@ public final class NebulaGlassSettings {
         haptics.add(hapticDetails);parent.addView(NebulaCard.header(c,NebulaText.text("Отклик", "Feedback")));parent.addView(haptics);
     }
     public interface Change { void set(int value); }
-    public static void slider(LinearLayout parent,String title,int value,Change change) {
+    public static SeekBar slider(LinearLayout parent,String title,int value,Change change) {
+        return slider(parent, title, value, 100, change);
+    }
+    public static SeekBar slider(LinearLayout parent,String title,int value,int maximum,Change change) {
         Context c=parent.getContext();TextView label=new TextView(c);
         label.setTextColor(NebulaTheme.of(c).onSurface());label.setTextSize(14);
         label.setPadding(dp(18),dp(12),dp(18),0);parent.addView(label);
-        SeekBar bar=new SeekBar(c);bar.setMax(100);bar.setProgress(value);bar.setPadding(dp(18),dp(6),dp(18),dp(12));
+        SeekBar bar=new SeekBar(c);bar.setMax(maximum);bar.setProgress(value);bar.setPadding(dp(18),dp(6),dp(18),dp(12));
         label.setText(title+" · "+value+"%");parent.addView(bar,new LinearLayout.LayoutParams(-1,dp(46)));
         bar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener(){
             public void onProgressChanged(SeekBar s,int n,boolean user){label.setText(title+" · "+n+"%");if(user)change.set(n);}
             public void onStartTrackingTouch(SeekBar s){} public void onStopTrackingTouch(SeekBar s){NebulaHaptics.tick(s);}
         });
+        return bar;
     }
     private static int dp(float n){return AndroidUtilities.dp(n);}
-    private static final class Preview extends View {
-        final Paint paint=new Paint(3);final RectF rect=new RectF();
-        final RectF wallpaperBounds = new RectF();
-        final Path clip = new Path();
-        Bitmap blurredWallpaper;
-        Drawable cachedWallpaper;
-        int cachedWidth, cachedHeight, cachedBlur = -1;
-        Preview(Context c){super(c);setContentDescription(NebulaText.text("Предпросмотр стекла", "Glass preview"));}
-        @Override protected void onDraw(Canvas canvas){
-            NebulaTheme theme=NebulaTheme.of(getContext());
-            rect.set(dp(16),dp(12),getWidth()-dp(16),getHeight()-dp(12));
-            if (rect.width() <= 0 || rect.height() <= 0) return;
-            wallpaperBounds.set(rect);
-            clip.rewind();clip.addRoundRect(rect,dp(24),dp(24),Path.Direction.CW);
-            int save = canvas.save();
-            canvas.clipPath(clip);canvas.translate(rect.left,rect.top);
-            NebulaWallpaperPreview.drawWallpaper(canvas,(int)rect.width(),(int)rect.height());
-            canvas.restoreToCount(save);
-            updateBlur();
-            rect.inset(dp(22),dp(20));
-            if (blurredWallpaper != null) {
-                clip.rewind();clip.addRoundRect(rect,dp(24),dp(24),Path.Direction.CW);
-                save = canvas.save();canvas.clipPath(clip);
-                paint.setColor(0xffffffff);
-                canvas.drawBitmap(blurredWallpaper,null,wallpaperBounds,paint);
-                canvas.restoreToCount(save);
-            }
-            paint.setColor(NebulaMenuStyle.surface(null));paint.setAlpha(Math.round(NebulaGlass.opacity()*255));canvas.drawRoundRect(rect,dp(24),dp(24),paint);paint.setAlpha(255);
-            if(NebulaAppearance.glassHighlights()){paint.setStyle(Paint.Style.STROKE);paint.setStrokeWidth(dp(.5f+NebulaGlass.refraction()*2));paint.setColor(0x77ffffff);canvas.drawRoundRect(rect,dp(24),dp(24),paint);paint.setStyle(Paint.Style.FILL);}
-            paint.setColor(NebulaChatColors.foreground(theme.onSurface(),NebulaMenuStyle.surface(null)));paint.setTextAlign(Paint.Align.CENTER);paint.setTextSize(dp(16));
-            canvas.drawText(NebulaText.text("Жидкое стекло", "Liquid Glass"),rect.centerX(),rect.centerY()+dp(5),paint);
-        }
-        private void updateBlur() {
-            Drawable wallpaper = Theme.getCachedWallpaperNonBlocking();
-            int width = (int) wallpaperBounds.width(), height = (int) wallpaperBounds.height();
-            int blur = Math.round(dp(NebulaGlass.blur()) / 4f);
-            if (blurredWallpaper != null && cachedWallpaper == wallpaper && cachedWidth == width
-                    && cachedHeight == height && cachedBlur == blur) return;
-            releaseBlur();
-            cachedWallpaper = wallpaper;cachedWidth = width;cachedHeight = height;cachedBlur = blur;
-            if (blur == 0) return;
-            blurredWallpaper = Bitmap.createBitmap(Math.max(1,width/4),Math.max(1,height/4),Bitmap.Config.ARGB_8888);
-            Canvas capture = new Canvas(blurredWallpaper);
-            capture.scale(blurredWallpaper.getWidth()/(float)width,blurredWallpaper.getHeight()/(float)height);
-            NebulaWallpaperPreview.drawWallpaper(capture,width,height);
-            Utilities.stackBlurBitmap(blurredWallpaper,blur);
-        }
-        private void releaseBlur() {
-            if (blurredWallpaper != null) { blurredWallpaper.recycle();blurredWallpaper = null; }
-            cachedWallpaper = null;
-        }
-        @Override protected void onDetachedFromWindow() {
-            releaseBlur();
-            super.onDetachedFromWindow();
-        }
-    }
 }

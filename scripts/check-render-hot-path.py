@@ -3,6 +3,7 @@ from pathlib import Path
 import subprocess
 import sys
 import tempfile
+import re
 
 root = Path(__file__).resolve().parent.parent
 tree = Path(sys.argv[1])
@@ -50,16 +51,17 @@ class GlassPrefsCheck {
  static void near(float actual,float expected){check(Math.abs(actual-expected)<.0001,"wrong effective setting: "+actual+" vs "+expected);}
  public static void main(String[] args){
   var c=ApplicationLoader.applicationContext;var p=c.p;
-  near(NebulaGlass.opacity(),.72f);near(NebulaGlass.blur(),12f);near(NebulaGlass.refraction(),.22f);check(!NebulaGlass.custom(),"default override");
+  near(NebulaGlass.opacity(),.72f);near(NebulaGlass.blur(),12f);near(NebulaGlass.refraction(),0f);check(!NebulaGlass.custom(),"default override");
   int reads=p.reads,lookups=c.lookups;
   for(int i=0;i<10000;i++){NebulaGlass.custom();NebulaGlass.opacity();NebulaGlass.blur();NebulaGlass.refraction();}
   check(p.reads==reads&&c.lookups==lookups,"render hot path repeatedly reads preferences");
+  long revision=NebulaGlass.revision();p.edit().putBoolean("glass_highlights",false).apply();check(NebulaGlass.revision()>revision&&!NebulaGlass.highlights(),"highlight setting not live");
   NebulaGlass.custom(true);NebulaGlass.setValue("blur",25);near(NebulaGlass.blur(),7.5f);
   NebulaGlass.setValue("opacity",-20);near(NebulaGlass.opacity(),.25f);
   NebulaGlass.setValue("refraction",200);near(NebulaGlass.refraction(),.5f);
   // Imported/external preference edits must not leave cached values stale.
   p.edit().putInt("glass_blur",100).putInt("glass_opacity",100).apply();near(NebulaGlass.blur(),30);near(NebulaGlass.opacity(),1);
-  p.edit().putBoolean("glass_custom",false).apply();near(NebulaGlass.opacity(),.72f);near(NebulaGlass.blur(),12);near(NebulaGlass.refraction(),.22f);
+  p.edit().putBoolean("glass_custom",false).apply();near(NebulaGlass.opacity(),.72f);near(NebulaGlass.blur(),12);near(NebulaGlass.refraction(),0f);
   reads=p.reads;p.edit().putInt("unrelated",1).apply();check(p.reads==reads,"unrelated setting rebuilds glass cache");
   p.edit().clear().apply();check(!NebulaGlass.custom(),"clear ignored");near(NebulaGlass.opacity(),.72f);
   for(int mode=0;mode<3;mode++)for(int mask=0;mask<8;mask++) {
@@ -67,7 +69,7 @@ class GlassPrefsCheck {
    check(NebulaGlass.reduced()==(mode==2||mode==0&&mask!=0),"adaptive policy mismatch");
   }
   NebulaGlass.quality(0);NebulaGlass.environment(true,false,false);near(NebulaGlass.blur(),6);near(NebulaGlass.refraction(),0);near(NebulaGlass.opacity(),.85f);
-  NebulaGlass.environment(false,false,false);near(NebulaGlass.blur(),12);near(NebulaGlass.refraction(),.22f);
+  NebulaGlass.environment(false,false,false);near(NebulaGlass.blur(),12);near(NebulaGlass.refraction(),0f);
   NebulaGlass.custom(true);NebulaGlass.setValue("blur",100);NebulaGlass.quality(2);near(NebulaGlass.blur(),6);NebulaGlass.quality(1);near(NebulaGlass.blur(),30);
   reads=p.reads;lookups=c.lookups;for(int i=0;i<10000;i++){NebulaGlass.reduced();NebulaGlass.blur();}check(p.reads==reads&&c.lookups==lookups,"adaptive draw polls settings");
   System.out.println("Glass preferences: 40,000 warmed getter calls without preference access; edits, bounds and reset passed");
@@ -122,6 +124,52 @@ class GlassPrefsCheck {
     p=work/'BlurReuseCheck.java';p.write_text(java,encoding='utf-8')
     subprocess.run(['javac','-encoding','UTF-8',str(p)],check=True)
     subprocess.run(['java','-cp',str(work),'BlurReuseCheck'],check=True)
+
+    # Exercise the real shader controller: a slider tick is only .005, well
+    # below the old .1 cutoff. Unchanged frames must still reuse the effect.
+    liquid = (tree/'TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/LiquidGlassEffect.java').read_text(encoding='utf-8')
+    liquid = re.sub(r'^(package |import |@RequiresApi).*\n', '', liquid, flags=re.M)
+    (work/'LiquidGlassEffect.java').write_text(liquid, encoding='utf-8')
+    (work/'LiquidSliderCheck.java').write_text('''
+class RenderNode {
+ int installs; RenderEffect effect;
+ int getWidth(){return 300;} int getHeight(){return 64;}
+ void setRenderEffect(RenderEffect e){installs++;effect=e;}
+}
+class RuntimeShader {
+ static float intensity; RuntimeShader(String code){}
+ void setFloatUniform(String name,float... values){if(name.equals("refract_intensity"))intensity=values[0];}
+}
+class RenderEffect {
+ static RenderEffect createRuntimeShaderEffect(RuntimeShader s,String name){return new RenderEffect();}
+}
+class Color {
+ static int alpha(int c){return c>>>24;} static int red(int c){return (c>>16)&255;}
+ static int green(int c){return (c>>8)&255;} static int blue(int c){return c&255;}
+}
+class AndroidUtilities {static String readRes(int id){return "shader";}}
+class R {static class raw {static int liquid_glass_shader;}}
+class LiquidSliderCheck {
+ static void check(boolean b,String why){if(!b)throw new AssertionError(why);}
+ static void update(LiquidGlassEffect effect,float intensity){effect.update(0,0,300,64,32,32,32,32,11,intensity,1.2f,0x99000000);}
+ public static void main(String[] args){
+  RenderNode node=new RenderNode(); LiquidGlassEffect effect=new LiquidGlassEffect(node);
+  update(effect,0);int installs=node.installs;
+  for(int i=1;i<=100;i++){
+   update(effect,i*.005f);
+   check(Math.abs(RuntimeShader.intensity-i*.005f)<.00001f,"slider tick skipped at "+i);
+  }
+  check(node.installs==installs+100,"slider did not refresh every tick");
+  installs=node.installs;for(int i=0;i<10000;i++)update(effect,.5f);
+  check(node.installs==installs,"unchanged intensity rebuilds shader");
+  effect.setEnabled(false);check(node.effect==null,"zero/reduced bypass retains distortion");
+  installs=node.installs;effect.setEnabled(false);check(node.installs==installs,"bypass not cached");
+  effect.setEnabled(true);check(node.effect!=null,"effect not restored");
+  System.out.println("Liquid glass: all 100 slider ticks applied, 10,000 unchanged frames cached, disable/restore passed");
+ }
+}''', encoding='utf-8')
+    subprocess.run(['javac','-encoding','UTF-8',str(work/'LiquidGlassEffect.java'),str(work/'LiquidSliderCheck.java')],check=True)
+    subprocess.run(['java','-cp',str(work),'LiquidSliderCheck'],check=True)
 
     # NebulaTheme.of is called from onDraw and onMeasure in eight of our views.
     # Every call used to read a preference, ask for the resource configuration
