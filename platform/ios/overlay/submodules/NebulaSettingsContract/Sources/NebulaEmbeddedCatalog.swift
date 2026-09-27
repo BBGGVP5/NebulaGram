@@ -162,7 +162,7 @@ enum NebulaEmbeddedCatalog {
       "android_store": "nebulagram",
       "android_source": "NebulaTransitions.java",
       "transfer_v1": true,
-      "ios_status": "implemented",
+      "ios_status": "planned",
       "ios_mapping": "native",
       "min": 0,
       "max": 2,

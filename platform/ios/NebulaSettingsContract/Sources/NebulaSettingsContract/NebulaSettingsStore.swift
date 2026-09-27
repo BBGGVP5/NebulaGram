@@ -33,7 +33,7 @@ public final class SettingsObservation {
 public final class NebulaSettingsStore {
     public static let shared = NebulaSettingsStore(defaults: .standard)
     public static let storageKey = "app.nebulagram.presentation.settings.v1"
-    public static let editableKeys: Set<String> = ["hide_tab_counters", "show_stories", "settings_search_history", "glass_quality", "bottom_bar_contacts", "bottom_bar_order", "wide_posts"]
+    public static let editableKeys: Set<String> = ["hide_tab_counters", "show_stories", "settings_search_history", "glass_quality", "bottom_bar_contacts", "bottom_bar_order", "wide_posts", "fragment_transition_style"]
     public static let maximumTransferBytes = 1024 * 1024
 
     private let defaults: UserDefaults
