@@ -78,6 +78,8 @@ public final class NebulaNanoAi {
         for (int depth = 0; depth < 8 && cause != null; depth++, cause = cause.getCause()) {
             if (cause instanceof java.util.concurrent.TimeoutException)
                 return NebulaText.text("AICore не ответил вовремя. Повторите проверку с открытым приложением.", "AICore timed out. Retry with the app open.");
+            if ("GEMINI_NANO_BUSY".equals(cause.getMessage()))
+                return NebulaText.text("Gemini Nano завершает предыдущий запрос. Повторите через несколько секунд.", "Gemini Nano is finishing the previous request. Try again in a few seconds.");
             // AICore's 606 is nested in ML Kit's service exception, not an SDK error code.
             String detail = cause.getMessage();
             if (detail != null && (detail.contains("FEATURE_NOT_FOUND") || detail.contains("606")))
@@ -116,6 +118,7 @@ public final class NebulaNanoAi {
         if (input == null || input.trim().isEmpty()) throw new IllegalArgumentException("Enter text");
         if (input.length() > 10000 || instructions != null && instructions.length() > 4000)
             throw new IllegalArgumentException("Gemini Nano supports shorter prompts on device");
+        if (!NebulaNanoInferenceGate.tryAcquire()) throw new IllegalStateException("GEMINI_NANO_BUSY");
         try (Session session = session()) {
             int status = session.checkStatus();
             if (status == FeatureStatus.DOWNLOADABLE)
@@ -134,6 +137,8 @@ public final class NebulaNanoAi {
                 throw new IllegalStateException("Gemini Nano returned no text");
             }
             return response.getCandidates().get(0).getText().trim();
+        } finally {
+            NebulaNanoInferenceGate.release();
         }
     }
 }

@@ -45,6 +45,7 @@ public class NanoStateCheck {
 ''' + method(fragment, '    private boolean currentNano(') + '\n' + method(fragment, '    private void invalidateNanoCheck(') + '''
     public static void main(String[] args) throws Exception {
         expect(errorText(new ExecutionException(new TimeoutException())).contains("timed out"), "timeout is not unsupported");
+        expect(errorText(new IllegalStateException("GEMINI_NANO_BUSY")).contains("previous request"), "parallel inference explains wait");
         expect(errorText(new GenAiException("FEATURE_NOT_FOUND 606", 0)).contains("(606)"), "AICore provisioning");
         String[] messages={"busy", "background", "storage", "Update", "Update", "limit", "current configuration", "not ready"};
         for (int i=0;i<messages.length;i++) {
