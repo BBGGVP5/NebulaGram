@@ -94,6 +94,12 @@ def main():
         draft_menu = (temp / 'submodules/TelegramUI/Sources/ChatController.swift').read_text(encoding='utf-8')
         assert 'NebulaAiChatController(russian: russian, initialText: draft, action: .proofread' in draft_menu
         assert 'withUpdatedEffectiveInputState(ChatTextInputState(inputText: NSAttributedString(string: value)))' in draft_menu
+        assert 'NebulaChatLockEditorController(account:' in draft_menu
+        assert 'NebulaChatLockGate.attach(to: self' in draft_menu
+        assert 'NebulaChatLockGate.seal(host: self)' in draft_menu
+        lock_store = (temp / 'submodules/NebulaSettingsContract/Sources/NebulaChatLocks.swift').read_text(encoding='utf-8')
+        assert 'app.nebulagram.chatlocks' in lock_store and 'CCKeyDerivationPBKDF' in lock_store
+        assert 'kSecAttrAccessibleWhenUnlockedThisDeviceOnly' in (temp / 'submodules/NebulaSettingsContract/Sources/NebulaAiSecrets.swift').read_text(encoding='utf-8')
         # All native icon placement code must survive the extra trailing badge.
         original_header = run('git', '-C', str(tree), 'show', revision + ':submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoHeaderNode.swift').decode('utf-8')
         native_start = original_header.index('        if let statusIconSize = self.statusIconSize,')

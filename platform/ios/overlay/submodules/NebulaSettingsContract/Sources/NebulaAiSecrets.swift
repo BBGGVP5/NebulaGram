@@ -116,13 +116,14 @@ public final class NebulaAiSecrets {
 /// per provider, this device only — is stated in one place and testable in another.
 public struct NebulaKeychainStorage: NebulaSecretStorage {
     public static let service = "app.nebulagram.ai"
+    private let service: String
 
-    public init() {}
+    public init(service: String = NebulaKeychainStorage.service) { self.service = service }
 
     private func query(_ account: String) -> [String: Any] {
         [
             kSecClass as String: kSecClassGenericPassword,
-            kSecAttrService as String: Self.service,
+            kSecAttrService as String: service,
             kSecAttrAccount as String: account,
         ]
     }

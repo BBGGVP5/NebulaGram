@@ -53,6 +53,10 @@ def check(temp, vendor, revision):
     assert 'scroll.contentSize' in welcome_ui and 'view.safeAreaInsets.bottom' in welcome_ui
     assert 'isReduceMotionEnabled' in welcome_ui
     assert 'languageChanged?(selectedLanguage)' in welcome_ui
+    assert 'UISwipeGestureRecognizer(target: self' in welcome_ui
+    assert 'previousButton' in welcome_ui and 'requestLanguagePicker?()' in welcome_ui
+    assert 'self.controller.requestLanguagePicker' in patched('AuthorizationSequenceSplashController.swift')
+    assert 'NebulaWelcomeLanguageController(selected:' in patched('AuthorizationSequenceSplashController.swift')
     service = (temp / 'submodules/NebulaLinkUI/Sources/NebulaLinkService.swift').read_text(encoding='utf-8')
     for required in ['NebulalinkCall(method, json)', 'updateProxySettingsInteractively', '127.0.0.1',
                      'kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly', 'current.activeServer == owned',

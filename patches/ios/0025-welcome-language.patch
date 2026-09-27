@@ -1,0 +1,16 @@
+diff --git a/submodules/AuthorizationUI/Sources/AuthorizationSequenceSplashController.swift b/submodules/AuthorizationUI/Sources/AuthorizationSequenceSplashController.swift
+--- a/submodules/AuthorizationUI/Sources/AuthorizationSequenceSplashController.swift
++++ b/submodules/AuthorizationUI/Sources/AuthorizationSequenceSplashController.swift
+@@ -65,4 +65,12 @@ public final class AuthorizationSequenceSplashController: ViewController {
+         self.controller.languageChanged = { [weak self] language in
+             self?.startButton.title = NebulaAuthCopy(language).next
+         }
++        self.controller.requestLanguagePicker = { [weak self] in
++            guard let self = self, self.presentedViewController == nil else { return }
++            let picker = NebulaWelcomeLanguageController(selected: self.controller.selectedLanguage)
++            picker.onSelection = { [weak self] code in self?.controller.setLanguage(code) }
++            let navigation = UINavigationController(rootViewController: picker)
++            navigation.view.tintColor = self.theme.list.itemAccentColor
++            self.present(navigation, animated: true)
++        }
+         self.controller.pageChanged = { [weak self] page, language in

@@ -6,6 +6,7 @@ final class NebulaWelcomeController: UIViewController {
     var startMessagingInAlternativeLanguage: ((String?) -> Void)?
     var createStartButton: ((CGFloat) -> UIView?)?
     var languageChanged: ((String) -> Void)?
+    var requestLanguagePicker: (() -> Void)?
     var selectedLanguage = Locale.preferredLanguages.first?.hasPrefix("ru") == true ? "ru" : "en"
     var defaultFrame = CGRect.zero
     var isEnabled = true { didSet { view.isUserInteractionEnabled = isEnabled } }
@@ -17,6 +18,7 @@ final class NebulaWelcomeController: UIViewController {
     private let scroll = UIScrollView()
     private let languageButton = UIButton(type: .system)
     private let skipButton = UIButton(type: .system)
+    private let previousButton = UIButton(type: .system)
     private var primary: UIView?
     private let accent: UIColor
     private let textColor: UIColor
@@ -57,6 +59,16 @@ final class NebulaWelcomeController: UIViewController {
         skipButton.addTarget(self, action: #selector(skipTour), for: .touchUpInside)
         skipButton.tintColor = accent
         view.addSubview(skipButton)
+        previousButton.accessibilityIdentifier = "Nebula.Welcome.Back"
+        previousButton.addTarget(self, action: #selector(previousPage), for: .touchUpInside)
+        previousButton.tintColor = accent
+        view.addSubview(previousButton)
+        let left = UISwipeGestureRecognizer(target: self, action: #selector(swipedLeft))
+        left.direction = .left
+        view.addGestureRecognizer(left)
+        let right = UISwipeGestureRecognizer(target: self, action: #selector(swipedRight))
+        right.direction = .right
+        view.addGestureRecognizer(right)
         updateCopy()
     }
     private func updateCopy() {
@@ -71,8 +83,10 @@ final class NebulaWelcomeController: UIViewController {
         languageButton.setTitle(copy.russian ? "Язык · Русский / English" : "Language · English / Русский", for: .normal)
         languageButton.tintColor = accent
         skipButton.setTitle(copy.skip, for: .normal)
+        previousButton.setTitle(copy.russian ? "← Назад" : "← Back", for: .normal)
         languageButton.isHidden = page != 0
         skipButton.isHidden = page == 0 || page == 4
+        previousButton.isHidden = page == 0
         art.setPage(page)
         progress.setCurrent(page)
         languageChanged?(selectedLanguage)
@@ -80,15 +94,44 @@ final class NebulaWelcomeController: UIViewController {
         view.setNeedsLayout()
     }
     @objc private func changeLanguage() {
-        selectedLanguage = selectedLanguage == "ru" ? "en" : "ru"
+        requestLanguagePicker?()
+    }
+    func setLanguage(_ code: String) {
+        guard code == "ru" || code == "en" else { return }
+        selectedLanguage = code
         updateCopy()
     }
     @objc private func skipTour() { startMessaging?() }
+    @objc private func previousPage() { move(to: page - 1) }
+    @objc private func swipedLeft() { move(to: page + 1) }
+    @objc private func swipedRight() { move(to: page - 1) }
+    private func move(to index: Int) {
+        guard (0...4).contains(index), index != page else { return }
+        let offset: CGFloat = index > page ? 14 : -14
+        page = index
+        if UIAccessibility.isReduceMotionEnabled { updateCopy() }
+        else {
+            art.alpha = 0
+            titleLabel.alpha = 0
+            subtitleLabel.alpha = 0
+            art.transform = CGAffineTransform(translationX: offset, y: 0)
+            titleLabel.transform = art.transform
+            subtitleLabel.transform = art.transform
+            updateCopy()
+            UIView.animate(withDuration: 0.22, delay: 0, options: .curveEaseOut) {
+                self.art.alpha = 1
+                self.titleLabel.alpha = 1
+                self.subtitleLabel.alpha = 0.8
+                self.art.transform = .identity
+                self.titleLabel.transform = .identity
+                self.subtitleLabel.transform = .identity
+            }
+        }
+        UIAccessibility.post(notification: .screenChanged, argument: titleLabel)
+    }
     func advance() {
         if page < 4 {
-            page += 1
-            updateCopy()
-            UIAccessibility.post(notification: .screenChanged, argument: titleLabel)
+            move(to: page + 1)
         } else {
             startMessaging?()
         }
@@ -102,13 +145,22 @@ final class NebulaWelcomeController: UIViewController {
         progress.frame = CGRect(x: (view.bounds.width - progressWidth) / 2,
                                 y: view.bounds.height - view.safeAreaInsets.bottom - 26,
                                 width: progressWidth, height: 4)
-        languageButton.frame = CGRect(x: x, y: progress.frame.minY - 52, width: width, height: 44)
-        skipButton.frame = languageButton.frame
+        let secondaryY = progress.frame.minY - 58
+        languageButton.frame = CGRect(x: x, y: secondaryY, width: width, height: 44)
+        let half = (width - 12) / 2
+        previousButton.frame = CGRect(x: x, y: secondaryY, width: page == 4 ? width : half, height: 44)
+        skipButton.frame = CGRect(x: x + half + 12, y: secondaryY, width: half, height: 44)
+        for button in [languageButton, previousButton, skipButton] {
+            button.layer.cornerRadius = 14
+            button.layer.borderWidth = 1
+            button.layer.borderColor = accent.withAlphaComponent(0.26).cgColor
+            button.backgroundColor = accent.withAlphaComponent(0.07)
+        }
         if primary == nil, let button = createStartButton?(width) {
             primary = button
             view.addSubview(button)
         } else { _ = createStartButton?(width) }
-        primary?.frame = CGRect(x: x, y: languageButton.frame.minY - 62, width: width, height: 50)
+        primary?.frame = CGRect(x: x, y: secondaryY - 64, width: width, height: 50)
         let scrollTop = view.safeAreaInsets.top + 12
         let contentBottom = (primary?.frame.minY ?? languageButton.frame.minY) - 24
         scroll.frame = CGRect(x: 0, y: scrollTop, width: view.bounds.width,

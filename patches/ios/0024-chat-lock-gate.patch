@@ -1,0 +1,45 @@
+diff --git a/submodules/TelegramUI/Sources/ChatController.swift b/submodules/TelegramUI/Sources/ChatController.swift
+index aee0e60..5333702 100644
+--- a/submodules/TelegramUI/Sources/ChatController.swift
++++ b/submodules/TelegramUI/Sources/ChatController.swift
+@@ -6033,6 +6033,21 @@ public final class ChatControllerImpl: TelegramBaseController, ChatController, G
+                             })))
+                         }
+                                                 
++                        if peer.id != strongSelf.context.account.peerId {
++                            let russian = strongSelf.presentationData.strings.baseLanguageCode.lowercased().hasPrefix("ru")
++                            items.append(.action(ContextMenuActionItem(text: russian ? "Nebula · защита чата" : "Nebula · Chat lock", icon: { theme in
++                                return generateTintedImage(image: UIImage(bundleImageName: "Chat/Context Menu/Lock"), color: theme.actionSheet.primaryTextColor)
++                            }, action: { _, f in
++                                f(.dismissWithoutContent)
++                                let editor = NebulaChatLockEditorController(account: strongSelf.context.account.peerId.toInt64(), peer: peer.id.toInt64(), russian: russian)
++                                editor.onChanged = { [weak self] in
++                                    guard let self = self, let peerId = self.chatLocation.peerId else { return }
++                                    NebulaChatLockGate.attach(to: self, account: self.context.account.peerId.toInt64(), peer: peerId.toInt64(), russian: russian)
++                                }
++                                strongSelf.present(UINavigationController(rootViewController: editor), animated: true)
++                            })))
++                        }
++
+                         return items
+                     }
+                 case let .replyThread(message):
+@@ -7588,6 +7603,10 @@ public final class ChatControllerImpl: TelegramBaseController, ChatController, G
+     
+     override public func viewWillAppear(_ animated: Bool) {
+         super.viewWillAppear(animated)
++        if let peerId = self.chatLocation.peerId, peerId != self.context.account.peerId {
++            let russian = self.presentationData.strings.baseLanguageCode.lowercased().hasPrefix("ru")
++            NebulaChatLockGate.attach(to: self, account: self.context.account.peerId.toInt64(), peer: peerId.toInt64(), russian: russian)
++        }
+                 
+         if self.willAppear {
+             self.chatDisplayNode.historyNode.refreshPollActionsForVisibleMessages()
+@@ -8168,6 +8187,7 @@ public final class ChatControllerImpl: TelegramBaseController, ChatController, G
+     
+     override public func viewWillDisappear(_ animated: Bool) {
+         super.viewWillDisappear(animated)
++        NebulaChatLockGate.seal(host: self)
+         
+         if #available(iOS 18.0, *) {
+         } else {
