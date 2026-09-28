@@ -17,7 +17,7 @@ import java.util.*;
 class CapsuleCheck {
  static void check(boolean b){if(!b)throw new AssertionError();}
  static class Draw {int alpha,left,right;List<int[]> calls=new ArrayList<>();
-  void setBounds(int l,int t,int r,int b){left=l;right=r;}void setAlpha(int a){alpha=a;}
+  void setBounds(int l,int t,int r,int b){left=l;right=r;}void setAlpha(int a){alpha=a;}int getAlpha(){return alpha;}
   void draw(Object c){calls.add(new int[]{alpha,left,right});}}
  static class Avatar {boolean visible;boolean hasVisibleAvatar(){return visible;}float getAlpha(){return 1f;}}
  static class Animated {float getFloatValue(){return .6f;}}
@@ -27,7 +27,7 @@ class CapsuleCheck {
  static class Menu {int x=240;View[] children={new View(0),new View(46),new View(92),new View(138)};
   int getChildCount(){return children.length;}View getChildAt(int i){return children[i];}float getX(){return x;}}
  boolean nebulaFloatingChatHeader=true,nebulaChatMenuHidden=true,glassOnlyBack,doNotDrawGlassMenu,hasForcedMenuWidth;
- boolean nebulaHomeGlass,isSearchFieldVisible;Menu menu=new Menu();
+ boolean nebulaHomeGlass,nebulaHomeTabsGlass,isSearchFieldVisible;Menu menu=new Menu();
  Avatar nebulaChatAvatarContainer=new Avatar();Draw glassDrawableMenu=new Draw();Animated animatorHasMenuItems=new Animated();
  float actionModeFactor,searchFactor;int menuWidth=96,s=48,p=6,t=0,b=60;Object canvas;
  int getWidth(){return 400;}
@@ -56,6 +56,13 @@ class CapsuleCheck {
   for(int i=0;i<3;i++){int[] d=home.glassDrawableMenu.calls.get(i);
    check(d[0]==Math.round(255*.6f)&&d[1]==240+46*i&&d[2]==286+46*i);
   }
+  CapsuleCheck tabs=new CapsuleCheck();tabs.nebulaFloatingChatHeader=false;tabs.nebulaHomeTabsGlass=true;
+  tabs.menuWidth=138;tabs.menu.children[3].visibility=8;tabs.draw();
+  check(tabs.glassDrawableMenu.calls.size()==1);
+  int[] grouped=tabs.glassDrawableMenu.calls.get(0);
+  check(grouped[0]==Math.round(255*.6f)&&grouped[1]==236&&grouped[2]==382);
+  tabs.glassDrawableMenu.calls.clear();tabs.searchFactor=1f;tabs.draw();
+  check(tabs.glassDrawableMenu.calls.isEmpty());
   CapsuleCheck c=new CapsuleCheck();c.glassDrawableMenu=null;c.draw();
   System.out.println(cases+" selection capsule drawing cases passed");
  }
