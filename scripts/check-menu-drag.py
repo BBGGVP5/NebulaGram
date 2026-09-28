@@ -48,4 +48,15 @@ popup = native.read_text(encoding='utf-8')
 assert 'nebulaReveal.contentTouchEvent(event)' in popup
 assert 'super.dispatchTouchEvent(contentEvent)' in popup
 assert 'finally {' in popup and 'if (contentEvent != event) contentEvent.recycle();' in popup
+divider = (ui/'NebulaMenuDivider.java').read_text(encoding='utf-8')
+assert 'extends View' in divider and 'extends ActionBarPopupWindow.GapView' not in divider
+assert 'canvas.drawRect(edge, top, getWidth() - edge, top + thickness, paint)' in divider
+tree = Path(sys.argv[1]) / 'TMessagesProj/src/main/java/org/telegram/ui'
+menu_item = (tree/'ActionBar/ActionBarMenuItem.java').read_text(encoding='utf-8')
+chat = (tree/'ChatActivity.java').read_text(encoding='utf-8')
+tabs = (tree/'MainTabsActivity.java').read_text(encoding='utf-8')
+assert 'lazilyAddNebulaDivider()' in menu_item and 'new app.nebulagram.ui.NebulaMenuDivider' in menu_item
+assert 'headerItem.lazilyAddNebulaDivider()' in chat
+assert tabs.count('NebulaMenuDivider.add(o, getContext(), getResourceProvider())') == 6
+assert 'if (child instanceof GapView) {' in popup, 'The upstream animation must skip only native gaps'
 print('Shared content geometry and copied/recycled touch dispatch are wired')

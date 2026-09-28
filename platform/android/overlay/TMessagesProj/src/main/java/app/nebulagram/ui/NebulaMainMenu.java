@@ -33,7 +33,7 @@ public final class NebulaMainMenu {
             args.putBoolean("hasMainTabs", false);
             host.presentFragment(new CallLogActivity(args));
         });
-        menu.addGap();
+        NebulaMenuDivider.add(menu, host.getParentActivity(), host.getResourceProvider());
         menu.add(new NebulaQrIcon(true), LocaleController.getString(R.string.NebulaScanQr), () -> {
             android.app.Activity activity = host.getParentActivity();
             if (activity == null) return;

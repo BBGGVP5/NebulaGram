@@ -1,0 +1,113 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarMenuItem.java b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarMenuItem.java
+index 6193ed7..338998e 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarMenuItem.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarMenuItem.java
+@@ -2422,6 +2422,7 @@ public class ActionBarMenuItem extends FrameLayout {
+     public static final int VIEW_TYPE_COLORED_GAP = 1;
+     public static final int VIEW_TYPE_SWIPEBACKITEM = 2;
+     public static final int VIEW_TYPE_TEXT = 3;
++    public static final int VIEW_TYPE_NEBULA_DIVIDER = 4;
+ 
+     private ArrayList<Item> lazyList;
+     private HashMap<Integer, Item> lazyMap;
+@@ -2460,6 +2461,9 @@ public class ActionBarMenuItem extends FrameLayout {
+         private static Item asColoredGap() {
+             return new Item(VIEW_TYPE_COLORED_GAP);
+         }
++        private static Item asNebulaDivider() {
++            return new Item(VIEW_TYPE_NEBULA_DIVIDER);
++        }
+         private static Item asSwipeBackItem(int icon, Drawable iconDrawable, String text, View viewToSwipeBack) {
+             Item item = new Item(VIEW_TYPE_SWIPEBACKITEM);
+             item.icon = icon;
+@@ -2517,6 +2521,9 @@ public class ActionBarMenuItem extends FrameLayout {
+                 gap.setTag(R.id.fit_width_tag, 1);
+                 parent.popupLayout.addView(gap, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, 8));
+                 view = gap;
++            } else if (viewType == VIEW_TYPE_NEBULA_DIVIDER) {
++                view = new app.nebulagram.ui.NebulaMenuDivider(parent.getContext(), parent.resourcesProvider);
++                parent.popupLayout.addView(view, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, 9));
+             } else if (viewType == VIEW_TYPE_SWIPEBACKITEM) {
+                 ActionBarMenuSubItem cell = new ActionBarMenuSubItem(parent.getContext(), false, false, false, parent.resourcesProvider);
+                 cell.setTextAndIcon(text, icon, iconDrawable);
+@@ -2639,6 +2646,9 @@ public class ActionBarMenuItem extends FrameLayout {
+     public Item lazilyAddColoredGap() {
+         return putLazyItem(Item.asColoredGap());
+     }
++    public Item lazilyAddNebulaDivider() {
++        return putLazyItem(Item.asNebulaDivider());
++    }
+     public Item lazilyAddText(CharSequence text, int textSizeDp) {
+         return putLazyItem(Item.asText(text, textSizeDp));
+     }
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
+index d32f00f..a04db28 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
+@@ -4551,7 +4551,7 @@ public class ChatActivity extends BaseFragment implements
+             closeTopicItem.setVisibility(currentChat != null && ChatObject.canManageTopic(currentAccount, currentChat, forumTopic) && forumTopic != null && !forumTopic.closed ? View.VISIBLE : View.GONE);
+         }
+         if (headerItem != null) {
+-            headerItem.lazilyAddColoredGap();
++            headerItem.lazilyAddNebulaDivider();
+             headerItem.lazilyAddSubItem(0x4e4443, R.drawable.msg_clearcache,
+                     app.nebulagram.ui.NebulaText.text("Очистить удаленки", "Clear deleted messages"));
+         }
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/MainTabsActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/MainTabsActivity.java
+index 7dde2a2..8ef3e10 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/MainTabsActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/MainTabsActivity.java
+@@ -431,7 +431,7 @@ public class MainTabsActivity extends ViewPagerActivity implements NotificationC
+             args.putBoolean("needFinishFragment", false);
+             presentFragment(new CallLogActivity(args));
+         });
+-        o.addGap();
++        app.nebulagram.ui.NebulaMenuDivider.add(o, getContext(), getResourceProvider());
+         o.add(R.drawable.msg_customize, getString(R.string.NebulaTabsOrganizer), () ->
+                 presentFragment(new app.nebulagram.ui.NebulaSectionFragment(
+                         app.nebulagram.ui.NebulaSectionFragment.SECTION_TABS)));
+@@ -463,7 +463,7 @@ public class MainTabsActivity extends ViewPagerActivity implements NotificationC
+                 NotificationCenter.getInstance(currentAccount).postNotificationName(NotificationCenter.callTabsVisibleToggled);
+             });
+         }
+-        o.addGap();
++        app.nebulagram.ui.NebulaMenuDivider.add(o, getContext(), getResourceProvider());
+         o.add(R.drawable.msg_customize, getString(R.string.NebulaTabsOrganizer), () ->
+                 presentFragment(new app.nebulagram.ui.NebulaSectionFragment(
+                         app.nebulagram.ui.NebulaSectionFragment.SECTION_TABS)));
+@@ -486,7 +486,7 @@ public class MainTabsActivity extends ViewPagerActivity implements NotificationC
+ 
+         final ItemOptions o = ItemOptions.makeOptions(this, anchor);
+         o.add(R.drawable.msg_folders, getString(R.string.FilterEditAll), () -> presentFragment(new FiltersSetupActivity()));
+-        o.addGap();
++        app.nebulagram.ui.NebulaMenuDivider.add(o, getContext(), getResourceProvider());
+         final int selectedFolderId = dialogsActivity == null ? 0 : dialogsActivity.nebulaSelectedFolderId();
+         if (filters == null || filters.isEmpty()) {
+             o.add(R.drawable.msg_discussion, getString(R.string.FilterAllChats), () -> openFolder(0));
+@@ -535,7 +535,7 @@ public class MainTabsActivity extends ViewPagerActivity implements NotificationC
+             });
+             o.addView(folderItem, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT));
+         }
+-        o.addGap();
++        app.nebulagram.ui.NebulaMenuDivider.add(o, getContext(), getResourceProvider());
+         o.add(R.drawable.msg_archive, getString(R.string.ArchivedChats), () -> {
+             Bundle args = new Bundle();
+             args.putInt("folderId", 1);
+@@ -669,7 +669,7 @@ public class MainTabsActivity extends ViewPagerActivity implements NotificationC
+         }
+ 
+         if (accountNumbers.size() > 0) {
+-            if (o.getItemsCount() > 0) o.addGap();
++            if (o.getItemsCount() > 0) app.nebulagram.ui.NebulaMenuDivider.add(o, getContext(), getResourceProvider());
+             for (int acc : accountNumbers) {
+                 final int account = acc;
+                 final View btn = accountView(acc, currentAccount == acc);
+@@ -684,7 +684,7 @@ public class MainTabsActivity extends ViewPagerActivity implements NotificationC
+             }
+         }
+ 
+-        o.addGap();
++        app.nebulagram.ui.NebulaMenuDivider.add(o, getContext(), getResourceProvider());
+         o.add(R.drawable.msg_customize, getString(R.string.NebulaTabsOrganizer), () ->
+                 presentFragment(new app.nebulagram.ui.NebulaSectionFragment(
+                         app.nebulagram.ui.NebulaSectionFragment.SECTION_TABS)));
