@@ -97,7 +97,7 @@ index fdfd1ce..c7bc84d 100644
          
 +        var nebulaTitleConstrainedSize = titleConstrainedSize
 +        if self.nebulaBadge != nil {
-+            nebulaTitleConstrainedSize.width = max(1.0, nebulaTitleConstrainedSize.width - 28.0)
++            nebulaTitleConstrainedSize.width = max(1.0, nebulaTitleConstrainedSize.width - 19.0)
 +        }
          let titleNodeLayout = self.titleNode.updateLayout(text: titleStringText, states: [
 -            TitleNodeStateRegular: MultiScaleTextState(attributes: titleAttributes, constrainedSize: titleConstrainedSize),
@@ -112,12 +112,12 @@ index fdfd1ce..c7bc84d 100644
          }
          
 +        if self.nebulaBadge != nil {
-+            let badgeSize: CGFloat = 24.0
-+            let expandedBadgeSize: CGFloat = 20.0
-+            titleHorizontalOffset -= (badgeSize + 4.0) / 2.0
++            let badgeSize: CGFloat = 16.0
++            let expandedBadgeSize: CGFloat = 14.0
++            titleHorizontalOffset -= (badgeSize + 3.0) / 2.0
 +            let collapsedTransitionOffset = -10.0 * (self.navigationTransition?.fraction ?? 0.0)
-+            transition.updateFrame(view: self.nebulaBadgeView, frame: CGRect(x: nextIconX + 4.0 + collapsedTransitionOffset, y: floor((titleSize.height - badgeSize) / 2.0), width: badgeSize, height: badgeSize))
-+            transition.updateFrame(view: self.nebulaExpandedBadgeView, frame: CGRect(x: nextExpandedIconX + 4.0, y: floor((titleExpandedSize.height - expandedBadgeSize) / 2.0) + 1.0, width: expandedBadgeSize, height: expandedBadgeSize))
++            transition.updateFrame(view: self.nebulaBadgeView, frame: CGRect(x: nextIconX + 3.0 + collapsedTransitionOffset, y: floor((titleSize.height - badgeSize) / 2.0), width: badgeSize, height: badgeSize))
++            transition.updateFrame(view: self.nebulaExpandedBadgeView, frame: CGRect(x: nextExpandedIconX + 3.0, y: floor((titleExpandedSize.height - expandedBadgeSize) / 2.0) + 1.0, width: expandedBadgeSize, height: expandedBadgeSize))
 +        }
 +
          var titleFrame: CGRect

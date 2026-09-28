@@ -1,6 +1,10 @@
 package app.nebulagram.ui;
 
 import android.content.SharedPreferences;
+import android.graphics.Canvas;
+import android.graphics.ColorFilter;
+import android.graphics.PixelFormat;
+import android.graphics.drawable.Drawable;
 import android.text.SpannableStringBuilder;
 import android.text.TextPaint;
 import android.view.View;
@@ -122,6 +126,70 @@ public final class NebulaBadges {
         return title == null ? "" : withBadge(title, kind);
     }
 
+    /** Profile names keep Telegram's premium emoji as the first right drawable. */
+    public static Drawable profileSuffix(Drawable existing, long userId) {
+        if (existing instanceof ProfileSuffix) existing = ((ProfileSuffix) existing).base;
+        int resource = iconResource(badge(userId));
+        if (resource == 0) return existing;
+        Drawable artwork = ContextCompat.getDrawable(ApplicationLoader.applicationContext, resource);
+        return artwork == null ? existing : new ProfileSuffix(existing, artwork);
+    }
+
+    private static final class ProfileSuffix extends Drawable implements Drawable.Callback {
+        private final Drawable base;
+        private final Drawable badge;
+        private final int badgeSize = AndroidUtilities.dp(15);
+        private final int gap = AndroidUtilities.dp(3);
+
+        ProfileSuffix(Drawable base, Drawable badge) {
+            this.base = base;
+            this.badge = badge.mutate();
+            if (base != null) base.setCallback(this);
+            this.badge.setCallback(this);
+        }
+
+        @Override public int getIntrinsicWidth() {
+            return (base == null ? 0 : base.getIntrinsicWidth() + gap) + badgeSize;
+        }
+
+        @Override public int getIntrinsicHeight() {
+            return Math.max(badgeSize, base == null ? 0 : base.getIntrinsicHeight());
+        }
+
+        @Override public void draw(Canvas canvas) {
+            int save = canvas.save();
+            canvas.translate(getBounds().left, getBounds().top);
+            float scale = getBounds().width() / (float) Math.max(1, getIntrinsicWidth());
+            canvas.scale(scale, scale);
+            int height = getIntrinsicHeight();
+            int x = 0;
+            if (base != null) {
+                int width = base.getIntrinsicWidth(), itemHeight = base.getIntrinsicHeight();
+                base.setBounds(0, (height - itemHeight) / 2, width, (height + itemHeight) / 2);
+                base.draw(canvas);
+                x = width + gap;
+            }
+            badge.setBounds(x, (height - badgeSize) / 2, x + badgeSize, (height + badgeSize) / 2);
+            badge.draw(canvas);
+            canvas.restoreToCount(save);
+        }
+
+        @Override public void setAlpha(int alpha) {
+            if (base != null) base.setAlpha(alpha);
+            badge.setAlpha(alpha);
+        }
+
+        @Override public void setColorFilter(ColorFilter filter) {
+            if (base != null) base.setColorFilter(filter);
+            badge.setColorFilter(filter);
+        }
+
+        @Override public int getOpacity() { return PixelFormat.TRANSLUCENT; }
+        @Override public void invalidateDrawable(Drawable who) { invalidateSelf(); }
+        @Override public void scheduleDrawable(Drawable who, Runnable what, long when) { scheduleSelf(what, when); }
+        @Override public void unscheduleDrawable(Drawable who, Runnable what) { unscheduleSelf(what); }
+    }
+
     /** Человеческое имя вида значка — для экрана настроек. */
     public static String title(String kind) {
         if (kind == null) {
@@ -144,7 +212,7 @@ public final class NebulaBadges {
         String title = title(kind);
         if (fragment == null || title == null) return;
         String description = description(kind);
-        fragment.showDialog(new NebulaDialog.Builder(fragment.getParentActivity())
+        fragment.showDialog(new NebulaDialog.Builder(fragment.getParentActivity(), fragment.getResourceProvider())
                 .setTitle(title)
                 .setMessage(description)
                 .setPositiveButton(NebulaText.text("Подробнее", "More details"), (dialog, which) ->

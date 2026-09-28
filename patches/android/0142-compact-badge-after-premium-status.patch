@@ -1,0 +1,20 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
+@@ -11508,5 +11508,4 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+-                    nameTextView[a].setText(app.nebulagram.ui.NebulaBadges.decorate(
+-                            newString, user.id, nameTextView[a].getTextPaint(), nameTextView[a]));
++                    nameTextView[a].setText(newString);
+                     nameTextView[a].setOnClickListener(v -> app.nebulagram.ui.NebulaBadges.showInfo(this, user.id));
+                 }
+                 if (a == 0 && onlineTextOverride != null) {
+@@ -11591,6 +11590,8 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+                     } else {
+                         nameTextView[a].setRightDrawable(null);
+                     }
+                 }
++                nameTextView[a].setRightDrawable2(app.nebulagram.ui.NebulaBadges.profileSuffix(
++                        nameTextView[a].getRightDrawable2(), user.id));
+                 if (leftIcon == null && currentEncryptedChat == null && user.bot_verification_icon != 0) {
+                     nameTextView[a].setLeftDrawableOutside(true);
+                     leftIcon = getBotVerificationDrawable(user.bot_verification_icon, false, a);
