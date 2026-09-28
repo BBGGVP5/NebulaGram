@@ -79,7 +79,7 @@ final class NebulaVideoZoomSlider: UIView {
     func setCurrent(_ factor: CGFloat) { updateZoom(factor, notify: false) }
 
     @objc private func tapCurrent() {
-        if abs(current - 2) < 0.05 { updateZoom(1, notify: true) }
+        updateZoom(1, notify: true)
         setExpanded(true)
     }
 
@@ -90,10 +90,11 @@ final class NebulaVideoZoomSlider: UIView {
 
     private func updateZoom(_ factor: CGFloat, notify: Bool) {
         current = max(1, min(maximum, factor))
-        let secondSelected = maximum >= 2 && abs(current - 2) < 0.05
-        currentLabel.text = secondSelected ? "1×" : Self.format(current)
+        let secondSelected = maximum > 1.05 && abs(current - min(2, maximum)) < 0.05
+        let firstSelected = abs(current - 1) < 0.05
+        currentLabel.text = "1×"
         secondLabel.text = Self.format(min(2, maximum))
-        currentLabel.backgroundColor = secondSelected ? .clear : accent
+        currentLabel.backgroundColor = firstSelected ? accent : .clear
         secondLabel.backgroundColor = secondSelected ? accent : .clear
         currentLabel.accessibilityLabel = "Zoom \(currentLabel.text ?? "1×")"
         secondLabel.accessibilityLabel = "Zoom \(secondLabel.text ?? "2×")"

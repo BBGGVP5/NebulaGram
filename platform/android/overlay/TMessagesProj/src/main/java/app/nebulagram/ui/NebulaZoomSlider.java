@@ -50,7 +50,7 @@ public final class NebulaZoomSlider extends FrameLayout {
         presets.addView(currentValue, new LinearLayout.LayoutParams(0, LayoutParams.MATCH_PARENT, 1));
         presets.addView(secondValue, new LinearLayout.LayoutParams(0, LayoutParams.MATCH_PARENT, 1));
         currentValue.setOnClickListener(v -> {
-            if (Math.abs(current - 2f) < .05f) updateZoom(1f, true);
+            updateZoom(1f, true);
             setExpanded(true);
         });
         secondValue.setOnClickListener(v -> { updateZoom(Math.min(2f, maximum), true); setExpanded(true); });
@@ -72,15 +72,16 @@ public final class NebulaZoomSlider extends FrameLayout {
     }
 
     private void updatePresets() {
-        boolean secondSelected = Math.abs(current - 2f) < .05f && maximum >= 2f;
-        currentValue.setText(secondSelected ? "1×" : format(current));
+        boolean secondSelected = maximum > 1.05f && Math.abs(current - Math.min(2f, maximum)) < .05f;
+        boolean firstSelected = Math.abs(current - 1f) < .05f;
+        currentValue.setText("1×");
         secondValue.setText(format(Math.min(2f, maximum)));
-        currentValue.setContentDescription("Zoom " + (secondSelected ? "1×" : format(current)));
+        currentValue.setContentDescription("Zoom 1×");
         secondValue.setContentDescription("Zoom " + format(Math.min(2f, maximum)));
         GradientDrawable selected = new GradientDrawable();
         selected.setColor(ACCENT);
         selected.setCornerRadius(dp(24));
-        currentValue.setBackground(secondSelected ? null : selected);
+        currentValue.setBackground(firstSelected ? selected : null);
         secondValue.setBackground(secondSelected ? selected : null);
         ruler.invalidate();
     }
