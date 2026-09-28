@@ -1,0 +1,128 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
+index d8edc6c..5b6b674 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
+@@ -1538,7 +1538,7 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
+         } else {
+             textLeft = dp(AndroidUtilities.isTablet() ? 26 : 18);
+         }
+-        if (nebulaHomeTabsGlass) textLeft = Math.max(textLeft, dp(74));
++        if (nebulaHomeTabsGlass) textLeft = Math.max(textLeft, dp(84));
+         // textLeft += additionalTextLeft;
+ 
+         if (menu != null && menu.getVisibility() != GONE) {
+@@ -1686,7 +1686,7 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
+             textLeft = glassMode ? dp(24) : dp(AndroidUtilities.isTablet() ? 26 : 18);
+         }
+         textLeft += additionalTextLeft;
+-        if (nebulaHomeTabsGlass) textLeft = Math.max(textLeft, dp(74));
++        if (nebulaHomeTabsGlass) textLeft = Math.max(textLeft, dp(84));
+ 
+         if (menu != null && menu.getVisibility() != GONE) {
+             int menuLeft = menu.searchFieldVisible() ? dp(menuOccupyBack ? 0 : AndroidUtilities.isTablet() ? 74 : 66) : (getMeasuredWidth()) - menu.getMeasuredWidth();
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
+index c47eec0..c263ccc 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
+@@ -505,6 +505,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+     public ActionBarMenuItem searchItem;
+     private ActionBarMenuItem optionsItem;
+     private TextView nebulaHomeEditButton;
++    private boolean nebulaHomeEditing;
+     private ActionBarMenuItem speedItem;
+     public static boolean switchingTheme;
+     private ActionBarMenuItem doneItem;
+@@ -3211,8 +3212,8 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+             actionBar.setNebulaHomeTabsGlass(true);
+             nebulaHomeEditButton = new TextView(context);
+             nebulaHomeEditButton.setText(app.nebulagram.ui.NebulaText.text("Изм.", "Edit"));
+-            nebulaHomeEditButton.setContentDescription(app.nebulagram.ui.NebulaText.text("Изменить папки", "Edit folders"));
+-            nebulaHomeEditButton.setTextSize(15);
++            nebulaHomeEditButton.setContentDescription(app.nebulagram.ui.NebulaText.text("Выбрать чаты", "Select chats"));
++            nebulaHomeEditButton.setTextSize(16);
+             nebulaHomeEditButton.setTextColor(getThemedColor(Theme.key_actionBarDefaultTitle));
+             nebulaHomeEditButton.setGravity(Gravity.CENTER);
+             BlurredBackgroundDrawable editGlass = iBlur3FactoryLiquidGlass.create(nebulaHomeEditButton,
+@@ -3220,8 +3221,13 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+             editGlass.setRadius(dp(22));
+             editGlass.setPadding(dp(3));
+             nebulaHomeEditButton.setBackground(editGlass);
+-            nebulaHomeEditButton.setOnClickListener(v -> presentFragment(new FiltersSetupActivity()));
+-            FrameLayout.LayoutParams editLayout = new FrameLayout.LayoutParams(dp(58), dp(44), Gravity.LEFT | Gravity.TOP);
++            nebulaHomeEditButton.setOnClickListener(v -> {
++                if (actionBar != null && !actionBar.isActionModeShowed()) {
++                    nebulaHomeEditing = true;
++                    showOrUpdateActionMode(0, null);
++                }
++            });
++            FrameLayout.LayoutParams editLayout = new FrameLayout.LayoutParams(dp(68), dp(44), Gravity.LEFT | Gravity.TOP);
+             editLayout.leftMargin = dp(8);
+             actionBar.addView(nebulaHomeEditButton, editLayout);
+             actionBar.setNebulaHomeLeadingView(nebulaHomeEditButton);
+@@ -3488,7 +3494,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+         });
+         fragmentSearchFieldWatcher.setDoNotCloseAfterFieldEmpty();
+ 
+-        if (initialDialogsType == DIALOGS_TYPE_DEFAULT) {
++        if (initialDialogsType == DIALOGS_TYPE_DEFAULT && nebulaHomeEditButton == null) {
+             if (!onlySelect && folderId == 0) app.nebulagram.ui.NebulaLinkShortcut.install(this, menu);
+             optionsItem = menu.addItem(4, R.drawable.ic_ab_other);
+             optionsItem.setContentDescription(LocaleController.getString(R.string.AccDescrMoreOptions));
+@@ -3501,6 +3507,8 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+                 showItemOptions();
+                 return true;
+             });
++        } else if (initialDialogsType == DIALOGS_TYPE_DEFAULT && !onlySelect && folderId == 0) {
++            app.nebulagram.ui.NebulaLinkShortcut.install(this, menu);
+         }
+ 
+         searchItem.setSearchFieldHint(getString(R.string.Search));
+@@ -3917,6 +3925,9 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+         actionBar.setActionBarMenuOnItemClick(new ActionBar.ActionBarMenuOnItemClick() {
+             @Override
+             public void onItemClick(int id) {
++                if (nebulaHomeEditing && selectedDialogs.isEmpty() && id != -1) {
++                    return;
++                }
+                 if ((id == SearchViewPager.forwardItemId || id == SearchViewPager.gotoItemId || id == SearchViewPager.deleteItemId || id == SearchViewPager.speedItemId) && searchViewPager != null) {
+                     searchViewPager.onActionBarItemClick(id);
+                     return;
+@@ -9168,6 +9179,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+     }
+ 
+     private void hideActionMode(boolean animateCheck) {
++        nebulaHomeEditing = false;
+         actionBar.hideActionMode();
+         selectedDialogs.clear();
+         if (backDrawable != null) {
+@@ -10151,10 +10163,12 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+     }
+ 
+     private void showOrUpdateActionMode(long dialogId, View cell) {
+-        addOrRemoveSelectedDialog(dialogId, cell);
++        if (dialogId != 0) {
++            addOrRemoveSelectedDialog(dialogId, cell);
++        }
+         boolean updateAnimated = false;
+         if (actionBar.isActionModeShowed()) {
+-            if (selectedDialogs.isEmpty()) {
++            if (selectedDialogs.isEmpty() && !nebulaHomeEditing) {
+                 hideActionMode(true);
+                 return;
+             }
+@@ -10255,6 +10269,15 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+         }
+         updateCounters(false);
+         selectedDialogsCountTextView.setNumber(selectedDialogs.size(), updateAnimated);
++        if (nebulaHomeEditing) {
++            boolean hasSelection = !selectedDialogs.isEmpty();
++            for (View actionModeView : actionModeViews) {
++                if (actionModeView != actionModeCloseView) {
++                    actionModeView.setEnabled(hasSelection);
++                    actionModeView.setAlpha(hasSelection ? 1f : 0.35f);
++                }
++            }
++        }
+     }
+ 
+     private void closeSearch() {

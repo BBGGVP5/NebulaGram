@@ -62,7 +62,7 @@ class Check {
   for(float density:new float[]{1,2,2.625f,3.5f})for(int toolbar:new int[]{48,56,64}) {
    Bar bar=new Bar();bar.density=density;bar.toolbar=bar.dp(toolbar);
    View edit=bar.nebulaHomeLeadingView=new View(new android.content.Context());
-   edit.measure(spec(bar.dp(58),View.MeasureSpec.EXACTLY),spec(bar.dp(44),View.MeasureSpec.EXACTLY));
+   edit.measure(spec(bar.dp(68),View.MeasureSpec.EXACTLY),spec(bar.dp(44),View.MeasureSpec.EXACTLY));
    // The same control is created before insets arrive and then relaid out.
    for(int status:new int[]{0,24,48,0,36}){
     int inset=bar.dp(status);bar.layoutNebulaHomeLeadingView(inset);
