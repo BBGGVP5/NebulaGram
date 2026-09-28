@@ -31,11 +31,13 @@ java = '''class StyleLayoutCheck {
  static int dp(float n){return (int)Math.ceil(n*density);}
  static class DialogStoriesCell {static final int HEIGHT_IN_DP=88;}
  static class Bar {int getHeight(){return dp(80);}}
+ static class BoolAnimator {float factor;float getFloatValue(){return factor;}}
  static class Sliding {float openedProgress;boolean hasFragment(){return true;}}
  static class Home {
   static final int SEARCH_FIELD_HEIGHT=48;
   Bar actionBar=new Bar();Sliding rightSlidingDialogContainer=new Sliding();
-  boolean hasStories,searching;float scrollYOffset,progressToActionMode,searchAnimationProgress,storiesOverscroll;
+  BoolAnimator animatorSearchVisible=new BoolAnimator();
+  boolean hasStories,searching,searchIsShowed;float scrollYOffset,progressToActionMode,searchAnimationProgress,storiesOverscroll;
 ''' + methods + expanded + '''
  }
  static class TitleBar {
@@ -85,6 +87,12 @@ java = '''class StyleLayoutCheck {
    check(h.getMaxScrollYOffset()==h.getMaxScrollYOffsetWithoutSearch(),"Hidden search affects story scroll range");cases++;
   }
   Home home=new Home();
+  app.nebulagram.ui.NebulaAppearance.hidden=true;
+  home.searchIsShowed=true;check(home.nebulaSearchSlotHeight()==48,"Open search overlaps first chat");
+  home.searchIsShowed=false;home.animatorSearchVisible.factor=.5f;
+  check(home.nebulaSearchSlotHeight()==48,"Closing search loses its slot before animation ends");
+  home.animatorSearchVisible.factor=0;
+  check(home.nebulaSearchSlotHeight()==0,"Hidden idle search still reserves a slot");
   home.scrollYOffset=0;check(home.nebulaIsHeaderExpanded(),"Expanded home not centered");
   home.scrollYOffset=-dp(20);check(!home.nebulaIsHeaderExpanded(),"Collapsed home centered");
   home.scrollYOffset=0;home.searching=true;check(!home.nebulaIsHeaderExpanded(),"Search home centered");
@@ -99,7 +107,7 @@ java = '''class StyleLayoutCheck {
   bar.mode=0;app.nebulagram.ui.NebulaAppearance.center=false;check(!bar.nebulaCenterTitle(),"Disabled centering still active");
   bar.parentFragment=dialogs;bar.nebulaHomeTabsGlass=true;
   check(bar.nebulaCenterTitle(),"Glass home title should remain centered with optional centering disabled");
-  bar.isSearchFieldVisible=true;check(!bar.nebulaCenterTitle(),"Glass search title overridden");
+  bar.isSearchFieldVisible=true;check(bar.nebulaCenterTitle(),"Glass search shifts title before fade finishes");
   bar.isSearchFieldVisible=false;bar.mode=1;check(!bar.nebulaCenterTitle(),"Glass selection title overridden");
   bar.mode=0;dialogs.expanded=false;check(!bar.nebulaCenterTitle(),"Collapsed glass home title centered");
   int shapes=0;
