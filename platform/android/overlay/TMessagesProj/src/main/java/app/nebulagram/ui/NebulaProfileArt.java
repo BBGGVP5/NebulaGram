@@ -33,10 +33,10 @@ public final class NebulaProfileArt {
     private static int accent(Theme.ResourcesProvider provider) {
         // A peer can override profile colors. The decoration should follow
         // the app theme instead of inheriting that peer's pink accent.
-        return Theme.getColor(Theme.key_windowBackgroundWhiteBlueText, null);
+        return Theme.getColor(Theme.key_windowBackgroundWhiteBlueText);
     }
     private static int surface(Theme.ResourcesProvider provider) {
-        return Theme.getColor(Theme.key_windowBackgroundWhite, null);
+        return Theme.getColor(Theme.key_windowBackgroundWhite);
     }
     private static int ink(Theme.ResourcesProvider provider) {
         return Theme.getColor(Theme.key_windowBackgroundWhiteBlackText, provider);
