@@ -9,7 +9,6 @@ import org.telegram.messenger.MessagesController;
 import org.telegram.ui.ActionBar.ActionBar;
 import org.telegram.ui.ActionBar.SimpleTextView;
 import org.telegram.ui.Components.AnimatedEmojiDrawable;
-import org.telegram.ui.Components.CubicBezierInterpolator;
 
 import java.util.ArrayList;
 import java.util.WeakHashMap;
@@ -55,13 +54,10 @@ public final class NebulaDialogsTitle {
         }
         SimpleTextView previous = actionBar.getTitleTextView();
         boolean changed = previous != null && !TextUtils.equals(previous.getText(), title);
-        if (changed && previous.isAttachedToWindow() && previous.getWidth() > 0) {
-            previous.animate().setListener(null).cancel();
-            SimpleTextView outgoing = actionBar.getTitleTextView2();
-            if (outgoing != null) outgoing.animate().setListener(null).cancel();
-            actionBar.setTitleAnimated(title, false, 240, CubicBezierInterpolator.EASE_OUT_QUINT);
-        }
+        // The stories title has its own transition. Animating the ActionBar as
+        // well creates two moving copies during a fast folder swipe.
         actionBar.setTitle(title, selected == null ? statusDrawable : null);
+        if (changed) actionBar.requestLayout();
         int cacheType = selected != null && selected.title_noanimate
                 ? AnimatedEmojiDrawable.CACHE_TYPE_NOANIMATE_FOLDER : AnimatedEmojiDrawable.CACHE_TYPE_MESSAGES;
         WeakReference<NebulaFolderTitleView> reference = collapsedTitles.get(actionBar);

@@ -13,13 +13,19 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import org.telegram.messenger.AndroidUtilities;
+import org.telegram.ui.ActionBar.Theme;
+
+import androidx.core.graphics.ColorUtils;
 
 import java.util.Locale;
 
 /** Compact 1×/2× presets that expand into a camera-limited zoom ruler. */
 public final class NebulaZoomSlider extends FrameLayout {
     public interface OnZoomChanged { void onZoomChanged(float factor); }
-    private static final int ACCENT = 0xFFE33492;
+    private final int accent;
+    private final int onAccent;
+    private final int ink;
+    private final int mutedInk;
     private final OnZoomChanged callback;
     private final FrameLayout capsule;
     private final LinearLayout presets;
@@ -35,10 +41,14 @@ public final class NebulaZoomSlider extends FrameLayout {
     public NebulaZoomSlider(Context context, OnZoomChanged callback) {
         super(context);
         this.callback = callback;
+        accent = Theme.getColor(Theme.key_chat_messagePanelSend);
+        onAccent = ColorUtils.calculateLuminance(accent) > .5 ? 0xFF101318 : 0xFFFFFFFF;
+        ink = Theme.getColor(Theme.key_chat_messagePanelText);
+        mutedInk = Theme.getColor(Theme.key_chat_messagePanelHint);
         GradientDrawable background = new GradientDrawable();
-        background.setColor(0xEE211C2B);
+        background.setColor((Theme.getColor(Theme.key_chat_messagePanelBackground) & 0x00FFFFFF) | 0xEE000000);
         background.setCornerRadius(dp(26));
-        background.setStroke(dp(1), 0x667E718D);
+        background.setStroke(dp(1), (mutedInk & 0x00FFFFFF) | 0x88000000);
         capsule = new FrameLayout(context);
         capsule.setBackground(background);
         addView(capsule, new LayoutParams(dp(224), LayoutParams.MATCH_PARENT, Gravity.CENTER));
@@ -65,7 +75,7 @@ public final class NebulaZoomSlider extends FrameLayout {
     private TextView preset(Context context) {
         TextView view = new TextView(context);
         view.setGravity(Gravity.CENTER);
-        view.setTextColor(0xFFF9F5FF);
+        view.setTextColor(ink);
         view.setTextSize(18);
         view.setTypeface(null, 1);
         return view;
@@ -79,16 +89,18 @@ public final class NebulaZoomSlider extends FrameLayout {
         currentValue.setContentDescription("Zoom 1×");
         secondValue.setContentDescription("Zoom " + format(Math.min(2f, maximum)));
         GradientDrawable selected = new GradientDrawable();
-        selected.setColor(ACCENT);
+        selected.setColor(accent);
         selected.setCornerRadius(dp(24));
         currentValue.setBackground(firstSelected ? selected : null);
         secondValue.setBackground(secondSelected ? selected : null);
+        currentValue.setTextColor(firstSelected ? onAccent : ink);
+        secondValue.setTextColor(secondSelected ? onAccent : ink);
         ruler.invalidate();
     }
 
     private void setExpanded(boolean value) {
         removeCallbacks(collapse);
-        if (expanded == value) { if (value) postDelayed(collapse, 1800); return; }
+        if (expanded == value) { if (value) postDelayed(collapse, 5000); return; }
         expanded = value;
         if (widthAnimator != null) widthAnimator.cancel();
         LayoutParams capsuleParams = (LayoutParams) capsule.getLayoutParams();
@@ -107,7 +119,7 @@ public final class NebulaZoomSlider extends FrameLayout {
         incoming.setScaleX(value ? .92f : 1.04f);
         outgoing.animate().alpha(0f).setDuration(150).withEndAction(() -> outgoing.setVisibility(GONE)).start();
         incoming.animate().alpha(1f).scaleX(1f).setDuration(220).start();
-        if (value) postDelayed(collapse, 1800);
+        if (value) postDelayed(collapse, 5000);
     }
 
     private void updateZoom(float factor, boolean fromUser) {
@@ -122,7 +134,11 @@ public final class NebulaZoomSlider extends FrameLayout {
                 ? Math.round(factor) + "×" : String.format(Locale.ROOT, "%.1f×", factor);
     }
     public void setRange(float max) { maximum = Math.max(1f, Math.min(8f, max)); updateZoom(1f, false); setExpanded(false); }
-    public void setCurrent(float factor) { updateZoom(factor, false); }
+    public void setCurrent(float factor) {
+        float before = current;
+        updateZoom(factor, false);
+        if (isShown() && Math.abs(current - before) > .02f) setExpanded(true);
+    }
     @Override protected void onDetachedFromWindow() {
         removeCallbacks(collapse);
         if (widthAnimator != null) widthAnimator.cancel();
@@ -141,12 +157,12 @@ public final class NebulaZoomSlider extends FrameLayout {
                 float x = left + span * index / 24f;
                 boolean major = index == 0 || index == 24 || Math.abs(value - 2f) < (maximum - 1f) / 48f
                         || Math.abs(value - 5f) < (maximum - 1f) / 48f;
-                paint.setColor(major ? ACCENT : 0x99D4C4D2);
+                paint.setColor(major ? accent : mutedInk);
                 paint.setStrokeWidth(dp(major ? 2 : 1));
                 canvas.drawLine(x, dp(12), x, dp(major ? 29 : 23), paint);
             }
             float selectedX = left + span * (current - 1f) / Math.max(.001f, maximum - 1f);
-            paint.setColor(ACCENT);
+            paint.setColor(accent);
             paint.setStrokeWidth(dp(5));
             paint.setStrokeCap(Paint.Cap.ROUND);
             canvas.drawLine(selectedX, dp(8), selectedX, dp(31), paint);
@@ -179,7 +195,7 @@ public final class NebulaZoomSlider extends FrameLayout {
             }
             if (action == MotionEvent.ACTION_UP || action == MotionEvent.ACTION_CANCEL) {
                 if (action == MotionEvent.ACTION_UP) performClick();
-                postDelayed(collapse, 1800);
+                postDelayed(collapse, 5000);
                 return true;
             }
             return true;

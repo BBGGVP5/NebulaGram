@@ -5,8 +5,9 @@ import AVFoundation
 final class NebulaVideoZoomSlider: UIView {
     var onZoomChanged: ((CGFloat) -> Void)?
 
-    private let accent = UIColor(red: 0.89, green: 0.20, blue: 0.57, alpha: 1)
+    private var accent: UIColor { tintColor }
     private let capsule = UIView()
+    private let material = UIVisualEffectView(effect: UIBlurEffect(style: .systemThinMaterial))
     private let currentLabel = UILabel()
     private let secondLabel = UILabel()
     private let ruler = RulerView()
@@ -18,17 +19,18 @@ final class NebulaVideoZoomSlider: UIView {
     override init(frame: CGRect) {
         super.init(frame: frame)
         backgroundColor = .clear
-        capsule.backgroundColor = UIColor(red: 0.13, green: 0.11, blue: 0.17, alpha: 0.94)
+        capsule.backgroundColor = .clear
         capsule.layer.cornerRadius = 26
         capsule.layer.cornerCurve = .continuous
         capsule.layer.borderWidth = 1
         capsule.layer.borderColor = UIColor(white: 1, alpha: 0.20).cgColor
         capsule.clipsToBounds = true
         addSubview(capsule)
+        capsule.addSubview(material)
 
         for label in [currentLabel, secondLabel] {
             label.font = .monospacedDigitSystemFont(ofSize: 18, weight: .bold)
-            label.textColor = .white
+            label.textColor = .label
             label.textAlignment = .center
             label.isUserInteractionEnabled = true
             label.layer.cornerRadius = 23
@@ -52,11 +54,18 @@ final class NebulaVideoZoomSlider: UIView {
 
     required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
 
+    override func tintColorDidChange() {
+        super.tintColorDidChange()
+        ruler.accent = accent
+        updateZoom(current, notify: false)
+    }
+
     override func layoutSubviews() {
         super.layoutSubviews()
         let inset: CGFloat = 5
         let capsuleWidth = min(bounds.width, expanded ? 320 : 224)
         capsule.frame = CGRect(x: floor((bounds.width - capsuleWidth) / 2), y: 0, width: capsuleWidth, height: bounds.height)
+        material.frame = capsule.bounds
         let width = (capsuleWidth - inset * 2) / 2
         currentLabel.frame = CGRect(x: inset, y: 4, width: width, height: bounds.height - 8)
         secondLabel.frame = CGRect(x: inset + width, y: 4, width: width, height: bounds.height - 8)
@@ -78,6 +87,11 @@ final class NebulaVideoZoomSlider: UIView {
 
     func setCurrent(_ factor: CGFloat) { updateZoom(factor, notify: false) }
 
+    func reflectPinch(_ scale: CGFloat) {
+        updateZoom(current * scale, notify: false)
+        setExpanded(true)
+    }
+
     @objc private func tapCurrent() {
         updateZoom(1, notify: true)
         setExpanded(true)
@@ -96,6 +110,8 @@ final class NebulaVideoZoomSlider: UIView {
         secondLabel.text = Self.format(min(2, maximum))
         currentLabel.backgroundColor = firstSelected ? accent : .clear
         secondLabel.backgroundColor = secondSelected ? accent : .clear
+        currentLabel.textColor = firstSelected ? .white : .label
+        secondLabel.textColor = secondSelected ? .white : .label
         currentLabel.accessibilityLabel = "Zoom \(currentLabel.text ?? "1×")"
         secondLabel.accessibilityLabel = "Zoom \(secondLabel.text ?? "2×")"
         ruler.current = current
@@ -130,7 +146,7 @@ final class NebulaVideoZoomSlider: UIView {
         collapseWork?.cancel()
         let work = DispatchWorkItem { [weak self] in self?.setExpanded(false) }
         collapseWork = work
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.8, execute: work)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 5, execute: work)
     }
 
     private static func format(_ value: CGFloat) -> String {
@@ -140,7 +156,7 @@ final class NebulaVideoZoomSlider: UIView {
     private final class RulerView: UIView {
         var maximum: CGFloat = 2 { didSet { setNeedsDisplay() } }
         var current: CGFloat = 1 { didSet { setNeedsDisplay() } }
-        var accent: UIColor = .systemPink
+        var accent: UIColor = .systemBlue
         var onChange: ((CGFloat) -> Void)?
         var onEnd: (() -> Void)?
 

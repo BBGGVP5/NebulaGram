@@ -137,50 +137,50 @@ public class NebulaSettingsFragment extends BaseFragment {
         tunnel.add(new NebulaLinkRow(context).withClick(v -> presentFragment(new NebulaMenuFragment())));
         sections.addView(tunnel, cardParams());
 
-        sections.addView(NebulaCard.header(context, NebulaText.text("Приложение", "Application")));
+        sections.addView(NebulaCard.header(context, NebulaText.text("Настройки", "Settings")));
         NebulaCard app = new NebulaCard(context);
         app.add(section(context, R.drawable.msg_settings, R.string.NebulaSectionGeneral, R.string.NebulaGeneralSub, NebulaSectionFragment.SECTION_GENERAL));
         app.add(new NebulaRow(context).icon(R.drawable.msg_secret).title(NebulaText.text("Конфиденциальность", "Privacy"))
-                .subtitle(NebulaText.text("Локальный архив удалённых сообщений", "Local deleted-message archive"), false)
+                .subtitle(NebulaText.text("Архив и защита", "Archive and protection"), false)
                 .trailing(NebulaRow.TRAIL_CHEVRON).withClick(v -> presentFragment(new NebulaPrivacyFragment())));
         app.add(NebulaFormUi.action(context, R.drawable.nebula_settings_chat_lock,
                 NebulaText.text("Пароли чатов", "Chat passwords"),
-                NebulaText.text("Отдельный пароль для каждого чата", "A separate password for each chat"),
+                NebulaText.text("Локальная защита", "Local protection"),
                 v -> presentFragment(new NebulaLockedChatsFragment())));
         app.add(NebulaFormUi.action(context, R.drawable.msg_saved,
                 NebulaText.text("Синхронизация настроек", "Settings sync"),
-                NebulaText.text("Через «Избранное» Telegram", "Via Telegram Saved Messages"),
+                NebulaText.text("Резервная копия", "Backup"),
                 v -> presentFragment(new NebulaSyncFragment())));
         app.add(NebulaFormUi.action(context, R.drawable.nebula_settings_app_icon,
                 NebulaText.text("Иконка приложения", "App icon"),
-                NebulaText.text("Оригинальные иконки NebulaGram", "Original NebulaGram icon collection"),
+                NebulaText.text("Коллекция NebulaGram", "NebulaGram collection"),
                 v -> presentFragment(new NebulaIconPickerFragment())));
         app.add(section(context, R.drawable.msg_customize, R.string.NebulaAppearanceTitle, R.string.NebulaAppearanceSub, NebulaSectionFragment.SECTION_APPEARANCE));
         sections.addView(app, cardParams());
 
-        sections.addView(NebulaCard.header(context, NebulaText.text("Навигация", "Navigation")));
+        sections.addView(NebulaCard.header(context, NebulaText.text("Интерфейс", "Interface")));
         NebulaCard navigation = new NebulaCard(context);
         navigation.add(section(context, R.drawable.msg_list, R.string.NebulaSectionPanel, R.string.NebulaPanelSub, NebulaSectionFragment.SECTION_TABS));
         navigation.add(section(context, R.drawable.files_folder, R.string.NebulaSectionFolders, R.string.NebulaFoldersInfo, NebulaSectionFragment.SECTION_FOLDERS));
         sections.addView(navigation, cardParams());
 
-        sections.addView(NebulaCard.header(context, NebulaText.text("Чаты и профиль", "Chats and profile")));
+        sections.addView(NebulaCard.header(context, NebulaText.text("Чаты", "Chats")));
         NebulaCard chats = new NebulaCard(context);
         chats.add(section(context, R.drawable.msg_discussion, R.string.NebulaSectionChats, R.string.NebulaChatsSub, NebulaSectionFragment.SECTION_CHATS));
         chats.add(section(context, R.drawable.menu_reply, R.string.NebulaSectionMessages, R.string.NebulaMessagesInfo, NebulaSectionFragment.SECTION_MESSAGES));
         chats.add(section(context, R.drawable.msg_openprofile, R.string.NebulaSectionProfile, R.string.NebulaProfileInfo, NebulaSectionFragment.SECTION_PROFILE));
         sections.addView(chats, cardParams());
 
-        sections.addView(NebulaCard.header(context, NebulaText.text("Инструменты и приложение", "Tools and app")));
+        sections.addView(NebulaCard.header(context, NebulaText.text("Инструменты", "Tools")));
         NebulaCard tools = new NebulaCard(context);
         tools.add(new NebulaRow(context).icon(R.drawable.msg_emoji_smiles).title(NebulaText.text("Искусственный интеллект", "AI assistant"))
-                .subtitle("Gemini Nano · Gemini · Claude · GPT", false).trailing(NebulaRow.TRAIL_CHEVRON)
+                .subtitle(NebulaText.text("Чат и помощник", "Chat and assistant"), false).trailing(NebulaRow.TRAIL_CHEVRON)
                 .withClick(v -> presentFragment(new NebulaAiFragment())));
         tools.add(new NebulaRow(context).icon(R.drawable.msg_calendar).title(NebulaText.text("Список дел", "Tasks"))
-                .subtitle(NebulaText.text("Задачи, заметки и напоминания", "Tasks, notes and reminders"), false)
+                .subtitle(NebulaText.text("Заметки и напоминания", "Notes and reminders"), false)
                 .trailing(NebulaRow.TRAIL_CHEVRON).withClick(v -> presentFragment(new NebulaTasksFragment())));
         tools.add(new NebulaRow(context).icon(R.drawable.nebula_settings_text_tools).title(NebulaText.text("Инструменты текста", "Text tools"))
-                .subtitle(NebulaText.text("Перевод, озвучивание и краткое содержание", "Translation, read aloud and summaries"), false)
+                .subtitle(NebulaText.text("Перевод и озвучивание", "Translate and read aloud"), false)
                 .trailing(NebulaRow.TRAIL_CHEVRON).withClick(v -> presentFragment(new NebulaMessageToolsFragment(null))));
         tools.add(section(context, R.drawable.msg_info, R.string.NebulaSectionAbout, R.string.NebulaAboutSub, NebulaSectionFragment.SECTION_ABOUT));
         sections.addView(tools, cardParams());
@@ -205,9 +205,32 @@ public class NebulaSettingsFragment extends BaseFragment {
         return new NebulaRow(context)
                 .icon(icon)
                 .title(LocaleController.getString(title))
-                .subtitle(LocaleController.getString(subtitle), false)
+                .subtitle(sectionSubtitle(id, subtitle), false)
                 .trailing(NebulaRow.TRAIL_CHEVRON)
                 .withClick(v -> presentFragment(new NebulaSectionFragment(id)));
+    }
+
+    private CharSequence sectionSubtitle(int id, int fallback) {
+        switch (id) {
+            case NebulaSectionFragment.SECTION_GENERAL:
+                return NebulaText.text("Поведение приложения", "App behavior");
+            case NebulaSectionFragment.SECTION_APPEARANCE:
+                return NebulaText.text("Цвета, стекло и анимации", "Colors, glass and motion");
+            case NebulaSectionFragment.SECTION_TABS:
+                return NebulaText.text("Нижняя панель", "Bottom bar");
+            case NebulaSectionFragment.SECTION_FOLDERS:
+                return NebulaText.text("Вкладки и названия", "Tabs and titles");
+            case NebulaSectionFragment.SECTION_CHATS:
+                return NebulaText.text("Список и шапка", "List and header");
+            case NebulaSectionFragment.SECTION_MESSAGES:
+                return NebulaText.text("Меню и ответы", "Menus and replies");
+            case NebulaSectionFragment.SECTION_PROFILE:
+                return NebulaText.text("Обложка и действия", "Cover and actions");
+            case NebulaSectionFragment.SECTION_ABOUT:
+                return NebulaText.text("Версия и исходный код", "Version and source");
+            default:
+                return LocaleController.getString(fallback);
+        }
     }
 
     private LinearLayout.LayoutParams cardParams() {

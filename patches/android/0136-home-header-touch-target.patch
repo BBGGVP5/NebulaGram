@@ -1,0 +1,11 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
+@@ -184,6 +184,6 @@
+         this.resourcesProvider = resourcesProvider;
+         setOnClickListener(v -> {
+-            if (isSearchFieldVisible()) {
++            if (isSearchFieldVisible() || nebulaHomeTabsGlass) {
+                 return;
+             }
+             if (titleActionRunnable != null) {

@@ -20,6 +20,7 @@ private final class NebulaSettingsArguments {
     var openIcons: (() -> Void)?
     var openBuildInfo: (() -> Void)?
     var openTransitions: (() -> Void)?
+    var openCategory: ((Int) -> Void)?
     var updateKey: ((String, Bool) -> Void)?
     var clearHistory: (() -> Void)?
     var searchUpdated: ((String) -> Void)?
@@ -32,6 +33,7 @@ private final class NebulaSettingsArguments {
 }
 
 private enum NebulaSettingsEntry: ItemListNodeEntry {
+    case category(Int, String, String, String)
     case search(String, String)
     case empty(String)
     case toolsHeader(String)
@@ -62,7 +64,7 @@ private enum NebulaSettingsEntry: ItemListNodeEntry {
     var section: ItemListSectionId {
         switch self {
         case .search, .empty: return -1
-        case .toolsHeader, .link, .ai, .buildInfo: return 0
+        case .category, .toolsHeader, .link, .ai, .buildInfo: return 0
         case .appearanceHeader, .glass, .navigation, .contacts, .navigationToggle, .stories, .widePosts, .icons, .transitions: return 1
         case .header, .hideCounters, .footer: return 2
         case .privacyHeader, .privacy, .history, .clearHistory: return 3
@@ -71,6 +73,7 @@ private enum NebulaSettingsEntry: ItemListNodeEntry {
     }
     private var order: Int {
         switch self {
+        case let .category(index, _, _, _): return index * 10
         case .search: return -2
         case .empty: return -1
         case .toolsHeader: return 0
@@ -119,6 +122,7 @@ private enum NebulaSettingsEntry: ItemListNodeEntry {
     }
     var stableId: Int32 {
         switch self {
+        case let .category(index, _, _, _): return Int32(200 + index)
         case .search: return 19
         case .empty: return 20
         case .toolsHeader: return 16
@@ -172,6 +176,7 @@ private enum NebulaSettingsEntry: ItemListNodeEntry {
 
     var searchableText: String? {
         switch self {
+        case let .category(_, title, detail, _): return title + " " + detail
         case let .navigation(title, detail), let .glass(title, detail), let .transitions(title, detail): return title + " " + detail
         case let .widePosts(title, _, _), let .contacts(title, _, _), let .navigationToggle(_, title, _, _), let .stories(title, _, _), let .history(title, _, _),
              let .hideCounters(title, _, _), let .exportFile(title, _): return title
@@ -198,6 +203,8 @@ private enum NebulaSettingsEntry: ItemListNodeEntry {
                 style: .blocks, action: action)
         }
         switch self {
+        case let .category(index, title, detail, symbol):
+            return disclosure(title, detail, symbol, { arguments.openCategory?(index) })
         case let .search(value, placeholder):
             let magnifier = NSTextAttachment()
             magnifier.image = UIImage(systemName: "magnifyingglass", withConfiguration: UIImage.SymbolConfiguration(pointSize: 17, weight: .medium))?
@@ -253,7 +260,7 @@ private enum NebulaSettingsEntry: ItemListNodeEntry {
 }
 
 /// Deliberately expose only preferences with a native consumer, not planned ports.
-public func nebulaSettingsController(context: AccountContext) -> ViewController {
+public func nebulaSettingsController(context: AccountContext, page: Int = 0) -> ViewController {
     let store = NebulaSettingsStore.shared
     let writeFailed = ValuePromise(false, ignoreRepeated: true)
     let searchQuery = ValuePromise("", ignoreRepeated: true)
@@ -306,8 +313,8 @@ public func nebulaSettingsController(context: AccountContext) -> ViewController 
             : firstTab == "settings" ? (ru ? "Настройки" : "Settings")
             : firstTab == "profile" ? (ru ? "Профиль" : "Profile") : (ru ? "Чаты" : "Chats")
         var footer = ru
-            ? "Скрывает числа на вкладках папок. Непрочитанные сообщения и уведомления не изменяются."
-            : "Hides numbers on folder tabs. Unread messages and notifications are unchanged."
+            ? "Скрывает числа на вкладках. Уведомления останутся."
+            : "Hides numbers on tabs. Notifications remain active."
         if failed || store.hasLoadError {
             footer += ru
                 ? "\n\nНе удалось прочитать или сохранить настройки. Сохранённые данные не сброшены."
@@ -315,9 +322,9 @@ public func nebulaSettingsController(context: AccountContext) -> ViewController 
         }
         var entries: [NebulaSettingsEntry] = [
             .search(query, ru ? "Поиск настроек" : "Search settings"),
-            .toolsHeader(ru ? "Подключение и инструменты" : "Connection and tools"),
-            .appearanceHeader(ru ? "Интерфейс и навигация" : "Interface and navigation"),
-            .privacyHeader(ru ? "Конфиденциальность и поиск" : "Privacy and search"),
+            .toolsHeader(ru ? "Основное" : "Essentials"),
+            .appearanceHeader(ru ? "Интерфейс" : "Interface"),
+            .privacyHeader(ru ? "Конфиденциальность" : "Privacy"),
             .header(ru ? "Папки чатов" : "Chat folders"),
             .hideCounters(ru ? "Скрыть счётчики папок" : "Hide folder counters", hideCounters, !store.hasLoadError),
             .footer(footer),
@@ -325,13 +332,13 @@ public func nebulaSettingsController(context: AccountContext) -> ViewController 
             .importFile(ru ? "Импорт из файла" : "Import from file"),
             .exportFile(ru ? "Экспорт в файл" : "Export to file", !store.hasLoadError),
             .transferFooter(ru
-                ? "Формат NebulaGram JSON v1. Импорт заменяет настройки после подтверждения. Применяются подключённые параметры навигации, папок, стекла и широких постов. Остальные допустимые значения сохраняются до их переноса на iOS. Аккаунты и ключи доступа не экспортируются."
-                : "NebulaGram JSON v1. Import replaces preferences after confirmation. Connected navigation, folder, glass and wide-post options are applied. Other valid values are retained until their iOS port. Accounts and access keys are not exported."),
+                ? "JSON NebulaGram · применимые параметры включатся сразу. Аккаунты и ключи не экспортируются."
+                : "NebulaGram JSON · supported settings apply immediately. Accounts and keys are not exported."),
             .link("NebulaLink"),
             .privacy(ru ? "Конфиденциальность" : "Privacy"),
             .widePosts(ru ? "Широкие посты в каналах" : "Wide posts in channels", store.widePosts, !store.hasLoadError),
             .stories(ru ? "Показывать истории" : "Show stories", store.showStories, !store.hasLoadError),
-            .history(ru ? "Сохранять и показывать историю поиска настроек" : "Save and show settings search history", store.settingsSearchHistory, !store.hasLoadError),
+            .history(ru ? "История поиска настроек" : "Settings search history", store.settingsSearchHistory, !store.hasLoadError),
             .clearHistory(ru ? "Очистить историю поиска настроек" : "Clear settings search history"),
             .glass(ru ? "Адаптивное стекло" : "Adaptive glass", modes[max(0, min(2, store.glassQuality))]),
             .icons(ru ? "Иконка приложения" : "App icon"),
@@ -357,6 +364,43 @@ public func nebulaSettingsController(context: AccountContext) -> ViewController 
             .ai(ru ? "Искусственный интеллект" : "AI assistant"),
             .buildInfo(ru ? "О сборке" : "Build information")
         ]
+        func isChatOption(_ entry: NebulaSettingsEntry) -> Bool {
+            switch entry {
+            case .widePosts, .stories:
+                return true
+            case let .navigationToggle(key, _, _, _):
+                return ["hide_dividers", "hide_send_as", "hide_attach_camera", "menu_search", "menu_mute",
+                    "menu_call", "menu_video", "centered_chat_header", "disable_next_channel", "seconds_in_time"].contains(key)
+            default:
+                return false
+            }
+        }
+        if page == 0 && query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            entries = [
+                .search(query, ru ? "Поиск настроек" : "Search settings"),
+                .toolsHeader(ru ? "Разделы" : "Sections"),
+                .category(1, ru ? "Основные" : "General", ru ? "Подключение, ИИ, сборка" : "Connection, AI, build", "gearshape"),
+                .category(2, ru ? "Внешний вид" : "Appearance", ru ? "Стекло, значки, панели" : "Glass, icons, tabs", "paintpalette"),
+                .category(3, ru ? "Чаты" : "Chats", ru ? "Список, сообщения, меню" : "List, messages, menus", "bubble.left"),
+                .category(4, ru ? "Папки" : "Folders", ru ? "Вкладки и счётчики" : "Tabs and counters", "folder"),
+                .category(5, ru ? "Конфиденциальность" : "Privacy", ru ? "Архив, защита, поиск" : "Archive, protection, search", "hand.raised"),
+                .category(6, ru ? "Перенос настроек" : "Transfer", ru ? "Импорт и экспорт" : "Import and export", "arrow.triangle.2.circlepath")
+            ]
+        } else if page != 0 {
+            entries = entries.filter { entry in
+                if case .search = entry { return true }
+                switch page {
+                case 1: return entry.section == 0
+                case 2: return entry.section == 1 && !isChatOption(entry)
+                case 3: return isChatOption(entry)
+                case 4: return entry.section == 2
+                case 5: return entry.section == 3
+                case 6: return entry.section == 4
+                default: return false
+                }
+            }
+            if page == 3 { entries.append(.appearanceHeader(ru ? "Чаты" : "Chats")) }
+        }
         if !query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
             let matches = entries.filter { entry in
                 guard let title = entry.searchableText else { return false }
@@ -373,11 +417,19 @@ public func nebulaSettingsController(context: AccountContext) -> ViewController 
         }
         entries.sort()
         let data = ItemListPresentationData(presentationData)
-        let state = ItemListControllerState(presentationData: data, title: .text(ru ? "Настройки NebulaGram" : "NebulaGram Settings"), leftNavigationButton: nil, rightNavigationButton: nil, backNavigationButton: ItemListBackButton(title: presentationData.strings.Common_Back))
+        let pageTitles = ru
+            ? ["Настройки NebulaGram", "Основные", "Внешний вид", "Чаты", "Папки", "Конфиденциальность", "Перенос настроек"]
+            : ["NebulaGram Settings", "General", "Appearance", "Chats", "Folders", "Privacy", "Transfer"]
+        let state = ItemListControllerState(presentationData: data, title: .text(pageTitles[max(0, min(6, page))]), leftNavigationButton: nil, rightNavigationButton: nil, backNavigationButton: ItemListBackButton(title: presentationData.strings.Common_Back))
         return (state, (ItemListNodeState(presentationData: data, entries: entries, style: .blocks, animateChanges: false), arguments))
     }
     let controller = ItemListController(context: context, state: signal)
     transfer.host = controller
+    arguments.openCategory = { [weak controller] index in
+        guard let controller = controller, (1...6).contains(index) else { return }
+        (controller.navigationController as? NavigationController)?.pushViewController(
+            nebulaSettingsController(context: context, page: index))
+    }
     arguments.updateKey = { key, value in
         do { try store.set(.boolean(value), for: key);writeFailed.set(false) }
         catch { writeFailed.set(true) }

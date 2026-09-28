@@ -1,0 +1,17 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
+@@ -4047,6 +4047,13 @@
+         iBlur3FactoryFrostedLiquidGlass.setSourceRootView(viewPositionWatcher, contentView);
+         iBlur3FactoryLiquidGlass.setSourceRootView(viewPositionWatcher, contentView);
+         iBlur3FactoryFade.setSourceRootView(viewPositionWatcher, contentView);
+         iBlur3FactoryBlur.setSourceRootView(viewPositionWatcher, contentView);
++        // Capture the first laid-out frame. Without this, the home glass uses
++        // a dark fallback until the list emits its first scroll callback.
++        contentView.post(() -> {
++            if (fragmentView != contentView) return;
++            contentView.updateBlurContent();
++            iBlur3FactoryLiquidGlass.invalidateAllLinkedViews();
++        });
+ 
+         final PointF tmpPoint = new PointF();

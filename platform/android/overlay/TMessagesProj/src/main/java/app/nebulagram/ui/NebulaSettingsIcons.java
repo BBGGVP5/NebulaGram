@@ -16,6 +16,11 @@ final class NebulaSettingsIcons {
         if (original == R.drawable.menu_reply) return R.drawable.nebula_settings_messages;
         if (original == R.drawable.msg_openprofile) return R.drawable.nebula_settings_profile;
         if (original == R.drawable.settings_account) return R.drawable.nebula_settings_profile;
+        if (original == R.drawable.nebula_settings_chat_lock) return R.drawable.nebula_settings_chat_lock;
+        if (original == R.drawable.nebula_settings_app_icon) return R.drawable.nebula_settings_app_icon;
+        if (original == R.drawable.nebula_settings_text_tools) return R.drawable.nebula_settings_text_tools;
+        if (original == R.drawable.msg_saved) return R.drawable.nebula_settings_sync;
+        if (original == R.drawable.msg_calendar) return R.drawable.nebula_settings_tasks;
         if (original == R.drawable.msg_emoji_smiles) return R.drawable.nebula_settings_ai;
         if (original == R.drawable.msg_info) return R.drawable.nebula_settings_about;
         if (original == R.drawable.msg_link) return R.drawable.nebula_settings_link;

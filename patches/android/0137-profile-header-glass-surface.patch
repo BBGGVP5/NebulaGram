@@ -1,0 +1,39 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
+@@ -194,5 +194,6 @@
+     private boolean glassMode;
+     private boolean nebulaHomeGlass;
++    private boolean nebulaProfileGlass;
+     private boolean nebulaHomeTabsGlass;
+     private View nebulaHomeLeadingView;
+     private boolean glassOnlyBack;
+@@ -271,6 +272,11 @@
+         invalidate();
+     }
+ 
++    public void setNebulaProfileGlass(boolean enabled) {
++        nebulaProfileGlass = enabled;
++        invalidate();
++    }
++
+     public void setNebulaHomeTabsGlass(boolean enabled) {
+         nebulaHomeTabsGlass = enabled;
+         invalidate();
+@@ -2529,5 +2535,6 @@
+                 glassDrawable.setAlpha(255);
+             }
+-            if ((!nebulaHomeTabsGlass || glassDrawable.getAlpha() > 0)
++            if (!nebulaProfileGlass
++                    && (!nebulaHomeTabsGlass || glassDrawable.getAlpha() > 0)
+                     && !((nebulaClassicSavedHeader || nebulaFloatingChatHeader && !app.nebulagram.ui.NebulaAppearance.chatHeader()) && actionModeFactor == 0f && searchFactor == 0f)) glassDrawable.draw(canvas);
+         }
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
+@@ -3518,4 +3518,5 @@
+             // profile artwork, using the same source as the profile's menus.
+             actionBar.setupGlass(iBlur3FactoryLiquidGlass, BlurredBackgroundProviderImpl.topPanel(resourcesProvider));
+             actionBar.setNebulaHomeGlass(true);
++            actionBar.setNebulaProfileGlass(true);
+         }

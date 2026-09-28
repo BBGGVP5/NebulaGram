@@ -1,0 +1,12 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
+@@ -3045,5 +3045,7 @@
+                     if (hasRecordVideo) {
+                         calledRecordRunnable = false;
+                         recordAudioVideoRunnableStarted = true;
+-                        AndroidUtilities.runOnUIThread(recordAudioVideoRunnable, 150);
++                        AndroidUtilities.runOnUIThread(recordAudioVideoRunnable,
++                                isInVideoMode() && app.nebulagram.ui.NebulaRoundCamera.mode() == app.nebulagram.ui.NebulaRoundCamera.ASK
++                                        ? ViewConfiguration.getLongPressTimeout() : 150);
+                     } else {

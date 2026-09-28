@@ -28,11 +28,12 @@ diff --git a/submodules/TelegramUI/Components/VideoMessageCameraScreen/Sources/V
              }
          }
          var previewStatePromise = Promise<PreviewState?>()
-@@ -958,6 +964,7 @@
+@@ -958,6 +964,8 @@
              self.progressView = RecordingProgressView(frame: .zero)
              
              self.loadingView = LoadingEffectView(effectAlpha: 0.1, borderAlpha: 0.25, duration: 1.0)
 +            self.nebulaZoomSlider = NebulaVideoZoomSlider()
++            self.nebulaZoomSlider.tintColor = self.presentationData.theme.list.itemAccentColor
              
              self.previewBlurView = BlurView()
              self.previewBlurView.isUserInteractionEnabled = false
@@ -49,7 +50,11 @@ diff --git a/submodules/TelegramUI/Components/VideoMessageCameraScreen/Sources/V
              
              self.containerView.addSubview(self.previewContainerView)
  
-@@ -1121,6 +1134,7 @@
+@@ -1118,9 +1134,11 @@
+             case .changed:
+                 let scale = gestureRecognizer.scale
+                 camera.setZoomDelta(scale)
++                self.nebulaZoomSlider.reflectPinch(scale)
                  gestureRecognizer.scale = 1.0
              case .ended, .cancelled:
                  camera.rampZoom(1.0, rate: 8.0)

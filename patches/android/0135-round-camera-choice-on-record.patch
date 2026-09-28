@@ -1,14 +1,39 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
-@@ -891,4 +891,6 @@
+@@ -891,9 +891,31 @@
      private boolean recordAudioVideoRunnableStarted;
      private boolean calledRecordRunnable;
 +    private boolean nebulaCameraChoicePending;
 +    private boolean nebulaIgnoreCameraChoiceRelease;
++    private boolean nebulaCameraChoiceResolved;
      private Runnable recordAudioVideoRunnable = new Runnable() {
          @Override
-@@ -2980,5 +2982,7 @@
+         public void run() {
+             if (delegate == null || parentActivity == null) {
+                 return;
+             }
++            if (isInVideoMode() && app.nebulagram.ui.NebulaRoundCamera.mode() == app.nebulagram.ui.NebulaRoundCamera.ASK
++                    && !nebulaCameraChoiceResolved) {
++                nebulaCameraChoicePending = true;
++                recordAudioVideoRunnableStarted = false;
++                app.nebulagram.ui.NebulaRoundCamera.askForRecording(getContext(), resourcesProvider, () -> {
++                    if (!nebulaCameraChoicePending) return;
++                    nebulaCameraChoicePending = false;
++                    if (getWindowToken() == null) return;
++                    nebulaCameraChoiceResolved = true;
++                    nebulaIgnoreCameraChoiceRelease = true;
++                    recordAudioVideoRunnable.run();
++                    nebulaCameraChoiceResolved = false;
++                    if (recordingAudioVideo) startLockTransition();
++                }, () -> {
++                    nebulaCameraChoicePending = false;
++                    calledRecordRunnable = false;
++                });
++                return;
++            }
+             delegate.onPreAudioVideoRecord();
+@@ -2980,5 +3002,7 @@
                  createRecordCircle();
                  if (motionEvent.getAction() == MotionEvent.ACTION_DOWN) {
 +                    if (nebulaCameraChoicePending) return true;
@@ -16,29 +41,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivity
                      if (recordCircle.isSendButtonVisible()) {
                          if (!hasRecordVideo || calledRecordRunnable) {
                              startedDraggingX = -1;
-@@ -3039,6 +3043,21 @@
-                         return true;
-                     }
- 
-+                    if (hasRecordVideo && isInVideoMode() && app.nebulagram.ui.NebulaRoundCamera.mode() == app.nebulagram.ui.NebulaRoundCamera.ASK) {
-+                        nebulaCameraChoicePending = true;
-+                        app.nebulagram.ui.NebulaRoundCamera.askForRecording(getContext(), resourcesProvider, () -> {
-+                            if (!nebulaCameraChoicePending) return;
-+                            nebulaCameraChoicePending = false;
-+                            if (getWindowToken() == null) return;
-+                            nebulaIgnoreCameraChoiceRelease = true;
-+                            recordAudioVideoRunnable.run();
-+                            if (recordingAudioVideo) {
-+                                startLockTransition();
-+                            }
-+                        }, () -> nebulaCameraChoicePending = false);
-+                        return true;
-+                    }
-+
-                     if (hasRecordVideo) {
-                         calledRecordRunnable = false;
-                         recordAudioVideoRunnableStarted = true;
-@@ -3051,5 +3070,9 @@
+@@ -3051,5 +3075,9 @@
                      return true;
                  } else if (motionEvent.getAction() == MotionEvent.ACTION_UP || motionEvent.getAction() == MotionEvent.ACTION_CANCEL) {
 +                    if (nebulaCameraChoicePending || nebulaIgnoreCameraChoiceRelease) {

@@ -1,0 +1,29 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/InstantCameraView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/InstantCameraView.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Components/InstantCameraView.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/InstantCameraView.java
+@@ -3792,10 +3792,12 @@
+                 if (camera2SessionCurrent != null) {
+                     float zoom = Utilities.clamp(pinchScale, camera2SessionCurrent.getMaxZoom(), camera2SessionCurrent.getMinZoom());
+                     camera2SessionCurrent.setZoom(zoom);
++                    nebulaZoomSlider.setCurrent(zoom);
+                 }
+             } else {
+                 float zoom = Math.min(1f, Math.max(0, pinchScale - 1f));
+                 cameraSession.setZoom(zoom);
++                nebulaZoomSlider.setCurrent(1f + zoom);
+             }
+         } else if ((ev.getActionMasked() == MotionEvent.ACTION_UP || (ev.getActionMasked() == MotionEvent.ACTION_POINTER_UP && checkPointerIds(ev)) || ev.getActionMasked() == MotionEvent.ACTION_CANCEL) && isInPinchToZoomTouchMode) {
+             isInPinchToZoomTouchMode = false;
+@@ -3823,10 +3825,12 @@
+                 if (useCamera2) {
+                     if (camera2SessionCurrent != null) {
+                         camera2SessionCurrent.setZoom((float) valueAnimator.getAnimatedValue());
++                        nebulaZoomSlider.setCurrent((float) valueAnimator.getAnimatedValue());
+                     }
+                 } else {
+                     if (cameraSession != null) {
+                         cameraSession.setZoom((float) valueAnimator.getAnimatedValue());
++                        nebulaZoomSlider.setCurrent(1f + (float) valueAnimator.getAnimatedValue());
+                     }
+                 }
+             });

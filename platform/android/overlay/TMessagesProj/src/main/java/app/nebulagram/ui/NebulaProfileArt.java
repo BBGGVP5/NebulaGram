@@ -31,10 +31,12 @@ public final class NebulaProfileArt {
     private static int dp(float value) { return AndroidUtilities.dp(value); }
     private static float clamp(float value) { return Math.max(0f, Math.min(1f, value)); }
     private static int accent(Theme.ResourcesProvider provider) {
-        return Theme.getColor(Theme.key_windowBackgroundWhiteBlueText, provider);
+        // A peer can override profile colors. The decoration should follow
+        // the app theme instead of inheriting that peer's pink accent.
+        return Theme.getColor(Theme.key_windowBackgroundWhiteBlueText, null);
     }
     private static int surface(Theme.ResourcesProvider provider) {
-        return Theme.getColor(Theme.key_windowBackgroundWhite, provider);
+        return Theme.getColor(Theme.key_windowBackgroundWhite, null);
     }
     private static int ink(Theme.ResourcesProvider provider) {
         return Theme.getColor(Theme.key_windowBackgroundWhiteBlackText, provider);
@@ -42,8 +44,7 @@ public final class NebulaProfileArt {
 
     public static int sectionColor(Context context, Theme.ResourcesProvider provider) {
         NebulaTheme material = NebulaTheme.of(context);
-        return ColorUtils.blendARGB(material.isDynamic() ? material.surfaceContainer() : surface(provider),
-                material.isDynamic() ? material.primary() : accent(provider), .065f);
+        return ColorUtils.blendARGB(surface(provider), accent(provider), .065f);
     }
 
     /** Tinted surfaces remain in the native section drawing/blur capture path. */
@@ -58,8 +59,8 @@ public final class NebulaProfileArt {
             material = NebulaTheme.of(context);
         }
 
-        private int accentColor() { return material.isDynamic() ? material.primary() : accent(provider); }
-        private int surfaceColor() { return material.isDynamic() ? material.surfaceContainer() : surface(provider); }
+        private int accentColor() { return accent(provider); }
+        private int surfaceColor() { return surface(provider); }
 
         public void draw(Canvas canvas, RectF rect, float top, float bottom, float alpha) {
             radii[0] = radii[1] = radii[2] = radii[3] = top;
@@ -113,7 +114,7 @@ public final class NebulaProfileArt {
             if (!banner) return;
             if (banner) drawPhotoBanner(canvas, photo.getImageReceiver(), rect, alpha);
             final NebulaTheme material = NebulaTheme.of(avatar.getContext());
-            final int accent = material.isDynamic() ? material.primary() : accent(provider);
+            final int accent = accent(provider);
             int base = material.isDynamic() ? material.surfaceContainer() : surface(provider);
             final int titleColor = title.getTextPaint().getColor() | 0xff000000;
             // Peer-selected profile colours can make the native title white
@@ -184,8 +185,8 @@ public final class NebulaProfileArt {
             receiver.setAlpha(.78f * alpha);
             // The one-argument draw applies the user's avatar shape; bypass it here.
             receiver.draw(canvas, null);
-            paint.setColor(0xD8000000);
-            paint.setAlpha((int) (190 * alpha));
+            paint.setColor(Color.BLACK);
+            paint.setAlpha((int) (110 * alpha));
             canvas.drawRect(target, paint);
             canvas.restoreToCount(save);
             receiver.setAlpha(imageAlpha);
@@ -228,7 +229,7 @@ public final class NebulaProfileArt {
         }
         @Override public void draw(Canvas canvas) {
             rect.set(getBounds());
-            int accentColor = material.isDynamic() ? material.primary() : accent(provider);
+            int accentColor = accent(provider);
             paint.setColor(Theme.multAlpha(accentColor, .12f * alpha / 255f));
             canvas.drawRoundRect(rect, dp(10), dp(10), paint);
         }
@@ -251,7 +252,7 @@ public final class NebulaProfileArt {
         @Override public void draw(Canvas canvas) {
             rect.set(getBounds());
             int base = material.isDynamic() ? material.surfaceContainer() : surface(provider);
-            int accentColor = material.isDynamic() ? material.primary() : accent(provider);
+            int accentColor = accent(provider);
             int start = ColorUtils.blendARGB(base, accentColor, .22f);
             int end = ColorUtils.blendARGB(base, accentColor, .04f);
             if (gradient == null || previousStart != start || previousEnd != end
