@@ -3,6 +3,18 @@ import XCTest
 @testable import NebulaSettingsContract
 
 final class SettingsStoreTests: XCTestCase {
+    func testAttachmentCameraPreferencePersistsAndTransfers() throws {
+        try withDefaults { defaults in
+            let store = NebulaSettingsStore(defaults: defaults)
+            XCTAssertFalse(store.hideAttachCamera)
+            try store.set(.boolean(true), for: "hide_attach_camera")
+            XCTAssertTrue(store.hideAttachCamera)
+            XCTAssertTrue(NebulaSettingsStore(defaults: defaults).hideAttachCamera)
+            XCTAssertTrue(try store.previewImport(store.exportData()).activeKeys.contains("hide_attach_camera"))
+            XCTAssertThrowsError(try store.set(.integer(1), for: "hide_attach_camera"))
+        }
+    }
+
     func testNativeNavigationControlsPersistAndKeepSettingsReachable() throws {
         try withDefaults { defaults in
             let store = NebulaSettingsStore(defaults: defaults)

@@ -1,0 +1,21 @@
+diff --git a/submodules/MediaPickerUI/BUILD b/submodules/MediaPickerUI/BUILD
+index eb9d00e..15199ee 100644
+--- a/submodules/MediaPickerUI/BUILD
++++ b/submodules/MediaPickerUI/BUILD
+@@ -12,2 +12,3 @@ swift_library(
+     deps = [
++        "//submodules/NebulaSettingsContract:NebulaSettingsContract",
+         "//submodules/SSignalKit/SwiftSignalKit:SwiftSignalKit",
+diff --git a/submodules/MediaPickerUI/Sources/MediaPickerScreen.swift b/submodules/MediaPickerUI/Sources/MediaPickerScreen.swift
+index 5f4142c..7982aca 100644
+--- a/submodules/MediaPickerUI/Sources/MediaPickerScreen.swift
++++ b/submodules/MediaPickerUI/Sources/MediaPickerScreen.swift
+@@ -1,2 +1,3 @@
+ import Foundation
++import NebulaSettingsContract
+ import UIKit
+@@ -702,3 +703,3 @@ public final class MediaPickerScreenImpl: ViewController, MediaPickerScreen, Att
+             var useModernCamera = false
+-            if case .assets(nil, .default) = controller.subject {
++            if case .assets(nil, .default) = controller.subject, !NebulaSettingsStore.shared.hideAttachCamera {
+                 useLegacyCamera = true

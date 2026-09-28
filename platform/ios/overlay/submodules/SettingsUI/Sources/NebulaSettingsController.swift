@@ -92,6 +92,7 @@ private enum NebulaSettingsEntry: ItemListNodeEntry {
             case "hide_home_camera": return 65
             case "hide_home_compose": return 66
             case "hide_send_as": return 67
+            case "hide_attach_camera": return 74
             case "centered_chat_header": return 68
             case "disable_next_channel": return 69
             default: return 72
@@ -129,6 +130,7 @@ private enum NebulaSettingsEntry: ItemListNodeEntry {
             case "hide_home_camera": return 34
             case "hide_home_compose": return 35
             case "hide_send_as": return 36
+            case "hide_attach_camera": return 41
             case "centered_chat_header": return 37
             case "disable_next_channel": return 38
             default: return 39
@@ -333,6 +335,7 @@ public func nebulaSettingsController(context: AccountContext) -> ViewController 
             .navigationToggle("hide_home_camera", ru ? "Скрыть камеру на главной" : "Hide camera on home", store.hideHomeCamera, !store.hasLoadError),
             .navigationToggle("hide_home_compose", ru ? "Скрыть кнопку нового чата" : "Hide new-chat button", store.hideHomeCompose, !store.hasLoadError),
             .navigationToggle("hide_send_as", ru ? "Скрыть «Отправить от имени»" : "Hide Send As", store.hideSendAs, !store.hasLoadError),
+            .navigationToggle("hide_attach_camera", ru ? "Скрыть камеру во вложениях" : "Hide camera in attachments", store.hideAttachCamera, !store.hasLoadError),
             .navigationToggle("centered_chat_header", ru ? "Заголовок чата по центру" : "Center chat title", store.centeredChatHeader, !store.hasLoadError),
             .navigationToggle("disable_next_channel", ru ? "Скрыть переход к следующему каналу" : "Hide next-channel prompt", store.disableNextChannel, !store.hasLoadError),
             .navigationToggle("seconds_in_time", ru ? "Секунды во времени сообщений" : "Show seconds in message times", store.secondsInTime, !store.hasLoadError),

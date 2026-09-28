@@ -49,7 +49,7 @@ This inventory distinguishes **wired source** from native build and device accep
 | `glass_refraction` | appearance.glass | Pending native consumer | Local only |
 | `header_unread` | chat.header | Pending native consumer | Yes |
 | `hide_all_chats` | navigation.folders | Pending native consumer | Yes |
-| `hide_attach_camera` | chat.composer | Pending native consumer | Yes |
+| `hide_attach_camera` | chat.composer | Wired; native/device QA pending | Yes |
 | `hide_dividers` | navigation.folders | Pending native consumer | Yes |
 | `hide_home_camera` | navigation.bottom_bar | Wired; native/device QA pending | Yes |
 | `hide_home_compose` | navigation.bottom_bar | Wired; native/device QA pending | Yes |
