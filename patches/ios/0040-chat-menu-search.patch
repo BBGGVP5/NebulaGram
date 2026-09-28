@@ -1,0 +1,40 @@
+diff --git a/submodules/TelegramUI/Sources/ChatController.swift b/submodules/TelegramUI/Sources/ChatController.swift
+index db94294..c4b26bd 100644
+--- a/submodules/TelegramUI/Sources/ChatController.swift
++++ b/submodules/TelegramUI/Sources/ChatController.swift
+@@ -6020,8 +6020,10 @@ public final class ChatControllerImpl: TelegramBaseController, ChatController, G
+                         }
+-                        items.append(.action(ContextMenuActionItem(text: strongSelf.presentationData.strings.Conversation_Search, icon: { theme in
+-                            return generateTintedImage(image: UIImage(bundleImageName: "Chat/Context Menu/Search"), color: theme.actionSheet.primaryTextColor)
+-                        }, action: { _, f in
+-                            f(.dismissWithoutContent)
+-                            self?.interfaceInteraction?.beginMessageSearch(.everything, "")
+-                        })))
++                        if NebulaSettingsStore.shared.menuSearch {
++                            items.append(.action(ContextMenuActionItem(text: strongSelf.presentationData.strings.Conversation_Search, icon: { theme in
++                                return generateTintedImage(image: UIImage(bundleImageName: "Chat/Context Menu/Search"), color: theme.actionSheet.primaryTextColor)
++                            }, action: { _, f in
++                                f(.dismissWithoutContent)
++                                self?.interfaceInteraction?.beginMessageSearch(.everything, "")
++                            })))
++                        }
+                         let aiSettings = NebulaAiSettings.shared
+@@ -6305,10 +6307,10 @@ public final class ChatControllerImpl: TelegramBaseController, ChatController, G
+                         }
+-                        
+-                        items.append(.action(ContextMenuActionItem(text: strongSelf.presentationData.strings.Conversation_Search, icon: { theme in
+-                            return generateTintedImage(image: UIImage(bundleImageName: "Chat/Context Menu/Search"), color: theme.actionSheet.primaryTextColor)
+-                        }, action: { _, f in
+-                            f(.dismissWithoutContent)
+-                            self?.interfaceInteraction?.beginMessageSearch(.everything, "")
+-                        })))
+-                        
++                        if NebulaSettingsStore.shared.menuSearch {
++                            items.append(.action(ContextMenuActionItem(text: strongSelf.presentationData.strings.Conversation_Search, icon: { theme in
++                                return generateTintedImage(image: UIImage(bundleImageName: "Chat/Context Menu/Search"), color: theme.actionSheet.primaryTextColor)
++                            }, action: { _, f in
++                                f(.dismissWithoutContent)
++                                self?.interfaceInteraction?.beginMessageSearch(.everything, "")
++                            })))
++                        }
+                         if threadId != 1 {

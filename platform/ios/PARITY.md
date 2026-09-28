@@ -66,7 +66,7 @@ This inventory distinguishes **wired source** from native build and device accep
 | `material_you` | appearance.general | Platform-specific; not ported | Yes |
 | `menu_call` | chat.header | Pending native consumer | Yes |
 | `menu_mute` | chat.header | Pending native consumer | Yes |
-| `menu_search` | chat.header | Pending native consumer | Yes |
+| `menu_search` | chat.header | Wired in peer/topic avatar menus; native/device QA pending | Yes |
 | `menu_video` | chat.header | Pending native consumer | Yes |
 | `message_menu_below` | chat.context_menu | Pending native consumer | Yes |
 | `message_menu_blur` | chat.context_menu | Pending native consumer | Yes |

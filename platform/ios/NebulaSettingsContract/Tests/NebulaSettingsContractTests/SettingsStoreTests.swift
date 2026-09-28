@@ -3,6 +3,18 @@ import XCTest
 @testable import NebulaSettingsContract
 
 final class SettingsStoreTests: XCTestCase {
+    func testChatMenuSearchPreferencePersistsAndTransfers() throws {
+        try withDefaults { defaults in
+            let store = NebulaSettingsStore(defaults: defaults)
+            XCTAssertTrue(store.menuSearch)
+            try store.set(.boolean(false), for: "menu_search")
+            XCTAssertFalse(store.menuSearch)
+            XCTAssertFalse(NebulaSettingsStore(defaults: defaults).menuSearch)
+            XCTAssertTrue(try store.previewImport(store.exportData()).activeKeys.contains("menu_search"))
+            XCTAssertThrowsError(try store.set(.integer(0), for: "menu_search"))
+        }
+    }
+
     func testAttachmentCameraPreferencePersistsAndTransfers() throws {
         try withDefaults { defaults in
             let store = NebulaSettingsStore(defaults: defaults)
