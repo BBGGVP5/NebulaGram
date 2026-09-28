@@ -81,6 +81,16 @@ func TestParseServerDescription(t *testing.T) {
 	if encodedSeparator.Name != "Riga" || encodedSeparator.Description != "VLESS 🌍" {
 		t.Fatalf("encoded separator = %q/%q", encodedSeparator.Name, encodedSeparator.Description)
 	}
+	queryDescription, err := Parse("vless://uuid@node.example:443?serverDescription=VkxFU1Mg8J+MjQ==#Riga")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if queryDescription.Name != "Riga" || queryDescription.Description != "VLESS 🌍" {
+		t.Fatalf("query description = %q/%q", queryDescription.Name, queryDescription.Description)
+	}
+	if queryDescription.ID != encodedSeparator.ID {
+		t.Fatal("description location changed server identity")
+	}
 	ordinaryFragment, err := Parse("vless://uuid@node.example:443#Name?with%20question")
 	if err != nil {
 		t.Fatal(err)

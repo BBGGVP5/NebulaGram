@@ -159,6 +159,10 @@ public class NebulaServersFragment extends BaseFragment {
                         ? R.string.NebulaSortLatency : R.string.NebulaSortDefault), true)
                 .trailing(NebulaRow.TRAIL_CHEVRON)
                 .withClick(v -> chooseSort()));
+        actions.add(new NebulaRow(context).icon(R.drawable.msg_retry)
+                .title(LocaleController.getString(R.string.nl_refresh))
+                .subtitle(LocaleController.getString(R.string.nl_refresh_sub), false)
+                .withClick(v -> refreshSubscriptions()));
         content.addView(actions, cardParams());
 
         if (servers.isEmpty()) {
@@ -225,6 +229,18 @@ public class NebulaServersFragment extends BaseFragment {
                 }).create());
     }
 
+    private void refreshSubscriptions() {
+        NebulaLink.call("subscription.refreshAll", null, result -> {
+            if (result.ok) {
+                report(LocaleController.getString(R.string.NebulaSubsRefreshed));
+                load();
+            } else {
+                // Core errors may contain a subscription URL with credentials.
+                report(NebulaText.text("Не удалось обновить подписки", "Could not refresh subscriptions"));
+            }
+        });
+    }
+
     private View buildRow(Context context, JSONObject server) {
         String id = server.optString("id");
         NebulaServerLabel label = new NebulaServerLabel(server.optString("name"),
@@ -240,7 +256,7 @@ public class NebulaServersFragment extends BaseFragment {
         JSONObject active = status == null ? null : status.optJSONObject("server");
         boolean connected = active != null && "connected".equals(status.optString("state"))
                 && id.equals(active.optString("id")) && NebulaLink.isRoutingThroughTunnel();
-        row.subtitle(describe(server, selected, connected), selected);
+        row.subtitle(describe(server, connected), false);
         row.selection(selected);
         if (connected) {
             row.connected(true);
@@ -307,10 +323,10 @@ public class NebulaServersFragment extends BaseFragment {
     }
 
     /** Latency lives in the trailing badge; the subtitle names protocol and state. */
-    private String describe(JSONObject server, boolean selected, boolean connected) {
+    private String describe(JSONObject server, boolean connected) {
         StringBuilder line = new StringBuilder();
-        if (connected || selected) {
-            line.append(LocaleController.getString(connected ? R.string.NebulaConnected : R.string.NebulaSelected));
+        if (connected) {
+            line.append(LocaleController.getString(R.string.NebulaConnected));
         }
         String protocol = server.optString("protocol");
         if (!protocol.isEmpty()) {

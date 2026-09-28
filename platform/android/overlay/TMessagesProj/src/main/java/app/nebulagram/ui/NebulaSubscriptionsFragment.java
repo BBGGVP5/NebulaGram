@@ -93,13 +93,6 @@ public class NebulaSubscriptionsFragment extends BaseFragment {
                 .title(LocaleController.getString(R.string.nl_add_sub))
                 .subtitle(LocaleController.getString(R.string.nl_add_sub_sub), false)
                 .withClick(v -> add(context)));
-        actions.add(new NebulaRow(context)
-                .icon(R.drawable.msg_retry)
-                .title(LocaleController.getString(R.string.nl_refresh))
-                .withClick(v -> NebulaLink.call("subscription.refreshAll", null, result -> {
-                    report(result.ok ? LocaleController.getString(R.string.NebulaSubsRefreshed) : result.error);
-                    load();
-                })));
         content.addView(actions, cardParams());
 
         int count = subscriptions == null ? 0 : subscriptions.length();

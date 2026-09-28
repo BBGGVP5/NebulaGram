@@ -11,6 +11,7 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+	"unicode/utf8"
 
 	"github.com/nebulagram/nebulagram/core/model"
 )
@@ -161,6 +162,9 @@ func applyQuery(s *model.Server, q map[string]string) {
 	s.ShortID = get("sid")
 	s.SpiderX = get("spx")
 	s.AllowInsecure = truthy(get("allowInsecure", "insecure", "allow_insecure"))
+	if s.Description == "" {
+		s.Description = descriptionValue(get("serverDescription", "serverdescription", "server_description", "server-description", "description"))
+	}
 	if s.Protocol == model.TUIC && q["password"] != "" {
 		s.Password = q["password"]
 	}
@@ -276,7 +280,12 @@ func parseQuery(q string) map[string]string {
 			continue
 		}
 		k, v, _ := strings.Cut(pair, "=")
-		m[unescape(k)] = unescape(v)
+		key := unescape(k)
+		if isDescriptionKey(key) {
+			// A literal '+' belongs to base64, not to URL form encoding.
+			v = strings.ReplaceAll(v, "+", "%2B")
+		}
+		m[key] = unescape(v)
 	}
 	return m
 }
@@ -298,22 +307,39 @@ func splitFragment(fragment string) (string, string) {
 	foundDescription := false
 	for _, part := range strings.Split(tail, "&") {
 		key, value, _ := strings.Cut(part, "=")
-		switch strings.ToLower(unescape(key)) {
-		case "serverdescription", "server_description", "server-description", "description":
+		if isDescriptionKey(unescape(key)) {
 			foundDescription = true
 			// Preserve '+' in base64: query-style decoding would turn it into a space.
 			value = unescape(strings.ReplaceAll(value, "+", "%2B"))
-			if decoded, ok := decodeBase64(value); ok {
-				description = decoded
-			} else if !strings.EqualFold(value, "null") && len(value) <= 256 {
-				description = value
-			}
+			description = descriptionValue(value)
 		}
 	}
 	if !foundDescription {
 		return strings.TrimSpace(unescape(fragment)), ""
 	}
 	return strings.TrimSpace(unescape(name)), strings.TrimSpace(description)
+}
+
+func isDescriptionKey(key string) bool {
+	switch strings.ToLower(key) {
+	case "serverdescription", "server_description", "server-description", "description":
+		return true
+	}
+	return false
+}
+
+func descriptionValue(value string) string {
+	value = strings.TrimSpace(value)
+	if strings.EqualFold(value, "null") || len(value) > 1024 {
+		return ""
+	}
+	if decoded, ok := decodeBase64(value); ok && utf8.ValidString(decoded) {
+		return strings.TrimSpace(decoded)
+	}
+	if len(value) <= 256 {
+		return value
+	}
+	return ""
 }
 
 // unescape resolves percent-encoding without rejecting the stray "%" that

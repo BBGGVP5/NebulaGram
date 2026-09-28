@@ -112,9 +112,6 @@ func serversScreen() Screen {
 					Options: protocolOptions()},
 			}},
 			{TitleKey: "nl_sec_actions", Title: "ACTIONS", Rows: []Row{
-				{Key: "refresh", Type: RowAction, Command: "subscription.refreshAll", Icon: "refresh",
-					TitleKey: "nl_refresh", Title: "Refresh subscriptions",
-					SubtitleKey: "nl_refresh_sub", Subtitle: "Fetch fresh servers from saved sources"},
 				{Key: "add_key", Type: RowAction, Command: "server.addLink", Icon: "edit",
 					TitleKey: "nl_add_key", Title: "Add server key",
 					SubtitleKey: "nl_add_key_sub", Subtitle: "VLESS, VMess, Trojan, Shadowsocks, Hysteria2 or TUIC"},
