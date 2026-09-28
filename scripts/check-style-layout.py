@@ -39,7 +39,7 @@ java = '''class StyleLayoutCheck {
 ''' + methods + expanded + '''
  }
  static class TitleBar {
-  Object parentFragment;boolean isSearchFieldVisible;float mode;
+  Object parentFragment;boolean isSearchFieldVisible,nebulaHomeTabsGlass;float mode;
   float getActionModeFactor(){return mode;}
 ''' + center + '''
  }
@@ -97,11 +97,16 @@ java = '''class StyleLayoutCheck {
   bar.parentFragment=null;bar.isSearchFieldVisible=true;check(!bar.nebulaCenterTitle(),"Search title overridden");
   bar.isSearchFieldVisible=false;bar.mode=1;check(!bar.nebulaCenterTitle(),"Selection title overridden");
   bar.mode=0;app.nebulagram.ui.NebulaAppearance.center=false;check(!bar.nebulaCenterTitle(),"Disabled centering still active");
+  bar.parentFragment=dialogs;bar.nebulaHomeTabsGlass=true;
+  check(bar.nebulaCenterTitle(),"Glass home title should remain centered with optional centering disabled");
+  bar.isSearchFieldVisible=true;check(!bar.nebulaCenterTitle(),"Glass search title overridden");
+  bar.isSearchFieldVisible=false;bar.mode=1;check(!bar.nebulaCenterTitle(),"Glass selection title overridden");
+  bar.mode=0;dialogs.expanded=false;check(!bar.nebulaCenterTitle(),"Collapsed glass home title centered");
   int shapes=0;
   for(int style=1;style<=3;style++)for(int direction=0;direction<=1;direction++)for(int step=0;step<=100;step++){
    Toggle t=new Toggle();t.direction=direction;t.progress=step/100f;Canvas c=new Canvas();t.drawAlternative(c,style);shapes+=c.shapes;
   }
-  System.out.println(cases+" search/header cases, 10 title states and "+shapes+" switch drawing bounds passed (including RTL and intermediate frames)");
+  System.out.println(cases+" search/header cases, 14 title states and "+shapes+" switch drawing bounds passed (including RTL and intermediate frames)");
  }
 }'''
 work = root / 'build/style-layout-check'
