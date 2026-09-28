@@ -8,4 +8,4 @@
 - [x] Set up existing ActionBar glass for the default chat list, draw separate round menu surfaces, and keep search/action-mode behavior native.
 - [x] Render the existing NebulaLink shield as a round control with a clear active state.
 - [x] Correct expanded title size and collapsed folder title width; verify safe bounds on narrow screens.
-- [ ] Validate ordered patch application, local checks and Android CI build; record device-only limitations.
+- [x] Validate ordered patch application, local checks and Android CI build (`36342303713`, success). Device visual QA remains necessary for motion and blur on real hardware.
