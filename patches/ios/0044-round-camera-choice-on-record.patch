@@ -1,0 +1,74 @@
+diff --git a/submodules/TelegramUI/Sources/Chat/ChatControllerMediaRecording.swift b/submodules/TelegramUI/Sources/Chat/ChatControllerMediaRecording.swift
+--- a/submodules/TelegramUI/Sources/Chat/ChatControllerMediaRecording.swift
++++ b/submodules/TelegramUI/Sources/Chat/ChatControllerMediaRecording.swift
+@@ -148,4 +148,30 @@
+-    func requestVideoRecorder() {
++    func requestVideoRecorder(initialFrontCamera: Bool? = nil) {
++        if self.videoRecorderValue == nil && initialFrontCamera == nil {
++            let presentationData = self.presentationData
++            let sheet = ActionSheetController(presentationData: presentationData)
++            let dismissAction: () -> Void = { [weak sheet] in
++                sheet?.dismissAnimated()
++            }
++            let choose: (Bool) -> Void = { [weak self] front in
++                dismissAction()
++                Queue.mainQueue().after(0.2, { [weak self] in
++                    self?.requestVideoRecorder(initialFrontCamera: front)
++                })
++            }
++            let russian = Locale.current.languageCode == "ru"
++            sheet.setItemGroups([
++                ActionSheetItemGroup(items: [
++                    ActionSheetTextItem(title: russian ? "Камера кружка" : "Round video camera"),
++                    ActionSheetButtonItem(title: russian ? "Фронтальная" : "Front", action: { choose(true) }),
++                    ActionSheetButtonItem(title: russian ? "Основная" : "Rear", action: { choose(false) })
++                ]),
++                ActionSheetItemGroup(items: [
++                    ActionSheetButtonItem(title: presentationData.strings.Common_Cancel, action: dismissAction)
++                ])
++            ])
++            self.present(sheet, in: .window(.root), with: ViewControllerPresentationArguments(presentationAnimation: .modalSheet))
++            return
++        }
+         if self.videoRecorderValue == nil {
+             if let currentInputPanelFrame = self.chatDisplayNode.currentInputPanelFrame() {
+                 if self.recorderFeedback == nil {
+@@ -181,6 +207,7 @@
+                     viewOnceAvailable: viewOnceAvailable,
+                     inputPanelFrame: (currentInputPanelFrame, self.chatDisplayNode.inputNode != nil),
+                     chatNode: self.chatDisplayNode.historyNode,
++                    initialFrontCamera: initialFrontCamera ?? true,
+                     completion: { [weak self] message, silentPosting, scheduleTime, repeatPeriod in
+                         guard let self, let videoController = self.videoRecorderValue else {
+                             return
+diff --git a/submodules/TelegramUI/Components/VideoMessageCameraScreen/Sources/VideoMessageCameraScreen.swift b/submodules/TelegramUI/Components/VideoMessageCameraScreen/Sources/VideoMessageCameraScreen.swift
+--- a/submodules/TelegramUI/Components/VideoMessageCameraScreen/Sources/VideoMessageCameraScreen.swift
++++ b/submodules/TelegramUI/Components/VideoMessageCameraScreen/Sources/VideoMessageCameraScreen.swift
+@@ -952,5 +952,5 @@
+             let isDualCameraEnabled = Camera.isDualCameraSupported(forRoundVideo: true)
+-            let isFrontPosition = "".isEmpty
++            let isFrontPosition = controller.initialFrontCamera
+             
+             self.mainPreviewView = CameraSimplePreviewView(frame: .zero, main: true, roundVideo: true)
+             self.additionalPreviewView = CameraSimplePreviewView(frame: .zero, main: false, roundVideo: true)
+@@ -1638,5 +1638,6 @@
+     private let context: AccountContext
+     private let updatedPresentationData: (initial: PresentationData, signal: Signal<PresentationData, NoError>)?
+     private let inputPanelFrame: (CGRect, Bool)
++    fileprivate let initialFrontCamera: Bool
+     fileprivate var allowLiveUpload: Bool
+     fileprivate var viewOnceAvailable: Bool
+@@ -1798,6 +1799,7 @@
+         viewOnceAvailable: Bool,
+         inputPanelFrame: (CGRect, Bool),
+         chatNode: ASDisplayNode?,
++        initialFrontCamera: Bool,
+         completion: @escaping (EnqueueMessage?, Bool?, Int32?, Int32?) -> Void
+     ) {
+         self.context = context
+@@ -1805,4 +1807,5 @@
+         self.viewOnceAvailable = viewOnceAvailable
+         self.inputPanelFrame = inputPanelFrame
+         self.chatNode = chatNode
++        self.initialFrontCamera = initialFrontCamera
+         self.completion = completion

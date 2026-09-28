@@ -41,28 +41,6 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/MessagesStorage.
                  int unreadCount = 0;
                  if ((flags & MessagesController.DIALOG_FILTER_FLAG_CONTACTS) != 0) {
                      if ((flags & MessagesController.DIALOG_FILTER_FLAG_ONLY_ARCHIVED) == 0) {
-diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
---- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
-+++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
-@@ -3071,8 +3071,16 @@ public class ChatActivityEnterView extends FrameLayout implements
-                         if (recordAudioVideoRunnableStarted) {
-                             AndroidUtilities.cancelRunOnUIThread(recordAudioVideoRunnable);
-                             if (sendVoiceEnabled && sendRoundEnabled) {
--                                delegate.onSwitchRecordMode(!isInVideoMode());
--                                setRecordVideoButtonVisible(!isInVideoMode(), true);
-+                                // РљРѕСЂРѕС‚РєРѕРµ РЅР°Р¶Р°С‚РёРµ РїРµСЂРµРєР»СЋС‡Р°РµС‚ РіРѕР»РѕСЃ/РєСЂСѓР¶РѕРє. Р­С‚Рѕ
-+                                // РµРґРёРЅСЃС‚РІРµРЅРЅС‹Р№ РјРѕРјРµРЅС‚, РєРѕРіРґР° Сѓ РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ РјРѕР¶РЅРѕ
-+                                // С‡С‚Рѕ-С‚Рѕ СЃРїСЂРѕСЃРёС‚СЊ: Р·Р°РїРёСЃСЊ РЅР°С‡РёРЅР°РµС‚СЃСЏ СЃСЂР°Р·Сѓ, РєР°Рє РїР°Р»РµС†
-+                                // Р»РѕР¶РёС‚СЃСЏ РЅР° РєРЅРѕРїРєСѓ, Рё РІРѕРїСЂРѕСЃ С‚Р°Рј СЃСЉРµР» Р±С‹ Р¶РµСЃС‚.
-+                                boolean toVideo = !isInVideoMode();
-+                                delegate.onSwitchRecordMode(toVideo);
-+                                setRecordVideoButtonVisible(toVideo, true);
-+                                if (toVideo) {
-+                                    app.nebulagram.ui.NebulaRoundCamera.ask(getContext(), resourcesProvider);
-+                                }
-                             } else {
-                                 delegate.needShowMediaBanHint();
-                             }
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
