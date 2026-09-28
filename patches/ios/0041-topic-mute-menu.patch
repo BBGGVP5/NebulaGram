@@ -1,0 +1,13 @@
+diff --git a/submodules/TelegramUI/Sources/ChatController.swift b/submodules/TelegramUI/Sources/ChatController.swift
+index c4b26bd..7328f80 100644
+--- a/submodules/TelegramUI/Sources/ChatController.swift
++++ b/submodules/TelegramUI/Sources/ChatController.swift
+@@ -6102,7 +6102,7 @@ public final class ChatControllerImpl: TelegramBaseController, ChatController, G
+                             isMuted = peerIsMuted
+                         }
+                         
+-                        if !"".isEmpty {
++                        if NebulaSettingsStore.shared.menuMute {
+                             items.append(.action(ContextMenuActionItem(text: isMuted ? presentationData.strings.ChatList_Context_Unmute : presentationData.strings.ChatList_Context_Mute, icon: { theme in generateTintedImage(image: UIImage(bundleImageName: isMuted ? "Chat/Context Menu/Unmute" : "Chat/Context Menu/Muted"), color: theme.contextMenu.primaryColor) }, action: { [weak self] c, f in
+                                 if isMuted {
+                                     let _ = (context.engine.peers.updatePeerMuteSetting(peerId: peerId, threadId: threadId, muteInterval: 0)

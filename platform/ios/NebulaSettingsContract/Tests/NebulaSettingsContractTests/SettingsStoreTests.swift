@@ -3,6 +3,18 @@ import XCTest
 @testable import NebulaSettingsContract
 
 final class SettingsStoreTests: XCTestCase {
+    func testTopicMuteMenuPreferencePersistsAndTransfers() throws {
+        try withDefaults { defaults in
+            let store = NebulaSettingsStore(defaults: defaults)
+            XCTAssertTrue(store.menuMute)
+            try store.set(.boolean(false), for: "menu_mute")
+            XCTAssertFalse(store.menuMute)
+            XCTAssertFalse(NebulaSettingsStore(defaults: defaults).menuMute)
+            XCTAssertTrue(try store.previewImport(store.exportData()).activeKeys.contains("menu_mute"))
+            XCTAssertThrowsError(try store.set(.integer(0), for: "menu_mute"))
+        }
+    }
+
     func testChatMenuSearchPreferencePersistsAndTransfers() throws {
         try withDefaults { defaults in
             let store = NebulaSettingsStore(defaults: defaults)
