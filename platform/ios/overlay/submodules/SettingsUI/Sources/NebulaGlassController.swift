@@ -26,7 +26,9 @@ final class NebulaGlassController: UITableViewController {
     @objc private func close() { dismiss(animated: true) }
     @objc private func refresh() { tableView.reloadData(); preview.setNeedsLayout() }
     override func numberOfSections(in tableView: UITableView) -> Int { 4 }
-    override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int { section == 1 ? styles.count : 1 }
+    override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        section == 1 ? styles.count : (section == 3 ? 2 : 1)
+    }
     override func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
         section == 1 ? (ru ? "Оформление" : "Appearance") : nil
     }
@@ -39,7 +41,7 @@ final class NebulaGlassController: UITableViewController {
         let reduced = NebulaGlassPolicy.reduced(mode: store.glassQuality, lowPower: ProcessInfo.processInfo.isLowPowerModeEnabled,
             hot: ProcessInfo.processInfo.thermalState.rawValue >= ProcessInfo.ThermalState.serious.rawValue, reduceTransparency: false)
         if reduced { return ru ? "Сейчас облегчённый материал. Авто включает его при энергосбережении и нагреве." : "Light material is active. Auto uses it in Low Power Mode or during thermal pressure." }
-        if #available(iOS 26.0, *) { return ru ? "Жидкий стиль использует системный Liquid Glass. Матовое стекло оставляет текст без преломления. Панель вкладок сохраняет нативное оформление." : "Liquid style uses system Liquid Glass. Frosted glass has no refraction. The tab bar keeps its native appearance." }
+        if #available(iOS 26.0, *) { return ru ? "Анимация действует только для системного Liquid Glass. Снижение движения в iOS отключает её. Панель вкладок сохраняет нативное оформление." : "Animation applies only to system Liquid Glass. Reduce Motion disables it. The tab bar keeps its native appearance." }
         return ru ? "На этой версии iOS доступно матовое размытие. Для Liquid Glass нужна iOS 26." : "This iOS version uses frosted blur. Liquid Glass requires iOS 26."
     }
     override func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
@@ -67,8 +69,24 @@ final class NebulaGlassController: UITableViewController {
             slider.addTarget(self, action: #selector(tintChanged(_:)), for: .valueChanged)
             cell.accessoryView = slider; cell.selectionStyle = .none
         default:
-            cell.textLabel?.text = ru ? "Качество" : "Quality"
-            cell.detailTextLabel?.text = qualities[store.glassQuality]; cell.accessoryType = .disclosureIndicator
+            if indexPath.row == 0 {
+                cell.textLabel?.text = ru ? "Качество" : "Quality"
+                cell.detailTextLabel?.text = qualities[store.glassQuality]; cell.accessoryType = .disclosureIndicator
+            } else {
+                cell.textLabel?.text = ru ? "Анимация жидкого стекла" : "Liquid glass animation"
+                cell.detailTextLabel?.text = ru ? "Отклик системного эффекта" : "System glass interaction"
+                let toggle = UISwitch()
+                toggle.isOn = store.liquidAnimations
+                if #available(iOS 26.0, *) {
+                    toggle.isEnabled = store.iosGlassStyle == 1 && !store.hasLoadError
+                } else {
+                    toggle.isEnabled = false
+                }
+                toggle.accessibilityLabel = cell.textLabel?.text
+                toggle.addTarget(self, action: #selector(animationsChanged(_:)), for: .valueChanged)
+                cell.accessoryView = toggle
+                cell.selectionStyle = .none
+            }
         }
         return cell
     }
@@ -81,10 +99,15 @@ final class NebulaGlassController: UITableViewController {
         slider.accessibilityValue = "\(store.iosGlassTint)%"
         tableView.cellForRow(at: IndexPath(row: 0, section: 2))?.textLabel?.text = tintTitle()
     }
+    @objc private func animationsChanged(_ toggle: UISwitch) {
+        do { try store.set(.boolean(toggle.isOn), for: "liquid_animations"); writeFailed = false }
+        catch { writeFailed = true; toggle.isOn = store.liquidAnimations }
+        refresh()
+    }
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
         if indexPath.section == 1 { set(indexPath.row, key: "ios_glass_style"); refresh() }
-        if indexPath.section == 3 {
+        if indexPath.section == 3 && indexPath.row == 0 {
             NebulaChoiceController.show(from: self, title: ru ? "Качество стекла" : "Glass quality", choices: qualities,
                 selected: store.glassQuality, russian: ru) { [weak self] mode in self?.set(mode, key: "glass_quality"); self?.refresh() }
         }

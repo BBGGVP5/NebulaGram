@@ -54,7 +54,7 @@ diff --git a/submodules/TelegramUI/Components/GlassBackgroundComponent/Sources/G
 +            nebulaMaterial.frame = CGRect(origin: .zero, size: size)
 +            nebulaMaterialClip.update(shape: shape, size: size, transition: transition)
 +            let state = NebulaGlassMaterialState(style: nebulaStyle, tint: NebulaSettingsStore.shared.iosGlassTint,
-+                dark: isDark, reduced: reduced, opaque: UIAccessibility.isReduceTransparencyEnabled, animated: !UIAccessibility.isReduceMotionEnabled)
++                dark: isDark, reduced: reduced, opaque: UIAccessibility.isReduceTransparencyEnabled, animated: NebulaSettingsStore.shared.liquidAnimations && !UIAccessibility.isReduceMotionEnabled)
 +            if nebulaMaterialState != state {
 +                nebulaMaterialState = state
 +                state.apply(to: nebulaMaterial)
