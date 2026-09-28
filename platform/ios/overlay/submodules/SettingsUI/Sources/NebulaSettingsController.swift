@@ -93,6 +93,7 @@ private enum NebulaSettingsEntry: ItemListNodeEntry {
             case "hide_home_compose": return 66
             case "hide_send_as": return 67
             case "hide_attach_camera": return 74
+            case "hide_dividers": return 78
             case "menu_search": return 73
             case "menu_mute": return 75
             case "menu_call": return 76
@@ -135,6 +136,7 @@ private enum NebulaSettingsEntry: ItemListNodeEntry {
             case "hide_home_compose": return 35
             case "hide_send_as": return 36
             case "hide_attach_camera": return 41
+            case "hide_dividers": return 46
             case "menu_search": return 42
             case "menu_mute": return 43
             case "menu_call": return 44
@@ -344,6 +346,7 @@ public func nebulaSettingsController(context: AccountContext) -> ViewController 
             .navigationToggle("hide_home_compose", ru ? "Скрыть кнопку нового чата" : "Hide new-chat button", store.hideHomeCompose, !store.hasLoadError),
             .navigationToggle("hide_send_as", ru ? "Скрыть «Отправить от имени»" : "Hide Send As", store.hideSendAs, !store.hasLoadError),
             .navigationToggle("hide_attach_camera", ru ? "Скрыть камеру во вложениях" : "Hide camera in attachments", store.hideAttachCamera, !store.hasLoadError),
+            .navigationToggle("hide_dividers", ru ? "Скрыть разделители чатов" : "Hide chat dividers", store.hideDividers, !store.hasLoadError),
             .navigationToggle("menu_search", ru ? "Поиск в меню чата" : "Search in chat menu", store.menuSearch, !store.hasLoadError),
             .navigationToggle("menu_mute", ru ? "Уведомления в меню темы" : "Mute in topic menu", store.menuMute, !store.hasLoadError),
             .navigationToggle("menu_call", ru ? "Звонок в меню чата" : "Voice call in chat menu", store.menuCall, !store.hasLoadError),

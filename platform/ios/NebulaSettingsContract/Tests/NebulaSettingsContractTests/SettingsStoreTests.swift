@@ -3,6 +3,17 @@ import XCTest
 @testable import NebulaSettingsContract
 
 final class SettingsStoreTests: XCTestCase {
+    func testChatDividerPreferencePersistsAndTransfers() throws {
+        try withDefaults { defaults in
+            let store = NebulaSettingsStore(defaults: defaults)
+            XCTAssertFalse(store.hideDividers)
+            try store.set(.boolean(true), for: "hide_dividers")
+            XCTAssertTrue(NebulaSettingsStore(defaults: defaults).hideDividers)
+            XCTAssertTrue(try store.previewImport(store.exportData()).activeKeys.contains("hide_dividers"))
+            XCTAssertThrowsError(try store.set(.integer(1), for: "hide_dividers"))
+        }
+    }
+
     func testCallMenuPreferencesPersistAndTransfer() throws {
         try withDefaults { defaults in
             let store = NebulaSettingsStore(defaults: defaults)

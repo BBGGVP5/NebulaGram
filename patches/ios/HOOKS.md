@@ -15,6 +15,7 @@
 | 0040-chat-menu-search.patch | `submodules/TelegramUI/Sources/ChatController.swift` | `Conversation_Search` в меню аватара | Настройка поиска только в меню собеседника и темы, без отключения штатного поиска по сообщениям | 4 |
 | 0041-topic-mute-menu.patch | `submodules/TelegramUI/Sources/ChatController.swift` | Меню аватара темы | Показывает существующее нативное действие отключения уведомлений темы по настройке `menu_mute` | 4 |
 | 0042-call-menu.patch | `submodules/TelegramUI/Sources/ChatController.swift` | Меню аватара собеседника | Голосовой и видеозвонок обычному пользователю через штатный вызов Telegram по настройкам `menu_call`/`menu_video` | 20+ |
+| 0043-hide-chat-dividers.patch | `submodules/ChatListUI/Sources/Node/ChatListItem.swift` | Раскладка ячейки чата | Скрывает штатную линию между чатами по настройке `hide_dividers` | 2 |
 | 0019-profile-badge-interaction.patch | `PeerInfoScreen/Sources/PeerInfoHeaderNode.swift` | `nebulaBadgeTapped`, `updateNebulaBadge` | Анимация значка профиля, карточка с «Подробнее» и нативное окно с описанием; учитывает Reduce Motion и язык интерфейса | 50+ |
 | 0020-ai-message-actions.patch | `TelegramUI/Sources/ChatInterfaceStateContextMenus.swift` | `Conversation_ContextMenuTranslate` | Направляет перевод в выбранный Nebula AI, добавляет пересказ и инструменты для разрешённого одиночного текста | 40+ |
 | 0021-ai-draft-action.patch | `TelegramUI/Sources/ChatController.swift` | `Conversation_Search` | Добавляет ИИ-действие для черновика и вставляет подтверждённый результат обратно в поле ввода | 20+ |

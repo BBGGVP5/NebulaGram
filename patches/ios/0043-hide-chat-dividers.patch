@@ -1,0 +1,17 @@
+diff --git a/submodules/ChatListUI/Sources/Node/ChatListItem.swift b/submodules/ChatListUI/Sources/Node/ChatListItem.swift
+index 9da6217..1a76f8b 100644
+--- a/submodules/ChatListUI/Sources/Node/ChatListItem.swift
++++ b/submodules/ChatListUI/Sources/Node/ChatListItem.swift
+@@ -30,4 +30,5 @@ import MultilineTextWithEntitiesComponent
+ import ShimmerEffect
+ import GlassBackgroundComponent
++import NebulaSettingsContract
+ 
+ public enum ChatListItemContent {
+@@ -5382,5 +5383,5 @@ public class ChatListItemNode: ItemListRevealOptionsItemNode {
+                     
+                     transition.updateFrame(node: strongSelf.separatorNode, frame: CGRect(origin: CGPoint(x: leftSeparatorInset, y: layoutOffset + itemHeight - separatorHeight), size: CGSize(width: params.width - leftSeparatorInset - rightSeparatorInset, height: separatorHeight)))
+-                    strongSelf.separatorNode.isHidden = hideCommunitySeparator
++                    strongSelf.separatorNode.isHidden = hideCommunitySeparator || NebulaSettingsStore.shared.hideDividers
+                     if let inlineNavigationLocation = item.interaction.inlineNavigationLocation {
+                         strongSelf.updateSeparatorAlpha(transition: transition, inlineNavigationProgress: inlineNavigationLocation.progress)
