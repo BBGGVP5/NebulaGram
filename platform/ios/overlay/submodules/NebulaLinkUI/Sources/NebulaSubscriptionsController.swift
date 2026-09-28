@@ -19,6 +19,8 @@ final class NebulaSubscriptionsController: UITableViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         title = text("Подписки", "Subscriptions")
+        navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .add,
+                target: self, action: #selector(addSubscription))
         tableView.rowHeight = UITableView.automaticDimension
         tableView.estimatedRowHeight = 68
         reloadSubscriptions()
@@ -112,6 +114,46 @@ final class NebulaSubscriptionsController: UITableViewController {
             self?.run("subscription.remove", id: id)
         })
         present(alert, animated: true)
+    }
+
+    @objc private func addSubscription() {
+        guard !busy else { return }
+        let alert = UIAlertController(title: text("Добавить подписку", "Add subscription"),
+                                      message: nil, preferredStyle: .alert)
+        alert.addTextField { field in
+            field.placeholder = self.text("Ссылка подписки", "Subscription URL")
+            field.keyboardType = .URL
+            field.autocapitalizationType = .none
+            field.autocorrectionType = .no
+            field.textContentType = .URL
+        }
+        alert.addAction(UIAlertAction(title: text("Отмена", "Cancel"), style: .cancel))
+        alert.addAction(UIAlertAction(title: text("Добавить", "Add"), style: .default) { [weak self, weak alert] _ in
+            guard let self = self,
+                  let url = alert?.textFields?.first?.text?.trimmingCharacters(in: .whitespacesAndNewlines),
+                  !url.isEmpty else { return }
+            self.runAdd(url: url)
+        })
+        present(alert, animated: true)
+    }
+
+    private func runAdd(url: String) {
+        guard !busy else { return }
+        busy = true
+        tableView.reloadData()
+        service.call("subscription.add", payload: ["url": url]) { [weak self] result in
+            guard let self = self else { return }
+            self.busy = false
+            switch result {
+            case .success:
+                self.message = nil
+                self.onChange?()
+                self.reloadSubscriptions()
+            case .failure:
+                self.message = self.text("Не удалось добавить подписку", "Could not add subscription")
+                self.tableView.reloadData()
+            }
+        }
     }
 
     private func run(_ method: String, id: String) {
