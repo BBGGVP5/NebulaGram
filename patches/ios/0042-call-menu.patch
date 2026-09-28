@@ -1,0 +1,28 @@
+diff --git a/submodules/TelegramUI/Sources/ChatController.swift b/submodules/TelegramUI/Sources/ChatController.swift
+index 7328f80..0d20dbb 100644
+--- a/submodules/TelegramUI/Sources/ChatController.swift
++++ b/submodules/TelegramUI/Sources/ChatController.swift
+@@ -5999,4 +5999,23 @@ public final class ChatControllerImpl: TelegramBaseController, ChatController, G
+                             self?.navigationButtonAction(.openChatInfo(expandAvatar: true, section: nil))
+                         })))
++
++                        if let user = peer as? TelegramUser, user.id != context.account.peerId, user.botInfo == nil {
++                            if NebulaSettingsStore.shared.menuCall {
++                                items.append(.action(ContextMenuActionItem(text: strongSelf.presentationData.strings.Chat_Context_Phone_TelegramVoiceCall, icon: { theme in
++                                    return generateTintedImage(image: UIImage(bundleImageName: "Chat/Context Menu/Call"), color: theme.contextMenu.primaryColor)
++                                }, action: { _, f in
++                                    f(.dismissWithoutContent)
++                                    self?.controllerInteraction?.callPeer(user.id, false)
++                                })))
++                            }
++                            if NebulaSettingsStore.shared.menuVideo {
++                                items.append(.action(ContextMenuActionItem(text: strongSelf.presentationData.strings.Chat_Context_Phone_TelegramVideoCall, icon: { theme in
++                                    return generateTintedImage(image: UIImage(bundleImageName: "Chat/Context Menu/VideoCall"), color: theme.contextMenu.primaryColor)
++                                }, action: { _, f in
++                                    f(.dismissWithoutContent)
++                                    self?.controllerInteraction?.callPeer(user.id, true)
++                                })))
++                            }
++                        }
+                         
+                         if canViewStats {

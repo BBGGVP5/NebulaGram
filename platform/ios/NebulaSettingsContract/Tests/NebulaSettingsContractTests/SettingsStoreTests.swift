@@ -3,6 +3,23 @@ import XCTest
 @testable import NebulaSettingsContract
 
 final class SettingsStoreTests: XCTestCase {
+    func testCallMenuPreferencesPersistAndTransfer() throws {
+        try withDefaults { defaults in
+            let store = NebulaSettingsStore(defaults: defaults)
+            XCTAssertTrue(store.menuCall)
+            XCTAssertTrue(store.menuVideo)
+            try store.set(.boolean(false), for: "menu_call")
+            try store.set(.boolean(false), for: "menu_video")
+            let restored = NebulaSettingsStore(defaults: defaults)
+            XCTAssertFalse(restored.menuCall)
+            XCTAssertFalse(restored.menuVideo)
+            let preview = try store.previewImport(store.exportData())
+            XCTAssertTrue(preview.activeKeys.contains("menu_call"))
+            XCTAssertTrue(preview.activeKeys.contains("menu_video"))
+            XCTAssertThrowsError(try store.set(.integer(0), for: "menu_call"))
+        }
+    }
+
     func testTopicMuteMenuPreferencePersistsAndTransfers() throws {
         try withDefaults { defaults in
             let store = NebulaSettingsStore(defaults: defaults)

@@ -33,7 +33,7 @@ public final class SettingsObservation {
 public final class NebulaSettingsStore {
     public static let shared = NebulaSettingsStore(defaults: .standard)
     public static let storageKey = "app.nebulagram.presentation.settings.v1"
-    public static let editableKeys: Set<String> = ["hide_tab_counters", "show_stories", "settings_search_history", "glass_quality", "ios_glass_style", "ios_glass_tint", "bottom_bar_contacts", "bottom_bar_order", "bottom_bar_profile", "bottom_bar_settings", "tab_labels", "compact_bottom_bar", "hide_home_camera", "hide_home_compose", "hide_send_as", "hide_attach_camera", "menu_search", "menu_mute", "centered_chat_header", "disable_next_channel", "seconds_in_time", "wide_posts", "fragment_transition_style"]
+    public static let editableKeys: Set<String> = ["hide_tab_counters", "show_stories", "settings_search_history", "glass_quality", "ios_glass_style", "ios_glass_tint", "bottom_bar_contacts", "bottom_bar_order", "bottom_bar_profile", "bottom_bar_settings", "tab_labels", "compact_bottom_bar", "hide_home_camera", "hide_home_compose", "hide_send_as", "hide_attach_camera", "menu_search", "menu_mute", "menu_call", "menu_video", "centered_chat_header", "disable_next_channel", "seconds_in_time", "wide_posts", "fragment_transition_style"]
     public static let maximumTransferBytes = 1024 * 1024
 
     private let defaults: UserDefaults
@@ -101,6 +101,8 @@ public final class NebulaSettingsStore {
     public var hideAttachCamera: Bool { boolean("hide_attach_camera", fallback: false) }
     public var menuSearch: Bool { boolean("menu_search", fallback: true) }
     public var menuMute: Bool { boolean("menu_mute", fallback: true) }
+    public var menuCall: Bool { boolean("menu_call", fallback: true) }
+    public var menuVideo: Bool { boolean("menu_video", fallback: true) }
     public var centeredChatHeader: Bool { boolean("centered_chat_header", fallback: true) }
     public var disableNextChannel: Bool { boolean("disable_next_channel", fallback: false) }
     public var secondsInTime: Bool { boolean("seconds_in_time", fallback: false) }

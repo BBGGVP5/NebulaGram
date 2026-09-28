@@ -95,6 +95,8 @@ private enum NebulaSettingsEntry: ItemListNodeEntry {
             case "hide_attach_camera": return 74
             case "menu_search": return 73
             case "menu_mute": return 75
+            case "menu_call": return 76
+            case "menu_video": return 77
             case "centered_chat_header": return 68
             case "disable_next_channel": return 69
             default: return 72
@@ -135,6 +137,8 @@ private enum NebulaSettingsEntry: ItemListNodeEntry {
             case "hide_attach_camera": return 41
             case "menu_search": return 42
             case "menu_mute": return 43
+            case "menu_call": return 44
+            case "menu_video": return 45
             case "centered_chat_header": return 37
             case "disable_next_channel": return 38
             default: return 39
@@ -342,6 +346,8 @@ public func nebulaSettingsController(context: AccountContext) -> ViewController 
             .navigationToggle("hide_attach_camera", ru ? "Скрыть камеру во вложениях" : "Hide camera in attachments", store.hideAttachCamera, !store.hasLoadError),
             .navigationToggle("menu_search", ru ? "Поиск в меню чата" : "Search in chat menu", store.menuSearch, !store.hasLoadError),
             .navigationToggle("menu_mute", ru ? "Уведомления в меню темы" : "Mute in topic menu", store.menuMute, !store.hasLoadError),
+            .navigationToggle("menu_call", ru ? "Звонок в меню чата" : "Voice call in chat menu", store.menuCall, !store.hasLoadError),
+            .navigationToggle("menu_video", ru ? "Видеозвонок в меню чата" : "Video call in chat menu", store.menuVideo, !store.hasLoadError),
             .navigationToggle("centered_chat_header", ru ? "Заголовок чата по центру" : "Center chat title", store.centeredChatHeader, !store.hasLoadError),
             .navigationToggle("disable_next_channel", ru ? "Скрыть переход к следующему каналу" : "Hide next-channel prompt", store.disableNextChannel, !store.hasLoadError),
             .navigationToggle("seconds_in_time", ru ? "Секунды во времени сообщений" : "Show seconds in message times", store.secondsInTime, !store.hasLoadError),
