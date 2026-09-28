@@ -50,7 +50,7 @@ public static class MarginLayoutParams {public int width,height,leftMargin,right
 'android/widget/ImageView.java': 'package android.widget; public class ImageView extends android.view.View {public ImageView(android.content.Context c){super(c);}}',
 'org/telegram/messenger/AndroidUtilities.java': 'package org.telegram.messenger; public class AndroidUtilities {public static float density=1; public static int dp(float v){return (int)Math.ceil(v*density);}}',
 'app/nebulagram/ui/NebulaHeaderCounter.java': 'package app.nebulagram.ui; public class NebulaHeaderCounter {public static int backWidth(){return org.telegram.messenger.AndroidUtilities.dp(58);}}',
-'app/nebulagram/ui/NebulaAppearance.java': 'package app.nebulagram.ui; public class NebulaAppearance {public static boolean enabled=true,homeGlass; public static boolean iosComposer(){return enabled;} public static boolean chatHeader(){return enabled;} public static boolean adaptiveHeader(){return true;} public static boolean centeredHeader(){return true;} public static boolean folderTitle(){return enabled;} public static boolean homeGlassHeader(){return homeGlass;}}',
+'app/nebulagram/ui/NebulaAppearance.java': 'package app.nebulagram.ui; public class NebulaAppearance {public static boolean enabled=true,homeGlass,chatsTitle; public static boolean iosComposer(){return enabled;} public static boolean chatHeader(){return enabled;} public static boolean adaptiveHeader(){return true;} public static boolean centeredHeader(){return true;} public static boolean folderTitle(){return enabled;} public static boolean homeGlassHeader(){return homeGlass;} public static boolean homeChatsTitle(){return chatsTitle;}}',
 'app/nebulagram/ui/NebulaText.java': 'package app.nebulagram.ui; public class NebulaText {public static String text(String ru,String en){return ru;}}',
 'org/telegram/ui/ActionBar/ActionBar.java': 'package org.telegram.ui.ActionBar; public class ActionBar {public SimpleTextView title=new SimpleTextView();public SimpleTextView getTitleTextView(){return title;} public SimpleTextView getTitleTextView2(){return null;} public void setTitleAnimated(CharSequence text,boolean bottom,long duration,Object interpolator){title.setText(text);} public void setTitle(CharSequence text,android.graphics.drawable.Drawable icon){title.setText(text);}public boolean floating,hidden,savedClassic;public void setNebulaClassicSavedHeader(boolean v){savedClassic=v;}public void setNebulaFloatingChatHeader(boolean a,boolean b,boolean c){floating=a;hidden=b;}}',
 'org/telegram/ui/ActionBar/ActionBarMenuItem.java': 'package org.telegram.ui.ActionBar; public class ActionBarMenuItem {public void setIcon(android.graphics.drawable.Drawable d){}}',
@@ -171,8 +171,14 @@ check(collapsed1.getText()==expected&&bar1.title.getText()==expected,"folder tex
 check(collapsed1.showStatus==(i<=0||i>=8),"premium status leaked into folder title");
 check(collapsed2.getText()==controller.filters.get(6).name,"folder leaked into another ActionBar");
 if(i>0&&i<8)check(collapsed1.cache==(controller.filters.get(i).title_noanimate?1:2),"folder animation preference lost");}
-NebulaAppearance.homeGlass=true;NebulaDialogsTitle.apply(bar1,controller,0,null);
-check(bar1.title.getText().equals("Чаты"),"glass home title should be compact");
+for(boolean glass:new boolean[]{false,true})for(boolean chats:new boolean[]{false,true}){
+NebulaAppearance.homeGlass=glass;NebulaAppearance.chatsTitle=chats;NebulaDialogsTitle.apply(bar1,controller,0,null);
+check(bar1.title.getText().equals(chats?"Чаты":"NebulaGram"),"Home label preference must be independent of glass");
+NebulaDialogsTitle.apply(bar1,controller,6,null);
+check(bar1.title.getText()==controller.filters.get(6).name,"Home label preference replaced the folder title");
+}
+NebulaAppearance.chatsTitle=false;NebulaDialogsTitle.apply(bar1,controller,0,null);
+check(bar1.title.getText().equals("NebulaGram"),"Disabling Chats did not restore branding");
 NebulaDialogsTitle.apply(bar1,controller,6,null);
 check(bar1.title.getText()==controller.filters.get(6).name,"glass home title replaced a folder name");
 System.out.println("14 folder bindings passed across two headers");

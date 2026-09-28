@@ -89,6 +89,7 @@ public final class NebulaSettingsSearch {
         result.add(new Entry(-11, NebulaText.text("Закругление аватарок", "Avatar corners"), "NebulaGram", R.drawable.msg_openprofile));
         result.add(new Entry(-12, NebulaText.text("Искусственный интеллект", "AI assistant"), "NebulaGram · Gemini · Claude · GPT · API", R.drawable.msg_customize));
         result.add(new Entry(0, NebulaText.text("Центрировать заголовки", "Center titles"), "NebulaGram", R.drawable.msg_list));
+        result.add(new Entry(0, NebulaText.text("«Чаты» вместо NebulaGram", "Show Chats instead of NebulaGram"), NebulaText.text("Оформление · заголовок главной", "Appearance · home title"), R.drawable.msg_list));
         result.add(new Entry(6, NebulaText.text("Двойной тап по своему сообщению", "Double tap your message"), NebulaText.text("Редактировать, ответить, копировать", "Edit, reply, copy"), R.drawable.msg_edit));
         result.add(new Entry(0, R.string.NebulaAppearanceTitle, R.string.NebulaSettings, R.drawable.msg_customize));
         result.add(new Entry(1, R.string.NebulaSectionChats, R.string.NebulaSettings, R.drawable.msg_discussion));

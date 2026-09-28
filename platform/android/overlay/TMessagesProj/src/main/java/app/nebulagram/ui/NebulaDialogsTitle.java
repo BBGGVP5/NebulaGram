@@ -32,7 +32,7 @@ public final class NebulaDialogsTitle {
         if (actionBar == null) {
             return;
         }
-        CharSequence title = NebulaAppearance.homeGlassHeader()
+        CharSequence title = NebulaAppearance.homeChatsTitle()
                 ? NebulaText.text("Чаты", "Chats") : "NebulaGram";
         MessagesController.DialogFilter selected = null;
         if (NebulaAppearance.folderTitle() && controller != null) {

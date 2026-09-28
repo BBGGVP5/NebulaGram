@@ -220,15 +220,19 @@ public final class NebulaLinkShortcut extends View {
         int color = state == NebulaLinkShortcutState.ON ? theme.success() : state == NebulaLinkShortcutState.ERROR ? 0xffd95858
                 : state == NebulaLinkShortcutState.CONNECTING ? theme.primary() : theme.onSurfaceVariant();
         int x = getWidth()/2, y = getHeight()/2;
-        // The control remains round when the system falls back to a plain header;
-        // active/error states use a subtle tint without duplicating the shield.
-        paint.setStyle(Paint.Style.FILL);
-        paint.setColor((theme.surface() & 0x00ffffff) | 0x30000000);
-        canvas.drawCircle(x, y, dp(21), paint);
-        paint.setColor((color & 0x00ffffff) | (state == NebulaLinkShortcutState.ON ? 0x55000000 : 0x30000000));
-        paint.setStyle(Paint.Style.STROKE);
-        paint.setStrokeWidth(dp(1));
-        canvas.drawCircle(x, y, dp(20.5f), paint);
+        // The home ActionBar owns one material for the whole action group.
+        // Keep a standalone circle only in previews or a non-glass toolbar.
+        boolean grouped = owner != null && owner.getActionBar() != null
+                && owner.getActionBar().isNebulaHomeTabsGlass();
+        if (!grouped) {
+            paint.setStyle(Paint.Style.FILL);
+            paint.setColor((theme.surface() & 0x00ffffff) | 0x30000000);
+            canvas.drawCircle(x, y, dp(21), paint);
+            paint.setColor((color & 0x00ffffff) | (state == NebulaLinkShortcutState.ON ? 0x55000000 : 0x30000000));
+            paint.setStyle(Paint.Style.STROKE);
+            paint.setStrokeWidth(dp(1));
+            canvas.drawCircle(x, y, dp(20.5f), paint);
+        }
         icon.setColorFilter(color, PorterDuff.Mode.SRC_IN); icon.setBounds(x-dp(12),y-dp(12),x+dp(12),y+dp(12)); icon.draw(canvas);
         paint.setColor(color); paint.setStyle(Paint.Style.STROKE); paint.setStrokeWidth(dp(1.7f));
         paint.setStrokeCap(Paint.Cap.ROUND);

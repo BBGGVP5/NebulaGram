@@ -247,6 +247,8 @@ public final class NebulaAppearance {
     public static void setCenterHome(boolean value) { preferences().edit().putBoolean("center_home", value).apply(); }
     public static boolean homeGlassHeader() { return preferences().getBoolean("home_glass_header", true); }
     public static void setHomeGlassHeader(boolean value) { preferences().edit().putBoolean("home_glass_header", value).apply(); }
+    public static boolean homeChatsTitle() { return preferences().getBoolean("home_chats_title", false); }
+    public static void setHomeChatsTitle(boolean value) { preferences().edit().putBoolean("home_chats_title", value).apply(); }
     public static boolean liquidAnimations() { return preferences().getBoolean("liquid_animations", true); }
     public static void setLiquidAnimations(boolean value) { preferences().edit().putBoolean("liquid_animations", value).apply(); }
     public static boolean uniformAvatars() { return preferences().getBoolean("uniform_avatars", true); }

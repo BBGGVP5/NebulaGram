@@ -1,0 +1,108 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
+@@ -196,6 +196,7 @@
+     private boolean glassMode;
+     private boolean nebulaHomeGlass;
+     private boolean nebulaHomeTabsGlass;
++    private View nebulaHomeLeadingView;
+     private boolean glassOnlyBack;
+     private boolean glassModeIsForum;
+ 
+@@ -278,6 +279,23 @@
+     public void setNebulaHomeTabsGlass(boolean enabled) {
+         nebulaHomeTabsGlass = enabled;
+         invalidate();
++    }
++
++    public boolean isNebulaHomeTabsGlass() {
++        return nebulaHomeTabsGlass;
++    }
++
++    public void setNebulaHomeLeadingView(View view) {
++        nebulaHomeLeadingView = view;
++        requestLayout();
++    }
++
++    private void layoutNebulaHomeLeadingView(int additionalTop) {
++        if (nebulaHomeLeadingView == null || nebulaHomeLeadingView.getVisibility() == GONE) return;
++        int width = nebulaHomeLeadingView.getMeasuredWidth();
++        int height = nebulaHomeLeadingView.getMeasuredHeight();
++        int top = additionalTop + (getCurrentActionBarHeight() - height) / 2;
++        nebulaHomeLeadingView.layout(dp(8), top, dp(8) + width, top + height);
+     }
+ 
+     public void setupGlass(BlurredBackgroundDrawableViewFactory factory,
+@@ -455,7 +473,7 @@
+     }
+ 
+     protected boolean shouldClipChild(View child) {
+-        return clipContent && (child == titleTextView[0] || child == titleTextView[1] || child == subtitleTextView || child == menu || child == backButtonImageView || child == additionalSubtitleTextView || child == titlesContainer);
++        return clipContent && (child == nebulaHomeLeadingView || child == titleTextView[0] || child == titleTextView[1] || child == subtitleTextView || child == menu || child == backButtonImageView || child == additionalSubtitleTextView || child == titlesContainer);
+     }
+ 
+     @Override
+@@ -1654,6 +1672,7 @@
+     @Override
+     protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
+         int additionalTop = occupyStatusBar ? AndroidUtilities.statusBarHeight : 0;
++        layoutNebulaHomeLeadingView(additionalTop);
+         if (prevWidth != getMeasuredWidth()) {
+             prevWidth = getMeasuredWidth();
+             checkAvatarContainerWidth(animatorAvatarContainerWidth.isAnimating());
+@@ -1729,7 +1748,7 @@
+         int childCount = getChildCount();
+         for (int i = 0; i < childCount; i++) {
+             View child = getChildAt(i);
+-            if (child.getVisibility() == GONE || child == titleTextView[0] || child == titleTextView[1] || child == additionalSubTitleOverlayContainer || child == subtitleTextView || child == menu || child == backButtonImageView || child == additionalSubtitleTextView || child == avatarSearchImageView) {
++            if (child.getVisibility() == GONE || child == nebulaHomeLeadingView || child == titleTextView[0] || child == titleTextView[1] || child == additionalSubTitleOverlayContainer || child == subtitleTextView || child == menu || child == backButtonImageView || child == additionalSubtitleTextView || child == avatarSearchImageView) {
+                 continue;
+             }
+ 
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
+@@ -3223,8 +3223,8 @@
+             nebulaHomeEditButton.setOnClickListener(v -> presentFragment(new FiltersSetupActivity()));
+             FrameLayout.LayoutParams editLayout = new FrameLayout.LayoutParams(dp(58), dp(44), Gravity.LEFT | Gravity.TOP);
+             editLayout.leftMargin = dp(8);
+-            editLayout.topMargin = (actionBar.getOccupyStatusBar() ? AndroidUtilities.statusBarHeight : 0) + dp(6);
+             actionBar.addView(nebulaHomeEditButton, editLayout);
++            actionBar.setNebulaHomeLeadingView(nebulaHomeEditButton);
+         }
+         actionBar.createAdditionalSubTitleOverlayContainer();
+         actionBar.getAdditionalSubTitleOverlayContainer().setTranslationX(dp(4));
+@@ -13812,7 +13812,7 @@
+                     presentFragment(new CommunityEditActivity(bundle));
+                 });
+                 if (CommunityUtils.COLLAPSED_SUPPORT) {
+-                    io.addGap();
++                    app.nebulagram.ui.NebulaMenuDivider.add(io, getContext(), getResourceProvider());
+                 }
+             }
+ 
+@@ -13884,7 +13884,7 @@
+                 presentFragment(new ThemeActivity(ThemeActivity.THEME_TYPE_NIGHT));
+             });
+         });
+-        io.addGap();
++        app.nebulagram.ui.NebulaMenuDivider.add(io, getContext(), getResourceProvider());
+         io.add(R.drawable.outline_groups_24, getString(R.string.NewGroup), () -> {
+             Bundle args = new Bundle();
+             presentFragment(new GroupCreateActivity(args));
+@@ -13945,13 +13945,13 @@
+                     || getMessagesController().blockedCountry && !SharedConfig.proxyList.isEmpty();
+ 
+             if (proxyVisible) {
+-                io.addGap();
++                app.nebulagram.ui.NebulaMenuDivider.add(io, getContext(), getResourceProvider());
+                 io.add(proxyMenuSubItem);
+             }
+         }
+ 
+         io.show();
+-        io.setTranslationY(-dp(64));
++        if (nebulaHomeEditButton == null) io.setTranslationY(-dp(64));
+     }
+ 
+     @Override

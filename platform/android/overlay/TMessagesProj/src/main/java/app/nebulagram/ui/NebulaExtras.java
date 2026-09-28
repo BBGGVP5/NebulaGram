@@ -26,8 +26,11 @@ public final class NebulaExtras {
         card.add(toggle(c, R.drawable.nebula_cupertino_list, text("Центрировать заголовки", "Center titles"),
                 text("В настройках и развёрнутой шапке главной", "In settings and the expanded home header"), NebulaAppearance.centerHome(), NebulaAppearance::setCenterHome));
         card.add(toggle(c, R.drawable.nebula_link_shield, text("Стеклянная шапка главной", "Glass home header"),
-                text("Заголовок и круглые кнопки, включая NebulaLink · после повторного открытия главной", "Title and round controls, including NebulaLink · reopen Home to apply"),
+                text("Кнопка редактирования и общая капсула действий · после повторного открытия главной", "Edit button and shared action capsule · reopen Home to apply"),
                 NebulaAppearance.homeGlassHeader(), NebulaAppearance::setHomeGlassHeader));
+        card.add(toggle(c, R.drawable.nebula_cupertino_list, text("«Чаты» вместо NebulaGram", "Show Chats instead of NebulaGram"),
+                text("Меняет основной заголовок. Названия папок сохраняются", "Changes the home title. Folder names stay unchanged"),
+                NebulaAppearance.homeChatsTitle(), NebulaAppearance::setHomeChatsTitle));
         card.add(toggle(c, R.drawable.nebula_cupertino_sliders, text("Анимации Liquid Glass", "Liquid Glass animations"),
                 text("Меню, шапка чата и пузырь нижней панели", "Menus, chat header and bottom bar bubble"), NebulaAppearance.liquidAnimations(), NebulaAppearance::setLiquidAnimations));
         content.addView(card);

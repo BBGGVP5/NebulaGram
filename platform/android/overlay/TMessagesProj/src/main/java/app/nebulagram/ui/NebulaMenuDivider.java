@@ -27,6 +27,15 @@ public final class NebulaMenuDivider extends View {
                 LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, 9));
     }
 
+    @Override protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+        // LinearLayout first measures its wrap-content rows with AT_MOST, then
+        // fills MATCH_PARENT children with the chosen action-row width. A plain
+        // View consumes the full AT_MOST limit and pushes a right-anchored menu left.
+        int width = MeasureSpec.getMode(widthMeasureSpec) == MeasureSpec.EXACTLY
+                ? MeasureSpec.getSize(widthMeasureSpec) : 0;
+        setMeasuredDimension(width, MeasureSpec.getSize(heightMeasureSpec));
+    }
+
     @Override protected void onDraw(Canvas canvas) {
         int color = NebulaMenuStyle.foreground(this,
                 Theme.getColor(Theme.key_actionBarDefaultSubmenuItem, resourcesProvider), resourcesProvider);
