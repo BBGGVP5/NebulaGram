@@ -1,5 +1,6 @@
 package app.nebulagram.ui;
 
+import android.animation.ValueAnimator;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Paint;
@@ -20,6 +21,7 @@ public final class NebulaZoomSlider extends FrameLayout {
     public interface OnZoomChanged { void onZoomChanged(float factor); }
     private static final int ACCENT = 0xFFE33492;
     private final OnZoomChanged callback;
+    private final FrameLayout capsule;
     private final LinearLayout presets;
     private final TextView currentValue;
     private final TextView secondValue;
@@ -27,6 +29,7 @@ public final class NebulaZoomSlider extends FrameLayout {
     private float maximum = 2f;
     private float current = 1f;
     private boolean expanded;
+    private ValueAnimator widthAnimator;
     private final Runnable collapse = () -> setExpanded(false);
 
     public NebulaZoomSlider(Context context, OnZoomChanged callback) {
@@ -36,10 +39,12 @@ public final class NebulaZoomSlider extends FrameLayout {
         background.setColor(0xEE211C2B);
         background.setCornerRadius(dp(26));
         background.setStroke(dp(1), 0x667E718D);
-        setBackground(background);
+        capsule = new FrameLayout(context);
+        capsule.setBackground(background);
+        addView(capsule, new LayoutParams(dp(224), LayoutParams.MATCH_PARENT, Gravity.CENTER));
         presets = new LinearLayout(context);
         presets.setGravity(Gravity.CENTER);
-        addView(presets, new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
+        capsule.addView(presets, new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
         currentValue = preset(context);
         secondValue = preset(context);
         presets.addView(currentValue, new LinearLayout.LayoutParams(0, LayoutParams.MATCH_PARENT, 1));
@@ -53,7 +58,7 @@ public final class NebulaZoomSlider extends FrameLayout {
         secondValue.setOnLongClickListener(v -> { setExpanded(true); return true; });
         ruler = new ZoomRuler(context);
         ruler.setVisibility(GONE);
-        addView(ruler, new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
+        capsule.addView(ruler, new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
         setRange(2f);
     }
 
@@ -84,6 +89,16 @@ public final class NebulaZoomSlider extends FrameLayout {
         removeCallbacks(collapse);
         if (expanded == value) { if (value) postDelayed(collapse, 1800); return; }
         expanded = value;
+        if (widthAnimator != null) widthAnimator.cancel();
+        LayoutParams capsuleParams = (LayoutParams) capsule.getLayoutParams();
+        widthAnimator = ValueAnimator.ofInt(capsuleParams.width, dp(value ? 320 : 224));
+        widthAnimator.setDuration(220);
+        widthAnimator.addUpdateListener(animation -> {
+            LayoutParams params = (LayoutParams) capsule.getLayoutParams();
+            params.width = (int) animation.getAnimatedValue();
+            capsule.setLayoutParams(params);
+        });
+        widthAnimator.start();
         View incoming = value ? ruler : presets;
         View outgoing = value ? presets : ruler;
         incoming.setVisibility(VISIBLE);
@@ -107,7 +122,11 @@ public final class NebulaZoomSlider extends FrameLayout {
     }
     public void setRange(float max) { maximum = Math.max(1f, Math.min(8f, max)); updateZoom(1f, false); setExpanded(false); }
     public void setCurrent(float factor) { updateZoom(factor, false); }
-    @Override protected void onDetachedFromWindow() { removeCallbacks(collapse); super.onDetachedFromWindow(); }
+    @Override protected void onDetachedFromWindow() {
+        removeCallbacks(collapse);
+        if (widthAnimator != null) widthAnimator.cancel();
+        super.onDetachedFromWindow();
+    }
 
     private final class ZoomRuler extends View {
         private final Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
@@ -135,9 +154,18 @@ public final class NebulaZoomSlider extends FrameLayout {
             paint.setTypeface(android.graphics.Typeface.DEFAULT_BOLD);
             paint.setTextAlign(Paint.Align.CENTER);
             canvas.drawText("1", left, dp(43), paint);
-            if (maximum >= 2f) canvas.drawText("2", left + span / (maximum - 1f), dp(43), paint);
-            if (maximum >= 5f) canvas.drawText("5", left + span * 4f / (maximum - 1f), dp(43), paint);
-            canvas.drawText(format(maximum).replace("×", ""), right, dp(43), paint);
+            float lastMark = 1f;
+            if (maximum >= 2f) {
+                canvas.drawText("2", left + span / (maximum - 1f), dp(43), paint);
+                lastMark = 2f;
+            }
+            if (maximum >= 5f) {
+                canvas.drawText("5", left + span * 4f / (maximum - 1f), dp(43), paint);
+                lastMark = 5f;
+            }
+            if (maximum - lastMark > .1f) {
+                canvas.drawText(format(maximum).replace("×", ""), right, dp(43), paint);
+            }
         }
 
         @Override public boolean onTouchEvent(MotionEvent event) {

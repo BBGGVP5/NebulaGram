@@ -57,12 +57,8 @@ diff --git a/submodules/TelegramUI/Components/VideoMessageCameraScreen/Sources/V
              default:
                  break
              }
-@@ -1453,6 +1467,8 @@
-             }
-             let isFirstTime = self.validLayout == nil
-             self.validLayout = layout
-+            let zoomWidth = min(300.0, layout.size.width - 32.0)
-+            self.nebulaZoomSlider.frame = CGRect(x: floor((layout.size.width - zoomWidth) / 2.0), y: (layout.statusBarHeight ?? 0.0) + 12.0, width: zoomWidth, height: 50.0)
-             
-             let environment = ViewControllerComponentContainer.Environment(
-                 statusBarHeight: layout.statusBarHeight ?? 0.0,
+@@ -1490,2 +1504,4 @@
++            let zoomWidth = min(320.0, layout.size.width - 32.0)
++            self.nebulaZoomSlider.frame = CGRect(x: floor((layout.size.width - zoomWidth) / 2.0), y: max((layout.statusBarHeight ?? 0.0) + 8.0, backgroundFrame.maxY - 136.0), width: zoomWidth, height: 52.0)
+             transition.setPosition(view: self.backgroundView, position: actualBackgroundFrame.center)
+             transition.setBounds(view: self.backgroundView, bounds: CGRect(origin: .zero, size: actualBackgroundFrame.size))

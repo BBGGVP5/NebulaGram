@@ -6,6 +6,7 @@ final class NebulaVideoZoomSlider: UIView {
     var onZoomChanged: ((CGFloat) -> Void)?
 
     private let accent = UIColor(red: 0.89, green: 0.20, blue: 0.57, alpha: 1)
+    private let capsule = UIView()
     private let currentLabel = UILabel()
     private let secondLabel = UILabel()
     private let ruler = RulerView()
@@ -16,12 +17,14 @@ final class NebulaVideoZoomSlider: UIView {
 
     override init(frame: CGRect) {
         super.init(frame: frame)
-        backgroundColor = UIColor(red: 0.13, green: 0.11, blue: 0.17, alpha: 0.94)
-        layer.cornerRadius = 25
-        layer.cornerCurve = .continuous
-        layer.borderWidth = 1
-        layer.borderColor = UIColor(white: 1, alpha: 0.20).cgColor
-        clipsToBounds = true
+        backgroundColor = .clear
+        capsule.backgroundColor = UIColor(red: 0.13, green: 0.11, blue: 0.17, alpha: 0.94)
+        capsule.layer.cornerRadius = 26
+        capsule.layer.cornerCurve = .continuous
+        capsule.layer.borderWidth = 1
+        capsule.layer.borderColor = UIColor(white: 1, alpha: 0.20).cgColor
+        capsule.clipsToBounds = true
+        addSubview(capsule)
 
         for label in [currentLabel, secondLabel] {
             label.font = .monospacedDigitSystemFont(ofSize: 18, weight: .bold)
@@ -31,18 +34,19 @@ final class NebulaVideoZoomSlider: UIView {
             label.layer.cornerRadius = 23
             label.layer.cornerCurve = .continuous
             label.clipsToBounds = true
-            addSubview(label)
+            capsule.addSubview(label)
         }
         currentLabel.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(tapCurrent)))
         secondLabel.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(tapSecond)))
         ruler.isHidden = true
+        ruler.contentMode = .redraw
         ruler.accent = accent
         ruler.onChange = { [weak self] factor in
             self?.collapseWork?.cancel()
             self?.updateZoom(factor, notify: true)
         }
         ruler.onEnd = { [weak self] in self?.scheduleCollapse() }
-        addSubview(ruler)
+        capsule.addSubview(ruler)
         setRange(front: false)
     }
 
@@ -51,10 +55,12 @@ final class NebulaVideoZoomSlider: UIView {
     override func layoutSubviews() {
         super.layoutSubviews()
         let inset: CGFloat = 5
-        let width = (bounds.width - inset * 2) / 2
+        let capsuleWidth = min(bounds.width, expanded ? 320 : 224)
+        capsule.frame = CGRect(x: floor((bounds.width - capsuleWidth) / 2), y: 0, width: capsuleWidth, height: bounds.height)
+        let width = (capsuleWidth - inset * 2) / 2
         currentLabel.frame = CGRect(x: inset, y: 4, width: width, height: bounds.height - 8)
         secondLabel.frame = CGRect(x: inset + width, y: 4, width: width, height: bounds.height - 8)
-        ruler.frame = bounds
+        ruler.frame = capsule.bounds
     }
 
     static func availableMaximum(front: Bool) -> CGFloat {
@@ -102,6 +108,7 @@ final class NebulaVideoZoomSlider: UIView {
             return
         }
         expanded = value
+        setNeedsLayout()
         let incoming: UIView = value ? ruler : currentLabel
         let duration: TimeInterval = UIAccessibility.isReduceMotionEnabled ? 0 : 0.22
         ruler.isHidden = !value
@@ -110,6 +117,7 @@ final class NebulaVideoZoomSlider: UIView {
         incoming.alpha = duration == 0 ? 1 : 0
         incoming.transform = duration == 0 ? .identity : CGAffineTransform(scaleX: value ? 0.94 : 1.04, y: 1)
         UIView.animate(withDuration: duration, delay: 0, options: [.beginFromCurrentState, .curveEaseOut]) {
+            self.layoutIfNeeded()
             incoming.alpha = 1
             incoming.transform = .identity
             self.secondLabel.alpha = 1

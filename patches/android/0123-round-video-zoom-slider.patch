@@ -23,8 +23,8 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/InstantCamer
          addView(flashViews.foregroundView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT, Gravity.FILL));
 +        nebulaZoomSlider = new NebulaZoomSlider(context, this::applyNebulaZoom);
 +        nebulaZoomSlider.setVisibility(View.GONE);
-+        FrameLayout.LayoutParams zoomParams = new FrameLayout.LayoutParams(dp(272), dp(48), Gravity.TOP | Gravity.CENTER_HORIZONTAL);
-+        zoomParams.topMargin = dp(56);
++        FrameLayout.LayoutParams zoomParams = new FrameLayout.LayoutParams(dp(320), dp(52), Gravity.BOTTOM | Gravity.CENTER_HORIZONTAL);
++        zoomParams.bottomMargin = dp(118);
 +        addView(nebulaZoomSlider, zoomParams);
  
  
