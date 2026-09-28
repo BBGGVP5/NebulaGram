@@ -1,5 +1,5 @@
 diff --git a/submodules/ChatListUI/Sources/Node/ChatListItem.swift b/submodules/ChatListUI/Sources/Node/ChatListItem.swift
-index 9da6217..1a76f8b 100644
+index 9da6217..ef56599 100644
 --- a/submodules/ChatListUI/Sources/Node/ChatListItem.swift
 +++ b/submodules/ChatListUI/Sources/Node/ChatListItem.swift
 @@ -30,4 +30,5 @@ import MultilineTextWithEntitiesComponent
@@ -8,10 +8,26 @@ index 9da6217..1a76f8b 100644
 +import NebulaSettingsContract
  
  public enum ChatListItemContent {
-@@ -5382,5 +5383,5 @@ public class ChatListItemNode: ItemListRevealOptionsItemNode {
+@@ -1416,4 +1417,6 @@ public class ChatListItemNode: ItemListRevealOptionsItemNode {
+     var dateDisclosureIconView: UIImageView?
+     public let separatorNode: ASDisplayNode
++    private var nebulaSeparatorBaseHidden = false
++    private var nebulaSettingsObservation: SettingsObservation?
+     let statusNode: ChatListStatusNode
+     let badgeNode: ChatListBadgeNode
+@@ -1751,4 +1754,8 @@ public class ChatListItemNode: ItemListRevealOptionsItemNode {
+         self.addSubnode(self.backgroundNode)
+         self.addSubnode(self.separatorNode)
++        self.nebulaSettingsObservation = NebulaSettingsStore.shared.observe { [weak self] in
++            guard let self else { return }
++            self.separatorNode.isHidden = self.nebulaSeparatorBaseHidden || NebulaSettingsStore.shared.hideDividers
++        }
+         
+         self.addSubnode(self.contextContainer)
+@@ -5394,4 +5401,6 @@ public class ChatListItemNode: ItemListRevealOptionsItemNode {
+                         }
+                     }
++                    strongSelf.nebulaSeparatorBaseHidden = strongSelf.separatorNode.isHidden
++                    strongSelf.separatorNode.isHidden = strongSelf.nebulaSeparatorBaseHidden || NebulaSettingsStore.shared.hideDividers
                      
-                     transition.updateFrame(node: strongSelf.separatorNode, frame: CGRect(origin: CGPoint(x: leftSeparatorInset, y: layoutOffset + itemHeight - separatorHeight), size: CGSize(width: params.width - leftSeparatorInset - rightSeparatorInset, height: separatorHeight)))
--                    strongSelf.separatorNode.isHidden = hideCommunitySeparator
-+                    strongSelf.separatorNode.isHidden = hideCommunitySeparator || NebulaSettingsStore.shared.hideDividers
-                     if let inlineNavigationLocation = item.interaction.inlineNavigationLocation {
-                         strongSelf.updateSeparatorAlpha(transition: transition, inlineNavigationProgress: inlineNavigationLocation.progress)
+                     transition.updateFrame(node: strongSelf.backgroundNode, frame: CGRect(origin: CGPoint(x: 0.0, y: 0.0), size: CGSize(width: layout.contentSize.width, height: itemHeight)))
