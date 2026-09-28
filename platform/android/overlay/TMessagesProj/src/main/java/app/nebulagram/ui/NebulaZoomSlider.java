@@ -1,85 +1,160 @@
 package app.nebulagram.ui;
 
 import android.content.Context;
-import android.content.res.ColorStateList;
+import android.graphics.Canvas;
+import android.graphics.Paint;
 import android.graphics.drawable.GradientDrawable;
 import android.view.Gravity;
+import android.view.MotionEvent;
+import android.view.View;
+import android.widget.FrameLayout;
 import android.widget.LinearLayout;
-import android.widget.SeekBar;
 import android.widget.TextView;
 
 import org.telegram.messenger.AndroidUtilities;
 
 import java.util.Locale;
 
-/** Compact zoom control for round-video recording. Camera limits come from the active session. */
-public final class NebulaZoomSlider extends LinearLayout {
+/** Compact 1×/2× presets that expand into a camera-limited zoom ruler. */
+public final class NebulaZoomSlider extends FrameLayout {
     public interface OnZoomChanged { void onZoomChanged(float factor); }
-
-    private final TextView value;
-    private final TextView limit;
-    private final SeekBar slider;
-    private float maxZoom = 2f;
+    private static final int ACCENT = 0xFFE33492;
+    private final OnZoomChanged callback;
+    private final LinearLayout presets;
+    private final TextView currentValue;
+    private final TextView secondValue;
+    private final ZoomRuler ruler;
+    private float maximum = 2f;
+    private float current = 1f;
+    private boolean expanded;
+    private final Runnable collapse = () -> setExpanded(false);
 
     public NebulaZoomSlider(Context context, OnZoomChanged callback) {
         super(context);
-        setOrientation(HORIZONTAL);
-        setGravity(Gravity.CENTER_VERTICAL);
-        setPadding(dp(8), 0, dp(8), 0);
+        this.callback = callback;
         GradientDrawable background = new GradientDrawable();
-        background.setColor(0xED192334);
+        background.setColor(0xEE211C2B);
         background.setCornerRadius(dp(26));
-        background.setStroke(dp(1), 0x554E829B);
+        background.setStroke(dp(1), 0x667E718D);
         setBackground(background);
-
-        value = label(context);
-        addView(value, new LayoutParams(dp(48), dp(48)));
-        slider = new SeekBar(context);
-        slider.setMax(1000);
-        slider.setProgressTintList(ColorStateList.valueOf(0xFF57C5D0));
-        slider.setThumbTintList(ColorStateList.valueOf(0xFF57C5D0));
-        slider.setProgress(0);
-        slider.setContentDescription("Zoom");
-        addView(slider, new LayoutParams(0, dp(48), 1));
-        limit = label(context);
-        addView(limit, new LayoutParams(dp(44), dp(48)));
-        setRange(2f);
-        slider.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-            @Override public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                if (!fromUser) return;
-                float factor = 1f + (maxZoom - 1f) * progress / 1000f;
-                value.setText(format(factor));
-                callback.onZoomChanged(factor);
-            }
-            @Override public void onStartTrackingTouch(SeekBar seekBar) { }
-            @Override public void onStopTrackingTouch(SeekBar seekBar) { }
+        presets = new LinearLayout(context);
+        presets.setGravity(Gravity.CENTER);
+        addView(presets, new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
+        currentValue = preset(context);
+        secondValue = preset(context);
+        presets.addView(currentValue, new LinearLayout.LayoutParams(0, LayoutParams.MATCH_PARENT, 1));
+        presets.addView(secondValue, new LinearLayout.LayoutParams(0, LayoutParams.MATCH_PARENT, 1));
+        currentValue.setOnClickListener(v -> {
+            if (Math.abs(current - 2f) < .05f) updateZoom(1f, true);
+            setExpanded(true);
         });
+        secondValue.setOnClickListener(v -> { updateZoom(Math.min(2f, maximum), true); setExpanded(true); });
+        currentValue.setOnLongClickListener(v -> { setExpanded(true); return true; });
+        secondValue.setOnLongClickListener(v -> { setExpanded(true); return true; });
+        ruler = new ZoomRuler(context);
+        ruler.setVisibility(GONE);
+        addView(ruler, new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
+        setRange(2f);
     }
 
-    private static TextView label(Context context) {
+    private TextView preset(Context context) {
         TextView view = new TextView(context);
         view.setGravity(Gravity.CENTER);
-        view.setTextSize(14);
-        view.setTextColor(0xFFF0F5FF);
+        view.setTextColor(0xFFF9F5FF);
+        view.setTextSize(18);
+        view.setTypeface(null, 1);
         return view;
     }
 
-    private static int dp(float value) { return AndroidUtilities.dp(value); }
+    private void updatePresets() {
+        boolean secondSelected = Math.abs(current - 2f) < .05f && maximum >= 2f;
+        currentValue.setText(secondSelected ? "1×" : format(current));
+        secondValue.setText(format(Math.min(2f, maximum)));
+        currentValue.setContentDescription("Zoom " + (secondSelected ? "1×" : format(current)));
+        secondValue.setContentDescription("Zoom " + format(Math.min(2f, maximum)));
+        GradientDrawable selected = new GradientDrawable();
+        selected.setColor(ACCENT);
+        selected.setCornerRadius(dp(24));
+        currentValue.setBackground(secondSelected ? null : selected);
+        secondValue.setBackground(secondSelected ? selected : null);
+        ruler.invalidate();
+    }
 
+    private void setExpanded(boolean value) {
+        removeCallbacks(collapse);
+        if (expanded == value) { if (value) postDelayed(collapse, 1800); return; }
+        expanded = value;
+        View incoming = value ? ruler : presets;
+        View outgoing = value ? presets : ruler;
+        incoming.setVisibility(VISIBLE);
+        incoming.setAlpha(0f);
+        incoming.setScaleX(value ? .92f : 1.04f);
+        outgoing.animate().alpha(0f).setDuration(150).withEndAction(() -> outgoing.setVisibility(GONE)).start();
+        incoming.animate().alpha(1f).scaleX(1f).setDuration(220).start();
+        if (value) postDelayed(collapse, 1800);
+    }
+
+    private void updateZoom(float factor, boolean fromUser) {
+        current = Math.max(1f, Math.min(maximum, factor));
+        updatePresets();
+        if (fromUser) callback.onZoomChanged(current);
+    }
+
+    private static int dp(float value) { return AndroidUtilities.dp(value); }
     private static String format(float factor) {
         return Math.abs(factor - Math.round(factor)) < .05f
                 ? Math.round(factor) + "×" : String.format(Locale.ROOT, "%.1f×", factor);
     }
+    public void setRange(float max) { maximum = Math.max(1f, Math.min(8f, max)); updateZoom(1f, false); setExpanded(false); }
+    public void setCurrent(float factor) { updateZoom(factor, false); }
+    @Override protected void onDetachedFromWindow() { removeCallbacks(collapse); super.onDetachedFromWindow(); }
 
-    public void setRange(float max) {
-        maxZoom = Math.max(1f, Math.min(8f, max));
-        limit.setText(format(maxZoom));
-        setCurrent(1f);
-    }
+    private final class ZoomRuler extends View {
+        private final Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        ZoomRuler(Context context) { super(context); setContentDescription("Zoom ruler"); }
 
-    public void setCurrent(float factor) {
-        float bounded = Math.max(1f, Math.min(maxZoom, factor));
-        slider.setProgress(maxZoom > 1f ? Math.round((bounded - 1f) * 1000f / (maxZoom - 1f)) : 0);
-        value.setText(format(bounded));
+        @Override protected void onDraw(Canvas canvas) {
+            super.onDraw(canvas);
+            float left = dp(20), right = getWidth() - dp(20), span = Math.max(1, right - left);
+            for (int index = 0; index <= 24; index++) {
+                float value = 1f + (maximum - 1f) * index / 24f;
+                float x = left + span * index / 24f;
+                boolean major = index == 0 || index == 24 || Math.abs(value - 2f) < (maximum - 1f) / 48f
+                        || Math.abs(value - 5f) < (maximum - 1f) / 48f;
+                paint.setColor(major ? ACCENT : 0x99D4C4D2);
+                paint.setStrokeWidth(dp(major ? 2 : 1));
+                canvas.drawLine(x, dp(12), x, dp(major ? 29 : 23), paint);
+            }
+            float selectedX = left + span * (current - 1f) / Math.max(.001f, maximum - 1f);
+            paint.setColor(ACCENT);
+            paint.setStrokeWidth(dp(5));
+            paint.setStrokeCap(Paint.Cap.ROUND);
+            canvas.drawLine(selectedX, dp(8), selectedX, dp(31), paint);
+            paint.setStrokeCap(Paint.Cap.BUTT);
+            paint.setTextSize(dp(11));
+            paint.setTypeface(android.graphics.Typeface.DEFAULT_BOLD);
+            paint.setTextAlign(Paint.Align.CENTER);
+            canvas.drawText("1", left, dp(43), paint);
+            if (maximum >= 2f) canvas.drawText("2", left + span / (maximum - 1f), dp(43), paint);
+            if (maximum >= 5f) canvas.drawText("5", left + span * 4f / (maximum - 1f), dp(43), paint);
+            canvas.drawText(format(maximum).replace("×", ""), right, dp(43), paint);
+        }
+
+        @Override public boolean onTouchEvent(MotionEvent event) {
+            int action = event.getActionMasked();
+            if (action == MotionEvent.ACTION_DOWN || action == MotionEvent.ACTION_MOVE) {
+                removeCallbacks(collapse);
+                float left = dp(20), span = Math.max(1, getWidth() - dp(40));
+                updateZoom(1f + (maximum - 1f) * (event.getX() - left) / span, true);
+                return true;
+            }
+            if (action == MotionEvent.ACTION_UP || action == MotionEvent.ACTION_CANCEL) {
+                if (action == MotionEvent.ACTION_UP) performClick();
+                postDelayed(collapse, 1800);
+                return true;
+            }
+            return true;
+        }
+        @Override public boolean performClick() { super.performClick(); return true; }
     }
 }
