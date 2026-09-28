@@ -79,7 +79,9 @@ def main():
         assert '"//submodules/NebulaSettingsContract:NebulaSettingsContract"' in (peer.parent / 'BUILD').read_text(encoding='utf-8')
         assert 'case .user = peer, threadData == nil' in header
         assert 'self.nebulaBadgeUserId == userId else { return }' in header
-        assert 'nebulaTitleConstrainedSize.width - 28.0' in header
+        assert 'nebulaTitleConstrainedSize.width - 19.0' in header
+        assert 'let badgeSize: CGFloat = 16.0' in header
+        assert 'let expandedBadgeSize: CGFloat = 14.0' in header
         assert 'TitleNodeStateRegular)?.view.addSubview(self.nebulaBadgeView)' in header
         assert 'TitleNodeStateExpanded)?.view.addSubview(self.nebulaExpandedBadgeView)' in header
         assert 'UITapGestureRecognizer(target: self, action: #selector(self.nebulaBadgeTapped))' in header
