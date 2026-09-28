@@ -8,7 +8,7 @@ import tempfile
 
 ROOT = Path(__file__).resolve().parents[1]
 UI = ROOT / 'platform/android/overlay/TMessagesProj/src/main/java/app/nebulagram/ui'
-routes = ['Settings', 'Section', 'Menu', 'Servers', 'Subscriptions', 'Privacy', 'Ai', 'Design', 'Updates']
+routes = ['Settings', 'SettingsHub', 'Section', 'Menu', 'Servers', 'Subscriptions', 'Privacy', 'Ai', 'Design', 'Updates']
 for route in routes:
     source = (UI / ('Nebula' + route + 'Fragment.java')).read_text(encoding='utf-8')
     context = re.search(r'View createView\(Context (\w+)\)', source).group(1)
@@ -82,4 +82,4 @@ with tempfile.TemporaryDirectory(prefix='nebula-settings-root-') as folder:
     java = Path(os.environ['JAVA_HOME']) / 'bin'
     subprocess.run([str(java / 'javac'), '-encoding', 'UTF-8', '-d', str(tree), str(UI / 'NebulaSettingsLayout.java'), *map(str, tree.rglob('*.java'))], check=True)
     subprocess.run([str(java / 'java'), '-cp', str(tree), 'RootTest'], check=True)
-print('OK: all nine settings routes own their native bar; shared readable row/header styling')
+print('OK: all ten settings routes own their native bar; shared readable row/header styling')

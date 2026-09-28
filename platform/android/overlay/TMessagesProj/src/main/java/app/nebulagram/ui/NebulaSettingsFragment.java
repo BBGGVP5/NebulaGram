@@ -132,58 +132,31 @@ public class NebulaSettingsFragment extends BaseFragment {
     }
 
     private void buildSections(Context context) {
-        sections.addView(NebulaCard.header(context, NebulaText.text("Подключение", "Connection")));
-        NebulaCard tunnel = new NebulaCard(context);
-        tunnel.add(new NebulaLinkRow(context).withClick(v -> presentFragment(new NebulaMenuFragment())));
-        sections.addView(tunnel, cardParams());
-
         sections.addView(NebulaCard.header(context, NebulaText.text("Настройки", "Settings")));
-        NebulaCard app = new NebulaCard(context);
-        app.add(section(context, R.drawable.msg_settings, R.string.NebulaSectionGeneral, R.string.NebulaGeneralSub, NebulaSectionFragment.SECTION_GENERAL));
-        app.add(new NebulaRow(context).icon(R.drawable.msg_secret).title(NebulaText.text("Конфиденциальность", "Privacy"))
-                .subtitle(NebulaText.text("Архив и защита", "Archive and protection"), false)
-                .trailing(NebulaRow.TRAIL_CHEVRON).withClick(v -> presentFragment(new NebulaPrivacyFragment())));
-        app.add(NebulaFormUi.action(context, R.drawable.nebula_settings_chat_lock,
-                NebulaText.text("Пароли чатов", "Chat passwords"),
-                NebulaText.text("Локальная защита", "Local protection"),
-                v -> presentFragment(new NebulaLockedChatsFragment())));
-        app.add(NebulaFormUi.action(context, R.drawable.msg_saved,
-                NebulaText.text("Синхронизация настроек", "Settings sync"),
-                NebulaText.text("Резервная копия", "Backup"),
-                v -> presentFragment(new NebulaSyncFragment())));
-        app.add(NebulaFormUi.action(context, R.drawable.nebula_settings_app_icon,
-                NebulaText.text("Иконка приложения", "App icon"),
-                NebulaText.text("Коллекция NebulaGram", "NebulaGram collection"),
-                v -> presentFragment(new NebulaIconPickerFragment())));
-        app.add(section(context, R.drawable.msg_customize, R.string.NebulaAppearanceTitle, R.string.NebulaAppearanceSub, NebulaSectionFragment.SECTION_APPEARANCE));
-        sections.addView(app, cardParams());
+        NebulaCard categories = new NebulaCard(context);
+        categories.add(hub(context, R.drawable.msg_settings, "Основные", "General",
+                "Подключение и поведение", "Connection and behavior", NebulaSettingsHubFragment.GENERAL));
+        categories.add(hub(context, R.drawable.msg_customize, "Внешний вид", "Appearance",
+                "Цвета, стекло, значки", "Colors, glass, icons", NebulaSettingsHubFragment.APPEARANCE));
+        categories.add(hub(context, R.drawable.msg_discussion, "Чаты", "Chats",
+                "Список, сообщения, профиль", "List, messages, profile", NebulaSettingsHubFragment.CHATS));
+        categories.add(hub(context, R.drawable.msg_list, "Навигация", "Navigation",
+                "Панель и папки", "Bar and folders", NebulaSettingsHubFragment.NAVIGATION));
+        categories.add(hub(context, R.drawable.msg_secret, "Конфиденциальность", "Privacy",
+                "Архив и защита", "Archive and protection", NebulaSettingsHubFragment.PRIVACY));
+        categories.add(hub(context, R.drawable.msg_emoji_smiles, "Инструменты", "Tools",
+                "ИИ, заметки, текст", "AI, tasks, text", NebulaSettingsHubFragment.TOOLS));
+        categories.add(section(context, R.drawable.msg_info, R.string.NebulaSectionAbout,
+                R.string.NebulaAboutSub, NebulaSectionFragment.SECTION_ABOUT));
+        sections.addView(categories, cardParams());
+    }
 
-        sections.addView(NebulaCard.header(context, NebulaText.text("Интерфейс", "Interface")));
-        NebulaCard navigation = new NebulaCard(context);
-        navigation.add(section(context, R.drawable.msg_list, R.string.NebulaSectionPanel, R.string.NebulaPanelSub, NebulaSectionFragment.SECTION_TABS));
-        navigation.add(section(context, R.drawable.files_folder, R.string.NebulaSectionFolders, R.string.NebulaFoldersInfo, NebulaSectionFragment.SECTION_FOLDERS));
-        sections.addView(navigation, cardParams());
-
-        sections.addView(NebulaCard.header(context, NebulaText.text("Чаты", "Chats")));
-        NebulaCard chats = new NebulaCard(context);
-        chats.add(section(context, R.drawable.msg_discussion, R.string.NebulaSectionChats, R.string.NebulaChatsSub, NebulaSectionFragment.SECTION_CHATS));
-        chats.add(section(context, R.drawable.menu_reply, R.string.NebulaSectionMessages, R.string.NebulaMessagesInfo, NebulaSectionFragment.SECTION_MESSAGES));
-        chats.add(section(context, R.drawable.msg_openprofile, R.string.NebulaSectionProfile, R.string.NebulaProfileInfo, NebulaSectionFragment.SECTION_PROFILE));
-        sections.addView(chats, cardParams());
-
-        sections.addView(NebulaCard.header(context, NebulaText.text("Инструменты", "Tools")));
-        NebulaCard tools = new NebulaCard(context);
-        tools.add(new NebulaRow(context).icon(R.drawable.msg_emoji_smiles).title(NebulaText.text("Искусственный интеллект", "AI assistant"))
-                .subtitle(NebulaText.text("Чат и помощник", "Chat and assistant"), false).trailing(NebulaRow.TRAIL_CHEVRON)
-                .withClick(v -> presentFragment(new NebulaAiFragment())));
-        tools.add(new NebulaRow(context).icon(R.drawable.msg_calendar).title(NebulaText.text("Список дел", "Tasks"))
-                .subtitle(NebulaText.text("Заметки и напоминания", "Notes and reminders"), false)
-                .trailing(NebulaRow.TRAIL_CHEVRON).withClick(v -> presentFragment(new NebulaTasksFragment())));
-        tools.add(new NebulaRow(context).icon(R.drawable.nebula_settings_text_tools).title(NebulaText.text("Инструменты текста", "Text tools"))
-                .subtitle(NebulaText.text("Перевод и озвучивание", "Translate and read aloud"), false)
-                .trailing(NebulaRow.TRAIL_CHEVRON).withClick(v -> presentFragment(new NebulaMessageToolsFragment(null))));
-        tools.add(section(context, R.drawable.msg_info, R.string.NebulaSectionAbout, R.string.NebulaAboutSub, NebulaSectionFragment.SECTION_ABOUT));
-        sections.addView(tools, cardParams());
+    private NebulaRow hub(Context context, int icon, String titleRu, String titleEn,
+                          String detailRu, String detailEn, int category) {
+        return new NebulaRow(context).icon(icon).title(NebulaText.text(titleRu, titleEn))
+                .subtitle(NebulaText.text(detailRu, detailEn), false)
+                .trailing(NebulaRow.TRAIL_CHEVRON)
+                .withClick(v -> presentFragment(new NebulaSettingsHubFragment(category)));
     }
 
     @Override
