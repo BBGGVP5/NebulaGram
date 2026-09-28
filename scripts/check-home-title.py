@@ -54,7 +54,17 @@ assert 'additionalSubTitleOverlayContainer.getMeasuredWidth())' in bar, 'Overlay
 assert 'titlesContainer.getTranslationX()' in bar
 assert 'if (nebulaCenterTitle())' in bar
 assert 'glassMode && !nebulaHomeGlass ? 17' in bar, 'Glass home title must keep normal title size'
-assert 'setNebulaHomeGlass(true)' in (tree / 'TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java').read_text(encoding='utf-8')
+dialogs = (tree / 'TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java').read_text(encoding='utf-8')
+assert 'setNebulaHomeGlass(true)' in dialogs and 'setNebulaHomeTabsGlass(true)' in dialogs
+assert 'nebulaHomeTabsGlass ? 4 : 16' in bar, 'Home title must use the compact grouped-action boundary'
+assert 'int first = Integer.MAX_VALUE;' in bar and 'int last = Integer.MIN_VALUE;' in bar
+assert 'glassDrawableMenu.setBounds(Math.max(0, first - dp(4)), t,' in bar
+assert 'glassDrawable.setAlpha(Math.round(255 * actionModeFactor * (1f - searchFactor)))' in bar
+assert 'actionBar.setSearchFactor(searchFieldVisible)' in dialogs
+assert 'NebulaLinkShortcut.setHeaderSearchProgress(this, searchFieldVisible)' in dialogs
+assert 'nebulaHomeEditButton.setOnClickListener(v -> presentFragment(new FiltersSetupActivity()))' in dialogs
+appearance = (root / 'platform/android/overlay/TMessagesProj/src/main/java/app/nebulagram/ui/NebulaAppearance.java').read_text(encoding='utf-8')
+assert 'getBoolean("hide_search_field", homeGlassHeader())' in appearance
 folder_title = (root / 'platform/android/overlay/TMessagesProj/src/main/java/app/nebulagram/ui/NebulaFolderTitleView.java').read_text(encoding='utf-8')
 assert 'AndroidUtilities.displaySize.x / 2' not in folder_title, 'Folder title must use available parent width'
 print('PASS: native title slots include status drawable and share menu/translation bounds')

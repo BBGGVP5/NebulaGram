@@ -38,6 +38,7 @@ public final class NebulaLinkShortcut extends View {
     private final Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final RectF arc = new RectF();
     private boolean pending, failed, probing, hostSurfaceActive = true;
+    private float headerSearchProgress;
     private String probeRequestId;
     private final NebulaLink.StatusListener statusListener = status -> { failed = false; refresh(); };
     private final SharedPreferences.OnSharedPreferenceChangeListener preferencesListener = (p, key) -> {
@@ -69,6 +70,16 @@ public final class NebulaLinkShortcut extends View {
         NebulaLinkShortcut control = reference == null ? null : reference.get();
         if (control != null && control.hostSurfaceActive != active) {
             control.hostSurfaceActive = active;
+            control.refresh();
+        }
+    }
+    public static void setHeaderSearchProgress(BaseFragment owner, float progress) {
+        WeakReference<NebulaLinkShortcut> reference = HOST_CONTROLS.get(owner);
+        NebulaLinkShortcut control = reference == null ? null : reference.get();
+        if (control == null) return;
+        progress = Math.max(0f, Math.min(1f, progress));
+        if (control.headerSearchProgress != progress) {
+            control.headerSearchProgress = progress;
             control.refresh();
         }
     }
@@ -110,8 +121,9 @@ public final class NebulaLinkShortcut extends View {
     private int state() { return preview >= 0 ? preview : NebulaLinkShortcutState.resolve(phase(), NebulaLink.isRoutingThroughTunnel(), pending, failed); }
     private void refresh() {
         if (item != null) {
-            item.setVisibility(visible() && hostSurfaceActive ? VISIBLE : GONE);
-            item.setEnabled(!pending);
+            item.setVisibility(visible() && hostSurfaceActive && headerSearchProgress < 1f ? VISIBLE : GONE);
+            item.setAlpha(1f - headerSearchProgress);
+            item.setEnabled(!pending && headerSearchProgress == 0f);
             item.setContentDescription("NebulaLink · " + label(state()) + NebulaText.text(". Удерживайте для выбора сервера и пинга", ". Hold for server and ping"));
         }
         invalidate();

@@ -147,7 +147,7 @@ public final class NebulaAppearance {
      * поиск остаётся доступен со своей вкладки и из меню.
      */
     public static boolean hideSearchField() {
-        return preferences().getBoolean("hide_search_field", false);
+        return preferences().getBoolean("hide_search_field", homeGlassHeader());
     }
 
     public static void setHideSearchField(boolean enabled) {

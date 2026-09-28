@@ -50,7 +50,8 @@ public static class MarginLayoutParams {public int width,height,leftMargin,right
 'android/widget/ImageView.java': 'package android.widget; public class ImageView extends android.view.View {public ImageView(android.content.Context c){super(c);}}',
 'org/telegram/messenger/AndroidUtilities.java': 'package org.telegram.messenger; public class AndroidUtilities {public static float density=1; public static int dp(float v){return (int)Math.ceil(v*density);}}',
 'app/nebulagram/ui/NebulaHeaderCounter.java': 'package app.nebulagram.ui; public class NebulaHeaderCounter {public static int backWidth(){return org.telegram.messenger.AndroidUtilities.dp(58);}}',
-'app/nebulagram/ui/NebulaAppearance.java': 'package app.nebulagram.ui; public class NebulaAppearance {public static boolean enabled=true; public static boolean iosComposer(){return enabled;} public static boolean chatHeader(){return enabled;} public static boolean adaptiveHeader(){return true;} public static boolean centeredHeader(){return true;} public static boolean folderTitle(){return enabled;}}',
+'app/nebulagram/ui/NebulaAppearance.java': 'package app.nebulagram.ui; public class NebulaAppearance {public static boolean enabled=true,homeGlass; public static boolean iosComposer(){return enabled;} public static boolean chatHeader(){return enabled;} public static boolean adaptiveHeader(){return true;} public static boolean centeredHeader(){return true;} public static boolean folderTitle(){return enabled;} public static boolean homeGlassHeader(){return homeGlass;}}',
+'app/nebulagram/ui/NebulaText.java': 'package app.nebulagram.ui; public class NebulaText {public static String text(String ru,String en){return ru;}}',
 'org/telegram/ui/ActionBar/ActionBar.java': 'package org.telegram.ui.ActionBar; public class ActionBar {public SimpleTextView title=new SimpleTextView();public SimpleTextView getTitleTextView(){return title;} public SimpleTextView getTitleTextView2(){return null;} public void setTitleAnimated(CharSequence text,boolean bottom,long duration,Object interpolator){title.setText(text);} public void setTitle(CharSequence text,android.graphics.drawable.Drawable icon){title.setText(text);}public boolean floating,hidden,savedClassic;public void setNebulaClassicSavedHeader(boolean v){savedClassic=v;}public void setNebulaFloatingChatHeader(boolean a,boolean b,boolean c){floating=a;hidden=b;}}',
 'org/telegram/ui/ActionBar/ActionBarMenuItem.java': 'package org.telegram.ui.ActionBar; public class ActionBarMenuItem {public void setIcon(android.graphics.drawable.Drawable d){}}',
 'org/telegram/ui/Components/AvatarDrawable.java': 'package org.telegram.ui.Components; public class AvatarDrawable extends android.graphics.drawable.Drawable {public static int AVATAR_TYPE_SAVED=1;public void setAvatarType(int i){} public void draw(android.graphics.Canvas c){}}',
@@ -170,6 +171,10 @@ check(collapsed1.getText()==expected&&bar1.title.getText()==expected,"folder tex
 check(collapsed1.showStatus==(i<=0||i>=8),"premium status leaked into folder title");
 check(collapsed2.getText()==controller.filters.get(6).name,"folder leaked into another ActionBar");
 if(i>0&&i<8)check(collapsed1.cache==(controller.filters.get(i).title_noanimate?1:2),"folder animation preference lost");}
+NebulaAppearance.homeGlass=true;NebulaDialogsTitle.apply(bar1,controller,0,null);
+check(bar1.title.getText().equals("Чаты"),"glass home title should be compact");
+NebulaDialogsTitle.apply(bar1,controller,6,null);
+check(bar1.title.getText()==controller.filters.get(6).name,"glass home title replaced a folder name");
 System.out.println("14 folder bindings passed across two headers");
 System.out.println(cases+" layout cases passed: 3 densities, 4 widths, empty/forward/multiline, bots; independent recorded drawables; attachment retained; AI/expand fade/scale/translation; native state restored");}}
 '''

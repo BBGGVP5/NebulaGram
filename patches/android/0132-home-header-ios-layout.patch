@@ -1,0 +1,169 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
+index 31caa64..30f9f3c 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
+@@ -195,6 +195,7 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
+ 
+     private boolean glassMode;
+     private boolean nebulaHomeGlass;
++    private boolean nebulaHomeTabsGlass;
+     private boolean glassOnlyBack;
+     private boolean glassModeIsForum;
+ 
+@@ -274,6 +275,11 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
+         invalidate();
+     }
+ 
++    public void setNebulaHomeTabsGlass(boolean enabled) {
++        nebulaHomeTabsGlass = enabled;
++        invalidate();
++    }
++
+     public void setupGlass(BlurredBackgroundDrawableViewFactory factory,
+                            BlurredBackgroundColorProvider colorProvider,
+                            boolean isForum) {
+@@ -617,11 +623,12 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
+         int translation = useContainerForTitles && titlesContainer != null
+                 ? (int) Math.ceil(Math.max(0f, titlesContainer.getTranslationX())) : 0;
+         return (menu != null && menu.getVisibility() != GONE ? menu.getMeasuredWidth() : 0)
+-                + dp(16) + titleRightMargin + translation;
++                + dp(nebulaHomeTabsGlass ? 4 : 16) + titleRightMargin + translation;
+     }
+ 
+     private boolean nebulaCenterTitle() {
+-        if (!app.nebulagram.ui.NebulaAppearance.centerHome() || isSearchFieldVisible || getActionModeFactor() != 0) return false;
++        if ((!nebulaHomeTabsGlass && !app.nebulagram.ui.NebulaAppearance.centerHome())
++                || isSearchFieldVisible || getActionModeFactor() != 0) return false;
+         if (parentFragment instanceof org.telegram.ui.DialogsActivity) {
+             return ((org.telegram.ui.DialogsActivity) parentFragment).nebulaIsHeaderExpanded();
+         }
+@@ -1513,6 +1520,7 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
+         } else {
+             textLeft = dp(AndroidUtilities.isTablet() ? 26 : 18);
+         }
++        if (nebulaHomeTabsGlass) textLeft = Math.max(textLeft, dp(74));
+         // textLeft += additionalTextLeft;
+ 
+         if (menu != null && menu.getVisibility() != GONE) {
+@@ -1659,6 +1667,7 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
+             textLeft = glassMode ? dp(24) : dp(AndroidUtilities.isTablet() ? 26 : 18);
+         }
+         textLeft += additionalTextLeft;
++        if (nebulaHomeTabsGlass) textLeft = Math.max(textLeft, dp(74));
+ 
+         if (menu != null && menu.getVisibility() != GONE) {
+             int menuLeft = menu.searchFieldVisible() ? dp(menuOccupyBack ? 0 : AndroidUtilities.isTablet() ? 74 : 66) : (getMeasuredWidth()) - menu.getMeasuredWidth();
+@@ -2517,7 +2526,15 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
+             if (nebulaFloatingChatHeader && app.nebulagram.ui.NebulaAppearance.centeredHeader()) {
+                 glassDrawable.setRadius(Math.min(glassDrawable.getPaddedBounds().height(), glassDrawable.getPaddedBounds().width()) / 2f);
+             }
+-            if (!((nebulaClassicSavedHeader || nebulaFloatingChatHeader && !app.nebulagram.ui.NebulaAppearance.chatHeader()) && actionModeFactor == 0f && searchFactor == 0f)) glassDrawable.draw(canvas);
++            if (nebulaHomeTabsGlass) {
++                // The home title is plain, like the iOS header. Only selection
++                // mode needs the wide backing surface; search has its own field.
++                glassDrawable.setAlpha(Math.round(255 * actionModeFactor * (1f - searchFactor)));
++            } else {
++                glassDrawable.setAlpha(255);
++            }
++            if ((!nebulaHomeTabsGlass || glassDrawable.getAlpha() > 0)
++                    && !((nebulaClassicSavedHeader || nebulaFloatingChatHeader && !app.nebulagram.ui.NebulaAppearance.chatHeader()) && actionModeFactor == 0f && searchFactor == 0f)) glassDrawable.draw(canvas);
+         }
+         if (glassDrawableBack != null && hasBackButton) {
+             glassDrawableBack.setBounds(0, t, nebulaBackWidth, b);
+@@ -2537,7 +2554,27 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
+         if (glassDrawableMenu != null && menuWidth > 0 && !glassOnlyBack && !doNotDrawGlassMenu
+                 && (!separateAvatar || actionModeFactor > 0f)) {
+             final float menuAlpha = hasForcedMenuWidth ? 1f : animatorHasMenuItems.getFloatValue();
+-            if (nebulaHomeGlass && actionModeFactor < 0.01f && searchFactor < 0.01f
++            if (nebulaHomeTabsGlass && actionModeFactor < 0.01f
++                    && !isSearchFieldVisible && menu != null) {
++                // One continuous material follows the visible home actions.
++                // This also keeps a two-button group when search is in the list.
++                int first = Integer.MAX_VALUE;
++                int last = Integer.MIN_VALUE;
++                for (int i = 0; i < menu.getChildCount(); i++) {
++                    final View child = menu.getChildAt(i);
++                    if (child.getVisibility() != View.VISIBLE || child.getWidth() < dp(32)
++                            || child.getAlpha() < 0.1f) continue;
++                    final int x = Math.round(menu.getX() + child.getX());
++                    first = Math.min(first, x);
++                    last = Math.max(last, x + child.getWidth());
++                }
++                if (first < last) {
++                    glassDrawableMenu.setBounds(Math.max(0, first - dp(4)), t,
++                            Math.min(getWidth(), last + dp(4)), b);
++                    glassDrawableMenu.setAlpha(Math.round(255 * menuAlpha * (1f - searchFactor)));
++                    if (glassDrawableMenu.getAlpha() > 0) glassDrawableMenu.draw(canvas);
++                }
++            } else if (nebulaHomeGlass && actionModeFactor < 0.01f && searchFactor < 0.01f
+                     && !isSearchFieldVisible && menu != null) {
+                 // Three independent round surfaces follow the actual visible
+                 // actions. Passcode/downloads remain accessible when present.
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
+index 21344e3..04eb34f 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
+@@ -504,6 +504,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+     private boolean downloadsItemVisible;
+     public ActionBarMenuItem searchItem;
+     private ActionBarMenuItem optionsItem;
++    private TextView nebulaHomeEditButton;
+     private ActionBarMenuItem speedItem;
+     public static boolean switchingTheme;
+     private ActionBarMenuItem doneItem;
+@@ -3201,11 +3202,29 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+         actionBar.setItemsBackgroundColor(getThemedColor(Theme.key_actionBarActionModeDefaultSelector), true);
+         actionBar.setItemsColor(getThemedColor(Theme.key_actionBarDefaultIcon), false);
+         actionBar.setItemsColor(getThemedColor(Theme.key_actionBarActionModeDefaultIcon), true);
++        nebulaHomeEditButton = null;
+         if (initialDialogsType == DIALOGS_TYPE_DEFAULT && !onlySelect && !inPreviewMode
+                 && folderId == 0 && communityId == 0 && TextUtils.isEmpty(searchString)
+                 && app.nebulagram.ui.NebulaAppearance.homeGlassHeader()) {
+             actionBar.setupGlass(iBlur3FactoryLiquidGlass, BlurredBackgroundProviderImpl.topPanel(resourceProvider));
+             actionBar.setNebulaHomeGlass(true);
++            actionBar.setNebulaHomeTabsGlass(true);
++            nebulaHomeEditButton = new TextView(context);
++            nebulaHomeEditButton.setText(app.nebulagram.ui.NebulaText.text("Изм.", "Edit"));
++            nebulaHomeEditButton.setContentDescription(app.nebulagram.ui.NebulaText.text("Изменить папки", "Edit folders"));
++            nebulaHomeEditButton.setTextSize(15);
++            nebulaHomeEditButton.setTextColor(getThemedColor(Theme.key_actionBarDefaultTitle));
++            nebulaHomeEditButton.setGravity(Gravity.CENTER);
++            BlurredBackgroundDrawable editGlass = iBlur3FactoryLiquidGlass.create(nebulaHomeEditButton,
++                    BlurredBackgroundProviderImpl.topPanel(resourceProvider));
++            editGlass.setRadius(dp(22));
++            editGlass.setPadding(dp(3));
++            nebulaHomeEditButton.setBackground(editGlass);
++            nebulaHomeEditButton.setOnClickListener(v -> presentFragment(new FiltersSetupActivity()));
++            FrameLayout.LayoutParams editLayout = new FrameLayout.LayoutParams(dp(58), dp(44), Gravity.LEFT | Gravity.TOP);
++            editLayout.leftMargin = dp(8);
++            editLayout.topMargin = (actionBar.getOccupyStatusBar() ? AndroidUtilities.statusBarHeight : 0) + dp(6);
++            actionBar.addView(nebulaHomeEditButton, editLayout);
+         }
+         actionBar.createAdditionalSubTitleOverlayContainer();
+         actionBar.getAdditionalSubTitleOverlayContainer().setTranslationX(dp(4));
+@@ -12170,6 +12189,10 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+                 actionBar.setPopupItemsSelectorColor(getThemedColor(Theme.key_dialogButtonSelector), true);
+                 actionBar.updateColors();
+             }
++            if (nebulaHomeEditButton != null) {
++                nebulaHomeEditButton.setTextColor(getThemedColor(Theme.key_actionBarDefaultTitle));
++                nebulaHomeEditButton.invalidate();
++            }
+             if (statusDrawable != null) {
+                 updateStatus(UserConfig.getInstance(currentAccount).getCurrentUser(), false);
+             }
+@@ -14188,6 +14211,14 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+ 
+         final float actionModeVisible = Math.max(progressToActionMode, animatorActionModeVisible.getFloatValue());
+         final float searchFieldVisible = animatorSearchVisible.getFloatValue();
++        app.nebulagram.ui.NebulaLinkShortcut.setHeaderSearchProgress(this, searchFieldVisible);
++        if (nebulaHomeEditButton != null && actionBar != null) {
++            actionBar.setSearchFactor(searchFieldVisible);
++            final float editAlpha = (1f - searchFieldVisible) * (1f - actionModeVisible)
++                    * (1f - getRightSlidingProgress());
++            nebulaHomeEditButton.setAlpha(editAlpha);
++            nebulaHomeEditButton.setVisibility(editAlpha > 0.01f ? View.VISIBLE : View.GONE);
++        }
+ 
+         final float factor0 = isSupportSearch() && (!app.nebulagram.ui.NebulaAppearance.hideSearchField() || searchFieldVisible > 0) ? 1 : 0;
+         final float factor1 = (1f - actionModeVisible) * (1f - animatorDoneButtonVisible.getFloatValue());
