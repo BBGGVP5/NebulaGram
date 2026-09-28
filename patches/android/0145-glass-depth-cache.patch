@@ -1,0 +1,27 @@
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/drawable/BlurredBackgroundDrawable.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/drawable/BlurredBackgroundDrawable.java
+@@ -44,6 +44,7 @@
+ import java.util.Arrays;
+ 
+ public abstract class BlurredBackgroundDrawable extends Drawable {
++    private long nebulaGlassRevision = -1;
+     public BlurredBackgroundDrawable() {
+         boundProps.strokeWidthTop = dpf2(1);
+         boundProps.strokeWidthBottom = dpf2(2 / 3f);
+@@ -226,6 +227,7 @@
+     @CallSuper
+     public void updateColors() {
+         if (colorProvider == null) return;
++        nebulaGlassRevision = app.nebulagram.ui.NebulaGlass.revision();
+ 
+         backgroundColor = colorProvider.getBackgroundColor();
+         float depth = app.nebulagram.ui.NebulaGlass.depth();
+@@ -581,7 +583,7 @@
+ 
+     protected void drawSource(Canvas canvas, BlurredBackgroundSource source) {
+         // Glass settings can change while a menu is open; update its cached shadow before rendering.
+-        if (colorProvider != null) updateColors();
++        if (colorProvider != null && nebulaGlassRevision != app.nebulagram.ui.NebulaGlass.revision()) updateColors();
+         if (boundProps.boundsWithPadding.isEmpty()) {
+             return;
+         }

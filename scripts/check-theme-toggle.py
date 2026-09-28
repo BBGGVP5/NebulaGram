@@ -55,6 +55,8 @@ def main():
         put('androidx/core/content/ContextCompat.java', '''package androidx.core.content;
             public class ContextCompat { public static int wallpaper=0xffeeaa88;
                 public static int getColor(android.content.Context c,int id){ return wallpaper; } }''')
+        put('androidx/core/graphics/ColorUtils.java', '''package androidx.core.graphics;
+            public class ColorUtils { public static double calculateLuminance(int color){ return 0.4; } }''')
         put('org/telegram/messenger/ApplicationLoader.java', '''package org.telegram.messenger;
             public class ApplicationLoader { public static android.content.Context applicationContext; }''')
         put('org/telegram/messenger/AndroidUtilities.java', '''package org.telegram.messenger;
@@ -63,7 +65,7 @@ def main():
             public class FileLog { public static void e(Throwable e){throw new AssertionError(e);} }''')
         put('org/telegram/ui/ActionBar/Theme.java', '''package org.telegram.ui.ActionBar;
             public class Theme {
-                public static final int key_windowBackgroundWhiteBlueText=1,key_windowBackgroundGray=2,key_windowBackgroundWhite=3,key_windowBackgroundWhiteBlackText=4,key_windowBackgroundWhiteGrayText=5,key_divider=6;
+                public static final int key_windowBackgroundWhiteBlueText=1,key_windowBackgroundGray=2,key_windowBackgroundWhite=3,key_windowBackgroundWhiteBlackText=4,key_windowBackgroundWhiteGrayText2=5,key_divider=6;
                 public static boolean dark=true; public static boolean isCurrentThemeDark(){return dark;}
                 public static int getColor(int key){return active.getAccent(false).accentColor;}
 
@@ -119,8 +121,8 @@ def main():
                         eq(day.themeAccents.get(0).accentColor,0xff1144aa);
                         eq(day.themeAccents.get(1).accentColor,0xffbb2233);
                         eq(night.getAccent(false).accentColor,0xff447788);
-                        eq(snapshot.primary(),0xffa8c7fa);
-                        eq(NebulaTheme.of(c).primary(),0xffa8c7fa);
+                        eq(snapshot.primary(),0xff447788);
+                        eq(NebulaTheme.of(c).primary(),0xff447788);
                         eq((int)p.values.keySet().stream().filter(k->k.startsWith("accent_before_material_you")).count(),0);
                         Theme.active=day;
                     }
@@ -130,22 +132,22 @@ def main():
                     NebulaTheme.setMaterialYouEnabled(true); NebulaTheme.applyMaterialYou(c);
                     eq(day.getAccent(false).accentColor,ContextCompat.wallpaper);
                     NebulaTheme.setMaterialYouEnabled(false); eq(day.getAccent(false).accentColor,0xff229955);
-                    // Telegram night mode, theme/accent and wallpaper cannot change settings.
+                    // The same palette object must read the current Telegram theme on every render.
                     int reads=c.resources.reads;
                     NebulaTheme fixed=NebulaTheme.of(c);
                     for(int i=0;i<10000;i++){
                         Theme.dark=(i%2==0); ContextCompat.wallpaper=i;
                         day.getAccent(false).accentColor=i;
                         if(NebulaTheme.of(c)!=fixed)throw new AssertionError("uncached palette");
-                        eq(fixed.primary(),0xffa8c7fa); eq(fixed.surface(),0xff18212c);
-                        eq(fixed.surfaceContainer(),0xff232f3d); eq(fixed.onSurface(),0xffe7edf5);
+                        eq(fixed.primary(),i); eq(fixed.surface(),i);
+                        eq(fixed.surfaceContainer(),i); eq(fixed.onSurface(),i);
                     }
                     eq(c.resources.reads,reads); eq(c.callbacks.size(),1);
                     day.getAccent(false).accentColor=0xff229955;
-                    c.night(false); eq(NebulaTheme.of(c).primary(),0xff0b57d0);
-                    eq(NebulaTheme.of(c).surface(),0xfff1f3f6);
-                    eq(NebulaTheme.of(c).surfaceContainer(),0xffffffff);
-                    c.night(true); eq(NebulaTheme.of(c).primary(),0xffa8c7fa);
+                    c.night(false); eq(NebulaTheme.of(c).primary(),0xff229955);
+                    eq(NebulaTheme.of(c).surface(),0xff229955);
+                    eq(NebulaTheme.of(c).surfaceContainer(),0xff229955);
+                    c.night(true); eq(NebulaTheme.of(c).primary(),0xff229955);
                     android.os.Build.VERSION.SDK_INT=30; NebulaTheme.setMaterialYouEnabled(true); apply(c);
                     eq(day.getAccent(false).accentColor,0xff229955);
                     System.out.println(checks+" palette/accent restoration checks passed");

@@ -26,7 +26,7 @@ index 6193ed7..338998e 100644
                  view = gap;
 +            } else if (viewType == VIEW_TYPE_NEBULA_DIVIDER) {
 +                view = new app.nebulagram.ui.NebulaMenuDivider(parent.getContext(), parent.resourcesProvider);
-+                parent.popupLayout.addView(view, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, 9));
++                parent.popupLayout.addView(view, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, 5));
              } else if (viewType == VIEW_TYPE_SWIPEBACKITEM) {
                  ActionBarMenuSubItem cell = new ActionBarMenuSubItem(parent.getContext(), false, false, false, parent.resourcesProvider);
                  cell.setTextAndIcon(text, icon, iconDrawable);

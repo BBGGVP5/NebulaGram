@@ -7,18 +7,17 @@ import android.content.res.Configuration;
 import android.os.Build;
 
 import androidx.core.content.ContextCompat;
+import androidx.core.graphics.ColorUtils;
 
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.ApplicationLoader;
 import org.telegram.messenger.FileLog;
 import org.telegram.ui.ActionBar.Theme;
 
-/** Fixed settings palette. System light/dark mode is independent of Telegram themes.
- * Material You remains an explicit option for the surrounding Telegram interface.
- */
+/** Settings colors follow the active Telegram theme; Material You remains opt-in. */
 public final class NebulaTheme {
 
-    // Fixed brand colors for settings, independent of Telegram and wallpaper accents.
+    // Fallbacks used before Telegram has loaded its active theme.
     private static final int BRAND_PRIMARY_DARK = 0xFFA8C7FA;
     private static final int BRAND_ON_PRIMARY_DARK = 0xFF062E6F;
     private static final int BRAND_PRIMARY_CONTAINER_DARK = 0xFF0842A0;
@@ -94,12 +93,12 @@ public final class NebulaTheme {
     }
 
     public boolean isDark() {
-        return dark;
+        return Theme.getActiveTheme() == null ? dark : Theme.isCurrentThemeDark();
     }
 
     /** Connection success stays green regardless of the wallpaper accent. */
     public int success() {
-        return dark ? 0xFF81D99A : 0xFF236C3D;
+        return isDark() ? 0xFF81D99A : 0xFF236C3D;
     }
 
     /** Whether Android can supply a wallpaper accent for Telegram. */
@@ -115,44 +114,44 @@ public final class NebulaTheme {
         if (isDynamic()) {
             return system(dark ? android.R.color.system_accent1_200 : android.R.color.system_accent1_600);
         }
-        return dark ? BRAND_PRIMARY_DARK : BRAND_PRIMARY_LIGHT;
+        return telegram(Theme.key_windowBackgroundWhiteBlueText, dark ? BRAND_PRIMARY_DARK : BRAND_PRIMARY_LIGHT);
     }
 
     public int onPrimary() {
         if (isDynamic()) {
             return system(dark ? android.R.color.system_accent1_800 : android.R.color.system_accent1_0);
         }
-        return dark ? BRAND_ON_PRIMARY_DARK : BRAND_ON_PRIMARY_LIGHT;
+        return ColorUtils.calculateLuminance(primary()) > .5f ? 0xFF101318 : 0xFFFFFFFF;
     }
 
     public int primaryContainer() {
         if (isDynamic()) {
             return system(dark ? android.R.color.system_accent1_700 : android.R.color.system_accent1_100);
         }
-        return dark ? BRAND_PRIMARY_CONTAINER_DARK : BRAND_PRIMARY_CONTAINER_LIGHT;
+        return blend(surfaceContainer(), primary(), isDark() ? .23f : .14f);
     }
 
     public int onPrimaryContainer() {
         if (isDynamic()) {
             return system(dark ? android.R.color.system_accent1_100 : android.R.color.system_accent1_900);
         }
-        return dark ? BRAND_ON_PRIMARY_CONTAINER_DARK : BRAND_ON_PRIMARY_CONTAINER_LIGHT;
+        return primary();
     }
 
     public int surface() {
-        return dark ? 0xFF18212C : 0xFFF1F3F6;
+        return telegram(Theme.key_windowBackgroundGray, isDark() ? BRAND_SURFACE_DARK : BRAND_SURFACE_LIGHT);
     }
 
     public int surfaceContainer() {
-        return dark ? 0xFF232F3D : 0xFFFFFFFF;
+        return telegram(Theme.key_windowBackgroundWhite, isDark() ? BRAND_SURFACE_CONTAINER_DARK : BRAND_SURFACE_CONTAINER_LIGHT);
     }
 
     public int onSurface() {
-        return dark ? 0xFFE7EDF5 : 0xFF202C39;
+        return telegram(Theme.key_windowBackgroundWhiteBlackText, isDark() ? BRAND_ON_SURFACE_DARK : BRAND_ON_SURFACE_LIGHT);
     }
 
     public int onSurfaceVariant() {
-        return dark ? 0xFF95A6B9 : 0xFF778491;
+        return telegram(Theme.key_windowBackgroundWhiteGrayText2, isDark() ? BRAND_ON_SURFACE_VARIANT_DARK : BRAND_ON_SURFACE_VARIANT_LIGHT);
     }
 
     /**
@@ -164,11 +163,24 @@ public final class NebulaTheme {
         if (isDynamic()) {
             return system(dark ? android.R.color.system_accent1_400 : android.R.color.system_accent1_800);
         }
-        return dark ? 0xFF7FA6E0 : 0xFF08409B;
+        return blend(primary(), onSurface(), isDark() ? .18f : .12f);
     }
 
     public int outline() {
-        return dark ? 0xFF32404F : 0xFFE9EDF1;
+        return telegram(Theme.key_divider, isDark() ? BRAND_OUTLINE_DARK : BRAND_OUTLINE_LIGHT);
+    }
+
+    private int telegram(int key, int fallback) {
+        return Theme.getActiveTheme() == null ? fallback : Theme.getColor(key);
+    }
+
+    private static int blend(int background, int foreground, float amount) {
+        int inverse = Math.round((1f - amount) * 255);
+        int weight = 255 - inverse;
+        int red = ((background >> 16 & 255) * inverse + (foreground >> 16 & 255) * weight) / 255;
+        int green = ((background >> 8 & 255) * inverse + (foreground >> 8 & 255) * weight) / 255;
+        int blue = ((background & 255) * inverse + (foreground & 255) * weight) / 255;
+        return 0xFF000000 | red << 16 | green << 8 | blue;
     }
 
     /**

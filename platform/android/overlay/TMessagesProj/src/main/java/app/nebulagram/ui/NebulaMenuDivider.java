@@ -24,7 +24,7 @@ public final class NebulaMenuDivider extends View {
 
     public static void add(ItemOptions menu, Context context, Theme.ResourcesProvider resourcesProvider) {
         menu.addView(new NebulaMenuDivider(context, resourcesProvider),
-                LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, 9));
+                LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, 5));
     }
 
     @Override protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
@@ -40,9 +40,9 @@ public final class NebulaMenuDivider extends View {
         int color = NebulaMenuStyle.foreground(this,
                 Theme.getColor(Theme.key_actionBarDefaultSubmenuItem, resourcesProvider), resourcesProvider);
         paint.setColor(color);
-        paint.setAlpha(Math.round(255 * .58f));
-        float edge = AndroidUtilities.dpf2(16f);
-        float thickness = AndroidUtilities.dpf2(1f);
+        paint.setAlpha(Math.round(255 * .22f));
+        float edge = AndroidUtilities.dpf2(18f);
+        float thickness = Math.max(1f, AndroidUtilities.dpf2(.5f));
         float top = (getHeight() - thickness) / 2f;
         canvas.drawRect(edge, top, getWidth() - edge, top + thickness, paint);
     }

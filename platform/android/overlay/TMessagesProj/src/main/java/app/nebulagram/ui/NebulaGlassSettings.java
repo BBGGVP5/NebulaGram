@@ -26,6 +26,14 @@ public final class NebulaGlassSettings {
         SeekBar transparency = slider(details,NebulaText.text("Прозрачность", "Transparency"),Math.round(75-NebulaGlass.value("opacity",63)*.75f),75,n->{NebulaGlass.setValue("opacity",Math.round((75-n)/.75f));preview.invalidate();});
         SeekBar blurAmount = slider(details,NebulaText.text("Размытие", "Blur"),NebulaGlass.value("blur",40),n->{NebulaGlass.setValue("blur",n);preview.invalidate();});
         SeekBar refraction = slider(details,NebulaText.text("Преломление", "Refraction"),NebulaGlass.value("refraction",0),n->{NebulaGlass.setValue("refraction",n);preview.invalidate();});
+        SeekBar[] depthControl = new SeekBar[1];
+        NebulaRow depthToggle = NebulaExtras.toggle(c,R.drawable.msg_customize,
+                NebulaText.text("Объём и тень", "Depth and shadow"),null,
+                NebulaGlass.depthEnabled(),v->{NebulaGlass.depthEnabled(v);if(depthControl[0]!=null)depthControl[0].setEnabled(v);preview.invalidate();});
+        details.addView(depthToggle);
+        SeekBar depth = slider(details,NebulaText.text("Глубина", "Depth"),NebulaGlass.value("depth",35),n->{NebulaGlass.setValue("depth",n);preview.invalidate();});
+        depthControl[0] = depth;
+        depth.setEnabled(NebulaGlass.depthEnabled());
         TextView refractionHint = new TextView(c);
         refractionHint.setText(NebulaText.text("Преломление сдвигает фон у края стекла. Поставь 0%, чтобы текст под пилюлей не искажался.", "Refraction shifts the backdrop near the glass edge. Set it to 0% to keep the text underneath undistorted."));
         refractionHint.setTextSize(13); refractionHint.setTextColor(NebulaTheme.of(c).onSurfaceVariant());
@@ -41,10 +49,11 @@ public final class NebulaGlassSettings {
             .subtitle(NebulaText.text("Мягкое преломление, лёгкое размытие и блики", "Soft refraction, light blur and highlights"), true)
             .withClick(v -> {
                 NebulaGlass.custom(true);
-                NebulaGlass.setValue("opacity",47); NebulaGlass.setValue("blur",20); NebulaGlass.setValue("refraction",60);
+                NebulaGlass.setValue("opacity",47); NebulaGlass.setValue("blur",20); NebulaGlass.setValue("refraction",60); NebulaGlass.setValue("depth",45);
+                NebulaGlass.depthEnabled(true);
                 NebulaAppearance.setGlassHighlights(true);
-                customize.checked(true); highlights.checked(true); details.expand(true);
-                transparency.setProgress(40); blurAmount.setProgress(20); refraction.setProgress(60);
+                customize.checked(true); highlights.checked(true); depthToggle.checked(true); depth.setEnabled(true); details.expand(true);
+                transparency.setProgress(40); blurAmount.setProgress(20); refraction.setProgress(60); depth.setProgress(45);
                 preview.invalidate();
             }));
         NebulaRow quality = new NebulaRow(c).icon(R.drawable.msg_photo_settings);

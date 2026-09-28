@@ -1,205 +1,107 @@
 package app.nebulagram.ui;
 
-import android.animation.ValueAnimator;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Paint;
-import android.graphics.drawable.GradientDrawable;
-import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
-import android.widget.FrameLayout;
-import android.widget.LinearLayout;
-import android.widget.TextView;
 
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.ui.ActionBar.Theme;
 
-import androidx.core.graphics.ColorUtils;
-
-import java.util.Locale;
-
-/** Compact 1×/2× presets that expand into a camera-limited zoom ruler. */
-public final class NebulaZoomSlider extends FrameLayout {
+/** Always-visible zoom ruler beneath the round-video preview. */
+public final class NebulaZoomSlider extends View {
     public interface OnZoomChanged { void onZoomChanged(float factor); }
-    private final int accent;
-    private final int onAccent;
-    private final int ink;
-    private final int mutedInk;
+
+    private final Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final OnZoomChanged callback;
-    private final FrameLayout capsule;
-    private final LinearLayout presets;
-    private final TextView currentValue;
-    private final TextView secondValue;
-    private final ZoomRuler ruler;
     private float maximum = 2f;
     private float current = 1f;
-    private boolean expanded;
-    private ValueAnimator widthAnimator;
-    private final Runnable collapse = () -> setExpanded(false);
 
     public NebulaZoomSlider(Context context, OnZoomChanged callback) {
         super(context);
         this.callback = callback;
-        accent = Theme.getColor(Theme.key_chat_messagePanelSend);
-        onAccent = ColorUtils.calculateLuminance(accent) > .5 ? 0xFF101318 : 0xFFFFFFFF;
-        ink = Theme.getColor(Theme.key_chat_messagePanelText);
-        mutedInk = Theme.getColor(Theme.key_chat_messagePanelHint);
-        GradientDrawable background = new GradientDrawable();
-        background.setColor((Theme.getColor(Theme.key_chat_messagePanelBackground) & 0x00FFFFFF) | 0xEE000000);
-        background.setCornerRadius(dp(26));
-        background.setStroke(dp(1), (mutedInk & 0x00FFFFFF) | 0x88000000);
-        capsule = new FrameLayout(context);
-        capsule.setBackground(background);
-        addView(capsule, new LayoutParams(dp(224), LayoutParams.MATCH_PARENT, Gravity.CENTER));
-        presets = new LinearLayout(context);
-        presets.setGravity(Gravity.CENTER);
-        capsule.addView(presets, new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
-        currentValue = preset(context);
-        secondValue = preset(context);
-        presets.addView(currentValue, new LinearLayout.LayoutParams(0, LayoutParams.MATCH_PARENT, 1));
-        presets.addView(secondValue, new LinearLayout.LayoutParams(0, LayoutParams.MATCH_PARENT, 1));
-        currentValue.setOnClickListener(v -> {
-            updateZoom(1f, true);
-            setExpanded(true);
-        });
-        secondValue.setOnClickListener(v -> { updateZoom(Math.min(2f, maximum), true); setExpanded(true); });
-        currentValue.setOnLongClickListener(v -> { setExpanded(true); return true; });
-        secondValue.setOnLongClickListener(v -> { setExpanded(true); return true; });
-        ruler = new ZoomRuler(context);
-        ruler.setVisibility(GONE);
-        capsule.addView(ruler, new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
-        setRange(2f);
+        setLayerType(LAYER_TYPE_SOFTWARE, null);
+        setContentDescription("Zoom ruler");
     }
 
-    private TextView preset(Context context) {
-        TextView view = new TextView(context);
-        view.setGravity(Gravity.CENTER);
-        view.setTextColor(ink);
-        view.setTextSize(18);
-        view.setTypeface(null, 1);
-        return view;
+    public void setRange(float max) {
+        maximum = Math.max(1.05f, Math.min(8f, max));
+        current = Math.max(1f, Math.min(current, maximum));
+        invalidate();
     }
 
-    private void updatePresets() {
-        boolean secondSelected = maximum > 1.05f && Math.abs(current - Math.min(2f, maximum)) < .05f;
-        boolean firstSelected = Math.abs(current - 1f) < .05f;
-        currentValue.setText("1×");
-        secondValue.setText(format(Math.min(2f, maximum)));
-        currentValue.setContentDescription("Zoom 1×");
-        secondValue.setContentDescription("Zoom " + format(Math.min(2f, maximum)));
-        GradientDrawable selected = new GradientDrawable();
-        selected.setColor(accent);
-        selected.setCornerRadius(dp(24));
-        currentValue.setBackground(firstSelected ? selected : null);
-        secondValue.setBackground(secondSelected ? selected : null);
-        currentValue.setTextColor(firstSelected ? onAccent : ink);
-        secondValue.setTextColor(secondSelected ? onAccent : ink);
-        ruler.invalidate();
-    }
-
-    private void setExpanded(boolean value) {
-        removeCallbacks(collapse);
-        if (expanded == value) { if (value) postDelayed(collapse, 5000); return; }
-        expanded = value;
-        if (widthAnimator != null) widthAnimator.cancel();
-        LayoutParams capsuleParams = (LayoutParams) capsule.getLayoutParams();
-        widthAnimator = ValueAnimator.ofInt(capsuleParams.width, dp(value ? 320 : 224));
-        widthAnimator.setDuration(220);
-        widthAnimator.addUpdateListener(animation -> {
-            LayoutParams params = (LayoutParams) capsule.getLayoutParams();
-            params.width = (int) animation.getAnimatedValue();
-            capsule.setLayoutParams(params);
-        });
-        widthAnimator.start();
-        View incoming = value ? ruler : presets;
-        View outgoing = value ? presets : ruler;
-        incoming.setVisibility(VISIBLE);
-        incoming.setAlpha(0f);
-        incoming.setScaleX(value ? .92f : 1.04f);
-        outgoing.animate().alpha(0f).setDuration(150).withEndAction(() -> outgoing.setVisibility(GONE)).start();
-        incoming.animate().alpha(1f).scaleX(1f).setDuration(220).start();
-        if (value) postDelayed(collapse, 5000);
-    }
-
-    private void updateZoom(float factor, boolean fromUser) {
-        current = Math.max(1f, Math.min(maximum, factor));
-        updatePresets();
-        if (fromUser) callback.onZoomChanged(current);
-    }
-
-    private static int dp(float value) { return AndroidUtilities.dp(value); }
-    private static String format(float factor) {
-        return Math.abs(factor - Math.round(factor)) < .05f
-                ? Math.round(factor) + "×" : String.format(Locale.ROOT, "%.1f×", factor);
-    }
-    public void setRange(float max) { maximum = Math.max(1f, Math.min(8f, max)); updateZoom(1f, false); setExpanded(false); }
     public void setCurrent(float factor) {
-        float before = current;
-        updateZoom(factor, false);
-        if (isShown() && Math.abs(current - before) > .02f) setExpanded(true);
-    }
-    @Override protected void onDetachedFromWindow() {
-        removeCallbacks(collapse);
-        if (widthAnimator != null) widthAnimator.cancel();
-        super.onDetachedFromWindow();
+        current = Math.max(1f, Math.min(factor, maximum));
+        invalidate();
     }
 
-    private final class ZoomRuler extends View {
-        private final Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        ZoomRuler(Context context) { super(context); setContentDescription("Zoom ruler"); }
+    @Override protected void onDraw(Canvas canvas) {
+        super.onDraw(canvas);
+        int accent = Theme.getColor(Theme.key_chat_messagePanelSend);
+        int ink = Theme.getColor(Theme.key_chat_messagePanelText);
+        float left = dp(29), right = getWidth() - dp(29);
+        float middle = getHeight() / 2f;
+        paint.setColor(0xE61B1B1E);
+        paint.setStyle(Paint.Style.FILL);
+        paint.setShadowLayer(dp(7), 0, dp(3), 0x55000000);
+        canvas.drawRoundRect(dp(2), dp(3), getWidth() - dp(2), getHeight() - dp(3), dp(24), dp(24), paint);
+        paint.clearShadowLayer();
+        paint.setColor((ink & 0x00FFFFFF) | 0x77000000);
+        paint.setStyle(Paint.Style.STROKE);
+        paint.setStrokeWidth(dp(.8f));
+        canvas.drawRoundRect(dp(2), dp(3), getWidth() - dp(2), getHeight() - dp(3), dp(24), dp(24), paint);
+        paint.setStyle(Paint.Style.FILL);
 
-        @Override protected void onDraw(Canvas canvas) {
-            super.onDraw(canvas);
-            float left = dp(20), right = getWidth() - dp(20), span = Math.max(1, right - left);
-            for (int index = 0; index <= 24; index++) {
-                float value = 1f + (maximum - 1f) * index / 24f;
-                float x = left + span * index / 24f;
-                boolean major = index == 0 || index == 24 || Math.abs(value - 2f) < (maximum - 1f) / 48f
-                        || Math.abs(value - 5f) < (maximum - 1f) / 48f;
-                paint.setColor(major ? accent : mutedInk);
-                paint.setStrokeWidth(dp(major ? 2 : 1));
-                canvas.drawLine(x, dp(12), x, dp(major ? 29 : 23), paint);
-            }
-            float selectedX = left + span * (current - 1f) / Math.max(.001f, maximum - 1f);
-            paint.setColor(accent);
-            paint.setStrokeWidth(dp(5));
-            paint.setStrokeCap(Paint.Cap.ROUND);
-            canvas.drawLine(selectedX, dp(8), selectedX, dp(31), paint);
-            paint.setStrokeCap(Paint.Cap.BUTT);
-            paint.setTextSize(dp(11));
-            paint.setTypeface(android.graphics.Typeface.DEFAULT_BOLD);
-            paint.setTextAlign(Paint.Align.CENTER);
-            canvas.drawText("1", left, dp(43), paint);
-            float lastMark = 1f;
-            if (maximum >= 2f) {
-                canvas.drawText("2", left + span / (maximum - 1f), dp(43), paint);
-                lastMark = 2f;
-            }
-            if (maximum >= 5f) {
-                canvas.drawText("5", left + span * 4f / (maximum - 1f), dp(43), paint);
-                lastMark = 5f;
-            }
-            if (maximum - lastMark > .1f) {
-                canvas.drawText(format(maximum).replace("×", ""), right, dp(43), paint);
-            }
+        for (int index = 0; index <= 24; index++) {
+            float value = 1f + (maximum - 1f) * index / 24f;
+            float x = left + (right - left) * index / 24f;
+            boolean major = index == 0 || index == 24 || Math.abs(value - 2f) < (maximum - 1f) / 48f
+                    || Math.abs(value - 5f) < (maximum - 1f) / 48f;
+            paint.setColor(major ? accent : ((ink & 0x00FFFFFF) | 0x99000000));
+            paint.setStrokeWidth(dp(major ? 2 : 1));
+            canvas.drawLine(x, middle - dp(13), x, middle + dp(major ? 5 : 1), paint);
         }
 
-        @Override public boolean onTouchEvent(MotionEvent event) {
-            int action = event.getActionMasked();
-            if (action == MotionEvent.ACTION_DOWN || action == MotionEvent.ACTION_MOVE) {
-                removeCallbacks(collapse);
-                float left = dp(20), span = Math.max(1, getWidth() - dp(40));
-                updateZoom(1f + (maximum - 1f) * (event.getX() - left) / span, true);
-                return true;
-            }
-            if (action == MotionEvent.ACTION_UP || action == MotionEvent.ACTION_CANCEL) {
-                if (action == MotionEvent.ACTION_UP) performClick();
-                postDelayed(collapse, 5000);
-                return true;
-            }
-            return true;
+        float selected = left + (right - left) * (current - 1f) / (maximum - 1f);
+        paint.setColor(accent);
+        paint.setStrokeCap(Paint.Cap.ROUND);
+        paint.setStrokeWidth(dp(5));
+        canvas.drawLine(selected, middle - dp(16), selected, middle + dp(5), paint);
+        paint.setStrokeCap(Paint.Cap.BUTT);
+        paint.setTextAlign(Paint.Align.CENTER);
+        paint.setTypeface(android.graphics.Typeface.DEFAULT_BOLD);
+        paint.setTextSize(dp(11));
+        canvas.drawText("1", left, middle + dp(18), paint);
+        if (maximum >= 1.95f) drawMark(canvas, "2", left + (right - left) / (maximum - 1f), middle);
+        if (maximum >= 5f) drawMark(canvas, "5", left + (right - left) * 4f / (maximum - 1f), middle);
+        if (maximum > 2.05f && maximum < 4.95f || maximum > 5.05f) {
+            drawMark(canvas, Integer.toString(Math.round(maximum)), right, middle);
         }
-        @Override public boolean performClick() { super.performClick(); return true; }
     }
+
+    private void drawMark(Canvas canvas, String label, float x, float middle) {
+        canvas.drawText(label, x, middle + dp(18), paint);
+    }
+
+    @Override public boolean onTouchEvent(MotionEvent event) {
+        switch (event.getActionMasked()) {
+            case MotionEvent.ACTION_DOWN:
+            case MotionEvent.ACTION_MOVE:
+                float left = dp(29), span = Math.max(1f, getWidth() - dp(58));
+                setCurrent(1f + (maximum - 1f) * (event.getX() - left) / span);
+                callback.onZoomChanged(current);
+                return true;
+            case MotionEvent.ACTION_UP:
+                performClick();
+                return true;
+            case MotionEvent.ACTION_CANCEL:
+                return true;
+            default:
+                return super.onTouchEvent(event);
+        }
+    }
+
+    @Override public boolean performClick() { super.performClick(); return true; }
+    private static int dp(float value) { return AndroidUtilities.dp(value); }
 }

@@ -13,13 +13,15 @@ public final class NebulaGlass {
     // SharedPreferences keeps weak listeners. Keep this one strongly, without holding any View/Activity.
     private static final SharedPreferences.OnSharedPreferenceChangeListener listener = (prefs, key) -> {
         if (key == null || "glass_custom".equals(key) || "glass_opacity".equals(key)
-                || "glass_highlights".equals(key) || "glass_quality".equals(key) || "glass_blur".equals(key) || "glass_refraction".equals(key)) refresh();
+                || "glass_highlights".equals(key) || "glass_quality".equals(key) || "glass_blur".equals(key)
+                || "glass_refraction".equals(key) || "glass_depth".equals(key)
+                || "glass_depth_enabled".equals(key)) refresh();
     };
 
     private static final class Snapshot {
         final boolean custom, highlights;
         final int quality;
-        final float opacity, blur, refraction;
+        final float opacity, blur, refraction, depth;
         Snapshot(SharedPreferences prefs) {
             custom = prefs.getBoolean("glass_custom", false);
             highlights = prefs.getBoolean("glass_highlights", true);
@@ -27,6 +29,8 @@ public final class NebulaGlass {
             opacity = custom ? .25f + clamp(prefs.getInt("glass_opacity", 63)) * .0075f : .72f;
             blur = custom ? clamp(prefs.getInt("glass_blur", 40)) * .3f : 12f;
             refraction = custom ? clamp(prefs.getInt("glass_refraction", 0)) * .005f : 0f;
+            depth = prefs.getBoolean("glass_depth_enabled", true)
+                    ? clamp(prefs.getInt("glass_depth", 35)) / 100f : 0f;
         }
     }
 
@@ -73,4 +77,11 @@ public final class NebulaGlass {
     public static float opacity() { return reduced() ? Math.max(.85f, snapshot().opacity) : snapshot().opacity; }
     public static float blur() { return reduced() ? Math.min(6f, snapshot().blur) : snapshot().blur; }
     public static float refraction() { return reduced() ? 0f : snapshot().refraction; }
+    /** Zero removes the shadow entirely; the rest of the range changes its depth. */
+    public static float depth() { return snapshot().depth; }
+    public static boolean depthEnabled() { return prefs().getBoolean("glass_depth_enabled", true); }
+    public static void depthEnabled(boolean enabled) {
+        prefs().edit().putBoolean("glass_depth_enabled", enabled).apply();
+        refresh();
+    }
 }

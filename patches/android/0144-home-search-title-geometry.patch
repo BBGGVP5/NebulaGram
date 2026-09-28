@@ -1,0 +1,11 @@
+--- a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
+@@ -652,7 +652,7 @@
+ 
+     private boolean nebulaCenterTitle() {
+         if ((!nebulaHomeTabsGlass && !app.nebulagram.ui.NebulaAppearance.centerHome())
+-                || isSearchFieldVisible || getActionModeFactor() != 0) return false;
++                || (isSearchFieldVisible && !nebulaHomeTabsGlass) || getActionModeFactor() != 0) return false;
+         if (parentFragment instanceof org.telegram.ui.DialogsActivity) {
+             return ((org.telegram.ui.DialogsActivity) parentFragment).nebulaIsHeaderExpanded();
+         }

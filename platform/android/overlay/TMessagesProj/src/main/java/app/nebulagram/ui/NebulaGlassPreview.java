@@ -81,6 +81,7 @@ public final class NebulaGlassPreview extends View {
             if (hardware == null) { hardware = new Hardware(this); dirty = true; }
             hardware.draw(canvas, dirty);
         } else {
+            drawFallbackShadow(canvas);
             drawFallback(canvas, blur);
         }
         dirty = false;
@@ -89,6 +90,20 @@ public final class NebulaGlassPreview extends View {
         paint.setTypeface(AndroidUtilities.bold()); paint.setTextSize(dp(17));
         canvas.drawText("NebulaGram", capsule.centerX(), capsule.centerY() - (paint.ascent() + paint.descent()) / 2f, paint);
         canvas.restoreToCount(save);
+    }
+
+    private void drawFallbackShadow(Canvas canvas) {
+        float depth = NebulaGlass.depth();
+        if (depth <= 0f) return;
+        paint.setStyle(Paint.Style.STROKE);
+        for (int layer = 3; layer >= 1; layer--) {
+            paint.setStrokeWidth(dp(2f + layer * 2f));
+            paint.setColor(0xFF000000);
+            paint.setAlpha(Math.round(depth * (10 + (4 - layer) * 9)));
+            canvas.drawRoundRect(capsule.left, capsule.top + dp(depth * 4f),
+                    capsule.right, capsule.bottom + dp(depth * 4f), dp(32), dp(32), paint);
+        }
+        paint.setStyle(Paint.Style.FILL); paint.setAlpha(255);
     }
 
     @android.annotation.TargetApi(31)
@@ -105,6 +120,7 @@ public final class NebulaGlassPreview extends View {
             factory.setLiquidGlassEffectAllowed(LiteMode.isEnabled(LiteMode.FLAG_LIQUID_GLASS));
             glass = factory.create(owner, new BlurredBackgroundProviderBuilder(null)
                     .setBackgroundColor((r, dark) -> Theme.multAlpha(NebulaMenuStyle.surface(null), NebulaGlass.opacity()))
+                    .setShadowColor(0x38000000, 0x18000000)
                     .setStrokeColorTop(0x60ffffff, 0x60ffffff).setStrokeColorBottom(0x18000000, 0x18ffffff)
                     .setStrokeWidth(AndroidUtilities.dpf2(.65f), AndroidUtilities.dpf2(.4f)).build());
             glass.setRadius(dp(32));

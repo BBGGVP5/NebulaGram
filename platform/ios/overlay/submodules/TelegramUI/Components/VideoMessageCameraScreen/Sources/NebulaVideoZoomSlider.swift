@@ -1,53 +1,34 @@
 import UIKit
 import AVFoundation
 
-/// Camera-limited round-video zoom with quick presets and an expanding ruler.
+/// Camera-limited zoom ruler shown throughout round-video recording.
 final class NebulaVideoZoomSlider: UIView {
     var onZoomChanged: ((CGFloat) -> Void)?
 
-    private var accent: UIColor { tintColor }
     private let capsule = UIView()
-    private let material = UIVisualEffectView(effect: UIBlurEffect(style: .systemThinMaterial))
-    private let currentLabel = UILabel()
-    private let secondLabel = UILabel()
+    private let material = UIVisualEffectView(effect: UIBlurEffect(style: .systemThinMaterialDark))
     private let ruler = RulerView()
     private var maximum: CGFloat = 2
     private var current: CGFloat = 1
-    private var expanded = false
-    private var collapseWork: DispatchWorkItem?
 
     override init(frame: CGRect) {
         super.init(frame: frame)
         backgroundColor = .clear
-        capsule.backgroundColor = .clear
-        capsule.layer.cornerRadius = 26
+        layer.shadowColor = UIColor.black.cgColor
+        layer.shadowOpacity = 0.35
+        layer.shadowRadius = 8
+        layer.shadowOffset = CGSize(width: 0, height: 3)
+        capsule.layer.cornerRadius = 25
         capsule.layer.cornerCurve = .continuous
-        capsule.layer.borderWidth = 1
-        capsule.layer.borderColor = UIColor(white: 1, alpha: 0.20).cgColor
+        capsule.layer.borderWidth = 0.8
+        capsule.layer.borderColor = UIColor(white: 1, alpha: 0.35).cgColor
         capsule.clipsToBounds = true
         addSubview(capsule)
         capsule.addSubview(material)
-
-        for label in [currentLabel, secondLabel] {
-            label.font = .monospacedDigitSystemFont(ofSize: 18, weight: .bold)
-            label.textColor = .label
-            label.textAlignment = .center
-            label.isUserInteractionEnabled = true
-            label.layer.cornerRadius = 23
-            label.layer.cornerCurve = .continuous
-            label.clipsToBounds = true
-            capsule.addSubview(label)
-        }
-        currentLabel.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(tapCurrent)))
-        secondLabel.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(tapSecond)))
-        ruler.isHidden = true
+        ruler.backgroundColor = .clear
         ruler.contentMode = .redraw
-        ruler.accent = accent
-        ruler.onChange = { [weak self] factor in
-            self?.collapseWork?.cancel()
-            self?.updateZoom(factor, notify: true)
-        }
-        ruler.onEnd = { [weak self] in self?.scheduleCollapse() }
+        ruler.accent = tintColor
+        ruler.onChange = { [weak self] factor in self?.updateZoom(factor, notify: true) }
         capsule.addSubview(ruler)
         setRange(front: false)
     }
@@ -56,150 +37,86 @@ final class NebulaVideoZoomSlider: UIView {
 
     override func tintColorDidChange() {
         super.tintColorDidChange()
-        ruler.accent = accent
-        updateZoom(current, notify: false)
+        ruler.accent = tintColor
     }
 
     override func layoutSubviews() {
         super.layoutSubviews()
-        let inset: CGFloat = 5
-        let capsuleWidth = min(bounds.width, expanded ? 320 : 224)
-        capsule.frame = CGRect(x: floor((bounds.width - capsuleWidth) / 2), y: 0, width: capsuleWidth, height: bounds.height)
+        capsule.frame = bounds.insetBy(dx: 2, dy: 3)
         material.frame = capsule.bounds
-        let width = (capsuleWidth - inset * 2) / 2
-        currentLabel.frame = CGRect(x: inset, y: 4, width: width, height: bounds.height - 8)
-        secondLabel.frame = CGRect(x: inset + width, y: 4, width: width, height: bounds.height - 8)
         ruler.frame = capsule.bounds
+        layer.shadowPath = UIBezierPath(roundedRect: capsule.frame, cornerRadius: 25).cgPath
     }
 
     static func availableMaximum(front: Bool) -> CGFloat {
         let position: AVCaptureDevice.Position = front ? .front : .back
         guard let device = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: position) else { return 2 }
-        return max(1, min(8, device.maxAvailableVideoZoomFactor))
+        return max(1.05, min(8, device.maxAvailableVideoZoomFactor))
     }
 
     func setRange(front: Bool) {
         maximum = Self.availableMaximum(front: front)
         ruler.maximum = maximum
         updateZoom(1, notify: false)
-        setExpanded(false)
     }
 
     func setCurrent(_ factor: CGFloat) { updateZoom(factor, notify: false) }
-
-    func reflectPinch(_ scale: CGFloat) {
-        updateZoom(current * scale, notify: false)
-        setExpanded(true)
-    }
-
-    @objc private func tapCurrent() {
-        updateZoom(1, notify: true)
-        setExpanded(true)
-    }
-
-    @objc private func tapSecond() {
-        updateZoom(min(2, maximum), notify: true)
-        setExpanded(true)
-    }
+    func reflectPinch(_ scale: CGFloat) { updateZoom(current * scale, notify: false) }
 
     private func updateZoom(_ factor: CGFloat, notify: Bool) {
         current = max(1, min(maximum, factor))
-        let secondSelected = maximum > 1.05 && abs(current - min(2, maximum)) < 0.05
-        let firstSelected = abs(current - 1) < 0.05
-        currentLabel.text = "1×"
-        secondLabel.text = Self.format(min(2, maximum))
-        currentLabel.backgroundColor = firstSelected ? accent : .clear
-        secondLabel.backgroundColor = secondSelected ? accent : .clear
-        currentLabel.textColor = firstSelected ? .white : .label
-        secondLabel.textColor = secondSelected ? .white : .label
-        currentLabel.accessibilityLabel = "Zoom \(currentLabel.text ?? "1×")"
-        secondLabel.accessibilityLabel = "Zoom \(secondLabel.text ?? "2×")"
         ruler.current = current
         if notify { onZoomChanged?(current) }
-    }
-
-    private func setExpanded(_ value: Bool) {
-        collapseWork?.cancel()
-        if expanded == value {
-            if value { scheduleCollapse() }
-            return
-        }
-        expanded = value
-        setNeedsLayout()
-        let incoming: UIView = value ? ruler : currentLabel
-        let duration: TimeInterval = UIAccessibility.isReduceMotionEnabled ? 0 : 0.22
-        ruler.isHidden = !value
-        currentLabel.isHidden = value
-        secondLabel.isHidden = value
-        incoming.alpha = duration == 0 ? 1 : 0
-        incoming.transform = duration == 0 ? .identity : CGAffineTransform(scaleX: value ? 0.94 : 1.04, y: 1)
-        UIView.animate(withDuration: duration, delay: 0, options: [.beginFromCurrentState, .curveEaseOut]) {
-            self.layoutIfNeeded()
-            incoming.alpha = 1
-            incoming.transform = .identity
-            self.secondLabel.alpha = 1
-        }
-        if value { scheduleCollapse() }
-    }
-
-    private func scheduleCollapse() {
-        collapseWork?.cancel()
-        let work = DispatchWorkItem { [weak self] in self?.setExpanded(false) }
-        collapseWork = work
-        DispatchQueue.main.asyncAfter(deadline: .now() + 5, execute: work)
-    }
-
-    private static func format(_ value: CGFloat) -> String {
-        abs(value - value.rounded()) < 0.05 ? "\(Int(value.rounded()))×" : String(format: "%.1f×", Double(value))
     }
 
     private final class RulerView: UIView {
         var maximum: CGFloat = 2 { didSet { setNeedsDisplay() } }
         var current: CGFloat = 1 { didSet { setNeedsDisplay() } }
-        var accent: UIColor = .systemBlue
+        var accent: UIColor = .systemTeal { didSet { setNeedsDisplay() } }
         var onChange: ((CGFloat) -> Void)?
-        var onEnd: (() -> Void)?
 
         override func draw(_ rect: CGRect) {
             guard let context = UIGraphicsGetCurrentContext() else { return }
-            let left: CGFloat = 20
-            let span = max(1, bounds.width - 40)
+            let left: CGFloat = 27
+            let span = max(1, bounds.width - 54)
+            let middle = bounds.midY
             for index in 0...24 {
                 let value = 1 + (maximum - 1) * CGFloat(index) / 24
                 let x = left + span * CGFloat(index) / 24
                 let major = index == 0 || index == 24 || abs(value - 2) < (maximum - 1) / 48 || abs(value - 5) < (maximum - 1) / 48
-                context.setStrokeColor((major ? accent : UIColor(white: 0.85, alpha: 0.55)).cgColor)
+                context.setStrokeColor((major ? accent : UIColor(white: 0.85, alpha: 0.58)).cgColor)
                 context.setLineWidth(major ? 2 : 1)
-                context.move(to: CGPoint(x: x, y: 10))
-                context.addLine(to: CGPoint(x: x, y: major ? 29 : 23))
+                context.move(to: CGPoint(x: x, y: middle - 13))
+                context.addLine(to: CGPoint(x: x, y: middle + (major ? 5 : 1)))
                 context.strokePath()
             }
-            let x = left + span * (current - 1) / max(0.001, maximum - 1)
+            let indicator = left + span * (current - 1) / max(0.001, maximum - 1)
             context.setStrokeColor(accent.cgColor)
             context.setLineWidth(5)
             context.setLineCap(.round)
-            context.move(to: CGPoint(x: x, y: 8))
-            context.addLine(to: CGPoint(x: x, y: 30))
+            context.move(to: CGPoint(x: indicator, y: middle - 16))
+            context.addLine(to: CGPoint(x: indicator, y: middle + 5))
             context.strokePath()
-            let style: [NSAttributedString.Key: Any] = [.font: UIFont.monospacedDigitSystemFont(ofSize: 11, weight: .bold), .foregroundColor: accent]
+            let style: [NSAttributedString.Key: Any] = [
+                .font: UIFont.monospacedDigitSystemFont(ofSize: 11, weight: .bold),
+                .foregroundColor: accent
+            ]
             var marks: [CGFloat] = [1]
-            if maximum >= 2 { marks.append(2) }
+            if maximum >= 1.95 { marks.append(2) }
             if maximum >= 5 { marks.append(5) }
             if maximum - marks[marks.count - 1] > 0.1 { marks.append(maximum) }
-            for value in marks {
-                let label = String(format: "%.0f", Double(value)) as NSString
-                let position = left + span * (value - 1) / max(0.001, maximum - 1)
-                label.draw(at: CGPoint(x: position - label.size(withAttributes: style).width / 2, y: 33), withAttributes: style)
+            for mark in marks {
+                let label = String(format: "%.0f", Double(mark)) as NSString
+                let x = left + span * (mark - 1) / max(0.001, maximum - 1)
+                label.draw(at: CGPoint(x: x - label.size(withAttributes: style).width / 2, y: middle + 7), withAttributes: style)
             }
         }
 
         private func select(_ touch: UITouch) {
-            let ratio = max(0, min(1, (touch.location(in: self).x - 20) / max(1, bounds.width - 40)))
+            let ratio = max(0, min(1, (touch.location(in: self).x - 27) / max(1, bounds.width - 54)))
             onChange?(1 + (maximum - 1) * ratio)
         }
         override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) { if let touch = touches.first { select(touch) } }
         override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) { if let touch = touches.first { select(touch) } }
-        override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) { onEnd?() }
-        override func touchesCancelled(_ touches: Set<UITouch>, with event: UIEvent?) { onEnd?() }
     }
 }

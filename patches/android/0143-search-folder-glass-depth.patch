@@ -1,0 +1,62 @@
+--- a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
+@@ -1560,7 +1560,6 @@
+                                     viewPages[0] = viewPages[1];
+                                     viewPages[1] = tempPage;
+                                     filterTabsView.selectTabWithId(viewPages[0].selectedType, 1.0f);
+-                                    updateNebulaFolderTitle();
+                                     updateCounters(false);
+                                     viewPages[0].dialogsAdapter.resume();
+                                     viewPages[1].dialogsAdapter.pause();
+@@ -3682,8 +3681,6 @@
+                     if (!tab.isDefault && (tab.id < 0 || tab.id >= dialogFilters.size())) {
+                         return;
+                     }
+-                    app.nebulagram.ui.NebulaDialogsTitle.apply(actionBar,
+-                            getMessagesController(), tab.id, statusDrawable);
+                     viewPages[1].selectedType = tab.id;
+                     viewPages[1].setVisibility(View.VISIBLE);
+                     viewPages[1].setTranslationX(viewPages[0].getMeasuredWidth());
+@@ -6919,9 +6916,6 @@
+             return;
+         }
+         MessagesController.DialogFilter filter = getMessagesController().getDialogFilters().get(viewPages[a].selectedType);
+-        // Swipe and tab taps update both headers when the transition starts.
+-        // A locked folder only rubber-bands and must keep the current title.
+-        if (animated) updateNebulaFolderTitle(filter.locked ? 0 : a);
+         if (filter.isDefault()) {
+             viewPages[a].dialogsType = initialDialogsType;
+             viewPages[a].listView.updatePullState();
+@@ -14342,7 +14336,9 @@
+     }
+ 
+     private int nebulaSearchSlotHeight() {
+-        return app.nebulagram.ui.NebulaAppearance.hideSearchField() ? 0 : SEARCH_FIELD_HEIGHT;
++        return !app.nebulagram.ui.NebulaAppearance.hideSearchField()
++                || searchIsShowed || animatorSearchVisible.getFloatValue() > 0.001f
++                ? SEARCH_FIELD_HEIGHT : 0;
+     }
+ 
+     private boolean isSupportSearch() {
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/drawable/BlurredBackgroundDrawable.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/drawable/BlurredBackgroundDrawable.java
+@@ -228,7 +228,9 @@
+         if (colorProvider == null) return;
+ 
+         backgroundColor = colorProvider.getBackgroundColor();
+-        shadowColor = colorProvider.getShadowColor();
++        float depth = app.nebulagram.ui.NebulaGlass.depth();
++        shadowColor = depth <= 0f ? 0 : Theme.multAlpha(colorProvider.getShadowColor(), Math.min(1f, depth * 1.8f));
++        setShadowParams(dpf2(1f + depth * 12f), 0f, dpf2(depth * 5f));
+         strokeColorTop = app.nebulagram.ui.NebulaAppearance.glassHighlights() ? colorProvider.getStrokeColorTop() : 0;
+         strokeColorBottom = app.nebulagram.ui.NebulaAppearance.glassHighlights() ? colorProvider.getStrokeColorBottom() : 0;
+     }
+@@ -578,6 +580,8 @@
+     /* Universal */
+ 
+     protected void drawSource(Canvas canvas, BlurredBackgroundSource source) {
++        // Glass settings can change while a menu is open; update its cached shadow before rendering.
++        if (colorProvider != null) updateColors();
+         if (boundProps.boundsWithPadding.isEmpty()) {
+             return;
+         }

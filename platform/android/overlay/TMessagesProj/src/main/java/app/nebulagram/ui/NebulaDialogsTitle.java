@@ -54,9 +54,12 @@ public final class NebulaDialogsTitle {
         }
         SimpleTextView previous = actionBar.getTitleTextView();
         boolean changed = previous != null && !TextUtils.equals(previous.getText(), title);
-        // The stories title has its own transition. Animating the ActionBar as
-        // well creates two moving copies during a fast folder swipe.
-        actionBar.setTitle(title, selected == null ? statusDrawable : null);
+        Drawable targetStatus = selected == null ? statusDrawable : null;
+        // setTitle reassigns text and the status drawable and requests layout.
+        // Avoid restarting that work for duplicate folder notifications.
+        if (previous == null || changed || previous.getRightDrawable() != targetStatus) {
+            actionBar.setTitle(title, targetStatus);
+        }
         if (changed) actionBar.requestLayout();
         int cacheType = selected != null && selected.title_noanimate
                 ? AnimatedEmojiDrawable.CACHE_TYPE_NOANIMATE_FOLDER : AnimatedEmojiDrawable.CACHE_TYPE_MESSAGES;

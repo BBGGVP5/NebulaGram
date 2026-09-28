@@ -51,8 +51,6 @@ public final class NebulaSettingsHubFragment extends BaseFragment {
         NebulaCard card = new NebulaCard(context);
         switch (category) {
             case GENERAL:
-                card.add(row(context, R.drawable.msg_link, "NebulaLink", "NebulaLink", "Подключение", "Connection",
-                        () -> presentFragment(new NebulaMenuFragment())));
                 card.add(section(context, R.drawable.msg_settings, "Основные", "General",
                         NebulaSectionFragment.SECTION_GENERAL));
                 card.add(row(context, R.drawable.msg_saved, "Синхронизация", "Settings sync", "Копия настроек", "Settings backup",
