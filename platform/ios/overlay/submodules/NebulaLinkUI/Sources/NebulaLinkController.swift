@@ -364,7 +364,17 @@ public final class NebulaLinkController: UITableViewController, UITextFieldDeleg
         case (1, 0):
             if probeRequestId == nil { probeVisibleServers() } else { cancelProbe() }
         case (1, 1): chooseSort()
-        case (1, 2): request("subscription.refreshAll") { [weak self] _ in self?.reloadServers() }
+        case (1, 2): request("subscription.refreshAll") { [weak self] data in
+            guard let self = self else { return }
+            let results = data as? [[String: Any]] ?? []
+            let failures = results.filter { $0["error"] != nil }.count
+            let updated = results.count - failures
+            self.probeText = failures == 0
+                ? self.text("Обновлено подписок: \(updated)", "Subscriptions refreshed: \(updated)")
+                : self.text("Обновлено: \(updated) · ошибок: \(failures)",
+                            "Refreshed: \(updated) · failed: \(failures)")
+            self.reloadServers()
+        }
         case (1, 3): probeActiveConnection()
         case (2, _):
             guard !servers.isEmpty else { return }

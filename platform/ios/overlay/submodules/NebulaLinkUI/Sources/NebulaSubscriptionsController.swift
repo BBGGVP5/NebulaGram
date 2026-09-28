@@ -26,13 +26,13 @@ final class NebulaSubscriptionsController: UITableViewController {
         reloadSubscriptions()
     }
 
-    private func reloadSubscriptions() {
+    private func reloadSubscriptions(preservingMessage: Bool = false) {
         service.call("subscription.list") { [weak self] result in
             guard let self = self else { return }
             switch result {
             case let .success(data):
                 self.subscriptions = data as? [[String: Any]] ?? []
-                self.message = nil
+                if !preservingMessage { self.message = nil }
             case .failure:
                 self.message = self.text("Не удалось загрузить подписки", "Could not load subscriptions")
             }
@@ -140,18 +140,24 @@ final class NebulaSubscriptionsController: UITableViewController {
     private func runAdd(url: String) {
         guard !busy else { return }
         busy = true
+        message = text("Добавляем подписку…", "Adding subscription…")
+        navigationItem.rightBarButtonItem?.isEnabled = false
         tableView.reloadData()
         service.call("subscription.add", payload: ["url": url]) { [weak self] result in
             guard let self = self else { return }
             self.busy = false
+            self.navigationItem.rightBarButtonItem?.isEnabled = true
             switch result {
             case .success:
                 self.message = nil
                 self.onChange?()
                 self.reloadSubscriptions()
             case .failure:
-                self.message = self.text("Не удалось добавить подписку", "Could not add subscription")
-                self.tableView.reloadData()
+                // The core stores a source before its first fetch. Show that saved
+                // source even if the network request failed.
+                self.message = self.text("Не удалось обновить подписку. Проверьте источник в списке.",
+                                         "Could not refresh the subscription. Check the source in the list.")
+                self.reloadSubscriptions(preservingMessage: true)
             }
         }
     }
@@ -159,10 +165,15 @@ final class NebulaSubscriptionsController: UITableViewController {
     private func run(_ method: String, id: String) {
         guard !busy else { return }
         busy = true
+        message = method == "subscription.remove"
+            ? text("Удаляем подписку…", "Removing subscription…")
+            : text("Обновляем подписку…", "Refreshing subscription…")
+        navigationItem.rightBarButtonItem?.isEnabled = false
         tableView.reloadData()
         service.call(method, payload: ["id": id]) { [weak self] result in
             guard let self = self else { return }
             self.busy = false
+            self.navigationItem.rightBarButtonItem?.isEnabled = true
             switch result {
             case .success:
                 self.message = nil
@@ -170,7 +181,7 @@ final class NebulaSubscriptionsController: UITableViewController {
                 self.reloadSubscriptions()
             case .failure:
                 self.message = self.text("Не удалось изменить подписку", "Could not update subscription")
-                self.tableView.reloadData()
+                self.reloadSubscriptions(preservingMessage: true)
             }
         }
     }
