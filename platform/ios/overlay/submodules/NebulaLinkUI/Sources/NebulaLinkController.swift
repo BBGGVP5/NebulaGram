@@ -8,6 +8,7 @@ public final class NebulaLinkController: UITableViewController, UITextFieldDeleg
     private let explanation = UILabel()
     private var servers: [[String: Any]] = []
     private var selected = ""
+    private var serverSort = "default"
     private var page = 1
     private var pages = 1
     private var busy = false
@@ -61,6 +62,7 @@ public final class NebulaLinkController: UITableViewController, UITextFieldDeleg
         NotificationCenter.default.addObserver(self, selector: #selector(statusUpdated), name: NebulaLinkService.statusChanged, object: service)
         NotificationCenter.default.addObserver(self, selector: #selector(probeUpdated(_:)), name: NebulaLinkService.probeProgress, object: service)
         reloadServers()
+        reloadSort()
     }
     private func reloadPresentation() {
         overview.update(state: service.state, busy: busy, hasSelection: !selected.isEmpty, russian: ru)
@@ -137,6 +139,32 @@ public final class NebulaLinkController: UITableViewController, UITextFieldDeleg
             self.page = (data["page"] as? Int) ?? 1
             self.pages = (data["pages"] as? Int) ?? 1
         }
+    }
+    private func reloadSort() {
+        service.call("settings.get") { [weak self] result in
+            guard let self = self, case let .success(data) = result,
+                  let settings = data as? [String: Any] else { return }
+            self.serverSort = settings["server_sort"] as? String == "latency" ? "latency" : "default"
+            let path = IndexPath(row: 1, section: 1)
+            if self.tableView.indexPathsForVisibleRows?.contains(path) == true {
+                self.tableView.reloadRows(at: [path], with: .none)
+            }
+        }
+    }
+    private func chooseSort() {
+        let choice = NebulaServerSortController(russian: ru, selected: serverSort) { [weak self] value in
+            guard let self = self, value != self.serverSort else { return }
+            self.request("settings.set", ["server_sort": value]) { [weak self] _ in
+                guard let self = self else { return }
+                self.serverSort = value
+                self.page = 1
+                self.reloadServers()
+            }
+        }
+        let sheet = UINavigationController(rootViewController: choice)
+        sheet.modalPresentationStyle = .formSheet
+        if #available(iOS 15.0, *) { sheet.sheetPresentationController?.detents = [.medium()] }
+        present(sheet, animated: true)
     }
     private var probeActionTitle: String {
         guard probeRequestId != nil else { return text("Пинг серверов", "Ping servers") }
@@ -234,8 +262,8 @@ public final class NebulaLinkController: UITableViewController, UITextFieldDeleg
     public override func numberOfSections(in tableView: UITableView) -> Int { continueAction == nil ? 3 : 4 }
     public override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         switch section {
-        case 0: return 2
-        case 1: return 3
+        case 0: return 3
+        case 1: return 4
         case 2: return max(1, servers.count + (pages > 1 ? 1 : 0))
         default: return 1
         }
@@ -243,7 +271,7 @@ public final class NebulaLinkController: UITableViewController, UITextFieldDeleg
     public override func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
         switch section {
         case 0: return text("Подписки и ключи", "Subscriptions and keys")
-        case 1: return text("Диагностика и обновление", "Diagnostics and refresh")
+        case 1: return text("Действия с серверами", "Server actions")
         case 2: return text("Серверы", "Servers")
         default: return nil
         }
@@ -276,14 +304,25 @@ public final class NebulaLinkController: UITableViewController, UITextFieldDeleg
             ])
             cell.selectionStyle = .none
         } else if indexPath.section == 0 {
-            cell.textLabel?.text = text("Добавить подписку или ключ", "Add subscription or key")
-            cell.imageView?.image = UIImage(systemName: "link")
+            cell.textLabel?.text = indexPath.row == 1
+                ? text("Добавить подписку или ключ", "Add subscription or key")
+                : text("Управление подписками", "Manage subscriptions")
+            cell.imageView?.image = UIImage(systemName: indexPath.row == 1 ? "link" : "list.bullet.rectangle")
+            if indexPath.row == 2 { cell.accessoryType = .disclosureIndicator }
         } else if indexPath.section == 1 {
             cell.textLabel?.text = [probeActionTitle,
-                                   urlProbeId == nil ? text("Проверить соединение", "Test connection") : text("Проверяем соединение…", "Testing connection…"),
-                                   text("Обновить подписки", "Refresh subscriptions")][indexPath.row]
-            cell.imageView?.image = UIImage(systemName: ["waveform.path.ecg", "network", "arrow.clockwise"][indexPath.row])
+                                   text("Сортировка серверов", "Server sorting"),
+                                   text("Обновить подписки", "Refresh subscriptions"),
+                                   urlProbeId == nil ? text("Проверить соединение", "Test connection") : text("Проверяем соединение…", "Testing connection…")][indexPath.row]
+            cell.imageView?.image = UIImage(systemName: ["waveform.path.ecg", "line.3.horizontal.decrease", "arrow.clockwise", "network"][indexPath.row])
             if indexPath.row == 0 { cell.accessibilityIdentifier = "NebulaLink.NimboPing" }
+            if indexPath.row == 1 {
+                cell.detailTextLabel?.text = serverSort == "latency"
+                    ? text("По задержке", "By latency")
+                    : text("По умолчанию (порядок подписки)", "Default (subscription order)")
+                cell.accessoryType = .disclosureIndicator
+            }
+            if indexPath.row == 2 { cell.accessibilityIdentifier = "NebulaLink.RefreshSubscriptions" }
         } else if indexPath.section == 2 {
             if servers.isEmpty {
                 cell.textLabel?.text = text("Добавьте подписку или ключ выше", "Add a subscription or key above")
@@ -315,10 +354,18 @@ public final class NebulaLinkController: UITableViewController, UITextFieldDeleg
             request("onboarding.import", ["input": value]) { [weak self] _ in
                 self?.input.text = ""; self?.page = 1; self?.reloadServers()
             }
+        case (0, 2):
+            let manager = NebulaSubscriptionsController(russian: ru)
+            manager.onChange = { [weak self] in
+                self?.page = 1
+                self?.reloadServers()
+            }
+            navigationController?.pushViewController(manager, animated: true)
         case (1, 0):
             if probeRequestId == nil { probeVisibleServers() } else { cancelProbe() }
-        case (1, 1): probeActiveConnection()
+        case (1, 1): chooseSort()
         case (1, 2): request("subscription.refreshAll") { [weak self] _ in self?.reloadServers() }
+        case (1, 3): probeActiveConnection()
         case (2, _):
             guard !servers.isEmpty else { return }
             if indexPath.row == servers.count { abandonProbes(); page = page % pages + 1; reloadServers() }

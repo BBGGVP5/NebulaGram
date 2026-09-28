@@ -17,10 +17,13 @@ controller = (ios / 'NebulaLinkUI/Sources/NebulaLinkController.swift').read_text
 status = controller.split('@objc private func statusUpdated()', 1)[1].split('@objc private func close()', 1)[0]
 assert 'reloadPresentation()' not in status and 'tableView.reloadData()' not in status
 if 'private var probeRequestId:' in controller:
-    # Optional in-progress Nimbo work adds one diagnostic row, not another connect button.
-    assert 'case 1: return 3' in controller
-    assert 'case (1, 1): probeActiveConnection()' in controller
+    # Source management and server actions stay native and keep one connect button.
+    assert 'case 0: return 3' in controller
+    assert 'case 1: return 4' in controller
+    assert 'case (0, 2):' in controller and 'NebulaSubscriptionsController(russian: ru)' in controller
+    assert 'case (1, 1): chooseSort()' in controller
     assert 'case (1, 2): request("subscription.refreshAll")' in controller
+    assert 'case (1, 3): probeActiveConnection()' in controller
     assert 'var changed = [IndexPath(row: 0, section: 1)]' in controller
     assert 'changed.append(IndexPath(row: index, section: 2))' in controller
     assert 'guard !ids.isEmpty else { return }' in controller
