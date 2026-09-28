@@ -107,6 +107,16 @@ public final class NebulaNanoAi {
         return NebulaText.text("Не удалось проверить AICore. Обновите сервис и повторите попытку. Это не означает, что устройство не поддерживается.", "Could not check AICore. Update the service and retry. This does not mean the device is unsupported.");
     }
 
+    /** A chat request needs response guidance, not the setup/check wording. */
+    public static String responseErrorText(Throwable error) {
+        for (Throwable cause = error; cause != null; cause = cause.getCause()) {
+            if (cause instanceof java.util.concurrent.TimeoutException)
+                return NebulaText.text("Gemini Nano не ответил вовремя. Сократите запрос и повторите.",
+                        "Gemini Nano did not respond in time. Shorten the request and try again.");
+        }
+        return errorText(error);
+    }
+
     /** Starts AICore's one-time model download. Progress callbacks are provided by ML Kit. */
     public static void download(DownloadCallback callback) throws Exception {
         if (!supportedByOs()) throw new IllegalStateException("Gemini Nano requires Android 8.0 or newer");

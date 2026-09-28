@@ -45,15 +45,22 @@ public final class NebulaAiChatView extends LinearLayout {
         setPadding(dp(4), dp(8), dp(4), dp(8));
         setBackgroundColor(theme.surface());
         LinearLayout bar = new LinearLayout(context); bar.setGravity(Gravity.CENTER_VERTICAL);
-        status = label("", 12, theme.onSurfaceVariant());
+        status = label("", 13, theme.onSurface());
+        status.setTypeface(AndroidUtilities.bold());
         status.setMaxLines(2); status.setEllipsize(TextUtils.TruncateAt.END);
         status.setPadding(dp(12), dp(10), dp(12), dp(10));
         status.setBackground(shape(theme.surfaceContainer(), 18));
+        status.setCompoundDrawablesWithIntrinsicBounds(0, 0, R.drawable.msg_arrowright, 0);
+        status.setCompoundDrawablePadding(dp(6));
+        if (status.getCompoundDrawables()[2] != null) status.getCompoundDrawables()[2].mutate().setColorFilter(theme.primary(), PorterDuff.Mode.SRC_IN);
         status.setOnClickListener(v -> settings.run());
         status.setContentDescription(text("Выбранная модель. Изменить подключение", "Selected model. Change connection"));
         bar.addView(status, new LayoutParams(0, -2, 1));
         TextView reset = control(text("Новый чат", "New chat"));
         reset.setBackground(shape(theme.surfaceContainer(), 18));
+        reset.setCompoundDrawablesWithIntrinsicBounds(R.drawable.msg_edit, 0, 0, 0);
+        reset.setCompoundDrawablePadding(dp(6));
+        if (reset.getCompoundDrawables()[0] != null) reset.getCompoundDrawables()[0].mutate().setColorFilter(theme.primary(), PorterDuff.Mode.SRC_IN);
         LayoutParams resetParams = new LayoutParams(-2, -2); resetParams.leftMargin = dp(8);
         reset.setOnClickListener(v -> resetConversation());
         bar.addView(reset, resetParams); addView(bar);
@@ -86,8 +93,14 @@ public final class NebulaAiChatView extends LinearLayout {
         SharedPreferences p = getContext().getSharedPreferences("nebula_ai_settings", 0);
         int provider = p.getInt("provider", 0);
         String model = p.getString("model_" + provider, "").trim();
-        status.setText(provider == NebulaAiClient.NANO ? "Gemini Nano · " + text("локально", "on device")
-                : text("Облачный ИИ · ", "Cloud AI · ") + (model.isEmpty() ? text("настройте подключение", "set up connection") : model));
+        if (provider == NebulaAiClient.NANO) {
+            status.setText("Gemini Nano · " + (p.getBoolean("nano_preview", false) ? "Preview" : "Stable")
+                    + " · " + (p.getBoolean("nano_fast", false) ? text("Быстрая", "Fast") : text("Полная", "Full")));
+        } else {
+            String name = provider == NebulaAiClient.CLAUDE ? "Claude" : provider == NebulaAiClient.GEMINI ? "Gemini"
+                    : provider == NebulaAiClient.OPENAI ? "GPT" : text("Свой сервис", "Custom service");
+            status.setText(name + " · " + (model.isEmpty() ? text("выберите модель", "choose a model") : model));
+        }
     }
     private void welcome() {
         cancellationNotice = null;
@@ -138,7 +151,7 @@ public final class NebulaAiChatView extends LinearLayout {
         copy.setCompoundDrawablesWithIntrinsicBounds(R.drawable.msg_copy, 0, 0, 0);
         copy.setCompoundDrawablePadding(dp(8));
         if (copy.getCompoundDrawables()[0] != null) copy.getCompoundDrawables()[0].mutate().setColorFilter(theme.primary(), PorterDuff.Mode.SRC_IN);
-        copy.setOnClickListener(v -> { AndroidUtilities.addToClipboard(raw); copy.setText(text("Скопировано", "Copied")); });
+        copy.setOnClickListener(v -> { AndroidUtilities.addToClipboard(raw); NebulaHaptics.tick(v); copy.setText(text("Скопировано", "Copied")); });
         LayoutParams params = new LayoutParams(-2, -2); params.bottomMargin = dp(18); messages.addView(copy, params);
         if (animations()) { view.setAlpha(0); view.setTranslationY(dp(8)); view.animate().alpha(1).translationY(0).setDuration(220).start(); }
         view.setAccessibilityLiveRegion(ACCESSIBILITY_LIVE_REGION_POLITE);
@@ -239,8 +252,8 @@ public final class NebulaAiChatView extends LinearLayout {
         String value = e.getMessage() == null ? "" : e.getMessage();
         if (value.startsWith("GEMINI_NANO_DOWNLOAD_REQUIRED")) return text("Скачайте модель в настройках подключения.", "Download the model in connection settings.");
         if (value.startsWith("GEMINI_NANO_DOWNLOADING")) return text("Модель ещё скачивается. Статус — в настройках подключения.", "The model is downloading. Check connection settings for progress.");
-        if (provider == NebulaAiClient.NANO) return NebulaNanoAi.errorText(e);
         if ("EMPTY_RESPONSE".equals(value)) return text("Модель вернула пустой ответ. Попробуйте изменить запрос.", "The model returned an empty response. Try rephrasing your request.");
+        if (provider == NebulaAiClient.NANO) return NebulaNanoAi.responseErrorText(e);
         return text("Не удалось получить ответ. Проверьте подключение, модель и лимиты провайдера.", "Could not get a response. Check the connection, model and provider limits.")
                 + (value.matches("HTTP [0-9]{3}") ? " " + value : "");
     }
