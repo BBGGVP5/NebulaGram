@@ -20,6 +20,28 @@ final class SettingsStoreTests: XCTestCase {
         }
     }
 
+    func testGlassOpacityPersistsLocallyWithoutTransfer() throws {
+        try withDefaults { defaults in
+            let store = NebulaSettingsStore(defaults: defaults)
+            XCTAssertEqual(store.glassOpacity, 63)
+            try store.set(.integer(82), for: "glass_opacity")
+            XCTAssertEqual(NebulaSettingsStore(defaults: defaults).glassOpacity, 82)
+            XCTAssertFalse(try store.previewImport(store.exportData()).activeKeys.contains("glass_opacity"))
+            XCTAssertThrowsError(try store.set(.integer(101), for: "glass_opacity"))
+        }
+    }
+
+    func testGlassBlurPersistsLocallyWithoutTransfer() throws {
+        try withDefaults { defaults in
+            let store = NebulaSettingsStore(defaults: defaults)
+            XCTAssertEqual(store.glassBlur, 40)
+            try store.set(.integer(75), for: "glass_blur")
+            XCTAssertEqual(NebulaSettingsStore(defaults: defaults).glassBlur, 75)
+            XCTAssertFalse(try store.previewImport(store.exportData()).activeKeys.contains("glass_blur"))
+            XCTAssertThrowsError(try store.set(.integer(-1), for: "glass_blur"))
+        }
+    }
+
     func testSearchAndGlassHighlightsPersistInTransfer() throws {
         try withDefaults { defaults in
             let store = NebulaSettingsStore(defaults: defaults)

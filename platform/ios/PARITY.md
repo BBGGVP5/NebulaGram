@@ -39,14 +39,14 @@ This inventory distinguishes **wired source** from native build and device accep
 | `folder_outline` | navigation.folders | Wired; native/device QA pending | Yes |
 | `folder_style` | navigation.folders | Pending native consumer | Yes |
 | `folder_title` | navigation.folders | Wired; native/device QA pending | Yes |
-| `glass_blur` | appearance.glass | Pending native consumer | Local only |
+| `glass_blur` | appearance.glass | Wired to native material tiers; native/device QA pending | Local only |
 | `glass_custom` | appearance.glass | Pending native consumer | Local only |
 | `glass_depth` | appearance.glass | Wired for custom/legacy glass; native/device QA pending | Local only |
 | `glass_depth_enabled` | appearance.glass | Wired for custom/legacy glass; native/device QA pending | Local only |
 | `glass_haptic_strength` | appearance.glass | Pending native consumer | Local only |
 | `glass_haptics` | appearance.glass | Pending native consumer | Local only |
 | `glass_highlights` | appearance.glass | Wired for custom/legacy glass; native/device QA pending | Yes |
-| `glass_opacity` | appearance.glass | Pending native consumer | Local only |
+| `glass_opacity` | appearance.glass | Wired for custom glass; native/device QA pending | Local only |
 | `glass_quality` | appearance.glass | Wired; native/device QA pending | Yes |
 | `glass_refraction` | appearance.glass | Pending native consumer | Local only |
 | `header_unread` | chat.header | Pending native consumer | Yes |
@@ -94,7 +94,7 @@ This inventory distinguishes **wired source** from native build and device accep
 
 ## Remaining consumer groups
 1. Hiding the entire bottom bar still needs a persistent route to Chats, Profile and Settings. Profile/Settings visibility, tab labels, compact width, Contacts visibility and ordering are wired; native/device QA remains pending.
-2. Native system/liquid/frosted choices, tint, highlights, depth and a shared live preview are wired; Android blur/refraction sliders have no equivalent public UIKit controls. Further per-surface styling remains pending.
+2. Native system/liquid/frosted choices, tint, opacity, material-tier blur, highlights, depth and a shared live preview are wired. Android's continuous blur and refraction have no equivalent public UIKit controls. Further per-surface styling remains pending.
 3. Chat header positioning, typography, gestures, emoji/media picker styling and message-menu polish.
 4. AI and credential-dependent integrations need their own secure platform adapters; imported appearance values do not implement them.
 5. Signed-device acceptance: cold launch, authentication, keyboard/Dynamic Type country layout, rapid folder swipes, permission/signing-dependent notifications, widgets/Shortcuts, media cache eviction and retained-message unread behavior.

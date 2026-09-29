@@ -4,6 +4,7 @@ import UIKit
 struct NebulaGlassMaterialState: Equatable {
     let style: Int
     let tint: Int
+    let blur: Int
     let dark: Bool
     let reduced: Bool
     let opaque: Bool
@@ -19,7 +20,12 @@ struct NebulaGlassMaterialState: Equatable {
             effect.isInteractive = animated
             view.effect = effect
         } else {
-            view.effect = UIBlurEffect(style: reduced ? .systemThickMaterial : .systemMaterial)
+            let material: UIBlurEffect.Style
+            if reduced || blur >= 75 { material = .systemThickMaterial }
+            else if blur >= 35 { material = .systemMaterial }
+            else if blur >= 15 { material = .systemThinMaterial }
+            else { material = .systemUltraThinMaterial }
+            view.effect = UIBlurEffect(style: material)
         }
     }
 }

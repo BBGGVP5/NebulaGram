@@ -1,0 +1,7 @@
+diff --git a/submodules/TelegramUI/Components/GlassBackgroundComponent/Sources/GlassBackgroundComponent.swift b/submodules/TelegramUI/Components/GlassBackgroundComponent/Sources/GlassBackgroundComponent.swift
+--- a/submodules/TelegramUI/Components/GlassBackgroundComponent/Sources/GlassBackgroundComponent.swift
++++ b/submodules/TelegramUI/Components/GlassBackgroundComponent/Sources/GlassBackgroundComponent.swift
+@@ -900,2 +900,3 @@
+             let state = NebulaGlassMaterialState(style: nebulaStyle, tint: NebulaSettingsStore.shared.iosGlassTint,
++                blur: NebulaSettingsStore.shared.glassBlur,
+                 dark: isDark, reduced: reduced, opaque: UIAccessibility.isReduceTransparencyEnabled, animated: NebulaSettingsStore.shared.liquidAnimations && !UIAccessibility.isReduceMotionEnabled)

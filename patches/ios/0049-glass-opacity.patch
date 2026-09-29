@@ -1,0 +1,8 @@
+diff --git a/submodules/TelegramUI/Components/GlassBackgroundComponent/Sources/GlassBackgroundComponent.swift b/submodules/TelegramUI/Components/GlassBackgroundComponent/Sources/GlassBackgroundComponent.swift
+--- a/submodules/TelegramUI/Components/GlassBackgroundComponent/Sources/GlassBackgroundComponent.swift
++++ b/submodules/TelegramUI/Components/GlassBackgroundComponent/Sources/GlassBackgroundComponent.swift
+@@ -876,3 +876,4 @@
+         let nebulaStyle = NebulaSettingsStore.shared.iosGlassStyle
+         let nebulaCustom = nebulaStyle != 0 && !nebulaInNativeContainer
++        transition.setAlpha(view: nebulaMaterial, alpha: UIAccessibility.isReduceTransparencyEnabled ? 1.0 : CGFloat(NebulaSettingsStore.shared.glassOpacity) / 100.0)
+         nebulaMaterial.isHidden = !nebulaCustom || !isVisible

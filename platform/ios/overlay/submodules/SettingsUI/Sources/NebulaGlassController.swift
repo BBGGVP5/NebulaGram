@@ -27,14 +27,14 @@ final class NebulaGlassController: UITableViewController {
     @objc private func refresh() { tableView.reloadData(); preview.setNeedsLayout() }
     override func numberOfSections(in tableView: UITableView) -> Int { 4 }
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        section == 1 ? styles.count : (section == 3 ? 5 : 1)
+        section == 1 ? styles.count : (section == 2 ? 3 : (section == 3 ? 5 : 1))
     }
     override func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
         section == 1 ? (ru ? "Оформление" : "Appearance") : nil
     }
     override func tableView(_ tableView: UITableView, titleForFooterInSection section: Int) -> String? {
         if section == 0 { return ru ? "Двигайте пилюлю по тексту. Превью использует тот же эффект, что и стеклянные элементы интерфейса." : "Drag the capsule over the text. The preview uses the same effect as glass surfaces in the app." }
-        if section == 2 { return ru ? "Тонировка применяется к жидкому и матовому стилям. Размытие и преломление системного стекла регулирует iOS." : "Tint applies to liquid and frosted styles. iOS controls the blur and refraction of system glass." }
+        if section == 2 { return ru ? "Тонировка и плотность применяются к нашему стеклу. Сила размытия выбирает один из материалов iOS; системное Liquid Glass регулирует iOS." : "Tint and opacity apply to Nebula glass. Blur selects a native iOS material; iOS controls system Liquid Glass." }
         guard section == 3 else { return nil }
         if writeFailed { return ru ? "Не удалось сохранить настройку." : "Could not save this setting." }
         if UIAccessibility.isReduceTransparencyEnabled { return ru ? "iOS уменьшает прозрачность: используется сплошной фон." : "Reduce Transparency is on: an opaque background is used." }
@@ -60,14 +60,34 @@ final class NebulaGlassController: UITableViewController {
             cell.textLabel?.text = styles[indexPath.row]
             cell.accessoryType = store.iosGlassStyle == indexPath.row ? .checkmark : .none
         case 2:
-            cell.textLabel?.text = tintTitle()
-            let slider = UISlider(frame: CGRect(x: 0, y: 0, width: 140, height: 44))
-            slider.minimumValue = 0; slider.maximumValue = 60; slider.value = Float(store.iosGlassTint)
-            slider.isEnabled = store.iosGlassStyle != 0
-            slider.accessibilityLabel = ru ? "Тонировка стекла" : "Glass tint"
-            slider.accessibilityValue = "\(store.iosGlassTint)%"
-            slider.addTarget(self, action: #selector(tintChanged(_:)), for: .valueChanged)
-            cell.accessoryView = slider; cell.selectionStyle = .none
+            if indexPath.row == 0 {
+                cell.textLabel?.text = tintTitle()
+                let slider = UISlider(frame: CGRect(x: 0, y: 0, width: 140, height: 44))
+                slider.minimumValue = 0; slider.maximumValue = 60; slider.value = Float(store.iosGlassTint)
+                slider.isEnabled = store.iosGlassStyle != 0 && !store.hasLoadError
+                slider.accessibilityLabel = ru ? "Тонировка стекла" : "Glass tint"
+                slider.accessibilityValue = "\(store.iosGlassTint)%"
+                slider.addTarget(self, action: #selector(tintChanged(_:)), for: .valueChanged)
+                cell.accessoryView = slider; cell.selectionStyle = .none
+            } else if indexPath.row == 1 {
+                cell.textLabel?.text = opacityTitle()
+                let slider = UISlider(frame: CGRect(x: 0, y: 0, width: 140, height: 44))
+                slider.minimumValue = 0; slider.maximumValue = 100; slider.value = Float(store.glassOpacity)
+                slider.isEnabled = store.iosGlassStyle != 0 && !UIAccessibility.isReduceTransparencyEnabled && !store.hasLoadError
+                slider.accessibilityLabel = ru ? "Плотность стекла" : "Glass opacity"
+                slider.accessibilityValue = "\(store.glassOpacity)%"
+                slider.addTarget(self, action: #selector(opacityChanged(_:)), for: .valueChanged)
+                cell.accessoryView = slider; cell.selectionStyle = .none
+            } else {
+                cell.textLabel?.text = blurTitle()
+                let slider = UISlider(frame: CGRect(x: 0, y: 0, width: 140, height: 44))
+                slider.minimumValue = 0; slider.maximumValue = 100; slider.value = Float(store.glassBlur)
+                slider.isEnabled = supportsBlur && !store.hasLoadError
+                slider.accessibilityLabel = ru ? "Сила размытия стекла" : "Glass blur strength"
+                slider.accessibilityValue = "\(store.glassBlur)%"
+                slider.addTarget(self, action: #selector(blurChanged(_:)), for: .valueChanged)
+                cell.accessoryView = slider; cell.selectionStyle = .none
+            }
         default:
             if indexPath.row == 0 {
                 cell.textLabel?.text = ru ? "Качество" : "Quality"
@@ -124,6 +144,13 @@ final class NebulaGlassController: UITableViewController {
         return cell
     }
     private func tintTitle() -> String { (ru ? "Тонировка · " : "Tint · ") + "\(store.iosGlassTint)%" }
+    private func opacityTitle() -> String { (ru ? "Плотность · " : "Opacity · ") + "\(store.glassOpacity)%" }
+    private func blurTitle() -> String { (ru ? "Размытие · " : "Blur · ") + "\(store.glassBlur)%" }
+    private var supportsBlur: Bool {
+        if UIAccessibility.isReduceTransparencyEnabled { return false }
+        if #available(iOS 26.0, *) { return store.iosGlassStyle == 2 }
+        return store.iosGlassStyle != 0
+    }
     private var supportsDepth: Bool {
         if #available(iOS 26.0, *) { return store.iosGlassStyle != 0 }
         return true
@@ -136,6 +163,16 @@ final class NebulaGlassController: UITableViewController {
         set(Int(slider.value.rounded()), key: "ios_glass_tint")
         slider.accessibilityValue = "\(store.iosGlassTint)%"
         tableView.cellForRow(at: IndexPath(row: 0, section: 2))?.textLabel?.text = tintTitle()
+    }
+    @objc private func opacityChanged(_ slider: UISlider) {
+        set(Int(slider.value.rounded()), key: "glass_opacity")
+        slider.accessibilityValue = "\(store.glassOpacity)%"
+        tableView.cellForRow(at: IndexPath(row: 1, section: 2))?.textLabel?.text = opacityTitle()
+    }
+    @objc private func blurChanged(_ slider: UISlider) {
+        set(Int(slider.value.rounded()), key: "glass_blur")
+        slider.accessibilityValue = "\(store.glassBlur)%"
+        tableView.cellForRow(at: IndexPath(row: 2, section: 2))?.textLabel?.text = blurTitle()
     }
     @objc private func depthChanged(_ slider: UISlider) {
         set(Int(slider.value.rounded()), key: "glass_depth")
