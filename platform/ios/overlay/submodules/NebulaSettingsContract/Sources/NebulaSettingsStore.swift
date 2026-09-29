@@ -78,7 +78,7 @@ public final class NebulaSettingsStore {
         return 0
     }
     public var iosGlassStyle: Int { integer("ios_glass_style", fallback: 0) }
-    public var iosGlassTint: Int { integer("ios_glass_tint", fallback: 18) }
+    public var iosGlassTint: Int { integer("ios_glass_tint", fallback: 30) }
     public var liquidAnimations: Bool { boolean("liquid_animations", fallback: true) }
     private func integer(_ key: String, fallback: Int) -> Int {
         lock.lock(); defer { lock.unlock() }

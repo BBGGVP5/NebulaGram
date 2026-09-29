@@ -142,6 +142,16 @@ public final class NebulaTheme {
         return telegram(Theme.key_windowBackgroundGray, isDark() ? BRAND_SURFACE_DARK : BRAND_SURFACE_LIGHT);
     }
 
+    public int opaqueSurface() {
+        return surface() | 0xFF000000;
+    }
+
+    /** Dialog content must remain readable over a chat wallpaper, including translucent themes. */
+    public int modalSurface() {
+        return telegram(Theme.key_dialogBackground, isDark() ? BRAND_SURFACE_CONTAINER_DARK : BRAND_SURFACE_CONTAINER_LIGHT)
+                | 0xFF000000;
+    }
+
     public int surfaceContainer() {
         return telegram(Theme.key_windowBackgroundWhite, isDark() ? BRAND_SURFACE_CONTAINER_DARK : BRAND_SURFACE_CONTAINER_LIGHT);
     }

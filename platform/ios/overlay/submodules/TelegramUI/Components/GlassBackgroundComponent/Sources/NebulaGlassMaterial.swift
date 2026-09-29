@@ -15,11 +15,11 @@ struct NebulaGlassMaterialState: Equatable {
         view.overrideUserInterfaceStyle = dark ? .dark : .light
         if opaque { view.effect = nil; return }
         if #available(iOS 26.0, *), style == 1 && !reduced {
-            let effect = UIGlassEffect(style: .clear)
+            let effect = UIGlassEffect(style: .regular)
             effect.isInteractive = animated
             view.effect = effect
         } else {
-            view.effect = UIBlurEffect(style: reduced ? .systemMaterial : .systemThinMaterial)
+            view.effect = UIBlurEffect(style: reduced ? .systemThickMaterial : .systemMaterial)
         }
     }
 }

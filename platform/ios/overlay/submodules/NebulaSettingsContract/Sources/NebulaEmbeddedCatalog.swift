@@ -876,7 +876,7 @@ enum NebulaEmbeddedCatalog {
       "transfer_v1": false,
       "ios_status": "planned",
       "ios_mapping": "platform-specific",
-      "default": 18,
+      "default": 30,
       "min": 0,
       "max": 60
     }

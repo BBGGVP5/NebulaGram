@@ -59,8 +59,8 @@ public final class NebulaDialog {
 
         public BottomSheet create() {
             NebulaTheme theme = NebulaTheme.of(context);
-            final int surface = useTelegramTheme ? Theme.getColor(Theme.key_dialogBackground, resourcesProvider) : theme.surface();
-            final int container = useTelegramTheme ? Theme.getColor(Theme.key_dialogBackgroundGray, resourcesProvider) : theme.surfaceContainer();
+            final int surface = (useTelegramTheme ? Theme.getColor(Theme.key_dialogBackground, resourcesProvider) : theme.modalSurface()) | 0xFF000000;
+            final int container = (useTelegramTheme ? Theme.getColor(Theme.key_dialogBackgroundGray, resourcesProvider) : theme.surfaceContainer()) | 0xFF000000;
             final int onSurface = useTelegramTheme ? Theme.getColor(Theme.key_dialogTextBlack, resourcesProvider) : theme.onSurface();
             final int muted = useTelegramTheme ? Theme.getColor(Theme.key_dialogTextGray, resourcesProvider) : theme.onSurfaceVariant();
             final int accent = useTelegramTheme ? Theme.getColor(Theme.key_dialogTextBlue, resourcesProvider) : theme.primary();

@@ -21,7 +21,8 @@ public final class NebulaAiSheet {
     public static void show(BaseFragment host) {
         Context c = host.getParentActivity(); if (c == null) return;
         NebulaTheme theme = NebulaTheme.of(c);
-        BottomSheet sheet = new BottomSheet.Builder(c, true, theme.surface()).create();
+        int surface = theme.modalSurface();
+        BottomSheet sheet = new BottomSheet.Builder(c, true, surface).create();
         sheet.setBackgroundColor(android.graphics.Color.TRANSPARENT);
         sheet.setApplyTopPadding(false); sheet.setApplyBottomPadding(false); sheet.setCanDismissWithSwipe(false);
         LinearLayout root = new LinearLayout(c) {
@@ -32,7 +33,7 @@ public final class NebulaAiSheet {
             }
         };
         root.setOrientation(LinearLayout.VERTICAL); root.setPadding(dp(16), dp(12), dp(16), dp(12));
-        GradientDrawable background = new GradientDrawable(); background.setColor(theme.surface()); background.setCornerRadius(dp(28));
+        GradientDrawable background = new GradientDrawable(); background.setColor(surface); background.setCornerRadius(dp(28));
         root.setBackground(background); root.setClipToOutline(true);
         LinearLayout header = new LinearLayout(c); header.setGravity(Gravity.CENTER_VERTICAL);
         TextView title = button(c, "Nebula AI", theme.onSurface()); title.setTextSize(20); title.setTypeface(AndroidUtilities.bold());
@@ -42,7 +43,9 @@ public final class NebulaAiSheet {
         close.setOnClickListener(v -> sheet.dismiss()); header.addView(close); root.addView(header);
         Runnable setup = () -> { sheet.dismiss(); host.presentFragment(new NebulaAiFragment().openConnection()); };
         settings.setOnClickListener(v -> setup.run());
-        NebulaAiChatView chat = new NebulaAiChatView(c, "", setup); root.addView(chat, new LinearLayout.LayoutParams(-1, 0, 1));
+        NebulaAiChatView chat = new NebulaAiChatView(c, "", setup);
+        chat.setBackgroundColor(surface);
+        root.addView(chat, new LinearLayout.LayoutParams(-1, 0, 1));
         sheet.setCustomView(root); sheet.setOnDismissListener((Runnable) chat::dispose);
         host.showDialog(sheet);
         if (sheet.getWindow() != null) sheet.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);

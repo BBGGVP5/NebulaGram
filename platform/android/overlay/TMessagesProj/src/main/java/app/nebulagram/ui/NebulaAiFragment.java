@@ -45,9 +45,9 @@ public final class NebulaAiFragment extends BaseFragment {
         prefs = c.getSharedPreferences("nebula_ai_settings", 0);
         provider = Math.max(0, Math.min(NebulaAiClient.NANO, prefs.getInt("provider", 0)));
         actionBar.setBackButtonImage(R.drawable.ic_ab_back); actionBar.setTitle(text("Искусственный интеллект", "AI assistant"));
-        NebulaTheme t = NebulaTheme.of(c); actionBar.setBackgroundColor(t.surface()); actionBar.setTitleColor(t.onSurface()); actionBar.setItemsColor(t.onSurface(), false);
+        NebulaTheme t = NebulaTheme.of(c); actionBar.setBackgroundColor(t.opaqueSurface()); actionBar.setTitleColor(t.onSurface()); actionBar.setItemsColor(t.onSurface(), false);
         actionBar.setActionBarMenuOnItemClick(new ActionBar.ActionBarMenuOnItemClick() { @Override public void onItemClick(int id) { if (id == -1) finishFragment(); } });
-        content = new LinearLayout(c); content.setOrientation(LinearLayout.VERTICAL); content.setBackgroundColor(t.surface()); content.setPadding(dp(16), dp(8), dp(16), dp(8));
+        content = new LinearLayout(c); content.setOrientation(LinearLayout.VERTICAL); content.setBackgroundColor(t.opaqueSurface()); content.setPadding(dp(16), dp(8), dp(16), dp(8));
         build(c);
         return fragmentView = NebulaSettingsLayout.wrap(c, actionBar, content, -12);
     }

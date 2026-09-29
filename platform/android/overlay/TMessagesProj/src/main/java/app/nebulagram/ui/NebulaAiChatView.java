@@ -46,7 +46,7 @@ public final class NebulaAiChatView extends LinearLayout {
         theme = NebulaTheme.of(context);
         setOrientation(VERTICAL);
         setPadding(dp(4), dp(8), dp(4), dp(8));
-        setBackgroundColor(theme.surface());
+        setBackgroundColor(theme.opaqueSurface());
         LinearLayout bar = new LinearLayout(context); bar.setOrientation(VERTICAL);
         status = label("", 13, theme.onSurface());
         status.setTypeface(AndroidUtilities.bold());
