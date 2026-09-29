@@ -65,7 +65,7 @@ def main():
             public class FileLog { public static void e(Throwable e){throw new AssertionError(e);} }''')
         put('org/telegram/ui/ActionBar/Theme.java', '''package org.telegram.ui.ActionBar;
             public class Theme {
-                public static final int key_windowBackgroundWhiteBlueText=1,key_windowBackgroundGray=2,key_windowBackgroundWhite=3,key_windowBackgroundWhiteBlackText=4,key_windowBackgroundWhiteGrayText2=5,key_divider=6;
+                public static final int key_windowBackgroundWhiteBlueText=1,key_windowBackgroundGray=2,key_windowBackgroundWhite=3,key_windowBackgroundWhiteBlackText=4,key_windowBackgroundWhiteGrayText2=5,key_divider=6,key_dialogBackground=7;
                 public static boolean dark=true; public static boolean isCurrentThemeDark(){return dark;}
                 public static int getColor(int key){return active.getAccent(false).accentColor;}
 
@@ -143,6 +143,8 @@ def main():
                         eq(fixed.surfaceContainer(),i); eq(fixed.onSurface(),i);
                     }
                     eq(c.resources.reads,reads); eq(c.callbacks.size(),1);
+                    eq(fixed.modalSurface() >>> 24,255);
+                    eq(fixed.opaqueSurface() >>> 24,255);
                     day.getAccent(false).accentColor=0xff229955;
                     c.night(false); eq(NebulaTheme.of(c).primary(),0xff229955);
                     eq(NebulaTheme.of(c).surface(),0xff229955);

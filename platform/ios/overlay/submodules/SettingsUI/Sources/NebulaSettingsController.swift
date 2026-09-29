@@ -105,6 +105,7 @@ private enum NebulaSettingsEntry: ItemListNodeEntry {
             case "disable_next_channel": return 69
             case "folder_title": return 71
             case "folder_outline": return 79
+            case "hide_search_field": return 72
             default: return 72
             }
         case .widePosts: return 80
@@ -151,6 +152,7 @@ private enum NebulaSettingsEntry: ItemListNodeEntry {
             case "disable_next_channel": return 38
             case "folder_title": return 40
             case "folder_outline": return 47
+            case "hide_search_field": return 48
             default: return 39
             }
         case .glass: return 12
@@ -354,6 +356,7 @@ public func nebulaSettingsController(context: AccountContext, page: Int = 0) -> 
             .navigationToggle("menu_video", ru ? "Видеозвонок в меню чата" : "Video call in chat menu", store.menuVideo, !store.hasLoadError),
             .navigationToggle("folder_title", ru ? "Имя выбранной папки в шапке" : "Selected folder in header", store.folderTitle, !store.hasLoadError),
             .navigationToggle("folder_outline", ru ? "Контур выбранной папки" : "Selected folder outline", store.folderOutline, !store.hasLoadError),
+            .navigationToggle("hide_search_field", ru ? "Скрыть строку поиска в чатах" : "Hide chat-list search field", store.hideSearchField, !store.hasLoadError),
             .navigationToggle("centered_chat_header", ru ? "Заголовок чата по центру" : "Center chat title", store.centeredChatHeader, !store.hasLoadError),
             .navigationToggle("disable_next_channel", ru ? "Скрыть переход к следующему каналу" : "Hide next-channel prompt", store.disableNextChannel, !store.hasLoadError),
             .navigationToggle("seconds_in_time", ru ? "Секунды во времени сообщений" : "Show seconds in message times", store.secondsInTime, !store.hasLoadError),

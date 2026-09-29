@@ -54,7 +54,7 @@ This inventory distinguishes **wired source** from native build and device accep
 | `hide_home_camera` | navigation.bottom_bar | Wired; native/device QA pending | Yes |
 | `hide_home_compose` | navigation.bottom_bar | Wired; native/device QA pending | Yes |
 | `hide_premium_status` | appearance.general | Pending native consumer | Yes |
-| `hide_search_field` | navigation.folders | Pending native consumer | Yes |
+| `hide_search_field` | navigation.folders | Wired; native/device QA pending | Yes |
 | `hide_send_as` | chat.composer | Wired; native/device QA pending | Yes |
 | `hide_tab_counters` | navigation.folders | Wired; native/device QA pending | Yes |
 | `icon_pack` | appearance.general | Pending native consumer | Yes |
@@ -127,3 +127,4 @@ This inventory distinguishes **wired source** from native build and device accep
 - NebulaLink is the first destination on the NebulaGram settings entry screen. The settings list now uses Telegram's active presentation theme, including custom themes, instead of a separate forced palette.
 - Nebula AI now has a chat list and switches between bounded conversations. Successful turns stay in memory; they persist locally only when AI history is enabled. The model label has a dedicated full-width row. Native build and device behavior remain to be verified.
 - Custom iOS glass now uses the regular system glass effect (or a thicker supported blur) and a 30% default theme tint. Existing saved tint choices remain unchanged. The Telegram default material is unaffected; device visual acceptance is pending.
+- The native chat-list search row can now be hidden while leaving search activation intact; an active search still owns its field. The round-video ruler now scrolls underneath a fixed center indicator on Android and iOS. Device visual and gesture checks remain pending.

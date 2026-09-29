@@ -1,0 +1,14 @@
+diff --git a/submodules/ChatListUI/Sources/ChatListControllerNode.swift b/submodules/ChatListUI/Sources/ChatListControllerNode.swift
+--- a/submodules/ChatListUI/Sources/ChatListControllerNode.swift
++++ b/submodules/ChatListUI/Sources/ChatListControllerNode.swift
+@@ -1682,7 +1682,9 @@
+                 strings: self.presentationData.strings,
+                 statusBarHeight: layout.statusBarHeight ?? 0.0,
+                 sideInset: layout.safeInsets.left,
+-                search: ChatListNavigationBar.Search(isEnabled: true),
++                // Keep the search surface while active, even when its resting row is hidden.
++                search: NebulaSettingsStore.shared.hideSearchField && self.isSearchDisplayControllerActive == nil
++                    ? nil : ChatListNavigationBar.Search(isEnabled: true),
+                 activeSearch: self.isSearchDisplayControllerActive,
+                 primaryContent: headerContent?.primaryContent,
+                 secondaryContent: headerContent?.secondaryContent,
