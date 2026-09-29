@@ -151,3 +151,12 @@
   and round videos keep their existing native sizing paths.
 - Geometry/default/import/cache regressions and bootstrap checks run in CI;
   scrolling, media aspect ratio and larger-font visual QA still need devices.
+
+# Profile Premium/status visibility
+
+- `0051-profile-premium-visibility.patch` observes the editable `hide_premium_status`
+  setting from an open profile and recomputes its native status icon layout.
+- `0052-chat-list-premium-visibility.patch` hides the same status icons in
+  chat-list rows and relayouts visible rows when the value changes. Verification
+  and NebulaGram assignment badges remain visible. Other surfaces need separate
+  consumers before this is global iOS parity.

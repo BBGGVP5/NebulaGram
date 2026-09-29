@@ -357,6 +357,7 @@ public func nebulaSettingsController(context: AccountContext, page: Int = 0) -> 
             .navigationToggle("folder_title", ru ? "Имя выбранной папки в шапке" : "Selected folder in header", store.folderTitle, !store.hasLoadError),
             .navigationToggle("folder_outline", ru ? "Контур выбранной папки" : "Selected folder outline", store.folderOutline, !store.hasLoadError),
             .navigationToggle("hide_search_field", ru ? "Скрыть строку поиска в чатах" : "Hide chat-list search field", store.hideSearchField, !store.hasLoadError),
+            .navigationToggle("hide_premium_status", ru ? "Скрыть Premium-статусы" : "Hide Premium status", store.hidePremiumStatus, !store.hasLoadError),
             .navigationToggle("centered_chat_header", ru ? "Заголовок чата по центру" : "Center chat title", store.centeredChatHeader, !store.hasLoadError),
             .navigationToggle("disable_next_channel", ru ? "Скрыть переход к следующему каналу" : "Hide next-channel prompt", store.disableNextChannel, !store.hasLoadError),
             .navigationToggle("seconds_in_time", ru ? "Секунды во времени сообщений" : "Show seconds in message times", store.secondsInTime, !store.hasLoadError),

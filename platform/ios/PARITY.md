@@ -55,7 +55,7 @@ This inventory distinguishes **wired source** from native build and device accep
 | `hide_dividers` | navigation.folders | Wired in chat-list rows; native/device QA pending | Yes |
 | `hide_home_camera` | navigation.bottom_bar | Wired; native/device QA pending | Yes |
 | `hide_home_compose` | navigation.bottom_bar | Wired; native/device QA pending | Yes |
-| `hide_premium_status` | appearance.general | Pending native consumer | Yes |
+| `hide_premium_status` | appearance.general | Wired in profile headers and chat-list rows; other surfaces pending native consumer/device QA | Yes |
 | `hide_search_field` | navigation.folders | Wired; native/device QA pending | Yes |
 | `hide_send_as` | chat.composer | Wired; native/device QA pending | Yes |
 | `hide_tab_counters` | navigation.folders | Wired; native/device QA pending | Yes |
@@ -131,3 +131,4 @@ This inventory distinguishes **wired source** from native build and device accep
 - Custom iOS glass now uses the regular system glass effect (or a thicker supported blur) and a 30% default theme tint. Existing saved tint choices remain unchanged. The Telegram default material is unaffected; device visual acceptance is pending.
 - The native chat-list search row can now be hidden while leaving search activation intact; an active search still owns its field. Round-video zoom now starts as compact 1×/2× presets and expands on hold or drag into a logarithmic ruler scrolling beneath a fixed indicator on Android and iOS. Device visual and gesture checks remain pending.
 - The glass highlights switch now controls the custom material rim and legacy highlight container. It is disabled for system Liquid Glass on iOS 26, whose highlights are OS-owned. Native compilation and device visual acceptance remain pending.
+- Premium and emoji-status icons can be hidden in profile headers and chat-list rows without hiding verification or NebulaGram badges. Open profiles and visible chat rows update when the preference changes. Other status surfaces still need their own native consumer.

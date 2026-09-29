@@ -3,6 +3,17 @@ import XCTest
 @testable import NebulaSettingsContract
 
 final class SettingsStoreTests: XCTestCase {
+    func testProfilePremiumStatusPreferencePersistsAndTransfers() throws {
+        try withDefaults { defaults in
+            let store = NebulaSettingsStore(defaults: defaults)
+            XCTAssertFalse(store.hidePremiumStatus)
+            try store.set(.boolean(true), for: "hide_premium_status")
+            XCTAssertTrue(NebulaSettingsStore(defaults: defaults).hidePremiumStatus)
+            XCTAssertTrue(try store.previewImport(store.exportData()).activeKeys.contains("hide_premium_status"))
+            XCTAssertThrowsError(try store.set(.integer(1), for: "hide_premium_status"))
+        }
+    }
+
     func testGlassDepthPersistsLocallyWithoutTransfer() throws {
         try withDefaults { defaults in
             let store = NebulaSettingsStore(defaults: defaults)
