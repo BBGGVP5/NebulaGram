@@ -25,5 +25,5 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/
              actionModeCloseView.setOnClickListener(v -> hideActionMode(true));
 -            actionMode.addView(actionModeCloseView, LayoutHelper.createLinear(54, 54, Gravity.CENTER_VERTICAL));
 +            // Match the close icon center to the leading Edit control on the home header.
-+            actionMode.addView(actionModeCloseView, LayoutHelper.createLinear(54, 54, Gravity.CENTER_VERTICAL, nebulaHomeEditButton != null ? 15 : 0, 0, 0, 0));
++            actionMode.addView(actionModeCloseView, LayoutHelper.createLinear(54, 54, Gravity.CENTER_VERTICAL, nebulaHomeEditButton != null ? 10 : 0, 0, 0, 0));
              actionModeViews.add(actionModeCloseView);
