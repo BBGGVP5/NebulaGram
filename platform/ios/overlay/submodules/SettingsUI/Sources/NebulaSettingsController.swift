@@ -20,6 +20,7 @@ private final class NebulaSettingsArguments {
     var openIcons: (() -> Void)?
     var openBuildInfo: (() -> Void)?
     var openTransitions: (() -> Void)?
+    var openFolderStyle: (() -> Void)?
     var openCategory: ((Int) -> Void)?
     var updateKey: ((String, Bool) -> Void)?
     var clearHistory: (() -> Void)?
@@ -55,6 +56,7 @@ private enum NebulaSettingsEntry: ItemListNodeEntry {
     case clearHistory(String)
     case header(String)
     case hideCounters(String, Bool, Bool)
+    case folderStyle(String, String)
     case footer(String)
     case transferHeader(String)
     case importFile(String)
@@ -66,7 +68,7 @@ private enum NebulaSettingsEntry: ItemListNodeEntry {
         case .search, .empty: return -1
         case .category, .toolsHeader, .link, .ai, .buildInfo: return 0
         case .appearanceHeader, .glass, .navigation, .contacts, .navigationToggle, .stories, .widePosts, .icons, .transitions: return 1
-        case .header, .hideCounters, .footer: return 2
+        case .header, .hideCounters, .folderStyle, .footer: return 2
         case .privacyHeader, .privacy, .history, .clearHistory: return 3
         case .transferHeader, .importFile, .exportFile, .transferFooter: return 4
         }
@@ -111,6 +113,7 @@ private enum NebulaSettingsEntry: ItemListNodeEntry {
         case .widePosts: return 80
         case .stories: return 70
         case .header: return 81
+        case .folderStyle: return 85
         case .hideCounters: return 90
         case .footer: return 100
         case .privacyHeader: return 110
@@ -168,6 +171,7 @@ private enum NebulaSettingsEntry: ItemListNodeEntry {
         case .clearHistory: return 11
         case .header: return 0
         case .hideCounters: return 1
+        case .folderStyle: return 49
         case .footer: return 2
         case .transferHeader: return 3
         case .importFile: return 4
@@ -183,7 +187,7 @@ private enum NebulaSettingsEntry: ItemListNodeEntry {
     var searchableText: String? {
         switch self {
         case let .category(_, title, detail, _): return title + " " + detail
-        case let .navigation(title, detail), let .glass(title, detail), let .transitions(title, detail): return title + " " + detail
+        case let .navigation(title, detail), let .glass(title, detail), let .transitions(title, detail), let .folderStyle(title, detail): return title + " " + detail
         case let .widePosts(title, _, _), let .contacts(title, _, _), let .navigationToggle(_, title, _, _), let .stories(title, _, _), let .history(title, _, _),
              let .hideCounters(title, _, _), let .exportFile(title, _): return title
         case let .link(title), let .privacy(title), let .ai(title), let .icons(title), let .buildInfo(title), let .clearHistory(title),
@@ -227,6 +231,8 @@ private enum NebulaSettingsEntry: ItemListNodeEntry {
             return ItemListSectionHeaderItem(presentationData: presentationData, text: text, sectionId: section)
         case let .hideCounters(title, value, enabled):
             return ItemListSwitchItem(presentationData: presentationData, systemStyle: .glass, title: title, value: value, enabled: enabled, sectionId: section, style: .blocks, updated: arguments.update)
+        case let .folderStyle(title, detail):
+            return disclosure(title, detail, "folder", { arguments.openFolderStyle?() })
         case let .footer(text), let .transferFooter(text):
             return ItemListTextItem(presentationData: presentationData, text: .markdown(text), sectionId: section)
         case let .widePosts(title, value, enabled):
@@ -297,6 +303,7 @@ public func nebulaSettingsController(context: AccountContext, page: Int = 0) -> 
         arguments.russian = ru
         let modes = ru ? ["Автоматически", "Полное", "Облегчённое"] : ["Automatic", "Full", "Light"]
         let transitionModes = ru ? ["Стандартная", "Системная", "Spring"] : ["Standard", "System", "Spring"]
+        let folderModes = ru ? ["Названия", "Только значки", "Значки и названия"] : ["Titles", "Icons only", "Icons and titles"]
         let firstTab = store.bottomTabOrder.first(where: {
             switch $0 {
             case "contacts": return store.showContactsTab
@@ -322,6 +329,7 @@ public func nebulaSettingsController(context: AccountContext, page: Int = 0) -> 
             .appearanceHeader(ru ? "Интерфейс" : "Interface"),
             .privacyHeader(ru ? "Конфиденциальность" : "Privacy"),
             .header(ru ? "Папки чатов" : "Chat folders"),
+            .folderStyle(ru ? "Стиль папок" : "Folder style", folderModes[max(0, min(2, store.folderStyle))]),
             .hideCounters(ru ? "Скрыть счётчики папок" : "Hide folder counters", hideCounters, !store.hasLoadError),
             .footer(footer),
             .transferHeader(ru ? "Перенос настроек" : "Transfer settings"),
@@ -489,6 +497,16 @@ public func nebulaSettingsController(context: AccountContext, page: Int = 0) -> 
             choices: ru ? ["Стандартная", "Системная", "Spring"] : ["Standard", "System", "Spring"], selected: store.transitionStyle,
             detail: ru ? "При включённом уменьшении движения iOS переходы остаются без анимации." : "Reduce Motion turns these animations off.", russian: ru) { style in
                 do { try store.set(.integer(style), for: "fragment_transition_style"); writeFailed.set(false) }
+                catch { writeFailed.set(true) }
+            }
+    }
+    arguments.openFolderStyle = { [weak controller] in
+        guard let controller = controller else { return }
+        let ru = context.sharedContext.currentPresentationData.with { $0 }.strings.baseLanguageCode.lowercased().hasPrefix("ru")
+        NebulaChoiceController.show(from: controller, title: ru ? "Стиль папок" : "Folder style",
+            choices: ru ? ["Названия", "Только значки", "Значки и названия"] : ["Titles", "Icons only", "Icons and titles"],
+            selected: max(0, min(2, store.folderStyle)), russian: ru) { style in
+                do { try store.set(.integer(style), for: "folder_style"); writeFailed.set(false) }
                 catch { writeFailed.set(true) }
             }
     }

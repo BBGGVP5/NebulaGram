@@ -37,7 +37,7 @@ This inventory distinguishes **wired source** from native build and device accep
 | `disable_next_channel` | chat.messages | Wired; native/device QA pending | Yes |
 | `floating_chat_header_v2` | chat.header | Pending native consumer | Yes |
 | `folder_outline` | navigation.folders | Wired; native/device QA pending | Yes |
-| `folder_style` | navigation.folders | Pending native consumer | Yes |
+| `folder_style` | navigation.folders | Wired for three native tab styles; native/device QA pending | Yes |
 | `folder_title` | navigation.folders | Wired; native/device QA pending | Yes |
 | `glass_blur` | appearance.glass | Wired to native material tiers; native/device QA pending | Local only |
 | `glass_custom` | appearance.glass | Pending native consumer | Local only |

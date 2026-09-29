@@ -1,44 +1,49 @@
 diff --git a/submodules/TelegramUI/Components/ChatTitleView/Sources/ChatTitleComponent.swift b/submodules/TelegramUI/Components/ChatTitleView/Sources/ChatTitleComponent.swift
-index db51166..e4e1c51 100644
+index db51166..03b26d5 100644
 --- a/submodules/TelegramUI/Components/ChatTitleView/Sources/ChatTitleComponent.swift
 +++ b/submodules/TelegramUI/Components/ChatTitleView/Sources/ChatTitleComponent.swift
 @@ -1,2 +1,3 @@
  import Foundation
 +import NebulaSettingsContract
  import UIKit
-@@ -72,2 +73,3 @@ public final class ChatNavigationBarTitleView: UIView, NavigationBarTitleView {
+@@ -72,2 +73,4 @@ public final class ChatNavigationBarTitleView: UIView, NavigationBarTitleView {
      private var activities: ChatTitleComponent.Activities?
 +    private var nebulaSettingsObservation: SettingsObservation?
++    private var nebulaWasPremiumHidden = NebulaSettingsStore.shared.hidePremiumStatus
      private var networkState: AccountNetworkState?
-@@ -82,2 +84,5 @@ public final class ChatNavigationBarTitleView: UIView, NavigationBarTitleView {
+@@ -82,2 +85,9 @@ public final class ChatNavigationBarTitleView: UIView, NavigationBarTitleView {
          super.init(frame: frame)
 +        self.nebulaSettingsObservation = NebulaSettingsStore.shared.observe { [weak self] in
-+            self?.update(transition: .immediate)
++            guard let self else { return }
++            let hidden = NebulaSettingsStore.shared.hidePremiumStatus
++            guard self.nebulaWasPremiumHidden != hidden else { return }
++            self.nebulaWasPremiumHidden = hidden
++            self.update(transition: .immediate)
 +        }
      }
-@@ -174,2 +179,3 @@ public final class ChatNavigationBarTitleView: UIView, NavigationBarTitleView {
+@@ -174,2 +184,3 @@ public final class ChatNavigationBarTitleView: UIView, NavigationBarTitleView {
                      networkState: self.networkState,
 +                    hidePremiumStatus: NebulaSettingsStore.shared.hidePremiumStatus,
                      tapped: { [weak self] in
-@@ -241,2 +247,3 @@ public final class ChatTitleComponent: Component {
+@@ -241,2 +252,3 @@ public final class ChatTitleComponent: Component {
      public let networkState: AccountNetworkState?
 +    public let hidePremiumStatus: Bool
      public let tapped: () -> Void
-@@ -255,2 +262,3 @@ public final class ChatTitleComponent: Component {
+@@ -255,2 +267,3 @@ public final class ChatTitleComponent: Component {
          networkState: AccountNetworkState?,
 +        hidePremiumStatus: Bool = NebulaSettingsStore.shared.hidePremiumStatus,
          tapped: @escaping () -> Void,
-@@ -268,2 +276,3 @@ public final class ChatTitleComponent: Component {
+@@ -268,2 +281,3 @@ public final class ChatTitleComponent: Component {
          self.networkState = networkState
 +        self.hidePremiumStatus = hidePremiumStatus
          self.tapped = tapped
-@@ -303,2 +312,5 @@ public final class ChatTitleComponent: Component {
+@@ -303,2 +317,5 @@ public final class ChatTitleComponent: Component {
          }
 +        if lhs.hidePremiumStatus != rhs.hidePremiumStatus {
 +            return false
 +        }
          return true
-@@ -449,5 +461,5 @@ public final class ChatTitleComponent: Component {
+@@ -449,5 +466,5 @@ public final class ChatTitleComponent: Component {
                                  titleCredibilityIcon = .scam
 -                            } else if !hidePeerStatus, let emojiStatus = peer.emojiStatus {
 +                            } else if !hidePeerStatus && !component.hidePremiumStatus, let emojiStatus = peer.emojiStatus {

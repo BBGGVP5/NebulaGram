@@ -3,6 +3,17 @@ import XCTest
 @testable import NebulaSettingsContract
 
 final class SettingsStoreTests: XCTestCase {
+    func testFolderStylePersistsAndTransfers() throws {
+        try withDefaults { defaults in
+            let store = NebulaSettingsStore(defaults: defaults)
+            XCTAssertEqual(store.folderStyle, 0)
+            try store.set(.integer(2), for: "folder_style")
+            XCTAssertEqual(NebulaSettingsStore(defaults: defaults).folderStyle, 2)
+            XCTAssertTrue(try store.previewImport(store.exportData()).activeKeys.contains("folder_style"))
+            XCTAssertThrowsError(try store.set(.integer(3), for: "folder_style"))
+        }
+    }
+
     func testProfilePremiumStatusPreferencePersistsAndTransfers() throws {
         try withDefaults { defaults in
             let store = NebulaSettingsStore(defaults: defaults)

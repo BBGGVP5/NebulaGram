@@ -162,3 +162,10 @@
 - `0053-chat-title-premium-visibility.patch` applies the same preference in the
   native legacy and component-based chat titles. Both refresh when the value
   changes. Other surfaces need separate consumers before global iOS parity.
+
+# Folder tab styles
+
+- `0054-folder-style.patch` renders native folder tabs as titles, icons, or
+  icons with titles. Custom emoji entities and their UTF-16 offsets are kept
+  intact, while VoiceOver reads the original folder name in icons-only mode.
+- The existing tab-container observation applies style changes immediately.

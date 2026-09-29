@@ -1,0 +1,79 @@
+diff --git a/submodules/TelegramUI/Components/ChatList/ChatListFilterTabContainerNode/Sources/ChatListFilterTabContainerNode.swift b/submodules/TelegramUI/Components/ChatList/ChatListFilterTabContainerNode/Sources/ChatListFilterTabContainerNode.swift
+--- a/submodules/TelegramUI/Components/ChatList/ChatListFilterTabContainerNode/Sources/ChatListFilterTabContainerNode.swift
++++ b/submodules/TelegramUI/Components/ChatList/ChatListFilterTabContainerNode/Sources/ChatListFilterTabContainerNode.swift
+@@ -10,6 +10,37 @@
+ import GlassBackgroundComponent
+ import ComponentFlow
+ import ComponentDisplayAdapters
++
++private func nebulaFolderTitle(_ title: ChatFolderTitle, style: Int, isAllChats: Bool) -> ChatFolderTitle {
++    guard style == 1 || style == 2 else { return title }
++
++    var icon = isAllChats ? "💬" : "📁"
++    var iconEntity: MessageTextEntity?
++    let utf16Length = (title.text as NSString).length
++    if let entity = title.entities.first(where: { entity in
++        if case .CustomEmoji = entity.type { return true }
++        return false
++    }), entity.range.lowerBound >= 0, entity.range.upperBound <= utf16Length,
++       entity.range.lowerBound < entity.range.upperBound {
++        icon = (title.text as NSString).substring(with: NSRange(location: entity.range.lowerBound, length: entity.range.count))
++        iconEntity = MessageTextEntity(range: 0..<icon.utf16.count, type: entity.type)
++    } else if let emoji = title.text.first(where: { character in
++        character.unicodeScalars.contains(where: { $0.properties.isEmojiPresentation || ($0.properties.isEmoji && $0.value > 0x2000) })
++    }) {
++        icon = String(emoji)
++    }
++
++    if style == 1 {
++        return ChatFolderTitle(text: icon, entities: iconEntity.map { [$0] } ?? [], enableAnimations: title.enableAnimations)
++    }
++    let prefix = icon + " "
++    let shift = prefix.utf16.count
++    var entities = iconEntity.map { [$0] } ?? []
++    entities.append(contentsOf: title.entities.map { entity in
++        MessageTextEntity(range: (entity.range.lowerBound + shift)..<(entity.range.upperBound + shift), type: entity.type)
++    })
++    return ChatFolderTitle(text: prefix + title.text, entities: entities, enableAnimations: title.enableAnimations)
++}
+ 
+ private final class ItemNodeDeleteButtonNode: HighlightableButtonNode {
+     private let pressed: () -> Void
+@@ -206,7 +237,7 @@
+         self.pressed(self.isDisabled)
+     }
+     
+-    func updateText(strings: PresentationStrings, title: ChatFolderTitle, shortTitle: ChatFolderTitle, unreadCount: Int, unreadHasUnmuted: Bool, isNoFilter: Bool, selectionFraction: CGFloat, isEditing: Bool, isReordering: Bool, canReorderAllChats: Bool, isDisabled: Bool, presentationData: PresentationData, transition: ContainedViewLayoutTransition) {
++    func updateText(strings: PresentationStrings, title: ChatFolderTitle, shortTitle: ChatFolderTitle, accessibilityTitle: String, unreadCount: Int, unreadHasUnmuted: Bool, isNoFilter: Bool, selectionFraction: CGFloat, isEditing: Bool, isReordering: Bool, canReorderAllChats: Bool, isDisabled: Bool, presentationData: PresentationData, transition: ContainedViewLayoutTransition) {
+         self.badgeContainerNode.isHidden = NebulaSettingsStore.shared.hideTabCounters
+         self.isEditing = isEditing
+         self.isDisabled = isDisabled
+@@ -234,7 +265,7 @@
+             self.unreadCount = unreadCount
+         }
+         
+-        self.buttonNode.accessibilityLabel = title.text
++        self.buttonNode.accessibilityLabel = accessibilityTitle
+         if unreadCount > 0 {
+             if self.buttonNode.accessibilityValue == nil || unreadCountUpdated {
+                 self.buttonNode.accessibilityValue = strings.VoiceOver_Chat_UnreadMessages(Int32(unreadCount))
+@@ -850,7 +881,18 @@
+                 selectionFraction = 0.0
+             }
+             
+-            itemNode.updateText(strings: presentationData.strings, title: filter.title(strings: presentationData.strings), shortTitle: i == 0 ? filter.shortTitle(strings: presentationData.strings) : filter.title(strings: presentationData.strings), unreadCount: unreadCount, unreadHasUnmuted: unreadHasUnmuted, isNoFilter: isNoFilter, selectionFraction: selectionFraction, isEditing: isEditing, isReordering: isReordering, canReorderAllChats: canReorderAllChats, isDisabled: isDisabled, presentationData: presentationData, transition: itemNodeTransition)
++            let originalTitle = filter.title(strings: presentationData.strings)
++            let originalShortTitle = i == 0 ? filter.shortTitle(strings: presentationData.strings) : originalTitle
++            let folderStyle = NebulaSettingsStore.shared.folderStyle
++            itemNode.updateText(strings: presentationData.strings,
++                title: nebulaFolderTitle(originalTitle, style: folderStyle, isAllChats: isNoFilter),
++                shortTitle: nebulaFolderTitle(originalShortTitle, style: folderStyle, isAllChats: isNoFilter),
++                accessibilityTitle: originalTitle.text,
++                unreadCount: unreadCount, unreadHasUnmuted: unreadHasUnmuted,
++                isNoFilter: isNoFilter, selectionFraction: selectionFraction,
++                isEditing: isEditing, isReordering: isReordering,
++                canReorderAllChats: canReorderAllChats, isDisabled: isDisabled,
++                presentationData: presentationData, transition: itemNodeTransition)
+         }
+         var removeKeys: [ChatListFilterTabEntryId] = []
+         for (id, _) in self.itemNodes {
