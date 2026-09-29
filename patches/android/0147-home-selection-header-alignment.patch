@@ -1,0 +1,29 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
+@@ -276,3 +276,6 @@
+     public void setNebulaHomeTabsGlass(boolean enabled) {
+         nebulaHomeTabsGlass = enabled;
++        if (actionMode != null && glassMode) {
++            actionMode.setTranslationX(enabled ? 0 : -dp(10));
++        }
+         invalidate();
+@@ -306,3 +306,3 @@
+         if (actionMode != null) {
+-            actionMode.setTranslationX(-dp(10));
++            actionMode.setTranslationX(nebulaHomeTabsGlass ? 0 : -dp(10));
+             actionMode.setGlassMode(true);
+@@ -850,3 +850,3 @@
+         };
+-        actionMode.setTranslationX(glassMode ? -dp(10) : 0);
++        actionMode.setTranslationX(glassMode && !nebulaHomeTabsGlass ? -dp(10) : 0);
+         actionMode.setGlassMode(glassMode);
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
+@@ -6778,3 +6778,4 @@
+             actionModeCloseView.setOnClickListener(v -> hideActionMode(true));
+-            actionMode.addView(actionModeCloseView, LayoutHelper.createLinear(54, 54, Gravity.CENTER_VERTICAL));
++            // Match the close icon center to the leading Edit control on the home header.
++            actionMode.addView(actionModeCloseView, LayoutHelper.createLinear(54, 54, Gravity.CENTER_VERTICAL, nebulaHomeEditButton != null ? 15 : 0, 0, 0, 0));
+             actionModeViews.add(actionModeCloseView);

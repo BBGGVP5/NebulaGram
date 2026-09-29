@@ -164,7 +164,15 @@ public class NebulaSettingsFragment extends BaseFragment {
         return new NebulaRow(context).icon(icon).title(NebulaText.text(titleRu, titleEn))
                 .subtitle(NebulaText.text(detailRu, detailEn), false)
                 .trailing(NebulaRow.TRAIL_CHEVRON)
-                .withClick(v -> presentFragment(new NebulaSettingsHubFragment(category)));
+                .withClick(v -> {
+                    if (category == NebulaSettingsHubFragment.GENERAL) {
+                        presentFragment(new NebulaSectionFragment(NebulaSectionFragment.SECTION_GENERAL));
+                    } else if (category == NebulaSettingsHubFragment.APPEARANCE) {
+                        presentFragment(new NebulaSectionFragment(NebulaSectionFragment.SECTION_APPEARANCE));
+                    } else {
+                        presentFragment(new NebulaSettingsHubFragment(category));
+                    }
+                });
     }
 
     @Override

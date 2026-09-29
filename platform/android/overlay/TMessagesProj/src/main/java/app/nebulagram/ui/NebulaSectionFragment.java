@@ -183,6 +183,10 @@ public class NebulaSectionFragment extends BaseFragment {
         NebulaExtras.appearance(this, content);
         NebulaGlassSettings.add(content);
         NebulaCard card = new NebulaCard(context);
+        card.add(new NebulaRow(context).icon(R.drawable.nebula_settings_app_icon)
+                .title(NebulaText.text("Иконка приложения", "App icon"))
+                .trailing(NebulaRow.TRAIL_CHEVRON)
+                .withClick(v -> presentFragment(new NebulaIconPickerFragment())));
         card.add(link(context, R.drawable.msg_customize, R.string.NebulaSwitches, R.string.NebulaSwitchesInfo, SECTION_SWITCHES));
 
         // Material You имеет смысл только там, где система отдаёт палитру;
@@ -636,6 +640,12 @@ public class NebulaSectionFragment extends BaseFragment {
      * доступ к тому, что уже написано.
      */
     private void buildGeneral(Context context) {
+        NebulaCard sync = new NebulaCard(context);
+        sync.add(new NebulaRow(context).icon(R.drawable.msg_saved)
+                .title(NebulaText.text("Синхронизация настроек", "Settings sync"))
+                .trailing(NebulaRow.TRAIL_CHEVRON)
+                .withClick(v -> presentFragment(new NebulaSyncFragment())));
+        content.addView(sync, cardParams());
         content.addView(NebulaCard.header(context, NebulaText.text("Идентификаторы", "Identifiers")));
         NebulaCard ids = new NebulaCard(context);
         String[] formats = {NebulaText.text("Telegram", "Telegram"), NebulaText.text("Bot API", "Bot API")};
