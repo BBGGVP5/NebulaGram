@@ -27,7 +27,7 @@ final class NebulaGlassController: UITableViewController {
     @objc private func refresh() { tableView.reloadData(); preview.setNeedsLayout() }
     override func numberOfSections(in tableView: UITableView) -> Int { 4 }
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        section == 1 ? styles.count : (section == 3 ? 3 : 1)
+        section == 1 ? styles.count : (section == 3 ? 5 : 1)
     }
     override func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
         section == 1 ? (ru ? "Оформление" : "Appearance") : nil
@@ -41,7 +41,7 @@ final class NebulaGlassController: UITableViewController {
         let reduced = NebulaGlassPolicy.reduced(mode: store.glassQuality, lowPower: ProcessInfo.processInfo.isLowPowerModeEnabled,
             hot: ProcessInfo.processInfo.thermalState.rawValue >= ProcessInfo.ThermalState.serious.rawValue, reduceTransparency: false)
         if reduced { return ru ? "Сейчас облегчённый материал. Авто включает его при энергосбережении и нагреве." : "Light material is active. Auto uses it in Low Power Mode or during thermal pressure." }
-        if #available(iOS 26.0, *) { return ru ? "Анимация действует только для системного Liquid Glass. Блики системного материала регулирует iOS; наше стекло использует переключатель ниже." : "Animation applies only to system Liquid Glass. iOS controls its highlights; the switch below affects our glass." }
+        if #available(iOS 26.0, *) { return ru ? "Анимация действует только для системного Liquid Glass. Блики и глубина нашего стекла настраиваются отдельно; материал Telegram регулирует iOS." : "Animation applies only to system Liquid Glass. Nebula glass highlights and depth have separate controls; iOS controls Telegram's material." }
         return ru ? "На этой версии iOS доступно матовое размытие. Для Liquid Glass нужна iOS 26." : "This iOS version uses frosted blur. Liquid Glass requires iOS 26."
     }
     override func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
@@ -86,7 +86,7 @@ final class NebulaGlassController: UITableViewController {
                 toggle.addTarget(self, action: #selector(animationsChanged(_:)), for: .valueChanged)
                 cell.accessoryView = toggle
                 cell.selectionStyle = .none
-            } else {
+            } else if indexPath.row == 2 {
                 cell.textLabel?.text = ru ? "Блики и контур" : "Highlights and rim"
                 cell.detailTextLabel?.text = ru ? "Подчеркнуть края нашего стекла" : "Accent the edges of Nebula glass"
                 let toggle = UISwitch()
@@ -100,11 +100,35 @@ final class NebulaGlassController: UITableViewController {
                 toggle.addTarget(self, action: #selector(highlightsChanged(_:)), for: .valueChanged)
                 cell.accessoryView = toggle
                 cell.selectionStyle = .none
+            } else if indexPath.row == 3 {
+                cell.textLabel?.text = ru ? "Тень и объём" : "Shadow and depth"
+                cell.detailTextLabel?.text = ru ? "Глубина краёв стекла" : "Depth around glass surfaces"
+                let toggle = UISwitch()
+                toggle.isOn = store.glassDepthEnabled
+                toggle.isEnabled = supportsDepth && !store.hasLoadError
+                toggle.accessibilityLabel = cell.textLabel?.text
+                toggle.addTarget(self, action: #selector(depthEnabledChanged(_:)), for: .valueChanged)
+                cell.accessoryView = toggle
+                cell.selectionStyle = .none
+            } else {
+                cell.textLabel?.text = depthTitle()
+                let slider = UISlider(frame: CGRect(x: 0, y: 0, width: 140, height: 44))
+                slider.minimumValue = 0; slider.maximumValue = 100; slider.value = Float(store.glassDepth)
+                slider.isEnabled = supportsDepth && store.glassDepthEnabled && !store.hasLoadError
+                slider.accessibilityLabel = ru ? "Глубина стекла" : "Glass depth"
+                slider.accessibilityValue = "\(store.glassDepth)%"
+                slider.addTarget(self, action: #selector(depthChanged(_:)), for: .valueChanged)
+                cell.accessoryView = slider; cell.selectionStyle = .none
             }
         }
         return cell
     }
     private func tintTitle() -> String { (ru ? "Тонировка · " : "Tint · ") + "\(store.iosGlassTint)%" }
+    private var supportsDepth: Bool {
+        if #available(iOS 26.0, *) { return store.iosGlassStyle != 0 }
+        return true
+    }
+    private func depthTitle() -> String { (ru ? "Глубина · " : "Depth · ") + "\(store.glassDepth)%" }
     private func set(_ value: Int, key: String) {
         do { try store.set(.integer(value), for: key); writeFailed = false } catch { writeFailed = true }
     }
@@ -112,6 +136,16 @@ final class NebulaGlassController: UITableViewController {
         set(Int(slider.value.rounded()), key: "ios_glass_tint")
         slider.accessibilityValue = "\(store.iosGlassTint)%"
         tableView.cellForRow(at: IndexPath(row: 0, section: 2))?.textLabel?.text = tintTitle()
+    }
+    @objc private func depthChanged(_ slider: UISlider) {
+        set(Int(slider.value.rounded()), key: "glass_depth")
+        slider.accessibilityValue = "\(store.glassDepth)%"
+        tableView.cellForRow(at: IndexPath(row: 4, section: 3))?.textLabel?.text = depthTitle()
+    }
+    @objc private func depthEnabledChanged(_ toggle: UISwitch) {
+        do { try store.set(.boolean(toggle.isOn), for: "glass_depth_enabled"); writeFailed = false }
+        catch { writeFailed = true; toggle.isOn = store.glassDepthEnabled }
+        refresh()
     }
     @objc private func animationsChanged(_ toggle: UISwitch) {
         do { try store.set(.boolean(toggle.isOn), for: "liquid_animations"); writeFailed = false }

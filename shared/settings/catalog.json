@@ -256,6 +256,31 @@
       "literal_default_binding": true
     },
     {
+      "key": "glass_depth",
+      "type": "integer",
+      "feature": "appearance.glass",
+      "android_store": "nebulagram",
+      "android_source": "NebulaGlass.java",
+      "transfer_v1": false,
+      "ios_status": "planned",
+      "ios_mapping": "adapt",
+      "default": 35,
+      "min": 0,
+      "max": 100
+    },
+    {
+      "key": "glass_depth_enabled",
+      "type": "boolean",
+      "feature": "appearance.glass",
+      "android_store": "nebulagram",
+      "android_source": "NebulaGlass.java",
+      "transfer_v1": false,
+      "ios_status": "planned",
+      "ios_mapping": "native",
+      "default": true,
+      "literal_default_binding": true
+    },
+    {
       "key": "glass_haptic_strength",
       "type": "integer",
       "feature": "appearance.glass",

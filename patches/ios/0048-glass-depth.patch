@@ -1,0 +1,43 @@
+diff --git a/submodules/TelegramUI/Components/GlassBackgroundComponent/Sources/GlassBackgroundComponent.swift b/submodules/TelegramUI/Components/GlassBackgroundComponent/Sources/GlassBackgroundComponent.swift
+--- a/submodules/TelegramUI/Components/GlassBackgroundComponent/Sources/GlassBackgroundComponent.swift
++++ b/submodules/TelegramUI/Components/GlassBackgroundComponent/Sources/GlassBackgroundComponent.swift
+@@ -494,6 +494,7 @@
+     private var nebulaSize: CGSize = .zero
+     private var nebulaReduced = false
+     private var nebulaObservation: SettingsObservation?
++    private let nebulaDepthView = UIView()
+     private let nebulaMaterial = UIVisualEffectView()
+     private var nebulaMaterialState: NebulaGlassMaterialState?
+     private lazy var nebulaMaterialClip = ClippingShapeContext(view: self.nebulaMaterial)
+@@ -550,6 +551,8 @@
+         nebulaMaterial.isUserInteractionEnabled = false
+         nebulaMaterial.clipsToBounds = true
+         insertSubview(nebulaMaterial, at: 0)
++        nebulaDepthView.isUserInteractionEnabled = false
++        insertSubview(nebulaDepthView, at: 0)
+         nebulaFallback.isUserInteractionEnabled = false
+         nebulaFallback.clipsToBounds = true
+         insertSubview(nebulaFallback, at: 0)
+@@ -883,4 +886,22 @@
+         legacyHighlightContainerView?.isHidden = nebulaCustom || !nebulaHighlights
+         nebulaMaterial.layer.borderWidth = nebulaCustom && nebulaHighlights ? 0.8 : 0.0
+         nebulaMaterial.layer.borderColor = UIColor.white.withAlphaComponent(isDark ? 0.22 : 0.70).cgColor
++        let nebulaDepth = NebulaSettingsStore.shared.glassDepthEnabled ? CGFloat(NebulaSettingsStore.shared.glassDepth) / 100.0 : 0.0
++        if let shadowView = self.shadowView {
++            shadowView.alpha = isVisible && !nebulaCustom ? nebulaDepth : 0.0
++        }
++        nebulaDepthView.isHidden = !nebulaCustom || !isVisible || nebulaDepth <= 0.0
++        if !nebulaDepthView.isHidden {
++            nebulaDepthView.frame = CGRect(origin: .zero, size: size)
++            nebulaDepthView.layer.shadowColor = UIColor.black.cgColor
++            nebulaDepthView.layer.shadowOpacity = Float(0.08 + nebulaDepth * 0.38)
++            nebulaDepthView.layer.shadowRadius = 4.0 + nebulaDepth * 18.0
++            nebulaDepthView.layer.shadowOffset = CGSize(width: 0.0, height: 2.0 + nebulaDepth * 9.0)
++            switch shape {
++            case let .roundedRect(radius):
++                nebulaDepthView.layer.shadowPath = UIBezierPath(roundedRect: CGRect(origin: .zero, size: size), cornerRadius: radius).cgPath
++            case let .customRoundedRect(cornerRadii):
++                nebulaDepthView.layer.shadowPath = Self.generateRoundedRectPath(size: size, cornerRadii: cornerRadii)
++            }
++        }
+         if nebulaCustom {

@@ -3,6 +3,23 @@ import XCTest
 @testable import NebulaSettingsContract
 
 final class SettingsStoreTests: XCTestCase {
+    func testGlassDepthPersistsLocallyWithoutTransfer() throws {
+        try withDefaults { defaults in
+            let store = NebulaSettingsStore(defaults: defaults)
+            XCTAssertEqual(store.glassDepth, 35)
+            XCTAssertTrue(store.glassDepthEnabled)
+            try store.set(.integer(72), for: "glass_depth")
+            try store.set(.boolean(false), for: "glass_depth_enabled")
+            let restored = NebulaSettingsStore(defaults: defaults)
+            XCTAssertEqual(restored.glassDepth, 72)
+            XCTAssertFalse(restored.glassDepthEnabled)
+            let preview = try store.previewImport(store.exportData())
+            XCTAssertFalse(preview.activeKeys.contains("glass_depth"))
+            XCTAssertFalse(preview.activeKeys.contains("glass_depth_enabled"))
+            XCTAssertThrowsError(try store.set(.integer(101), for: "glass_depth"))
+        }
+    }
+
     func testSearchAndGlassHighlightsPersistInTransfer() throws {
         try withDefaults { defaults in
             let store = NebulaSettingsStore(defaults: defaults)
