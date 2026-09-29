@@ -36,7 +36,7 @@ This inventory distinguishes **wired source** from native build and device accep
 | `custom_avatar_corners` | appearance.general | Pending native consumer | Local only |
 | `disable_next_channel` | chat.messages | Wired; native/device QA pending | Yes |
 | `floating_chat_header_v2` | chat.header | Pending native consumer | Yes |
-| `folder_outline` | navigation.folders | Pending native consumer | Yes |
+| `folder_outline` | navigation.folders | Wired; native/device QA pending | Yes |
 | `folder_style` | navigation.folders | Pending native consumer | Yes |
 | `folder_title` | navigation.folders | Wired; native/device QA pending | Yes |
 | `glass_blur` | appearance.glass | Pending native consumer | Local only |
@@ -123,3 +123,5 @@ This inventory distinguishes **wired source** from native build and device accep
 - The native round-video zoom build error was corrected: the selected wide-angle device uses the public maximum zoom API. The AI settings screen also no longer indexes beyond its section-icon array.
 - Local ordered-patch validation, settings contract/design guards and build-preparation tests passed. macOS Swift tests, native compilation/IPA and physical-device visual/performance acceptance are tracked separately. This batch does not complete the remaining Android-only visual switches listed above.
 - The home title follows the selected folder when enabled. It reads only a matching filter ID during swipes, and the switch updates the native header live. This addition still needs native compilation and device acceptance.
+- The native selected-folder pill can show a thin theme-colored outline. The tab node's existing settings observation updates it live; native compilation and device acceptance remain pending.
+- NebulaLink is the first destination on the NebulaGram settings entry screen. The settings list now uses Telegram's active presentation theme, including custom themes, instead of a separate forced palette.

@@ -79,6 +79,17 @@ final class SettingsStoreTests: XCTestCase {
         }
     }
 
+    func testFolderOutlinePersistsAndTransfers() throws {
+        try withDefaults { defaults in
+            let store = NebulaSettingsStore(defaults: defaults)
+            XCTAssertFalse(store.folderOutline)
+            try store.set(.boolean(true), for: "folder_outline")
+            XCTAssertTrue(NebulaSettingsStore(defaults: defaults).folderOutline)
+            XCTAssertTrue(try store.previewImport(store.exportData()).activeKeys.contains("folder_outline"))
+            XCTAssertThrowsError(try store.set(.integer(1), for: "folder_outline"))
+        }
+    }
+
     func testNativeNavigationControlsPersistAndKeepSettingsReachable() throws {
         try withDefaults { defaults in
             let store = NebulaSettingsStore(defaults: defaults)

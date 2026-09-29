@@ -132,6 +132,14 @@ public class NebulaSettingsFragment extends BaseFragment {
     }
 
     private void buildSections(Context context) {
+        sections.addView(NebulaCard.header(context, NebulaText.text("Подключение", "Connection")));
+        NebulaCard connection = new NebulaCard(context);
+        connection.add(new NebulaRow(context).icon(R.drawable.nebula_link_shield)
+                .title("NebulaLink")
+                .subtitle(NebulaText.text("Серверы и подписка", "Servers and subscription"), false)
+                .trailing(NebulaRow.TRAIL_CHEVRON)
+                .withClick(v -> presentFragment(new NebulaMenuFragment())));
+        sections.addView(connection, cardParams());
         sections.addView(NebulaCard.header(context, NebulaText.text("Настройки", "Settings")));
         NebulaCard categories = new NebulaCard(context);
         categories.add(hub(context, R.drawable.msg_settings, "Основные", "General",
@@ -149,14 +157,6 @@ public class NebulaSettingsFragment extends BaseFragment {
         categories.add(section(context, R.drawable.msg_info, R.string.NebulaSectionAbout,
                 R.string.NebulaAboutSub, NebulaSectionFragment.SECTION_ABOUT));
         sections.addView(categories, cardParams());
-        sections.addView(NebulaCard.header(context, NebulaText.text("Подключение", "Connection")));
-        NebulaCard connection = new NebulaCard(context);
-        connection.add(new NebulaRow(context).icon(R.drawable.nebula_link_shield)
-                .title("NebulaLink")
-                .subtitle(NebulaText.text("Серверы и подписка", "Servers and subscription"), false)
-                .trailing(NebulaRow.TRAIL_CHEVRON)
-                .withClick(v -> presentFragment(new NebulaMenuFragment())));
-        sections.addView(connection, cardParams());
     }
 
     private NebulaRow hub(Context context, int icon, String titleRu, String titleEn,

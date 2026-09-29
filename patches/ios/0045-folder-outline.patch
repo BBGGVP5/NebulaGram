@@ -1,0 +1,14 @@
+diff --git a/submodules/TelegramUI/Components/ChatList/ChatListFilterTabContainerNode/Sources/ChatListFilterTabContainerNode.swift b/submodules/TelegramUI/Components/ChatList/ChatListFilterTabContainerNode/Sources/ChatListFilterTabContainerNode.swift
+--- a/submodules/TelegramUI/Components/ChatList/ChatListFilterTabContainerNode/Sources/ChatListFilterTabContainerNode.swift
++++ b/submodules/TelegramUI/Components/ChatList/ChatListFilterTabContainerNode/Sources/ChatListFilterTabContainerNode.swift
+@@ -723,1 +723,10 @@
++        // Keep the native selected-folder pill; the optional contour follows
++        // the current Telegram theme and the existing live settings observer.
++        if NebulaSettingsStore.shared.folderOutline {
++            self.selectedBackgroundNode.layer.cornerRadius = 18.0
++            self.selectedBackgroundNode.layer.borderWidth = 1.0
++            self.selectedBackgroundNode.layer.borderColor = presentationData.theme.chat.inputPanel.panelControlColor.withAlphaComponent(0.35).cgColor
++        } else {
++            self.selectedBackgroundNode.layer.borderWidth = 0.0
++        }
+         if isReordering {

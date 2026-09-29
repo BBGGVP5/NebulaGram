@@ -77,7 +77,7 @@ private enum NebulaSettingsEntry: ItemListNodeEntry {
         case .search: return -2
         case .empty: return -1
         case .toolsHeader: return 0
-        case .link: return 10
+        case .link: return 1
         case .ai: return 20
         case .buildInfo: return 25
         case .appearanceHeader: return 30
@@ -104,11 +104,12 @@ private enum NebulaSettingsEntry: ItemListNodeEntry {
             case "centered_chat_header": return 68
             case "disable_next_channel": return 69
             case "folder_title": return 71
+            case "folder_outline": return 79
             default: return 72
             }
-        case .widePosts: return 79
+        case .widePosts: return 80
         case .stories: return 70
-        case .header: return 80
+        case .header: return 81
         case .hideCounters: return 90
         case .footer: return 100
         case .privacyHeader: return 110
@@ -149,6 +150,7 @@ private enum NebulaSettingsEntry: ItemListNodeEntry {
             case "centered_chat_header": return 37
             case "disable_next_channel": return 38
             case "folder_title": return 40
+            case "folder_outline": return 47
             default: return 39
             }
         case .glass: return 12
@@ -288,17 +290,7 @@ public func nebulaSettingsController(context: AccountContext, page: Int = 0) -> 
     let signal = combineLatest(queue: .mainQueue(), context.sharedContext.presentationData, settings, writeFailed.get(), searchQuery.get())
     |> deliverOnMainQueue
     |> map { presentationData, hideCounters, failed, query -> (ItemListControllerState, (ItemListNodeState, Any)) in
-        // A custom Telegram theme must not recolor Nebula settings.
-        let baseTheme = makeDefaultPresentationTheme(
-            reference: UIScreen.main.traitCollection.userInterfaceStyle == .dark ? .night : .day,
-            serviceBackgroundColor: nil)
-        let accent = UIScreen.main.traitCollection.userInterfaceStyle == .dark
-            ? UIColor(red: 168.0 / 255.0, green: 199.0 / 255.0, blue: 250.0 / 255.0, alpha: 1)
-            : UIColor(red: 60.0 / 255.0, green: 141.0 / 255.0, blue: 240.0 / 255.0, alpha: 1)
-        let settingsTheme = customizePresentationTheme(baseTheme, editing: true, accentColor: accent,
-            outgoingAccentColor: nil, backgroundColors: [], bubbleColors: [], animateBubbleColors: nil)
-            .withModalBlocksBackground()
-        let presentationData = presentationData.withUpdated(theme: settingsTheme)
+        // Follow the active Telegram theme, including custom backgrounds and accents.
         let ru = presentationData.strings.baseLanguageCode.lowercased().hasPrefix("ru")
         arguments.russian = ru
         let modes = ru ? ["Автоматически", "Полное", "Облегчённое"] : ["Automatic", "Full", "Light"]
@@ -361,6 +353,7 @@ public func nebulaSettingsController(context: AccountContext, page: Int = 0) -> 
             .navigationToggle("menu_call", ru ? "Звонок в меню чата" : "Voice call in chat menu", store.menuCall, !store.hasLoadError),
             .navigationToggle("menu_video", ru ? "Видеозвонок в меню чата" : "Video call in chat menu", store.menuVideo, !store.hasLoadError),
             .navigationToggle("folder_title", ru ? "Имя выбранной папки в шапке" : "Selected folder in header", store.folderTitle, !store.hasLoadError),
+            .navigationToggle("folder_outline", ru ? "Контур выбранной папки" : "Selected folder outline", store.folderOutline, !store.hasLoadError),
             .navigationToggle("centered_chat_header", ru ? "Заголовок чата по центру" : "Center chat title", store.centeredChatHeader, !store.hasLoadError),
             .navigationToggle("disable_next_channel", ru ? "Скрыть переход к следующему каналу" : "Hide next-channel prompt", store.disableNextChannel, !store.hasLoadError),
             .navigationToggle("seconds_in_time", ru ? "Секунды во времени сообщений" : "Show seconds in message times", store.secondsInTime, !store.hasLoadError),
@@ -382,6 +375,7 @@ public func nebulaSettingsController(context: AccountContext, page: Int = 0) -> 
             entries = [
                 .search(query, ru ? "Поиск настроек" : "Search settings"),
                 .toolsHeader(ru ? "Разделы" : "Sections"),
+                .link("NebulaLink"),
                 .category(1, ru ? "Основные" : "General", ru ? "Подключение, ИИ, сборка" : "Connection, AI, build", "gearshape"),
                 .category(2, ru ? "Внешний вид" : "Appearance", ru ? "Стекло, значки, панели" : "Glass, icons, tabs", "paintpalette"),
                 .category(3, ru ? "Чаты" : "Chats", ru ? "Список, сообщения, меню" : "List, messages, menus", "bubble.left"),
