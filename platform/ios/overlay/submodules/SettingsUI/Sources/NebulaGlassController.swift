@@ -27,7 +27,7 @@ final class NebulaGlassController: UITableViewController {
     @objc private func refresh() { tableView.reloadData(); preview.setNeedsLayout() }
     override func numberOfSections(in tableView: UITableView) -> Int { 4 }
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        section == 1 ? styles.count : (section == 3 ? 2 : 1)
+        section == 1 ? styles.count : (section == 3 ? 3 : 1)
     }
     override func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
         section == 1 ? (ru ? "Оформление" : "Appearance") : nil
@@ -41,7 +41,7 @@ final class NebulaGlassController: UITableViewController {
         let reduced = NebulaGlassPolicy.reduced(mode: store.glassQuality, lowPower: ProcessInfo.processInfo.isLowPowerModeEnabled,
             hot: ProcessInfo.processInfo.thermalState.rawValue >= ProcessInfo.ThermalState.serious.rawValue, reduceTransparency: false)
         if reduced { return ru ? "Сейчас облегчённый материал. Авто включает его при энергосбережении и нагреве." : "Light material is active. Auto uses it in Low Power Mode or during thermal pressure." }
-        if #available(iOS 26.0, *) { return ru ? "Анимация действует только для системного Liquid Glass. Снижение движения в iOS отключает её. Панель вкладок сохраняет нативное оформление." : "Animation applies only to system Liquid Glass. Reduce Motion disables it. The tab bar keeps its native appearance." }
+        if #available(iOS 26.0, *) { return ru ? "Анимация действует только для системного Liquid Glass. Блики системного материала регулирует iOS; наше стекло использует переключатель ниже." : "Animation applies only to system Liquid Glass. iOS controls its highlights; the switch below affects our glass." }
         return ru ? "На этой версии iOS доступно матовое размытие. Для Liquid Glass нужна iOS 26." : "This iOS version uses frosted blur. Liquid Glass requires iOS 26."
     }
     override func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
@@ -72,7 +72,7 @@ final class NebulaGlassController: UITableViewController {
             if indexPath.row == 0 {
                 cell.textLabel?.text = ru ? "Качество" : "Quality"
                 cell.detailTextLabel?.text = qualities[store.glassQuality]; cell.accessoryType = .disclosureIndicator
-            } else {
+            } else if indexPath.row == 1 {
                 cell.textLabel?.text = ru ? "Анимация жидкого стекла" : "Liquid glass animation"
                 cell.detailTextLabel?.text = ru ? "Отклик системного эффекта" : "System glass interaction"
                 let toggle = UISwitch()
@@ -84,6 +84,20 @@ final class NebulaGlassController: UITableViewController {
                 }
                 toggle.accessibilityLabel = cell.textLabel?.text
                 toggle.addTarget(self, action: #selector(animationsChanged(_:)), for: .valueChanged)
+                cell.accessoryView = toggle
+                cell.selectionStyle = .none
+            } else {
+                cell.textLabel?.text = ru ? "Блики и контур" : "Highlights and rim"
+                cell.detailTextLabel?.text = ru ? "Подчеркнуть края нашего стекла" : "Accent the edges of Nebula glass"
+                let toggle = UISwitch()
+                toggle.isOn = store.glassHighlights
+                if #available(iOS 26.0, *) {
+                    toggle.isEnabled = store.iosGlassStyle != 0 && !store.hasLoadError
+                } else {
+                    toggle.isEnabled = !store.hasLoadError
+                }
+                toggle.accessibilityLabel = cell.textLabel?.text
+                toggle.addTarget(self, action: #selector(highlightsChanged(_:)), for: .valueChanged)
                 cell.accessoryView = toggle
                 cell.selectionStyle = .none
             }
@@ -102,6 +116,11 @@ final class NebulaGlassController: UITableViewController {
     @objc private func animationsChanged(_ toggle: UISwitch) {
         do { try store.set(.boolean(toggle.isOn), for: "liquid_animations"); writeFailed = false }
         catch { writeFailed = true; toggle.isOn = store.liquidAnimations }
+        refresh()
+    }
+    @objc private func highlightsChanged(_ toggle: UISwitch) {
+        do { try store.set(.boolean(toggle.isOn), for: "glass_highlights"); writeFailed = false }
+        catch { writeFailed = true; toggle.isOn = store.glassHighlights }
         refresh()
     }
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {

@@ -3,6 +3,23 @@ import XCTest
 @testable import NebulaSettingsContract
 
 final class SettingsStoreTests: XCTestCase {
+    func testSearchAndGlassHighlightsPersistInTransfer() throws {
+        try withDefaults { defaults in
+            let store = NebulaSettingsStore(defaults: defaults)
+            XCTAssertFalse(store.hideSearchField)
+            XCTAssertTrue(store.glassHighlights)
+            try store.set(.boolean(true), for: "hide_search_field")
+            try store.set(.boolean(false), for: "glass_highlights")
+            let restored = NebulaSettingsStore(defaults: defaults)
+            XCTAssertTrue(restored.hideSearchField)
+            XCTAssertFalse(restored.glassHighlights)
+            let preview = try store.previewImport(store.exportData())
+            XCTAssertTrue(preview.activeKeys.contains("hide_search_field"))
+            XCTAssertTrue(preview.activeKeys.contains("glass_highlights"))
+            XCTAssertThrowsError(try store.set(.integer(1), for: "glass_highlights"))
+        }
+    }
+
     func testChatDividerPreferencePersistsAndTransfers() throws {
         try withDefaults { defaults in
             let store = NebulaSettingsStore(defaults: defaults)

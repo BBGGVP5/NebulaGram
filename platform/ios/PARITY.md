@@ -43,7 +43,7 @@ This inventory distinguishes **wired source** from native build and device accep
 | `glass_custom` | appearance.glass | Pending native consumer | Local only |
 | `glass_haptic_strength` | appearance.glass | Pending native consumer | Local only |
 | `glass_haptics` | appearance.glass | Pending native consumer | Local only |
-| `glass_highlights` | appearance.glass | Pending native consumer | Yes |
+| `glass_highlights` | appearance.glass | Wired for custom/legacy glass; native/device QA pending | Yes |
 | `glass_opacity` | appearance.glass | Pending native consumer | Local only |
 | `glass_quality` | appearance.glass | Wired; native/device QA pending | Yes |
 | `glass_refraction` | appearance.glass | Pending native consumer | Local only |
@@ -128,3 +128,4 @@ This inventory distinguishes **wired source** from native build and device accep
 - Nebula AI now has a chat list and switches between bounded conversations. Successful turns stay in memory; they persist locally only when AI history is enabled. The model label has a dedicated full-width row. Native build and device behavior remain to be verified.
 - Custom iOS glass now uses the regular system glass effect (or a thicker supported blur) and a 30% default theme tint. Existing saved tint choices remain unchanged. The Telegram default material is unaffected; device visual acceptance is pending.
 - The native chat-list search row can now be hidden while leaving search activation intact; an active search still owns its field. The round-video ruler now scrolls underneath a fixed center indicator on Android and iOS. Device visual and gesture checks remain pending.
+- The glass highlights switch now controls the custom material rim and legacy highlight container. It is disabled for system Liquid Glass on iOS 26, whose highlights are OS-owned. Native compilation and device visual acceptance remain pending.
