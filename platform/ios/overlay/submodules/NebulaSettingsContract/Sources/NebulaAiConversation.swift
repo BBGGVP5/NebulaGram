@@ -1,6 +1,6 @@
 import Foundation
 
-/// Successful turns only; never loads persisted history into a new conversation.
+/// Successful turns only; the selected chat supplies its own bounded context.
 public struct NebulaAiConversation {
     private var turns: [(String, String)] = []
     private var identity = ""

@@ -2,7 +2,7 @@ package app.nebulagram.ui;
 
 import java.util.ArrayList;
 
-/** Ephemeral successful turns only. Never mixes provider conversations or loads saved history silently. */
+/** Bounded successful turns for the selected chat and model. */
 public final class NebulaAiConversation {
     private final ArrayList<String[]> turns = new ArrayList<>();
     private String identity = "";

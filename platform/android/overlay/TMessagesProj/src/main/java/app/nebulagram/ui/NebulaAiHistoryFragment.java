@@ -32,21 +32,26 @@ public final class NebulaAiHistoryFragment extends BaseFragment {
                 NebulaText.text("История запросов", "Request history"),
                 NebulaText.text("Сохраняется только на этом устройстве и только после включения в настройках ИИ.", "Stored only on this device, and only when enabled in AI settings.")));
         JSONArray items = NebulaAiHistory.items();
+        boolean savedChats = false;
+        for (NebulaAiChats.Chat chat : NebulaAiChats.list()) if (!chat.turns.isEmpty()) { savedChats = true; break; }
         if (items.length() == 0) {
-            content.addView(NebulaMenuFragment.placeholder(context, NebulaText.text("История пока пуста", "No history yet")));
-            return;
+            content.addView(NebulaMenuFragment.placeholder(context, NebulaText.text(
+                    savedChats ? "Отдельных запросов пока нет. Беседы доступны в ИИ-чате." : "История пока пуста",
+                    savedChats ? "No individual requests yet. Conversations are available in AI chat." : "No history yet")));
+        } else {
+            NebulaCard card = new NebulaCard(context);
+            for (int i = 0; i < items.length(); i++) {
+                JSONObject item = items.optJSONObject(i); if (item == null) continue;
+                addEntry(context, card, item.optString("provider"), item.optString("input"), item.optString("output"));
+            }
+            content.addView(card);
         }
-        NebulaCard card = new NebulaCard(context);
-        for (int i = 0; i < items.length(); i++) {
-            JSONObject item = items.optJSONObject(i); if (item == null) continue;
-            addEntry(context, card, item.optString("provider"), item.optString("input"), item.optString("output"));
-        }
-        content.addView(card);
+        if (items.length() == 0 && !savedChats) return;
         NebulaCard actions = new NebulaCard(context);
         actions.add(new NebulaRow(context).icon(R.drawable.msg_delete)
                 .title(NebulaText.text("Очистить историю", "Clear history"))
                 .trailing(NebulaRow.TRAIL_CHEVRON).withClick(v -> showDialog(new NebulaDialog.Builder(context)
-                        .setMessage(NebulaText.text("Удалить сохранённые запросы на этом устройстве?", "Delete saved requests from this device?"))
+                        .setMessage(NebulaText.text("Удалить сохранённые запросы и чаты на этом устройстве?", "Delete saved requests and chats from this device?"))
                         .setNegativeButton(NebulaText.text("Отмена", "Cancel"), null)
                         .setPositiveButton(NebulaText.text("Очистить", "Clear"), (d, which) -> { NebulaAiHistory.clear(); NebulaAiChats.clear(); build(context); }).create())));
         content.addView(actions);

@@ -101,7 +101,10 @@ public final class NebulaAiChats {
                 data.put("id", chat.id); data.put("title", chat.title); data.put("identity", chat.identity);
                 JSONArray turns = new JSONArray();
                 for (String[] turn : chat.turns) turns.put(new JSONArray().put(turn[0]).put(turn[1]));
-                data.put("turns", turns); array.put(data);
+                data.put("turns", turns);
+                // Bound SharedPreferences work on the UI thread even after many chats.
+                if (array.toString().length() + data.toString().length() > 700_000) break;
+                array.put(data);
             }
             prefs().edit().putString("chats", array.toString()).putString("selected", selected).apply();
         } catch (Exception ignored) { }

@@ -160,7 +160,12 @@ public final class NebulaAiChatController: UIViewController, UITextViewDelegate 
         NotificationCenter.default.addObserver(self, selector: #selector(appInactive), name: UIApplication.willResignActiveNotification, object: nil)
         restoreChat(chats.current()); refreshStatus(); updateSend(); textViewDidChange(composer)
     }
-    public override func viewDidAppear(_ animated: Bool) { super.viewDidAppear(animated); appActive() }
+    public override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        let selected = chats.current()
+        if selected.id != chatId { restoreChat(selected) }
+        appActive()
+    }
     public override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated); appInactive()
         cancel(showMessage: work != nil)
@@ -292,6 +297,7 @@ public final class NebulaAiChatController: UIViewController, UITextViewDelegate 
         let current = instruction.isEmpty ? input : instruction + "\n\n" + input
         let identity = "\(settings.provider.rawValue):\(settings.model(for: settings.provider)):\(settings.customEndpoint):\(action)"
         let selectedChat = chats.current()
+        if selectedChat.id != chatId { restoreChat(selectedChat) }
         if !selectedChat.identity.isEmpty && selectedChat.identity != identity { restoreChat(chats.fresh()) }
         conversation.select(identity)
         guard let request = conversation.request(current, limit: settings.provider == .appleIntelligence ? 9_500 : 49_000) else {

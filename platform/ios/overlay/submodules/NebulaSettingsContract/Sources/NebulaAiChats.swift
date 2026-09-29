@@ -85,9 +85,14 @@ public final class NebulaAiChats {
     }
     private func persist() {
         guard settings.historyEnabled else { return }
-        let saved = chats.filter { !$0.turns.isEmpty }
-        guard let data = try? JSONEncoder().encode(saved), data.count <= 2_000_000 else { return }
-        defaults.set(data, forKey: Self.storageKey)
-        defaults.set(selected?.uuidString, forKey: Self.selectedKey)
+        var saved = chats.filter { !$0.turns.isEmpty }
+        while !saved.isEmpty {
+            if let data = try? JSONEncoder().encode(saved), data.count <= 2_000_000 {
+                defaults.set(data, forKey: Self.storageKey)
+                defaults.set(selected?.uuidString, forKey: Self.selectedKey)
+                return
+            }
+            saved.removeLast()
+        }
     }
 }

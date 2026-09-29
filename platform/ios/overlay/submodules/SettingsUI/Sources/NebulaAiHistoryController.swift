@@ -26,7 +26,8 @@ final class NebulaAiHistoryController: UITableViewController {
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         records = history.entries()
-        navigationItem.rightBarButtonItem?.isEnabled = !records.isEmpty
+        let hasChats = NebulaAiChats.shared.list().contains { !$0.turns.isEmpty }
+        navigationItem.rightBarButtonItem?.isEnabled = !records.isEmpty || hasChats
         tableView.reloadData()
     }
 
@@ -48,8 +49,8 @@ final class NebulaAiHistoryController: UITableViewController {
         cell.detailTextLabel?.adjustsFontForContentSizeCategory = true
         if indexPath.row == 0 {
             cell.textLabel?.text = text("Сохранять историю ИИ", "Save AI history")
-            cell.detailTextLabel?.text = text("Запросы сохраняются только после включения этого переключателя.",
-                                              "Requests are saved only after this switch is enabled.")
+            cell.detailTextLabel?.text = text("Запросы и чаты сохраняются только после включения этого переключателя.",
+                                              "Requests and chats are saved only after this switch is enabled.")
             let toggle = UISwitch()
             toggle.isOn = history.isEnabled
             toggle.addTarget(self, action: #selector(toggleHistory(_:)), for: .valueChanged)
@@ -66,8 +67,8 @@ final class NebulaAiHistoryController: UITableViewController {
 
     @objc private func confirmClear() {
         let alert = UIAlertController(title: text("Очистить историю ИИ?", "Clear AI history?"),
-            message: text("Все сохранённые запросы и ответы на этом устройстве будут удалены.",
-                          "All saved requests and answers on this device will be removed."), preferredStyle: .alert)
+            message: text("Все сохранённые чаты, запросы и ответы на этом устройстве будут удалены.",
+                          "All saved chats, requests and answers on this device will be removed."), preferredStyle: .alert)
         alert.addAction(UIAlertAction(title: text("Отмена", "Cancel"), style: .cancel))
         alert.addAction(UIAlertAction(title: text("Очистить", "Clear"), style: .destructive) { [weak self] _ in
             guard let self = self else { return }
