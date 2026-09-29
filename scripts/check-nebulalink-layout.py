@@ -53,7 +53,8 @@ for block, values in ((order, order_values), (ids, id_values)):
     assert len(nested) == len({number for _, number in nested})
     assert {name for name, _ in nested} == {"bottom_bar_profile", "bottom_bar_settings", "tab_labels",
         "compact_bottom_bar", "hide_home_camera", "hide_home_compose", "hide_send_as",
-        "centered_chat_header", "disable_next_channel"}
+        "hide_attach_camera", "hide_dividers", "menu_search", "menu_mute", "menu_call",
+        "menu_video", "centered_chat_header", "disable_next_channel", "folder_title"}
     assert not ({number for _, number in values} & {number for _, number in nested})
 assert 'entries.sort()' in settings and 'return lhs.order < rhs.order' in settings
 assert 'case .link: return 7' in ids and 'case .hideCounters: return 1' in ids

@@ -11,6 +11,7 @@
 | 0001-nebula-settings-bootstrap.patch | `PeerInfoScreen/Sources/PeerInfoScreenSettingsActions.swift` | `case .appearance` | Переход к нативному экрану | 2 |
 | 0001-nebula-settings-bootstrap.patch | `ChatListFilterTabContainerNode/BUILD` | `deps` | Зависимость полосы папок от store | 1 |
 | 0001-nebula-settings-bootstrap.patch | `ChatListFilterTabContainerNode/Sources/ChatListFilterTabContainerNode.swift` | `updateText`, `updateLayout`, конец `init` | Скрытие счётчиков и их ширины, наблюдение с освобождением токена. Настоящие числа и VoiceOver не меняются | 14 |
+| 0038-folder-title-native.patch | `submodules/ChatListUI/Sources/ChatListController.swift` | `ChatListLocationContext.updateChatList` | Показывает выбранную папку в заголовке главной при совпадении ID с видимым списком; при быстром свайпе не подставляет название прежней папки | 17 |
 | 0039-hide-attachment-camera.patch | `submodules/MediaPickerUI/Sources/MediaPickerScreen.swift` | `MediaPickerScreenImpl.Node.init` | Убирает камеру из первой ячейки обычной галереи вложений, сохраняя явную съёмку и создание аватара/стикера | 3 |
 | 0040-chat-menu-search.patch | `submodules/TelegramUI/Sources/ChatController.swift` | `Conversation_Search` в меню аватара | Настройка поиска только в меню собеседника и темы, без отключения штатного поиска по сообщениям | 4 |
 | 0041-topic-mute-menu.patch | `submodules/TelegramUI/Sources/ChatController.swift` | Меню аватара темы | Показывает существующее нативное действие отключения уведомлений темы по настройке `menu_mute` | 4 |

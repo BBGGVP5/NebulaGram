@@ -11,5 +11,6 @@
 - [x] Respect the next-channel prompt preference in the existing chat history offer without changing navigation or unread state.
 - [x] Use Telegram's existing seconds-aware timestamp formatter in message status, including edited and imported dates, and refresh open chats when toggled.
 - [ ] Adapt chat header and folder presentation controls to the existing iOS nodes. Reuse native layout paths and run ordered patch validation.
+  - [x] Wire the selected folder title to the native home header with a guarded filter ID and live settings observation.
 - [ ] Inventory Android-only profile/menu/font switches. Implement UIKit-equivalent consumers where public hooks exist; leave Android-only values pending rather than exposing a switch with no effect.
 - [ ] Compile Swift contract and patched UIKit/Telegram modules, then build IPA. Record native and device validation separately.

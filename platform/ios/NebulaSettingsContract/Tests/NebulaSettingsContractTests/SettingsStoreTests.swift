@@ -67,6 +67,18 @@ final class SettingsStoreTests: XCTestCase {
         }
     }
 
+    func testFolderTitlePersistsAndTransfers() throws {
+        try withDefaults { defaults in
+            let store = NebulaSettingsStore(defaults: defaults)
+            XCTAssertTrue(store.folderTitle)
+            try store.set(.boolean(false), for: "folder_title")
+            XCTAssertFalse(store.folderTitle)
+            XCTAssertFalse(NebulaSettingsStore(defaults: defaults).folderTitle)
+            XCTAssertTrue(try store.previewImport(store.exportData()).activeKeys.contains("folder_title"))
+            XCTAssertThrowsError(try store.set(.integer(1), for: "folder_title"))
+        }
+    }
+
     func testNativeNavigationControlsPersistAndKeepSettingsReachable() throws {
         try withDefaults { defaults in
             let store = NebulaSettingsStore(defaults: defaults)

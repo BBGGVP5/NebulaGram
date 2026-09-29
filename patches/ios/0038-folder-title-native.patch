@@ -1,0 +1,41 @@
+diff --git a/submodules/ChatListUI/Sources/ChatListController.swift b/submodules/ChatListUI/Sources/ChatListController.swift
+index 428804d..cb128a6 100644
+--- a/submodules/ChatListUI/Sources/ChatListController.swift
++++ b/submodules/ChatListUI/Sources/ChatListController.swift
+@@ -6769,6 +6769,7 @@ private final class ChatListLocationContext {
+     let context: AccountContext
+     let location: ChatListControllerLocation
+     weak var parentController: ChatListControllerImpl?
++    weak var containerNode: ChatListContainerNode?
+     
+     private var proxyUnavailableTooltipController: TooltipController?
+     private var didShowProxyUnavailableTooltipController = false
+@@ -6819,6 +6820,7 @@ private final class ChatListLocationContext {
+         self.context = context
+         self.location = location
+         self.parentController = parentController
++        self.containerNode = containerNode
+         
+         let hasProxy = context.sharedContext.accountManager.sharedData(keys: [SharedDataKeys.proxySettings])
+         |> map { sharedData -> (Bool, Bool) in
+@@ -7170,7 +7172,19 @@ private final class ChatListLocationContext {
+         switch location {
+         case let .chatList(groupId):
+             if groupId == .root {
+-                defaultTitle = presentationData.strings.DialogList_Title
++                // Read the visible filter only when its id matches the state
++                // update. During a fast folder swipe the node can still show
++                // the previous filter for one frame.
++                if NebulaSettingsStore.shared.folderTitle,
++                   let selectedId = stateAndFilterId.filterId,
++                   let filter = self.containerNode?.currentItemNode.chatListFilter,
++                   filter.id == selectedId,
++                   case let .filter(_, folderTitle, _, _) = filter,
++                   !folderTitle.text.isEmpty {
++                    defaultTitle = folderTitle.text
++                } else {
++                    defaultTitle = presentationData.strings.DialogList_Title
++                }
+             } else {
+                 defaultTitle = presentationData.strings.ChatList_ArchivedChatsTitle
+             }

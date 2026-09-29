@@ -38,7 +38,7 @@ This inventory distinguishes **wired source** from native build and device accep
 | `floating_chat_header_v2` | chat.header | Pending native consumer | Yes |
 | `folder_outline` | navigation.folders | Pending native consumer | Yes |
 | `folder_style` | navigation.folders | Pending native consumer | Yes |
-| `folder_title` | navigation.folders | Pending native consumer | Yes |
+| `folder_title` | navigation.folders | Wired; native/device QA pending | Yes |
 | `glass_blur` | appearance.glass | Pending native consumer | Local only |
 | `glass_custom` | appearance.glass | Pending native consumer | Local only |
 | `glass_haptic_strength` | appearance.glass | Pending native consumer | Local only |
@@ -122,3 +122,4 @@ This inventory distinguishes **wired source** from native build and device accep
 - Apple local AI reports whether hardware is unsupported, Apple Intelligence is disabled or the model is preparing. It refreshes on foregrounding. Gemini Nano remains Android-only; local requests never silently switch to a remote provider.
 - The native round-video zoom build error was corrected: the selected wide-angle device uses the public maximum zoom API. The AI settings screen also no longer indexes beyond its section-icon array.
 - Local ordered-patch validation, settings contract/design guards and build-preparation tests passed. macOS Swift tests, native compilation/IPA and physical-device visual/performance acceptance are tracked separately. This batch does not complete the remaining Android-only visual switches listed above.
+- The home title follows the selected folder when enabled. It reads only a matching filter ID during swipes, and the switch updates the native header live. This addition still needs native compilation and device acceptance.
