@@ -1,0 +1,26 @@
+--- a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
+@@ -653,6 +653,7 @@
+     private boolean nebulaCenterTitle() {
+         if ((!nebulaHomeTabsGlass && !app.nebulagram.ui.NebulaAppearance.centerHome())
+-                || (isSearchFieldVisible && !nebulaHomeTabsGlass) || getActionModeFactor() != 0) return false;
++                || (isSearchFieldVisible && !nebulaHomeTabsGlass)
++                || (getActionModeFactor() != 0 && !nebulaHomeTabsGlass)) return false;
+         if (parentFragment instanceof org.telegram.ui.DialogsActivity) {
+             return ((org.telegram.ui.DialogsActivity) parentFragment).nebulaIsHeaderExpanded();
+         }
+@@ -2563,5 +2564,13 @@
+         }
+         if (glassDrawableBack != null && hasBackButton) {
+-            glassDrawableBack.setBounds(0, t, nebulaBackWidth, b);
++            if (nebulaProfileGlass) {
++                // Match the individual 46dp liquid-glass menu controls instead
++                // of the wider default back capsule. Both share one material.
++                final int cx = Math.round(backButtonImageView.getX() + backButtonImageView.getWidth() / 2f);
++                final int cy = (t + b) / 2;
++                glassDrawableBack.setBounds(cx - dp(23), cy - dp(23), cx + dp(23), cy + dp(23));
++            } else {
++                glassDrawableBack.setBounds(0, t, nebulaBackWidth, b);
++            }
+             glassDrawableBack.draw(canvas);
+         }
