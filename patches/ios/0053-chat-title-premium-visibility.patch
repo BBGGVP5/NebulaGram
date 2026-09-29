@@ -47,7 +47,7 @@ index db51166..e4e1c51 100644
 +                            } else if peer.isPremium && !component.hidePremiumStatus && !premiumConfiguration.isPremiumDisabled {
                                  titleCredibilityIcon = .premium
 diff --git a/submodules/TelegramUI/Components/ChatTitleView/Sources/ChatTitleView.swift b/submodules/TelegramUI/Components/ChatTitleView/Sources/ChatTitleView.swift
-index 6362ebf..6ceeb62 100644
+index 6362ebf..39e25ad 100644
 --- a/submodules/TelegramUI/Components/ChatTitleView/Sources/ChatTitleView.swift
 +++ b/submodules/TelegramUI/Components/ChatTitleView/Sources/ChatTitleView.swift
 @@ -217,2 +217,3 @@ public final class ChatTitleView: UIView, NavigationBarTitleView {
@@ -62,7 +62,7 @@ index 6362ebf..6ceeb62 100644
 -                                    } else if peer.isPremium && !premiumConfiguration.isPremiumDisabled {
 +                                    } else if peer.isPremium && !NebulaSettingsStore.shared.hidePremiumStatus && !premiumConfiguration.isPremiumDisabled {
                                          titleCredibilityIcon = .premium
-@@ -806,4 +807,9 @@ public final class ChatTitleView: UIView, NavigationBarTitleView {
+@@ -806,4 +807,10 @@ public final class ChatTitleView: UIView, NavigationBarTitleView {
              let centered = NebulaSettingsStore.shared.centeredChatHeader
 -            guard self.nebulaWasCentered != centered else { return }
 +            let premiumHidden = NebulaSettingsStore.shared.hidePremiumStatus
@@ -70,6 +70,7 @@ index 6362ebf..6ceeb62 100644
              self.nebulaWasCentered = centered
 +            if self.nebulaWasPremiumHidden != premiumHidden {
 +                self.nebulaWasPremiumHidden = premiumHidden
-+                self.titleContent = self.titleContent
++                let currentTitleContent = self.titleContent
++                self.titleContent = currentTitleContent
 +            }
              self.requestUpdate?(.immediate)
