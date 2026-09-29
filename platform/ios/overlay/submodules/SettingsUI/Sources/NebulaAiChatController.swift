@@ -44,11 +44,15 @@ public final class NebulaAiChatController: UIViewController, UITextViewDelegate 
     private var work: Task<Void, Never>?
     private var gate = NebulaAiRequestGate()
     private var conversation = NebulaAiConversation()
+    private let chats = NebulaAiChats.shared
+    private var chatId: UUID?
+    private var restoring = false
     private var readinessTimer: Timer?
     private let scroll = UIScrollView()
     private let messages = UIStackView()
     private let composer = UITextView()
     private let providerLabel = UILabel()
+    private let chatsButton = UIButton(type: .system)
     private let actionButton = UIButton(type: .system)
     private let sendButton = UIButton(type: .system)
     private var composerHeight: NSLayoutConstraint!
@@ -85,12 +89,8 @@ public final class NebulaAiChatController: UIViewController, UITextViewDelegate 
         super.viewDidLoad()
         view.backgroundColor = .systemBackground
         navigationItem.leftBarButtonItem = UIBarButtonItem(barButtonSystemItem: .close, target: self, action: #selector(close))
-        navigationItem.rightBarButtonItems = [
-            UIBarButtonItem(image: UIImage(systemName: "slider.horizontal.3"), style: .plain, target: self, action: #selector(openSettings)),
-            UIBarButtonItem(image: UIImage(systemName: "square.and.pencil"), style: .plain, target: self, action: #selector(newChat))
-        ]
-        navigationItem.rightBarButtonItems?[0].accessibilityLabel = text("Настройки ИИ", "AI settings")
-        navigationItem.rightBarButtonItems?[1].accessibilityLabel = text("Новый чат", "New chat")
+        navigationItem.rightBarButtonItem = UIBarButtonItem(image: UIImage(systemName: "slider.horizontal.3"), style: .plain, target: self, action: #selector(openSettings))
+        navigationItem.rightBarButtonItem?.accessibilityLabel = text("Настройки ИИ", "AI settings")
         let layout = UIStackView(); layout.axis = .vertical; layout.spacing = 8
         layout.translatesAutoresizingMaskIntoConstraints = false; view.addSubview(layout)
         NSLayoutConstraint.activate([
@@ -105,9 +105,28 @@ public final class NebulaAiChatController: UIViewController, UITextViewDelegate 
             keyboardBottom?.isActive = true
             NotificationCenter.default.addObserver(self, selector: #selector(keyboardChanged(_:)), name: UIResponder.keyboardWillChangeFrameNotification, object: nil)
         }
-        providerLabel.font = .preferredFont(forTextStyle: .caption1); providerLabel.textColor = .secondaryLabel
-        providerLabel.numberOfLines = 2; providerLabel.adjustsFontForContentSizeCategory = true
-        layout.addArrangedSubview(providerLabel)
+        providerLabel.font = .preferredFont(forTextStyle: .subheadline); providerLabel.textColor = .secondaryLabel
+        providerLabel.numberOfLines = 2; providerLabel.textAlignment = .left
+        providerLabel.adjustsFontForContentSizeCategory = true
+        let modelCard = UIStackView(arrangedSubviews: [providerLabel]); modelCard.axis = .vertical
+        modelCard.isLayoutMarginsRelativeArrangement = true
+        modelCard.layoutMargins = UIEdgeInsets(top: 12, left: 14, bottom: 12, right: 14)
+        modelCard.backgroundColor = .secondarySystemBackground; modelCard.layer.cornerRadius = 18
+        layout.addArrangedSubview(modelCard)
+        let chatActions = UIStackView(); chatActions.axis = .horizontal; chatActions.spacing = 8
+        chatsButton.setTitle(text("Чаты", "Chats"), for: .normal)
+        chatsButton.addTarget(self, action: #selector(showChats), for: .touchUpInside)
+        chatsButton.backgroundColor = .secondarySystemBackground; chatsButton.layer.cornerRadius = 18
+        chatsButton.heightAnchor.constraint(greaterThanOrEqualToConstant: 44).isActive = true
+        chatActions.addArrangedSubview(chatsButton)
+        let freshButton = UIButton(type: .system)
+        freshButton.setTitle(text("Новый чат", "New chat"), for: .normal)
+        freshButton.addTarget(self, action: #selector(newChat), for: .touchUpInside)
+        freshButton.backgroundColor = .secondarySystemBackground; freshButton.layer.cornerRadius = 18
+        freshButton.heightAnchor.constraint(greaterThanOrEqualToConstant: 44).isActive = true
+        chatActions.addArrangedSubview(freshButton)
+        chatActions.distribution = .fillEqually
+        layout.addArrangedSubview(chatActions)
         actionButton.contentHorizontalAlignment = .leading
         actionButton.addTarget(self, action: #selector(pickAction), for: .touchUpInside)
         actionButton.heightAnchor.constraint(greaterThanOrEqualToConstant: 44).isActive = true
@@ -139,7 +158,7 @@ public final class NebulaAiChatController: UIViewController, UITextViewDelegate 
         note.textColor = .secondaryLabel; note.textAlignment = .center; layout.addArrangedSubview(note)
         NotificationCenter.default.addObserver(self, selector: #selector(appActive), name: UIApplication.didBecomeActiveNotification, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(appInactive), name: UIApplication.willResignActiveNotification, object: nil)
-        showWelcome(); refreshStatus(); updateSend(); textViewDidChange(composer)
+        restoreChat(chats.current()); refreshStatus(); updateSend(); textViewDidChange(composer)
     }
     public override func viewDidAppear(_ animated: Bool) { super.viewDidAppear(animated); appActive() }
     public override func viewWillDisappear(_ animated: Bool) {
@@ -188,6 +207,24 @@ public final class NebulaAiChatController: UIViewController, UITextViewDelegate 
             messages.addArrangedSubview(button)
         }
     }
+    private func restoreChat(_ chat: NebulaAiChatSession) {
+        chatId = chat.id
+        conversation = NebulaAiConversation()
+        conversation.select(chat.identity)
+        if chat.turns.isEmpty { showWelcome() }
+        else {
+            removeMessages(); isWelcome = false; restoring = true
+            for turn in chat.turns {
+                conversation.append(input: turn.input, output: turn.output)
+                appendUser(turn.input); appendAnswer(turn.output)
+            }
+            restoring = false
+            view.layoutIfNeeded()
+            scroll.setContentOffset(CGPoint(x: 0, y: max(0, scroll.contentSize.height - scroll.bounds.height)), animated: false)
+        }
+        let count = chats.list().filter { !$0.turns.isEmpty }.count
+        chatsButton.setTitle(text("Чаты", "Chats") + (count == 0 ? "" : " · \(count)"), for: .normal)
+    }
     private func appendUser(_ text: String) {
         let row = UIStackView(); row.axis = .horizontal
         let gap = UIView(); gap.widthAnchor.constraint(equalToConstant: 32).isActive = true; row.addArrangedSubview(gap)
@@ -220,11 +257,13 @@ public final class NebulaAiChatController: UIViewController, UITextViewDelegate 
             }
             messages.addArrangedSubview(controls)
         }
-        view.layoutIfNeeded()
-        let frame = result.convert(result.bounds, to: scroll)
-        scroll.setContentOffset(CGPoint(x: 0, y: max(0, min(frame.minY, scroll.contentSize.height - scroll.bounds.height))), animated: !UIAccessibility.isReduceMotionEnabled)
-        if !UIAccessibility.isReduceMotionEnabled { result.alpha = 0; UIView.animate(withDuration: 0.22) { result.alpha = 1 } }
-        UIAccessibility.post(notification: .announcement, argument: text("Ответ готов", "Response ready"))
+        if !restoring {
+            view.layoutIfNeeded()
+            let frame = result.convert(result.bounds, to: scroll)
+            scroll.setContentOffset(CGPoint(x: 0, y: max(0, min(frame.minY, scroll.contentSize.height - scroll.bounds.height))), animated: !UIAccessibility.isReduceMotionEnabled)
+            if !UIAccessibility.isReduceMotionEnabled { result.alpha = 0; UIView.animate(withDuration: 0.22) { result.alpha = 1 } }
+            UIAccessibility.post(notification: .announcement, argument: text("Ответ готов", "Response ready"))
+        }
     }
     private func startWaiting() {
         let row = UIStackView(); row.axis = .horizontal; row.spacing = 12; row.alignment = .center
@@ -252,6 +291,8 @@ public final class NebulaAiChatController: UIViewController, UITextViewDelegate 
         let instruction = action.instruction(russian: ru)
         let current = instruction.isEmpty ? input : instruction + "\n\n" + input
         let identity = "\(settings.provider.rawValue):\(settings.model(for: settings.provider)):\(settings.customEndpoint):\(action)"
+        let selectedChat = chats.current()
+        if !selectedChat.identity.isEmpty && selectedChat.identity != identity { restoreChat(chats.fresh()) }
         conversation.select(identity)
         guard let request = conversation.request(current, limit: settings.provider == .appleIntelligence ? 9_500 : 49_000) else {
             let alert = UIAlertController(title: text("Сократите сообщение для выбранной модели", "Shorten this message for the selected model"), message: nil, preferredStyle: .alert)
@@ -267,6 +308,11 @@ public final class NebulaAiChatController: UIViewController, UITextViewDelegate 
                 let value = try await self.service.generate(input: request)
                 guard !Task.isCancelled, self.gate.accepts(id) else { return }
                 self.finish(); self.conversation.append(input: current, output: value); self.appendAnswer(value)
+                if let chatId = self.chatId {
+                    self.chats.append(id: chatId, identity: identity, input: input, output: value)
+                    let count = self.chats.list().filter { !$0.turns.isEmpty }.count
+                    self.chatsButton.setTitle(self.text("Чаты", "Chats") + " · \(count)", for: .normal)
+                }
                 _ = NebulaAiHistory.shared.append(provider: provider, input: input, output: value)
             } catch {
                 guard !Task.isCancelled, self.gate.accepts(id) else { return }
@@ -283,7 +329,27 @@ public final class NebulaAiChatController: UIViewController, UITextViewDelegate 
         let running = work != nil; gate.cancel(); work?.cancel(); finish()
         if running && showMessage { appendAnswer(text("Ответ остановлен", "Response stopped"), actions: false) }
     }
-    @objc private func newChat() { cancel(showMessage: false); conversation.clear(); composer.text = ""; textViewDidChange(composer); showWelcome() }
+    @objc private func newChat() {
+        cancel(showMessage: false); composer.text = ""; textViewDidChange(composer)
+        restoreChat(chats.fresh())
+    }
+    @objc private func showChats() {
+        let sessions = chats.list()
+        let sheet = UIAlertController(title: text("Чаты Nebula AI", "Nebula AI chats"), message: nil, preferredStyle: .actionSheet)
+        for chat in sessions {
+            let name = chat.title.isEmpty ? text("Новый чат", "New chat") : chat.title
+            sheet.addAction(UIAlertAction(title: (chat.id == chatId ? "✓  " : "") + name, style: .default) { [weak self] _ in
+                guard let self = self, let selected = self.chats.select(chat.id) else { return }
+                self.cancel(showMessage: false)
+                self.composer.text = ""; self.textViewDidChange(self.composer)
+                self.restoreChat(selected)
+            })
+        }
+        sheet.addAction(UIAlertAction(title: text("Отмена", "Cancel"), style: .cancel))
+        sheet.popoverPresentationController?.sourceView = chatsButton
+        sheet.popoverPresentationController?.sourceRect = chatsButton.bounds
+        present(sheet, animated: true)
+    }
     @objc private func openSettings() { navigationController?.pushViewController(NebulaAiController(russian: ru), animated: true) }
     @objc private func pickAction() {
         let options = NebulaAiAction.allCases

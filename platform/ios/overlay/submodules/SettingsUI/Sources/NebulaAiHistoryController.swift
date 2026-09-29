@@ -72,6 +72,7 @@ final class NebulaAiHistoryController: UITableViewController {
         alert.addAction(UIAlertAction(title: text("Очистить", "Clear"), style: .destructive) { [weak self] _ in
             guard let self = self else { return }
             self.history.clear()
+            NebulaAiChats.shared.clear()
             self.records.removeAll()
             self.navigationItem.rightBarButtonItem?.isEnabled = false
             self.tableView.reloadData()

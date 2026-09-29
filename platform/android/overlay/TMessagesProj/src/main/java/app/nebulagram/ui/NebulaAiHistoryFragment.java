@@ -48,7 +48,7 @@ public final class NebulaAiHistoryFragment extends BaseFragment {
                 .trailing(NebulaRow.TRAIL_CHEVRON).withClick(v -> showDialog(new NebulaDialog.Builder(context)
                         .setMessage(NebulaText.text("Удалить сохранённые запросы на этом устройстве?", "Delete saved requests from this device?"))
                         .setNegativeButton(NebulaText.text("Отмена", "Cancel"), null)
-                        .setPositiveButton(NebulaText.text("Очистить", "Clear"), (d, which) -> { NebulaAiHistory.clear(); build(context); }).create())));
+                        .setPositiveButton(NebulaText.text("Очистить", "Clear"), (d, which) -> { NebulaAiHistory.clear(); NebulaAiChats.clear(); build(context); }).create())));
         content.addView(actions);
     }
     private void addEntry(Context context, NebulaCard card, String provider, String input, String output) {

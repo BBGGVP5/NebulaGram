@@ -125,3 +125,4 @@ This inventory distinguishes **wired source** from native build and device accep
 - The home title follows the selected folder when enabled. It reads only a matching filter ID during swipes, and the switch updates the native header live. This addition still needs native compilation and device acceptance.
 - The native selected-folder pill can show a thin theme-colored outline. The tab node's existing settings observation updates it live; native compilation and device acceptance remain pending.
 - NebulaLink is the first destination on the NebulaGram settings entry screen. The settings list now uses Telegram's active presentation theme, including custom themes, instead of a separate forced palette.
+- Nebula AI now has a chat list and switches between bounded conversations. Successful turns stay in memory; they persist locally only when AI history is enabled. The model label has a dedicated full-width row. Native build and device behavior remain to be verified.

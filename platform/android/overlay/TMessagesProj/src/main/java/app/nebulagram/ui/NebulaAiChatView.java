@@ -36,6 +36,8 @@ public final class NebulaAiChatView extends LinearLayout {
     private int activeProvider = -1;
     private static volatile Thread nanoInFlight;
     private TextView cancellationNotice;
+    private String chatId;
+    private boolean restoring;
 
     public NebulaAiChatView(Context context, String initial, Runnable settings) {
         super(context);
@@ -44,10 +46,11 @@ public final class NebulaAiChatView extends LinearLayout {
         setOrientation(VERTICAL);
         setPadding(dp(4), dp(8), dp(4), dp(8));
         setBackgroundColor(theme.surface());
-        LinearLayout bar = new LinearLayout(context); bar.setGravity(Gravity.CENTER_VERTICAL);
+        LinearLayout bar = new LinearLayout(context); bar.setOrientation(VERTICAL);
         status = label("", 13, theme.onSurface());
         status.setTypeface(AndroidUtilities.bold());
         status.setMaxLines(2); status.setEllipsize(TextUtils.TruncateAt.END);
+        status.setGravity(Gravity.START | Gravity.CENTER_VERTICAL);
         status.setPadding(dp(12), dp(10), dp(12), dp(10));
         status.setBackground(shape(theme.surfaceContainer(), 18));
         status.setCompoundDrawablesWithIntrinsicBounds(0, 0, R.drawable.msg_arrowright, 0);
@@ -55,15 +58,21 @@ public final class NebulaAiChatView extends LinearLayout {
         if (status.getCompoundDrawables()[2] != null) status.getCompoundDrawables()[2].mutate().setColorFilter(theme.primary(), PorterDuff.Mode.SRC_IN);
         status.setOnClickListener(v -> settings.run());
         status.setContentDescription(text("Выбранная модель. Изменить подключение", "Selected model. Change connection"));
-        bar.addView(status, new LayoutParams(0, -2, 1));
+        bar.addView(status, new LayoutParams(-1, -2));
+        LinearLayout actions = new LinearLayout(context); actions.setGravity(Gravity.CENTER_VERTICAL);
+        TextView chats = control(text("Чаты", "Chats"));
+        chats.setBackground(shape(theme.surfaceContainer(), 18));
+        chats.setOnClickListener(v -> showChats());
+        LayoutParams chatsParams = new LayoutParams(0, -2, 1); chatsParams.topMargin = dp(8);
+        actions.addView(chats, chatsParams);
         TextView reset = control(text("Новый чат", "New chat"));
         reset.setBackground(shape(theme.surfaceContainer(), 18));
         reset.setCompoundDrawablesWithIntrinsicBounds(R.drawable.msg_edit, 0, 0, 0);
         reset.setCompoundDrawablePadding(dp(6));
         if (reset.getCompoundDrawables()[0] != null) reset.getCompoundDrawables()[0].mutate().setColorFilter(theme.primary(), PorterDuff.Mode.SRC_IN);
-        LayoutParams resetParams = new LayoutParams(-2, -2); resetParams.leftMargin = dp(8);
+        LayoutParams resetParams = new LayoutParams(0, -2, 1); resetParams.leftMargin = dp(8); resetParams.topMargin = dp(8);
         reset.setOnClickListener(v -> resetConversation());
-        bar.addView(reset, resetParams); addView(bar);
+        actions.addView(reset, resetParams); bar.addView(actions); addView(bar);
         scroll = new ScrollView(context); scroll.setFillViewport(true); scroll.setClipToPadding(false);
         messages = new LinearLayout(context); messages.setOrientation(VERTICAL); messages.setPadding(dp(8), dp(16), dp(8), dp(16));
         scroll.addView(messages, new ScrollView.LayoutParams(-1, -2));
@@ -85,9 +94,34 @@ public final class NebulaAiChatView extends LinearLayout {
         composer.setOnEditorActionListener((v, action, event) -> { if (action == EditorInfo.IME_ACTION_SEND) { if (active == null) send(); return true; } return false; });
         TextView note = label(text("ИИ может ошибаться. Важное проверяйте.", "AI can make mistakes. Check important details."), 11, theme.onSurfaceVariant());
         note.setGravity(Gravity.CENTER); note.setPadding(0, dp(8), 0, 0); addView(note);
-        welcome(); refreshStatus();
+        restoreChat(NebulaAiChats.current()); refreshStatus();
     }
-    private void resetConversation() { stop(); conversation.clear(); composer.setText(""); completed = 0; welcome(); }
+    private void resetConversation() {
+        stop(); restoreChat(NebulaAiChats.fresh()); composer.setText("");
+    }
+    private void showChats() {
+        java.util.ArrayList<NebulaAiChats.Chat> chats = NebulaAiChats.list();
+        CharSequence[] names = new CharSequence[chats.size()];
+        for (int i = 0; i < chats.size(); i++) {
+            NebulaAiChats.Chat chat = chats.get(i);
+            names[i] = (chat.id.equals(chatId) ? "✓  " : "")
+                    + (chat.title.isEmpty() ? text("Новый чат", "New chat") : chat.title);
+        }
+        new NebulaDialog.Builder(getContext()).setTitle(text("Чаты Nebula AI", "Nebula AI chats"))
+                .setItems(names, (dialog, which) -> {
+                    stop(); restoreChat(NebulaAiChats.select(chats.get(which).id)); composer.setText("");
+                }).show();
+    }
+    private void restoreChat(NebulaAiChats.Chat chat) {
+        if (chat == null) { welcome(); return; }
+        chatId = chat.id; conversation.clear();
+        conversation.select(chat.identity);
+        completed = chat.turns.size();
+        if (completed == 0) { welcome(); return; }
+        messages.removeAllViews(); restoring = true;
+        for (String[] turn : chat.turns) { conversation.add(turn[0], turn[1]); user(turn[0]); answer(turn[1]); }
+        restoring = false; bottom();
+    }
     public String draft() { return composer.getText().toString(); }
     public void refreshStatus() {
         SharedPreferences p = getContext().getSharedPreferences("nebula_ai_settings", 0);
@@ -153,10 +187,10 @@ public final class NebulaAiChatView extends LinearLayout {
         if (copy.getCompoundDrawables()[0] != null) copy.getCompoundDrawables()[0].mutate().setColorFilter(theme.primary(), PorterDuff.Mode.SRC_IN);
         copy.setOnClickListener(v -> { AndroidUtilities.addToClipboard(raw); NebulaHaptics.tick(v); copy.setText(text("Скопировано", "Copied")); });
         LayoutParams params = new LayoutParams(-2, -2); params.bottomMargin = dp(18); messages.addView(copy, params);
-        if (animations()) { view.setAlpha(0); view.setTranslationY(dp(8)); view.animate().alpha(1).translationY(0).setDuration(220).start(); }
+        if (!restoring && animations()) { view.setAlpha(0); view.setTranslationY(dp(8)); view.animate().alpha(1).translationY(0).setDuration(220).start(); }
         view.setAccessibilityLiveRegion(ACCESSIBILITY_LIVE_REGION_POLITE);
         // Preserve the start of a long answer instead of jumping to its end.
-        scroll.post(() -> scroll.smoothScrollTo(0, view.getTop()));
+        if (!restoring) scroll.post(() -> scroll.smoothScrollTo(0, view.getTop()));
     }
     private void waiting() {
         waitingRow = new LinearLayout(getContext()); waitingRow.setGravity(Gravity.CENTER_VERTICAL);
@@ -205,7 +239,10 @@ public final class NebulaAiChatView extends LinearLayout {
         final String key;
         try { key = provider == NebulaAiClient.NANO ? "" : NebulaAiSecrets.read(provider); }
         catch (Exception e) { Toast.makeText(getContext(), text("Введите API-ключ заново", "Re-enter your API key"), Toast.LENGTH_SHORT).show(); settings.run(); return; }
-        conversation.select(provider + ":" + model + ":" + endpoint + ":" + p.getBoolean("nano_preview", false) + ":" + p.getBoolean("nano_fast", false));
+        final String identity = provider + ":" + model + ":" + endpoint + ":" + p.getBoolean("nano_preview", false) + ":" + p.getBoolean("nano_fast", false);
+        NebulaAiChats.Chat selectedChat = NebulaAiChats.current();
+        if (!selectedChat.identity.isEmpty() && !selectedChat.identity.equals(identity)) restoreChat(NebulaAiChats.fresh());
+        conversation.select(identity);
         final String request;
         try { request = conversation.request(message, provider == NebulaAiClient.NANO ? 4000 : 49000); }
         catch (IllegalArgumentException e) { Toast.makeText(getContext(), text("Сократите сообщение для выбранной модели", "Shorten this message for the selected model"), Toast.LENGTH_LONG).show(); return; }
@@ -223,6 +260,7 @@ public final class NebulaAiChatView extends LinearLayout {
                 AndroidUtilities.runOnUIThread(() -> {
                     if (disposed || active != task) return;
                     finish(); completed++; conversation.add(message, result); answer(result);
+                    NebulaAiChats.append(chatId, identity, message, result);
                     NebulaAiHistory.add(provider == NebulaAiClient.NANO ? "Gemini Nano" : model, message, result);
                 });
             } catch (Exception e) {
