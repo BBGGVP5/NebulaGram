@@ -158,5 +158,7 @@
   setting from an open profile and recomputes its native status icon layout.
 - `0052-chat-list-premium-visibility.patch` hides the same status icons in
   chat-list rows and relayouts visible rows when the value changes. Verification
-  and NebulaGram assignment badges remain visible. Other surfaces need separate
-  consumers before this is global iOS parity.
+  and NebulaGram assignment badges remain visible.
+- `0053-chat-title-premium-visibility.patch` applies the same preference in the
+  native legacy and component-based chat titles. Both refresh when the value
+  changes. Other surfaces need separate consumers before global iOS parity.

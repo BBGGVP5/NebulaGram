@@ -1,0 +1,75 @@
+diff --git a/submodules/TelegramUI/Components/ChatTitleView/Sources/ChatTitleComponent.swift b/submodules/TelegramUI/Components/ChatTitleView/Sources/ChatTitleComponent.swift
+index db51166..e4e1c51 100644
+--- a/submodules/TelegramUI/Components/ChatTitleView/Sources/ChatTitleComponent.swift
++++ b/submodules/TelegramUI/Components/ChatTitleView/Sources/ChatTitleComponent.swift
+@@ -1,2 +1,3 @@
+ import Foundation
++import NebulaSettingsContract
+ import UIKit
+@@ -72,2 +73,3 @@ public final class ChatNavigationBarTitleView: UIView, NavigationBarTitleView {
+     private var activities: ChatTitleComponent.Activities?
++    private var nebulaSettingsObservation: SettingsObservation?
+     private var networkState: AccountNetworkState?
+@@ -82,2 +84,5 @@ public final class ChatNavigationBarTitleView: UIView, NavigationBarTitleView {
+         super.init(frame: frame)
++        self.nebulaSettingsObservation = NebulaSettingsStore.shared.observe { [weak self] in
++            self?.update(transition: .immediate)
++        }
+     }
+@@ -174,2 +179,3 @@ public final class ChatNavigationBarTitleView: UIView, NavigationBarTitleView {
+                     networkState: self.networkState,
++                    hidePremiumStatus: NebulaSettingsStore.shared.hidePremiumStatus,
+                     tapped: { [weak self] in
+@@ -241,2 +247,3 @@ public final class ChatTitleComponent: Component {
+     public let networkState: AccountNetworkState?
++    public let hidePremiumStatus: Bool
+     public let tapped: () -> Void
+@@ -255,2 +262,3 @@ public final class ChatTitleComponent: Component {
+         networkState: AccountNetworkState?,
++        hidePremiumStatus: Bool = NebulaSettingsStore.shared.hidePremiumStatus,
+         tapped: @escaping () -> Void,
+@@ -268,2 +276,3 @@ public final class ChatTitleComponent: Component {
+         self.networkState = networkState
++        self.hidePremiumStatus = hidePremiumStatus
+         self.tapped = tapped
+@@ -303,2 +312,5 @@ public final class ChatTitleComponent: Component {
+         }
++        if lhs.hidePremiumStatus != rhs.hidePremiumStatus {
++            return false
++        }
+         return true
+@@ -449,5 +461,5 @@ public final class ChatTitleComponent: Component {
+                                 titleCredibilityIcon = .scam
+-                            } else if !hidePeerStatus, let emojiStatus = peer.emojiStatus {
++                            } else if !hidePeerStatus && !component.hidePremiumStatus, let emojiStatus = peer.emojiStatus {
+                                 titleStatusIcon = .emojiStatus(emojiStatus)
+-                            } else if peer.isPremium && !premiumConfiguration.isPremiumDisabled {
++                            } else if peer.isPremium && !component.hidePremiumStatus && !premiumConfiguration.isPremiumDisabled {
+                                 titleCredibilityIcon = .premium
+diff --git a/submodules/TelegramUI/Components/ChatTitleView/Sources/ChatTitleView.swift b/submodules/TelegramUI/Components/ChatTitleView/Sources/ChatTitleView.swift
+index 6362ebf..6ceeb62 100644
+--- a/submodules/TelegramUI/Components/ChatTitleView/Sources/ChatTitleView.swift
++++ b/submodules/TelegramUI/Components/ChatTitleView/Sources/ChatTitleView.swift
+@@ -217,2 +217,3 @@ public final class ChatTitleView: UIView, NavigationBarTitleView {
+     private var nebulaAlignmentObservation: SettingsObservation?
++    private var nebulaWasPremiumHidden = NebulaSettingsStore.shared.hidePremiumStatus
+     private var nebulaWasCentered = NebulaSettingsStore.shared.centeredChatHeader
+@@ -313,5 +314,5 @@ public final class ChatTitleView: UIView, NavigationBarTitleView {
+                                         titleCredibilityIcon = .scam
+-                                    } else if !hidePeerStatus, let emojiStatus = peer.emojiStatus {
++                                    } else if !hidePeerStatus && !NebulaSettingsStore.shared.hidePremiumStatus, let emojiStatus = peer.emojiStatus {
+                                         titleStatusIcon = .emojiStatus(emojiStatus)
+-                                    } else if peer.isPremium && !premiumConfiguration.isPremiumDisabled {
++                                    } else if peer.isPremium && !NebulaSettingsStore.shared.hidePremiumStatus && !premiumConfiguration.isPremiumDisabled {
+                                         titleCredibilityIcon = .premium
+@@ -806,4 +807,9 @@ public final class ChatTitleView: UIView, NavigationBarTitleView {
+             let centered = NebulaSettingsStore.shared.centeredChatHeader
+-            guard self.nebulaWasCentered != centered else { return }
++            let premiumHidden = NebulaSettingsStore.shared.hidePremiumStatus
++            guard self.nebulaWasCentered != centered || self.nebulaWasPremiumHidden != premiumHidden else { return }
+             self.nebulaWasCentered = centered
++            if self.nebulaWasPremiumHidden != premiumHidden {
++                self.nebulaWasPremiumHidden = premiumHidden
++                self.titleContent = self.titleContent
++            }
+             self.requestUpdate?(.immediate)
