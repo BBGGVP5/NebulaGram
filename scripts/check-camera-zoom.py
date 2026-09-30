@@ -37,6 +37,7 @@ class CameraZoomCheck {
   float minimum=1,maximum=2,current=1,density=1;
   int getWidth(){return (int)(320*density);}int dp(float v){return (int)Math.ceil(v*density);}
   void setCurrent(float v){current=Math.max(minimum,Math.min(maximum,v));}
+  void updateRulerMarks(){}
   GEOMETRY
  }
  static class Camera {

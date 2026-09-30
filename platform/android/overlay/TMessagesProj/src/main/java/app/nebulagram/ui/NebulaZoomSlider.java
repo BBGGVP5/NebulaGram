@@ -23,6 +23,7 @@ public final class NebulaZoomSlider extends View {
     private final Runnable collapse = () -> setExpanded(false);
     private final Runnable longPress = () -> { held = true; setExpanded(true); };
     private float[] cameraStops = {1f};
+    private float[] rulerMarks = {1f};
     private float maximum = 1f;
     private float minimum = 1f;
     private float current = 1f;
@@ -50,6 +51,7 @@ public final class NebulaZoomSlider extends View {
         minimum = min;
         maximum = max;
         setCurrent(current);
+        updateRulerMarks();
     }
 
     public void setCameraStops(float[] values) {
@@ -58,7 +60,18 @@ public final class NebulaZoomSlider extends View {
         if (stops.isEmpty()) stops.add(Math.max(minimum, Math.min(1f, maximum)));
         cameraStops = new float[stops.size()];
         int index = 0; for (float value : stops) cameraStops[index++] = value;
+        updateRulerMarks();
         invalidate();
+    }
+
+    private void updateRulerMarks() {
+        java.util.TreeSet<Float> labels = new java.util.TreeSet<>();
+        labels.add(minimum); labels.add(maximum);
+        for (float stop : cameraStops) if (stop >= minimum && stop <= maximum) labels.add(stop);
+        for (float value : new float[]{1f, 2f, 5f, 10f, 20f, 50f, 100f})
+            if (value > minimum && value < maximum) labels.add(value);
+        rulerMarks = new float[labels.size()];
+        int index = 0; for (float value : labels) rulerMarks[index++] = value;
     }
 
     public void setCurrent(float factor) {
@@ -114,9 +127,11 @@ public final class NebulaZoomSlider extends View {
         float halfWidth = widthForProgress() / 2f;
         RectF capsule = new RectF(center - halfWidth, dp(6), center + halfWidth, getHeight() - dp(6));
         paint.setStyle(Paint.Style.FILL);
+        float depth = NebulaGlass.depth();
         paint.setShader(new LinearGradient(0, capsule.top, 0, capsule.bottom,
-                blend(surface, Color.WHITE, .11f), blend(surface, Color.BLACK, .09f), Shader.TileMode.CLAMP));
-        paint.setShadowLayer(dp(10), 0, dp(4), 0x77000000);
+                blend(surface, Color.WHITE, NebulaGlass.highlights() ? .05f + depth * .12f : 0f),
+                blend(surface, Color.BLACK, depth * .12f), Shader.TileMode.CLAMP));
+        if (depth > 0f) paint.setShadowLayer(dp(4 + depth * 10), 0, dp(1 + depth * 4), Color.argb(Math.round(150 * depth), 0, 0, 0));
         canvas.drawRoundRect(capsule, dp(24), dp(24), paint);
         paint.clearShadowLayer();
         paint.setShader(null);
@@ -149,13 +164,8 @@ public final class NebulaZoomSlider extends View {
             paint.setTextSize(dp(11));
             paint.setColor(accent);
             paint.setAlpha(alpha);
-            java.util.TreeSet<Float> labels = new java.util.TreeSet<>();
-            labels.add(minimum); labels.add(maximum);
-            for (float stop : cameraStops) labels.add(stop);
-            for (float value : new float[]{1f, 2f, 5f, 10f, 20f, 50f, 100f})
-                if (value > minimum && value < maximum) labels.add(value);
             float previousX = -Float.MAX_VALUE;
-            for (float value : labels) {
+            for (float value : rulerMarks) {
                 float markX = xForZoom(value);
                 if (markX - previousX < dp(25)) continue;
                 drawMark(canvas, label(value).replace("×", ""), value, capsule, middle);
@@ -187,7 +197,7 @@ public final class NebulaZoomSlider extends View {
         float x = capsule.left + segment * selected + segment / 2f;
         paint.setStyle(Paint.Style.FILL);
         paint.setColor(accent); paint.setAlpha(Math.round(255 * opacity));
-        paint.setShadowLayer(dp(6), 0, dp(2), (accent & 0x00FFFFFF) | 0x66000000);
+        if (NebulaGlass.depth() > 0f) paint.setShadowLayer(dp(6), 0, dp(2), (accent & 0x00FFFFFF) | (Math.round(102 * NebulaGlass.depth()) << 24));
         float radius = Math.min(dp(18), (segment - dp(4)) / 2f);
         canvas.drawCircle(x, capsule.centerY(), radius, paint);
         paint.clearShadowLayer();
@@ -201,7 +211,7 @@ public final class NebulaZoomSlider extends View {
     private void drawStep(Canvas canvas, float x, float y, boolean plus, int accent) {
         paint.setStyle(Paint.Style.FILL);
         paint.setColor(blend(Theme.getColor(Theme.key_chat_messagePanelBackground), Color.WHITE, .08f));
-        paint.setShadowLayer(dp(6), 0, dp(2), 0x66000000);
+        if (NebulaGlass.depth() > 0f) paint.setShadowLayer(dp(6), 0, dp(2), Color.argb(Math.round(102 * NebulaGlass.depth()), 0, 0, 0));
         canvas.drawCircle(x, y, dp(14), paint); paint.clearShadowLayer();
         paint.setStyle(Paint.Style.STROKE); paint.setStrokeWidth(dp(2)); paint.setStrokeCap(Paint.Cap.ROUND);
         paint.setColor(accent); paint.setAlpha(255);
