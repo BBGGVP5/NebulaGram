@@ -163,6 +163,7 @@ public final class NebulaZoomSlider extends View {
                 paint.setStrokeWidth(dp(major ? 2 : 1));
                 canvas.drawLine(x, middle - dp(13), x, middle + dp(major ? 5 : 1), paint);
             }
+            canvas.restore();
             paint.setTextAlign(Paint.Align.CENTER);
             paint.setTypeface(android.graphics.Typeface.DEFAULT_BOLD);
             paint.setTextSize(dp(11));
@@ -171,11 +172,11 @@ public final class NebulaZoomSlider extends View {
             float previousX = -Float.MAX_VALUE;
             for (float value : rulerMarks) {
                 float markX = xForZoom(value);
+                if (value != maximum && Math.abs(xForZoom(maximum) - markX) < dp(25)) continue;
                 if (markX - previousX < dp(25)) continue;
                 drawMark(canvas, label(value).replace("×", ""), value, capsule, middle);
                 previousX = markX;
             }
-            canvas.restore();
             paint.setColor(accent);
             paint.setAlpha(alpha);
             paint.setStrokeCap(Paint.Cap.ROUND);
