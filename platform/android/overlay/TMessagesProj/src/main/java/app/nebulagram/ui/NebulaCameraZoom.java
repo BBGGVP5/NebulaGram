@@ -35,13 +35,14 @@ public final class NebulaCameraZoom {
                     StreamConfigurationMap streams = info.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP);
                     if (streams == null || streams.getOutputSizes(SurfaceTexture.class) == null
                             || streams.getOutputSizes(SurfaceTexture.class).length == 0) continue;
+                    if (!streams.isOutputSupportedFor(android.graphics.ImageFormat.JPEG)) continue;
                     Camera camera = new Camera(); camera.id = id; camera.info = info;
                     camera.focal = focal(info);
                     Float digital = info.get(CameraCharacteristics.SCALER_AVAILABLE_MAX_DIGITAL_ZOOM);
-                    if (digital != null && digital >= 1f) camera.max = digital;
+                    if (digital != null && digital >= 1f && !Float.isInfinite(digital)) camera.max = digital;
                     if (Build.VERSION.SDK_INT >= 30) {
                         Range<Float> range = info.get(CameraCharacteristics.CONTROL_ZOOM_RATIO_RANGE);
-                        if (range != null && range.getLower() > 0 && range.getUpper() >= 1) {
+                        if (range != null && range.getLower() > 0 && range.getUpper() >= 1 && !Float.isInfinite(range.getUpper())) {
                             camera.min = range.getLower(); camera.max = range.getUpper(); camera.ratio = true;
                         }
                     }
@@ -101,7 +102,8 @@ public final class NebulaCameraZoom {
     private static float focal(CameraCharacteristics info) {
         float[] lengths = info.get(CameraCharacteristics.LENS_INFO_AVAILABLE_FOCAL_LENGTHS);
         SizeF sensor = info.get(CameraCharacteristics.SENSOR_INFO_PHYSICAL_SIZE);
-        return lengths == null || lengths.length == 0 || sensor == null || sensor.getWidth() <= 0 ? 0f : 36f * lengths[0] / sensor.getWidth();
+        float value = lengths == null || lengths.length == 0 || sensor == null || sensor.getWidth() <= 0 ? 0f : 36f * lengths[0] / sensor.getWidth();
+        return value > 0 && !Float.isInfinite(value) ? value : 0f;
     }
     private NebulaCameraZoom() {}
 }

@@ -33,7 +33,8 @@ public final class NebulaZoomCapabilities {
             low = Math.min(low, module.lower()); high = Math.max(high, module.upper());
             values.add(module.base);
         }
-        for (float stop : opticalStops) if (stop >= low && stop <= high) values.add(stop);
+        // A vendor may crop the ultra-wide stream: its supported stop is the ratio-range floor.
+        for (float stop : opticalStops) if (stop > 0f && stop <= high) values.add(Math.max(low, stop));
         Float previous = null;
         java.util.Iterator<Float> iterator = values.iterator();
         while (iterator.hasNext()) {

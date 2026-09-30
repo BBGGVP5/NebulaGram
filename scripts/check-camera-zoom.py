@@ -20,6 +20,7 @@ def method(source, signature):
 slider = (overlay / 'NebulaZoomSlider.java').read_text(encoding='utf-8')
 geometry = '\n'.join(method(slider, signature) for signature in [
     'public void setRange(float min, float max)', 'private float fullWidth()',
+    'private float compactWidth()', 'private float widthForProgress()', 'private RectF capsuleBounds()',
     'private float pixelsPerOctave()', 'private float xForZoom(float zoom)'])
 legacy = (tree / 'TMessagesProj/src/main/java/org/telegram/messenger/camera/CameraSession.java').read_text(encoding='utf-8')
 legacy_methods = '\n'.join(method(legacy, signature) for signature in [
@@ -35,7 +36,10 @@ class CameraZoomCheck {
  static void close(float a,float b){check(Math.abs(a-b)<.002f,a+" != "+b);}
  static class Ruler {
   float minimum=1,maximum=2,current=1,density=1;
+  float expansion;float[] cameraStops={1};
+  static class RectF {float left,top,right,bottom;RectF(float l,float t,float r,float b){left=l;top=t;right=r;bottom=b;}}
   int getWidth(){return (int)(320*density);}int dp(float v){return (int)Math.ceil(v*density);}
+  int getHeight(){return (int)(80*density);}
   void setCurrent(float v){current=Math.max(minimum,Math.min(maximum,v));}
   void updateRulerMarks(){}
   GEOMETRY
@@ -67,6 +71,9 @@ class CameraZoomCheck {
   close(c.maximum,100);check(c.stops.length==4,"physical lens stops, no invented digital buttons");
   check(!c.needsReopen(),"logical HAL handles physical transitions");
   for(float zoom:new float[]{.4f,1,3,5,30,100})check(c.select(zoom)==logical,"logical path remains uninterrupted");
+  Module cropped=new Module("logical",1,.6f,30,true);
+  c=new NebulaZoomCapabilities(Arrays.asList(cropped),cropped,Arrays.asList(.5f,1f,3f));
+  close(c.stops[0],.6f);check(c.stops.length==3,"cropped ultra-wide remains selectable at supported floor");
   Module gap=new Module("tele",5,1,2,false);
   c=new NebulaZoomCapabilities(Arrays.asList(wide,gap),wide,Collections.emptyList());
   check(c.select(0.1f)==wide,"out of range uses usable endpoint");
@@ -75,6 +82,11 @@ class CameraZoomCheck {
   check(c.select(3)==narrow,"range gap snaps to nearest logarithmic endpoint");
   for(float density:new float[]{1,2.75f,4})for(float[] range:new float[][]{{.3f,2},{1,2},{.5f,60},{1,100}}) {
    Ruler r=new Ruler();r.density=density;r.current=1.5f;r.setRange(range[0],range[1]);close(r.current,1.5f);
+   for(int lenses:new int[]{1,4,6})for(float expansion:new float[]{0,.5f,1}) {
+    r.cameraStops=new float[lenses];r.expansion=expansion;Ruler.RectF b=r.capsuleBounds();
+    check(b.left-r.dp(18+14+6)>=0&&b.right+r.dp(18+14+6)<=r.getWidth(),"side buttons and shadows not clipped");
+    check(b.top-r.dp(14)>=0&&b.bottom+r.dp(14+5)<=r.getHeight(),"glass shadow not clipped");
+   }
    for(float zoom:new float[]{range[0],(float)Math.sqrt(range[0]*range[1]),range[1]}) {
     r.setCurrent(zoom);
     float needle=r.xForZoom(zoom);check(needle>=20*density-2&&needle<=300*density+2,"needle visible at "+zoom);

@@ -71,7 +71,7 @@ index 0fce940..59a3727 100644
          currentZoom = value;
          if (isVideo && Camera.Parameters.FLASH_MODE_ON.equals(currentFlashMode)) {
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/InstantCameraView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/InstantCameraView.java
-index 478bd98..86c851d 100644
+index 478bd98..3a0cf62 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/InstantCameraView.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/InstantCameraView.java
 @@ -260,6 +260,11 @@ public class InstantCameraView extends InstantCameraViewBase implements Notifica
@@ -84,6 +84,17 @@ index 478bd98..86c851d 100644
 +    private float nebulaPinchStartZoom = 1f;
 +    private final java.util.HashSet<String> nebulaUnavailableModules = new java.util.HashSet<>();
      private final int buttonsSizePx;
+ 
+ 
+@@ -320,8 +325,8 @@ public class InstantCameraView extends InstantCameraViewBase implements Notifica
+         addView(flashViews.foregroundView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT, Gravity.FILL));
+         nebulaZoomSlider = new NebulaZoomSlider(context, this::applyNebulaZoom);
+         nebulaZoomSlider.setVisibility(View.GONE);
+-        FrameLayout.LayoutParams zoomParams = new FrameLayout.LayoutParams(dp(320), dp(52), Gravity.BOTTOM | Gravity.CENTER_HORIZONTAL);
+-        zoomParams.bottomMargin = dp(118);
++        FrameLayout.LayoutParams zoomParams = new FrameLayout.LayoutParams(dp(320), dp(80), Gravity.BOTTOM | Gravity.CENTER_HORIZONTAL);
++        zoomParams.bottomMargin = dp(104);
+         addView(nebulaZoomSlider, zoomParams);
  
  
 @@ -601,6 +606,7 @@ public class InstantCameraView extends InstantCameraViewBase implements Notifica

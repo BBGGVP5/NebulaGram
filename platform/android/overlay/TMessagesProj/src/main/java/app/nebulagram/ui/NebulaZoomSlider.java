@@ -102,8 +102,13 @@ public final class NebulaZoomSlider extends View {
     }
 
     private float compactWidth() { return Math.min(fullWidth(), dp(16 + 56 * cameraStops.length)); }
-    private float fullWidth() { return Math.max(dp(48), getWidth() - dp(64)); }
+    private float fullWidth() { return Math.max(dp(48), getWidth() - dp(80)); }
     private float widthForProgress() { return compactWidth() + (fullWidth() - compactWidth()) * expansion; }
+    private RectF capsuleBounds() {
+        float half = widthForProgress() / 2f;
+        return new RectF(getWidth() / 2f - half, getHeight() / 2f - dp(20),
+                getWidth() / 2f + half, getHeight() / 2f + dp(20));
+    }
     private float pixelsPerOctave() {
         float octaves = (float) (Math.log(maximum / minimum) / Math.log(2));
         return Math.max(dp(96), (fullWidth() - dp(40)) / Math.max(.01f, octaves));
@@ -124,8 +129,7 @@ public final class NebulaZoomSlider extends View {
         int surface = Theme.getColor(Theme.key_chat_messagePanelBackground);
         float center = getWidth() / 2f;
         float middle = getHeight() / 2f;
-        float halfWidth = widthForProgress() / 2f;
-        RectF capsule = new RectF(center - halfWidth, dp(6), center + halfWidth, getHeight() - dp(6));
+        RectF capsule = capsuleBounds();
         paint.setStyle(Paint.Style.FILL);
         float depth = NebulaGlass.depth();
         paint.setShader(new LinearGradient(0, capsule.top, 0, capsule.bottom,
