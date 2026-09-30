@@ -174,7 +174,6 @@ func (s *Store) ReplaceSource(source string, fresh []model.Server) error {
 	}
 	for i := range fresh {
 		if old, ok := previous[fresh[i].ID]; ok {
-			fresh[i].Details = old.Details
 			fresh[i].LatencyMs = old.LatencyMs
 			fresh[i].CheckedAt = old.CheckedAt
 			fresh[i].LatencyMethod = old.LatencyMethod

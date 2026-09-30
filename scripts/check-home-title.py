@@ -59,7 +59,9 @@ assert 'setNebulaHomeGlass(true)' in dialogs and 'setNebulaHomeTabsGlass(true)' 
 assert 'nebulaHomeTabsGlass ? 4 : 16' in bar, 'Home title must use the compact grouped-action boundary'
 assert 'int first = Integer.MAX_VALUE;' in bar and 'int last = Integer.MIN_VALUE;' in bar
 assert 'glassDrawableMenu.setBounds(Math.max(0, first - dp(4)), t,' in bar
-assert 'glassDrawable.setAlpha(Math.round(255 * actionModeFactor * (1f - searchFactor)))' in bar
+assert 'glassDrawable.setAlpha(0);' in bar, 'Home actions own separate glass surfaces'
+assert 'nebulaHomeTabsGlass && actionModeFactor > 0f && actionMode != null' in bar
+assert 'glassDrawableBack.setAlpha(Math.round(255 * actionModeFactor))' in bar
 assert 'actionBar.setSearchFactor(searchFieldVisible)' in dialogs
 assert 'NebulaLinkShortcut.setHeaderSearchProgress(this, searchFieldVisible)' in dialogs
 assert 'showOrUpdateActionMode(0, null)' in dialogs, 'Home Edit must enter chat selection'
