@@ -336,7 +336,18 @@ public final class NebulaLinkController: UITableViewController, UITextFieldDeleg
                 cell.detailTextLabel?.text = serverDetail(server)
                 cell.detailTextLabel?.numberOfLines = 0
                 cell.detailTextLabel?.adjustsFontForContentSizeCategory = true
-                cell.accessoryType = server["id"] as? String == selected ? .checkmark : .none
+                let isSelected = server["id"] as? String == selected
+                cell.accessoryType = .detailDisclosureButton
+                if isSelected {
+                    cell.backgroundColor = view.tintColor.withAlphaComponent(0.16)
+                    cell.textLabel?.textColor = view.tintColor
+                    cell.accessibilityTraits.insert(.selected)
+                }
+                if let details = server["details"] as? [String: Any] {
+                    let summary = ["provider", "plan", "amount", "currency", "due_date"]
+                        .compactMap { details[$0] as? String }.filter { !$0.isEmpty }.joined(separator: " · ")
+                    if !summary.isEmpty { cell.detailTextLabel?.text = serverDetail(server) + "\n" + summary }
+                }
             }
         } else {
             cell.textLabel?.text = service.state == "connected" ? text("Продолжить с NebulaLink", "Continue with NebulaLink") : text("Продолжить без NebulaLink", "Continue without NebulaLink")
@@ -389,5 +400,23 @@ public final class NebulaLinkController: UITableViewController, UITextFieldDeleg
             else { request("tunnel.stop") { [weak self] _ in self?.finish() } }
         default: break
         }
+    }
+
+    public override func tableView(_ tableView: UITableView, accessoryButtonTappedForRowWith indexPath: IndexPath) {
+        guard !busy, indexPath.section == 2, indexPath.row < servers.count else { return }
+        navigationController?.pushViewController(NebulaServerDetailsController(server: servers[indexPath.row], russian: ru,
+            onSave: { [weak self] in self?.reloadServers() }), animated: true)
+    }
+
+    public override func tableView(_ tableView: UITableView, trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
+        guard !busy, indexPath.section == 2, indexPath.row < servers.count else { return nil }
+        let action = UIContextualAction(style: .normal, title: text("Провайдер и оплата", "Provider and payment")) { [weak self] _, _, complete in
+            self?.tableView(tableView, accessoryButtonTappedForRowWith: indexPath)
+            complete(true)
+        }
+        action.backgroundColor = view.tintColor
+        let configuration = UISwipeActionsConfiguration(actions: [action])
+        configuration.performsFirstActionWithFullSwipe = false
+        return configuration
     }
 }

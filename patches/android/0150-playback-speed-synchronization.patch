@@ -1,0 +1,60 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/MediaController.java b/TMessagesProj/src/main/java/org/telegram/messenger/MediaController.java
+index 8b97eb3..4362c14 100644
+--- a/TMessagesProj/src/main/java/org/telegram/messenger/MediaController.java
++++ b/TMessagesProj/src/main/java/org/telegram/messenger/MediaController.java
+@@ -3267,8 +3267,11 @@ public class MediaController implements AudioManager.OnAudioFocusChangeListener,
+     }
+ 
+     public void setPlaybackSpeed(boolean music, float speed) {
++        if (Float.isNaN(speed) || Float.isInfinite(speed) || speed <= 0f) return;
++        speed = Math.round(speed * 10f) / 10f;
+         if (music) {
+-            if (currentMusicPlaybackSpeed >= 6 && speed == 1f && playingMessageObject != null) {
++            if (currentMusicPlaybackSpeed >= 6 && speed == 1f && playingMessageObject != null
++                    && playingMessageObject.isMusic() && audioPlayer != null) {
+                 audioPlayer.pause();
+                 float p = playingMessageObject.audioProgress;
+                 final MessageObject currentMessage = playingMessageObject;
+@@ -3291,10 +3294,10 @@ public class MediaController implements AudioManager.OnAudioFocusChangeListener,
+                 fastPlaybackSpeed = speed;
+             }
+         }
+-        if (audioPlayer != null) {
+-            audioPlayer.setPlaybackSpeed(Math.round(speed * 10f) / 10f);
+-        } else if (videoPlayer != null) {
+-            videoPlayer.setPlaybackSpeed(Math.round(speed * 10f) / 10f);
++        // Changing a stored music preference must not change an active voice note.
++        if (playingMessageObject != null && music == playingMessageObject.isMusic()) {
++            if (audioPlayer != null) audioPlayer.setPlaybackSpeed(speed);
++            if (videoPlayer != null) videoPlayer.setPlaybackSpeed(speed);
+         }
+         MessagesController.getGlobalMainSettings().edit()
+                 .putFloat(music ? "musicPlaybackSpeed" : "playbackSpeed", speed)
+@@ -3847,9 +3850,7 @@ public class MediaController implements AudioManager.OnAudioFocusChangeListener,
+             }
+             if (messageObject.isRoundVideo()) {
+                 videoPlayer.setStreamType(useFrontSpeaker ? AudioManager.STREAM_VOICE_CALL : AudioManager.STREAM_MUSIC);
+-                if (Math.abs(currentPlaybackSpeed - 1.0f) > 0.001f) {
+-                    videoPlayer.setPlaybackSpeed(Math.round(currentPlaybackSpeed * 10f) / 10f);
+-                }
++                videoPlayer.setPlaybackSpeed(Math.round(currentPlaybackSpeed * 10f) / 10f);
+ 
+                 if (messageObject.forceSeekTo >= 0) {
+                     messageObject.audioProgress = seekToProgressPending = messageObject.forceSeekTo;
+@@ -3951,14 +3952,13 @@ public class MediaController implements AudioManager.OnAudioFocusChangeListener,
+                         }
+                         shouldSavePositionForCurrentAudio = name;
+                     }
+-                    if (Math.abs(currentPlaybackSpeed - 1.0f) > 0.001f) {
+-                        audioPlayer.setPlaybackSpeed(Math.round(currentPlaybackSpeed * 10f) / 10f);
+-                    }
++                    audioPlayer.setPlaybackSpeed(Math.round(currentPlaybackSpeed * 10f) / 10f);
+                     audioInfo = null;
+                     if (!saved) {
+                         clearPlaylist();
+                     }
+                 } else {
++                    audioPlayer.setPlaybackSpeed(Math.round(currentMusicPlaybackSpeed * 10f) / 10f);
+                     try {
+                         audioInfo = AudioInfo.getAudioInfo(cacheFile);
+                     } catch (Exception e) {

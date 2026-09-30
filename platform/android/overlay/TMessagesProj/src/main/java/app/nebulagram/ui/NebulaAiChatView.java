@@ -61,19 +61,25 @@ public final class NebulaAiChatView extends LinearLayout {
         status.setContentDescription(text("Выбранная модель. Изменить подключение", "Selected model. Change connection"));
         bar.addView(status, new LayoutParams(-1, -2));
         LinearLayout actions = new LinearLayout(context); actions.setGravity(Gravity.CENTER_VERTICAL);
+        actions.setBaselineAligned(false);
+        actions.setClipChildren(false); actions.setClipToPadding(false);
         chatsButton = control(text("Чаты", "Chats"));
         chatsButton.setBackground(shape(theme.surfaceContainer(), 18));
         chatsButton.setOnClickListener(v -> showChats());
-        LayoutParams chatsParams = new LayoutParams(0, -2, 1); chatsParams.topMargin = dp(8);
+        LayoutParams chatsParams = new LayoutParams(0, -2, 1);
         actions.addView(chatsButton, chatsParams);
         TextView reset = control(text("Новый чат", "New chat"));
         reset.setBackground(shape(theme.surfaceContainer(), 18));
-        reset.setCompoundDrawablesWithIntrinsicBounds(R.drawable.msg_edit, 0, 0, 0);
+        android.graphics.drawable.Drawable editIcon = context.getResources().getDrawable(R.drawable.msg_edit).mutate();
+        editIcon.setBounds(0, 0, dp(20), dp(20));
+        reset.setCompoundDrawablesRelative(editIcon, null, null, null);
         reset.setCompoundDrawablePadding(dp(6));
         if (reset.getCompoundDrawables()[0] != null) reset.getCompoundDrawables()[0].mutate().setColorFilter(theme.primary(), PorterDuff.Mode.SRC_IN);
-        LayoutParams resetParams = new LayoutParams(0, -2, 1); resetParams.leftMargin = dp(8); resetParams.topMargin = dp(8);
+        LayoutParams resetParams = new LayoutParams(0, -2, 1); resetParams.setMarginStart(dp(8));
         reset.setOnClickListener(v -> resetConversation());
-        actions.addView(reset, resetParams); bar.addView(actions); addView(bar);
+        actions.addView(reset, resetParams);
+        LayoutParams actionsParams = new LayoutParams(-1, -2); actionsParams.topMargin = dp(8);
+        bar.addView(actions, actionsParams); addView(bar);
         scroll = new ScrollView(context); scroll.setFillViewport(true); scroll.setClipToPadding(false);
         messages = new LinearLayout(context); messages.setOrientation(VERTICAL); messages.setPadding(dp(8), dp(16), dp(8), dp(16));
         scroll.addView(messages, new ScrollView.LayoutParams(-1, -2));
@@ -103,12 +109,14 @@ public final class NebulaAiChatView extends LinearLayout {
     private void showChats() {
         java.util.ArrayList<NebulaAiChats.Chat> chats = NebulaAiChats.list();
         CharSequence[] names = new CharSequence[chats.size()];
+        int selected = -1;
         for (int i = 0; i < chats.size(); i++) {
             NebulaAiChats.Chat chat = chats.get(i);
-            names[i] = (chat.id.equals(chatId) ? "✓  " : "")
-                    + (chat.title.isEmpty() ? text("Новый чат", "New chat") : chat.title);
+            if (chat.id.equals(chatId)) selected = i;
+            names[i] = chat.title.isEmpty() ? text("Новый чат", "New chat") : chat.title;
         }
         new NebulaDialog.Builder(getContext()).setTitle(text("Чаты Nebula AI", "Nebula AI chats"))
+                .setSelectedIndex(selected).setSelectionIndicatorVisible(false)
                 .setItems(names, (dialog, which) -> {
                     stop(); restoreChat(NebulaAiChats.select(chats.get(which).id)); composer.setText("");
                 }).show();
@@ -170,7 +178,8 @@ public final class NebulaAiChatView extends LinearLayout {
     }
     private TextView control(String value) {
         TextView view = label(value, 13, theme.primary()); view.setGravity(Gravity.CENTER);
-        view.setPadding(dp(14), dp(12), dp(14), dp(12)); view.setMinHeight(dp(48)); return view;
+        view.setPadding(dp(14), dp(12), dp(14), dp(12)); view.setMinHeight(dp(52));
+        view.setSingleLine(false); view.setEllipsize(null); return view;
     }
     private GradientDrawable shape(int color, int radius) { GradientDrawable d = new GradientDrawable(); d.setColor(color); d.setCornerRadius(dp(radius)); return d; }
     private static int dp(float value) { return AndroidUtilities.dp(value); }

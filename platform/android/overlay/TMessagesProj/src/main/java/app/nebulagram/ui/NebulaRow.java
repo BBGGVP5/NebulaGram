@@ -224,7 +224,8 @@ public class NebulaRow extends FrameLayout {
 
     public NebulaRow selection(boolean selected) {
         setSelected(selected);
-        setBackgroundColor(selected ? NebulaTheme.stateLayer(theme.primary(), 0.08f) : 0);
+        setBackgroundColor(selected ? androidx.core.graphics.ColorUtils.compositeColors(
+                NebulaTheme.stateLayer(theme.primary(), 0.18f), theme.surfaceContainer()) : 0);
         title.setTextColor(selected ? theme.primary() : theme.onSurface());
         return this;
     }
@@ -373,7 +374,7 @@ public class NebulaRow extends FrameLayout {
     public static View divider(Context context) {
         NebulaTheme theme = NebulaTheme.of(context);
         View line = new View(context);
-        line.setBackgroundColor(NebulaTheme.stateLayer(theme.outline(), 0.35f));
+        line.setBackgroundColor(NebulaTheme.stateLayer(theme.outline(), 0.16f));
         LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, Math.max(1, AndroidUtilities.dp(0.5f)));
         params.leftMargin = params.rightMargin = AndroidUtilities.dp(16);

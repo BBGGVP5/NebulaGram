@@ -40,7 +40,8 @@ public class NebulaSectionFragment extends BaseFragment {
     public static final int SECTION_GENERAL = 4;
 
     public static final int SECTION_FOLDERS = 5, SECTION_MESSAGES = 6, SECTION_PROFILE = 7,
-            SECTION_SWITCHES = 8, SECTION_CHAT_ACTIONS = 9;
+            SECTION_SWITCHES = 8, SECTION_CHAT_ACTIONS = 9,
+            SECTION_CHAT_SETTINGS = 10, SECTION_NAVIGATION = 11;
     private String focusTitle;
     private int focusIndex = -1;
     public NebulaSectionFragment focus(String title) { focusTitle = title; return this; }
@@ -93,7 +94,8 @@ public class NebulaSectionFragment extends BaseFragment {
 
         actionBar.setBackButtonImage(R.drawable.ic_ab_back);
         actionBar.setAllowOverlayTitle(true);
-        actionBar.setTitle(LocaleController.getString(titleKey()));
+        actionBar.setTitle(section == SECTION_NAVIGATION ? NebulaText.text("Навигация", "Navigation")
+                : LocaleController.getString(titleKey()));
         actionBar.setBackgroundColor(theme.surface());
         actionBar.setTitleColor(theme.onSurface());
         actionBar.setItemsColor(theme.onSurface(), false);
@@ -134,6 +136,7 @@ public class NebulaSectionFragment extends BaseFragment {
             case SECTION_PROFILE: return R.string.NebulaSectionProfile;
             case SECTION_SWITCHES: return R.string.NebulaSwitches;
             case SECTION_CHAT_ACTIONS: return R.string.NebulaMenuActions;
+            case SECTION_CHAT_SETTINGS:
             case SECTION_CHATS:
                 return R.string.NebulaSectionChats;
             case SECTION_TABS:
@@ -154,6 +157,10 @@ public class NebulaSectionFragment extends BaseFragment {
         wallpaperPreviews.clear();
         composerPreview = null;
         switch (section) {
+            case SECTION_CHAT_SETTINGS:
+                buildChats(context); buildMessages(context); buildProfile(context); break;
+            case SECTION_NAVIGATION:
+                buildTabs(context); buildFolders(context); break;
             case SECTION_FOLDERS: buildFolders(context); break;
             case SECTION_MESSAGES: buildMessages(context); break;
             case SECTION_PROFILE: buildProfile(context); break;

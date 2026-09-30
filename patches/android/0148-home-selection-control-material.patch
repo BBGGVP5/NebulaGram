@@ -1,0 +1,58 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
+index 936fcef..9bc7c7e 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
+@@ -2556,9 +2556,8 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
+                 glassDrawable.setRadius(Math.min(glassDrawable.getPaddedBounds().height(), glassDrawable.getPaddedBounds().width()) / 2f);
+             }
+             if (nebulaHomeTabsGlass) {
+-                // The home title is plain, like the iOS header. Only selection
+-                // mode needs the wide backing surface; search has its own field.
+-                glassDrawable.setAlpha(Math.round(255 * actionModeFactor * (1f - searchFactor)));
++                // Home controls own their separate material; search owns its field.
++                glassDrawable.setAlpha(0);
+             } else {
+                 glassDrawable.setAlpha(255);
+             }
+@@ -2566,7 +2565,16 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
+                     && (!nebulaHomeTabsGlass || glassDrawable.getAlpha() > 0)
+                     && !((nebulaClassicSavedHeader || nebulaFloatingChatHeader && !app.nebulagram.ui.NebulaAppearance.chatHeader()) && actionModeFactor == 0f && searchFactor == 0f)) glassDrawable.draw(canvas);
+         }
+-        if (glassDrawableBack != null && hasBackButton) {
++        if (glassDrawableBack != null && nebulaHomeTabsGlass && actionModeFactor > 0f
++                && actionMode != null && actionMode.getChildCount() > 0) {
++            final View close = actionMode.getChildAt(0);
++            final int cx = Math.round(actionMode.getX() + close.getX() + close.getWidth() / 2f);
++            final int cy = (t + b) / 2;
++            glassDrawableBack.setBounds(cx - dp(23), cy - dp(23), cx + dp(23), cy + dp(23));
++            glassDrawableBack.setAlpha(Math.round(255 * actionModeFactor));
++            glassDrawableBack.draw(canvas);
++        } else if (glassDrawableBack != null && hasBackButton) {
++            glassDrawableBack.setAlpha(255);
+             if (nebulaProfileGlass) {
+                 // Match the individual 46dp liquid-glass menu controls instead
+                 // of the wider default back capsule. Both share one material.
+@@ -2592,7 +2600,22 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
+         if (glassDrawableMenu != null && menuWidth > 0 && !glassOnlyBack && !doNotDrawGlassMenu
+                 && (!separateAvatar || actionModeFactor > 0f)) {
+             final float menuAlpha = hasForcedMenuWidth ? 1f : animatorHasMenuItems.getFloatValue();
+-            if (nebulaHomeTabsGlass && actionModeFactor < 0.01f
++            if (nebulaHomeTabsGlass && actionModeFactor > 0f && actionMode != null) {
++                int first = Integer.MAX_VALUE, last = Integer.MIN_VALUE;
++                for (int i = 0; i < actionMode.getChildCount(); i++) {
++                    final View child = actionMode.getChildAt(i);
++                    if (!(child instanceof ActionBarMenuItem) || child.getVisibility() != View.VISIBLE
++                            || child.getWidth() == 0) continue;
++                    final int x = Math.round(actionMode.getX() + child.getX());
++                    first = Math.min(first, x); last = Math.max(last, x + child.getWidth());
++                }
++                if (first < last) {
++                    glassDrawableMenu.setBounds(Math.max(0, first - dp(4)), t,
++                            Math.min(getWidth() - dp(4), last + dp(4)), b);
++                    glassDrawableMenu.setAlpha(Math.round(255 * actionModeFactor));
++                    glassDrawableMenu.draw(canvas);
++                }
++            } else if (nebulaHomeTabsGlass && actionModeFactor < 0.01f
+                     && !isSearchFieldVisible && menu != null) {
+                 // One continuous material follows the visible home actions.
+                 // This also keeps a two-button group when search is in the list.

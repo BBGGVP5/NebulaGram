@@ -24,10 +24,11 @@ class CapsuleCheck {
  static class View {static final int VISIBLE=0;int x,width=46,visibility=VISIBLE;float alpha=1f;
   View(int x){this.x=x;}int getVisibility(){return visibility;}int getWidth(){return width;}
   float getAlpha(){return alpha;}float getX(){return x;}}
- static class Menu {int x=240;View[] children={new View(0),new View(46),new View(92),new View(138)};
+ static class ActionBarMenuItem extends View {ActionBarMenuItem(int x){super(x);}}
+ static class Menu {int x=240;View[] children={new ActionBarMenuItem(0),new ActionBarMenuItem(46),new ActionBarMenuItem(92),new ActionBarMenuItem(138)};
   int getChildCount(){return children.length;}View getChildAt(int i){return children[i];}float getX(){return x;}}
  boolean nebulaFloatingChatHeader=true,nebulaChatMenuHidden=true,glassOnlyBack,doNotDrawGlassMenu,hasForcedMenuWidth;
- boolean nebulaHomeGlass,nebulaHomeTabsGlass,isSearchFieldVisible;Menu menu=new Menu();
+ boolean nebulaHomeGlass,nebulaHomeTabsGlass,isSearchFieldVisible;Menu menu=new Menu(),actionMode=new Menu();
  Avatar nebulaChatAvatarContainer=new Avatar();Draw glassDrawableMenu=new Draw();Animated animatorHasMenuItems=new Animated();
  float actionModeFactor,searchFactor;int menuWidth=96,s=48,p=6,t=0,b=60;Object canvas;
  int getWidth(){return 400;}
@@ -63,6 +64,14 @@ class CapsuleCheck {
   check(grouped[0]==Math.round(255*.6f)&&grouped[1]==236&&grouped[2]==382);
   tabs.glassDrawableMenu.calls.clear();tabs.searchFactor=1f;tabs.draw();
   check(tabs.glassDrawableMenu.calls.isEmpty());
+  for(int frame=1;frame<=100;frame++){
+   CapsuleCheck selection=new CapsuleCheck();selection.nebulaFloatingChatHeader=false;
+   selection.nebulaHomeTabsGlass=true;selection.actionModeFactor=frame/100f;
+   selection.actionMode.x=0;selection.actionMode.children=new View[]{new View(0),new View(54),new ActionBarMenuItem(240),new ActionBarMenuItem(286),new ActionBarMenuItem(332)};
+   selection.draw();check(selection.glassDrawableMenu.calls.size()==1);
+   int[] d=selection.glassDrawableMenu.calls.get(0);
+   check(d[0]==Math.round(255*frame/100f)&&d[1]==236&&d[2]==382);
+  }
   CapsuleCheck c=new CapsuleCheck();c.glassDrawableMenu=null;c.draw();
   System.out.println(cases+" selection capsule drawing cases passed");
  }

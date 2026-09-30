@@ -145,6 +145,7 @@ var handlers = map[string]handler{
 	"hwid.reset":              (*Core).handleHWIDReset,
 	"servers.list":            (*Core).handleServersList,
 	"server.select":           (*Core).handleServerSelect,
+	"server.details":          (*Core).handleServerDetails,
 	"server.addLink":          (*Core).handleServerAddLink,
 	"server.clearAll":         (*Core).handleServerClear,
 	"subscription.add":        (*Core).handleSubscriptionAdd,

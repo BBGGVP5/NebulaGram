@@ -1,0 +1,33 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
+index a04db28..d1758d1 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
+@@ -4168,6 +4168,7 @@ public class ChatActivity extends BaseFragment implements
+             @Override
+             protected boolean onAvatarClick() {
+                 if (app.nebulagram.ui.NebulaAppearance.chatHeader()
++                        && !UserObject.isUserSelf(currentUser)
+                         && chatMode == 0 && !isInPreviewMode() && !inBubbleMode && !searching
+                         && headerItem != null && headerItem.hasSubMenu()) {
+                     headerItem.toggleSubMenu(null, avatarContainer.getAvatarImageView());
+@@ -17469,6 +17470,12 @@ public class ChatActivity extends BaseFragment implements
+             shouldHaveLightNavigationBarIcons = navigationBarBrightness <= 0.9f;
+ 
+             navbarContentSourceWallpaper.setSource(source);
++            // The wallpaper can arrive after the first frame. Repainting a View
++            // alone keeps the drawable's cached RenderNode with the old fill.
++            if (glassBackgroundSourceRenderNode != null) glassBackgroundSourceRenderNode.invalidateDisplayListForDrawables();
++            if (glassBackgroundSourceFrostedRenderNode != null) glassBackgroundSourceFrostedRenderNode.invalidateDisplayListForDrawables();
++            if (actionBar != null) actionBar.invalidate();
++            if (invalidateBlurredSourcesView != null) invalidateMergedVisibleBlurredPositionsAndSources(BLUR_INVALIDATE_FLAG_POSITIONS | BLUR_INVALIDATE_FLAG_SCROLL);
+             if (chatActivityFadeView != null) {
+                 chatActivityFadeView.invalidate();
+             }
+@@ -18889,6 +18896,7 @@ public class ChatActivity extends BaseFragment implements
+             notifyHeightChanged();
+ 
+             checkUi_topFade();
++            if (changed) invalidateMergedVisibleBlurredPositionsAndSources(BLUR_INVALIDATE_FLAG_POSITIONS | BLUR_INVALIDATE_FLAG_CLIP);
+         }
+ 
+         private void setNonNoveTranslation(float y) {

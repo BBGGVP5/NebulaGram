@@ -128,6 +128,9 @@ public final class NebulaPrivacyFragment extends BaseFragment {
     private void rebuild() {
         if (content == null) return;
         content.removeAllViews();
+        card(row(R.drawable.nebula_settings_chat_lock, text("Пароли чатов", "Chat passwords"))
+                .trailing(NebulaRow.TRAIL_CHEVRON)
+                .withClick(v -> presentFragment(new NebulaLockedChatsFragment())));
 
         NebulaSettingsHero hero = new NebulaSettingsHero(content.getContext(), R.drawable.msg_secret,
                 text("Локальные копии", "Local copies"),

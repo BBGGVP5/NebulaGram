@@ -341,20 +341,14 @@ public final class NebulaAiChatController: UIViewController, UITextViewDelegate 
     }
     @objc private func showChats() {
         let sessions = chats.list()
-        let sheet = UIAlertController(title: text("Чаты Nebula AI", "Nebula AI chats"), message: nil, preferredStyle: .actionSheet)
-        for chat in sessions {
-            let name = chat.title.isEmpty ? text("Новый чат", "New chat") : chat.title
-            sheet.addAction(UIAlertAction(title: (chat.id == chatId ? "✓  " : "") + name, style: .default) { [weak self] _ in
-                guard let self = self, let selected = self.chats.select(chat.id) else { return }
+        NebulaChoiceController.show(from: self, title: text("Чаты Nebula AI", "Nebula AI chats"),
+            choices: sessions.map { $0.title.isEmpty ? text("Новый чат", "New chat") : $0.title },
+            selected: sessions.firstIndex(where: { $0.id == chatId }), russian: ru, selectionIndicatorVisible: false) { [weak self] index in
+                guard let self = self, sessions.indices.contains(index), let selected = self.chats.select(sessions[index].id) else { return }
                 self.cancel(showMessage: false)
                 self.composer.text = ""; self.textViewDidChange(self.composer)
                 self.restoreChat(selected)
-            })
-        }
-        sheet.addAction(UIAlertAction(title: text("Отмена", "Cancel"), style: .cancel))
-        sheet.popoverPresentationController?.sourceView = chatsButton
-        sheet.popoverPresentationController?.sourceRect = chatsButton.bounds
-        present(sheet, animated: true)
+            }
     }
     @objc private func openSettings() { navigationController?.pushViewController(NebulaAiController(russian: ru), animated: true) }
     @objc private func pickAction() {

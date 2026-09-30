@@ -180,6 +180,17 @@ public class NebulaServersFragment extends BaseFragment {
         for (JSONObject server : servers) {
             NebulaCard card = new NebulaCard(context);
             card.add(buildRow(context, server));
+            android.widget.TextView details = new android.widget.TextView(context);
+            details.setText(NebulaServerDetailsText.describe(server.optJSONObject("details")));
+            details.setTextColor(NebulaTheme.of(context).primary());
+            details.setTextSize(13);
+            details.setPadding(AndroidUtilities.dp(16), AndroidUtilities.dp(8), AndroidUtilities.dp(16), AndroidUtilities.dp(12));
+            details.setMinimumHeight(AndroidUtilities.dp(48));
+            details.setGravity(android.view.Gravity.CENTER_VERTICAL);
+            details.setBackground(org.telegram.ui.ActionBar.Theme.createSelectorDrawable(
+                    NebulaTheme.stateLayer(NebulaTheme.of(context).primary(), .12f), 2));
+            details.setOnClickListener(v -> presentFragment(new NebulaServerDetailsFragment(server)));
+            card.addView(details, new LinearLayout.LayoutParams(-1, -2));
             LinearLayout.LayoutParams params = cardParams();
             params.topMargin = 0;
             params.bottomMargin = AndroidUtilities.dp(8);
@@ -264,6 +275,7 @@ public class NebulaServersFragment extends BaseFragment {
         updateLatency(row, server);
         serverRows.put(id, row);
         row.withClick(v -> select(id));
+        row.setOnLongClickListener(v -> { presentFragment(new NebulaServerDetailsFragment(server)); return true; });
         return row;
     }
 

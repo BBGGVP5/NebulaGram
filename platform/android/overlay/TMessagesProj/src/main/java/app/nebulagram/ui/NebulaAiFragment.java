@@ -61,6 +61,7 @@ public final class NebulaAiFragment extends BaseFragment {
                 text("Чат, модели и ваши инструкции.", "Chat, models and your instructions."));
         content.addView(hero);
         LinearLayout navigation = new LinearLayout(c);
+        navigation.setBaselineAligned(false);
         navigation.setPadding(dp(4), dp(4), dp(4), dp(4));
         android.graphics.drawable.GradientDrawable track = new android.graphics.drawable.GradientDrawable();
         track.setColor(NebulaTheme.of(c).surfaceContainer()); track.setCornerRadius(dp(18));
@@ -72,7 +73,7 @@ public final class NebulaAiFragment extends BaseFragment {
             tab.setGravity(android.view.Gravity.CENTER); tab.setTypeface(AndroidUtilities.bold());
             tab.setMinHeight(dp(48)); tab.setPadding(dp(4), dp(8), dp(4), dp(8));
             tab.setOnClickListener(v -> selectPage(page));
-            navigation.addView(tab, new LinearLayout.LayoutParams(0, -1, 1));
+            navigation.addView(tab, new LinearLayout.LayoutParams(0, -2, 1));
         }
         LinearLayout.LayoutParams navigationParams = new LinearLayout.LayoutParams(-1, -2);
         navigationParams.topMargin = dp(18); navigationParams.bottomMargin = dp(6);

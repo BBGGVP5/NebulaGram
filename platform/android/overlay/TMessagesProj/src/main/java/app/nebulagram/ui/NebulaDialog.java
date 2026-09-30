@@ -29,6 +29,7 @@ public final class NebulaDialog {
         private CharSequence[] items, descriptions;
         private int selected = -1;
         private boolean choices;
+        private boolean selectionIndicatorVisible = true;
         private View customView;
         private final Theme.ResourcesProvider resourcesProvider;
         private final boolean useTelegramTheme;
@@ -45,6 +46,7 @@ public final class NebulaDialog {
             items = values; itemClick = listener; return this;
         }
         public Builder setSelectedIndex(int index) { choices = true; selected = index; return this; }
+        public Builder setSelectionIndicatorVisible(boolean visible) { selectionIndicatorVisible = visible; return this; }
         public Builder setDescriptions(CharSequence[] values) { descriptions = values; return this; }
         public Builder setPositiveButton(CharSequence label, DialogInterface.OnClickListener listener) {
             positive = label; positiveClick = listener; return this;
@@ -133,7 +135,8 @@ public final class NebulaDialog {
                 row.setSelected(checked);
                 row.setFocusable(true);
                 row.setBackground(new RippleDrawable(ColorStateList.valueOf(NebulaTheme.stateLayer(accent, .12f)),
-                        shape(checked ? NebulaTheme.stateLayer(accent, .12f) : container, 16),
+                        shape(checked ? androidx.core.graphics.ColorUtils.compositeColors(
+                                NebulaTheme.stateLayer(accent, .18f), container) : container, 16),
                         shape(0xffffffff, 16)));
                 row.setPaddingRelative(dp(16), dp(14), dp(16), dp(14));
                 LinearLayout labels = new LinearLayout(context);
@@ -147,7 +150,7 @@ public final class NebulaDialog {
                     row.setContentDescription(items[i] + ". " + descriptions[i]);
                 }
                 row.addView(labels, new LinearLayout.LayoutParams(0, -2, 1));
-                if (choices) {
+                if (choices && selectionIndicatorVisible) {
                     View indicator = new View(context) {
                         private final Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
                         @Override protected void onDraw(Canvas canvas) {

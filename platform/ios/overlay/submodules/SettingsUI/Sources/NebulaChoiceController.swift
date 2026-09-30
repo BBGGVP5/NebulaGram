@@ -7,6 +7,7 @@ final class NebulaChoiceController: UITableViewController {
     private let detail: String?
     private let choose: (Int) -> Void
     private let ru: Bool
+    private var selectionIndicatorVisible = true
 
     init(title: String, choices: [String], selected: Int?, detail: String?, russian: Bool, choose: @escaping (Int) -> Void) {
         self.choices = choices; self.selected = selected; self.detail = detail; self.choose = choose; self.ru = russian
@@ -26,9 +27,13 @@ final class NebulaChoiceController: UITableViewController {
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = UITableViewCell(style: .default, reuseIdentifier: nil)
         cell.textLabel?.text = choices[indexPath.row]
-        cell.accessoryType = indexPath.row == selected ? .checkmark : .none
+        cell.accessoryType = selectionIndicatorVisible && indexPath.row == selected ? .checkmark : .none
         if indexPath.row == selected { cell.accessibilityTraits.insert(.selected) }
         NebulaSettingsStyle.finish(cell)
+        if !selectionIndicatorVisible && indexPath.row == selected {
+            cell.backgroundColor = view.tintColor.withAlphaComponent(0.18)
+            cell.textLabel?.textColor = view.tintColor
+        }
         return cell
     }
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
@@ -37,9 +42,10 @@ final class NebulaChoiceController: UITableViewController {
         dismiss(animated: true) { action(indexPath.row) }
     }
     static func show(from host: UIViewController, title: String, choices: [String], selected: Int? = nil,
-                     detail: String? = nil, russian: Bool, choose: @escaping (Int) -> Void) {
+                     detail: String? = nil, russian: Bool, selectionIndicatorVisible: Bool = true, choose: @escaping (Int) -> Void) {
         guard host.presentedViewController == nil else { return }
         let controller = NebulaChoiceController(title: title, choices: choices, selected: selected, detail: detail, russian: russian, choose: choose)
+        controller.selectionIndicatorVisible = selectionIndicatorVisible
         let navigation = UINavigationController(rootViewController: controller)
         navigation.modalPresentationStyle = host.traitCollection.userInterfaceIdiom == .pad ? .formSheet : .pageSheet
         navigation.preferredContentSize = CGSize(width: 480, height: min(600, CGFloat(choices.count) * 64 + 140))

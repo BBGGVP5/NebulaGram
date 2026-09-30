@@ -45,12 +45,13 @@ func EngineFor(p Protocol) Engine {
 
 // Server is one outbound endpoint, parsed from a share link or a subscription.
 type Server struct {
-	ID          string   `json:"id"`                    // stable, derived from the link contents
-	Name        string   `json:"name"`                  // display name (fragment of the link)
-	Description string   `json:"description,omitempty"` // optional serverDescription from the subscription
-	Protocol    Protocol `json:"protocol"`
-	Address     string   `json:"address"`
-	Port        int      `json:"port"`
+	ID          string        `json:"id"`                    // stable, derived from the link contents
+	Name        string        `json:"name"`                  // display name (fragment of the link)
+	Description string        `json:"description,omitempty"` // optional serverDescription from the subscription
+	Details     ServerDetails `json:"details"`               // user-owned provider and billing notes; never panel data
+	Protocol    Protocol      `json:"protocol"`
+	Address     string        `json:"address"`
+	Port        int           `json:"port"`
 
 	// Credentials. UUID doubles as the password for trojan/ss/hysteria2.
 	UUID     string `json:"uuid,omitempty"`
@@ -99,6 +100,18 @@ type Server struct {
 	LatencyMs     int    `json:"latency_ms"`               // raw milliseconds; -1 = failed; zero is valid when CheckedAt > 0
 	CheckedAt     int64  `json:"checked_at,omitempty"`     // unix seconds; 0 = never measured
 	LatencyMethod string `json:"latency_method,omitempty"` // actual measured method; empty = legacy unknown
+}
+
+// ServerDetails is local bookkeeping, independent of the connection credentials.
+// Amount is a decimal string so currency values survive JSON without rounding.
+type ServerDetails struct {
+	Provider   string `json:"provider,omitempty"`
+	Plan       string `json:"plan,omitempty"`
+	Amount     string `json:"amount,omitempty"`
+	Currency   string `json:"currency,omitempty"`
+	DueDate    string `json:"due_date,omitempty"` // YYYY-MM-DD in the user's calendar
+	PeriodDays int    `json:"period_days,omitempty"`
+	Notes      string `json:"notes,omitempty"`
 }
 
 // Engine reports which tunnel core runs this server.
