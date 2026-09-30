@@ -175,3 +175,14 @@
 - `0055-memory-warning-root.patch` installs the optional low-memory observer
   when the native root controller starts. The Settings screen samples process
   resident memory only while visible and stores the warning preference locally.
+
+# Cherrygram story archive controls
+
+- `0056-story-auto-archive.patch` listens to the real story-subscription stream
+  and applies Telegram's native per-peer hidden-story action for the selected
+  user/channel categories. Settings are local to the current account; peers
+  are deduplicated for the lifetime of the chat-list controller. Changing the
+  setting also processes currently visible subscriptions.
+- The Privacy screen exposes the story controls and a separate native archive
+  visibility action. Hidden stories and chats retain Telegram's normal recovery
+  routes.

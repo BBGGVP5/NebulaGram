@@ -1,0 +1,59 @@
+diff --git a/submodules/ChatListUI/Sources/ChatListController.swift b/submodules/ChatListUI/Sources/ChatListController.swift
+index cb128a6..d433bf1 100644
+--- a/submodules/ChatListUI/Sources/ChatListController.swift
++++ b/submodules/ChatListUI/Sources/ChatListController.swift
+@@ -212,6 +212,28 @@ public class ChatListControllerImpl: TelegramBaseController, ChatListController
+     private var shouldFixStorySubscriptionOrder: Bool = false
+     private var fixedStorySubscriptionOrder: [EnginePeer.Id] = []
+     private(set) var orderedStorySubscriptions: EngineStorySubscriptions?
++    private var nebulaStoryArchiveObserver: NSObjectProtocol?
++    private var nebulaArchivedStoryPeerIds = Set<EnginePeer.Id>()
++
++    private func nebulaArchiveStoriesIfNeeded() {
++        guard case .chatList(groupId: .root) = self.location, let subscriptions = self.orderedStorySubscriptions else { return }
++        let prefix = "nebula.story.archive.\(self.context.account.peerId.toInt64())."
++        let defaults = UserDefaults.standard
++        guard defaults.bool(forKey: prefix + "0") else { return }
++        let archiveUsers = defaults.object(forKey: prefix + "1") == nil || defaults.bool(forKey: prefix + "1")
++        let archiveChannels = defaults.bool(forKey: prefix + "2")
++        for item in subscriptions.items {
++            let eligible: Bool
++            switch item.peer {
++            case .user: eligible = archiveUsers
++            case .channel: eligible = archiveChannels
++            default: eligible = false
++            }
++            guard eligible, !self.nebulaArchivedStoryPeerIds.contains(item.peer.id) else { continue }
++            self.nebulaArchivedStoryPeerIds.insert(item.peer.id)
++            self.context.engine.peers.updatePeerStoriesHidden(id: item.peer.id, isHidden: true)
++        }
++    }
+     private var displayedStoriesTooltip: Bool = false
+     
+     public var hasStorySubscriptions: Bool {
+@@ -282,6 +304,9 @@ public class ChatListControllerImpl: TelegramBaseController, ChatListController
+         )
+                 
+         super.init(context: context, navigationBarPresentationData: nil)
++        self.nebulaStoryArchiveObserver = NotificationCenter.default.addObserver(forName: Notification.Name("NebulaStoryArchiveSettingsChanged"), object: nil, queue: .main) { [weak self] _ in
++            self?.nebulaArchiveStoriesIfNeeded()
++        }
+         
+         self.accessoryPanelContainer = ASDisplayNode()
+         
+@@ -790,6 +815,7 @@ public class ChatListControllerImpl: TelegramBaseController, ChatListController
+     }
+     
+     deinit {
++        if let observer = self.nebulaStoryArchiveObserver { NotificationCenter.default.removeObserver(observer) }
+         self.openMessageFromSearchDisposable.dispose()
+         self.badgeDisposable?.dispose()
+         self.badgeIconDisposable?.dispose()
+@@ -2189,6 +2215,7 @@ public class ChatListControllerImpl: TelegramBaseController, ChatListController
+                         items: items,
+                         hasMoreToken: rawStorySubscriptions.hasMoreToken
+                     )
++                    self.nebulaArchiveStoriesIfNeeded()
+                     self.fixedStorySubscriptionOrder = items.map(\.peer.id)
+                     
+                     let transition: ContainedViewLayoutTransition

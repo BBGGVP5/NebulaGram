@@ -40,14 +40,15 @@ final class NebulaPrivacyController: UITableViewController {
         hero.fit(in: tableView)
     }
     @objc private func close() { dismiss(animated: true) }
-    override func numberOfSections(in tableView: UITableView) -> Int { 8 }
-    override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int { section == 6 ? NebulaRetentionScope.allCases.count : section == 0 ? 3 : (section == 3 ? 2 : 1) }
+    override func numberOfSections(in tableView: UITableView) -> Int { 9 }
+    override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int { section == 6 ? NebulaRetentionScope.allCases.count : section == 0 || section == 8 ? 3 : (section == 3 ? 2 : 1) }
     override func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
-        [text("Удалённые сообщения", "Deleted messages"), text("Оформление", "Appearance"), text("Локальный кэш", "Local cache"), text("Защита", "Protection"), nil, text("Пересылка", "Forwarding"), text("Где сохранять", "Where to save"), text("Чаты", "Chats")][section]
+        [text("Удалённые сообщения", "Deleted messages"), text("Оформление", "Appearance"), text("Локальный кэш", "Local cache"), text("Защита", "Protection"), nil, text("Пересылка", "Forwarding"), text("Где сохранять", "Where to save"), text("Чаты", "Chats"), text("Истории", "Stories")][section]
     }
     override func tableView(_ tableView: UITableView, titleForFooterInSection section: Int) -> String? {
         if section == 6 { return text("В «Избранном» сохраняется уже полученное на iPhone, удалённое с другого устройства. Удаление в этом приложении работает как обычно.", "Saved Messages already received on this iPhone are kept when deleted on another device. Deleting in this app works as usual.") }
         if section == 7 { return text("Скрытый архив можно снова открыть из списка чатов. Настройка сохраняется в аккаунте Telegram.", "The hidden archive can still be opened from the chat list. Telegram stores this setting for your account.") }
+        if section == 8 { return text("Истории выбранных типов будут скрываться через штатный архив Telegram для этого аккаунта.", "Stories from selected peer types will be hidden using Telegram's native story archive for this account.") }
         if section == 5 { return text("Редактор текста и подписей в меню пересылки. Вложения и альбомы сохраняются. Копия без автора, отправка вручную.", "Edit text and captions from forwarding options. Keep attachments and albums. An anonymous copy, sent manually.") }
         if section == 4 {
             return helpExpanded ? [details(0), details(2), details(3)].joined(separator: "\n\n") : nil
@@ -71,6 +72,19 @@ final class NebulaPrivacyController: UITableViewController {
         cell.textLabel?.font = .preferredFont(forTextStyle: .body)
         cell.textLabel?.adjustsFontForContentSizeCategory = true
         cell.textLabel?.numberOfLines = 0
+        if indexPath.section == 8 {
+            let key = storyArchiveKey(indexPath.row)
+            NebulaSettingsHero.style(cell, symbol: "circle.dotted.circle")
+            cell.textLabel?.text = ru ? ["Автоматически архивировать истории", "Истории пользователей", "Истории каналов"][indexPath.row]
+                : ["Automatically archive stories", "User stories", "Channel stories"][indexPath.row]
+            let toggle = UISwitch(); toggle.tag = indexPath.row
+            toggle.isOn = UserDefaults.standard.object(forKey: key) == nil && indexPath.row == 1
+                || UserDefaults.standard.bool(forKey: key)
+            toggle.isEnabled = indexPath.row == 0 || UserDefaults.standard.bool(forKey: storyArchiveKey(0))
+            toggle.addTarget(self, action: #selector(storyArchiveChanged(_:)), for: .valueChanged)
+            cell.accessoryView = toggle; cell.selectionStyle = .none
+            return cell
+        }
         if indexPath.section == 7 {
             NebulaSettingsHero.style(cell, symbol: "archivebox")
             cell.textLabel?.text = text("Архив в списке чатов", "Archive in chat list")
@@ -130,6 +144,14 @@ final class NebulaPrivacyController: UITableViewController {
     }
     @objc private func scopeChanged(_ toggle: UISwitch) {
         archive.setScopeEnabled(account: account, scope: NebulaRetentionScope.allCases[toggle.tag], value: toggle.isOn)
+    }
+    private func storyArchiveKey(_ row: Int) -> String {
+        "nebula.story.archive.\(account).\(row)"
+    }
+    @objc private func storyArchiveChanged(_ toggle: UISwitch) {
+        UserDefaults.standard.set(toggle.isOn, forKey: storyArchiveKey(toggle.tag))
+        if toggle.tag == 0 { tableView.reloadSections(IndexSet(integer: 8), with: .none) }
+        NotificationCenter.default.post(name: Notification.Name("NebulaStoryArchiveSettingsChanged"), object: nil)
     }
     @objc private func forwardEditingChanged(_ toggle: UISwitch) {
         NebulaForwardEditing.shared.enabled = toggle.isOn
