@@ -1,6 +1,7 @@
 import Foundation
 import UIKit
 import TelegramCore
+import TelegramUIPreferences
 import SwiftSignalKit
 import AccountContext
 import NebulaSettingsContract
