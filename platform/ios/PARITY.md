@@ -132,3 +132,8 @@ This inventory distinguishes **wired source** from native build and device accep
 - The native chat-list search row can now be hidden while leaving search activation intact; an active search still owns its field. Round-video zoom now starts as compact 1×/2× presets and expands on hold or drag into a logarithmic ruler scrolling beneath a fixed indicator on Android and iOS. Device visual and gesture checks remain pending.
 - The glass highlights switch now controls the custom material rim and legacy highlight container. It is disabled for system Liquid Glass on iOS 26, whose highlights are OS-owned. Native compilation and device visual acceptance remain pending.
 - Premium and emoji-status icons can be hidden in profile headers, chat-list rows and chat titles without hiding verification or NebulaGram badges. Open profiles, visible chat rows and chat titles update when the preference changes. Other status surfaces still need their own native consumer.
+
+## 2026-09-30: optical-module zoom remains Android-only
+
+- Android now discovers recording-compatible camera modules and physical focal lengths, prioritizes logical multi-camera zoom, routes separate module transitions without replacing the recorder encoder, and uses Camera1's real zoom-ratio table. Its slider has no fixed 2×/10× ceiling and preserves pinch zoom on release. Device acceptance remains pending.
+- This implementation has not been ported to iOS. `NebulaVideoZoomSlider` still queries a wide-angle device separately from the active capture session, caps its range at 10×, and derives buttons from that range. Native iOS needs an active-device/virtual-camera range bridge, constituent-lens stops, correct factor mapping, and the same gesture persistence before module/range parity can be claimed.
