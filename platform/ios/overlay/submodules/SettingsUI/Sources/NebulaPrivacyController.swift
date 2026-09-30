@@ -41,7 +41,7 @@ final class NebulaPrivacyController: UITableViewController {
     }
     @objc private func close() { dismiss(animated: true) }
     override func numberOfSections(in tableView: UITableView) -> Int { 9 }
-    override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int { section == 6 ? NebulaRetentionScope.allCases.count : section == 0 || section == 8 ? 3 : (section == 3 ? 2 : 1) }
+    override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int { section == 6 ? NebulaRetentionScope.allCases.count : section == 0 || section == 8 ? 3 : (section == 3 || section == 7 ? 2 : 1) }
     override func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
         [text("Удалённые сообщения", "Deleted messages"), text("Оформление", "Appearance"), text("Локальный кэш", "Local cache"), text("Защита", "Protection"), nil, text("Пересылка", "Forwarding"), text("Где сохранять", "Where to save"), text("Чаты", "Chats"), text("Истории", "Stories")][section]
     }
@@ -86,10 +86,18 @@ final class NebulaPrivacyController: UITableViewController {
             return cell
         }
         if indexPath.section == 7 {
-            NebulaSettingsHero.style(cell, symbol: "archivebox")
-            cell.textLabel?.text = text("Архив в списке чатов", "Archive in chat list")
-            cell.detailTextLabel?.text = text("Скрыть или показать", "Hide or show")
-            cell.accessoryType = .disclosureIndicator
+            NebulaSettingsHero.style(cell, symbol: indexPath.row == 0 ? "archivebox" : "hand.tap")
+            if indexPath.row == 0 {
+                cell.textLabel?.text = text("Архив в списке чатов", "Archive in chat list")
+                cell.detailTextLabel?.text = text("Скрыть или показать", "Hide or show")
+                cell.accessoryType = .disclosureIndicator
+            } else {
+                cell.textLabel?.text = text("Отключить вибрацию в чатах", "Disable chat vibration")
+                let toggle = UISwitch()
+                toggle.isOn = UserDefaults.standard.bool(forKey: "nebula.chat.disableHaptics")
+                toggle.addTarget(self, action: #selector(chatHapticsChanged(_:)), for: .valueChanged)
+                cell.accessoryView = toggle; cell.selectionStyle = .none
+            }
             return cell
         }
         if indexPath.section == 6 {
@@ -153,6 +161,9 @@ final class NebulaPrivacyController: UITableViewController {
         if toggle.tag == 0 { tableView.reloadSections(IndexSet(integer: 8), with: .none) }
         NotificationCenter.default.post(name: Notification.Name("NebulaStoryArchiveSettingsChanged"), object: nil)
     }
+    @objc private func chatHapticsChanged(_ toggle: UISwitch) {
+        UserDefaults.standard.set(toggle.isOn, forKey: "nebula.chat.disableHaptics")
+    }
     @objc private func forwardEditingChanged(_ toggle: UISwitch) {
         NebulaForwardEditing.shared.enabled = toggle.isOn
     }
@@ -174,7 +185,7 @@ final class NebulaPrivacyController: UITableViewController {
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
         guard !busy else { return }
-        if indexPath.section == 7 {
+        if indexPath.section == 7 && indexPath.row == 0 {
             NebulaChoiceController.show(from: self, title: text("Архив в списке чатов", "Archive in chat list"),
                 choices: [text("Скрыть архив", "Hide archive"), text("Показать архив", "Show archive")],
                 selected: nil, russian: ru) { [weak self] index in

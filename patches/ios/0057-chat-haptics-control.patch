@@ -1,0 +1,95 @@
+diff --git a/submodules/TelegramUI/Components/Chat/ChatMessageBubbleItemNode/Sources/ChatMessageBubbleItemNode.swift b/submodules/TelegramUI/Components/Chat/ChatMessageBubbleItemNode/Sources/ChatMessageBubbleItemNode.swift
+index 81f60cb..2fc835d 100644
+--- a/submodules/TelegramUI/Components/Chat/ChatMessageBubbleItemNode/Sources/ChatMessageBubbleItemNode.swift
++++ b/submodules/TelegramUI/Components/Chat/ChatMessageBubbleItemNode/Sources/ChatMessageBubbleItemNode.swift
+@@ -7134,3 +7134,3 @@ public class ChatMessageBubbleItemNode: ChatMessageItemView, ChatMessagePreviewI
+                     self.swipeToReplyFeedback = HapticFeedback()
+-                    self.swipeToReplyFeedback?.prepareImpact()
++                    if !UserDefaults.standard.bool(forKey: "nebula.chat.disableHaptics") { self.swipeToReplyFeedback?.prepareImpact() }
+                 }
+@@ -7194,3 +7194,3 @@ public class ChatMessageBubbleItemNode: ChatMessageItemView, ChatMessagePreviewI
+                         self.playedSwipeToReplyHaptic = true
+-                        self.swipeToReplyFeedback?.impact(.heavy)
++                        if !UserDefaults.standard.bool(forKey: "nebula.chat.disableHaptics") { self.swipeToReplyFeedback?.impact(.heavy) }
+                     }
+diff --git a/submodules/TelegramUI/Components/Chat/ChatTextInputPanelNode/Sources/ChatTextInputPanelNode.swift b/submodules/TelegramUI/Components/Chat/ChatTextInputPanelNode/Sources/ChatTextInputPanelNode.swift
+index 227c5e5..7ed5871 100644
+--- a/submodules/TelegramUI/Components/Chat/ChatTextInputPanelNode/Sources/ChatTextInputPanelNode.swift
++++ b/submodules/TelegramUI/Components/Chat/ChatTextInputPanelNode/Sources/ChatTextInputPanelNode.swift
+@@ -5602,3 +5602,3 @@ public class ChatTextInputPanelNode: ChatInputPanelNode, ASEditableTextNodeDeleg
+                 richTextInputNode.inputView.layer.addShakeAnimation()
+-                self.hapticFeedback.error()
++                if !UserDefaults.standard.bool(forKey: "nebula.chat.disableHaptics") { self.hapticFeedback.error() }
+                 return
+@@ -5620,3 +5620,3 @@ public class ChatTextInputPanelNode: ChatInputPanelNode, ASEditableTextNodeDeleg
+     @objc func menuButtonPressed() {
+-        self.hapticFeedback.impact(.light)
++        if !UserDefaults.standard.bool(forKey: "nebula.chat.disableHaptics") { self.hapticFeedback.impact(.light) }
+         guard let presentationInterfaceState = self.presentationInterfaceState else {
+diff --git a/submodules/TelegramUI/Sources/ChatController.swift b/submodules/TelegramUI/Sources/ChatController.swift
+index 0d20dbb..5d39dd3 100644
+--- a/submodules/TelegramUI/Sources/ChatController.swift
++++ b/submodules/TelegramUI/Sources/ChatController.swift
+@@ -1854,3 +1854,3 @@ public final class ChatControllerImpl: TelegramBaseController, ChatController, G
+                         }
+-                        strongSelf.selectPollOptionFeedback?.tap()
++                        if !UserDefaults.standard.bool(forKey: "nebula.chat.disableHaptics") { strongSelf.selectPollOptionFeedback?.tap() }
+                         
+@@ -2052,3 +2052,3 @@ public final class ChatControllerImpl: TelegramBaseController, ChatController, G
+                             }
+-                            strongSelf.selectPollOptionFeedback?.tap()
++                            if !UserDefaults.standard.bool(forKey: "nebula.chat.disableHaptics") { strongSelf.selectPollOptionFeedback?.tap() }
+                             
+@@ -4026,3 +4026,3 @@ public final class ChatControllerImpl: TelegramBaseController, ChatController, G
+                         }
+-                        strongSelf.selectPollOptionFeedback?.success()
++                        if !UserDefaults.standard.bool(forKey: "nebula.chat.disableHaptics") { strongSelf.selectPollOptionFeedback?.success() }
+                     case .quiz:
+@@ -4049,3 +4049,3 @@ public final class ChatControllerImpl: TelegramBaseController, ChatController, G
+                                 }
+-                                strongSelf.selectPollOptionFeedback?.success()
++                                if !UserDefaults.standard.bool(forKey: "nebula.chat.disableHaptics") { strongSelf.selectPollOptionFeedback?.success() }
+                                 
+@@ -4060,3 +4060,3 @@ public final class ChatControllerImpl: TelegramBaseController, ChatController, G
+                                         }
+-                                        strongSelf.selectPollOptionFeedback?.error()
++                                        if !UserDefaults.standard.bool(forKey: "nebula.chat.disableHaptics") { strongSelf.selectPollOptionFeedback?.error() }
+                                         
+@@ -4147,3 +4147,3 @@ public final class ChatControllerImpl: TelegramBaseController, ChatController, G
+                     }
+-                    strongSelf.selectPollOptionFeedback?.success()
++                    if !UserDefaults.standard.bool(forKey: "nebula.chat.disableHaptics") { strongSelf.selectPollOptionFeedback?.success() }
+                     
+@@ -4589,3 +4589,3 @@ public final class ChatControllerImpl: TelegramBaseController, ChatController, G
+             if haptic {
+-                strongSelf.selectPollOptionFeedback?.success()
++                if !UserDefaults.standard.bool(forKey: "nebula.chat.disableHaptics") { strongSelf.selectPollOptionFeedback?.success() }
+             }
+@@ -5053,3 +5053,3 @@ public final class ChatControllerImpl: TelegramBaseController, ChatController, G
+                     }
+-                    HapticFeedback().error()
++                    if !UserDefaults.standard.bool(forKey: "nebula.chat.disableHaptics") { HapticFeedback().error() }
+                     controller.present(UndoOverlayController(presentationData: presentationData, content: .info(title: nil, text: presentationData.strings.RequestPeer_ReachedMaximum(limit), timeout: nil, customUndoText: nil), elevatedLayout: true, position: .bottom, animateInAsReplacement: false, action: { _ in return false }), in: .current)
+@@ -5727,3 +5727,3 @@ public final class ChatControllerImpl: TelegramBaseController, ChatController, G
+                 }
+-                self.selectPollOptionFeedback?.success()
++                if !UserDefaults.standard.bool(forKey: "nebula.chat.disableHaptics") { self.selectPollOptionFeedback?.success() }
+             } else {
+@@ -5734,3 +5734,3 @@ public final class ChatControllerImpl: TelegramBaseController, ChatController, G
+                 }
+-                self.selectPollOptionFeedback?.impact(.medium)
++                if !UserDefaults.standard.bool(forKey: "nebula.chat.disableHaptics") { self.selectPollOptionFeedback?.impact(.medium) }
+             }
+@@ -5826,5 +5826,5 @@ public final class ChatControllerImpl: TelegramBaseController, ChatController, G
+             if value {
+-                self.selectPollOptionFeedback?.success()
++                if !UserDefaults.standard.bool(forKey: "nebula.chat.disableHaptics") { self.selectPollOptionFeedback?.success() }
+             } else {
+-                self.selectPollOptionFeedback?.impact(.medium)
++                if !UserDefaults.standard.bool(forKey: "nebula.chat.disableHaptics") { self.selectPollOptionFeedback?.impact(.medium) }
+             }
+@@ -10956,3 +10956,3 @@ public final class ChatControllerImpl: TelegramBaseController, ChatController, G
+         }
+-        self.shakeFeedback?.error()
++        if !UserDefaults.standard.bool(forKey: "nebula.chat.disableHaptics") { self.shakeFeedback?.error() }
+         

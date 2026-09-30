@@ -186,3 +186,9 @@
 - The Privacy screen exposes the story controls and a separate native archive
   visibility action. Hidden stories and chats retain Telegram's normal recovery
   routes.
+
+# Chat interaction vibration
+
+- `0057-chat-haptics-control.patch` gates native chat-controller, input-panel,
+  and swipe-to-reply haptic calls behind a local switch in Privacy. The switch
+  does not alter notification vibration or system accessibility feedback.
