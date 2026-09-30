@@ -108,3 +108,5 @@ with tempfile.TemporaryDirectory(prefix='nebula-camera-zoom-') as temp:
     subprocess.run(['javac', '-encoding', 'UTF-8', '-d', temp,
                     str(overlay / 'NebulaZoomCapabilities.java'), str(source)], check=True)
     subprocess.run(['java', '-cp', temp, 'CameraZoomCheck'], check=True)
+
+subprocess.run([sys.executable, str(root / 'scripts/check-camera-zoom-discovery.py')], check=True)
