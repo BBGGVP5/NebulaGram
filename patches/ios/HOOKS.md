@@ -169,3 +169,9 @@
   icons with titles. Custom emoji entities and their UTF-16 offsets are kept
   intact, while VoiceOver reads the original folder name in icons-only mode.
 - The existing tab-container observation applies style changes immediately.
+
+# Experimental memory screen
+
+- `0055-memory-warning-root.patch` installs the optional low-memory observer
+  when the native root controller starts. The Settings screen samples process
+  resident memory only while visible and stores the warning preference locally.
