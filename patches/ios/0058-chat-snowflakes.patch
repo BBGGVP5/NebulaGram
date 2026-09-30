@@ -1,0 +1,54 @@
+diff --git a/submodules/TelegramUI/Sources/ChatController.swift b/submodules/TelegramUI/Sources/ChatController.swift
+index 5d39dd3..c6a2ad8 100644
+--- a/submodules/TelegramUI/Sources/ChatController.swift
++++ b/submodules/TelegramUI/Sources/ChatController.swift
+@@ -361,2 +361,34 @@ public final class ChatControllerImpl: TelegramBaseController, ChatController, G
+     var selectPollOptionFeedback: HapticFeedback?
++    private var nebulaSnowLayer: CAEmitterLayer?
++
++    private func nebulaUpdateSnow() {
++        self.nebulaSnowLayer?.removeFromSuperlayer()
++        self.nebulaSnowLayer = nil
++        guard UserDefaults.standard.bool(forKey: "nebula.chat.snowflakes"),
++              !UIAccessibility.isReduceMotionEnabled,
++              !ProcessInfo.processInfo.isLowPowerModeEnabled else { return }
++        let image = UIGraphicsImageRenderer(size: CGSize(width: 6, height: 6)).image { _ in
++            UIColor.white.withAlphaComponent(0.75).setFill()
++            UIBezierPath(ovalIn: CGRect(x: 1, y: 1, width: 4, height: 4)).fill()
++        }
++        let cell = CAEmitterCell()
++        cell.contents = image.cgImage
++        cell.birthRate = 3
++        cell.lifetime = 12
++        cell.velocity = 65
++        cell.velocityRange = 25
++        cell.emissionLongitude = .pi / 2
++        cell.emissionRange = .pi / 10
++        cell.scaleRange = 0.35
++        cell.alphaSpeed = -0.06
++        let layer = CAEmitterLayer()
++        layer.emitterShape = .line
++        layer.emitterMode = .surface
++        layer.emitterCells = [cell]
++        layer.frame = self.view.bounds
++        layer.emitterPosition = CGPoint(x: self.view.bounds.midX, y: 0)
++        layer.emitterSize = CGSize(width: self.view.bounds.width, height: 1)
++        self.view.layer.addSublayer(layer)
++        self.nebulaSnowLayer = layer
++    }
+     
+@@ -7747,2 +7779,3 @@ public final class ChatControllerImpl: TelegramBaseController, ChatController, G
+         super.viewDidAppear(animated)
++        self.nebulaUpdateSnow()
+         
+@@ -8223,2 +8256,4 @@ public final class ChatControllerImpl: TelegramBaseController, ChatController, G
+         super.viewWillDisappear(animated)
++        self.nebulaSnowLayer?.removeFromSuperlayer()
++        self.nebulaSnowLayer = nil
+         NebulaChatLockGate.seal(host: self)
+@@ -8362,2 +8397,5 @@ public final class ChatControllerImpl: TelegramBaseController, ChatController, G
+         super.containerLayoutUpdated(layout, transition: transition)
++        self.nebulaSnowLayer?.frame = CGRect(origin: .zero, size: layout.size)
++        self.nebulaSnowLayer?.emitterPosition = CGPoint(x: layout.size.width / 2, y: 0)
++        self.nebulaSnowLayer?.emitterSize = CGSize(width: layout.size.width, height: 1)
+         

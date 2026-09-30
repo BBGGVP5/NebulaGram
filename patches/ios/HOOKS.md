@@ -192,3 +192,9 @@
 - `0057-chat-haptics-control.patch` gates native chat-controller, input-panel,
   and swipe-to-reply haptic calls behind a local switch in Privacy. The switch
   does not alter notification vibration or system accessibility feedback.
+
+# Chat snowflakes
+
+- `0058-chat-snowflakes.patch` adds a bounded emitter above the visible chat
+  when enabled. It stops on navigation away and under Reduce Motion or Low
+  Power Mode, and updates its width with the native chat layout.
