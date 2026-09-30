@@ -1,0 +1,15 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/MediaController.java b/TMessagesProj/src/main/java/org/telegram/messenger/MediaController.java
+index 4362c14..fafbb5a 100644
+--- a/TMessagesProj/src/main/java/org/telegram/messenger/MediaController.java
++++ b/TMessagesProj/src/main/java/org/telegram/messenger/MediaController.java
+@@ -3297,3 +3297,9 @@ public class MediaController implements AudioManager.OnAudioFocusChangeListener,
+         // Changing a stored music preference must not change an active voice note.
+-        if (playingMessageObject != null && music == playingMessageObject.isMusic()) {
++        // Voice notes and round videos share the non-music speed even if a
++        // document's music flag is present in its metadata.
++        boolean playingMusic = playingMessageObject != null
++                && !playingMessageObject.isVoice()
++                && !playingMessageObject.isRoundVideo()
++                && playingMessageObject.isMusic();
++        if (playingMessageObject != null && music == playingMusic) {
+             if (audioPlayer != null) audioPlayer.setPlaybackSpeed(speed);

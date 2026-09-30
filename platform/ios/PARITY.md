@@ -1,12 +1,12 @@
-# iOS implementation inventory — 2026-09-09
+# iOS implementation inventory — 2026-09-30
 
 This inventory distinguishes **wired source** from native build and device acceptance. A setting with a validated import format is not necessarily functional on iOS.
 
 ## Verification and delivery
-- Android adaptive glass/native retention Java compilation and 33 regression scripts passed. All 78 ordered Android patches reproduce the native compile sources.
-- Android run 34377867372 failed in dependency transport at sum.golang.org, before Java compilation. The build now uses bind/go.mod-pinned tools, matching Go version and bounded transport retries without disabling checksum validation. Run 34379577262 is the replacement; success/APK availability must be checked separately.
-- iOS shared-store tests and bootstrap run 34378968444 passed at 76ce9ea. This includes real macOS XCTest for encrypted metadata persistence, custom emoji, retention policy, resource policy, account isolation and local-versus-transfer settings.
-- Latest native UIKit/Telegram/widget/AppIntent compilation and physical-device checks remain pending. Do not claim full Android parity or a fix for the unverified startup black screen.
+- Android uses Telegram 12.10.5. The 149 ordered Android patches apply to the pinned tree; the latest APK build and device checks are pending.
+- iOS uses Telegram 12.9.2. The 58 ordered iOS patches and overlay pass bootstrap checks. The native compilation was restarted after fixing the archive settings import; a signed build and physical-device checks remain pending.
+- Native iOS hooks now include archive visibility, story auto-archiving, chat interaction vibration, snowflake rendering and an experimental memory screen. These are source integrations, not completed device acceptance.
+- Remaining Cherrygram adaptations on iOS include unknown-contact notification muting, mention suppression, a custom Saved Messages target, whole-reply quoting, per-chat wallpaper gating, deletion biometrics, and separate smooth-fade controls. Android Predictive Back has no iOS equivalent.
 
 ## Implemented in source outside the presentation catalog
 - Native retained-message history, original text/media references, marker, muted styling, per-chat/account clearing. Incoming cached content only; copy protection respected. Secret/expiry retention separately opt-in.
