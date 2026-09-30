@@ -75,8 +75,8 @@ final class NebulaVideoZoomSlider: UIView {
     private func layoutCapsule() {
         let width = expanded ? bounds.width - 62 : min(bounds.width - 62, maximum >= 3 ? 176 : 120)
         capsule.frame = CGRect(x: (bounds.width - width) / 2, y: 6, width: width, height: bounds.height - 12)
-        decrease.frame = CGRect(x: capsule.minX - 33, y: bounds.midY - 15, width: 30, height: 30)
-        increase.frame = CGRect(x: capsule.maxX + 3, y: bounds.midY - 15, width: 30, height: 30)
+        decrease.frame = CGRect(x: capsule.frame.minX - 33, y: bounds.midY - 15, width: 30, height: 30)
+        increase.frame = CGRect(x: capsule.frame.maxX + 3, y: bounds.midY - 15, width: 30, height: 30)
         material.frame = capsule.bounds
         compact.frame = capsule.bounds
         ruler.frame = capsule.bounds
