@@ -13,7 +13,12 @@ assert 'if (Math.abs(currentPlaybackSpeed - 1.0f)' not in source
 assert 'audioPlayer.setPlaybackSpeed(Math.round(currentMusicPlaybackSpeed * 10f) / 10f);\n                    try {' in source
 java = r'''
 class PlaybackCheck {
- static class MessageObject {float audioProgress;boolean music;boolean isMusic(){return music;}}
+ static class MessageObject {
+  float audioProgress;boolean music,voice,round;
+  boolean isMusic(){return music;}
+  boolean isVoice(){return voice;}
+  boolean isRoundVideo(){return round;}
+ }
  static class Player {float rate=2f;int changes;void pause(){}void play(){}void setPlaybackSpeed(float v){rate=v;changes++;}}
  static class AndroidUtilities {static void runOnUIThread(Runnable r,int delay){r.run();}}
  static class Preferences {Preferences edit(){return this;}Preferences putFloat(String k,float v){return this;}void commit(){}}
@@ -39,6 +44,13 @@ class PlaybackCheck {
   check(c.audioPlayer.rate==2f); // inactive music setting cannot change the active voice note
   c.audioPlayer=null;c.videoPlayer=new Player();c.currentMusicPlaybackSpeed=13f;c.setPlaybackSpeed(true,1f);
   check(c.videoPlayer.rate==2f);
+  for(boolean round:new boolean[]{false,true}){
+   PlaybackCheck voice=new PlaybackCheck();voice.playingMessageObject.music=true;
+   voice.playingMessageObject.voice=!round;voice.playingMessageObject.round=round;
+   voice.setPlaybackSpeed(false,1.5f);check(voice.audioPlayer.rate==1.5f);
+   voice.setPlaybackSpeed(true,3f);check(voice.audioPlayer.rate==1.5f);
+   voice.setPlaybackSpeed(false,1f);check(voice.audioPlayer.rate==1f);
+  }
   for(float invalid:new float[]{Float.NaN,Float.POSITIVE_INFINITY,0f,-1f})c.setPlaybackSpeed(false,invalid);
   check(c.videoPlayer.changes==0);
   System.out.println("Playback rate: 1x reset, voice/music isolation, both player types and invalid input passed");
