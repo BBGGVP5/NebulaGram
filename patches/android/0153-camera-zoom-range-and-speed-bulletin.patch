@@ -1,0 +1,94 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/camera/Camera2Session.java b/TMessagesProj/src/main/java/org/telegram/messenger/camera/Camera2Session.java
+index 207b15f..75469e1 100644
+--- a/TMessagesProj/src/main/java/org/telegram/messenger/camera/Camera2Session.java
++++ b/TMessagesProj/src/main/java/org/telegram/messenger/camera/Camera2Session.java
+@@ -74,2 +74,4 @@ public class Camera2Session {
+     private float maxZoom = 1f;
++    private float minZoom = 1f;
++    private boolean zoomRatioSupported;
+     private float currentZoom = 1f;
+@@ -198,2 +200,10 @@ public class Camera2Session {
+             maxZoom = (value == null || value < 1f) ? 1f : value;
++            if (Build.VERSION.SDK_INT >= 30) {
++                final Range<Float> ratioRange = cameraCharacteristics.get(CameraCharacteristics.CONTROL_ZOOM_RATIO_RANGE);
++                if (ratioRange != null && ratioRange.getLower() > 0f && ratioRange.getUpper() >= 1f) {
++                    minZoom = ratioRange.getLower();
++                    maxZoom = ratioRange.getUpper();
++                    zoomRatioSupported = true;
++                }
++            }
+             cameraManager.openCamera(cameraId, cameraStateCallback, handler);
+@@ -345,5 +355,5 @@ public class Camera2Session {
+         if (!isInitiated()) return;
+-        if (captureRequestBuilder == null || cameraDevice == null || sensorSize == null) return;
++        if (captureRequestBuilder == null || cameraDevice == null || (!zoomRatioSupported && sensorSize == null)) return;
+ 
+-        currentZoom = Utilities.clamp(value, maxZoom, 1f);
++        currentZoom = Utilities.clamp(value, maxZoom, minZoom);
+         updateCaptureRequest();
+@@ -377,4 +387,3 @@ public class Camera2Session {
+     public float getMinZoom() {
+-        // TODO: support wide zoom camera switching
+-        return 1f;
++        return minZoom;
+     }
+@@ -496,3 +505,5 @@ public class Camera2Session {
+ 
+-            if (sensorSize != null && Math.abs(currentZoom - 1f) >= 0.01f) {
++            if (zoomRatioSupported && Build.VERSION.SDK_INT >= 30) {
++                captureRequestBuilder.set(CaptureRequest.CONTROL_ZOOM_RATIO, currentZoom);
++            } else if (sensorSize != null && Math.abs(currentZoom - 1f) >= 0.01f) {
+                 final int centerX = sensorSize.width() / 2;
+@@ -599,2 +610,2 @@ public class Camera2Session {
+ 
+-}
+\ No newline at end of file
++}
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/FragmentContextView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/FragmentContextView.java
+index fb4ed54..59961ac 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Components/FragmentContextView.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/FragmentContextView.java
+@@ -1110,3 +1110,12 @@ public class FragmentContextView extends FrameLayout implements NotificationCent
+ 
++    private Bulletin speedBulletin;
++
+     private void playbackSpeedChanged(boolean byTap, float oldValue, float newValue) {
++        // A previous speed bulletin can outlive several rapid taps and describe
++        // a different speed than the icon. Keep only the bulletin for the live player.
++        if (speedBulletin != null) {
++            speedBulletin.hide(false, 0);
++            speedBulletin = null;
++        }
++        newValue = MediaController.getInstance().getPlaybackSpeed(isMusic);
+         if (equals(oldValue, newValue)) {
+@@ -1118,5 +1127,2 @@ public class FragmentContextView extends FrameLayout implements NotificationCent
+         if (Math.abs(newValue - 1f) < 0.05f) {
+-            if (oldValue < newValue) {
+-                return;
+-            }
+             text = getString(R.string.AudioSpeedNormal);
+@@ -1139,4 +1145,4 @@ public class FragmentContextView extends FrameLayout implements NotificationCent
+         }
+-        Bulletin bulletin = BulletinFactory.of(fragment).createSimpleBulletin(resId, text);
+-        bulletin.show();
++        speedBulletin = BulletinFactory.of(fragment).createSimpleBulletin(resId, text);
++        speedBulletin.show();
+     }
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/InstantCameraView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/InstantCameraView.java
+index a34af09..478bd98 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Components/InstantCameraView.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/InstantCameraView.java
+@@ -3749,3 +3749,4 @@ public class InstantCameraView extends InstantCameraViewBase implements Notifica
+         float max = useCamera2 && camera2SessionCurrent != null ? camera2SessionCurrent.getMaxZoom() : 2f;
+-        if (max <= 1f) {
++        float min = useCamera2 && camera2SessionCurrent != null ? camera2SessionCurrent.getMinZoom() : 1f;
++        if (max <= 1f && min >= 1f) {
+             nebulaZoomSlider.setVisibility(View.GONE);
+@@ -3753,3 +3754,6 @@ public class InstantCameraView extends InstantCameraViewBase implements Notifica
+         }
+-        nebulaZoomSlider.setRange(max);
++        nebulaZoomSlider.setRange(min, max);
++        if (useCamera2 && camera2SessionCurrent != null) {
++            nebulaZoomSlider.setCurrent(camera2SessionCurrent.getZoom());
++        }
+         nebulaZoomSlider.setVisibility(View.VISIBLE);

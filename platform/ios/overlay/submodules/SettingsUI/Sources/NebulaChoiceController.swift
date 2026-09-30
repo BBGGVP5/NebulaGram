@@ -1,4 +1,5 @@
 import UIKit
+import TelegramPresentationData
 
 /// One native choice sheet: wrapping labels, a trailing selection mark and iPad-safe presentation.
 final class NebulaChoiceController: UITableViewController {
@@ -7,16 +8,22 @@ final class NebulaChoiceController: UITableViewController {
     private let detail: String?
     private let choose: (Int) -> Void
     private let ru: Bool
+    private let theme: PresentationTheme?
     private var selectionIndicatorVisible = true
 
-    init(title: String, choices: [String], selected: Int?, detail: String?, russian: Bool, choose: @escaping (Int) -> Void) {
-        self.choices = choices; self.selected = selected; self.detail = detail; self.choose = choose; self.ru = russian
+    init(title: String, choices: [String], selected: Int?, detail: String?, russian: Bool, theme: PresentationTheme?, choose: @escaping (Int) -> Void) {
+        self.choices = choices; self.selected = selected; self.detail = detail; self.choose = choose; self.ru = russian; self.theme = theme
         super.init(style: .insetGrouped)
         self.title = title
     }
     required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
     override func viewDidLoad() {
         super.viewDidLoad()
+        if let theme {
+            tableView.backgroundColor = theme.list.blocksBackgroundColor
+            tableView.separatorColor = theme.list.itemSecondaryTextColor.withAlphaComponent(0.12)
+            view.tintColor = theme.list.itemAccentColor
+        }
         tableView.rowHeight = UITableView.automaticDimension
         tableView.estimatedRowHeight = 60
         navigationItem.leftBarButtonItem = UIBarButtonItem(title: ru ? "Отмена" : "Cancel", style: .plain, target: self, action: #selector(close))
@@ -29,7 +36,7 @@ final class NebulaChoiceController: UITableViewController {
         cell.textLabel?.text = choices[indexPath.row]
         cell.accessoryType = selectionIndicatorVisible && indexPath.row == selected ? .checkmark : .none
         if indexPath.row == selected { cell.accessibilityTraits.insert(.selected) }
-        NebulaSettingsStyle.finish(cell)
+        NebulaSettingsStyle.finish(cell, theme: theme)
         if !selectionIndicatorVisible && indexPath.row == selected {
             cell.backgroundColor = view.tintColor.withAlphaComponent(0.18)
             cell.textLabel?.textColor = view.tintColor
@@ -42,11 +49,21 @@ final class NebulaChoiceController: UITableViewController {
         dismiss(animated: true) { action(indexPath.row) }
     }
     static func show(from host: UIViewController, title: String, choices: [String], selected: Int? = nil,
-                     detail: String? = nil, russian: Bool, selectionIndicatorVisible: Bool = true, choose: @escaping (Int) -> Void) {
+                     detail: String? = nil, russian: Bool, selectionIndicatorVisible: Bool = true,
+                     theme: PresentationTheme? = nil, choose: @escaping (Int) -> Void) {
         guard host.presentedViewController == nil else { return }
-        let controller = NebulaChoiceController(title: title, choices: choices, selected: selected, detail: detail, russian: russian, choose: choose)
+        let controller = NebulaChoiceController(title: title, choices: choices, selected: selected, detail: detail, russian: russian, theme: theme, choose: choose)
         controller.selectionIndicatorVisible = selectionIndicatorVisible
         let navigation = UINavigationController(rootViewController: controller)
+        if let theme {
+            navigation.view.tintColor = theme.list.itemAccentColor
+            let appearance = UINavigationBarAppearance()
+            appearance.configureWithOpaqueBackground()
+            appearance.backgroundColor = theme.list.blocksBackgroundColor
+            appearance.titleTextAttributes = [.foregroundColor: theme.list.itemPrimaryTextColor]
+            navigation.navigationBar.standardAppearance = appearance
+            navigation.navigationBar.scrollEdgeAppearance = appearance
+        }
         navigation.modalPresentationStyle = host.traitCollection.userInterfaceIdiom == .pad ? .formSheet : .pageSheet
         navigation.preferredContentSize = CGSize(width: 480, height: min(600, CGFloat(choices.count) * 64 + 140))
         if #available(iOS 15.0, *) {

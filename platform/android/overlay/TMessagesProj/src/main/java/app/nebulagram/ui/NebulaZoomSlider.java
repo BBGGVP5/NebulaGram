@@ -3,8 +3,11 @@ package app.nebulagram.ui;
 import android.animation.ValueAnimator;
 import android.content.Context;
 import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.LinearGradient;
 import android.graphics.Paint;
 import android.graphics.RectF;
+import android.graphics.Shader;
 import android.view.MotionEvent;
 import android.view.View;
 
@@ -36,8 +39,11 @@ public final class NebulaZoomSlider extends View {
         setContentDescription(NebulaText.text("Увеличение видео", "Video zoom"));
     }
 
-    public void setRange(float max) {
-        maximum = Math.max(1.05f, Math.min(10f, max));
+    public void setRange(float max) { setRange(1f, max); }
+
+    public void setRange(float min, float max) {
+        minimum = Math.max(.5f, Math.min(1f, min));
+        maximum = Math.max(1f, Math.min(10f, max));
         setCurrent(1f);
         setExpanded(false);
     }
@@ -68,7 +74,7 @@ public final class NebulaZoomSlider extends View {
         postDelayed(collapse, 1400);
     }
 
-    private float compactWidth() { return Math.min(fullWidth(), dp(maximum >= 3 ? 176 : 120)); }
+    private float compactWidth() { return Math.min(fullWidth(), dp(56 + 62 * presets().length)); }
     private float fullWidth() { return getWidth() - dp(62); }
     private float widthForProgress() { return compactWidth() + (fullWidth() - compactWidth()) * expansion; }
     private float pixelsPerOctave() {
@@ -82,18 +88,22 @@ public final class NebulaZoomSlider extends View {
         super.onDraw(canvas);
         int accent = Theme.getColor(Theme.key_chat_messagePanelSend);
         int ink = Theme.getColor(Theme.key_chat_messagePanelText);
+        int surface = Theme.getColor(Theme.key_chat_messagePanelBackground);
         float center = getWidth() / 2f;
         float middle = getHeight() / 2f;
         float halfWidth = widthForProgress() / 2f;
         RectF capsule = new RectF(center - halfWidth, dp(6), center + halfWidth, getHeight() - dp(6));
         paint.setStyle(Paint.Style.FILL);
-        paint.setColor(0xF023222B);
-        paint.setShadowLayer(dp(7), 0, dp(3), 0x55000000);
+        paint.setShader(new LinearGradient(0, capsule.top, 0, capsule.bottom,
+                blend(surface, Color.WHITE, .11f), blend(surface, Color.BLACK, .09f), Shader.TileMode.CLAMP));
+        paint.setShadowLayer(dp(10), 0, dp(4), 0x77000000);
         canvas.drawRoundRect(capsule, dp(24), dp(24), paint);
         paint.clearShadowLayer();
+        paint.setShader(null);
         paint.setStyle(Paint.Style.STROKE);
-        paint.setStrokeWidth(dp(.8f));
-        paint.setColor(0x66FFFFFF);
+        paint.setStrokeWidth(dp(1f));
+        paint.setColor(blend(surface, Color.WHITE, .32f));
+        paint.setAlpha(180);
         canvas.drawRoundRect(capsule, dp(24), dp(24), paint);
         paint.setStyle(Paint.Style.FILL);
 
@@ -119,6 +129,7 @@ public final class NebulaZoomSlider extends View {
             paint.setTextSize(dp(11));
             paint.setColor(accent);
             paint.setAlpha(alpha);
+            if (minimum < .99f) drawMark(canvas, label(minimum).replace("×", ""), minimum, capsule, middle);
             drawMark(canvas, "1", 1f, capsule, middle);
             if (maximum >= 2f) drawMark(canvas, "2", 2f, capsule, middle);
             if (maximum >= 3f) drawMark(canvas, "3", 3f, capsule, middle);
@@ -141,6 +152,12 @@ public final class NebulaZoomSlider extends View {
     }
 
     private float[] presets() {
+        if (minimum < .99f) {
+            if (maximum < 1.95f) return new float[]{minimum, 1f, maximum};
+            if (maximum < 3f) return new float[]{minimum, 1f, 2f};
+            if (maximum < 10f) return new float[]{minimum, 1f, 3f, maximum};
+            return new float[]{minimum, 1f, 3f, 10f};
+        }
         if (maximum < 1.95f) return new float[]{minimum, maximum};
         if (maximum < 3f) return new float[]{minimum, 2f};
         if (maximum < 10f) return new float[]{minimum, 3f, maximum};
@@ -158,8 +175,10 @@ public final class NebulaZoomSlider extends View {
         float x = capsule.left + segment * selected + segment / 2f;
         paint.setStyle(Paint.Style.FILL);
         paint.setColor(accent); paint.setAlpha(Math.round(255 * opacity));
+        paint.setShadowLayer(dp(6), 0, dp(2), (accent & 0x00FFFFFF) | 0x66000000);
         float radius = Math.min(dp(18), (segment - dp(4)) / 2f);
         canvas.drawCircle(x, capsule.centerY(), radius, paint);
+        paint.clearShadowLayer();
         paint.setTypeface(android.graphics.Typeface.DEFAULT_BOLD); paint.setTextAlign(Paint.Align.CENTER); paint.setTextSize(dp(12));
         for (int i = 0; i < values.length; i++) {
             paint.setColor(i == selected ? 0xFFFFFFFF : 0xFFE5E5EB);
@@ -168,7 +187,9 @@ public final class NebulaZoomSlider extends View {
         }
     }
     private void drawStep(Canvas canvas, float x, float y, boolean plus, int accent) {
-        paint.setStyle(Paint.Style.FILL); paint.setColor(0xE626222E); paint.setShadowLayer(dp(5), 0, dp(2), 0x55000000);
+        paint.setStyle(Paint.Style.FILL);
+        paint.setColor(blend(Theme.getColor(Theme.key_chat_messagePanelBackground), Color.WHITE, .08f));
+        paint.setShadowLayer(dp(6), 0, dp(2), 0x66000000);
         canvas.drawCircle(x, y, dp(15), paint); paint.clearShadowLayer();
         paint.setStyle(Paint.Style.STROKE); paint.setStrokeWidth(dp(2)); paint.setStrokeCap(Paint.Cap.ROUND);
         paint.setColor(accent); paint.setAlpha(255);
@@ -237,5 +258,12 @@ public final class NebulaZoomSlider extends View {
     }
 
     @Override public boolean performClick() { super.performClick(); return true; }
+    private static int blend(int from, int to, float amount) {
+        float keep = 1f - amount;
+        return Color.argb(240,
+                Math.round(Color.red(from) * keep + Color.red(to) * amount),
+                Math.round(Color.green(from) * keep + Color.green(to) * amount),
+                Math.round(Color.blue(from) * keep + Color.blue(to) * amount));
+    }
     private static int dp(float value) { return AndroidUtilities.dp(value); }
 }

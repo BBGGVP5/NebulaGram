@@ -45,7 +45,16 @@ final class NebulaMemoryController: UITableViewController {
     }
     override func viewDidLoad() {
         super.viewDidLoad()
-        tableView.backgroundColor = context.sharedContext.currentPresentationData.with { $0 }.theme.list.blocksBackgroundColor
+        let theme = context.sharedContext.currentPresentationData.with { $0 }.theme
+        tableView.backgroundColor = theme.list.blocksBackgroundColor
+        tableView.separatorColor = theme.list.itemSecondaryTextColor.withAlphaComponent(0.12)
+        view.tintColor = theme.list.itemAccentColor
+        let navigationAppearance = UINavigationBarAppearance()
+        navigationAppearance.configureWithOpaqueBackground()
+        navigationAppearance.backgroundColor = theme.list.blocksBackgroundColor
+        navigationAppearance.titleTextAttributes = [.foregroundColor: theme.list.itemPrimaryTextColor]
+        navigationController?.navigationBar.standardAppearance = navigationAppearance
+        navigationController?.navigationBar.scrollEdgeAppearance = navigationAppearance
         sample()
     }
     override func viewWillAppear(_ animated: Bool) {
@@ -78,6 +87,8 @@ final class NebulaMemoryController: UITableViewController {
     }
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = UITableViewCell(style: .value1, reuseIdentifier: nil)
+        let theme = context.sharedContext.currentPresentationData.with { $0 }.theme
+        defer { NebulaSettingsStyle.finish(cell, theme: theme) }
         cell.selectionStyle = .none
         if indexPath.section == 1 {
             cell.textLabel?.text = text("Предупреждение о нехватке памяти", "Low-memory warning")

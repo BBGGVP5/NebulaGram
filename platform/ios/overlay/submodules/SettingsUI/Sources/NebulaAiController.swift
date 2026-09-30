@@ -1,11 +1,13 @@
 import Foundation
 import UIKit
 import NebulaSettingsContract
+import TelegramPresentationData
 
 /// AI connection settings. The key is written here and never read back into
 /// the screen: the field shows whether one is stored, not what it is.
 final class NebulaAiController: UITableViewController {
     private let ru: Bool
+    private let theme: PresentationTheme?
     private let settings = NebulaAiSettings.shared
     private let secrets = NebulaAiSecrets.shared
     private lazy var hero = NebulaSettingsHero(symbol: "sparkles",
@@ -17,8 +19,9 @@ final class NebulaAiController: UITableViewController {
     private var previousReadiness = ""
     private var visible = false
 
-    init(russian: Bool) {
+    init(russian: Bool, theme: PresentationTheme? = nil) {
         self.ru = russian
+        self.theme = theme
         self.provider = NebulaAiSettings.shared.provider
         super.init(style: .insetGrouped)
         title = russian ? "Искусственный интеллект" : "AI assistant"
@@ -29,6 +32,11 @@ final class NebulaAiController: UITableViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        if let theme {
+            tableView.backgroundColor = theme.list.blocksBackgroundColor
+            tableView.separatorColor = theme.list.itemSecondaryTextColor.withAlphaComponent(0.12)
+            view.tintColor = theme.list.itemAccentColor
+        }
         navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .done, target: self, action: #selector(close))
         tableView.rowHeight = UITableView.automaticDimension
         tableView.estimatedRowHeight = 56
@@ -114,7 +122,7 @@ final class NebulaAiController: UITableViewController {
 
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = UITableViewCell(style: .subtitle, reuseIdentifier: nil)
-        defer { NebulaSettingsStyle.finish(cell) }
+        defer { NebulaSettingsStyle.finish(cell, theme: theme) }
         cell.textLabel?.font = .preferredFont(forTextStyle: .body)
         cell.textLabel?.adjustsFontForContentSizeCategory = true
         cell.textLabel?.numberOfLines = 0
@@ -208,7 +216,7 @@ final class NebulaAiController: UITableViewController {
         tableView.deselectRow(at: indexPath, animated: true)
         let custom = provider == .custom
         switch (indexPath.section, indexPath.row) {
-        case (4, 0): navigationController?.pushViewController(NebulaAiChatController(russian: ru), animated: true)
+        case (4, 0): navigationController?.pushViewController(NebulaAiChatController(russian: ru, theme: theme), animated: true)
         case (4, 1): navigationController?.pushViewController(NebulaAiHistoryController(russian: ru), animated: true)
         case (1, 0): pickProvider()
         case (1, 1) where custom:
@@ -246,7 +254,7 @@ final class NebulaAiController: UITableViewController {
     private func pickProvider() {
         let options = NebulaAiProvider.allCases
         NebulaChoiceController.show(from: self, title: text("Провайдер", "Provider"), choices: options.map { $0.title },
-            selected: options.firstIndex(of: provider), russian: ru) { [weak self] index in
+            selected: options.firstIndex(of: provider), russian: ru, theme: theme) { [weak self] index in
             guard let self = self else { return }
             self.provider = options[index]; self.settings.provider = self.provider; self.tableView.reloadData()
         }

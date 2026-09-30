@@ -252,7 +252,8 @@ def main():
         assert 'archive.shouldPrune(account: account)' in capture
         choice = (temp / 'submodules/SettingsUI/Sources/NebulaChoiceController.swift').read_text(encoding='utf-8')
         assert '.checkmark' in choice and '.formSheet' in choice and '.automaticDimension' in choice
-        assert 'NebulaGlassController(russian: ru)' in controller
+        assert 'NebulaGlassController(russian: ru,' in controller
+        assert 'theme: context.sharedContext.currentPresentationData.with { $0 }.theme' in controller
         glass_preview = (temp / 'submodules/SettingsUI/Sources/NebulaGlassController.swift').read_text(encoding='utf-8')
         assert 'GlassBackgroundView(frame: .zero)' in glass_preview and 'glass.update(size:' in glass_preview
         assert '"ios_glass_tint"' in glass_preview and '"ios_glass_style"' in glass_preview

@@ -4,6 +4,7 @@ import TelegramCore
 import SwiftSignalKit
 import AccountContext
 import NebulaSettingsContract
+import TelegramPresentationData
 
 /// Per-account local privacy controls; never invokes Telegram's remote deletion API.
 final class NebulaPrivacyController: UITableViewController {
@@ -14,6 +15,7 @@ final class NebulaPrivacyController: UITableViewController {
     private var busy = false
     private var helpExpanded = false
     private var account: Int64 { context.account.peerId.toInt64() }
+    private var currentTheme: PresentationTheme { context.sharedContext.currentPresentationData.with { $0 }.theme }
     private let archive = NebulaDeletedArchive.shared
     private lazy var hero = NebulaSettingsHero(symbol: "hand.raised",
         title: text("Локальные копии", "Local copies"),
@@ -29,6 +31,16 @@ final class NebulaPrivacyController: UITableViewController {
     private func text(_ russian: String, _ english: String) -> String { ru ? russian : english }
     override func viewDidLoad() {
         super.viewDidLoad()
+        let theme = currentTheme
+        tableView.backgroundColor = theme.list.blocksBackgroundColor
+        tableView.separatorColor = theme.list.itemSecondaryTextColor.withAlphaComponent(0.12)
+        view.tintColor = theme.list.itemAccentColor
+        let navigationAppearance = UINavigationBarAppearance()
+        navigationAppearance.configureWithOpaqueBackground()
+        navigationAppearance.backgroundColor = theme.list.blocksBackgroundColor
+        navigationAppearance.titleTextAttributes = [.foregroundColor: theme.list.itemPrimaryTextColor]
+        navigationController?.navigationBar.standardAppearance = navigationAppearance
+        navigationController?.navigationBar.scrollEdgeAppearance = navigationAppearance
         navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .done, target: self, action: #selector(close))
         tableView.rowHeight = UITableView.automaticDimension
         tableView.estimatedRowHeight = 60
@@ -68,7 +80,8 @@ final class NebulaPrivacyController: UITableViewController {
     }
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = UITableViewCell(style: .subtitle, reuseIdentifier: nil)
-        defer { NebulaSettingsStyle.finish(cell) }
+        let theme = currentTheme
+        defer { NebulaSettingsStyle.finish(cell, theme: theme) }
         cell.textLabel?.font = .preferredFont(forTextStyle: .body)
         cell.textLabel?.adjustsFontForContentSizeCategory = true
         cell.textLabel?.numberOfLines = 0
@@ -197,7 +210,7 @@ final class NebulaPrivacyController: UITableViewController {
         if indexPath.section == 7 && indexPath.row == 0 {
             NebulaChoiceController.show(from: self, title: text("Архив в списке чатов", "Archive in chat list"),
                 choices: [text("Скрыть архив", "Hide archive"), text("Показать архив", "Show archive")],
-                selected: nil, russian: ru) { [weak self] index in
+                selected: nil, russian: ru, theme: currentTheme) { [weak self] index in
                 guard let self = self else { return }
                 let hidden = index == 0
                 let _ = updateChatArchiveSettings(engine: self.context.engine, { settings in
@@ -215,7 +228,7 @@ final class NebulaPrivacyController: UITableViewController {
             let choices = NebulaDeletedArchive.retentionChoices
             NebulaChoiceController.show(from: self, title: text("Срок хранения", "Retention period"),
                 choices: choices.map(retentionTitle), selected: choices.firstIndex(of: archive.retentionDays(account: account)),
-                detail: text("При выбранном сроке старые копии очищаются во время обработки обновлений. По умолчанию — бессрочно.", "A chosen period prunes old copies while processing updates. Unlimited by default."), russian: ru) { [weak self] index in
+                detail: text("При выбранном сроке старые копии очищаются во время обработки обновлений. По умолчанию — бессрочно.", "A chosen period prunes old copies while processing updates. Unlimited by default."), russian: ru, theme: currentTheme) { [weak self] index in
                 guard let self = self else { return }
                 self.archive.setRetentionDays(account: self.account, value: choices[index]); self.tableView.reloadData()
             }
@@ -233,7 +246,7 @@ final class NebulaPrivacyController: UITableViewController {
     private func pickIcon() {
         let icons = ["🗑", "✕", "◌"]
         NebulaChoiceController.show(from: self, title: text("Значок сообщения", "Message icon"),
-            choices: icons + [text("Свой символ / эмодзи", "Custom symbol / emoji")], selected: icons.firstIndex(of: archive.icon), russian: ru) { [weak self] index in
+            choices: icons + [text("Свой символ / эмодзи", "Custom symbol / emoji")], selected: icons.firstIndex(of: archive.icon), russian: ru, theme: currentTheme) { [weak self] index in
             guard let self = self else { return }
             if index < icons.count { self.archive.icon = icons[index]; self.tableView.reloadData(); return }
             let custom = UIAlertController(title: self.text("Свой значок", "Custom icon"), message: self.text("До четырёх символов или эмодзи", "Up to four symbols or emoji"), preferredStyle: .alert)

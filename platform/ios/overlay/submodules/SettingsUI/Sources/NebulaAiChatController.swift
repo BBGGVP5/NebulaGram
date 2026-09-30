@@ -1,6 +1,7 @@
 import Foundation
 import UIKit
 import NebulaSettingsContract
+import TelegramPresentationData
 
 public enum NebulaAiAction: CaseIterable {
     case ask, translate, rewrite, proofread, summarize
@@ -38,6 +39,7 @@ public enum NebulaAiAction: CaseIterable {
 public final class NebulaAiChatController: UIViewController, UITextViewDelegate {
     public static var onDeviceAvailable: Bool { NebulaAiService.localModelAvailable }
     private let ru: Bool
+    private let theme: PresentationTheme?
     private let service = NebulaAiService()
     private let applyResult: ((String) -> Void)?
     private var action: NebulaAiAction
@@ -63,8 +65,8 @@ public final class NebulaAiChatController: UIViewController, UITextViewDelegate 
     private var initial: String
 
     public init(russian: Bool, initialText: String = "", action: NebulaAiAction = .ask,
-                applyResult: ((String) -> Void)? = nil) {
-        self.ru = russian; self.action = action; self.applyResult = applyResult
+                applyResult: ((String) -> Void)? = nil, theme: PresentationTheme? = nil) {
+        self.ru = russian; self.action = action; self.applyResult = applyResult; self.theme = theme
         self.initial = String(initialText.prefix(50_000))
         super.init(nibName: nil, bundle: nil)
         title = "Nebula AI"
@@ -87,7 +89,8 @@ public final class NebulaAiChatController: UIViewController, UITextViewDelegate 
 
     public override func viewDidLoad() {
         super.viewDidLoad()
-        view.backgroundColor = .systemBackground
+        view.backgroundColor = theme?.list.plainBackgroundColor ?? .systemBackground
+        if let theme { view.tintColor = theme.list.itemAccentColor }
         navigationItem.leftBarButtonItem = UIBarButtonItem(barButtonSystemItem: .close, target: self, action: #selector(close))
         navigationItem.rightBarButtonItem = UIBarButtonItem(image: UIImage(systemName: "slider.horizontal.3"), style: .plain, target: self, action: #selector(openSettings))
         navigationItem.rightBarButtonItem?.accessibilityLabel = text("Настройки ИИ", "AI settings")
@@ -105,13 +108,13 @@ public final class NebulaAiChatController: UIViewController, UITextViewDelegate 
             keyboardBottom?.isActive = true
             NotificationCenter.default.addObserver(self, selector: #selector(keyboardChanged(_:)), name: UIResponder.keyboardWillChangeFrameNotification, object: nil)
         }
-        providerLabel.font = .preferredFont(forTextStyle: .subheadline); providerLabel.textColor = .secondaryLabel
+        providerLabel.font = .preferredFont(forTextStyle: .subheadline); providerLabel.textColor = theme?.list.itemSecondaryTextColor ?? .secondaryLabel
         providerLabel.numberOfLines = 2; providerLabel.textAlignment = .left
         providerLabel.adjustsFontForContentSizeCategory = true
         let modelCard = UIStackView(arrangedSubviews: [providerLabel]); modelCard.axis = .vertical
         modelCard.isLayoutMarginsRelativeArrangement = true
         modelCard.layoutMargins = UIEdgeInsets(top: 12, left: 14, bottom: 12, right: 14)
-        modelCard.backgroundColor = .secondarySystemBackground; modelCard.layer.cornerRadius = 18
+        modelCard.backgroundColor = theme?.list.itemBlocksBackgroundColor ?? .secondarySystemBackground; modelCard.layer.cornerRadius = 18
         layout.addArrangedSubview(modelCard)
         let chatActions = UIStackView(); chatActions.axis = .horizontal; chatActions.spacing = 8
         chatsButton.setTitle(text("Чаты", "Chats"), for: .normal)
@@ -343,17 +346,17 @@ public final class NebulaAiChatController: UIViewController, UITextViewDelegate 
         let sessions = chats.list()
         NebulaChoiceController.show(from: self, title: text("Чаты Nebula AI", "Nebula AI chats"),
             choices: sessions.map { $0.title.isEmpty ? text("Новый чат", "New chat") : $0.title },
-            selected: sessions.firstIndex(where: { $0.id == chatId }), russian: ru, selectionIndicatorVisible: false) { [weak self] index in
+            selected: sessions.firstIndex(where: { $0.id == chatId }), russian: ru, selectionIndicatorVisible: false, theme: theme) { [weak self] index in
                 guard let self = self, sessions.indices.contains(index), let selected = self.chats.select(sessions[index].id) else { return }
                 self.cancel(showMessage: false)
                 self.composer.text = ""; self.textViewDidChange(self.composer)
                 self.restoreChat(selected)
             }
     }
-    @objc private func openSettings() { navigationController?.pushViewController(NebulaAiController(russian: ru), animated: true) }
+    @objc private func openSettings() { navigationController?.pushViewController(NebulaAiController(russian: ru, theme: theme), animated: true) }
     @objc private func pickAction() {
         let options = NebulaAiAction.allCases
-        NebulaChoiceController.show(from: self, title: text("Что сделать с текстом?", "What should AI do?"), choices: options.map { $0.title(russian: ru) }, selected: options.firstIndex(of: action), russian: ru) { [weak self] index in
+        NebulaChoiceController.show(from: self, title: text("Что сделать с текстом?", "What should AI do?"), choices: options.map { $0.title(russian: ru) }, selected: options.firstIndex(of: action), russian: ru, theme: theme) { [weak self] index in
             self?.action = options[index]; self?.refreshStatus()
         }
     }

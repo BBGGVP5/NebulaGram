@@ -471,7 +471,8 @@ public func nebulaSettingsController(context: AccountContext, page: Int = 0) -> 
         NebulaChoiceController.show(from: controller, title: ru ? "Первой показывать" : "Show first",
             choices: ru ? ["Чаты", "Контакты", "Настройки", "Профиль"] : ["Chats", "Contacts", "Settings", "Profile"],
             selected: keys.firstIndex(of: store.bottomTabOrder.first ?? "chats"),
-            detail: ru ? "Звонки остаются рядом с контактами." : "Calls remain next to Contacts.", russian: ru) { index in
+            detail: ru ? "Звонки остаются рядом с контактами." : "Calls remain next to Contacts.", russian: ru,
+            theme: context.sharedContext.currentPresentationData.with { $0 }.theme) { index in
                 var order = store.bottomTabOrder; order.removeAll { $0 == keys[index] }; order.insert(keys[index], at: 0)
                 do { try store.set(.string(order.joined(separator: ",")), for: "bottom_bar_order"); writeFailed.set(false) }
                 catch { writeFailed.set(true) }
@@ -480,12 +481,14 @@ public func nebulaSettingsController(context: AccountContext, page: Int = 0) -> 
     arguments.openGlass = { [weak controller] in
         guard let controller = controller, controller.presentedViewController == nil else { return }
         let ru = context.sharedContext.currentPresentationData.with { $0 }.strings.baseLanguageCode.lowercased().hasPrefix("ru")
-        controller.present(UINavigationController(rootViewController: NebulaGlassController(russian: ru)), animated: true)
+        controller.present(UINavigationController(rootViewController: NebulaGlassController(russian: ru,
+            theme: context.sharedContext.currentPresentationData.with { $0 }.theme)), animated: true)
     }
     arguments.openAi = { [weak controller] in
         guard let controller = controller, controller.presentedViewController == nil else { return }
         let ru = context.sharedContext.currentPresentationData.with { $0 }.strings.baseLanguageCode.lowercased().hasPrefix("ru")
-        controller.present(UINavigationController(rootViewController: NebulaAiController(russian: ru)), animated: true)
+        controller.present(UINavigationController(rootViewController: NebulaAiController(russian: ru,
+            theme: context.sharedContext.currentPresentationData.with { $0 }.theme)), animated: true)
     }
     arguments.openIcons = { [weak controller] in
         guard let controller = controller, controller.presentedViewController == nil else { return }
@@ -507,7 +510,8 @@ public func nebulaSettingsController(context: AccountContext, page: Int = 0) -> 
         let ru = context.sharedContext.currentPresentationData.with { $0 }.strings.baseLanguageCode.lowercased().hasPrefix("ru")
         NebulaChoiceController.show(from: controller, title: ru ? "Анимация переходов" : "Transition animation",
             choices: ru ? ["Стандартная", "Системная", "Spring"] : ["Standard", "System", "Spring"], selected: store.transitionStyle,
-            detail: ru ? "При включённом уменьшении движения iOS переходы остаются без анимации." : "Reduce Motion turns these animations off.", russian: ru) { style in
+            detail: ru ? "При включённом уменьшении движения iOS переходы остаются без анимации." : "Reduce Motion turns these animations off.", russian: ru,
+            theme: context.sharedContext.currentPresentationData.with { $0 }.theme) { style in
                 do { try store.set(.integer(style), for: "fragment_transition_style"); writeFailed.set(false) }
                 catch { writeFailed.set(true) }
             }
@@ -517,7 +521,8 @@ public func nebulaSettingsController(context: AccountContext, page: Int = 0) -> 
         let ru = context.sharedContext.currentPresentationData.with { $0 }.strings.baseLanguageCode.lowercased().hasPrefix("ru")
         NebulaChoiceController.show(from: controller, title: ru ? "Стиль папок" : "Folder style",
             choices: ru ? ["Названия", "Только значки", "Значки и названия"] : ["Titles", "Icons only", "Icons and titles"],
-            selected: max(0, min(2, store.folderStyle)), russian: ru) { style in
+            selected: max(0, min(2, store.folderStyle)), russian: ru,
+            theme: context.sharedContext.currentPresentationData.with { $0 }.theme) { style in
                 do { try store.set(.integer(style), for: "folder_style"); writeFailed.set(false) }
                 catch { writeFailed.set(true) }
             }

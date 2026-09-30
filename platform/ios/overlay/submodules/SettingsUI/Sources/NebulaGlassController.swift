@@ -2,9 +2,11 @@ import UIKit
 import ComponentFlow
 import GlassBackgroundComponent
 import NebulaSettingsContract
+import TelegramPresentationData
 
 final class NebulaGlassController: UITableViewController {
     private let ru: Bool
+    private let theme: PresentationTheme?
     private let store = NebulaSettingsStore.shared
     private var observation: SettingsObservation?
     private var writeFailed = false
@@ -12,10 +14,18 @@ final class NebulaGlassController: UITableViewController {
     private var styles: [String] { ru ? ["Как в Telegram", "Жидкое стекло", "Матовое стекло"] : ["Telegram default", "Liquid glass", "Frosted glass"] }
     private var qualities: [String] { ru ? ["Автоматически", "Полное", "Облегчённое"] : ["Automatic", "Full", "Light"] }
 
-    init(russian: Bool) { ru = russian; super.init(style: .insetGrouped); title = russian ? "Стекло" : "Glass" }
+    init(russian: Bool, theme: PresentationTheme? = nil) {
+        ru = russian; self.theme = theme
+        super.init(style: .insetGrouped); title = russian ? "Стекло" : "Glass"
+    }
     required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
     override func viewDidLoad() {
         super.viewDidLoad()
+        if let theme {
+            tableView.backgroundColor = theme.list.blocksBackgroundColor
+            tableView.separatorColor = theme.list.itemSecondaryTextColor.withAlphaComponent(0.12)
+            view.tintColor = theme.list.itemAccentColor
+        }
         tableView.rowHeight = UITableView.automaticDimension; tableView.estimatedRowHeight = 58
         navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .done, target: self, action: #selector(close))
         observation = store.observe { [weak self] in self?.preview.setNeedsLayout() }
@@ -49,7 +59,7 @@ final class NebulaGlassController: UITableViewController {
     }
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = UITableViewCell(style: .subtitle, reuseIdentifier: nil)
-        defer { NebulaSettingsStyle.finish(cell) }
+        defer { NebulaSettingsStyle.finish(cell, theme: theme) }
         switch indexPath.section {
         case 0:
             preview.removeFromSuperview(); cell.contentView.addSubview(preview)
@@ -199,7 +209,7 @@ final class NebulaGlassController: UITableViewController {
         if indexPath.section == 1 { set(indexPath.row, key: "ios_glass_style"); refresh() }
         if indexPath.section == 3 && indexPath.row == 0 {
             NebulaChoiceController.show(from: self, title: ru ? "Качество стекла" : "Glass quality", choices: qualities,
-                selected: store.glassQuality, russian: ru) { [weak self] mode in self?.set(mode, key: "glass_quality"); self?.refresh() }
+                selected: store.glassQuality, russian: ru, theme: theme) { [weak self] mode in self?.set(mode, key: "glass_quality"); self?.refresh() }
         }
     }
 }

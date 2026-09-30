@@ -1,4 +1,5 @@
 import UIKit
+import TelegramPresentationData
 
 /// Presentation only. Native controls, previews and their state remain owned by callers.
 enum NebulaSettingsStyle {
@@ -35,8 +36,17 @@ enum NebulaSettingsStyle {
         }.withRenderingMode(.alwaysOriginal)
     }
 
-    static func finish(_ cell: UITableViewCell) {
-        cell.backgroundColor = .secondarySystemGroupedBackground
+    static func finish(_ cell: UITableViewCell, theme: PresentationTheme? = nil) {
+        cell.backgroundColor = theme?.list.itemBlocksBackgroundColor ?? .secondarySystemGroupedBackground
+        if let theme {
+            cell.textLabel?.textColor = theme.list.itemPrimaryTextColor
+            cell.detailTextLabel?.textColor = theme.list.itemSecondaryTextColor
+            cell.tintColor = theme.list.itemAccentColor
+            (cell.accessoryView as? UISwitch)?.onTintColor = theme.list.itemAccentColor
+            let selection = UIView()
+            selection.backgroundColor = theme.list.itemAccentColor.withAlphaComponent(0.12)
+            cell.selectedBackgroundView = selection
+        }
         cell.textLabel?.font = .preferredFont(forTextStyle: .body)
         cell.textLabel?.adjustsFontForContentSizeCategory = true
         cell.textLabel?.numberOfLines = 0
