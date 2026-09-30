@@ -14,20 +14,23 @@ import android.view.View;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.ui.ActionBar.Theme;
 
-/** Camera-limited Cherrygram-style preset rail with independent step buttons and drag ruler. */
+/** Optical lens pill which expands into a camera-limited, scrollable zoom ruler. */
 public final class NebulaZoomSlider extends View {
     public interface OnZoomChanged { void onZoomChanged(float factor); }
 
     private final Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final OnZoomChanged callback;
     private final Runnable collapse = () -> setExpanded(false);
-    private final Runnable longPress = () -> setExpanded(true);
-    private float maximum = 2f;
+    private final Runnable longPress = () -> { held = true; setExpanded(true); };
+    private float[] cameraStops = {1f};
+    private float maximum = 1f;
     private float minimum = 1f;
     private float current = 1f;
     private float dragStartX;
     private float dragStartZoom;
     private boolean dragged;
+    private boolean held;
+    private boolean dragOnRuler;
     private boolean expanded;
     private float expansion;
     private ValueAnimator expansionAnimator;
@@ -42,16 +45,27 @@ public final class NebulaZoomSlider extends View {
     public void setRange(float max) { setRange(1f, max); }
 
     public void setRange(float min, float max) {
-        minimum = Math.max(.5f, Math.min(1f, min));
-        maximum = Math.max(1f, Math.min(10f, max));
-        setCurrent(1f);
-        setExpanded(false);
+        if (Float.isNaN(min) || Float.isInfinite(min) || min <= 0f
+                || Float.isNaN(max) || Float.isInfinite(max) || max < min) return;
+        minimum = min;
+        maximum = max;
+        setCurrent(current);
+    }
+
+    public void setCameraStops(float[] values) {
+        java.util.TreeSet<Float> stops = new java.util.TreeSet<>();
+        for (float value : values) if (value >= minimum && value <= maximum) stops.add(value);
+        if (stops.isEmpty()) stops.add(Math.max(minimum, Math.min(1f, maximum)));
+        cameraStops = new float[stops.size()];
+        int index = 0; for (float value : stops) cameraStops[index++] = value;
+        invalidate();
     }
 
     public void setCurrent(float factor) {
+        if (Float.isNaN(factor) || Float.isInfinite(factor)) return;
         current = Math.max(minimum, Math.min(factor, maximum));
         setContentDescription(NebulaText.text("Увеличение видео", "Video zoom") + " · "
-                + String.format(java.util.Locale.US, "%.1f×", current));
+                + label(current));
         invalidate();
     }
 
@@ -74,14 +88,20 @@ public final class NebulaZoomSlider extends View {
         postDelayed(collapse, 1400);
     }
 
-    private float compactWidth() { return Math.min(fullWidth(), dp(56 + 62 * presets().length)); }
-    private float fullWidth() { return getWidth() - dp(62); }
+    private float compactWidth() { return Math.min(fullWidth(), dp(16 + 56 * cameraStops.length)); }
+    private float fullWidth() { return Math.max(dp(48), getWidth() - dp(64)); }
     private float widthForProgress() { return compactWidth() + (fullWidth() - compactWidth()) * expansion; }
     private float pixelsPerOctave() {
-        return Math.max(1f, (fullWidth() / 2f - dp(27)) / (float) (Math.log(maximum / minimum) / Math.log(2)));
+        float octaves = (float) (Math.log(maximum / minimum) / Math.log(2));
+        return Math.max(dp(96), (fullWidth() - dp(40)) / Math.max(.01f, octaves));
     }
     private float xForZoom(float zoom) {
-        return getWidth() / 2f + (float) (Math.log(zoom / current) / Math.log(2)) * pixelsPerOctave();
+        float left = (getWidth() - fullWidth()) / 2f + dp(20);
+        float right = (getWidth() + fullWidth()) / 2f - dp(20);
+        float span = (float) (Math.log(maximum / minimum) / Math.log(2)) * pixelsPerOctave();
+        float origin = getWidth() / 2f - (float) (Math.log(current / minimum) / Math.log(2)) * pixelsPerOctave();
+        origin = Math.max(right - span, Math.min(left, origin));
+        return origin + (float) (Math.log(zoom / minimum) / Math.log(2)) * pixelsPerOctave();
     }
 
     @Override protected void onDraw(Canvas canvas) {
@@ -129,21 +149,25 @@ public final class NebulaZoomSlider extends View {
             paint.setTextSize(dp(11));
             paint.setColor(accent);
             paint.setAlpha(alpha);
-            if (minimum < .99f) drawMark(canvas, label(minimum).replace("×", ""), minimum, capsule, middle);
-            drawMark(canvas, "1", 1f, capsule, middle);
-            if (maximum >= 2f) drawMark(canvas, "2", 2f, capsule, middle);
-            if (maximum >= 3f) drawMark(canvas, "3", 3f, capsule, middle);
-            if (maximum >= 5f) drawMark(canvas, "5", 5f, capsule, middle);
-            if (maximum >= 10f) drawMark(canvas, "10", 10f, capsule, middle);
-            else if (maximum < 1.95f || maximum > 2.4f && Math.abs(maximum - 5f) > .3f) {
-                drawMark(canvas, String.format(java.util.Locale.US, "%.1f", maximum), maximum, capsule, middle);
+            java.util.TreeSet<Float> labels = new java.util.TreeSet<>();
+            labels.add(minimum); labels.add(maximum);
+            for (float stop : cameraStops) labels.add(stop);
+            for (float value : new float[]{1f, 2f, 5f, 10f, 20f, 50f, 100f})
+                if (value > minimum && value < maximum) labels.add(value);
+            float previousX = -Float.MAX_VALUE;
+            for (float value : labels) {
+                float markX = xForZoom(value);
+                if (markX - previousX < dp(25)) continue;
+                drawMark(canvas, label(value).replace("×", ""), value, capsule, middle);
+                previousX = markX;
             }
             canvas.restore();
             paint.setColor(accent);
             paint.setAlpha(alpha);
             paint.setStrokeCap(Paint.Cap.ROUND);
             paint.setStrokeWidth(dp(5));
-            canvas.drawLine(center, middle - dp(16), center, middle + dp(5), paint);
+            float needle = Math.max(capsule.left + dp(20), Math.min(capsule.right - dp(20), xForZoom(current)));
+            canvas.drawLine(needle, middle - dp(16), needle, middle + dp(5), paint);
             paint.setStrokeCap(Paint.Cap.BUTT);
         }
         drawStep(canvas, capsule.left - dp(18), middle, false, accent);
@@ -151,26 +175,14 @@ public final class NebulaZoomSlider extends View {
         paint.setAlpha(255);
     }
 
-    private float[] presets() {
-        if (minimum < .99f) {
-            if (maximum < 1.95f) return new float[]{minimum, 1f, maximum};
-            if (maximum < 3f) return new float[]{minimum, 1f, 2f};
-            if (maximum < 10f) return new float[]{minimum, 1f, 3f, maximum};
-            return new float[]{minimum, 1f, 3f, 10f};
-        }
-        if (maximum < 1.95f) return new float[]{minimum, maximum};
-        if (maximum < 3f) return new float[]{minimum, 2f};
-        if (maximum < 10f) return new float[]{minimum, 3f, maximum};
-        return new float[]{minimum, 3f, 10f};
-    }
     private String label(float value) {
         return Math.abs(value - Math.round(value)) < .04f ? Math.round(value) + "×"
                 : String.format(java.util.Locale.US, "%.1f×", value);
     }
     private void drawPresets(Canvas canvas, RectF capsule, int accent, float opacity) {
-        float[] values = presets();
+        float[] values = cameraStops;
         int selected = 0;
-        for (int i = 1; i < values.length; i++) if (Math.abs(values[i] - current) < Math.abs(values[selected] - current)) selected = i;
+        for (int i = 1; i < values.length; i++) if (current >= values[i] - .04f) selected = i;
         float segment = capsule.width() / values.length;
         float x = capsule.left + segment * selected + segment / 2f;
         paint.setStyle(Paint.Style.FILL);
@@ -181,16 +193,16 @@ public final class NebulaZoomSlider extends View {
         paint.clearShadowLayer();
         paint.setTypeface(android.graphics.Typeface.DEFAULT_BOLD); paint.setTextAlign(Paint.Align.CENTER); paint.setTextSize(dp(12));
         for (int i = 0; i < values.length; i++) {
-            paint.setColor(i == selected ? 0xFFFFFFFF : 0xFFE5E5EB);
+            paint.setColor(i == selected ? Theme.getColor(Theme.key_chat_messagePanelVoicePressed) : Theme.getColor(Theme.key_chat_messagePanelText));
             paint.setAlpha(Math.round(255 * opacity));
-            canvas.drawText(i == selected ? label(current) : label(values[i]), capsule.left + segment * (i + .5f), capsule.centerY() + dp(4), paint);
+            canvas.drawText(i == selected ? label(current) : label(values[i]).replace("×", ""), capsule.left + segment * (i + .5f), capsule.centerY() + dp(4), paint);
         }
     }
     private void drawStep(Canvas canvas, float x, float y, boolean plus, int accent) {
         paint.setStyle(Paint.Style.FILL);
         paint.setColor(blend(Theme.getColor(Theme.key_chat_messagePanelBackground), Color.WHITE, .08f));
         paint.setShadowLayer(dp(6), 0, dp(2), 0x66000000);
-        canvas.drawCircle(x, y, dp(15), paint); paint.clearShadowLayer();
+        canvas.drawCircle(x, y, dp(14), paint); paint.clearShadowLayer();
         paint.setStyle(Paint.Style.STROKE); paint.setStrokeWidth(dp(2)); paint.setStrokeCap(Paint.Cap.ROUND);
         paint.setColor(accent); paint.setAlpha(255);
         canvas.drawLine(x - dp(5), y, x + dp(5), y, paint);
@@ -203,7 +215,7 @@ public final class NebulaZoomSlider extends View {
         return Math.max(minimum, Math.min(maximum, next));
     }
     private float presetAt(float x) {
-        float[] values = presets(); float left = (getWidth() - compactWidth()) / 2f;
+        float[] values = cameraStops; float left = (getWidth() - compactWidth()) / 2f;
         int index = Math.min(values.length - 1, Math.max(0, (int) ((x - left) * values.length / compactWidth())));
         return values[index];
     }
@@ -219,16 +231,19 @@ public final class NebulaZoomSlider extends View {
         float x = event.getX();
         switch (event.getActionMasked()) {
             case MotionEvent.ACTION_DOWN:
-                if (!expanded && Math.abs(x - getWidth() / 2f) > compactWidth() / 2f + dp(36)) return false;
+                if (!expanded && Math.abs(x - getWidth() / 2f) > compactWidth() / 2f + dp(34)) return false;
+                if (getParent() != null) getParent().requestDisallowInterceptTouchEvent(true);
                 removeCallbacks(collapse);
                 dragStartX = x;
                 dragStartZoom = current;
                 dragged = false;
+                held = false;
+                dragOnRuler = expanded || Math.abs(x - getWidth() / 2f) < compactWidth() / 2f;
                 if (!expanded && Math.abs(x - getWidth() / 2f) < compactWidth() / 2f) postDelayed(longPress, 250);
                 return true;
             case MotionEvent.ACTION_MOVE:
                 if (Math.abs(x - dragStartX) > dp(6)) dragged = true;
-                if (dragged && Math.abs(dragStartX - getWidth() / 2f) < compactWidth() / 2f) {
+                if (dragged && dragOnRuler) {
                     removeCallbacks(longPress);
                     setExpanded(true);
                     setCurrent((float) (dragStartZoom * Math.pow(2, (dragStartX - x) / pixelsPerOctave())));
@@ -237,11 +252,11 @@ public final class NebulaZoomSlider extends View {
                 return true;
             case MotionEvent.ACTION_UP:
                 removeCallbacks(longPress);
-                if (!dragged) {
+                if (!dragged && !held) {
                     float half = widthForProgress() / 2f;
                     if (x < getWidth() / 2f - half) setCurrent(step(false));
                     else if (x > getWidth() / 2f + half) setCurrent(step(true));
-                    else if (expanded) setCurrent((float) (current * Math.pow(2, (x - getWidth() / 2f) / pixelsPerOctave())));
+                    else if (expanded) setCurrent((float) (current * Math.pow(2, (x - xForZoom(current)) / pixelsPerOctave())));
                     else setCurrent(presetAt(x));
                     callback.onZoomChanged(current);
                 }
@@ -255,6 +270,13 @@ public final class NebulaZoomSlider extends View {
             default:
                 return super.onTouchEvent(event);
         }
+    }
+
+    @Override protected void onDetachedFromWindow() {
+        removeCallbacks(collapse);
+        removeCallbacks(longPress);
+        if (expansionAnimator != null) expansionAnimator.cancel();
+        super.onDetachedFromWindow();
     }
 
     @Override public boolean performClick() { super.performClick(); return true; }
