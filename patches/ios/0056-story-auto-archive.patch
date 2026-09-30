@@ -2,9 +2,7 @@ diff --git a/submodules/ChatListUI/Sources/ChatListController.swift b/submodules
 index cb128a6..d433bf1 100644
 --- a/submodules/ChatListUI/Sources/ChatListController.swift
 +++ b/submodules/ChatListUI/Sources/ChatListController.swift
-@@ -212,6 +212,28 @@ public class ChatListControllerImpl: TelegramBaseController, ChatListController
-     private var shouldFixStorySubscriptionOrder: Bool = false
-     private var fixedStorySubscriptionOrder: [EnginePeer.Id] = []
+@@ -214,2 +214,24 @@ public class ChatListControllerImpl: TelegramBaseController, ChatListController
      private(set) var orderedStorySubscriptions: EngineStorySubscriptions?
 +    private var nebulaStoryArchiveObserver: NSObjectProtocol?
 +    private var nebulaArchivedStoryPeerIds = Set<EnginePeer.Id>()
@@ -29,31 +27,17 @@ index cb128a6..d433bf1 100644
 +        }
 +    }
      private var displayedStoriesTooltip: Bool = false
-     
-     public var hasStorySubscriptions: Bool {
-@@ -282,6 +304,9 @@ public class ChatListControllerImpl: TelegramBaseController, ChatListController
-         )
-                 
+@@ -284,2 +306,5 @@ public class ChatListControllerImpl: TelegramBaseController, ChatListController
          super.init(context: context, navigationBarPresentationData: nil)
 +        self.nebulaStoryArchiveObserver = NotificationCenter.default.addObserver(forName: Notification.Name("NebulaStoryArchiveSettingsChanged"), object: nil, queue: .main) { [weak self] _ in
 +            self?.nebulaArchiveStoriesIfNeeded()
 +        }
          
-         self.accessoryPanelContainer = ASDisplayNode()
-         
-@@ -790,6 +815,7 @@ public class ChatListControllerImpl: TelegramBaseController, ChatListController
-     }
-     
+@@ -792,2 +817,3 @@ public class ChatListControllerImpl: TelegramBaseController, ChatListController
      deinit {
 +        if let observer = self.nebulaStoryArchiveObserver { NotificationCenter.default.removeObserver(observer) }
          self.openMessageFromSearchDisposable.dispose()
-         self.badgeDisposable?.dispose()
-         self.badgeIconDisposable?.dispose()
-@@ -2189,6 +2215,7 @@ public class ChatListControllerImpl: TelegramBaseController, ChatListController
-                         items: items,
-                         hasMoreToken: rawStorySubscriptions.hasMoreToken
+@@ -2191,2 +2217,3 @@ public class ChatListControllerImpl: TelegramBaseController, ChatListController
                      )
 +                    self.nebulaArchiveStoriesIfNeeded()
                      self.fixedStorySubscriptionOrder = items.map(\.peer.id)
-                     
-                     let transition: ContainedViewLayoutTransition
