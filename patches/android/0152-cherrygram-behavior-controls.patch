@@ -1,0 +1,405 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/ApplicationLoader.java b/TMessagesProj/src/main/java/org/telegram/messenger/ApplicationLoader.java
+index 2adc7ed..bf01957 100644
+--- a/TMessagesProj/src/main/java/org/telegram/messenger/ApplicationLoader.java
++++ b/TMessagesProj/src/main/java/org/telegram/messenger/ApplicationLoader.java
+@@ -725,6 +725,14 @@ public class ApplicationLoader extends Application {
+     public float getDownloadingUpdateProgress() {
+         return 0.0f;
+     }
++    @Override public void onTrimMemory(int level) {
++        super.onTrimMemory(level);
++        app.nebulagram.ui.NebulaMemoryWarning.onPressure(level);
++    }
++    @Override public void onLowMemory() {
++        super.onLowMemory();
++        app.nebulagram.ui.NebulaMemoryWarning.onPressure(android.content.ComponentCallbacks2.TRIM_MEMORY_COMPLETE);
++    }
+     public void checkUpdate(boolean force, Runnable whenDone) {}
+     public BetaUpdate getUpdate() {
+         return null;
+diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/NotificationsController.java b/TMessagesProj/src/main/java/org/telegram/messenger/NotificationsController.java
+index 2afbcaf..fe48163 100644
+--- a/TMessagesProj/src/main/java/org/telegram/messenger/NotificationsController.java
++++ b/TMessagesProj/src/main/java/org/telegram/messenger/NotificationsController.java
+@@ -1183,7 +1183,7 @@ public class NotificationsController extends BaseController implements Notificat
+                 long originalDialogId = dialogId;
+                 long topicId = MessageObject.getTopicId(currentAccount, messageObject.messageOwner, getMessagesController().isForum(messageObject));
+                 if (dialogId == openedDialogId && ApplicationLoader.isScreenOn && !messageObject.isStoryReactionPush && !messageObject.isOauthPush) {
+-                    if (!isFcm) {
++                    if (!isFcm && !app.nebulagram.ui.NebulaFeatureSettings.silenceUnknown(currentAccount, messageObject) && !app.nebulagram.ui.NebulaFeatureSettings.ignoredMessage(currentAccount, messageObject)) {
+                         playInChatSound();
+                     }
+                     if (BuildVars.LOGS_ENABLED) {
+@@ -1200,6 +1200,7 @@ public class NotificationsController extends BaseController implements Notificat
+                     }
+                     dialogId = messageObject.getFromChatId();
+                 }
++                if (app.nebulagram.ui.NebulaFeatureSettings.ignoredMessage(currentAccount, messageObject)) continue;
+                 if (isPersonalMessage(messageObject)) {
+                     personalCount++;
+                 }
+@@ -1546,6 +1547,7 @@ public class NotificationsController extends BaseController implements Notificat
+                         continue;
+                     }
+                     MessageObject messageObject = new MessageObject(currentAccount, message, false, false);
++                    if (app.nebulagram.ui.NebulaFeatureSettings.ignoredMessage(currentAccount, messageObject)) continue;
+                     if (isPersonalMessage(messageObject)) {
+                         personalCount++;
+                     }
+@@ -1620,6 +1622,7 @@ public class NotificationsController extends BaseController implements Notificat
+                     if (pushMessagesDict.indexOfKey(mid) >= 0) {
+                         continue;
+                     }
++                    if (app.nebulagram.ui.NebulaFeatureSettings.ignoredMessage(currentAccount, messageObject)) continue;
+                     if (isPersonalMessage(messageObject)) {
+                         personalCount++;
+                     }
+@@ -1799,6 +1802,7 @@ public class NotificationsController extends BaseController implements Notificat
+     }
+ 
+     public String getShortStringForMessage(MessageObject messageObject, String[] userName, boolean[] preview) {
++        if (app.nebulagram.ui.NebulaFeatureSettings.ignoredMessage(currentAccount, messageObject)) return null;
+         if (app.nebulagram.ui.NebulaChatLocks.protectedChat(currentAccount, messageObject.getDialogId())) {
+             if (preview != null) preview[0] = false;
+             if (userName != null && userName.length > 0) userName[0] = LocaleController.getString(R.string.NotificationHiddenName);
+@@ -2490,6 +2494,7 @@ public class NotificationsController extends BaseController implements Notificat
+     }
+ 
+     private String getStringForMessage(MessageObject messageObject, boolean shortMessage, boolean[] text, boolean[] preview) {
++        if (app.nebulagram.ui.NebulaFeatureSettings.ignoredMessage(currentAccount, messageObject)) return null;
+         if (app.nebulagram.ui.NebulaChatLocks.protectedChat(currentAccount, messageObject.getDialogId())) {
+             if (preview != null) preview[0] = false;
+             return LocaleController.getString(R.string.YouHaveNewMessage);
+@@ -4772,7 +4777,7 @@ public class NotificationsController extends BaseController implements Notificat
+     }
+ 
+     private boolean isSilentMessage(MessageObject messageObject) {
+-        return messageObject.messageOwner.silent || messageObject.isReactionPush;
++        return messageObject.messageOwner.silent || messageObject.isReactionPush || app.nebulagram.ui.NebulaFeatureSettings.silenceUnknown(currentAccount, messageObject);
+     }
+ 
+     @SuppressLint("NewApi")
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarLayout.java b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarLayout.java
+index 3cfcd70..78cced5 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarLayout.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarLayout.java
+@@ -1879,7 +1879,7 @@ public class ActionBarLayout extends FrameLayout implements INavigationLayout, F
+                 }
+                 if (open) {
+                     float clampedInterpolated = MathUtils.clamp(interpolated, 0, 1);
+-                    containerView.setAlpha(clampedInterpolated);
++                    containerView.setAlpha(app.nebulagram.ui.NebulaFeatureSettings.fade(clampedInterpolated));
+                     if (preview) {
+                         containerView.setScaleX(0.7f + 0.3f * interpolated);
+                         containerView.setScaleY(0.7f + 0.3f * interpolated);
+@@ -1901,7 +1901,7 @@ public class ActionBarLayout extends FrameLayout implements INavigationLayout, F
+                     }
+                 } else {
+                     float clampedReverseInterpolated = MathUtils.clamp(1f - interpolated, 0, 1);
+-                    containerViewBack.setAlpha(clampedReverseInterpolated);
++                    containerViewBack.setAlpha(app.nebulagram.ui.NebulaFeatureSettings.fade(clampedReverseInterpolated));
+                     if (preview) {
+                         containerViewBack.setScaleX(0.9f + 0.1f * (1.0f - interpolated));
+                         containerViewBack.setScaleY(0.9f + 0.1f * (1.0f - interpolated));
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/BaseFragment.java b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/BaseFragment.java
+index cbe8844..00c8fbd 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/BaseFragment.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/BaseFragment.java
+@@ -507,6 +507,7 @@ public abstract class BaseFragment {
+ 
+     @CallSuper
+     public void onFragmentDestroy() {
++        app.nebulagram.ui.NebulaDeleteAuthentication.cancel(this);
+         getConnectionsManager().cancelRequestsForGuid(classGuid);
+         getMessagesStorage().cancelTasksForGuid(classGuid);
+         isFinished = true;
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Cells/DialogCell.java b/TMessagesProj/src/main/java/org/telegram/ui/Cells/DialogCell.java
+index 75c1b8c..58d354e 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Cells/DialogCell.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Cells/DialogCell.java
+@@ -3301,6 +3301,7 @@ public class DialogCell extends BaseCell implements StoriesListPlaceProvider.Ava
+                 reactionMentionCount = forumTopic.unread_reactions_count;
+                 pollVotesMentionCount = forumTopic.unread_poll_votes_count;
+             }
++            if (app.nebulagram.ui.NebulaFeatureSettings.ignoreMention(currentAccount, currentDialogId)) mentionCount = 0;
+             if (dialogsType == DialogsActivity.DIALOGS_TYPE_ADD_USERS_TO) {
+                 drawPin = false;
+             }
+@@ -3450,6 +3451,7 @@ public class DialogCell extends BaseCell implements StoriesListPlaceProvider.Ava
+                         if (ChatObject.isMonoForum(localChat)) {
+                             newMentionCount = 0;
+                         }
++                        if (app.nebulagram.ui.NebulaFeatureSettings.ignoreMention(currentAccount, currentDialogId)) newMentionCount = 0;
+                         if (dialog != null && (unreadCount != newCount || markUnread != dialog.unread_mark || mentionCount != newMentionCount || reactionMentionCount != newReactionCout)) {
+                             unreadCount = newCount;
+                             mentionCount = newMentionCount;
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
+index d1758d1..8cfb9b9 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
+@@ -5093,7 +5093,7 @@ public class ChatActivity extends BaseFragment implements
+                         if (Math.abs(dx) >= AndroidUtilities.dp(50)) {
+                             if (!wasTrackingVibrate) {
+                                 try {
+-                                    performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP, HapticFeedbackConstants.FLAG_IGNORE_GLOBAL_SETTING);
++                                    app.nebulagram.ui.NebulaFeatureSettings.haptic(this, HapticFeedbackConstants.KEYBOARD_TAP, HapticFeedbackConstants.FLAG_IGNORE_GLOBAL_SETTING);
+                                 } catch (Exception ignore) {}
+                                 wasTrackingVibrate = true;
+                             }
+@@ -13422,7 +13422,7 @@ public class ChatActivity extends BaseFragment implements
+         }
+ 
+         try {
+-            fragmentView.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP, HapticFeedbackConstants.FLAG_IGNORE_GLOBAL_SETTING);
++            app.nebulagram.ui.NebulaFeatureSettings.haptic(fragmentView, HapticFeedbackConstants.KEYBOARD_TAP, HapticFeedbackConstants.FLAG_IGNORE_GLOBAL_SETTING);
+         } catch (Exception e) {
+             FileLog.e(e);
+         }
+@@ -14933,7 +14933,13 @@ public class ChatActivity extends BaseFragment implements
+     }
+ 
+     public void showFieldPanelForReply(MessageObject messageObjectToReply) {
+-        showFieldPanel(true, messageObjectToReply, null, null, null, true, 0, null, false, 0, true);
++        ReplyQuote quote = null;
++        if (app.nebulagram.ui.NebulaFeatureSettings.enabled("quote_full_reply") && !isTopic && messageObjectToReply != null
++                && messageObjectToReply.messageOwner != null && !TextUtils.isEmpty(messageObjectToReply.messageOwner.message)) {
++            int end = app.nebulagram.ui.NebulaFeaturePolicy.quoteEnd(messageObjectToReply.messageOwner.message, getMessagesController().quoteLengthMax);
++            if (end > 0) quote = ReplyQuote.from(messageObjectToReply, 0, end);
++        }
++        showFieldPanel(true, messageObjectToReply, null, null, null, true, 0, quote, false, 0, true);
+     }
+ 
+     private Runnable onHideFieldPanelRunnable;
+@@ -18477,6 +18483,7 @@ public class ChatActivity extends BaseFragment implements
+                 canvas.restore();
+             }
+ 
++            app.nebulagram.ui.NebulaSnow.draw(this, canvas);
+             emojiAnimationsOverlay.draw(canvas);
+ 
+             if (restoreToCount >= 0) {
+@@ -23373,7 +23380,7 @@ public class ChatActivity extends BaseFragment implements
+                         }
+                         if (hasChosen) {
+                             try {
+-                                pollView.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP, HapticFeedbackConstants.FLAG_IGNORE_GLOBAL_SETTING);
++                                app.nebulagram.ui.NebulaFeatureSettings.haptic(pollView, HapticFeedbackConstants.KEYBOARD_TAP, HapticFeedbackConstants.FLAG_IGNORE_GLOBAL_SETTING);
+                             } catch (Exception ignored) {
+                             }
+                             if (isQuizWin) {
+@@ -28718,7 +28725,7 @@ public class ChatActivity extends BaseFragment implements
+                         if (buttonTypeUrl != null) {
+                             openClickableLink(null, buttonTypeUrl.url, true, null, buttonMessage, false);
+                             try {
+-                                buttonTextView.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS, HapticFeedbackConstants.FLAG_IGNORE_VIEW_SETTING);
++                                app.nebulagram.ui.NebulaFeatureSettings.haptic(buttonTextView, HapticFeedbackConstants.LONG_PRESS, HapticFeedbackConstants.FLAG_IGNORE_VIEW_SETTING);
+                             } catch (Exception ignore) {}
+                             return true;
+                         }
+@@ -33234,7 +33241,7 @@ public class ChatActivity extends BaseFragment implements
+             if (bigEmoji) {
+                 if (cell != null) {
+                     try {
+-                        cell.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS);
++                        app.nebulagram.ui.NebulaFeatureSettings.haptic(cell, HapticFeedbackConstants.LONG_PRESS, 0);
+                     } catch (Exception ignored) {}
+                 }
+                 ArrayList<TLRPC.MessageReactor> reactors = null;
+@@ -33256,7 +33263,7 @@ public class ChatActivity extends BaseFragment implements
+             }
+             if (fragmentView != null) {
+                 try {
+-                    fragmentView.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP, HapticFeedbackConstants.FLAG_IGNORE_VIEW_SETTING);
++                    app.nebulagram.ui.NebulaFeatureSettings.haptic(fragmentView, HapticFeedbackConstants.KEYBOARD_TAP, HapticFeedbackConstants.FLAG_IGNORE_VIEW_SETTING);
+                 } catch (Exception ignore) {}
+             }
+             final long chatId = -StarsController.MessageId.from(primaryMessage).did;
+@@ -33723,6 +33730,13 @@ public class ChatActivity extends BaseFragment implements
+             case 7912:
+                 presentFragment(new app.nebulagram.ui.NebulaMessageToolsFragment(selectedObject));
+                 break;
++            case 7913: {
++                ArrayList<MessageObject> saving = selectedObjectGroup != null
++                        ? new ArrayList<>(selectedObjectGroup.messages) : new ArrayList<>();
++                if (saving.isEmpty()) saving.add(selectedObject);
++                app.nebulagram.ui.NebulaPeerSelections.forward(this, saving);
++                break;
++            }
+             case OPTION_RETRY: {
+                 final MessageObject object = selectedObject;
+                 final MessageObject.GroupedMessages group = selectedObjectGroup;
+@@ -34296,7 +34310,7 @@ public class ChatActivity extends BaseFragment implements
+                     View view = bulletin.getLayout();
+                     view.postDelayed(() -> {
+                         try {
+-                            view.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP, HapticFeedbackConstants.FLAG_IGNORE_GLOBAL_SETTING);
++                            app.nebulagram.ui.NebulaFeatureSettings.haptic(view, HapticFeedbackConstants.KEYBOARD_TAP, HapticFeedbackConstants.FLAG_IGNORE_GLOBAL_SETTING);
+                         } catch (Exception ignored) {}
+                     }, 550);
+                 });
+@@ -40558,7 +40572,7 @@ public class ChatActivity extends BaseFragment implements
+                     getMessagesController().pressTranscribeButton();
+                 });
+                 try {
+-                    topUndoView.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP, HapticFeedbackConstants.FLAG_IGNORE_GLOBAL_SETTING);
++                    app.nebulagram.ui.NebulaFeatureSettings.haptic(topUndoView, HapticFeedbackConstants.KEYBOARD_TAP, HapticFeedbackConstants.FLAG_IGNORE_GLOBAL_SETTING);
+                 } catch (Exception ignored) {}
+             } else if (type == 1) {
+                 String until = LocaleController.formatDateTime(getMessagesController().transcribeAudioTrialCooldownUntil, true);
+@@ -40567,7 +40581,7 @@ public class ChatActivity extends BaseFragment implements
+                     AndroidUtilities.replaceTags(LocaleController.formatPluralString("TranscriptionTrialLeft", TranscribeButton.getTranscribeTrialCount(currentAccount)));
+                 BulletinFactory.of(ChatActivity.this).createSimpleBulletin(R.raw.transcribe, text, 6).show(true);
+                 try {
+-                    fragmentView.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP, HapticFeedbackConstants.FLAG_IGNORE_GLOBAL_SETTING);
++                    app.nebulagram.ui.NebulaFeatureSettings.haptic(fragmentView, HapticFeedbackConstants.KEYBOARD_TAP, HapticFeedbackConstants.FLAG_IGNORE_GLOBAL_SETTING);
+                 } catch (Exception ignored) {}
+             } else if (type == 2 || type == 3) {
+                 String until = LocaleController.formatDateTime(getMessagesController().transcribeAudioTrialCooldownUntil, true);
+@@ -40619,7 +40633,7 @@ public class ChatActivity extends BaseFragment implements
+             if (buttonTypeUrl != null) {
+                 openClickableLink(null, buttonTypeUrl.url, true, cell, cell.getMessageObject(), false);
+                 try {
+-                    cell.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS, HapticFeedbackConstants.FLAG_IGNORE_VIEW_SETTING);
++                    app.nebulagram.ui.NebulaFeatureSettings.haptic(cell, HapticFeedbackConstants.LONG_PRESS, HapticFeedbackConstants.FLAG_IGNORE_VIEW_SETTING);
+                 } catch (Exception ignore) {}
+             }
+         }
+@@ -44089,6 +44103,7 @@ public class ChatActivity extends BaseFragment implements
+         }
+ 
+         private void setupChatTheme(EmojiThemes chatTheme, TLRPC.WallPaper wallPaper, boolean withAnimation, boolean createNewResources) {
++            if (!app.nebulagram.ui.NebulaFeatureSettings.enabled("custom_chat_wallpaper")) wallPaper = null;
+             if (parentThemeDelegate != null) return;
+ 
+             this.chatTheme = chatTheme;
+@@ -45657,7 +45672,7 @@ public class ChatActivity extends BaseFragment implements
+             return;
+         }
+         if (longpress && reaction.reaction instanceof TLRPC.TL_reactionPaid) {
+-            cell.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS);
++            app.nebulagram.ui.NebulaFeatureSettings.haptic(cell, HapticFeedbackConstants.LONG_PRESS, 0);
+             ArrayList<TLRPC.MessageReactor> reactors = null;
+             if (messageObject.messageOwner != null && messageObject.messageOwner.reactions != null) {
+                 reactors = messageObject.messageOwner.reactions.top_reactors;
+@@ -45670,7 +45685,7 @@ public class ChatActivity extends BaseFragment implements
+             return;
+         }
+         if (longpress || messageObject.areTags() && (isInsideContainer || searchingReaction != null && searchingReaction.isSame(reaction.reaction))) {
+-            cell.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS);
++            app.nebulagram.ui.NebulaFeatureSettings.haptic(cell, HapticFeedbackConstants.LONG_PRESS, 0);
+             FrameLayout scrimPopupContainerLayout = new FrameLayout(getParentActivity()) {
+                 @Override
+                 public boolean dispatchKeyEvent(KeyEvent event) {
+@@ -46147,6 +46162,8 @@ public class ChatActivity extends BaseFragment implements
+                 && (!TextUtils.isEmpty(message.messageOwner.message) || message.isVoice() || message.isRoundVideo() || message.isVideo())) {
+             items.add(app.nebulagram.ui.NebulaText.text("Инструменты Nebula", "Nebula tools"));
+             icons.add(R.drawable.nebula_ai_spark); options.add(7912);
++            items.add(app.nebulagram.ui.NebulaText.text("Сохранить в выбранный чат", "Save to chosen chat"));
++            icons.add(R.drawable.msg_saved); options.add(7913);
+         }
+         boolean noforwardsOrPaidMedia = noforwards || message.type == MessageObject.TYPE_PAID_MEDIA;
+         boolean allowUnpin = !isEphemeral && message.getDialogId() != mergeDialogId && allowPin && (pinnedMessageObjects.containsKey(message.getId()) || groupedMessages != null && !groupedMessages.messages.isEmpty() && pinnedMessageObjects.containsKey(groupedMessages.messages.get(0).getId())) && !message.isExpiredStory();
+@@ -47331,7 +47348,7 @@ public class ChatActivity extends BaseFragment implements
+             }
+         });
+         try {
+-            view.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS, HapticFeedbackConstants.FLAG_IGNORE_GLOBAL_SETTING);
++            app.nebulagram.ui.NebulaFeatureSettings.haptic(view, HapticFeedbackConstants.LONG_PRESS, HapticFeedbackConstants.FLAG_IGNORE_GLOBAL_SETTING);
+         } catch (Exception ignored) {}
+         return true;
+     }
+@@ -47521,7 +47538,7 @@ public class ChatActivity extends BaseFragment implements
+         }
+         fireworksOverlay.start();
+         try {
+-            fireworksOverlay.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP, HapticFeedbackConstants.FLAG_IGNORE_GLOBAL_SETTING);
++            app.nebulagram.ui.NebulaFeatureSettings.haptic(fireworksOverlay, HapticFeedbackConstants.KEYBOARD_TAP, HapticFeedbackConstants.FLAG_IGNORE_GLOBAL_SETTING);
+         } catch (Exception ignored) {};
+     }
+ 
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/AlertsCreator.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/AlertsCreator.java
+index 181e0eb..a38a3dd 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Components/AlertsCreator.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/AlertsCreator.java
+@@ -2604,6 +2604,7 @@ public class AlertsCreator {
+         MessagesStorage.BooleanCallback onProcessRunnable,
+         Theme.ResourcesProvider resourcesProvider
+     ) {
++        if (app.nebulagram.ui.NebulaDeleteAuthentication.guard(fragment, () -> createClearOrDeleteDialogAlert(fragment, clear, second, chat, user, secret, checkDeleteForAll, forceDeleteForAll, canDeleteHistory, onProcessRunnable, resourcesProvider))) return;
+         if (fragment == null || fragment.getParentActivity() == null || (chat == null && user == null))
+             return;
+ 
+@@ -3005,6 +3006,7 @@ public class AlertsCreator {
+     }
+ 
+     public static void createClearOrDeleteDialogsAlert(BaseFragment fragment, boolean clear, boolean canDeleteHistory, int canClearCacheCount, int count, boolean hasDialogsToRevoke, MessagesStorage.BooleanCallback onProcessRunnable, Theme.ResourcesProvider resourcesProvider) {
++        if (app.nebulagram.ui.NebulaDeleteAuthentication.guard(fragment, () -> createClearOrDeleteDialogsAlert(fragment, clear, canDeleteHistory, canClearCacheCount, count, hasDialogsToRevoke, onProcessRunnable, resourcesProvider))) return;
+         int account = fragment.getCurrentAccount();
+ 
+         Context context = fragment.getParentActivity();
+@@ -3084,6 +3086,7 @@ public class AlertsCreator {
+     }
+ 
+     public static void createClearDaysDialogAlert(BaseFragment fragment, int days, TLRPC.User user, TLRPC.Chat chat, boolean canDeleteHistory, MessagesStorage.BooleanCallback onProcessRunnable, Theme.ResourcesProvider resourcesProvider) {
++        if (app.nebulagram.ui.NebulaDeleteAuthentication.guard(fragment, () -> createClearDaysDialogAlert(fragment, days, user, chat, canDeleteHistory, onProcessRunnable, resourcesProvider))) return;
+         if (fragment == null || fragment.getParentActivity() == null || (user == null && chat == null)) {
+             return;
+         }
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
+index 1a428e8..e274861 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
+@@ -1098,6 +1098,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+             updateContextViewPosition();
+             updateStoriesViewAlpha(storiesAlpha);
+             super.dispatchDraw(canvas);
++            app.nebulagram.ui.NebulaSnow.draw(this, canvas);
+             drawHeaderShadow(canvas, top + actionBarHeight);
+ 
+             /*if (fragmentContextView != null && fragmentContextView.isCallStyle()) {
+@@ -11167,11 +11168,11 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+     @NonNull
+     public ArrayList<TLRPC.Dialog> getDialogsArray(int currentAccount, int dialogsType, int folderId, boolean frozen) {
+         if (frozen && frozenDialogsList != null) {
+-            return frozenDialogsList;
++            return app.nebulagram.ui.NebulaFeatureSettings.visibleDialogs(frozenDialogsList, folderId);
+         }
+         MessagesController messagesController = AccountInstance.getInstance(currentAccount).getMessagesController();
+         if (dialogsType == DIALOGS_TYPE_DEFAULT) {
+-            return messagesController.getDialogs(folderId);
++            return app.nebulagram.ui.NebulaFeatureSettings.visibleDialogs(messagesController.getDialogs(folderId), folderId);
+         } else if (dialogsType == DIALOGS_TYPE_WIDGET || dialogsType == DIALOGS_TYPE_IMPORT_HISTORY) {
+             return messagesController.dialogsServerOnly;
+         } else if (dialogsType == DIALOGS_TYPE_ADD_USERS_TO) {
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/LaunchActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/LaunchActivity.java
+index 73acad2..cf92677 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/LaunchActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/LaunchActivity.java
+@@ -784,6 +784,7 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
+                     }
+ 
+                     private void onBackStartedInternal(BackEvent backEvent) {
++                        if (!app.nebulagram.ui.NebulaFeatureSettings.enabled("predictive_back")) return;
+                         if (AndroidUtilities.isTablet()) return;
+                         if (!onBackPressed(false)) return;
+                         if (actionBarLayout != null) {
+@@ -801,6 +802,7 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
+ 
+                     @Override
+                     public void onBackProgressed(@NonNull BackEvent backEvent) {
++                        if (!app.nebulagram.ui.NebulaFeatureSettings.enabled("predictive_back")) return;
+                         if (started && invoked) return;
+ 
+                         final float progress = backEvent.getProgress();
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Stories/StoriesController.java b/TMessagesProj/src/main/java/org/telegram/ui/Stories/StoriesController.java
+index 12dc19d..a084ce8 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Stories/StoriesController.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Stories/StoriesController.java
+@@ -153,6 +153,7 @@ public class StoriesController {
+         sortStoriesRunnable = () -> {
+             sortDialogStories(dialogListStories);
+             sortDialogStories(hiddenListStories);
++            app.nebulagram.ui.NebulaFeatureSettings.archiveStories(currentAccount, this, dialogListStories);
+             NotificationCenter.getInstance(currentAccount).postNotificationName(NotificationCenter.storiesUpdated);
+         };
+ 

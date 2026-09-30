@@ -1,7 +1,7 @@
 import UIKit
 import AVFoundation
 
-/// A compact 1×/2× control that opens into a scrollable ruler while recording.
+/// Camera-limited Cherrygram-style presets, step buttons, and a drag ruler.
 final class NebulaVideoZoomSlider: UIView {
     var onZoomChanged: ((CGFloat) -> Void)?
 
@@ -9,6 +9,8 @@ final class NebulaVideoZoomSlider: UIView {
     private let material = UIVisualEffectView(effect: UIBlurEffect(style: .systemThinMaterialDark))
     private let compact = CompactView()
     private let ruler = RulerView()
+    private let decrease = UILabel()
+    private let increase = UILabel()
     private var maximum: CGFloat = 2
     private var current: CGFloat = 1
     private var expanded = false
@@ -38,9 +40,22 @@ final class NebulaVideoZoomSlider: UIView {
         capsule.addSubview(material)
         capsule.addSubview(compact)
         capsule.addSubview(ruler)
+        for (control, symbol) in [(decrease, "−"), (increase, "+")] {
+            control.text = symbol
+            control.font = .systemFont(ofSize: 18, weight: .medium)
+            control.textColor = tintColor
+            control.backgroundColor = UIColor(red: 0.15, green: 0.14, blue: 0.18, alpha: 0.94)
+            control.textAlignment = .center
+            control.layer.cornerRadius = 15
+            control.layer.masksToBounds = true
+            control.isUserInteractionEnabled = false
+            addSubview(control)
+        }
         ruler.alpha = 0
         compact.accent = tintColor
         ruler.accent = tintColor
+        decrease.textColor = tintColor
+        increase.textColor = tintColor
         setRange(front: false)
     }
 
@@ -58,8 +73,10 @@ final class NebulaVideoZoomSlider: UIView {
     }
 
     private func layoutCapsule() {
-        let width = expanded ? bounds.width - 4 : min(bounds.width - 4, 156)
-        capsule.frame = CGRect(x: (bounds.width - width) / 2, y: 3, width: width, height: bounds.height - 6)
+        let width = expanded ? bounds.width - 62 : min(bounds.width - 62, maximum >= 3 ? 176 : 120)
+        capsule.frame = CGRect(x: (bounds.width - width) / 2, y: 6, width: width, height: bounds.height - 12)
+        decrease.frame = CGRect(x: capsule.minX - 33, y: bounds.midY - 15, width: 30, height: 30)
+        increase.frame = CGRect(x: capsule.maxX + 3, y: bounds.midY - 15, width: 30, height: 30)
         material.frame = capsule.bounds
         compact.frame = capsule.bounds
         ruler.frame = capsule.bounds
@@ -67,13 +84,13 @@ final class NebulaVideoZoomSlider: UIView {
     }
 
     override func point(inside point: CGPoint, with event: UIEvent?) -> Bool {
-        capsule.frame.insetBy(dx: -8, dy: 0).contains(point)
+        capsule.frame.insetBy(dx: -34, dy: 0).contains(point)
     }
 
     static func availableMaximum(front: Bool) -> CGFloat {
         let position: AVCaptureDevice.Position = front ? .front : .back
         guard let device = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: position) else { return 2 }
-        return max(1.05, min(8, device.maxAvailableVideoZoomFactor))
+        return max(1.05, min(10, device.maxAvailableVideoZoomFactor))
     }
 
     func setRange(front: Bool) {
@@ -101,7 +118,18 @@ final class NebulaVideoZoomSlider: UIView {
     }
 
     private var pixelsPerOctave: CGFloat {
-        max(1, ((bounds.width - 4) / 2 - 27) / CGFloat(log2(Double(maximum))))
+        max(1, ((bounds.width - 62) / 2 - 27) / CGFloat(log2(Double(maximum))))
+    }
+
+    private static func presets(maximum: CGFloat) -> [CGFloat] {
+        if maximum < 1.95 { return [1, maximum] }
+        if maximum < 3 { return [1, 2] }
+        if maximum < 10 { return [1, 3, maximum] }
+        return [1, 3, 10]
+    }
+    private func step(_ plus: Bool) {
+        let amount: CGFloat = current < 2 ? 0.1 : current < 5 ? 0.5 : 1
+        updateZoom(((current + (plus ? amount : -amount)) / amount).rounded() * amount, notify: true)
     }
 
     private func setExpanded(_ value: Bool, animated: Bool = true) {
@@ -134,7 +162,7 @@ final class NebulaVideoZoomSlider: UIView {
         dragStartZoom = current
         dragged = false
         beganExpanded = expanded
-        if !expanded {
+        if !expanded && capsule.frame.contains(touch.location(in: self)) {
             let work = DispatchWorkItem { [weak self] in self?.setExpanded(true) }
             expandWork = work
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.25, execute: work)
@@ -145,7 +173,7 @@ final class NebulaVideoZoomSlider: UIView {
         guard let touch = touches.first, let start = dragStartX else { return }
         let x = touch.location(in: self).x
         if abs(x - start) > 6 { dragged = true }
-        if dragged {
+        if dragged && capsule.frame.contains(CGPoint(x: start, y: bounds.midY)) {
             expandWork?.cancel()
             setExpanded(true)
             updateZoom(dragStartZoom * CGFloat(pow(2.0, Double((start - x) / pixelsPerOctave))), notify: true)
@@ -156,10 +184,16 @@ final class NebulaVideoZoomSlider: UIView {
         expandWork?.cancel()
         if !dragged, let touch = touches.first {
             let x = touch.location(in: self).x
-            if beganExpanded {
+            if x < capsule.frame.minX {
+                step(false)
+            } else if x > capsule.frame.maxX {
+                step(true)
+            } else if beganExpanded {
                 updateZoom(current * CGFloat(pow(2.0, Double((x - bounds.midX) / pixelsPerOctave))), notify: true)
             } else if !expanded {
-                updateZoom(x < bounds.midX ? 1 : min(2, maximum), notify: true)
+                let values = Self.presets(maximum: maximum)
+                let index = min(values.count - 1, max(0, Int((x - capsule.frame.minX) * CGFloat(values.count) / capsule.frame.width)))
+                updateZoom(values[index], notify: true)
             }
         }
         dragStartX = nil
@@ -178,20 +212,24 @@ final class NebulaVideoZoomSlider: UIView {
         var accent: UIColor = .systemTeal { didSet { setNeedsDisplay() } }
 
         override func draw(_ rect: CGRect) {
-            let half = bounds.width / 2
-            let active = current < min(1.5, maximum) ? CGRect(x: 3, y: 3, width: half - 6, height: bounds.height - 6)
-                : CGRect(x: half + 3, y: 3, width: half - 6, height: bounds.height - 6)
+            let values = NebulaVideoZoomSlider.presets(maximum: maximum)
+            let segment = bounds.width / CGFloat(values.count)
+            let selected = values.indices.min(by: { abs(values[$0] - current) < abs(values[$1] - current) }) ?? 0
+            let diameter = min(bounds.height - 6, segment - 4)
+            let active = CGRect(x: segment * (CGFloat(selected) + 0.5) - diameter / 2,
+                                y: (bounds.height - diameter) / 2, width: diameter, height: diameter)
             accent.setFill()
             UIBezierPath(roundedRect: active, cornerRadius: active.height / 2).fill()
             let style: [NSAttributedString.Key: Any] = [
                 .font: UIFont.monospacedDigitSystemFont(ofSize: 15, weight: .bold),
                 .foregroundColor: UIColor.white
             ]
-            let labels = ["1×", maximum >= 1.95 ? "2×" : String(format: "%.1f×", Double(maximum))]
-            for (index, label) in labels.enumerated() {
+            for (index, factor) in values.enumerated() {
+                let shown = index == selected ? current : factor
+                let label = abs(shown - shown.rounded()) < 0.04 ? String(format: "%.0f×", Double(shown)) : String(format: "%.1f×", Double(shown))
                 let text = label as NSString
                 let size = text.size(withAttributes: style)
-                text.draw(at: CGPoint(x: half * (CGFloat(index) + 0.5) - size.width / 2,
+                text.draw(at: CGPoint(x: segment * (CGFloat(index) + 0.5) - size.width / 2,
                                       y: (bounds.height - size.height) / 2), withAttributes: style)
             }
         }
@@ -235,7 +273,7 @@ final class NebulaVideoZoomSlider: UIView {
             var marks: [CGFloat] = [1]
             if maximum >= 1.95 { marks.append(2) }
             if maximum >= 5 { marks.append(5) }
-            if maximum >= 7.95 { marks.append(8) }
+            if maximum >= 10 { marks.append(10) }
             else if maximum < 1.95 || maximum > 2.4 && abs(maximum - 5) > 0.3 { marks.append(maximum) }
             for mark in marks {
                 let label = (abs(mark.rounded() - mark) < 0.05

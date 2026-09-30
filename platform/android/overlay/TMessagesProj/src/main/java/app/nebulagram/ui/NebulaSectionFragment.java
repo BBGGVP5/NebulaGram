@@ -182,6 +182,9 @@ public class NebulaSectionFragment extends BaseFragment {
                 buildAppearance(context, theme);
                 break;
         }
+        if (section == SECTION_GENERAL) NebulaFeatureControls.general(this, content);
+        else if (section == SECTION_APPEARANCE) NebulaFeatureControls.appearance(content);
+        else if (section == SECTION_CHAT_SETTINGS || section == SECTION_CHATS) NebulaFeatureControls.chats(this, content);
     }
 
     // --- разделы ------------------------------------------------------------
