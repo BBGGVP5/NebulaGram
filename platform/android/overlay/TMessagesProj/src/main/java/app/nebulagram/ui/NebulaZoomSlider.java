@@ -86,17 +86,23 @@ public final class NebulaZoomSlider extends View {
         if (!frontFacing) for (float value : values)
             if (!Float.isNaN(value) && value >= minimum && value <= maximum) stops.add(value);
         // Digital shortcuts complement optical modules; they do not claim a new lens.
-        if (minimum <= 1f && maximum >= 1f) stops.add(1f);
-        if (minimum <= 2f && maximum >= 2f) stops.add(2f);
+        if (minimum <= 1f && maximum >= 1f) addQuickStop(stops, 1f);
+        if (minimum <= 2f && maximum >= 2f) addQuickStop(stops, 2f);
         if (!frontFacing) {
-            if (minimum <= 5f && maximum >= 5f) stops.add(5f);
-            stops.add(maximum);
+            if (minimum <= 5f && maximum >= 5f) addQuickStop(stops, 5f);
+            addQuickStop(stops, maximum);
         }
         if (stops.isEmpty()) stops.add(Math.max(minimum, Math.min(1f, maximum)));
         cameraStops = new float[stops.size()];
         int index = 0; for (float value : stops) cameraStops[index++] = value;
         updateRulerMarks();
         invalidate();
+    }
+
+    private void addQuickStop(java.util.TreeSet<Float> stops, float value) {
+        // Real focal ratios can be e.g. 2.001x: keep the optical route instead of two "2" buttons.
+        for (float stop : stops) if (Math.abs(value / stop - 1f) < .02f) return;
+        stops.add(value);
     }
 
     private void updateRulerMarks() {

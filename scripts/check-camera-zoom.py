@@ -20,6 +20,7 @@ def method(source, signature):
 slider = (overlay / 'NebulaZoomSlider.java').read_text(encoding='utf-8')
 geometry = '\n'.join(method(slider, signature) for signature in [
     'public void setRange(float min, float max)', 'public void setCameraStops(float[] values)',
+    'private void addQuickStop(java.util.TreeSet<Float> stops, float value)',
     'private void animateZoom(float factor)', 'private float fullWidth()',
     'private float compactWidth()', 'private float widthForProgress()', 'private RectF capsuleBounds()',
     'private float pixelsPerOctave()', 'private float xForZoom(float zoom)'])
@@ -131,6 +132,8 @@ class CameraZoomCheck {
   check(Arrays.equals(r.cameraStops,new float[]{1,2,5,60}),"rear quick 2x, intermediate zoom and true endpoint");
   r.setRange(.6f,60);r.setCameraStops(new float[]{.6f,1,3,5});
   check(Arrays.equals(r.cameraStops,new float[]{.6f,1,2,3,5,60}),"digital 2x complements optical stops");
+  r.setCameraStops(new float[]{.6f,1,2.001f,5.001f});
+  check(Arrays.equals(r.cameraStops,new float[]{.6f,1,2.001f,5.001f,60}),"fractional focal metadata must not duplicate 2x/5x buttons");
   r.frontFacing=true;r.setCameraStops(new float[]{.6f,1,3,5});
   check(Arrays.equals(r.cameraStops,new float[]{1,2}),"front shortcuts never inherit rear lenses");
   r.setCurrent(9);close(r.current,9);close(r.xForZoom(9),160);
