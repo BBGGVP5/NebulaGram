@@ -13,6 +13,7 @@ import org.telegram.ui.Components.LayoutHelper;
 
 /** The same tab renderer as the chat list, with isolated example folders. */
 public final class NebulaFoldersPreview extends FrameLayout {
+    private static final int SAMPLE_HEIGHT_DP = 136, INSET_DP = 8;
     private final FilterTabsView tabs;
     private final View sampleChats;
     private final org.telegram.ui.Components.blur3.source.BlurredBackgroundSourceColor glassSource =
@@ -47,7 +48,7 @@ public final class NebulaFoldersPreview extends FrameLayout {
             }
         };
         sampleChats.setImportantForAccessibility(IMPORTANT_FOR_ACCESSIBILITY_NO);
-        addView(sampleChats, LayoutHelper.createFrame(-1, -1, Gravity.TOP));
+        addView(sampleChats, LayoutHelper.createFrame(-1, SAMPLE_HEIGHT_DP, Gravity.TOP));
         tabs = new FilterTabsView(c, null);
         if (android.os.Build.VERSION.SDK_INT >= 31) {
             capturedChats = new org.telegram.ui.Components.blur3.source.BlurredBackgroundSourceRenderNode(glassSource);
@@ -89,6 +90,9 @@ public final class NebulaFoldersPreview extends FrameLayout {
             tabs.finishAddingTabs(false);
         }
         boolean bottom = NebulaFolderTabs.bottom();
+        FrameLayout.LayoutParams sampleParams = (FrameLayout.LayoutParams) sampleChats.getLayoutParams();
+        sampleParams.topMargin = AndroidUtilities.dp(bottom ? INSET_DP : INSET_DP * 2 + NebulaFolderTabs.HEIGHT_DP);
+        sampleChats.setLayoutParams(sampleParams);
         tabs.setNebulaBottomPanel(bottom);
         FrameLayout.LayoutParams tabParams = (FrameLayout.LayoutParams) tabs.getLayoutParams();
         tabParams.gravity = bottom ? Gravity.BOTTOM : Gravity.TOP;
@@ -101,6 +105,12 @@ public final class NebulaFoldersPreview extends FrameLayout {
         super.onSizeChanged(w, h, oldw, oldh);
         captureDirty = true;
     }
+    @Override protected void onLayout(boolean changed, int l, int t, int r, int b) {
+        float oldTop = sampleChats.getY();
+        super.onLayout(changed, l, t, r, b);
+        if (changed || oldTop != sampleChats.getY()) captureDirty = true;
+        glass.setSourceOffset(tabs.getX(), tabs.getY());
+    }
     @Override protected void dispatchDraw(Canvas canvas) {
         if (android.os.Build.VERSION.SDK_INT >= 31 && capturedChats != null && captureDirty && getWidth() > 0 && getHeight() > 0) {
             capturedChats.setBlur(AndroidUtilities.dpf2(NebulaGlass.blur()));
@@ -108,7 +118,10 @@ public final class NebulaFoldersPreview extends FrameLayout {
             try {
                 capture.drawColor(NebulaTheme.of(getContext()).surfaceContainer());
                 // Only the sample content: recording this parent would capture the glass itself.
+                capture.save();
+                capture.translate(sampleChats.getX(), sampleChats.getY());
                 sampleChats.draw(capture);
+                capture.restore();
             } finally {
                 capturedChats.endRecording();
             }
@@ -118,5 +131,8 @@ public final class NebulaFoldersPreview extends FrameLayout {
         }
         super.dispatchDraw(canvas);
     }
-    @Override protected void onMeasure(int w, int h) { super.onMeasure(w, MeasureSpec.makeMeasureSpec(AndroidUtilities.dp(164), MeasureSpec.EXACTLY)); }
+    @Override protected void onMeasure(int w, int h) {
+        super.onMeasure(w, MeasureSpec.makeMeasureSpec(AndroidUtilities.dp(
+                SAMPLE_HEIGHT_DP + NebulaFolderTabs.HEIGHT_DP + INSET_DP * 3), MeasureSpec.EXACTLY));
+    }
 }

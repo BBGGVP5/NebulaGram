@@ -30,16 +30,19 @@ public final class NebulaAutoTranslate {
     public static void configure(BaseFragment host,long dialog){
         if(dialog==0||DialogObject.isEncryptedDialog(dialog))return;int account=host.getCurrentAccount();Context c=host.getContext();
         EditText language=new EditText(c);language.setText(NebulaAutoTranslate.language(account,dialog));language.setSingleLine();language.setHint("ru / en / de");
-        host.showDialog(new NebulaDialog.Builder(c).setTitle(NebulaText.text("Автоперевод чата","Auto-translate chat"))
-            .setMessage(NebulaText.text("Видимые текстовые сообщения будут отправляться вашему провайдеру ИИ для перевода. Введите код языка, например ru или en.","Visible text messages will be sent to your configured AI provider. Enter a language code, such as ru or en."))
-            .setView(language).setPositiveButton(NebulaText.text("Включить","Enable"),(d,w)->{
+        language.setFilters(new android.text.InputFilter[]{new android.text.InputFilter.LengthFilter(16)});
+        boolean active = enabled(account,dialog);
+        NebulaDialog.Builder builder = new NebulaDialog.Builder(c).setTitle(NebulaText.text("Автоперевод чата","Auto-translate chat"))
+            .setMessage(NebulaText.text("Язык перевода · ru / en / de\nВидимые сообщения обрабатывает ваш провайдер ИИ.","Translation language · ru / en / de\nYour AI provider processes visible messages."))
+            .setView(language).setPositiveButton(active ? NebulaText.text("Сохранить","Save") : NebulaText.text("Включить","Enable"),(d,w)->{
                 String code=language.getText().toString().trim().toLowerCase(Locale.ROOT);
                 if(!code.matches("[a-z]{2,3}(-[a-z]{2,4})?")||!NebulaAiAvailability.available()){
                     Toast.makeText(c,NebulaText.text("Проверьте код языка и настройки ИИ","Check language code and AI settings"),Toast.LENGTH_LONG).show();return;}
                 stop(account,dialog);prefs(account).edit().putString("language_"+dialog,code).putBoolean("on_"+dialog,true).apply();
                 NotificationCenter.getInstance(account).postNotificationName(NotificationCenter.dialogTranslate,dialog,true);
-            }).setNeutralButton(NebulaText.text("Выключить","Disable"),(d,w)->{disable(account,dialog);})
-            .setNegativeButton(NebulaText.text("Отмена","Cancel"),null).create());
+            }).setNegativeButton(NebulaText.text("Отмена","Cancel"),null);
+        if (active) builder.setNeutralButton(NebulaText.text("Выключить","Disable"),(d,w)->disable(account,dialog));
+        host.showDialog(builder.create());
     }
     public static void request(int account,MessageObject message){
         long dialog=message.getDialogId();String text=message.messageOwner.message;

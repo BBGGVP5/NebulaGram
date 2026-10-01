@@ -413,6 +413,7 @@ public class NebulaSectionFragment extends BaseFragment {
         LinearLayout.LayoutParams previewParams = new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         previewParams.bottomMargin = AndroidUtilities.dp(10);
+        previewParams.topMargin = AndroidUtilities.dp(10);
         content.addView(folderPreview, previewParams);
         NebulaCard card = new NebulaCard(context);
         card.add(toggle(context, R.drawable.nebula_cupertino_archive, R.string.NebulaHideAllChats, R.string.NebulaHideAllChatsInfo,

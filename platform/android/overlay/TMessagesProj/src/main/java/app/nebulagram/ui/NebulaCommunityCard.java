@@ -6,6 +6,7 @@ import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.ChatObject;
 import org.telegram.messenger.DialogObject;
 import org.telegram.messenger.MessagesController;
+import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.MessagesStorage;
 import org.telegram.messenger.NotificationCenter;
 import org.telegram.messenger.browser.Browser;
@@ -25,6 +26,8 @@ public final class NebulaCommunityCard extends FrameLayout implements Notificati
     private final CommunityLinkView card;
     private TLRPC.Chat community;
     private long sourceChatId;
+    private long boundChatId, boundPhotoId, requestedCommunityId;
+    private int boundPhotoDc;
     private boolean attached;
     private int generation, request;
 
@@ -38,6 +41,8 @@ public final class NebulaCommunityCard extends FrameLayout implements Notificati
         this.account = fragment.getCurrentAccount();
         this.username = username;
         card = new CommunityLinkView(context, fragment.getResourceProvider());
+        card.avatarView.getImageReceiver().setCurrentAccount(account);
+        card.avatarView.getImageReceiver().setCrossfadeWithOldImage(true);
         card.setTitle("NebulaHub");
         card.setSubtitle(NebulaText.text("Сообщество Telegram", "Telegram community"));
         card.setBackground(Theme.getSelectorDrawable(false));
@@ -54,13 +59,21 @@ public final class NebulaCommunityCard extends FrameLayout implements Notificati
         card.updateColors();
         NotificationCenter.getInstance(account).addObserver(this, NotificationCenter.chatInfoDidLoad);
         final int token = ++generation;
+        MessagesController cachedController = MessagesController.getInstance(account);
+        Object cached = cachedController.getUserOrChat(username);
+        if (cached instanceof TLRPC.Chat) {
+            TLRPC.Chat peer = (TLRPC.Chat) cached;
+            sourceChatId = peer.id;
+            selectCommunity(peer);
+            cachedController.loadFullChat(peer.id, fragment.getClassGuid(), false);
+        }
         TLRPC.TL_contacts_resolveUsername resolve = new TLRPC.TL_contacts_resolveUsername();
         resolve.username = username;
         request = ConnectionsManager.getInstance(account).sendRequest(resolve, (response, error) -> AndroidUtilities.runOnUIThread(() -> {
             if (!attached || token != generation) return;
             request = 0;
             if (!(response instanceof TLRPC.TL_contacts_resolvedPeer)) {
-                card.setSubtitle(NebulaText.text("Нажмите, чтобы открыть в Telegram", "Tap to open in Telegram"));
+                if (community == null) card.setSubtitle(NebulaText.text("Нажмите, чтобы открыть в Telegram", "Tap to open in Telegram"));
                 return;
             }
             TLRPC.TL_contacts_resolvedPeer resolved = (TLRPC.TL_contacts_resolvedPeer) response;
@@ -75,7 +88,7 @@ public final class NebulaCommunityCard extends FrameLayout implements Notificati
             selectCommunity(peer);
             // Channel full info includes its linked community and the peer's access hash.
             // Do not treat the channel itself as a community or guess its linked chats.
-            controller.loadFullChat(peer.id, fragment.getClassGuid(), true);
+            controller.loadFullChat(peer.id, fragment.getClassGuid(), false);
         }));
     }
 
@@ -84,20 +97,42 @@ public final class NebulaCommunityCard extends FrameLayout implements Notificati
         TLRPC.Chat target = ChatObject.isCommunity(peer) ? peer : controller.getChat(peer.linked_community_id);
         community = target != null && ChatObject.isCommunity(target) ? target : null;
         if (community == null) {
+            if (boundChatId != 0) card.avatarView.setImageDrawable(null);
+            boundChatId = boundPhotoId = requestedCommunityId = 0;
+            boundPhotoDc = 0;
             card.setTitle("NebulaHub");
             card.setSubtitle(NebulaText.text("Сообщество Telegram", "Telegram community"));
             return;
         }
         refresh();
-        if (community.id != sourceChatId) controller.loadFullChat(community.id, fragment.getClassGuid(), true);
+        if (community.id != sourceChatId && requestedCommunityId != community.id
+                && controller.getChatFull(community.id) == null) {
+            requestedCommunityId = community.id;
+            controller.loadFullChat(community.id, fragment.getClassGuid(), false);
+        }
     }
 
     private void refresh() {
         if (!attached || community == null) return;
-        card.setChat(account, community);
+        MessagesController controller = MessagesController.getInstance(account);
+        TLRPC.Chat latest = controller.getChat(community.id);
+        if (latest != null) community = latest;
+        long photoId = community.photo == null ? 0 : community.photo.photo_id;
+        int photoDc = community.photo == null ? 0 : community.photo.dc_id;
+        // Full-chat notifications update the count, not the image request. Store
+        // primitive IDs because Telegram can mutate the cached Chat in place.
+        if (boundChatId != community.id || boundPhotoId != photoId || boundPhotoDc != photoDc) {
+            card.setChat(account, community);
+            boundChatId = community.id;
+            boundPhotoId = photoId;
+            boundPhotoDc = photoDc;
+        }
+        card.setTitle(DialogObject.getShortName(community));
+        TLRPC.ChatFull full = controller.getChatFull(community.id);
         // Unknown metadata is not a community with zero chats.
-        if (MessagesController.getInstance(account).getChatFull(community.id) == null)
+        if (full == null)
             card.setSubtitle(NebulaText.text("Сообщество Telegram", "Telegram community"));
+        else card.setSubtitle(LocaleController.formatPluralString("CommunityWithChats", full.linked_peers.size()));
     }
 
     @Override public void didReceivedNotification(int id, int currentAccount, Object... args) {
@@ -116,6 +151,7 @@ public final class NebulaCommunityCard extends FrameLayout implements Notificati
         NotificationCenter.getInstance(account).removeObserver(this, NotificationCenter.chatInfoDidLoad);
         if (request != 0) ConnectionsManager.getInstance(account).cancelRequest(request, true);
         request = 0;
+        requestedCommunityId = 0;
         super.onDetachedFromWindow();
     }
 }

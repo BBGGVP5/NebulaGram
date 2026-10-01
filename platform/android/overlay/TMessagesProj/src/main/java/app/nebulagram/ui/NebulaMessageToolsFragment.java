@@ -15,7 +15,7 @@ public final class NebulaMessageToolsFragment extends BaseFragment {
     private EditText input, target;
     private TextView output;
     private LinearLayout resultSection;
-    private NebulaRow copyResult, stopAction;
+    private View copyResult, stopAction;
     private boolean speechRequested;
     private String lastResult = "";
     private boolean busy, resumed;
@@ -31,56 +31,95 @@ public final class NebulaMessageToolsFragment extends BaseFragment {
         LinearLayout column = NebulaFormUi.column(c);
         ScrollView scroll = NebulaFormUi.scroll(c, column);
 
-        input = NebulaFormUi.field(c, t("Введите или вставьте текст", "Type or paste text"), 3, 50000);
+        input = NebulaFormUi.field(c, t("Введите или вставьте текст", "Type or paste text"), 2, 50000);
+        input.setMaxLines(4);
         input.setText(message == null ? "" : message.messageOwner.message);
         NebulaFormUi.group(column, t("Исходный текст", "Source text"), input);
         target = NebulaFormUi.field(c, t("Язык результата", "Result language"), 1, 80);
         target.setText(LocaleController.getInstance().getCurrentLocale().getDisplayLanguage());
-        NebulaFormUi.group(column, t("Язык перевода и сводки", "Translation and summary language"), target);
+        LinearLayout languageRow = new LinearLayout(c);
+        languageRow.setGravity(android.view.Gravity.CENTER_VERTICAL);
+        TextView languageLabel = new TextView(c);
+        languageLabel.setText(t("Язык результата", "Result language"));
+        languageLabel.setTextSize(14); languageLabel.setTextColor(theme.onSurfaceVariant());
+        languageLabel.setPadding(0, 0, dp(12), 0);
+        languageRow.addView(languageLabel, new LinearLayout.LayoutParams(0, -2, 1));
+        target.setPadding(dp(12), dp(10), dp(12), dp(10));
+        languageRow.addView(target, new LinearLayout.LayoutParams(0, -2, 1));
+        LinearLayout.LayoutParams languageParams = new LinearLayout.LayoutParams(-1, -2);
+        languageParams.topMargin = dp(10);
+        column.addView(languageRow, languageParams);
 
-        NebulaCard ai = new NebulaCard(c);
-        ai.add(action(c, R.drawable.nebula_ai_spark, t("Спросить ИИ", "Ask AI"), t("Открыть чат с этим сообщением", "Open a chat with this message"), v -> presentFragment(new NebulaAiFragment(input.getText().toString()))));
-        ai.add(action(c, R.drawable.msg_translate, t("Перевести", "Translate"), t("Сохранить смысл на другом языке", "Keep the meaning in another language"), v -> request(false)));
-        ai.add(action(c, R.drawable.msg_list, t("Краткое содержание", "Summarize"), t("Главное из длинного сообщения", "The key points from a long message"), v -> request(true)));
+        NebulaToolGrid ai = new NebulaToolGrid(c);
+        ai.add(R.drawable.nebula_ai_spark, t("Спросить ИИ", "Ask AI"), t("Открыть чат с этим сообщением", "Open a chat with this message"), v -> presentFragment(new NebulaAiFragment(input.getText().toString())));
+        ai.add(R.drawable.msg_translate, t("Перевести", "Translate"), t("Сохранить смысл на другом языке", "Keep the meaning in another language"), v -> request(false));
+        ai.add(R.drawable.msg_list, t("Сократить", "Summarize"), t("Главное из длинного сообщения", "The key points from a long message"), v -> request(true));
         if (message != null && (message.isVoice() || message.isRoundVideo() || message.isVideo())) {
-            ai.add(action(c, R.drawable.msg_voice_unmuted, t("Распознать речь", "Transcribe speech"), t("Из скачанного аудио или видео", "From downloaded audio or video"), v -> transcribe()));
+            ai.add(R.drawable.msg_voice_unmuted, t("Распознать", "Transcribe"), t("Из скачанного аудио или видео", "From downloaded audio or video"), v -> transcribe());
         }
-        NebulaFormUi.group(column, t("Работа с текстом", "Work with text"), ai);
+        ai.add(R.drawable.msg_voice_unmuted, t("Озвучить", "Read aloud"), t("Озвучить результат или исходный текст", "Listen to the result or source text"), v -> { speechRequested = true; speak(); });
+        ai.add(R.drawable.msg_calendar, t("В задачу", "Create task"), t("Сохранить текст и добавить напоминание", "Save the text and add a reminder"), v -> presentFragment(new NebulaTaskEditorFragment(null, input.getText().toString(), currentAccount)));
+        LinearLayout.LayoutParams gridParams = new LinearLayout.LayoutParams(-1, -2);
+        gridParams.topMargin = dp(16);
+        column.addView(ai, gridParams);
+        NebulaButton stop = new NebulaButton(c, NebulaButton.STYLE_TEXT);
+        stop.setText(t("Остановить", "Stop")); stop.setOnClickListener(v -> cancel());
+        stopAction = stop;
+        stopAction.setVisibility(View.GONE);
+        column.addView(stopAction, new LinearLayout.LayoutParams(-1, -2));
 
         resultSection = new LinearLayout(c);
         resultSection.setOrientation(LinearLayout.VERTICAL);
         resultSection.setVisibility(View.GONE);
         NebulaCard result = new NebulaCard(c);
+        LinearLayout resultHeader = new LinearLayout(c);
+        resultHeader.setGravity(android.view.Gravity.CENTER_VERTICAL);
+        resultHeader.setPadding(dp(16), dp(4), dp(4), 0);
+        TextView resultTitle = new TextView(c);
+        resultTitle.setText(t("Результат", "Result")); resultTitle.setTextSize(14);
+        resultTitle.setTypeface(AndroidUtilities.bold()); resultTitle.setTextColor(theme.onSurfaceVariant());
+        resultHeader.addView(resultTitle, new LinearLayout.LayoutParams(0, -2, 1));
         output = new TextView(c);
         output.setTextColor(theme.onSurface()); output.setTextSize(16);
         output.setTextIsSelectable(true); output.setLineSpacing(dp(3), 1f);
-        output.setPadding(dp(16), dp(18), dp(16), dp(18));
+        output.setPadding(dp(16), dp(8), dp(16), dp(16));
         output.setAccessibilityLiveRegion(View.ACCESSIBILITY_LIVE_REGION_POLITE);
-        result.add(output);
-        copyResult = action(c, R.drawable.msg_copy, t("Скопировать результат", "Copy result"), "", v -> {
+        ImageView copy = new ImageView(c);
+        copy.setImageResource(R.drawable.msg_copy); copy.setColorFilter(theme.primary());
+        copy.setScaleType(ImageView.ScaleType.CENTER);
+        copy.setBackground(Theme.createSelectorDrawable(NebulaTheme.stateLayer(theme.primary(), .14f), 1));
+        copy.setContentDescription(t("Скопировать результат", "Copy result")); copy.setFocusable(true);
+        copy.setOnClickListener(v -> {
             if (!lastResult.isEmpty()) {
                 AndroidUtilities.addToClipboard(lastResult);
                 Toast.makeText(c, t("Скопировано", "Copied"), Toast.LENGTH_SHORT).show();
             }
         });
-        copyResult.setVisibility(View.GONE); result.add(copyResult);
-        NebulaFormUi.group(resultSection, t("Результат", "Result"), result);
-        column.addView(resultSection);
-
-        NebulaCard actions = new NebulaCard(c);
-        actions.add(action(c, R.drawable.msg_voice_unmuted, t("Прочитать вслух", "Read aloud"), t("Озвучить результат или исходный текст", "Listen to the result or source text"), v -> { speechRequested = true; speak(); }));
-        stopAction = action(c, R.drawable.msg_close, t("Остановить", "Stop"), t("Запрос или озвучивание", "Request or speech"), v -> cancel());
-        stopAction.setVisibility(View.GONE); actions.add(stopAction);
-        actions.add(action(c, R.drawable.msg_calendar, t("Создать задачу", "Create task"), t("Сохранить текст и добавить напоминание", "Save the text and add a reminder"), v -> presentFragment(new NebulaTaskEditorFragment(null, input.getText().toString(), currentAccount))));
-        NebulaFormUi.group(column, t("Действия", "Actions"), actions);
+        copyResult = copy; copyResult.setVisibility(View.GONE);
+        resultHeader.addView(copyResult, new LinearLayout.LayoutParams(dp(48), dp(48)));
+        result.addView(resultHeader); result.addView(output);
+        resultSection.addView(result);
+        LinearLayout.LayoutParams resultParams = new LinearLayout.LayoutParams(-1, -2);
+        resultParams.topMargin = dp(16);
+        column.addView(resultSection, resultParams);
 
         NebulaCard preferences = new NebulaCard(c);
         if (message != null && !DialogObject.isEncryptedDialog(message.getDialogId()))
             preferences.add(action(c, R.drawable.msg_translate, t("Автоперевод чата", "Auto-translate chat"), t("Переводить видимые сообщения", "Translate visible messages"), v -> NebulaAutoTranslate.configure(this, message.getDialogId())));
         preferences.add(action(c, R.drawable.msg_list, t("Фильтр сообщений", "Message filter"), t("Скрывать сообщения по словам и фразам", "Hide messages matching words and phrases"), v -> NebulaMessageFilter.configure(this)));
         preferences.add(action(c, R.drawable.msg_customize, t("Провайдер ИИ", "AI provider"), t("Модель, подключение и API-ключ", "Model, connection and API key"), v -> presentFragment(new NebulaAiFragment())));
-        NebulaFormUi.group(column, t("Настройки инструментов", "Tool settings"), preferences);
-        column.addView(NebulaFormUi.note(c, t("Перевод, сводки и распознавание выполняет ваш провайдер ИИ. Озвучивание использует движок Android.", "Your AI provider processes translation, summaries and transcription. Read aloud uses the Android speech engine.")));
+        preferences.setVisibility(View.GONE);
+        NebulaButton settings = new NebulaButton(c, NebulaButton.STYLE_TEXT);
+        settings.setText(t("Настройки инструментов", "Tool settings"));
+        settings.setOnClickListener(v -> {
+            boolean expand = preferences.getVisibility() != View.VISIBLE;
+            preferences.setVisibility(expand ? View.VISIBLE : View.GONE);
+            settings.setText(expand ? t("Свернуть настройки", "Hide settings") : t("Настройки инструментов", "Tool settings"));
+        });
+        LinearLayout.LayoutParams settingsParams = new LinearLayout.LayoutParams(-1, -2);
+        settingsParams.topMargin = dp(12);
+        column.addView(settings, settingsParams); column.addView(preferences);
+        column.addView(NebulaFormUi.note(c, t("Текст обрабатывает выбранный провайдер ИИ. Озвучивание — Android.", "Text is processed by your selected AI provider. Speech uses Android.")));
         return fragmentView = NebulaSettingsLayout.wrap(c, actionBar, scroll);
     }
     private int dp(int n) { return AndroidUtilities.dp(n); }
