@@ -179,12 +179,12 @@ for(boolean previewMode:new boolean[]{false,true}) {
  recordedPanel.setVisibility(previewMode?View.VISIBLE:View.GONE);
  style.setRecordingPanels(recordingPanel,recordedPanel,true);
  host.nebulaComposerStyle=style;final int[] editorDraws={0};
- check(host.drawMessageEditText(new Canvas(),()->{editorDraws[0]++;return true;})&&editorDraws[0]==0,"cursor/hint must not appear beside live recording or delete/preview island");
+ check(!host.drawMessageEditText(new Canvas(),()->{editorDraws[0]++;return true;})&&editorDraws[0]==0,"cursor/hint must not appear beside live recording or delete/preview island, without requesting extra animation frames");
  attach.refreshStyle();
  check(attach.getAlpha()==0&&!attach.dispatchTouchEvent(new android.view.MotionEvent()),"attachment must not overlap or receive touches beneath recording/delete island");
  recordingPanel.setAlpha(.2f);attach.setAlpha(1);
  check(attach.getAlpha()==0,"restoring native icons must not reveal paperclip during delete fade");
- check(host.drawMessageEditText(new Canvas(),()->{editorDraws[0]++;return true;})&&editorDraws[0]==0,"editor stays hidden through the delete fade");
+ check(!host.drawMessageEditText(new Canvas(),()->{editorDraws[0]++;return true;})&&editorDraws[0]==0,"editor stays hidden through the delete fade");
  recordingPanel.setAlpha(1);
  style.restoreInsets();style.prepare(host,editor,host.getWidth(),false);
  bg.nodes.clear();bg.surfaces.clear();check(style.draw(new Canvas(),bg,root),"recording falls back to joined pill");
