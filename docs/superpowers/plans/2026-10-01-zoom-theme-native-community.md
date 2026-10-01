@@ -10,6 +10,13 @@
 
 ## Task 1: themed geometry and continuous input
 
+### Follow-up: immediate quick presets and editor restoration
+
+- [x] Execute the actual compact-button touch handler in a Java fixture: a 2x tap must send the final value once on release, without creating a zoom animator or emitting 1.1x/1.2x frames; rapid 1x/30x taps must replace old animated work. Drag and long press must retain the expanded ruler without committing a preset on release or cancellation.
+- [x] Route compact quick buttons through `selectPreset(float)` with an immediate `setCurrent(target)` and callback. Keep `animateZoom(float)` for taps on the expanded ruler.
+- [x] Prevent `drawMessageEditText` from drawing the native cursor/placeholder while `ownsRecordingIsland()` is true. Restore the editor when the native recording/preview panel closes, without clearing its text or changing its animation alpha. Run the actual draw-wrapper fixture during recording, cancellation, preview, hidden/faded panels and normal multiline editing.
+- [ ] Export native patch 0161 after the committed 0160 scratch baseline, check ordered application and existing camera/composer regressions, publish and verify the replacement Android APK.
+
 ### Follow-up: recording control spacing and cancellation
 
 - [x] Align major ruler ticks with the exact values in `rulerMarks`, skip nearby minor ticks and place labels below their matching marks. Extend the actual Canvas fixture to verify every visible label has a tick at its x-coordinate, including 5x and fractional optical stops.

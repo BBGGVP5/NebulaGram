@@ -1,0 +1,12 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
+index c504b9a..25e7519 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
+@@ -15637,6 +15637,7 @@ public class ChatActivityEnterView extends FrameLayout implements
+     }
+ 
+     public boolean drawMessageEditText(Canvas canvas, Utilities.Callback0Return<Boolean> drawChild) {
++        if (nebulaComposerStyle.ownsRecordingIsland()) return true;
+         float topAlpha = topGradientAlpha.set(messageEditText.canScrollVertically(-1));
+         float bottomAlpha = bottomGradientAlpha.set(messageEditText.canScrollVertically(1));
+         if (topAlpha <= 0 && bottomAlpha <= 0) {

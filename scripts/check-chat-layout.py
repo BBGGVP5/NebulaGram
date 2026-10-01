@@ -20,14 +20,24 @@ while depth:
     depth += (native[end] == '{') - (native[end] == '}')
     end += 1
 recording_hook = native[start:end]
+start = native.index('    public boolean drawMessageEditText(')
+brace = native.index('{', start)
+depth, end = 1, brace + 1
+while depth:
+    depth += (native[end] == '{') - (native[end] == '}')
+    end += 1
+editor_draw = native[start:end]
+
 
 stubs = {
 'app/nebulagram/ui/NebulaTheme.java': 'package app.nebulagram.ui; public class NebulaTheme {public static boolean enabled=true;public static boolean materialYouEnabled(){return enabled;}}',
 
+'org/telegram/messenger/Utilities.java': 'package org.telegram.messenger;public class Utilities {public interface Callback0Return<T> {T run();}}',
 'android/content/Context.java': 'package android.content; public class Context {}',
-'android/graphics/Canvas.java': 'package android.graphics; public class Canvas {}',
+'android/graphics/Canvas.java': 'package android.graphics; public class Canvas {public static final int ALL_SAVE_FLAG=31;public int layers;public void saveLayerAlpha(float l,float t,float r,float b,int alpha,int flags){layers++;}public void save(){}public void restore(){}public void drawRect(Rect r,Paint p){}public void drawRect(RectF r,Paint p){}}',
 'android/graphics/ColorFilter.java': 'package android.graphics; public class ColorFilter {}',
 'android/graphics/PixelFormat.java': 'package android.graphics; public class PixelFormat {public static int TRANSLUCENT=0;}',
+'android/graphics/RectF.java': 'package android.graphics; public class RectF {public float left,top,right,bottom;public void set(float l,float t,float r,float b){left=l;top=t;right=r;bottom=b;}public float height(){return bottom-top;}}',
 'android/graphics/Rect.java': '''package android.graphics; public class Rect {
 public int left,top,right,bottom; public Rect(){} public Rect(Rect r){set(r);} public Rect(int l,int t,int r,int b){set(l,t,r,b);}
 public void set(Rect r){set(r.left,r.top,r.right,r.bottom);} public void set(int l,int t,int r,int b){left=l;top=t;right=r;bottom=b;}
@@ -60,14 +70,27 @@ public static class MarginLayoutParams {public int width,height,leftMargin,right
 'android/widget/FrameLayout.java': 'package android.widget; public class FrameLayout extends android.view.ViewGroup {public static class LayoutParams extends MarginLayoutParams {public int gravity=3;}}',
 'android/widget/EditText.java': 'package android.widget; public class EditText extends android.view.View {}',
 'android/widget/ImageView.java': 'package android.widget; public class ImageView extends android.view.View {public ImageView(android.content.Context c){super(c);}}',
-'org/telegram/messenger/AndroidUtilities.java': 'package org.telegram.messenger; public class AndroidUtilities {public static float density=1; public static int dp(float v){return (int)Math.ceil(v*density);}}',
+'org/telegram/messenger/AndroidUtilities.java': 'package org.telegram.messenger; public class AndroidUtilities {public static android.graphics.RectF rectTmp=new android.graphics.RectF();public static float density=1; public static int dp(float v){return (int)Math.ceil(v*density);}}',
 'app/nebulagram/ui/NebulaHeaderCounter.java': 'package app.nebulagram.ui; public class NebulaHeaderCounter {public static int backWidth(){return org.telegram.messenger.AndroidUtilities.dp(58);}}',
 'app/nebulagram/ui/NebulaAppearance.java': 'package app.nebulagram.ui; public class NebulaAppearance {public static boolean enabled=true,homeGlass,chatsTitle; public static boolean iosComposer(){return enabled;} public static boolean chatHeader(){return enabled;} public static boolean adaptiveHeader(){return true;} public static boolean centeredHeader(){return true;} public static boolean folderTitle(){return enabled;} public static boolean homeGlassHeader(){return homeGlass;} public static boolean homeChatsTitle(){return chatsTitle;}}',
 'app/nebulagram/ui/NebulaText.java': 'package app.nebulagram.ui; public class NebulaText {public static String text(String ru,String en){return ru;}}',
 'org/telegram/ui/ActionBar/ActionBar.java': 'package org.telegram.ui.ActionBar; public class ActionBar {public SimpleTextView title=new SimpleTextView();public SimpleTextView getTitleTextView(){return title;} public SimpleTextView getTitleTextView2(){return null;} public void setTitleAnimated(CharSequence text,boolean bottom,long duration,Object interpolator){title.setText(text);} public void setTitle(CharSequence text,android.graphics.drawable.Drawable icon){title.setText(text);}public void requestLayout(){} public boolean floating,hidden,savedClassic;public void setNebulaClassicSavedHeader(boolean v){savedClassic=v;}public void setNebulaFloatingChatHeader(boolean a,boolean b,boolean c){floating=a;hidden=b;}}',
 'org/telegram/ui/ActionBar/ActionBarMenuItem.java': 'package org.telegram.ui.ActionBar; public class ActionBarMenuItem {public void setIcon(android.graphics.drawable.Drawable d){}}',
 'org/telegram/ui/Components/AvatarDrawable.java': 'package org.telegram.ui.Components; public class AvatarDrawable extends android.graphics.drawable.Drawable {public static int AVATAR_TYPE_SAVED=1;public void setAvatarType(int i){} public void draw(android.graphics.Canvas c){}}',
-'org/telegram/ui/Components/ChatActivityEnterView.java': 'package org.telegram.ui.Components; public class ChatActivityEnterView extends android.widget.FrameLayout {public android.view.View attachButton; public void recordingStateChanged(){isRecordingStateChanged();}' + recording_hook + '}',
+'org/telegram/ui/Components/ChatActivityEnterView.java': '''package org.telegram.ui.Components;
+import android.graphics.Canvas;import org.telegram.messenger.AndroidUtilities;import org.telegram.messenger.Utilities;import static org.telegram.messenger.AndroidUtilities.dp;
+public class ChatActivityEnterView extends android.widget.FrameLayout {
+ public android.view.View attachButton;public app.nebulagram.ui.NebulaComposerStyle nebulaComposerStyle;
+ static class Editor extends android.widget.EditText {boolean scrolling;public boolean canScrollVertically(int direction){return scrolling;}}
+ public Editor messageEditText=new Editor();
+ static class Animated {float set(boolean value){return value?1:0;}}
+ static class Matrix {void reset(){}void postScale(float x,float y){}void postTranslate(float x,float y){}void postRotate(float r){}}
+ static class Gradient {void setLocalMatrix(Matrix m){}}
+ Animated topGradientAlpha=new Animated(),bottomGradientAlpha=new Animated();float animatedTop;
+ Matrix clipMatrix=new Matrix();Gradient clipGradient=new Gradient();android.graphics.Paint gradientPaint=new android.graphics.Paint();
+ public void setEditorScrolling(boolean value){messageEditText.scrolling=value;}
+ public void recordingStateChanged(){isRecordingStateChanged();}
+''' + recording_hook + editor_draw + '}',
 'org/telegram/ui/Components/blur3/BlurredBackgroundDrawableViewFactory.java': 'package org.telegram.ui.Components.blur3; public class BlurredBackgroundDrawableViewFactory {public org.telegram.ui.Components.blur3.drawable.BlurredBackgroundDrawable create(android.view.View view, org.telegram.ui.Components.blur3.drawable.color.BlurredBackgroundColorProvider provider) {return new org.telegram.ui.Components.blur3.drawable.BlurredBackgroundDrawable();}}',
 'org/telegram/ui/Components/blur3/drawable/color/BlurredBackgroundColorProvider.java': 'package org.telegram.ui.Components.blur3.drawable.color; public class BlurredBackgroundColorProvider {}',
 'org/telegram/ui/Components/blur3/drawable/BlurredBackgroundDrawable.java': '''package org.telegram.ui.Components.blur3.drawable; import android.graphics.*; public class BlurredBackgroundDrawable {
@@ -80,7 +103,7 @@ public void setBounds(Rect r){bounds.set(r);} public void setBounds(int l,int t,
  'android/view/ViewPropertyAnimator.java': 'package android.view; public class ViewPropertyAnimator {public ViewPropertyAnimator setListener(Object o){return this;} public void cancel(){}}',
 'org/telegram/ui/Components/CubicBezierInterpolator.java': 'package org.telegram.ui.Components; public class CubicBezierInterpolator {public static Object EASE_OUT_QUINT=new Object();}',
 'app/nebulagram/ui/NebulaFolderTitleView.java': 'package app.nebulagram.ui; public class NebulaFolderTitleView extends org.telegram.ui.ActionBar.SimpleTextView {public boolean showStatus;public void setTitle(CharSequence text,int cache,boolean status,boolean animated){setText(text);setEmojiCacheType(cache);showStatus=status;}}',
-'android/graphics/Paint.java': 'package android.graphics; public class Paint {public Object getFontMetricsInt(){return null;}}',
+'android/graphics/Paint.java': 'package android.graphics; public class Paint {public void setAlpha(int alpha){}public Object getFontMetricsInt(){return null;}}',
 'org/telegram/ui/ActionBar/SimpleTextView.java': 'package org.telegram.ui.ActionBar; public class SimpleTextView extends android.view.View {public CharSequence text;public int cache;public boolean isAttachedToWindow(){return false;} public android.view.ViewPropertyAnimator animate(){return new android.view.ViewPropertyAnimator();}public void setText(CharSequence t){text=t;}public CharSequence getText(){return text;}public android.graphics.drawable.Drawable getRightDrawable(){return null;}public android.graphics.Paint getPaint(){return new android.graphics.Paint();}public void setEmojiCacheType(int type){cache=type;}}',
 'org/telegram/messenger/MessagesController.java': 'package org.telegram.messenger; public class MessagesController {public java.util.ArrayList<DialogFilter> filters=new java.util.ArrayList<>();public java.util.ArrayList<DialogFilter> getDialogFilters(){return filters;}public static class DialogFilter {public CharSequence name;public Object entities;public boolean title_noanimate,standard;public boolean isDefault(){return standard;}}}',
 'org/telegram/messenger/MessageObject.java': 'package org.telegram.messenger;public class MessageObject {public static CharSequence replaceAnimatedEmoji(CharSequence text,Object entities,Object metrics){return text;}}',
@@ -155,10 +178,13 @@ for(boolean previewMode:new boolean[]{false,true}) {
  recordingPanel.setVisibility(previewMode?View.GONE:View.VISIBLE);
  recordedPanel.setVisibility(previewMode?View.VISIBLE:View.GONE);
  style.setRecordingPanels(recordingPanel,recordedPanel,true);
+ host.nebulaComposerStyle=style;final int[] editorDraws={0};
+ check(host.drawMessageEditText(new Canvas(),()->{editorDraws[0]++;return true;})&&editorDraws[0]==0,"cursor/hint must not appear beside live recording or delete/preview island");
  attach.refreshStyle();
  check(attach.getAlpha()==0&&!attach.dispatchTouchEvent(new android.view.MotionEvent()),"attachment must not overlap or receive touches beneath recording/delete island");
  recordingPanel.setAlpha(.2f);attach.setAlpha(1);
  check(attach.getAlpha()==0,"restoring native icons must not reveal paperclip during delete fade");
+ check(host.drawMessageEditText(new Canvas(),()->{editorDraws[0]++;return true;})&&editorDraws[0]==0,"editor stays hidden through the delete fade");
  recordingPanel.setAlpha(1);
  style.restoreInsets();style.prepare(host,editor,host.getWidth(),false);
  bg.nodes.clear();bg.surfaces.clear();check(style.draw(new Canvas(),bg,root),"recording falls back to joined pill");
@@ -171,8 +197,16 @@ for(boolean previewMode:new boolean[]{false,true}) {
 }
 recordingPanel.setVisibility(View.GONE);recordedPanel.setVisibility(View.GONE);
 host.attachButton=attach;host.recordingStateChanged();
+final int[] editorDraws={0};check(!host.drawMessageEditText(new Canvas(),()->{editorDraws[0]++;return false;})&&editorDraws[0]==1,"editor must restore its native draw result after cancellation");
+host.setEditorScrolling(true);Canvas editorCanvas=new Canvas();
+check(host.drawMessageEditText(editorCanvas,()->{editorDraws[0]++;return true;})&&editorDraws[0]==2&&editorCanvas.layers==1,"normal multiline gradient rendering must remain native");host.setEditorScrolling(false);
 check(attach.getAlpha()==1&&attach.dispatchTouchEvent(new android.view.MotionEvent()),"attachment must restore after recording/preview ends");
 style.setRecordingPanels(recordingPanel,recordedPanel,false);
+recordingPanel.setVisibility(View.VISIBLE);
+check(host.drawMessageEditText(new Canvas(),()->{editorDraws[0]++;return true;})&&editorDraws[0]==3,"unsupported recording contexts retain the native editor");
+style.setRecordingPanels(recordingPanel,recordedPanel,true);NebulaAppearance.enabled=false;
+check(host.drawMessageEditText(new Canvas(),()->{editorDraws[0]++;return true;})&&editorDraws[0]==4,"disabling islands retains native editor transitions");
+NebulaAppearance.enabled=true;recordingPanel.setVisibility(View.GONE);style.setRecordingPanels(recordingPanel,recordedPanel,false);
 attach.setAlpha(0); // Restore the native typing state used by the fallback test.
 check(!style.draw(new Canvas(),bg,root),"unsupported contexts must use native fallback");
 style.prepare(host,editor,host.getWidth(),true);bg.surfaces.clear();bg.alphas.clear();style.draw(new Canvas(),bg,root);

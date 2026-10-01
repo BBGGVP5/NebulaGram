@@ -144,6 +144,16 @@ public final class NebulaZoomSlider extends View {
         zoomAnimator.start();
     }
 
+    private void selectPreset(float factor) {
+        if (zoomAnimator != null) {
+            zoomAnimator.cancel();
+            zoomAnimator = null;
+        }
+        float target = Math.max(minimum, Math.min(maximum, factor));
+        setCurrent(target);
+        callback.onZoomChanged(target);
+    }
+
     private void setExpanded(boolean value) {
         removeCallbacks(collapse);
         if (expanded == value) return;
@@ -337,7 +347,7 @@ public final class NebulaZoomSlider extends View {
                 removeCallbacks(longPress);
                 if (!dragged && !held) {
                     if (expanded) animateZoom((float) (current * Math.pow(2, (x - getWidth() / 2f) / pixelsPerOctave())));
-                    else animateZoom(presetAt(x));
+                    else selectPreset(presetAt(x));
                 }
                 scheduleCollapse();
                 performClick();

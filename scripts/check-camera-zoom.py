@@ -22,9 +22,10 @@ slider = (overlay / 'NebulaZoomSlider.java').read_text(encoding='utf-8')
 geometry = '\n'.join(method(slider, signature) for signature in [
     'public void setRange(float min, float max)', 'public void setCameraStops(float[] values)',
     'private void addQuickStop(java.util.TreeSet<Float> stops, float value)',
-    'private void animateZoom(float factor)', 'private float fullWidth()',
+    'private void animateZoom(float factor)', 'private void selectPreset(float factor)', 'private float fullWidth()',
     'private float compactWidth()', 'private float widthForProgress()', 'private RectF capsuleBounds()',
-    'private float pixelsPerOctave()', 'private float xForZoom(float zoom)'])
+    'private float pixelsPerOctave()', 'private float xForZoom(float zoom)',
+    'private float presetAt(float x)', 'public boolean onTouchEvent(MotionEvent event)'])
 legacy = (tree / 'TMessagesProj/src/main/java/org/telegram/messenger/camera/CameraSession.java').read_text(encoding='utf-8')
 instant = (tree / 'TMessagesProj/src/main/java/org/telegram/ui/Components/InstantCameraView.java').read_text(encoding='utf-8')
 composer = (tree / 'TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java').read_text(encoding='utf-8')
@@ -62,10 +63,24 @@ class CameraZoomCheck {
   void tick(float fraction){if(canceled)return;value=start+(end-start)*fraction;update.accept(this);}
  }
  interface OnZoomChanged {void onZoomChanged(float factor);}
- static class Ruler {
+ static class MotionEvent {
+  static final int ACTION_DOWN=0,ACTION_UP=1,ACTION_MOVE=2,ACTION_CANCEL=3;int action;float x;
+  MotionEvent(int action,float x){this.action=action;this.x=x;}int getActionMasked(){return action;}float getX(){return x;}float getY(){return 48;}
+ }
+ static class Parent {boolean onTouchEvent(MotionEvent e){return false;}}
+ static class UiParent {void requestDisallowInterceptTouchEvent(boolean value){}}
+ static class Ruler extends Parent {
   float minimum=1,maximum=2,current=1,density=1;
   float expansion;float[] cameraStops={1};ValueAnimator zoomAnimator;float applied;boolean frontFacing;
-  OnZoomChanged callback=factor -> applied=factor;void invalidate(){}
+  List<Float> requests=new ArrayList<>();
+  OnZoomChanged callback=factor -> {applied=factor;requests.add(factor);};void invalidate(){}
+  float dragStartX,dragStartZoom;boolean dragged,held,dragOnRuler,expanded;Runnable pending;
+  Runnable longPress=()->{held=true;setExpanded(true);},collapse=()->setExpanded(false);
+  UiParent getParent(){return new UiParent();}void removeCallbacks(Runnable r){if(pending==r)pending=null;}
+  void postDelayed(Runnable r,int delay){pending=r;}void setExpanded(boolean value){expanded=value;}
+  void scheduleCollapse(){}boolean performClick(){return true;}
+  float presetX(int index){return (getWidth()-compactWidth())/2+compactWidth()/cameraStops.length*(index+.5f);}
+  void tap(int index){float x=presetX(index);onTouchEvent(new MotionEvent(MotionEvent.ACTION_DOWN,x));onTouchEvent(new MotionEvent(MotionEvent.ACTION_UP,x));}
   static class RectF {float left,top,right,bottom;RectF(float l,float t,float r,float b){left=l;top=t;right=r;bottom=b;}}
   int getWidth(){return (int)(320*density);}int dp(float v){return (int)Math.ceil(v*density);}
   int getHeight(){return (int)(96*density);}
@@ -152,6 +167,21 @@ class CameraZoomCheck {
   r.setRange(1,4);r.setCurrent(1);r.animateZoom(4);r.zoomAnimator.tick(.5f);close(r.applied,2);
   ValueAnimator interrupted=r.zoomAnimator;r.animateZoom(1);check(interrupted.canceled,"new tap replaces animation");
   r.zoomAnimator.tick(1);close(r.applied,1);r.animateZoom(999);r.zoomAnimator.tick(1);close(r.applied,4);
+  r=new Ruler();r.setRange(1,30);r.cameraStops=new float[]{1,2,30};
+  r.tap(1);close(r.current,2);close(r.applied,2);
+  check(r.requests.equals(Arrays.asList(2f)),"compact 2x tap submits the target exactly once, no intermediate fractions");
+  check(r.zoomAnimator==null,"quick presets do not wait for animated numeric interpolation");
+  r.animateZoom(5);ValueAnimator old=r.zoomAnimator;r.requests.clear();r.tap(0);r.tap(2);old.tick(1);
+  check(old.canceled&&r.requests.equals(Arrays.asList(1f,30f)),"rapid taps replace prior animated work without stale frames");
+  close(r.current,30);
+  r.setCurrent(1);r.requests.clear();float x=r.presetX(0);
+  r.onTouchEvent(new MotionEvent(MotionEvent.ACTION_DOWN,x));r.pending.run();r.onTouchEvent(new MotionEvent(MotionEvent.ACTION_UP,x));
+  check(r.expanded&&r.requests.isEmpty(),"holding opens ruler without selecting a quick preset");
+  r.expanded=false;r.onTouchEvent(new MotionEvent(MotionEvent.ACTION_DOWN,x));r.onTouchEvent(new MotionEvent(MotionEvent.ACTION_MOVE,x-20));
+  int requests=r.requests.size();r.onTouchEvent(new MotionEvent(MotionEvent.ACTION_UP,x-20));
+  check(requests==1&&r.requests.size()==requests&&r.current>1,"drag stays continuous and does not submit an extra preset on release");
+  r.expanded=false;r.requests.clear();r.onTouchEvent(new MotionEvent(MotionEvent.ACTION_DOWN,x));r.onTouchEvent(new MotionEvent(MotionEvent.ACTION_CANCEL,x));
+  check(r.requests.isEmpty()&&r.pending==null,"cancelled tap never changes zoom");
   r=new Ruler();r.setRange(Float.NaN,100);close(r.maximum,2);
   Legacy l=new Legacy();close(l.getMaxZoomFactor(),20);
   for(float zoom:new float[]{1,1.2f,2,4,20}){l.setZoomFactor(zoom);close(l.getZoomFactor(),zoom);}
