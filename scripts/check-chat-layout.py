@@ -136,6 +136,26 @@ check(left.left==margin&&right.right==w-margin,"parent/host offset mismatch");
 check(pill.left-left.right==dp(6)&&right.left-pill.right==dp(6),"island gap mismatch");
 check(pill.top==dp(500)&&pill.bottom==dp(500)+h,"IME or multiline/forward height lost");
 check(bg.getBounds().left==original.left&&bg.getBounds().bottom==original.bottom,"blur bounds not restored");
+// Recording and preview still split when ordinary composer support is disabled.
+View recordingPanel=add(host,new View(),0,0,host.getWidth(),d);
+View recordedPanel=add(host,new View(),0,0,host.getWidth(),d);
+for(boolean previewMode:new boolean[]{false,true}) {
+ recordingPanel.setVisibility(previewMode?View.GONE:View.VISIBLE);
+ recordedPanel.setVisibility(previewMode?View.VISIBLE:View.GONE);
+ style.setRecordingPanels(recordingPanel,recordedPanel,true);
+ style.restoreInsets();style.prepare(host,editor,host.getWidth(),false);
+ bg.nodes.clear();bg.surfaces.clear();check(style.draw(new Canvas(),bg,root),"recording falls back to joined pill");
+ check(bg.surfaces.size()==2&&bg.nodes.get(0)!=bg.nodes.get(1),"recording nodes must be distinct");
+ Rect circle=bg.surfaces.get(0),main=bg.surfaces.get(1);
+ check(circle.width()==d&&circle.height()==d,"dot/delete material must be circular");
+ check(circle.left==margin+dp(previewMode?0:5),"native dot/delete target alignment");
+ check(main.left-circle.right==dp(6)&&main.right==w-margin,"recording gap and capsule endpoint");
+ check(circle.bottom==dp(500)+h&&main.top==dp(500),"recording IME translation");
+}
+recordingPanel.setVisibility(View.GONE);recordedPanel.setVisibility(View.GONE);
+style.setRecordingPanels(recordingPanel,recordedPanel,false);
+check(!style.draw(new Canvas(),bg,root),"unsupported contexts must use native fallback");
+style.prepare(host,editor,host.getWidth(),true);bg.surfaces.clear();bg.alphas.clear();style.draw(new Canvas(),bg,root);
 if(height==92)check(bg.surfaces.get(3).width()==dp(32),"reply cancel not separate");
 if(height==140){
 check(ai.getVisibility()==View.VISIBLE&&expand.getVisibility()==View.VISIBLE,"AI/expand hidden");

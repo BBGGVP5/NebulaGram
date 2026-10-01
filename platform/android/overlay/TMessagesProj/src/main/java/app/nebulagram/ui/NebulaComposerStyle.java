@@ -24,6 +24,8 @@ public final class NebulaComposerStyle {
     private View editPreview;
     private boolean editPreviewInset;
     private View attachment, replyPreview, replyClose, aiButton, expandButton, botMenu;
+    private View recordPanel, recordedPanel;
+    private boolean recordingSupported;
     private final Rect padded = new Rect();
     private final BlurredBackgroundDrawable[] surfaces = new BlurredBackgroundDrawable[6];
 
@@ -41,6 +43,12 @@ public final class NebulaComposerStyle {
     }
 
     public void setBotMenu(View botMenu) { this.botMenu = botMenu; }
+
+    public void setRecordingPanels(View recordPanel, View recordedPanel, boolean supported) {
+        this.recordPanel = recordPanel;
+        this.recordedPanel = recordedPanel;
+        recordingSupported = supported;
+    }
 
     public void setPreview(View replyPreview, View replyClose) {
         this.replyPreview = replyPreview;
@@ -169,12 +177,14 @@ public final class NebulaComposerStyle {
     }
 
     public boolean draw(Canvas canvas, BlurredBackgroundDrawable background, View drawingParent) {
-        if (!active || host == null || host.getVisibility() != View.VISIBLE || surfaces[0] == null) return false;
+        if (host == null || host.getVisibility() != View.VISIBLE || surfaces[0] == null) return false;
         padded.set(background.getPaddedBounds());
         // Ниже два случая, когда трёхчастную раскладку посчитать нельзя. Раньше
         // они отвечали «нарисовано», ничего не нарисовав: остров не рисовался
         // тоже, и полоса оставалась вовсе без подложки. Отдаём её острову.
         if (padded.isEmpty()) return false;
+        if (recordingSupported && NebulaAppearance.iosComposer() && drawRecording(canvas, background, drawingParent)) return true;
+        if (!active) return false;
         int padding = AndroidUtilities.dp(7);
         int diameter = Math.min(AndroidUtilities.dp(44), padded.height());
         int gap = AndroidUtilities.dp(6);
@@ -193,6 +203,28 @@ public final class NebulaComposerStyle {
         smallButtonSurface(canvas, surfaces[4], drawingParent, aiButton, padding);
         smallButtonSurface(canvas, surfaces[5], drawingParent, expandButton, padding);
         return true;
+    }
+
+    private boolean drawRecording(Canvas canvas, BlurredBackgroundDrawable background, View drawingParent) {
+        if (!visiblePanel(recordPanel) && !visiblePanel(recordedPanel)) return false;
+        int diameter = Math.min(AndroidUtilities.dp(44), padded.height());
+        int left = Math.max(padded.left, Math.round(position(host, drawingParent, true)));
+        int right = Math.min(padded.right, Math.round(position(host, drawingParent, true)) + host.getWidth());
+        // Match the 44dp preview delete target and the recording dot's 27dp center.
+        int circleLeft = left + AndroidUtilities.dp(visiblePanel(recordedPanel) ? 0 : 5);
+        int mainLeft = circleLeft + diameter + AndroidUtilities.dp(6);
+        if (right <= mainLeft || diameter <= 0) return false;
+        int padding = AndroidUtilities.dp(7);
+        surfaces[0].setAlpha(background.getAlpha());
+        surfaces[1].setAlpha(background.getAlpha());
+        surface(canvas, surfaces[0], circleLeft, padded.bottom - diameter,
+                circleLeft + diameter, padded.bottom, padding);
+        surface(canvas, surfaces[1], mainLeft, padded.top, right, padded.bottom, padding);
+        return true;
+    }
+
+    private boolean visiblePanel(View panel) {
+        return panel != null && panel.getVisibility() == View.VISIBLE && panel.getAlpha() > 0f;
     }
 
     /** Follow the native buttons' visibility, fade, scale and multiline translation. */

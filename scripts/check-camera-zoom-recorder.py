@@ -5,7 +5,7 @@ import sys
 import tempfile
 
 root = Path(__file__).resolve().parent.parent
-tree = Path(sys.argv[1]) if len(sys.argv) > 1 else root / 'build/cherrygram-android'
+tree = Path(sys.argv[1]) if len(sys.argv) > 1 else root / 'build/android-validation'
 source = (tree / 'TMessagesProj/src/main/java/org/telegram/ui/Components/InstantCameraView.java').read_text(encoding='utf-8')
 overlay = root / 'platform/android/overlay/TMessagesProj/src/main/java/app/nebulagram/ui'
 
@@ -68,6 +68,7 @@ class RecorderZoomCheck {
   float min,max,current=1;float[] stops;int visibility;
   void setRange(float a,float b){min=a;max=b;}
   void setCameraStops(float[] values){stops=values;}
+  void setCameraFacing(boolean front){}
   void setCurrent(float f){current=f;}void setVisibility(int v){visibility=v;}
  }
  static class Recorder {

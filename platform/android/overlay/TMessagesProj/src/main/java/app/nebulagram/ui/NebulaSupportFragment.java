@@ -16,13 +16,17 @@ import org.telegram.ui.ActionBar.BaseFragment;
 
 /** Project support is separate from Telegram purchases and NebulaLink subscriptions. */
 public final class NebulaSupportFragment extends BaseFragment {
+    private final boolean communityOnly;
+    public NebulaSupportFragment() { this(false); }
+    public NebulaSupportFragment(boolean communityOnly) { this.communityOnly = communityOnly; }
     private LinearLayout content;
     private ScrollView scroll;
     private int surface, accent;
 
     @Override public View createView(Context context) {
         actionBar.setBackButtonImage(R.drawable.ic_ab_back);
-        actionBar.setTitle(NebulaText.text("Поддержать NebulaGram", "Support NebulaGram"));
+        actionBar.setTitle(communityOnly ? NebulaText.text("Сообщество", "Community")
+                : NebulaText.text("Поддержать NebulaGram", "Support NebulaGram"));
         actionBar.setAllowOverlayTitle(true);
         actionBar.setActionBarMenuOnItemClick(new ActionBar.ActionBarMenuOnItemClick() {
             @Override public void onItemClick(int id) { if (id == -1) finishFragment(); }
@@ -45,6 +49,15 @@ public final class NebulaSupportFragment extends BaseFragment {
         actionBar.setBackgroundColor(surface);
         actionBar.setTitleColor(theme.onSurface()); actionBar.setItemsColor(theme.onSurface(), false);
         content.removeAllViews();
+        if (communityOnly) {
+            NebulaCard links = new NebulaCard(context);
+            links.add(link(context, R.drawable.msg_discussion, NebulaText.text("Новости NebulaGram", "NebulaGram news"), "https://t.me/ngram_official"));
+            links.add(link(context, R.drawable.msg_download, NebulaText.text("Релизы", "Releases"), "https://t.me/" + NebulaRelease.CHANNEL));
+            links.add(link(context, R.drawable.nebula_settings_help, NebulaText.text("Ошибки и предложения", "Bugs and suggestions"), "https://github.com/BBGGVP5/NebulaGram/issues/new"));
+            links.add(link(context, R.drawable.msg_link, NebulaText.text("Исходный код", "Source code"), "https://github.com/BBGGVP5/NebulaGram"));
+            content.addView(links, cardParams());
+            return;
+        }
         ImageView logo = new ImageView(context);
         logo.setImageResource(R.drawable.nebula_badge_supporter);
         logo.setScaleType(ImageView.ScaleType.FIT_CENTER);
@@ -84,9 +97,9 @@ public final class NebulaSupportFragment extends BaseFragment {
 
         header(NebulaText.text("Поддержка без доната", "Support without donating"));
         NebulaCard community = new NebulaCard(context);
-        community.add(link(context, R.drawable.msg_discussion, NebulaText.text("Канал проекта", "Project channel"), "https://t.me/ngram_official"));
-        community.add(link(context, R.drawable.nebula_settings_help, NebulaText.text("Сообщить об ошибке или предложить идею", "Report a bug or suggest an idea"), "https://github.com/BBGGVP5/NebulaGram/issues/new"));
-        community.add(link(context, R.drawable.msg_link, NebulaText.text("Участвовать в разработке", "Contribute to development"), "https://github.com/BBGGVP5/NebulaGram"));
+        community.add(new NebulaRow(context).icon(R.drawable.msg_discussion)
+                .title(NebulaText.text("Сообщество", "Community")).trailing(NebulaRow.TRAIL_CHEVRON)
+                .withClick(v -> presentFragment(new NebulaSupportFragment(true))));
         content.addView(community, cardParams());
     }
 

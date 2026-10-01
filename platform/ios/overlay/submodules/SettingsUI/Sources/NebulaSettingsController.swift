@@ -18,6 +18,7 @@ private final class NebulaSettingsArguments {
     var openPrivacy: (() -> Void)?
     var openAi: (() -> Void)?
     var openSupport: (() -> Void)?
+    var openCommunity: (() -> Void)?
     var openIcons: (() -> Void)?
     var openBuildInfo: (() -> Void)?
     var openMemory: (() -> Void)?
@@ -50,6 +51,7 @@ private enum NebulaSettingsEntry: ItemListNodeEntry {
     case privacy(String)
     case ai(String)
     case support(String)
+    case community(String)
     case icons(String)
     case buildInfo(String)
     case memory(String)
@@ -70,7 +72,7 @@ private enum NebulaSettingsEntry: ItemListNodeEntry {
     var section: ItemListSectionId {
         switch self {
         case .search, .empty: return -1
-        case .category, .toolsHeader, .link, .ai, .buildInfo, .memory, .support: return 0
+        case .category, .toolsHeader, .link, .ai, .buildInfo, .memory, .support, .community: return 0
         case .appearanceHeader, .glass, .navigation, .contacts, .navigationToggle, .stories, .widePosts, .icons, .transitions: return 1
         case .header, .hideCounters, .folderStyle, .footer: return 2
         case .privacyHeader, .privacy, .history, .clearHistory: return 3
@@ -86,6 +88,7 @@ private enum NebulaSettingsEntry: ItemListNodeEntry {
         case .link: return 1
         case .ai: return 20
         case .support: return 65
+        case .community: return 66
         case .buildInfo: return 25
         case .memory: return 24
         case .appearanceHeader: return 30
@@ -171,6 +174,7 @@ private enum NebulaSettingsEntry: ItemListNodeEntry {
         case .privacy: return 8
         case .ai: return 15
         case .support: return 53
+        case .community: return 54
         case .buildInfo: return 23
         case .memory: return 52
         case .widePosts: return 21
@@ -198,7 +202,7 @@ private enum NebulaSettingsEntry: ItemListNodeEntry {
         case let .navigation(title, detail), let .glass(title, detail), let .transitions(title, detail), let .folderStyle(title, detail): return title + " " + detail
         case let .widePosts(title, _, _), let .contacts(title, _, _), let .navigationToggle(_, title, _, _), let .stories(title, _, _), let .history(title, _, _),
              let .hideCounters(title, _, _), let .exportFile(title, _): return title
-        case let .link(title), let .privacy(title), let .ai(title), let .support(title), let .icons(title), let .buildInfo(title), let .memory(title), let .clearHistory(title),
+        case let .link(title), let .privacy(title), let .ai(title), let .support(title), let .community(title), let .icons(title), let .buildInfo(title), let .memory(title), let .clearHistory(title),
              let .importFile(title): return title
         default: return nil
         }
@@ -221,6 +225,8 @@ private enum NebulaSettingsEntry: ItemListNodeEntry {
                 style: .blocks, action: action)
         }
         switch self {
+        case let .community(title):
+            return disclosure(title, "", "bubble.left", { arguments.openCommunity?() })
         case let .support(title):
             return disclosure(title, ru ? "Разработка и значок за поддержку" : "Development and a supporter badge", "heart", { arguments.openSupport?() })
         case let .category(index, title, detail, symbol):
@@ -352,6 +358,7 @@ public func nebulaSettingsController(context: AccountContext, page: Int = 0) -> 
                 : "NebulaGram JSON · supported settings apply immediately. Accounts and keys are not exported."),
             .link("NebulaLink"),
             .support(ru ? "Поддержать проект" : "Support the project"),
+            .community(ru ? "Сообщество" : "Community"),
             .privacy(ru ? "Конфиденциальность" : "Privacy"),
             .widePosts(ru ? "Широкие посты в каналах" : "Wide posts in channels", store.widePosts, !store.hasLoadError),
             .stories(ru ? "Показывать истории" : "Show stories", store.showStories, !store.hasLoadError),
@@ -408,7 +415,8 @@ public func nebulaSettingsController(context: AccountContext, page: Int = 0) -> 
                 .category(4, ru ? "Папки" : "Folders", ru ? "Вкладки и счётчики" : "Tabs and counters", "folder"),
                 .category(5, ru ? "Конфиденциальность" : "Privacy", ru ? "Архив, защита, поиск" : "Archive, protection, search", "hand.raised"),
                 .category(6, ru ? "Перенос настроек" : "Transfer", ru ? "Импорт и экспорт" : "Import and export", "arrow.triangle.2.circlepath"),
-                .support(ru ? "Поддержать проект" : "Support the project")
+                .support(ru ? "Поддержать проект" : "Support the project"),
+                .community(ru ? "Сообщество" : "Community")
             ]
         } else if page != 0 {
             entries = entries.filter { entry in
@@ -504,6 +512,13 @@ public func nebulaSettingsController(context: AccountContext, page: Int = 0) -> 
         controller.present(UINavigationController(rootViewController: NebulaSupportController(
             russian: presentation.strings.baseLanguageCode.lowercased().hasPrefix("ru"),
             theme: presentation.theme, telegramId: context.account.peerId.id._internalGetInt64Value())), animated: true)
+    }
+    arguments.openCommunity = { [weak controller] in
+        guard let controller = controller, controller.presentedViewController == nil else { return }
+        let presentation = context.sharedContext.currentPresentationData.with { $0 }
+        controller.present(UINavigationController(rootViewController: NebulaSupportController(
+            russian: presentation.strings.baseLanguageCode.lowercased().hasPrefix("ru"),
+            theme: presentation.theme, telegramId: context.account.peerId.id._internalGetInt64Value(), communityOnly: true)), animated: true)
     }
     arguments.openIcons = { [weak controller] in
         guard let controller = controller, controller.presentedViewController == nil else { return }

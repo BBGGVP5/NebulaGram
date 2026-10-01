@@ -1,0 +1,223 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/camera/Camera2Session.java b/TMessagesProj/src/main/java/org/telegram/messenger/camera/Camera2Session.java
+index cedaa76..73d3bc2 100644
+--- a/TMessagesProj/src/main/java/org/telegram/messenger/camera/Camera2Session.java
++++ b/TMessagesProj/src/main/java/org/telegram/messenger/camera/Camera2Session.java
+@@ -20,6 +20,7 @@ import android.media.ImageReader;
+ import android.os.Build;
+ import android.os.Handler;
+ import android.os.HandlerThread;
++import android.os.Looper;
+ import android.util.Log;
+ import android.util.Range;
+ import android.util.Size;
+@@ -52,7 +53,7 @@ public class Camera2Session {
+ 
+     private boolean isError;
+     private boolean isSuccess;
+-    private boolean isClosed;
++    private volatile boolean isClosed;
+ 
+     private final CameraManager cameraManager;
+     private final boolean isFront;
+@@ -74,7 +75,7 @@ public class Camera2Session {
+     private float maxZoom = 1f;
+     private float minZoom = 1f;
+     private boolean zoomRatioSupported;
+-    private float currentZoom = 1f;
++    private volatile float currentZoom = 1f;
+ 
+     private final Size previewSize;
+ 
+@@ -358,18 +359,46 @@ public class Camera2Session {
+     }
+ 
+     private final Rect cropRegion = new Rect();
+-    public void setZoom(float value) {
+-        if (!isInitiated()) return;
+-        if (captureRequestBuilder == null || cameraDevice == null || (!zoomRatioSupported && sensorSize == null)) return;
+-
+-        currentZoom = Utilities.clamp(value, maxZoom, minZoom);
+-        updateCaptureRequest();
+-
++    private final Object zoomLock = new Object();
++    private boolean zoomQueued;
++    private final Runnable applyPendingZoom = () -> {
++        synchronized (zoomLock) { zoomQueued = false; }
++        if (isClosed || !isInitiated() || captureRequestBuilder == null || captureSession == null) return;
+         try {
++            applyZoomToRequest();
+             captureSession.setRepeatingRequest(captureRequestBuilder.build(), null, handler);
+         } catch (Exception e) {
+             FileLog.e(e);
+         }
++    };
++
++    public void setZoom(float value) {
++        if (isClosed || !isInitiated() || Float.isNaN(value) || Float.isInfinite(value)) return;
++        if (!zoomRatioSupported && sensorSize == null) return;
++        float next = Utilities.clamp(value, maxZoom, minZoom);
++        synchronized (zoomLock) {
++            if (Math.abs(currentZoom - next) < .0001f) return;
++            currentZoom = next;
++            if (!zoomQueued) {
++                zoomQueued = true;
++                if (!handler.postDelayed(applyPendingZoom, 16)) zoomQueued = false;
++            }
++        }
++    }
++
++    private void applyZoomToRequest() {
++        float zoom = currentZoom;
++        if (zoomRatioSupported && Build.VERSION.SDK_INT >= 30) {
++            captureRequestBuilder.set(CaptureRequest.CONTROL_ZOOM_RATIO, zoom);
++        } else if (sensorSize != null) {
++            final int centerX = sensorSize.centerX();
++            final int centerY = sensorSize.centerY();
++            final int deltaX = (int) ((0.5f * sensorSize.width()) / zoom);
++            final int deltaY = (int) ((0.5f * sensorSize.height()) / zoom);
++            cropRegion.set(centerX - deltaX, centerY - deltaY, centerX + deltaX, centerY + deltaY);
++            // Setting the full active array restores 1x on the reused builder.
++            captureRequestBuilder.set(CaptureRequest.SCALER_CROP_REGION, cropRegion);
++        }
+     }
+ 
+     private boolean flashing;
+@@ -409,6 +438,7 @@ public class Camera2Session {
+ 
+     public void destroy(boolean async, Runnable afterCallback) {
+         isClosed = true;
++        handler.removeCallbacks(applyPendingZoom);
+         if (async) {
+             handler.post(() -> {
+                 if (captureSession != null) {
+@@ -486,6 +516,11 @@ public class Camera2Session {
+     }
+ 
+     private void updateCaptureRequest() {
++        if (isClosed) return;
++        if (Looper.myLooper() != handler.getLooper()) {
++            handler.post(this::updateCaptureRequest);
++            return;
++        }
+         if (cameraDevice == null || surface == null || captureSession == null) return;
+         try {
+             int template;
+@@ -511,21 +546,7 @@ public class Camera2Session {
+                 captureRequestBuilder.set(CaptureRequest.CONTROL_CAPTURE_INTENT, CaptureRequest.CONTROL_CAPTURE_INTENT_VIDEO_RECORD);
+             }
+ 
+-            if (zoomRatioSupported && Build.VERSION.SDK_INT >= 30) {
+-                captureRequestBuilder.set(CaptureRequest.CONTROL_ZOOM_RATIO, currentZoom);
+-            } else if (sensorSize != null && Math.abs(currentZoom - 1f) >= 0.01f) {
+-                final int centerX = sensorSize.width() / 2;
+-                final int centerY = sensorSize.height() / 2;
+-                final int deltaX = (int) ((0.5f * sensorSize.width()) / currentZoom);
+-                final int deltaY = (int) ((0.5f * sensorSize.height()) / currentZoom);
+-                cropRegion.set(
+-                        centerX - deltaX,
+-                        centerY - deltaY,
+-                        centerX + deltaX,
+-                        centerY + deltaY
+-                );
+-                captureRequestBuilder.set(CaptureRequest.SCALER_CROP_REGION, cropRegion);
+-            }
++            applyZoomToRequest();
+ 
+             captureRequestBuilder.addTarget(surface);
+             captureSession.setRepeatingRequest(captureRequestBuilder.build(), null, handler);
+diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/camera/CameraSession.java b/TMessagesProj/src/main/java/org/telegram/messenger/camera/CameraSession.java
+index 59a3727..61a4ded 100644
+--- a/TMessagesProj/src/main/java/org/telegram/messenger/camera/CameraSession.java
++++ b/TMessagesProj/src/main/java/org/telegram/messenger/camera/CameraSession.java
+@@ -478,10 +478,15 @@ public class CameraSession {
+         isVideo = true;
+     }
+ 
++    private java.util.List<Integer> cachedZoomRatios;
+     private java.util.List<Integer> zoomRatios() {
++        if (cachedZoomRatios != null) return cachedZoomRatios;
+         try {
+             Camera.Parameters parameters = cameraInfo.camera.getParameters();
+-            return parameters.isZoomSupported() ? parameters.getZoomRatios() : null;
++            if (!parameters.isZoomSupported()) return null;
++            java.util.List<Integer> ratios = parameters.getZoomRatios();
++            if (ratios != null && !ratios.isEmpty()) cachedZoomRatios = new java.util.ArrayList<>(ratios);
++            return cachedZoomRatios;
+         } catch (Exception error) { FileLog.e(error); return null; }
+     }
+ 
+@@ -498,11 +503,13 @@ public class CameraSession {
+     }
+ 
+     public void setZoomFactor(float factor) {
++        if (Float.isNaN(factor) || Float.isInfinite(factor)) return;
+         java.util.List<Integer> ratios = zoomRatios();
+         if (ratios == null || ratios.size() < 2) return;
+         int best = 0;
+         for (int index = 1; index < ratios.size(); index++)
+             if (Math.abs(ratios.get(index) / 100f - factor) < Math.abs(ratios.get(best) / 100f - factor)) best = index;
++        if (best == (int) (currentZoom * maxZoom)) return;
+         // configureRoundCamera truncates the normalized index; offset protects against float rounding.
+         setZoom(Math.min(1f, (best + .001f) / (ratios.size() - 1)));
+     }
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
+index f7db432..db47a28 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
+@@ -14583,6 +14583,27 @@ public class ChatActivityEnterView extends FrameLayout implements
+     @Override
+     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+         nebulaComposerStyle.restoreInsets();
++        boolean nebulaRecordingSupported = isChat && !isStories && !isLiveComment && parentFragment != null && parentFragment.getChatMode() == 0
++                && MeasureSpec.getSize(widthMeasureSpec) >= dp(260);
++        nebulaComposerStyle.setRecordingPanels(recordPanel, recordedAudioPanel, nebulaRecordingSupported);
++        boolean nebulaRecordingIslands = nebulaRecordingSupported && app.nebulagram.ui.NebulaAppearance.iosComposer();
++        if (recordTimerView != null) {
++            MarginLayoutParams timerParams = (MarginLayoutParams) recordTimerView.getLayoutParams();
++            int margin = dp(nebulaRecordingIslands ? 22 : 6);
++            if (timerParams.leftMargin != margin) {
++                timerParams.leftMargin = margin;
++                recordTimerView.forceLayout();
++                recordTimeContainer.forceLayout();
++            }
++        }
++        if (audioTimelineView != null) {
++            MarginLayoutParams timelineParams = (MarginLayoutParams) audioTimelineView.getLayoutParams();
++            int margin = dp(nebulaRecordingIslands ? 60 : DEFAULT_HEIGHT);
++            if (timelineParams.leftMargin != margin) {
++                timelineParams.leftMargin = margin;
++                audioTimelineView.forceLayout();
++            }
++        }
+         boolean nebulaSupported = isChat && !isStories && !isLiveComment && parentFragment != null && parentFragment.getChatMode() == 0
+                 && !isRecordingAudioVideo()
+                 && (recordedAudioPanel == null || recordedAudioPanel.getVisibility() != VISIBLE)
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/InstantCameraView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/InstantCameraView.java
+index 864b015..468ab6f 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Components/InstantCameraView.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/InstantCameraView.java
+@@ -334,7 +334,7 @@ public class InstantCameraView extends InstantCameraViewBase implements Notifica
+         buttonsLayout.setPadding(dp(6), dp(6), dp(6), dp(6));
+ 
+         buttonsLayout.setOrientation(LinearLayout.HORIZONTAL);
+-        addView(buttonsLayout, LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, 56, Gravity.LEFT | Gravity.BOTTOM, 1, 0, 0, 0));
++        addView(buttonsLayout, LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, 56, Gravity.CENTER_HORIZONTAL | Gravity.BOTTOM, 0, 0, 0, 48));
+ 
+         switchCameraButton = new FlashViews.ImageViewInvertable(context);
+         switchCameraButton.setScaleType(ImageView.ScaleType.CENTER);
+@@ -445,6 +445,7 @@ public class InstantCameraView extends InstantCameraViewBase implements Notifica
+     }
+ 
+     public void setButtonsBackground(BlurredBackgroundDrawableViewFactory factory, BlurredBackgroundColorProvider colorProvider) {
++        nebulaZoomSlider.setGlass(factory, colorProvider);
+         BlurredBackgroundDrawable drawable = factory.create(buttonsLayout, colorProvider);
+         drawable.setPadding(dp(6));
+         drawable.setRadius(dp(21));
+@@ -3794,6 +3795,7 @@ public class InstantCameraView extends InstantCameraViewBase implements Notifica
+         float min = catalog != null ? catalog.minimum : useCamera2 ? camera2SessionCurrent.getMinZoom() : 1f;
+         float max = catalog != null ? catalog.maximum : useCamera2 ? camera2SessionCurrent.getMaxZoom() : cameraSession.getMaxZoomFactor();
+         nebulaZoomSlider.setRange(min, max);
++        nebulaZoomSlider.setCameraFacing(isFrontface);
+         nebulaZoomSlider.setCameraStops(catalog == null ? new float[]{1f} : catalog.stops);
+         nebulaZoomSlider.setCurrent(nebulaCurrentZoom());
+         nebulaZoomSlider.setVisibility(max > min + .01f ? View.VISIBLE : View.GONE);

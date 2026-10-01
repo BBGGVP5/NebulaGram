@@ -37,4 +37,4 @@ public class FeaturePolicyCheck {
 """, encoding="utf-8")
     subprocess.run(["javac", "-d", str(root), str(source), str(harness)], check=True)
     subprocess.run(["java", "-cp", str(root), "FeaturePolicyCheck"], check=True)
-print("Cherrygram feature policy passed")
+print("NebulaGram feature policy passed")

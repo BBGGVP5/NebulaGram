@@ -1,10 +1,10 @@
-# iOS implementation inventory — 2026-09-30
+# iOS implementation inventory — 2026-10-01
 
 This inventory distinguishes **wired source** from native build and device acceptance. A setting with a validated import format is not necessarily functional on iOS.
 
 ## Verification and delivery
-- Android uses Telegram 12.10.5. The 149 ordered Android patches apply to the pinned tree; the latest APK build and device checks are pending.
-- iOS uses Telegram 12.9.2. The 58 ordered iOS patches and overlay pass bootstrap checks. The native compilation was restarted after fixing the archive settings import; a signed build and physical-device checks remain pending.
+- Android uses Telegram 12.10.5. The 152 ordered Android patches apply to the pinned tree. APK run `36809260460` passed; downloaded build `1000256` has verified v1/v2 signatures and arm64-v8a libraries. Physical-device checks remain pending.
+- iOS uses Telegram 12.9.2. The 59 ordered iOS patches and overlay pass bootstrap checks. All 65 Swift contract tests and simulator SDK artwork checks passed in `36809260468`; full native module compilation is running in `36809607587`. A signed build and physical-device checks remain pending.
 - Native iOS hooks now include archive visibility, story auto-archiving, chat interaction vibration, snowflake rendering and an experimental memory screen. These are source integrations, not completed device acceptance.
 - Remaining Cherrygram adaptations on iOS include unknown-contact notification muting, mention suppression, a custom Saved Messages target, whole-reply quoting, per-chat wallpaper gating, deletion biometrics, and separate smooth-fade controls. Android Predictive Back has no iOS equivalent.
 
@@ -137,3 +137,16 @@ This inventory distinguishes **wired source** from native build and device accep
 
 - Android now discovers recording-compatible camera modules and physical focal lengths, prioritizes logical multi-camera zoom, routes separate module transitions without replacing the recorder encoder, and uses Camera1's real zoom-ratio table. Its slider has no fixed 2×/10× ceiling and preserves pinch zoom on release. Device acceptance remains pending.
 - This implementation has not been ported to iOS. `NebulaVideoZoomSlider` still queries a wide-angle device separately from the active capture session, caps its range at 10×, and derives buttons from that range. Native iOS needs an active-device/virtual-camera range bridge, constituent-lens stops, correct factor mapping, and the same gesture persistence before module/range parity can be claimed.
+
+## 2026-10-01: support and shared artwork
+
+- Stock Telegram settings use original shared glyphs rendered as native themed rows on both platforms. Developer, tester and heart badges use the same shared vector paths; the exact embedded Nebula logo and Mira PNGs are preserved.
+- The iOS support screen explains the existing server-issued supporter badge, copies the current account's Telegram ID, and opens approved project channel/source/issue links. Payment recipients, confirmation contact and badge thresholds still await user configuration. There is no automatic donation verification or invented payment tier.
+- The iOS zoom presets now retain a direct 2× shortcut when a larger range is available. This change does not complete the active-camera/module bridge listed above. Android separately adds 2× alongside optical stops, animates preset changes, and closes old modules without blocking the UI thread.
+- The Saved Messages title-capsule cancellation fix in Android patch `0156` is Android-specific; no equivalent iOS change is claimed.
+
+## 2026-10-01: camera queue, recording islands and Community
+
+- Android uses a 36dp capsule without separate step buttons, separate front/rear presets, a fixed ruler indicator, and the native blur factory. Camera2 coalesces input on its own handler and reuses the request builder; Camera1 caches its ratio table and ignores redundant zoom indices. Recording/delete controls have independent material surfaces and matching native insets. These Android camera/composer changes have not been ported to iOS.
+- Both platforms consolidate project links into one Community destination. Android About and support screens no longer list every link directly; iOS settings and support open the same grouped destination.
+- Native iOS run 36809607587 passed for 417a701: SettingsUI, PeerInfoScreen and folder modules built against the pinned source. The new Community changes need their own native run; no IPA/device acceptance is claimed.

@@ -6,7 +6,7 @@ import sys
 
 root = Path(__file__).resolve().parent.parent
 overlay = root / 'platform/android/overlay/TMessagesProj/src/main/java/app/nebulagram/ui'
-tree = Path(sys.argv[1]) if len(sys.argv) > 1 else root / 'build/cherrygram-android'
+tree = Path(sys.argv[1]) if len(sys.argv) > 1 else root / 'build/android-validation'
 
 def method(source, signature):
     start = source.index(signature)
@@ -33,13 +33,15 @@ import app.nebulagram.ui.NebulaZoomCapabilities;
 import app.nebulagram.ui.NebulaZoomCapabilities.Module;
 import java.util.*;
 class CameraZoomCheck {
+ static class CubicBezierInterpolator {static Object EASE_OUT=new Object();}
  static void check(boolean b,String why){if(!b)throw new AssertionError(why);}
  static void close(float a,float b){check(Math.abs(a-b)<.002f,a+" != "+b);}
  static class ValueAnimator {
   interface Update {void accept(ValueAnimator animator);}
   float start,end,value;boolean canceled;Update update;
   static ValueAnimator ofFloat(float a,float b){ValueAnimator v=new ValueAnimator();v.start=a;v.end=b;return v;}
-  void setDuration(int ms){check(ms>0&&ms<=200,"responsive preset animation");}
+  void setDuration(int ms){check(ms>0&&ms<=270,"responsive preset animation");}
+  void setInterpolator(Object i){}
   void addUpdateListener(Update listener){update=listener;}
   void start(){tick(0);}
   void cancel(){canceled=true;}
@@ -49,7 +51,7 @@ class CameraZoomCheck {
  interface OnZoomChanged {void onZoomChanged(float factor);}
  static class Ruler {
   float minimum=1,maximum=2,current=1,density=1;
-  float expansion;float[] cameraStops={1};ValueAnimator zoomAnimator;float applied;
+  float expansion;float[] cameraStops={1};ValueAnimator zoomAnimator;float applied;boolean frontFacing;
   OnZoomChanged callback=factor -> applied=factor;void invalidate(){}
   static class RectF {float left,top,right,bottom;RectF(float l,float t,float r,float b){left=l;top=t;right=r;bottom=b;}}
   int getWidth(){return (int)(320*density);}int dp(float v){return (int)Math.ceil(v*density);}
@@ -68,7 +70,7 @@ class CameraZoomCheck {
  static class FileLog {static void e(Exception e){throw new AssertionError(e);}}
  static class Legacy {
   static class Info {Camera camera=new Camera();}
-  Info cameraInfo=new Info();float currentZoom;int maxZoom=4;
+  Info cameraInfo=new Info();float currentZoom;int maxZoom=4;java.util.List<Integer> cachedZoomRatios;
   void setZoom(float v){currentZoom=v;}
   LEGACY
  }
@@ -98,20 +100,24 @@ class CameraZoomCheck {
    Ruler r=new Ruler();r.density=density;r.current=1.5f;r.setRange(range[0],range[1]);close(r.current,1.5f);
    for(int lenses:new int[]{1,4,6})for(float expansion:new float[]{0,.5f,1}) {
     r.cameraStops=new float[lenses];r.expansion=expansion;Ruler.RectF b=r.capsuleBounds();
-    check(b.left-r.dp(18+14+6)>=0&&b.right+r.dp(18+14+6)<=r.getWidth(),"side buttons and shadows not clipped");
+    check(b.left-r.dp(6)>=0&&b.right+r.dp(6)<=r.getWidth(),"native glass padding not clipped");
+    check(b.bottom-b.top==2*r.dp(18),"compact and ruler share height");
     check(b.top-r.dp(14)>=0&&b.bottom+r.dp(14+5)<=r.getHeight(),"glass shadow not clipped");
    }
    for(float zoom:new float[]{range[0],(float)Math.sqrt(range[0]*range[1]),range[1]}) {
     r.setCurrent(zoom);
-    float needle=r.xForZoom(zoom);check(needle>=20*density-2&&needle<=300*density+2,"needle visible at "+zoom);
+    float needle=r.xForZoom(zoom);close(needle,r.getWidth()/2f);
     check(r.xForZoom(range[0])<=needle&&r.xForZoom(range[1])>=needle,"ruler order");
     check(r.pixelsPerOctave()>=95*density,"high zoom doesn't compress tick spacing");
    }
   }
   Ruler r=new Ruler();r.setRange(1,60);r.setCameraStops(new float[]{1});
-  check(Arrays.equals(r.cameraStops,new float[]{1,2}),"single wide camera still offers direct 2x");
+  check(Arrays.equals(r.cameraStops,new float[]{1,2,5,60}),"rear quick 2x, intermediate zoom and true endpoint");
   r.setRange(.6f,60);r.setCameraStops(new float[]{.6f,1,3,5});
-  check(Arrays.equals(r.cameraStops,new float[]{.6f,1,2,3,5}),"digital 2x complements optical stops");
+  check(Arrays.equals(r.cameraStops,new float[]{.6f,1,2,3,5,60}),"digital 2x complements optical stops");
+  r.frontFacing=true;r.setCameraStops(new float[]{.6f,1,3,5});
+  check(Arrays.equals(r.cameraStops,new float[]{1,2}),"front shortcuts never inherit rear lenses");
+  r.setCurrent(9);close(r.current,9);close(r.xForZoom(9),160);
   r.setRange(1,1.8f);r.setCameraStops(new float[]{1});check(r.cameraStops.length==1,"unsupported 2x hidden");
   r.setRange(1,4);r.setCurrent(1);r.animateZoom(4);r.zoomAnimator.tick(.5f);close(r.applied,2);
   ValueAnimator interrupted=r.zoomAnimator;r.animateZoom(1);check(interrupted.canceled,"new tap replaces animation");
@@ -133,3 +139,4 @@ with tempfile.TemporaryDirectory(prefix='nebula-camera-zoom-') as temp:
 
 subprocess.run([sys.executable, str(root / 'scripts/check-camera-zoom-discovery.py')], check=True)
 subprocess.run([sys.executable, str(root / 'scripts/check-camera-zoom-recorder.py'), str(tree)], check=True)
+subprocess.run([sys.executable, str(root / 'scripts/check-camera-zoom-requests.py'), str(tree)], check=True)

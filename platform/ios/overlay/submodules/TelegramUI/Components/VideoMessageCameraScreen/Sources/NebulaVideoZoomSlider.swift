@@ -1,7 +1,7 @@
 import UIKit
 import AVFoundation
 
-/// Camera-limited Cherrygram-style presets, step buttons, and a drag ruler.
+/// Camera-limited presets, step buttons, and a drag ruler.
 final class NebulaVideoZoomSlider: UIView {
     var onZoomChanged: ((CGFloat) -> Void)?
 

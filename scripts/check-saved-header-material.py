@@ -5,7 +5,7 @@ import sys
 import tempfile
 
 root = Path(__file__).resolve().parents[1]
-tree = Path(sys.argv[1]) if len(sys.argv) > 1 else root / 'build/cherrygram-android'
+tree = Path(sys.argv[1]) if len(sys.argv) > 1 else root / 'build/android-validation'
 source = (tree / 'TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java').read_text(encoding='utf-8')
 start = source.index('        if (glassDrawable != null && !glassOnlyBack) {', source.index('protected void dispatchDraw(Canvas canvas)'))
 block = source[start:source.index('        if (glassDrawableBack != null', start)]
