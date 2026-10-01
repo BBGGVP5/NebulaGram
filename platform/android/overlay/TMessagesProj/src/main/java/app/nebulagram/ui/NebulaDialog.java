@@ -156,7 +156,7 @@ public final class NebulaDialog {
                 content.addView(customView, new LinearLayout.LayoutParams(-1, -2));
             }
             if (items != null || customView != null) {
-                builder.setView(content).setCustomViewOffset(dp(12));
+                builder.setView(content);
             }
             return dialog;
         }

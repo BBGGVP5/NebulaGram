@@ -100,7 +100,7 @@ public class ColorUtils {
     'org/telegram/messenger/AndroidUtilities.java': '''package org.telegram.messenger;
 public class AndroidUtilities {
  public static java.util.List<Runnable> queued=new java.util.ArrayList<>();
- public static int dp(float v){return (int)Math.ceil(v);}public static void runOnUIThread(Runnable r){queued.add(r);}
+ public static float density=1;public static int dp(float v){return (int)Math.ceil(v*density);}public static void runOnUIThread(Runnable r){queued.add(r);}
  public static void drain(){java.util.List<Runnable> work=new java.util.ArrayList<>(queued);queued.clear();work.forEach(Runnable::run);}
 }''',
     'org/telegram/messenger/ApplicationLoader.java': '''package org.telegram.messenger;
@@ -116,7 +116,7 @@ public class Theme {
 import android.content.*;import android.view.*;
 public class AlertDialog implements DialogInterface {
  public static AlertDialog shown;public boolean dim,outside,twoRows,visible;public float alpha;
- public Theme.ResourcesProvider provider;public CharSequence title,message;public View content;Window window=new Window();
+ public Theme.ResourcesProvider provider;public CharSequence title,message;public View content;public int offset=12;Window window=new Window();
  public java.util.Map<Integer,OnButtonClickListener> buttons=new java.util.HashMap<>();
  public OnDismissListener onDismiss;public interface OnButtonClickListener {void onClick(AlertDialog dialog,int which);}
  public void show(){shown=this;visible=true;}public void dismiss(){if(!visible)return;visible=false;if(onDismiss!=null)onDismiss.onDismiss(this);}
@@ -131,7 +131,7 @@ public class AlertDialog implements DialogInterface {
   public Builder setPositiveButton(CharSequence t,OnButtonClickListener l){dialog.buttons.put(-1,l);return this;}
   public Builder setNegativeButton(CharSequence t,OnButtonClickListener l){dialog.buttons.put(-2,l);return this;}
   public Builder setNeutralButton(CharSequence t,OnButtonClickListener l){dialog.buttons.put(-3,l);return this;}
-  public Builder setView(View v){dialog.content=v;return this;}public Builder setCustomViewOffset(int v){return this;}
+  public Builder setView(View v){dialog.content=v;return this;}public Builder setCustomViewOffset(int v){dialog.offset=v;return this;}
   public AlertDialog create(){return dialog;}
  }
 }''',
@@ -151,7 +151,8 @@ public class DialogCheck {
  }
  public static void main(String[] args){
   Context context=ApplicationLoader.applicationContext;int[] selected={-1};int[] clicks={0,0,0};
-  for(Theme.ResourcesProvider palette:new Theme.ResourcesProvider[]{null,key->new int[]{0xff222229,0xfff5f1ee,0xffbab4be,0xffbbaaff}[key]}){
+  for(float density:new float[]{1,2,2.75f})for(Theme.ResourcesProvider palette:new Theme.ResourcesProvider[]{null,key->new int[]{0xff222229,0xfff5f1ee,0xffbab4be,0xffbbaaff}[key]}){
+   AndroidUtilities.density=density;
    AlertDialog d=new NebulaDialog.Builder(context,palette).setTitle("Camera").setSelectedIndex(1)
     .setItems(new CharSequence[]{"Front",null,"Rear"},(dialog,index)->selected[0]=index)
     .setDescriptions(new CharSequence[]{"Front lens",null,"Rear lens"}).setNegativeButton("Cancel",null).show();popup(d,palette);
@@ -165,6 +166,7 @@ public class DialogCheck {
    check(info.checked&&info.checkable&&row.minimumHeight>=48,"accessible selected option");
    label=(TextView)((LinearLayout)row.children.get(0)).children.get(0);check(label.color==Theme.getColor(Theme.key_dialogTextBlue,palette),"selected accent from Telegram");
    EditText editor=new EditText(context);d=new NebulaDialog.Builder(context,palette).setView(editor).create();
+   check(d.offset==12,"native margin remains in dp at every density");
    check(editor.color==Theme.getColor(Theme.key_dialogTextBlack,palette)&&editor.hintColor==Theme.getColor(Theme.key_dialogTextGray,palette),"editor inherits Telegram palette");
   }
   for(int which:new int[]{-1,-2,-3}){
