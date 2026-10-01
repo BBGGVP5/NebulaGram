@@ -91,6 +91,9 @@ class ZoomColorsCheck {
     }
     check(aligned,"every ruler label, including 5x and fractional optics, needs its own correctly aligned major tick");
    }
+   for(float[] tick:canvas.tickPositions)if(tick[3]==(provider.colors[2]&0xffffff)){
+    for(float value:slider.rulerMarks)check(Math.abs(tick[0]-slider.xForZoom(value))>=Slider.dp(3)-.01f,"minor ticks must not crowd actual major marks");
+   }
   }
   Slider.density=1;
   slider.resourcesProvider=null;slider.expansion=0;Canvas fallback=new Canvas();slider.onDraw(fallback);

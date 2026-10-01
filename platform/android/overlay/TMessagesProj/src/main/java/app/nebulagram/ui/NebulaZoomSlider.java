@@ -217,13 +217,14 @@ public final class NebulaZoomSlider extends View {
             canvas.clipRect(capsule.left + dp(15), capsule.top + dp(3), capsule.right - dp(15), capsule.bottom - dp(3));
             int alpha = (int) (255 * expansion);
             int ticks = (int) Math.ceil(Math.log(maximum / minimum) / Math.log(2) * 8);
+            float markTolerance = (float) Math.pow(2, dp(3) / pixelsPerOctave());
             for (int index = 0; index <= ticks; index++) {
                 float zoom = Math.min(maximum, (float) (minimum * Math.pow(2, index / 8f)));
                 float x = xForZoom(zoom);
                 if (x < capsule.left + dp(16) || x > capsule.right - dp(16)) continue;
                 boolean nearMark = false;
                 for (float value : rulerMarks) {
-                    if (Math.abs(xForZoom(value) - x) < dp(3)) { nearMark = true; break; }
+                    if (zoom < value * markTolerance && value < zoom * markTolerance) { nearMark = true; break; }
                 }
                 if (nearMark) continue;
                 paint.setColor(ink);
