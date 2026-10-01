@@ -154,5 +154,5 @@ This inventory distinguishes **wired source** from native build and device accep
 ## 2026-10-01: native community correction pending destination
 
 - The user clarified that Community must be an actual Telegram community peer card, with its avatar, title, linked-chat count and native navigation. The existing four-link directory is an earlier interpretation, not completion of that clarification.
-- The real NebulaHub @username/t.me destination is pending user input. A local Android CommunityLinkView2 adapter passes metadata, account isolation and request/detach tests but is not connected or published yet. Pinned iOS has community peer/cached metadata and native ItemListPeerItem community rendering; no connected iOS native community card is claimed.
+- The user supplied `https://t.me/nebulaguard_channel`. Android follows the channel's actual linked community with native CommunityLinkView/CommunitySheet; metadata, account isolation, channel-to-community updates and request/detach guards pass. Pinned iOS has community peer/cached metadata and native ItemListPeerItem rendering; connection of the iOS native card remains outstanding.
 - Android commit 42a34ac changes zoom/theme and support placement only. Its APK/native checks are separate from the unchanged iOS inputs validated by 36814095192. Android now has 154 ordered patches.

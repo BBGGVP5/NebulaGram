@@ -216,8 +216,9 @@ public final class NebulaComposerStyle {
         int diameter = Math.min(AndroidUtilities.dp(44), padded.height());
         int left = Math.max(padded.left, Math.round(position(host, drawingParent, true)));
         int right = Math.min(padded.right, Math.round(position(host, drawingParent, true)) + host.getWidth());
-        // Match the 44dp preview delete target and the recording dot's 27dp center.
-        int circleLeft = left + AndroidUtilities.dp(visiblePanel(recordedPanel) ? 0 : 5);
+        // Recording, preview deletion and the paperclip share the same island.
+        // Keeping its origin fixed also keeps the input capsule fixed on cancellation.
+        int circleLeft = left;
         int mainLeft = circleLeft + diameter + AndroidUtilities.dp(6);
         if (right <= mainLeft || diameter <= 0) return false;
         int padding = AndroidUtilities.dp(7);

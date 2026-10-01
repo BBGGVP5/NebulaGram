@@ -204,6 +204,8 @@ jobs:
           python3 scripts/check-saved-header-material.py vendor/telegram-android
           python3 scripts/check-playback-speed.py vendor/telegram-android
           python3 scripts/check-camera-zoom.py vendor/telegram-android
+          python3 scripts/check-community-card.py
+          python3 scripts/check-translation-lift.py vendor/telegram-android
           python3 scripts/check-feature-policy.py
           python3 scripts/check-chat-native.py vendor/telegram-android
           python3 scripts/check-style-layout.py vendor/telegram-android

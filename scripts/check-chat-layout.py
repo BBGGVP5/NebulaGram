@@ -191,7 +191,8 @@ for(boolean previewMode:new boolean[]{false,true}) {
  check(bg.surfaces.size()==2&&bg.nodes.get(0)!=bg.nodes.get(1),"recording nodes must be distinct");
  Rect circle=bg.surfaces.get(0),main=bg.surfaces.get(1);
  check(circle.width()==d&&circle.height()==d,"dot/delete material must be circular");
- check(circle.left==margin+dp(previewMode?0:5),"native dot/delete target alignment");
+ check(circle.left==left.left,"recording/delete circle must stay at the normal attachment position");
+ check(main.left==pill.left,"main capsule must not shift when deleting or cancelling recording");
  check(main.left-circle.right==dp(6)&&main.right==w-margin,"recording gap and capsule endpoint");
  check(circle.bottom==dp(500)+h&&main.top==dp(500),"recording IME translation");
 }

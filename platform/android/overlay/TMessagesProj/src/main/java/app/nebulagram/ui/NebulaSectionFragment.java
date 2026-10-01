@@ -753,9 +753,7 @@ public class NebulaSectionFragment extends BaseFragment {
                 .subtitle(buildDetails, false));
         content.addView(build, cardParams());
         NebulaCard links = new NebulaCard(context);
-        links.add(new NebulaRow(context).icon(R.drawable.msg_discussion)
-                .title(NebulaText.text("Сообщество", "Community"))
-                .trailing(NebulaRow.TRAIL_CHEVRON).withClick(v -> presentFragment(new NebulaSupportFragment(true))));
+        links.add(new NebulaCommunityCard(context, this));
         content.addView(links, cardParams());
         NebulaCard components = new NebulaCard(context);
         content.addView(NebulaCard.header(context, NebulaText.text("Компоненты", "Components")));

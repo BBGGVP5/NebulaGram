@@ -32,10 +32,14 @@ composer = (tree / 'TMessagesProj/src/main/java/org/telegram/ui/Components/ChatA
 zoom_margin = int(re.search(r'zoomParams.bottomMargin = dp\((\d+)\)', instant).group(1))
 buttons_height, buttons_margin = map(int, re.search(r'addView\(buttonsLayout, LayoutHelper.createFrame\(LayoutHelper.WRAP_CONTENT, (\d+), Gravity.CENTER_HORIZONTAL \| Gravity.BOTTOM, 0, 0, 0, (\d+)\)', instant).groups())
 timer_margin = int(re.search(r'int margin = dp\(nebulaRecordingIslands \? (\d+) : 6\)', composer).group(1))
+dot_padding = re.search(r'int padding = dp\(nebulaRecordingIslands \? (\d+) : 13\)', composer)
+assert dot_padding is not None, 'recording dot must align with the normal attachment island'
+dot_padding = int(dot_padding.group(1))
 for density in (1, 1.5, 3):
     dp = lambda value: int(value * density + .5)
     assert dp(zoom_margin) + dp(24) - dp(buttons_height) - dp(buttons_margin) >= dp(36), 'ruler/camera island gap'
-    assert dp(13) + dp(28) + dp(timer_margin) - dp(55) >= dp(16), 'record timer left inset'
+    assert dp(dot_padding) + dp(14) == dp(22), 'recording dot/attachment centers differ'
+    assert dp(dot_padding) + dp(28) + dp(timer_margin) - dp(50) >= dp(16), 'record timer left inset'
 
 legacy_methods = '\n'.join(method(legacy, signature) for signature in [
     'private java.util.List<Integer> zoomRatios()', 'public float getMaxZoomFactor()',
@@ -144,6 +148,7 @@ class CameraZoomCheck {
    for(int lenses:new int[]{1,4,6})for(float expansion:new float[]{0,.5f,1}) {
     r.cameraStops=new float[lenses];r.expansion=expansion;Ruler.RectF b=r.capsuleBounds();
     check(b.left-r.dp(6)>=0&&b.right+r.dp(6)<=r.getWidth(),"native glass padding not clipped");
+    check(b.right-b.left<=r.dp(280),"expanded ruler must not span the whole screen");
     check(b.bottom-b.top==2*r.dp(24),"compact and ruler share a readable 48dp height");
     check(b.top-r.dp(14)>=0&&b.bottom+r.dp(14+5)<=r.getHeight(),"glass shadow not clipped");
    }

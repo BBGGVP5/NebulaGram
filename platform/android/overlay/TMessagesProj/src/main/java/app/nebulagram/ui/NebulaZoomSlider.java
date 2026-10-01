@@ -175,7 +175,7 @@ public final class NebulaZoomSlider extends View {
     }
 
     private float compactWidth() { return Math.min(fullWidth(), dp(12 + 46 * cameraStops.length)); }
-    private float fullWidth() { return Math.max(dp(48), getWidth() - dp(32)); }
+    private float fullWidth() { return Math.max(dp(48), Math.min(dp(280), getWidth() - dp(32))); }
     private float widthForProgress() { return compactWidth() + (fullWidth() - compactWidth()) * expansion; }
     private RectF capsuleBounds() {
         float half = widthForProgress() / 2f;

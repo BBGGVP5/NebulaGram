@@ -1,0 +1,80 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
+index 8cfb9b9..71abc86 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
+@@ -18398,21 +18398,23 @@ public class ChatActivity extends BaseFragment implements
+                     }
+                 }
+ 
+-                if (scrimViewReaction == null && scrimViewAlpha < 1f) {
+-                    if (scrimBlurBitmapPaint != null) {
+-                        scrimBlurMatrix.reset();
+-                        final float s = (float) getMeasuredWidth() / scrimBlurBitmap.getWidth();
+-                        scrimBlurMatrix.postScale(s, s);
+-                        scrimBlurBitmapShader.setLocalMatrix(scrimBlurMatrix);
+-                        scrimBlurBitmapPaint.setAlpha((int) (0xFF * scrimViewProgress));
+-                        canvas.drawRect(0, 0, getMeasuredWidth(), getMeasuredHeight(), scrimBlurBitmapPaint);
+-                    } else {
+-                        scrimPaint.setAlpha((int) (255 * scrimPaintAlpha * (1f - scrimViewAlpha)));
+-                        canvas.drawRect(0, 0, getMeasuredWidth(), getMeasuredHeight(), scrimPaint);
+-                    }
+-                }
+             }
++            // The sheet backdrop is in screen coordinates, outside the lifted
++            // message's clip/scale. Otherwise its final fade leaves a tinted band.
+             canvas.restoreToCount(nebulaScrimSave);
++            if (scrimView != null && scrimViewReaction == null && scrimViewAlpha < 1f) {
++                if (scrimBlurBitmapPaint != null) {
++                    scrimBlurMatrix.reset();
++                    final float s = (float) getMeasuredWidth() / scrimBlurBitmap.getWidth();
++                    scrimBlurMatrix.postScale(s, s);
++                    scrimBlurBitmapShader.setLocalMatrix(scrimBlurMatrix);
++                    scrimBlurBitmapPaint.setAlpha((int) (0xFF * scrimViewProgress));
++                    canvas.drawRect(0, 0, getMeasuredWidth(), getMeasuredHeight(), scrimBlurBitmapPaint);
++                } else {
++                    scrimPaint.setAlpha((int) (255 * scrimPaintAlpha * (1f - scrimViewAlpha)));
++                    canvas.drawRect(0, 0, getMeasuredWidth(), getMeasuredHeight(), scrimPaint);
++                    }
++            }
+ 
+             if (scrimView != null || messageEnterTransitionContainer.isRunning()) {
+                 if (mentionContainer == null || mentionContainer.getVisibility() != View.VISIBLE) {
+@@ -33137,6 +33139,21 @@ public class ChatActivity extends BaseFragment implements
+                 }
+             });
+             scrimViewAlphaAnimator.setDuration(150);
++            final View fadingView = scrimView;
++            final int fadingGeneration = nebulaBlurGeneration;
++            scrimViewAlphaAnimator.addListener(new AnimatorListenerAdapter() {
++                private boolean cancelled;
++                @Override public void onAnimationCancel(Animator animation) { cancelled = true; }
++                @Override public void onAnimationEnd(Animator animation) {
++                    if (!cancelled && fadingView == scrimView && fadingGeneration == nebulaBlurGeneration) {
++                        setScrimView(null);
++                        nebulaScrimScale = 1f;
++                        nebulaScrimTop = nebulaScrimSourceTop = nebulaScrimClipBottom = 0;
++                        contentView.invalidate();
++                        chatListView.invalidate();
++                    }
++                }
++            });
+             scrimViewAlphaAnimator.start();
+         }
+     }
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
+index f87a89c..d715f06 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
+@@ -14589,6 +14589,12 @@ public class ChatActivityEnterView extends FrameLayout implements
+                 && MeasureSpec.getSize(widthMeasureSpec) >= dp(260);
+         nebulaComposerStyle.setRecordingPanels(recordPanel, recordedAudioPanel, nebulaRecordingSupported);
+         boolean nebulaRecordingIslands = nebulaRecordingSupported && app.nebulagram.ui.NebulaAppearance.iosComposer();
++        if (recordTimeContainer != null) {
++            int padding = dp(nebulaRecordingIslands ? 8 : 13);
++            if (recordTimeContainer.getPaddingLeft() != padding) {
++                recordTimeContainer.setPadding(padding, 0, 0, 0);
++            }
++        }
+         if (recordTimerView != null) {
+             MarginLayoutParams timerParams = (MarginLayoutParams) recordTimerView.getLayoutParams();
+             int margin = dp(nebulaRecordingIslands ? 30 : 6);
