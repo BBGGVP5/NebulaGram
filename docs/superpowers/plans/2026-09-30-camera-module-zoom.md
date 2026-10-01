@@ -30,4 +30,12 @@
 
 - [x] Run `python scripts/check-camera-zoom.py` and `python scripts/check-playback-speed.py build/cherrygram-android`.
 - [x] Run `python scripts/check-upstream-series.py android --tree vendor/telegram-android --ref dc780e81ed1261c369c27870e8e0999a1eb0b600` and `git diff --check`.
-- [ ] Publish exact changed paths to the authorized Git branch, wait for the Android APK build, and inspect its result. Record device-only limits: vendors may hide cameras or let the HAL choose a physical lens according to light/focus; never advertise inaccessible modules.
+- [x] Publish exact changed paths to the authorized Git branch, wait for the Android APK build, and inspect its result. Record device-only limits: vendors may hide cameras or let the HAL choose a physical lens according to light/focus; never advertise inaccessible modules.
+
+## Verification
+
+- `check-camera-zoom.py` passes routing through 60×/100×, real Camera1 ratio-table mapping, ruler/button/shadow bounds, OEM metadata discovery, and deferred recorder transitions with queued requests, failures and stop guards. These are simulated capabilities, not claims about a particular phone.
+- All 150 ordered Android patches apply to the pinned Telegram revision. The zoom overlay compiles against Android API 36; playback-speed regression checks pass.
+- Final Android build [36763838077](https://github.com/BBGGVP5/NebulaGram/actions/runs/36763838077) succeeds at `945cf53`. Later commits add only tests and documentation; Android runtime sources are identical.
+- Downloaded APK: `NebulaGram-1.0.0-TG-12.10.5-b1000255-arm64-v8a.apk`. Manifest package `app.nebulagram.messenger`, version code `1000255`, arm64-v8a. APK signature verification succeeds.
+- Actual physical-lens switching, recording continuity and appearance require testing on a phone. A logical camera's HAL may retain the main sensor in low light. Manufacturers may hide separate sensors from third-party apps. New module/range behavior is not yet ported to iOS.
