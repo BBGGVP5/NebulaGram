@@ -7,7 +7,7 @@ import org.telegram.messenger.ApplicationLoader;
 /**
  * Ссылка «Поддержать проект».
  *
- * <p>Сам значок сюда больше не относится: его выдаёт опубликованный список,
+ * <p>Значок выдаёт команда после подтверждения через сервер назначений,
  * см. {@link NebulaBadges}. Переключателя «показать мой значок» нет намеренно —
  * значок нужен для того, чтобы его видели другие, а собственный экран себе и
  * так никто не запрещал.
@@ -18,7 +18,7 @@ public final class NebulaDonation {
 
     private NebulaDonation() { }
 
-    /** Куда ведёт строка «Поддержать проект». Пусто — строка предложит задать ссылку. */
+    /** Payment destination provisioned on this device; empty opens project information. */
     public static String link() {
         return prefs().getString(KEY_LINK, "");
     }

@@ -38,6 +38,7 @@ def main():
     if actual != revision:
         raise SystemExit(f'Upstream revision mismatch: expected {revision}, found {actual}')
     subprocess.run([sys.executable, str(ROOT / 'scripts/generate-settings-icons.py'), '--check'], check=True)
+    subprocess.run([sys.executable, str(ROOT / 'scripts/generate-role-badges.py'), '--check'], check=True)
     patches = sorted((ROOT / 'patches/ios').glob('*.patch'))
     paths = set()
     for patch in patches:

@@ -22,7 +22,8 @@ bridge = '\n'.join(method(signature) for signature in [
     'private app.nebulagram.ui.NebulaZoomCapabilities nebulaAvailableCatalog()',
     'private float nebulaCurrentZoom()', 'private void updateNebulaZoomSlider()',
     'private void applyNebulaZoom(float factor)',
-    'private void openNebulaModule(String id, String previousId, boolean restoring)'])
+    'private void openNebulaModule(String id, String previousId, boolean restoring)',
+    'private void completeNebulaModuleSwitch(String requestedId, String previousId, boolean restoring, boolean front)'])
 java = r'''
 import app.nebulagram.ui.NebulaZoomCapabilities;
 import app.nebulagram.ui.NebulaZoomCapabilities.Module;
@@ -40,6 +41,8 @@ class RecorderZoomCheck {
  }
  static class Camera2Session {
   static int nullCreates;
+  static List<Runnable> closes=new ArrayList<>();
+  static void finishClose(){List<Runnable> tasks=new ArrayList<>(closes);closes.clear();for(Runnable r:tasks)r.run();}
   final String cameraId;float zoom=1;boolean ready=true,closed;Runnable done;
   Camera2Session(String id){cameraId=id;}
   static Camera2Session create(boolean front,int w,int h,String id){
@@ -48,7 +51,7 @@ class RecorderZoomCheck {
   boolean isInitiated(){return ready&&!closed;}
   void complete(){ready=true;if(done!=null)done.run();}
   void whenDone(Runnable r){done=r;if(isInitiated())r.run();}
-  void destroy(boolean async){closed=true;}
+  void destroy(boolean async, Runnable after){closed=true;closes.add(after);}
   void setRecordingVideo(boolean recording){}
   void setZoom(float v){check(isInitiated(),"zoom only after session configuration");zoom=v;}
   float getZoom(){return zoom;}float getMinZoom(){return 1;}float getMaxZoom(){return 10;}
@@ -86,26 +89,31 @@ class RecorderZoomCheck {
  }
  public static void main(String[] args){
   Recorder r=new Recorder();Camera2Session original=r.camera2SessionCurrent;
-  r.applyNebulaZoom(5);Camera2Session tele=r.camera2SessionCurrent;
+  r.applyNebulaZoom(5);check(r.camera2SessionCurrent==original,"camera close does not block UI");Camera2Session.finishClose();Camera2Session tele=r.camera2SessionCurrent;
   check(tele.cameraId.equals("tele")&&original.closed&&r.nebulaSwitchingModule,"open tele on same-facing transition");
   r.applyNebulaZoom(12);check(r.camera2SessionCurrent==tele,"drag waits for pending session rather than reopening it");
   tele.complete();close(tele.zoom,4);close(r.nebulaZoomSlider.current,12);
   check(r.cameraThread.previewTransitions==1&&!r.nebulaSwitchingModule,"encoder thread retained, one preview transition");
-  r.applyNebulaZoom(.5f);Camera2Session ultra=r.camera2SessionCurrent;
-  r.applyNebulaZoom(2);ultra.complete();Camera2Session wide=r.camera2SessionCurrent;
+  r.applyNebulaZoom(.5f);Camera2Session.finishClose();Camera2Session ultra=r.camera2SessionCurrent;
+  r.applyNebulaZoom(2);ultra.complete();Camera2Session.finishClose();Camera2Session wide=r.camera2SessionCurrent;
   check(wide.cameraId.equals("wide"),"latest queued value routes to its final module");wide.complete();close(r.nebulaZoomSlider.current,2);
-  r.applyNebulaZoom(5);r.recording=false;r.camera2SessionCurrent.complete();AndroidUtilities.timeOut();
+  r.applyNebulaZoom(5);Camera2Session.finishClose();r.recording=false;r.camera2SessionCurrent.complete();AndroidUtilities.timeOut();
   check(r.nebulaZoomSlider.current==2,"late completion cannot change a stopped recorder");
-  r=new Recorder();r.applyNebulaZoom(5);Camera2Session failed=r.camera2SessionCurrent;AndroidUtilities.timeOut();
+  r=new Recorder();r.applyNebulaZoom(5);Camera2Session.finishClose();Camera2Session failed=r.camera2SessionCurrent;AndroidUtilities.timeOut();Camera2Session.finishClose();
   check(failed.closed&&r.camera2SessionCurrent.cameraId.equals("wide"),"failed module restores prior camera");
   r.camera2SessionCurrent.complete();check(!r.nebulaSwitchingModule,"restoration completes");
   check(r.nebulaUnavailableModules.contains("tele"),"failed camera isn't repeatedly reopened");
   close(r.nebulaZoomSlider.max,10);check(r.nebulaZoomSlider.stops.length==2,"failed module removed from UI bounds and stops");
   r.applyNebulaZoom(5);check(r.camera2SessionCurrent.cameraId.equals("wide"),"safe digital zoom after failed tele");
   close(r.nebulaZoomSlider.current,5);
-  AndroidUtilities.timeOut();r=new Recorder();Camera2Session.nullCreates=1;r.applyNebulaZoom(5);
+  AndroidUtilities.timeOut();r=new Recorder();Camera2Session.nullCreates=1;r.applyNebulaZoom(5);Camera2Session.finishClose();
   check(r.camera2SessionCurrent!=null&&r.camera2SessionCurrent.cameraId.equals("wide"),"synchronous factory failure restores camera");
   r.camera2SessionCurrent.complete();close(r.nebulaZoomSlider.max,10);
+  r=new Recorder();r.applyNebulaZoom(5);r.applyNebulaZoom(.5f);Camera2Session.finishClose();
+  check(r.camera2SessionCurrent.cameraId.equals("ultra"),"latest tap opens final lens directly after close");
+  r.camera2SessionCurrent.complete();close(r.nebulaZoomSlider.current,.5f);
+  r=new Recorder();Camera2Session beforeStop=r.camera2SessionCurrent;r.applyNebulaZoom(5);r.recording=false;Camera2Session.finishClose();
+  check(r.camera2SessionCurrent==beforeStop,"stopped recorder never opens a queued camera");
   r=new Recorder();r.useCamera2=false;r.applyNebulaZoom(7);close(r.cameraSession.factor,7);close(r.nebulaZoomSlider.current,7);
   System.out.println("Recorder zoom: deferred lens open, queued drag, local factors, same encoder, failure recovery and stop guards passed");
  }

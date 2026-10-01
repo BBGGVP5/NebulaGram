@@ -16,7 +16,8 @@ public final class NebulaSettingsSearch {
         }
         Entry(int section, String title, String info, int icon) { this.section = section; this.title = title; this.info = info; this.icon = icon; }
         public void open(BaseFragment f) {
-            if (section == -16) f.presentFragment(new NebulaTasksFragment());
+            if (section == -22) f.presentFragment(new NebulaSupportFragment());
+            else if (section == -16) f.presentFragment(new NebulaTasksFragment());
             else if (section == -17) f.presentFragment(new NebulaMessageToolsFragment(null));
             else if (section == -18) f.presentFragment(new NebulaSyncFragment());
             else if (section == -19) f.presentFragment(new NebulaLockedChatsFragment());
@@ -33,6 +34,8 @@ public final class NebulaSettingsSearch {
     }
     public static ArrayList<Entry> all() {
         ArrayList<Entry> result = new ArrayList<>();
+        result.add(new Entry(-22, NebulaText.text("Поддержать проект", "Support the project"),
+                NebulaText.text("Донат и значок поддержки NebulaGram", "Donation and NebulaGram supporter badge"), R.drawable.nebula_settings_support));
         result.add(new Entry(5, NebulaText.text("Оформление нижних папок", "Bottom folder appearance"),
                 NebulaText.text("iOS, жидкое стекло, обычные, минималистичные", "iOS, Liquid Glass, ordinary, minimal"), R.drawable.files_folder));
         result.add(new Entry(-14, NebulaText.text("Кнопка NebulaLink", "NebulaLink button"), NebulaText.text("Щит на главной, подключение, сервер, пинг", "Shield on home, connection, server, ping"), R.drawable.nebula_link_shield));

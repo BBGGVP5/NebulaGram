@@ -124,8 +124,9 @@ final class NebulaVideoZoomSlider: UIView {
     private static func presets(maximum: CGFloat) -> [CGFloat] {
         if maximum < 1.95 { return [1, maximum] }
         if maximum < 3 { return [1, 2] }
-        if maximum < 10 { return [1, 3, maximum] }
-        return [1, 3, 10]
+        if maximum == 3 { return [1, 2, 3] }
+        if maximum < 10 { return [1, 2, 3, maximum] }
+        return [1, 2, 3, 10]
     }
     private func step(_ plus: Bool) {
         let amount: CGFloat = current < 2 ? 0.1 : current < 5 ? 0.5 : 1

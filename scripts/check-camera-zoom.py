@@ -19,7 +19,8 @@ def method(source, signature):
 
 slider = (overlay / 'NebulaZoomSlider.java').read_text(encoding='utf-8')
 geometry = '\n'.join(method(slider, signature) for signature in [
-    'public void setRange(float min, float max)', 'private float fullWidth()',
+    'public void setRange(float min, float max)', 'public void setCameraStops(float[] values)',
+    'private void animateZoom(float factor)', 'private float fullWidth()',
     'private float compactWidth()', 'private float widthForProgress()', 'private RectF capsuleBounds()',
     'private float pixelsPerOctave()', 'private float xForZoom(float zoom)'])
 legacy = (tree / 'TMessagesProj/src/main/java/org/telegram/messenger/camera/CameraSession.java').read_text(encoding='utf-8')
@@ -34,9 +35,22 @@ import java.util.*;
 class CameraZoomCheck {
  static void check(boolean b,String why){if(!b)throw new AssertionError(why);}
  static void close(float a,float b){check(Math.abs(a-b)<.002f,a+" != "+b);}
+ static class ValueAnimator {
+  interface Update {void accept(ValueAnimator animator);}
+  float start,end,value;boolean canceled;Update update;
+  static ValueAnimator ofFloat(float a,float b){ValueAnimator v=new ValueAnimator();v.start=a;v.end=b;return v;}
+  void setDuration(int ms){check(ms>0&&ms<=200,"responsive preset animation");}
+  void addUpdateListener(Update listener){update=listener;}
+  void start(){tick(0);}
+  void cancel(){canceled=true;}
+  Object getAnimatedValue(){return value;}
+  void tick(float fraction){if(canceled)return;value=start+(end-start)*fraction;update.accept(this);}
+ }
+ interface OnZoomChanged {void onZoomChanged(float factor);}
  static class Ruler {
   float minimum=1,maximum=2,current=1,density=1;
-  float expansion;float[] cameraStops={1};
+  float expansion;float[] cameraStops={1};ValueAnimator zoomAnimator;float applied;
+  OnZoomChanged callback=factor -> applied=factor;void invalidate(){}
   static class RectF {float left,top,right,bottom;RectF(float l,float t,float r,float b){left=l;top=t;right=r;bottom=b;}}
   int getWidth(){return (int)(320*density);}int dp(float v){return (int)Math.ceil(v*density);}
   int getHeight(){return (int)(80*density);}
@@ -94,7 +108,15 @@ class CameraZoomCheck {
     check(r.pixelsPerOctave()>=95*density,"high zoom doesn't compress tick spacing");
    }
   }
-  Ruler r=new Ruler();r.setRange(Float.NaN,100);close(r.maximum,2);
+  Ruler r=new Ruler();r.setRange(1,60);r.setCameraStops(new float[]{1});
+  check(Arrays.equals(r.cameraStops,new float[]{1,2}),"single wide camera still offers direct 2x");
+  r.setRange(.6f,60);r.setCameraStops(new float[]{.6f,1,3,5});
+  check(Arrays.equals(r.cameraStops,new float[]{.6f,1,2,3,5}),"digital 2x complements optical stops");
+  r.setRange(1,1.8f);r.setCameraStops(new float[]{1});check(r.cameraStops.length==1,"unsupported 2x hidden");
+  r.setRange(1,4);r.setCurrent(1);r.animateZoom(4);r.zoomAnimator.tick(.5f);close(r.applied,2);
+  ValueAnimator interrupted=r.zoomAnimator;r.animateZoom(1);check(interrupted.canceled,"new tap replaces animation");
+  r.zoomAnimator.tick(1);close(r.applied,1);r.animateZoom(999);r.zoomAnimator.tick(1);close(r.applied,4);
+  r=new Ruler();r.setRange(Float.NaN,100);close(r.maximum,2);
   Legacy l=new Legacy();close(l.getMaxZoomFactor(),20);
   for(float zoom:new float[]{1,1.2f,2,4,20}){l.setZoomFactor(zoom);close(l.getZoomFactor(),zoom);}
   l.setZoomFactor(1.9f);close(l.getZoomFactor(),2);l.setZoomFactor(99);close(l.getZoomFactor(),20);

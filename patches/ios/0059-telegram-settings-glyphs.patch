@@ -1,0 +1,215 @@
+diff --git a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoSettingsItems.swift b/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoSettingsItems.swift
+index 791169a..8de2335 100644
+--- a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoSettingsItems.swift
++++ b/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoSettingsItems.swift
+@@ -1,4 +1,5 @@
+ import Foundation
++import SettingsUI
+ import UIKit
+ import Display
+ import AccountContext
+@@ -147,7 +148,7 @@ func settingsItems(data: PeerInfoScreenData?, context: AccountContext, presentat
+             }))
+         }
+         
+-        items[.myProfile]!.append(PeerInfoScreenDisclosureItem(id: 0, text: presentationData.strings.Settings_MyProfile, icon: PresentationResourcesSettings.myProfile, action: {
++        items[.myProfile]!.append(PeerInfoScreenDisclosureItem(id: 0, text: presentationData.strings.Settings_MyProfile, icon: NebulaSettingsStyle.icon(symbol: "person.crop.circle", color: .systemGreen), action: {
+             interaction.openSettings(.profile)
+         }))
+         
+@@ -163,7 +164,7 @@ func settingsItems(data: PeerInfoScreenData?, context: AccountContext, presentat
+             } else {
+                 proxyType = presentationData.strings.Settings_ProxyDisabled
+             }
+-            items[.proxy]!.append(PeerInfoScreenDisclosureItem(id: 0, label: .text(proxyType), text: presentationData.strings.Settings_Proxy, icon: PresentationResourcesSettings.proxy, action: {
++            items[.proxy]!.append(PeerInfoScreenDisclosureItem(id: 0, label: .text(proxyType), text: presentationData.strings.Settings_Proxy, icon: NebulaSettingsStyle.icon(symbol: "shield", color: .systemGreen), action: {
+                 interaction.openSettings(.proxy)
+             }))
+         }
+@@ -196,10 +197,10 @@ func settingsItems(data: PeerInfoScreenData?, context: AccountContext, presentat
+         }
+     }
+     
+-    items[.shortcuts]!.append(PeerInfoScreenDisclosureItem(id: 1, text: presentationData.strings.Settings_SavedMessages, icon: PresentationResourcesSettings.savedMessages, action: {
++    items[.shortcuts]!.append(PeerInfoScreenDisclosureItem(id: 1, text: presentationData.strings.Settings_SavedMessages, icon: NebulaSettingsStyle.icon(symbol: "bookmark", color: .systemBlue), action: {
+         interaction.openSettings(.savedMessages)
+     }))
+-    items[.shortcuts]!.append(PeerInfoScreenDisclosureItem(id: 2, text: presentationData.strings.CallSettings_RecentCalls, icon: PresentationResourcesSettings.recentCalls, action: {
++    items[.shortcuts]!.append(PeerInfoScreenDisclosureItem(id: 2, text: presentationData.strings.CallSettings_RecentCalls, icon: NebulaSettingsStyle.icon(symbol: "phone", color: .systemGreen), action: {
+         interaction.openSettings(.recentCalls)
+     }))
+     
+@@ -214,10 +215,10 @@ func settingsItems(data: PeerInfoScreenData?, context: AccountContext, presentat
+         devicesLabel = ""
+     }
+     
+-    items[.shortcuts]!.append(PeerInfoScreenDisclosureItem(id: 3, label: .text(devicesLabel), text: presentationData.strings.Settings_Devices, icon: PresentationResourcesSettings.devices, action: {
++    items[.shortcuts]!.append(PeerInfoScreenDisclosureItem(id: 3, label: .text(devicesLabel), text: presentationData.strings.Settings_Devices, icon: NebulaSettingsStyle.icon(symbol: "desktopcomputer", color: .systemTeal), action: {
+         interaction.openSettings(.devices)
+     }))
+-    items[.shortcuts]!.append(PeerInfoScreenDisclosureItem(id: 4, text: presentationData.strings.Settings_ChatFolders, icon: PresentationResourcesSettings.chatFolders, action: {
++    items[.shortcuts]!.append(PeerInfoScreenDisclosureItem(id: 4, text: presentationData.strings.Settings_ChatFolders, icon: NebulaSettingsStyle.icon(symbol: "folder", color: .systemBlue), action: {
+         interaction.openSettings(.chatFolders)
+     }))
+     
+@@ -227,36 +228,36 @@ func settingsItems(data: PeerInfoScreenData?, context: AccountContext, presentat
+     } else {
+         notificationsWarning = false
+     }
+-    items[.advanced]!.append(PeerInfoScreenDisclosureItem(id: 0, label: notificationsWarning ? .badge("!", presentationData.theme.list.itemDestructiveColor) : .none, text: presentationData.strings.Settings_NotificationsAndSounds, icon: PresentationResourcesSettings.notifications, action: {
++    items[.advanced]!.append(PeerInfoScreenDisclosureItem(id: 0, label: notificationsWarning ? .badge("!", presentationData.theme.list.itemDestructiveColor) : .none, text: presentationData.strings.Settings_NotificationsAndSounds, icon: NebulaSettingsStyle.icon(symbol: "bell", color: .systemRed), action: {
+         interaction.openSettings(.notificationsAndSounds)
+     }))
+-    items[.advanced]!.append(PeerInfoScreenDisclosureItem(id: 1, text: presentationData.strings.Settings_PrivacySettings, icon: PresentationResourcesSettings.security, action: {
++    items[.advanced]!.append(PeerInfoScreenDisclosureItem(id: 1, text: presentationData.strings.Settings_PrivacySettings, icon: NebulaSettingsStyle.icon(symbol: "lock.shield", color: .systemGreen), action: {
+         interaction.openSettings(.privacyAndSecurity)
+     }))
+-    items[.advanced]!.append(PeerInfoScreenDisclosureItem(id: 2, text: presentationData.strings.Settings_ChatSettings, icon: PresentationResourcesSettings.dataAndStorage, action: {
++    items[.advanced]!.append(PeerInfoScreenDisclosureItem(id: 2, text: presentationData.strings.Settings_ChatSettings, icon: NebulaSettingsStyle.icon(symbol: "arrow.down.circle", color: .systemBlue), action: {
+         interaction.openSettings(.dataAndStorage)
+     }))
+-    items[.advanced]!.append(PeerInfoScreenDisclosureItem(id: 3, text: presentationData.strings.Settings_Appearance, icon: PresentationResourcesSettings.appearance, action: {
++    items[.advanced]!.append(PeerInfoScreenDisclosureItem(id: 3, text: presentationData.strings.Settings_Appearance, icon: NebulaSettingsStyle.icon(symbol: "paintpalette", color: .systemPurple), action: {
+         interaction.openSettings(.appearance)
+     }))
+     
+-    items[.advanced]!.append(PeerInfoScreenDisclosureItem(id: 6, label: .text(data.isPowerSavingEnabled == true ? presentationData.strings.Settings_PowerSavingOn : presentationData.strings.Settings_PowerSavingOff), text: presentationData.strings.Settings_PowerSaving, icon: PresentationResourcesSettings.powerSaving, action: {
++    items[.advanced]!.append(PeerInfoScreenDisclosureItem(id: 6, label: .text(data.isPowerSavingEnabled == true ? presentationData.strings.Settings_PowerSavingOn : presentationData.strings.Settings_PowerSavingOff), text: presentationData.strings.Settings_PowerSaving, icon: NebulaSettingsStyle.icon(symbol: "battery.100", color: .systemOrange), action: {
+         interaction.openSettings(.powerSaving)
+     }))
+     
+-    items[.advanced]!.append(PeerInfoScreenDisclosureItem(id: 9700, text: presentationData.strings.baseLanguageCode.lowercased().hasPrefix("ru") ? "Настройки NebulaGram" : "NebulaGram Settings", icon: PresentationResourcesSettings.appearance, action: {
++    items[.advanced]!.append(PeerInfoScreenDisclosureItem(id: 9700, text: presentationData.strings.baseLanguageCode.lowercased().hasPrefix("ru") ? "Настройки NebulaGram" : "NebulaGram Settings", icon: NebulaSettingsStyle.icon(symbol: "paintpalette", color: .systemPurple), action: {
+         interaction.openSettings(.nebulaGram)
+     }))
+ 
+     let languageName = presentationData.strings.primaryComponent.localizedName
+-    items[.advanced]!.append(PeerInfoScreenDisclosureItem(id: 4, label: .text(languageName.isEmpty ? presentationData.strings.Localization_LanguageName : languageName), text: presentationData.strings.Settings_AppLanguage, icon: PresentationResourcesSettings.language, action: {
++    items[.advanced]!.append(PeerInfoScreenDisclosureItem(id: 4, label: .text(languageName.isEmpty ? presentationData.strings.Localization_LanguageName : languageName), text: presentationData.strings.Settings_AppLanguage, icon: NebulaSettingsStyle.icon(symbol: "globe", color: .systemPurple), action: {
+         interaction.openSettings(.language)
+     }))
+     
+     let premiumConfiguration = PremiumConfiguration.with(appConfiguration: context.currentAppConfiguration.with { $0 })
+     let isPremiumDisabled = premiumConfiguration.isPremiumDisabled
+     if !isPremiumDisabled || context.isPremium {
+-        items[.payment]!.append(PeerInfoScreenDisclosureItem(id: 100, label: .text(""), text: presentationData.strings.Settings_Premium, icon: PresentationResourcesSettings.premium, action: {
++        items[.payment]!.append(PeerInfoScreenDisclosureItem(id: 100, label: .text(""), text: presentationData.strings.Settings_Premium, icon: NebulaSettingsStyle.icon(symbol: "star", color: .systemPurple), action: {
+             interaction.openSettings(.premium)
+         }))
+     }
+@@ -272,7 +273,7 @@ func settingsItems(data: PeerInfoScreenData?, context: AccountContext, presentat
+             } else {
+                 balanceText = NSAttributedString()
+             }
+-            items[.payment]!.append(PeerInfoScreenDisclosureItem(id: 102, label: .attributedText(balanceText), text: presentationData.strings.Settings_Stars, icon: PresentationResourcesSettings.stars, action: {
++            items[.payment]!.append(PeerInfoScreenDisclosureItem(id: 102, label: .attributedText(balanceText), text: presentationData.strings.Settings_Stars, icon: NebulaSettingsStyle.icon(symbol: "star", color: .systemOrange), action: {
+                 interaction.openSettings(.stars)
+             }))
+         }
+@@ -289,19 +290,19 @@ func settingsItems(data: PeerInfoScreenData?, context: AccountContext, presentat
+             } else {
+                 balanceText = NSAttributedString()
+             }
+-            items[.payment]!.append(PeerInfoScreenDisclosureItem(id: 103, label: .attributedText(balanceText), text: presentationData.strings.Settings_MyTon, icon: PresentationResourcesSettings.ton, action: {
++            items[.payment]!.append(PeerInfoScreenDisclosureItem(id: 103, label: .attributedText(balanceText), text: presentationData.strings.Settings_MyTon, icon: NebulaSettingsStyle.icon(symbol: "diamond", color: .systemBlue), action: {
+                 interaction.openSettings(.ton)
+             }))
+         }
+     }
+     if !isPremiumDisabled || context.isPremium {
+-        items[.payment]!.append(PeerInfoScreenDisclosureItem(id: 104, label: .text(""), additionalBadgeLabel: nil, text: presentationData.strings.Settings_Business, icon: PresentationResourcesSettings.business, action: {
++        items[.payment]!.append(PeerInfoScreenDisclosureItem(id: 104, label: .text(""), additionalBadgeLabel: nil, text: presentationData.strings.Settings_Business, icon: NebulaSettingsStyle.icon(symbol: "briefcase", color: .systemPink), action: {
+             interaction.openSettings(.businessSetup)
+         }))
+     }
+     if let starsState = data.starsState {
+         if !isPremiumDisabled || starsState.balance > StarsAmount.zero {
+-            items[.payment]!.append(PeerInfoScreenDisclosureItem(id: 105, label: .text(""), text: presentationData.strings.Settings_SendGift, icon: PresentationResourcesSettings.premiumGift, action: {
++            items[.payment]!.append(PeerInfoScreenDisclosureItem(id: 105, label: .text(""), text: presentationData.strings.Settings_SendGift, icon: NebulaSettingsStyle.icon(symbol: "gift", color: .systemOrange), action: {
+                 interaction.openSettings(.premiumGift)
+             }))
+         }
+@@ -309,24 +310,24 @@ func settingsItems(data: PeerInfoScreenData?, context: AccountContext, presentat
+     
+     if let settings = data.globalSettings {
+         if settings.hasPassport {
+-            items[.extra]!.append(PeerInfoScreenDisclosureItem(id: 0, text: presentationData.strings.Settings_Passport, icon: PresentationResourcesSettings.passport, action: {
++            items[.extra]!.append(PeerInfoScreenDisclosureItem(id: 0, text: presentationData.strings.Settings_Passport, icon: NebulaSettingsStyle.icon(symbol: "person.text.rectangle", color: .systemBlue), action: {
+                 interaction.openSettings(.passport)
+             }))
+         }
+         if settings.hasWatchApp {
+-            items[.extra]!.append(PeerInfoScreenDisclosureItem(id: 1, text: presentationData.strings.Settings_AppleWatch, icon: PresentationResourcesSettings.watch, action: {
++            items[.extra]!.append(PeerInfoScreenDisclosureItem(id: 1, text: presentationData.strings.Settings_AppleWatch, icon: NebulaSettingsStyle.icon(symbol: "applewatch", color: .systemGray), action: {
+                 interaction.openSettings(.watch)
+             }))
+         }
+     }
+     
+-    items[.support]!.append(PeerInfoScreenDisclosureItem(id: 0, text: presentationData.strings.Settings_Support, icon: PresentationResourcesSettings.support, action: {
++    items[.support]!.append(PeerInfoScreenDisclosureItem(id: 0, text: presentationData.strings.Settings_Support, icon: NebulaSettingsStyle.icon(symbol: "questionmark.bubble", color: .systemOrange), action: {
+         interaction.openSettings(.support)
+     }))
+-    items[.support]!.append(PeerInfoScreenDisclosureItem(id: 1, text: presentationData.strings.Settings_FAQ, icon: PresentationResourcesSettings.faq, action: {
++    items[.support]!.append(PeerInfoScreenDisclosureItem(id: 1, text: presentationData.strings.Settings_FAQ, icon: NebulaSettingsStyle.icon(symbol: "info.circle", color: .systemBlue), action: {
+         interaction.openSettings(.faq)
+     }))
+-    items[.support]!.append(PeerInfoScreenDisclosureItem(id: 2, text: presentationData.strings.Settings_Tips, icon: PresentationResourcesSettings.tips, action: {
++    items[.support]!.append(PeerInfoScreenDisclosureItem(id: 2, text: presentationData.strings.Settings_Tips, icon: NebulaSettingsStyle.icon(symbol: "sparkles", color: .systemPurple), action: {
+         interaction.openSettings(.tips)
+     }))
+     
+@@ -417,7 +418,7 @@ func settingsEditingItems(data: PeerInfoScreenData?, state: PeerInfoState, conte
+     }
+     
+     let isEditingBirthDate = state.isEditingBirthDate
+-    items[.birthday]!.append(PeerInfoScreenDisclosureItem(id: ItemBirthday, label: .coloredText(birthDateString, isEditingBirthDate ? .accent : .generic), text: presentationData.strings.Settings_Birthday, icon: PresentationResourcesSettings.birthday, hasArrow: false, action: {
++    items[.birthday]!.append(PeerInfoScreenDisclosureItem(id: ItemBirthday, label: .coloredText(birthDateString, isEditingBirthDate ? .accent : .generic), text: presentationData.strings.Settings_Birthday, icon: NebulaSettingsStyle.icon(symbol: "birthday.cake", color: .systemPink), hasArrow: false, action: {
+         interaction.updateIsEditingBirthdate(!isEditingBirthDate)
+     }))
+     if isEditingBirthDate, let birthday {
+@@ -448,7 +449,7 @@ func settingsEditingItems(data: PeerInfoScreenData?, state: PeerInfoState, conte
+     }
+     
+     if case let .user(user) = data.peer {
+-        items[.info]!.append(PeerInfoScreenDisclosureItem(id: ItemPhoneNumber, label: .text(user.phone.flatMap({ formatPhoneNumber(context: context, number: $0) }) ?? ""), text: presentationData.strings.Settings_PhoneNumber, icon: PresentationResourcesSettings.recentCalls, action: {
++        items[.info]!.append(PeerInfoScreenDisclosureItem(id: ItemPhoneNumber, label: .text(user.phone.flatMap({ formatPhoneNumber(context: context, number: $0) }) ?? ""), text: presentationData.strings.Settings_PhoneNumber, icon: NebulaSettingsStyle.icon(symbol: "phone", color: .systemGreen), action: {
+             interaction.openSettings(.phoneNumber)
+         }))
+     }
+@@ -456,7 +457,7 @@ func settingsEditingItems(data: PeerInfoScreenData?, state: PeerInfoState, conte
+     if let addressName = data.peer?.addressName, !addressName.isEmpty {
+         username = "@\(addressName)"
+     }
+-    items[.info]!.append(PeerInfoScreenDisclosureItem(id: ItemUsername, label: .text(username), text: presentationData.strings.Settings_Username, icon: PresentationResourcesSettings.email, action: {
++    items[.info]!.append(PeerInfoScreenDisclosureItem(id: ItemUsername, label: .text(username), text: presentationData.strings.Settings_Username, icon: NebulaSettingsStyle.icon(symbol: "envelope", color: .systemBlue), action: {
+           interaction.openSettings(.username)
+     }))
+     
+@@ -477,7 +478,7 @@ func settingsEditingItems(data: PeerInfoScreenData?, state: PeerInfoState, conte
+         }
+         let colorImage = generateSettingsMenuPeerColorsLabelIcon(colors: colors)
+         
+-        items[.info]!.append(PeerInfoScreenDisclosureItem(id: ItemPeerColor, label: .image(colorImage, colorImage.size), text: presentationData.strings.Settings_YourColor, icon: PresentationResourcesSettings.yourColor, action: {
++        items[.info]!.append(PeerInfoScreenDisclosureItem(id: ItemPeerColor, label: .image(colorImage, colorImage.size), text: presentationData.strings.Settings_YourColor, icon: NebulaSettingsStyle.icon(symbol: "paintpalette", color: .systemPurple), action: {
+             interaction.editingOpenNameColorSetup()
+         }))
+         
+@@ -493,7 +494,7 @@ func settingsEditingItems(data: PeerInfoScreenData?, state: PeerInfoState, conte
+                 personalChannelTitle = peer.compactDisplayTitle
+             }
+             
+-            items[.info]!.append(PeerInfoScreenDisclosureItem(id: ItemPeerPersonalChannel, label: .text(personalChannelTitle ?? presentationData.strings.Settings_PersonalChannelEmptyValue), text: presentationData.strings.Settings_PersonalChannelItem, icon: PresentationResourcesSettings.channels, action: {
++            items[.info]!.append(PeerInfoScreenDisclosureItem(id: ItemPeerPersonalChannel, label: .text(personalChannelTitle ?? presentationData.strings.Settings_PersonalChannelEmptyValue), text: presentationData.strings.Settings_PersonalChannelItem, icon: NebulaSettingsStyle.icon(symbol: "megaphone", color: .systemBlue), action: {
+                 interaction.editingOpenPersonalChannel()
+             }))
+         }
+@@ -506,7 +507,7 @@ func settingsEditingItems(data: PeerInfoScreenData?, state: PeerInfoState, conte
+     } else {
+         automationBotTitle = presentationData.strings.Settings_ChatAutomationOff
+     }
+-    items[.info]!.append(PeerInfoScreenDisclosureItem(id: ItemPeerChatAutomation, label: .text(automationBotTitle), additionalBadgeLabel: nil, text: presentationData.strings.Settings_ChatAutomation, icon: PresentationResourcesSettings.aiTools, action: {
++    items[.info]!.append(PeerInfoScreenDisclosureItem(id: ItemPeerChatAutomation, label: .text(automationBotTitle), additionalBadgeLabel: nil, text: presentationData.strings.Settings_ChatAutomation, icon: NebulaSettingsStyle.icon(symbol: "sparkles", color: .systemPurple), action: {
+         interaction.editingOpenBusinessChatBots()
+     }))
+     items[.info]!.append(PeerInfoScreenCommentItem(id: ItemPeerChatAutomationHelp, text: presentationData.strings.Settings_ChatAutomationInfo))

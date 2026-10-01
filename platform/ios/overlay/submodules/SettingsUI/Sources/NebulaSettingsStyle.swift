@@ -2,7 +2,7 @@ import UIKit
 import TelegramPresentationData
 
 /// Presentation only. Native controls, previews and their state remain owned by callers.
-enum NebulaSettingsStyle {
+public enum NebulaSettingsStyle {
     static func accent(for symbol: String) -> UIColor {
         switch symbol {
         case "shield", "hand.raised", "lock.shield", "lock": return .systemGreen
@@ -13,7 +13,7 @@ enum NebulaSettingsStyle {
         }
     }
 
-    static func icon(symbol: String, color: UIColor? = nil) -> UIImage? {
+    public static func icon(symbol: String, color: UIColor? = nil) -> UIImage? {
         let glyph = NebulaSettingsSymbols.path(for: symbol)
         let fallback = UIImage(systemName: symbol,
             withConfiguration: UIImage.SymbolConfiguration(pointSize: 22, weight: .regular))

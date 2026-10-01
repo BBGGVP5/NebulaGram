@@ -166,6 +166,14 @@ public class NebulaSettingsFragment extends BaseFragment {
         tool(context, tools, R.drawable.nebula_settings_text_tools, "Текст", "Text",
                 () -> presentFragment(new NebulaMessageToolsFragment(null)));
         sections.addView(tools, cardParams());
+        sections.addView(NebulaCard.header(context, NebulaText.text("Нравится NebulaGram?", "Enjoy NebulaGram?")));
+        NebulaCard support = new NebulaCard(context);
+        support.add(new NebulaRow(context).icon(R.drawable.nebula_settings_support)
+                .title(NebulaText.text("Поддержать проект", "Support the project"))
+                .subtitle(NebulaText.text("Разработка и значок за поддержку", "Development and a supporter badge"), false)
+                .trailing(NebulaRow.TRAIL_CHEVRON)
+                .withClick(v -> presentFragment(new NebulaSupportFragment())));
+        sections.addView(support, cardParams());
     }
 
     private void tool(Context context, LinearLayout parent, int icon, String ru, String en, Runnable open) {

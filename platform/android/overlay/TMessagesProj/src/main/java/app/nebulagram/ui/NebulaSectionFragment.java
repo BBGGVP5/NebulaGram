@@ -542,10 +542,9 @@ public class NebulaSectionFragment extends BaseFragment {
                         : NebulaText.text("Пока нет", "None yet"), own != null));
         card.add(new NebulaRow(context).icon(R.drawable.msg_link2)
                 .title(NebulaText.text("Поддержать проект", "Support the project"))
-                .subtitle(NebulaDonation.link().isEmpty()
-                        ? NebulaText.text("Ссылка не задана", "No link set") : NebulaDonation.link(), true)
+                .subtitle(NebulaText.text("Значок и способы поддержки", "Badge and support options"), false)
                 .trailing(NebulaRow.TRAIL_CHEVRON)
-                .withClick(v -> donationLink(context)));
+                .withClick(v -> presentFragment(new NebulaSupportFragment())));
         content.addView(card, cardParams());
         buildBadgeAdmin(context);
     }
@@ -606,28 +605,6 @@ public class NebulaSectionFragment extends BaseFragment {
                 .setNegativeButton(NebulaText.text("Отмена", "Cancel"), null)
                 .setPositiveButton(NebulaText.text("Сохранить", "Save"),
                         (d, w) -> done.run(input.getText().toString()))
-                .show();
-    }
-
-    private void donationLink(Context context) {
-        String current = NebulaDonation.link();
-        if (!current.isEmpty()) {
-            org.telegram.messenger.browser.Browser.openUrl(context, current);
-            return;
-        }
-        final android.widget.EditText input = new android.widget.EditText(context);
-        input.setHint("https://");
-        input.setTextColor(NebulaTheme.of(context).onSurface());
-        input.setHintTextColor(NebulaTheme.of(context).onSurfaceVariant());
-        input.setPadding(AndroidUtilities.dp(22), AndroidUtilities.dp(8), AndroidUtilities.dp(22), AndroidUtilities.dp(8));
-        new NebulaDialog.Builder(context)
-                .setTitle(NebulaText.text("Поддержать проект", "Support the project"))
-                .setMessage(NebulaText.text("Куда ведёт эта строка. Ссылка хранится только на этом устройстве.",
-                        "Where this row leads. The link is kept on this device only."))
-                .setView(input)
-                .setNegativeButton(NebulaText.text("Отмена", "Cancel"), null)
-                .setPositiveButton(NebulaText.text("Сохранить", "Save"),
-                        (d, w) -> { NebulaDonation.setLink(input.getText().toString()); refreshPalette(); })
                 .show();
     }
 

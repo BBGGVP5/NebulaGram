@@ -1,5 +1,7 @@
+<!-- Generated from design/badges/roles.json. -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android" android:width="28dp" android:height="28dp" android:viewportWidth="28" android:viewportHeight="28">
-    <path android:fillColor="#7263D9" android:pathData="M14,1 L25,7 L25,21 L14,27 L3,21 L3,7 Z"/>
-    <path android:fillColor="#9A89F0" android:pathData="M14,1 L25,7 L14,14 L3,7 Z"/>
-    <path android:fillColor="#00000000" android:strokeColor="#FFFFFF" android:strokeWidth="1.8" android:strokeLineCap="round" android:strokeLineJoin="round" android:pathData="M10,10 L6,14 L10,18 M18,10 L22,14 L18,18 M15.5,8 L12.5,20"/>
+    <path android:fillColor="#7564DD" android:pathData="M10,2 L18,2 Q20,2 21.5,3.5 L24.5,6.5 Q26,8 26,10 L26,18 Q26,20 24.5,21.5 L21.5,24.5 Q20,26 18,26 L10,26 Q8,26 6.5,24.5 L3.5,21.5 Q2,20 2,18 L2,10 Q2,8 3.5,6.5 L6.5,3.5 Q8,2 10,2 Z"/>
+    <path android:fillColor="#9F90F0" android:pathData="M10,2 L18,2 Q20,2 21.5,3.5 L24.5,6.5 L14,13 L3.5,6.5 L6.5,3.5 Q8,2 10,2 Z"/>
+    <path android:fillColor="#5F50BB" android:pathData="M14,13 L24.5,21.5 L21.5,24.5 Q20,26 18,26 L10,26 Q8,26 6.5,24.5 L3.5,21.5 Z"/>
+    <path android:fillColor="#00000000" android:strokeColor="#FFFFFF" android:strokeWidth="2" android:strokeLineCap="round" android:strokeLineJoin="round" android:pathData="M9.5,10.5 L6,14 L9.5,17.5 M18.5,10.5 L22,14 L18.5,17.5 M15.5,8.5 L12.5,19.5"/>
 </vector>

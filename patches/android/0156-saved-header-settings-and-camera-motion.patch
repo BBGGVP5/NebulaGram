@@ -1,0 +1,157 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/camera/Camera2Session.java b/TMessagesProj/src/main/java/org/telegram/messenger/camera/Camera2Session.java
+index 342447a..cedaa76 100644
+--- a/TMessagesProj/src/main/java/org/telegram/messenger/camera/Camera2Session.java
++++ b/TMessagesProj/src/main/java/org/telegram/messenger/camera/Camera2Session.java
+@@ -424,16 +424,17 @@ public class Camera2Session {
+                     imageReader = null;
+                 }
+                 thread.quitSafely();
+-                AndroidUtilities.runOnUIThread(() -> {
+-                    try {
+-                        thread.join();
+-                    } catch (Exception e) {
+-                        FileLog.e(e);
+-                    }
+-                    if (afterCallback != null) {
+-                        afterCallback.run();
+-                    }
+-                });
++                if (afterCallback != null) {
++                    new Thread(() -> {
++                        try {
++                            thread.join();
++                        } catch (InterruptedException e) {
++                            Thread.currentThread().interrupt();
++                            FileLog.e(e);
++                        }
++                        AndroidUtilities.runOnUIThread(afterCallback);
++                    }, "Camera2Close").start();
++                }
+             });
+         } else {
+             if (captureSession != null) {
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
+index 9bc7c7e..916ecec 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
+@@ -2505,7 +2505,12 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
+             int left, right;
+             final ChatAvatarContainer centeredNebulaAvatar = nebulaFloatingChatHeader
+                     ? nebulaChatAvatarContainer : null;
+-            if (centeredNebulaAvatar != null) {
++            if (nebulaClassicSavedHeader || nebulaSavedMessagesHeader) {
++                // Saved Messages has no title capsule. Search/selection retain their
++                // full-width material, fading out without shrinking into a title pill.
++                left = leftDefault;
++                right = rightDefault;
++            } else if (centeredNebulaAvatar != null) {
+                 // The title, subtitle and image have independent places: a
+                 // compact real glass capsule stays centred, while the avatar
+                 // remains a reachable round control at the trailing edge.
+@@ -2555,13 +2560,16 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
+             if (nebulaFloatingChatHeader && app.nebulagram.ui.NebulaAppearance.centeredHeader()) {
+                 glassDrawable.setRadius(Math.min(glassDrawable.getPaddedBounds().height(), glassDrawable.getPaddedBounds().width()) / 2f);
+             }
+-            if (nebulaHomeTabsGlass) {
++            if (nebulaClassicSavedHeader || nebulaSavedMessagesHeader) {
++                glassDrawable.setAlpha(Math.round(255 * Math.max(searchFactor, actionModeFactor)));
++            } else if (nebulaHomeTabsGlass) {
+                 // Home controls own their separate material; search owns its field.
+                 glassDrawable.setAlpha(0);
+             } else {
+                 glassDrawable.setAlpha(255);
+             }
+             if (!nebulaProfileGlass
++                    && (!(nebulaClassicSavedHeader || nebulaSavedMessagesHeader) || glassDrawable.getAlpha() > 0)
+                     && (!nebulaHomeTabsGlass || glassDrawable.getAlpha() > 0)
+                     && !((nebulaClassicSavedHeader || nebulaFloatingChatHeader && !app.nebulagram.ui.NebulaAppearance.chatHeader()) && actionModeFactor == 0f && searchFactor == 0f)) glassDrawable.draw(canvas);
+         }
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/InstantCameraView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/InstantCameraView.java
+index 3a0cf62..864b015 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Components/InstantCameraView.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/InstantCameraView.java
+@@ -3835,7 +3835,17 @@ public class InstantCameraView extends InstantCameraViewBase implements Notifica
+             textureOverlayView.setImageBitmap(lastBitmap);
+             textureOverlayView.setAlpha(1f);
+         }
+-        camera2SessionCurrent.destroy(false);
++        final Camera2Session previous = camera2SessionCurrent;
++        previous.destroy(true, () -> {
++            if (!recording || cameraThread == null || camera2SessionCurrent != previous || front != isFrontface) return;
++            completeNebulaModuleSwitch(id, previousId, restoring, front);
++        });
++    }
++
++    private void completeNebulaModuleSwitch(String requestedId, String previousId, boolean restoring, boolean front) {
++        // A newer tap can arrive while the old camera is closing. Open its final lens directly.
++        app.nebulagram.ui.NebulaZoomCapabilities available = nebulaAvailableCatalog();
++        final String id = !restoring && available != null ? available.select(nebulaRequestedZoom).id : requestedId;
+         int size = MessagesController.getInstance(currentAccount).roundVideoSize;
+         final Camera2Session next = Camera2Session.create(front, size, size, id);
+         camera2SessionCurrent = camera2Sessions[front ? 0 : 1] = next;
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
+index aff950e..48a889d 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
+@@ -13942,28 +13942,28 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+                         textCell.setTextAndValueAndIcon(LocaleController.getString(R.string.NebulaSettings), "", false, R.drawable.nebula_settings_mark, true);
+                         textCell.setImageLeft(23);
+                     } else if (position == languageRow) {
+-                        textCell.setTextAndValueAndIcon(LocaleController.getString(R.string.Language), LocaleController.getCurrentLanguageName(), false, R.drawable.msg2_language, false);
++                        textCell.setTextAndValueAndColorfulIcon(LocaleController.getString(R.string.Language), LocaleController.getCurrentLanguageName(), false, R.drawable.nebula_settings_language, 0xFF8872D8, 0xFF8872D8, false);
+                         textCell.setImageLeft(23);
+                     } else if (position == notificationRow) {
+-                        textCell.setTextAndIcon(LocaleController.getString(R.string.NotificationsAndSounds), R.drawable.msg2_notifications, true);
++                        textCell.setTextAndColorfulIcon(LocaleController.getString(R.string.NotificationsAndSounds), app.nebulagram.ui.NebulaSettingsIcons.telegramResource(R.drawable.msg2_notifications), 0xFFE86B65, true);
+                     } else if (position == privacyRow) {
+-                        textCell.setTextAndIcon(LocaleController.getString(R.string.PrivacySettings), R.drawable.msg2_secret, true);
++                        textCell.setTextAndColorfulIcon(LocaleController.getString(R.string.PrivacySettings), app.nebulagram.ui.NebulaSettingsIcons.telegramResource(R.drawable.msg2_secret), 0xFF30A76C, true);
+                     } else if (position == dataRow) {
+-                        textCell.setTextAndIcon(LocaleController.getString(R.string.DataSettings), R.drawable.msg2_data, true);
++                        textCell.setTextAndColorfulIcon(LocaleController.getString(R.string.DataSettings), app.nebulagram.ui.NebulaSettingsIcons.telegramResource(R.drawable.msg2_data), 0xFF428FD1, true);
+                     } else if (position == chatRow) {
+-                        textCell.setTextAndIcon(LocaleController.getString(R.string.ChatSettings), R.drawable.msg2_discussion, true);
++                        textCell.setTextAndColorfulIcon(LocaleController.getString(R.string.ChatSettings), app.nebulagram.ui.NebulaSettingsIcons.telegramResource(R.drawable.msg2_discussion), 0xFF8872D8, true);
+                     } else if (position == filtersRow) {
+-                        textCell.setTextAndIcon(LocaleController.getString(R.string.Filters), R.drawable.msg2_folder, true);
++                        textCell.setTextAndColorfulIcon(LocaleController.getString(R.string.Filters), app.nebulagram.ui.NebulaSettingsIcons.telegramResource(R.drawable.msg2_folder), 0xFFE99A38, true);
+                     } else if (position == stickersRow) {
+-                        textCell.setTextAndIcon(LocaleController.getString(R.string.StickersName), R.drawable.msg2_sticker, true);
++                        textCell.setTextAndColorfulIcon(LocaleController.getString(R.string.StickersName), app.nebulagram.ui.NebulaSettingsIcons.telegramResource(R.drawable.msg2_sticker), 0xFFE7768F, true);
+                     } else if (position == liteModeRow) {
+-                        textCell.setTextAndIcon(LocaleController.getString(R.string.PowerUsage), R.drawable.msg2_battery, true);
++                        textCell.setTextAndColorfulIcon(LocaleController.getString(R.string.PowerUsage), app.nebulagram.ui.NebulaSettingsIcons.telegramResource(R.drawable.msg2_battery), 0xFF43AE7F, true);
+                     } else if (position == questionRow) {
+-                        textCell.setTextAndIcon(LocaleController.getString(R.string.AskAQuestion), R.drawable.msg2_ask_question, true);
++                        textCell.setTextAndColorfulIcon(LocaleController.getString(R.string.AskAQuestion), app.nebulagram.ui.NebulaSettingsIcons.telegramResource(R.drawable.msg2_ask_question), 0xFFDA9B34, true);
+                     } else if (position == faqRow) {
+-                        textCell.setTextAndIcon(LocaleController.getString(R.string.TelegramFAQ), R.drawable.msg2_help, true);
++                        textCell.setTextAndColorfulIcon(LocaleController.getString(R.string.TelegramFAQ), app.nebulagram.ui.NebulaSettingsIcons.telegramResource(R.drawable.msg2_help), 0xFF3396DB, true);
+                     } else if (position == policyRow) {
+-                        textCell.setTextAndIcon(LocaleController.getString(R.string.PrivacyPolicy), R.drawable.msg2_policy, false);
++                        textCell.setTextAndColorfulIcon(LocaleController.getString(R.string.PrivacyPolicy), app.nebulagram.ui.NebulaSettingsIcons.telegramResource(R.drawable.msg2_policy), 0xFF30A76C, false);
+                     } else if (position == sendLogsRow) {
+                         textCell.setText(LocaleController.getString(R.string.DebugSendLogs), true);
+                     } else if (position == sendLastLogsRow) {
+@@ -13973,7 +13973,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+                     } else if (position == switchBackendRow) {
+                         textCell.setText("Switch Backend", false);
+                     } else if (position == devicesRow) {
+-                        textCell.setTextAndIcon(LocaleController.getString(R.string.Devices), R.drawable.msg2_devices, true);
++                        textCell.setTextAndColorfulIcon(LocaleController.getString(R.string.Devices), app.nebulagram.ui.NebulaSettingsIcons.telegramResource(R.drawable.msg2_devices), 0xFF26A6A0, true);
+                     } else if (position == setAvatarRow) {
+                         cellCameraDrawable.setCustomEndFrame(86);
+                         cellCameraDrawable.setCurrentFrame(85, false);
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/SettingsActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/SettingsActivity.java
+index f27133b..a4ed643 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/SettingsActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/SettingsActivity.java
+@@ -1227,7 +1227,7 @@ public class SettingsActivity extends BaseFragment implements NotificationCenter
+             subtitleView.setTranslationX(icon == 0 ? dp(2) : 0);
+ 
+             iconBackground.setColor(iconColorTop, iconColorBottom);
+-            iconView.setImageResource(icon);
++            iconView.setImageResource(app.nebulagram.ui.NebulaSettingsIcons.telegramResource(icon));
+             titleView.setText(title);
+             subtitleView.setVisibility((twoLines = !TextUtils.isEmpty(subtitle)) ? View.VISIBLE : View.GONE);
+             subtitleView.setText(subtitle);
