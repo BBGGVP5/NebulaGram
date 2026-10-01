@@ -243,6 +243,7 @@ public final class NebulaDialog {
             }
             button.setText(label);
             button.setMinHeight(dp(48));
+            button.setMinimumHeight(dp(48));
             button.setSingleLine(false); button.setEllipsize(null);
             button.setPadding(dp(12), dp(10), dp(12), dp(10));
             button.setOnClickListener(v -> { sheet.dismiss(); if (listener != null) listener.onClick(sheet, which); });

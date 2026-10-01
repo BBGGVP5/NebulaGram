@@ -124,7 +124,8 @@ class CommunityCardCheck {
   before=controller.fullLoads;
   c.didReceivedNotification(7,1,new TLRPC.ChatFull(44,0));
   check(controller.fullLoads==before,"source refresh cannot request community metadata repeatedly");
-  controller.cachedSource=channel;
+  // Username indexes can retain a min peer while the ID cache has full metadata.
+  controller.cachedSource=new TLRPC.Chat(44,false);
   Card cached=new Card(1);cached.onAttachedToWindow();
   check(cached.card.peer==45&&cached.card.subtitle.equals("Community with 5 chats"),"recreated card displays cache before network reply");
   before=cached.card.sets;network.deliver(cached.request,null);

@@ -62,7 +62,8 @@ public final class NebulaCommunityCard extends FrameLayout implements Notificati
         MessagesController cachedController = MessagesController.getInstance(account);
         Object cached = cachedController.getUserOrChat(username);
         if (cached instanceof TLRPC.Chat) {
-            TLRPC.Chat peer = (TLRPC.Chat) cached;
+            TLRPC.Chat peer = cachedController.getChat(((TLRPC.Chat) cached).id);
+            if (peer == null) peer = (TLRPC.Chat) cached;
             sourceChatId = peer.id;
             selectCommunity(peer);
             cachedController.loadFullChat(peer.id, fragment.getClassGuid(), false);
