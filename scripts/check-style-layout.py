@@ -98,6 +98,8 @@ java = '''class StyleLayoutCheck {
   home.scrollYOffset=0;home.searching=true;check(!home.nebulaIsHeaderExpanded(),"Search home centered");
   TitleBar bar=new TitleBar();
   app.nebulagram.ui.NebulaAppearance.center=true;
+  check(!bar.nebulaCenterTitle(),"Native sheet title must keep sliding alignment");
+  bar.parentFragment=new Object();
   check(bar.nebulaCenterTitle(),"Settings title not centered");
   org.telegram.ui.DialogsActivity dialogs=new org.telegram.ui.DialogsActivity();bar.parentFragment=dialogs;
   check(!bar.nebulaCenterTitle(),"Collapsed home title centered");dialogs.expanded=true;check(bar.nebulaCenterTitle(),"Expanded home title not centered");

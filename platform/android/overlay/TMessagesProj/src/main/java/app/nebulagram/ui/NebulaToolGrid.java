@@ -74,7 +74,10 @@ public final class NebulaToolGrid extends ViewGroup {
         boolean rtl = getLayoutDirection() == LAYOUT_DIRECTION_RTL;
         for (int i = 0; i < getChildCount(); i++) {
             int column = i % columns;
-            int x = rtl ? getWidth() - cellWidth - column * (cellWidth + gap) : column * (cellWidth + gap);
+            int count = Math.min(columns, getChildCount() - (i / columns) * columns);
+            int inset = (getWidth() - count * cellWidth - (count - 1) * gap) / 2;
+            int x = rtl ? getWidth() - inset - cellWidth - column * (cellWidth + gap)
+                    : inset + column * (cellWidth + gap);
             getChildAt(i).layout(x, y, x + cellWidth, y + rowHeights[i / columns]);
             if (column == columns - 1) y += rowHeights[i / columns] + gap;
         }

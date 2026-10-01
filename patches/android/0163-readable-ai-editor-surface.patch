@@ -1,0 +1,61 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
+index 916ecec..8e38f32 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
+@@ -654,6 +654,8 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
+     }
+ 
+     private boolean nebulaCenterTitle() {
++        // Native sheet headers own their sliding title position.
++        if (parentFragment == null) return false;
+         if ((!nebulaHomeTabsGlass && !app.nebulagram.ui.NebulaAppearance.centerHome())
+                 || (isSearchFieldVisible && !nebulaHomeTabsGlass)
+                 || (getActionModeFactor() != 0 && !nebulaHomeTabsGlass)) return false;
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/BottomSheet.java b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/BottomSheet.java
+index a058f1b..37caff7 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/BottomSheet.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/BottomSheet.java
+@@ -1328,6 +1328,9 @@ public class BottomSheet extends Dialog implements BaseFragment.AttachedSheet {
+         setOverlayNavBarColor(navBarColor = bgColor);
+     }
+ 
++    /** Dense text editors can keep an opaque native surface. */
++    protected boolean useNebulaSheetGlass() { return true; }
++
+     @Override
+     protected void onCreate(Bundle savedInstanceState) {
+         super.onCreate(savedInstanceState);
+@@ -1389,7 +1392,7 @@ public class BottomSheet extends Dialog implements BaseFragment.AttachedSheet {
+             containerView.setBackgroundDrawable(shadowDrawable);
+             containerView.setPadding(backgroundPaddingLeft, (applyTopPadding ? dp(8) : 0) + backgroundPaddingTop - 1, backgroundPaddingLeft, (applyBottomPadding ? dp(8) : 0));
+         }
+-        if (app.nebulagram.ui.NebulaMenuStyle.enabled()
++        if (useNebulaSheetGlass() && app.nebulagram.ui.NebulaMenuStyle.enabled()
+                 && !(shadowDrawable instanceof app.nebulagram.ui.NebulaSheetDrawable)) {
+             android.app.Activity owner = AndroidUtilities.findActivity(getContext());
+             if (owner != null) {
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/AIEditorAlert.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/AIEditorAlert.java
+index f25a5e7..a9aaeee 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Components/AIEditorAlert.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/AIEditorAlert.java
+@@ -150,6 +150,9 @@ public class AIEditorAlert extends BottomSheetWithRecyclerListView implements No
+ 
+     private final FrameLayout bulletinContainer;
+ 
++    @Override
++    protected boolean useNebulaSheetGlass() { return false; }
++
+     public AIEditorAlert(Context context, Theme.ResourcesProvider resourcesProvider) {
+         super(context, null, true, false, false, false, ActionBarType.SLIDING, resourcesProvider);
+ 
+@@ -288,7 +291,9 @@ public class AIEditorAlert extends BottomSheetWithRecyclerListView implements No
+         headerMoveTop = dp(12);
+         topPadding = 0.35f;
+ 
+-        setBackgroundColor(getThemedColor(Theme.key_windowBackgroundGray));
++        setBackgroundColor(getThemedColor(Theme.key_windowBackgroundGray) | 0xFF000000);
++        actionBar.setBackgroundColor(getThemedColor(Theme.key_windowBackgroundGray) | 0xFF000000);
++        actionBar.setTitleRightMargin(dp(62));
+ 
+         buttonContainer = new LinearLayout(context);
+         buttonContainer.setOrientation(LinearLayout.HORIZONTAL);

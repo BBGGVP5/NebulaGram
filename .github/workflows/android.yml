@@ -208,6 +208,7 @@ jobs:
           python3 scripts/check-navigation-preview.py
           python3 scripts/check-tool-layout.py
           python3 scripts/check-dialogs.py
+          python3 scripts/check-editor-surface.py vendor/telegram-android
           python3 scripts/check-translation-lift.py vendor/telegram-android
           python3 scripts/check-feature-policy.py
           python3 scripts/check-chat-native.py vendor/telegram-android

@@ -114,3 +114,16 @@ Files: Android overlay `NebulaDialog.java`, `NebulaRoundCamera.java`; `scripts/c
 - [ ] Publish the exact changed source paths, verify and deliver a new APK with version, native libraries and matching signer. Record device appearance as unverified until the user tests it.
 
 Local verification: the actual dialog builder and round-camera source pass callback, dismissal, accessible selection and two Telegram-palette fixtures. All 162 tool-grid cases pass; dialog/button/grid compile against SDK 36. Private-feature, AI availability (65 cases), AI chat/cancellation, settings presentation, theme restoration (40,033 cases) and feature-policy checks pass. APK compilation and artifact verification remain pending.
+
+Native application run `36898324493` passed for `6fbb932` (build 1000284), including actual dialog callbacks and full compilation. A final API review found that AlertDialog custom-view offset is already expressed in dp and converted by LayoutHelper; supplying `dp(12)` scaled it twice. Runtime `5e07891ee58c39b2173a0bad61e75adae9a650c0` keeps the native 12dp default. The enhanced actual-builder fixture runs densities 1/2/2.75 and fails against 6fbb932, then passes against 5e07891. Final APK run `36901692944` is pending; duplicate branch run `36901692850` was cancelled.
+
+## Follow-up: centered tool rows, language selection and readable AI editor
+
+Files: Android overlay `NebulaToolGrid.java`, `NebulaMessageToolsFragment.java`; native `AIEditorAlert.java`, `BottomSheet.java`, `ActionBar.java` in scratch only, exported as patch 0163; layout/editor checks and CI.
+
+- [x] Center every partial tool row with equal edge space in both layout directions. Keep at most three columns and the existing narrow-screen/large-font fallback. Expand actual geometry coverage to counts 1–8 and assert row centering before implementing the change.
+- [x] Replace the free-text result language with a labelled selector using Telegram's localized language catalog and stable language codes. Reuse the shared dimmed dialog for selection, preserve all actions and cancellation; pass a language code to AI requests instead of arbitrary text.
+- [x] Give native AI editor an opaque surface from its Telegram resources provider. Add a per-sheet glass opt-out so editor readability does not change other sheet preferences. Prevent the home-title centering preference from interfering with a native sliding sheet header, and reserve the close control's width.
+- [ ] Execute regression fixtures against actual methods, validate ordered native patches, compile Android, and verify the final APK. Preserve the centered/dimmed Telegram dialogs requested earlier in this turn.
+
+The new centering assertion failed against the previous grid and passes across 432 actual-method geometry cases. The actual chooser callback preserves localized/native names and stable codes, cancels prior work before changing language, and ignores destroyed hosts. Native editor surface/header methods pass opaque dark/light/translucent-palette and density checks; existing home/chat/header/style and AI/settings fixtures pass. All 158 ordered native patches apply in a disposable tree, leaving vendor untouched. SDK 36 dialog/button/grid compilation passes. Final application compilation and artifact verification remain pending.
