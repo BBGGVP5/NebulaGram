@@ -221,11 +221,24 @@ public final class NebulaZoomSlider extends View {
                 float zoom = Math.min(maximum, (float) (minimum * Math.pow(2, index / 8f)));
                 float x = xForZoom(zoom);
                 if (x < capsule.left + dp(16) || x > capsule.right - dp(16)) continue;
-                boolean major = index % 8 == 0 || index == ticks;
-                paint.setColor(major ? accent : ink);
-                paint.setAlpha(major ? alpha : Math.round(alpha * .65f));
-                paint.setStrokeWidth(dp(major ? 2 : 1));
-                canvas.drawLine(x, middle - dp(13), x, middle + dp(major ? 5 : 1), paint);
+                boolean nearMark = false;
+                for (float value : rulerMarks) {
+                    if (Math.abs(xForZoom(value) - x) < dp(3)) { nearMark = true; break; }
+                }
+                if (nearMark) continue;
+                paint.setColor(ink);
+                paint.setAlpha(Math.round(alpha * .65f));
+                paint.setStrokeWidth(dp(1));
+                canvas.drawLine(x, middle - dp(13), x, middle - dp(3), paint);
+            }
+            paint.setColor(accent);
+            paint.setAlpha(alpha);
+            paint.setStrokeWidth(dp(2));
+            for (float value : rulerMarks) {
+                float x = xForZoom(value);
+                if (x >= capsule.left + dp(16) && x <= capsule.right - dp(16)) {
+                    canvas.drawLine(x, middle - dp(13), x, middle - dp(1), paint);
+                }
             }
             canvas.restore();
             paint.setTextAlign(Paint.Align.CENTER);
@@ -290,7 +303,7 @@ public final class NebulaZoomSlider extends View {
     private void drawMark(Canvas canvas, String label, float zoom, RectF capsule, float middle) {
         float x = xForZoom(zoom);
         if (x >= capsule.left + dp(20) && x <= capsule.right - dp(20)) {
-            canvas.drawText(label, x, middle + dp(16) - paint.getFontMetrics().descent, paint);
+            canvas.drawText(label, x, middle + dp(19) - paint.getFontMetrics().descent, paint);
         }
     }
 

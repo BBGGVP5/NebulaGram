@@ -16,7 +16,8 @@ public final class NebulaAttachmentButton extends ImageView {
 
     public void refreshStyle() {
         boolean separate = style != null && style.isActive();
-        super.setAlpha(separate ? 1f : nativeAlpha);
+        // The native delete animation owns this position until its panel closes.
+        super.setAlpha(style != null && style.ownsRecordingIsland() ? 0f : separate ? 1f : nativeAlpha);
         super.setScaleX(separate ? 1f : nativeScaleX);
         super.setScaleY(separate ? 1f : nativeScaleY);
         super.setTranslationX(separate ? 0f : nativeTranslationX);

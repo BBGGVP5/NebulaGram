@@ -1,0 +1,37 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
+index db47a28..c504b9a 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
+@@ -9796,7 +9796,9 @@ public class ChatActivityEnterView extends FrameLayout implements
+     }
+ 
+     protected void isRecordingStateChanged() {
+-
++        if (attachButton instanceof app.nebulagram.ui.NebulaAttachmentButton) {
++            ((app.nebulagram.ui.NebulaAttachmentButton) attachButton).refreshStyle();
++        }
+     }
+ 
+     private void createRecordPanel() {
+@@ -14589,7 +14591,7 @@ public class ChatActivityEnterView extends FrameLayout implements
+         boolean nebulaRecordingIslands = nebulaRecordingSupported && app.nebulagram.ui.NebulaAppearance.iosComposer();
+         if (recordTimerView != null) {
+             MarginLayoutParams timerParams = (MarginLayoutParams) recordTimerView.getLayoutParams();
+-            int margin = dp(nebulaRecordingIslands ? 22 : 6);
++            int margin = dp(nebulaRecordingIslands ? 30 : 6);
+             if (timerParams.leftMargin != margin) {
+                 timerParams.leftMargin = margin;
+                 recordTimerView.forceLayout();
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/InstantCameraView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/InstantCameraView.java
+index 6c39523..7c0369f 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Components/InstantCameraView.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/InstantCameraView.java
+@@ -326,7 +326,7 @@ public class InstantCameraView extends InstantCameraViewBase implements Notifica
+         nebulaZoomSlider = new NebulaZoomSlider(context, this::applyNebulaZoom, resourcesProvider);
+         nebulaZoomSlider.setVisibility(View.GONE);
+         FrameLayout.LayoutParams zoomParams = new FrameLayout.LayoutParams(LayoutParams.MATCH_PARENT, dp(96), Gravity.BOTTOM | Gravity.CENTER_HORIZONTAL);
+-        zoomParams.bottomMargin = dp(104);
++        zoomParams.bottomMargin = dp(116);
+         addView(nebulaZoomSlider, zoomParams);
+ 
+ 

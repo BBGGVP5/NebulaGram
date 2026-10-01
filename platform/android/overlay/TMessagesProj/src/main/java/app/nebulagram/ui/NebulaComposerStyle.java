@@ -31,6 +31,11 @@ public final class NebulaComposerStyle {
 
     public boolean isActive() { return active; }
 
+    public boolean ownsRecordingIsland() {
+        return recordingSupported && NebulaAppearance.iosComposer()
+                && (visiblePanel(recordPanel) || visiblePanel(recordedPanel));
+    }
+
     public void createSurfaces(BlurredBackgroundDrawableViewFactory factory, View drawingParent,
                                BlurredBackgroundColorProvider provider) {
         // Hardware canvases retain RenderNode references until frame playback.
@@ -48,6 +53,7 @@ public final class NebulaComposerStyle {
         this.recordPanel = recordPanel;
         this.recordedPanel = recordedPanel;
         recordingSupported = supported;
+        if (attachment instanceof NebulaAttachmentButton) ((NebulaAttachmentButton) attachment).refreshStyle();
     }
 
     public void setPreview(View replyPreview, View replyClose) {

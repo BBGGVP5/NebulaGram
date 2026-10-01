@@ -53,10 +53,11 @@ class ZoomColorsCheck {
  static class Glass {void setBounds(int l,int t,int r,int b){}void draw(Canvas c){}}
  static class Canvas {
   List<Integer> circles=new ArrayList<>(),texts=new ArrayList<>(),lines=new ArrayList<>(),backgrounds=new ArrayList<>();
+  List<float[]> tickPositions=new ArrayList<>(),labelPositions=new ArrayList<>();
   void drawRoundRect(RectF rect,float a,float b,Paint p){if(p.shader instanceof LinearGradient)backgrounds.add(((LinearGradient)p.shader).first);}
   void drawCircle(float x,float y,float radius,Paint p){circles.add(p.color);}
-  void drawText(String text,float x,float y,Paint p){texts.add(p.color);}
-  void drawLine(float x,float y,float a,float b,Paint p){lines.add(p.color);}
+  void drawText(String text,float x,float y,Paint p){texts.add(p.color);labelPositions.add(new float[]{x,y,p.size});}
+  void drawLine(float x,float y,float a,float b,Paint p){lines.add(p.color);tickPositions.add(new float[]{x,y,b,p.color&0xffffff});}
   void save(){}void restore(){}void clipRect(float l,float t,float r,float b){}
  }
  static class Parent {protected void onDraw(Canvas c){}}
@@ -64,7 +65,7 @@ class ZoomColorsCheck {
   Paint paint=new Paint();float current=1.4f,minimum=1,maximum=2,expansion;float[] cameraStops={1,2},rulerMarks={1,2};Glass glass;
   Theme.ResourcesProvider resourcesProvider;
   Slider(Theme.ResourcesProvider p){resourcesProvider=p;}
-  int getWidth(){return 352;}int getHeight(){return 96;}static int dp(float f){return Math.round(f);}
+  int width=352;static float density=1;int getWidth(){return Math.round(width*density);}int getHeight(){return dp(96);}static int dp(float f){return Math.round(f*density);}
   METHODS
  }
  static boolean hasRgb(List<Integer> values,int expected){for(int c:values)if((c&0xffffff)==(expected&0xffffff))return true;return false;}
@@ -80,6 +81,18 @@ class ZoomColorsCheck {
     if(progress>0){check(hasRgb(canvas.lines,palette[1])&&hasRgb(canvas.lines,palette[2]),"ruler majors, indicator and minor ticks must use chat palette");}
    }
   }
+  slider.expansion=1;slider.minimum=.6f;slider.maximum=30;slider.rulerMarks=new float[]{.6f,1,2,3.2f,5,10,20,30};
+  for(float density:new float[]{1,1.5f,3})for(int width:new int[]{280,352,480})for(float zoom:slider.rulerMarks){
+   Slider.density=density;slider.width=width;slider.current=zoom;Canvas canvas=new Canvas();slider.onDraw(canvas);
+   for(float[] label:canvas.labelPositions){
+    boolean aligned=false;
+    for(float[] tick:canvas.tickPositions)if(Math.abs(tick[0]-label[0])<.01f&&Math.abs(tick[2]-(slider.getHeight()/2f-Slider.dp(1)))<.01f){
+     aligned=true;check(label[1]-label[2]*.75f-tick[2]>=Slider.dp(5),"label must sit below its exact major tick with a readable gap");
+    }
+    check(aligned,"every ruler label, including 5x and fractional optics, needs its own correctly aligned major tick");
+   }
+  }
+  Slider.density=1;
   slider.resourcesProvider=null;slider.expansion=0;Canvas fallback=new Canvas();slider.onDraw(fallback);
   check(hasRgb(fallback.circles,Theme.global[1]),"null provider retains native global fallback");
   System.out.println("Zoom palette: actual draw methods follow two chat themes in compact/expanded modes; global fallback passed");

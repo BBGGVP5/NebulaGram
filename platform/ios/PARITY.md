@@ -3,7 +3,7 @@
 This inventory distinguishes **wired source** from native build and device acceptance. A setting with a validated import format is not necessarily functional on iOS.
 
 ## Verification and delivery
-- Android uses Telegram 12.10.5. The 154 ordered Android patches apply to the pinned tree. APK run `36827014454` passed; downloaded build `1000265` has verified v1/v2 signatures and arm64-v8a libraries. Physical-device checks remain pending.
+- Android uses Telegram 12.10.5. The 155 ordered Android patches apply to the pinned tree. Last verified APK run `36827014454`, build `1000265`, has verified v1/v2 signatures and arm64-v8a libraries. The user's device report accepts its general appearance but identifies ruler-label alignment, camera-control spacing, timer inset and cancel/delete overlap; patch 0160 fixes those follow-up issues. The replacement APK still needs build verification.
 - iOS uses Telegram 12.9.2. The 59 ordered iOS patches and overlay pass bootstrap checks. All 65 Swift contract tests and simulator SDK artwork checks passed in `36809260468`; full native module compilation is running in `36809607587`. A signed build and physical-device checks remain pending.
 - Native iOS hooks now include archive visibility, story auto-archiving, chat interaction vibration, snowflake rendering and an experimental memory screen. These are source integrations, not completed device acceptance.
 - Remaining Cherrygram adaptations on iOS include unknown-contact notification muting, mention suppression, a custom Saved Messages target, whole-reply quoting, per-chat wallpaper gating, deletion biometrics, and separate smooth-fade controls. Android Predictive Back has no iOS equivalent.

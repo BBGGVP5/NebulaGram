@@ -10,6 +10,13 @@
 
 ## Task 1: themed geometry and continuous input
 
+### Follow-up: recording control spacing and cancellation
+
+- [ ] Align major ruler ticks with the exact values in `rulerMarks`, skip nearby minor ticks and place labels below their matching marks. Extend the actual Canvas fixture to verify every visible label has a tick at its x-coordinate, including 5x and fractional optical stops.
+- [ ] Raise the 96dp zoom host bottom margin from 104dp to 116dp, leaving another 12dp between the ruler and camera/flash island. Increase the recording timer left margin from 22dp to 30dp.
+- [ ] Let the recording/preview island exclusively own the attachment position until its native panel is hidden. `NebulaAttachmentButton.refreshStyle()` must hide the paperclip while preserving its native animation properties, then restore it when cancellation completes. Test recording, fading, preview and restored composer states at all existing densities and widths.
+- [ ] Export the native delta after committing patch 0159 as a scratch baseline; validate the ordered Android series, publish the changes and verify the new APK.
+
 Files: `platform/android/overlay/TMessagesProj/src/main/java/app/nebulagram/ui/NebulaZoomSlider.java`, scratch `build/android-validation/.../InstantCameraView.java`, `scripts/check-camera-zoom.py`.
 
 - [x] Read accent/text/background via `Theme.getColor(key, resourcesProvider)` with the provider supplied to the constructor by InstantCameraView.

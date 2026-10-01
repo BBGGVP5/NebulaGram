@@ -9,6 +9,18 @@ import subprocess
 
 root = Path(__file__).resolve().parent.parent
 work = root / 'build/chat-fixes/composer-check'
+native_tree = root / 'build/android-validation'
+if not native_tree.exists():
+    native_tree = root / 'vendor/telegram-android'
+native = (native_tree / 'TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java').read_text(encoding='utf-8')
+start = native.index('    protected void isRecordingStateChanged()')
+brace = native.index('{', start)
+depth, end = 1, brace + 1
+while depth:
+    depth += (native[end] == '{') - (native[end] == '}')
+    end += 1
+recording_hook = native[start:end]
+
 stubs = {
 'app/nebulagram/ui/NebulaTheme.java': 'package app.nebulagram.ui; public class NebulaTheme {public static boolean enabled=true;public static boolean materialYouEnabled(){return enabled;}}',
 
@@ -55,7 +67,7 @@ public static class MarginLayoutParams {public int width,height,leftMargin,right
 'org/telegram/ui/ActionBar/ActionBar.java': 'package org.telegram.ui.ActionBar; public class ActionBar {public SimpleTextView title=new SimpleTextView();public SimpleTextView getTitleTextView(){return title;} public SimpleTextView getTitleTextView2(){return null;} public void setTitleAnimated(CharSequence text,boolean bottom,long duration,Object interpolator){title.setText(text);} public void setTitle(CharSequence text,android.graphics.drawable.Drawable icon){title.setText(text);}public void requestLayout(){} public boolean floating,hidden,savedClassic;public void setNebulaClassicSavedHeader(boolean v){savedClassic=v;}public void setNebulaFloatingChatHeader(boolean a,boolean b,boolean c){floating=a;hidden=b;}}',
 'org/telegram/ui/ActionBar/ActionBarMenuItem.java': 'package org.telegram.ui.ActionBar; public class ActionBarMenuItem {public void setIcon(android.graphics.drawable.Drawable d){}}',
 'org/telegram/ui/Components/AvatarDrawable.java': 'package org.telegram.ui.Components; public class AvatarDrawable extends android.graphics.drawable.Drawable {public static int AVATAR_TYPE_SAVED=1;public void setAvatarType(int i){} public void draw(android.graphics.Canvas c){}}',
-'org/telegram/ui/Components/ChatActivityEnterView.java': 'package org.telegram.ui.Components; public class ChatActivityEnterView extends android.widget.FrameLayout {}',
+'org/telegram/ui/Components/ChatActivityEnterView.java': 'package org.telegram.ui.Components; public class ChatActivityEnterView extends android.widget.FrameLayout {public android.view.View attachButton; public void recordingStateChanged(){isRecordingStateChanged();}' + recording_hook + '}',
 'org/telegram/ui/Components/blur3/BlurredBackgroundDrawableViewFactory.java': 'package org.telegram.ui.Components.blur3; public class BlurredBackgroundDrawableViewFactory {public org.telegram.ui.Components.blur3.drawable.BlurredBackgroundDrawable create(android.view.View view, org.telegram.ui.Components.blur3.drawable.color.BlurredBackgroundColorProvider provider) {return new org.telegram.ui.Components.blur3.drawable.BlurredBackgroundDrawable();}}',
 'org/telegram/ui/Components/blur3/drawable/color/BlurredBackgroundColorProvider.java': 'package org.telegram.ui.Components.blur3.drawable.color; public class BlurredBackgroundColorProvider {}',
 'org/telegram/ui/Components/blur3/drawable/BlurredBackgroundDrawable.java': '''package org.telegram.ui.Components.blur3.drawable; import android.graphics.*; public class BlurredBackgroundDrawable {
@@ -143,6 +155,11 @@ for(boolean previewMode:new boolean[]{false,true}) {
  recordingPanel.setVisibility(previewMode?View.GONE:View.VISIBLE);
  recordedPanel.setVisibility(previewMode?View.VISIBLE:View.GONE);
  style.setRecordingPanels(recordingPanel,recordedPanel,true);
+ attach.refreshStyle();
+ check(attach.getAlpha()==0&&!attach.dispatchTouchEvent(new android.view.MotionEvent()),"attachment must not overlap or receive touches beneath recording/delete island");
+ recordingPanel.setAlpha(.2f);attach.setAlpha(1);
+ check(attach.getAlpha()==0,"restoring native icons must not reveal paperclip during delete fade");
+ recordingPanel.setAlpha(1);
  style.restoreInsets();style.prepare(host,editor,host.getWidth(),false);
  bg.nodes.clear();bg.surfaces.clear();check(style.draw(new Canvas(),bg,root),"recording falls back to joined pill");
  check(bg.surfaces.size()==2&&bg.nodes.get(0)!=bg.nodes.get(1),"recording nodes must be distinct");
@@ -153,7 +170,10 @@ for(boolean previewMode:new boolean[]{false,true}) {
  check(circle.bottom==dp(500)+h&&main.top==dp(500),"recording IME translation");
 }
 recordingPanel.setVisibility(View.GONE);recordedPanel.setVisibility(View.GONE);
+host.attachButton=attach;host.recordingStateChanged();
+check(attach.getAlpha()==1&&attach.dispatchTouchEvent(new android.view.MotionEvent()),"attachment must restore after recording/preview ends");
 style.setRecordingPanels(recordingPanel,recordedPanel,false);
+attach.setAlpha(0); // Restore the native typing state used by the fallback test.
 check(!style.draw(new Canvas(),bg,root),"unsupported contexts must use native fallback");
 style.prepare(host,editor,host.getWidth(),true);bg.surfaces.clear();bg.alphas.clear();style.draw(new Canvas(),bg,root);
 if(height==92)check(bg.surfaces.get(3).width()==dp(32),"reply cancel not separate");

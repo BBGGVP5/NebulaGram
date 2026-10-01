@@ -3,6 +3,7 @@ from pathlib import Path
 import subprocess
 import tempfile
 import sys
+import re
 
 root = Path(__file__).resolve().parent.parent
 overlay = root / 'platform/android/overlay/TMessagesProj/src/main/java/app/nebulagram/ui'
@@ -25,6 +26,16 @@ geometry = '\n'.join(method(slider, signature) for signature in [
     'private float compactWidth()', 'private float widthForProgress()', 'private RectF capsuleBounds()',
     'private float pixelsPerOctave()', 'private float xForZoom(float zoom)'])
 legacy = (tree / 'TMessagesProj/src/main/java/org/telegram/messenger/camera/CameraSession.java').read_text(encoding='utf-8')
+instant = (tree / 'TMessagesProj/src/main/java/org/telegram/ui/Components/InstantCameraView.java').read_text(encoding='utf-8')
+composer = (tree / 'TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java').read_text(encoding='utf-8')
+zoom_margin = int(re.search(r'zoomParams.bottomMargin = dp\((\d+)\)', instant).group(1))
+buttons_height, buttons_margin = map(int, re.search(r'addView\(buttonsLayout, LayoutHelper.createFrame\(LayoutHelper.WRAP_CONTENT, (\d+), Gravity.CENTER_HORIZONTAL \| Gravity.BOTTOM, 0, 0, 0, (\d+)\)', instant).groups())
+timer_margin = int(re.search(r'int margin = dp\(nebulaRecordingIslands \? (\d+) : 6\)', composer).group(1))
+for density in (1, 1.5, 3):
+    dp = lambda value: int(value * density + .5)
+    assert dp(zoom_margin) + dp(24) - dp(buttons_height) - dp(buttons_margin) >= dp(36), 'ruler/camera island gap'
+    assert dp(13) + dp(28) + dp(timer_margin) - dp(55) >= dp(16), 'record timer left inset'
+
 legacy_methods = '\n'.join(method(legacy, signature) for signature in [
     'private java.util.List<Integer> zoomRatios()', 'public float getMaxZoomFactor()',
     'public float getZoomFactor()', 'public void setZoomFactor(float factor)',
