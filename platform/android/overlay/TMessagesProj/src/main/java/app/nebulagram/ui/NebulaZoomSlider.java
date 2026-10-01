@@ -306,8 +306,8 @@ public final class NebulaZoomSlider extends View {
         }
     }
     private float presetAt(float x) {
-        float[] values = cameraStops; float left = (getWidth() - compactWidth()) / 2f;
-        int index = Math.min(values.length - 1, Math.max(0, (int) ((x - left) * values.length / compactWidth())));
+        float[] values = cameraStops; float width = widthForProgress(); float left = (getWidth() - width) / 2f;
+        int index = Math.min(values.length - 1, Math.max(0, (int) ((x - left) * values.length / width)));
         return values[index];
     }
 

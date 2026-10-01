@@ -182,6 +182,11 @@ class CameraZoomCheck {
   check(requests==1&&r.requests.size()==requests&&r.current>1,"drag stays continuous and does not submit an extra preset on release");
   r.expanded=false;r.requests.clear();r.onTouchEvent(new MotionEvent(MotionEvent.ACTION_DOWN,x));r.onTouchEvent(new MotionEvent(MotionEvent.ACTION_CANCEL,x));
   check(r.requests.isEmpty()&&r.pending==null,"cancelled tap never changes zoom");
+  r=new Ruler();r.setRange(1,30);r.cameraStops=new float[]{1,2,5,30};
+  for(float expansion:new float[]{0,.5f,.9f})for(int i=0;i<r.cameraStops.length;i++)for(float part:new float[]{.15f,.5f,.85f}){
+   r.expansion=expansion;float width=r.widthForProgress();float touchX=(r.getWidth()-width)/2+width/r.cameraStops.length*(i+part);
+   close(r.presetAt(touchX),r.cameraStops[i]);
+  }
   r=new Ruler();r.setRange(Float.NaN,100);close(r.maximum,2);
   Legacy l=new Legacy();close(l.getMaxZoomFactor(),20);
   for(float zoom:new float[]{1,1.2f,2,4,20}){l.setZoomFactor(zoom);close(l.getZoomFactor(),zoom);}
