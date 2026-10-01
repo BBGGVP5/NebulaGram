@@ -1,0 +1,102 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/camera/CameraSession.java b/TMessagesProj/src/main/java/org/telegram/messenger/camera/CameraSession.java
+index 61a4ded..f6237b4 100644
+--- a/TMessagesProj/src/main/java/org/telegram/messenger/camera/CameraSession.java
++++ b/TMessagesProj/src/main/java/org/telegram/messenger/camera/CameraSession.java
+@@ -32,7 +32,7 @@ import java.util.List;
+ public class CameraSession {
+ 
+     public CameraInfo cameraInfo;
+-    private String currentFlashMode;
++    private volatile String currentFlashMode;
+     private OrientationEventListener orientationEventListener;
+     private int lastOrientation = -1;
+     private int lastDisplayOrientation = -1;
+@@ -48,11 +48,11 @@ public class CameraSession {
+     private int jpegOrientation;
+     private boolean sameTakePictureOrientation;
+     private boolean flipFront = true;
+-    private float currentZoom;
++    private volatile float currentZoom;
+     private boolean optimizeForBarcode;
+     private boolean useTorch;
+     private boolean isRound;
+-    private boolean destroyed;
++    private volatile boolean destroyed;
+ 
+     public ArrayList<String> availableFlashModes = new ArrayList<>();
+ 
+@@ -140,7 +140,7 @@ public class CameraSession {
+         }
+         currentFlashMode = mode;
+         if (isRound) {
+-            configureRoundCamera(false);
++            scheduleRoundCameraUpdate();
+         } else {
+             configurePhotoCamera();
+             SharedPreferences sharedPreferences = ApplicationLoader.applicationContext.getSharedPreferences("camera", Activity.MODE_PRIVATE);
+@@ -151,7 +151,7 @@ public class CameraSession {
+     public void setCurrentFlashMode(String mode) {
+         currentFlashMode = mode;
+         if (isRound) {
+-            configureRoundCamera(false);
++            scheduleRoundCameraUpdate();
+         } else {
+             configurePhotoCamera();
+             SharedPreferences sharedPreferences = ApplicationLoader.applicationContext.getSharedPreferences("camera", Activity.MODE_PRIVATE);
+@@ -165,7 +165,7 @@ public class CameraSession {
+             currentFlashMode = enabled ? Camera.Parameters.FLASH_MODE_TORCH : Camera.Parameters.FLASH_MODE_OFF;
+             if (!TextUtils.equals(beforeFlashMode, currentFlashMode)) {
+                 if (isRound) {
+-                    configureRoundCamera(false);
++                    scheduleRoundCameraUpdate();
+                 } else {
+                     configurePhotoCamera();
+                 }
+@@ -503,7 +503,7 @@ public class CameraSession {
+     }
+ 
+     public void setZoomFactor(float factor) {
+-        if (Float.isNaN(factor) || Float.isInfinite(factor)) return;
++        if (destroyed || Float.isNaN(factor) || Float.isInfinite(factor)) return;
+         java.util.List<Integer> ratios = zoomRatios();
+         if (ratios == null || ratios.size() < 2) return;
+         int best = 0;
+@@ -515,17 +515,37 @@ public class CameraSession {
+     }
+ 
+     public void setZoom(float value) {
++        if (destroyed || Float.isNaN(value) || Float.isInfinite(value)) return;
+         currentZoom = value;
+         if (isVideo && Camera.Parameters.FLASH_MODE_ON.equals(currentFlashMode)) {
+             useTorch = true;
+         }
+         if (isRound) {
+-            configureRoundCamera(false);
++            scheduleRoundCameraUpdate();
+         } else {
+             configurePhotoCamera();
+         }
+     }
+ 
++    private final Object roundUpdateLock = new Object();
++    private boolean roundUpdateQueued;
++    private void scheduleRoundCameraUpdate() {
++        if (destroyed) return;
++        synchronized (roundUpdateLock) {
++            if (roundUpdateQueued) return;
++            roundUpdateQueued = true;
++        }
++        try {
++            CameraController.getInstance().threadPool.execute(() -> {
++                synchronized (roundUpdateLock) { roundUpdateQueued = false; }
++                if (!destroyed) configureRoundCamera(false);
++            });
++        } catch (RuntimeException error) {
++            synchronized (roundUpdateLock) { roundUpdateQueued = false; }
++            FileLog.e(error);
++        }
++    }
++
+     protected void configureRecorder(int quality, MediaRecorder recorder) {
+         updateCameraInfo();
+ 

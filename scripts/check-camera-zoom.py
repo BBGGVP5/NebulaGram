@@ -26,7 +26,8 @@ geometry = '\n'.join(method(slider, signature) for signature in [
 legacy = (tree / 'TMessagesProj/src/main/java/org/telegram/messenger/camera/CameraSession.java').read_text(encoding='utf-8')
 legacy_methods = '\n'.join(method(legacy, signature) for signature in [
     'private java.util.List<Integer> zoomRatios()', 'public float getMaxZoomFactor()',
-    'public float getZoomFactor()', 'public void setZoomFactor(float factor)'])
+    'public float getZoomFactor()', 'public void setZoomFactor(float factor)',
+    'public void setZoom(float value)', 'private void scheduleRoundCameraUpdate()', 'public void setTorchEnabled(boolean enabled)'])
 
 java = r'''
 import app.nebulagram.ui.NebulaZoomCapabilities;
@@ -62,16 +63,31 @@ class CameraZoomCheck {
  }
  static class Camera {
   static class Parameters {
+   static String FLASH_MODE_ON="on",FLASH_MODE_TORCH="torch",FLASH_MODE_OFF="off";
    boolean isZoomSupported(){return true;}
    List<Integer> getZoomRatios(){return Arrays.asList(100,120,200,400,2000);}
   }
   Parameters getParameters(){return new Parameters();}
  }
  static class FileLog {static void e(Exception e){throw new AssertionError(e);}}
+ static class TextUtils {static boolean equals(String a,String b){return Objects.equals(a,b);}}
+ static class Worker {
+  boolean running;List<Runnable> queue=new ArrayList<>();
+  void execute(Runnable r){queue.add(r);}
+  void drain(){running=true;while(!queue.isEmpty())queue.remove(0).run();running=false;}
+ }
+ static class CameraController {
+  static CameraController instance=new CameraController();Worker threadPool=new Worker();
+  static CameraController getInstance(){return instance;}
+ }
  static class Legacy {
   static class Info {Camera camera=new Camera();}
   Info cameraInfo=new Info();float currentZoom;int maxZoom=4;java.util.List<Integer> cachedZoomRatios;
-  void setZoom(float v){currentZoom=v;}
+  boolean destroyed,isVideo=true,isRound=true,useTorch;String currentFlashMode="off",appliedFlash;
+  int configurations,photoConfigurations;float appliedZoom;
+  Object roundUpdateLock=new Object();boolean roundUpdateQueued;
+  void configureRoundCamera(boolean initial){check(CameraController.getInstance().threadPool.running,"Camera1 IPC ran on UI thread");configurations++;appliedZoom=getZoomFactor();appliedFlash=currentFlashMode;}
+  void configurePhotoCamera(){photoConfigurations++;}
   LEGACY
  }
  public static void main(String[] args) {
@@ -125,7 +141,15 @@ class CameraZoomCheck {
   r=new Ruler();r.setRange(Float.NaN,100);close(r.maximum,2);
   Legacy l=new Legacy();close(l.getMaxZoomFactor(),20);
   for(float zoom:new float[]{1,1.2f,2,4,20}){l.setZoomFactor(zoom);close(l.getZoomFactor(),zoom);}
+  Worker worker=CameraController.getInstance().threadPool;
+  check(l.configurations==0&&worker.queue.size()==1,"Camera1 input coalesces off UI");
+  l.setTorchEnabled(true);check(worker.queue.size()==1,"torch shares the camera queue");worker.drain();
+  check(l.configurations==1&&l.appliedFlash.equals("torch"),"latest zoom and flash applied together");close(l.appliedZoom,20);
   l.setZoomFactor(1.9f);close(l.getZoomFactor(),2);l.setZoomFactor(99);close(l.getZoomFactor(),20);
+  worker.drain();int configurations=l.configurations;l.setZoomFactor(99);check(worker.queue.isEmpty(),"same quantized zoom ignored");
+  l.setZoomFactor(4);l.destroyed=true;worker.drain();check(l.configurations==configurations,"Camera1 ignores work after destroy");
+  l.setZoomFactor(8);l.setTorchEnabled(false);check(worker.queue.isEmpty(),"destroyed Camera1 queues no hardware requests");
+  l=new Legacy();l.isRound=false;l.setZoom(.5f);check(l.photoConfigurations==1&&worker.queue.isEmpty(),"photo camera retains native synchronous path");
   System.out.println("Camera zoom: optical routing, 100x logical range, ratio table, pinch/ruler geometry passed");
  }
 }
