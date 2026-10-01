@@ -3,7 +3,7 @@
 This inventory distinguishes **wired source** from native build and device acceptance. A setting with a validated import format is not necessarily functional on iOS.
 
 ## Verification and delivery
-- Android uses Telegram 12.10.5. The 153 ordered Android patches apply to the pinned tree. APK run `36809260460` passed; downloaded build `1000256` has verified v1/v2 signatures and arm64-v8a libraries. Physical-device checks remain pending.
+- Android uses Telegram 12.10.5. The 154 ordered Android patches apply to the pinned tree. APK run `36827014454` passed; downloaded build `1000265` has verified v1/v2 signatures and arm64-v8a libraries. Physical-device checks remain pending.
 - iOS uses Telegram 12.9.2. The 59 ordered iOS patches and overlay pass bootstrap checks. All 65 Swift contract tests and simulator SDK artwork checks passed in `36809260468`; full native module compilation is running in `36809607587`. A signed build and physical-device checks remain pending.
 - Native iOS hooks now include archive visibility, story auto-archiving, chat interaction vibration, snowflake rendering and an experimental memory screen. These are source integrations, not completed device acceptance.
 - Remaining Cherrygram adaptations on iOS include unknown-contact notification muting, mention suppression, a custom Saved Messages target, whole-reply quoting, per-chat wallpaper gating, deletion biometrics, and separate smooth-fade controls. Android Predictive Back has no iOS equivalent.
@@ -147,6 +147,12 @@ This inventory distinguishes **wired source** from native build and device accep
 
 ## 2026-10-01: camera queue, recording islands and Community
 
-- Android uses a 36dp capsule without separate step buttons, separate front/rear presets, a fixed ruler indicator, and the native blur factory. Camera2 coalesces input on its own handler and reuses the request builder; Camera1 caches its ratio table, ignores redundant zoom indices, and coalesces round-video zoom/flash changes on the camera executor. Recording/delete controls have independent material surfaces and matching native insets. These Android camera/composer changes have not been ported to iOS.
+- Android uses a 48dp capsule without separate step buttons, separate front/rear presets, a fixed ruler indicator, the active chat ResourcesProvider and the native blur factory. Camera2 coalesces input on its own handler and reuses the request builder; Camera1 caches its ratio table, ignores redundant zoom indices, and coalesces round-video zoom/flash changes on the camera executor. Requested UI zoom is kept continuous rather than overwritten with Camera1's discrete factor. Lens transitions read one small preview and persist it off the UI thread. Recording/delete controls have independent material surfaces and matching native insets. These Android camera/composer changes have not been ported to iOS.
 - Both platforms consolidate project links into one Community destination. Android About and support screens no longer list every link directly; iOS settings and support open the same grouped destination.
 - Native iOS run 36814095192 passed for bb4b340, including the new Community changes: SettingsUI, PeerInfoScreen and folder modules compiled with Xcode 26.2 against the Telegram iOS 12.9.2 pin. All 202 published patch/overlay input hashes match its evidence. Subsequent commits through a9dc07d have identical iOS runtime inputs; no signed IPA/device acceptance is claimed.
+
+## 2026-10-01: native community correction pending destination
+
+- The user clarified that Community must be an actual Telegram community peer card, with its avatar, title, linked-chat count and native navigation. The existing four-link directory is an earlier interpretation, not completion of that clarification.
+- The real NebulaHub @username/t.me destination is pending user input. A local Android CommunityLinkView2 adapter passes metadata, account isolation and request/detach tests but is not connected or published yet. Pinned iOS has community peer/cached metadata and native ItemListPeerItem community rendering; no connected iOS native community card is claimed.
+- Android commit 42a34ac changes zoom/theme and support placement only. Its APK/native checks are separate from the unchanged iOS inputs validated by 36814095192. Android now has 154 ordered patches.
