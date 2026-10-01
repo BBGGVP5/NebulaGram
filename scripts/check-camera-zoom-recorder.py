@@ -19,6 +19,7 @@ def method(signature):
     return source[start:end]
 
 bridge = '\n'.join(method(signature) for signature in [
+    'private void saveLastCameraBitmap()',
     'private app.nebulagram.ui.NebulaZoomCapabilities nebulaAvailableCatalog()',
     'private float nebulaCurrentZoom()', 'private void updateNebulaZoomSlider()',
     'private void applyNebulaZoom(float factor)',
@@ -57,13 +58,41 @@ class RecorderZoomCheck {
   float getZoom(){return zoom;}float getMinZoom(){return 1;}float getMaxZoom(){return 10;}
   int getPreviewWidth(){return 384;}int getPreviewHeight(){return 384;}
  }
- static class CameraSession {float factor=1;float getZoomFactor(){return factor;}float getMaxZoomFactor(){return 10;}void setZoomFactor(float f){factor=f;}}
+ static class CameraSession {float factor=1;float getZoomFactor(){return factor;}float getMaxZoomFactor(){return 10;}void setZoomFactor(float f){factor=Math.round(f);}}
  static class ThreadBridge {
   int previewTransitions;Camera2Session current;
   void setCurrentSession(Camera2Session c){current=c;}
   void reinitForNewCamera(){previewTransitions++;}
  }
  static class Image {void setImageBitmap(Object bitmap){}void setAlpha(float a){}}
+ static class Bitmap {
+  static int nextId;final int id=++nextId;boolean blurred,black;
+  static class CompressFormat {static Object JPEG=new Object();}
+  int getPixel(int x,int y){return black?0:1;}
+  void compress(Object format,int quality,FileOutputStream stream){
+   if(!Utilities.globalQueue.running)Utilities.uiWrites++;
+   check(blurred,"thumbnail is blurred before being published");Utilities.written.add(id);
+  }
+ }
+ static class Texture {
+  int reads;boolean black;
+  Bitmap getBitmap(int width,int height){check(width==50&&height==50,"lens switch must not capture full-resolution textures");reads++;Bitmap b=new Bitmap();b.black=black;return b;}
+ }
+ static class File {File(Object root,String name){}}
+ static class FileOutputStream implements AutoCloseable {
+  FileOutputStream(File file){if(!Utilities.globalQueue.running)Utilities.uiWrites++;}
+  public void close(){}
+ }
+ static class ApplicationLoader {static Object getFilesDirFixed(){return new Object();}}
+ static class Writer {
+  boolean running;List<Runnable> tasks=new ArrayList<>();
+  void postRunnable(Runnable task){tasks.add(task);}
+  void drain(){running=true;while(!tasks.isEmpty())tasks.remove(0).run();running=false;}
+ }
+ static class Utilities {
+  static Writer globalQueue=new Writer();static List<Integer> written=new ArrayList<>();static int uiWrites;
+  static void blurBitmap(Bitmap bitmap,int radius){bitmap.blurred=true;}
+ }
  static class Slider {
   float min,max,current=1;float[] stops;int visibility;
   void setRange(float a,float b){min=a;max=b;}
@@ -78,12 +107,11 @@ class RecorderZoomCheck {
   NebulaZoomCapabilities catalog;
   Camera2Session camera2SessionCurrent=new Camera2Session("wide");Camera2Session[] camera2Sessions=new Camera2Session[2];
   CameraSession cameraSession=new CameraSession();ThreadBridge cameraThread=new ThreadBridge();
-  Image textureOverlayView=new Image();Object lastBitmap=new Object();Size[] previewSize=new Size[2];Slider nebulaZoomSlider=new Slider();
+  Image textureOverlayView=new Image();Bitmap lastBitmap=new Bitmap();Texture textureView=new Texture();Size[] previewSize=new Size[2];Slider nebulaZoomSlider=new Slider();
   Recorder(){
    Module u=new Module("ultra",.5f,1,4,false),w=new Module("wide",1,1,10,false),t=new Module("tele",3,1,20,false);
    catalog=new NebulaZoomCapabilities(Arrays.asList(u,w,t),w,Collections.emptyList());camera2Sessions[1]=camera2SessionCurrent;
   }
-  void saveLastCameraBitmap(){}
   NebulaZoomCapabilities nebulaCameraCatalog(boolean front){return catalog;}
   boolean isCameraSessionInitiated(){return useCamera2?camera2SessionCurrent!=null&&camera2SessionCurrent.isInitiated():true;}
   BRIDGE
@@ -99,7 +127,7 @@ class RecorderZoomCheck {
   r.applyNebulaZoom(2);ultra.complete();Camera2Session.finishClose();Camera2Session wide=r.camera2SessionCurrent;
   check(wide.cameraId.equals("wide"),"latest queued value routes to its final module");wide.complete();close(r.nebulaZoomSlider.current,2);
   r.applyNebulaZoom(5);Camera2Session.finishClose();r.recording=false;r.camera2SessionCurrent.complete();AndroidUtilities.timeOut();
-  check(r.nebulaZoomSlider.current==2,"late completion cannot change a stopped recorder");
+  check(r.nebulaZoomSlider.current==5,"late completion cannot change a stopped recorder's last requested zoom");
   r=new Recorder();r.applyNebulaZoom(5);Camera2Session.finishClose();Camera2Session failed=r.camera2SessionCurrent;AndroidUtilities.timeOut();Camera2Session.finishClose();
   check(failed.closed&&r.camera2SessionCurrent.cameraId.equals("wide"),"failed module restores prior camera");
   r.camera2SessionCurrent.complete();check(!r.nebulaSwitchingModule,"restoration completes");
@@ -116,6 +144,15 @@ class RecorderZoomCheck {
   r=new Recorder();Camera2Session beforeStop=r.camera2SessionCurrent;r.applyNebulaZoom(5);r.recording=false;Camera2Session.finishClose();
   check(r.camera2SessionCurrent==beforeStop,"stopped recorder never opens a queued camera");
   r=new Recorder();r.useCamera2=false;r.applyNebulaZoom(7);close(r.cameraSession.factor,7);close(r.nebulaZoomSlider.current,7);
+  r.applyNebulaZoom(1.6f);close(r.cameraSession.factor,2);close(r.nebulaZoomSlider.current,1.6f);
+  for(int i=101;i<200;i++){float requested=i/100f;r.applyNebulaZoom(requested);close(r.nebulaZoomSlider.current,requested);}
+  r.applyNebulaZoom(Float.NaN);r.applyNebulaZoom(Float.POSITIVE_INFINITY);r.applyNebulaZoom(-1);close(r.nebulaZoomSlider.current,1.99f);
+  check(Utilities.uiWrites==0,"no thumbnail JPEG/file writes occur on the UI thread");
+  Utilities.globalQueue.tasks.clear();Utilities.written.clear();r=new Recorder();
+  r.saveLastCameraBitmap();int firstThumbnail=r.lastBitmap.id;r.saveLastCameraBitmap();int secondThumbnail=r.lastBitmap.id;
+  check(r.textureView.reads==2&&Utilities.written.isEmpty(),"one small capture per transition; writes are deferred");
+  Utilities.globalQueue.drain();check(Utilities.written.equals(Arrays.asList(firstThumbnail,secondThumbnail)),"queued writers use captured immutable thumbnails, not the changing lastBitmap field");
+  r.textureView.black=true;r.saveLastCameraBitmap();check(Utilities.globalQueue.tasks.isEmpty()&&r.lastBitmap.id==secondThumbnail,"black capture keeps the last valid thumbnail");
   System.out.println("Recorder zoom: deferred lens open, queued drag, local factors, same encoder, failure recovery and stop guards passed");
  }
 }

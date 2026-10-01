@@ -24,6 +24,7 @@ public final class NebulaZoomSlider extends View {
 
     private final Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final OnZoomChanged callback;
+    private final Theme.ResourcesProvider resourcesProvider;
     private final Runnable collapse = () -> setExpanded(false);
     private final Runnable longPress = () -> { held = true; setExpanded(true); };
     private float[] cameraStops = {1f};
@@ -42,10 +43,12 @@ public final class NebulaZoomSlider extends View {
     private ValueAnimator zoomAnimator;
     private boolean frontFacing;
     private BlurredBackgroundDrawable glass;
+    private String announcedLabel;
 
-    public NebulaZoomSlider(Context context, OnZoomChanged callback) {
+    public NebulaZoomSlider(Context context, OnZoomChanged callback, Theme.ResourcesProvider resourcesProvider) {
         super(context);
         this.callback = callback;
+        this.resourcesProvider = resourcesProvider;
         setContentDescription(NebulaText.text("Увеличение видео", "Video zoom"));
     }
 
@@ -63,7 +66,7 @@ public final class NebulaZoomSlider extends View {
     public void setGlass(BlurredBackgroundDrawableViewFactory factory, BlurredBackgroundColorProvider provider) {
         glass = factory.create(this, provider);
         glass.setPadding(dp(6));
-        glass.setRadius(dp(18));
+        glass.setRadius(dp(24));
         glass.setCallback(this);
         invalidate();
     }
@@ -117,9 +120,14 @@ public final class NebulaZoomSlider extends View {
 
     public void setCurrent(float factor) {
         if (Float.isNaN(factor) || Float.isInfinite(factor)) return;
-        current = Math.max(minimum, Math.min(factor, maximum));
-        setContentDescription(NebulaText.text("Увеличение видео", "Video zoom") + " · "
-                + label(current));
+        float next = Math.max(minimum, Math.min(factor, maximum));
+        if (current == next && announcedLabel != null) return;
+        current = next;
+        String display = label(current);
+        if (!display.equals(announcedLabel)) {
+            announcedLabel = display;
+            setContentDescription(NebulaText.text("Увеличение видео", "Video zoom") + " · " + display);
+        }
         invalidate();
     }
 
@@ -156,13 +164,13 @@ public final class NebulaZoomSlider extends View {
         postDelayed(collapse, 1400);
     }
 
-    private float compactWidth() { return Math.min(fullWidth(), dp(12 + 36 * cameraStops.length)); }
+    private float compactWidth() { return Math.min(fullWidth(), dp(12 + 46 * cameraStops.length)); }
     private float fullWidth() { return Math.max(dp(48), getWidth() - dp(32)); }
     private float widthForProgress() { return compactWidth() + (fullWidth() - compactWidth()) * expansion; }
     private RectF capsuleBounds() {
         float half = widthForProgress() / 2f;
-        return new RectF(getWidth() / 2f - half, getHeight() / 2f - dp(18),
-                getWidth() / 2f + half, getHeight() / 2f + dp(18));
+        return new RectF(getWidth() / 2f - half, getHeight() / 2f - dp(24),
+                getWidth() / 2f + half, getHeight() / 2f + dp(24));
     }
     private float pixelsPerOctave() {
         float octaves = (float) (Math.log(maximum / minimum) / Math.log(2));
@@ -174,9 +182,9 @@ public final class NebulaZoomSlider extends View {
 
     @Override protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
-        int accent = Theme.getColor(Theme.key_chat_messagePanelSend);
-        int ink = Theme.getColor(Theme.key_chat_messagePanelText);
-        int surface = Theme.getColor(Theme.key_chat_messagePanelBackground);
+        int accent = Theme.getColor(Theme.key_chat_messagePanelSend, resourcesProvider);
+        int ink = Theme.getColor(Theme.key_chat_messagePanelText, resourcesProvider);
+        int surface = Theme.getColor(Theme.key_chat_messagePanelBackground, resourcesProvider);
         float center = getWidth() / 2f;
         float middle = getHeight() / 2f;
         RectF capsule = capsuleBounds();
@@ -191,14 +199,14 @@ public final class NebulaZoomSlider extends View {
                     blend(surface, Color.WHITE, NebulaGlass.highlights() ? .05f + depth * .12f : 0f),
                     blend(surface, Color.BLACK, depth * .12f), Shader.TileMode.CLAMP));
             if (depth > 0f) paint.setShadowLayer(dp(4 + depth * 10), 0, dp(1 + depth * 4), Color.argb(Math.round(150 * depth), 0, 0, 0));
-            canvas.drawRoundRect(capsule, dp(18), dp(18), paint);
+            canvas.drawRoundRect(capsule, dp(24), dp(24), paint);
             paint.clearShadowLayer();
             paint.setShader(null);
             paint.setStyle(Paint.Style.STROKE);
             paint.setStrokeWidth(dp(1f));
             paint.setColor(blend(surface, Color.WHITE, .32f));
             paint.setAlpha(180);
-            canvas.drawRoundRect(capsule, dp(18), dp(18), paint);
+            canvas.drawRoundRect(capsule, dp(24), dp(24), paint);
             paint.setStyle(Paint.Style.FILL);
         }
 
@@ -214,15 +222,15 @@ public final class NebulaZoomSlider extends View {
                 float x = xForZoom(zoom);
                 if (x < capsule.left + dp(16) || x > capsule.right - dp(16)) continue;
                 boolean major = index % 8 == 0 || index == ticks;
-                paint.setColor(major ? accent : ((ink & 0x00FFFFFF) | 0xA0000000));
-                paint.setAlpha(alpha);
+                paint.setColor(major ? accent : ink);
+                paint.setAlpha(major ? alpha : Math.round(alpha * .65f));
                 paint.setStrokeWidth(dp(major ? 2 : 1));
                 canvas.drawLine(x, middle - dp(13), x, middle + dp(major ? 5 : 1), paint);
             }
             canvas.restore();
             paint.setTextAlign(Paint.Align.CENTER);
             paint.setTypeface(android.graphics.Typeface.DEFAULT_BOLD);
-            paint.setTextSize(dp(11));
+            paint.setTextSize(dp(12));
             paint.setColor(accent);
             paint.setAlpha(alpha);
             float previousX = -Float.MAX_VALUE;
@@ -245,7 +253,7 @@ public final class NebulaZoomSlider extends View {
 
     private String label(float value) {
         return Math.abs(value - Math.round(value)) < .04f ? Math.round(value) + "×"
-                : String.format(java.util.Locale.US, "%.1f×", value);
+                : (Math.round(value * 10f) / 10f) + "×";
     }
     private void drawPresets(Canvas canvas, RectF capsule, int accent, float opacity) {
         float[] values = cameraStops;
@@ -256,15 +264,15 @@ public final class NebulaZoomSlider extends View {
         paint.setStyle(Paint.Style.FILL);
         paint.setColor(accent); paint.setAlpha(Math.round(255 * opacity));
         if (NebulaGlass.depth() > 0f) paint.setShadowLayer(dp(6), 0, dp(2), (accent & 0x00FFFFFF) | (Math.round(102 * NebulaGlass.depth()) << 24));
-        float radius = Math.min(dp(16), (segment - dp(4)) / 2f);
+        float radius = Math.min(dp(21), (segment - dp(4)) / 2f);
         canvas.drawCircle(x, capsule.centerY(), radius, paint);
         paint.clearShadowLayer();
         paint.setTypeface(android.graphics.Typeface.DEFAULT_BOLD); paint.setTextAlign(Paint.Align.CENTER);
         for (int i = 0; i < values.length; i++) {
-            paint.setColor(i == selected ? Theme.getColor(Theme.key_chat_messagePanelVoicePressed) : Theme.getColor(Theme.key_chat_messagePanelText));
+            paint.setColor(Theme.getColor(i == selected ? Theme.key_chat_messagePanelVoicePressed : Theme.key_chat_messagePanelText, resourcesProvider));
             paint.setAlpha(Math.round(255 * opacity));
             String text = i == selected ? label(current) : label(values[i]).replace("×", "");
-            paint.setTextSize(dp(12));
+            paint.setTextSize(dp(14));
             float available = i == selected ? radius * 2 - dp(5) : segment - dp(6);
             float measured = paint.measureText(text);
             if (measured > available) paint.setTextSize(paint.getTextSize() * available / measured);
@@ -291,7 +299,7 @@ public final class NebulaZoomSlider extends View {
         switch (event.getActionMasked()) {
             case MotionEvent.ACTION_DOWN:
                 if (Math.abs(x - getWidth() / 2f) > widthForProgress() / 2f + dp(6)) return false;
-                if (Math.abs(event.getY() - getHeight() / 2f) > dp(24)) return false;
+                if (Math.abs(event.getY() - getHeight() / 2f) > dp(30)) return false;
                 if (zoomAnimator != null) zoomAnimator.cancel();
                 if (getParent() != null) getParent().requestDisallowInterceptTouchEvent(true);
                 removeCallbacks(collapse);

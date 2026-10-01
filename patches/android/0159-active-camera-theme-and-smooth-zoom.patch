@@ -1,0 +1,75 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/InstantCameraView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/InstantCameraView.java
+index 468ab6f..6c39523 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Components/InstantCameraView.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/InstantCameraView.java
+@@ -323,9 +323,9 @@ public class InstantCameraView extends InstantCameraViewBase implements Notifica
+ 
+         addView(cameraContainer, new LayoutParams(AndroidUtilities.roundPlayingMessageSize, AndroidUtilities.roundPlayingMessageSize, Gravity.CENTER));
+         addView(flashViews.foregroundView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT, Gravity.FILL));
+-        nebulaZoomSlider = new NebulaZoomSlider(context, this::applyNebulaZoom);
++        nebulaZoomSlider = new NebulaZoomSlider(context, this::applyNebulaZoom, resourcesProvider);
+         nebulaZoomSlider.setVisibility(View.GONE);
+-        FrameLayout.LayoutParams zoomParams = new FrameLayout.LayoutParams(dp(320), dp(80), Gravity.BOTTOM | Gravity.CENTER_HORIZONTAL);
++        FrameLayout.LayoutParams zoomParams = new FrameLayout.LayoutParams(LayoutParams.MATCH_PARENT, dp(96), Gravity.BOTTOM | Gravity.CENTER_HORIZONTAL);
+         zoomParams.bottomMargin = dp(104);
+         addView(nebulaZoomSlider, zoomParams);
+ 
+@@ -1069,20 +1069,20 @@ public class InstantCameraView extends InstantCameraViewBase implements Notifica
+     }
+ 
+     private void saveLastCameraBitmap() {
+-        Bitmap bitmap = textureView.getBitmap();
++        Bitmap bitmap = textureView.getBitmap(50, 50);
+         if (bitmap != null && bitmap.getPixel(0, 0) != 0) {
+-            lastBitmap = Bitmap.createScaledBitmap(textureView.getBitmap(), 50, 50, true);
+-            if (lastBitmap != null) {
+-                Utilities.blurBitmap(lastBitmap, 7);
++            Utilities.blurBitmap(bitmap, 7);
++            lastBitmap = bitmap;
++            final Bitmap thumbnail = bitmap;
++            Utilities.globalQueue.postRunnable(() -> {
+                 try {
+                     File file = new File(ApplicationLoader.getFilesDirFixed(), "icthumb.jpg");
+-                    FileOutputStream stream = new FileOutputStream(file);
+-                    lastBitmap.compress(Bitmap.CompressFormat.JPEG, 87, stream);
+-                    stream.close();
++                    try (FileOutputStream stream = new FileOutputStream(file)) {
++                        thumbnail.compress(Bitmap.CompressFormat.JPEG, 87, stream);
++                    }
+                 } catch (Throwable ignore) {
+-
+                 }
+-            }
++            });
+         }
+     }
+ 
+@@ -3803,26 +3803,25 @@ public class InstantCameraView extends InstantCameraViewBase implements Notifica
+ 
+     private void applyNebulaZoom(float factor) {
+         if (!recording || cameraThread == null) return;
++        if (Float.isNaN(factor) || Float.isInfinite(factor) || factor <= 0f) return;
+         nebulaRequestedZoom = factor;
++        nebulaZoomSlider.setCurrent(factor);
+         if (nebulaSwitchingModule || !isCameraSessionInitiated()) return;
+         if (!useCamera2) {
+             if (cameraSession != null) {
+                 cameraSession.setZoomFactor(factor);
+-                nebulaZoomSlider.setCurrent(cameraSession.getZoomFactor());
+             }
+             return;
+         }
+         app.nebulagram.ui.NebulaZoomCapabilities catalog = nebulaAvailableCatalog();
+         if (catalog == null) {
+             camera2SessionCurrent.setZoom(factor);
+-            nebulaZoomSlider.setCurrent(camera2SessionCurrent.getZoom());
+             return;
+         }
+         app.nebulagram.ui.NebulaZoomCapabilities.Module module = catalog.select(factor);
+         if (bothCameras || nebulaUnavailableModules.contains(module.id)) module = catalog.find(camera2SessionCurrent.cameraId);
+         if (module.id.equals(camera2SessionCurrent.cameraId)) {
+             camera2SessionCurrent.setZoom(module.local(factor));
+-            nebulaZoomSlider.setCurrent(nebulaCurrentZoom());
+         } else {
+             openNebulaModule(module.id, camera2SessionCurrent.cameraId, false);
+         }

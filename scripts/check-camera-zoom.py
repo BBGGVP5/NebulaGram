@@ -57,7 +57,7 @@ class CameraZoomCheck {
   OnZoomChanged callback=factor -> applied=factor;void invalidate(){}
   static class RectF {float left,top,right,bottom;RectF(float l,float t,float r,float b){left=l;top=t;right=r;bottom=b;}}
   int getWidth(){return (int)(320*density);}int dp(float v){return (int)Math.ceil(v*density);}
-  int getHeight(){return (int)(80*density);}
+  int getHeight(){return (int)(96*density);}
   void setCurrent(float v){current=Math.max(minimum,Math.min(maximum,v));}
   void updateRulerMarks(){}
   GEOMETRY
@@ -118,7 +118,7 @@ class CameraZoomCheck {
    for(int lenses:new int[]{1,4,6})for(float expansion:new float[]{0,.5f,1}) {
     r.cameraStops=new float[lenses];r.expansion=expansion;Ruler.RectF b=r.capsuleBounds();
     check(b.left-r.dp(6)>=0&&b.right+r.dp(6)<=r.getWidth(),"native glass padding not clipped");
-    check(b.bottom-b.top==2*r.dp(18),"compact and ruler share height");
+    check(b.bottom-b.top==2*r.dp(24),"compact and ruler share a readable 48dp height");
     check(b.top-r.dp(14)>=0&&b.bottom+r.dp(14+5)<=r.getHeight(),"glass shadow not clipped");
    }
    for(float zoom:new float[]{range[0],(float)Math.sqrt(range[0]*range[1]),range[1]}) {
