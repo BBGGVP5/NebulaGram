@@ -36,7 +36,7 @@ public final class NebulaMessageFilter {
     }
     public static void configure(BaseFragment host){
         long user=NebulaTasks.user(host.getCurrentAccount());EditText input=new EditText(host.getContext());input.setText(prefs(user).getString("words",""));input.setMaxLines(10);input.setFilters(new android.text.InputFilter[]{new android.text.InputFilter.LengthFilter(4000)});
-        host.showDialog(new NebulaDialog.Builder(host.getContext()).setTitle(NebulaText.text("Фильтр сообщений","Message filter"))
+        host.showDialog(new NebulaDialog.Builder(host.getContext(), host.getResourceProvider()).setTitle(NebulaText.text("Фильтр сообщений","Message filter"))
             .setMessage(NebulaText.text("По одному слову или фразе в строке. Подходящие входящие сообщения скрываются локально; их можно открыть нажатием. Пустой список отключает фильтр.","One word or phrase per line. Matching incoming messages are masked locally and can be revealed with a tap. Clear the list to disable."))
             .setView(input).setPositiveButton(NebulaText.text("Сохранить","Save"),(d,w)->{prefs(user).edit().putString("words",input.getText().toString()).apply();rules.remove(user);revealed.clear();})
             .setNegativeButton(NebulaText.text("Отмена","Cancel"),null).create());

@@ -1,4 +1,4 @@
-"""Execute production tool-grid and sheet viewport geometry without Android."""
+"""Execute production tool-grid geometry without Android."""
 from pathlib import Path
 import subprocess
 import tempfile
@@ -6,7 +6,6 @@ import tempfile
 root = Path(__file__).resolve().parent.parent
 ui = root / 'platform/android/overlay/TMessagesProj/src/main/java/app/nebulagram/ui'
 grid = (ui / 'NebulaToolGrid.java').read_text(encoding='utf-8')
-dialog = (ui / 'NebulaDialog.java').read_text(encoding='utf-8')
 
 def method(source, signature):
     start = source.index(signature)
@@ -49,14 +48,6 @@ class ToolLayoutCheck {
   MEASURE
   LAYOUT
  }
- static class ScrollParent extends Parent {
-  int cap;
-  protected void onMeasure(int w,int h){cap=MeasureSpec.getSize(h);}
- }
- static class SheetScroll extends ScrollParent {
-  Parent root=new Parent();
-  SCROLL
- }
  public static void main(String[] args){
   int cases=0;
   for(float d:new float[]{1,2,2.75f})for(float font:new float[]{1,1.3f,2})for(int width:new int[]{240,328,440})for(boolean rtl:new boolean[]{false,true})for(int count:new int[]{3,5,6}){
@@ -71,19 +62,11 @@ class ToolLayoutCheck {
    if(font==1&&width==328)check(g.columns==3,"normal phone displays three tools per row");
    if(font==2&&width==240)check(g.columns==1,"large font on narrow phone collapses grid");cases++;
   }
-  for(int screen:new int[]{400,800})for(int footerHeight:new int[]{48,96,144}){
-   SheetScroll s=new SheetScroll();s.resources.metrics.heightPixels=screen;
-   View unrelated=new View();unrelated.natural=200;s.root.children.add(unrelated);
-   View footer=new View();footer.tag="nebula-dialog-actions";footer.natural=footerHeight;footer.params.topMargin=12;s.root.children.add(footer);
-   s.onMeasure(328,MeasureSpec.makeMeasureSpec(screen,MeasureSpec.AT_MOST));
-   check(s.cap==Math.min(Math.round(screen*.65f),Math.max(0,screen-footerHeight-12)),"scroll reserves actual wrapped footer height");
-  }
-  System.out.println(cases+" tool grid density/font/RTL cases and wrapped sheet footer heights passed");
+  System.out.println(cases+" tool grid density/font/RTL cases passed");
  }
 }
 '''.replace('  MEASURE\n', method(grid, 'protected void onMeasure(int widthSpec, int heightSpec)')).replace(
-    '  LAYOUT\n', method(grid, 'protected void onLayout(boolean changed, int l, int t, int r, int b)')).replace(
-    '  SCROLL\n', method(dialog, 'protected void onMeasure(int widthSpec, int heightSpec)'))
+    '  LAYOUT\n', method(grid, 'protected void onLayout(boolean changed, int l, int t, int r, int b)'))
 with tempfile.TemporaryDirectory(prefix='nebula-tool-layout-') as temp:
     path = Path(temp) / 'ToolLayoutCheck.java'
     path.write_text(java, encoding='utf-8')
@@ -96,6 +79,4 @@ for callback in ('request(false)', 'request(true)', 'transcribe()', 'speechReque
                  'id==generation', 'client.cancel()', 'speech.shutdown()'):
     assert callback in tools, callback
 assert 'new NebulaToolGrid(c)' in tools and 'preferences.setVisibility(View.GONE)' in tools
-assert 'negativeClick.onClick(sheet, DialogInterface.BUTTON_NEGATIVE)' in dialog
-assert 'setSingleLine(false); button.setEllipsize(null)' in dialog
-print('Message action/cancellation wiring, collapsed settings and sheet close callback retained')
+print('Message action/cancellation wiring and collapsed settings retained')

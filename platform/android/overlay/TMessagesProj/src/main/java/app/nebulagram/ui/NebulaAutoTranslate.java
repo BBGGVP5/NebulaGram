@@ -32,7 +32,7 @@ public final class NebulaAutoTranslate {
         EditText language=new EditText(c);language.setText(NebulaAutoTranslate.language(account,dialog));language.setSingleLine();language.setHint("ru / en / de");
         language.setFilters(new android.text.InputFilter[]{new android.text.InputFilter.LengthFilter(16)});
         boolean active = enabled(account,dialog);
-        NebulaDialog.Builder builder = new NebulaDialog.Builder(c).setTitle(NebulaText.text("Автоперевод чата","Auto-translate chat"))
+        NebulaDialog.Builder builder = new NebulaDialog.Builder(c, host.getResourceProvider()).setTitle(NebulaText.text("Автоперевод чата","Auto-translate chat"))
             .setMessage(NebulaText.text("Язык перевода · ru / en / de\nВидимые сообщения обрабатывает ваш провайдер ИИ.","Translation language · ru / en / de\nYour AI provider processes visible messages."))
             .setView(language).setPositiveButton(active ? NebulaText.text("Сохранить","Save") : NebulaText.text("Включить","Enable"),(d,w)->{
                 String code=language.getText().toString().trim().toLowerCase(Locale.ROOT);

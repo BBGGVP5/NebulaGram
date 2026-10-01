@@ -311,12 +311,12 @@ public final class NebulaPrivacyFragment extends BaseFragment {
 
     public static void confirmClear(BaseFragment fragment, int account, long peer, Runnable done) {
         if (fragment.getParentActivity() == null) return;
-        fragment.showDialog(new NebulaDialog.Builder(fragment.getParentActivity())
+        fragment.showDialog(new NebulaDialog.Builder(fragment.getParentActivity(), fragment.getResourceProvider())
             .setTitle(NebulaText.text(peer == 0 ? "Очистить все сохранённые удалённые сообщения?" : "Очистить удалённые сообщения этого чата?", peer == 0 ? "Clear all retained messages?" : "Clear retained messages in this chat?"))
             .setMessage(NebulaText.text("Только локальные сохранённые копии. Обычная переписка и общий медиакэш не удаляются.", "Only locally retained copies. Ordinary history and shared media cache are not deleted."))
             .setNegativeButton(NebulaText.text("Отмена", "Cancel"), null)
             .setPositiveButton(NebulaText.text("Очистить", "Clear"), (d, w) -> NebulaDeletedArchive.clearAsync(account, peer, () -> { if (done != null) done.run(); }, () -> {
-                if (fragment.getParentActivity() != null) fragment.showDialog(new NebulaDialog.Builder(fragment.getParentActivity()).setMessage(NebulaText.text("Не удалось очистить сохранённые сообщения.", "Could not clear retained messages.")).setPositiveButton("OK", null).create());
+                if (fragment.getParentActivity() != null) fragment.showDialog(new NebulaDialog.Builder(fragment.getParentActivity(), fragment.getResourceProvider()).setMessage(NebulaText.text("Не удалось очистить сохранённые сообщения.", "Could not clear retained messages.")).setPositiveButton("OK", null).create());
             })).create());
     }
 

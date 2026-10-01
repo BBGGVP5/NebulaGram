@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.res.ColorStateList;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.drawable.GradientDrawable;
 import android.graphics.drawable.RippleDrawable;
@@ -11,13 +12,10 @@ import android.view.Gravity;
 import android.view.View;
 import android.view.accessibility.AccessibilityNodeInfo;
 import android.widget.LinearLayout;
-import android.widget.FrameLayout;
-import android.widget.ImageView;
-import android.widget.ScrollView;
 import android.widget.TextView;
 
 import org.telegram.messenger.AndroidUtilities;
-import org.telegram.ui.ActionBar.BottomSheet;
+import org.telegram.ui.ActionBar.AlertDialog;
 import org.telegram.ui.ActionBar.Theme;
 
 /** Shared presentation for Nebula choices, confirmations and small editors. */
@@ -34,12 +32,11 @@ public final class NebulaDialog {
         private boolean selectionIndicatorVisible = true;
         private View customView;
         private final Theme.ResourcesProvider resourcesProvider;
-        private final boolean useTelegramTheme;
         private DialogInterface.OnClickListener itemClick, positiveClick, negativeClick, neutralClick;
 
-        public Builder(Context context) { this.context = context; resourcesProvider = null; useTelegramTheme = false; }
+        public Builder(Context context) { this.context = context; resourcesProvider = null; }
         public Builder(Context context, Theme.ResourcesProvider provider) {
-            this.context = context; resourcesProvider = provider; useTelegramTheme = true;
+            this.context = context; resourcesProvider = provider;
         }
         public Builder setTitle(CharSequence value) { title = value; return this; }
         public Builder setMessage(CharSequence value) { message = value; return this; }
@@ -61,82 +58,31 @@ public final class NebulaDialog {
             neutral = label; neutralClick = listener; return this;
         }
 
-        public BottomSheet create() {
-            NebulaTheme theme = NebulaTheme.of(context);
-            final int surface = (useTelegramTheme ? Theme.getColor(Theme.key_dialogBackground, resourcesProvider) : theme.modalSurface()) | 0xFF000000;
-            final int container = (useTelegramTheme ? Theme.getColor(Theme.key_dialogBackgroundGray, resourcesProvider) : theme.surfaceContainer()) | 0xFF000000;
-            final int onSurface = useTelegramTheme ? Theme.getColor(Theme.key_dialogTextBlack, resourcesProvider) : theme.onSurface();
-            final int muted = useTelegramTheme ? Theme.getColor(Theme.key_dialogTextGray, resourcesProvider) : theme.onSurfaceVariant();
-            final int accent = useTelegramTheme ? Theme.getColor(Theme.key_dialogTextBlue, resourcesProvider) : theme.primary();
-            final int outline = useTelegramTheme ? NebulaTheme.stateLayer(onSurface, .24f) : theme.outline();
-            BottomSheet sheet = new BottomSheet.Builder(context, customView != null, surface).create();
-            sheet.setBackgroundColor(android.graphics.Color.TRANSPARENT);
-            sheet.setApplyTopPadding(false);
-            sheet.setApplyBottomPadding(false);
-            LinearLayout root = new LinearLayout(context);
-            root.setOrientation(LinearLayout.VERTICAL);
-            root.setBackground(shape(surface, 24));
-            root.setPadding(dp(16), dp(10), dp(16), dp(12));
-            root.setClipToOutline(true);
-            View handle = new View(context);
-            handle.setBackground(shape(NebulaTheme.stateLayer(muted, .4f), 2));
-            handle.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
-            LinearLayout.LayoutParams handleParams = new LinearLayout.LayoutParams(dp(32), dp(4));
-            handleParams.gravity = Gravity.CENTER_HORIZONTAL;
-            handleParams.bottomMargin = dp(10);
-            root.addView(handle, handleParams);
-
-            FrameLayout header = new FrameLayout(context);
-            if (title != null) {
-                TextView heading = text(title, 20, onSurface);
-                heading.setTypeface(AndroidUtilities.bold());
-                heading.setPadding(dp(4), dp(10), 0, dp(10));
-                if (android.os.Build.VERSION.SDK_INT >= 28) heading.setAccessibilityHeading(true);
-                FrameLayout.LayoutParams headingParams = new FrameLayout.LayoutParams(-1, -2);
-                headingParams.setMarginEnd(dp(48));
-                header.addView(heading, headingParams);
+        public AlertDialog create() {
+            final int container = Theme.getColor(Theme.key_dialogBackgroundGray, resourcesProvider);
+            final int onSurface = Theme.getColor(Theme.key_dialogTextBlack, resourcesProvider);
+            final int muted = Theme.getColor(Theme.key_dialogTextGray, resourcesProvider);
+            final int accent = Theme.getColor(Theme.key_dialogTextBlue, resourcesProvider);
+            final int outline = stateLayer(onSurface, .24f);
+            // Native AlertDialog owns the title, scroll viewport, footer and keyboard insets.
+            AlertDialog.Builder builder = new AlertDialog.Builder(context, resourcesProvider)
+                    .setDimEnabled(true).setDimAlpha(.6f).twoRowsButtonsWhenNeeded();
+            if (title != null) builder.setTitle(title);
+            if (message != null) builder.setMessage(message);
+            if (negative != null || negativeClick != null) {
+                builder.setNegativeButton(negative != null ? negative : NebulaText.text("Отмена", "Cancel"),
+                        (dialog, which) -> { if (negativeClick != null) negativeClick.onClick(dialog, which); });
             }
-            ImageView close = new ImageView(context);
-            close.setImageResource(org.telegram.messenger.R.drawable.msg_close);
-            close.setColorFilter(muted);
-            close.setScaleType(ImageView.ScaleType.CENTER);
-            close.setBackground(new RippleDrawable(ColorStateList.valueOf(NebulaTheme.stateLayer(accent, .12f)),
-                    null, shape(0xffffffff, 24)));
-            close.setContentDescription(negative != null ? negative : NebulaText.text("Закрыть", "Close"));
-            close.setFocusable(true);
-            close.setOnClickListener(v -> {
-                sheet.dismiss();
-                if (negativeClick != null) negativeClick.onClick(sheet, DialogInterface.BUTTON_NEGATIVE);
-            });
-            header.addView(close, new FrameLayout.LayoutParams(dp(48), dp(48), Gravity.END | Gravity.TOP));
-
-            ScrollView scroll = new ScrollView(context) {
-                @Override protected void onMeasure(int widthSpec, int heightSpec) {
-                    int cap = Math.round(getResources().getDisplayMetrics().heightPixels * .65f);
-                    int footer = 0;
-                    // Reserve actual wrapped button heights, including large accessibility fonts.
-                    for (int i = 0; i < root.getChildCount(); i++) {
-                        View child = root.getChildAt(i);
-                        if (!"nebula-dialog-actions".equals(child.getTag())) continue;
-                        child.measure(widthSpec, MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED));
-                        LinearLayout.LayoutParams params = (LinearLayout.LayoutParams) child.getLayoutParams();
-                        footer += child.getMeasuredHeight() + params.topMargin + params.bottomMargin;
-                    }
-                    int size = MeasureSpec.getMode(heightSpec) == MeasureSpec.UNSPECIFIED
-                            ? cap : Math.min(cap, Math.max(0, MeasureSpec.getSize(heightSpec) - footer));
-                    super.onMeasure(widthSpec, MeasureSpec.makeMeasureSpec(size, MeasureSpec.AT_MOST));
-                }
-            };
-            scroll.setClipToPadding(false);
+            if (neutral != null) builder.setNeutralButton(neutral,
+                    (dialog, which) -> { if (neutralClick != null) neutralClick.onClick(dialog, which); });
+            if (positive != null) builder.setPositiveButton(positive,
+                    (dialog, which) -> { if (positiveClick != null) positiveClick.onClick(dialog, which); });
+            AlertDialog dialog = builder.create();
+            dialog.setCanceledOnTouchOutside(true);
+            dialog.getWindow().setGravity(Gravity.CENTER);
             LinearLayout content = new LinearLayout(context);
             content.setOrientation(LinearLayout.VERTICAL);
-            scroll.addView(content);
-            content.addView(header, new LinearLayout.LayoutParams(-1, -2));
-            if (message != null) {
-                TextView description = text(message, 14, muted);
-                description.setPadding(dp(4), dp(4), dp(4), dp(12));
-                content.addView(description);
-            }
+            content.setPadding(dp(24), 0, dp(24), dp(8));
             LinearLayout choicesGroup = new LinearLayout(context);
             choicesGroup.setOrientation(LinearLayout.VERTICAL);
             choicesGroup.setBackground(shape(container, 16));
@@ -159,9 +105,9 @@ public final class NebulaDialog {
                 row.setMinimumHeight(dp(52));
                 row.setSelected(checked);
                 row.setFocusable(true);
-                row.setBackground(new RippleDrawable(ColorStateList.valueOf(NebulaTheme.stateLayer(accent, .12f)),
+                row.setBackground(new RippleDrawable(ColorStateList.valueOf(stateLayer(accent, .12f)),
                         shape(checked ? androidx.core.graphics.ColorUtils.compositeColors(
-                                NebulaTheme.stateLayer(accent, .12f), container) : container, 0),
+                                stateLayer(accent, .12f), container) : container, 0),
                         shape(0xffffffff, 0)));
                 row.setPaddingRelative(dp(14), dp(10), dp(14), dp(10));
                 LinearLayout labels = new LinearLayout(context);
@@ -191,8 +137,8 @@ public final class NebulaDialog {
                     indicatorParams.setMarginStart(dp(16)); row.addView(indicator, indicatorParams);
                 }
                 row.setOnClickListener(v -> {
-                    sheet.dismiss();
-                    if (itemClick != null) itemClick.onClick(sheet, index);
+                    dialog.dismiss();
+                    if (itemClick != null) itemClick.onClick(dialog, index);
                 });
                 LinearLayout.LayoutParams rowParams = new LinearLayout.LayoutParams(-1, -2);
                 choicesGroup.addView(row, rowParams);
@@ -209,23 +155,13 @@ public final class NebulaDialog {
                 }
                 content.addView(customView, new LinearLayout.LayoutParams(-1, -2));
             }
-            root.addView(scroll, new LinearLayout.LayoutParams(-1, -2));
-            LinearLayout actions = new LinearLayout(context);
-            actions.setGravity(Gravity.CENTER_VERTICAL);
-            actions.setTag("nebula-dialog-actions");
-            if (negativeClick != null) addButton(actions, sheet, negative != null ? negative : NebulaText.text("Отмена", "Cancel"), false, negativeClick, DialogInterface.BUTTON_NEGATIVE, accent);
-            if (neutral != null) addButton(actions, sheet, neutral, false, neutralClick, DialogInterface.BUTTON_NEUTRAL, accent);
-            if (positive != null) addButton(actions, sheet, positive, true, positiveClick, DialogInterface.BUTTON_POSITIVE, accent);
-            if (actions.getChildCount() > 0) {
-                LinearLayout.LayoutParams actionsParams = new LinearLayout.LayoutParams(-1, -2);
-                actionsParams.topMargin = dp(12);
-                root.addView(actions, actionsParams);
+            if (items != null || customView != null) {
+                builder.setView(content).setCustomViewOffset(dp(12));
             }
-            sheet.setCustomView(root);
-            return sheet;
+            return dialog;
         }
 
-        public BottomSheet show() { BottomSheet sheet = create(); sheet.show(); return sheet; }
+        public AlertDialog show() { AlertDialog dialog = create(); dialog.show(); return dialog; }
 
         private TextView text(CharSequence value, int size, int color) {
             TextView view = new TextView(context);
@@ -233,23 +169,8 @@ public final class NebulaDialog {
             view.setGravity(Gravity.START); view.setTextAlignment(View.TEXT_ALIGNMENT_VIEW_START);
             view.setLineSpacing(dp(2), 1f); return view;
         }
-        private void addButton(LinearLayout root, BottomSheet sheet, CharSequence label, boolean primary,
-                               DialogInterface.OnClickListener listener, int which, int accent) {
-            NebulaButton button = new NebulaButton(context, primary ? NebulaButton.STYLE_FILLED : NebulaButton.STYLE_TEXT);
-            if (useTelegramTheme) {
-                button.setTextColor(primary ? (androidx.core.graphics.ColorUtils.calculateLuminance(accent) > .5 ? android.graphics.Color.BLACK : android.graphics.Color.WHITE) : accent);
-                button.setBackground(new RippleDrawable(ColorStateList.valueOf(NebulaTheme.stateLayer(accent, .16f)),
-                        primary ? shape(accent, 16) : shape(android.graphics.Color.TRANSPARENT, 16), shape(android.graphics.Color.WHITE, 16)));
-            }
-            button.setText(label);
-            button.setMinHeight(dp(48));
-            button.setMinimumHeight(dp(48));
-            button.setSingleLine(false); button.setEllipsize(null);
-            button.setPadding(dp(12), dp(10), dp(12), dp(10));
-            button.setOnClickListener(v -> { sheet.dismiss(); if (listener != null) listener.onClick(sheet, which); });
-            LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(0, -2, 1);
-            if (root.getChildCount() > 0) params.setMarginStart(dp(8));
-            root.addView(button, params);
+        private static int stateLayer(int color, float opacity) {
+            return androidx.core.graphics.ColorUtils.setAlphaComponent(color, Math.round(Color.alpha(color) * opacity));
         }
         private GradientDrawable shape(int color, int radius) {
             GradientDrawable drawable = new GradientDrawable();
