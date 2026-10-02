@@ -46,6 +46,7 @@ private enum NebulaSettingsEntry: ItemListNodeEntry {
     case empty(String)
     case toolsHeader(String)
     case appearanceHeader(String)
+    case chatHeader(Int, String)
     case privacyHeader(String)
     case navigation(String, String)
     case contacts(String, Bool, Bool)
@@ -76,10 +77,20 @@ private enum NebulaSettingsEntry: ItemListNodeEntry {
     var section: ItemListSectionId {
         switch self {
         case .search, .empty: return -1
-        case .category, .toolsHeader, .link, .ai, .buildInfo, .memory, .support, .community: return 0
-        case .appearanceHeader, .glass, .navigation, .contacts, .stories, .widePosts, .icons, .transitions: return 1
+        case let .category(index, _, _, _): return index == 10 ? 9 : index == 11 ? 10 : 0
+        case .toolsHeader, .link, .ai, .buildInfo, .memory, .support, .community: return 0
+        case let .chatHeader(section, _): return Int32(section)
+        case .widePosts: return 9
+        case .stories: return 10
+        case .appearanceHeader, .glass, .navigation, .contacts, .icons, .transitions: return 1
         case let .navigationToggle(key, _, _, _):
-            return key.hasPrefix("profile_") ? 5 : ["folder_title", "folder_outline"].contains(key) ? 2 : 1
+            if key.hasPrefix("profile_") { return 5 }
+            if ["folder_title", "folder_outline"].contains(key) { return 2 }
+            if ["hide_dividers", "hide_search_field"].contains(key) { return 6 }
+            if key.hasPrefix("menu_") || key == "centered_chat_header" { return 7 }
+            if ["hide_send_as", "hide_attach_camera"].contains(key) { return 8 }
+            if key.hasPrefix("reply_") || ["seconds_in_time", "disable_next_channel"].contains(key) { return 9 }
+            return 1
         case .header, .hideCounters, .folderStyle, .footer: return 2
         case .privacyHeader, .privacy, .history, .clearHistory: return 3
         case .transferHeader, .importFile, .exportFile, .transferFooter: return 4
@@ -91,6 +102,7 @@ private enum NebulaSettingsEntry: ItemListNodeEntry {
         case .search: return -2
         case .empty: return -1
         case .toolsHeader: return 0
+        case .chatHeader: return -1
         case .link: return 1
         case .ai: return 20
         case .support: return 5
@@ -147,6 +159,7 @@ private enum NebulaSettingsEntry: ItemListNodeEntry {
         case .search: return 19
         case .empty: return 20
         case .toolsHeader: return 16
+        case let .chatHeader(section, _): return Int32(300 + section)
         case .appearanceHeader: return 17
         case .privacyHeader: return 18
         case .navigation: return 13
@@ -209,7 +222,8 @@ private enum NebulaSettingsEntry: ItemListNodeEntry {
     }
 
     static func < (lhs: NebulaSettingsEntry, rhs: NebulaSettingsEntry) -> Bool {
-        return lhs.order < rhs.order
+        if lhs.section != rhs.section { return lhs.section < rhs.section }
+        return lhs.order == rhs.order ? lhs.stableId < rhs.stableId : lhs.order < rhs.order
     }
 
     var searchableText: String? {
@@ -226,7 +240,7 @@ private enum NebulaSettingsEntry: ItemListNodeEntry {
 
     var isHeader: Bool {
         switch self {
-        case .toolsHeader, .appearanceHeader, .privacyHeader, .header, .transferHeader: return true
+        case .toolsHeader, .appearanceHeader, .chatHeader, .privacyHeader, .header, .transferHeader: return true
         default: return false
         }
     }
@@ -268,7 +282,7 @@ private enum NebulaSettingsEntry: ItemListNodeEntry {
                 textUpdated: { arguments.searchUpdated?($0) }, action: {})
         case let .empty(text):
             return ItemListTextItem(presentationData: presentationData, text: .plain(text), sectionId: section)
-        case let .header(text), let .transferHeader(text), let .toolsHeader(text), let .appearanceHeader(text), let .privacyHeader(text):
+        case let .chatHeader(_, text), let .header(text), let .transferHeader(text), let .toolsHeader(text), let .appearanceHeader(text), let .privacyHeader(text):
             return ItemListSectionHeaderItem(presentationData: presentationData, text: text, sectionId: section)
         case let .hideCounters(title, value, enabled):
             return ItemListSwitchItem(presentationData: presentationData, systemStyle: .glass, title: title, value: value, enabled: enabled, sectionId: section, style: .blocks, updated: arguments.update)
@@ -492,7 +506,10 @@ public func nebulaSettingsController(context: AccountContext, page: Int = 0) -> 
                 default: return false
                 }
             }
-            if page == 3 { entries.append(.appearanceHeader(ru ? "Чаты" : "Chats")) }
+            if page == 3 {
+                let titles = ru ? ["Список чатов", "Заголовок и меню", "Ввод сообщения", "Сообщения", "Истории"] : ["Chat list", "Header and menu", "Composer", "Messages", "Stories"]
+                for (index, title) in titles.enumerated() { entries.append(.chatHeader(6 + index, title)) }
+            }
             if page == 7 { entries.append(.appearanceHeader(ru ? "Нижняя панель" : "Bottom bar")) }
         }
         if !query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {

@@ -126,7 +126,7 @@ diff --git a/submodules/Camera/Sources/CameraDevice.swift b/submodules/Camera/So
 +        guard let device = self.videoDevice, factor.isFinite else { return }
 +        let range = NebulaZoomRange(neutral: Double(device.neutralZoomFactor), minimumDeviceFactor: Double(device.minAvailableVideoZoomFactor), maximumDeviceFactor: Double(device.maxAvailableVideoZoomFactor))
 +        let target = CGFloat(range.deviceFactor(Double(factor)))
-+        guard abs(device.videoZoomFactor - target) > 0.0001 else { return }
++        guard device.isRampingVideoZoom || abs(device.videoZoomFactor - target) > 0.0001 else { return }
 +        self.transaction(device) { device in
 +            if device.isRampingVideoZoom { device.cancelVideoZoomRamp() }
 +            if animated {

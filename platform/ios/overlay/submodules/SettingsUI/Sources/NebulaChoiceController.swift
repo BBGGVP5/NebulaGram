@@ -129,9 +129,11 @@ private final class NebulaPopupPresentation: UIPresentationController {
     override var frameOfPresentedViewInContainerView: CGRect {
         guard let containerView else { return .zero }
         var safe = containerView.bounds.inset(by: containerView.safeAreaInsets).insetBy(dx: 24, dy: 24)
-        let keyboard = containerView.convert(keyboardFrame, from: nil)
-        if !keyboardFrame.isNull, keyboard.intersects(containerView.bounds), keyboard.width >= safe.width {
-            safe.size.height = max(0, min(safe.maxY, keyboard.minY - 12) - safe.minY)
+        if !keyboardFrame.isNull {
+            let keyboard = containerView.convert(keyboardFrame, from: nil)
+            if keyboard.intersects(containerView.bounds), keyboard.width >= safe.width {
+                safe.size.height = max(0, min(safe.maxY, keyboard.minY - 12) - safe.minY)
+            }
         }
         let preferred = presentedViewController.preferredContentSize
         let size = CGSize(width: min(safe.width, preferred.width), height: min(safe.height, preferred.height))

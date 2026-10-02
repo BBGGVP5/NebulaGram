@@ -170,13 +170,13 @@ public final class NebulaAiChatController: UIViewController, UITextViewDelegate 
         composer.delegate = self; composer.text = initial; composer.accessibilityLabel = text("Сообщение для ИИ", "Message to AI")
         composerHeight = composer.heightAnchor.constraint(equalToConstant: 44); composerHeight.isActive = true
         input.addArrangedSubview(composer)
-        sendButton.backgroundColor = view.tintColor; sendButton.tintColor = .white; sendButton.layer.cornerRadius = 22
+        sendButton.backgroundColor = view.tintColor; sendButton.tintColor = theme?.list.itemCheckColors.foregroundColor ?? .white; sendButton.layer.cornerRadius = 22
         sendButton.widthAnchor.constraint(equalToConstant: 44).isActive = true
         sendButton.heightAnchor.constraint(equalToConstant: 44).isActive = true
         sendButton.addTarget(self, action: #selector(send), for: .touchUpInside)
         input.addArrangedSubview(sendButton); layout.addArrangedSubview(input)
         let note = label(text("ИИ может ошибаться. Важное проверяйте.", "AI can make mistakes. Check important details."), style: .caption2)
-        note.textColor = .secondaryLabel; note.textAlignment = .center; layout.addArrangedSubview(note)
+        note.textColor = theme?.list.itemSecondaryTextColor ?? .secondaryLabel; note.textAlignment = .center; layout.addArrangedSubview(note)
         NotificationCenter.default.addObserver(self, selector: #selector(appActive), name: UIApplication.didBecomeActiveNotification, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(appInactive), name: UIApplication.willResignActiveNotification, object: nil)
         restoreChat(chats.current()); refreshStatus(); updateSend(); textViewDidChange(composer)
