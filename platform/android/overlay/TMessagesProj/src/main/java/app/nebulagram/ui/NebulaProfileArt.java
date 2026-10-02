@@ -84,18 +84,21 @@ public final class NebulaProfileArt {
         private final RectF rect = new RectF();
         private final Path clip = new Path();
         private final Path bannerClip = new Path();
-        private LinearGradient gradient;
+        private LinearGradient gradient, bottomFade;
+        private int previousFadeColor;
+        private float previousFadeTop, previousFadeBottom;
         private int previousStart, previousEnd;
         private float previousTop, previousBottom;
 
         public void draw(Canvas canvas, int width, View avatar, SimpleTextView title,
                          View subtitle, View actions, float progress, float expanded, float media,
                          float opening, Theme.ResourcesProvider provider) {
+            if (actions instanceof Actions) ((Actions) actions).bannerReady = false;
             if (!NebulaAppearance.profileStyle() || avatar == null || title == null || subtitle == null) return;
-            // Баннер уходит ровно за то время, за которое раскрывается аватарка.
-            // Тройной множитель гасил его на первой трети хода, а родная
-            // фотография к этому моменту ещё не закрывала шапку — между ними
-            // оставался кадр с голым фоном, и это читалось как моргание.
+            // Р‘Р°РЅРЅРµСЂ СѓС…РѕРґРёС‚ СЂРѕРІРЅРѕ Р·Р° С‚Рѕ РІСЂРµРјСЏ, Р·Р° РєРѕС‚РѕСЂРѕРµ СЂР°СЃРєСЂС‹РІР°РµС‚СЃСЏ Р°РІР°С‚Р°СЂРєР°.
+            // РўСЂРѕР№РЅРѕР№ РјРЅРѕР¶РёС‚РµР»СЊ РіР°СЃРёР» РµРіРѕ РЅР° РїРµСЂРІРѕР№ С‚СЂРµС‚Рё С…РѕРґР°, Р° СЂРѕРґРЅР°СЏ
+            // С„РѕС‚РѕРіСЂР°С„РёСЏ Рє СЌС‚РѕРјСѓ РјРѕРјРµРЅС‚Сѓ РµС‰С‘ РЅРµ Р·Р°РєСЂС‹РІР°Р»Р° С€Р°РїРєСѓ вЂ” РјРµР¶РґСѓ РЅРёРјРё
+            // РѕСЃС‚Р°РІР°Р»СЃСЏ РєР°РґСЂ СЃ РіРѕР»С‹Рј С„РѕРЅРѕРј, Рё СЌС‚Рѕ С‡РёС‚Р°Р»РѕСЃСЊ РєР°Рє РјРѕСЂРіР°РЅРёРµ.
             final float alpha = clamp((progress - .25f) / .75f) * (1f - clamp(expanded))
                     * (1f - clamp(media)) * clamp(opening);
             if (alpha <= .01f || width < dp(240)) return;
@@ -104,15 +107,18 @@ public final class NebulaProfileArt {
                     actions != null && actions.getVisibility() == View.VISIBLE
                             ? actions.getY() + dp(74) : 0);
             if (bottom <= top + dp(64)) return;
-            // Во всю ширину и до верхнего края: карточка с отступами читалась
-            // как виджет внутри экрана, а не как шапка профиля.
+            // Р’Рѕ РІСЃСЋ С€РёСЂРёРЅСѓ Рё РґРѕ РІРµСЂС…РЅРµРіРѕ РєСЂР°СЏ: РєР°СЂС‚РѕС‡РєР° СЃ РѕС‚СЃС‚СѓРїР°РјРё С‡РёС‚Р°Р»Р°СЃСЊ
+            // РєР°Рє РІРёРґР¶РµС‚ РІРЅСѓС‚СЂРё СЌРєСЂР°РЅР°, Р° РЅРµ РєР°Рє С€Р°РїРєР° РїСЂРѕС„РёР»СЏ.
             rect.set(0, 0, width, bottom);
             final BackupImageView photo = findPhoto(avatar);
             final boolean banner = NebulaAppearance.profilePhotoBanner() && photo != null
                     && photo.getImageReceiver().hasImageLoaded();
             // Telegram's TopView already renders the peer's colour/emoji or the standard header.
             if (!banner) return;
-            if (banner) drawPhotoBanner(canvas, photo.getImageReceiver(), rect, alpha);
+            drawPhotoBanner(canvas, photo.getImageReceiver(), rect, alpha);
+            if (actions instanceof Actions && canvas.isHardwareAccelerated()) {
+                ((Actions) actions).captureBanner(this, photo.getImageReceiver(), rect);
+            }
             final NebulaTheme material = NebulaTheme.of(avatar.getContext());
             final int accent = accent(provider);
             int base = material.isDynamic() ? material.surfaceContainer() : surface(provider);
@@ -141,9 +147,26 @@ public final class NebulaProfileArt {
             canvas.drawPath(clip, paint);
             paint.setShader(null);
 
-            // Дуги в углу убраны намеренно: на фотографии они читались как
-            // засветка стекла, а не как украшение шапки.
-            paint.setStyle(Paint.Style.FILL);
+            // End in the exact page colour, including light and custom themes.
+            // A long eased fade keeps the photograph behind the identity and actions
+            // while removing its rectangular lower edge.
+            final int page = Theme.getColor(Theme.key_windowBackgroundGray, provider) | 0xff000000;
+            final float fadeTop = Math.max(0, bottom - dp(148));
+            if (bottomFade == null || previousFadeColor != page || previousFadeTop != fadeTop
+                    || previousFadeBottom != bottom) {
+                bottomFade = new LinearGradient(0, fadeTop, 0, bottom,
+                        new int[] {ColorUtils.setAlphaComponent(page, 0),
+                                ColorUtils.setAlphaComponent(page, 28),
+                                ColorUtils.setAlphaComponent(page, 138), page},
+                        new float[] {0f, .32f, .72f, 1f}, Shader.TileMode.CLAMP);
+                previousFadeColor = page;
+                previousFadeTop = fadeTop;
+                previousFadeBottom = bottom;
+            }
+            paint.setShader(bottomFade);
+            paint.setAlpha(Math.round(255 * alpha));
+            canvas.drawRect(rect, paint);
+            paint.setShader(null);
         }
 
         private BackupImageView findPhoto(View root) {
@@ -158,11 +181,11 @@ public final class NebulaProfileArt {
         }
 
         /**
-         * Форма шапки — прямоугольник во всю ширину, без скруглений.
+         * Р¤РѕСЂРјР° С€Р°РїРєРё вЂ” РїСЂСЏРјРѕСѓРіРѕР»СЊРЅРёРє РІРѕ РІСЃСЋ С€РёСЂРёРЅСѓ, Р±РµР· СЃРєСЂСѓРіР»РµРЅРёР№.
          *
-         * <p>Скругление снизу выглядело как рамка вокруг фотографии: она
-         * обрывалась, не доходя до краёв, и шапка читалась как карточка,
-         * вставленная в экран, а не как сам верх профиля.
+         * <p>РЎРєСЂСѓРіР»РµРЅРёРµ СЃРЅРёР·Сѓ РІС‹РіР»СЏРґРµР»Рѕ РєР°Рє СЂР°РјРєР° РІРѕРєСЂСѓРі С„РѕС‚РѕРіСЂР°С„РёРё: РѕРЅР°
+         * РѕР±СЂС‹РІР°Р»Р°СЃСЊ, РЅРµ РґРѕС…РѕРґСЏ РґРѕ РєСЂР°С‘РІ, Рё С€Р°РїРєР° С‡РёС‚Р°Р»Р°СЃСЊ РєР°Рє РєР°СЂС‚РѕС‡РєР°,
+         * РІСЃС‚Р°РІР»РµРЅРЅР°СЏ РІ СЌРєСЂР°РЅ, Р° РЅРµ РєР°Рє СЃР°Рј РІРµСЂС… РїСЂРѕС„РёР»СЏ.
          */
         private static void heroPath(Path path, RectF bounds) {
             path.rewind();
@@ -195,25 +218,55 @@ public final class NebulaProfileArt {
         }
     }
 
-    /** Match Telegram's expanded profile actions over the continuous banner. */
+    /** Native hit targets and press animation, with a shared photographic glass source. */
     public static final class Actions extends ProfileActionsView {
-        private final Paint edge = new Paint(Paint.ANTI_ALIAS_FLAG);
+        private final Paint sheen = new Paint(Paint.ANTI_ALIAS_FLAG);
+        private final android.graphics.Matrix sheenMatrix = new android.graphics.Matrix();
+        private final LinearGradient sheenGradient = new LinearGradient(0, 0, 0, 1,
+                new int[] {0x28ffffff, 0x08ffffff, 0x02ffffff},
+                new float[] {0f, .48f, 1f}, Shader.TileMode.CLAMP);
+        private final Theme.ResourcesProvider provider;
+        private NebulaProfileGlass glass;
+        private boolean bannerReady;
         public Actions(Context context, int height, Theme.ResourcesProvider provider) {
             super(context, height);
+            this.provider = provider;
         }
         @Override public void setActionsColor(int color, boolean hasColorById) {
-            // Native drawing chooses its filled white icons from this dark surface.
-            if (NebulaAppearance.profilePhotoBanner()) super.setActionsColor(0x660D1016, false);
+            // White native labels retain contrast over even a bright photograph.
+            if (NebulaAppearance.profilePhotoBanner()) super.setActionsColor(0x66101010, false);
             else super.setActionsColor(color, hasColorById);
         }
-        @Override public float getRoundRadius() { return dp(16); }
+        @Override public float getRoundRadius() { return dp(20); }
+
+        private void captureBanner(Hero hero, ImageReceiver receiver, RectF bounds) {
+            if (!NebulaProfileGlass.supported()) return;
+            if (glass == null) glass = new NebulaProfileGlass(provider);
+            Canvas capture = glass.begin(Math.round(bounds.width()), Math.round(bounds.height()));
+            try { hero.drawPhotoBanner(capture, receiver, bounds, 1f); }
+            finally { glass.end(); }
+            bannerReady = true;
+        }
+
         @Override protected void drawActionSurface(Canvas canvas, RectF rect, int key, float radius, float alpha) {
-            if (!NebulaMenuStyle.enabled() || !NebulaAppearance.glassHighlights()) return;
-            // Keep the native avatar blur and action fill; add only the material edge.
-            edge.setStyle(Paint.Style.STROKE);
-            edge.setStrokeWidth(AndroidUtilities.dpf2(.6f));
-            edge.setColor(Theme.multAlpha(0x38ffffff, alpha));
-            canvas.drawRoundRect(rect, radius, radius, edge);
+            if (!NebulaMenuStyle.enabled()) return;
+            if (bannerReady && glass != null && NebulaProfileGlass.supported()) {
+                glass.draw(canvas, rect, key, radius, alpha, getX(), getY());
+            }
+            if (!NebulaAppearance.glassHighlights()) return;
+            // A broad translucent highlight gives depth without outlining the button.
+            sheenMatrix.setScale(1f, Math.max(1f, rect.height()));
+            sheenMatrix.postTranslate(0f, rect.top);
+            sheenGradient.setLocalMatrix(sheenMatrix);
+            sheen.setShader(sheenGradient);
+            sheen.setAlpha(Math.round(255 * alpha));
+            canvas.drawRoundRect(rect, radius, radius, sheen);
+        }
+
+        @Override protected void onDetachedFromWindow() {
+            super.onDetachedFromWindow();
+            glass = null;
+            bannerReady = false;
         }
     }
 
@@ -241,10 +294,10 @@ public final class NebulaProfileArt {
     public static final class IdentityBackground extends LabelBackground {
         public IdentityBackground(Context context, Theme.ResourcesProvider provider) { super(context, provider); }
         /**
-         * Готовый градиент. Шейдер — нативный объект, и его сборка на каждый
-         * кадр заставляет краску пересобирать программу заливки; шапка профиля
-         * при прокрутке рисуется постоянно. Соседний градиент выше по файлу
-         * кэшируется ровно так же.
+         * Р“РѕС‚РѕРІС‹Р№ РіСЂР°РґРёРµРЅС‚. РЁРµР№РґРµСЂ вЂ” РЅР°С‚РёРІРЅС‹Р№ РѕР±СЉРµРєС‚, Рё РµРіРѕ СЃР±РѕСЂРєР° РЅР° РєР°Р¶РґС‹Р№
+         * РєР°РґСЂ Р·Р°СЃС‚Р°РІР»СЏРµС‚ РєСЂР°СЃРєСѓ РїРµСЂРµСЃРѕР±РёСЂР°С‚СЊ РїСЂРѕРіСЂР°РјРјСѓ Р·Р°Р»РёРІРєРё; С€Р°РїРєР° РїСЂРѕС„РёР»СЏ
+         * РїСЂРё РїСЂРѕРєСЂСѓС‚РєРµ СЂРёСЃСѓРµС‚СЃСЏ РїРѕСЃС‚РѕСЏРЅРЅРѕ. РЎРѕСЃРµРґРЅРёР№ РіСЂР°РґРёРµРЅС‚ РІС‹С€Рµ РїРѕ С„Р°Р№Р»Сѓ
+         * РєСЌС€РёСЂСѓРµС‚СЃСЏ СЂРѕРІРЅРѕ С‚Р°Рє Р¶Рµ.
          */
         private LinearGradient gradient;
         private int previousStart, previousEnd;

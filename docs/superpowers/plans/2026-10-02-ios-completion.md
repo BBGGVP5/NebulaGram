@@ -45,3 +45,11 @@ Native tests: 73 passed for f352cb5; the full unsigned device IPA passed 3702262
 - [x] Draft: debounce requests, cancel/ignore stale responses, show preview with explicit Apply; never auto-send or overwrite a newer draft. Suspend on background/recording/editing protected content.
 - [x] iOS: themed settings, composer accessory and equivalent incoming/draft consumers; shared lifecycle tests.
 - [ ] Run meaningful queue/state tests, patch validation and Android/iOS native builds. Download and verify final artifacts; distinguish the earlier f352cb5 IPA checkpoint.
+
+
+## Follow-up: Android profile banner and buttons
+
+- [x] Fade the photograph into the current Telegram page background with a cached, eased bottom gradient.
+- [x] Remove the action-button outline. Use one photograph-only backdrop for native blur/refraction, a soft filled highlight and unchanged native press/hit-target behavior.
+- [x] Respect glass quality, blur/refraction and power-saving settings; retain a legible fallback on older devices and release the backdrop when detached.
+- [ ] Verify the final Android APK. No connected device is available for visual checks of scrolling, light/custom themes or glass on physical hardware.
