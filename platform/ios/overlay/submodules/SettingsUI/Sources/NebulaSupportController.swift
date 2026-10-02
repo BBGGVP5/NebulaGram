@@ -27,6 +27,7 @@ final class NebulaSupportController: UITableViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        NebulaSettingsStyle.apply(theme: theme, to: self)
         title = text("Поддержать NebulaGram", "Support NebulaGram")
         view.backgroundColor = theme.list.blocksBackgroundColor
         tableView.backgroundColor = theme.list.blocksBackgroundColor

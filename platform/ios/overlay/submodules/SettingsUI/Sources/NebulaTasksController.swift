@@ -22,6 +22,7 @@ final class NebulaTasksController: UITableViewController {
     required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
     override func viewDidLoad() {
         super.viewDidLoad()
+        NebulaSettingsStyle.apply(theme: theme, to: self)
         tableView.backgroundColor = theme.list.blocksBackgroundColor
         tableView.tintColor = theme.list.itemAccentColor
         tableView.rowHeight = UITableView.automaticDimension

@@ -1,13 +1,16 @@
 import Foundation
 import UIKit
 import NebulaSettingsContract
+import TelegramPresentationData
 
 final class NebulaAiHistoryController: UITableViewController {
     private let ru: Bool
+    private let theme: PresentationTheme?
     private let history = NebulaAiHistory.shared
     private var records: [NebulaAiHistoryEntry] = []
 
-    init(russian: Bool) {
+    init(russian: Bool, theme: PresentationTheme? = nil) {
+        self.theme = theme
         self.ru = russian
         super.init(style: .insetGrouped)
         title = russian ? "История ИИ" : "AI history"
@@ -18,6 +21,7 @@ final class NebulaAiHistoryController: UITableViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        NebulaSettingsStyle.apply(theme: theme, to: self)
         navigationItem.rightBarButtonItem = UIBarButtonItem(title: text("Очистить", "Clear"), style: .plain, target: self, action: #selector(confirmClear))
         tableView.rowHeight = UITableView.automaticDimension
         tableView.estimatedRowHeight = 120
@@ -60,6 +64,7 @@ final class NebulaAiHistoryController: UITableViewController {
             cell.textLabel?.text = entry.input
             cell.detailTextLabel?.text = "\(entry.provider) · \(DateFormatter.localizedString(from: entry.timestamp, dateStyle: .short, timeStyle: .short))\n\(entry.output)"
         }
+        NebulaSettingsStyle.finish(cell, theme: theme)
         return cell
     }
 

@@ -36,6 +36,7 @@ final class NebulaPrivacyController: UITableViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         let theme = currentTheme
+        NebulaSettingsStyle.apply(theme: theme, to: self)
         tableView.backgroundColor = theme.list.blocksBackgroundColor
         tableView.separatorColor = theme.list.itemSecondaryTextColor.withAlphaComponent(0.12)
         view.tintColor = theme.list.itemAccentColor

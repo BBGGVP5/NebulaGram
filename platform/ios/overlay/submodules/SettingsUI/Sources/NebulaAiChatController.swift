@@ -79,9 +79,9 @@ public final class NebulaAiChatController: UIViewController, UITextViewDelegate 
     required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
     private func text(_ russian: String, _ english: String) -> String { ru ? russian : english }
 
-    public static func presentSheet(from host: UIViewController, russian: Bool) {
+    public static func presentSheet(from host: UIViewController, russian: Bool, theme: PresentationTheme? = nil) {
         guard host.presentedViewController == nil else { return }
-        let chat = NebulaAiChatController(russian: russian)
+        let chat = NebulaAiChatController(russian: russian, theme: theme)
         let navigation = UINavigationController(rootViewController: chat)
         navigation.modalPresentationStyle = .pageSheet
         if #available(iOS 15.0, *) {
@@ -94,6 +94,7 @@ public final class NebulaAiChatController: UIViewController, UITextViewDelegate 
 
     public override func viewDidLoad() {
         super.viewDidLoad()
+        NebulaSettingsStyle.apply(theme: theme, to: self)
         view.backgroundColor = (theme?.list.plainBackgroundColor ?? .systemBackground).withAlphaComponent(1)
         let appearance = UINavigationBarAppearance()
         appearance.configureWithOpaqueBackground()

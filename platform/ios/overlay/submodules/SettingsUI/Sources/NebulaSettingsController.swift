@@ -354,7 +354,9 @@ public func nebulaSettingsController(context: AccountContext, page: Int = 0) -> 
     arguments.searchUpdated = { searchQuery.set($0) }
     let communityReload = ValuePromise(0, ignoreRepeated: false)
     var communityPeer: EnginePeer?
-    let signal = combineLatest(queue: .mainQueue(), context.sharedContext.presentationData, settings, writeFailed.get(), searchQuery.get(), communityReload.get() |> mapToSignal { _ in nebulaCommunity(context: context) })
+    let signal = combineLatest(queue: .mainQueue(), context.sharedContext.presentationData, settings, writeFailed.get(), searchQuery.get(), communityReload.get() |> mapToSignal { _ -> Signal<NebulaCommunityState, NoError> in
+        return page == 0 || page == 1 ? nebulaCommunity(context: context) : .single(NebulaCommunityState(peer: nil, count: nil))
+    })
     |> deliverOnMainQueue
     |> map { presentationData, hideCounters, failed, query, community -> (ItemListControllerState, (ItemListNodeState, Any)) in
         // Follow the active Telegram theme, including custom backgrounds and accents.

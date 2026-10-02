@@ -3,6 +3,27 @@ import TelegramPresentationData
 
 /// Presentation only. Native controls, previews and their state remain owned by callers.
 public enum NebulaSettingsStyle {
+    static func apply(theme: PresentationTheme?, to controller: UIViewController) {
+        guard let theme else { return }
+        controller.overrideUserInterfaceStyle = theme.overallDarkAppearance ? .dark : .light
+        controller.view.backgroundColor = theme.list.blocksBackgroundColor.withAlphaComponent(1)
+        controller.view.tintColor = theme.list.itemAccentColor
+        let appearance = UINavigationBarAppearance()
+        appearance.configureWithOpaqueBackground()
+        appearance.backgroundColor = theme.list.blocksBackgroundColor.withAlphaComponent(1)
+        appearance.titleTextAttributes = [.foregroundColor: theme.list.itemPrimaryTextColor]
+        controller.navigationItem.standardAppearance = appearance
+        controller.navigationItem.scrollEdgeAppearance = appearance
+        controller.navigationItem.compactAppearance = appearance
+        controller.navigationController?.navigationBar.tintColor = theme.list.itemAccentColor
+        if let search = controller.navigationItem.searchController?.searchBar {
+            search.overrideUserInterfaceStyle = theme.overallDarkAppearance ? .dark : .light
+            search.tintColor = theme.list.itemAccentColor
+            search.searchTextField.textColor = theme.list.itemPrimaryTextColor
+            search.searchTextField.backgroundColor = theme.list.itemBlocksBackgroundColor
+        }
+    }
+
     static func accent(for symbol: String) -> UIColor {
         switch symbol {
         case "shield", "hand.raised", "lock.shield", "lock": return .systemGreen

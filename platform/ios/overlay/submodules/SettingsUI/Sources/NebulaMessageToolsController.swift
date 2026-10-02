@@ -27,6 +27,7 @@ public final class NebulaMessageToolsController: UIViewController {
 
     public override func viewDidLoad() {
         super.viewDidLoad()
+        NebulaSettingsStyle.apply(theme: theme, to: self)
         view.backgroundColor = theme.list.blocksBackgroundColor.withAlphaComponent(1)
         view.tintColor = theme.list.itemAccentColor
         let appearance = UINavigationBarAppearance()

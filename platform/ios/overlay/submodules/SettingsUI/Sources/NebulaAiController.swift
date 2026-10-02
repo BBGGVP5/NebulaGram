@@ -32,6 +32,7 @@ final class NebulaAiController: UITableViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        NebulaSettingsStyle.apply(theme: theme, to: self)
         if let theme {
             tableView.backgroundColor = theme.list.blocksBackgroundColor
             tableView.separatorColor = theme.list.itemSecondaryTextColor.withAlphaComponent(0.12)
@@ -217,7 +218,7 @@ final class NebulaAiController: UITableViewController {
         let custom = provider == .custom
         switch (indexPath.section, indexPath.row) {
         case (4, 0): navigationController?.pushViewController(NebulaAiChatController(russian: ru, theme: theme), animated: true)
-        case (4, 1): navigationController?.pushViewController(NebulaAiHistoryController(russian: ru), animated: true)
+        case (4, 1): navigationController?.pushViewController(NebulaAiHistoryController(russian: ru, theme: theme), animated: true)
         case (1, 0): pickProvider()
         case (1, 1) where custom:
             edit(title: text("Адрес API", "API address"), value: settings.customEndpoint,

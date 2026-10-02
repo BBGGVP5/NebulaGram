@@ -601,3 +601,15 @@ diff --git a/submodules/TelegramUI/Sources/ChatInterfaceStateContextMenus.swift 
                          })
                          if c == nil { f(.default) }
                      })))
+diff --git a/submodules/TelegramUI/Sources/TelegramRootController.swift b/submodules/TelegramUI/Sources/TelegramRootController.swift
+--- a/submodules/TelegramUI/Sources/TelegramRootController.swift
++++ b/submodules/TelegramUI/Sources/TelegramRootController.swift
+@@ -295,7 +295,7 @@
+         guard let host = notification.object as? UIViewController, host === self,
+               NebulaAiSettings.shared.homeShortcut else { return }
+         let russian = self.presentationData.strings.baseLanguageCode.lowercased().hasPrefix("ru")
+-        NebulaAiChatController.presentSheet(from: self, russian: russian)
++        NebulaAiChatController.presentSheet(from: self, russian: russian, theme: self.presentationData.theme)
+     }
+ 
+     private func nebulaOrderedControllers(_ source: [ViewController]) -> [ViewController] {

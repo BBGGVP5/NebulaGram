@@ -21,6 +21,7 @@ final class NebulaGlassController: UITableViewController {
     required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
     override func viewDidLoad() {
         super.viewDidLoad()
+        NebulaSettingsStyle.apply(theme: theme, to: self)
         if let theme {
             tableView.backgroundColor = theme.list.blocksBackgroundColor
             tableView.separatorColor = theme.list.itemSecondaryTextColor.withAlphaComponent(0.12)
