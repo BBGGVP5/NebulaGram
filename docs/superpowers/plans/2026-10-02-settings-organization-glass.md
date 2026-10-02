@@ -22,13 +22,17 @@ Files: Android `NebulaGlass.java`, `NebulaGlassSettings.java`; iOS `NebulaGlassC
 
 - [x] Replace the single strong-refraction preset with a themed selection of balanced, clear and frosted materials. Apply each preset in one preferences transaction, and advance the render revision only when the effective snapshot changes. Retain manual controls and power/thermal adaptation.
 - [x] Test actual snapshot revision behavior: identical setter and duplicate listener callback must not increment revision; changed values and a full preset must do so exactly once.
-- [x] Shorten iOS glass section explanations, group material/detail/performance controls clearly, theme the preview from Telegram, and avoid rewriting unchanged integer values during slider events.
+- [x] Shorten iOS glass section explanations, group material/detail/performance controls clearly, theme the preview from Telegram, and skip store validation and JSON encoding for unchanged integer slider events; disk writes were already deduplicated in the store.
 
 ## 3. iOS settings organization and delivery
 
 Files: `platform/ios/overlay/submodules/SettingsUI/Sources/NebulaSettingsController.swift`, release notes, `platform/ios/PARITY.md`.
 
 - [x] Move bottom-bar controls to a dedicated Navigation page; keep glass, icons and transitions in Appearance and chat controls in Chats. Preserve global search and stable IDs.
-- [ ] Run Android regressions, iOS bootstrap/contracts and native compilation where the configured CI allows. Publish exact changed files and verify the resulting APK. Document outstanding iOS feature gaps and device verification honestly; this request does not turn pending native consumers into completed ports.
+- [x] Run Android regressions, iOS bootstrap/contracts and native compilation where the configured CI allows. Publish exact changed files and verify the resulting APK. Document outstanding iOS feature gaps and device verification honestly; this request does not turn pending native consumers into completed ports.
 
-Local evidence: settings root geometry (36 cases), links including glass section 12, localization, presentation and 73-setting contracts pass. Actual glass setters preserve revisions on unchanged values and publish one revision per preset, while 40,000 warm getter calls avoid preferences. iOS bootstrap validates 59 patches and the overlay. Native application compilation is pending.
+Local evidence: settings root geometry (36 cases), links including glass section 12, localization, presentation and 73-setting contracts pass. Actual glass setters preserve revisions on unchanged values and publish one revision per preset, while 40,000 warm getter calls avoid preferences. iOS bootstrap validates 59 patches and the overlay. Both native compilation runs subsequently passed; delivery evidence follows.
+
+Android delivery: runtime `f52b857d5bdf0873df356c73d9b544264c17cea1`, run `37007327426`, passed the full regression suite and application build. Build `1000291`: `build/qa-apk-settings-f52b857/NebulaGram-1.0.0-TG-12.10.5-b1000291-arm64-v8a.apk`, 52,490,601 bytes, SHA-256 `5AC78264B86AF0236D1E783F04185F8731F8010CC85C85AACF1DF587809CFE39`. Package/version verified (`app.nebulagram.messenger`, 1.0.0/code 1000291); arm64 Telegram/NebulaLink libraries present. v1/v2 signatures pass with one signer, certificate SHA-256 `a08d7dc323ddf71ef3201944397e0d3cce7d40847263e11f328b68bbe19229ab`, matching prior deliveries. Duplicate Android run `37007327742` was cancelled.
+
+iOS bootstrap `37007327569` passed all 65 Swift tests, patch/overlay validation and parsing. Duplicate bootstrap `37007327822` was cancelled. Native compilation `37007329671` passed for SettingsUI, PeerInfoScreen and folder modules with Xcode 26.2. Downloaded `nebula-native-result.json` reports `compiled`; the hashes of both changed Swift sources match local inputs. Settings contract `37007327431` also passed. No signed IPA or physical-device/FPS verification is claimed.
