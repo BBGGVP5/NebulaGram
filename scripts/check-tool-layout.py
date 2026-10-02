@@ -98,11 +98,12 @@ class LanguageCheck {
  static class NebulaRow {CharSequence name;void subtitle(CharSequence s,boolean value){name=s;}}
  static class NebulaDialog {
   interface Click {void onClick(Object dialog,int index);}
-  static class Dialog {int selected;CharSequence[] names,descriptions;Click click;}
+  static class Dialog {int selected,sectionStart;CharSequence sectionTitle;CharSequence[] names,descriptions;Click click;}
   static class Builder {
    Dialog dialog=new Dialog();Builder(Object context,Object provider){}
    Builder setTitle(String s){return this;}Builder setSelectedIndex(int i){dialog.selected=i;return this;}
    Builder setDescriptions(CharSequence[] d){dialog.descriptions=d;return this;}
+   Builder setSection(int start,CharSequence title){dialog.sectionStart=start;dialog.sectionTitle=title;return this;}
    Builder setItems(CharSequence[] n,Click c){dialog.names=n;dialog.click=c;return this;}
    Builder setNegativeButton(String label,Object listener){return this;}Dialog create(){return dialog;}
   }
@@ -116,12 +117,15 @@ class LanguageCheck {
  }
  public static void main(String[] args){
   Tools t=new Tools();t.chooseLanguage();
-  check(t.dialog.selected==1,"current language selected by code");
-  check(t.dialog.names[1].equals("Russian")&&t.dialog.descriptions[1].equals("Русский"),"localized/native names retained");
-  check(t.dialog.descriptions[0]==null,"duplicate native label omitted");
+  check(t.dialog.selected==0,"current language selected by code after reordering");
+  check(t.dialog.names[0].equals("Russian")&&t.dialog.descriptions[0].equals("Русский"),"localized/native names retained");
+  check(t.dialog.names[1].equals("English")&&t.dialog.descriptions[1]==null,"English is the second quick choice without duplicate native label");
+  check(t.dialog.names.length==3&&t.dialog.names[2].equals("Spanish"),"remaining catalog retained without duplicate quick languages");
+  check(t.dialog.sectionStart==2&&t.dialog.sectionTitle.equals("Other languages"),"quick languages separated from remaining catalog");
   t.dialog.click.onClick(t.dialog,2);
   check(t.targetLanguage.equals("es")&&t.target.name.equals("Spanish"),"selecting stores code and updates displayed name");
   check(t.cancelled==1&&t.cancelledLanguage.equals("ru"),"previous request cancelled before changing destination");
+  t.chooseLanguage();check(t.dialog.selected==2,"selection in remaining catalog survives reopening");
   t.destroyed=true;t.dialog.click.onClick(t.dialog,0);check(t.cancelled==1&&t.targetLanguage.equals("es"),"destroyed host ignores language selection");
   t.targetLanguage="fr";check(t.languageLabel().equals("fr"),"unknown display label falls back to stable code");
   System.out.println("Actual language selection, code/display separation and stale-host cancellation passed");

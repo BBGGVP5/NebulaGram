@@ -28,6 +28,8 @@ public final class NebulaDialog {
         private CharSequence title, message, positive, negative, neutral;
         private CharSequence[] items, descriptions;
         private int selected = -1;
+        private int sectionStart = -1;
+        private CharSequence sectionTitle;
         private boolean choices;
         private boolean selectionIndicatorVisible = true;
         private View customView;
@@ -47,6 +49,9 @@ public final class NebulaDialog {
         public Builder setSelectedIndex(int index) { choices = true; selected = index; return this; }
         public Builder setSelectionIndicatorVisible(boolean visible) { selectionIndicatorVisible = visible; return this; }
         public Builder setDescriptions(CharSequence[] values) { descriptions = values; return this; }
+        public Builder setSection(int start, CharSequence title) {
+            sectionStart = start; sectionTitle = title; return this;
+        }
         public Builder setPositiveButton(CharSequence label, DialogInterface.OnClickListener listener) {
             positive = label; positiveClick = listener; return this;
         }
@@ -90,6 +95,16 @@ public final class NebulaDialog {
             if (items != null) content.addView(choicesGroup, new LinearLayout.LayoutParams(-1, -2));
             if (items != null) for (int i = 0; i < items.length; i++) {
                 if (items[i] == null) continue;
+                if (i == sectionStart && i > 0) {
+                    TextView heading = text(sectionTitle, 13, muted);
+                    heading.setPadding(dp(14), dp(16), dp(14), dp(8));
+                    content.addView(heading, new LinearLayout.LayoutParams(-1, -2));
+                    choicesGroup = new LinearLayout(context);
+                    choicesGroup.setOrientation(LinearLayout.VERTICAL);
+                    choicesGroup.setBackground(shape(container, 16));
+                    choicesGroup.setClipToOutline(true);
+                    content.addView(choicesGroup, new LinearLayout.LayoutParams(-1, -2));
+                }
                 final int index = i;
                 final boolean checked = choices && i == selected;
                 LinearLayout row = new LinearLayout(context) {

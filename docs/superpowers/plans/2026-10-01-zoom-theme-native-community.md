@@ -127,3 +127,13 @@ Files: Android overlay `NebulaToolGrid.java`, `NebulaMessageToolsFragment.java`;
 - [ ] Execute regression fixtures against actual methods, validate ordered native patches, compile Android, and verify the final APK. Preserve the centered/dimmed Telegram dialogs requested earlier in this turn.
 
 The new centering assertion failed against the previous grid and passes across 432 actual-method geometry cases. The actual chooser callback preserves localized/native names and stable codes, cancels prior work before changing language, and ignores destroyed hosts. Native editor surface/header methods pass opaque dark/light/translucent-palette and density checks; existing home/chat/header/style and AI/settings fixtures pass. All 158 ordered native patches apply in a disposable tree, leaving vendor untouched. SDK 36 dialog/button/grid compilation passes. Final application compilation and artifact verification remain pending.
+
+## Follow-up: quick result languages (2026-10-02)
+
+- [x] Put Russian and English, in that order, into a separate first group in the result-language popup. Keep other languages below in Telegram's catalog order, without duplicate entries. Preserve localized/native labels, checked state and stable selection codes.
+- [x] Add an optional section boundary to the shared themed dialog without changing existing callers. Verify group separation and selection callbacks, run the existing layout/dialog checks.
+- [ ] Publish and verify the updated Android build.
+
+Actual chooser and dialog fixtures pass section boundaries, reordered selected indices, callback indices, localized labels and cancellation. Existing 432 grid cases pass. Dialog/button/grid compile against SDK 36. Native patches and iOS sources are unchanged by this follow-up.
+
+The preceding runtime 16bcedf completed Android run 36904119415 successfully (build 1000287).

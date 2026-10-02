@@ -126,7 +126,17 @@ public final class NebulaMessageToolsFragment extends BaseFragment {
         return name == null ? targetLanguage : org.telegram.ui.Components.TranslateAlert2.capitalFirst(name);
     }
     private void chooseLanguage() {
-        java.util.ArrayList<TranslateController.Language> languages = TranslateController.getLanguages();
+        java.util.ArrayList<TranslateController.Language> catalog = TranslateController.getLanguages();
+        java.util.ArrayList<TranslateController.Language> languages = new java.util.ArrayList<>();
+        for (String code : new String[]{"ru", "en"}) {
+            for (TranslateController.Language language : catalog) {
+                if (code.equals(language.code)) { languages.add(language); break; }
+            }
+        }
+        int quickCount = languages.size();
+        for (TranslateController.Language language : catalog) {
+            if (!"ru".equals(language.code) && !"en".equals(language.code)) languages.add(language);
+        }
         CharSequence[] names = new CharSequence[languages.size()];
         CharSequence[] descriptions = new CharSequence[languages.size()];
         int selected = -1;
@@ -139,6 +149,7 @@ public final class NebulaMessageToolsFragment extends BaseFragment {
         }
         showDialog(new NebulaDialog.Builder(getContext(), getResourceProvider())
                 .setTitle(t("Язык результата", "Result language")).setSelectedIndex(selected)
+                .setSection(quickCount, t("Другие языки", "Other languages"))
                 .setDescriptions(descriptions).setItems(names, (dialog, which) -> {
                     if (destroyed) return;
                     cancel();

@@ -165,6 +165,15 @@ public class DialogCheck {
    row=(LinearLayout)group(d).children.get(0);AccessibilityNodeInfo info=new AccessibilityNodeInfo();row.onInitializeAccessibilityNodeInfo(info);
    check(info.checked&&info.checkable&&row.minimumHeight>=48,"accessible selected option");
    label=(TextView)((LinearLayout)row.children.get(0)).children.get(0);check(label.color==Theme.getColor(Theme.key_dialogTextBlue,palette),"selected accent from Telegram");
+   d=new NebulaDialog.Builder(context,palette).setSelectedIndex(2).setSection(2,"Other languages")
+    .setItems(new String[]{"Russian","English","Spanish"},(dialog,index)->selected[0]=index).show();
+   LinearLayout content=(LinearLayout)d.content;
+   check(content.children.size()==3&&group(d).children.size()==2,"quick choices have a separate first group");
+   TextView heading=(TextView)content.children.get(1);
+   check(heading.color==Theme.getColor(Theme.key_dialogTextGray,palette),"section label uses Telegram palette");
+   LinearLayout remainder=(LinearLayout)content.children.get(2);
+   check(remainder.children.size()==1&&remainder.children.get(0).selected,"checked state preserved across groups");
+   remainder.children.get(0).performClick();check(selected[0]==2&&!d.visible,"section does not shift callback index");
    EditText editor=new EditText(context);d=new NebulaDialog.Builder(context,palette).setView(editor).create();
    check(d.offset==12,"native margin remains in dp at every density");
    check(editor.color==Theme.getColor(Theme.key_dialogTextBlack,palette)&&editor.hintColor==Theme.getColor(Theme.key_dialogTextGray,palette),"editor inherits Telegram palette");
