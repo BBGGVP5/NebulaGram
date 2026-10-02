@@ -1,0 +1,580 @@
+diff --git a/submodules/Camera/BUILD b/submodules/Camera/BUILD
+--- a/submodules/Camera/BUILD
++++ b/submodules/Camera/BUILD
+@@ -53,6 +53,7 @@
+         ":CameraBundle",
+     ],
+     deps = [
++        "//submodules/NebulaSettingsContract:NebulaSettingsContract",
+         "//submodules/SSignalKit/SwiftSignalKit:SwiftSignalKit",
+         "//submodules/AsyncDisplayKit:AsyncDisplayKit",
+         "//submodules/Display:Display",
+diff --git a/submodules/Camera/Sources/Camera.swift b/submodules/Camera/Sources/Camera.swift
+--- a/submodules/Camera/Sources/Camera.swift
++++ b/submodules/Camera/Sources/Camera.swift
+@@ -1,3 +1,4 @@
++import NebulaSettingsContract
+ import Foundation
+ import UIKit
+ import SwiftSignalKit
+@@ -12,8 +13,8 @@
+     
+     let hasMultiCam: Bool
+         
+-    init(forRoundVideo: Bool) {
+-        if #available(iOS 13.0, *), Camera.isDualCameraSupported(forRoundVideo: forRoundVideo) {
++    init(forRoundVideo: Bool, allowDual: Bool = true) {
++        if #available(iOS 13.0, *), allowDual && Camera.isDualCameraSupported(forRoundVideo: forRoundVideo) {
+             self.multiSession = AVCaptureMultiCamSession()
+             self.singleSession = nil
+             self.hasMultiCam = true
+@@ -512,6 +513,27 @@
+         self._flashMode = mode
+     }
+     
++    private var nebulaActiveDevice: CameraDevice? {
++        if self.initialConfiguration.isRoundVideo && self.positionValue == .front, let additional = self.additionalDeviceContext {
++            return additional.device
++        }
++        return self.mainDeviceContext?.device
++    }
++
++    var nebulaZoomState: Camera.NebulaZoomState? {
++        guard let device = self.nebulaActiveDevice?.videoDevice else { return nil }
++        let neutral = device.neutralZoomFactor
++        let range = NebulaZoomRange(neutral: Double(neutral), minimumDeviceFactor: Double(device.minAvailableVideoZoomFactor), maximumDeviceFactor: Double(device.maxAvailableVideoZoomFactor))
++        let optical = range.presets(deviceStops: device.virtualDeviceSwitchOverVideoZoomFactors.map { $0.doubleValue }).map { CGFloat($0) }
++        return Camera.NebulaZoomState(front: device.position == .front, minimum: CGFloat(range.minimum), maximum: CGFloat(range.maximum),
++            current: CGFloat(range.displayed(Double(device.videoZoomFactor))), stops: optical)
++    }
++
++    func setNebulaZoom(_ value: CGFloat, front: Bool) {
++        guard (self.positionValue == .front) == front else { return }
++        self.nebulaActiveDevice?.setNebulaZoom(value)
++    }
++
+     func setZoomLevel(_ zoomLevel: CGFloat) {
+         if self.initialConfiguration.isRoundVideo {
+             if self.positionValue == .front {
+@@ -787,7 +809,7 @@
+         
+         self.metrics = Camera.Metrics(model: DeviceModel.current)
+         
+-        let session = CameraSession(forRoundVideo: configuration.isRoundVideo)
++        let session = CameraSession(forRoundVideo: configuration.isRoundVideo, allowDual: !configuration.isRoundVideo || configuration.isDualEnabled)
+         session.session.automaticallyConfiguresApplicationAudioSession = false
+         session.session.automaticallyConfiguresCaptureDeviceForWideColor = false
+         session.session.usesApplicationAudioSession = true
+@@ -956,6 +978,44 @@
+         }
+     }
+     
++    public struct NebulaZoomState {
++        public let front: Bool
++        public let minimum: CGFloat
++        public let maximum: CGFloat
++        public let current: CGFloat
++        public let stops: [CGFloat]
++    }
++
++    /// Read only the device attached to this capture session, after configuration.
++    public func readNebulaZoom(_ completion: @escaping (NebulaZoomState?) -> Void) {
++        self.queue.async {
++            let state = self.contextRef?.takeUnretainedValue().nebulaZoomState
++            Queue.mainQueue().async { completion(state) }
++        }
++    }
++
++    private let nebulaZoomLock = NSLock()
++    private var nebulaPendingZoom: (CGFloat, Bool)?
++    private var nebulaZoomScheduled = false
++
++    public func setNebulaZoom(_ value: CGFloat, front: Bool) {
++        guard value.isFinite && value > 0 else { return }
++        self.nebulaZoomLock.lock()
++        self.nebulaPendingZoom = (value, front)
++        let schedule = !self.nebulaZoomScheduled
++        self.nebulaZoomScheduled = true
++        self.nebulaZoomLock.unlock()
++        guard schedule else { return }
++        self.queue.async {
++            self.nebulaZoomLock.lock()
++            let pending = self.nebulaPendingZoom
++            self.nebulaPendingZoom = nil
++            self.nebulaZoomScheduled = false
++            self.nebulaZoomLock.unlock()
++            if let pending { self.contextRef?.takeUnretainedValue().setNebulaZoom(pending.0, front: pending.1) }
++        }
++    }
++
+     public func setZoomLevel(_ zoomLevel: CGFloat) {
+         self.queue.async {
+             if let context = self.contextRef?.takeUnretainedValue() {
+diff --git a/submodules/Camera/Sources/CameraDevice.swift b/submodules/Camera/Sources/CameraDevice.swift
+--- a/submodules/Camera/Sources/CameraDevice.swift
++++ b/submodules/Camera/Sources/CameraDevice.swift
+@@ -1,3 +1,4 @@
++import NebulaSettingsContract
+ import Foundation
+ import AVFoundation
+ import SwiftSignalKit
+@@ -300,6 +301,17 @@
+         }
+     }
+     
++    func setNebulaZoom(_ factor: CGFloat) {
++        guard let device = self.videoDevice, factor.isFinite else { return }
++        let range = NebulaZoomRange(neutral: Double(device.neutralZoomFactor), minimumDeviceFactor: Double(device.minAvailableVideoZoomFactor), maximumDeviceFactor: Double(device.maxAvailableVideoZoomFactor))
++        let target = CGFloat(range.deviceFactor(Double(factor)))
++        guard abs(device.videoZoomFactor - target) > 0.0001 else { return }
++        self.transaction(device) { device in
++            if device.isRampingVideoZoom { device.cancelVideoZoomRamp() }
++            device.videoZoomFactor = target
++        }
++    }
++
+     func setZoomLevel(_ zoomLevel: CGFloat) {
+         guard let device = self.videoDevice else {
+             return
+diff --git a/submodules/TelegramUI/Components/Chat/ChatMessageReplyInfoNode/BUILD b/submodules/TelegramUI/Components/Chat/ChatMessageReplyInfoNode/BUILD
+--- a/submodules/TelegramUI/Components/Chat/ChatMessageReplyInfoNode/BUILD
++++ b/submodules/TelegramUI/Components/Chat/ChatMessageReplyInfoNode/BUILD
+@@ -10,6 +10,7 @@
+         "-warnings-as-errors",
+     ],
+     deps = [
++        "//submodules/NebulaSettingsContract:NebulaSettingsContract",
+         "//submodules/AsyncDisplayKit",
+         "//submodules/Display",
+         "//submodules/TelegramCore",
+diff --git a/submodules/TelegramUI/Components/Chat/ChatMessageReplyInfoNode/Sources/ChatMessageReplyInfoNode.swift b/submodules/TelegramUI/Components/Chat/ChatMessageReplyInfoNode/Sources/ChatMessageReplyInfoNode.swift
+--- a/submodules/TelegramUI/Components/Chat/ChatMessageReplyInfoNode/Sources/ChatMessageReplyInfoNode.swift
++++ b/submodules/TelegramUI/Components/Chat/ChatMessageReplyInfoNode/Sources/ChatMessageReplyInfoNode.swift
+@@ -1,3 +1,4 @@
++import NebulaSettingsContract
+ import Foundation
+ import UIKit
+ import AsyncDisplayKit
+@@ -226,7 +227,7 @@
+             }
+             
+             var giftEmojiFileId: Int64?
+-            switch author?.nameColor {
++            switch NebulaSettingsStore.shared.replyColors ? author?.nameColor : nil {
+             case let .preset(nameColor):
+                 let colors = arguments.context.peerNameColors.get(nameColor, dark: arguments.presentationData.theme.theme.overallDarkAppearance)
+                 authorNameColor = colors.main
+@@ -903,7 +904,7 @@
+                 node.backgroundView.frame = backgroundFrame
+                 
+                 var pattern: MessageInlineBlockBackgroundView.Pattern?
+-                if let backgroundEmojiId = author?.backgroundEmojiId {
++                if NebulaSettingsStore.shared.replyEmoji, let backgroundEmojiId = author?.backgroundEmojiId {
+                     pattern = MessageInlineBlockBackgroundView.Pattern(
+                         context: arguments.context,
+                         fileId: backgroundEmojiId,
+@@ -914,7 +915,7 @@
+                         emptyCorner: giftEmojiFileId != nil
+                     )
+                 }
+-                var isTransparent: Bool = false
++                var isTransparent: Bool = !NebulaSettingsStore.shared.replyBackground
+                 if case .standalone = arguments.type {
+                     isTransparent = true
+                 }
+diff --git a/submodules/TelegramUI/Components/PeerInfo/PeerInfoCoverComponent/BUILD b/submodules/TelegramUI/Components/PeerInfo/PeerInfoCoverComponent/BUILD
+--- a/submodules/TelegramUI/Components/PeerInfo/PeerInfoCoverComponent/BUILD
++++ b/submodules/TelegramUI/Components/PeerInfo/PeerInfoCoverComponent/BUILD
+@@ -10,6 +10,7 @@
+         "-warnings-as-errors",
+     ],
+     deps = [
++        "//submodules/NebulaSettingsContract:NebulaSettingsContract",
+         "//submodules/SSignalKit/SwiftSignalKit",
+         "//submodules/Display",
+         "//submodules/TelegramCore",
+diff --git a/submodules/TelegramUI/Components/PeerInfo/PeerInfoCoverComponent/Sources/PeerInfoCoverComponent.swift b/submodules/TelegramUI/Components/PeerInfo/PeerInfoCoverComponent/Sources/PeerInfoCoverComponent.swift
+--- a/submodules/TelegramUI/Components/PeerInfo/PeerInfoCoverComponent/Sources/PeerInfoCoverComponent.swift
++++ b/submodules/TelegramUI/Components/PeerInfo/PeerInfoCoverComponent/Sources/PeerInfoCoverComponent.swift
+@@ -1,3 +1,4 @@
++import NebulaSettingsContract
+ import Foundation
+ import UIKit
+ import AsyncDisplayKit
+@@ -108,6 +109,7 @@
+         }
+         
+         var fileId: Int64? {
++            guard NebulaSettingsStore.shared.profileEmoji else { return nil }
+             switch self {
+             case let .peer(peer):
+                 return peer.profileBackgroundEmojiId
+@@ -123,6 +125,7 @@
+             }
+         }
+     }
++    private let nebulaProfileEmoji = NebulaSettingsStore.shared.profileEmoji
+     public let context: AccountContext
+     public let subject: Subject?
+     public let files: [Int64: TelegramMediaFile]
+@@ -168,6 +171,7 @@
+     }
+     
+     public static func ==(lhs: PeerInfoCoverComponent, rhs: PeerInfoCoverComponent) -> Bool {
++        if lhs.nebulaProfileEmoji != rhs.nebulaProfileEmoji { return false }
+         if lhs.context !== rhs.context {
+             return false
+         }
+diff --git a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoHeaderNode.swift b/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoHeaderNode.swift
+--- a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoHeaderNode.swift
++++ b/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoHeaderNode.swift
+@@ -215,7 +215,7 @@
+     init(context: AccountContext, controller: PeerInfoScreenImpl, avatarInitiallyExpanded: Bool, isOpenedFromChat: Bool, isMediaOnly: Bool, isSettings: Bool, isMyProfile: Bool, forumTopicThreadId: Int64?, chatLocation: ChatLocation) {
+         self.context = context
+         self.controller = controller
+-        self.isAvatarExpanded = avatarInitiallyExpanded
++        self.isAvatarExpanded = avatarInitiallyExpanded && NebulaSettingsStore.shared.profilePhotoBanner
+         self.isOpenedFromChat = isOpenedFromChat
+         self.isSettings = isSettings
+         self.isMyProfile = isMyProfile
+@@ -447,7 +447,7 @@
+             self.requestOpenAvatarForEditing?(false)
+             return
+         }
+-        if self.isAvatarExpanded || gallery {
++        if self.isAvatarExpanded || gallery || !NebulaSettingsStore.shared.profilePhotoBanner {
+             if let currentEntry = self.avatarListNode.listContainerNode.currentEntry, let firstEntry = self.avatarListNode.listContainerNode.galleryEntries.first {
+                 let entry = first ? firstEntry : currentEntry
+                 self.requestAvatarExpansion?(true, self.avatarListNode.listContainerNode.galleryEntries, entry, self.avatarTransitionArguments(entry: currentEntry))
+@@ -669,7 +669,7 @@
+         var backgroundCoverAnimateIn = false
+         var backgroundDefaultHeight: CGFloat = 254.0
+         var hasBackground = false
+-        if let status = peer?.emojiStatus, case .starGift = status.content {
++        if NebulaSettingsStore.shared.profileBackground, let status = peer?.emojiStatus, case .starGift = status.content {
+             backgroundCoverSubject = .status(status)
+             if !self.didSetupBackgroundCover {
+                 if !self.isSettings {
+@@ -684,7 +684,7 @@
+                 }
+             }
+             hasBackground = true
+-        } else if let peer {
++        } else if NebulaSettingsStore.shared.profileBackground, let peer {
+             backgroundCoverSubject = .peer(peer)
+             if peer.effectiveProfileColor != nil {
+                 hasBackground = true
+@@ -761,11 +761,11 @@
+         
+         let avatarFrame = CGRect(origin: CGPoint(x: floor((width - avatarSize) / 2.0), y: statusBarHeight + 22.0), size: CGSize(width: avatarSize, height: avatarSize))
+         
+-        let regularNavigationContentsAccentColor: UIColor = peer?.effectiveProfileColor != nil ? .white : presentationData.theme.list.itemAccentColor
++        let regularNavigationContentsAccentColor: UIColor = (NebulaSettingsStore.shared.profileBackground && peer?.effectiveProfileColor != nil) ? .white : presentationData.theme.list.itemAccentColor
+         let collapsedHeaderNavigationContentsAccentColor = presentationData.theme.list.itemAccentColor
+         let expandedAvatarNavigationContentsAccentColor: UIColor = .white
+         
+-        let regularNavigationContentsPrimaryColor: UIColor = peer?.effectiveProfileColor != nil ? .white : presentationData.theme.list.itemPrimaryTextColor
++        let regularNavigationContentsPrimaryColor: UIColor = (NebulaSettingsStore.shared.profileBackground && peer?.effectiveProfileColor != nil) ? .white : presentationData.theme.list.itemPrimaryTextColor
+         let collapsedHeaderNavigationContentsPrimaryColor = presentationData.theme.list.itemPrimaryTextColor
+         let expandedAvatarNavigationContentsPrimaryColor: UIColor = .white
+         
+@@ -777,13 +777,13 @@
+         let collapsedHeaderButtonBackgroundColor: UIColor = .clear
+         let expandedAvatarHeaderButtonBackgroundColor: UIColor = UIColor(white: 0.0, alpha: 0.5)
+         
+-        let regularContentButtonForegroundColor: UIColor = peer?.effectiveProfileColor != nil ? UIColor.white : presentationData.theme.list.itemAccentColor
++        let regularContentButtonForegroundColor: UIColor = (NebulaSettingsStore.shared.profileBackground && peer?.effectiveProfileColor != nil) ? UIColor.white : presentationData.theme.list.itemAccentColor
+         let collapsedHeaderContentButtonForegroundColor = presentationData.theme.list.itemAccentColor
+         let expandedAvatarContentButtonForegroundColor: UIColor = .white
+         
+         var hasCoverColor = false
+         let regularNavigationContentsSecondaryColor: UIColor
+-        if let emojiStatus = peer?.emojiStatus, case let .starGift(_, _, _, _, _, innerColor, outerColor, _, _) = emojiStatus.content {
++        if NebulaSettingsStore.shared.profileBackground, let emojiStatus = peer?.emojiStatus, case let .starGift(_, _, _, _, _, innerColor, outerColor, _, _) = emojiStatus.content {
+             let mainColor = UIColor(rgb: UInt32(bitPattern: innerColor))
+             let secondaryColor = UIColor(rgb: UInt32(bitPattern: outerColor))
+             regularNavigationContentsSecondaryColor = UIColor(white: 1.0, alpha: 0.6).blitOver(mainColor.withMultiplied(hue: 1.0, saturation: 2.2, brightness: 1.5), alpha: 1.0)
+@@ -798,7 +798,7 @@
+             regularHeaderButtonBackgroundColor = baseButtonBackgroundColor.blendOver(background: secondaryColor.mixedWith(mainColor, alpha: 0.1))
+             
+             hasCoverColor = true
+-        } else if let profileColor = peer?.effectiveProfileColor {
++        } else if NebulaSettingsStore.shared.profileBackground, let profileColor = peer?.effectiveProfileColor {
+             let backgroundColors = self.context.peerNameColors.getProfile(profileColor, dark: presentationData.theme.overallDarkAppearance)
+             regularNavigationContentsSecondaryColor = UIColor(white: 1.0, alpha: 0.6).blitOver(backgroundColors.main.withMultiplied(hue: 1.0, saturation: 2.2, brightness: 1.5), alpha: 1.0)
+             
+@@ -978,7 +978,7 @@
+             
+             headerButtonBackgroundColor = regularHeaderButtonBackgroundColor.mixedWith(collapsedHeaderButtonBackgroundColor, alpha: effectiveTransitionFraction)
+             
+-            if let status = peer?.emojiStatus, case let .starGift(_, _, _, _, _, innerColor, outerColor, patternColorValue, _) = status.content {
++            if NebulaSettingsStore.shared.profileBackground, let status = peer?.emojiStatus, case let .starGift(_, _, _, _, _, innerColor, outerColor, patternColorValue, _) = status.content {
+                 let _ = innerColor
+                 ratingBackgroundColor = UIColor(white: 1.0, alpha: 1.0).mixedWith(accentRatingBackgroundColor, alpha: effectiveTransitionFraction)
+                 
+@@ -989,7 +989,7 @@
+                 let patternColor = UIColor(rgb: UInt32(bitPattern: patternColorValue))
+                 ratingBorderColor = patternColor.withAlphaComponent(0.1).blendOver(background: backgroundColor).mixedWith(.clear, alpha: effectiveTransitionFraction)
+                 ratingForegroundColor = ratingBorderColor.mixedWith(presentationData.theme.list.itemCheckColors.foregroundColor, alpha: effectiveTransitionFraction)
+-            } else if let profileColor = peer?.effectiveProfileColor {
++            } else if NebulaSettingsStore.shared.profileBackground, let profileColor = peer?.effectiveProfileColor {
+                 ratingBackgroundColor = UIColor(white: 1.0, alpha: 1.0).mixedWith(presentationData.theme.list.itemCheckColors.fillColor, alpha: effectiveTransitionFraction)
+                 
+                 let backgroundColors = self.context.peerNameColors.getProfile(profileColor, dark: presentationData.theme.overallDarkAppearance)
+@@ -2992,7 +2992,7 @@
+     
+     func updateIsAvatarExpanded(_ isAvatarExpanded: Bool, transition: ContainedViewLayoutTransition) {
+         if self.isAvatarExpanded != isAvatarExpanded {
+-            self.isAvatarExpanded = isAvatarExpanded
++            self.isAvatarExpanded = isAvatarExpanded && NebulaSettingsStore.shared.profilePhotoBanner
+             if isAvatarExpanded {
+                 self.avatarListNode.listContainerNode.selectFirstItem()
+             }
+diff --git a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoProfileItems.swift b/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoProfileItems.swift
+--- a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoProfileItems.swift
++++ b/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoProfileItems.swift
+@@ -1,3 +1,4 @@
++import NebulaSettingsContract
+ import Foundation
+ import UIKit
+ import Display
+@@ -119,7 +120,7 @@
+             items[.calls]!.append(PeerInfoScreenCallListItem(id: ItemCallList, messages: callMessages))
+         }
+         
+-        if let personalChannel = data.personalChannel {
++        if NebulaSettingsStore.shared.profileChannel, let personalChannel = data.personalChannel {
+             let peerId = personalChannel.peer.peerId
+             var label: String?
+             if let subscriberCount = personalChannel.subscriberCount {
+@@ -206,7 +207,7 @@
+         }
+         
+         if let cachedData = data.cachedData as? CachedUserData {
+-            if let birthday = cachedData.birthday {
++            if NebulaSettingsStore.shared.profileBirthday, let birthday = cachedData.birthday {
+                 let isBirthdayToday = hasBirthdayToday(birthday: birthday)
+                 
+                 var birthdayAction: ((ASDisplayNode, Promise<Bool>?) -> Void)?
+@@ -350,13 +351,13 @@
+                 }
+             }
+             
+-            if let businessHours = cachedData.businessHours {
++            if NebulaSettingsStore.shared.profileBusiness, let businessHours = cachedData.businessHours {
+                 items[currentPeerInfoSection]!.append(PeerInfoScreenBusinessHoursItem(id: ItemBusinessHours, label: presentationData.strings.PeerInfo_BusinessHours_Label, businessHours: businessHours, requestLayout: { animated in
+                     interaction.requestLayout(animated)
+                 }, longTapAction: nil, contextAction: workingHoursContextAction))
+             }
+             
+-            if let businessLocation = cachedData.businessLocation {
++            if NebulaSettingsStore.shared.profileBusiness, let businessLocation = cachedData.businessLocation {
+                 if let coordinates = businessLocation.coordinates {
+                     let imageSignal = chatMapSnapshotImage(engine: context.engine, resource: MapSnapshotMediaResource(latitude: coordinates.latitude, longitude: coordinates.longitude, width: 90, height: 90))
+                     items[currentPeerInfoSection]!.append(PeerInfoScreenAddressItem(
+@@ -1279,7 +1280,7 @@
+                         interaction.editingOpenPostSuggestionsSetup()
+                     }))
+                     
+-                    if let personalChannel = data.personalChannel {
++                    if NebulaSettingsStore.shared.profileChannel, let personalChannel = data.personalChannel {
+                         let peerId = personalChannel.peer.peerId
+                         items[.linkedMonoforum]?.append(PeerInfoScreenPersonalChannelItem(id: 1, context: context, data: personalChannel, controller: { [weak interaction] in
+                             guard let interaction else {
+diff --git a/submodules/TelegramUI/Components/VideoMessageCameraScreen/Sources/VideoMessageCameraScreen.swift b/submodules/TelegramUI/Components/VideoMessageCameraScreen/Sources/VideoMessageCameraScreen.swift
+--- a/submodules/TelegramUI/Components/VideoMessageCameraScreen/Sources/VideoMessageCameraScreen.swift
++++ b/submodules/TelegramUI/Components/VideoMessageCameraScreen/Sources/VideoMessageCameraScreen.swift
+@@ -910,7 +910,7 @@
+         var cameraState: CameraState {
+             didSet {
+                 if self.cameraState.position != oldValue.position {
+-                    self.nebulaZoomSlider.setRange(front: self.cameraState.position == .front)
++                    self.refreshNebulaZoom()
+                 }
+                 self.nebulaZoomSlider.isHidden = self.cameraState.recording == .none || self.previewState != nil
+                 if self.cameraState.isViewOnceEnabled != oldValue.isViewOnceEnabled {
+@@ -955,7 +955,7 @@
+             self.previewContainerContentView.clipsToBounds = true
+             self.previewContainerView.addSubview(self.previewContainerContentView)
+                         
+-            let isDualCameraEnabled = Camera.isDualCameraSupported(forRoundVideo: true)
++            let isDualCameraEnabled = false // Virtual rear camera owns optical module transitions.
+             let isFrontPosition = controller.initialFrontCamera
+             
+             self.mainPreviewView = CameraSimplePreviewView(frame: .zero, main: true, roundVideo: true)
+@@ -966,6 +966,7 @@
+             self.loadingView = LoadingEffectView(effectAlpha: 0.1, borderAlpha: 0.25, duration: 1.0)
+             self.nebulaZoomSlider = NebulaVideoZoomSlider()
+             self.nebulaZoomSlider.tintColor = self.presentationData.theme.list.itemAccentColor
++            self.nebulaZoomSlider.setColors(background: self.presentationData.theme.list.itemBlocksBackgroundColor, foreground: self.presentationData.theme.list.itemPrimaryTextColor, selected: self.presentationData.theme.list.itemCheckColors.foregroundColor)
+             
+             self.previewBlurView = BlurView()
+             self.previewBlurView.isUserInteractionEnabled = false
+@@ -998,9 +999,9 @@
+             self.view.addSubview(self.containerView)
+             self.view.addSubview(self.nebulaZoomSlider)
+             self.nebulaZoomSlider.isHidden = true
+-            self.nebulaZoomSlider.setRange(front: self.cameraState.position == .front)
+             self.nebulaZoomSlider.onZoomChanged = { [weak self] factor in
+-                self?.camera?.setZoomLevel(factor - 1)
++                guard let self else { return }
++                self.camera?.setNebulaZoom(factor, front: self.cameraState.position == .front)
+             }
+             
+             self.containerView.addSubview(self.previewContainerView)
+@@ -1118,25 +1119,31 @@
+             camera.startCapture()
+             
+             self.camera = camera
++            self.refreshNebulaZoom()
+             
+             Queue.mainQueue().justDispatch {
+                 self.startRecording.invoke(Void())
+             }
+         }
+         
++        private func refreshNebulaZoom() {
++            self.nebulaZoomSlider.isUserInteractionEnabled = false
++            self.camera?.readNebulaZoom { [weak self] state in
++                guard let self, let state, state.front == (self.cameraState.position == .front) else { return }
++                self.nebulaZoomSlider.setRange(minimum: state.minimum, maximum: state.maximum, stops: state.stops, current: state.current)
++                self.nebulaZoomSlider.isUserInteractionEnabled = state.maximum > state.minimum
++            }
++        }
++
+         @objc private func handlePinch(_ gestureRecognizer: UIPinchGestureRecognizer) {
+-            guard let camera = self.camera else {
+-                return
+-            }
++            guard self.camera != nil else { return }
+             switch gestureRecognizer.state {
+             case .changed:
+                 let scale = gestureRecognizer.scale
+-                camera.setZoomDelta(scale)
+                 self.nebulaZoomSlider.reflectPinch(scale)
+                 gestureRecognizer.scale = 1.0
+             case .ended, .cancelled:
+-                camera.rampZoom(1.0, rate: 8.0)
+-                self.nebulaZoomSlider.setCurrent(1)
++                break // Keep the final pinch factor.
+             default:
+                 break
+             }
+@@ -1503,7 +1510,7 @@
+                 backgroundFrame = CGRect(origin: .zero, size: CGSize(width: layout.size.width, height: layout.size.height - layout.intrinsicInsets.bottom - controller.inputPanelFrame.0.height - 8.0))
+             }
+                         
+-            let zoomWidth = min(320.0, layout.size.width - 32.0)
++            let zoomWidth = min(280.0, layout.size.width - 40.0)
+             self.nebulaZoomSlider.frame = CGRect(x: floor((layout.size.width - zoomWidth) / 2.0), y: max((layout.statusBarHeight ?? 0.0) + 8.0, backgroundFrame.maxY - 136.0), width: zoomWidth, height: 52.0)
+             transition.setPosition(view: self.backgroundView, position: actualBackgroundFrame.center)
+             transition.setBounds(view: self.backgroundView, bounds: CGRect(origin: .zero, size: actualBackgroundFrame.size))
+diff --git a/submodules/TelegramUI/Sources/Chat/ChatControllerMediaRecording.swift b/submodules/TelegramUI/Sources/Chat/ChatControllerMediaRecording.swift
+--- a/submodules/TelegramUI/Sources/Chat/ChatControllerMediaRecording.swift
++++ b/submodules/TelegramUI/Sources/Chat/ChatControllerMediaRecording.swift
+@@ -148,28 +148,11 @@
+     func requestVideoRecorder(initialFrontCamera: Bool? = nil) {
+         if self.videoRecorderValue == nil && initialFrontCamera == nil {
+             let presentationData = self.presentationData
+-            let sheet = ActionSheetController(presentationData: presentationData)
+-            let dismissAction: () -> Void = { [weak sheet] in
+-                sheet?.dismissAnimated()
+-            }
+-            let choose: (Bool) -> Void = { [weak self] front in
+-                dismissAction()
+-                Queue.mainQueue().after(0.2, { [weak self] in
+-                    self?.requestVideoRecorder(initialFrontCamera: front)
+-                })
+-            }
+-            let russian = Locale.current.languageCode == "ru"
+-            sheet.setItemGroups([
+-                ActionSheetItemGroup(items: [
+-                    ActionSheetTextItem(title: russian ? "Камера кружка" : "Round video camera"),
+-                    ActionSheetButtonItem(title: russian ? "Фронтальная" : "Front", action: { choose(true) }),
+-                    ActionSheetButtonItem(title: russian ? "Основная" : "Rear", action: { choose(false) })
+-                ]),
+-                ActionSheetItemGroup(items: [
+-                    ActionSheetButtonItem(title: presentationData.strings.Common_Cancel, action: dismissAction)
+-                ])
+-            ])
+-            self.present(sheet, in: .window(.root), with: ViewControllerPresentationArguments(presentationAnimation: .modalSheet))
++            let russian = presentationData.strings.baseLanguageCode.lowercased().hasPrefix("ru")
++            nebulaPresentChoice(from: self, title: russian ? "Камера кружка" : "Round video camera",
++                choices: russian ? ["Фронтальная", "Основная"] : ["Front", "Rear"], russian: russian, theme: presentationData.theme) { [weak self] index in
++                    self?.requestVideoRecorder(initialFrontCamera: index == 0)
++                }
+             return
+         }
+         if self.videoRecorderValue == nil {
+diff --git a/submodules/TelegramUI/Sources/ChatController.swift b/submodules/TelegramUI/Sources/ChatController.swift
+--- a/submodules/TelegramUI/Sources/ChatController.swift
++++ b/submodules/TelegramUI/Sources/ChatController.swift
+@@ -242,6 +242,7 @@
+ public final class ChatControllerImpl: TelegramBaseController, ChatController, GalleryHiddenMediaTarget, UIDropInteractionDelegate {    
+     var validLayout: ContainerViewLayout?
+     private var nebulaNextChannelObservation: SettingsObservation?
++    private var nebulaReplyAppearance = [NebulaSettingsStore.shared.replyBackground, NebulaSettingsStore.shared.replyColors, NebulaSettingsStore.shared.replyEmoji]
+     private var nebulaLastSecondsInTime = NebulaSettingsStore.shared.secondsInTime
+     
+     public weak var parentController: ViewController?
+@@ -775,7 +776,9 @@
+         self.nebulaNextChannelObservation = NebulaSettingsStore.shared.observe { [weak self] in
+             guard let self else { return }
+             let seconds = NebulaSettingsStore.shared.secondsInTime
+-            let refreshMessageTimes = self.nebulaLastSecondsInTime != seconds
++            let replyAppearance = [NebulaSettingsStore.shared.replyBackground, NebulaSettingsStore.shared.replyColors, NebulaSettingsStore.shared.replyEmoji]
++            let refreshMessageTimes = self.nebulaLastSecondsInTime != seconds || self.nebulaReplyAppearance != replyAppearance
++            self.nebulaReplyAppearance = replyAppearance
+             self.nebulaLastSecondsInTime = seconds
+             guard self.isViewLoaded else { return }
+             self.updateNextChannelToReadVisibility()
+@@ -6094,7 +6097,7 @@
+                                             $0.withUpdatedEffectiveInputState(ChatTextInputState(inputText: NSAttributedString(string: value)))
+                                         }
+                                     })
+-                                })
++                                }, theme: strongSelf.presentationData.theme)
+                                 strongSelf.present(UINavigationController(rootViewController: editor), animated: true)
+                             })))
+                         }
+diff --git a/submodules/TelegramUI/Sources/ChatInterfaceStateContextMenus.swift b/submodules/TelegramUI/Sources/ChatInterfaceStateContextMenus.swift
+--- a/submodules/TelegramUI/Sources/ChatInterfaceStateContextMenus.swift
++++ b/submodules/TelegramUI/Sources/ChatInterfaceStateContextMenus.swift
+@@ -1452,7 +1452,7 @@
+                             let selectedText = messageText
+                             let russian = chatPresentationInterfaceState.strings.baseLanguageCode.lowercased().hasPrefix("ru")
+                             c?.dismiss(completion: {
+-                                controllerInteraction.navigationController()?.present(UINavigationController(rootViewController: NebulaAiChatController(russian: russian, initialText: selectedText, action: .translate)), animated: true)
++                                controllerInteraction.navigationController()?.present(UINavigationController(rootViewController: NebulaAiChatController(russian: russian, initialText: selectedText, action: .translate, theme: chatPresentationInterfaceState.theme)), animated: true)
+                             })
+                             if c == nil { f(.default) }
+                             return
+@@ -1469,17 +1469,14 @@
+                     })))
+                 }
+                 
+-                let aiSettings = NebulaAiSettings.shared
+-                let aiReady = aiSettings.enabled && aiSettings.isConfigured()
+-                    && (aiSettings.provider != .appleIntelligence || NebulaAiChatController.onDeviceAvailable)
+-                if aiReady && !messageText.isEmpty && !isCopyProtected && messages.count == 1 && message.id.peerId.namespace != Namespaces.Peer.SecretChat && messageText.count <= 50_000 {
++                if !messageText.isEmpty && !isCopyProtected && messages.count == 1 && message.id.peerId.namespace != Namespaces.Peer.SecretChat && messageText.count <= 50_000 {
+                     let selectedText = messageText
+                     let russian = chatPresentationInterfaceState.strings.baseLanguageCode.lowercased().hasPrefix("ru")
+                     actions.append(.action(ContextMenuActionItem(text: russian ? "Nebula AI · пересказ" : "Nebula AI · Summarize", icon: { theme in
+                         return generateTintedImage(image: UIImage(bundleImageName: "Chat/Context Menu/Translate"), color: theme.actionSheet.primaryTextColor)
+                     }, action: { c, f in
+                         c?.dismiss(completion: {
+-                            controllerInteraction.navigationController()?.present(UINavigationController(rootViewController: NebulaAiChatController(russian: russian, initialText: selectedText, action: .summarize)), animated: true)
++                            controllerInteraction.navigationController()?.present(UINavigationController(rootViewController: NebulaAiChatController(russian: russian, initialText: selectedText, action: .summarize, theme: chatPresentationInterfaceState.theme)), animated: true)
+                         })
+                         if c == nil { f(.default) }
+                     })))
+@@ -1487,7 +1484,7 @@
+                         return generateTintedImage(image: UIImage(bundleImageName: "Chat/Context Menu/Translate"), color: theme.actionSheet.primaryTextColor)
+                     }, action: { c, f in
+                         c?.dismiss(completion: {
+-                            controllerInteraction.navigationController()?.present(UINavigationController(rootViewController: NebulaAiChatController(russian: russian, initialText: selectedText)), animated: true)
++                            controllerInteraction.navigationController()?.present(UINavigationController(rootViewController: NebulaMessageToolsController(text: selectedText, russian: russian, theme: chatPresentationInterfaceState.theme, accountId: String(context.account.peerId.toInt64()))), animated: true)
+                         })
+                         if c == nil { f(.default) }
+                     })))

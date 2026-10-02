@@ -97,8 +97,8 @@ def main():
         assert 'controller.present(sheet, in: .window(.root))' in header
         ai_menu = (temp / 'submodules/TelegramUI/Sources/ChatInterfaceStateContextMenus.swift').read_text(encoding='utf-8')
         assert 'NebulaAiSettings.shared' in ai_menu
-        assert 'NebulaAiChatController(russian: russian, initialText: selectedText, action: .translate)' in ai_menu
-        assert 'NebulaAiChatController(russian: russian, initialText: selectedText, action: .summarize)' in ai_menu
+        assert 'NebulaAiChatController(russian: russian, initialText: selectedText, action: .translate, theme: chatPresentationInterfaceState.theme)' in ai_menu
+        assert 'NebulaAiChatController(russian: russian, initialText: selectedText, action: .summarize, theme: chatPresentationInterfaceState.theme)' in ai_menu
         assert '!isCopyProtected && messages.count == 1' in ai_menu
         draft_menu = (temp / 'submodules/TelegramUI/Sources/ChatController.swift').read_text(encoding='utf-8')
         assert 'NebulaAiChatController(russian: russian, initialText: draft, action: .proofread' in draft_menu
@@ -252,7 +252,7 @@ def main():
         assert 'snapshot.keys.contains(key(id))' in capture and 'for id in newlyRetained' in capture
         assert 'archive.shouldPrune(account: account)' in capture
         choice = (temp / 'submodules/SettingsUI/Sources/NebulaChoiceController.swift').read_text(encoding='utf-8')
-        assert '.checkmark' in choice and '.formSheet' in choice and '.automaticDimension' in choice
+        assert '.checkmark' in choice and '.custom' in choice and 'withAlphaComponent(0.6)' in choice and '.automaticDimension' in choice
         assert 'NebulaGlassController(russian: ru,' in controller
         assert 'theme: context.sharedContext.currentPresentationData.with { $0 }.theme' in controller
         glass_preview = (temp / 'submodules/SettingsUI/Sources/NebulaGlassController.swift').read_text(encoding='utf-8')
@@ -263,7 +263,10 @@ def main():
         assert 'nebulaMaterialState != state' in glass  # No effect allocation on every pan frame.
         zoom = (temp / 'submodules/TelegramUI/Components/VideoMessageCameraScreen/Sources/NebulaVideoZoomSlider.swift').read_text(encoding='utf-8')
         assert 'device.neutralZoomFactor' not in zoom
-        assert 'device.maxAvailableVideoZoomFactor' in zoom
+        assert 'AVCaptureDevice.default' not in zoom and 'setRange(minimum:' in zoom
+        camera = (temp / 'submodules/Camera/Sources/Camera.swift').read_text(encoding='utf-8')
+        assert 'maximumDeviceFactor: Double(device.maxAvailableVideoZoomFactor)' in camera
+        assert 'private let nebulaZoomLock = NSLock()' in camera
         print('OK: Saved Messages retention, async archive hook, native choice sheets, live glass preview and public zoom API', flush=True)
         ai_chat = (temp / 'submodules/SettingsUI/Sources/NebulaAiChatController.swift').read_text(encoding='utf-8')
         ai_settings = (temp / 'submodules/SettingsUI/Sources/NebulaAiController.swift').read_text(encoding='utf-8')
@@ -321,7 +324,9 @@ print("OK: embedded catalog and Bazel-side Foundation store compiled and ran")
             settings_ui = temp / 'submodules/SettingsUI/Sources'
             ai_sources = ['NebulaSettingsStyle.swift', 'NebulaSettingsSymbols.swift', 'NebulaSettingsHero.swift',
                           'NebulaChoiceController.swift', 'NebulaAiChatController.swift', 'NebulaAiController.swift',
-                          'NebulaAiService.swift', 'NebulaAiHistoryController.swift']
+                          'NebulaAiService.swift', 'NebulaAiHistoryController.swift', 'NebulaActionGrid.swift',
+                          'NebulaResultLanguage.swift', 'NebulaMessageToolsController.swift', 'NebulaTasksController.swift',
+                          'NebulaCommunity.swift', 'NebulaSupportController.swift']
             # These views now use Telegram's PresentationTheme module. Parse them
             # here, then typecheck against the real module graph in ios-native.yml.
             subprocess.run(['swiftc', '-frontend', '-parse', '-swift-version', '5',

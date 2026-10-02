@@ -7,9 +7,12 @@ import TelegramPresentationData
 import ItemListUI
 import PresentationDataUtils
 import AccountContext
+import TelegramCore
+import ItemListPeerItem
 import NebulaSettingsContract
 
 private final class NebulaSettingsArguments {
+    let context: AccountContext
     let update: (Bool) -> Void
     let transfer: NebulaSettingsFileTransfer
     var openLink: (() -> Void)?
@@ -30,7 +33,8 @@ private final class NebulaSettingsArguments {
     var searchUpdated: ((String) -> Void)?
     var russian = false
 
-    init(transfer: NebulaSettingsFileTransfer, update: @escaping (Bool) -> Void) {
+    init(context: AccountContext, transfer: NebulaSettingsFileTransfer, update: @escaping (Bool) -> Void) {
+        self.context = context
         self.transfer = transfer
         self.update = update
     }
@@ -51,7 +55,7 @@ private enum NebulaSettingsEntry: ItemListNodeEntry {
     case privacy(String)
     case ai(String)
     case support(String)
-    case community(String)
+    case community(String, EnginePeer?, Int?)
     case icons(String)
     case buildInfo(String)
     case memory(String)
@@ -75,7 +79,7 @@ private enum NebulaSettingsEntry: ItemListNodeEntry {
         case .category, .toolsHeader, .link, .ai, .buildInfo, .memory, .support, .community: return 0
         case .appearanceHeader, .glass, .navigation, .contacts, .stories, .widePosts, .icons, .transitions: return 1
         case let .navigationToggle(key, _, _, _):
-            return ["folder_title", "folder_outline"].contains(key) ? 2 : 1
+            return key.hasPrefix("profile_") ? 5 : ["folder_title", "folder_outline"].contains(key) ? 2 : 1
         case .header, .hideCounters, .folderStyle, .footer: return 2
         case .privacyHeader, .privacy, .history, .clearHistory: return 3
         case .transferHeader, .importFile, .exportFile, .transferFooter: return 4
@@ -83,14 +87,14 @@ private enum NebulaSettingsEntry: ItemListNodeEntry {
     }
     private var order: Int {
         switch self {
-        case let .category(index, _, _, _): return index == 7 ? 25 : index * 10
+        case let .category(index, _, _, _): return index == 7 ? 25 : index == 8 ? 35 : index * 10
         case .search: return -2
         case .empty: return -1
         case .toolsHeader: return 0
         case .link: return 1
         case .ai: return 20
-        case .support: return 65
-        case .community: return 66
+        case .support: return 5
+        case .community: return 6
         case .buildInfo: return 25
         case .memory: return 24
         case .appearanceHeader: return 30
@@ -167,6 +171,16 @@ private enum NebulaSettingsEntry: ItemListNodeEntry {
             case "folder_title": return 40
             case "folder_outline": return 47
             case "hide_search_field": return 48
+            case "hide_premium_status": return 55
+            case "profile_channel": return 60
+            case "profile_birthday": return 61
+            case "profile_business": return 62
+            case "profile_background": return 63
+            case "profile_emoji": return 64
+            case "profile_photo_banner": return 65
+            case "reply_background": return 66
+            case "reply_colors": return 67
+            case "reply_emoji": return 68
             default: return 39
             }
         case .glass: return 12
@@ -204,7 +218,7 @@ private enum NebulaSettingsEntry: ItemListNodeEntry {
         case let .navigation(title, detail), let .glass(title, detail), let .transitions(title, detail), let .folderStyle(title, detail): return title + " " + detail
         case let .widePosts(title, _, _), let .contacts(title, _, _), let .navigationToggle(_, title, _, _), let .stories(title, _, _), let .history(title, _, _),
              let .hideCounters(title, _, _), let .exportFile(title, _): return title
-        case let .link(title), let .privacy(title), let .ai(title), let .support(title), let .community(title), let .icons(title), let .buildInfo(title), let .memory(title), let .clearHistory(title),
+        case let .link(title), let .privacy(title), let .ai(title), let .support(title), let .community(title, _, _), let .icons(title), let .buildInfo(title), let .memory(title), let .clearHistory(title),
              let .importFile(title): return title
         default: return nil
         }
@@ -227,8 +241,17 @@ private enum NebulaSettingsEntry: ItemListNodeEntry {
                 style: .blocks, action: action)
         }
         switch self {
-        case let .community(title):
-            return disclosure(title, "", "bubble.left", { arguments.openCommunity?() })
+        case let .community(title, peer, count):
+            if let peer {
+                let data = arguments.context.sharedContext.currentPresentationData.with { $0 }
+                return ItemListPeerItem(presentationData: presentationData, systemStyle: .glass,
+                    dateTimeFormat: data.dateTimeFormat, nameDisplayOrder: data.nameDisplayOrder, context: arguments.context,
+                    peer: peer, presence: nil, text: .text(count.map { data.strings.PeerInfo_Community(Int32(clamping: $0)) } ?? "", .secondary),
+                    label: .none, editing: ItemListPeerItemEditing(editable: false, editing: false, revealed: false),
+                    switchValue: nil, enabled: true, selectable: true, sectionId: section, action: { arguments.openCommunity?() },
+                    setPeerIdWithRevealedOptions: { _, _ in }, removePeer: { _ in }, hasTopStripe: false, hasTopGroupInset: false, noInsets: false)
+            }
+            return disclosure(title, ru ? "Загрузка сообщества…" : "Loading community…", "bubble.left", { arguments.openCommunity?() })
         case let .support(title):
             return disclosure(title, ru ? "Разработка и значок за поддержку" : "Development and a supporter badge", "heart", { arguments.openSupport?() })
         case let .category(index, title, detail, symbol):
@@ -299,7 +322,7 @@ public func nebulaSettingsController(context: AccountContext, page: Int = 0) -> 
     let transfer = NebulaSettingsFileTransfer(store: store, isRussian: {
         context.sharedContext.currentPresentationData.with { $0 }.strings.baseLanguageCode.lowercased().hasPrefix("ru")
     }, didImport: { writeFailed.set(false) })
-    let arguments = NebulaSettingsArguments(transfer: transfer, update: { value in
+    let arguments = NebulaSettingsArguments(context: context, transfer: transfer, update: { value in
         do {
             try store.set(.boolean(value), for: "hide_tab_counters")
             writeFailed.set(false)
@@ -315,12 +338,14 @@ public func nebulaSettingsController(context: AccountContext, page: Int = 0) -> 
         return ActionDisposable { observation.cancel() }
     }
     arguments.searchUpdated = { searchQuery.set($0) }
-    let signal = combineLatest(queue: .mainQueue(), context.sharedContext.presentationData, settings, writeFailed.get(), searchQuery.get())
+    var communityPeer: EnginePeer?
+    let signal = combineLatest(queue: .mainQueue(), context.sharedContext.presentationData, settings, writeFailed.get(), searchQuery.get(), nebulaCommunity(context: context))
     |> deliverOnMainQueue
-    |> map { presentationData, hideCounters, failed, query -> (ItemListControllerState, (ItemListNodeState, Any)) in
+    |> map { presentationData, hideCounters, failed, query, community -> (ItemListControllerState, (ItemListNodeState, Any)) in
         // Follow the active Telegram theme, including custom backgrounds and accents.
         let ru = presentationData.strings.baseLanguageCode.lowercased().hasPrefix("ru")
         arguments.russian = ru
+        communityPeer = community.peer
         let modes = ru ? ["Автоматически", "Полное", "Облегчённое"] : ["Automatic", "Full", "Light"]
         let transitionModes = ru ? ["Стандартная", "Системная", "Spring"] : ["Standard", "System", "Spring"]
         let folderModes = ru ? ["Названия", "Только значки", "Значки и названия"] : ["Titles", "Icons only", "Icons and titles"]
@@ -360,7 +385,7 @@ public func nebulaSettingsController(context: AccountContext, page: Int = 0) -> 
                 : "NebulaGram JSON · supported settings apply immediately. Accounts and keys are not exported."),
             .link("NebulaLink"),
             .support(ru ? "Поддержать проект" : "Support the project"),
-            .community(ru ? "Сообщество" : "Community"),
+            .community("NebulaHub", community.peer, community.count),
             .privacy(ru ? "Конфиденциальность" : "Privacy"),
             .widePosts(ru ? "Широкие посты в каналах" : "Wide posts in channels", store.widePosts, !store.hasLoadError),
             .stories(ru ? "Показывать истории" : "Show stories", store.showStories, !store.hasLoadError),
@@ -391,6 +416,16 @@ public func nebulaSettingsController(context: AccountContext, page: Int = 0) -> 
             .navigationToggle("centered_chat_header", ru ? "Заголовок чата по центру" : "Center chat title", store.centeredChatHeader, !store.hasLoadError),
             .navigationToggle("disable_next_channel", ru ? "Скрыть переход к следующему каналу" : "Hide next-channel prompt", store.disableNextChannel, !store.hasLoadError),
             .navigationToggle("seconds_in_time", ru ? "Секунды во времени сообщений" : "Show seconds in message times", store.secondsInTime, !store.hasLoadError),
+            .navigationToggle("profile_channel", ru ? "Канал" : "Channel", store.profileChannel, !store.hasLoadError),
+            .navigationToggle("profile_birthday", ru ? "День рождения" : "Birthday", store.profileBirthday, !store.hasLoadError),
+            .navigationToggle("profile_business", ru ? "Часы работы и адрес" : "Business hours and location", store.profileBusiness, !store.hasLoadError),
+            .navigationToggle("profile_background", ru ? "Цветной фон" : "Profile background", store.profileBackground, !store.hasLoadError),
+            .navigationToggle("profile_emoji", ru ? "Узор из эмодзи" : "Emoji pattern", store.profileEmoji, !store.hasLoadError),
+            .navigationToggle("profile_photo_banner", ru ? "Раскрывать фото в шапке" : "Expand photo in header", store.profilePhotoBanner, !store.hasLoadError),
+            .navigationToggle("reply_background", ru ? "Фон ответа" : "Reply background", store.replyBackground, !store.hasLoadError),
+            .navigationToggle("reply_colors", ru ? "Цвета автора в ответах" : "Author colors in replies", store.replyColors, !store.hasLoadError),
+            .navigationToggle("reply_emoji", ru ? "Эмодзи в ответах" : "Emoji in replies", store.replyEmoji, !store.hasLoadError),
+            .category(9, ru ? "Задачи" : "Tasks", "", "checkmark.circle"),
             .ai(ru ? "Искусственный интеллект" : "AI assistant"),
             .buildInfo(ru ? "О сборке" : "Build information"),
             .memory(ru ? "Память приложения" : "App memory")
@@ -400,7 +435,7 @@ public func nebulaSettingsController(context: AccountContext, page: Int = 0) -> 
             case .widePosts, .stories:
                 return true
             case let .navigationToggle(key, _, _, _):
-                return ["hide_dividers", "hide_send_as", "hide_attach_camera", "menu_search", "menu_mute",
+                return key.hasPrefix("reply_") || ["hide_dividers", "hide_send_as", "hide_attach_camera", "menu_search", "menu_mute",
                     "menu_call", "menu_video", "centered_chat_header", "disable_next_channel", "seconds_in_time", "hide_search_field"].contains(key)
             default:
                 return false
@@ -431,11 +466,12 @@ public func nebulaSettingsController(context: AccountContext, page: Int = 0) -> 
                 .category(2, ru ? "Внешний вид" : "Appearance", ru ? "Стекло, значки, анимации" : "Glass, icons, animations", "paintpalette"),
                 .category(7, ru ? "Навигация" : "Navigation", ru ? "Нижняя панель и кнопки" : "Bottom bar and buttons", "rectangle.bottomthird.inset.filled"),
                 .category(3, ru ? "Чаты" : "Chats", ru ? "Список, сообщения, меню" : "List, messages, menus", "bubble.left"),
+                .category(8, ru ? "Профиль" : "Profile", ru ? "Фото, фон и информация" : "Photo, background and details", "person.crop.circle"),
                 .category(4, ru ? "Папки" : "Folders", ru ? "Вкладки и счётчики" : "Tabs and counters", "folder"),
                 .category(5, ru ? "Конфиденциальность" : "Privacy", ru ? "Архив, защита, поиск" : "Archive, protection, search", "hand.raised"),
                 .category(6, ru ? "Перенос настроек" : "Transfer", ru ? "Импорт и экспорт" : "Import and export", "arrow.triangle.2.circlepath"),
                 .support(ru ? "Поддержать проект" : "Support the project"),
-                .community(ru ? "Сообщество" : "Community")
+                .community("NebulaHub", community.peer, community.count)
             ]
         } else if page != 0 {
             entries = entries.filter { entry in
@@ -448,6 +484,7 @@ public func nebulaSettingsController(context: AccountContext, page: Int = 0) -> 
                 case 5: return entry.section == 3
                 case 6: return entry.section == 4
                 case 7: return isNavigationOption(entry)
+                case 8: return entry.section == 5
                 default: return false
                 }
             }
@@ -471,15 +508,21 @@ public func nebulaSettingsController(context: AccountContext, page: Int = 0) -> 
         entries.sort()
         let data = ItemListPresentationData(presentationData)
         let pageTitles = ru
-            ? ["Настройки NebulaGram", "Основные", "Внешний вид", "Чаты", "Папки", "Конфиденциальность", "Перенос настроек", "Навигация"]
-            : ["NebulaGram Settings", "General", "Appearance", "Chats", "Folders", "Privacy", "Transfer", "Navigation"]
+            ? ["Настройки NebulaGram", "Основные", "Внешний вид", "Чаты", "Папки", "Конфиденциальность", "Перенос настроек", "Навигация", "Профиль"]
+            : ["NebulaGram Settings", "General", "Appearance", "Chats", "Folders", "Privacy", "Transfer", "Navigation", "Profile"]
         let state = ItemListControllerState(presentationData: data, title: .text(pageTitles[max(0, min(pageTitles.count - 1, page))]), leftNavigationButton: nil, rightNavigationButton: nil, backNavigationButton: ItemListBackButton(title: presentationData.strings.Common_Back))
         return (state, (ItemListNodeState(presentationData: data, entries: entries, style: .blocks, animateChanges: false), arguments))
     }
     let controller = ItemListController(context: context, state: signal)
     transfer.host = controller
     arguments.openCategory = { [weak controller] index in
-        guard let controller = controller, (1...6).contains(index) else { return }
+        guard let controller else { return }
+        if index == 9 {
+            let data = context.sharedContext.currentPresentationData.with { $0 }
+            controller.present(UINavigationController(rootViewController: NebulaTasksController(accountId: String(context.account.peerId.toInt64()), russian: data.strings.baseLanguageCode.hasPrefix("ru"), theme: data.theme)), animated: true)
+            return
+        }
+        guard (1...8).contains(index) else { return }
         (controller.navigationController as? NavigationController)?.pushViewController(
             nebulaSettingsController(context: context, page: index))
     }
@@ -532,14 +575,16 @@ public func nebulaSettingsController(context: AccountContext, page: Int = 0) -> 
         let presentation = context.sharedContext.currentPresentationData.with { $0 }
         controller.present(UINavigationController(rootViewController: NebulaSupportController(
             russian: presentation.strings.baseLanguageCode.lowercased().hasPrefix("ru"),
-            theme: presentation.theme, telegramId: context.account.peerId.id._internalGetInt64Value())), animated: true)
+            theme: presentation.theme, context: context, openCommunity: { [weak controller] id in
+                controller?.dismiss(animated: true, completion: { [weak controller] in
+                    (controller?.navigationController as? NavigationController)?.pushViewController(context.sharedContext.makeCommunityViewScreen(context: context, communityId: id, mode: .sheet))
+                })
+            })), animated: true)
     }
     arguments.openCommunity = { [weak controller] in
-        guard let controller = controller, controller.presentedViewController == nil else { return }
-        let presentation = context.sharedContext.currentPresentationData.with { $0 }
-        controller.present(UINavigationController(rootViewController: NebulaSupportController(
-            russian: presentation.strings.baseLanguageCode.lowercased().hasPrefix("ru"),
-            theme: presentation.theme, telegramId: context.account.peerId.id._internalGetInt64Value(), communityOnly: true)), animated: true)
+        guard let controller, let peer = communityPeer else { return }
+        (controller.navigationController as? NavigationController)?.pushViewController(
+            context.sharedContext.makeCommunityViewScreen(context: context, communityId: peer.id, mode: .sheet))
     }
     arguments.openIcons = { [weak controller] in
         guard let controller = controller, controller.presentedViewController == nil else { return }

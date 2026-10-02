@@ -288,6 +288,24 @@ final class SettingsStoreTests: XCTestCase {
         }
     }
 
+    func testProfileAndReplyPreferencesPersistAndImportAsActive() throws {
+        try withDefaults { defaults in
+            let store = NebulaSettingsStore(defaults: defaults)
+            XCTAssertTrue(store.profileChannel && store.profileBirthday && store.profileBusiness)
+            XCTAssertTrue(store.profileBackground && store.profileEmoji && store.profilePhotoBanner)
+            XCTAssertTrue(store.replyBackground && store.replyColors && store.replyEmoji)
+            let keys = ["profile_channel", "profile_birthday", "profile_business", "profile_background", "profile_emoji", "profile_photo_banner", "reply_background", "reply_colors", "reply_emoji"]
+            let data = try JSONEncoder().encode(SettingsDocument(settings: Dictionary(uniqueKeysWithValues: keys.map { ($0, SettingValue.boolean(false)) })))
+            XCTAssertEqual(try store.previewImport(data).pendingKeys, [])
+            try store.importData(data)
+            let loaded = NebulaSettingsStore(defaults: defaults)
+            XCTAssertFalse(loaded.profileChannel || loaded.profileBirthday || loaded.profileBusiness)
+            XCTAssertFalse(loaded.profileBackground || loaded.profileEmoji || loaded.profilePhotoBanner)
+            XCTAssertFalse(loaded.replyBackground || loaded.replyColors || loaded.replyEmoji)
+            XCTAssertThrowsError(try store.set(.integer(1), for: "profile_channel"))
+        }
+    }
+
     func testImportRetainsPendingKeysAndRejectsInvalidAtomically() throws {
         try withDefaults { defaults in
             let store = NebulaSettingsStore(defaults: defaults)
