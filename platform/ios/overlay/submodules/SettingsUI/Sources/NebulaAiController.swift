@@ -86,7 +86,7 @@ final class NebulaAiController: UITableViewController {
 
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         switch section {
-        case 0: return 2
+        case 0: return 3
         // Provider, model, key, remove key — plus the address for a custom one.
         case 1: return provider == .appleIntelligence ? 1 : provider == .custom ? 5 : 4
         case 2: return 1
@@ -106,8 +106,8 @@ final class NebulaAiController: UITableViewController {
     override func tableView(_ tableView: UITableView, titleForFooterInSection section: Int) -> String? {
         switch section {
         case 0:
-            return text("Запрос выполняется только после нажатия кнопки. Для облачных провайдеров выбранный текст передаётся внешнему сервису.",
-                        "A request runs only after you tap Run. For cloud providers, the selected text is sent to an external service.")
+            return text("Облачный провайдер получает выбранный текст. Автоматический перевод включается отдельно для каждого чата.",
+                        "Cloud providers receive the selected text. Automatic translation is enabled separately for each chat.")
         case 1:
             if provider == .appleIntelligence {
                 return text("Используется системная модель Apple на устройстве. Она доступна только на поддерживаемых устройствах; автоматического переключения на облачный сервис нет.",
@@ -132,6 +132,10 @@ final class NebulaAiController: UITableViewController {
         let symbols = ["sparkles", "slider.horizontal.3", "text.alignleft", "checkmark.circle", "sparkles"]
         NebulaSettingsHero.style(cell, symbol: symbols[indexPath.section])
         switch (indexPath.section, indexPath.row) {
+        case (0, 2):
+            cell.textLabel?.text = text("ИИ в чате", "AI in chats")
+            cell.detailTextLabel?.text = text("Кнопка в поле ввода и перевод", "Composer button and translation")
+            cell.accessoryType = .disclosureIndicator
         case (0, 1):
             cell.textLabel?.text = text("ИИ на главной", "AI on the home screen")
             cell.detailTextLabel?.text = text("Чат с ИИ вместо кнопки камеры", "AI chat in place of the camera button")
@@ -217,6 +221,7 @@ final class NebulaAiController: UITableViewController {
         tableView.deselectRow(at: indexPath, animated: true)
         let custom = provider == .custom
         switch (indexPath.section, indexPath.row) {
+        case (0, 2): navigationController?.pushViewController(NebulaTranslationController(account: "", peer: nil, russian: ru, theme: theme), animated: true)
         case (4, 0): navigationController?.pushViewController(NebulaAiChatController(russian: ru, theme: theme), animated: true)
         case (4, 1): navigationController?.pushViewController(NebulaAiHistoryController(russian: ru, theme: theme), animated: true)
         case (1, 0): pickProvider()

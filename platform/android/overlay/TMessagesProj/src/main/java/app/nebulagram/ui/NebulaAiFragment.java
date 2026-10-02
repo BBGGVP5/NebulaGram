@@ -100,6 +100,10 @@ public final class NebulaAiFragment extends BaseFragment {
                 .trailing(NebulaRow.TRAIL_SWITCH).checked(NebulaAiSheet.homeEnabled())
                 .withClick(v -> prefs.edit().putBoolean("home_shortcut", ((NebulaRow) v).toggleChecked()).apply()));
 
+        settings.add(new NebulaRow(c).icon(R.drawable.nebula_ai_spark).title(text("ИИ в чате", "AI in chats"))
+                .subtitle(text("Кнопка в поле ввода и перевод", "Composer button and translation"), false)
+                .trailing(NebulaRow.TRAIL_CHEVRON).withClick(v -> presentFragment(new NebulaTranslationFragment(currentAccount, 0))));
+
         settings.add(new NebulaRow(c).icon(R.drawable.msg_customize).title(text("Провайдер", "Provider")).subtitle(PROVIDERS[provider], false)
                 .trailing(NebulaRow.TRAIL_CHEVRON).withClick(v -> showDialog(new NebulaDialog.Builder(c).setTitle(text("Провайдер", "Provider"))
                 .setSelectedIndex(provider).setDescriptions(new CharSequence[]{

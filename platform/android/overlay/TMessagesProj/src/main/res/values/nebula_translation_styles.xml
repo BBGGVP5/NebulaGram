@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources><style name="NebulaTranslationPopupAnimation" parent="android:Animation">
+    <item name="android:windowEnterAnimation">@anim/nebula_translation_popup_in</item>
+</style></resources>

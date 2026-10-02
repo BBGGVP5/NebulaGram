@@ -12,6 +12,12 @@ import java.util.Locale;
 /** Explicit, cancellable operations on one user-selected message. */
 public final class NebulaMessageToolsFragment extends BaseFragment {
     private final MessageObject message;
+    private String draftText;
+    private long draftDialog;
+    private java.util.function.Consumer<String> applyDraft;
+    public NebulaMessageToolsFragment(int account, long dialog, String text, java.util.function.Consumer<String> apply) {
+        message = null; currentAccount = account; draftDialog = dialog; draftText = text; applyDraft = apply;
+    }
     private EditText input;
     private NebulaRow target;
     private String targetLanguage;
@@ -35,7 +41,7 @@ public final class NebulaMessageToolsFragment extends BaseFragment {
 
         input = NebulaFormUi.field(c, t("Введите или вставьте текст", "Type or paste text"), 2, 50000);
         input.setMaxLines(4);
-        input.setText(message == null ? "" : message.messageOwner.message);
+        input.setText(message == null ? (draftText == null ? "" : draftText) : message.messageOwner.message);
         NebulaFormUi.group(column, t("Исходный текст", "Source text"), input);
         if (targetLanguage == null) targetLanguage = TranslateController.currentLanguage();
         if (targetLanguage == null || targetLanguage.isEmpty()) targetLanguage = "en";
@@ -96,14 +102,19 @@ public final class NebulaMessageToolsFragment extends BaseFragment {
         copyResult = copy; copyResult.setVisibility(View.GONE);
         resultHeader.addView(copyResult, new LinearLayout.LayoutParams(dp(48), dp(48)));
         result.addView(resultHeader); result.addView(output);
+        if (applyDraft != null) {
+            NebulaButton use = new NebulaButton(c, NebulaButton.STYLE_TEXT); use.setText(t("Применить к черновику", "Apply to draft"));
+            use.setOnClickListener(v -> { if (!lastResult.isEmpty()) { applyDraft.accept(lastResult); finishFragment(); } }); result.addView(use);
+        }
         resultSection.addView(result);
         LinearLayout.LayoutParams resultParams = new LinearLayout.LayoutParams(-1, -2);
         resultParams.topMargin = dp(16);
         column.addView(resultSection, resultParams);
 
         NebulaCard preferences = new NebulaCard(c);
-        if (message != null && !DialogObject.isEncryptedDialog(message.getDialogId()))
-            preferences.add(action(c, R.drawable.msg_translate, t("Автоперевод чата", "Auto-translate chat"), t("Переводить видимые сообщения", "Translate visible messages"), v -> NebulaAutoTranslate.configure(this, message.getDialogId())));
+        preferences.add(action(c, R.drawable.msg_translate, t("ИИ в чате", "AI in chats"),
+                t("Кнопка, входящие сообщения и перевод при наборе", "Button, incoming messages and translation while typing"),
+                v -> presentFragment(new NebulaTranslationFragment(currentAccount, message == null ? draftDialog : message.getDialogId()))));
         preferences.add(action(c, R.drawable.msg_list, t("Фильтр сообщений", "Message filter"), t("Скрывать сообщения по словам и фразам", "Hide messages matching words and phrases"), v -> NebulaMessageFilter.configure(this)));
         preferences.add(action(c, R.drawable.msg_customize, t("Провайдер ИИ", "AI provider"), t("Модель, подключение и API-ключ", "Model, connection and API key"), v -> presentFragment(new NebulaAiFragment())));
         preferences.setVisibility(View.GONE);

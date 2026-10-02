@@ -7,17 +7,20 @@ public final class NebulaMessageToolsController: UIViewController {
     private let theme: PresentationTheme
     private let source: String
     private let accountId: String
+    private let peerId: String?
+    private let applyDraft: ((String) -> Void)?
     private var language: String
     private var result = ""
     private let output = UITextView()
     private let languageButton = UIButton(type: .system)
     private let speech = AVSpeechSynthesizer()
 
-    public init(text: String, russian: Bool, theme: PresentationTheme, accountId: String) {
+    public init(text: String, russian: Bool, theme: PresentationTheme, accountId: String, peerId: String? = nil, applyDraft: ((String) -> Void)? = nil) {
         self.source = String(text.prefix(50_000))
         self.russian = russian
         self.theme = theme
         self.accountId = accountId
+        self.peerId = peerId; self.applyDraft = applyDraft
         self.language = russian ? "ru" : "en"
         super.init(nibName: nil, bundle: nil)
         title = russian ? "Инструменты сообщения" : "Message tools"
@@ -101,6 +104,11 @@ public final class NebulaMessageToolsController: UIViewController {
         copy.heightAnchor.constraint(greaterThanOrEqualToConstant: 44).isActive = true
         copy.addTarget(self, action: #selector(copyText), for: .touchUpInside)
         stack.addArrangedSubview(copy)
+        if applyDraft != nil {
+            let apply = UIButton(type: .system); apply.setTitle(text("Применить к черновику", "Apply to draft"), for: .normal)
+            apply.heightAnchor.constraint(greaterThanOrEqualToConstant: 44).isActive = true
+            apply.addTarget(self, action: #selector(useDraft), for: .touchUpInside); stack.addArrangedSubview(apply)
+        }
     }
     private func updateLanguage() {
         languageButton.setTitle(text("Язык результата: ", "Result language: ") + NebulaResultLanguage.title(language, russian: russian) + "  ▾", for: .normal)
@@ -130,7 +138,8 @@ public final class NebulaMessageToolsController: UIViewController {
             navigationController?.pushViewController(editor, animated: true)
         }
     }
-    @objc private func settings() { navigationController?.pushViewController(NebulaAiController(russian: russian, theme: theme), animated: true) }
+    @objc private func settings() { navigationController?.pushViewController(NebulaTranslationController(account: accountId, peer: peerId, russian: russian, theme: theme), animated: true) }
+    @objc private func useDraft() { guard !result.isEmpty else { return }; applyDraft?(result); dismiss(animated: true) }
     @objc private func copyText() { UIPasteboard.general.string = result.isEmpty ? source : result }
     @objc private func close() { dismiss(animated: true) }
     public override func viewWillDisappear(_ animated: Bool) { super.viewWillDisappear(animated); speech.stopSpeaking(at: .immediate) }
