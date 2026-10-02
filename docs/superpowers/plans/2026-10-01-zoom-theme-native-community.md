@@ -110,8 +110,8 @@ Files: Android overlay `NebulaDialog.java`, `NebulaRoundCamera.java`; `scripts/c
 
 - [x] Replace the shared BottomSheet with Telegram AlertDialog. Use its native title, bounded scrolling, persistent action footer, keyboard resizing and default responsive width; explicitly enable background dimming and center the window. Remove the drag handle, sheet sizing and duplicate scroll container.
 - [x] Obtain every dialog color from `Theme.getColor(key, resourcesProvider)`. Keep custom wrapping choice rows and accessible radio indicators; use Telegram's native action buttons with native overflow handling for long labels. Preserve all existing callbacks and the round-camera dismissal guard.
-- [ ] Execute actual choice/action callbacks and camera selection/cancellation in a regression fixture, including outside/back dismissal and negative/neutral/positive actions. Retain all 162 tool-grid geometry cases and check popup configuration against the pinned native AlertDialog API. Compile against SDK 36 and build the real Android application.
-- [ ] Publish the exact changed source paths, verify and deliver a new APK with version, native libraries and matching signer. Record device appearance as unverified until the user tests it.
+- [x] Execute actual choice/action callbacks and camera selection/cancellation in a regression fixture, including outside/back dismissal and negative/neutral/positive actions. Retain all 162 tool-grid geometry cases and check popup configuration against the pinned native AlertDialog API. Compile against SDK 36 and build the real Android application.
+- [x] Publish the exact changed source paths, verify and deliver a new APK with version, native libraries and matching signer. Record device appearance as unverified until the user tests it.
 
 Local verification: the actual dialog builder and round-camera source pass callback, dismissal, accessible selection and two Telegram-palette fixtures. All 162 tool-grid cases pass; dialog/button/grid compile against SDK 36. Private-feature, AI availability (65 cases), AI chat/cancellation, settings presentation, theme restoration (40,033 cases) and feature-policy checks pass. APK compilation and artifact verification remain pending.
 
@@ -124,7 +124,7 @@ Files: Android overlay `NebulaToolGrid.java`, `NebulaMessageToolsFragment.java`;
 - [x] Center every partial tool row with equal edge space in both layout directions. Keep at most three columns and the existing narrow-screen/large-font fallback. Expand actual geometry coverage to counts 1–8 and assert row centering before implementing the change.
 - [x] Replace the free-text result language with a labelled selector using Telegram's localized language catalog and stable language codes. Reuse the shared dimmed dialog for selection, preserve all actions and cancellation; pass a language code to AI requests instead of arbitrary text.
 - [x] Give native AI editor an opaque surface from its Telegram resources provider. Add a per-sheet glass opt-out so editor readability does not change other sheet preferences. Prevent the home-title centering preference from interfering with a native sliding sheet header, and reserve the close control's width.
-- [ ] Execute regression fixtures against actual methods, validate ordered native patches, compile Android, and verify the final APK. Preserve the centered/dimmed Telegram dialogs requested earlier in this turn.
+- [x] Execute regression fixtures against actual methods, validate ordered native patches, compile Android, and verify the final APK. Preserve the centered/dimmed Telegram dialogs requested earlier in this turn.
 
 The new centering assertion failed against the previous grid and passes across 432 actual-method geometry cases. The actual chooser callback preserves localized/native names and stable codes, cancels prior work before changing language, and ignores destroyed hosts. Native editor surface/header methods pass opaque dark/light/translucent-palette and density checks; existing home/chat/header/style and AI/settings fixtures pass. All 158 ordered native patches apply in a disposable tree, leaving vendor untouched. SDK 36 dialog/button/grid compilation passes. Final application compilation and artifact verification remain pending.
 
@@ -132,8 +132,12 @@ The new centering assertion failed against the previous grid and passes across 4
 
 - [x] Put Russian and English, in that order, into a separate first group in the result-language popup. Keep other languages below in Telegram's catalog order, without duplicate entries. Preserve localized/native labels, checked state and stable selection codes.
 - [x] Add an optional section boundary to the shared themed dialog without changing existing callers. Verify group separation and selection callbacks, run the existing layout/dialog checks.
-- [ ] Publish and verify the updated Android build.
+- [x] Publish and verify the updated Android build.
 
 Actual chooser and dialog fixtures pass section boundaries, reordered selected indices, callback indices, localized labels and cancellation. Existing 432 grid cases pass. Dialog/button/grid compile against SDK 36. Native patches and iOS sources are unchanged by this follow-up.
 
 The preceding runtime 16bcedf completed Android run 36904119415 successfully (build 1000287).
+
+Final delivery superseding the pending build notes above: runtime `c121a862c90367e5d1f21a4474bf473c784b4b58` is published on main and codex/camera-controls. Android run `36978641268` passed all regressions and application compilation; Settings contract `36978641272` passed. Duplicate Android branch run `36978641375` was cancelled. Build `1000289` includes the centered Telegram dialogs, adaptive centered tool grid, language picker, opaque AI editor/header fix and quick Russian/English group. All 158 native patches remain included; iOS sources are unchanged.
+
+Verified APK: `build/qa-apk-languages-c121a86/NebulaGram-1.0.0-TG-12.10.5-b1000289-arm64-v8a.apk`, 52,491,252 bytes. SHA-256 `C1FCB7B0B2283AE7F764F4868F40C32DE37BB24749491DF9ACA7FC327B61FE56`. Package `app.nebulagram.messenger`, version 1.0.0/code 1000289; arm64 Telegram/NebulaLink libraries verified. v1/v2 signatures pass with one signer, certificate SHA-256 `a08d7dc323ddf71ef3201944397e0d3cce7d40847263e11f328b68bbe19229ab`, matching preceding deliveries. Physical-device appearance remains unverified.
