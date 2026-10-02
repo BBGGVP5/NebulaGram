@@ -105,7 +105,7 @@ diff --git a/submodules/TelegramUI/Sources/Chat/ChatControllerLoadDisplayNode.sw
              }
 +            let nebulaOptions = NebulaTranslationPreferences.shared.options(account: "\(self.context.account.peerId.toInt64())", peer: "\(peerId.toInt64())")
 +            if nebulaOptions.incoming {
-+                NebulaTranslationPreferences.shared.update(account: "\(self.context.account.peerId.toInt64())", peer: "\(peerId.toInt64())") { $0.incoming = type == .translated }
++                if type != .translated { self.nebulaShowOriginalMessages() }
 +                return
 +            }
              let _ = (updateChatTranslationStateInteractively(engine: self.context.engine, peerId: peerId, threadId: self.chatLocation.threadId,  { current in
@@ -131,14 +131,14 @@ diff --git a/submodules/TelegramUI/Sources/Chat/ChatControllerLoadDisplayNode.sw
 +            }
 +            let nebulaOptions = NebulaTranslationPreferences.shared.options(account: "\(strongSelf.context.account.peerId.toInt64())", peer: "\(peerId.toInt64())")
 +            if nebulaOptions.incoming {
-+                NebulaTranslationPreferences.shared.update(account: "\(strongSelf.context.account.peerId.toInt64())", peer: "\(peerId.toInt64())") { $0.incoming = false }
++                strongSelf.nebulaShowOriginalMessages()
                  return
              }
              let context = strongSelf.context
 diff --git a/submodules/TelegramUI/Sources/ChatController.swift b/submodules/TelegramUI/Sources/ChatController.swift
 --- a/submodules/TelegramUI/Sources/ChatController.swift
 +++ b/submodules/TelegramUI/Sources/ChatController.swift
-@@ -243,6 +243,96 @@
+@@ -243,6 +243,102 @@
      var validLayout: ContainerViewLayout?
      private var nebulaNextChannelObservation: SettingsObservation?
      private var nebulaReplyAppearance = [NebulaSettingsStore.shared.replyBackground, NebulaSettingsStore.shared.replyColors, NebulaSettingsStore.shared.replyEmoji]
@@ -185,6 +185,12 @@ diff --git a/submodules/TelegramUI/Sources/ChatController.swift b/submodules/Tel
 +            })
 +            nebulaTranslationObservers.append(NotificationCenter.default.addObserver(forName: UIApplication.didBecomeActiveNotification, object: nil, queue: .main) { [weak self] _ in self?.nebulaConfigureChatAI() })
 +        }
++    }
++    func nebulaShowOriginalMessages() {
++        guard let peer = chatLocation.peerId else { return }
++        // An explicit Original/Hide action must not restore a previously active native translator.
++        nebulaPreviousTranslationState = nil
++        NebulaTranslationPreferences.shared.update(account: "\(context.account.peerId.toInt64())", peer: "\(peer.toInt64())") { $0.incoming = false }
 +    }
 +    func nebulaOpenTranslationSettings() {
 +        guard let peer = chatLocation.peerId, peer.namespace != Namespaces.Peer.SecretChat else { return }
@@ -235,7 +241,7 @@ diff --git a/submodules/TelegramUI/Sources/ChatController.swift b/submodules/Tel
      private var nebulaLastSecondsInTime = NebulaSettingsStore.shared.secondsInTime
      
      public weak var parentController: ViewController?
-@@ -6078,6 +6168,14 @@
+@@ -6078,6 +6174,14 @@
                              }, action: { _, f in
                                  f(.dismissWithoutContent)
                                  self?.interfaceInteraction?.beginMessageSearch(.everything, "")
@@ -250,7 +256,7 @@ diff --git a/submodules/TelegramUI/Sources/ChatController.swift b/submodules/Tel
                              })))
                          }
                          let aiSettings = NebulaAiSettings.shared
-@@ -7070,6 +7168,8 @@
+@@ -7070,6 +7174,8 @@
      }
  
      deinit {
@@ -259,7 +265,7 @@ diff --git a/submodules/TelegramUI/Sources/ChatController.swift b/submodules/Tel
          let _ = ChatControllerCount.modify { value in
              return value - 1
          }
-@@ -7780,6 +7880,8 @@
+@@ -7780,6 +7886,8 @@
      
      override public func viewDidAppear(_ animated: Bool) {
          super.viewDidAppear(animated)
@@ -268,7 +274,7 @@ diff --git a/submodules/TelegramUI/Sources/ChatController.swift b/submodules/Tel
          self.nebulaUpdateSnow()
          
          self.didAppear = true
-@@ -8257,6 +8359,9 @@
+@@ -8257,6 +8365,9 @@
      
      override public func viewWillDisappear(_ animated: Bool) {
          super.viewWillDisappear(animated)
