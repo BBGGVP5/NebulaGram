@@ -243,9 +243,8 @@ final class NebulaVideoZoomSlider: UIView {
                 let zoom = min(maximum, minimum * CGFloat(pow(2.0, Double(index) / 8.0)))
                 let position = x(for: zoom)
                 if position < 16 || position > bounds.width - 16 { continue }
-                let major = false // Labeled stops are drawn at their exact positions below.
-                context.setStrokeColor((major ? accent : foreground.withAlphaComponent(0.62)).cgColor)
-                context.setLineWidth(major ? 2 : 1)
+                context.setStrokeColor(foreground.withAlphaComponent(0.62).cgColor)
+                context.setLineWidth(1)
                 context.move(to: CGPoint(x: position, y: 9))
                 context.addLine(to: CGPoint(x: position, y: 23))
                 context.strokePath()

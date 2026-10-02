@@ -415,16 +415,15 @@ diff --git a/submodules/TelegramUI/Components/VideoMessageCameraScreen/Sources/V
                  }
                  self.nebulaZoomSlider.isHidden = self.cameraState.recording == .none || self.previewState != nil
                  if self.cameraState.isViewOnceEnabled != oldValue.isViewOnceEnabled {
-@@ -955,7 +955,7 @@
+@@ -955,7 +955,6 @@
              self.previewContainerContentView.clipsToBounds = true
              self.previewContainerView.addSubview(self.previewContainerContentView)
                          
 -            let isDualCameraEnabled = Camera.isDualCameraSupported(forRoundVideo: true)
-+            let isDualCameraEnabled = false // Virtual rear camera owns optical module transitions.
              let isFrontPosition = controller.initialFrontCamera
              
              self.mainPreviewView = CameraSimplePreviewView(frame: .zero, main: true, roundVideo: true)
-@@ -966,6 +966,7 @@
+@@ -966,16 +965,12 @@
              self.loadingView = LoadingEffectView(effectAlpha: 0.1, borderAlpha: 0.25, duration: 1.0)
              self.nebulaZoomSlider = NebulaVideoZoomSlider()
              self.nebulaZoomSlider.tintColor = self.presentationData.theme.list.itemAccentColor
@@ -432,7 +431,27 @@ diff --git a/submodules/TelegramUI/Components/VideoMessageCameraScreen/Sources/V
              
              self.previewBlurView = BlurView()
              self.previewBlurView.isUserInteractionEnabled = false
-@@ -998,9 +999,9 @@
+             
+-            if isDualCameraEnabled {
+-                self.mainPreviewView.resetPlaceholder(front: false)
+-                self.additionalPreviewView.resetPlaceholder(front: true)
+-            } else {
+-                self.mainPreviewView.resetPlaceholder(front: isFrontPosition)
+-            }
++            self.mainPreviewView.resetPlaceholder(front: isFrontPosition)
+             
+             self.cameraState = CameraState(
+                 position: isFrontPosition ? .front : .back,
+@@ -985,7 +980,7 @@
+                 flashTintSize: 1.0,
+                 recording: .none,
+                 duration: 0.0,
+-                isDualCameraEnabled: isDualCameraEnabled,
++                isDualCameraEnabled: false, // One virtual device owns the optical modules.
+                 isViewOnceEnabled: false
+             )
+             
+@@ -998,17 +993,14 @@
              self.view.addSubview(self.containerView)
              self.view.addSubview(self.nebulaZoomSlider)
              self.nebulaZoomSlider.isHidden = true
@@ -445,7 +464,33 @@ diff --git a/submodules/TelegramUI/Components/VideoMessageCameraScreen/Sources/V
              }
              
              self.containerView.addSubview(self.previewContainerView)
-@@ -1118,25 +1119,31 @@
+ 
+             self.previewContainerContentView.addSubview(self.mainPreviewView)
+-            if isDualCameraEnabled {
+-                self.previewContainerContentView.addSubview(self.additionalPreviewView)
+-            }
+             self.previewContainerContentView.addSubview(self.progressView)
+             self.previewContainerContentView.addSubview(self.previewBlurView)
+             self.previewContainerContentView.addSubview(self.loadingView)
+@@ -1018,16 +1010,11 @@
+                     self.addCaptureResult(result)
+                 }
+             }
+-            if isDualCameraEnabled {
+-                self.mainPreviewView.removePlaceholder(delay: 0.0)
+-            }
+             self.withReadyCamera(isFirstTime: true, { [weak self] in
+                 guard let self else {
+                     return
+                 }
+-                if !isDualCameraEnabled {
+-                    self.mainPreviewView.removePlaceholder(delay: 0.0)
+-                }
++                self.mainPreviewView.removePlaceholder(delay: 0.0)
+                 self.loadingView.alpha = 0.0
+                 self.additionalPreviewView.removePlaceholder(delay: 0.0)
+             })
+@@ -1118,25 +1105,31 @@
              camera.startCapture()
              
              self.camera = camera
@@ -483,7 +528,7 @@ diff --git a/submodules/TelegramUI/Components/VideoMessageCameraScreen/Sources/V
              default:
                  break
              }
-@@ -1503,7 +1510,7 @@
+@@ -1503,7 +1496,7 @@
                  backgroundFrame = CGRect(origin: .zero, size: CGSize(width: layout.size.width, height: layout.size.height - layout.intrinsicInsets.bottom - controller.inputPanelFrame.0.height - 8.0))
              }
                          

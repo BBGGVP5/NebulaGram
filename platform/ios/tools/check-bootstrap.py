@@ -322,6 +322,12 @@ print("OK: embedded catalog and Bazel-side Foundation store compiled and ran")
                             str(peer / 'NebulaProfileBadgeImages.swift')], check=True)
             print('OK: profile badge artwork typechecked against the real iOS simulator SDK')
             settings_ui = temp / 'submodules/SettingsUI/Sources'
+            # These views have no Telegram module dependency. Typecheck them
+            # against UIKit early, including warnings-as-errors, before Bazel.
+            zoom_slider = temp / 'submodules/TelegramUI/Components/VideoMessageCameraScreen/Sources/NebulaVideoZoomSlider.swift'
+            subprocess.run(['swiftc', *ios_flags, '-typecheck', str(zoom_slider)], check=True)
+            subprocess.run(['swiftc', *ios_flags, '-typecheck', '-I', str(temp),
+                            str(settings_ui / 'NebulaActionGrid.swift')], check=True)
             ai_sources = ['NebulaSettingsStyle.swift', 'NebulaSettingsSymbols.swift', 'NebulaSettingsHero.swift',
                           'NebulaChoiceController.swift', 'NebulaAiChatController.swift', 'NebulaAiController.swift',
                           'NebulaAiService.swift', 'NebulaAiHistoryController.swift', 'NebulaActionGrid.swift',
