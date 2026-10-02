@@ -251,7 +251,7 @@ private enum NebulaSettingsEntry: ItemListNodeEntry {
                     switchValue: nil, enabled: true, selectable: true, sectionId: section, action: { arguments.openCommunity?() },
                     setPeerIdWithRevealedOptions: { _, _ in }, removePeer: { _ in }, hasTopStripe: false, hasTopGroupInset: false, noInsets: false)
             }
-            return disclosure(title, ru ? "Загрузка сообщества…" : "Loading community…", "bubble.left", { arguments.openCommunity?() })
+            return disclosure(title, ru ? "Нажмите, чтобы загрузить" : "Tap to load", "bubble.left", { arguments.openCommunity?() })
         case let .support(title):
             return disclosure(title, ru ? "Разработка и значок за поддержку" : "Development and a supporter badge", "heart", { arguments.openSupport?() })
         case let .category(index, title, detail, symbol):
@@ -338,8 +338,9 @@ public func nebulaSettingsController(context: AccountContext, page: Int = 0) -> 
         return ActionDisposable { observation.cancel() }
     }
     arguments.searchUpdated = { searchQuery.set($0) }
+    let communityReload = ValuePromise(0, ignoreRepeated: false)
     var communityPeer: EnginePeer?
-    let signal = combineLatest(queue: .mainQueue(), context.sharedContext.presentationData, settings, writeFailed.get(), searchQuery.get(), nebulaCommunity(context: context))
+    let signal = combineLatest(queue: .mainQueue(), context.sharedContext.presentationData, settings, writeFailed.get(), searchQuery.get(), communityReload.get() |> mapToSignal { _ in nebulaCommunity(context: context) })
     |> deliverOnMainQueue
     |> map { presentationData, hideCounters, failed, query, community -> (ItemListControllerState, (ItemListNodeState, Any)) in
         // Follow the active Telegram theme, including custom backgrounds and accents.
@@ -426,6 +427,8 @@ public func nebulaSettingsController(context: AccountContext, page: Int = 0) -> 
             .navigationToggle("reply_colors", ru ? "Цвета автора в ответах" : "Author colors in replies", store.replyColors, !store.hasLoadError),
             .navigationToggle("reply_emoji", ru ? "Эмодзи в ответах" : "Emoji in replies", store.replyEmoji, !store.hasLoadError),
             .category(9, ru ? "Задачи" : "Tasks", "", "checkmark.circle"),
+            .category(10, ru ? "Поведение чатов" : "Chat behavior", ru ? "Архив, вибрация, пересылка" : "Archive, vibration, forwarding", "hand.tap"),
+            .category(11, ru ? "Архивация историй" : "Story archiving", "", "circle.dotted.circle"),
             .ai(ru ? "Искусственный интеллект" : "AI assistant"),
             .buildInfo(ru ? "О сборке" : "Build information"),
             .memory(ru ? "Память приложения" : "App memory")
@@ -434,6 +437,7 @@ public func nebulaSettingsController(context: AccountContext, page: Int = 0) -> 
             switch entry {
             case .widePosts, .stories:
                 return true
+            case let .category(index, _, _, _): return index == 10 || index == 11
             case let .navigationToggle(key, _, _, _):
                 return key.hasPrefix("reply_") || ["hide_dividers", "hide_send_as", "hide_attach_camera", "menu_search", "menu_mute",
                     "menu_call", "menu_video", "centered_chat_header", "disable_next_channel", "seconds_in_time", "hide_search_field"].contains(key)
@@ -477,7 +481,7 @@ public func nebulaSettingsController(context: AccountContext, page: Int = 0) -> 
             entries = entries.filter { entry in
                 if case .search = entry { return true }
                 switch page {
-                case 1: return entry.section == 0
+                case 1: return entry.section == 0 && !isChatOption(entry)
                 case 2: return entry.section == 1 && !isChatOption(entry) && !isNavigationOption(entry) && !isFolderOption(entry)
                 case 3: return isChatOption(entry)
                 case 4: return isFolderOption(entry)
@@ -517,6 +521,11 @@ public func nebulaSettingsController(context: AccountContext, page: Int = 0) -> 
     transfer.host = controller
     arguments.openCategory = { [weak controller] index in
         guard let controller else { return }
+        if index == 10 || index == 11 {
+            let data = context.sharedContext.currentPresentationData.with { $0 }
+            controller.present(UINavigationController(rootViewController: NebulaPrivacyController(context: context, russian: data.strings.baseLanguageCode.hasPrefix("ru"), mode: index == 10 ? 1 : 2)), animated: true)
+            return
+        }
         if index == 9 {
             let data = context.sharedContext.currentPresentationData.with { $0 }
             controller.present(UINavigationController(rootViewController: NebulaTasksController(accountId: String(context.account.peerId.toInt64()), russian: data.strings.baseLanguageCode.hasPrefix("ru"), theme: data.theme)), animated: true)
@@ -582,7 +591,8 @@ public func nebulaSettingsController(context: AccountContext, page: Int = 0) -> 
             })), animated: true)
     }
     arguments.openCommunity = { [weak controller] in
-        guard let controller, let peer = communityPeer else { return }
+        guard let controller else { return }
+        guard let peer = communityPeer else { communityReload.set(0); return }
         (controller.navigationController as? NavigationController)?.pushViewController(
             context.sharedContext.makeCommunityViewScreen(context: context, communityId: peer.id, mode: .sheet))
     }

@@ -2,7 +2,7 @@ import UIKit
 
 /// Active-session optical stops and a bounded logarithmic ruler.
 final class NebulaVideoZoomSlider: UIView {
-    var onZoomChanged: ((CGFloat) -> Void)?
+    var onZoomChanged: ((CGFloat, Bool) -> Void)?
 
     private let capsule = UIView()
     private let material = UIVisualEffectView(effect: UIBlurEffect(style: .systemThinMaterialDark))
@@ -106,13 +106,13 @@ final class NebulaVideoZoomSlider: UIView {
         scheduleCollapse()
     }
 
-    private func updateZoom(_ factor: CGFloat, notify: Bool) {
+    private func updateZoom(_ factor: CGFloat, notify: Bool, animated: Bool = false) {
         guard factor.isFinite else { return }
         current = max(minimum, min(maximum, factor))
         ruler.current = current
         compact.current = current
         accessibilityValue = String(format: "%.1f×", Double(current))
-        if notify { onZoomChanged?(current) }
+        if notify { onZoomChanged?(current, animated && !UIAccessibility.isReduceMotionEnabled) }
     }
 
     private var pixelsPerOctave: CGFloat { 88 }
@@ -173,7 +173,7 @@ final class NebulaVideoZoomSlider: UIView {
                 updateZoom(current * CGFloat(pow(2.0, Double((x - bounds.midX) / pixelsPerOctave))), notify: true)
             } else if !expanded {
                 let index = min(stops.count - 1, max(0, Int((x - capsule.frame.minX) * CGFloat(stops.count) / capsule.frame.width)))
-                updateZoom(stops[index], notify: true)
+                updateZoom(stops[index], notify: true, animated: true)
             }
         }
         dragStartX = nil

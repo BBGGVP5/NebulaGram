@@ -125,7 +125,7 @@ public final class NebulaMessageToolsController: UIViewController {
                 self?.result = value
                 self?.output.text = value
                 self?.output.isHidden = false
-            }, theme: theme, resultLanguage: language)
+            }, theme: theme, resultLanguage: language, applyTitle: text("Использовать результат", "Use result"))
             navigationController?.pushViewController(editor, animated: true)
         }
     }

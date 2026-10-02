@@ -8,15 +8,25 @@ import AvatarNode
 struct NebulaCommunityState: Equatable {
     let peer: EnginePeer?
     let count: Int?
+    var loading: Bool = false
+}
+
+private enum NebulaCommunityCache {
+    static let lock = NSLock()
+    static var values: [Int64: NebulaCommunityState] = [:]
+    static func get(_ account: Int64) -> NebulaCommunityState? { lock.lock(); defer { lock.unlock() }; return values[account] }
+    static func set(_ account: Int64, _ state: NebulaCommunityState) { lock.lock(); defer { lock.unlock() }; values[account] = state }
 }
 
 /// The engine's username cache and MediaBox own identity and artwork per account.
 func nebulaCommunity(context: AccountContext) -> Signal<NebulaCommunityState, NoError> {
+    let account = context.account.peerId.toInt64()
     let empty = NebulaCommunityState(peer: nil, count: nil)
+    let initial = NebulaCommunityCache.get(account) ?? NebulaCommunityState(peer: nil, count: nil, loading: true)
     let resolved = context.engine.peers.resolvePeerByName(name: "nebulaguard_channel", referrer: nil)
     |> mapToSignal { result -> Signal<EnginePeer?, NoError> in
         guard case let .result(peer) = result else { return .complete() }
-        guard let peer else { return .single(nil) }
+        guard let peer else { return .single(initial.peer) }
         context.account.viewTracker.forceUpdateCachedPeerData(peerId: peer.id)
         return context.engine.data.subscribe(TelegramEngine.EngineData.Item.Peer.Peer(id: peer.id))
     }
@@ -36,7 +46,10 @@ func nebulaCommunity(context: AccountContext) -> Signal<NebulaCommunityState, No
             NebulaCommunityState(peer: peer, count: (cached as? CachedCommunityData)?.linkedPeers.count)
         }
     }
-    return (.single(empty) |> then(resolved)) |> distinctUntilChanged |> deliverOnMainQueue
+    return (.single(initial) |> then(resolved |> map { state in
+        NebulaCommunityCache.set(account, state)
+        return state
+    })) |> distinctUntilChanged |> deliverOnMainQueue
 }
 
 final class NebulaCommunityCell: UITableViewCell {
@@ -57,7 +70,7 @@ final class NebulaCommunityCell: UITableViewCell {
         }
         if case let .community(value)? = state.peer { textLabel?.text = value.title } else { textLabel?.text = "NebulaHub" }
         detailTextLabel?.text = state.count.map { context.sharedContext.currentPresentationData.with { $0 }.strings.PeerInfo_Community(Int32(clamping: $0)) }
-            ?? (russian ? "Загрузка сообщества…" : "Loading community…")
+            ?? (state.loading ? (russian ? "Загрузка сообщества…" : "Loading community…") : (russian ? "Нажмите, чтобы повторить загрузку" : "Tap to retry loading"))
         NebulaSettingsStyle.finish(self, theme: theme)
         setNeedsLayout()
     }

@@ -12,7 +12,7 @@ final class NebulaSupportController: UITableViewController {
     private let context: AccountContext
     private let openCommunity: (EnginePeer.Id) -> Void
     private var community = NebulaCommunityState(peer: nil, count: nil)
-    private var communityDisposable: Disposable?
+    private let communityDisposable = MetaDisposable()
 
     init(russian: Bool, theme: PresentationTheme, context: AccountContext, openCommunity: @escaping (EnginePeer.Id) -> Void) {
         self.russian = russian
@@ -34,13 +34,7 @@ final class NebulaSupportController: UITableViewController {
         tableView.tintColor = theme.list.itemAccentColor
         tableView.rowHeight = UITableView.automaticDimension
         tableView.estimatedRowHeight = 70
-        communityDisposable = nebulaCommunity(context: context).start(next: { [weak self] state in
-            guard let self else { return }
-            self.community = state
-            if let cell = self.tableView.cellForRow(at: IndexPath(row: 0, section: 1)) as? NebulaCommunityCell {
-                cell.update(context: self.context, theme: self.theme, state: state, russian: self.russian)
-            }
-        })
+        loadCommunity()
         navigationController?.navigationBar.tintColor = theme.list.itemAccentColor
         let appearance = UINavigationBarAppearance()
         appearance.configureWithOpaqueBackground()
@@ -52,7 +46,16 @@ final class NebulaSupportController: UITableViewController {
             navigationItem.leftBarButtonItem = UIBarButtonItem(barButtonSystemItem: .close, target: self, action: #selector(close))
         }
     }
-    deinit { communityDisposable?.dispose() }
+    private func loadCommunity() {
+        communityDisposable.set(nebulaCommunity(context: context).start(next: { [weak self] state in
+            guard let self else { return }
+            self.community = state
+            if let cell = self.tableView.cellForRow(at: IndexPath(row: 0, section: 1)) as? NebulaCommunityCell {
+                cell.update(context: self.context, theme: self.theme, state: state, russian: self.russian)
+            }
+        }))
+    }
+    deinit { communityDisposable.dispose() }
     @objc private func close() { dismiss(animated: true) }
     override func numberOfSections(in tableView: UITableView) -> Int { 2 }
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
@@ -105,7 +108,7 @@ final class NebulaSupportController: UITableViewController {
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
         if indexPath.section == 1 {
-            if let peer = community.peer { openCommunity(peer.id) }
+            if let peer = community.peer { openCommunity(peer.id) } else { loadCommunity() }
             return
         }
         if indexPath.section == 0 && indexPath.row == 0 { return }

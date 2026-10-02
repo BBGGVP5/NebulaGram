@@ -1,4 +1,5 @@
 import Foundation
+import NebulaSettingsContract
 import UIKit
 import TranslateUI
 import TelegramPresentationData
@@ -6,9 +7,7 @@ import TelegramPresentationData
 enum NebulaResultLanguage {
     static func codes(russian: Bool) -> [String] {
         let locale = Locale(identifier: russian ? "ru" : "en")
-        return ["ru", "en"] + Set(supportedTranslationLanguages).subtracting(["ru", "en"]).sorted {
-            (locale.localizedString(forLanguageCode: $0) ?? $0).localizedStandardCompare(locale.localizedString(forLanguageCode: $1) ?? $1) == .orderedAscending
-        }
+        return NebulaLanguageOrder.codes(supported: supportedTranslationLanguages, locale: locale)
     }
     static func title(_ code: String, russian: Bool) -> String {
         Locale(identifier: russian ? "ru" : "en").localizedString(forLanguageCode: code)?.localizedCapitalized ?? code

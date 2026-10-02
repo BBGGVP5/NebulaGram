@@ -42,6 +42,7 @@ final class NebulaChoiceController: UITableViewController, UISearchResultsUpdati
     required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
     override func viewDidLoad() {
         super.viewDidLoad()
+        definesPresentationContext = true
         if let theme {
             tableView.backgroundColor = theme.list.blocksBackgroundColor.withAlphaComponent(1)
             tableView.separatorColor = theme.list.itemSecondaryTextColor.withAlphaComponent(0.12)
@@ -123,15 +124,22 @@ private final class NebulaPopupTransition: NSObject, UIViewControllerTransitioni
 
 private final class NebulaPopupPresentation: UIPresentationController {
     private let dim = UIView()
+    private var keyboardFrame: CGRect = .null
+    deinit { NotificationCenter.default.removeObserver(self) }
     override var frameOfPresentedViewInContainerView: CGRect {
         guard let containerView else { return .zero }
-        let safe = containerView.bounds.inset(by: containerView.safeAreaInsets).insetBy(dx: 24, dy: 24)
+        var safe = containerView.bounds.inset(by: containerView.safeAreaInsets).insetBy(dx: 24, dy: 24)
+        let keyboard = containerView.convert(keyboardFrame, from: nil)
+        if !keyboardFrame.isNull, keyboard.intersects(containerView.bounds), keyboard.width >= safe.width {
+            safe.size.height = max(0, min(safe.maxY, keyboard.minY - 12) - safe.minY)
+        }
         let preferred = presentedViewController.preferredContentSize
         let size = CGSize(width: min(safe.width, preferred.width), height: min(safe.height, preferred.height))
         return CGRect(x: safe.midX - size.width / 2, y: safe.midY - size.height / 2, width: size.width, height: size.height)
     }
     override func presentationTransitionWillBegin() {
         guard let containerView else { return }
+        NotificationCenter.default.addObserver(self, selector: #selector(keyboardChanged(_:)), name: UIResponder.keyboardWillChangeFrameNotification, object: nil)
         dim.backgroundColor = UIColor.black.withAlphaComponent(0.6)
         dim.frame = containerView.bounds
         dim.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(close)))
@@ -150,4 +158,12 @@ private final class NebulaPopupPresentation: UIPresentationController {
         presentedView?.clipsToBounds = true
     }
     @objc private func close() { presentedViewController.dismiss(animated: true) }
+    @objc private func keyboardChanged(_ notification: Notification) {
+        keyboardFrame = notification.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? CGRect ?? .null
+        let duration = notification.userInfo?[UIResponder.keyboardAnimationDurationUserInfoKey] as? Double ?? 0.25
+        UIView.animate(withDuration: duration) {
+            self.presentedView?.frame = self.frameOfPresentedViewInContainerView
+            self.presentedView?.layoutIfNeeded()
+        }
+    }
 }

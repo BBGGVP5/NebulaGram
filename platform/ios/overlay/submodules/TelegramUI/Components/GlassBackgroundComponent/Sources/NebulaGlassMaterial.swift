@@ -5,13 +5,13 @@ struct NebulaGlassMaterialState: Equatable {
     let style: Int
     let tint: Int
     let blur: Int
+    let color: UIColor
     let dark: Bool
     let reduced: Bool
     let opaque: Bool
     let animated: Bool
 
     func apply(to view: UIVisualEffectView) {
-        let color = dark ? UIColor(red: 0.08, green: 0.12, blue: 0.18, alpha: 1) : UIColor(red: 0.91, green: 0.95, blue: 1, alpha: 1)
         view.contentView.backgroundColor = opaque ? color : color.withAlphaComponent(CGFloat(tint) / 100)
         view.overrideUserInterfaceStyle = dark ? .dark : .light
         if opaque { view.effect = nil; return }

@@ -42,6 +42,7 @@ public final class NebulaAiChatController: UIViewController, UITextViewDelegate 
     private let theme: PresentationTheme?
     private let service = NebulaAiService()
     private let applyResult: ((String) -> Void)?
+    private let applyTitle: String?
     private var action: NebulaAiAction
     private var work: Task<Void, Never>?
     private var gate = NebulaAiRequestGate()
@@ -67,7 +68,8 @@ public final class NebulaAiChatController: UIViewController, UITextViewDelegate 
     private var initial: String
 
     public init(russian: Bool, initialText: String = "", action: NebulaAiAction = .ask,
-                applyResult: ((String) -> Void)? = nil, theme: PresentationTheme? = nil, resultLanguage: String? = nil) {
+                applyResult: ((String) -> Void)? = nil, theme: PresentationTheme? = nil, resultLanguage: String? = nil, applyTitle: String? = nil) {
+        self.applyTitle = applyTitle
         self.ru = russian; self.action = action; self.applyResult = applyResult; self.theme = theme
         self.resultLanguage = resultLanguage ?? (russian ? "ru" : "en")
         self.initial = String(initialText.prefix(50_000))
@@ -262,7 +264,7 @@ public final class NebulaAiChatController: UIViewController, UITextViewDelegate 
         let result = UITextView(); setupText(result)
         let parsed = NebulaAiMarkdown.parse(raw)
         let style = NSMutableParagraphStyle(); style.lineSpacing = 4
-        let rich = NSMutableAttributedString(string: parsed.text, attributes: [.font: UIFont.preferredFont(forTextStyle: .body), .foregroundColor: UIColor.label, .paragraphStyle: style])
+        let rich = NSMutableAttributedString(string: parsed.text, attributes: [.font: UIFont.preferredFont(forTextStyle: .body), .foregroundColor: theme?.list.itemPrimaryTextColor ?? UIColor.label, .paragraphStyle: style])
         for mark in parsed.marks {
             let body = UIFont.preferredFont(forTextStyle: .body)
             let font: UIFont
@@ -279,7 +281,7 @@ public final class NebulaAiChatController: UIViewController, UITextViewDelegate 
             let controls = UIStackView(); controls.axis = .vertical
             controls.addArrangedSubview(NebulaAiChatButton(title: text("Копировать", "Copy")) { UIPasteboard.general.string = raw })
             if applyResult != nil {
-                controls.addArrangedSubview(NebulaAiChatButton(title: text("Вставить в черновик", "Use in draft")) { [weak self] in self?.applyResult?(raw); self?.close() })
+                controls.addArrangedSubview(NebulaAiChatButton(title: applyTitle ?? text("Вставить в черновик", "Use in draft")) { [weak self] in self?.applyResult?(raw); self?.close() })
             }
             messages.addArrangedSubview(controls)
         }
@@ -293,7 +295,7 @@ public final class NebulaAiChatController: UIViewController, UITextViewDelegate 
     }
     private func startWaiting() {
         let row = UIStackView(); row.axis = .horizontal; row.spacing = 12; row.alignment = .center
-        let glyph = NebulaAiPulseView(); row.addArrangedSubview(glyph); glyph.widthAnchor.constraint(equalToConstant: 32).isActive = true
+        let glyph = NebulaAiPulseView(); glyph.tintColor = view.tintColor; row.addArrangedSubview(glyph); glyph.widthAnchor.constraint(equalToConstant: 32).isActive = true
         glyph.heightAnchor.constraint(equalToConstant: 32).isActive = true; row.addArrangedSubview(label(text("Думаю…", "Thinking…")))
         messages.addArrangedSubview(row); waiting = row; pulse = glyph; glyph.start()
         view.layoutIfNeeded(); scroll.scrollRectToVisible(row.convert(row.bounds, to: scroll), animated: true)
@@ -423,6 +425,7 @@ private final class NebulaAiChatButton: UIButton {
         addTarget(self, action: #selector(activate), for: .touchUpInside)
     }
     required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
+    override func tintColorDidChange() { super.tintColorDidChange(); setTitleColor(tintColor, for: .normal) }
     @objc private func activate() { action() }
 }
 private final class NebulaAiPulseView: UIImageView {

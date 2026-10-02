@@ -48,9 +48,9 @@ diff --git a/submodules/Camera/Sources/Camera.swift b/submodules/Camera/Sources/
 +            current: CGFloat(range.displayed(Double(device.videoZoomFactor))), stops: optical)
 +    }
 +
-+    func setNebulaZoom(_ value: CGFloat, front: Bool) {
++    func setNebulaZoom(_ value: CGFloat, front: Bool, animated: Bool) {
 +        guard (self.positionValue == .front) == front else { return }
-+        self.nebulaActiveDevice?.setNebulaZoom(value)
++        self.nebulaActiveDevice?.setNebulaZoom(value, animated: animated)
 +    }
 +
      func setZoomLevel(_ zoomLevel: CGFloat) {
@@ -86,13 +86,13 @@ diff --git a/submodules/Camera/Sources/Camera.swift b/submodules/Camera/Sources/
 +    }
 +
 +    private let nebulaZoomLock = NSLock()
-+    private var nebulaPendingZoom: (CGFloat, Bool)?
++    private var nebulaPendingZoom: (CGFloat, Bool, Bool)?
 +    private var nebulaZoomScheduled = false
 +
-+    public func setNebulaZoom(_ value: CGFloat, front: Bool) {
++    public func setNebulaZoom(_ value: CGFloat, front: Bool, animated: Bool) {
 +        guard value.isFinite && value > 0 else { return }
 +        self.nebulaZoomLock.lock()
-+        self.nebulaPendingZoom = (value, front)
++        self.nebulaPendingZoom = (value, front, animated)
 +        let schedule = !self.nebulaZoomScheduled
 +        self.nebulaZoomScheduled = true
 +        self.nebulaZoomLock.unlock()
@@ -103,7 +103,7 @@ diff --git a/submodules/Camera/Sources/Camera.swift b/submodules/Camera/Sources/
 +            self.nebulaPendingZoom = nil
 +            self.nebulaZoomScheduled = false
 +            self.nebulaZoomLock.unlock()
-+            if let pending { self.contextRef?.takeUnretainedValue().setNebulaZoom(pending.0, front: pending.1) }
++            if let pending { self.contextRef?.takeUnretainedValue().setNebulaZoom(pending.0, front: pending.1, animated: pending.2) }
 +        }
 +    }
 +
@@ -118,18 +118,22 @@ diff --git a/submodules/Camera/Sources/CameraDevice.swift b/submodules/Camera/So
  import Foundation
  import AVFoundation
  import SwiftSignalKit
-@@ -300,6 +301,17 @@
+@@ -300,6 +301,21 @@
          }
      }
      
-+    func setNebulaZoom(_ factor: CGFloat) {
++    func setNebulaZoom(_ factor: CGFloat, animated: Bool) {
 +        guard let device = self.videoDevice, factor.isFinite else { return }
 +        let range = NebulaZoomRange(neutral: Double(device.neutralZoomFactor), minimumDeviceFactor: Double(device.minAvailableVideoZoomFactor), maximumDeviceFactor: Double(device.maxAvailableVideoZoomFactor))
 +        let target = CGFloat(range.deviceFactor(Double(factor)))
 +        guard abs(device.videoZoomFactor - target) > 0.0001 else { return }
 +        self.transaction(device) { device in
 +            if device.isRampingVideoZoom { device.cancelVideoZoomRamp() }
-+            device.videoZoomFactor = target
++            if animated {
++                device.ramp(toVideoZoomFactor: target, withRate: Float(max(12, abs(target - device.videoZoomFactor) * 16)))
++            } else {
++                device.videoZoomFactor = target
++            }
 +        }
 +    }
 +
@@ -182,6 +186,24 @@ diff --git a/submodules/TelegramUI/Components/Chat/ChatMessageReplyInfoNode/Sour
                  if case .standalone = arguments.type {
                      isTransparent = true
                  }
+diff --git a/submodules/TelegramUI/Components/GlassBackgroundComponent/Sources/GlassBackgroundComponent.swift b/submodules/TelegramUI/Components/GlassBackgroundComponent/Sources/GlassBackgroundComponent.swift
+--- a/submodules/TelegramUI/Components/GlassBackgroundComponent/Sources/GlassBackgroundComponent.swift
++++ b/submodules/TelegramUI/Components/GlassBackgroundComponent/Sources/GlassBackgroundComponent.swift
+@@ -908,8 +908,13 @@
+             nebulaFallback.isHidden = true
+             nebulaMaterial.frame = CGRect(origin: .zero, size: size)
+             nebulaMaterialClip.update(shape: shape, size: size, transition: transition)
++            let nebulaTintColor: UIColor
++            switch tintColor.kind {
++            case let .custom(_, color): nebulaTintColor = color
++            default: nebulaTintColor = isDark ? UIColor(white: 0.08, alpha: 1) : UIColor(white: 0.96, alpha: 1)
++            }
+             let state = NebulaGlassMaterialState(style: nebulaStyle, tint: NebulaSettingsStore.shared.iosGlassTint,
+-                blur: NebulaSettingsStore.shared.glassBlur,
++                blur: NebulaSettingsStore.shared.glassBlur, color: nebulaTintColor,
+                 dark: isDark, reduced: reduced, opaque: UIAccessibility.isReduceTransparencyEnabled, animated: NebulaSettingsStore.shared.liquidAnimations && !UIAccessibility.isReduceMotionEnabled)
+             if nebulaMaterialState != state {
+                 nebulaMaterialState = state
 diff --git a/submodules/TelegramUI/Components/PeerInfo/PeerInfoCoverComponent/BUILD b/submodules/TelegramUI/Components/PeerInfo/PeerInfoCoverComponent/BUILD
 --- a/submodules/TelegramUI/Components/PeerInfo/PeerInfoCoverComponent/BUILD
 +++ b/submodules/TelegramUI/Components/PeerInfo/PeerInfoCoverComponent/BUILD
@@ -415,10 +437,11 @@ diff --git a/submodules/TelegramUI/Components/VideoMessageCameraScreen/Sources/V
              self.view.addSubview(self.nebulaZoomSlider)
              self.nebulaZoomSlider.isHidden = true
 -            self.nebulaZoomSlider.setRange(front: self.cameraState.position == .front)
-             self.nebulaZoomSlider.onZoomChanged = { [weak self] factor in
+-            self.nebulaZoomSlider.onZoomChanged = { [weak self] factor in
 -                self?.camera?.setZoomLevel(factor - 1)
++            self.nebulaZoomSlider.onZoomChanged = { [weak self] factor, animated in
 +                guard let self else { return }
-+                self.camera?.setNebulaZoom(factor, front: self.cameraState.position == .front)
++                self.camera?.setNebulaZoom(factor, front: self.cameraState.position == .front, animated: animated)
              }
              
              self.containerView.addSubview(self.previewContainerView)

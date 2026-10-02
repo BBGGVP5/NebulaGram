@@ -11,6 +11,8 @@ import TelegramPresentationData
 final class NebulaPrivacyController: UITableViewController {
     private let context: AccountContext
     private let ru: Bool
+    private let sections: [Int]
+    private let mode: Int
     var openAppLock: (() -> Void)?
     private var operation: Disposable?
     private var busy = false
@@ -22,10 +24,11 @@ final class NebulaPrivacyController: UITableViewController {
         title: text("Локальные копии", "Local copies"),
         summary: text("Сохраняйте сообщения в чате. Выбирайте значок и очищайте копии, когда нужно.",
                       "Keep messages in the chat. Choose their marker and clear copies when needed."))
-    init(context: AccountContext, russian: Bool) {
-        self.context = context; self.ru = russian
+    init(context: AccountContext, russian: Bool, mode: Int = 0) {
+        self.context = context; self.ru = russian; self.mode = mode
+        self.sections = mode == 1 ? [7, 5] : mode == 2 ? [8] : [0, 1, 2, 3, 6, 4]
         super.init(style: .insetGrouped)
-        title = russian ? "Конфиденциальность" : "Privacy"
+        title = mode == 1 ? (russian ? "Поведение чатов" : "Chat behavior") : mode == 2 ? (russian ? "Истории" : "Stories") : (russian ? "Удалённые сообщения" : "Deleted messages")
     }
     required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
     deinit { operation?.dispose() }
@@ -48,17 +51,20 @@ final class NebulaPrivacyController: UITableViewController {
     }
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
+        guard mode == 0 else { return }
         hero.setStatus(archive.enabled(account: account) ? text("Сохранение включено", "Retention on")
             : text("Сохранение выключено", "Retention off"), active: archive.enabled(account: account))
         hero.fit(in: tableView)
     }
     @objc private func close() { dismiss(animated: true) }
-    override func numberOfSections(in tableView: UITableView) -> Int { 9 }
-    override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int { section == 6 ? NebulaRetentionScope.allCases.count : section == 0 || section == 7 || section == 8 ? 3 : (section == 3 ? 2 : 1) }
-    override func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
-        [text("Удалённые сообщения", "Deleted messages"), text("Оформление", "Appearance"), text("Локальный кэш", "Local cache"), text("Защита", "Protection"), nil, text("Пересылка", "Forwarding"), text("Где сохранять", "Where to save"), text("Чаты", "Chats"), text("Истории", "Stories")][section]
+    override func numberOfSections(in tableView: UITableView) -> Int { sections.count }
+    override func tableView(_ tableView: UITableView, numberOfRowsInSection displaySection: Int) -> Int { let section = sections[displaySection]; return section == 6 ? NebulaRetentionScope.allCases.count : section == 0 || section == 7 || section == 8 ? 3 : (section == 3 ? 2 : 1) }
+    override func tableView(_ tableView: UITableView, titleForHeaderInSection displaySection: Int) -> String? {
+        let section = sections[displaySection]
+        return [text("Удалённые сообщения", "Deleted messages"), text("Оформление", "Appearance"), text("Локальный кэш", "Local cache"), text("Защита", "Protection"), nil, text("Пересылка", "Forwarding"), text("Где сохранять", "Where to save"), text("Чаты", "Chats"), text("Истории", "Stories")][section]
     }
-    override func tableView(_ tableView: UITableView, titleForFooterInSection section: Int) -> String? {
+    override func tableView(_ tableView: UITableView, titleForFooterInSection displaySection: Int) -> String? {
+        let section = sections[displaySection]
         if section == 6 { return text("В «Избранном» сохраняется уже полученное на iPhone, удалённое с другого устройства. Удаление в этом приложении работает как обычно.", "Saved Messages already received on this iPhone are kept when deleted on another device. Deleting in this app works as usual.") }
         if section == 7 { return text("Скрытый архив можно снова открыть из списка чатов. Настройка сохраняется в аккаунте Telegram.", "The hidden archive can still be opened from the chat list. Telegram stores this setting for your account.") }
         if section == 8 { return text("Истории выбранных типов будут скрываться через штатный архив Telegram для этого аккаунта.", "Stories from selected peer types will be hidden using Telegram's native story archive for this account.") }
@@ -79,7 +85,8 @@ final class NebulaPrivacyController: UITableViewController {
         if section == 3 { return text("Блокировка приложения защищает и сообщения в переписке. Отдельной блокировки только экрана архива недостаточно. Исключить чат из сохранения можно через меню очистки удалённых сообщений; старые копии очищаются отдельно.", "The app lock also protects inline messages. A lock on the archive settings alone would not. Exclude a chat using its retained-message cleanup menu; clear old copies separately.") }
         return text("Число сохранённых сообщений не ограничено, срок хранения — по умолчанию бессрочный. Текст и медиа остаются в обычном локальном хранилище приложения. Уже загруженные вложения доступны, пока их не очистит стандартный медиакэш. Удаление кэша здесь не отправляет запросов на сервер и не удаляет обычную переписку. Выключение сохранения не очищает прежние копии.", "The number of retained messages is not limited and retention is unlimited by default. Text and media stay in the app’s normal local storage. Downloaded attachments remain available until standard media cache eviction. Clearing here is local only and does not erase ordinary history. Turning retention off keeps existing copies.")
     }
-    override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+    override func tableView(_ tableView: UITableView, cellForRowAt displayPath: IndexPath) -> UITableViewCell {
+        let indexPath = IndexPath(row: displayPath.row, section: sections[displayPath.section])
         let cell = UITableViewCell(style: .subtitle, reuseIdentifier: nil)
         let theme = currentTheme
         defer { NebulaSettingsStyle.finish(cell, theme: theme) }
@@ -205,8 +212,9 @@ final class NebulaPrivacyController: UITableViewController {
         else { archive.setSaveExpiring(account: account, value: value) }
         tableView.reloadData()
     }
-    override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        tableView.deselectRow(at: indexPath, animated: true)
+    override func tableView(_ tableView: UITableView, didSelectRowAt displayPath: IndexPath) {
+        let indexPath = IndexPath(row: displayPath.row, section: sections[displayPath.section])
+        tableView.deselectRow(at: displayPath, animated: true)
         guard !busy else { return }
         if indexPath.section == 7 && indexPath.row == 0 {
             NebulaChoiceController.show(from: self, title: text("Архив в списке чатов", "Archive in chat list"),
