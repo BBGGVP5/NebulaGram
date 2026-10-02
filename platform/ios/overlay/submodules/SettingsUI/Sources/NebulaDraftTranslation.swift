@@ -17,7 +17,7 @@ public final class NebulaDraftTranslation: NSObject {
     private var state = NebulaDraftRevision()
     private var source = ""
     private var result = ""
-    private var suppressed = ""
+    private var identityPrefix = ""
     private var russian = false
     public override init() {
         super.init()
@@ -58,10 +58,10 @@ public final class NebulaDraftTranslation: NSObject {
     }
     public func update(source: String, options: NebulaTranslationOptions, allowed: Bool) {
         guard allowed, options.draft, NebulaLiveTranslation.ready, !source.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty, source.count <= 12000 else { stop(); return }
-        if source == suppressed { return }
-        let identity = source + ":" + options.draftLanguage + ":" + NebulaLiveTranslation.connectionIdentity
+        identityPrefix = options.draftLanguage + ":" + NebulaLiveTranslation.connectionIdentity + ":"
+        let identity = identityPrefix + source
         guard let version = state.begin(identity) else { return }
-        task?.cancel(); preview.isHidden = true; self.source = source; suppressed = ""
+        task?.cancel(); preview.isHidden = true; self.source = source
         task = Task { @MainActor [weak self] in
             do {
                 try await Task.sleep(nanoseconds: UInt64(options.delay * 1_000_000_000))
@@ -79,7 +79,7 @@ public final class NebulaDraftTranslation: NSObject {
     @objc private func tools() { stop(); openTools?() }
     @objc private func configure() { stop(); openSettings?() }
     @objc private func held(_ gesture: UILongPressGestureRecognizer) { if gesture.state == .began { configure() } }
-    @objc private func applyResult() { let source = self.source, result = self.result; stop(); suppressed = result; apply?(source, result) }
-    @objc private func hide() { suppressed = source; stop() }
+    @objc private func applyResult() { let source = self.source, result = self.result; stop(); state.suppress(identityPrefix + result); apply?(source, result) }
+    @objc private func hide() { stop(); state.suppress(identityPrefix + source) }
     deinit { task?.cancel() }
 }

@@ -22,7 +22,7 @@ public final class NebulaDraftTranslation {
     private final NebulaDraftRequestGate gate = new NebulaDraftRequestGate();
     private long activeDialog;
     private int activeAccount;
-    private String suppressed = "";
+    private String identityPrefix = "";
     public NebulaDraftTranslation(BaseFragment host, EditText editor, View anchor, java.util.function.Consumer<String> apply) {
         this.host = host; this.editor = editor; this.anchor = anchor; this.apply = apply;
     }
@@ -31,13 +31,13 @@ public final class NebulaDraftTranslation {
         String source = editor.getText().toString();
         String language = NebulaTranslationSettings.draftLanguage(account, dialog);
         String connectionIdentity = NebulaTranslationSettings.connectionIdentity();
-        String identity = connectionIdentity + ":" + account + ":" + dialog + ":" + language + ":" + source;
+        identityPrefix = connectionIdentity + ":" + account + ":" + dialog + ":" + language + ":";
+        String identity = identityPrefix + source;
         if (!allowed || !NebulaTranslationSettings.draft(account, dialog) || !NebulaAiAvailability.available()
             || DialogObject.isEncryptedDialog(dialog) || dialog == 0 || source.trim().isEmpty() || source.length() > 12000) { stop(); return; }
-        if (source.equals(suppressed)) return;
         final long request = gate.begin(identity);
         if (request == 0) return;
-        cancelOutstanding(); suppressed = "";
+        cancelOutstanding();
         pending = () -> {
             pending = null;
             if (!gate.accepts(request)) return;
@@ -73,10 +73,10 @@ public final class NebulaDraftTranslation {
         Button settings = button(NebulaText.text("Настройки", "Settings"), theme); actions.addView(settings);
         settings.setOnClickListener(v -> { stop(); host.presentFragment(new NebulaTranslationFragment(activeAccount, activeDialog)); });
         Button close = button("×", theme); close.setContentDescription(NebulaText.text("Закрыть", "Close")); actions.addView(close);
-        close.setOnClickListener(v -> { suppressed = source; stop(); });
+        close.setOnClickListener(v -> { stop(); gate.suppress(identityPrefix + source); });
         if (valid) {
             Button use = button(NebulaText.text("Применить", "Apply"), theme); actions.addView(use);
-            use.setOnClickListener(v -> { if (source.equals(editor.getText().toString())) { stop(); suppressed = answer; apply.accept(answer); } });
+            use.setOnClickListener(v -> { if (source.equals(editor.getText().toString())) { stop(); gate.suppress(identityPrefix + answer); apply.accept(answer); } });
         }
         int width = Math.min(anchor.getWidth() - dp(16), dp(420)); if (width <= 0) return;
         box.measure(View.MeasureSpec.makeMeasureSpec(width, View.MeasureSpec.EXACTLY), View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED));

@@ -32,8 +32,11 @@ final class NebulaAiService {
     private let settings: NebulaAiSettings
     private let secrets: NebulaAiSecrets
     private let session: URLSession
+    private let overrideInstructions: String?
+    private var instructions: String { overrideInstructions ?? settings.instructions }
 
-    init(settings: NebulaAiSettings = .shared, secrets: NebulaAiSecrets = .shared) {
+    init(settings: NebulaAiSettings = .shared, secrets: NebulaAiSecrets = .shared, instructions: String? = nil) {
+        self.overrideInstructions = instructions
         self.settings = settings
         self.secrets = secrets
         let configuration = URLSessionConfiguration.ephemeral
@@ -94,7 +97,7 @@ final class NebulaAiService {
     func generate(input: String) async throws -> String {
         let input = input.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !input.isEmpty else { throw NebulaAiServiceError.emptyInput }
-        guard input.count <= 50_000, settings.instructions.count <= 20_000 else {
+        guard input.count <= 50_000, instructions.count <= 20_000 else {
             throw NebulaAiServiceError.inputTooLong
         }
         if settings.provider == .appleIntelligence {
@@ -108,7 +111,7 @@ final class NebulaAiService {
         guard #available(iOS 26.0, *), SystemLanguageModel.default.isAvailable else {
             throw NebulaAiServiceError.localModelUnavailable
         }
-        let session = LanguageModelSession(instructions: settings.instructions)
+        let session = LanguageModelSession(instructions: instructions)
         let response = try await session.respond(to: input)
         let result = response.content.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !result.isEmpty else { throw NebulaAiServiceError.invalidResponse }
@@ -134,19 +137,19 @@ final class NebulaAiService {
         switch provider {
         case .openAI:
             request = try makeRequest(base: base, path: "responses", key: key, provider: provider,
-                body: ["model": model, "instructions": settings.instructions, "input": input,
+                body: ["model": model, "instructions": instructions, "input": input,
                        "max_output_tokens": 8192, "store": false])
         case .claude:
             var body: [String: Any] = ["model": model, "messages": [["role": "user", "content": input]], "max_tokens": 4096]
-            if !settings.instructions.isEmpty { body["system"] = settings.instructions }
+            if !instructions.isEmpty { body["system"] = instructions }
             request = try makeRequest(base: base, path: "messages", key: key, provider: provider, body: body)
         case .gemini:
             var body: [String: Any] = ["contents": [["role": "user", "parts": [["text": input]]]]]
-            if !settings.instructions.isEmpty { body["systemInstruction"] = ["parts": [["text": settings.instructions]]] }
+            if !instructions.isEmpty { body["systemInstruction"] = ["parts": [["text": instructions]]] }
             request = try makeRequest(base: base, path: "models/\(encodedModel):generateContent", key: key, provider: provider, body: body)
         case .custom:
             var messages: [[String: String]] = []
-            if !settings.instructions.isEmpty { messages.append(["role": "system", "content": settings.instructions]) }
+            if !instructions.isEmpty { messages.append(["role": "system", "content": instructions]) }
             messages.append(["role": "user", "content": input])
             request = try makeRequest(base: base, path: "chat/completions", key: key, provider: provider,
                 body: ["model": model, "messages": messages])

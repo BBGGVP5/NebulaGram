@@ -28,6 +28,14 @@ final class NebulaTranslationTests: XCTestCase {
             XCTAssertEqual(settings.options(account: "a", peer: "p").delay, expected)
         }
     }
+    func testDismissedPreviewIsScopedToItsLanguage() {
+        var gate = NebulaDraftRevision()
+        gate.suppress("en:source")
+        XCTAssertNil(gate.begin("en:source"))
+        gate.cancel()
+        XCTAssertNil(gate.begin("en:source"))
+        XCTAssertNotNil(gate.begin("de:source"))
+    }
     func testOutOfOrderResponsesAndReturningToSameText() {
         var gate = NebulaDraftRevision()
         let first = gate.begin("A:en")!

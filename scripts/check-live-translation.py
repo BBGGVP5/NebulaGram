@@ -23,6 +23,10 @@ public class LiveTranslationCheck {
         }
         gate.cancel(); check(!gate.accepts(aAgain) && !gate.accepts(0), "pause/disable/send invalidates in-flight work");
         check(gate.begin("account2:chat2:de:provider2:A") != 0, "returning to chat permits a fresh request");
+        gate.suppress("sameDraft:en");
+        check(gate.begin("sameDraft:en") == 0, "dismissed or applied preview must not request itself again");
+        gate.cancel(); check(gate.begin("sameDraft:en") == 0, "dismissal survives pause/resume");
+        check(gate.begin("sameDraft:de") != 0, "changing target language permits the same draft again");
         for (int i = 0; i < 1000; i++) {
             long old = gate.begin("old" + i); gate.cancel();
             long current = gate.begin("new" + i);

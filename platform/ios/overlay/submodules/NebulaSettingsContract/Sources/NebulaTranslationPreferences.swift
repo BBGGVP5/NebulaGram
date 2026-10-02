@@ -45,11 +45,13 @@ public final class NebulaTranslationPreferences {
 public struct NebulaDraftRevision {
     public private(set) var revision = 0
     private var identity: String?
+    private var suppressedIdentity: String?
     public init() { }
     public mutating func begin(_ identity: String) -> Int? {
-        guard self.identity != identity else { return nil }
-        revision += 1; self.identity = identity; return revision
+        guard self.identity != identity, suppressedIdentity != identity else { return nil }
+        suppressedIdentity = nil; revision += 1; self.identity = identity; return revision
     }
+    public mutating func suppress(_ identity: String) { cancel(); suppressedIdentity = identity }
     public mutating func cancel() { revision += 1; identity = nil }
     public func accepts(_ revision: Int) -> Bool { self.revision == revision && identity != nil }
 }
