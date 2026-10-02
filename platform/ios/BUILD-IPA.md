@@ -5,7 +5,9 @@ This is a full `//Telegram:Telegram` **release_arm64** device application, not t
 compile-only simulator integration target. It contains the current iOS Nebula
 settings/store/transfer/folder badge integration, Nebula welcome/phone/code/2FA
 presentation, and the NebulaLink proxy bridge. Not all Android features are ported.
-Upstream launcher artwork/name is still pending separate branding work.
+The launcher uses the original Nebula artwork, with sixteen bundled alternate icons.
+The current camera, community, message-tools and themed settings adaptations are listed
+in [PARITY.md](PARITY.md); source integration and signed-device acceptance are tracked separately.
 
 ## Inputs and reproducibility
 

@@ -215,7 +215,8 @@ with tempfile.TemporaryDirectory(prefix='nebula-dialog-check-') as temp:
 
 dialog = (ui / 'NebulaDialog.java').read_text(encoding='utf-8')
 assert 'BottomSheet' not in dialog and 'ScrollView' not in dialog and 'NebulaTheme' not in dialog
-for name, provider in [('NebulaAutoTranslate.java', 'host'), ('NebulaMessageFilter.java', 'host'),
+for name, provider in [('NebulaTranslationSettings.java', 'host'), ('NebulaMessageFilter.java', 'host'),
                        ('NebulaPrivacyFragment.java', 'fragment')]:
     assert f'{provider}.getResourceProvider()' in (ui / name).read_text(encoding='utf-8'), name
+assert 'new NebulaTranslationFragment(host.getCurrentAccount(), dialog)' in (ui / 'NebulaAutoTranslate.java').read_text(encoding='utf-8')
 print('Native scrolling/footer ownership and chat palette forwarding retained')

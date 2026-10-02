@@ -600,3 +600,8 @@ Liquid Glass. Стиль применяется при включённом iOS-
 - Производитель может скрывать камеры от сторонних приложений. У логической
   камеры физический объектив выбирает HAL с учётом освещения и фокусировки;
   недоступные ID не заявляются как переключаемые объективы.
+
+
+### 0164 — configurable AI translation and composer tools
+
+TranslateButton uses a scoped top-anchor entrance and a truthful selected-provider footer. ChatActivityEnterView reserves an optional right tools slot, suspends draft translation during recording/editing/pauses and invalidates responses when text or chat changes. The existing incoming translation queue remains opt-in; configuration now shares language pickers and independent incoming/draft switches with the composer. New request-gate tests cover deduplication and late responses.

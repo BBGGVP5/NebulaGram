@@ -183,14 +183,14 @@
   user/channel categories. Settings are local to the current account; peers
   are deduplicated for the lifetime of the chat-list controller. Changing the
   setting also processes currently visible subscriptions.
-- The Privacy screen exposes the story controls and a separate native archive
+- The Chats screens expose story controls and a separate native archive
   visibility action. Hidden stories and chats retain Telegram's normal recovery
   routes.
 
 # Chat interaction vibration
 
 - `0057-chat-haptics-control.patch` gates native chat-controller, input-panel,
-  and swipe-to-reply haptic calls behind a local switch in Privacy. The switch
+  and swipe-to-reply haptic calls behind a local switch in Chats → Chat behavior. The switch
   does not alter notification vibration or system accessibility feedback.
 
 # Chat snowflakes
@@ -198,3 +198,37 @@
 - `0058-chat-snowflakes.patch` adds a bounded emitter above the visible chat
   when enabled. It stops on navigation away and under Reduce Motion or Low
   Power Mode, and updates its width with the native chat layout.
+
+# Active-camera zoom and recent UI parity
+
+- `0060-camera-community-tools-profile-parity.patch` adds a Camera capture-queue
+  bridge for the active device's neutral/minimum/maximum factors and virtual-lens
+  stops. Round recording uses one virtual device so AVFoundation can switch its
+  constituent lenses. The video screen reads that device, coalesces input, ramps
+  only preset taps, and preserves pinch zoom after release. It keeps Telegram's
+  native recorder/cancellation lifecycle.
+- Message/draft/home AI entry points carry the current Telegram presentation
+  theme. The native camera choice opens the shared centered dimmed popup.
+  Message tools route to actual translation/summary requests, speech and local
+  tasks; languages use Telegram's catalog with separate Russian/English choices.
+- Profile channel, birthday, business details, cover and emoji pattern consumers
+  live in PeerInfoScreen/PeerInfoCoverComponent. Photo expansion stays in the
+  native gallery path. Reply background, author colors and emoji pattern are
+  gated in ChatMessageReplyInfoNode, with chat layout invalidation on changes.
+- The glass material cache includes the upstream tint color. Changing a custom
+  theme updates the material; unchanged render state retains its effect instance.
+- Community loading/rendering lives in the SettingsUI overlay. It follows the
+  account's canonical `nebulaguard_channel` peer to its linked community,
+  observes native cached peer data, and opens `makeCommunityViewScreen`.
+  Native avatar binding is preserved across metadata updates. Non-community
+  settings pages do not resolve or subscribe to that metadata.
+- These are source hooks. See `platform/ios/PARITY.md` for compilation, packaging
+  and physical-device acceptance evidence.
+
+
+### 0061 — configurable AI translation and composer tools
+
+- ChatController owns visible-chat request lifecycles and updates native translated message attributes through SettingsUI's bounded provider queue. Background/leave cancels work.
+- ChatTextInputPanelNode reserves a real 40-point accessory slot; optional tools use the current draft, with stale-draft checks before Apply.
+- Native translation language/hide/original actions update the per-chat opt-in. The `nebula-ai` source marker prevents native/Cocoon dispatch for pinned previews and labels the selected-provider mode correctly.
+- Message tools and AI settings open the same themed configuration screen. Preferences are independent for incoming/draft languages and never exported with account/chat consent.

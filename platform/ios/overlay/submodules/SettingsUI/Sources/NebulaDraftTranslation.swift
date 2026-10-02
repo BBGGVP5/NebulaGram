@@ -3,7 +3,7 @@ import NebulaSettingsContract
 import TelegramPresentationData
 
 /// Preview stays above the native composer; tapping Apply is the only write path.
-public final class NebulaDraftTranslation {
+public final class NebulaDraftTranslation: NSObject {
     public let button = UIButton(type: .system)
     public let preview = UIView()
     public var openTools: (() -> Void)?
@@ -19,7 +19,8 @@ public final class NebulaDraftTranslation {
     private var result = ""
     private var suppressed = ""
     private var russian = false
-    public init() {
+    public override init() {
+        super.init()
         button.setImage(UIImage(systemName: "sparkles"), for: .normal)
         button.addTarget(self, action: #selector(tools), for: .touchUpInside)
         button.addGestureRecognizer(UILongPressGestureRecognizer(target: self, action: #selector(held(_:))))

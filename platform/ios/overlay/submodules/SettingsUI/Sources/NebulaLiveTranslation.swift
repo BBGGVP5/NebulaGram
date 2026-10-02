@@ -20,7 +20,7 @@ public final class NebulaLiveTranslation {
     private var identity = ""
     private var revision = 0
     public init() { }
-    public func stop() { revision += 1; task?.cancel(); task = nil; queue.removeAll(); current = nil; identity = "" }
+    public func stop() { revision += 1; task?.cancel(); task = nil; queue.removeAll(); current = nil }
     public func update(context: AccountContext, peer: PeerId, messages: [Message], allowed: Bool) {
         let options = NebulaTranslationPreferences.shared.options(account: "\(context.account.peerId.toInt64())", peer: "\(peer.toInt64())")
         guard allowed, options.incoming, Self.ready, peer.namespace != Namespaces.Peer.SecretChat else { stop(); return }

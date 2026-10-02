@@ -10,27 +10,38 @@
 
 ## 1. Camera and recording
 
-- [ ] Patch `submodules/Camera/Sources/Camera.swift` and `CameraDevice.swift`: report the active device's minimum/maximum, neutral factor and virtual-device switch factors on the capture queue. Route absolute displayed factors to that same device, including single-camera front mode. Coalesce drag requests and preserve the final zoom after pinch release.
-- [ ] Update `platform/ios/overlay/submodules/TelegramUI/Components/VideoMessageCameraScreen/Sources/NebulaVideoZoomSlider.swift`: remove independent discovery and hard caps, remove step buttons, use theme colors, fixed preset labels, centered bounded 280-point ruler with aligned labels and a persistent indicator.
-- [ ] Patch `VideoMessageCameraScreen.swift` to consume camera state and themed material; verify cancellation clears recording controls without moving the normal composer.
+- [x] Patch `submodules/Camera/Sources/Camera.swift` and `CameraDevice.swift`: report the active device's minimum/maximum, neutral factor and virtual-device switch factors on the capture queue. Route absolute displayed factors to that same device, including single-camera front mode. Coalesce drag requests and preserve the final zoom after pinch release.
+- [x] Update `platform/ios/overlay/submodules/TelegramUI/Components/VideoMessageCameraScreen/Sources/NebulaVideoZoomSlider.swift`: remove independent discovery and hard caps, remove step buttons, use theme colors, fixed preset labels, centered bounded 280-point ruler with aligned labels and a persistent indicator.
+- [x] Patch `VideoMessageCameraScreen.swift` to consume camera state and themed material; verify cancellation clears recording controls without moving the normal composer.
 
 ## 2. Dialogs, tools and language
 
-- [ ] Replace the shared choice sheet with a bounded centered, dimmed, opaque Telegram-themed popup; preserve index callbacks and Dynamic Type scrolling.
-- [ ] Add a language catalog with Russian/English shortcuts, localized names, native names, search and stable language codes. Use it for AI translation and summary results.
-- [ ] Add centered adaptive action rows to message tools (three columns when they fit, centered partial rows); route actual text, speech, task and AI actions without implicit network requests.
-- [ ] Pass the chat theme through all AI entry points and use an opaque editor body/navigation bar with native title layout.
+- [x] Replace the shared choice sheet with a bounded centered, dimmed, opaque Telegram-themed popup; preserve index callbacks and Dynamic Type scrolling.
+- [x] Add a language catalog with Russian/English shortcuts, localized names, native names, search and stable language codes. Use it for AI translation and summary results.
+- [x] Add centered adaptive action rows to message tools (three columns when they fit, centered partial rows); route actual text, speech, task and AI actions without implicit network requests.
+- [x] Pass the chat theme through all AI entry points and use an opaque editor body/navigation bar with native title layout.
 
 ## 3. Native community and settings consumers
 
-- [ ] Resolve `nebulaguard_channel` through the current account, observe its linked community and cached metadata, render a stable native avatar/title/count card and open `makeCommunityViewScreen`.
-- [ ] Replace the old community link directory in both settings and support; keep support before tools and shorten repetitive explanations.
-- [ ] Repair the navigation page range guard and group remaining profile/chat options according to their actual native consumers.
+- [x] Resolve `nebulaguard_channel` through the current account, observe its linked community and cached metadata, render a stable native avatar/title/count card and open `makeCommunityViewScreen`.
+- [x] Replace the old community link directory in both settings and support; keep support before tools and shorten repetitive explanations.
+- [x] Repair the navigation page range guard and group remaining profile/chat options according to their actual native consumers.
 - [ ] Audit older catalog gaps separately; wire valid cross-platform behaviors and record genuinely platform-owned features explicitly. Do not relabel unsupported imported values as implemented.
 
 ## 4. Verification and build
 
-- [ ] Export new patches from `build/ios-parity-1002` against the 59-patch baseline, leaving vendor unchanged.
-- [ ] Run `python platform/ios/tools/check-bootstrap.py`, settings contract/design checks and build-tool regression checks. Extend behavior tests for zoom mapping/ranges, language ordering and action grid geometry.
-- [ ] Publish the exact changes to `codex/camera-controls` and `main`, run macOS Swift tests and the full arm64 IPA workflow; repair compiler failures before delivery.
-- [ ] Download the IPA, verify manifest/source revision, archive contents, arm64 device binaries and digest. Report actual signing requirements and remaining device-only validation, not simulator compilation as an installable app.
+- [x] Export new patches from `build/ios-parity-1002` against the 59-patch baseline, leaving vendor unchanged.
+- [x] Run `python platform/ios/tools/check-bootstrap.py`, settings contract/design checks and build-tool regression checks. Extend behavior tests for zoom mapping/ranges, language ordering and action grid geometry.
+- [x] Publish the exact changes to `codex/camera-controls` and `main`, run macOS Swift tests and the full arm64 IPA workflow; repair compiler failures before delivery.
+- [x] Download the IPA, verify manifest/source revision, archive contents, arm64 device binaries and digest. Report actual signing requirements and remaining device-only validation, not simulator compilation as an installable app.
+
+Native tests: 73 passed for f352cb5; the full unsigned device IPA passed 37022621208 and its arm64/app/extension/source/digest were verified. The later live-translation batch passed 76 Swift tests but awaits its final native builds. The catalog distinguishes native iOS defaults (composer/icons/unread) from actual unfinished optional Android consumers; this request does not make those imported flags active without implementation.
+
+## Follow-up: configurable live AI translation (2026-10-02)
+
+- [x] Android: repair translation popup origin (top menu anchor); use scoped animation rather than changing other menus.
+- [x] Add independent opt-in switches for composer tools, incoming translation, and draft translation; language pickers (Russian/English first), 0.5/1/2-second debounce, provider shortcut. Defaults off; per-account/per-chat translation preferences.
+- [x] Incoming: reuse bounded Android queue; cancel on leaving/disabling, exclude outgoing/protected/secret messages. On iOS route visible IDs through the selected AI service, preserve original text and native translation attributes.
+- [x] Draft: debounce requests, cancel/ignore stale responses, show preview with explicit Apply; never auto-send or overwrite a newer draft. Suspend on background/recording/editing protected content.
+- [x] iOS: themed settings, composer accessory and equivalent incoming/draft consumers; shared lifecycle tests.
+- [ ] Run meaningful queue/state tests, patch validation and Android/iOS native builds. Download and verify final artifacts; distinguish the earlier f352cb5 IPA checkpoint.

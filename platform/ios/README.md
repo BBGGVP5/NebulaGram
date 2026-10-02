@@ -1,4 +1,4 @@
-# NebulaGram iOS — native settings bootstrap
+# NebulaGram iOS — native integration
 
 ## Current scope
 
@@ -7,38 +7,41 @@ Official Telegram iOS is pinned by the `vendor/telegram-ios` gitlink to
 Xcode 26.2, Bazel 8.4.2 and macOS 26. These are upstream build requirements,
 not a claim that the full app has been built here.
 
-- `NebulaSettingsContract`: Foundation-only validation and persistent store.
-- `overlay/submodules/SettingsUI`: native RU/EN NebulaGram screen in ItemListUI,
-  using the upstream glass switch style, not a separate cross-platform UI.
-- `patches/ios/0001-nebula-settings-bootstrap.patch`: six small integration paths
-  for the settings entry, routing, dependencies and folder counter presentation.
-- The first experimental control is `hide_tab_counters`. It hides badge width
-  as well as pixels, refreshes the folder strip on changes and preserves actual
-  unread values, notification behavior and VoiceOver labels.
+- `NebulaSettingsContract`: validated settings, persistent stores and tested layout/camera math.
+- `overlay/submodules/SettingsUI`: native RU/EN settings, AI screens, message tools,
+  result-language picker, support/community and local tasks.
+- Ordered patches connect actual Telegram chat, profile, camera, folder, navigation,
+  retained-message and glass consumers. The current inventory is in [PARITY.md](PARITY.md).
+- Device IPA tooling, branding, onboarding and the shared-core NebulaLink proxy
+  integration are documented in [BUILD-IPA.md](BUILD-IPA.md).
 
-Other settings remain planned in the catalog until native build/device acceptance.
-There are no dummy settings or automatic Android-to-iOS sync. Device IPA tooling,
-current Nebula onboarding and the shared-core NebulaLink proxy integration are
-documented in [BUILD-IPA.md](BUILD-IPA.md); native/device acceptance is not implied
-by the presence of that code.
+A source integration is distinct from successful compilation and physical-device
+acceptance. Imported unsupported keys remain inactive and are not exposed as working
+controls. Settings transfer never enables automatic Android-to-iOS synchronization.
 
 ## Settings presentation
 
-The approved settings design uses compact section introductions, colored 32pt
-navigation tiles and text-first switch rows. The main ItemListUI screen includes
-local RU/EN search, section grouping, disclosure rows and the current glass/tab
-order values. Search is transient and keeps preference errors visible. AI and
-privacy retain their existing UIKit controllers, controls and operations.
+The entry screen separates General, Appearance, Navigation, Chats, Profile, Folders,
+Privacy and Transfer. Chats groups list controls, header/menu controls, the composer,
+messages and stories. Chat vibration, snowflakes, forwarding and archive visibility
+are in chat settings; retention/protection remain in Privacy. Profile presentation
+controls do not share a page with glass or navigation settings.
 
-Existing preview/overview components are retained. In particular,
-`NebulaLinkOverviewView` and its connection-state/action bindings are unchanged;
-the browser design samples do not replace native content. This is a presentation
-update for supported iOS settings, not activation of Android-only catalog keys.
+Shared choices use bounded centered, dimmed Telegram-themed windows. The result
+language picker pins Russian and English above the searchable language catalog.
+Message tools use at most three columns and center partial rows, with measured
+fallback to two or one column for narrow widths or larger text. The AI editor and
+its navigation bar use opaque Telegram colors. Native community metadata and avatars
+come from the current account, and the card opens Telegram's own community sheet.
 
-`check-bootstrap.py --swift` also exercises the actual Foundation search matcher
-and typechecks the shared UIKit heading/icon helpers against the simulator SDK.
-The patch/contract checks run on Windows; a native iOS build and visual acceptance
-still require macOS/Xcode and a simulator or iPhone.
+The native glass preview uses the same material as actual surfaces. Material state
+is cached, including tint, while quality responds to power, thermal and accessibility
+settings. This is not evidence of measured frame-rate gains on an iPhone.
+
+`check-bootstrap.py --swift` exercises the Foundation contract and typechecks the
+standalone zoom slider, action grid and transfer adapter against the iOS SDK.
+Telegram-dependent screens are parsed there and compiled in the full native build.
+The patch/contract checks run on Windows; device compilation requires macOS/Xcode.
 
 ## Storage and transfer
 

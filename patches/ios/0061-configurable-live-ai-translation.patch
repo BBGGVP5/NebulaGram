@@ -53,6 +53,44 @@ diff --git a/submodules/TelegramUI/Components/Chat/ChatTextInputPanelNode/Source
          self.currentTextInputBackgroundWidthOffset = textInputBackgroundWidthOffset
          
          let textPlaceholderSize: CGSize
+diff --git a/submodules/TelegramUI/Components/TranslateHeaderPanelComponent/Sources/ChatTranslationPanelNode.swift b/submodules/TelegramUI/Components/TranslateHeaderPanelComponent/Sources/ChatTranslationPanelNode.swift
+--- a/submodules/TelegramUI/Components/TranslateHeaderPanelComponent/Sources/ChatTranslationPanelNode.swift
++++ b/submodules/TelegramUI/Components/TranslateHeaderPanelComponent/Sources/ChatTranslationPanelNode.swift
+@@ -370,6 +370,7 @@
+             
+             items.append(.separator)
+             
++            if info.fromLang != "nebula-ai" {
+             items.append(.action(ContextMenuActionItem(text: doNotTranslateTitle, icon: { theme in
+                 return generateTintedImage(image: UIImage(bundleImageName: "Chat/Context Menu/Restrict"), color: theme.contextMenu.primaryColor)
+             }, action: { [weak self] c, _ in
+@@ -381,6 +382,7 @@
+                 self.addDoNotTranslateLanguage(info.fromLang)
+             })))
+             
++            }
+             items.append(.action(ContextMenuActionItem(text: presentationData.strings.Conversation_Translation_Hide, icon: { theme in
+                 return generateTintedImage(image: UIImage(bundleImageName: "Chat/Context Menu/Clear"), color: theme.contextMenu.primaryColor)
+             }, action: { [weak self] c, _ in
+@@ -391,6 +393,10 @@
+             
+             items.append(.separator)
+             
++            if info.fromLang == "nebula-ai" {
++                let russian = presentationData.strings.baseLanguageCode.lowercased().hasPrefix("ru")
++                items.append(.action(ContextMenuActionItem(text: russian ? "Перевод через выбранного провайдера ИИ" : "Translation by your selected AI provider", textLayout: .multiline, textFont: .small, icon: { _ in nil }, action: { c, _ in c?.dismiss(completion: nil) })))
++            } else {
+             let cocoonPath = getAppBundle().url(forResource: "Cocoon", withExtension: "tgs")?.path ?? ""
+             let cocoonFile = TelegramMediaFile(
+                 fileId: EngineMedia.Id(namespace: Namespaces.Media.CloudFile, id: -123456789),
+@@ -418,6 +424,7 @@
+                 }
+             })))
+             
++            }
+             return ContextController.Items(content: .list(items))
+         }
+             
 diff --git a/submodules/TelegramUI/Sources/Chat/ChatControllerLoadDisplayNode.swift b/submodules/TelegramUI/Sources/Chat/ChatControllerLoadDisplayNode.swift
 --- a/submodules/TelegramUI/Sources/Chat/ChatControllerLoadDisplayNode.swift
 +++ b/submodules/TelegramUI/Sources/Chat/ChatControllerLoadDisplayNode.swift
@@ -73,18 +111,30 @@ diff --git a/submodules/TelegramUI/Sources/Chat/ChatControllerLoadDisplayNode.sw
              let _ = (updateChatTranslationStateInteractively(engine: self.context.engine, peerId: peerId, threadId: self.chatLocation.threadId,  { current in
                  return current?.withIsEnabled(type == .translated)
              })
-@@ -4385,6 +4391,11 @@
-             })
-         }, changeTranslationLanguage: { [weak self] langCode in
+@@ -4387,6 +4393,11 @@
              guard let self, let peerId = self.chatLocation.peerId else {
-+                return
-+            }
+                 return
+             }
 +            let nebulaOptions = NebulaTranslationPreferences.shared.options(account: "\(self.context.account.peerId.toInt64())", peer: "\(peerId.toInt64())")
 +            if nebulaOptions.incoming {
 +                NebulaTranslationPreferences.shared.update(account: "\(self.context.account.peerId.toInt64())", peer: "\(peerId.toInt64())") { $0.incomingLanguage = normalizeTranslationLanguage(langCode) }
++                return
++            }
+             let langCode = normalizeTranslationLanguage(langCode)
+             let _ = updateChatTranslationStateInteractively(engine: self.context.engine, peerId: peerId, threadId: self.chatLocation.threadId, { current in
+                 return current?.withToLang(langCode).withIsEnabled(true)
+@@ -4436,6 +4447,11 @@
+             }), in: .current)
+         }, hideTranslationPanel: { [weak self] in
+             guard let strongSelf = self, let peerId = strongSelf.chatLocation.peerId else {
++                return
++            }
++            let nebulaOptions = NebulaTranslationPreferences.shared.options(account: "\(strongSelf.context.account.peerId.toInt64())", peer: "\(peerId.toInt64())")
++            if nebulaOptions.incoming {
++                NebulaTranslationPreferences.shared.update(account: "\(strongSelf.context.account.peerId.toInt64())", peer: "\(peerId.toInt64())") { $0.incoming = false }
                  return
              }
-             let langCode = normalizeTranslationLanguage(langCode)
+             let context = strongSelf.context
 diff --git a/submodules/TelegramUI/Sources/ChatController.swift b/submodules/TelegramUI/Sources/ChatController.swift
 --- a/submodules/TelegramUI/Sources/ChatController.swift
 +++ b/submodules/TelegramUI/Sources/ChatController.swift
@@ -156,9 +206,9 @@ diff --git a/submodules/TelegramUI/Sources/ChatController.swift b/submodules/Tel
 +        let incoming = allowed && options.incoming && NebulaLiveTranslation.ready
 +        if incoming {
 +            if !nebulaHadAiTranslation { nebulaPreviousTranslationState = presentationInterfaceState.translationState; nebulaHadAiTranslation = true }
-+            if presentationInterfaceState.translationState?.isEnabled != true || presentationInterfaceState.translationState?.toLang != options.incomingLanguage {
++            if presentationInterfaceState.translationState?.isEnabled != true || presentationInterfaceState.translationState?.toLang != options.incomingLanguage || presentationInterfaceState.translationState?.fromLang != "nebula-ai" {
 +                updateChatPresentationInterfaceState(animated: false, interactive: false, {
-+                    $0.updatedTranslationState(ChatPresentationTranslationState(isEnabled: true, fromLang: "auto", toLang: options.incomingLanguage))
++                    $0.updatedTranslationState(ChatPresentationTranslationState(isEnabled: true, fromLang: "nebula-ai", toLang: options.incomingLanguage))
 +                })
 +            }
 +        } else if nebulaHadAiTranslation {
@@ -259,3 +309,15 @@ diff --git a/submodules/TelegramUI/Sources/ChatInterfaceStateContextMenus.swift 
                          })
                          if c == nil { f(.default) }
                      })))
+diff --git a/submodules/TranslateUI/Sources/ChatTranslation.swift b/submodules/TranslateUI/Sources/ChatTranslation.swift
+--- a/submodules/TranslateUI/Sources/ChatTranslation.swift
++++ b/submodules/TranslateUI/Sources/ChatTranslation.swift
+@@ -139,6 +139,8 @@
+ private let languageRecognizer = NLLanguageRecognizer()
+ 
+ public func translateMessageIds(context: AccountContext, messageIds: [EngineMessage.Id], fromLang: String?, toLang: String) -> Signal<Never, NoError> {
++    // Nebula routes this mode through the selected provider, including pinned previews.
++    if fromLang == "nebula-ai" { return .complete() }
+     return context.account.postbox.transaction { transaction -> Signal<Never, NoError> in
+         var messageIdsToTranslate: [EngineMessage.Id] = []
+         var messageIdsSet = Set<EngineMessage.Id>()

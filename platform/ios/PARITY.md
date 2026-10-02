@@ -3,7 +3,10 @@
 This inventory distinguishes **wired source** from native build and device acceptance. A setting with a validated import format is not necessarily functional on iOS.
 
 ## Verification and delivery
-- 2026-10-02 completion work is in progress: active-camera zoom bridge/ruler, native community metadata/card, centered choice windows, message-tool tiles and result languages, themed opaque AI editor, local tasks, separate profile settings and reply presentation consumers. Local patch/bootstrap and contract checks pass; macOS compilation and final IPA are not yet verified. The older pending inventory below remains until each consumer is audited.
+- 2026-10-02: native source now includes an active-camera virtual-lens zoom bridge, uncapped supported ranges, fixed quick-stop labels, a 280-point themed ruler and persistent pinch zoom. Requests are coalesced on the capture queue; only preset taps ramp, while dragging applies the latest factor directly. Both settings and support resolve the actual linked NebulaHub community, retain account-scoped metadata and native avatars, and open Telegram's community sheet. Choice dialogs are centered, dimmed, themed and keyboard-aware; message tools have adaptive centered action tiles, searchable result languages with Russian/English shortcuts, speech and local account-scoped tasks. The AI editor uses an opaque Telegram theme and an ordinary native navigation title. Profile appearance and reply appearance now have native consumers. Profile, chat behavior, stories, navigation and appearance are grouped separately.
+- Verified checkpoint: full arm64 device IPA at `f352cb58d063525548d487c4a994ce685e86e3d4` passed workflow `37022621208`. Downloaded archive contains the app and Notification Service Extension; SHA-256 `79d1252bec74768e764b95d1d1e84b090c26caa3f2cd33f2d6e9c4d1dc5ed320`. It requires user signing and has not been tested on a physical device. The prior native failure `37016705869` was repaired by removing unreachable camera branches.
+- Live AI follow-up: separate account/chat opt-ins for incoming and draft translation, independent language pickers, configurable debounce and optional right composer shortcut. Draft results require Apply; incoming requests exclude protected/secret/outgoing content and use a bounded queue. Bootstrap at `5114b53` passed 76 Swift tests and SDK/patch checks (`37033172470`). Latest native builds remain pending; the f352cb5 IPA does **not** contain these new translation controls.
+- Historical entries below record earlier revisions. The latest entry supersedes their old camera/community/dialog limitations, but the remaining consumer inventory is still explicit.
 - Runtime `f52b857` separates iOS bottom-bar navigation from appearance and moves folder controls beside folder style/counters. The glass preview uses Telegram colors and duplicate integer slider events skip store validation and JSON encoding (the store already deduplicated disk writes). iOS bootstrap `37007327569` passed all 65 Swift tests; native SettingsUI, PeerInfoScreen and folder modules compiled with Xcode 26.2 in `37007329671`. Android additionally separates chat/message/profile pages and adds material presets with deduplicated render revisions: CI `37007327426` passed and APK `1000291` has verified version, libraries and matching signature. These changes do not complete the older pending consumers below or port Android's latest round-video ruler, message-tools grid/language dialog and AI-editor presentation to iOS. A signed IPA and physical-device/FPS validation remain pending.
 - Android runtime `c121a86` adds quick Russian/English choices above the remaining language catalog and includes centered Telegram-themed dialogs, centered partial tool rows and the opaque AI editor/header fix (native patch 0163). All 158 native patches are included. Android CI `36978641268` and Settings contract `36978641272` passed; build `1000289` has verified package/version, arm64 Telegram/NebulaLink libraries and matching v1/v2 signing certificate. Physical-device appearance remains unverified; iOS runtime inputs are unchanged.
 - Android follow-up runtime `e34049c` stabilizes the native community avatar, uses the canonical peer from the ID cache before username resolution, separates sample rows from folder tabs in the preview, and redesigns the shared sheets/message tools with compact choices and an adaptive icon grid. APK CI `36894085844` and Settings contract `36894085227` passed. Build `1000282` has verified package/version, arm64 Telegram/NebulaLink libraries and v1/v2 signatures matching 1000277. Overlay-only changes preserve the 157 native patches; iOS runtime inputs are unchanged. On-device visual/behavior acceptance remains pending.
@@ -64,10 +67,10 @@ This inventory distinguishes **wired source** from native build and device accep
 | `hide_send_as` | chat.composer | Wired; native/device QA pending | Yes |
 | `hide_tab_counters` | navigation.folders | Wired; native/device QA pending | Yes |
 | `icon_pack` | appearance.general | Pending native consumer | Yes |
-| `ios_composer` | chat.composer | Pending native consumer | Yes |
-| `ios_icons` | appearance.general | Pending native consumer | Yes |
-| `ios_unread` | chat.header | Pending native consumer | Yes |
-| `liquid_animations` | appearance.glass | Pending native consumer | Yes |
+| `ios_composer` | chat.composer | Native iOS default; Android emulation switch is not exposed | Yes |
+| `ios_icons` | appearance.general | Native iOS default; Android emulation switch is not exposed | Yes |
+| `ios_unread` | chat.header | Native iOS default; Android emulation switch is not exposed | Yes |
+| `liquid_animations` | appearance.glass | Wired; native/device QA pending | Yes |
 | `login_style` | appearance.general | Pending native consumer | Yes |
 | `material_you` | appearance.general | Platform-specific; not ported | Yes |
 | `menu_call` | chat.header | Wired in user avatar menu; native/device QA pending | Yes |
@@ -77,16 +80,16 @@ This inventory distinguishes **wired source** from native build and device accep
 | `message_menu_below` | chat.context_menu | Pending native consumer | Yes |
 | `message_menu_blur` | chat.context_menu | Pending native consumer | Yes |
 | `own_double_tap` | chat.messages | Pending native consumer | Yes |
-| `profile_background` | profile.presentation | Pending native consumer | Yes |
-| `profile_birthday` | profile.presentation | Pending native consumer | Yes |
-| `profile_business` | profile.presentation | Pending native consumer | Yes |
-| `profile_channel` | profile.presentation | Pending native consumer | Yes |
-| `profile_emoji` | profile.presentation | Pending native consumer | Yes |
-| `profile_photo_banner` | profile.presentation | Pending native consumer | Yes |
+| `profile_background` | profile.presentation | Wired; native/device QA pending | Yes |
+| `profile_birthday` | profile.presentation | Wired; native/device QA pending | Yes |
+| `profile_business` | profile.presentation | Wired; native/device QA pending | Yes |
+| `profile_channel` | profile.presentation | Wired; native/device QA pending | Yes |
+| `profile_emoji` | profile.presentation | Wired; native/device QA pending | Yes |
+| `profile_photo_banner` | profile.presentation | Wired; native/device QA pending | Yes |
 | `profile_style` | profile.presentation | Pending native consumer | Yes |
-| `reply_background` | chat.messages | Pending native consumer | Yes |
-| `reply_colors` | chat.messages | Pending native consumer | Yes |
-| `reply_emoji` | chat.messages | Pending native consumer | Yes |
+| `reply_background` | chat.messages | Wired; native/device QA pending | Yes |
+| `reply_colors` | chat.messages | Wired; native/device QA pending | Yes |
+| `reply_emoji` | chat.messages | Wired; native/device QA pending | Yes |
 | `seconds_in_time` | chat.messages | Wired; native/device QA pending | Yes |
 | `settings_search_history` | settings.search | Wired; native/device QA pending | Local only |
 | `show_stories` | stories.visibility | Wired; native/device QA pending | Local only |
