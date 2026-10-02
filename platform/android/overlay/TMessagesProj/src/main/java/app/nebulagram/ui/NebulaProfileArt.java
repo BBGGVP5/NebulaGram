@@ -82,7 +82,6 @@ public final class NebulaProfileArt {
     public static final class Hero {
         private final Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
         private final RectF rect = new RectF();
-        private final Path clip = new Path();
         private final Path bannerClip = new Path();
         private LinearGradient gradient, bottomFade;
         private int previousFadeColor;
@@ -115,10 +114,6 @@ public final class NebulaProfileArt {
                     && photo.getImageReceiver().hasImageLoaded();
             // Telegram's TopView already renders the peer's colour/emoji or the standard header.
             if (!banner) return;
-            drawPhotoBanner(canvas, photo.getImageReceiver(), rect, alpha);
-            if (actions instanceof Actions && canvas.isHardwareAccelerated()) {
-                ((Actions) actions).captureBanner(this, photo.getImageReceiver(), rect);
-            }
             final NebulaTheme material = NebulaTheme.of(avatar.getContext());
             final int accent = accent(provider);
             int base = material.isDynamic() ? material.surfaceContainer() : surface(provider);
@@ -138,15 +133,6 @@ public final class NebulaProfileArt {
                 previousTop = top;
                 previousBottom = bottom;
             }
-            paint.setStyle(Paint.Style.FILL);
-            paint.setShader(gradient);
-            // A photo becomes the hero surface. Keep only a light colour veil
-            // above it, so its darkened forms remain recognisable.
-            paint.setAlpha((int) (255 * alpha * (banner ? .20f : 1f)));
-            heroPath(clip, rect);
-            canvas.drawPath(clip, paint);
-            paint.setShader(null);
-
             // End in the exact page colour, including light and custom themes.
             // A long eased fade keeps the photograph behind the identity and actions
             // while removing its rectangular lower edge.
@@ -163,9 +149,21 @@ public final class NebulaProfileArt {
                 previousFadeTop = fadeTop;
                 previousFadeBottom = bottom;
             }
+            drawBannerSurface(canvas, photo.getImageReceiver(), rect, alpha);
+            if (actions instanceof Actions && canvas.isHardwareAccelerated()) {
+                ((Actions) actions).captureBanner(this, photo.getImageReceiver(), rect);
+            }
+        }
+
+        private void drawBannerSurface(Canvas canvas, ImageReceiver receiver, RectF bounds, float alpha) {
+            drawPhotoBanner(canvas, receiver, bounds, alpha);
+            paint.setStyle(Paint.Style.FILL);
+            paint.setShader(gradient);
+            paint.setAlpha(Math.round(255 * alpha * .20f));
+            canvas.drawRect(bounds, paint);
             paint.setShader(bottomFade);
             paint.setAlpha(Math.round(255 * alpha));
-            canvas.drawRect(rect, paint);
+            canvas.drawRect(bounds, paint);
             paint.setShader(null);
         }
 
@@ -243,7 +241,7 @@ public final class NebulaProfileArt {
             if (!NebulaProfileGlass.supported()) return;
             if (glass == null) glass = new NebulaProfileGlass(provider);
             Canvas capture = glass.begin(Math.round(bounds.width()), Math.round(bounds.height()));
-            try { hero.drawPhotoBanner(capture, receiver, bounds, 1f); }
+            try { hero.drawBannerSurface(capture, receiver, bounds, 1f); }
             finally { glass.end(); }
             bannerReady = true;
         }
