@@ -14,6 +14,10 @@ assert '.appendQueryParameter("r", Integer.toString(index))' in links
 assert 'uri.getQueryParameter("s")' in links and 'uri.getQueryParameter("section")' in links
 assert 'uri.getQueryParameter("focus")' in links and 'uri.getQueryParameter("key")' in links
 assert '.focusRowIndex(row)' in links and 'focusRowIndex(content, new int[]{0}, focusIndex)' in section
+assert 'section == 12 || section >= 0 && section <= 9' in links
+assert 'SECTION_GLASS = 12' in section
+assert 'buildChats(context); buildMessages(context); buildProfile(context)' not in section
+assert 'buildTabs(context); buildFolders(context)' not in section
 assert 'focusRowIndex(content, new int[]{0}, focusIndex)' in privacy
 assert len('tg://settings/nebula?s=-15&r=2') <= 40
 

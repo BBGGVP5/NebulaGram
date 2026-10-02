@@ -10,7 +10,7 @@ final class NebulaGlassController: UITableViewController {
     private let store = NebulaSettingsStore.shared
     private var observation: SettingsObservation?
     private var writeFailed = false
-    private lazy var preview = NebulaGlassPreview(russian: ru)
+    private lazy var preview = NebulaGlassPreview(russian: ru, theme: theme)
     private var styles: [String] { ru ? ["Как в Telegram", "Жидкое стекло", "Матовое стекло"] : ["Telegram default", "Liquid glass", "Frosted glass"] }
     private var qualities: [String] { ru ? ["Автоматически", "Полное", "Облегчённое"] : ["Automatic", "Full", "Light"] }
 
@@ -40,22 +40,27 @@ final class NebulaGlassController: UITableViewController {
         section == 1 ? styles.count : (section == 2 ? 3 : (section == 3 ? 5 : 1))
     }
     override func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
-        section == 1 ? (ru ? "Оформление" : "Appearance") : nil
+        switch section {
+        case 1: return ru ? "Материал" : "Material"
+        case 2: return ru ? "Прозрачность и размытие" : "Transparency and blur"
+        case 3: return ru ? "Эффекты и производительность" : "Effects and performance"
+        default: return nil
+        }
     }
     override func tableView(_ tableView: UITableView, titleForFooterInSection section: Int) -> String? {
-        if section == 0 { return ru ? "Двигайте пилюлю по тексту. Превью использует тот же эффект, что и стеклянные элементы интерфейса." : "Drag the capsule over the text. The preview uses the same effect as glass surfaces in the app." }
-        if section == 2 { return ru ? "Тонировка и плотность применяются к нашему стеклу. Сила размытия выбирает один из материалов iOS; системное Liquid Glass регулирует iOS." : "Tint and opacity apply to Nebula glass. Blur selects a native iOS material; iOS controls system Liquid Glass." }
+        if section == 0 { return ru ? "Двигайте стекло по превью." : "Drag the glass across the preview." }
+        if section == 2 { return ru ? "Размытие Liquid Glass регулирует iOS." : "iOS controls Liquid Glass blur." }
         guard section == 3 else { return nil }
         if writeFailed { return ru ? "Не удалось сохранить настройку." : "Could not save this setting." }
         if UIAccessibility.isReduceTransparencyEnabled { return ru ? "iOS уменьшает прозрачность: используется сплошной фон." : "Reduce Transparency is on: an opaque background is used." }
         let reduced = NebulaGlassPolicy.reduced(mode: store.glassQuality, lowPower: ProcessInfo.processInfo.isLowPowerModeEnabled,
             hot: ProcessInfo.processInfo.thermalState.rawValue >= ProcessInfo.ThermalState.serious.rawValue, reduceTransparency: false)
         if reduced { return ru ? "Сейчас облегчённый материал. Авто включает его при энергосбережении и нагреве." : "Light material is active. Auto uses it in Low Power Mode or during thermal pressure." }
-        if #available(iOS 26.0, *) { return ru ? "Анимация действует только для системного Liquid Glass. Блики и глубина нашего стекла настраиваются отдельно; материал Telegram регулирует iOS." : "Animation applies only to system Liquid Glass. Nebula glass highlights and depth have separate controls; iOS controls Telegram's material." }
+        if #available(iOS 26.0, *) { return ru ? "Авто снижает нагрузку при энергосбережении и нагреве." : "Auto reduces effects during Low Power Mode and thermal pressure." }
         return ru ? "На этой версии iOS доступно матовое размытие. Для Liquid Glass нужна iOS 26." : "This iOS version uses frosted blur. Liquid Glass requires iOS 26."
     }
     override func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
-        indexPath.section == 0 ? 240 : UITableView.automaticDimension
+        indexPath.section == 0 ? 192 : UITableView.automaticDimension
     }
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = UITableViewCell(style: .subtitle, reuseIdentifier: nil)
@@ -167,6 +172,17 @@ final class NebulaGlassController: UITableViewController {
     }
     private func depthTitle() -> String { (ru ? "Глубина · " : "Depth · ") + "\(store.glassDepth)%" }
     private func set(_ value: Int, key: String) {
+        let current: Int?
+        switch key {
+        case "ios_glass_style": current = store.iosGlassStyle
+        case "ios_glass_tint": current = store.iosGlassTint
+        case "glass_opacity": current = store.glassOpacity
+        case "glass_blur": current = store.glassBlur
+        case "glass_depth": current = store.glassDepth
+        case "glass_quality": current = store.glassQuality
+        default: current = nil
+        }
+        if current == value && !store.hasLoadError && !writeFailed { return }
         do { try store.set(.integer(value), for: key); writeFailed = false } catch { writeFailed = true }
     }
     @objc private func tintChanged(_ slider: UISlider) {
@@ -219,18 +235,21 @@ private final class NebulaGlassPreview: UIView {
     private let titleLabel = UILabel()
     private var lines: [UILabel] = []
     private var position: CGFloat = 0.5
-    init(russian: Bool) {
+    private let theme: PresentationTheme?
+    init(russian: Bool, theme: PresentationTheme?) {
+        self.theme = theme
         super.init(frame: .zero)
-        backgroundColor = .systemGroupedBackground; layer.cornerRadius = 20; clipsToBounds = true
+        backgroundColor = theme?.list.blocksBackgroundColor ?? .systemGroupedBackground; layer.cornerRadius = 20; clipsToBounds = true
         let texts = russian ? ["Сообщения под стеклом", "Текст остаётся на месте", "NebulaGram · 0123456789", "Двигайте пилюлю вверх и вниз"]
             : ["Messages behind glass", "Text stays in place", "NebulaGram · 0123456789", "Drag the capsule up and down"]
         for text in texts {
-            let label = UILabel(); label.text = text; label.textColor = .secondaryLabel
+            let label = UILabel(); label.text = text; label.textColor = theme?.list.itemSecondaryTextColor ?? .secondaryLabel
             label.font = .preferredFont(forTextStyle: .body); label.adjustsFontForContentSizeCategory = true
-            label.backgroundColor = .secondarySystemGroupedBackground; label.layer.cornerRadius = 12; label.clipsToBounds = true
+            label.backgroundColor = theme?.list.itemBlocksBackgroundColor ?? .secondarySystemGroupedBackground; label.layer.cornerRadius = 12; label.clipsToBounds = true
             addSubview(label); lines.append(label)
         }
         addSubview(glass); glass.isUserInteractionEnabled = false
+        titleLabel.textColor = theme?.list.itemPrimaryTextColor ?? .label
         titleLabel.text = "NebulaGram"; titleLabel.font = .preferredFont(forTextStyle: .headline); titleLabel.textAlignment = .center
         glass.contentView.addSubview(titleLabel)
         addGestureRecognizer(UIPanGestureRecognizer(target: self, action: #selector(movePreview(_:))))
@@ -240,10 +259,10 @@ private final class NebulaGlassPreview: UIView {
     required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
     override func layoutSubviews() {
         super.layoutSubviews()
-        for (index, label) in lines.enumerated() { label.frame = CGRect(x: 16, y: 18 + CGFloat(index) * 52, width: max(0, bounds.width - 32), height: 40) }
+        for (index, label) in lines.enumerated() { label.frame = CGRect(x: 16, y: 18 + CGFloat(index) * 42, width: max(0, bounds.width - 32), height: 34) }
         let size = CGSize(width: max(0, bounds.width - 64), height: 64)
         glass.frame = CGRect(origin: CGPoint(x: 32, y: 8 + position * max(0, bounds.height - 80)), size: size)
-        glass.update(size: size, cornerRadius: 32, isDark: traitCollection.userInterfaceStyle == .dark, tintColor: .init(kind: .panel), isInteractive: true, transition: .immediate)
+        glass.update(size: size, cornerRadius: 32, isDark: theme?.overallDarkAppearance ?? (traitCollection.userInterfaceStyle == .dark), tintColor: .init(kind: .panel), isInteractive: true, transition: .immediate)
         titleLabel.frame = CGRect(origin: .zero, size: size)
         accessibilityValue = "\(Int(position * 100))%"
     }

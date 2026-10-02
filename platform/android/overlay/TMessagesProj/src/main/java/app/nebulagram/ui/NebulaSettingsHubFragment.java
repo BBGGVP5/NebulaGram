@@ -63,7 +63,7 @@ public final class NebulaSettingsHubFragment extends BaseFragment {
                         () -> presentFragment(new NebulaIconPickerFragment())));
                 break;
             case CHATS:
-                card.add(section(context, R.drawable.msg_discussion, "Список и шапка", "List and header",
+                card.add(section(context, R.drawable.msg_discussion, "Оформление чата", "Chat appearance",
                         NebulaSectionFragment.SECTION_CHATS));
                 card.add(section(context, R.drawable.menu_reply, "Сообщения", "Messages",
                         NebulaSectionFragment.SECTION_MESSAGES));

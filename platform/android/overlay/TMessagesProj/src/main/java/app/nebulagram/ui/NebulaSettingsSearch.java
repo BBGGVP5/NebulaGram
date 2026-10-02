@@ -39,8 +39,9 @@ public final class NebulaSettingsSearch {
         result.add(new Entry(5, NebulaText.text("Оформление нижних папок", "Bottom folder appearance"),
                 NebulaText.text("iOS, жидкое стекло, обычные, минималистичные", "iOS, Liquid Glass, ordinary, minimal"), R.drawable.files_folder));
         result.add(new Entry(-14, NebulaText.text("Кнопка NebulaLink", "NebulaLink button"), NebulaText.text("Щит на главной, подключение, сервер, пинг", "Shield on home, connection, server, ping"), R.drawable.nebula_link_shield));
-        result.add(new Entry(0, NebulaText.text("Настроить стекло", "Customize glass"), NebulaText.text("Прозрачность, размытие, блики", "Transparency, blur, highlights"), R.drawable.msg_customize));
-        result.add(new Entry(0, NebulaText.text("Виброотклик стекла", "Glass haptics"), "NebulaGram", R.drawable.msg_customize));
+        result.add(new Entry(12, NebulaText.text("Стекло", "Glass"), NebulaText.text("Прозрачность, размытие, блики", "Transparency, blur, highlights"), R.drawable.msg_customize));
+        result.add(new Entry(12, NebulaText.text("Настроить стекло", "Customize glass"), NebulaText.text("Прозрачность, размытие, блики", "Transparency, blur, highlights"), R.drawable.msg_customize));
+        result.add(new Entry(12, NebulaText.text("Виброотклик стекла", "Glass haptics"), "NebulaGram", R.drawable.msg_customize));
         result.add(new Entry(-13, NebulaText.text("Обновления NebulaGram", "NebulaGram updates"), NebulaText.text("Версия, APK, скачать и установить", "Version, APK, download and install"), R.drawable.msg_download));
         result.add(new Entry(0, R.string.NebulaMaterialYou, R.string.NebulaMaterialYouSub, R.drawable.msg_customize));
         result.add(new Entry(0, R.string.NebulaLoginStyleTitle, R.string.NebulaLoginStyleSub, R.drawable.msg_edit));

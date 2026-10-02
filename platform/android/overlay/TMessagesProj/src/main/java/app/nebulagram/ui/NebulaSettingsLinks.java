@@ -42,7 +42,7 @@ public final class NebulaSettingsLinks {
                 Uri.Builder link = new Uri.Builder().scheme("tg").authority("settings").appendPath("nebula");
                 // Section rows navigate to their destination. Individual settings
                 // use a short row index instead of copying a long localized title.
-                if (target == section && (section == -15 || section >= 0 && section <= 9)) {
+                if (target == section && (section == -15 || section == 12 || section >= 0 && section <= 9)) {
                     link.appendQueryParameter("s", Integer.toString(section))
                             .appendQueryParameter("r", Integer.toString(index));
                 } else {
@@ -88,7 +88,7 @@ public final class NebulaSettingsLinks {
             if (key != null && key.startsWith("Nebula") && key.length() < 120) {
                 focus = LocaleController.getString(R.string.class.getField(key).getInt(null));
             }
-            if (section >= 0 && section <= 9) host.presentFragment(row >= 0
+            if (section == 12 || section >= 0 && section <= 9) host.presentFragment(row >= 0
                     ? new NebulaSectionFragment(section).focusRowIndex(row)
                     : new NebulaSectionFragment(section).focus(focus));
             else if (section == -1) host.presentFragment(new NebulaSettingsFragment());

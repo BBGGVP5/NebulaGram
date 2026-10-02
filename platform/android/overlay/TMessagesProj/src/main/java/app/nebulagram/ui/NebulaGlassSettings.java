@@ -16,11 +16,11 @@ public final class NebulaGlassSettings {
         NebulaCard card=new NebulaCard(c);
         NebulaExpand details=new NebulaExpand(c,NebulaGlass.custom());
         NebulaGlassPreview preview=new NebulaGlassPreview(c);
-        LinearLayout.LayoutParams previewParams = new LinearLayout.LayoutParams(-1, dp(200));
+        LinearLayout.LayoutParams previewParams = new LinearLayout.LayoutParams(-1, dp(176));
         previewParams.setMargins(dp(12), dp(12), dp(12), dp(4));
         parent.addView(preview, previewParams);
         TextView previewHint = new TextView(c);
-        previewHint.setText(NebulaText.text("Проведи по превью — пилюля движется поверх текста. Настройки применяются сразу.", "Drag the preview: the capsule moves over text. Changes apply immediately."));
+        previewHint.setText(NebulaText.text("Двигайте стекло по превью.", "Drag the glass across the preview."));
         previewHint.setTextSize(13); previewHint.setTextColor(NebulaTheme.of(c).onSurfaceVariant());
         previewHint.setPadding(dp(18),dp(8),dp(18),dp(12));parent.addView(previewHint);
         SeekBar transparency = slider(details,NebulaText.text("Прозрачность", "Transparency"),Math.round(75-NebulaGlass.value("opacity",63)*.75f),75,n->{NebulaGlass.setValue("opacity",Math.round((75-n)/.75f));preview.invalidate();});
@@ -35,7 +35,7 @@ public final class NebulaGlassSettings {
         depthControl[0] = depth;
         depth.setEnabled(NebulaGlass.depthEnabled());
         TextView refractionHint = new TextView(c);
-        refractionHint.setText(NebulaText.text("Преломление сдвигает фон у края стекла. Поставь 0%, чтобы текст под пилюлей не искажался.", "Refraction shifts the backdrop near the glass edge. Set it to 0% to keep the text underneath undistorted."));
+        refractionHint.setText(NebulaText.text("0% — без искажения текста у краёв.", "0% keeps text at the edges undistorted."));
         refractionHint.setTextSize(13); refractionHint.setTextColor(NebulaTheme.of(c).onSurfaceVariant());
         refractionHint.setPadding(dp(18),0,dp(18),dp(12));details.addView(refractionHint);
         NebulaRow highlights = NebulaExtras.toggle(c,R.drawable.msg_customize,NebulaText.text("Блики", "Highlights"),null,
@@ -43,40 +43,48 @@ public final class NebulaGlassSettings {
         details.addView(highlights);
         NebulaRow customize = NebulaExtras.toggle(c,R.drawable.msg_customize,NebulaText.text("Настроить стекло", "Customize glass"),null,
             NebulaGlass.custom(),v->{NebulaGlass.custom(v);details.expand(v);preview.invalidate();});
-        card.add(customize);
         card.add(new NebulaRow(c).icon(R.drawable.msg_customize)
-            .title(NebulaText.text("Применить жидкое стекло", "Apply liquid glass"))
-            .subtitle(NebulaText.text("Мягкое преломление, лёгкое размытие и блики", "Soft refraction, light blur and highlights"), true)
-            .withClick(v -> {
-                NebulaGlass.custom(true);
-                NebulaGlass.setValue("opacity",47); NebulaGlass.setValue("blur",20); NebulaGlass.setValue("refraction",60); NebulaGlass.setValue("depth",45);
-                NebulaGlass.depthEnabled(true);
-                NebulaAppearance.setGlassHighlights(true);
-                customize.checked(true); highlights.checked(true); depthToggle.checked(true); depth.setEnabled(true); details.expand(true);
-                transparency.setProgress(40); blurAmount.setProgress(20); refraction.setProgress(60); depth.setProgress(45);
-                preview.invalidate();
-            }));
+            .title(NebulaText.text("Стиль стекла", "Glass style"))
+            .subtitle(NebulaText.text("Сбалансированный, прозрачный, матовый", "Balanced, clear, frosted"), false)
+            .trailing(NebulaRow.TRAIL_CHEVRON)
+            .withClick(v -> new NebulaDialog.Builder(c)
+                .setTitle(NebulaText.text("Стиль стекла", "Glass style"))
+                .setItems(new String[]{NebulaText.text("Сбалансированный", "Balanced"),
+                    NebulaText.text("Прозрачный", "Clear"), NebulaText.text("Матовый", "Frosted")}, (dialog, which) -> {
+                    NebulaGlass.preset(which);
+                    customize.checked(true); highlights.checked(true); depthToggle.checked(true);
+                    depth.setEnabled(true); details.expand(true);
+                    transparency.setProgress(Math.round(75 - NebulaGlass.value("opacity", 63) * .75f));
+                    blurAmount.setProgress(NebulaGlass.value("blur", 40));
+                    refraction.setProgress(NebulaGlass.value("refraction", 0));
+                    depth.setProgress(NebulaGlass.value("depth", 35));
+                    preview.invalidate();
+                }).setNegativeButton(NebulaText.text("Отмена", "Cancel"), null).show()));
         NebulaRow quality = new NebulaRow(c).icon(R.drawable.msg_photo_settings);
         String[] modes = {NebulaText.text("Автоматически", "Automatic"), NebulaText.text("Полное", "Full"), NebulaText.text("Облегчённое", "Light")};
-        quality.title(NebulaText.text("Качество стекла: ", "Glass quality: ") + modes[NebulaGlass.quality()]);
+        quality.title(NebulaText.text("Качество", "Quality")).value(modes[NebulaGlass.quality()]);
         quality.trailing(NebulaRow.TRAIL_CHEVRON).withClick(v -> new NebulaDialog.Builder(c)
             .setTitle(NebulaText.text("Адаптивное стекло", "Adaptive glass"))
             .setSelectedIndex(NebulaGlass.quality()).setItems(modes, (dialog, which) -> {
                 NebulaGlass.quality(which);
-                quality.title(NebulaText.text("Качество стекла: ", "Glass quality: ") + modes[which]);
+                quality.value(modes[which]);
                 preview.invalidate();
             }).show());
         card.add(quality);
+        card.add(NebulaExtras.toggle(c, R.drawable.nebula_cupertino_sliders,
+                NebulaText.text("Анимации стекла", "Glass animations"), null,
+                NebulaAppearance.liquidAnimations(), value -> { NebulaAppearance.setLiquidAnimations(value); preview.invalidate(); }));
+        card.add(customize);
         TextView hint = new TextView(c);
         Runnable updateStatus = () -> {
             boolean blur = org.telegram.messenger.LiteMode.isEnabled(org.telegram.messenger.LiteMode.FLAG_CHAT_BLUR);
             boolean liquid = android.os.Build.VERSION.SDK_INT >= 33 && org.telegram.messenger.LiteMode.isEnabled(org.telegram.messenger.LiteMode.FLAG_LIQUID_GLASS);
             refraction.setEnabled(blur && liquid && !NebulaGlass.reduced());
             String status = !blur ? NebulaText.text("Размытие отключено в энергосбережении Telegram: сейчас используется сплошная заливка.", "Blur is disabled in Telegram power saving: an opaque background is used.")
-                    : NebulaGlass.reduced() ? NebulaText.text("Сейчас облегчённый режим: прозрачность до 15%, размытие до 20%, преломление выключено. Авто включает его при энергосбережении, нагреве или нехватке ОЗУ.", "Light mode is active: transparency up to 15%, blur up to 20%, refraction off. Auto enables it during power saving, heat or low RAM.")
+                    : NebulaGlass.reduced() ? NebulaText.text("Облегчённый режим: меньше эффектов и нагрузки.", "Light mode: fewer effects, lower load.")
                     : !liquid ? NebulaText.text("Размытие активно. Для преломления нужны Android 13+ и включённые эффекты Liquid Glass.", "Blur is active. Refraction needs Android 13+ and enabled Liquid Glass effects.")
                     : NebulaText.text("Полный эффект активен. Преломление: ", "Full effect active. Refraction: ") + Math.round(NebulaGlass.refraction()*200) + "%";
-            hint.setText(status + "\n" + NebulaText.text("В меню прозрачность ограничена ради читаемости текста.", "Menu transparency is limited to keep labels readable."));
+            hint.setText(status);
         };
         preview.setStatusChanged(updateStatus); updateStatus.run();
         hint.setTextColor(NebulaTheme.of(c).onSurfaceVariant()); hint.setTextSize(14); hint.setPadding(dp(18), dp(8), dp(18), dp(12));

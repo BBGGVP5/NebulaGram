@@ -59,6 +59,13 @@ class GlassPrefsCheck {
   NebulaGlass.custom(true);NebulaGlass.setValue("blur",25);near(NebulaGlass.blur(),7.5f);
   NebulaGlass.setValue("opacity",-20);near(NebulaGlass.opacity(),.25f);
   NebulaGlass.setValue("refraction",200);near(NebulaGlass.refraction(),.5f);
+  revision=NebulaGlass.revision();NebulaGlass.setValue("refraction",100);
+  check(NebulaGlass.revision()==revision,"unchanged value advances render revision");
+  revision=NebulaGlass.revision();NebulaGlass.preset(0);
+  check(NebulaGlass.revision()==revision+1,"preset and duplicate listeners publish more than one material");
+  near(NebulaGlass.blur(),12);near(NebulaGlass.refraction(),.06f);
+  revision=NebulaGlass.revision();NebulaGlass.preset(0);
+  check(NebulaGlass.revision()==revision,"identical preset rebuilds glass");
   // Imported/external preference edits must not leave cached values stale.
   p.edit().putInt("glass_blur",100).putInt("glass_opacity",100).apply();near(NebulaGlass.blur(),30);near(NebulaGlass.opacity(),1);
   p.edit().putBoolean("glass_custom",false).apply();near(NebulaGlass.opacity(),.72f);near(NebulaGlass.blur(),12);near(NebulaGlass.refraction(),0f);

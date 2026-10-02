@@ -18,21 +18,25 @@ public final class NebulaExtras {
     }
     public static void appearance(BaseFragment f, LinearLayout content) {
         Context c = content.getContext();
+        content.addView(NebulaCard.header(c, text("Иконки и аватары", "Icons and avatars")));
         NebulaCard card = new NebulaCard(c);
+        card.add(new NebulaRow(c).icon(R.drawable.nebula_settings_app_icon).title(text("Иконка приложения", "App icon"))
+                .trailing(NebulaRow.TRAIL_CHEVRON).withClick(v -> f.presentFragment(new NebulaIconPickerFragment())));
         card.add(new NebulaRow(c).icon(R.drawable.nebula_cupertino_photo).title(text("Наборы иконок", "Icon packs"))
                 .trailing(NebulaRow.TRAIL_CHEVRON).withClick(v -> f.presentFragment(new NebulaDesignFragment(false))));
         card.add(new NebulaRow(c).icon(R.drawable.nebula_cupertino_person).title(text("Закругление аватарок", "Avatar corners"))
                 .trailing(NebulaRow.TRAIL_CHEVRON).withClick(v -> f.presentFragment(new NebulaDesignFragment(true))));
+        content.addView(card);
+        content.addView(NebulaCard.header(c, text("Главная и заголовки", "Home and titles")));
+        card = new NebulaCard(c);
         card.add(toggle(c, R.drawable.nebula_cupertino_list, text("Центрировать заголовки", "Center titles"),
                 text("В настройках и развёрнутой шапке главной", "In settings and the expanded home header"), NebulaAppearance.centerHome(), NebulaAppearance::setCenterHome));
         card.add(toggle(c, R.drawable.nebula_link_shield, text("Стеклянная шапка главной", "Glass home header"),
-                text("Кнопка редактирования и общая капсула действий · после повторного открытия главной", "Edit button and shared action capsule · reopen Home to apply"),
+                text("Применится при открытии главной", "Applies when Home is reopened"),
                 NebulaAppearance.homeGlassHeader(), NebulaAppearance::setHomeGlassHeader));
         card.add(toggle(c, R.drawable.nebula_cupertino_list, text("«Чаты» вместо NebulaGram", "Show Chats instead of NebulaGram"),
-                text("Меняет основной заголовок. Названия папок сохраняются", "Changes the home title. Folder names stay unchanged"),
+                null,
                 NebulaAppearance.homeChatsTitle(), NebulaAppearance::setHomeChatsTitle));
-        card.add(toggle(c, R.drawable.nebula_cupertino_sliders, text("Анимации Liquid Glass", "Liquid Glass animations"),
-                text("Меню, шапка чата и пузырь нижней панели", "Menus, chat header and bottom bar bubble"), NebulaAppearance.liquidAnimations(), NebulaAppearance::setLiquidAnimations));
         content.addView(card);
     }
     public static void messages(BaseFragment f, LinearLayout content) {

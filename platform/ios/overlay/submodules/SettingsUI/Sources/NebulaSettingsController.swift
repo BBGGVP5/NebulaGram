@@ -73,7 +73,9 @@ private enum NebulaSettingsEntry: ItemListNodeEntry {
         switch self {
         case .search, .empty: return -1
         case .category, .toolsHeader, .link, .ai, .buildInfo, .memory, .support, .community: return 0
-        case .appearanceHeader, .glass, .navigation, .contacts, .navigationToggle, .stories, .widePosts, .icons, .transitions: return 1
+        case .appearanceHeader, .glass, .navigation, .contacts, .stories, .widePosts, .icons, .transitions: return 1
+        case let .navigationToggle(key, _, _, _):
+            return ["folder_title", "folder_outline"].contains(key) ? 2 : 1
         case .header, .hideCounters, .folderStyle, .footer: return 2
         case .privacyHeader, .privacy, .history, .clearHistory: return 3
         case .transferHeader, .importFile, .exportFile, .transferFooter: return 4
@@ -81,7 +83,7 @@ private enum NebulaSettingsEntry: ItemListNodeEntry {
     }
     private var order: Int {
         switch self {
-        case let .category(index, _, _, _): return index * 10
+        case let .category(index, _, _, _): return index == 7 ? 25 : index * 10
         case .search: return -2
         case .empty: return -1
         case .toolsHeader: return 0
@@ -114,8 +116,8 @@ private enum NebulaSettingsEntry: ItemListNodeEntry {
             case "menu_video": return 77
             case "centered_chat_header": return 68
             case "disable_next_channel": return 69
-            case "folder_title": return 71
-            case "folder_outline": return 79
+            case "folder_title": return 86
+            case "folder_outline": return 87
             case "hide_search_field": return 72
             default: return 72
             }
@@ -399,10 +401,26 @@ public func nebulaSettingsController(context: AccountContext, page: Int = 0) -> 
                 return true
             case let .navigationToggle(key, _, _, _):
                 return ["hide_dividers", "hide_send_as", "hide_attach_camera", "menu_search", "menu_mute",
-                    "menu_call", "menu_video", "centered_chat_header", "disable_next_channel", "seconds_in_time"].contains(key)
+                    "menu_call", "menu_video", "centered_chat_header", "disable_next_channel", "seconds_in_time", "hide_search_field"].contains(key)
             default:
                 return false
             }
+        }
+        func isNavigationOption(_ entry: NebulaSettingsEntry) -> Bool {
+            switch entry {
+            case .navigation, .contacts: return true
+            case let .navigationToggle(key, _, _, _):
+                return ["bottom_bar_profile", "bottom_bar_settings", "tab_labels", "compact_bottom_bar",
+                    "hide_home_camera", "hide_home_compose"].contains(key)
+            default: return false
+            }
+        }
+        func isFolderOption(_ entry: NebulaSettingsEntry) -> Bool {
+            if entry.section == 2 { return true }
+            if case let .navigationToggle(key, _, _, _) = entry {
+                return ["folder_title", "folder_outline"].contains(key)
+            }
+            return false
         }
         if page == 0 && query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
             entries = [
@@ -410,7 +428,8 @@ public func nebulaSettingsController(context: AccountContext, page: Int = 0) -> 
                 .toolsHeader(ru ? "Разделы" : "Sections"),
                 .link("NebulaLink"),
                 .category(1, ru ? "Основные" : "General", ru ? "Подключение, ИИ, сборка" : "Connection, AI, build", "gearshape"),
-                .category(2, ru ? "Внешний вид" : "Appearance", ru ? "Стекло, значки, панели" : "Glass, icons, tabs", "paintpalette"),
+                .category(2, ru ? "Внешний вид" : "Appearance", ru ? "Стекло, значки, анимации" : "Glass, icons, animations", "paintpalette"),
+                .category(7, ru ? "Навигация" : "Navigation", ru ? "Нижняя панель и кнопки" : "Bottom bar and buttons", "rectangle.bottomthird.inset.filled"),
                 .category(3, ru ? "Чаты" : "Chats", ru ? "Список, сообщения, меню" : "List, messages, menus", "bubble.left"),
                 .category(4, ru ? "Папки" : "Folders", ru ? "Вкладки и счётчики" : "Tabs and counters", "folder"),
                 .category(5, ru ? "Конфиденциальность" : "Privacy", ru ? "Архив, защита, поиск" : "Archive, protection, search", "hand.raised"),
@@ -423,15 +442,17 @@ public func nebulaSettingsController(context: AccountContext, page: Int = 0) -> 
                 if case .search = entry { return true }
                 switch page {
                 case 1: return entry.section == 0
-                case 2: return entry.section == 1 && !isChatOption(entry)
+                case 2: return entry.section == 1 && !isChatOption(entry) && !isNavigationOption(entry) && !isFolderOption(entry)
                 case 3: return isChatOption(entry)
-                case 4: return entry.section == 2
+                case 4: return isFolderOption(entry)
                 case 5: return entry.section == 3
                 case 6: return entry.section == 4
+                case 7: return isNavigationOption(entry)
                 default: return false
                 }
             }
             if page == 3 { entries.append(.appearanceHeader(ru ? "Чаты" : "Chats")) }
+            if page == 7 { entries.append(.appearanceHeader(ru ? "Нижняя панель" : "Bottom bar")) }
         }
         if !query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
             let matches = entries.filter { entry in
@@ -450,9 +471,9 @@ public func nebulaSettingsController(context: AccountContext, page: Int = 0) -> 
         entries.sort()
         let data = ItemListPresentationData(presentationData)
         let pageTitles = ru
-            ? ["Настройки NebulaGram", "Основные", "Внешний вид", "Чаты", "Папки", "Конфиденциальность", "Перенос настроек"]
-            : ["NebulaGram Settings", "General", "Appearance", "Chats", "Folders", "Privacy", "Transfer"]
-        let state = ItemListControllerState(presentationData: data, title: .text(pageTitles[max(0, min(6, page))]), leftNavigationButton: nil, rightNavigationButton: nil, backNavigationButton: ItemListBackButton(title: presentationData.strings.Common_Back))
+            ? ["Настройки NebulaGram", "Основные", "Внешний вид", "Чаты", "Папки", "Конфиденциальность", "Перенос настроек", "Навигация"]
+            : ["NebulaGram Settings", "General", "Appearance", "Chats", "Folders", "Privacy", "Transfer", "Navigation"]
+        let state = ItemListControllerState(presentationData: data, title: .text(pageTitles[max(0, min(pageTitles.count - 1, page))]), leftNavigationButton: nil, rightNavigationButton: nil, backNavigationButton: ItemListBackButton(title: presentationData.strings.Common_Back))
         return (state, (ItemListNodeState(presentationData: data, entries: entries, style: .blocks, animateChanges: false), arguments))
     }
     let controller = ItemListController(context: context, state: signal)

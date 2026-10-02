@@ -218,9 +218,9 @@ public class NebulaSettingsFragment extends BaseFragment {
                     } else if (category == NebulaSettingsHubFragment.APPEARANCE) {
                         presentFragment(new NebulaSectionFragment(NebulaSectionFragment.SECTION_APPEARANCE));
                     } else if (category == NebulaSettingsHubFragment.CHATS) {
-                        presentFragment(new NebulaSectionFragment(NebulaSectionFragment.SECTION_CHAT_SETTINGS));
+                        presentFragment(new NebulaSettingsHubFragment(NebulaSettingsHubFragment.CHATS));
                     } else if (category == NebulaSettingsHubFragment.NAVIGATION) {
-                        presentFragment(new NebulaSectionFragment(NebulaSectionFragment.SECTION_NAVIGATION));
+                        presentFragment(new NebulaSettingsHubFragment(NebulaSettingsHubFragment.NAVIGATION));
                     } else if (category == NebulaSettingsHubFragment.PRIVACY) {
                         presentFragment(new NebulaPrivacyFragment());
                     } else {

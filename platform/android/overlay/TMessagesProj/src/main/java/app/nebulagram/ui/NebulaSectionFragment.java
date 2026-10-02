@@ -41,7 +41,7 @@ public class NebulaSectionFragment extends BaseFragment {
 
     public static final int SECTION_FOLDERS = 5, SECTION_MESSAGES = 6, SECTION_PROFILE = 7,
             SECTION_SWITCHES = 8, SECTION_CHAT_ACTIONS = 9,
-            SECTION_CHAT_SETTINGS = 10, SECTION_NAVIGATION = 11;
+            SECTION_CHAT_SETTINGS = 10, SECTION_NAVIGATION = 11, SECTION_GLASS = 12;
     private String focusTitle;
     private int focusIndex = -1;
     public NebulaSectionFragment focus(String title) { focusTitle = title; return this; }
@@ -94,7 +94,8 @@ public class NebulaSectionFragment extends BaseFragment {
 
         actionBar.setBackButtonImage(R.drawable.ic_ab_back);
         actionBar.setAllowOverlayTitle(true);
-        actionBar.setTitle(section == SECTION_NAVIGATION ? NebulaText.text("Навигация", "Navigation")
+        actionBar.setTitle(section == SECTION_GLASS ? NebulaText.text("Стекло", "Glass")
+                : section == SECTION_NAVIGATION ? NebulaText.text("Навигация", "Navigation")
                 : LocaleController.getString(titleKey()));
         actionBar.setBackgroundColor(theme.surface());
         actionBar.setTitleColor(theme.onSurface());
@@ -158,9 +159,10 @@ public class NebulaSectionFragment extends BaseFragment {
         composerPreview = null;
         switch (section) {
             case SECTION_CHAT_SETTINGS:
-                buildChats(context); buildMessages(context); buildProfile(context); break;
+                buildChatSections(context); break;
+            case SECTION_GLASS: NebulaGlassSettings.add(content); break;
             case SECTION_NAVIGATION:
-                buildTabs(context); buildFolders(context); break;
+                buildNavigationSections(context); break;
             case SECTION_FOLDERS: buildFolders(context); break;
             case SECTION_MESSAGES: buildMessages(context); break;
             case SECTION_PROFILE: buildProfile(context); break;
@@ -184,19 +186,39 @@ public class NebulaSectionFragment extends BaseFragment {
         }
         if (section == SECTION_GENERAL) NebulaFeatureControls.general(this, content);
         else if (section == SECTION_APPEARANCE) NebulaFeatureControls.appearance(content);
-        else if (section == SECTION_CHAT_SETTINGS || section == SECTION_CHATS) NebulaFeatureControls.chats(this, content);
+        else if (section == SECTION_CHATS) NebulaFeatureControls.chats(this, content);
     }
 
     // --- разделы ------------------------------------------------------------
 
-    private void buildAppearance(Context context, NebulaTheme theme) {
-        NebulaExtras.appearance(this, content);
-        NebulaGlassSettings.add(content);
+    private void buildChatSections(Context context) {
         NebulaCard card = new NebulaCard(context);
-        card.add(new NebulaRow(context).icon(R.drawable.nebula_settings_app_icon)
-                .title(NebulaText.text("Иконка приложения", "App icon"))
+        card.add(link(context, R.drawable.msg_discussion, R.string.NebulaSectionChats, R.string.NebulaChatHeaderSection, SECTION_CHATS));
+        card.add(link(context, R.drawable.menu_reply, R.string.NebulaSectionMessages, R.string.NebulaSectionMessages, SECTION_MESSAGES));
+        card.add(link(context, R.drawable.msg_openprofile, R.string.NebulaSectionProfile, R.string.NebulaSectionProfile, SECTION_PROFILE));
+        content.addView(card, cardParams());
+    }
+
+    private void buildNavigationSections(Context context) {
+        NebulaCard card = new NebulaCard(context);
+        card.add(new NebulaRow(context).title(NebulaText.text("Нижняя панель", "Bottom bar"))
+                .trailing(NebulaRow.TRAIL_CHEVRON).withClick(v -> presentFragment(new NebulaSectionFragment(SECTION_TABS))));
+        card.add(new NebulaRow(context).title(NebulaText.text("Папки", "Folders"))
+                .trailing(NebulaRow.TRAIL_CHEVRON).withClick(v -> presentFragment(new NebulaSectionFragment(SECTION_FOLDERS))));
+        content.addView(card, cardParams());
+    }
+
+    private void buildAppearance(Context context, NebulaTheme theme) {
+        NebulaCard glass = new NebulaCard(context);
+        glass.add(new NebulaRow(context).icon(R.drawable.msg_customize)
+                .title(NebulaText.text("Стекло", "Glass"))
+                .subtitle(NebulaText.text("Материал, прозрачность и качество", "Material, transparency and quality"), false)
                 .trailing(NebulaRow.TRAIL_CHEVRON)
-                .withClick(v -> presentFragment(new NebulaIconPickerFragment())));
+                .withClick(v -> presentFragment(new NebulaSectionFragment(SECTION_GLASS))));
+        content.addView(glass, cardParams());
+        NebulaExtras.appearance(this, content);
+        content.addView(NebulaCard.header(context, NebulaText.text("Оформление интерфейса", "Interface appearance")));
+        NebulaCard card = new NebulaCard(context);
         card.add(link(context, R.drawable.msg_customize, R.string.NebulaSwitches, R.string.NebulaSwitchesInfo, SECTION_SWITCHES));
 
         // Material You имеет смысл только там, где система отдаёт палитру;
@@ -469,6 +491,7 @@ public class NebulaSectionFragment extends BaseFragment {
                 .withClick(v -> roundCamera(context)));
         content.addView(camera, cardParams());
         sample(context, NebulaControlsPreview.MESSAGE);
+        content.addView(NebulaCard.header(context, NebulaText.text("Сообщения и ответы", "Messages and replies")));
         NebulaCard card = new NebulaCard(context);
         card.add(toggle(context, R.drawable.msg_recent, R.string.NebulaSeconds, R.string.NebulaSecondsSub,
                 NebulaAppearance.secondsInTime(), NebulaAppearance::setSecondsInTime));
@@ -481,6 +504,7 @@ public class NebulaSectionFragment extends BaseFragment {
         card.add(toggle(context, R.drawable.msg_emoji_smiles, R.string.NebulaReplyEmoji, R.string.NebulaReplyEmojiInfo,
                 NebulaAppearance.replyEmoji(), NebulaAppearance::setReplyEmoji));
         content.addView(card, cardParams());
+        content.addView(NebulaCard.header(context, NebulaText.text("Меню сообщения", "Message menu")));
         NebulaCard menu = new NebulaCard(context);
         NebulaRow below = toggle(context, R.drawable.msg_list, R.string.NebulaMenuBelow, R.string.NebulaMenuBelowInfo,
                 NebulaAppearance.messageMenuBelow(), NebulaAppearance::setMessageMenuBelow);
@@ -510,11 +534,15 @@ public class NebulaSectionFragment extends BaseFragment {
 
     private void buildProfile(Context context) {
         sample(context, NebulaControlsPreview.PROFILE);
+        content.addView(NebulaCard.header(context, NebulaText.text("Оформление", "Appearance")));
         NebulaCard card = new NebulaCard(context);
         card.add(toggle(context, R.drawable.msg_openprofile, R.string.NebulaProfileStyle, R.string.NebulaProfileStyleInfo,
                 NebulaAppearance.profileStyle(), NebulaAppearance::setProfileStyle));
         card.add(toggle(context, R.drawable.msg_photo_settings, R.string.NebulaProfilePhotoBanner, R.string.NebulaProfilePhotoBannerInfo,
                 NebulaAppearance.profilePhotoBanner(), NebulaAppearance::setProfilePhotoBanner));
+        content.addView(card, cardParams());
+        content.addView(NebulaCard.header(context, NebulaText.text("Показывать в профиле", "Show in profile")));
+        card = new NebulaCard(context);
         card.add(toggle(context, R.drawable.nebula_cupertino_chat, R.string.NebulaProfileChannel, R.string.NebulaProfileChannelInfo,
                 NebulaAppearance.profileChannel(), NebulaAppearance::setProfileChannel));
         card.add(toggle(context, R.drawable.msg_calendar, R.string.NebulaProfileBirthday, R.string.NebulaProfileBirthdayInfo,
@@ -651,8 +679,8 @@ public class NebulaSectionFragment extends BaseFragment {
         content.addView(ids, cardParams());
         TextView idsNote = new TextView(context);
         idsNote.setText(NebulaText.text(
-                "У человека оба формата совпадают. Канал и супергруппа в Bot API получают приставку −100, обычная группа — знак минуса. «Скопировать ID» есть в меню профиля.",
-                "For a person both formats agree. Bot API prefixes a channel or supergroup with -100 and signs a basic group; Copy ID lives in the profile menu."));
+                "Bot API добавляет префикс −100 каналам и супергруппам; группам — минус.",
+                "Bot API prefixes channels and supergroups with -100, and groups with a minus sign."));
         idsNote.setTextSize(13);
         idsNote.setTextColor(NebulaTheme.of(context).onSurfaceVariant());
         idsNote.setPadding(AndroidUtilities.dp(16), AndroidUtilities.dp(10), AndroidUtilities.dp(16), AndroidUtilities.dp(4));
@@ -662,7 +690,7 @@ public class NebulaSectionFragment extends BaseFragment {
         NebulaCard searchHistory = new NebulaCard(context);
         NebulaRow historyToggle = new NebulaRow(context).icon(R.drawable.msg_recent)
                 .title(NebulaText.text("История поиска настроек", "Settings search history"))
-                .subtitle(NebulaText.text("Показывать и сохранять недавно открытые настройки", "Show and save recently opened settings"), false)
+                .subtitle(NebulaText.text("Недавно открытые пункты", "Recently opened settings"), false)
                 .trailing(NebulaRow.TRAIL_SWITCH).checked(NebulaAppearance.settingsSearchHistory());
         historyToggle.setOnClickListener(v -> NebulaAppearance.setSettingsSearchHistory(historyToggle.toggleChecked()));
         searchHistory.add(historyToggle);
@@ -680,8 +708,8 @@ public class NebulaSectionFragment extends BaseFragment {
         searchHistory.add(clearHistory);
         content.addView(searchHistory, cardParams());
         content.addView(NebulaMenuFragment.placeholder(context, NebulaText.text(
-                "При отключении история скрыта и не пополняется. Ранее сохранённое можно удалить кнопкой выше.",
-                "When disabled, history is hidden and no new entries are saved. Clear existing entries with the button above.")));
+                "Отключение не удаляет сохранённую историю.",
+                "Turning this off keeps existing history.")));
         NebulaCard stories = new NebulaCard(context);
         NebulaRow storyToggle = new NebulaRow(context).icon(R.drawable.msg_photo_settings)
                 .title(NebulaText.text("Истории в списке чатов", "Stories in the chat list"))
@@ -785,7 +813,7 @@ public class NebulaSectionFragment extends BaseFragment {
         NebulaRow row = new NebulaRow(context)
                 .icon(icon)
                 .title(LocaleController.getString(title))
-                .subtitle(LocaleController.getString(subtitle), false)
+                .subtitle(section == SECTION_PROFILE ? null : LocaleController.getString(subtitle), false)
                 .trailing(NebulaRow.TRAIL_SWITCH)
                 .checked(checked);
         row.setOnClickListener(v -> {

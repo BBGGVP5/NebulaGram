@@ -32,6 +32,11 @@ public final class NebulaGlass {
             depth = prefs.getBoolean("glass_depth_enabled", true)
                     ? clamp(prefs.getInt("glass_depth", 35)) / 100f : 0f;
         }
+        boolean sameAs(Snapshot other) {
+            return other != null && custom == other.custom && highlights == other.highlights
+                    && quality == other.quality && opacity == other.opacity && blur == other.blur
+                    && refraction == other.refraction && depth == other.depth;
+        }
     }
 
     private static int clamp(int value) { return Math.max(0, Math.min(100, value)); }
@@ -42,7 +47,24 @@ public final class NebulaGlass {
         }
         return preferences;
     }
-    private static synchronized void refresh() { cached = new Snapshot(prefs()); revision++; NebulaGlassRuntime.invalidateWindows(); }
+    private static synchronized void refresh() {
+        Snapshot next = new Snapshot(prefs());
+        if (next.sameAs(cached)) return;
+        cached = next;
+        revision++;
+        NebulaGlassRuntime.invalidateWindows();
+    }
+
+    /** One transaction avoids intermediate materials and repeated window updates. */
+    public static void preset(int index) {
+        int[] values = index == 1 ? new int[]{47, 30, 20, 35}
+                : index == 2 ? new int[]{80, 60, 0, 20} : new int[]{63, 40, 12, 35};
+        prefs().edit().putBoolean("glass_custom", true).putBoolean("glass_highlights", true)
+                .putBoolean("glass_depth_enabled", true)
+                .putInt("glass_opacity", values[0]).putInt("glass_blur", values[1])
+                .putInt("glass_refraction", values[2]).putInt("glass_depth", values[3]).apply();
+        refresh();
+    }
     private static Snapshot snapshot() {
         Snapshot value = cached;
         if (value == null) {
