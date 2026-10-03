@@ -3,6 +3,9 @@ from pathlib import Path
 import subprocess
 r=Path(__file__).resolve().parent.parent;work=r/'build/folder-animation';work.mkdir(parents=True,exist_ok=True)
 stubs={
+# Span identity is exercised against the production comparator in check-chat-layout.
+'app/nebulagram/ui/NebulaDialogsTitle.java':'package app.nebulagram.ui; public class NebulaDialogsTitle {public static boolean sameTitle(CharSequence a,CharSequence b){return android.text.TextUtils.equals(a,b);}}',
+
 'android/content/Context.java':'package android.content; public class Context {}',
 'android/view/Gravity.java':'package android.view; public class Gravity {public static int LEFT=1,CENTER_VERTICAL=2;}',
 'android/view/View.java':'''package android.view; public class View {

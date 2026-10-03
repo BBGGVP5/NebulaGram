@@ -2,6 +2,7 @@ package app.nebulagram.ui;
 
 import android.graphics.drawable.Drawable;
 import android.text.TextUtils;
+import android.text.Spanned;
 
 import org.telegram.messenger.Emoji;
 import org.telegram.messenger.MessageObject;
@@ -9,6 +10,7 @@ import org.telegram.messenger.MessagesController;
 import org.telegram.ui.ActionBar.ActionBar;
 import org.telegram.ui.ActionBar.SimpleTextView;
 import org.telegram.ui.Components.AnimatedEmojiDrawable;
+import org.telegram.ui.Components.AnimatedEmojiSpan;
 
 import java.util.ArrayList;
 import java.util.WeakHashMap;
@@ -18,6 +20,21 @@ import java.lang.ref.WeakReference;
 public final class NebulaDialogsTitle {
     private NebulaDialogsTitle() { }
     private static final WeakHashMap<ActionBar, WeakReference<NebulaFolderTitleView>> collapsedTitles = new WeakHashMap<>();
+
+    public static boolean sameTitle(CharSequence first, CharSequence second) {
+        if (!TextUtils.equals(first, second)) return false;
+        AnimatedEmojiSpan[] a = first instanceof Spanned
+                ? ((Spanned) first).getSpans(0, first.length(), AnimatedEmojiSpan.class) : new AnimatedEmojiSpan[0];
+        AnimatedEmojiSpan[] b = second instanceof Spanned
+                ? ((Spanned) second).getSpans(0, second.length(), AnimatedEmojiSpan.class) : new AnimatedEmojiSpan[0];
+        if (a.length != b.length) return false;
+        for (int i = 0; i < a.length; i++) {
+            if (a[i].getDocumentId() != b[i].getDocumentId()
+                    || ((Spanned) first).getSpanStart(a[i]) != ((Spanned) second).getSpanStart(b[i])
+                    || ((Spanned) first).getSpanEnd(a[i]) != ((Spanned) second).getSpanEnd(b[i])) return false;
+        }
+        return true;
+    }
 
     public static void bind(ActionBar bar, NebulaFolderTitleView view) {
         if (bar == null) return;
@@ -53,7 +70,7 @@ public final class NebulaDialogsTitle {
             }
         }
         SimpleTextView previous = actionBar.getTitleTextView();
-        boolean changed = previous != null && !TextUtils.equals(previous.getText(), title);
+        boolean changed = previous != null && !sameTitle(previous.getText(), title);
         Drawable targetStatus = selected == null ? statusDrawable : null;
         // setTitle reassigns text and the status drawable and requests layout.
         // Avoid restarting that work for duplicate folder notifications.

@@ -99,6 +99,9 @@ public int getAlpha(){return alpha;} public void setAlpha(int a){alpha=a;} publi
 public Rect getBounds(){return bounds;} public Rect getPaddedBounds(){return new Rect(bounds.left+padding,bounds.top+padding,bounds.right-padding,bounds.bottom-padding);}
 public void setBounds(Rect r){bounds.set(r);} public void setBounds(int l,int t,int r,int b){bounds.set(l,t,r,b);} public void draw(Canvas c){nodes.add(this);surfaces.add(getPaddedBounds());alphas.add(alpha);}
 }''',
+
+'android/text/Spanned.java': 'package android.text; public interface Spanned extends CharSequence {<T>T[] getSpans(int start,int end,Class<T> type);int getSpanStart(Object span);int getSpanEnd(Object span);}',
+'org/telegram/ui/Components/AnimatedEmojiSpan.java': 'package org.telegram.ui.Components; public class AnimatedEmojiSpan {public long id;public AnimatedEmojiSpan(long id){this.id=id;}public long getDocumentId(){return id;}}',
 'android/text/TextUtils.java': 'package android.text; public class TextUtils {public static boolean isEmpty(CharSequence s){return s==null||s.length()==0;} public static boolean equals(CharSequence a,CharSequence b){return a==b || a!=null&&b!=null&&a.toString().equals(b.toString());}}',
  'android/view/ViewPropertyAnimator.java': 'package android.view; public class ViewPropertyAnimator {public ViewPropertyAnimator setListener(Object o){return this;} public void cancel(){}}',
 'org/telegram/ui/Components/CubicBezierInterpolator.java': 'package org.telegram.ui.Components; public class CubicBezierInterpolator {public static Object EASE_OUT_QUINT=new Object();}',
@@ -113,9 +116,23 @@ public void setBounds(Rect r){bounds.set(r);} public void setBounds(int l,int t,
 import app.nebulagram.ui.*; import org.telegram.messenger.AndroidUtilities; import org.telegram.ui.Components.*;
 import org.telegram.ui.Components.blur3.drawable.BlurredBackgroundDrawable;
 public class CheckChatLayout {
+static class EmojiTitle implements android.text.Spanned {
+ final AnimatedEmojiSpan span; final int start;
+ EmojiTitle(long id,int start){span=new AnimatedEmojiSpan(id);this.start=start;}
+ public int length(){return 2;} public char charAt(int i){return "**".charAt(i);}
+ public CharSequence subSequence(int a,int b){return "**".subSequence(a,b);}
+ public String toString(){return "**";}
+ @SuppressWarnings("unchecked") public <T>T[] getSpans(int a,int b,Class<T> type){return (T[])new AnimatedEmojiSpan[]{span};}
+ public int getSpanStart(Object s){return start;} public int getSpanEnd(Object s){return start+1;}
+}
 static int dp(float v){return AndroidUtilities.dp(v);} static void check(boolean ok,String message){if(!ok)throw new AssertionError(message);}
 static <T extends View> T add(ViewGroup parent,T view,int l,int t,int r,int b){parent.addView(view);view.layout(l,t,r,b);return view;}
 public static void main(String[] args){
+check(NebulaDialogsTitle.sameTitle(new EmojiTitle(1,0),new EmojiTitle(1,0)),"Same custom emoji should not restart animation");
+check(!NebulaDialogsTitle.sameTitle(new EmojiTitle(1,0),new EmojiTitle(2,0)),"Different emoji with same fallback must change title");
+check(!NebulaDialogsTitle.sameTitle(new EmojiTitle(1,0),new EmojiTitle(1,1)),"Emoji position must invalidate title");
+check(!NebulaDialogsTitle.sameTitle(new EmojiTitle(1,0),"**"),"Removing custom emoji must invalidate title");
+
 for(boolean material:new boolean[]{false,true})for(boolean normal:new boolean[]{false,true})for(boolean saved:new boolean[]{false,true}) {
  app.nebulagram.ui.NebulaTheme.enabled=material;
  org.telegram.ui.ActionBar.ActionBar bar=new org.telegram.ui.ActionBar.ActionBar();

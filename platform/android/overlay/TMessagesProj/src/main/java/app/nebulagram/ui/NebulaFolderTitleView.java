@@ -2,7 +2,6 @@ package app.nebulagram.ui;
 
 import android.animation.ValueAnimator;
 import android.content.Context;
-import android.text.TextUtils;
 import android.view.Gravity;
 import android.widget.FrameLayout;
 import org.telegram.messenger.AndroidUtilities;
@@ -47,7 +46,7 @@ public final class NebulaFolderTitleView extends FrameLayout {
     public void setOnAnimationUpdate(Runnable callback) { onAnimationUpdate = callback; }
 
     public void setTitle(CharSequence text, int cacheType, boolean statusVisible, boolean animated) {
-        boolean changed = !TextUtils.equals(current.getText(), text) || showStatus != statusVisible;
+        boolean changed = !NebulaDialogsTitle.sameTitle(current.getText(), text) || showStatus != statusVisible;
         if (!changed) { current.setEmojiCacheType(cacheType); return; }
         if (animator != null) { animator.cancel(); animator = null; }
         if (outgoing != null) { removeView(outgoing); outgoing = null; }
