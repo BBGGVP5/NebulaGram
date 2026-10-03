@@ -31,7 +31,12 @@ def check(temp, vendor, revision):
     for step in ['Phone', 'Code', 'Password']:
         name = f'AuthorizationSequence{step}EntryControllerNode.swift'
         old, new = original(name), patched(name)
-        assert 'AuthorizationLayoutItem(node: self.nebulaArtwork,' in new
+        assert 'private let nebulaStyleEnabled = NebulaSettingsStore.shared.loginStyle' in new
+        assert 'AuthorizationLayoutItem(node: self.nebulaStyleEnabled ? self.nebulaArtwork : self.animationNode,' in new
+        assert 'self.nebulaBackdrop.isHidden = !self.nebulaStyleEnabled' in new
+        assert 'self.animationNode.isHidden = self.nebulaStyleEnabled' in new
+        assert 'self.animationNode.visibility = !self.nebulaStyleEnabled' in new
+        assert 'self.nebulaArtwork.isHidden = !self.nebulaStyleEnabled' in new
         assert 'transition.updateFrame(node: self.nebulaBackdrop' in new
         assert 'self.nebulaBackdrop.setFieldFrame(' in new
         assert 'self.nebulaArtwork.isHidden = true' in new  # compact/keyboard constraints retained

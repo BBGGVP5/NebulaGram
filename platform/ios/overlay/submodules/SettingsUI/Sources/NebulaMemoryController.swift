@@ -1,3 +1,4 @@
+import Display
 import Foundation
 import UIKit
 import Darwin
@@ -92,7 +93,7 @@ final class NebulaMemoryController: UITableViewController {
         cell.selectionStyle = .none
         if indexPath.section == 1 {
             cell.textLabel?.text = text("Предупреждение о нехватке памяти", "Low-memory warning")
-            let control = UISwitch(); control.isOn = NebulaMemoryWarnings.enabled
+            let control = NebulaSwitchControl(); control.isOn = NebulaMemoryWarnings.enabled
             control.addTarget(self, action: #selector(warningChanged(_:)), for: .valueChanged)
             cell.accessoryView = control
         } else if indexPath.row == 0 {
@@ -104,6 +105,6 @@ final class NebulaMemoryController: UITableViewController {
         }
         return cell
     }
-    @objc private func warningChanged(_ sender: UISwitch) { NebulaMemoryWarnings.setEnabled(sender.isOn) }
+    @objc private func warningChanged(_ sender: NebulaSwitchControl) { NebulaMemoryWarnings.setEnabled(sender.isOn) }
     @objc private func close() { dismiss(animated: true) }
 }

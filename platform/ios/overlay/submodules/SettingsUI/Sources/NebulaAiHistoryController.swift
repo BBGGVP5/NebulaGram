@@ -1,3 +1,4 @@
+import Display
 import Foundation
 import UIKit
 import NebulaSettingsContract
@@ -55,7 +56,7 @@ final class NebulaAiHistoryController: UITableViewController {
             cell.textLabel?.text = text("Сохранять историю ИИ", "Save AI history")
             cell.detailTextLabel?.text = text("Запросы и чаты сохраняются только после включения этого переключателя.",
                                               "Requests and chats are saved only after this switch is enabled.")
-            let toggle = UISwitch()
+            let toggle = NebulaSwitchControl()
             toggle.isOn = history.isEnabled
             toggle.addTarget(self, action: #selector(toggleHistory(_:)), for: .valueChanged)
             cell.accessoryView = toggle
@@ -68,7 +69,7 @@ final class NebulaAiHistoryController: UITableViewController {
         return cell
     }
 
-    @objc private func toggleHistory(_ toggle: UISwitch) { history.isEnabled = toggle.isOn }
+    @objc private func toggleHistory(_ toggle: NebulaSwitchControl) { history.isEnabled = toggle.isOn }
 
     @objc private func confirmClear() {
         let alert = UIAlertController(title: text("Очистить историю ИИ?", "Clear AI history?"),

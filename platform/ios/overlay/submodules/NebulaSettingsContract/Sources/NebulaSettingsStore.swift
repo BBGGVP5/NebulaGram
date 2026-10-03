@@ -33,7 +33,7 @@ public final class SettingsObservation {
 public final class NebulaSettingsStore {
     public static let shared = NebulaSettingsStore(defaults: .standard)
     public static let storageKey = "app.nebulagram.presentation.settings.v1"
-    public static let editableKeys: Set<String> = ["hide_tab_counters", "show_stories", "settings_search_history", "glass_quality", "glass_highlights", "glass_depth", "glass_depth_enabled", "glass_opacity", "glass_blur", "liquid_animations", "ios_glass_style", "ios_glass_tint", "bottom_bar_contacts", "bottom_bar_order", "bottom_bar_profile", "bottom_bar_settings", "tab_labels", "compact_bottom_bar", "hide_home_camera", "hide_home_compose", "hide_send_as", "hide_attach_camera", "hide_dividers", "hide_search_field", "hide_premium_status", "menu_search", "menu_mute", "menu_call", "menu_video", "folder_style", "folder_title", "folder_outline", "centered_chat_header", "disable_next_channel", "seconds_in_time", "wide_posts", "fragment_transition_style", "profile_channel", "profile_birthday", "profile_business", "profile_background", "profile_emoji", "profile_photo_banner", "reply_background", "reply_colors", "reply_emoji"]
+    public static let editableKeys: Set<String> = ["icon_pack", "switch_style", "login_style", "adaptive_chat_header", "floating_chat_header_v2", "header_unread", "glass_custom", "glass_haptics", "glass_haptic_strength", "own_double_tap", "message_menu_blur", "bottom_bar", "hide_all_chats", "center_home", "avatar_round", "custom_avatar_corners", "uniform_avatars", "hide_tab_counters", "show_stories", "settings_search_history", "glass_quality", "glass_highlights", "glass_depth", "glass_depth_enabled", "glass_opacity", "glass_blur", "liquid_animations", "ios_glass_style", "ios_glass_tint", "bottom_bar_contacts", "bottom_bar_order", "bottom_bar_profile", "bottom_bar_settings", "tab_labels", "compact_bottom_bar", "hide_home_camera", "hide_home_compose", "hide_send_as", "hide_attach_camera", "hide_dividers", "hide_search_field", "hide_premium_status", "menu_search", "menu_mute", "menu_call", "menu_video", "folder_style", "folder_title", "folder_outline", "centered_chat_header", "disable_next_channel", "seconds_in_time", "wide_posts", "fragment_transition_style", "profile_style", "profile_channel", "profile_birthday", "profile_business", "profile_background", "profile_emoji", "profile_photo_banner", "reply_background", "reply_colors", "reply_emoji"]
     public static let maximumTransferBytes = 1024 * 1024
 
     private let defaults: UserDefaults
@@ -77,7 +77,30 @@ public final class NebulaSettingsStore {
         if case let .integer(value) = values["glass_quality"] { return max(0, min(2, value)) }
         return 0
     }
-    public var iosGlassStyle: Int { integer("ios_glass_style", fallback: 0) }
+    public var iosGlassStyle: Int {
+        let style = integer("ios_glass_style", fallback: 0)
+        return boolean("glass_custom", fallback: style != 0) ? max(1, style) : 0
+    }
+    public var glassHaptics: Bool { boolean("glass_haptics", fallback: false) }
+    public var glassHapticStrength: Int { max(1, min(100, integer("glass_haptic_strength", fallback: 35))) }
+    public var showBottomBar: Bool { boolean("bottom_bar", fallback: true) }
+    public var hideAllChats: Bool { boolean("hide_all_chats", fallback: false) }
+    public var centerHome: Bool { boolean("center_home", fallback: false) }
+    public var customAvatarCorners: Bool { boolean("custom_avatar_corners", fallback: contains("avatar_round")) }
+    public var avatarRound: Int { customAvatarCorners ? max(0, min(100, integer("avatar_round", fallback: 100))) : 100 }
+    public var uniformAvatars: Bool { boolean("uniform_avatars", fallback: true) }
+    public var iconPack: Int { max(0, min(2, integer("icon_pack", fallback: boolean("ios_icons", fallback: true) ? 1 : 0))) }
+    public var switchStyle: Int { max(0, min(3, integer("switch_style", fallback: 0))) }
+    public var loginStyle: Bool { boolean("login_style", fallback: true) }
+    public var adaptiveChatHeader: Bool { boolean("adaptive_chat_header", fallback: true) }
+    public var floatingChatHeader: Bool { boolean("floating_chat_header_v2", fallback: true) }
+    public var headerUnread: Bool { boolean("header_unread", fallback: false) }
+    public var ownDoubleTap: Int { max(0, min(4, integer("own_double_tap", fallback: 0))) }
+    public var messageMenuBlur: Bool { boolean("message_menu_blur", fallback: true) }
+    private func contains(_ key: String) -> Bool {
+        lock.lock(); defer { lock.unlock() }
+        return values[key] != nil
+    }
     public var iosGlassTint: Int { integer("ios_glass_tint", fallback: 30) }
     public var liquidAnimations: Bool { boolean("liquid_animations", fallback: true) }
     public var glassHighlights: Bool { boolean("glass_highlights", fallback: true) }
@@ -125,6 +148,7 @@ public final class NebulaSettingsStore {
         let order = value.split(separator: ",").map(String.init)
         return order.count == 4 && Set(order) == Set(standard) ? order : standard
     }
+    public var profileStyle: Bool { boolean("profile_style", fallback: true) }
     public var profileChannel: Bool { boolean("profile_channel", fallback: true) }
     public var profileBirthday: Bool { boolean("profile_birthday", fallback: true) }
     public var profileBusiness: Bool { boolean("profile_business", fallback: true) }
@@ -156,6 +180,9 @@ public final class NebulaSettingsStore {
         try mutate(recover: false) { current in
             var next = current
             next[key] = value
+            if key == "ios_glass_style", case let .integer(style) = value {
+                next["glass_custom"] = .boolean(style != 0)
+            }
             return SettingsDocument(settings: next)
         }
     }

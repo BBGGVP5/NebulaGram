@@ -1,0 +1,215 @@
+diff --git a/submodules/Components/ReactionListContextMenuContent/BUILD b/submodules/Components/ReactionListContextMenuContent/BUILD
+--- a/submodules/Components/ReactionListContextMenuContent/BUILD
++++ b/submodules/Components/ReactionListContextMenuContent/BUILD
+@@ -10,6 +10,7 @@
+         "-warnings-as-errors",
+     ],
+     deps = [
++        "//submodules/NebulaSettingsContract:NebulaSettingsContract",
+         "//submodules/Display:Display",
+         "//submodules/ComponentFlow:ComponentFlow",
+         "//submodules/SSignalKit/SwiftSignalKit:SwiftSignalKit",
+diff --git a/submodules/Components/ReactionListContextMenuContent/Sources/ReactionListContextMenuContent.swift b/submodules/Components/ReactionListContextMenuContent/Sources/ReactionListContextMenuContent.swift
+--- a/submodules/Components/ReactionListContextMenuContent/Sources/ReactionListContextMenuContent.swift
++++ b/submodules/Components/ReactionListContextMenuContent/Sources/ReactionListContextMenuContent.swift
+@@ -1,3 +1,4 @@
++import NebulaSettingsContract
+ import Foundation
+ import AsyncDisplayKit
+ import Display
+@@ -639,11 +640,11 @@
+                     currentCredibilityIcon = .text(color: presentationData.theme.chat.message.incoming.scamColor, string: presentationData.strings.Message_ScamAccount.uppercased())
+                 } else if item.peer.isFake {
+                     currentCredibilityIcon = .text(color: presentationData.theme.chat.message.incoming.scamColor, string: presentationData.strings.Message_FakeAccount.uppercased())
+-                } else if let emojiStatus = item.peer.emojiStatus {
++                } else if !NebulaSettingsStore.shared.hidePremiumStatus, let emojiStatus = item.peer.emojiStatus {
+                     currentCredibilityIcon = .animation(content: .customEmoji(fileId: emojiStatus.fileId), size: CGSize(width: 32.0, height: 32.0), placeholderColor: UIColor(white: 0.0, alpha: 0.1), themeColor: presentationData.theme.list.itemAccentColor, loopMode: .count(2))
+                 } else if item.peer.isVerified {
+                     currentCredibilityIcon = .verified(fillColor: presentationData.theme.list.itemCheckColors.fillColor, foregroundColor: presentationData.theme.list.itemCheckColors.foregroundColor, sizeType: .compact)
+-                } else if item.peer.isPremium && !premiumConfiguration.isPremiumDisabled {
++                } else if !NebulaSettingsStore.shared.hidePremiumStatus && item.peer.isPremium && !premiumConfiguration.isPremiumDisabled {
+                     currentCredibilityIcon = .premium(color: presentationData.theme.list.itemCheckColors.fillColor)
+                 }
+                 
+diff --git a/submodules/ContactsPeerItem/BUILD b/submodules/ContactsPeerItem/BUILD
+--- a/submodules/ContactsPeerItem/BUILD
++++ b/submodules/ContactsPeerItem/BUILD
+@@ -10,6 +10,7 @@
+         "-warnings-as-errors",
+     ],
+     deps = [
++        "//submodules/NebulaSettingsContract:NebulaSettingsContract",
+         "//submodules/SSignalKit/SwiftSignalKit:SwiftSignalKit",
+         "//submodules/AsyncDisplayKit:AsyncDisplayKit",
+         "//submodules/Display:Display",
+diff --git a/submodules/ContactsPeerItem/Sources/ContactsPeerItem.swift b/submodules/ContactsPeerItem/Sources/ContactsPeerItem.swift
+--- a/submodules/ContactsPeerItem/Sources/ContactsPeerItem.swift
++++ b/submodules/ContactsPeerItem/Sources/ContactsPeerItem.swift
+@@ -1,3 +1,4 @@
++import NebulaSettingsContract
+ import Foundation
+ import UIKit
+ import AsyncDisplayKit
+@@ -867,12 +868,12 @@
+                         credibilityStatusIcon = .text(color: item.presentationData.theme.chat.message.incoming.scamColor, string: item.presentationData.strings.Message_ScamAccount.uppercased())
+                     } else if peer.isFake {
+                         credibilityStatusIcon = .text(color: item.presentationData.theme.chat.message.incoming.scamColor, string: item.presentationData.strings.Message_FakeAccount.uppercased())
+-                    } else if let emojiStatus = peer.emojiStatus, !item.isAd {
++                    } else if !NebulaSettingsStore.shared.hidePremiumStatus, let emojiStatus = peer.emojiStatus, !item.isAd {
+                         emojiStatusIcon = .animation(content: .customEmoji(fileId: emojiStatus.fileId), size: CGSize(width: 20.0, height: 20.0), placeholderColor: item.presentationData.theme.list.mediaPlaceholderColor, themeColor: item.presentationData.theme.list.itemAccentColor, loopMode: .count(2))
+                         if let color = emojiStatus.color {
+                             emojiStatusParticleColor = UIColor(rgb: UInt32(bitPattern: color))
+                         }
+-                    } else if peer.isPremium && !premiumConfiguration.isPremiumDisabled {
++                    } else if !NebulaSettingsStore.shared.hidePremiumStatus && peer.isPremium && !premiumConfiguration.isPremiumDisabled {
+                         credibilityStatusIcon = .premium(color: item.presentationData.theme.list.itemAccentColor)
+                     }
+                     
+diff --git a/submodules/ItemListPeerItem/BUILD b/submodules/ItemListPeerItem/BUILD
+--- a/submodules/ItemListPeerItem/BUILD
++++ b/submodules/ItemListPeerItem/BUILD
+@@ -10,6 +10,7 @@
+         "-warnings-as-errors",
+     ],
+     deps = [
++        "//submodules/NebulaSettingsContract:NebulaSettingsContract",
+         "//submodules/SSignalKit/SwiftSignalKit:SwiftSignalKit",
+         "//submodules/AsyncDisplayKit:AsyncDisplayKit",
+         "//submodules/Display:Display",
+diff --git a/submodules/ItemListPeerItem/Sources/ItemListPeerItem.swift b/submodules/ItemListPeerItem/Sources/ItemListPeerItem.swift
+--- a/submodules/ItemListPeerItem/Sources/ItemListPeerItem.swift
++++ b/submodules/ItemListPeerItem/Sources/ItemListPeerItem.swift
+@@ -1,3 +1,4 @@
++import NebulaSettingsContract
+ import Foundation
+ import UIKit
+ import Display
+@@ -938,12 +939,12 @@
+                     credibilityIcon = .text(color: item.presentationData.theme.chat.message.incoming.scamColor, string: item.presentationData.strings.Message_ScamAccount.uppercased())
+                 } else if item.peer.isFake {
+                     credibilityIcon = .text(color: item.presentationData.theme.chat.message.incoming.scamColor, string: item.presentationData.strings.Message_FakeAccount.uppercased())
+-                } else if let emojiStatus = item.peer.emojiStatus {
++                } else if !NebulaSettingsStore.shared.hidePremiumStatus, let emojiStatus = item.peer.emojiStatus {
+                     credibilityIcon = .animation(content: .customEmoji(fileId: emojiStatus.fileId), size: CGSize(width: 20.0, height: 20.0), placeholderColor: item.presentationData.theme.list.mediaPlaceholderColor, themeColor: item.presentationData.theme.list.itemAccentColor, loopMode: .count(2))
+                     if let color = emojiStatus.color {
+                         credibilityParticleColor = UIColor(rgb: UInt32(bitPattern: color))
+                     }
+-                } else if item.peer.isPremium && !item.context.isPremiumDisabled {
++                } else if !NebulaSettingsStore.shared.hidePremiumStatus && item.peer.isPremium && !item.context.isPremiumDisabled {
+                     credibilityIcon = .premium(color: item.presentationData.theme.list.itemAccentColor)
+                 }
+                 
+diff --git a/submodules/TelegramCallsUI/BUILD b/submodules/TelegramCallsUI/BUILD
+--- a/submodules/TelegramCallsUI/BUILD
++++ b/submodules/TelegramCallsUI/BUILD
+@@ -53,6 +53,7 @@
+         ":TelegramCallsUIBundle",
+     ],
+     deps = [
++        "//submodules/NebulaSettingsContract:NebulaSettingsContract",
+         "//submodules/SSignalKit/SSignalKit",
+     	"//submodules/SSignalKit/SwiftSignalKit:SwiftSignalKit",
+         "//submodules/Display:Display",
+diff --git a/submodules/TelegramCallsUI/Sources/VoiceChatParticipantItem.swift b/submodules/TelegramCallsUI/Sources/VoiceChatParticipantItem.swift
+--- a/submodules/TelegramCallsUI/Sources/VoiceChatParticipantItem.swift
++++ b/submodules/TelegramCallsUI/Sources/VoiceChatParticipantItem.swift
+@@ -1,3 +1,4 @@
++import NebulaSettingsContract
+ import Foundation
+ import UIKit
+ import Display
+@@ -840,11 +841,11 @@
+                 credibilityIcon = .text(color: item.presentationData.theme.chat.message.incoming.scamColor, string: item.presentationData.strings.Message_ScamAccount.uppercased())
+             } else if item.peer.isFake {
+                 credibilityIcon = .text(color: item.presentationData.theme.chat.message.incoming.scamColor, string: item.presentationData.strings.Message_FakeAccount.uppercased())
+-            } else if let emojiStatus = item.peer.emojiStatus {
++            } else if !NebulaSettingsStore.shared.hidePremiumStatus, let emojiStatus = item.peer.emojiStatus {
+                 credibilityIcon = .animation(content: .customEmoji(fileId: emojiStatus.fileId), size: CGSize(width: 20.0, height: 20.0), placeholderColor: item.presentationData.theme.list.mediaPlaceholderColor, themeColor: item.presentationData.theme.list.itemAccentColor, loopMode: .count(2))
+             } else if item.peer.isVerified {
+                 credibilityIcon = .verified(fillColor: item.presentationData.theme.list.itemCheckColors.fillColor, foregroundColor: item.presentationData.theme.list.itemCheckColors.foregroundColor, sizeType: .compact)
+-            } else if item.peer.isPremium && !premiumConfiguration.isPremiumDisabled {
++            } else if !NebulaSettingsStore.shared.hidePremiumStatus && item.peer.isPremium && !premiumConfiguration.isPremiumDisabled {
+                 credibilityIcon = .premium(color: item.presentationData.theme.list.itemAccentColor)
+             }
+             
+diff --git a/submodules/TelegramUI/Components/PeerInfo/AccountPeerContextItem/BUILD b/submodules/TelegramUI/Components/PeerInfo/AccountPeerContextItem/BUILD
+--- a/submodules/TelegramUI/Components/PeerInfo/AccountPeerContextItem/BUILD
++++ b/submodules/TelegramUI/Components/PeerInfo/AccountPeerContextItem/BUILD
+@@ -10,6 +10,7 @@
+         "-warnings-as-errors",
+     ],
+     deps = [
++        "//submodules/NebulaSettingsContract:NebulaSettingsContract",
+         "//submodules/SSignalKit/SwiftSignalKit:SwiftSignalKit",
+         "//submodules/AsyncDisplayKit",
+         "//submodules/Display",
+diff --git a/submodules/TelegramUI/Components/PeerInfo/AccountPeerContextItem/Sources/AccountPeerContextItem.swift b/submodules/TelegramUI/Components/PeerInfo/AccountPeerContextItem/Sources/AccountPeerContextItem.swift
+--- a/submodules/TelegramUI/Components/PeerInfo/AccountPeerContextItem/Sources/AccountPeerContextItem.swift
++++ b/submodules/TelegramUI/Components/PeerInfo/AccountPeerContextItem/Sources/AccountPeerContextItem.swift
+@@ -1,3 +1,4 @@
++import NebulaSettingsContract
+ import Foundation
+ import UIKit
+ import Display
+@@ -89,7 +90,7 @@
+         
+         self.avatarNode.setPeer(context: self.item.context, account: self.item.account, theme: self.presentationData.theme, peer: self.item.peer)
+         
+-        if self.item.peer.emojiStatus != nil {
++        if !NebulaSettingsStore.shared.hidePremiumStatus && self.item.peer.emojiStatus != nil {
+             rightTextInset += 32.0
+         }
+     
+@@ -102,13 +103,13 @@
+             
+             var iconContent: EmojiStatusComponent.Content?
+             if case let .user(user) = self.item.peer {
+-                if let emojiStatus = user.emojiStatus {
++                if !NebulaSettingsStore.shared.hidePremiumStatus, let emojiStatus = user.emojiStatus {
+                     iconContent = .animation(content: .customEmoji(fileId: emojiStatus.fileId), size: CGSize(width: 28.0, height: 28.0), placeholderColor: self.presentationData.theme.list.mediaPlaceholderColor, themeColor: self.presentationData.theme.list.itemAccentColor, loopMode: .forever)
+-                } else if user.isPremium {
++                } else if !NebulaSettingsStore.shared.hidePremiumStatus && user.isPremium {
+                     iconContent = .premium(color: self.presentationData.theme.list.itemAccentColor)
+                 }
+             } else if case let .channel(channel) = self.item.peer {
+-                if let emojiStatus = channel.emojiStatus {
++                if !NebulaSettingsStore.shared.hidePremiumStatus, let emojiStatus = channel.emojiStatus {
+                     iconContent = .animation(content: .customEmoji(fileId: emojiStatus.fileId), size: CGSize(width: 28.0, height: 28.0), placeholderColor: self.presentationData.theme.list.mediaPlaceholderColor, themeColor: self.presentationData.theme.list.itemAccentColor, loopMode: .forever)
+                 }
+             }
+diff --git a/submodules/TelegramUI/Components/Stories/PeerListItemComponent/BUILD b/submodules/TelegramUI/Components/Stories/PeerListItemComponent/BUILD
+--- a/submodules/TelegramUI/Components/Stories/PeerListItemComponent/BUILD
++++ b/submodules/TelegramUI/Components/Stories/PeerListItemComponent/BUILD
+@@ -10,6 +10,7 @@
+         "-warnings-as-errors",
+     ],
+     deps = [
++        "//submodules/NebulaSettingsContract:NebulaSettingsContract",
+         "//submodules/Display",
+         "//submodules/ComponentFlow",
+         "//submodules/TelegramPresentationData",
+diff --git a/submodules/TelegramUI/Components/Stories/PeerListItemComponent/Sources/PeerListItemComponent.swift b/submodules/TelegramUI/Components/Stories/PeerListItemComponent/Sources/PeerListItemComponent.swift
+--- a/submodules/TelegramUI/Components/Stories/PeerListItemComponent/Sources/PeerListItemComponent.swift
++++ b/submodules/TelegramUI/Components/Stories/PeerListItemComponent/Sources/PeerListItemComponent.swift
+@@ -1,3 +1,4 @@
++import NebulaSettingsContract
+ import Foundation
+ import Foundation
+ import UIKit
+@@ -871,14 +872,14 @@
+                     statusIcon = .text(color: component.theme.chat.message.incoming.scamColor, string: component.strings.Message_ScamAccount.uppercased())
+                 } else if peer.isFake {
+                     statusIcon = .text(color: component.theme.chat.message.incoming.scamColor, string: component.strings.Message_FakeAccount.uppercased())
+-                } else if let emojiStatus = peer.emojiStatus {
++                } else if !NebulaSettingsStore.shared.hidePremiumStatus, let emojiStatus = peer.emojiStatus {
+                     statusIcon = .animation(content: .customEmoji(fileId: emojiStatus.fileId), size: CGSize(width: 20.0, height: 20.0), placeholderColor: component.theme.list.mediaPlaceholderColor, themeColor: component.theme.list.itemAccentColor, loopMode: .count(0))
+                     if let color = emojiStatus.color {
+                         particleColor = UIColor(rgb: UInt32(bitPattern: color))
+                     }
+                 } else if peer.isVerified {
+                     statusIcon = .verified(fillColor: component.theme.list.itemCheckColors.fillColor, foregroundColor: component.theme.list.itemCheckColors.foregroundColor, sizeType: .compact)
+-                } else if peer.isPremium {
++                } else if !NebulaSettingsStore.shared.hidePremiumStatus && peer.isPremium {
+                     statusIcon = .premium(color: component.theme.list.itemAccentColor)
+                 }
+             }

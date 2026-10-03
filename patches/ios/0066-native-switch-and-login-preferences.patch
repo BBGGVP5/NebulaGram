@@ -1,0 +1,561 @@
+diff --git a/submodules/AuthorizationUI/BUILD b/submodules/AuthorizationUI/BUILD
+--- a/submodules/AuthorizationUI/BUILD
++++ b/submodules/AuthorizationUI/BUILD
+@@ -10,6 +10,7 @@
+         "-warnings-as-errors",
+     ],
+     deps = [
++        "//submodules/NebulaSettingsContract:NebulaSettingsContract",
+         "//submodules/NebulaLinkUI:NebulaLinkUI",
+         "//submodules/AsyncDisplayKit:AsyncDisplayKit",
+         "//submodules/TelegramCore:TelegramCore",
+diff --git a/submodules/AuthorizationUI/Sources/AuthorizationSequenceCodeEntryControllerNode.swift b/submodules/AuthorizationUI/Sources/AuthorizationSequenceCodeEntryControllerNode.swift
+--- a/submodules/AuthorizationUI/Sources/AuthorizationSequenceCodeEntryControllerNode.swift
++++ b/submodules/AuthorizationUI/Sources/AuthorizationSequenceCodeEntryControllerNode.swift
+@@ -1,4 +1,5 @@
+ import Foundation
++import NebulaSettingsContract
+ import UIKit
+ import AsyncDisplayKit
+ import Display
+@@ -21,6 +22,7 @@
+     private let theme: PresentationTheme
+     
+     private let animationNode: AnimatedStickerNode
++    private let nebulaStyleEnabled = NebulaSettingsStore.shared.loginStyle
+     private let nebulaArtwork: NebulaAuthArtNode
+     private let nebulaBackdrop: NebulaAuthBackdropNode
+     private var nebulaLegacyArtConfigured = false
+@@ -511,6 +513,7 @@
+     }
+     
+     func containerLayoutUpdated(_ layout: ContainerViewLayout, navigationBarHeight: CGFloat, transition: ContainedViewLayoutTransition) {
++        self.nebulaBackdrop.isHidden = !self.nebulaStyleEnabled
+         transition.updateFrame(node: self.nebulaBackdrop, frame: CGRect(origin: .zero, size: layout.size))
+         let previousInputHeight = self.layoutArguments?.0.inputHeight ?? 0.0
+         let newInputHeight = layout.inputHeight ?? 0.0
+@@ -534,14 +537,14 @@
+         if let codeType = self.codeType {
+             switch codeType {
+             case .missedCall:
+-                self.titleNode.attributedText = NSAttributedString(string: self.strings.Login_EnterMissingDigits, font: Font.semibold(28.0), textColor: self.theme.list.itemAccentColor)
++                self.titleNode.attributedText = NSAttributedString(string: self.strings.Login_EnterMissingDigits, font: Font.semibold(28.0), textColor: self.nebulaStyleEnabled ? self.theme.list.itemAccentColor : self.theme.list.itemPrimaryTextColor)
+             case .email:
+-                self.titleNode.attributedText = NSAttributedString(string: self.strings.Login_EnterCodeEmailTitle, font: Font.semibold(28.0), textColor: self.theme.list.itemAccentColor)
++                self.titleNode.attributedText = NSAttributedString(string: self.strings.Login_EnterCodeEmailTitle, font: Font.semibold(28.0), textColor: self.nebulaStyleEnabled ? self.theme.list.itemAccentColor : self.theme.list.itemPrimaryTextColor)
+                 animationName = "IntroLetter"
+             case .sms:
+-                self.titleNode.attributedText = NSAttributedString(string: self.strings.Login_EnterCodeSMSTitle, font: Font.semibold(28.0), textColor: self.theme.list.itemAccentColor)
++                self.titleNode.attributedText = NSAttributedString(string: self.strings.Login_EnterCodeSMSTitle, font: Font.semibold(28.0), textColor: self.nebulaStyleEnabled ? self.theme.list.itemAccentColor : self.theme.list.itemPrimaryTextColor)
+             case .fragment:
+-                self.titleNode.attributedText = NSAttributedString(string: self.strings.Login_EnterCodeFragmentTitle, font: Font.semibold(28.0), textColor: self.theme.list.itemAccentColor)
++                self.titleNode.attributedText = NSAttributedString(string: self.strings.Login_EnterCodeFragmentTitle, font: Font.semibold(28.0), textColor: self.nebulaStyleEnabled ? self.theme.list.itemAccentColor : self.theme.list.itemPrimaryTextColor)
+                
+                 self.proceedNode.title = self.strings.Login_OpenFragment
+                 self.proceedNode.updateTheme(SolidRoundedButtonTheme(backgroundColor: UIColor(rgb: 0x37475a), foregroundColor: .white))
+@@ -551,16 +554,16 @@
+                 animationPlaybackMode = .count(3)
+                 self.proceedNode.animation = "anim_fragment"
+             case .word:
+-                self.titleNode.attributedText = NSAttributedString(string: self.strings.Login_EnterWordTitle, font: Font.semibold(28.0), textColor: self.theme.list.itemAccentColor)
++                self.titleNode.attributedText = NSAttributedString(string: self.strings.Login_EnterWordTitle, font: Font.semibold(28.0), textColor: self.nebulaStyleEnabled ? self.theme.list.itemAccentColor : self.theme.list.itemPrimaryTextColor)
+                 textFieldPlaceholder = self.strings.Login_EnterWordPlaceholder
+             case .phrase:
+-                self.titleNode.attributedText = NSAttributedString(string: self.strings.Login_EnterPhraseTitle, font: Font.semibold(28.0), textColor: self.theme.list.itemAccentColor)
++                self.titleNode.attributedText = NSAttributedString(string: self.strings.Login_EnterPhraseTitle, font: Font.semibold(28.0), textColor: self.nebulaStyleEnabled ? self.theme.list.itemAccentColor : self.theme.list.itemPrimaryTextColor)
+                 textFieldPlaceholder = self.strings.Login_EnterPhrasePlaceholder
+             default:
+-                self.titleNode.attributedText = NSAttributedString(string: self.strings.Login_EnterCodeTelegramTitle, font: Font.semibold(28.0), textColor: self.theme.list.itemAccentColor)
++                self.titleNode.attributedText = NSAttributedString(string: self.strings.Login_EnterCodeTelegramTitle, font: Font.semibold(28.0), textColor: self.nebulaStyleEnabled ? self.theme.list.itemAccentColor : self.theme.list.itemPrimaryTextColor)
+             }
+         } else {
+-            self.titleNode.attributedText = NSAttributedString(string: self.strings.Login_EnterCodeTelegramTitle, font: Font.semibold(40.0), textColor: self.theme.list.itemAccentColor)
++            self.titleNode.attributedText = NSAttributedString(string: self.strings.Login_EnterCodeTelegramTitle, font: Font.semibold(40.0), textColor: self.nebulaStyleEnabled ? self.theme.list.itemAccentColor : self.theme.list.itemPrimaryTextColor)
+         }
+         
+         self.textField.textField.attributedPlaceholder = NSAttributedString(string: textFieldPlaceholder, font: Font.regular(20.0), textColor: self.theme.list.itemPlaceholderTextColor)
+@@ -584,7 +587,7 @@
+             self.animationNode.visibility = false
+         }
+         
+-        let animationSize = CGSize(width: min(260.0, max(100.0, layout.size.width - 64.0)), height: 100.0)
++        let animationSize = CGSize(width: self.nebulaStyleEnabled ? min(260.0, max(100.0, layout.size.width - 64.0)) : 100.0, height: 100.0)
+         let titleSize = self.titleNode.updateLayout(CGSize(width: maximumWidth, height: CGFloat.greatestFiniteMagnitude))
+         
+         let currentOptionSize = self.currentOptionNode.updateLayout(CGSize(width: maximumWidth - 48.0, height: CGFloat.greatestFiniteMagnitude))
+@@ -643,11 +646,11 @@
+         
+         var items: [AuthorizationLayoutItem] = []
+         if layout.size.width > 320.0 {
+-            items.append(AuthorizationLayoutItem(node: self.nebulaArtwork, size: animationSize, spacingBefore: AuthorizationLayoutItemSpacing(weight: 10.0, maxValue: 10.0), spacingAfter: AuthorizationLayoutItemSpacing(weight: 0.0, maxValue: 0.0)))
++            items.append(AuthorizationLayoutItem(node: self.nebulaStyleEnabled ? self.nebulaArtwork : self.animationNode, size: animationSize, spacingBefore: AuthorizationLayoutItemSpacing(weight: 10.0, maxValue: 10.0), spacingAfter: AuthorizationLayoutItemSpacing(weight: 0.0, maxValue: 0.0)))
+             self.animationNode.updateLayout(size: animationSize)
+-            self.animationNode.isHidden = true
+-            self.nebulaArtwork.isHidden = false
+-            self.animationNode.visibility = false
++            self.animationNode.isHidden = self.nebulaStyleEnabled
++            self.nebulaArtwork.isHidden = !self.nebulaStyleEnabled
++            self.animationNode.visibility = !self.nebulaStyleEnabled
+         } else {
+             insets.top = navigationBarHeight
+             self.nebulaArtwork.isHidden = true
+diff --git a/submodules/AuthorizationUI/Sources/AuthorizationSequencePasswordEntryControllerNode.swift b/submodules/AuthorizationUI/Sources/AuthorizationSequencePasswordEntryControllerNode.swift
+--- a/submodules/AuthorizationUI/Sources/AuthorizationSequencePasswordEntryControllerNode.swift
++++ b/submodules/AuthorizationUI/Sources/AuthorizationSequencePasswordEntryControllerNode.swift
+@@ -1,4 +1,5 @@
+ import Foundation
++import NebulaSettingsContract
+ import UIKit
+ import AsyncDisplayKit
+ import Display
+@@ -14,6 +15,7 @@
+     private let theme: PresentationTheme
+     
+     private let animationNode: AnimatedStickerNode
++    private let nebulaStyleEnabled = NebulaSettingsStore.shared.loginStyle
+     private let nebulaArtwork: NebulaAuthArtNode
+     private let nebulaBackdrop: NebulaAuthBackdropNode
+     private let titleNode: ASTextNode
+@@ -73,7 +75,7 @@
+         self.titleNode = ASTextNode()
+         self.titleNode.isUserInteractionEnabled = false
+         self.titleNode.displaysAsynchronously = false
+-        self.titleNode.attributedText = NSAttributedString(string: NebulaAuthCopy(strings.baseLanguageCode).password, font: Font.semibold(28.0), textColor: self.theme.list.itemAccentColor)
++        self.titleNode.attributedText = NSAttributedString(string: NebulaSettingsStore.shared.loginStyle ? NebulaAuthCopy(strings.baseLanguageCode).password : strings.LoginPassword_Title, font: Font.semibold(28.0), textColor: self.nebulaStyleEnabled ? self.theme.list.itemAccentColor : self.theme.list.itemPrimaryTextColor)
+         
+         self.titleActivateAreaNode = AccessibilityAreaNode()
+         self.titleActivateAreaNode.accessibilityTraits = .staticText
+@@ -169,6 +171,7 @@
+     }
+     
+     func containerLayoutUpdated(_ layout: ContainerViewLayout, navigationBarHeight: CGFloat, transition: ContainedViewLayoutTransition) {
++        self.nebulaBackdrop.isHidden = !self.nebulaStyleEnabled
+         transition.updateFrame(node: self.nebulaBackdrop, frame: CGRect(origin: .zero, size: layout.size))
+         let previousInputHeight = self.layoutArguments?.0.inputHeight ?? 0.0
+         let newInputHeight = layout.inputHeight ?? 0.0
+@@ -192,7 +195,7 @@
+         let titleInset: CGFloat = layout.size.width > 320.0 ? 18.0 : 0.0
+         let additionalBottomInset: CGFloat = layout.size.width > 320.0 ? 110.0 : 20.0
+         
+-        self.titleNode.attributedText = NSAttributedString(string: NebulaAuthCopy(self.strings.baseLanguageCode).password, font: Font.semibold(28.0), textColor: self.theme.list.itemAccentColor)
++        self.titleNode.attributedText = NSAttributedString(string: self.nebulaStyleEnabled ? NebulaAuthCopy(self.strings.baseLanguageCode).password : self.strings.LoginPassword_Title, font: Font.semibold(28.0), textColor: self.nebulaStyleEnabled ? self.theme.list.itemAccentColor : self.theme.list.itemPrimaryTextColor)
+         
+         let animationSize = CGSize(width: 100.0, height: 100.0)
+         let titleSize = self.titleNode.measure(CGSize(width: maximumWidth, height: CGFloat.greatestFiniteMagnitude))
+@@ -220,11 +223,11 @@
+         }
+         
+         if layout.size.width > 320.0 {
+-            items.insert(AuthorizationLayoutItem(node: self.nebulaArtwork, size: animationSize, spacingBefore: AuthorizationLayoutItemSpacing(weight: 10.0, maxValue: 10.0), spacingAfter: AuthorizationLayoutItemSpacing(weight: 0.0, maxValue: 0.0)), at: 0)
++            items.insert(AuthorizationLayoutItem(node: self.nebulaStyleEnabled ? self.nebulaArtwork : self.animationNode, size: animationSize, spacingBefore: AuthorizationLayoutItemSpacing(weight: 10.0, maxValue: 10.0), spacingAfter: AuthorizationLayoutItemSpacing(weight: 0.0, maxValue: 0.0)), at: 0)
+             self.proceedNode.isHidden = false
+-            self.animationNode.isHidden = true
+-            self.nebulaArtwork.isHidden = false
+-            self.animationNode.visibility = false
++            self.animationNode.isHidden = self.nebulaStyleEnabled
++            self.nebulaArtwork.isHidden = !self.nebulaStyleEnabled
++            self.animationNode.visibility = !self.nebulaStyleEnabled
+         } else {
+             insets.top = navigationBarHeight
+             self.proceedNode.isHidden = true
+diff --git a/submodules/AuthorizationUI/Sources/AuthorizationSequencePhoneEntryControllerNode.swift b/submodules/AuthorizationUI/Sources/AuthorizationSequencePhoneEntryControllerNode.swift
+--- a/submodules/AuthorizationUI/Sources/AuthorizationSequencePhoneEntryControllerNode.swift
++++ b/submodules/AuthorizationUI/Sources/AuthorizationSequencePhoneEntryControllerNode.swift
+@@ -1,4 +1,5 @@
+ import Foundation
++import NebulaSettingsContract
+ import UIKit
+ import AsyncDisplayKit
+ import Display
+@@ -263,7 +264,7 @@
+     
+     func updateLayout(width: CGFloat) -> CGSize {
+         var switchSize = CGSize(width: 51.0, height: 31.0)
+-        if let switchView = self.switchNode.view as? UISwitch {
++        if let switchView = self.switchNode.view as? NebulaSwitchView {
+             if self.switchNode.bounds.size.width.isZero {
+                 switchView.sizeToFit()
+             }
+@@ -287,6 +288,7 @@
+     private let hasOtherAccounts: Bool
+     
+     private let animationNode: AnimatedStickerNode
++    private let nebulaStyleEnabled = NebulaSettingsStore.shared.loginStyle
+     private let nebulaArtwork: NebulaAuthArtNode
+     private let nebulaBackdrop: NebulaAuthBackdropNode
+     private let managedAnimationNode: ManagedPhoneAnimationNode
+@@ -385,7 +387,7 @@
+         self.titleNode = ASTextNode()
+         self.titleNode.isUserInteractionEnabled = true
+         self.titleNode.displaysAsynchronously = false
+-        self.titleNode.attributedText = NSAttributedString(string: account == nil ? strings.Login_NewNumber : NebulaAuthCopy(strings.baseLanguageCode).phone, font: Font.light(30.0), textColor: theme.list.itemAccentColor)
++        self.titleNode.attributedText = NSAttributedString(string: account == nil ? strings.Login_NewNumber : (NebulaSettingsStore.shared.loginStyle ? NebulaAuthCopy(strings.baseLanguageCode).phone : strings.Login_PhoneTitle), font: Font.light(30.0), textColor: NebulaSettingsStore.shared.loginStyle ? theme.list.itemAccentColor : theme.list.itemPrimaryTextColor)
+         
+         self.titleActivateAreaNode = AccessibilityAreaNode()
+         self.titleActivateAreaNode.accessibilityTraits = .staticText
+@@ -582,6 +584,7 @@
+     }
+     
+     func containerLayoutUpdated(_ layout: ContainerViewLayout, navigationBarHeight: CGFloat, transition: ContainedViewLayoutTransition) {
++        self.nebulaBackdrop.isHidden = !self.nebulaStyleEnabled
+         transition.updateFrame(node: self.nebulaBackdrop, frame: CGRect(origin: .zero, size: layout.size))
+         var insets = layout.insets(options: [])
+         insets.top = layout.statusBarHeight ?? 20.0
+@@ -592,13 +595,13 @@
+         let titleInset: CGFloat = layout.size.width > 320.0 ? 18.0 : 0.0
+         let additionalBottomInset: CGFloat = layout.size.width > 320.0 ? 80.0 : 10.0
+         
+-        self.titleNode.attributedText = NSAttributedString(string: self.account == nil ? self.strings.Login_NewNumber : NebulaAuthCopy(self.strings.baseLanguageCode).phone, font: Font.bold(28.0), textColor: self.theme.list.itemAccentColor)
++        self.titleNode.attributedText = NSAttributedString(string: self.account == nil ? self.strings.Login_NewNumber : (self.nebulaStyleEnabled ? NebulaAuthCopy(self.strings.baseLanguageCode).phone : self.strings.Login_PhoneTitle), font: Font.bold(28.0), textColor: self.nebulaStyleEnabled ? self.theme.list.itemAccentColor : self.theme.list.itemPrimaryTextColor)
+         self.titleActivateAreaNode.accessibilityLabel = self.titleNode.attributedText?.string ?? ""
+         
+         let inset: CGFloat = 24.0
+         let maximumWidth: CGFloat = min(430.0, layout.size.width)
+         
+-        let animationSize = CGSize(width: min(260.0, max(100.0, layout.size.width - 64.0)), height: 100.0)
++        let animationSize = CGSize(width: self.nebulaStyleEnabled ? min(260.0, max(100.0, layout.size.width - 64.0)) : 100.0, height: 100.0)
+         let titleSize = self.titleNode.measure(CGSize(width: maximumWidth, height: CGFloat.greatestFiniteMagnitude))
+         
+         let noticeInset: CGFloat = self.account == nil ? 32.0 : 0.0
+@@ -614,11 +617,11 @@
+         ]
+         
+         if layout.size.width > 320.0 {
+-            items.insert(AuthorizationLayoutItem(node: self.nebulaArtwork, size: animationSize, spacingBefore: AuthorizationLayoutItemSpacing(weight: 10.0, maxValue: 10.0), spacingAfter: AuthorizationLayoutItemSpacing(weight: 0.0, maxValue: 0.0)), at: 0)
++            items.insert(AuthorizationLayoutItem(node: self.nebulaStyleEnabled ? self.nebulaArtwork : self.animationNode, size: animationSize, spacingBefore: AuthorizationLayoutItemSpacing(weight: 10.0, maxValue: 10.0), spacingAfter: AuthorizationLayoutItemSpacing(weight: 0.0, maxValue: 0.0)), at: 0)
+             self.proceedNode.isHidden = false
+-            self.animationNode.isHidden = true
+-            self.nebulaArtwork.isHidden = false
+-            self.animationNode.visibility = false
++            self.animationNode.isHidden = self.nebulaStyleEnabled
++            self.nebulaArtwork.isHidden = !self.nebulaStyleEnabled
++            self.animationNode.visibility = !self.nebulaStyleEnabled
+         } else {
+             insets.top = navigationBarHeight
+             self.proceedNode.isHidden = true
+diff --git a/submodules/Display/Source/ActionSheetSwitchItem.swift b/submodules/Display/Source/ActionSheetSwitchItem.swift
+--- a/submodules/Display/Source/ActionSheetSwitchItem.swift
++++ b/submodules/Display/Source/ActionSheetSwitchItem.swift
+@@ -111,7 +111,7 @@
+         self.label.frame = CGRect(origin: CGPoint(x: 16.0, y: floorToScreenPixels((size.height - labelSize.height) / 2.0)), size: labelSize)
+         
+         var switchSize = CGSize(width: 51.0, height: 31.0)
+-        if let switchView = self.switchNode.view as? UISwitch {
++        if let switchView = self.switchNode.view as? NebulaSwitchView {
+             if self.switchNode.bounds.size.width.isZero {
+                 switchView.sizeToFit()
+             }
+diff --git a/submodules/Display/Source/SwitchNode.swift b/submodules/Display/Source/SwitchNode.swift
+--- a/submodules/Display/Source/SwitchNode.swift
++++ b/submodules/Display/Source/SwitchNode.swift
+@@ -1,21 +1,7 @@
+ import Foundation
++import NebulaSettingsContract
+ import UIKit
+ import AsyncDisplayKit
+-
+-private final class SwitchNodeViewLayer: CALayer {
+-    override func setNeedsDisplay() {
+-    }
+-}
+-
+-private final class SwitchNodeView: UISwitch {
+-    override class var layerClass: AnyClass {
+-        if #available(iOS 26.0, *) {
+-            return super.layerClass
+-        } else {
+-            return SwitchNodeViewLayer.self
+-        }
+-    }
+-}
+ 
+ open class SwitchNode: ASDisplayNode {
+     public var valueUpdated: ((Bool) -> Void)?
+@@ -24,7 +10,7 @@
+         didSet {
+             if self.isNodeLoaded {
+                 if oldValue != self.frameColor {
+-                    (self.view as! UISwitch).tintColor = self.frameColor
++                    (self.view as! NebulaSwitchControl).tintColor = self.frameColor
+                 }
+             }
+         }
+@@ -32,7 +18,7 @@
+     public var handleColor = UIColor(rgb: 0xffffff) {
+         didSet {
+             if self.isNodeLoaded {
+-                //(self.view as! UISwitch).thumbTintColor = self.handleColor
++                (self.view as! NebulaSwitchControl).thumbTintColor = self.handleColor
+             }
+         }
+     }
+@@ -40,7 +26,7 @@
+         didSet {
+             if self.isNodeLoaded {
+                 if oldValue != self.contentColor {
+-                    (self.view as! UISwitch).onTintColor = self.contentColor
++                    (self.view as! NebulaSwitchControl).onTintColor = self.contentColor
+                 }
+             }
+         }
+@@ -54,7 +40,7 @@
+             if (value != self._isOn) {
+                 self._isOn = value
+                 if self.isNodeLoaded {
+-                    (self.view as! UISwitch).setOn(value, animated: false)
++                    (self.view as! NebulaSwitchControl).setOn(value, animated: false)
+                 }
+             }
+         }
+@@ -64,7 +50,7 @@
+         super.init()
+         
+         self.setViewBlock({
+-            return SwitchNodeView()
++            return NebulaSwitchControl()
+         })
+     }
+     
+@@ -73,23 +59,25 @@
+         
+         self.view.isAccessibilityElement = false
+         
+-        (self.view as! UISwitch).backgroundColor = self.backgroundColor
+-        (self.view as! UISwitch).tintColor = self.frameColor
+-        (self.view as! UISwitch).onTintColor = self.contentColor
++        (self.view as! NebulaSwitchControl).backgroundColor = self.backgroundColor
++        (self.view as! NebulaSwitchControl).tintColor = self.frameColor
++        (self.view as! NebulaSwitchControl).onTintColor = self.contentColor
++        (self.view as! NebulaSwitchControl).thumbTintColor = self.handleColor
+         
+-        (self.view as! UISwitch).setOn(self._isOn, animated: false)
++        (self.view as! NebulaSwitchControl).setOn(self._isOn, animated: false)
+         
+-        (self.view as! UISwitch).addTarget(self, action: #selector(switchValueChanged(_:)), for: .valueChanged)
++        (self.view as! NebulaSwitchControl).addTarget(self, action: #selector(switchValueChanged(_:)), for: .valueChanged)
+     }
+     
+     public func setOn(_ value: Bool, animated: Bool) {
+         self._isOn = value
+         if self.isNodeLoaded {
+-            (self.view as! UISwitch).setOn(value, animated: animated)
++            (self.view as! NebulaSwitchControl).setOn(value, animated: animated)
+         }
+     }
+     
+     override open func calculateSizeThatFits(_ constrainedSize: CGSize) -> CGSize {
++        if NebulaSettingsStore.shared.switchStyle != 0 { return CGSize(width: 52.0, height: 32.0) }
+         if #available(iOS 26.0, *) {
+             return CGSize(width: 63.0, height: 28.0)
+         } else {
+@@ -97,7 +85,7 @@
+         }
+     }
+     
+-    @objc func switchValueChanged(_ view: UISwitch) {
++    @objc func switchValueChanged(_ view: NebulaSwitchControl) {
+         self._isOn = view.isOn
+         self.valueUpdated?(view.isOn)
+     }
+diff --git a/submodules/InstantPageUI/Sources/InstantPageSettingsSwitchItemNode.swift b/submodules/InstantPageUI/Sources/InstantPageSettingsSwitchItemNode.swift
+--- a/submodules/InstantPageUI/Sources/InstantPageSettingsSwitchItemNode.swift
++++ b/submodules/InstantPageUI/Sources/InstantPageSettingsSwitchItemNode.swift
+@@ -74,7 +74,7 @@
+         
+         let labelSize = self.labelNode.measure(CGSize(width: width - 46.0 - 5.0, height: 44.0))
+         self.labelNode.frame = CGRect(origin: CGPoint(x: 15.0, y: insets.top + floor((44.0 - labelSize.height) / 2.0)), size: labelSize)
+-        if let switchView = self.switchNode.view as? UISwitch {
++        if let switchView = self.switchNode.view as? NebulaSwitchView {
+             if self.switchNode.bounds.size.width.isZero {
+                 switchView.sizeToFit()
+             }
+diff --git a/submodules/ItemListPeerItem/Sources/ItemListPeerItem.swift b/submodules/ItemListPeerItem/Sources/ItemListPeerItem.swift
+--- a/submodules/ItemListPeerItem/Sources/ItemListPeerItem.swift
++++ b/submodules/ItemListPeerItem/Sources/ItemListPeerItem.swift
+@@ -1066,7 +1066,7 @@
+                 currentCheckNode = nil
+             }
+             
+-            if let currentSwitchNode, let switchView = currentSwitchNode.view as? UISwitch {
++            if let currentSwitchNode, let switchView = currentSwitchNode.view as? NebulaSwitchView {
+                 if currentSwitchNode.bounds.size.width.isZero {
+                     switchView.sizeToFit()
+                 }
+diff --git a/submodules/ItemListUI/Sources/Items/ItemListExpandableSwitchItem.swift b/submodules/ItemListUI/Sources/Items/ItemListExpandableSwitchItem.swift
+--- a/submodules/ItemListUI/Sources/Items/ItemListExpandableSwitchItem.swift
++++ b/submodules/ItemListUI/Sources/Items/ItemListExpandableSwitchItem.swift
+@@ -293,7 +293,7 @@
+     override public func didLoad() {
+         super.didLoad()
+         
+-        (self.switchNode.view as? UISwitch)?.addTarget(self, action: #selector(self.switchValueChanged(_:)), for: .valueChanged)
++        (self.switchNode.view as? NebulaSwitchView)?.addTarget(self, action: #selector(self.switchValueChanged(_:)), for: .valueChanged)
+         self.switchGestureNode.view.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(self.tapGesture(_:))))
+     }
+     
+@@ -532,7 +532,7 @@
+                         transition.updateTransformRotation(node: strongSelf.expandArrowNode, angle: item.isExpanded ? CGFloat.pi * -0.5 : CGFloat.pi * 0.5)
+                     }
+                     
+-                    if let switchView = strongSelf.switchNode.view as? UISwitch {
++                    if let switchView = strongSelf.switchNode.view as? NebulaSwitchView {
+                         if strongSelf.switchNode.bounds.size.width.isZero {
+                             switchView.sizeToFit()
+                         }
+@@ -701,7 +701,7 @@
+         self.layer.animateAlpha(from: 1.0, to: 0.0, duration: 0.15, removeOnCompletion: false)
+     }
+     
+-    @objc private func switchValueChanged(_ switchView: UISwitch) {
++    @objc private func switchValueChanged(_ switchView: NebulaSwitchView) {
+         if let item = self.item {
+             let value = switchView.isOn
+             item.updated(value)
+@@ -709,7 +709,7 @@
+     }
+     
+     @objc private func tapGesture(_ recognizer: UITapGestureRecognizer) {
+-        if let item = self.item, let switchView = self.switchNode.view as? UISwitch, case .ended = recognizer.state {
++        if let item = self.item, let switchView = self.switchNode.view as? NebulaSwitchView, case .ended = recognizer.state {
+             if item.enabled {
+                 let value = switchView.isOn
+                 item.updated(!value)
+diff --git a/submodules/ItemListUI/Sources/Items/ItemListSwitchItem.swift b/submodules/ItemListUI/Sources/Items/ItemListSwitchItem.swift
+--- a/submodules/ItemListUI/Sources/Items/ItemListSwitchItem.swift
++++ b/submodules/ItemListUI/Sources/Items/ItemListSwitchItem.swift
+@@ -238,7 +238,7 @@
+     override public func didLoad() {
+         super.didLoad()
+         
+-        (self.switchNode.view as? UISwitch)?.addTarget(self, action: #selector(self.switchValueChanged(_:)), for: .valueChanged)
++        (self.switchNode.view as? NebulaSwitchView)?.addTarget(self, action: #selector(self.switchValueChanged(_:)), for: .valueChanged)
+         self.switchGestureNode.view.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(self.tapGesture(_:))))
+     }
+     
+@@ -538,7 +538,7 @@
+                         }
+                     }
+                     
+-                    if let switchView = strongSelf.switchNode.view as? UISwitch {
++                    if let switchView = strongSelf.switchNode.view as? NebulaSwitchView {
+                         if strongSelf.switchNode.bounds.size.width.isZero {
+                             switchView.sizeToFit()
+                         }
+@@ -703,7 +703,7 @@
+         self.layer.animateAlpha(from: 1.0, to: 0.0, duration: 0.15, removeOnCompletion: false)
+     }
+     
+-    @objc private func switchValueChanged(_ switchView: UISwitch) {
++    @objc private func switchValueChanged(_ switchView: NebulaSwitchView) {
+         if let item = self.item {
+             let value = switchView.isOn
+             item.updated(value)
+@@ -711,7 +711,7 @@
+     }
+     
+     @objc private func tapGesture(_ recognizer: UITapGestureRecognizer) {
+-        if let item = self.item, let switchView = self.switchNode.view as? UISwitch, case .ended = recognizer.state {
++        if let item = self.item, let switchView = self.switchNode.view as? NebulaSwitchView, case .ended = recognizer.state {
+             if item.enabled && !item.displayLocked {
+                 let value = switchView.isOn
+                 item.updated(!value)
+diff --git a/submodules/PeerInfoUI/Sources/ItemListReactionItem.swift b/submodules/PeerInfoUI/Sources/ItemListReactionItem.swift
+--- a/submodules/PeerInfoUI/Sources/ItemListReactionItem.swift
++++ b/submodules/PeerInfoUI/Sources/ItemListReactionItem.swift
+@@ -189,7 +189,7 @@
+     override public func didLoad() {
+         super.didLoad()
+         
+-        (self.switchNode.view as? UISwitch)?.addTarget(self, action: #selector(self.switchValueChanged(_:)), for: .valueChanged)
++        (self.switchNode.view as? NebulaSwitchView)?.addTarget(self, action: #selector(self.switchValueChanged(_:)), for: .valueChanged)
+         self.switchGestureNode.view.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(self.tapGesture(_:))))
+     }
+     
+@@ -384,7 +384,7 @@
+                     }
+                     
+                     strongSelf.titleNode.frame = CGRect(origin: CGPoint(x: leftInset, y: floorToScreenPixels((contentSize.height - titleLayout.size.height) / 2.0) + 1.0), size: titleLayout.size)
+-                    if let switchView = strongSelf.switchNode.view as? UISwitch {
++                    if let switchView = strongSelf.switchNode.view as? NebulaSwitchView {
+                         if strongSelf.switchNode.bounds.size.width.isZero {
+                             switchView.sizeToFit()
+                         }
+@@ -468,7 +468,7 @@
+         self.layer.animateAlpha(from: 1.0, to: 0.0, duration: 0.15, removeOnCompletion: false)
+     }
+     
+-    @objc private func switchValueChanged(_ switchView: UISwitch) {
++    @objc private func switchValueChanged(_ switchView: NebulaSwitchView) {
+         if let item = self.item {
+             let value = switchView.isOn
+             item.updated(value)
+@@ -476,7 +476,7 @@
+     }
+     
+     @objc private func tapGesture(_ recognizer: UITapGestureRecognizer) {
+-        if let item = self.item, let switchView = self.switchNode.view as? UISwitch, case .ended = recognizer.state {
++        if let item = self.item, let switchView = self.switchNode.view as? NebulaSwitchView, case .ended = recognizer.state {
+             if item.enabled {
+                 let value = switchView.isOn
+                 item.updated(!value)
+diff --git a/submodules/TelegramUI/Components/ListActionItemComponent/Sources/ListActionItemComponent.swift b/submodules/TelegramUI/Components/ListActionItemComponent/Sources/ListActionItemComponent.swift
+--- a/submodules/TelegramUI/Components/ListActionItemComponent/Sources/ListActionItemComponent.swift
++++ b/submodules/TelegramUI/Components/ListActionItemComponent/Sources/ListActionItemComponent.swift
+@@ -827,7 +827,7 @@
+                     }
+                     
+                     var switchSize = CGSize(width: 51.0, height: 31.0)
+-                    if let switchView = switchNode.view as? UISwitch {
++                    if let switchView = switchNode.view as? NebulaSwitchView {
+                         if switchNode.bounds.size.width.isZero {
+                             switchView.sizeToFit()
+                         }
+@@ -933,7 +933,7 @@
+                     }
+                     
+                     var switchSize = CGSize(width: 51.0, height: 31.0)
+-                    if let switchView = switchNode.view as? UISwitch {
++                    if let switchView = switchNode.view as? NebulaSwitchView {
+                         if switchNode.bounds.size.width.isZero {
+                             switchView.sizeToFit()
+                         }
+diff --git a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/ListItems/PeerInfoScreenSwitchItem.swift b/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/ListItems/PeerInfoScreenSwitchItem.swift
+--- a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/ListItems/PeerInfoScreenSwitchItem.swift
++++ b/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/ListItems/PeerInfoScreenSwitchItem.swift
+@@ -184,7 +184,7 @@
+         
+         transition.updateFrame(node: self.textNode, frame: textFrame)
+         
+-        if let switchView = self.switchNode.view as? UISwitch {
++        if let switchView = self.switchNode.view as? NebulaSwitchView {
+             if self.switchNode.bounds.size.width.isZero {
+                 switchView.sizeToFit()
+             }
+diff --git a/submodules/TelegramUI/Components/SwitchComponent/Sources/SwitchComponent.swift b/submodules/TelegramUI/Components/SwitchComponent/Sources/SwitchComponent.swift
+--- a/submodules/TelegramUI/Components/SwitchComponent/Sources/SwitchComponent.swift
++++ b/submodules/TelegramUI/Components/SwitchComponent/Sources/SwitchComponent.swift
+@@ -33,12 +33,12 @@
+     }
+     
+     public final class View: UIView {
+-        private let switchView: UISwitch
++        private let switchView: NebulaSwitchControl
+     
+         private var component: SwitchComponent?
+         
+         override init(frame: CGRect) {
+-            self.switchView = UISwitch()
++            self.switchView = NebulaSwitchControl()
+             
+             super.init(frame: frame)
+             
+@@ -58,7 +58,8 @@
+         func update(component: SwitchComponent, availableSize: CGSize, state: EmptyComponentState, environment: Environment<EnvironmentType>, transition: ComponentTransition) -> CGSize {
+             self.component = component
+           
+-            self.switchView.tintColor = component.tintColor
++            self.switchView.onTintColor = component.tintColor
++            self.switchView.tintColor = UIColor.secondaryLabel.withAlphaComponent(0.3)
+             self.switchView.setOn(component.value, animated: !transition.animation.isImmediate)
+             
+             self.switchView.sizeToFit()

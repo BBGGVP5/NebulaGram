@@ -1,0 +1,275 @@
+diff --git a/submodules/TelegramUI/Components/Chat/ChatMessageAnimatedStickerItemNode/Sources/ChatMessageAnimatedStickerItemNode.swift b/submodules/TelegramUI/Components/Chat/ChatMessageAnimatedStickerItemNode/Sources/ChatMessageAnimatedStickerItemNode.swift
+--- a/submodules/TelegramUI/Components/Chat/ChatMessageAnimatedStickerItemNode/Sources/ChatMessageAnimatedStickerItemNode.swift
++++ b/submodules/TelegramUI/Components/Chat/ChatMessageAnimatedStickerItemNode/Sources/ChatMessageAnimatedStickerItemNode.swift
+@@ -2066,6 +2066,10 @@
+         switch recognizer.state {
+         case .ended:
+             if let item = self.item, let (gesture, location) = recognizer.lastRecognizedGestureAndLocation {
++                if case .doubleTap = gesture, let gestureItem = self.item, gestureItem.nebulaPerformOwnDoubleTap(gestureItem.message) {
++                    self.containerNode.cancelGesture()
++                    return
++                }
+                 if let action = self.gestureRecognized(gesture: gesture, location: location, recognizer: recognizer) {
+                     if case .doubleTap = gesture {
+                         self.containerNode.cancelGesture()
+diff --git a/submodules/TelegramUI/Components/Chat/ChatMessageBubbleItemNode/Sources/ChatMessageBubbleItemNode.swift b/submodules/TelegramUI/Components/Chat/ChatMessageBubbleItemNode/Sources/ChatMessageBubbleItemNode.swift
+--- a/submodules/TelegramUI/Components/Chat/ChatMessageBubbleItemNode/Sources/ChatMessageBubbleItemNode.swift
++++ b/submodules/TelegramUI/Components/Chat/ChatMessageBubbleItemNode/Sources/ChatMessageBubbleItemNode.swift
+@@ -2493,14 +2493,14 @@
+                 authorNameColor = color
+ 
+                 if case let .peer(peerId) = item.chatLocation, let authorPeerId = item.message.author?.id, authorPeerId == peerId {
+-                    if effectiveAuthor is TelegramChannel, let emojiStatus = effectiveAuthor.emojiStatus {
++                    if !NebulaSettingsStore.shared.hidePremiumStatus, effectiveAuthor is TelegramChannel, let emojiStatus = effectiveAuthor.emojiStatus {
+                         currentCredibilityIcon = (.animation(content: .customEmoji(fileId: emojiStatus.fileId), size: CGSize(width: 20.0, height: 20.0), placeholderColor: incoming ? item.presentationData.theme.theme.chat.message.incoming.mediaPlaceholderColor : item.presentationData.theme.theme.chat.message.outgoing.mediaPlaceholderColor, themeColor: color.withMultipliedAlpha(0.4), loopMode: .count(2)), nil)
+                     }
+                 } else if effectiveAuthor.isScam {
+                     currentCredibilityIcon = (.text(color: incoming ? item.presentationData.theme.theme.chat.message.incoming.scamColor : item.presentationData.theme.theme.chat.message.outgoing.scamColor, string: item.presentationData.strings.Message_ScamAccount.uppercased()), nil)
+                 } else if effectiveAuthor.isFake {
+                     currentCredibilityIcon = (.text(color: incoming ? item.presentationData.theme.theme.chat.message.incoming.scamColor : item.presentationData.theme.theme.chat.message.outgoing.scamColor, string: item.presentationData.strings.Message_FakeAccount.uppercased()), nil)
+-                } else if let emojiStatus = effectiveAuthor.emojiStatus {
++                } else if !NebulaSettingsStore.shared.hidePremiumStatus, let emojiStatus = effectiveAuthor.emojiStatus {
+                     currentCredibilityIcon = (.animation(content: .customEmoji(fileId: emojiStatus.fileId), size: CGSize(width: 20.0, height: 20.0), placeholderColor: incoming ? item.presentationData.theme.theme.chat.message.incoming.mediaPlaceholderColor : item.presentationData.theme.theme.chat.message.outgoing.mediaPlaceholderColor, themeColor: color.withMultipliedAlpha(0.4), loopMode: .count(2)), emojiStatus.color.flatMap { UIColor(rgb: UInt32(bitPattern: $0)) })
+                 } else if effectiveAuthor.isVerified {
+                     currentCredibilityIcon = (.verified(fillColor: item.presentationData.theme.theme.list.itemCheckColors.fillColor, foregroundColor: item.presentationData.theme.theme.list.itemCheckColors.foregroundColor, sizeType: .compact), nil)
+@@ -5761,6 +5761,9 @@
+                     case let .optionalAction(f):
+                         f()
+                     case let .openContextMenu(openContextMenu):
++                        if case .doubleTap = gesture, item.nebulaPerformOwnDoubleTap(openContextMenu.tapMessage) {
++                            return
++                        }
+                         if canAddMessageReactions(message: EngineMessage(openContextMenu.tapMessage)) {
+                             item.controllerInteraction.updateMessageReaction(openContextMenu.tapMessage, .default, false, nil)
+                         } else {
+@@ -5770,6 +5773,10 @@
+                 } else if case .tap = gesture {
+                     item.controllerInteraction.clickThroughMessage(self.view, location)
+                 } else if case .doubleTap = gesture {
++                    if item.nebulaPerformOwnDoubleTap(item.message) {
++                        self.mainContainerNode.cancelGesture()
++                        return
++                    }
+                     if canAddMessageReactions(message: EngineMessage(item.message)) {
+                         item.controllerInteraction.updateMessageReaction(item.message, .default, false, nil)
+                     }
+diff --git a/submodules/TelegramUI/Components/Chat/ChatMessageInstantVideoItemNode/Sources/ChatMessageInstantVideoItemNode.swift b/submodules/TelegramUI/Components/Chat/ChatMessageInstantVideoItemNode/Sources/ChatMessageInstantVideoItemNode.swift
+--- a/submodules/TelegramUI/Components/Chat/ChatMessageInstantVideoItemNode/Sources/ChatMessageInstantVideoItemNode.swift
++++ b/submodules/TelegramUI/Components/Chat/ChatMessageInstantVideoItemNode/Sources/ChatMessageInstantVideoItemNode.swift
+@@ -959,6 +959,10 @@
+         switch recognizer.state {
+         case .ended:
+             if let (gesture, location) = recognizer.lastRecognizedGestureAndLocation {
++                if case .doubleTap = gesture, let gestureItem = self.item, gestureItem.nebulaPerformOwnDoubleTap(gestureItem.message) {
++                    self.containerNode.cancelGesture()
++                    return
++                }
+                 if let action = self.gestureRecognized(gesture: gesture, location: location, recognizer: nil) {
+                     if case .doubleTap = gesture {
+                         self.containerNode.cancelGesture()
+diff --git a/submodules/TelegramUI/Components/Chat/ChatMessageItem/BUILD b/submodules/TelegramUI/Components/Chat/ChatMessageItem/BUILD
+--- a/submodules/TelegramUI/Components/Chat/ChatMessageItem/BUILD
++++ b/submodules/TelegramUI/Components/Chat/ChatMessageItem/BUILD
+@@ -10,6 +10,8 @@
+         "-warnings-as-errors",
+     ],
+     deps = [
++        "//submodules/NebulaSettingsContract:NebulaSettingsContract",
++        "//submodules/Postbox",
+         "//submodules/AsyncDisplayKit",
+         "//submodules/Display",
+         "//submodules/SSignalKit/SwiftSignalKit",
+diff --git a/submodules/TelegramUI/Components/Chat/ChatMessageStickerItemNode/Sources/ChatMessageStickerItemNode.swift b/submodules/TelegramUI/Components/Chat/ChatMessageStickerItemNode/Sources/ChatMessageStickerItemNode.swift
+--- a/submodules/TelegramUI/Components/Chat/ChatMessageStickerItemNode/Sources/ChatMessageStickerItemNode.swift
++++ b/submodules/TelegramUI/Components/Chat/ChatMessageStickerItemNode/Sources/ChatMessageStickerItemNode.swift
+@@ -1501,6 +1501,10 @@
+                 if case .doubleTap = gesture {
+                     self.containerNode.cancelGesture()
+                 }
++                if case .doubleTap = gesture, let gestureItem = self.item, gestureItem.nebulaPerformOwnDoubleTap(gestureItem.message) {
++                    self.containerNode.cancelGesture()
++                    return
++                }
+                 if let item = self.item, let action = self.gestureRecognized(gesture: gesture, location: location, recognizer: nil) {
+                     if case .doubleTap = gesture {
+                         self.containerNode.cancelGesture()
+diff --git a/submodules/TelegramUI/Components/ChatControllerInteraction/Sources/ChatControllerInteraction.swift b/submodules/TelegramUI/Components/ChatControllerInteraction/Sources/ChatControllerInteraction.swift
+--- a/submodules/TelegramUI/Components/ChatControllerInteraction/Sources/ChatControllerInteraction.swift
++++ b/submodules/TelegramUI/Components/ChatControllerInteraction/Sources/ChatControllerInteraction.swift
+@@ -307,6 +307,8 @@
+     public let requestMessageUpdate: (EngineMessage.Id, Bool, ControlledTransition?) -> Void
+     /// Synchronous editability predicate for rich-text checkbox toggling (bridges the
+     /// internal `canEditMessage`, which the component module cannot call). Mirrors `canSetupReply`.
++    public var nebulaSaveMessages: (([EngineMessage.Id]) -> Void)?
++    public var nebulaEditMessage: ((EngineMessage.Id) -> Void)?
+     public let canEditMessageRichText: (EngineRawMessage) -> Bool
+     /// Toggle a rich-message checklist checkbox at `path` to `value` and persist via an edit.
+     public let toggleMessageRichTextCheckbox: (EngineMessage.Id, [Int], Bool) -> Void
+diff --git a/submodules/TelegramUI/Components/ChatTitleView/Sources/ChatTitleComponent.swift b/submodules/TelegramUI/Components/ChatTitleView/Sources/ChatTitleComponent.swift
+--- a/submodules/TelegramUI/Components/ChatTitleView/Sources/ChatTitleComponent.swift
++++ b/submodules/TelegramUI/Components/ChatTitleView/Sources/ChatTitleComponent.swift
+@@ -73,6 +73,9 @@
+     private var activities: ChatTitleComponent.Activities?
+     private var nebulaSettingsObservation: SettingsObservation?
+     private var nebulaWasPremiumHidden = NebulaSettingsStore.shared.hidePremiumStatus
++    private var nebulaWasFloating = NebulaSettingsStore.shared.floatingChatHeader
++    private var nebulaWasAdaptive = NebulaSettingsStore.shared.adaptiveChatHeader
++    private var nebulaWasCentered = NebulaSettingsStore.shared.centeredChatHeader
+     private var networkState: AccountNetworkState?
+     
+     private var ignoreParentTransitionRequests: Bool = false
+@@ -86,8 +89,14 @@
+         self.nebulaSettingsObservation = NebulaSettingsStore.shared.observe { [weak self] in
+             guard let self else { return }
+             let hidden = NebulaSettingsStore.shared.hidePremiumStatus
+-            guard self.nebulaWasPremiumHidden != hidden else { return }
++            let floating = NebulaSettingsStore.shared.floatingChatHeader
++            let adaptive = NebulaSettingsStore.shared.adaptiveChatHeader
++            let centered = NebulaSettingsStore.shared.centeredChatHeader
++            guard self.nebulaWasPremiumHidden != hidden || self.nebulaWasFloating != floating || self.nebulaWasAdaptive != adaptive || self.nebulaWasCentered != centered else { return }
+             self.nebulaWasPremiumHidden = hidden
++            self.nebulaWasFloating = floating
++            self.nebulaWasAdaptive = adaptive
++            self.nebulaWasCentered = centered
+             self.update(transition: .immediate)
+         }
+     }
+@@ -167,7 +176,7 @@
+         let transition = ComponentTransition(transition)
+         
+         if let contentData = self.contentData {
+-            let displayBackground: Bool = true
++            let displayBackground = NebulaSettingsStore.shared.floatingChatHeader
+             
+             let titleSize = self.title.update(
+                 transition: transition,
+@@ -183,6 +192,8 @@
+                     activities: self.activities,
+                     networkState: self.networkState,
+                     hidePremiumStatus: NebulaSettingsStore.shared.hidePremiumStatus,
++                    adaptiveWidth: NebulaSettingsStore.shared.adaptiveChatHeader,
++                    centeredTitle: NebulaSettingsStore.shared.centeredChatHeader,
+                     tapped: { [weak self] in
+                         guard let self else {
+                             return
+@@ -212,7 +223,7 @@
+                 }
+                 transition.setFrame(view: titleView, frame: CGRect(origin: CGPoint(), size: titleSize))
+             }
+-            return titleSize
++            return NebulaSettingsStore.shared.centeredChatHeader ? titleSize : availableSize
+         } else {
+             return availableSize
+         }
+@@ -251,6 +262,8 @@
+     public let activities: Activities?
+     public let networkState: AccountNetworkState?
+     public let hidePremiumStatus: Bool
++    public let adaptiveWidth: Bool
++    public let centeredTitle: Bool
+     public let tapped: () -> Void
+     public let longTapped: () -> Void
+     
+@@ -266,6 +279,8 @@
+         activities: Activities?,
+         networkState: AccountNetworkState?,
+         hidePremiumStatus: Bool = NebulaSettingsStore.shared.hidePremiumStatus,
++        adaptiveWidth: Bool = true,
++        centeredTitle: Bool = true,
+         tapped: @escaping () -> Void,
+         longTapped: @escaping () -> Void
+     ) {
+@@ -280,6 +295,8 @@
+         self.activities = activities
+         self.networkState = networkState
+         self.hidePremiumStatus = hidePremiumStatus
++        self.adaptiveWidth = adaptiveWidth
++        self.centeredTitle = centeredTitle
+         self.tapped = tapped
+         self.longTapped = longTapped
+     }
+@@ -315,6 +332,7 @@
+         if lhs.networkState != rhs.networkState {
+             return false
+         }
++        if lhs.adaptiveWidth != rhs.adaptiveWidth || lhs.centeredTitle != rhs.centeredTitle { return false }
+         if lhs.hidePremiumStatus != rhs.hidePremiumStatus {
+             return false
+         }
+@@ -1098,10 +1116,10 @@
+             contentSize.width = max(min(150.0, availableSize.width - containerSideInset * 2.0), contentSize.width)
+             contentSize.height += subtitleSize.height
+             
+-            let containerSize = CGSize(width: contentSize.width + containerSideInset * 2.0, height: 44.0)
++            let containerSize = CGSize(width: component.adaptiveWidth ? contentSize.width + containerSideInset * 2.0 : availableSize.width, height: 44.0)
+             let containerFrame = CGRect(origin: CGPoint(x: 0.0, y: floorToScreenPixels((availableSize.height - containerSize.height) * 0.5)), size: containerSize)
+             
+-            let titleFrame = CGRect(origin: CGPoint(x: titleLeftIconsWidth + floor((containerFrame.width - titleSize.width - titleLeftIconsWidth - titleRightIconsWidth) * 0.5), y: floor((containerFrame.height - contentSize.height) * 0.5)), size: titleSize)
++            let titleFrame = CGRect(origin: CGPoint(x: component.centeredTitle ? titleLeftIconsWidth + floor((containerFrame.width - titleSize.width - titleLeftIconsWidth - titleRightIconsWidth) * 0.5) : containerSideInset + titleLeftIconsWidth, y: floor((containerFrame.height - contentSize.height) * 0.5)), size: titleSize)
+             if let titleView = self.title.view {
+                 if titleView.superview == nil {
+                     titleView.isUserInteractionEnabled = false
+@@ -1110,7 +1128,7 @@
+                 transition.setFrame(view: titleView, frame: titleFrame)
+             }
+             
+-            let subtitleFrame = CGRect(origin: CGPoint(x: floor((containerFrame.width - subtitleSize.width) * 0.5), y: titleFrame.maxY), size: subtitleSize)
++            let subtitleFrame = CGRect(origin: CGPoint(x: component.centeredTitle ? floor((containerFrame.width - subtitleSize.width) * 0.5) : containerSideInset, y: titleFrame.maxY), size: subtitleSize)
+             // Internally, the status view has zero width
+             transition.setFrame(view: subtitleNode.view, frame: CGRect(origin: CGPoint(x: subtitleFrame.midX, y: subtitleFrame.minY), size: CGSize(width: 0.0, height: subtitleFrame.height)))
+             
+diff --git a/submodules/TelegramUI/Components/ChatTitleView/Sources/ChatTitleView.swift b/submodules/TelegramUI/Components/ChatTitleView/Sources/ChatTitleView.swift
+--- a/submodules/TelegramUI/Components/ChatTitleView/Sources/ChatTitleView.swift
++++ b/submodules/TelegramUI/Components/ChatTitleView/Sources/ChatTitleView.swift
+@@ -217,6 +217,8 @@
+     private var nebulaAlignmentObservation: SettingsObservation?
+     private var nebulaWasPremiumHidden = NebulaSettingsStore.shared.hidePremiumStatus
+     private var nebulaWasCentered = NebulaSettingsStore.shared.centeredChatHeader
++    private var nebulaWasFloating = NebulaSettingsStore.shared.floatingChatHeader
++    private var nebulaWasAdaptive = NebulaSettingsStore.shared.adaptiveChatHeader
+     
+     public var requestUpdate: ((ContainedViewLayoutTransition) -> Void)?
+     
+@@ -806,7 +808,11 @@
+             guard let self else { return }
+             let centered = NebulaSettingsStore.shared.centeredChatHeader
+             let premiumHidden = NebulaSettingsStore.shared.hidePremiumStatus
+-            guard self.nebulaWasCentered != centered || self.nebulaWasPremiumHidden != premiumHidden else { return }
++            let floating = NebulaSettingsStore.shared.floatingChatHeader
++            let adaptive = NebulaSettingsStore.shared.adaptiveChatHeader
++            guard self.nebulaWasCentered != centered || self.nebulaWasPremiumHidden != premiumHidden || self.nebulaWasFloating != floating || self.nebulaWasAdaptive != adaptive else { return }
++            self.nebulaWasFloating = floating
++            self.nebulaWasAdaptive = adaptive
+             self.nebulaWasCentered = centered
+             if self.nebulaWasPremiumHidden != premiumHidden {
+                 self.nebulaWasPremiumHidden = premiumHidden
+@@ -1123,6 +1129,11 @@
+             backgroundFrame.size.width = max(backgroundFrame.maxX, activityFrame.maxX) - backgroundFrame.minX
+         }
+         backgroundFrame = backgroundFrame.insetBy(dx: -12.0, dy: 0.0)
++        if !NebulaSettingsStore.shared.adaptiveChatHeader {
++            backgroundFrame.origin.x = 8.0
++            backgroundFrame.size.width = max(0.0, size.width - 16.0)
++        }
++        self.backgroundView.isHidden = !NebulaSettingsStore.shared.floatingChatHeader
+         let componentTransition = ComponentTransition(transition)
+         componentTransition.setFrame(view: self.backgroundView, frame: backgroundFrame)
+         self.backgroundView.update(size: backgroundFrame.size, cornerRadius: backgroundFrame.height * 0.5, isDark: self.theme.overallDarkAppearance, tintColor: .init(kind: .panel), isInteractive: false, transition: componentTransition)
+diff --git a/submodules/TelegramUI/Sources/ChatMessageContextControllerContentSource.swift b/submodules/TelegramUI/Sources/ChatMessageContextControllerContentSource.swift
+--- a/submodules/TelegramUI/Sources/ChatMessageContextControllerContentSource.swift
++++ b/submodules/TelegramUI/Sources/ChatMessageContextControllerContentSource.swift
+@@ -1,4 +1,5 @@
+ import Foundation
++import NebulaSettingsContract
+ import UIKit
+ import AsyncDisplayKit
+ import Display
+@@ -30,7 +31,7 @@
+ final class ChatMessageContextExtractedContentSource: ContextExtractedContentSource {
+     let keepInPlace: Bool = false
+     let ignoreContentTouches: Bool = false
+-    let blurBackground: Bool = true
++    var blurBackground: Bool { NebulaSettingsStore.shared.messageMenuBlur }
+     let centerVertically: Bool
+     let keepDefaultContentTouches: Bool
+     

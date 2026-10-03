@@ -7,6 +7,7 @@ compiles/runs the actual Bazel-side Foundation sources without SWIFT_PACKAGE.
 import argparse
 import json
 import re
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -39,6 +40,7 @@ def main():
         raise SystemExit(f'Upstream revision mismatch: expected {revision}, found {actual}')
     subprocess.run([sys.executable, str(ROOT / 'scripts/generate-settings-icons.py'), '--check'], check=True)
     subprocess.run([sys.executable, str(ROOT / 'scripts/generate-role-badges.py'), '--check'], check=True)
+    subprocess.run([sys.executable, str(ROOT / 'scripts/generate-ios-icon-packs.py'), '--check'], check=True)
     patches = sorted((ROOT / 'patches/ios').glob('*.patch'))
     paths = set()
     for patch in patches:
@@ -46,7 +48,7 @@ def main():
         if not pairs:
             raise SystemExit(f'Empty patch: {patch.name}')
         for a, b in pairs:
-            if a != b or not (a.startswith('submodules/') or a in {'Telegram/BUILD', 'Telegram/WidgetKitWidget/TodayViewController.swift', 'Telegram/Telegram-iOS/AlternateIcons.plist', 'Telegram/Telegram-iOS/AlternateIcons-iPad.plist'}) or '..' in Path(a).parts or '\\' in a:
+            if a != b or not (a.startswith('submodules/') or a in {'Telegram/NotificationService/Sources/NotificationService.swift', 'Telegram/NotificationService/BUILD', 'Telegram/BUILD', 'Telegram/WidgetKitWidget/TodayViewController.swift', 'Telegram/Telegram-iOS/AlternateIcons.plist', 'Telegram/Telegram-iOS/AlternateIcons-iPad.plist'}) or '..' in Path(a).parts or '\\' in a:
                 raise SystemExit('Unexpected patch path: ' + a)
             paths.add(a)
     with tempfile.TemporaryDirectory(prefix='nebula-ios-bootstrap-') as temporary:
@@ -214,8 +216,9 @@ def main():
         root_controller = (temp / 'submodules/TelegramUI/Sources/TelegramRootController.swift').read_text(encoding='utf-8')
         assert 'controllers = nebulaOrderedControllers(controllers)' in root_controller
         assert 'pair.0 !== pair.1' in root_controller and '$0 === old' in root_controller
-        assert 'if store.showContactsTab' in root_controller
-        assert 'if store.showProfileTab' in root_controller and 'if store.showSettingsTab' in root_controller
+        for key in ['showContactsTab', 'showProfileTab', 'showSettingsTab']:
+            assert f'(store.{key} || !store.showBottomBar)' in root_controller
+        assert 'nebulaNavigationButton' in (temp / 'submodules/TabBarUI/Sources/TabBarContollerNode.swift').read_text(encoding='utf-8')
         assert root_controller.index('self.nebulaProfileController = profileController') < root_controller.index('controllers = nebulaOrderedControllers(controllers)')
         assert 'self.pushViewController(settings, animated: true)' in root_controller
         print('OK: native Telegram tab bar retains its lens, search, gestures and badges with live labels, compact width and native profile tab', flush=True)
@@ -310,6 +313,25 @@ print("OK: embedded catalog and Bazel-side Foundation store compiled and ran")
             # Real SDK typecheck for the UIKit-only transfer adapter. This is not
             # a mock of Telegram, nor a full SettingsUI/Telegram application build.
             sdk = run('xcrun', '--sdk', 'iphonesimulator', '--show-sdk-path', text=True).strip()
+            app_bundle = temp / 'submodules/AppBundle'
+            header_path = 'submodules/AppBundle/PublicHeaders/AppBundle/AppBundle.h'
+            header = temp / header_path
+            header.parent.mkdir(parents=True, exist_ok=True)
+            header.write_bytes(run('git', '-C', str(tree), 'show', revision + ':' + header_path))
+            subprocess.run(['xcrun', '--sdk', 'iphonesimulator', 'clang', '-fsyntax-only',
+                            '-fobjc-arc', '-fmodules', '-Werror', '-target', 'arm64-apple-ios13.0-simulator',
+                            '-isysroot', sdk, '-I', str(app_bundle / 'PublicHeaders'),
+                            str(app_bundle / 'Sources/AppBundle/AppBundle.m')], check=True)
+            icon_catalog = temp / 'IconPacks.xcassets'
+            icon_catalog.mkdir()
+            (icon_catalog / 'Contents.json').write_text('{"info":{"author":"xcode","version":1}}', encoding='utf-8')
+            for asset in (temp / 'submodules/TelegramUI/Images.xcassets').glob('NebulaPack*.imageset'):
+                shutil.copytree(asset, icon_catalog / asset.name)
+            icon_output = temp / 'compiled-icons'
+            icon_output.mkdir()
+            subprocess.run(['xcrun', 'actool', '--compile', str(icon_output), '--platform', 'iphonesimulator',
+                            '--minimum-deployment-target', '13.0', '--target-device', 'iphone',
+                            '--output-format', 'human-readable-text', str(icon_catalog)], check=True)
             ios_flags = ['-swift-version', '5', '-warnings-as-errors', '-sdk', sdk,
                          '-target', 'arm64-apple-ios13.0-simulator']
             subprocess.run(['swiftc', *ios_flags, '-emit-module', '-parse-as-library',
@@ -328,6 +350,8 @@ print("OK: embedded catalog and Bazel-side Foundation store compiled and ran")
             subprocess.run(['swiftc', *ios_flags, '-typecheck', str(zoom_slider)], check=True)
             subprocess.run(['swiftc', *ios_flags, '-typecheck', '-I', str(temp),
                             str(settings_ui / 'NebulaActionGrid.swift')], check=True)
+            subprocess.run(['swiftc', *ios_flags, '-typecheck', '-I', str(temp),
+                            str(temp / 'submodules/Display/Source/NebulaSwitchControl.swift')], check=True)
             ai_sources = ['NebulaSettingsStyle.swift', 'NebulaSettingsSymbols.swift', 'NebulaSettingsHero.swift',
                           'NebulaChoiceController.swift', 'NebulaAiChatController.swift', 'NebulaAiController.swift',
                           'NebulaAiService.swift', 'NebulaAiHistoryController.swift', 'NebulaActionGrid.swift',

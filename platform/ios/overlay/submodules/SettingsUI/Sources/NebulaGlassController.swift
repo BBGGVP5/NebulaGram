@@ -1,3 +1,4 @@
+import Display
 import UIKit
 import ComponentFlow
 import GlassBackgroundComponent
@@ -38,7 +39,7 @@ final class NebulaGlassController: UITableViewController {
     @objc private func refresh() { tableView.reloadData(); preview.setNeedsLayout() }
     override func numberOfSections(in tableView: UITableView) -> Int { 4 }
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        section == 1 ? styles.count : (section == 2 ? 3 : (section == 3 ? 5 : 1))
+        section == 1 ? styles.count : (section == 2 ? 3 : (section == 3 ? 7 : 1))
     }
     override func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
         switch section {
@@ -111,7 +112,7 @@ final class NebulaGlassController: UITableViewController {
             } else if indexPath.row == 1 {
                 cell.textLabel?.text = ru ? "Анимация жидкого стекла" : "Liquid glass animation"
                 cell.detailTextLabel?.text = ru ? "Отклик системного эффекта" : "System glass interaction"
-                let toggle = UISwitch()
+                let toggle = NebulaSwitchControl()
                 toggle.isOn = store.liquidAnimations
                 if #available(iOS 26.0, *) {
                     toggle.isEnabled = store.iosGlassStyle == 1 && !store.hasLoadError
@@ -125,7 +126,7 @@ final class NebulaGlassController: UITableViewController {
             } else if indexPath.row == 2 {
                 cell.textLabel?.text = ru ? "Блики и контур" : "Highlights and rim"
                 cell.detailTextLabel?.text = ru ? "Подчеркнуть края нашего стекла" : "Accent the edges of Nebula glass"
-                let toggle = UISwitch()
+                let toggle = NebulaSwitchControl()
                 toggle.isOn = store.glassHighlights
                 if #available(iOS 26.0, *) {
                     toggle.isEnabled = store.iosGlassStyle != 0 && !store.hasLoadError
@@ -139,13 +140,30 @@ final class NebulaGlassController: UITableViewController {
             } else if indexPath.row == 3 {
                 cell.textLabel?.text = ru ? "Тень и объём" : "Shadow and depth"
                 cell.detailTextLabel?.text = ru ? "Глубина краёв стекла" : "Depth around glass surfaces"
-                let toggle = UISwitch()
+                let toggle = NebulaSwitchControl()
                 toggle.isOn = store.glassDepthEnabled
                 toggle.isEnabled = supportsDepth && !store.hasLoadError
                 toggle.accessibilityLabel = cell.textLabel?.text
                 toggle.addTarget(self, action: #selector(depthEnabledChanged(_:)), for: .valueChanged)
                 cell.accessoryView = toggle
                 cell.selectionStyle = .none
+            } else if indexPath.row == 5 {
+                cell.textLabel?.text = ru ? "Отклик стекла" : "Glass haptics"
+                let toggle = NebulaSwitchControl()
+                toggle.isOn = store.glassHaptics
+                toggle.isEnabled = !store.hasLoadError
+                toggle.addTarget(self, action: #selector(hapticsChanged(_:)), for: .valueChanged)
+                cell.accessoryView = toggle; cell.selectionStyle = .none
+            } else if indexPath.row == 6 {
+                cell.textLabel?.text = ru ? "Сила отклика" : "Haptic strength"
+                let slider = UISlider(frame: CGRect(x: 0, y: 0, width: 140, height: 44))
+                slider.minimumValue = 1; slider.maximumValue = 100; slider.value = Float(store.glassHapticStrength)
+                slider.isEnabled = store.glassHaptics && !store.hasLoadError
+                slider.accessibilityLabel = cell.textLabel?.text
+                slider.accessibilityValue = "\(store.glassHapticStrength)%"
+                slider.addTarget(self, action: #selector(hapticStrengthChanged(_:)), for: .valueChanged)
+                slider.addTarget(self, action: #selector(previewHaptic), for: [.touchUpInside, .touchUpOutside])
+                cell.accessoryView = slider; cell.selectionStyle = .none
             } else {
                 cell.textLabel?.text = depthTitle()
                 let slider = UISlider(frame: CGRect(x: 0, y: 0, width: 140, height: 44))
@@ -181,11 +199,23 @@ final class NebulaGlassController: UITableViewController {
         case "glass_blur": current = store.glassBlur
         case "glass_depth": current = store.glassDepth
         case "glass_quality": current = store.glassQuality
+        case "glass_haptic_strength": current = store.glassHapticStrength
         default: current = nil
         }
         if current == value && !store.hasLoadError && !writeFailed { return }
         do { try store.set(.integer(value), for: key); writeFailed = false } catch { writeFailed = true }
     }
+    @objc private func hapticsChanged(_ toggle: NebulaSwitchControl) {
+        do { try store.set(.boolean(toggle.isOn), for: "glass_haptics"); writeFailed = false }
+        catch { writeFailed = true; toggle.isOn = store.glassHaptics }
+        NebulaGlassFeedback.impact()
+        refresh()
+    }
+    @objc private func hapticStrengthChanged(_ slider: UISlider) {
+        set(Int(slider.value.rounded()), key: "glass_haptic_strength")
+        slider.accessibilityValue = "\(store.glassHapticStrength)%"
+    }
+    @objc private func previewHaptic() { NebulaGlassFeedback.impact() }
     @objc private func tintChanged(_ slider: UISlider) {
         set(Int(slider.value.rounded()), key: "ios_glass_tint")
         slider.accessibilityValue = "\(store.iosGlassTint)%"
@@ -206,17 +236,17 @@ final class NebulaGlassController: UITableViewController {
         slider.accessibilityValue = "\(store.glassDepth)%"
         tableView.cellForRow(at: IndexPath(row: 4, section: 3))?.textLabel?.text = depthTitle()
     }
-    @objc private func depthEnabledChanged(_ toggle: UISwitch) {
+    @objc private func depthEnabledChanged(_ toggle: NebulaSwitchControl) {
         do { try store.set(.boolean(toggle.isOn), for: "glass_depth_enabled"); writeFailed = false }
         catch { writeFailed = true; toggle.isOn = store.glassDepthEnabled }
         refresh()
     }
-    @objc private func animationsChanged(_ toggle: UISwitch) {
+    @objc private func animationsChanged(_ toggle: NebulaSwitchControl) {
         do { try store.set(.boolean(toggle.isOn), for: "liquid_animations"); writeFailed = false }
         catch { writeFailed = true; toggle.isOn = store.liquidAnimations }
         refresh()
     }
-    @objc private func highlightsChanged(_ toggle: UISwitch) {
+    @objc private func highlightsChanged(_ toggle: NebulaSwitchControl) {
         do { try store.set(.boolean(toggle.isOn), for: "glass_highlights"); writeFailed = false }
         catch { writeFailed = true; toggle.isOn = store.glassHighlights }
         refresh()

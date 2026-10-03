@@ -1,3 +1,4 @@
+import Display
 import UIKit
 import NebulaSettingsContract
 import TelegramPresentationData
@@ -38,7 +39,7 @@ public final class NebulaTranslationController: UITableViewController {
         defer { NebulaSettingsStyle.finish(cell, theme: theme) }
         cell.textLabel?.numberOfLines = 0; cell.detailTextLabel?.numberOfLines = 0
         if indexPath.row == 0 {
-            let toggle = UISwitch(); toggle.tag = indexPath.section
+            let toggle = NebulaSwitchControl(); toggle.tag = indexPath.section
             toggle.isOn = indexPath.section == 0 ? settings.composerShortcut : indexPath.section == 1 ? options.incoming : options.draft
             toggle.addTarget(self, action: #selector(toggled(_:)), for: .valueChanged)
             cell.accessoryView = toggle; cell.selectionStyle = .none
@@ -54,7 +55,7 @@ public final class NebulaTranslationController: UITableViewController {
         }
         return cell
     }
-    @objc private func toggled(_ sender: UISwitch) {
+    @objc private func toggled(_ sender: NebulaSwitchControl) {
         if sender.tag == 0 { settings.composerShortcut = sender.isOn; return }
         if sender.isOn && !NebulaLiveTranslation.ready {
             sender.isOn = false

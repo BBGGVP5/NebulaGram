@@ -1,3 +1,4 @@
+import Display
 import Foundation
 import UIKit
 import TelegramCore
@@ -99,7 +100,7 @@ final class NebulaPrivacyController: UITableViewController {
             NebulaSettingsHero.style(cell, symbol: "circle.dotted.circle")
             cell.textLabel?.text = ru ? ["Автоматически архивировать истории", "Истории пользователей", "Истории каналов"][indexPath.row]
                 : ["Automatically archive stories", "User stories", "Channel stories"][indexPath.row]
-            let toggle = UISwitch(); toggle.tag = indexPath.row
+            let toggle = NebulaSwitchControl(); toggle.tag = indexPath.row
             toggle.isOn = UserDefaults.standard.object(forKey: key) == nil && indexPath.row == 1
                 || UserDefaults.standard.bool(forKey: key)
             toggle.isEnabled = indexPath.row == 0 || UserDefaults.standard.bool(forKey: storyArchiveKey(0))
@@ -115,13 +116,13 @@ final class NebulaPrivacyController: UITableViewController {
                 cell.accessoryType = .disclosureIndicator
             } else if indexPath.row == 1 {
                 cell.textLabel?.text = text("Отключить вибрацию в чатах", "Disable chat vibration")
-                let toggle = UISwitch()
+                let toggle = NebulaSwitchControl()
                 toggle.isOn = UserDefaults.standard.bool(forKey: "nebula.chat.disableHaptics")
                 toggle.addTarget(self, action: #selector(chatHapticsChanged(_:)), for: .valueChanged)
                 cell.accessoryView = toggle; cell.selectionStyle = .none
             } else {
                 cell.textLabel?.text = text("Снежинки в чатах", "Snowflakes in chats")
-                let toggle = UISwitch()
+                let toggle = NebulaSwitchControl()
                 toggle.isOn = UserDefaults.standard.bool(forKey: "nebula.chat.snowflakes")
                 toggle.addTarget(self, action: #selector(snowflakesChanged(_:)), for: .valueChanged)
                 cell.accessoryView = toggle; cell.selectionStyle = .none
@@ -132,7 +133,7 @@ final class NebulaPrivacyController: UITableViewController {
             let scopes = NebulaRetentionScope.allCases
             cell.textLabel?.text = ru ? ["Личные чаты", "Группы", "Каналы", "Боты", "Избранное"][indexPath.row]
                 : ["Private chats", "Groups", "Channels", "Bots", "Saved Messages"][indexPath.row]
-            let toggle = UISwitch(); toggle.tag = indexPath.row
+            let toggle = NebulaSwitchControl(); toggle.tag = indexPath.row
             toggle.isOn = archive.scopeEnabled(account: account, scope: scopes[indexPath.row])
             toggle.addTarget(self, action: #selector(scopeChanged(_:)), for: .valueChanged)
             cell.accessoryView = toggle; cell.selectionStyle = .none
@@ -141,7 +142,7 @@ final class NebulaPrivacyController: UITableViewController {
         if indexPath.section == 5 {
             NebulaSettingsHero.style(cell, symbol: "square.and.pencil")
             cell.textLabel?.text = text("Редактирование перед пересылкой", "Edit before forwarding")
-            let toggle = UISwitch()
+            let toggle = NebulaSwitchControl()
             toggle.isOn = NebulaForwardEditing.shared.enabled
             toggle.addTarget(self, action: #selector(forwardEditingChanged(_:)), for: .valueChanged)
             cell.accessoryView = toggle; cell.selectionStyle = .none
@@ -159,7 +160,7 @@ final class NebulaPrivacyController: UITableViewController {
         NebulaSettingsHero.style(cell, symbol: symbols[indexPath.section == 0 ? indexPath.row : indexPath.section])
         if indexPath.section == 0 {
             cell.textLabel?.text = [text("Сохранять удалённые сообщения", "Retain deleted messages"), text("Сохранять в секретных чатах", "Retain in secret chats"), text("Сохранять исчезающие сообщения", "Retain expiring messages")][indexPath.row]
-            let toggle = UISwitch(); toggle.tag = indexPath.row
+            let toggle = NebulaSwitchControl(); toggle.tag = indexPath.row
             toggle.isOn = [archive.enabled(account: account), archive.saveSecret(account: account), archive.saveExpiring(account: account)][indexPath.row]
             toggle.isEnabled = !busy && (indexPath.row == 0 || archive.enabled(account: account))
             toggle.addTarget(self, action: #selector(changed(_:)), for: .valueChanged)
@@ -178,27 +179,27 @@ final class NebulaPrivacyController: UITableViewController {
         }
         return cell
     }
-    @objc private func scopeChanged(_ toggle: UISwitch) {
+    @objc private func scopeChanged(_ toggle: NebulaSwitchControl) {
         archive.setScopeEnabled(account: account, scope: NebulaRetentionScope.allCases[toggle.tag], value: toggle.isOn)
     }
     private func storyArchiveKey(_ row: Int) -> String {
         "nebula.story.archive.\(account).\(row)"
     }
-    @objc private func storyArchiveChanged(_ toggle: UISwitch) {
+    @objc private func storyArchiveChanged(_ toggle: NebulaSwitchControl) {
         UserDefaults.standard.set(toggle.isOn, forKey: storyArchiveKey(toggle.tag))
         if toggle.tag == 0 { tableView.reloadSections(IndexSet(integer: 8), with: .none) }
         NotificationCenter.default.post(name: Notification.Name("NebulaStoryArchiveSettingsChanged"), object: nil)
     }
-    @objc private func chatHapticsChanged(_ toggle: UISwitch) {
+    @objc private func chatHapticsChanged(_ toggle: NebulaSwitchControl) {
         UserDefaults.standard.set(toggle.isOn, forKey: "nebula.chat.disableHaptics")
     }
-    @objc private func snowflakesChanged(_ toggle: UISwitch) {
+    @objc private func snowflakesChanged(_ toggle: NebulaSwitchControl) {
         UserDefaults.standard.set(toggle.isOn, forKey: "nebula.chat.snowflakes")
     }
-    @objc private func forwardEditingChanged(_ toggle: UISwitch) {
+    @objc private func forwardEditingChanged(_ toggle: NebulaSwitchControl) {
         NebulaForwardEditing.shared.enabled = toggle.isOn
     }
-    @objc private func changed(_ toggle: UISwitch) {
+    @objc private func changed(_ toggle: NebulaSwitchControl) {
         let kind = toggle.tag
         if !toggle.isOn { set(kind, false); return }
         toggle.setOn(false, animated: true)

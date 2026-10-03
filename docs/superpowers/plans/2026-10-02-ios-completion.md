@@ -52,4 +52,24 @@ Native tests: 73 passed for f352cb5; the full unsigned device IPA passed 3702262
 - [x] Fade the photograph into the current Telegram page background with a cached, eased bottom gradient.
 - [x] Remove the action-button outline. Use one photograph-only backdrop for native blur/refraction, a soft filled highlight and unchanged native press/hit-target behavior.
 - [x] Respect glass quality, blur/refraction and power-saving settings; retain a legible fallback on older devices and release the backdrop when detached.
-- [ ] Verify the final Android APK. No connected device is available for visual checks of scrolling, light/custom themes or glass on physical hardware.
+- [x] Verify the final Android APK. No connected device is available for visual checks of scrolling, light/custom themes or glass on physical hardware.
+
+
+## Complete remaining iOS adaptations — user follow-up
+
+Continue inline. Preserve the published 61-patch baseline in `build/ios-parity-complete-1002`; new native adaptations form patch 0062. Keep feature flags out of the editable UI until their native consumer is wired.
+
+1. Profile: update `PeerInfoHeaderNode.swift` and `PeerInfoHeaderButtonNode.swift` to blend expanded photo banners into the list theme and use a borderless native glass/blur surface with a readable fallback. Respect Reduce Transparency, Reduce Motion and glass quality. Keep native button hit targets and transitions.
+2. Inventory: reconcile `platform/ios/PARITY.md` against the actual consumers and the requests in this conversation. Separate Android OS emulation (Material You, predictive back, system fonts/emoji) from portable missing behavior. Resolve the user's requested scope while doing independent profile work.
+3. Portable consumers: extend `NebulaSettingsStore.swift`, expose only implemented controls in `NebulaSettingsController.swift`, and patch the owning native components. Verify persistence, bounded enum values, live updates and account isolation where applicable. Regenerate the mirrored contract with `generate-overlay.py`.
+4. Validation: apply the full ordered patch series from the pinned iOS revision, execute contract tests and SDK checks in macOS CI, then run the full arm64 IPA workflow. Fix native compiler errors in the same work before declaring completion.
+5. Delivery: update the inventory with exact implemented/native-platform/remaining statuses, download the actual final IPA and validate its source revision, app/extension binaries and digest. Preserve the signing and physical-device limitations.
+
+
+## 2026-10-03 continuation checkpoint
+
+- [x] Export profile material/fade and Foundation.Timer repair as 0062; preserve the vendor checkout.
+- [x] Wire account behavior, native chat gestures/header, navigation/avatar/icon packs and switch/login style through 0063–0066 and native SettingsUI routes.
+- [x] Update import classification tests now that portable keys have actual consumers; retain Material You as a non-active imported Android value.
+- [x] Android workflow 37038627246 passed; APK SHA-256 38afcad7c595e97b85e0518a240eb47fd1dd38ee7155e2b92d9b707ef9e89f78, apksigner verification passed.
+- [ ] Complete final iOS ordered-patch, SDK and native IPA checks; the previous translation build 37036563036 failed at ambiguous Timer and is not a deliverable.

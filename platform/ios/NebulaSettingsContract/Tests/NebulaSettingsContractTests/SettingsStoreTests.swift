@@ -3,6 +3,47 @@ import XCTest
 @testable import NebulaSettingsContract
 
 final class SettingsStoreTests: XCTestCase {
+    func testGlassMasterAndStyleRemainConsistentAcrossRestart() throws {
+        try withDefaults { defaults in
+            let store = NebulaSettingsStore(defaults: defaults)
+            try store.set(.integer(2), for: "ios_glass_style")
+            XCTAssertEqual(NebulaSettingsStore(defaults: defaults).iosGlassStyle, 2)
+            try store.set(.boolean(false), for: "glass_custom")
+            XCTAssertEqual(store.iosGlassStyle, 0)
+            try store.set(.integer(1), for: "ios_glass_style")
+            XCTAssertEqual(NebulaSettingsStore(defaults: defaults).iosGlassStyle, 1)
+            try store.set(.boolean(true), for: "glass_haptics")
+            try store.set(.integer(60), for: "glass_haptic_strength")
+            XCTAssertTrue(NebulaSettingsStore(defaults: defaults).glassHaptics)
+            XCTAssertEqual(NebulaSettingsStore(defaults: defaults).glassHapticStrength, 60)
+            let export = try store.previewImport(store.exportData())
+            XCTAssertFalse(export.document.settings.keys.contains("glass_custom"))
+            XCTAssertFalse(export.document.settings.keys.contains("glass_haptic_strength"))
+        }
+    }
+
+    func testAppearanceAndNativeDefaultsRemainEditableAfterTransfer() throws {
+        try withDefaults { defaults in
+            let store = NebulaSettingsStore(defaults: defaults)
+            XCTAssertTrue(store.messageMenuBlur)
+            XCTAssertTrue(store.floatingChatHeader)
+            XCTAssertEqual(store.iconPack, 1)
+            try store.set(.integer(2), for: "icon_pack")
+            try store.set(.integer(3), for: "switch_style")
+            try store.set(.boolean(false), for: "login_style")
+            try store.set(.boolean(false), for: "bottom_bar")
+            let exported = try store.exportData()
+            try store.importData(exported)
+            let restored = NebulaSettingsStore(defaults: defaults)
+            XCTAssertEqual(restored.iconPack, 2)
+            XCTAssertEqual(restored.switchStyle, 3)
+            XCTAssertFalse(restored.loginStyle)
+            XCTAssertFalse(restored.showBottomBar)
+            XCTAssertThrowsError(try store.set(.integer(4), for: "switch_style"))
+            XCTAssertThrowsError(try store.set(.integer(3), for: "icon_pack"))
+        }
+    }
+
     func testFolderStylePersistsAndTransfers() throws {
         try withDefaults { defaults in
             let store = NebulaSettingsStore(defaults: defaults)
@@ -310,9 +351,9 @@ final class SettingsStoreTests: XCTestCase {
         try withDefaults { defaults in
             let store = NebulaSettingsStore(defaults: defaults)
             let valid = try JSONEncoder().encode(SettingsDocument(settings: [
-                "hide_tab_counters": .boolean(true), "adaptive_chat_header": .boolean(false)
+                "hide_tab_counters": .boolean(true), "material_you": .boolean(false)
             ]))
-            XCTAssertEqual(try store.importData(valid), ["adaptive_chat_header"])
+            XCTAssertEqual(try store.importData(valid), ["material_you"])
             let before = defaults.data(forKey: NebulaSettingsStore.storageKey)
             let invalid = try JSONEncoder().encode(SettingsDocument(settings: [
                 "hide_tab_counters": .boolean(false), "avatar_round": .integer(9999)
@@ -320,13 +361,13 @@ final class SettingsStoreTests: XCTestCase {
             XCTAssertThrowsError(try store.importData(invalid))
             XCTAssertThrowsError(try store.importData(Data("{\"format\":\"NebulaGram-settings\",\"version\":2,\"settings\":{}}".utf8)))
             XCTAssertThrowsError(try store.set(.integer(1), for: "hide_tab_counters"))
-            XCTAssertThrowsError(try store.set(.boolean(true), for: "adaptive_chat_header"))
+            XCTAssertThrowsError(try store.set(.boolean(true), for: "material_you"))
             XCTAssertThrowsError(try store.set(.boolean(true), for: "unknown"))
             XCTAssertEqual(before, defaults.data(forKey: NebulaSettingsStore.storageKey))
             XCTAssertTrue(store.hideTabCounters)
             let exported = try JSONDecoder().decode(SettingsDocument.self, from: store.exportData())
             XCTAssertEqual(exported.settings.count, 2)
-            XCTAssertEqual(exported.settings["adaptive_chat_header"], .boolean(false))
+            XCTAssertEqual(exported.settings["material_you"], .boolean(false))
         }
     }
 

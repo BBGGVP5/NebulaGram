@@ -1,3 +1,4 @@
+import Display
 import Foundation
 import UIKit
 import NebulaSettingsContract
@@ -139,12 +140,12 @@ final class NebulaAiController: UITableViewController {
         case (0, 1):
             cell.textLabel?.text = text("ИИ на главной", "AI on the home screen")
             cell.detailTextLabel?.text = text("Чат с ИИ вместо кнопки камеры", "AI chat in place of the camera button")
-            let toggle = UISwitch(); toggle.isOn = settings.homeShortcut
+            let toggle = NebulaSwitchControl(); toggle.isOn = settings.homeShortcut
             toggle.addTarget(self, action: #selector(toggleHome(_:)), for: .valueChanged)
             cell.accessoryView = toggle; cell.selectionStyle = .none
         case (0, 0):
             cell.textLabel?.text = text("Включить ИИ", "Enable AI")
-            let toggle = UISwitch()
+            let toggle = NebulaSwitchControl()
             toggle.isOn = settings.enabled
             toggle.addTarget(self, action: #selector(toggleEnabled(_:)), for: .valueChanged)
             cell.accessoryView = toggle
@@ -211,11 +212,11 @@ final class NebulaAiController: UITableViewController {
         return cell
     }
 
-    @objc private func toggleEnabled(_ toggle: UISwitch) {
+    @objc private func toggleEnabled(_ toggle: NebulaSwitchControl) {
         settings.enabled = toggle.isOn
         tableView.reloadData()
     }
-    @objc private func toggleHome(_ toggle: UISwitch) { settings.homeShortcut = toggle.isOn }
+    @objc private func toggleHome(_ toggle: NebulaSwitchControl) { settings.homeShortcut = toggle.isOn }
 
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)

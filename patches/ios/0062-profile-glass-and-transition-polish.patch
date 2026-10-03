@@ -1,0 +1,235 @@
+diff --git a/submodules/Display/Source/NavigationTransitionCoordinator.swift b/submodules/Display/Source/NavigationTransitionCoordinator.swift
+--- a/submodules/Display/Source/NavigationTransitionCoordinator.swift
++++ b/submodules/Display/Source/NavigationTransitionCoordinator.swift
+@@ -1,4 +1,5 @@
+ import UIKit
++import NebulaSettingsContract
+ import AppBundle
+ import AsyncDisplayKit
+ 
+@@ -27,6 +28,7 @@
+ }
+ 
+ final class NavigationTransitionCoordinator {
++    private let nebulaSmoothFade = NebulaBehaviorPreferences.shared.smoothFade && !UIAccessibility.isReduceMotionEnabled
+     private var _progress: CGFloat = 0.0
+     var progress: CGFloat {
+         get {
+@@ -172,8 +174,16 @@
+         canInvokeCompletion = true
+         transition.updateFrame(node: self.dimNode, frame: CGRect(origin: CGPoint(x: 0.0, y: dimInset), size: CGSize(width: max(0.0, topFrame.minX + self.container.overflowInset + 62.0), height: self.container.bounds.size.height - dimInset)))
+         transition.updateFrame(node: self.shadowNode, frame: CGRect(origin: CGPoint(x: self.dimNode.frame.maxX - shadowWidth, y: dimInset), size: CGSize(width: shadowWidth, height: containerSize.height - dimInset)))
+-        transition.updateAlpha(node: self.dimNode, alpha: (1.0 - position) * 0.15)
+-        transition.updateAlpha(node: self.shadowNode, alpha: (1.0 - position) * 0.9)
++        let fadeProgress = max(0.0, min(1.0, 1.0 - position))
++        let fade = CGFloat(NebulaBehaviorPreferences.fade(Double(fadeProgress), enabled: nebulaSmoothFade))
++        let fadeTransition: ContainedViewLayoutTransition
++        if nebulaSmoothFade, case let .animated(duration, _) = transition {
++            fadeTransition = .animated(duration: duration, curve: .easeInOut)
++        } else {
++            fadeTransition = transition
++        }
++        fadeTransition.updateAlpha(node: self.dimNode, alpha: fade * 0.15)
++        fadeTransition.updateAlpha(node: self.shadowNode, alpha: fade * 0.9)
+         
+         transition.updateFrame(node: self.bottomNode, frame: bottomFrame)
+         
+diff --git a/submodules/TelegramUI/Components/GlassBackgroundComponent/Sources/GlassBackgroundComponent.swift b/submodules/TelegramUI/Components/GlassBackgroundComponent/Sources/GlassBackgroundComponent.swift
+--- a/submodules/TelegramUI/Components/GlassBackgroundComponent/Sources/GlassBackgroundComponent.swift
++++ b/submodules/TelegramUI/Components/GlassBackgroundComponent/Sources/GlassBackgroundComponent.swift
+@@ -52,6 +52,9 @@
+ }
+ 
+ public class GlassBackgroundView: UIView {
++    public var drawsMaterialBorder = true
++    private let nebulaFeedbackRecognizer = NebulaGlassFeedbackRecognizer(target: nil, action: nil)
++
+     public protocol ContentView: UIView {
+         var tintMask: UIView { get }
+     }
+@@ -582,6 +585,10 @@
+             self.addSubview(foregroundView)
+             foregroundView.mask = self.maskContainerView
+         }
++        self.nebulaFeedbackRecognizer.cancelsTouchesInView = false
++        self.nebulaFeedbackRecognizer.delaysTouchesBegan = false
++        self.nebulaFeedbackRecognizer.isEnabled = false
++        self.addGestureRecognizer(self.nebulaFeedbackRecognizer)
+         self.addSubview(self.contentContainer)
+         if let legacyHighlightContainerView = self.legacyHighlightContainerView {
+             self.addSubview(legacyHighlightContainerView)
+@@ -647,6 +654,7 @@
+ 
+     func update(size: CGSize, shape: Shape, isDark: Bool, tintColor: TintColor, isInteractive: Bool = false, isVisible: Bool = true, transition: ComponentTransition) {
+         nebulaSize = size
++        nebulaFeedbackRecognizer.isEnabled = isInteractive && isVisible && NebulaSettingsStore.shared.glassHaptics
+         let reduced = !self.nebulaInNativeContainer && NebulaGlassPolicy.reduced(mode: NebulaSettingsStore.shared.glassQuality,
+             lowPower: ProcessInfo.processInfo.isLowPowerModeEnabled,
+             hot: ProcessInfo.processInfo.thermalState.rawValue >= ProcessInfo.ThermalState.serious.rawValue,
+@@ -782,9 +790,9 @@
+                 }
+                 switch shape {
+                 case let .roundedRect(cornerRadius):
+-                    foregroundView.image = GlassBackgroundView.generateLegacyGlassImage(size: CGSize(width: cornerRadius * 2.0, height: cornerRadius * 2.0), inset: shadowInset, borderWidthFactor: borderWidthFactor, isDark: isDark, fillColor: fillColor)
++                    foregroundView.image = GlassBackgroundView.generateLegacyGlassImage(size: CGSize(width: cornerRadius * 2.0, height: cornerRadius * 2.0), inset: shadowInset, borderWidthFactor: drawsMaterialBorder ? borderWidthFactor : 0.0, isDark: isDark, fillColor: fillColor)
+                 case let .customRoundedRect(cornerRadii):
+-                    foregroundView.image = GlassBackgroundView.generateLegacyGlassImage(cornerRadii: GlassBackgroundView.clampedCornerRadii(size: size, cornerRadii: cornerRadii), inset: shadowInset, borderWidthFactor: borderWidthFactor, isDark: isDark, fillColor: fillColor)
++                    foregroundView.image = GlassBackgroundView.generateLegacyGlassImage(cornerRadii: GlassBackgroundView.clampedCornerRadii(size: size, cornerRadii: cornerRadii), inset: shadowInset, borderWidthFactor: drawsMaterialBorder ? borderWidthFactor : 0.0, isDark: isDark, fillColor: fillColor)
+                 }
+                 #if DEBUG
+                 //foregroundView.image = nil
+@@ -883,8 +891,8 @@
+         legacyView?.isHidden = nebulaCustom || reduced
+         foregroundView?.isHidden = nebulaCustom
+         let nebulaHighlights = NebulaSettingsStore.shared.glassHighlights && !reduced
+-        legacyHighlightContainerView?.isHidden = nebulaCustom || !nebulaHighlights
+-        nebulaMaterial.layer.borderWidth = nebulaCustom && nebulaHighlights ? 0.8 : 0.0
++        legacyHighlightContainerView?.isHidden = nebulaCustom || !nebulaHighlights || !drawsMaterialBorder
++        nebulaMaterial.layer.borderWidth = drawsMaterialBorder && nebulaCustom && nebulaHighlights ? 0.8 : 0.0
+         nebulaMaterial.layer.borderColor = UIColor.white.withAlphaComponent(isDark ? 0.22 : 0.70).cgColor
+         let nebulaDepth = NebulaSettingsStore.shared.glassDepthEnabled ? CGFloat(NebulaSettingsStore.shared.glassDepth) / 100.0 : 0.0
+         if let shadowView = self.shadowView {
+diff --git a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoHeaderButtonNode.swift b/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoHeaderButtonNode.swift
+--- a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoHeaderButtonNode.swift
++++ b/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoHeaderButtonNode.swift
+@@ -1,5 +1,7 @@
+ import Foundation
+ import UIKit
++import GlassBackgroundComponent
++import NebulaSettingsContract
+ import AsyncDisplayKit
+ import ContextUI
+ import AnimationUI
+@@ -51,6 +53,7 @@
+     private var icon: PeerInfoHeaderButtonIcon?
+     private var isActive: Bool?
+     
++    private let nebulaGlass = GlassBackgroundView(frame: .zero)
+     let backgroundContainerView: UIView
+     let backgroundView: UIView
+     
+@@ -88,6 +91,9 @@
+         
+         self.containerNode.addSubnode(self.referenceNode)
+         //self.referenceNode.addSubnode(self.backgroundNode)
++        self.nebulaGlass.isUserInteractionEnabled = false
++        self.nebulaGlass.drawsMaterialBorder = false
++        self.referenceNode.view.addSubview(self.nebulaGlass)
+         self.referenceNode.addSubnode(self.contentNode)
+         self.contentNode.addSubnode(self.iconNode)
+         self.addSubnode(self.containerNode)
+@@ -115,6 +121,7 @@
+     }
+     
+     @objc private func buttonPressed() {
++        if NebulaSettingsStore.shared.profileStyle { NebulaGlassFeedback.impact() }
+         switch self.icon {
+         case .voiceChat, .more, .leave:
+             if let animatedIconView = self.animatedIcon?.view as? LottieComponent.View {
+@@ -268,6 +275,18 @@
+         let backgroundFrame = CGRect(origin: CGPoint(x: 0.0, y: backgroundY), size: CGSize(width: size.width, height: max(0.0, size.height - backgroundY)))
+         //transition.updateFrame(node: self.backgroundNode, frame: backgroundFrame)
+         transition.updateFrame(view: self.backgroundView, frame: backgroundFrame)
++        let usesGlass = NebulaSettingsStore.shared.profileStyle
++        self.backgroundView.isHidden = usesGlass
++        self.nebulaGlass.isHidden = !usesGlass
++        if usesGlass {
++            transition.updateFrame(view: self.nebulaGlass, frame: backgroundFrame)
++            self.nebulaGlass.update(size: backgroundFrame.size,
++                cornerRadius: min(20.0, backgroundFrame.height * 0.5),
++                isDark: presentationData.theme.overallDarkAppearance,
++                tintColor: .init(kind: .custom(style: .default, color: backgroundColor)),
++                isInteractive: false, isVisible: fraction > 0.0, transition: .immediate)
++        }
++
+         
+         transition.updateSublayerTransformScale(node: self.contentNode, scale: 1.0 * fraction + 0.001 * (1.0 - fraction))
+         
+diff --git a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoHeaderNode.swift b/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoHeaderNode.swift
+--- a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoHeaderNode.swift
++++ b/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoHeaderNode.swift
+@@ -105,6 +105,9 @@
+     var skipCollapseCompletion = false
+     var ignoreCollapse = false
+     
++    private let nebulaBannerFade = ASDisplayNode()
++    private let nebulaBannerGradient = CAGradientLayer()
++    private var nebulaBannerColor: UIColor?
+     let avatarClippingNode: SparseNode
+     let avatarListNode: PeerInfoAvatarListNode
+     
+@@ -337,6 +340,11 @@
+ 
+         self.regularContentNode.addSubnode(self.avatarClippingNode)
+         self.avatarClippingNode.addSubnode(self.avatarListNode)
++        self.nebulaBannerFade.isUserInteractionEnabled = false
++        self.nebulaBannerGradient.locations = [0.0, 0.32, 0.72, 1.0]
++        self.nebulaBannerFade.layer.addSublayer(self.nebulaBannerGradient)
++        self.avatarListNode.listContainerNode.addSubnode(self.nebulaBannerFade)
++
+         
+         self.regularContentNode.addSubnode(self.avatarListNode.listContainerNode.controlsClippingOffsetNode)
+         self.regularContentNode.addSubnode(self.titleNodeContainer)
+@@ -1754,6 +1762,24 @@
+         let bottomShadowFrame = CGRect(origin: CGPoint(x: 0.0, y: expandedAvatarHeight - bottomShadowHeight), size: CGSize(width: width, height: bottomShadowHeight))
+         transition.updateFrame(node: self.avatarListNode.listContainerNode.bottomShadowNode, frame: bottomShadowFrame, beginWithCurrentState: true)
+         self.avatarListNode.listContainerNode.bottomShadowNode.update(size: bottomShadowFrame.size, transition: transition)
++        let bannerColor = presentationData.theme.list.blocksBackgroundColor
++        if self.nebulaBannerColor != bannerColor {
++            self.nebulaBannerColor = bannerColor
++            CATransaction.begin()
++            CATransaction.setDisableActions(true)
++            self.nebulaBannerGradient.colors = [bannerColor.withAlphaComponent(0.0).cgColor,
++                bannerColor.withAlphaComponent(0.11).cgColor,
++                bannerColor.withAlphaComponent(0.54).cgColor, bannerColor.cgColor]
++            CATransaction.commit()
++        }
++        let fadeHeight = min(160.0, expandedAvatarHeight * 0.42)
++        let fadeFrame = CGRect(x: 0.0, y: expandedAvatarHeight - fadeHeight, width: width, height: fadeHeight)
++        transition.updateFrame(node: self.nebulaBannerFade, frame: fadeFrame)
++        transition.updateFrame(layer: self.nebulaBannerGradient, frame: CGRect(origin: .zero, size: fadeFrame.size))
++        let showFade = self.isAvatarExpanded && NebulaSettingsStore.shared.profileStyle
++            && NebulaSettingsStore.shared.profilePhotoBanner && !state.isEditing
++        transition.updateAlpha(node: self.nebulaBannerFade, alpha: showFade ? 1.0 : 0.0)
++
+         
+         let singleTitleLockOffset: CGFloat = ((peer?.id == self.context.account.peerId && !self.isMyProfile) || subtitleSize.height.isZero) ? 8.0 : 0.0
+         
+diff --git a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoScreen.swift b/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoScreen.swift
+--- a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoScreen.swift
++++ b/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoScreen.swift
+@@ -3517,8 +3517,11 @@
+                                 
+                                 strongSelf.activeActionDisposable.set(strongSelf.context.engine.privacy.requestUpdatePeerIsBlocked(peerId: peer.id, isBlocked: true, sourceMessageId: strongSelf.sourceMessageId).startStrict())
+                                 if deleteChat {
+-                                    let _ = strongSelf.context.engine.peers.removePeerChat(peerId: strongSelf.peerId, reportChatSpam: reportSpam).startStandalone()
+-                                    (strongSelf.controller?.navigationController as? NavigationController)?.popToRoot(animated: true)
++                                    NebulaDeletionAuthentication.authorize(account: String(strongSelf.context.account.peerId.toInt64()), reason: presentationData.strings.Common_Delete) { [weak self] allowed in
++                                        guard allowed, let self else { return }
++                                        let _ = self.context.engine.peers.removePeerChat(peerId: self.peerId, reportChatSpam: reportSpam).startStandalone()
++                                        (self.controller?.navigationController as? NavigationController)?.popToRoot(animated: true)
++                                    }
+                                 } else if reportSpam {
+                                     let _ = strongSelf.context.engine.peers.reportPeer(peerId: strongSelf.peerId, reason: .spam, message: "", sourceMessageId: strongSelf.sourceMessageId).startStandalone()
+                                 }
+diff --git a/submodules/TelegramUI/Sources/ChatController.swift b/submodules/TelegramUI/Sources/ChatController.swift
+--- a/submodules/TelegramUI/Sources/ChatController.swift
++++ b/submodules/TelegramUI/Sources/ChatController.swift
+@@ -245,7 +245,7 @@
+     private var nebulaReplyAppearance = [NebulaSettingsStore.shared.replyBackground, NebulaSettingsStore.shared.replyColors, NebulaSettingsStore.shared.replyEmoji]
+     private let nebulaLiveTranslation = NebulaLiveTranslation()
+     private let nebulaDraftTranslation = NebulaDraftTranslation()
+-    private var nebulaTranslationTimer: Timer?
++    private var nebulaTranslationTimer: Foundation.Timer?
+     private var nebulaTranslationObservers: [NSObjectProtocol] = []
+     private var nebulaTranslationVisible = false
+     private var nebulaHadAiTranslation = false
+@@ -273,7 +273,7 @@
+         let options = NebulaTranslationPreferences.shared.options(account: account, peer: peerKey)
+         nebulaTickChatAI()
+         if options.incoming || options.draft {
+-            nebulaTranslationTimer = Timer.scheduledTimer(withTimeInterval: options.draft ? 0.25 : 1, repeats: true) { [weak self] _ in self?.nebulaTickChatAI() }
++            nebulaTranslationTimer = Foundation.Timer.scheduledTimer(withTimeInterval: options.draft ? 0.25 : 1, repeats: true) { [weak self] _ in self?.nebulaTickChatAI() }
+         }
+         if nebulaTranslationObservers.isEmpty {
+             nebulaTranslationObservers.append(NotificationCenter.default.addObserver(forName: NebulaTranslationPreferences.changed, object: nil, queue: .main) { [weak self] _ in

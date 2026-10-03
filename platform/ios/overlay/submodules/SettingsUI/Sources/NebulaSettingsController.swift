@@ -77,7 +77,7 @@ private enum NebulaSettingsEntry: ItemListNodeEntry {
     var section: ItemListSectionId {
         switch self {
         case .search, .empty: return -1
-        case let .category(index, _, _, _): return index == 10 ? 9 : index == 11 ? 10 : 0
+        case let .category(index, _, _, _): return index == 10 || index == 12 || index == 16 ? 9 : index == 11 ? 10 : index >= 13 ? 1 : 0
         case .toolsHeader, .link, .ai, .buildInfo, .memory, .support, .community: return 0
         case let .chatHeader(section, _): return Int32(section)
         case .widePosts: return 9
@@ -85,9 +85,9 @@ private enum NebulaSettingsEntry: ItemListNodeEntry {
         case .appearanceHeader, .glass, .navigation, .contacts, .icons, .transitions: return 1
         case let .navigationToggle(key, _, _, _):
             if key.hasPrefix("profile_") { return 5 }
-            if ["folder_title", "folder_outline"].contains(key) { return 2 }
+            if ["folder_title", "folder_outline", "hide_all_chats", "center_home"].contains(key) { return 2 }
             if ["hide_dividers", "hide_search_field"].contains(key) { return 6 }
-            if key.hasPrefix("menu_") || key == "centered_chat_header" { return 7 }
+            if key.hasPrefix("menu_") || ["centered_chat_header", "adaptive_chat_header", "floating_chat_header_v2", "header_unread", "message_menu_blur"].contains(key) { return 7 }
             if ["hide_send_as", "hide_attach_camera"].contains(key) { return 8 }
             if key.hasPrefix("reply_") || ["seconds_in_time", "disable_next_channel"].contains(key) { return 9 }
             return 1
@@ -185,6 +185,15 @@ private enum NebulaSettingsEntry: ItemListNodeEntry {
             case "folder_outline": return 47
             case "hide_search_field": return 48
             case "hide_premium_status": return 55
+            case "bottom_bar": return 70
+            case "hide_all_chats": return 71
+            case "center_home": return 72
+            case "adaptive_chat_header": return 73
+            case "floating_chat_header_v2": return 74
+            case "header_unread": return 75
+            case "message_menu_blur": return 76
+            case "login_style": return 77
+            case "profile_style": return 69
             case "profile_channel": return 60
             case "profile_birthday": return 61
             case "profile_business": return 62
@@ -433,6 +442,14 @@ public func nebulaSettingsController(context: AccountContext, page: Int = 0) -> 
             .navigationToggle("centered_chat_header", ru ? "Заголовок чата по центру" : "Center chat title", store.centeredChatHeader, !store.hasLoadError),
             .navigationToggle("disable_next_channel", ru ? "Скрыть переход к следующему каналу" : "Hide next-channel prompt", store.disableNextChannel, !store.hasLoadError),
             .navigationToggle("seconds_in_time", ru ? "Секунды во времени сообщений" : "Show seconds in message times", store.secondsInTime, !store.hasLoadError),
+            .navigationToggle("bottom_bar", ru ? "Нижняя панель" : "Bottom bar", store.showBottomBar, !store.hasLoadError),
+            .navigationToggle("hide_all_chats", ru ? "Скрыть «Все чаты»" : "Hide All Chats", store.hideAllChats, !store.hasLoadError),
+            .navigationToggle("center_home", ru ? "Заголовок списка по центру" : "Center chat-list title", store.centerHome, !store.hasLoadError),
+            .navigationToggle("adaptive_chat_header", ru ? "Ширина шапки по заголовку" : "Fit header to title", store.adaptiveChatHeader, !store.hasLoadError),
+            .navigationToggle("floating_chat_header_v2", ru ? "Стеклянная шапка чата" : "Glass chat header", store.floatingChatHeader, !store.hasLoadError),
+            .navigationToggle("header_unread", ru ? "Счётчик в шапке чата" : "Unread badge in chat header", store.headerUnread, !store.hasLoadError),
+            .navigationToggle("message_menu_blur", ru ? "Размывать фон меню сообщения" : "Blur message-menu background", store.messageMenuBlur, !store.hasLoadError),
+            .navigationToggle("profile_style", ru ? "Стеклянные кнопки и плавный баннер" : "Glass buttons and seamless banner", store.profileStyle, !store.hasLoadError),
             .navigationToggle("profile_channel", ru ? "Канал" : "Channel", store.profileChannel, !store.hasLoadError),
             .navigationToggle("profile_birthday", ru ? "День рождения" : "Birthday", store.profileBirthday, !store.hasLoadError),
             .navigationToggle("profile_business", ru ? "Часы работы и адрес" : "Business hours and location", store.profileBusiness, !store.hasLoadError),
@@ -442,6 +459,13 @@ public func nebulaSettingsController(context: AccountContext, page: Int = 0) -> 
             .navigationToggle("reply_background", ru ? "Фон ответа" : "Reply background", store.replyBackground, !store.hasLoadError),
             .navigationToggle("reply_colors", ru ? "Цвета автора в ответах" : "Author colors in replies", store.replyColors, !store.hasLoadError),
             .navigationToggle("reply_emoji", ru ? "Эмодзи в ответах" : "Emoji in replies", store.replyEmoji, !store.hasLoadError),
+            .category(12, ru ? "Двойное нажатие на своё сообщение" : "Double tap your message",
+                (ru ? ["Реакция", "Редактировать", "Ответить", "Копировать", "Ничего"] : ["React", "Edit", "Reply", "Copy", "Nothing"])[store.ownDoubleTap], "hand.tap"),
+            .category(13, ru ? "Аватары" : "Avatars", ru ? "Форма и скругление" : "Shape and corners", "person.crop.circle"),
+            .category(14, ru ? "Значки интерфейса" : "Interface icons", ["Telegram", "Cupertino", "Solar"][store.iconPack], "square.grid.2x2"),
+            .category(15, ru ? "Переключатели" : "Switches", (ru ? ["Системные", "Округлые", "Компактные", "Минималистичные"] : ["System", "Rounded", "Compact", "Minimal"])[store.switchStyle], "switch.2"),
+            .navigationToggle("login_style", ru ? "Экран входа NebulaGram" : "NebulaGram welcome screen", store.loginStyle, !store.hasLoadError),
+            .category(16, ru ? "Уведомления и действия" : "Notifications and actions", ru ? "Упоминания, сохранение, защита" : "Mentions, saving, protection", "bell.badge"),
             .category(9, ru ? "Задачи" : "Tasks", "", "checkmark.circle"),
             .category(10, ru ? "Поведение чатов" : "Chat behavior", ru ? "Архив, вибрация, пересылка" : "Archive, vibration, forwarding", "hand.tap"),
             .category(11, ru ? "Архивация историй" : "Story archiving", "", "circle.dotted.circle"),
@@ -453,10 +477,10 @@ public func nebulaSettingsController(context: AccountContext, page: Int = 0) -> 
             switch entry {
             case .widePosts, .stories:
                 return true
-            case let .category(index, _, _, _): return index == 10 || index == 11
+            case let .category(index, _, _, _): return index == 10 || index == 11 || index == 12 || index == 16
             case let .navigationToggle(key, _, _, _):
                 return key.hasPrefix("reply_") || ["hide_dividers", "hide_send_as", "hide_attach_camera", "menu_search", "menu_mute",
-                    "menu_call", "menu_video", "centered_chat_header", "disable_next_channel", "seconds_in_time", "hide_search_field"].contains(key)
+                    "menu_call", "menu_video", "centered_chat_header", "adaptive_chat_header", "floating_chat_header_v2", "header_unread", "message_menu_blur", "disable_next_channel", "seconds_in_time", "hide_search_field"].contains(key)
             default:
                 return false
             }
@@ -465,7 +489,7 @@ public func nebulaSettingsController(context: AccountContext, page: Int = 0) -> 
             switch entry {
             case .navigation, .contacts: return true
             case let .navigationToggle(key, _, _, _):
-                return ["bottom_bar_profile", "bottom_bar_settings", "tab_labels", "compact_bottom_bar",
+                return ["bottom_bar", "bottom_bar_profile", "bottom_bar_settings", "tab_labels", "compact_bottom_bar",
                     "hide_home_camera", "hide_home_compose"].contains(key)
             default: return false
             }
@@ -473,7 +497,7 @@ public func nebulaSettingsController(context: AccountContext, page: Int = 0) -> 
         func isFolderOption(_ entry: NebulaSettingsEntry) -> Bool {
             if entry.section == 2 { return true }
             if case let .navigationToggle(key, _, _, _) = entry {
-                return ["folder_title", "folder_outline"].contains(key)
+                return ["folder_title", "folder_outline", "hide_all_chats", "center_home"].contains(key)
             }
             return false
         }
@@ -540,6 +564,53 @@ public func nebulaSettingsController(context: AccountContext, page: Int = 0) -> 
     transfer.host = controller
     arguments.openCategory = { [weak controller] index in
         guard let controller else { return }
+        if index == 14 || index == 15 {
+            let data = context.sharedContext.currentPresentationData.with { $0 }
+            let ru = data.strings.baseLanguageCode.hasPrefix("ru")
+            let icons = index == 14
+            NebulaChoiceController.show(from: controller,
+                title: icons ? (ru ? "Значки интерфейса" : "Interface icons") : (ru ? "Переключатели" : "Switches"),
+                choices: icons ? ["Telegram", "Cupertino", "Solar"] : (ru ? ["Системные", "Округлые", "Компактные", "Минималистичные"] : ["System", "Rounded", "Compact", "Minimal"]),
+                selected: icons ? store.iconPack : store.switchStyle,
+                detail: icons ? (ru ? "Перезапустите приложение, чтобы обновить значки на всех экранах." : "Restart the app to update icons on every screen.") : nil,
+                russian: ru, theme: data.theme) { value in
+                    do { try store.set(.integer(value), for: icons ? "icon_pack" : "switch_style"); writeFailed.set(false) }
+                    catch { writeFailed.set(true) }
+                }
+            return
+        }
+        if index == 16 {
+            let behavior = NebulaBehaviorController(context: context) { [weak controller] writable, completion in
+                guard let controller, let host = controller.presentedViewController else { return }
+                let picker = context.sharedContext.makePeerSelectionController(PeerSelectionControllerParams(context: context,
+                    filter: writable ? [.onlyWriteable, .excludeDisabled, .excludeSecretChats, .doNotSearchMessages] : [.excludeSecretChats, .doNotSearchMessages], hasContactSelector: false))
+                picker.peerSelected = { [weak picker] peer, _ in
+                    completion(peer.id.toInt64(), peer.compactDisplayTitle)
+                    picker?.dismiss()
+                }
+                let navigation = NavigationController(mode: .single, theme: NavigationControllerTheme(presentationTheme: context.sharedContext.currentPresentationData.with { $0 }.theme))
+                navigation.setViewControllers([picker], animated: false)
+                host.present(navigation, animated: true)
+            }
+            controller.present(UINavigationController(rootViewController: behavior), animated: true)
+            return
+        }
+        if index == 12 {
+            let data = context.sharedContext.currentPresentationData.with { $0 }
+            let ru = data.strings.baseLanguageCode.hasPrefix("ru")
+            NebulaChoiceController.show(from: controller, title: ru ? "Двойное нажатие" : "Double tap",
+                choices: ru ? ["Реакция", "Редактировать", "Ответить", "Копировать", "Ничего"] : ["React", "Edit", "Reply", "Copy", "Nothing"],
+                selected: store.ownDoubleTap, russian: ru, theme: data.theme) { value in
+                    do { try store.set(.integer(value), for: "own_double_tap"); writeFailed.set(false) }
+                    catch { writeFailed.set(true) }
+                }
+            return
+        }
+        if index == 13 {
+            let data = context.sharedContext.currentPresentationData.with { $0 }
+            controller.present(UINavigationController(rootViewController: NebulaAvatarSettingsController(russian: data.strings.baseLanguageCode.hasPrefix("ru"), theme: data.theme)), animated: true)
+            return
+        }
         if index == 10 || index == 11 {
             let data = context.sharedContext.currentPresentationData.with { $0 }
             controller.present(UINavigationController(rootViewController: NebulaPrivacyController(context: context, russian: data.strings.baseLanguageCode.hasPrefix("ru"), mode: index == 10 ? 1 : 2)), animated: true)
