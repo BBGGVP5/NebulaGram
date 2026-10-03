@@ -73,7 +73,7 @@ public final class NebulaDraftTranslation {
         GradientDrawable background = new GradientDrawable(); background.setColor(theme.modalSurface()); background.setCornerRadius(dp(18)); box.setBackground(background);
         TextView text = new TextView(anchor.getContext()); text.setTextSize(14); text.setTextColor(theme.onSurface()); text.setMaxLines(4);
         boolean valid = answer != null && !answer.trim().isEmpty();
-        text.setText(loading ? NebulaAutoTranslate.providerName() + " · " + NebulaText.text("переводим…", "translating…") : valid ? answer : errorText != null ? errorText : NebulaText.text("Перевод недоступен. Проверьте подключение ИИ.", "Translation unavailable. Check your AI connection.")); box.addView(text);
+        text.setText(loading ? "Nebula AI · " + NebulaText.text("переводим…", "translating…") : valid ? answer : errorText != null ? errorText : NebulaText.text("Перевод недоступен. Проверьте подключение ИИ.", "Translation unavailable. Check your AI connection.")); box.addView(text);
         if (loading) {
             ProgressBar progress = new ProgressBar(anchor.getContext(), null, android.R.attr.progressBarStyleHorizontal);
             progress.setIndeterminate(true);

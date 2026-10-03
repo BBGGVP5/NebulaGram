@@ -1,0 +1,16 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
+@@ -2600,6 +2600,12 @@
+                 right = Math.min(menuLeft - dp(4), titleRight + dp(12));
+                 if (right <= left) { left = leftDefault; right = rightDefault; }
+             }
++            // Selection actions share one continuous glass surface with the counter.
++            // Keep normal header controls without separate background plates.
++            if (actionModeFactor > 0f && (nebulaFloatingChatHeader || nebulaClassicSavedHeader || nebulaSavedMessagesHeader)) {
++                left = lerp(left, 0, actionModeFactor);
++                right = lerp(right, getWidth(), actionModeFactor);
++            }
+             glassDrawable.setBounds(left, t, right, b);
+             if (nebulaFloatingChatHeader && app.nebulagram.ui.NebulaAppearance.centeredHeader()) {
+                 glassDrawable.setRadius(Math.min(glassDrawable.getPaddedBounds().height(), glassDrawable.getPaddedBounds().width()) / 2f);

@@ -8,7 +8,8 @@ root = Path(__file__).resolve().parent.parent
 ui = root / "platform/android/overlay/TMessagesProj/src/main/java/app/nebulagram/ui"
 source = (ui / "NebulaNanoAi.java").read_text(encoding="utf-8")
 assert "NebulaNanoInferenceGate.acquire(cancelled)" in source
-assert "finally {\n            NebulaNanoInferenceGate.release();" in source
+assert "releaseSession(reusable);" in source
+assert "finally { NebulaNanoInferenceGate.release(); }" in source
 
 program = """package app.nebulagram.ui;
 import java.util.concurrent.CountDownLatch;

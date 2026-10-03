@@ -31,7 +31,17 @@ enum NebulaAiServiceError: LocalizedError {
 final class NebulaAiService {
     private let settings: NebulaAiSettings
     private let secrets: NebulaAiSecrets
-    private let session: URLSession
+    // Share only the HTTP connection pool; prompts, keys and model sessions remain per request.
+    private static let transport: URLSession = {
+        let configuration = URLSessionConfiguration.ephemeral
+        configuration.httpCookieStorage = nil
+        configuration.httpShouldSetCookies = false
+        configuration.urlCache = nil
+        configuration.timeoutIntervalForRequest = 20
+        configuration.timeoutIntervalForResource = 120
+        return URLSession(configuration: configuration)
+    }()
+    private let session = NebulaAiService.transport
     private let overrideInstructions: String?
     private var instructions: String { overrideInstructions ?? settings.instructions }
 
@@ -39,13 +49,6 @@ final class NebulaAiService {
         self.overrideInstructions = instructions
         self.settings = settings
         self.secrets = secrets
-        let configuration = URLSessionConfiguration.ephemeral
-        configuration.httpCookieStorage = nil
-        configuration.httpShouldSetCookies = false
-        configuration.urlCache = nil
-        configuration.timeoutIntervalForRequest = 20
-        configuration.timeoutIntervalForResource = 120
-        self.session = URLSession(configuration: configuration)
     }
 
     static var localModelAvailable: Bool {

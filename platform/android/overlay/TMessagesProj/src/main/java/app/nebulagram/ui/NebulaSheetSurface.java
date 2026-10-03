@@ -44,13 +44,13 @@ public final class NebulaSheetSurface implements View.OnAttachStateChangeListene
         this.root = root;
         this.provider = provider;
         BlurredBackgroundSourceColor fallback = new BlurredBackgroundSourceColor();
-        fallback.setColor(NebulaMenuStyle.surface(provider));
+        fallback.setColor(Theme.getColor(Theme.key_dialogBackground, provider));
         source = new BlurredBackgroundSourceRenderNode(fallback);
-        source.setBlur(AndroidUtilities.dpf2(NebulaGlass.blur()));
+        source.setBlur(AndroidUtilities.dpf2(Math.max(24, NebulaGlass.blur())));
         factory = new BlurredBackgroundDrawableViewFactory(source);
         factory.setLiquidGlassEffectAllowed(NebulaMenuStyle.animated());
         for (int i = 0; i < materials.length; i++) {
-            materials[i] = factory.create(host).setColorProvider(NebulaMenuStyle.provider(provider));
+            materials[i] = factory.create(host).setColorProvider(NebulaMenuStyle.sheetProvider(provider));
             materials[i].setRadius(AndroidUtilities.dp(24));
             materials[i].setThickness(AndroidUtilities.dp(4));
             materials[i].setIntensity(NebulaGlass.refraction());
@@ -119,7 +119,7 @@ public final class NebulaSheetSurface implements View.OnAttachStateChangeListene
         Sections bucket = sections.get(view);
         // Draw slots are reset once per window frame, not between blur and onscreen passes.
         if (bucket.used == bucket.drawables.size()) {
-            BlurredBackgroundDrawable drawable = factory.create().setColorProvider(NebulaMenuStyle.provider(provider));
+            BlurredBackgroundDrawable drawable = factory.create().setColorProvider(NebulaMenuStyle.sheetProvider(provider));
             drawable.setThickness(AndroidUtilities.dp(4));
             drawable.setIntensity(NebulaGlass.refraction());
             bucket.drawables.add(drawable);

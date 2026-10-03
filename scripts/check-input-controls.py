@@ -134,7 +134,7 @@ class SectionPoolCheck {
  void invalidate(){invalidations++;}void draw(Canvas c){draws++;}void getLocationOnScreen(int[] p){p[0]=x;p[1]=y;}Observer getViewTreeObserver(){return new Observer();}}
  static class AndroidUtilities {static int dp(int x){return x;}}
  static class NebulaGlass {static float refraction(){return .2f;}}
- static class NebulaMenuStyle {static Object provider(Object p){return p;}}
+ static class NebulaMenuStyle {static Object sheetProvider(Object p){return p;}}
  static class BlurredBackgroundDrawable {int x,y,left,top,right,bottom,alpha;float r1,r2;
  BlurredBackgroundDrawable setColorProvider(Object p){return this;}void setThickness(int n){}void setIntensity(float n){}
  void setSourceOffset(int x,int y){this.x=x;this.y=y;}void setRadius(float a,float b,float c,float d){r1=a;r2=c;}

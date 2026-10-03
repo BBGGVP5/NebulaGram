@@ -99,6 +99,17 @@ public final class NebulaMenuStyle {
                 .setShadowColor(0x20000000, 0x38000000)
                 .setShadowLayer(AndroidUtilities.dpf2(4), 0, AndroidUtilities.dpf2(2)).build();
     }
+    /** Large modal surfaces need stronger separation than a small popup menu. */
+    public static BlurredBackgroundProvider sheetProvider(Theme.ResourcesProvider provider) {
+        return new Material(provider)
+                .setBackgroundColor((r, dark) -> Theme.multAlpha(Theme.getColor(Theme.key_dialogBackground, r),
+                        Math.max(dark ? .92f : .94f, opacity())))
+                .setStrokeColorTop(0x30ffffff, 0x30ffffff)
+                .setStrokeColorBottom(0x12000000, 0x14ffffff)
+                .setStrokeWidth(AndroidUtilities.dpf2(.55f), AndroidUtilities.dpf2(.4f))
+                .setShadowColor(0x20000000, 0x38000000)
+                .setShadowLayer(AndroidUtilities.dpf2(4), 0, AndroidUtilities.dpf2(2)).build();
+    }
     public static final class Material extends BlurredBackgroundProviderBuilder {
         Material(Theme.ResourcesProvider provider) { super(provider); }
     }

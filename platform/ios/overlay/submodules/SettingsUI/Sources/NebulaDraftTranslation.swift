@@ -69,7 +69,7 @@ public final class NebulaDraftTranslation: NSObject {
             do {
                 try await Task.sleep(nanoseconds: UInt64(options.delay * 1_000_000_000))
                 guard let self = self, !Task.isCancelled, self.state.accepts(version) else { return }
-                self.label.text = self.russian ? "ИИ · переводим…" : "AI · translating…"
+                self.label.text = self.russian ? "Nebula AI · переводим…" : "Nebula AI · translating…"
                 self.use.isHidden = true; self.revealPreview()
                 let result = try await NebulaLiveTranslation.translate(source, language: options.draftLanguage)
                 guard !Task.isCancelled, self.state.accepts(version) else { return }

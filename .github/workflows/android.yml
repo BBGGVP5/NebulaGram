@@ -187,6 +187,7 @@ jobs:
           python3 scripts/check-private-features.py
           python3 scripts/check-settings-design.py
           python3 scripts/check-nano-state.py
+          python3 scripts/check-nano-session.py
           python3 scripts/check-nano-inference-gate.py
           python3 scripts/check-ai-chat.py
           python3 scripts/check-live-translation.py

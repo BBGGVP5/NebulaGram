@@ -23,7 +23,7 @@ public final class NebulaAutoTranslate {
         return new String[]{"OpenAI", "Claude", "Gemini", NebulaText.text("ИИ", "AI"), "Gemini Nano"}[Math.max(0, Math.min(4, provider))];
     }
     public static String status(int a, long d) {
-        String provider = providerName();
+        String provider = "Nebula AI";
         if (errors.containsKey(scope(a,d))) return provider + " · " + NebulaText.text("нужна проверка", "check required");
         for (Job job : jobs.values()) if (job.account == a && job.dialog == d && !job.cancelled)
             return provider + " · " + NebulaText.text("переводим…", "translating…");
@@ -37,8 +37,8 @@ public final class NebulaAutoTranslate {
         int account = host.getCurrentAccount();
         String detail = errors.get(scope(account,dialog));
         host.showDialog(new NebulaDialog.Builder(host.getContext(), host.getResourceProvider())
-            .setTitle(providerName())
-            .setMessage(detail != null ? detail : NebulaText.text("Видимые сообщения переводит выбранный провайдер ИИ. Язык, модель и перевод при наборе доступны в настройках.", "Your selected AI provider translates visible messages. Language, model and typing translation are available in settings."))
+            .setTitle(NebulaText.text("Nebula AI · перевод", "Nebula AI · translation"))
+            .setMessage(providerName() + "\n\n" + (detail != null ? detail : NebulaText.text("Видимые сообщения переводит выбранный провайдер ИИ. Язык, модель и перевод при наборе доступны в настройках.", "Your selected AI provider translates visible messages. Language, model and typing translation are available in settings.")))
             .setPositiveButton(NebulaText.text("Повторить", "Retry"), (d,w) -> retry(account,dialog))
             .setNeutralButton(NebulaText.text("Настройки", "Settings"), (d,w) -> configure(host,dialog))
             .setNegativeButton(NebulaText.text("Выключить", "Turn off"), (d,w) -> disable(account,dialog)).create());

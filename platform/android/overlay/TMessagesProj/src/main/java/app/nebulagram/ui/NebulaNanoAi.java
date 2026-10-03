@@ -22,7 +22,47 @@ import java.util.concurrent.TimeUnit;
 /** On-device Gemini Nano access. No request in this class opens a network connection. */
 public final class NebulaNanoAi {
     private static final String PREFS = "nebula_ai_settings";
+    // Accessed only while the inference gate is held. Each prompt remains stateless.
+    private static Session warmSession;
+    private static boolean warmPreview, warmFast, warmReady;
+    private static long warmLease;
+    private static final java.util.concurrent.ScheduledExecutorService idleWorker =
+            java.util.concurrent.Executors.newSingleThreadScheduledExecutor(r -> {
+                Thread thread = new Thread(r, "nebula-nano-idle"); thread.setDaemon(true); return thread;
+            });
+    private static java.util.concurrent.ScheduledFuture<?> idleClose;
     private NebulaNanoAi() { }
+
+    private static Session acquireSession() {
+        warmLease++;
+        if (idleClose != null) { idleClose.cancel(false); idleClose = null; }
+        boolean preview = prefs().getBoolean("nano_preview", false);
+        boolean fast = prefs().getBoolean("nano_fast", false);
+        if (warmSession != null && (warmPreview != preview || warmFast != fast)) closeWarmSession();
+        if (warmSession == null) {
+            warmSession = new Session(preview, fast);
+            warmPreview = preview; warmFast = fast; warmReady = false;
+        }
+        return warmSession;
+    }
+
+    private static void closeWarmSession() {
+        Session closing = warmSession; warmSession = null; warmReady = false;
+        if (closing != null) {
+            try { closing.close(); } catch (RuntimeException ignored) { /* Best-effort SDK cleanup. */ }
+        }
+    }
+
+    private static void releaseSession(boolean reusable) {
+        try {
+            if (!reusable) { closeWarmSession(); return; }
+            final long lease = warmLease;
+            idleClose = idleWorker.schedule(() -> {
+                if (!NebulaNanoInferenceGate.tryAcquire()) return;
+                try { if (lease == warmLease) closeWarmSession(); } finally { NebulaNanoInferenceGate.release(); }
+            }, 30, TimeUnit.SECONDS);
+        } finally { NebulaNanoInferenceGate.release(); }
+    }
 
     private static SharedPreferences prefs() {
         return ApplicationLoader.applicationContext.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
@@ -153,14 +193,19 @@ public final class NebulaNanoAi {
         if (input.length() > 10000 || instructions != null && instructions.length() > 4000)
             throw new IllegalArgumentException("Gemini Nano supports shorter prompts on device");
         NebulaNanoInferenceGate.acquire(cancelled);
-        try (Session session = session()) {
-            int status = await(session.client.checkStatus(), 45, TimeUnit.SECONDS, cancelled);
-            if (status == FeatureStatus.DOWNLOADABLE)
-                throw new IllegalStateException("GEMINI_NANO_DOWNLOAD_REQUIRED");
-            if (status == FeatureStatus.DOWNLOADING)
-                throw new IllegalStateException("GEMINI_NANO_DOWNLOADING");
-            if (status != FeatureStatus.AVAILABLE)
-                throw new IllegalStateException("GEMINI_NANO_UNAVAILABLE");
+        boolean reusable = false;
+        try {
+            Session session = acquireSession();
+            if (!warmReady) {
+                int status = await(session.client.checkStatus(), 45, TimeUnit.SECONDS, cancelled);
+                if (status == FeatureStatus.DOWNLOADABLE)
+                    throw new IllegalStateException("GEMINI_NANO_DOWNLOAD_REQUIRED");
+                if (status == FeatureStatus.DOWNLOADING)
+                    throw new IllegalStateException("GEMINI_NANO_DOWNLOADING");
+                if (status != FeatureStatus.AVAILABLE)
+                    throw new IllegalStateException("GEMINI_NANO_UNAVAILABLE");
+                warmReady = true;
+            }
             StringBuilder prompt = new StringBuilder();
             if (instructions != null && !instructions.trim().isEmpty()) {
                 prompt.append("Instructions: ").append(instructions.trim()).append('\n');
@@ -170,9 +215,11 @@ public final class NebulaNanoAi {
             if (response.getCandidates().isEmpty() || response.getCandidates().get(0).getText() == null) {
                 throw new IllegalStateException("Gemini Nano returned no text");
             }
-            return response.getCandidates().get(0).getText().trim();
+            String result = response.getCandidates().get(0).getText().trim();
+            reusable = !cancelled.getAsBoolean() && !result.isEmpty();
+            return result;
         } finally {
-            NebulaNanoInferenceGate.release();
+            releaseSession(reusable);
         }
     }
 }

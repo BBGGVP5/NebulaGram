@@ -11,6 +11,8 @@ block = source[start:source.index('        if (blurredBackground', start)]
 plain_start = source.index('        final boolean nebulaPlainHeaderButtons =')
 block = source[plain_start:source.index('        if (glassDrawableBack != null', plain_start)] + block
 block = block.replace('app.nebulagram.ui.NebulaChatStyle.', '')
+selection_start = source.index('            if (actionModeFactor > 0f && (nebulaFloatingChatHeader')
+selection = source[selection_start:source.index('            glassDrawable.setBounds(left, t, right, b);', selection_start)]
 style = (root / 'platform/android/overlay/TMessagesProj/src/main/java/app/nebulagram/ui/NebulaChatStyle.java').read_text(encoding='utf-8')
 start = style.index('    public static int avatarBackdropAlpha(')
 alpha = style[start:style.index('\n    }', start)+6]
@@ -37,6 +39,8 @@ class CapsuleCheck {
  int dp(int value){return value;}
  ALPHA
  void draw(){ BLOCK }
+ static int lerp(int a,int b,float p){return Math.round(a+(b-a)*p);}
+ int[] selectionBounds(int left,int right){ SELECTION return new int[]{left,right}; }
  public static void main(String[] args){int cases=0;
   for(boolean separate:new boolean[]{false,true})for(boolean visible:new boolean[]{false,true})
   for(boolean forced:new boolean[]{false,true})for(int width:new int[]{0,48,96,144})
@@ -70,11 +74,19 @@ class CapsuleCheck {
    selection.draw();check(selection.glassDrawableMenu.calls.isEmpty());
    check(selection.glassDrawableMenu.left==236&&selection.glassDrawableMenu.right==382);
   }
+  for(int mode=0;mode<4;mode++)for(int frame=0;frame<=100;frame++) {
+   CapsuleCheck selected=new CapsuleCheck();selected.nebulaFloatingChatHeader=mode==0;
+   selected.nebulaClassicSavedHeader=mode==1;selected.nebulaSavedMessagesHeader=mode==2;
+   selected.actionModeFactor=frame/100f;int[] bounds=selected.selectionBounds(52,288);
+   check(bounds[0]>=0 && bounds[0]<=52 && bounds[1]>=288 && bounds[1]<=400);
+   if(frame==100 && mode<3)check(bounds[0]==0 && bounds[1]==400);
+   if(frame==0 || mode==3)check(bounds[0]==52 && bounds[1]==288);
+  }
   CapsuleCheck c=new CapsuleCheck();c.glassDrawableMenu=null;c.draw();
   System.out.println(cases+" header button material and touch-bound cases passed");
  }
 }
-""".replace('ALPHA', alpha).replace('BLOCK', block)
+""".replace('ALPHA', alpha).replace('BLOCK', block).replace('SELECTION', selection)
 with tempfile.TemporaryDirectory(prefix='nebula-selection-') as folder:
     p = Path(folder) / 'CapsuleCheck.java'
     p.write_text(java, encoding='utf-8')
