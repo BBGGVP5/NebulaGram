@@ -50,7 +50,9 @@ class SavedMaterialCheck {
    check(c.glassDrawable.calls.size()==(Math.round(255*factor)>0?1:0),"resting title material is absent");
    if(!c.glassDrawable.calls.isEmpty()){
     int[] draw=c.glassDrawable.calls.get(0);check(draw[0]==Math.round(255*factor),"search/selection fades through last frame");
-    check(draw[1]==52&&draw[2]==302,"saved header never morphs into a title pill");
+    int left=phase==0?52:lerp(52,0,factor),right=phase==0?302:lerp(302,400,factor);
+    check(draw[1]==left&&draw[2]==right,"search keeps its field; selection expands over every control");
+    if(phase==1&&frame==100)check(draw[1]==0&&draw[2]==400,"selection buttons share the counter material");
    }cases++;
   }
   SavedMaterialCheck regular=new SavedMaterialCheck();regular.draw();
