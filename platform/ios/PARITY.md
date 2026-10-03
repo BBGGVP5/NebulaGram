@@ -3,11 +3,11 @@
 This inventory distinguishes **wired source** from native build and device acceptance. A setting with a validated import format is not necessarily functional on iOS.
 
 ## Verification and delivery
-- 2026-10-03 full portable-function pass: patches 0062 onward add seamless themed profile banners, borderless material buttons, opt-in glass haptics, native header/menu controls, own-message gestures, avatars, whole bottom-bar visibility with recovery navigation, folder hiding with safe fallback, real icon packs and switch styles, and optional branded authorization screens. Account-scoped behavior preferences cover unknown-contact sounds (foreground and Notification Service Extension), mention scope, forwarding destination, reply quoting, wallpaper selection and device-owner authentication before chat/history deletion. Bootstrap at `7fa6206d73e7a948039f326fc0900751ca367009` passed workflow `37096044690`: 86 Swift tests, all 67 patches, standalone UIKit/Objective-C checks and SVG asset compilation. Full device IPA workflow `37096066321` reached TelegramUI but failed on optional chaining of the non-optional context-menu interaction. Patch 0063 removes that optional chain; a replacement full build is required. Source completion is not device acceptance.
+- 2026-10-03 full portable-function pass: patches 0062 onward add seamless themed profile banners, borderless material buttons, opt-in glass haptics, native header/menu controls, own-message gestures, avatars, whole bottom-bar visibility with recovery navigation, folder hiding with safe fallback, real icon packs and switch styles, and optional branded authorization screens. Account-scoped behavior preferences cover unknown-contact sounds (foreground and Notification Service Extension), mention scope, forwarding destination, reply quoting, wallpaper selection and device-owner authentication before chat/history deletion. Bootstrap at `b3c82803eee50ccbe96e85cee611fb20a247e74b` passed workflow `37100219621`: 86 Swift tests, all 67 patches, standalone UIKit/Objective-C checks and SVG asset compilation. Full arm64 device IPA workflow `37100225372` passed for the same source. Downloaded build 59 was independently checked: app.nebulagram, iPhoneOS arm64 app and extensions, exactly one Notification Service Extension, manifest revision and SHA-256 `39522e4775e8b1a1c5e3e42d1aaba9b273f9b08ea802d4a6417f0322be734ae8`. The IPA requires user signing; physical-device and APNs acceptance remain unverified. Prior workflow `37096066321` failed on an optional chain in the save-message context menu; patch 0063 fixed it.
 - Previous live-translation IPA run `37036563036` failed at an ambiguous `Timer` type in ChatController. Patch 0062 qualifies it as `Foundation.Timer`. No IPA from that run is offered as successful.
 - 2026-10-02: native source now includes an active-camera virtual-lens zoom bridge, uncapped supported ranges, fixed quick-stop labels, a 280-point themed ruler and persistent pinch zoom. Requests are coalesced on the capture queue; only preset taps ramp, while dragging applies the latest factor directly. Both settings and support resolve the actual linked NebulaHub community, retain account-scoped metadata and native avatars, and open Telegram's community sheet. Choice dialogs are centered, dimmed, themed and keyboard-aware; message tools have adaptive centered action tiles, searchable result languages with Russian/English shortcuts, speech and local account-scoped tasks. The AI editor uses an opaque Telegram theme and an ordinary native navigation title. Profile appearance and reply appearance now have native consumers. Profile, chat behavior, stories, navigation and appearance are grouped separately.
 - Verified checkpoint: full arm64 device IPA at `f352cb58d063525548d487c4a994ce685e86e3d4` passed workflow `37022621208`. Downloaded archive contains the app and Notification Service Extension; SHA-256 `79d1252bec74768e764b95d1d1e84b090c26caa3f2cd33f2d6e9c4d1dc5ed320`. It requires user signing and has not been tested on a physical device. The prior native failure `37016705869` was repaired by removing unreachable camera branches.
-- Live AI follow-up: separate account/chat opt-ins for incoming and draft translation, independent language pickers, configurable debounce and optional right composer shortcut. Draft results require Apply; incoming requests exclude protected/secret/outgoing content and use a bounded queue. Bootstrap at `5114b53` passed 76 Swift tests and SDK/patch checks (`37033172470`). Latest native builds remain pending; the f352cb5 IPA does **not** contain these new translation controls.
+- Live AI follow-up: separate account/chat opt-ins for incoming and draft translation, independent language pickers, configurable debounce and optional right composer shortcut. Draft results require Apply; incoming requests exclude protected/secret/outgoing content and use a bounded queue. Bootstrap at `5114b53` passed 76 Swift tests and SDK/patch checks (`37033172470`). These controls are included in the verified b3c8280 build 59 above; the earlier f352cb5 IPA does **not** contain them.
 - Historical entries below record earlier revisions. The latest entry supersedes their old camera/community/dialog limitations, but the remaining consumer inventory is still explicit.
 - Runtime `f52b857` separates iOS bottom-bar navigation from appearance and moves folder controls beside folder style/counters. The glass preview uses Telegram colors and duplicate integer slider events skip store validation and JSON encoding (the store already deduplicated disk writes). iOS bootstrap `37007327569` passed all 65 Swift tests; native SettingsUI, PeerInfoScreen and folder modules compiled with Xcode 26.2 in `37007329671`. Android additionally separates chat/message/profile pages and adds material presets with deduplicated render revisions: CI `37007327426` passed and APK `1000291` has verified version, libraries and matching signature. These changes do not complete the older pending consumers below or port Android's latest round-video ruler, message-tools grid/language dialog and AI-editor presentation to iOS. A signed IPA and physical-device/FPS validation remain pending.
 - Android runtime `c121a86` adds quick Russian/English choices above the remaining language catalog and includes centered Telegram-themed dialogs, centered partial tool rows and the opaque AI editor/header fix (native patch 0163). All 158 native patches are included. Android CI `36978641268` and Settings contract `36978641272` passed; build `1000289` has verified package/version, arm64 Telegram/NebulaLink libraries and matching v1/v2 signing certificate. Physical-device appearance remains unverified; iOS runtime inputs are unchanged.
@@ -32,72 +32,72 @@ This inventory distinguishes **wired source** from native build and device accep
 
 | Key | Feature | iOS source status | Transfer v1 |
 |---|---|---|---|
-| `adaptive_chat_header` | chat.header | Wired; final native build/device QA pending | Yes |
-| `avatar_round` | appearance.general | Wired; final native build/device QA pending | Yes |
-| `bottom_bar` | navigation.bottom_bar | Wired; final native build/device QA pending | Yes |
-| `bottom_bar_contacts` | navigation.bottom_bar | Wired; native/device QA pending | Yes |
-| `bottom_bar_order` | navigation.bottom_bar | Wired; native/device QA pending | Yes |
-| `bottom_bar_profile` | navigation.bottom_bar | Wired; native/device QA pending | Yes |
-| `bottom_bar_settings` | navigation.bottom_bar | Wired; native/device QA pending | Yes |
-| `center_home` | navigation.folders | Wired; final native build/device QA pending | Yes |
-| `centered_chat_header` | chat.header | Wired; native/device QA pending | Yes |
-| `compact_bottom_bar` | navigation.bottom_bar | Wired; native/device QA pending | Yes |
-| `custom_avatar_corners` | appearance.general | Wired; final native build/device QA pending | Local only |
-| `disable_next_channel` | chat.messages | Wired; native/device QA pending | Yes |
-| `floating_chat_header_v2` | chat.header | Wired; final native build/device QA pending | Yes |
-| `folder_outline` | navigation.folders | Wired; native/device QA pending | Yes |
-| `folder_style` | navigation.folders | Wired for three native tab styles; native/device QA pending | Yes |
-| `folder_title` | navigation.folders | Wired; native/device QA pending | Yes |
-| `glass_blur` | appearance.glass | Wired to native material tiers; native/device QA pending | Local only |
-| `glass_custom` | appearance.glass | Wired; final native build/device QA pending | Local only |
-| `glass_depth` | appearance.glass | Wired for custom/legacy glass; native/device QA pending | Local only |
-| `glass_depth_enabled` | appearance.glass | Wired for custom/legacy glass; native/device QA pending | Local only |
-| `glass_haptic_strength` | appearance.glass | Wired; final native build/device QA pending | Local only |
-| `glass_haptics` | appearance.glass | Wired; final native build/device QA pending | Local only |
-| `glass_highlights` | appearance.glass | Wired for custom/legacy glass; native/device QA pending | Yes |
-| `glass_opacity` | appearance.glass | Wired for custom glass; native/device QA pending | Local only |
-| `glass_quality` | appearance.glass | Wired; native/device QA pending | Yes |
+| `adaptive_chat_header` | chat.header | Wired; native build passed; device QA pending | Yes |
+| `avatar_round` | appearance.general | Wired; native build passed; device QA pending | Yes |
+| `bottom_bar` | navigation.bottom_bar | Wired; native build passed; device QA pending | Yes |
+| `bottom_bar_contacts` | navigation.bottom_bar | Wired; native build passed; device QA pending | Yes |
+| `bottom_bar_order` | navigation.bottom_bar | Wired; native build passed; device QA pending | Yes |
+| `bottom_bar_profile` | navigation.bottom_bar | Wired; native build passed; device QA pending | Yes |
+| `bottom_bar_settings` | navigation.bottom_bar | Wired; native build passed; device QA pending | Yes |
+| `center_home` | navigation.folders | Wired; native build passed; device QA pending | Yes |
+| `centered_chat_header` | chat.header | Wired; native build passed; device QA pending | Yes |
+| `compact_bottom_bar` | navigation.bottom_bar | Wired; native build passed; device QA pending | Yes |
+| `custom_avatar_corners` | appearance.general | Wired; native build passed; device QA pending | Local only |
+| `disable_next_channel` | chat.messages | Wired; native build passed; device QA pending | Yes |
+| `floating_chat_header_v2` | chat.header | Wired; native build passed; device QA pending | Yes |
+| `folder_outline` | navigation.folders | Wired; native build passed; device QA pending | Yes |
+| `folder_style` | navigation.folders | Wired for three native tab styles; native build passed; device QA pending | Yes |
+| `folder_title` | navigation.folders | Wired; native build passed; device QA pending | Yes |
+| `glass_blur` | appearance.glass | Wired to native material tiers; native build passed; device QA pending | Local only |
+| `glass_custom` | appearance.glass | Wired; native build passed; device QA pending | Local only |
+| `glass_depth` | appearance.glass | Wired for custom/legacy glass; native build passed; device QA pending | Local only |
+| `glass_depth_enabled` | appearance.glass | Wired for custom/legacy glass; native build passed; device QA pending | Local only |
+| `glass_haptic_strength` | appearance.glass | Wired; native build passed; device QA pending | Local only |
+| `glass_haptics` | appearance.glass | Wired; native build passed; device QA pending | Local only |
+| `glass_highlights` | appearance.glass | Wired for custom/legacy glass; native build passed; device QA pending | Yes |
+| `glass_opacity` | appearance.glass | Wired for custom glass; native build passed; device QA pending | Local only |
+| `glass_quality` | appearance.glass | Wired; native build passed; device QA pending | Yes |
 | `glass_refraction` | appearance.glass | System-owned optical refraction; no public continuous UIKit control | Local only |
-| `header_unread` | chat.header | Wired; final native build/device QA pending | Yes |
-| `hide_all_chats` | navigation.folders | Wired; final native build/device QA pending | Yes |
-| `hide_attach_camera` | chat.composer | Wired; native/device QA pending | Yes |
-| `hide_dividers` | navigation.folders | Wired in chat-list rows; native/device QA pending | Yes |
-| `hide_home_camera` | navigation.bottom_bar | Wired; native/device QA pending | Yes |
-| `hide_home_compose` | navigation.bottom_bar | Wired; native/device QA pending | Yes |
+| `header_unread` | chat.header | Wired; native build passed; device QA pending | Yes |
+| `hide_all_chats` | navigation.folders | Wired; native build passed; device QA pending | Yes |
+| `hide_attach_camera` | chat.composer | Wired; native build passed; device QA pending | Yes |
+| `hide_dividers` | navigation.folders | Wired in chat-list rows; native build passed; device QA pending | Yes |
+| `hide_home_camera` | navigation.bottom_bar | Wired; native build passed; device QA pending | Yes |
+| `hide_home_compose` | navigation.bottom_bar | Wired; native build passed; device QA pending | Yes |
 | `hide_premium_status` | appearance.general | Wired in profile, chat/title, contact and peer rows, reactions, call participants and stories; device QA pending | Yes |
-| `hide_search_field` | navigation.folders | Wired; native/device QA pending | Yes |
-| `hide_send_as` | chat.composer | Wired; native/device QA pending | Yes |
-| `hide_tab_counters` | navigation.folders | Wired; native/device QA pending | Yes |
-| `icon_pack` | appearance.general | Wired; final native build/device QA pending | Yes |
+| `hide_search_field` | navigation.folders | Wired; native build passed; device QA pending | Yes |
+| `hide_send_as` | chat.composer | Wired; native build passed; device QA pending | Yes |
+| `hide_tab_counters` | navigation.folders | Wired; native build passed; device QA pending | Yes |
+| `icon_pack` | appearance.general | Wired; native build passed; device QA pending | Yes |
 | `ios_composer` | chat.composer | Native iOS default; Android emulation switch is not exposed | Yes |
 | `ios_icons` | appearance.general | Native iOS default; Android emulation switch is not exposed | Yes |
 | `ios_unread` | chat.header | Native iOS default; Android emulation switch is not exposed | Yes |
-| `liquid_animations` | appearance.glass | Wired; native/device QA pending | Yes |
-| `login_style` | appearance.general | Wired; final native build/device QA pending | Yes |
+| `liquid_animations` | appearance.glass | Wired; native build passed; device QA pending | Yes |
+| `login_style` | appearance.general | Wired; native build passed; device QA pending | Yes |
 | `material_you` | appearance.general | Platform-specific; not ported | Yes |
-| `menu_call` | chat.header | Wired in user avatar menu; native/device QA pending | Yes |
-| `menu_mute` | chat.header | Wired in topic avatar menu; native/device QA pending | Yes |
-| `menu_search` | chat.header | Wired in peer/topic avatar menus; native/device QA pending | Yes |
-| `menu_video` | chat.header | Wired in user avatar menu; native/device QA pending | Yes |
+| `menu_call` | chat.header | Wired in user avatar menu; native build passed; device QA pending | Yes |
+| `menu_mute` | chat.header | Wired in topic avatar menu; native build passed; device QA pending | Yes |
+| `menu_search` | chat.header | Wired in peer/topic avatar menus; native build passed; device QA pending | Yes |
+| `menu_video` | chat.header | Wired in user avatar menu; native build passed; device QA pending | Yes |
 | `message_menu_below` | chat.context_menu | Native lifted-message menu below the message; no emulation switch | Yes |
-| `message_menu_blur` | chat.context_menu | Wired; final native build/device QA pending | Yes |
-| `own_double_tap` | chat.messages | Wired; final native build/device QA pending | Yes |
-| `profile_background` | profile.presentation | Wired; native/device QA pending | Yes |
-| `profile_birthday` | profile.presentation | Wired; native/device QA pending | Yes |
-| `profile_business` | profile.presentation | Wired; native/device QA pending | Yes |
-| `profile_channel` | profile.presentation | Wired; native/device QA pending | Yes |
-| `profile_emoji` | profile.presentation | Wired; native/device QA pending | Yes |
-| `profile_photo_banner` | profile.presentation | Wired; native/device QA pending | Yes |
-| `profile_style` | profile.presentation | Wired; final native build/device QA pending | Yes |
-| `reply_background` | chat.messages | Wired; native/device QA pending | Yes |
-| `reply_colors` | chat.messages | Wired; native/device QA pending | Yes |
-| `reply_emoji` | chat.messages | Wired; native/device QA pending | Yes |
-| `seconds_in_time` | chat.messages | Wired; native/device QA pending | Yes |
-| `settings_search_history` | settings.search | Wired; native/device QA pending | Local only |
-| `show_stories` | stories.visibility | Wired; native/device QA pending | Local only |
-| `switch_style` | appearance.general | Wired; final native build/device QA pending | Yes |
-| `tab_labels` | navigation.bottom_bar | Wired; native/device QA pending | Yes |
-| `uniform_avatars` | appearance.general | Wired; final native build/device QA pending | Yes |
+| `message_menu_blur` | chat.context_menu | Wired; native build passed; device QA pending | Yes |
+| `own_double_tap` | chat.messages | Wired; native build passed; device QA pending | Yes |
+| `profile_background` | profile.presentation | Wired; native build passed; device QA pending | Yes |
+| `profile_birthday` | profile.presentation | Wired; native build passed; device QA pending | Yes |
+| `profile_business` | profile.presentation | Wired; native build passed; device QA pending | Yes |
+| `profile_channel` | profile.presentation | Wired; native build passed; device QA pending | Yes |
+| `profile_emoji` | profile.presentation | Wired; native build passed; device QA pending | Yes |
+| `profile_photo_banner` | profile.presentation | Wired; native build passed; device QA pending | Yes |
+| `profile_style` | profile.presentation | Wired; native build passed; device QA pending | Yes |
+| `reply_background` | chat.messages | Wired; native build passed; device QA pending | Yes |
+| `reply_colors` | chat.messages | Wired; native build passed; device QA pending | Yes |
+| `reply_emoji` | chat.messages | Wired; native build passed; device QA pending | Yes |
+| `seconds_in_time` | chat.messages | Wired; native build passed; device QA pending | Yes |
+| `settings_search_history` | settings.search | Wired; native build passed; device QA pending | Local only |
+| `show_stories` | stories.visibility | Wired; native build passed; device QA pending | Local only |
+| `switch_style` | appearance.general | Wired; native build passed; device QA pending | Yes |
+| `tab_labels` | navigation.bottom_bar | Wired; native build passed; device QA pending | Yes |
+| `uniform_avatars` | appearance.general | Wired; native build passed; device QA pending | Yes |
 | `useSystemBoldFont` | appearance.general | Native UIFont weights; no Android font override | Yes |
 | `useSystemEmoji` | appearance.general | Native iOS emoji font; no Android font override | Yes |
 

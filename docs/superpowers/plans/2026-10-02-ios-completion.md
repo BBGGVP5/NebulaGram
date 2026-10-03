@@ -44,7 +44,7 @@ Native tests: 73 passed for f352cb5; the full unsigned device IPA passed 3702262
 - [x] Incoming: reuse bounded Android queue; cancel on leaving/disabling, exclude outgoing/protected/secret messages. On iOS route visible IDs through the selected AI service, preserve original text and native translation attributes.
 - [x] Draft: debounce requests, cancel/ignore stale responses, show preview with explicit Apply; never auto-send or overwrite a newer draft. Suspend on background/recording/editing protected content.
 - [x] iOS: themed settings, composer accessory and equivalent incoming/draft consumers; shared lifecycle tests.
-- [ ] Run meaningful queue/state tests, patch validation and Android/iOS native builds. Download and verify final artifacts; distinguish the earlier f352cb5 IPA checkpoint.
+- [x] Run meaningful queue/state tests, patch validation and Android/iOS native builds. Download and verify final artifacts; distinguish the earlier f352cb5 IPA checkpoint.
 
 
 ## Follow-up: Android profile banner and buttons
@@ -72,10 +72,10 @@ Continue inline. Preserve the published 61-patch baseline in `build/ios-parity-c
 - [x] Wire account behavior, native chat gestures/header, navigation/avatar/icon packs and switch/login style through 0063–0066 and native SettingsUI routes.
 - [x] Update import classification tests now that portable keys have actual consumers; retain Material You as a non-active imported Android value.
 - [x] Android workflow 37038627246 passed; APK SHA-256 38afcad7c595e97b85e0518a240eb47fd1dd38ee7155e2b92d9b707ef9e89f78, apksigner verification passed.
-- [ ] Complete final iOS ordered-patch, SDK and native IPA checks; the previous translation build 37036563036 failed at ambiguous Timer and is not a deliverable.
+- [x] Complete final iOS ordered-patch, SDK and native IPA checks; the previous translation build 37036563036 failed at ambiguous Timer and is not a deliverable.
 
 - [x] macOS bootstrap 37096044690 passed at 7fa6206: 86 tests, 67 patches, embedded Foundation, UIKit switch, Objective-C icon adapter and SVG resources. Fixed Locale deprecation and UISwitch selector compatibility found by the SDK checks.
 - [x] Diagnose full arm64 IPA 37096066321 failure in TelegramUI: remove optional chaining from the non-optional ChatControllerInteraction in patch 0063.
-- [ ] Complete replacement full arm64 IPA and verify its exact source revision and archive.
+- [x] Complete replacement full arm64 IPA and verify its exact source revision and archive: workflow 37100225372 passed at b3c82803eee50ccbe96e85cee611fb20a247e74b, build 59. Downloaded IPA validates all app/extension device binaries, bundle IDs, Notification Service Extension, source revision and SHA-256 39522e4775e8b1a1c5e3e42d1aaba9b273f9b08ea802d4a6417f0322be734ae8. Requires user signing; physical-device/APNs checks remain outstanding. Bootstrap 37100219621 passed all 86 tests on the same revision.
 
 - [x] Android recheck 37095621989 at 33e0f42 passed. Downloaded build 1000304: package app.nebulagram.messenger, arm64-v8a, Telegram and NebulaLink JNI libraries; signature matches prior builds. SHA-256 e171fe4749c6b7fa40a56b187c92c8d6267412e093dda17673b937ddb8a6af3a.
