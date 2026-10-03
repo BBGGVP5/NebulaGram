@@ -14,12 +14,19 @@ public final class NebulaMessageToolsFragment extends BaseFragment {
     private final MessageObject message;
     private boolean popup;
     public static void show(BaseFragment host, NebulaMessageToolsFragment tools) {
-        if (host.getParentActivity() == null) return;
+        show(host, tools, null);
+    }
+    public static void show(BaseFragment host, NebulaMessageToolsFragment tools, Runnable onDismiss) {
+        if (host.getParentActivity() == null) {
+            if (onDismiss != null) onDismiss.run();
+            return;
+        }
         tools.popup = true;
         tools.setResourceProvider(host.getResourceProvider());
         if (host.getFragmentView() != null) AndroidUtilities.hideKeyboard(host.getFragmentView());
         BaseFragment.BottomSheetParams params = new BaseFragment.BottomSheetParams();
         params.maxHeightFraction = .82f;
+        params.onDismiss = onDismiss;
         host.showAsSheet(tools, params);
     }
     private String draftText;

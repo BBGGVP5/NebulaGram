@@ -33,6 +33,8 @@ assert measure.index('updateFieldRight(lastAttachVisible)') < measure.index('neb
 assert 'nebulaComposerStyle.layout(emojiButton, attachButton, senderSelectView, aiButton, richButton);\n        updateFieldRight' not in layout
 assert 'NebulaMessageToolsFragment.show(parentFragment' in composer
 assert 'nebula_ai_outline' in composer
+assert '!nebulaToolsVisible && !recordingAudioVideo' in composer
+assert 'params.onDismiss = onDismiss' in (ui/'NebulaMessageToolsFragment.java').read_text(encoding='utf-8')
 fragment=(native/'ActionBar/BaseFragment.java').read_text(encoding='utf-8')
 assert 'params.maxHeightFraction > 0f' in fragment and 'Math.min(available,' in fragment
 assert 'fragment.onPause();' in fragment and 'fragment.onFragmentDestroy();' in fragment
