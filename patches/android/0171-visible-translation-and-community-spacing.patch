@@ -59,7 +59,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
 +                    if (cell.getCurrentMessagesGroup() != null) visible.addAll(cell.getCurrentMessagesGroup().messages);
 +                    else if (cell.getMessageObject() != null) visible.add(cell.getMessageObject());
 +                }
-+                if (currentPinnedMessageId > 0 && pinnedMessageObjects != null && currentPinnedMessageId >= 0 && currentPinnedMessageId < pinnedMessageObjects.size())
++                if (currentPinnedMessageId > 0 && pinnedMessageObjects != null && pinnedMessageObjects.get(currentPinnedMessageId) != null)
 +                    visible.add(pinnedMessageObjects.get(currentPinnedMessageId));
 +                app.nebulagram.ui.NebulaAutoTranslate.retainVisible(currentAccount, getDialogId(), visible);
 +                for (MessageObject message : visible) app.nebulagram.ui.NebulaAutoTranslate.request(currentAccount, message);

@@ -60,16 +60,21 @@ enum Provider: Int { case remote, appleIntelligence }
 final class NebulaAiSettings { static let shared = NebulaAiSettings(); var enabled = true; var provider = Provider.remote; var customEndpoint = "https://example.test"; var instructions = ""; func isConfigured() -> Bool { true }; func model(for: Provider) -> String { "model" } }
 enum NebulaAiServiceError: Error { case invalidConfiguration }
 struct NebulaAiService {
-    static var localModelAvailable = true; static var active = 0; static var peak = 0; static var calls = 0
+    static var localModelAvailable = true; static var active = 0; static var peak = 0; static var calls = 0; static var blocked = false
     let instructions: String
     func generate(input: String) async throws -> String {
         Self.calls += 1; Self.active += 1; Self.peak = max(Self.peak, Self.active)
         defer { Self.active -= 1 }
-        try await Task.sleep(nanoseconds: 80_000_000); try Task.checkCancellation(); return "AI:" + input
+        while Self.blocked { try await Task.sleep(nanoseconds: 1_000_000) }
+        await Task.yield(); try Task.checkCancellation(); return "AI:" + input
     }
     static func message(for: Error, russian: Bool) -> String { "Unavailable" }
 }
 @main struct Check {
+    @MainActor static func waitFor(_ context: String, _ condition: () -> Bool) async throws {
+        for _ in 0..<300 { if condition() { return }; try await Task.sleep(nanoseconds: 10_000_000) }
+        preconditionFailure(context)
+    }
     @MainActor static func main() async throws {
         let context = AccountContext(), peer = PeerId(value: 9), settings = NebulaTranslationPreferences.shared
         let account = String(context.account.peerId.toInt64()), key = String(peer.toInt64())
@@ -80,7 +85,7 @@ struct NebulaAiService {
         for message in [own, incoming, protected] { context.account.postbox.tx.messages[message.id] = message }
         settings.update(account: account, peer: key) { $0.incoming = false; $0.outgoing = true; $0.draft = false }
         engine.update(context: context, peer: peer, messages: [own, incoming, protected], allowed: true)
-        try await Task.sleep(nanoseconds: 120_000_000)
+        try await waitFor("sent result completes") { own.attributes.count == 1 && NebulaAiService.active == 0 }
         precondition(own.attributes.count == 1 && incoming.attributes.isEmpty && protected.attributes.isEmpty, "independent outgoing-only consent")
         precondition(own.text == "sent", "original sent text preserved")
         let calls = NebulaAiService.calls
@@ -90,35 +95,37 @@ struct NebulaAiService {
         settings.update(account: account, peer: key) { $0.incoming = true; $0.outgoing = false }
         let a = Message(10, "A"), b = Message(11, "B"), c = Message(12, "C")
         for message in [a,b,c] { context.account.postbox.tx.messages[message.id] = message }
-        NebulaAiService.peak = 0
+        NebulaAiService.peak = 0; NebulaAiService.blocked = true
         engine.update(context: context, peer: peer, messages: [a,b,c,protected], allowed: true)
-        try await Task.sleep(nanoseconds: 15_000_000)
+        try await waitFor("two remote requests start") { NebulaAiService.active == 2 }
         precondition(NebulaAiService.active == 2, "two remote requests start together")
         engine.update(context: context, peer: peer, messages: [c], allowed: true)
-        for _ in 0..<100 {
-            if c.attributes.count == 1 && NebulaAiService.active == 0 { break }
-            try await Task.sleep(nanoseconds: 10_000_000)
-        }
-        print("Scroll result: a=\(a.attributes.count), b=\(b.attributes.count), c=\(c.attributes.count), active=\(NebulaAiService.active), peak=\(NebulaAiService.peak), calls=\(NebulaAiService.calls)")
+        NebulaAiService.blocked = false
+        try await waitFor("visible result completes after scroll") { c.attributes.count == 1 && NebulaAiService.active == 0 }
         precondition(a.attributes.isEmpty && b.attributes.isEmpty && c.attributes.count == 1, "scroll cancellation rejects offscreen completions")
         precondition(NebulaAiService.peak == 2 && protected.attributes.isEmpty, "bounded transport and protected text")
         let edited = Message(20, "before"); context.account.postbox.tx.messages[edited.id] = edited
+        NebulaAiService.blocked = true
         engine.update(context: context, peer: peer, messages: [edited], allowed: true)
-        try await Task.sleep(nanoseconds: 10_000_000); edited.text = "after"
+        try await waitFor("edited source request starts") { NebulaAiService.active == 1 }; edited.text = "after"
         engine.update(context: context, peer: peer, messages: [edited], allowed: true)
-        try await Task.sleep(nanoseconds: 120_000_000)
+        NebulaAiService.blocked = false
+        try await waitFor("edited result completes") { edited.attributes.count == 1 && NebulaAiService.active == 0 }
         precondition((edited.attributes.first as? TranslationMessageAttribute)?.text == "AI:after", "edited source invalidates active request")
         let revoked = Message(21, "revoked"); context.account.postbox.tx.messages[revoked.id] = revoked
+        NebulaAiService.blocked = true
         engine.update(context: context, peer: peer, messages: [revoked], allowed: true)
-        try await Task.sleep(nanoseconds: 10_000_000)
+        try await waitFor("revoked source request starts") { NebulaAiService.active == 1 }
         settings.update(account: account, peer: key) { $0.incoming = false }
         engine.update(context: context, peer: peer, messages: [revoked], allowed: true)
-        try await Task.sleep(nanoseconds: 120_000_000)
+        NebulaAiService.blocked = false
+        try await waitFor("revoked request cancelled") { NebulaAiService.active == 0 }
         precondition(revoked.attributes.isEmpty, "consent revoked during inference")
         settings.update(account: account, peer: key) { $0.incoming = true }
         NebulaAiSettings.shared.provider = .appleIntelligence; NebulaAiService.peak = 0
+        let localCalls = NebulaAiService.calls
         engine.update(context: context, peer: peer, messages: [a,b,c], allowed: true)
-        try await Task.sleep(nanoseconds: 300_000_000)
+        try await waitFor("local requests complete") { NebulaAiService.calls == localCalls + 3 && NebulaAiService.active == 0 }
         precondition(NebulaAiService.peak == 1, "local model remains serialized")
         engine.stop()
         print("Swift visible translation: independent sent consent, immutable originals, cache, scroll/edit/revocation cancellation, remote two/local one passed")

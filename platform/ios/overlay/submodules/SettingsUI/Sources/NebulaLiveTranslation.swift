@@ -51,7 +51,7 @@ public final class NebulaLiveTranslation {
         let visible = Dictionary(messages.map { ($0.id, $0.text) }, uniquingKeysWith: { first, _ in first })
         queue.removeAll { visible[$0.id] != $0.text }
         for (id, request) in Array(requests) where visible[id] != request.source {
-            request.task?.cancel(); requests.removeValue(forKey: id); NebulaTranslationActivity.set(owner: request.token, key: nil)
+            request.task?.cancel(); NebulaTranslationActivity.set(owner: request.token, key: nil)
         }
         for message in messages.prefix(24) where message.id.peerId == peer && message.id.namespace == Namespaces.Message.Cloud && message.id.id > 0 {
             guard options.translates(incoming: message.flags.contains(.Incoming)),
@@ -63,15 +63,15 @@ public final class NebulaLiveTranslation {
                 if let attr = message.attributes.first(where: { $0 is TranslationMessageAttribute }) as? TranslationMessageAttribute,
                     attr.toLang == options.incomingLanguage && attr.text == translated { continue }
                 Self.apply(context: context, message: message, result: translated, language: options.incomingLanguage)
-            } else if requests[message.id] == nil && !queue.contains(where: { $0.id == message.id }) && queue.count < 20
+            } else if requests[message.id]?.source != message.text && !queue.contains(where: { $0.id == message.id }) && queue.count < 20
                 && (failed[sourceKey] ?? .distantPast) < Date() { queue.append(message) }
         }
         runNext(context: context, language: options.incomingLanguage)
     }
     private func runNext(context: AccountContext, language: String) {
         let limit = NebulaAiSettings.shared.provider == .appleIntelligence ? 1 : 2
-        while requests.count < limit, !queue.isEmpty {
-            let message = queue.removeFirst(), token = UUID()
+        while requests.count < limit, let index = queue.firstIndex(where: { requests[$0.id] == nil }) {
+            let message = queue.remove(at: index), token = UUID()
             NebulaTranslationActivity.set(owner: token, key: NebulaTranslationKey(account: String(context.account.peerId.toInt64()),
                 peer: String(message.id.peerId.toInt64()), namespace: message.id.namespace, message: message.id.id))
             let version = revision, requestConnection = Self.connectionIdentity
@@ -81,10 +81,12 @@ public final class NebulaLiveTranslation {
                 let result: String?
                 var failure: Error?
                 do { result = try await Self.translate(message.text, language: language) } catch { result = nil; failure = error }
-                guard let self = self, !Task.isCancelled, version == self.revision, self.requests[message.id]?.token == token else { return }
+                guard let self = self, version == self.revision, self.requests[message.id]?.token == token else { return }
                 self.requests.removeValue(forKey: message.id)
                 NebulaTranslationActivity.set(owner: token, key: nil)
-                guard requestConnection == Self.connectionIdentity else { return }
+                guard !Task.isCancelled, requestConnection == Self.connectionIdentity else {
+                    self.runNext(context: context, language: language); return
+                }
                 if let result = result {
                     Self.errors.removeValue(forKey: self.scope)
                     if self.cache.count >= 128 { self.cache.removeAll() }
