@@ -104,7 +104,12 @@ def main():
         assert '!isCopyProtected && messages.count == 1' in ai_menu
         draft_menu = (temp / 'submodules/TelegramUI/Sources/ChatController.swift').read_text(encoding='utf-8')
         assert 'NebulaAiChatController(russian: russian, initialText: draft, action: .proofread' in draft_menu
-        assert 'withUpdatedEffectiveInputState(ChatTextInputState(inputText: NSAttributedString(string: value)))' in draft_menu
+        assert 'withUpdatedEffectiveInputState(ChatTextInputState(inputText: NSAttributedString(string: result)))' in draft_menu
+        assert 'effectiveInputState.inputText.string == source else { return }' in draft_menu
+        assert 'composerVisible && !nebulaToolsVisible' in draft_menu
+        assert 'NebulaToolsNavigationController(root: controller, onDismiss:' in draft_menu
+        assert 'self?.nebulaApplyDraft(source: draft, result: value)' in draft_menu
+        assert 'NebulaToolsNavigationController(root: NebulaMessageToolsController' in ai_menu
         assert 'NebulaChatLockEditorController(account:' in draft_menu
         assert 'NebulaChatLockGate.attach(to: self' in draft_menu
         assert 'NebulaChatLockGate.seal(host: self)' in draft_menu
@@ -350,6 +355,8 @@ print("OK: embedded catalog and Bazel-side Foundation store compiled and ran")
             subprocess.run(['swiftc', *ios_flags, '-typecheck', str(zoom_slider)], check=True)
             subprocess.run(['swiftc', *ios_flags, '-typecheck', '-I', str(temp),
                             str(settings_ui / 'NebulaActionGrid.swift')], check=True)
+            subprocess.run(['swiftc', *ios_flags, '-typecheck',
+                            str(settings_ui / 'NebulaToolsNavigationController.swift')], check=True)
             subprocess.run(['swiftc', *ios_flags, '-typecheck', '-I', str(temp),
                             str(temp / 'submodules/Display/Source/NebulaSwitchControl.swift')], check=True)
             ai_sources = ['NebulaSettingsStyle.swift', 'NebulaSettingsSymbols.swift', 'NebulaSettingsHero.swift',

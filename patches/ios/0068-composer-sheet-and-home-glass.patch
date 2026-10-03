@@ -1,0 +1,224 @@
+diff --git a/submodules/TelegramUI/Components/Chat/ChatTextInputPanelNode/Sources/ChatTextInputPanelNode.swift b/submodules/TelegramUI/Components/Chat/ChatTextInputPanelNode/Sources/ChatTextInputPanelNode.swift
+index 43eee8f..dec4578 100644
+--- a/submodules/TelegramUI/Components/Chat/ChatTextInputPanelNode/Sources/ChatTextInputPanelNode.swift
++++ b/submodules/TelegramUI/Components/Chat/ChatTextInputPanelNode/Sources/ChatTextInputPanelNode.swift
+@@ -367,7 +367,7 @@ public class ChatTextInputPanelNode: ChatInputPanelNode, ASEditableTextNodeDeleg
+             let state = self.presentationInterfaceState,
+             state.inputTextPanelState.mediaRecordingState == nil, state.interfaceState.mediaDraftState == nil,
+             state.editMessageState == nil, state.chatLocation.peerId?.namespace != Namespaces.Peer.SecretChat else { return 0 }
+-        return 40
++        return 44
+     }
+     public var isAIEnabled: Bool = false
+     
+@@ -3327,8 +3327,10 @@ public class ChatTextInputPanelNode: ChatInputPanelNode, ASEditableTextNodeDeleg
+         if let button = self.nebulaToolsButton {
+             button.isHidden = self.nebulaToolsWidth == 0 || audioRecordingItemsAlpha == 0
+             if button.superview == nil { self.textInputContainerBackgroundView.contentView.addSubview(button) }
+-            button.frame = CGRect(x: nextButtonTopRight.x - self.nebulaToolsWidth, y: nextButtonTopRight.y,
++            let toolsFrame = CGRect(x: nextButtonTopRight.x - self.nebulaToolsWidth, y: nextButtonTopRight.y,
+                 width: self.nebulaToolsWidth, height: minimalInputHeight)
++            transition.updateFrame(layer: button.layer, frame: toolsFrame)
++            transition.updateAlpha(layer: button.layer, alpha: audioRecordingItemsAlpha)
+             nextButtonTopRight.x -= self.nebulaToolsWidth
+         }
+ 
+diff --git a/submodules/TelegramUI/Components/ChatListHeaderComponent/Sources/ChatListNavigationBar.swift b/submodules/TelegramUI/Components/ChatListHeaderComponent/Sources/ChatListNavigationBar.swift
+index 23ea726..6397992 100644
+--- a/submodules/TelegramUI/Components/ChatListHeaderComponent/Sources/ChatListNavigationBar.swift
++++ b/submodules/TelegramUI/Components/ChatListHeaderComponent/Sources/ChatListNavigationBar.swift
+@@ -1,4 +1,5 @@
+ import Foundation
++import NebulaSettingsContract
+ import UIKit
+ import Display
+ import AsyncDisplayKit
+@@ -192,6 +193,8 @@ public final class ChatListNavigationBar: Component {
+ 
+     public final class View: UIView {
+         private let edgeEffectView: EdgeEffectView
++        private let nebulaHeaderGlass = GlassBackgroundView(frame: .zero)
++        private var nebulaHeaderObservation: SettingsObservation?
+         
+         private let headerBackgroundContainer: GlassBackgroundContainerView
+         public let headerContent = ComponentView<Empty>()
+@@ -244,6 +247,16 @@ public final class ChatListNavigationBar: Component {
+             super.init(frame: frame)
+             
+             self.addSubview(self.edgeEffectView)
++            self.nebulaHeaderGlass.isUserInteractionEnabled = false
++            self.nebulaHeaderGlass.drawsMaterialBorder = false
++            self.addSubview(self.nebulaHeaderGlass)
++            self.nebulaHeaderObservation = NebulaSettingsStore.shared.observe { [weak self] in
++                guard let self else { return }
++                self.state?.updated(transition: .immediate)
++                if let offset = self.rawScrollOffset {
++                    self.applyScroll(offset: offset, allowAvatarsExpansion: self.currentAllowAvatarsExpansion, forceUpdate: true, transition: .immediate)
++                }
++            }
+             self.addSubview(self.bottomContentsContainer)
+         }
+         
+@@ -412,6 +425,21 @@ public final class ChatListNavigationBar: Component {
+             transition.setFrame(view: self.edgeEffectView, frame: edgeEffectFrame)
+             self.edgeEffectView.update(content: nil, blur: true, alpha: 0.85, rect: edgeEffectFrame, edge: .top, edgeSize: min(54.0, edgeEffectHeight), transition: transition)
+             
++            // One native material covers status bar, title, search and folders.
++            // Reuse the glass component's theme, quality and accessibility policy.
++            let usesHeaderGlass = NebulaSettingsStore.shared.iosGlassStyle != 0 && component.activeSearch == nil
++            self.nebulaHeaderGlass.isHidden = !usesHeaderGlass
++            self.edgeEffectView.isHidden = usesHeaderGlass || !component.hasEdgeEffect
++            if usesHeaderGlass {
++                let glassSize = CGSize(width: visibleSize.width, height: max(0.0, visibleSize.height))
++                transition.setFrame(view: self.nebulaHeaderGlass, frame: CGRect(origin: .zero, size: glassSize))
++                self.nebulaHeaderGlass.update(size: glassSize,
++                    cornerRadii: .init(topLeft: 0.0, topRight: 0.0, bottomLeft: 22.0, bottomRight: 22.0),
++                    isDark: component.theme.overallDarkAppearance,
++                    tintColor: .init(kind: .custom(style: .default, color: component.theme.rootController.navigationBar.blurredBackgroundColor)),
++                    isInteractive: false, isVisible: true, transition: transition)
++            }
++
+             let headerTransition = transition
+             
+             let storiesOffsetFraction: CGFloat
+@@ -815,7 +843,7 @@ public final class ChatListNavigationBar: Component {
+             
+             self.updateEdgeEffectColor(transition: transition)
+             
+-            self.edgeEffectView.isHidden = !component.hasEdgeEffect
++            self.edgeEffectView.isHidden = !component.hasEdgeEffect || (NebulaSettingsStore.shared.iosGlassStyle != 0 && component.activeSearch == nil)
+             
+             return size
+         }
+diff --git a/submodules/TelegramUI/Components/Stories/StoryPeerListComponent/Sources/StoryPeerListComponent.swift b/submodules/TelegramUI/Components/Stories/StoryPeerListComponent/Sources/StoryPeerListComponent.swift
+index 0b19bc5..1312e28 100644
+--- a/submodules/TelegramUI/Components/Stories/StoryPeerListComponent/Sources/StoryPeerListComponent.swift
++++ b/submodules/TelegramUI/Components/Stories/StoryPeerListComponent/Sources/StoryPeerListComponent.swift
+@@ -1448,7 +1448,8 @@ public final class StoryPeerListComponent: Component {
+                 
+                 self.titleView.alpha = titleFraction
+                 
+-                let titleScale: CGFloat = titleFraction * 1.0 + (1.0 - titleFraction) * 0.3
++                // Crossfade titles at their readable size instead of shrinking to a dot.
++                let titleScale: CGFloat = 1.0
+                 self.titleView.layer.transform = CATransform3DMakeScale(titleScale, titleScale, 1.0)
+             }
+             
+@@ -1493,7 +1494,7 @@ public final class StoryPeerListComponent: Component {
+                     
+                     disappearingTitleView.imageView.alpha = titleFraction
+                     
+-                    let titleScale: CGFloat = titleFraction * 1.0 + (1.0 - titleFraction) * 0.3
++                    let titleScale: CGFloat = 1.0
+                     disappearingTitleView.imageView.layer.transform = CATransform3DMakeScale(titleScale, titleScale, 1.0)
+                 }
+             }
+diff --git a/submodules/TelegramUI/Sources/ChatController.swift b/submodules/TelegramUI/Sources/ChatController.swift
+index 691a8cc..b0e444c 100644
+--- a/submodules/TelegramUI/Sources/ChatController.swift
++++ b/submodules/TelegramUI/Sources/ChatController.swift
+@@ -251,6 +251,7 @@ public final class ChatControllerImpl: TelegramBaseController, ChatController, G
+     private var nebulaTranslationTimer: Foundation.Timer?
+     private var nebulaTranslationObservers: [NSObjectProtocol] = []
+     private var nebulaTranslationVisible = false
++    private var nebulaToolsVisible = false
+     private var nebulaHadAiTranslation = false
+     private var nebulaPreviousTranslationState: ChatPresentationTranslationState?
+     private var nebulaIncomingTick = Date.distantPast
+@@ -264,12 +265,11 @@ public final class ChatControllerImpl: TelegramBaseController, ChatController, G
+         chatDisplayNode.textInputPanelNode?.nebulaToolsButton = nebulaDraftTranslation.button
+         nebulaDraftTranslation.openSettings = { [weak self] in self?.nebulaOpenTranslationSettings() }
+         nebulaDraftTranslation.openTools = { [weak self] in
+-            guard let self = self else { return }
++            guard let self = self, !self.nebulaToolsVisible, self.presentedViewController == nil else { return }
+             let source = self.presentationInterfaceState.interfaceState.effectiveInputState.inputText.string
+             let tools = NebulaMessageToolsController(text: source, russian: russian, theme: self.presentationData.theme,
+                 accountId: account, peerId: peerKey, applyDraft: { [weak self] value in self?.nebulaApplyDraft(source: source, result: value) })
+-            let navigation = UINavigationController(rootViewController: tools); navigation.modalPresentationStyle = .fullScreen
+-            self.present(navigation, animated: true)
++            self.nebulaPresentTools(tools)
+         }
+         nebulaDraftTranslation.apply = { [weak self] source, result in self?.nebulaApplyDraft(source: source, result: result) }
+         nebulaTranslationTimer?.invalidate(); nebulaTranslationTimer = nil
+@@ -296,12 +296,22 @@ public final class ChatControllerImpl: TelegramBaseController, ChatController, G
+         nebulaPreviousTranslationState = nil
+         NebulaTranslationPreferences.shared.update(account: "\(context.account.peerId.toInt64())", peer: "\(peer.toInt64())") { $0.incoming = false }
+     }
++    private func nebulaPresentTools(_ controller: UIViewController) {
++        guard !nebulaToolsVisible, presentedViewController == nil else { return }
++        nebulaToolsVisible = true
++        nebulaDraftTranslation.stop()
++        view.endEditing(true)
++        let navigation = NebulaToolsNavigationController(root: controller, onDismiss: { [weak self] in
++            self?.nebulaToolsVisible = false
++            self?.nebulaConfigureChatAI()
++        })
++        present(navigation, animated: true)
++    }
+     func nebulaOpenTranslationSettings() {
+         guard let peer = chatLocation.peerId, peer.namespace != Namespaces.Peer.SecretChat else { return }
+         let settings = NebulaTranslationController(account: "\(context.account.peerId.toInt64())", peer: "\(peer.toInt64())",
+             russian: presentationData.strings.baseLanguageCode.lowercased().hasPrefix("ru"), theme: presentationData.theme)
+-        let navigation = UINavigationController(rootViewController: settings); navigation.modalPresentationStyle = .fullScreen
+-        present(navigation, animated: true)
++        nebulaPresentTools(settings)
+     }
+     private func nebulaApplyDraft(source: String, result: String) {
+         guard presentationInterfaceState.interfaceState.effectiveInputState.inputText.string == source else { return }
+@@ -333,7 +343,7 @@ public final class ChatControllerImpl: TelegramBaseController, ChatController, G
+             nebulaLiveTranslation.update(context: context, peer: peer, messages: messages, allowed: incoming)
+         }
+         let composerVisible = chatDisplayNode.inputPanelNode === chatDisplayNode.textInputPanelNode
+-        let canTranslateDraft = composerVisible && peer.namespace != Namespaces.Peer.SecretChat
++        let canTranslateDraft = composerVisible && !nebulaToolsVisible && peer.namespace != Namespaces.Peer.SecretChat
+             && presentationInterfaceState.editMessageState == nil && presentationInterfaceState.inputTextPanelState.mediaRecordingState == nil
+             && presentationInterfaceState.interfaceState.mediaDraftState == nil
+         nebulaDraftTranslation.update(source: presentationInterfaceState.interfaceState.effectiveInputState.inputText.string, options: options, allowed: canTranslateDraft)
+@@ -6203,14 +6213,9 @@ public final class ChatControllerImpl: TelegramBaseController, ChatController, G
+                             }, action: { _, f in
+                                 f(.dismissWithoutContent)
+                                 let editor = NebulaAiChatController(russian: russian, initialText: draft, action: .proofread, applyResult: { [weak self] value in
+-                                    guard let self = self else { return }
+-                                    self.updateChatPresentationInterfaceState(animated: true, interactive: true, {
+-                                        $0.updatedInterfaceState {
+-                                            $0.withUpdatedEffectiveInputState(ChatTextInputState(inputText: NSAttributedString(string: value)))
+-                                        }
+-                                    })
++                                    self?.nebulaApplyDraft(source: draft, result: value)
+                                 }, theme: strongSelf.presentationData.theme)
+-                                strongSelf.present(UINavigationController(rootViewController: editor), animated: true)
++                                strongSelf.nebulaPresentTools(editor)
+                             })))
+                         }
+                                                 
+diff --git a/submodules/TelegramUI/Sources/ChatInterfaceStateContextMenus.swift b/submodules/TelegramUI/Sources/ChatInterfaceStateContextMenus.swift
+index 71f40dc..aa73caa 100644
+--- a/submodules/TelegramUI/Sources/ChatInterfaceStateContextMenus.swift
++++ b/submodules/TelegramUI/Sources/ChatInterfaceStateContextMenus.swift
+@@ -1452,7 +1452,7 @@ func contextMenuForChatPresentationInterfaceState(chatPresentationInterfaceState
+                             let selectedText = messageText
+                             let russian = chatPresentationInterfaceState.strings.baseLanguageCode.lowercased().hasPrefix("ru")
+                             c?.dismiss(completion: {
+-                                controllerInteraction.navigationController()?.present(UINavigationController(rootViewController: NebulaAiChatController(russian: russian, initialText: selectedText, action: .translate, theme: chatPresentationInterfaceState.theme)), animated: true)
++                                controllerInteraction.navigationController()?.present(NebulaToolsNavigationController(root: NebulaAiChatController(russian: russian, initialText: selectedText, action: .translate, theme: chatPresentationInterfaceState.theme)), animated: true)
+                             })
+                             if c == nil { f(.default) }
+                             return
+@@ -1476,7 +1476,7 @@ func contextMenuForChatPresentationInterfaceState(chatPresentationInterfaceState
+                         return generateTintedImage(image: UIImage(bundleImageName: "Chat/Context Menu/Translate"), color: theme.actionSheet.primaryTextColor)
+                     }, action: { c, f in
+                         c?.dismiss(completion: {
+-                            controllerInteraction.navigationController()?.present(UINavigationController(rootViewController: NebulaAiChatController(russian: russian, initialText: selectedText, action: .summarize, theme: chatPresentationInterfaceState.theme)), animated: true)
++                            controllerInteraction.navigationController()?.present(NebulaToolsNavigationController(root: NebulaAiChatController(russian: russian, initialText: selectedText, action: .summarize, theme: chatPresentationInterfaceState.theme)), animated: true)
+                         })
+                         if c == nil { f(.default) }
+                     })))
+@@ -1484,7 +1484,7 @@ func contextMenuForChatPresentationInterfaceState(chatPresentationInterfaceState
+                         return generateTintedImage(image: UIImage(bundleImageName: "Chat/Context Menu/Translate"), color: theme.actionSheet.primaryTextColor)
+                     }, action: { c, f in
+                         c?.dismiss(completion: {
+-                            controllerInteraction.navigationController()?.present(UINavigationController(rootViewController: NebulaMessageToolsController(text: selectedText, russian: russian, theme: chatPresentationInterfaceState.theme, accountId: String(context.account.peerId.toInt64()), peerId: String(message.id.peerId.toInt64()))), animated: true)
++                            controllerInteraction.navigationController()?.present(NebulaToolsNavigationController(root: NebulaMessageToolsController(text: selectedText, russian: russian, theme: chatPresentationInterfaceState.theme, accountId: String(context.account.peerId.toInt64()), peerId: String(message.id.peerId.toInt64()))), animated: true)
+                         })
+                         if c == nil { f(.default) }
+                     })))
