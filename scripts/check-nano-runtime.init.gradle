@@ -5,10 +5,13 @@ gradle.projectsEvaluated {
     if (app == null) return // Init scripts also run in buildSrc and included builds.
     app.tasks.register('verifyNebulaNanoRuntime') {
         doLast {
-            def artifacts = app.configurations.getByName('afatStandaloneRuntimeClasspath').resolvedConfiguration.resolvedArtifacts
-            def jars = artifacts.findAll {
-                it.moduleVersion.id.group in ['org.jetbrains.kotlinx', 'org.jetbrains.kotlin'] && it.file.name.endsWith('.jar')
-            }.collect { it.file.toURI().toURL() }
+            def jars = app.configurations.getByName('afatStandaloneRuntimeClasspath').incoming.artifactView {
+                attributes.attribute(org.gradle.api.attributes.Attribute.of('artifactType', String), 'jar')
+                componentFilter { id ->
+                    id instanceof org.gradle.api.artifacts.component.ModuleComponentIdentifier &&
+                        id.group in ['org.jetbrains.kotlinx', 'org.jetbrains.kotlin']
+                }
+            }.files.files.collect { it.toURI().toURL() }
             def loader = new URLClassLoader(jars as URL[], (ClassLoader) null)
             try {
                 def job = loader.loadClass('kotlinx.coroutines.Job')

@@ -1,0 +1,10 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
+@@ -627,3 +627,6 @@ public class ActionBar extends FrameLayout {
+         titleTextView[i] = new SimpleTextView(getContext());
++        // Folder emoji spans can be created before the first measure pass.
++        // Give them the toolbar font metrics instead of Paint's tiny pixel default.
++        titleTextView[i].setTextSize(glassMode && !nebulaHomeGlass ? 17 : !AndroidUtilities.isTablet() && getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE ? 18 : 20);
+         titleTextView[i].setGravity(isCenterTitle ? Gravity.CENTER : Gravity.LEFT | Gravity.CENTER_VERTICAL);
+         if (titleColorToSet != 0) {
