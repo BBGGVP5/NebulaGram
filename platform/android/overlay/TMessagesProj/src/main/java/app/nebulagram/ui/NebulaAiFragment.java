@@ -168,7 +168,7 @@ public final class NebulaAiFragment extends BaseFragment {
                 });
         nanoCard.add(nanoPerformance);
         updateNanoLabels();
-        nanoAction = button(c, nanoCard, text("Проверить модель и обновления", "Check model and updates"), true, v -> downloadNano());
+        nanoAction = button(c, nanoCard, text("Проверить доступность модели", "Check model availability"), true, v -> downloadNano());
         nanoFallback = button(c, nanoCard, text("Попробовать Stable · Полная", "Try Stable · Full"), false, v -> {
             if (nanoDownloading) return;
             prefs.edit().putBoolean("nano_preview", false).putBoolean("nano_fast", false).apply();
@@ -354,7 +354,7 @@ public final class NebulaAiFragment extends BaseFragment {
                 nanoStatus.setText(message);
                 hero.setStatus(ready ? text("Готово · на устройстве", "Ready · on device")
                         : downloading ? text("Модель загружается…", "Downloading model…") : text("Gemini Nano · нужна настройка", "Gemini Nano · setup needed"), ready);
-                nanoAction.setText(downloading ? text("Загрузка…", "Downloading…") : downloadable ? text("Скачать модель", "Download model") : text("Проверить модель и обновления", "Check model and updates"));
+                nanoAction.setText(downloading ? text("Загрузка…", "Downloading…") : downloadable ? text("Скачать модель", "Download model") : text("Проверить доступность модели", "Check model availability"));
                 ((View) nanoFallback.getParent()).setVisibility(!ready && !downloading && (preview || fast) ? View.VISIBLE : View.GONE);
                 if (downloading && !nanoPaused) AndroidUtilities.runOnUIThread(nanoPoll, 3000);
             });

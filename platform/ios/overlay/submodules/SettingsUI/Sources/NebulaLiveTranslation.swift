@@ -62,6 +62,7 @@ public final class NebulaLiveTranslation {
         NebulaTranslationActivity.set(owner: activityOwner, key: NebulaTranslationKey(account: String(context.account.peerId.toInt64()),
             peer: String(message.id.peerId.toInt64()), namespace: message.id.namespace, message: message.id.id))
         let version = revision
+        let requestConnection = Self.connectionIdentity
         let key = "\(message.id):\(language):\(message.text)"
         task = Task { @MainActor [weak self] in
             let result: String?
@@ -70,6 +71,7 @@ public final class NebulaLiveTranslation {
             guard let self = self, !Task.isCancelled, version == self.revision else { return }
             self.task = nil; self.current = nil
             NebulaTranslationActivity.set(owner: self.activityOwner, key: nil)
+            guard requestConnection == Self.connectionIdentity else { return }
             if let result = result {
                 Self.errors.removeValue(forKey: self.scope)
                 if self.cache.count >= 128 { self.cache.removeAll() }
