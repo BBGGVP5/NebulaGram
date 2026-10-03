@@ -8,6 +8,8 @@ root = Path(__file__).resolve().parent.parent
 source = (Path(sys.argv[1]) / 'TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java').read_text(encoding='utf-8')
 start = source.index('        final boolean separateAvatar =')
 block = source[start:source.index('        if (blurredBackground', start)]
+plain_start = source.index('        final boolean nebulaPlainHeaderButtons =')
+block = source[plain_start:source.index('        if (glassDrawableBack != null', plain_start)] + block
 block = block.replace('app.nebulagram.ui.NebulaChatStyle.', '')
 style = (root / 'platform/android/overlay/TMessagesProj/src/main/java/app/nebulagram/ui/NebulaChatStyle.java').read_text(encoding='utf-8')
 start = style.index('    public static int avatarBackdropAlpha(')
@@ -28,7 +30,7 @@ class CapsuleCheck {
  static class Menu {int x=240;View[] children={new ActionBarMenuItem(0),new ActionBarMenuItem(46),new ActionBarMenuItem(92),new ActionBarMenuItem(138)};
   int getChildCount(){return children.length;}View getChildAt(int i){return children[i];}float getX(){return x;}}
  boolean nebulaFloatingChatHeader=true,nebulaChatMenuHidden=true,glassOnlyBack,doNotDrawGlassMenu,hasForcedMenuWidth;
- boolean nebulaHomeGlass,nebulaHomeTabsGlass,isSearchFieldVisible;Menu menu=new Menu(),actionMode=new Menu();
+ boolean nebulaHomeGlass,nebulaHomeTabsGlass,isSearchFieldVisible,nebulaClassicSavedHeader,nebulaSavedMessagesHeader;Menu menu=new Menu(),actionMode=new Menu();
  Avatar nebulaChatAvatarContainer=new Avatar();Draw glassDrawableMenu=new Draw();Animated animatorHasMenuItems=new Animated();
  float actionModeFactor,searchFactor;int menuWidth=96,s=48,p=6,t=0,b=60;Object canvas;
  int getWidth(){return 400;}
@@ -42,8 +44,8 @@ class CapsuleCheck {
    CapsuleCheck c=new CapsuleCheck();c.nebulaFloatingChatHeader=separate;c.nebulaChatAvatarContainer.visible=visible;
    c.hasForcedMenuWidth=forced;c.menuWidth=width;c.glassOnlyBack=(flags&1)!=0;c.doNotDrawGlassMenu=(flags&2)!=0;
    c.actionModeFactor=frame/100f;c.draw();
-   boolean avatar=separate&&visible&&frame<100;
-   boolean menu=width>0&&flags==0&&(!separate||frame>0);
+   boolean avatar=false; // Separate avatars share the header; no independent plate.
+   boolean menu=width>0&&flags==0&&!separate;
    check(c.glassDrawableMenu.calls.size()==(avatar?1:0)+(menu?1:0));
    if(menu){int[] d=c.glassDrawableMenu.calls.get(c.glassDrawableMenu.calls.size()-1);
     check(d[0]==Math.round(255*(forced?1f:.6f)*(separate?frame/100f:1f)));
@@ -53,27 +55,23 @@ class CapsuleCheck {
   }
   CapsuleCheck home=new CapsuleCheck();home.nebulaFloatingChatHeader=false;home.nebulaHomeGlass=true;
   home.menuWidth=138;home.menu.children[3].visibility=8;home.draw();
-  check(home.glassDrawableMenu.calls.size()==3);
-  for(int i=0;i<3;i++){int[] d=home.glassDrawableMenu.calls.get(i);
-   check(d[0]==Math.round(255*.6f)&&d[1]==240+46*i&&d[2]==286+46*i);
-  }
+  check(home.glassDrawableMenu.calls.isEmpty());
+  check(home.glassDrawableMenu.left==332&&home.glassDrawableMenu.right==378); // bounds retained for hit testing
   CapsuleCheck tabs=new CapsuleCheck();tabs.nebulaFloatingChatHeader=false;tabs.nebulaHomeTabsGlass=true;
   tabs.menuWidth=138;tabs.menu.children[3].visibility=8;tabs.draw();
-  check(tabs.glassDrawableMenu.calls.size()==1);
-  int[] grouped=tabs.glassDrawableMenu.calls.get(0);
-  check(grouped[0]==Math.round(255*.6f)&&grouped[1]==236&&grouped[2]==382);
+  check(tabs.glassDrawableMenu.calls.isEmpty());
+  check(tabs.glassDrawableMenu.left==236&&tabs.glassDrawableMenu.right==382);
   tabs.glassDrawableMenu.calls.clear();tabs.searchFactor=1f;tabs.draw();
   check(tabs.glassDrawableMenu.calls.isEmpty());
   for(int frame=1;frame<=100;frame++){
    CapsuleCheck selection=new CapsuleCheck();selection.nebulaFloatingChatHeader=false;
    selection.nebulaHomeTabsGlass=true;selection.actionModeFactor=frame/100f;
    selection.actionMode.x=0;selection.actionMode.children=new View[]{new View(0),new View(54),new ActionBarMenuItem(240),new ActionBarMenuItem(286),new ActionBarMenuItem(332)};
-   selection.draw();check(selection.glassDrawableMenu.calls.size()==1);
-   int[] d=selection.glassDrawableMenu.calls.get(0);
-   check(d[0]==Math.round(255*frame/100f)&&d[1]==236&&d[2]==382);
+   selection.draw();check(selection.glassDrawableMenu.calls.isEmpty());
+   check(selection.glassDrawableMenu.left==236&&selection.glassDrawableMenu.right==382);
   }
   CapsuleCheck c=new CapsuleCheck();c.glassDrawableMenu=null;c.draw();
-  System.out.println(cases+" selection capsule drawing cases passed");
+  System.out.println(cases+" header button material and touch-bound cases passed");
  }
 }
 """.replace('ALPHA', alpha).replace('BLOCK', block)
