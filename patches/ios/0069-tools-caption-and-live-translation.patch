@@ -106,6 +106,28 @@ index 78e5e73..042879b 100644
          self.invokeAICompose?()
      }
  
+diff --git a/submodules/ChatListUI/Sources/ChatListController.swift b/submodules/ChatListUI/Sources/ChatListController.swift
+index 6fe206b..82d9cdd 100644
+--- a/submodules/ChatListUI/Sources/ChatListController.swift
++++ b/submodules/ChatListUI/Sources/ChatListController.swift
+@@ -7243,13 +7243,12 @@ private final class ChatListLocationContext {
+         switch location {
+         case let .chatList(groupId):
+             if groupId == .root {
+-                // Read the visible filter only when its id matches the state
+-                // update. During a fast folder swipe the node can still show
+-                // the previous filter for one frame.
++                // Resolve the committed id from the filter model. The previous
++                // item node may survive during a swipe; do not flash the default
++                // title while waiting for that node to be replaced.
+                 if NebulaSettingsStore.shared.folderTitle,
+                    let selectedId = stateAndFilterId.filterId,
+-                   let filter = self.containerNode?.currentItemNode.chatListFilter,
+-                   filter.id == selectedId,
++                   let filter = self.containerNode?.availableFilters.compactMap({ $0.filter }).first(where: { $0.id == selectedId }),
+                    case let .filter(_, folderTitle, _, _) = filter,
+                    !folderTitle.text.isEmpty {
+                     defaultTitle = folderTitle.text
 diff --git a/submodules/SettingsUI/Sources/Search/SettingsSearchableItems.swift b/submodules/SettingsUI/Sources/Search/SettingsSearchableItems.swift
 index d697323..4440bb1 100644
 --- a/submodules/SettingsUI/Sources/Search/SettingsSearchableItems.swift
@@ -185,6 +207,63 @@ index cd36034..5664972 100644
              let threeLineHeight = self.threeLineFieldHeight(forWidth: baseWidth, node: node, metrics: metrics, bottomInset: bottomInset, textFieldInsets: textFieldInsets)
              if textInputHeight >= threeLineHeight - 0.5 {
                  isAIButtonVisible = true
+diff --git a/submodules/TelegramUI/Components/Stories/StoryPeerListComponent/Sources/StoryPeerListComponent.swift b/submodules/TelegramUI/Components/Stories/StoryPeerListComponent/Sources/StoryPeerListComponent.swift
+index 1312e28..7c97ff8 100644
+--- a/submodules/TelegramUI/Components/Stories/StoryPeerListComponent/Sources/StoryPeerListComponent.swift
++++ b/submodules/TelegramUI/Components/Stories/StoryPeerListComponent/Sources/StoryPeerListComponent.swift
+@@ -303,10 +303,12 @@ public final class StoryPeerListComponent: Component {
+     private struct TitleState: Equatable {
+         var text: String
+         var color: UIColor
+-        
+-        init(text: String, color: UIColor) {
++        var availableWidth: CGFloat
++
++        init(text: String, color: UIColor, availableWidth: CGFloat) {
+             self.text = text
+             self.color = color
++            self.availableWidth = availableWidth
+         }
+     }
+     
+@@ -1585,6 +1587,16 @@ public final class StoryPeerListComponent: Component {
+                 self.animationState = nil
+             }
+             
++            if UIAccessibility.isReduceMotionEnabled {
++                useAnimation = false
++                self.animationState = nil
++                self.titleViewAnimation = nil
++                for title in self.disappearingTitleViews {
++                    title.imageView.removeFromSuperview()
++                }
++                self.disappearingTitleViews.removeAll()
++            }
++
+             let timestamp = CACurrentMediaTime()
+             if let previousComponent = self.component, useAnimation {
+                 let duration: Double
+@@ -1682,7 +1694,10 @@ public final class StoryPeerListComponent: Component {
+             self.component = component
+             self.state = state
+             
+-            let updatedTitleState = TitleState(text: component.title, color: component.theme.rootController.navigationBar.primaryTextColor)
++            // A cached raster must be rebuilt after toolbar controls or window width
++            // change, even if the folder still has the same emoji-only name.
++            let titleAvailableWidth = max(1.0, component.maxTitleX - component.minTitleX - 46.0)
++            let updatedTitleState = TitleState(text: component.title, color: component.theme.rootController.navigationBar.primaryTextColor, availableWidth: titleAvailableWidth)
+             if self.titleState != updatedTitleState {
+                 self.titleState = updatedTitleState
+                 
+@@ -1691,7 +1706,7 @@ public final class StoryPeerListComponent: Component {
+                     NSAttributedString.Key.foregroundColor: component.theme.rootController.navigationBar.primaryTextColor
+                 ])
+                 
+-                let cachedLayout = TextNode.calculateLayout(attributedString: attributedText, minimumNumberOfLines: 1, maximumNumberOfLines: 1, truncationType: .end, backgroundColor: nil, constrainedSize: CGSize(width: max(0.0, component.maxTitleX - component.minTitleX - 46.0), height: 100.0), alignment: .left, verticalAlignment: .middle, lineSpacingFactor: 0.0, cutout: nil, insets: UIEdgeInsets(), lineColor: nil, textShadowColor: nil, textShadowBlur: nil, textStroke: nil, displaySpoilers: false, displayEmbeddedItemsUnderSpoilers: false, customTruncationToken: nil)
++                let cachedLayout = TextNode.calculateLayout(attributedString: attributedText, minimumNumberOfLines: 1, maximumNumberOfLines: 1, truncationType: .end, backgroundColor: nil, constrainedSize: CGSize(width: titleAvailableWidth, height: 100.0), alignment: .left, verticalAlignment: .middle, lineSpacingFactor: 0.0, cutout: nil, insets: UIEdgeInsets(top: 3.0, left: 2.0, bottom: 3.0, right: 2.0), lineColor: nil, textShadowColor: nil, textShadowBlur: nil, textStroke: nil, displaySpoilers: false, displayEmbeddedItemsUnderSpoilers: false, customTruncationToken: nil)
+ 
+                 let renderer = UIGraphicsImageRenderer(bounds: CGRect(origin: CGPoint(), size: cachedLayout.size))
+                 let image = renderer.image { context in
 diff --git a/submodules/TelegramUI/Sources/ChatController.swift b/submodules/TelegramUI/Sources/ChatController.swift
 index b0e444c..6f74b1b 100644
 --- a/submodules/TelegramUI/Sources/ChatController.swift

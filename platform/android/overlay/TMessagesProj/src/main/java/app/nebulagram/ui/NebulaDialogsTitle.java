@@ -58,7 +58,7 @@ public final class NebulaDialogsTitle {
         // setTitle reassigns text and the status drawable and requests layout.
         // Avoid restarting that work for duplicate folder notifications.
         if (previous == null || changed || previous.getRightDrawable() != targetStatus) {
-            actionBar.setTitle(title, targetStatus);
+            actionBar.setNebulaTitle(title, targetStatus, changed);
         }
         if (changed) actionBar.requestLayout();
         int cacheType = selected != null && selected.title_noanimate

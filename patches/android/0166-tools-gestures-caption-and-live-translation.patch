@@ -21,11 +21,101 @@ index 383a7a0..8a2a941 100644
          if (messageObject == null) {
              return false;
          }
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
+index 62c330c..5399dd6 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
+@@ -703,6 +703,25 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
+         fromBottom = false;
+     }
+ 
++    /** Folder changes share the native title transition, including animated emoji. */
++    public void setNebulaTitle(CharSequence value, Drawable drawable, boolean animated) {
++        if (titleOverlayShown || overlayTitleAnimationInProgress) {
++            // Connection status temporarily owns the visible title. Restore the latest
++            // selected folder when it finishes, rather than a stale intermediate one.
++            lastTitle = value;
++            lastRightDrawable = drawable;
++            return;
++        }
++        boolean animate = animated && attached && getMeasuredWidth() > 0
++                && titleTextView[0] != null && titleTextView[0].getVisibility() == VISIBLE
++                && (android.os.Build.VERSION.SDK_INT < 26 || ValueAnimator.areAnimatorsEnabled());
++        if (animate) {
++            setTitleAnimated(value, false, 220, CubicBezierInterpolator.EASE_OUT_QUINT);
++        }
++        setTitle(value, drawable);
++        requestLayout();
++    }
++
+     public void setRightDrawableOnClick(OnClickListener onClickListener) {
+         rightDrawableOnClickListener = onClickListener;
+         if (titleTextView[0] != null) {
+@@ -1722,7 +1741,13 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
+                     titleLeft = app.nebulagram.ui.NebulaHomeTitleGeometry.left(
+                             getMeasuredWidth(), textLeft, nebulaTitleEndInset(), titleTextView[i].getMeasuredWidth());
+                 }
+-                titleTextView[i].layout(titleLeft, additionalTop + textTop - titleTextView[i].getPaddingTop(), titleLeft + titleTextView[i].getMeasuredWidth(), additionalTop + textTop + titleTextView[i].getTextHeight() - titleTextView[i].getPaddingTop() + titleTextView[i].getPaddingBottom());
++                int titleTop = additionalTop + textTop - titleTextView[i].getPaddingTop();
++                // Keep both measured paddings: animated emoji can extend beyond the
++                // font ascent/descent, especially when the whole title is one emoji.
++                int titleBottom = nebulaHomeTabsGlass
++                        ? titleTop + titleTextView[i].getMeasuredHeight()
++                        : additionalTop + textTop + titleTextView[i].getTextHeight() - titleTextView[i].getPaddingTop() + titleTextView[i].getPaddingBottom();
++                titleTextView[i].layout(titleLeft, titleTop, titleLeft + titleTextView[i].getMeasuredWidth(), titleBottom);
+             }
+         }
+         if (additionalSubTitleOverlayContainer != null) {
+@@ -2116,6 +2141,12 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
+             setTitle(title);
+             return;
+         }
++        // Cancel callbacks before reusing either slot. A superseded animation must
++        // never remove the incoming view from a newer folder transition.
++        titleTextView[0].animate().setListener(null).cancel();
++        if (titleTextView[1] != null) {
++            titleTextView[1].animate().setListener(null).cancel();
++        }
+         boolean crossfade = overlayTitleAnimation && !TextUtils.isEmpty(subtitle);
+         if (crossfade) {
+             if (subtitleTextView.getVisibility() != View.VISIBLE) {
+@@ -2132,12 +2163,13 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
+             titleTextView[1] = null;
+         }
+         titleTextView[1] = titleTextView[0];
++        final SimpleTextView outgoingTitle = titleTextView[1];
+         titleTextView[0] = null;
+         setTitle(title);
+         this.fromBottom = fromBottom;
+         titleTextView[0].setAlpha(0);
+         if (!crossfade) {
+-            titleTextView[0].setTranslationY(fromBottom ? dp(20) : -dp(20));
++            titleTextView[0].setTranslationY(fromBottom ? dp(nebulaHomeTabsGlass ? 8 : 20) : -dp(nebulaHomeTabsGlass ? 8 : 20));
+         }
+         ViewPropertyAnimator a1 = titleTextView[0].animate().alpha(1f).translationY(0).setDuration(duration);
+         if (interpolator != null) {
+@@ -2148,7 +2180,7 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
+         titleAnimationRunning = true;
+         ViewPropertyAnimator a = titleTextView[1].animate().alpha(0);
+         if (!crossfade) {
+-            a.translationY(fromBottom ? -dp(20) : dp(20));
++            a.translationY(fromBottom ? -dp(nebulaHomeTabsGlass ? 8 : 20) : dp(nebulaHomeTabsGlass ? 8 : 20));
+         }
+         if (interpolator != null) {
+             a.setInterpolator(interpolator);
+@@ -2156,6 +2188,7 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
+         a.setDuration(duration).setListener(new AnimatorListenerAdapter() {
+             @Override
+             public void onAnimationEnd(Animator animation) {
++                if (titleTextView[1] != outgoingTitle) return;
+                 if (titleTextView[1] != null && titleTextView[1].getParent() != null) {
+                     ViewGroup viewGroup = (ViewGroup) titleTextView[1].getParent();
+                     viewGroup.removeView(titleTextView[1]);
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/BaseFragment.java b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/BaseFragment.java
-index 55cc335..0184adf 100644
+index 55cc335..6dfca91 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/BaseFragment.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/BaseFragment.java
-@@ -1015,10 +1015,28 @@ public abstract class BaseFragment {
+@@ -1015,10 +1015,29 @@ public abstract class BaseFragment {
                          @Override protected void onMeasure(int widthSpec, int heightSpec) {
                              int available = MeasureSpec.getSize(heightSpec);
                              int height = Math.min(available, Math.round(AndroidUtilities.displaySize.y * params.maxHeightFraction));
@@ -35,6 +125,7 @@ index 55cc335..0184adf 100644
                      };
 +                    if (params.swipeDismiss) {
 +                        bounded.setPadding(0, AndroidUtilities.dp(12), 0, 0);
++                        bounded.setClipToPadding(false);
 +                        bounded.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundGray, fragment.getResourceProvider()));
 +                        bounded.setClipToOutline(true);
 +                        bounded.setOutlineProvider(new android.view.ViewOutlineProvider() {
@@ -54,7 +145,7 @@ index 55cc335..0184adf 100644
                      containerView = bounded;
                  } else {
                      containerView = view;
-@@ -1048,7 +1066,7 @@ public abstract class BaseFragment {
+@@ -1048,7 +1067,7 @@ public abstract class BaseFragment {
  
              @Override
              protected boolean canDismissWithSwipe() {
@@ -63,7 +154,7 @@ index 55cc335..0184adf 100644
              }
  
              @Override
-@@ -1449,6 +1467,9 @@ public abstract class BaseFragment {
+@@ -1449,6 +1468,9 @@ public abstract class BaseFragment {
  
      public static class BottomSheetParams {
          public float maxHeightFraction;
@@ -313,6 +404,28 @@ index 625f47f..2bc68df 100644
  
          if (shownAiButton == show) return;
          if (show) {
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
+index 6eb84e9..26f08ed 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
+@@ -1534,6 +1534,9 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+                                 );
+                             }
+                         } else {
++                            // The destination is committed now; animate its title together
++                            // with the page instead of waiting for the settling callback.
++                            updateNebulaFolderTitle(1);
+                             dx = viewPages[0].getMeasuredWidth() - Math.abs(x);
+                             if (animatingForward) {
+                                 tabsAnimation.playTogether(
+@@ -3701,6 +3704,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+                     viewPages[1].setTranslationX(viewPages[0].getMeasuredWidth());
+                     showScrollbars(false);
+                     switchToCurrentSelectedMode(true);
++                    if (!viewPages[1].isLocked) updateNebulaFolderTitle(1);
+                     animatingForward = forward;
+                 }
+ 
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/PhotoViewer.java b/TMessagesProj/src/main/java/org/telegram/ui/PhotoViewer.java
 index e8d23a8..413abd1 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/PhotoViewer.java

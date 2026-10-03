@@ -69,6 +69,11 @@ public class CheckTitleTiming {
    // A canceled swipe returns to the visible page without a settling callback.
    t.updateNebulaFolderTitle();
    if(NebulaDialogsTitle.title!=from)throw new AssertionError("Canceled swipe retained target");
+   // A selected tab or accepted swipe updates before the page animation ends.
+   t.updateNebulaFolderTitle(1);
+   if(NebulaDialogsTitle.title!=to)throw new AssertionError("Committed target waited for settling");
+   t.updateNebulaFolderTitle();
+   if(NebulaDialogsTitle.title!=from)throw new AssertionError("Canceled target did not restore current");
    t.viewPages[0].selectedType=to;t.updateNebulaFolderTitle();
    if(NebulaDialogsTitle.title!=to)throw new AssertionError("Committed swipe did not update title");
    t.viewPages[0].selectedType=from;t.updateNebulaFolderTitle();
@@ -78,8 +83,12 @@ public class CheckTitleTiming {
   }
   int loads=t.loads;t.viewPages[1].selectedType=99;t.switchToCurrentSelectedMode(true);
   if(loads!=t.loads)throw new AssertionError("Invalid folder loaded");
-  System.out.println("Folder timing passed: 20 transitions defer title until commit, cancel restores current, locked/invalid targets stay unchanged");
+  System.out.println("Folder timing passed: 20 transitions update on commit before settling, cancel restores current, locked/invalid targets stay unchanged");
  }
 }''', encoding='utf-8')
 subprocess.run(['javac', '-encoding', 'UTF-8', '-d', str(work), str(recorder), str(harness)], check=True)
 subprocess.run(['java', '-cp', str(work), 'CheckTitleTiming'], check=True)
+
+assert "if (!viewPages[1].isLocked) updateNebulaFolderTitle(1);" in text
+accept = text.index("dx = viewPages[0].getMeasuredWidth() - Math.abs(x);")
+assert "updateNebulaFolderTitle(1);" in text[accept - 300:accept], "Accepted swipe must update title before settling animation"

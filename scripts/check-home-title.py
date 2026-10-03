@@ -71,3 +71,7 @@ assert bar.count('if (nebulaHomeTabsGlass) textLeft = Math.max(textLeft, dp(84))
 folder_title = (root / 'platform/android/overlay/TMessagesProj/src/main/java/app/nebulagram/ui/NebulaFolderTitleView.java').read_text(encoding='utf-8')
 assert 'AndroidUtilities.displaySize.x / 2' not in folder_title, 'Folder title must use available parent width'
 print('PASS: native title slots include status drawable and share menu/translation bounds')
+
+assert "titleTop + titleTextView[i].getMeasuredHeight()" in bar, "Emoji title must retain both measured paddings"
+assert "actionBar.setNebulaTitle(title, targetStatus, changed)" in (root / 'platform/android/overlay/TMessagesProj/src/main/java/app/nebulagram/ui/NebulaDialogsTitle.java').read_text(encoding='utf-8')
+subprocess.run([sys.executable, str(root / 'scripts/check-title-animation.py'), str(tree)], check=True)
