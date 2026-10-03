@@ -13,6 +13,6 @@ if not jar.exists():
 assert hashlib.sha256(jar.read_bytes()).hexdigest() == sha, 'Unexpected org.json artifact'
 overlay = root / 'platform/android/overlay/TMessagesProj/src/main/java/app/nebulagram/ui'
 stub = work / 'NebulaNanoAi.java'
-stub.write_text('package app.nebulagram.ui; public final class NebulaNanoAi { public static String generate(String prompt,String input){return input;} }', encoding='utf-8')
+stub.write_text('package app.nebulagram.ui; public final class NebulaNanoAi { public static String generate(String prompt,String input,java.util.function.BooleanSupplier cancelled) throws java.io.InterruptedIOException {if(cancelled.getAsBoolean())throw new java.io.InterruptedIOException();return input;} }', encoding='utf-8')
 subprocess.run(['javac', '-encoding', 'UTF-8', '-cp', str(jar), '-d', str(work), str(stub), str(root / 'tests/android/AiProtocolCheck.java'), str(overlay / 'NebulaAiClient.java'), str(overlay / 'NebulaSettingsSchema.java')], check=True)
 subprocess.run(['java', '-cp', os.pathsep.join([str(work), str(jar)]), 'AiProtocolCheck'], check=True)

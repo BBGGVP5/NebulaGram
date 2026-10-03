@@ -81,6 +81,9 @@ public class AiProtocolCheck {
         int before = requests.size();
         try { cancelled.models(0, "", "test-key"); throw new AssertionError("cancelled request started"); } catch (InterruptedIOException expected) { }
         check(requests.size() == before, "cancel should not connect");
+        try { cancelled.generate(NebulaAiClient.NANO, "", "", "", "translate", "hello"); throw new AssertionError("cancelled Nano request started"); } catch (InterruptedIOException expected) { }
+        check("hello".equals(new NebulaAiClient().generate(NebulaAiClient.NANO, "", "", "", "translate", "hello")), "Nano path delegates locally");
+        check(requests.size() == before, "Nano never falls back to a network provider");
         check(NebulaSettingsSchema.types.containsKey("bottom_bar_settings"), "tab visibility portable");
         for (String key : NebulaSettingsSchema.types.keySet()) check(!key.contains("secret") && !key.contains("proxy") && !key.contains("api") && !key.contains("token"), "secret in export allowlist");
         System.out.println("AI protocol checks passed: 4 providers, UTF-8, models, pagination, refusals, cancellation, redirects and export isolation");
