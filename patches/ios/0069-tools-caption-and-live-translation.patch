@@ -207,6 +207,77 @@ index cd36034..5664972 100644
              let threeLineHeight = self.threeLineFieldHeight(forWidth: baseWidth, node: node, metrics: metrics, bottomInset: bottomInset, textFieldInsets: textFieldInsets)
              if textInputHeight >= threeLineHeight - 0.5 {
                  isAIButtonVisible = true
+diff --git a/submodules/TelegramUI/Components/ChatListHeaderComponent/Sources/ChatListHeaderComponent.swift b/submodules/TelegramUI/Components/ChatListHeaderComponent/Sources/ChatListHeaderComponent.swift
+index 058a4d3..318a865 100644
+--- a/submodules/TelegramUI/Components/ChatListHeaderComponent/Sources/ChatListHeaderComponent.swift
++++ b/submodules/TelegramUI/Components/ChatListHeaderComponent/Sources/ChatListHeaderComponent.swift
+@@ -1134,7 +1134,7 @@ public final class ChatListHeaderComponent: Component {
+                 }
+                 let leftButtonsContainerFrame = CGRect(origin: CGPoint(x: component.sideInset, y: 0.0), size: CGSize(width: max(44.0, leftButtonsEffectiveWidth), height: 44.0))
+                 leftButtonsBackgroundContainerTransition.setFrame(view: leftButtonsBackgroundContainer, frame: leftButtonsContainerFrame)
+-                leftButtonsBackgroundContainer.update(size: leftButtonsContainerFrame.size, cornerRadius: leftButtonsContainerFrame.height * 0.5, isDark: component.theme.overallDarkAppearance, tintColor: .init(kind: .panel), isInteractive: true, transition: leftButtonsBackgroundContainerTransition)
++                leftButtonsBackgroundContainer.update(size: leftButtonsContainerFrame.size, cornerRadius: leftButtonsContainerFrame.height * 0.5, isDark: component.theme.overallDarkAppearance, tintColor: .init(kind: .panel), isInteractive: true, isVisible: false, transition: leftButtonsBackgroundContainerTransition)
+                 leftButtonsBackgroundContainerTransition.setFrame(view: self.leftButtonsContainer, frame: CGRect(origin: CGPoint(), size: leftButtonsContainerFrame.size)) 
+             } else {
+                 if let leftButtonsBackgroundContainer = self.leftButtonsBackgroundContainer {
+@@ -1163,7 +1163,7 @@ public final class ChatListHeaderComponent: Component {
+                     rightButtonsBackgroundContainer.update(size: rightButtonsContainerFrame.size, cornerRadius: rightButtonsContainerFrame.height * 0.5, isDark: component.theme.overallDarkAppearance, tintColor: .init(kind: .panel), isInteractive: true, isVisible: false, transition: .immediate)
+                 }
+                 rightButtonsBackgroundContainerTransition.setFrame(view: rightButtonsBackgroundContainer, frame: rightButtonsContainerFrame)
+-                rightButtonsBackgroundContainer.update(size: rightButtonsContainerFrame.size, cornerRadius: rightButtonsContainerFrame.height * 0.5, isDark: component.theme.overallDarkAppearance, tintColor: .init(kind: .panel), isInteractive: true, transition: transition)
++                rightButtonsBackgroundContainer.update(size: rightButtonsContainerFrame.size, cornerRadius: rightButtonsContainerFrame.height * 0.5, isDark: component.theme.overallDarkAppearance, tintColor: .init(kind: .panel), isInteractive: true, isVisible: false, transition: transition)
+                 rightButtonsBackgroundContainerTransition.setFrame(view: self.rightButtonsContainer, frame: CGRect(origin: CGPoint(), size: rightButtonsContainerFrame.size))
+             } else {
+                 if let rightButtonsBackgroundContainer = self.rightButtonsBackgroundContainer {
+diff --git a/submodules/TelegramUI/Components/NavigationBarImpl/Sources/NavigationBarImpl.swift b/submodules/TelegramUI/Components/NavigationBarImpl/Sources/NavigationBarImpl.swift
+index bb653de..7d20764 100644
+--- a/submodules/TelegramUI/Components/NavigationBarImpl/Sources/NavigationBarImpl.swift
++++ b/submodules/TelegramUI/Components/NavigationBarImpl/Sources/NavigationBarImpl.swift
+@@ -1009,17 +1009,20 @@ public final class NavigationBarImpl: ASDisplayNode, NavigationBar {
+             leftButtonsBackgroundTransition.setFrame(view: leftButtonsBackgroundView.container, frame: CGRect(origin: CGPoint(), size: leftButtonsBackgroundFrame.size))
+             ComponentTransition(transition).setAlpha(view: leftButtonsBackgroundView.background, alpha: leftButtonsWidth == 0.0 ? 0.0 : 1.0)
+             
++            var leftAccentMaterial = false
+             var leftButtonsColor: GlassBackgroundView.TintColor = .init(kind: self.presentationData.theme.glassStyle == .clear ? .clear : .panel)
+             switch self.leftButtonNodeImpl.commonContentType {
+             case .accent:
++                leftAccentMaterial = true
+                 leftButtonsColor = .init(kind: .custom(style: self.presentationData.theme.glassStyle == .clear ? .clear : .default, color: self.presentationData.theme.accentButtonColor))
+             case .accentDisabled:
++                leftAccentMaterial = true
+                 leftButtonsColor = .init(kind: .custom(style: self.presentationData.theme.glassStyle == .clear ? .clear : .default, color: self.presentationData.theme.accentDisabledButtonColor))
+             case .generic:
+                 break
+             }
+             
+-            leftButtonsBackgroundView.background.update(size: leftButtonsBackgroundFrame.size, cornerRadius: leftButtonsBackgroundFrame.height * 0.5, isDark: self.presentationData.theme.overallDarkAppearance, tintColor: leftButtonsColor, isInteractive: true, isVisible: leftButtonsWidth != 0.0, transition: leftButtonsBackgroundTransition)
++            leftButtonsBackgroundView.background.update(size: leftButtonsBackgroundFrame.size, cornerRadius: leftButtonsBackgroundFrame.height * 0.5, isDark: self.presentationData.theme.overallDarkAppearance, tintColor: leftButtonsColor, isInteractive: true, isVisible: leftButtonsWidth != 0.0 && leftAccentMaterial, transition: leftButtonsBackgroundTransition)
+         }
+         
+         if let rightButtonsBackgroundView = self.rightButtonsBackgroundView {
+@@ -1045,18 +1048,21 @@ public final class NavigationBarImpl: ASDisplayNode, NavigationBar {
+                     })
+                 }
+                 
++                var rightAccentMaterial = false
+                 var rightButtonsColor: GlassBackgroundView.TintColor = .init(kind: self.presentationData.theme.glassStyle == .clear ? .clear : .panel)
+                 switch self.rightButtonNodeImpl.commonContentType {
+                 case .accent:
++                    rightAccentMaterial = true
+                     rightButtonsColor = .init(kind: .custom(style: self.presentationData.theme.glassStyle == .clear ? .clear : .default, color: self.presentationData.theme.accentButtonColor))
+                 case .accentDisabled:
++                    rightAccentMaterial = true
+                     rightButtonsColor = .init(kind: .custom(style: self.presentationData.theme.glassStyle == .clear ? .clear : .default, color: self.presentationData.theme.accentDisabledButtonColor))
+                 case .generic:
+                     break
+                 }
+                 
+                 rightButtonsBackgroundView.background.isHidden = false
+-                rightButtonsBackgroundView.background.update(size: rightButtonsBackgroundFrame.size, cornerRadius: rightButtonsBackgroundFrame.height * 0.5, isDark: self.presentationData.theme.overallDarkAppearance, tintColor: rightButtonsColor, isInteractive: true, transition: rightButtonsBackgroundTransition)
++                rightButtonsBackgroundView.background.update(size: rightButtonsBackgroundFrame.size, cornerRadius: rightButtonsBackgroundFrame.height * 0.5, isDark: self.presentationData.theme.overallDarkAppearance, tintColor: rightButtonsColor, isInteractive: true, isVisible: rightAccentMaterial, transition: rightButtonsBackgroundTransition)
+             } else {
+                 rightButtonsBackgroundView.background.isHidden = true
+             }
 diff --git a/submodules/TelegramUI/Components/Stories/StoryPeerListComponent/Sources/StoryPeerListComponent.swift b/submodules/TelegramUI/Components/Stories/StoryPeerListComponent/Sources/StoryPeerListComponent.swift
 index 1312e28..7c97ff8 100644
 --- a/submodules/TelegramUI/Components/Stories/StoryPeerListComponent/Sources/StoryPeerListComponent.swift
@@ -264,6 +335,24 @@ index 1312e28..7c97ff8 100644
  
                  let renderer = UIGraphicsImageRenderer(bounds: CGRect(origin: CGPoint(), size: cachedLayout.size))
                  let image = renderer.image { context in
+diff --git a/submodules/TelegramUI/Components/TranslateHeaderPanelComponent/Sources/ChatTranslationPanelNode.swift b/submodules/TelegramUI/Components/TranslateHeaderPanelComponent/Sources/ChatTranslationPanelNode.swift
+index fea0539..47d7b64 100644
+--- a/submodules/TelegramUI/Components/TranslateHeaderPanelComponent/Sources/ChatTranslationPanelNode.swift
++++ b/submodules/TelegramUI/Components/TranslateHeaderPanelComponent/Sources/ChatTranslationPanelNode.swift
+@@ -146,7 +146,12 @@ final class ChatTranslationPanelNode: ASDisplayNode {
+                 translateTitle = strings.Conversation_Translation_TranslateToOther(toLanguage).string
+             }
+             
+-            let buttonText = info.isActive ? strings.Conversation_Translation_ShowOriginal : translateTitle
++            let buttonText: String
++            if info.fromLang == "nebula-ai" {
++                buttonText = (strings.baseLanguageCode.lowercased().hasPrefix("ru") ? "ИИ · " : "AI · ") + translateTitle
++            } else {
++                buttonText = info.isActive ? strings.Conversation_Translation_ShowOriginal : translateTitle
++            }
+             if self.buttonTextNode.attributedText?.string != buttonText {
+                 textUpdated = true
+             }
 diff --git a/submodules/TelegramUI/Sources/ChatController.swift b/submodules/TelegramUI/Sources/ChatController.swift
 index b0e444c..6f74b1b 100644
 --- a/submodules/TelegramUI/Sources/ChatController.swift

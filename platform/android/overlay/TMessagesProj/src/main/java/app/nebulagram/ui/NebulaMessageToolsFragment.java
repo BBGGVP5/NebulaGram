@@ -152,7 +152,7 @@ public final class NebulaMessageToolsFragment extends BaseFragment {
                 t("Кнопка, входящие сообщения и перевод при наборе", "Button, incoming messages and translation while typing"),
                 v -> presentFragment(new NebulaTranslationFragment(currentAccount, message == null ? draftDialog : message.getDialogId()))));
         preferences.add(action(c, R.drawable.msg_list, t("Фильтр сообщений", "Message filter"), t("Скрывать сообщения по словам и фразам", "Hide messages matching words and phrases"), v -> NebulaMessageFilter.configure(this)));
-        preferences.add(action(c, R.drawable.msg_customize, t("Провайдер ИИ", "AI provider"), t("Модель, подключение и API-ключ", "Model, connection and API key"), v -> presentFragment(new NebulaAiFragment())));
+        preferences.add(action(c, R.drawable.msg_customize, t("Провайдер ИИ", "AI provider"), t("Модель, подключение и API-ключ", "Model, connection and API key"), v -> presentFragment(new NebulaAiFragment().openConnection())));
         preferences.setVisibility(View.GONE);
         NebulaButton settings = new NebulaButton(c, NebulaButton.STYLE_TEXT);
         settings.setText(t("Настройки инструментов", "Tool settings"));
@@ -178,6 +178,11 @@ public final class NebulaMessageToolsFragment extends BaseFragment {
         draftToggle = new NebulaRow(c).title(t("Мой текст при наборе", "My text while typing"))
             .trailing(NebulaRow.TRAIL_SWITCH).withClick(v -> toggleTranslation(true));
         card.add(incomingToggle); card.add(draftToggle);
+        if (NebulaTranslationSettings.global().getInt("provider", 0) == NebulaAiClient.NANO) {
+            card.add(action(c, R.drawable.msg_customize, t("Gemini Nano · модель и обновления", "Gemini Nano · model and updates"),
+                t("Проверить, скачать модель, обновить AICore", "Check, download model, update AICore"),
+                v -> presentFragment(new NebulaAiFragment().openConnection())));
+        }
         card.add(action(c, R.drawable.msg_translate, t("Языки и настройки перевода", "Languages and translation settings"),
             t("Входящие и мой текст настраиваются отдельно", "Incoming messages and your text are configured separately"),
             v -> presentFragment(new NebulaTranslationFragment(currentAccount, dialog))));

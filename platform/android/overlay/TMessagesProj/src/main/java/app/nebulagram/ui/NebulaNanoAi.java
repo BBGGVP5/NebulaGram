@@ -72,6 +72,20 @@ public final class NebulaNanoAi {
         catch (java.util.concurrent.TimeoutException e) { future.cancel(true); throw e; }
     }
 
+    private static <T> T await(java.util.concurrent.Future<T> future, long timeout, TimeUnit unit,
+            java.util.function.BooleanSupplier cancelled) throws Exception {
+        long deadline = System.nanoTime() + unit.toNanos(timeout);
+        try {
+            while (!cancelled.getAsBoolean()) {
+                long remaining = deadline - System.nanoTime();
+                if (remaining <= 0) throw new java.util.concurrent.TimeoutException();
+                try { return future.get(Math.min(remaining, TimeUnit.MILLISECONDS.toNanos(100)), TimeUnit.NANOSECONDS); }
+                catch (java.util.concurrent.TimeoutException waiting) { }
+            }
+            throw new java.io.InterruptedIOException();
+        } finally { if (!future.isDone()) future.cancel(true); }
+    }
+
     /** Display only our own messages; service errors can contain request text. */
     public static String errorText(Throwable error) {
         Throwable cause = error;
@@ -80,6 +94,12 @@ public final class NebulaNanoAi {
                 return NebulaText.text("AICore не ответил вовремя. Повторите проверку с открытым приложением.", "AICore timed out. Retry with the app open.");
             if ("GEMINI_NANO_BUSY".equals(cause.getMessage()))
                 return NebulaText.text("Gemini Nano завершает предыдущий запрос. Повторите через несколько секунд.", "Gemini Nano is finishing the previous request. Try again in a few seconds.");
+            if ("GEMINI_NANO_DOWNLOAD_REQUIRED".equals(cause.getMessage()))
+                return NebulaText.text("Скачайте модель Gemini Nano: Провайдер и модель → Скачать модель.", "Download Gemini Nano in Provider and model → Download model.");
+            if ("GEMINI_NANO_DOWNLOADING".equals(cause.getMessage()))
+                return NebulaText.text("Модель Gemini Nano загружается. Дождитесь завершения в настройках провайдера.", "Gemini Nano is downloading. Check its progress in provider settings.");
+            if ("GEMINI_NANO_UNAVAILABLE".equals(cause.getMessage()))
+                return NebulaText.text("Выбранная модель Gemini Nano пока недоступна в AICore. Проверьте модель и обновление сервиса в настройках провайдера.", "This Gemini Nano model is not available in AICore yet. Check the model and service update in provider settings.");
             // AICore's 606 is nested in ML Kit's service exception, not an SDK error code.
             String detail = cause.getMessage();
             if (detail != null && (detail.contains("FEATURE_NOT_FOUND") || detail.contains("606")))
@@ -124,13 +144,17 @@ public final class NebulaNanoAi {
     }
 
     public static String generate(String instructions, String input) throws Exception {
+        return generate(instructions, input, () -> false);
+    }
+
+    public static String generate(String instructions, String input, java.util.function.BooleanSupplier cancelled) throws Exception {
         if (!supportedByOs()) throw new IllegalStateException("Gemini Nano is unavailable on this Android version");
         if (input == null || input.trim().isEmpty()) throw new IllegalArgumentException("Enter text");
         if (input.length() > 10000 || instructions != null && instructions.length() > 4000)
             throw new IllegalArgumentException("Gemini Nano supports shorter prompts on device");
-        if (!NebulaNanoInferenceGate.tryAcquire()) throw new IllegalStateException("GEMINI_NANO_BUSY");
+        NebulaNanoInferenceGate.acquire(cancelled);
         try (Session session = session()) {
-            int status = session.checkStatus();
+            int status = await(session.client.checkStatus(), 45, TimeUnit.SECONDS, cancelled);
             if (status == FeatureStatus.DOWNLOADABLE)
                 throw new IllegalStateException("GEMINI_NANO_DOWNLOAD_REQUIRED");
             if (status == FeatureStatus.DOWNLOADING)
@@ -142,7 +166,7 @@ public final class NebulaNanoAi {
                 prompt.append("Instructions: ").append(instructions.trim()).append('\n');
             }
             prompt.append("User request: ").append(input.trim());
-            GenerateContentResponse response = await(session.client.generateContent(prompt.toString()), 3, TimeUnit.MINUTES);
+            GenerateContentResponse response = await(session.client.generateContent(prompt.toString()), 3, TimeUnit.MINUTES, cancelled);
             if (response.getCandidates().isEmpty() || response.getCandidates().get(0).getText() == null) {
                 throw new IllegalStateException("Gemini Nano returned no text");
             }

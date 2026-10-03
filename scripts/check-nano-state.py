@@ -36,7 +36,7 @@ public class NanoStateCheck {
         }
     }
     static void expect(boolean value, String name) { if (!value) throw new AssertionError(name); }
-''' + method(nano, '    public static String errorText(') + '\n' + method(nano, '    private static <T> T await(') + '''
+''' + method(nano, '    public static String errorText(') + '\n' + method(nano, '    private static <T> T await(') + '\n' + method(nano, '    private static <T> T await(java.util.concurrent.Future<T> future, long timeout, TimeUnit unit,') + '''
     static class NebulaAiClient { static final int NANO=4; }
     static class AndroidUtilities { static void cancelRunOnUIThread(Runnable r){} }
     Runnable nanoPoll=()->{}; long nanoTotal;
@@ -67,6 +67,14 @@ public class NanoStateCheck {
             expect(interrupted.isCancelled(), "cancel interrupted check");
             expect(Thread.interrupted(), "restore interruption flag");
         }
+        for (String status : new String[]{"DOWNLOAD_REQUIRED", "DOWNLOADING", "UNAVAILABLE"})
+            expect(!errorText(new IllegalStateException("GEMINI_NANO_"+status)).contains("Could not check"), "actionable feature status "+status);
+        FutureTask<Integer> obsolete=new FutureTask<>(()->1);
+        try { await(obsolete,1,TimeUnit.SECONDS,()->true); throw new AssertionError("cancellation expected"); }
+        catch(java.io.InterruptedIOException expected) { expect(obsolete.isCancelled(), "cancel obsolete inference future"); }
+        FutureTask<Integer> bounded=new FutureTask<>(()->1);
+        try { await(bounded,1,TimeUnit.MILLISECONDS,()->false); throw new AssertionError("timeout expected"); }
+        catch(TimeoutException expected) { expect(bounded.isCancelled(), "bounded inference future"); }
         NanoStateCheck state=new NanoStateCheck();
         expect(state.currentNano(1), "current model");
         state.invalidateNanoCheck();

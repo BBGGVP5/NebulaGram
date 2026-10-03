@@ -26,12 +26,13 @@ public final class NebulaTranslationController: UITableViewController {
     }
     @objc private func close() { dismiss(animated: true) }
     public override func numberOfSections(in tableView: UITableView) -> Int { peer == nil ? 1 : 3 }
-    public override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int { section == 2 || (section == 0 && peer == nil && chooseChat != nil) ? 3 : 2 }
+    public override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int { section > 0 || (section == 0 && peer == nil && chooseChat != nil) ? 3 : 2 }
     public override func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
         section == 1 ? text("Входящие сообщения", "Incoming messages") : section == 2 ? text("Мой текст", "My text") : nil
     }
     public override func tableView(_ tableView: UITableView, titleForFooterInSection section: Int) -> String? {
         if section == 0 && peer == nil { return text("Выберите чат для перевода входящих сообщений и текста при наборе.", "Choose a chat to translate incoming messages and your text while typing.") }
+        if section == 1, let peer = peer { return NebulaLiveTranslation.error(account: account, peer: peer) }
         if section == 2 { return text("Включённые режимы автоматически передают текст выбранному провайдеру ИИ. Черновик заменяется только кнопкой «Применить».", "Enabled modes automatically process text using your selected AI provider. Your draft changes only when you tap Apply.") }
         return nil
     }
@@ -55,6 +56,7 @@ public final class NebulaTranslationController: UITableViewController {
             else if indexPath.row == 1 {
                 cell.textLabel?.text = text("Язык перевода", "Translation language")
                 cell.detailTextLabel?.text = NebulaResultLanguage.title(indexPath.section == 1 ? options.incomingLanguage : options.draftLanguage, russian: russian)
+            } else if indexPath.section == 1 { cell.textLabel?.text = text("Повторить перевод", "Retry translation")
             } else { cell.textLabel?.text = text("Пауза после ввода", "Pause after typing"); cell.detailTextLabel?.text = "\(options.delay) s" }
         }
         return cell
@@ -80,6 +82,8 @@ public final class NebulaTranslationController: UITableViewController {
                 self.settings.update(account: self.account, peer: peer) { if indexPath.section == 1 { $0.incomingLanguage = code } else { $0.draftLanguage = code } }
                 self.tableView.reloadData()
             }
+        } else if indexPath.row == 2 && indexPath.section == 1 {
+            NebulaLiveTranslation.retry(account: account, peer: peer); tableView.reloadData()
         } else if indexPath.row == 2 {
             NebulaChoiceController.show(from: self, title: text("Пауза после ввода", "Pause after typing"), choices: ["0.5 s", "1 s", "2 s"], selected: [0.5, 1, 2].firstIndex(of: options.delay), russian: russian, theme: theme) { [weak self] index in
                 guard let self = self else { return }

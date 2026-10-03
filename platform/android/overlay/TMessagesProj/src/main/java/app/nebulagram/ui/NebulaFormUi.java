@@ -21,6 +21,7 @@ public final class NebulaFormUi {
     public static int dp(float n) { return AndroidUtilities.dp(n); }
     public static void bar(BaseFragment host, ActionBar bar, Context c, String title) {
         NebulaTheme theme = NebulaTheme.of(c);
+        if (host.getParentLayout() != null && host.getParentLayout().isSheet()) bar.setOccupyStatusBar(false);
         bar.setTitle(title);
         bar.setBackButtonImage(R.drawable.ic_ab_back);
         bar.setBackgroundColor(theme.surface());

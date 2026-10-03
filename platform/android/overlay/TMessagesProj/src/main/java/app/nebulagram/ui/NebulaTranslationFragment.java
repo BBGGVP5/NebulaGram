@@ -21,6 +21,11 @@ public final class NebulaTranslationFragment extends BaseFragment {
         tools.add(new NebulaRow(c).title(t("Провайдер и модель", "Provider and model")).trailing(NebulaRow.TRAIL_CHEVRON)
             .withClick(v -> presentFragment(new NebulaAiFragment().openConnection())));
         column.addView(tools);
+        if (NebulaTranslationSettings.global().getInt("provider", 0) == NebulaAiClient.NANO) {
+            tools.add(new NebulaRow(c).title(t("Gemini Nano · модель и обновления", "Gemini Nano · model and updates"))
+                .subtitle(t("Проверка, загрузка модели и обновление AICore", "Check, download model and update AICore"), false)
+                .trailing(NebulaRow.TRAIL_CHEVRON).withClick(v -> presentFragment(new NebulaAiFragment().openConnection())));
+        }
         if (dialog != 0 && !DialogObject.isEncryptedDialog(dialog)) {
             column.addView(NebulaCard.header(c, t("Перевод в этом чате", "Translation in this chat")));
             NebulaCard incoming = new NebulaCard(c);
@@ -36,7 +41,9 @@ public final class NebulaTranslationFragment extends BaseFragment {
                         NotificationCenter.getInstance(currentAccount).postNotificationName(NotificationCenter.dialogTranslate, dialog, true);
                     }
                 }));
-            incoming.add(language(c, t("Язык входящих", "Incoming language"), false)); column.addView(incoming);
+            incoming.add(language(c, t("Язык входящих", "Incoming language"), false));
+            incoming.add(new NebulaRow(c).title(t("Повторить перевод", "Retry translation"))
+                .trailing(NebulaRow.TRAIL_CHEVRON).withClick(v -> NebulaAutoTranslate.retry(currentAccount, dialog))); column.addView(incoming);
             NebulaCard draft = new NebulaCard(c);
             draft.add(new NebulaRow(c).title(t("Перевод при наборе", "Translate while typing"))
                 .subtitle(t("Предпросмотр с кнопкой применения", "Preview with an Apply button"), false)
@@ -55,7 +62,9 @@ public final class NebulaTranslationFragment extends BaseFragment {
                     NebulaTranslationSettings.prefs(currentAccount).edit().putInt("delay_" + dialog, value).apply();
                     delay.subtitle(value + " ms", true);
                 }).setNegativeButton(t("Отмена", "Cancel"), null).create()));
-            draft.add(delay); column.addView(draft);
+            draft.add(delay);
+            LinearLayout.LayoutParams draftParams = new LinearLayout.LayoutParams(-1, -2);
+            draftParams.topMargin = NebulaFormUi.dp(12); column.addView(draft, draftParams);
             column.addView(NebulaFormUi.note(c, t("При включении текст автоматически обрабатывает выбранный провайдер ИИ. Ваш черновик заменяется только по нажатию «Применить».",
                 "When enabled, text is automatically processed by your selected AI provider. Your draft changes only when you tap Apply.")));
         } else {

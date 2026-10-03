@@ -8,6 +8,7 @@ public final class NebulaToolsNavigationController: UINavigationController, UIAd
     public init(root: UIViewController, onDismiss: (() -> Void)? = nil) {
         self.onDismiss = onDismiss
         super.init(rootViewController: root)
+        navigationBar.prefersLargeTitles = false
         modalPresentationStyle = .pageSheet
         preferredContentSize = CGSize(width: 540, height: 560)
         if #available(iOS 15.0, *) {

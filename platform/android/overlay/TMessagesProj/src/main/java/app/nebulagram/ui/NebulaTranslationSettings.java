@@ -17,6 +17,7 @@ public final class NebulaTranslationSettings {
     }
     public static String connectionIdentity() {
         SharedPreferences p = global(); int provider = p.getInt("provider", 0);
+        if (provider == NebulaAiClient.NANO) return provider + ":" + p.getBoolean("nano_preview", false) + ":" + p.getBoolean("nano_fast", false);
         return provider + ":" + p.getString("model_" + provider, "") + ":" + p.getString("endpoint", "");
     }
     public static boolean shortcut() { return global().getBoolean("composer_shortcut", false); }

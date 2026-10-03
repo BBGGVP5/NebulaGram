@@ -168,7 +168,7 @@ public final class NebulaAiFragment extends BaseFragment {
                 });
         nanoCard.add(nanoPerformance);
         updateNanoLabels();
-        nanoAction = button(c, nanoCard, text("Проверить модель", "Check model"), true, v -> downloadNano());
+        nanoAction = button(c, nanoCard, text("Проверить модель и обновления", "Check model and updates"), true, v -> downloadNano());
         nanoFallback = button(c, nanoCard, text("Попробовать Stable · Полная", "Try Stable · Full"), false, v -> {
             if (nanoDownloading) return;
             prefs.edit().putBoolean("nano_preview", false).putBoolean("nano_fast", false).apply();
@@ -177,6 +177,7 @@ public final class NebulaAiFragment extends BaseFragment {
         ((View) nanoFallback.getParent()).setVisibility(View.GONE);
         button(c, nanoCard, text("Обновить Android AICore", "Update Android AICore"), false, v ->
                 org.telegram.messenger.browser.Browser.openUrl(c, "https://play.google.com/store/apps/details?id=com.google.android.aicore"));
+        nanoCard.add(NebulaFormUi.note(c, text("Моделью управляет Android AICore. Здесь можно проверить доступность и скачать предложенную сервисом модель. Обновления AICore открываются в Google Play.", "Android AICore manages the model. Check availability and download the model offered by the service here. AICore updates open in Google Play.")));
         refreshProviderControls();
         refreshKeyStatus();
 
@@ -336,6 +337,7 @@ public final class NebulaAiFragment extends BaseFragment {
                 nanoWorker = null;
                 nanoAction.setEnabled(true); nanoRelease.setEnabled(true); nanoPerformance.setEnabled(true); nanoFallback.setEnabled(true);
                 boolean ready = error == null && result == com.google.mlkit.genai.common.FeatureStatus.AVAILABLE;
+                if (ready) NebulaAutoTranslate.modelReady();
                 boolean downloadable = error == null && result == com.google.mlkit.genai.common.FeatureStatus.DOWNLOADABLE;
                 boolean downloading = error == null && result == com.google.mlkit.genai.common.FeatureStatus.DOWNLOADING;
                 nanoDownloading = downloading;
@@ -352,7 +354,7 @@ public final class NebulaAiFragment extends BaseFragment {
                 nanoStatus.setText(message);
                 hero.setStatus(ready ? text("Готово · на устройстве", "Ready · on device")
                         : downloading ? text("Модель загружается…", "Downloading model…") : text("Gemini Nano · нужна настройка", "Gemini Nano · setup needed"), ready);
-                nanoAction.setText(downloading ? text("Загрузка…", "Downloading…") : downloadable ? text("Скачать модель", "Download model") : text("Проверить снова", "Check again"));
+                nanoAction.setText(downloading ? text("Загрузка…", "Downloading…") : downloadable ? text("Скачать модель", "Download model") : text("Проверить модель и обновления", "Check model and updates"));
                 ((View) nanoFallback.getParent()).setVisibility(!ready && !downloading && (preview || fast) ? View.VISIBLE : View.GONE);
                 if (downloading && !nanoPaused) AndroidUtilities.runOnUIThread(nanoPoll, 3000);
             });
