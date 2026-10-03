@@ -14,7 +14,7 @@ contract = root / 'platform/ios/NebulaSettingsContract/Sources/NebulaSettingsCon
 source = '\n'.join((contract / name).read_text(encoding='utf-8') for name in ['NebulaTranslationPreferences.swift', 'NebulaTranslationActivity.swift']) + '\n' + source
 stubs = r'''
 import Foundation
-struct PeerId: Hashable { let value: Int64; var namespace: Int32 { 0 }; func toInt64() -> Int64 { value } }
+public struct PeerId: Hashable { let value: Int64; var namespace: Int32 { 0 }; func toInt64() -> Int64 { value } }
 struct MessageId: Hashable { let peerId: PeerId; let namespace: Int32; let id: Int32 }
 enum Namespaces { enum Peer { static let SecretChat: Int32 = 1 }; enum Message { static let Cloud: Int32 = 0 } }
 struct MessageFlags: OptionSet { let rawValue: Int; static let Incoming = MessageFlags(rawValue: 1) }
@@ -26,7 +26,7 @@ struct TranslationMessageAttribute: MessageAttribute { let text: String; let ent
 struct Author { let id: PeerId }
 struct ForwardInfo {}
 struct StoreMessageForwardInfo { init(_ info: ForwardInfo) {} }
-final class Message {
+public final class Message {
     let id: MessageId; var text: String; let flags: MessageFlags
     var attributes: [MessageAttribute] = []; var protected = false
     var containsSecretMedia = false; var adAttribute: Int? = nil
@@ -55,7 +55,7 @@ struct Strings { let baseLanguageCode = "en" }
 struct Presentation { let strings = Strings() }
 struct PresentationData { func with<T>(_ f: (Presentation) -> T) -> T { f(Presentation()) } }
 struct SharedContext { let currentPresentationData = PresentationData() }
-final class AccountContext { let account = Account(); let sharedContext = SharedContext() }
+public final class AccountContext { let account = Account(); let sharedContext = SharedContext() }
 enum Provider: Int { case remote, appleIntelligence }
 final class NebulaAiSettings { static let shared = NebulaAiSettings(); var enabled = true; var provider = Provider.remote; var customEndpoint = "https://example.test"; var instructions = ""; func isConfigured() -> Bool { true }; func model(for: Provider) -> String { "model" } }
 enum NebulaAiServiceError: Error { case invalidConfiguration }
