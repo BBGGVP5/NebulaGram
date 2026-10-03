@@ -22,7 +22,7 @@ index 383a7a0..8a2a941 100644
              return false;
          }
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
-index 62c330c..5399dd6 100644
+index 62c330c..3876628 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
 @@ -703,6 +703,25 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
@@ -66,7 +66,23 @@ index 62c330c..5399dd6 100644
              }
          }
          if (additionalSubTitleOverlayContainer != null) {
-@@ -2116,6 +2141,12 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
+@@ -1944,6 +1969,15 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
+                     titleTextView[1] = null;
+                     overlayTitleAnimationInProgress = false;
+                     setTitleOverlayText((String) overlayTitleToSet[0], (int) overlayTitleToSet[1], (Runnable) overlayTitleToSet[2]);
++                    // A folder may change while the connection title is fading out.
++                    // The native overlay deduplicates null titles, so explicitly
++                    // flush the latest folder after that transition has finished.
++                    if (!overlayTitleAnimationInProgress && !titleOverlayShown
++                            && parentFragment instanceof org.telegram.ui.DialogsActivity
++                            && titleTextView[0] != null
++                            && !app.nebulagram.ui.NebulaDialogsTitle.sameTitle(titleTextView[0].getText(), lastTitle)) {
++                        setNebulaTitle(lastTitle, lastRightDrawable, true);
++                    }
+                 }
+             }).start();
+         }
+@@ -2116,6 +2150,12 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
              setTitle(title);
              return;
          }
@@ -79,7 +95,7 @@ index 62c330c..5399dd6 100644
          boolean crossfade = overlayTitleAnimation && !TextUtils.isEmpty(subtitle);
          if (crossfade) {
              if (subtitleTextView.getVisibility() != View.VISIBLE) {
-@@ -2132,12 +2163,13 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
+@@ -2132,12 +2172,13 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
              titleTextView[1] = null;
          }
          titleTextView[1] = titleTextView[0];
@@ -94,7 +110,7 @@ index 62c330c..5399dd6 100644
          }
          ViewPropertyAnimator a1 = titleTextView[0].animate().alpha(1f).translationY(0).setDuration(duration);
          if (interpolator != null) {
-@@ -2148,7 +2180,7 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
+@@ -2148,7 +2189,7 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
          titleAnimationRunning = true;
          ViewPropertyAnimator a = titleTextView[1].animate().alpha(0);
          if (!crossfade) {
@@ -103,7 +119,7 @@ index 62c330c..5399dd6 100644
          }
          if (interpolator != null) {
              a.setInterpolator(interpolator);
-@@ -2156,6 +2188,7 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
+@@ -2156,6 +2197,7 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
          a.setDuration(duration).setListener(new AnimatorListenerAdapter() {
              @Override
              public void onAnimationEnd(Animator animation) {
