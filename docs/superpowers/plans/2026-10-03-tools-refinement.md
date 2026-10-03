@@ -62,3 +62,9 @@ Android follow-up run 37121794346 succeeded. Verified artifact 11274376888, APK 
 The installed b1000328 reproduced a split path: a local AI chat generated a Russian answer, while incoming translation failed before inference. `NebulaAutoTranslate` requested `NebulaAiSecrets.read(4)`; the production credential store only accepts providers 0–3. Skip credentials for Nano as the working chat/draft paths already do. Tightened the incoming regression double to enforce the real credential-store boundary; it failed before this fix and passes afterward.
 
 Model availability no longer clears unrelated translation failures or claims that inference is verified. The Android AI provider uses the shared sheet-aware header, and adjacent global settings cards have spacing. Both platforms preserve account/chat scope through tools → provider → translation and AI editor → provider navigation. APK and IPA build/device verification pending for this correction.
+
+### Device-only cancellation crash
+
+b1000329 was installed over b1000328 without clearing data. Requests reached Nano but cancellation exposed a second issue: Android DropBox captured `NoSuchMethodError` on the ML Kit executor. Inspection of the shipped DEX found the missing-method stub in the coroutine cancellation callback. The published Prompt beta4 bytecode invokes interface-static `kotlinx.coroutines.Job.cancel$default`; its POM incorrectly requests coroutines 1.7.3. Confirmed directly with javap and Google ML Kit issue https://github.com/googlesamples/mlkit/issues/1068.
+
+Pin the coroutines 1.11.0 BOM and Android runtime, and run a Gradle check against the resolved release dependencies which creates a Job and invokes the exact cancellation entry point. The check succeeds on 1.11.0 and rejects 1.10.2. Temporarily switched AI off on the connected device while replacing the test APK; restore the original enabled state after installation. b1000329 is not a release candidate.

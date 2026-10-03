@@ -236,7 +236,7 @@ jobs:
           # Maven Central отвечает 429, когда раннеры GitHub стучатся к нему
           # пачкой. Один повтор дешевле, чем потерянные двадцать минут сборки.
           for attempt in 1 2; do
-            if ./gradlew --no-daemon -PnebulaAbis="$NEBULA_ABIS" -PnebulaMinify="$NEBULA_MINIFY" -PnebulaVersionName="$NEBULA_VERSION" -PnebulaVersionCode="$NEBULA_BUILD_CODE" :TMessagesProj_AppStandalone:assembleAfatStandalone; then
+            if ./gradlew --no-daemon -I ../../scripts/check-nano-runtime.init.gradle -PnebulaAbis="$NEBULA_ABIS" -PnebulaMinify="$NEBULA_MINIFY" -PnebulaVersionName="$NEBULA_VERSION" -PnebulaVersionCode="$NEBULA_BUILD_CODE" :TMessagesProj_AppStandalone:verifyNebulaNanoRuntime :TMessagesProj_AppStandalone:assembleAfatStandalone; then
               exit 0
             fi
             echo "::warning::попытка $attempt не удалась, повтор через 60 секунд"

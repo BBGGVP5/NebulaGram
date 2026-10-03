@@ -1,0 +1,24 @@
+// Check the actual release runtime, not compile-time stubs: Prompt beta4's POM
+// understates its coroutines requirement and R8 otherwise emits a crashing stub.
+gradle.projectsEvaluated {
+    def app = gradle.rootProject.project(':TMessagesProj_AppStandalone')
+    app.tasks.register('verifyNebulaNanoRuntime') {
+        doLast {
+            def artifacts = app.configurations.getByName('afatStandaloneRuntimeClasspath').resolvedConfiguration.resolvedArtifacts
+            def jars = artifacts.findAll {
+                it.moduleVersion.id.group in ['org.jetbrains.kotlinx', 'org.jetbrains.kotlin'] && it.file.name.endsWith('.jar')
+            }.collect { it.file.toURI().toURL() }
+            def loader = new URLClassLoader(jars as URL[], (ClassLoader) null)
+            try {
+                def job = loader.loadClass('kotlinx.coroutines.Job')
+                def cancel = job.getDeclaredMethod('cancel$default', job, java.util.concurrent.CancellationException, Integer.TYPE, Object)
+                def instance = loader.loadClass('kotlinx.coroutines.JobKt').getMethod('Job', job).invoke(null, [null] as Object[])
+                cancel.invoke(null, [instance, null, 1, null] as Object[])
+                if (!job.getMethod('isCancelled').invoke(instance)) throw new GradleException('Nano coroutine cancellation did not complete')
+                println 'Nano release runtime: interface-static Job.cancel$default exists and cancels successfully'
+            } finally {
+                loader.close()
+            }
+        }
+    }
+}

@@ -1,0 +1,10 @@
+diff --git a/TMessagesProj/build.gradle b/TMessagesProj/build.gradle
+--- a/TMessagesProj/build.gradle
++++ b/TMessagesProj/build.gradle
+@@ -70,3 +70,6 @@ dependencies {
+     implementation 'com.google.mlkit:genai-prompt:1.0.0-beta4'
++    // Prompt beta4 calls Job.cancel$default on the interface (coroutines >= 1.11).
++    implementation platform('org.jetbrains.kotlinx:kotlinx-coroutines-bom:1.11.0')
++    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.11.0'
+     implementation 'com.android.billingclient:billing:8.0.0'
+     implementation 'com.google.code.gson:gson:2.11.0'
