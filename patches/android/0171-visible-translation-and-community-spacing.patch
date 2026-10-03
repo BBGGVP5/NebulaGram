@@ -45,7 +45,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
      }
      private Runnable checkTranslationRunnable = () -> {
          lastTranslationCheck = System.currentTimeMillis();
-@@ -25136,7 +25136,18 @@
+@@ -25136,7 +25136,20 @@
                  }
              }
  
@@ -59,6 +59,8 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
 +                    if (cell.getCurrentMessagesGroup() != null) visible.addAll(cell.getCurrentMessagesGroup().messages);
 +                    else if (cell.getMessageObject() != null) visible.add(cell.getMessageObject());
 +                }
++                if (currentPinnedMessageId > 0 && pinnedMessageObjects != null && currentPinnedMessageId >= 0 && currentPinnedMessageId < pinnedMessageObjects.size())
++                    visible.add(pinnedMessageObjects.get(currentPinnedMessageId));
 +                app.nebulagram.ui.NebulaAutoTranslate.retainVisible(currentAccount, getDialogId(), visible);
 +                for (MessageObject message : visible) app.nebulagram.ui.NebulaAutoTranslate.request(currentAccount, message);
 +            } else if (minId <= maxId) {

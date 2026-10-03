@@ -95,7 +95,11 @@ struct NebulaAiService {
         try await Task.sleep(nanoseconds: 15_000_000)
         precondition(NebulaAiService.active == 2, "two remote requests start together")
         engine.update(context: context, peer: peer, messages: [c], allowed: true)
-        try await Task.sleep(nanoseconds: 120_000_000)
+        for _ in 0..<100 {
+            if c.attributes.count == 1 && NebulaAiService.active == 0 { break }
+            try await Task.sleep(nanoseconds: 10_000_000)
+        }
+        print("Scroll result: a=\(a.attributes.count), b=\(b.attributes.count), c=\(c.attributes.count), active=\(NebulaAiService.active), peak=\(NebulaAiService.peak), calls=\(NebulaAiService.calls)")
         precondition(a.attributes.isEmpty && b.attributes.isEmpty && c.attributes.count == 1, "scroll cancellation rejects offscreen completions")
         precondition(NebulaAiService.peak == 2 && protected.attributes.isEmpty, "bounded transport and protected text")
         let edited = Message(20, "before"); context.account.postbox.tx.messages[edited.id] = edited
