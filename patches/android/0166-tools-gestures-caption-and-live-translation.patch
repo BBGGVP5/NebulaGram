@@ -134,9 +134,27 @@ index a5c19a4..979227a 100644
          if (shownAiButton == show) return;
          if (show) {
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
-index e7fd751..7b2a469 100644
+index e7fd751..677e475 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
+@@ -2871,7 +2871,7 @@ public class ChatActivityEnterView extends FrameLayout implements
+             final long dialogId = parentFragment != null ? parentFragment.getDialogId() : dialog_id;
+             if (richDraftActive) {
+                 if (richDraftMessage == null) return;
+-                new AIEditorAlert(getContext(), resourcesProvider)
++                createNebulaAwareAiEditor()
+                     .setText(richDraftMessage)
+                     .setOnUseRich(this::saveRichDraft)
+                     .setOnSendRich(dialogId, (rich, scheduleDate, scheduleRepeatPeriod, notify) -> {
+@@ -2891,7 +2891,7 @@ public class ChatActivityEnterView extends FrameLayout implements
+                 return;
+             }
+             if (messageEditText == null) return;
+-            new AIEditorAlert(getContext(), resourcesProvider)
++            createNebulaAwareAiEditor()
+                 .setText(messageEditText.getText())
+                 .setOnUse(text -> {
+                     messageEditText.setText(text);
 @@ -5855,7 +5855,7 @@ public class ChatActivityEnterView extends FrameLayout implements
                  nebulaToolsVisible = true;
                  app.nebulagram.ui.NebulaMessageToolsFragment.show(parentFragment, new app.nebulagram.ui.NebulaMessageToolsFragment(currentAccount, dialog_id, source, value -> {
@@ -146,8 +164,21 @@ index e7fd751..7b2a469 100644
                      nebulaToolsVisible = false;
                      updateNebulaDraftTranslation();
                  });
-@@ -6121,7 +6121,8 @@ public class ChatActivityEnterView extends FrameLayout implements
+@@ -6119,9 +6119,21 @@ public class ChatActivityEnterView extends FrameLayout implements
+         updateFieldRight(lastAttachVisible);
+     }
  
++    private AIEditorAlert createNebulaAwareAiEditor() {
++        nebulaToolsVisible = true;
++        if (nebulaDraftTranslation != null) nebulaDraftTranslation.stop();
++        AIEditorAlert editor = new AIEditorAlert(getContext(), resourcesProvider);
++        editor.setOnDismissListener(dialog -> {
++            nebulaToolsVisible = false;
++            updateNebulaDraftTranslation();
++        });
++        return editor;
++    }
++
      private boolean shownAiButton;
      private void showAiButton(boolean show_) {
 -        final boolean show = (show_ || richDraftActive) && parentFragment != null && !parentFragment.isSecretChat();
@@ -156,7 +187,7 @@ index e7fd751..7b2a469 100644
  
          if (shownAiButton == show) return;
          if (show) {
-@@ -8859,6 +8860,7 @@ public class ChatActivityEnterView extends FrameLayout implements
+@@ -8859,6 +8871,7 @@ public class ChatActivityEnterView extends FrameLayout implements
                          app.nebulagram.ui.NebulaAppearance.iosComposer(),
                          giftButton != null && giftButton.getVisibility() == VISIBLE && attachVisible != 0 ? dp(DEFAULT_HEIGHT) : 0);
                  if (toolsParams.rightMargin != toolsInset) {
@@ -164,7 +195,7 @@ index e7fd751..7b2a469 100644
                      toolsParams.rightMargin = toolsInset; nebulaToolsButton.setLayoutParams(toolsParams);
                  }
                  nebulaToolsButton.setColorFilter(getThemedColor(Theme.key_glass_defaultIcon));
-@@ -14660,6 +14662,10 @@ public class ChatActivityEnterView extends FrameLayout implements
+@@ -14660,6 +14673,10 @@ public class ChatActivityEnterView extends FrameLayout implements
      protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
          super.onLayout(changed, left, top, right, bottom);
          nebulaComposerStyle.layout(emojiButton, attachButton, senderSelectView, aiButton, richButton);
@@ -175,7 +206,7 @@ index e7fd751..7b2a469 100644
          updateNebulaDraftTranslation();
          if (botCommandLastPosition != -1 && botCommandsMenuContainer != null) {
              LinearLayoutManager layoutManager = (LinearLayoutManager) botCommandsMenuContainer.listView.getLayoutManager();
-@@ -14672,6 +14678,7 @@ public class ChatActivityEnterView extends FrameLayout implements
+@@ -14672,6 +14689,7 @@ public class ChatActivityEnterView extends FrameLayout implements
  
      private void beginDelayedTransition() {
          animationParamsX.put(emojiButton, emojiButton.getX());
@@ -183,7 +214,7 @@ index e7fd751..7b2a469 100644
          if (messageEditText != null) {
              animationParamsX.put(messageEditText, messageEditText.getX());
          }
-@@ -14785,6 +14792,7 @@ public class ChatActivityEnterView extends FrameLayout implements
+@@ -14785,6 +14803,7 @@ public class ChatActivityEnterView extends FrameLayout implements
          emojiButtonPaddingAlpha = progress;
          updateEmojiButtonParams();
          emojiButton.setTranslationX(-leftPadding);
@@ -191,7 +222,7 @@ index e7fd751..7b2a469 100644
          messageTextPaddingTranslationX = -leftPadding - (messageEditText == null ? 0 : dp(40) + (senderSelectView != null && senderSelectView.getVisibility() == View.VISIBLE ? dp(18) : 0)) * (1f - progress);
          if (recordDeleteImageView != null) {
              recordDeleteImageView.setTranslationX(-leftPadding);
-@@ -14877,6 +14885,11 @@ public class ChatActivityEnterView extends FrameLayout implements
+@@ -14877,6 +14896,11 @@ public class ChatActivityEnterView extends FrameLayout implements
          emojiButton.setScaleX(emojiButtonPaddingScale * emojiButtonScale);
          emojiButton.setScaleY(emojiButtonPaddingScale * emojiButtonScale);
          emojiButton.setAlpha(emojiButtonPaddingAlpha * emojiButtonAlpha);
@@ -204,7 +235,7 @@ index e7fd751..7b2a469 100644
  
      public void setOverrideHint(CharSequence overrideHint) {
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAttachAlert.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAttachAlert.java
-index 625f47f..6aa1c55 100644
+index 625f47f..2bc68df 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAttachAlert.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAttachAlert.java
 @@ -3102,7 +3102,7 @@ public class ChatAttachAlert extends BottomSheet implements NotificationCenter.N
@@ -232,7 +263,7 @@ index 625f47f..6aa1c55 100644
              MessagesController.getGlobalMainSettings().edit().putInt("aihintshown", 3).apply();
              new AIEditorAlert(getContext(), resourcesProvider)
                  .setText(topCommentTextView.getText())
-@@ -6515,9 +6517,47 @@ public class ChatAttachAlert extends BottomSheet implements NotificationCenter.N
+@@ -6515,9 +6517,48 @@ public class ChatAttachAlert extends BottomSheet implements NotificationCenter.N
      }
  
  
@@ -255,6 +286,7 @@ index 625f47f..6aa1c55 100644
      private boolean shownAiButton;
      private void showAiButton(boolean show_) {
 -        final boolean show = show_ && (baseFragment instanceof ChatActivity && !((ChatActivity) baseFragment).isSecretChat());
++        if (aiButton == null || topAiButton == null || commentTextView == null) return;
 +        final boolean nebula = app.nebulagram.ui.NebulaTranslationSettings.shortcut();
 +        final boolean show = (show_ || nebula) && (baseFragment instanceof ChatActivity && !((ChatActivity) baseFragment).isSecretChat());
 +        if (nebula && aiButton.getParent() != commentTextView) {
