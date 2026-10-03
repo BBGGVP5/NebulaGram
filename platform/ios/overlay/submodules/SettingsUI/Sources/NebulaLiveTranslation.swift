@@ -12,6 +12,7 @@ public final class NebulaLiveTranslation {
         let settings = NebulaAiSettings.shared
         return settings.enabled && settings.isConfigured() && (settings.provider != .appleIntelligence || NebulaAiService.localModelAvailable)
     }
+    private let activityOwner = UUID()
     private var task: Task<Void, Never>?
     private var queue: [Message] = []
     private var current: MessageId?
@@ -20,7 +21,7 @@ public final class NebulaLiveTranslation {
     private var identity = ""
     private var revision = 0
     public init() { }
-    public func stop() { revision += 1; task?.cancel(); task = nil; queue.removeAll(); current = nil }
+    public func stop() { revision += 1; task?.cancel(); task = nil; queue.removeAll(); current = nil; NebulaTranslationActivity.set(owner: activityOwner, key: nil) }
     public func update(context: AccountContext, peer: PeerId, messages: [Message], allowed: Bool) {
         let options = NebulaTranslationPreferences.shared.options(account: "\(context.account.peerId.toInt64())", peer: "\(peer.toInt64())")
         guard allowed, options.incoming, Self.ready, peer.namespace != Namespaces.Peer.SecretChat else { stop(); return }
@@ -44,6 +45,8 @@ public final class NebulaLiveTranslation {
     private func runNext(context: AccountContext, language: String) {
         guard task == nil, !queue.isEmpty else { return }
         let message = queue.removeFirst(); current = message.id
+        NebulaTranslationActivity.set(owner: activityOwner, key: NebulaTranslationKey(account: String(context.account.peerId.toInt64()),
+            peer: String(message.id.peerId.toInt64()), namespace: message.id.namespace, message: message.id.id))
         let version = revision
         let key = "\(message.id):\(language):\(message.text)"
         task = Task { @MainActor [weak self] in
@@ -51,6 +54,7 @@ public final class NebulaLiveTranslation {
             do { result = try await Self.translate(message.text, language: language) } catch { result = nil }
             guard let self = self, !Task.isCancelled, version == self.revision else { return }
             self.task = nil; self.current = nil
+            NebulaTranslationActivity.set(owner: self.activityOwner, key: nil)
             if let result = result {
                 if self.cache.count >= 128 { self.cache.removeAll() }
                 self.cache[key] = result
@@ -87,5 +91,5 @@ public final class NebulaLiveTranslation {
             })
         }.startStandalone()
     }
-    deinit { task?.cancel() }
+    deinit { task?.cancel(); NebulaTranslationActivity.set(owner: activityOwner, key: nil) }
 }

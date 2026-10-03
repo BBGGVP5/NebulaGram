@@ -136,6 +136,42 @@ index d697323..4440bb1 100644
          
          let profileItems = profileSearchableItems(context: context, canAddAccount: canAddAccount)
          allItems.append(contentsOf: profileItems)
+diff --git a/submodules/TelegramUI/Components/Chat/ChatMessageTextBubbleContentNode/BUILD b/submodules/TelegramUI/Components/Chat/ChatMessageTextBubbleContentNode/BUILD
+index be9cffa..3bfda5f 100644
+--- a/submodules/TelegramUI/Components/Chat/ChatMessageTextBubbleContentNode/BUILD
++++ b/submodules/TelegramUI/Components/Chat/ChatMessageTextBubbleContentNode/BUILD
+@@ -10,6 +10,7 @@ swift_library(
+         "-warnings-as-errors",
+     ],
+     deps = [
++        "//submodules/NebulaSettingsContract:NebulaSettingsContract",
+         "//submodules/AsyncDisplayKit",
+         "//submodules/Display",
+         "//submodules/TelegramCore",
+diff --git a/submodules/TelegramUI/Components/Chat/ChatMessageTextBubbleContentNode/Sources/ChatMessageTextBubbleContentNode.swift b/submodules/TelegramUI/Components/Chat/ChatMessageTextBubbleContentNode/Sources/ChatMessageTextBubbleContentNode.swift
+index 3075668..dcddec1 100644
+--- a/submodules/TelegramUI/Components/Chat/ChatMessageTextBubbleContentNode/Sources/ChatMessageTextBubbleContentNode.swift
++++ b/submodules/TelegramUI/Components/Chat/ChatMessageTextBubbleContentNode/Sources/ChatMessageTextBubbleContentNode.swift
+@@ -1,4 +1,5 @@
+ import Foundation
++import NebulaSettingsContract
+ import UIKit
+ import AsyncDisplayKit
+ import Display
+@@ -427,7 +428,12 @@ public class ChatMessageTextBubbleContentNode: ChatMessageBubbleContentNode {
+                         if translateToLanguage != nil || isSummarized {
+                             isTranslating = true
+                         }
+-                        if isTranslating {
++                        let nebulaOptions = NebulaTranslationPreferences.shared.options(account: String(item.context.account.peerId.toInt64()), peer: String(item.message.id.peerId.toInt64()))
++                        if nebulaOptions.incoming && translateToLanguage == nebulaOptions.incomingLanguage && !isSummarized {
++                            isTranslating = NebulaTranslationActivity.contains(NebulaTranslationKey(account: String(item.context.account.peerId.toInt64()),
++                                peer: String(item.message.id.peerId.toInt64()), namespace: item.message.id.namespace, message: item.message.id.id))
++                        }
++                        if isTranslating || (nebulaOptions.incoming && translateToLanguage == nebulaOptions.incomingLanguage) {
+                             if isSummarized, let attribute = item.message.attributes.first(where: { $0 is SummarizationMessageAttribute }) as? SummarizationMessageAttribute, let summary = attribute.summaryForLang(translateToLanguage) {
+                                 rawText = summary.text
+                                 messageEntities = summary.entities
 diff --git a/submodules/TelegramUI/Components/Chat/ChatTextInputPanelNode/Sources/ChatTextInputPanelNode.swift b/submodules/TelegramUI/Components/Chat/ChatTextInputPanelNode/Sources/ChatTextInputPanelNode.swift
 index cd36034..5664972 100644
 --- a/submodules/TelegramUI/Components/Chat/ChatTextInputPanelNode/Sources/ChatTextInputPanelNode.swift
@@ -150,10 +186,24 @@ index cd36034..5664972 100644
              if textInputHeight >= threeLineHeight - 0.5 {
                  isAIButtonVisible = true
 diff --git a/submodules/TelegramUI/Sources/ChatController.swift b/submodules/TelegramUI/Sources/ChatController.swift
-index b0e444c..3e42d5d 100644
+index b0e444c..6f74b1b 100644
 --- a/submodules/TelegramUI/Sources/ChatController.swift
 +++ b/submodules/TelegramUI/Sources/ChatController.swift
-@@ -327,14 +327,14 @@ public final class ChatControllerImpl: TelegramBaseController, ChatController, G
+@@ -279,6 +279,13 @@ public final class ChatControllerImpl: TelegramBaseController, ChatController, G
+             nebulaTranslationTimer = Foundation.Timer.scheduledTimer(withTimeInterval: options.draft ? 0.25 : 1, repeats: true) { [weak self] _ in self?.nebulaTickChatAI() }
+         }
+         if nebulaTranslationObservers.isEmpty {
++            nebulaTranslationObservers.append(NotificationCenter.default.addObserver(forName: NebulaTranslationActivity.changed, object: nil, queue: .main) { [weak self] _ in
++                guard let self, self.isNodeLoaded, self.nebulaTranslationVisible else { return }
++                self.chatDisplayNode.historyNode.forEachVisibleMessageItemNode { node in
++                    guard let item = node.item else { return }
++                    item.controllerInteraction.requestMessageUpdate(item.message.id, false, nil)
++                }
++            })
+             nebulaTranslationObservers.append(NotificationCenter.default.addObserver(forName: NebulaTranslationPreferences.changed, object: nil, queue: .main) { [weak self] _ in
+                 self?.chatDisplayNode.textInputPanelNode?.nebulaToolsButton = nil
+                 self?.nebulaConfigureChatAI()
+@@ -327,14 +334,14 @@ public final class ChatControllerImpl: TelegramBaseController, ChatController, G
          if incoming {
              if !nebulaHadAiTranslation { nebulaPreviousTranslationState = presentationInterfaceState.translationState; nebulaHadAiTranslation = true }
              if presentationInterfaceState.translationState?.isEnabled != true || presentationInterfaceState.translationState?.toLang != options.incomingLanguage || presentationInterfaceState.translationState?.fromLang != "nebula-ai" {
