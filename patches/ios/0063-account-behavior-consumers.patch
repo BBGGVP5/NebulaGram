@@ -435,7 +435,7 @@ diff --git a/submodules/TelegramUI/Sources/ChatInterfaceStateContextMenus.swift 
  
          if data.messageActions.options.contains(.forward) {
              if !isCopyProtected {
-+                if message.id.peerId.namespace != Namespaces.Peer.SecretChat, let save = controllerInteraction?.nebulaSaveMessages {
++                if message.id.peerId.namespace != Namespaces.Peer.SecretChat, let save = controllerInteraction.nebulaSaveMessages {
 +                    let russian = chatPresentationInterfaceState.strings.baseLanguageCode.hasPrefix("ru")
 +                    actions.append(.action(ContextMenuActionItem(text: russian ? "Сохранить в выбранный чат" : "Save to chosen chat", icon: { theme in
 +                        return generateTintedImage(image: UIImage(systemName: "bookmark"), color: theme.actionSheet.primaryTextColor)

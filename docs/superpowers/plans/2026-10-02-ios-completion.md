@@ -26,7 +26,7 @@
 - [x] Resolve `nebulaguard_channel` through the current account, observe its linked community and cached metadata, render a stable native avatar/title/count card and open `makeCommunityViewScreen`.
 - [x] Replace the old community link directory in both settings and support; keep support before tools and shorten repetitive explanations.
 - [x] Repair the navigation page range guard and group remaining profile/chat options according to their actual native consumers.
-- [ ] Audit older catalog gaps separately; wire valid cross-platform behaviors and record genuinely platform-owned features explicitly. Do not relabel unsupported imported values as implemented.
+- [x] Audit older catalog gaps separately; wire valid cross-platform behaviors and record genuinely platform-owned features explicitly. Do not relabel unsupported imported values as implemented.
 
 ## 4. Verification and build
 
@@ -73,3 +73,9 @@ Continue inline. Preserve the published 61-patch baseline in `build/ios-parity-c
 - [x] Update import classification tests now that portable keys have actual consumers; retain Material You as a non-active imported Android value.
 - [x] Android workflow 37038627246 passed; APK SHA-256 38afcad7c595e97b85e0518a240eb47fd1dd38ee7155e2b92d9b707ef9e89f78, apksigner verification passed.
 - [ ] Complete final iOS ordered-patch, SDK and native IPA checks; the previous translation build 37036563036 failed at ambiguous Timer and is not a deliverable.
+
+- [x] macOS bootstrap 37096044690 passed at 7fa6206: 86 tests, 67 patches, embedded Foundation, UIKit switch, Objective-C icon adapter and SVG resources. Fixed Locale deprecation and UISwitch selector compatibility found by the SDK checks.
+- [x] Diagnose full arm64 IPA 37096066321 failure in TelegramUI: remove optional chaining from the non-optional ChatControllerInteraction in patch 0063.
+- [ ] Complete replacement full arm64 IPA and verify its exact source revision and archive.
+
+- [x] Android recheck 37095621989 at 33e0f42 passed. Downloaded build 1000304: package app.nebulagram.messenger, arm64-v8a, Telegram and NebulaLink JNI libraries; signature matches prior builds. SHA-256 e171fe4749c6b7fa40a56b187c92c8d6267412e093dda17673b937ddb8a6af3a.
