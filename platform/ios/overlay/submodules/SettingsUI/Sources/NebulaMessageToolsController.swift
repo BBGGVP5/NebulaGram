@@ -1,4 +1,6 @@
 import UIKit
+import Display
+import NebulaSettingsContract
 import AVFoundation
 import TelegramPresentationData
 
@@ -14,6 +16,8 @@ public final class NebulaMessageToolsController: UIViewController {
     private let output = UITextView()
     private let languageButton = UIButton(type: .system)
     private let speech = AVSpeechSynthesizer()
+    private let incomingSwitch = NebulaSwitchControl()
+    private let draftSwitch = NebulaSwitchControl()
 
     public init(text: String, russian: Bool, theme: PresentationTheme, accountId: String, peerId: String? = nil, applyDraft: ((String) -> Void)? = nil) {
         self.source = String(text.prefix(50_000))
@@ -76,20 +80,21 @@ public final class NebulaMessageToolsController: UIViewController {
         languageButton.addTarget(self, action: #selector(chooseLanguage), for: .touchUpInside)
         updateLanguage()
         stack.addArrangedSubview(languageButton)
-        let titles = [text("Спросить ИИ", "Ask AI"), text("Перевести", "Translate"), text("Сократить", "Summarize"), text("Озвучить", "Read aloud"), text("В задачу", "Create task")]
-        let symbols = ["sparkles", "character.bubble", "text.alignleft", "speaker.wave.2", "checkmark.circle"]
+        let titles = [text("Спросить ИИ", "Ask AI"), text("Перевести", "Translate"), text("Сократить", "Summarize"), text("Озвучить", "Read aloud"), text("В задачу", "Create task"), text("Исправить", "Correct")]
+        let symbols = ["sparkles", "character.bubble", "text.alignleft", "speaker.wave.2", "checkmark.circle", "checkmark.magnifyingglass"]
         let buttons = titles.enumerated().map { index, title -> UIButton in
             let button = NebulaToolButton(type: .system)
             button.tag = index
             button.setTitle(title, for: .normal)
             button.setImage(UIImage(systemName: symbols[index]), for: .normal)
-            button.backgroundColor = theme.list.itemBlocksBackgroundColor
+            button.backgroundColor = .clear
             button.tintColor = theme.list.itemAccentColor
             button.setTitleColor(theme.list.itemPrimaryTextColor, for: .normal)
             button.addTarget(self, action: #selector(performTool(_:)), for: .touchUpInside)
             return button
         }
         stack.addArrangedSubview(NebulaActionGrid(buttons: buttons))
+        addLiveTranslation(to: stack)
         output.font = .preferredFont(forTextStyle: .body)
         output.adjustsFontForContentSizeCategory = true
         output.textColor = theme.list.itemPrimaryTextColor
@@ -111,6 +116,63 @@ public final class NebulaMessageToolsController: UIViewController {
             apply.addTarget(self, action: #selector(useDraft), for: .touchUpInside); stack.addArrangedSubview(apply)
         }
     }
+    private func addLiveTranslation(to stack: UIStackView) {
+        guard let peerId, !peerId.isEmpty else { return }
+        let heading = UILabel()
+        heading.text = text("Перевод в реальном времени", "Live translation")
+        heading.font = .preferredFont(forTextStyle: .subheadline)
+        heading.adjustsFontForContentSizeCategory = true
+        heading.textColor = theme.list.itemSecondaryTextColor
+        heading.numberOfLines = 0
+        stack.addArrangedSubview(heading)
+        for (index, toggle) in [incomingSwitch, draftSwitch].enumerated() {
+            let label = UILabel()
+            label.text = index == 0 ? text("Входящие сообщения", "Incoming messages") : text("Мой текст при наборе", "My text while typing")
+            label.font = .preferredFont(forTextStyle: .body)
+            label.adjustsFontForContentSizeCategory = true; label.numberOfLines = 0
+            label.textColor = theme.list.itemPrimaryTextColor
+            toggle.tag = index
+            toggle.onTintColor = theme.list.itemSwitchColors.contentColor
+            toggle.tintColor = theme.list.itemSwitchColors.frameColor
+            toggle.thumbTintColor = theme.list.itemSwitchColors.handleColor
+            toggle.accessibilityLabel = label.text
+            toggle.addTarget(self, action: #selector(toggleTranslation(_:)), for: .valueChanged)
+            let row = UIStackView(arrangedSubviews: [label, toggle])
+            row.axis = .horizontal; row.alignment = .center; row.spacing = 16
+            row.heightAnchor.constraint(greaterThanOrEqualToConstant: 44).isActive = true
+            toggle.setContentHuggingPriority(.required, for: .horizontal)
+            toggle.setContentCompressionResistancePriority(.required, for: .horizontal)
+            stack.addArrangedSubview(row)
+        }
+        let settings = UIButton(type: .system)
+        settings.setTitle(text("Языки и настройки перевода", "Languages and translation settings"), for: .normal)
+        settings.titleLabel?.font = .preferredFont(forTextStyle: .subheadline)
+        settings.titleLabel?.numberOfLines = 0
+        settings.heightAnchor.constraint(greaterThanOrEqualToConstant: 44).isActive = true
+        settings.addTarget(self, action: #selector(self.settings), for: .touchUpInside)
+        stack.addArrangedSubview(settings)
+        refreshTranslation()
+    }
+    private func refreshTranslation() {
+        guard let peerId else { return }
+        let options = NebulaTranslationPreferences.shared.options(account: accountId, peer: peerId)
+        incomingSwitch.isOn = options.incoming; draftSwitch.isOn = options.draft
+    }
+    @objc private func toggleTranslation(_ sender: NebulaSwitchControl) {
+        guard let peerId else { return }
+        if sender.isOn && !NebulaLiveTranslation.ready {
+            sender.isOn = false
+            navigationController?.pushViewController(NebulaAiController(russian: russian, theme: theme), animated: true)
+            return
+        }
+        NebulaTranslationPreferences.shared.update(account: accountId, peer: peerId) {
+            if sender.tag == 0 { $0.incoming = sender.isOn } else { $0.draft = sender.isOn }
+        }
+    }
+    public override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        refreshTranslation()
+    }
     private func updateLanguage() {
         languageButton.setTitle(text("Язык результата: ", "Result language: ") + NebulaResultLanguage.title(language, russian: russian) + "  ▾", for: .normal)
     }
@@ -130,7 +192,7 @@ public final class NebulaMessageToolsController: UIViewController {
         case 4:
             navigationController?.pushViewController(NebulaTasksController(accountId: accountId, russian: russian, theme: theme, draft: result.isEmpty ? source : result), animated: true)
         default:
-            let action: NebulaAiAction = sender.tag == 1 ? .translate : sender.tag == 2 ? .summarize : .ask
+            let action: NebulaAiAction = sender.tag == 1 ? .translate : sender.tag == 2 ? .summarize : sender.tag == 5 ? .proofread : .ask
             let editor = NebulaAiChatController(russian: russian, initialText: source, action: action, applyResult: { [weak self] value in
                 self?.result = value
                 self?.output.text = value
@@ -149,8 +211,8 @@ public final class NebulaMessageToolsController: UIViewController {
 private final class NebulaToolButton: UIButton {
     override func layoutSubviews() {
         super.layoutSubviews()
-        imageView?.frame = CGRect(x: (bounds.width - 28) / 2, y: 15, width: 28, height: 28)
+        imageView?.frame = CGRect(x: (bounds.width - 26) / 2, y: 10, width: 26, height: 26)
         imageView?.contentMode = .scaleAspectFit
-        titleLabel?.frame = CGRect(x: 8, y: 50, width: bounds.width - 16, height: bounds.height - 56)
+        titleLabel?.frame = CGRect(x: 8, y: 42, width: bounds.width - 16, height: bounds.height - 48)
     }
 }

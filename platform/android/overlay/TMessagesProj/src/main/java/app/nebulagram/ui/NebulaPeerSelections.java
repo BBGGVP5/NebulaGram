@@ -32,6 +32,19 @@ public final class NebulaPeerSelections {
         });
         host.presentFragment(picker);
     }
+    public static void translation(BaseFragment host) {
+        int account = host.getCurrentAccount(); long owner = UserConfig.getInstance(account).getClientUserId();
+        Bundle args = new Bundle(); args.putBoolean("onlySelect", true); args.putInt("dialogsType", DialogsActivity.DIALOGS_TYPE_DEFAULT);
+        DialogsActivity picker = new DialogsActivity(args); picker.setCurrentAccount(account);
+        picker.setDelegate((fragment, dialogs, message, param, notify, scheduleDate, scheduleRepeatPeriod, topicsFragment) -> {
+            if (owner == 0 || owner != UserConfig.getInstance(account).getClientUserId() || dialogs.isEmpty()) return true;
+            long peer = dialogs.get(0).dialogId;
+            if (DialogObject.isEncryptedDialog(peer)) return false;
+            fragment.presentFragment(new NebulaTranslationFragment(account, peer), true);
+            return true;
+        });
+        host.presentFragment(picker);
+    }
     public static void savedRow(BaseFragment host, NebulaCard card) {
         int account = host.getCurrentAccount(); Context context = card.getContext();
         NebulaRow row = new NebulaRow(context).title(text("Чат для сохранения сообщений", "Save messages to"))

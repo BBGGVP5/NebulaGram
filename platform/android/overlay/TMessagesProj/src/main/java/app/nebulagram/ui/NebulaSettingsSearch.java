@@ -18,7 +18,8 @@ public final class NebulaSettingsSearch {
         public void open(BaseFragment f) {
             if (section == -22) f.presentFragment(new NebulaSupportFragment());
             else if (section == -16) f.presentFragment(new NebulaTasksFragment());
-            else if (section == -17) f.presentFragment(new NebulaMessageToolsFragment(null));
+            else if (section == -17) NebulaMessageToolsFragment.show(f, new NebulaMessageToolsFragment(f.getCurrentAccount(), 0, "", null));
+            else if (section == -23) f.presentFragment(new NebulaTranslationFragment(f.getCurrentAccount(), 0));
             else if (section == -18) f.presentFragment(new NebulaSyncFragment());
             else if (section == -19) f.presentFragment(new NebulaLockedChatsFragment());
             else if (section == -20) f.presentFragment(new NebulaIconPickerFragment());
@@ -123,6 +124,12 @@ public final class NebulaSettingsSearch {
         result.add(new Entry(-20, NebulaText.text("Иконка приложения", "App icon"), NebulaText.text("Оригинальные значки NebulaGram", "Original NebulaGram icons"), R.drawable.msg_customize));
         result.add(new Entry(0, NebulaText.text("Анимация переходов", "Transition animation"), NebulaText.text("Стандартная, AOSP или Spring", "Standard, AOSP or Spring"), R.drawable.msg_customize));
         result.add(new Entry(-21, NebulaText.text("История ИИ-чата", "AI chat history"), NebulaText.text("Локальные запросы, включаются отдельно", "Local requests, opt-in"), R.drawable.msg_recent));
+        result.add(new Entry(-23, NebulaText.text("Перевод в реальном времени", "Real-time translation"), NebulaText.text("Входящие сообщения, автоперевод чата, ИИ", "Incoming messages, automatic chat translation, AI"), R.drawable.msg_customize));
+        result.add(new Entry(-23, NebulaText.text("Перевод при наборе", "Translate while typing"), NebulaText.text("Мой текст, черновик, язык, задержка", "My text, draft, language, delay"), R.drawable.msg_customize));
+        result.add(new Entry(-23, NebulaText.text("Кнопка ИИ в поле ввода", "AI button in composer"), NebulaText.text("Инструменты, подписи к вложениям, значок", "Tools, attachment captions, shortcut"), R.drawable.msg_customize));
+        result.add(new Entry(-23, NebulaText.text("Языки перевода", "Translation languages"), NebulaText.text("Язык входящих и моего текста", "Incoming and outgoing language"), R.drawable.msg_customize));
+        result.add(new Entry(12, NebulaText.text("Качество жидкого стекла", "Liquid Glass quality"), NebulaText.text("Оптимизация, размытие, блики, прозрачность", "Performance, blur, highlights, transparency"), R.drawable.msg_customize));
+        result.add(new Entry(7, NebulaText.text("Баннер профиля", "Profile banner"), NebulaText.text("Фото, фон, плавный переход", "Photo, background, gradient"), R.drawable.msg_customize));
         return result;
     }
     private static String normalize(String s) { return s.toLowerCase(Locale.ROOT).replace('ё', 'е').trim(); }

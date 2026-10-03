@@ -28,7 +28,7 @@ final class NebulaActionGrid: UIView {
             (button.title(for: .normal) ?? "").split(separator: " ").map { (String($0) as NSString).size(withAttributes: [.font: font]).width + 24 }.max() ?? 96
         }.max() ?? 96)
         let layout = NebulaToolLayout(width: Double(bounds.width), count: buttons.count,
-            minimumTileWidth: Double(required), rowHeight: Double(max(96, font.lineHeight * 2 + 62)),
+            minimumTileWidth: Double(required), rowHeight: Double(max(76, font.lineHeight * 2 + 48)),
             rtl: effectiveUserInterfaceLayoutDirection == .rightToLeft)
         if abs(height.constant - CGFloat(layout.height)) > 0.5 { height.constant = CGFloat(layout.height) }
         for (button, tile) in zip(buttons, layout.tiles) {

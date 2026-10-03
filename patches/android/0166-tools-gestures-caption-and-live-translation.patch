@@ -1,0 +1,334 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/TranslateController.java b/TMessagesProj/src/main/java/org/telegram/messenger/TranslateController.java
+index 383a7a0..8a2a941 100644
+--- a/TMessagesProj/src/main/java/org/telegram/messenger/TranslateController.java
++++ b/TMessagesProj/src/main/java/org/telegram/messenger/TranslateController.java
+@@ -1616,6 +1616,7 @@ public class TranslateController extends BaseController {
+     }
+ 
+     public boolean isTranslating(MessageObject messageObject) {
++        if (app.nebulagram.ui.NebulaAutoTranslate.isTranslating(currentAccount, messageObject)) return true;
+         if (messageObject != null && messageObject.messageOwner != null && messageObject.messageOwner.summarizedOpen)
+             return loadingSummarizations.contains(Objects.hash(messageObject.getDialogId(), messageObject.getId(), isTranslatingDialog(messageObject.getDialogId()) ? 1 : 0));
+         synchronized (this) {
+@@ -1631,6 +1632,10 @@ public class TranslateController extends BaseController {
+     }
+ 
+     public boolean isTranslating(MessageObject messageObject, MessageObject.GroupedMessages group) {
++        if (app.nebulagram.ui.NebulaAutoTranslate.isTranslating(currentAccount, messageObject)) return true;
++        if (group != null) for (MessageObject item : group.messages) {
++            if (app.nebulagram.ui.NebulaAutoTranslate.isTranslating(currentAccount, item)) return true;
++        }
+         if (messageObject == null) {
+             return false;
+         }
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/BaseFragment.java b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/BaseFragment.java
+index 55cc335..0184adf 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/BaseFragment.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/BaseFragment.java
+@@ -1015,10 +1015,28 @@ public abstract class BaseFragment {
+                         @Override protected void onMeasure(int widthSpec, int heightSpec) {
+                             int available = MeasureSpec.getSize(heightSpec);
+                             int height = Math.min(available, Math.round(AndroidUtilities.displaySize.y * params.maxHeightFraction));
++                            if (params.maxHeightDp > 0) height = Math.min(height, AndroidUtilities.dp(params.maxHeightDp));
+                             super.onMeasure(widthSpec, MeasureSpec.makeMeasureSpec(height, MeasureSpec.EXACTLY));
+                         }
+                     };
++                    if (params.swipeDismiss) {
++                        bounded.setPadding(0, AndroidUtilities.dp(12), 0, 0);
++                        bounded.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundGray, fragment.getResourceProvider()));
++                        bounded.setClipToOutline(true);
++                        bounded.setOutlineProvider(new android.view.ViewOutlineProvider() {
++                            @Override public void getOutline(View v, android.graphics.Outline outline) {
++                                outline.setRoundRect(0, 0, v.getWidth(), v.getHeight() + AndroidUtilities.dp(20), AndroidUtilities.dp(20));
++                            }
++                        });
++                    }
+                     bounded.addView(view, new FrameLayout.LayoutParams(-1, -1));
++                    if (params.swipeDismiss) {
++                        View handle = new View(getParentActivity());
++                        handle.setBackground(Theme.createRoundRectDrawable(AndroidUtilities.dp(2), Theme.getColor(Theme.key_dialogGrayLine, fragment.getResourceProvider())));
++                        FrameLayout.LayoutParams handleParams = new FrameLayout.LayoutParams(AndroidUtilities.dp(32), AndroidUtilities.dp(4), android.view.Gravity.TOP | android.view.Gravity.CENTER_HORIZONTAL);
++                        handleParams.topMargin = -AndroidUtilities.dp(6);
++                        bounded.addView(handle, handleParams);
++                    }
+                     containerView = bounded;
+                 } else {
+                     containerView = view;
+@@ -1048,7 +1066,7 @@ public abstract class BaseFragment {
+ 
+             @Override
+             protected boolean canDismissWithSwipe() {
+-                return false;
++                return params != null && params.swipeDismiss && (params.canSwipeDismiss == null || params.canSwipeDismiss.getAsBoolean());
+             }
+ 
+             @Override
+@@ -1449,6 +1467,9 @@ public abstract class BaseFragment {
+ 
+     public static class BottomSheetParams {
+         public float maxHeightFraction;
++        public int maxHeightDp;
++        public boolean swipeDismiss;
++        public java.util.function.BooleanSupplier canSwipeDismiss;
+         public boolean transitionFromLeft;
+         public boolean allowNestedScroll;
+         public Runnable onDismiss;
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/CaptionPhotoViewer.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/CaptionPhotoViewer.java
+index a5c19a4..979227a 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Components/CaptionPhotoViewer.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/CaptionPhotoViewer.java
+@@ -135,6 +135,7 @@ public class CaptionPhotoViewer extends CaptionContainerView {
+         aiButton.setScaleX(0.6f);
+         aiButton.setScaleY(0.6f);
+         aiButton.setOnClickListener(v -> {
++            if (nebulaTools != null && app.nebulagram.ui.NebulaTranslationSettings.shortcut()) { nebulaTools.run(); return; }
+             MessagesController.getGlobalMainSettings().edit().putInt("aihintshown", 3).apply();
+             new AIEditorAlert(getContext(), new DarkThemeResourceProvider())
+                 .setText(editText.getText())
+@@ -231,6 +232,7 @@ public class CaptionPhotoViewer extends CaptionContainerView {
+     public void updateKeyboard(int keyboardHeight) {
+         final boolean wasOpen = super.toKeyboardShow;
+         super.updateKeyboard(keyboardHeight);
++        showAiButton(editText.getEditText().getLineCount() > 2 && !TextUtils.isEmpty(editText.getText().toString().trim()));
+         if (!wasOpen && keyboardNotifier.keyboardVisible()) {
+             openedKeyboard();
+         }
+@@ -239,7 +241,7 @@ public class CaptionPhotoViewer extends CaptionContainerView {
+     @Override
+     protected void dispatchDraw(Canvas canvas) {
+         super.dispatchDraw(canvas);
+-        if (aiButton != null) {
++        if (aiButton != null && aiButton.getParent() == this) {
+             aiButton.setTranslationX(-dp(4 * (1f - keyboardT)));
+             aiButton.setTranslationY(
+                 (isAtTop() ? bounds.bottom - dp(44) : bounds.top) +
+@@ -527,9 +529,29 @@ public class CaptionPhotoViewer extends CaptionContainerView {
+     }
+ 
+ 
++    public Runnable nebulaTools;
++    private int nebulaOriginalRightMargin;
+     private boolean shownAiButton;
+     private void showAiButton(boolean show_) {
+-        final boolean show = show_;
++        final boolean nebula = nebulaTools != null && app.nebulagram.ui.NebulaTranslationSettings.shortcut();
++        final boolean show = show_ || (nebula && keyboardNotifier.keyboardVisible());
++        if (nebula && aiButton.getParent() != editText) {
++            removeView(aiButton);
++            editText.addView(aiButton, LayoutHelper.createFrame(44, 44, Gravity.BOTTOM | Gravity.RIGHT));
++            FrameLayout.LayoutParams field = (FrameLayout.LayoutParams) editText.getEditText().getLayoutParams();
++            nebulaOriginalRightMargin = field.rightMargin;
++            field.rightMargin += dp(44); editText.getEditText().setLayoutParams(field);
++            aiButton.setTranslationX(0); aiButton.setTranslationY(0);
++        } else if (!nebula && aiButton.getParent() == editText) {
++            editText.removeView(aiButton);
++            addView(aiButton, LayoutHelper.createFrame(44, 44, Gravity.TOP | Gravity.RIGHT, 8, 0, 8, 0));
++            FrameLayout.LayoutParams field = (FrameLayout.LayoutParams) editText.getEditText().getLayoutParams();
++            field.rightMargin = nebulaOriginalRightMargin; editText.getEditText().setLayoutParams(field);
++        }
++        if (nebula) {
++            aiButton.setImageResource(R.drawable.nebula_ai_outline);
++            aiButton.setContentDescription(app.nebulagram.ui.NebulaText.text("Инструменты ИИ", "AI tools"));
++        } else aiButton.setImageDrawable(aiButtonIcon);
+ 
+         if (shownAiButton == show) return;
+         if (show) {
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
+index e7fd751..7b2a469 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
+@@ -5855,7 +5855,7 @@ public class ChatActivityEnterView extends FrameLayout implements
+                 nebulaToolsVisible = true;
+                 app.nebulagram.ui.NebulaMessageToolsFragment.show(parentFragment, new app.nebulagram.ui.NebulaMessageToolsFragment(currentAccount, dialog_id, source, value -> {
+                     if (source.equals(messageEditText.getText().toString())) setFieldText(value);
+-                }), () -> {
++                }).withEditor(() -> aiButton.performClick()), () -> {
+                     nebulaToolsVisible = false;
+                     updateNebulaDraftTranslation();
+                 });
+@@ -6121,7 +6121,8 @@ public class ChatActivityEnterView extends FrameLayout implements
+ 
+     private boolean shownAiButton;
+     private void showAiButton(boolean show_) {
+-        final boolean show = (show_ || richDraftActive) && parentFragment != null && !parentFragment.isSecretChat();
++        final boolean show = (show_ || richDraftActive) && parentFragment != null && !parentFragment.isSecretChat()
++            && (richDraftActive || !app.nebulagram.ui.NebulaTranslationSettings.shortcut());
+ 
+         if (shownAiButton == show) return;
+         if (show) {
+@@ -8859,6 +8860,7 @@ public class ChatActivityEnterView extends FrameLayout implements
+                         app.nebulagram.ui.NebulaAppearance.iosComposer(),
+                         giftButton != null && giftButton.getVisibility() == VISIBLE && attachVisible != 0 ? dp(DEFAULT_HEIGHT) : 0);
+                 if (toolsParams.rightMargin != toolsInset) {
++                    if (nebulaToolsButton.isLaidOut()) animationParamsX.put(nebulaToolsButton, nebulaToolsButton.getX());
+                     toolsParams.rightMargin = toolsInset; nebulaToolsButton.setLayoutParams(toolsParams);
+                 }
+                 nebulaToolsButton.setColorFilter(getThemedColor(Theme.key_glass_defaultIcon));
+@@ -14660,6 +14662,10 @@ public class ChatActivityEnterView extends FrameLayout implements
+     protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
+         super.onLayout(changed, left, top, right, bottom);
+         nebulaComposerStyle.layout(emojiButton, attachButton, senderSelectView, aiButton, richButton);
++        if (nebulaToolsButton != null && nebulaToolsButton.getVisibility() == VISIBLE) {
++            nebulaToolsButton.layout(nebulaToolsButton.getLeft(), emojiButton.getTop(),
++                nebulaToolsButton.getRight(), emojiButton.getTop() + nebulaToolsButton.getMeasuredHeight());
++        }
+         updateNebulaDraftTranslation();
+         if (botCommandLastPosition != -1 && botCommandsMenuContainer != null) {
+             LinearLayoutManager layoutManager = (LinearLayoutManager) botCommandsMenuContainer.listView.getLayoutManager();
+@@ -14672,6 +14678,7 @@ public class ChatActivityEnterView extends FrameLayout implements
+ 
+     private void beginDelayedTransition() {
+         animationParamsX.put(emojiButton, emojiButton.getX());
++        if (nebulaToolsButton != null && nebulaToolsButton.getVisibility() == VISIBLE) animationParamsX.put(nebulaToolsButton, nebulaToolsButton.getX());
+         if (messageEditText != null) {
+             animationParamsX.put(messageEditText, messageEditText.getX());
+         }
+@@ -14785,6 +14792,7 @@ public class ChatActivityEnterView extends FrameLayout implements
+         emojiButtonPaddingAlpha = progress;
+         updateEmojiButtonParams();
+         emojiButton.setTranslationX(-leftPadding);
++        if (nebulaToolsButton != null) nebulaToolsButton.setTranslationX(rightPadding);
+         messageTextPaddingTranslationX = -leftPadding - (messageEditText == null ? 0 : dp(40) + (senderSelectView != null && senderSelectView.getVisibility() == View.VISIBLE ? dp(18) : 0)) * (1f - progress);
+         if (recordDeleteImageView != null) {
+             recordDeleteImageView.setTranslationX(-leftPadding);
+@@ -14877,6 +14885,11 @@ public class ChatActivityEnterView extends FrameLayout implements
+         emojiButton.setScaleX(emojiButtonPaddingScale * emojiButtonScale);
+         emojiButton.setScaleY(emojiButtonPaddingScale * emojiButtonScale);
+         emojiButton.setAlpha(emojiButtonPaddingAlpha * emojiButtonAlpha);
++        if (nebulaToolsButton != null) {
++            nebulaToolsButton.setScaleX(emojiButtonPaddingScale * emojiButtonScale);
++            nebulaToolsButton.setScaleY(emojiButtonPaddingScale * emojiButtonScale);
++            nebulaToolsButton.setAlpha(emojiButtonPaddingAlpha * emojiButtonAlpha);
++        }
+     }
+ 
+     public void setOverrideHint(CharSequence overrideHint) {
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAttachAlert.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAttachAlert.java
+index 625f47f..6aa1c55 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAttachAlert.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAttachAlert.java
+@@ -3102,7 +3102,7 @@ public class ChatAttachAlert extends BottomSheet implements NotificationCenter.N
+                 final int aiButtonWasTop = lastHeight - aiButton.getTop();
+                 super.onLayout(changed, left, top, right, bottom);
+                 lastHeight = getHeight();
+-                if (aiButton.getVisibility() == View.VISIBLE && getHeight() - aiButton.getTop() != aiButtonWasTop) {
++                if (aiButton.getParent() == this && aiButton.getVisibility() == View.VISIBLE && getHeight() - aiButton.getTop() != aiButtonWasTop) {
+                     aiButton.setTranslationY((getHeight() - aiButton.getTop()) - aiButtonWasTop + aiButton.getTranslationY());
+                     aiButton.animate().translationY(0).setDuration(320).setInterpolator(CubicBezierInterpolator.EASE_OUT_QUINT).start();
+                 }
+@@ -3147,6 +3147,7 @@ public class ChatAttachAlert extends BottomSheet implements NotificationCenter.N
+         ScaleStateListAnimator.apply(aiButton);
+         aiButton.setOnClickListener(v -> {
+             if (commentTextView == null) return;
++            if (openNebulaCaptionTools(commentTextView)) return;
+             MessagesController.getGlobalMainSettings().edit().putInt("aihintshown", 3).apply();
+             new AIEditorAlert(getContext(), resourcesProvider)
+                 .setText(commentTextView.getText())
+@@ -3562,6 +3563,7 @@ public class ChatAttachAlert extends BottomSheet implements NotificationCenter.N
+         ScaleStateListAnimator.apply(topAiButton);
+         topAiButton.setOnClickListener(v -> {
+             if (topCommentTextView == null) return;
++            if (openNebulaCaptionTools(topCommentTextView)) return;
+             MessagesController.getGlobalMainSettings().edit().putInt("aihintshown", 3).apply();
+             new AIEditorAlert(getContext(), resourcesProvider)
+                 .setText(topCommentTextView.getText())
+@@ -6515,9 +6517,47 @@ public class ChatAttachAlert extends BottomSheet implements NotificationCenter.N
+     }
+ 
+ 
++    private boolean openNebulaCaptionTools(EditTextEmoji field) {
++        if (!app.nebulagram.ui.NebulaTranslationSettings.shortcut() || baseFragment == null) return false;
++        final String source = field.getText().toString();
++        final long owner = UserConfig.getInstance(currentAccount).getClientUserId();
++        AndroidUtilities.hideKeyboard(field.getEditText());
++        app.nebulagram.ui.NebulaMessageToolsFragment.show(baseFragment,
++            new app.nebulagram.ui.NebulaMessageToolsFragment(currentAccount, 0, source, result -> {
++                if (owner != UserConfig.getInstance(currentAccount).getClientUserId()) return;
++                EditTextEmoji active = captionAbove ? topCommentTextView : commentTextView;
++                if (active == null || !source.equals(active.getText().toString())) return;
++                active.setText(result);
++                active.setSelection(result.length(), result.length());
++            }));
++        return true;
++    }
++
+     private boolean shownAiButton;
+     private void showAiButton(boolean show_) {
+-        final boolean show = show_ && (baseFragment instanceof ChatActivity && !((ChatActivity) baseFragment).isSecretChat());
++        final boolean nebula = app.nebulagram.ui.NebulaTranslationSettings.shortcut();
++        final boolean show = (show_ || nebula) && (baseFragment instanceof ChatActivity && !((ChatActivity) baseFragment).isSecretChat());
++        if (nebula && aiButton.getParent() != commentTextView) {
++            ((ViewGroup) aiButton.getParent()).removeView(aiButton);
++            commentTextView.addView(aiButton, LayoutHelper.createFrame(44, 44, Gravity.BOTTOM | Gravity.RIGHT, 0, 0, 40, 0));
++            FrameLayout.LayoutParams field = (FrameLayout.LayoutParams) commentTextView.getEditText().getLayoutParams();
++            field.rightMargin = dp(80); commentTextView.getEditText().setLayoutParams(field);
++            aiButton.setTranslationY(0);
++        } else if (!nebula && aiButton.getParent() == commentTextView) {
++            commentTextView.removeView(aiButton);
++            captionContainer.addView(aiButton, LayoutHelper.createFrame(44, 44, Gravity.TOP | Gravity.RIGHT, 0, 1, 0, 0));
++            FrameLayout.LayoutParams field = (FrameLayout.LayoutParams) commentTextView.getEditText().getLayoutParams();
++            field.rightMargin = dp(36); commentTextView.getEditText().setLayoutParams(field);
++        }
++        if (nebula) {
++            aiButton.setImageResource(R.drawable.nebula_ai_outline);
++            topAiButton.setImageResource(R.drawable.nebula_ai_outline);
++            aiButton.setContentDescription(app.nebulagram.ui.NebulaText.text("Инструменты ИИ", "AI tools"));
++            topAiButton.setContentDescription(aiButton.getContentDescription());
++        } else {
++            aiButton.setImageDrawable(aiButtonIcon);
++            topAiButton.setImageDrawable(topAiButtonIcon);
++        }
+ 
+         if (shownAiButton == show) return;
+         if (show) {
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/PhotoViewer.java b/TMessagesProj/src/main/java/org/telegram/ui/PhotoViewer.java
+index e8d23a8..413abd1 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/PhotoViewer.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/PhotoViewer.java
+@@ -4741,6 +4741,7 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
+         rightImage.setCurrentAccount(currentAccount);
+         if (captionEdit != null) {
+             captionEdit.setAccount(currentAccount);
++        captionEdit.nebulaTools = () -> openNebulaCaptionTools(captionEdit);
+         }
+         if (stickerMakerView != null) {
+             stickerMakerView.setCurrentAccount(currentAccount);
+@@ -6920,6 +6921,7 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
+             topCaptionEdit.setTimer(seconds);
+         });
+         captionEdit.setAccount(currentAccount);
++        captionEdit.nebulaTools = () -> openNebulaCaptionTools(captionEdit);
+         captionEdit.setOnHeightUpdate(height -> {
+             if (videoTimelineViewContainer != null && videoTimelineViewContainer.getVisibility() != View.GONE) {
+                 videoTimelineViewContainer.setTranslationY(pickerView.getTranslationY() - Math.max(0, captionEdit.getEditTextHeight() - dp(46)) * captionEdit.getAlpha());
+@@ -7056,6 +7058,7 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
+             captionEdit.setTimer(seconds);
+         });
+         topCaptionEdit.setAccount(currentAccount);
++        topCaptionEdit.nebulaTools = () -> openNebulaCaptionTools(topCaptionEdit);
+         topCaptionEdit.setOnHeightUpdate(height -> {
+             if (topCaptionEdit.mentionContainer != null) {
+                 topCaptionEdit.mentionContainer.setTranslationY(height);
+@@ -9875,6 +9878,22 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
+     public boolean hasCaptionForAllMedia;
+     public CharSequence captionForAllMedia;
+ 
++    private void openNebulaCaptionTools(CaptionPhotoViewer caption) {
++        BaseFragment host = parentFragment != null ? parentFragment : parentChatActivity;
++        if (host == null || caption == null) return;
++        final String source = caption.editText.getText().toString();
++        final int account = currentAccount;
++        final long owner = UserConfig.getInstance(account).getClientUserId();
++        AndroidUtilities.hideKeyboard(caption.editText.getEditText());
++        app.nebulagram.ui.NebulaMessageToolsFragment.show(host,
++            new app.nebulagram.ui.NebulaMessageToolsFragment(account, 0, source, result -> {
++                if (!isVisible || currentAccount != account || owner != UserConfig.getInstance(account).getClientUserId()
++                    || !source.equals(caption.editText.getText().toString())) return;
++                caption.editText.setText(result);
++                caption.editText.setSelection(result.length(), result.length());
++            }));
++    }
++
+     private void closeCaptionEnter(boolean apply) {
+         if (currentIndex < 0 || currentIndex >= imagesArrLocals.size() || !isCaptionOpen()) {
+             return;

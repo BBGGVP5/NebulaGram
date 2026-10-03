@@ -58,7 +58,13 @@ public final class NebulaTranslationFragment extends BaseFragment {
             draft.add(delay); column.addView(draft);
             column.addView(NebulaFormUi.note(c, t("При включении текст автоматически обрабатывает выбранный провайдер ИИ. Ваш черновик заменяется только по нажатию «Применить».",
                 "When enabled, text is automatically processed by your selected AI provider. Your draft changes only when you tap Apply.")));
-        } else column.addView(NebulaFormUi.note(c, t("Настройки перевода доступны из инструментов конкретного обычного чата.", "Open tools in a regular chat to configure its translation.")));
+        } else {
+            NebulaCard chats = new NebulaCard(c);
+            chats.add(new NebulaRow(c).title(t("Перевод в реальном времени", "Real-time translation"))
+                .subtitle(t("Выбрать чат · входящие и мой текст", "Choose chat · incoming and my text"), false)
+                .trailing(NebulaRow.TRAIL_CHEVRON).withClick(v -> NebulaPeerSelections.translation(this)));
+            column.addView(chats);
+        }
         return fragmentView = NebulaSettingsLayout.wrap(c, actionBar, NebulaFormUi.scroll(c, column));
     }
     private String delayTitle() { return t("Пауза после ввода", "Pause after typing"); }

@@ -26,14 +26,11 @@ public final class NebulaToolGrid extends ViewGroup {
         LinearLayout cell = new LinearLayout(c);
         cell.setOrientation(LinearLayout.VERTICAL);
         cell.setGravity(Gravity.CENTER);
-        cell.setPadding(dp(8), dp(12), dp(8), dp(12));
-        cell.setMinimumHeight(dp(88));
-        GradientDrawable fill = new GradientDrawable();
-        fill.setColor(theme.surfaceContainer());
-        fill.setCornerRadius(dp(16));
+        cell.setPadding(dp(8), dp(8), dp(8), dp(8));
+        cell.setMinimumHeight(dp(72));
         GradientDrawable mask = new GradientDrawable();
         mask.setColor(0xffffffff); mask.setCornerRadius(dp(16));
-        cell.setBackground(new RippleDrawable(ColorStateList.valueOf(NebulaTheme.stateLayer(theme.primary(), .14f)), fill, mask));
+        cell.setBackground(new RippleDrawable(ColorStateList.valueOf(NebulaTheme.stateLayer(theme.primary(), .14f)), null, mask));
         ImageView glyph = new ImageView(c);
         glyph.setImageResource(icon);
         glyph.setColorFilter(theme.primary());

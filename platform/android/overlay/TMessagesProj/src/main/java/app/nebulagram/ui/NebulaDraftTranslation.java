@@ -83,6 +83,10 @@ public final class NebulaDraftTranslation {
         preview = new PopupWindow(box, width, box.getMeasuredHeight(), false); preview.setBackgroundDrawable(background); preview.setElevation(dp(8));
         preview.setInputMethodMode(PopupWindow.INPUT_METHOD_NOT_NEEDED); preview.setClippingEnabled(true);
         preview.showAsDropDown(anchor, dp(8), -anchor.getHeight() - box.getMeasuredHeight() - dp(6));
+        if (android.os.Build.VERSION.SDK_INT < 26 || android.animation.ValueAnimator.areAnimatorsEnabled()) {
+            box.setAlpha(0f); box.setTranslationY(dp(4));
+            box.animate().alpha(1f).translationY(0f).setDuration(180).start();
+        }
     }
     private Button button(String title, NebulaTheme theme) {
         Button v = new Button(anchor.getContext()); v.setText(title); v.setTextSize(12); v.setAllCaps(false); v.setTextColor(theme.primary()); v.setBackgroundColor(android.graphics.Color.TRANSPARENT); return v;

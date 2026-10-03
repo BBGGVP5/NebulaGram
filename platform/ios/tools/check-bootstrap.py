@@ -359,6 +359,8 @@ print("OK: embedded catalog and Bazel-side Foundation store compiled and ran")
                             str(settings_ui / 'NebulaToolsNavigationController.swift')], check=True)
             subprocess.run(['swiftc', *ios_flags, '-typecheck', '-I', str(temp),
                             str(temp / 'submodules/Display/Source/NebulaSwitchControl.swift')], check=True)
+            subprocess.run(['swiftc', *ios_flags, '-typecheck',
+                            str(temp / 'submodules/Display/Source/NebulaAIOutline.swift')], check=True)
             ai_sources = ['NebulaSettingsStyle.swift', 'NebulaSettingsSymbols.swift', 'NebulaSettingsHero.swift',
                           'NebulaChoiceController.swift', 'NebulaAiChatController.swift', 'NebulaAiController.swift',
                           'NebulaAiService.swift', 'NebulaAiHistoryController.swift', 'NebulaActionGrid.swift',

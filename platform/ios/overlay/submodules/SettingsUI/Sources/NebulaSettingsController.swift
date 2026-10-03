@@ -77,7 +77,7 @@ private enum NebulaSettingsEntry: ItemListNodeEntry {
     var section: ItemListSectionId {
         switch self {
         case .search, .empty: return -1
-        case let .category(index, _, _, _): return index == 10 || index == 12 || index == 16 ? 9 : index == 11 ? 10 : index >= 13 ? 1 : 0
+        case let .category(index, _, _, _): return index == 17 ? 8 : index == 10 || index == 12 || index == 16 ? 9 : index == 11 ? 10 : index >= 13 ? 1 : 0
         case .toolsHeader, .link, .ai, .buildInfo, .memory, .support, .community: return 0
         case let .chatHeader(section, _): return Int32(section)
         case .widePosts: return 9
@@ -237,7 +237,7 @@ private enum NebulaSettingsEntry: ItemListNodeEntry {
 
     var searchableText: String? {
         switch self {
-        case let .category(_, title, detail, _): return title + " " + detail
+        case let .category(index, title, detail, _): return title + " " + detail + (index == 17 ? " автоперевод перевод при наборе черновик пауза AI live translation draft delay composer" : "")
         case let .navigation(title, detail), let .glass(title, detail), let .transitions(title, detail), let .folderStyle(title, detail): return title + " " + detail
         case let .widePosts(title, _, _), let .contacts(title, _, _), let .navigationToggle(_, title, _, _), let .stories(title, _, _), let .history(title, _, _),
              let .hideCounters(title, _, _), let .exportFile(title, _): return title
@@ -338,10 +338,10 @@ private enum NebulaSettingsEntry: ItemListNodeEntry {
 }
 
 /// Deliberately expose only preferences with a native consumer, not planned ports.
-public func nebulaSettingsController(context: AccountContext, page: Int = 0) -> ViewController {
+public func nebulaSettingsController(context: AccountContext, page: Int = 0, search: String = "") -> ViewController {
     let store = NebulaSettingsStore.shared
     let writeFailed = ValuePromise(false, ignoreRepeated: true)
-    let searchQuery = ValuePromise("", ignoreRepeated: true)
+    let searchQuery = ValuePromise(search, ignoreRepeated: true)
     let transfer = NebulaSettingsFileTransfer(store: store, isRussian: {
         context.sharedContext.currentPresentationData.with { $0 }.strings.baseLanguageCode.lowercased().hasPrefix("ru")
     }, didImport: { writeFailed.set(false) })
@@ -465,6 +465,7 @@ public func nebulaSettingsController(context: AccountContext, page: Int = 0) -> 
             .category(14, ru ? "Значки интерфейса" : "Interface icons", ["Telegram", "Cupertino", "Solar"][store.iconPack], "square.grid.2x2"),
             .category(15, ru ? "Переключатели" : "Switches", (ru ? ["Системные", "Округлые", "Компактные", "Минималистичные"] : ["System", "Rounded", "Compact", "Minimal"])[store.switchStyle], "switch.2"),
             .navigationToggle("login_style", ru ? "Экран входа NebulaGram" : "NebulaGram welcome screen", store.loginStyle, !store.hasLoadError),
+            .category(17, ru ? "Перевод в реальном времени" : "Real-time translation", ru ? "Входящие, мой текст, языки, кнопка ИИ" : "Incoming, typing, languages, AI button", "character.bubble"),
             .category(16, ru ? "Уведомления и действия" : "Notifications and actions", ru ? "Упоминания, сохранение, защита" : "Mentions, saving, protection", "bell.badge"),
             .category(9, ru ? "Задачи" : "Tasks", "", "checkmark.circle"),
             .category(10, ru ? "Поведение чатов" : "Chat behavior", ru ? "Архив, вибрация, пересылка" : "Archive, vibration, forwarding", "hand.tap"),
@@ -477,7 +478,7 @@ public func nebulaSettingsController(context: AccountContext, page: Int = 0) -> 
             switch entry {
             case .widePosts, .stories:
                 return true
-            case let .category(index, _, _, _): return index == 10 || index == 11 || index == 12 || index == 16
+            case let .category(index, _, _, _): return index == 10 || index == 11 || index == 12 || index == 16 || index == 17
             case let .navigationToggle(key, _, _, _):
                 return key.hasPrefix("reply_") || ["hide_dividers", "hide_send_as", "hide_attach_camera", "menu_search", "menu_mute",
                     "menu_call", "menu_video", "centered_chat_header", "adaptive_chat_header", "floating_chat_header_v2", "header_unread", "message_menu_blur", "disable_next_channel", "seconds_in_time", "hide_search_field"].contains(key)
@@ -509,6 +510,7 @@ public func nebulaSettingsController(context: AccountContext, page: Int = 0) -> 
                 .category(1, ru ? "Основные" : "General", ru ? "Подключение, ИИ, сборка" : "Connection, AI, build", "gearshape"),
                 .category(2, ru ? "Внешний вид" : "Appearance", ru ? "Стекло, значки, анимации" : "Glass, icons, animations", "paintpalette"),
                 .category(7, ru ? "Навигация" : "Navigation", ru ? "Нижняя панель и кнопки" : "Bottom bar and buttons", "rectangle.bottomthird.inset.filled"),
+                .category(17, ru ? "Перевод в реальном времени" : "Real-time translation", ru ? "Входящие, мой текст, языки, кнопка ИИ" : "Incoming, typing, languages, AI button", "character.bubble"),
                 .category(3, ru ? "Чаты" : "Chats", ru ? "Список, сообщения, меню" : "List, messages, menus", "bubble.left"),
                 .category(8, ru ? "Профиль" : "Profile", ru ? "Фото, фон и информация" : "Photo, background and details", "person.crop.circle"),
                 .category(4, ru ? "Папки" : "Folders", ru ? "Вкладки и счётчики" : "Tabs and counters", "folder"),
@@ -577,6 +579,28 @@ public func nebulaSettingsController(context: AccountContext, page: Int = 0) -> 
                     do { try store.set(.integer(value), for: icons ? "icon_pack" : "switch_style"); writeFailed.set(false) }
                     catch { writeFailed.set(true) }
                 }
+            return
+        }
+        if index == 17 {
+            let data = context.sharedContext.currentPresentationData.with { $0 }
+            let ru = data.strings.baseLanguageCode.hasPrefix("ru")
+            let translation = NebulaTranslationController(account: String(context.account.peerId.toInt64()), peer: nil, russian: ru, theme: data.theme)
+            translation.chooseChat = { [weak translation] in
+                guard let translation else { return }
+                let picker = context.sharedContext.makePeerSelectionController(PeerSelectionControllerParams(context: context,
+                    filter: [.excludeSecretChats, .doNotSearchMessages], hasContactSelector: false))
+                let navigation = NavigationController(mode: .single, theme: NavigationControllerTheme(presentationTheme: data.theme))
+                picker.peerSelected = { [weak translation, weak navigation] peer, _ in
+                    navigation?.dismiss(animated: true, completion: {
+                        guard let translation else { return }
+                        translation.navigationController?.pushViewController(NebulaTranslationController(
+                            account: String(context.account.peerId.toInt64()), peer: String(peer.id.toInt64()), russian: ru, theme: data.theme), animated: true)
+                    })
+                }
+                navigation.setViewControllers([picker], animated: false)
+                translation.present(navigation, animated: true)
+            }
+            controller.present(NebulaToolsNavigationController(root: translation), animated: true)
             return
         }
         if index == 16 {

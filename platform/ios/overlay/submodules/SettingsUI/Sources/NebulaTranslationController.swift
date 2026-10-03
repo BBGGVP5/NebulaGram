@@ -4,6 +4,7 @@ import NebulaSettingsContract
 import TelegramPresentationData
 
 public final class NebulaTranslationController: UITableViewController {
+    public var chooseChat: (() -> Void)?
     private let account: String
     private let peer: String?
     private let russian: Bool
@@ -25,12 +26,12 @@ public final class NebulaTranslationController: UITableViewController {
     }
     @objc private func close() { dismiss(animated: true) }
     public override func numberOfSections(in tableView: UITableView) -> Int { peer == nil ? 1 : 3 }
-    public override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int { section == 2 ? 3 : 2 }
+    public override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int { section == 2 || (section == 0 && peer == nil && chooseChat != nil) ? 3 : 2 }
     public override func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
         section == 1 ? text("Входящие сообщения", "Incoming messages") : section == 2 ? text("Мой текст", "My text") : nil
     }
     public override func tableView(_ tableView: UITableView, titleForFooterInSection section: Int) -> String? {
-        if section == 0 && peer == nil { return text("Откройте инструменты обычного чата, чтобы настроить его перевод.", "Open tools in a regular chat to configure its translation.") }
+        if section == 0 && peer == nil { return text("Выберите чат для перевода входящих сообщений и текста при наборе.", "Choose a chat to translate incoming messages and your text while typing.") }
         if section == 2 { return text("Включённые режимы автоматически передают текст выбранному провайдеру ИИ. Черновик заменяется только кнопкой «Применить».", "Enabled modes automatically process text using your selected AI provider. Your draft changes only when you tap Apply.") }
         return nil
     }
@@ -47,7 +48,10 @@ public final class NebulaTranslationController: UITableViewController {
             cell.detailTextLabel?.text = indexPath.section == 0 ? text("Справа · удержание открывает настройки", "On the right · hold for settings") : indexPath.section == 2 ? text("Предпросмотр с кнопкой применения", "Preview with an Apply button") : nil
         } else {
             cell.accessoryType = .disclosureIndicator
-            if indexPath.section == 0 { cell.textLabel?.text = text("Провайдер и модель", "Provider and model") }
+            if indexPath.section == 0 {
+                cell.textLabel?.text = indexPath.row == 1 ? text("Провайдер и модель", "Provider and model") : text("Перевод в реальном времени", "Real-time translation")
+                if indexPath.row == 2 { cell.detailTextLabel?.text = text("Выбрать чат", "Choose chat") }
+            }
             else if indexPath.row == 1 {
                 cell.textLabel?.text = text("Язык перевода", "Translation language")
                 cell.detailTextLabel?.text = NebulaResultLanguage.title(indexPath.section == 1 ? options.incomingLanguage : options.draftLanguage, russian: russian)
@@ -68,6 +72,7 @@ public final class NebulaTranslationController: UITableViewController {
     public override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
         if indexPath.section == 0 && indexPath.row == 1 { navigationController?.pushViewController(NebulaAiController(russian: russian, theme: theme), animated: true); return }
+        if indexPath.section == 0 && indexPath.row == 2 { chooseChat?(); return }
         guard let peer = peer, indexPath.section > 0 else { return }
         if indexPath.row == 1 {
             NebulaResultLanguage.show(from: self, selected: indexPath.section == 1 ? options.incomingLanguage : options.draftLanguage, russian: russian, theme: theme) { [weak self] code in

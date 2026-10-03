@@ -9,11 +9,11 @@ public final class NebulaToolsNavigationController: UINavigationController, UIAd
         self.onDismiss = onDismiss
         super.init(rootViewController: root)
         modalPresentationStyle = .pageSheet
-        preferredContentSize = CGSize(width: 540, height: 640)
+        preferredContentSize = CGSize(width: 540, height: 560)
         if #available(iOS 15.0, *) {
             if let sheet = sheetPresentationController {
                 if #available(iOS 16.0, *) {
-                    sheet.detents = [.custom { context in context.maximumDetentValue * 0.82 }, .large()]
+                    sheet.detents = [.custom { context in min(560, context.maximumDetentValue * 0.8) }, .large()]
                 } else {
                     sheet.detents = [.medium(), .large()]
                 }

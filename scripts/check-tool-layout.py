@@ -144,5 +144,5 @@ with tempfile.TemporaryDirectory(prefix='nebula-language-check-') as temp:
     ''', encoding='utf-8')
     subprocess.run(['javac', '-encoding', 'UTF-8', '-d', temp, str(test), str(names)], check=True)
     subprocess.run(['java', '-cp', temp, 'LanguageCheck'], check=True)
-assert 'private NebulaRow target;' in tools and 'String language=targetLanguage;' in tools
+assert 'private NebulaRow target' in tools and 'String language=targetLanguage;' in tools
 assert 'target.getText()' not in tools
