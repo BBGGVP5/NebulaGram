@@ -1,5 +1,5 @@
 diff --git a/submodules/TelegramUI/Components/Chat/ChatTextInputPanelNode/Sources/ChatTextInputPanelNode.swift b/submodules/TelegramUI/Components/Chat/ChatTextInputPanelNode/Sources/ChatTextInputPanelNode.swift
-index 43eee8f..dec4578 100644
+index 43eee8f..cd36034 100644
 --- a/submodules/TelegramUI/Components/Chat/ChatTextInputPanelNode/Sources/ChatTextInputPanelNode.swift
 +++ b/submodules/TelegramUI/Components/Chat/ChatTextInputPanelNode/Sources/ChatTextInputPanelNode.swift
 @@ -367,7 +367,7 @@ public class ChatTextInputPanelNode: ChatInputPanelNode, ASEditableTextNodeDeleg
@@ -11,13 +11,18 @@ index 43eee8f..dec4578 100644
      }
      public var isAIEnabled: Bool = false
      
-@@ -3327,8 +3327,10 @@ public class ChatTextInputPanelNode: ChatInputPanelNode, ASEditableTextNodeDeleg
+@@ -3326,9 +3326,14 @@ public class ChatTextInputPanelNode: ChatInputPanelNode, ASEditableTextNodeDeleg
+         
          if let button = self.nebulaToolsButton {
              button.isHidden = self.nebulaToolsWidth == 0 || audioRecordingItemsAlpha == 0
-             if button.superview == nil { self.textInputContainerBackgroundView.contentView.addSubview(button) }
+-            if button.superview == nil { self.textInputContainerBackgroundView.contentView.addSubview(button) }
 -            button.frame = CGRect(x: nextButtonTopRight.x - self.nebulaToolsWidth, y: nextButtonTopRight.y,
 +            let toolsFrame = CGRect(x: nextButtonTopRight.x - self.nebulaToolsWidth, y: nextButtonTopRight.y,
                  width: self.nebulaToolsWidth, height: minimalInputHeight)
++            if button.superview == nil {
++                self.textInputContainerBackgroundView.contentView.addSubview(button)
++                button.frame = toolsFrame
++            }
 +            transition.updateFrame(layer: button.layer, frame: toolsFrame)
 +            transition.updateAlpha(layer: button.layer, alpha: audioRecordingItemsAlpha)
              nextButtonTopRight.x -= self.nebulaToolsWidth
