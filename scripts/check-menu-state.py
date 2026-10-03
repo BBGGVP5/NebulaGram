@@ -96,6 +96,7 @@ assert "began = false" in method(reveal, "public void setAnchor(")
 assert "began = false" in method(reveal, "public void reset(")
 assert "stopTouch()" in method(reveal, "public void reset(")
 assert "new Rect(" not in method(reveal, "public void clip("), "per-frame clip allocation"
+assert "pullX == 0 && pullY == 0 && progress == 1" in method(reveal, "public void applyBounds("), "settled/native menus must not rewrite material every draw"
 popup = (native / "ActionBar/ActionBarPopupWindow.java").read_text(encoding="utf-8")
 assert "nebulaReveal.reset()" in method(popup, "protected void onDetachedFromWindow(")
 assert "NebulaMenuStyle.styleRows" in method(popup, "protected void dispatchDraw(")

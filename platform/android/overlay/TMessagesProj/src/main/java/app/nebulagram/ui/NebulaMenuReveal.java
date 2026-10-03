@@ -135,6 +135,7 @@ public final class NebulaMenuReveal {
         return NebulaMenuMotion.radius(NebulaMenuStyle.radius(), Math.min(bounds.width(), bounds.height()), progress);
     }
     public void applyBounds(Rect rect, Drawable material) {
+        if (pullX == 0 && pullY == 0 && progress == 1) return;
         float radius = shape(rect);
         rect.set(Math.round(bounds.left), Math.round(bounds.top), Math.round(bounds.right), Math.round(bounds.bottom));
         if (material instanceof BlurredBackgroundDrawable) {
