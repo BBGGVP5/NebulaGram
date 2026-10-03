@@ -99,6 +99,8 @@ public class AutoTranslationCheck {
   check(a.messageOwner.translatedText==null&&b.messageOwner.translatedText==null,"cancelled offscreen completions cannot apply");
   check("AI:C".equals(c.messageOwner.translatedText.text)&&NebulaAiClient.peak.get()==2,"visible work proceeds and concurrency remains bounded");
   MessageObject edited=new MessageObject(23);edited.messageOwner.message="before";NebulaAiClient.wait=new CountDownLatch(1);NebulaAutoTranslate.request(0,edited);
+  deadline=System.currentTimeMillis()+3000;while(NebulaAiClient.active.get()==0&&System.currentTimeMillis()<deadline)Thread.sleep(5);
+  check(NebulaAiClient.active.get()==1,"edited request entered transport before cancellation");
   edited.messageOwner.message="after";NebulaAutoTranslate.retainVisible(0,9,Arrays.asList(edited));NebulaAiClient.wait.countDown();finish();NebulaAiClient.wait=null;
   check(edited.messageOwner.translatedText==null,"source edits cancel stale work");
   MessageObject unsent=new MessageObject(-1);unsent.own=true;NebulaAutoTranslate.setOutgoing(0,9,true);NebulaAutoTranslate.request(0,unsent);

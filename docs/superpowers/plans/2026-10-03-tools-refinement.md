@@ -117,3 +117,17 @@ Tech stack: Android Java/native patch 0171, iOS Swift/native patch 0071, shared 
 - [ ] Build Android, queue iOS from the new exact revision, and verify available artifacts. Check hardware only when actually connected.
 
 Local validation: all 166 Android patches and 71 iOS patches apply to their actual pinned upstream sources. Production Android queue checks pass for outgoing-only consent, immutable text, remote concurrency, visible cancellation, edits and revocation. Community material/corner capture passes 648 cases, with first-row clearance on all three pages; composer passes 256 states using the actual two-dp gap. Shared Swift tests now cover sent consent and 300-ms default; a production Swift queue/transport harness is wired to macOS CI. No phone is present in ADB; device timing and rendering remain unverified.
+
+## Follow-up: Android popup motion and upstream refresh
+
+User supplied a video of a compact glass surface expanding from its menu button, requested the correct corner from the first frame, and clarified that selection actions need their own surfaces separate from the title.
+
+- [x] Update the common Android popup reveal: resolve the actual anchor before the first visible frame, morph from button dimensions, add bounded spring settling and reverse dismissal, and retain affine touch mapping and reduced-motion fallback.
+- [x] Separate the selection count and action controls in the shared header material; preserve native hit areas and selection/search transitions.
+- [x] Capture the community sheet's parent-window backdrop without sampling its own window, and test source alignment, exclusions and fallback.
+- [x] Advance the Android Telegram base from 12.10.5 to official 12.10.6, adapt native patch context, and verify the ordered series with consistent text line endings. iOS remains at the latest official 12.9.2.
+- [ ] Run the affected production geometry/motion/lifecycle checks, publish both source trees, build Android and queue a fresh iOS build with the translation fixes above.
+
+Keep menu effects bounded to the popup, use Telegram theme colors, and release animation effects/listeners on cancellation and detach. No new full-screen per-frame bitmap capture.
+
+Local verification: 167 ordered patches apply to official Android 12.10.6; 100 interrupted anchor/corner cycles and spring/focus cleanup pass; 16,968 independent selection action cases and 404 counter/search transitions pass; 669 community source/alignment/API/fallback cases pass. Existing menu palette, affine drag, native anchor wiring, composer and title regressions pass. Fixed a nondeterministic translation fixture by waiting for transport entry before testing cancellation; runtime behavior is unchanged by that fixture correction. Apple bootstrap and production queue harness already passed at `192d9c3` before this Android-only follow-up.

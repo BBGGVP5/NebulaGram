@@ -610,10 +610,10 @@ index e8d23a8..413abd1 100644
          rightImage.setCurrentAccount(currentAccount);
          if (captionEdit != null) {
              captionEdit.setAccount(currentAccount);
-+        captionEdit.nebulaTools = () -> openNebulaCaptionTools(captionEdit);
++            captionEdit.nebulaTools = () -> openNebulaCaptionTools(captionEdit);
+             captionEdit.editText.hidePopup(false);
          }
-         if (stickerMakerView != null) {
-             stickerMakerView.setCurrentAccount(currentAccount);
+         if (topCaptionEdit != null) {
 @@ -6920,6 +6921,7 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
              topCaptionEdit.setTimer(seconds);
          });

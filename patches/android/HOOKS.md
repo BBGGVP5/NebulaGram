@@ -609,3 +609,7 @@ TranslateButton uses a scoped top-anchor entrance and a truthful selected-provid
 ## 0165 — Composer popup and home glass
 
 Measure the AI shortcut before the editor; reserve emoji/gift hit areas, remove layout-time inset changes, open tools in a bounded native attached sheet. Preserve a readable home title when stories collapse and render the complete home header through the existing liquid-glass factory.
+
+## 0172 — Separate selection actions from the counter
+
+`ActionBar.dispatchDraw(Canvas)` keeps the chat/Saved Messages selection count inside its own bounds and draws independent glass for each visible action and the close control. Normal header controls remain unchanged. `NebulaSelectionGlass` uses laid-out native children and preserves their union for ActionBar touch dispatch. The hook changes one native file (19 additions, 8 removals); visibility, child alpha and the native selection factor govern all surfaces.

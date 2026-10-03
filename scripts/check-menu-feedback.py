@@ -44,16 +44,20 @@ public class CheckMenuFeedback {
   int getWidth(){return w;} int getHeight(){return h;}
   void getLocationOnScreen(int[] p){p[0]=x;p[1]=y;}
   void setScaleX(float f){sx=f;} void setScaleY(float f){sy=f;}
+  float getScaleX(){return sx;} float getScaleY(){return sy;}float getAlpha(){return alpha;}
   void setAlpha(float f){alpha=f;} void setPivotX(float f){px=f;} void setPivotY(float f){py=f;}
   Observer getViewTreeObserver(){return observer;} void invalidate(){}
  }
  static class Reveal {
   View host=new View(); WeakReference<View> anchor;
-  float progress=1,originX,originY; boolean began,originResolved;
+  float progress=1,originX,originY,seedX=.3f,seedY=.3f,closeProgress,closeX,closeY,closeAlpha,closeStart;
+  boolean began,originResolved,closing;int focusStep=-1;
   int[] location=new int[2]; Runnable originListener=()->resolveOrigin();
   void stopTouch(){}
   REVEAL_METHODS
  }
+ static class AndroidUtilities {static int dp(int n){return n;}}
+ static class NebulaMenuFocus {static int step;static void apply(View v,int n){step=n;}static void clear(View v){step=0;}}
  static class Context {static String VIBRATOR_SERVICE="v";Object getSystemService(String s){return new Vibrator();}}
  static class Vibrator {static int calls,amplitude;static long duration;static boolean available=true;
   boolean hasVibrator(){return available;} void vibrate(Object e){calls++;}}
@@ -74,13 +78,24 @@ public class CheckMenuFeedback {
   r.host.attached=true;r.resolveOrigin();
   check(r.host.px==160 && r.host.py==0,"top anchor must override bottom flag");
   check(r.host.observer.listener==null,"pre-draw listener removed");
-  float previous=r.host.sx;
-  for(int i=31;i<=100;i++){r.setProgress(i/100f);check(r.host.sx>=previous && r.host.sx<=1,"monotonic scale");previous=r.host.sx;}
-  r.setProgress(.45f);float pivot=r.host.py;r.setProgress(.2f);
-  check(r.host.py==pivot && r.host.sx<previous,"closing retains origin and current progress");
+  float peak=0;
+  for(int i=31;i<=100;i++){r.setProgress(i/100f);check(r.host.sx>=r.seedX && r.host.sx<=1.025,"bounded spring");peak=Math.max(peak,r.host.sx);}
+  check(peak>1 && r.host.sx==1 && r.host.sy==1 && NebulaMenuFocus.step==0,"spring settles exactly; text focus clears");
+  r.setProgress(.45f);float pivot=r.host.py,previous=r.host.sx,alpha=r.host.alpha;r.prepareClose();r.setCloseProgress(0);
+  check(r.host.sx==previous && r.host.alpha==alpha,"interrupt close starts at the displayed frame");
+  for(int i=1;i<=100;i++){r.setCloseProgress(i/100f);check(r.host.py==pivot && r.host.sx<=previous,"reverse reveal never jumps origin or grows");previous=r.host.sx;}
+  check(r.host.alpha==0 && Math.abs(r.host.sx-r.seedX)<.001,"close ends at source button");
   anchor.y=450;r.host.shownFromBottom=false;r.begin();r.resolveOrigin();
   check(r.host.py==300,"bottom anchor must override top flag");
   r.reset();check(r.host.alpha==1 && r.host.sx==1 && !r.began,"detach reset");
+  for(int side=0;side<4;side++)for(int cycle=0;cycle<25;cycle++){
+   anchor.x=(side%2==0?20:500);anchor.y=(side<2?20:500);r.setAnchor(anchor);r.begin();
+   float px=r.host.px,py=r.host.py;r.setProgress(.1f);
+   check(r.originResolved && r.host.observer.listener==null,"resolve attached anchor before first visible frame");
+   check(px==(side%2==0?0:200)&&py==(side<2?0:300),"correct source corner");
+   check(r.seedX==.2f && Math.abs(r.seedY-40f/300)<.001,"source button dimensions");
+   r.prepareClose();r.setCloseProgress(.5f);r.reset();check(NebulaMenuFocus.step==0,"cancel releases focus");
+  }
   View v=new View();power=35;now=100;tick(v);check(Vibrator.calls==0,"toggle off");
   enabled=true;v.feedback=false;tick(v);check(Vibrator.calls==0,"view feedback disabled");
   v.feedback=true;Vibrator.available=false;tick(v);check(Vibrator.calls==0,"no vibrator");
@@ -94,7 +109,10 @@ public class CheckMenuFeedback {
 '''
 source = source.replace('REVEAL_METHODS', '\n'.join(method(reveal, sig) for sig in [
     'public void setAnchor(', 'public void begin(', 'private boolean resolveOrigin(',
-    'private void removeOriginListener(', 'private void applyMotion(', 'public void setProgress(', 'public void reset(']))
+    'private void removeOriginListener(', 'private void applyMotion(', 'public void setProgress(', 'public void reset(',
+    'public void prepareClose(', 'public void setCloseProgress(']))
+# The no-entry caller path only needs an endpoint in this lifecycle fixture.
+source = source.replace('void stopTouch(){}', 'void stopTouch(){} void finish(){closing=false;setProgress(1);}')
 source = source.replace('HAPTIC_METHODS', method(haptics, 'public static void tick(') + '\n' + method(haptics, 'public static boolean accept('))
 source = source.replace('STRENGTH_METHOD', method(haptics, 'public static int strength()'))
 source = source.replace('android.os.SystemClock.uptimeMillis()', 'uptimeMillis()').replace('android.view.HapticFeedbackConstants.KEYBOARD_TAP', '1')
@@ -106,8 +124,9 @@ subprocess.run(['java', '-cp', str(work), 'CheckMenuFeedback'], check=True)
 style = (ui / 'NebulaMenuStyle.java').read_text()
 opening = method(style, 'public static AnimatorSet opening(')
 assert 'if (!cancelled)' in opening and 'child.setTranslationY(0)' in opening
-assert 'getProgress(), 0f' in method(style, 'public static AnimatorSet closing(')
-bar = (native / 'ActionBar/ActionBar.java').read_text()
+assert 'setCloseProgress(' in method(style, 'public static AnimatorSet closing(')
+assert 'ValueAnimator.areAnimatorsEnabled()' in style and '!NebulaGlass.reduced()' in style
+bar = (native / 'ActionBar/ActionBar.java').read_text(encoding='utf-8')
 width = bar[bar.index('final int nebulaBackWidth'):bar.index('final int menuWidthA')]
 assert 'actionModeFactor == 0f && searchFactor == 0f' in width
 assert 'NebulaHaptics.tick(v)' in (native / 'MainTabsActivity.java').read_text()

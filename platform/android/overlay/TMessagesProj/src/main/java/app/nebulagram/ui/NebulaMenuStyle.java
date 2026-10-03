@@ -31,7 +31,10 @@ public final class NebulaMenuStyle {
     }
     private NebulaMenuStyle() { }
     public static boolean enabled() { return NebulaAppearance.liquidAnimations() || NebulaAppearance.iosComposer() || NebulaAppearance.chatHeader(); }
-    public static boolean animated() { return enabled() && NebulaAppearance.liquidAnimations(); }
+    public static boolean animated() {
+        return enabled() && NebulaAppearance.liquidAnimations() && !NebulaGlass.reduced()
+                && (android.os.Build.VERSION.SDK_INT < 26 || ValueAnimator.areAnimatorsEnabled());
+    }
     public static int radius() { return AndroidUtilities.dp(enabled() ? 24 : 12); }
     public static int surface(Theme.ResourcesProvider provider) {
         return NebulaMenuPalette.surface(provider != null ? provider.isDark() : Theme.isCurrentThemeDark());
@@ -187,9 +190,9 @@ public final class NebulaMenuStyle {
         }
         content.nebulaReveal.begin();
         ValueAnimator frame = ValueAnimator.ofFloat(0f, 1f);
-        frame.setInterpolator(new android.view.animation.DecelerateInterpolator(2f));
+        frame.setInterpolator(new android.view.animation.LinearInterpolator());
         frame.addUpdateListener(a -> content.nebulaReveal.setProgress((float) a.getAnimatedValue()));
-        AnimatorSet set = new AnimatorSet(); set.playTogether(frame); set.setDuration(260);
+        AnimatorSet set = new AnimatorSet(); set.playTogether(frame); set.setDuration(320);
         set.addListener(new AnimatorListenerAdapter() {
             private boolean cancelled;
             @Override public void onAnimationCancel(Animator animation) { cancelled = true; }
@@ -201,10 +204,11 @@ public final class NebulaMenuStyle {
     }
     public static AnimatorSet closing(ActionBarPopupWindowLayout content) {
         content.nebulaReveal.prepareClose();
-        ValueAnimator frame = ValueAnimator.ofFloat(content.nebulaReveal.getProgress(), 0f);
-        frame.setInterpolator(new android.view.animation.AccelerateInterpolator(1.5f));
-        frame.addUpdateListener(a -> content.nebulaReveal.setProgress((float) a.getAnimatedValue()));
-        AnimatorSet set = new AnimatorSet(); set.playTogether(frame); set.setDuration(150);
+        ValueAnimator frame = ValueAnimator.ofFloat(0f, 1f);
+        frame.setInterpolator(new android.view.animation.LinearInterpolator());
+        frame.addUpdateListener(a -> content.nebulaReveal.setCloseProgress((float) a.getAnimatedValue()));
+        AnimatorSet set = new AnimatorSet(); set.playTogether(frame);
+        set.setDuration(Math.max(80, Math.round(190 * content.nebulaReveal.getProgress())));
         return set;
     }
 }

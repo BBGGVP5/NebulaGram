@@ -11,13 +11,13 @@ stubs = {
  'android/annotation/TargetApi.java': 'package android.annotation; public @interface TargetApi {int value();}',
  'android/os/Build.java': 'package android.os; public class Build {public static class VERSION {public static int SDK_INT=31;}}',
  'android/graphics/Canvas.java': '''package android.graphics; public class Canvas {
- public boolean hardware=true; public float x,y; public int saves; public boolean isHardwareAccelerated(){return hardware;}
- public void drawColor(int c){} public void translate(float dx,float dy){x+=dx;y+=dy;} public void save(){saves++;} public void restore(){saves--;x=y=0;}}
+ public boolean hardware=true; public float x,y; public int saves;private java.util.Stack<float[]> stack=new java.util.Stack<>();public boolean isHardwareAccelerated(){return hardware;}
+ public void drawColor(int c){} public void translate(float dx,float dy){x+=dx;y+=dy;} public void save(){saves++;stack.push(new float[]{x,y});} public void restore(){saves--;float[] p=stack.pop();x=p[0];y=p[1];}}
  ''',
  'android/view/View.java': '''package android.view; public class View {public static final int VISIBLE=0,GONE=8;
- public int width=393,height=56,visibility=0,draws; public float x,y;
+ public int width=393,height=56,visibility=0,draws; public float x,y;public boolean attached=true;public View root=this;public int sx,sy;
  public int getWidth(){return width;}public int getHeight(){return height;}public float getX(){return x;}public float getY(){return y;}
- public int getVisibility(){return visibility;}public void draw(android.graphics.Canvas c){draws++;sampleX=c.x;sampleY=c.y;}public float sampleX,sampleY;public void setTranslationX(float x){this.x=x;}}
+ public int getVisibility(){return visibility;}public boolean isAttachedToWindow(){return attached;}public View getRootView(){return root;}public void getLocationOnScreen(int[] out){out[0]=sx;out[1]=sy;}public void draw(android.graphics.Canvas c){draws++;sampleX=c.x;sampleY=c.y;}public float sampleX,sampleY;public void setTranslationX(float x){this.x=x;}}
  ''',
  'org/telegram/messenger/AndroidUtilities.java': 'package org.telegram.messenger; public class AndroidUtilities {public static int statusBarHeight=24;public static int dp(float n){return Math.round(n);} public static float dpf2(float n){return n;}}',
  'org/telegram/messenger/LiteMode.java': 'package org.telegram.messenger; public class LiteMode {public static int FLAG_CHAT_BLUR=1;public static boolean enabled=true;public static boolean isEnabled(int n){return enabled;}}',
@@ -30,9 +30,9 @@ stubs = {
  ''',
  'org/telegram/ui/Components/blur3/source/BlurredBackgroundSourceColor.java': 'package org.telegram.ui.Components.blur3.source; public class BlurredBackgroundSourceColor {public int color;public void setColor(int c){color=c;}}',
  'org/telegram/ui/Components/blur3/source/BlurredBackgroundSourceRenderNode.java': '''package org.telegram.ui.Components.blur3.source;
- public class BlurredBackgroundSourceRenderNode {public static BlurredBackgroundSourceRenderNode last;public int width,height,begins,ends,invalidations;public float blur;public boolean recording;
+ public class BlurredBackgroundSourceRenderNode {public static BlurredBackgroundSourceRenderNode last;public int width,height,begins,ends,invalidations;public float blur;public boolean recording;public android.graphics.Canvas capture;
  public BlurredBackgroundSourceRenderNode(Object fallback){last=this;}public void setBlur(float n){blur=n;}
- public android.graphics.Canvas beginRecording(int w,int h){if(recording)throw new AssertionError("recursive capture");recording=true;width=w;height=h;begins++;return new android.graphics.Canvas();}
+ public android.graphics.Canvas beginRecording(int w,int h){if(recording)throw new AssertionError("recursive capture");recording=true;width=w;height=h;begins++;return capture=new android.graphics.Canvas();}
  public void endRecording(){recording=false;ends++;}public void invalidateDisplayListForDrawables(){invalidations++;}}
  ''',
  'org/telegram/ui/Components/blur3/drawable/BlurredBackgroundDrawable.java': '''package org.telegram.ui.Components.blur3.drawable; public class BlurredBackgroundDrawable {
@@ -71,6 +71,17 @@ stubs = {
    check(node.begins==2&&node.ends==2,"next frame reuses source safely");
   }else check(BlurredBackgroundSourceRenderNode.last==null,"old API does not construct RenderNode");cases++;
  }
+ for(int mode=0;mode<7;mode++)for(int y:new int[]{24,176,500}){
+  android.os.Build.VERSION.SDK_INT=mode==5?29:31;NebulaGlass.reduced=mode==4;org.telegram.messenger.LiteMode.enabled=mode!=6;
+  ActionBar bar=new ActionBar();bar.sx=16;bar.sy=y;bar.x=16;bar.y=y;View backdrop=new View();backdrop.sx=8;backdrop.sy=24;
+  if(mode==1)backdrop.root=bar.root;if(mode==2)backdrop.attached=false;if(mode==3)backdrop.visibility=View.GONE;
+  View list=new View();list.y=8;Canvas canvas=new Canvas();NebulaCommunityHeader header=NebulaCommunityHeader.create(bar,true,null);header.setBackdrop(backdrop);header.draw(canvas,bar,list);
+  check(backdrop.draws==(mode==0?1:0),"capture only visible attached parent from another window, with supported blur");
+  if(mode==0){check(backdrop.sampleX==24 && backdrop.sampleY==56-y,"parent capture aligns screen coordinates");
+   check(list.sampleX==16 && list.sampleY==40-y,"parent transform restored before list capture");
+   check(BlurredBackgroundSourceRenderNode.last.capture.saves==0,"nested parent capture balances saves");}
+  cases++;
+ }
  NebulaAppearance.enabled=false;check(NebulaCommunityHeader.create(new ActionBar(),false,null)==null,"native style fallback is preserved");
  System.out.println(cases+" community capture API/position/power/fallback cases passed");}}
  ''',
@@ -91,6 +102,7 @@ assert 'setNebulaCommunityGlass(true, true)' in dialogs
 assert dialogs.count('isNebulaSharedHeaderGlass()') >= 3
 assert sheet.count('afterInit();') == 3 and 'NebulaCommunityHeader.create(actionBar, hasAvatar, resourcesProvider)' in sheet
 assert 'if (child == actionBar && nebulaHeader != null)' in sheet
+assert 'nebulaHeader.setBackdrop(parentFragment.getFragmentView())' in sheet
 import re
 spacers = [int(value) for value in re.findall(r'UItem.asSpace\(0, dp\((\d+)\)\)', sheet)]
 assert len(spacers) == 3 and all(height - 56 >= 12 for height in spacers), 'first row requires clearance below all three native headers'

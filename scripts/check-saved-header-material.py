@@ -10,6 +10,7 @@ source = (tree / 'TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBa
 start = source.index('        if (glassDrawable != null && !glassOnlyBack) {', source.index('protected void dispatchDraw(Canvas canvas)'))
 block = source[start:source.index('        if (glassDrawableBack != null', start)]
 block = block.replace('app.nebulagram.ui.NebulaAppearance.', 'Appearance.').replace('app.nebulagram.ui.NebulaChatStyle.', 'Style.')
+block = block.replace('app.nebulagram.ui.NebulaSelectionGlass.', 'Selection.')
 java = r'''
 import java.util.*;
 class SavedMaterialCheck {
@@ -26,6 +27,7 @@ class SavedMaterialCheck {
  static class Animated {float getFloatValue(){return 1;}float getFactor(){return 140;}float set(int v,boolean instant){return v;}}
  static class Appearance {static boolean liquidAnimations(){return true;}static boolean centeredHeader(){return true;}static boolean chatHeader(){return true;}}
  static class Style {static int headerLeft(int width,int capsule){return (width-capsule)/2;}}
+ static class Selection {static int counterRight(View v,int fallback){return Math.min(fallback,236);}}
  static class Bounds {int height(){return 60;}int width(){return 400;}}
  static class Material {
   int alpha,left,right;List<int[]> calls=new ArrayList<>();
@@ -38,7 +40,7 @@ class SavedMaterialCheck {
  boolean hasForcedMenuWidth,hasForcedMenuMinWidth,nebulaHomeGlass,nebulaHomeTabsGlass,nebulaCommunityGlass,nebulaProfileGlass,isSearchFieldVisible;
  int menuWidth=92,p=6,s=46,nebulaBackWidth=58,t=0,b=60;boolean hasBackButton=true;
  float actionModeFactor,searchFactor;Object canvas=new Object();
- Material glassDrawable=new Material();View menu=new View();View[] titleTextView={new View(),null};
+ Material glassDrawable=new Material();View menu=new View(),actionMode=new View();View[] titleTextView={new View(),null};
  ChatAvatarContainer nebulaChatAvatarContainer=new ChatAvatarContainer(),chatAvatarContainer;
  Animated animatorHasMenuItems=new Animated(),animatorAvatarContainerHasAvatar=new Animated(),animatorAvatarContainerWidth=new Animated(),nebulaCapsuleWidth=new Animated();
  boolean isNebulaSharedHeaderGlass(){return nebulaHomeTabsGlass||nebulaCommunityGlass;}
@@ -51,9 +53,9 @@ class SavedMaterialCheck {
    check(c.glassDrawable.calls.size()==(Math.round(255*factor)>0?1:0),"resting title material is absent");
    if(!c.glassDrawable.calls.isEmpty()){
     int[] draw=c.glassDrawable.calls.get(0);check(draw[0]==Math.round(255*factor),"search/selection fades through last frame");
-    int left=phase==0?52:lerp(52,0,factor),right=phase==0?302:lerp(302,400,factor);
-    check(draw[1]==left&&draw[2]==right,"search keeps its field; selection expands over every control");
-    if(phase==1&&frame==100)check(draw[1]==0&&draw[2]==400,"selection buttons share the counter material");
+    int left=phase==0?52:lerp(52,60,factor),right=phase==0?302:lerp(302,236,factor);
+    check(draw[1]==left&&draw[2]==right,"search keeps its field; selection counter stays separate");
+    if(phase==1&&frame==100)check(draw[1]==60&&draw[2]==236,"counter material ends before action controls");
    }cases++;
   }
   SavedMaterialCheck regular=new SavedMaterialCheck();regular.draw();

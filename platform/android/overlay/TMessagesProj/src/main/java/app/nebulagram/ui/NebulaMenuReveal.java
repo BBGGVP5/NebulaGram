@@ -27,6 +27,9 @@ public final class NebulaMenuReveal {
     private final Matrix inverseContentTransform = new Matrix();
     private final int[] location = new int[2];
     private float progress = 1, originX, originY;
+    private float seedX = .3f, seedY = .3f, closeProgress, closeX, closeY, closeAlpha, closeStart;
+    private boolean closing;
+    private int focusStep = -1;
     private float pullX, pullY, touchX, touchY;
     private boolean touching, began, originResolved;
     private final android.view.ViewTreeObserver.OnPreDrawListener originListener = this::resolveOrigin;
@@ -75,7 +78,9 @@ public final class NebulaMenuReveal {
         removeOriginListener();
         began = false;
         originResolved = false;
+        closing = false;
         progress = 1;
+        NebulaMenuFocus.clear(host); focusStep = -1;
         host.setScaleX(1); host.setScaleY(1); host.setAlpha(1);
     }
     public void setAnchor(View view) {
@@ -83,9 +88,11 @@ public final class NebulaMenuReveal {
         began = false;
     }
     public void begin() {
-        stopTouch(); removeOriginListener(); began = true; originResolved = false; progress = 0;
+        stopTouch(); removeOriginListener(); began = true; originResolved = false; progress = 0; closing = false;
+        NebulaMenuFocus.clear(host); focusStep = -1;
         host.setScaleX(1); host.setScaleY(1); host.setAlpha(0);
         host.getViewTreeObserver().addOnPreDrawListener(originListener);
+        resolveOrigin();
     }
     private void removeOriginListener() {
         if (host.getViewTreeObserver().isAlive()) host.getViewTreeObserver().removeOnPreDrawListener(originListener);
@@ -95,12 +102,16 @@ public final class NebulaMenuReveal {
         originX = host.getWidth();
         originY = host.shownFromBottom ? host.getHeight() : 0;
         View view = anchor == null ? null : anchor.get();
+        seedX = NebulaMenuMotion.seedScale(AndroidUtilities.dp(48), host.getWidth());
+        seedY = NebulaMenuMotion.seedScale(AndroidUtilities.dp(48), host.getHeight());
         if (view != null && view.isAttachedToWindow()) {
             view.getLocationOnScreen(location);
             float x = location[0] + view.getWidth() / 2f, y = location[1] + view.getHeight() / 2f;
             host.getLocationOnScreen(location);
             originX = NebulaMenuMotion.pivot(x, location[0], host.getWidth());
             originY = NebulaMenuMotion.pivot(y, location[1], host.getHeight());
+            seedX = NebulaMenuMotion.seedScale(view.getWidth(), host.getWidth());
+            seedY = NebulaMenuMotion.seedScale(view.getHeight(), host.getHeight());
         }
         host.setPivotX(originX); host.setPivotY(originY);
         originResolved = true; removeOriginListener(); applyMotion();
@@ -110,19 +121,20 @@ public final class NebulaMenuReveal {
     public void setProgress(float value) { progress = Math.max(0, Math.min(1, value)); applyMotion(); host.invalidate(); }
     private void applyMotion() {
         if (!originResolved) return;
-        float scale = NebulaMenuMotion.scale(progress);
-        host.setScaleX(scale); host.setScaleY(scale);
-        host.setAlpha(Math.min(1f, progress * 4f));
+        host.setScaleX(closing ? NebulaMenuMotion.close(closeX, seedX, closeProgress) : NebulaMenuMotion.scale(seedX, progress));
+        host.setScaleY(closing ? NebulaMenuMotion.close(closeY, seedY, closeProgress) : NebulaMenuMotion.scale(seedY, progress));
+        host.setAlpha(closing ? closeAlpha * (1 - closeProgress * closeProgress) : Math.min(1f, progress * 6f));
+        int step = closing ? 0 : NebulaMenuMotion.focus(progress);
+        if (step != focusStep) { NebulaMenuFocus.apply(host, step); focusStep = step; }
     }
     private float shape(Rect finalBounds) {
         bounds.set(finalBounds);
         float x = pullX, y = pullY;
         bounds.left -= Math.max(0, -x); bounds.right += Math.max(0, x);
         bounds.top -= Math.max(0, -y); bounds.bottom += Math.max(0, y);
-        return NebulaMenuStyle.radius();
+        return NebulaMenuMotion.radius(NebulaMenuStyle.radius(), Math.min(bounds.width(), bounds.height()), progress);
     }
     public void applyBounds(Rect rect, Drawable material) {
-        if (pullX == 0 && pullY == 0) return;
         float radius = shape(rect);
         rect.set(Math.round(bounds.left), Math.round(bounds.top), Math.round(bounds.right), Math.round(bounds.bottom));
         if (material instanceof BlurredBackgroundDrawable) {
@@ -133,7 +145,7 @@ public final class NebulaMenuReveal {
         }
     }
     public void clip(Canvas canvas) {
-        if (pullX == 0 && pullY == 0) return;
+        if (pullX == 0 && pullY == 0 && progress == 1) return;
         contentBounds.set(0, 0, host.getMeasuredWidth(), host.getMeasuredHeight());
         float radius = shape(contentBounds);
         bounds.inset(AndroidUtilities.dp(8), AndroidUtilities.dp(8));
@@ -161,7 +173,9 @@ public final class NebulaMenuReveal {
         return copy;
     }
     public void finish() {
+        closing = false;
         setProgress(1);
+        NebulaMenuFocus.clear(host); focusStep = 0;
         Drawable material = host.getBackgroundDrawable();
         if (material instanceof BlurredBackgroundDrawable) {
             ((BlurredBackgroundDrawable) material).setRadius(NebulaMenuStyle.radius());
@@ -173,5 +187,15 @@ public final class NebulaMenuReveal {
         // Resolve its anchor once instead of collapsing toward the default (0, 0).
         if (!began) { begin(); finish(); }
         stopTouch();
+        if (!originResolved) resolveOrigin();
+        closeProgress = 0; closeStart = progress;
+        closeX = host.getScaleX(); closeY = host.getScaleY(); closeAlpha = host.getAlpha();
+        closing = true;
+        NebulaMenuFocus.clear(host); focusStep = 0;
+    }
+    public void setCloseProgress(float value) {
+        closeProgress = Math.max(0, Math.min(1, value));
+        progress = closeStart * (1 - closeProgress * closeProgress);
+        applyMotion(); host.invalidate();
     }
 }

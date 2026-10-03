@@ -31,9 +31,13 @@ def check_series(platform, tree, ref='HEAD', keep_temp_on_error=False):
         for path in existing:
             target = temp / path
             target.parent.mkdir(parents=True, exist_ok=True)
-            target.write_bytes(subprocess.check_output(['git', '-C', str(tree), 'show', revision + ':' + path]))
+            contents = subprocess.check_output(['git', '-C', str(tree), 'show', revision + ':' + path])
+            # Native sources and local patches may use different line endings on Windows.
+            # Compare canonical text, as the platform build preparation does.
+            target.write_bytes(contents.replace(b'\r\n', b'\n') if b'\x00' not in contents else contents)
         for patch in patches:
-            result = subprocess.run(['git', '-C', str(temp), 'apply', '--whitespace=nowarn', str(patch)], capture_output=True)
+            result = subprocess.run(['git', '-C', str(temp), 'apply', '--whitespace=nowarn', '-'],
+                                    input=patch.read_text(encoding='utf-8').encode('utf-8'), capture_output=True)
             if result.returncode:
                 if keep_temp_on_error:
                     retained = Path(tempfile.mkdtemp(prefix='nebula-upstream-failed-'))

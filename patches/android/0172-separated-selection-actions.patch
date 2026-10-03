@@ -1,0 +1,52 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
+@@ -2619,11 +2619,12 @@
+                 right = Math.min(menuLeft - dp(4), titleRight + dp(12));
+                 if (right <= left) { left = leftDefault; right = rightDefault; }
+             }
+-            // Selection actions share one continuous glass surface with the counter.
+-            // Keep normal header controls without separate background plates.
+-            if (actionModeFactor > 0f && (nebulaFloatingChatHeader || nebulaClassicSavedHeader || nebulaSavedMessagesHeader)) {
+-                left = lerp(left, 0, actionModeFactor);
+-                right = lerp(right, getWidth(), actionModeFactor);
++            // Keep the counter clear of independently drawn selection actions.
++            if (actionModeFactor > 0f && actionMode != null
++                    && (nebulaFloatingChatHeader || nebulaClassicSavedHeader || nebulaSavedMessagesHeader)) {
++                left = lerp(left, dp(60), actionModeFactor);
++                right = Math.max(left, lerp(right,
++                        app.nebulagram.ui.NebulaSelectionGlass.counterRight(actionMode, rightDefault), actionModeFactor));
+             }
+             glassDrawable.setBounds(left, t, right, b);
+             if (nebulaFloatingChatHeader && app.nebulagram.ui.NebulaAppearance.centeredHeader()) {
+@@ -2663,7 +2664,11 @@
+             } else {
+                 glassDrawableBack.setBounds(0, t, nebulaBackWidth, b);
+             }
+-            if (!nebulaPlainHeaderButtons) glassDrawableBack.draw(canvas);
++            if (!nebulaPlainHeaderButtons || actionModeFactor > 0f
++                    && (nebulaFloatingChatHeader || nebulaClassicSavedHeader || nebulaSavedMessagesHeader)) {
++                if (nebulaPlainHeaderButtons) glassDrawableBack.setAlpha(Math.round(255 * actionModeFactor));
++                glassDrawableBack.draw(canvas);
++            }
+         }
+         final boolean separateAvatar = nebulaFloatingChatHeader && nebulaChatMenuHidden
+                 && nebulaChatAvatarContainer != null;
+@@ -2675,9 +2680,15 @@
+                 if (!nebulaPlainHeaderButtons) glassDrawableMenu.draw(canvas);
+             }
+         }
+-        // Fade the selection capsule in as the separate avatar backdrop fades out.
++        if (actionModeFactor > 0f && actionMode != null && !glassOnlyBack && !doNotDrawGlassMenu
++                && (nebulaFloatingChatHeader || nebulaClassicSavedHeader || nebulaSavedMessagesHeader)) {
++            app.nebulagram.ui.NebulaSelectionGlass.drawActions(canvas, actionMode, glassDrawableMenu,
++                    getWidth(), t, b, actionModeFactor);
++        }
++        // Normal header controls remain without independent material.
+         if (glassDrawableMenu != null && menuWidth > 0 && !glassOnlyBack && !doNotDrawGlassMenu
+-                && (!separateAvatar || actionModeFactor > 0f)) {
++                && (!separateAvatar || actionModeFactor > 0f)
++                && !(actionModeFactor > 0f && (nebulaFloatingChatHeader || nebulaClassicSavedHeader || nebulaSavedMessagesHeader))) {
+             final float menuAlpha = hasForcedMenuWidth ? 1f : animatorHasMenuItems.getFloatValue();
+             if (nebulaHomeTabsGlass && actionModeFactor > 0f && actionMode != null) {
+                 int first = Integer.MAX_VALUE, last = Integer.MIN_VALUE;

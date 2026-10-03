@@ -97,6 +97,14 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/community/CommunityShee
          }
          if (chatsToAddToCommunity != null) {
              final String query = search && lastSearchChatsString != null ?
+@@ -1027,6 +1027,7 @@
+         protected void afterInit() {
+             final boolean hasAvatar = this instanceof CommunityPage;
+             nebulaHeader = app.nebulagram.ui.NebulaCommunityHeader.create(actionBar, hasAvatar, resourcesProvider);
++            if (nebulaHeader != null) nebulaHeader.setBackdrop(parentFragment.getFragmentView());
+             if (nebulaHeader != null && hasAvatar) {
+                 CommunityPage page = (CommunityPage) this;
+                 page.avatarImage.setLayoutParams(LayoutHelper.createFrame(32, 32, Gravity.CENTER_VERTICAL | Gravity.LEFT, 58, 0, 0, 0));
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
