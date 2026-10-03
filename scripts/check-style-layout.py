@@ -112,7 +112,7 @@ java = '''class StyleLayoutCheck {
   bar.isSearchFieldVisible=true;check(bar.nebulaCenterTitle(),"Glass search shifts title before fade finishes");
   bar.isSearchFieldVisible=false;bar.mode=.5f;check(bar.nebulaCenterTitle(),"Home title jumps left during Edit transition");
   bar.mode=1;check(bar.nebulaCenterTitle(),"Home title shifts left while Edit is open");
-  bar.mode=0;dialogs.expanded=false;check(!bar.nebulaCenterTitle(),"Collapsed glass home title centered");
+  bar.mode=0;dialogs.expanded=false;check(bar.nebulaCenterTitle(),"Persistent glass home title must stay centered after stories collapse");
   int shapes=0;
   for(int style=1;style<=3;style++)for(int direction=0;direction<=1;direction++)for(int step=0;step<=100;step++){
    Toggle t=new Toggle();t.direction=direction;t.progress=step/100f;Canvas c=new Canvas();t.drawAlternative(c,style);shapes+=c.shapes;

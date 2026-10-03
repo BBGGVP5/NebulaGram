@@ -605,3 +605,7 @@ Liquid Glass. Стиль применяется при включённом iOS-
 ### 0164 — configurable AI translation and composer tools
 
 TranslateButton uses a scoped top-anchor entrance and a truthful selected-provider footer. ChatActivityEnterView reserves an optional right tools slot, suspends draft translation during recording/editing/pauses and invalidates responses when text or chat changes. The existing incoming translation queue remains opt-in; configuration now shares language pickers and independent incoming/draft switches with the composer. New request-gate tests cover deduplication and late responses.
+
+## 0165 — Composer popup and home glass
+
+Measure the AI shortcut before the editor; reserve emoji/gift hit areas, remove layout-time inset changes, open tools in a bounded native attached sheet. Preserve a readable home title when stories collapse and render the complete home header through the existing liquid-glass factory.

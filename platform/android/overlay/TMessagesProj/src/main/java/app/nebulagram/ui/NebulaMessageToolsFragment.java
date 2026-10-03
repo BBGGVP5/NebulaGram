@@ -12,6 +12,16 @@ import java.util.Locale;
 /** Explicit, cancellable operations on one user-selected message. */
 public final class NebulaMessageToolsFragment extends BaseFragment {
     private final MessageObject message;
+    private boolean popup;
+    public static void show(BaseFragment host, NebulaMessageToolsFragment tools) {
+        if (host.getParentActivity() == null) return;
+        tools.popup = true;
+        tools.setResourceProvider(host.getResourceProvider());
+        if (host.getFragmentView() != null) AndroidUtilities.hideKeyboard(host.getFragmentView());
+        BaseFragment.BottomSheetParams params = new BaseFragment.BottomSheetParams();
+        params.maxHeightFraction = .82f;
+        host.showAsSheet(tools, params);
+    }
     private String draftText;
     private long draftDialog;
     private java.util.function.Consumer<String> applyDraft;
@@ -36,6 +46,10 @@ public final class NebulaMessageToolsFragment extends BaseFragment {
     @Override public View createView(Context c) {
         NebulaTheme theme = NebulaTheme.of(c);
         NebulaFormUi.bar(this, actionBar, c, t("Инструменты сообщения", "Message tools"));
+        if (popup) {
+            actionBar.setOccupyStatusBar(false);
+            actionBar.setBackButtonImage(R.drawable.ic_close_white);
+        }
         LinearLayout column = NebulaFormUi.column(c);
         ScrollView scroll = NebulaFormUi.scroll(c, column);
 
