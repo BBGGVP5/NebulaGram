@@ -1,7 +1,8 @@
 // Check the actual release runtime, not compile-time stubs: Prompt beta4's POM
 // understates its coroutines requirement and R8 otherwise emits a crashing stub.
 gradle.projectsEvaluated {
-    def app = gradle.rootProject.project(':TMessagesProj_AppStandalone')
+    def app = gradle.rootProject.findProject(':TMessagesProj_AppStandalone')
+    if (app == null) return // Init scripts also run in buildSrc and included builds.
     app.tasks.register('verifyNebulaNanoRuntime') {
         doLast {
             def artifacts = app.configurations.getByName('afatStandaloneRuntimeClasspath').resolvedConfiguration.resolvedArtifacts
