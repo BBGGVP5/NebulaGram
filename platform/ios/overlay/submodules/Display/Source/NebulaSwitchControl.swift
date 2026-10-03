@@ -2,7 +2,7 @@ import UIKit
 import NebulaSettingsContract
 
 @objc public protocol NebulaSwitchCompatible: AnyObject {
-    var isOn: Bool { get set }
+    var isOn: Bool { get }
     func setOn(_ on: Bool, animated: Bool)
 }
 
