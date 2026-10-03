@@ -42,7 +42,7 @@ class BaseFragment { int getCurrentAccount(){return 0;} Context getContext(){ret
 class NebulaTranslationFragment { NebulaTranslationFragment(int a,long d){} }
 interface Click { void click(Object d,int w); }
 class NebulaDialog { static class Builder { Builder(Context c,Object r){} Builder setTitle(String s){return this;} Builder setMessage(String s){return this;} Builder setPositiveButton(String s,Click c){return this;} Builder setNeutralButton(String s,Click c){return this;} Builder setNegativeButton(String s,Click c){return this;} Object create(){return this;} } }
-class NebulaAiSecrets { static String read(int p){return "";} }
+class NebulaAiSecrets { static String read(int p){if(p<0||p>3)throw new IllegalArgumentException("Cloud credentials only");return "";} }
 class NebulaNanoAi { static String responseErrorText(Throwable e){return "Download model";} }
 class NebulaAiClient {
  static final int NANO=4; static volatile int calls; static volatile boolean fail; static volatile CountDownLatch wait;
@@ -59,6 +59,7 @@ public class AutoTranslationCheck {
   NebulaTranslationSettings.p.putBoolean("on_9",true);NebulaTranslationSettings.p.data.put("provider",4);
   MessageObject m=new MessageObject(1);m.messageOwner.translatedToLanguage="ru";m.messageOwner.translatedText=new TLRPC.TL_textWithEntities();m.messageOwner.translatedText.text="Telegram result";
   NebulaAutoTranslate.request(0,m);check(NebulaAutoTranslate.isTranslating(0,m),"loading while queued/running");finish();
+  check(NebulaAiClient.calls==1,"Nano reaches inference without requesting cloud credentials");
   check("AI:hello".equals(m.messageOwner.translatedText.text),"Telegram cache must not skip AI");
   check(!NebulaAutoTranslate.isTranslating(0,m),"loading ends");int calls=NebulaAiClient.calls;
   NebulaAutoTranslate.request(0,m);check(calls==NebulaAiClient.calls,"own result deduplicated");

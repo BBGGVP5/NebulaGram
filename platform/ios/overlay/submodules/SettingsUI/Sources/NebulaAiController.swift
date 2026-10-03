@@ -7,6 +7,8 @@ import TelegramPresentationData
 /// AI connection settings. The key is written here and never read back into
 /// the screen: the field shows whether one is stored, not what it is.
 final class NebulaAiController: UITableViewController {
+    private let translationAccount: String
+    private let translationPeer: String?
     private let ru: Bool
     private let theme: PresentationTheme?
     private let settings = NebulaAiSettings.shared
@@ -20,7 +22,8 @@ final class NebulaAiController: UITableViewController {
     private var previousReadiness = ""
     private var visible = false
 
-    init(russian: Bool, theme: PresentationTheme? = nil) {
+    init(russian: Bool, theme: PresentationTheme? = nil, account: String = "", peer: String? = nil) {
+        self.translationAccount = account; self.translationPeer = peer
         self.ru = russian
         self.theme = theme
         self.provider = NebulaAiSettings.shared.provider
@@ -222,8 +225,8 @@ final class NebulaAiController: UITableViewController {
         tableView.deselectRow(at: indexPath, animated: true)
         let custom = provider == .custom
         switch (indexPath.section, indexPath.row) {
-        case (0, 2): navigationController?.pushViewController(NebulaTranslationController(account: "", peer: nil, russian: ru, theme: theme), animated: true)
-        case (4, 0): navigationController?.pushViewController(NebulaAiChatController(russian: ru, theme: theme), animated: true)
+        case (0, 2): navigationController?.pushViewController(NebulaTranslationController(account: translationAccount, peer: translationPeer, russian: ru, theme: theme), animated: true)
+        case (4, 0): navigationController?.pushViewController(NebulaAiChatController(russian: ru, theme: theme, account: translationAccount, peer: translationPeer), animated: true)
         case (4, 1): navigationController?.pushViewController(NebulaAiHistoryController(russian: ru, theme: theme), animated: true)
         case (1, 0): pickProvider()
         case (1, 1) where custom:

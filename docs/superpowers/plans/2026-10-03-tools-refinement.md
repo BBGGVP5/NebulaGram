@@ -38,7 +38,7 @@ Title regression verification: 2016 geometry cases, 100 rapid native transitions
 - Android run 37117828589 succeeded at 2f0971d713c774df35fe3ad8f79ea6d2ae4483de. Downloaded artifact 11272985291, archive digest checked, APK signature and package/version verified, ZIP integrity and arm64-v8a Go/Telegram libraries checked.
 - APK: `build/qa-apk-tools-2f0971d/NebulaGram-1.0.0-TG-12.10.5-b1000320-arm64-v8a.apk`.
 - APK SHA-256: `4f11527d8f83feb07a3df00a121434e802037f042887b7db4ccc7772d291e193`.
-- iOS bootstrap 37116667340 passed 88 tests and native patch/SDK checks at 272cf2ece06fb2d85e454f2f1064ae1db27512fe. Later commits only affect Android; iOS sources are identical. Full IPA run 37116680665 remains in progress.
+- iOS bootstrap 37116667340 passed 88 tests and native patch/SDK checks at 272cf2ece06fb2d85e454f2f1064ae1db27512fe. Later commits only affect Android; iOS sources are identical. Full IPA run 37116680665 succeeded; build 65 downloaded and verified at `build/qa-ipa-tools-272cf2e/NebulaGram-unsigned.ipa` (SHA-256 `7879f2c7ae6ad6cca654df5db7c03bfeaac529bdb7d7af4c1fa4d23a214237f5`). This is the title checkpoint, superseded by the Nano/header follow-up below.
 - No connected device was available for visual/gesture acceptance testing.
 
 ## Follow-up: header controls and Nano live translation
@@ -52,3 +52,13 @@ User clarified that individual header button plates (Edit/search/back/menu) shou
 - [ ] Verify runtime regressions and full Android/iOS builds.
 
 Follow-up validation: production Nano semaphore exercised with 12 competing callers and cancelled waiters; actual future cancellation and feature-status errors pass. Production incoming queue test covers Telegram cache takeover, foreign overwrite, model switch during inference, loading signals, failure state and manual retry. Title/composer/grid regressions pass; all Android patches apply and the iOS bootstrap validates 122 native paths. Device rendering and real AICore availability remain unverified locally.
+
+Follow-up CI: iOS bootstrap 37121180639 passed all 88 contract tests, native parsing and SDK checks at c935913. Android runs 37121180636 and 37121498745 exposed obsolete test doubles/old capsule expectations; the protocol fixture and native material regression now match the requested behavior (12,928 material/touch-bound cases). Runtime sources are unchanged after c935913; commits ad8a7bf/de19528 only update tests. Full builds are Android 37121794346 (de19528) and iOS 37121194099 (c935913).
+
+Android follow-up run 37121794346 succeeded. Verified artifact 11274376888, APK package `app.nebulagram.messenger`, version 1.0.0 / 1000328, arm64-v8a libraries, archive digest and existing signing certificate. File: `build/qa-apk-tools-de19528/NebulaGram-1.0.0-TG-12.10.5-b1000328-arm64-v8a.apk`; SHA-256 `79cde5076c4f22a1d33fe79d1016e9ae1521cfd18042f51f9d2e663594a5d7a1`. Shared iOS runtime sources match c935913; IPA run 37121194099 is still compiling.
+
+### Connected-device correction (Pixel 9 Pro XL, Android 17)
+
+The installed b1000328 reproduced a split path: a local AI chat generated a Russian answer, while incoming translation failed before inference. `NebulaAutoTranslate` requested `NebulaAiSecrets.read(4)`; the production credential store only accepts providers 0–3. Skip credentials for Nano as the working chat/draft paths already do. Tightened the incoming regression double to enforce the real credential-store boundary; it failed before this fix and passes afterward.
+
+Model availability no longer clears unrelated translation failures or claims that inference is verified. The Android AI provider uses the shared sheet-aware header, and adjacent global settings cards have spacing. Both platforms preserve account/chat scope through tools → provider → translation and AI editor → provider navigation. APK and IPA build/device verification pending for this correction.

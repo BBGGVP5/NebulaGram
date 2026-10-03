@@ -73,7 +73,7 @@ public final class NebulaTranslationController: UITableViewController {
     }
     public override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
-        if indexPath.section == 0 && indexPath.row == 1 { navigationController?.pushViewController(NebulaAiController(russian: russian, theme: theme), animated: true); return }
+        if indexPath.section == 0 && indexPath.row == 1 { navigationController?.pushViewController(NebulaAiController(russian: russian, theme: theme, account: account, peer: peer), animated: true); return }
         if indexPath.section == 0 && indexPath.row == 2 { chooseChat?(); return }
         guard let peer = peer, indexPath.section > 0 else { return }
         if indexPath.row == 1 {

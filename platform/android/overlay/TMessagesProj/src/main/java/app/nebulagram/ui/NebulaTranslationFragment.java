@@ -19,12 +19,12 @@ public final class NebulaTranslationFragment extends BaseFragment {
             .trailing(NebulaRow.TRAIL_SWITCH).checked(NebulaTranslationSettings.shortcut())
             .withClick(v -> NebulaTranslationSettings.global().edit().putBoolean("composer_shortcut", ((NebulaRow)v).toggleChecked()).apply()));
         tools.add(new NebulaRow(c).title(t("Провайдер и модель", "Provider and model")).trailing(NebulaRow.TRAIL_CHEVRON)
-            .withClick(v -> presentFragment(new NebulaAiFragment().openConnection())));
+            .withClick(v -> presentFragment(new NebulaAiFragment().forChat(currentAccount, dialog).openConnection())));
         column.addView(tools);
         if (NebulaTranslationSettings.global().getInt("provider", 0) == NebulaAiClient.NANO) {
             tools.add(new NebulaRow(c).title(t("Gemini Nano · модель и обновления", "Gemini Nano · model and updates"))
                 .subtitle(t("Проверка, загрузка модели и обновление AICore", "Check, download model and update AICore"), false)
-                .trailing(NebulaRow.TRAIL_CHEVRON).withClick(v -> presentFragment(new NebulaAiFragment().openConnection())));
+                .trailing(NebulaRow.TRAIL_CHEVRON).withClick(v -> presentFragment(new NebulaAiFragment().forChat(currentAccount, dialog).openConnection())));
         }
         if (dialog != 0 && !DialogObject.isEncryptedDialog(dialog)) {
             column.addView(NebulaCard.header(c, t("Перевод в этом чате", "Translation in this chat")));
@@ -72,7 +72,8 @@ public final class NebulaTranslationFragment extends BaseFragment {
             chats.add(new NebulaRow(c).title(t("Перевод в реальном времени", "Real-time translation"))
                 .subtitle(t("Выбрать чат · входящие и мой текст", "Choose chat · incoming and my text"), false)
                 .trailing(NebulaRow.TRAIL_CHEVRON).withClick(v -> NebulaPeerSelections.translation(this)));
-            column.addView(chats);
+            LinearLayout.LayoutParams chatParams = new LinearLayout.LayoutParams(-1, -2);
+            chatParams.topMargin = NebulaFormUi.dp(12); column.addView(chats, chatParams);
         }
         return fragmentView = NebulaSettingsLayout.wrap(c, actionBar, NebulaFormUi.scroll(c, column));
     }

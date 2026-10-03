@@ -38,6 +38,8 @@ public enum NebulaAiAction: CaseIterable {
 /// Shared full-page and sheet chat. Requests run only on explicit send.
 public final class NebulaAiChatController: UIViewController, UITextViewDelegate {
     public static var onDeviceAvailable: Bool { NebulaAiService.localModelAvailable }
+    private let translationAccount: String
+    private let translationPeer: String?
     private let ru: Bool
     private let theme: PresentationTheme?
     private let service = NebulaAiService()
@@ -68,7 +70,9 @@ public final class NebulaAiChatController: UIViewController, UITextViewDelegate 
     private var initial: String
 
     public init(russian: Bool, initialText: String = "", action: NebulaAiAction = .ask,
-                applyResult: ((String) -> Void)? = nil, theme: PresentationTheme? = nil, resultLanguage: String? = nil, applyTitle: String? = nil) {
+                applyResult: ((String) -> Void)? = nil, theme: PresentationTheme? = nil, resultLanguage: String? = nil, applyTitle: String? = nil,
+                account: String = "", peer: String? = nil) {
+        self.translationAccount = account; self.translationPeer = peer
         self.applyTitle = applyTitle
         self.ru = russian; self.action = action; self.applyResult = applyResult; self.theme = theme
         self.resultLanguage = resultLanguage ?? (russian ? "ru" : "en")
@@ -379,7 +383,7 @@ public final class NebulaAiChatController: UIViewController, UITextViewDelegate 
                 self.restoreChat(selected)
             }
     }
-    @objc private func openSettings() { navigationController?.pushViewController(NebulaAiController(russian: ru, theme: theme), animated: true) }
+    @objc private func openSettings() { navigationController?.pushViewController(NebulaAiController(russian: ru, theme: theme, account: translationAccount, peer: translationPeer), animated: true) }
     @objc private func pickLanguage() {
         NebulaResultLanguage.show(from: self, selected: resultLanguage, russian: ru, theme: theme) { [weak self] code in
             guard let self else { return }

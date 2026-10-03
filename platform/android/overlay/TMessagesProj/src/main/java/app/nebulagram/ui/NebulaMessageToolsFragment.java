@@ -87,7 +87,7 @@ public final class NebulaMessageToolsFragment extends BaseFragment {
         column.addView(languageRow, languageParams);
 
         NebulaToolGrid ai = new NebulaToolGrid(c);
-        ai.add(R.drawable.nebula_ai_outline, t("Спросить ИИ", "Ask AI"), t("Открыть чат с этим сообщением", "Open a chat with this message"), v -> presentFragment(new NebulaAiFragment(input.getText().toString())));
+        ai.add(R.drawable.nebula_ai_outline, t("Спросить ИИ", "Ask AI"), t("Открыть чат с этим сообщением", "Open a chat with this message"), v -> presentFragment(new NebulaAiFragment(input.getText().toString()).forChat(currentAccount, translationDialog())));
         ai.add(R.drawable.msg_translate, t("Перевести", "Translate"), t("Сохранить смысл на другом языке", "Keep the meaning in another language"), v -> request(false));
         ai.add(R.drawable.msg_list, t("Сократить", "Summarize"), t("Главное из длинного сообщения", "The key points from a long message"), v -> request(true));
         if (message != null && (message.isVoice() || message.isRoundVideo() || message.isVideo())) {
@@ -152,7 +152,7 @@ public final class NebulaMessageToolsFragment extends BaseFragment {
                 t("Кнопка, входящие сообщения и перевод при наборе", "Button, incoming messages and translation while typing"),
                 v -> presentFragment(new NebulaTranslationFragment(currentAccount, message == null ? draftDialog : message.getDialogId()))));
         preferences.add(action(c, R.drawable.msg_list, t("Фильтр сообщений", "Message filter"), t("Скрывать сообщения по словам и фразам", "Hide messages matching words and phrases"), v -> NebulaMessageFilter.configure(this)));
-        preferences.add(action(c, R.drawable.msg_customize, t("Провайдер ИИ", "AI provider"), t("Модель, подключение и API-ключ", "Model, connection and API key"), v -> presentFragment(new NebulaAiFragment().openConnection())));
+        preferences.add(action(c, R.drawable.msg_customize, t("Провайдер ИИ", "AI provider"), t("Модель, подключение и API-ключ", "Model, connection and API key"), v -> presentFragment(new NebulaAiFragment().forChat(currentAccount, translationDialog()).openConnection())));
         preferences.setVisibility(View.GONE);
         NebulaButton settings = new NebulaButton(c, NebulaButton.STYLE_TEXT);
         settings.setText(t("Настройки инструментов", "Tool settings"));
@@ -181,7 +181,7 @@ public final class NebulaMessageToolsFragment extends BaseFragment {
         if (NebulaTranslationSettings.global().getInt("provider", 0) == NebulaAiClient.NANO) {
             card.add(action(c, R.drawable.msg_customize, t("Gemini Nano · модель и обновления", "Gemini Nano · model and updates"),
                 t("Проверить, скачать модель, обновить AICore", "Check, download model, update AICore"),
-                v -> presentFragment(new NebulaAiFragment().openConnection())));
+                v -> presentFragment(new NebulaAiFragment().forChat(currentAccount, translationDialog()).openConnection())));
         }
         card.add(action(c, R.drawable.msg_translate, t("Языки и настройки перевода", "Languages and translation settings"),
             t("Входящие и мой текст настраиваются отдельно", "Incoming messages and your text are configured separately"),
@@ -196,7 +196,7 @@ public final class NebulaMessageToolsFragment extends BaseFragment {
         if (enabled && !NebulaAiAvailability.available()) {
             row.checked(false);
             Toast.makeText(getContext(), t("Сначала настройте провайдера ИИ", "Configure your AI provider first"), Toast.LENGTH_SHORT).show();
-            presentFragment(new NebulaAiFragment().openConnection());
+            presentFragment(new NebulaAiFragment().forChat(currentAccount, translationDialog()).openConnection());
             return;
         }
         if (draft) NebulaTranslationSettings.prefs(currentAccount).edit().putBoolean("draft_" + dialog, enabled).apply();

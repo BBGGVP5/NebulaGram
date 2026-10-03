@@ -162,7 +162,7 @@ public final class NebulaMessageToolsController: UIViewController {
         guard let peerId else { return }
         if sender.isOn && !NebulaLiveTranslation.ready {
             sender.isOn = false
-            navigationController?.pushViewController(NebulaAiController(russian: russian, theme: theme), animated: true)
+            navigationController?.pushViewController(NebulaAiController(russian: russian, theme: theme, account: accountId, peer: peerId), animated: true)
             return
         }
         NebulaTranslationPreferences.shared.update(account: accountId, peer: peerId) {
@@ -197,7 +197,7 @@ public final class NebulaMessageToolsController: UIViewController {
                 self?.result = value
                 self?.output.text = value
                 self?.output.isHidden = false
-            }, theme: theme, resultLanguage: language, applyTitle: text("Использовать результат", "Use result"))
+            }, theme: theme, resultLanguage: language, applyTitle: text("Использовать результат", "Use result"), account: accountId, peer: peerId)
             navigationController?.pushViewController(editor, animated: true)
         }
     }

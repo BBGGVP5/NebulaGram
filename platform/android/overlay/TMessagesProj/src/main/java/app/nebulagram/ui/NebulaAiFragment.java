@@ -14,6 +14,8 @@ import java.util.ArrayList;
 public final class NebulaAiFragment extends BaseFragment {
     private static final String[] PROVIDERS = {"OpenAI · GPT", "Anthropic · Claude", "Google · Gemini", "OpenAI-compatible", NebulaText.text("Gemini Nano · на устройстве", "Gemini Nano · on device")};
     private int provider;
+    private long translationDialog;
+    public NebulaAiFragment forChat(int account, long dialog) { currentAccount = account; translationDialog = dialog; return this; }
     private String initial = "";
     private SharedPreferences prefs;
     private LinearLayout content;
@@ -44,7 +46,7 @@ public final class NebulaAiFragment extends BaseFragment {
     @Override public View createView(Context c) {
         prefs = c.getSharedPreferences("nebula_ai_settings", 0);
         provider = Math.max(0, Math.min(NebulaAiClient.NANO, prefs.getInt("provider", 0)));
-        actionBar.setBackButtonImage(R.drawable.ic_ab_back); actionBar.setTitle(text("Искусственный интеллект", "AI assistant"));
+        NebulaFormUi.bar(this, actionBar, c, text("Искусственный интеллект", "AI assistant"));
         NebulaTheme t = NebulaTheme.of(c); actionBar.setBackgroundColor(t.opaqueSurface()); actionBar.setTitleColor(t.onSurface()); actionBar.setItemsColor(t.onSurface(), false);
         actionBar.setActionBarMenuOnItemClick(new ActionBar.ActionBarMenuOnItemClick() { @Override public void onItemClick(int id) { if (id == -1) finishFragment(); } });
         content = new LinearLayout(c); content.setOrientation(LinearLayout.VERTICAL); content.setBackgroundColor(t.opaqueSurface()); content.setPadding(dp(16), dp(8), dp(16), dp(8));
@@ -76,7 +78,7 @@ public final class NebulaAiFragment extends BaseFragment {
             navigation.addView(tab, new LinearLayout.LayoutParams(0, -2, 1));
         }
         LinearLayout.LayoutParams navigationParams = new LinearLayout.LayoutParams(-1, -2);
-        navigationParams.topMargin = dp(18); navigationParams.bottomMargin = dp(6);
+        navigationParams.topMargin = dp(8); navigationParams.bottomMargin = dp(6);
         content.addView(navigation, navigationParams);
         for (int i = 0; i < pages.length; i++) {
             pages[i] = new LinearLayout(c); pages[i].setOrientation(LinearLayout.VERTICAL);
@@ -102,7 +104,7 @@ public final class NebulaAiFragment extends BaseFragment {
 
         settings.add(new NebulaRow(c).icon(R.drawable.nebula_ai_spark).title(text("ИИ в чате", "AI in chats"))
                 .subtitle(text("Кнопка в поле ввода и перевод", "Composer button and translation"), false)
-                .trailing(NebulaRow.TRAIL_CHEVRON).withClick(v -> presentFragment(new NebulaTranslationFragment(currentAccount, 0))));
+                .trailing(NebulaRow.TRAIL_CHEVRON).withClick(v -> presentFragment(new NebulaTranslationFragment(currentAccount, translationDialog))));
 
         settings.add(new NebulaRow(c).icon(R.drawable.msg_customize).title(text("Провайдер", "Provider")).subtitle(PROVIDERS[provider], false)
                 .trailing(NebulaRow.TRAIL_CHEVRON).withClick(v -> showDialog(new NebulaDialog.Builder(c).setTitle(text("Провайдер", "Provider"))
@@ -337,7 +339,6 @@ public final class NebulaAiFragment extends BaseFragment {
                 nanoWorker = null;
                 nanoAction.setEnabled(true); nanoRelease.setEnabled(true); nanoPerformance.setEnabled(true); nanoFallback.setEnabled(true);
                 boolean ready = error == null && result == com.google.mlkit.genai.common.FeatureStatus.AVAILABLE;
-                if (ready) NebulaAutoTranslate.modelReady();
                 boolean downloadable = error == null && result == com.google.mlkit.genai.common.FeatureStatus.DOWNLOADABLE;
                 boolean downloading = error == null && result == com.google.mlkit.genai.common.FeatureStatus.DOWNLOADING;
                 nanoDownloading = downloading;
@@ -345,14 +346,14 @@ public final class NebulaAiFragment extends BaseFragment {
                 nanoAction.setEnabled(!downloading);
                 ((View) nanoProgressBar.getParent()).setVisibility(downloading ? View.VISIBLE : View.GONE);
                 String message = error != null ? error : ready
-                        ? text("Модель готова. Запросы обрабатываются на устройстве.", "Model ready. Requests are processed on this device.")
+                        ? text("Модель загружена. Генерация выполняется на устройстве.", "Model downloaded. Generation runs on this device.")
                         : downloadable ? text("Модель доступна. Скачайте её один раз для работы на устройстве.", "Model available. Download it once to use it on this device.")
                         : downloading ? text("Модель скачивается через AICore. Готовность обновится автоматически.", "AICore is downloading the model. Readiness updates automatically.")
                         : (preview || fast)
                         ? text("AICore не предоставил выбранную модель. Попробуйте Stable · Полная или обновите сервис.", "AICore has not provided the selected model. Try Stable · Full or update the service.")
                         : text("AICore пока не предоставил Stable · Полная. Обновите сервис, оставьте устройство в сети и повторите проверку позже.", "AICore has not provided Stable · Full yet. Update the service, keep the device online and check again later.");
                 nanoStatus.setText(message);
-                hero.setStatus(ready ? text("Готово · на устройстве", "Ready · on device")
+                hero.setStatus(ready ? text("Модель загружена", "Model downloaded")
                         : downloading ? text("Модель загружается…", "Downloading model…") : text("Gemini Nano · нужна настройка", "Gemini Nano · setup needed"), ready);
                 nanoAction.setText(downloading ? text("Загрузка…", "Downloading…") : downloadable ? text("Скачать модель", "Download model") : text("Проверить доступность модели", "Check model availability"));
                 ((View) nanoFallback.getParent()).setVisibility(!ready && !downloading && (preview || fast) ? View.VISIBLE : View.GONE);
