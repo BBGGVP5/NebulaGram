@@ -1,12 +1,8 @@
 diff --git a/submodules/TelegramUI/Components/TranslateHeaderPanelComponent/Sources/ChatTranslationPanelNode.swift b/submodules/TelegramUI/Components/TranslateHeaderPanelComponent/Sources/ChatTranslationPanelNode.swift
 --- a/submodules/TelegramUI/Components/TranslateHeaderPanelComponent/Sources/ChatTranslationPanelNode.swift
 +++ b/submodules/TelegramUI/Components/TranslateHeaderPanelComponent/Sources/ChatTranslationPanelNode.swift
-@@ -148,7 +148,7 @@
-             
-             let buttonText: String
+@@ -150,3 +150,3 @@
              if info.fromLang == "nebula-ai" {
 -                buttonText = (strings.baseLanguageCode.lowercased().hasPrefix("ru") ? "ИИ · " : "AI · ") + translateTitle
 +                buttonText = "Nebula AI · " + translateTitle
              } else {
-                 buttonText = info.isActive ? strings.Conversation_Translation_ShowOriginal : translateTitle
-             }
