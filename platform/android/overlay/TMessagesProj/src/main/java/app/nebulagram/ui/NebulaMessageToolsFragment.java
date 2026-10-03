@@ -46,7 +46,7 @@ public final class NebulaMessageToolsFragment extends BaseFragment {
     }
     private EditText input;
     private ScrollView contentScroll;
-    private NebulaRow target, incomingToggle, draftToggle;
+    private NebulaRow target, incomingToggle, outgoingToggle, draftToggle;
     private String targetLanguage;
     private TextView output;
     private LinearLayout resultSection;
@@ -174,10 +174,12 @@ public final class NebulaMessageToolsFragment extends BaseFragment {
         column.addView(NebulaCard.header(c, t("Перевод в реальном времени", "Live translation")));
         NebulaCard card = new NebulaCard(c);
         incomingToggle = new NebulaRow(c).title(t("Входящие сообщения", "Incoming messages"))
-            .trailing(NebulaRow.TRAIL_SWITCH).withClick(v -> toggleTranslation(false));
+            .trailing(NebulaRow.TRAIL_SWITCH).withClick(v -> toggleTranslation(0));
         draftToggle = new NebulaRow(c).title(t("Мой текст при наборе", "My text while typing"))
-            .trailing(NebulaRow.TRAIL_SWITCH).withClick(v -> toggleTranslation(true));
-        card.add(incomingToggle); card.add(draftToggle);
+            .trailing(NebulaRow.TRAIL_SWITCH).withClick(v -> toggleTranslation(2));
+        outgoingToggle = new NebulaRow(c).title(t("Мои отправленные сообщения", "My sent messages"))
+            .trailing(NebulaRow.TRAIL_SWITCH).withClick(v -> toggleTranslation(1));
+        card.add(incomingToggle); card.add(outgoingToggle); card.add(draftToggle);
         if (NebulaTranslationSettings.global().getInt("provider", 0) == NebulaAiClient.NANO) {
             card.add(action(c, R.drawable.msg_customize, t("Gemini Nano · модель и обновления", "Gemini Nano · model and updates"),
                 t("Проверить, скачать модель, обновить AICore", "Check, download model, update AICore"),
@@ -189,9 +191,9 @@ public final class NebulaMessageToolsFragment extends BaseFragment {
         column.addView(card);
         refreshTranslation();
     }
-    private void toggleTranslation(boolean draft) {
+    private void toggleTranslation(int mode) {
         long dialog = translationDialog();
-        NebulaRow row = draft ? draftToggle : incomingToggle;
+        NebulaRow row = mode == 2 ? draftToggle : mode == 1 ? outgoingToggle : incomingToggle;
         boolean enabled = row.toggleChecked();
         if (enabled && !NebulaAiAvailability.available()) {
             row.checked(false);
@@ -199,7 +201,8 @@ public final class NebulaMessageToolsFragment extends BaseFragment {
             presentFragment(new NebulaAiFragment().forChat(currentAccount, translationDialog()).openConnection());
             return;
         }
-        if (draft) NebulaTranslationSettings.prefs(currentAccount).edit().putBoolean("draft_" + dialog, enabled).apply();
+        if (mode == 1) NebulaAutoTranslate.setOutgoing(currentAccount, dialog, enabled);
+        else if (mode == 2) NebulaTranslationSettings.prefs(currentAccount).edit().putBoolean("draft_" + dialog, enabled).apply();
         else if (!enabled) NebulaAutoTranslate.disable(currentAccount, dialog);
         else {
             NebulaTranslationSettings.prefs(currentAccount).edit().putBoolean("on_" + dialog, true).apply();
@@ -211,6 +214,7 @@ public final class NebulaMessageToolsFragment extends BaseFragment {
         if (incomingToggle == null) return;
         long dialog = translationDialog();
         incomingToggle.checked(NebulaTranslationSettings.prefs(currentAccount).getBoolean("on_" + dialog, false));
+        outgoingToggle.checked(NebulaTranslationSettings.outgoing(currentAccount, dialog));
         draftToggle.checked(NebulaTranslationSettings.draft(currentAccount, dialog));
     }
     private int dp(int n) { return AndroidUtilities.dp(n); }

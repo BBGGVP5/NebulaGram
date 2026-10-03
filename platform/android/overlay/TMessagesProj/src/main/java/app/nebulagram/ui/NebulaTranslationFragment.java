@@ -41,7 +41,15 @@ public final class NebulaTranslationFragment extends BaseFragment {
                         NotificationCenter.getInstance(currentAccount).postNotificationName(NotificationCenter.dialogTranslate, dialog, true);
                     }
                 }));
-            incoming.add(language(c, t("Язык входящих", "Incoming language"), false));
+            incoming.add(new NebulaRow(c).title(t("Мои отправленные сообщения", "My sent messages"))
+                .subtitle(t("Перевод в этом чате · оригинал сохраняется", "Translation in this chat · original is preserved"), false)
+                .trailing(NebulaRow.TRAIL_SWITCH).checked(NebulaTranslationSettings.outgoing(currentAccount, dialog))
+                .withClick(v -> {
+                    NebulaRow row = (NebulaRow)v; boolean on = row.toggleChecked();
+                    if (on && !ready(c)) { row.checked(false); return; }
+                    NebulaAutoTranslate.setOutgoing(currentAccount, dialog, on);
+                }));
+            incoming.add(language(c, t("Язык сообщений", "Message language"), false));
             incoming.add(new NebulaRow(c).title(t("Повторить перевод", "Retry translation"))
                 .trailing(NebulaRow.TRAIL_CHEVRON).withClick(v -> NebulaAutoTranslate.retry(currentAccount, dialog))); column.addView(incoming);
             NebulaCard draft = new NebulaCard(c);
@@ -57,8 +65,8 @@ public final class NebulaTranslationFragment extends BaseFragment {
             NebulaRow delay = new NebulaRow(c).title(t("Пауза после ввода", "Pause after typing"))
                 .subtitle(NebulaTranslationSettings.delay(currentAccount, dialog) + " ms", true).trailing(NebulaRow.TRAIL_CHEVRON);
             delay.withClick(v -> showDialog(new NebulaDialog.Builder(c, getResourceProvider()).setTitle(delayTitle())
-                .setItems(new CharSequence[]{"0.5 s", "1 s", "2 s"}, (d, i) -> {
-                    int value = new int[]{500, 1000, 2000}[i];
+                .setItems(new CharSequence[]{"0.15 s", "0.3 s", "0.5 s", "1 s", "2 s"}, (d, i) -> {
+                    int value = new int[]{150, 300, 500, 1000, 2000}[i];
                     NebulaTranslationSettings.prefs(currentAccount).edit().putInt("delay_" + dialog, value).apply();
                     delay.subtitle(value + " ms", true);
                 }).setNegativeButton(t("Отмена", "Cancel"), null).create()));

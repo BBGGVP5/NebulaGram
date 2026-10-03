@@ -59,12 +59,16 @@ public final class NebulaDraftTranslation: NSObject {
         use.frame = CGRect(x: width - 140, y: height - 44, width: 132, height: 44)
         host.bringSubviewToFront(preview)
     }
+    private var cache: [String: String] = [:]
     public func update(source: String, options: NebulaTranslationOptions, allowed: Bool) {
         guard allowed, options.draft, NebulaLiveTranslation.ready, !source.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty, source.count <= 12000 else { stop(); return }
         identityPrefix = options.draftLanguage + ":" + NebulaLiveTranslation.connectionIdentity + ":"
         let identity = identityPrefix + source
         guard let version = state.begin(identity) else { return }
         task?.cancel(); preview.isHidden = true; self.source = source
+        if let result = cache[identity] {
+            self.result = result; label.text = result; use.isHidden = false; revealPreview(); return
+        }
         task = Task { @MainActor [weak self] in
             do {
                 try await Task.sleep(nanoseconds: UInt64(options.delay * 1_000_000_000))
@@ -73,6 +77,7 @@ public final class NebulaDraftTranslation: NSObject {
                 self.use.isHidden = true; self.revealPreview()
                 let result = try await NebulaLiveTranslation.translate(source, language: options.draftLanguage)
                 guard !Task.isCancelled, self.state.accepts(version) else { return }
+                if self.cache.count >= 16 { self.cache.removeAll() }; self.cache[identity] = result
                 self.result = result; self.label.text = result; self.use.isHidden = false; self.revealPreview()
             } catch {
                 guard let self = self, !Task.isCancelled, self.state.accepts(version) else { return }

@@ -125,6 +125,7 @@ public final class NebulaSettingsSearch {
         result.add(new Entry(0, NebulaText.text("Анимация переходов", "Transition animation"), NebulaText.text("Стандартная, AOSP или Spring", "Standard, AOSP or Spring"), R.drawable.msg_customize));
         result.add(new Entry(-21, NebulaText.text("История ИИ-чата", "AI chat history"), NebulaText.text("Локальные запросы, включаются отдельно", "Local requests, opt-in"), R.drawable.msg_recent));
         result.add(new Entry(-23, NebulaText.text("Перевод в реальном времени", "Real-time translation"), NebulaText.text("Входящие сообщения, автоперевод чата, ИИ", "Incoming messages, automatic chat translation, AI"), R.drawable.msg_customize));
+        result.add(new Entry(-23, NebulaText.text("Перевод своих сообщений", "Translate my sent messages"), NebulaText.text("Отправленные сообщения, исходящие, ИИ", "Sent messages, outgoing, AI"), R.drawable.msg_customize));
         result.add(new Entry(-23, NebulaText.text("Перевод при наборе", "Translate while typing"), NebulaText.text("Мой текст, черновик, язык, задержка", "My text, draft, language, delay"), R.drawable.msg_customize));
         result.add(new Entry(-23, NebulaText.text("Кнопка ИИ в поле ввода", "AI button in composer"), NebulaText.text("Инструменты, подписи к вложениям, значок", "Tools, attachment captions, shortcut"), R.drawable.msg_customize));
         result.add(new Entry(-23, NebulaText.text("Языки перевода", "Translation languages"), NebulaText.text("Язык входящих и моего текста", "Incoming and outgoing language"), R.drawable.msg_customize));

@@ -19,7 +19,7 @@ stubs = {
  public int getWidth(){return width;}public int getHeight(){return height;}public float getX(){return x;}public float getY(){return y;}
  public int getVisibility(){return visibility;}public void draw(android.graphics.Canvas c){draws++;sampleX=c.x;sampleY=c.y;}public float sampleX,sampleY;public void setTranslationX(float x){this.x=x;}}
  ''',
- 'org/telegram/messenger/AndroidUtilities.java': 'package org.telegram.messenger; public class AndroidUtilities {public static int dp(float n){return Math.round(n);} public static float dpf2(float n){return n;}}',
+ 'org/telegram/messenger/AndroidUtilities.java': 'package org.telegram.messenger; public class AndroidUtilities {public static int statusBarHeight=24;public static int dp(float n){return Math.round(n);} public static float dpf2(float n){return n;}}',
  'org/telegram/messenger/LiteMode.java': 'package org.telegram.messenger; public class LiteMode {public static int FLAG_CHAT_BLUR=1;public static boolean enabled=true;public static boolean isEnabled(int n){return enabled;}}',
  'org/telegram/ui/ActionBar/Theme.java': 'package org.telegram.ui.ActionBar; public class Theme {public interface ResourcesProvider{}public static int key_windowBackgroundGray=1;public static int color=0xff171717;public static int getColor(int k,ResourcesProvider p){return color;}}',
  'org/telegram/ui/ActionBar/ActionBar.java': '''package org.telegram.ui.ActionBar; public class ActionBar extends android.view.View {
@@ -36,7 +36,7 @@ stubs = {
  public void endRecording(){recording=false;ends++;}public void invalidateDisplayListForDrawables(){invalidations++;}}
  ''',
  'org/telegram/ui/Components/blur3/drawable/BlurredBackgroundDrawable.java': '''package org.telegram.ui.Components.blur3.drawable; public class BlurredBackgroundDrawable {
- public int left,top,right,bottom,ox,oy,draws;public BlurredBackgroundDrawable setColorProvider(Object p){return this;}public void setPadding(int p){}public void setRadius(float a,float b,float c,float d){}
+ public int left,top,right,bottom,ox,oy,draws;public float tl,tr,bl,br;public BlurredBackgroundDrawable setColorProvider(Object p){return this;}public void setPadding(int p){}public void setRadius(float a,float b,float c,float d){tl=a;tr=b;bl=c;br=d;}
  public void setBounds(int l,int t,int r,int b){left=l;top=t;right=r;bottom=b;}public void setSourceOffset(int x,int y){ox=x;oy=y;}public void draw(android.graphics.Canvas c){draws++;}}
  ''',
  'org/telegram/ui/Components/blur3/BlurredBackgroundDrawableViewFactory.java': '''package org.telegram.ui.Components.blur3;
@@ -58,6 +58,8 @@ stubs = {
   NebulaCommunityHeader header=NebulaCommunityHeader.create(bar,true,null);
   check(bar.shared&&bar.avatar&&bar.title.x==0,"native community/title binding");header.draw(canvas,bar,list);
   var material=BlurredBackgroundDrawableViewFactory.last;check(material.left==0&&material.top==0&&material.right==w&&material.bottom==h,"shared bounds cover all header controls");
+  check(material.bl==0&&material.br==0,"header joins the sheet instead of forming a separate bottom capsule");
+  check(material.tl==(y>24?14:0)&&material.tr==material.tl,"expanded corner follows sheet; collapsed corner becomes flat");
   check(canvas.saves==0&&canvas.x==0&&canvas.y==0,"drawing restores caller canvas");
   boolean blur=api>=31&&mode==0;check(list.draws==(blur?1:0),"no list capture on old API, low power, disabled blur or software canvas");
   if(api>=31){var node=BlurredBackgroundSourceRenderNode.last;int padding=blur?32:0;
@@ -89,6 +91,9 @@ assert 'setNebulaCommunityGlass(true, true)' in dialogs
 assert dialogs.count('isNebulaSharedHeaderGlass()') >= 3
 assert sheet.count('afterInit();') == 3 and 'NebulaCommunityHeader.create(actionBar, hasAvatar, resourcesProvider)' in sheet
 assert 'if (child == actionBar && nebulaHeader != null)' in sheet
+import re
+spacers = [int(value) for value in re.findall(r'UItem.asSpace\(0, dp\((\d+)\)\)', sheet)]
+assert len(spacers) == 3 and all(height - 56 >= 12 for height in spacers), 'first row requires clearance below all three native headers'
 assert 'isNebulaSharedHeaderGlass()' in (ui / 'NebulaLinkShortcut.java').read_text(encoding='utf-8')
 assert bar.count('if (nebulaCommunityGlass) textLeft = Math.max(textLeft, nebulaCommunityTitleInset);') == 2
 print('Both community entry points bind shared material and matching title measure/layout insets')

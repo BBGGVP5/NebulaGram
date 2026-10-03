@@ -23,6 +23,9 @@ public final class NebulaDraftTranslation {
     private long activeDialog;
     private int activeAccount;
     private String identityPrefix = "";
+    private final java.util.LinkedHashMap<String,String> cache = new java.util.LinkedHashMap<String,String>(16,.75f,true) {
+        protected boolean removeEldestEntry(java.util.Map.Entry<String,String> entry) { return size() > 16; }
+    };
     public NebulaDraftTranslation(BaseFragment host, EditText editor, View anchor, java.util.function.Consumer<String> apply) {
         this.host = host; this.editor = editor; this.anchor = anchor; this.apply = apply;
     }
@@ -38,6 +41,8 @@ public final class NebulaDraftTranslation {
         final long request = gate.begin(identity);
         if (request == 0) return;
         cancelOutstanding();
+        String cached = cache.get(identity);
+        if (cached != null) { show(cached, source, null, false); return; }
         pending = () -> {
             pending = null;
             if (!gate.accepts(request)) return;
@@ -59,6 +64,7 @@ public final class NebulaDraftTranslation {
                     if (!gate.accepts(request) || !connectionIdentity.equals(NebulaTranslationSettings.connectionIdentity()) || !source.equals(editor.getText().toString()) || !NebulaTranslationSettings.draft(account, dialog)
                         || !language.equals(NebulaTranslationSettings.draftLanguage(account, dialog)) || !NebulaAiAvailability.available()) return;
                     client = null;
+                    if (answer != null && !answer.trim().isEmpty()) cache.put(identity, answer);
                     show(answer, source, errorText, false);
                 });
             });

@@ -23,6 +23,7 @@ class NebulaTranslationSettings {
  static final SharedPreferences p=new SharedPreferences(); static String identity="nano:stable";
  static SharedPreferences prefs(int a){return p;} static SharedPreferences global(){return p;}
  static String connectionIdentity(){return identity;} static String label(String s){return s;}
+ static boolean outgoing(int a,long d){return p.getBoolean("outgoing_"+d,false);}
 }
 class NebulaTasks { static long user(int a){return a+100;} }
 class NebulaAiAvailability { static boolean enabled(){return true;} }
@@ -30,8 +31,8 @@ class DialogObject { static boolean isEncryptedDialog(long d){return false;} }
 class NebulaText { static String text(String ru,String en){return en;} }
 class TLRPC { static class Message { String message="hello",translatedToLanguage; TL_textWithEntities translatedText; boolean noforwards; int ttl; }
  static class TL_textWithEntities { String text; } static class Chat { boolean noforwards; } }
-class MessageObject { TLRPC.Message messageOwner=new TLRPC.Message(); int id; MessageObject(int id){this.id=id;}
- long getDialogId(){return 9;} int getId(){return id;} boolean isOutOwner(){return false;} boolean isSecretMedia(){return false;} }
+class MessageObject { TLRPC.Message messageOwner=new TLRPC.Message(); int id; boolean own,isRestrictedMessage; MessageObject(int id){this.id=id;}
+ long getDialogId(){return 9;} int getId(){return id;} boolean isOutOwner(){return own;} boolean isSecretMedia(){return false;} boolean isSponsored(){return false;} }
 class TranslateController { static int cancellations; static boolean isTranslatable(MessageObject m){return true;} void cancelTranslations(long d){cancellations++;} }
 class MessagesController { static MessagesController getInstance(int a){return new MessagesController();} TLRPC.Chat getChat(long d){return null;} TranslateController getTranslateController(){return new TranslateController();} }
 class NotificationCenter { static final int messageTranslating=1,messageTranslated=2,dialogTranslate=3; static int starts,finishes;
@@ -46,10 +47,13 @@ class NebulaAiSecrets { static String read(int p){if(p<0||p>3)throw new IllegalA
 class NebulaNanoAi { static String responseErrorText(Throwable e){return "Download model";} }
 class NebulaAiClient {
  static final int NANO=4; static volatile int calls; static volatile boolean fail; static volatile CountDownLatch wait;
+ static final java.util.concurrent.atomic.AtomicInteger active=new java.util.concurrent.atomic.AtomicInteger(), peak=new java.util.concurrent.atomic.AtomicInteger();
  volatile boolean cancelled; void cancel(){cancelled=true;}
  String generate(int p,String e,String k,String m,String prompt,String text)throws Exception{
-  calls++; CountDownLatch latch=wait; if(latch!=null) latch.await(2,TimeUnit.SECONDS);
-  if(cancelled)throw new java.io.InterruptedIOException();if(fail)throw new Exception("private request");return "AI:"+text;
+  calls++; peak.accumulateAndGet(active.incrementAndGet(),Math::max);
+  try { CountDownLatch latch=wait; if(latch!=null) while(!latch.await(10,TimeUnit.MILLISECONDS))if(cancelled)throw new java.io.InterruptedIOException();
+   if(cancelled)throw new java.io.InterruptedIOException();if(fail)throw new Exception("private request");return "AI:"+text;
+  } finally { active.decrementAndGet(); }
  }
 }
 public class AutoTranslationCheck {
@@ -74,7 +78,32 @@ public class AutoTranslationCheck {
   check("AI:hello".equals(failed.messageOwner.translatedText.text),"retry bypasses failure backoff");
   check(TranslateController.cancellations>=3,"native requests cancelled on AI path");
   check(NotificationCenter.starts>=6,"loading notifications for requests and completions");
-  System.out.println("Incoming translation: provider provenance, loading lifetime, model change, actionable failure and retry passed");System.exit(0);
+  MessageObject own=new MessageObject(10);own.own=true;own.messageOwner.message="my sent text";
+  NebulaAutoTranslate.request(0,own);check(!NebulaAutoTranslate.isTranslating(0,own),"sent messages require independent consent");
+  NebulaAutoTranslate.setOutgoing(0,9,true);NebulaAutoTranslate.disable(0,9);
+  check(NebulaAutoTranslate.enabled(0,9),"outgoing-only remains enabled when incoming disabled");
+  NebulaAutoTranslate.request(0,own);finish();check("AI:my sent text".equals(own.messageOwner.translatedText.text),"own sent message translated");
+  check("my sent text".equals(own.messageOwner.message),"original sent text remains immutable");
+  MessageObject disabledIncoming=new MessageObject(11);NebulaAutoTranslate.request(0,disabledIncoming);
+  check(!NebulaAutoTranslate.isTranslating(0,disabledIncoming),"outgoing-only must not process incoming messages");
+  NebulaAutoTranslate.disableAll(0,9);check(!NebulaAutoTranslate.enabled(0,9),"Original/Hide stops both displayed directions");
+  NebulaTranslationSettings.p.putBoolean("on_9",true);NebulaTranslationSettings.p.data.put("provider",0);
+  NebulaAiClient.wait=new CountDownLatch(1);NebulaAiClient.peak.set(0);
+  MessageObject a=new MessageObject(20),b=new MessageObject(21),c=new MessageObject(22);a.messageOwner.message="A";b.messageOwner.message="B";c.messageOwner.message="C";
+  NebulaAutoTranslate.request(0,a);NebulaAutoTranslate.request(0,b);NebulaAutoTranslate.request(0,c);
+  long deadline=System.currentTimeMillis()+3000;while(NebulaAiClient.active.get()<2&&System.currentTimeMillis()<deadline)Thread.sleep(5);
+  check(NebulaAiClient.active.get()==2,"two remote requests run concurrently instead of serially");
+  NebulaAutoTranslate.retainVisible(0,9,Arrays.asList(c));
+  check(!NebulaAutoTranslate.isTranslating(0,a)&&!NebulaAutoTranslate.isTranslating(0,b)&&NebulaAutoTranslate.isTranslating(0,c),"scroll cancels obsolete work and retains visible queue");
+  NebulaAiClient.wait.countDown();finish();finish();finish();NebulaAiClient.wait=null;
+  check(a.messageOwner.translatedText==null&&b.messageOwner.translatedText==null,"cancelled offscreen completions cannot apply");
+  check("AI:C".equals(c.messageOwner.translatedText.text)&&NebulaAiClient.peak.get()==2,"visible work proceeds and concurrency remains bounded");
+  MessageObject edited=new MessageObject(23);edited.messageOwner.message="before";NebulaAiClient.wait=new CountDownLatch(1);NebulaAutoTranslate.request(0,edited);
+  edited.messageOwner.message="after";NebulaAutoTranslate.retainVisible(0,9,Arrays.asList(edited));NebulaAiClient.wait.countDown();finish();NebulaAiClient.wait=null;
+  check(edited.messageOwner.translatedText==null,"source edits cancel stale work");
+  MessageObject unsent=new MessageObject(-1);unsent.own=true;NebulaAutoTranslate.setOutgoing(0,9,true);NebulaAutoTranslate.request(0,unsent);
+  check(!NebulaAutoTranslate.isTranslating(0,unsent),"draft/local outgoing message never enters sent translation");
+  System.out.println("Translation: provenance, independent sent consent, immutable originals, visible cancellation, two remote slots, model change and retry passed");System.exit(0);
  }
 }
 '''
@@ -83,4 +112,4 @@ with tempfile.TemporaryDirectory(prefix='nebula-incoming-') as directory:
     (work / 'NebulaAutoTranslate.java').write_text(source, encoding='utf-8')
     (work / 'AutoTranslationCheck.java').write_text(stubs, encoding='utf-8')
     subprocess.run(['javac', '-encoding', 'UTF-8', '-d', directory, str(work / 'NebulaAutoTranslate.java'), str(work / 'AutoTranslationCheck.java')], check=True)
-    subprocess.run(['java', '-cp', directory, 'app.nebulagram.ui.AutoTranslationCheck'], check=True, timeout=15)
+    subprocess.run(['java', '-cp', directory, 'app.nebulagram.ui.AutoTranslationCheck'], check=True, timeout=30)

@@ -1,9 +1,12 @@
 """Check trailing hit areas and the native measure/sheet integration (not device pixels)."""
 from pathlib import Path
-import subprocess, sys, tempfile
+import subprocess, sys, tempfile, re
 root = Path(__file__).resolve().parents[1]
 native = Path(sys.argv[1]) / 'TMessagesProj/src/main/java/org/telegram/ui'
 ui = root / 'platform/android/overlay/TMessagesProj/src/main/java/app/nebulagram/ui'
+composer=(native/'Components/ChatActivityEnterView.java').read_text(encoding='utf-8')
+gap=int(re.search(r'toolsInset\(\s*layoutParams.rightMargin, dp\(50\), dp\((\d+)\)', composer).group(1))
+assert gap == 2, 'requested trailing spacing'
 with tempfile.TemporaryDirectory(prefix='nebula-composer-') as tmp:
     test = Path(tmp) / 'SlotsCheck.java'
     test.write_text(r'''import app.nebulagram.ui.NebulaComposerSlots;
@@ -23,7 +26,7 @@ class SlotsCheck {
   }
   System.out.println(cases+" trailing-control cases across empty/typed/action/gift states passed");
  }
-}''',encoding='utf-8')
+}'''.replace('6*density', str(gap)+'*density'),encoding='utf-8')
     subprocess.run(['javac','-encoding','UTF-8','-d',tmp,str(ui/'NebulaComposerSlots.java'),str(test)],check=True)
     subprocess.run(['java','-cp',tmp,'SlotsCheck'],check=True)
 composer=(native/'Components/ChatActivityEnterView.java').read_text(encoding='utf-8')

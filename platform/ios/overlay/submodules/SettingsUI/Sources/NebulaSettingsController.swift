@@ -237,7 +237,7 @@ private enum NebulaSettingsEntry: ItemListNodeEntry {
 
     var searchableText: String? {
         switch self {
-        case let .category(index, title, detail, _): return title + " " + detail + (index == 17 ? " автоперевод перевод при наборе черновик пауза AI live translation draft delay composer" : "")
+        case let .category(index, title, detail, _): return title + " " + detail + (index == 17 ? " автоперевод свои отправленные исходящие sent outgoing перевод при наборе черновик пауза AI live translation draft delay composer" : "")
         case let .navigation(title, detail), let .glass(title, detail), let .transitions(title, detail), let .folderStyle(title, detail): return title + " " + detail
         case let .widePosts(title, _, _), let .contacts(title, _, _), let .navigationToggle(_, title, _, _), let .stories(title, _, _), let .history(title, _, _),
              let .hideCounters(title, _, _), let .exportFile(title, _): return title

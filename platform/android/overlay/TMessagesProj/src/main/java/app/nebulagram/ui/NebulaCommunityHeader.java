@@ -35,7 +35,7 @@ public final class NebulaCommunityHeader {
         factory.setLiquidGlassEffectAllowed(NebulaMenuStyle.animated());
         material = factory.create().setColorProvider(BlurredBackgroundProviderImpl.topPanel(provider));
         material.setPadding(0);
-        material.setRadius(0, 0, AndroidUtilities.dp(22), AndroidUtilities.dp(22));
+        material.setRadius(AndroidUtilities.dp(14), AndroidUtilities.dp(14), 0, 0);
         bar.setupGlass(factory, BlurredBackgroundProviderImpl.topPanel(provider));
         bar.setNebulaCommunityGlass(true, hasAvatar);
         bar.getTitleTextView().setTranslationX(0);
@@ -63,6 +63,8 @@ public final class NebulaCommunityHeader {
             }
             source.invalidateDisplayListForDrawables();
         }
+        float radius = bar.getY() > AndroidUtilities.statusBarHeight ? AndroidUtilities.dp(14) : 0;
+        material.setRadius(radius, radius, 0, 0);
         material.setSourceOffset(padding, padding);
         material.setBounds(0, 0, bar.getWidth(), bar.getHeight());
         canvas.save();

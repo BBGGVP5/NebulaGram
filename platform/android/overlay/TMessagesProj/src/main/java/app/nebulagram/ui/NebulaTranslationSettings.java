@@ -21,9 +21,10 @@ public final class NebulaTranslationSettings {
         return provider + ":" + p.getString("model_" + provider, "") + ":" + p.getString("endpoint", "");
     }
     public static boolean shortcut() { return global().getBoolean("composer_shortcut", false); }
+    public static boolean outgoing(int a, long d) { return prefs(a).getBoolean("outgoing_" + d, false); }
     public static boolean draft(int a, long d) { return prefs(a).getBoolean("draft_" + d, false); }
     public static String draftLanguage(int a, long d) { return prefs(a).getString("draft_language_" + d, "en"); }
-    public static int delay(int a, long d) { return Math.max(500, Math.min(2000, prefs(a).getInt("delay_" + d, 1000))); }
+    public static int delay(int a, long d) { return Math.max(150, Math.min(2000, prefs(a).getInt("delay_" + d, 300))); }
     public static String label(String code) {
         String name = org.telegram.ui.Components.TranslateAlert2.languageName(code);
         return name == null ? code : org.telegram.ui.Components.TranslateAlert2.capitalFirst(name);

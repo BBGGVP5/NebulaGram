@@ -1,0 +1,109 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/MessageObject.java b/TMessagesProj/src/main/java/org/telegram/messenger/MessageObject.java
+--- a/TMessagesProj/src/main/java/org/telegram/messenger/MessageObject.java
++++ b/TMessagesProj/src/main/java/org/telegram/messenger/MessageObject.java
+@@ -3681,7 +3681,8 @@
+             messageOwner != null &&
+             messageOwner.summarizedOpen &&
+             TranslateController.isSummarizable(this) &&
+-            TranslateController.isTranslatable(this) &&
++            (app.nebulagram.ui.NebulaAutoTranslate.enabled(currentAccount, getDialogId())
++                ? app.nebulagram.ui.NebulaAutoTranslate.enabledForMessage(currentAccount, this) : TranslateController.isTranslatable(this)) &&
+             translateController.isTranslatingDialog(getDialogId()) &&
+             !translateController.isTranslateDialogHidden(getDialogId()) &&
+             TextUtils.equals(translateController.getDialogTranslateTo(getDialogId()), messageOwner.translatedSummaryLanguage)
+@@ -3710,7 +3711,8 @@
+             return replyUpdated || true;
+         } else if (
+             messageOwner != null &&
+-            TranslateController.isTranslatable(this) &&
++            (app.nebulagram.ui.NebulaAutoTranslate.enabled(currentAccount, getDialogId())
++                ? app.nebulagram.ui.NebulaAutoTranslate.enabledForMessage(currentAccount, this) : TranslateController.isTranslatable(this)) &&
+             translateController.isTranslatingDialog(getDialogId()) &&
+             !translateController.isTranslateDialogHidden(getDialogId()) &&
+             (translatedText != null || messageOwner.translatedPoll != null || messageOwner.translatedRichMessage != null) &&
+diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/TranslateController.java b/TMessagesProj/src/main/java/org/telegram/messenger/TranslateController.java
+--- a/TMessagesProj/src/main/java/org/telegram/messenger/TranslateController.java
++++ b/TMessagesProj/src/main/java/org/telegram/messenger/TranslateController.java
+@@ -235,7 +235,7 @@
+ 
+     public boolean toggleTranslatingDialog(long dialogId, boolean value) {
+         if (!value && app.nebulagram.ui.NebulaAutoTranslate.enabled(currentAccount, dialogId)) {
+-            app.nebulagram.ui.NebulaAutoTranslate.disable(currentAccount, dialogId);
++            app.nebulagram.ui.NebulaAutoTranslate.disableAll(currentAccount, dialogId);
+             translatingDialogs.put(dialogId, false);
+             cancelTranslations(dialogId);
+             saveTranslatingDialogsCache();
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
+@@ -25112,7 +25112,7 @@
+             force = true;
+         }
+         AndroidUtilities.cancelRunOnUIThread(checkTranslationRunnable);
+-        AndroidUtilities.runOnUIThread(checkTranslationRunnable, force ? 0 : 150);
++        AndroidUtilities.runOnUIThread(checkTranslationRunnable, force ? 0 : app.nebulagram.ui.NebulaAutoTranslate.enabled(currentAccount, getDialogId()) ? 60 : 150);
+     }
+     private Runnable checkTranslationRunnable = () -> {
+         lastTranslationCheck = System.currentTimeMillis();
+@@ -25136,7 +25136,18 @@
+                 }
+             }
+ 
+-            if (minId <= maxId) {
++            if (app.nebulagram.ui.NebulaAutoTranslate.enabled(currentAccount, getDialogId())) {
++                ArrayList<MessageObject> visible = new ArrayList<>();
++                for (int i = 0; i < chatListView.getChildCount(); i++) {
++                    View child = chatListView.getChildAt(i);
++                    if (!(child instanceof ChatMessageCell) || child.getBottom() <= 0 || child.getTop() >= chatListView.getHeight()) continue;
++                    ChatMessageCell cell = (ChatMessageCell) child;
++                    if (cell.getCurrentMessagesGroup() != null) visible.addAll(cell.getCurrentMessagesGroup().messages);
++                    else if (cell.getMessageObject() != null) visible.add(cell.getMessageObject());
++                }
++                app.nebulagram.ui.NebulaAutoTranslate.retainVisible(currentAccount, getDialogId(), visible);
++                for (MessageObject message : visible) app.nebulagram.ui.NebulaAutoTranslate.request(currentAccount, message);
++            } else if (minId <= maxId) {
+                 ArrayList<Long> groupsChecked = new ArrayList<>();
+                 for (int i = 0; i < messages.size(); ++i) {
+                     MessageObject messageObject = messages.get(i);
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/community/CommunitySheet.java b/TMessagesProj/src/main/java/org/telegram/ui/community/CommunitySheet.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/community/CommunitySheet.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/community/CommunitySheet.java
+@@ -354,7 +354,7 @@
+ 
+     private void fillItemsCommunity(ArrayList<UItem> items, UniversalAdapter adapter) {
+         items.add(UItem.asSpace(ROW_ID_EMPTY_SPACE, Math.min(AndroidUtilities.statusBarHeight + dp(56 + 120), (int) (AndroidUtilities.displaySize.y * .25f))));
+-        items.add(UItem.asSpace(0, dp(56)));
++        items.add(UItem.asSpace(0, dp(68)));
+ 
+         if (CommunityUtils.COLLAPSED_SUPPORT) {
+             items.add(UItem.asSwitchNoIcon(ROW_ID_TOGGLE_COLLAPSED, getString(R.string.CommunityShowAsOneChat)).setChecked(collapsedInDialogs));
+@@ -383,7 +383,7 @@
+ 
+     private void fillItemsRequests(ArrayList<UItem> items, UniversalAdapter adapter) {
+         items.add(UItem.asSpace(ROW_ID_EMPTY_SPACE, (int) (AndroidUtilities.displaySize.y * .35f)   /*dp(12)*/));
+-        items.add(UItem.asSpace(0, dp(48)));
++        items.add(UItem.asSpace(0, dp(68)));
+ 
+         if (ChatObject.canBlockUsers(currentCommunity)) {
+             items.add(UItem.asShadow(1, AndroidUtilities.replaceArrows(AndroidUtilities.replaceSingleTag(getString(R.string.CommunityPendingRequestsInfo), () -> {
+@@ -412,7 +412,7 @@
+     private void fillItemsChatsToAddImpl(ArrayList<UItem> items, UniversalAdapter adapter, final boolean search) {
+         if (!search) {
+             items.add(UItem.asSpace(ROW_ID_EMPTY_SPACE, (int) (AndroidUtilities.displaySize.y * .35f)   /*dp(12)*/));
+-            items.add(UItem.asSpace(0, dp(56)));
++            items.add(UItem.asSpace(0, dp(68)));
+         }
+         if (chatsToAddToCommunity != null) {
+             final String query = search && lastSearchChatsString != null ?
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
+@@ -8919,7 +8919,7 @@
+             if (visible) {
+                 FrameLayout.LayoutParams toolsParams = (FrameLayout.LayoutParams) nebulaToolsButton.getLayoutParams();
+                 int toolsInset = app.nebulagram.ui.NebulaComposerSlots.toolsInset(
+-                        layoutParams.rightMargin, dp(50), dp(6),
++                        layoutParams.rightMargin, dp(50), dp(2),
+                         app.nebulagram.ui.NebulaAppearance.iosComposer(),
+                         giftButton != null && giftButton.getVisibility() == VISIBLE && attachVisible != 0 ? dp(DEFAULT_HEIGHT) : 0);
+                 if (toolsParams.rightMargin != toolsInset) {

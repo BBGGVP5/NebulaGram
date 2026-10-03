@@ -17,6 +17,7 @@ public final class NebulaMessageToolsController: UIViewController {
     private let languageButton = UIButton(type: .system)
     private let speech = AVSpeechSynthesizer()
     private let incomingSwitch = NebulaSwitchControl()
+    private let outgoingSwitch = NebulaSwitchControl()
     private let draftSwitch = NebulaSwitchControl()
 
     public init(text: String, russian: Bool, theme: PresentationTheme, accountId: String, peerId: String? = nil, applyDraft: ((String) -> Void)? = nil) {
@@ -125,9 +126,9 @@ public final class NebulaMessageToolsController: UIViewController {
         heading.textColor = theme.list.itemSecondaryTextColor
         heading.numberOfLines = 0
         stack.addArrangedSubview(heading)
-        for (index, toggle) in [incomingSwitch, draftSwitch].enumerated() {
+        for (index, toggle) in [incomingSwitch, outgoingSwitch, draftSwitch].enumerated() {
             let label = UILabel()
-            label.text = index == 0 ? text("Входящие сообщения", "Incoming messages") : text("Мой текст при наборе", "My text while typing")
+            label.text = index == 0 ? text("Входящие сообщения", "Incoming messages") : index == 1 ? text("Мои отправленные сообщения", "My sent messages") : text("Мой текст при наборе", "My text while typing")
             label.font = .preferredFont(forTextStyle: .body)
             label.adjustsFontForContentSizeCategory = true; label.numberOfLines = 0
             label.textColor = theme.list.itemPrimaryTextColor
@@ -156,7 +157,7 @@ public final class NebulaMessageToolsController: UIViewController {
     private func refreshTranslation() {
         guard let peerId else { return }
         let options = NebulaTranslationPreferences.shared.options(account: accountId, peer: peerId)
-        incomingSwitch.isOn = options.incoming; draftSwitch.isOn = options.draft
+        incomingSwitch.isOn = options.incoming; outgoingSwitch.isOn = options.outgoing; draftSwitch.isOn = options.draft
     }
     @objc private func toggleTranslation(_ sender: NebulaSwitchControl) {
         guard let peerId else { return }
@@ -166,7 +167,7 @@ public final class NebulaMessageToolsController: UIViewController {
             return
         }
         NebulaTranslationPreferences.shared.update(account: accountId, peer: peerId) {
-            if sender.tag == 0 { $0.incoming = sender.isOn } else { $0.draft = sender.isOn }
+            if sender.tag == 0 { $0.incoming = sender.isOn } else if sender.tag == 1 { $0.outgoing = sender.isOn } else { $0.draft = sender.isOn }
         }
     }
     public override func viewWillAppear(_ animated: Bool) {

@@ -26,7 +26,7 @@ public final class NebulaTranslationController: UITableViewController {
     }
     @objc private func close() { dismiss(animated: true) }
     public override func numberOfSections(in tableView: UITableView) -> Int { peer == nil ? 1 : 3 }
-    public override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int { section > 0 || (section == 0 && peer == nil && chooseChat != nil) ? 3 : 2 }
+    public override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int { section == 1 ? 4 : section == 2 || (section == 0 && peer == nil && chooseChat != nil) ? 3 : 2 }
     public override func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
         section == 1 ? text("Входящие сообщения", "Incoming messages") : section == 2 ? text("Мой текст", "My text") : nil
     }
@@ -40,20 +40,20 @@ public final class NebulaTranslationController: UITableViewController {
         let cell = UITableViewCell(style: .subtitle, reuseIdentifier: nil)
         defer { NebulaSettingsStyle.finish(cell, theme: theme) }
         cell.textLabel?.numberOfLines = 0; cell.detailTextLabel?.numberOfLines = 0
-        if indexPath.row == 0 {
-            let toggle = NebulaSwitchControl(); toggle.tag = indexPath.section
-            toggle.isOn = indexPath.section == 0 ? settings.composerShortcut : indexPath.section == 1 ? options.incoming : options.draft
+        if indexPath.row == 0 || (indexPath.section == 1 && indexPath.row == 1) {
+            let toggle = NebulaSwitchControl(); toggle.tag = indexPath.section == 1 && indexPath.row == 1 ? 3 : indexPath.section
+            toggle.isOn = toggle.tag == 3 ? options.outgoing : indexPath.section == 0 ? settings.composerShortcut : indexPath.section == 1 ? options.incoming : options.draft
             toggle.addTarget(self, action: #selector(toggled(_:)), for: .valueChanged)
             cell.accessoryView = toggle; cell.selectionStyle = .none
-            cell.textLabel?.text = indexPath.section == 0 ? text("Кнопка ИИ в поле ввода", "AI button in composer") : indexPath.section == 1 ? text("Переводить через ИИ", "Translate using AI") : text("Переводить при наборе", "Translate while typing")
-            cell.detailTextLabel?.text = indexPath.section == 0 ? text("Справа · удержание открывает настройки", "On the right · hold for settings") : indexPath.section == 2 ? text("Предпросмотр с кнопкой применения", "Preview with an Apply button") : nil
+            cell.textLabel?.text = toggle.tag == 3 ? text("Мои отправленные сообщения", "My sent messages") : indexPath.section == 0 ? text("Кнопка ИИ в поле ввода", "AI button in composer") : indexPath.section == 1 ? text("Переводить через ИИ", "Translate using AI") : text("Переводить при наборе", "Translate while typing")
+            cell.detailTextLabel?.text = toggle.tag == 3 ? text("Перевод в этом чате · оригинал сохраняется", "Translation in this chat · original is preserved") : indexPath.section == 0 ? text("Справа · удержание открывает настройки", "On the right · hold for settings") : indexPath.section == 2 ? text("Предпросмотр с кнопкой применения", "Preview with an Apply button") : nil
         } else {
             cell.accessoryType = .disclosureIndicator
             if indexPath.section == 0 {
                 cell.textLabel?.text = indexPath.row == 1 ? text("Провайдер и модель", "Provider and model") : text("Перевод в реальном времени", "Real-time translation")
                 if indexPath.row == 2 { cell.detailTextLabel?.text = text("Выбрать чат", "Choose chat") }
             }
-            else if indexPath.row == 1 {
+            else if indexPath.row == (indexPath.section == 1 ? 2 : 1) {
                 cell.textLabel?.text = text("Язык перевода", "Translation language")
                 cell.detailTextLabel?.text = NebulaResultLanguage.title(indexPath.section == 1 ? options.incomingLanguage : options.draftLanguage, russian: russian)
             } else if indexPath.section == 1 { cell.textLabel?.text = text("Повторить перевод", "Retry translation")
@@ -69,25 +69,25 @@ public final class NebulaTranslationController: UITableViewController {
             alert.addAction(UIAlertAction(title: "OK", style: .default)); present(alert, animated: true); return
         }
         guard let peer = peer else { return }
-        settings.update(account: account, peer: peer) { if sender.tag == 1 { $0.incoming = sender.isOn } else { $0.draft = sender.isOn } }
+        settings.update(account: account, peer: peer) { if sender.tag == 1 { $0.incoming = sender.isOn } else if sender.tag == 3 { $0.outgoing = sender.isOn } else { $0.draft = sender.isOn } }
     }
     public override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
         if indexPath.section == 0 && indexPath.row == 1 { navigationController?.pushViewController(NebulaAiController(russian: russian, theme: theme, account: account, peer: peer), animated: true); return }
         if indexPath.section == 0 && indexPath.row == 2 { chooseChat?(); return }
         guard let peer = peer, indexPath.section > 0 else { return }
-        if indexPath.row == 1 {
+        if indexPath.row == (indexPath.section == 1 ? 2 : 1) {
             NebulaResultLanguage.show(from: self, selected: indexPath.section == 1 ? options.incomingLanguage : options.draftLanguage, russian: russian, theme: theme) { [weak self] code in
                 guard let self = self else { return }
                 self.settings.update(account: self.account, peer: peer) { if indexPath.section == 1 { $0.incomingLanguage = code } else { $0.draftLanguage = code } }
                 self.tableView.reloadData()
             }
-        } else if indexPath.row == 2 && indexPath.section == 1 {
+        } else if indexPath.row == 3 && indexPath.section == 1 {
             NebulaLiveTranslation.retry(account: account, peer: peer); tableView.reloadData()
-        } else if indexPath.row == 2 {
-            NebulaChoiceController.show(from: self, title: text("Пауза после ввода", "Pause after typing"), choices: ["0.5 s", "1 s", "2 s"], selected: [0.5, 1, 2].firstIndex(of: options.delay), russian: russian, theme: theme) { [weak self] index in
+        } else if indexPath.row == 2 && indexPath.section == 2 {
+            NebulaChoiceController.show(from: self, title: text("Пауза после ввода", "Pause after typing"), choices: ["0.15 s", "0.3 s", "0.5 s", "1 s", "2 s"], selected: [0.15, 0.3, 0.5, 1, 2].firstIndex(of: options.delay), russian: russian, theme: theme) { [weak self] index in
                 guard let self = self else { return }
-                self.settings.update(account: self.account, peer: peer) { $0.delay = [0.5, 1, 2][index] }; self.tableView.reloadData()
+                self.settings.update(account: self.account, peer: peer) { $0.delay = [0.15, 0.3, 0.5, 1, 2][index] }; self.tableView.reloadData()
             }
         }
     }
