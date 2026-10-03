@@ -53,10 +53,10 @@ assert bar.count('nebulaTitleEndInset()') == 4, 'Measurement/layout must use the
 assert 'additionalSubTitleOverlayContainer.getMeasuredWidth())' in bar, 'Overlay subtitle must sit under the centred title'
 assert 'titlesContainer.getTranslationX()' in bar
 assert 'if (nebulaCenterTitle())' in bar
-assert 'glassMode && !nebulaHomeGlass ? 17' in bar, 'Glass home title must keep normal title size'
+assert 'glassMode && !nebulaHomeGlass && !nebulaCommunityGlass ? 17' in bar, 'Glass home/community titles must keep normal title size'
 dialogs = (tree / 'TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java').read_text(encoding='utf-8')
 assert 'setNebulaHomeGlass(true)' in dialogs and 'setNebulaHomeTabsGlass(true)' in dialogs
-assert 'nebulaHomeTabsGlass ? 4 : 16' in bar, 'Home title must use the compact grouped-action boundary'
+assert 'isNebulaSharedHeaderGlass() ? 4 : 16' in bar, 'Home title must use the compact grouped-action boundary'
 assert 'int first = Integer.MAX_VALUE;' in bar and 'int last = Integer.MIN_VALUE;' in bar
 assert 'glassDrawableMenu.setBounds(Math.max(0, first - dp(4)), t,' in bar
 assert 'glassDrawable.setAlpha(0);' in bar, 'Home actions own separate glass surfaces'

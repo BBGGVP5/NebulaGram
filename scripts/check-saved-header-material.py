@@ -35,12 +35,13 @@ class SavedMaterialCheck {
   void draw(Object canvas){calls.add(new int[]{alpha,left,right});}
  }
  boolean nebulaClassicSavedHeader,nebulaSavedMessagesHeader,nebulaFloatingChatHeader=true,glassOnlyBack;
- boolean hasForcedMenuWidth,hasForcedMenuMinWidth,nebulaHomeGlass,nebulaHomeTabsGlass,nebulaProfileGlass,isSearchFieldVisible;
+ boolean hasForcedMenuWidth,hasForcedMenuMinWidth,nebulaHomeGlass,nebulaHomeTabsGlass,nebulaCommunityGlass,nebulaProfileGlass,isSearchFieldVisible;
  int menuWidth=92,p=6,s=46,nebulaBackWidth=58,t=0,b=60;boolean hasBackButton=true;
  float actionModeFactor,searchFactor;Object canvas=new Object();
  Material glassDrawable=new Material();View menu=new View();View[] titleTextView={new View(),null};
  ChatAvatarContainer nebulaChatAvatarContainer=new ChatAvatarContainer(),chatAvatarContainer;
  Animated animatorHasMenuItems=new Animated(),animatorAvatarContainerHasAvatar=new Animated(),animatorAvatarContainerWidth=new Animated(),nebulaCapsuleWidth=new Animated();
+ boolean isNebulaSharedHeaderGlass(){return nebulaHomeTabsGlass||nebulaCommunityGlass;}
  int getWidth(){return 400;}
  void draw(){BLOCK}
  public static void main(String[] args){int cases=0;

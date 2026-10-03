@@ -40,5 +40,5 @@ assert 'params.maxHeightFraction > 0f' in fragment and 'Math.min(available,' in 
 assert 'fragment.onPause();' in fragment and 'fragment.onFragmentDestroy();' in fragment
 home=(native/'DialogsActivity.java').read_text(encoding='utf-8')
 assert home.index('nebulaHeaderGlass.draw(canvas)') < home.index('if (top && nebulaFlatHomeHeader())')
-assert 'if (actionBar.isNebulaHomeTabsGlass()) containersAlpha = 1f;' in home
+assert 'if (actionBar.isNebulaSharedHeaderGlass()) containersAlpha = 1f;' in home
 print('Native pre-measure ownership, attached-sheet lifecycle and full-header material wired')

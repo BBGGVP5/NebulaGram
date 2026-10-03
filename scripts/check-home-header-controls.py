@@ -97,5 +97,5 @@ appearance = (ui / 'NebulaAppearance.java').read_text(encoding='utf-8')
 assert 'getBoolean("home_chats_title", false)' in appearance
 assert 'putBoolean("home_chats_title", value)' in appearance
 assert 'NebulaAppearance.homeChatsTitle(), NebulaAppearance::setHomeChatsTitle' in (ui / 'NebulaExtras.java').read_text(encoding='utf-8')
-assert 'isNebulaHomeTabsGlass()' in (ui / 'NebulaLinkShortcut.java').read_text(encoding='utf-8')
+assert 'isNebulaSharedHeaderGlass()' in (ui / 'NebulaLinkShortcut.java').read_text(encoding='utf-8')
 print('Native onLayout owns and preserves leading-action geometry')

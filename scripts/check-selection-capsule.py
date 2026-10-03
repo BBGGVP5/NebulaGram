@@ -32,9 +32,10 @@ class CapsuleCheck {
  static class Menu {int x=240;View[] children={new ActionBarMenuItem(0),new ActionBarMenuItem(46),new ActionBarMenuItem(92),new ActionBarMenuItem(138)};
   int getChildCount(){return children.length;}View getChildAt(int i){return children[i];}float getX(){return x;}}
  boolean nebulaFloatingChatHeader=true,nebulaChatMenuHidden=true,glassOnlyBack,doNotDrawGlassMenu,hasForcedMenuWidth;
- boolean nebulaHomeGlass,nebulaHomeTabsGlass,isSearchFieldVisible,nebulaClassicSavedHeader,nebulaSavedMessagesHeader;Menu menu=new Menu(),actionMode=new Menu();
+ boolean nebulaHomeGlass,nebulaHomeTabsGlass,nebulaCommunityGlass,isSearchFieldVisible,nebulaClassicSavedHeader,nebulaSavedMessagesHeader;Menu menu=new Menu(),actionMode=new Menu();
  Avatar nebulaChatAvatarContainer=new Avatar();Draw glassDrawableMenu=new Draw();Animated animatorHasMenuItems=new Animated();
  float actionModeFactor,searchFactor;int menuWidth=96,s=48,p=6,t=0,b=60;Object canvas;
+ boolean isNebulaSharedHeaderGlass(){return nebulaHomeTabsGlass||nebulaCommunityGlass;}
  int getWidth(){return 400;}
  int dp(int value){return value;}
  ALPHA

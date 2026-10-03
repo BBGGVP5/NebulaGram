@@ -220,10 +220,10 @@ public final class NebulaLinkShortcut extends View {
         int color = state == NebulaLinkShortcutState.ON ? theme.success() : state == NebulaLinkShortcutState.ERROR ? 0xffd95858
                 : state == NebulaLinkShortcutState.CONNECTING ? theme.primary() : theme.onSurfaceVariant();
         int x = getWidth()/2, y = getHeight()/2;
-        // The home ActionBar owns one material for the whole action group.
+        // Home and community ActionBars own one material for the whole header.
         // Keep a standalone circle only in previews or a non-glass toolbar.
         boolean grouped = owner != null && owner.getActionBar() != null
-                && owner.getActionBar().isNebulaHomeTabsGlass();
+                && owner.getActionBar().isNebulaSharedHeaderGlass();
         if (!grouped) {
             paint.setStyle(Paint.Style.FILL);
             paint.setColor((theme.surface() & 0x00ffffff) | 0x30000000);

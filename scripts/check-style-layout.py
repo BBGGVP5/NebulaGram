@@ -41,7 +41,7 @@ java = '''class StyleLayoutCheck {
 ''' + methods + expanded + '''
  }
  static class TitleBar {
-  Object parentFragment;boolean isSearchFieldVisible,nebulaHomeTabsGlass;float mode;
+  Object parentFragment;boolean isSearchFieldVisible,nebulaHomeTabsGlass,nebulaCommunityGlass;float mode;
   float getActionModeFactor(){return mode;}
 ''' + center + '''
  }

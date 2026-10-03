@@ -36,7 +36,7 @@ sources = {
  static void check(boolean b,String message){if(!b)throw new AssertionError(message);}
  static class Theme {static int key_windowBackgroundGray=1;}
  static class Header {
-  Object parentFragment;boolean nebulaHomeTabsGlass,isSearchFieldVisible;float mode;int color,rightMargin;
+  Object parentFragment;boolean nebulaHomeTabsGlass,nebulaCommunityGlass,isSearchFieldVisible;float mode;int color,rightMargin;
   float getActionModeFactor(){return mode;}void setBackgroundColor(int c){color=c;}void setTitleRightMargin(int m){rightMargin=m;}
   HEADER
  }

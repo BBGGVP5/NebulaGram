@@ -1,0 +1,226 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
+@@ -195,6 +195,8 @@
+ 
+     private boolean glassMode;
+     private boolean nebulaHomeGlass;
++    private boolean nebulaCommunityGlass;
++    private int nebulaCommunityTitleInset;
+     private boolean nebulaProfileGlass;
+     private boolean nebulaHomeTabsGlass;
+     private View nebulaHomeLeadingView;
+@@ -288,6 +290,17 @@
+             actionMode.setTranslationX(enabled ? 0 : -dp(10));
+         }
+         invalidate();
++    }
++
++    public void setNebulaCommunityGlass(boolean enabled, boolean hasAvatar) {
++        nebulaCommunityGlass = enabled;
++        nebulaCommunityTitleInset = dp(hasAvatar ? 104 : 56);
++        requestLayout();
++        invalidate();
++    }
++
++    public boolean isNebulaSharedHeaderGlass() {
++        return nebulaHomeTabsGlass || nebulaCommunityGlass;
+     }
+ 
+     public boolean isNebulaHomeTabsGlass() {
+@@ -626,7 +639,7 @@
+         titleTextView[i] = new SimpleTextView(getContext());
+         // Folder emoji spans can be created before the first measure pass.
+         // Give them the toolbar font metrics instead of Paint's tiny pixel default.
+-        titleTextView[i].setTextSize(glassMode && !nebulaHomeGlass ? 17 : !AndroidUtilities.isTablet() && getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE ? 18 : 20);
++        titleTextView[i].setTextSize(glassMode && !nebulaHomeGlass && !nebulaCommunityGlass ? 17 : !AndroidUtilities.isTablet() && getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE ? 18 : 20);
+         titleTextView[i].setGravity(isCenterTitle ? Gravity.CENTER : Gravity.LEFT | Gravity.CENTER_VERTICAL);
+         if (titleColorToSet != 0) {
+             titleTextView[i].setTextColor(titleColorToSet);
+@@ -653,10 +666,11 @@
+         int translation = useContainerForTitles && titlesContainer != null
+                 ? (int) Math.ceil(Math.max(0f, titlesContainer.getTranslationX())) : 0;
+         return (menu != null && menu.getVisibility() != GONE ? menu.getMeasuredWidth() : 0)
+-                + dp(nebulaHomeTabsGlass ? 4 : 16) + titleRightMargin + translation;
++                + dp(isNebulaSharedHeaderGlass() ? 4 : 16) + titleRightMargin + translation;
+     }
+ 
+     private boolean nebulaCenterTitle() {
++        if (nebulaCommunityGlass) return true;
+         // Native sheet headers own their sliding title position.
+         if (parentFragment == null) return false;
+         if ((!nebulaHomeTabsGlass && !app.nebulagram.ui.NebulaAppearance.centerHome())
+@@ -1573,6 +1587,7 @@
+             textLeft = dp(AndroidUtilities.isTablet() ? 26 : 18);
+         }
+         if (nebulaHomeTabsGlass) textLeft = Math.max(textLeft, dp(84));
++        if (nebulaCommunityGlass) textLeft = Math.max(textLeft, nebulaCommunityTitleInset);
+         // textLeft += additionalTextLeft;
+ 
+         if (menu != null && menu.getVisibility() != GONE) {
+@@ -1607,11 +1622,11 @@
+                 availableWidth = Math.max(availableWidth, 0);
+ 
+                 if (((fromBottom && i == 0) || (!fromBottom && i == 1)) && overlayTitleAnimation && titleAnimationRunning) {
+-                    titleTextView[i].setTextSize(glassMode && !nebulaHomeGlass ? 17 : !AndroidUtilities.isTablet() && getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE ? 18 : 20);
++                    titleTextView[i].setTextSize(glassMode && !nebulaHomeGlass && !nebulaCommunityGlass ? 17 : !AndroidUtilities.isTablet() && getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE ? 18 : 20);
+                 } else {
+                     if (titleTextView[0] != null && titleTextView[0].getVisibility() != GONE && subtitleTextView != null && subtitleTextView.getVisibility() != GONE) {
+                         if (titleTextView[i] != null) {
+-                            titleTextView[i].setTextSize(glassMode && !nebulaHomeGlass ? 17 : AndroidUtilities.isTablet() ? 20 : 18);
++                            titleTextView[i].setTextSize(glassMode && !nebulaHomeGlass && !nebulaCommunityGlass ? 17 : AndroidUtilities.isTablet() ? 20 : 18);
+                         }
+                         subtitleTextView.setTextSize(AndroidUtilities.isTablet() ? 16 : 14);
+                         if (additionalSubtitleTextView != null) {
+@@ -1619,7 +1634,7 @@
+                         }
+                     } else {
+                         if (titleTextView[i] != null && titleTextView[i].getVisibility() != GONE) {
+-                            titleTextView[i].setTextSize(glassMode && !nebulaHomeGlass ? 17 : !AndroidUtilities.isTablet() && getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE ? 18 : 20);
++                            titleTextView[i].setTextSize(glassMode && !nebulaHomeGlass && !nebulaCommunityGlass ? 17 : !AndroidUtilities.isTablet() && getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE ? 18 : 20);
+                         }
+                         if (subtitleTextView != null && subtitleTextView.getVisibility() != GONE) {
+                             subtitleTextView.setTextSize(!AndroidUtilities.isTablet() && getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE ? 14 : 16);
+@@ -1721,6 +1736,7 @@
+         }
+         textLeft += additionalTextLeft;
+         if (nebulaHomeTabsGlass) textLeft = Math.max(textLeft, dp(84));
++        if (nebulaCommunityGlass) textLeft = Math.max(textLeft, nebulaCommunityTitleInset);
+ 
+         if (menu != null && menu.getVisibility() != GONE) {
+             int menuLeft = menu.searchFieldVisible() ? dp(menuOccupyBack ? 0 : AndroidUtilities.isTablet() ? 74 : 66) : (getMeasuredWidth()) - menu.getMeasuredWidth();
+@@ -1747,7 +1763,7 @@
+                 int titleTop = additionalTop + textTop - titleTextView[i].getPaddingTop();
+                 // Keep both measured paddings: animated emoji can extend beyond the
+                 // font ascent/descent, especially when the whole title is one emoji.
+-                int titleBottom = nebulaHomeTabsGlass
++                int titleBottom = isNebulaSharedHeaderGlass()
+                         ? titleTop + titleTextView[i].getMeasuredHeight()
+                         : additionalTop + textTop + titleTextView[i].getTextHeight() - titleTextView[i].getPaddingTop() + titleTextView[i].getPaddingBottom();
+                 titleTextView[i].layout(titleLeft, titleTop, titleLeft + titleTextView[i].getMeasuredWidth(), titleBottom);
+@@ -2615,18 +2631,18 @@
+             }
+             if (nebulaClassicSavedHeader || nebulaSavedMessagesHeader) {
+                 glassDrawable.setAlpha(Math.round(255 * Math.max(searchFactor, actionModeFactor)));
+-            } else if (nebulaHomeTabsGlass) {
+-                // Home controls own their separate material; search owns its field.
++            } else if (isNebulaSharedHeaderGlass()) {
++                // The parent draws the shared header; search owns its field.
+                 glassDrawable.setAlpha(0);
+             } else {
+                 glassDrawable.setAlpha(255);
+             }
+             if (!nebulaProfileGlass
+                     && (!(nebulaClassicSavedHeader || nebulaSavedMessagesHeader) || glassDrawable.getAlpha() > 0)
+-                    && (!nebulaHomeTabsGlass || glassDrawable.getAlpha() > 0)
++                    && (!isNebulaSharedHeaderGlass() || glassDrawable.getAlpha() > 0)
+                     && !((nebulaClassicSavedHeader || nebulaFloatingChatHeader && !app.nebulagram.ui.NebulaAppearance.chatHeader()) && actionModeFactor == 0f && searchFactor == 0f)) glassDrawable.draw(canvas);
+         }
+-        final boolean nebulaPlainHeaderButtons = nebulaHomeGlass || nebulaHomeTabsGlass
++        final boolean nebulaPlainHeaderButtons = nebulaHomeGlass || isNebulaSharedHeaderGlass()
+                 || nebulaFloatingChatHeader || nebulaClassicSavedHeader || nebulaSavedMessagesHeader;
+         if (glassDrawableBack != null && nebulaHomeTabsGlass && actionModeFactor > 0f
+                 && actionMode != null && actionMode.getChildCount() > 0) {
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
+@@ -934,7 +934,7 @@
+ 
+         @Override
+         public void drawBlurRect(Canvas canvas, float y, Rect rectTmp, Paint blurScrimPaint, boolean top) {
+-            if (top && actionBar != null && actionBar.isNebulaHomeTabsGlass()) {
++            if (top && actionBar != null && actionBar.isNebulaSharedHeaderGlass()) {
+                 if (nebulaHeaderGlass == null) {
+                     nebulaHeaderGlass = iBlur3FactoryLiquidGlass.create(this, BlurredBackgroundProviderImpl.topPanel(resourceProvider));
+                     nebulaHeaderGlass.setPadding(0);
+@@ -1697,7 +1697,7 @@
+             actionBar.setTranslationY(0);
+         }
+         // The glass toolbar owns a persistent title; stories only collapse their avatars.
+-        if (actionBar.isNebulaHomeTabsGlass()) containersAlpha = 1f;
++        if (actionBar.isNebulaSharedHeaderGlass()) containersAlpha = 1f;
+         containersAlpha *= (1f - factorSearch);
+         if (containersAlpha != 1f) {
+             actionBar.getTitlesContainer().setPivotY(AndroidUtilities.statusBarHeight);
+@@ -3244,6 +3244,12 @@
+             editLayout.leftMargin = dp(8);
+             actionBar.addView(nebulaHomeEditButton, editLayout);
+             actionBar.setNebulaHomeLeadingView(nebulaHomeEditButton);
++        }
++        if (initialDialogsType == DIALOGS_TYPE_DEFAULT && !onlySelect && !inPreviewMode
++                && communityId != 0 && TextUtils.isEmpty(searchString)
++                && app.nebulagram.ui.NebulaAppearance.homeGlassHeader()) {
++            actionBar.setupGlass(iBlur3FactoryLiquidGlass, BlurredBackgroundProviderImpl.topPanel(resourceProvider));
++            actionBar.setNebulaCommunityGlass(true, true);
+         }
+         actionBar.createAdditionalSubTitleOverlayContainer();
+         actionBar.getAdditionalSubTitleOverlayContainer().setTranslationX(dp(4));
+@@ -14252,8 +14258,8 @@
+         final float actionModeVisible = Math.max(progressToActionMode, animatorActionModeVisible.getFloatValue());
+         final float searchFieldVisible = animatorSearchVisible.getFloatValue();
+         app.nebulagram.ui.NebulaLinkShortcut.setHeaderSearchProgress(this, searchFieldVisible);
++        if (actionBar != null && actionBar.isNebulaSharedHeaderGlass()) actionBar.setSearchFactor(searchFieldVisible);
+         if (nebulaHomeEditButton != null && actionBar != null) {
+-            actionBar.setSearchFactor(searchFieldVisible);
+             final float editAlpha = (1f - searchFieldVisible) * (1f - actionModeVisible)
+                     * (1f - getRightSlidingProgress());
+             nebulaHomeEditButton.setAlpha(editAlpha);
+@@ -14568,7 +14574,7 @@
+     }
+ 
+     private void drawHeaderShadow(Canvas canvas, int sy) {
+-        if (nebulaFlatHomeHeader() || actionBar != null && actionBar.isNebulaHomeTabsGlass()) return;
++        if (nebulaFlatHomeHeader() || actionBar != null && actionBar.isNebulaSharedHeaderGlass()) return;
+         if (parentLayout == null || actionBar == null /*|| !actionBar.getCastShadows()*/) {
+             return;
+         }
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/community/CommunitySheet.java b/TMessagesProj/src/main/java/org/telegram/ui/community/CommunitySheet.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/community/CommunitySheet.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/community/CommunitySheet.java
+@@ -744,7 +744,9 @@
+             actionBar.setActionBarMenuOnItemClick(new ActionBar.ActionBarMenuOnItemClick() {
+                 @Override
+                 public void onItemClick(int id) {
+-                    if (id == 2) {
++                    if (id == -1) {
++                        dismiss();
++                    } else if (id == 2) {
+                         Bundle args = new Bundle();
+                         args.putLong("community_id", communityId);
+                         parentFragment.presentFragment(new CommunityEditActivity(args));
+@@ -994,6 +996,7 @@
+         public int pageType;
+ 
+         protected ActionBar actionBar;
++        private app.nebulagram.ui.NebulaCommunityHeader nebulaHeader;
+         protected ChatActivityFadeView fadeView;
+         protected final FrameLayout contentView;
+         protected UniversalRecyclerView listView;
+@@ -1001,7 +1004,13 @@
+         public Page(Context context) {
+             super(context);
+ 
+-            contentView = new FrameLayout(context);
++            contentView = new FrameLayout(context) {
++                @Override
++                protected boolean drawChild(Canvas canvas, View child, long drawingTime) {
++                    if (child == actionBar && nebulaHeader != null) nebulaHeader.draw(canvas, actionBar, listView);
++                    return super.drawChild(canvas, child, drawingTime);
++                }
++            };
+             contentView.setPadding(0, 0, 0, 0);
+             contentView.setClipToPadding(true);
+             addView(contentView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT, Gravity.FILL));
+@@ -1016,6 +1025,12 @@
+         }
+ 
+         protected void afterInit() {
++            final boolean hasAvatar = this instanceof CommunityPage;
++            nebulaHeader = app.nebulagram.ui.NebulaCommunityHeader.create(actionBar, hasAvatar, resourcesProvider);
++            if (nebulaHeader != null && hasAvatar) {
++                CommunityPage page = (CommunityPage) this;
++                page.avatarImage.setLayoutParams(LayoutHelper.createFrame(32, 32, Gravity.CENTER_VERTICAL | Gravity.LEFT, 58, 0, 0, 0));
++            }
+             listView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+                 @Override
+                 public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
