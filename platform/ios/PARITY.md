@@ -19,7 +19,7 @@ This inventory distinguishes **wired source** from native build and device accep
 
 ## Implemented in source outside the presentation catalog
 - Native retained-message history, original text/media references, marker, muted styling, per-chat/account clearing. Incoming cached content only; copy protection respected. Secret/expiry retention separately opt-in.
-- Archive lifetime choices: 1/7/30 days, bounded 500 entries; pruning on deletion updates (not a guaranteed background timer).
+- Archive lifetime choices: unlimited by default, or 1/7/30 days; no fixed entry-count limit. A chosen lifetime prunes copies on deletion updates (not a guaranteed background timer).
 - Per-account chat exclusions stop new retention, without silently clearing old copies. Available in the retained-message menu.
 - Archive protection routes to native **whole-app passcode / Face ID settings** with existing access authentication, since archive messages remain in ordinary chat history. No claim of a new separate biometrically encrypted message database.
 - NebulaLink import/select/connect remains an in-app proxy, not a system VPN.

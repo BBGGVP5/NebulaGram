@@ -15,6 +15,7 @@
 
 [**Скачать APK / IPA**](https://github.com/BBGGVP5/NebulaGram/releases) ·
 [Возможности](#возможности) ·
+[Полный список отличий Android и iOS](docs/USER-CHANGES.md) ·
 [Сообщить об ошибке](https://github.com/BBGGVP5/NebulaGram/issues)
 
 </div>
