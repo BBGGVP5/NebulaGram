@@ -12,7 +12,7 @@ public final class NebulaMenuFocus {
     private NebulaMenuFocus() { }
     @android.annotation.TargetApi(31)
     private static final class Effects {
-        static final RenderEffect[] cached = new RenderEffect[13];
+        static final RenderEffect[] cached = new RenderEffect[49];
         static float density;
         static void apply(View view, int step) {
             float nextDensity = AndroidUtilities.dpf2(1);
@@ -28,7 +28,7 @@ public final class NebulaMenuFocus {
         if (Build.VERSION.SDK_INT < 31) return;
         boolean active = view.isHardwareAccelerated() && NebulaMenuStyle.animated() && !NebulaGlass.reduced()
                 && LiteMode.isEnabled(LiteMode.FLAG_CHAT_BLUR);
-        Effects.apply(view, active ? Math.max(0, Math.min(12, step)) : 0);
+        Effects.apply(view, active ? Math.max(0, Math.min(48, step)) : 0);
     }
     public static void clear(View view) { if (Build.VERSION.SDK_INT >= 31) Effects.apply(view, 0); }
 }

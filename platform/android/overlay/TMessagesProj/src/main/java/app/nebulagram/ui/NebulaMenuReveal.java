@@ -27,8 +27,8 @@ public final class NebulaMenuReveal {
     private final Matrix contentTransform = new Matrix();
     private final Matrix inverseContentTransform = new Matrix();
     private final int[] location = new int[2];
-    private final NebulaMenuSource source = new NebulaMenuSource();
     private boolean viewportReady;
+    private boolean morphEnabled = true;
     private final NebulaMenuBubble.Frame frame = new NebulaMenuBubble.Frame();
     private final NebulaMenuBubble.Frame closeFrame = new NebulaMenuBubble.Frame();
     private float seed;
@@ -58,7 +58,7 @@ public final class NebulaMenuReveal {
     public void onTouch(MotionEvent event) {
         int action = event.getActionMasked();
         if (action == MotionEvent.ACTION_DOWN) NebulaHaptics.tick(host);
-        if (!NebulaMenuStyle.animated()) return;
+        if (!NebulaMenuStyle.animated(host)) return;
         if (action == MotionEvent.ACTION_DOWN || action == MotionEvent.ACTION_MOVE && !touching) {
             if (action == MotionEvent.ACTION_MOVE) NebulaHaptics.tick(host);
             touching = true; touchX = event.getRawX(); touchY = event.getRawY();
@@ -82,7 +82,6 @@ public final class NebulaMenuReveal {
     }
     public void reset() {
         stopTouch();
-        source.clear();
         viewportReady = false;
         removeOriginListener();
         began = false;
@@ -93,15 +92,16 @@ public final class NebulaMenuReveal {
         host.setScaleX(1); host.setScaleY(1); host.setAlpha(1);
     }
     public void setViewportReady(boolean ready) { viewportReady = ready; }
+    public boolean isMorphEnabled() { return morphEnabled; }
+    public void setMorphEnabled(boolean enabled) { morphEnabled = enabled; }
     public View getAnchor() { return anchor == null ? null : anchor.get(); }
     public void setAnchor(View view) {
-        source.clear();
         anchor = view == null ? null : new WeakReference<>(view);
         began = false;
     }
     public void begin() {
         stopTouch(); removeOriginListener(); began = true; originResolved = false; progress = 0; clockStart = 0; closing = false;
-        clearFocus(); source.clear();
+        clearFocus();
         host.setScaleX(1); host.setScaleY(1); host.setAlpha(0);
         host.getViewTreeObserver().addOnPreDrawListener(originListener);
         resolveOrigin();
@@ -124,7 +124,6 @@ public final class NebulaMenuReveal {
             seed = Math.max(AndroidUtilities.dp(24), Math.min(AndroidUtilities.dp(56),
                     Math.min(view.getWidth(), view.getHeight())));
         }
-        if (viewportReady) source.capture(view);
         host.getWindowVisibleDisplayFrame(screen);
         host.getLocationOnScreen(location);
         screen.offset(-location[0], -location[1]);
@@ -146,7 +145,10 @@ public final class NebulaMenuReveal {
         host.setScaleX(1); host.setScaleY(1); host.setAlpha(frame.alpha);
         View content = host.getItemsCount() == 0 ? null : (View) host.getItemAt(0).getParent();
         if (content != focusContent) { clearFocus(); focusContent = content; }
-        int step = Math.round(12 * (1 - frame.content));
+        // RenderEffect is inside the canvas scale. Keep its visible blur radius
+        // independent of the growing content, as in the reference's outer filter.
+        float scale = NebulaMenuBubble.contentScale(frame, host.getWidth(), host.getHeight(), AndroidUtilities.dp(8), closing);
+        int step = Math.min(48, Math.round(12 * (1 - frame.content) / scale));
         if (focusContent != null && step != focusStep) {
             NebulaMenuFocus.apply(focusContent, step); focusStep = step;
         }
@@ -197,10 +199,6 @@ public final class NebulaMenuReveal {
         }
     }
     public boolean isMorphing() { return viewportReady && progress != 1; }
-    public void drawSource(Canvas canvas) {
-        if (!viewportReady || progress == 1) return;
-        updateFrame(); source.draw(canvas, frame);
-    }
     public void clip(Canvas canvas) {
         if (pullX == 0 && pullY == 0 && progress == 1) return;
         contentBounds.set(0, 0, host.getMeasuredWidth(), host.getMeasuredHeight());
@@ -265,5 +263,8 @@ public final class NebulaMenuReveal {
         closeProgress = Math.max(0, Math.min(1, value));
         progress = closeStart * (1 - closeProgress * closeProgress);
         applyMotion(); host.invalidate();
+    }
+    public int getCloseDuration() {
+        return viewportReady ? NebulaMenuBubble.closeDuration(closeFrame, host.getWidth(), host.getHeight(), seed) : 180;
     }
 }

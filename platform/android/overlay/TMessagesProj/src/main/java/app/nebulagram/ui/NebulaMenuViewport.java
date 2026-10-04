@@ -40,7 +40,7 @@ public final class NebulaMenuViewport implements View.OnAttachStateChangeListene
         if (popup.isShowing()) return;
         restore();
         ActionBarPopupWindowLayout layout = content == null ? null : find(content);
-        if (layout == null || !NebulaMenuStyle.animated() || android.os.Build.VERSION.SDK_INT < 21) return;
+        if (layout == null || !NebulaMenuStyle.animated(layout) || android.os.Build.VERSION.SDK_INT < 21) return;
         Drawable background = popup.getBackground();
         // A nontransparent framework background owns its outline/shadow. Keep its native fade.
         if (background != null && (!(background instanceof ColorDrawable)

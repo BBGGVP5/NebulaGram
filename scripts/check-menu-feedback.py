@@ -55,7 +55,7 @@ public class CheckMenuFeedback {
   View host=new View(); WeakReference<View> anchor;
   float progress=1,originX,originY,seed,closeProgress,closeStart,clockStart;
   final NebulaMenuBubble.Frame frame=new NebulaMenuBubble.Frame(),closeFrame=new NebulaMenuBubble.Frame();
-  Source source=new Source();View focusContent;
+  View focusContent;boolean morphEnabled=true;
   boolean began,originResolved,closing,viewportReady=true;int focusStep=-1;
   Rect screen=new Rect();int[] location=new int[2]; Runnable originListener=()->resolveOrigin();
   void stopTouch(){}
@@ -63,7 +63,6 @@ public class CheckMenuFeedback {
  }
  static class Rect {int left=-2000,top=-2000,right=2000,bottom=2000;void offset(int x,int y){left+=x;right+=x;top+=y;bottom+=y;}}
  static class AndroidUtilities {static int dp(int n){return n;}}
- static class Source {void clear(){}void capture(View v){}}
  static class NebulaMenuFocus {static int step;static void apply(View v,int n){step=n;}static void clear(View v){step=0;}}
  static class NebulaMenuStyle {static float radius(){return 24;}}
  static class Context {static String VIBRATOR_SERVICE="v";Object getSystemService(String s){return new Vibrator();}}
@@ -90,7 +89,7 @@ public class CheckMenuFeedback {
   float peak=0;
   for(int i=31;i<=100;i++){r.setProgress(i/100f);check(r.host.sx==1 && r.host.sy==1,"surface geometry must not scale the whole window");peak=Math.max(peak,r.frame.width);}
   check(peak>200 && r.frame.width==200 && r.frame.height==300 && r.frame.x==100 && r.frame.y==150,"independent growth settles exactly at native bounds");
-  r.setProgress(.45f);float pivot=r.host.py,previous=r.frame.width,alpha=r.host.alpha,center=r.frame.x;r.prepareClose();r.setCloseProgress(0);
+  r.setProgress(.45f);float pivot=r.host.py,previous=r.frame.width,alpha=r.host.alpha,center=r.frame.x;r.prepareClose();check(r.getCloseDuration()>=380,"grown popup retains full close duration");r.setCloseProgress(0);
   check(r.frame.width==previous && r.host.alpha==alpha && r.frame.x==center,"interrupt close starts at displayed frame");
   for(int i=1;i<=100;i++){r.setCloseProgress(i/100f);check(r.host.py==pivot && r.frame.width<=previous+.001f,"reverse reveal never jumps origin or grows");previous=r.frame.width;}
   check(r.host.alpha==0 && Math.abs(r.frame.width-r.seed)<.001,"close ends at source bubble");
@@ -108,6 +107,8 @@ public class CheckMenuFeedback {
   r.viewportReady=false;r.begin();r.setProgress(.1f);
   check(r.frame.x==100&&r.frame.y==150&&r.frame.width==200&&r.frame.height==300&&r.frame.content==1,"unsupported drawing surfaces fade at native bounds");
   r.reset();check(!r.viewportReady,"detach forgets old drawing viewport");
+  r.setMorphEnabled(false);r.reset();r.setAnchor(anchor);check(!r.isMorphEnabled(),"native message policy survives reuse/reset");
+  check(anchor.alpha==1,"trigger remains visible throughout all cycles");
   View v=new View();power=35;now=100;tick(v);check(Vibrator.calls==0,"toggle off");
   enabled=true;v.feedback=false;tick(v);check(Vibrator.calls==0,"view feedback disabled");
   v.feedback=true;Vibrator.available=false;tick(v);check(Vibrator.calls==0,"no vibrator");
@@ -122,7 +123,7 @@ public class CheckMenuFeedback {
 source = source.replace('REVEAL_METHODS', '\n'.join(method(reveal, sig) for sig in [
     'public void setAnchor(', 'public void begin(', 'private boolean resolveOrigin(',
     'private void removeOriginListener(', 'private void applyMotion(', 'private void updateFrame(', 'private void clearFocus(', 'public void setProgress(', 'public void reset(',
-    'public void prepareClose(', 'public void setCloseProgress(']))
+    'public void prepareClose(', 'public void setCloseProgress(', 'public int getCloseDuration(', 'public boolean isMorphEnabled(', 'public void setMorphEnabled(']))
 # The no-entry caller path only needs an endpoint in this lifecycle fixture.
 source = source.replace('void stopTouch(){}', 'void stopTouch(){} void finish(){closing=false;setProgress(1);}')
 source = source.replace('HAPTIC_METHODS', method(haptics, 'public static void tick(') + '\n' + method(haptics, 'public static boolean accept('))

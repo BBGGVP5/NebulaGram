@@ -47,7 +47,7 @@ public class SpringAnimation {public <T> SpringAnimation(T x,FloatPropertyCompat
     'androidx/dynamicanimation/animation/SpringForce.java': '''package androidx.dynamicanimation.animation;
 public class SpringForce {public SpringForce(float v){}public SpringForce setStiffness(float x){return this;}public SpringForce setDampingRatio(float x){return this;} }''',
     'app/nebulagram/ui/NebulaMenuStyle.java': '''package app.nebulagram.ui;
-public class NebulaMenuStyle {public static boolean animated(){return true;}public static float radius(){return 24;} }''',
+public class NebulaMenuStyle {public static boolean animated(){return true;}public static boolean animated(org.telegram.ui.ActionBar.ActionBarPopupWindow.ActionBarPopupWindowLayout c){return c.nebulaReveal.isMorphEnabled();}public static float radius(){return 24;} }''',
     'app/nebulagram/ui/NebulaGlass.java': '''package app.nebulagram.ui;
 public class NebulaGlass {public static float refraction(){return 1;}public static boolean reduced(){return false;} }''',
     'app/nebulagram/ui/NebulaHaptics.java': '''package app.nebulagram.ui;
@@ -61,7 +61,7 @@ with tempfile.TemporaryDirectory(prefix='nebula-menu-api-') as folder:
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(source, encoding='utf-8')
     production = ['NebulaMenuReveal.java', 'NebulaMenuMotion.java', 'NebulaMenuBubble.java',
-                  'NebulaMenuFocus.java', 'NebulaSelectionGlass.java', 'NebulaMenuSource.java', 'NebulaMenuViewport.java']
+                  'NebulaMenuFocus.java', 'NebulaSelectionGlass.java', 'NebulaMenuViewport.java']
     subprocess.run(['javac', '-encoding', 'UTF-8', '-cp', str(platforms[-1]), '-d', folder,
                     *map(str, work.rglob('*.java')), *[str(ui / name) for name in production]], check=True)
 print('Production popup drawing, focus and touch helpers typechecked against ' + platforms[-1].parent.name)

@@ -1,4 +1,4 @@
-"""Exercise production drawing outsets/source lifecycle without changing native popup hit geometry."""
+"""Exercise production drawing outsets and per-menu policy without changing native hit geometry."""
 from pathlib import Path
 import subprocess
 import sys
@@ -9,11 +9,6 @@ ui = root / 'platform/android/overlay/TMessagesProj/src/main/java/app/nebulagram
 stubs = {
     'android/graphics/Color.java': 'package android.graphics;public class Color {public static int alpha(int c){return c>>>24;}}',
     'android/graphics/Rect.java': 'package android.graphics;public class Rect {public int left,top,right,bottom;}',
-    'android/graphics/Paint.java': 'package android.graphics;public class Paint {public static int ANTI_ALIAS_FLAG=1,FILTER_BITMAP_FLAG=2;public int alpha;public Paint(int flags){}public void setAlpha(int a){alpha=a;}}',
-    'android/graphics/Bitmap.java': '''package android.graphics;public class Bitmap {public enum Config {ARGB_8888}public int w,h;public boolean recycled;
-     public static Bitmap createBitmap(int w,int h,Config c){Bitmap b=new Bitmap();b.w=w;b.h=h;return b;}public int getWidth(){return w;}public int getHeight(){return h;}public void recycle(){recycled=true;}}''',
-    'android/graphics/Canvas.java': '''package android.graphics;public class Canvas {public int draws,alpha;public float x,y;public Canvas(Bitmap b){}
-     public void drawBitmap(Bitmap b,float x,float y,Paint p){draws++;alpha=p.alpha;this.x=x;this.y=y;}}''',
     'android/graphics/drawable/Drawable.java': 'package android.graphics.drawable;public class Drawable {}',
     'android/graphics/drawable/ColorDrawable.java': 'package android.graphics.drawable;public class ColorDrawable extends Drawable {public int c;public ColorDrawable(int c){this.c=c;}public int getColor(){return c;}}',
     'android/os/Build.java': 'package android.os;public class Build {public static class VERSION {public static int SDK_INT=36;}}',
@@ -34,7 +29,7 @@ stubs = {
      public ViewOutlineProvider getOutlineProvider(){return outline;}public void setOutlineProvider(ViewOutlineProvider p){outline=p;}
      public void addOnAttachStateChangeListener(OnAttachStateChangeListener l){listeners.add(l);}public void removeOnAttachStateChangeListener(OnAttachStateChangeListener l){listeners.remove(l);}
      public void detach(){attached=false;for(OnAttachStateChangeListener l:new java.util.ArrayList<>(listeners))l.onViewDetachedFromWindow(this);}
-     public float getAlpha(){return alpha;}public void setAlpha(float a){alpha=a;}public void draw(android.graphics.Canvas c){if(failDraw)throw new RuntimeException();draws++;}}
+     public float getAlpha(){return alpha;}public void setAlpha(float a){alpha=a;}}
      ''',
     'android/view/ViewGroup.java': '''package android.view;public class ViewGroup extends View {public boolean children=true,padding=true;
      public java.util.ArrayList<View> views=new java.util.ArrayList<>();public void add(View v){views.add(v);v.parent=this;}
@@ -46,8 +41,8 @@ stubs = {
      public boolean isShowing(){return showing;}public boolean isClippingEnabled(){return clipping;}public float getElevation(){return elevation;}public void setElevation(float v){elevation=v;}
      public android.graphics.drawable.Drawable getBackground(){return background;}}''',
     'org/telegram/messenger/AndroidUtilities.java': 'package org.telegram.messenger;public class AndroidUtilities {public static int dp(float x){return (int)Math.ceil(x);}}',
-    'app/nebulagram/ui/NebulaMenuStyle.java': 'package app.nebulagram.ui;public class NebulaMenuStyle {public static boolean enabled=true;public static boolean animated(){return enabled;}}',
-    'app/nebulagram/ui/NebulaMenuReveal.java': 'package app.nebulagram.ui;public class NebulaMenuReveal {public android.view.View anchor;public boolean ready;public android.view.View getAnchor(){return anchor;}public void setViewportReady(boolean r){ready=r;}}',
+    'app/nebulagram/ui/NebulaMenuStyle.java': 'package app.nebulagram.ui;public class NebulaMenuStyle {public static boolean enabled=true;public static boolean animated(){return enabled;}public static boolean animated(org.telegram.ui.ActionBar.ActionBarPopupWindow.ActionBarPopupWindowLayout menu){return enabled&&menu.nebulaReveal.morph;}}',
+    'app/nebulagram/ui/NebulaMenuReveal.java': 'package app.nebulagram.ui;public class NebulaMenuReveal {public android.view.View anchor;public boolean ready,morph=true;public void setMorphEnabled(boolean value){morph=value;}public android.view.View getAnchor(){return anchor;}public void setViewportReady(boolean r){ready=r;}}',
     'org/telegram/ui/ActionBar/ActionBarPopupWindow.java': '''package org.telegram.ui.ActionBar;public class ActionBarPopupWindow {
      public static class ActionBarPopupWindowLayout extends android.view.ViewGroup {public boolean shownFromBottom;public app.nebulagram.ui.NebulaMenuReveal nebulaReveal=new app.nebulagram.ui.NebulaMenuReveal();}}''',
     'Check.java': '''import android.view.*;import android.widget.*;import android.graphics.*;import android.graphics.drawable.*;
@@ -81,14 +76,11 @@ stubs = {
       NebulaMenuStyle.enabled=true;android.os.Build.VERSION.SDK_INT=36;window.background=null;window.showing=false;root.w=240;
       viewport.prepare(window,root,anchor,Gravity.TOP,-200,10,true);check(menu.nebulaReveal.ready,"drop-down path");viewport.restore();
       viewport.prepare(window,root,app,Gravity.BOTTOM|Gravity.RIGHT,10,20,false);check(menu.nebulaReveal.ready,"bottom/right path");viewport.restore();
-      NebulaMenuSource source=new NebulaMenuSource();anchor.alpha=.7f;source.capture(anchor);check(anchor.alpha==0,"small source hidden only after successful snapshot");
-      NebulaMenuBubble.Frame frame=new NebulaMenuBubble.Frame();frame.x=100;frame.y=200;frame.content=.25f;Canvas canvas=new Canvas(null);source.draw(canvas,frame);
-      check(canvas.draws==1&&canvas.x==76&&canvas.y==176&&canvas.alpha==Math.round(.7f*.75f*255),"source follows bubble center at native size with content crossfade");
-      frame.content=1;source.draw(canvas,frame);check(canvas.draws==1,"source is absent once content is fully revealed");source.clear();source.clear();check(anchor.alpha==.7f,"exact original source alpha restored idempotently");
-      anchor.failDraw=true;source.capture(anchor);check(anchor.alpha==.7f,"snapshot failure never hides the source");anchor.failDraw=false;
-      anchor.w=400;source.capture(anchor);check(anchor.alpha==.7f,"message-sized anchors are never captured or hidden");anchor.w=48;
-      source.capture(anchor);View next=new View();next.w=next.h=40;source.capture(next);check(anchor.alpha==.7f&&next.alpha==0,"replacing source releases the previous control");source.clear();check(next.alpha==1,"replacement releases too");
-      System.out.println("Drawing outsets preserve native window/hit geometry; clipping, reduced modes, source handoff and 20 reuses passed");
+      menu.nebulaReveal.setMorphEnabled(false);anchor.alpha=.7f;
+      viewport.prepare(window,root,app,Gravity.TOP,0,0,false);
+      check(!menu.nebulaReveal.ready&&window.elevation==4&&root.outline==outline,"message menu retains native window and outline");
+      check(anchor.alpha==.7f&&anchor.draws==0,"trigger is never captured or hidden");
+      System.out.println("Drawing outsets preserve native window/hit geometry; message policy, reduced modes and 20 reuses passed");
      }}''',
 }
 with tempfile.TemporaryDirectory(prefix='nebula-menu-viewport-') as folder:
@@ -98,7 +90,7 @@ with tempfile.TemporaryDirectory(prefix='nebula-menu-viewport-') as folder:
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(source, encoding='utf-8')
     subprocess.run(['javac', '-encoding', 'UTF-8', '-d', folder, *map(str, work.rglob('*.java')),
-                    *[str(ui / name) for name in ['NebulaMenuBubble.java', 'NebulaMenuSource.java', 'NebulaMenuViewport.java']]], check=True)
+                    *[str(ui / name) for name in ['NebulaMenuBubble.java', 'NebulaMenuViewport.java']]], check=True)
     subprocess.run(['java', '-cp', folder, 'Check'], check=True)
 if len(sys.argv) > 1:
     popup = (Path(sys.argv[1]) / 'TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarPopupWindow.java').read_text(encoding='utf-8')
@@ -107,7 +99,8 @@ if len(sys.argv) > 1:
         start = popup.index(signature)
         assert popup.index('nebulaViewport.prepare(', start) < popup.index(show, start)
         assert 'if (!isShowing()) nebulaViewport.restore();' in popup[start:popup.index(show, start) + 250]
-    assert 'nebulaReveal.drawSource(canvas);' in popup
+    assert 'nebulaReveal.drawSource(canvas);' not in popup
+    assert not (ui / 'NebulaMenuSource.java').exists(), 'no trigger snapshot helper remains'
     assert 'nebulaDrawGapStart = nebulaReveal.isMorphing() ? -1000000 : gapStartY;' in popup
     assert 'backgroundDrawable != null && !nebulaReveal.isMorphing()' in popup, 'gaps must travel as faded content instead of clipping the moving platter'
     assert 'public View getContentView(' not in popup, 'native callers must keep the original content identity'

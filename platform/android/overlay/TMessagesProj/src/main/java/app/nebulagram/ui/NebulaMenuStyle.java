@@ -35,6 +35,9 @@ public final class NebulaMenuStyle {
         return enabled() && NebulaAppearance.liquidAnimations() && !NebulaGlass.reduced()
                 && (android.os.Build.VERSION.SDK_INT < 26 || ValueAnimator.areAnimatorsEnabled());
     }
+    public static boolean animated(ActionBarPopupWindowLayout content) {
+        return content != null && content.nebulaReveal.isMorphEnabled() && animated();
+    }
     public static int radius() { return AndroidUtilities.dp(enabled() ? 24 : 12); }
     public static int surface(Theme.ResourcesProvider provider) {
         return NebulaMenuPalette.surface(provider != null ? provider.isDark() : Theme.isCurrentThemeDark());
@@ -209,7 +212,7 @@ public final class NebulaMenuStyle {
         frame.setInterpolator(new android.view.animation.LinearInterpolator());
         frame.addUpdateListener(a -> content.nebulaReveal.setCloseProgress((float) a.getAnimatedValue()));
         AnimatorSet set = new AnimatorSet(); set.playTogether(frame);
-        set.setDuration(Math.max(100, Math.round(400 * content.nebulaReveal.getProgress())));
+        set.setDuration(content.nebulaReveal.getCloseDuration());
         return set;
     }
 }

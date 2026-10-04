@@ -1,0 +1,83 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarPopupWindow.java b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarPopupWindow.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarPopupWindow.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarPopupWindow.java
+@@ -600,7 +600,6 @@
+                 }
+             }
+             int nebulaClipSave = canvas.save();
+-            nebulaReveal.drawSource(canvas);
+             nebulaReveal.clip(canvas);
+             if (reactionsEnterProgress != 1f) {
+                 canvas.saveLayerAlpha((float) AndroidUtilities.rectTmp2.left, (float) AndroidUtilities.rectTmp2.top, AndroidUtilities.rectTmp2.right, AndroidUtilities.rectTmp2.bottom, (int) (255 * reactionsEnterProgress), Canvas.ALL_SAVE_FLAG);
+@@ -941,7 +940,7 @@
+             finalScaleY = content.backScaleY;
+         }
+         AnimatorSet windowAnimatorSet;
+-        if (app.nebulagram.ui.NebulaMenuStyle.animated()) {
++        if (app.nebulagram.ui.NebulaMenuStyle.animated(content)) {
+             content.updateAnimation = false;
+             windowAnimatorSet = app.nebulagram.ui.NebulaMenuStyle.opening(content, finalScaleY);
+         } else {
+@@ -1033,7 +1032,7 @@
+                 content.getSwipeBack().invalidateTransforms();
+                 finalScaleY = content.backScaleY;
+             }
+-            if (app.nebulagram.ui.NebulaMenuStyle.animated()) {
++            if (app.nebulagram.ui.NebulaMenuStyle.animated(content)) {
+                 content.updateAnimation = false;
+                 windowAnimatorSet = app.nebulagram.ui.NebulaMenuStyle.opening(content, finalScaleY);
+             } else {
+@@ -1140,8 +1139,8 @@
+             if (outEmptyTime > 0) {
+                 windowAnimatorSet.playTogether(ValueAnimator.ofFloat(0, 1f));
+                 windowAnimatorSet.setDuration(outEmptyTime);
+-            } else if (app.nebulagram.ui.NebulaMenuStyle.animated()
+-                    && (content != null || viewGroup instanceof ActionBarPopupWindowLayout)) {
++            } else if (app.nebulagram.ui.NebulaMenuStyle.animated(content != null ? content
++                    : viewGroup instanceof ActionBarPopupWindowLayout ? (ActionBarPopupWindowLayout) viewGroup : null)) {
+                 windowAnimatorSet = app.nebulagram.ui.NebulaMenuStyle.closing(
+                         content != null ? content : (ActionBarPopupWindowLayout) viewGroup);
+             } else if (scaleOut) {
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
+@@ -31420,6 +31420,7 @@
+             }
+ 
+             ActionBarPopupWindow.ActionBarPopupWindowLayout popupLayout = new ActionBarPopupWindow.ActionBarPopupWindowLayout(getParentActivity(), R.drawable.popup_fixed_alert4, themeDelegate, flags);
++            popupLayout.nebulaReveal.setMorphEnabled(false);
+             popupLayout.setMinimumWidth(AndroidUtilities.dp(200));
+             Rect backgroundPaddings = new Rect();
+             Drawable shadowDrawable = getParentActivity().getResources().getDrawable(R.drawable.popup_fixed_alert4).mutate();
+@@ -32722,7 +32723,6 @@
+             } else {
+                 scrimPopupWindow.setAnimationStyle(0);
+             }
+-            if (app.nebulagram.ui.NebulaMenuStyle.animated()) scrimPopupWindow.setAnimationStyle(0);
+             popupLayout.nebulaReveal.setAnchor(v);
+             scrimPopupWindow.setFocusable(true);
+             scrimPopupContainerLayout.measure(View.MeasureSpec.makeMeasureSpec(AndroidUtilities.dp(1000), View.MeasureSpec.AT_MOST), View.MeasureSpec.makeMeasureSpec(AndroidUtilities.dp(1000), View.MeasureSpec.AT_MOST));
+@@ -32858,7 +32858,6 @@
+                     return;
+                 }
+                 scrimPopupWindow.showAtLocation(chatListView, Gravity.LEFT | Gravity.TOP, finalPopupX, finalPopupY);
+-                if (app.nebulagram.ui.NebulaMenuStyle.animated()) scrimPopupWindow.startAnimation();
+                 if (isReactionsAvailableFinal && finalReactionsLayout != null) {
+                     finalReactionsLayout.startEnterAnimation(true);
+                 }
+@@ -40754,6 +40753,7 @@
+             };
+             scrimPopupContainerLayout.setLayoutParams(LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT));
+             ActionBarPopupWindow.ActionBarPopupWindowLayout popupLayout = new ActionBarPopupWindow.ActionBarPopupWindowLayout(getParentActivity(), 0, getResourceProvider(), 0);
++            popupLayout.nebulaReveal.setMorphEnabled(false);
+             scrimPopupContainerLayout.addView(popupLayout);
+ 
+             boolean showCompletion = false;
+@@ -45781,6 +45781,7 @@
+                 MessagesController.getGlobalMainSettings().edit().putInt("savedsearchtaghint", 1).apply();
+ 
+                 ActionBarPopupWindow.ActionBarPopupWindowLayout popupLayout = new ActionBarPopupWindow.ActionBarPopupWindowLayout(getParentActivity(), 0, getResourceProvider(), 0);
++                popupLayout.nebulaReveal.setMorphEnabled(false);
+                 if (getUserConfig().isPremium()) {
+                     ActionBarMenuSubItem editTag = new ActionBarMenuSubItem(getParentActivity(), false, false);
+                     editTag.setTextAndIcon(LocaleController.getString(TextUtils.isEmpty(getMessagesController().getSavedTagName(reaction.reaction)) ? R.string.SavedTagLabelTag : R.string.SavedTagRenameTag), R.drawable.menu_tag_rename);
