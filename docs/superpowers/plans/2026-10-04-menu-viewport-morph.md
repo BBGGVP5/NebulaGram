@@ -38,7 +38,9 @@ Files: create `NebulaMenuSource.java`; modify `NebulaMenuReveal.java`, `NebulaMe
 
 - [x] Run the affected menu, selection, palette and rendering checks; reconstruct and apply the full native patch series with `python build/verify-upstream-12106.py`.
 - [x] Record normalized trajectory/contact sheets for the reference and the new implementation, without claiming device verification from mathematical tests.
-- [ ] Commit only the intended files, publish the source changes and run the Android build. Keep the existing iOS IPA rebuild under observation because these changes target Android.
-- [ ] Download and verify the resulting APK, then provide it with the concrete change and verification limits. Use ADB if the phone is connected; currently no USB device is visible.
+- [x] Commit only the intended files, publish the source changes and run the Android build. Keep the existing iOS IPA rebuild under observation because these changes target Android.
+- [x] Download and verify the resulting APK, then provide it with the concrete change and verification limits. Use ADB if the phone is connected; currently no USB device is visible.
 
 Verification: all 169 patches apply to 122 native files from the pinned Telegram revision. API compilation, source/window lifecycle, palette, pointer inversion, selection and hot-path checks pass. Physical screen bounds receive a smooth inward center lead without resizing the native hit area. Framework wrappers created during show are also unclipped and restored. Cached video contact sheets and production-motion CSV/diagram are in `build/menu-video-comparison/`; the diagram is explicitly marked as calculated, not a device recording. ADB and Windows device inventory currently show no phone.
+
+Delivery: Android run 37188819556 succeeded for 87ea4fd. The arm64 APK build 1000358 was downloaded, ZIP/digest/package and release certificate verified. The newer iOS rebuild for the same source revision is run 37189962445.

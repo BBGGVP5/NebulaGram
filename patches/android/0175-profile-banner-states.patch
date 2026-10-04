@@ -1,0 +1,61 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
+@@ -5277,9 +5277,25 @@
+             CanvasButton canvasButton;
+ 
+             @Override
++            protected boolean drawChild(Canvas canvas, View child, long drawingTime) {
++                boolean drawn = super.drawChild(canvas, child, drawingTime);
++                if (child == overlaysView && !isInLandscapeMode) {
++                    nebulaHero.drawForeground(canvas);
++                }
++                return drawn;
++            }
++
++            @Override
+             protected void dispatchDraw(Canvas canvas) {
+                 if (!isInLandscapeMode) {
+-                    nebulaHero.draw(canvas, getWidth(), avatarContainer, nameTextView[1], onlineTextView[1], actionsView, calculateHeaderExtraDiff(), currentExpandAnimatorValue, mediaHeaderAnimationProgress, 1f, resourcesProvider);
++                    final float nebulaHeaderBottom = (ActionBar.getCurrentActionBarHeight()
++                            + (actionBar.getOccupyStatusBar() ? AndroidUtilities.statusBarHeight : 0)
++                            + extraHeight + searchTransitionOffset) * (1f - mediaHeaderAnimationProgress);
++                    nebulaHero.draw(canvas, getWidth(), avatarContainer, nameTextView[1], onlineTextView[1], actionsView,
++                            avatarsViewPager != null ? avatarsViewPager.getCurrentItemView() : null, nebulaHeaderBottom,
++                            calculateHeaderExtraDiff(), currentExpandAnimatorValue, mediaHeaderAnimationProgress, 1f, resourcesProvider);
++                } else {
++                    nebulaHero.clear(actionsView);
+                 }
+                 super.dispatchDraw(canvas);
+                 if (transitionOnlineText != null) {
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ProfileActionsView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ProfileActionsView.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ProfileActionsView.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ProfileActionsView.java
+@@ -304,6 +304,10 @@
+                         action.rect.width() / 2.0f * (1.0f - action.getScale()),
+                         action.rect.height() / 2.0f * (1.0f - action.getScale())
+                     );
++                    if (hasCustomActionSurface(canvas)) {
++                        drawActionSurface(canvas, AndroidUtilities.rectTmp, action.key, r, action.getAlpha() * alphaFraction1);
++                        continue;
++                    }
+                     int wasAlpha = paint.getAlpha();
+                     int newAlpha = (int) (action.getAlpha() * alphaFraction1 * wasAlpha);
+                     paint.setAlpha((int) (newAlpha * (radialGradient != null ? 0.1f : 1f)));
+@@ -329,7 +333,7 @@
+             }
+         }
+ 
+-        drawRenderNode(canvas);
++        if (!hasCustomActionSurface(canvas)) drawRenderNode(canvas);
+ 
+         float alphaFraction2 = Utilities.clamp01((fraction - 0.4f) / 0.6f);
+         if (alphaFraction2 > 0f) {
+@@ -513,6 +517,7 @@
+     }
+ 
+     // NebulaGram: drawing extension points; native actions and geometry stay owned here.
++    protected boolean hasCustomActionSurface(Canvas canvas) { return false; }
+     protected void drawActionSurface(Canvas canvas, RectF rect, int key, float radius, float alpha) { }
+     protected void drawActionIconBackground(Canvas canvas, Rect bounds, int key, int lines, float alpha) { }
+     protected int actionTextColor(int color) { return color; }

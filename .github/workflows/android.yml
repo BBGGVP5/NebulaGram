@@ -155,6 +155,7 @@ jobs:
           python3 scripts/check-settings-tab-icon.py vendor/telegram-android
           python3 scripts/check-launcher-icons.py vendor/telegram-android
           python3 scripts/check-render-hot-path.py vendor/telegram-android
+          python3 scripts/check-profile-banner.py vendor/telegram-android
           python3 scripts/check-deleted-retention.py vendor/telegram-android
           python3 scripts/check-archive-pipeline.py
           python3 scripts/check-glass-edge.py vendor/telegram-android

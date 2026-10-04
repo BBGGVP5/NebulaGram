@@ -86,56 +86,54 @@ public final class NebulaProfileArt {
         private LinearGradient gradient, bottomFade;
         private int previousFadeColor;
         private float previousFadeTop, previousFadeBottom;
-        private int previousStart, previousEnd;
+        private int previousStart, previousEnd, previousWidth;
         private float previousTop, previousBottom;
 
+        private final int[] savedRadii = new int[4];
+        private final int[] squareRadii = new int[4];
+        private float foregroundAlpha;
+
         public void draw(Canvas canvas, int width, View avatar, SimpleTextView title,
-                         View subtitle, View actions, float progress, float expanded, float media,
-                         float opening, Theme.ResourcesProvider provider) {
-            if (actions instanceof Actions) ((Actions) actions).bannerReady = false;
-            if (!NebulaAppearance.profileStyle() || avatar == null || title == null || subtitle == null) return;
-            // Р‘Р°РЅРЅРµСЂ СѓС…РѕРґРёС‚ СЂРѕРІРЅРѕ Р·Р° С‚Рѕ РІСЂРµРјСЏ, Р·Р° РєРѕС‚РѕСЂРѕРµ СЂР°СЃРєСЂС‹РІР°РµС‚СЃСЏ Р°РІР°С‚Р°СЂРєР°.
-            // РўСЂРѕР№РЅРѕР№ РјРЅРѕР¶РёС‚РµР»СЊ РіР°СЃРёР» РµРіРѕ РЅР° РїРµСЂРІРѕР№ С‚СЂРµС‚Рё С…РѕРґР°, Р° СЂРѕРґРЅР°СЏ
-            // С„РѕС‚РѕРіСЂР°С„РёСЏ Рє СЌС‚РѕРјСѓ РјРѕРјРµРЅС‚Сѓ РµС‰С‘ РЅРµ Р·Р°РєСЂС‹РІР°Р»Р° С€Р°РїРєСѓ вЂ” РјРµР¶РґСѓ РЅРёРјРё
-            // РѕСЃС‚Р°РІР°Р»СЃСЏ РєР°РґСЂ СЃ РіРѕР»С‹Рј С„РѕРЅРѕРј, Рё СЌС‚Рѕ С‡РёС‚Р°Р»РѕСЃСЊ РєР°Рє РјРѕСЂРіР°РЅРёРµ.
-            final float alpha = clamp((progress - .25f) / .75f) * (1f - clamp(expanded))
+                         View subtitle, View actions, BackupImageView galleryPhoto, float headerBottom,
+                         float progress, float expanded, float media, float opening,
+                         Theme.ResourcesProvider provider) {
+            foregroundAlpha = 0;
+            Actions buttons = actions instanceof Actions ? (Actions) actions : null;
+            if (buttons != null) buttons.bannerReady = false;
+            final float alpha = clamp((progress - .25f) / .75f)
                     * (1f - clamp(media)) * clamp(opening);
-            if (alpha <= .01f || width < dp(240)) return;
+            if (!NebulaAppearance.profileStyle() || avatar == null || title == null || subtitle == null
+                    || alpha <= .01f || width < dp(240) || headerBottom <= dp(64)) {
+                if (buttons != null) buttons.setBannerActive(false);
+                return;
+            }
             final float top = Math.max(dp(4), avatar.getY() - dp(14));
-            final float bottom = Math.max(subtitle.getY() + subtitle.getHeight() + dp(14),
-                    actions != null && actions.getVisibility() == View.VISIBLE
-                            ? actions.getY() + dp(74) : 0);
-            if (bottom <= top + dp(64)) return;
-            // Р’Рѕ РІСЃСЋ С€РёСЂРёРЅСѓ Рё РґРѕ РІРµСЂС…РЅРµРіРѕ РєСЂР°СЏ: РєР°СЂС‚РѕС‡РєР° СЃ РѕС‚СЃС‚СѓРїР°РјРё С‡РёС‚Р°Р»Р°СЃСЊ
-            // РєР°Рє РІРёРґР¶РµС‚ РІРЅСѓС‚СЂРё СЌРєСЂР°РЅР°, Р° РЅРµ РєР°Рє С€Р°РїРєР° РїСЂРѕС„РёР»СЏ.
+            // The native header includes the music row below the actions.
+            // Its bounds also follow the search/media transition and expansion.
+            final float bottom = headerBottom;
             rect.set(0, 0, width, bottom);
-            final BackupImageView photo = findPhoto(avatar);
+            BackupImageView photo = galleryPhoto != null && expanded > .5f
+                    && galleryPhoto.getImageReceiver().hasImageLoaded() ? galleryPhoto : findPhoto(avatar);
             final boolean banner = NebulaAppearance.profilePhotoBanner() && photo != null
                     && photo.getImageReceiver().hasImageLoaded();
-            // Telegram's TopView already renders the peer's colour/emoji or the standard header.
+            if (buttons != null) buttons.setBannerActive(banner);
+            // Keep Telegram's peer colour/emoji decoration when no photo is available.
             if (!banner) return;
             final NebulaTheme material = NebulaTheme.of(avatar.getContext());
             final int accent = accent(provider);
             int base = material.isDynamic() ? material.surfaceContainer() : surface(provider);
             final int titleColor = title.getTextPaint().getColor() | 0xff000000;
-            // Peer-selected profile colours can make the native title white
-            // in a light theme. Keep its chosen contrast instead of recolouring it.
             if (ColorUtils.calculateContrast(titleColor, base | 0xff000000) < 4.5) {
                 base = ColorUtils.blendARGB(base,
                         ColorUtils.calculateLuminance(titleColor) > .5 ? Color.BLACK : Color.WHITE, .85f);
             }
             final int start = ColorUtils.blendARGB(base, accent, .2f);
-            if (gradient == null || previousStart != start || previousEnd != base ||
+            if (gradient == null || previousStart != start || previousEnd != base || previousWidth != width ||
                     previousTop != top || previousBottom != bottom) {
                 gradient = new LinearGradient(0, top, width, bottom, start, base, Shader.TileMode.CLAMP);
-                previousStart = start;
-                previousEnd = base;
-                previousTop = top;
-                previousBottom = bottom;
+                previousStart = start; previousEnd = base; previousWidth = width;
+                previousTop = top; previousBottom = bottom;
             }
-            // End in the exact page colour, including light and custom themes.
-            // A long eased fade keeps the photograph behind the identity and actions
-            // while removing its rectangular lower edge.
             final int page = Theme.getColor(Theme.key_windowBackgroundGray, provider) | 0xff000000;
             final float fadeTop = Math.max(0, bottom - dp(148));
             if (bottomFade == null || previousFadeColor != page || previousFadeTop != fadeTop
@@ -146,21 +144,46 @@ public final class NebulaProfileArt {
                                 ColorUtils.setAlphaComponent(page, 138), page},
                         new float[] {0f, .32f, .72f, 1f}, Shader.TileMode.CLAMP);
                 previousFadeColor = page;
-                previousFadeTop = fadeTop;
-                previousFadeBottom = bottom;
+                previousFadeTop = fadeTop; previousFadeBottom = bottom;
             }
-            drawBannerSurface(canvas, photo.getImageReceiver(), rect, alpha);
-            if (actions instanceof Actions && canvas.isHardwareAccelerated()) {
-                ((Actions) actions).captureBanner(this, photo.getImageReceiver(), rect);
+            foregroundAlpha = alpha;
+            // Only the decorative image gives way to Telegram's native gallery.
+            // The foreground fade and glass remain continuous through expansion.
+            float backdropAlpha = alpha * (1f - clamp(expanded));
+            if (backdropAlpha > 0) drawBannerBackdrop(canvas, photo.getImageReceiver(), rect, backdropAlpha);
+            if (buttons != null && canvas.isHardwareAccelerated()) {
+                buttons.captureBanner(this, photo.getImageReceiver(), rect);
             }
         }
 
-        private void drawBannerSurface(Canvas canvas, ImageReceiver receiver, RectF bounds, float alpha) {
+        public void clear(View actions) {
+            foregroundAlpha = 0;
+            if (actions instanceof Actions) {
+                ((Actions) actions).bannerReady = false;
+                ((Actions) actions).setBannerActive(false);
+            }
+        }
+
+        /** After native photo/blur children, before controls, music and title. */
+        public void drawForeground(Canvas canvas) {
+            if (foregroundAlpha <= 0 || bottomFade == null) return;
+            paint.setShader(bottomFade);
+            paint.setAlpha(Math.round(255 * foregroundAlpha));
+            canvas.drawRect(rect.left, rect.top, rect.right, rect.bottom + 1f, paint);
+            paint.setShader(null);
+        }
+
+        private void drawBannerBackdrop(Canvas canvas, ImageReceiver receiver, RectF bounds, float alpha) {
             drawPhotoBanner(canvas, receiver, bounds, alpha);
             paint.setStyle(Paint.Style.FILL);
             paint.setShader(gradient);
             paint.setAlpha(Math.round(255 * alpha * .20f));
             canvas.drawRect(bounds, paint);
+            paint.setShader(null);
+        }
+
+        private void drawBannerSurface(Canvas canvas, ImageReceiver receiver, RectF bounds, float alpha) {
+            drawBannerBackdrop(canvas, receiver, bounds, alpha);
             paint.setShader(bottomFade);
             paint.setAlpha(Math.round(255 * alpha));
             canvas.drawRect(bounds, paint);
@@ -191,28 +214,29 @@ public final class NebulaProfileArt {
         }
 
         private void drawPhotoBanner(Canvas canvas, ImageReceiver receiver, RectF target, float alpha) {
-            final float imageX = receiver.getImageX();
-            final float imageY = receiver.getImageY();
-            final float imageW = receiver.getImageWidth();
-            final float imageH = receiver.getImageHeight();
+            final float imageX = receiver.getImageX(), imageY = receiver.getImageY();
+            final float imageW = receiver.getImageWidth(), imageH = receiver.getImageHeight();
             final float imageAlpha = receiver.getAlpha();
-            final int[] imageRadii = receiver.getRoundRadius().clone();
+            System.arraycopy(receiver.getRoundRadius(), 0, savedRadii, 0, 4);
             int save = canvas.save();
-            heroPath(bannerClip, target);
-            canvas.clipPath(bannerClip);
-            receiver.setImageCoords(target);
-            // Decorative banner rendering must not change the avatar's base radius.
-            receiver.setRoundRadius(new int[] {0, 0, 0, 0});
-            receiver.setAlpha(.78f * alpha);
-            // The one-argument draw applies the user's avatar shape; bypass it here.
-            receiver.draw(canvas, null);
-            paint.setColor(Color.BLACK);
-            paint.setAlpha((int) (110 * alpha));
-            canvas.drawRect(target, paint);
-            canvas.restoreToCount(save);
-            receiver.setAlpha(imageAlpha);
-            receiver.setRoundRadius(imageRadii);
-            receiver.setImageCoords(imageX, imageY, imageW, imageH);
+            try {
+                heroPath(bannerClip, target);
+                canvas.clipPath(bannerClip);
+                receiver.setImageCoords(target);
+                // The array overload preserves the user's base avatar radius.
+                receiver.setRoundRadius(squareRadii);
+                receiver.setAlpha(.78f * alpha);
+                receiver.draw(canvas, null);
+                paint.setShader(null);
+                paint.setColor(Color.BLACK);
+                paint.setAlpha((int) (110 * alpha));
+                canvas.drawRect(target, paint);
+            } finally {
+                canvas.restoreToCount(save);
+                receiver.setAlpha(imageAlpha);
+                receiver.setRoundRadius(savedRadii);
+                receiver.setImageCoords(imageX, imageY, imageW, imageH);
+            }
         }
     }
 
@@ -225,22 +249,31 @@ public final class NebulaProfileArt {
                 new float[] {0f, .48f, 1f}, Shader.TileMode.CLAMP);
         private final Theme.ResourcesProvider provider;
         private NebulaProfileGlass glass;
-        private boolean bannerReady;
+        private boolean bannerReady, bannerActive, hasNativeColor, nativeHasColorById;
+        private int nativeColor;
         public Actions(Context context, int height, Theme.ResourcesProvider provider) {
             super(context, height);
             this.provider = provider;
         }
         @Override public void setActionsColor(int color, boolean hasColorById) {
-            // White native labels retain contrast over even a bright photograph.
-            if (NebulaAppearance.profilePhotoBanner()) super.setActionsColor(0x66101010, false);
-            else super.setActionsColor(color, hasColorById);
+            nativeColor = color; nativeHasColorById = hasColorById; hasNativeColor = true;
+            super.setActionsColor(bannerActive ? 0x66101010 : color, !bannerActive && hasColorById);
+        }
+        private void setBannerActive(boolean active) {
+            if (bannerActive == active) return;
+            bannerActive = active;
+            if (hasNativeColor) super.setActionsColor(active ? 0x66101010 : nativeColor,
+                    !active && nativeHasColorById);
+        }
+        @Override protected boolean hasCustomActionSurface(Canvas canvas) {
+            return bannerReady && glass != null && canvas.isHardwareAccelerated() && NebulaProfileGlass.supported();
         }
         @Override public float getRoundRadius() { return dp(20); }
 
         private void captureBanner(Hero hero, ImageReceiver receiver, RectF bounds) {
             if (!NebulaProfileGlass.supported()) return;
             if (glass == null) glass = new NebulaProfileGlass(provider);
-            Canvas capture = glass.begin(Math.round(bounds.width()), Math.round(bounds.height()));
+            Canvas capture = glass.begin((int) Math.ceil(bounds.width()), (int) Math.ceil(bounds.height()));
             try { hero.drawBannerSurface(capture, receiver, bounds, 1f); }
             finally { glass.end(); }
             bannerReady = true;
@@ -264,7 +297,7 @@ public final class NebulaProfileArt {
         @Override protected void onDetachedFromWindow() {
             super.onDetachedFromWindow();
             glass = null;
-            bannerReady = false;
+            bannerReady = false; setBannerActive(false);
         }
     }
 

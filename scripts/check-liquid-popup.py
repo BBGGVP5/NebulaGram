@@ -64,18 +64,17 @@ stubs = {
        org.telegram.ui.Components.blur3.BlurredBackgroundDrawableViewFactory factory=new org.telegram.ui.Components.blur3.BlurredBackgroundDrawableViewFactory();
        selection.setup(factory,null);Canvas canvas=new Canvas();
        selection.drawActions(canvas,menu,material,width,0,AndroidUtilities.dp(60),factor);
-       check(canvas.nodes.size()==visible,"one deferred node per visible action");
-       int previousRight=-1;
-       java.util.HashSet<Object> nodes=new java.util.HashSet<>();
-       for(BlurredBackgroundDrawable draw:canvas.nodes){int pad=AndroidUtilities.dp(6);
-        check(draw!=material&&nodes.add(draw),"deferred GPU nodes must not alias the union or another action");
-        check(draw.left+pad>previousRight,"deferred action surfaces remain separate after all bounds mutations");previousRight=draw.right-pad;
+       check(canvas.nodes.size()==(visible>0?1:0),"one shared capsule for visible actions");
+       for(BlurredBackgroundDrawable draw:canvas.nodes){
+        check(draw!=material,"group GPU node must not alias the native touch union");
+        check(draw.left==first&&draw.right==last,"group spans exactly the visible actions");
+        check(draw.top==0&&draw.bottom==AndroidUtilities.dp(60),"group aligns with the selection header");
         check(draw.alpha==Math.round(255*factor),"material follows selection transition");
         check(draw.ox==31&&draw.oy==47,"same backdrop alignment as the header");}
        int allocated=factory.created;canvas.nodes.clear();
        selection.drawActions(canvas,menu,material,width,0,AndroidUtilities.dp(60),factor);
        check(factory.created==allocated,"no material allocation on subsequent frames");
-       check(material.left==(visible>0?first:0)&&material.right==(visible>0?last:0),"native touch union retained after separate draws");cases++;
+       check(material.left==(visible>0?first:0)&&material.right==(visible>0?last:0),"native touch union retained after grouped draw");cases++;
       }
       NebulaMenuBubble.Frame bubble=new NebulaMenuBubble.Frame(),captured=new NebulaMenuBubble.Frame();
       for(float w:new float[]{64,240,600})for(float h:new float[]{64,400,900})for(int corner=0;corner<4;corner++){
@@ -134,7 +133,7 @@ stubs = {
        check(NebulaMenuMotion.radius(24,200,p)>=24&&NebulaMenuMotion.radius(24,200,p)<=100,"rounded source morph");
        check(NebulaMenuMotion.focus(p)>=0&&NebulaMenuMotion.focus(p)<=12,"bounded focus");
       }
-      System.out.println(cases+" separate selection action cases; popup effect cache, API/power cleanup and spring bounds passed");
+      System.out.println(cases+" grouped selection action cases; popup effect cache, API/power cleanup and spring bounds passed");
      }}''',
 }
 with tempfile.TemporaryDirectory(prefix='nebula-liquid-popup-') as folder:
