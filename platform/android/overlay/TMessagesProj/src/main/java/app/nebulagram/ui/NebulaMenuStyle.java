@@ -183,6 +183,7 @@ public final class NebulaMenuStyle {
         }
     }
     public static AnimatorSet opening(ActionBarPopupWindowLayout content, float finalScaleY) {
+        content.clipChildren = false;
         content.setBackScaleY(finalScaleY); content.setBackAlpha(255);
         for (int i = 0; i < content.getItemsCount(); i++) {
             View child = content.getItemAt(i);
@@ -192,7 +193,7 @@ public final class NebulaMenuStyle {
         ValueAnimator frame = ValueAnimator.ofFloat(0f, 1f);
         frame.setInterpolator(new android.view.animation.LinearInterpolator());
         frame.addUpdateListener(a -> content.nebulaReveal.setProgress((float) a.getAnimatedValue()));
-        AnimatorSet set = new AnimatorSet(); set.playTogether(frame); set.setDuration(520);
+        AnimatorSet set = new AnimatorSet(); set.playTogether(frame); set.setDuration(750);
         set.addListener(new AnimatorListenerAdapter() {
             private boolean cancelled;
             @Override public void onAnimationCancel(Animator animation) { cancelled = true; }
@@ -208,7 +209,7 @@ public final class NebulaMenuStyle {
         frame.setInterpolator(new android.view.animation.LinearInterpolator());
         frame.addUpdateListener(a -> content.nebulaReveal.setCloseProgress((float) a.getAnimatedValue()));
         AnimatorSet set = new AnimatorSet(); set.playTogether(frame);
-        set.setDuration(Math.max(100, Math.round(280 * content.nebulaReveal.getProgress())));
+        set.setDuration(Math.max(100, Math.round(400 * content.nebulaReveal.getProgress())));
         return set;
     }
 }

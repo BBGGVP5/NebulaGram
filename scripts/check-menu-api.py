@@ -22,7 +22,7 @@ public class AndroidUtilities { public static int dp(float x){return (int)x;}pub
 public class LiteMode { public static int FLAG_CHAT_BLUR=1;public static boolean isEnabled(int x){return true;} }''',
     'org/telegram/ui/ActionBar/ActionBarPopupWindow.java': '''package org.telegram.ui.ActionBar;
 public class ActionBarPopupWindow {public static class ActionBarPopupWindowLayout extends android.widget.FrameLayout {
- public boolean shownFromBottom;public ActionBarPopupWindowLayout(android.content.Context c){super(c);}
+ public app.nebulagram.ui.NebulaMenuReveal nebulaReveal;public boolean shownFromBottom;public ActionBarPopupWindowLayout(android.content.Context c){super(c);}
  public int getItemsCount(){return 0;}public android.view.View getItemAt(int i){return getChildAt(i);}
  public android.graphics.drawable.Drawable getBackgroundDrawable(){return getBackground();}}}''',
     'org/telegram/ui/ActionBar/ActionBarMenu.java': '''package org.telegram.ui.ActionBar;
@@ -61,7 +61,7 @@ with tempfile.TemporaryDirectory(prefix='nebula-menu-api-') as folder:
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(source, encoding='utf-8')
     production = ['NebulaMenuReveal.java', 'NebulaMenuMotion.java', 'NebulaMenuBubble.java',
-                  'NebulaMenuFocus.java', 'NebulaSelectionGlass.java']
+                  'NebulaMenuFocus.java', 'NebulaSelectionGlass.java', 'NebulaMenuSource.java', 'NebulaMenuViewport.java']
     subprocess.run(['javac', '-encoding', 'UTF-8', '-cp', str(platforms[-1]), '-d', folder,
                     *map(str, work.rglob('*.java')), *[str(ui / name) for name in production]], check=True)
 print('Production popup drawing, focus and touch helpers typechecked against ' + platforms[-1].parent.name)

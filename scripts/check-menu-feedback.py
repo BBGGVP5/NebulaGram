@@ -43,6 +43,7 @@ public class CheckMenuFeedback {
   Context getContext(){return new Context();}
   boolean performHapticFeedback(int c){Vibrator.calls++;return true;}
   int getWidth(){return w;} int getHeight(){return h;}
+  void getWindowVisibleDisplayFrame(Rect r){r.left=r.top=-2000;r.right=r.bottom=2000;}
   void getLocationOnScreen(int[] p){p[0]=x;p[1]=y;}
   void setScaleX(float f){sx=f;} void setScaleY(float f){sy=f;}
   float getScaleX(){return sx;} float getScaleY(){return sy;}float getAlpha(){return alpha;}
@@ -54,13 +55,15 @@ public class CheckMenuFeedback {
   View host=new View(); WeakReference<View> anchor;
   float progress=1,originX,originY,seed,closeProgress,closeStart,clockStart;
   final NebulaMenuBubble.Frame frame=new NebulaMenuBubble.Frame(),closeFrame=new NebulaMenuBubble.Frame();
-  View focusContent;
-  boolean began,originResolved,closing;int focusStep=-1;
-  int[] location=new int[2]; Runnable originListener=()->resolveOrigin();
+  Source source=new Source();View focusContent;
+  boolean began,originResolved,closing,viewportReady=true;int focusStep=-1;
+  Rect screen=new Rect();int[] location=new int[2]; Runnable originListener=()->resolveOrigin();
   void stopTouch(){}
   REVEAL_METHODS
  }
+ static class Rect {int left=-2000,top=-2000,right=2000,bottom=2000;void offset(int x,int y){left+=x;right+=x;top+=y;bottom+=y;}}
  static class AndroidUtilities {static int dp(int n){return n;}}
+ static class Source {void clear(){}void capture(View v){}}
  static class NebulaMenuFocus {static int step;static void apply(View v,int n){step=n;}static void clear(View v){step=0;}}
  static class NebulaMenuStyle {static float radius(){return 24;}}
  static class Context {static String VIBRATOR_SERVICE="v";Object getSystemService(String s){return new Vibrator();}}
@@ -81,7 +84,7 @@ public class CheckMenuFeedback {
   r.begin();r.setProgress(.3f);r.resolveOrigin();
   check(!r.originResolved && r.host.alpha==0,"must wait for popup attachment");
   r.host.attached=true;r.resolveOrigin();
-  check(r.host.px==160 && r.host.py==0,"top anchor must override bottom flag");
+  check(r.host.px==160 && r.host.py== -40,"top anchor must override bottom flag");
   check(r.frame.width==40 && r.frame.content==0,"delayed attachment still begins with source bubble");
   check(r.host.observer.listener==null,"pre-draw listener removed");
   float peak=0;
@@ -92,16 +95,19 @@ public class CheckMenuFeedback {
   for(int i=1;i<=100;i++){r.setCloseProgress(i/100f);check(r.host.py==pivot && r.frame.width<=previous+.001f,"reverse reveal never jumps origin or grows");previous=r.frame.width;}
   check(r.host.alpha==0 && Math.abs(r.frame.width-r.seed)<.001,"close ends at source bubble");
   anchor.y=450;r.host.shownFromBottom=false;r.begin();r.resolveOrigin();
-  check(r.host.py==300,"bottom anchor must override top flag");
+  check(r.host.py==390,"bottom anchor must override top flag");
   r.reset();check(r.host.alpha==1 && r.host.sx==1 && !r.began,"detach reset");
   for(int side=0;side<4;side++)for(int cycle=0;cycle<25;cycle++){
-   anchor.x=(side%2==0?20:500);anchor.y=(side<2?20:500);r.setAnchor(anchor);r.begin();
+   anchor.x=(side%2==0?20:500);anchor.y=(side<2?20:500);r.setAnchor(anchor);r.viewportReady=true;r.begin();
    float px=r.host.px,py=r.host.py;r.setProgress(.1f);
    check(r.originResolved && r.host.observer.listener==null,"resolve attached anchor before first visible frame");
-   check(px==(side%2==0?0:200)&&py==(side<2?0:300),"correct source corner");
+   check(px==(side%2==0?-60:420)&&py==(side<2?-40:440),"correct source corner");
    check(r.seed==40,"initial round bubble follows source button dimensions");
    r.prepareClose();r.setCloseProgress(.5f);r.reset();check(NebulaMenuFocus.step==0,"cancel releases focus");
   }
+  r.viewportReady=false;r.begin();r.setProgress(.1f);
+  check(r.frame.x==100&&r.frame.y==150&&r.frame.width==200&&r.frame.height==300&&r.frame.content==1,"unsupported drawing surfaces fade at native bounds");
+  r.reset();check(!r.viewportReady,"detach forgets old drawing viewport");
   View v=new View();power=35;now=100;tick(v);check(Vibrator.calls==0,"toggle off");
   enabled=true;v.feedback=false;tick(v);check(Vibrator.calls==0,"view feedback disabled");
   v.feedback=true;Vibrator.available=false;tick(v);check(Vibrator.calls==0,"no vibrator");
@@ -130,6 +136,7 @@ subprocess.run(['java', '-cp', str(work), 'CheckMenuFeedback'], check=True)
 style = (ui / 'NebulaMenuStyle.java').read_text()
 opening = method(style, 'public static AnimatorSet opening(')
 assert 'if (!cancelled)' in opening and 'child.setTranslationY(0)' in opening
+assert 'content.clipChildren = false;' in opening, 'reusing a native-fallback popup must clear its old canvas clip'
 assert 'setCloseProgress(' in method(style, 'public static AnimatorSet closing(')
 assert 'ValueAnimator.areAnimatorsEnabled()' in style and '!NebulaGlass.reduced()' in style
 bar = (native / 'ActionBar/ActionBar.java').read_text(encoding='utf-8')

@@ -28,6 +28,7 @@ public class CheckMenuDrag {
  }
  static class Host {int w=240,h=320;int getWidth(){return w;}int getHeight(){return h;}
   int getMeasuredWidth(){return w;}int getMeasuredHeight(){return h;}}
+ static class Rect {int left=-2000,top=-2000,right=2000,bottom=2000;void offset(int x,int y){left+=x;right+=x;top+=y;bottom+=y;}}
  static class AndroidUtilities {static int dp(int n){return n;}}
  static class NebulaMenuStyle {static float radius(){return 24;}}
  static class Matrix {
@@ -45,7 +46,7 @@ public class CheckMenuDrag {
  }
  static class Reveal {
   Host host=new Host();float progress=1,pullX,pullY,originX=240,originY=0,seed=48,closeProgress;
-  boolean closing;NebulaMenuBubble.Frame frame=new NebulaMenuBubble.Frame(),closeFrame=new NebulaMenuBubble.Frame();
+  Rect screen=new Rect();boolean closing,viewportReady=true;NebulaMenuBubble.Frame frame=new NebulaMenuBubble.Frame(),closeFrame=new NebulaMenuBubble.Frame();
   Matrix contentTransform=new Matrix(),inverseContentTransform=new Matrix();
   METHODS
  }

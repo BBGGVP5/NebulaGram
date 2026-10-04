@@ -1,0 +1,119 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarPopupWindow.java b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarPopupWindow.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarPopupWindow.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarPopupWindow.java
+@@ -263,7 +263,7 @@
+ 
+                 @Override
+                 protected boolean drawChild(Canvas canvas, View child, long drawingTime) {
+-                    if (child instanceof GapView && backgroundDrawable != null) {
++                    if (child instanceof GapView && backgroundDrawable != null && !nebulaReveal.isMorphing()) {
+                         return false;
+                     }
+                     return super.drawChild(canvas, child, drawingTime);
+@@ -485,12 +485,14 @@
+             if (swipeBackGravityBottom) {
+                 setTranslationY(getMeasuredHeight() * (1f - backScaleY));
+             }
++            final int nebulaDrawGapStart = nebulaReveal.isMorphing() ? -1000000 : gapStartY;
++            final int nebulaDrawGapEnd = nebulaReveal.isMorphing() ? -1000000 : gapEndY;
+             if (backgroundDrawable != null) {
+-                int start = gapStartY - (scrollView == null ? 0 : scrollView.getScrollY());
+-                int end = gapEndY - (scrollView == null ? 0 : scrollView.getScrollY());
++                int start = nebulaDrawGapStart - (scrollView == null ? 0 : scrollView.getScrollY());
++                int end = nebulaDrawGapEnd - (scrollView == null ? 0 : scrollView.getScrollY());
+                 boolean hasGap = false;
+                 for (int i = 0; i < linearLayout.getChildCount(); i++) {
+-                    if (linearLayout.getChildAt(i) instanceof GapView && linearLayout.getChildAt(i).getVisibility() == View.VISIBLE) {
++                    if (!nebulaReveal.isMorphing() && linearLayout.getChildAt(i) instanceof GapView && linearLayout.getChildAt(i).getVisibility() == View.VISIBLE) {
+                         hasGap = true;
+                         break;
+                     }
+@@ -504,7 +506,7 @@
+                     if (hasGap && backAlpha != 255) {
+                         canvas.saveLayerAlpha(0, bgPaddings.top, getMeasuredWidth(), getMeasuredHeight(), backAlpha, Canvas.ALL_SAVE_FLAG);
+                         applyAlpha = false;
+-                    }  else if (gapStartY != -1000000) {
++                    }  else if (nebulaDrawGapStart != -1000000) {
+                         canvas.save();
+                         canvas.clipRect(0, bgPaddings.top, getMeasuredWidth(), getMeasuredHeight());
+                     }
+@@ -517,13 +519,13 @@
+                             int h = (int) (getMeasuredHeight() * backScaleY);
+                             if (a == 0) {
+                                 if (swipeBackLayout != null && swipeBackLayout.stickToRight) {
+-                                    AndroidUtilities.rectTmp2.set(getMeasuredWidth() - (int) (getMeasuredWidth() * backScaleX), (scrollView == null ? 0 : -scrollView.getScrollY()) + (gapStartY != -1000000 ? dp(1) : 0), getMeasuredWidth(), (gapStartY != -1000000 ? Math.min(h, start + dp(16)) : h) - subtractBackgroundHeight);
++                                    AndroidUtilities.rectTmp2.set(getMeasuredWidth() - (int) (getMeasuredWidth() * backScaleX), (scrollView == null ? 0 : -scrollView.getScrollY()) + (nebulaDrawGapStart != -1000000 ? dp(1) : 0), getMeasuredWidth(), (nebulaDrawGapStart != -1000000 ? Math.min(h, start + dp(16)) : h) - subtractBackgroundHeight);
+                                 } else {
+-                                    AndroidUtilities.rectTmp2.set(0, (scrollView == null ? 0 : -scrollView.getScrollY()) + (gapStartY != -1000000 ? dp(1) : 0), (int) (getMeasuredWidth() * backScaleX), (gapStartY != -1000000 ? Math.min(h, start + dp(16)) : h) - subtractBackgroundHeight);
++                                    AndroidUtilities.rectTmp2.set(0, (scrollView == null ? 0 : -scrollView.getScrollY()) + (nebulaDrawGapStart != -1000000 ? dp(1) : 0), (int) (getMeasuredWidth() * backScaleX), (nebulaDrawGapStart != -1000000 ? Math.min(h, start + dp(16)) : h) - subtractBackgroundHeight);
+                                 }
+                             } else {
+                                 if (h < end) {
+-                                    if (gapStartY != -1000000) {
++                                    if (nebulaDrawGapStart != -1000000) {
+                                         canvas.restore();
+                                     }
+                                     continue;
+@@ -536,9 +538,9 @@
+                             }
+                         } else {
+                             if (swipeBackLayout != null && swipeBackLayout.stickToRight) {
+-                                AndroidUtilities.rectTmp2.set(getMeasuredWidth() - (int) (getMeasuredWidth() * backScaleX), (gapStartY < 0 ? 0 : -dp(16)), getMeasuredWidth(), (int) (getMeasuredHeight() * backScaleY) - subtractBackgroundHeight);
++                                AndroidUtilities.rectTmp2.set(getMeasuredWidth() - (int) (getMeasuredWidth() * backScaleX), (nebulaDrawGapStart < 0 ? 0 : -dp(16)), getMeasuredWidth(), (int) (getMeasuredHeight() * backScaleY) - subtractBackgroundHeight);
+                             } else {
+-                                AndroidUtilities.rectTmp2.set(0, (gapStartY < 0 ? 0 : -dp(16)), (int) (getMeasuredWidth() * backScaleX), (int) (getMeasuredHeight() * backScaleY) - subtractBackgroundHeight);
++                                AndroidUtilities.rectTmp2.set(0, (nebulaDrawGapStart < 0 ? 0 : -dp(16)), (int) (getMeasuredWidth() * backScaleX), (int) (getMeasuredHeight() * backScaleY) - subtractBackgroundHeight);
+                             }
+                         }
+                     }
+@@ -598,6 +600,7 @@
+                 }
+             }
+             int nebulaClipSave = canvas.save();
++            nebulaReveal.drawSource(canvas);
+             nebulaReveal.clip(canvas);
+             if (reactionsEnterProgress != 1f) {
+                 canvas.saveLayerAlpha((float) AndroidUtilities.rectTmp2.left, (float) AndroidUtilities.rectTmp2.top, AndroidUtilities.rectTmp2.right, AndroidUtilities.rectTmp2.bottom, (int) (255 * reactionsEnterProgress), Canvas.ALL_SAVE_FLAG);
+@@ -732,6 +735,8 @@
+             invalidate();
+         }
+     }
++
++    private final app.nebulagram.ui.NebulaMenuViewport nebulaViewport = new app.nebulagram.ui.NebulaMenuViewport();
+ 
+     public ActionBarPopupWindow() {
+         super();
+@@ -890,6 +895,17 @@
+             registerListener(anchor);
+         } catch (Exception e) {
+             FileLog.e(e);
++        }
++    }
++
++    @Override
++    public void showAsDropDown(View anchor, int xoff, int yoff, int gravity) {
++        nebulaViewport.prepare(this, getContentView(), anchor, gravity, xoff, yoff, true);
++        try {
++            super.showAsDropDown(anchor, xoff, yoff, gravity);
++            registerListener(anchor);
++        } finally {
++            if (!isShowing()) nebulaViewport.restore();
+         }
+     }
+ 
+@@ -1072,8 +1088,13 @@
+ 
+     @Override
+     public void showAtLocation(View parent, int gravity, int x, int y) {
+-        super.showAtLocation(parent, gravity, x, y);
+-        unregisterListener();
++        nebulaViewport.prepare(this, getContentView(), parent, gravity, x, y, false);
++        try {
++            super.showAtLocation(parent, gravity, x, y);
++            unregisterListener();
++        } finally {
++            if (!isShowing()) nebulaViewport.restore();
++        }
+     }
+ 
+     @Override

@@ -37,10 +37,10 @@ stubs = {
     'Check.java': '''import app.nebulagram.ui.*;import android.view.View;import android.graphics.*;import org.telegram.ui.ActionBar.*;
      import org.telegram.messenger.*;import org.telegram.ui.Components.blur3.drawable.BlurredBackgroundDrawable;
      class Check {static void check(boolean b,String why){if(!b)throw new AssertionError(why);}public static void main(String[] args){
-      View view=new View();NebulaMenuFocus.apply(view,8);check(view.effect!=null&&view.effect.radius==2,"popup-only focus radius");
-      int creations=RenderEffect.created;for(int i=0;i<100;i++)NebulaMenuFocus.apply(view,8);check(RenderEffect.created==creations,"reuse effect, no per-frame allocation");
+      View view=new View();NebulaMenuFocus.apply(view,6);check(view.effect!=null&&view.effect.radius==4,"popup-only focus radius");
+      int creations=RenderEffect.created;for(int i=0;i<100;i++)NebulaMenuFocus.apply(view,6);check(RenderEffect.created==creations,"reuse effect, no per-frame allocation");
       NebulaMenuFocus.clear(view);check(view.effect==null,"detach/finish clears effect");
-      AndroidUtilities.density=2;NebulaMenuFocus.apply(view,8);check(RenderEffect.created==creations+1&&view.effect.radius==4,"density change rebuilds cached effect");
+      AndroidUtilities.density=2;NebulaMenuFocus.apply(view,6);check(RenderEffect.created==creations+1&&view.effect.radius==8,"density change rebuilds cached effect");
       for(int guard=0;guard<4;guard++){
        NebulaMenuStyle.enabled=guard!=0;NebulaGlass.reduced=guard==1;LiteMode.enabled=guard!=2;view.hardware=guard!=3;
        NebulaMenuFocus.apply(view,12);check(view.effect==null,"animation, power, blur and software gates clear focus");
@@ -82,14 +82,14 @@ stubs = {
        float x=(corner&1)==0?0:w,y=(corner&2)==0?0:h;
        NebulaMenuBubble.opening(bubble,0,w,h,x,y,48,24);
        check(bubble.width==48&&bubble.height==48&&bubble.radius==24&&bubble.content==0,"starts as a bubble, labels hidden");
-       check(bubble.x==((corner&1)==0?24:w-24)&&bubble.y==((corner&2)==0?24:h-24),"first bubble stays at initiating corner");
+       check(bubble.x==x&&bubble.y==y,"first bubble stays at the true initiating control");
        for(int i=0;i<=1000;i++){
         NebulaMenuBubble.opening(bubble,i/1000f,w,h,x,y,48,24);
         check(bubble.width>=48&&bubble.width<=w*1.045f&&bubble.height>=48&&bubble.height<=h*1.045f,"bounded independent growth");
         check(bubble.content>=0&&bubble.content<=1&&bubble.alpha>=0&&bubble.alpha<=1,"bounded focus/opacity");
-        NebulaMenuBubble.fit(bubble,w,h,8);
-        check(bubble.x-bubble.width/2>=-8.001f&&bubble.x+bubble.width/2<=w+8.001f
-          &&bubble.y-bubble.height/2>=-8.001f&&bubble.y+bubble.height/2<=h+8.001f,"glass stays inside PopupWindow viewport, rounded edges never cut off");
+        float outset=NebulaMenuBubble.outset(w,h,x,y,48,16);
+        check(bubble.x-bubble.width/2>=-outset&&bubble.x+bubble.width/2<=w+outset
+          &&bubble.y-bubble.height/2>=-outset&&bubble.y+bubble.height/2<=h+outset,"drawing envelope retains the arc without moving or resizing logical menu bounds");
        }
        check(bubble.x==w/2&&bubble.y==h/2&&bubble.width==w&&bubble.height==h&&bubble.radius==24&&bubble.content==1,"exact native endpoint");
        for(float interrupt:new float[]{0,.05f,.2f,.45f,1}){
@@ -104,6 +104,31 @@ stubs = {
         check(bubble.alpha==0&&bubble.content==0&&bubble.width==48,"returns to source and disappears");
        }
       }
+      for(float x:new float[]{-500,-24,120,264,800})for(float y:new float[]{-600,-24,200,424,1200}) {
+       float envelope=NebulaMenuBubble.outset(240,400,x,y,48,16);
+       NebulaMenuBubble.opening(bubble,0,240,400,x,y,48,24);
+       check(bubble.x==x&&bubble.y==y,"out-of-menu anchor must not be clamped to an edge");
+       for(int i=0;i<=1000;i++) {
+        NebulaMenuBubble.opening(bubble,i/1000f,240,400,x,y,48,24);
+        check(bubble.x-bubble.width/2>=-envelope&&bubble.x+bubble.width/2<=240+envelope
+         &&bubble.y-bubble.height/2>=-envelope&&bubble.y+bubble.height/2<=400+envelope,"outsets must cover all intermediate frames, including source outside menu");
+       }
+      }
+      NebulaMenuBubble.opening(bubble,.12f,240,400,216,-12,48,24);
+      check(bubble.x<216&&bubble.y> -12,"bubble moves in both axes instead of staying pinned to upper right");
+      check(bubble.y-bubble.height/2< -8 || bubble.x+bubble.width/2>248,"trajectory actually leaves the old viewport");
+      for(int edge=0;edge<4;edge++) {
+       float x=(edge&1)==0?30:210,y=(edge&2)==0?30:370;
+       float lastX=x,lastY=y;
+       for(int i=0;i<=1000;i++) {
+        NebulaMenuBubble.openingWithin(bubble,i/1000f,240,400,x,y,48,24,-10,-10,250,410);
+        check(bubble.x-bubble.width/2>=-10.01f&&bubble.x+bubble.width/2<=250.01f
+         &&bubble.y-bubble.height/2>=-10.01f&&bubble.y+bubble.height/2<=410.01f,"edge-aware center timing retains the growing bubble on the actual screen");
+        check(Math.abs(bubble.x-lastX)<4&&Math.abs(bubble.y-lastY)<4,"screen-edge lead must be continuous");lastX=bubble.x;lastY=bubble.y;
+       }
+      }
+      NebulaMenuBubble.openingWithin(bubble,.12f,240,400,210,30,48,24,-10,-10,250,410);
+      check(bubble.x+bubble.width/2<248,"inward bow must leave breathing room instead of locking the edge to the screen");
       for(int i=0;i<=1000;i++){float p=i/1000f;
        check(NebulaMenuMotion.response(p)>=0&&NebulaMenuMotion.response(p)<=1.025,"bounded response");
        check(NebulaMenuMotion.radius(24,200,p)>=24&&NebulaMenuMotion.radius(24,200,p)<=100,"rounded source morph");

@@ -20,7 +20,7 @@ public final class NebulaMenuFocus {
             if (step == 0) { view.setRenderEffect(null); return; }
             RenderEffect effect = cached[step];
             if (effect == null) cached[step] = effect = RenderEffect.createBlurEffect(
-                    nextDensity * step / 4f, nextDensity * step / 4f, Shader.TileMode.CLAMP);
+                    nextDensity * step * (2f / 3), nextDensity * step * (2f / 3), Shader.TileMode.CLAMP);
             view.setRenderEffect(effect);
         }
     }
