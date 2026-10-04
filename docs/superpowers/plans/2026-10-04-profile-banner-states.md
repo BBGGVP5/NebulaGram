@@ -61,7 +61,9 @@ Files: create `scripts/check-profile-banner.py`; add it to `.github/workflows/an
 - [x] Execute the production hero/actions with Canvas/ImageReceiver fakes. Verify music-inclusive boundaries, foreground-before-controls integration, continuous opacity across 101 expansion values, gallery source selection, software/reduced fallbacks, cached shader/radius reuse and restoration after a draw exception.
 - [x] Compile the modified production hero against the installed Android SDK with signatures matching the native classes.
 - [x] Reconstruct the entire pinned Android patch series with `python build/verify-upstream-12106.py`; run the profile regression plus `python scripts/check-render-hot-path.py build/android-upstream-12106`.
-- [ ] Publish only the intended paths, build Android and verify the resulting artifact and release signature. Leave the already-running iOS rebuild in progress; its native banner fade uses a different hierarchy.
+- [x] Publish the intended paths in 9739479 without changing the user Telegram checkout.
+- [ ] Verify the final Android artifact and release signature, including the subsequent menu corrections in the same APK.
+- [x] Finish and verify the iOS 74 rebuild at 87ea4fd; its unchanged native banner fade uses a different hierarchy and the unsigned IPA requires user signing.
 
 Device evidence: ADB currently lists no connected phone. Automated drawing/lifecycle checks and compilation must not be reported as device visual acceptance.
 

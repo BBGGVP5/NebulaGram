@@ -57,8 +57,10 @@ popupLayout.nebulaReveal.setMorphEnabled(false);
 Files: `docs/USER-CHANGES.md`, this plan.
 
 - [x] Describe no moving trigger glyph, smooth bubble opening and native message menu motion in the user changelog.
-- [ ] Run `git diff --check`; stage explicit changed files without the user's Telegram gitlink; commit and push main plus `codex/camera-controls`.
+- [x] Run `git diff --check`; stage explicit changed files without the user's Telegram gitlink; commit and push main plus `codex/camera-controls`.
 - [ ] Download and verify the signed Android APK for that exact revision. Complete the already running iOS rebuild separately; Android PopupWindow changes do not alter iOS native menu source.
 - [ ] Deliver artifact links and distinguish automated verification from unperformed physical-device visual QA.
 
 Verification before publication: all 171 patches apply to 122 pinned native files. Production focus passes 14,400 warmed frames with no effect allocations after cache warmup. Grouped actions pass 16,968 cases; inverse touches pass 3,636 cases; profile passes 312 drawing/state cases. SDK 37 typechecks menu and profile hooks. The iOS 74 IPA from unchanged iOS source at 87ea4fd completed successfully and its artifact digest/package were verified; it requires user signing. No physical Android device is attached.
+
+Visible seed follow-up: native BlurredBackgroundDrawable insets its painted bounds by 8dp on each edge. Reveal now includes 16dp in the geometry seed; the production fixture asserts that the painted circle (outer frame minus both insets) exactly matches the initiating 40dp control, including delayed attachment. Feedback, viewport, focus and actual SDK checks pass after this correction.

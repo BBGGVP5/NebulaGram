@@ -124,6 +124,9 @@ public final class NebulaMenuReveal {
             seed = Math.max(AndroidUtilities.dp(24), Math.min(AndroidUtilities.dp(56),
                     Math.min(view.getWidth(), view.getHeight())));
         }
+        // Native menu drawables inset their visible surface by 8dp per side.
+        // Include that padding so the first visible circle matches the button.
+        seed += AndroidUtilities.dp(16);
         host.getWindowVisibleDisplayFrame(screen);
         host.getLocationOnScreen(location);
         screen.offset(-location[0], -location[1]);

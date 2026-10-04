@@ -84,7 +84,7 @@ public class CheckMenuFeedback {
   check(!r.originResolved && r.host.alpha==0,"must wait for popup attachment");
   r.host.attached=true;r.resolveOrigin();
   check(r.host.px==160 && r.host.py== -40,"top anchor must override bottom flag");
-  check(r.frame.width==40 && r.frame.content==0,"delayed attachment still begins with source bubble");
+  check(r.frame.width-16==40 && r.frame.height-16==40 && r.frame.content==0,"visible seed circle matches the source after native drawable padding");
   check(r.host.observer.listener==null,"pre-draw listener removed");
   float peak=0;
   for(int i=31;i<=100;i++){r.setProgress(i/100f);check(r.host.sx==1 && r.host.sy==1,"surface geometry must not scale the whole window");peak=Math.max(peak,r.frame.width);}
@@ -101,7 +101,7 @@ public class CheckMenuFeedback {
    float px=r.host.px,py=r.host.py;r.setProgress(.1f);
    check(r.originResolved && r.host.observer.listener==null,"resolve attached anchor before first visible frame");
    check(px==(side%2==0?-60:420)&&py==(side<2?-40:440),"correct source corner");
-   check(r.seed==40,"initial round bubble follows source button dimensions");
+   check(r.seed-16==40,"initial visible circle follows source button dimensions");
    r.prepareClose();r.setCloseProgress(.5f);r.reset();check(NebulaMenuFocus.step==0,"cancel releases focus");
   }
   r.viewportReady=false;r.begin();r.setProgress(.1f);
