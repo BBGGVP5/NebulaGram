@@ -116,6 +116,15 @@ public final class NebulaDraftTranslation {
             else if (start >= 0 && end >= 0) editor.setSelection(Math.min(start, editor.length()), Math.min(end, editor.length()));
         } finally { replacing = false; }
     }
+    private void useOrRestore() {
+        String field = editor.getText().toString();
+        if (shownAnswer != null && !shownAnswer.equals(field) && shownSource.equals(field)) {
+            String value = shownAnswer; original.replaced(original.source(field), value); appliedPrefix = identityPrefix;
+            cancelTransport(); gate.suppress(identityPrefix + value); replace(value); show(value, value, null, false);
+        } else if (original.hasOriginal()) {
+            String value = original.restore(field); stop(); gate.suppress(identityPrefix + value); original.clear(); appliedPrefix = ""; replace(value);
+        }
+    }
     private TextView action(String text, NebulaTheme theme) {
         TextView view = new TextView(anchor.getContext()); view.setText(text); view.setTextSize(14);
         view.setGravity(Gravity.CENTER); view.setTextColor(theme.primary()); view.setMinHeight(dp(44));
@@ -135,15 +144,7 @@ public final class NebulaDraftTranslation {
         }));
         title.setOnLongClickListener(v -> { stop(); host.presentFragment(new NebulaTranslationFragment(activeAccount, activeDialog)); return true; });
         restore = action("", theme); row.addView(restore, new LinearLayout.LayoutParams(-2, dp(44)));
-        restore.setOnClickListener(v -> {
-            String field = editor.getText().toString();
-            if (original.hasOriginal()) {
-                String value = original.restore(field); stop(); gate.suppress(identityPrefix + value); original.clear(); appliedPrefix = ""; replace(value);
-            } else if (shownAnswer != null && shownSource.equals(field)) {
-                String value = shownAnswer; original.replaced(original.source(field), value); appliedPrefix = identityPrefix;
-                cancelTransport(); gate.suppress(identityPrefix + value); replace(value); show(value, value, null, false);
-            }
-        });
+        restore.setOnClickListener(v -> useOrRestore());
         TextView close = action("×", theme); close.setTextSize(24); close.setContentDescription(NebulaText.text("Закрыть перевод", "Close translation"));
         row.addView(close, new LinearLayout.LayoutParams(dp(44), dp(44)));
         close.setOnClickListener(v -> { String field = editor.getText().toString(); dismissedField = field; stop(); gate.suppress(identityPrefix + field); });
@@ -158,10 +159,11 @@ public final class NebulaDraftTranslation {
         title.setText("Nebula AI · " + NebulaTranslationSettings.draftLanguage(activeAccount, activeDialog).toUpperCase(java.util.Locale.ROOT));
         title.setContentDescription(NebulaText.text("Язык перевода. Удерживайте для настроек", "Translation language. Hold for settings"));
         progress.setVisibility(loading ? View.VISIBLE : View.GONE);
-        restore.setText(original.hasOriginal() ? NebulaText.text("Оригинал", "Original") : NebulaText.text("Применить", "Apply"));
-        restore.setVisibility(original.hasOriginal() || !loading && answer != null && !NebulaTranslationSettings.automatic(activeAccount, activeDialog) ? View.VISIBLE : View.GONE);
+        boolean canApply = !loading && answer != null && !answer.equals(source);
+        restore.setText(canApply ? NebulaText.text("Применить", "Apply") : NebulaText.text("Оригинал", "Original"));
+        restore.setVisibility(original.hasOriginal() || canApply ? View.VISIBLE : View.GONE);
         detail.setText(error != null ? error : loading ? NebulaText.text("Переводим…", "Translating…")
-            : original.hasOriginal() ? original.restore(source) : answer != null ? answer : source);
+            : canApply ? answer : original.hasOriginal() ? original.restore(source) : answer != null ? answer : source);
         GradientDrawable background = new GradientDrawable(GradientDrawable.Orientation.TL_BR, new int[]{theme.modalSurface(), theme.surfaceContainer()});
         background.setCornerRadius(dp(20)); background.setStroke(dp(1), theme.outline()); panel.setBackground(background);
         int width = anchor.getWidth() - dp(16); if (width <= 0) return;

@@ -5,7 +5,7 @@ root=Path(__file__).resolve().parents[1];ui=root/'platform/android/overlay/TMess
 source=(ui/'NebulaDraftTranslation.java').read_text(encoding='utf-8')
 source='\n'.join(line for line in source.splitlines() if not line.startswith(('import android.','import org.telegram.')))
 a=source.index('    private TextView action(');b=source.index('    public void stop()',a)
-source=source[:a]+'''    private void show(String answer,String source,String error,boolean loading) { }
+source=source[:a]+'''    private void show(String answer,String source,String error,boolean loading) { shownSource=source;shownAnswer=answer; }
 '''+source[b:]
 stubs=r'''package app.nebulagram.ui;
 import java.util.*;import java.util.concurrent.*;
@@ -42,6 +42,12 @@ public class DraftOriginalCheck {
   check(NebulaTranslationClient.inputs.contains("Привет model"),"model request entered transport");
   NebulaTranslationSettings.identity="nano:preview";NebulaTranslationClient.wait.countDown();NebulaTranslationClient.wait=null;ui();check(field.text.equals("Привет model"),"model change rejects stale answer");
   draft.stop();field.text("Привет C");draft.changed(1,10,true);ui();ui();check(original.restore(field.text).equals("Привет C"),"account and dialog have separate original");
+  NebulaTranslationSettings.automatic=false;field.text("Hello C мир");draft.changed(1,10,true);ui();ui();
+  check(field.text.equals("Hello C мир"),"manual preview does not replace automatically");
+  var click=NebulaDraftTranslation.class.getDeclaredMethod("useOrRestore");click.setAccessible(true);click.invoke(draft);
+  check(field.text.equals("Hello C world"),"manual Apply remains available when an earlier original exists");
+  click.invoke(draft);check(field.text.equals("Привет C мир"),"manual result also restores the full original");
+  NebulaTranslationSettings.automatic=true;
   field.text("Привет off");draft.changed(1,10,true);draft.stop();check(AndroidUtilities.ui.isEmpty(),"pause cancels pending debounce");
   NebulaDraftOriginal state=new NebulaDraftOriginal();state.replaced("исходный","translated");
   check(state.restore("prefix translated").equals("prefix исходный"),"prefix additions preserved");
