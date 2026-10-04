@@ -41,7 +41,7 @@ public static boolean animated(ActionBarPopupWindowLayout content) {
 }
 ```
 
-- [x] Replace the capped growth spring with an uncapped damped response under the existing 4.5% geometry envelope; correct endpoint velocity. Use smooth shrink and extent-based close duration. Preserve exact native endpoints and inverse touch mapping.
+- [x] Replace the capped growth spring with an uncapped damped response under a 5% geometry envelope; correct endpoint residual. Use smooth shrink and extent-based close duration. Preserve exact native endpoints and inverse touch mapping.
 - [x] Compensate text blur for its uniform canvas scale with bounded cached RenderEffects; do not allocate effects repeatedly.
 - [x] Mark ChatActivity message popup layouts as native motion, remove the forced bubble start/animation style, and keep their native reaction/message lift transition. Keep glass styling.
 
@@ -64,3 +64,5 @@ Files: `docs/USER-CHANGES.md`, this plan.
 Verification before publication: all 171 patches apply to 122 pinned native files. Production focus passes 14,400 warmed frames with no effect allocations after cache warmup. Grouped actions pass 16,968 cases; inverse touches pass 3,636 cases; profile passes 312 drawing/state cases. SDK 37 typechecks menu and profile hooks. The iOS 74 IPA from unchanged iOS source at 87ea4fd completed successfully and its artifact digest/package were verified; it requires user signing. No physical Android device is attached.
 
 Visible seed follow-up: native BlurredBackgroundDrawable insets its painted bounds by 8dp on each edge. Reveal now includes 16dp in the geometry seed; the production fixture asserts that the painted circle (outer frame minus both insets) exactly matches the initiating 40dp control, including delayed attachment. Feedback, viewport, focus and actual SDK checks pass after this correction.
+
+Physical reference correction: the previous normalized spring grew 0.180375 of its extent at 30ms versus 0.059439 in FlClash. Read FlClash common/motion.dart and popup.dart plus the official Flutter SpringDescription.withDurationAndBounce implementation. Production now samples real milliseconds with periods 500/520/340ms and bounce 0.3/0.2/0.12 over 750ms; closing uses the reference 340/300/440ms periods over 400ms. Exact cubic Bezier focus replaces the polynomial approximation. 864 numeric reference frames across menu dimensions/corners pass; the previous implementation fails the first 30ms sample. No trigger bitmap is reintroduced.

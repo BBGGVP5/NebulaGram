@@ -13,41 +13,58 @@ public final class NebulaMenuBubble {
     private static float unit(float x) { return Math.max(0, Math.min(1, x)); }
     private static float mix(float a, float b, float t) { return a + (b - a) * t; }
     private static float smooth(float t) { t = unit(t); return t * t * (3 - 2 * t); }
-    private static float spring(float t, float damping, float frequency) {
+    private static double response(double time, double duration, double bounce) {
+        double omega = 2 * Math.PI / duration, damping = (1 - bounce) * omega;
+        if (bounce == 0) return 1 - Math.exp(-omega * time) * (1 + omega * time);
+        double frequency = omega * Math.sqrt(1 - (1 - bounce) * (1 - bounce));
+        return 1 - Math.exp(-damping * time) * (Math.cos(frequency * time)
+                + damping / frequency * Math.sin(frequency * time));
+    }
+    private static float spring(float t, float animationDuration, float duration, float bounce) {
         t = unit(t);
         if (t == 0 || t == 1) return t;
-        double end = 1 - Math.exp(-damping) * (Math.cos(frequency) + damping / frequency * Math.sin(frequency));
-        double slope = Math.exp(-damping) * (frequency + damping * damping / frequency) * Math.sin(frequency);
-        double value = 1 - Math.exp(-damping * t) * (Math.cos(frequency * t)
-                + damping / frequency * Math.sin(frequency * t));
-        // Smooth endpoint correction keeps the spring's natural peak instead of
-        // clipping it into a flat plateau with abrupt changes of velocity.
-        return (float) (value - smooth(t) * (end - 1) - t * t * (t - 1) * slope);
+        // FlClash common/motion.dart: SpringDescription.withDurationAndBounce
+        // supplies physical periods; SpringCurve samples actual animation time
+        // and linearly removes the endpoint residual. No artificial peak cap.
+        return (float) (response(t * animationDuration, duration, bounce)
+                + (1 - response(animationDuration, duration, bounce)) * t);
+    }
+    private static float cubic(float t, float x1, float y1, float x2, float y2) {
+        t = unit(t);
+        if (t == 0 || t == 1) return t;
+        float lo = 0, hi = 1, u = t;
+        for (int i = 0; i < 16; i++) {
+            u = (lo + hi) / 2;
+            float v = 1 - u;
+            float x = 3 * v * v * u * x1 + 3 * v * u * u * x2 + u * u * u;
+            if (x < t) lo = u; else hi = u;
+        }
+        float v = 1 - u;
+        return 3 * v * v * u * y1 + 3 * v * u * u * y2 + u * u * u;
     }
     public static void opening(Frame out, float progress, float width, float height,
                                float originX, float originY, float seed, float radius) {
         float t = unit(progress);
-        float growth = spring(t * 750 / 500, 9, 8);
-        out.x = mix(originX, width / 2, spring(t * 750 / 520, 8, 6));
-        out.y = mix(originY, height / 2, spring(t * 750 / 340, 12, 5));
+        float growth = spring(t, 750, 500, .3f);
+        out.x = mix(originX, width / 2, spring(t, 750, 520, .2f));
+        out.y = mix(originY, height / 2, spring(t, 750, 340, .12f));
         out.width = mix(Math.min(seed, width), width, growth);
         out.height = mix(Math.min(seed, height), height, growth);
         out.radius = mix(Math.min(seed, Math.min(width, height)) / 2, radius, unit(growth));
         out.alpha = 1;
         float reveal = unit((t - .04f) / .41f);
-        out.content = 1 - (1 - reveal) * (1 - reveal) * (1 - reveal);
+        out.content = cubic(reveal, .215f, .61f, .355f, 1);
     }
     public static void closing(Frame out, Frame from, float progress, float width, float height,
                                float originX, float originY, float seed) {
-        float t = unit(progress), shrink = smooth(t);
-        float travel = smooth((t - .12f) / .88f);
-        out.x = mix(from.x, originX, travel);
-        out.y = mix(from.y, originY, travel);
+        float t = unit(progress), shrink = spring(t, 400, 340, 0);
+        out.x = mix(from.x, originX, spring(t, 400, 300, 0));
+        out.y = mix(from.y, originY, spring(t, 400, 440, 0));
         out.width = mix(from.width, Math.min(seed, width), shrink);
         out.height = mix(from.height, Math.min(seed, height), shrink);
         out.radius = mix(from.radius, Math.min(seed, Math.min(width, height)) / 2, shrink);
         out.alpha = from.alpha * (1 - smooth((t - .55f) / .45f));
-        out.content = from.content * (1 - smooth(t / .65f));
+        out.content = from.content * cubic(1 - t * 2, .42f, 0, 1, 1);
     }
     public static int closeDuration(Frame from, float width, float height, float seed) {
         float extent = Math.max((from.width - seed) / Math.max(1, width - seed),
@@ -86,13 +103,14 @@ public final class NebulaMenuBubble {
     }
     /** Reserve drawing space; never change the trajectory to fit the logical hit rectangle. */
     public static float outset(float width, float height, float x, float y, float seed, float shadow) {
-        float halfW = (width + Math.max(0, width - seed) * .045f) / 2;
-        float halfH = (height + Math.max(0, height - seed) * .045f) / 2;
+        float halfW = (width + Math.max(0, width - seed) * .05f) / 2;
+        float halfH = (height + Math.max(0, height - seed) * .05f) / 2;
         float extraX = Math.abs(x - width / 2) * .025f;
+        float extraY = Math.abs(y - height / 2) * .005f;
         float left = Math.min(x, width / 2) - extraX - halfW;
         float right = Math.max(x, width / 2) + extraX + halfW - width;
-        float top = Math.min(y, height / 2) - halfH;
-        float bottom = Math.max(y, height / 2) + halfH - height;
+        float top = Math.min(y, height / 2) - extraY - halfH;
+        float bottom = Math.max(y, height / 2) + extraY + halfH - height;
         return Math.max(0, Math.max(Math.max(-left, right), Math.max(-top, bottom))) + shadow;
     }
 }

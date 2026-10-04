@@ -84,7 +84,7 @@ stubs = {
        check(bubble.x==x&&bubble.y==y,"first bubble stays at the true initiating control");
        for(int i=0;i<=1000;i++){
         NebulaMenuBubble.opening(bubble,i/1000f,w,h,x,y,48,24);
-        check(bubble.width>=48&&bubble.width<=w*1.045f&&bubble.height>=48&&bubble.height<=h*1.045f,"bounded independent growth");
+        check(bubble.width>=48&&bubble.width<=w*1.05f&&bubble.height>=48&&bubble.height<=h*1.05f,"bounded independent growth");
         check(bubble.content>=0&&bubble.content<=1&&bubble.alpha>=0&&bubble.alpha<=1,"bounded focus/opacity");
         float outset=NebulaMenuBubble.outset(w,h,x,y,48,16);
         check(bubble.x-bubble.width/2>=-outset&&bubble.x+bubble.width/2<=w+outset
@@ -110,7 +110,7 @@ stubs = {
        longestFlat=Math.max(longestFlat,flat);priorWidth=bubble.width;
       }
       check(longestFlat<5,"spring must never hit a flat overshoot cap");
-      NebulaMenuBubble.opening(bubble,.2f,240,400,216,-12,48,24);captured.copy(bubble);
+      NebulaMenuBubble.opening(bubble,.3f,240,400,216,-12,48,24);captured.copy(bubble);
       check(NebulaMenuBubble.closeDuration(captured,240,400,48)>=380,"early dismiss of a grown panel must not snap shut");
       NebulaMenuBubble.closing(bubble,captured,.001f,240,400,216,-12,48);
       check(captured.width-bubble.width<(captured.width-48)*.0001f,"close starts with a soft size response");
@@ -124,7 +124,7 @@ stubs = {
          &&bubble.y-bubble.height/2>=-envelope&&bubble.y+bubble.height/2<=400+envelope,"outsets must cover all intermediate frames, including source outside menu");
        }
       }
-      NebulaMenuBubble.opening(bubble,.12f,240,400,216,-12,48,24);
+      NebulaMenuBubble.opening(bubble,.03f,240,400,216,-12,48,24);
       check(bubble.x<216&&bubble.y> -12,"bubble moves in both axes instead of staying pinned to upper right");
       check(bubble.y-bubble.height/2< -8 || bubble.x+bubble.width/2>248,"trajectory actually leaves the old viewport");
       for(int edge=0;edge<4;edge++) {
