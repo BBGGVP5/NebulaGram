@@ -4,7 +4,7 @@ import os, re, subprocess, tempfile, urllib.request, zipfile
 root=Path(__file__).resolve().parents[1]
 ui=root/'platform/android/overlay/TMessagesProj/src/main/java/app/nebulagram/ui'
 cache=root/'build/translation-api';cache.mkdir(parents=True,exist_ok=True)
-artifacts=[('com.google.mlkit','translate','17.0.3'),('com.google.mlkit','language-id','17.0.6'),('com.google.mlkit','language-id-common','16.1.0'),('com.google.mlkit','common','18.11.0'),('com.google.android.gms','play-services-tasks','18.2.0'),('com.google.android.gms','play-services-basement','18.5.0')]
+artifacts=[('com.google.mlkit','translate','17.0.3'),('com.google.mlkit','language-id','17.0.6'),('com.google.mlkit','language-id-common','16.1.0'),('com.google.mlkit','common','18.11.0'),('com.google.android.gms','play-services-tasks','18.2.0'),('com.google.android.gms','play-services-basement','18.5.0'),('com.google.android.gms','play-services-base','18.5.0')]
 jars=[]
 for group,name,version in artifacts:
     target=cache/(name+'-'+version+'.jar')
