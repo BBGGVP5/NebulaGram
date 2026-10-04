@@ -40,6 +40,7 @@ class CapsuleCheck {
   static int counterRight(Menu menu,int fallback){return Math.min(fallback,menu.x-4);}
   static void drawActions(Object c,Menu menu,Draw draw,int w,int t,int b,float f){}
  }
+ NebulaSelectionGlass nebulaSelectionGlass=new NebulaSelectionGlass();
  int getWidth(){return 400;}
  int dp(int value){return value;}
  ALPHA

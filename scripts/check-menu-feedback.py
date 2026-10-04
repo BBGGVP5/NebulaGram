@@ -25,6 +25,7 @@ haptics = (ui / 'NebulaHaptics.java').read_text()
 source = r'''
 import java.lang.ref.WeakReference;
 import app.nebulagram.ui.NebulaMenuMotion;
+import app.nebulagram.ui.NebulaMenuBubble;
 public class CheckMenuFeedback {
  static void check(boolean b,String why){if(!b)throw new AssertionError(why);}
  static class Observer {
@@ -47,10 +48,13 @@ public class CheckMenuFeedback {
   float getScaleX(){return sx;} float getScaleY(){return sy;}float getAlpha(){return alpha;}
   void setAlpha(float f){alpha=f;} void setPivotX(float f){px=f;} void setPivotY(float f){py=f;}
   Observer getViewTreeObserver(){return observer;} void invalidate(){}
+  int getItemsCount(){return 0;}View getItemAt(int i){return this;}Object getParent(){return this;}
  }
  static class Reveal {
   View host=new View(); WeakReference<View> anchor;
-  float progress=1,originX,originY,seedX=.3f,seedY=.3f,closeProgress,closeX,closeY,closeAlpha,closeStart;
+  float progress=1,originX,originY,seed,closeProgress,closeStart,clockStart;
+  final NebulaMenuBubble.Frame frame=new NebulaMenuBubble.Frame(),closeFrame=new NebulaMenuBubble.Frame();
+  View focusContent;
   boolean began,originResolved,closing;int focusStep=-1;
   int[] location=new int[2]; Runnable originListener=()->resolveOrigin();
   void stopTouch(){}
@@ -58,6 +62,7 @@ public class CheckMenuFeedback {
  }
  static class AndroidUtilities {static int dp(int n){return n;}}
  static class NebulaMenuFocus {static int step;static void apply(View v,int n){step=n;}static void clear(View v){step=0;}}
+ static class NebulaMenuStyle {static float radius(){return 24;}}
  static class Context {static String VIBRATOR_SERVICE="v";Object getSystemService(String s){return new Vibrator();}}
  static class Vibrator {static int calls,amplitude;static long duration;static boolean available=true;
   boolean hasVibrator(){return available;} void vibrate(Object e){calls++;}}
@@ -77,14 +82,15 @@ public class CheckMenuFeedback {
   check(!r.originResolved && r.host.alpha==0,"must wait for popup attachment");
   r.host.attached=true;r.resolveOrigin();
   check(r.host.px==160 && r.host.py==0,"top anchor must override bottom flag");
+  check(r.frame.width==40 && r.frame.content==0,"delayed attachment still begins with source bubble");
   check(r.host.observer.listener==null,"pre-draw listener removed");
   float peak=0;
-  for(int i=31;i<=100;i++){r.setProgress(i/100f);check(r.host.sx>=r.seedX && r.host.sx<=1.025,"bounded spring");peak=Math.max(peak,r.host.sx);}
-  check(peak>1 && r.host.sx==1 && r.host.sy==1 && NebulaMenuFocus.step==0,"spring settles exactly; text focus clears");
-  r.setProgress(.45f);float pivot=r.host.py,previous=r.host.sx,alpha=r.host.alpha;r.prepareClose();r.setCloseProgress(0);
-  check(r.host.sx==previous && r.host.alpha==alpha,"interrupt close starts at the displayed frame");
-  for(int i=1;i<=100;i++){r.setCloseProgress(i/100f);check(r.host.py==pivot && r.host.sx<=previous,"reverse reveal never jumps origin or grows");previous=r.host.sx;}
-  check(r.host.alpha==0 && Math.abs(r.host.sx-r.seedX)<.001,"close ends at source button");
+  for(int i=31;i<=100;i++){r.setProgress(i/100f);check(r.host.sx==1 && r.host.sy==1,"surface geometry must not scale the whole window");peak=Math.max(peak,r.frame.width);}
+  check(peak>200 && r.frame.width==200 && r.frame.height==300 && r.frame.x==100 && r.frame.y==150,"independent growth settles exactly at native bounds");
+  r.setProgress(.45f);float pivot=r.host.py,previous=r.frame.width,alpha=r.host.alpha,center=r.frame.x;r.prepareClose();r.setCloseProgress(0);
+  check(r.frame.width==previous && r.host.alpha==alpha && r.frame.x==center,"interrupt close starts at displayed frame");
+  for(int i=1;i<=100;i++){r.setCloseProgress(i/100f);check(r.host.py==pivot && r.frame.width<=previous+.001f,"reverse reveal never jumps origin or grows");previous=r.frame.width;}
+  check(r.host.alpha==0 && Math.abs(r.frame.width-r.seed)<.001,"close ends at source bubble");
   anchor.y=450;r.host.shownFromBottom=false;r.begin();r.resolveOrigin();
   check(r.host.py==300,"bottom anchor must override top flag");
   r.reset();check(r.host.alpha==1 && r.host.sx==1 && !r.began,"detach reset");
@@ -93,7 +99,7 @@ public class CheckMenuFeedback {
    float px=r.host.px,py=r.host.py;r.setProgress(.1f);
    check(r.originResolved && r.host.observer.listener==null,"resolve attached anchor before first visible frame");
    check(px==(side%2==0?0:200)&&py==(side<2?0:300),"correct source corner");
-   check(r.seedX==.2f && Math.abs(r.seedY-40f/300)<.001,"source button dimensions");
+   check(r.seed==40,"initial round bubble follows source button dimensions");
    r.prepareClose();r.setCloseProgress(.5f);r.reset();check(NebulaMenuFocus.step==0,"cancel releases focus");
   }
   View v=new View();power=35;now=100;tick(v);check(Vibrator.calls==0,"toggle off");
@@ -109,7 +115,7 @@ public class CheckMenuFeedback {
 '''
 source = source.replace('REVEAL_METHODS', '\n'.join(method(reveal, sig) for sig in [
     'public void setAnchor(', 'public void begin(', 'private boolean resolveOrigin(',
-    'private void removeOriginListener(', 'private void applyMotion(', 'public void setProgress(', 'public void reset(',
+    'private void removeOriginListener(', 'private void applyMotion(', 'private void updateFrame(', 'private void clearFocus(', 'public void setProgress(', 'public void reset(',
     'public void prepareClose(', 'public void setCloseProgress(']))
 # The no-entry caller path only needs an endpoint in this lifecycle fixture.
 source = source.replace('void stopTouch(){}', 'void stopTouch(){} void finish(){closing=false;setProgress(1);}')
@@ -118,7 +124,7 @@ source = source.replace('STRENGTH_METHOD', method(haptics, 'public static int st
 source = source.replace('android.os.SystemClock.uptimeMillis()', 'uptimeMillis()').replace('android.view.HapticFeedbackConstants.KEYBOARD_TAP', '1')
 target = work / 'CheckMenuFeedback.java'
 target.write_text(source, encoding='utf-8')
-subprocess.run(['javac', '-encoding', 'UTF-8', '-d', str(work), str(target), str(ui / 'NebulaMenuMotion.java')], check=True)
+subprocess.run(['javac', '-encoding', 'UTF-8', '-d', str(work), str(target), str(ui / 'NebulaMenuMotion.java'), str(ui / 'NebulaMenuBubble.java')], check=True)
 subprocess.run(['java', '-cp', str(work), 'CheckMenuFeedback'], check=True)
 
 style = (ui / 'NebulaMenuStyle.java').read_text()

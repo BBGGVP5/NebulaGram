@@ -25,17 +25,6 @@ diff --git a/submodules/TelegramUI/Components/Chat/ChatMessageTextBubbleContentN
                              if isSummarized, let attribute = item.message.attributes.first(where: { $0 is SummarizationMessageAttribute }) as? SummarizationMessageAttribute, let summary = attribute.summaryForLang(translateToLanguage) {
                                  rawText = summary.text
                                  messageEntities = summary.entities
-diff --git a/submodules/TelegramUI/Components/Chat/ChatTextInputPanelNode/Sources/ChatTextInputPanelNode.swift b/submodules/TelegramUI/Components/Chat/ChatTextInputPanelNode/Sources/ChatTextInputPanelNode.swift
---- a/submodules/TelegramUI/Components/Chat/ChatTextInputPanelNode/Sources/ChatTextInputPanelNode.swift
-+++ b/submodules/TelegramUI/Components/Chat/ChatTextInputPanelNode/Sources/ChatTextInputPanelNode.swift
-@@ -3326,6 +3326,7 @@
-         
-         if let button = self.nebulaToolsButton {
-             button.isHidden = self.nebulaToolsWidth == 0 || audioRecordingItemsAlpha == 0
-+            button.contentEdgeInsets = UIEdgeInsets(top: 0, left: 8, bottom: 0, right: 0)
-             let toolsFrame = CGRect(x: nextButtonTopRight.x - self.nebulaToolsWidth, y: nextButtonTopRight.y,
-                 width: self.nebulaToolsWidth, height: minimalInputHeight)
-             if button.superview == nil {
 diff --git a/submodules/TelegramUI/Sources/Chat/ChatControllerLoadDisplayNode.swift b/submodules/TelegramUI/Sources/Chat/ChatControllerLoadDisplayNode.swift
 --- a/submodules/TelegramUI/Sources/Chat/ChatControllerLoadDisplayNode.swift
 +++ b/submodules/TelegramUI/Sources/Chat/ChatControllerLoadDisplayNode.swift

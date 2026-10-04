@@ -339,6 +339,36 @@ print("OK: embedded catalog and Bazel-side Foundation store compiled and ran")
                             '--output-format', 'human-readable-text', str(icon_catalog)], check=True)
             ios_flags = ['-swift-version', '5', '-warnings-as-errors', '-sdk', sdk,
                          '-target', 'arm64-apple-ios13.0-simulator']
+            # Compile the actual composer hook against its declared UIView type.
+            # Parsing alone cannot detect UIButton-only APIs used on that hook.
+            composer = temp / 'submodules/TelegramUI/Components/Chat/ChatTextInputPanelNode/Sources/ChatTextInputPanelNode.swift'
+            composer_text = composer.read_text(encoding='utf-8')
+            hook_start = composer_text.index('        if let button = self.nebulaToolsButton {')
+            hook_end = composer_text.index('{', hook_start) + 1
+            depth = 1
+            while depth:
+                depth += (composer_text[hook_end] == '{') - (composer_text[hook_end] == '}')
+                hook_end += 1
+            hook = composer_text[hook_start:hook_end]
+            composer_check = temp / 'ComposerUIKitCheck.swift'
+            composer_check.write_text('''import UIKit
+final class Background { let contentView = UIView() }
+struct Transition {
+    func updateFrame(layer: CALayer, frame: CGRect) { layer.frame = frame }
+    func updateAlpha(layer: CALayer, alpha: CGFloat) { layer.opacity = Float(alpha) }
+}
+final class Composer {
+    var nebulaToolsButton: UIView?
+    var nebulaToolsWidth: CGFloat = 40
+    let textInputContainerBackgroundView = Background()
+    func layout(transition: Transition, nextButtonTopRight: inout CGPoint,
+                minimalInputHeight: CGFloat, audioRecordingItemsAlpha: CGFloat) {
+''' + hook + '''
+    }
+}
+''', encoding='utf-8')
+            subprocess.run(['swiftc', *ios_flags, '-typecheck', str(composer_check)], check=True)
+            print('OK: actual composer layout hook typechecked as UIView against UIKit')
             subprocess.run(['swiftc', *ios_flags, '-emit-module', '-parse-as-library',
                             '-module-name', 'NebulaSettingsContract', *map(str, contract),
                             '-emit-module-path', str(temp / 'NebulaSettingsContract.swiftmodule')], check=True)

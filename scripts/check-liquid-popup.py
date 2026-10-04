@@ -8,7 +8,8 @@ ui = root / 'platform/android/overlay/TMessagesProj/src/main/java/app/nebulagram
 stubs = {
     'android/annotation/TargetApi.java': 'package android.annotation;public @interface TargetApi {int value();}',
     'android/os/Build.java': 'package android.os;public class Build {public static class VERSION {public static int SDK_INT=31;}}',
-    'android/graphics/Canvas.java': 'package android.graphics;public class Canvas {}',
+    'android/graphics/Canvas.java': '''package android.graphics;public class Canvas {
+     public java.util.ArrayList<org.telegram.ui.Components.blur3.drawable.BlurredBackgroundDrawable> nodes=new java.util.ArrayList<>();}''',
     'android/graphics/Shader.java': 'package android.graphics;public class Shader {public enum TileMode {CLAMP}}',
     'android/graphics/RenderEffect.java': '''package android.graphics;public class RenderEffect {public static int created;public float radius;
      public static RenderEffect createBlurEffect(float x,float y,Shader.TileMode mode){created++;RenderEffect e=new RenderEffect();e.radius=x;return e;}}''',
@@ -25,7 +26,14 @@ stubs = {
     'org/telegram/ui/Components/blur3/drawable/BlurredBackgroundDrawable.java': '''package org.telegram.ui.Components.blur3.drawable;public class BlurredBackgroundDrawable {
      public int left,top,right,bottom,alpha;public java.util.ArrayList<int[]> draws=new java.util.ArrayList<>();
      public void setBounds(int l,int t,int r,int b){left=l;top=t;right=r;bottom=b;}public void setAlpha(int a){alpha=a;}
-     public void draw(android.graphics.Canvas c){int p=org.telegram.messenger.AndroidUtilities.dp(6);draws.add(new int[]{left+p,top+p,right-p,bottom-p,alpha});}}''',
+     public float ox,oy; public void setSourceOffset(float x,float y){ox=x;oy=y;}public float getSourceOffsetX(){return ox;}public float getSourceOffsetY(){return oy;}
+     public BlurredBackgroundDrawable setColorProvider(Object p){return this;}public BlurredBackgroundDrawable setRadius(float r){return this;}
+     public BlurredBackgroundDrawable setPadding(int p){return this;}
+     public void updateColors(){}
+     public void draw(android.graphics.Canvas c){c.nodes.add(this);}}''',
+    'org/telegram/ui/Components/blur3/drawable/color/BlurredBackgroundColorProvider.java': 'package org.telegram.ui.Components.blur3.drawable.color;public class BlurredBackgroundColorProvider {}',
+    'org/telegram/ui/Components/blur3/BlurredBackgroundDrawableViewFactory.java': '''package org.telegram.ui.Components.blur3;public class BlurredBackgroundDrawableViewFactory {
+     public int created;public org.telegram.ui.Components.blur3.drawable.BlurredBackgroundDrawable create(){created++;return new org.telegram.ui.Components.blur3.drawable.BlurredBackgroundDrawable();}}''',
     'Check.java': '''import app.nebulagram.ui.*;import android.view.View;import android.graphics.*;import org.telegram.ui.ActionBar.*;
      import org.telegram.messenger.*;import org.telegram.ui.Components.blur3.drawable.BlurredBackgroundDrawable;
      class Check {static void check(boolean b,String why){if(!b)throw new AssertionError(why);}public static void main(String[] args){
@@ -51,13 +59,50 @@ stubs = {
        }
        int counterRight=NebulaSelectionGlass.counterRight(menu,width);
        check(counterRight==(visible>0?first-AndroidUtilities.dp(4):width),"title surface stops before first visible action");
-       BlurredBackgroundDrawable material=new BlurredBackgroundDrawable();float factor=frame/100f;
-       NebulaSelectionGlass.drawActions(new Canvas(),menu,material,width,0,AndroidUtilities.dp(60),factor);
-       check(material.draws.size()==visible,"one surface per visible native action; no title background reuse");
+       BlurredBackgroundDrawable material=new BlurredBackgroundDrawable();material.setSourceOffset(31,47);float factor=frame/100f;
+       NebulaSelectionGlass selection=new NebulaSelectionGlass();
+       org.telegram.ui.Components.blur3.BlurredBackgroundDrawableViewFactory factory=new org.telegram.ui.Components.blur3.BlurredBackgroundDrawableViewFactory();
+       selection.setup(factory,null);Canvas canvas=new Canvas();
+       selection.drawActions(canvas,menu,material,width,0,AndroidUtilities.dp(60),factor);
+       check(canvas.nodes.size()==visible,"one deferred node per visible action");
        int previousRight=-1;
-       for(int[] draw:material.draws){check(draw[0]>previousRight,"visible action surfaces remain separate");previousRight=draw[2];
-        check(draw[4]==Math.round(255*factor),"material follows selection transition");}
+       java.util.HashSet<Object> nodes=new java.util.HashSet<>();
+       for(BlurredBackgroundDrawable draw:canvas.nodes){int pad=AndroidUtilities.dp(6);
+        check(draw!=material&&nodes.add(draw),"deferred GPU nodes must not alias the union or another action");
+        check(draw.left+pad>previousRight,"deferred action surfaces remain separate after all bounds mutations");previousRight=draw.right-pad;
+        check(draw.alpha==Math.round(255*factor),"material follows selection transition");
+        check(draw.ox==31&&draw.oy==47,"same backdrop alignment as the header");}
+       int allocated=factory.created;canvas.nodes.clear();
+       selection.drawActions(canvas,menu,material,width,0,AndroidUtilities.dp(60),factor);
+       check(factory.created==allocated,"no material allocation on subsequent frames");
        check(material.left==(visible>0?first:0)&&material.right==(visible>0?last:0),"native touch union retained after separate draws");cases++;
+      }
+      NebulaMenuBubble.Frame bubble=new NebulaMenuBubble.Frame(),captured=new NebulaMenuBubble.Frame();
+      for(float w:new float[]{64,240,600})for(float h:new float[]{64,400,900})for(int corner=0;corner<4;corner++){
+       float x=(corner&1)==0?0:w,y=(corner&2)==0?0:h;
+       NebulaMenuBubble.opening(bubble,0,w,h,x,y,48,24);
+       check(bubble.width==48&&bubble.height==48&&bubble.radius==24&&bubble.content==0,"starts as a bubble, labels hidden");
+       check(bubble.x==((corner&1)==0?24:w-24)&&bubble.y==((corner&2)==0?24:h-24),"first bubble stays at initiating corner");
+       for(int i=0;i<=1000;i++){
+        NebulaMenuBubble.opening(bubble,i/1000f,w,h,x,y,48,24);
+        check(bubble.width>=48&&bubble.width<=w*1.045f&&bubble.height>=48&&bubble.height<=h*1.045f,"bounded independent growth");
+        check(bubble.content>=0&&bubble.content<=1&&bubble.alpha>=0&&bubble.alpha<=1,"bounded focus/opacity");
+        NebulaMenuBubble.fit(bubble,w,h,8);
+        check(bubble.x-bubble.width/2>=-8.001f&&bubble.x+bubble.width/2<=w+8.001f
+          &&bubble.y-bubble.height/2>=-8.001f&&bubble.y+bubble.height/2<=h+8.001f,"glass stays inside PopupWindow viewport, rounded edges never cut off");
+       }
+       check(bubble.x==w/2&&bubble.y==h/2&&bubble.width==w&&bubble.height==h&&bubble.radius==24&&bubble.content==1,"exact native endpoint");
+       for(float interrupt:new float[]{0,.05f,.2f,.45f,1}){
+        NebulaMenuBubble.opening(bubble,interrupt,w,h,x,y,48,24);captured.copy(bubble);
+        NebulaMenuBubble.closing(bubble,captured,0,w,h,x,y,48);
+        check(bubble.x==captured.x&&bubble.y==captured.y&&bubble.width==captured.width&&bubble.content==captured.content,"interrupted close starts at displayed frame");
+        float previous=bubble.width;
+        for(int i=1;i<=100;i++){
+         NebulaMenuBubble.closing(bubble,captured,i/100f,w,h,x,y,48);
+         check(bubble.width<=previous+.001f,"closing shrinks before returning");previous=bubble.width;
+        }
+        check(bubble.alpha==0&&bubble.content==0&&bubble.width==48,"returns to source and disappears");
+       }
       }
       for(int i=0;i<=1000;i++){float p=i/1000f;
        check(NebulaMenuMotion.response(p)>=0&&NebulaMenuMotion.response(p)<=1.025,"bounded response");
@@ -75,5 +120,5 @@ with tempfile.TemporaryDirectory(prefix='nebula-liquid-popup-') as folder:
         path.write_text(content, encoding='utf-8')
     subprocess.run(['javac', '-encoding', 'UTF-8', '-d', folder,
                     *[str(work / name) for name in stubs],
-                    *[str(ui / name) for name in ['NebulaMenuFocus.java', 'NebulaMenuMotion.java', 'NebulaSelectionGlass.java']]], check=True)
+                    *[str(ui / name) for name in ['NebulaMenuFocus.java', 'NebulaMenuMotion.java', 'NebulaMenuBubble.java', 'NebulaSelectionGlass.java']]], check=True)
     subprocess.run(['java', '-cp', folder, 'Check'], check=True)

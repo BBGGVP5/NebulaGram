@@ -1,0 +1,37 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
+@@ -94,6 +94,7 @@
+     private BlurredBackgroundDrawable glassDrawable;
+     private BlurredBackgroundDrawable glassDrawableBack;
+     private BlurredBackgroundDrawable glassDrawableMenu;
++    private final app.nebulagram.ui.NebulaSelectionGlass nebulaSelectionGlass = new app.nebulagram.ui.NebulaSelectionGlass();
+     private INavigationLayout.BackButtonState backButtonState = INavigationLayout.BackButtonState.BACK;
+     public ImageView backButtonImageView;
+     private BackupImageView avatarSearchImageView;
+@@ -330,6 +331,8 @@
+         if (app.nebulagram.ui.NebulaMenuStyle.enabled() && parentFragment instanceof org.telegram.ui.ChatActivity) {
+             colorProvider = app.nebulagram.ui.NebulaMenuStyle.provider(resourcesProvider);
+         }
++
++        nebulaSelectionGlass.setup(factory, colorProvider);
+ 
+         glassDrawable = factory.create(this)
+             .setColorProvider(colorProvider)
+@@ -2682,7 +2685,7 @@
+         }
+         if (actionModeFactor > 0f && actionMode != null && !glassOnlyBack && !doNotDrawGlassMenu
+                 && (nebulaFloatingChatHeader || nebulaClassicSavedHeader || nebulaSavedMessagesHeader)) {
+-            app.nebulagram.ui.NebulaSelectionGlass.drawActions(canvas, actionMode, glassDrawableMenu,
++            nebulaSelectionGlass.drawActions(canvas, actionMode, glassDrawableMenu,
+                     getWidth(), t, b, actionModeFactor);
+         }
+         // Normal header controls remain without independent material.
+@@ -2810,6 +2813,7 @@
+         }
+         if (glassDrawableMenu != null) {
+             glassDrawableMenu.updateColors();
++            nebulaSelectionGlass.updateColors();
+         }
+         if (glassDrawableBack != null) {
+             glassDrawableBack.updateColors();
