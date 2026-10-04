@@ -14,6 +14,17 @@ public final class NebulaTranslationFragment extends BaseFragment {
         NebulaFormUi.bar(this, actionBar, c, t("ИИ в чате", "AI in chats"));
         LinearLayout column = NebulaFormUi.column(c);
         NebulaCard tools = new NebulaCard(c);
+        NebulaRow engine = new NebulaRow(c).title(t("Движок живого перевода", "Live translation engine"))
+            .subtitle(NebulaTranslationSettings.local() ? t("Быстрый · на устройстве", "Fast · on device") : t("Выбранный провайдер ИИ", "Selected AI provider"), true)
+            .trailing(NebulaRow.TRAIL_CHEVRON);
+        engine.withClick(v -> showDialog(new NebulaDialog.Builder(c, getResourceProvider()).setTitle(t("Движок живого перевода", "Live translation engine"))
+            .setSelectedIndex(NebulaTranslationSettings.local() ? 0 : 1)
+            .setItems(new CharSequence[]{t("Быстрый · на устройстве", "Fast · on device"), t("Выбранный провайдер ИИ", "Selected AI provider")}, (d, i) -> {
+                NebulaTranslationSettings.global().edit().putBoolean("live_translation_local", i == 0).apply();
+                engine.subtitle(i == 0 ? t("Быстрый · на устройстве", "Fast · on device") : t("Выбранный провайдер ИИ", "Selected AI provider"), true);
+                if (dialog != 0) NebulaAutoTranslate.retry(currentAccount, dialog);
+            }).setNegativeButton(t("Отмена", "Cancel"), null).create()));
+        tools.add(engine);
         tools.add(new NebulaRow(c).title(t("Кнопка ИИ в поле ввода", "AI button in composer"))
             .subtitle(t("Инструменты справа · удержание открывает настройки", "Tools on the right · hold for settings"), false)
             .trailing(NebulaRow.TRAIL_SWITCH).checked(NebulaTranslationSettings.shortcut())
@@ -30,7 +41,7 @@ public final class NebulaTranslationFragment extends BaseFragment {
             column.addView(NebulaCard.header(c, t("Перевод в этом чате", "Translation in this chat")));
             NebulaCard incoming = new NebulaCard(c);
             incoming.add(new NebulaRow(c).title(t("Входящие сообщения", "Incoming messages"))
-                .subtitle(t("Переводить видимые сообщения через ИИ", "Translate visible messages using AI"), false)
+                .subtitle(t("Переводить видимые сообщения выбранным движком", "Translate visible messages with the selected engine"), false)
                 .trailing(NebulaRow.TRAIL_SWITCH).checked(NebulaTranslationSettings.prefs(currentAccount).getBoolean("on_" + dialog, false))
                 .withClick(v -> {
                     NebulaRow row = (NebulaRow)v; boolean on = row.toggleChecked();
@@ -54,7 +65,7 @@ public final class NebulaTranslationFragment extends BaseFragment {
                 .trailing(NebulaRow.TRAIL_CHEVRON).withClick(v -> NebulaAutoTranslate.retry(currentAccount, dialog))); column.addView(incoming);
             NebulaCard draft = new NebulaCard(c);
             draft.add(new NebulaRow(c).title(t("Перевод при наборе", "Translate while typing"))
-                .subtitle(t("Предпросмотр с кнопкой применения", "Preview with an Apply button"), false)
+                .subtitle(t("Автоматическая подстановка · оригинал сохраняется", "Automatic insertion · original is preserved"), false)
                 .trailing(NebulaRow.TRAIL_SWITCH).checked(NebulaTranslationSettings.draft(currentAccount, dialog))
                 .withClick(v -> {
                     NebulaRow row = (NebulaRow)v; boolean on = row.toggleChecked();
@@ -62,6 +73,10 @@ public final class NebulaTranslationFragment extends BaseFragment {
                     NebulaTranslationSettings.prefs(currentAccount).edit().putBoolean("draft_" + dialog, on).apply();
                 }));
             draft.add(language(c, t("Язык моего текста", "My text language"), true));
+            draft.add(new NebulaRow(c).title(t("Подставлять перевод сразу", "Insert translation automatically"))
+                .subtitle(t("Вернуть исходный текст кнопкой «Оригинал»", "Restore your text with Original"), false)
+                .trailing(NebulaRow.TRAIL_SWITCH).checked(NebulaTranslationSettings.automatic(currentAccount, dialog))
+                .withClick(v -> NebulaTranslationSettings.prefs(currentAccount).edit().putBoolean("draft_automatic_" + dialog, ((NebulaRow)v).toggleChecked()).apply()));
             NebulaRow delay = new NebulaRow(c).title(t("Пауза после ввода", "Pause after typing"))
                 .subtitle(NebulaTranslationSettings.delay(currentAccount, dialog) + " ms", true).trailing(NebulaRow.TRAIL_CHEVRON);
             delay.withClick(v -> showDialog(new NebulaDialog.Builder(c, getResourceProvider()).setTitle(delayTitle())
@@ -73,8 +88,8 @@ public final class NebulaTranslationFragment extends BaseFragment {
             draft.add(delay);
             LinearLayout.LayoutParams draftParams = new LinearLayout.LayoutParams(-1, -2);
             draftParams.topMargin = NebulaFormUi.dp(12); column.addView(draft, draftParams);
-            column.addView(NebulaFormUi.note(c, t("При включении текст автоматически обрабатывает выбранный провайдер ИИ. Ваш черновик заменяется только по нажатию «Применить».",
-                "When enabled, text is automatically processed by your selected AI provider. Your draft changes only when you tap Apply.")));
+            column.addView(NebulaFormUi.note(c, t("Быстрый режим переводит на устройстве после подготовки языковых пакетов по Wi-Fi. Режим ИИ использует вашего провайдера. Автоподстановка сохраняет оригинал; её можно выключить и применять перевод вручную.",
+                "Fast mode translates on device after language packs are prepared over Wi-Fi. AI mode uses your provider. Automatic insertion preserves the original; disable it to apply translations manually.")));
         } else {
             NebulaCard chats = new NebulaCard(c);
             chats.add(new NebulaRow(c).title(t("Перевод в реальном времени", "Real-time translation"))
@@ -87,7 +102,7 @@ public final class NebulaTranslationFragment extends BaseFragment {
     }
     private String delayTitle() { return t("Пауза после ввода", "Pause after typing"); }
     private boolean ready(Context c) {
-        if (NebulaAiAvailability.available()) return true;
+        if (NebulaTranslationSettings.translationAvailable()) return true;
         Toast.makeText(c, t("Включите ИИ и настройте провайдера", "Enable AI and configure a provider"), Toast.LENGTH_LONG).show(); return false;
     }
     private NebulaRow language(Context c, String title, boolean draft) {

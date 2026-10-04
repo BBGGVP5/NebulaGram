@@ -22,7 +22,7 @@ class ApplicationLoader { static Context applicationContext=new Context(); }
 class NebulaTranslationSettings {
  static final SharedPreferences p=new SharedPreferences(); static String identity="nano:stable";
  static SharedPreferences prefs(int a){return p;} static SharedPreferences global(){return p;}
- static String connectionIdentity(){return identity;} static String label(String s){return s;}
+ static String connectionIdentity(){return identity;} static String translationIdentity(){return identity;} static boolean local(){return false;} static String label(String s){return s;}
  static boolean outgoing(int a,long d){return p.getBoolean("outgoing_"+d,false);}
 }
 class NebulaTasks { static long user(int a){return a+100;} }
@@ -55,6 +55,13 @@ class NebulaAiClient {
    if(cancelled)throw new java.io.InterruptedIOException();if(fail)throw new Exception("private request");return "AI:"+text;
   } finally { active.decrementAndGet(); }
  }
+}
+class NebulaTranslationClient {
+ final NebulaAiClient ai=new NebulaAiClient(); void cancel(){ai.cancel();}
+ String translate(String text,String lang,boolean interactive,java.util.function.Consumer<String> progress)throws Exception {
+  return ai.generate(0,"","","","",text);
+ }
+ static String errorText(Exception error){return "Download model";}
 }
 public class AutoTranslationCheck {
  static void check(boolean v,String why){if(!v)throw new AssertionError(why);}
@@ -94,15 +101,25 @@ public class AutoTranslationCheck {
   long deadline=System.currentTimeMillis()+3000;while(NebulaAiClient.active.get()<2&&System.currentTimeMillis()<deadline)Thread.sleep(5);
   check(NebulaAiClient.active.get()==2,"two remote requests run concurrently instead of serially");
   NebulaAutoTranslate.retainVisible(0,9,Arrays.asList(c));
-  check(!NebulaAutoTranslate.isTranslating(0,a)&&!NebulaAutoTranslate.isTranslating(0,b)&&NebulaAutoTranslate.isTranslating(0,c),"scroll cancels obsolete work and retains visible queue");
+  check(!NebulaAutoTranslate.isTranslating(0,a)&&!NebulaAutoTranslate.isTranslating(0,b)&&NebulaAutoTranslate.isTranslating(0,c),"offscreen active work stops reporting progress; visible queue retained");
   NebulaAiClient.wait.countDown();finish();finish();finish();NebulaAiClient.wait=null;
-  check(a.messageOwner.translatedText==null&&b.messageOwner.translatedText==null,"cancelled offscreen completions cannot apply");
+  check(a.messageOwner.translatedText==null&&b.messageOwner.translatedText==null,"offscreen completions cache without applying");
   check("AI:C".equals(c.messageOwner.translatedText.text)&&NebulaAiClient.peak.get()==2,"visible work proceeds and concurrency remains bounded");
   MessageObject edited=new MessageObject(23);edited.messageOwner.message="before";NebulaAiClient.wait=new CountDownLatch(1);NebulaAutoTranslate.request(0,edited);
   deadline=System.currentTimeMillis()+3000;while(NebulaAiClient.active.get()==0&&System.currentTimeMillis()<deadline)Thread.sleep(5);
   check(NebulaAiClient.active.get()==1,"edited request entered transport before cancellation");
   edited.messageOwner.message="after";NebulaAutoTranslate.retainVisible(0,9,Arrays.asList(edited));NebulaAiClient.wait.countDown();finish();NebulaAiClient.wait=null;
-  check(edited.messageOwner.translatedText==null,"source edits cancel stale work");
+  finish();check("AI:after".equals(edited.messageOwner.translatedText.text),"only the updated source completes, regardless of callback order");
+  NebulaAutoTranslate.stop(0,9);
+  List<MessageObject> many=new ArrayList<>();
+  for(int i=0;i<45;i++){MessageObject item=new MessageObject(100+i);item.messageOwner.message="visible "+i;many.add(item);}
+  NebulaAiClient.wait=new CountDownLatch(1);NebulaAutoTranslate.retainVisible(0,9,many);
+  for(MessageObject item:many)NebulaAutoTranslate.request(0,item);
+  NebulaAiClient.wait.countDown();NebulaAiClient.wait=null;
+  for(int i=0;i<many.size();i++)finish();
+  for(MessageObject item:many)check(item.messageOwner.translatedText!=null&&("AI:"+item.messageOwner.message).equals(item.messageOwner.translatedText.text),"overflow never drops a visible message");
+  check(!NebulaAutoTranslate.status(0,9).contains("translating"),"busy ends after full queue");
+  NebulaAutoTranslate.stop(0,9);
   MessageObject unsent=new MessageObject(-1);unsent.own=true;NebulaAutoTranslate.setOutgoing(0,9,true);NebulaAutoTranslate.request(0,unsent);
   check(!NebulaAutoTranslate.isTranslating(0,unsent),"draft/local outgoing message never enters sent translation");
   System.out.println("Translation: provenance, independent sent consent, immutable originals, visible cancellation, two remote slots, model change and retry passed");System.exit(0);

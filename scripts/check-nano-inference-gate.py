@@ -7,7 +7,7 @@ import tempfile
 root = Path(__file__).resolve().parent.parent
 ui = root / "platform/android/overlay/TMessagesProj/src/main/java/app/nebulagram/ui"
 source = (ui / "NebulaNanoAi.java").read_text(encoding="utf-8")
-assert "NebulaNanoInferenceGate.acquire(cancelled)" in source
+assert "NebulaNanoInferenceGate.acquire(cancelled, interactive)" in source
 assert "releaseSession(reusable);" in source
 assert "finally { NebulaNanoInferenceGate.release(); }" in source
 
@@ -59,6 +59,18 @@ public class GateCheck {
         }
         for (Thread caller : callers) { caller.join(2000); check(!caller.isAlive()); }
         check(error.get() == null);
+        // Hold the engine so both priority levels queue before choosing the next owner.
+        check(NebulaNanoInferenceGate.tryAcquire());
+        java.util.List<String> order = new java.util.concurrent.CopyOnWriteArrayList<>();
+        Thread normal = new Thread(() -> {try {NebulaNanoInferenceGate.acquire(() -> false, false);order.add("message");NebulaNanoInferenceGate.release();}catch(Exception e){error.set(e);}});
+        Thread keyboard = new Thread(() -> {try {NebulaNanoInferenceGate.acquire(() -> false, true);order.add("keyboard");NebulaNanoInferenceGate.release();}catch(Exception e){error.set(e);}});
+        normal.start(); keyboard.start();
+        long deadline=System.nanoTime()+TimeUnit.SECONDS.toNanos(2);
+        java.lang.reflect.Field queue=NebulaNanoInferenceGate.class.getDeclaredField("waiters");queue.setAccessible(true);
+        java.lang.reflect.Field mutex=NebulaNanoInferenceGate.class.getDeclaredField("LOCK");mutex.setAccessible(true);
+        while(true){synchronized(mutex.get(null)){if(((java.util.List<?>)queue.get(null)).size()==2)break;}check(System.nanoTime()<deadline);Thread.sleep(5);}
+        NebulaNanoInferenceGate.release();normal.join(2000);keyboard.join(2000);
+        check(order.equals(java.util.List.of("keyboard","message")) && error.get()==null);
         System.out.println("Nano inference gate serialized independent callers and recovered after release");
     }
 }

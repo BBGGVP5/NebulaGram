@@ -195,7 +195,7 @@ public final class NebulaMessageToolsFragment extends BaseFragment {
         long dialog = translationDialog();
         NebulaRow row = mode == 2 ? draftToggle : mode == 1 ? outgoingToggle : incomingToggle;
         boolean enabled = row.toggleChecked();
-        if (enabled && !NebulaAiAvailability.available()) {
+        if (enabled && !NebulaTranslationSettings.translationAvailable()) {
             row.checked(false);
             Toast.makeText(getContext(), t("Сначала настройте провайдера ИИ", "Configure your AI provider first"), Toast.LENGTH_SHORT).show();
             presentFragment(new NebulaAiFragment().forChat(currentAccount, translationDialog()).openConnection());

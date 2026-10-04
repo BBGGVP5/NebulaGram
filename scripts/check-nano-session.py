@@ -23,7 +23,8 @@ methods = '\n'.join(method(s) for s in [
     '    private static Session acquireSession(', '    private static void closeWarmSession(',
     '    private static void releaseSession(',
     '    private static <T> T await(java.util.concurrent.Future<T> future, long timeout, TimeUnit unit,',
-    '    public static String generate(String instructions, String input, java.util.function.BooleanSupplier cancelled)'])
+    '    public static String generate(String instructions, String input, java.util.function.BooleanSupplier cancelled)',
+    '    public static String generate(String instructions, String input, java.util.function.BooleanSupplier cancelled, boolean interactive)'])
 program = r'''package app.nebulagram.ui;
 import java.util.*;
 import java.util.concurrent.*;

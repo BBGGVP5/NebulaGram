@@ -51,4 +51,4 @@ assert 'message.isOutOwner()' in incoming and 'message.messageOwner.noforwards' 
 assert 'message.isSecretMedia()' in incoming and 'chat.noforwards' in incoming
 settings = (ui / 'NebulaTranslationSettings.java').read_text(encoding='utf-8')
 assert 'NebulaTasks.user(account)' in settings and '"composer_shortcut", false' in settings
-print('Bounded requests, explicit draft application, protected text and opt-in account settings wired')
+print('Bounded requests, reversible draft insertion, protected text and opt-in account settings wired')

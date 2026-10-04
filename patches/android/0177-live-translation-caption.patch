@@ -1,0 +1,60 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/CaptionPhotoViewer.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/CaptionPhotoViewer.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Components/CaptionPhotoViewer.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/CaptionPhotoViewer.java
+@@ -529,6 +529,26 @@
+     }
+ 
+ 
++    @Override
++    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
++        updateNebulaAiInsets();
++        super.onMeasure(widthMeasureSpec, heightMeasureSpec);
++    }
++
++    private void updateNebulaAiInsets() {
++        if (aiButton == null || aiButton.getParent() != editText) return;
++        FrameLayout.LayoutParams container = (FrameLayout.LayoutParams) editText.getLayoutParams();
++        int inset = app.nebulagram.ui.NebulaComposerSlots.captionInset(container.rightMargin, dp(52), dp(4));
++        FrameLayout.LayoutParams button = (FrameLayout.LayoutParams) aiButton.getLayoutParams();
++        int gravity = Gravity.RIGHT | (isAtTop() ? Gravity.TOP : Gravity.BOTTOM);
++        if (button.rightMargin != inset || button.gravity != gravity) {
++            button.rightMargin = inset; button.gravity = gravity; aiButton.setLayoutParams(button);
++        }
++        FrameLayout.LayoutParams field = (FrameLayout.LayoutParams) editText.getEditText().getLayoutParams();
++        int margin = nebulaOriginalRightMargin + dp(44) + inset;
++        if (field.rightMargin != margin) { field.rightMargin = margin; editText.getEditText().setLayoutParams(field); }
++    }
++
+     public Runnable nebulaTools;
+     private int nebulaOriginalRightMargin;
+     private boolean shownAiButton;
+@@ -553,6 +573,7 @@
+             aiButton.setContentDescription(app.nebulagram.ui.NebulaText.text("Инструменты ИИ", "AI tools"));
+         } else aiButton.setImageDrawable(aiButtonIcon);
+ 
++        updateNebulaAiInsets();
+         if (shownAiButton == show) return;
+         if (show) {
+             MessagesController.getInstance(currentAccount).getTonesController().load();
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
+@@ -24622,6 +24622,7 @@
+                 return;
+             }
+             updateMessageTranslation(messageObject, summary);
++            if (app.nebulagram.ui.NebulaAutoTranslate.enabled(currentAccount, getDialogId())) checkTranslation(false);
+             if (translateButton != null) translateButton.updateText();
+             if (args.length > 2 && (boolean) args[2]) {
+                 checkTranslation(true);
+diff --git a/TMessagesProj/build.gradle b/TMessagesProj/build.gradle
+--- a/TMessagesProj/build.gradle
++++ b/TMessagesProj/build.gradle
+@@ -70,6 +70,7 @@
+     implementation 'com.googlecode.mp4parser:isoparser:1.0.6'
+     implementation 'com.stripe:stripe-android:2.0.2'
+     implementation 'com.google.mlkit:language-id:17.0.6'
++    implementation 'com.google.mlkit:translate:17.0.3'
+     implementation 'com.google.mlkit:genai-prompt:1.0.0-beta4'
+     // Prompt beta4 calls Job.cancel$default on the interface (coroutines >= 1.11).
+     implementation platform('org.jetbrains.kotlinx:kotlinx-coroutines-bom:1.11.0')

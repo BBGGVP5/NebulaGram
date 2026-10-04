@@ -188,11 +188,15 @@ public final class NebulaNanoAi {
     }
 
     public static String generate(String instructions, String input, java.util.function.BooleanSupplier cancelled) throws Exception {
+        return generate(instructions, input, cancelled, false);
+    }
+
+    public static String generate(String instructions, String input, java.util.function.BooleanSupplier cancelled, boolean interactive) throws Exception {
         if (!supportedByOs()) throw new IllegalStateException("Gemini Nano is unavailable on this Android version");
         if (input == null || input.trim().isEmpty()) throw new IllegalArgumentException("Enter text");
         if (input.length() > 10000 || instructions != null && instructions.length() > 4000)
             throw new IllegalArgumentException("Gemini Nano supports shorter prompts on device");
-        NebulaNanoInferenceGate.acquire(cancelled);
+        NebulaNanoInferenceGate.acquire(cancelled, interactive);
         boolean reusable = false;
         try {
             Session session = acquireSession();

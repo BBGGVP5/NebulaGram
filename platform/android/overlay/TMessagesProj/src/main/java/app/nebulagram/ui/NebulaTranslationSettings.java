@@ -20,11 +20,15 @@ public final class NebulaTranslationSettings {
         if (provider == NebulaAiClient.NANO) return provider + ":" + p.getBoolean("nano_preview", false) + ":" + p.getBoolean("nano_fast", false);
         return provider + ":" + p.getString("model_" + provider, "") + ":" + p.getString("endpoint", "");
     }
+    public static boolean local() { return global().getBoolean("live_translation_local", false); }
+    public static String translationIdentity() { return local() ? "local:mlkit" : connectionIdentity(); }
+    public static boolean translationAvailable() { return local() || NebulaAiAvailability.available(); }
+    public static boolean automatic(int a, long d) { return prefs(a).getBoolean("draft_automatic_" + d, true); }
     public static boolean shortcut() { return global().getBoolean("composer_shortcut", false); }
     public static boolean outgoing(int a, long d) { return prefs(a).getBoolean("outgoing_" + d, false); }
     public static boolean draft(int a, long d) { return prefs(a).getBoolean("draft_" + d, false); }
     public static String draftLanguage(int a, long d) { return prefs(a).getString("draft_language_" + d, "en"); }
-    public static int delay(int a, long d) { return Math.max(150, Math.min(2000, prefs(a).getInt("delay_" + d, 300))); }
+    public static int delay(int a, long d) { return Math.max(150, Math.min(2000, prefs(a).getInt("delay_" + d, 150))); }
     public static String label(String code) {
         String name = org.telegram.ui.Components.TranslateAlert2.languageName(code);
         return name == null ? code : org.telegram.ui.Components.TranslateAlert2.capitalFirst(name);

@@ -24,6 +24,15 @@ class SlotsCheck {
    for(int frame=0;frame<200;frame++)check(inset==NebulaComposerSlots.toolsInset(base,50*density,6*density,ios,gift*density),"layout accumulates inset");
    cases++;
   }
+  for(int density:new int[]{1,2,3,4})for(int width:new int[]{260,320,393,600})for(int margin:new int[]{12,32,65,100}){
+   int w=width*density, nativeRight=margin*density;
+   int inset=NebulaComposerSlots.captionInset(nativeRight,52*density,4*density);
+   int aiRight=w-nativeRight-inset, confirmLeft=w-52*density;
+   check(aiRight<=confirmLeft-4*density,"caption AI hit area overlaps confirmation");
+   int textRight=w-nativeRight-22*density-44*density-inset+2*density;
+   check(textRight<=aiRight-44*density,"caption text overlaps AI hit area");
+   check(inset==NebulaComposerSlots.captionInset(nativeRight,52*density,4*density),"caption inset accumulates");cases++;
+  }
   System.out.println(cases+" trailing-control cases across empty/typed/action/gift states passed");
  }
 }'''.replace('6*density', str(gap)+'*density'),encoding='utf-8')
@@ -45,3 +54,11 @@ home=(native/'DialogsActivity.java').read_text(encoding='utf-8')
 assert home.index('nebulaHeaderGlass.draw(canvas)') < home.index('if (top && nebulaFlatHomeHeader())')
 assert 'if (actionBar.isNebulaSharedHeaderGlass()) containersAlpha = 1f;' in home
 print('Native pre-measure ownership, attached-sheet lifecycle and full-header material wired')
+
+caption=(native/'Components/CaptionPhotoViewer.java').read_text(encoding='utf-8')
+measure=caption[caption.index('protected void onMeasure('):caption.index('private void updateNebulaAiInsets()')]
+assert measure.index('updateNebulaAiInsets();') < measure.index('super.onMeasure(')
+assert 'captionInset(container.rightMargin, dp(52), dp(4))' in caption
+assert 'nebulaOriginalRightMargin + dp(44) + inset' in caption
+assert 'Gravity.TOP : Gravity.BOTTOM' in caption
+print('Caption pre-measure action spacing and stable original text margin wired')
