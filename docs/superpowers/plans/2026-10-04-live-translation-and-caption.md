@@ -47,6 +47,12 @@ Execution stays in this authorized chat. No separate agents or execution-choice 
 **Files:** `.github/workflows/android.yml`, `docs/USER-CHANGES.md`, this plan.
 
 - [x] Add new executable checks to CI and document the actual engine choice, first language-pack preparation, automatic replacement and original return.
-- [ ] Stage only this task's files, commit and push the final changes to the authorized branch and main. Do not stage `vendor/telegram-android`.
-- [ ] Wait for the main Android build, verify its source SHA, artifact digest, package and signing certificate, then provide its APK. Report physical-device testing accurately; ADB currently has no device.
-- [ ] Keep the previously verified iOS build 74 available. Do not label Android-specific new behavior as already ported to iOS.
+- [x] Stage only this task's files, commit and push the final changes to the authorized branch and main. Do not stage `vendor/telegram-android`.
+- [x] Wait for the main Android build, verify its source SHA, artifact digest, package and signing certificate, then provide its APK. Report physical-device testing accurately; ADB currently has no device.
+- [x] Keep the previously verified iOS build 74 available. Do not label Android-specific new behavior as already ported to iOS.
+
+### Release verification
+
+Android run `37211067884` succeeded for source `6f6be8ccc9df4b892c0583713613288e82272c5f`. Verified the GitHub artifact digest, APK ZIP contents, package `app.nebulagram.messenger`, version code `1000372`, arm64 native libraries and the existing release signing certificate. APK SHA-256: `6a896fd00c13bd29de9add706660efc55ac13cebc502cf583e670cd0e40de17a`. ADB had no connected device; latency and visual behavior on the user's phone remain unverified. Delivered the APK link in the chat.
+
+At the user's additional request, dispatched iOS run `37212418109` from the same source. This rebuild packages the current iOS implementation; the Android-specific ML Kit engine is not an iOS feature.
