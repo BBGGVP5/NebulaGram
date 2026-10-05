@@ -122,7 +122,10 @@ public final class NebulaIconPackStore {
         @Override public void setTintList(android.content.res.ColorStateList value) { tint = value; applyTint(); }
         @Override public void setTintMode(PorterDuff.Mode mode) { tintMode = mode; applyTint(); }
         @Override public boolean isStateful() { return tint != null && tint.isStateful(); }
-        @Override protected boolean onStateChange(int[] state) { applyTint(); return tint != null; }
+        @Override protected boolean onStateChange(int[] state) {
+            if (tint == null) return false;
+            applyTint(); return true;
+        }
         private void applyTint() { setColorFilter(tint == null ? null : new PorterDuffColorFilter(tint.getColorForState(getState(), tint.getDefaultColor()), tintMode)); }
         @Override public int getOpacity() { return PixelFormat.TRANSLUCENT; }
         @Override public int getIntrinsicWidth() { return width; }
