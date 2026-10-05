@@ -1,0 +1,70 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarLayout.java b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarLayout.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarLayout.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarLayout.java
+@@ -1698,7 +1698,11 @@
+         }
+     }
+ 
++    private app.nebulagram.ui.NebulaNavigationAnimation nebulaNavigation;
+     private void onAnimationEndCheck(boolean byCheck) {
++        if (nebulaNavigation != null) {
++            app.nebulagram.ui.NebulaNavigationAnimation animation = nebulaNavigation; nebulaNavigation = null; animation.cancel();
++        }
+         onCloseAnimationEnd();
+         onOpenAnimationEnd();
+         if (waitingForKeyboardCloseRunnable != null) {
+@@ -1716,6 +1720,7 @@
+             animationRunnable = null;
+         }
+         setAlpha(1.0f);
++        containerView.setTranslationX(0); containerViewBack.setTranslationX(0); setInnerTranslationX(0);
+         containerView.setAlpha(1.0f);
+         containerView.setScaleX(1.0f);
+         containerView.setScaleY(1.0f);
+@@ -1805,6 +1810,46 @@
+     }
+ 
+     private void startLayoutAnimation(final boolean open, final boolean first, final boolean preview) {
++
++        if (first && !preview && app.nebulagram.ui.NebulaTransitions.style() != app.nebulagram.ui.NebulaTransitions.STANDARD) {
++            if (animationRunnable != null) { AndroidUtilities.cancelRunOnUIThread(animationRunnable); animationRunnable = null; }
++            transitionAnimationStartTime = System.currentTimeMillis();
++            final app.nebulagram.ui.NebulaNavigationAnimation animation = new app.nebulagram.ui.NebulaNavigationAnimation();
++            nebulaNavigation = animation;
++            animation.start(containerView, containerViewBack, open, app.nebulagram.ui.NebulaTransitions.style(), value -> {
++                if (nebulaNavigation != animation) return;
++                animationProgress = value;
++                if (newFragment != null) newFragment.onTransitionAnimationProgress(true, value);
++                if (oldFragment != null) oldFragment.onTransitionAnimationProgress(false, value);
++                setInnerTranslationX(open ? containerView.getTranslationX() : containerViewBack.getTranslationX());
++            Integer oldNavigationBarColor = oldFragment != null ? oldFragment.getNavigationBarColor() : null;
++            Integer newNavigationBarColor = newFragment != null ? newFragment.getNavigationBarColor() : null;
++            if (oldFragment != null && oldFragment.isSupportEdgeToEdge() && newNavigationBarColor != null) {
++                oldNavigationBarColor = newNavigationBarColor;
++            }
++            if (newFragment != null && newFragment.isSupportEdgeToEdge() && oldNavigationBarColor != null) {
++                newNavigationBarColor = oldNavigationBarColor;
++            }
++
++            if (newFragment != null && oldNavigationBarColor != null && newNavigationBarColor != null) {
++                float ratio = MathUtils.clamp(4f * animationProgress, 0f, 1f);
++                int color = ColorUtils.blendARGB(oldNavigationBarColor, newNavigationBarColor, ratio);
++                if (sheetFragment != null) {
++                    if (sheetFragment.sheetsStack != null) {
++                        for (int i = 0; i < sheetFragment.sheetsStack.size(); ++i) {
++                        BaseFragment.AttachedSheet sheet = sheetFragment.sheetsStack.get(i);
++                        if (sheet.attachedToParent()) {
++                            color = sheet.getNavigationBarColor(color);
++                        }
++                        }
++                    }
++                }
++                newFragment.setNavigationBarColor(color);
++            }
++
++            }, () -> { if (nebulaNavigation == animation) { nebulaNavigation = null; onAnimationEndCheck(false); } });
++            return;
++        }
+         if (first) {
+             animationProgress = 0.0f;
+             lastFrameTime = System.nanoTime() / 1000000;

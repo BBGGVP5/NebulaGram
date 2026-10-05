@@ -66,7 +66,7 @@ public final class NebulaIcons {
     public static int pack() {
         if (ApplicationLoader.applicationContext == null) return 1;
         android.content.SharedPreferences p = ApplicationLoader.applicationContext.getSharedPreferences("nebulagram", 0);
-        return Math.max(0, Math.min(2, p.getInt("icon_pack", p.getBoolean("ios_icons", true) ? 1 : 0)));
+        return Math.max(0, Math.min(3, p.getInt("icon_pack", p.getBoolean("ios_icons", true) ? 1 : 0)));
     }
     public static void setPack(int pack) {
         ApplicationLoader.applicationContext.getSharedPreferences("nebulagram", 0).edit().putInt("icon_pack", pack).putBoolean("ios_icons", pack != 0).apply();

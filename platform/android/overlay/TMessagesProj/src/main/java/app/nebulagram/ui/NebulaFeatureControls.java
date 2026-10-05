@@ -32,6 +32,18 @@ public final class NebulaFeatureControls {
         card = new NebulaCard(parent.getContext());
         card.add(toggle(parent, "mute_non_contacts", "Приглушить не-контакты", "Silence non-contacts", "Сообщения незнакомых людей приходят без звука и вибрации", "Messages from unknown people arrive without sound or vibration"));
         card.add(toggle(parent, "ignore_mentions", "Игнорировать упоминания", "Ignore mentions", "Не уведомлять об упоминаниях и скрывать их счётчик", "Skip mention notifications and hide their counter"));
+        for (int account = 0; account < org.telegram.messenger.UserConfig.MAX_ACCOUNT_COUNT; account++) {
+            if (!org.telegram.messenger.UserConfig.getInstance(account).isClientActivated()) continue;
+            final int selectedAccount = account;
+            org.telegram.tgnet.TLRPC.User user = org.telegram.messenger.UserConfig.getInstance(account).getCurrentUser();
+            String name = user == null ? Integer.toString(account + 1) : org.telegram.messenger.UserObject.getUserName(user);
+            card.add(new NebulaRow(parent.getContext()).title(text("Уведомления · ", "Notifications · ") + name)
+                .trailing(NebulaRow.TRAIL_SWITCH).checked(NebulaChatPreferences.notifications(account)).withClick(v -> {
+                    boolean value = ((NebulaRow)v).toggleChecked(); NebulaChatPreferences.notifications(selectedAccount, value);
+                    if (value) org.telegram.messenger.NotificationsController.getInstance(selectedAccount).showNotifications();
+                    else org.telegram.messenger.NotificationsController.getInstance(selectedAccount).hideNotifications();
+                }));
+        }
         NebulaPeerSelections.mentionRow(host, card);
         add(parent, card);
         parent.addView(NebulaCard.header(parent.getContext(), text("Архивация историй", "Story archiving")));
@@ -56,6 +68,26 @@ public final class NebulaFeatureControls {
         card.add(toggle(parent, "custom_chat_wallpaper", "Фон отдельных чатов", "Per-chat wallpaper", "Показывать обои, установленные для отдельных переписок", "Show wallpaper set for individual conversations"));
         card.add(toggle(parent, "quote_full_reply", "Цитировать ответы", "Quote replies", "Цитировать текст сообщения в пределах лимита Telegram. Не работает в топиках", "Quote the message text up to Telegram's limit. Unavailable in topics"));
         card.add(toggle(parent, "disable_chat_vibration", "Отключить вибрацию чатов", "Disable chat haptics", "Отключает отклик жестов и действий в переписке", "Turns off gesture and action feedback in conversations"));
+        card.add(new NebulaRow(parent.getContext()).title(text("Вычисления при наборе", "Inline arithmetic"))
+            .subtitle(text("Показывать результат рядом с выражением, сохраняя текст", "Show the result beside an expression, keeping your text"), false)
+            .trailing(NebulaRow.TRAIL_SWITCH).checked(NebulaChatPreferences.math()).withClick(v -> NebulaChatPreferences.set("inline_math", ((NebulaRow)v).toggleChecked())));
+        card.add(new NebulaRow(parent.getContext()).title(text("Количество пересылок", "Forward count"))
+            .subtitle(text("Рядом с просмотрами постов каналов", "Beside channel post views"), false)
+            .trailing(NebulaRow.TRAIL_SWITCH).checked(NebulaChatPreferences.forwardCount()).withClick(v -> NebulaChatPreferences.set("channel_forward_count", ((NebulaRow)v).toggleChecked())));
+        card.add(new NebulaRow(parent.getContext()).title(text("Счётчики только со звуком", "Unmuted folder counters"))
+            .subtitle(text("Не учитывать чаты без звука в числах папок; состав папок сохраняется", "Exclude muted chats from folder counts, keeping folder membership"), false)
+            .trailing(NebulaRow.TRAIL_SWITCH).checked(NebulaChatPreferences.unmuted()).withClick(v -> {
+                NebulaChatPreferences.set("folder_unmuted_only", ((NebulaRow)v).toggleChecked());
+                for (int a=0; a<org.telegram.messenger.UserConfig.MAX_ACCOUNT_COUNT; a++)
+                    if (org.telegram.messenger.UserConfig.getInstance(a).isClientActivated()) org.telegram.messenger.MessagesStorage.getInstance(a).nebulaRecountFilters();
+            }));
+        String[] styles = {text("Обычно", "Default"), text("Сбоку", "Beside sticker"), text("Скрыто", "Hidden")};
+        NebulaRow time = new NebulaRow(parent.getContext()).title(text("Время у стикеров", "Sticker time")).subtitle(styles[NebulaChatPreferences.stickerTime()], false).trailing(NebulaRow.TRAIL_CHEVRON);
+        time.withClick(v -> host.showDialog(new NebulaDialog.Builder(parent.getContext()).setTitle(text("Время у стикеров", "Sticker time"))
+            .setSelectedIndex(NebulaChatPreferences.stickerTime()).setItems(styles, (d, which) -> { NebulaChatPreferences.stickerTime(which); time.subtitle(styles[which], false); }).create())); card.add(time);
+        card.add(new NebulaRow(parent.getContext()).title(text("Действия свайпа", "Swipe actions"))
+            .subtitle(text("Ответ, копирование, перевод и инструменты; настройте порядок", "Reply, copy, translation and tools; set their order"), false)
+            .trailing(NebulaRow.TRAIL_CHEVRON).withClick(v -> host.presentFragment(new NebulaSwipeSettingsFragment())));
         NebulaPeerSelections.savedRow(host, card);
         add(parent, card);
     }

@@ -1,0 +1,68 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/web/BotWebViewContainer.java b/TMessagesProj/src/main/java/org/telegram/ui/web/BotWebViewContainer.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/web/BotWebViewContainer.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/web/BotWebViewContainer.java
+@@ -3914,6 +3914,7 @@
+     }
+ 
+     public static class MyWebView extends WebView {
++        private final app.nebulagram.ui.NebulaBrowserAdBlock nebulaAdBlock;
+         private final int tag = tags++;
+         private boolean isPageLoaded;
+         private Runnable whenPageLoaded;
+@@ -3958,6 +3959,7 @@
+ 
+         public MyWebView(Context context, boolean bot, long botId) {
+             super(context);
++            nebulaAdBlock = bot ? null : new app.nebulagram.ui.NebulaBrowserAdBlock();
+             this.bot = bot;
+             d("created new webview " + this);
+ 
+@@ -4101,6 +4103,10 @@
+                         d("proxying ton");
+                         firstRequest = false;
+                         return proxyTON(request);
++                    }
++                    if (nebulaAdBlock != null && request != null) {
++                        WebResourceResponse blocked = nebulaAdBlock.intercept(request);
++                        if (blocked != null) return blocked;
+                     }
+                     if (!bot && opener != null && firstRequest) {
+                         HttpURLConnection connection = null;
+@@ -4168,7 +4174,9 @@
+                         }
+                     }
+                     firstRequest = false;
+-                    return super.shouldInterceptRequest(view, request);
++                    // The default modern overload delegates to the legacy overload,
++                    // which lacks isForMainFrame. All checks have already run here.
++                    return null;
+                 }
+ 
+                 @Override
+@@ -4220,6 +4228,10 @@
+                     if (isTonsite(url)) {
+                         d("proxying ton");
+                         return proxyTON("GET", url, null);
++                    }
++                    if (nebulaAdBlock != null) {
++                        WebResourceResponse blocked = nebulaAdBlock.intercept(url);
++                        if (blocked != null) return blocked;
+                     }
+                     return super.shouldInterceptRequest(view, url);
+                 }
+@@ -4340,6 +4352,7 @@
+ 
+                 @Override
+                 public void onPageStarted(WebView view, String url, Bitmap favicon) {
++                    if (nebulaAdBlock != null) nebulaAdBlock.navigate(url);
+                     if (bot && botWebViewContainer != null) {
+                         botWebViewContainer.documentGeneration++;
+                     }
+@@ -4369,6 +4382,7 @@
+ 
+                 @Override
+                 public void onPageFinished(WebView view, String url) {
++                    if (nebulaAdBlock != null) nebulaAdBlock.finished(view, url);
+                     isPageLoaded = true;
+                     boolean animated = true;
+                     if (MyWebView.this.whenPageLoaded != null) {

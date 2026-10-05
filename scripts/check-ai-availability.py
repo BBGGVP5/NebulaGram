@@ -26,7 +26,7 @@ public class ApplicationLoader {
   public android.content.SharedPreferences getSharedPreferences(String n,int m){return prefs;}
  }
 }''',
-    'app/nebulagram/ui/NebulaAiClient.java': 'package app.nebulagram.ui; import java.net.*; import java.io.*; public class NebulaAiClient { public static final int OPENAI=0,CLAUDE=1,GEMINI=2,CUSTOM=3,NANO=4;\n' + base + '}',
+    'app/nebulagram/ui/NebulaAiClient.java': 'package app.nebulagram.ui; import java.net.*; import java.io.*; public class NebulaAiClient { public static final int OPENAI=0,CLAUDE=1,GEMINI=2,CUSTOM=3,NANO=4,OPENROUTER=5,PERPLEXITY=6,MAX_PROVIDER=6;\n' + base + '}',
     'app/nebulagram/ui/NebulaNanoAi.java': '''package app.nebulagram.ui;
 public class NebulaNanoAi {public static boolean supportedByOs(){return true;}}''',
     'app/nebulagram/ui/NebulaAiSecrets.java': '''package app.nebulagram.ui;
@@ -37,7 +37,7 @@ public class Check {
  public static void main(String[] args) {
   var p=ApplicationLoader.applicationContext.prefs;
   int cases=0;
-  for(int provider=0;provider<5;provider++) for(boolean enabled:new boolean[]{false,true})
+  for(int provider=0;provider<7;provider++) for(boolean enabled:new boolean[]{false,true})
    for(boolean key:new boolean[]{false,true}) for(String model:new String[]{""," ","demo-model"}) {
     p.data.clear(); p.data.put("provider",provider);p.data.put("model_"+provider,model);
     p.data.put("endpoint","https://example.com/v1");NebulaAiSecrets.stored=key;

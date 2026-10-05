@@ -18,7 +18,8 @@ public final class NebulaTranslationSettings {
     public static String connectionIdentity() {
         SharedPreferences p = global(); int provider = p.getInt("provider", 0);
         if (provider == NebulaAiClient.NANO) return provider + ":" + p.getBoolean("nano_preview", false) + ":" + p.getBoolean("nano_fast", false);
-        return provider + ":" + p.getString("model_" + provider, "") + ":" + p.getString("endpoint", "");
+        return provider + ":" + p.getString("model_" + provider, "") + ":" + p.getString("endpoint", "")
+                + ":" + p.getString("selected_service", "") + ":" + p.getInt("connection_revision", 0);
     }
     public static boolean local() { return global().getBoolean("live_translation_local", false); }
     public static String translationIdentity() { return local() ? "local:mlkit" : connectionIdentity(); }

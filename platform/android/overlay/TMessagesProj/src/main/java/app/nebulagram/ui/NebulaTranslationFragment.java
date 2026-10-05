@@ -30,12 +30,12 @@ public final class NebulaTranslationFragment extends BaseFragment {
             .trailing(NebulaRow.TRAIL_SWITCH).checked(NebulaTranslationSettings.shortcut())
             .withClick(v -> NebulaTranslationSettings.global().edit().putBoolean("composer_shortcut", ((NebulaRow)v).toggleChecked()).apply()));
         tools.add(new NebulaRow(c).title(t("Провайдер и модель", "Provider and model")).trailing(NebulaRow.TRAIL_CHEVRON)
-            .withClick(v -> presentFragment(new NebulaAiFragment().forChat(currentAccount, dialog).openConnection())));
+            .withClick(v -> presentFragment(new NebulaAiServicesFragment())));
         column.addView(tools);
         if (NebulaTranslationSettings.global().getInt("provider", 0) == NebulaAiClient.NANO) {
             tools.add(new NebulaRow(c).title(t("Gemini Nano · модель и обновления", "Gemini Nano · model and updates"))
                 .subtitle(t("Проверка, загрузка модели и обновление AICore", "Check, download model and update AICore"), false)
-                .trailing(NebulaRow.TRAIL_CHEVRON).withClick(v -> presentFragment(new NebulaAiFragment().forChat(currentAccount, dialog).openConnection())));
+                .trailing(NebulaRow.TRAIL_CHEVRON).withClick(v -> presentFragment(new NebulaAiFragment().forChat(currentAccount, dialog).openNanoConnection())));
         }
         if (dialog != 0 && !DialogObject.isEncryptedDialog(dialog)) {
             column.addView(NebulaCard.header(c, t("Перевод в этом чате", "Translation in this chat")));

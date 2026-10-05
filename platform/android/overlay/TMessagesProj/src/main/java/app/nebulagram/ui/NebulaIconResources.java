@@ -29,15 +29,19 @@ public final class NebulaIconResources extends Resources {
     }
 
     @Override public Drawable getDrawable(int id) throws NotFoundException {
+        Drawable imported = NebulaIconPackStore.drawable(original, id); if (imported != null) return imported;
         return original.getDrawable(NebulaIcons.resource(id));
     }
     @Override public Drawable getDrawable(int id, Theme theme) throws NotFoundException {
+        Drawable imported = NebulaIconPackStore.drawable(original, id); if (imported != null) return imported;
         return original.getDrawable(NebulaIcons.resource(id), theme);
     }
     @Override public Drawable getDrawableForDensity(int id, int density) throws NotFoundException {
+        Drawable imported = NebulaIconPackStore.drawable(original, id); if (imported != null) return imported;
         return original.getDrawableForDensity(NebulaIcons.resource(id), density);
     }
     @Override public Drawable getDrawableForDensity(int id, int density, Theme theme) throws NotFoundException {
+        Drawable imported = NebulaIconPackStore.drawable(original, id); if (imported != null) return imported;
         return original.getDrawableForDensity(NebulaIcons.resource(id), density, theme);
     }
     @Override public void getValue(int id, TypedValue out, boolean resolveRefs) throws NotFoundException {

@@ -613,3 +613,24 @@ Measure the AI shortcut before the editor; reserve emoji/gift hit areas, remove 
 ## 0172 — Separate selection actions from the counter
 
 `ActionBar.dispatchDraw(Canvas)` keeps the chat/Saved Messages selection count inside its own bounds and draws independent glass for each visible action and the close control. Normal header controls remain unchanged. `NebulaSelectionGlass` uses laid-out native children and preserves their union for ActionBar touch dispatch. The hook changes one native file (19 additions, 8 removals); visibility, child alpha and the native selection factor govern all surfaces.
+
+
+## 0178 — AI services, editor and summaries
+
+`AIEditorAlert` captures the selected Nebula connection and generation options, streams plain-text edits, and cancels work on dismissal. Rich articles report an unsupported operation in this mode. `TranslateController` intercepts enabled Nebula summaries before the Telegram RPC, preserving the native result shape and request cancellation. With these switches off, stock routes remain available.
+
+## 0179 — Browser ad blocking
+
+Both `BotWebViewContainer` interception overloads consult a browser-only immutable rules snapshot after the native TON proxy path. Modern interception does not delegate to the legacy overload, so main-frame requests stay excluded. Navigation resets page scope; page completion inserts bounded CSS. Mini Apps are excluded by the constructor's native bot flag.
+
+## 0180 — Navigation physics
+
+`ActionBarLayout.startLayoutAnimation` uses one owned animator for AOSP/full-width movement or AndroidX `SpringAnimation` with stiffness 900, damping 1 and scale 0.85→1. Its existing completion path cancels and resets the owner. Native preview and back gesture paths remain intact.
+
+## 0181 — Chat preferences
+
+`ChatMessageCell` supports opt-in sticker time placement and channel forward counts. `ChatActivityEnterView` updates a bounded arithmetic hint after text changes without editing the draft. `NotificationsController` honors notification settings by account identity. `MessagesStorage` applies the unmuted-only flag to full and incremental folder counts and invalidates cached pending counts on setting changes; folder membership is unchanged.
+
+## 0182 — Swipe actions
+
+`ChatActivity` selects an ordered action from vertical movement after the existing horizontal swipe starts. It renders the selected native glyph and dispatches reply/copy/tools/translation on release, preserving native gesture restrictions and protected-message checks. The translation action opens the existing selected-engine tool directly.

@@ -1,0 +1,73 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
+@@ -5033,7 +5033,16 @@
+                 }
+ 
+                 int alpha = (int) (iconProgress * 0xFF);
+-                Drawable replyIconDrawable = getThemedDrawable(Theme.key_drawable_replyIcon);
++                Drawable replyIconDrawable;
++                if (nebulaSwipeAction == app.nebulagram.ui.NebulaSwipeActions.REPLY) replyIconDrawable = getThemedDrawable(Theme.key_drawable_replyIcon);
++                else {
++                    if (nebulaSwipeDrawable == null || nebulaSwipeDrawableAction != nebulaSwipeAction) {
++                        nebulaSwipeDrawableAction = nebulaSwipeAction;
++                        nebulaSwipeDrawable = getContext().getResources().getDrawable(app.nebulagram.ui.NebulaSwipeActions.icon(nebulaSwipeAction)).mutate();
++                    }
++                    nebulaSwipeDrawable.setColorFilter(getThemedColor(Theme.key_chat_serviceText), PorterDuff.Mode.SRC_IN);
++                    replyIconDrawable = nebulaSwipeDrawable;
++                }
+                 replyIconDrawable.setAlpha(alpha);
+                 replyIconDrawable.setBounds((int) (x - replyIconDrawable.getIntrinsicWidth() / 2 * scale), (int) (y - replyIconDrawable.getIntrinsicHeight() / 2 * scale), (int) (x + replyIconDrawable.getIntrinsicWidth() / 2 * scale), (int) (y + replyIconDrawable.getIntrinsicHeight() / 2 * scale));
+                 replyIconDrawable.draw(canvas);
+@@ -5043,6 +5052,9 @@
+                 chatActionBackgroundDarkenPaint.setColor(wasDarkenColor);
+             }
+ 
++            private int nebulaSwipeAction;
++            private Drawable nebulaSwipeDrawable;
++            private int nebulaSwipeDrawableAction = -1;
+             private void processTouchEvent(MotionEvent e) {
+                 if (e != null) {
+                     wasManualScroll = true;
+@@ -5073,6 +5085,7 @@
+                         maybeStartTrackingSlidingView = true;
+                         startedTrackingX = (int) e.getX();
+                         startedTrackingY = (int) e.getY();
++                        nebulaSwipeAction = app.nebulagram.ui.NebulaSwipeActions.action(0);
+                     }
+                 } else if (slidingView != null && e != null && e.getAction() == MotionEvent.ACTION_MOVE && e.getPointerId(0) == startedTrackingPointerId) {
+                     int dx = Math.max(AndroidUtilities.dp(-80), Math.min(0, (int) (e.getX() - startedTrackingX)));
+@@ -5090,6 +5103,7 @@
+                             getParent().requestDisallowInterceptTouchEvent(true);
+                         }
+                     } else if (startedTrackingSlidingView) {
++                        nebulaSwipeAction = app.nebulagram.ui.NebulaSwipeActions.action(e.getY() - startedTrackingY);
+                         if (Math.abs(dx) >= AndroidUtilities.dp(50)) {
+                             if (!wasTrackingVibrate) {
+                                 try {
+@@ -5113,6 +5127,17 @@
+                 } else if (slidingView != null && (e == null || e.getPointerId(0) == startedTrackingPointerId && (e.getAction() == MotionEvent.ACTION_CANCEL || e.getAction() == MotionEvent.ACTION_UP || e.getAction() == MotionEvent.ACTION_POINTER_UP))) {
+                     if (e != null && e.getAction() != MotionEvent.ACTION_CANCEL && Math.abs(getSlidingNonAnimationTranslationX(false)) >= AndroidUtilities.dp(50)) {
+                         MessageObject message = getSlidingMessageObject();
++                        if (nebulaSwipeAction != app.nebulagram.ui.NebulaSwipeActions.REPLY) {
++                            if (message != null && currentEncryptedChat == null && !message.isSecretMedia()
++                                && !message.messageOwner.noforwards && !getMessagesController().isPeerNoForwards(message.getDialogId())) {
++                                if (nebulaSwipeAction == app.nebulagram.ui.NebulaSwipeActions.COPY) AndroidUtilities.addToClipboard(getMessageContent(message, 0, false));
++                                else {
++                                    app.nebulagram.ui.NebulaMessageToolsFragment tools = new app.nebulagram.ui.NebulaMessageToolsFragment(message);
++                                    if (nebulaSwipeAction == app.nebulagram.ui.NebulaSwipeActions.TRANSLATE) tools.translateOnOpen();
++                                    app.nebulagram.ui.NebulaMessageToolsFragment.show(ChatActivity.this, tools);
++                                }
++                            }
++                        } else {
+                         final boolean allowReplyOnOpenTopic = canSendMessageToTopic(message);
+                         if (
+                             bottomChannelButtonsLayout != null && bottomChannelButtonsLayout.getVisibility() == View.VISIBLE && !(bottomOverlayChatWaitsReply && allowReplyOnOpenTopic || message.wasJustSent) ||
+@@ -5145,6 +5170,7 @@
+                             presentFragment(fragment);
+                         } else {
+                             showFieldPanelForReply(getSlidingMessageObject());
++                        }
+                         }
+                     }
+                     endTrackingX = slidingViewGetOffsetX();

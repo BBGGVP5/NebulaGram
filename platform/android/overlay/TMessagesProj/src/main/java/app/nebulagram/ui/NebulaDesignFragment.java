@@ -68,6 +68,8 @@ public final class NebulaDesignFragment extends BaseFragment {
             card.add(row);
         }
         content.addView(card);
+        content.addView(new NebulaRow(c).icon(R.drawable.msg_download).title(text("Паки иконок · импорт и Remix", "Icon packs · import and Remix"))
+                .trailing(NebulaRow.TRAIL_CHEVRON).withClick(v -> presentFragment(new NebulaIconPacksFragment())));
         content.addView(NebulaMenuFragment.placeholder(c, text("Выберите стиль значков приложения. Превью показывает каждый набор независимо от выбранного.", "Choose the app icon style. Each preview shows its own pack.")));
     }
     private TextView label(Context c, String value, int size, int color) {

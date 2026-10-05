@@ -14,7 +14,7 @@ public final class NebulaAiAvailability {
     public static boolean available() {
         SharedPreferences p = prefs();
         int provider = p.getInt("provider", 0);
-        if (!enabled() || provider < 0 || provider > NebulaAiClient.NANO
+        if (!enabled() || provider < 0 || provider > NebulaAiClient.MAX_PROVIDER
                 || provider == NebulaAiClient.NANO && !NebulaNanoAi.supportedByOs()) return false;
         if (provider == NebulaAiClient.NANO) return true;
         if (p.getString("model_" + provider, "").trim().isEmpty()

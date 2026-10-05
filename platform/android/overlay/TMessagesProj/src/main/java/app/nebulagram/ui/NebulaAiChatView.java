@@ -29,6 +29,7 @@ public final class NebulaAiChatView extends LinearLayout {
     private NebulaAiClient active;
     private Thread worker;
     private LinearLayout waitingRow;
+    private TextView streamingAnswer;
     private TextView waitingText;
     private Runnable waitingTimer;
     private Pulse pulse;
@@ -151,8 +152,7 @@ public final class NebulaAiChatView extends LinearLayout {
             status.setText("Gemini Nano · " + (p.getBoolean("nano_preview", false) ? "Preview" : "Stable")
                     + " · " + (p.getBoolean("nano_fast", false) ? text("Быстрая", "Fast") : text("Полная", "Full")));
         } else {
-            String name = provider == NebulaAiClient.CLAUDE ? "Claude" : provider == NebulaAiClient.GEMINI ? "Gemini"
-                    : provider == NebulaAiClient.OPENAI ? "GPT" : text("Свой сервис", "Custom service");
+            String name = NebulaAiServices.providerName(provider);
             status.setText(name + " · " + (model.isEmpty() ? text("выберите модель", "choose a model") : model));
         }
     }
@@ -233,6 +233,8 @@ public final class NebulaAiChatView extends LinearLayout {
         waitingRow.postDelayed(waitingTimer, 5000);
     }
     private void finish() {
+        if (streamingAnswer != null) messages.removeView(streamingAnswer);
+        streamingAnswer = null;
         active = null; worker = null;
         activeProvider = -1;
         if (waitingRow != null && waitingTimer != null) waitingRow.removeCallbacks(waitingTimer);
@@ -253,20 +255,22 @@ public final class NebulaAiChatView extends LinearLayout {
             return;
         }
         final String model = p.getString("model_" + provider, ""), endpoint = p.getString("endpoint", "https://api.openai.com/v1");
-        final String instruction = p.getString("prompt", "");
+        String selectedRole = NebulaAiRoles.prompt();
+        final String instruction = selectedRole.isEmpty() ? p.getString("prompt", "") : selectedRole;
+        final NebulaAiClient.Options options = NebulaAiOptions.capture();
         if (provider == NebulaAiClient.NANO && instruction.length() > 4000) {
             Toast.makeText(getContext(), text("Сократите инструкции до 4000 символов для Gemini Nano", "Shorten instructions to 4000 characters for Gemini Nano"), Toast.LENGTH_LONG).show(); settings.run(); return;
         }
         final String key;
         try { key = provider == NebulaAiClient.NANO ? "" : NebulaAiSecrets.read(provider); }
         catch (Exception e) { Toast.makeText(getContext(), text("Введите API-ключ заново", "Re-enter your API key"), Toast.LENGTH_SHORT).show(); settings.run(); return; }
-        final String identity = provider + ":" + model + ":" + endpoint + ":" + p.getBoolean("nano_preview", false) + ":" + p.getBoolean("nano_fast", false);
+        final String identity = NebulaTranslationSettings.connectionIdentity() + ":" + instruction;
         NebulaAiChats.Chat selectedChat = NebulaAiChats.current();
         if (selectedChat != null && !selectedChat.id.equals(chatId)) restoreChat(selectedChat);
-        if (!selectedChat.identity.isEmpty() && !selectedChat.identity.equals(identity)) restoreChat(NebulaAiChats.fresh());
+        if (selectedChat != null && !selectedChat.identity.isEmpty() && !selectedChat.identity.equals(identity)) restoreChat(NebulaAiChats.fresh());
         conversation.select(identity);
         final String request;
-        try { request = conversation.request(message, provider == NebulaAiClient.NANO ? 4000 : 49000); }
+        try { request = p.getBoolean("use_context", true) ? conversation.request(message, provider == NebulaAiClient.NANO ? 4000 : 49000) : message; }
         catch (IllegalArgumentException e) { Toast.makeText(getContext(), text("Сократите сообщение для выбранной модели", "Shorten this message for the selected model"), Toast.LENGTH_LONG).show(); return; }
         if (completed == 0) messages.removeAllViews();
         cancellationNotice = null;
@@ -275,13 +279,20 @@ public final class NebulaAiChatView extends LinearLayout {
         send.setImageResource(R.drawable.msg_close); send.setContentDescription(text("Остановить ответ", "Stop response"));
         final NebulaAiClient task = active = new NebulaAiClient();
         activeProvider = provider;
+        final TextView streaming = streamingAnswer = label("", 16, theme.onSurface());
+        final boolean[] streamVisible = {false};
         worker = new Thread(() -> {
             try {
-                final String result = task.generate(provider, endpoint, key, model, instruction, request);
+                final String result = task.generate(provider, endpoint, key, model, instruction, request, options, partial -> AndroidUtilities.runOnUIThread(() -> {
+                    if (disposed || active != task) return;
+                    if (!streamVisible[0]) { messages.addView(streaming, new LayoutParams(-1, -2)); streamVisible[0] = true; }
+                    streaming.setText(partial);
+                    if (waitingText != null) waitingText.setText(text("Получаем ответ…", "Receiving response…"));
+                }));
                 if (result.trim().isEmpty()) throw new IllegalStateException("EMPTY_RESPONSE");
                 AndroidUtilities.runOnUIThread(() -> {
                     if (disposed || active != task) return;
-                    finish(); completed++; conversation.add(message, result); answer(result);
+                    messages.removeView(streaming); finish(); completed++; conversation.add(message, result); answer(result);
                     NebulaAiChats.append(chatId, identity, message, result);
                     updateChatsLabel();
                     NebulaAiHistory.add(provider == NebulaAiClient.NANO ? "Gemini Nano" : model, message, result);
@@ -290,7 +301,7 @@ public final class NebulaAiChatView extends LinearLayout {
                 final String failure = failure(provider, e);
                 AndroidUtilities.runOnUIThread(() -> {
                     if (disposed || active != task) return;
-                    finish(); completed++; answer(failure);
+                    messages.removeView(streaming); finish(); completed++; answer(failure);
                     TextView retry = control(text("Изменить запрос", "Edit request")); messages.addView(retry);
                     retry.setOnClickListener(v -> { composer.setText(message); composer.setSelection(composer.length()); composer.requestFocus(); });
                 });

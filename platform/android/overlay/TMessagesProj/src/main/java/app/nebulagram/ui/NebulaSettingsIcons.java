@@ -3,6 +3,7 @@ package app.nebulagram.ui;
 import org.telegram.messenger.R;
 public final class NebulaSettingsIcons {
     public static int resource(int original) {
+        if (NebulaIcons.pack() == 3) return original;
         if (original == R.drawable.msg_settings) return R.drawable.nebula_settings_general;
         if (original == R.drawable.msg_settings_old) return R.drawable.nebula_settings_general;
         if (original == R.drawable.msg_secret) return R.drawable.nebula_settings_privacy;
@@ -28,6 +29,7 @@ public final class NebulaSettingsIcons {
     }
 
     public static int telegramResource(int original) {
+        if (NebulaIcons.pack() == 3) return original;
         if (original == R.drawable.settings_privacy) return R.drawable.nebula_settings_privacy;
         if (original == R.drawable.msg2_secret) return R.drawable.nebula_settings_privacy;
         if (original == R.drawable.settings_folders) return R.drawable.nebula_settings_folder;

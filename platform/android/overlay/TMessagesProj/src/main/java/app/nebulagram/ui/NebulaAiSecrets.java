@@ -23,12 +23,20 @@ public final class NebulaAiSecrets {
         return generator.generateKey();
     }
     private static AtomicFile file(int provider) {
-        if (provider < 0 || provider > 3) throw new IllegalArgumentException();
+        if (provider < 0 || provider > 6 || provider == 4) throw new IllegalArgumentException();
         return new AtomicFile(new File(ApplicationLoader.applicationContext.getNoBackupFilesDir(), "ai-key-" + provider));
     }
+    private static AtomicFile file(String scope) {
+        if (scope == null || !scope.matches("[a-zA-Z0-9_-]{1,80}")) throw new IllegalArgumentException();
+        return new AtomicFile(new File(ApplicationLoader.applicationContext.getNoBackupFilesDir(), "ai-key-" + scope));
+    }
     public static boolean exists(int provider) { return file(provider).getBaseFile().exists(); }
+    public static boolean exists(String scope) { return file(scope).getBaseFile().exists(); }
     public static synchronized void save(int provider, String value) throws Exception {
-        AtomicFile file = file(provider);
+        save(file(provider), value);
+    }
+    public static synchronized void save(String scope, String value) throws Exception { save(file(scope), value); }
+    private static void save(AtomicFile file, String value) throws Exception {
         if (value.isEmpty()) { file.delete(); return; }
         Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding"); cipher.init(Cipher.ENCRYPT_MODE, key());
         byte[] encrypted = cipher.doFinal(value.getBytes(StandardCharsets.UTF_8));
@@ -37,7 +45,10 @@ public final class NebulaAiSecrets {
         catch (Exception e) { file.failWrite(out); throw e; }
     }
     public static synchronized String read(int provider) throws Exception {
-        AtomicFile file = file(provider);
+        return read(file(provider));
+    }
+    public static synchronized String read(String scope) throws Exception { return read(file(scope)); }
+    private static String read(AtomicFile file) throws Exception {
         if (!file.getBaseFile().exists()) return "";
         byte[] bytes = file.readFully();
         int count = bytes[0] & 255;

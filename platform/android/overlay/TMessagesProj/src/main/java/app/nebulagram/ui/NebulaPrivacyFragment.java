@@ -304,7 +304,7 @@ public final class NebulaPrivacyFragment extends BaseFragment {
                     .setTitle(text("Оставлять локальную копию?", "Keep a local copy?"))
                     .setMessage(text("При включённом сохранении копия останется после удаления или таймера. Это меняет ожидаемое поведение секретных и исчезающих сообщений. Работает только с уже полученным содержимым на этом устройстве.", "When retention is enabled, a local copy remains after deletion or expiry. This changes the expected behavior of secret and expiring messages. Only content already received on this device can be kept."))
                     .setNegativeButton(text("Отмена", "Cancel"), null)
-                    .setPositiveButton(text("Включить", "Enable"), (d, w) -> { NebulaDeletedArchive.setExtra(owner, secret, true); rebuild(); })
+                    .setPositiveButton(text("Включить", "Enable"), (d, w) -> { NebulaDeletedArchive.setEnabled(owner, true); NebulaDeletedArchive.setExtra(owner, secret, true); rebuild(); })
                     .create());
         });
     }

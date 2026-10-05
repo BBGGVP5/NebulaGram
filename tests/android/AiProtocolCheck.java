@@ -50,6 +50,40 @@ public class AiProtocolCheck {
         check(new NebulaAiClient().models(2, "", "test-key").equals(Arrays.asList("text-a", "text-b")), "pagination/filtering");
         check(requests.get(requests.size()-1).getURL().getQuery().contains("token+%2B"), "encoded page token");
         check(NebulaAiClient.output(0, new JSONObject("{\"output\":[{\"content\":[{\"refusal\":\"Declined\"}]}]}")).equals("Declined"), "refusal handling");
+        for (int provider : new int[]{5, 6}) {
+            responses.add(fixtures[provider == 5 ? 3 : 0]);
+            check(new NebulaAiClient().generate(provider, "", "test-key", "model", "prompt", "input").equals("Привет 🌍"), "new provider response");
+            Fake request = requests.get(requests.size() - 1);
+            check(request.getURL().getHost().equals(provider == 5 ? "openrouter.ai" : "api.perplexity.ai"), "provider host");
+            check(request.getURL().getPath().equals(provider == 5 ? "/api/v1/chat/completions" : "/v1/agent"), "provider endpoint");
+            check(request.json().has(provider == 5 ? "messages" : "input"), "provider payload");
+        }
+        String[][] events = {
+            {"{\"type\":\"response.output_text.delta\",\"delta\":\"Привет 🌍\"}", "{\"type\":\"response.completed\"}"},
+            {"{\"type\":\"content_block_delta\",\"delta\":{\"type\":\"thinking_delta\",\"thinking\":\"hidden\"}}", "{\"type\":\"content_block_delta\",\"delta\":{\"type\":\"text_delta\",\"text\":\"Привет 🌍\"}}", "{\"type\":\"message_stop\"}"},
+            {"{\"candidates\":[{\"content\":{\"parts\":[{\"text\":\"Привет\"}]}}]}", "{\"candidates\":[{\"content\":{\"parts\":[{\"thought\":true,\"text\":\"hidden\"},{\"text\":\" 🌍\"}]},\"finishReason\":\"STOP\"}]}"},
+            {"{\"choices\":[{\"delta\":{\"reasoning\":\"hidden\",\"content\":\"Привет 🌍\"}}]}", "{\"choices\":[{\"delta\":{},\"finish_reason\":\"stop\"}]}"}
+        };
+        for (int provider : new int[]{0, 1, 2, 3, 5, 6}) {
+            StringBuilder sse = new StringBuilder(": keepalive\r\n\r\n");
+            for (String event : events[provider == 5 ? 3 : provider == 6 ? 0 : provider]) sse.append("event: ignored\r\ndata: ").append(event).append("\r\n\r\n");
+            byte[] fragmented = sse.toString().getBytes(StandardCharsets.UTF_8);
+            InputStream oneByte = new ByteArrayInputStream(fragmented) { @Override public synchronized int read(byte[] b, int off, int len) { return super.read(b, off, Math.min(1, len)); } };
+            ArrayList<String> progress = new ArrayList<>();
+            check(NebulaAiClient.readStream(provider, oneByte, () -> false, progress::add).equals("Привет 🌍"), "fragmented SSE / thought exclusion / spaces");
+            check(!progress.isEmpty() && !progress.toString().contains("hidden"), "real progress");
+            responses.add(sse.toString());
+            check(new NebulaAiClient().generate(provider, "https://example.test/v1", "test-key", "model", "", "hello", new NebulaAiClient.Options(true, false, .4), progress::add).equals("Привет 🌍"), "SSE transport");
+            Fake request = requests.get(requests.size() - 1);
+            check("text/event-stream".equals(request.getRequestProperty("Accept")), "stream accept");
+            check(provider == 2 ? request.getURL().getQuery().equals("alt=sse") : request.json().getBoolean("stream"), "stream opt-in body");
+        }
+        for (String event : new String[]{"{\"type\":\"response.failed\"}", "{\"error\":{\"message\":\"private error\"}}", "{\"type\":\"response.output_text.delta\",\"delta\":\"partial\"}"}) {
+            try { NebulaAiClient.readStream(0, new ByteArrayInputStream(("data: " + event + "\n\n").getBytes(StandardCharsets.UTF_8)), () -> false, null); throw new AssertionError("unfinished/error stream accepted"); }
+            catch (IOException expected) { check(!expected.getMessage().contains("private error"), "safe stream errors"); }
+        }
+        try { NebulaAiClient.readStream(0, new ByteArrayInputStream("data: {}\n\n".getBytes()), () -> true, null); throw new AssertionError("canceled stream accepted"); } catch (InterruptedIOException expected) { }
+        check(!NebulaAiClient.generationOptions(0, "gpt-5-model", new JSONObject(), new NebulaAiClient.Options(false, true, 1)).has("temperature"), "reasoning models omit unsupported temperature");
         for (String url : Arrays.asList("http://example.test", "https://user:password@example.test", "https://example.test?key=secret", "https://example.test#fragment")) {
             try { NebulaAiClient.base(3, url); throw new AssertionError("unsafe base accepted"); } catch (IOException expected) { }
         }
@@ -86,6 +120,6 @@ public class AiProtocolCheck {
         check(requests.size() == before, "Nano never falls back to a network provider");
         check(NebulaSettingsSchema.types.containsKey("bottom_bar_settings"), "tab visibility portable");
         for (String key : NebulaSettingsSchema.types.keySet()) check(!key.contains("secret") && !key.contains("proxy") && !key.contains("api") && !key.contains("token"), "secret in export allowlist");
-        System.out.println("AI protocol checks passed: 4 providers, UTF-8, models, pagination, refusals, cancellation, redirects and export isolation");
+        System.out.println("AI protocol checks passed: 6 remote providers, UTF-8, models, pagination, refusals, cancellation, redirects and export isolation");
     }
 }

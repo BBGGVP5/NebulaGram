@@ -16,12 +16,14 @@ public final class NebulaSettingsSchema {
         map.put("bottom_bar_settings", Boolean.class);
         map.put("center_home", Boolean.class);
         map.put("centered_chat_header", Boolean.class);
+        map.put("channel_forward_count", Boolean.class);
         map.put("compact_bottom_bar", Boolean.class);
         map.put("disable_next_channel", Boolean.class);
         map.put("floating_chat_header_v2", Boolean.class);
         map.put("folder_outline", Boolean.class);
         map.put("folder_style", Integer.class);
         map.put("folder_title", Boolean.class);
+        map.put("folder_unmuted_only", Boolean.class);
         map.put("fragment_transition_style", Integer.class);
         map.put("glass_highlights", Boolean.class);
         map.put("glass_quality", Integer.class);
@@ -36,6 +38,7 @@ public final class NebulaSettingsSchema {
         map.put("hide_send_as", Boolean.class);
         map.put("hide_tab_counters", Boolean.class);
         map.put("icon_pack", Integer.class);
+        map.put("inline_math", Boolean.class);
         map.put("ios_composer", Boolean.class);
         map.put("ios_icons", Boolean.class);
         map.put("ios_unread", Boolean.class);
@@ -60,6 +63,8 @@ public final class NebulaSettingsSchema {
         map.put("reply_colors", Boolean.class);
         map.put("reply_emoji", Boolean.class);
         map.put("seconds_in_time", Boolean.class);
+        map.put("sticker_time_style", Integer.class);
+        map.put("swipe_actions", String.class);
         map.put("switch_style", Integer.class);
         map.put("tab_labels", Boolean.class);
         map.put("uniform_avatars", Boolean.class);

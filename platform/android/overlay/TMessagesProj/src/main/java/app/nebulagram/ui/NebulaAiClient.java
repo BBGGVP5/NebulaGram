@@ -9,12 +9,14 @@ import java.util.*;
 /** Small REST transport. No retries, automatic chat access, logging or persistent conversations. */
 public final class NebulaAiClient {
     public static final int OPENAI = 0, CLAUDE = 1, GEMINI = 2, CUSTOM = 3, NANO = 4;
+    public static final int OPENROUTER = 5, PERPLEXITY = 6, MAX_PROVIDER = PERPLEXITY;
     private volatile HttpURLConnection connection;
     private volatile boolean cancelled;
     public void cancel() { cancelled = true; HttpURLConnection c = connection; if (c != null) c.disconnect(); }
     public static String base(int provider, String custom) throws Exception {
         String base = provider == OPENAI ? "https://api.openai.com/v1" : provider == CLAUDE ? "https://api.anthropic.com/v1"
-                : provider == GEMINI ? "https://generativelanguage.googleapis.com/v1beta" : custom.trim();
+                : provider == GEMINI ? "https://generativelanguage.googleapis.com/v1beta"
+                : provider == OPENROUTER ? "https://openrouter.ai/api/v1" : provider == PERPLEXITY ? "https://api.perplexity.ai/v1" : custom.trim();
         URL url = new URL(base);
         if (!"https".equals(url.getProtocol()) || url.getHost().isEmpty() || url.getUserInfo() != null || url.getQuery() != null || url.getRef() != null) throw new IOException("HTTPS URL required");
         while (base.endsWith("/")) base = base.substring(0, base.length() - 1);
@@ -27,9 +29,9 @@ public final class NebulaAiClient {
             return body;
         }
         JSONObject body = new JSONObject().put("model", model);
-        if (provider == OPENAI) return body.put("input", input).put("instructions", prompt).put("max_output_tokens", 8192).put("store", false);
+        if (provider == OPENAI || provider == PERPLEXITY) return body.put("input", input).put("instructions", prompt).put("max_output_tokens", 8192).put("store", false);
         JSONArray messages = new JSONArray();
-        if (provider == CUSTOM && !prompt.isEmpty()) messages.put(new JSONObject().put("role", "system").put("content", prompt));
+        if ((provider == CUSTOM || provider == OPENROUTER || provider == PERPLEXITY) && !prompt.isEmpty()) messages.put(new JSONObject().put("role", "system").put("content", prompt));
         messages.put(new JSONObject().put("role", "user").put("content", input));
         body.put("messages", messages);
         if (provider == CLAUDE) { body.put("max_tokens", 4096); if (!prompt.isEmpty()) body.put("system", prompt); }
@@ -37,7 +39,7 @@ public final class NebulaAiClient {
     }
     public static String output(int provider, JSONObject json) throws JSONException {
         StringBuilder text = new StringBuilder();
-        if (provider == CUSTOM) {
+        if (provider == CUSTOM || provider == OPENROUTER) {
             JSONObject message = json.getJSONArray("choices").getJSONObject(0).getJSONObject("message");
             String content = message.optString("content", "");
             if (!content.equals("null")) text.append(content);
@@ -64,14 +66,51 @@ public final class NebulaAiClient {
         }
     }
     public String generate(int provider, String custom, String key, String model, String prompt, String input) throws Exception {
+        return generate(provider, custom, key, model, prompt, input, null, null);
+    }
+    public interface Progress { void update(String answer); }
+    public static final class Options {
+        public final boolean stream, reasoning;
+        public final double temperature;
+        public Options(boolean stream, boolean reasoning, double temperature) {
+            this.stream = stream; this.reasoning = reasoning;
+            this.temperature = Double.isFinite(temperature) ? Math.max(0, Math.min(2, temperature)) : 1;
+        }
+    }
+    public static JSONObject generationOptions(int provider, String model, JSONObject body, Options options) throws JSONException {
+        if (options == null) return body;
+        if (provider == GEMINI) {
+            JSONObject config = new JSONObject().put("temperature", options.temperature);
+            if (options.reasoning) config.put("thinkingConfig", model.startsWith("gemini-3")
+                    ? new JSONObject().put("thinkingLevel", "MEDIUM") : new JSONObject().put("thinkingBudget", 1024));
+            body.put("generationConfig", config);
+        } else {
+            if (options.stream) body.put("stream", true);
+            boolean reasoningModel = model.startsWith("o1") || model.startsWith("o3") || model.startsWith("o4")
+                    || model.startsWith("gpt-5") || model.startsWith("gpt-6");
+            if (!(provider == OPENAI && reasoningModel) && !(provider == CLAUDE && options.reasoning)) body.put("temperature", options.temperature);
+            if (options.reasoning) {
+                if (provider == OPENAI || provider == PERPLEXITY) body.put("reasoning", new JSONObject().put("effort", "medium"));
+                else if (provider == CLAUDE) body.put("thinking", new JSONObject().put("type", "enabled").put("budget_tokens", 1024));
+                else if (provider == OPENROUTER) body.put("reasoning", new JSONObject().put("enabled", true));
+                // A custom compatible endpoint has no universal reasoning schema.
+            }
+        }
+        return body;
+    }
+    public String generate(int provider, String custom, String key, String model, String prompt, String input, Options options, Progress progress) throws Exception {
         if (cancelled) throw new InterruptedIOException();
         if (provider == NANO) return NebulaNanoAi.generate(prompt, input, () -> cancelled);
         if (key.isEmpty() || model.trim().isEmpty() || input.trim().isEmpty()) throw new IOException("Key, model and text required");
         if (input.length() > 50000 || prompt.length() > 20000) throw new IOException("Text too long");
         String modelName = model.startsWith("models/") ? model.substring(7) : model;
-        String endpoint = provider == OPENAI ? "/responses" : provider == CLAUDE ? "/messages" : provider == GEMINI
-                ? "/models/" + URLEncoder.encode(modelName, "UTF-8") + ":generateContent" : "/chat/completions";
-        return output(provider, request(provider, base(provider, custom) + endpoint, key, payload(provider, model, prompt, input)));
+        boolean streaming = options != null && options.stream && progress != null;
+        String endpoint = provider == OPENAI ? "/responses" : provider == PERPLEXITY ? "/agent" : provider == CLAUDE ? "/messages" : provider == GEMINI
+                ? "/models/" + URLEncoder.encode(modelName, "UTF-8") + (streaming ? ":streamGenerateContent?alt=sse" : ":generateContent") : "/chat/completions";
+        Options captured = options == null ? null : new Options(streaming, options.reasoning, options.temperature);
+        JSONObject body = generationOptions(provider, model, payload(provider, model, prompt, input), captured);
+        if (!streaming) return output(provider, request(provider, base(provider, custom) + endpoint, key, body));
+        return streamRequest(provider, base(provider, custom) + endpoint, key, body, progress);
     }
     public String transcribe(int provider, String custom, String key, String model, File file, String mime) throws Exception {
         if (provider != GEMINI) throw new IOException("Для распознавания выберите Gemini в настройках ИИ / Select Gemini for transcription");
@@ -147,5 +186,91 @@ public final class NebulaAiClient {
                 return new JSONObject(new String(out.toByteArray(), StandardCharsets.UTF_8));
             }
         } finally { c.disconnect(); if (connection == c) connection = null; }
+    }
+
+    private String streamRequest(int provider, String url, String key, JSONObject body, Progress progress) throws Exception {
+        if (cancelled) throw new InterruptedIOException();
+        HttpURLConnection c = (HttpURLConnection) new URL(url).openConnection(); connection = c;
+        try {
+            if (cancelled) throw new InterruptedIOException();
+            c.setInstanceFollowRedirects(false); c.setConnectTimeout(20000); c.setReadTimeout(120000);
+            c.setRequestProperty("Accept", "text/event-stream");
+            if (provider == CLAUDE) { c.setRequestProperty("x-api-key", key); c.setRequestProperty("anthropic-version", "2023-06-01"); }
+            else if (provider == GEMINI) c.setRequestProperty("x-goog-api-key", key);
+            else c.setRequestProperty("Authorization", "Bearer " + key);
+            c.setRequestMethod("POST"); c.setDoOutput(true); c.setRequestProperty("Content-Type", "application/json; charset=utf-8");
+            byte[] bytes = body.toString().getBytes(StandardCharsets.UTF_8); c.setFixedLengthStreamingMode(bytes.length);
+            if (cancelled) throw new InterruptedIOException();
+            try (OutputStream out = c.getOutputStream()) { out.write(bytes); }
+            if (cancelled) throw new InterruptedIOException();
+            int status = c.getResponseCode();
+            if (status < 200 || status >= 300) throw new IOException("HTTP " + status);
+            try (InputStream in = c.getInputStream()) { return readStream(provider, in, () -> cancelled, progress); }
+        } finally { c.disconnect(); if (connection == c) connection = null; }
+    }
+
+    /** Bounded SSE reader. Only answer text is rendered; a final event is required. */
+    public static String readStream(int provider, InputStream in, java.util.function.BooleanSupplier cancelled, Progress progress) throws Exception {
+        InputStreamReader reader = new InputStreamReader(in, StandardCharsets.UTF_8);
+        StringBuilder line = new StringBuilder(), event = new StringBuilder(), answer = new StringBuilder();
+        boolean done = false; int total = 0, ch; long last = 0;
+        while ((ch = reader.read()) != -1) {
+            if (cancelled.getAsBoolean()) throw new InterruptedIOException();
+            if (++total > 4_000_000 || line.length() > 512_000 || event.length() > 512_000) throw new IOException("Response too large");
+            if (ch == '\r') continue;
+            if (ch != '\n') { line.append((char) ch); continue; }
+            if (line.length() != 0) {
+                if (line.indexOf("data:") == 0) { if (event.length() > 0) event.append('\n'); event.append(line.substring(line.length() > 5 && line.charAt(5) == ' ' ? 6 : 5)); }
+                line.setLength(0); continue;
+            }
+            if (event.length() == 0) continue;
+            String data = event.toString(); event.setLength(0);
+            if ("[DONE]".equals(data)) { done = true; break; }
+            JSONObject json = new JSONObject(data);
+            if (json.has("error") || "error".equals(json.optString("type"))) throw new IOException("PROVIDER_STREAM_ERROR");
+            if (provider == OPENAI || provider == PERPLEXITY) {
+                String type = json.optString("type");
+                if ("response.output_text.delta".equals(type) || "response.refusal.delta".equals(type)) answer.append(json.optString("delta"));
+                else if ("response.completed".equals(type)) {
+                    JSONObject response = json.optJSONObject("response");
+                    if (response != null) { String full = output(provider, response); if (!full.isEmpty()) { answer.setLength(0); answer.append(full); } }
+                    done = true;
+                } else if ("response.failed".equals(type) || "response.incomplete".equals(type)) throw new IOException("PROVIDER_STREAM_INCOMPLETE");
+            } else if (provider == CLAUDE) {
+                String type = json.optString("type");
+                JSONObject delta = json.optJSONObject("delta");
+                if ("content_block_delta".equals(type) && delta != null && "text_delta".equals(delta.optString("type"))) answer.append(delta.optString("text"));
+                if ("message_delta".equals(type) && delta != null && "max_tokens".equals(delta.optString("stop_reason"))) throw new IOException("PROVIDER_STREAM_INCOMPLETE");
+                if ("message_stop".equals(type)) done = true;
+            } else if (provider == GEMINI) {
+                JSONArray candidates = json.optJSONArray("candidates");
+                if (candidates != null && candidates.length() > 0) {
+                    JSONObject content = candidates.getJSONObject(0).optJSONObject("content");
+                    JSONArray parts = content == null ? null : content.optJSONArray("parts");
+                    for (int i = 0; parts != null && i < parts.length(); i++) {
+                        JSONObject part = parts.getJSONObject(i); if (!part.optBoolean("thought")) answer.append(part.optString("text"));
+                    }
+                    String reason = candidates.getJSONObject(0).optString("finishReason");
+                    if (!reason.isEmpty() && !"STOP".equals(reason)) throw new IOException("PROVIDER_STREAM_INCOMPLETE");
+                    done = "STOP".equals(reason);
+                }
+            } else {
+                JSONArray choices = json.optJSONArray("choices");
+                if (choices != null && choices.length() > 0) {
+                    JSONObject choice = choices.getJSONObject(0), delta = choice.optJSONObject("delta");
+                    if (delta != null) { String value = delta.optString("content", ""); if (!"null".equals(value)) answer.append(value); }
+                    String reason = choice.optString("finish_reason", "");
+                    if ("length".equals(reason) || "content_filter".equals(reason)) throw new IOException("PROVIDER_STREAM_INCOMPLETE");
+                    if ("stop".equals(reason)) done = true;
+                }
+            }
+            if (answer.length() > 512_000) throw new IOException("Response too large");
+            long now = System.nanoTime();
+            if (progress != null && answer.length() > 0 && (done || now - last > 50_000_000)) { last = now; progress.update(answer.toString()); }
+            if (done) break;
+        }
+        if (cancelled.getAsBoolean()) throw new InterruptedIOException();
+        if (!done) throw new IOException("PROVIDER_STREAM_INCOMPLETE");
+        return answer.toString().trim();
     }
 }

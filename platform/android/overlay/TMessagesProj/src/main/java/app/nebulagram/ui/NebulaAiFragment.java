@@ -12,8 +12,9 @@ import java.util.ArrayList;
 
 /** User chooses the exact request text. Responses are never sent to a Telegram chat automatically. */
 public final class NebulaAiFragment extends BaseFragment {
-    private static final String[] PROVIDERS = {"OpenAI · GPT", "Anthropic · Claude", "Google · Gemini", "OpenAI-compatible", NebulaText.text("Gemini Nano · на устройстве", "Gemini Nano · on device")};
+    private static final String[] PROVIDERS = {"OpenAI · GPT", "Anthropic · Claude", "Google · Gemini", "OpenAI-compatible", NebulaText.text("Gemini Nano · на устройстве", "Gemini Nano · on device"), "OpenRouter", "Perplexity"};
     private int provider;
+    private boolean nanoSettingsOnly;
     private long translationDialog;
     public NebulaAiFragment forChat(int account, long dialog) { currentAccount = account; translationDialog = dialog; return this; }
     private String initial = "";
@@ -42,10 +43,11 @@ public final class NebulaAiFragment extends BaseFragment {
     private boolean nanoDownloading, destroyed;
     public NebulaAiFragment() { }
     public NebulaAiFragment openConnection() { selectedPage = 1; return this; }
+    public NebulaAiFragment openNanoConnection() { nanoSettingsOnly = true; selectedPage = 1; return this; }
     public NebulaAiFragment(String input) { initial = input == null ? "" : input; }
     @Override public View createView(Context c) {
         prefs = c.getSharedPreferences("nebula_ai_settings", 0);
-        provider = Math.max(0, Math.min(NebulaAiClient.NANO, prefs.getInt("provider", 0)));
+        provider = nanoSettingsOnly ? NebulaAiClient.NANO : Math.max(0, Math.min(NebulaAiClient.MAX_PROVIDER, prefs.getInt("provider", 0)));
         NebulaFormUi.bar(this, actionBar, c, text("Искусственный интеллект", "AI assistant"));
         NebulaTheme t = NebulaTheme.of(c); actionBar.setBackgroundColor(t.opaqueSurface()); actionBar.setTitleColor(t.onSurface()); actionBar.setItemsColor(t.onSurface(), false);
         actionBar.setActionBarMenuOnItemClick(new ActionBar.ActionBarMenuOnItemClick() { @Override public void onItemClick(int id) { if (id == -1) finishFragment(); } });
@@ -61,7 +63,6 @@ public final class NebulaAiFragment extends BaseFragment {
         hero = new NebulaSettingsHero(c, R.drawable.msg_emoji_smiles,
                 text("ИИ-помощник", "AI assistant"),
                 text("Чат, модели и ваши инструкции.", "Chat, models and your instructions."));
-        content.addView(hero);
         LinearLayout navigation = new LinearLayout(c);
         navigation.setBaselineAligned(false);
         navigation.setPadding(dp(4), dp(4), dp(4), dp(4));
@@ -90,6 +91,7 @@ public final class NebulaAiFragment extends BaseFragment {
                 pages[i].addView(scroll, new LinearLayout.LayoutParams(-1, -1));
             }
         }
+        bodies[1].addView(hero);
         bodies[1].addView(NebulaCard.header(c, text("Подключение", "Connection")));
         NebulaCard settings = new NebulaCard(c);
         settings.add(new NebulaRow(c).icon(R.drawable.msg_customize)
@@ -111,10 +113,10 @@ public final class NebulaAiFragment extends BaseFragment {
                 .setSelectedIndex(provider).setDescriptions(new CharSequence[]{
                     text("API-ключ OpenAI", "OpenAI API key"), text("API-ключ Anthropic", "Anthropic API key"),
                     text("API-ключ Google AI", "Google AI API key"), text("Ваш адрес API и ключ", "Your API address and key"),
-                    text("Локально · через Android AICore", "On device · via Android AICore")}).setItems(PROVIDERS, (d, which) -> {
+                    text("Локально · через Android AICore", "On device · via Android AICore"), "OpenRouter API", "Perplexity Agent API"}).setItems(PROVIDERS, (d, which) -> {
                     if (which == provider || !save()) return;
                     initial = chat == null ? initial : chat.draft(); cancel(); provider = which;
-                    prefs.edit().putInt("provider", provider).apply(); build(c);
+                    prefs.edit().putInt("provider", provider).remove("selected_service").apply(); build(c);
                 }).create())));
         endpoint = field(c, settings, text("Адрес API", "API address"), "https://example.com/v1", prefs.getString("endpoint", "https://api.openai.com/v1"), false, 1000);
         ((View) endpoint.getParent()).setVisibility(provider == NebulaAiClient.CUSTOM ? View.VISIBLE : View.GONE);
@@ -125,7 +127,7 @@ public final class NebulaAiFragment extends BaseFragment {
         keyStatus = label(c, "", 13, NebulaTheme.of(c).onSurfaceVariant());
         keyStatus.setPadding(dp(16), dp(6), dp(16), dp(6)); settings.add(keyStatus);
         clear = button(c, settings, text("Удалить сохранённый ключ", "Remove saved key"), false, v -> {
-            try { NebulaAiSecrets.save(provider, ""); key.setText(""); refreshKeyStatus(); toast(text("Ключ удалён", "Key removed")); }
+            try { NebulaAiSecrets.save(provider, ""); NebulaAiServices.capture(); key.setText(""); refreshKeyStatus(); toast(text("Ключ удалён", "Key removed")); }
             catch (Exception e) { toast(text("Не удалось удалить ключ", "Unable to remove key")); }
         });
         model = field(c, settings, text("Модель", "Model"), text("Выберите из списка или введите ID", "Choose from the list or enter an ID"), prefs.getString("model_" + provider, ""), false, 256);
@@ -133,6 +135,7 @@ public final class NebulaAiFragment extends BaseFragment {
         saveConnection = button(c, settings, text("Сохранить подключение", "Save connection"), true,
                 v -> { if (save()) toast(text("Настройки сохранены", "Settings saved")); });
         bodies[1].addView(settings);
+        if (nanoSettingsOnly) { settings.setVisibility(View.GONE); for (TextView tab : tabs) ((View)tab.getParent()).setVisibility(View.GONE); }
         nanoCard = new NebulaCard(c);
         LinearLayout.LayoutParams nanoParams = new LinearLayout.LayoutParams(-1, -2);
         nanoParams.topMargin = dp(16);
@@ -205,7 +208,7 @@ public final class NebulaAiFragment extends BaseFragment {
 
 
 
-        chat = new NebulaAiChatView(c, initial, () -> selectPage(1));
+        chat = new NebulaAiChatView(c, initial, () -> presentFragment(new NebulaAiSettingsFragment()));
         bodies[0].addView(chat, new LinearLayout.LayoutParams(-1, -1));
         selectPage(selectedPage < 0 ? (!initial.isEmpty() || NebulaAiAvailability.available() ? 0 : 1) : selectedPage);
     }
@@ -402,6 +405,7 @@ public final class NebulaAiFragment extends BaseFragment {
             if (provider != NebulaAiClient.NANO) editor.putString("model_" + provider, model.getText().toString().trim())
                     .putString("endpoint", endpoint.getText().toString().trim());
             editor.apply();
+            NebulaAiServices.capture();
             refreshKeyStatus();
             if (chat != null) chat.refreshStatus();
             return true;

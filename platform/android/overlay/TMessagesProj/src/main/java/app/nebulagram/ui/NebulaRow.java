@@ -39,6 +39,8 @@ public class NebulaRow extends FrameLayout {
     private final ImageView icon;
     private final LinearLayout text;
     private TextView emojiIcon;
+    private NebulaAnimatedEmoji animatedEmoji;
+    private android.widget.RadioButton radio;
     private TextView badge;
     private boolean valueMode;
     private NebulaSwitch toggle;
@@ -107,7 +109,8 @@ public class NebulaRow extends FrameLayout {
 
     /** Dividers align with the text, including rows without a leading tile. */
     public boolean hasLeadingIcon() {
-        return icon.getVisibility() == VISIBLE || (emojiIcon != null && emojiIcon.getVisibility() == VISIBLE);
+        return icon.getVisibility() == VISIBLE || (emojiIcon != null && emojiIcon.getVisibility() == VISIBLE)
+                || (animatedEmoji != null && animatedEmoji.getVisibility() == VISIBLE);
     }
 
     private android.animation.ValueAnimator highlightAnimation;
@@ -131,6 +134,7 @@ public class NebulaRow extends FrameLayout {
     }
 
     public NebulaRow icon(int resource) {
+        if (animatedEmoji != null) animatedEmoji.setVisibility(GONE);
         if (emojiIcon != null) {
             emojiIcon.setVisibility(GONE);
         }
@@ -173,6 +177,7 @@ public class NebulaRow extends FrameLayout {
 
     /** Country emoji keeps its colours instead of inheriting the icon tint. */
     public NebulaRow emojiIcon(String flag) {
+        if (animatedEmoji != null) animatedEmoji.setVisibility(GONE);
         if (flag == null || flag.isEmpty()) {
             return this;
         }
@@ -195,6 +200,29 @@ public class NebulaRow extends FrameLayout {
         emojiIcon.setText(flag);
         indent(true);
         return this;
+    }
+
+    public NebulaRow animatedEmoji(int account, String emoji) {
+        icon.setVisibility(GONE);
+        if (emojiIcon != null) emojiIcon.setVisibility(GONE);
+        if (animatedEmoji == null) {
+            animatedEmoji = new NebulaAnimatedEmoji(getContext(), account, emoji, 32);
+            LayoutParams params = new LayoutParams(AndroidUtilities.dp(32), AndroidUtilities.dp(32));
+            params.gravity = Gravity.CENTER_VERTICAL | Gravity.START; addView(animatedEmoji, params);
+        } else animatedEmoji.setEmoji(emoji);
+        animatedEmoji.setVisibility(VISIBLE); indent(true); return this;
+    }
+
+    /** The row owns interaction and accessibility; its radio is a visual indicator. */
+    public NebulaRow radio(boolean selected) {
+        if (radio == null) {
+            radio = new android.widget.RadioButton(getContext());
+            radio.setClickable(false); radio.setFocusable(false); radio.setImportantForAccessibility(IMPORTANT_FOR_ACCESSIBILITY_NO);
+            radio.setButtonTintList(ColorStateList.valueOf(theme.primary()));
+            LayoutParams params = new LayoutParams(AndroidUtilities.dp(32), AndroidUtilities.dp(32));
+            params.gravity = Gravity.CENTER_VERTICAL | Gravity.END; addView(radio, params);
+        }
+        radio.setChecked(selected); setSelected(selected); return this;
     }
 
     /** A compact value at the end, with space reserved from its measured width. */

@@ -168,12 +168,16 @@ public class NebulaSettingsFragment extends BaseFragment {
         tools.setBaselineAligned(false);
         tools.setOrientation(LinearLayout.HORIZONTAL);
         tool(context, tools, R.drawable.nebula_ai_spark, "Nebula AI", "Nebula AI",
-                () -> presentFragment(new NebulaAiFragment()));
+                () -> presentFragment(new NebulaAiSettingsFragment()));
         tool(context, tools, R.drawable.msg_calendar, "Список дел", "Tasks",
                 () -> presentFragment(new NebulaTasksFragment()));
         tool(context, tools, R.drawable.nebula_settings_text_tools, "Текст", "Text",
                 () -> presentFragment(new NebulaMessageToolsFragment(null)));
         sections.addView(tools, cardParams());
+        NebulaCard browser = new NebulaCard(context);
+        browser.add(new NebulaRow(context).icon(R.drawable.msg_language).title(NebulaText.text("Браузер и блокировка рекламы", "Browser and ad blocking"))
+                .trailing(NebulaRow.TRAIL_CHEVRON).withClick(v -> presentFragment(new NebulaBrowserSettingsFragment())));
+        sections.addView(browser, cardParams());
     }
 
     private void tool(Context context, LinearLayout parent, int icon, String ru, String en, Runnable open) {

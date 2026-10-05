@@ -7,6 +7,7 @@ overlay=r/'platform/android/overlay/TMessagesProj/src/main/java/app/nebulagram/u
 icons=(overlay/'NebulaIcons.java').read_text(encoding='utf-8')
 names=sorted(set(re.findall(r'R.drawable.(\w+)',icons)) | {'msg_check_s', 'input_video', 'input_video_pressed'})
 stubs={
+'app/nebulagram/ui/NebulaIconPackStore.java': '''package app.nebulagram.ui; public class NebulaIconPackStore {public static android.graphics.drawable.Drawable drawable(android.content.res.Resources r,int id){return null;}}''',
 'android/content/SharedPreferences.java': '''package android.content; public class SharedPreferences {
 public final java.util.Map<String,Object> values=new java.util.HashMap<>();
 public int getInt(String k,int d){return (Integer)values.getOrDefault(k,d);} public boolean getBoolean(String k,boolean d){return (Boolean)values.getOrDefault(k,d);} public String getString(String k,String d){return (String)values.getOrDefault(k,d);} public Editor edit(){return new Editor();}

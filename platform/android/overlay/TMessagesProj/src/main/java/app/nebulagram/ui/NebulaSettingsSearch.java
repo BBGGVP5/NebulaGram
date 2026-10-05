@@ -26,7 +26,9 @@ public final class NebulaSettingsSearch {
             else if (section == -21) f.presentFragment(new NebulaAiHistoryFragment());
             else if (section == -1) f.presentFragment(new NebulaSettingsFragment());
             else if (section == -10 || section == -11) f.presentFragment(new NebulaDesignFragment(section == -11));
-            else if (section == -12) f.presentFragment(new NebulaAiFragment());
+            else if (section == -12) f.presentFragment(new NebulaAiSettingsFragment());
+            else if (section == -24) f.presentFragment(new NebulaBrowserSettingsFragment());
+            else if (section == -25) f.presentFragment(new NebulaIconPacksFragment());
             else if (section == -13) f.presentFragment(new NebulaUpdatesFragment());
             else if (section == -14) f.presentFragment(new NebulaMenuFragment(NebulaMenuFragment.SCREEN_ADVANCED));
             else if (section == -15) f.presentFragment(new NebulaPrivacyFragment());
@@ -44,6 +46,9 @@ public final class NebulaSettingsSearch {
         result.add(new Entry(12, NebulaText.text("Настроить стекло", "Customize glass"), NebulaText.text("Прозрачность, размытие, блики", "Transparency, blur, highlights"), R.drawable.msg_customize));
         result.add(new Entry(12, NebulaText.text("Виброотклик стекла", "Glass haptics"), "NebulaGram", R.drawable.msg_customize));
         result.add(new Entry(-13, NebulaText.text("Обновления NebulaGram", "NebulaGram updates"), NebulaText.text("Версия, APK, скачать и установить", "Version, APK, download and install"), R.drawable.msg_download));
+        result.add(new Entry(-24, NebulaText.text("Браузер и блокировка рекламы", "Browser and ad blocking"), "EasyList · " + NebulaText.text("фильтры и исключения", "filters and site exceptions"), R.drawable.msg_language));
+        result.add(new Entry(-25, NebulaText.text("Паки иконок · импорт", "Icon packs · import"), ".icons · Remix Outline", R.drawable.msg_customize));
+        result.add(new Entry(-12, NebulaText.text("Сервисы и роли ИИ", "AI services and roles"), "Nebula AI · OpenRouter · Perplexity · Gemini Nano", R.drawable.nebula_ai_spark));
         result.add(new Entry(0, R.string.NebulaMaterialYou, R.string.NebulaMaterialYouSub, R.drawable.msg_customize));
         result.add(new Entry(0, R.string.NebulaLoginStyleTitle, R.string.NebulaLoginStyleSub, R.drawable.msg_edit));
         result.add(new Entry(0, R.string.NebulaHideDividers, R.string.NebulaHideDividersSub, R.drawable.msg_list));
