@@ -34,7 +34,8 @@ public final class NebulaIconPackStore {
     }
     private static File file(String id) throws Exception {
         if (!id.matches("[a-zA-Z0-9._-]{1,80}")) throw new IOException("Invalid pack");
-        String hash = java.util.Base64.getUrlEncoder().withoutPadding().encodeToString(java.security.MessageDigest.getInstance("SHA-256").digest(id.getBytes(java.nio.charset.StandardCharsets.UTF_8)));
+        byte[] digest = java.security.MessageDigest.getInstance("SHA-256").digest(id.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+        String hash = android.util.Base64.encodeToString(digest, android.util.Base64.URL_SAFE | android.util.Base64.NO_WRAP | android.util.Base64.NO_PADDING);
         File dir = new File(ApplicationLoader.applicationContext.getFilesDir(), "icon-packs"); if (!dir.exists() && !dir.mkdirs()) throw new IOException("Storage unavailable");
         return new File(dir, hash + ".icons");
     }
