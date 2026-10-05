@@ -40,7 +40,11 @@ final class SettingsStoreTests: XCTestCase {
             XCTAssertFalse(restored.loginStyle)
             XCTAssertFalse(restored.showBottomBar)
             XCTAssertThrowsError(try store.set(.integer(4), for: "switch_style"))
-            XCTAssertThrowsError(try store.set(.integer(3), for: "icon_pack"))
+            XCTAssertThrowsError(try store.set(.integer(4), for: "icon_pack"))
+            try store.set(.integer(3), for: "icon_pack")
+            XCTAssertEqual(store.iconPack, 0)
+            let importedPack = try JSONDecoder().decode(SettingsDocument.self, from: store.exportData())
+            XCTAssertEqual(importedPack.settings["icon_pack"], .integer(3))
         }
     }
 
@@ -368,6 +372,23 @@ final class SettingsStoreTests: XCTestCase {
             let exported = try JSONDecoder().decode(SettingsDocument.self, from: store.exportData())
             XCTAssertEqual(exported.settings.count, 2)
             XCTAssertEqual(exported.settings["material_you"], .boolean(false))
+        }
+    }
+
+    func testNewAndroidPreferencesSurviveIOSTransferWithoutActivation() throws {
+        try withDefaults { defaults in
+            let store = NebulaSettingsStore(defaults: defaults)
+            let values: [String: SettingValue] = [
+                "sticker_time_style": .integer(2), "channel_forward_count": .boolean(true),
+                "inline_math": .boolean(true), "folder_unmuted_only": .boolean(true),
+                "swipe_actions": .string("3,0,1")
+            ]
+            let data = try JSONEncoder().encode(SettingsDocument(settings: values))
+            XCTAssertEqual(Set(try store.importData(data)), Set(values.keys))
+            let restored = NebulaSettingsStore(defaults: defaults)
+            let exported = try JSONDecoder().decode(SettingsDocument.self, from: restored.exportData())
+            XCTAssertEqual(exported.settings, values)
+            for (key, value) in values { XCTAssertThrowsError(try restored.set(value, for: key)) }
         }
     }
 

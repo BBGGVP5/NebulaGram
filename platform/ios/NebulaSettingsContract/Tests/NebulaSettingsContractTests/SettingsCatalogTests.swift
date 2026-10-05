@@ -5,13 +5,23 @@ import XCTest
 final class SettingsCatalogTests: XCTestCase {
     func testCatalogAndImplementationStatus() throws {
         let catalog = try SettingsCatalog.bundled()
-        XCTAssertEqual(catalog.settings.count, 73)
-        XCTAssertEqual(catalog.settings.filter(\.transferV1).count, 59)
+        XCTAssertEqual(catalog.settings.count, 78)
+        XCTAssertEqual(catalog.settings.filter(\.transferV1).count, 64)
         XCTAssertFalse(catalog.settings.contains(where: \.isImplementedOnIOS))
         XCTAssertEqual(catalog.settings.first { $0.key == "material_you" }?.iosStatus, "unsupported")
         XCTAssertEqual(catalog.settings.first { $0.key == "centered_chat_header" }?.defaultValue, .boolean(true))
         for setting in catalog.settings {
             if let value = setting.defaultValue { XCTAssertNoThrow(try setting.validate(value)) }
+        }
+    }
+
+    func testAndroidAdditionsStayPendingOnIOS() throws {
+        let catalog = try SettingsCatalog.bundled()
+        for key in ["sticker_time_style", "channel_forward_count", "inline_math", "folder_unmuted_only", "swipe_actions"] {
+            let setting = try XCTUnwrap(catalog.settings.first { $0.key == key })
+            XCTAssertEqual(setting.iosStatus, "planned")
+            XCTAssertTrue(setting.transferV1)
+            XCTAssertFalse(setting.isImplementedOnIOS)
         }
     }
 

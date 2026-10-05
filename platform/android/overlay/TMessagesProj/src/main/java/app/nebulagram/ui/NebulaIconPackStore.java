@@ -43,7 +43,9 @@ public final class NebulaIconPackStore {
         for (Map.Entry<String, byte[]> icon : pack.icons.entrySet()) {
             byte[] bytes = icon.getValue(); Bitmap bitmap;
             if (bytes.length > 3 && new String(bytes, java.nio.charset.StandardCharsets.UTF_8).contains("<svg")) {
-                Drawable svg = SvgHelper.getDrawable(new String(bytes, java.nio.charset.StandardCharsets.UTF_8)); if (svg == null) throw new IOException("Invalid SVG");
+                // Telegram's SVG reader understands literal colors, not CSS currentColor.
+                String xml = new String(bytes, java.nio.charset.StandardCharsets.UTF_8).replace("currentColor", "#000000");
+                Drawable svg = SvgHelper.getDrawable(xml); if (svg == null) throw new IOException("Invalid SVG");
                 bitmap = Bitmap.createBitmap(96, 96, Bitmap.Config.ARGB_8888); svg.setBounds(0, 0, 96, 96); svg.draw(new Canvas(bitmap));
             } else {
                 BitmapFactory.Options bounds = new BitmapFactory.Options(); bounds.inJustDecodeBounds = true; BitmapFactory.decodeByteArray(bytes, 0, bytes.length, bounds);

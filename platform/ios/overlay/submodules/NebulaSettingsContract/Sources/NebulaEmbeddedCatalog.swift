@@ -8,8 +8,9 @@ enum NebulaEmbeddedCatalog {
   "scope": "Presentation contract foundation; not a complete iOS implementation or a credential backup.",
   "other_domains": {
     "nebulalink": "core/settings/settings.go and menu.go; native iOS bridge pending",
-    "ai": "Inventory and secure credential storage design pending; excluded from presentation transfer",
-    "updates": "Account/platform-specific updater settings; excluded from presentation transfer"
+    "ai": "Named services and role metadata; Android Keystore credentials and local chat history excluded from presentation transfer",
+    "updates": "Account/platform-specific updater settings; excluded from presentation transfer",
+    "browser": "Ad blocking, site exclusions and downloaded filters are local and excluded from presentation transfer"
   },
   "settings": [
     {
@@ -493,7 +494,7 @@ enum NebulaEmbeddedCatalog {
       "default": 1,
       "default_policy": "Missing key follows legacy ios_icons (true -> 1, false -> 0).",
       "min": 0,
-      "max": 2
+      "max": 3
     },
     {
       "key": "ios_composer",
@@ -904,6 +905,68 @@ enum NebulaEmbeddedCatalog {
       "default": 30,
       "min": 0,
       "max": 60
+    },
+    {
+      "key": "sticker_time_style",
+      "type": "integer",
+      "feature": "chat.preferences",
+      "android_store": "nebulagram",
+      "android_source": "NebulaChatPreferences.java",
+      "transfer_v1": true,
+      "ios_status": "planned",
+      "ios_mapping": "native",
+      "default": 0,
+      "literal_default_binding": true,
+      "min": 0,
+      "max": 2
+    },
+    {
+      "key": "channel_forward_count",
+      "type": "boolean",
+      "feature": "chat.preferences",
+      "android_store": "nebulagram",
+      "android_source": "NebulaChatPreferences.java",
+      "transfer_v1": true,
+      "ios_status": "planned",
+      "ios_mapping": "native",
+      "default": false,
+      "literal_default_binding": true
+    },
+    {
+      "key": "inline_math",
+      "type": "boolean",
+      "feature": "chat.preferences",
+      "android_store": "nebulagram",
+      "android_source": "NebulaChatPreferences.java",
+      "transfer_v1": true,
+      "ios_status": "planned",
+      "ios_mapping": "native",
+      "default": false,
+      "literal_default_binding": true
+    },
+    {
+      "key": "folder_unmuted_only",
+      "type": "boolean",
+      "feature": "chat.preferences",
+      "android_store": "nebulagram",
+      "android_source": "NebulaChatPreferences.java",
+      "transfer_v1": true,
+      "ios_status": "planned",
+      "ios_mapping": "native",
+      "default": false,
+      "literal_default_binding": true
+    },
+    {
+      "key": "swipe_actions",
+      "type": "string",
+      "feature": "chat.gestures",
+      "android_store": "nebulagram",
+      "android_source": "NebulaSwipeActions.java",
+      "transfer_v1": true,
+      "ios_status": "planned",
+      "ios_mapping": "native",
+      "default": "0",
+      "max_length": 40
     }
   ]
 }

@@ -89,7 +89,11 @@ public final class NebulaSettingsStore {
     public var customAvatarCorners: Bool { boolean("custom_avatar_corners", fallback: contains("avatar_round")) }
     public var avatarRound: Int { customAvatarCorners ? max(0, min(100, integer("avatar_round", fallback: 100))) : 100 }
     public var uniformAvatars: Bool { boolean("uniform_avatars", fallback: true) }
-    public var iconPack: Int { max(0, min(2, integer("icon_pack", fallback: boolean("ios_icons", fallback: true) ? 1 : 0))) }
+    public var iconPack: Int {
+        let value = integer("icon_pack", fallback: boolean("ios_icons", fallback: true) ? 1 : 0)
+        // Android's imported pack is preserved for transfer; its files are local to Android.
+        return (0...2).contains(value) ? value : 0
+    }
     public var switchStyle: Int { max(0, min(3, integer("switch_style", fallback: 0))) }
     public var loginStyle: Bool { boolean("login_style", fallback: true) }
     public var adaptiveChatHeader: Bool { boolean("adaptive_chat_header", fallback: true) }
