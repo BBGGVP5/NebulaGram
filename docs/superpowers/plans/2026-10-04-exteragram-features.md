@@ -10,7 +10,7 @@ Implementation proceeds inline in this chat. Checkboxes distinguish finished wor
 
 ---
 
-Execute inline in the authorized chat. Preserve the modified Android vendor checkout. Android build `1000372` and iOS build `75` have already been delivered; neither contains this new feature set. No unrequested Python plugin platform or unrelated release-note optimization claims.
+Execute inline in the authorized chat. Preserve the modified Android vendor checkout. Android build `1000372` and iOS build `75` have already been delivered; neither contains this new feature set. Final artifacts are Android 1000384 and iOS 76; platform scope is recorded below. No unrequested Python plugin platform or unrelated release-note optimization claims.
 
 The reference clone at `build/exteragram-12106-reference` is pinned to `1ef789d2b3098d35f361988b86286bdfa3299dab`; it is an unofficial reconstructed source, not the maintained official repository. Use it to inspect behavior and file formats. Implement focused Nebula classes and preserve attribution for any reused licensed assets.
 
@@ -22,7 +22,7 @@ The reference clone at `build/exteragram-12106-reference` is pinned to `1ef789d2
 - [x] Store named service metadata separately from keys. Selecting a service copies its provider/model/endpoint into the existing active connection only after its encrypted key is available. Legacy connection migrates once without dropping its provider or credentials. Two services of the same provider keep different secrets; deleting one never deletes another's key. Add OpenRouter and Perplexity with their real compatible API endpoints while preserving provider IDs 0–4.
 - [x] Add Assistant, Summarizer and Proofreader roles plus editable custom name/prompt/emoji. Capture the selected prompt with each request. Keep AI history local and provide its existing viewer.
 - [x] Add real SSE response streaming for supported remote APIs, response-only/quote insertion preferences and generation temperature/reasoning options. Validate event types and final/error events; do not display reasoning as the answer or save a canceled partial response. Nano's UI describes supported controls accurately.
-- [ ] Compile and execute fixtures that select/migrate/delete services, switch two keys of one provider, parse split UTF-8 SSE events, propagate provider errors and cancel streaming. Run `python scripts/check-ai-services.py`, `python scripts/check-ai-protocol.py`, `python scripts/check-ai-chat.py` and the Android SDK UI typecheck.
+- [x] Compile and execute fixtures that select/migrate/delete services, switch two keys of one provider, parse split UTF-8 SSE events, propagate provider errors and cancel streaming. Run `python scripts/check-ai-services.py`, `python scripts/check-ai-protocol.py`, `python scripts/check-ai-chat.py` and the Android SDK UI typecheck.
 
 Role application is explicit, using captured source data:
 
@@ -56,7 +56,7 @@ The accepted metadata has a concrete interoperable shape:
 - [x] Match host suffixes at label boundaries, honor allow rules and domain/third-party restrictions, and ignore unsupported filter syntax safely. Cosmetic rules become CSS text in a fixed style element, never arbitrary scriptlets. Bound list size, selector size and matching work.
 - [x] Hook both native request overloads before ordinary browser subresource loads, reset page scope on navigation and inject bounded CSS at page finish. Return a typed empty `WebResourceResponse` for blocked subresources. Expose global enable, site exclusions, list preparation/status and refresh in settings.
 - [x] Route manual message/draft/caption translation through the explicitly selected translation engine. Keep user-selected AI and the existing fast local engine available; add third-party translation choices only with their actual transport and visible consent/settings. Never silently select Telegram or another service after failure.
-- [ ] Run fixtures for `ads.example.org` versus `notads.example.org`, allow-listed sites, first-party restrictions, main-frame and Mini App exclusions, bounded CSS and refresh rollback. Run translation regression and real Android API checks.
+- [x] Run fixtures for `ads.example.org` versus `notads.example.org`, allow-listed sites, first-party restrictions, main-frame and Mini App exclusions, bounded CSS and refresh rollback. Run translation regression and real Android API checks.
 
 Native browser integration is scoped by its existing constructor flag:
 
@@ -86,7 +86,15 @@ new SpringAnimation(new FloatValueHolder(0f))
 ## Publication
 
 - [x] Update `docs/USER-CHANGES.md` with actual final behavior and platform differences. Preserve external asset licenses and source attribution.
-- [ ] Publish only this task's files to the authorized branch/main, complete Android CI and verify its fresh APK source SHA, digest, package and release certificate. Keep vendor changes untouched.
-- [ ] Provide the new APK, the exact settings locations and actual device-testing limits. Keep the already-built iOS IPA 75 available without labeling this later Android feature set as included in it.
+- [x] Publish only this task's files to the authorized branch/main, complete Android CI and verify its fresh APK source SHA, digest, package and release certificate. Keep vendor changes untouched.
+- [x] Provide the new APK, the exact settings locations and actual device-testing limits. Provide the rebuilt iOS IPA 76 with its settings-transfer changes; do not label the Android feature set as included in it.
 
 Validation so far: JVM service/protocol/chat fixtures, archive and browser fixtures, 84 existing regressions (settings geometry repaired and retested; account-slot native syntax checked with NDK clang), 13 new helper classes typechecked against Android SDK 37 and cached native signatures. All 177 patches reconstruct against the pinned source. The fresh full Android CI compile and device visual testing remain separate checks; the attached phone is not visible to ADB.
+
+
+Final verification, 2026-10-06:
+
+- Android run `37406098462`, source `f900d0d75f45dfb282e06f32cd8ff284a605413d`, build `1000384`: successful required regressions, full compile, packaging and signature verification. The failed summary callback now captures a final message snapshot. APK SHA-256 `3749f4f24ab24687a98b9c8aad122a1118d8f15aefc41d2ada462971bdb20aa6`; release certificate matches the previous installable APK. The bundled Remix archive matches source bytes.
+- iOS run `37348533167`, source `e19989fc36545166ff09f325a4433760d729968c`, build `76`: successful release_arm64 build, bundle `app.nebulagram`, six embedded extensions including one notification service, no app distribution signature. IPA SHA-256 `1260ee421048ff2d1b2591c59ac947c98bd56ad8273c13057f49785d9fe2a9b9`; user signing is required. New Android preference values round-trip through iOS without activating unimplemented features.
+- Icon archive logic has 22 executable fixtures; Android bitmap decoding, density rendering, lifecycle cache switching and visual motion have code review and SDK compile coverage rather than a physical-device result. ADB still reports no connected devices. No on-device timing or ad-blocking percentage is claimed.
+- Files: `build/qa-apk-extera-f900d0d/` and `build/qa-ipa-extera-e19989f/`, with local verification JSON. Vendor checkout and unrelated artifacts remain untouched.
