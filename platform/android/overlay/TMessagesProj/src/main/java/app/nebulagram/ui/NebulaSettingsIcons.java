@@ -3,7 +3,22 @@ package app.nebulagram.ui;
 import org.telegram.messenger.R;
 public final class NebulaSettingsIcons {
     public static int resource(int original) {
-        if (NebulaIcons.pack() == 3) return original;
+        if (NebulaIcons.pack() != 0) {
+            if (original == R.drawable.nebula_settings_general) return R.drawable.msg_settings;
+            if (original == R.drawable.nebula_settings_privacy) return R.drawable.msg_secret;
+            if (original == R.drawable.nebula_settings_appearance) return R.drawable.msg_customize;
+            if (original == R.drawable.nebula_settings_navigation) return R.drawable.msg_list;
+            if (original == R.drawable.nebula_settings_folder) return R.drawable.files_folder;
+            if (original == R.drawable.nebula_settings_chat) return R.drawable.msg_discussion;
+            if (original == R.drawable.nebula_settings_messages) return R.drawable.menu_reply;
+            if (original == R.drawable.nebula_settings_profile) return R.drawable.msg_openprofile;
+            if (original == R.drawable.nebula_settings_sync) return R.drawable.msg_saved;
+            if (original == R.drawable.nebula_settings_tasks) return R.drawable.msg_calendar;
+            if (original == R.drawable.nebula_settings_ai) return R.drawable.msg_emoji_smiles;
+            if (original == R.drawable.nebula_settings_about) return R.drawable.msg_info;
+            if (original == R.drawable.nebula_settings_link) return R.drawable.msg_link;
+            return original;
+        }
         if (original == R.drawable.msg_settings) return R.drawable.nebula_settings_general;
         if (original == R.drawable.msg_settings_old) return R.drawable.nebula_settings_general;
         if (original == R.drawable.msg_secret) return R.drawable.nebula_settings_privacy;
@@ -29,7 +44,7 @@ public final class NebulaSettingsIcons {
     }
 
     public static int telegramResource(int original) {
-        if (NebulaIcons.pack() == 3) return original;
+        if (NebulaIcons.pack() != 0) return original;
         if (original == R.drawable.settings_privacy) return R.drawable.nebula_settings_privacy;
         if (original == R.drawable.msg2_secret) return R.drawable.nebula_settings_privacy;
         if (original == R.drawable.settings_folders) return R.drawable.nebula_settings_folder;

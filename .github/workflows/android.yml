@@ -207,6 +207,7 @@ jobs:
           python3 scripts/check-translation-api.py
           python3 scripts/check-composer-shortcut.py vendor/telegram-android
           python3 scripts/check-settings-root.py
+          python3 scripts/check-settings-emoji.py
           python3 scripts/check-settings-runtime.py vendor/telegram-android
           python3 scripts/check-folder-glass.py vendor/telegram-android
           python3 scripts/generate-settings-icons.py --check

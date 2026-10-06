@@ -154,6 +154,19 @@ public class NebulaSectionFragment extends BaseFragment {
 
     private void build(Context context, NebulaTheme theme) {
         content.removeAllViews();
+        String introTitle = actionBar.getTitle().toString();
+        String introEmoji;
+        String introDescription;
+        switch (section) {
+            case SECTION_GENERAL: introEmoji = "⚙️"; introDescription = NebulaText.text("Настройте подключение и поведение приложения.", "Customize connection and app behavior."); break;
+            case SECTION_APPEARANCE: case SECTION_GLASS: introEmoji = "🎨"; introDescription = NebulaText.text("Настройте цвета, стекло и значки.", "Customize colors, glass and icons."); break;
+            case SECTION_CHATS: case SECTION_MESSAGES: introEmoji = "💬"; introDescription = NebulaText.text("Внешний вид и действия в переписке.", "Appearance and actions in conversations."); break;
+            case SECTION_PROFILE: introEmoji = "😎"; introDescription = NebulaText.text("Внешний вид страниц профиля.", "The appearance of profile pages."); break;
+            case SECTION_FOLDERS: introEmoji = "🗂"; introDescription = NebulaText.text("Оформление папок и счётчики чатов.", "Folder appearance and chat counters."); break;
+            case SECTION_TABS: case SECTION_NAVIGATION: introEmoji = "🧭"; introDescription = NebulaText.text("Панель, переходы и расположение разделов.", "The bar, transitions and section order."); break;
+            default: introEmoji = "✈️"; introDescription = NebulaText.text("NebulaGram и информация о приложении.", "NebulaGram and app information."); break;
+        }
+        content.addView(new NebulaSettingsHero(context, introEmoji, introTitle, introDescription));
         previews.clear();
         wallpaperPreviews.clear();
         composerPreview = null;

@@ -164,51 +164,21 @@ public class NebulaSettingsFragment extends BaseFragment {
                 .withClick(v -> presentFragment(new NebulaSupportFragment())));
         sections.addView(support, cardParams());
         sections.addView(NebulaCard.header(context, NebulaText.text("Инструменты", "Tools")));
-        LinearLayout tools = new LinearLayout(context);
-        tools.setBaselineAligned(false);
-        tools.setOrientation(LinearLayout.HORIZONTAL);
-        tool(context, tools, R.drawable.nebula_ai_spark, "Nebula AI", "Nebula AI",
-                () -> presentFragment(new NebulaAiSettingsFragment()));
-        tool(context, tools, R.drawable.msg_calendar, "Список дел", "Tasks",
-                () -> presentFragment(new NebulaTasksFragment()));
-        tool(context, tools, R.drawable.nebula_settings_text_tools, "Текст", "Text",
-                () -> presentFragment(new NebulaMessageToolsFragment(null)));
+        NebulaCard tools = new NebulaCard(context);
+        tools.add(new NebulaRow(context).icon(R.drawable.nebula_ai_spark).title("Nebula AI")
+                .subtitle(NebulaText.text("Сервисы, роли и работа с сообщениями", "Services, roles and message tools"), false)
+                .trailing(NebulaRow.TRAIL_CHEVRON).withClick(v -> presentFragment(new NebulaAiSettingsFragment())));
+        tools.add(new NebulaRow(context).icon(R.drawable.msg_calendar).title(NebulaText.text("Список дел", "Tasks"))
+                .subtitle(NebulaText.text("Задачи и напоминания", "Tasks and reminders"), false)
+                .trailing(NebulaRow.TRAIL_CHEVRON).withClick(v -> presentFragment(new NebulaTasksFragment())));
+        tools.add(new NebulaRow(context).icon(R.drawable.nebula_settings_text_tools).title(NebulaText.text("Инструменты текста", "Text tools"))
+                .subtitle(NebulaText.text("Перевод, редактор и озвучивание", "Translation, editing and reading aloud"), false)
+                .trailing(NebulaRow.TRAIL_CHEVRON).withClick(v -> presentFragment(new NebulaMessageToolsFragment(null))));
         sections.addView(tools, cardParams());
         NebulaCard browser = new NebulaCard(context);
         browser.add(new NebulaRow(context).icon(R.drawable.msg_language).title(NebulaText.text("Браузер и блокировка рекламы", "Browser and ad blocking"))
                 .trailing(NebulaRow.TRAIL_CHEVRON).withClick(v -> presentFragment(new NebulaBrowserSettingsFragment())));
         sections.addView(browser, cardParams());
-    }
-
-    private void tool(Context context, LinearLayout parent, int icon, String ru, String en, Runnable open) {
-        NebulaTheme theme = NebulaTheme.of(context);
-        LinearLayout tile = new LinearLayout(context);
-        tile.setOrientation(LinearLayout.VERTICAL);
-        tile.setGravity(android.view.Gravity.CENTER);
-        tile.setPadding(AndroidUtilities.dp(8), AndroidUtilities.dp(16), AndroidUtilities.dp(8), AndroidUtilities.dp(16));
-        tile.setMinimumHeight(AndroidUtilities.dp(100));
-        tile.setBackground(org.telegram.ui.ActionBar.Theme.createSimpleSelectorRoundRectDrawable(
-                AndroidUtilities.dp(20), theme.surfaceContainer(),
-                androidx.core.graphics.ColorUtils.compositeColors(NebulaTheme.stateLayer(theme.primary(), .16f), theme.surfaceContainer())));
-        android.widget.ImageView image = new android.widget.ImageView(context);
-        image.setImageResource(icon);
-        image.setColorFilter(theme.primary(), android.graphics.PorterDuff.Mode.SRC_IN);
-        image.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
-        tile.addView(image, new LinearLayout.LayoutParams(AndroidUtilities.dp(28), AndroidUtilities.dp(28)));
-        android.widget.TextView label = new android.widget.TextView(context);
-        label.setText(NebulaText.text(ru, en));
-        label.setTextSize(13);
-        label.setTextColor(theme.onSurface());
-        label.setGravity(android.view.Gravity.CENTER);
-        LinearLayout.LayoutParams caption = new LinearLayout.LayoutParams(-1, -2);
-        caption.topMargin = AndroidUtilities.dp(10);
-        tile.addView(label, caption);
-        tile.setContentDescription(label.getText());
-        tile.setFocusable(true);
-        tile.setOnClickListener(v -> open.run());
-        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(0, -1, 1f);
-        if (parent.getChildCount() > 0) params.setMarginStart(AndroidUtilities.dp(8));
-        parent.addView(tile, params);
     }
 
     private NebulaRow hub(Context context, int icon, String titleRu, String titleEn,

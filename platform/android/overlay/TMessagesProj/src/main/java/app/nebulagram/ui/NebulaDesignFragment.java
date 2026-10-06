@@ -36,6 +36,7 @@ public final class NebulaDesignFragment extends BaseFragment {
     private int dp(float v) { return AndroidUtilities.dp(v); }
     private void buildPacks(Context c) {
         content.removeAllViews();
+        content.addView(new NebulaSettingsHero(c, "🎨", text("Значки мессенджера", "Messenger icons"), text("Выберите единый стиль значков и импортируйте свои паки.", "Choose a consistent icon style or import your own packs.")));
         content.addView(NebulaCard.header(c, text("Базовые наборы", "Base packs")));
         NebulaCard card = new NebulaCard(c);
         String[] names = {text("По умолчанию", "Default"), "iOS Outline", "Solar Icon Set"};

@@ -128,18 +128,17 @@ public final class NebulaPrivacyFragment extends BaseFragment {
     private void rebuild() {
         if (content == null) return;
         content.removeAllViews();
+        NebulaSettingsHero hero = new NebulaSettingsHero(content.getContext(), R.drawable.msg_secret,
+                text("Конфиденциальность", "Privacy"),
+                text("Защита чатов, локальные копии и управление сохранением сообщений.",
+                        "Chat protection, local copies and message retention."));
+        hero.setStatus(NebulaDeletedArchive.enabled(owner) ? text("Сохранение включено", "Retention on")
+                : text("Сохранение выключено", "Retention off"), NebulaDeletedArchive.enabled(owner));
+        content.addView(hero);
         NebulaFeatureControls.privacy(this, content);
         card(row(R.drawable.nebula_settings_chat_lock, text("Пароли чатов", "Chat passwords"))
                 .trailing(NebulaRow.TRAIL_CHEVRON)
                 .withClick(v -> presentFragment(new NebulaLockedChatsFragment())));
-
-        NebulaSettingsHero hero = new NebulaSettingsHero(content.getContext(), R.drawable.msg_secret,
-                text("Локальные копии", "Local copies"),
-                text("Сохраняйте сообщения в чате. Выбирайте значок и очищайте копии, когда нужно.",
-                        "Keep messages in the chat. Choose their marker and clear copies when needed."));
-        hero.setStatus(NebulaDeletedArchive.enabled(owner) ? text("Сохранение включено", "Retention on")
-                : text("Сохранение выключено", "Retention off"), NebulaDeletedArchive.enabled(owner));
-        content.addView(hero);
         header(text("Удалённые сообщения", "Deleted messages"));
         card(row(R.drawable.msg_delete, text("Сохранять удалённые сообщения", "Save deleted messages"))
                         .subtitle(text("Остаются на своём месте в чате", "They stay in place in the chat"), false)

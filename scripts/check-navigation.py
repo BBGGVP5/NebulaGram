@@ -5,7 +5,8 @@ r=Path(__file__).resolve().parent.parent
 work=r/'build/navigation-settings/check';work.mkdir(parents=True,exist_ok=True)
 overlay=r/'platform/android/overlay/TMessagesProj/src/main/java/app/nebulagram/ui'
 icons=(overlay/'NebulaIcons.java').read_text(encoding='utf-8')
-names=sorted(set(re.findall(r'R.drawable.(\w+)',icons)) | {'msg_check_s', 'input_video', 'input_video_pressed'})
+settings=(overlay/'NebulaSettingsIcons.java').read_text(encoding='utf-8')
+names=sorted(set(re.findall(r'R.drawable.(\w+)',icons+settings)) | {'msg_check_s', 'input_video', 'input_video_pressed'})
 stubs={
 'app/nebulagram/ui/NebulaIconPackStore.java': '''package app.nebulagram.ui; public class NebulaIconPackStore {public static android.graphics.drawable.Drawable drawable(android.content.res.Resources r,int id){return null;}}''',
 'android/content/SharedPreferences.java': '''package android.content; public class SharedPreferences {
@@ -82,6 +83,14 @@ for(int active=0;active<3;active++)for(int preview=0;preview<3;preview++) {
   check(wrapped.getDrawable(id).id==NebulaIcons.resource(id),"normal icon substitution bypassed");
  }
 }
+for(int pack=0;pack<=3;pack++) {
+ NebulaIcons.setPack(pack);
+ int id=NebulaSettingsIcons.resource(R.drawable.msg_secret);
+ check(id==(pack==0?R.drawable.nebula_settings_privacy:R.drawable.msg_secret),"settings bypass selected pack");
+ if(pack!=0)check(NebulaSettingsIcons.resource(R.drawable.nebula_settings_privacy)==R.drawable.msg_secret,"settings alias hides pack mapping");
+ check(wrapped.getDrawable(id).id==NebulaIcons.resource(id),"settings icon must resolve through native resource boundary");
+}
+System.out.println("Settings glyphs honor all four global pack choices");
 System.out.println("Icon previews passed: all 9 active/preview pack combinations through nested resource wrappers");
 System.out.println("Navigation passed: 16 legacy states, all hidden-tab combinations, compact width, and every icon mapping restored on disable");}}
 '''.replace('NAMES',','.join('"'+n+'"' for n in re.findall(r'ICONS.put\(R.drawable.(\w+)',icons)))
@@ -89,6 +98,6 @@ System.out.println("Navigation passed: 16 legacy states, all hidden-tab combinat
 sources=[]
 for n,text in stubs.items():
  p=work/n;p.parent.mkdir(parents=True,exist_ok=True);p.write_text(text,encoding='utf-8');sources.append(str(p))
-sources += [str(overlay/n) for n in ['NebulaBottomBar.java','NebulaIcons.java','NebulaIconResources.java']]
+sources += [str(overlay/n) for n in ['NebulaBottomBar.java','NebulaIcons.java','NebulaIconResources.java','NebulaSettingsIcons.java']]
 subprocess.run(['javac','-encoding','UTF-8','-d',str(work/'classes'),*sources],check=True)
 subprocess.run(['java','-cp',str(work/'classes'),'CheckNavigation'],check=True)

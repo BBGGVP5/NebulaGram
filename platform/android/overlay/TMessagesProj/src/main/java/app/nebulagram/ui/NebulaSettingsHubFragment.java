@@ -48,6 +48,16 @@ public final class NebulaSettingsHubFragment extends BaseFragment {
                 AndroidUtilities.dp(16), AndroidUtilities.dp(28));
         scroll.addView(content, new ScrollView.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+        String[] emoji = {"⚙️", "🎨", "💬", "🧭", "🔐", "🤖"};
+        String[] details = {
+                NebulaText.text("Подключение и поведение приложения.", "Connection and app behavior."),
+                NebulaText.text("Цвета, стекло и значки мессенджера.", "Colors, glass and messenger icons."),
+                NebulaText.text("Сообщения, список чатов и профили.", "Messages, the chat list and profiles."),
+                NebulaText.text("Нижняя панель и папки чатов.", "The bottom bar and chat folders."),
+                NebulaText.text("Локальная защита и сохранение сообщений.", "Local protection and message retention."),
+                NebulaText.text("ИИ, задачи и работа с текстом.", "AI, tasks and text tools.")};
+        int intro = Math.max(0, Math.min(emoji.length - 1, category));
+        content.addView(new NebulaSettingsHero(context, emoji[intro], title().toString(), details[intro]));
         NebulaCard card = new NebulaCard(context);
         switch (category) {
             case GENERAL:
@@ -84,7 +94,7 @@ public final class NebulaSettingsHubFragment extends BaseFragment {
                 break;
             case TOOLS:
                 card.add(row(context, R.drawable.msg_emoji_smiles, "Искусственный интеллект", "AI assistant", "Чат и помощник", "Chat and assistant",
-                        () -> presentFragment(new NebulaAiFragment())));
+                        () -> presentFragment(new NebulaAiSettingsFragment())));
                 card.add(row(context, R.drawable.msg_calendar, "Список дел", "Tasks", "Заметки и напоминания", "Notes and reminders",
                         () -> presentFragment(new NebulaTasksFragment())));
                 card.add(row(context, R.drawable.nebula_settings_text_tools, "Инструменты текста", "Text tools", "Перевод и озвучивание", "Translate and read aloud",

@@ -20,7 +20,7 @@ import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.Emoji;
 
 /**
- * A settings row with a custom glyph on a colored tile, an optional subtitle,
+ * A settings row with a themed outline glyph, an optional subtitle,
  * and a trailing value, chevron or switch.
  *
  * <p>The rows are built from the schema the Go core returns, so this class
@@ -57,13 +57,10 @@ public class NebulaRow extends FrameLayout {
 
         icon = new ImageView(context);
         icon.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
-        icon.setColorFilter(theme.primary(), PorterDuff.Mode.SRC_IN);
-        GradientDrawable iconBackground = new GradientDrawable();
-        iconBackground.setCornerRadius(AndroidUtilities.dp(9));
-        iconBackground.setColor(theme.primary());
-        icon.setBackground(iconBackground);
-        icon.setPadding(AndroidUtilities.dp(6), AndroidUtilities.dp(6),
-                AndroidUtilities.dp(6), AndroidUtilities.dp(6));
+        icon.setColorFilter(theme.onSurfaceVariant(), PorterDuff.Mode.SRC_IN);
+        icon.setBackground(null);
+        icon.setPadding(AndroidUtilities.dp(4), AndroidUtilities.dp(4),
+                AndroidUtilities.dp(4), AndroidUtilities.dp(4));
         // Контейнер значка нарисован ещё до того, как значок задан. Пока его
         // нет, показывать пустой скруглённый квадрат нечем оправдать: строка
         // без значка должна начинаться с текста, как в Material 3.
@@ -78,14 +75,14 @@ public class NebulaRow extends FrameLayout {
         text.setOrientation(LinearLayout.VERTICAL);
 
         title = new TextView(context);
-        title.setTextSize(TypedValue.COMPLEX_UNIT_SP, 15);
+        title.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16);
         title.setTextColor(theme.onSurface());
         title.setTypeface(android.graphics.Typeface.DEFAULT);
         text.addView(title, new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
 
         subtitle = new TextView(context);
-        subtitle.setTextSize(TypedValue.COMPLEX_UNIT_SP, 12);
+        subtitle.setTextSize(TypedValue.COMPLEX_UNIT_SP, 13);
         subtitle.setTextColor(theme.onSurfaceVariant());
         subtitle.setLineSpacing(AndroidUtilities.dp(1), 1f);
         subtitle.setVisibility(GONE);
@@ -143,27 +140,13 @@ public class NebulaRow extends FrameLayout {
         } else {
             icon.setVisibility(VISIBLE);
             icon.setImageResource(NebulaSettingsIcons.resource(resource));
-            icon.setColorFilter(0xFFFFFFFF, PorterDuff.Mode.SRC_IN);
-            GradientDrawable background = new GradientDrawable();
-            background.setCornerRadius(AndroidUtilities.dp(9));
-            background.setColor(sectionAccent(resource));
-            icon.setBackground(background);
-            icon.setPadding(AndroidUtilities.dp(5), AndroidUtilities.dp(5),
-                    AndroidUtilities.dp(5), AndroidUtilities.dp(5));
+            icon.setColorFilter(theme.onSurfaceVariant(), PorterDuff.Mode.SRC_IN);
+            icon.setBackground(null);
+            icon.setPadding(AndroidUtilities.dp(4), AndroidUtilities.dp(4),
+                    AndroidUtilities.dp(4), AndroidUtilities.dp(4));
         }
         indent(resource != 0);
         return this;
-    }
-
-    private int sectionAccent(int resource) {
-        if (resource == org.telegram.messenger.R.drawable.msg_secret) return 0xFF30A76C;
-        if (resource == org.telegram.messenger.R.drawable.msg_customize) return 0xFF8872D8;
-        if (resource == org.telegram.messenger.R.drawable.msg_settings) return 0xFFE99A38;
-        if (resource == org.telegram.messenger.R.drawable.msg_emoji_smiles) return 0xFF26A6A0;
-        if (resource == org.telegram.messenger.R.drawable.msg_openprofile) return 0xFFE7768F;
-        if (resource == org.telegram.messenger.R.drawable.files_folder) return 0xFFEDAA34;
-        if (resource == org.telegram.messenger.R.drawable.menu_reply) return 0xFF5E80D8;
-        return 0xFF3396DB;
     }
 
     /** Preserve the original colors of Nebula's bundled artwork. */
@@ -271,6 +254,7 @@ public class NebulaRow extends FrameLayout {
         badge.setLayoutParams(params);
         icon.setVisibility(GONE);
         if (emojiIcon != null) emojiIcon.setVisibility(GONE);
+        if (animatedEmoji != null) animatedEmoji.setVisibility(GONE);
         indent(false);
         return this;
     }
@@ -325,16 +309,14 @@ public class NebulaRow extends FrameLayout {
         int accent = connected ? theme.success() : theme.primary();
         title.setTextColor(connected ? accent : theme.onSurface());
         subtitle.setTextColor(connected ? accent : theme.onSurfaceVariant());
-        icon.setColorFilter(0xFFFFFFFF, PorterDuff.Mode.SRC_IN);
-        ((GradientDrawable) icon.getBackground()).setColor(accent);
+        icon.setColorFilter(accent, PorterDuff.Mode.SRC_IN);
         return this;
     }
 
     public NebulaRow destructive() {
         int color = theme.isDark() ? 0xFFFF8585 : 0xFFC43838;
         title.setTextColor(color);
-        icon.setColorFilter(0xFFFFFFFF, PorterDuff.Mode.SRC_IN);
-        ((GradientDrawable) icon.getBackground()).setColor(color);
+        icon.setColorFilter(color, PorterDuff.Mode.SRC_IN);
         return this;
     }
 
@@ -348,9 +330,10 @@ public class NebulaRow extends FrameLayout {
             params.gravity = Gravity.CENTER_VERTICAL | Gravity.END;
             addView(chevron, params);
         } else if (kind == TRAIL_SWITCH) {
-            // Setting controls stay quiet; colored tiles identify navigation destinations.
+            // The control owns the trailing slot; decorative leading emoji stay out of its text.
             icon.setVisibility(GONE);
             if (emojiIcon != null) emojiIcon.setVisibility(GONE);
+            if (animatedEmoji != null) animatedEmoji.setVisibility(GONE);
             indent(false);
             // Переключатель шире стрелки: 52dp против 24dp. С прежним отступом
             // в 36dp текст заезжал под него на треть — отсюда обрезанные
@@ -359,7 +342,6 @@ public class NebulaRow extends FrameLayout {
             textParams.setMarginEnd(AndroidUtilities.dp(64));
             text.setLayoutParams(textParams);
             toggle = new NebulaSwitch(getContext());
-            toggle.setSettingsPresentation(true);
             LayoutParams params = new LayoutParams(
                     ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
             params.gravity = Gravity.CENTER_VERTICAL | Gravity.END;

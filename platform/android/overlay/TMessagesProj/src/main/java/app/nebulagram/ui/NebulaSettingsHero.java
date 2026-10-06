@@ -11,6 +11,7 @@ import org.telegram.messenger.UserConfig;
 /** Section introduction with Telegram's animated emoji and a readable grouped-settings layout. */
 public final class NebulaSettingsHero extends LinearLayout {
     private final TextView status;
+    private final TextView heading;
 
     public NebulaSettingsHero(Context context, int icon, String title, String description) {
         this(context, emoji(icon), title, description);
@@ -25,7 +26,7 @@ public final class NebulaSettingsHero extends LinearLayout {
         NebulaAnimatedEmoji image=new NebulaAnimatedEmoji(context,UserConfig.selectedAccount,emoji,imageSize);
         LayoutParams imageParams=new LayoutParams(dp(imageSize),dp(imageSize));imageParams.bottomMargin=dp(16);
         addView(image,imageParams);
-        TextView heading=label(title,26,theme.onSurface());heading.setGravity(Gravity.CENTER);heading.setTypeface(AndroidUtilities.bold());
+        heading=label(title,26,theme.onSurface());heading.setGravity(Gravity.CENTER);heading.setTypeface(AndroidUtilities.bold());
         addView(heading,new LayoutParams(-1,-2));
         TextView explanation = label(description, 15, theme.onSurfaceVariant());
         explanation.setGravity(Gravity.CENTER);
@@ -39,6 +40,8 @@ public final class NebulaSettingsHero extends LinearLayout {
         addView(status, params);
         setStatus("");
     }
+    /** Scroll position at which the large title reaches the native bar. */
+    public int titleScrollAnchor() { return getTop() + heading.getTop(); }
     private static String emoji(int icon) {
         if(icon==R.drawable.msg_secret)return "🔐";
         if(icon==R.drawable.msg_folders||icon==R.drawable.files_folder)return "🗂";

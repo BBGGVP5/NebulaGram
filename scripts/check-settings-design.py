@@ -82,17 +82,18 @@ assert '.systemGreen' in hero and 'active: Bool = false' in hero
 assert 'card.backgroundColor' not in hero and 'stack.addArrangedSubview(brand)' not in hero
 print("Plain status headers: no repeated title cards; active tint and layout guards retained")
 
-# Keep the user's colored tiles; only their glyphs and duplicate hero cards change.
+# The latest reference uses monochrome glyphs and top introductions on Android.
 row = (UI / 'NebulaRow.java').read_text(encoding='utf-8')
 assert 'NebulaSettingsIcons.resource(resource)' in row
-assert 'background.setColor(sectionAccent(resource))' in row
-assert 'icon.setColorFilter(0xFFFFFFFF' in row
+assert 'sectionAccent' not in row and 'icon.setBackground(null)' in row
+assert 'icon.setColorFilter(theme.onSurfaceVariant()' in row
 ios_style = (IOS / 'NebulaSettingsStyle.swift').read_text(encoding='utf-8')
 assert 'NebulaSettingsSymbols.path(for: symbol)' in ios_style
 assert 'cornerRadius: 9).fill()' in ios_style
 for name in ['NebulaSectionFragment.java', 'NebulaDesignFragment.java']:
-    assert 'new NebulaSettingsHero' not in (UI / name).read_text(encoding='utf-8')
+    assert 'new NebulaSettingsHero' in (UI / name).read_text(encoding='utf-8')
 section = (UI / 'NebulaSectionFragment.java').read_text(encoding='utf-8')
 for preview in ['new NebulaFoldersPreview', 'new NebulaComposerPreview', 'new NebulaPreview']:
     assert preview in section
-print('Colored tiles retained; new glyphs and existing interactive previews connected')
+assert privacy.index('content.addView(hero)') < privacy.index('NebulaFeatureControls.privacy')
+print('Monochrome settings glyphs and top introductions; interactive previews retained')
