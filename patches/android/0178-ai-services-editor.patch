@@ -9,23 +9,24 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/TranslateControl
          return (
              messageObject != null &&
              messageObject.messageOwner != null &&
-@@ -593,6 +594,15 @@
+@@ -593,6 +594,16 @@
          }
  
          final long dialogId = messageObject.getDialogId();
 +        if (onScreen && app.nebulagram.ui.NebulaAiReplacements.summaries()
 +                && messageObject.messageOwner.summarizedOpen && messageObject.messageOwner.summaryText == null) {
-+            pushToSummarize(messageObject, null, text -> {
-+                messageObject.messageOwner.summaryText = text;
-+                if (text == null) messageObject.messageOwner.summarizedOpen = false;
-+                getMessagesStorage().updateMessageCustomParams(dialogId, messageObject.messageOwner);
-+                getNotificationCenter().postNotificationName(NotificationCenter.messageTranslated, messageObject, true);
++            final MessageObject nebulaSummaryMessage = messageObject;
++            pushToSummarize(nebulaSummaryMessage, null, text -> {
++                nebulaSummaryMessage.messageOwner.summaryText = text;
++                if (text == null) nebulaSummaryMessage.messageOwner.summarizedOpen = false;
++                getMessagesStorage().updateMessageCustomParams(dialogId, nebulaSummaryMessage.messageOwner);
++                getNotificationCenter().postNotificationName(NotificationCenter.messageTranslated, nebulaSummaryMessage, true);
 +            });
 +        }
          if (app.nebulagram.ui.NebulaAutoTranslate.enabled(currentAccount, dialogId)) {
              if (onScreen) app.nebulagram.ui.NebulaAutoTranslate.request(currentAccount, messageObject);
              return;
-@@ -997,6 +1007,12 @@
+@@ -997,6 +1008,12 @@
          if (loadingSummarizations.contains(id)) return;
  
          loadingSummarizations.add(id);
