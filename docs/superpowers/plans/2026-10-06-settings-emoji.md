@@ -28,8 +28,10 @@ Files: `NebulaAnimatedEmoji.java`; executable check `scripts/check-settings-emoj
 ### Verification and publication
 
 - [x] Run the settings root and navigation checks, update their framework stubs for nested scrolling and title collapse, and rebuild the complete pinned Android patch series.
-- [ ] Run required CI, finish a fresh APK and verify its source revision, version, release certificate and resources. Update the changelog with the actual UI behavior and device-testing limits.
+- [x] Run required CI, finish a fresh APK and verify its source revision, version, release certificate and resources. Update the changelog with the actual UI behavior and device-testing limits.
 
 The user's clarification says the shield emoji animation is the failure; this task does not require rewriting the ad-blocking engine. Browser filtering retains its existing opt-in behavior.
 
 Local results: 85 required checks passed, including production emoji lifecycle fixtures and nested settings-root geometry/title-collapse checks. Account-slot C++ validation on Windows is syntax-only; CI executes its Linux binary. Thirteen shared helper classes typechecked against Android SDK 37 and native signatures. All 177 pinned native patches reconstructed. ADB reports no attached phone.
+
+Published result: Android 1000385, run `37486701640`, source `1e8eb1276b40cd95176d8aa37b1865e411d59ba8`. Required CI and full APK build passed. Package, version, release certificate and bundled icon archive verified. SHA-256 `75956b6bc9cb04cd165b9d8c048a40639ba31b3b1e907b9c4b38fd25c3f89727`. Artifact and local verification JSON are in `build/qa-apk-settings-1e8eb12/`. Physical-device rendering remains untested because ADB has no device.
