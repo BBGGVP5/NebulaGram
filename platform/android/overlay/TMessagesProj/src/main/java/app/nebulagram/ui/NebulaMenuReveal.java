@@ -115,28 +115,20 @@ public final class NebulaMenuReveal {
         originX = host.getWidth();
         originY = host.shownFromBottom ? host.getHeight() : 0;
         View view = anchor == null ? null : anchor.get();
-        seed = AndroidUtilities.dp(48);
-        float sourceWidth=seed, sourceHeight=seed, sourceRadius=seed/2;
+        float diameter=AndroidUtilities.dp(NebulaMenuBubble.SEED_DP);
         if (view != null && view.isAttachedToWindow()) {
-            Rect sourceRect=new Rect(0,0,view.getWidth(),view.getHeight());
-            android.graphics.Outline outline=new android.graphics.Outline();
-            if(view.getOutlineProvider()!=null)view.getOutlineProvider().getOutline(view,outline);
-            Rect outlineRect=new Rect();
-            if(android.os.Build.VERSION.SDK_INT>=24&&outline.getRect(outlineRect)&&!outlineRect.isEmpty())sourceRect.set(outlineRect);
             view.getLocationOnScreen(location);
-            float x = location[0] + sourceRect.exactCenterX(), y = location[1] + sourceRect.exactCenterY();
+            float x = location[0] + view.getWidth()/2f, y = location[1] + view.getHeight()/2f;
             host.getLocationOnScreen(location);
             originX = x - location[0];
             originY = y - location[1];
-            sourceWidth=Math.max(1,sourceRect.width());sourceHeight=Math.max(1,sourceRect.height());
-            sourceRadius=outline.isEmpty()?Math.min(sourceWidth,sourceHeight)/2:Math.max(0,outline.getRadius());
         }
         // Native backgrounds inset 8dp. Map the seed through the same padded
         // rectangle rather than adding a fixed amount that enlarges the button.
         float padding=AndroidUtilities.dp(16);
-        seedWidth=sourceWidth*host.getWidth()/Math.max(1,host.getWidth()-padding);
-        seedHeight=sourceHeight*host.getHeight()/Math.max(1,host.getHeight()-padding);
-        seedRadius=sourceRadius;seed=Math.min(seedWidth,seedHeight);
+        seedWidth=diameter*host.getWidth()/Math.max(1,host.getWidth()-padding);
+        seedHeight=diameter*host.getHeight()/Math.max(1,host.getHeight()-padding);
+        seedRadius=diameter/2;seed=Math.min(seedWidth,seedHeight);
         host.getWindowVisibleDisplayFrame(screen);
         host.getLocationOnScreen(location);
         screen.offset(-location[0], -location[1]);
@@ -204,6 +196,7 @@ public final class NebulaMenuReveal {
         if (pullX == 0 && pullY == 0 && progress == 1) return;
         float radius = shape(rect);
         rect.set(Math.round(bounds.left), Math.round(bounds.top), Math.round(bounds.right), Math.round(bounds.bottom));
+        setMaterialRadius(material,radius);
         if (material instanceof BlurredBackgroundDrawable) {
             BlurredBackgroundDrawable glass = (BlurredBackgroundDrawable) material;
             glass.setRadius(radius);
@@ -212,6 +205,12 @@ public final class NebulaMenuReveal {
         }
     }
     public boolean isMorphing() { return viewportReady && progress != 1; }
+    private static void setMaterialRadius(Drawable material,float radius) {
+        if(material instanceof android.graphics.drawable.InsetDrawable)
+            material=((android.graphics.drawable.InsetDrawable)material).getDrawable();
+        if(material instanceof android.graphics.drawable.GradientDrawable)
+            ((android.graphics.drawable.GradientDrawable)material).setCornerRadius(radius);
+    }
     public void clip(Canvas canvas) {
         if (pullX == 0 && pullY == 0 && progress == 1) return;
         int padding=AndroidUtilities.dp(8);
@@ -257,6 +256,7 @@ public final class NebulaMenuReveal {
         setProgress(1);
         clearFocus();
         Drawable material = host.getBackgroundDrawable();
+        setMaterialRadius(material,NebulaMenuStyle.radius());
         if (material instanceof BlurredBackgroundDrawable) {
             ((BlurredBackgroundDrawable) material).setRadius(NebulaMenuStyle.radius());
             ((BlurredBackgroundDrawable) material).setIntensity(NebulaGlass.refraction());

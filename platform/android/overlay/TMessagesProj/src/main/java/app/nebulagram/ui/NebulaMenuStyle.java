@@ -196,7 +196,7 @@ public final class NebulaMenuStyle {
         ValueAnimator frame = ValueAnimator.ofFloat(0f, 1f);
         frame.setInterpolator(new android.view.animation.LinearInterpolator());
         frame.addUpdateListener(a -> content.nebulaReveal.setProgress((float) a.getAnimatedValue()));
-        AnimatorSet set = new AnimatorSet(); set.playTogether(frame); set.setDuration(650);
+        AnimatorSet set = new AnimatorSet(); set.playTogether(frame); set.setDuration(NebulaMenuBubble.OPEN_DURATION_MS);
         set.addListener(new AnimatorListenerAdapter() {
             private boolean cancelled;
             @Override public void onAnimationCancel(Animator animation) { cancelled = true; }
@@ -212,7 +212,7 @@ public final class NebulaMenuStyle {
         frame.setInterpolator(new android.view.animation.LinearInterpolator());
         frame.addUpdateListener(a -> content.nebulaReveal.setCloseProgress((float) a.getAnimatedValue()));
         AnimatorSet set = new AnimatorSet(); set.playTogether(frame);
-        set.setDuration(Math.round(content.nebulaReveal.getCloseDuration() * .85f));
+        set.setDuration(content.nebulaReveal.getCloseDuration());
         return set;
     }
 }

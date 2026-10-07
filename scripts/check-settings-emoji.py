@@ -1,4 +1,4 @@
-"""Exercise Telegram emoji artwork loading, detach and cached page replay."""
+"""Exercise native page emoji set loading, artwork, detach and cached replay."""
 from pathlib import Path
 import os,subprocess,tempfile
 root=Path(__file__).resolve().parents[1]
@@ -82,21 +82,39 @@ sources = {'android/content/Context.java': 'package android.content;public class
                                       ' public static class EmojiDrawable extends android.graphics.drawable.Drawable '
                                       '{public boolean fullSize=true,loaded;public void preload(){loaded=true;}}\n'
                                       ' public static android.graphics.drawable.Drawable getEmojiBigDrawable(String '
-                                      'v){requested=v;return last=new EmojiDrawable();}}',
- 'org/telegram/tgnet/TLRPC.java': 'package org.telegram.tgnet;public class TLRPC {public static class Document {public '
-                                  'long id=10,size=100;public String mime_type="application/x-tgsticker";}}',
- 'org/telegram/messenger/MediaDataController.java': 'package org.telegram.messenger;public class MediaDataController '
-                                                    '{\n'
-                                                    'public static final int TYPE_EMOJI=4;public static '
-                                                    'org.telegram.tgnet.TLRPC.Document doc;public static final '
-                                                    'MediaDataController instance=new MediaDataController();\n'
-                                                    'public static MediaDataController getInstance(int a){return '
-                                                    'instance;}public org.telegram.tgnet.TLRPC.Document '
-                                                    'getEmojiAnimatedSticker(String e){return doc;}public void '
-                                                    'checkStickers(int t){}}\n',
+                                      'v){requested=v;if(v.equals("⚙️"))return null;return last=new EmojiDrawable();}}',
+ 'org/telegram/tgnet/TLRPC.java': 'package org.telegram.tgnet;import java.util.*;public class TLRPC {\n'
+                                  ' public static class Document {public long id=10,size=100;public String '
+                                  'mime_type="application/x-tgsticker",alt;}\n'
+                                  ' public static class TL_messages_stickerSet {public ArrayList<Document> '
+                                  'documents=new ArrayList<>();public ArrayList<TL_stickerPack> packs=new '
+                                  'ArrayList<>();}\n'
+                                  ' public static class TL_stickerPack {public String emoticon;public ArrayList<Long> '
+                                  'documents=new ArrayList<>();}\n'
+                                  ' public static class TL_inputStickerSetShortName {public String short_name;}}',
+ 'org/telegram/messenger/MediaDataController.java': 'package org.telegram.messenger;import '
+                                                    'org.telegram.tgnet.TLRPC;public class MediaDataController {\n'
+                                                    ' public static final int TYPE_EMOJI=4;public static '
+                                                    'TLRPC.Document doc;public static TLRPC.TL_messages_stickerSet '
+                                                    'pageSet;public static boolean loading;public static int '
+                                                    'requests;\n'
+                                                    ' public static final MediaDataController instance=new '
+                                                    'MediaDataController();public static MediaDataController '
+                                                    'getInstance(int a){return instance;}\n'
+                                                    ' public TLRPC.Document getEmojiAnimatedSticker(String e){return '
+                                                    'doc;}public void checkStickers(int t){}\n'
+                                                    ' public TLRPC.TL_messages_stickerSet getStickerSetByName(String '
+                                                    'name){if(!name.equals("RestrictedEmoji"))throw new '
+                                                    'AssertionError("wrong native page emoji set");return pageSet;}\n'
+                                                    ' public TLRPC.TL_messages_stickerSet '
+                                                    'getStickerSet(TLRPC.TL_inputStickerSetShortName set,Integer '
+                                                    'hash,boolean '
+                                                    'cache){if(pageSet==null&&!loading){requests++;loading=true;}return '
+                                                    'pageSet;}}',
  'org/telegram/messenger/NotificationCenter.java': 'package org.telegram.messenger;import java.util.*;public class '
                                                    'NotificationCenter {\n'
-                                                   'public static final int stickersDidLoad=1,emojiLoaded=2;public '
+                                                   'public static final int '
+                                                   'stickersDidLoad=1,emojiLoaded=2,groupStickersDidLoad=3;public '
                                                    'static final NotificationCenter instance=new '
                                                    'NotificationCenter();public ArrayList<NotificationCenterDelegate> '
                                                    'observers=new ArrayList<>();\n'
@@ -216,8 +234,36 @@ sources = {'android/content/Context.java': 'package android.content;public class
                     'android.content.Context(),0,"🤖",32);small.attach();View.flush();check(ValueAnimator.running.isEmpty(),"small '
                     'unsupported glyph stays quiet");small.detach();\n'
                     'var gear=new NebulaAnimatedEmoji(new '
-                    'android.content.Context(),0,"⚙️",112);gear.attach();View.flush();check("⚙️".equals(Emoji.requested)&&((android.widget.ImageView)gear.children.get(0)).drawable==Emoji.last,"General '
+                    'android.content.Context(),0,"⚙️",112);gear.attach();View.flush();check("⚙".equals(Emoji.requested)&&((android.widget.ImageView)gear.children.get(0)).drawable==Emoji.last,"General '
                     'gear uses Telegram artwork");gear.detach();\n'
+                    'var link=new NebulaAnimatedEmoji(new '
+                    'android.content.Context(),0,"🔗",112);link.attach();View.flush();\n'
+                    'check(MediaDataController.requests==1,"native set requests must be deduplicated across large '
+                    'heroes");\n'
+                    'var set=new org.telegram.tgnet.TLRPC.TL_messages_stickerSet();var chain=new '
+                    'org.telegram.tgnet.TLRPC.Document();chain.id=90;chain.alt="🔗";set.documents.add(chain);\n'
+                    'var wheel=new '
+                    'org.telegram.tgnet.TLRPC.Document();wheel.id=91;wheel.alt="⚙";set.documents.add(wheel);\n'
+                    'var mapping=new '
+                    'org.telegram.tgnet.TLRPC.TL_stickerPack();mapping.emoticon="⚙️";mapping.documents.add(91L);set.packs.add(mapping);\n'
+                    'MediaDataController.pageSet=set;link.didReceivedNotification(NotificationCenter.groupStickersDidLoad,0);var '
+                    'chainReceiver=receiver();check(chainReceiver.binding==1,"late RestrictedEmoji load upgrades '
+                    'static link into native animation");\n'
+                    'chainReceiver.decode(false,true);View.flush();check(chainReceiver.started&&link.children.get(0).getVisibility()==View.GONE,"chain '
+                    'animation draws once a real frame is ready");\n'
+                    'link.detach();link.attach();var '
+                    'cached=receiver();check(cached!=chainReceiver&&MediaDataController.requests==1,"cached page set '
+                    'does not refetch on '
+                    'reentry");cached.decode(false,true);View.flush();check(cached.lottie.current==0&&cached.started,"cached '
+                    'chain animation replays from frame zero");link.detach();\n'
+                    'var settingsGear=new NebulaAnimatedEmoji(new '
+                    'android.content.Context(),0,"⚙️",112);settingsGear.attach();var '
+                    'gearReceiver=receiver();check(gearReceiver.binding==1,"selector-normalized pack mapping resolves '
+                    'animated '
+                    'gear");gearReceiver.decode(false,true);View.flush();check(gearReceiver.started&&settingsGear.children.get(0).getVisibility()==View.GONE,"gear '
+                    'uses real animated document instead of null artwork");settingsGear.detach();\n'
+                    'check(NotificationCenter.instance.observers.isEmpty()&&NotificationCenter.global.observers.isEmpty(),"all '
+                    'set and image observers cleaned up");MediaDataController.pageSet=null;\n'
                     'var disabled=new NebulaAnimatedEmoji(new '
                     'android.content.Context(),0,"🛡️",112);ValueAnimator.enabled=false;disabled.attach();View.flush();check(ValueAnimator.running.isEmpty(),"system '
                     'animations disabled respected");disabled.detach();ValueAnimator.enabled=true;\n'
@@ -253,7 +299,11 @@ sources = {'android/content/Context.java': 'package android.content;public class
                                                     'reset){current=f;resets++;}\n'
                                                     ' public void '
                                                     'start(){starts++;if(owner!=null)owner.started=true;}}',
- 'android/graphics/drawable/Drawable.java': 'package android.graphics.drawable;public class Drawable {}'}
+ 'android/graphics/drawable/Drawable.java': 'package android.graphics.drawable;public class Drawable {}',
+ 'org/telegram/messenger/MessageObject.java': 'package org.telegram.messenger;public class MessageObject {public '
+                                              'static String '
+                                              'findAnimatedEmojiEmoticon(org.telegram.tgnet.TLRPC.Document d,String '
+                                              'fallback){return d.alt;}}'}
 with tempfile.TemporaryDirectory(prefix='nebula-emoji-') as temp:
  tree=Path(temp)
  for name,text in sources.items():

@@ -15,6 +15,7 @@ import org.telegram.tgnet.TLRPC;
 
 /** Owns the receiver for one attachment; only a decoded frame can replace the fallback. */
 public final class NebulaAnimatedEmoji extends FrameLayout implements NotificationCenter.NotificationCenterDelegate {
+    private static final String PAGE_EMOJI_SET = "RestrictedEmoji";
     private final int account, size;
     private final ImageView fallbackImage;
     private final Rect visibleBounds = new Rect();
@@ -36,6 +37,7 @@ public final class NebulaAnimatedEmoji extends FrameLayout implements Notificati
     public void setEmoji(String value) {
         emoji=value;
         android.graphics.drawable.Drawable glyph=Emoji.getEmojiBigDrawable(value);
+        if(glyph==null)glyph=Emoji.getEmojiBigDrawable(normalize(value));
         if(glyph instanceof Emoji.EmojiDrawable){((Emoji.EmojiDrawable)glyph).fullSize=false;((Emoji.EmojiDrawable)glyph).preload();}
         fallbackImage.setImageDrawable(glyph);
         releaseReceiver(); showFallback(true); if(attached)refresh();
@@ -49,9 +51,30 @@ public final class NebulaAnimatedEmoji extends FrameLayout implements Notificati
         return receiver!=null && (receiver.getLottieAnimation()!=null&&receiver.getLottieAnimation().hasBitmap()
                 || receiver.getAnimation()!=null&&receiver.getAnimation().hasBitmap());
     }
+    private static String normalize(String value) {return value==null?"":value.replace("\uFE0F","");}
+    private TLRPC.Document pageDocument() {
+        if(size<72)return null;
+        TLRPC.TL_messages_stickerSet set=MediaDataController.getInstance(account).getStickerSetByName(PAGE_EMOJI_SET);
+        if(set==null)return null;
+        String wanted=normalize(emoji);
+        for(TLRPC.TL_stickerPack pack:set.packs)if(wanted.equals(normalize(pack.emoticon))) {
+            for(Long id:pack.documents)for(TLRPC.Document document:set.documents)if(document.id==id)return document;
+        }
+        for(TLRPC.Document document:set.documents)
+            if(wanted.equals(normalize(MessageObject.findAnimatedEmojiEmoticon(document,null))))return document;
+        return null;
+    }
+    private void loadPageSet() {
+        if(size<72)return;
+        TLRPC.TL_inputStickerSetShortName set=new TLRPC.TL_inputStickerSetShortName();set.short_name=PAGE_EMOJI_SET;
+        // MediaDataController owns cache and request deduplication. Its native
+        // groupStickersDidLoad event upgrades the fallback once the set arrives.
+        MediaDataController.getInstance(account).getStickerSet(set,0,false);
+    }
     private void refresh() {
         if(!attached)return;
-        TLRPC.Document document=MediaDataController.getInstance(account).getEmojiAnimatedSticker(emoji);
+        TLRPC.Document document=pageDocument();
+        if(document==null)document=MediaDataController.getInstance(account).getEmojiAnimatedSticker(emoji);
         if(document!=null&&(receiver==null||documentId!=document.id)) {
             releaseReceiver(); documentId=document.id;
             final ImageReceiver next=receiver=new ImageReceiver(this);
@@ -110,7 +133,7 @@ public final class NebulaAnimatedEmoji extends FrameLayout implements Notificati
         }
     }
     /** Navigation can resume an existing attached view without layout or focus changes. */
-    public void replay() { rewindPending=true;if(attached){refresh();updatePlayback();} }
+    public void replay() { rewindPending=true;if(attached){loadPageSet();refresh();updatePlayback();} }
     public static void replayPage(View view) {
         if(view instanceof NebulaAnimatedEmoji)((NebulaAnimatedEmoji)view).replay();
         else if(view instanceof ViewGroup){ViewGroup group=(ViewGroup)view;for(int i=0;i<group.getChildCount();i++)replayPage(group.getChildAt(i));}
@@ -120,12 +143,14 @@ public final class NebulaAnimatedEmoji extends FrameLayout implements Notificati
     @Override protected void onLayout(boolean changed,int l,int t,int r,int b){super.onLayout(changed,l,t,r,b);if(attached)updatePlayback();}
     @Override protected void onAttachedToWindow(){super.onAttachedToWindow();attached=true;attachment++;
         NotificationCenter.getInstance(account).addObserver(this,NotificationCenter.stickersDidLoad);getViewTreeObserver().addOnScrollChangedListener(scrollListener);
+        NotificationCenter.getInstance(account).addObserver(this,NotificationCenter.groupStickersDidLoad);
         NotificationCenter.getGlobalInstance().addObserver(this,NotificationCenter.emojiLoaded);
-        MediaDataController.getInstance(account).checkStickers(MediaDataController.TYPE_EMOJI);refresh();post(()->{if(attached)updateVisual();});}
+        loadPageSet();MediaDataController.getInstance(account).checkStickers(MediaDataController.TYPE_EMOJI);refresh();post(()->{if(attached)updateVisual();});}
     @Override protected void onDetachedFromWindow(){attached=false;NotificationCenter.getInstance(account).removeObserver(this,NotificationCenter.stickersDidLoad);
+        NotificationCenter.getInstance(account).removeObserver(this,NotificationCenter.groupStickersDidLoad);
         NotificationCenter.getGlobalInstance().removeObserver(this,NotificationCenter.emojiLoaded);
         if(getViewTreeObserver().isAlive())getViewTreeObserver().removeOnScrollChangedListener(scrollListener);
         releaseReceiver();showFallback(true);super.onDetachedFromWindow();}
     @Override public void didReceivedNotification(int id,int account,Object...args){if(!attached)return;
-        if(id==NotificationCenter.stickersDidLoad)refresh();else if(id==NotificationCenter.emojiLoaded)fallbackImage.invalidate();}
+        if(id==NotificationCenter.stickersDidLoad||id==NotificationCenter.groupStickersDidLoad)refresh();else if(id==NotificationCenter.emojiLoaded)fallbackImage.invalidate();}
 }

@@ -89,12 +89,12 @@ public class CheckMenuFeedback {
   check(!r.originResolved && r.host.alpha==0,"must wait for popup attachment");
   r.host.attached=true;r.resolveOrigin();
   check(r.host.px==160 && r.host.py== -40,"top anchor must override bottom flag");
-  check(Math.abs(r.frame.width*(r.host.w-16)/r.host.w-40)<.001 && Math.abs(r.frame.height*(r.host.h-16)/r.host.h-40)<.001 && r.frame.radius==20 && r.frame.content==0,"visible seed matches the source after proportional native drawable padding");
+  check(Math.abs(r.frame.width*(r.host.w-16)/r.host.w-44)<.001 && Math.abs(r.frame.height*(r.host.h-16)/r.host.h-44)<.001 && r.frame.radius==22 && r.frame.content==0,"visible seed remains a fixed circle after native drawable padding");
   check(r.host.observer.listener==null,"pre-draw listener removed");
   float peak=0;
   for(int i=31;i<=100;i++){r.setProgress(i/100f);check(r.host.sx==1 && r.host.sy==1,"surface geometry must not scale the whole window");peak=Math.max(peak,r.frame.width);}
-  check(peak>200 && r.frame.width==200 && r.frame.height==300 && r.frame.x==100 && r.frame.y==150,"independent growth settles exactly at native bounds");
-  r.setProgress(.45f);float pivot=r.host.py,previous=r.frame.width,alpha=r.host.alpha,center=r.frame.x;r.prepareClose();check(r.getCloseDuration()>=350,"grown popup retains a soft close duration");r.setCloseProgress(0);
+  check(peak==200 && r.frame.width==200 && r.frame.height==300 && r.frame.x==100 && r.frame.y==150,"growth settles without ringing at native bounds");
+  r.setProgress(.45f);float pivot=r.host.py,previous=r.frame.width,alpha=r.host.alpha,center=r.frame.x;r.prepareClose();check(r.getCloseDuration()>=160&&r.getCloseDuration()<=240,"responsive close duration");r.setCloseProgress(0);
   check(r.frame.width==previous && r.host.alpha==alpha && r.frame.x==center,"interrupt close starts at displayed frame");
   for(int i=1;i<=100;i++){r.setCloseProgress(i/100f);check(r.host.py==pivot && r.frame.width<=previous+.001f,"reverse reveal never jumps origin or grows");previous=r.frame.width;}
   check(r.host.alpha==0 && Math.abs(r.frame.width-r.seedWidth)<.001 && Math.abs(r.frame.height-r.seedHeight)<.001,"close ends at source bounds");
@@ -106,7 +106,7 @@ public class CheckMenuFeedback {
    float px=r.host.px,py=r.host.py;r.setProgress(.1f);
    check(r.originResolved && r.host.observer.listener==null,"resolve attached anchor before first visible frame");
    check(px==(side%2==0?-60:420)&&py==(side<2?-40:440),"correct source corner");
-   check(Math.abs(r.seedWidth*(r.host.w-16)/r.host.w-anchor.w)<.001 && Math.abs(r.seedHeight*(r.host.h-16)/r.host.h-anchor.h)<.001,"initial visible shape follows source button dimensions");
+   check(Math.abs(r.seedWidth*(r.host.w-16)/r.host.w-44)<.001 && Math.abs(r.seedHeight*(r.host.h-16)/r.host.h-44)<.001,"initial circle is independent of source button dimensions");
    r.prepareClose();r.setCloseProgress(.5f);r.reset();check(NebulaMenuFocus.step==0,"cancel releases focus");
   }
   r.viewportReady=false;r.begin();r.setProgress(.1f);
@@ -114,6 +114,10 @@ public class CheckMenuFeedback {
   r.reset();check(!r.viewportReady,"detach forgets old drawing viewport");
   r.setMorphEnabled(false);r.reset();r.setAnchor(anchor);check(!r.isMorphEnabled(),"native message policy survives reuse/reset");
   check(anchor.alpha==1,"trigger remains visible throughout all cycles");
+  for(int sourceWidth:new int[]{24,40,160,320})for(int sourceHeight:new int[]{24,56,96}) {
+   anchor.w=sourceWidth;anchor.h=sourceHeight;r.setAnchor(anchor);r.viewportReady=true;r.begin();
+   check(Math.abs(r.seedWidth*(r.host.w-16)/r.host.w-44)<.001&&Math.abs(r.seedHeight*(r.host.h-16)/r.host.h-44)<.001&&r.seedRadius==22,"circle must not inherit source rectangle/capsule size");r.reset();
+  }
   View v=new View();power=35;now=100;tick(v);check(Vibrator.calls==0,"toggle off");
   enabled=true;v.feedback=false;tick(v);check(Vibrator.calls==0,"view feedback disabled");
   v.feedback=true;Vibrator.available=false;tick(v);check(Vibrator.calls==0,"no vibrator");

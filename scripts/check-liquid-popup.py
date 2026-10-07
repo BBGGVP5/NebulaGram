@@ -103,15 +103,8 @@ stubs = {
         check(bubble.alpha==0&&bubble.content==0&&bubble.width==48,"returns to source and disappears");
        }
       }
-      int flat=0,longestFlat=0;float priorWidth=48;
-      for(int ms=1;ms<=500;ms++) {
-       NebulaMenuBubble.opening(bubble,ms/750f,240,400,216,-12,48,24);
-       flat=bubble.width>242&&Math.abs(bubble.width-priorWidth)<.0001f?flat+1:0;
-       longestFlat=Math.max(longestFlat,flat);priorWidth=bubble.width;
-      }
-      check(longestFlat<5,"spring must never hit a flat overshoot cap");
       NebulaMenuBubble.opening(bubble,.3f,240,400,216,-12,48,24);captured.copy(bubble);
-      check(NebulaMenuBubble.closeDuration(captured,240,400,48)>=380,"early dismiss of a grown panel must not snap shut");
+      check(NebulaMenuBubble.closeDuration(captured,240,400,48)>=160&&NebulaMenuBubble.closeDuration(captured,240,400,48)<=240,"early dismiss retains a responsive smooth close");
       NebulaMenuBubble.closing(bubble,captured,.001f,240,400,216,-12,48);
       check(captured.width-bubble.width<(captured.width-48)*.0001f,"close starts with a soft size response");
       for(float x:new float[]{-500,-24,120,264,800})for(float y:new float[]{-600,-24,200,424,1200}) {
@@ -144,7 +137,7 @@ stubs = {
        check(NebulaMenuMotion.radius(24,200,p)>=24&&NebulaMenuMotion.radius(24,200,p)<=100,"rounded source morph");
        check(NebulaMenuMotion.focus(p)>=0&&NebulaMenuMotion.focus(p)<=12,"bounded focus");
       }
-      System.out.println(cases+" grouped selection action cases; popup effect cache, API/power cleanup and spring bounds passed");
+      System.out.println(cases+" grouped selection action cases; popup effect cache, API/power cleanup and motion bounds passed");
      }}''',
 }
 with tempfile.TemporaryDirectory(prefix='nebula-liquid-popup-') as folder:
