@@ -44,25 +44,33 @@ public final class NebulaMenuBubble {
     }
     public static void opening(Frame out, float progress, float width, float height,
                                float originX, float originY, float seed, float radius) {
+        opening(out,progress,width,height,originX,originY,seed,seed,Math.min(seed,Math.min(width,height))/2,radius);
+    }
+    public static void opening(Frame out, float progress, float width, float height,
+                               float originX, float originY, float seedWidth, float seedHeight, float seedRadius, float radius) {
         float t = unit(progress);
         float growth = spring(t, 750, 500, .3f);
         out.x = mix(originX, width / 2, spring(t, 750, 520, .2f));
         out.y = mix(originY, height / 2, spring(t, 750, 340, .12f));
-        out.width = mix(Math.min(seed, width), width, growth);
-        out.height = mix(Math.min(seed, height), height, growth);
-        out.radius = mix(Math.min(seed, Math.min(width, height)) / 2, radius, unit(growth));
+        out.width = mix(seedWidth, width, growth);
+        out.height = mix(seedHeight, height, growth);
+        out.radius = mix(seedRadius, radius, unit(growth));
         out.alpha = 1;
         float reveal = unit((t - .04f) / .41f);
         out.content = cubic(reveal, .215f, .61f, .355f, 1);
     }
     public static void closing(Frame out, Frame from, float progress, float width, float height,
                                float originX, float originY, float seed) {
+        closing(out,from,progress,width,height,originX,originY,Math.min(seed,width),Math.min(seed,height),Math.min(seed,Math.min(width,height))/2);
+    }
+    public static void closing(Frame out, Frame from, float progress, float width, float height,
+                               float originX, float originY, float seedWidth, float seedHeight, float seedRadius) {
         float t = unit(progress), shrink = spring(t, 400, 340, 0);
         out.x = mix(from.x, originX, spring(t, 400, 300, 0));
         out.y = mix(from.y, originY, spring(t, 400, 440, 0));
-        out.width = mix(from.width, Math.min(seed, width), shrink);
-        out.height = mix(from.height, Math.min(seed, height), shrink);
-        out.radius = mix(from.radius, Math.min(seed, Math.min(width, height)) / 2, shrink);
+        out.width = mix(from.width, seedWidth, shrink);
+        out.height = mix(from.height, seedHeight, shrink);
+        out.radius = mix(from.radius, seedRadius, shrink);
         out.alpha = from.alpha * (1 - smooth((t - .55f) / .45f));
         out.content = from.content * cubic(1 - t * 2, .42f, 0, 1, 1);
     }
@@ -89,10 +97,19 @@ public final class NebulaMenuBubble {
     public static void openingWithin(Frame out, float progress, float width, float height,
                                      float x, float y, float seed, float radius,
                                      float left, float top, float right, float bottom) {
-        opening(out, progress, width, height, x, y, seed, radius);
+        openingWithin(out,progress,width,height,x,y,seed,seed,Math.min(seed,Math.min(width,height))/2,radius,left,top,right,bottom);
+    }
+    public static void openingWithin(Frame out, float progress, float width, float height,
+                                     float x, float y, float seedWidth, float seedHeight, float seedRadius, float radius,
+                                     float left, float top, float right, float bottom) {
+        opening(out, progress, width, height, x, y, seedWidth, seedHeight, seedRadius, radius);
         if (progress <= 0 || right <= left || bottom <= top) return;
-        float growth = width > seed ? (out.width - seed) / (width - seed)
-                : height > seed ? (out.height - seed) / (height - seed) : 1;
+        // The native final popup may extend past the visible frame by its shadow
+        // padding. Constrain travel relative to that same final rectangle, so
+        // reaching progress=1 never switches from a shifted to an unshifted menu.
+        left=Math.min(left,0);top=Math.min(top,0);right=Math.max(right,width);bottom=Math.max(bottom,height);
+        float growth = Math.abs(width-seedWidth)>1 ? (out.width-seedWidth)/(width-seedWidth)
+                : Math.abs(height-seedHeight)>1 ? (out.height-seedHeight)/(height-seedHeight) : 1;
         out.x = lead(out.x, x, width / 2, out.width / 2, left, right, growth);
         out.y = lead(out.y, y, height / 2, out.height / 2, top, bottom, growth);
     }
@@ -103,8 +120,11 @@ public final class NebulaMenuBubble {
     }
     /** Reserve drawing space; never change the trajectory to fit the logical hit rectangle. */
     public static float outset(float width, float height, float x, float y, float seed, float shadow) {
-        float halfW = (width + Math.max(0, width - seed) * .05f) / 2;
-        float halfH = (height + Math.max(0, height - seed) * .05f) / 2;
+        return outset(width,height,x,y,seed,seed,shadow);
+    }
+    public static float outset(float width, float height, float x, float y, float seedWidth, float seedHeight, float shadow) {
+        float halfW = Math.max(seedWidth,width + Math.max(0, width - seedWidth) * .05f) / 2;
+        float halfH = Math.max(seedHeight,height + Math.max(0, height - seedHeight) * .05f) / 2;
         float extraX = Math.abs(x - width / 2) * .025f;
         float extraY = Math.abs(y - height / 2) * .005f;
         float left = Math.min(x, width / 2) - extraX - halfW;

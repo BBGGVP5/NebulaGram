@@ -173,6 +173,8 @@ public class NebulaMenuFragment extends BaseFragment {
         }
         Context context = content.getContext();
         content.removeAllViews();
+        if (SCREEN_HOME.equals(screenId)) content.addView(new NebulaSettingsHero(context, "🔗", "NebulaLink",
+                NebulaText.text("Подключение, серверы и настройки соединения.", "Connection, servers and connection settings.")));
         if (SCREEN_ADVANCED.equals(screenId)) NebulaLinkShortcut.addSettings(content);
         if (screen == null) {
             content.addView(unavailable(context));

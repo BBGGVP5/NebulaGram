@@ -22,4 +22,10 @@ assert 'if (popup) grid.addEmoji' in tools and 'else card.add(new NebulaRow' in 
 assert 'NebulaFormUi.group(column, t("Действия"' in tools
 editor=(ui/'NebulaAiServiceEditorFragment.java').read_text(encoding='utf-8')
 assert 'NebulaFormUi.cardField' in editor and 'NebulaButton.STYLE_TEXT' in editor
+link=(ui/'NebulaMenuFragment.java').read_text(encoding='utf-8')
+assert 'SCREEN_HOME.equals(screenId)) content.addView(new NebulaSettingsHero' in link
+assert 'NebulaSettingsEmoji.forIcon(resource)' in (ui/'NebulaRow.java').read_text(encoding='utf-8')
+assert not (ui/'NebulaShieldDrawable.java').exists()
+native=(root/'patches/android/0183-settings-emoji-replay-profile-controls.patch').read_text(encoding='utf-8')
+assert 'replayPage(resumedView)' in native and 'fragmentView instanceof app.nebulagram.ui.NebulaSettingsLayout' in native
 print('Settings organization: About last, support/community/updates in About, grouped chat/AI/tools/tasks, browser under General, emoji introductions and compact message sheet retained')

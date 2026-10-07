@@ -27,6 +27,7 @@ assert actions.index('if (hasCustomActionSurface(canvas)) {') < actions.index('i
 # These Telegram signatures are used both for execution with instrumented Android
 # primitives and a second compilation against android.jar (no Android stubs).
 contracts = {
+ 'app/nebulagram/ui/NebulaProfileEmoji.java':'''package app.nebulagram.ui;class NebulaProfileEmoji {NebulaProfileEmoji(android.view.View v){}void attach(){}void detach(){}boolean draw(android.graphics.Canvas c,android.graphics.Rect r,int key,float alpha){return true;}}''',
  'org/telegram/messenger/AndroidUtilities.java': 'package org.telegram.messenger;public class AndroidUtilities {public static int dp(float x){return Math.round(x);}}',
  'org/telegram/ui/ActionBar/Theme.java': """package org.telegram.ui.ActionBar;public class Theme {
  public interface ResourcesProvider {} public static int page=0xff112233;
@@ -50,7 +51,7 @@ contracts = {
  'org/telegram/ui/Components/ProfileActionsView.java': """package org.telegram.ui.Components;public class ProfileActionsView extends android.view.View {
  public int color;public boolean byId;public ProfileActionsView(android.content.Context c,int h){super(c);}
  public void setActionsColor(int c,boolean b){color=c;byId=b;}public float getRoundRadius(){return 16;}
- protected boolean hasCustomActionSurface(android.graphics.Canvas c){return false;}
+ protected int actionTextColor(int color){return color;}protected void onAttachedToWindow(){}protected boolean drawActionEmoji(android.graphics.Canvas c,android.graphics.Rect b,int key,float alpha){return false;}protected boolean hasCustomActionSurface(android.graphics.Canvas c){return false;}
  protected void drawActionSurface(android.graphics.Canvas c,android.graphics.RectF r,int key,float radius,float alpha){}}""",
  'app/nebulagram/ui/NebulaAppearance.java': """package app.nebulagram.ui;public class NebulaAppearance {
  public static boolean style=true,banner=true;public static boolean profileStyle(){return style;}public static boolean profilePhotoBanner(){return banner;}
@@ -84,7 +85,7 @@ android = {
  public LinearGradient(float x0,float y0,float x1,float y1,int start,int end,TileMode mode){this(x0,y0,x1,y1,new int[]{start,end},null,mode);}
  public LinearGradient(float x0,float y0,float x1,float y1,int[] colors,float[] locations,TileMode mode){created++;this.colors=colors;this.y1=y1;}}""",
  'android/graphics/Matrix.java':'package android.graphics;public class Matrix {public void setScale(float x,float y){}public void postTranslate(float x,float y){}}',
- 'android/graphics/Color.java':'package android.graphics;public class Color {public static int BLACK=0xff000000,WHITE=0xffffffff;}',
+ 'android/graphics/Color.java':'package android.graphics;public class Color {public static int BLACK=0xff000000,WHITE=0xffffffff;public static int alpha(int c){return c>>>24;}}',
  'android/graphics/RectF.java':"""package android.graphics;public class RectF {
  public float left,top,right,bottom;public void set(float l,float t,float r,float b){left=l;top=t;right=r;bottom=b;}
  public void set(Rect r){set(r.left,r.top,r.right,r.bottom);}public void set(RectF r){set(r.left,r.top,r.right,r.bottom);}
@@ -145,21 +146,22 @@ class ProfileCheck {
   for(int mode=0;mode<5;mode++){
    Canvas canvas=new Canvas();NebulaAppearance.banner=mode!=0;NebulaAppearance.style=mode!=1;small.receiver.loaded=mode!=2;gallery.receiver.loaded=false;
    hero.draw(canvas,393,avatar,title,subtitle,buttons,gallery,474.5f,mode==3?0:1,1,mode==4?1:0,1,null);
-   hero.drawForeground(canvas);check(canvas.ops.isEmpty()&&!buttons.hasCustomActionSurface(canvas),"disabled/missing/collapsed/media state retains stale banner");
+   hero.drawForeground(canvas);check(canvas.ops.isEmpty(),"disabled/missing/collapsed/media state retains stale banner");
    check(buttons.color==0xff778899&&buttons.byId,"native peer colour not restored without banner");cases++;
   }
   NebulaAppearance.banner=true;NebulaAppearance.style=true;small.receiver.loaded=true;gallery.receiver.loaded=true;
   for(int fallback=0;fallback<2;fallback++){
    Canvas canvas=new Canvas();canvas.hardware=fallback!=0;NebulaProfileGlass.enabled=fallback!=1;
    hero.draw(canvas,393,avatar,title,subtitle,buttons,gallery,474.5f,1,1,0,1,null);
-   check(!buttons.hasCustomActionSurface(canvas),"software/reduced mode replaces native fallback");cases++;
+   check(buttons.hasCustomActionSurface(canvas),"software/reduced mode retains the uniform action surface");
+   buttons.drawActionSurface(canvas,new RectF(),0,18,1);check(!canvas.ops.isEmpty()&&canvas.ops.get(canvas.ops.size()-1).shader==null,"fallback buttons must use uniform paint, without glossy gradient");cases++;
   }
   NebulaProfileGlass.enabled=true;
   Canvas canvas=new Canvas();hero.draw(canvas,393,avatar,title,subtitle,buttons,gallery,474.5f,1,1,0,1,null);
   hero.clear(buttons);canvas.ops.clear();hero.drawForeground(canvas);
-  check(canvas.ops.isEmpty()&&!buttons.hasCustomActionSurface(canvas)&&buttons.color==0xff778899,"landscape reset retains portrait material");
+  check(canvas.ops.isEmpty()&&buttons.color==0xff778899,"landscape reset retains portrait material");
   canvas=new Canvas();hero.draw(canvas,393,avatar,title,subtitle,buttons,gallery,474.5f,1,1,0,1,null);
-  buttons.onDetachedFromWindow();check(!buttons.hasCustomActionSurface(canvas)&&buttons.color==0xff778899&&buttons.byId,"detach leaves captured glass or neutral colour behind");
+  buttons.onDetachedFromWindow();check(buttons.color==0xff778899&&buttons.byId,"detach leaves captured glass or neutral colour behind");
   for(int expanded=0;expanded<2;expanded++){
    ImageReceiver receiver=expanded==0?small.receiver:gallery.receiver;receiver.throwDraw=true;
    canvas=new Canvas();int captures=NebulaProfileGlass.captures,ends=NebulaProfileGlass.ends;

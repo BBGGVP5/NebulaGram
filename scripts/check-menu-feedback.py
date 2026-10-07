@@ -42,7 +42,7 @@ public class CheckMenuFeedback {
   boolean isHapticFeedbackEnabled(){return feedback;}
   Context getContext(){return new Context();}
   boolean performHapticFeedback(int c){Vibrator.calls++;return true;}
-  int getWidth(){return w;} int getHeight(){return h;}
+  int getWidth(){return w;} int getHeight(){return h;}OutlineProvider getOutlineProvider(){return null;}
   void getWindowVisibleDisplayFrame(Rect r){r.left=r.top=-2000;r.right=r.bottom=2000;}
   void getLocationOnScreen(int[] p){p[0]=x;p[1]=y;}
   void setScaleX(float f){sx=f;} void setScaleY(float f){sy=f;}
@@ -53,7 +53,7 @@ public class CheckMenuFeedback {
  }
  static class Reveal {
   View host=new View(); WeakReference<View> anchor;
-  float progress=1,originX,originY,seed,closeProgress,closeStart,clockStart;
+  float progress=1,originX,originY,seed,seedWidth,seedHeight,seedRadius,closeProgress,closeStart,clockStart;
   final NebulaMenuBubble.Frame frame=new NebulaMenuBubble.Frame(),closeFrame=new NebulaMenuBubble.Frame();
   View focusContent;boolean morphEnabled=true;
   boolean began,originResolved,closing,viewportReady=true;int focusStep=-1;
@@ -61,7 +61,12 @@ public class CheckMenuFeedback {
   void stopTouch(){}
   REVEAL_METHODS
  }
- static class Rect {int left=-2000,top=-2000,right=2000,bottom=2000;void offset(int x,int y){left+=x;right+=x;top+=y;bottom+=y;}}
+ static class Rect {int left=-2000,top=-2000,right=2000,bottom=2000;Rect(){}Rect(int l,int t,int r,int b){left=l;top=t;right=r;bottom=b;}
+  boolean isEmpty(){return width()<=0||height()<=0;}void set(Rect r){left=r.left;top=r.top;right=r.right;bottom=r.bottom;}
+  int width(){return right-left;}int height(){return bottom-top;}float exactCenterX(){return (left+right)/2f;}float exactCenterY(){return (top+bottom)/2f;}
+  void offset(int x,int y){left+=x;right+=x;top+=y;bottom+=y;}}
+ static class Outline {boolean isEmpty(){return true;}boolean getRect(Rect r){return false;}float getRadius(){return 0;}}
+ static class OutlineProvider {void getOutline(View v,Outline o){}}
  static class AndroidUtilities {static int dp(int n){return n;}}
  static class NebulaMenuFocus {static int step;static void apply(View v,int n){step=n;}static void clear(View v){step=0;}}
  static class NebulaMenuStyle {static float radius(){return 24;}}
@@ -84,7 +89,7 @@ public class CheckMenuFeedback {
   check(!r.originResolved && r.host.alpha==0,"must wait for popup attachment");
   r.host.attached=true;r.resolveOrigin();
   check(r.host.px==160 && r.host.py== -40,"top anchor must override bottom flag");
-  check(r.frame.width-16==40 && r.frame.height-16==40 && r.frame.content==0,"visible seed circle matches the source after native drawable padding");
+  check(Math.abs(r.frame.width*(r.host.w-16)/r.host.w-40)<.001 && Math.abs(r.frame.height*(r.host.h-16)/r.host.h-40)<.001 && r.frame.radius==20 && r.frame.content==0,"visible seed matches the source after proportional native drawable padding");
   check(r.host.observer.listener==null,"pre-draw listener removed");
   float peak=0;
   for(int i=31;i<=100;i++){r.setProgress(i/100f);check(r.host.sx==1 && r.host.sy==1,"surface geometry must not scale the whole window");peak=Math.max(peak,r.frame.width);}
@@ -92,7 +97,7 @@ public class CheckMenuFeedback {
   r.setProgress(.45f);float pivot=r.host.py,previous=r.frame.width,alpha=r.host.alpha,center=r.frame.x;r.prepareClose();check(r.getCloseDuration()>=350,"grown popup retains a soft close duration");r.setCloseProgress(0);
   check(r.frame.width==previous && r.host.alpha==alpha && r.frame.x==center,"interrupt close starts at displayed frame");
   for(int i=1;i<=100;i++){r.setCloseProgress(i/100f);check(r.host.py==pivot && r.frame.width<=previous+.001f,"reverse reveal never jumps origin or grows");previous=r.frame.width;}
-  check(r.host.alpha==0 && Math.abs(r.frame.width-r.seed)<.001,"close ends at source bubble");
+  check(r.host.alpha==0 && Math.abs(r.frame.width-r.seedWidth)<.001 && Math.abs(r.frame.height-r.seedHeight)<.001,"close ends at source bounds");
   anchor.y=450;r.host.shownFromBottom=false;r.begin();r.resolveOrigin();
   check(r.host.py==390,"bottom anchor must override top flag");
   r.reset();check(r.host.alpha==1 && r.host.sx==1 && !r.began,"detach reset");
@@ -101,7 +106,7 @@ public class CheckMenuFeedback {
    float px=r.host.px,py=r.host.py;r.setProgress(.1f);
    check(r.originResolved && r.host.observer.listener==null,"resolve attached anchor before first visible frame");
    check(px==(side%2==0?-60:420)&&py==(side<2?-40:440),"correct source corner");
-   check(r.seed-16==40,"initial visible circle follows source button dimensions");
+   check(Math.abs(r.seedWidth*(r.host.w-16)/r.host.w-anchor.w)<.001 && Math.abs(r.seedHeight*(r.host.h-16)/r.host.h-anchor.h)<.001,"initial visible shape follows source button dimensions");
    r.prepareClose();r.setCloseProgress(.5f);r.reset();check(NebulaMenuFocus.step==0,"cancel releases focus");
   }
   r.viewportReady=false;r.begin();r.setProgress(.1f);
@@ -129,6 +134,7 @@ source = source.replace('void stopTouch(){}', 'void stopTouch(){} void finish(){
 source = source.replace('HAPTIC_METHODS', method(haptics, 'public static void tick(') + '\n' + method(haptics, 'public static boolean accept('))
 source = source.replace('STRENGTH_METHOD', method(haptics, 'public static int strength()'))
 source = source.replace('android.os.SystemClock.uptimeMillis()', 'uptimeMillis()').replace('android.view.HapticFeedbackConstants.KEYBOARD_TAP', '1')
+source = source.replace('android.graphics.Outline','Outline').replace('android.os.Build.VERSION','Build.VERSION')
 target = work / 'CheckMenuFeedback.java'
 target.write_text(source, encoding='utf-8')
 subprocess.run(['javac', '-encoding', 'UTF-8', '-d', str(work), str(target), str(ui / 'NebulaMenuMotion.java'), str(ui / 'NebulaMenuBubble.java')], check=True)

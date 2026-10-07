@@ -35,7 +35,7 @@ final class NebulaProfileGlass {
         // The photograph supplies colour; the neutral veil keeps the native white
         // labels legible. No stroke on either edge of the glass.
         material = new NebulaMenuStyle.Material(provider)
-                .setBackgroundColor((r, dark) -> 0x52101010)
+                .setBackgroundColor((r, dark) -> 0x662b3337)
                 .setStrokeColorTop(0, 0).setStrokeColorBottom(0, 0)
                 .setStrokeWidth(0, 0).setShadowColor(0, 0).build();
     }

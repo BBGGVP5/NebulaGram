@@ -48,8 +48,11 @@ public final class NebulaMenuViewport implements View.OnAttachStateChangeListene
         float width = content.getMeasuredWidth(), height = content.getMeasuredHeight();
         if (width <= 0 || height <= 0 || parent == null) return;
         float originX = width, originY = layout.shownFromBottom ? height : 0;
+        float seedWidth=AndroidUtilities.dp(48),seedHeight=seedWidth;
         View source = layout.nebulaReveal.getAnchor();
         if (source != null && source.isAttachedToWindow()) {
+            seedWidth=source.getWidth()*width/Math.max(1,width-AndroidUtilities.dp(16));
+            seedHeight=source.getHeight()*height/Math.max(1,height-AndroidUtilities.dp(16));
             source.getLocationOnScreen(location);
             float sourceX = location[0] + source.getWidth() / 2f;
             float sourceY = location[1] + source.getHeight() / 2f;
@@ -77,7 +80,7 @@ public final class NebulaMenuViewport implements View.OnAttachStateChangeListene
             originX = sourceX - left; originY = sourceY - top;
         }
         float reach = NebulaMenuBubble.outset(width, height, originX, originY,
-                AndroidUtilities.dp(48), AndroidUtilities.dp(32));
+                seedWidth,seedHeight, AndroidUtilities.dp(32));
         // Containers can include a preview above the menu. Cover any menu center inside that root.
         reach = Math.max(reach, Math.max(width, height) * .53f + AndroidUtilities.dp(32));
         root = content; window = popup; menu = layout;

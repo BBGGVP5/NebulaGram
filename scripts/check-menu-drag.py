@@ -45,7 +45,7 @@ public class CheckMenuDrag {
   void transform(Matrix matrix){x=matrix.x(x);y=matrix.y(y);}
  }
  static class Reveal {
-  Host host=new Host();float progress=1,pullX,pullY,originX=240,originY=0,seed=48,closeProgress;
+  Host host=new Host();float progress=1,pullX,pullY,originX=240,originY=0,seed=48,seedWidth=48,seedHeight=48,seedRadius=24,closeProgress;
   Rect screen=new Rect();boolean closing,viewportReady=true;NebulaMenuBubble.Frame frame=new NebulaMenuBubble.Frame(),closeFrame=new NebulaMenuBubble.Frame();
   Matrix contentTransform=new Matrix(),inverseContentTransform=new Matrix();
   METHODS

@@ -242,11 +242,8 @@ public final class NebulaProfileArt {
 
     /** Native hit targets and press animation, with a shared photographic glass source. */
     public static final class Actions extends ProfileActionsView {
-        private final Paint sheen = new Paint(Paint.ANTI_ALIAS_FLAG);
-        private final android.graphics.Matrix sheenMatrix = new android.graphics.Matrix();
-        private final LinearGradient sheenGradient = new LinearGradient(0, 0, 0, 1,
-                new int[] {0x28ffffff, 0x08ffffff, 0x02ffffff},
-                new float[] {0f, .48f, 1f}, Shader.TileMode.CLAMP);
+        private final Paint actionFill = new Paint(Paint.ANTI_ALIAS_FLAG);
+        private final NebulaProfileEmoji emoji = new NebulaProfileEmoji(this);
         private final Theme.ResourcesProvider provider;
         private NebulaProfileGlass glass;
         private boolean bannerReady, bannerActive, hasNativeColor, nativeHasColorById;
@@ -266,9 +263,16 @@ public final class NebulaProfileArt {
                     !active && nativeHasColorById);
         }
         @Override protected boolean hasCustomActionSurface(Canvas canvas) {
-            return bannerReady && glass != null && canvas.isHardwareAccelerated() && NebulaProfileGlass.supported();
+            return NebulaAppearance.profileStyle() && NebulaMenuStyle.enabled();
         }
-        @Override public float getRoundRadius() { return dp(20); }
+        @Override public float getRoundRadius() { return dp(18); }
+        @Override protected int actionTextColor(int color) {
+            return bannerActive?android.graphics.Color.WHITE:Theme.getColor(Theme.key_windowBackgroundWhiteBlackText,provider);
+        }
+        @Override protected boolean drawActionEmoji(Canvas canvas, android.graphics.Rect bounds, int key, float alpha) {
+            return emoji.draw(canvas,bounds,key,alpha);
+        }
+        @Override protected void onAttachedToWindow() {super.onAttachedToWindow();emoji.attach();}
 
         private void captureBanner(Hero hero, ImageReceiver receiver, RectF bounds) {
             if (!NebulaProfileGlass.supported()) return;
@@ -281,21 +285,18 @@ public final class NebulaProfileArt {
 
         @Override protected void drawActionSurface(Canvas canvas, RectF rect, int key, float radius, float alpha) {
             if (!NebulaMenuStyle.enabled()) return;
-            if (bannerReady && glass != null && NebulaProfileGlass.supported()) {
+            if (bannerReady && glass != null && canvas.isHardwareAccelerated() && NebulaProfileGlass.supported()) {
                 glass.draw(canvas, rect, key, radius, alpha, getX(), getY());
+            } else {
+                actionFill.setColor(bannerActive?0x882b3337:Theme.getColor(Theme.key_windowBackgroundGray,provider));
+                actionFill.setAlpha(Math.round(android.graphics.Color.alpha(actionFill.getColor())*alpha));
+                canvas.drawRoundRect(rect,radius,radius,actionFill);
             }
-            if (!NebulaAppearance.glassHighlights()) return;
-            // A broad translucent highlight gives depth without outlining the button.
-            sheenMatrix.setScale(1f, Math.max(1f, rect.height()));
-            sheenMatrix.postTranslate(0f, rect.top);
-            sheenGradient.setLocalMatrix(sheenMatrix);
-            sheen.setShader(sheenGradient);
-            sheen.setAlpha(Math.round(255 * alpha));
-            canvas.drawRoundRect(rect, radius, radius, sheen);
         }
 
         @Override protected void onDetachedFromWindow() {
             super.onDetachedFromWindow();
+            emoji.detach();
             glass = null;
             bannerReady = false; setBannerActive(false);
         }

@@ -32,6 +32,7 @@ public final class NebulaMenuReveal {
     private final NebulaMenuBubble.Frame frame = new NebulaMenuBubble.Frame();
     private final NebulaMenuBubble.Frame closeFrame = new NebulaMenuBubble.Frame();
     private float seed;
+    private float seedWidth, seedHeight, seedRadius;
     private View focusContent;
     private float progress = 1, originX, originY, clockStart;
     private float closeProgress, closeStart;
@@ -115,18 +116,27 @@ public final class NebulaMenuReveal {
         originY = host.shownFromBottom ? host.getHeight() : 0;
         View view = anchor == null ? null : anchor.get();
         seed = AndroidUtilities.dp(48);
+        float sourceWidth=seed, sourceHeight=seed, sourceRadius=seed/2;
         if (view != null && view.isAttachedToWindow()) {
+            Rect sourceRect=new Rect(0,0,view.getWidth(),view.getHeight());
+            android.graphics.Outline outline=new android.graphics.Outline();
+            if(view.getOutlineProvider()!=null)view.getOutlineProvider().getOutline(view,outline);
+            Rect outlineRect=new Rect();
+            if(android.os.Build.VERSION.SDK_INT>=24&&outline.getRect(outlineRect)&&!outlineRect.isEmpty())sourceRect.set(outlineRect);
             view.getLocationOnScreen(location);
-            float x = location[0] + view.getWidth() / 2f, y = location[1] + view.getHeight() / 2f;
+            float x = location[0] + sourceRect.exactCenterX(), y = location[1] + sourceRect.exactCenterY();
             host.getLocationOnScreen(location);
             originX = x - location[0];
             originY = y - location[1];
-            seed = Math.max(AndroidUtilities.dp(24), Math.min(AndroidUtilities.dp(56),
-                    Math.min(view.getWidth(), view.getHeight())));
+            sourceWidth=Math.max(1,sourceRect.width());sourceHeight=Math.max(1,sourceRect.height());
+            sourceRadius=outline.isEmpty()?Math.min(sourceWidth,sourceHeight)/2:Math.max(0,outline.getRadius());
         }
-        // Native menu drawables inset their visible surface by 8dp per side.
-        // Include that padding so the first visible circle matches the button.
-        seed += AndroidUtilities.dp(16);
+        // Native backgrounds inset 8dp. Map the seed through the same padded
+        // rectangle rather than adding a fixed amount that enlarges the button.
+        float padding=AndroidUtilities.dp(16);
+        seedWidth=sourceWidth*host.getWidth()/Math.max(1,host.getWidth()-padding);
+        seedHeight=sourceHeight*host.getHeight()/Math.max(1,host.getHeight()-padding);
+        seedRadius=sourceRadius;seed=Math.min(seedWidth,seedHeight);
         host.getWindowVisibleDisplayFrame(screen);
         host.getLocationOnScreen(location);
         screen.offset(-location[0], -location[1]);
@@ -169,9 +179,9 @@ public final class NebulaMenuReveal {
             return;
         }
         if (closing) NebulaMenuBubble.closing(frame, closeFrame, closeProgress,
-                host.getWidth(), host.getHeight(), originX, originY, seed);
+                host.getWidth(), host.getHeight(), originX, originY, seedWidth,seedHeight,seedRadius);
         else NebulaMenuBubble.openingWithin(frame, progress, host.getWidth(), host.getHeight(),
-                originX, originY, seed, NebulaMenuStyle.radius(), screen.left, screen.top, screen.right, screen.bottom);
+                originX, originY, seedWidth,seedHeight,seedRadius, NebulaMenuStyle.radius(), screen.left, screen.top, screen.right, screen.bottom);
     }
     private float shape(Rect finalBounds) {
         bounds.set(finalBounds);
@@ -204,9 +214,9 @@ public final class NebulaMenuReveal {
     public boolean isMorphing() { return viewportReady && progress != 1; }
     public void clip(Canvas canvas) {
         if (pullX == 0 && pullY == 0 && progress == 1) return;
-        contentBounds.set(0, 0, host.getMeasuredWidth(), host.getMeasuredHeight());
+        int padding=AndroidUtilities.dp(8);
+        contentBounds.set(padding, padding, host.getMeasuredWidth()-padding, host.getMeasuredHeight()-padding);
         float radius = shape(contentBounds);
-        bounds.inset(AndroidUtilities.dp(8), AndroidUtilities.dp(8));
         clip.rewind(); clip.addRoundRect(bounds, radius, radius, Path.Direction.CW);
         canvas.clipPath(clip);
         if (frame.content < 1) canvas.saveLayerAlpha(bounds, Math.round(frame.content * 255));
