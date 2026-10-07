@@ -28,6 +28,7 @@ public final class NebulaTaskEditorFragment extends BaseFragment {
         NebulaFormUi.bar(this, actionBar, c, previous == null ? t("Новая задача", "New task") : t("Изменить задачу", "Edit task"));
         LinearLayout column = NebulaFormUi.column(c);
         ScrollView scroll = NebulaFormUi.scroll(c, column);
+        column.addView(new NebulaSettingsHero(c, "📝", previous == null ? t("Новая задача", "New task") : t("Изменить задачу", "Edit task"), t("Текст, подробности и напоминание в одном месте.", "Text, details and a reminder in one place.")));
         title = NebulaFormUi.field(c, t("Что нужно сделать?", "What needs to be done?"), 1, 200);
         title.setText(previous == null ? initial.split("\n", 2)[0] : previous.optString("title"));
         NebulaFormUi.group(column, t("Название", "Title"), title);

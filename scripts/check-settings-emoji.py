@@ -3,91 +3,240 @@ from pathlib import Path
 import os,subprocess,tempfile
 root=Path(__file__).resolve().parents[1]
 ui=root/'platform/android/overlay/TMessagesProj/src/main/java/app/nebulagram/ui'
-sources={
-'android/content/Context.java': 'package android.content;public class Context {}',
-'android/graphics/Rect.java': 'package android.graphics;public class Rect {}',
-'android/os/Build.java': 'package android.os;public class Build {public static class VERSION {public static int SDK_INT=37;}}',
-'android/util/TypedValue.java': 'package android.util;public class TypedValue {public static final int COMPLEX_UNIT_DIP=1;}',
-'android/view/Gravity.java': 'package android.view;public class Gravity {public static final int CENTER=17;}',
-'android/view/animation/LinearInterpolator.java': 'package android.view.animation;public class LinearInterpolator {}',
-'android/view/ViewTreeObserver.java': """package android.view;import java.util.*;public class ViewTreeObserver {
-public interface OnScrollChangedListener {void onScrollChanged();}public final ArrayList<OnScrollChangedListener> observers=new ArrayList<>();
-public void addOnScrollChangedListener(OnScrollChangedListener x){observers.add(x);}public void removeOnScrollChangedListener(OnScrollChangedListener x){observers.remove(x);}
-public boolean isAlive(){return true;}public void scroll(){for(var x:new ArrayList<>(observers))x.onScrollChanged();}}""",
-'android/view/View.java': """package android.view;import java.util.*;public class View {
-public static final int VISIBLE=0,INVISIBLE=4,GONE=8,IMPORTANT_FOR_ACCESSIBILITY_NO=2;
-public boolean focus=true,viewport=true;public int visibility=0;public float rotation,translation,scaleX=1,scaleY=1;
-public final ViewTreeObserver tree=new ViewTreeObserver();public static final ArrayList<Runnable> posts=new ArrayList<>();
-public View(android.content.Context c){}public void setVisibility(int n){visibility=n;onVisibilityChanged(this,n);}public int getVisibility(){return visibility;}
-public boolean isShown(){return visibility==0;}public boolean hasWindowFocus(){return focus;}public boolean getGlobalVisibleRect(android.graphics.Rect r){return viewport;}
-public void setImportantForAccessibility(int x){}public void setTranslationY(float x){translation=x;}public void setRotation(float x){rotation=x;}
-public void setScaleX(float x){scaleX=x;}public void setScaleY(float x){scaleY=x;}public boolean post(Runnable r){posts.add(r);return true;}
-public static void flush(){while(!posts.isEmpty())posts.remove(0).run();}public ViewTreeObserver getViewTreeObserver(){return tree;}
-public void onWindowFocusChanged(boolean x){focus=x;}protected void onVisibilityChanged(View v,int n){}protected void onSizeChanged(int w,int h,int ow,int oh){}
-protected void onAttachedToWindow(){}protected void onDetachedFromWindow(){}public void attach(){onAttachedToWindow();}public void detach(){onDetachedFromWindow();}
-}""",
-'android/widget/FrameLayout.java': """package android.widget;import java.util.*;public class FrameLayout extends android.view.View {
-public ArrayList<android.view.View> children=new ArrayList<>();public FrameLayout(android.content.Context c){super(c);}public void addView(android.view.View v,LayoutParams p){children.add(v);}
-public static class LayoutParams {public LayoutParams(int w,int h){}}}""",
-'android/widget/TextView.java': """package android.widget;public class TextView extends android.view.View {
-public TextView(android.content.Context c){super(c);}public void setGravity(int x){}public void setTextSize(int u,float x){}public void setTextColor(int c){}public void setIncludeFontPadding(boolean b){}
-public void setText(CharSequence t){}public Paint getPaint(){return new Paint();}public static class Paint {public Object getFontMetricsInt(){return null;}}}""",
-'android/animation/ValueAnimator.java': """package android.animation;import java.util.*;public class ValueAnimator {
-public static final int INFINITE=-1;public static boolean enabled=true;public static final ArrayList<ValueAnimator> running=new ArrayList<>();
-public interface Update {void update(ValueAnimator v);}public Update update;public float value;public static ValueAnimator ofFloat(float a,float b){return new ValueAnimator();}
-public static boolean areAnimatorsEnabled(){return enabled;}public void setDuration(long d){}public void setRepeatCount(int n){}public void setInterpolator(Object i){}
-public void addUpdateListener(Update u){update=u;}public void start(){running.add(this);}public void cancel(){running.remove(this);}public Object getAnimatedValue(){return value;}
-public void advance(float v){value=v;update.update(this);}}
-""",
-'org/telegram/messenger/AndroidUtilities.java':'package org.telegram.messenger;public class AndroidUtilities {public static float dpf2(float v){return v;}}',
-'org/telegram/messenger/Emoji.java':'package org.telegram.messenger;public class Emoji {public static CharSequence replaceEmoji(String v,Object f,boolean x){return v;}}',
-'org/telegram/tgnet/TLRPC.java':'package org.telegram.tgnet;public class TLRPC {public static class Document {public long id=10;}}',
-'org/telegram/messenger/MediaDataController.java':"""package org.telegram.messenger;public class MediaDataController {
-public static final int TYPE_EMOJI=4;public static org.telegram.tgnet.TLRPC.Document doc;public static final MediaDataController instance=new MediaDataController();
-public static MediaDataController getInstance(int a){return instance;}public org.telegram.tgnet.TLRPC.Document getEmojiAnimatedSticker(String e){return doc;}public void checkStickers(int t){}}
-""",
-'org/telegram/messenger/NotificationCenter.java':"""package org.telegram.messenger;import java.util.*;public class NotificationCenter {
-public static final int stickersDidLoad=1;public static final NotificationCenter instance=new NotificationCenter();public ArrayList<NotificationCenterDelegate> observers=new ArrayList<>();
-public interface NotificationCenterDelegate {void didReceivedNotification(int id,int a,Object...args);}public static NotificationCenter getInstance(int a){return instance;}
-public void addObserver(NotificationCenterDelegate d,int n){observers.add(d);}public void removeObserver(NotificationCenterDelegate d,int n){observers.remove(d);}
-public void fire(){for(var d:new ArrayList<>(observers))d.didReceivedNotification(stickersDidLoad,0);}}
-""",
-'org/telegram/messenger/ImageReceiver.java':"""package org.telegram.messenger;public class ImageReceiver {
-public boolean lottie,video,allow,allowLottie;public int repeat;public Object getLottieAnimation(){return lottie?this:null;}public Object getAnimation(){return video?this:null;}
-public void setAutoRepeat(int r){repeat=r;}public void setAllowStartAnimation(boolean x){allow=x;}public void setAllowStartLottieAnimation(boolean x){allowLottie=x;}}
-""",
-'org/telegram/ui/Components/RLottieImageView.java':"""package org.telegram.ui.Components;public class RLottieImageView extends android.view.View {
-public org.telegram.messenger.ImageReceiver receiver;public boolean playing;public RLottieImageView(android.content.Context c){super(c);}protected void onLoaded(){}
-public void load(boolean lottie,boolean video){onLoaded();receiver.lottie=lottie;receiver.video=video;}
-public void setAutoRepeat(boolean r){}public void setAnimation(org.telegram.tgnet.TLRPC.Document d,int w,int h){receiver=new org.telegram.messenger.ImageReceiver();}
-public org.telegram.messenger.ImageReceiver getImageReceiver(){return receiver;}public void clearAnimationDrawable(){receiver=null;playing=false;}
-public void playAnimation(){playing=true;}public void stopAnimation(){playing=false;}}
-""",
-'app/nebulagram/ui/NebulaGlass.java':'package app.nebulagram.ui;public class NebulaGlass {public static boolean reduce;public static boolean reduced(){return reduce;}}',
-'CheckEmoji.java': """import app.nebulagram.ui.*;import android.view.View;import android.animation.ValueAnimator;import org.telegram.messenger.*;import org.telegram.ui.Components.RLottieImageView;
-public class CheckEmoji {
-static void check(boolean x,String m){if(!x)throw new AssertionError(m);}public static void main(String[] args){
-var emoji=new NebulaAnimatedEmoji(new android.content.Context(),0,"🛡️",112);emoji.attach();
-var text=emoji.children.get(0);var image=(RLottieImageView)emoji.children.get(1);
-check(ValueAnimator.running.size()==1,"missing shield document must still animate its native intro glyph");
-ValueAnimator.running.get(0).advance(.25f);check(text.rotation!=0&&text.translation!=0,"intro motion reaches the glyph");
-emoji.onWindowFocusChanged(false);check(ValueAnimator.running.isEmpty()&&text.rotation==0,"blurred window must stop and reset motion");emoji.onWindowFocusChanged(true);
-check(ValueAnimator.running.size()==1,"focus resumes the intro");
-MediaDataController.doc=new org.telegram.tgnet.TLRPC.Document();NotificationCenter.instance.fire();
-image.load(false,false);View.flush();check(text.getVisibility()==View.VISIBLE&&image.getVisibility()==View.INVISIBLE,"thumbnail cannot replace the native glyph");
-image.load(true,false);check(text.getVisibility()==View.VISIBLE,"loaded callback must wait until receiver installs animation");View.flush();
-check(text.getVisibility()==View.GONE&&image.playing&&ValueAnimator.running.isEmpty(),"decoded Lottie replaces fallback and starts");
-check(image.receiver.repeat==1&&image.receiver.allow&&image.receiver.allowLottie,"repeat and start apply to receiver");
-emoji.onWindowFocusChanged(false);check(!image.playing&&!image.receiver.allow&&image.receiver.repeat==0,"lost focus stops decoded animation");emoji.onWindowFocusChanged(true);
-image.load(false,true);View.flush();check(image.playing&&text.getVisibility()==View.GONE,"video emoji supported too");
-emoji.viewport=false;emoji.tree.scroll();check(!image.playing,"offscreen intro must stop");emoji.viewport=true;emoji.tree.scroll();check(image.playing,"visible intro resumes");
-NebulaGlass.reduce=true;emoji.tree.scroll();check(!image.playing&&ValueAnimator.running.isEmpty(),"reduced motion respected");NebulaGlass.reduce=false;
-emoji.detach();check(NotificationCenter.instance.observers.isEmpty()&&emoji.tree.observers.isEmpty()&&!image.playing,"detach releases observers and animation");
-MediaDataController.doc=null;var small=new NebulaAnimatedEmoji(new android.content.Context(),0,"🤖",32);small.attach();check(ValueAnimator.running.isEmpty(),"small row fallback must stay quiet");small.detach();
-var reduced=new NebulaAnimatedEmoji(new android.content.Context(),0,"🛡️",112);ValueAnimator.enabled=false;reduced.attach();check(ValueAnimator.running.isEmpty(),"system animation setting respected");reduced.detach();ValueAnimator.enabled=true;
-System.out.println("Settings emoji: thumbnail/decoded loading, shield fallback, video, focus, viewport, reduced motion and detach passed");
-}}
-"""}
+sources = {'android/content/Context.java': 'package android.content;public class Context {}',
+ 'android/graphics/Rect.java': 'package android.graphics;public class Rect {}',
+ 'android/os/Build.java': 'package android.os;public class Build {public static class VERSION {public static '
+                          'int SDK_INT=37;}}',
+ 'android/util/TypedValue.java': 'package android.util;public class TypedValue {public static final int '
+                                 'COMPLEX_UNIT_DIP=1;}',
+ 'android/view/Gravity.java': 'package android.view;public class Gravity {public static final int '
+                              'CENTER=17;}',
+ 'android/view/animation/LinearInterpolator.java': 'package android.view.animation;public class '
+                                                   'LinearInterpolator {}',
+ 'android/view/ViewTreeObserver.java': 'package android.view;import java.util.*;public class '
+                                       'ViewTreeObserver {\n'
+                                       'public interface OnScrollChangedListener {void '
+                                       'onScrollChanged();}public final ArrayList<OnScrollChangedListener> '
+                                       'observers=new ArrayList<>();\n'
+                                       'public void addOnScrollChangedListener(OnScrollChangedListener '
+                                       'x){observers.add(x);}public void '
+                                       'removeOnScrollChangedListener(OnScrollChangedListener '
+                                       'x){observers.remove(x);}\n'
+                                       'public boolean isAlive(){return true;}public void scroll(){for(var '
+                                       'x:new ArrayList<>(observers))x.onScrollChanged();}}',
+ 'android/view/View.java': 'package android.view;import java.util.*;public class View {\n'
+                           'public static final int '
+                           'VISIBLE=0,INVISIBLE=4,GONE=8,IMPORTANT_FOR_ACCESSIBILITY_NO=2;\n'
+                           'public boolean focus=true,viewport=true;public int visibility=0;public float '
+                           'rotation,translation,scaleX=1,scaleY=1;\n'
+                           'public final ViewTreeObserver tree=new ViewTreeObserver();public static final '
+                           'ArrayList<Runnable> posts=new ArrayList<>();\n'
+                           'public View(android.content.Context c){}public void setWillNotDraw(boolean '
+                           'b){}public void invalidate(){}public int getWidth(){return 112;}public int '
+                           'getHeight(){return 112;}protected void onDraw(android.graphics.Canvas c){}public '
+                           'void draw(android.graphics.Canvas c){onDraw(c);}protected void onLayout(boolean '
+                           'c,int l,int t,int r,int b){}public void layout(int l,int t,int r,int '
+                           'b){onLayout(false,l,t,r,b);}public void setVisibility(int '
+                           'n){visibility=n;onVisibilityChanged(this,n);}public int getVisibility(){return '
+                           'visibility;}\n'
+                           'public boolean isShown(){return visibility==0;}public boolean '
+                           'hasWindowFocus(){return focus;}public boolean '
+                           'getGlobalVisibleRect(android.graphics.Rect r){return viewport;}\n'
+                           'public void setImportantForAccessibility(int x){}public void '
+                           'setTranslationY(float x){translation=x;}public void setRotation(float '
+                           'x){rotation=x;}\n'
+                           'public void setScaleX(float x){scaleX=x;}public void setScaleY(float '
+                           'x){scaleY=x;}public boolean post(Runnable r){posts.add(r);return true;}\n'
+                           'public static void flush(){while(!posts.isEmpty())posts.remove(0).run();}public '
+                           'ViewTreeObserver getViewTreeObserver(){return tree;}\n'
+                           'public void onWindowFocusChanged(boolean x){focus=x;}protected void '
+                           'onVisibilityChanged(View v,int n){}protected void onSizeChanged(int w,int h,int '
+                           'ow,int oh){}\n'
+                           'protected void onAttachedToWindow(){}protected void '
+                           'onDetachedFromWindow(){}public void attach(){onAttachedToWindow();}public void '
+                           'detach(){onDetachedFromWindow();}\n'
+                           '}',
+ 'android/widget/FrameLayout.java': 'package android.widget;import java.util.*;public class FrameLayout '
+                                    'extends android.view.View {\n'
+                                    'public ArrayList<android.view.View> children=new ArrayList<>();public '
+                                    'FrameLayout(android.content.Context c){super(c);}public void '
+                                    'addView(android.view.View v,LayoutParams p){children.add(v);}\n'
+                                    'public static class LayoutParams {public LayoutParams(int w,int h){}}}',
+ 'android/widget/TextView.java': 'package android.widget;public class TextView extends android.view.View {\n'
+                                 'public TextView(android.content.Context c){super(c);}public void '
+                                 'setGravity(int x){}public void setTextSize(int u,float x){}public void '
+                                 'setTextColor(int c){}public void setIncludeFontPadding(boolean b){}\n'
+                                 'public void setText(CharSequence t){}public Paint getPaint(){return new '
+                                 'Paint();}public static class Paint {public Object '
+                                 'getFontMetricsInt(){return null;}}}',
+ 'android/animation/ValueAnimator.java': 'package android.animation;import java.util.*;public class '
+                                         'ValueAnimator {\n'
+                                         'public static final int INFINITE=-1;public static boolean '
+                                         'enabled=true;public static final ArrayList<ValueAnimator> '
+                                         'running=new ArrayList<>();\n'
+                                         'public interface Update {void update(ValueAnimator v);}public '
+                                         'Update update;public float value;public static ValueAnimator '
+                                         'ofFloat(float a,float b){return new ValueAnimator();}\n'
+                                         'public static boolean areAnimatorsEnabled(){return enabled;}public '
+                                         'void setDuration(long d){}public void setRepeatCount(int '
+                                         'n){}public void setInterpolator(Object i){}\n'
+                                         'public void addUpdateListener(Update u){update=u;}public void '
+                                         'start(){running.add(this);}public void '
+                                         'cancel(){running.remove(this);}public Object '
+                                         'getAnimatedValue(){return value;}\n'
+                                         'public void advance(float v){value=v;update.update(this);}}\n',
+ 'org/telegram/messenger/AndroidUtilities.java': 'package org.telegram.messenger;public class '
+                                                 'AndroidUtilities {public static float dpf2(float v){return '
+                                                 'v;}public static int dp(int v){return v;}}',
+ 'org/telegram/messenger/Emoji.java': 'package org.telegram.messenger;public class Emoji {public static '
+                                      'CharSequence replaceEmoji(String v,Object f,boolean x){return v;}}',
+ 'org/telegram/tgnet/TLRPC.java': 'package org.telegram.tgnet;public class TLRPC {public static class '
+                                  'Document {public long id=10,size=100;public String '
+                                  'mime_type="application/x-tgsticker";}}',
+ 'org/telegram/messenger/MediaDataController.java': 'package org.telegram.messenger;public class '
+                                                    'MediaDataController {\n'
+                                                    'public static final int TYPE_EMOJI=4;public static '
+                                                    'org.telegram.tgnet.TLRPC.Document doc;public static '
+                                                    'final MediaDataController instance=new '
+                                                    'MediaDataController();\n'
+                                                    'public static MediaDataController getInstance(int '
+                                                    'a){return instance;}public '
+                                                    'org.telegram.tgnet.TLRPC.Document '
+                                                    'getEmojiAnimatedSticker(String e){return doc;}public '
+                                                    'void checkStickers(int t){}}\n',
+ 'org/telegram/messenger/NotificationCenter.java': 'package org.telegram.messenger;import java.util.*;public '
+                                                   'class NotificationCenter {\n'
+                                                   'public static final int stickersDidLoad=1;public static '
+                                                   'final NotificationCenter instance=new '
+                                                   'NotificationCenter();public '
+                                                   'ArrayList<NotificationCenterDelegate> observers=new '
+                                                   'ArrayList<>();\n'
+                                                   'public interface NotificationCenterDelegate {void '
+                                                   'didReceivedNotification(int id,int '
+                                                   'a,Object...args);}public static NotificationCenter '
+                                                   'getInstance(int a){return instance;}\n'
+                                                   'public void addObserver(NotificationCenterDelegate d,int '
+                                                   'n){observers.add(d);}public void '
+                                                   'removeObserver(NotificationCenterDelegate d,int '
+                                                   'n){observers.remove(d);}\n'
+                                                   'public void fire(){for(var d:new '
+                                                   'ArrayList<>(observers))d.didReceivedNotification(stickersDidLoad,0);}}\n',
+ 'org/telegram/messenger/ImageReceiver.java': 'package org.telegram.messenger;import java.util.*;public '
+                                              'class ImageReceiver {\n'
+                                              'public static ArrayList<ImageReceiver> all=new '
+                                              'ArrayList<>();public boolean '
+                                              'attached,started,allow,allowLottie;public int '
+                                              'repeat,binding;public ImageReceiverDelegate delegate;public '
+                                              'Decoder lottie,video;\n'
+                                              'public interface ImageReceiverDelegate {void '
+                                              'didSetImage(ImageReceiver r,boolean set,boolean thumb,boolean '
+                                              'cache);default void onAnimationReady(ImageReceiver r){}}\n'
+                                              'public static class Decoder {public boolean bitmap;public '
+                                              'boolean hasBitmap(){return bitmap;}}\n'
+                                              'public ImageReceiver(android.view.View '
+                                              'v){all.add(this);}public Decoder getLottieAnimation(){return '
+                                              'lottie;}public Decoder getAnimation(){return video;}\n'
+                                              'public void setImage(ImageLocation l,String f,Object '
+                                              'tl,Object tf,Object t,long s,Object ext,Object p,int '
+                                              'type){if(!attached)throw new AssertionError("bind while '
+                                              'detached");binding++;}\n'
+                                              'public void setDelegate(ImageReceiverDelegate '
+                                              'd){delegate=d;}public void setCurrentAccount(int a){}public '
+                                              'void setAllowLoadingOnAttachedOnly(boolean b){}public void '
+                                              'setAspectFit(boolean b){}\n'
+                                              'public void setAutoRepeat(int n){repeat=n;}public void '
+                                              'setAutoRepeatCount(int n){}public void '
+                                              'setAllowDecodeSingleFrame(boolean b){}public void '
+                                              'setLayerNum(int n){}\n'
+                                              'public void onAttachedToWindow(){attached=true;}public void '
+                                              'onDetachedFromWindow(){attached=false;lottie=video=null;}\n'
+                                              'public void setAllowStartAnimation(boolean b){allow=b;}public '
+                                              'void setAllowStartLottieAnimation(boolean '
+                                              'b){allowLottie=b;}public void '
+                                              'startAnimation(){started=true;}public void '
+                                              'stopAnimation(){started=false;}\n'
+                                              'public void setImageCoords(int x,int y,int w,int h){}public '
+                                              'void draw(android.graphics.Canvas '
+                                              'c){if((lottie!=null&&lottie.bitmap||video!=null&&video.bitmap)&&delegate!=null)delegate.onAnimationReady(this);}\n'
+                                              'public void '
+                                              'thumbnail(){if(delegate!=null)delegate.didSetImage(this,true,true,false);}\n'
+                                              'public void decode(boolean isVideo,boolean ready){Decoder '
+                                              'd=new Decoder();d.bitmap=ready;if(isVideo)video=d;else '
+                                              'lottie=d;if(delegate!=null)delegate.didSetImage(this,true,false,false);}\n'
+                                              '}',
+ 'app/nebulagram/ui/NebulaGlass.java': 'package app.nebulagram.ui;public class NebulaGlass {public static '
+                                       'boolean reduce;public static boolean reduced(){return reduce;}}',
+ 'CheckEmoji.java': 'import app.nebulagram.ui.*;import android.view.View;import '
+                    'android.animation.ValueAnimator;import org.telegram.messenger.*;\n'
+                    'public class CheckEmoji {\n'
+                    'static void check(boolean x,String m){if(!x)throw new AssertionError(m);}static '
+                    'ImageReceiver receiver(){return ImageReceiver.all.get(ImageReceiver.all.size()-1);}\n'
+                    'public static void main(String[] args){\n'
+                    'var emoji=new NebulaAnimatedEmoji(new '
+                    'android.content.Context(),0,"🛡️",112);emoji.attach();View.flush();\n'
+                    'var shield=(android.widget.ImageView)emoji.children.get(1);check(shield.drawable '
+                    'instanceof NebulaShieldDrawable,"shield must use vector fallback");\n'
+                    'check(ValueAnimator.running.size()==1,"unavailable intro animation has fallback '
+                    'motion");ValueAnimator.running.get(0).advance(.25f);check(shield.rotation!=0,"fallback '
+                    'motion reaches shield");\n'
+                    'MediaDataController.doc=new '
+                    'org.telegram.tgnet.TLRPC.Document();NotificationCenter.instance.fire();var '
+                    'first=receiver();\n'
+                    'first.thumbnail();View.flush();check(shield.getVisibility()==View.VISIBLE,"thumbnail '
+                    'cannot hide fallback");\n'
+                    'first.decode(false,false);View.flush();check(shield.getVisibility()==View.VISIBLE,"decoder '
+                    'without first bitmap must not blank icon");\n'
+                    'first.lottie.bitmap=true;emoji.draw(new '
+                    'android.graphics.Canvas());View.flush();check(shield.getVisibility()==View.GONE&&first.started,"first '
+                    'frame replaces fallback");\n'
+                    'check(ValueAnimator.running.isEmpty()&&first.repeat==1,"fallback stops while server '
+                    'emoji loops");\n'
+                    'emoji.onWindowFocusChanged(false);check(!first.started&&!first.allow,"lost focus stops '
+                    'receiver");emoji.onWindowFocusChanged(true);check(first.started,"focus resumes '
+                    'receiver");\n'
+                    'first.decode(false,false);emoji.detach();check(!first.attached&&first.lottie==null&&first.delegate==null,"detach '
+                    'clears receiver and decoder exactly like Telegram");\n'
+                    'check(NotificationCenter.instance.observers.isEmpty()&&emoji.tree.observers.isEmpty(),"observers '
+                    'released");\n'
+                    'emoji.viewport=false;emoji.attach();var '
+                    'second=receiver();check(second!=first&&second.binding==1,"same document must reload on '
+                    'page reentry");View.flush();check(shield.getVisibility()==View.VISIBLE,"late old '
+                    'callback cannot hide fresh fallback");\n'
+                    'second.decode(false,true);View.flush();check(!second.started,"reattached offscreen view '
+                    'stays stopped");\n'
+                    'emoji.viewport=true;emoji.layout(0,0,112,112);check(second.started,"same-size layout '
+                    'restarts reentered page");\n'
+                    'second.decode(true,true);View.flush();check(shield.getVisibility()==View.GONE&&second.started,"video '
+                    'emoji supported");\n'
+                    'NebulaGlass.reduce=true;emoji.tree.scroll();check(!second.started&&ValueAnimator.running.isEmpty(),"reduced '
+                    'motion respected");NebulaGlass.reduce=false;\n'
+                    'emoji.detach();check(!second.attached,"second attachment cleaned up");\n'
+                    'MediaDataController.doc=null;var small=new NebulaAnimatedEmoji(new '
+                    'android.content.Context(),0,"🤖",32);small.attach();View.flush();check(ValueAnimator.running.isEmpty(),"small '
+                    'unsupported glyph stays quiet");small.detach();\n'
+                    'var disabled=new NebulaAnimatedEmoji(new '
+                    'android.content.Context(),0,"🛡️",112);ValueAnimator.enabled=false;disabled.attach();View.flush();check(ValueAnimator.running.isEmpty(),"system '
+                    'animations disabled respected");disabled.detach();ValueAnimator.enabled=true;\n'
+                    'System.out.println("Settings emoji: detach cache clearing/reentry, first decoded '
+                    'bitmap, stale callbacks, vector shield, video, focus, viewport and reduced motion '
+                    'passed");}}\n',
+ 'android/graphics/Canvas.java': 'package android.graphics;public class Canvas {public int save(){return '
+                                 '1;}public void restoreToCount(int s){}public void clipRect(int l,int t,int '
+                                 'r,int b){}}',
+ 'android/widget/ImageView.java': 'package android.widget;public class ImageView extends android.view.View '
+                                  '{public Object drawable;public ImageView(android.content.Context '
+                                  'c){super(c);}public void setImageDrawable(Object d){drawable=d;}public '
+                                  'void setScaleType(Object t){}public static class ScaleType {public static '
+                                  'final Object FIT_CENTER=new Object();}public void setPadding(int l,int '
+                                  't,int r,int b){}}',
+ 'org/telegram/messenger/ImageLocation.java': 'package org.telegram.messenger;public class ImageLocation '
+                                              '{public static ImageLocation '
+                                              'getForDocument(org.telegram.tgnet.TLRPC.Document d){return '
+                                              'new ImageLocation();}}',
+ 'org/telegram/messenger/ImageLoader.java': 'package org.telegram.messenger;public class ImageLoader {public '
+                                            'static final String AUTOPLAY_FILTER="autoplay";}',
+ 'app/nebulagram/ui/NebulaShieldDrawable.java': 'package app.nebulagram.ui;public class NebulaShieldDrawable '
+                                                '{}'}
 with tempfile.TemporaryDirectory(prefix='nebula-emoji-') as temp:
  tree=Path(temp)
  for name,text in sources.items():

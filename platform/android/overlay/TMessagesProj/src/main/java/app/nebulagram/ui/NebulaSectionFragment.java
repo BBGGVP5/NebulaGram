@@ -669,6 +669,11 @@ public class NebulaSectionFragment extends BaseFragment {
      * доступ к тому, что уже написано.
      */
     private void buildGeneral(Context context) {
+        NebulaCard browser = new NebulaCard(context);
+        browser.add(new NebulaRow(context).icon(R.drawable.msg_language).title(NebulaText.text("Браузер и блокировка рекламы", "Browser and ad blocking"))
+                .subtitle(NebulaText.text("Фильтры и исключения сайтов", "Filters and site exceptions"), false)
+                .trailing(NebulaRow.TRAIL_CHEVRON).withClick(v -> presentFragment(new NebulaBrowserSettingsFragment())));
+        content.addView(browser, cardParams());
         NebulaCard sync = new NebulaCard(context);
         sync.add(new NebulaRow(context).icon(R.drawable.msg_saved)
                 .title(NebulaText.text("Синхронизация настроек", "Settings sync"))
@@ -771,6 +776,11 @@ public class NebulaSectionFragment extends BaseFragment {
     }
 
     private void buildAbout(Context context) {
+        NebulaCard support = new NebulaCard(context);
+        support.add(new NebulaRow(context).icon(R.drawable.nebula_settings_support).title(NebulaText.text("Поддержать проект", "Support the project"))
+                .subtitle(NebulaText.text("Донат и значок за поддержку", "Donation and a supporter badge"), false)
+                .trailing(NebulaRow.TRAIL_CHEVRON).withClick(v -> presentFragment(new NebulaSupportFragment())));
+        NebulaFormUi.group(content, NebulaText.text("Поддержка", "Support"), support);
         NebulaCard identity = new NebulaCard(context);
         content.addView(NebulaCard.header(context, NebulaText.text("Информация", "Information")));
         String version = org.telegram.messenger.BuildVars.BUILD_VERSION_STRING;

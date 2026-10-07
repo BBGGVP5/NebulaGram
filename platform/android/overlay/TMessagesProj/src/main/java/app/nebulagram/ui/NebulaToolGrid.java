@@ -21,6 +21,12 @@ public final class NebulaToolGrid extends ViewGroup {
     private int dp(float value) { return AndroidUtilities.dp(value); }
 
     public void add(int icon, String label, String description, OnClickListener click) {
+        addItem(icon, -1, null, label, description, click);
+    }
+    public void addEmoji(int account, String emoji, String label, String description, OnClickListener click) {
+        addItem(0, account, emoji, label, description, click);
+    }
+    private void addItem(int icon, int account, String emoji, String label, String description, OnClickListener click) {
         Context c = getContext();
         NebulaTheme theme = NebulaTheme.of(c);
         LinearLayout cell = new LinearLayout(c);
@@ -31,11 +37,13 @@ public final class NebulaToolGrid extends ViewGroup {
         GradientDrawable mask = new GradientDrawable();
         mask.setColor(0xffffffff); mask.setCornerRadius(dp(16));
         cell.setBackground(new RippleDrawable(ColorStateList.valueOf(NebulaTheme.stateLayer(theme.primary(), .14f)), null, mask));
-        ImageView glyph = new ImageView(c);
-        glyph.setImageResource(icon);
-        glyph.setColorFilter(theme.primary());
+        View glyph;
+        if (emoji != null) glyph = new NebulaAnimatedEmoji(c, account, emoji, 40);
+        else {
+            ImageView image = new ImageView(c); image.setImageResource(icon); image.setColorFilter(theme.primary()); glyph = image;
+        }
         glyph.setImportantForAccessibility(IMPORTANT_FOR_ACCESSIBILITY_NO);
-        cell.addView(glyph, new LinearLayout.LayoutParams(dp(24), dp(24)));
+        cell.addView(glyph, new LinearLayout.LayoutParams(dp(emoji == null ? 24 : 40), dp(emoji == null ? 24 : 40)));
         TextView title = new TextView(c);
         title.setText(label); title.setTextSize(13); title.setTextColor(theme.onSurface());
         title.setGravity(Gravity.CENTER);

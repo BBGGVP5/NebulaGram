@@ -34,6 +34,23 @@ public final class NebulaAiRoles {
     }
     private static Role find(ArrayList<Role> roles,String id) {for(Role role:roles)if(role.id.equals(id))return role;return null;}
     public static Role current() {return find(list(),selected());}
+    public static String displayName(Role role) {
+        if(role==null)return NebulaText.text("Ассистент", "Assistant");
+        if(!role.preset)return role.name;
+        switch(role.id) {
+            case "summarizer": return NebulaText.text("Краткие сводки", "Summarizer");
+            case "proofreader": return NebulaText.text("Корректор", "Proofreader");
+            default: return NebulaText.text("Ассистент", "Assistant");
+        }
+    }
+    public static String description(Role role) {
+        if(!role.preset)return role.prompt.length()>140?role.prompt.substring(0,140)+"…":role.prompt;
+        switch(role.id) {
+            case "summarizer": return NebulaText.text("Выделяет главное, сохраняя факты, даты и решения.", "Summarizes key facts, dates and decisions.");
+            case "proofreader": return NebulaText.text("Исправляет ошибки, сохраняя смысл, тон и язык текста.", "Corrects text while preserving its meaning, tone and language.");
+            default: return NebulaText.text("Помогает с вопросами и текстом, отвечает на вашем языке.", "Helps with questions and text in your language.");
+        }
+    }
     public static String prompt() {
         if(prefs().getString("selected_role", "").isEmpty())return "";
         Role role=current();return role==null?"":role.prompt;

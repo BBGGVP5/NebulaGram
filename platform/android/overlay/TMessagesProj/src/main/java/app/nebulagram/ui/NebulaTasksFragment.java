@@ -32,14 +32,13 @@ public final class NebulaTasksFragment extends BaseFragment {
     }
     private void build() {
         Context c = content.getContext(); content.removeAllViews();
+        content.addView(new NebulaSettingsHero(c, "✅", t("Список дел", "Tasks"), t("Сохраняйте идеи и выбирайте время напоминаний.", "Save ideas and choose reminder times.")));
         content.addView(NebulaFormUi.primary(c, t("＋  Новая задача", "＋  New task"), v -> presentFragment(new NebulaTaskEditorFragment(null, "", currentAccount))));
         try {
             JSONArray tasks = NebulaTasks.read(NebulaTasks.user(currentAccount));
             if (tasks.length() == 0) {
                 LinearLayout empty = new LinearLayout(c); empty.setOrientation(1); empty.setGravity(Gravity.CENTER);
                 empty.setPadding(NebulaFormUi.dp(24), NebulaFormUi.dp(48), NebulaFormUi.dp(24), NebulaFormUi.dp(36));
-                ImageView icon = new ImageView(c); icon.setImageResource(R.drawable.msg_calendar);
-                icon.setColorFilter(NebulaTheme.of(c).primary()); empty.addView(icon, new LinearLayout.LayoutParams(NebulaFormUi.dp(48), NebulaFormUi.dp(48)));
                 TextView heading = NebulaFormUi.note(c, t("Всё начинается с одной задачи", "Start with one task"));
                 heading.setTextColor(NebulaTheme.of(c).onSurface()); heading.setTextSize(18); heading.setGravity(Gravity.CENTER); empty.addView(heading);
                 TextView note = NebulaFormUi.note(c, t("Сохрани идею, добавь подробности и выбери время напоминания.", "Save an idea, add details and choose a reminder time."));

@@ -79,6 +79,12 @@ public final class NebulaFormUi {
         view.setBackground(states);
         return view;
     }
+    /** Flat field inside one shared card; retain padding and cursor/focus behavior. */
+    public static EditTextBoldCursor cardField(Context c, String hint, int lines, int limit) {
+        EditTextBoldCursor view = field(c, hint, lines, limit);
+        view.setBackground(null); view.setPadding(dp(16), dp(16), dp(16), dp(16)); view.setMinHeight(dp(56));
+        return view;
+    }
     private static GradientDrawable fieldBackground(NebulaTheme theme, boolean focused) {
         GradientDrawable background = new GradientDrawable();
         background.setColor(theme.surfaceContainer());

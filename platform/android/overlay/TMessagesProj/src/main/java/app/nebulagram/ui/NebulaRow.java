@@ -201,7 +201,7 @@ public class NebulaRow extends FrameLayout {
         if (radio == null) {
             radio = new android.widget.RadioButton(getContext());
             radio.setClickable(false); radio.setFocusable(false); radio.setImportantForAccessibility(IMPORTANT_FOR_ACCESSIBILITY_NO);
-            radio.setButtonTintList(ColorStateList.valueOf(theme.primary()));
+            radio.setButtonTintList(new ColorStateList(new int[][]{new int[]{android.R.attr.state_checked},new int[]{}},new int[]{theme.primary(),theme.onSurfaceVariant()}));
             LayoutParams params = new LayoutParams(AndroidUtilities.dp(32), AndroidUtilities.dp(32));
             params.gravity = Gravity.CENTER_VERTICAL | Gravity.END; addView(radio, params);
         }

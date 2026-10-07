@@ -44,7 +44,8 @@ public final class NebulaAiServiceEditorFragment extends BaseFragment {
         key.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD); key.setTypeface(android.graphics.Typeface.DEFAULT);
         if (android.os.Build.VERSION.SDK_INT >= 26) key.setImportantForAutofill(View.IMPORTANT_FOR_AUTOFILL_NO_EXCLUDE_DESCENDANTS);
         NebulaFormUi.group(content, text("Данные сервиса", "Connection"), fields);
-        content.addView(NebulaFormUi.primary(c, text("Выбрать модель из списка", "Choose an available model"), v -> models(c)));
+        NebulaButton availableModels = new NebulaButton(c, NebulaButton.STYLE_TEXT);
+        availableModels.setText(text("Выбрать модель из списка", "Choose an available model")); availableModels.setOnClickListener(v -> models(c)); content.addView(availableModels);
         content.addView(NebulaFormUi.primary(c, text("Сохранить", "Save"), v -> {
             try {
                 String secret = secret();
@@ -56,7 +57,7 @@ public final class NebulaAiServiceEditorFragment extends BaseFragment {
         return fragmentView = NebulaSettingsLayout.wrap(c, actionBar, NebulaFormUi.scroll(c, content), -12);
     }
     private EditText field(Context c, NebulaCard card, String hint, String value, int limit) {
-        EditText result = NebulaFormUi.field(c, hint, 1, limit); result.setText(value); card.add(result); return result;
+        EditText result = NebulaFormUi.cardField(c, hint, 1, limit); result.setText(value); card.add(result); return result;
     }
     private String secret() throws Exception {
         String value = key.getText().toString().trim();

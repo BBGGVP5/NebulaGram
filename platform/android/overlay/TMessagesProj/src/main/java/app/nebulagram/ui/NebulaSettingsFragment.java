@@ -146,39 +146,19 @@ public class NebulaSettingsFragment extends BaseFragment {
                 "Подключение и поведение", "Connection and behavior", NebulaSettingsHubFragment.GENERAL));
         categories.add(hub(context, R.drawable.msg_customize, "Внешний вид", "Appearance",
                 "Цвета, стекло, значки", "Colors, glass, icons", NebulaSettingsHubFragment.APPEARANCE));
-        categories.add(hub(context, R.drawable.msg_discussion, "Чаты", "Chats",
-                "Список, сообщения, профиль", "List, messages, profile", NebulaSettingsHubFragment.CHATS));
+        categories.add(hub(context, R.drawable.msg_discussion, "Чаты и инструменты", "Chats and tools",
+                "Переписка, ИИ, перевод и задачи", "Conversations, AI, translation and tasks", NebulaSettingsHubFragment.CHATS));
         categories.add(hub(context, R.drawable.msg_list, "Навигация", "Navigation",
                 "Панель и папки", "Bar and folders", NebulaSettingsHubFragment.NAVIGATION));
         categories.add(hub(context, R.drawable.msg_secret, "Конфиденциальность", "Privacy",
                 "Архив и защита", "Archive and protection", NebulaSettingsHubFragment.PRIVACY));
-        categories.add(section(context, R.drawable.msg_info, R.string.NebulaSectionAbout,
-                R.string.NebulaAboutSub, NebulaSectionFragment.SECTION_ABOUT));
         sections.addView(categories, cardParams());
-        sections.addView(NebulaCard.header(context, NebulaText.text("Нравится NebulaGram?", "Enjoy NebulaGram?")));
-        NebulaCard support = new NebulaCard(context);
-        support.add(new NebulaRow(context).icon(R.drawable.nebula_settings_support)
-                .title(NebulaText.text("Поддержать проект", "Support the project"))
-                .subtitle(NebulaText.text("Разработка и значок за поддержку", "Development and a supporter badge"), false)
-                .trailing(NebulaRow.TRAIL_CHEVRON)
-                .withClick(v -> presentFragment(new NebulaSupportFragment())));
-        sections.addView(support, cardParams());
-        sections.addView(NebulaCard.header(context, NebulaText.text("Инструменты", "Tools")));
-        NebulaCard tools = new NebulaCard(context);
-        tools.add(new NebulaRow(context).icon(R.drawable.nebula_ai_spark).title("Nebula AI")
-                .subtitle(NebulaText.text("Сервисы, роли и работа с сообщениями", "Services, roles and message tools"), false)
-                .trailing(NebulaRow.TRAIL_CHEVRON).withClick(v -> presentFragment(new NebulaAiSettingsFragment())));
-        tools.add(new NebulaRow(context).icon(R.drawable.msg_calendar).title(NebulaText.text("Список дел", "Tasks"))
-                .subtitle(NebulaText.text("Задачи и напоминания", "Tasks and reminders"), false)
-                .trailing(NebulaRow.TRAIL_CHEVRON).withClick(v -> presentFragment(new NebulaTasksFragment())));
-        tools.add(new NebulaRow(context).icon(R.drawable.nebula_settings_text_tools).title(NebulaText.text("Инструменты текста", "Text tools"))
-                .subtitle(NebulaText.text("Перевод, редактор и озвучивание", "Translation, editing and reading aloud"), false)
-                .trailing(NebulaRow.TRAIL_CHEVRON).withClick(v -> presentFragment(new NebulaMessageToolsFragment(null))));
-        sections.addView(tools, cardParams());
-        NebulaCard browser = new NebulaCard(context);
-        browser.add(new NebulaRow(context).icon(R.drawable.msg_language).title(NebulaText.text("Браузер и блокировка рекламы", "Browser and ad blocking"))
-                .trailing(NebulaRow.TRAIL_CHEVRON).withClick(v -> presentFragment(new NebulaBrowserSettingsFragment())));
-        sections.addView(browser, cardParams());
+        NebulaCard about = new NebulaCard(context);
+        about.add(new NebulaRow(context).icon(R.drawable.msg_info).title(NebulaText.text("О приложении", "About"))
+                .subtitle(NebulaText.text("Версия, обновления, сообщество и поддержка", "Version, updates, community and support"), false)
+                .trailing(NebulaRow.TRAIL_CHEVRON).withClick(v -> presentFragment(new NebulaSectionFragment(NebulaSectionFragment.SECTION_ABOUT))));
+        sections.addView(about, cardParams());
+
     }
 
     private NebulaRow hub(Context context, int icon, String titleRu, String titleEn,

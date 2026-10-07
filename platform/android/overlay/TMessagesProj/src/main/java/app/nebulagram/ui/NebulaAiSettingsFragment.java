@@ -37,7 +37,7 @@ public final class NebulaAiSettingsFragment extends BaseFragment {
         NebulaAiServices.Service service = NebulaAiServices.find(NebulaAiServices.selected());
         main.add(link(R.drawable.msg_language, text("Сервисы", "Services"), service == null ? text("Настроить", "Configure") : service.name, () -> presentFragment(new NebulaAiServicesFragment())));
         NebulaAiRoles.Role role = NebulaAiRoles.current();
-        main.add(link(R.drawable.msg_openprofile, text("Роли", "Roles"), role == null ? "Assistant" : role.name, () -> presentFragment(new NebulaAiRolesFragment())));
+        main.add(link(R.drawable.msg_openprofile, text("Роли", "Roles"), NebulaAiRoles.displayName(role), () -> presentFragment(new NebulaAiRolesFragment())));
         main.add(link(R.drawable.msg_recent, text("История сообщений", "Message history"), NebulaAiHistory.enabled() ? text("Включена", "Enabled") : text("Выключена", "Disabled"), () -> presentFragment(new NebulaAiHistorySettingsFragment())));
         main.add(link(R.drawable.msg_translate, text("Переводчик", "Translator"), text("Живой перевод и мой текст", "Live translation and my text"), () -> presentFragment(new NebulaTranslationFragment(currentAccount, 0))));
         NebulaFormUi.group(content, text("Основные", "General"), main);
