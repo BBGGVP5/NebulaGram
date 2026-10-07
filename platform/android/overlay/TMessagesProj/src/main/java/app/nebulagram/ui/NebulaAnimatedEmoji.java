@@ -54,22 +54,26 @@ public final class NebulaAnimatedEmoji extends FrameLayout implements Notificati
     private static String normalize(String value) {return value==null?"":value.replace("\uFE0F","");}
     private TLRPC.Document pageDocument() {
         if(size<72)return null;
-        TLRPC.TL_messages_stickerSet set=MediaDataController.getInstance(account).getStickerSetByName(PAGE_EMOJI_SET);
+        MediaDataController data=MediaDataController.getInstance(account);
+        TLRPC.TL_messages_stickerSet set=data.getStickerSetByEmojiOrName(PAGE_EMOJI_SET);
+        if(set==null)set=data.getStickerSetByName(PAGE_EMOJI_SET);
         if(set==null)return null;
         String wanted=normalize(emoji);
         for(TLRPC.TL_stickerPack pack:set.packs)if(wanted.equals(normalize(pack.emoticon))) {
-            for(Long id:pack.documents)for(TLRPC.Document document:set.documents)if(document.id==id)return document;
+            for(Long id:pack.documents)for(TLRPC.Document document:set.documents)if(document.id==id&&animated(document))return document;
         }
         for(TLRPC.Document document:set.documents)
-            if(wanted.equals(normalize(MessageObject.findAnimatedEmojiEmoticon(document,null))))return document;
+            if(animated(document)&&!wanted.isEmpty()&&normalize(MessageObject.findAnimatedEmojiEmoticon(document,null)).contains(wanted))return document;
         return null;
+    }
+    private static boolean animated(TLRPC.Document document) {
+        return "application/x-tgsticker".equals(document.mime_type)||"video/webm".equals(document.mime_type);
     }
     private void loadPageSet() {
         if(size<72)return;
-        TLRPC.TL_inputStickerSetShortName set=new TLRPC.TL_inputStickerSetShortName();set.short_name=PAGE_EMOJI_SET;
-        // MediaDataController owns cache and request deduplication. Its native
-        // groupStickersDidLoad event upgrades the fallback once the set arrives.
-        MediaDataController.getInstance(account).getStickerSet(set,0,false);
+        // This native loader actualizes its disk cache after 24 hours, unlike
+        // a permanently cached getStickerSetByName result. It deduplicates loads.
+        MediaDataController.getInstance(account).loadStickersByEmojiOrName(PAGE_EMOJI_SET,false,true);
     }
     private void refresh() {
         if(!attached)return;
@@ -144,13 +148,15 @@ public final class NebulaAnimatedEmoji extends FrameLayout implements Notificati
     @Override protected void onAttachedToWindow(){super.onAttachedToWindow();attached=true;attachment++;
         NotificationCenter.getInstance(account).addObserver(this,NotificationCenter.stickersDidLoad);getViewTreeObserver().addOnScrollChangedListener(scrollListener);
         NotificationCenter.getInstance(account).addObserver(this,NotificationCenter.groupStickersDidLoad);
+        NotificationCenter.getInstance(account).addObserver(this,NotificationCenter.diceStickersDidLoad);
         NotificationCenter.getGlobalInstance().addObserver(this,NotificationCenter.emojiLoaded);
         loadPageSet();MediaDataController.getInstance(account).checkStickers(MediaDataController.TYPE_EMOJI);refresh();post(()->{if(attached)updateVisual();});}
     @Override protected void onDetachedFromWindow(){attached=false;NotificationCenter.getInstance(account).removeObserver(this,NotificationCenter.stickersDidLoad);
         NotificationCenter.getInstance(account).removeObserver(this,NotificationCenter.groupStickersDidLoad);
+        NotificationCenter.getInstance(account).removeObserver(this,NotificationCenter.diceStickersDidLoad);
         NotificationCenter.getGlobalInstance().removeObserver(this,NotificationCenter.emojiLoaded);
         if(getViewTreeObserver().isAlive())getViewTreeObserver().removeOnScrollChangedListener(scrollListener);
         releaseReceiver();showFallback(true);super.onDetachedFromWindow();}
     @Override public void didReceivedNotification(int id,int account,Object...args){if(!attached)return;
-        if(id==NotificationCenter.stickersDidLoad||id==NotificationCenter.groupStickersDidLoad)refresh();else if(id==NotificationCenter.emojiLoaded)fallbackImage.invalidate();}
+        if(id==NotificationCenter.stickersDidLoad||id==NotificationCenter.groupStickersDidLoad||id==NotificationCenter.diceStickersDidLoad)refresh();else if(id==NotificationCenter.emojiLoaded)fallbackImage.invalidate();}
 }

@@ -25,10 +25,18 @@ public final class NebulaTranslationFragment extends BaseFragment {
                 if (dialog != 0) NebulaAutoTranslate.retry(currentAccount, dialog);
             }).setNegativeButton(t("Отмена", "Cancel"), null).create()));
         tools.add(engine);
-        tools.add(new NebulaRow(c).title(t("Кнопка ИИ в поле ввода", "AI button in composer"))
-            .subtitle(t("Инструменты справа · удержание открывает настройки", "Tools on the right · hold for settings"), false)
+        tools.add(new NebulaRow(c).title(t("Редактор Nebula AI", "Nebula AI editor"))
+            .subtitle(t("Вместо кнопки Telegram · удержание открывает инструменты", "Replaces Telegram's button · hold for tools"), false)
+            .trailing(NebulaRow.TRAIL_SWITCH).checked(NebulaAiReplacements.editor())
+            .withClick(v -> NebulaAiOptions.prefs().edit().putBoolean("replace_editor", ((NebulaRow)v).toggleChecked()).apply()));
+        tools.add(new NebulaRow(c).title(t("Инструменты в подписях", "Tools in captions"))
+            .subtitle(t("Перевод и обработка подписи при отправке медиа", "Translate and process captions when sending media"), false)
             .trailing(NebulaRow.TRAIL_SWITCH).checked(NebulaTranslationSettings.shortcut())
-            .withClick(v -> NebulaTranslationSettings.global().edit().putBoolean("composer_shortcut", ((NebulaRow)v).toggleChecked()).apply()));
+            .withClick(v -> {
+                // Snapshot the legacy opt-in before this key becomes caption-only.
+                NebulaAiOptions.prefs().edit().putBoolean("replace_editor", NebulaAiReplacements.editor()).apply();
+                NebulaTranslationSettings.global().edit().putBoolean("composer_shortcut", ((NebulaRow)v).toggleChecked()).apply();
+            }));
         tools.add(new NebulaRow(c).title(t("Провайдер и модель", "Provider and model")).trailing(NebulaRow.TRAIL_CHEVRON)
             .withClick(v -> presentFragment(new NebulaAiServicesFragment())));
         column.addView(tools);

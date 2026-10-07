@@ -93,8 +93,8 @@ public class CheckMenuFeedback {
   check(r.host.observer.listener==null,"pre-draw listener removed");
   float peak=0;
   for(int i=31;i<=100;i++){r.setProgress(i/100f);check(r.host.sx==1 && r.host.sy==1,"surface geometry must not scale the whole window");peak=Math.max(peak,r.frame.width);}
-  check(peak==200 && r.frame.width==200 && r.frame.height==300 && r.frame.x==100 && r.frame.y==150,"growth settles without ringing at native bounds");
-  r.setProgress(.45f);float pivot=r.host.py,previous=r.frame.width,alpha=r.host.alpha,center=r.frame.x;r.prepareClose();check(r.getCloseDuration()>=160&&r.getCloseDuration()<=240,"responsive close duration");r.setCloseProgress(0);
+  check(peak>200 && peak<210 && r.frame.width==200 && r.frame.height==300 && r.frame.x==100 && r.frame.y==150,"soft spring settles exactly at native bounds");
+  r.setProgress(.45f);float pivot=r.host.py,previous=r.frame.width,alpha=r.host.alpha,center=r.frame.x;r.prepareClose();check(r.getCloseDuration()>=160&&r.getCloseDuration()<=260,"responsive close duration");r.setCloseProgress(0);
   check(r.frame.width==previous && r.host.alpha==alpha && r.frame.x==center,"interrupt close starts at displayed frame");
   for(int i=1;i<=100;i++){r.setCloseProgress(i/100f);check(r.host.py==pivot && r.frame.width<=previous+.001f,"reverse reveal never jumps origin or grows");previous=r.frame.width;}
   check(r.host.alpha==0 && Math.abs(r.frame.width-r.seedWidth)<.001 && Math.abs(r.frame.height-r.seedHeight)<.001,"close ends at source bounds");

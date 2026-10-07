@@ -104,7 +104,7 @@ stubs = {
        }
       }
       NebulaMenuBubble.opening(bubble,.3f,240,400,216,-12,48,24);captured.copy(bubble);
-      check(NebulaMenuBubble.closeDuration(captured,240,400,48)>=160&&NebulaMenuBubble.closeDuration(captured,240,400,48)<=240,"early dismiss retains a responsive smooth close");
+      check(NebulaMenuBubble.closeDuration(captured,240,400,48)>=160&&NebulaMenuBubble.closeDuration(captured,240,400,48)<=260,"early dismiss retains a responsive smooth close");
       NebulaMenuBubble.closing(bubble,captured,.001f,240,400,216,-12,48);
       check(captured.width-bubble.width<(captured.width-48)*.0001f,"close starts with a soft size response");
       for(float x:new float[]{-500,-24,120,264,800})for(float y:new float[]{-600,-24,200,424,1200}) {

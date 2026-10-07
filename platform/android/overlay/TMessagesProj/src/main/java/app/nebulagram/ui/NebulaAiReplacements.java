@@ -7,7 +7,7 @@ import java.util.function.Consumer;
 /** Explicit editor and summary actions use Nebula's selected connection, without Telegram requests. */
 public final class NebulaAiReplacements {
     private NebulaAiReplacements() { }
-    public static boolean editor() { return NebulaAiOptions.prefs().getBoolean("replace_editor", false); }
+    public static boolean editor() { return NebulaAiOptions.prefs().getBoolean("replace_editor", NebulaTranslationSettings.shortcut()); }
     public static boolean summaries() { return NebulaAiOptions.prefs().getBoolean("replace_summaries", false); }
     public static boolean canSummarize(MessageObject object) {
         return summaries() && object != null && object.messageOwner != null && !object.isOutOwner() && !object.isRestrictedMessage && !object.isSponsored()

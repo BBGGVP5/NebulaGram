@@ -21,17 +21,17 @@ public final class NebulaSettingsHero extends LinearLayout {
         NebulaTheme theme = NebulaTheme.of(context);
         setOrientation(VERTICAL);
         setGravity(Gravity.CENTER_HORIZONTAL);
-        setPadding(dp(12), dp(12), dp(12), dp(20));
-        int imageSize=context.getResources().getConfiguration().screenHeightDp<550?72:112;
+        setPadding(dp(12), dp(4), dp(12), dp(14));
+        int imageSize=context.getResources().getConfiguration().screenHeightDp<550?72:88;
         NebulaAnimatedEmoji image=new NebulaAnimatedEmoji(context,UserConfig.selectedAccount,emoji,imageSize);
-        LayoutParams imageParams=new LayoutParams(dp(imageSize),dp(imageSize));imageParams.bottomMargin=dp(16);
+        LayoutParams imageParams=new LayoutParams(dp(imageSize),dp(imageSize));imageParams.bottomMargin=dp(10);
         addView(image,imageParams);
-        heading=label(title,26,theme.onSurface());heading.setGravity(Gravity.CENTER);heading.setTypeface(AndroidUtilities.bold());
+        heading=label(title,24,theme.onSurface());heading.setGravity(Gravity.CENTER);heading.setTypeface(AndroidUtilities.bold());
         addView(heading,new LayoutParams(-1,-2));
-        TextView explanation = label(description, 15, theme.onSurfaceVariant());
+        TextView explanation = label(descriptionText(description), 15, theme.onSurfaceVariant());
         explanation.setGravity(Gravity.CENTER);
         explanation.setLineSpacing(dp(2), 1f);
-        LayoutParams explanationParams=new LayoutParams(-1,-2);explanationParams.topMargin=dp(12);
+        LayoutParams explanationParams=new LayoutParams(-1,-2);explanationParams.topMargin=dp(8);
         addView(explanation, explanationParams);
         status = label("", 12, theme.primary());
         status.setGravity(Gravity.CENTER);
@@ -42,6 +42,11 @@ public final class NebulaSettingsHero extends LinearLayout {
     }
     /** Scroll position at which the large title reaches the native bar. */
     public int titleScrollAnchor() { return getTop() + heading.getTop(); }
+    public static String descriptionText(String value) {
+        if(value==null)return "";String text=value.trim();
+        while(text.endsWith("."))text=text.substring(0,text.length()-1).trim();
+        return text;
+    }
     private static String emoji(int icon) {
         if(icon==R.drawable.msg_secret)return "🔐";
         if(icon==R.drawable.msg_folders||icon==R.drawable.files_folder)return "🗂";

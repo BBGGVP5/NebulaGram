@@ -26,7 +26,7 @@ public final class NebulaAiSettingsFragment extends BaseFragment {
     private NebulaRow toggle(String key, String title, String hint, boolean defaultValue) {
         SharedPreferences p = NebulaAiOptions.prefs();
         return new NebulaRow(content.getContext()).title(title).subtitle(hint, false).trailing(NebulaRow.TRAIL_SWITCH)
-                .checked(p.getBoolean(key, defaultValue)).withClick(v -> p.edit().putBoolean(key, ((NebulaRow) v).toggleChecked()).apply());
+                .checked("replace_editor".equals(key)?NebulaAiReplacements.editor():p.getBoolean(key, defaultValue)).withClick(v -> p.edit().putBoolean(key, ((NebulaRow) v).toggleChecked()).apply());
     }
     private void rebuild() {
         Context c = content.getContext(); content.removeAllViews();
@@ -42,7 +42,7 @@ public final class NebulaAiSettingsFragment extends BaseFragment {
         main.add(link(R.drawable.msg_translate, text("Переводчик", "Translator"), text("Живой перевод и мой текст", "Live translation and my text"), () -> presentFragment(new NebulaTranslationFragment(currentAccount, 0))));
         NebulaFormUi.group(content, text("Основные", "General"), main);
         NebulaCard replacements = new NebulaCard(c);
-        replacements.add(toggle("replace_editor", text("Редактор Telegram", "Telegram editor"), text("Использовать выбранный сервис Nebula AI", "Use the selected Nebula AI service"), false));
+        replacements.add(toggle("replace_editor", text("Редактор Nebula AI", "Nebula AI editor"), text("Заменяет кнопку ИИ Telegram · при выключении возвращается Telegram", "Replaces Telegram AI · turn off to use Telegram"), false));
         replacements.add(toggle("replace_summaries", text("Краткие сводки", "Summaries"), text("Сокращать длинные сообщения через Nebula AI", "Summarize long messages with Nebula AI"), false));
         NebulaFormUi.group(content, text("ИИ Telegram", "Telegram AI"), replacements);
         NebulaCard generation = new NebulaCard(c);

@@ -2,7 +2,7 @@ package app.nebulagram.ui;
 
 /** Independent surface growth, center travel and content reveal, without frame allocations. */
 public final class NebulaMenuBubble {
-    public static final int SEED_DP = 44, OPEN_DURATION_MS = 420, CLOSE_MIN_MS = 160, CLOSE_MAX_MS = 240;
+    public static final int SEED_DP = 44, OPEN_DURATION_MS = 460, CLOSE_MIN_MS = 160, CLOSE_MAX_MS = 260;
     private NebulaMenuBubble() { }
     public static final class Frame {
         public float x, y, width, height, radius, alpha = 1, content = 1;
@@ -13,8 +13,36 @@ public final class NebulaMenuBubble {
     }
     private static float unit(float x) { return Math.max(0, Math.min(1, x)); }
     private static float mix(float a, float b, float t) { return a + (b - a) * t; }
-    /** Zero velocity and acceleration at either end; no spring ringing or tail snap. */
-    private static float ease(float t) { double x=unit(t);return (float)(x*x*x*(x*(x*6-15)+10)); }
+    private static float smooth(float t) { t=unit(t);return t*t*(3-2*t); }
+    private static double response(double time, double duration, double bounce) {
+        double omega = 2 * Math.PI / duration, damping = (1 - bounce) * omega;
+        if (bounce == 0) return 1 - Math.exp(-omega * time) * (1 + omega * time);
+        double frequency = omega * Math.sqrt(1 - (1 - bounce) * (1 - bounce));
+        return 1 - Math.exp(-damping * time) * (Math.cos(frequency * time)
+                + damping / frequency * Math.sin(frequency * time));
+    }
+    private static float spring(float t, float animationDuration, float duration, float bounce) {
+        t = unit(t);
+        if (t == 0 || t == 1) return t;
+        // FlClash common/motion.dart: SpringDescription.withDurationAndBounce
+        // supplies physical periods; SpringCurve samples actual animation time
+        // and linearly removes the endpoint residual. No artificial peak cap.
+        return (float) (response(t * animationDuration, duration, bounce)
+                + (1 - response(animationDuration, duration, bounce)) * t);
+    }
+    private static float cubic(float t, float x1, float y1, float x2, float y2) {
+        t = unit(t);
+        if (t == 0 || t == 1) return t;
+        float lo = 0, hi = 1, u = t;
+        for (int i = 0; i < 16; i++) {
+            u = (lo + hi) / 2;
+            float v = 1 - u;
+            float x = 3 * v * v * u * x1 + 3 * v * u * u * x2 + u * u * u;
+            if (x < t) lo = u; else hi = u;
+        }
+        float v = 1 - u;
+        return 3 * v * v * u * y1 + 3 * v * u * u * y2 + u * u * u;
+    }
     public static void opening(Frame out, float progress, float width, float height,
                                float originX, float originY, float seed, float radius) {
         opening(out,progress,width,height,originX,originY,seed,seed,Math.min(seed,Math.min(width,height))/2,radius);
@@ -22,15 +50,14 @@ public final class NebulaMenuBubble {
     public static void opening(Frame out, float progress, float width, float height,
                                float originX, float originY, float seedWidth, float seedHeight, float seedRadius, float radius) {
         float t = unit(progress);
-        float growth = ease(t);
-        out.x = mix(originX, width / 2, growth);
-        out.y = mix(originY, height / 2, growth);
+        float growth = spring(t,750,500,.3f);
+        out.x = mix(originX,width/2,spring(t,750,520,.2f));
+        out.y = mix(originY,height/2,spring(t,750,340,.12f));
         out.width = mix(seedWidth, width, growth);
         out.height = mix(seedHeight, height, growth);
-        float round=seedRadius+(Math.min(out.width,out.height)-Math.min(seedWidth,seedHeight))/2;
-        out.radius = mix(round, radius, ease((t-.08f)/.82f));
+        out.radius = mix(seedRadius,radius,unit(growth));
         out.alpha = 1;
-        out.content = ease((t - .22f) / .52f);
+        out.content = cubic(unit((t-.04f)/.41f),.215f,.61f,.355f,1);
     }
     public static void closing(Frame out, Frame from, float progress, float width, float height,
                                float originX, float originY, float seed) {
@@ -38,15 +65,14 @@ public final class NebulaMenuBubble {
     }
     public static void closing(Frame out, Frame from, float progress, float width, float height,
                                float originX, float originY, float seedWidth, float seedHeight, float seedRadius) {
-        float t = unit(progress), shrink = ease(t);
-        out.x = mix(from.x, originX, shrink);
-        out.y = mix(from.y, originY, shrink);
+        float t = unit(progress), shrink = spring(t,400,340,0);
+        out.x = mix(from.x,originX,spring(t,400,300,0));
+        out.y = mix(from.y,originY,spring(t,400,440,0));
         out.width = mix(from.width, seedWidth, shrink);
         out.height = mix(from.height, seedHeight, shrink);
-        float round=seedRadius+(Math.min(out.width,out.height)-Math.min(seedWidth,seedHeight))/2;
-        out.radius = mix(from.radius, round, shrink);
-        out.alpha = from.alpha * (1 - ease((t - .65f) / .35f));
-        out.content = from.content * (1 - ease(t/.52f));
+        out.radius = mix(from.radius,seedRadius,shrink);
+        out.alpha = from.alpha*(1-smooth((t-.55f)/.45f));
+        out.content = from.content*cubic(1-t*2,.42f,0,1,1);
     }
     public static int closeDuration(Frame from, float width, float height, float seed) {
         float extent = Math.max((from.width - seed) / Math.max(1, width - seed),

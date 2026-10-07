@@ -1,0 +1,198 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
+@@ -638,8 +638,8 @@
+     private LinearLayout attachLayout;
+     private ViewPropertyAnimator attachButtonAnimator;
+     private ImageView attachButton;
+-    private ImageView nebulaToolsButton;
+     private boolean nebulaToolsVisible;
++    private final app.nebulagram.ui.NebulaComposerAi.Modals nebulaAiModals = new app.nebulagram.ui.NebulaComposerAi.Modals();
+     private app.nebulagram.ui.NebulaDraftTranslation nebulaDraftTranslation;
+     private AiButtonDrawable aiButtonIcon;
+     private ImageView aiButton;
+@@ -5854,28 +5854,8 @@
+         messageEditText.setHandlesColor(getThemedColor(Theme.key_chat_TextSelectionCursor));
+         messageEditTextContainer.addView(messageEditText, 1, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.BOTTOM, 52, 0, isChat ? 50 : 2, 1.5f));
+         if (parentFragment != null && isChat) {
+-            nebulaToolsButton = new ImageView(getContext());
+-            nebulaToolsButton.setImageResource(R.drawable.nebula_ai_outline);
+-            nebulaToolsButton.setScaleType(ImageView.ScaleType.CENTER);
+-            nebulaToolsButton.setContentDescription(app.nebulagram.ui.NebulaText.text("Инструменты ИИ", "AI tools"));
+-            nebulaToolsButton.setBackground(Theme.createSelectorDrawable(getThemedColor(Theme.key_listSelector), 1));
+-            nebulaToolsButton.setVisibility(GONE);
+-            messageEditTextContainer.addView(nebulaToolsButton, LayoutHelper.createFrame(44, DEFAULT_HEIGHT, Gravity.BOTTOM | Gravity.RIGHT));
+             nebulaDraftTranslation = new app.nebulagram.ui.NebulaDraftTranslation(parentFragment, messageEditText, this, this::setFieldText);
+-            nebulaToolsButton.setOnClickListener(v -> {
+-                final String source = messageEditText.getText().toString();
+-                nebulaDraftTranslation.stop();
+-                nebulaToolsVisible = true;
+-                app.nebulagram.ui.NebulaMessageToolsFragment.show(parentFragment, new app.nebulagram.ui.NebulaMessageToolsFragment(currentAccount, dialog_id, source, value -> {
+-                    if (source.equals(messageEditText.getText().toString())) setFieldText(value);
+-                }).withEditor(() -> aiButton.performClick()), () -> {
+-                    nebulaToolsVisible = false;
+-                    updateNebulaDraftTranslation();
+-                });
+-            });
+-            nebulaToolsButton.setOnLongClickListener(v -> {
+-                parentFragment.presentFragment(new app.nebulagram.ui.NebulaTranslationFragment(currentAccount, dialog_id)); return true;
+-            });
++            aiButton.setOnLongClickListener(v -> { openNebulaTools(); return true; });
+         }
+ 
+ 
+@@ -6135,26 +6115,54 @@
+     }
+ 
+     private AIEditorAlert createNebulaAwareAiEditor() {
++        nebulaAiModals.opened();
+         nebulaToolsVisible = true;
+         if (nebulaDraftTranslation != null) nebulaDraftTranslation.stop();
+         AIEditorAlert editor = new AIEditorAlert(getContext(), resourcesProvider);
+         editor.setOnDismissListener(dialog -> {
+-            nebulaToolsVisible = false;
++            nebulaToolsVisible = nebulaAiModals.closed();
+             updateNebulaDraftTranslation();
+         });
+         return editor;
+     }
+ 
++    private void openNebulaTools() {
++        if (parentFragment == null || messageEditText == null || parentFragment.isSecretChat()) return;
++        final String source = messageEditText.getText().toString();
++        if (nebulaDraftTranslation != null) nebulaDraftTranslation.stop();
++        nebulaAiModals.opened();
++        nebulaToolsVisible = true;
++        app.nebulagram.ui.NebulaMessageToolsFragment.show(parentFragment,
++                new app.nebulagram.ui.NebulaMessageToolsFragment(currentAccount, dialog_id, source, value -> {
++                    if (source.equals(messageEditText.getText().toString())) setFieldText(value);
++                }).withEditor(() -> aiButton.performClick()), () -> {
++                    nebulaToolsVisible = nebulaAiModals.closed(); updateNebulaDraftTranslation();
++                });
++    }
++
++    private boolean nebulaAiIcon;
+     private boolean shownAiButton;
+     private void showAiButton(boolean show_) {
+-        final boolean show = (show_ || richDraftActive) && parentFragment != null && !parentFragment.isSecretChat()
+-            && (richDraftActive || !app.nebulagram.ui.NebulaTranslationSettings.shortcut());
++        if (aiButton == null) return;
++        final boolean nebula = app.nebulagram.ui.NebulaAiReplacements.editor();
++        if (nebulaAiIcon != nebula) {
++            nebulaAiIcon = nebula;
++            if (nebula) aiButton.setImageResource(R.drawable.nebula_ai_outline);
++            else aiButton.setImageDrawable(aiButtonIcon);
++        }
++        aiButton.setContentDescription(nebula ? app.nebulagram.ui.NebulaText.text("Редактор Nebula AI · удерживайте для инструментов", "Nebula AI editor · hold for tools") : getString(R.string.AIEditor));
++        final boolean show = app.nebulagram.ui.NebulaComposerAi.visible(show_, editingMessageObject != null,
++                messageEditText != null && messageEditText.getText() != null && !TextUtils.isEmpty(messageEditText.getText().toString().trim()),
++                richDraftActive, parentFragment != null && !parentFragment.isSecretChat(),
++                recordingAudioVideo || isPaused || recordedAudioPanel != null && recordedAudioPanel.getVisibility() == VISIBLE);
++        aiButton.setEnabled(show);
+ 
+         if (shownAiButton == show) return;
+         if (show) {
+             MessagesController.getInstance(currentAccount).getTonesController().load();
+         }
+         shownAiButton = show;
++        aiButton.animate().cancel();
+         aiButton.setVisibility(View.VISIBLE);
+         aiButton.animate()
+             .alpha(show ? 1.0f : 0.0f)
+@@ -6163,13 +6171,13 @@
+             .setInterpolator(CubicBezierInterpolator.EASE_OUT_QUINT)
+             .setDuration(420)
+             .withEndAction(() -> {
+-                if (!show) {
++                if (!show && !shownAiButton) {
+                     aiButton.setVisibility(View.GONE);
+                 }
+             })
+             .start();
+         if (show) {
+-            aiButton.postDelayed(aiButtonIcon::animate, 220);
++            if (!nebula) aiButton.postDelayed(() -> { if (shownAiButton && !nebulaAiIcon) aiButtonIcon.animate(); }, 160);
+ 
+             if (aiHint != null) {
+                 aiHint.hide();
+@@ -8885,9 +8893,8 @@
+     private void updateFieldRight(int attachVisible) {
+         lastAttachVisible = attachVisible;
+         nebulaComposerStyle.restoreInsets();
+-        if (nebulaToolsButton != null && (editingMessageObject != null || richDraftActive || recordingAudioVideo || isPaused)) {
+-            nebulaToolsButton.setVisibility(GONE);
+-        }
++        if (aiButton != null) showAiButton(messageEditText != null && messageEditText.getLineCount() > 2
++                && messageEditText.getText() != null && !TextUtils.isEmpty(messageEditText.getText().toString().trim()));
+         if (messageEditText == null || (editingMessageObject != null && !editingMessageObject.needResendWhenEdit())) {
+             return;
+         }
+@@ -8914,26 +8921,7 @@
+         if (doneButton != null && doneButton.getVisibility() == VISIBLE) {
+             layoutParams.rightMargin = Math.max(layoutParams.rightMargin, Math.max(0, doneButton.width() - dp(DEFAULT_HEIGHT)));
+         }
+-        if (nebulaToolsButton != null) {
+-            boolean visible = app.nebulagram.ui.NebulaTranslationSettings.shortcut() && !recordingAudioVideo
+-                && editingMessageObject == null && !richDraftActive && !isPaused
+-                && !DialogObject.isEncryptedDialog(dialog_id) && dialog_id != 0
+-                && (recordedAudioPanel == null || recordedAudioPanel.getVisibility() != VISIBLE);
+-            nebulaToolsButton.setVisibility(visible ? VISIBLE : GONE);
+-            if (visible) {
+-                FrameLayout.LayoutParams toolsParams = (FrameLayout.LayoutParams) nebulaToolsButton.getLayoutParams();
+-                int toolsInset = app.nebulagram.ui.NebulaComposerSlots.toolsInset(
+-                        layoutParams.rightMargin, dp(50), dp(2),
+-                        app.nebulagram.ui.NebulaAppearance.iosComposer(),
+-                        giftButton != null && giftButton.getVisibility() == VISIBLE && attachVisible != 0 ? dp(DEFAULT_HEIGHT) : 0);
+-                if (toolsParams.rightMargin != toolsInset) {
+-                    if (nebulaToolsButton.isLaidOut()) animationParamsX.put(nebulaToolsButton, nebulaToolsButton.getX());
+-                    toolsParams.rightMargin = toolsInset; nebulaToolsButton.setLayoutParams(toolsParams);
+-                }
+-                nebulaToolsButton.setColorFilter(getThemedColor(Theme.key_glass_defaultIcon));
+-                layoutParams.rightMargin = toolsInset + dp(44);
+-            }
+-        }
++
+         if (oldRightMargin != layoutParams.rightMargin) {
+             messageEditText.setLayoutParams(layoutParams);
+         }
+@@ -14790,10 +14778,7 @@
+     protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
+         super.onLayout(changed, left, top, right, bottom);
+         nebulaComposerStyle.layout(emojiButton, attachButton, senderSelectView, aiButton, richButton);
+-        if (nebulaToolsButton != null && nebulaToolsButton.getVisibility() == VISIBLE) {
+-            nebulaToolsButton.layout(nebulaToolsButton.getLeft(), emojiButton.getTop(),
+-                nebulaToolsButton.getRight(), emojiButton.getTop() + nebulaToolsButton.getMeasuredHeight());
+-        }
++
+         updateNebulaDraftTranslation();
+         if (botCommandLastPosition != -1 && botCommandsMenuContainer != null) {
+             LinearLayoutManager layoutManager = (LinearLayoutManager) botCommandsMenuContainer.listView.getLayoutManager();
+@@ -14806,7 +14791,6 @@
+ 
+     private void beginDelayedTransition() {
+         animationParamsX.put(emojiButton, emojiButton.getX());
+-        if (nebulaToolsButton != null && nebulaToolsButton.getVisibility() == VISIBLE) animationParamsX.put(nebulaToolsButton, nebulaToolsButton.getX());
+         if (messageEditText != null) {
+             animationParamsX.put(messageEditText, messageEditText.getX());
+         }
+@@ -14920,7 +14904,6 @@
+         emojiButtonPaddingAlpha = progress;
+         updateEmojiButtonParams();
+         emojiButton.setTranslationX(-leftPadding);
+-        if (nebulaToolsButton != null) nebulaToolsButton.setTranslationX(rightPadding);
+         messageTextPaddingTranslationX = -leftPadding - (messageEditText == null ? 0 : dp(40) + (senderSelectView != null && senderSelectView.getVisibility() == View.VISIBLE ? dp(18) : 0)) * (1f - progress);
+         if (recordDeleteImageView != null) {
+             recordDeleteImageView.setTranslationX(-leftPadding);
+@@ -15013,11 +14996,7 @@
+         emojiButton.setScaleX(emojiButtonPaddingScale * emojiButtonScale);
+         emojiButton.setScaleY(emojiButtonPaddingScale * emojiButtonScale);
+         emojiButton.setAlpha(emojiButtonPaddingAlpha * emojiButtonAlpha);
+-        if (nebulaToolsButton != null) {
+-            nebulaToolsButton.setScaleX(emojiButtonPaddingScale * emojiButtonScale);
+-            nebulaToolsButton.setScaleY(emojiButtonPaddingScale * emojiButtonScale);
+-            nebulaToolsButton.setAlpha(emojiButtonPaddingAlpha * emojiButtonAlpha);
+-        }
++
+     }
+ 
+     public void setOverrideHint(CharSequence overrideHint) {
