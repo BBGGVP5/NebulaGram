@@ -48,6 +48,8 @@ Delivery: Android build 389 / versionCode 1000389 succeeded in run 37638923283 f
 - [x] Restore the original small icon rendering in settings rows and profile actions. Remove the automatic emoji mapping and profile replacement hook; retain the requested flat profile surface and menu/lifecycle corrections.
 - [x] Use Telegram emoji artwork for large page fallbacks, including the General gear, instead of Android's system font. Keep real Telegram Lottie/video animation and remove the synthetic rocking motion.
 - [x] Keep the NebulaLink introduction attached during status/schema rebuilds so updates do not interrupt its animation. Replay on navigation return only.
-- [ ] Verify the scoped rollback, native emoji loading and stable NebulaLink introduction; build and verify a fresh APK.
+- [x] Verify the scoped rollback, native emoji loading and stable NebulaLink introduction; build and verify a fresh APK.
 
 Clarification verification: all 87 required checks pass locally after reconstructing 178 patches. Updated fixtures require native Telegram glyph preloading, repaint after `emojiLoaded`, cleanup of global/account observers, cached-view replay, unchanged icon-pack resolution and stable NebulaLink hero identity. Production emoji helpers compile against Android SDK and native APIs. Standard Telegram artwork remains visible when the server has no animation for a given emoji; no synthetic animation substitutes for it.
+
+Clarification delivery: Android 391 / versionCode 1000391 succeeded in run 37643386298 from source `1ed25d66ed45fd5afd25fd85ecae457c0873092b`; Settings contract run 37643386283 also succeeded. APK SHA-256: `f250d722249fcbb91e409512eb2e88d5455f74bec6c58796e7c9036237a1850e`. Package, arm64-v8a/native core, icon pack and the existing signing certificate were verified in `build/qa-apk-native-emoji-1ed25d6/local-verification.json`. No ADB device was connected, so physical-device appearance/playback validation remains unperformed.
