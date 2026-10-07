@@ -1,4 +1,4 @@
-"""Exercise production emoji detach, first-frame readiness and cached page replay."""
+"""Exercise Telegram emoji artwork loading, detach and cached page replay."""
 from pathlib import Path
 import os,subprocess,tempfile
 root=Path(__file__).resolve().parents[1]
@@ -26,11 +26,11 @@ sources = {'android/content/Context.java': 'package android.content;public class
                            'rotation,translation,scaleX=1,scaleY=1;\n'
                            'public final ViewTreeObserver tree=new ViewTreeObserver();public static final '
                            'ArrayList<Runnable> posts=new ArrayList<>();\n'
-                           'public View(android.content.Context c){}public void setWillNotDraw(boolean b){}public void '
-                           'invalidate(){}public int getWidth(){return 112;}public int getHeight(){return '
-                           '112;}protected void onDraw(android.graphics.Canvas c){}public void '
-                           'draw(android.graphics.Canvas c){onDraw(c);}protected void onLayout(boolean c,int l,int '
-                           't,int r,int b){}public void layout(int l,int t,int r,int '
+                           'public View(android.content.Context c){}public void setWillNotDraw(boolean b){}public int '
+                           'invalidations;public void invalidate(){invalidations++;}public int getWidth(){return '
+                           '112;}public int getHeight(){return 112;}protected void onDraw(android.graphics.Canvas '
+                           'c){}public void draw(android.graphics.Canvas c){onDraw(c);}protected void onLayout(boolean '
+                           'c,int l,int t,int r,int b){}public void layout(int l,int t,int r,int '
                            'b){onLayout(false,l,t,r,b);}public void setVisibility(int '
                            'n){visibility=n;onVisibilityChanged(this,n);}public int getVisibility(){return '
                            'visibility;}\n'
@@ -50,8 +50,7 @@ sources = {'android/content/Context.java': 'package android.content;public class
                            '}',
  'android/widget/FrameLayout.java': 'package android.widget;import java.util.*;public class FrameLayout extends '
                                     'android.view.ViewGroup {\n'
-                                    'public '
-                                    'FrameLayout(android.content.Context c){super(c);}public void '
+                                    'public FrameLayout(android.content.Context c){super(c);}public void '
                                     'addView(android.view.View v,LayoutParams p){children.add(v);}\n'
                                     'public static class LayoutParams {public LayoutParams(int w,int h){}}}',
  'android/widget/TextView.java': 'package android.widget;public class TextView extends android.view.View {\n'
@@ -77,9 +76,13 @@ sources = {'android/content/Context.java': 'package android.content;public class
                                          'public void advance(float v){value=v;update.update(this);}}\n',
  'org/telegram/messenger/AndroidUtilities.java': 'package org.telegram.messenger;public class AndroidUtilities {public '
                                                  'static float dpf2(float v){return v;}public static int dp(int '
-                                                 'v){return v;}}',
- 'org/telegram/messenger/Emoji.java': 'package org.telegram.messenger;public class Emoji {public static CharSequence '
-                                      'replaceEmoji(String v,Object f,boolean x){return v;}}',
+                                                 'v){return v;}public static int dp(float v){return Math.round(v);}}',
+ 'org/telegram/messenger/Emoji.java': 'package org.telegram.messenger;public class Emoji {\n'
+                                      ' public static String requested;public static EmojiDrawable last;\n'
+                                      ' public static class EmojiDrawable extends android.graphics.drawable.Drawable '
+                                      '{public boolean fullSize=true,loaded;public void preload(){loaded=true;}}\n'
+                                      ' public static android.graphics.drawable.Drawable getEmojiBigDrawable(String '
+                                      'v){requested=v;return last=new EmojiDrawable();}}',
  'org/telegram/tgnet/TLRPC.java': 'package org.telegram.tgnet;public class TLRPC {public static class Document {public '
                                   'long id=10,size=100;public String mime_type="application/x-tgsticker";}}',
  'org/telegram/messenger/MediaDataController.java': 'package org.telegram.messenger;public class MediaDataController '
@@ -93,13 +96,16 @@ sources = {'android/content/Context.java': 'package android.content;public class
                                                     'checkStickers(int t){}}\n',
  'org/telegram/messenger/NotificationCenter.java': 'package org.telegram.messenger;import java.util.*;public class '
                                                    'NotificationCenter {\n'
-                                                   'public static final int stickersDidLoad=1;public static final '
-                                                   'NotificationCenter instance=new NotificationCenter();public '
-                                                   'ArrayList<NotificationCenterDelegate> observers=new '
-                                                   'ArrayList<>();\n'
+                                                   'public static final int stickersDidLoad=1,emojiLoaded=2;public '
+                                                   'static final NotificationCenter instance=new '
+                                                   'NotificationCenter();public ArrayList<NotificationCenterDelegate> '
+                                                   'observers=new ArrayList<>();\n'
                                                    'public interface NotificationCenterDelegate {void '
                                                    'didReceivedNotification(int id,int a,Object...args);}public static '
-                                                   'NotificationCenter getInstance(int a){return instance;}\n'
+                                                   'NotificationCenter getInstance(int a){return instance;}public '
+                                                   'static final NotificationCenter global=new '
+                                                   'NotificationCenter();public static NotificationCenter '
+                                                   'getGlobalInstance(){return global;}\n'
                                                    'public void addObserver(NotificationCenterDelegate d,int '
                                                    'n){observers.add(d);}public void '
                                                    'removeObserver(NotificationCenterDelegate d,int '
@@ -159,11 +165,14 @@ sources = {'android/content/Context.java': 'package android.content;public class
                     'var emoji=new NebulaAnimatedEmoji(new '
                     'android.content.Context(),0,"🛡️",112);emoji.attach();View.flush();\n'
                     'var '
-                    'shield=(android.widget.TextView)emoji.children.get(0);check(emoji.children.size()==1,"fallback '
-                    'must remain emoji artwork, not a emoji fallback and explicit replay");\n'
-                    'check(ValueAnimator.running.size()==1,"unavailable intro animation has fallback '
-                    'motion");ValueAnimator.running.get(0).advance(.25f);check(shield.rotation!=0,"fallback motion '
-                    'reaches shield");\n'
+                    'shield=(android.widget.ImageView)emoji.children.get(0);check(shield.drawable==Emoji.last&&Emoji.last.loaded&&!Emoji.last.fullSize,"native '
+                    'Telegram emoji artwork must be preloaded and use view bounds");\n'
+                    'check(emoji.children.size()==1&&ValueAnimator.running.isEmpty(),"no system font fallback or '
+                    'synthetic rocking animation");\n'
+                    'check(NotificationCenter.global.observers.contains(emoji),"observe native emoji asset loading");\n'
+                    'int '
+                    'paints=shield.invalidations;emoji.didReceivedNotification(NotificationCenter.emojiLoaded,-1);check(shield.invalidations==paints+1,"native '
+                    'emoji load invalidates fallback");\n'
                     'MediaDataController.doc=new '
                     'org.telegram.tgnet.TLRPC.Document();NotificationCenter.instance.fire();var first=receiver();\n'
                     'first.thumbnail();View.flush();check(shield.getVisibility()==View.VISIBLE,"thumbnail cannot hide '
@@ -186,7 +195,7 @@ sources = {'android/content/Context.java': 'package android.content;public class
                     'resume must replay without detach/focus/layout");\n'
                     'first.decode(false,false);emoji.detach();check(!first.attached&&first.lottie==null&&first.delegate==null,"detach '
                     'clears receiver and decoder exactly like Telegram");\n'
-                    'check(NotificationCenter.instance.observers.isEmpty()&&emoji.tree.observers.isEmpty(),"observers '
+                    'check(NotificationCenter.instance.observers.isEmpty()&&NotificationCenter.global.observers.isEmpty()&&emoji.tree.observers.isEmpty(),"observers '
                     'released");\n'
                     'emoji.viewport=false;emoji.attach();var '
                     'second=receiver();check(second!=first&&second.binding==1,"same document must reload on page '
@@ -206,19 +215,23 @@ sources = {'android/content/Context.java': 'package android.content;public class
                     'MediaDataController.doc=null;var small=new NebulaAnimatedEmoji(new '
                     'android.content.Context(),0,"🤖",32);small.attach();View.flush();check(ValueAnimator.running.isEmpty(),"small '
                     'unsupported glyph stays quiet");small.detach();\n'
+                    'var gear=new NebulaAnimatedEmoji(new '
+                    'android.content.Context(),0,"⚙️",112);gear.attach();View.flush();check("⚙️".equals(Emoji.requested)&&((android.widget.ImageView)gear.children.get(0)).drawable==Emoji.last,"General '
+                    'gear uses Telegram artwork");gear.detach();\n'
                     'var disabled=new NebulaAnimatedEmoji(new '
                     'android.content.Context(),0,"🛡️",112);ValueAnimator.enabled=false;disabled.attach();View.flush();check(ValueAnimator.running.isEmpty(),"system '
                     'animations disabled respected");disabled.detach();ValueAnimator.enabled=true;\n'
                     'System.out.println("Settings emoji: detach cache clearing/reentry, first decoded bitmap, stale '
-                    'callbacks, emoji fallback and explicit replay, video, focus, viewport and reduced motion '
+                    'callbacks, Telegram artwork and explicit replay, video, focus, viewport and reduced motion '
                     'passed");}}\n',
  'android/graphics/Canvas.java': 'package android.graphics;public class Canvas {public int save(){return 1;}public '
                                  'void restoreToCount(int s){}public void clipRect(int l,int t,int r,int b){}}',
  'android/widget/ImageView.java': 'package android.widget;public class ImageView extends android.view.View {public '
-                                  'Object drawable;public ImageView(android.content.Context c){super(c);}public void '
-                                  'setImageDrawable(Object d){drawable=d;}public void setScaleType(Object t){}public '
-                                  'static class ScaleType {public static final Object FIT_CENTER=new Object();}public '
-                                  'void setPadding(int l,int t,int r,int b){}}',
+                                  'android.graphics.drawable.Drawable drawable;public '
+                                  'ImageView(android.content.Context c){super(c);}public void '
+                                  'setImageDrawable(android.graphics.drawable.Drawable d){drawable=d;}public void '
+                                  'setScaleType(Object t){}public static class ScaleType {public static final Object '
+                                  'FIT_CENTER=new Object();}public void setPadding(int l,int t,int r,int b){}}',
  'org/telegram/messenger/ImageLocation.java': 'package org.telegram.messenger;public class ImageLocation {public '
                                               'static ImageLocation getForDocument(org.telegram.tgnet.TLRPC.Document '
                                               'd){return new ImageLocation();}}',
@@ -239,7 +252,8 @@ sources = {'android/content/Context.java': 'package android.content;public class
                                                     ' public void setCurrentFrame(int f,boolean async,boolean '
                                                     'reset){current=f;resets++;}\n'
                                                     ' public void '
-                                                    'start(){starts++;if(owner!=null)owner.started=true;}}'}
+                                                    'start(){starts++;if(owner!=null)owner.started=true;}}',
+ 'android/graphics/drawable/Drawable.java': 'package android.graphics.drawable;public class Drawable {}'}
 with tempfile.TemporaryDirectory(prefix='nebula-emoji-') as temp:
  tree=Path(temp)
  for name,text in sources.items():

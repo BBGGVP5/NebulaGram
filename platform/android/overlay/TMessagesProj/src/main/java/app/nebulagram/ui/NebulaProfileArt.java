@@ -243,7 +243,6 @@ public final class NebulaProfileArt {
     /** Native hit targets and press animation, with a shared photographic glass source. */
     public static final class Actions extends ProfileActionsView {
         private final Paint actionFill = new Paint(Paint.ANTI_ALIAS_FLAG);
-        private final NebulaProfileEmoji emoji = new NebulaProfileEmoji(this);
         private final Theme.ResourcesProvider provider;
         private NebulaProfileGlass glass;
         private boolean bannerReady, bannerActive, hasNativeColor, nativeHasColorById;
@@ -269,10 +268,6 @@ public final class NebulaProfileArt {
         @Override protected int actionTextColor(int color) {
             return bannerActive?android.graphics.Color.WHITE:Theme.getColor(Theme.key_windowBackgroundWhiteBlackText,provider);
         }
-        @Override protected boolean drawActionEmoji(Canvas canvas, android.graphics.Rect bounds, int key, float alpha) {
-            return emoji.draw(canvas,bounds,key,alpha);
-        }
-        @Override protected void onAttachedToWindow() {super.onAttachedToWindow();emoji.attach();}
 
         private void captureBanner(Hero hero, ImageReceiver receiver, RectF bounds) {
             if (!NebulaProfileGlass.supported()) return;
@@ -296,7 +291,6 @@ public final class NebulaProfileArt {
 
         @Override protected void onDetachedFromWindow() {
             super.onDetachedFromWindow();
-            emoji.detach();
             glass = null;
             bannerReady = false; setBannerActive(false);
         }

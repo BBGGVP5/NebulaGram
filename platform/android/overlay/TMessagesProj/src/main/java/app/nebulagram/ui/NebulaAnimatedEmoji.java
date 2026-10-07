@@ -5,19 +5,18 @@ import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Rect;
 import android.os.Build;
-import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
 import android.widget.FrameLayout;
-import android.widget.TextView;
+import android.widget.ImageView;
 import org.telegram.messenger.*;
 import org.telegram.tgnet.TLRPC;
 
 /** Owns the receiver for one attachment; only a decoded frame can replace the fallback. */
 public final class NebulaAnimatedEmoji extends FrameLayout implements NotificationCenter.NotificationCenterDelegate {
     private final int account, size;
-    private final TextView text;
+    private final ImageView fallbackImage;
     private final Rect visibleBounds = new Rect();
     private final ViewTreeObserver.OnScrollChangedListener scrollListener = this::updatePlayback;
     private String emoji;
@@ -26,21 +25,25 @@ public final class NebulaAnimatedEmoji extends FrameLayout implements Notificati
     private int attachment;
     private ImageReceiver receiver;
     private boolean activeLast, rewindPending = true;
-    private ValueAnimator fallbackMotion;
 
     public NebulaAnimatedEmoji(Context c, int account, String emoji, int size) {
         super(c); this.account=account; this.size=size; setWillNotDraw(false);
-        text=new TextView(c); text.setGravity(Gravity.CENTER); text.setTextSize(android.util.TypedValue.COMPLEX_UNIT_DIP,size*.72f);
-        text.setTextColor(0xFFFFFFFF); text.setIncludeFontPadding(false); addView(text,new LayoutParams(-1,-1));
+        fallbackImage=new ImageView(c);fallbackImage.setScaleType(ImageView.ScaleType.FIT_CENTER);
+        int inset=AndroidUtilities.dp(size*.14f);fallbackImage.setPadding(inset,inset,inset,inset);
+        addView(fallbackImage,new LayoutParams(-1,-1));
         setImportantForAccessibility(IMPORTANT_FOR_ACCESSIBILITY_NO); setEmoji(emoji);
     }
     public void setEmoji(String value) {
-        emoji=value; text.setText(value); releaseReceiver(); showFallback(true); if(attached)refresh();
+        emoji=value;
+        android.graphics.drawable.Drawable glyph=Emoji.getEmojiBigDrawable(value);
+        if(glyph instanceof Emoji.EmojiDrawable){((Emoji.EmojiDrawable)glyph).fullSize=false;((Emoji.EmojiDrawable)glyph).preload();}
+        fallbackImage.setImageDrawable(glyph);
+        releaseReceiver(); showFallback(true); if(attached)refresh();
     }
     private boolean motionAllowed() { return !NebulaGlass.reduced() && (Build.VERSION.SDK_INT<26||ValueAnimator.areAnimatorsEnabled()); }
-    private View fallback() { return text; }
+    private View fallback() { return fallbackImage; }
     private void showFallback(boolean show) {
-        text.setVisibility(show?VISIBLE:GONE);
+        fallbackImage.setVisibility(show?VISIBLE:GONE);
     }
     private boolean frameReady() {
         return receiver!=null && (receiver.getLottieAnimation()!=null&&receiver.getLottieAnimation().hasBitmap()
@@ -105,21 +108,9 @@ public final class NebulaAnimatedEmoji extends FrameLayout implements Notificati
                 }
             } else receiver.stopAnimation();
         }
-        if(active&&size>=72&&fallback().getVisibility()==VISIBLE)startFallbackMotion();else stopFallbackMotion();
-    }
-    private void startFallbackMotion() {
-        if(fallbackMotion!=null)return; final ValueAnimator motion=fallbackMotion=ValueAnimator.ofFloat(0f,1f);
-        motion.setDuration(2600);motion.setRepeatCount(ValueAnimator.INFINITE);motion.setInterpolator(new android.view.animation.LinearInterpolator());
-        motion.addUpdateListener(v->{if(fallbackMotion!=motion)return;double phase=(Float)v.getAnimatedValue()*Math.PI*2;float lift=(1f-(float)Math.cos(phase))*.5f;
-            View glyph=fallback();glyph.setTranslationY(-AndroidUtilities.dpf2(2.5f)*lift);glyph.setRotation(3f*(float)Math.sin(phase));glyph.setScaleX(1+.025f*lift);glyph.setScaleY(1+.025f*lift);});
-        motion.start();
-    }
-    private void stopFallbackMotion() {
-        if(fallbackMotion!=null){ValueAnimator old=fallbackMotion;fallbackMotion=null;old.cancel();}
-        text.setTranslationY(0);text.setRotation(0);text.setScaleX(1);text.setScaleY(1);
     }
     /** Navigation can resume an existing attached view without layout or focus changes. */
-    public void replay() { rewindPending=true;stopFallbackMotion();if(attached){refresh();updatePlayback();} }
+    public void replay() { rewindPending=true;if(attached){refresh();updatePlayback();} }
     public static void replayPage(View view) {
         if(view instanceof NebulaAnimatedEmoji)((NebulaAnimatedEmoji)view).replay();
         else if(view instanceof ViewGroup){ViewGroup group=(ViewGroup)view;for(int i=0;i<group.getChildCount();i++)replayPage(group.getChildAt(i));}
@@ -129,9 +120,12 @@ public final class NebulaAnimatedEmoji extends FrameLayout implements Notificati
     @Override protected void onLayout(boolean changed,int l,int t,int r,int b){super.onLayout(changed,l,t,r,b);if(attached)updatePlayback();}
     @Override protected void onAttachedToWindow(){super.onAttachedToWindow();attached=true;attachment++;
         NotificationCenter.getInstance(account).addObserver(this,NotificationCenter.stickersDidLoad);getViewTreeObserver().addOnScrollChangedListener(scrollListener);
+        NotificationCenter.getGlobalInstance().addObserver(this,NotificationCenter.emojiLoaded);
         MediaDataController.getInstance(account).checkStickers(MediaDataController.TYPE_EMOJI);refresh();post(()->{if(attached)updateVisual();});}
     @Override protected void onDetachedFromWindow(){attached=false;NotificationCenter.getInstance(account).removeObserver(this,NotificationCenter.stickersDidLoad);
+        NotificationCenter.getGlobalInstance().removeObserver(this,NotificationCenter.emojiLoaded);
         if(getViewTreeObserver().isAlive())getViewTreeObserver().removeOnScrollChangedListener(scrollListener);
-        releaseReceiver();stopFallbackMotion();showFallback(true);super.onDetachedFromWindow();}
-    @Override public void didReceivedNotification(int id,int account,Object...args){if(attached&&id==NotificationCenter.stickersDidLoad)refresh();}
+        releaseReceiver();showFallback(true);super.onDetachedFromWindow();}
+    @Override public void didReceivedNotification(int id,int account,Object...args){if(!attached)return;
+        if(id==NotificationCenter.stickersDidLoad)refresh();else if(id==NotificationCenter.emojiLoaded)fallbackImage.invalidate();}
 }

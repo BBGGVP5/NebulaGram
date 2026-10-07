@@ -24,8 +24,18 @@ editor=(ui/'NebulaAiServiceEditorFragment.java').read_text(encoding='utf-8')
 assert 'NebulaFormUi.cardField' in editor and 'NebulaButton.STYLE_TEXT' in editor
 link=(ui/'NebulaMenuFragment.java').read_text(encoding='utf-8')
 assert 'SCREEN_HOME.equals(screenId)) content.addView(new NebulaSettingsHero' in link
-assert 'NebulaSettingsEmoji.forIcon(resource)' in (ui/'NebulaRow.java').read_text(encoding='utf-8')
+create=link[link.index('public View createView('):link.index('private void rebuild(')]
+rebuild=link[link.index('private void rebuild('):link.index('private View unavailable(')]
+assert 'new NebulaSettingsHero' in create and 'new NebulaSettingsHero' not in rebuild
+assert 'int keep = SCREEN_HOME.equals(screenId) ? 1 : 0' in rebuild
+row=(ui/'NebulaRow.java').read_text(encoding='utf-8')
+icons=row[row.index('public NebulaRow icon('):row.index('public NebulaRow artwork(')]
+assert 'NebulaSettingsIcons.resource(resource)' in icons and 'animatedEmoji(' not in icons
+assert not (ui/'NebulaSettingsEmoji.java').exists() and not (ui/'NebulaProfileEmoji.java').exists()
+profile=(ui/'NebulaProfileArt.java').read_text(encoding='utf-8')
+assert 'drawActionEmoji' not in profile
 assert not (ui/'NebulaShieldDrawable.java').exists()
 native=(root/'patches/android/0183-settings-emoji-replay-profile-controls.patch').read_text(encoding='utf-8')
 assert 'replayPage(resumedView)' in native and 'fragmentView instanceof app.nebulagram.ui.NebulaSettingsLayout' in native
+assert 'ProfileActionsView.java' not in native
 print('Settings organization: About last, support/community/updates in About, grouped chat/AI/tools/tasks, browser under General, emoji introductions and compact message sheet retained')

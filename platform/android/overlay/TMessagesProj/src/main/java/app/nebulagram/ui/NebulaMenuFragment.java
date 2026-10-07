@@ -162,6 +162,9 @@ public class NebulaMenuFragment extends BaseFragment {
         scroll.addView(content, new ScrollView.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
 
+        if (SCREEN_HOME.equals(screenId)) content.addView(new NebulaSettingsHero(context, "🔗", "NebulaLink",
+                NebulaText.text("Подключение, серверы и настройки соединения.", "Connection, servers and connection settings.")));
+
         rebuild();
         return fragmentView = NebulaSettingsLayout.wrap(context, actionBar, root, SCREEN_ADVANCED.equals(screenId) ? -14 : -100);
     }
@@ -172,9 +175,10 @@ public class NebulaMenuFragment extends BaseFragment {
             return;
         }
         Context context = content.getContext();
-        content.removeAllViews();
-        if (SCREEN_HOME.equals(screenId)) content.addView(new NebulaSettingsHero(context, "🔗", "NebulaLink",
-                NebulaText.text("Подключение, серверы и настройки соединения.", "Connection, servers and connection settings.")));
+        // Retain the attached introduction: a settings/schema response must not
+        // destroy its decoder or restart the animation while the page is visible.
+        int keep = SCREEN_HOME.equals(screenId) ? 1 : 0;
+        while (content.getChildCount() > keep) content.removeViewAt(content.getChildCount() - 1);
         if (SCREEN_ADVANCED.equals(screenId)) NebulaLinkShortcut.addSettings(content);
         if (screen == null) {
             content.addView(unavailable(context));

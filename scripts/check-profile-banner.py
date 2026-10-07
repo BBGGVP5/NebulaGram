@@ -22,12 +22,12 @@ assert native.index('avatarContainer2.addView(overlaysView)') < native.index('av
 assert native.index('avatarContainer2.addView(overlaysView)') < native.index('avatarContainer2.addView(musicView,')
 actions = (tree / 'TMessagesProj/src/main/java/org/telegram/ui/Components/ProfileActionsView.java').read_text(encoding='utf-8')
 assert 'if (!hasCustomActionSurface(canvas)) drawRenderNode(canvas)' in actions
+assert 'drawActionEmoji' not in actions, 'profile actions must retain native icon rendering'
 assert actions.index('if (hasCustomActionSurface(canvas)) {') < actions.index('int newAlpha = (int) (action.getAlpha() * alphaFraction1 * wasAlpha)')
 
 # These Telegram signatures are used both for execution with instrumented Android
 # primitives and a second compilation against android.jar (no Android stubs).
 contracts = {
- 'app/nebulagram/ui/NebulaProfileEmoji.java':'''package app.nebulagram.ui;class NebulaProfileEmoji {NebulaProfileEmoji(android.view.View v){}void attach(){}void detach(){}boolean draw(android.graphics.Canvas c,android.graphics.Rect r,int key,float alpha){return true;}}''',
  'org/telegram/messenger/AndroidUtilities.java': 'package org.telegram.messenger;public class AndroidUtilities {public static int dp(float x){return Math.round(x);}}',
  'org/telegram/ui/ActionBar/Theme.java': """package org.telegram.ui.ActionBar;public class Theme {
  public interface ResourcesProvider {} public static int page=0xff112233;
@@ -51,7 +51,7 @@ contracts = {
  'org/telegram/ui/Components/ProfileActionsView.java': """package org.telegram.ui.Components;public class ProfileActionsView extends android.view.View {
  public int color;public boolean byId;public ProfileActionsView(android.content.Context c,int h){super(c);}
  public void setActionsColor(int c,boolean b){color=c;byId=b;}public float getRoundRadius(){return 16;}
- protected int actionTextColor(int color){return color;}protected void onAttachedToWindow(){}protected boolean drawActionEmoji(android.graphics.Canvas c,android.graphics.Rect b,int key,float alpha){return false;}protected boolean hasCustomActionSurface(android.graphics.Canvas c){return false;}
+ protected int actionTextColor(int color){return color;}protected void onAttachedToWindow(){}protected boolean hasCustomActionSurface(android.graphics.Canvas c){return false;}
  protected void drawActionSurface(android.graphics.Canvas c,android.graphics.RectF r,int key,float radius,float alpha){}}""",
  'app/nebulagram/ui/NebulaAppearance.java': """package app.nebulagram.ui;public class NebulaAppearance {
  public static boolean style=true,banner=true;public static boolean profileStyle(){return style;}public static boolean profilePhotoBanner(){return banner;}

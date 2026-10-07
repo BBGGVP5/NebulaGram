@@ -131,8 +131,6 @@ public class NebulaRow extends FrameLayout {
     }
 
     public NebulaRow icon(int resource) {
-        String glyph=NebulaSettingsEmoji.forIcon(resource);
-        if(glyph!=null)return animatedEmoji(org.telegram.messenger.UserConfig.selectedAccount,glyph);
         if (animatedEmoji != null) animatedEmoji.setVisibility(GONE);
         if (emojiIcon != null) {
             emojiIcon.setVisibility(GONE);
@@ -153,9 +151,7 @@ public class NebulaRow extends FrameLayout {
 
     /** Preserve the original colors of Nebula's bundled artwork. */
     public NebulaRow artwork(int resource) {
-        if(animatedEmoji!=null)animatedEmoji.setVisibility(GONE);
-        if(emojiIcon!=null)emojiIcon.setVisibility(GONE);
-        icon.setVisibility(resource==0?GONE:VISIBLE);icon.setImageResource(resource);indent(resource!=0);
+        icon(resource);
         icon.clearColorFilter();
         icon.setBackground(null);
         icon.setPadding(0, 0, 0, 0);

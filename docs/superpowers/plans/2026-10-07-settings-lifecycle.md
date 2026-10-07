@@ -42,3 +42,12 @@ Local verification: 87 checks passed, including receiver-release/page-reentry/fi
 - [x] Verify the new lifecycle/geometry regressions, build and deliver a fresh APK containing these follow-up changes. Build 388 passed for the preceding source only.
 
 Delivery: Android build 389 / versionCode 1000389 succeeded in run 37638923283 from source `837fd8991c4cc7bd19259ff904ee14389a952811`. Settings contract run 37638923250 succeeded. The downloaded arm64-v8a APK has SHA-256 `29f5438057dab71e77280301d97ae4eb3859f851528f33db132a1509a124fecb`, package `app.nebulagram.messenger` and the same verified signing certificate as build 385 (`a08d7dc323ddf71ef3201944397e0d3cce7d40847263e11f328b68bbe19229ab`). Native library and bundled icon-pack bytes were checked. Details: `build/qa-apk-ui-replay-837fd89/local-verification.json`. No physical-device validation was possible because ADB had no device. iOS 76 remains the previously delivered build; this follow-up contains Android changes.
+
+### Clarification: emoji applies to large page introductions
+
+- [x] Restore the original small icon rendering in settings rows and profile actions. Remove the automatic emoji mapping and profile replacement hook; retain the requested flat profile surface and menu/lifecycle corrections.
+- [x] Use Telegram emoji artwork for large page fallbacks, including the General gear, instead of Android's system font. Keep real Telegram Lottie/video animation and remove the synthetic rocking motion.
+- [x] Keep the NebulaLink introduction attached during status/schema rebuilds so updates do not interrupt its animation. Replay on navigation return only.
+- [ ] Verify the scoped rollback, native emoji loading and stable NebulaLink introduction; build and verify a fresh APK.
+
+Clarification verification: all 87 required checks pass locally after reconstructing 178 patches. Updated fixtures require native Telegram glyph preloading, repaint after `emojiLoaded`, cleanup of global/account observers, cached-view replay, unchanged icon-pack resolution and stable NebulaLink hero identity. Production emoji helpers compile against Android SDK and native APIs. Standard Telegram artwork remains visible when the server has no animation for a given emoji; no synthetic animation substitutes for it.

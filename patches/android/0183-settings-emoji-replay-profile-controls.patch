@@ -14,23 +14,3 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/BaseFragment.
          app.nebulagram.ui.NebulaChatLocks.resume(this);
          if (actionBar != null) {
              actionBar.onResume();
-diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ProfileActionsView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ProfileActionsView.java
---- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ProfileActionsView.java
-+++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ProfileActionsView.java
-@@ -451,7 +451,7 @@
-         if (action.iconScale != 1f) {
-             canvas.scale(action.iconScale, action.iconScale, action.bounds.centerX(), action.bounds.centerY());
-         }
--        if (!isAnimatingCallAction || action.key != KEY_CALL) {
-+        if ((!isAnimatingCallAction || action.key != KEY_CALL) && !drawActionEmoji(canvas, action.bounds, action.key, alpha)) {
-             final float outlineAlpha = (1f - useFilledWhiteIcon) * alpha;
-             final float filledAlpha = useFilledWhiteIcon * alpha;
-             if (action.drawableAnimated != null) {
-@@ -517,6 +517,7 @@
-     }
- 
-     // NebulaGram: drawing extension points; native actions and geometry stay owned here.
-+    protected boolean drawActionEmoji(Canvas canvas, Rect bounds, int key, float alpha) { return false; }
-     protected boolean hasCustomActionSurface(Canvas canvas) { return false; }
-     protected void drawActionSurface(Canvas canvas, RectF rect, int key, float radius, float alpha) { }
-     protected void drawActionIconBackground(Canvas canvas, Rect bounds, int key, int lines, float alpha) { }
