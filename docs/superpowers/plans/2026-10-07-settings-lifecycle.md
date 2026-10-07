@@ -27,8 +27,8 @@
 ### Verification and delivery
 
 - [x] Extend executable emoji fixtures with real image-release behavior, first-frame availability and reattachment; add role localization/persistence checks and settings hierarchy guards.
-- [ ] Complete a fresh Android CI build after the successful SDK typecheck, pinned patch reconstruction and local regression run.
-- [ ] Verify APK source/version/certificate and provide it with concise changes and physical-device test limits.
+- [x] Complete a fresh Android CI build after the successful SDK typecheck, pinned patch reconstruction and local regression run.
+- [x] Verify APK source/version/certificate and provide it with concise changes and physical-device test limits.
 
 Local verification: 87 checks passed, including receiver-release/page-reentry/first-frame/stale-callback/explicit-replay fixtures, role locale and custom-data preservation, organization guards and 432 tool-grid geometry cases. Profile controls and emoji helpers compile against the Android SDK and native signatures; all 178 pinned patches reconstruct. Shape tests cover 162 rectangular/capsule/rounded sources and clipped final menu positions. C++ slot checks are syntax-only locally and executable in Linux CI. ADB reports no attached device.
 
@@ -39,4 +39,6 @@ Local verification: 87 checks passed, including receiver-release/page-reentry/fi
 - [x] Add the NebulaLink introduction above connection controls.
 - [x] Replace glossy profile button gradients with a subdued uniform glass surface, preserving actions and accessibility.
 - [x] Morph from the source control's bounds and rounded outline on opening and closing. Make the constrained trajectory meet the exact native final position, including partly offscreen popup padding.
-- [ ] Verify the new lifecycle/geometry regressions, build and deliver a fresh APK containing these follow-up changes. Build 388 passed for the preceding source only.
+- [x] Verify the new lifecycle/geometry regressions, build and deliver a fresh APK containing these follow-up changes. Build 388 passed for the preceding source only.
+
+Delivery: Android build 389 / versionCode 1000389 succeeded in run 37638923283 from source `837fd8991c4cc7bd19259ff904ee14389a952811`. Settings contract run 37638923250 succeeded. The downloaded arm64-v8a APK has SHA-256 `29f5438057dab71e77280301d97ae4eb3859f851528f33db132a1509a124fecb`, package `app.nebulagram.messenger` and the same verified signing certificate as build 385 (`a08d7dc323ddf71ef3201944397e0d3cce7d40847263e11f328b68bbe19229ab`). Native library and bundled icon-pack bytes were checked. Details: `build/qa-apk-ui-replay-837fd89/local-verification.json`. No physical-device validation was possible because ADB had no device. iOS 76 remains the previously delivered build; this follow-up contains Android changes.
