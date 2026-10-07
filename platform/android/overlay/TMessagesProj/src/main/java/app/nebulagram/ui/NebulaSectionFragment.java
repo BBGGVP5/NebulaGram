@@ -158,7 +158,7 @@ public class NebulaSectionFragment extends BaseFragment {
         String introEmoji;
         String introDescription;
         switch (section) {
-            case SECTION_GENERAL: introEmoji = "⚙️"; introDescription = NebulaText.text("Настройте подключение и поведение приложения.", "Customize connection and app behavior."); break;
+            case SECTION_GENERAL: introEmoji = "🧰"; introDescription = NebulaText.text("Настройте подключение и поведение приложения.", "Customize connection and app behavior."); break;
             case SECTION_APPEARANCE: case SECTION_GLASS: introEmoji = "🎨"; introDescription = NebulaText.text("Настройте цвета, стекло и значки.", "Customize colors, glass and icons."); break;
             case SECTION_CHATS: case SECTION_MESSAGES: introEmoji = "💬"; introDescription = NebulaText.text("Внешний вид и действия в переписке.", "Appearance and actions in conversations."); break;
             case SECTION_PROFILE: introEmoji = "😎"; introDescription = NebulaText.text("Внешний вид страниц профиля.", "The appearance of profile pages."); break;

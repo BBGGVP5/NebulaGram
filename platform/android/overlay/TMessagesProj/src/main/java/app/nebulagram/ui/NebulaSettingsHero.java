@@ -48,6 +48,7 @@ public final class NebulaSettingsHero extends LinearLayout {
         return text;
     }
     private static String emoji(int icon) {
+        if(icon==R.drawable.msg_settings)return "🧰";
         if(icon==R.drawable.msg_secret)return "🔐";
         if(icon==R.drawable.msg_folders||icon==R.drawable.files_folder)return "🗂";
         if(icon==R.drawable.msg_language)return "🌐";

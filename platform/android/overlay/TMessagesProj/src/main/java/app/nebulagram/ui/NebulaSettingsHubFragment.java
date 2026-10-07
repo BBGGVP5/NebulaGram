@@ -48,7 +48,7 @@ public final class NebulaSettingsHubFragment extends BaseFragment {
                 AndroidUtilities.dp(16), AndroidUtilities.dp(28));
         scroll.addView(content, new ScrollView.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
-        String[] emoji = {"⚙️", "🎨", "💬", "🧭", "🔐", "🤖"};
+        String[] emoji = {"🧰", "🎨", "💬", "🧭", "🔐", "🤖"};
         String[] details = {
                 NebulaText.text("Подключение и поведение приложения.", "Connection and app behavior."),
                 NebulaText.text("Цвета, стекло и значки мессенджера.", "Colors, glass and messenger icons."),
