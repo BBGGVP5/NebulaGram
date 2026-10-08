@@ -24,7 +24,9 @@ Files under `platform/android/overlay/TMessagesProj/src/main/java/app/nebulagram
 - [x] Reconstruct the pinned Android source: `python build/verify-upstream-12106.py`.
 - [x] Run existing settings/emoji/AI layout checks via `python build/run-extera-regressions.py`, with JDK and NDK environment configured. Run `python build/check-extera-sdk.py`, including the changed card class. Require successful compiler output and no failed regression checks.
 - [x] Review `git diff --check` and the scoped diff; preserve the modified vendor checkout and unrelated files.
-- [ ] Document the change in `docs/USER-CHANGES.md`, commit only the scoped files, push the authorized branches and complete Android CI.
-- [ ] Download the exact successful APK, verify package, version, ABI, certificate and icon-pack asset; report physical-device validation separately.
+- [x] Document the change in `docs/USER-CHANGES.md`, commit only the scoped files, push the authorized branches and complete Android CI.
+- [x] Download the exact successful APK, verify package, version, ABI, certificate and icon-pack asset; report physical-device validation separately.
 
 No new implementation-mirroring tests are needed for this spacing adjustment. Existing native replay, title, settings, form and full-build checks remain the validation basis.
+
+Delivery evidence: Android 1000404, source `0b0e9a94b5cffa8883572f5bfd59f084d87e53c7`, [CI run 37738790996](https://github.com/BBGGVP5/NebulaGram/actions/runs/37738790996) succeeded. All 88 local regression checks passed; native Telegram entity serialization and formatted translation checks passed. Downloaded APK verified for package, version, arm64 ABI, signing certificate and bundled icon pack. SHA-256: `344840848a3f8ffe80895052d7b180fb96f3389daa959747b1e649876b696fe3`. Physical-device UI verification remains unavailable.
