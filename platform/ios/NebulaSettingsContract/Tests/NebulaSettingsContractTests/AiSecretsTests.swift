@@ -70,7 +70,7 @@ final class AiSecretsTests: XCTestCase {
         for provider in NebulaAiProvider.allCases {
             try secrets.setKey("key-\(provider.rawValue)", for: provider)
         }
-        XCTAssertEqual(storage.items.count, 5)
+        XCTAssertEqual(storage.items.count, NebulaAiProvider.allCases.count)
         try secrets.removeAll()
         XCTAssertTrue(storage.items.isEmpty)
     }
