@@ -146,6 +146,18 @@ public final class NebulaCameraXSession extends Camera2Session implements Lifecy
         });
     }
     @Override public void setRecordingVideo(boolean value) { recording = value; main.execute(this::applyCaptureMode); }
+    @Override public void focusToRect(android.graphics.Rect focus, android.graphics.Rect metering) {
+        if (focus == null) return;
+        final float x = Math.max(0f, Math.min(1f, (focus.exactCenterX() + 1000f) / 2000f));
+        final float y = Math.max(0f, Math.min(1f, (focus.exactCenterY() + 1000f) / 2000f));
+        main.execute(() -> {
+            if (closed || camera == null) return;
+            androidx.camera.core.MeteringPoint point = new androidx.camera.core.SurfaceOrientedMeteringPointFactory(1f,1f).createPoint(x,y);
+            androidx.camera.core.FocusMeteringAction action = new androidx.camera.core.FocusMeteringAction.Builder(point)
+                .setAutoCancelDuration(5,java.util.concurrent.TimeUnit.SECONDS).build();
+            if (camera.getCameraInfo().isFocusMeteringSupported(action)) camera.getCameraControl().startFocusAndMetering(action);
+        });
+    }
     @Override public void setScanningBarcode(boolean value) { main.execute(() -> { scanning = value; applyCaptureMode(); }); }
     @Override public void setNightMode(boolean value) { main.execute(() -> { night = value; applyCaptureMode(); }); }
     private void applyCaptureMode() {
@@ -167,8 +179,10 @@ public final class NebulaCameraXSession extends Camera2Session implements Lifecy
         if (!isInitiated() || photos == null) return false;
         main.execute(() -> {
             if (closed || photos == null) return;
+            android.view.WindowManager window=(android.view.WindowManager)ApplicationLoader.applicationContext.getSystemService(android.content.Context.WINDOW_SERVICE);
+            if(window!=null)photos.setTargetRotation(window.getDefaultDisplay().getRotation());
             photos.takePicture(new ImageCapture.OutputFileOptions.Builder(file).build(), main, new ImageCapture.OnImageSavedCallback() {
-                @Override public void onImageSaved(@NonNull ImageCapture.OutputFileResults results) { if (!closed && callback != null) callback.run(0); }
+                @Override public void onImageSaved(@NonNull ImageCapture.OutputFileResults results) { if (!closed && callback != null) callback.run(AndroidUtilities.getImageOrientation(file).first); }
                 @Override public void onError(@NonNull ImageCaptureException error) { FileLog.e(error); if (!closed && callback != null) callback.run(-1); }
             });
         });
