@@ -24,7 +24,7 @@ final class NebulaPrivacyController: UITableViewController {
     private lazy var hero = NebulaSettingsHero(symbol: "hand.raised",
         title: text("Локальные копии", "Local copies"),
         summary: text("Сохраняйте сообщения в чате. Выбирайте значок и очищайте копии, когда нужно.",
-                      "Keep messages in the chat. Choose their marker and clear copies when needed."))
+                      "Keep messages in the chat. Choose their marker and clear copies when needed."), context: context, theme: currentTheme)
     init(context: AccountContext, russian: Bool, mode: Int = 0) {
         self.context = context; self.ru = russian; self.mode = mode
         self.sections = mode == 1 ? [7, 5] : mode == 2 ? [8] : [0, 1, 2, 3, 6, 4]
@@ -59,6 +59,8 @@ final class NebulaPrivacyController: UITableViewController {
         hero.fit(in: tableView)
     }
     @objc private func close() { dismiss(animated: true) }
+    override func viewWillAppear(_ animated: Bool) { super.viewWillAppear(animated); hero.setPageVisible(true) }
+    override func viewWillDisappear(_ animated: Bool) { super.viewWillDisappear(animated); hero.setPageVisible(false) }
     override func numberOfSections(in tableView: UITableView) -> Int { sections.count }
     override func tableView(_ tableView: UITableView, numberOfRowsInSection displaySection: Int) -> Int { let section = sections[displaySection]; return section == 6 ? NebulaRetentionScope.allCases.count : section == 0 || section == 7 || section == 8 ? 3 : (section == 3 ? 2 : 1) }
     override func tableView(_ tableView: UITableView, titleForHeaderInSection displaySection: Int) -> String? {

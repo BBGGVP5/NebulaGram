@@ -1,6 +1,7 @@
 import UIKit
 import TelegramPresentationData
 import UserNotifications
+import AccountContext
 
 /// Local tasks are isolated by account and never included in settings transfer.
 final class NebulaTasksController: UITableViewController {
@@ -10,7 +11,11 @@ final class NebulaTasksController: UITableViewController {
     private let theme: PresentationTheme
     private var draft: String
     private var entries: [Entry] = []
-    init(accountId: String, russian: Bool, theme: PresentationTheme, draft: String = "") {
+    private let context: AccountContext?
+    private lazy var hero = NebulaSettingsHero(symbol: "checkmark.circle", title: russian ? "Список дел" : "Tasks",
+        summary: russian ? "Сохраните идею и выберите время напоминания" : "Save an idea and choose a reminder", context: context, theme: theme)
+    init(accountId: String, russian: Bool, theme: PresentationTheme, draft: String = "", context: AccountContext? = nil) {
+        self.context = context
         self.storage = "app.nebulagram.tasks." + accountId
         self.russian = russian
         self.theme = theme
@@ -20,6 +25,9 @@ final class NebulaTasksController: UITableViewController {
         title = russian ? "Задачи" : "Tasks"
     }
     required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
+    override func viewDidLayoutSubviews() { super.viewDidLayoutSubviews(); hero.fit(in: tableView) }
+    override func viewWillAppear(_ animated: Bool) { super.viewWillAppear(animated); hero.setPageVisible(true) }
+    override func viewWillDisappear(_ animated: Bool) { super.viewWillDisappear(animated); hero.setPageVisible(false) }
     override func viewDidLoad() {
         super.viewDidLoad()
         NebulaSettingsStyle.apply(theme: theme, to: self)

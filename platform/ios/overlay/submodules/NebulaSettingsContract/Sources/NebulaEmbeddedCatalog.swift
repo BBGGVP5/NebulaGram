@@ -10,7 +10,9 @@ enum NebulaEmbeddedCatalog {
     "nebulalink": "core/settings/settings.go and menu.go; native iOS bridge pending",
     "ai": "Named services and role metadata; Android Keystore credentials and local chat history excluded from presentation transfer",
     "updates": "Account/platform-specific updater settings; excluded from presentation transfer",
-    "browser": "Ad blocking, site exclusions and downloaded filters are local and excluded from presentation transfer"
+    "browser": "Ad blocking, site exclusions and downloaded filters are local and excluded from presentation transfer",
+    "camera": "Android device-local nebula_camera preferences; native camera engines, capabilities and microphone settings; no iOS implementation implied",
+    "message_controls": "Android-local nebula_message_preferences and nebula_message_menu; filtering is account-scoped in nebula_filter_<user>; excluded from presentation transfer"
   },
   "settings": [
     {

@@ -4,6 +4,9 @@ public final class NebulaLinkController: UITableViewController, UITextFieldDeleg
     private let ru: Bool
     private let continueAction: (() -> Void)?
     private let overview = NebulaLinkOverviewView()
+    private let introduction: UIView?
+    private let introductionVisibility: ((Bool) -> Void)?
+    private let header = UIStackView()
     private let input = UITextField()
     private let explanation = UILabel()
     private var servers: [[String: Any]] = []
@@ -21,8 +24,9 @@ public final class NebulaLinkController: UITableViewController, UITextFieldDeleg
     private var urlProbeId: String?
     private let service = NebulaLinkService.shared
 
-    public init(russian: Bool, continueAction: (() -> Void)? = nil) {
+    public init(russian: Bool, introduction: UIView? = nil, introductionVisibility: ((Bool) -> Void)? = nil, continueAction: (() -> Void)? = nil) {
         ru = russian
+        self.introduction = introduction; self.introductionVisibility = introductionVisibility
         self.continueAction = continueAction
         super.init(style: .insetGrouped)
     }
@@ -49,7 +53,10 @@ public final class NebulaLinkController: UITableViewController, UITextFieldDeleg
         tableView.keyboardDismissMode = .interactive
         tableView.rowHeight = UITableView.automaticDimension
         tableView.estimatedRowHeight = 60
-        tableView.tableHeaderView = overview
+        header.axis = .vertical; header.spacing = 0
+        if let introduction { header.addArrangedSubview(introduction) }
+        header.addArrangedSubview(overview)
+        tableView.tableHeaderView = header
         overview.onAction = { [weak self] in
             guard let self = self, !self.busy else { return }
             self.view.endEditing(true)
@@ -73,14 +80,16 @@ public final class NebulaLinkController: UITableViewController, UITextFieldDeleg
         super.viewDidLayoutSubviews()
         let width = tableView.bounds.width
         guard width > 0 else { return }
-        let size = overview.systemLayoutSizeFitting(CGSize(width: width, height: 0),
+        let size = header.systemLayoutSizeFitting(CGSize(width: width, height: 0),
                 withHorizontalFittingPriority: .required, verticalFittingPriority: .fittingSizeLevel)
-        if abs(overview.frame.width - width) > 0.5 || abs(overview.frame.height - size.height) > 0.5 {
-            overview.frame = CGRect(x: 0, y: 0, width: width, height: size.height)
-            tableView.tableHeaderView = overview
+        if abs(header.frame.width - width) > 0.5 || abs(header.frame.height - size.height) > 0.5 {
+            header.frame = CGRect(x: 0, y: 0, width: width, height: size.height)
+            tableView.tableHeaderView = header
         }
     }
     deinit { NotificationCenter.default.removeObserver(self) }
+    public override func viewWillAppear(_ animated: Bool) { super.viewWillAppear(animated); introductionVisibility?(true) }
+    public override func viewWillDisappear(_ animated: Bool) { super.viewWillDisappear(animated); introductionVisibility?(false) }
     @objc private func statusUpdated() {
         // A proxy-state notification must not rebuild the subscription field while typing.
         overview.update(state: service.state, busy: busy, hasSelection: !selected.isEmpty, russian: ru)

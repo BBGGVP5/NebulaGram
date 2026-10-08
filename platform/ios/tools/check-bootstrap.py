@@ -260,7 +260,8 @@ def main():
         assert 'snapshot.keys.contains(key(id))' in capture and 'for id in newlyRetained' in capture
         assert 'archive.shouldPrune(account: account)' in capture
         choice = (temp / 'submodules/SettingsUI/Sources/NebulaChoiceController.swift').read_text(encoding='utf-8')
-        assert '.checkmark' in choice and '.custom' in choice and 'withAlphaComponent(0.6)' in choice and '.automaticDimension' in choice
+        assert 'cell.accessoryType = .none' in choice and 'cell.accessibilityTraits.insert(.selected)' in choice
+        assert '.checkmark' not in choice and '.custom' in choice and 'withAlphaComponent(0.6)' in choice and '.automaticDimension' in choice
         assert 'NebulaGlassController(russian: ru,' in controller
         assert 'theme: context.sharedContext.currentPresentationData.with { $0 }.theme' in controller
         glass_preview = (temp / 'submodules/SettingsUI/Sources/NebulaGlassController.swift').read_text(encoding='utf-8')

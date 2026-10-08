@@ -9,7 +9,6 @@ final class NebulaChoiceController: UITableViewController, UISearchResultsUpdati
     private let choose: (Int) -> Void
     private let ru: Bool
     private let theme: PresentationTheme?
-    private var selectionIndicatorVisible = true
     private var sectionStart: Int?
     private var subtitles: [String] = []
     private var filtered: [Int]?
@@ -63,10 +62,10 @@ final class NebulaChoiceController: UITableViewController, UISearchResultsUpdati
         let cell = UITableViewCell(style: subtitles.isEmpty ? .default : .subtitle, reuseIdentifier: nil)
         if subtitles.indices.contains(index) { cell.detailTextLabel?.text = subtitles[index] }
         cell.textLabel?.text = choices[index]
-        cell.accessoryType = selectionIndicatorVisible && index == selected ? .checkmark : .none
+        cell.accessoryType = .none
         if index == selected { cell.accessibilityTraits.insert(.selected) }
         NebulaSettingsStyle.finish(cell, theme: theme)
-        if !selectionIndicatorVisible && index == selected {
+        if index == selected {
             cell.backgroundColor = view.tintColor.withAlphaComponent(0.18)
             cell.textLabel?.textColor = view.tintColor
         }
@@ -83,7 +82,6 @@ final class NebulaChoiceController: UITableViewController, UISearchResultsUpdati
                      theme: PresentationTheme? = nil, sectionStart: Int? = nil, subtitles: [String] = [], searchable: Bool = false, choose: @escaping (Int) -> Void) {
         guard host.presentedViewController == nil else { return }
         let controller = NebulaChoiceController(title: title, choices: choices, selected: selected, detail: detail, russian: russian, theme: theme, choose: choose)
-        controller.selectionIndicatorVisible = selectionIndicatorVisible
         controller.sectionStart = sectionStart
         controller.subtitles = subtitles
         if searchable {

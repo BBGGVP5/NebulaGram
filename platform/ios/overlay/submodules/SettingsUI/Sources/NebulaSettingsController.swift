@@ -41,6 +41,7 @@ private final class NebulaSettingsArguments {
 }
 
 private enum NebulaSettingsEntry: ItemListNodeEntry {
+    case introduction(String, String, String)
     case category(Int, String, String, String)
     case search(String, String)
     case empty(String)
@@ -76,8 +77,9 @@ private enum NebulaSettingsEntry: ItemListNodeEntry {
 
     var section: ItemListSectionId {
         switch self {
+        case .introduction: return -2
         case .search, .empty: return -1
-        case let .category(index, _, _, _): return index == 17 ? 8 : index == 10 || index == 12 || index == 16 ? 9 : index == 11 ? 10 : index >= 13 ? 1 : 0
+        case let .category(index, _, _, _): return index == 18 ? 12 : index == 17 ? 8 : index == 10 || index == 12 || index == 16 ? 9 : index == 11 ? 10 : index >= 13 ? 1 : 0
         case .toolsHeader, .link, .ai, .buildInfo, .memory, .support, .community: return 0
         case let .chatHeader(section, _): return Int32(section)
         case .widePosts: return 9
@@ -98,6 +100,7 @@ private enum NebulaSettingsEntry: ItemListNodeEntry {
     }
     private var order: Int {
         switch self {
+        case .introduction: return -3
         case let .category(index, _, _, _): return index == 7 ? 25 : index == 8 ? 35 : index * 10
         case .search: return -2
         case .empty: return -1
@@ -155,6 +158,7 @@ private enum NebulaSettingsEntry: ItemListNodeEntry {
     }
     var stableId: Int32 {
         switch self {
+        case .introduction: return -3
         case let .category(index, _, _, _): return Int32(200 + index)
         case .search: return 19
         case .empty: return 20
@@ -264,6 +268,8 @@ private enum NebulaSettingsEntry: ItemListNodeEntry {
                 style: .blocks, action: action)
         }
         switch self {
+        case let .introduction(symbol, title, summary):
+            return NebulaSettingsIntroItem(context: arguments.context, theme: presentationData.theme, symbol: symbol, title: title, summary: summary)
         case let .community(title, peer, count):
             if let peer {
                 let data = arguments.context.sharedContext.currentPresentationData.with { $0 }
@@ -476,9 +482,9 @@ public func nebulaSettingsController(context: AccountContext, page: Int = 0, sea
         ]
         func isChatOption(_ entry: NebulaSettingsEntry) -> Bool {
             switch entry {
-            case .widePosts, .stories:
+            case .widePosts, .stories, .ai:
                 return true
-            case let .category(index, _, _, _): return index == 10 || index == 11 || index == 12 || index == 16 || index == 17
+            case let .category(index, _, _, _): return index == 9 || index == 10 || index == 11 || index == 12 || index == 16 || index == 17
             case let .navigationToggle(key, _, _, _):
                 return key.hasPrefix("reply_") || ["hide_dividers", "hide_send_as", "hide_attach_camera", "menu_search", "menu_mute",
                     "menu_call", "menu_video", "centered_chat_header", "adaptive_chat_header", "floating_chat_header_v2", "header_unread", "message_menu_blur", "disable_next_channel", "seconds_in_time", "hide_search_field"].contains(key)
@@ -507,23 +513,24 @@ public func nebulaSettingsController(context: AccountContext, page: Int = 0, sea
                 .search(query, ru ? "Поиск настроек" : "Search settings"),
                 .toolsHeader(ru ? "Разделы" : "Sections"),
                 .link("NebulaLink"),
-                .category(1, ru ? "Основные" : "General", ru ? "Подключение, ИИ, сборка" : "Connection, AI, build", "gearshape"),
+                .category(1, ru ? "Основные" : "General", ru ? "Поведение приложения и перенос настроек" : "App behavior and settings transfer", "gearshape"),
                 .category(2, ru ? "Внешний вид" : "Appearance", ru ? "Стекло, значки, анимации" : "Glass, icons, animations", "paintpalette"),
                 .category(7, ru ? "Навигация" : "Navigation", ru ? "Нижняя панель и кнопки" : "Bottom bar and buttons", "rectangle.bottomthird.inset.filled"),
-                .category(17, ru ? "Перевод в реальном времени" : "Real-time translation", ru ? "Входящие, мой текст, языки, кнопка ИИ" : "Incoming, typing, languages, AI button", "character.bubble"),
-                .category(3, ru ? "Чаты" : "Chats", ru ? "Список, сообщения, меню" : "List, messages, menus", "bubble.left"),
+                .category(3, ru ? "Чаты и инструменты" : "Chats and tools", ru ? "Сообщения, ИИ, перевод и задачи" : "Messages, AI, translation and tasks", "bubble.left"),
                 .category(8, ru ? "Профиль" : "Profile", ru ? "Фото, фон и информация" : "Photo, background and details", "person.crop.circle"),
                 .category(4, ru ? "Папки" : "Folders", ru ? "Вкладки и счётчики" : "Tabs and counters", "folder"),
                 .category(5, ru ? "Конфиденциальность" : "Privacy", ru ? "Архив, защита, поиск" : "Archive, protection, search", "hand.raised"),
-                .category(6, ru ? "Перенос настроек" : "Transfer", ru ? "Импорт и экспорт" : "Import and export", "arrow.triangle.2.circlepath"),
-                .support(ru ? "Поддержать проект" : "Support the project"),
-                .community("NebulaHub", community.peer, community.count)
+                .category(18, ru ? "О приложении" : "About", ru ? "Поддержка, сообщество и версия" : "Support, community and version", "info.circle")
             ]
         } else if page != 0 {
             entries = entries.filter { entry in
                 if case .search = entry { return true }
                 switch page {
-                case 1: return entry.section == 0 && !isChatOption(entry)
+                case 1:
+                    if case .memory = entry { return true }
+                    if case .history = entry { return true }
+                    if case .clearHistory = entry { return true }
+                    return false
                 case 2: return entry.section == 1 && !isChatOption(entry) && !isNavigationOption(entry) && !isFolderOption(entry)
                 case 3: return isChatOption(entry)
                 case 4: return isFolderOption(entry)
@@ -531,6 +538,8 @@ public func nebulaSettingsController(context: AccountContext, page: Int = 0, sea
                 case 6: return entry.section == 4
                 case 7: return isNavigationOption(entry)
                 case 8: return entry.section == 5
+                case 18:
+                    switch entry { case .support, .community, .buildInfo: return true; default: return false }
                 default: return false
                 }
             }
@@ -539,6 +548,21 @@ public func nebulaSettingsController(context: AccountContext, page: Int = 0, sea
                 for (index, title) in titles.enumerated() { entries.append(.chatHeader(6 + index, title)) }
             }
             if page == 7 { entries.append(.appearanceHeader(ru ? "Нижняя панель" : "Bottom bar")) }
+            if page == 1 { entries.append(.category(6, ru ? "Перенос настроек" : "Transfer", ru ? "Импорт и экспорт" : "Import and export", "arrow.triangle.2.circlepath")) }
+        }
+        if page != 0 && query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            let descriptions: [Int: (String, String, String)] = [
+                1: ("gearshape", ru ? "Основные" : "General", ru ? "Настройте поведение приложения" : "Make the app work your way"),
+                2: ("paintpalette", ru ? "Оформление" : "Appearance", ru ? "Настройте цвета, стекло и значки" : "Choose colors, glass and icons"),
+                3: ("bubble.left.and.bubble.right", ru ? "Чаты и инструменты" : "Chats and tools", ru ? "Сообщения, ИИ, перевод и задачи" : "Messages, AI, translation and tasks"),
+                4: ("folder", ru ? "Папки" : "Folders", ru ? "Соберите нужные чаты вместе" : "Keep related chats together"),
+                5: ("lock.shield", ru ? "Конфиденциальность" : "Privacy", ru ? "Защита, архив и локальные копии" : "Protection, archive and local copies"),
+                6: ("🔄", ru ? "Перенос настроек" : "Transfer", ru ? "Сохраните оформление и предпочтения" : "Save your appearance and preferences"),
+                7: ("rectangle.bottomthird.inset.filled", ru ? "Навигация" : "Navigation", ru ? "Нижняя панель и быстрые действия" : "Bottom bar and quick actions"),
+                8: ("person.crop.circle", ru ? "Профиль" : "Profile", ru ? "Настройте содержимое и оформление" : "Choose content and appearance"),
+                18: ("info.circle", ru ? "О приложении" : "About", ru ? "NebulaGram, сообщество и поддержка" : "NebulaGram, community and support")
+            ]
+            if let intro = descriptions[page] { entries.append(.introduction(intro.0, intro.1, intro.2)) }
         }
         if !query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
             let matches = entries.filter { entry in
@@ -559,7 +583,8 @@ public func nebulaSettingsController(context: AccountContext, page: Int = 0, sea
         let pageTitles = ru
             ? ["Настройки NebulaGram", "Основные", "Внешний вид", "Чаты", "Папки", "Конфиденциальность", "Перенос настроек", "Навигация", "Профиль"]
             : ["NebulaGram Settings", "General", "Appearance", "Chats", "Folders", "Privacy", "Transfer", "Navigation", "Profile"]
-        let state = ItemListControllerState(presentationData: data, title: .text(pageTitles[max(0, min(pageTitles.count - 1, page))]), leftNavigationButton: nil, rightNavigationButton: nil, backNavigationButton: ItemListBackButton(title: presentationData.strings.Common_Back))
+        let title = page == 18 ? (ru ? "О приложении" : "About") : pageTitles[max(0, min(pageTitles.count - 1, page))]
+        let state = ItemListControllerState(presentationData: data, title: .text(title), leftNavigationButton: nil, rightNavigationButton: nil, backNavigationButton: ItemListBackButton(title: presentationData.strings.Common_Back))
         return (state, (ItemListNodeState(presentationData: data, entries: entries, style: .blocks, animateChanges: false), arguments))
     }
     let controller = ItemListController(context: context, state: signal)
@@ -642,10 +667,10 @@ public func nebulaSettingsController(context: AccountContext, page: Int = 0, sea
         }
         if index == 9 {
             let data = context.sharedContext.currentPresentationData.with { $0 }
-            controller.present(UINavigationController(rootViewController: NebulaTasksController(accountId: String(context.account.peerId.toInt64()), russian: data.strings.baseLanguageCode.hasPrefix("ru"), theme: data.theme)), animated: true)
+            controller.present(UINavigationController(rootViewController: NebulaTasksController(accountId: String(context.account.peerId.toInt64()), russian: data.strings.baseLanguageCode.hasPrefix("ru"), theme: data.theme, context: context)), animated: true)
             return
         }
-        guard (1...8).contains(index) else { return }
+        guard (1...8).contains(index) || index == 18 else { return }
         (controller.navigationController as? NavigationController)?.pushViewController(
             nebulaSettingsController(context: context, page: index))
     }
@@ -665,7 +690,7 @@ public func nebulaSettingsController(context: AccountContext, page: Int = 0, sea
         guard let controller = controller, controller.presentedViewController == nil else { return }
         NebulaLinkService.shared.configure(accountManager: context.sharedContext.accountManager)
         let ru = context.sharedContext.currentPresentationData.with { $0 }.strings.baseLanguageCode.lowercased().hasPrefix("ru")
-        controller.present(UINavigationController(rootViewController: NebulaLinkController(russian: ru)), animated: true)
+        controller.present(UINavigationController(rootViewController: nebulaLinkController(context: context, russian: ru)), animated: true)
     }
     arguments.openNavigation = { [weak controller] in
         guard let controller = controller else { return }
@@ -691,7 +716,7 @@ public func nebulaSettingsController(context: AccountContext, page: Int = 0, sea
         guard let controller = controller, controller.presentedViewController == nil else { return }
         let ru = context.sharedContext.currentPresentationData.with { $0 }.strings.baseLanguageCode.lowercased().hasPrefix("ru")
         controller.present(UINavigationController(rootViewController: NebulaAiController(russian: ru,
-            theme: context.sharedContext.currentPresentationData.with { $0 }.theme)), animated: true)
+            theme: context.sharedContext.currentPresentationData.with { $0 }.theme, account: String(context.account.peerId.toInt64()), context: context)), animated: true)
     }
     arguments.openSupport = { [weak controller] in
         guard let controller = controller, controller.presentedViewController == nil else { return }

@@ -3,6 +3,7 @@ import Foundation
 import UIKit
 import NebulaSettingsContract
 import TelegramPresentationData
+import AccountContext
 
 /// AI connection settings. The key is written here and never read back into
 /// the screen: the field shows whether one is stored, not what it is.
@@ -11,18 +12,20 @@ final class NebulaAiController: UITableViewController {
     private let translationPeer: String?
     private let ru: Bool
     private let theme: PresentationTheme?
+    private let context: AccountContext?
     private let settings = NebulaAiSettings.shared
     private let secrets = NebulaAiSecrets.shared
     private lazy var hero = NebulaSettingsHero(symbol: "sparkles",
         title: text("ИИ-помощник", "AI assistant"),
         summary: text("Ваш провайдер. Ваши инструкции. Только тот текст, который выберете вы.",
-                      "Your provider. Your instructions. Only the text you choose."))
+                      "Your provider. Your instructions. Only the text you choose."), context: context, theme: theme)
     private var provider: NebulaAiProvider
     private var readinessTimer: Timer?
     private var previousReadiness = ""
     private var visible = false
 
-    init(russian: Bool, theme: PresentationTheme? = nil, account: String = "", peer: String? = nil) {
+    init(russian: Bool, theme: PresentationTheme? = nil, account: String = "", peer: String? = nil, context: AccountContext? = nil) {
+        self.context = context
         self.translationAccount = account; self.translationPeer = peer
         self.ru = russian
         self.theme = theme
@@ -59,10 +62,11 @@ final class NebulaAiController: UITableViewController {
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         visible = true
+        hero.setPageVisible(true)
         tableView.reloadData()
         refreshState()
     }
-    override func viewWillDisappear(_ animated: Bool) { super.viewWillDisappear(animated); visible = false; pauseReadiness() }
+    override func viewWillDisappear(_ animated: Bool) { super.viewWillDisappear(animated); visible = false; hero.setPageVisible(false); pauseReadiness() }
     deinit { readinessTimer?.invalidate(); NotificationCenter.default.removeObserver(self) }
     @objc private func pauseReadiness() { readinessTimer?.invalidate(); readinessTimer = nil }
     @objc private func refreshState() {
