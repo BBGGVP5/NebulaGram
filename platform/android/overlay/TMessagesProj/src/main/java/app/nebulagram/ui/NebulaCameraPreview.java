@@ -9,7 +9,7 @@ import android.graphics.drawable.GradientDrawable;
 import android.os.Build;
 import android.view.Gravity;
 import android.view.View;
-import android.view.animation.DecelerateInterpolator;
+import android.view.animation.OvershootInterpolator;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import androidx.core.graphics.ColorUtils;
@@ -40,10 +40,10 @@ public final class NebulaCameraPreview extends LinearLayout {
         addView(heading, new LayoutParams(-1, -2));
         LinearLayout sample = new LinearLayout(context);
         sample.setGravity(Gravity.CENTER_VERTICAL);
-        LayoutParams sampleParams = new LayoutParams(-1, dp(182)); sampleParams.topMargin = dp(8);
+        LayoutParams sampleParams = new LayoutParams(-1, dp(224)); sampleParams.topMargin = dp(10);
         addView(sample, sampleParams);
         phone = new Phone(context);
-        sample.addView(phone, new LayoutParams(0, -1, .44f));
+        sample.addView(phone, new LayoutParams(0, -1, .52f));
         picker = new NumberPicker(context, 14) {
             private final Paint highlight = new Paint(Paint.ANTI_ALIAS_FLAG);
             @Override protected void onDraw(Canvas canvas) {
@@ -61,7 +61,7 @@ public final class NebulaCameraPreview extends LinearLayout {
             if (next != NebulaCameraSettings.backend()) this.onSelected.accept(next);
             phone.select(next);
         });
-        sample.addView(picker, new LayoutParams(0, dp(156), .56f));
+        sample.addView(picker, new LayoutParams(0, dp(174), .48f));
     }
 
     public void refresh() {
@@ -73,6 +73,8 @@ public final class NebulaCameraPreview extends LinearLayout {
     private static final class Phone extends View {
         private final Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
         private final RectF rect = new RectF();
+        private final android.graphics.drawable.Drawable logo;
+        private final OvershootInterpolator spring = new OvershootInterpolator(.65f);
         // Module bounds followed by three lens centres/visibility. Coordinates use a 112 × 174 phone.
         private static final float[][] MODELS = {
             {10,12,48,101, 29,29,1, 29,57,1, 29,85,1},
@@ -84,28 +86,38 @@ public final class NebulaCameraPreview extends LinearLayout {
         private float[] geometry = MODELS[NebulaCameraSettings.backend()].clone();
         private int selected = NebulaCameraSettings.backend();
         private float turn;
+        private float lift;
         private ValueAnimator animation;
-        Phone(Context context) { super(context); setImportantForAccessibility(IMPORTANT_FOR_ACCESSIBILITY_NO); }
+        Phone(Context context) {
+            super(context); setImportantForAccessibility(IMPORTANT_FOR_ACCESSIBILITY_NO);
+            logo = context.getDrawable(org.telegram.messenger.R.drawable.nebula_settings_mark).mutate();
+        }
         void select(int value) {
             if (selected == value) return;
+            int direction = value > selected ? 1 : -1;
             selected = value;
             if (animation != null) animation.cancel();
             if (!isAttachedToWindow() || NebulaGlass.reduced() || Build.VERSION.SDK_INT >= 26 && !ValueAnimator.areAnimatorsEnabled()) {
-                geometry = MODELS[value].clone(); turn = 0; invalidate(); return;
+                geometry = MODELS[value].clone(); turn = lift = 0; invalidate(); return;
             }
             final float[] start = geometry.clone(), end = MODELS[value];
             animation = ValueAnimator.ofFloat(0, 1);
-            animation.setDuration(280); animation.setInterpolator(new DecelerateInterpolator(1.3f));
+            final float startTurn = turn, startLift = lift;
+            animation.setDuration(380); animation.setInterpolator(new android.view.animation.LinearInterpolator());
             animation.addUpdateListener(a -> {
                 float progress = (float)a.getAnimatedValue();
-                for (int i=0; i<geometry.length; i++) geometry[i] = start[i] + (end[i]-start[i])*progress;
-                turn = (float)Math.sin(progress*Math.PI)*-3; invalidate();
+                float settle = spring.getInterpolation(progress);
+                for (int i=0; i<geometry.length; i++) geometry[i] = start[i] + (end[i]-start[i])*settle;
+                float pulse = (float)Math.sin(progress*Math.PI);
+                turn = startTurn * (1-progress) + pulse * direction * 4;
+                lift = startLift * (1-progress) - pulse * 2;
+                invalidate();
             });
             animation.start();
         }
         @Override protected void onDetachedFromWindow() {
             if (animation != null) { animation.cancel(); animation = null; }
-            geometry = MODELS[selected].clone(); turn = 0; super.onDetachedFromWindow();
+            geometry = MODELS[selected].clone(); turn = lift = 0; super.onDetachedFromWindow();
         }
         private void fill(Canvas canvas, float l, float t, float r, float b, float radius, int color) {
             paint.setStyle(Paint.Style.FILL); paint.setColor(color); rect.set(l,t,r,b);
@@ -115,7 +127,7 @@ public final class NebulaCameraPreview extends LinearLayout {
             NebulaTheme theme = NebulaTheme.of(getContext());
             float scale = Math.min(getWidth()/130f, getHeight()/188f);
             int saved = canvas.save(); canvas.translate((getWidth()-112*scale)/2, (getHeight()-174*scale)/2);
-            canvas.scale(scale,scale); canvas.rotate(turn,56,87);
+            canvas.scale(scale,scale); canvas.translate(0,lift); canvas.rotate(turn,56,87);
             int body = ColorUtils.blendARGB(theme.surfaceContainer(), theme.primary(), .09f);
             fill(canvas,0,0,112,174,20,body);
             paint.setStyle(Paint.Style.STROKE); paint.setStrokeWidth(1.4f);
@@ -124,7 +136,7 @@ public final class NebulaCameraPreview extends LinearLayout {
             fill(canvas,111,45,114,72,1.5f,ColorUtils.blendARGB(body,theme.onSurface(),.35f));
             fill(canvas,geometry[0],geometry[1],geometry[2],geometry[3],15,ColorUtils.blendARGB(body,theme.onSurface(),.08f));
             for (int i=4;i<geometry.length;i+=3) {
-                float x=geometry[i],y=geometry[i+1],visibility=geometry[i+2];
+                float x=geometry[i],y=geometry[i+1],visibility=Math.max(0,Math.min(1,geometry[i+2]));
                 if (visibility < .01f) continue;
                 paint.setStyle(Paint.Style.FILL); paint.setColor(ColorUtils.setAlphaComponent(theme.onSurface(), Math.round(75*visibility)));
                 canvas.drawCircle(x,y,12,paint);
@@ -134,10 +146,10 @@ public final class NebulaCameraPreview extends LinearLayout {
             }
             paint.setStyle(Paint.Style.FILL); paint.setColor(ColorUtils.blendARGB(body,theme.onSurface(),.55f));
             canvas.drawCircle(91,86,3,paint);
-            // Nebula orbit mark; no third-party manufacturer logo or extra control icon.
-            paint.setColor(ColorUtils.blendARGB(body,theme.primary(),.55f)); paint.setStyle(Paint.Style.STROKE);paint.setStrokeWidth(1.8f);
-            canvas.drawCircle(56,122,10,paint);rect.set(41,117,71,127);
-            canvas.save();canvas.rotate(-28,56,122);canvas.drawOval(rect,paint);canvas.restore();
+            // The same NebulaGram mark used by our settings entry, engraved into the back.
+            int engraving = ColorUtils.blendARGB(body,theme.primary(),.65f);
+            logo.setTint(engraving); logo.setBounds(36,104,76,144); logo.draw(canvas);
+            paint.setColor(engraving);
             paint.setStyle(Paint.Style.FILL);paint.setTextSize(9);paint.setTypeface(AndroidUtilities.bold());paint.setTextAlign(Paint.Align.CENTER);
             canvas.drawText(new String[]{"AUTO","TG","2","X","SYS"}[selected],56,152,paint);
             paint.setTextAlign(Paint.Align.LEFT);canvas.restoreToCount(saved);
