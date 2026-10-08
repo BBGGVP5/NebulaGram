@@ -3,9 +3,7 @@ package app.nebulagram.ui;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.res.ColorStateList;
-import android.graphics.Canvas;
 import android.graphics.Color;
-import android.graphics.Paint;
 import android.graphics.drawable.GradientDrawable;
 import android.graphics.drawable.RippleDrawable;
 import android.view.Gravity;
@@ -31,7 +29,6 @@ public final class NebulaDialog {
         private int sectionStart = -1;
         private CharSequence sectionTitle;
         private boolean choices;
-        private boolean selectionIndicatorVisible = true;
         private View customView;
         private final Theme.ResourcesProvider resourcesProvider;
         private DialogInterface.OnClickListener itemClick, positiveClick, negativeClick, neutralClick;
@@ -47,7 +44,6 @@ public final class NebulaDialog {
             items = values; itemClick = listener; return this;
         }
         public Builder setSelectedIndex(int index) { choices = true; selected = index; return this; }
-        public Builder setSelectionIndicatorVisible(boolean visible) { selectionIndicatorVisible = visible; return this; }
         public Builder setDescriptions(CharSequence[] values) { descriptions = values; return this; }
         public Builder setSection(int start, CharSequence title) {
             sectionStart = start; sectionTitle = title; return this;
@@ -92,6 +88,7 @@ public final class NebulaDialog {
             choicesGroup.setOrientation(LinearLayout.VERTICAL);
             choicesGroup.setBackground(shape(container, 16));
             choicesGroup.setClipToOutline(true);
+            choicesGroup.setPadding(dp(4), dp(4), dp(4), dp(4));
             if (items != null) content.addView(choicesGroup, new LinearLayout.LayoutParams(-1, -2));
             if (items != null) for (int i = 0; i < items.length; i++) {
                 if (items[i] == null) continue;
@@ -103,6 +100,7 @@ public final class NebulaDialog {
                     choicesGroup.setOrientation(LinearLayout.VERTICAL);
                     choicesGroup.setBackground(shape(container, 16));
                     choicesGroup.setClipToOutline(true);
+                    choicesGroup.setPadding(dp(4), dp(4), dp(4), dp(4));
                     content.addView(choicesGroup, new LinearLayout.LayoutParams(-1, -2));
                 }
                 final int index = i;
@@ -122,8 +120,8 @@ public final class NebulaDialog {
                 row.setFocusable(true);
                 row.setBackground(new RippleDrawable(ColorStateList.valueOf(stateLayer(accent, .12f)),
                         shape(checked ? androidx.core.graphics.ColorUtils.compositeColors(
-                                stateLayer(accent, .12f), container) : container, 0),
-                        shape(0xffffffff, 0)));
+                                stateLayer(accent, .16f), container) : container, 12),
+                        shape(0xffffffff, 12)));
                 row.setPaddingRelative(dp(14), dp(10), dp(14), dp(10));
                 LinearLayout labels = new LinearLayout(context);
                 labels.setOrientation(LinearLayout.VERTICAL);
@@ -136,21 +134,6 @@ public final class NebulaDialog {
                     row.setContentDescription(items[i] + ". " + descriptions[i]);
                 }
                 row.addView(labels, new LinearLayout.LayoutParams(0, -2, 1));
-                if (choices && selectionIndicatorVisible) {
-                    View indicator = new View(context) {
-                        private final Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
-                        @Override protected void onDraw(Canvas canvas) {
-                            paint.setColor(checked ? accent : muted);
-                            paint.setStyle(Paint.Style.STROKE); paint.setStrokeWidth(dp(2));
-                            float x = getWidth() / 2f, y = getHeight() / 2f;
-                            canvas.drawCircle(x, y, dp(9), paint);
-                            if (checked) { paint.setStyle(Paint.Style.FILL); canvas.drawCircle(x, y, dp(5), paint); }
-                        }
-                    };
-                    indicator.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
-                    LinearLayout.LayoutParams indicatorParams = new LinearLayout.LayoutParams(dp(24), dp(24));
-                    indicatorParams.setMarginStart(dp(16)); row.addView(indicator, indicatorParams);
-                }
                 row.setOnClickListener(v -> {
                     dialog.dismiss();
                     if (itemClick != null) itemClick.onClick(dialog, index);

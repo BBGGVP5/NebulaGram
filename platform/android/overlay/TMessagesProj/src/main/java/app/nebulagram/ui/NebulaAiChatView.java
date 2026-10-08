@@ -117,7 +117,7 @@ public final class NebulaAiChatView extends LinearLayout {
             names[i] = chat.title.isEmpty() ? text("Новый чат", "New chat") : chat.title;
         }
         new NebulaDialog.Builder(getContext()).setTitle(text("Чаты Nebula AI", "Nebula AI chats"))
-                .setSelectedIndex(selected).setSelectionIndicatorVisible(false)
+                .setSelectedIndex(selected)
                 .setItems(names, (dialog, which) -> {
                     stop(); restoreChat(NebulaAiChats.select(chats.get(which).id)); composer.setText("");
                 }).show();
