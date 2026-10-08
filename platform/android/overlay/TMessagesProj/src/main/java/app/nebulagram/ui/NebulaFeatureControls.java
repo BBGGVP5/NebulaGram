@@ -94,6 +94,9 @@ public final class NebulaFeatureControls {
     public static void privacy(BaseFragment host, LinearLayout parent) {
         NebulaCard card = new NebulaCard(parent.getContext());
         if (android.os.Build.VERSION.SDK_INT >= 29) card.add(toggle(parent, "biometric_delete", "Подтверждать удаление", "Authenticate before deletion", "Системная биометрия или пароль перед удалением чата и очисткой истории", "System biometrics or passcode before deleting a chat or clearing history"));
+        if (android.os.Build.VERSION.SDK_INT >= 30) card.add(NebulaMediaControls.toggle(parent.getContext(), "prefer_device_pin", false, "Предпочитать системный PIN или пароль", "Prefer device PIN or passcode"));
+        if (android.os.Build.VERSION.SDK_INT >= 29) card.add(new NebulaRow(parent.getContext()).title(text("Проверить защиту", "Test authentication"))
+                .subtitle(text("Проверка без удаления данных", "Test without deleting data"), false).trailing(NebulaRow.TRAIL_CHEVRON).withClick(v -> NebulaDeleteAuthentication.test(host)));
         card.add(toggle(parent, "hide_archive", "Скрыть архив", "Hide archive", "Скрывает строку архива, сохраняя все чаты внутри", "Hides the archive row while keeping its chats"));
         card.add(new NebulaRow(parent.getContext()).icon(R.drawable.files_folder).title(text("Открыть архив", "Open archive"))
                 .trailing(NebulaRow.TRAIL_CHEVRON).withClick(v -> {

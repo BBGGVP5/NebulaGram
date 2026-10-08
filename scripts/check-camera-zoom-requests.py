@@ -37,10 +37,12 @@ class CameraZoomRequests {
   int width(){return right-left;}int height(){return bottom-top;}
   int centerX(){return (left+right)/2;}int centerY(){return (top+bottom)/2;}
  }
- static class Range<T> {Range(T a,T b){}}
+ static class Range<T> {T lower,upper;Range(T a,T b){lower=a;upper=b;}T getLower(){return lower;}T getUpper(){return upper;}}
+ static class CameraCharacteristics {static String CONTROL_AE_COMPENSATION_RANGE="exposureRange";Range<Integer> get(String key){return new Range<>(-4,6);}}
+ static class Options {void apply(CaptureRequest.Builder builder){builder.set("ois",1);}}
  static class CameraMetadata {static int CONTROL_SCENE_MODE_BARCODE=1,CONTROL_SCENE_MODE_NIGHT_PORTRAIT=2,CONTROL_SCENE_MODE_NIGHT=3;}
  static class CaptureRequest {
-  static String CONTROL_ZOOM_RATIO="ratio",SCALER_CROP_REGION="crop",CONTROL_SCENE_MODE="scene",FLASH_MODE="flash",CONTROL_AE_TARGET_FPS_RANGE="fps",CONTROL_CAPTURE_INTENT="intent";
+  static String CONTROL_AE_EXPOSURE_COMPENSATION="exposure",CONTROL_ZOOM_RATIO="ratio",SCALER_CROP_REGION="crop",CONTROL_SCENE_MODE="scene",FLASH_MODE="flash",CONTROL_AE_TARGET_FPS_RANGE="fps",CONTROL_CAPTURE_INTENT="intent";
   static int FLASH_MODE_TORCH=2,FLASH_MODE_SINGLE=1,FLASH_MODE_OFF=0,CONTROL_CAPTURE_INTENT_VIDEO_RECORD=3;
   static class Builder {
    Map<String,Object> values=new HashMap<>();void set(String k,Object v){values.put(k,v);}
@@ -62,6 +64,7 @@ class CameraZoomRequests {
   static void e(String s,Exception e){throw new AssertionError(s,e);}
  }
  static class Camera {
+  Options nebulaOptions=new Options();CameraCharacteristics cameraCharacteristics=new CameraCharacteristics();float nebulaExposure=.5f;
   volatile boolean isClosed;boolean initiated=true,zoomRatioSupported=true,recordingVideo=true,scanningBarcode,nightMode,isFront,flashing;
   volatile float currentZoom=1;float maxZoom=100,minZoom=.5f;
   Handler handler=new Handler();CameraDevice cameraDevice=new CameraDevice();Object surface=new Object();
@@ -77,6 +80,7 @@ class CameraZoomRequests {
   for(int i=1;i<=1000;i++)c.setZoom(.5f+i*.05f);
   check(c.handler.work.size()==1&&c.captureSession.submits==1,"rapid input must coalesce");
   c.handler.drain();check(c.captureSession.submits==2&&c.cameraDevice.creates==1,"one submit and builder reuse");
+  check(c.captureSession.latest.get("exposure").equals(3)&&c.captureSession.latest.get("ois").equals(1),"zoom retains exposure and selected stabilization");
   check(Math.abs((Float)c.captureSession.latest.get("ratio")-50.5f)<.001,"last input wins");
   c.setZoom(50.5f);c.setZoom(Float.NaN);c.setZoom(Float.POSITIVE_INFINITY);
   check(c.handler.work.isEmpty(),"invalid and unchanged input ignored");

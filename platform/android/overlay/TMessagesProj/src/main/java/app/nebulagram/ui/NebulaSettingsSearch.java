@@ -29,6 +29,9 @@ public final class NebulaSettingsSearch {
             else if (section == -12) f.presentFragment(new NebulaAiSettingsFragment());
             else if (section == -24) f.presentFragment(new NebulaBrowserSettingsFragment());
             else if (section == -25) f.presentFragment(new NebulaIconPacksFragment());
+            else if (section == -26) f.presentFragment(new NebulaCameraFragment());
+            else if (section == -27) f.presentFragment(new NebulaMessageFilterFragment());
+            else if (section == -28) f.presentFragment(new NebulaMessageMenuFragment());
             else if (section == -13) f.presentFragment(new NebulaUpdatesFragment());
             else if (section == -14) f.presentFragment(new NebulaMenuFragment(NebulaMenuFragment.SCREEN_ADVANCED));
             else if (section == -15) f.presentFragment(new NebulaPrivacyFragment());
@@ -37,6 +40,9 @@ public final class NebulaSettingsSearch {
     }
     public static ArrayList<Entry> all() {
         ArrayList<Entry> result = new ArrayList<>();
+        result.add(new Entry(-27, NebulaText.text("Фильтр сообщений", "Message filter"), NebulaText.text("Слова, транслитерация, исключения, заблокированные", "Words, transliteration, exceptions, blocked users"), R.drawable.msg_search));
+        result.add(new Entry(-28, NebulaText.text("Меню сообщения", "Message menu"), NebulaText.text("Действия, высота, компактный вид и размытие", "Actions, height, compact appearance and blur"), R.drawable.msg_list));
+        result.add(new Entry(-26, NebulaText.text("Камера", "Camera"), NebulaText.text("Движок кружков, CameraX, качество, стабилизация, экспозиция и размытие", "Round-video engine, CameraX, quality, stabilization, exposure and blur"), R.drawable.msg_videocall));
         result.add(new Entry(-22, NebulaText.text("Поддержать проект", "Support the project"),
                 NebulaText.text("Донат и значок поддержки NebulaGram", "Donation and NebulaGram supporter badge"), R.drawable.nebula_settings_support));
         result.add(new Entry(5, NebulaText.text("Оформление нижних папок", "Bottom folder appearance"),

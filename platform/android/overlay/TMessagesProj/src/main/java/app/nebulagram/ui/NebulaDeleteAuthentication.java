@@ -24,6 +24,12 @@ public final class NebulaDeleteAuthentication {
     }
     public static boolean guard(BaseFragment fragment, Runnable confirmation) {
         if (!NebulaFeatureSettings.enabled("biometric_delete") || Boolean.TRUE.equals(authorized.get())) return false;
+        return authenticate(fragment, confirmation, false);
+    }
+    public static void test(BaseFragment fragment) {
+        authenticate(fragment, () -> Toast.makeText(fragment.getContext(), NebulaText.text("Проверка пройдена", "Authentication succeeded"), Toast.LENGTH_SHORT).show(), true);
+    }
+    private static boolean authenticate(BaseFragment fragment, Runnable confirmation, boolean test) {
         if (fragment == null || fragment.getParentActivity() == null) return true;
         Activity activity = fragment.getParentActivity();
         if (Build.VERSION.SDK_INT < 29) { error(activity); return true; }
@@ -33,9 +39,10 @@ public final class NebulaDeleteAuthentication {
         int account = fragment.getCurrentAccount(); long owner = UserConfig.getInstance(account).getClientUserId();
         CancellationSignal cancellation = new CancellationSignal(); pending.put(fragment, cancellation);
         BiometricPrompt.Builder builder = new BiometricPrompt.Builder(activity)
-                .setTitle(NebulaText.text("Подтвердите удаление", "Confirm deletion"))
+                .setTitle(test ? NebulaText.text("Проверка защиты", "Test authentication") : NebulaText.text("Подтвердите удаление", "Confirm deletion"))
                 .setSubtitle(NebulaText.text("Разблокируйте устройство для продолжения", "Unlock your device to continue"));
-        if (Build.VERSION.SDK_INT >= 30) builder.setAllowedAuthenticators(BiometricManager.Authenticators.BIOMETRIC_STRONG | BiometricManager.Authenticators.DEVICE_CREDENTIAL);
+        if (Build.VERSION.SDK_INT >= 30) builder.setAllowedAuthenticators(NebulaMessagePreferences.enabled("prefer_device_pin", false)
+                ? BiometricManager.Authenticators.DEVICE_CREDENTIAL : BiometricManager.Authenticators.BIOMETRIC_STRONG | BiometricManager.Authenticators.DEVICE_CREDENTIAL);
         else builder.setDeviceCredentialAllowed(true);
         try {
             builder.build().authenticate(cancellation, AndroidUtilities::runOnUIThread, new BiometricPrompt.AuthenticationCallback() {

@@ -337,5 +337,5 @@ public final class NebulaPrivacyFragment extends BaseFragment {
             }).create());
     }
 
-    @Override public void onFragmentDestroy() { content = null; super.onFragmentDestroy(); }
+    @Override public void onFragmentDestroy() { NebulaDeleteAuthentication.cancel(this); content = null; super.onFragmentDestroy(); }
 }

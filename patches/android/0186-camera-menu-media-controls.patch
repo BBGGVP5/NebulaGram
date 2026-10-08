@@ -1,0 +1,700 @@
+diff --git a/TMessagesProj/build.gradle b/TMessagesProj/build.gradle
+--- a/TMessagesProj/build.gradle
++++ b/TMessagesProj/build.gradle
+@@ -38,6 +38,8 @@
+ }
+ 
+ dependencies {
++    implementation 'androidx.camera:camera-camera2:1.5.2'
++    implementation 'androidx.camera:camera-lifecycle:1.5.2'
+     implementation files('libs/nebulalink.aar')  // NebulaGram: NebulaLink core
+     implementation 'androidx.core:core:1.16.0'
+     implementation 'androidx.palette:palette:1.0.0'
+diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/camera/Camera2Session.java b/TMessagesProj/src/main/java/org/telegram/messenger/camera/Camera2Session.java
+--- a/TMessagesProj/src/main/java/org/telegram/messenger/camera/Camera2Session.java
++++ b/TMessagesProj/src/main/java/org/telegram/messenger/camera/Camera2Session.java
+@@ -130,8 +130,26 @@
+         if (cameraId == null || bestSize == null) {
+             return null;
+         }
++        try {
++            StreamConfigurationMap streams = cameraManager.getCameraCharacteristics(cameraId).get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP);
++            if (streams != null) bestSize = app.nebulagram.ui.NebulaCameraCapture.size(streams.getOutputSizes(SurfaceTexture.class), bestSize, viewWidth != viewHeight);
++        } catch (Exception e) { FileLog.e(e); }
++        if (app.nebulagram.ui.NebulaCameraSettings.backend() == 3)
++            return new app.nebulagram.ui.NebulaCameraXSession(front, cameraId, bestSize);
+         return new Camera2Session(context, front, cameraId, bestSize);
+     }
++
++    /** Used by the CameraX adapter without opening a second Camera2 device. */
++    protected Camera2Session(boolean front, String id, Size size) {
++        isFront = front; cameraId = id; previewSize = size;
++        cameraManager = (CameraManager) ApplicationLoader.applicationContext.getSystemService(Context.CAMERA_SERVICE);
++        cameraStateCallback = null; captureStateCallback = null;
++        try { cameraCharacteristics = cameraManager.getCameraCharacteristics(id); }
++        catch (Exception e) { FileLog.e(e); }
++    }
++    private app.nebulagram.ui.NebulaCameraCapabilities.Options nebulaOptions;
++    private volatile float nebulaExposure;
++    public void setExposure(float progress) { nebulaExposure = Math.max(-1f, Math.min(1f, progress)); updateCaptureRequest(); }
+ 
+     private Camera2Session(Context context, boolean isFront, String cameraId, Size size) {
+         thread = new HandlerThread("tg_camera2");
+@@ -201,6 +219,7 @@
+         cameraManager = (CameraManager) context.getSystemService(Context.CAMERA_SERVICE);
+         try {
+             cameraCharacteristics = cameraManager.getCameraCharacteristics(cameraId);
++            nebulaOptions = new app.nebulagram.ui.NebulaCameraCapabilities.Options(cameraCharacteristics, size);
+             sensorSize = cameraCharacteristics.get(CameraCharacteristics.SENSOR_INFO_ACTIVE_ARRAY_SIZE);
+             final Float value = cameraCharacteristics.get(CameraCharacteristics.SCALER_AVAILABLE_MAX_DIGITAL_ZOOM);
+             maxZoom = (value == null || value < 1f) ? 1f : value;
+@@ -547,6 +566,10 @@
+             }
+ 
+             applyZoomToRequest();
++            if (nebulaOptions != null) nebulaOptions.apply(captureRequestBuilder);
++            Range<Integer> exposure = cameraCharacteristics.get(CameraCharacteristics.CONTROL_AE_COMPENSATION_RANGE);
++            if (exposure != null) captureRequestBuilder.set(CaptureRequest.CONTROL_AE_EXPOSURE_COMPENSATION,
++                Math.round(nebulaExposure * (nebulaExposure < 0 ? -exposure.getLower() : exposure.getUpper())));
+ 
+             captureRequestBuilder.addTarget(surface);
+             captureSession.setRepeatingRequest(captureRequestBuilder.build(), null, handler);
+diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/camera/CameraSession.java b/TMessagesProj/src/main/java/org/telegram/messenger/camera/CameraSession.java
+--- a/TMessagesProj/src/main/java/org/telegram/messenger/camera/CameraSession.java
++++ b/TMessagesProj/src/main/java/org/telegram/messenger/camera/CameraSession.java
+@@ -222,6 +222,12 @@
+         return sameTakePictureOrientation;
+     }
+ 
++    private volatile float nebulaExposure;
++    public void setExposure(float value) {
++        if (!Float.isFinite(value)) return;
++        nebulaExposure = Math.max(-1f, Math.min(1f, value));
++        if (isRound) scheduleRoundCameraUpdate(); else configurePhotoCamera();
++    }
+     protected boolean configureRoundCamera(boolean initial) {
+         try {
+             isVideo = true;
+@@ -281,6 +287,7 @@
+                     params.setFlashMode(currentFlashMode);
+                     params.setZoom((int) (currentZoom * maxZoom));
+                     try {
++                        app.nebulagram.ui.NebulaCameraCapture.legacy(params, nebulaExposure);
+                         camera.setParameters(params);
+                     } catch (Exception e) {
+                         throw new RuntimeException(e);
+@@ -422,6 +429,7 @@
+                     params.setFlashMode(useTorch ? Camera.Parameters.FLASH_MODE_TORCH : currentFlashMode);
+ 
+                     try {
++                        app.nebulagram.ui.NebulaCameraCapture.legacy(params, nebulaExposure);
+                         camera.setParameters(params);
+                     } catch (Exception e) {
+                         //
+diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/camera/CameraView.java b/TMessagesProj/src/main/java/org/telegram/messenger/camera/CameraView.java
+--- a/TMessagesProj/src/main/java/org/telegram/messenger/camera/CameraView.java
++++ b/TMessagesProj/src/main/java/org/telegram/messenger/camera/CameraView.java
+@@ -122,7 +122,7 @@
+     private int focusAreaSize;
+     private Drawable thumbDrawable;
+ 
+-    private final boolean useCamera2 = false && SharedConfig.isUsingCamera2(UserConfig.selectedAccount);
++    private final boolean useCamera2 = app.nebulagram.ui.NebulaCameraSettings.backend() == 2 || app.nebulagram.ui.NebulaCameraSettings.backend() == 3;
+     private final CameraSessionWrapper[] cameraSession = new CameraSessionWrapper[2];
+     private CameraSessionWrapper cameraSessionRecording;
+ 
+@@ -779,6 +779,12 @@
+             }
+         }
+ 
++        if (!square() && !isStory) {
++            float ratio = app.nebulagram.ui.NebulaCameraCapture.aspect((float) aspectRatio.mWidth / aspectRatio.mHeight);
++            if (app.nebulagram.ui.NebulaCameraSettings.aspect() != 0) aspectRatio = new Size(Math.round(ratio * 300), 300);
++            int quality = app.nebulagram.ui.NebulaCameraSettings.quality();
++            if (quality != 0) { wantedHeight = photoMaxHeight = quality; wantedWidth = photoMaxWidth = Math.round(quality * ratio); }
++        }
+         previewSize[i] = CameraController.chooseOptimalSize(info[i].getPreviewSizes(), wantedWidth, wantedHeight, aspectRatio, isStory);
+         pictureSize[i] = CameraController.chooseOptimalSize(info[i].getPictureSizes(), photoMaxWidth, photoMaxHeight, aspectRatio, false);
+ 
+@@ -2296,6 +2302,7 @@
+                 previewSize[i] = new Size(session.getPreviewWidth(), session.getPreviewHeight());
+                 cameraThread.setCurrentSession(cameraSession[i], i);
+                 session.whenDone(() -> {
++                    previewSize[i] = new Size(session.getPreviewWidth(), session.getPreviewHeight());
+                     requestLayout();
+                     if (dual && i == 1 && initFirstCameraAfterSecond) {
+                         initFirstCameraAfterSecond = false;
+diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/MediaController.java b/TMessagesProj/src/main/java/org/telegram/messenger/MediaController.java
+--- a/TMessagesProj/src/main/java/org/telegram/messenger/MediaController.java
++++ b/TMessagesProj/src/main/java/org/telegram/messenger/MediaController.java
+@@ -2552,7 +2552,7 @@
+                 hasAudioFocus = 0;
+                 int index = -1;
+                 if (voiceMessagesPlaylist != null) {
+-                    if (byVoiceEnd && (index = voiceMessagesPlaylist.indexOf(lastFile)) >= 0) {
++                    if (byVoiceEnd && app.nebulagram.ui.NebulaMessagePreferences.enabled("voice_autoplay", true) && (index = voiceMessagesPlaylist.indexOf(lastFile)) >= 0) {
+                         voiceMessagesPlaylist.remove(index);
+                         voiceMessagesPlaylistMap.remove(lastFile.getId());
+                         if (voiceMessagesPlaylist.isEmpty()) {
+@@ -4454,8 +4454,8 @@
+ 
+     public void requestRecordAudioFocus(boolean request) {
+         if (request) {
+-            if (!hasRecordAudioFocus && SharedConfig.pauseMusicOnRecord) {
+-                int result = NotificationsController.audioManager.requestAudioFocus(audioRecordFocusChangedListener, AudioManager.STREAM_MUSIC, AudioManager.AUDIOFOCUS_GAIN_TRANSIENT);
++            if (!hasRecordAudioFocus && (SharedConfig.pauseMusicOnRecord || app.nebulagram.ui.NebulaMessagePreferences.enabled("record_exclusive", false))) {
++                int result = NotificationsController.audioManager.requestAudioFocus(audioRecordFocusChangedListener, AudioManager.STREAM_MUSIC, app.nebulagram.ui.NebulaMessagePreferences.enabled("record_exclusive", false) ? AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_EXCLUSIVE : AudioManager.AUDIOFOCUS_GAIN_TRANSIENT);
+                 if (result == AudioManager.AUDIOFOCUS_REQUEST_GRANTED) {
+                     hasRecordAudioFocus = true;
+                 }
+diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/SharedConfig.java b/TMessagesProj/src/main/java/org/telegram/messenger/SharedConfig.java
+--- a/TMessagesProj/src/main/java/org/telegram/messenger/SharedConfig.java
++++ b/TMessagesProj/src/main/java/org/telegram/messenger/SharedConfig.java
+@@ -1805,6 +1805,8 @@
+     }
+ 
+     public static boolean isUsingCamera2(int currentAccount) {
++        if (app.nebulagram.ui.NebulaCameraSettings.backend() == 1) return false;
++        if (app.nebulagram.ui.NebulaCameraSettings.backend() == 2 || app.nebulagram.ui.NebulaCameraSettings.backend() == 3) return true;
+         return useCamera2Force == null ? !MessagesController.getInstance(currentAccount).androidDisableRoundCamera2 : useCamera2Force;
+     }
+ 
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Cells/ChatMessageCell.java b/TMessagesProj/src/main/java/org/telegram/ui/Cells/ChatMessageCell.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Cells/ChatMessageCell.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Cells/ChatMessageCell.java
+@@ -18527,7 +18527,7 @@
+                 }
+                 timeString = LocaleController.formatPmEditedDate(editDate);
+             } else {
+-                timeString = (getString(R.string.EditedMessage) + " " + LocaleController.getInstance().getFormatterDay().format((long) (messageObject.messageOwner.date) * 1000));
++                timeString = ((app.nebulagram.ui.NebulaMessagePreferences.enabled("edited_pencil", false) ? "✎" : getString(R.string.EditedMessage)) + " " + LocaleController.getInstance().getFormatterDay().format((long) (messageObject.messageOwner.date) * 1000));
+             }
+         } else if (currentMessageObject.isSaved && currentMessageObject.messageOwner.fwd_from != null && (currentMessageObject.messageOwner.fwd_from.date != 0 || currentMessageObject.messageOwner.fwd_from.saved_date != 0)) {
+             int date = currentMessageObject.messageOwner.fwd_from.saved_date;
+@@ -18537,6 +18537,10 @@
+             timeString = LocaleController.formatSeenDate(date);
+         } else {
+             timeString = LocaleController.getInstance().getFormatterDay().format((long) (messageObject.messageOwner.date) * 1000);
++        }
++        if (app.nebulagram.ui.NebulaMessagePreferences.enabled("forward_date", false) && !messageObject.isSaved
++                && messageObject.messageOwner.fwd_from != null && messageObject.messageOwner.fwd_from.date > 0) {
++            timeString = LocaleController.formatSmallDateChat(messageObject.messageOwner.fwd_from.date) + " · " + timeString;
+         }
+         if (currentMessageObject.messageOwner.video_processing_pending) {
+             timeString = formatString(R.string.ScheduledTimeApprox, timeString);
+@@ -18715,6 +18719,7 @@
+     }
+ 
+     protected boolean checkNeedDrawShareButton(MessageObject messageObject) {
++        if (!app.nebulagram.ui.NebulaMessagePreferences.enabled("direct_share", true)) return false;
+         if (isReportChat) return false;
+         if (currentMessageObject.deleted && !currentMessageObject.deletedByThanos) return false;
+         if (currentMessageObject.isSponsored()) return false;
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
+@@ -6927,8 +6927,16 @@
+                 }
+             }
+ 
++            private int nebulaKeyboardScroll;
+             @Override
+             public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
++                if (recyclerView.getScrollState() == RecyclerView.SCROLL_STATE_DRAGGING && isKeyboardVisible()) {
++                    nebulaKeyboardScroll += Math.abs(dy);
++                    int threshold = app.nebulagram.ui.NebulaMessagePreferences.keyboardThreshold();
++                    if (threshold > 0 && nebulaKeyboardScroll >= dp(threshold * 12)) {
++                        AndroidUtilities.hideKeyboard(getParentActivity().getCurrentFocus()); nebulaKeyboardScroll = 0;
++                    }
++                } else nebulaKeyboardScroll = 0;
+                 final ChatActivity chatToUpdate = parentChatActivity != null ? parentChatActivity : ChatActivity.this;
+ 
+                 chatListView.invalidate();
+@@ -7729,8 +7737,16 @@
+             }
+         });
+         messagesSearchListView.setOnScrollListener(new RecyclerView.OnScrollListener() {
++            private int nebulaKeyboardScroll;
+             @Override
+             public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
++                if (recyclerView.getScrollState() == RecyclerView.SCROLL_STATE_DRAGGING && isKeyboardVisible()) {
++                    nebulaKeyboardScroll += Math.abs(dy);
++                    int threshold = app.nebulagram.ui.NebulaMessagePreferences.keyboardThreshold();
++                    if (threshold > 0 && nebulaKeyboardScroll >= dp(threshold * 12)) {
++                        AndroidUtilities.hideKeyboard(getParentActivity().getCurrentFocus()); nebulaKeyboardScroll = 0;
++                    }
++                } else nebulaKeyboardScroll = 0;
+                 final ChatActivity chatToUpdate = parentChatActivity != null ? parentChatActivity : ChatActivity.this;
+                 if (dy != 0) {
+                     invalidateMergedVisibleBlurredPositionsAndSources(BLUR_INVALIDATE_FLAG_SCROLL);
+@@ -16371,7 +16387,7 @@
+                 }
+                 getDownloadController().checkUnviewedDownloads(messageCell.getId(), dialog_id);
+                 boolean allowPlayEffect = messageObject.getEffect() != null || ((messageObject.messageOwner.media != null && !messageObject.messageOwner.media.nopremium) || (messageObject.isAnimatedEmojiStickerSingle() && dialog_id > 0));
+-                if ((chatListItemAnimator == null || !chatListItemAnimator.isRunning()) && (!messageObject.isOutOwner() || messageObject.forcePlayEffect) && allowPlayEffect && !messageObject.messageOwner.premiumEffectWasPlayed && (messageObject.isPremiumSticker() || messageCell.getEffect() != null || messageObject.isAnimatedEmojiStickerSingle()) && emojiAnimationsOverlay.isIdle() && emojiAnimationsOverlay.checkPosition(messageCell, chatListViewPaddingTop, chatListView.getMeasuredHeight() - blurredViewBottomOffset)) {
++                if ((chatListItemAnimator == null || !chatListItemAnimator.isRunning()) && (!messageObject.isOutOwner() || messageObject.forcePlayEffect) && allowPlayEffect && (!messageObject.isPremiumSticker() || app.nebulagram.ui.NebulaMessagePreferences.enabled("premium_effects", true)) && !messageObject.messageOwner.premiumEffectWasPlayed && (messageObject.isPremiumSticker() || messageCell.getEffect() != null || messageObject.isAnimatedEmojiStickerSingle()) && emojiAnimationsOverlay.isIdle() && emojiAnimationsOverlay.checkPosition(messageCell, chatListViewPaddingTop, chatListView.getMeasuredHeight() - blurredViewBottomOffset)) {
+                     emojiAnimationsOverlay.onTapItem(messageCell, ChatActivity.this, false);
+                 } else if (messageObject.isAnimatedAnimatedEmoji()) {
+                     emojiAnimationsOverlay.preloadAnimation(messageCell);
+@@ -31912,7 +31928,7 @@
+                 }
+                 boolean showRateTranscription = selectedObject != null && selectedObject.isVoice() && selectedObject.messageOwner != null && getUserConfig().isPremium() && !TextUtils.isEmpty(selectedObject.messageOwner.voiceTranscription) && selectedObject.messageOwner != null && !selectedObject.messageOwner.voiceTranscriptionRated && selectedObject.messageOwner.voiceTranscriptionId != 0 && selectedObject.messageOwner.voiceTranscriptionOpen;
+ 
+-                if (!showRateTranscription && message.probablyRingtone() && currentEncryptedChat == null) {
++                if (app.nebulagram.ui.NebulaMessageMenuSettings.enabled("sound", true) && !showRateTranscription && message.probablyRingtone() && currentEncryptedChat == null) {
+                     ActionBarMenuSubItem cell = new ActionBarMenuSubItem(getParentActivity(), !showPrivateMessageSeen && !showPrivateMessageEdit && !showPrivateMessageFwdOriginal, false, themeDelegate);
+                     cell.setMinimumWidth(AndroidUtilities.dp(200));
+                     cell.setTextAndIcon(getString(R.string.SaveForNotifications), R.drawable.msg_tone_add);
+@@ -32203,6 +32219,7 @@
+                         popupLayout.addView(new ActionBarPopupWindow.GapView(contentView.getContext(), themeDelegate), LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, 8));
+                     }
+                 }
++                app.nebulagram.ui.NebulaMessageMenuSettings.filter(items, icons, options);
+                 scrimPopupWindowItems = new ActionBarMenuSubItem[items.size()];
+                 for (int a = 0, N = items.size(); a < N; a++) {
+                     final Integer option = options.get(a);
+@@ -32213,6 +32230,9 @@
+                     ActionBarMenuSubItem cell = new ActionBarMenuSubItem(getParentActivity(), a == 0, a == N - 1, themeDelegate);
+                     cell.setMinimumWidth(AndroidUtilities.dp(200));
+                     cell.setTextAndIcon(items.get(a), icons.get(a));
++                    if (app.nebulagram.ui.NebulaMessageMenuSettings.enabled("compact", false)) {
++                        cell.setItemHeight(48); cell.textView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 14);
++                    }
+ 
+ 
+                     if (option == OPTION_WELCOME_REVERT) {
+@@ -32878,7 +32898,7 @@
+             app.nebulagram.ui.NebulaMenuStyle.styleRows(popupLayout, resourceProvider);
+             final int finalPopupX = scrimPopupX = popupX;
+             final int finalPopupY = scrimPopupY = popupY;
+-            scrimPopupContainerLayout.setMaxHeight(maxY + height - popupY);
++            scrimPopupContainerLayout.setMaxHeight(Math.min(maxY + height - popupY, Math.max(dp(96), totalHeight * app.nebulagram.ui.NebulaMessageMenuSettings.heightPercent() / 100)));
+             ReactionsContainerLayout finalReactionsLayout = reactionsLayout;
+             Runnable showMenu = () -> {
+                 if (scrimPopupWindow == null || fragmentView == null || scrimPopupWindow.isShowing() || !AndroidUtilities.isActivityRunning(getParentActivity())) {
+@@ -46231,8 +46251,10 @@
+         boolean noforwards = isPeerNoForwards() || message.messageOwner.noforwards || getDialogId() == UserObject.VERIFY;
+         if (!noforwards && !isEphemeral && message.type != MessageObject.TYPE_PAID_MEDIA
+                 && (!TextUtils.isEmpty(message.messageOwner.message) || message.isVoice() || message.isRoundVideo() || message.isVideo())) {
+-            items.add(app.nebulagram.ui.NebulaText.text("Инструменты Nebula", "Nebula tools"));
+-            icons.add(R.drawable.nebula_ai_spark); options.add(7912);
++            if (app.nebulagram.ui.NebulaMessageMenuSettings.enabled("tools", true)) {
++                items.add(app.nebulagram.ui.NebulaText.text("Инструменты Nebula", "Nebula tools"));
++                icons.add(R.drawable.nebula_ai_spark); options.add(7912);
++            }
+             items.add(app.nebulagram.ui.NebulaText.text("Сохранить в выбранный чат", "Save to chosen chat"));
+             icons.add(R.drawable.msg_saved); options.add(7913);
+         }
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAttachAlertPhotoLayout.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAttachAlertPhotoLayout.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAttachAlertPhotoLayout.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAttachAlertPhotoLayout.java
+@@ -1210,6 +1210,10 @@
+                     cy3 = cy2 = getMeasuredHeight() / 2 - dp(13);
+                 }
+ 
++                if (app.nebulagram.ui.NebulaCameraSettings.enabled("center_controls")) {
++                    if (getMeasuredWidth() == dp(126)) { cy2 = cy + dp(88); cy3 = cy - dp(88); }
++                    else { cx2 = cx + dp(88); cx3 = cx - dp(88); }
++                }
+                 int y = getMeasuredHeight() - tooltipTextView.getMeasuredHeight() - dp(12);
+                 if (getMeasuredWidth() == dp(126)) {
+                     tooltipTextView.layout(cx - tooltipTextView.getMeasuredWidth() / 2, getMeasuredHeight(), cx + tooltipTextView.getMeasuredWidth() / 2, getMeasuredHeight() + tooltipTextView.getMeasuredHeight());
+@@ -1545,7 +1549,7 @@
+     }
+ 
+     private void openCameraByClick() {
+-        if (SharedConfig.inappCamera) {
++        if (SharedConfig.inappCamera && app.nebulagram.ui.NebulaCameraSettings.backend() != 4) {
+             openCamera(true);
+         } else {
+             if (parentAlert.delegate != null) {
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/InstantCameraView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/InstantCameraView.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Components/InstantCameraView.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/InstantCameraView.java
+@@ -330,6 +330,10 @@
+         addView(nebulaZoomSlider, zoomParams);
+ 
+ 
++        app.nebulagram.ui.NebulaExposureControl.attach(this, value -> {
++            if (useCamera2 && camera2SessionCurrent != null) camera2SessionCurrent.setExposure(value);
++            else if (cameraSession != null) cameraSession.setExposure(value);
++        });
+         buttonsLayout = new LinearLayout(context);
+         buttonsLayout.setPadding(dp(6), dp(6), dp(6), dp(6));
+ 
+@@ -792,7 +796,7 @@
+         }
+ 
+         if (useCamera2) {
+-            bothCameras = DualCameraView.roundDualAvailableStatic(getContext());
++            bothCameras = app.nebulagram.ui.NebulaCameraSettings.enabled("dual") && app.nebulagram.ui.NebulaCameraSettings.backend() != 3 && DualCameraView.roundDualAvailableStatic(getContext());
+             app.nebulagram.ui.NebulaZoomCapabilities rearZoom = nebulaCameraCatalog(false);
+             if (rearZoom != null && rearZoom.needsReopen()) bothCameras = false;
+             if (bothCameras) {
+@@ -2208,6 +2212,8 @@
+         private int textureMatrixHandle;
+         private int positionHandle;
+         private int textureHandle;
++        private int nebulaBlurHandle, nebulaTexelHandle;
++        private final boolean nebulaSwitchBlur = app.nebulagram.ui.NebulaCameraSettings.enabled("switch_blur");
+         private int resolutionHandle;
+         private int previewSizeHandle;
+         private int texelSizeHandle;
+@@ -2217,6 +2223,7 @@
+         private InstantCameraVideoEncoderOverlayHelper overlayHelper;
+ 
+         private AudioRecord audioRecorder;
++        private int nebulaAudioChannels = 1;
+ 
+         private ArrayBlockingQueue<AudioBufferInfo> buffers = new ArrayBlockingQueue<>(10);
+         private ArrayList<Bitmap> keyframeThumbs = new ArrayList<>();
+@@ -2303,7 +2310,7 @@
+                         buffer.offset[a] = timestamp;
+ 
+                         buffer.read[a] = readResult;
+-                        int bufferDurationUs = 1000000 * readResult / audioSampleRate / 2;
++                        int bufferDurationUs = (int) app.nebulagram.ui.NebulaRecordingAudio.durationUs(readResult, audioSampleRate, nebulaAudioChannels);
+                         if (!shouldUseTimestamp) {
+                             audioPresentationTimeUs += bufferDurationUs;
+                         }
+@@ -2346,6 +2353,8 @@
+ 
+             started = true;
+             int resolution = MessagesController.getInstance(currentAccount).roundVideoSize;
++            int nebulaSize = app.nebulagram.ui.NebulaCameraSettings.number("round_size", 0, 0, 2);
++            if (nebulaSize != 0) resolution = nebulaSize == 1 ? 360 : 480;
+             int bitrate = MessagesController.getInstance(currentAccount).roundVideoBitrate * 1024;
+             AndroidUtilities.runOnUIThread(() -> {
+                 NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.stopAllHeavyOperations, 512);
+@@ -2660,6 +2669,9 @@
+             GLES20.glUniformMatrix4fv(vertexMatrixHandle, 1, false, mMVPMatrix, 0);
+ 
+             GLES20.glUniform2f(resolutionHandle, videoWidth, videoHeight);
++            GLES20.glUniform1f(nebulaBlurHandle, app.nebulagram.ui.NebulaCameraPolicy.switchBlur(
++                nebulaSwitchBlur && oldCameraTexture[0] != 0 && !bothCameras, cameraTextureAlpha));
++            GLES20.glUniform2f(nebulaTexelHandle, 1f / Math.max(1, videoWidth), 1f / Math.max(1, videoHeight));
+ 
+             if (oldCameraTexture[0] != 0 && oldTextureBuffer != null && !bothCameras) {
+                 if (!blendEnabled) {
+@@ -3207,7 +3219,9 @@
+                 skippedFirst = false;
+                 skippedTime = 0;
+ 
+-                audioRecorder = new AudioRecord(MediaRecorder.AudioSource.DEFAULT, audioSampleRate, AudioFormat.CHANNEL_IN_MONO, AudioFormat.ENCODING_PCM_16BIT, bufferSize);
++                audioRecorder = app.nebulagram.ui.NebulaRecordingAudio.open(audioSampleRate, bufferSize,
++                    fromPause ? nebulaAudioChannels == 2 : app.nebulagram.ui.NebulaMessagePreferences.enabled("stereo_round", false));
++                nebulaAudioChannels = audioRecorder.getChannelCount();
+                 audioRecorder.startRecording();
+                 if (BuildVars.LOGS_ENABLED) {
+                     FileLog.d("InstantCamera initied audio record with channels " + audioRecorder.getChannelCount() + " sample rate = " + audioRecorder.getSampleRate() + " bufferSize = " + bufferSize);
+@@ -3223,7 +3237,7 @@
+                 MediaFormat audioFormat = new MediaFormat();
+                 audioFormat.setString(MediaFormat.KEY_MIME, AUDIO_MIME_TYPE);
+                 audioFormat.setInteger(MediaFormat.KEY_SAMPLE_RATE, audioSampleRate);
+-                audioFormat.setInteger(MediaFormat.KEY_CHANNEL_COUNT, 1);
++                audioFormat.setInteger(MediaFormat.KEY_CHANNEL_COUNT, nebulaAudioChannels);
+                 audioFormat.setInteger(MediaFormat.KEY_BIT_RATE, MessagesController.getInstance(currentAccount).roundAudioBitrate * 1024);
+                 audioFormat.setInteger(MediaFormat.KEY_MAX_INPUT_SIZE, 2048 * AudioBufferInfo.MAX_SAMPLES);
+ 
+@@ -3370,6 +3384,7 @@
+                 fragmentShaderSource = createFragmentShader(previewSize[0]);
+             }
+             int vertexShader = loadShader(GLES20.GL_VERTEX_SHADER, vertexShaderSource);
++            fragmentShaderSource = app.nebulagram.ui.NebulaCameraSwitch.shader(fragmentShaderSource);
+             int fragmentShader = loadShader(GLES20.GL_FRAGMENT_SHADER, fragmentShaderSource);
+             if (vertexShader != 0 && fragmentShader != 0) {
+                 drawProgram = GLES20.glCreateProgram();
+@@ -3386,6 +3401,8 @@
+                     textureHandle = GLES20.glGetAttribLocation(drawProgram, "aTextureCoord");
+                     previewSizeHandle = GLES20.glGetUniformLocation(drawProgram, "preview");
+                     resolutionHandle = GLES20.glGetUniformLocation(drawProgram, "resolution");
++                    nebulaBlurHandle = GLES20.glGetUniformLocation(drawProgram, "nebulaBlur");
++                    nebulaTexelHandle = GLES20.glGetUniformLocation(drawProgram, "nebulaTexel");
+                     alphaHandle = GLES20.glGetUniformLocation(drawProgram, "alpha");
+                     vertexMatrixHandle = GLES20.glGetUniformLocation(drawProgram, "uMVPMatrix");
+                     textureMatrixHandle = GLES20.glGetUniformLocation(drawProgram, "uSTMatrix");
+@@ -3775,7 +3792,14 @@
+     private Camera2Session createNebulaCamera(boolean front) {
+         app.nebulagram.ui.NebulaZoomCapabilities catalog = nebulaCameraCatalog(front);
+         int size = MessagesController.getInstance(currentAccount).roundVideoSize;
+-        return Camera2Session.create(front, size, size, catalog == null ? null : catalog.primary.id);
++        app.nebulagram.ui.NebulaZoomCapabilities.Module initial = catalog == null ? null : catalog.primary;
++        if (!front && catalog != null && app.nebulagram.ui.NebulaCameraSettings.enabled("ultrawide")) initial = catalog.select(catalog.minimum);
++        Camera2Session session = Camera2Session.create(front, size, size, initial == null ? null : initial.id);
++        if (session != null && !front && catalog != null && app.nebulagram.ui.NebulaCameraSettings.enabled("ultrawide")) {
++            float start = initial.local(catalog.minimum);
++            session.whenDone(() -> session.setZoom(start));
++        }
++        return session;
+     }
+ 
+     private float nebulaCurrentZoom() {
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/InstantCameraView2.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/InstantCameraView2.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Components/InstantCameraView2.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/InstantCameraView2.java
+@@ -220,6 +220,7 @@
+                 Gravity.FILL
+         ));
+ 
++        app.nebulagram.ui.NebulaExposureControl.attach(this, value -> { if (session != null) session.setExposure(value); });
+         buttonsLayout = new LinearLayout(context);
+         buttonsLayout.setOrientation(LinearLayout.HORIZONTAL);
+         buttonsLayout.setPadding(dp(6), dp(6), dp(6), dp(6));
+@@ -371,7 +372,7 @@
+         activeOutputResolution = SharedSettings.roundVideoOutputResolution.get();
+         session = new RoundVideoSession.Builder(getContext(), textureView)
+                 .setOutputDirectory(new File(ApplicationLoader.getFilesDirFixed(), "cache"))
+-                .setInitialFacing(SharedSettings.roundVideoLastCamera.get())
++                .setInitialFacing(app.nebulagram.ui.NebulaRoundCamera.frontface(SharedSettings.roundVideoLastCamera.get() == RoundVideoSession.CameraFacing.FRONT) ? RoundVideoSession.CameraFacing.FRONT : RoundVideoSession.CameraFacing.BACK)
+                 .setOutputResolution(activeOutputResolution)
+                 .setVideoBitrate(SharedSettings.roundVideoVideoBitrate.get())
+                 .setCameraResolution(SharedSettings.roundVideoCameraResolution.get())
+@@ -697,6 +698,7 @@
+             capabilities = cameraCapabilities;
+             if (cameraCapabilities.getActiveFacing() != null) {
+                 SharedSettings.roundVideoLastCamera.set(cameraCapabilities.getActiveFacing());
++                app.nebulagram.ui.NebulaRoundCamera.remember(cameraCapabilities.getActiveFacing() == RoundVideoSession.CameraFacing.FRONT);
+             }
+             updateButtons();
+         }
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/Reactions/ReactionsEffectOverlay.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/Reactions/ReactionsEffectOverlay.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Components/Reactions/ReactionsEffectOverlay.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/Reactions/ReactionsEffectOverlay.java
+@@ -754,7 +754,7 @@
+         if (cell == null || visibleReaction == null || baseFragment == null || baseFragment.getParentActivity() == null) {
+             return;
+         }
+-        boolean animationEnabled = MessagesController.getGlobalMainSettings().getBoolean("view_animations", true);
++        boolean animationEnabled = app.nebulagram.ui.NebulaMessagePreferences.enabled("reaction_effects", true) && MessagesController.getGlobalMainSettings().getBoolean("view_animations", true);
+         if (!animationEnabled) {
+             return;
+         }
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/PhotoViewer.java b/TMessagesProj/src/main/java/org/telegram/ui/PhotoViewer.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/PhotoViewer.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/PhotoViewer.java
+@@ -18809,6 +18809,7 @@
+     public void onConfigurationChanged(Configuration newConfig) {}
+ 
+     public void onPause() {
++        if (app.nebulagram.ui.NebulaMessagePreferences.enabled("pause_background", false) && videoPlayer != null && !AndroidUtilities.isInPictureInPictureMode(parentActivity)) videoPlayer.pause();
+         if (currentAnimation != null) {
+             closePhoto(false, false);
+             return;
+@@ -20943,7 +20944,7 @@
+         boolean forward = x >= width / 3 * 2;
+         long current = getCurrentVideoPosition();
+         long total = getVideoDuration();
+-        return current != C.TIME_UNSET && total > 15 * 1000 && (!forward || total - current > 10000);
++        return current != C.TIME_UNSET && total > 15 * 1000 && (!forward || total - current > app.nebulagram.ui.NebulaMessagePreferences.seekSeconds() * 1000L);
+     }
+ 
+     long totalRewinding;
+@@ -20959,16 +20960,16 @@
+             if (canDoubleTapSeekVideo(e)) {
+                 long old = current;
+                 if (x >= width / 3 * 2) {
+-                    current += 10000;
++                    current += app.nebulagram.ui.NebulaMessagePreferences.seekSeconds() * 1000L;
+                 } else if (x < width / 3) {
+-                    current -= 10000;
++                    current -= app.nebulagram.ui.NebulaMessagePreferences.seekSeconds() * 1000L;
+                 }
+                 if (old != current) {
+                     boolean apply = true;
+                     if (current > total) {
+                         current = total;
+                     } else if (current < 0) {
+-                        if (current < -9000) {
++                        if (current < -(app.nebulagram.ui.NebulaMessagePreferences.seekSeconds() * 1000L - 1000)) {
+                             apply = false;
+                         }
+                         current = 0;
+@@ -20976,7 +20977,7 @@
+                     if (apply) {
+                         videoForwardDrawable.setOneShootAnimation(true);
+                         videoForwardDrawable.setLeftSide(x < width / 3);
+-                        videoForwardDrawable.addTime(10000);
++                        videoForwardDrawable.addTime(app.nebulagram.ui.NebulaMessagePreferences.seekSeconds() * 1000L);
+                         seekVideoOrWebTo(current);
+                         containerView.invalidate();
+                         videoPlayerSeekbar.setProgress(current / (float) total, true);
+@@ -23607,6 +23608,7 @@
+             int keyCode = event.getKeyCode();
+             if (!muteVideo && sendPhotoType != SELECT_TYPE_AVATAR && isCurrentVideo && videoPlayer != null && event.getRepeatCount() == 0 && event.getAction() == KeyEvent.ACTION_DOWN && (event.getKeyCode() == KeyEvent.KEYCODE_VOLUME_UP || event.getKeyCode() == KeyEvent.KEYCODE_VOLUME_DOWN)) {
+                 videoPlayer.setVolume(1.0f);
++                if (app.nebulagram.ui.NebulaMessagePreferences.enabled("volume_play", false)) videoPlayer.play();
+             }
+             return super.dispatchKeyEvent(event);
+         }
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
+@@ -10704,7 +10704,7 @@
+                     setAvatarSectionRow = rowCount++;
+                 }
+                 numberSectionRow = rowCount++;
+-                numberRow = rowCount++;
++                if (!app.nebulagram.ui.NebulaMessagePreferences.enabled("hide_profile_phone", false)) numberRow = rowCount++;
+                 nebulaIdRow = rowCount++;
+                 setUsernameRow = rowCount++;
+                 bioRow = rowCount++;
+@@ -10791,7 +10791,7 @@
+                     }
+                 }
+                 infoStartRow = rowCount;
+-                if (!isBot && (hasPhone || !hasInfo)) {
++                if (!isBot && (hasPhone || !hasInfo) && !app.nebulagram.ui.NebulaMessagePreferences.enabled("hide_profile_phone", false)) {
+                     phoneRow = rowCount++;
+                 }
+                 if (userInfo != null && !TextUtils.isEmpty(userInfo.about)) {
+@@ -13622,6 +13622,12 @@
+                                 : idChat != null && ChatObject.isChannel(idChat) && !idChat.megagroup
+                                 ? app.nebulagram.ui.NebulaText.text("ID канала", "Channel ID")
+                                 : app.nebulagram.ui.NebulaText.text("ID группы", "Group ID");
++                        if (app.nebulagram.ui.NebulaMessagePreferences.enabled("profile_dc", false)) {
++                            TLRPC.User dcUser = getMessagesController().getUser(userId);
++                            int dc = dcUser != null && dcUser.photo != null ? dcUser.photo.dc_id : idChat != null && idChat.photo != null ? idChat.photo.dc_id : 0;
++                            label += dc > 0 ? app.nebulagram.ui.NebulaText.text(" · Фото: DC ", " · Photo: DC ") + dc
++                                : app.nebulagram.ui.NebulaText.text(" · DC фото недоступен", " · Photo DC unavailable");
++                        }
+                         detailCell.setTextAndValue(nebulaVisibleProfileId(), label, position != infoEndRow);
+                     } else if (position == noteRow) {
+                         final TLRPC.UserFull userInfo = getMessagesController().getUserFull(userId);
+diff --git a/TMessagesProj/src/main/java/org/telegram/utils/camera/roundvideo/RoundVideoCameraController.java b/TMessagesProj/src/main/java/org/telegram/utils/camera/roundvideo/RoundVideoCameraController.java
+--- a/TMessagesProj/src/main/java/org/telegram/utils/camera/roundvideo/RoundVideoCameraController.java
++++ b/TMessagesProj/src/main/java/org/telegram/utils/camera/roundvideo/RoundVideoCameraController.java
+@@ -107,6 +107,7 @@
+     private Handler cameraHandler;
+     private String cameraId;
+     private CameraCharacteristics characteristics;
++    private app.nebulagram.ui.NebulaCameraCapabilities.Options nebulaOptions;
+     private Size previewSize;
+     private volatile Size recordingSize;
+     private volatile int sourceCropSize;
+@@ -251,6 +252,13 @@
+         return true;
+     }
+ 
++    private volatile float nebulaExposure;
++    boolean setExposure(float value) {
++        if (!Float.isFinite(value)) return false;
++        nebulaExposure = clamp(value, -1f, 1f);
++        if (cameraHandler == null) return false;
++        cameraHandler.removeCallbacks(applyZoomRunnable); cameraHandler.post(applyZoomRunnable); return true;
++    }
+     boolean setZoom(float progress) {
+         zoomProgress = clamp(progress, 0f, 1f);
+         Handler handler = cameraHandler;
+@@ -784,6 +792,10 @@
+         setPreferredFps(builder, logConfiguration);
+         applyZoom(builder);
+         applyTorch(builder);
++        if (nebulaOptions != null) nebulaOptions.apply(builder);
++        Range<Integer> compensation = characteristics == null ? null : characteristics.get(CameraCharacteristics.CONTROL_AE_COMPENSATION_RANGE);
++        if (compensation != null) builder.set(CaptureRequest.CONTROL_AE_EXPOSURE_COMPENSATION,
++            Math.round(nebulaExposure * (nebulaExposure < 0 ? -compensation.getLower() : compensation.getUpper())));
+         requestGeneration++;
+         builder.setTag(requestGeneration);
+         if (torchVerificationPending) torchVerificationGeneration = requestGeneration;
+@@ -975,7 +987,13 @@
+     }
+ 
+     private void applyZoom(@NonNull CaptureRequest.Builder builder) {
+-        float ratio = 1f + zoomProgress * (maximumZoomRatio - 1f);
++        float minimum = 1f;
++        if (android.os.Build.VERSION.SDK_INT >= 30 && characteristics != null && app.nebulagram.ui.NebulaCameraSettings.enabled("ultrawide")
++                && Integer.valueOf(CameraCharacteristics.LENS_FACING_BACK).equals(characteristics.get(CameraCharacteristics.LENS_FACING))) {
++            Range<Float> range = characteristics.get(CameraCharacteristics.CONTROL_ZOOM_RATIO_RANGE);
++            if (range != null) minimum = app.nebulagram.ui.NebulaCameraPolicy.startZoom(true, false, range.getLower(), range.getUpper());
++        }
++        float ratio = minimum + zoomProgress * (maximumZoomRatio - minimum);
+         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+             Range<Float> range = characteristics == null
+                     ? null
+@@ -1108,6 +1126,7 @@
+         cameraId = selectedId;
+         selectedFacing = facing;
+         characteristics = selectedCharacteristics;
++        nebulaOptions = new app.nebulagram.ui.NebulaCameraCapabilities.Options(characteristics, pair.recording);
+         activeFrameRate = frameRatePlan.frameRate;
+         activeFpsRange = frameRatePlan.fpsRange;
+         frameRateFallbackAttempted = false;
+diff --git a/TMessagesProj/src/main/java/org/telegram/utils/camera/roundvideo/RoundVideoCodecRecorder.java b/TMessagesProj/src/main/java/org/telegram/utils/camera/roundvideo/RoundVideoCodecRecorder.java
+--- a/TMessagesProj/src/main/java/org/telegram/utils/camera/roundvideo/RoundVideoCodecRecorder.java
++++ b/TMessagesProj/src/main/java/org/telegram/utils/camera/roundvideo/RoundVideoCodecRecorder.java
+@@ -26,10 +26,9 @@
+ 
+     private static final int AUDIO_SAMPLE_RATE = 48_000;
+     private static final int AUDIO_BIT_RATE = 64_000;
+-    private static final int AUDIO_BYTES_PER_FRAME = 2;
++    private int audioBytesPerFrame = 2;
+     private static final int AUDIO_FRAMES_PER_INPUT = 1024;
+-    private static final int AUDIO_BYTES_PER_INPUT =
+-            AUDIO_FRAMES_PER_INPUT * AUDIO_BYTES_PER_FRAME;
++    private int audioBytesPerInput = AUDIO_FRAMES_PER_INPUT * 2;
+     private static final long CODEC_TIMEOUT_US = 10_000;
+     private static final int TIMING_CAPACITY = 256;
+     private static final int TIMING_LOG_INTERVAL = 30;
+@@ -272,7 +271,11 @@
+         int minBufferSize = AudioRecord.getMinBufferSize(AUDIO_SAMPLE_RATE, AudioFormat.CHANNEL_IN_MONO, AudioFormat.ENCODING_PCM_16BIT);
+         if (minBufferSize <= 0) throw new IllegalStateException("Unsupported audio recording configuration");
+         int audioBufferSize = Math.max(minBufferSize * 4, 16_384);
+-        MediaFormat format = MediaFormat.createAudioFormat(MediaFormat.MIMETYPE_AUDIO_AAC, AUDIO_SAMPLE_RATE, 1);
++        audioRecord = app.nebulagram.ui.NebulaRecordingAudio.open(AUDIO_SAMPLE_RATE, audioBufferSize,
++            app.nebulagram.ui.NebulaMessagePreferences.enabled("stereo_round", false));
++        audioBytesPerFrame = 2 * audioRecord.getChannelCount();
++        audioBytesPerInput = AUDIO_FRAMES_PER_INPUT * audioBytesPerFrame;
++        MediaFormat format = MediaFormat.createAudioFormat(MediaFormat.MIMETYPE_AUDIO_AAC, AUDIO_SAMPLE_RATE, audioRecord.getChannelCount());
+         format.setInteger(MediaFormat.KEY_AAC_PROFILE, MediaCodecInfo.CodecProfileLevel.AACObjectLC);
+         format.setInteger(MediaFormat.KEY_BIT_RATE, AUDIO_BIT_RATE);
+         format.setInteger(MediaFormat.KEY_MAX_INPUT_SIZE, audioBufferSize);
+@@ -282,8 +285,6 @@
+                 + ", minBufferSize=" + minBufferSize
+                 + ", audioBufferSize=" + audioBufferSize);
+         audioCodec.configure(format, null, null, MediaCodec.CONFIGURE_FLAG_ENCODE);
+-        audioRecord = new AudioRecord(MediaRecorder.AudioSource.CAMCORDER, AUDIO_SAMPLE_RATE,
+-                AudioFormat.CHANNEL_IN_MONO, AudioFormat.ENCODING_PCM_16BIT, audioBufferSize);
+         if (audioRecord.getState() != AudioRecord.STATE_INITIALIZED) throw new IllegalStateException("Unable to initialize AudioRecord");
+     }
+ 
+@@ -344,7 +345,7 @@
+                 buffer.clear();
+                 int bytesRead = audioRecord.read(
+                         buffer,
+-                        Math.min(buffer.remaining(), AUDIO_BYTES_PER_INPUT)
++                        Math.min(buffer.remaining(), audioBytesPerInput)
+                 );
+                 if (bytesRead <= 0) {
+                     if (bytesRead < 0) {
+@@ -361,7 +362,7 @@
+                     audioCodec.queueInputBuffer(index, 0, 0, ptsUs, 0);
+                     continue;
+                 }
+-                int framesRead = bytesRead / AUDIO_BYTES_PER_FRAME;
++                int framesRead = bytesRead / audioBytesPerFrame;
+                 if (audioBasePtsUs == Long.MIN_VALUE) {
+                     audioBasePtsUs = resolveAudioBasePtsUs(framesRead);
+                     diagnostics.log("first audio input: basePtsUs=" + audioBasePtsUs
+@@ -371,7 +372,7 @@
+                             ? "AudioTimestamp" : "read completion"));
+                 }
+                 long ptsUs = audioBasePtsUs + framesToDurationUs(submittedFrames);
+-                audioCodec.queueInputBuffer(index, 0, framesRead * AUDIO_BYTES_PER_FRAME, ptsUs, 0);
++                audioCodec.queueInputBuffer(index, 0, framesRead * audioBytesPerFrame, ptsUs, 0);
+                 submittedFrames += framesRead;
+                 notifyAudioReady();
+             }
+diff --git a/TMessagesProj/src/main/java/org/telegram/utils/camera/roundvideo/RoundVideoSession.java b/TMessagesProj/src/main/java/org/telegram/utils/camera/roundvideo/RoundVideoSession.java
+--- a/TMessagesProj/src/main/java/org/telegram/utils/camera/roundvideo/RoundVideoSession.java
++++ b/TMessagesProj/src/main/java/org/telegram/utils/camera/roundvideo/RoundVideoSession.java
+@@ -741,6 +741,10 @@
+ 
+     /** Applies normalized camera zoom in the inclusive range from zero to one. */
+     @MainThread
++    public boolean setExposure(float value) {
++        requireMainThread();
++        return state == State.RECORDING && !cameraSwitching && cameraController.setExposure(value);
++    }
+     public boolean setZoom(float progress) {
+         requireMainThread();
+         if (state != State.RECORDING || cameraSwitching) return false;

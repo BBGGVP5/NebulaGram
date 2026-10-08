@@ -148,6 +148,9 @@ public class NebulaSettingsFragment extends BaseFragment {
                 "Цвета, стекло, значки", "Colors, glass, icons", NebulaSettingsHubFragment.APPEARANCE));
         categories.add(hub(context, R.drawable.msg_discussion, "Чаты и инструменты", "Chats and tools",
                 "Переписка, ИИ, перевод и задачи", "Conversations, AI, translation and tasks", NebulaSettingsHubFragment.CHATS));
+        categories.add(new NebulaRow(context).icon(R.drawable.msg_videocall).title(NebulaText.text("Камера", "Camera"))
+                .subtitle(NebulaText.text("Съёмка, кружки и управление", "Capture, round videos and controls"), false)
+                .trailing(NebulaRow.TRAIL_CHEVRON).withClick(v -> presentFragment(new NebulaCameraFragment())));
         categories.add(hub(context, R.drawable.msg_list, "Навигация", "Navigation",
                 "Панель и папки", "Bar and folders", NebulaSettingsHubFragment.NAVIGATION));
         categories.add(hub(context, R.drawable.msg_secret, "Конфиденциальность", "Privacy",

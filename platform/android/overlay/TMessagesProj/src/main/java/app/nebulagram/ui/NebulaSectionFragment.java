@@ -496,12 +496,13 @@ public class NebulaSectionFragment extends BaseFragment {
 
     private void buildMessages(Context context) {
         NebulaExtras.messages(this, content);
+        NebulaMediaControls.add(this, content);
         NebulaCard camera = new NebulaCard(context);
         camera.add(new NebulaRow(context).icon(R.drawable.msg_videocall)
                 .title(NebulaText.text("Камера кружка", "Round video camera"))
                 .subtitle(NebulaRoundCamera.title(), true)
                 .trailing(NebulaRow.TRAIL_CHEVRON)
-                .withClick(v -> roundCamera(context)));
+                .withClick(v -> presentFragment(new NebulaCameraFragment())));
         content.addView(camera, cardParams());
         sample(context, NebulaControlsPreview.MESSAGE);
         content.addView(NebulaCard.header(context, NebulaText.text("Сообщения и ответы", "Messages and replies")));
@@ -519,6 +520,8 @@ public class NebulaSectionFragment extends BaseFragment {
         content.addView(card, cardParams());
         content.addView(NebulaCard.header(context, NebulaText.text("Меню сообщения", "Message menu")));
         NebulaCard menu = new NebulaCard(context);
+        menu.add(new NebulaRow(context).icon(R.drawable.msg_list).title(NebulaText.text("Настроить меню", "Customize menu"))
+                .trailing(NebulaRow.TRAIL_CHEVRON).withClick(v -> presentFragment(new NebulaMessageMenuFragment())));
         NebulaRow below = toggle(context, R.drawable.msg_list, R.string.NebulaMenuBelow, R.string.NebulaMenuBelowInfo,
                 NebulaAppearance.messageMenuBelow(), NebulaAppearance::setMessageMenuBelow);
         below.setVisibility(NebulaAppearance.messageMenuBlur() ? View.VISIBLE : View.GONE);
@@ -556,6 +559,8 @@ public class NebulaSectionFragment extends BaseFragment {
         content.addView(card, cardParams());
         content.addView(NebulaCard.header(context, NebulaText.text("Показывать в профиле", "Show in profile")));
         card = new NebulaCard(context);
+        card.add(NebulaMediaControls.toggle(context, "hide_profile_phone", false, "Скрывать номера телефонов", "Hide phone numbers"));
+        card.add(NebulaMediaControls.toggle(context, "profile_dc", false, "Дата-центр фотографии", "Profile photo data center"));
         card.add(toggle(context, R.drawable.nebula_cupertino_chat, R.string.NebulaProfileChannel, R.string.NebulaProfileChannelInfo,
                 NebulaAppearance.profileChannel(), NebulaAppearance::setProfileChannel));
         card.add(toggle(context, R.drawable.msg_calendar, R.string.NebulaProfileBirthday, R.string.NebulaProfileBirthdayInfo,
