@@ -75,7 +75,7 @@ public final class NebulaAiServiceEditorFragment extends BaseFragment {
                 AndroidUtilities.runOnUIThread(() -> {
                     if (destroyed || loading != task || provider != capturedProvider) return; loading = null;
                     if (available.isEmpty()) { toast(c, text("Список пуст. Введите ID модели вручную.", "The list is empty. Enter a model ID manually.")); return; }
-                    showDialog(new NebulaDialog.Builder(c).setTitle(text("Модель", "Model")).setItems(available.toArray(new String[0]), (d, which) -> model.setText(available.get(which))).create());
+                    showDialog(new NebulaDialog.Builder(c).setTitle(text("Модель", "Model")).setSelectedIndex(available.indexOf(model.getText().toString().trim())).setItems(available.toArray(new String[0]), (d, which) -> model.setText(available.get(which))).create());
                 });
             } catch (Exception e) { AndroidUtilities.runOnUIThread(() -> { if (!destroyed && loading == task) { loading = null; toast(c, text("Не удалось загрузить модели. Проверьте ключ или введите ID вручную.", "Could not load models. Check your key or enter the ID manually.")); } }); }
         }, "NebulaServiceModels").start();

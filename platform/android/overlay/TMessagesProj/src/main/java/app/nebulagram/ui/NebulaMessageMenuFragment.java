@@ -21,7 +21,7 @@ public final class NebulaMessageMenuFragment extends BaseFragment {
         layout.add(new NebulaRow(c).title(text("Меню под сообщением","Menu below the message")).trailing(NebulaRow.TRAIL_SWITCH).checked(NebulaAppearance.messageMenuBelow()).withClick(v->NebulaAppearance.setMessageMenuBelow(((NebulaRow)v).toggleChecked())));
         layout.add(new NebulaRow(c).title(text("Высота меню","Menu height")).subtitle(NebulaMessageMenuSettings.heightPercent()+"%",true).trailing(NebulaRow.TRAIL_CHEVRON).withClick(v->{
             String[] labels={"35%","45%","55%","65%","80%"};int[] values={35,45,55,65,80};
-            showDialog(new NebulaDialog.Builder(c,getResourceProvider()).setTitle(text("Высота меню","Menu height")).setItems(labels,(d,i)->{NebulaMessageMenuSettings.heightPercent(values[i]);((NebulaRow)v).subtitle(labels[i],true);}).create());
+            showDialog(new NebulaDialog.Builder(c,getResourceProvider()).setTitle(text("Высота меню","Menu height")).setSelectedIndex(java.util.Arrays.binarySearch(values,NebulaMessageMenuSettings.heightPercent())).setItems(labels,(d,i)->{NebulaMessageMenuSettings.heightPercent(values[i]);((NebulaRow)v).subtitle(labels[i],true);}).create());
         }));
         NebulaFormUi.group(content,text("Оформление","Appearance"),layout);
         NebulaCard items=new NebulaCard(c);
@@ -52,6 +52,7 @@ public final class NebulaMessageMenuFragment extends BaseFragment {
                 menu.getLast().setItemHeight(48);menu.getLast().getTextView().setTextSize(14);
             }
         }
+        if(NebulaAppearance.messageMenuBelow()) menu.allowMoveScrim();
         menu.forceBottom(NebulaAppearance.messageMenuBelow()).setMaxHeight(org.telegram.messenger.AndroidUtilities.displaySize.y*NebulaMessageMenuSettings.heightPercent()/100).show();
     }
     private NebulaRow toggle(Context c,String key,boolean fallback,String ru,String en){return new NebulaRow(c).title(text(ru,en)).trailing(NebulaRow.TRAIL_SWITCH).checked(NebulaMessageMenuSettings.enabled(key,fallback)).withClick(v->NebulaMessageMenuSettings.set(key,((NebulaRow)v).toggleChecked()));}

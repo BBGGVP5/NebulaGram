@@ -26,7 +26,7 @@ public final class NebulaMediaControls {
             host.showDialog(new NebulaDialog.Builder(c,host.getResourceProvider()).setTitle(text("Порог прокрутки","Scroll threshold")).setSelectedIndex(NebulaMessagePreferences.keyboardThreshold()).setItems(labels,(d,i)->{NebulaMessagePreferences.set("keyboard",i);((NebulaRow)v).subtitle(labels[i],true);}).create());
         }));
         card.add(new NebulaRow(c).title(text("Шаг перемотки видео","Video seek step")).subtitle(NebulaMessagePreferences.seekSeconds()+text(" с"," s"),true).trailing(NebulaRow.TRAIL_CHEVRON).withClick(v->{
-            host.showDialog(new NebulaDialog.Builder(c,host.getResourceProvider()).setTitle(text("Шаг перемотки","Seek step")).setItems(new String[]{"5","10","15","20","25"},(d,i)->{NebulaMessagePreferences.set("seek",(i+1)*5);((NebulaRow)v).subtitle((i+1)*5+text(" с"," s"),true);}).create());
+            host.showDialog(new NebulaDialog.Builder(c,host.getResourceProvider()).setTitle(text("Шаг перемотки","Seek step")).setSelectedIndex(NebulaMessagePreferences.seekSeconds()/5-1).setItems(new String[]{"5","10","15","20","25"},(d,i)->{NebulaMessagePreferences.set("seek",(i+1)*5);((NebulaRow)v).subtitle((i+1)*5+text(" с"," s"),true);}).create());
         }));
         NebulaFormUi.group(body,text("Жесты и управление","Gestures and controls"),card);
         card=new NebulaCard(c);
