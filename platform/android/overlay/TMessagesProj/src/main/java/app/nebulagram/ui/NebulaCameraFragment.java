@@ -16,11 +16,14 @@ import java.util.function.IntConsumer;
 public final class NebulaCameraFragment extends BaseFragment {
     private LinearLayout content, body;
     private NebulaCameraCapabilities capabilities;
+    private NebulaCameraPreview preview;
     private boolean expanded;
     @Override public View createView(Context c) {
         NebulaFormUi.bar(this, actionBar, c, text("Камера", "Camera"));
         content = NebulaFormUi.column(c);
-        content.addView(new NebulaSettingsHero(c,"📷",text("Камера", "Camera"),text("Фото, видео и кружки в вашем стиле", "Photos, videos and round messages your way")));
+        content.addView(new NebulaSettingsHero(c,"🎬",text("Камера", "Camera"),text("Фото, видео и кружки в вашем стиле", "Photos, videos and round messages your way")));
+        preview = new NebulaCameraPreview(c);
+        content.addView(preview);
         body = new LinearLayout(c); body.setOrientation(LinearLayout.VERTICAL); content.addView(body);
         capabilities = NebulaCameraCapabilities.inspect(); rebuild();
         return fragmentView = NebulaSettingsLayout.wrap(c,actionBar,NebulaFormUi.scroll(c,content),-26);
@@ -33,6 +36,7 @@ public final class NebulaCameraFragment extends BaseFragment {
         return new NebulaRow(body.getContext()).title(text(ru,en)).subtitle(text(detailRu,detailEn),false)
             .trailing(NebulaRow.TRAIL_SWITCH).checked(NebulaCameraSettings.enabled(key)).withClick(v -> {
                 NebulaCameraSettings.set(key,((NebulaRow)v).toggleChecked());
+                preview.refresh();
                 if (key.equals("enhancements") || key.equals("ois") || key.equals("eis") || key.equals("focus") || key.equals("noise") || key.equals("faces") || key.equals("bokeh")) rebuild();
             });
     }
@@ -42,6 +46,7 @@ public final class NebulaCameraFragment extends BaseFragment {
     }
     private void rebuild() {
         Context c = body.getContext(); body.removeAllViews();
+        preview.refresh();
         String[] engines = {text("Автоматически · Telegram","Automatic · Telegram"),text("Telegram · совместимый","Telegram · compatibility"),"Camera2","CameraX",text("Системная камера","System camera")};
         NebulaCard capture = new NebulaCard(c);
         capture.add(choice(text("Тип камеры","Camera type"),engines[NebulaCameraSettings.backend()],() -> choose(text("Тип камеры","Camera type"),engines,NebulaCameraSettings.backend(),i -> {

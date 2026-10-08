@@ -86,6 +86,8 @@ API references: Android CaptureRequest and CameraX Preview.SurfaceProvider docum
 
 ### Explicit limits and remaining verification
 
+- Device review of 1000411 found that 📷 has no animated entry in the native set and the camera screen lacked a visual sample. Follow-up: use Telegram's animated 🎬, add `NebulaCameraPreview.java` with live aspect/control placement and a non-recording switch demonstration, compile and inspect the updated page on the connected Pixel 9 Pro XL. The preview must not open camera hardware or alter capture preferences on tap.
+
 - The reference's alternative unified scrolling, independent message auto-scroll and separate system-blur implementation are not new switches in this patch. Nebula's existing bounded placement, native action-list scrolling and blur/motion are reused. This does not claim exact parity with every Cherrygram menu item (for example, its JSON and photo-as-sticker actions).
 - Camera capabilities vary by lens and mode. Concurrent recording uses the compatible round engine; bokeh requires supported continuous hardware mode and streaming size. System camera owns its own framing and quality settings. Camera1 exposes only its supported focus/stabilization/exposure controls.
 - 92 checks passed on the second source checkpoint; the subsequent encoder fallback has its own passing policy check. The full final CI remains required after the final source commit.
