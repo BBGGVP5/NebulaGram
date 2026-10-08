@@ -22,7 +22,11 @@ public final class NebulaCameraFragment extends BaseFragment {
         NebulaFormUi.bar(this, actionBar, c, text("Камера", "Camera"));
         content = NebulaFormUi.column(c);
         content.addView(new NebulaSettingsHero(c,"🎬",text("Камера", "Camera"),text("Фото, видео и кружки в вашем стиле", "Photos, videos and round messages your way")));
-        preview = new NebulaCameraPreview(c);
+        preview = new NebulaCameraPreview(c, backend -> {
+            NebulaCameraSettings.set("backend", backend);
+            if (backend == NebulaCameraSettings.LEGACY || backend == NebulaCameraSettings.CAMERAX) InstantCameraViewBase.setUseCamera2Implementation(false);
+            rebuild();
+        });
         content.addView(preview);
         body = new LinearLayout(c); body.setOrientation(LinearLayout.VERTICAL); content.addView(body);
         capabilities = NebulaCameraCapabilities.inspect(); rebuild();
@@ -47,12 +51,7 @@ public final class NebulaCameraFragment extends BaseFragment {
     private void rebuild() {
         Context c = body.getContext(); body.removeAllViews();
         preview.refresh();
-        String[] engines = {text("Автоматически · Telegram","Automatic · Telegram"),text("Telegram · совместимый","Telegram · compatibility"),"Camera2","CameraX",text("Системная камера","System camera")};
         NebulaCard capture = new NebulaCard(c);
-        capture.add(choice(text("Тип камеры","Camera type"),engines[NebulaCameraSettings.backend()],() -> choose(text("Тип камеры","Camera type"),engines,NebulaCameraSettings.backend(),i -> {
-            NebulaCameraSettings.set("backend",i);
-            if (i == NebulaCameraSettings.LEGACY || i == NebulaCameraSettings.CAMERAX) InstantCameraViewBase.setUseCamera2Implementation(false);
-        })));
         String[] aspects = {text("По умолчанию","Default"),"4:3","16:9","1:1"};
         capture.add(choice(text("Соотношение сторон","Aspect ratio"),aspects[NebulaCameraSettings.aspect()],() -> choose(text("Соотношение сторон","Aspect ratio"),aspects,NebulaCameraSettings.aspect(),i -> NebulaCameraSettings.set("aspect",i))));
         ArrayList<Integer> sizes = new ArrayList<>(); sizes.add(0); sizes.addAll(capabilities.qualities);
