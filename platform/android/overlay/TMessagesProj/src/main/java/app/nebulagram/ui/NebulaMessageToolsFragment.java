@@ -237,7 +237,7 @@ public final class NebulaMessageToolsFragment extends BaseFragment {
         NebulaCard original = new NebulaCard(c);
         TextView originalTitle = NebulaFormUi.note(c, t("Оригинал", "Original"));
         originalTitle.setTypeface(AndroidUtilities.bold()); original.addView(originalTitle);
-        original.setBackground(rounded(Theme.multAlpha(theme.surfaceContainer(), .58f), 20));
+        original.setBackground(rounded(Theme.multAlpha(theme.surfaceContainer(), .86f), 20));
         input = NebulaFormUi.field(c, t("Введите или вставьте текст", "Type or paste text"), 1, 50000);
         input.setBackground(null); input.setSingleLine(false); input.setMinLines(3); input.setMaxLines(7);
         input.setText(sourceText(input)); original.addView(input, new LinearLayout.LayoutParams(-1, -2));
@@ -273,7 +273,7 @@ public final class NebulaMessageToolsFragment extends BaseFragment {
         observeInput();
         fragmentView = NebulaSettingsLayout.wrap(c, actionBar, root);
         actionBar.setBackgroundColor(android.graphics.Color.TRANSPARENT);
-        NebulaMenuBackdrop.attachEditorSheet(fragmentView, backdropAnchor, getResourceProvider(), tabs);
+        NebulaMenuBackdrop.attachSheet(fragmentView, backdropAnchor, getResourceProvider());
         return fragmentView;
     }
     private LinearLayout createStyleOptions(Context c) {

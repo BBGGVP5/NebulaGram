@@ -8,6 +8,7 @@ import android.os.Build;
 import android.view.Gravity;
 import android.view.View;
 import android.widget.LinearLayout;
+import android.widget.ImageView;
 import android.widget.ScrollView;
 import android.widget.TextView;
 import org.telegram.messenger.AndroidUtilities;
@@ -41,16 +42,16 @@ public final class NebulaUpdateSettingsSheet extends BottomSheet implements Noti
         super(host.getParentActivity(), false);
         activity = host.getParentActivity(); updates = NebulaTelegramUpdates.get(host.getCurrentAccount());
         NebulaTheme theme = NebulaTheme.of(activity);
-        setBackgroundColor(theme.surface()); fixNavigationBar(theme.surface());
+        setBackgroundColor(theme.modalSurface()); fixNavigationBar(theme.modalSurface());
         setApplyTopPadding(false); setApplyBottomPadding(false); setCanDismissWithSwipe(false);
         LinearLayout body = column(activity); body.setPadding(dp(16), dp(12), dp(16), dp(16));
         View handle = new View(activity); GradientDrawable shape = new GradientDrawable();
         shape.setCornerRadius(dp(2)); shape.setColor(NebulaTheme.stateLayer(theme.onSurface(), .25f)); handle.setBackground(shape);
         LinearLayout.LayoutParams hp = new LinearLayout.LayoutParams(dp(34), dp(4)); hp.gravity = Gravity.CENTER_HORIZONTAL; hp.bottomMargin = dp(18); body.addView(handle, hp);
         LinearLayout header = new LinearLayout(activity); header.setGravity(Gravity.CENTER_VERTICAL);
-        header.addView(new NebulaUpdateMascot(activity), new LinearLayout.LayoutParams(dp(56), dp(56)));
+        header.addView(new NebulaUpdateMascot(activity), new LinearLayout.LayoutParams(dp(60), dp(60)));
         LinearLayout titles = column(activity); TextView title = label(activity, 23, theme.onSurface()); title.setTypeface(AndroidUtilities.bold()); title.setText(text("Обновления", "Updates")); titles.addView(title);
-        lastCheck = label(activity, 13, theme.onSurfaceVariant()); lastCheck.setPadding(0, dp(4), 0, 0); titles.addView(lastCheck);
+        lastCheck = label(activity, 13, theme.onSurfaceVariant()); lastCheck.setMaxLines(2); lastCheck.setPadding(0, dp(5), 0, 0); titles.addView(lastCheck);
         LinearLayout.LayoutParams tp = new LinearLayout.LayoutParams(0, -2, 1); tp.setMarginStart(dp(14)); header.addView(titles, tp); body.addView(header);
         NebulaCard information = new NebulaCard(activity);
         information.add(new NebulaRow(activity).icon(R.drawable.msg_info).title(text("Текущая версия", "Current version")).subtitle(NebulaTelegramUpdates.installedVersion() + " · " + text("сборка ", "build ") + NebulaTelegramUpdates.installedCode(), true));
@@ -72,7 +73,7 @@ public final class NebulaUpdateSettingsSheet extends BottomSheet implements Noti
         LinearLayout actions = new LinearLayout(activity); actions.setGravity(Gravity.CENTER_VERTICAL);
         check = new NebulaButton(activity, NebulaButton.STYLE_FILLED); check.setText(text("Проверить обновления", "Check for updates")); check.setSingleLine(false); check.setMinHeight(dp(52)); check.setPadding(dp(16), dp(12), dp(16), dp(12));
         check.setOnClickListener(v -> { if (valid()) updates.check(true, null); }); actions.addView(check, new LinearLayout.LayoutParams(0, -2, 1));
-        NebulaButton channel = new NebulaButton(activity, NebulaButton.STYLE_TONAL); channel.setText("↗"); channel.setTextSize(24); channel.setContentDescription(text("Канал обновлений NebulaGram", "NebulaGram update channel")); channel.setOnClickListener(v -> Browser.openUrl(activity, "https://t.me/" + NebulaRelease.CHANNEL));
+        ImageView channel = new ImageView(activity); channel.setScaleType(ImageView.ScaleType.CENTER); channel.setImageResource(R.drawable.msg_channel); channel.setColorFilter(theme.onPrimaryContainer()); channel.setBackground(new NebulaButton(activity, NebulaButton.STYLE_TONAL).getBackground()); channel.setFocusable(true); channel.setContentDescription(text("Канал обновлений NebulaGram", "NebulaGram update channel")); channel.setOnClickListener(v -> Browser.openUrl(activity, "https://t.me/" + NebulaRelease.CHANNEL));
         LinearLayout.LayoutParams cp = new LinearLayout.LayoutParams(dp(52), dp(52)); cp.setMarginStart(dp(10)); actions.addView(channel, cp); addCard(body, actions, 14);
         ScrollView scroll = new ScrollView(activity) {
             @Override protected void onMeasure(int width, int height) {

@@ -34,10 +34,8 @@ for required in ['extends BottomSheet', 'new NebulaChangelogView', 'updates.addL
                  'shouldOffer', 'new NebulaUpdateSheet']:
     assert required in sheet + updater, required
 assert 'NebulaApkVerifier.prepare' in updater
-assert 'NebulaGlass.reduced()' in mascot and 'ValueAnimator.areAnimatorsEnabled()' in mascot
-assert 'power.isPowerSaveMode()' in mascot
-assert 'onDetachedFromWindow' in mascot and 'animate().cancel()' in mascot
-assert 'postInvalidateOnAnimation' not in mascot
+assert 'new NebulaAnimatedEmoji' in mascot and '"🚀", 88' in mascot
+assert 'nebula_launcher_nova_monochrome' not in mascot
 assert 'footer.measure(width' in sheet and 'compact?limit:remaining' in sheet
 assert 'content.addView(footer' in sheet and 'content.removeView(footer)' in sheet
 print('PASS: updater/sheet source guards (not device UI verification)')
