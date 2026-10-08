@@ -79,7 +79,7 @@ private enum NebulaSettingsEntry: ItemListNodeEntry {
         switch self {
         case .introduction: return -2
         case .search, .empty: return -1
-        case let .category(index, _, _, _): return index == 19 ? 0 : index == 20 ? 9 : index == 21 ? 5 : index == 18 ? 12 : index == 17 ? 8 : index == 10 || index == 12 || index == 16 ? 9 : index == 11 ? 10 : index >= 13 ? 1 : 0
+        case let .category(index, _, _, _): return index == 22 ? 9 : index == 19 ? 0 : index == 20 ? 9 : index == 21 ? 5 : index == 18 ? 12 : index == 17 ? 8 : index == 10 || index == 12 || index == 16 ? 9 : index == 11 ? 10 : index >= 13 ? 1 : 0
         case .toolsHeader, .link, .ai, .buildInfo, .memory, .support, .community: return 0
         case let .chatHeader(section, _): return Int32(section)
         case .widePosts: return 9
@@ -471,6 +471,7 @@ public func nebulaSettingsController(context: AccountContext, page: Int = 0, sea
             .category(14, ru ? "Значки интерфейса" : "Interface icons", ["Telegram", "Cupertino", "Solar"][store.iconPack], "square.grid.2x2"),
             .category(15, ru ? "Переключатели" : "Switches", (ru ? ["Системные", "Округлые", "Компактные", "Минималистичные"] : ["System", "Rounded", "Compact", "Minimal"])[store.switchStyle], "switch.2"),
             .navigationToggle("login_style", ru ? "Экран входа NebulaGram" : "NebulaGram welcome screen", store.loginStyle, !store.hasLoadError),
+            .category(22, ru ? "Фильтр сообщений" : "Message filter", ru ? "Слова, фразы и исключения" : "Words, phrases and exceptions", "line.3.horizontal.decrease.circle"),
             .category(20, ru ? "Сообщения и медиа" : "Messages and media", ru ? "Отметки, пересылка и голосовые" : "Labels, forwarding and voice messages", "bubble.left.and.bubble.right"),
             .category(21, ru ? "Данные профиля" : "Profile information", ru ? "Номер и DC фотографии" : "Phone number and photo data center", "person.crop.circle"),
             .category(19, ru ? "Браузер и блокировка рекламы" : "Browser and ad blocking", ru ? "Фильтры и исключения сайтов" : "Filters and excluded sites", "globe"),
@@ -487,7 +488,7 @@ public func nebulaSettingsController(context: AccountContext, page: Int = 0, sea
             switch entry {
             case .widePosts, .stories, .ai:
                 return true
-            case let .category(index, _, _, _): return index == 9 || index == 10 || index == 11 || index == 12 || index == 16 || index == 17 || index == 20
+            case let .category(index, _, _, _): return index == 9 || index == 10 || index == 11 || index == 12 || index == 16 || index == 17 || index == 20 || index == 22
             case let .navigationToggle(key, _, _, _):
                 return key.hasPrefix("reply_") || ["hide_dividers", "hide_send_as", "hide_attach_camera", "menu_search", "menu_mute",
                     "menu_call", "menu_video", "centered_chat_header", "adaptive_chat_header", "floating_chat_header_v2", "header_unread", "message_menu_blur", "disable_next_channel", "seconds_in_time", "hide_search_field"].contains(key)
@@ -517,7 +518,7 @@ public func nebulaSettingsController(context: AccountContext, page: Int = 0, sea
                 .toolsHeader(ru ? "Разделы" : "Sections"),
                 .link("NebulaLink"),
                 .category(1, ru ? "Основные" : "General", ru ? "Поведение приложения и перенос настроек" : "App behavior and settings transfer", "gearshape"),
-                .category(2, ru ? "Внешний вид" : "Appearance", ru ? "Стекло, значки, анимации" : "Glass, icons, animations", "paintpalette"),
+                .category(2, ru ? "Оформление" : "Appearance", ru ? "Стекло, значки, анимации" : "Glass, icons, animations", "paintpalette"),
                 .category(7, ru ? "Навигация" : "Navigation", ru ? "Нижняя панель и кнопки" : "Bottom bar and buttons", "rectangle.bottomthird.inset.filled"),
                 .category(3, ru ? "Чаты и инструменты" : "Chats and tools", ru ? "Сообщения, ИИ, перевод и задачи" : "Messages, AI, translation and tasks", "bubble.left"),
                 .category(8, ru ? "Профиль" : "Profile", ru ? "Фото, фон и информация" : "Photo, background and details", "person.crop.circle"),
@@ -611,6 +612,19 @@ public func nebulaSettingsController(context: AccountContext, page: Int = 0, sea
                     catch { writeFailed.set(true) }
                 }
             return
+        }
+        if index == 22 {
+            let filter = NebulaMessageFilterController(context: context) { [weak controller] completion in
+                guard let host = controller?.presentedViewController else { return }
+                let picker = context.sharedContext.makePeerSelectionController(PeerSelectionControllerParams(context: context,
+                    filter: [.doNotSearchMessages], hasContactSelector: false))
+                let navigation = NavigationController(mode: .single, theme: NavigationControllerTheme(presentationTheme: context.sharedContext.currentPresentationData.with { $0 }.theme))
+                picker.peerSelected = { [weak navigation] peer, _ in
+                    completion(peer.id.toInt64(), peer.compactDisplayTitle); navigation?.dismiss(animated: true)
+                }
+                navigation.setViewControllers([picker], animated: false); host.present(navigation, animated: true)
+            }
+            controller.present(UINavigationController(rootViewController: filter), animated: true); return
         }
         if index == 20 || index == 21 {
             controller.present(UINavigationController(rootViewController: NebulaMessageControlsController(context: context, profile: index == 21)), animated: true)

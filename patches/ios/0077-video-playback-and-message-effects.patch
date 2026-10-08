@@ -1,0 +1,156 @@
+diff --git a/submodules/GalleryUI/BUILD b/submodules/GalleryUI/BUILD
+index e1c6b89..9d5017a 100644
+--- a/submodules/GalleryUI/BUILD
++++ b/submodules/GalleryUI/BUILD
+@@ -10,6 +10,7 @@ swift_library(
+         "-warnings-as-errors",
+     ],
+     deps = [
++        "//submodules/NebulaSettingsContract:NebulaSettingsContract",
+         "//submodules/SSignalKit/SwiftSignalKit:SwiftSignalKit",
+         "//submodules/AsyncDisplayKit:AsyncDisplayKit",
+         "//submodules/Display:Display",
+diff --git a/submodules/GalleryUI/Sources/ChatItemGalleryFooterContentNode.swift b/submodules/GalleryUI/Sources/ChatItemGalleryFooterContentNode.swift
+index 4570cbf..a04ff13 100644
+--- a/submodules/GalleryUI/Sources/ChatItemGalleryFooterContentNode.swift
++++ b/submodules/GalleryUI/Sources/ChatItemGalleryFooterContentNode.swift
+@@ -1,3 +1,4 @@
++import NebulaSettingsContract
+ import Foundation
+ import UIKit
+ import AsyncDisplayKit
+@@ -410,13 +411,13 @@ final class ChatItemGalleryFooterContentNode: GalleryFooterContentNode, ASScroll
+         self.backwardButton = PlaybackButtonNode()
+         self.backwardButton.alpha = 0.0
+         self.backwardButton.isUserInteractionEnabled = false
+-        self.backwardButton.backgroundIconNode.image = backwardImage
++        self.backwardButton.backgroundIconNode.image = NebulaMessagePreferences.shared.seekInterval == 15 ? backwardImage : UIImage(systemName: "gobackward")?.withTintColor(.white, renderingMode: .alwaysOriginal)
+         
+         self.forwardButton = PlaybackButtonNode()
+         self.forwardButton.alpha = 0.0
+         self.forwardButton.isUserInteractionEnabled = false
+         self.forwardButton.forward = true
+-        self.forwardButton.backgroundIconNode.image = forwardImage
++        self.forwardButton.backgroundIconNode.image = NebulaMessagePreferences.shared.seekInterval == 15 ? forwardImage : UIImage(systemName: "goforward")?.withTintColor(.white, renderingMode: .alwaysOriginal)
+         
+         self.playbackControlButton = HighlightableButtonNode()
+         self.playbackControlButton.isHidden = true
+@@ -2249,13 +2250,13 @@ final class ChatItemGalleryFooterContentNode: GalleryFooterContentNode, ASScroll
+     
+     @objc func backwardButtonPressed() {
+         self.interacting?(true)
+-        self.seekBackward?(15.0)
++        self.seekBackward?(Double(NebulaMessagePreferences.shared.seekInterval))
+         self.interacting?(false)
+     }
+     
+     @objc func forwardButtonPressed() {
+         self.interacting?(true)
+-        self.seekForward?(15.0)
++        self.seekForward?(Double(NebulaMessagePreferences.shared.seekInterval))
+         self.interacting?(false)
+     }
+     
+diff --git a/submodules/GalleryUI/Sources/Items/UniversalVideoGalleryItem.swift b/submodules/GalleryUI/Sources/Items/UniversalVideoGalleryItem.swift
+index c21dab5..406504e 100644
+--- a/submodules/GalleryUI/Sources/Items/UniversalVideoGalleryItem.swift
++++ b/submodules/GalleryUI/Sources/Items/UniversalVideoGalleryItem.swift
+@@ -1,3 +1,4 @@
++import NebulaSettingsContract
+ import Foundation
+ import UIKit
+ import AsyncDisplayKit
+@@ -830,6 +831,8 @@ private final class NativePictureInPictureContentImpl: NSObject, AVPictureInPict
+         }
+     }
+     
++    var nebulaPictureInPictureActive: Bool { pictureInPictureController?.isPictureInPictureActive == true }
++
+     func beginPictureInPicture() {
+         guard let pictureInPictureController = self.pictureInPictureController else {
+             return
+@@ -994,6 +997,7 @@ final class UniversalVideoGalleryItemNode: ZoomableContentGalleryItemNode {
+     
+     private var customUnembedWhenPortrait: ((OverlayMediaItemNode) -> Bool)?
+ 
++    private var nebulaBackgroundObserver: NSObjectProtocol?
+     private var nativePictureInPictureContent: AnyObject?
+     
+     private var activePictureInPictureNavigationController: NavigationController?
+@@ -1035,6 +1039,15 @@ final class UniversalVideoGalleryItemNode: ZoomableContentGalleryItemNode {
+         super.init()
+ 
+         self.clipsToBounds = true
++        self.nebulaBackgroundObserver = NotificationCenter.default.addObserver(forName: UIApplication.didEnterBackgroundNotification, object: nil, queue: .main) { [weak self] _ in
++            DispatchQueue.main.async { [weak self] in
++                guard let self, NebulaMessagePreferences.shared.enabled("pause_background_video"), self.isCentral == true,
++                      self.activePictureInPictureController == nil, self.pictureInPictureNode == nil else { return }
++                if #available(iOS 15.0, *), let content = self.nativePictureInPictureContent as? NativePictureInPictureContentImpl, content.nebulaPictureInPictureActive { return }
++                self.didPause = true; self.videoNode?.pause()
++            }
++        }
++
+         
+         self.footerContentNode.shareMediaParameters = { [weak self] in
+             guard let self, let playerStatusValue = self.playerStatusValue else {
+@@ -1197,6 +1210,7 @@ final class UniversalVideoGalleryItemNode: ZoomableContentGalleryItemNode {
+     }
+     
+     deinit {
++        if let observer = self.nebulaBackgroundObserver { NotificationCenter.default.removeObserver(observer) }
+         self.statusDisposable.dispose()
+         self.moreButtonStateDisposable.dispose()
+         self.mediaPlaybackStateDisposable.dispose()
+@@ -1226,9 +1240,9 @@ final class UniversalVideoGalleryItemNode: ZoomableContentGalleryItemNode {
+         
+         if case let .playback(_, seekable) = self.footerContentNode.content, seekable {
+             if location.x >= self.bounds.width * 0.3 {
+-                self.footerContentNode.seekForward?(15.0)
++                self.footerContentNode.seekForward?(Double(NebulaMessagePreferences.shared.seekInterval))
+             } else {
+-                self.footerContentNode.seekBackward?(15.0)
++                self.footerContentNode.seekBackward?(Double(NebulaMessagePreferences.shared.seekInterval))
+             }
+             return true
+         }
+@@ -1300,9 +1314,9 @@ final class UniversalVideoGalleryItemNode: ZoomableContentGalleryItemNode {
+                         return
+                     }
+                     if isForward {
+-                        self.footerContentNode.seekForward?(15.0)
++                        self.footerContentNode.seekForward?(Double(NebulaMessagePreferences.shared.seekInterval))
+                     } else {
+-                        self.footerContentNode.seekBackward?(15.0)
++                        self.footerContentNode.seekBackward?(Double(NebulaMessagePreferences.shared.seekInterval))
+                     }
+                 }
+             )),
+diff --git a/submodules/TelegramUI/Components/Chat/ChatMessageItemView/BUILD b/submodules/TelegramUI/Components/Chat/ChatMessageItemView/BUILD
+index eba7dfe..b698743 100644
+--- a/submodules/TelegramUI/Components/Chat/ChatMessageItemView/BUILD
++++ b/submodules/TelegramUI/Components/Chat/ChatMessageItemView/BUILD
+@@ -10,6 +10,7 @@ swift_library(
+         "-warnings-as-errors",
+     ],
+     deps = [
++        "//submodules/NebulaSettingsContract:NebulaSettingsContract",
+         "//submodules/AsyncDisplayKit",
+         "//submodules/Display",
+         "//submodules/TelegramCore",
+diff --git a/submodules/TelegramUI/Components/Chat/ChatMessageItemView/Sources/ChatMessageItemView.swift b/submodules/TelegramUI/Components/Chat/ChatMessageItemView/Sources/ChatMessageItemView.swift
+index 81db004..27e9083 100644
+--- a/submodules/TelegramUI/Components/Chat/ChatMessageItemView/Sources/ChatMessageItemView.swift
++++ b/submodules/TelegramUI/Components/Chat/ChatMessageItemView/Sources/ChatMessageItemView.swift
+@@ -1,3 +1,4 @@
++import NebulaSettingsContract
+ import Foundation
+ import UIKit
+ import AsyncDisplayKit
+@@ -1114,6 +1115,7 @@ open class ChatMessageItemView: ListViewItemNode, ChatMessageItemNodeProtocol {
+     }
+     
+     public func playMessageEffect(force: Bool) {
++        guard !NebulaMessagePreferences.shared.enabled("disable_message_effects") else { self.removeEffectAnimations(); return }
+         if let messageEffect = self.currentMessageEffect() {
+             self.playEffectAnimation(effect: messageEffect, force: force)
+         }

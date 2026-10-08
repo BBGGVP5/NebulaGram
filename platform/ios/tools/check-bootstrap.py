@@ -404,7 +404,7 @@ final class Composer {
                           'NebulaCommunity.swift', 'NebulaSupportController.swift', 'NebulaAiServicesController.swift',
                           'NebulaAiRolesController.swift', 'NebulaAnimatedSettingsEmoji.swift',
                           'NebulaSettingsIntroItem.swift', 'NebulaLinkPresentation.swift', 'NebulaAiEditorController.swift',
-                          'NebulaEditorSegments.swift', 'NebulaDraftTranslation.swift', 'NebulaBrowserController.swift', 'NebulaMessageControlsController.swift']
+                          'NebulaEditorSegments.swift', 'NebulaDraftTranslation.swift', 'NebulaBrowserController.swift', 'NebulaMessageControlsController.swift', 'NebulaMessageFilterController.swift']
             # These views now use Telegram's PresentationTheme module. Parse them
             # here, then typecheck against the real module graph in ios-native.yml.
             subprocess.run(['swiftc', '-frontend', '-parse', '-swift-version', '5',

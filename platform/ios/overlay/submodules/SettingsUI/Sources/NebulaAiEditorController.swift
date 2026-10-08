@@ -1,6 +1,9 @@
 import UIKit
 import NebulaSettingsContract
 import TelegramPresentationData
+import TextFormat
+import Pasteboard
+import Display
 
 public final class NebulaAiEditorController: UIViewController {
     private let source: NSAttributedString
@@ -90,8 +93,13 @@ public final class NebulaAiEditorController: UIViewController {
             self.languageButton.isHidden = self.mode != 0; self.styleScroll.isHidden = self.mode != 1
             self.languageButton.setTitle(NebulaResultLanguage.title(self.language, russian: self.ru) + "  ›", for: .normal)
             self.caption.text = self.result == nil ? self.text("Оригинал", "Original") : self.text("Результат", "Result")
-            self.textView.attributedText = self.result ?? self.source
-            self.textView.font = .preferredFont(forTextStyle: .body); self.textView.textColor = self.theme.list.itemPrimaryTextColor
+            let text = self.result ?? self.source
+            let size = UIFont.preferredFont(forTextStyle: .body).pointSize
+            self.textView.attributedText = stringWithAppliedEntities(text.string, entities: generateChatInputTextEntities(text),
+                baseColor: self.theme.list.itemPrimaryTextColor, linkColor: self.theme.list.itemAccentColor,
+                baseFont: Font.regular(size), linkFont: Font.regular(size), boldFont: Font.semibold(size),
+                italicFont: Font.italic(size), boldItalicFont: Font.semiboldItalic(size), fixedFont: Font.monospace(size),
+                blockQuoteFont: Font.regular(size), message: nil)
             self.reset.isHidden = self.result == nil
             self.primary.setTitle(self.work != nil ? self.text("Остановить", "Stop") : self.result != nil ? self.text(self.apply == nil ? "Копировать" : "Применить", self.apply == nil ? "Copy" : "Apply") : [self.text("Перевести", "Translate"), self.text("Изменить стиль", "Change style"), self.text("Исправить", "Correct")][self.mode], for: .normal)
             for (index, button) in self.styleButtons.enumerated() {
@@ -118,7 +126,7 @@ public final class NebulaAiEditorController: UIViewController {
     @objc private func resetResult() { revision += 1; work?.cancel(); work = nil; result = nil; if isViewLoaded { refresh(animated: false) } }
     @objc private func run() {
         if work != nil { resetResult(); return }
-        if let result { if let apply { apply(result); if navigationController?.viewControllers.first === self { dismiss(animated: true) } else { navigationController?.popViewController(animated: true) } } else { UIPasteboard.general.string = result.string }; return }
+        if let result { if let apply { apply(result); if navigationController?.viewControllers.first === self { dismiss(animated: true) } else { navigationController?.popViewController(animated: true) } } else { storeInputTextInPasteboard(result) }; return }
         guard NebulaLiveTranslation.ready else { settings(); return }
         let instruction: String
         if mode == 0 { instruction = "Translate into language code \(language)." }
@@ -129,7 +137,8 @@ public final class NebulaAiEditorController: UIViewController {
             guard let self else { return }
             do {
                 let value = try await NebulaRichEditorTransform.generate(self.source, instruction: instruction)
-                guard !Task.isCancelled, self.revision == version, connection == NebulaLiveTranslation.connectionIdentity else { return }
+                guard !Task.isCancelled, self.revision == version else { return }
+                guard connection == NebulaLiveTranslation.connectionIdentity else { self.resetResult(); return }
                 self.work = nil; self.result = value; self.refresh(animated: true)
             } catch {
                 guard !Task.isCancelled, self.revision == version else { return }

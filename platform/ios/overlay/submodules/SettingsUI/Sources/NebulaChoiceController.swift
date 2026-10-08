@@ -26,6 +26,12 @@ final class NebulaChoiceController: UITableViewController, UISearchResultsUpdati
         filtered = query.isEmpty ? nil : choices.indices.filter {
             choices[$0].localizedCaseInsensitiveContains(query) || (subtitles.indices.contains($0) && subtitles[$0].localizedCaseInsensitiveContains(query))
         }
+        if filtered?.isEmpty == true {
+            let label = UILabel(); label.text = ru ? "Ничего не найдено" : "No results"
+            label.font = .preferredFont(forTextStyle: .body); label.adjustsFontForContentSizeCategory = true
+            label.textColor = theme?.list.itemSecondaryTextColor ?? .secondaryLabel
+            label.textAlignment = .center; label.numberOfLines = 0; tableView.backgroundView = label
+        } else { tableView.backgroundView = nil }
         tableView.reloadData()
     }
     override func numberOfSections(in tableView: UITableView) -> Int { filtered == nil && sectionStart != nil ? 2 : 1 }
@@ -82,7 +88,7 @@ final class NebulaChoiceController: UITableViewController, UISearchResultsUpdati
                      theme: PresentationTheme? = nil, sectionStart: Int? = nil, subtitles: [String] = [], searchable: Bool = false, choose: @escaping (Int) -> Void) {
         guard host.presentedViewController == nil else { return }
         let controller = NebulaChoiceController(title: title, choices: choices, selected: selected, detail: detail, russian: russian, theme: theme, choose: choose)
-        controller.sectionStart = sectionStart
+        controller.sectionStart = sectionStart.flatMap { $0 > 0 && $0 < choices.count ? $0 : nil }
         controller.subtitles = subtitles
         if searchable {
             let search = UISearchController(searchResultsController: nil)
@@ -118,6 +124,30 @@ public func nebulaPresentChoice(from host: UIViewController, title: String, choi
 private final class NebulaPopupTransition: NSObject, UIViewControllerTransitioningDelegate {
     func presentationController(forPresented presented: UIViewController, presenting: UIViewController?, source: UIViewController) -> UIPresentationController? {
         NebulaPopupPresentation(presentedViewController: presented, presenting: presenting)
+    }
+    func animationController(forPresented presented: UIViewController, presenting: UIViewController, source: UIViewController) -> UIViewControllerAnimatedTransitioning? { NebulaPopupAnimation(entering: true) }
+    func animationController(forDismissed dismissed: UIViewController) -> UIViewControllerAnimatedTransitioning? { NebulaPopupAnimation(entering: false) }
+}
+
+private final class NebulaPopupAnimation: NSObject, UIViewControllerAnimatedTransitioning {
+    private let entering: Bool
+    init(entering: Bool) { self.entering = entering }
+    func transitionDuration(using transitionContext: UIViewControllerContextTransitioning?) -> TimeInterval { UIAccessibility.isReduceMotionEnabled ? 0.12 : entering ? 0.26 : 0.18 }
+    func animateTransition(using context: UIViewControllerContextTransitioning) {
+        guard let controller = context.viewController(forKey: entering ? .to : .from),
+              let view = context.view(forKey: entering ? .to : .from) else { context.completeTransition(false); return }
+        let reduced = UIAccessibility.isReduceMotionEnabled
+        if entering {
+            view.frame = context.finalFrame(for: controller); context.containerView.addSubview(view)
+            view.alpha = 0; view.transform = reduced ? .identity : CGAffineTransform(scaleX: 0.94, y: 0.94)
+        }
+        UIView.animate(withDuration: transitionDuration(using: context), delay: 0, usingSpringWithDamping: entering ? 0.9 : 1, initialSpringVelocity: 0, options: [.beginFromCurrentState, .allowUserInteraction], animations: {
+            view.alpha = self.entering ? 1 : 0
+            view.transform = self.entering || reduced ? .identity : CGAffineTransform(scaleX: 0.96, y: 0.96)
+        }, completion: { _ in
+            view.alpha = 1; view.transform = .identity
+            context.completeTransition(!context.transitionWasCancelled)
+        })
     }
 }
 

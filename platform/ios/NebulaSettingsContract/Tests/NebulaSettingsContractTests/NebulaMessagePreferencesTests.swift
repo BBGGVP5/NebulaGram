@@ -14,5 +14,10 @@ final class NebulaMessagePreferencesTests: XCTestCase {
         let restored = NebulaMessagePreferences(defaults: defaults)
         XCTAssertFalse(restored.enabled("voice_autoplay")); XCTAssertTrue(restored.enabled("hide_profile_phone"))
         prefs.set("unknown", true); XCTAssertFalse(prefs.enabled("unknown"))
+        XCTAssertEqual(prefs.seekInterval, 15)
+        prefs.setSeekInterval(20); XCTAssertEqual(restored.seekInterval, 20)
+        prefs.setSeekInterval(-1); XCTAssertEqual(prefs.seekInterval, 20)
+        defaults.set(999, forKey: "nebula.messages.seek_interval"); XCTAssertEqual(prefs.seekInterval, 15)
+        XCTAssertFalse(prefs.enabled("pause_background_video")); XCTAssertFalse(prefs.enabled("disable_message_effects"))
     }
 }

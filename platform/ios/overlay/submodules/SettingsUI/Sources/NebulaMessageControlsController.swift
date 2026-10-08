@@ -10,7 +10,7 @@ final class NebulaMessageControlsController: UITableViewController {
     private let ru: Bool
     private let profile: Bool
     private let prefs = NebulaMessagePreferences.shared
-    private var keys: [String] { profile ? ["hide_profile_phone", "profile_photo_dc"] : ["edited_pencil", "forward_date", "direct_share", "voice_autoplay"] }
+    private var keys: [String] { profile ? ["hide_profile_phone", "profile_photo_dc"] : ["edited_pencil", "forward_date", "direct_share", "voice_autoplay", "seek_interval", "pause_background_video", "disable_message_effects"] }
     private lazy var hero = NebulaSettingsHero(symbol: profile ? "👤" : "💬", title: title ?? "", summary: ru ? (profile ? "Локальное отображение данных профиля" : "Отметки сообщений и воспроизведение") : (profile ? "Local profile presentation" : "Message labels and playback"), context: context, theme: theme)
     init(context: AccountContext, profile: Bool) {
         self.context = context; self.profile = profile
@@ -33,13 +33,26 @@ final class NebulaMessageControlsController: UITableViewController {
     }
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let key = keys[indexPath.row]
-        let titles = ru ? ["edited_pencil": "Карандаш вместо «изменено»", "forward_date": "Дата исходного сообщения", "direct_share": "Кнопка быстрой пересылки", "voice_autoplay": "Следующее голосовое автоматически", "hide_profile_phone": "Скрывать номер в профиле", "profile_photo_dc": "DC фотографии профиля"] : ["edited_pencil": "Pencil for edited messages", "forward_date": "Original forwarded date", "direct_share": "Quick forward button", "voice_autoplay": "Autoplay the next voice message", "hide_profile_phone": "Hide profile phone number", "profile_photo_dc": "Profile photo DC"]
+        let titles = ru ? ["edited_pencil": "Карандаш вместо «изменено»", "forward_date": "Дата исходного сообщения", "direct_share": "Кнопка быстрой пересылки", "voice_autoplay": "Следующее голосовое автоматически", "hide_profile_phone": "Скрывать номер в профиле", "profile_photo_dc": "DC фотографии профиля", "seek_interval": "Шаг перемотки видео", "pause_background_video": "Пауза видео в фоне", "disable_message_effects": "Отключить эффекты сообщений"] : ["edited_pencil": "Pencil for edited messages", "forward_date": "Original forwarded date", "direct_share": "Quick forward button", "voice_autoplay": "Autoplay the next voice message", "hide_profile_phone": "Hide profile phone number", "profile_photo_dc": "Profile photo DC", "seek_interval": "Video seek interval", "pause_background_video": "Pause background video", "disable_message_effects": "Disable message effects"]
         let cell = UITableViewCell(style: .subtitle, reuseIdentifier: nil); cell.textLabel?.text = titles[key]
         if key == "profile_photo_dc" { cell.detailTextLabel?.text = ru ? "Центр данных, где хранится фото пользователя" : "Data center storing the user's profile photo" }
         if key == "forward_date" { cell.detailTextLabel?.text = ru ? "Показывать полную исходную дату пересланных сообщений" : "Show the full original date of forwarded messages" }
+        if key == "seek_interval" {
+            cell.detailTextLabel?.text = String(prefs.seekInterval) + (ru ? " секунд" : " seconds")
+            cell.accessoryType = .disclosureIndicator; NebulaSettingsStyle.finish(cell, theme: theme); return cell
+        }
+        if key == "pause_background_video" { cell.detailTextLabel?.text = ru ? "Видео в просмотрщике без активного окна Picture in Picture" : "Gallery video without an active Picture in Picture window" }
         let toggle = NebulaSwitchControl(); toggle.isOn = prefs.enabled(key); toggle.accessibilityIdentifier = key; toggle.accessibilityLabel = titles[key]
         toggle.addTarget(self, action: #selector(change(_:)), for: .valueChanged); cell.accessoryView = toggle; cell.selectionStyle = .none
         NebulaSettingsStyle.finish(cell, theme: theme); return cell
+    }
+    override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        tableView.deselectRow(at: indexPath, animated: true)
+        guard keys[indexPath.row] == "seek_interval" else { return }
+        let values = [5, 10, 15, 20, 30]
+        NebulaChoiceController.show(from: self, title: ru ? "Шаг перемотки" : "Seek interval", choices: values.map { String($0) + (ru ? " секунд" : " seconds") }, selected: values.firstIndex(of: prefs.seekInterval), russian: ru, theme: theme) { [weak self] index in
+            self?.prefs.setSeekInterval(values[index]); self?.tableView.reloadData()
+        }
     }
     @objc private func change(_ sender: NebulaSwitchControl) { if let key = sender.accessibilityIdentifier { prefs.set(key, sender.isOn) } }
     @objc private func close() { dismiss(animated: true) }
