@@ -66,8 +66,8 @@ Create NebulaMessageMenuSettings, NebulaMessageMenuFragment and NebulaProfilePre
 ## Task 5: Verification and delivery
 
 - [x] Extend/generate settings contracts for operational controls, distinguishing Android camera features from iOS support.
-- [ ] Reconstruct all ordered patches and run required regression checks plus new policy/lifecycle tests.
-- [ ] Compile changed native integrations, complete Android CI and fix failures before delivery.
+- [x] Reconstruct all ordered patches and run required regression checks plus new policy/lifecycle tests.
+- [x] Compile changed native integrations, complete Android CI and fix failures before delivery.
 - [ ] Inspect rendered screens on an available device/emulator. Record real camera/recording checks as unverified when no hardware is connected; mocks/compiler success do not prove device behavior.
 - [ ] Commit only task files, publish authorized branches, download the exact APK, verify version/ABI/signature/artifact digest and update USER-CHANGES with actual completed scope.
 
@@ -101,3 +101,17 @@ API references: Android CaptureRequest and CameraX Preview.SurfaceProvider docum
 - Separate the sheet title, mode selector and original card with explicit spacing. Add localized style presets and custom instructions, animated mode selection and the existing Nebula glass material sampled from the originating chat window.
 - Reuse entity boundary mapping for correction and styling, preserving custom emoji IDs, links and formatting. Keep cancellation and reject stale results after input/account changes.
 - Verify actual geometry, Telegram entity serialization, ordered patches, full build and device presentation before marking delivery complete.
+
+### Device review follow-up
+
+- Build 1000420: short legacy-round capture, facing switch and cancellation near the 60-second boundary returned to the chat without a new crash-buffer entry. Test recordings were cancelled, never sent.
+- Build 1000425: verified the branded phone preview, animated camera-module changes, the three Nebula AI modes, localized style choices, header/content spacing and glass backdrop. Cancelled message editing without saving. Found and corrected two remaining native issues: front Camera2 still capture inherited mirrored preview orientation, and the native input-field clip hid the separate AI row. The message-menu preview now hides its stationary anchor while the native lifted copy is visible.
+- Latest user correction: increase the phone preview again and vary motion by camera engine. The sample is 280 dp high with 62% of its width assigned to the phone. Five distinct gestures combine reveal, lean, slide, lift and turn; interrupted animations retain their current geometry and transform, while reduced motion settles immediately. All five variants and the enlarged body were recorded on 1000431. Dense follow-up frame review found CameraX clipping at the peak; the final source reduces lift/zoom and blends interrupted motion without adding two peaks. Android SDK compilation and 3,030 transformed geometry samples pass. Final APK motion review remains pending. Decorative flash-dot removal was verified on 1000437.
+
+- A real styling request on 1000425 exposed a model-echoed triple-bracket example. Plain prompts now omit protocol instructions; only structured rich-text requests receive boundary instructions, with no literal example. Plain responses reject invented/duplicated protocol tokens while retaining user-authored literal tokens. Tests cover routing, malformed structured fallback, emoji/entity identity, links and nested styles. Synthetic test draft was cleared without applying or sending the result.
+
+- User reported a blink after closing the settings message-menu preview. Its original card was hidden while the lifted copy faded to zero, followed by abrupt restoration. An opt-in ItemOptions.keepScrimOpaque() keeps only this lifted copy visible through the return motion. Native dimming and anchor restoration remain unchanged. All 183 ordered patches reconstruct successfully; existing menu geometry/lifecycle checks pass. Build 1000437 close-animation video shows the card remaining visible throughout repeated open/close and the handoff to the original, without the previous blink or duplicate.
+
+- Build 1000437: the AI shortcut is visible above the paperclip during short-message editing. A real provider styling request using synthetic text returned a clean response without protocol markers. Dismissing the sheet and cancelling editing preserved the original message; no message or test recording was sent. Camera2 front-still verification was interrupted by USB disconnection before capture; restore the temporary Camera2 backend to CameraX when the device reconnects.
+
+- Final source `9c8e6418dbc00629edb139a612d2b1d975a8633d`: Android CI run 37778463387 / version 1000438 succeeded, including interface/regression checks; settings-contract run 37778463408 succeeded. Device remains disconnected, with verified 1000437 installed. Final 438 motion and Camera2 front-still hardware checks remain explicitly unverified.
