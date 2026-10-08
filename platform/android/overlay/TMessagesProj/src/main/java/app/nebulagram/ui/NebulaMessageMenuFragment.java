@@ -52,7 +52,7 @@ public final class NebulaMessageMenuFragment extends BaseFragment {
                 menu.getLast().setItemHeight(48);menu.getLast().getTextView().setTextSize(14);
             }
         }
-        if(NebulaAppearance.messageMenuBelow()) menu.allowMoveScrim();
+        if(NebulaAppearance.messageMenuBelow()) menu.allowMoveScrim().hideScrimUnder();
         menu.forceBottom(NebulaAppearance.messageMenuBelow()).setMaxHeight(org.telegram.messenger.AndroidUtilities.displaySize.y*NebulaMessageMenuSettings.heightPercent()/100).show();
     }
     private NebulaRow toggle(Context c,String key,boolean fallback,String ru,String en){return new NebulaRow(c).title(text(ru,en)).trailing(NebulaRow.TRAIL_SWITCH).checked(NebulaMessageMenuSettings.enabled(key,fallback)).withClick(v->NebulaMessageMenuSettings.set(key,((NebulaRow)v).toggleChecked()));}
