@@ -159,8 +159,6 @@ public final class NebulaCameraPreview extends LinearLayout {
                 paint.setColor(ColorUtils.setAlphaComponent(theme.primary(), Math.round(95*visibility))); canvas.drawCircle(x,y,6.5f,paint);
                 paint.setColor(ColorUtils.setAlphaComponent(theme.onSurface(), Math.round(125*visibility))); canvas.drawCircle(x-2,y-2,2.3f,paint);
             }
-            paint.setStyle(Paint.Style.FILL); paint.setColor(ColorUtils.blendARGB(body,theme.onSurface(),.55f));
-            canvas.drawCircle(91,86,3,paint);
             // The same NebulaGram mark used by our settings entry, engraved into the back.
             int engraving = ColorUtils.blendARGB(body,theme.primary(),.65f);
             logo.setTint(engraving); logo.setBounds(36,104,76,144); logo.draw(canvas);
