@@ -30,7 +30,8 @@ public final class NebulaAnimatedEmoji extends FrameLayout implements Notificati
     public NebulaAnimatedEmoji(Context c, int account, String emoji, int size) {
         super(c); this.account=account; this.size=size; setWillNotDraw(false);
         fallbackImage=new ImageView(c);fallbackImage.setScaleType(ImageView.ScaleType.FIT_CENTER);
-        int inset=AndroidUtilities.dp(size*.14f);fallbackImage.setPadding(inset,inset,inset,inset);
+        // Page introductions use the same canvas before and after decoding.
+        int inset=size>=72?0:AndroidUtilities.dp(size*.14f);fallbackImage.setPadding(inset,inset,inset,inset);
         addView(fallbackImage,new LayoutParams(-1,-1));
         setImportantForAccessibility(IMPORTANT_FOR_ACCESSIBILITY_NO); setEmoji(emoji);
     }

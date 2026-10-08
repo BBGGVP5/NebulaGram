@@ -84,7 +84,7 @@ public class NebulaCard extends LinearLayout {
      */
     public static View header(Context context, CharSequence text) {
         NebulaTheme theme = NebulaTheme.of(context);
-        TextView view = new TextView(context);
+        TextView view = new Header(context);
         view.setText(text);
         view.setTextSize(TypedValue.COMPLEX_UNIT_SP, 12);
         view.setTextColor(theme.onSurfaceVariant());
@@ -93,5 +93,29 @@ public class NebulaCard extends LinearLayout {
         view.setPadding(AndroidUtilities.dp(16), AndroidUtilities.dp(18),
                 AndroidUtilities.dp(16), AndroidUtilities.dp(8));
         return view;
+    }
+
+    private static final class Header extends TextView {
+        Header(Context context) { super(context); }
+
+        @Override protected void onMeasure(int width, int height) {
+            boolean afterIntroduction = false;
+            if (getParent() instanceof ViewGroup) {
+                ViewGroup parent = (ViewGroup) getParent();
+                for (int i = parent.indexOfChild(this) - 1; i >= 0; i--) {
+                    View previous = parent.getChildAt(i);
+                    if (previous.getVisibility() == GONE) continue;
+                    afterIntroduction = previous instanceof NebulaSettingsHero;
+                    break;
+                }
+            }
+            // The introduction already owns the gap to the first setting.
+            // Later group headers retain their separation from the last card.
+            int top = afterIntroduction ? 0 : AndroidUtilities.dp(18);
+            if (getPaddingTop() != top) {
+                setPadding(getPaddingLeft(), top, getPaddingRight(), getPaddingBottom());
+            }
+            super.onMeasure(width, height);
+        }
     }
 }
