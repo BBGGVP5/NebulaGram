@@ -13,7 +13,7 @@ public final class NebulaCloudSettingsSync {
     private let defaults = UserDefaults.standard
     private let request = MetaDisposable()
     private var observation: SettingsObservation?
-    private var scheduled: Timer?, deadline: Timer?
+    private var scheduled: Foundation.Timer?, deadline: Foundation.Timer?
     private var generation = 0, device = ""
     private var directory: URL?
     private var applying = false, foreground = false, storageFailed = false
@@ -77,7 +77,7 @@ public final class NebulaCloudSettingsSync {
     @objc private func pause() { foreground = false; generation += 1; busy = false; request.set(nil); deadline?.invalidate(); scheduled?.invalidate() }
     private func schedule(_ seconds: Double) {
         scheduled?.invalidate(); guard enabled, foreground, !storageFailed else { return }
-        scheduled = Timer.scheduledTimer(withTimeInterval: seconds, repeats: false) { [weak self] _ in self?.sync() }
+        scheduled = Foundation.Timer.scheduledTimer(withTimeInterval: seconds, repeats: false) { [weak self] _ in self?.sync() }
     }
     private func snapshot() throws -> [String: SettingValue] { try JSONDecoder().decode(SettingsDocument.self, from: store.exportData()).settings }
     private func valid(_ token: Int) -> Bool { token == generation && enabled && foreground && !storageFailed }
@@ -86,7 +86,7 @@ public final class NebulaCloudSettingsSync {
         do {
             let captured = try snapshot(); busy = true; generation += 1; let token = generation
             announce(text("Синхронизация…", "Syncing…"))
-            deadline?.invalidate(); deadline = Timer.scheduledTimer(withTimeInterval: 45, repeats: false) { [weak self] _ in guard let self, self.valid(token) else { return }; self.fail() }
+            deadline?.invalidate(); deadline = Foundation.Timer.scheduledTimer(withTimeInterval: 45, repeats: false) { [weak self] _ in guard let self, self.valid(token) else { return }; self.fail() }
             read(context: context, offset: 0, pages: 0, documents: [], own: nil, captured: captured, token: token, keepLocal: keepLocal, selected: selected)
         } catch { fail() }
     }

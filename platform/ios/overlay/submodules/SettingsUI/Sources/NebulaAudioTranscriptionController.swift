@@ -11,7 +11,7 @@ public final class NebulaAudioTranscriptionController: UITableViewController {
     private let context: AccountContext, message: Message, file: TelegramMediaFile
     private let theme: PresentationTheme, ru: Bool
     private let fetch = MetaDisposable(), data = MetaDisposable()
-    private var task: Task<Void, Never>?, deadline: Timer?
+    private var task: Task<Void, Never>?, deadline: Foundation.Timer?
     private var busy = false, generation = 0, transcript = "", status = ""
     private lazy var hero = NebulaSettingsHero(symbol: "🎙️", title: text("Расшифровка", "Transcription"), summary: text("Голосовые и видеосообщения", "Voice and video messages"), context: context, theme: theme)
     public init(context: AccountContext, message: Message, file: TelegramMediaFile) {
@@ -66,7 +66,7 @@ public final class NebulaAudioTranscriptionController: UITableViewController {
         do {
             let service = try NebulaAudioService()
             generation += 1; let token = generation; busy = true; status = text("Загружаем запись…", "Downloading recording…"); tableView.reloadData()
-            deadline = Timer.scheduledTimer(withTimeInterval: 180, repeats: false) { [weak self] _ in guard let self, self.generation == token else { return }; self.cancel(); self.report(self.text("Время ожидания истекло. Попробуйте ещё раз.", "Request timed out. Please try again.")) }
+            deadline = Foundation.Timer.scheduledTimer(withTimeInterval: 180, repeats: false) { [weak self] _ in guard let self, self.generation == token else { return }; self.cancel(); self.report(self.text("Время ожидания истекло. Попробуйте ещё раз.", "Request timed out. Please try again.")) }
             let reference = MediaReference<TelegramMediaFile>.message(message: MessageReference(message), media: file)
             fetch.set(context.engine.resources.fetch(reference: reference.resourceReference(file.resource), userLocation: .peer(message.id.peerId), userContentType: .other).start())
             data.set((context.account.postbox.mediaBox.resourceData(file.resource) |> filter { $0.complete } |> take(1) |> deliverOnMainQueue).start(next: { [weak self] resource in

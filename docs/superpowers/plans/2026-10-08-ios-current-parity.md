@@ -137,9 +137,7 @@ Native integration `37804869435` at `e116728` passed. Continue inline with the r
 
 - Model-catalog picker is implemented: explicit provider request, bounded pagination, searchable highlight-only choice, cancellation on edits/leave; manual model IDs remain available when a service does not support listing. Native compilation passed in `37804869435` and the full IPA passed in `37804784920`, source `e116728`.
 
-Still missing from complete Android parity (not represented as completed toggles):
-- Saved Messages settings synchronization; iOS currently supports validated explicit Files import/export only.
-- Gemini audio transcription from message audio.
+The two portable gaps identified at that checkpoint were implemented in the continuation below; native and physical acceptance remain separate.
 
 Continuation `cf2d0ce` adds Instant View browser routing, the eligible native unsend switch default and explicit recovery of incomplete legacy AI connections. All 82 patches / 141 paths and shared contract checks pass locally. Bootstrap `37817188656` at documentation-only successor `7f32211` passed all 119 XCTest cases, cancellation checks and SDK checks; duplicate queued runs were cancelled. Native `37816001440` and IPA `37816439420` verify this later runtime revision separately; the already successful IPA above does not include these three additions.
 
@@ -156,10 +154,10 @@ Provider capability references used for the optional-field guards: https://platf
 
 ## Final portable consumers — cloud settings and audio
 
-- [ ] Add `NebulaCloudSettingsDocument.swift` and XCTest cases for the Android marker/version/clock/settings format, bounds, concurrent changes and deleted copies.
-- [ ] Add TelegramCore `NebulaCloudSettingsTransport.swift`: owner-only Saved Messages search, explicit network errors, bounded pagination, own-device edits and persisted send random IDs.
-- [ ] Add SettingsUI sync coordinator/controller: opt-in owner binding, no-backup installation ID, foreground cancellation, coalescing, explicit conflict choice and stale-result guards. Bind to the authorized account lifecycle and expose beside Files transfer.
-- [ ] Add bounded Gemini audio payload/response tests, native media menu action and themed transcript sheet. Requests require an explicit tap; protected, secret and expired media are excluded.
+- [x] Add `NebulaCloudSettingsDocument.swift` and XCTest cases for the Android marker/version/clock/settings format, bounds, concurrent changes and deleted copies.
+- [x] Add TelegramCore `NebulaCloudSettingsTransport.swift`: owner-only Saved Messages search, explicit network errors, bounded pagination, own-device edits and persisted send random IDs.
+- [x] Add SettingsUI sync coordinator/controller: opt-in owner binding, no-backup installation ID, foreground cancellation, coalescing, explicit conflict choice and stale-result guards. Bind to the authorized account lifecycle and expose beside Files transfer.
+- [x] Add bounded Gemini audio payload/response tests, native media menu action and themed transcript sheet. Requests require an explicit tap; protected, secret and expired media are excluded.
 - [ ] Run contract/SDK/native/IPA checks; keep physical-device acceptance separate.
 
 ## Android steering — update settings sheet
@@ -176,3 +174,10 @@ Model catalog implementation: `NebulaAiModelPage.swift` validates entries/paging
 - Android update sheet SDK compile passed against the local compiled Telegram classes and Android SDK. CI `37802506030` stopped at the old About-route assertion; `1adab52` updates that expectation. Full APK run `37803321318` passed: build 1000453, arm64-v8a, package/version/native libraries and matching signer verified locally. SHA-256: `a080888ebbef459135f74f91b9b56f6e17a299fa01f4682d829d67b3a4f72914`. The test emulator failed to boot online; no visual acceptance is claimed.
 
 - Bootstrap `37804785180` at `e116728` passed 117 XCTest cases, cancellation/concurrency regression checks, all 81 patches and the existing real iOS SDK checks. Bootstrap `37804959701` at `2e210e3` also passed, including the actual model-catalog transport against the iOS SDK. Neither bootstrap nor module compilation proves physical UI acceptance.
+
+## Current continuation and user corrections
+
+- `03a08a0`: wire-compatible owner-only Saved Messages sync, persisted retry IDs, vector-clock conflicts, explicit deleted-copy recovery, per-installation/account opt-in and selected-account lifecycle. Bootstrap `37834428639` passed 122 contract tests and SDK/patch checks.
+- `27c2cca`: explicit Gemini audio/video-message transcription (14 MB input / 2 MB response), cancelled on close/background, copied only by user action. Tests cover wire shape, v1beta/v1 text extraction, incomplete/error states, size and cancellation. API source: https://ai.google.dev/api/interactions-api-v1. Native and IPA runs must include the later Foundation.Timer qualification.
+- User correction: `35a75b3` restores the Android AI editor to its pre-6b00a61 material/selection implementation. The update panel uses an animated Telegram rocket, channel icon instead of an arrow and an opaque modal surface. Current-source Android SDK compile, emoji lifecycle tests and updater checks pass; APK run `37835150189` is building. The immediately retracted request about colorful buttons/Premium emoji is not applied.
+- No USB Android device is attached; there is no connected iOS device/simulator. Compilation is not visual or gesture acceptance.
