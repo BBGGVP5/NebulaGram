@@ -1,0 +1,193 @@
+diff --git a/submodules/TelegramUI/Components/Chat/ChatMessageAnimatedStickerItemNode/BUILD b/submodules/TelegramUI/Components/Chat/ChatMessageAnimatedStickerItemNode/BUILD
+index 30fadb7..1af832c 100644
+--- a/submodules/TelegramUI/Components/Chat/ChatMessageAnimatedStickerItemNode/BUILD
++++ b/submodules/TelegramUI/Components/Chat/ChatMessageAnimatedStickerItemNode/BUILD
+@@ -10,6 +10,7 @@ swift_library(
+         "-warnings-as-errors",
+     ],
+     deps = [
++        "//submodules/NebulaSettingsContract:NebulaSettingsContract",
+         "//submodules/AsyncDisplayKit",
+         "//submodules/Display",
+         "//submodules/SSignalKit/SwiftSignalKit",
+diff --git a/submodules/TelegramUI/Components/Chat/ChatMessageAnimatedStickerItemNode/Sources/ChatMessageAnimatedStickerItemNode.swift b/submodules/TelegramUI/Components/Chat/ChatMessageAnimatedStickerItemNode/Sources/ChatMessageAnimatedStickerItemNode.swift
+index be425dc..c90962c 100644
+--- a/submodules/TelegramUI/Components/Chat/ChatMessageAnimatedStickerItemNode/Sources/ChatMessageAnimatedStickerItemNode.swift
++++ b/submodules/TelegramUI/Components/Chat/ChatMessageAnimatedStickerItemNode/Sources/ChatMessageAnimatedStickerItemNode.swift
+@@ -1,4 +1,5 @@
+ import Foundation
++import NebulaSettingsContract
+ import UIKit
+ import AVFoundation
+ import AsyncDisplayKit
+@@ -1021,6 +1022,7 @@ public class ChatMessageAnimatedStickerItemNode: ChatMessageItemView {
+             if let subject = item.associatedData.subject, case .messageOptions = subject {
+                 needsShareButton = false
+             }
++            if !NebulaMessagePreferences.shared.enabled("direct_share") { needsShareButton = false }
+             
+             var isEmoji = false
+             if let _ = telegramDice {
+diff --git a/submodules/TelegramUI/Components/Chat/ChatMessageBubbleItemNode/Sources/ChatMessageBubbleItemNode.swift b/submodules/TelegramUI/Components/Chat/ChatMessageBubbleItemNode/Sources/ChatMessageBubbleItemNode.swift
+index 75ef450..fd05b85 100644
+--- a/submodules/TelegramUI/Components/Chat/ChatMessageBubbleItemNode/Sources/ChatMessageBubbleItemNode.swift
++++ b/submodules/TelegramUI/Components/Chat/ChatMessageBubbleItemNode/Sources/ChatMessageBubbleItemNode.swift
+@@ -1996,6 +1996,7 @@ public class ChatMessageBubbleItemNode: ChatMessageItemView, ChatMessagePreviewI
+         /*if isInlinePage {
+             needsShareButton = false
+         }*/
++        if !NebulaMessagePreferences.shared.enabled("direct_share") { needsShareButton = false }
+                         
+         var tmpWidth: CGFloat
+         let isBroadcastPost: Bool
+diff --git a/submodules/TelegramUI/Components/Chat/ChatMessageDateAndStatusNode/Sources/ChatMessageDateAndStatusNode.swift b/submodules/TelegramUI/Components/Chat/ChatMessageDateAndStatusNode/Sources/ChatMessageDateAndStatusNode.swift
+index ffb7e15..5909a90 100644
+--- a/submodules/TelegramUI/Components/Chat/ChatMessageDateAndStatusNode/Sources/ChatMessageDateAndStatusNode.swift
++++ b/submodules/TelegramUI/Components/Chat/ChatMessageDateAndStatusNode/Sources/ChatMessageDateAndStatusNode.swift
+@@ -1,4 +1,5 @@
+ import Foundation
++import NebulaSettingsContract
+ import UIKit
+ import AsyncDisplayKit
+ import TelegramCore
+@@ -541,7 +542,7 @@ public class ChatMessageDateAndStatusNode: ASDisplayNode {
+             if arguments.edited {
+                 if let useEditedTimestamp = arguments.context.getAppConfigValue("message_primary_edited_date") as? Bool, useEditedTimestamp {
+                 } else {
+-                    updatedDateText = "\(arguments.presentationData.strings.Conversation_MessageEditedLabel) \(updatedDateText)"
++                    updatedDateText = "\(NebulaMessagePreferences.shared.enabled("edited_pencil") ? "✎" : arguments.presentationData.strings.Conversation_MessageEditedLabel) \(updatedDateText)"
+                 }
+             }
+             if let impressionCount = arguments.impressionCount {
+diff --git a/submodules/TelegramUI/Components/Chat/ChatMessageDateAndStatusNode/Sources/StringForMessageTimestampStatus.swift b/submodules/TelegramUI/Components/Chat/ChatMessageDateAndStatusNode/Sources/StringForMessageTimestampStatus.swift
+index 88650ae..e8f06d5 100644
+--- a/submodules/TelegramUI/Components/Chat/ChatMessageDateAndStatusNode/Sources/StringForMessageTimestampStatus.swift
++++ b/submodules/TelegramUI/Components/Chat/ChatMessageDateAndStatusNode/Sources/StringForMessageTimestampStatus.swift
+@@ -99,7 +99,7 @@ public func stringForMessageTimestampStatus(
+     var displayFullDate = false
+     if case .full = format, timestamp > 100000 {
+         displayFullDate = true
+-    } else if let forwardInfo = message.forwardInfo, message.id.peerId == context.account.peerId {
++    } else if let forwardInfo = message.forwardInfo, (message.id.peerId == context.account.peerId || NebulaMessagePreferences.shared.enabled("forward_date")) {
+         displayFullDate = true
+         timestamp = forwardInfo.date
+     }
+diff --git a/submodules/TelegramUI/Components/Chat/ChatMessageInstantVideoItemNode/BUILD b/submodules/TelegramUI/Components/Chat/ChatMessageInstantVideoItemNode/BUILD
+index 1dd6a77..14fe674 100644
+--- a/submodules/TelegramUI/Components/Chat/ChatMessageInstantVideoItemNode/BUILD
++++ b/submodules/TelegramUI/Components/Chat/ChatMessageInstantVideoItemNode/BUILD
+@@ -10,6 +10,7 @@ swift_library(
+         "-warnings-as-errors",
+     ],
+     deps = [
++        "//submodules/NebulaSettingsContract:NebulaSettingsContract",
+         "//submodules/AsyncDisplayKit",
+         "//submodules/Display",
+         "//submodules/SSignalKit/SwiftSignalKit",
+diff --git a/submodules/TelegramUI/Components/Chat/ChatMessageInstantVideoItemNode/Sources/ChatMessageInstantVideoItemNode.swift b/submodules/TelegramUI/Components/Chat/ChatMessageInstantVideoItemNode/Sources/ChatMessageInstantVideoItemNode.swift
+index 77a8a03..162a66d 100644
+--- a/submodules/TelegramUI/Components/Chat/ChatMessageInstantVideoItemNode/Sources/ChatMessageInstantVideoItemNode.swift
++++ b/submodules/TelegramUI/Components/Chat/ChatMessageInstantVideoItemNode/Sources/ChatMessageInstantVideoItemNode.swift
+@@ -1,4 +1,5 @@
+ import Foundation
++import NebulaSettingsContract
+ import UIKit
+ import AsyncDisplayKit
+ import Display
+@@ -388,6 +389,7 @@ public class ChatMessageInstantVideoItemNode: ChatMessageItemView, ASGestureReco
+             if let subject = item.associatedData.subject, case .messageOptions = subject {
+                 needsShareButton = false
+             }
++            if !NebulaMessagePreferences.shared.enabled("direct_share") { needsShareButton = false }
+             
+             var layoutInsets = layoutConstants.instantVideo.insets
+             if dateHeaderAtBottom.hasDate && dateHeaderAtBottom.hasTopic {
+diff --git a/submodules/TelegramUI/Components/Chat/ChatMessageStickerItemNode/BUILD b/submodules/TelegramUI/Components/Chat/ChatMessageStickerItemNode/BUILD
+index 1c4c39b..d28f9d9 100644
+--- a/submodules/TelegramUI/Components/Chat/ChatMessageStickerItemNode/BUILD
++++ b/submodules/TelegramUI/Components/Chat/ChatMessageStickerItemNode/BUILD
+@@ -10,6 +10,7 @@ swift_library(
+         "-warnings-as-errors",
+     ],
+     deps = [
++        "//submodules/NebulaSettingsContract:NebulaSettingsContract",
+         "//submodules/AsyncDisplayKit",
+         "//submodules/Display",
+         "//submodules/SSignalKit/SwiftSignalKit",
+diff --git a/submodules/TelegramUI/Components/Chat/ChatMessageStickerItemNode/Sources/ChatMessageStickerItemNode.swift b/submodules/TelegramUI/Components/Chat/ChatMessageStickerItemNode/Sources/ChatMessageStickerItemNode.swift
+index 345b011..86987e3 100644
+--- a/submodules/TelegramUI/Components/Chat/ChatMessageStickerItemNode/Sources/ChatMessageStickerItemNode.swift
++++ b/submodules/TelegramUI/Components/Chat/ChatMessageStickerItemNode/Sources/ChatMessageStickerItemNode.swift
+@@ -1,4 +1,5 @@
+ import Foundation
++import NebulaSettingsContract
+ import UIKit
+ import AsyncDisplayKit
+ import Display
+@@ -573,6 +574,7 @@ public class ChatMessageStickerItemNode: ChatMessageItemView {
+             if let subject = item.associatedData.subject, case .messageOptions = subject {
+                 needsShareButton = false
+             }
++            if !NebulaMessagePreferences.shared.enabled("direct_share") { needsShareButton = false }
+             
+             var layoutInsets = UIEdgeInsets(top: mergedTop.merged ? layoutConstants.bubble.mergedSpacing : layoutConstants.bubble.defaultSpacing, left: 0.0, bottom: mergedBottom.merged ? layoutConstants.bubble.mergedSpacing : layoutConstants.bubble.defaultSpacing, right: 0.0)
+             if dateHeaderAtBottom.hasDate && dateHeaderAtBottom.hasTopic {
+diff --git a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoHeaderNode.swift b/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoHeaderNode.swift
+index 8ccb053..6b51b03 100644
+--- a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoHeaderNode.swift
++++ b/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoHeaderNode.swift
+@@ -1348,7 +1348,7 @@ final class PeerInfoHeaderNode: ASDisplayNode {
+                 title = "" //"\u{00A0}"
+             }
+             if title.isEmpty {
+-                if case let .user(user) = peer, let phone = user.phone {
++                if !NebulaMessagePreferences.shared.enabled("hide_profile_phone"), case let .user(user) = peer, let phone = user.phone {
+                     title = formatPhoneNumber(context: self.context, number: phone)
+                 } else if let addressName = peer.addressName {
+                     title = "@\(addressName)"
+diff --git a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoProfileItems.swift b/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoProfileItems.swift
+index a80294c..6223cc0 100644
+--- a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoProfileItems.swift
++++ b/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoProfileItems.swift
+@@ -156,7 +156,7 @@ func infoItems(
+             ))
+         }
+         
+-        if let phone = user.phone {
++        if !NebulaMessagePreferences.shared.enabled("hide_profile_phone"), let phone = user.phone {
+             let formattedPhone = formatPhoneNumber(context: context, number: phone)
+             let label: String
+             if formattedPhone.hasPrefix("+888 ") {
+@@ -172,6 +172,11 @@ func infoItems(
+                 interaction.requestLayout(animated)
+             }))
+         }
++        if NebulaMessagePreferences.shared.enabled("profile_photo_dc"), let photo = user.photo.first,
++            let resource = photo.resource as? CloudPeerPhotoSizeMediaResource {
++            let russian = presentationData.strings.baseLanguageCode.hasPrefix("ru")
++            items[currentPeerInfoSection]!.append(PeerInfoScreenLabeledValueItem(id: "nebula-photo-dc", label: russian ? "DC фотографии" : "Photo data center", text: "DC \(resource.datacenterId)", action: nil, requestLayout: { interaction.requestLayout($0) }))
++        }
+         if let mainUsername = user.addressName {
+             var additionalUsernames: String?
+             let usernames = user.usernames.filter { $0.isActive && $0.username != mainUsername }
+diff --git a/submodules/TelegramUI/Sources/SharedMediaPlayer.swift b/submodules/TelegramUI/Sources/SharedMediaPlayer.swift
+index 8e69e29..0720900 100644
+--- a/submodules/TelegramUI/Sources/SharedMediaPlayer.swift
++++ b/submodules/TelegramUI/Sources/SharedMediaPlayer.swift
+@@ -1,4 +1,5 @@
+ import Foundation
++import NebulaSettingsContract
+ import UIKit
+ import SwiftSignalKit
+ import TelegramCore
+@@ -258,6 +259,10 @@ final class SharedMediaPlayer {
+                                             strongSelf.playbackItem?.seek(0.0)
+                                             strongSelf.playbackItem?.play()
+                                         default:
++                                            if case .voice = strongSelf.type, !NebulaMessagePreferences.shared.enabled("voice_autoplay") {
++                                                strongSelf.playbackItem?.pause()
++                                                return
++                                            }
+                                             strongSelf.scheduledPlaybackAction = .play
+                                             strongSelf.control(.next)
+                                     }
