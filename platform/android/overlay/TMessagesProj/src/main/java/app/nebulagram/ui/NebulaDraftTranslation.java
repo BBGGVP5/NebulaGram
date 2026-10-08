@@ -122,7 +122,10 @@ public final class NebulaDraftTranslation {
     }
     private void useOrRestore() {
         CharSequence field = NebulaRichText.snapshot(editor.getText());
-        if (shownAnswer != null && !NebulaRichText.key(activeAccount, shownAnswer).equals(NebulaRichText.key(activeAccount, field)) && shownSource.equals(field.toString())) {
+        if (shownAnswer != null && !NebulaRichText.key(activeAccount, shownAnswer).equals(NebulaRichText.key(activeAccount, field))) {
+            if (!shownSource.equals(NebulaRichText.key(activeAccount, field))) {
+                stop(); changed(activeAccount, activeDialog, true); return;
+            }
             CharSequence value = shownAnswer; original.replaced(original.source(field), value); appliedPrefix = identityPrefix;
             cancelTransport(); gate.suppress(identityPrefix + NebulaRichText.key(activeAccount, value)); replace(value); show(value, value, null, false);
         } else if (original.hasOriginal()) {
@@ -159,7 +162,7 @@ public final class NebulaDraftTranslation {
         if (!anchor.isAttachedToWindow() || host.getParentActivity() == null) return;
         NebulaTheme theme = NebulaTheme.of(anchor.getContext());
         if (panel == null) createPanel(theme);
-        shownSource = source.toString(); shownAnswer = answer;
+        shownSource = NebulaRichText.key(activeAccount, source); shownAnswer = answer;
         title.setText("Nebula AI · " + NebulaTranslationSettings.draftLanguage(activeAccount, activeDialog).toUpperCase(java.util.Locale.ROOT));
         title.setContentDescription(NebulaText.text("Язык перевода. Удерживайте для настроек", "Translation language. Hold for settings"));
         progress.setVisibility(loading ? View.VISIBLE : View.GONE);

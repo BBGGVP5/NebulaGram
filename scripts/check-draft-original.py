@@ -5,7 +5,7 @@ root=Path(__file__).resolve().parents[1];ui=root/'platform/android/overlay/TMess
 source=(ui/'NebulaDraftTranslation.java').read_text(encoding='utf-8').replace('org.telegram.tgnet.TLRPC','TLRPC')
 source='\n'.join(line for line in source.splitlines() if not line.startswith(('import android.','import org.telegram.')))
 a=source.index('    private TextView action(');b=source.index('    public void stop()',a)
-source=source[:a]+'''    private void show(CharSequence answer,CharSequence source,String error,boolean loading) { shownSource=source.toString();shownAnswer=answer; }
+source=source[:a]+'''    private void show(CharSequence answer,CharSequence source,String error,boolean loading) { shownSource=NebulaRichText.key(activeAccount,source);shownAnswer=answer; }
 '''+source[b:]
 stubs=r'''package app.nebulagram.ui;
 import java.util.*;import java.util.concurrent.*;
@@ -72,6 +72,14 @@ public class DraftOriginalCheck {
   field.text(styled);draft.changed(1,10,true);ui();
   ((android.text.SpannableStringBuilder)field.rich).mark(0,6,"italic");ui();
   check(field.text.equals("Привет 😀"),"format-only edit rejects stale result");
+  draft.stop();original.clear();NebulaTranslationSettings.automatic=false;
+  original.replaced("older source","older result");
+  field.text(new android.text.SpannableStringBuilder("Привет preview 😀").mark(0,6,"bold"));
+  draft.changed(1,10,true);ui();ui();
+  ((android.text.SpannableStringBuilder)field.rich).mark(0,6,"italic");
+  String changedStyle=NebulaRichText.key(1,field.getText());click.invoke(draft);
+  check(changedStyle.equals(NebulaRichText.key(1,field.getText())),"manual Apply cannot overwrite new styles or restore an unrelated original");
+  draft.stop();
   System.out.println("Actual draft requests: automatic insertion, original, continued typing, IME, A/B race, model/account changes and pause passed");System.exit(0);
  }
 }
