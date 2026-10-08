@@ -393,7 +393,7 @@ final class Composer {
             subprocess.run(['swiftc', *ios_flags, '-typecheck',
                             str(temp / 'submodules/Display/Source/NebulaAIOutline.swift')], check=True)
             subprocess.run(['swiftc', *ios_flags, '-typecheck', '-I', str(temp),
-                            str(settings_ui / 'NebulaAiService.swift')], check=True)
+                            str(settings_ui / 'NebulaAiService.swift'), str(settings_ui / 'NebulaAiModelCatalog.swift')], check=True)
             subprocess.run(['swiftc', *ios_flags, '-typecheck', str(settings_ui / 'NebulaEditorSegments.swift')], check=True)
             subprocess.run(['swiftc', *ios_flags, '-typecheck', '-I', str(temp),
                             str(temp / 'submodules/NebulaBrowserCore/Sources/NebulaBrowserContentRules.swift')], check=True)
