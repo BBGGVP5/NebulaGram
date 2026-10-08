@@ -140,7 +140,7 @@ final class NebulaAiService {
         let streaming: Bool
         if #available(iOS 15.0, *) { streaming = settings.streaming && onUpdate != nil } else { streaming = false }
         let temperature = settings.temperature
-        let reasoning = settings.reasoning
+        let reasoning = settings.reasoning && NebulaAiGenerationPolicy.supportsReasoning(provider: provider, model: model)
         var request: URLRequest
         switch provider {
         case .openAI, .perplexity:
@@ -165,20 +165,23 @@ final class NebulaAiService {
             throw NebulaAiServiceError.invalidConfiguration
         }
         guard let initial = request.httpBody, var body = try JSONSerialization.jsonObject(with: initial) as? [String: Any] else { throw NebulaAiServiceError.invalidConfiguration }
-        let reasoningModel = ["o1", "o3", "o4", "gpt-5", "gpt-6"].contains { model.lowercased().hasPrefix($0) }
+        let reasoningModel = NebulaAiGenerationPolicy.openAIReasoning(model)
         if provider == .gemini {
             var config: [String: Any] = ["temperature": temperature]
-            if reasoning { config["thinkingConfig"] = model.lowercased().hasPrefix("gemini-3") ? ["thinkingLevel": "MEDIUM"] as [String: Any] : ["thinkingBudget": 1024] }
+            if reasoning { config["thinkingConfig"] = NebulaAiGenerationPolicy.geminiThinking(model) }
             body["generationConfig"] = config
             if streaming, let url = request.url { request.url = URL(string: url.absoluteString.replacingOccurrences(of: ":generateContent", with: ":streamGenerateContent") + "?alt=sse") }
         } else {
-            if !(provider == .openAI && reasoningModel) && !(provider == .claude && reasoning) { body["temperature"] = temperature }
+            if !(provider == .openAI && reasoningModel) && !(provider == .claude && (reasoning || NebulaAiGenerationPolicy.claudeThinking(model) == "adaptive")) { body["temperature"] = provider == .claude ? min(1, temperature) : temperature }
             if streaming { body["stream"] = true }
             if reasoning {
                 switch provider {
                 case .openAI: if reasoningModel { body["reasoning"] = ["effort": "medium"] }
                 case .perplexity: body["reasoning"] = ["effort": "medium"]
-                case .claude: body["thinking"] = ["type": "enabled", "budget_tokens": 1024]
+                case .claude:
+                    if let type = NebulaAiGenerationPolicy.claudeThinking(model) {
+                        body["thinking"] = type == "adaptive" ? ["type": type] as [String: Any] : ["type": type, "budget_tokens": 1024]
+                    }
                 case .openRouter: body["reasoning"] = ["enabled": true]
                 default: break
                 }

@@ -17,7 +17,15 @@ enum NebulaImportedIcons {
     private static let indexKey = "nebula.ios.iconPacks"
     static let selectionKey = "nebula.ios.selectedIconPack"
     private static let queue = DispatchQueue(label: "NebulaIconImport", qos: .userInitiated)
-    static var installed: [NebulaInstalledIconPack] { guard let data = UserDefaults.standard.data(forKey: indexKey) else { return [] }; return (try? JSONDecoder().decode([NebulaInstalledIconPack].self, from: data)) ?? [] }
+    static var installed: [NebulaInstalledIconPack] { (try? readIndex()) ?? [] }
+    private static func readIndex() throws -> [NebulaInstalledIconPack] {
+        guard let data = UserDefaults.standard.data(forKey: indexKey) else { return [] }
+        guard data.count <= 131072 else { throw NebulaIconPackManifest.Failure.invalid }
+        let values = try JSONDecoder().decode([NebulaInstalledIconPack].self, from: data)
+        guard values.count <= 40, Set(values.map { $0.id }).count == values.count,
+              values.allSatisfy({ UUID(uuidString: $0.id) != nil && !$0.name.isEmpty && $0.name.count <= 128 && $0.author.count <= 256 && $0.count > 0 && $0.count <= 512 }) else { throw NebulaIconPackManifest.Failure.invalid }
+        return values
+    }
     static var activeID: String? {
         guard let data = UserDefaults.standard.data(forKey: NebulaSettingsStore.storageKey), let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any], let settings = json["settings"] as? [String: Any], settings["icon_pack"] as? Int == 3,
               let id = UserDefaults.standard.string(forKey: selectionKey), UUID(uuidString: id) != nil else { return nil }
@@ -40,8 +48,8 @@ enum NebulaImportedIcons {
         } else { UserDefaults.standard.removeObject(forKey: selectionKey) }
     }
     static func remove(_ pack: NebulaInstalledIconPack) throws {
+        let next = try readIndex().filter { $0.id != pack.id }
         if activeID == pack.id { try NebulaSettingsStore.shared.set(.integer(0), for: "icon_pack"); UserDefaults.standard.removeObject(forKey: selectionKey) }
-        let next = installed.filter { $0.id != pack.id }
         UserDefaults.standard.set(try JSONEncoder().encode(next), forKey: indexKey)
         try? FileManager.default.removeItem(at: directory(pack.id))
     }
@@ -51,9 +59,12 @@ enum NebulaImportedIcons {
             DispatchQueue.main.async {
                 do {
                     let pack = try result.get()
-                    var values = installed
-                    guard values.count < 40 else { try? FileManager.default.removeItem(at: directory(pack.id)); throw NebulaIconPackManifest.Failure.invalid }
+                    var indexed = false
+                    defer { if !indexed { try? FileManager.default.removeItem(at: directory(pack.id)) } }
+                    var values = try readIndex()
+                    guard values.count < 40 else { throw NebulaIconPackManifest.Failure.invalid }
                     values.append(pack); UserDefaults.standard.set(try JSONEncoder().encode(values), forKey: indexKey)
+                    indexed = true
                     completion(.success(pack))
                 } catch { completion(.failure(error)) }
             }

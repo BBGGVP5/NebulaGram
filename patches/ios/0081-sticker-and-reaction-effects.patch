@@ -1,0 +1,65 @@
+diff --git a/submodules/ReactionSelectionNode/BUILD b/submodules/ReactionSelectionNode/BUILD
+index 623c6ad..2d8ae26 100644
+--- a/submodules/ReactionSelectionNode/BUILD
++++ b/submodules/ReactionSelectionNode/BUILD
+@@ -10,6 +10,7 @@ swift_library(
+         "-warnings-as-errors",
+     ],
+     deps = [
++        "//submodules/NebulaSettingsContract:NebulaSettingsContract",
+         "//submodules/Postbox:Postbox",
+         "//submodules/TelegramCore:TelegramCore",
+         "//submodules/AsyncDisplayKit:AsyncDisplayKit",
+diff --git a/submodules/ReactionSelectionNode/Sources/ReactionContextNode.swift b/submodules/ReactionSelectionNode/Sources/ReactionContextNode.swift
+index bcb2e7d..6096017 100644
+--- a/submodules/ReactionSelectionNode/Sources/ReactionContextNode.swift
++++ b/submodules/ReactionSelectionNode/Sources/ReactionContextNode.swift
+@@ -1,3 +1,4 @@
++import NebulaSettingsContract
+ import Foundation
+ import UIKit
+ import AsyncDisplayKit
+@@ -2638,6 +2639,7 @@ public final class ReactionContextNode: ASDisplayNode, ASScrollViewDelegate {
+     }
+     
+     public func animateOutToReaction(value: MessageReaction.Reaction, targetView: UIView, hideNode: Bool, forceSwitchToInlineImmediately: Bool = false, animateTargetContainer: UIView?, addStandaloneReactionAnimation: ((StandaloneReactionAnimation) -> Void)?, onHit: (() -> Void)?, completion: @escaping () -> Void) {
++        guard NebulaMessagePreferences.shared.enabled("reaction_effects") else { onHit?(); completion(); return }
+         self.isAnimatingOutToReaction = true
+         
+         var foundItemNode: ReactionNode?
+@@ -3335,6 +3337,7 @@ public final class StandaloneReactionAnimation: ASDisplayNode {
+     public var currentDismissAnimation: (() -> Void)?
+     
+     public func animateReactionSelection(context: AccountContext, theme: PresentationTheme, animationCache: AnimationCache, reaction: ReactionItem, customEffectResource: MediaResource? = nil, avatarPeers: [EnginePeer], playHaptic: Bool, isLarge: Bool, playCenterReaction: Bool = true, forceSmallEffectAnimation: Bool = false, hideCenterAnimation: Bool = false, targetView: UIView, addStandaloneReactionAnimation: ((StandaloneReactionAnimation) -> Void)?, currentItemNode: ReactionNode?, onHit: (() -> Void)? = nil, completion: @escaping () -> Void) {
++        guard NebulaMessagePreferences.shared.enabled("reaction_effects") else { onHit?(); completion(); return }
+         guard let sourceSnapshotView = targetView.snapshotContentTree() else {
+             completion()
+             return
+@@ -3822,6 +3825,7 @@ public final class StandaloneReactionAnimation: ASDisplayNode {
+     }
+     
+     public func animateOutToReaction(context: AccountContext, theme: PresentationTheme, item: ReactionItem, value: MessageReaction.Reaction, sourceView: UIView, targetView: UIView, hideNode: Bool, forceSwitchToInlineImmediately: Bool = false, animateTargetContainer: UIView?, addStandaloneReactionAnimation: ((StandaloneReactionAnimation) -> Void)?, onHit: (() -> Void)?, completion: @escaping () -> Void) {
++        guard NebulaMessagePreferences.shared.enabled("reaction_effects") else { onHit?(); completion(); return }
+         let star = ComponentView<Empty>()
+         let starSize = star.update(
+             transition: .immediate,
+@@ -4099,6 +4103,7 @@ public final class StandaloneDismissReactionAnimation: ASDisplayNode {
+     }
+     
+     public func animateReactionDismiss(sourceView: UIView, hideNode: Bool, isIncoming: Bool, completion: @escaping () -> Void) {
++        guard NebulaMessagePreferences.shared.enabled("reaction_effects") else { completion(); return }
+         guard let sourceSnapshotView = sourceView.snapshotContentTree() else {
+             completion()
+             return
+diff --git a/submodules/TelegramUI/Components/Chat/ChatMessageAnimatedStickerItemNode/Sources/ChatMessageAnimatedStickerItemNode.swift b/submodules/TelegramUI/Components/Chat/ChatMessageAnimatedStickerItemNode/Sources/ChatMessageAnimatedStickerItemNode.swift
+index c90962c..de18867 100644
+--- a/submodules/TelegramUI/Components/Chat/ChatMessageAnimatedStickerItemNode/Sources/ChatMessageAnimatedStickerItemNode.swift
++++ b/submodules/TelegramUI/Components/Chat/ChatMessageAnimatedStickerItemNode/Sources/ChatMessageAnimatedStickerItemNode.swift
+@@ -2228,6 +2228,7 @@ public class ChatMessageAnimatedStickerItemNode: ChatMessageItemView {
+     }
+     
+     public func playEffectAnimation(resource: MediaResource, isStickerEffect: Bool = false) {
++        guard !isStickerEffect || NebulaMessagePreferences.shared.enabled("premium_effects") else { return }
+         guard let item = self.item else {
+             return
+         }

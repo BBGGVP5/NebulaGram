@@ -68,7 +68,7 @@ public final class NebulaLiveTranslation {
                 if let attr = message.attributes.first(where: { $0 is TranslationMessageAttribute }) as? TranslationMessageAttribute,
                     attr.toLang == options.incomingLanguage && attr.text == translated.string && attr.entities == generateChatInputTextEntities(translated) { continue }
                 Self.apply(context: context, message: message, result: translated, language: options.incomingLanguage)
-            } else if requests[message.id]?.source != message.text && !queue.contains(where: { $0.id == message.id }) && queue.count < 20
+            } else if (requests[message.id]?.source != message.text || requests[message.id]?.entities != Self.entities(message)) && !queue.contains(where: { $0.id == message.id }) && queue.count < 20
                 && (failed[sourceKey] ?? .distantPast) < Date() { queue.append(message) }
         }
         runNext(context: context, language: options.incomingLanguage)

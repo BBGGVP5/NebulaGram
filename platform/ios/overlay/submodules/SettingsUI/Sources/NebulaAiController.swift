@@ -91,12 +91,15 @@ final class NebulaAiController: UITableViewController {
     @objc private func close() { dismiss(animated: true) }
 
     override func numberOfSections(in tableView: UITableView) -> Int { 5 }
-    override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int { [3, 3, 3, 1, 2][section] }
+    override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int { section == 2 && settings.provider == .appleIntelligence ? 0 : [3, 3, 3, 1, 2][section] }
     override func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
         [nil, text("Основные", "Settings"), text("Генерация", "Generation"), text("Состояние", "State"), text("Чат", "Chat")][section]
     }
     override func tableView(_ tableView: UITableView, titleForFooterInSection section: Int) -> String? {
-        section == 2 ? text("Рассуждения используются только поддерживаемыми моделями. История хранится на устройстве.", "Reasoning is used only by supported models. History stays on this device.") : nil
+        guard section == 2 else { return nil }
+        return settings.provider == .appleIntelligence
+            ? text("Параметрами системной модели управляет iOS. История хранится на устройстве.", "iOS manages the on-device model parameters. History stays on this device.")
+            : text("Дополнительные рассуждения доступны для поддерживаемых моделей. Выключение оставляет настройки модели по умолчанию. История хранится на устройстве.", "Additional reasoning is available for supported models. Turning it off keeps model defaults. History stays on this device.")
     }
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = UITableViewCell(style: .subtitle, reuseIdentifier: nil)
@@ -118,7 +121,11 @@ final class NebulaAiController: UITableViewController {
             cell.textLabel?.text = text("Роли", "Roles"); cell.detailTextLabel?.text = settings.roles.selected(russian: ru)?.name ?? text("Свои инструкции", "General instructions"); cell.accessoryType = .disclosureIndicator
         case (1, 2): toggle(text("История сообщений", "Message history"), settings.historyEnabled, 2)
         case (2, 0): toggle(text("Потоковый ответ", "Streaming response"), settings.streaming, 3)
-        case (2, 1): toggle(text("Рассуждения", "Reasoning"), settings.reasoning, 4)
+        case (2, 1):
+            toggle(text("Рассуждения", "Reasoning"), settings.reasoning, 4)
+            let supported = NebulaAiGenerationPolicy.supportsReasoning(provider: settings.provider, model: settings.model(for: settings.provider))
+            cell.accessoryView?.isUserInteractionEnabled = supported; cell.accessoryView?.alpha = supported ? 1 : 0.4
+            if !supported { cell.detailTextLabel?.text = text("Не поддерживается выбранной моделью", "Not supported by the selected model") }
         case (2, 2):
             cell.textLabel?.text = text("Температура", "Temperature"); cell.detailTextLabel?.text = String(format: "%.1f", settings.temperature); cell.accessoryType = .disclosureIndicator
         case (4, 0): cell.textLabel?.text = text("Открыть ИИ-чат", "Open AI chat"); cell.accessoryType = .disclosureIndicator
