@@ -634,3 +634,7 @@ Both `BotWebViewContainer` interception overloads consult a browser-only immutab
 ## 0182 — Swipe actions
 
 `ChatActivity` selects an ordered action from vertical movement after the existing horizontal swipe starts. It renders the selected native glyph and dispatches reply/copy/tools/translation on release, preserving native gesture restrictions and protected-message checks. The translation action opens the existing selected-engine tool directly.
+
+## 0188 — Message menu preview handoff
+
+`ItemOptions.keepScrimOpaque()` keeps a lifted view opaque while its original is hidden. The settings message preview opts in when the menu moves below the card, preventing the close animation from fading the copy out before abruptly restoring the original. Background dimming and native anchor restoration retain their existing lifecycle; other menus keep their default fade behavior.

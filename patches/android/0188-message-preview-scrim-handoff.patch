@@ -1,0 +1,26 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ItemOptions.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ItemOptions.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ItemOptions.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ItemOptions.java
+@@ -991,6 +991,13 @@
+         return this;
+     }
+ 
++    // A lifted preview whose original is hidden must stay visible until handoff.
++    private boolean keepScrimOpaque;
++    public ItemOptions keepScrimOpaque() {
++        keepScrimOpaque = true;
++        return this;
++    }
++
+     private boolean hideScrimUnder;
+     public ItemOptions hideScrimUnder() {
+         hideScrimUnder = true;
+@@ -2185,7 +2192,7 @@
+                         canvas.restore();
+                     }
+                 } else {
+-                    if (allowMoveScrim) {
++                    if (allowMoveScrim && !keepScrimOpaque) {
+                         canvas.saveLayerAlpha(0, 0, scrimView.getWidth(), scrimView.getHeight(), (int) (0xFF * dimProgress), Canvas.ALL_SAVE_FLAG);
+                     } else {
+                         canvas.save();
