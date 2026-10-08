@@ -31,7 +31,9 @@ final class AiSecretsTests: XCTestCase {
         XCTAssertEqual(NebulaAiProvider.gemini.rawValue, 2)
         XCTAssertEqual(NebulaAiProvider.custom.rawValue, 3)
         XCTAssertEqual(NebulaAiProvider.appleIntelligence.rawValue, 4)
-        XCTAssertEqual(NebulaAiProvider.allCases.count, 5)
+        XCTAssertEqual(NebulaAiProvider.openRouter.rawValue, 5)
+        XCTAssertEqual(NebulaAiProvider.perplexity.rawValue, 6)
+        XCTAssertEqual(NebulaAiProvider.allCases.count, 7)
         XCTAssertNil(NebulaAiProvider.custom.endpoint)
         XCTAssertNil(NebulaAiProvider.appleIntelligence.endpoint)
         for provider in NebulaAiProvider.allCases where provider != .custom && provider != .appleIntelligence {

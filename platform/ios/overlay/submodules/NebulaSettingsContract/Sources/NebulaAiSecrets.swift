@@ -1,17 +1,15 @@
 import Foundation
 import Security
 
-/// The AI providers the client can talk to, in the order Android numbers them.
-///
-/// The raw values are the numbers Android already writes to its own settings,
-/// so a provider means the same thing on both platforms and a future transfer
-/// of the non-secret part needs no translation table.
+/// Stable iOS storage IDs. Never renumber existing providers during migration.
 public enum NebulaAiProvider: Int, CaseIterable, Codable, Equatable {
     case openAI = 0
     case claude = 1
     case gemini = 2
     case custom = 3
     case appleIntelligence = 4
+    case openRouter = 5
+    case perplexity = 6
 
     /// The default API root. Custom has none: the user supplies it.
     public var endpoint: String? {
@@ -19,6 +17,8 @@ public enum NebulaAiProvider: Int, CaseIterable, Codable, Equatable {
         case .openAI: return "https://api.openai.com/v1"
         case .claude: return "https://api.anthropic.com/v1"
         case .gemini: return "https://generativelanguage.googleapis.com/v1beta"
+        case .openRouter: return "https://openrouter.ai/api/v1"
+        case .perplexity: return "https://api.perplexity.ai/v1"
         case .custom, .appleIntelligence: return nil
         }
     }
@@ -28,6 +28,8 @@ public enum NebulaAiProvider: Int, CaseIterable, Codable, Equatable {
         case .openAI: return "OpenAI"
         case .claude: return "Claude"
         case .gemini: return "Gemini"
+        case .openRouter: return "OpenRouter"
+        case .perplexity: return "Perplexity"
         case .custom: return "Custom"
         case .appleIntelligence: return "Apple Intelligence · On-device"
         }
@@ -102,12 +104,39 @@ public final class NebulaAiSecrets {
         lock.lock(); defer { lock.unlock() }
         try storage.removeSecret(for: account(provider))
     }
+    public func serviceKey(id: String) throws -> String? {
+        lock.lock(); defer { lock.unlock() }
+        return try storage.secret(for: "service-" + id)
+    }
+    public func setServiceKey(_ value: String, id: String) throws {
+        let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
+        lock.lock(); defer { lock.unlock() }
+        if trimmed.isEmpty { try storage.removeSecret(for: "service-" + id) }
+        else {
+            let stored = try storage.secret(for: "service-index") ?? "[]"
+            var ids = try JSONDecoder().decode([String].self, from: Data(stored.utf8))
+            if !ids.contains(id) { ids.append(id) }
+            let index = String(decoding: try JSONEncoder().encode(ids), as: UTF8.self)
+            try storage.setSecret(index, for: "service-index")
+            try storage.setSecret(trimmed, for: "service-" + id)
+        }
+    }
+    public func removeServiceKey(id: String) throws {
+        lock.lock(); defer { lock.unlock() }
+        try storage.removeSecret(for: "service-" + id)
+    }
 
     /// Forgets every provider's key. Used by "sign out" and by the settings
     /// screen's own reset, so a device changing hands leaves nothing behind.
     public func removeAll() throws {
         for provider in NebulaAiProvider.allCases {
             try removeKey(for: provider)
+        }
+        lock.lock(); defer { lock.unlock() }
+        if let index = try storage.secret(for: "service-index") {
+            let ids = try JSONDecoder().decode([String].self, from: Data(index.utf8))
+            for id in ids { try storage.removeSecret(for: "service-" + id) }
+            try storage.removeSecret(for: "service-index")
         }
     }
 }

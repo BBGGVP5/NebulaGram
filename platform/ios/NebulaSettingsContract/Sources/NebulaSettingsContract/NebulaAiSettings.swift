@@ -1,4 +1,5 @@
 import Foundation
+import CryptoKit
 
 /// Everything about an AI connection except the key.
 ///
@@ -25,6 +26,20 @@ public final class NebulaAiSettings {
 
     private let defaults: UserDefaults
     private let prefix = "nebula.ai."
+    public var services: NebulaAiServices { NebulaAiServices(defaults: defaults) }
+    public var roles: NebulaAiRoles { NebulaAiRoles(defaults: defaults) }
+    public var temperature: Double {
+        get { let value = defaults.object(forKey: name("temperature")) as? Double ?? 1; return value.isFinite ? min(2, max(0, value)) : 1 }
+        set { defaults.set(newValue.isFinite ? min(2, max(0, newValue)) : 1, forKey: name("temperature")) }
+    }
+    public var streaming: Bool {
+        get { defaults.object(forKey: name("streaming")) as? Bool ?? true }
+        set { defaults.set(newValue, forKey: name("streaming")) }
+    }
+    public var reasoning: Bool {
+        get { defaults.bool(forKey: name("reasoning")) }
+        set { defaults.set(newValue, forKey: name("reasoning")) }
+    }
 
     public init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
@@ -48,14 +63,15 @@ public final class NebulaAiSettings {
     }
 
     public var provider: NebulaAiProvider {
-        get { NebulaAiProvider(rawValue: defaults.integer(forKey: name("provider"))) ?? .openAI }
+        get { services.active?.provider ?? NebulaAiProvider(rawValue: defaults.integer(forKey: name("provider"))) ?? .openAI }
         set { defaults.set(newValue.rawValue, forKey: name("provider")) }
     }
 
     /// The model id, remembered per provider: a model name means nothing to a
     /// provider that does not have it, and switching back should not lose it.
     public func model(for provider: NebulaAiProvider) -> String {
-        defaults.string(forKey: name("model_\(provider.rawValue)")) ?? ""
+        if let selected = services.active, selected.provider == provider { return selected.model }
+        return defaults.string(forKey: name("model_\(provider.rawValue)")) ?? ""
     }
 
     public func setModel(_ value: String, for provider: NebulaAiProvider) {
@@ -81,6 +97,7 @@ public final class NebulaAiSettings {
     /// usable one yet. Only https is accepted: a key in an Authorization
     /// header over plain http is a key handed to the network.
     public func endpoint(for provider: NebulaAiProvider) -> URL? {
+        if let selected = services.active, selected.provider == provider { return selected.url }
         let raw = provider == .custom ? customEndpoint : (provider.endpoint ?? "")
         let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty, let url = URL(string: trimmed),
@@ -92,9 +109,20 @@ public final class NebulaAiSettings {
     /// Whether a request could be made right now: somewhere to send it, a model
     /// to name, and a key to sign it with.
     public func isConfigured(secrets: NebulaAiSecrets = .shared) -> Bool {
+        if services.migrated && services.active == nil { return false }
         if provider == .appleIntelligence { return true }
         return endpoint(for: provider) != nil
             && !model(for: provider).isEmpty
-            && secrets.hasKey(for: provider)
+            && ((try? apiKey(secrets: secrets)) ?? nil) != nil
+    }
+    public func conversationIdentity(action: String, language: String, instructions: String) -> String {
+        let parts = [services.active?.id ?? "legacy", String(provider.rawValue), model(for: provider), endpoint(for: provider)?.absoluteString ?? "", roles.selectedId, instructions, action, language]
+        let data = (try? JSONEncoder().encode(parts)) ?? Data()
+        return SHA256.hash(data: data).map { String(format: "%02x", $0) }.joined()
+    }
+    public func apiKey(secrets: NebulaAiSecrets = .shared) throws -> String? {
+        if let selected = services.active { return try secrets.serviceKey(id: selected.id) }
+        if services.migrated { return nil }
+        return try secrets.key(for: provider)
     }
 }

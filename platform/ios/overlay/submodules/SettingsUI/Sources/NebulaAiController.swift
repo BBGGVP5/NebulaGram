@@ -62,6 +62,7 @@ final class NebulaAiController: UITableViewController {
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         visible = true
+        provider = settings.provider
         hero.setPageVisible(true)
         tableView.reloadData()
         refreshState()
@@ -89,238 +90,73 @@ final class NebulaAiController: UITableViewController {
     }
     @objc private func close() { dismiss(animated: true) }
 
-    // Sections: switch, connection, instructions, state, actions.
     override func numberOfSections(in tableView: UITableView) -> Int { 5 }
-
-    override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        switch section {
-        case 0: return 3
-        // Provider, model, key, remove key — plus the address for a custom one.
-        case 1: return provider == .appleIntelligence ? 1 : provider == .custom ? 5 : 4
-        case 2: return 1
-        case 4: return 2
-        default: return 1
-        }
-    }
-
+    override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int { [3, 3, 3, 1, 2][section] }
     override func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
-        [nil,
-         text("Подключение", "Connection"),
-         text("Инструкции для ИИ", "AI instructions"),
-         text("Состояние", "State"),
-         text("Запросы", "Requests")][section]
+        [nil, text("Основные", "Settings"), text("Генерация", "Generation"), text("Состояние", "State"), text("Чат", "Chat")][section]
     }
-
     override func tableView(_ tableView: UITableView, titleForFooterInSection section: Int) -> String? {
-        switch section {
-        case 0:
-            return text("Облачный провайдер получает выбранный текст. Автоматический перевод включается отдельно для каждого чата.",
-                        "Cloud providers receive the selected text. Automatic translation is enabled separately for each chat.")
-        case 1:
-            if provider == .appleIntelligence {
-                return text("Используется системная модель Apple на устройстве. Она доступна только на поддерживаемых устройствах; автоматического переключения на облачный сервис нет.",
-                            "Uses Apple's system model on this device. It is available only on supported devices; no automatic cloud fallback occurs.")
-            }
-            return text("Ключ хранится в связке ключей устройства: он не попадает в iCloud, в резервные копии и в перенос настроек. Обратно на экран он не читается — поле показывает только, сохранён ли он.",
-                        "The key is kept in the device keychain: it stays out of iCloud, out of backups and out of the settings transfer. It is never read back into this screen, which only shows whether one is stored.")
-        case 2:
-            return text("Отправляется вместе с каждым запросом.", "Sent with every request.")
-        default: return nil
-        }
+        section == 2 ? text("Рассуждения используются только поддерживаемыми моделями. История хранится на устройстве.", "Reasoning is used only by supported models. History stays on this device.") : nil
     }
-
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = UITableViewCell(style: .subtitle, reuseIdentifier: nil)
         defer { NebulaSettingsStyle.finish(cell, theme: theme) }
-        cell.textLabel?.font = .preferredFont(forTextStyle: .body)
-        cell.textLabel?.adjustsFontForContentSizeCategory = true
-        cell.textLabel?.numberOfLines = 0
-        cell.detailTextLabel?.numberOfLines = 0
-
-        let symbols = ["sparkles", "slider.horizontal.3", "text.alignleft", "checkmark.circle", "sparkles"]
-        NebulaSettingsHero.style(cell, symbol: symbols[indexPath.section])
+        func toggle(_ title: String, _ value: Bool, _ tag: Int) {
+            cell.textLabel?.text = title
+            let control = NebulaSwitchControl(); control.tag = tag; control.isOn = value
+            control.addTarget(self, action: #selector(changeToggle(_:)), for: .valueChanged)
+            control.accessibilityLabel = title; cell.accessoryView = control; cell.selectionStyle = .none
+        }
         switch (indexPath.section, indexPath.row) {
+        case (0, 0): toggle(text("Включить ИИ", "Enable AI"), settings.enabled, 0)
+        case (0, 1): toggle(text("ИИ на главной", "AI on the home screen"), settings.homeShortcut, 1)
         case (0, 2):
-            cell.textLabel?.text = text("ИИ в чате", "AI in chats")
-            cell.detailTextLabel?.text = text("Кнопка в поле ввода и перевод", "Composer button and translation")
-            cell.accessoryType = .disclosureIndicator
-        case (0, 1):
-            cell.textLabel?.text = text("ИИ на главной", "AI on the home screen")
-            cell.detailTextLabel?.text = text("Чат с ИИ вместо кнопки камеры", "AI chat in place of the camera button")
-            let toggle = NebulaSwitchControl(); toggle.isOn = settings.homeShortcut
-            toggle.addTarget(self, action: #selector(toggleHome(_:)), for: .valueChanged)
-            cell.accessoryView = toggle; cell.selectionStyle = .none
-        case (0, 0):
-            cell.textLabel?.text = text("Включить ИИ", "Enable AI")
-            let toggle = NebulaSwitchControl()
-            toggle.isOn = settings.enabled
-            toggle.addTarget(self, action: #selector(toggleEnabled(_:)), for: .valueChanged)
-            cell.accessoryView = toggle
-            cell.selectionStyle = .none
+            cell.textLabel?.text = text("ИИ в чате", "AI in chats"); cell.detailTextLabel?.text = text("Кнопка и автоматический перевод", "Shortcut and live translation"); cell.accessoryType = .disclosureIndicator
         case (1, 0):
-            cell.imageView?.image = NebulaSettingsStyle.icon(symbol: "network")
-            cell.textLabel?.text = text("Провайдер", "Provider")
-            cell.detailTextLabel?.text = provider.title
-            cell.accessoryType = .disclosureIndicator
-        case (4, 0):
-            cell.imageView?.image = NebulaSettingsStyle.icon(symbol: "sparkles")
-            cell.textLabel?.text = text("Открыть ИИ-чат", "Open AI chat")
-            cell.detailTextLabel?.text = text("Запрос, перевод, стиль, проверка и пересказ", "Ask, translate, rewrite, proofread and summarize")
-            cell.accessoryType = .disclosureIndicator
-        case (4, 1):
-            cell.imageView?.image = NebulaSettingsStyle.icon(symbol: "clock.arrow.circlepath")
-            cell.textLabel?.text = text("История ИИ", "AI history")
-            cell.detailTextLabel?.text = text("Локальное хранение и очистка", "Local storage and clear")
-            cell.accessoryType = .disclosureIndicator
-        case (1, 1) where provider == .custom:
-            cell.textLabel?.text = text("Адрес API", "API address")
-            let address = settings.customEndpoint
-            cell.detailTextLabel?.text = address.isEmpty ? text("Не задан", "Not set") : address
-            cell.detailTextLabel?.textColor = settings.endpoint(for: .custom) == nil ? .systemRed : .secondaryLabel
-            cell.accessoryType = .disclosureIndicator
-        case (1, let row) where row == (provider == .custom ? 2 : 1):
-            cell.textLabel?.text = text("Модель", "Model")
-            let model = settings.model(for: provider)
-            cell.detailTextLabel?.text = model.isEmpty ? text("Не задана", "Not set") : model
-            cell.accessoryType = .disclosureIndicator
-        case (1, let row) where row == (provider == .custom ? 3 : 2):
-            cell.imageView?.image = NebulaSettingsStyle.icon(symbol: "key")
-            cell.textLabel?.text = text("API-ключ", "API key")
-            cell.detailTextLabel?.text = secrets.hasKey(for: provider)
-                ? text("Сохранён", "Stored") : text("Не задан", "Not set")
-            cell.accessoryType = .disclosureIndicator
-        case (1, _):
-            cell.imageView?.image = NebulaSettingsStyle.icon(symbol: "trash", color: .systemRed)
-            cell.textLabel?.text = text("Удалить сохранённый ключ", "Remove stored key")
-            cell.textLabel?.textColor = secrets.hasKey(for: provider) ? .systemRed : .tertiaryLabel
-            cell.selectionStyle = secrets.hasKey(for: provider) ? .default : .none
-        case (2, _):
-            let instructions = settings.instructions
-            cell.textLabel?.text = instructions.isEmpty
-                ? text("Задать инструкции", "Set instructions") : instructions
-            cell.textLabel?.textColor = instructions.isEmpty ? .label : .secondaryLabel
-            cell.accessoryType = .disclosureIndicator
+            cell.textLabel?.text = text("Сервисы", "Services"); cell.detailTextLabel?.text = settings.services.active?.name ?? text("Выберите подключение", "Choose a connection"); cell.accessoryType = .disclosureIndicator
+        case (1, 1):
+            cell.textLabel?.text = text("Роли", "Roles"); cell.detailTextLabel?.text = settings.roles.selected(russian: ru)?.name ?? text("Свои инструкции", "General instructions"); cell.accessoryType = .disclosureIndicator
+        case (1, 2): toggle(text("История сообщений", "Message history"), settings.historyEnabled, 2)
+        case (2, 0): toggle(text("Потоковый ответ", "Streaming response"), settings.streaming, 3)
+        case (2, 1): toggle(text("Рассуждения", "Reasoning"), settings.reasoning, 4)
+        case (2, 2):
+            cell.textLabel?.text = text("Температура", "Temperature"); cell.detailTextLabel?.text = String(format: "%.1f", settings.temperature); cell.accessoryType = .disclosureIndicator
+        case (4, 0): cell.textLabel?.text = text("Открыть ИИ-чат", "Open AI chat"); cell.accessoryType = .disclosureIndicator
+        case (4, 1): cell.textLabel?.text = text("История запросов", "Request history"); cell.accessoryType = .disclosureIndicator
         default:
-            let ready = provider == .appleIntelligence ? NebulaAiService.localModelAvailable : settings.isConfigured(secrets: secrets)
-            cell.textLabel?.text = ready
-                ? text("Подключение настроено", "Connection is configured")
-                : provider == .appleIntelligence ? text("Локальная модель недоступна", "On-device model unavailable")
-                    : text("Укажите адрес, модель и ключ", "Set an address, a model and a key")
-            cell.textLabel?.textColor = ready ? .systemGreen : .secondaryLabel
-            if provider == .appleIntelligence {
-                cell.detailTextLabel?.text = NebulaAiService.localModelStatus(russian: ru)
-                if NebulaAiService.localModelPreparing {
-                    cell.textLabel?.text = text("Подготовка модели…", "Preparing model…")
-                    let spinner = UIActivityIndicatorView(style: .medium); spinner.startAnimating(); cell.accessoryView = spinner
-                }
-            }
+            cell.textLabel?.text = settings.isConfigured() ? text("Сервис выбран", "Service selected") : text("Настройте сервис", "Set up a service")
+            if settings.provider == .appleIntelligence { cell.detailTextLabel?.text = NebulaAiService.localModelStatus(russian: ru) }
             cell.selectionStyle = .none
         }
         return cell
     }
-
-    @objc private func toggleEnabled(_ toggle: NebulaSwitchControl) {
-        settings.enabled = toggle.isOn
-        tableView.reloadData()
+    @objc private func changeToggle(_ sender: NebulaSwitchControl) {
+        switch sender.tag {
+        case 0: settings.enabled = sender.isOn
+        case 1: settings.homeShortcut = sender.isOn
+        case 2: settings.historyEnabled = sender.isOn
+        case 3: settings.streaming = sender.isOn
+        default: settings.reasoning = sender.isOn
+        }
+        view.setNeedsLayout()
     }
-    @objc private func toggleHome(_ toggle: NebulaSwitchControl) { settings.homeShortcut = toggle.isOn }
-
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
-        let custom = provider == .custom
+        let next: UIViewController
         switch (indexPath.section, indexPath.row) {
-        case (0, 2): navigationController?.pushViewController(NebulaTranslationController(account: translationAccount, peer: translationPeer, russian: ru, theme: theme), animated: true)
-        case (4, 0): navigationController?.pushViewController(NebulaAiChatController(russian: ru, theme: theme, account: translationAccount, peer: translationPeer), animated: true)
-        case (4, 1): navigationController?.pushViewController(NebulaAiHistoryController(russian: ru, theme: theme), animated: true)
-        case (1, 0): pickProvider()
-        case (1, 1) where custom:
-            edit(title: text("Адрес API", "API address"), value: settings.customEndpoint,
-                 placeholder: "https://example.com/v1", secure: false) { [weak self] value in
-                self?.settings.customEndpoint = value
+        case (0, 2): next = NebulaTranslationController(account: translationAccount, peer: translationPeer, russian: ru, theme: theme)
+        case (1, 0): next = NebulaAiServicesController(russian: ru, theme: theme, context: context)
+        case (1, 1): next = NebulaAiRolesController(russian: ru, theme: theme, context: context)
+        case (2, 2):
+            let values = (0...20).map { Double($0) / 10 }
+            NebulaChoiceController.show(from: self, title: text("Температура", "Temperature"), choices: values.map { String(format: "%.1f", $0) }, selected: Int((settings.temperature * 10).rounded()), russian: ru, theme: theme) { [weak self] index in
+                self?.settings.temperature = values[index]; self?.tableView.reloadData()
             }
-        case (1, let row) where row == (custom ? 2 : 1):
-            edit(title: text("Модель", "Model"), value: settings.model(for: provider),
-                 placeholder: text("Идентификатор модели", "Model id"), secure: false) { [weak self] value in
-                guard let self = self else { return }
-                self.settings.setModel(value, for: self.provider)
-            }
-        case (1, let row) where row == (custom ? 3 : 2):
-            // Empty on purpose: the stored key is never shown, so saving an
-            // untouched field would wipe it. An empty save removes it, which
-            // is what the row below does explicitly.
-            edit(title: text("API-ключ", "API key"), value: "",
-                 placeholder: text("Вставьте ключ провайдера", "Paste a provider key"), secure: true) { [weak self] value in
-                guard let self = self, !value.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return }
-                self.store(value)
-            }
-        case (1, _):
-            guard secrets.hasKey(for: provider) else { return }
-            confirmRemoval()
-        case (2, _):
-            edit(title: text("Инструкции для ИИ", "AI instructions"), value: settings.instructions,
-                 placeholder: text("Например: отвечай кратко", "For example: answer briefly"), secure: false) { [weak self] value in
-                self?.settings.instructions = value
-            }
-        default: break
+            return
+        case (4, 0): next = NebulaAiChatController(russian: ru, theme: theme, account: translationAccount, peer: translationPeer)
+        case (4, 1): next = NebulaAiHistoryController(russian: ru, theme: theme)
+        default: return
         }
-    }
-
-    private func pickProvider() {
-        let options = NebulaAiProvider.allCases
-        NebulaChoiceController.show(from: self, title: text("Провайдер", "Provider"), choices: options.map { $0.title },
-            selected: options.firstIndex(of: provider), russian: ru, theme: theme) { [weak self] index in
-            guard let self = self else { return }
-            self.provider = options[index]; self.settings.provider = self.provider; self.tableView.reloadData()
-        }
-    }
-
-    private func edit(title: String, value: String, placeholder: String, secure: Bool,
-                      apply: @escaping (String) -> Void) {
-        let alert = UIAlertController(title: title, message: nil, preferredStyle: .alert)
-        alert.addTextField { field in
-            field.text = value
-            field.placeholder = placeholder
-            field.isSecureTextEntry = secure
-            field.autocapitalizationType = .none
-            field.autocorrectionType = .no
-            field.clearButtonMode = .whileEditing
-            if secure { field.textContentType = .password }
-        }
-        alert.addAction(UIAlertAction(title: text("Отмена", "Cancel"), style: .cancel))
-        alert.addAction(UIAlertAction(title: text("Сохранить", "Save"), style: .default) { [weak alert, weak self] _ in
-            apply(alert?.textFields?.first?.text ?? "")
-            self?.tableView.reloadData()
-        })
-        present(alert, animated: true)
-    }
-
-    private func store(_ value: String) {
-        do {
-            try secrets.setKey(value, for: provider)
-        } catch {
-            report(text("Связка ключей не приняла ключ. Он не сохранён.",
-                        "The keychain refused the key. It was not saved."))
-        }
-    }
-
-    private func confirmRemoval() {
-        let alert = UIAlertController(title: text("Удалить сохранённый ключ?", "Remove the stored key?"),
-                                      message: text("Ключ этого провайдера будет забыт. Остальные останутся.",
-                                                    "This provider's key is forgotten. The others stay."),
-                                      preferredStyle: .alert)
-        alert.addAction(UIAlertAction(title: text("Отмена", "Cancel"), style: .cancel))
-        alert.addAction(UIAlertAction(title: text("Удалить", "Remove"), style: .destructive) { [weak self] _ in
-            guard let self = self else { return }
-            do { try self.secrets.removeKey(for: self.provider) }
-            catch { self.report(self.text("Не удалось удалить ключ.", "Could not remove the key.")) }
-            self.tableView.reloadData()
-        })
-        present(alert, animated: true)
-    }
-
-    private func report(_ message: String) {
-        let alert = UIAlertController(title: nil, message: message, preferredStyle: .alert)
-        alert.addAction(UIAlertAction(title: "OK", style: .default))
-        present(alert, animated: true)
+        navigationController?.pushViewController(next, animated: true)
     }
 }

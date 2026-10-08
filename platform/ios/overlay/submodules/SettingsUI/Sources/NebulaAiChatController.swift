@@ -42,7 +42,7 @@ public final class NebulaAiChatController: UIViewController, UITextViewDelegate 
     private let translationPeer: String?
     private let ru: Bool
     private let theme: PresentationTheme?
-    private let service = NebulaAiService()
+    private var streamingAnswer: UITextView?
     private let applyResult: ((String) -> Void)?
     private let applyTitle: String?
     private var action: NebulaAiAction
@@ -305,7 +305,20 @@ public final class NebulaAiChatController: UIViewController, UITextViewDelegate 
         messages.addArrangedSubview(row); waiting = row; pulse = glyph; glyph.start()
         view.layoutIfNeeded(); scroll.scrollRectToVisible(row.convert(row.bounds, to: scroll), animated: true)
     }
+    private func showPartial(_ text: String) {
+        if streamingAnswer == nil {
+            pulse?.stop()
+            waiting?.isHidden = true
+            let result = UITextView(); setupText(result)
+            messages.addArrangedSubview(result); streamingAnswer = result
+        }
+        let nearBottom = scroll.contentOffset.y + scroll.bounds.height >= scroll.contentSize.height - 100
+        streamingAnswer?.text = text
+        view.layoutIfNeeded()
+        if nearBottom, let result = streamingAnswer { scroll.scrollRectToVisible(result.convert(result.bounds, to: scroll), animated: false) }
+    }
     private func finish() {
+        if let partial = streamingAnswer { messages.removeArrangedSubview(partial); partial.removeFromSuperview() }; streamingAnswer = nil
         gate.cancel(); work = nil; pulse?.stop(); pulse = nil
         if let waiting = waiting { messages.removeArrangedSubview(waiting); waiting.removeFromSuperview() }
         waiting = nil; updateSend()
@@ -328,7 +341,9 @@ public final class NebulaAiChatController: UIViewController, UITextViewDelegate 
             instruction = "Summarize the following text in language code \(resultLanguage). Focus on the key points:"
         } else { instruction = action.instruction(russian: ru) }
         let current = instruction.isEmpty ? input : instruction + "\n\n" + input
-        let identity = "\(settings.provider.rawValue):\(settings.model(for: settings.provider)):\(settings.customEndpoint):\(action):\(resultLanguage)"
+        let roleInstructions = action == .ask ? (settings.roles.selected(russian: ru)?.instruction ?? settings.instructions) : ""
+        let service = NebulaAiService(instructions: roleInstructions)
+        let identity = settings.conversationIdentity(action: String(describing: action), language: resultLanguage, instructions: roleInstructions)
         let selectedChat = chats.current()
         if selectedChat.id != chatId { restoreChat(selectedChat) }
         if !selectedChat.identity.isEmpty && selectedChat.identity != identity { restoreChat(chats.fresh()) }
@@ -344,7 +359,12 @@ public final class NebulaAiChatController: UIViewController, UITextViewDelegate 
         work = Task { [weak self] in
             guard let self = self else { return }
             do {
-                let value = try await self.service.generate(input: request)
+                let value = try await service.generate(input: request) { [weak self] partial in
+                    await MainActor.run {
+                        guard let self, self.gate.accepts(id) else { return }
+                        self.showPartial(partial)
+                    }
+                }
                 guard !Task.isCancelled, self.gate.accepts(id) else { return }
                 self.finish(); self.conversation.append(input: current, output: value); self.appendAnswer(value)
                 if let chatId = self.chatId {

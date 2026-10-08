@@ -97,7 +97,8 @@ final class NebulaAiService {
         return russian ? "Нужны iOS 26 и устройство с поддержкой Apple Intelligence." : "Requires iOS 26 and an Apple Intelligence capable device."
     }
 
-    func generate(input: String) async throws -> String {
+    func generate(input: String, onUpdate: ((String) async -> Void)? = nil) async throws -> String {
+        guard !settings.services.migrated || settings.services.active != nil else { throw NebulaAiServiceError.invalidConfiguration }
         let input = input.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !input.isEmpty else { throw NebulaAiServiceError.emptyInput }
         guard input.count <= 50_000, instructions.count <= 20_000 else {
@@ -106,7 +107,7 @@ final class NebulaAiService {
         if settings.provider == .appleIntelligence {
             return try await generateOnDevice(input: input)
         }
-        return try await generateRemote(input: input)
+        return try await generateRemote(input: input, onUpdate: onUpdate)
     }
 
     private func generateOnDevice(input: String) async throws -> String {
@@ -124,9 +125,9 @@ final class NebulaAiService {
         #endif
     }
 
-    private func generateRemote(input: String) async throws -> String {
+    private func generateRemote(input: String, onUpdate: ((String) async -> Void)?) async throws -> String {
         let provider = settings.provider
-        guard let key = try secrets.key(for: provider), !key.isEmpty else {
+        guard let key = try settings.apiKey(secrets: secrets), !key.isEmpty else {
             throw NebulaAiServiceError.missingKey
         }
         guard let base = settings.endpoint(for: provider),
@@ -136,10 +137,14 @@ final class NebulaAiService {
         let model = modelValue.hasPrefix("models/") ? String(modelValue.dropFirst(7)) : modelValue
         let encodedModel = model.addingPercentEncoding(withAllowedCharacters: CharacterSet.urlPathAllowed.subtracting(CharacterSet(charactersIn: "?#"))) ?? ""
         guard !encodedModel.isEmpty else { throw NebulaAiServiceError.invalidConfiguration }
-        let request: URLRequest
+        let streaming: Bool
+        if #available(iOS 15.0, *) { streaming = settings.streaming && onUpdate != nil } else { streaming = false }
+        let temperature = settings.temperature
+        let reasoning = settings.reasoning
+        var request: URLRequest
         switch provider {
-        case .openAI:
-            request = try makeRequest(base: base, path: "responses", key: key, provider: provider,
+        case .openAI, .perplexity:
+            request = try makeRequest(base: base, path: provider == .perplexity ? "agent" : "responses", key: key, provider: provider,
                 body: ["model": model, "instructions": instructions, "input": input,
                        "max_output_tokens": 8192, "store": false])
         case .claude:
@@ -150,7 +155,7 @@ final class NebulaAiService {
             var body: [String: Any] = ["contents": [["role": "user", "parts": [["text": input]]]]]
             if !instructions.isEmpty { body["systemInstruction"] = ["parts": [["text": instructions]]] }
             request = try makeRequest(base: base, path: "models/\(encodedModel):generateContent", key: key, provider: provider, body: body)
-        case .custom:
+        case .custom, .openRouter:
             var messages: [[String: String]] = []
             if !instructions.isEmpty { messages.append(["role": "system", "content": instructions]) }
             messages.append(["role": "user", "content": input])
@@ -159,7 +164,33 @@ final class NebulaAiService {
         case .appleIntelligence:
             throw NebulaAiServiceError.invalidConfiguration
         }
+        guard let initial = request.httpBody, var body = try JSONSerialization.jsonObject(with: initial) as? [String: Any] else { throw NebulaAiServiceError.invalidConfiguration }
+        let reasoningModel = ["o1", "o3", "o4", "gpt-5", "gpt-6"].contains { model.lowercased().hasPrefix($0) }
+        if provider == .gemini {
+            var config: [String: Any] = ["temperature": temperature]
+            if reasoning { config["thinkingConfig"] = model.lowercased().hasPrefix("gemini-3") ? ["thinkingLevel": "MEDIUM"] as [String: Any] : ["thinkingBudget": 1024] }
+            body["generationConfig"] = config
+            if streaming, let url = request.url { request.url = URL(string: url.absoluteString.replacingOccurrences(of: ":generateContent", with: ":streamGenerateContent") + "?alt=sse") }
+        } else {
+            if !(provider == .openAI && reasoningModel) && !(provider == .claude && reasoning) { body["temperature"] = temperature }
+            if streaming { body["stream"] = true }
+            if reasoning {
+                switch provider {
+                case .openAI: if reasoningModel { body["reasoning"] = ["effort": "medium"] }
+                case .perplexity: body["reasoning"] = ["effort": "medium"]
+                case .claude: body["thinking"] = ["type": "enabled", "budget_tokens": 1024]
+                case .openRouter: body["reasoning"] = ["enabled": true]
+                default: break
+                }
+            }
+        }
+        request.httpBody = try JSONSerialization.data(withJSONObject: body)
+        if streaming, #available(iOS 15.0, *) {
+            request.setValue("text/event-stream", forHTTPHeaderField: "Accept")
+            return try await stream(request, provider: provider, onUpdate: onUpdate)
+        }
         let (data, response) = try await data(for: request)
+        try Task.checkCancellation()
         guard let response = response as? HTTPURLResponse else { throw NebulaAiServiceError.invalidResponse }
         guard (200..<300).contains(response.statusCode) else { throw NebulaAiServiceError.httpStatus(response.statusCode) }
         guard data.count <= 4_000_000,
@@ -168,6 +199,26 @@ final class NebulaAiService {
             throw NebulaAiServiceError.invalidResponse
         }
         return String(output.prefix(100_000))
+    }
+
+    @available(iOS 15.0, *)
+    private func stream(_ request: URLRequest, provider: NebulaAiProvider, onUpdate: ((String) async -> Void)?) async throws -> String {
+        let (bytes, response) = try await session.bytes(for: request)
+        guard let response = response as? HTTPURLResponse else { throw NebulaAiServiceError.invalidResponse }
+        guard (200..<300).contains(response.statusCode) else { throw NebulaAiServiceError.httpStatus(response.statusCode) }
+        guard response.mimeType?.lowercased() == "text/event-stream" else { throw NebulaAiServiceError.invalidResponse }
+        var decoder = NebulaAiStream(provider: provider)
+        var last = Date.distantPast
+        for try await byte in bytes {
+            try Task.checkCancellation()
+            if try decoder.append(byte), Date().timeIntervalSince(last) >= 0.08 {
+                last = Date(); await onUpdate?(decoder.text)
+            }
+        }
+        try Task.checkCancellation()
+        let result = try decoder.finish()
+        await onUpdate?(result)
+        return result
     }
 
     private func makeRequest(base: URL, path: String, key: String, provider: NebulaAiProvider,
@@ -188,7 +239,7 @@ final class NebulaAiService {
             request.setValue("2023-06-01", forHTTPHeaderField: "anthropic-version")
         case .gemini:
             request.setValue(key, forHTTPHeaderField: "x-goog-api-key")
-        case .openAI, .custom:
+        case .openAI, .custom, .openRouter, .perplexity:
             request.setValue("Bearer \(key)", forHTTPHeaderField: "Authorization")
         case .appleIntelligence:
             throw NebulaAiServiceError.invalidConfiguration
@@ -215,9 +266,11 @@ final class NebulaAiService {
     }
 
     private static func extractOutput(provider: NebulaAiProvider, json: [String: Any]) -> String? {
+        if let error = json["error"], !(error is NSNull) { return nil }
+        if let status = json["status"] as? String, ["failed", "incomplete", "cancelled"].contains(status) { return nil }
         var values: [String] = []
         switch provider {
-        case .openAI:
+        case .openAI, .perplexity:
             if let outputText = json["output_text"] as? String { values.append(outputText) }
             if values.isEmpty, let output = json["output"] as? [[String: Any]] {
                 for item in output {
@@ -233,8 +286,8 @@ final class NebulaAiService {
         case .gemini:
             let candidates = json["candidates"] as? [[String: Any]] ?? []
             let parts = candidates.first?["content"] as? [String: Any]
-            values = (parts?["parts"] as? [[String: Any]] ?? []).compactMap { $0["text"] as? String }
-        case .custom:
+            values = (parts?["parts"] as? [[String: Any]] ?? []).filter { ($0["thought"] as? Bool) != true }.compactMap { $0["text"] as? String }
+        case .custom, .openRouter:
             let choices = json["choices"] as? [[String: Any]] ?? []
             let message = choices.first?["message"] as? [String: Any]
             if let content = message?["content"] as? String { values.append(content) }
