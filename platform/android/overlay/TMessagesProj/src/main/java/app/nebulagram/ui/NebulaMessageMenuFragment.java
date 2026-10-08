@@ -40,7 +40,7 @@ public final class NebulaMessageMenuFragment extends BaseFragment {
             text("Ответить","Reply"),text("Переслать","Forward"),text("Копировать","Copy"),text("Перевести","Translate"),text("Редактировать","Edit"),text("Удалить","Delete")));
         java.util.ArrayList<Integer> ids=new java.util.ArrayList<>(java.util.Arrays.asList(8,2,3,29,12,1));
         java.util.ArrayList<Integer> icons=new java.util.ArrayList<>(java.util.Arrays.asList(
-            org.telegram.messenger.R.drawable.msg_reply,org.telegram.messenger.R.drawable.msg_forward,
+            org.telegram.messenger.R.drawable.menu_reply,org.telegram.messenger.R.drawable.msg_forward,
             org.telegram.messenger.R.drawable.msg_copy,org.telegram.messenger.R.drawable.msg_translate,
             org.telegram.messenger.R.drawable.msg_edit,org.telegram.messenger.R.drawable.msg_delete));
         NebulaMessageMenuSettings.filter(labels,icons,ids);
