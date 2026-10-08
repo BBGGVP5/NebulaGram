@@ -141,7 +141,7 @@ Still missing from complete Android parity (not represented as completed toggles
 - Saved Messages settings synchronization; iOS currently supports validated explicit Files import/export only.
 - Gemini audio transcription from message audio.
 
-Continuation `cf2d0ce` adds Instant View browser routing, the eligible native unsend switch default and explicit recovery of incomplete legacy AI connections. All 82 patches / 141 paths and shared contract checks pass locally. Native `37816001440`, bootstrap `37815970422` and IPA `37816439420` verify this later revision separately; the already successful IPA above does not include these three additions.
+Continuation `cf2d0ce` adds Instant View browser routing, the eligible native unsend switch default and explicit recovery of incomplete legacy AI connections. All 82 patches / 141 paths and shared contract checks pass locally. Bootstrap `37817188656` at documentation-only successor `7f32211` passed all 119 XCTest cases, cancellation checks and SDK checks; duplicate queued runs were cancelled. Native `37816001440` and IPA `37816439420` verify this later runtime revision separately; the already successful IPA above does not include these three additions.
 
 Downloaded and independently inspected IPA `37804784920`: source `e116728ea9a8009b074a44dfd8553db87d6388bf`, build 80, device arm64, bundle `app.nebulagram`, one Notification Service Extension. SHA-256 `8964e996cd9de92eb6d001c995753f9c788c4a3d3d50fa3c90e5dcd5bf631d29` matches the CI manifest. User signing, installation, APNs delivery and physical UI acceptance remain unverified.
 
