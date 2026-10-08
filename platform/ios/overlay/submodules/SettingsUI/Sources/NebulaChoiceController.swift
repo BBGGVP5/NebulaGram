@@ -85,7 +85,7 @@ final class NebulaChoiceController: UITableViewController, UISearchResultsUpdati
     }
     static func show(from host: UIViewController, title: String, choices: [String], selected: Int? = nil,
                      detail: String? = nil, russian: Bool, selectionIndicatorVisible: Bool = true,
-                     theme: PresentationTheme? = nil, sectionStart: Int? = nil, subtitles: [String] = [], searchable: Bool = false, choose: @escaping (Int) -> Void) {
+                     theme: PresentationTheme? = nil, sectionStart: Int? = nil, subtitles: [String] = [], searchable: Bool = false, searchPlaceholder: String? = nil, choose: @escaping (Int) -> Void) {
         guard host.presentedViewController == nil else { return }
         let controller = NebulaChoiceController(title: title, choices: choices, selected: selected, detail: detail, russian: russian, theme: theme, choose: choose)
         controller.sectionStart = sectionStart.flatMap { $0 > 0 && $0 < choices.count ? $0 : nil }
@@ -94,7 +94,7 @@ final class NebulaChoiceController: UITableViewController, UISearchResultsUpdati
             let search = UISearchController(searchResultsController: nil)
             search.obscuresBackgroundDuringPresentation = false
             search.searchResultsUpdater = controller
-            search.searchBar.placeholder = russian ? "Поиск языка" : "Search languages"
+            search.searchBar.placeholder = searchPlaceholder ?? (russian ? "Поиск языка" : "Search languages")
             controller.navigationItem.searchController = search
             controller.navigationItem.hidesSearchBarWhenScrolling = false
         }

@@ -54,9 +54,16 @@ final class NebulaIconPacksController: UITableViewController, UIDocumentPickerDe
             DispatchQueue.global(qos: .userInitiated).async {
                 let result = Result { () throws -> Data in
                     let scoped = url.startAccessingSecurityScopedResource(); defer { if scoped { url.stopAccessingSecurityScopedResource() } }
-                    let handle = try FileHandle(forReadingFrom: url); defer { try? handle.close() }
-                    var data = Data()
-                    while let chunk = try handle.read(upToCount: 65536), !chunk.isEmpty { guard data.count + chunk.count <= 16_000_000 else { throw NebulaIconPackManifest.Failure.invalid }; data.append(chunk) }
+                    guard let stream = InputStream(url: url) else { throw NebulaIconPackManifest.Failure.invalid }
+                    stream.open(); defer { stream.close() }
+                    var data = Data(), buffer = [UInt8](repeating: 0, count: 65536)
+                    while true {
+                        let count = stream.read(&buffer, maxLength: 65536)
+                        if count < 0 { throw stream.streamError ?? NebulaIconPackManifest.Failure.invalid }
+                        if count == 0 { break }
+                        guard data.count + count <= 16_000_000 else { throw NebulaIconPackManifest.Failure.invalid }
+                        data.append(contentsOf: buffer.prefix(count))
+                    }
                     return data
                 }
                 DispatchQueue.main.async { guard let self else { return }; do { self.install(try result.get()) } catch { self.busy = false; self.tableView.reloadData(); self.report() } }

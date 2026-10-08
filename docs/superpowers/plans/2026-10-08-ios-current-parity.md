@@ -127,7 +127,7 @@ Tests: wildcard/domain/exception precedence, invalid hostnames, malformed select
 
 Still missing from complete Android parity (not represented as completed toggles):
 - Saved Messages settings synchronization; iOS currently supports validated explicit Files import/export only.
-- Model-catalog download/picker; named services currently accept a manually entered model ID.
+- Model-catalog picker is now implemented: explicit provider request, bounded pagination, searchable highlight-only choice, cancellation on edits/leave; manual model IDs remain available when a service does not support listing. Native compilation is pending for this final addition.
 - Gemini audio transcription from message audio.
 - Instant View preference and a default selection for eligible delete-for-everyone dialogs; native iOS choices and eligibility remain intact.
 - Recovery UI for incomplete legacy provider configurations; old values/keys remain stored, and complete services migrate.
@@ -146,3 +146,5 @@ User requested the reference's compact update panel in NebulaGram styling and se
 - Route About/search/settings links and `tg://update` to the sheet; preserve the full downloads fragment for legacy entry points.
 - Extend `NebulaRelease` to accept explicit `-beta` / `-beta.N` version suffixes while legacy names remain stable; beta filtering must apply to search, cached availability and final commit. Keep package/signature/ABI verification unchanged.
 - Check release policy tests and full Android APK build. Do not claim device visual acceptance while USB is absent.
+
+Model catalog implementation: `NebulaAiModelPage.swift` validates entries/paging and has XCTest coverage; `NebulaAiModelCatalog.swift` uses an ephemeral no-redirect session with bounded bytes/pages and cancellation; `NebulaAiServicesController.swift` only reads an existing key when the edited service still matches its provider/host. No credentials or model choices are saved by merely opening the list.
