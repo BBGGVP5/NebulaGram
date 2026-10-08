@@ -72,6 +72,37 @@ public final class NebulaAiServices {
         if defaults.string(forKey: selectionKey) == id { defaults.removeObject(forKey: selectionKey) }
     }
     public var migrated: Bool { defaults.object(forKey: key) != nil }
+    /// Invalid legacy records are editable drafts, never active connections.
+    public func recoverableLegacy(secrets: NebulaAiSecrets) throws -> [NebulaAiConnection] {
+        guard !hasLoadError else { throw Failure.damagedStorage }
+        let restored = Set(defaults.stringArray(forKey: "nebula.ai.recoveredLegacy.v1") ?? [])
+        var result: [NebulaAiConnection] = []
+        for provider in NebulaAiProvider.allCases where provider != .appleIntelligence {
+            let id = "legacy-\(provider.rawValue)"
+            guard !restored.contains(id), !connections.contains(where: { $0.id == id }) else { continue }
+            let model = defaults.string(forKey: "nebula.ai.model_\(provider.rawValue)") ?? ""
+            let endpoint = provider == .custom ? defaults.string(forKey: "nebula.ai.endpoint") ?? "" : ""
+            let secret = try secrets.key(for: provider)
+            guard !model.isEmpty || secret?.isEmpty == false || !endpoint.isEmpty else { continue }
+            let value = NebulaAiConnection(id: id, name: provider.title, provider: provider, model: model, endpoint: endpoint)
+            if !value.valid { result.append(value) }
+        }
+        return result
+    }
+    public func recoverLegacy(_ connection: NebulaAiConnection, apiKey: String?, secrets: NebulaAiSecrets) throws {
+        guard let original = try recoverableLegacy(secrets: secrets).first(where: { $0.id == connection.id }), connection.valid else { throw Failure.invalidConnection }
+        var key = apiKey
+        if key == nil {
+            // An unknown/changed custom host must never receive the old key.
+            guard original.provider == connection.provider, let host = original.url?.host, host == connection.url?.host else { throw Failure.invalidConnection }
+            key = try secrets.key(for: original.provider)
+        }
+        guard let key, !key.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { throw Failure.invalidConnection }
+        try save(connection, apiKey: key, secrets: secrets)
+        var restored = Set(defaults.stringArray(forKey: "nebula.ai.recoveredLegacy.v1") ?? [])
+        restored.insert(connection.id)
+        defaults.set(Array(restored).sorted(), forKey: "nebula.ai.recoveredLegacy.v1")
+    }
     public func migrateLegacy(secrets: NebulaAiSecrets) throws {
         guard !migrated else { return }
         var values: [NebulaAiConnection] = []

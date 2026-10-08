@@ -108,6 +108,16 @@ Tests: wildcard/domain/exception precedence, invalid hostnames, malformed select
 - [ ] Inspect simulator/device rendering if an accessible iOS runtime is available; otherwise record visual and physical-device acceptance as unverified. Never claim Android screenshots verify iOS.
 - [ ] Update the inventory with implemented, excluded, native-equivalent and still-unverified status. Commit only this task's files and publish the authorized branches.
 
+## Continuation — native link/delete defaults and legacy AI recovery
+
+Native integration `37804869435` at `e116728` passed. Continue inline with the remaining portable consumers.
+
+- [ ] Extend `NebulaMessagePreferences.swift` and `NebulaMessageControlsController.swift` with `instant_view` (default true) and `delete_for_all` (default false). Test persistence and defaults in `NebulaMessagePreferencesTests.swift`.
+- [ ] Add ordered patch 0082: gate inline, explicit and resolved Instant View routes and open the original URL through the native browser when disabled. Initialize only the native eligible `.unsendPersonal` switch from `delete_for_all`; retain explicit actions, eligibility, undo and cancellation. Separate native delete-for-me/everyone actions stay separate.
+- [ ] Add `recoverableLegacy`/`recoverLegacy` to `NebulaAiServices.swift`. Expose incomplete legacy entries separately, copy keys only after an explicit valid Save, reject implicit credential reuse across providers/hosts, keep legacy data on failure and suppress recovery after successful restoration/deletion. Test these transitions in `NebulaAiServicesTests.swift`.
+- [ ] Add recovery rows and edit routing to `NebulaAiServicesController.swift`, keeping invalid records outside the active service list. Opening or cancelling recovery must not save, select or send anything.
+- [ ] Regenerate the contract mirror, run patch/bootstrap and contract checks, then native/IPA CI. Record actual results and preserve physical-device acceptance as unverified.
+
 ## Execution notes
 
 - 2026-10-08 audit: the existing `NebulaSettingsHero` discards `symbol` and `title`; current iOS choices default to checkmarks, and AI settings still contain a single legacy connection per provider. These are confirmed gaps, not inferred from screenshots.

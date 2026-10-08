@@ -8,6 +8,8 @@ final class NebulaAiServicesController: UITableViewController {
     private let theme: PresentationTheme?
     private let context: AccountContext?
     private let store = NebulaAiSettings.shared.services
+    private var recovery: [NebulaAiConnection] = []
+    private var recoveryFailed = false
     private lazy var hero = NebulaSettingsHero(symbol: "🌐", title: ru ? "Сервисы" : "Services",
         summary: ru ? "Ваши провайдеры, модели и подключения" : "Your providers, models and connections", context: context, theme: theme)
     init(russian: Bool, theme: PresentationTheme?, context: AccountContext?) {
@@ -22,16 +24,30 @@ final class NebulaAiServicesController: UITableViewController {
         do { try store.migrateLegacy(secrets: .shared) } catch { report() }
     }
     override func viewDidLayoutSubviews() { super.viewDidLayoutSubviews(); hero.fit(in: tableView) }
-    override func viewWillAppear(_ animated: Bool) { super.viewWillAppear(animated); hero.setPageVisible(true); tableView.reloadData() }
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated); hero.setPageVisible(true)
+        do { recovery = try store.recoverableLegacy(secrets: .shared); recoveryFailed = false }
+        catch { recovery = []; recoveryFailed = true }
+        tableView.reloadData()
+    }
     override func viewWillDisappear(_ animated: Bool) { super.viewWillDisappear(animated); hero.setPageVisible(false) }
     @objc private func add() { open(nil) }
-    private func open(_ value: NebulaAiConnection?) { navigationController?.pushViewController(NebulaAiConnectionController(connection: value, russian: ru, theme: theme), animated: true) }
-    override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int { store.connections.count }
+    private func open(_ value: NebulaAiConnection?, recovering: Bool = false) { navigationController?.pushViewController(NebulaAiConnectionController(connection: value, russian: ru, theme: theme, recovering: recovering), animated: true) }
+    override func numberOfSections(in tableView: UITableView) -> Int { recovery.isEmpty && !recoveryFailed ? 1 : 2 }
+    override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int { section == 0 ? store.connections.count : recovery.count }
+    override func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? { section == 1 ? (ru ? "Восстановить прежние подключения" : "Recover previous connections") : nil }
     override func tableView(_ tableView: UITableView, titleForFooterInSection section: Int) -> String? {
-        store.hasLoadError ? (ru ? "Не удалось прочитать подключения. Сохранённые данные не изменены." : "Could not read connections. Stored data was not changed.")
+        if section == 1 { return recoveryFailed ? (ru ? "Не удалось прочитать прежние ключи. Разблокируйте устройство и откройте страницу снова." : "Could not read previous keys. Unlock the device and reopen this page.") : (ru ? "Заполните недостающие поля и сохраните. Прежние данные и ключи сохраняются; подключение не выбирается автоматически." : "Fill in missing fields and save. Previous data and keys are retained; the connection is not selected automatically.") }
+        return store.hasLoadError ? (ru ? "Не удалось прочитать подключения. Сохранённые данные не изменены." : "Could not read connections. Stored data was not changed.")
             : (ru ? "Нажмите, чтобы выбрать. Кнопка справа открывает настройки подключения." : "Tap to select. The button on the right opens connection settings.")
     }
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        if indexPath.section == 1 {
+            let cell = UITableViewCell(style: .subtitle, reuseIdentifier: nil)
+            cell.textLabel?.text = recovery[indexPath.row].provider.title
+            cell.detailTextLabel?.text = ru ? "Завершить настройку сервиса" : "Complete service setup"
+            cell.accessoryType = .disclosureIndicator; NebulaSettingsStyle.finish(cell, theme: theme); return cell
+        }
         let value = store.connections[indexPath.row]
         let cell = UITableViewCell(style: .subtitle, reuseIdentifier: nil)
         cell.textLabel?.text = value.name; cell.detailTextLabel?.text = value.provider.title + (value.model.isEmpty ? "" : " · " + value.model)
@@ -41,6 +57,7 @@ final class NebulaAiServicesController: UITableViewController {
     }
     override func tableView(_ tableView: UITableView, accessoryButtonTappedForRowWith indexPath: IndexPath) { open(store.connections[indexPath.row]) }
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        if indexPath.section == 1 { open(recovery[indexPath.row], recovering: true); return }
         do { try store.select(store.connections[indexPath.row].id); tableView.reloadData() } catch { report() }
     }
     private func report() {
@@ -53,6 +70,7 @@ private final class NebulaAiConnectionController: UITableViewController {
     private let ru: Bool
     private let theme: PresentationTheme?
     private let isNew: Bool
+    private let recovering: Bool
     private var catalogTask: Task<Void, Never>?
     private var catalogRevision = 0
     private var value: NebulaAiConnection
@@ -60,11 +78,12 @@ private final class NebulaAiConnectionController: UITableViewController {
     private let modelField = UITextField()
     private let endpointField = UITextField()
     private let keyField = UITextField()
-    init(connection: NebulaAiConnection?, russian: Bool, theme: PresentationTheme?) {
+    init(connection: NebulaAiConnection?, russian: Bool, theme: PresentationTheme?, recovering: Bool = false) {
         value = connection ?? NebulaAiConnection(name: "", provider: .openAI)
-        isNew = connection == nil; ru = russian; self.theme = theme
+        isNew = connection == nil || recovering; ru = russian; self.theme = theme; self.recovering = recovering
         super.init(style: .insetGrouped)
         title = russian ? (connection == nil ? "Новый сервис" : "Настройки сервиса") : (connection == nil ? "New service" : "Service settings")
+        if recovering { title = russian ? "Восстановление сервиса" : "Recover service" }
     }
     required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
     override func viewDidLoad() {
@@ -132,6 +151,8 @@ private final class NebulaAiConnectionController: UITableViewController {
         do {
             if key.isEmpty, let original = NebulaAiSettings.shared.services.connections.first(where: { $0.id == connection.id }), original.provider == connection.provider, original.url?.host == connection.url?.host {
                 key = try NebulaAiSecrets.shared.serviceKey(id: connection.id) ?? ""
+            } else if key.isEmpty, recovering, let original = try NebulaAiSettings.shared.services.recoverableLegacy(secrets: .shared).first(where: { $0.id == connection.id }), original.provider == connection.provider, let host = original.url?.host, host == connection.url?.host {
+                key = try NebulaAiSecrets.shared.key(for: original.provider) ?? ""
             }
         } catch { reportCatalog(); return }
         guard !key.isEmpty, connection.url != nil else { reportCatalog(); return }
@@ -160,7 +181,8 @@ private final class NebulaAiConnectionController: UITableViewController {
         value.endpoint = (endpointField.text ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
         let key = (keyField.text ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
         do {
-            try NebulaAiSettings.shared.services.save(value, apiKey: key.isEmpty ? nil : key, secrets: .shared)
+            if recovering { try NebulaAiSettings.shared.services.recoverLegacy(value, apiKey: key.isEmpty ? nil : key, secrets: .shared) }
+            else { try NebulaAiSettings.shared.services.save(value, apiKey: key.isEmpty ? nil : key, secrets: .shared) }
             navigationController?.popViewController(animated: true)
         } catch { report() }
     }

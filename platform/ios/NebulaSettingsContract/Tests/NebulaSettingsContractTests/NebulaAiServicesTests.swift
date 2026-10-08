@@ -104,4 +104,44 @@ final class NebulaAiServicesTests: XCTestCase {
         }
     }
 
+    func testIncompleteLegacyRecoveryIsExplicitAndSurvivesFailure() throws {
+        try withStore { defaults, store, secrets, storage in
+            try secrets.setKey("original", for: .openAI)
+            try store.migrateLegacy(secrets: secrets)
+            XCTAssertTrue(store.connections.isEmpty)
+            var draft = try XCTUnwrap(store.recoverableLegacy(secrets: secrets).first)
+            XCTAssertNil(store.active)
+            XCTAssertNil(try secrets.serviceKey(id: draft.id))
+            draft.model = "model"; storage.failWrites = true
+            XCTAssertThrowsError(try store.recoverLegacy(draft, apiKey: nil, secrets: secrets))
+            XCTAssertTrue(store.connections.isEmpty)
+            XCTAssertEqual(try store.recoverableLegacy(secrets: secrets).count, 1)
+            storage.failWrites = false
+            try store.recoverLegacy(draft, apiKey: nil, secrets: secrets)
+            XCTAssertEqual(try secrets.serviceKey(id: draft.id), "original")
+            XCTAssertEqual(try secrets.key(for: .openAI), "original")
+            XCTAssertNil(store.active) // Saving recovery is not selection.
+            try store.remove(draft.id, secrets: secrets)
+            XCTAssertTrue(try store.recoverableLegacy(secrets: secrets).isEmpty)
+            XCTAssertNil(defaults.string(forKey: "nebula.ai.model_0"))
+        }
+    }
+
+    func testRecoveryDoesNotReuseKeyForDifferentDestination() throws {
+        try withStore { defaults, store, secrets, _ in
+            try secrets.setKey("old", for: .custom)
+            defaults.set("model", forKey: "nebula.ai.model_3")
+            defaults.set("http://old.example", forKey: "nebula.ai.endpoint")
+            try store.migrateLegacy(secrets: secrets)
+            var draft = try XCTUnwrap(store.recoverableLegacy(secrets: secrets).first)
+            draft.endpoint = "https://new.example"
+            XCTAssertThrowsError(try store.recoverLegacy(draft, apiKey: nil, secrets: secrets))
+            draft.provider = .openAI
+            XCTAssertThrowsError(try store.recoverLegacy(draft, apiKey: nil, secrets: secrets))
+            try store.recoverLegacy(draft, apiKey: "new", secrets: secrets)
+            XCTAssertEqual(try secrets.serviceKey(id: draft.id), "new")
+            XCTAssertEqual(defaults.string(forKey: "nebula.ai.endpoint"), "http://old.example")
+        }
+    }
+
 }

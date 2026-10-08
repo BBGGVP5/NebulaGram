@@ -20,5 +20,8 @@ final class NebulaMessagePreferencesTests: XCTestCase {
         prefs.setSeekInterval(-1); XCTAssertEqual(prefs.seekInterval, 20)
         defaults.set(999, forKey: "nebula.messages.seek_interval"); XCTAssertEqual(prefs.seekInterval, 15)
         XCTAssertFalse(prefs.enabled("pause_background_video")); XCTAssertFalse(prefs.enabled("disable_message_effects"))
+        XCTAssertTrue(prefs.enabled("instant_view")); XCTAssertFalse(prefs.enabled("delete_for_all"))
+        prefs.set("instant_view", false); prefs.set("delete_for_all", true)
+        XCTAssertFalse(restored.enabled("instant_view")); XCTAssertTrue(restored.enabled("delete_for_all"))
     }
 }

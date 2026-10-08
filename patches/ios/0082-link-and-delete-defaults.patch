@@ -1,0 +1,81 @@
+diff --git a/submodules/TelegramUI/Sources/ChatController.swift b/submodules/TelegramUI/Sources/ChatController.swift
+index 4579a96..d6ea321 100644
+--- a/submodules/TelegramUI/Sources/ChatController.swift
++++ b/submodules/TelegramUI/Sources/ChatController.swift
+@@ -3440,6 +3440,11 @@ public final class ChatControllerImpl: TelegramBaseController, ChatController, G
+             guard let self else {
+                 return
+             }
++            if !NebulaMessagePreferences.shared.enabled("instant_view") {
++                instantPage.progress?.set(.single(false))
++                self.openUrl(instantPage.url, concealed: true)
++                return
++            }
+             let _ = (webpagePreviewWithProgress(account: self.context.account, urls: [instantPage.url], webpageId: instantPage.webpageId)
+             |> deliverOnMainQueue).startStandalone(next: { [weak self] result in
+                 Task { @MainActor in
+@@ -3603,6 +3608,10 @@ public final class ChatControllerImpl: TelegramBaseController, ChatController, G
+             }
+         }, openInstantPage: { [weak self] message, associatedData in
+             if let strongSelf = self, strongSelf.isNodeLoaded, let navigationController = strongSelf.effectiveNavigationController, let message = strongSelf.chatDisplayNode.historyNode.messageInCurrentHistoryView(message.id)?._asMessage() {
++                if !NebulaMessagePreferences.shared.enabled("instant_view"), let webpage = message.media.first(where: { $0 is TelegramMediaWebpage }) as? TelegramMediaWebpage, case let .Loaded(content) = webpage.content {
++                    strongSelf.openUrl(content.url, concealed: true, message: message)
++                    return
++                }
+                 let _ = strongSelf.presentVoiceMessageDiscardAlert(action: {
+                     strongSelf.chatDisplayNode.dismissInput()
+                     if let controller = strongSelf.context.sharedContext.makeInstantPageController(context: strongSelf.context, message: message, sourcePeerType: associatedData?.automaticDownloadPeerType) {
+@@ -10150,7 +10159,7 @@ public final class ChatControllerImpl: TelegramBaseController, ChatController, G
+         
+         if allowInlineWebpageResolution, let message, let webpage = message.media.first(where: { $0 is TelegramMediaWebpage }) as? TelegramMediaWebpage, case let .Loaded(content) = webpage.content, content.url == url {
+             if content.instantPage != nil {
+-                if let navigationController = self.navigationController as? NavigationController {
++                if NebulaMessagePreferences.shared.enabled("instant_view"), let navigationController = self.navigationController as? NavigationController {
+                     switch instantPageType(of: content) {
+                     case .album:
+                         break
+diff --git a/submodules/TelegramUI/Sources/ChatControllerAdminBanUsers.swift b/submodules/TelegramUI/Sources/ChatControllerAdminBanUsers.swift
+index 67523ac..68f1799 100644
+--- a/submodules/TelegramUI/Sources/ChatControllerAdminBanUsers.swift
++++ b/submodules/TelegramUI/Sources/ChatControllerAdminBanUsers.swift
+@@ -1,4 +1,5 @@
+ import Foundation
++import NebulaSettingsContract
+ import UIKit
+ import TelegramPresentationData
+ import AccountContext
+@@ -589,11 +590,11 @@ extension ChatControllerImpl {
+                 }))
+             }
+             
+-            var unsendPersonalMessages = false
++            var unsendPersonalMessages = options.contains(.unsendPersonal) && NebulaMessagePreferences.shared.enabled("delete_for_all")
+             if options.contains(.unsendPersonal) {
+                 canDisplayContextMenu = false
+                 items.append(ActionSheetTextItem(title: self.presentationData.strings.Chat_UnsendMyMessagesAlertTitle(personalPeerName ?? "").string))
+-                items.append(ActionSheetSwitchItem(title: self.presentationData.strings.Chat_UnsendMyMessages, isOn: false, action: { value in
++                items.append(ActionSheetSwitchItem(title: self.presentationData.strings.Chat_UnsendMyMessages, isOn: unsendPersonalMessages, action: { value in
+                     unsendPersonalMessages = value
+                 }))
+             } else if options.contains(.deleteGlobally) {
+diff --git a/submodules/TelegramUI/Sources/OpenResolvedUrl.swift b/submodules/TelegramUI/Sources/OpenResolvedUrl.swift
+index 44c4174..2a8f7f3 100644
+--- a/submodules/TelegramUI/Sources/OpenResolvedUrl.swift
++++ b/submodules/TelegramUI/Sources/OpenResolvedUrl.swift
+@@ -1,4 +1,5 @@
+ import Foundation
++import NebulaSettingsContract
+ import UIKit
+ import AVFoundation
+ import AsyncDisplayKit
+@@ -389,6 +390,10 @@ func openResolvedUrlImpl(
+             })
+                 present(controller, nil)
+         case let .instantView(webPage, anchor):
++            if !NebulaMessagePreferences.shared.enabled("instant_view"), case let .Loaded(content) = webPage.content {
++                context.sharedContext.openExternalUrl(context: context, urlContext: urlContext, url: content.url, forceExternal: forceExternal, presentationData: context.sharedContext.currentPresentationData.with { $0 }, navigationController: navigationController, dismissInput: dismissInput)
++                return
++            }
+             let sourceLocation = InstantPageSourceLocation(userLocation: .other, peerType: .channel)
+             let browserController = context.sharedContext.makeInstantPageController(context: context, webPage: webPage, anchor: anchor, sourceLocation: sourceLocation)
+             navigationController?.pushViewController(browserController)
