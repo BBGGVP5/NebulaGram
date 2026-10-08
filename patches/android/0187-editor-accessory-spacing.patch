@@ -1,0 +1,32 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
+@@ -6166,6 +6166,7 @@
+             MessagesController.getInstance(currentAccount).getTonesController().load();
+         }
+         shownAiButton = show;
++        textFieldContainer.requestLayout();
+         aiButton.animate().cancel();
+         aiButton.setVisibility(View.VISIBLE);
+         aiButton.animate()
+@@ -14741,6 +14742,9 @@
+         updateBotCommandsMenuContainerTopPadding();
+         updateFieldRight(lastAttachVisible);
+         nebulaComposerStyle.prepare(this, messageEditText, MeasureSpec.getSize(widthMeasureSpec), nebulaSupported);
++        // Editing can expose AI for a single line: reserve a separate row above the paperclip.
++        textFieldContainer.setMinimumHeight(app.nebulagram.ui.NebulaComposerSlots.accessoryHeight(
++                nebulaComposerStyle.isActive(), shownAiButton, dp(DEFAULT_HEIGHT), dp(4)));
+         super.onMeasure(widthMeasureSpec, heightMeasureSpec);
+ 
+         if (botWebViewButton != null) {
+@@ -14762,6 +14766,10 @@
+         if (wasHeight > 0 && textFieldContainer.getMeasuredHeight() != wasHeight) {
+             for (int i = 0; i < 2; ++i) {
+                 final View view = i == 0 ? aiButton : richButton;
++                if (i == 0 && nebulaComposerStyle.isActive()) {
++                    view.setTranslationY(0);
++                    continue;
++                }
+                 view.setTranslationY(view.getTranslationY() + textFieldContainer.getMeasuredHeight() - wasHeight);
+                 view.animate()
+                     .translationY(0)

@@ -32,6 +32,14 @@ public final class NebulaMenuBackdrop {
         attach(popup, anchor, provider, false);
     }
 
+    /** A readable sheet surface sampled from the separate originating chat window. */
+    public static void attachSheet(View sheet, View anchor, Theme.ResourcesProvider provider) {
+        if (anchor == null || Build.VERSION.SDK_INT < 31 || !LiteMode.isEnabled(LiteMode.FLAG_CHAT_BLUR)) {
+            return;
+        }
+        attachHardware(sheet, anchor.getRootView(), provider, false, true);
+    }
+
     private static void attach(View popup, View anchor, Theme.ResourcesProvider provider, boolean padded) {
         if (Build.VERSION.SDK_INT < 31 || !LiteMode.isEnabled(LiteMode.FLAG_CHAT_BLUR)) {
             popup.setBackground(NebulaMenuStyle.fallback(provider));
@@ -42,6 +50,11 @@ public final class NebulaMenuBackdrop {
 
     @android.annotation.TargetApi(31)
     private static void attachHardware(View popup, View root, Theme.ResourcesProvider provider, boolean padded) {
+        attachHardware(popup, root, provider, padded, false);
+    }
+
+    @android.annotation.TargetApi(31)
+    private static void attachHardware(View popup, View root, Theme.ResourcesProvider provider, boolean padded, boolean sheet) {
         BlurredBackgroundSourceColor fallback = new BlurredBackgroundSourceColor();
         fallback.setColor(NebulaMenuStyle.surface(provider));
         BlurredBackgroundSourceRenderNode source = new BlurredBackgroundSourceRenderNode(fallback);
@@ -49,13 +62,14 @@ public final class NebulaMenuBackdrop {
         BlurredBackgroundDrawableViewFactory factory = new BlurredBackgroundDrawableViewFactory(source);
         factory.setLiquidGlassEffectAllowed(NebulaMenuStyle.animated());
         BlurredBackgroundDrawable material = factory.create(popup, true)
-                .setColorProvider(NebulaMenuStyle.provider(provider)).setRadius(NebulaMenuStyle.radius())
+                .setColorProvider(sheet ? NebulaMenuStyle.sheetProvider(provider) : NebulaMenuStyle.provider(provider)).setRadius(NebulaMenuStyle.radius())
                 .setPadding(padded ? AndroidUtilities.dp(8) : 0).setHasPadding(padded);
         material.setThickness(AndroidUtilities.dp(5)); material.setIntensity(NebulaGlass.refraction());
         popup.setBackground(material);
         int[] origin = new int[2], position = new int[2];
         ViewTreeObserver.OnPreDrawListener capture = () -> {
-            if (root.getWidth() > 0 && root.getHeight() > 0 && !source.inRecording()) {
+            if (root.isAttachedToWindow() && root.getRootView() != popup.getRootView()
+                    && root.getWidth() > 0 && root.getHeight() > 0 && !source.inRecording()) {
                 Canvas canvas = source.beginRecording(root.getWidth(), root.getHeight());
                 try { root.draw(canvas); } finally { source.endRecording(); }
                 root.getLocationOnScreen(origin);
@@ -70,7 +84,6 @@ public final class NebulaMenuBackdrop {
             }
             @Override public void onViewDetachedFromWindow(View v) {
                 if (v.getViewTreeObserver().isAlive()) v.getViewTreeObserver().removeOnPreDrawListener(capture);
-                v.removeOnAttachStateChangeListener(this);
             }
         });
     }

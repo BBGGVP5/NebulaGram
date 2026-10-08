@@ -38,6 +38,11 @@ class ControlCheck {
   check(descriptionText("Настройте v1.2. Сейчас.").equals("Настройте v1.2. Сейчас"),"retain meaningful internal punctuation");
   var modals=new NebulaComposerAi.Modals();modals.opened();modals.opened();check(modals.closed()&&modals.active(),"closing tools must not resume translation while the editor is still open");check(!modals.closed()&&!modals.closed(),"editor close resumes once without negative state");
   int captions=0;
+  for(int density:new int[]{1,2,3,4})for(boolean split:new boolean[]{false,true})for(boolean visible:new boolean[]{false,true}) {
+   int slot=44*density,gap=4*density,min=NebulaComposerSlots.accessoryHeight(split,visible,slot,gap);
+   if(split&&visible)check(min-slot>=slot+gap,"AI and attachment touch areas remain separated for a single-line edit");
+   else check(min==0,"no empty row when AI is hidden or native composer is selected");
+  }
   for(int density:new int[]{1,2,3,4})for(int width:new int[]{260,320,393,600})for(int margin:new int[]{12,32,65,100}) {
    int nativeRight=margin*density,inset=NebulaComposerSlots.captionInset(nativeRight,52*density,4*density);
    check(width*density-nativeRight-inset<=width*density-52*density-4*density,"caption controls retain confirmation spacing");captions++;
@@ -53,6 +58,7 @@ composer=(native/'Components/ChatActivityEnterView.java').read_text(encoding='ut
 measure=composer[composer.index('\n    protected void onMeasure(int widthMeasureSpec'):composer.index('\n    protected void onLayout(boolean changed')]
 layout=composer[composer.index('\n    protected void onLayout(boolean changed'):]
 assert measure.index('updateFieldRight(lastAttachVisible)') < measure.index('nebulaComposerStyle.prepare(') < measure.index('super.onMeasure(')
+assert measure.index('NebulaComposerSlots.accessoryHeight(') < measure.index('super.onMeasure(')
 assert 'nebulaComposerStyle.layout(emojiButton, attachButton, senderSelectView, aiButton, richButton);\n        updateFieldRight' not in layout
 assert 'NebulaMessageToolsFragment.show(parentFragment' in composer
 assert 'nebula_ai_composer' in composer and 'nebulaToolsButton' not in composer

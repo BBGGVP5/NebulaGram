@@ -94,3 +94,10 @@ API references: Android CaptureRequest and CameraX Preview.SurfaceProvider docum
 - Physical Pixel 9 Pro XL / Android 17: 1000411 installed as an update with verified package, signer and artifact digest. Settings, Camera2/CameraX preview and still capture, both lenses, and old-round recording/switch were exercised. Found Camera2 JPEG double rotation and a recorder cancellation race at the 60-second boundary (crash-buffer evidence, matching APK DEX instruction). Follow-up uses JPEG EXIF and rejects cancelled/replaced queued recorder delivery; final updated APK verification remains pending. Temporary test preferences must be restored. No assertion of bug-free device behavior is made.
 
 - Choice dialogs: per user correction, selected rows use only a rounded background highlight; no circle or checkmark. Native accessibility checked state, original callback indices, RTL labels, scrolling and dialog buttons remain intact.
+
+### Additional editor corrections requested during device review
+
+- Add a separate AI accessory row for short edits so AI cannot overlap the paperclip, including the multiline resize transition. Keep native composer behavior and editing/apply semantics.
+- Separate the sheet title, mode selector and original card with explicit spacing. Add localized style presets and custom instructions, animated mode selection and the existing Nebula glass material sampled from the originating chat window.
+- Reuse entity boundary mapping for correction and styling, preserving custom emoji IDs, links and formatting. Keep cancellation and reject stale results after input/account changes.
+- Verify actual geometry, Telegram entity serialization, ordered patches, full build and device presentation before marking delivery complete.

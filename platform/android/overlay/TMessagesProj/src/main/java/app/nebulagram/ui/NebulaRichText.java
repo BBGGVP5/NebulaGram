@@ -60,6 +60,16 @@ public final class NebulaRichText {
         int budget = NebulaTranslationSettings.global().getInt("provider", 0) == NebulaAiClient.NANO ? 900 : 3500;
         NebulaTranslationFormat.Result result = NebulaTranslationFormat.translate(source.text, ranges,
             text -> client.translate(text, language, interactive, progress), !local, budget);
+        return remap(source, result);
+    }
+    public static TLRPC.TL_textWithEntities transform(TLRPC.TL_textWithEntities source,
+                                                    NebulaTranslationFormat.Translator operation, boolean structured) throws Exception {
+        ArrayList<NebulaTranslationFormat.Range> ranges = new ArrayList<>();
+        for (TLRPC.MessageEntity entity : source.entities) ranges.add(new NebulaTranslationFormat.Range(
+            entity.offset, entity.offset + entity.length, protectedEntity(entity)));
+        return remap(source, NebulaTranslationFormat.translate(source.text, ranges, operation, structured, 3500));
+    }
+    private static TLRPC.TL_textWithEntities remap(TLRPC.TL_textWithEntities source, NebulaTranslationFormat.Result result) {
         TLRPC.TL_textWithEntities answer = new TLRPC.TL_textWithEntities(); answer.text = result.text;
         for (TLRPC.MessageEntity entity : source.entities) {
             int start = result.offset(entity.offset), end = result.offset(entity.offset + entity.length);

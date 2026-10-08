@@ -9,4 +9,7 @@ public final class NebulaComposerSlots {
     public static int captionInset(int nativeRightMargin, int confirmationInset, int gap) {
         return Math.max(0, confirmationInset + gap - nativeRightMargin);
     }
+    public static int accessoryHeight(boolean splitComposer, boolean aiVisible, int slot, int gap) {
+        return splitComposer && aiVisible ? slot * 2 + gap : 0;
+    }
 }
