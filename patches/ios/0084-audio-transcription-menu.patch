@@ -1,0 +1,25 @@
+diff --git a/submodules/TelegramUI/Sources/ChatInterfaceStateContextMenus.swift b/submodules/TelegramUI/Sources/ChatInterfaceStateContextMenus.swift
+index f76cb73..a92869d 100644
+--- a/submodules/TelegramUI/Sources/ChatInterfaceStateContextMenus.swift
++++ b/submodules/TelegramUI/Sources/ChatInterfaceStateContextMenus.swift
+@@ -1334,6 +1334,20 @@ func contextMenuForChatPresentationInterfaceState(chatPresentationInterfaceState
+         }
+         
+         let isCopyProtected = chatPresentationInterfaceState.copyProtectionEnabled || message.isCopyProtected()
++        if #available(iOS 15.0, *), NebulaAiSettings.shared.enabled, !isCopyProtected, !isExpired,
++           !message.containsSecretMedia, messages.count == 1, message.id.peerId.namespace != Namespaces.Peer.SecretChat,
++           let audioFile = message.effectiveMedia.compactMap({ $0 as? TelegramMediaFile }).first(where: { $0.isVoice || $0.isInstantVideo }),
++           let size = audioFile.size, size > 0, size <= Int64(NebulaAudioTranscription.maximumBytes) {
++            let russian = chatPresentationInterfaceState.strings.baseLanguageCode.hasPrefix("ru")
++            actions.append(.action(ContextMenuActionItem(text: russian ? "Nebula AI · расшифровать" : "Nebula AI · Transcribe", icon: { theme in
++                return generateTintedImage(image: UIImage(bundleImageName: "Chat/Context Menu/Translate"), color: theme.actionSheet.primaryTextColor)
++            }, action: { c, f in
++                let present: () -> Void = {
++                    controllerInteraction.navigationController()?.present(NebulaToolsNavigationController(root: NebulaAudioTranscriptionController(context: context, message: message, file: audioFile)), animated: true)
++                }
++                if let c { c.dismiss(completion: present) } else { f(.default); present() }
++            })))
++        }
+         if !messageText.isEmpty || richMessageMarkdown != nil || (resourceAvailable && isImage) || diceEmoji != nil {
+             if !isExpired {
+                 if !isPoll {

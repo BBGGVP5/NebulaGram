@@ -39,7 +39,8 @@ public final class NebulaAiEditorController: UIViewController {
         super.viewDidLoad()
         view.backgroundColor = .clear; view.tintColor = theme.list.itemAccentColor
         overrideUserInterfaceStyle = theme.overallDarkAppearance ? .dark : .light
-        let material = UIVisualEffectView(effect: UIBlurEffect(style: .systemUltraThinMaterial))
+        let material = UIVisualEffectView(effect: UIBlurEffect(style: .systemMaterial))
+        material.contentView.backgroundColor = theme.list.blocksBackgroundColor.withAlphaComponent(theme.overallDarkAppearance ? 0.92 : 0.94)
         material.translatesAutoresizingMaskIntoConstraints = false; view.addSubview(material)
         NSLayoutConstraint.activate([material.leadingAnchor.constraint(equalTo: view.leadingAnchor), material.trailingAnchor.constraint(equalTo: view.trailingAnchor), material.topAnchor.constraint(equalTo: view.topAnchor), material.bottomAnchor.constraint(equalTo: view.bottomAnchor)])
         if UIAccessibility.isReduceTransparencyEnabled { material.effect = nil; material.backgroundColor = theme.list.blocksBackgroundColor }

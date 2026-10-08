@@ -393,12 +393,12 @@ final class Composer {
             subprocess.run(['swiftc', *ios_flags, '-typecheck',
                             str(temp / 'submodules/Display/Source/NebulaAIOutline.swift')], check=True)
             subprocess.run(['swiftc', *ios_flags, '-typecheck', '-I', str(temp),
-                            str(settings_ui / 'NebulaAiService.swift'), str(settings_ui / 'NebulaAiModelCatalog.swift')], check=True)
+                            str(settings_ui / 'NebulaAiService.swift'), str(settings_ui / 'NebulaAiModelCatalog.swift'), str(settings_ui / 'NebulaAudioService.swift')], check=True)
             subprocess.run(['swiftc', *ios_flags, '-typecheck', str(settings_ui / 'NebulaEditorSegments.swift')], check=True)
             subprocess.run(['swiftc', *ios_flags, '-typecheck', '-I', str(temp),
                             str(temp / 'submodules/NebulaBrowserCore/Sources/NebulaBrowserContentRules.swift')], check=True)
             ai_sources = ['NebulaSettingsStyle.swift', 'NebulaSettingsSymbols.swift', 'NebulaSettingsHero.swift',
-                          'NebulaCloudSettingsController.swift', 'NebulaCloudSettingsSync.swift', 'NebulaChoiceController.swift', 'NebulaAiChatController.swift', 'NebulaAiController.swift',
+                          'NebulaAudioTranscriptionController.swift', 'NebulaCloudSettingsController.swift', 'NebulaCloudSettingsSync.swift', 'NebulaChoiceController.swift', 'NebulaAiChatController.swift', 'NebulaAiController.swift',
                           'NebulaAiService.swift', 'NebulaAiHistoryController.swift', 'NebulaActionGrid.swift',
                           'NebulaResultLanguage.swift', 'NebulaMessageToolsController.swift', 'NebulaTasksController.swift',
                           'NebulaCommunity.swift', 'NebulaSupportController.swift', 'NebulaAiServicesController.swift',
