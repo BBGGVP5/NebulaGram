@@ -111,7 +111,7 @@ class LanguageCheck {
  static class Tools {
   String targetLanguage="ru",cancelledLanguage;NebulaRow target=new NebulaRow();boolean destroyed;int cancelled;NebulaDialog.Dialog dialog;
   String t(String ru,String en){return en;}Object getContext(){return this;}Object getResourceProvider(){return this;}
-  void showDialog(NebulaDialog.Dialog d){dialog=d;}void cancel(){cancelled++;cancelledLanguage=targetLanguage;}
+  void clearResult(){}void showDialog(NebulaDialog.Dialog d){dialog=d;}void cancel(){cancelled++;cancelledLanguage=targetLanguage;}
   LABEL
   CHOOSER
  }

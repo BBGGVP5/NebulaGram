@@ -33,6 +33,8 @@ stubs={
  'app/nebulagram/ui/NebulaText.java':'''package app.nebulagram.ui;public class NebulaText {public static String text(String r,String e){return e;}}''',
  'app/nebulagram/ui/NebulaGlass.java':'''package app.nebulagram.ui;public class NebulaGlass {public static boolean reduced(){return false;}}''',
 }
+stubs['org/telegram/tgnet/TLRPC.java']='package org.telegram.tgnet;public class TLRPC {public static class TL_textWithEntities {public String text;}}'
+stubs['app/nebulagram/ui/NebulaRichText.java']='package app.nebulagram.ui;\nimport org.telegram.tgnet.TLRPC;\npublic class NebulaRichText {\n public static CharSequence snapshot(CharSequence s){return new android.text.SpannableStringBuilder(s);}\n public static TLRPC.TL_textWithEntities capture(int a,CharSequence s){return new TLRPC.TL_textWithEntities();}\n public static String key(int a,CharSequence s){return s.toString();} public static String key(TLRPC.TL_textWithEntities t){return t.text;}\n public static CharSequence render(TLRPC.TL_textWithEntities t,android.graphics.Paint.FontMetricsInt metrics){return t.text;}\n public static TLRPC.TL_textWithEntities translate(NebulaTranslationClient c,TLRPC.TL_textWithEntities t,String language,boolean interactive,java.util.function.Consumer<String> progress)throws Exception{return t;}\n}'
 with tempfile.TemporaryDirectory(prefix='nebula-translation-api-') as folder:
     work=Path(folder)
     for name,source in stubs.items():

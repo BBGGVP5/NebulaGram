@@ -29,8 +29,8 @@ class NebulaTasks { static long user(int a){return a+100;} }
 class NebulaAiAvailability { static boolean enabled(){return true;} }
 class DialogObject { static boolean isEncryptedDialog(long d){return false;} }
 class NebulaText { static String text(String ru,String en){return en;} }
-class TLRPC { static class Message { String message="hello",translatedToLanguage; TL_textWithEntities translatedText; boolean noforwards; int ttl; }
- static class TL_textWithEntities { String text; } static class Chat { boolean noforwards; } }
+class TLRPC { static class Message { ArrayList<String> entities=new ArrayList<>(); String message="hello",translatedToLanguage; TL_textWithEntities translatedText; boolean noforwards; int ttl; }
+ static class TL_textWithEntities { String text; ArrayList<String> entities=new ArrayList<>(); } static class Chat { boolean noforwards; } }
 class MessageObject { TLRPC.Message messageOwner=new TLRPC.Message(); int id; boolean own,isRestrictedMessage; MessageObject(int id){this.id=id;}
  long getDialogId(){return 9;} int getId(){return id;} boolean isOutOwner(){return own;} boolean isSecretMedia(){return false;} boolean isSponsored(){return false;} }
 class TranslateController { static int cancellations; static boolean isTranslatable(MessageObject m){return true;} void cancelTranslations(long d){cancellations++;} }
@@ -63,6 +63,12 @@ class NebulaTranslationClient {
  }
  static String errorText(Exception error){return "Download model";}
 }
+class NebulaRichText {
+ static TLRPC.TL_textWithEntities copy(String text,ArrayList<String> entities){var r=new TLRPC.TL_textWithEntities();r.text=text;r.entities=new ArrayList<>(entities);return r;}
+ static String key(TLRPC.TL_textWithEntities t){return t.text+"/"+t.entities;}
+ static boolean same(TLRPC.TL_textWithEntities a,TLRPC.TL_textWithEntities b){return a!=null&&b!=null&&key(a).equals(key(b));}
+ static TLRPC.TL_textWithEntities translate(NebulaTranslationClient c,TLRPC.TL_textWithEntities t,String lang,boolean priority,java.util.function.Consumer<String> progress)throws Exception{return copy(c.translate(t.text,lang,priority,progress),t.entities);}
+}
 public class AutoTranslationCheck {
  static void check(boolean v,String why){if(!v)throw new AssertionError(why);}
  static void finish()throws Exception{Runnable r=AndroidUtilities.ui.poll(3,TimeUnit.SECONDS);check(r!=null,"completion");r.run();}
@@ -76,6 +82,8 @@ public class AutoTranslationCheck {
   NebulaAutoTranslate.request(0,m);check(calls==NebulaAiClient.calls,"own result deduplicated");
   m.messageOwner.translatedText.text="Telegram overwrite";NebulaAutoTranslate.request(0,m);
   check("AI:hello".equals(m.messageOwner.translatedText.text),"restore provider result after foreign overwrite");
+  m.messageOwner.entities.add("custom-emoji:1234");NebulaAutoTranslate.request(0,m);finish();
+  check(m.messageOwner.translatedText.entities.contains("custom-emoji:1234"),"format-only edit invalidates cached translation");
   MessageObject obsolete=new MessageObject(2);NebulaAiClient.wait=new CountDownLatch(1);NebulaAutoTranslate.request(0,obsolete);
   NebulaTranslationSettings.identity="nano:preview";NebulaAiClient.wait.countDown();finish();
   check(obsolete.messageOwner.translatedText==null,"changed model rejects old completion");NebulaAiClient.wait=null;

@@ -17,7 +17,7 @@ public final class NebulaDraftTranslation {
     private final BaseFragment host;
     private final EditText editor;
     private final View anchor;
-    private final java.util.function.Consumer<String> apply;
+    private final java.util.function.Consumer<CharSequence> apply;
     private Runnable pending;
     private NebulaTranslationClient client;
     private PopupWindow preview;
@@ -29,13 +29,14 @@ public final class NebulaDraftTranslation {
     private long activeDialog;
     private int activeAccount;
     private long activeUser;
-    private String identityPrefix = "", appliedPrefix = "", shownSource = "", shownAnswer;
+    private String identityPrefix = "", appliedPrefix = "", shownSource = "";
+    private CharSequence shownAnswer;
     private boolean replacing;
     private String dismissedField;
-    private final java.util.LinkedHashMap<String,String> cache = new java.util.LinkedHashMap<String,String>(16,.75f,true) {
-        protected boolean removeEldestEntry(java.util.Map.Entry<String,String> entry) { return size() > 16; }
+    private final java.util.LinkedHashMap<String,CharSequence> cache = new java.util.LinkedHashMap<String,CharSequence>(16,.75f,true) {
+        protected boolean removeEldestEntry(java.util.Map.Entry<String,CharSequence> entry) { return size() > 16; }
     };
-    public NebulaDraftTranslation(BaseFragment host, EditText editor, View anchor, java.util.function.Consumer<String> apply) {
+    public NebulaDraftTranslation(BaseFragment host, EditText editor, View anchor, java.util.function.Consumer<CharSequence> apply) {
         this.host = host; this.editor = editor; this.anchor = anchor; this.apply = apply;
     }
     public void changed(int account, long dialog, boolean allowed) {
@@ -43,24 +44,26 @@ public final class NebulaDraftTranslation {
         long user = NebulaTasks.user(account);
         if (activeDialog != dialog || activeAccount != account || activeUser != user) { original.clear(); cache.clear(); appliedPrefix = ""; dismissedField = null; stop(); }
         activeDialog = dialog; activeAccount = account; activeUser = user;
-        String source = editor.getText().toString();
-        if (source.equals(dismissedField)) return;
+        CharSequence source = NebulaRichText.snapshot(editor.getText());
+        if (source.toString().equals(dismissedField)) return;
         dismissedField = null;
-        if (source.isEmpty()) original.clear();
+        if (source.length() == 0) original.clear();
         String language = NebulaTranslationSettings.draftLanguage(account, dialog);
         String connectionIdentity = NebulaTranslationSettings.translationIdentity();
         identityPrefix = connectionIdentity + ":" + user + ":" + dialog + ":" + language + ":";
         if (!allowed || !NebulaTranslationSettings.draft(account, dialog) || !NebulaTranslationSettings.translationAvailable()
-            || user <= 0 || DialogObject.isEncryptedDialog(dialog) || dialog == 0 || source.trim().isEmpty() || source.length() > 12000) { stop(); return; }
+            || user <= 0 || DialogObject.isEncryptedDialog(dialog) || dialog == 0 || source.toString().trim().isEmpty() || source.length() > 12000) { stop(); return; }
         if (original.isDisplayed(source) && identityPrefix.equals(appliedPrefix)) {
             show(source, source, null, false); return;
         }
-        final String identity = identityPrefix + source;
+        final String identity = identityPrefix + NebulaRichText.key(account, source);
         final long request = gate.begin(identity);
         if (request == 0) return;
         cancelTransport();
-        final String input = original.source(source);
-        String cached = cache.get(identityPrefix + input);
+        final CharSequence input = original.source(source);
+        final org.telegram.tgnet.TLRPC.TL_textWithEntities richInput = NebulaRichText.capture(account, input);
+        final String cacheKey = identityPrefix + NebulaRichText.key(richInput);
+        CharSequence cached = cache.get(cacheKey);
         if (cached != null) { complete(request, cached, source, input, null); return; }
         pending = new Runnable() {
             @Override public void run() {
@@ -71,20 +74,21 @@ public final class NebulaDraftTranslation {
                 NebulaTranslationClient connection = client = new NebulaTranslationClient();
                 show(null, source, null, true);
                 worker.execute(() -> {
-                    String result = null, failure = null;
+                    org.telegram.tgnet.TLRPC.TL_textWithEntities result = null; String failure = null;
                     try {
                         if (!gate.accepts(request) || !connectionIdentity.equals(NebulaTranslationSettings.translationIdentity())) return;
-                        result = connection.translate(input, language, true, phase -> AndroidUtilities.runOnUIThread(() -> {
+                        result = NebulaRichText.translate(connection, richInput, language, true, phase -> AndroidUtilities.runOnUIThread(() -> {
                             if (gate.accepts(request)) show(null, source, phase, true);
                         }));
                     } catch (Exception error) { failure = NebulaTranslationClient.errorText(error); }
-                    final String answer = result, errorText = failure;
+                    final org.telegram.tgnet.TLRPC.TL_textWithEntities translated = result; final String errorText = failure;
                     AndroidUtilities.runOnUIThread(() -> {
                         if (!gate.accepts(request) || user != NebulaTasks.user(account) || !connectionIdentity.equals(NebulaTranslationSettings.translationIdentity())
-                            || !source.equals(editor.getText().toString()) || !NebulaTranslationSettings.draft(account, dialog)
+                            || !NebulaRichText.key(account, source).equals(NebulaRichText.key(account, editor.getText())) || !NebulaTranslationSettings.draft(account, dialog)
                             || !language.equals(NebulaTranslationSettings.draftLanguage(account, dialog)) || !NebulaTranslationSettings.translationAvailable()) return;
                         client = null;
-                        if (answer != null && !answer.trim().isEmpty()) cache.put(identityPrefix + input, answer);
+                        CharSequence answer = translated == null ? null : NebulaRichText.render(translated, editor.getPaint().getFontMetricsInt());
+                        if (answer != null && answer.length() > 0) cache.put(cacheKey, answer);
                         complete(request, answer, source, input, errorText);
                     });
                 });
@@ -93,21 +97,21 @@ public final class NebulaDraftTranslation {
         AndroidUtilities.runOnUIThread(pending, NebulaTranslationSettings.delay(account, dialog));
     }
     private boolean composing() { return BaseInputConnection.getComposingSpanStart(editor.getText()) >= 0; }
-    private void complete(long request, String answer, String source, String input, String error) {
-        if (!gate.accepts(request) || !source.equals(editor.getText().toString())) return;
-        if (answer != null && !answer.trim().isEmpty() && NebulaTranslationSettings.automatic(activeAccount, activeDialog)) {
+    private void complete(long request, CharSequence answer, CharSequence source, CharSequence input, String error) {
+        if (!gate.accepts(request) || !NebulaRichText.key(activeAccount, source).equals(NebulaRichText.key(activeAccount, editor.getText()))) return;
+        if (answer != null && !answer.toString().trim().isEmpty() && NebulaTranslationSettings.automatic(activeAccount, activeDialog)) {
             if (composing()) {
                 pending = () -> complete(request, answer, source, input, error);
                 AndroidUtilities.runOnUIThread(pending, 60); return;
             }
-            if (!answer.equals(source)) {
+            if (!NebulaRichText.key(activeAccount, answer).equals(NebulaRichText.key(activeAccount, source))) {
                 original.replaced(input, answer); appliedPrefix = identityPrefix;
-                replace(answer); gate.suppress(identityPrefix + answer);
+                replace(answer); gate.suppress(identityPrefix + NebulaRichText.key(activeAccount, answer));
             }
             show(answer, answer, null, false);
         } else show(answer, source, error, false);
     }
-    private void replace(String value) {
+    private void replace(CharSequence value) {
         int start = editor.getSelectionStart(), end = editor.getSelectionEnd(), length = editor.length();
         replacing = true;
         try {
@@ -117,12 +121,12 @@ public final class NebulaDraftTranslation {
         } finally { replacing = false; }
     }
     private void useOrRestore() {
-        String field = editor.getText().toString();
-        if (shownAnswer != null && !shownAnswer.equals(field) && shownSource.equals(field)) {
-            String value = shownAnswer; original.replaced(original.source(field), value); appliedPrefix = identityPrefix;
-            cancelTransport(); gate.suppress(identityPrefix + value); replace(value); show(value, value, null, false);
+        CharSequence field = NebulaRichText.snapshot(editor.getText());
+        if (shownAnswer != null && !NebulaRichText.key(activeAccount, shownAnswer).equals(NebulaRichText.key(activeAccount, field)) && shownSource.equals(field.toString())) {
+            CharSequence value = shownAnswer; original.replaced(original.source(field), value); appliedPrefix = identityPrefix;
+            cancelTransport(); gate.suppress(identityPrefix + NebulaRichText.key(activeAccount, value)); replace(value); show(value, value, null, false);
         } else if (original.hasOriginal()) {
-            String value = original.restore(field); stop(); gate.suppress(identityPrefix + value); original.clear(); appliedPrefix = ""; replace(value);
+            CharSequence value = original.restore(field); stop(); gate.suppress(identityPrefix + NebulaRichText.key(activeAccount, value)); original.clear(); appliedPrefix = ""; replace(value);
         }
     }
     private TextView action(String text, NebulaTheme theme) {
@@ -147,19 +151,19 @@ public final class NebulaDraftTranslation {
         restore.setOnClickListener(v -> useOrRestore());
         TextView close = action("×", theme); close.setTextSize(24); close.setContentDescription(NebulaText.text("Закрыть перевод", "Close translation"));
         row.addView(close, new LinearLayout.LayoutParams(dp(44), dp(44)));
-        close.setOnClickListener(v -> { String field = editor.getText().toString(); dismissedField = field; stop(); gate.suppress(identityPrefix + field); });
+        close.setOnClickListener(v -> { CharSequence field = NebulaRichText.snapshot(editor.getText()); dismissedField = field.toString(); stop(); gate.suppress(identityPrefix + NebulaRichText.key(activeAccount, field)); });
         detail = new TextView(anchor.getContext()); detail.setTextSize(14); detail.setTextColor(theme.onSurfaceVariant());
         detail.setMaxLines(2); detail.setEllipsize(TextUtils.TruncateAt.END); detail.setPadding(dp(2), 0, dp(10), 0); panel.addView(detail);
     }
-    private void show(String answer, String source, String error, boolean loading) {
+    private void show(CharSequence answer, CharSequence source, String error, boolean loading) {
         if (!anchor.isAttachedToWindow() || host.getParentActivity() == null) return;
         NebulaTheme theme = NebulaTheme.of(anchor.getContext());
         if (panel == null) createPanel(theme);
-        shownSource = source; shownAnswer = answer;
+        shownSource = source.toString(); shownAnswer = answer;
         title.setText("Nebula AI · " + NebulaTranslationSettings.draftLanguage(activeAccount, activeDialog).toUpperCase(java.util.Locale.ROOT));
         title.setContentDescription(NebulaText.text("Язык перевода. Удерживайте для настроек", "Translation language. Hold for settings"));
         progress.setVisibility(loading ? View.VISIBLE : View.GONE);
-        boolean canApply = !loading && answer != null && !answer.equals(source);
+        boolean canApply = !loading && answer != null && !NebulaRichText.key(activeAccount, answer).equals(NebulaRichText.key(activeAccount, source));
         restore.setText(canApply ? NebulaText.text("Применить", "Apply") : NebulaText.text("Оригинал", "Original"));
         restore.setVisibility(original.hasOriginal() || canApply ? View.VISIBLE : View.GONE);
         detail.setText(error != null ? error : loading ? NebulaText.text("Переводим…", "Translating…")

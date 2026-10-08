@@ -55,7 +55,7 @@ layout=composer[composer.index('\n    protected void onLayout(boolean changed'):
 assert measure.index('updateFieldRight(lastAttachVisible)') < measure.index('nebulaComposerStyle.prepare(') < measure.index('super.onMeasure(')
 assert 'nebulaComposerStyle.layout(emojiButton, attachButton, senderSelectView, aiButton, richButton);\n        updateFieldRight' not in layout
 assert 'NebulaMessageToolsFragment.show(parentFragment' in composer
-assert 'nebula_ai_outline' in composer and 'nebulaToolsButton' not in composer
+assert 'nebula_ai_composer' in composer and 'nebulaToolsButton' not in composer
 assert 'aiButton.setOnLongClickListener' in composer
 show=composer[composer.index('private void showAiButton('):composer.index('private boolean shownRichButton')]
 assert show.index('aiButton.setImageDrawable(aiButtonIcon)') < show.index('if (shownAiButton == show) return')
@@ -83,3 +83,10 @@ assert 'captionInset(container.rightMargin, dp(52), dp(4))' in caption
 assert 'nebulaOriginalRightMargin + dp(44) + inset' in caption
 assert 'Gravity.TOP : Gravity.BOTTOM' in caption
 print('Caption pre-measure action spacing and stable original text margin wired')
+
+tap=composer[composer.index('aiButton.setOnClickListener'):composer.index('aiButton.setVisibility(View.GONE)',composer.index('aiButton.setOnClickListener'))]
+assert tap.index('NebulaAiReplacements.editor() && !richDraftActive') < tap.index('createNebulaAwareAiEditor()')
+assert 'openNebulaTools(); return;' in tap
+assert 'NebulaRichText.snapshot(messageEditText.getText())' in composer and 'sourceIdentity.equals' in composer
+assert 'withEditor(() -> aiButton.performClick())' not in composer
+print('Nebula tap opens own tools, native off-mode retained, immutable spans and stale-apply guard wired')

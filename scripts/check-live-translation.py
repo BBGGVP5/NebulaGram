@@ -44,7 +44,7 @@ with tempfile.TemporaryDirectory(prefix='nebula-live-translation-') as temporary
 
 # Guards complement executable state tests; they do not claim on-device UI acceptance.
 draft = (ui / 'NebulaDraftTranslation.java').read_text(encoding='utf-8')
-assert 'gate.accepts(request)' in draft and 'source.equals(editor.getText().toString())' in draft
+assert 'gate.accepts(request)' in draft and 'NebulaRichText.key(account, source).equals(NebulaRichText.key(account, editor.getText()))' in draft
 assert 'ArrayBlockingQueue<>(1)' in draft and 'client.cancel()' in draft
 incoming = (ui / 'NebulaAutoTranslate.java').read_text(encoding='utf-8')
 assert 'message.isOutOwner()' in incoming and 'message.messageOwner.noforwards' in incoming

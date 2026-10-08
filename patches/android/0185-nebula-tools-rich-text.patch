@@ -1,0 +1,87 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
+@@ -2879,6 +2879,7 @@
+         aiButton.setContentDescription(getString(R.string.AIEditor));
+         ScaleStateListAnimator.apply(aiButton);
+         aiButton.setOnClickListener(v -> {
++            if (app.nebulagram.ui.NebulaAiReplacements.editor() && !richDraftActive) { openNebulaTools(); return; }
+             MessagesController.getGlobalMainSettings().edit().putInt("aihintshown", 3).apply();
+             final long dialogId = parentFragment != null ? parentFragment.getDialogId() : dialog_id;
+             if (richDraftActive) {
+@@ -6128,14 +6129,17 @@
+ 
+     private void openNebulaTools() {
+         if (parentFragment == null || messageEditText == null || parentFragment.isSecretChat()) return;
+-        final String source = messageEditText.getText().toString();
++        final CharSequence source = app.nebulagram.ui.NebulaRichText.snapshot(messageEditText.getText());
++        final String sourceIdentity = app.nebulagram.ui.NebulaRichText.key(currentAccount, source);
++        final long owner = UserConfig.getInstance(currentAccount).getClientUserId();
+         if (nebulaDraftTranslation != null) nebulaDraftTranslation.stop();
+         nebulaAiModals.opened();
+         nebulaToolsVisible = true;
+         app.nebulagram.ui.NebulaMessageToolsFragment.show(parentFragment,
+                 new app.nebulagram.ui.NebulaMessageToolsFragment(currentAccount, dialog_id, source, value -> {
+-                    if (source.equals(messageEditText.getText().toString())) setFieldText(value);
+-                }).withEditor(() -> aiButton.performClick()), () -> {
++                    if (owner == UserConfig.getInstance(currentAccount).getClientUserId()
++                            && sourceIdentity.equals(app.nebulagram.ui.NebulaRichText.key(currentAccount, messageEditText.getText()))) setFieldText(value);
++                }), () -> {
+                     nebulaToolsVisible = nebulaAiModals.closed(); updateNebulaDraftTranslation();
+                 });
+     }
+@@ -6147,10 +6151,10 @@
+         final boolean nebula = app.nebulagram.ui.NebulaAiReplacements.editor();
+         if (nebulaAiIcon != nebula) {
+             nebulaAiIcon = nebula;
+-            if (nebula) aiButton.setImageResource(R.drawable.nebula_ai_outline);
++            if (nebula) aiButton.setImageResource(R.drawable.nebula_ai_composer);
+             else aiButton.setImageDrawable(aiButtonIcon);
+         }
+-        aiButton.setContentDescription(nebula ? app.nebulagram.ui.NebulaText.text("Редактор Nebula AI · удерживайте для инструментов", "Nebula AI editor · hold for tools") : getString(R.string.AIEditor));
++        aiButton.setContentDescription(nebula ? app.nebulagram.ui.NebulaText.text("Инструменты Nebula AI", "Nebula AI tools") : getString(R.string.AIEditor));
+         final boolean show = app.nebulagram.ui.NebulaComposerAi.visible(show_, editingMessageObject != null,
+                 messageEditText != null && messageEditText.getText() != null && !TextUtils.isEmpty(messageEditText.getText().toString().trim()),
+                 richDraftActive, parentFragment != null && !parentFragment.isSecretChat(),
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAttachAlert.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAttachAlert.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAttachAlert.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAttachAlert.java
+@@ -6519,14 +6519,15 @@
+ 
+     private boolean openNebulaCaptionTools(EditTextEmoji field) {
+         if (!app.nebulagram.ui.NebulaTranslationSettings.shortcut() || baseFragment == null) return false;
+-        final String source = field.getText().toString();
++        final CharSequence source = app.nebulagram.ui.NebulaRichText.snapshot(field.getText());
++        final String sourceIdentity = app.nebulagram.ui.NebulaRichText.key(currentAccount, source);
+         final long owner = UserConfig.getInstance(currentAccount).getClientUserId();
+         AndroidUtilities.hideKeyboard(field.getEditText());
+         app.nebulagram.ui.NebulaMessageToolsFragment.show(baseFragment,
+             new app.nebulagram.ui.NebulaMessageToolsFragment(currentAccount, 0, source, result -> {
+                 if (owner != UserConfig.getInstance(currentAccount).getClientUserId()) return;
+                 EditTextEmoji active = captionAbove ? topCommentTextView : commentTextView;
+-                if (active == null || !source.equals(active.getText().toString())) return;
++                if (active == null || !sourceIdentity.equals(app.nebulagram.ui.NebulaRichText.key(currentAccount, active.getText()))) return;
+                 active.setText(result);
+                 active.setSelection(result.length(), result.length());
+             }));
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/PhotoViewer.java b/TMessagesProj/src/main/java/org/telegram/ui/PhotoViewer.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/PhotoViewer.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/PhotoViewer.java
+@@ -9885,14 +9885,15 @@
+     private void openNebulaCaptionTools(CaptionPhotoViewer caption) {
+         BaseFragment host = parentFragment != null ? parentFragment : parentChatActivity;
+         if (host == null || caption == null) return;
+-        final String source = caption.editText.getText().toString();
++        final CharSequence source = app.nebulagram.ui.NebulaRichText.snapshot(caption.editText.getText());
+         final int account = currentAccount;
++        final String sourceIdentity = app.nebulagram.ui.NebulaRichText.key(account, source);
+         final long owner = UserConfig.getInstance(account).getClientUserId();
+         AndroidUtilities.hideKeyboard(caption.editText.getEditText());
+         app.nebulagram.ui.NebulaMessageToolsFragment.show(host,
+             new app.nebulagram.ui.NebulaMessageToolsFragment(account, 0, source, result -> {
+                 if (!isVisible || currentAccount != account || owner != UserConfig.getInstance(account).getClientUserId()
+-                    || !source.equals(caption.editText.getText().toString())) return;
++                    || !sourceIdentity.equals(app.nebulagram.ui.NebulaRichText.key(account, caption.editText.getText()))) return;
+                 caption.editText.setText(result);
+                 caption.editText.setSelection(result.length(), result.length());
+             }));
