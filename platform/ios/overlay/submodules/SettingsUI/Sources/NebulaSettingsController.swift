@@ -471,6 +471,7 @@ public func nebulaSettingsController(context: AccountContext, page: Int = 0, sea
             .category(14, ru ? "Значки интерфейса" : "Interface icons", ["Telegram", "Cupertino", "Solar"][store.iconPack], "square.grid.2x2"),
             .category(15, ru ? "Переключатели" : "Switches", (ru ? ["Системные", "Округлые", "Компактные", "Минималистичные"] : ["System", "Rounded", "Compact", "Minimal"])[store.switchStyle], "switch.2"),
             .navigationToggle("login_style", ru ? "Экран входа NebulaGram" : "NebulaGram welcome screen", store.loginStyle, !store.hasLoadError),
+            .category(19, ru ? "Браузер и блокировка рекламы" : "Browser and ad blocking", ru ? "Фильтры и исключения сайтов" : "Filters and excluded sites", "globe"),
             .category(17, ru ? "Перевод в реальном времени" : "Real-time translation", ru ? "Входящие, мой текст, языки, кнопка ИИ" : "Incoming, typing, languages, AI button", "character.bubble"),
             .category(16, ru ? "Уведомления и действия" : "Notifications and actions", ru ? "Упоминания, сохранение, защита" : "Mentions, saving, protection", "bell.badge"),
             .category(9, ru ? "Задачи" : "Tasks", "", "checkmark.circle"),
@@ -527,6 +528,7 @@ public func nebulaSettingsController(context: AccountContext, page: Int = 0, sea
                 if case .search = entry { return true }
                 switch page {
                 case 1:
+                    if case .category(19, _, _, _) = entry { return true }
                     if case .memory = entry { return true }
                     if case .history = entry { return true }
                     if case .clearHistory = entry { return true }
@@ -548,7 +550,9 @@ public func nebulaSettingsController(context: AccountContext, page: Int = 0, sea
                 for (index, title) in titles.enumerated() { entries.append(.chatHeader(6 + index, title)) }
             }
             if page == 7 { entries.append(.appearanceHeader(ru ? "Нижняя панель" : "Bottom bar")) }
-            if page == 1 { entries.append(.category(6, ru ? "Перенос настроек" : "Transfer", ru ? "Импорт и экспорт" : "Import and export", "arrow.triangle.2.circlepath")) }
+            if page == 1 {
+                entries.append(.category(6, ru ? "Перенос настроек" : "Transfer", ru ? "Импорт и экспорт" : "Import and export", "arrow.triangle.2.circlepath"))
+            }
         }
         if page != 0 && query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
             let descriptions: [Int: (String, String, String)] = [
@@ -581,8 +585,8 @@ public func nebulaSettingsController(context: AccountContext, page: Int = 0, sea
         entries.sort()
         let data = ItemListPresentationData(presentationData)
         let pageTitles = ru
-            ? ["Настройки NebulaGram", "Основные", "Внешний вид", "Чаты", "Папки", "Конфиденциальность", "Перенос настроек", "Навигация", "Профиль"]
-            : ["NebulaGram Settings", "General", "Appearance", "Chats", "Folders", "Privacy", "Transfer", "Navigation", "Profile"]
+            ? ["Настройки NebulaGram", "Основные", "Оформление", "Чаты и инструменты", "Папки", "Конфиденциальность", "Перенос настроек", "Навигация", "Профиль"]
+            : ["NebulaGram Settings", "General", "Appearance", "Chats and tools", "Folders", "Privacy", "Transfer", "Navigation", "Profile"]
         let title = page == 18 ? (ru ? "О приложении" : "About") : pageTitles[max(0, min(pageTitles.count - 1, page))]
         let state = ItemListControllerState(presentationData: data, title: .text(title), leftNavigationButton: nil, rightNavigationButton: nil, backNavigationButton: ItemListBackButton(title: presentationData.strings.Common_Back))
         return (state, (ItemListNodeState(presentationData: data, entries: entries, style: .blocks, animateChanges: false), arguments))
@@ -604,6 +608,10 @@ public func nebulaSettingsController(context: AccountContext, page: Int = 0, sea
                     do { try store.set(.integer(value), for: icons ? "icon_pack" : "switch_style"); writeFailed.set(false) }
                     catch { writeFailed.set(true) }
                 }
+            return
+        }
+        if index == 19 {
+            controller.present(UINavigationController(rootViewController: NebulaBrowserController(context: context)), animated: true)
             return
         }
         if index == 17 {

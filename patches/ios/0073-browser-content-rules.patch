@@ -1,0 +1,56 @@
+diff --git a/submodules/BrowserUI/BUILD b/submodules/BrowserUI/BUILD
+index 154518e..cf1d79e 100644
+--- a/submodules/BrowserUI/BUILD
++++ b/submodules/BrowserUI/BUILD
+@@ -10,6 +10,7 @@ swift_library(
+         "-warnings-as-errors",
+     ],
+     deps = [
++        "//submodules/NebulaBrowserCore:NebulaBrowserCore",
+         "//submodules/SSignalKit/SwiftSignalKit",
+         "//submodules/AsyncDisplayKit",
+         "//submodules/Display",
+diff --git a/submodules/BrowserUI/Sources/BrowserWebContent.swift b/submodules/BrowserUI/Sources/BrowserWebContent.swift
+index 31353c2..bc309ff 100644
+--- a/submodules/BrowserUI/Sources/BrowserWebContent.swift
++++ b/submodules/BrowserUI/Sources/BrowserWebContent.swift
+@@ -1,4 +1,5 @@
+ import Foundation
++import NebulaBrowserCore
+ import UIKit
+ import Display
+ import ComponentFlow
+@@ -202,6 +203,7 @@ private func computedUserAgent() -> String {
+ }
+ 
+ final class BrowserWebContent: UIView, BrowserContent, WKNavigationDelegate, WKUIDelegate, UIScrollViewDelegate, WKDownloadDelegate {
++    private var nebulaRules: NebulaBrowserContentRules?
+     private let context: AccountContext
+     private var presentationData: PresentationData
+     
+@@ -341,9 +343,10 @@ final class BrowserWebContent: UIView, BrowserContent, WKNavigationDelegate, WKU
+         self.webView.backgroundColor = presentationData.theme.list.plainBackgroundColor
+         self.webView.alpha = 0.0
+         
+-        if let request {
+-            self.webView.load(request)
+-        }
++        self.nebulaRules = NebulaBrowserContentRules(webView: self.webView, ready: { [weak webView = self.webView] in
++            guard let webView, webView.url == nil, !webView.isLoading else { return }
++            if let request { webView.load(request) }
++        })
+         
+         self.webView.allowsBackForwardNavigationGestures = true
+         self.webView.scrollView.delegate = self
+diff --git a/submodules/SettingsUI/BUILD b/submodules/SettingsUI/BUILD
+index cff9193..1434765 100644
+--- a/submodules/SettingsUI/BUILD
++++ b/submodules/SettingsUI/BUILD
+@@ -10,6 +10,7 @@ swift_library(
+         "-warnings-as-errors",
+     ],
+     deps = [
++        "//submodules/NebulaBrowserCore:NebulaBrowserCore",
+         "//submodules/NebulaLinkUI:NebulaLinkUI",
+         "//submodules/NebulaSettingsContract:NebulaSettingsContract",
+         "//submodules/SSignalKit/SwiftSignalKit:SwiftSignalKit",

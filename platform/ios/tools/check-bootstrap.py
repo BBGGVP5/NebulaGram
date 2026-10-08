@@ -395,6 +395,8 @@ final class Composer {
             subprocess.run(['swiftc', *ios_flags, '-typecheck', '-I', str(temp),
                             str(settings_ui / 'NebulaAiService.swift')], check=True)
             subprocess.run(['swiftc', *ios_flags, '-typecheck', str(settings_ui / 'NebulaEditorSegments.swift')], check=True)
+            subprocess.run(['swiftc', *ios_flags, '-typecheck', '-I', str(temp),
+                            str(temp / 'submodules/NebulaBrowserCore/Sources/NebulaBrowserContentRules.swift')], check=True)
             ai_sources = ['NebulaSettingsStyle.swift', 'NebulaSettingsSymbols.swift', 'NebulaSettingsHero.swift',
                           'NebulaChoiceController.swift', 'NebulaAiChatController.swift', 'NebulaAiController.swift',
                           'NebulaAiService.swift', 'NebulaAiHistoryController.swift', 'NebulaActionGrid.swift',
@@ -402,7 +404,7 @@ final class Composer {
                           'NebulaCommunity.swift', 'NebulaSupportController.swift', 'NebulaAiServicesController.swift',
                           'NebulaAiRolesController.swift', 'NebulaAnimatedSettingsEmoji.swift',
                           'NebulaSettingsIntroItem.swift', 'NebulaLinkPresentation.swift', 'NebulaAiEditorController.swift',
-                          'NebulaEditorSegments.swift', 'NebulaDraftTranslation.swift']
+                          'NebulaEditorSegments.swift', 'NebulaDraftTranslation.swift', 'NebulaBrowserController.swift']
             # These views now use Telegram's PresentationTheme module. Parse them
             # here, then typecheck against the real module graph in ios-native.yml.
             subprocess.run(['swiftc', '-frontend', '-parse', '-swift-version', '5',
