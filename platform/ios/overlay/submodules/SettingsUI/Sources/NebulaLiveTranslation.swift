@@ -29,6 +29,8 @@ public final class NebulaLiveTranslation {
     }
     private var requests: [MessageId: Request] = [:]
     private var queue: [Message] = []
+    private var inFlight: Set<UUID> = []
+    private var pendingRun: (AccountContext, String)?
     private var cache: [String: ([MessageTextEntity], NSAttributedString)] = [:]
     private var failed: [String: Date] = [:]
     private var identity = ""
@@ -42,7 +44,7 @@ public final class NebulaLiveTranslation {
     public func stop() {
         revision += 1
         for request in requests.values { request.task?.cancel(); NebulaTranslationActivity.set(owner: request.token, key: nil) }
-        requests.removeAll(); queue.removeAll()
+        requests.removeAll(); queue.removeAll(); pendingRun = nil
     }
     public func update(context: AccountContext, peer: PeerId, messages: [Message], allowed: Bool) {
         scope = String(context.account.peerId.toInt64()) + ":" + String(peer.toInt64())
@@ -72,9 +74,14 @@ public final class NebulaLiveTranslation {
         runNext(context: context, language: options.incomingLanguage)
     }
     private func runNext(context: AccountContext, language: String) {
+        pendingRun = (context, language); pump()
+    }
+    private func pump() {
+        guard let (context, language) = pendingRun else { return }
         let limit = NebulaAiSettings.shared.provider == .appleIntelligence ? 1 : 2
-        while requests.count < limit, let index = queue.firstIndex(where: { requests[$0.id] == nil }) {
+        while inFlight.count < limit, let index = queue.firstIndex(where: { requests[$0.id] == nil }) {
             let message = queue.remove(at: index), token = UUID()
+            inFlight.insert(token)
             NebulaTranslationActivity.set(owner: token, key: NebulaTranslationKey(account: String(context.account.peerId.toInt64()),
                 peer: String(message.id.peerId.toInt64()), namespace: message.id.namespace, message: message.id.id))
             let version = revision, requestConnection = Self.connectionIdentity
@@ -84,11 +91,13 @@ public final class NebulaLiveTranslation {
                 let result: NSAttributedString?
                 var failure: Error?
                 do { result = try await NebulaRichEditorTransform.generate(chatInputStateStringWithAppliedEntities(message.text, entities: Self.entities(message)), instruction: "Translate into language code \(language).") } catch { result = nil; failure = error }
-                guard let self = self, version == self.revision, self.requests[message.id]?.token == token else { return }
+                guard let self = self else { return }
+                self.inFlight.remove(token)
+                guard version == self.revision, self.requests[message.id]?.token == token else { self.pump(); return }
                 self.requests.removeValue(forKey: message.id)
                 NebulaTranslationActivity.set(owner: token, key: nil)
                 guard !Task.isCancelled, requestConnection == Self.connectionIdentity else {
-                    self.runNext(context: context, language: language); return
+                    self.pump(); return
                 }
                 if let result = result {
                     Self.errors.removeValue(forKey: self.scope)
@@ -104,7 +113,7 @@ public final class NebulaLiveTranslation {
                         Self.errors[self.scope] = NebulaAiService.message(for: failure, russian: russian)
                     }
                 }
-                self.runNext(context: context, language: language)
+                self.pump()
             }
         }
     }

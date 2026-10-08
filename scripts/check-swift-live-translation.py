@@ -70,12 +70,15 @@ final class NebulaAiSettings { static let shared = NebulaAiSettings()
     func conversationIdentity(action: String, language: String, instructions: String) -> String { "\(provider.rawValue):\(model(for: provider)):\(customEndpoint)" }; var enabled = true; var provider = Provider.remote; var customEndpoint = "https://example.test"; var instructions = ""; func isConfigured() -> Bool { true }; func model(for: Provider) -> String { "model" } }
 enum NebulaAiServiceError: Error { case invalidConfiguration }
 struct NebulaAiService {
-    static var localModelAvailable = true; static var active = 0; static var peak = 0; static var calls = 0; static var blocked = false
+    static var localModelAvailable = true; static var active = 0; static var peak = 0; static var calls = 0; static var blocked = false; static var slowCancellation = false
     let instructions: String
-    func generate(input: String) async throws -> String {
+    @MainActor func generate(input: String) async throws -> String {
         Self.calls += 1; Self.active += 1; Self.peak = max(Self.peak, Self.active)
         defer { Self.active -= 1 }
-        while Self.blocked { try await Task.sleep(nanoseconds: 1_000_000) }
+        while Self.blocked {
+            if Self.slowCancellation { await withCheckedContinuation { continuation in DispatchQueue.main.asyncAfter(deadline: .now() + 0.002) { continuation.resume() } } }
+            else { try await Task.sleep(nanoseconds: 1_000_000) }
+        }
         await Task.yield(); try Task.checkCancellation(); return "AI:" + input
     }
     static func message(for: Error, russian: Bool) -> String { "Unavailable" }
@@ -114,6 +117,19 @@ struct NebulaAiService {
         try await waitFor("visible result completes after scroll") { c.attributes.count == 1 && NebulaAiService.active == 0 }
         precondition(a.attributes.isEmpty && b.attributes.isEmpty && c.attributes.count == 1, "scroll cancellation rejects offscreen completions")
         precondition(NebulaAiService.peak == 2 && protected.attributes.isEmpty, "bounded transport and protected text")
+        let retired = Message(15, "retired"), queued = Message(16, "queued")
+        context.account.postbox.tx.messages[retired.id] = retired; context.account.postbox.tx.messages[queued.id] = queued
+        NebulaAiService.blocked = true; NebulaAiService.slowCancellation = true; NebulaAiService.peak = 0
+        engine.update(context: context, peer: peer, messages: [retired], allowed: true)
+        try await waitFor("old transport running") { NebulaAiService.active == 1 }
+        NebulaAiSettings.shared.provider = .appleIntelligence
+        engine.update(context: context, peer: peer, messages: [queued], allowed: true)
+        try await Task.sleep(nanoseconds: 20_000_000)
+        precondition(NebulaAiService.active == 1 && NebulaAiService.peak == 1, "scope change waits for actual cancelled transport completion")
+        NebulaAiService.blocked = false
+        try await waitFor("new local request drains") { queued.attributes.count == 1 && NebulaAiService.active == 0 }
+        precondition(retired.attributes.isEmpty && NebulaAiService.peak == 1, "retired result rejected without overlapping local inference")
+        NebulaAiService.slowCancellation = false; NebulaAiSettings.shared.provider = .remote
         let edited = Message(20, "before"); context.account.postbox.tx.messages[edited.id] = edited
         NebulaAiService.blocked = true
         engine.update(context: context, peer: peer, messages: [edited], allowed: true)
