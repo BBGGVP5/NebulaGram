@@ -107,9 +107,15 @@ public final class NebulaMenuStyle {
     }
     /** Large modal surfaces need stronger separation than a small popup menu. */
     public static BlurredBackgroundProvider sheetProvider(Theme.ResourcesProvider provider) {
+        return sheetProvider(provider, false);
+    }
+    public static BlurredBackgroundProvider editorSheetProvider(Theme.ResourcesProvider provider) {
+        return sheetProvider(provider, true);
+    }
+    private static BlurredBackgroundProvider sheetProvider(Theme.ResourcesProvider provider, boolean editor) {
         return new Material(provider)
                 .setBackgroundColor((r, dark) -> Theme.multAlpha(Theme.getColor(Theme.key_dialogBackground, r),
-                        Math.max(dark ? .92f : .94f, opacity())))
+                        editor ? (dark ? .30f : .42f) : Math.max(dark ? .92f : .94f, opacity())))
                 .setStrokeColorTop(0x30ffffff, 0x30ffffff)
                 .setStrokeColorBottom(0x12000000, 0x14ffffff)
                 .setStrokeWidth(AndroidUtilities.dpf2(.55f), AndroidUtilities.dpf2(.4f))
