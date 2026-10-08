@@ -39,6 +39,6 @@ with tempfile.TemporaryDirectory(prefix='nebula-translation-api-') as folder:
     work=Path(folder)
     for name,source in stubs.items():
         p=work/name;p.parent.mkdir(parents=True,exist_ok=True);p.write_text(source,encoding='utf-8')
-    production=['NebulaLocalTranslation.java','NebulaTranslationClient.java','NebulaTranslationText.java','NebulaDraftTranslation.java','NebulaDraftOriginal.java','NebulaDraftRequestGate.java']
+    production=['NebulaLocalTranslation.java','NebulaTranslationClient.java','NebulaTranslationText.java','NebulaTranslationFormat.java','NebulaDraftTranslation.java','NebulaDraftOriginal.java','NebulaDraftRequestGate.java']
     subprocess.run(['javac','-encoding','UTF-8','-cp',os.pathsep.join(map(str,[platforms[-1],*jars])),'-d',folder,*map(str,work.rglob('*.java')),*[str(ui/n) for n in production]],check=True)
 print('Actual draft UI and language-pack transport compile against '+platforms[-1].parent.name+' and ML Kit Translation 17.0.3')

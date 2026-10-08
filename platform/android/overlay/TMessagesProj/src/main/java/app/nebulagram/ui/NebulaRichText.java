@@ -59,7 +59,10 @@ public final class NebulaRichText {
         boolean local = NebulaTranslationSettings.local();
         int budget = NebulaTranslationSettings.global().getInt("provider", 0) == NebulaAiClient.NANO ? 900 : 3500;
         NebulaTranslationFormat.Result result = NebulaTranslationFormat.translate(source.text, ranges,
-            text -> client.translate(text, language, interactive, progress), !local, budget);
+            new NebulaTranslationFormat.Translator() {
+                public String translate(String text) throws Exception { return client.translate(text, language, interactive, progress); }
+                public String translateStructured(String text) throws Exception { return client.translate(text, language, interactive, progress, true); }
+            }, !local, budget);
         return remap(source, result);
     }
     public static TLRPC.TL_textWithEntities transform(TLRPC.TL_textWithEntities source,

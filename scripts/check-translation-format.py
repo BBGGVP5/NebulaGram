@@ -34,6 +34,23 @@ public class TranslationFormatCheck {
   check(result.text.equals(translate(source)),"on-device translation preserves formatting");
   result=NebulaTranslationFormat.translate("[[[N0]]] Привет",List.of(new NebulaTranslationFormat.Range(9,15,false)),TranslationFormatCheck::translate,true,3500);
   check(result.text.equals("[[[N0]]] Hello"),"input markers cannot collide with protocol");
+  int[] modes={0,0};
+  var routed=new NebulaTranslationFormat.Translator(){
+   public String translate(String text){modes[0]++;return TranslationFormatCheck.translate(text);}
+   public String translateStructured(String text){modes[1]++;return "malformed response";}
+  };
+  result=NebulaTranslationFormat.translate("Привет",List.of(),routed,true,3500);
+  check(result.text.equals("Hello")&&modes[0]==1&&modes[1]==0,"plain draft receives only plain instructions");
+  modes[0]=modes[1]=0;
+  result=NebulaTranslationFormat.translate(source,spans,routed,true,3500);
+  check(result.text.equals(translate(source))&&modes[1]==1&&modes[0]>1,"malformed structured response falls back to plain instructions");
+  for(String token:List.of("[[[N...]]]","[[[N0]]]","[[[NN3]]]")){
+   try{NebulaTranslationFormat.translate("Привет",List.of(),s->token+" Hello",true,3500);throw new AssertionError("invented marker accepted");}
+   catch(IllegalStateException expected){check(expected.getMessage().equals("INVALID_TRANSLATION_FORMAT"),"leaked marker rejected");}
+   check(NebulaTranslationFormat.checkedPlain(token+" Привет",token+" Hello").equals(token+" Hello"),"literal user marker retained");
+   try{NebulaTranslationFormat.checkedPlain(token+" Привет",token+token+" Hello");throw new AssertionError("duplicated marker accepted");}
+   catch(IllegalStateException expected){check(expected.getMessage().equals("INVALID_TRANSLATION_FORMAT"),"duplicated marker rejected");}
+  }
   String protectedOnly="👩🏽‍💻 🇷🇺 1️⃣\r\nhttps://example.com @name";
   result=NebulaTranslationFormat.translate(protectedOnly,List.of(),s->{throw new AssertionError("protected-only text must not reach engine");},true,3500);
   check(result.text.equals(protectedOnly),"all-protected text needs no request");

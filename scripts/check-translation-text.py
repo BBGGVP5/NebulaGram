@@ -38,5 +38,5 @@ public class TranslationTextCheck {
 '''
 with tempfile.TemporaryDirectory(prefix='nebula-translation-text-') as folder:
  p=Path(folder);(p/'NebulaTranslationClient.java').write_text(client,encoding='utf-8');(p/'TranslationTextCheck.java').write_text(stubs,encoding='utf-8')
- subprocess.run(['javac','-encoding','UTF-8','-d',folder,str(ui/'NebulaTranslationText.java'),str(p/'NebulaTranslationClient.java'),str(p/'TranslationTextCheck.java')],check=True)
+ subprocess.run(['javac','-encoding','UTF-8','-d',folder,str(ui/'NebulaTranslationText.java'),str(ui/'NebulaTranslationFormat.java'),str(p/'NebulaTranslationClient.java'),str(p/'TranslationTextCheck.java')],check=True)
  subprocess.run(['java','-cp',folder,'app.nebulagram.ui.TranslationTextCheck'],check=True)
