@@ -20,6 +20,15 @@ enum Namespaces { enum Peer { static let SecretChat: Int32 = 1 }; enum Message {
 struct MessageFlags: OptionSet { let rawValue: Int; static let Incoming = MessageFlags(rawValue: 1) }
 struct StoreMessageFlags { let flags: MessageFlags; init(_ flags: MessageFlags) { self.flags = flags } }
 protocol MessageAttribute {}
+typealias MessageTextEntity = Int
+struct TextEntitiesMessageAttribute: MessageAttribute { let entities: [MessageTextEntity] }
+func chatInputStateStringWithAppliedEntities(_ text: String, entities: [MessageTextEntity]) -> NSAttributedString { NSAttributedString(string: text) }
+func generateChatInputTextEntities(_ text: NSAttributedString) -> [MessageTextEntity] { [] }
+enum NebulaRichEditorTransform {
+    static func generate(_ text: NSAttributedString, instruction: String) async throws -> NSAttributedString {
+        NSAttributedString(string: try await NebulaAiService(instructions: instruction).generate(input: text.string))
+    }
+}
 struct AutoremoveTimeoutMessageAttribute: MessageAttribute {}
 struct AutoclearTimeoutMessageAttribute: MessageAttribute {}
 struct TranslationMessageAttribute: MessageAttribute { let text: String; let entities: [Int]; let toLang: String }
@@ -57,7 +66,8 @@ struct PresentationData { func with<T>(_ f: (Presentation) -> T) -> T { f(Presen
 struct SharedContext { let currentPresentationData = PresentationData() }
 public final class AccountContext { let account = Account(); let sharedContext = SharedContext() }
 enum Provider: Int { case remote, appleIntelligence }
-final class NebulaAiSettings { static let shared = NebulaAiSettings(); var enabled = true; var provider = Provider.remote; var customEndpoint = "https://example.test"; var instructions = ""; func isConfigured() -> Bool { true }; func model(for: Provider) -> String { "model" } }
+final class NebulaAiSettings { static let shared = NebulaAiSettings()
+    func conversationIdentity(action: String, language: String, instructions: String) -> String { "\(provider.rawValue):\(model(for: provider)):\(customEndpoint)" }; var enabled = true; var provider = Provider.remote; var customEndpoint = "https://example.test"; var instructions = ""; func isConfigured() -> Bool { true }; func model(for: Provider) -> String { "model" } }
 enum NebulaAiServiceError: Error { case invalidConfiguration }
 struct NebulaAiService {
     static var localModelAvailable = true; static var active = 0; static var peak = 0; static var calls = 0; static var blocked = false

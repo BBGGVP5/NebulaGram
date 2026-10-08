@@ -8,6 +8,7 @@ public final class NebulaMessageToolsController: UIViewController {
     private let russian: Bool
     private let theme: PresentationTheme
     private let source: String
+    private let attributedSource: NSAttributedString
     private let accountId: String
     private let peerId: String?
     private let applyDraft: ((String) -> Void)?
@@ -20,8 +21,9 @@ public final class NebulaMessageToolsController: UIViewController {
     private let outgoingSwitch = NebulaSwitchControl()
     private let draftSwitch = NebulaSwitchControl()
 
-    public init(text: String, russian: Bool, theme: PresentationTheme, accountId: String, peerId: String? = nil, applyDraft: ((String) -> Void)? = nil) {
+    public init(text: String, russian: Bool, theme: PresentationTheme, accountId: String, peerId: String? = nil, applyDraft: ((String) -> Void)? = nil, attributedSource: NSAttributedString? = nil) {
         self.source = String(text.prefix(50_000))
+        self.attributedSource = attributedSource ?? NSAttributedString(string: String(text.prefix(50_000)))
         self.russian = russian
         self.theme = theme
         self.accountId = accountId
@@ -194,6 +196,12 @@ public final class NebulaMessageToolsController: UIViewController {
             navigationController?.pushViewController(NebulaTasksController(accountId: accountId, russian: russian, theme: theme, draft: result.isEmpty ? source : result), animated: true)
         default:
             let action: NebulaAiAction = sender.tag == 1 ? .translate : sender.tag == 2 ? .summarize : sender.tag == 5 ? .proofread : .ask
+            if action == .translate || action == .proofread || action == .rewrite {
+                let editor = NebulaAiEditorController(source: attributedSource, russian: russian, theme: theme, account: accountId, peer: peerId, action: action, apply: { [weak self] value in
+                    self?.result = value.string; self?.output.attributedText = value; self?.output.isHidden = false
+                })
+                navigationController?.pushViewController(editor, animated: true); return
+            }
             let editor = NebulaAiChatController(russian: russian, initialText: source, action: action, applyResult: { [weak self] value in
                 self?.result = value
                 self?.output.text = value

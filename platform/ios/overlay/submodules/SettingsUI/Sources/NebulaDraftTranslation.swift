@@ -11,15 +11,16 @@ public final class NebulaDraftTranslation: NSObject {
     public let preview = UIView()
     public var openTools: (() -> Void)?
     public var openSettings: (() -> Void)?
-    public var apply: ((String, String) -> Void)?
+    public var apply: ((NSAttributedString, NSAttributedString) -> Void)?
     private let label = UILabel()
     private let use = UIButton(type: .system)
     private let close = UIButton(type: .system)
     private let settings = UIButton(type: .system)
     private var task: Task<Void, Never>?
     private var state = NebulaDraftRevision()
-    private var source = ""
-    private var result = ""
+    private var source = NSAttributedString(string: "")
+    private var attributesRevision = 0
+    private var result = NSAttributedString(string: "")
     private var identityPrefix = ""
     private var russian = false
     public override init() {
@@ -60,15 +61,17 @@ public final class NebulaDraftTranslation: NSObject {
         use.frame = CGRect(x: width - 140, y: height - 44, width: 132, height: 44)
         host.bringSubviewToFront(preview)
     }
-    private var cache: [String: String] = [:]
-    public func update(source: String, options: NebulaTranslationOptions, allowed: Bool) {
-        guard allowed, options.draft, NebulaLiveTranslation.ready, !source.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty, source.count <= 12000 else { stop(); return }
+    private var cache: [String: (NSAttributedString, NSAttributedString)] = [:]
+    public func update(source: NSAttributedString, options: NebulaTranslationOptions, allowed: Bool) {
+        guard allowed, options.draft, NebulaLiveTranslation.ready, !source.string.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty, source.length <= 12000 else { stop(); return }
         identityPrefix = options.draftLanguage + ":" + NebulaLiveTranslation.connectionIdentity + ":"
-        let identity = identityPrefix + source
+        if !self.source.isEqual(to: source) { attributesRevision += 1 }
+        let cacheKey = identityPrefix + source.string
+        let identity = cacheKey + ":\(attributesRevision)"
         guard let version = state.begin(identity) else { return }
         task?.cancel(); preview.isHidden = true; self.source = source
-        if let result = cache[identity] {
-            self.result = result; label.text = result; use.isHidden = false; revealPreview(); return
+        if let cached = cache[cacheKey], cached.0.isEqual(to: source) {
+            self.result = cached.1; label.text = cached.1.string; use.isHidden = false; revealPreview(); return
         }
         task = Task { @MainActor [weak self] in
             do {
@@ -76,10 +79,10 @@ public final class NebulaDraftTranslation: NSObject {
                 guard let self = self, !Task.isCancelled, self.state.accepts(version) else { return }
                 self.label.text = self.russian ? "Nebula AI · переводим…" : "Nebula AI · translating…"
                 self.use.isHidden = true; self.revealPreview()
-                let result = try await NebulaLiveTranslation.translate(source, language: options.draftLanguage)
+                let result = try await NebulaRichEditorTransform.generate(source, instruction: "Translate into language code \(options.draftLanguage).")
                 guard !Task.isCancelled, self.state.accepts(version) else { return }
-                if self.cache.count >= 16 { self.cache.removeAll() }; self.cache[identity] = result
-                self.result = result; self.label.text = result; self.use.isHidden = false; self.revealPreview()
+                if self.cache.count >= 16 { self.cache.removeAll() }; self.cache[cacheKey] = (source, result)
+                self.result = result; self.label.text = result.string; self.use.isHidden = false; self.revealPreview()
             } catch {
                 guard let self = self, !Task.isCancelled, self.state.accepts(version) else { return }
                 self.label.text = NebulaAiService.message(for: error, russian: self.russian)
@@ -97,7 +100,7 @@ public final class NebulaDraftTranslation: NSObject {
     @objc private func tools() { stop(); openTools?() }
     @objc private func configure() { stop(); openSettings?() }
     @objc private func held(_ gesture: UILongPressGestureRecognizer) { if gesture.state == .began { configure() } }
-    @objc private func applyResult() { let source = self.source, result = self.result; stop(); state.suppress(identityPrefix + result); apply?(source, result) }
-    @objc private func hide() { stop(); state.suppress(identityPrefix + source) }
+    @objc private func applyResult() { let source = self.source, result = self.result; stop(); state.suppress(identityPrefix + result.string + ":\(attributesRevision + 1)"); apply?(source, result) }
+    @objc private func hide() { stop(); state.suppress(identityPrefix + source.string + ":\(attributesRevision)") }
     deinit { task?.cancel() }
 }

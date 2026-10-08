@@ -1,0 +1,156 @@
+diff --git a/submodules/AccountContext/Sources/AccountContext.swift b/submodules/AccountContext/Sources/AccountContext.swift
+index 1f33a3f..f0d9e75 100644
+--- a/submodules/AccountContext/Sources/AccountContext.swift
++++ b/submodules/AccountContext/Sources/AccountContext.swift
+@@ -1362,7 +1362,7 @@ public enum EmojiStatusSelectionControllerMode {
+ }
+ 
+ public protocol SharedAccountContext: AnyObject {
+-    func presentNebulaCaptionTools(context: AccountContext, from view: UIView, text: String, apply: @escaping (String) -> Void)
++    func presentNebulaCaptionTools(context: AccountContext, from view: UIView, text: NSAttributedString, apply: @escaping (NSAttributedString) -> Void)
+     var sharedContainerPath: String { get }
+     var basePath: String { get }
+     var networkArguments: NetworkInitializationArguments { get }
+diff --git a/submodules/AttachmentTextInputPanelNode/Sources/AttachmentTextInputPanelNode.swift b/submodules/AttachmentTextInputPanelNode/Sources/AttachmentTextInputPanelNode.swift
+index 042879b..8f0c1a8 100644
+--- a/submodules/AttachmentTextInputPanelNode/Sources/AttachmentTextInputPanelNode.swift
++++ b/submodules/AttachmentTextInputPanelNode/Sources/AttachmentTextInputPanelNode.swift
+@@ -2344,10 +2344,10 @@ public class AttachmentTextInputPanelNode: ASDisplayNode, TGCaptionPanelView, AS
+ 
+     @objc private func aiButtonPressed() {
+         if self.nebulaShortcut {
+-            let source = self.inputTextState.inputText.string
++            let source = self.inputTextState.inputText
+             self.context.sharedContext.presentNebulaCaptionTools(context: self.context, from: self.view, text: source) { [weak self] result in
+-                guard let self, self.inputTextState.inputText.string == source else { return }
+-                self.setCaption(NSAttributedString(string: result))
++                guard let self, self.inputTextState.inputText.isEqual(to: source) else { return }
++                self.setCaption(result)
+             }
+             return
+         }
+diff --git a/submodules/TelegramUI/Sources/ChatController.swift b/submodules/TelegramUI/Sources/ChatController.swift
+index f34b69f..e1d677f 100644
+--- a/submodules/TelegramUI/Sources/ChatController.swift
++++ b/submodules/TelegramUI/Sources/ChatController.swift
+@@ -266,12 +266,12 @@ public final class ChatControllerImpl: TelegramBaseController, ChatController, G
+         nebulaDraftTranslation.openSettings = { [weak self] in self?.nebulaOpenTranslationSettings() }
+         nebulaDraftTranslation.openTools = { [weak self] in
+             guard let self = self, !self.nebulaToolsVisible, self.presentedViewController == nil else { return }
+-            let source = self.presentationInterfaceState.interfaceState.effectiveInputState.inputText.string
+-            let tools = NebulaMessageToolsController(text: source, russian: russian, theme: self.presentationData.theme,
+-                accountId: account, peerId: peerKey, applyDraft: { [weak self] value in self?.nebulaApplyDraft(source: source, result: value) })
++            let source = self.presentationInterfaceState.interfaceState.effectiveInputState.inputText
++            let tools = NebulaAiEditorController(source: source, russian: russian, theme: self.presentationData.theme,
++                account: account, peer: peerKey, apply: { [weak self] value in self?.nebulaApplyRichDraft(source: source, result: value) })
+             self.nebulaPresentTools(tools)
+         }
+-        nebulaDraftTranslation.apply = { [weak self] source, result in self?.nebulaApplyDraft(source: source, result: result) }
++        nebulaDraftTranslation.apply = { [weak self] source, result in self?.nebulaApplyRichDraft(source: source, result: result) }
+         nebulaTranslationTimer?.invalidate(); nebulaTranslationTimer = nil
+         let options = NebulaTranslationPreferences.shared.options(account: account, peer: peerKey)
+         nebulaTickChatAI()
+@@ -320,10 +320,10 @@ public final class ChatControllerImpl: TelegramBaseController, ChatController, G
+             russian: presentationData.strings.baseLanguageCode.lowercased().hasPrefix("ru"), theme: presentationData.theme)
+         nebulaPresentTools(settings)
+     }
+-    private func nebulaApplyDraft(source: String, result: String) {
+-        guard presentationInterfaceState.interfaceState.effectiveInputState.inputText.string == source else { return }
++    private func nebulaApplyRichDraft(source: NSAttributedString, result: NSAttributedString) {
++        guard presentationInterfaceState.interfaceState.effectiveInputState.inputText.isEqual(to: source) else { return }
+         updateChatPresentationInterfaceState(animated: true, interactive: true, {
+-            $0.updatedInterfaceState { $0.withUpdatedEffectiveInputState(ChatTextInputState(inputText: NSAttributedString(string: result))) }
++            $0.updatedInterfaceState { $0.withUpdatedEffectiveInputState(ChatTextInputState(inputText: result)) }
+         })
+     }
+     private func nebulaTickChatAI() {
+@@ -353,7 +353,7 @@ public final class ChatControllerImpl: TelegramBaseController, ChatController, G
+         let canTranslateDraft = composerVisible && !nebulaToolsVisible && peer.namespace != Namespaces.Peer.SecretChat
+             && presentationInterfaceState.editMessageState == nil && presentationInterfaceState.inputTextPanelState.mediaRecordingState == nil
+             && presentationInterfaceState.interfaceState.mediaDraftState == nil
+-        nebulaDraftTranslation.update(source: presentationInterfaceState.interfaceState.effectiveInputState.inputText.string, options: options, allowed: canTranslateDraft)
++        nebulaDraftTranslation.update(source: presentationInterfaceState.interfaceState.effectiveInputState.inputText, options: options, allowed: canTranslateDraft)
+         if let panel = chatDisplayNode.textInputPanelNode, composerVisible {
+             nebulaDraftTranslation.layout(above: panel.view.convert(panel.view.bounds, to: view), in: view)
+         }
+@@ -6219,9 +6219,11 @@ public final class ChatControllerImpl: TelegramBaseController, ChatController, G
+                                 return generateTintedImage(image: UIImage(bundleImageName: "Chat/Context Menu/Translate"), color: theme.actionSheet.primaryTextColor)
+                             }, action: { _, f in
+                                 f(.dismissWithoutContent)
+-                                let editor = NebulaAiChatController(russian: russian, initialText: draft, action: .proofread, applyResult: { [weak self] value in
+-                                    self?.nebulaApplyDraft(source: draft, result: value)
+-                                }, theme: strongSelf.presentationData.theme)
++                                let original = strongSelf.presentationInterfaceState.interfaceState.effectiveInputState.inputText
++                                let editor = NebulaAiEditorController(source: original, russian: russian, theme: strongSelf.presentationData.theme,
++                                    account: String(strongSelf.context.account.peerId.toInt64()), peer: String(peer.id.toInt64()), action: .proofread, apply: { [weak self] value in
++                                        self?.nebulaApplyRichDraft(source: original, result: value)
++                                    })
+                                 strongSelf.nebulaPresentTools(editor)
+                             })))
+                         }
+diff --git a/submodules/TelegramUI/Sources/ChatInterfaceStateContextMenus.swift b/submodules/TelegramUI/Sources/ChatInterfaceStateContextMenus.swift
+index aa73caa..f76cb73 100644
+--- a/submodules/TelegramUI/Sources/ChatInterfaceStateContextMenus.swift
++++ b/submodules/TelegramUI/Sources/ChatInterfaceStateContextMenus.swift
+@@ -31,6 +31,7 @@ import Pasteboard
+ import BrowserUI
+ import ChatRichTextEditorComposer
+ import SettingsUI
++import TextFormat
+ import NebulaSettingsContract
+ import TextNodeWithEntities
+ import ChatControllerInteraction
+@@ -1450,9 +1451,11 @@ func contextMenuForChatPresentationInterfaceState(chatPresentationInterfaceState
+                         let localReady = aiSettings.provider != .appleIntelligence || NebulaAiChatController.onDeviceAvailable
+                         if aiSettings.enabled && aiSettings.isConfigured() && localReady && !isCopyProtected && messages.count == 1 && message.id.peerId.namespace != Namespaces.Peer.SecretChat {
+                             let selectedText = messageText
++                            let sourceEntities = (message.attributes.first(where: { $0 is TextEntitiesMessageAttribute }) as? TextEntitiesMessageAttribute)?.entities ?? []
++                            let richSource = selectedText == message.text ? chatInputStateStringWithAppliedEntities(selectedText, entities: sourceEntities) : NSAttributedString(string: selectedText)
+                             let russian = chatPresentationInterfaceState.strings.baseLanguageCode.lowercased().hasPrefix("ru")
+                             c?.dismiss(completion: {
+-                                controllerInteraction.navigationController()?.present(NebulaToolsNavigationController(root: NebulaAiChatController(russian: russian, initialText: selectedText, action: .translate, theme: chatPresentationInterfaceState.theme)), animated: true)
++                                controllerInteraction.navigationController()?.present(NebulaToolsNavigationController(root: NebulaAiEditorController(source: richSource, russian: russian, theme: chatPresentationInterfaceState.theme, account: String(context.account.peerId.toInt64()), peer: String(message.id.peerId.toInt64()))), animated: true)
+                             })
+                             if c == nil { f(.default) }
+                             return
+@@ -1471,6 +1474,8 @@ func contextMenuForChatPresentationInterfaceState(chatPresentationInterfaceState
+                 
+                 if !messageText.isEmpty && !isCopyProtected && messages.count == 1 && message.id.peerId.namespace != Namespaces.Peer.SecretChat && messageText.count <= 50_000 {
+                     let selectedText = messageText
++                    let sourceEntities = (message.attributes.first(where: { $0 is TextEntitiesMessageAttribute }) as? TextEntitiesMessageAttribute)?.entities ?? []
++                    let attributedSource = messageText == message.text ? chatInputStateStringWithAppliedEntities(messageText, entities: sourceEntities) : NSAttributedString(string: messageText)
+                     let russian = chatPresentationInterfaceState.strings.baseLanguageCode.lowercased().hasPrefix("ru")
+                     actions.append(.action(ContextMenuActionItem(text: russian ? "Nebula AI · пересказ" : "Nebula AI · Summarize", icon: { theme in
+                         return generateTintedImage(image: UIImage(bundleImageName: "Chat/Context Menu/Translate"), color: theme.actionSheet.primaryTextColor)
+@@ -1484,7 +1489,7 @@ func contextMenuForChatPresentationInterfaceState(chatPresentationInterfaceState
+                         return generateTintedImage(image: UIImage(bundleImageName: "Chat/Context Menu/Translate"), color: theme.actionSheet.primaryTextColor)
+                     }, action: { c, f in
+                         c?.dismiss(completion: {
+-                            controllerInteraction.navigationController()?.present(NebulaToolsNavigationController(root: NebulaMessageToolsController(text: selectedText, russian: russian, theme: chatPresentationInterfaceState.theme, accountId: String(context.account.peerId.toInt64()), peerId: String(message.id.peerId.toInt64()))), animated: true)
++                            controllerInteraction.navigationController()?.present(NebulaToolsNavigationController(root: NebulaMessageToolsController(text: selectedText, russian: russian, theme: chatPresentationInterfaceState.theme, accountId: String(context.account.peerId.toInt64()), peerId: String(message.id.peerId.toInt64()), attributedSource: attributedSource)), animated: true)
+                         })
+                         if c == nil { f(.default) }
+                     })))
+diff --git a/submodules/TelegramUI/Sources/SharedAccountContext.swift b/submodules/TelegramUI/Sources/SharedAccountContext.swift
+index 984673f..faf799f 100644
+--- a/submodules/TelegramUI/Sources/SharedAccountContext.swift
++++ b/submodules/TelegramUI/Sources/SharedAccountContext.swift
+@@ -144,15 +144,15 @@ private enum AddedAccountsResult {
+ private var testHasInstance = false
+ 
+ public final class SharedAccountContextImpl: SharedAccountContext {
+-    public func presentNebulaCaptionTools(context: AccountContext, from view: UIView, text: String, apply: @escaping (String) -> Void) {
++    public func presentNebulaCaptionTools(context: AccountContext, from view: UIView, text: NSAttributedString, apply: @escaping (NSAttributedString) -> Void) {
+         var responder: UIResponder? = view
+         while responder != nil && !(responder is UIViewController) { responder = responder?.next }
+         guard var presenter = responder as? UIViewController else { return }
+         while let presented = presenter.presentedViewController { presenter = presented }
+         guard !presenter.isBeingDismissed else { return }
+         let data = context.sharedContext.currentPresentationData.with { $0 }
+-        let tools = NebulaMessageToolsController(text: text, russian: data.strings.baseLanguageCode.hasPrefix("ru"),
+-            theme: data.theme, accountId: String(context.account.peerId.toInt64()), applyDraft: apply)
++        let tools = NebulaAiEditorController(source: text, russian: data.strings.baseLanguageCode.hasPrefix("ru"),
++            theme: data.theme, account: String(context.account.peerId.toInt64()), apply: apply)
+         view.endEditing(true)
+         presenter.present(NebulaToolsNavigationController(root: tools), animated: true)
+     }

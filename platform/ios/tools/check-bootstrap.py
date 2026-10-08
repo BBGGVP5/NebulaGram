@@ -99,16 +99,16 @@ def main():
         assert 'controller.present(sheet, in: .window(.root))' in header
         ai_menu = (temp / 'submodules/TelegramUI/Sources/ChatInterfaceStateContextMenus.swift').read_text(encoding='utf-8')
         assert 'NebulaAiSettings.shared' in ai_menu
-        assert 'NebulaAiChatController(russian: russian, initialText: selectedText, action: .translate, theme: chatPresentationInterfaceState.theme)' in ai_menu
+        assert 'NebulaAiEditorController(source: richSource' in ai_menu
         assert 'NebulaAiChatController(russian: russian, initialText: selectedText, action: .summarize, theme: chatPresentationInterfaceState.theme)' in ai_menu
         assert '!isCopyProtected && messages.count == 1' in ai_menu
         draft_menu = (temp / 'submodules/TelegramUI/Sources/ChatController.swift').read_text(encoding='utf-8')
-        assert 'NebulaAiChatController(russian: russian, initialText: draft, action: .proofread' in draft_menu
-        assert 'withUpdatedEffectiveInputState(ChatTextInputState(inputText: NSAttributedString(string: result)))' in draft_menu
-        assert 'effectiveInputState.inputText.string == source else { return }' in draft_menu
+        assert 'NebulaAiEditorController(source: original' in draft_menu and 'nebulaApplyRichDraft(source: original, result: value)' in draft_menu
+        assert 'withUpdatedEffectiveInputState(ChatTextInputState(inputText: result))' in draft_menu
+        assert 'effectiveInputState.inputText.isEqual(to: source) else { return }' in draft_menu
         assert 'composerVisible && !nebulaToolsVisible' in draft_menu
         assert 'NebulaToolsNavigationController(root: controller, onDismiss:' in draft_menu
-        assert 'self?.nebulaApplyDraft(source: draft, result: value)' in draft_menu
+        assert 'self?.nebulaApplyRichDraft(source: original, result: value)' in draft_menu
         assert 'NebulaToolsNavigationController(root: NebulaMessageToolsController' in ai_menu
         assert 'NebulaChatLockEditorController(account:' in draft_menu
         assert 'NebulaChatLockGate.attach(to: self' in draft_menu
@@ -394,13 +394,15 @@ final class Composer {
                             str(temp / 'submodules/Display/Source/NebulaAIOutline.swift')], check=True)
             subprocess.run(['swiftc', *ios_flags, '-typecheck', '-I', str(temp),
                             str(settings_ui / 'NebulaAiService.swift')], check=True)
+            subprocess.run(['swiftc', *ios_flags, '-typecheck', str(settings_ui / 'NebulaEditorSegments.swift')], check=True)
             ai_sources = ['NebulaSettingsStyle.swift', 'NebulaSettingsSymbols.swift', 'NebulaSettingsHero.swift',
                           'NebulaChoiceController.swift', 'NebulaAiChatController.swift', 'NebulaAiController.swift',
                           'NebulaAiService.swift', 'NebulaAiHistoryController.swift', 'NebulaActionGrid.swift',
                           'NebulaResultLanguage.swift', 'NebulaMessageToolsController.swift', 'NebulaTasksController.swift',
                           'NebulaCommunity.swift', 'NebulaSupportController.swift', 'NebulaAiServicesController.swift',
                           'NebulaAiRolesController.swift', 'NebulaAnimatedSettingsEmoji.swift',
-                          'NebulaSettingsIntroItem.swift', 'NebulaLinkPresentation.swift']
+                          'NebulaSettingsIntroItem.swift', 'NebulaLinkPresentation.swift', 'NebulaAiEditorController.swift',
+                          'NebulaEditorSegments.swift', 'NebulaDraftTranslation.swift']
             # These views now use Telegram's PresentationTheme module. Parse them
             # here, then typecheck against the real module graph in ios-native.yml.
             subprocess.run(['swiftc', '-frontend', '-parse', '-swift-version', '5',
