@@ -597,15 +597,17 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/InstantCamer
              app.nebulagram.ui.NebulaZoomCapabilities rearZoom = nebulaCameraCatalog(false);
              if (rearZoom != null && rearZoom.needsReopen()) bothCameras = false;
              if (bothCameras) {
-@@ -1096,6 +1100,7 @@
+@@ -1096,6 +1100,9 @@
              return;
          }
          cancelled = true;
-+        if (videoEncoder != null) videoEncoder.discarded = true;
++        // Story replies clear ownership after sending, then close the camera via cancel().
++        // Their already handed-off upload must still receive the final encoder bytes.
++        if (videoEncoder != null && cameraFile != null) videoEncoder.discarded = true;
          recording = false;
          nebulaZoomSlider.setVisibility(View.GONE);
          flashing = false;
-@@ -2208,6 +2213,8 @@
+@@ -2208,6 +2215,8 @@
          private int textureMatrixHandle;
          private int positionHandle;
          private int textureHandle;
@@ -614,7 +616,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/InstantCamer
          private int resolutionHandle;
          private int previewSizeHandle;
          private int texelSizeHandle;
-@@ -2217,6 +2224,7 @@
+@@ -2217,6 +2226,7 @@
          private InstantCameraVideoEncoderOverlayHelper overlayHelper;
  
          private AudioRecord audioRecorder;
@@ -622,7 +624,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/InstantCamer
  
          private ArrayBlockingQueue<AudioBufferInfo> buffers = new ArrayBlockingQueue<>(10);
          private ArrayList<Bitmap> keyframeThumbs = new ArrayList<>();
-@@ -2303,7 +2311,7 @@
+@@ -2303,7 +2313,7 @@
                          buffer.offset[a] = timestamp;
  
                          buffer.read[a] = readResult;
@@ -631,7 +633,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/InstantCamer
                          if (!shouldUseTimestamp) {
                              audioPresentationTimeUs += bufferDurationUs;
                          }
-@@ -2346,6 +2354,8 @@
+@@ -2346,6 +2356,8 @@
  
              started = true;
              int resolution = MessagesController.getInstance(currentAccount).roundVideoSize;
@@ -640,7 +642,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/InstantCamer
              int bitrate = MessagesController.getInstance(currentAccount).roundVideoBitrate * 1024;
              AndroidUtilities.runOnUIThread(() -> {
                  NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.stopAllHeavyOperations, 512);
-@@ -2660,6 +2670,9 @@
+@@ -2660,6 +2672,9 @@
              GLES20.glUniformMatrix4fv(vertexMatrixHandle, 1, false, mMVPMatrix, 0);
  
              GLES20.glUniform2f(resolutionHandle, videoWidth, videoHeight);
@@ -650,7 +652,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/InstantCamer
  
              if (oldCameraTexture[0] != 0 && oldTextureBuffer != null && !bothCameras) {
                  if (!blendEnabled) {
-@@ -2814,7 +2827,9 @@
+@@ -2814,7 +2829,9 @@
                  }
              }
  //            FileLoader.getInstance(currentAccount).cancelFileUpload(videoFile.getAbsolutePath(), false);
@@ -660,7 +662,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/InstantCamer
                  videoEditedInfo = new VideoEditedInfo();
                  videoEditedInfo.roundVideo = true;
                  videoEditedInfo.startTime = -1;
-@@ -2827,10 +2842,10 @@
+@@ -2827,10 +2844,10 @@
                  videoEditedInfo.framerate = 25;
                  videoEditedInfo.resultWidth = videoEditedInfo.originalWidth = 360;
                  videoEditedInfo.resultHeight = videoEditedInfo.originalHeight = 360;
@@ -674,7 +676,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/InstantCamer
              });
          }
  
-@@ -2903,6 +2918,12 @@
+@@ -2903,6 +2920,12 @@
          public static final int ENCODER_SEND_PLAYER = 2;
  
          private boolean sentMedia;
@@ -687,7 +689,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/InstantCamer
  
          private void handleStopRecording(final int send, final SendOptions sendOptions) {
              final boolean runDone;
-@@ -2911,6 +2932,7 @@
+@@ -2911,6 +2934,7 @@
                  if (!sentMedia) {
                      sentMedia = true;
                      AndroidUtilities.runOnUIThread(() -> {
@@ -695,7 +697,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/InstantCamer
                          videoEditedInfo = new VideoEditedInfo();
                          videoEditedInfo.startTime = -1;
                          videoEditedInfo.endTime = -1;
-@@ -3041,6 +3063,7 @@
+@@ -3041,6 +3065,7 @@
                  if (runDone && (send != ENCODER_SEND_SEND || !sentMedia)) {
                      sentMedia = true;
                      AndroidUtilities.runOnUIThread(() -> {
@@ -703,7 +705,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/InstantCamer
                          if (videoEditedInfo == null) {
                              videoEditedInfo = new VideoEditedInfo();
                              videoEditedInfo.startTime = -1;
-@@ -3063,7 +3086,7 @@
+@@ -3063,7 +3088,7 @@
                              if (videoEditedInfo.endTime > 0) {
                                  videoEditedInfo.endTime *= 1000;
                              }
@@ -712,7 +714,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/InstantCamer
                          } else {
                              videoEditedInfo.estimatedSize = Math.max(1, size);
                          }
-@@ -3107,11 +3130,14 @@
+@@ -3107,11 +3132,14 @@
                      });
                  }
                  AndroidUtilities.runOnUIThread(() -> {
@@ -728,7 +730,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/InstantCamer
                  });
              }
              EGL14.eglDestroySurface(eglDisplay, eglSurface);
-@@ -3135,7 +3161,7 @@
+@@ -3135,7 +3163,7 @@
                  overlayHelper = null;
              }
              AndroidUtilities.runOnUIThread(() -> {
@@ -737,7 +739,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/InstantCamer
              });
          }
  
-@@ -3207,7 +3233,9 @@
+@@ -3207,7 +3235,9 @@
                  skippedFirst = false;
                  skippedTime = 0;
  
@@ -748,7 +750,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/InstantCamer
                  audioRecorder.startRecording();
                  if (BuildVars.LOGS_ENABLED) {
                      FileLog.d("InstantCamera initied audio record with channels " + audioRecorder.getChannelCount() + " sample rate = " + audioRecorder.getSampleRate() + " bufferSize = " + bufferSize);
-@@ -3223,7 +3251,7 @@
+@@ -3223,7 +3253,7 @@
                  MediaFormat audioFormat = new MediaFormat();
                  audioFormat.setString(MediaFormat.KEY_MIME, AUDIO_MIME_TYPE);
                  audioFormat.setInteger(MediaFormat.KEY_SAMPLE_RATE, audioSampleRate);
@@ -757,7 +759,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/InstantCamer
                  audioFormat.setInteger(MediaFormat.KEY_BIT_RATE, MessagesController.getInstance(currentAccount).roundAudioBitrate * 1024);
                  audioFormat.setInteger(MediaFormat.KEY_MAX_INPUT_SIZE, 2048 * AudioBufferInfo.MAX_SAMPLES);
  
-@@ -3370,6 +3398,7 @@
+@@ -3370,6 +3400,7 @@
                  fragmentShaderSource = createFragmentShader(previewSize[0]);
              }
              int vertexShader = loadShader(GLES20.GL_VERTEX_SHADER, vertexShaderSource);
@@ -765,7 +767,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/InstantCamer
              int fragmentShader = loadShader(GLES20.GL_FRAGMENT_SHADER, fragmentShaderSource);
              if (vertexShader != 0 && fragmentShader != 0) {
                  drawProgram = GLES20.glCreateProgram();
-@@ -3386,6 +3415,8 @@
+@@ -3386,6 +3417,8 @@
                      textureHandle = GLES20.glGetAttribLocation(drawProgram, "aTextureCoord");
                      previewSizeHandle = GLES20.glGetUniformLocation(drawProgram, "preview");
                      resolutionHandle = GLES20.glGetUniformLocation(drawProgram, "resolution");
@@ -774,7 +776,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/InstantCamer
                      alphaHandle = GLES20.glGetUniformLocation(drawProgram, "alpha");
                      vertexMatrixHandle = GLES20.glGetUniformLocation(drawProgram, "uMVPMatrix");
                      textureMatrixHandle = GLES20.glGetUniformLocation(drawProgram, "uSTMatrix");
-@@ -3775,7 +3806,14 @@
+@@ -3775,7 +3808,14 @@
      private Camera2Session createNebulaCamera(boolean front) {
          app.nebulagram.ui.NebulaZoomCapabilities catalog = nebulaCameraCatalog(front);
          int size = MessagesController.getInstance(currentAccount).roundVideoSize;
