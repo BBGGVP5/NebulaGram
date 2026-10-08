@@ -40,10 +40,10 @@ public final class NebulaCameraPreview extends LinearLayout {
         addView(heading, new LayoutParams(-1, -2));
         LinearLayout sample = new LinearLayout(context);
         sample.setGravity(Gravity.CENTER_VERTICAL);
-        LayoutParams sampleParams = new LayoutParams(-1, dp(224)); sampleParams.topMargin = dp(10);
+        LayoutParams sampleParams = new LayoutParams(-1, dp(280)); sampleParams.topMargin = dp(10);
         addView(sample, sampleParams);
         phone = new Phone(context);
-        sample.addView(phone, new LayoutParams(0, -1, .52f));
+        sample.addView(phone, new LayoutParams(0, -1, .62f));
         picker = new NumberPicker(context, 14) {
             private final Paint highlight = new Paint(Paint.ANTI_ALIAS_FLAG);
             @Override protected void onDraw(Canvas canvas) {
@@ -61,7 +61,7 @@ public final class NebulaCameraPreview extends LinearLayout {
             if (next != NebulaCameraSettings.backend()) this.onSelected.accept(next);
             phone.select(next);
         });
-        sample.addView(picker, new LayoutParams(0, dp(174), .48f));
+        sample.addView(picker, new LayoutParams(0, dp(174), .38f));
     }
 
     public void refresh() {
@@ -83,10 +83,20 @@ public final class NebulaCameraPreview extends LinearLayout {
             {10,12,79,84, 29,30,1, 59,48,1, 29,65,1},
             {10,12,50,53, 30,32,1, 30,32,0, 30,32,0}
         };
+        // Each engine has its own gesture: reveal, lean, slide, rise and turn.
+        // Roll, vertical lift, horizontal slide, scale delta, yaw; all settle to rest.
+        private static final float[][] MOTIONS = {
+            { 2, -2,  0,  .02f, -14},
+            {-5,  0, -1, -.01f,   0},
+            { 1, -1,  6,     0,   0},
+            {-2, -5,  0,  .04f,   0},
+            { 3,  0,  1, -.025f, 26}
+        };
         private float[] geometry = MODELS[NebulaCameraSettings.backend()].clone();
         private int selected = NebulaCameraSettings.backend();
         private float turn;
         private float lift;
+        private float slide, zoom = 1f, yaw;
         private ValueAnimator animation;
         Phone(Context context) {
             super(context); setImportantForAccessibility(IMPORTANT_FOR_ACCESSIBILITY_NO);
@@ -94,30 +104,33 @@ public final class NebulaCameraPreview extends LinearLayout {
         }
         void select(int value) {
             if (selected == value) return;
-            int direction = value > selected ? 1 : -1;
             selected = value;
             if (animation != null) animation.cancel();
             if (!isAttachedToWindow() || NebulaGlass.reduced() || Build.VERSION.SDK_INT >= 26 && !ValueAnimator.areAnimatorsEnabled()) {
-                geometry = MODELS[value].clone(); turn = lift = 0; invalidate(); return;
+                geometry = MODELS[value].clone(); turn = lift = slide = yaw = 0; zoom = 1; invalidate(); return;
             }
             final float[] start = geometry.clone(), end = MODELS[value];
             animation = ValueAnimator.ofFloat(0, 1);
-            final float startTurn = turn, startLift = lift;
-            animation.setDuration(380); animation.setInterpolator(new android.view.animation.LinearInterpolator());
+            final float startTurn = turn, startLift = lift, startSlide = slide, startZoom = zoom, startYaw = yaw;
+            final float[] motion = MOTIONS[value];
+            animation.setDuration(value == 4 ? 440 : 380); animation.setInterpolator(new android.view.animation.LinearInterpolator());
             animation.addUpdateListener(a -> {
                 float progress = (float)a.getAnimatedValue();
                 float settle = spring.getInterpolation(progress);
                 for (int i=0; i<geometry.length; i++) geometry[i] = start[i] + (end[i]-start[i])*settle;
                 float pulse = (float)Math.sin(progress*Math.PI);
-                turn = startTurn * (1-progress) + pulse * direction * 4;
-                lift = startLift * (1-progress) - pulse * 2;
+                turn = startTurn * (1-progress) + pulse * motion[0];
+                lift = startLift * (1-progress) + pulse * motion[1];
+                slide = startSlide * (1-progress) + pulse * motion[2];
+                zoom = 1 + (startZoom-1) * (1-progress) + pulse * motion[3];
+                yaw = startYaw * (1-progress) + pulse * motion[4];
                 invalidate();
             });
             animation.start();
         }
         @Override protected void onDetachedFromWindow() {
             if (animation != null) { animation.cancel(); animation = null; }
-            geometry = MODELS[selected].clone(); turn = lift = 0; super.onDetachedFromWindow();
+            geometry = MODELS[selected].clone(); turn = lift = slide = yaw = 0; zoom = 1; super.onDetachedFromWindow();
         }
         private void fill(Canvas canvas, float l, float t, float r, float b, float radius, int color) {
             paint.setStyle(Paint.Style.FILL); paint.setColor(color); rect.set(l,t,r,b);
@@ -127,7 +140,9 @@ public final class NebulaCameraPreview extends LinearLayout {
             NebulaTheme theme = NebulaTheme.of(getContext());
             float scale = Math.min(getWidth()/130f, getHeight()/188f);
             int saved = canvas.save(); canvas.translate((getWidth()-112*scale)/2, (getHeight()-174*scale)/2);
-            canvas.scale(scale,scale); canvas.translate(0,lift); canvas.rotate(turn,56,87);
+            canvas.scale(scale,scale); canvas.translate(slide,lift);
+            canvas.scale(zoom * (float)Math.cos(Math.toRadians(yaw)), zoom, 56, 87);
+            canvas.rotate(turn,56,87);
             int body = ColorUtils.blendARGB(theme.surfaceContainer(), theme.primary(), .09f);
             fill(canvas,0,0,112,174,20,body);
             paint.setStyle(Paint.Style.STROKE); paint.setStrokeWidth(1.4f);
