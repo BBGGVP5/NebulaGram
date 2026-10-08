@@ -47,7 +47,7 @@ final class NebulaEditorSegments: UIView, UIGestureRecognizerDelegate {
         let visual = effectiveUserInterfaceLayoutDirection == .rightToLeft ? CGFloat(buttons.count - 1) - position : position
         lens.frame = CGRect(x: 4 + visual * width, y: 4, width: width, height: bounds.height - 8)
     }
-    func gestureRecognizerShouldBegin(_ gestureRecognizer: UIGestureRecognizer) -> Bool {
+    override func gestureRecognizerShouldBegin(_ gestureRecognizer: UIGestureRecognizer) -> Bool {
         guard let pan = gestureRecognizer as? UIPanGestureRecognizer else { return true }
         let v = pan.velocity(in: self); return abs(v.x) > abs(v.y)
     }
