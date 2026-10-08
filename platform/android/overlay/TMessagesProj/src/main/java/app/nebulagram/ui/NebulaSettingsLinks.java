@@ -98,7 +98,7 @@ public final class NebulaSettingsLinks {
             else if (section == -19) host.presentFragment(new NebulaLockedChatsFragment());
             else if (section == -12) host.presentFragment(new NebulaAiFragment());
             else if (section == -10 || section == -11) host.presentFragment(new NebulaDesignFragment(section == -11));
-            else if (section == -13) host.presentFragment(new NebulaUpdatesFragment());
+            else if (section == -13) NebulaUpdateSettingsSheet.show(host);
             else if (section == -14) host.presentFragment(new NebulaMenuFragment(NebulaMenuFragment.SCREEN_ADVANCED));
             else if (section == -15) host.presentFragment(row >= 0
                     ? new NebulaPrivacyFragment().focusRowIndex(row)

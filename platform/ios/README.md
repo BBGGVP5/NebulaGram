@@ -22,16 +22,17 @@ controls. Settings transfer never enables automatic Android-to-iOS synchronizati
 ## Settings presentation
 
 The entry screen separates General, Appearance, Navigation, Chats, Profile, Folders,
-Privacy and Transfer. Chats groups list controls, header/menu controls, the composer,
+Privacy and About. Transfer and browser blocking live in General; About contains support, community and build details. Chats groups list controls, header/menu controls, the composer,
 messages and stories. Chat vibration, snowflakes, forwarding and archive visibility
 are in chat settings; retention/protection remain in Privacy. Profile presentation
-controls do not share a page with glass or navigation settings.
+controls do not share a page with glass or navigation settings. Main category pages
+share compact Telegram animated emoji introductions; General uses 🧰 and NebulaLink 🔗.
 
 Shared choices use bounded centered, dimmed Telegram-themed windows. The result
 language picker pins Russian and English above the searchable language catalog.
 Message tools use at most three columns and center partial rows, with measured
-fallback to two or one column for narrow widths or larger text. The AI editor and
-its navigation bar use opaque Telegram colors. Native community metadata and avatars
+fallback to two or one column for narrow widths or larger text. The AI editor uses translucent native material, a draggable glass selection and
+explicit rich-text apply; its navigation bar shares the material. Native community metadata and avatars
 come from the current account, and the card opens Telegram's own community sheet.
 
 The native glass preview uses the same material as actual surfaces. Material state

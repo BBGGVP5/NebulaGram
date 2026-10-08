@@ -72,9 +72,14 @@ public final class NebulaTelegramUpdates implements NotificationCenter.Notificat
     public void removeListener(Runnable listener) { listeners.remove(listener); }
     private void changed() { for (Runnable listener : new ArrayList<>(listeners)) listener.run(); }
     public boolean automatic() { return prefs.getBoolean("automatic", true); }
-    public void setAutomatic(boolean value) { prefs.edit().putBoolean("automatic", value).apply(); }
+    public void setAutomatic(boolean value) { prefs.edit().putBoolean("automatic", value).apply(); changed(); }
+    public boolean beta() { return prefs.getBoolean("beta", false); }
+    public void setBeta(boolean value) {
+        if (checking || verifying || downloading() || beta() == value) return;
+        prefs.edit().putBoolean("beta", value).apply(); changed(); check(true, null);
+    }
     public long lastCheck() { return prefs.getLong("last_check", 0); }
-    public NebulaRelease release() { return release(message); }
+    public NebulaRelease release() { NebulaRelease r = release(message); return r != null && r.allowed(beta()) ? r : null; }
     public TLRPC.Message post() { return changelog != null ? changelog : message; }
     /** Аккаунт, на котором живёт канал релизов. */
     public int account() { return account; }
@@ -145,7 +150,7 @@ public final class NebulaTelegramUpdates implements NotificationCenter.Notificat
             for (TLRPC.Message post : history.messages) {
                 lastId = post.id;
                 NebulaRelease r = release(post);
-                if (r != null && r.preferredTo(release(found), Build.SUPPORTED_ABIS)) found = post;
+                if (r != null && r.allowed(beta()) && r.preferredTo(release(found), Build.SUPPORTED_ABIS)) found = post;
             }
             if (history.messages.size() == 100 && page < 4 && lastId > 0 && lastId != offset) { search(token, lastId, page + 1); return; }
             if (found != null && found.grouped_id != 0) loadAlbumCaption(token);
@@ -182,7 +187,8 @@ public final class NebulaTelegramUpdates implements NotificationCenter.Notificat
     }
 
     private void commitFound(TLRPC.Message caption) {
-        message = found; changelog = caption;
+        NebulaRelease candidate = release(found);
+        message = candidate != null && candidate.allowed(beta()) ? found : null; changelog = message == null ? null : caption;
         SharedPreferences.Editor edit = prefs.edit().putLong("last_check", System.currentTimeMillis());
         storeMessage(edit, "message", message); storeMessage(edit, "changelog", changelog);
         edit.apply(); finish(null);
@@ -292,13 +298,14 @@ public final class NebulaTelegramUpdates implements NotificationCenter.Notificat
     private static void runLaunchCheck(LaunchActivity activity, boolean force, Browser.Progress progress) {
         if (force) {
             BaseFragment last = activity.getLastFragment();
-            if (last != null && !(last instanceof NebulaUpdatesFragment)) last.presentFragment(new NebulaUpdatesFragment());
+            if (last != null) NebulaUpdateSettingsSheet.show(last);
         }
         NebulaTelegramUpdates updater = get(UserConfig.selectedAccount);
         if (progress != null) progress.init();
         WeakReference<LaunchActivity> target = new WeakReference<>(activity);
         updater.check(force, () -> {
             if (progress != null) progress.end();
+            if (force) return; // The visible update settings sheet owns manual results.
             LaunchActivity a = target.get();
             if (a == null || a.isFinishing() || a.isDestroyed() || !updater.available() || updater.error != null || updater.downloading() || updater.verifying) return;
             if (UserConfig.selectedAccount != updater.account || SharedConfig.isWaitingForPasscodeEnter || SharedConfig.appLocked || ApplicationLoader.mainInterfacePaused) return;

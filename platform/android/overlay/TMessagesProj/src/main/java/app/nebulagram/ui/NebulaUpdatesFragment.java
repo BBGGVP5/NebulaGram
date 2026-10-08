@@ -38,9 +38,7 @@ public final class NebulaUpdatesFragment extends BaseFragment {
         installed.add(new NebulaRow(c).icon(R.drawable.msg_info).title("NebulaGram " + NebulaTelegramUpdates.installedVersion())
                 .subtitle(text("Установлена · сборка ", "Installed · build ") + NebulaTelegramUpdates.installedCode(), false));
         status = label(c); installed.add(status);
-        check = button(c, installed, text("Проверить обновления", "Check for updates"), v -> updates.check(true, () -> {
-            if (!isPaused() && getParentActivity() != null && updates.error == null && updates.available()) updates.showOffer(getParentActivity());
-        }));
+        check = button(c, installed, text("Проверить обновления", "Check for updates"), v -> NebulaUpdateSettingsSheet.show(this));
         content.addView(installed);
         content.addView(NebulaCard.header(c, text("Настройки", "Settings")));
         NebulaCard settings = new NebulaCard(c);

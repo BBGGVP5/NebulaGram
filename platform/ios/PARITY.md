@@ -1,6 +1,25 @@
-# iOS implementation inventory — 2026-10-03
+# iOS implementation inventory — 2026-10-08
 
 This inventory distinguishes **wired source** from native build and device acceptance. A setting with a validated import format is not necessarily functional on iOS.
+
+## October 8 port: current checkpoint
+
+The current port deliberately excludes the new Android camera engines, lenses, recording controls and phone preview. Existing native iOS camera behavior is preserved. The implementation plan is [the October 8 checklist](../../docs/superpowers/plans/2026-10-08-ios-current-parity.md); historical entries below are evidence for their own revisions, not current completeness claims.
+
+| Area | Current source |
+|---|---|
+| Settings | About last with donation/community; tools/AI/tasks in Chats; browser/transfer in General. Shared 88-point Telegram animated emoji, compact matching headers, replay on return and reduced-motion still frame. General uses 🧰 and NebulaLink 🔗; ordinary row icons remain vector. |
+| Choices/previews | Highlight-only searchable choices; bounded animated presentation. Real Telegram extracted-message menu preview and a preference-driven profile preview. |
+| Nebula AI | Named services, Keychain credentials, RU/EN roles, OpenRouter/Perplexity, streaming, bounded generation options and opt-in history. Apple Intelligence remains native and locally gated. |
+| Editor/translation | Translate/styles/correction, explicit apply, attributed text/custom emoji preservation, native rich pasteboard, stale-result cancellation. Translucent material and draggable selection lens; iOS 26 uses UIGlassEffect. Draft/edit/caption accessory uses reserved native space. |
+| Browser | Opt-in WebKit blocking, domain exclusions, bounded supported EasyList subset and scoped cosmetic rules. Mini Apps are excluded; invalid updates retain the previous list. |
+| Messages/media | Forward date, edited pencil, direct share, voice queue, seek interval, gallery background pause, message/Premium sticker/reaction effects. |
+| Filters/profile | Reversible incoming word/phrase/transliteration/whole-word/blocked-peer filtering with per-account exceptions and explicit reveal. Local profile phone hiding and photo data-center label. |
+| Accounts/icons | Ten native accounts; existing bundled packs plus Remix Outline and bounded SVG/PNG/WebP `.icons` import. Imported icon files stay local; unsupported mappings use native icons. |
+
+Validation: full native SettingsUI/PeerInfoScreen/folder build passed at `d231757` in `37791304306`. Bootstrap passed at `6f50e52` in `37798863115`; current local checks at `757b23b` apply all 81 patches to 139 upstream paths and verify all 78 catalog definitions. Final source IPA `37801031858` and latest bootstrap `37801043936` are in progress. Physical iOS rendering, interaction and signed-device acceptance remain unverified.
+
+Remaining portable gaps: Saved Messages cloud settings sync (Files transfer exists), downloadable model catalog (manual model IDs exist), Gemini audio transcription, Instant View preference, delete-for-everyone default selection and incomplete legacy-provider recovery UI. Hardware volume playback, Android keyboard-scroll thresholds and Android font/emoji replacement remain platform-specific rather than inert iOS switches. This checkpoint is not full Android feature parity.
 
 ## Verification and delivery
 - 2026-10-03 full portable-function pass: patches 0062 onward add seamless themed profile banners, borderless material buttons, opt-in glass haptics, native header/menu controls, own-message gestures, avatars, whole bottom-bar visibility with recovery navigation, folder hiding with safe fallback, real icon packs and switch styles, and optional branded authorization screens. Account-scoped behavior preferences cover unknown-contact sounds (foreground and Notification Service Extension), mention scope, forwarding destination, reply quoting, wallpaper selection and device-owner authentication before chat/history deletion. Bootstrap at `b3c82803eee50ccbe96e85cee611fb20a247e74b` passed workflow `37100219621`: 86 Swift tests, all 67 patches, standalone UIKit/Objective-C checks and SVG asset compilation. Full arm64 device IPA workflow `37100225372` passed for the same source. Downloaded build 59 was independently checked: app.nebulagram, iPhoneOS arm64 app and extensions, exactly one Notification Service Extension, manifest revision and SHA-256 `39522e4775e8b1a1c5e3e42d1aaba9b273f9b08ea802d4a6417f0322be734ae8`. The IPA requires user signing; physical-device and APNs acceptance remain unverified. Prior workflow `37096066321` failed on an optional chain in the save-message context menu; patch 0063 fixed it.

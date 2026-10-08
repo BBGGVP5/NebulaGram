@@ -795,7 +795,7 @@ public class NebulaSectionFragment extends BaseFragment {
                         "A Telegram for Android modification with interface customization, NebulaLink and AI tools."), false));
         identity.add(new NebulaRow(context).icon(R.drawable.msg_download).title(NebulaText.text("Обновления", "Updates"))
                 .subtitle(NebulaText.text("Проверить, скачать и установить новую версию", "Check, download and install a new version"), false)
-                .trailing(NebulaRow.TRAIL_CHEVRON).withClick(v -> presentFragment(new NebulaUpdatesFragment())));
+                .trailing(NebulaRow.TRAIL_CHEVRON).withClick(v -> NebulaUpdateSettingsSheet.show(this)));
         content.addView(identity, cardParams());
         NebulaCard build = new NebulaCard(context);
         content.addView(NebulaCard.header(context, NebulaText.text("Сборка", "Build information")));

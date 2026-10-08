@@ -10,9 +10,11 @@ public final class NebulaRelease {
     public static final String CHANNEL = "ngram_releases";
     // The channel supplied by the owner, not just a username that can be reassigned.
     public static final long CHANNEL_ID = 3985386470L;
-    private static final Pattern NAME = Pattern.compile("^NebulaGram-([0-9]+\\.[0-9]+\\.[0-9]+)-TG-([0-9]+\\.[0-9]+(?:\\.[0-9]+)?)-b([0-9]{1,10})-(universal|arm64-v8a|armeabi-v7a|x86_64|x86)\\.apk$");
+    private static final Pattern NAME = Pattern.compile("^NebulaGram-([0-9]+\\.[0-9]+\\.[0-9]+(?:-beta(?:\\.[0-9]+)?)?)-TG-([0-9]+\\.[0-9]+(?:\\.[0-9]+)?)-b([0-9]{1,10})-(universal|arm64-v8a|armeabi-v7a|x86_64|x86)\\.apk$");
     public final String versionName, telegramVersion, abi;
     public final int versionCode;
+    public boolean beta() { return versionName.contains("-beta"); }
+    public boolean allowed(boolean includeBeta) { return !beta() || includeBeta; }
 
     private NebulaRelease(String versionName, String telegramVersion, int code, String abi) {
         this.versionName = versionName; this.telegramVersion = telegramVersion; this.versionCode = code; this.abi = abi;

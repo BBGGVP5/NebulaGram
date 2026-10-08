@@ -232,3 +232,15 @@
 - ChatTextInputPanelNode reserves a real 40-point accessory slot; optional tools use the current draft, with stale-draft checks before Apply.
 - Native translation language/hide/original actions update the per-chat opt-in. The `nebula-ai` source marker prevents native/Cocoon dispatch for pinned previews and labels the selected-provider mode correctly.
 - Message tools and AI settings open the same themed configuration screen. Preferences are independent for incoming/draft languages and never exported with account/chat consent.
+
+### 0072–0081 — October 8 non-camera port
+
+- 0072 carries attributed text through draft/edit/caption and native message tools; strict source equality rejects stale Apply results.
+- 0073 attaches NebulaBrowserCore to the ordinary browser WKWebView only; content rules retain ownership through navigation and recompile on preferences.
+- 0074 hooks actual message labels/share eligibility/voice queue/profile rows; 0075 enables native rich pasteboard copying.
+- 0076 masks presentation clones for account-scoped reversible filters. Original Postbox records, paging, read state and protected-content eligibility are preserved; reveal URLs include a process nonce.
+- 0077 uses native gallery seeking and background pause without stopping active Picture in Picture, plus message effect opt-out.
+- 0078 raises native account capacity and the actual add-account handler together; existing account authorization remains unchanged.
+- 0079 adds a bounded in-memory ZIP entry reader (no extraction) and explicit SettingsUI Svg/ZipArchive dependencies; 0080 uses UUID-scoped imported template icons with native fallback.
+- 0081 gates Premium sticker and reaction animation entry points while retaining onHit/completion callbacks and native reaction state.
+- Previews, animated settings introductions, named services, roles and glass editor presentation are overlay sources. These patches do not add Android camera backends to iOS.

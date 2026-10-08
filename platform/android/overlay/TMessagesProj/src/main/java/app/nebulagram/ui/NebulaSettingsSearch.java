@@ -32,7 +32,7 @@ public final class NebulaSettingsSearch {
             else if (section == -26) f.presentFragment(new NebulaCameraFragment());
             else if (section == -27) f.presentFragment(new NebulaMessageFilterFragment());
             else if (section == -28) f.presentFragment(new NebulaMessageMenuFragment());
-            else if (section == -13) f.presentFragment(new NebulaUpdatesFragment());
+            else if (section == -13) NebulaUpdateSettingsSheet.show(f);
             else if (section == -14) f.presentFragment(new NebulaMenuFragment(NebulaMenuFragment.SCREEN_ADVANCED));
             else if (section == -15) f.presentFragment(new NebulaPrivacyFragment());
             else f.presentFragment(new NebulaSectionFragment(section).focus(title));

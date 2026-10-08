@@ -18,6 +18,10 @@ public class TelegramUpdatesCheck {
  }
  public static void main(String[] args)throws Exception{
   String[] arm64={"arm64-v8a","armeabi-v7a"};
+  NebulaRelease beta=NebulaRelease.parse("NebulaGram-1.1.0-beta.2-TG-12.10.6-b1000450-arm64-v8a.apk");
+  check(beta!=null && beta.beta() && !beta.allowed(false) && beta.allowed(true), "Beta consent is explicit");
+  check(release(1000002,"arm64-v8a").allowed(false), "Legacy stable release stays eligible");
+  check(NebulaRelease.parse("NebulaGram-1.1.0-beta.TG-12.10.6-b1000450-arm64-v8a.apk")==null, "Malformed beta name rejected");
   check(NebulaRelease.isUpdateLink("tg://update") && NebulaRelease.isUpdateLink("TG://UPDATE/"),"Update deep link rejected");
   check(!NebulaRelease.isUpdateLink("tg://update?channel=other") && !NebulaRelease.isUpdateLink(null),"Unrecognized update link accepted");
   String post="https://t.me/"+NebulaRelease.CHANNEL+"/42";

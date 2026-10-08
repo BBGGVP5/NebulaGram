@@ -39,18 +39,18 @@ Excluded by this request: camera backend selection, CameraX/Camera2, phone camer
 - [x] Use `context.engine.stickers.loadedStickerPack(reference: .name("RestrictedEmoji"), forceActualized: false)` with native animated-emoji fallback. Select matching normalized index keys; keep decoded animation separate from placeholder. Fetch through account resources and dispose on removal.
 - [x] Replay the node from the start when its page becomes visible again; stop offscreen/background and use a still frame under Reduce Motion. Each view owns its decoder/playhead.
 - [x] Add a native list introduction item for ItemListController pages and the same UIKit header for table screens. Pass the shared header into NebulaLink so the module dependency remains one-way.
-- [ ] Root order: NebulaLink; General; Appearance; Navigation; Chats and tools; Folders; Privacy; About. Move transfer/browser into General, AI/tools/tasks into Chats and tools, support/community/build into About. Preserve search destinations.
+- [x] Root order: NebulaLink; General; Appearance; Navigation; Chats and tools; Profile; Folders; Privacy; About. Move transfer/browser into General, AI/tools/tasks into Chats and tools, support/community/build into About. Preserve search destinations.
 - [x] Remove terminal full stops from short introduction descriptions; retain prose punctuation in explanatory text.
 
 Acceptance: initial load and return show the same layout, 🧰 for General and 🔗 for NebulaLink, no substituted gear art, no emoji on ordinary settings-row icons.
 
 ## Task 2 — Choices and previews
 
-**Files:** `NebulaChoiceController.swift`, `NebulaSettingsStyle.swift`, `NebulaBehaviorController.swift`, new `NebulaMessageMenuController.swift`, new `NebulaProfilePreview.swift` in SettingsUI; native ContextUI/PeerInfoScreen hooks exported after patch 0071.
+**Files:** `NebulaChoiceController.swift`, `NebulaSettingsStyle.swift`, `NebulaBehaviorController.swift`, new `NebulaPresentationPreviewController.swift` in SettingsUI; native ContextUI/PeerInfoScreen hooks exported after patch 0071.
 
 - [x] Set every choice accessory to `.none`; apply selected background and `.selected` accessibility trait using the original choice index, including filtered language lists.
-- [ ] Retain bounded centered presentation, keyboard avoidance and Dynamic Type scrolling. Honor Reduce Motion in opening/closing.
-- [ ] Implement an interactive message/menu sample and profile sample driven by the same preference snapshot as native consumers. Native extracted content owns its visibility until dismissal completes, avoiding Android's duplicate/fade handoff defect.
+- [x] Retain bounded centered presentation, keyboard avoidance and Dynamic Type scrolling. Honor Reduce Motion in opening/closing.
+- [x] Implement an interactive message/menu sample and profile sample driven by the same preference snapshot as native consumers. Native extracted content owns its visibility until dismissal completes, avoiding Android's duplicate/fade handoff defect.
 - [ ] Verify selection callbacks after search, empty results and cancel; verify preview close leaves exactly one source message visible.
 
 ## Task 3 — Named AI services, roles and generation
@@ -72,8 +72,8 @@ Contract cases: first migration, repeat migration, credential write failure, dup
 - [x] Carry original attributed text/native entities through the tools initializer and apply closure. Keep String-only entry points as compatibility adapters.
 - [x] Preserve UTF-16 entity ranges, custom emoji identifiers, links, code, spoilers and quotes through validated boundary tokens. Reject malformed or invented tokens; fall back to individual text segments without losing entities. Do not inject protocol examples into plain-text requests.
 - [x] Provide Translate/Style/Correct modes, localized style presets and custom instruction, language selection and explicit Apply. Preserve text and styling when dismissing.
-- [ ] Place the own AI action in the native accessory position, including edit mode; use Telegram's action when the own editor is disabled where the pinned upstream supplies it. Avoid duplicate icons and preserve attachment hit targets.
-- [ ] Use the existing native glass material, safe-area spacing and animated selected segment. Exclude active recording/protected content and ignore stale results after text/account changes.
+- [x] Place the own AI action in the native accessory position, including edit mode; use Telegram's action when the own editor is disabled where the pinned upstream supplies it. Avoid duplicate icons and preserve attachment hit targets.
+- [x] Use the existing native glass material, safe-area spacing and animated selected segment. Exclude active recording/protected content and ignore stale results after text/account changes.
 
 Tests: nested formatting, surrogate pairs, custom emoji, repeated text, literal marker input, interrupted requests, unchanged source on cancel and changed attributes with identical text.
 
@@ -83,7 +83,7 @@ Tests: nested formatting, surrogate pairs, custom emoji, repeated text, literal 
 
 - [x] Keep blocking off by default. Compile supported network rules into WKContentRuleList and apply only to the ordinary browser WebView.
 - [x] Normalize domain exclusions, bound downloaded list size and parse only supported syntax. Preserve the last valid rules when an update fails.
-- [ ] Apply scoped cosmetic selectors after navigation; remove/rebuild on toggle or exclusion changes. Mini Apps and top-level navigations retain native behavior.
+- [x] Apply scoped cosmetic selectors after navigation; remove/rebuild on toggle or exclusion changes. Mini Apps and top-level navigations retain native behavior.
 - [x] Add truthful supported-rule counts and update status; do not claim all EasyList syntax is supported.
 
 Tests: wildcard/domain/exception precedence, invalid hostnames, malformed selectors, oversize input and old-rule retention after failure.
@@ -93,8 +93,8 @@ Tests: wildcard/domain/exception precedence, invalid hostnames, malformed select
 **Files:** `NebulaBehaviorPreferences.swift`, `NebulaSettingsStore.swift`, `NebulaBehaviorController.swift`; new focused message/filter policy files and XCTest coverage; native ChatController/ChatMessageItem/MediaPlayer/PeerInfoScreen hooks as ordered patches.
 
 - [ ] Audit each October 8 Android consumer against iOS native behavior before exposing it: forwarded date/edited marker/direct-share visibility, eligible delete defaults, reaction effects, voice queue progression, seek interval and pause-on-background.
-- [ ] Add reversible phrase filters with transliteration, whole-word matching, blocked peers and account-specific exceptions. Preserve native protected-content and pagination behavior.
-- [ ] Add local phone hiding and accurately labelled photo DC metadata, plus current profile/menu previews.
+- [x] Add reversible phrase filters with transliteration, whole-word matching, blocked peers and account-specific exceptions. Preserve native protected-content and pagination behavior.
+- [x] Add local phone hiding and accurately labelled photo DC metadata, plus current profile/menu previews.
 - [ ] Keep system-owned media controls native where a portable app override is unavailable; record these explicitly in PARITY.md.
 - [ ] Audit recent icon packs, settings sync, retained copies and account limits against source; port missing portable consumers with data migration and cancellation tests rather than merely importing their flags.
 
@@ -102,7 +102,7 @@ Tests: wildcard/domain/exception precedence, invalid hostnames, malformed select
 
 **Files:** `platform/ios/tools/check-bootstrap.py`, `platform/ios/PARITY.md`, `platform/ios/README.md`, `patches/ios/HOOKS.md`, `docs/USER-CHANGES.md` and generated mirrors.
 
-- [ ] Run `python platform/ios/tools/generate-overlay.py`, then `python platform/ios/tools/check-bootstrap.py` and `python scripts/check-settings-contract.py`. Expect all ordered patches and mirrored contracts to pass; preserve vendor.
+- [x] Run `python platform/ios/tools/generate-overlay.py`, then `python platform/ios/tools/check-bootstrap.py` and `python scripts/check-settings-contract.py`. Expect all ordered patches and mirrored contracts to pass; preserve vendor.
 - [ ] Run XCTest and iOS SDK checks through `ios-bootstrap.yml`; fix actual compiler/type errors. Windows source parsing is not native compilation evidence.
 - [ ] Build the complete arm64 IPA through `ios-ipa.yml`, verify exact source SHA, archive digest, bundle IDs, device architectures and extension packaging.
 - [ ] Inspect simulator/device rendering if an accessible iOS runtime is available; otherwise record visual and physical-device acceptance as unverified. Never claim Android screenshots verify iOS.
@@ -113,5 +113,36 @@ Tests: wildcard/domain/exception precedence, invalid hostnames, malformed select
 - 2026-10-08 audit: the existing `NebulaSettingsHero` discards `symbol` and `title`; current iOS choices default to checkmarks, and AI settings still contain a single legacy connection per provider. These are confirmed gaps, not inferred from screenshots.
 - No camera implementation will be changed in this batch. The disconnected Android phone and its temporary Camera2 setting belong to the prior device check; this iOS work does not require reconnecting it.
 
-- 2026-10-08 implementation checkpoints: `19ee949` shared introductions; `c983310` named services/roles/streaming (macOS bootstrap passed); `ff0c8a5` rich editor, draft/caption/native message translations. SDK check found a missing UIView override and `98adcd5` corrected it. The next bootstrap reached native-header fetching but failed on GitHub DNS, not source compilation. Full SettingsUI build and physical iOS rendering remain unverified.
+- 2026-10-08 implementation checkpoints: `19ee949` shared introductions; `c983310` named services/roles/streaming (macOS bootstrap passed); `ff0c8a5` rich editor, draft/caption/native message translations. SDK check found a missing UIView override and `98adcd5` corrected it. The next bootstrap reached native-header fetching but failed on GitHub DNS, not source compilation. Full SettingsUI/PeerInfoScreen/folder compilation subsequently passed at `d231757` in run `37791304306`; later native changes and physical rendering are tracked separately below.
 - Android follow-up: build 1000440 at `6b00a612013af329a0a8b2d08f5ab90f0182c4a0` downloaded and verified (signature, package, arm64, source/run). Editor sheet uses 30% dark/42% light tint and native glass selection tracking horizontal finger movement. Device gesture acceptance pending: USB phone absent.
+
+## October 8 current implementation and remaining acceptance
+
+- `4182fdf`: original forward date, edited pencil, direct share, voice queue, local profile phone hiding and photo DC.
+- `a245079`: rich editor copy, reversible account filters, gallery seeking/background pause and message effects; bootstrap `37794800973` passed. A duplicate run found cancellation/test-counter concurrency; `7c070f2` retains actual in-flight slots and tests slow cancellation across remote/local changes.
+- `6f50e52`: real native extracted-message preview, profile preview, ten accounts, bounded `.icons` importer and bundled Remix Outline. Bootstrap `37798863115` passed; full native `37798005200` is running.
+- `757b23b`: Premium sticker/reaction effects keep native state callbacks; known model reasoning capabilities are gated; corrupted icon indexes remain untouched. Local checks pass 81 patches / 139 upstream paths and all 78 shared catalog definitions. Current IPA `37801031858` and bootstrap `37801043936` are pending; do not call them successful until completion.
+- Browser cosmetic rules use WKContentRuleList's `css-display-none`, so navigation and rule removal are WebKit-owned; no injected script or Mini App hook is required.
+- Camera engine/lens/recording/phone preview remains excluded. Hardware volume-button playback and keyboard scroll thresholds remain native iOS behavior.
+
+Still missing from complete Android parity (not represented as completed toggles):
+- Saved Messages settings synchronization; iOS currently supports validated explicit Files import/export only.
+- Model-catalog download/picker; named services currently accept a manually entered model ID.
+- Gemini audio transcription from message audio.
+- Instant View preference and a default selection for eligible delete-for-everyone dialogs; native iOS choices and eligibility remain intact.
+- Recovery UI for incomplete legacy provider configurations; old values/keys remain stored, and complete services migrate.
+
+Remaining verification:
+- Exact final-SHA full arm64 IPA, archive digest/bundle/extension verification.
+- Physical iOS return/foreground emoji replay, page spacing/Dynamic Type, glass drag, profile/menu preview dismissal, message/caption edit/apply and imported icon reopen tests. No iOS device/simulator is connected to this Windows workspace.
+- Android build 1000440 glass drag/material on the authorized phone when USB returns. Do not infer gesture acceptance from compilation.
+
+Provider capability references used for the optional-field guards: https://platform.claude.com/docs/en/build-with-claude/extended-thinking and https://ai.google.dev/gemini-api/docs/generate-content/thinking. Unknown model families keep server defaults rather than receiving unverified thinking parameters.
+
+## Android steering — update settings sheet
+
+User requested the reference's compact update panel in NebulaGram styling and selected the Nebula sign for its header.
+- Add `NebulaUpdateSettingsSheet.java`: bounded scrollable bottom sheet, brand sign, installed version/build/ABI, last-check/status, opt-in beta filtering and existing automatic-check toggle. Manual check updates the sheet; a release row opens the existing verified download/install offer.
+- Route About/search/settings links and `tg://update` to the sheet; preserve the full downloads fragment for legacy entry points.
+- Extend `NebulaRelease` to accept explicit `-beta` / `-beta.N` version suffixes while legacy names remain stable; beta filtering must apply to search, cached availability and final commit. Keep package/signature/ABI verification unchanged.
+- Check release policy tests and full Android APK build. Do not claim device visual acceptance while USB is absent.
