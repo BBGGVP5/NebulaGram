@@ -102,7 +102,11 @@ public final class NebulaCameraXSession extends Camera2Session implements Lifecy
             } catch (RuntimeException error) { request.willNotProvideSurface(); fail(error); }
         });
         if (!recording) {
-            photos = new ImageCapture.Builder().setTargetResolution(requested).setCaptureMode(ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY).build();
+            ImageCapture.Builder photoBuilder = new ImageCapture.Builder().setTargetResolution(requested).setCaptureMode(ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY);
+            Camera2Interop.Extender<ImageCapture> photoOptions = new Camera2Interop.Extender<>(photoBuilder);
+            for (Map.Entry<CaptureRequest.Key<?>, Object> value : new NebulaCameraCapabilities.Options(manager.getCameraCharacteristics(cameraId), requested).values.entrySet())
+                photoOptions.setCaptureRequestOption((CaptureRequest.Key) value.getKey(), value.getValue());
+            photos = photoBuilder.build();
             camera = provider.bindToLifecycle(this, selector, preview, photos);
         } else camera = provider.bindToLifecycle(this, selector, preview);
         camera.getCameraInfo().getCameraState().observe(this, state -> {

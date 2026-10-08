@@ -108,10 +108,11 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/camera/Camera2Se
  
              captureRequestBuilder.addTarget(surface);
              captureSession.setRepeatingRequest(captureRequestBuilder.build(), null, handler);
-@@ -561,6 +612,7 @@
+@@ -561,6 +612,8 @@
              CaptureRequest.Builder captureRequestBuilder = cameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_STILL_CAPTURE);
              final int orientation = getJpegOrientation();
              captureRequestBuilder.set(CaptureRequest.JPEG_ORIENTATION, orientation);
++            if (nebulaOptions != null) nebulaOptions.apply(captureRequestBuilder);
 +            if (hasFlash()) captureRequestBuilder.set(CaptureRequest.FLASH_MODE, flashing ? CaptureRequest.FLASH_MODE_SINGLE : CaptureRequest.FLASH_MODE_OFF);
              imageReader.setOnImageAvailableListener(new ImageReader.OnImageAvailableListener() {
                  @Override
