@@ -13,7 +13,7 @@ for target in ['NebulaAiSettingsFragment','NebulaTranslationFragment','NebulaMes
 section=(ui/'NebulaSectionFragment.java').read_text(encoding='utf-8')
 about=section[section.index('private void buildAbout('):section.index('private String versions(')]
 general=section[section.index('private void buildGeneral('):section.index('private void buildAbout(')]
-assert 'NebulaSupportFragment' in about and 'NebulaCommunityCard' in about and 'NebulaUpdatesFragment' in about
+assert 'NebulaSupportFragment' in about and 'NebulaCommunityCard' in about and 'NebulaUpdateSettingsSheet.show(this)' in about
 assert 'NebulaBrowserSettingsFragment' in general
 for file in ['NebulaTasksFragment.java','NebulaTaskEditorFragment.java','NebulaMessageToolsFragment.java']:
     assert 'new NebulaSettingsHero' in (ui/file).read_text(encoding='utf-8'),file
