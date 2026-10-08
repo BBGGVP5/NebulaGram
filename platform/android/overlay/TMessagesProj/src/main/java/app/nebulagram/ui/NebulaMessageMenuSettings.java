@@ -13,6 +13,6 @@ public final class NebulaMessageMenuSettings {
     public static void heightPercent(int value){prefs().edit().putInt("height",Math.max(35,Math.min(80,value))).apply();}
     public static void filter(List<CharSequence> labels,List<Integer> icons,List<Integer> actions){
         // Safety and editing actions remain reachable even if every optional entry is disabled.
-        for(int i=actions.size()-1;i>=0;i--){int action=actions.get(i);if(action!=1&&action!=12&&!visible(action)){actions.remove(i);icons.remove(i);labels.remove(i);}}
+        for(int i=actions.size()-1;i>=0;i--){int action=actions.get(i);if(actions.size()>1&&action!=1&&action!=12&&!visible(action)){actions.remove(i);icons.remove(i);labels.remove(i);}}
     }
 }

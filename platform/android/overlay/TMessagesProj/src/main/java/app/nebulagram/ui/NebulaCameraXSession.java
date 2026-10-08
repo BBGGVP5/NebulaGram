@@ -7,6 +7,8 @@ import android.view.Surface;
 import androidx.annotation.NonNull;
 import androidx.camera.camera2.interop.Camera2CameraInfo;
 import androidx.camera.camera2.interop.Camera2Interop;
+import androidx.camera.camera2.interop.Camera2CameraControl;
+import androidx.camera.camera2.interop.CaptureRequestOptions;
 import androidx.camera.core.Camera;
 import androidx.camera.core.CameraSelector;
 import androidx.camera.core.ImageCapture;
@@ -44,6 +46,11 @@ public final class NebulaCameraXSession extends Camera2Session implements Lifecy
     private ImageCapture photos;
     private Camera camera;
     private SurfaceTexture texture;
+    private boolean scanning, night;
+    private int[] supportedScenes;
+    private final Runnable openingTimeout = () -> {
+        if (!closed && !ready) fail(new IllegalStateException("CameraX did not open in time"));
+    };
 
     public NebulaCameraXSession(boolean front, String id, Size size) {
         super(front, id, size); this.front = front; requested = size;
@@ -54,6 +61,7 @@ public final class NebulaCameraXSession extends Camera2Session implements Lifecy
         main.execute(() -> {
             if (closed || input == null || texture != null) return;
             texture = input;
+            AndroidUtilities.runOnUIThread(openingTimeout, 15000);
             ListenableFuture<ProcessCameraProvider> future = ProcessCameraProvider.getInstance(ApplicationLoader.applicationContext);
             future.addListener(() -> {
                 if (closed) return;
@@ -76,18 +84,22 @@ public final class NebulaCameraXSession extends Camera2Session implements Lifecy
         Preview.Builder builder = new Preview.Builder().setTargetResolution(requested);
         android.hardware.camera2.CameraManager manager = (android.hardware.camera2.CameraManager) ApplicationLoader.applicationContext.getSystemService(android.content.Context.CAMERA_SERVICE);
         Camera2Interop.Extender<Preview> interop = new Camera2Interop.Extender<>(builder);
+        supportedScenes = manager.getCameraCharacteristics(cameraId).get(android.hardware.camera2.CameraCharacteristics.CONTROL_AVAILABLE_SCENE_MODES);
         for (Map.Entry<CaptureRequest.Key<?>, Object> value : new NebulaCameraCapabilities.Options(manager.getCameraCharacteristics(cameraId), requested).values.entrySet())
             interop.setCaptureRequestOption((CaptureRequest.Key) value.getKey(), value.getValue());
         preview = builder.build();
         preview.setSurfaceProvider(main, request -> {
             if (closed || texture == null) { request.willNotProvideSurface(); return; }
+            try {
             width = request.getResolution().getWidth(); height = request.getResolution().getHeight();
             texture.setDefaultBufferSize(width, height);
             Surface surface = new Surface(texture);
             // The texture belongs to Telegram. Release only our Surface, after CameraX stops using it.
             request.provideSurface(surface, main, result -> surface.release());
             ready = true;
+            AndroidUtilities.cancelRunOnUIThread(openingTimeout);
             if (done != null) { Runnable callback = done; done = null; callback.run(); }
+            } catch (RuntimeException error) { request.willNotProvideSurface(); fail(error); }
         });
         if (!recording) {
             photos = new ImageCapture.Builder().setTargetResolution(requested).setCaptureMode(ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY).build();
@@ -102,7 +114,7 @@ public final class NebulaCameraXSession extends Camera2Session implements Lifecy
         lifecycle.setCurrentState(Lifecycle.State.RESUMED);
         ZoomState state = camera.getCameraInfo().getZoomState().getValue();
         if (state != null) { minZoom = state.getMinZoomRatio(); maxZoom = state.getMaxZoomRatio(); }
-        setZoom(zoom); setFlash(flashing); setExposure(exposure);
+        setZoom(zoom); setFlash(flashing); setExposure(exposure); applyCaptureMode();
     }
     private void fail(Exception error) { failed = true; ready = false; FileLog.e(error); destroy(true); }
     @Override public void whenDone(Runnable callback) { main.execute(() -> { if (!closed) { if (ready) callback.run(); else done = callback; } }); }
@@ -133,9 +145,24 @@ public final class NebulaCameraXSession extends Camera2Session implements Lifecy
                 Math.round(exposure * (exposure < 0 ? -state.getExposureCompensationRange().getLower() : state.getExposureCompensationRange().getUpper())));
         });
     }
-    @Override public void setRecordingVideo(boolean value) { recording = value; }
-    @Override public void setScanningBarcode(boolean value) { }
-    @Override public void setNightMode(boolean value) { }
+    @Override public void setRecordingVideo(boolean value) { recording = value; main.execute(this::applyCaptureMode); }
+    @Override public void setScanningBarcode(boolean value) { main.execute(() -> { scanning = value; applyCaptureMode(); }); }
+    @Override public void setNightMode(boolean value) { main.execute(() -> { night = value; applyCaptureMode(); }); }
+    private void applyCaptureMode() {
+        if (closed || camera == null) return;
+        int requestedScene = scanning ? CaptureRequest.CONTROL_SCENE_MODE_BARCODE
+            : night ? (front ? CaptureRequest.CONTROL_SCENE_MODE_NIGHT_PORTRAIT : CaptureRequest.CONTROL_SCENE_MODE_NIGHT)
+            : CaptureRequest.CONTROL_SCENE_MODE_DISABLED;
+        int scene = CaptureRequest.CONTROL_SCENE_MODE_DISABLED;
+        if (supportedScenes != null) for (int value : supportedScenes) if (value == requestedScene) scene = value;
+        CaptureRequestOptions options = new CaptureRequestOptions.Builder()
+            .setCaptureRequestOption(CaptureRequest.CONTROL_MODE, scene == CaptureRequest.CONTROL_SCENE_MODE_DISABLED
+                ? CaptureRequest.CONTROL_MODE_AUTO : CaptureRequest.CONTROL_MODE_USE_SCENE_MODE)
+            .setCaptureRequestOption(CaptureRequest.CONTROL_SCENE_MODE, scene)
+            .setCaptureRequestOption(CaptureRequest.CONTROL_CAPTURE_INTENT, recording
+                ? CaptureRequest.CONTROL_CAPTURE_INTENT_VIDEO_RECORD : CaptureRequest.CONTROL_CAPTURE_INTENT_PREVIEW).build();
+        Camera2CameraControl.from(camera.getCameraControl()).addCaptureRequestOptions(options);
+    }
     @Override public boolean takePicture(File file, Utilities.Callback<Integer> callback) {
         if (!isInitiated() || photos == null) return false;
         main.execute(() -> {
@@ -151,6 +178,7 @@ public final class NebulaCameraXSession extends Camera2Session implements Lifecy
     @Override public void destroy(boolean async, Runnable after) {
         closed = true; ready = false;
         main.execute(() -> {
+            AndroidUtilities.cancelRunOnUIThread(openingTimeout);
             done = null;
             if (lifecycle.getCurrentState() != Lifecycle.State.INITIALIZED) lifecycle.setCurrentState(Lifecycle.State.DESTROYED);
             if (provider != null) {

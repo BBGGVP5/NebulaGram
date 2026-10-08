@@ -14,13 +14,13 @@ import org.telegram.ui.ActionBar.BaseFragment;
 public final class NebulaPeerSelections {
     private NebulaPeerSelections() { }
     private static String text(String ru, String en) { return NebulaText.text(ru, en); }
-    private static String name(int account, long peer) {
+    static String name(int account, long peer) {
         if (peer == UserConfig.getInstance(account).getClientUserId()) return LocaleController.getString(R.string.SavedMessages);
         TLRPC.User user = peer > 0 ? MessagesController.getInstance(account).getUser(peer) : null;
         TLRPC.Chat chat = peer < 0 ? MessagesController.getInstance(account).getChat(-peer) : null;
         return user != null ? UserObject.getUserName(user) : chat != null ? chat.title : Long.toString(peer);
     }
-    private static void choose(BaseFragment host, boolean writable, java.util.function.LongConsumer chosen) {
+    static void choose(BaseFragment host, boolean writable, java.util.function.LongConsumer chosen) {
         int account = host.getCurrentAccount(); long owner = UserConfig.getInstance(account).getClientUserId();
         Bundle args = new Bundle(); args.putBoolean("onlySelect", true); args.putInt("dialogsType", writable ? DialogsActivity.DIALOGS_TYPE_FORWARD : DialogsActivity.DIALOGS_TYPE_DEFAULT);
         DialogsActivity picker = new DialogsActivity(args); picker.setCurrentAccount(account);

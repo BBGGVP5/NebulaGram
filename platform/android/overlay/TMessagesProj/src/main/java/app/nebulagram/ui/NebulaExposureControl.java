@@ -31,8 +31,8 @@ public final class NebulaExposureControl extends FrameLayout {
         setVisibility(position==0?GONE:VISIBLE);
     }
     private static int dp(float value){return AndroidUtilities.dp(value);}
-    public static void attach(FrameLayout parent,Listener listener){
-        int position=NebulaCameraSettings.exposure(); if(position==0)return;
+    public static NebulaExposureControl attach(FrameLayout parent,Listener listener){
+        int position=NebulaCameraSettings.exposure(); if(position==0)return null;
         NebulaExposureControl view=new NebulaExposureControl(parent.getContext(),listener);
         LayoutParams params=new LayoutParams(dp(180),dp(48));
         if(position==1){params.gravity=Gravity.BOTTOM|Gravity.CENTER_HORIZONTAL;params.bottomMargin=dp(122);}
@@ -40,5 +40,6 @@ public final class NebulaExposureControl extends FrameLayout {
             // Compensate rotated bounds to keep the 48dp touch strip inside the screen.
             if(position==2)params.leftMargin=dp(-60);else params.rightMargin=dp(-60);}
         parent.addView(view,params);
+        return view;
     }
 }

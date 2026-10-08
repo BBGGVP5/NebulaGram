@@ -226,7 +226,9 @@ jobs:
           python3 scripts/check-playback-speed.py vendor/telegram-android
           python3 scripts/check-camera-zoom.py vendor/telegram-android
           python3 scripts/check-camera-preferences.py
+          python3 scripts/check-camera-switch.py vendor/telegram-android
           python3 scripts/check-message-matching.py
+          python3 scripts/check-message-menu-preferences.py
           python3 scripts/check-community-card.py
           python3 scripts/check-community-header.py vendor/telegram-android
           python3 scripts/check-navigation-preview.py

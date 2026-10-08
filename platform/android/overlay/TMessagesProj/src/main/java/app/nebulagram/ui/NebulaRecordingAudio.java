@@ -7,12 +7,15 @@ import android.media.MediaRecorder;
 public final class NebulaRecordingAudio {
     private NebulaRecordingAudio() { }
     public static AudioRecord open(int sampleRate,int minimumBuffer,boolean stereo){
+        return open(sampleRate,minimumBuffer,stereo,MediaRecorder.AudioSource.DEFAULT);
+    }
+    public static AudioRecord open(int sampleRate,int minimumBuffer,boolean stereo,int defaultSource){
         RuntimeException last=null;
         for(int channels=stereo?2:1;channels>=1;channels--){
             int mask=channels==2?AudioFormat.CHANNEL_IN_STEREO:AudioFormat.CHANNEL_IN_MONO;
             int min=AudioRecord.getMinBufferSize(sampleRate,mask,AudioFormat.ENCODING_PCM_16BIT);
             if(min<=0)continue;
-            int source=NebulaMessagePreferences.enabled("video_microphones",false)?MediaRecorder.AudioSource.CAMCORDER:MediaRecorder.AudioSource.DEFAULT;
+            int source=NebulaMessagePreferences.enabled("video_microphones",false)?MediaRecorder.AudioSource.CAMCORDER:defaultSource;
             AudioRecord record=null;
             try {
                 record=new AudioRecord(source,sampleRate,mask,AudioFormat.ENCODING_PCM_16BIT,Math.max(min*4,minimumBuffer));

@@ -54,6 +54,8 @@ public final class NebulaMessageToolsFragment extends BaseFragment {
     private LinearLayout resultSection;
     private View copyResult, stopAction;
     private boolean speechRequested;
+    private boolean transcriptionRequested;
+    public NebulaMessageToolsFragment transcribeOnOpen(){transcriptionRequested=true;return this;}
     private String lastResult = "";
     private CharSequence lastRichResult = "";
     private String resultSourceKey;
@@ -514,7 +516,7 @@ public final class NebulaMessageToolsFragment extends BaseFragment {
         new Thread(()->{String result;boolean success=true;try{SharedPreferences p=ApplicationLoader.applicationContext.getSharedPreferences("nebula_ai_settings",0);int provider=p.getInt("provider",0);result=work.run(request,p,provider,provider==NebulaAiClient.NANO?"":NebulaAiSecrets.read(provider));}catch(Exception e){success=false;String failure=e.getMessage()==null?"":e.getMessage();result=failure.startsWith("GEMINI_NANO_DOWNLOAD_REQUIRED")?t("Сначала скачайте Gemini Nano в настройках ИИ","Download Gemini Nano first in AI settings"):failure.startsWith("GEMINI_NANO_DOWNLOADING")?t("Gemini Nano ещё загружается","Gemini Nano is still downloading"):failure.startsWith("GEMINI_NANO_UNAVAILABLE")?t("Gemini Nano недоступна на этом устройстве","Gemini Nano is unavailable on this device"):failure.startsWith("GEMINI_NANO_BUSY")?t("Gemini Nano завершает предыдущий запрос. Повторите через несколько секунд.","Gemini Nano is finishing the previous request. Try again in a few seconds."):t("Не удалось выполнить запрос: ","Request failed: ")+failure;}final String answer=result;final boolean ok=success;AndroidUtilities.runOnUIThread(()->{if(!destroyed&&id==generation){busy=false;client=null;showOutput(answer,ok);updateStop();}});},"NebulaMessageTool").start();
     }
     private void cancel(){generation++;if(busy&&output!=null)showOutput(t("Остановлено", "Stopped"),false);busy=false;speechRequested=false;updateStop();if(client!=null){client.cancel();client=null;}if(translationClient!=null){translationClient.cancel();translationClient=null;}if(speech!=null)speech.stop();}
-    @Override public void onResume(){super.onResume();resumed=true;refreshTranslation();if(translateOnOpen){translateOnOpen=false;request(false);}}
+    @Override public void onResume(){super.onResume();resumed=true;refreshTranslation();if(transcriptionRequested){transcriptionRequested=false;transcribe();}else if(translateOnOpen){translateOnOpen=false;request(false);}}
     @Override public void onPause(){resumed=false;super.onPause();cancel();}
     @Override public void onFragmentDestroy(){destroyed=true;cancel();if(speech!=null){speech.shutdown();speech=null;}super.onFragmentDestroy();}
 }

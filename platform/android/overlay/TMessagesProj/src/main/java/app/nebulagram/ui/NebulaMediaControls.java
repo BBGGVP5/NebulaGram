@@ -17,6 +17,8 @@ public final class NebulaMediaControls {
         card.add(toggle(c,"direct_share",true,"Кнопка быстрой пересылки","Quick share button"));
         card.add(toggle(c,"premium_effects",true,"Эффекты Premium-стикеров","Premium sticker effects"));
         card.add(toggle(c,"reaction_effects",true,"Анимация реакций","Reaction animations"));
+        card.add(toggle(c,"instant_view",true,"Открывать Instant View","Open Instant View"));
+        card.add(toggle(c,"delete_for_all",false,"Удалять для всех по умолчанию","Select delete for everyone by default"));
         NebulaFormUi.group(body,text("Медиа и сообщения","Media and messages"),card);
         card=new NebulaCard(c);
         card.add(new NebulaRow(c).title(text("Скрывать клавиатуру при прокрутке","Hide keyboard while scrolling")).subtitle(NebulaMessagePreferences.keyboardThreshold()==0?text("Выключено","Off"):Integer.toString(NebulaMessagePreferences.keyboardThreshold()),true).trailing(NebulaRow.TRAIL_CHEVRON).withClick(v->{
@@ -28,6 +30,11 @@ public final class NebulaMediaControls {
         }));
         NebulaFormUi.group(body,text("Жесты и управление","Gestures and controls"),card);
         card=new NebulaCard(c);
+        card.add(new NebulaRow(c).title(text("Расшифровка аудио","Audio transcription")).subtitle(NebulaTranscription.selected()?text("Сервис ИИ · Gemini","AI service · Gemini"):"Telegram",true).trailing(NebulaRow.TRAIL_CHEVRON).withClick(v->{
+            String[] labels={"Telegram",text("Сервис ИИ · Gemini","AI service · Gemini")};
+            host.showDialog(new NebulaDialog.Builder(c,host.getResourceProvider()).setTitle(text("Расшифровка аудио","Audio transcription")).setMessage(text("Для ИИ выберите сервис Gemini и модель с поддержкой аудио в настройках ИИ. Файл отправляется выбранному сервису по нажатию кнопки расшифровки.","For AI, select a Gemini service and an audio-capable model in AI settings. Tapping transcribe sends the file to that service."))
+                .setSelectedIndex(NebulaTranscription.selected()?1:0).setItems(labels,(d,i)->{NebulaMessagePreferences.set("ai_transcription",i==1);((NebulaRow)v).subtitle(labels[i],true);}).create());
+        }));
         card.add(toggle(c,"video_microphones",false,"Микрофоны в режиме видеокамеры","Camcorder microphone processing"));
         card.add(toggle(c,"stereo_round",false,"Стереозвук в кружках","Stereo audio in round videos"));
         card.add(toggle(c,"record_exclusive",false,"Приглушать другие звуки при записи","Suppress other audio while recording"));
