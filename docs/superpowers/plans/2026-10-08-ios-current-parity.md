@@ -103,7 +103,7 @@ Tests: wildcard/domain/exception precedence, invalid hostnames, malformed select
 **Files:** `platform/ios/tools/check-bootstrap.py`, `platform/ios/PARITY.md`, `platform/ios/README.md`, `patches/ios/HOOKS.md`, `docs/USER-CHANGES.md` and generated mirrors.
 
 - [x] Run `python platform/ios/tools/generate-overlay.py`, then `python platform/ios/tools/check-bootstrap.py` and `python scripts/check-settings-contract.py`. Expect all ordered patches and mirrored contracts to pass; preserve vendor.
-- [ ] Run XCTest and iOS SDK checks through `ios-bootstrap.yml`; fix actual compiler/type errors. Windows source parsing is not native compilation evidence.
+- [x] Run XCTest and iOS SDK checks through `ios-bootstrap.yml`; fix actual compiler/type errors. Windows source parsing is not native compilation evidence.
 - [ ] Build the complete arm64 IPA through `ios-ipa.yml`, verify exact source SHA, archive digest, bundle IDs, device architectures and extension packaging.
 - [ ] Inspect simulator/device rendering if an accessible iOS runtime is available; otherwise record visual and physical-device acceptance as unverified. Never claim Android screenshots verify iOS.
 - [ ] Update the inventory with implemented, excluded, native-equivalent and still-unverified status. Commit only this task's files and publish the authorized branches.
@@ -125,9 +125,10 @@ Tests: wildcard/domain/exception precedence, invalid hostnames, malformed select
 - Browser cosmetic rules use WKContentRuleList's `css-display-none`, so navigation and rule removal are WebKit-owned; no injected script or Mini App hook is required.
 - Camera engine/lens/recording/phone preview remains excluded. Hardware volume-button playback and keyboard scroll thresholds remain native iOS behavior.
 
+- Model-catalog picker is now implemented: explicit provider request, bounded pagination, searchable highlight-only choice, cancellation on edits/leave; manual model IDs remain available when a service does not support listing. Native compilation is pending for this final addition.
+
 Still missing from complete Android parity (not represented as completed toggles):
 - Saved Messages settings synchronization; iOS currently supports validated explicit Files import/export only.
-- Model-catalog picker is now implemented: explicit provider request, bounded pagination, searchable highlight-only choice, cancellation on edits/leave; manual model IDs remain available when a service does not support listing. Native compilation is pending for this final addition.
 - Gemini audio transcription from message audio.
 - Instant View preference and a default selection for eligible delete-for-everyone dialogs; native iOS choices and eligibility remain intact.
 - Recovery UI for incomplete legacy provider configurations; old values/keys remain stored, and complete services migrate.
@@ -151,3 +152,5 @@ Model catalog implementation: `NebulaAiModelPage.swift` validates entries/paging
 
 - Native run `37798005200` exposed two real compile errors (missing Display import in filters and FileHandle.read requiring iOS 13.4). `e116728` adds the import, uses bounded InputStream reads compatible with the deployment target, and includes model selection. Bootstrap now SDK-typechecks the actual catalog transport alongside NebulaAiService. New native `37804869435` and IPA `37804784920` validate this revision; obsolete IPA run was cancelled because it contains the confirmed filter error.
 - Android update sheet SDK compile passed against the local compiled Telegram classes and Android SDK. CI `37802506030` stopped at the old About-route assertion; `1adab52` updates that expectation. Full APK run `37803321318` is active. The test emulator failed to boot online; no visual acceptance is claimed.
+
+- Bootstrap 37804785180 at 116728 passed 117 XCTest cases, cancellation/concurrency regression checks, all 81 patches and the existing real iOS SDK checks. Bootstrap 37804959701 at 2e210e3 also passed, including the actual model-catalog transport against the iOS SDK. Neither bootstrap nor module compilation proves physical UI acceptance.
