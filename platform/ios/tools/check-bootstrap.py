@@ -398,7 +398,7 @@ final class Composer {
             subprocess.run(['swiftc', *ios_flags, '-typecheck', '-I', str(temp),
                             str(temp / 'submodules/NebulaBrowserCore/Sources/NebulaBrowserContentRules.swift')], check=True)
             ai_sources = ['NebulaSettingsStyle.swift', 'NebulaSettingsSymbols.swift', 'NebulaSettingsHero.swift',
-                          'NebulaChoiceController.swift', 'NebulaAiChatController.swift', 'NebulaAiController.swift',
+                          'NebulaCloudSettingsController.swift', 'NebulaCloudSettingsSync.swift', 'NebulaChoiceController.swift', 'NebulaAiChatController.swift', 'NebulaAiController.swift',
                           'NebulaAiService.swift', 'NebulaAiHistoryController.swift', 'NebulaActionGrid.swift',
                           'NebulaResultLanguage.swift', 'NebulaMessageToolsController.swift', 'NebulaTasksController.swift',
                           'NebulaCommunity.swift', 'NebulaSupportController.swift', 'NebulaAiServicesController.swift',

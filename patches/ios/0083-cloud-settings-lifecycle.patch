@@ -1,0 +1,20 @@
+diff --git a/submodules/TelegramUI/Sources/ApplicationContext.swift b/submodules/TelegramUI/Sources/ApplicationContext.swift
+index 2a4f20e..2dbbcd6 100644
+--- a/submodules/TelegramUI/Sources/ApplicationContext.swift
++++ b/submodules/TelegramUI/Sources/ApplicationContext.swift
+@@ -836,6 +836,7 @@ final class AuthorizedApplicationContext {
+             }
+         })
+         
++        NebulaCloudSettingsSync.shared.bind(context: context)
+         self.rootController.setForceInCallStatusBar((self.context.sharedContext as! SharedAccountContextImpl).currentCallStatusBarNode)
+         if let groupCallController = self.context.sharedContext.currentGroupCallController as? VoiceChatController {
+             if let overlayController = groupCallController.currentOverlayController {
+@@ -846,6 +847,7 @@ final class AuthorizedApplicationContext {
+     }
+     
+     deinit {
++        NebulaCloudSettingsSync.shared.unbind(context: self.context)
+         self.context.account.postbox.clearCaches()
+         self.context.account.shouldKeepOnlinePresence.set(.single(false))
+         self.context.account.shouldBeServiceTaskMaster.set(.single(.never))

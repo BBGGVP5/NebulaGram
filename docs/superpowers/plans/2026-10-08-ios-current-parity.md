@@ -154,6 +154,14 @@ Remaining verification:
 
 Provider capability references used for the optional-field guards: https://platform.claude.com/docs/en/build-with-claude/extended-thinking and https://ai.google.dev/gemini-api/docs/generate-content/thinking. Unknown model families keep server defaults rather than receiving unverified thinking parameters.
 
+## Final portable consumers — cloud settings and audio
+
+- [ ] Add `NebulaCloudSettingsDocument.swift` and XCTest cases for the Android marker/version/clock/settings format, bounds, concurrent changes and deleted copies.
+- [ ] Add TelegramCore `NebulaCloudSettingsTransport.swift`: owner-only Saved Messages search, explicit network errors, bounded pagination, own-device edits and persisted send random IDs.
+- [ ] Add SettingsUI sync coordinator/controller: opt-in owner binding, no-backup installation ID, foreground cancellation, coalescing, explicit conflict choice and stale-result guards. Bind to the authorized account lifecycle and expose beside Files transfer.
+- [ ] Add bounded Gemini audio payload/response tests, native media menu action and themed transcript sheet. Requests require an explicit tap; protected, secret and expired media are excluded.
+- [ ] Run contract/SDK/native/IPA checks; keep physical-device acceptance separate.
+
 ## Android steering — update settings sheet
 
 User requested the reference's compact update panel in NebulaGram styling and selected the Nebula sign for its header.
