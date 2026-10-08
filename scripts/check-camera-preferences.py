@@ -7,6 +7,13 @@ fixture='''package app.nebulagram.ui;
 public class CameraPreferencesCheck {
  static void check(boolean value,String name){if(!value)throw new AssertionError(name);}
  public static void main(String[] args){
+  for(int sensor:new int[]{0,90,180,270})for(int display:new int[]{0,90,180,270}) {
+   int frontPreview=(360-(sensor+display)%360)%360;
+   check(NebulaCameraPolicy.stillOrientation(frontPreview,true)==(sensor+display)%360,"front JPEG does not inherit preview mirror compensation");
+   int rearPreview=(sensor-display+360)%360;
+   check(NebulaCameraPolicy.stillOrientation(rearPreview,false)==rearPreview,"rear JPEG keeps sensor/display orientation");
+  }
+  check(NebulaCameraPolicy.stillOrientation(90,true)==270,"portrait front sensor 270 regression");
   check(NebulaCameraPolicy.audioDurationUs(96000,48000,1)==1000000,"mono PCM timing");
   check(NebulaCameraPolicy.audioDurationUs(192000,48000,2)==1000000,"stereo PCM timing stays synchronized");
   check(NebulaCameraPolicy.audioDurationUs(192000L*600,48000,2)==600000000L,"long recordings do not overflow int arithmetic");

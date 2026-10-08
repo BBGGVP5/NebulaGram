@@ -1,7 +1,21 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
-@@ -6166,6 +6166,7 @@
+@@ -4729,7 +4729,12 @@
+             final float separatorY = getMeasuredHeight() - animatorInputFieldHeight.getFactor();
+             canvas.save();
+             if (child == textFieldContainer) {
+-                canvas.clipRect(0, separatorY, getMeasuredWidth(), getMeasuredHeight());
++                // The split composer's AI row sits above the native text island.
++                float contentTop = separatorY;
++                if (nebulaComposerStyle.isActive() && shownAiButton && aiButton != null) {
++                    contentTop = Math.min(contentTop, textFieldContainer.getY() + aiButton.getY());
++                }
++                canvas.clipRect(0, contentTop, getMeasuredWidth(), getMeasuredHeight());
+             }
+             if (child == topView) {
+                 canvas.clipRect(0, 0, getMeasuredWidth(), separatorY);
+@@ -6166,6 +6171,7 @@
              MessagesController.getInstance(currentAccount).getTonesController().load();
          }
          shownAiButton = show;
@@ -9,7 +23,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivity
          aiButton.animate().cancel();
          aiButton.setVisibility(View.VISIBLE);
          aiButton.animate()
-@@ -14741,6 +14742,9 @@
+@@ -14741,6 +14747,9 @@
          updateBotCommandsMenuContainerTopPadding();
          updateFieldRight(lastAttachVisible);
          nebulaComposerStyle.prepare(this, messageEditText, MeasureSpec.getSize(widthMeasureSpec), nebulaSupported);
@@ -19,7 +33,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivity
          super.onMeasure(widthMeasureSpec, heightMeasureSpec);
  
          if (botWebViewButton != null) {
-@@ -14762,6 +14766,10 @@
+@@ -14762,6 +14771,10 @@
          if (wasHeight > 0 && textFieldContainer.getMeasuredHeight() != wasHeight) {
              for (int i = 0; i < 2; ++i) {
                  final View view = i == 0 ? aiButton : richButton;

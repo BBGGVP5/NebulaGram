@@ -3,6 +3,10 @@ package app.nebulagram.ui;
 /** Device-independent capture decisions. Zero means leave the native default. */
 public final class NebulaCameraPolicy {
     private NebulaCameraPolicy() { }
+    /** JPEG pixels are not mirrored like the front-camera preview. */
+    public static int stillOrientation(int previewOrientation, boolean front) {
+        return front ? (360 - previewOrientation) % 360 : previewOrientation;
+    }
     public static long audioDurationUs(long bytes,int rate,int channels) {
         if(bytes<=0||rate<=0||channels<1||channels>2)return 0;
         return bytes*1_000_000L/rate/(2*channels);

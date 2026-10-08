@@ -108,9 +108,12 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/camera/Camera2Se
  
              captureRequestBuilder.addTarget(surface);
              captureSession.setRepeatingRequest(captureRequestBuilder.build(), null, handler);
-@@ -561,6 +612,8 @@
+@@ -559,8 +610,10 @@
+         if (cameraDevice == null || captureSession == null) return false;
+         try {
              CaptureRequest.Builder captureRequestBuilder = cameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_STILL_CAPTURE);
-             final int orientation = getJpegOrientation();
+-            final int orientation = getJpegOrientation();
++            final int orientation = app.nebulagram.ui.NebulaCameraPolicy.stillOrientation(getJpegOrientation(), isFront);
              captureRequestBuilder.set(CaptureRequest.JPEG_ORIENTATION, orientation);
 +            if (nebulaOptions != null) nebulaOptions.apply(captureRequestBuilder);
 +            if (hasFlash()) captureRequestBuilder.set(CaptureRequest.FLASH_MODE, flashing ? CaptureRequest.FLASH_MODE_SINGLE : CaptureRequest.FLASH_MODE_OFF);
