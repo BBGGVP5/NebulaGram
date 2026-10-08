@@ -244,3 +244,9 @@
 - 0079 adds a bounded in-memory ZIP entry reader (no extraction) and explicit SettingsUI Svg/ZipArchive dependencies; 0080 uses UUID-scoped imported template icons with native fallback.
 - 0081 gates Premium sticker and reaction animation entry points while retaining onHit/completion callbacks and native reaction state.
 - Previews, animated settings introductions, named services, roles and glass editor presentation are overlay sources. These patches do not add Android camera backends to iOS.
+
+### 0082 — Instant View and eligible deletion defaults
+
+- ChatController routes inline/external/explicit Instant View links through the native URL handling path when disabled. OpenResolvedUrl handles resolved Instant View pages with the existing browser preference.
+- ChatControllerAdminBanUsers initializes the existing `.unsendPersonal` switch from the opt-in preference. Eligibility, confirmation, undo and separate delete-for-me/everyone actions remain native.
+- Incomplete legacy AI recovery is an overlay/contract change, not an upstream patch. Opening a draft does not save or select it; credential migration only happens on explicit valid Save.

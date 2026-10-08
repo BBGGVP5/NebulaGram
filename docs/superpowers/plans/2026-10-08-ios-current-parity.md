@@ -112,10 +112,10 @@ Tests: wildcard/domain/exception precedence, invalid hostnames, malformed select
 
 Native integration `37804869435` at `e116728` passed. Continue inline with the remaining portable consumers.
 
-- [ ] Extend `NebulaMessagePreferences.swift` and `NebulaMessageControlsController.swift` with `instant_view` (default true) and `delete_for_all` (default false). Test persistence and defaults in `NebulaMessagePreferencesTests.swift`.
-- [ ] Add ordered patch 0082: gate inline, explicit and resolved Instant View routes and open the original URL through the native browser when disabled. Initialize only the native eligible `.unsendPersonal` switch from `delete_for_all`; retain explicit actions, eligibility, undo and cancellation. Separate native delete-for-me/everyone actions stay separate.
-- [ ] Add `recoverableLegacy`/`recoverLegacy` to `NebulaAiServices.swift`. Expose incomplete legacy entries separately, copy keys only after an explicit valid Save, reject implicit credential reuse across providers/hosts, keep legacy data on failure and suppress recovery after successful restoration/deletion. Test these transitions in `NebulaAiServicesTests.swift`.
-- [ ] Add recovery rows and edit routing to `NebulaAiServicesController.swift`, keeping invalid records outside the active service list. Opening or cancelling recovery must not save, select or send anything.
+- [x] Extend `NebulaMessagePreferences.swift` and `NebulaMessageControlsController.swift` with `instant_view` (default true) and `delete_for_all` (default false). Test persistence and defaults in `NebulaMessagePreferencesTests.swift`.
+- [x] Add ordered patch 0082: gate inline, explicit and resolved Instant View routes and open the original URL through the native browser when disabled. Initialize only the native eligible `.unsendPersonal` switch from `delete_for_all`; retain explicit actions, eligibility, undo and cancellation. Separate native delete-for-me/everyone actions stay separate.
+- [x] Add `recoverableLegacy`/`recoverLegacy` to `NebulaAiServices.swift`. Expose incomplete legacy entries separately, copy keys only after an explicit valid Save, reject implicit credential reuse across providers/hosts, keep legacy data on failure and suppress recovery after successful restoration/deletion. Test these transitions in `NebulaAiServicesTests.swift`.
+- [x] Add recovery rows and edit routing to `NebulaAiServicesController.swift`, keeping invalid records outside the active service list. Opening or cancelling recovery must not save, select or send anything.
 - [ ] Regenerate the contract mirror, run patch/bootstrap and contract checks, then native/IPA CI. Record actual results and preserve physical-device acceptance as unverified.
 
 ## Execution notes
@@ -135,13 +135,17 @@ Native integration `37804869435` at `e116728` passed. Continue inline with the r
 - Browser cosmetic rules use WKContentRuleList's `css-display-none`, so navigation and rule removal are WebKit-owned; no injected script or Mini App hook is required.
 - Camera engine/lens/recording/phone preview remains excluded. Hardware volume-button playback and keyboard scroll thresholds remain native iOS behavior.
 
-- Model-catalog picker is now implemented: explicit provider request, bounded pagination, searchable highlight-only choice, cancellation on edits/leave; manual model IDs remain available when a service does not support listing. Native compilation is pending for this final addition.
+- Model-catalog picker is implemented: explicit provider request, bounded pagination, searchable highlight-only choice, cancellation on edits/leave; manual model IDs remain available when a service does not support listing. Native compilation passed in `37804869435` and the full IPA passed in `37804784920`, source `e116728`.
 
 Still missing from complete Android parity (not represented as completed toggles):
 - Saved Messages settings synchronization; iOS currently supports validated explicit Files import/export only.
 - Gemini audio transcription from message audio.
-- Instant View preference and a default selection for eligible delete-for-everyone dialogs; native iOS choices and eligibility remain intact.
-- Recovery UI for incomplete legacy provider configurations; old values/keys remain stored, and complete services migrate.
+
+Continuation `cf2d0ce` adds Instant View browser routing, the eligible native unsend switch default and explicit recovery of incomplete legacy AI connections. All 82 patches / 141 paths and shared contract checks pass locally. Native `37816001440`, bootstrap `37815970422` and IPA `37816439420` verify this later revision separately; the already successful IPA above does not include these three additions.
+
+Downloaded and independently inspected IPA `37804784920`: source `e116728ea9a8009b074a44dfd8553db87d6388bf`, build 80, device arm64, bundle `app.nebulagram`, one Notification Service Extension. SHA-256 `8964e996cd9de92eb6d001c995753f9c788c4a3d3d50fa3c90e5dcd5bf631d29` matches the CI manifest. User signing, installation, APNs delivery and physical UI acceptance remain unverified.
+
+Remaining sync audit: Android uses `#NebulaGramSettingsV1` messages, one installation UUID per writer, vector clocks (maximum 24 devices), 4,000 UTF-16 units per document, owner-only non-forwarded Saved Messages and explicit conflict choice. The iOS port must preserve this wire format and stop writes on malformed/newer snapshots; exporting a file to Saved Messages alone is not synchronization. Preserve local-only keys when applying portable settings.
 
 Remaining verification:
 - Exact final-SHA full arm64 IPA, archive digest/bundle/extension verification.
