@@ -1,0 +1,74 @@
+diff --git a/submodules/AccountUtils/Sources/AccountUtils.swift b/submodules/AccountUtils/Sources/AccountUtils.swift
+index 44d09f5..0185a18 100644
+--- a/submodules/AccountUtils/Sources/AccountUtils.swift
++++ b/submodules/AccountUtils/Sources/AccountUtils.swift
+@@ -4,8 +4,8 @@ import TelegramCore
+ import TelegramUIPreferences
+ import AccountContext
+ 
+-public let maximumNumberOfAccounts = 3
+-public let maximumPremiumNumberOfAccounts = 4
++public let maximumNumberOfAccounts = 10
++public let maximumPremiumNumberOfAccounts = 10
+ 
+ public func activeAccountsAndPeers(context: AccountContext, includePrimary: Bool = false) -> Signal<((AccountContext, EnginePeer)?, [(AccountContext, EnginePeer, Int32)]), NoError> {
+     let sharedContext = context.sharedContext
+diff --git a/submodules/AppBundle/Sources/AppBundle/AppBundle.m b/submodules/AppBundle/Sources/AppBundle/AppBundle.m
+index 94b80d8..b00f545 100644
+--- a/submodules/AppBundle/Sources/AppBundle/AppBundle.m
++++ b/submodules/AppBundle/Sources/AppBundle/AppBundle.m
+@@ -39,7 +39,8 @@ static NSInteger NebulaSelectedIconPack(void) {
+         if ([document isKindOfClass:NSDictionary.class] && [document[@"settings"] isKindOfClass:NSDictionary.class]) {
+             id raw = document[@"settings"][@"icon_pack"];
+             if ([raw isKindOfClass:NSNumber.class]) {
+-                pack = MAX(0, MIN(2, [raw intValue]));
++                pack = [raw intValue];
++                if (pack < 0 || pack > 2) pack = 0;
+             } else {
+                 id legacy = document[@"settings"][@"ios_icons"];
+                 if ([legacy isKindOfClass:NSNumber.class]) pack = [legacy boolValue] ? 1 : 0;
+diff --git a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoScreenSettingsActions.swift b/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoScreenSettingsActions.swift
+index 74f85e4..00be367 100644
+--- a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoScreenSettingsActions.swift
++++ b/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoScreenSettingsActions.swift
+@@ -219,33 +219,15 @@ extension PeerInfoScreenNode {
+                 guard let strongSelf = self else {
+                     return
+                 }
+-                var maximumAvailableAccounts: Int = 3
+-                if accountAndPeer?.1.isPremium == true && !strongSelf.context.account.testingEnvironment {
+-                    maximumAvailableAccounts = 4
+-                }
+-                var count: Int = 1
+-                for (accountContext, peer, _) in accountsAndPeers {
+-                    if !accountContext.account.testingEnvironment {
+-                        if peer.isPremium {
+-                            maximumAvailableAccounts = 4
+-                        }
+-                        count += 1
+-                    }
+-                }
++                let maximumAvailableAccounts = maximumNumberOfAccounts
++                let count = accountsAndPeers.count + (accountAndPeer == nil ? 0 : 1)
+                 
+                 if count >= maximumAvailableAccounts {
+-                    var replaceImpl: ((ViewController) -> Void)?
+-                    let controller = PremiumLimitScreen(context: strongSelf.context, subject: .accounts, count: Int32(count), action: {
+-                        let controller = PremiumIntroScreen(context: strongSelf.context, source: .accounts)
+-                        replaceImpl?(controller)
+-                        return true
+-                    })
+-                    replaceImpl = { [weak controller] c in
+-                        controller?.replace(with: c)
+-                    }
+-                    if let navigationController = strongSelf.context.sharedContext.mainWindow?.viewController as? NavigationController {
+-                        navigationController.pushViewController(controller)
+-                    }
++                    let data = strongSelf.context.sharedContext.currentPresentationData.with { $0 }
++                    let russian = data.strings.baseLanguageCode.hasPrefix("ru")
++                    let alert = UIAlertController(title: "NebulaGram", message: russian ? "Можно добавить до 10 аккаунтов. Выйдите из одного из них, чтобы добавить новый." : "You can add up to 10 accounts. Log out of one to add another.", preferredStyle: .alert)
++                    alert.addAction(UIAlertAction(title: data.strings.Common_OK, style: .default))
++                    strongSelf.controller?.present(alert, animated: true)
+                 } else {
+                     strongSelf.context.sharedContext.beginNewAuth(testingEnvironment: strongSelf.context.account.testingEnvironment)
+                 }

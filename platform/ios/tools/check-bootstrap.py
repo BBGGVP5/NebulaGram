@@ -48,7 +48,7 @@ def main():
         if not pairs:
             raise SystemExit(f'Empty patch: {patch.name}')
         for a, b in pairs:
-            if a != b or not (a.startswith('submodules/') or a in {'Telegram/NotificationService/Sources/NotificationService.swift', 'Telegram/NotificationService/BUILD', 'Telegram/BUILD', 'Telegram/WidgetKitWidget/TodayViewController.swift', 'Telegram/Telegram-iOS/AlternateIcons.plist', 'Telegram/Telegram-iOS/AlternateIcons-iPad.plist'}) or '..' in Path(a).parts or '\\' in a:
+            if a != b or not (a.startswith('submodules/') or a in {'third-party/ZipArchive/PublicHeaders/ZipArchive/ZipArchive.h', 'third-party/ZipArchive/Sources/SSZipArchive.m', 'Telegram/NotificationService/Sources/NotificationService.swift', 'Telegram/NotificationService/BUILD', 'Telegram/BUILD', 'Telegram/WidgetKitWidget/TodayViewController.swift', 'Telegram/Telegram-iOS/AlternateIcons.plist', 'Telegram/Telegram-iOS/AlternateIcons-iPad.plist'}) or '..' in Path(a).parts or '\\' in a:
                 raise SystemExit('Unexpected patch path: ' + a)
             paths.add(a)
     with tempfile.TemporaryDirectory(prefix='nebula-ios-bootstrap-') as temporary:
@@ -404,7 +404,7 @@ final class Composer {
                           'NebulaCommunity.swift', 'NebulaSupportController.swift', 'NebulaAiServicesController.swift',
                           'NebulaAiRolesController.swift', 'NebulaAnimatedSettingsEmoji.swift',
                           'NebulaSettingsIntroItem.swift', 'NebulaLinkPresentation.swift', 'NebulaAiEditorController.swift',
-                          'NebulaEditorSegments.swift', 'NebulaDraftTranslation.swift', 'NebulaBrowserController.swift', 'NebulaMessageControlsController.swift', 'NebulaMessageFilterController.swift']
+                          'NebulaEditorSegments.swift', 'NebulaDraftTranslation.swift', 'NebulaBrowserController.swift', 'NebulaMessageControlsController.swift', 'NebulaMessageFilterController.swift', 'NebulaPresentationPreviewController.swift', 'NebulaImportedIcons.swift', 'NebulaIconPacksController.swift']
             # These views now use Telegram's PresentationTheme module. Parse them
             # here, then typecheck against the real module graph in ios-native.yml.
             subprocess.run(['swiftc', '-frontend', '-parse', '-swift-version', '5',

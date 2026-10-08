@@ -4,7 +4,6 @@ import AppBundle
 
 enum NebulaIconPackArtwork {
     static func image(symbol: String, pack: Int) -> UIImage? {
-        guard pack == 1 || pack == 2 else { return nil }
         let name: String
         switch symbol {
         case "bubble.left.and.bubble.right": name = "chat"
@@ -37,6 +36,8 @@ enum NebulaIconPackArtwork {
         case "doc": name = "file"
         default: return nil
         }
+        if let imported = NebulaImportedIcons.image(semantic: name) { return imported }
+        guard pack == 1 || pack == 2 else { return nil }
         return UIImage(bundleImageName: "NebulaPack\(pack)_\(name)")
     }
 }

@@ -1,0 +1,60 @@
+diff --git a/submodules/SettingsUI/BUILD b/submodules/SettingsUI/BUILD
+index 1e36d27..e0c41a2 100644
+--- a/submodules/SettingsUI/BUILD
++++ b/submodules/SettingsUI/BUILD
+@@ -10,6 +10,8 @@ swift_library(
+         "-warnings-as-errors",
+     ],
+     deps = [
++        "//submodules/Svg:Svg",
++        "//third-party/ZipArchive:ZipArchive",
+         "//submodules/NebulaBrowserCore:NebulaBrowserCore",
+         "//submodules/NebulaLinkUI:NebulaLinkUI",
+         "//submodules/NebulaSettingsContract:NebulaSettingsContract",
+diff --git a/third-party/ZipArchive/PublicHeaders/ZipArchive/ZipArchive.h b/third-party/ZipArchive/PublicHeaders/ZipArchive/ZipArchive.h
+index 58d0fec..511fdcc 100644
+--- a/third-party/ZipArchive/PublicHeaders/ZipArchive/ZipArchive.h
++++ b/third-party/ZipArchive/PublicHeaders/ZipArchive/ZipArchive.h
+@@ -42,6 +42,8 @@ typedef NS_ENUM(NSInteger, SSZipArchiveErrorCode) {
+ 
+ @interface SSZipArchive : NSObject
+ 
+++ (NSData * _Nullable)nebulaReadFileAtPath:(NSString *)path filePath:(NSString *)filePath maximumSize:(NSUInteger)maximumSize NS_SWIFT_NAME(nebulaReadFile(atPath:filePath:maximumSize:));
++
+ + (NSArray<SSZipEntry *> * _Nullable)getEntriesForFileAtPath:(NSString *)path;
+ + (BOOL)extractFileFromArchiveAtPath:(NSString *)path filePath:(NSString *)filePath toPath:(NSString *)toPath;
+ 
+diff --git a/third-party/ZipArchive/Sources/SSZipArchive.m b/third-party/ZipArchive/Sources/SSZipArchive.m
+index 9669fd7..2ace504 100644
+--- a/third-party/ZipArchive/Sources/SSZipArchive.m
++++ b/third-party/ZipArchive/Sources/SSZipArchive.m
+@@ -44,6 +44,29 @@ BOOL _fileIsSymbolicLink(const unz_file_info *fileInfo);
+     zipFile _zip;
+ }
+ 
++// Bounded in-memory read. Never extract an imported icon archive to disk.
+++ (NSData *)nebulaReadFileAtPath:(NSString *)path filePath:(NSString *)filePath maximumSize:(NSUInteger)maximumSize {
++    if (maximumSize == 0 || maximumSize > 262144) return nil;
++    unzFile file = unzOpen(path.fileSystemRepresentation);
++    if (!file) return nil;
++    if (unzLocateFile(file, filePath.UTF8String, NULL) != UNZ_OK) { unzClose(file); return nil; }
++    unz_file_info info = {};
++    char name[2048] = {0};
++    if (unzGetCurrentFileInfo(file, &info, name, sizeof(name), NULL, 0, NULL, 0) != UNZ_OK || strcmp(name, filePath.UTF8String) != 0 || info.uncompressed_size > maximumSize || (info.flag & 1) != 0 || unzOpenCurrentFile(file) != UNZ_OK) { unzClose(file); return nil; }
++    NSMutableData *data = [NSMutableData data];
++    unsigned char buffer[4096];
++    int count = 0;
++    BOOL valid = YES;
++    while ((count = unzReadCurrentFile(file, buffer, sizeof(buffer))) > 0) {
++        if (data.length + (NSUInteger)count > maximumSize) { valid = NO; break; }
++        [data appendBytes:buffer length:(NSUInteger)count];
++    }
++    if (count < 0 || data.length != info.uncompressed_size) valid = NO;
++    if (unzCloseCurrentFile(file) != UNZ_OK) valid = NO;
++    unzClose(file);
++    return valid ? data : nil;
++}
++
+ #pragma mark - Password check
+ 
+ + (BOOL)isFilePasswordProtectedAtPath:(NSString *)path {

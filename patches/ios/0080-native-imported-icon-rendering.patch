@@ -1,0 +1,42 @@
+diff --git a/submodules/AppBundle/Sources/AppBundle/AppBundle.m b/submodules/AppBundle/Sources/AppBundle/AppBundle.m
+index b00f545..76bf3c1 100644
+--- a/submodules/AppBundle/Sources/AppBundle/AppBundle.m
++++ b/submodules/AppBundle/Sources/AppBundle/AppBundle.m
+@@ -40,7 +40,8 @@ static NSInteger NebulaSelectedIconPack(void) {
+             id raw = document[@"settings"][@"icon_pack"];
+             if ([raw isKindOfClass:NSNumber.class]) {
+                 pack = [raw intValue];
+-                if (pack < 0 || pack > 2) pack = 0;
++                if (pack < 0 || pack > 3) pack = 0;
++                if (pack == 3 && ![[NSUUID alloc] initWithUUIDString:[[NSUserDefaults standardUserDefaults] stringForKey:@"nebula.ios.selectedIconPack"] ?: @""]) pack = 0;
+             } else {
+                 id legacy = document[@"settings"][@"ios_icons"];
+                 if ([legacy isKindOfClass:NSNumber.class]) pack = [legacy boolValue] ? 1 : 0;
+@@ -59,15 +60,24 @@ static NSInteger NebulaSelectedIconPack(void) {
+     if (!original || !names) return original;
+     NSInteger pack = NebulaSelectedIconPack();
+     if (pack == 0) return original;
+-    NSString *name = names[pack - 1];
++    NSString *name = pack == 3 ? [names.firstObject stringByReplacingOccurrencesOfString:@"NebulaPack1_" withString:@""] : names[pack - 1];
+     if (name.length == 0) return original;
+     static NSCache<NSString *, UIImage *> *cache;
+     static dispatch_once_t onceToken;
+     dispatch_once(&onceToken, ^{ cache = [[NSCache alloc] init]; cache.countLimit = 128; });
+-    NSString *key = [NSString stringWithFormat:@"%ld:%@", (long)pack, bundleImageName];
++    NSString *importId = pack == 3 ? [[NSUserDefaults standardUserDefaults] stringForKey:@"nebula.ios.selectedIconPack"] : @"";
++    NSString *key = [NSString stringWithFormat:@"%ld:%@:%@", (long)pack, importId, bundleImageName];
+     UIImage *cached = [cache objectForKey:key];
+     if (cached) return cached;
+-    UIImage *image = [UIImage imageNamed:name inBundle:getAppBundle() compatibleWithTraitCollection:nil];
++    UIImage *image;
++    if (pack == 3) {
++        if (![[NSUUID alloc] initWithUUIDString:importId ?: @""]) return original;
++        NSURL *root = [[[NSFileManager defaultManager] URLsForDirectory:NSApplicationSupportDirectory inDomains:NSUserDomainMask] firstObject];
++        NSURL *file = [[[root URLByAppendingPathComponent:@"NebulaIconPacks" isDirectory:YES] URLByAppendingPathComponent:importId isDirectory:YES] URLByAppendingPathComponent:[name stringByAppendingString:@".png"]];
++        image = [UIImage imageWithContentsOfFile:file.path];
++    } else {
++        image = [UIImage imageNamed:name inBundle:getAppBundle() compatibleWithTraitCollection:nil];
++    }
+     if (!image) return original;
+     CGSize size = original.size;
+     if (size.width <= 0.0 || size.height <= 0.0) return original;
