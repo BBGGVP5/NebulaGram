@@ -89,7 +89,7 @@ public final class NebulaCameraPreview extends LinearLayout {
             { 2, -2,  0,  .02f, -14},
             {-5,  0, -1, -.01f,   0},
             { 1, -1,  6,     0,   0},
-            {-2, -5,  0,  .04f,   0},
+            {-2, -2.5f, 0, .02f,  0},
             { 3,  0,  1, -.025f, 26}
         };
         private float[] geometry = MODELS[NebulaCameraSettings.backend()].clone();
@@ -119,11 +119,14 @@ public final class NebulaCameraPreview extends LinearLayout {
                 float settle = spring.getInterpolation(progress);
                 for (int i=0; i<geometry.length; i++) geometry[i] = start[i] + (end[i]-start[i])*settle;
                 float pulse = (float)Math.sin(progress*Math.PI);
-                turn = startTurn * (1-progress) + pulse * motion[0];
-                lift = startLift * (1-progress) + pulse * motion[1];
-                slide = startSlide * (1-progress) + pulse * motion[2];
-                zoom = 1 + (startZoom-1) * (1-progress) + pulse * motion[3];
-                yaw = startYaw * (1-progress) + pulse * motion[4];
+                // Blend toward the new peak, then return to rest. Repeated
+                // interruptions must not add old motion on top of the new peak.
+                float carry = progress < .5f ? 1-pulse : 0;
+                turn = startTurn * carry + pulse * motion[0];
+                lift = startLift * carry + pulse * motion[1];
+                slide = startSlide * carry + pulse * motion[2];
+                zoom = 1 + (startZoom-1) * carry + pulse * motion[3];
+                yaw = startYaw * carry + pulse * motion[4];
                 invalidate();
             });
             animation.start();
