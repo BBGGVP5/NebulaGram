@@ -384,7 +384,7 @@ final class SettingsStoreTests: XCTestCase {
                 "swipe_actions": .string("3,0,1")
             ]
             let data = try JSONEncoder().encode(SettingsDocument(settings: values))
-            XCTAssertEqual(Set(try store.importData(data)), Set(values.keys))
+            XCTAssertTrue(try store.importData(data).isEmpty)
             let restored = NebulaSettingsStore(defaults: defaults)
             let exported = try JSONDecoder().decode(SettingsDocument.self, from: restored.exportData())
             XCTAssertEqual(exported.settings, values)
