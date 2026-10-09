@@ -184,6 +184,8 @@ def main():
         assert 'sourceVersion = "' + upstream_version + '"' in build_info
         assert 'arguments.openBuildInfo' in controller and 'arguments.openIcons' in controller
         swipe = (temp / 'submodules/TelegramUI/Sources/Chat/NebulaSwipeMessageActions.swift').read_text(encoding='utf-8')
+        assert 'controllerInteraction?.canSetupReply(message)' in swipe
+        assert 'let readable = !message.media.contains(where: { $0 is TelegramMediaAction })' in swipe
         for boundary in ['!message.isCopyProtected()', '!message.containsSecretMedia', 'message.adAttribute == nil', 'nebulaAvailableSwipeActions(value._asMessage()).contains(raw)', 'storeMessageTextInPasteboard(message.text, entities: entities)']:
             assert boundary in swipe
         for kind in ['ChatMessageBubbleItemNode', 'ChatMessageStickerItemNode', 'ChatMessageAnimatedStickerItemNode', 'ChatMessageInstantVideoItemNode']:

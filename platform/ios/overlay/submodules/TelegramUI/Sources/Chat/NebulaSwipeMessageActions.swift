@@ -16,8 +16,8 @@ extension ChatControllerImpl {
         guard presentationInterfaceState.interfaceState.selectionState == nil,
               presentationInterfaceState.subject == nil, message.adAttribute == nil,
               message.flags.intersection([.Failed, .Sending, .Unsent]).isEmpty,
-              !message.media.contains(where: { $0 is TelegramMediaExpiredContent || $0 is TelegramMediaAction }) else { return [] }
-        let readable = !presentationInterfaceState.copyProtectionEnabled && !message.isCopyProtected() && !message.containsSecretMedia && !message.text.isEmpty
+              !message.media.contains(where: { $0 is TelegramMediaExpiredContent }) else { return [] }
+        let readable = !message.media.contains(where: { $0 is TelegramMediaAction }) && !presentationInterfaceState.copyProtectionEnabled && !message.isCopyProtected() && !message.containsSecretMedia && !message.text.isEmpty
         return NebulaSettingsStore.shared.swipeActions.filter { action in
             if action == .reply {
                 if case .reply? = controllerInteraction?.canSetupReply(message) { return true }
