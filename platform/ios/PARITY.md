@@ -18,13 +18,20 @@ This section supersedes older pending-source statements below. Source implementa
 | Home title and deletion protection | Chats/NebulaGram title with live refresh. Explicit nondestructive Face ID/Touch ID/passcode test, including while the deletion toggle is off. |
 | Peer IDs | Tap-to-copy user/group/channel IDs in profiles; Telegram/Bot API format in General. Bot API channel IDs use the numeric 1,000,000,000,000 offset, including short IDs; secret-chat internal IDs are not exposed. |
 | NebulaLink refresh | Pull-to-refresh on overview and subscription list invokes the same `subscription.refreshAll` core operation, with busy gating, aggregate outcome and spinner cleanup on success/failure. No connection or server change is implicit. |
-| App branding | Main app display name corrected to NebulaGram; baseline build 84 still contained Telegram in CFBundleDisplayName. |
+| App branding | 0089 fixes the actual Bazel-generated main app display name. 0087 only changed the separate Xcode plist; device build 89 exposed this gap. The verified unsigned delivery has NebulaGram as its display name. |
 
 Platform adaptations (not equivalent Android switches): native extracted-menu viewport/scrolling replaces percentage-height and below-message placement controls; native navigation/keyboard dismissal replaces Predictive Back and Android keyboard swipe sensitivity; UIKit/Telegram material and navigation components own the home header glass. Face ID/passcode selection belongs to LocalAuthentication, not an Android “prefer PIN” switch. Volume-button playback, Android recording audio focus, Material You and Android font substitution are not emulated. Camera engines/lenses/recording controls/phone-camera preview remain explicitly excluded by the user. These are documented differences, not hidden unfinished consumers.
 
-Validation: source `7728305` + import-test correction `169b4a7` passed macOS bootstrap `37935705936`, including new policy/parser/store tests and real UIKit typechecking for the arithmetic hint. Current `7d9c483` applies **87 patches / 155 upstream paths**; all 78 shared setting definitions and 6 native-preparation + 8 IPA-driver tests pass locally. Bootstrap `37937153272` passed all 132 Swift tests and actual iOS SDK checks. Full device IPA `37937153786` was dispatched; final runtime follow-up and artifact status are recorded below. Native module run `37935477697` targets the earlier `7728305` revision, so it cannot validate the later account/ID changes.
+Validation of final compiled runtime **144849cd181dc7c2c84c6844cb45a0775a3fdc86**:
 
-Independently verified baseline: full IPA `37897185784`, source `fffe517fb640d74651bd5d5c2e16986f5ca25855`, build 84, app.nebulagram / arm64, one Notification Service Extension; SHA-256 `812aee67e1e45656f6c387c546136a6e7f6b4ad1bb106d53837dbfc31172d994` matches its manifest. It excludes 0086/0087 and is not the new delivery. Signing and physical/simulator UI, gestures, Dynamic Type, notification and authentication acceptance remain unverified.
+- macOS bootstrap [37940965491](https://github.com/BBGGVP5/NebulaGram/actions/runs/37940965491) succeeded: **135 XCTest cases**, SDK typechecks and ordered-patch guards.
+- Native integration [37941215011](https://github.com/BBGGVP5/NebulaGram/actions/runs/37941215011) succeeded: 1,873 actions, including Telegram Lib, TelegramUI, ChatListUI, SettingsUI, NebulaLinkUI and related modules.
+- Full arm64 device IPA [37940972200](https://github.com/BBGGVP5/NebulaGram/actions/runs/37940972200) succeeded: **12.9.2, build 89**, app.nebulagram, one Notification Service Extension. Original CI SHA-256: `def82095d3fdb704c3e3f64a4f3c77f2f91d463e8a8fc57294d4fbe73927b4f4`.
+- Independent archive inspection found that the main display name was still Telegram. **ff60327d0c439de6d738e7aeede777a44e2a9c38 / 0089** corrects the actual Bazel plist fragment and makes IPA publication reject a missing/wrong name. Local ordered-patch validation passes **89 patches / 157 paths**; all eight IPA-driver tests pass, including missing/wrong-name rejection. This follow-up changes no native binary code.
+- Delivery `build/artifact-37940972200-branded/NebulaGram-unsigned.ipa` is a **locally corrected unsigned derivative** of that successful CI archive, not a second CI build. Only `Payload/Telegram.app/Info.plist:CFBundleDisplayName` changes to NebulaGram. SHA-256 comparison verifies all **966 other entries**, including every executable, unchanged; ZIP entry permissions/timestamps/compression types are preserved. Provenance is in its `build-result.json`.
+- Verified delivery: **87,853,502 bytes**, SHA-256 `396433664c46b054e10e65169fc675f82f7eb2071785e29d74e450bc18fc7e28`; revision, bundle ID, arm64 device executables, notification extension and display name checked independently. User signing is required. Physical/simulator UI, gestures, Dynamic Type, notification and authentication acceptance remain unverified; the plan has an explicit device checklist.
+
+All earlier IPA runs in this implementation pass were superseded by 37940972200. The older independently verified build 84 at fffe517 is baseline evidence only and excludes 0086–0088.
 
 ## October 8 port: current checkpoint
 
@@ -86,20 +93,20 @@ Continuation `03a08a0` wires opt-in Saved Messages cloud settings sync with the 
 | `bottom_bar_order` | navigation.bottom_bar | Wired; native build passed; device QA pending | Yes |
 | `bottom_bar_profile` | navigation.bottom_bar | Wired; native build passed; device QA pending | Yes |
 | `bottom_bar_settings` | navigation.bottom_bar | Wired; native build passed; device QA pending | Yes |
-| `sticker_time_style` | chat.messages | Wired by 0086; current native build pending | Yes |
-| `channel_forward_count` | chat.messages | Wired by 0086; current native build pending | Yes |
-| `inline_math` | chat.input | Parser tests and UIKit hint typecheck passed; full native build pending | Yes |
-| `folder_unmuted_only` | navigation.folders | Wired by 0086; current native build pending | Yes |
-| `swipe_actions` | chat.messages | Wired by 0086; current native build pending | Yes |
+| `sticker_time_style` | chat.messages | Wired by 0086; native build passed at 144849c; device QA pending | Yes |
+| `channel_forward_count` | chat.messages | Wired by 0086; native build passed at 144849c; device QA pending | Yes |
+| `inline_math` | chat.input | Parser tests, UIKit hint typecheck and native build passed at 144849c; device QA pending | Yes |
+| `folder_unmuted_only` | navigation.folders | Wired by 0086; native build passed at 144849c; device QA pending | Yes |
+| `swipe_actions` | chat.messages | Wired by 0086; native build passed at 144849c; device QA pending | Yes |
 | `center_home` | navigation.folders | Wired; native build passed; device QA pending | Yes |
 | `centered_chat_header` | chat.header | Wired; native build passed; device QA pending | Yes |
 | `compact_bottom_bar` | navigation.bottom_bar | Wired; native build passed; device QA pending | Yes |
 | `custom_avatar_corners` | appearance.general | Wired; native build passed; device QA pending | Local only |
 | `disable_next_channel` | chat.messages | Wired; native build passed; device QA pending | Yes |
 | `floating_chat_header_v2` | chat.header | Wired; native build passed; device QA pending | Yes |
-| `folder_outline` | navigation.folders | 0088 wires the current home component in addition to the legacy peer-picker component; current native build/device QA pending | Yes |
-| `folder_style` | navigation.folders | 0088 corrects the consumer on the current home tabs; earlier 0054 covered the legacy peer-picker tabs only. Current native build/device QA pending | Yes |
-| `folder_panel_style` | appearance.folders | 0088 glass/solid/minimal home panel; current native build/device QA pending | Local only |
+| `folder_outline` | navigation.folders | 0088 wires the current home component in addition to the legacy peer-picker component; native build passed at 144849c; device QA pending | Yes |
+| `folder_style` | navigation.folders | 0088 corrects the consumer on the current home tabs; earlier 0054 covered the legacy peer-picker tabs only. Native build passed at 144849c; device QA pending | Yes |
+| `folder_panel_style` | appearance.folders | 0088 glass/solid/minimal home panel; native build passed at 144849c; device QA pending | Local only |
 | `folder_title` | navigation.folders | Wired; native build passed; device QA pending | Yes |
 | `glass_blur` | appearance.glass | Wired to native material tiers; native build passed; device QA pending | Local only |
 | `glass_custom` | appearance.glass | Wired; native build passed; device QA pending | Local only |
