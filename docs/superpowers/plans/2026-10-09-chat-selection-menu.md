@@ -27,4 +27,10 @@ The requested implementation is authorized; execute inline. The optional executi
 User correction: only the header icons should change by default. Keep the native bottom buttons, including their native icon positions and labels, until the opt-in `selection_without_author` switch in Chats is enabled. The switch defaults off through NebulaFeatureSettings; changing it back restores Reply and Forward.
 
 
-Validation: all 185 patches reconstruct 134 native paths from the pinned upstream; 12,928 capsule transition cases, bulk-selection eligibility/100-item cap/idempotence/merged IDs, forwarding route and opt-in-default guards, emoji pre-layout decoding lifecycle, updater/settings-link checks pass. Actual footer and updated emoji/updater sources compile against the Android SDK and compiled Telegram dependencies. Full APK build is the remaining CI check. No device is attached, so visual/gesture acceptance is not claimed.
+Validation: all 185 patches reconstruct 134 native paths from the pinned upstream; 12,928 capsule transition cases, bulk-selection eligibility/100-item cap/idempotence/merged IDs, forwarding route and opt-in-default guards, emoji pre-layout decoding lifecycle, updater/settings-link checks pass. Actual footer and updated emoji/updater sources compile against the Android SDK and compiled Telegram dependencies. No device is attached, so visual/gesture acceptance is not claimed.
+
+## Build regression follow-up
+
+The first full workflow failed before APK compilation because `check-menu-drag.py` still required the previous inset divider. The full local suite also found `check-saved-header-material.py` still expecting a 60dp selection edge. Both expectations now cover the intended native gap/navigation order and 52dp edge; no check was disabled. All 96 regression scripts pass, including the native account-slot fixture using the local LLVM compiler.
+
+Full Android workflow [37890797029](https://github.com/BBGGVP5/NebulaGram/actions/runs/37890797029), source `76c4479ed1c5168984a44d9d5c057ac5ae482462`, succeeded. Downloaded build 1000460 and verified package/version, signing certificate, arm64 native libraries including NebulaLink, and the bundled icon pack. APK SHA-256: `2a11518b4e5e6df07d3c979cd3f61798265fc1f26d81216728d8b7ad211da156`. Physical-device acceptance remains pending.
