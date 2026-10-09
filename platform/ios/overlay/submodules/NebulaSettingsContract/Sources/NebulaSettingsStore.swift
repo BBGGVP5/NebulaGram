@@ -33,7 +33,7 @@ public final class SettingsObservation {
 public final class NebulaSettingsStore {
     public static let shared = NebulaSettingsStore(defaults: .standard)
     public static let storageKey = "app.nebulagram.presentation.settings.v1"
-    public static let editableKeys: Set<String> = ["icon_pack", "switch_style", "login_style", "adaptive_chat_header", "floating_chat_header_v2", "header_unread", "glass_custom", "glass_haptics", "glass_haptic_strength", "own_double_tap", "message_menu_blur", "bottom_bar", "hide_all_chats", "center_home", "avatar_round", "custom_avatar_corners", "uniform_avatars", "hide_tab_counters", "show_stories", "settings_search_history", "glass_quality", "glass_highlights", "glass_depth", "glass_depth_enabled", "glass_opacity", "glass_blur", "liquid_animations", "ios_glass_style", "ios_glass_tint", "bottom_bar_contacts", "bottom_bar_order", "bottom_bar_profile", "bottom_bar_settings", "tab_labels", "compact_bottom_bar", "hide_home_camera", "hide_home_compose", "hide_send_as", "hide_attach_camera", "hide_dividers", "hide_search_field", "hide_premium_status", "menu_search", "menu_mute", "menu_call", "menu_video", "folder_style", "folder_title", "folder_outline", "centered_chat_header", "disable_next_channel", "seconds_in_time", "wide_posts", "fragment_transition_style", "profile_style", "profile_channel", "profile_birthday", "profile_business", "profile_background", "profile_emoji", "profile_photo_banner", "reply_background", "reply_colors", "reply_emoji"]
+    public static let editableKeys: Set<String> = ["sticker_time_style", "channel_forward_count", "inline_math", "folder_unmuted_only", "swipe_actions", "icon_pack", "switch_style", "login_style", "adaptive_chat_header", "floating_chat_header_v2", "header_unread", "glass_custom", "glass_haptics", "glass_haptic_strength", "own_double_tap", "message_menu_blur", "bottom_bar", "hide_all_chats", "center_home", "avatar_round", "custom_avatar_corners", "uniform_avatars", "hide_tab_counters", "show_stories", "settings_search_history", "glass_quality", "glass_highlights", "glass_depth", "glass_depth_enabled", "glass_opacity", "glass_blur", "liquid_animations", "ios_glass_style", "ios_glass_tint", "bottom_bar_contacts", "bottom_bar_order", "bottom_bar_profile", "bottom_bar_settings", "tab_labels", "compact_bottom_bar", "hide_home_camera", "hide_home_compose", "hide_send_as", "hide_attach_camera", "hide_dividers", "hide_search_field", "hide_premium_status", "menu_search", "menu_mute", "menu_call", "menu_video", "folder_style", "folder_title", "folder_outline", "centered_chat_header", "disable_next_channel", "seconds_in_time", "wide_posts", "fragment_transition_style", "profile_style", "profile_channel", "profile_birthday", "profile_business", "profile_background", "profile_emoji", "profile_photo_banner", "reply_background", "reply_colors", "reply_emoji"]
     public static let maximumTransferBytes = 1024 * 1024
 
     private let defaults: UserDefaults
@@ -101,6 +101,15 @@ public final class NebulaSettingsStore {
     public var headerUnread: Bool { boolean("header_unread", fallback: false) }
     public var ownDoubleTap: Int { max(0, min(4, integer("own_double_tap", fallback: 0))) }
     public var messageMenuBlur: Bool { boolean("message_menu_blur", fallback: true) }
+    public var stickerTimeStyle: Int { max(0, min(2, integer("sticker_time_style", fallback: 0))) }
+    public var channelForwardCount: Bool { boolean("channel_forward_count", fallback: false) }
+    public var inlineArithmetic: Bool { boolean("inline_math", fallback: false) }
+    public var folderUnmutedOnly: Bool { boolean("folder_unmuted_only", fallback: false) }
+    public var swipeActions: [NebulaSwipeAction] {
+        lock.lock(); defer { lock.unlock() }
+        guard case let .string(value) = values["swipe_actions"] else { return [.reply] }
+        return NebulaSwipeActions.parse(value)
+    }
     private func contains(_ key: String) -> Bool {
         lock.lock(); defer { lock.unlock() }
         return values[key] != nil

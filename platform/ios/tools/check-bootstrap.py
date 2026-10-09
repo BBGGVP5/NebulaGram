@@ -183,6 +183,23 @@ def main():
         upstream_version = json.loads((tree / 'versions.json').read_text(encoding='utf-8'))['app']
         assert 'sourceVersion = "' + upstream_version + '"' in build_info
         assert 'arguments.openBuildInfo' in controller and 'arguments.openIcons' in controller
+        swipe = (temp / 'submodules/TelegramUI/Sources/Chat/NebulaSwipeMessageActions.swift').read_text(encoding='utf-8')
+        for boundary in ['!message.isCopyProtected()', '!message.containsSecretMedia', 'message.adAttribute == nil', 'nebulaAvailableSwipeActions(value._asMessage()).contains(raw)', 'storeMessageTextInPasteboard(message.text, entities: entities)']:
+            assert boundary in swipe
+        for kind in ['ChatMessageBubbleItemNode', 'ChatMessageStickerItemNode', 'ChatMessageAnimatedStickerItemNode', 'ChatMessageInstantVideoItemNode']:
+            node = (temp / f'submodules/TelegramUI/Components/Chat/{kind}/Sources/{kind}.swift').read_text(encoding='utf-8')
+            assert 'if case .ended = recognizer.state, gestureRecognized' in node
+            assert 'nebulaAvailableSwipeActions?(item.message)' in node and 'nebulaPerformSwipeAction?' in node
+            assert 'updateNebulaAction(self.nebulaSwipeAction.rawValue)' in node
+        filter_counts = (temp / 'submodules/ChatListUI/Sources/TabBarChatListFilterController.swift').read_text(encoding='utf-8')
+        assert 'unmutedOnly ? unmutedUnreadCount : count' in filter_counts
+        assert 'ActionDisposable { observation.cancel() }' in filter_counts
+        for action in ['reply', 'forward', 'copy', 'saveGallery', 'saveFiles', 'copyLink', 'report', 'translate', 'transcribe', 'sound', 'tools', 'checklist']:
+            assert 'NebulaMessageMenuAction.' + action + '.identifier' in ai_menu
+        assert 'NebulaMessageMenuPresentation.filter(actions)' in ai_menu
+        preview = (temp / 'submodules/SettingsUI/Sources/NebulaPresentationPreviewController.swift').read_text(encoding='utf-8')
+        assert 'NebulaMessageMenuPresentation.filter(actions)' in preview
+        assert 'isExtractedToContextPreview' in preview
         selection = (temp / 'submodules/TelegramUI/Sources/Chat/NebulaSelectionActions.swift').read_text(encoding='utf-8')
         assert 'forEachMessageInCurrentHistoryView' in selection and 'NebulaSelectionPolicy.addingLoaded' in selection
         assert 'actions.isCopyProtected' in selection and 'actions.options.contains(.forward)' in selection
@@ -392,6 +409,7 @@ final class Composer {
             subprocess.run(['swiftc', *ios_flags, '-emit-module', '-parse-as-library',
                             '-module-name', 'NebulaSettingsContract', *map(str, contract),
                             '-emit-module-path', str(temp / 'NebulaSettingsContract.swiftmodule')], check=True)
+            subprocess.run(['swiftc', *ios_flags, '-typecheck', '-I', str(temp), str(temp / 'submodules/TelegramUI/Components/Chat/ChatTextInputPanelNode/Sources/NebulaArithmeticHint.swift')], check=True)
             transfer = temp / 'submodules/SettingsUI/Sources/NebulaSettingsFileTransfer.swift'
             subprocess.run(['swiftc', *ios_flags, '-typecheck', '-I', str(temp), str(transfer)], check=True)
             subprocess.run(['swiftc', *ios_flags, '-typecheck', '-I', str(temp),

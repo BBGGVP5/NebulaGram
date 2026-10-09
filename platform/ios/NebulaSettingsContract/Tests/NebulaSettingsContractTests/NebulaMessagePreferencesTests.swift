@@ -16,6 +16,7 @@ final class NebulaMessagePreferencesTests: XCTestCase {
         for key in ["premium_effects", "reaction_effects"] { XCTAssertTrue(prefs.enabled(key)); prefs.set(key, false); XCTAssertFalse(restored.enabled(key)) }
         prefs.set("unknown", true); XCTAssertFalse(prefs.enabled("unknown"))
         XCTAssertEqual(prefs.seekInterval, 15)
+        prefs.setSeekInterval(25); XCTAssertEqual(restored.seekInterval, 25)
         prefs.setSeekInterval(20); XCTAssertEqual(restored.seekInterval, 20)
         prefs.setSeekInterval(-1); XCTAssertEqual(prefs.seekInterval, 20)
         defaults.set(999, forKey: "nebula.messages.seek_interval"); XCTAssertEqual(prefs.seekInterval, 15)

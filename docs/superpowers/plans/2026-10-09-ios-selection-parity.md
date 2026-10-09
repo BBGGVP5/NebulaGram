@@ -25,9 +25,11 @@
 
 ## 4. Validation and delivery
 - [x] Run `python platform/ios/tools/check-bootstrap.py`, `python scripts/check-settings-contract.py`, `python platform/ios/tools/test_native_build.py`, `python platform/ios/tools/test_ipa_build.py` and diff checks.
-- [ ] Commit/push intended files, run macOS bootstrap and `ios-ipa.yml`; fix compiler/test failures at the actual revision. Verify artifact revision/digest/bundle/architecture/extensions after success.
+- [x] Commit/push intended files, run macOS bootstrap and `ios-ipa.yml`; fix compiler/test failures at the actual revision. Verify artifact revision/digest/bundle/architecture/extensions after success.
 - [x] Update `platform/ios/PARITY.md` and `patches/ios/HOOKS.md`. Record no physical iOS runtime is available here; compilation does not prove gesture/visual acceptance.
 
 Android follow-up from the October 9 video: restore nested drag/dismiss in both update sheets and diagnose the static rocket fallback. This does not replace the iOS port.
 
 Validation checkpoint: macOS bootstrap 37897184535 passed at fffe517fb640d74651bd5d5c2e16986f5ca25855, including the new contract tests, native hook parsing and component checks. Full unsigned IPA run 37897185784 is still compiling; no IPA/device acceptance is claimed at this checkpoint. Android-only d9804f2 does not change these iOS runtime inputs.
+
+Verified full IPA 37897185784 at fffe517fb640d74651bd5d5c2e16986f5ca25855: build 84, app.nebulagram, arm64 iPhoneOS and one Notification Service Extension; SHA-256 812aee67e1e45656f6c387c546136a6e7f6b4ad1bb106d53837dbfc31172d994 matches the CI receipt. User signing and physical-device acceptance remain unverified.

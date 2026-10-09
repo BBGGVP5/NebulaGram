@@ -40,9 +40,10 @@ final class NebulaPresentationPreviewController: UITableViewController {
     override func viewDidLayoutSubviews() { super.viewDidLayoutSubviews(); hero.fit(in: tableView) }
     override func viewWillAppear(_ animated: Bool) { super.viewWillAppear(animated); hero.setPageVisible(true) }
     override func viewWillDisappear(_ animated: Bool) { super.viewWillDisappear(animated); hero.setPageVisible(false) }
-    override func numberOfSections(in tableView: UITableView) -> Int { 2 }
-    override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int { section == 0 ? 1 : keys.count }
+    override func numberOfSections(in tableView: UITableView) -> Int { profile ? 2 : 3 }
+    override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int { section == 0 ? 1 : section == 1 ? keys.count : NebulaMessageMenuAction.allCases.count + 1 }
     override func tableView(_ tableView: UITableView, titleForFooterInSection section: Int) -> String? {
+        if section == 2 { return t("Скрываются только необязательные действия. Редактирование, удаление и выделение остаются доступны. Высота и прокрутка меню адаптируются iOS к экрану и размеру текста.", "Only optional actions are hidden. Edit, Delete and Select remain available. iOS adapts menu height and scrolling to the screen and text size.") }
         if section == 0 { return profile ? t("Условный профиль · информация приведена для примера", "Sample profile · illustrative information") : t("Нажмите на сообщение. Меню использует ту же анимацию и материал, что и в чате. Действия в примере ничего не отправляют.", "Tap the message. Its menu uses the same animation and material as a chat. Sample actions do not send anything.") }
         return profile ? nil : t("Кнопки ниже относятся к меню в заголовке чата; доступность звонков зависит от типа чата.", "The buttons below control the chat header menu; calls depend on the chat type.")
     }
@@ -57,6 +58,19 @@ final class NebulaPresentationPreviewController: UITableViewController {
             let height = sample.systemLayoutSizeFitting(CGSize(width: max(220, tableView.bounds.width - 72), height: 0), withHorizontalFittingPriority: .required, verticalFittingPriority: .fittingSizeLevel).height
             NSLayoutConstraint.activate([container.leadingAnchor.constraint(equalTo: cell.contentView.leadingAnchor, constant: 12), container.trailingAnchor.constraint(equalTo: cell.contentView.trailingAnchor, constant: -12), container.topAnchor.constraint(equalTo: cell.contentView.topAnchor, constant: 16), container.bottomAnchor.constraint(equalTo: cell.contentView.bottomAnchor, constant: -16), container.heightAnchor.constraint(equalToConstant: max(180, height))])
             cell.backgroundColor = .clear; return cell
+        }
+        if indexPath.section == 2 {
+            let prefs = NebulaMessageMenuPreferences.shared
+            let toggle = NebulaSwitchControl()
+            if indexPath.row == 0 {
+                cell.textLabel?.text = t("Компактное меню", "Compact menu"); toggle.isOn = prefs.compact; toggle.accessibilityIdentifier = "compact"
+            } else {
+                let action = NebulaMessageMenuAction.allCases[indexPath.row - 1]
+                let names = ru ? ["Ответить", "Переслать", "Копировать", "Сохранить в галерею", "Сохранить в Файлы", "Копировать ссылку", "Пожаловаться", "Перевести", "Расшифровать", "Сохранить звук", "Инструменты Nebula", "Добавить в список дел"] : ["Reply", "Forward", "Copy", "Save to gallery", "Save to Files", "Copy link", "Report", "Translate", "Transcribe", "Save sound", "Nebula tools", "Add to checklist"]
+                cell.textLabel?.text = names[indexPath.row - 1]; toggle.isOn = prefs.visible(action); toggle.accessibilityIdentifier = action.rawValue
+            }
+            toggle.accessibilityLabel = cell.textLabel?.text; toggle.addTarget(self, action: #selector(changeMenu(_:)), for: .valueChanged)
+            cell.accessoryView = toggle; NebulaSettingsStyle.finish(cell, theme: theme); return cell
         }
         let key = keys[indexPath.row]
         let names = ru ? ["Стеклянный профиль", "Канал", "День рождения", "Данные бизнеса", "Фон профиля", "Эмодзи профиля", "Фото в шапке"] : ["Glass profile", "Channel", "Birthday", "Business information", "Profile background", "Profile emoji", "Header photo"]
@@ -89,11 +103,15 @@ final class NebulaPresentationPreviewController: UITableViewController {
         do { try store.set(.boolean(sender.isOn), for: key) } catch { sender.isOn = value(key); return }
         rebuildSample(); tableView.reloadData()
     }
+    @objc private func changeMenu(_ sender: NebulaSwitchControl) {
+        if sender.accessibilityIdentifier == "compact" { NebulaMessageMenuPreferences.shared.setCompact(sender.isOn) }
+        else if let key = sender.accessibilityIdentifier, let action = NebulaMessageMenuAction(rawValue: key) { NebulaMessageMenuPreferences.shared.setVisible(action, sender.isOn) }
+    }
     @objc private func openMenu() {
         guard presentedViewController == nil, !extracted.isExtractedToContextPreview else { return }
-        let entries = [(t("Ответить", "Reply"), "arrowshape.turn.up.left"), (t("Копировать", "Copy"), "doc.on.doc"), (t("Переслать", "Forward"), "arrowshape.turn.up.right")]
-        let actions: [ContextMenuItem] = entries.map { title, symbol in .action(ContextMenuActionItem(text: title, icon: { theme in UIImage(systemName: symbol)?.withTintColor(theme.contextMenu.primaryColor, renderingMode: .alwaysOriginal) }, action: { _, completion in completion(.default) })) }
-        let menu = makeContextController(context: context, presentationData: context.sharedContext.currentPresentationData.with { $0 }, source: .extracted(NebulaPreviewExtractedSource(view: extracted, blur: store.messageMenuBlur)), items: .single(ContextController.Items(content: .list(actions))))
+        let entries: [(String, String, NebulaMessageMenuAction?)] = [(t("Ответить", "Reply"), "arrowshape.turn.up.left", .reply), (t("Копировать", "Copy"), "doc.on.doc", .copy), (t("Переслать", "Forward"), "arrowshape.turn.up.right", .forward), (t("Перевести", "Translate"), "character.bubble", .translate), (t("Редактировать", "Edit"), "pencil", nil), (t("Удалить", "Delete"), "trash", nil)]
+        let actions: [ContextMenuItem] = entries.map { title, symbol, action in .action(ContextMenuActionItem(id: action?.identifier, text: title, icon: { theme in UIImage(systemName: symbol)?.withTintColor(theme.contextMenu.primaryColor, renderingMode: .alwaysOriginal) }, action: { _, completion in completion(.default) })) }
+        let menu = makeContextController(context: context, presentationData: context.sharedContext.currentPresentationData.with { $0 }, source: .extracted(NebulaPreviewExtractedSource(view: extracted, blur: store.messageMenuBlur)), items: .single(ContextController.Items(content: .list(NebulaMessageMenuPresentation.filter(actions)))))
         present(menu, animated: true)
     }
     @objc private func close() { dismiss(animated: true) }

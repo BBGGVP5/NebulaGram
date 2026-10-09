@@ -16,10 +16,10 @@ public final class NebulaMessagePreferences {
     }
     public var seekInterval: Int {
         let value = defaults.integer(forKey: "nebula.messages.seek_interval")
-        return [5, 10, 15, 20, 30].contains(value) ? value : 15
+        return [5, 10, 15, 20, 25, 30].contains(value) ? value : 15
     }
     public func setSeekInterval(_ value: Int) {
-        guard [5, 10, 15, 20, 30].contains(value) else { return }
+        guard [5, 10, 15, 20, 25, 30].contains(value) else { return }
         defaults.set(value, forKey: "nebula.messages.seek_interval")
         NotificationCenter.default.post(name: Self.changed, object: nil)
     }

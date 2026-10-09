@@ -1,0 +1,620 @@
+diff --git a/submodules/ChatListUI/Sources/TabBarChatListFilterController.swift b/submodules/ChatListUI/Sources/TabBarChatListFilterController.swift
+index 1e3df44..935d83d 100644
+--- a/submodules/ChatListUI/Sources/TabBarChatListFilterController.swift
++++ b/submodules/ChatListUI/Sources/TabBarChatListFilterController.swift
+@@ -1,4 +1,5 @@
+ import Foundation
++import NebulaSettingsContract
+ import UIKit
+ import Display
+ import SwiftSignalKit
+@@ -9,9 +10,15 @@ import TelegramUIPreferences
+ import TelegramCore
+ 
+ public func chatListFilterItems(context: AccountContext) -> Signal<(Int, [(ChatListFilter, Int, Bool)]), NoError> {
+-    return context.engine.peers.updatedChatListFilters()
+-    |> distinctUntilChanged
+-    |> mapToSignal { filters -> Signal<(Int, [(ChatListFilter, Int, Bool)]), NoError> in
++    let unmutedOnly = Signal<Bool, NoError> { subscriber in
++        let observation = NebulaSettingsStore.shared.observe {
++            subscriber.putNext(NebulaSettingsStore.shared.folderUnmutedOnly)
++        }
++        subscriber.putNext(NebulaSettingsStore.shared.folderUnmutedOnly)
++        return ActionDisposable { observation.cancel() }
++    } |> distinctUntilChanged
++    return combineLatest(context.engine.peers.updatedChatListFilters() |> distinctUntilChanged, unmutedOnly)
++    |> mapToSignal { filters, unmutedOnly -> Signal<(Int, [(ChatListFilter, Int, Bool)]), NoError> in
+         var unreadCountItems: [EngineRawUnreadMessageCountsItem] = []
+         unreadCountItems.append(.totalInGroup(.root))
+         var additionalPeerIds = Set<EnginePeer.Id>()
+@@ -235,7 +242,7 @@ public func chatListFilterItems(context: AccountContext) -> Signal<(Int, [(ChatL
+                         }
+                     }
+                 }
+-                result.append((filter, max(0, count), unmutedUnreadCount > 0))
++                result.append((filter, max(0, unmutedOnly ? unmutedUnreadCount : count), unmutedUnreadCount > 0))
+             }
+             
+             return (totalBadge, result)
+diff --git a/submodules/ContextUI/Sources/ContextController.swift b/submodules/ContextUI/Sources/ContextController.swift
+index 435072a..6a05a06 100644
+--- a/submodules/ContextUI/Sources/ContextController.swift
++++ b/submodules/ContextUI/Sources/ContextController.swift
+@@ -122,6 +122,7 @@ public final class ContextMenuActionItem {
+     }
+ 
+     public let id: AnyHashable?
++    public var nebulaCompact = false
+     public let text: String
+     public let entities: [MessageTextEntity]
+     public let entityFiles: [Int64: TelegramMediaFile]
+diff --git a/submodules/TelegramUI/Components/Chat/ChatMessageAnimatedStickerItemNode/Sources/ChatMessageAnimatedStickerItemNode.swift b/submodules/TelegramUI/Components/Chat/ChatMessageAnimatedStickerItemNode/Sources/ChatMessageAnimatedStickerItemNode.swift
+index de18867..40f06eb 100644
+--- a/submodules/TelegramUI/Components/Chat/ChatMessageAnimatedStickerItemNode/Sources/ChatMessageAnimatedStickerItemNode.swift
++++ b/submodules/TelegramUI/Components/Chat/ChatMessageAnimatedStickerItemNode/Sources/ChatMessageAnimatedStickerItemNode.swift
+@@ -337,11 +337,11 @@ public class ChatMessageAnimatedStickerItemNode: ChatMessageItemView {
+                 
+                 let action = item.controllerInteraction.canSetupReply(item.message)
+                 strongSelf.currentSwipeAction = action
+-                if case .none = action {
+-                    return false
+-                } else {
+-                    return true
+-                }
++                let nativeActions: [Int]
++                if case .none = action { nativeActions = [] } else { nativeActions = [0] }
++                strongSelf.nebulaSwipeOrder = (item.controllerInteraction.nebulaAvailableSwipeActions?(item.message) ?? nativeActions).compactMap(NebulaSwipeAction.init(rawValue:))
++                strongSelf.nebulaSwipeAction = strongSelf.nebulaSwipeOrder.first ?? .reply
++                return !strongSelf.nebulaSwipeOrder.isEmpty
+             }
+             return false
+         }
+@@ -1721,7 +1721,13 @@ public class ChatMessageAnimatedStickerItemNode: ChatMessageItemView {
+                         strongSelf.shareButtonNode = nil
+                     }
+                     
+-                    let dateAndStatusFrame = CGRect(origin: CGPoint(x: max(displayLeftInset, updatedImageFrame.maxX - dateAndStatusSize.width - 4.0), y: updatedImageFrame.maxY - dateAndStatusSize.height - 4.0 + imageBottomPadding), size: dateAndStatusSize)
++                    var dateAndStatusFrame = CGRect(origin: CGPoint(x: max(displayLeftInset, updatedImageFrame.maxX - dateAndStatusSize.width - 4.0), y: updatedImageFrame.maxY - dateAndStatusSize.height - 4.0 + imageBottomPadding), size: dateAndStatusSize)
++                    if !isEmoji && NebulaSettingsStore.shared.stickerTimeStyle == 1 {
++                        let sideX = incoming ? updatedImageFrame.maxX + 6.0 : updatedImageFrame.minX - dateAndStatusSize.width - 6.0
++                        if sideX >= displayLeftInset && sideX + dateAndStatusSize.width <= layoutSize.width - 14.0 {
++                            dateAndStatusFrame.origin = CGPoint(x: sideX, y: updatedImageFrame.midY - dateAndStatusSize.height * 0.5)
++                        }
++                    }
+                     animation.animator.updateFrame(layer: strongSelf.dateAndStatusNode.layer, frame: dateAndStatusFrame, completion: nil)
+                     dateAndStatusApply(animation)
+                     if case .customChatContents = item.associatedData.subject {
+@@ -2673,6 +2679,8 @@ public class ChatMessageAnimatedStickerItemNode: ChatMessageItemView {
+         }
+     }
+     
++    private var nebulaSwipeOrder: [NebulaSwipeAction] = [.reply]
++    private var nebulaSwipeAction: NebulaSwipeAction = .reply
+     private var playedSwipeToReplyHaptic = false
+     @objc private func swipeToReplyGesture(_ recognizer: ChatSwipeToReplyRecognizer) {
+         var offset: CGFloat = 0.0
+@@ -2698,6 +2706,7 @@ public class ChatMessageAnimatedStickerItemNode: ChatMessageItemView {
+                 self.item?.controllerInteraction.cancelInteractiveKeyboardGestures()
+             case .changed:
+                 var translation = recognizer.translation(in: self.view)
++                self.nebulaSwipeAction = NebulaSwipeActions.action(order: self.nebulaSwipeOrder, verticalOffset: Double(translation.y))
+                 func rubberBandingOffset(offset: CGFloat, bandingStart: CGFloat) -> CGFloat {
+                     let bandedOffset = offset - bandingStart
+                     if offset < bandingStart {
+@@ -2747,6 +2756,7 @@ public class ChatMessageAnimatedStickerItemNode: ChatMessageItemView {
+                     }
+                     
+                     let progress = abs(translation.x) / swipeOffset
++                    swipeToReplyNode.updateNebulaAction(self.nebulaSwipeAction.rawValue)
+                     swipeToReplyNode.updateProgress(progress)
+                     
+                     if progress > 1.0 - .ulpOfOne && !self.playedSwipeToReplyHaptic {
+@@ -2768,7 +2778,9 @@ public class ChatMessageAnimatedStickerItemNode: ChatMessageItemView {
+             
+                 if case .ended = recognizer.state, gestureRecognized {
+                     if let item = self.item {
+-                        if let currentSwipeAction = currentSwipeAction {
++                        if self.nebulaSwipeAction != .reply {
++                            item.controllerInteraction.nebulaPerformSwipeAction?(item.message.id, self.nebulaSwipeAction.rawValue)
++                        } else if let currentSwipeAction = currentSwipeAction {
+                             switch currentSwipeAction {
+                             case .none:
+                                 break
+diff --git a/submodules/TelegramUI/Components/Chat/ChatMessageBubbleItemNode/Sources/ChatMessageBubbleItemNode.swift b/submodules/TelegramUI/Components/Chat/ChatMessageBubbleItemNode/Sources/ChatMessageBubbleItemNode.swift
+index fd05b85..e9398d6 100644
+--- a/submodules/TelegramUI/Components/Chat/ChatMessageBubbleItemNode/Sources/ChatMessageBubbleItemNode.swift
++++ b/submodules/TelegramUI/Components/Chat/ChatMessageBubbleItemNode/Sources/ChatMessageBubbleItemNode.swift
+@@ -1512,11 +1512,11 @@ public class ChatMessageBubbleItemNode: ChatMessageItemView, ChatMessagePreviewI
+                 
+                 let action = item.controllerInteraction.canSetupReply(item.message)
+                 strongSelf.currentSwipeAction = action
+-                if case .none = action {
+-                    return false
+-                } else {
+-                    return true
+-                }
++                let nativeActions: [Int]
++                if case .none = action { nativeActions = [] } else { nativeActions = [0] }
++                strongSelf.nebulaSwipeOrder = (item.controllerInteraction.nebulaAvailableSwipeActions?(item.message) ?? nativeActions).compactMap(NebulaSwipeAction.init(rawValue:))
++                strongSelf.nebulaSwipeAction = strongSelf.nebulaSwipeOrder.first ?? .reply
++                return !strongSelf.nebulaSwipeOrder.isEmpty
+             }
+             return false
+         }
+@@ -7120,6 +7120,8 @@ public class ChatMessageBubbleItemNode: ChatMessageItemView, ChatMessagePreviewI
+         item.controllerInteraction.openRankInfo(EnginePeer(peer), role, rank)
+     }
+     
++    private var nebulaSwipeOrder: [NebulaSwipeAction] = [.reply]
++    private var nebulaSwipeAction: NebulaSwipeAction = .reply
+     private var playedSwipeToReplyHaptic = false
+     @objc private func swipeToReplyGesture(_ recognizer: ChatSwipeToReplyRecognizer) {
+         var offset: CGFloat = 0.0
+@@ -7145,6 +7147,7 @@ public class ChatMessageBubbleItemNode: ChatMessageItemView, ChatMessagePreviewI
+                 self.item?.controllerInteraction.cancelInteractiveKeyboardGestures()
+             case .changed:
+                 var translation = recognizer.translation(in: self.view)
++                self.nebulaSwipeAction = NebulaSwipeActions.action(order: self.nebulaSwipeOrder, verticalOffset: Double(translation.y))
+                 func rubberBandingOffset(offset: CGFloat, bandingStart: CGFloat) -> CGFloat {
+                     let bandedOffset = offset - bandingStart
+                     if offset < bandingStart {
+@@ -7196,6 +7199,7 @@ public class ChatMessageBubbleItemNode: ChatMessageItemView, ChatMessagePreviewI
+                     }
+                     
+                     let progress = abs(translation.x) / swipeOffset
++                    swipeToReplyNode.updateNebulaAction(self.nebulaSwipeAction.rawValue)
+                     swipeToReplyNode.updateProgress(progress)
+                     
+                     if progress > 1.0 - .ulpOfOne && !self.playedSwipeToReplyHaptic {
+@@ -7215,7 +7219,9 @@ public class ChatMessageBubbleItemNode: ChatMessageItemView, ChatMessagePreviewI
+                 }
+                 if case .ended = recognizer.state, gestureRecognized {
+                     if let item = self.item {
+-                        if let currentSwipeAction = currentSwipeAction {
++                        if self.nebulaSwipeAction != .reply {
++                            item.controllerInteraction.nebulaPerformSwipeAction?(item.message.id, self.nebulaSwipeAction.rawValue)
++                        } else if let currentSwipeAction = currentSwipeAction {
+                             switch currentSwipeAction {
+                             case .none:
+                                 break
+diff --git a/submodules/TelegramUI/Components/Chat/ChatMessageDateAndStatusNode/Sources/StringForMessageTimestampStatus.swift b/submodules/TelegramUI/Components/Chat/ChatMessageDateAndStatusNode/Sources/StringForMessageTimestampStatus.swift
+index e8f06d5..efec66e 100644
+--- a/submodules/TelegramUI/Components/Chat/ChatMessageDateAndStatusNode/Sources/StringForMessageTimestampStatus.swift
++++ b/submodules/TelegramUI/Components/Chat/ChatMessageDateAndStatusNode/Sources/StringForMessageTimestampStatus.swift
+@@ -250,5 +250,14 @@ public func stringForMessageTimestampStatus(
+         }
+     }
+     
++    if NebulaSettingsStore.shared.stickerTimeStyle == 2,
++       message._asMessage().media.contains(where: { ($0 as? TelegramMediaFile)?.isSticker == true }) {
++        dateText = ""
++    }
++    if NebulaSettingsStore.shared.channelForwardCount,
++       let channel = message._asMessage().peers[message.id.peerId] as? TelegramChannel, case .broadcast = channel.info,
++       let count = (message.attributes.first(where: { $0 is ForwardCountMessageAttribute }) as? ForwardCountMessageAttribute)?.count, count > 0 {
++        dateText = "↗ \(count) · " + dateText
++    }
+     return NebulaDeletedMessages.isRetained(message._asMessage()) ? "\(NebulaDeletedMessages.icon) \(dateText)" : dateText
+ }
+diff --git a/submodules/TelegramUI/Components/Chat/ChatMessageInstantVideoItemNode/Sources/ChatMessageInstantVideoItemNode.swift b/submodules/TelegramUI/Components/Chat/ChatMessageInstantVideoItemNode/Sources/ChatMessageInstantVideoItemNode.swift
+index 162a66d..ae342ea 100644
+--- a/submodules/TelegramUI/Components/Chat/ChatMessageInstantVideoItemNode/Sources/ChatMessageInstantVideoItemNode.swift
++++ b/submodules/TelegramUI/Components/Chat/ChatMessageInstantVideoItemNode/Sources/ChatMessageInstantVideoItemNode.swift
+@@ -227,11 +227,11 @@ public class ChatMessageInstantVideoItemNode: ChatMessageItemView, ASGestureReco
+                 
+                 let action = item.controllerInteraction.canSetupReply(item.message)
+                 strongSelf.currentSwipeAction = action
+-                if case .none = action {
+-                    return false
+-                } else {
+-                    return true
+-                }
++                let nativeActions: [Int]
++                if case .none = action { nativeActions = [] } else { nativeActions = [0] }
++                strongSelf.nebulaSwipeOrder = (item.controllerInteraction.nebulaAvailableSwipeActions?(item.message) ?? nativeActions).compactMap(NebulaSwipeAction.init(rawValue:))
++                strongSelf.nebulaSwipeAction = strongSelf.nebulaSwipeOrder.first ?? .reply
++                return !strongSelf.nebulaSwipeOrder.isEmpty
+             }
+             return false
+         }
+@@ -1074,6 +1074,8 @@ public class ChatMessageInstantVideoItemNode: ChatMessageItemView, ASGestureReco
+         }
+     }
+         
++    private var nebulaSwipeOrder: [NebulaSwipeAction] = [.reply]
++    private var nebulaSwipeAction: NebulaSwipeAction = .reply
+     private var playedSwipeToReplyHaptic = false
+     @objc private func swipeToReplyGesture(_ recognizer: ChatSwipeToReplyRecognizer) {
+         var offset: CGFloat = 0.0
+@@ -1109,6 +1111,7 @@ public class ChatMessageInstantVideoItemNode: ChatMessageItemView, ASGestureReco
+                 }
+             
+                 var translation = recognizer.translation(in: self.view)
++                self.nebulaSwipeAction = NebulaSwipeActions.action(order: self.nebulaSwipeOrder, verticalOffset: Double(translation.y))
+                 if translation.x < 0.0 {
+                     translation.x = max(-80.0, min(0.0, -rubberBandingOffset(offset: abs(translation.x), bandingStart: swipeOffset)))
+                 } else {
+@@ -1148,6 +1151,7 @@ public class ChatMessageInstantVideoItemNode: ChatMessageItemView, ASGestureReco
+                     }
+                     
+                     let progress = abs(translation.x) / swipeOffset
++                    swipeToReplyNode.updateNebulaAction(self.nebulaSwipeAction.rawValue)
+                     swipeToReplyNode.updateProgress(progress)
+                     
+                     if progress > 1.0 - .ulpOfOne && !self.playedSwipeToReplyHaptic {
+@@ -1167,7 +1171,9 @@ public class ChatMessageInstantVideoItemNode: ChatMessageItemView, ASGestureReco
+                 }
+                 if case .ended = recognizer.state, gestureRecognized {
+                     if let item = self.item {
+-                        if let currentSwipeAction = currentSwipeAction {
++                        if self.nebulaSwipeAction != .reply {
++                            item.controllerInteraction.nebulaPerformSwipeAction?(item.message.id, self.nebulaSwipeAction.rawValue)
++                        } else if let currentSwipeAction = currentSwipeAction {
+                             switch currentSwipeAction {
+                             case .none:
+                                 break
+diff --git a/submodules/TelegramUI/Components/Chat/ChatMessageStickerItemNode/Sources/ChatMessageStickerItemNode.swift b/submodules/TelegramUI/Components/Chat/ChatMessageStickerItemNode/Sources/ChatMessageStickerItemNode.swift
+index 86987e3..8e09bfd 100644
+--- a/submodules/TelegramUI/Components/Chat/ChatMessageStickerItemNode/Sources/ChatMessageStickerItemNode.swift
++++ b/submodules/TelegramUI/Components/Chat/ChatMessageStickerItemNode/Sources/ChatMessageStickerItemNode.swift
+@@ -270,11 +270,11 @@ public class ChatMessageStickerItemNode: ChatMessageItemView {
+                 
+                 let action = item.controllerInteraction.canSetupReply(item.message)
+                 strongSelf.currentSwipeAction = action
+-                if case .none = action {
+-                    return false
+-                } else {
+-                    return true
+-                }
++                let nativeActions: [Int]
++                if case .none = action { nativeActions = [] } else { nativeActions = [0] }
++                strongSelf.nebulaSwipeOrder = (item.controllerInteraction.nebulaAvailableSwipeActions?(item.message) ?? nativeActions).compactMap(NebulaSwipeAction.init(rawValue:))
++                strongSelf.nebulaSwipeAction = strongSelf.nebulaSwipeOrder.first ?? .reply
++                return !strongSelf.nebulaSwipeOrder.isEmpty
+             }
+             return false
+         }
+@@ -989,6 +989,12 @@ public class ChatMessageStickerItemNode: ChatMessageItemView {
+                 }
+             }
+             var dateAndStatusFrame = CGRect(origin: CGPoint(x: min(layoutSize.width - dateAndStatusSize.width - 14.0, max(displayLeftInset, updatedImageFrame.maxX - dateOffset.x)), y: updatedImageFrame.maxY - dateOffset.y), size: dateAndStatusSize)
++            if !isEmoji && NebulaSettingsStore.shared.stickerTimeStyle == 1 {
++                let sideX = incoming ? updatedImageFrame.maxX + 6.0 : updatedImageFrame.minX - dateAndStatusSize.width - 6.0
++                if sideX >= displayLeftInset && sideX + dateAndStatusSize.width <= layoutSize.width - 14.0 {
++                    dateAndStatusFrame.origin = CGPoint(x: sideX, y: updatedImageFrame.midY - dateAndStatusSize.height * 0.5)
++                }
++            }
+             
+             let baseShareButtonSize = CGSize(width: 30.0, height: 60.0)
+             var baseShareButtonFrame = CGRect(origin: CGPoint(x: !incoming ? updatedImageFrame.minX - baseShareButtonSize.width - 6.0 : updatedImageFrame.maxX + 6.0, y: updatedImageFrame.maxY - 10.0 - baseShareButtonSize.height - 4.0), size: baseShareButtonSize)
+@@ -1663,6 +1669,8 @@ public class ChatMessageStickerItemNode: ChatMessageItemView {
+         }
+     }
+     
++    private var nebulaSwipeOrder: [NebulaSwipeAction] = [.reply]
++    private var nebulaSwipeAction: NebulaSwipeAction = .reply
+     private var playedSwipeToReplyHaptic = false
+     @objc private func swipeToReplyGesture(_ recognizer: ChatSwipeToReplyRecognizer) {
+         var offset: CGFloat = 0.0
+@@ -1688,6 +1696,7 @@ public class ChatMessageStickerItemNode: ChatMessageItemView {
+                 self.item?.controllerInteraction.cancelInteractiveKeyboardGestures()
+             case .changed:
+                 var translation = recognizer.translation(in: self.view)
++                self.nebulaSwipeAction = NebulaSwipeActions.action(order: self.nebulaSwipeOrder, verticalOffset: Double(translation.y))
+                 func rubberBandingOffset(offset: CGFloat, bandingStart: CGFloat) -> CGFloat {
+                     let bandedOffset = offset - bandingStart
+                     if offset < bandingStart {
+@@ -1737,6 +1746,7 @@ public class ChatMessageStickerItemNode: ChatMessageItemView {
+                     }
+                     
+                     let progress = abs(translation.x) / swipeOffset
++                    swipeToReplyNode.updateNebulaAction(self.nebulaSwipeAction.rawValue)
+                     swipeToReplyNode.updateProgress(progress)
+                     
+                     if progress > 1.0 - .ulpOfOne && !self.playedSwipeToReplyHaptic {
+@@ -1756,7 +1766,9 @@ public class ChatMessageStickerItemNode: ChatMessageItemView {
+                 }
+                 if case .ended = recognizer.state, gestureRecognized {
+                     if let item = self.item {
+-                        if let currentSwipeAction = currentSwipeAction {
++                        if self.nebulaSwipeAction != .reply {
++                            item.controllerInteraction.nebulaPerformSwipeAction?(item.message.id, self.nebulaSwipeAction.rawValue)
++                        } else if let currentSwipeAction = currentSwipeAction {
+                             switch currentSwipeAction {
+                             case .none:
+                                 break
+diff --git a/submodules/TelegramUI/Components/Chat/ChatMessageSwipeToReplyNode/Sources/ChatMessageSwipeToReplyNode.swift b/submodules/TelegramUI/Components/Chat/ChatMessageSwipeToReplyNode/Sources/ChatMessageSwipeToReplyNode.swift
+index 8a26af4..7e11fbc 100644
+--- a/submodules/TelegramUI/Components/Chat/ChatMessageSwipeToReplyNode/Sources/ChatMessageSwipeToReplyNode.swift
++++ b/submodules/TelegramUI/Components/Chat/ChatMessageSwipeToReplyNode/Sources/ChatMessageSwipeToReplyNode.swift
+@@ -25,6 +25,17 @@ public final class ChatMessageSwipeToReplyNode: ASDisplayNode {
+     private let fillLayer: SimpleShapeLayer
+     private let semiFillLayer: SimpleShapeLayer
+     
++    private var nebulaOriginalImage: UIImage?
++    private var nebulaCurrentAction = -1
++    public func updateNebulaAction(_ action: Int) {
++        guard nebulaCurrentAction != action else { return }
++        if nebulaOriginalImage == nil { nebulaOriginalImage = foregroundNode.image }
++        nebulaCurrentAction = action
++        if action == 0 { foregroundNode.image = nebulaOriginalImage; return }
++        let symbol = action == 1 ? "doc.on.doc" : action == 2 ? "sparkles" : "character.bubble"
++        foregroundNode.image = generateTintedImage(image: UIImage(systemName: symbol, withConfiguration: UIImage.SymbolConfiguration(pointSize: 18, weight: .medium)), color: nebulaForegroundColor)
++    }
++    private var nebulaForegroundColor: UIColor = .white
+     private var absolutePosition: (CGRect, CGSize)?
+     
+     public init(fillColor: UIColor, enableBlur: Bool, foregroundColor: UIColor, backgroundNode: WallpaperBackgroundNode?, action: ChatMessageSwipeToReplyNode.Action) {
+@@ -74,6 +85,7 @@ public final class ChatMessageSwipeToReplyNode: ASDisplayNode {
+         self.semiFillLayer = SimpleShapeLayer()
+     
+         super.init()
++        self.nebulaForegroundColor = foregroundColor
+         
+         self.allowsGroupOpacity = true
+         
+diff --git a/submodules/TelegramUI/Components/Chat/ChatTextInputPanelNode/Sources/ChatTextInputPanelNode.swift b/submodules/TelegramUI/Components/Chat/ChatTextInputPanelNode/Sources/ChatTextInputPanelNode.swift
+index 5664972..a3db8c6 100644
+--- a/submodules/TelegramUI/Components/Chat/ChatTextInputPanelNode/Sources/ChatTextInputPanelNode.swift
++++ b/submodules/TelegramUI/Components/Chat/ChatTextInputPanelNode/Sources/ChatTextInputPanelNode.swift
+@@ -341,6 +341,7 @@ public class ChatTextInputPanelNode: ChatInputPanelNode, ASEditableTextNodeDeleg
+     private var sendingTextDisabled: Bool = false
+     
+     private var presentationInterfaceState: ChatPresentationInterfaceState?
++    private let nebulaArithmeticHint = NebulaArithmeticHint()
+     private var nebulaAppearanceObservation: SettingsObservation?
+     private var initializedPlaceholder = false
+     
+@@ -3925,6 +3926,7 @@ public class ChatTextInputPanelNode: ChatInputPanelNode, ASEditableTextNodeDeleg
+         transition.updateFrame(view: self.glassBackgroundContainer, frame: containerFrame)
+         self.glassBackgroundContainer.update(size: containerFrame.size, isDark: interfaceState.theme.overallDarkAppearance, transition: ComponentTransition(transition))
+         
++        self.nebulaArithmeticHint.update(input: audioRecordingItemsAlpha > 0 ? self.richTextInputNode?.inputView : nil, container: self.textInputNodeClippingContainer, color: interfaceState.theme.chat.inputPanel.inputPlaceholderColor)
+         return contentHeight
+     }
+     
+diff --git a/submodules/TelegramUI/Components/ChatControllerInteraction/Sources/ChatControllerInteraction.swift b/submodules/TelegramUI/Components/ChatControllerInteraction/Sources/ChatControllerInteraction.swift
+index 527a0b2..524d8a7 100644
+--- a/submodules/TelegramUI/Components/ChatControllerInteraction/Sources/ChatControllerInteraction.swift
++++ b/submodules/TelegramUI/Components/ChatControllerInteraction/Sources/ChatControllerInteraction.swift
+@@ -243,6 +243,8 @@ public final class ChatControllerInteraction: ChatControllerInteractionProtocol
+     public let pollOptionLongTap: (Data, LongTapParams?) -> Void
+     public let openCheckoutOrReceipt: (EngineMessage.Id, OpenMessageParams?) -> Void
+     public let openSearch: () -> Void
++    public var nebulaAvailableSwipeActions: ((EngineRawMessage) -> [Int])?
++    public var nebulaPerformSwipeAction: ((EngineMessage.Id, Int) -> Void)?
+     public let setupReply: (EngineMessage.Id) -> Void
+     public let canSetupReply: (EngineRawMessage) -> ChatControllerInteractionSwipeAction
+     public let canSendMessages: () -> Bool
+diff --git a/submodules/TelegramUI/Components/ContextControllerImpl/Sources/ContextActionNode.swift b/submodules/TelegramUI/Components/ContextControllerImpl/Sources/ContextActionNode.swift
+index c086d6d..0819696 100644
+--- a/submodules/TelegramUI/Components/ContextControllerImpl/Sources/ContextActionNode.swift
++++ b/submodules/TelegramUI/Components/ContextControllerImpl/Sources/ContextActionNode.swift
+@@ -237,7 +237,7 @@ public final class ContextActionNode: ASDisplayNode, ContextActionNodeProtocol {
+     public func updateLayout(constrainedWidth: CGFloat, previous: ContextActionSibling, next: ContextActionSibling) -> (CGSize, (CGSize, ContainedViewLayoutTransition) -> Void) {
+         let sideInset: CGFloat = 16.0
+         let iconSideInset: CGFloat = 12.0
+-        let verticalInset: CGFloat = 12.0
++        let verticalInset: CGFloat = self.action.nebulaCompact ? 8.0 : 12.0
+         
+         let iconSize: CGSize
+         if let iconSource = self.action.iconSource {
+@@ -275,7 +275,7 @@ public final class ContextActionNode: ASDisplayNode, ContextActionNodeProtocol {
+         if !statusSize.width.isZero, let statusNode = self.statusNode {
+             let verticalSpacing: CGFloat = 2.0
+             let combinedTextHeight = textSize.height + verticalSpacing + statusSize.height
+-            return (CGSize(width: max(textSize.width, statusSize.width) + sideInset + rightTextInset + badgeWidthSpace, height: verticalInset * 2.0 + combinedTextHeight), { size, transition in
++            return (CGSize(width: max(textSize.width, statusSize.width) + sideInset + rightTextInset + badgeWidthSpace, height: max(44.0, verticalInset * 2.0 + combinedTextHeight)), { size, transition in
+                 let verticalOrigin = floor((size.height - combinedTextHeight) / 2.0)
+                 let textFrame = CGRect(origin: CGPoint(x: sideInset, y: verticalOrigin), size: textSize)
+                 transition.updateFrameAdditive(node: self.textNode, frame: textFrame)
+@@ -298,7 +298,7 @@ public final class ContextActionNode: ASDisplayNode, ContextActionNodeProtocol {
+                 }
+             })
+         } else {
+-            return (CGSize(width: textSize.width + sideInset + rightTextInset + badgeWidthSpace, height: verticalInset * 2.0 + textSize.height), { size, transition in
++            return (CGSize(width: textSize.width + sideInset + rightTextInset + badgeWidthSpace, height: max(44.0, verticalInset * 2.0 + textSize.height)), { size, transition in
+                 let verticalOrigin = floor((size.height - textSize.height) / 2.0)
+                 let textFrame = CGRect(origin: CGPoint(x: sideInset, y: verticalOrigin), size: textSize)
+                 transition.updateFrameAdditive(node: self.textNode, frame: textFrame)
+diff --git a/submodules/TelegramUI/Components/ContextControllerImpl/Sources/ContextControllerActionsStackNode.swift b/submodules/TelegramUI/Components/ContextControllerImpl/Sources/ContextControllerActionsStackNode.swift
+index 5395014..51f2ec5 100644
+--- a/submodules/TelegramUI/Components/ContextControllerImpl/Sources/ContextControllerActionsStackNode.swift
++++ b/submodules/TelegramUI/Components/ContextControllerImpl/Sources/ContextControllerActionsStackNode.swift
+@@ -210,7 +210,7 @@ public final class ContextControllerActionsListActionItemNode: HighlightTracking
+     
+     public func update(presentationData: PresentationData, constrainedSize: CGSize) -> (minSize: CGSize, apply: (_ size: CGSize, _ transition: ContainedViewLayoutTransition) -> Void) {
+         let sideInset: CGFloat = 18.0
+-        let verticalInset: CGFloat = 11.0
++        let verticalInset: CGFloat = self.item.nebulaCompact ? 8.0 : 11.0
+         let titleSubtitleSpacing: CGFloat = 1.0
+         let iconSideInset: CGFloat = 20.0
+         let standardIconWidth: CGFloat = 32.0
+@@ -557,7 +557,7 @@ public final class ContextControllerActionsListActionItemNode: HighlightTracking
+         if let forcedHeight {
+             minSize.height = forcedHeight
+         } else {
+-            minSize.height += verticalInset * 2.0
++            minSize.height = max(44.0, minSize.height + verticalInset * 2.0)
+             minSize.height += titleSize.height
+             if subtitle != nil {
+                 minSize.height += titleSubtitleSpacing
+diff --git a/submodules/TelegramUI/Sources/ChatController.swift b/submodules/TelegramUI/Sources/ChatController.swift
+index d4f5c26..33c4195 100644
+--- a/submodules/TelegramUI/Sources/ChatController.swift
++++ b/submodules/TelegramUI/Sources/ChatController.swift
+@@ -6118,6 +6118,8 @@ public final class ChatControllerImpl: TelegramBaseController, ChatController, G
+         }, automaticMediaDownloadSettings: self.automaticMediaDownloadSettings, pollActionState: ChatInterfacePollActionState(), stickerSettings: self.stickerSettings, presentationContext: ChatPresentationContext(context: context, backgroundNode: self.chatBackgroundNode))
+         controllerInteraction.enableFullTranslucency = context.sharedContext.energyUsageSettings.fullTranslucency
+         
++        controllerInteraction.nebulaAvailableSwipeActions = { [weak self] message in self?.nebulaAvailableSwipeActions(message) ?? [] }
++        controllerInteraction.nebulaPerformSwipeAction = { [weak self] id, action in self?.nebulaPerformSwipeAction(id, raw: action) }
+         self.controllerInteraction = controllerInteraction
+         
+         self.navigationBar?.allowsCustomTransition = { [weak self] in
+diff --git a/submodules/TelegramUI/Sources/ChatInterfaceStateContextMenus.swift b/submodules/TelegramUI/Sources/ChatInterfaceStateContextMenus.swift
+index a92869d..c951a00 100644
+--- a/submodules/TelegramUI/Sources/ChatInterfaceStateContextMenus.swift
++++ b/submodules/TelegramUI/Sources/ChatInterfaceStateContextMenus.swift
+@@ -655,7 +655,7 @@ func contextMenuForChatPresentationInterfaceState(chatPresentationInterfaceState
+             
+             if chatPresentationInterfaceState.copyProtectionEnabled {
+             } else {
+-                actions.append(.action(ContextMenuActionItem(text: chatPresentationInterfaceState.strings.Conversation_ContextMenuCopy, icon: { theme in
++                actions.append(.action(ContextMenuActionItem(id: NebulaMessageMenuAction.copy.identifier, text: chatPresentationInterfaceState.strings.Conversation_ContextMenuCopy, icon: { theme in
+                     return generateTintedImage(image: UIImage(bundleImageName: "Chat/Context Menu/Copy"), color: theme.actionSheet.primaryTextColor)
+                 }, action: { _, f in
+                     var messageEntities: [MessageTextEntity]?
+@@ -696,7 +696,7 @@ func contextMenuForChatPresentationInterfaceState(chatPresentationInterfaceState
+             
+             if let author = message.author, let addressName = author.addressName {
+                 let link = "https://t.me/\(addressName)"
+-                actions.append(.action(ContextMenuActionItem(text: chatPresentationInterfaceState.strings.Conversation_ContextMenuCopyLink, icon: { theme in
++                actions.append(.action(ContextMenuActionItem(id: NebulaMessageMenuAction.copyLink.identifier, text: chatPresentationInterfaceState.strings.Conversation_ContextMenuCopyLink, icon: { theme in
+                     return generateTintedImage(image: UIImage(bundleImageName: "Chat/Context Menu/Link"), color: theme.actionSheet.primaryTextColor)
+                 }, action: { _, f in
+                     UIPasteboard.general.string = link
+@@ -712,7 +712,7 @@ func contextMenuForChatPresentationInterfaceState(chatPresentationInterfaceState
+             }
+         }
+ 
+-        return .single(ContextController.Items(content: .list(actions)))
++        return .single(ContextController.Items(content: .list(NebulaMessageMenuPresentation.filter(actions))))
+     }
+     
+     var loadStickerSaveStatus: EngineMedia.Id?
+@@ -1113,7 +1113,7 @@ func contextMenuForChatPresentationInterfaceState(chatPresentationInterfaceState
+                     
+                     if !isAlreadyAdded {
+                         let presentationData = context.sharedContext.currentPresentationData.with { $0 }
+-                        actions.append(.action(ContextMenuActionItem(text: presentationData.strings.Chat_SaveForNotifications, icon: { theme in
++                        actions.append(.action(ContextMenuActionItem(id: NebulaMessageMenuAction.sound.identifier, text: presentationData.strings.Chat_SaveForNotifications, icon: { theme in
+                             return generateTintedImage(image: UIImage(bundleImageName: "Chat/Context Menu/DownloadTone"), color: theme.actionSheet.primaryTextColor)
+                         }, action: { _, f in
+                             f(.default)
+@@ -1217,7 +1217,7 @@ func contextMenuForChatPresentationInterfaceState(chatPresentationInterfaceState
+         }
+         
+         if !isPinnedMessages, !isReplyThreadHead, data.canReply {
+-            actions.append(.action(ContextMenuActionItem(text: chatPresentationInterfaceState.strings.Conversation_ContextMenuReply, icon: { theme in
++            actions.append(.action(ContextMenuActionItem(id: NebulaMessageMenuAction.reply.identifier, text: chatPresentationInterfaceState.strings.Conversation_ContextMenuReply, icon: { theme in
+                 return generateTintedImage(image: UIImage(bundleImageName: "Chat/Context Menu/Reply"), color: theme.actionSheet.primaryTextColor)
+             }, action: { c, _ in
+                 interfaceInteraction.setupReplyMessage(messages[0].id, nil, { transition, completed in
+@@ -1339,7 +1339,7 @@ func contextMenuForChatPresentationInterfaceState(chatPresentationInterfaceState
+            let audioFile = message.effectiveMedia.compactMap({ $0 as? TelegramMediaFile }).first(where: { $0.isVoice || $0.isInstantVideo }),
+            let size = audioFile.size, size > 0, size <= Int64(NebulaAudioTranscription.maximumBytes) {
+             let russian = chatPresentationInterfaceState.strings.baseLanguageCode.hasPrefix("ru")
+-            actions.append(.action(ContextMenuActionItem(text: russian ? "Nebula AI · расшифровать" : "Nebula AI · Transcribe", icon: { theme in
++            actions.append(.action(ContextMenuActionItem(id: NebulaMessageMenuAction.transcribe.identifier, text: russian ? "Nebula AI · расшифровать" : "Nebula AI · Transcribe", icon: { theme in
+                 return generateTintedImage(image: UIImage(bundleImageName: "Chat/Context Menu/Translate"), color: theme.actionSheet.primaryTextColor)
+             }, action: { c, f in
+                 let present: () -> Void = {
+@@ -1352,7 +1352,7 @@ func contextMenuForChatPresentationInterfaceState(chatPresentationInterfaceState
+             if !isExpired {
+                 if !isPoll {
+                     if !isCopyProtected {
+-                        actions.append(.action(ContextMenuActionItem(text: chatPresentationInterfaceState.strings.Conversation_ContextMenuCopy, icon: { theme in
++                        actions.append(.action(ContextMenuActionItem(id: NebulaMessageMenuAction.copy.identifier, text: chatPresentationInterfaceState.strings.Conversation_ContextMenuCopy, icon: { theme in
+                             return generateTintedImage(image: UIImage(bundleImageName: "Chat/Context Menu/Copy"), color: theme.actionSheet.primaryTextColor)
+                         }, action: { _, f in
+                             if let diceEmoji = diceEmoji {
+@@ -1458,7 +1458,7 @@ func contextMenuForChatPresentationInterfaceState(chatPresentationInterfaceState
+                     canTranslate = false
+                 }
+                 if canTranslate {
+-                    actions.append(.action(ContextMenuActionItem(text: chatPresentationInterfaceState.strings.Conversation_ContextMenuTranslate, icon: { theme in
++                    actions.append(.action(ContextMenuActionItem(id: NebulaMessageMenuAction.translate.identifier, text: chatPresentationInterfaceState.strings.Conversation_ContextMenuTranslate, icon: { theme in
+                         return generateTintedImage(image: UIImage(bundleImageName: "Chat/Context Menu/Translate"), color: theme.actionSheet.primaryTextColor)
+                     }, action: { c, f in
+                         let aiSettings = NebulaAiSettings.shared
+@@ -1491,7 +1491,7 @@ func contextMenuForChatPresentationInterfaceState(chatPresentationInterfaceState
+                     let sourceEntities = (message.attributes.first(where: { $0 is TextEntitiesMessageAttribute }) as? TextEntitiesMessageAttribute)?.entities ?? []
+                     let attributedSource = messageText == message.text ? chatInputStateStringWithAppliedEntities(messageText, entities: sourceEntities) : NSAttributedString(string: messageText)
+                     let russian = chatPresentationInterfaceState.strings.baseLanguageCode.lowercased().hasPrefix("ru")
+-                    actions.append(.action(ContextMenuActionItem(text: russian ? "Nebula AI · пересказ" : "Nebula AI · Summarize", icon: { theme in
++                    actions.append(.action(ContextMenuActionItem(id: NebulaMessageMenuAction.tools.identifier, text: russian ? "Nebula AI · пересказ" : "Nebula AI · Summarize", icon: { theme in
+                         return generateTintedImage(image: UIImage(bundleImageName: "Chat/Context Menu/Translate"), color: theme.actionSheet.primaryTextColor)
+                     }, action: { c, f in
+                         c?.dismiss(completion: {
+@@ -1499,7 +1499,7 @@ func contextMenuForChatPresentationInterfaceState(chatPresentationInterfaceState
+                         })
+                         if c == nil { f(.default) }
+                     })))
+-                    actions.append(.action(ContextMenuActionItem(text: russian ? "Nebula AI · инструменты" : "Nebula AI · Tools", icon: { theme in
++                    actions.append(.action(ContextMenuActionItem(id: NebulaMessageMenuAction.tools.identifier, text: russian ? "Nebula AI · инструменты" : "Nebula AI · Tools", icon: { theme in
+                         return generateTintedImage(image: UIImage(bundleImageName: "Chat/Context Menu/Translate"), color: theme.actionSheet.primaryTextColor)
+                     }, action: { c, f in
+                         c?.dismiss(completion: {
+@@ -1546,7 +1546,7 @@ func contextMenuForChatPresentationInterfaceState(chatPresentationInterfaceState
+                 }
+             }
+             if let mediaReference = mediaReference {
+-                actions.append(.action(ContextMenuActionItem(text: isVideo ? chatPresentationInterfaceState.strings.Gallery_SaveVideo : chatPresentationInterfaceState.strings.Gallery_SaveImage, icon: { theme in
++                actions.append(.action(ContextMenuActionItem(id: NebulaMessageMenuAction.saveGallery.identifier, text: isVideo ? chatPresentationInterfaceState.strings.Gallery_SaveVideo : chatPresentationInterfaceState.strings.Gallery_SaveImage, icon: { theme in
+                     return generateTintedImage(image: UIImage(bundleImageName: "Chat/Context Menu/Save"), color: theme.actionSheet.primaryTextColor)
+                 }, action: { _, f in
+                     let _ = (saveToCameraRoll(context: context, userLocation: .peer(message.id.peerId), mediaReference: mediaReference)
+@@ -1580,7 +1580,7 @@ func contextMenuForChatPresentationInterfaceState(chatPresentationInterfaceState
+             for media in message.effectiveMedia {
+                 if let file = media as? TelegramMediaFile {
+                     if file.isMusic {
+-                        actions.append(.action(ContextMenuActionItem(text: chatPresentationInterfaceState.strings.Conversation_SaveToFiles, icon: { theme in
++                        actions.append(.action(ContextMenuActionItem(id: NebulaMessageMenuAction.saveFiles.identifier, text: chatPresentationInterfaceState.strings.Conversation_SaveToFiles, icon: { theme in
+                             return generateTintedImage(image: UIImage(bundleImageName: "Chat/Context Menu/Save"), color: theme.actionSheet.primaryTextColor)
+                         }, action: { _, f in
+                             controllerInteraction.saveMediaToFiles(message.id)
+@@ -1750,7 +1750,7 @@ func contextMenuForChatPresentationInterfaceState(chatPresentationInterfaceState
+                 canAppend = true
+             }
+             if canAppend {
+-                actions.append(.action(ContextMenuActionItem(text: chatPresentationInterfaceState.strings.Chat_Todo_ContextMenu_AddTask, icon: { theme in
++                actions.append(.action(ContextMenuActionItem(id: NebulaMessageMenuAction.checklist.identifier, text: chatPresentationInterfaceState.strings.Chat_Todo_ContextMenu_AddTask, icon: { theme in
+                     return generateTintedImage(image: UIImage(bundleImageName: "Chat/Context Menu/AddCircle"), color: theme.actionSheet.primaryTextColor)
+                 }, action: { _, f in
+                     interfaceInteraction.editTodoMessage(messages[0].id, nil, true)
+@@ -1836,7 +1836,7 @@ func contextMenuForChatPresentationInterfaceState(chatPresentationInterfaceState
+         }
+         
+         if let message = messages.first, message.id.namespace == Namespaces.Message.Cloud, let channel = message.peers[message.id.peerId] as? TelegramChannel, !channel.isMonoForum, !(message.media.first is TelegramMediaAction), !isReplyThreadHead, !isMigrated {
+-            actions.append(.action(ContextMenuActionItem(text: chatPresentationInterfaceState.strings.Conversation_ContextMenuCopyLink, icon: { theme in
++            actions.append(.action(ContextMenuActionItem(id: NebulaMessageMenuAction.copyLink.identifier, text: chatPresentationInterfaceState.strings.Conversation_ContextMenuCopyLink, icon: { theme in
+                 return generateTintedImage(image: UIImage(bundleImageName: "Chat/Context Menu/Link"), color: theme.actionSheet.primaryTextColor)
+             }, action: { _, f in
+                 var threadMessageId: EngineMessage.Id?
+@@ -1986,7 +1986,7 @@ func contextMenuForChatPresentationInterfaceState(chatPresentationInterfaceState
+                     })))
+                 }
+ 
+-                actions.append(.action(ContextMenuActionItem(text: chatPresentationInterfaceState.strings.Conversation_ContextMenuForward, icon: { theme in
++                actions.append(.action(ContextMenuActionItem(id: NebulaMessageMenuAction.forward.identifier, text: chatPresentationInterfaceState.strings.Conversation_ContextMenuForward, icon: { theme in
+                     return generateTintedImage(image: UIImage(bundleImageName: "Chat/Context Menu/Forward"), color: theme.actionSheet.primaryTextColor)
+                 }, action: { _, f in
+                     interfaceInteraction.forwardMessages(selectAll || isImage ? messages : [message])
+@@ -1996,7 +1996,7 @@ func contextMenuForChatPresentationInterfaceState(chatPresentationInterfaceState
+         }
+         
+         if data.messageActions.options.contains(.report) {
+-            actions.append(.action(ContextMenuActionItem(text: chatPresentationInterfaceState.strings.Conversation_ContextMenuReport, icon: { theme in
++            actions.append(.action(ContextMenuActionItem(id: NebulaMessageMenuAction.report.identifier, text: chatPresentationInterfaceState.strings.Conversation_ContextMenuReport, icon: { theme in
+                 return generateTintedImage(image: UIImage(bundleImageName: "Chat/Context Menu/Report"), color: theme.actionSheet.primaryTextColor)
+             }, action: { controller, f in
+                 interfaceInteraction.reportMessages(messages, controller)
+@@ -2381,7 +2381,7 @@ func contextMenuForChatPresentationInterfaceState(chatPresentationInterfaceState
+             case .quickReplyMessageInput:
+                 actions.removeAll()
+                 if !messageText.isEmpty || (resourceAvailable && isImage) || diceEmoji != nil {
+-                    actions.append(.action(ContextMenuActionItem(text: chatPresentationInterfaceState.strings.Conversation_ContextMenuCopy, icon: { theme in
++                    actions.append(.action(ContextMenuActionItem(id: NebulaMessageMenuAction.copy.identifier, text: chatPresentationInterfaceState.strings.Conversation_ContextMenuCopy, icon: { theme in
+                         return generateTintedImage(image: UIImage(bundleImageName: "Chat/Context Menu/Copy"), color: theme.actionSheet.primaryTextColor)
+                     }, action: { _, f in
+                         var messageEntities: [MessageTextEntity]?
+@@ -2501,7 +2501,7 @@ func contextMenuForChatPresentationInterfaceState(chatPresentationInterfaceState
+             }
+         }
+         
+-        return ContextController.Items(content: .list(actions), tip: nil)
++        return ContextController.Items(content: .list(NebulaMessageMenuPresentation.filter(actions)), tip: nil)
+     }
+ }
+ 

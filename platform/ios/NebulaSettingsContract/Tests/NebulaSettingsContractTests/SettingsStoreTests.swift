@@ -375,7 +375,7 @@ final class SettingsStoreTests: XCTestCase {
         }
     }
 
-    func testNewAndroidPreferencesSurviveIOSTransferWithoutActivation() throws {
+    func testPortableChatPreferencesPersistAndActivateAfterImport() throws {
         try withDefaults { defaults in
             let store = NebulaSettingsStore(defaults: defaults)
             let values: [String: SettingValue] = [
@@ -388,7 +388,12 @@ final class SettingsStoreTests: XCTestCase {
             let restored = NebulaSettingsStore(defaults: defaults)
             let exported = try JSONDecoder().decode(SettingsDocument.self, from: restored.exportData())
             XCTAssertEqual(exported.settings, values)
-            for (key, value) in values { XCTAssertThrowsError(try restored.set(value, for: key)) }
+            for (key, value) in values { try restored.set(value, for: key) }
+            XCTAssertEqual(restored.stickerTimeStyle, 2)
+            XCTAssertTrue(restored.channelForwardCount)
+            XCTAssertTrue(restored.inlineArithmetic)
+            XCTAssertTrue(restored.folderUnmutedOnly)
+            XCTAssertEqual(restored.swipeActions, [.translate, .reply, .copy])
         }
     }
 

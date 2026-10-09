@@ -10,7 +10,7 @@ final class NebulaMessageControlsController: UITableViewController {
     private let ru: Bool
     private let profile: Bool
     private let prefs = NebulaMessagePreferences.shared
-    private var keys: [String] { profile ? ["hide_profile_phone", "profile_photo_dc"] : ["edited_pencil", "forward_date", "direct_share", "voice_autoplay", "seek_interval", "pause_background_video", "disable_message_effects", "premium_effects", "reaction_effects", "instant_view", "delete_for_all", "selection_without_author"] }
+    private var keys: [String] { profile ? ["hide_profile_phone", "profile_photo_dc"] : ["chat_preferences", "edited_pencil", "forward_date", "direct_share", "voice_autoplay", "seek_interval", "pause_background_video", "disable_message_effects", "premium_effects", "reaction_effects", "instant_view", "delete_for_all", "selection_without_author"] }
     private lazy var hero = NebulaSettingsHero(symbol: profile ? "👤" : "💬", title: title ?? "", summary: ru ? (profile ? "Локальное отображение данных профиля" : "Отметки сообщений и воспроизведение") : (profile ? "Local profile presentation" : "Message labels and playback"), context: context, theme: theme)
     init(context: AccountContext, profile: Bool) {
         self.context = context; self.profile = profile
@@ -33,6 +33,12 @@ final class NebulaMessageControlsController: UITableViewController {
     }
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let key = keys[indexPath.row]
+        if key == "chat_preferences" {
+            let cell = UITableViewCell(style: .subtitle, reuseIdentifier: nil)
+            cell.textLabel?.text = ru ? "Сообщения и жесты" : "Messages and gestures"
+            cell.detailTextLabel?.text = ru ? "Свайпы, вычисления, стикеры и счётчики" : "Swipe actions, arithmetic, stickers and badges"
+            cell.accessoryType = .disclosureIndicator; NebulaSettingsStyle.finish(cell, theme: theme); return cell
+        }
         let titles = ru ? ["selection_without_author": "Кнопка «Без авторства»", "edited_pencil": "Карандаш вместо «изменено»", "forward_date": "Дата исходного сообщения", "direct_share": "Кнопка быстрой пересылки", "voice_autoplay": "Следующее голосовое автоматически", "hide_profile_phone": "Скрывать номер в профиле", "profile_photo_dc": "DC фотографии профиля", "seek_interval": "Шаг перемотки видео", "pause_background_video": "Пауза видео в фоне", "disable_message_effects": "Отключить эффекты сообщений", "premium_effects": "Эффекты Premium-стикеров", "reaction_effects": "Анимация реакций", "instant_view": "Открывать Instant View", "delete_for_all": "Удалять для всех по умолчанию"] : ["selection_without_author": "Without author button", "edited_pencil": "Pencil for edited messages", "forward_date": "Original forwarded date", "direct_share": "Quick forward button", "voice_autoplay": "Autoplay the next voice message", "hide_profile_phone": "Hide profile phone number", "profile_photo_dc": "Profile photo DC", "seek_interval": "Video seek interval", "pause_background_video": "Pause background video", "disable_message_effects": "Disable message effects", "premium_effects": "Premium sticker effects", "reaction_effects": "Reaction animations", "instant_view": "Open Instant View", "delete_for_all": "Select delete for everyone by default"]
         let cell = UITableViewCell(style: .subtitle, reuseIdentifier: nil); cell.textLabel?.text = titles[key]
         if key == "selection_without_author" { cell.detailTextLabel?.text = ru ? "Добавить кнопку в нижнюю панель выделения. По умолчанию — стандартные кнопки Telegram." : "Add a button to the bottom selection panel. Standard Telegram controls remain the default." }
@@ -51,8 +57,9 @@ final class NebulaMessageControlsController: UITableViewController {
     }
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
+        if keys[indexPath.row] == "chat_preferences" { navigationController?.pushViewController(NebulaChatPreferencesController(context: context), animated: true); return }
         guard keys[indexPath.row] == "seek_interval" else { return }
-        let values = [5, 10, 15, 20, 30]
+        let values = [5, 10, 15, 20, 25, 30]
         NebulaChoiceController.show(from: self, title: ru ? "Шаг перемотки" : "Seek interval", choices: values.map { String($0) + (ru ? " секунд" : " seconds") }, selected: values.firstIndex(of: prefs.seekInterval), russian: ru, theme: theme) { [weak self] index in
             self?.prefs.setSeekInterval(values[index]); self?.tableView.reloadData()
         }
