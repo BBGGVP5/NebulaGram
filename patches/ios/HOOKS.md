@@ -250,3 +250,9 @@
 - ChatController routes inline/external/explicit Instant View links through the native URL handling path when disabled. OpenResolvedUrl handles resolved Instant View pages with the existing browser preference.
 - ChatControllerAdminBanUsers initializes the existing `.unsendPersonal` switch from the opt-in preference. Eligibility, confirmation, undo and separate delete-for-me/everyone actions remain native.
 - Incomplete legacy AI recovery is an overlay/contract change, not an upstream patch. Opening a draft does not save or select it; credential migration only happens on explicit valid Save.
+
+### 0085 — selection header and forwarding parity
+
+- Adds native header selection actions with eligibility checks and opt-in bottom Without Author action. The optional panel callback avoids changing unrelated panel initializers.
+- Carries explicit forwarding options into recipient preview and every direct/draft forwarding path. Ordinary forwarding retains native defaults.
+- Moves ordinary selection cancellation to the left, including reply threads; report and message-option states remain native. Appends Go to beginning followed by retained-message cleanup to native history menu routes.

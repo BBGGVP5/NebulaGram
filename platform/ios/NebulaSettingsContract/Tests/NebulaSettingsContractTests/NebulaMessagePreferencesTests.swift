@@ -23,5 +23,10 @@ final class NebulaMessagePreferencesTests: XCTestCase {
         XCTAssertTrue(prefs.enabled("instant_view")); XCTAssertFalse(prefs.enabled("delete_for_all"))
         prefs.set("instant_view", false); prefs.set("delete_for_all", true)
         XCTAssertFalse(restored.enabled("instant_view")); XCTAssertTrue(restored.enabled("delete_for_all"))
+        XCTAssertFalse(prefs.enabled("selection_without_author"))
+        prefs.set("selection_without_author", true)
+        XCTAssertTrue(restored.enabled("selection_without_author"))
+        prefs.set("selection_without_author", false)
+        XCTAssertFalse(restored.enabled("selection_without_author"))
     }
 }

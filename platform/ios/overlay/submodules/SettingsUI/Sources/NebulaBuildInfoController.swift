@@ -1,13 +1,21 @@
 import UIKit
+import AccountContext
+import TelegramPresentationData
 
 /// Values shown here come from the installed application and the pinned iOS
 /// source revision. No Android version or CI run time is substituted for them.
 public final class NebulaBuildInfoController: UITableViewController {
     private let russian: Bool
+    private let context: AccountContext
+    private let theme: PresentationTheme
+    private lazy var hero = NebulaSettingsHero(symbol: "info.circle", title: russian ? "Обновления" : "Updates",
+        summary: russian ? "Версия приложения и новости выпусков" : "Installed version and release news", context: context, theme: theme)
     private let sourceVersion = "12.9.2"
     private let sourceRevision = "6ad963e5b62d354da79040f388ae2b9132fb17b8"
 
-    public init(russian: Bool) {
+    public init(context: AccountContext, russian: Bool) {
+        self.context = context
+        self.theme = context.sharedContext.currentPresentationData.with { $0 }.theme
         self.russian = russian
         super.init(style: .insetGrouped)
     }
@@ -16,11 +24,14 @@ public final class NebulaBuildInfoController: UITableViewController {
     public override func viewDidLoad() {
         super.viewDidLoad()
         title = russian ? "О сборке" : "Build information"
-        view.backgroundColor = .systemBackground
+        NebulaSettingsStyle.apply(theme: theme, to: self)
         navigationItem.leftBarButtonItem = UIBarButtonItem(barButtonSystemItem: .close, target: self, action: #selector(close))
         tableView.rowHeight = UITableView.automaticDimension
         tableView.estimatedRowHeight = 56
     }
+    public override func viewDidLayoutSubviews() { super.viewDidLayoutSubviews(); hero.fit(in: tableView) }
+    public override func viewWillAppear(_ animated: Bool) { super.viewWillAppear(animated); hero.setPageVisible(true) }
+    public override func viewWillDisappear(_ animated: Bool) { super.viewWillDisappear(animated); hero.setPageVisible(false) }
     @objc private func close() { dismiss(animated: true) }
 
     private var rows: [(String, String)] {
@@ -44,7 +55,7 @@ public final class NebulaBuildInfoController: UITableViewController {
         if let date = info["NebulaBuildDate"] as? String, !date.isEmpty {
             values.append((russian ? "Дата сборки" : "Build date", date))
         }
-        values.append((russian ? "Обновления" : "Updates", "@ngram_releases"))
+        values.append((russian ? "Новости и обновления" : "Release news", "@ngram_releases"))
         return values
     }
 
@@ -57,10 +68,16 @@ public final class NebulaBuildInfoController: UITableViewController {
         cell.detailTextLabel?.text = row.1
         cell.detailTextLabel?.numberOfLines = 0
         cell.selectionStyle = .default
+        cell.accessoryType = indexPath.row == rows.count - 1 ? .disclosureIndicator : .none
+        NebulaSettingsStyle.finish(cell, theme: theme)
         return cell
     }
     public override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
-        UIPasteboard.general.string = rows[indexPath.row].1
+        if indexPath.row == rows.count - 1 {
+            if let url = URL(string: "https://t.me/ngram_releases") { UIApplication.shared.open(url) }
+        } else {
+            UIPasteboard.general.string = rows[indexPath.row].1
+        }
     }
 }

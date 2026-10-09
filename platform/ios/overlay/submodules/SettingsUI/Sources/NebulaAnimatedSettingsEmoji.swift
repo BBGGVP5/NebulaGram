@@ -49,7 +49,8 @@ final class NebulaAnimatedSettingsEmoji: UIView {
     private static func normalized(_ value: String) -> String { value.replacingOccurrences(of: "\u{FE0F}", with: "") }
     private func show(_ file: TelegramMediaFile) {
         guard fileId != file.fileId else { return }
-        fileId = file.fileId; sticker?.view.removeFromSuperview(); fallback.isHidden = false
+        fileId = file.fileId; sticker?.visibility = false; sticker?.pause()
+        sticker?.view.removeFromSuperview(); fallback.isHidden = false
         let node = DefaultAnimatedStickerNodeImpl()
         node.automaticallyLoadFirstFrame = true
         node.started = { [weak self, weak node] in
@@ -70,11 +71,13 @@ final class NebulaAnimatedSettingsEmoji: UIView {
     override func didMoveToWindow() { super.didMoveToWindow(); rewind = true; updatePlayback() }
     override func layoutSubviews() {
         super.layoutSubviews(); fallback.frame = bounds; sticker?.frame = bounds; sticker?.updateLayout(size: bounds.size)
+        updatePlayback()
     }
     @objc private func resumeApplication() { foreground = true; updatePlayback() }
     @objc private func pauseApplication() { foreground = false; updatePlayback() }
     @objc private func updatePlayback() {
-        let visible = window != nil && pageVisible && foreground
+        let visible = window != nil && pageVisible && foreground && !isHidden && alpha > 0.01
+            && bounds.width > 0 && bounds.height > 0
         sticker?.visibility = visible
         guard visible else { sticker?.pause(); active = false; rewind = true; return }
         if UIAccessibility.isReduceMotionEnabled {

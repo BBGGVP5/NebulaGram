@@ -785,7 +785,7 @@ public func nebulaSettingsController(context: AccountContext, page: Int = 0, sea
     arguments.openBuildInfo = { [weak controller] in
         guard let controller = controller, controller.presentedViewController == nil else { return }
         let ru = context.sharedContext.currentPresentationData.with { $0 }.strings.baseLanguageCode.lowercased().hasPrefix("ru")
-        controller.present(UINavigationController(rootViewController: NebulaBuildInfoController(russian: ru)), animated: true)
+        controller.present(UINavigationController(rootViewController: NebulaBuildInfoController(context: context, russian: ru)), animated: true)
     }
     arguments.openMemory = { [weak controller] in
         guard let controller = controller, controller.presentedViewController == nil else { return }

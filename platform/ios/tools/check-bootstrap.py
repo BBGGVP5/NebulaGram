@@ -183,6 +183,25 @@ def main():
         upstream_version = json.loads((tree / 'versions.json').read_text(encoding='utf-8'))['app']
         assert 'sourceVersion = "' + upstream_version + '"' in build_info
         assert 'arguments.openBuildInfo' in controller and 'arguments.openIcons' in controller
+        selection = (temp / 'submodules/TelegramUI/Sources/Chat/NebulaSelectionActions.swift').read_text(encoding='utf-8')
+        assert 'forEachMessageInCurrentHistoryView' in selection and 'NebulaSelectionPolicy.addingLoaded' in selection
+        assert 'actions.isCopyProtected' in selection and 'actions.options.contains(.forward)' in selection
+        assert 'selectionState?.selectedIds == ids' in selection and 'storeMessageTextInPasteboard(text, entities: entities)' in selection
+        assert 'deleteSelectedMessages(nil)' in selection and 'scrollToStartOfHistory()' in selection
+        assert selection.index('Go to beginning') < selection.index('Clear deleted messages')
+        forward_source = (temp / 'submodules/TelegramUI/Sources/ChatControllerForwardMessages.swift').read_text(encoding='utf-8')
+        assert 'nebulaPickerParams.nebulaForwardOptions = options' in forward_source
+        assert forward_source.count('withUpdatedForwardOptionsState(options ??') == 2
+        assert 'options.map { [ForwardOptionsMessageAttribute(' in forward_source
+        picker_source = (temp / 'submodules/TelegramUI/Components/PeerSelectionController/Sources/PeerSelectionControllerNode.swift').read_text(encoding='utf-8')
+        assert 'withUpdatedForwardOptionsState(nebulaForwardOptions)' in picker_source
+        panel_source = (temp / 'submodules/TelegramUI/Components/Chat/ChatMessageSelectionInputPanelNode/Sources/ChatMessageSelectionInputPanelNode.swift').read_text(encoding='utf-8')
+        assert 'if showWithoutAuthor { buttons.insert(' in panel_source
+        assert 'NebulaMessagePreferences.shared.enabled("selection_without_author")' in panel_source
+        emoji_source = (temp / 'submodules/SettingsUI/Sources/NebulaAnimatedSettingsEmoji.swift').read_text(encoding='utf-8')
+        assert 'bounds.width > 0 && bounds.height > 0' in emoji_source
+        assert 'updatePlayback()' in emoji_source[emoji_source.index('override func layoutSubviews'):emoji_source.index('@objc private func resumeApplication')]
+        assert 'NebulaSettingsHero(symbol: "info.circle"' in build_info and 'UIApplication.shared.open(url)' in build_info
         assert 'arguments.openTransitions' in controller
         navigation_source = (temp / 'submodules/Display/Source/Navigation/NavigationController.swift').read_text(encoding='utf-8')
         assert 'NebulaSettingsStore.shared.transitionStyle == 1' in navigation_source
@@ -402,7 +421,7 @@ final class Composer {
                           'NebulaAiService.swift', 'NebulaAiHistoryController.swift', 'NebulaActionGrid.swift',
                           'NebulaResultLanguage.swift', 'NebulaMessageToolsController.swift', 'NebulaTasksController.swift',
                           'NebulaCommunity.swift', 'NebulaSupportController.swift', 'NebulaAiServicesController.swift',
-                          'NebulaAiRolesController.swift', 'NebulaAnimatedSettingsEmoji.swift',
+                          'NebulaAiRolesController.swift', 'NebulaAnimatedSettingsEmoji.swift', 'NebulaBuildInfoController.swift',
                           'NebulaSettingsIntroItem.swift', 'NebulaLinkPresentation.swift', 'NebulaAiEditorController.swift',
                           'NebulaEditorSegments.swift', 'NebulaDraftTranslation.swift', 'NebulaBrowserController.swift', 'NebulaMessageControlsController.swift', 'NebulaMessageFilterController.swift', 'NebulaPresentationPreviewController.swift', 'NebulaImportedIcons.swift', 'NebulaIconPacksController.swift']
             # These views now use Telegram's PresentationTheme module. Parse them
