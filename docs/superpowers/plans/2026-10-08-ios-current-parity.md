@@ -184,3 +184,7 @@ Model catalog implementation: `NebulaAiModelPage.swift` validates entries/paging
 
 - `84c13b1` is the current runtime: native `37836109464`, IPA `37836114088`, bootstrap `37836070485`. Earlier queued/runtime builds were cancelled because they predate the timer qualification. Bootstrap `37835733367` already passed all 125 tests and the actual audio-service iOS SDK check; no source-level native build success is inferred from it.
 - Previous successful IPA `37816439420` was downloaded and inspected independently: `build/ios-port-37816439420/NebulaGram-unsigned.ipa`, source `cf2d0ce0a0c2bb18c9c244ded46613f780f10ca0`, build 81, app.nebulagram/arm64, one Notification Service Extension. SHA-256 `ed81a9528ddbb1f453d3df6a3138025c72f425b4383026106c0824a106096b7c` matches its CI manifest. This artifact does not include cloud sync/audio or the later editor material correction.
+
+## Update rocket playback follow-up (2026-10-09)
+
+The update mascot inherited page ImageReceiver layer 7. Telegram pauses background receivers at layer 512 during sheet transitions; its standard alert emoji instead use layer 6656. Both update sheets now use that foreground level through the shared mascot, retaining visibility/focus/reduced-motion gates and decoder disposal. A Java lifecycle regression reproduces the stop on the previous implementation and passes for TGS and video playback, focus return and close/reopen. Current-source Android SDK compilation and updater checks pass. This is a tested pause-path fix, not physical-device visual acceptance; USB is unavailable.

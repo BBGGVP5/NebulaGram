@@ -16,7 +16,9 @@ import org.telegram.tgnet.TLRPC;
 /** Owns the receiver for one attachment; only a decoded frame can replace the fallback. */
 public final class NebulaAnimatedEmoji extends FrameLayout implements NotificationCenter.NotificationCenterDelegate {
     private static final String PAGE_EMOJI_SET = "RestrictedEmoji";
-    private final int account, size;
+    // Same foreground level as Telegram's CACHE_TYPE_ALERT_STANDARD_EMOJI.
+    public static final int DIALOG_LAYER = 6656;
+    private final int account, size, layer;
     private final ImageView fallbackImage;
     private final Rect visibleBounds = new Rect();
     private final ViewTreeObserver.OnScrollChangedListener scrollListener = this::updatePlayback;
@@ -28,7 +30,10 @@ public final class NebulaAnimatedEmoji extends FrameLayout implements Notificati
     private boolean activeLast, rewindPending = true;
 
     public NebulaAnimatedEmoji(Context c, int account, String emoji, int size) {
-        super(c); this.account=account; this.size=size; setWillNotDraw(false);
+        this(c, account, emoji, size, 7);
+    }
+    public NebulaAnimatedEmoji(Context c, int account, String emoji, int size, int layer) {
+        super(c); this.account=account; this.size=size; this.layer=layer; setWillNotDraw(false);
         fallbackImage=new ImageView(c);fallbackImage.setScaleType(ImageView.ScaleType.FIT_CENTER);
         // Page introductions use the same canvas before and after decoding.
         int inset=size>=72?0:AndroidUtilities.dp(size*.14f);fallbackImage.setPadding(inset,inset,inset,inset);
@@ -87,7 +92,7 @@ public final class NebulaAnimatedEmoji extends FrameLayout implements Notificati
             next.setCurrentAccount(account); next.setAllowLoadingOnAttachedOnly(true); next.setAspectFit(true);
             // A cached decoder must not share its playhead with another visible emoji.
             next.setUniqKeyPrefix("nebula_emoji_"+Integer.toHexString(System.identityHashCode(this))+"_");
-            next.setAutoRepeat(1); next.setAutoRepeatCount(-1); next.setAllowDecodeSingleFrame(true); next.setLayerNum(7);
+            next.setAutoRepeat(1); next.setAutoRepeatCount(-1); next.setAllowDecodeSingleFrame(true); next.setLayerNum(layer);
             next.setDelegate(new ImageReceiver.ImageReceiverDelegate() {
                 @Override public void didSetImage(ImageReceiver r,boolean set,boolean thumb,boolean cache) { if(set&&!thumb)postVisual(next,epoch); }
                 @Override public void onAnimationReady(ImageReceiver r) { postVisual(next,epoch); }
