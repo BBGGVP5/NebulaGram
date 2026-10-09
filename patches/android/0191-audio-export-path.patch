@@ -1,8 +1,21 @@
 diff --git a/TMessagesProj/src/main/res/xml/provider_paths.xml b/TMessagesProj/src/main/res/xml/provider_paths.xml
+index f71dfb6..63aec85 100644
 --- a/TMessagesProj/src/main/res/xml/provider_paths.xml
 +++ b/TMessagesProj/src/main/res/xml/provider_paths.xml
-@@ -6,3 +6,4 @@
-     <root-path name="external_files" path="/storage/" />
+@@ -1,8 +1,9 @@
+-<?xml version="1.0" encoding="utf-8"?>
+-<paths>
+-    <external-path name="media" path="."/>
+-    <files-path name="logs" path="/logs/"/>
+-    <files-path name="cache" path="/cache/"/>
+-    <root-path name="external_files" path="/storage/" />
++<?xml version="1.0" encoding="utf-8"?>
++<paths>
++    <external-path name="media" path="."/>
++    <files-path name="logs" path="/logs/"/>
++    <files-path name="cache" path="/cache/"/>
++    <root-path name="external_files" path="/storage/" />
      <cache-path name="nebula_updates" path="nebula-updates/" />
 +    <cache-path name="nebula_speech" path="nebula-speech-exports/" />
  </paths>
+\ No newline at end of file
