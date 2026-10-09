@@ -84,8 +84,8 @@ class CapsuleCheck {
    CapsuleCheck selected=new CapsuleCheck();selected.nebulaFloatingChatHeader=mode==0;
    selected.nebulaClassicSavedHeader=mode==1;selected.nebulaSavedMessagesHeader=mode==2;
    selected.actionModeFactor=frame/100f;int[] bounds=selected.selectionBounds(52,288);
-   check(bounds[0]>=52 && bounds[0]<=60 && bounds[1]>=236 && bounds[1]<=288);
-   if(frame==100 && mode<3)check(bounds[0]==60 && bounds[1]==236);
+   check(bounds[0]==52 && bounds[1]>=236 && bounds[1]<=288);
+   if(frame==100 && mode<3)check(bounds[0]==52 && bounds[1]==236);
    if(frame==0 || mode==3)check(bounds[0]==52 && bounds[1]==288);
   }
   CapsuleCheck c=new CapsuleCheck();c.glassDrawableMenu=null;c.draw();

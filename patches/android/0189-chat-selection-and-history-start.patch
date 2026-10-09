@@ -1,0 +1,56 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
+@@ -3717,6 +3717,10 @@
+         actionBar.setActionBarMenuOnItemClick(new ActionBar.ActionBarMenuOnItemClick() {
+             @Override
+             public void onItemClick(final int id) {
++                if (id == 0x4e4753) {
++                    jumpToDate(1);
++                    return;
++                }
+                 if (id == 0x4e4443) {
+                     app.nebulagram.ui.NebulaPrivacyFragment.confirmClear(ChatActivity.this, currentAccount, dialog_id, null);
+                     return;
+@@ -4552,7 +4556,11 @@
+             closeTopicItem.setVisibility(currentChat != null && ChatObject.canManageTopic(currentAccount, currentChat, forumTopic) && forumTopic != null && !forumTopic.closed ? View.VISIBLE : View.GONE);
+         }
+         if (headerItem != null) {
+-            headerItem.lazilyAddNebulaDivider();
++            headerItem.lazilyAddColoredGap();
++            if (currentEncryptedChat == null && (chatMode == MODE_DEFAULT || chatMode == MODE_SAVED)) {
++                headerItem.lazilyAddSubItem(0x4e4753, R.drawable.msg_go_up,
++                        app.nebulagram.ui.NebulaText.text("В начало", "Go to beginning"));
++            }
+             headerItem.lazilyAddSubItem(0x4e4443, R.drawable.msg_clearcache,
+                     app.nebulagram.ui.NebulaText.text("Очистить удаленки", "Clear deleted messages"));
+         }
+@@ -10443,9 +10451,14 @@
+         selectedMessagesCountTextView.setTextColor(getThemedColor(Theme.key_actionBarActionModeDefaultIcon));
+         selectedMessagesCountTextView.setOnTouchListener((v, event) -> true);
+         selectedMessagesCountTextView.setEllipsizeByGradient(true);
+-        selectedMessagesCountTextView.setRightPadding(dp(8));
++        selectedMessagesCountTextView.setGravity(Gravity.CENTER);
++        selectedMessagesCountTextView.setRightPadding(0);
+         selectedMessagesCountTextView.getDrawable().setOverrideFullWidth(dp(300));
+-        actionMode.addView(selectedMessagesCountTextView, LayoutHelper.createLinear(0, LayoutHelper.MATCH_PARENT, 1.0f, 85, 0, 5, 0));
++        // Center within the counter capsule, independent of the action count.
++        // Glass action menus have a native -10dp translation; account for it.
++        LinearLayout.LayoutParams counterLayout = LayoutHelper.createLinear(0, LayoutHelper.MATCH_PARENT, 1.0f, 0, 0, 4, 0);
++        counterLayout.leftMargin = dp(52) - Math.round(actionMode.getX());
++        actionMode.addView(selectedMessagesCountTextView, counterLayout);
+         actionMode.setOnLayoutListener(actionBar::invalidate);
+ 
+         if (currentEncryptedChat == null) {
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
+@@ -2625,7 +2625,7 @@
+             // Keep the counter clear of independently drawn selection actions.
+             if (actionModeFactor > 0f && actionMode != null
+                     && (nebulaFloatingChatHeader || nebulaClassicSavedHeader || nebulaSavedMessagesHeader)) {
+-                left = lerp(left, dp(60), actionModeFactor);
++                left = lerp(left, dp(52), actionModeFactor);
+                 right = Math.max(left, lerp(right,
+                         app.nebulagram.ui.NebulaSelectionGlass.counterRight(actionMode, rightDefault), actionModeFactor));
+             }

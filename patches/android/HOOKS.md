@@ -638,3 +638,10 @@ Both `BotWebViewContainer` interception overloads consult a browser-only immutab
 ## 0188 — Message menu preview handoff
 
 `ItemOptions.keepScrimOpaque()` keeps a lifted view opaque while its original is hidden. The settings message preview opts in when the menu moves below the card, preventing the close animation from fading the copy out before abruptly restoring the original. Background dimming and native anchor restoration retain their existing lifecycle; other menus keep their default fade behavior.
+
+
+## 0189–0190 — Selection toolbar and history navigation
+
+The selection counter centers within its independent capsule, using the action menu's actual translation. Rounded line icons and a bounded loaded-message selection action follow the supplied reference; native eligibility/counters, action visibility and permission checks remain authoritative. The menu offers Go to beginning through native `jumpToDate(1)` before Clear deleted messages in cloud default/saved histories.
+
+Bottom actions remain native by default. `selection_without_author` is an opt-in Chats setting. Its destination picker captures the attribution choice locally and routes it through native multi-send/paid confirmation or either preview-draft branch. It does not send on the toolbar tap, mutate source messages, or retain a flag across cancelled pickers. Captions are kept. Both native Reply/Forward icon positions are restored when the setting is off.

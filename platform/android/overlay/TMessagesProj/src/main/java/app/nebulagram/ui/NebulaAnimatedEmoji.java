@@ -111,6 +111,10 @@ public final class NebulaAnimatedEmoji extends FrameLayout implements Notificati
     @Override protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
         if(receiver==null)return;
+        // Child layout/image callbacks can run before the dialog's ancestors
+        // have visible bounds. Recheck once those bounds are final, otherwise
+        // a paused decoder without a first frame has no callback to restart it.
+        updatePlayback();
         receiver.setImageCoords(0,0,getWidth(),getHeight()); boolean ready=frameReady();
         int save=canvas.save(); if(!ready)canvas.clipRect(0,0,0,0);
         receiver.draw(canvas); canvas.restoreToCount(save);

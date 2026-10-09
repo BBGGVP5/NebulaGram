@@ -67,6 +67,7 @@ public final class NebulaFeatureControls {
         NebulaCard card = new NebulaCard(parent.getContext());
         card.add(toggle(parent, "custom_chat_wallpaper", "Фон отдельных чатов", "Per-chat wallpaper", "Показывать обои, установленные для отдельных переписок", "Show wallpaper set for individual conversations"));
         card.add(toggle(parent, "quote_full_reply", "Цитировать ответы", "Quote replies", "Цитировать текст сообщения в пределах лимита Telegram. Не работает в топиках", "Quote the message text up to Telegram's limit. Unavailable in topics"));
+        card.add(toggle(parent, "selection_without_author", "Кнопка «Без авторства»", "Without-author button", "Вместо «Ответить» при выделении сообщений. По умолчанию — стандартные кнопки Telegram", "Replace Reply when selecting messages. Standard Telegram buttons by default"));
         card.add(toggle(parent, "disable_chat_vibration", "Отключить вибрацию чатов", "Disable chat haptics", "Отключает отклик жестов и действий в переписке", "Turns off gesture and action feedback in conversations"));
         card.add(new NebulaRow(parent.getContext()).title(text("Вычисления при наборе", "Inline arithmetic"))
             .subtitle(text("Показывать результат рядом с выражением, сохраняя текст", "Show the result beside an expression, keeping your text"), false)

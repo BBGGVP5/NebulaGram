@@ -1,0 +1,326 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
+@@ -3717,6 +3717,10 @@
+         actionBar.setActionBarMenuOnItemClick(new ActionBar.ActionBarMenuOnItemClick() {
+             @Override
+             public void onItemClick(final int id) {
++                if (id == 0x4e5341) {
++                    nebulaSelectAllLoadedMessages();
++                    return;
++                }
+                 if (id == 0x4e4753) {
+                     jumpToDate(1);
+                     return;
+@@ -4355,7 +4359,7 @@
+             headerItem.setContentDescription(LocaleController.getString(R.string.AccDescrMoreOptions));
+ 
+             if (currentUser != null && currentUser.self && chatMode != MODE_SAVED) {
+-                savedChatsItem = headerItem.lazilyAddSubItem(view_as_topics, R.drawable.msg_topics, LocaleController.getString(R.string.SavedViewAsChats));
++                savedChatsItem = headerItem.lazilyAddSubItem(view_as_topics, R.drawable.nebula_msg_list_solar, LocaleController.getString(R.string.SavedViewAsChats));
+                 savedChatsGap = headerItem.lazilyAddColoredGap();
+                 savedChatsItem.setVisibility(getMessagesController().getSavedMessagesController().hasDialogs() ? View.VISIBLE : View.GONE);
+                 savedChatsGap.setVisibility(getMessagesController().getSavedMessagesController().hasDialogs() ? View.VISIBLE : View.GONE);
+@@ -4478,13 +4482,13 @@
+                 viewAsTopics = headerItem.lazilyAddSubItem(view_as_topics, R.drawable.msg_topics, LocaleController.getString(R.string.TopicViewAsTopics));
+             }
+             if (themeDelegate.isThemeChangeAvailable(true)) {
+-                headerItem.lazilyAddSubItem(change_colors, R.drawable.msg_background, LocaleController.getString(R.string.SetWallpapers));
++                headerItem.lazilyAddSubItem(change_colors, R.drawable.nebula_msg_background_solar, LocaleController.getString(R.string.SetWallpapers));
+             }
+             if (currentUser != null && currentUser.self && getDialogId() != UserObject.VERIFY) {
+-                headerItem.lazilyAddSubItem(add_shortcut, R.drawable.msg_home, LocaleController.getString(R.string.AddShortcut));
++                headerItem.lazilyAddSubItem(add_shortcut, R.drawable.nebula_msg_home_solar, LocaleController.getString(R.string.AddShortcut));
+             }
+             if (!isTopic && !ChatObject.isMonoForum(currentChat)) {
+-                clearHistoryItem = headerItem.lazilyAddSubItem(clear_history, R.drawable.msg_clear,
++                clearHistoryItem = headerItem.lazilyAddSubItem(clear_history, R.drawable.nebula_msg_clear_solar,
+                     LocaleController.getString(UserObject.isBotForum(currentUser) ? R.string.ClearAllHistory : R.string.ClearHistory));
+             }
+             boolean addedSettings = false;
+@@ -4512,7 +4516,7 @@
+                         headerItem.lazilyAddSubItem(delete_chat, R.drawable.msg_block2, LocaleController.getString(R.string.DeleteAndBlock)).setColors(getThemedColor(Theme.key_text_RedRegular), getThemedColor(Theme.key_text_RedRegular));
+                         updateBotButtons();
+                     } else {
+-                        headerItem.lazilyAddSubItem(delete_chat, R.drawable.msg_delete, LocaleController.getString(R.string.DeleteChatUser));
++                        headerItem.lazilyAddSubItem(delete_chat, R.drawable.nebula_msg_delete_solar, LocaleController.getString(R.string.DeleteChatUser));
+                     }
+                 }
+             }
+@@ -4535,7 +4539,7 @@
+             headerItem.lazilyAddSubItem(copy_business_link, R.drawable.msg_copy, getString(R.string.Copy));
+             headerItem.lazilyAddSubItem(share_business_link, R.drawable.msg_share, getString(R.string.LinkActionShare));
+             headerItem.lazilyAddSubItem(rename_business_link, R.drawable.msg_edit, getString(R.string.Rename));
+-            headerItem.lazilyAddSubItem(delete_business_link, R.drawable.msg_delete, getString(R.string.Delete)).setColors(Theme.getColor(Theme.key_text_RedRegular), Theme.getColor(Theme.key_text_RedRegular));
++            headerItem.lazilyAddSubItem(delete_business_link, R.drawable.nebula_msg_delete_solar, getString(R.string.Delete)).setColors(Theme.getColor(Theme.key_text_RedRegular), Theme.getColor(Theme.key_text_RedRegular));
+         }
+         if (ChatObject.isForum(currentChat) && isTopic && getParentLayout() != null && getParentLayout().getFragmentStack() != null && chatMode == MODE_DEFAULT) {
+             boolean hasMyForum = false;
+@@ -8220,8 +8224,13 @@
+         }
+ 
+         actionsButtonsLayout = new ChatActivityActionsButtonsLayout(context, resourceProvider, blurredBackgroundColorProvider, glassBackgroundDrawableFactory);
++        actionsButtonsLayout.setWithoutAuthorMode(nebulaWithoutAuthorAction());
+         actionsButtonsLayout.setForwardButtonOnClickListener(v -> openForward(false));
+         actionsButtonsLayout.setReplyButtonOnClickListener(v -> {
++            if (nebulaWithoutAuthorAction()) {
++                openForward(false, true);
++                return;
++            }
+             MessageObject messageObject = null;
+             for (int a = 1; a >= 0; a--) {
+                 if (messageObject == null && selectedMessagesIds[a].size() != 0) {
+@@ -10412,7 +10421,7 @@
+         final ActionBarMenu actionMode = actionBar.createActionMode();
+ 
+         LayoutTransition transition = new LayoutTransition();
+-        transition.setDuration(380);
++        transition.setDuration(260);
+         transition.setInterpolator(LayoutTransition.APPEARING, CubicBezierInterpolator.EASE_OUT_QUINT);
+         transition.setInterpolator(LayoutTransition.CHANGE_APPEARING, CubicBezierInterpolator.EASE_OUT_QUINT);
+         transition.setInterpolator(LayoutTransition.CHANGING, CubicBezierInterpolator.EASE_OUT_QUINT);
+@@ -10460,26 +10469,31 @@
+         counterLayout.leftMargin = dp(52) - Math.round(actionMode.getX());
+         actionMode.addView(selectedMessagesCountTextView, counterLayout);
+         actionMode.setOnLayoutListener(actionBar::invalidate);
++        ActionBarMenuItem selectLoaded = actionMode.addItemWithWidth(0x4e5341,
++                R.drawable.nebula_selection_all, dp(48),
++                app.nebulagram.ui.NebulaText.text("Выбрать загруженные сообщения (до 100)", "Select loaded messages (up to 100)"));
++        selectLoaded.setVisibility(!isReport() && selectedMessagesIds[0].size() + selectedMessagesIds[1].size() > 1 ? View.VISIBLE : View.GONE);
++        actionModeViews.add(selectLoaded);
+ 
+         if (currentEncryptedChat == null) {
+             final boolean isSavedMessages = getDialogId() == getUserConfig().getClientUserId() && (chatMode == 0 || chatMode == MODE_SAVED);
+-            actionModeViews.add(actionMode.addItemWithWidth(save_to, R.drawable.msg_download, dp(48), LocaleController.getString(R.string.SaveToMusic)));
+-            actionModeViews.add(actionMode.addItemWithWidth(edit, R.drawable.msg_edit, dp(48), LocaleController.getString(R.string.Edit)));
++            actionModeViews.add(actionMode.addItemWithWidth(save_to, R.drawable.nebula_msg_download_solar, dp(48), LocaleController.getString(R.string.SaveToMusic)));
++            actionModeViews.add(actionMode.addItemWithWidth(edit, R.drawable.nebula_msg_edit_solar, dp(48), LocaleController.getString(R.string.Edit)));
+             if (isSavedMessages) {
+                 actionModeViews.add(actionMode.addItemWithWidth(tag_message, R.drawable.menu_tag_edit, dp(48), LocaleController.getString(R.string.AccDescrTagMessage)));
+             }
+-            actionModeViews.add(actionMode.addItemWithWidth(star, R.drawable.msg_fave, dp(48), LocaleController.getString(R.string.AddToFavorites)));
+-            actionModeViews.add(actionMode.addItemWithWidth(copy, R.drawable.msg_copy, dp(48), LocaleController.getString(R.string.Copy)));
++            actionModeViews.add(actionMode.addItemWithWidth(star, R.drawable.nebula_msg_fave_solar, dp(48), LocaleController.getString(R.string.AddToFavorites)));
++            actionModeViews.add(actionMode.addItemWithWidth(copy, R.drawable.nebula_msg_copy_solar, dp(48), LocaleController.getString(R.string.Copy)));
+             if (!isSavedMessages && getDialogId() != UserObject.VERIFY) {
+-                actionModeViews.add(actionMode.addItemWithWidth(forward, R.drawable.msg_forward, dp(48), LocaleController.getString(R.string.Forward)));
+-            }
+-            actionModeViews.add(actionMode.addItemWithWidth(share, R.drawable.msg_shareout, dp(48), LocaleController.getString(R.string.ShareFile)));
+-            actionModeViews.add(actionMode.addItemWithWidth(delete, R.drawable.msg_delete, dp(48), LocaleController.getString(R.string.Delete)));
++                actionModeViews.add(actionMode.addItemWithWidth(forward, R.drawable.nebula_input_forward_solar, dp(48), LocaleController.getString(R.string.Forward)));
++            }
++            actionModeViews.add(actionMode.addItemWithWidth(share, R.drawable.nebula_msg_shareout_solar, dp(48), LocaleController.getString(R.string.ShareFile)));
++            actionModeViews.add(actionMode.addItemWithWidth(delete, R.drawable.nebula_msg_delete_solar, dp(48), LocaleController.getString(R.string.Delete)));
+         } else {
+-            actionModeViews.add(actionMode.addItemWithWidth(edit, R.drawable.msg_edit, dp(48), LocaleController.getString(R.string.Edit)));
+-            actionModeViews.add(actionMode.addItemWithWidth(star, R.drawable.msg_fave, dp(48), LocaleController.getString(R.string.AddToFavorites)));
+-            actionModeViews.add(actionMode.addItemWithWidth(copy, R.drawable.msg_copy, dp(48), LocaleController.getString(R.string.Copy)));
+-            actionModeViews.add(actionMode.addItemWithWidth(delete, R.drawable.msg_delete, dp(48), LocaleController.getString(R.string.Delete)));
++            actionModeViews.add(actionMode.addItemWithWidth(edit, R.drawable.nebula_msg_edit_solar, dp(48), LocaleController.getString(R.string.Edit)));
++            actionModeViews.add(actionMode.addItemWithWidth(star, R.drawable.nebula_msg_fave_solar, dp(48), LocaleController.getString(R.string.AddToFavorites)));
++            actionModeViews.add(actionMode.addItemWithWidth(copy, R.drawable.nebula_msg_copy_solar, dp(48), LocaleController.getString(R.string.Copy)));
++            actionModeViews.add(actionMode.addItemWithWidth(delete, R.drawable.nebula_msg_delete_solar, dp(48), LocaleController.getString(R.string.Delete)));
+         }
+         actionMode.setItemVisibility(edit, canEditMessagesCount == 1 && selectedMessagesIds[0].size() + selectedMessagesIds[1].size() == 1 ? View.VISIBLE : View.GONE);
+         actionMode.setItemVisibility(copy, !isPeerNoForwards() && selectedMessagesCanCopyIds[0].size() + selectedMessagesCanCopyIds[1].size() != 0 ? View.VISIBLE : View.GONE);
+@@ -12534,6 +12548,10 @@
+     }
+ 
+     private void openForward(boolean fromActionBar) {
++        openForward(fromActionBar, false);
++    }
++
++    private void openForward(boolean fromActionBar, boolean withoutAuthor) {
+         if (isPeerNoForwards() || hasSelectedNoforwardsMessage()) {
+             // We should update text if user changed locale without re-opening chat activity
+             String str;
+@@ -12612,7 +12630,8 @@
+         args.putBoolean("hasInvoice", hasInvoice);
+         args.putBoolean("canSelectTopics", true);
+         DialogsActivity fragment = new DialogsActivity(args);
+-        fragment.setDelegate(ChatActivity.this);
++        fragment.setDelegate((picker, peers, comment, param, notify, date, repeat, topics) ->
++                nebulaDidSelectDialogs(picker, peers, comment, param, notify, date, repeat, topics, withoutAuthor));
+         presentFragment(fragment);
+     }
+ 
+@@ -14988,6 +15007,17 @@
+         showFieldPanel(show, null, null, null, webPage, true, 0, null, cancel, 0, true);
+     }
+ 
++    private void nebulaShowForwardDraft(ArrayList<MessageObject> messages, boolean withoutAuthor) {
++        if (messagePreviewParams == null) {
++            messagePreviewParams = new MessagePreviewParams(currentEncryptedChat != null, isPeerNoForwards(), ChatObject.isMonoForum(currentChat));
++            messagePreviewParams.attach(forwardingPreviewView);
++        }
++        messagePreviewParams.hideForwardSendersName = withoutAuthor;
++        // This action changes attribution only, keeping the original captions.
++        if (withoutAuthor) messagePreviewParams.hideCaption = false;
++        showFieldPanelForForward(true, messages);
++    }
++
+     public void showFieldPanelForForward(boolean show, ArrayList<MessageObject> messageObjectsToForward) {
+         showFieldPanel(show, null, null, messageObjectsToForward, null, true, 0, null, false, 0, true);
+     }
+@@ -19396,6 +19426,32 @@
+         }
+     }
+ 
++    private void nebulaSelectAllLoadedMessages() {
++        if (!actionBar.isActionModeShowed() || isReport()) return;
++        for (MessageObject message : new ArrayList<>(messages)) {
++            if (selectedMessagesIds[0].size() + selectedMessagesIds[1].size() >= 100) break;
++            if (message == null || message.isDateObject || message.getId() == 0
++                    || message.isSending() || message.isEditing() || message.isAnyGift()
++                    || message.isWallpaperAction() || message.isSponsored() || message.isEphemeral()
++                    || message.type == MessageObject.TYPE_JOINED_CHANNEL || message.type == MessageObject.TYPE_GIFT_STARS) continue;
++            int type = getMessageType(message);
++            if (type < 2 || type == 20 || type == MessageObject.TYPE_SUGGEST_PHOTO) continue;
++            int index = message.getDialogId() == dialog_id ? 0 : 1;
++            if (selectedMessagesIds[index].get(message.getId()) == null) {
++                addToSelectedMessages(message, false, false);
++            }
++        }
++        addToSelectedMessages(null, false, true);
++        updateActionModeTitle();
++        updateVisibleRows();
++        updateSelectedMessageReactions();
++    }
++
++    private boolean nebulaWithoutAuthorAction() {
++        return app.nebulagram.ui.NebulaFeatureSettings.enabled("selection_without_author")
++                && currentEncryptedChat == null && (chatMode == MODE_DEFAULT || chatMode == MODE_SAVED);
++    }
++
+     private void addToSelectedMessages(MessageObject messageObject, boolean outside) {
+         addToSelectedMessages(messageObject, outside, true);
+     }
+@@ -19515,6 +19571,7 @@
+                 updatePinnedMessageView(true);
+             } else {
+                 createActionMode();
++                actionBar.createActionMode().setItemVisibility(0x4e5341, selectedCount > 1 ? View.VISIBLE : View.GONE);
+                 ActionBarMenuItem saveItem = actionBar.createActionMode().getItem(save_to);
+                 ActionBarMenuItem copyItem = actionBar.createActionMode().getItem(copy);
+                 ActionBarMenuItem starItem = actionBar.createActionMode().getItem(star);
+@@ -19597,7 +19654,7 @@
+                     }
+                 }
+                 if (starItem != null) {
+-                    starItem.setIcon(hasUnfavedSelected ? R.drawable.msg_fave : R.drawable.msg_unfave);
++                    starItem.setIcon(hasUnfavedSelected ? R.drawable.nebula_msg_fave_solar : R.drawable.nebula_msg_unfave_solar);
+                 }
+                 final int newEditVisibility = canEditMessagesCount == 1 && selectedCount == 1 ? View.VISIBLE : View.GONE;
+                 if (actionsButtonsLayout != null) {
+@@ -19646,7 +19703,13 @@
+                             }
+                         }
+                     }
+-                    actionsButtonsLayout.showReplyButton(newVisibility == View.VISIBLE, true);
++                    actionsButtonsLayout.setWithoutAuthorMode(nebulaWithoutAuthorAction());
++                    if (nebulaWithoutAuthorAction()) {
++                        actionsButtonsLayout.showReplyButton(true, true);
++                        actionsButtonsLayout.setReplyButtonEnabled(cantForwardMessagesCount == 0 && !noforwards, true);
++                    } else {
++                        actionsButtonsLayout.showReplyButton(newVisibility == View.VISIBLE, true);
++                    }
+                 }
+ 
+                 if (editItem != null) {
+@@ -32995,10 +33058,12 @@
+         for (int a = 0; a < actionModeViews.size(); a++) {
+             View view = actionModeViews.get(a);
+             AndroidUtilities.clearDrawableAnimation(view);
+-            animators.add(ObjectAnimator.ofFloat(view, View.SCALE_Y, 0.1f, 1.0f));
++            animators.add(ObjectAnimator.ofFloat(view, View.SCALE_X, 0.88f, 1.0f));
++            animators.add(ObjectAnimator.ofFloat(view, View.SCALE_Y, 0.88f, 1.0f));
+         }
+         animatorSet.playTogether(animators);
+-        animatorSet.setDuration(250);
++        animatorSet.setInterpolator(CubicBezierInterpolator.EASE_OUT_QUINT);
++        animatorSet.setDuration(220);
+         animatorSet.start();
+ 
+         addToSelectedMessages(message, listView);
+@@ -34898,6 +34963,10 @@
+ 
+     @Override
+     public boolean didSelectDialogs(DialogsActivity fragment, ArrayList<MessagesStorage.TopicKey> dids, CharSequence message, boolean param, boolean notify, int scheduleDate, int scheduleRepeatPeriod, TopicsFragment topicsFragment) {
++        return nebulaDidSelectDialogs(fragment, dids, message, param, notify, scheduleDate, scheduleRepeatPeriod, topicsFragment, false);
++    }
++
++    private boolean nebulaDidSelectDialogs(DialogsActivity fragment, ArrayList<MessagesStorage.TopicKey> dids, CharSequence message, boolean param, boolean notify, int scheduleDate, int scheduleRepeatPeriod, TopicsFragment topicsFragment, boolean withoutAuthor) {
+         if ((messagePreviewParams == null && (!fragment.isQuote || replyingMessageObject == null) || fragment.isQuote && replyingMessageObject == null) && forwardingMessage == null && selectedMessagesIds[0].size() == 0 && selectedMessagesIds[1].size() == 0) {
+             return false;
+         }
+@@ -34970,7 +35039,7 @@
+                         params.suggestionParams = messageSuggestionParams;
+                         getSendMessagesHelper().sendMessage(params);
+                     }
+-                    getSendMessagesHelper().sendMessage(fmessages, did, false, false, notify, scheduleDate, scheduleRepeatPeriod, null, -1, price == null ? 0 : price, getSendMonoForumPeerId(), getSendMessageSuggestionParams());
++                    getSendMessagesHelper().sendMessage(fmessages, did, withoutAuthor, false, notify, scheduleDate, scheduleRepeatPeriod, null, -1, price == null ? 0 : price, getSendMonoForumPeerId(), getSendMessageSuggestionParams());
+                 }
+                 fragment.finishFragment();
+                 createUndoView();
+@@ -35057,7 +35126,7 @@
+                         };
+                         chatActivity.showFieldPanelForReplyQuote(replyingMessageObject, replyingQuote);
+                     } else {
+-                        chatActivity.showFieldPanelForForward(true, fmessages);
++                        chatActivity.nebulaShowForwardDraft(fmessages, withoutAuthor);
+                     }
+                     if (chatActivity.getDialogId() == getDialogId() && !AndroidUtilities.isTablet()) {
+                         removeSelfFromStack();
+@@ -35085,7 +35154,7 @@
+                 if (fragment.isQuote && replyingMessageObject != null) {
+                     showFieldPanelForReplyQuote(replyingMessageObject, replyingQuote);
+                 } else {
+-                    showFieldPanelForForward(true, fmessages);
++                    nebulaShowForwardDraft(fmessages, withoutAuthor);
+                 }
+                 if (AndroidUtilities.isTablet()) {
+                     hideActionMode();
+@@ -44891,7 +44960,7 @@
+                     } else if (currentUser != null && currentUser.bot) {
+                         headerItem.lazilyAddSubItem(delete_chat, R.drawable.msg_block2, LocaleController.getString(R.string.DeleteAndBlock)).setColors(getThemedColor(Theme.key_text_RedRegular), getThemedColor(Theme.key_text_RedRegular));
+                     } else {
+-                        headerItem.lazilyAddSubItem(delete_chat, R.drawable.msg_delete, LocaleController.getString(R.string.DeleteChatUser));
++                        headerItem.lazilyAddSubItem(delete_chat, R.drawable.nebula_msg_delete_solar, LocaleController.getString(R.string.DeleteChatUser));
+                     }
+                 }
+             }
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/chat/layouts/ChatActivityActionsButtonsLayout.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/chat/layouts/ChatActivityActionsButtonsLayout.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Components/chat/layouts/ChatActivityActionsButtonsLayout.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/chat/layouts/ChatActivityActionsButtonsLayout.java
+@@ -66,6 +66,31 @@
+ 
+         addView(replyButton.button, LayoutHelper.createLinear(0, 56, 1f, 1, 0, -1, 0));
+         addView(forwardButton.button, LayoutHelper.createLinear(0, 56, 1f, -1, 0, 1, 0));
++    }
++
++    private boolean withoutAuthorMode;
++
++    public void setWithoutAuthorMode(boolean enabled) {
++        if (withoutAuthorMode == enabled) return;
++        withoutAuthorMode = enabled;
++        setReplyButtonEnabled(true, false);
++        setButtonContent(replyButton, enabled
++                ? app.nebulagram.ui.NebulaText.text("Без авторства", "Without author")
++                : LocaleController.getString(R.string.Reply),
++                enabled ? R.drawable.nebula_input_reply_solar : R.drawable.input_reply, enabled);
++        setButtonContent(forwardButton, LocaleController.getString(R.string.Forward),
++                enabled ? R.drawable.nebula_input_forward_solar : R.drawable.input_forward, !enabled);
++    }
++
++    private void setButtonContent(ButtonHolder holder, String text, int resource, boolean iconLeft) {
++        holder.textView.setText(text);
++        Drawable icon = getContext().getResources().getDrawable(resource).mutate();
++        icon.setColorFilter(new PorterDuffColorFilter(Theme.getColor(Theme.key_glass_defaultIcon, resourcesProvider), PorterDuff.Mode.MULTIPLY));
++        holder.textView.setCompoundDrawablesWithIntrinsicBounds(iconLeft ? icon : null, null, iconLeft ? null : icon, null);
++        int padding = dp(withoutAuthorMode ? 12 : 21);
++        holder.textView.setPadding(padding, 0, padding, 0);
++        holder.textView.setSingleLine(withoutAuthorMode);
++        holder.textView.setEllipsize(withoutAuthorMode ? android.text.TextUtils.TruncateAt.END : null);
+     }
+ 
+     public void setReplyButtonOnClickListener(View.OnClickListener listener) {
