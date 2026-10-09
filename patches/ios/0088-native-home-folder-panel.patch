@@ -21,7 +21,7 @@ index 07e090d..82fe91f 100644
                  guard let value = item.base as? Int32 else {
                      return nil
 diff --git a/submodules/ChatListUI/Sources/ChatListControllerNode.swift b/submodules/ChatListUI/Sources/ChatListControllerNode.swift
-index 3efb129..002a061 100644
+index 3efb129..7226070 100644
 --- a/submodules/ChatListUI/Sources/ChatListControllerNode.swift
 +++ b/submodules/ChatListUI/Sources/ChatListControllerNode.swift
 @@ -1151,6 +1151,14 @@ final class ChatListControllerNode: ASDisplayNode, ASGestureRecognizerDelegate {
@@ -68,7 +68,7 @@ index 3efb129..002a061 100644
                          return HorizontalTabsComponent.Tab(
                              id: id,
                              content: .title(title),
-@@ -1658,17 +1672,43 @@ final class ChatListControllerNode: ASDisplayNode, ASGestureRecognizerDelegate {
+@@ -1658,17 +1672,44 @@ final class ChatListControllerNode: ASDisplayNode, ASGestureRecognizerDelegate {
                      },
                      selectedTab: selectedTab,
                      isEditing: isEditing,
@@ -101,12 +101,13 @@ index 3efb129..002a061 100644
 +        if let bottomFolderComponent {
 +            let bottomSize = self.nebulaBottomFolders.update(transition: transition, component: bottomFolderComponent,
 +                environment: {}, containerSize: CGSize(width: layout.size.width, height: 100.0))
-+            self.nebulaBottomFoldersHeight = bottomSize.height + 8.0
++            let bottomInset = layout.insets(options: [.input]).bottom
++            self.nebulaBottomFoldersHeight = bottomSize.height + 8.0 + max(0.0, 8.0 - bottomInset)
 +            if let bottomView = self.nebulaBottomFolders.view {
 +                if bottomView.superview == nil { self.view.addSubview(bottomView) }
 +                bottomView.isHidden = false
 +                transition.setFrame(view: bottomView, frame: CGRect(x: 0.0,
-+                    y: max(0, layout.size.height - max(8.0, layout.insets(options: [.input]).bottom) - self.nebulaBottomFoldersHeight),
++                    y: max(0, layout.size.height - bottomInset - self.nebulaBottomFoldersHeight),
 +                    width: layout.size.width, height: bottomSize.height))
 +                self.view.bringSubviewToFront(bottomView)
 +            }
@@ -118,7 +119,7 @@ index 3efb129..002a061 100644
          var effectiveStorySubscriptions: EngineStorySubscriptions?
          if let controller = self.controller, case .forum = controller.location {
              effectiveStorySubscriptions = nil
-@@ -1968,6 +2008,7 @@ final class ChatListControllerNode: ASDisplayNode, ASGestureRecognizerDelegate {
+@@ -1968,6 +2009,7 @@ final class ChatListControllerNode: ASDisplayNode, ASGestureRecognizerDelegate {
          var mainNavigationBarHeight = navigationBarHeight
          var cleanMainNavigationBarHeight = cleanNavigationBarHeight
          var mainInsets = insets
