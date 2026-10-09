@@ -48,7 +48,7 @@ def main():
         if not pairs:
             raise SystemExit(f'Empty patch: {patch.name}')
         for a, b in pairs:
-            if a != b or not (a.startswith('submodules/') or a in {'third-party/ZipArchive/PublicHeaders/ZipArchive/ZipArchive.h', 'third-party/ZipArchive/Sources/SSZipArchive.m', 'Telegram/NotificationService/Sources/NotificationService.swift', 'Telegram/NotificationService/BUILD', 'Telegram/BUILD', 'Telegram/WidgetKitWidget/TodayViewController.swift', 'Telegram/Telegram-iOS/AlternateIcons.plist', 'Telegram/Telegram-iOS/AlternateIcons-iPad.plist'}) or '..' in Path(a).parts or '\\' in a:
+            if a != b or not (a.startswith('submodules/') or a in {'third-party/ZipArchive/PublicHeaders/ZipArchive/ZipArchive.h', 'third-party/ZipArchive/Sources/SSZipArchive.m', 'Telegram/NotificationService/Sources/NotificationService.swift', 'Telegram/NotificationService/BUILD', 'Telegram/BUILD', 'Telegram/WidgetKitWidget/TodayViewController.swift', 'Telegram/Telegram-iOS/Info.plist', 'Telegram/Telegram-iOS/AlternateIcons.plist', 'Telegram/Telegram-iOS/AlternateIcons-iPad.plist'}) or '..' in Path(a).parts or '\\' in a:
                 raise SystemExit('Unexpected patch path: ' + a)
             paths.add(a)
     with tempfile.TemporaryDirectory(prefix='nebula-ios-bootstrap-') as temporary:
@@ -191,6 +191,17 @@ def main():
             assert 'if case .ended = recognizer.state, gestureRecognized' in node
             assert 'nebulaAvailableSwipeActions?(item.message)' in node and 'nebulaPerformSwipeAction?' in node
             assert 'updateNebulaAction(self.nebulaSwipeAction.rawValue)' in node
+        peer_profile = (temp / 'submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoProfileItems.swift').read_text(encoding='utf-8')
+        assert 'NebulaMessagePreferences.peerIdentifier' in peer_profile and 'UIPasteboard.general.string = identifier' in peer_profile
+        account_context = (temp / 'submodules/TelegramUI/Sources/SharedAccountContext.swift').read_text(encoding='utf-8')
+        assert 'disabledNotificationAccounts' in account_context and 'apsProductionUserIds' in account_context
+        assert 'return ActionDisposable { NotificationCenter.default.removeObserver(observer) }' in account_context
+        assert '<string>NebulaGram</string>' in (temp / 'Telegram/Telegram-iOS/Info.plist').read_text(encoding='utf-8')
+        for name in ['NebulaLinkController.swift', 'NebulaSubscriptionsController.swift']:
+            link_controller = (temp / 'submodules/NebulaLinkUI/Sources' / name).read_text(encoding='utf-8')
+            assert 'refreshControl = UIRefreshControl()' in link_controller
+            assert 'guard !busy else { refreshControl?.endRefreshing(); return }' in link_controller
+            assert 'self.refreshControl?.endRefreshing()' in link_controller
         filter_counts = (temp / 'submodules/ChatListUI/Sources/TabBarChatListFilterController.swift').read_text(encoding='utf-8')
         assert 'unmutedOnly ? unmutedUnreadCount : count' in filter_counts
         assert 'ActionDisposable { observation.cancel() }' in filter_counts

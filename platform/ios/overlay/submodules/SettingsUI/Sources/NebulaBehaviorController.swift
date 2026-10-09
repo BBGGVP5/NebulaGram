@@ -39,34 +39,37 @@ public final class NebulaBehaviorController: UITableViewController {
         })
     }
     @objc private func close() { dismiss(animated: true) }
-    public override func numberOfSections(in tableView: UITableView) -> Int { 3 }
-    public override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int { section == 2 ? 1 : section == 1 ? 4 : 3 }
+    public override func numberOfSections(in tableView: UITableView) -> Int { 4 }
+    public override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int { section == 3 ? 1 : section == 2 ? 2 : 4 }
     public override func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
-        [t("Уведомления", "Notifications"), t("Сообщения", "Messages"), t("Защита", "Protection")][section]
+        [t("Уведомления", "Notifications"), t("Сообщения", "Messages"), t("Защита", "Protection"), t("Главная", "Home")][section]
     }
     public override func tableView(_ tableView: UITableView, titleForFooterInSection section: Int) -> String? {
         if section == 1 { return t("Фон обновится при следующем открытии чата. Сохранение открывает черновик пересылки; отправка вручную.", "Wallpaper updates the next time the chat opens. Saving opens a forwarding draft; send it manually.") }
         if section == 2 { return t("Face ID, Touch ID или код устройства перед удалением чата и очисткой истории.", "Face ID, Touch ID or your device passcode before deleting chats or clearing history.") }
+        if section == 0 { return t("Уведомления отключаются для текущего аккаунта на этом устройстве. Вызовы сохраняются. Для применения к push-уведомлениям нужно соединение с Telegram.", "Notifications are controlled for this account on this device. Calls stay enabled. Updating push registration requires a Telegram connection.") }
         return nil
     }
     private func key(_ index: IndexPath) -> String? {
-        if index.section == 0 { return ["mute_non_contacts", "ignore_mentions", ""][index.row].nebulaBehaviorNonEmpty }
+        if index.section == 0 { return ["mute_non_contacts", "ignore_mentions", "", "notifications"][index.row].nebulaBehaviorNonEmpty }
         if index.section == 1 { return ["custom_chat_wallpaper", "quote_full_reply", "smooth_fade", ""][index.row].nebulaBehaviorNonEmpty }
-        return "biometric_delete"
+        if index.section == 3 { return "home_chats_title" }
+        return index.row == 0 ? "biometric_delete" : nil
     }
     public override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = UITableViewCell(style: .subtitle, reuseIdentifier: nil)
-        let titles = [[t("Не-контакты без звука", "Silence non-contacts"), t("Игнорировать упоминания", "Ignore mentions"), t("Чаты с игнорированием", "Ignored chats")], [t("Фон отдельных чатов", "Per-chat wallpaper"), t("Цитировать ответы", "Quote whole replies"), t("Плавное затухание", "Smooth fading"), t("Куда сохранять сообщения", "Save messages to")], [t("Подтверждать удаление", "Authenticate before deletion")]]
+        let titles = [[t("Не-контакты без звука", "Silence non-contacts"), t("Игнорировать упоминания", "Ignore mentions"), t("Чаты с игнорированием", "Ignored chats"), t("Уведомления этого аккаунта", "Notifications for this account")], [t("Фон отдельных чатов", "Per-chat wallpaper"), t("Цитировать ответы", "Quote whole replies"), t("Плавное затухание", "Smooth fading"), t("Куда сохранять сообщения", "Save messages to")], [t("Подтверждать удаление", "Authenticate before deletion"), t("Проверить защиту", "Test authentication")], [t("«Чаты» вместо NebulaGram", "Chats instead of NebulaGram")]]
         cell.textLabel?.text = titles[indexPath.section][indexPath.row]
         cell.textLabel?.numberOfLines = 0; cell.detailTextLabel?.numberOfLines = 0
         if let key = key(indexPath) {
-            let toggle = NebulaSwitchControl(); toggle.isOn = key == "smooth_fade" ? prefs.smoothFade : prefs.enabled(key, account: account); toggle.accessibilityIdentifier = key
+            let toggle = NebulaSwitchControl(); toggle.isOn = key == "smooth_fade" ? prefs.smoothFade : key == "home_chats_title" ? prefs.homeChatsTitle : prefs.enabled(key, account: account); toggle.accessibilityIdentifier = key
             toggle.addTarget(self, action: #selector(toggle(_:)), for: .valueChanged)
             cell.accessoryView = toggle; cell.selectionStyle = .none
             if key == "quote_full_reply" { cell.detailTextLabel?.text = t("До лимита Telegram · вне топиков", "Up to Telegram’s limit · outside topics") }
         } else {
             cell.accessoryType = .disclosureIndicator
-            if indexPath.section == 0 {
+            if indexPath.section == 2 { cell.detailTextLabel?.text = t("Без удаления данных", "Without deleting data") }
+            else if indexPath.section == 0 {
                 cell.detailTextLabel?.text = prefs.ignoredMentionPeers(account: account).map { t("Выбрано: ", "Selected: ") + String($0.count) } ?? t("Все чаты", "All chats")
             } else { cell.detailTextLabel?.text = savedTitle ?? (prefs.savedTarget(account: account) == nil ? t("Избранное", "Saved Messages") : t("Выбранный чат", "Chosen chat")) }
         }
@@ -79,12 +82,21 @@ public final class NebulaBehaviorController: UITableViewController {
             let alert = UIAlertController(title: t("Настройте код устройства", "Set up a device passcode"), message: nil, preferredStyle: .alert)
             alert.addAction(UIAlertAction(title: "OK", style: .default)); present(alert, animated: true); return
         }
-        if key == "smooth_fade" { prefs.setSmoothFade(sender.isOn) }
+        if key == "home_chats_title" { prefs.setHomeChatsTitle(sender.isOn) }
+        else if key == "smooth_fade" { prefs.setSmoothFade(sender.isOn) }
         else { prefs.set(key, account: account, value: sender.isOn) }
     }
     public override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
         guard key(indexPath) == nil else { return }
+        if indexPath.section == 2 {
+            NebulaDeletionAuthentication.authorize(account: account, reason: t("Проверка защиты NebulaGram", "Test NebulaGram authentication"), force: true) { [weak self] success in
+                guard let self, self.viewIfLoaded?.window != nil else { return }
+                let alert = UIAlertController(title: self.t(success ? "Защита работает" : "Проверка не завершена", success ? "Authentication works" : "Authentication not completed"), message: self.t("Данные не изменены", "No data was changed"), preferredStyle: .alert)
+                alert.addAction(UIAlertAction(title: "OK", style: .default)); self.present(alert, animated: true)
+            }
+            return
+        }
         if indexPath.section == 1 {
             NebulaChoiceController.show(from: self, title: t("Куда сохранять", "Save destination"), choices: [t("Избранное", "Saved Messages"), t("Выбрать чат", "Choose chat")], selected: nil, russian: ru, theme: theme) { [weak self] selected in
                 guard let self else { return }

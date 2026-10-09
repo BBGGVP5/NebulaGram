@@ -30,4 +30,13 @@ final class NebulaMessagePreferencesTests: XCTestCase {
         prefs.set("selection_without_author", false)
         XCTAssertFalse(restored.enabled("selection_without_author"))
     }
+    func testPeerIdentifiersUseBotApiChannelOffset() {
+        XCTAssertEqual(NebulaMessagePreferences.peerIdentifier(42, kind: .user, botApi: true), "42")
+        XCTAssertEqual(NebulaMessagePreferences.peerIdentifier(42, kind: .group, botApi: true), "-42")
+        XCTAssertEqual(NebulaMessagePreferences.peerIdentifier(42, kind: .channel, botApi: true), "-1000000000042")
+        XCTAssertEqual(NebulaMessagePreferences.peerIdentifier(1234567890, kind: .channel, botApi: true), "-1001234567890")
+        XCTAssertEqual(NebulaMessagePreferences.peerIdentifier(42, kind: .channel, botApi: false), "42")
+        XCTAssertNil(NebulaMessagePreferences.peerIdentifier(Int64.max, kind: .channel, botApi: true))
+        XCTAssertNil(NebulaMessagePreferences.peerIdentifier(0, kind: .user, botApi: false))
+    }
 }

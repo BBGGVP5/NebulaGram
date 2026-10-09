@@ -8,6 +8,16 @@ final class NebulaBehaviorTests: XCTestCase {
         defer { defaults.removePersistentDomain(forName: suite) }
         let prefs = NebulaBehaviorPreferences(defaults: defaults)
         XCTAssertTrue(prefs.enabled("custom_chat_wallpaper", account: "a"))
+        XCTAssertTrue(prefs.enabled("notifications", account: "a"))
+        prefs.set("notifications", account: "a", value: false)
+        XCTAssertFalse(NebulaBehaviorPreferences(defaults: defaults).enabled("notifications", account: "a"))
+        XCTAssertTrue(prefs.enabled("notifications", account: "b"))
+        XCTAssertEqual(prefs.disabledNotificationAccounts, ["a"])
+        prefs.set("notifications", account: "a", value: true)
+        XCTAssertTrue(prefs.disabledNotificationAccounts.isEmpty)
+        XCTAssertTrue(prefs.homeChatsTitle)
+        prefs.setHomeChatsTitle(false)
+        XCTAssertFalse(NebulaBehaviorPreferences(defaults: defaults).homeChatsTitle)
         for key in ["mute_non_contacts", "ignore_mentions", "quote_full_reply", "biometric_delete"] {
             XCTAssertFalse(prefs.enabled(key, account: "a"))
             prefs.set(key, account: "a", value: true)

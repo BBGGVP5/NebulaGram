@@ -50,6 +50,8 @@ public final class NebulaLinkController: UITableViewController, UITextFieldDeleg
         explanation.adjustsFontForContentSizeCategory = true
         explanation.textColor = .secondaryLabel
         explanation.text = text("Только трафик Telegram, без системного VPN. Вставьте свою подписку или ключ. Ссылку получает указанный вами сервер подписки; она не отправляется разработчикам NebulaGram.", "Telegram traffic only, without a system VPN. Paste your subscription or key. Subscription URLs are requested from the server you specify, not sent to NebulaGram developers.")
+        refreshControl = UIRefreshControl()
+        refreshControl?.addTarget(self, action: #selector(refreshSubscriptions), for: .valueChanged)
         tableView.keyboardDismissMode = .interactive
         tableView.rowHeight = UITableView.automaticDimension
         tableView.estimatedRowHeight = 60
@@ -126,6 +128,7 @@ public final class NebulaLinkController: UITableViewController, UITextFieldDeleg
         reloadPresentation()
         service.call(method, payload: payload) { [weak self] result in
             guard let self = self else { return }
+            self.refreshControl?.endRefreshing()
             self.busy = false; self.input.isEnabled = true; self.isModalInPresentation = false
             self.navigationController?.isModalInPresentation = false
             self.navigationItem.leftBarButtonItem?.isEnabled = true
@@ -138,6 +141,21 @@ public final class NebulaLinkController: UITableViewController, UITextFieldDeleg
                 self.message = self.text("Не удалось выполнить действие. Проверьте ключ, доступность сервера и поддерживаемый протокол.", "Could not complete the action. Check the key, server availability and supported protocol.")
             }
             self.reloadPresentation()
+        }
+    }
+    @objc private func refreshSubscriptions() {
+        guard !busy else { refreshControl?.endRefreshing(); return }
+        view.endEditing(true)
+        request("subscription.refreshAll") { [weak self] data in
+            guard let self = self else { return }
+            let results = data as? [[String: Any]] ?? []
+            let failures = results.filter { $0["error"] != nil }.count
+            let updated = results.count - failures
+            self.probeText = failures == 0
+                ? self.text("Обновлено подписок: \(updated)", "Subscriptions refreshed: \(updated)")
+                : self.text("Обновлено: \(updated) · ошибок: \(failures)",
+                            "Refreshed: \(updated) · failed: \(failures)")
+            self.reloadServers()
         }
     }
     private func reloadServers() {
@@ -373,17 +391,7 @@ public final class NebulaLinkController: UITableViewController, UITextFieldDeleg
         case (1, 0):
             if probeRequestId == nil { probeVisibleServers() } else { cancelProbe() }
         case (1, 1): chooseSort()
-        case (1, 2): request("subscription.refreshAll") { [weak self] data in
-            guard let self = self else { return }
-            let results = data as? [[String: Any]] ?? []
-            let failures = results.filter { $0["error"] != nil }.count
-            let updated = results.count - failures
-            self.probeText = failures == 0
-                ? self.text("Обновлено подписок: \(updated)", "Subscriptions refreshed: \(updated)")
-                : self.text("Обновлено: \(updated) · ошибок: \(failures)",
-                            "Refreshed: \(updated) · failed: \(failures)")
-            self.reloadServers()
-        }
+        case (1, 2): refreshSubscriptions()
         case (1, 3): probeActiveConnection()
         case (2, _):
             guard !servers.isEmpty else { return }

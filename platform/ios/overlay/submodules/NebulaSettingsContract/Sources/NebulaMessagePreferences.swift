@@ -14,6 +14,23 @@ public final class NebulaMessagePreferences {
         defaults.set(value, forKey: "nebula.messages." + key)
         NotificationCenter.default.post(name: Self.changed, object: nil)
     }
+    public var botApiIds: Bool { defaults.bool(forKey: "nebula.messages.bot_api_ids") }
+    public func setBotApiIds(_ value: Bool) {
+        defaults.set(value, forKey: "nebula.messages.bot_api_ids")
+        NotificationCenter.default.post(name: Self.changed, object: nil)
+    }
+    public enum PeerKind { case user, group, channel }
+    public static func peerIdentifier(_ id: Int64, kind: PeerKind, botApi: Bool) -> String? {
+        guard id > 0 else { return nil }
+        guard botApi else { return String(id) }
+        switch kind {
+        case .user: return String(id)
+        case .group: return String(-id)
+        case .channel:
+            let (value, overflow) = Int64(-1_000_000_000_000).subtractingReportingOverflow(id)
+            return overflow ? nil : String(value)
+        }
+    }
     public var seekInterval: Int {
         let value = defaults.integer(forKey: "nebula.messages.seek_interval")
         return [5, 10, 15, 20, 25, 30].contains(value) ? value : 15

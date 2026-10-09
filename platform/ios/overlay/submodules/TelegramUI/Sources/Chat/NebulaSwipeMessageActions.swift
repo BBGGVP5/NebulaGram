@@ -19,7 +19,10 @@ extension ChatControllerImpl {
               !message.media.contains(where: { $0 is TelegramMediaExpiredContent || $0 is TelegramMediaAction }) else { return [] }
         let readable = !presentationInterfaceState.copyProtectionEnabled && !message.isCopyProtected() && !message.containsSecretMedia && !message.text.isEmpty
         return NebulaSettingsStore.shared.swipeActions.filter { action in
-            if action == .reply { return canReplyInChat(presentationInterfaceState, accountPeerId: context.account.peerId) }
+            if action == .reply {
+                if case .reply? = controllerInteraction?.canSetupReply(message) { return true }
+                return false
+            }
             return readable && (action == .copy || message.id.peerId.namespace != Namespaces.Peer.SecretChat)
         }.map(\.rawValue)
     }

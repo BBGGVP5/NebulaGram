@@ -23,7 +23,32 @@ final class NebulaSubscriptionsController: UITableViewController {
                 target: self, action: #selector(addSubscription))
         tableView.rowHeight = UITableView.automaticDimension
         tableView.estimatedRowHeight = 68
+        refreshControl = UIRefreshControl()
+        refreshControl?.addTarget(self, action: #selector(refreshSubscriptions), for: .valueChanged)
         reloadSubscriptions()
+    }
+
+    @objc private func refreshSubscriptions() {
+        guard !busy else { refreshControl?.endRefreshing(); return }
+        busy = true
+        navigationItem.rightBarButtonItem?.isEnabled = false
+        service.call("subscription.refreshAll") { [weak self] result in
+            guard let self else { return }
+            self.busy = false
+            self.refreshControl?.endRefreshing()
+            self.navigationItem.rightBarButtonItem?.isEnabled = true
+            switch result {
+            case let .success(data):
+                let results = data as? [[String: Any]] ?? []
+                let failures = results.filter { $0["error"] != nil }.count
+                let updated = results.count - failures
+                self.message = self.text("Обновлено: \(updated) · ошибок: \(failures)", "Refreshed: \(updated) · failed: \(failures)")
+                self.onChange?()
+            case .failure:
+                self.message = self.text("Не удалось обновить подписки", "Could not refresh subscriptions")
+            }
+            self.reloadSubscriptions(preservingMessage: true)
+        }
     }
 
     private func reloadSubscriptions(preservingMessage: Bool = false) {

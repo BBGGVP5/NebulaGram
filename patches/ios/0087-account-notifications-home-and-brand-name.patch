@@ -1,0 +1,152 @@
+diff --git a/Telegram/Telegram-iOS/Info.plist b/Telegram/Telegram-iOS/Info.plist
+index a34aee9..85d0b2a 100644
+--- a/Telegram/Telegram-iOS/Info.plist
++++ b/Telegram/Telegram-iOS/Info.plist
+@@ -11,7 +11,7 @@
+ 	<key>CFBundleDevelopmentRegion</key>
+ 	<string>en</string>
+ 	<key>CFBundleDisplayName</key>
+-	<string>${APP_NAME}</string>
++	<string>NebulaGram</string>
+ 	<key>CFBundleExecutable</key>
+ 	<string>$(EXECUTABLE_NAME)</string>
+ 	<key>CFBundleIcons</key>
+diff --git a/submodules/ChatListUI/Sources/ChatListController.swift b/submodules/ChatListUI/Sources/ChatListController.swift
+index 82d9cdd..07e090d 100644
+--- a/submodules/ChatListUI/Sources/ChatListController.swift
++++ b/submodules/ChatListUI/Sources/ChatListController.swift
+@@ -212,6 +212,7 @@ public class ChatListControllerImpl: TelegramBaseController, ChatListController
+     private var shouldFixStorySubscriptionOrder: Bool = false
+     private var fixedStorySubscriptionOrder: [EnginePeer.Id] = []
+     private(set) var orderedStorySubscriptions: EngineStorySubscriptions?
++    private var nebulaHomeTitleObserver: NSObjectProtocol?
+     private var nebulaStoryArchiveObserver: NSObjectProtocol?
+     private var nebulaArchivedStoryPeerIds = Set<EnginePeer.Id>()
+ 
+@@ -308,6 +309,9 @@ public class ChatListControllerImpl: TelegramBaseController, ChatListController
+             guard let self, self.isNodeLoaded else { return }
+             self.reloadFilters()
+         }
++        self.nebulaHomeTitleObserver = NotificationCenter.default.addObserver(forName: NebulaBehaviorPreferences.changed, object: nil, queue: .main) { [weak self] _ in
++            guard let self, self.isNodeLoaded else { return }; self.reloadFilters()
++        }
+         self.nebulaStoryArchiveObserver = NotificationCenter.default.addObserver(forName: Notification.Name("NebulaStoryArchiveSettingsChanged"), object: nil, queue: .main) { [weak self] _ in
+             self?.nebulaArchiveStoriesIfNeeded()
+         }
+@@ -819,6 +823,7 @@ public class ChatListControllerImpl: TelegramBaseController, ChatListController
+     }
+     
+     deinit {
++        if let observer = self.nebulaHomeTitleObserver { NotificationCenter.default.removeObserver(observer) }
+         if let observer = self.nebulaStoryArchiveObserver { NotificationCenter.default.removeObserver(observer) }
+         self.openMessageFromSearchDisposable.dispose()
+         self.badgeDisposable?.dispose()
+@@ -7253,7 +7258,7 @@ private final class ChatListLocationContext {
+                    !folderTitle.text.isEmpty {
+                     defaultTitle = folderTitle.text
+                 } else {
+-                    defaultTitle = presentationData.strings.DialogList_Title
++                    defaultTitle = NebulaBehaviorPreferences.shared.homeChatsTitle ? presentationData.strings.DialogList_Title : "NebulaGram"
+                 }
+             } else {
+                 defaultTitle = presentationData.strings.ChatList_ArchivedChatsTitle
+diff --git a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoProfileItems.swift b/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoProfileItems.swift
+index 6223cc0..a111377 100644
+--- a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoProfileItems.swift
++++ b/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoProfileItems.swift
+@@ -909,6 +909,25 @@ func infoItems(
+         }
+     }
+     
++    if let peer = data.peer {
++        let kind: NebulaMessagePreferences.PeerKind?
++        switch peer {
++        case .user: kind = .user
++        case .legacyGroup: kind = .group
++        case .channel: kind = .channel
++        default: kind = nil
++        }
++        if let kind, let identifier = NebulaMessagePreferences.peerIdentifier(peer.id.id._internalGetInt64Value(), kind: kind, botApi: NebulaMessagePreferences.shared.botApiIds) {
++            let russian = presentationData.strings.baseLanguageCode.hasPrefix("ru")
++            items[.peerInfoTrailing, default: []].append(PeerInfoScreenLabeledValueItem(id: "nebula-peer-id",
++                label: russian ? "ID · нажмите, чтобы скопировать" : "ID · tap to copy", text: identifier,
++                textColor: .accent, action: { _, _ in
++                    UIPasteboard.general.string = identifier
++                    UIAccessibility.post(notification: .announcement, argument: russian ? "ID скопирован" : "ID copied")
++                }, requestLayout: { interaction.requestLayout($0) }))
++        }
++    }
++
+     var result: [(AnyHashable, [PeerInfoScreenItem])] = []
+     for section in InfoSection.allCases {
+         if let sectionItems = items[section], !sectionItems.isEmpty {
+diff --git a/submodules/TelegramUI/Sources/ApplicationContext.swift b/submodules/TelegramUI/Sources/ApplicationContext.swift
+index 2dbbcd6..0488643 100644
+--- a/submodules/TelegramUI/Sources/ApplicationContext.swift
++++ b/submodules/TelegramUI/Sources/ApplicationContext.swift
+@@ -320,6 +320,7 @@ final class AuthorizedApplicationContext {
+             return context.account.postbox.transaction { transaction in
+                 let prefs = NebulaBehaviorPreferences.shared
+                 let account = String(context.account.peerId.toInt64())
++                guard prefs.enabled("notifications", account: account) else { return [] }
+                 return list.compactMap { messages, group, notify, thread in
+                     let visible = messages.filter { message in
+                         !(prefs.ignoreMention(account: account, peer: message.id.peerId.toInt64()) && message.attributes.contains(where: { $0 is ConsumablePersonalMentionMessageAttribute }))
+diff --git a/submodules/TelegramUI/Sources/SharedAccountContext.swift b/submodules/TelegramUI/Sources/SharedAccountContext.swift
+index faf799f..3557424 100644
+--- a/submodules/TelegramUI/Sources/SharedAccountContext.swift
++++ b/submodules/TelegramUI/Sources/SharedAccountContext.swift
+@@ -1,4 +1,5 @@
+ import Foundation
++import NebulaSettingsContract
+ import NebulaLinkUI
+ import UIKit
+ import AsyncDisplayKit
+@@ -1660,14 +1661,22 @@ public final class SharedAccountContextImpl: SharedAccountContext {
+             return true
+         })
+         
++        let disabledAccounts = Signal<Set<String>, NoError> { subscriber in
++            let observer = NotificationCenter.default.addObserver(forName: NebulaBehaviorPreferences.changed, object: nil, queue: .main) { _ in
++                subscriber.putNext(NebulaBehaviorPreferences.shared.disabledNotificationAccounts)
++            }
++            subscriber.putNext(NebulaBehaviorPreferences.shared.disabledNotificationAccounts)
++            return ActionDisposable { NotificationCenter.default.removeObserver(observer) }
++        } |> distinctUntilChanged
+         let updatedApsToken = self.apsNotificationToken |> distinctUntilChanged(isEqual: { $0 == $1 })
+         self.registeredNotificationTokensDisposable.set((combineLatest(
+             queue: .mainQueue(),
+             settings,
+             self.activeAccountContexts,
+-            updatedApsToken
++            updatedApsToken,
++            disabledAccounts
+         )
+-        |> mapToSignal { settings, activeAccountsAndInfo, apsNotificationToken -> Signal<(Bool, Data?), NoError> in
++        |> mapToSignal { settings, activeAccountsAndInfo, apsNotificationToken, disabledAccounts -> Signal<(Bool, Data?), NoError> in
+             let (primary, activeAccounts, _) = activeAccountsAndInfo
+             var appliedApsList: [Signal<Bool?, NoError>] = []
+             var appliedVoipList: [Signal<Never, NoError>] = []
+@@ -1692,6 +1701,9 @@ public final class SharedAccountContextImpl: SharedAccountContext {
+                 }
+             }
+             
++            let apsAccounts = activeAccounts.map { $0.1 }.filter { !disabledAccounts.contains(String($0.account.peerId.toInt64())) }
++            let apsProductionUserIds = apsAccounts.filter { !$0.account.testingEnvironment && activeProductionUserIds.contains($0.account.peerId.id) }.map { $0.account.peerId.id }
++            let apsTestingUserIds = apsAccounts.filter { $0.account.testingEnvironment && activeTestingUserIds.contains($0.account.peerId.id) }.map { $0.account.peerId.id }
+             for (_, account, _) in activeAccounts {
+                 let appliedAps: Signal<Bool, NoError>
+                 let appliedVoip: Signal<Never, NoError>
+@@ -1716,7 +1728,11 @@ public final class SharedAccountContextImpl: SharedAccountContext {
+                     }
+                 } else {
+                     if let apsNotificationToken {
+-                        appliedAps = account.engine.accountData.registerNotificationToken(token: apsNotificationToken, type: .aps(encrypt: true), sandbox: sandbox, otherAccountUserIds: (account.account.testingEnvironment ? activeTestingUserIds : activeProductionUserIds).filter({ $0 != account.account.peerId.id }), excludeMutedChats: !settings.includeMuted)
++                        if disabledAccounts.contains(String(account.account.peerId.toInt64())) {
++                            appliedAps = account.engine.accountData.unregisterNotificationToken(token: apsNotificationToken, type: .aps(encrypt: false), otherAccountUserIds: (account.account.testingEnvironment ? allTestingUserIds : allProductionUserIds).filter({ $0 != account.account.peerId.id })) |> map { _ -> Bool in } |> then(.single(true))
++                        } else {
++                            appliedAps = account.engine.accountData.registerNotificationToken(token: apsNotificationToken, type: .aps(encrypt: true), sandbox: sandbox, otherAccountUserIds: (account.account.testingEnvironment ? apsTestingUserIds : apsProductionUserIds).filter({ $0 != account.account.peerId.id }), excludeMutedChats: !settings.includeMuted)
++                        }
+                     } else {
+                         appliedAps = .single(true)
+                     }
