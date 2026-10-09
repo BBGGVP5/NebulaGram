@@ -343,6 +343,26 @@ sources = {'android/content/Context.java': 'package android.content;public class
                                               'static String '
                                               'findAnimatedEmojiEmoticon(org.telegram.tgnet.TLRPC.Document d,String '
                                               'fallback){return d.alt;}}'}
+# Simulate an ancestor-only window translation with the child's display list cached.
+sources['android/view/ViewTreeObserver.java'] = sources['android/view/ViewTreeObserver.java'].replace(
+    'public interface OnScrollChangedListener',
+    'public interface OnPreDrawListener {boolean onPreDraw();}'
+    'public final ArrayList<OnPreDrawListener> preDraw=new ArrayList<>();'
+    'public void addOnPreDrawListener(OnPreDrawListener x){preDraw.add(x);}'
+    'public void removeOnPreDrawListener(OnPreDrawListener x){preDraw.remove(x);}'
+    'public void preDraw(){for(var x:new ArrayList<>(preDraw))if(!x.onPreDraw())throw new AssertionError();}'
+    'public interface OnScrollChangedListener')
+sources['CheckEmoji.java'] = sources['CheckEmoji.java'].replace(
+    'rocket.viewport=true;rocket.draw(new android.graphics.Canvas());View.flush();',
+    'rocket.viewport=true;rocket.tree.preDraw();View.flush();'
+    'check(r.started,"ancestor-only translation starts the cached child animation without onDraw/layout");'
+    'int invalidations=rocket.invalidations;rocket.tree.preDraw();'
+    'check(invalidations==rocket.invalidations,"unchanged visibility must not invalidate every pre-draw");')
+sources['CheckEmoji.java'] = sources['CheckEmoji.java'].replace(
+    'rocket.detach();check(!r.started&&!r.attached,',
+    'rocket.viewport=false;rocket.tree.preDraw();check(!r.started,"offscreen sheet pauses decoder");'
+    'rocket.viewport=true;rocket.tree.preDraw();check(r.started,"return to viewport resumes decoder");'
+    'rocket.detach();check(rocket.tree.preDraw.isEmpty(),"pre-draw listener detached");check(!r.started&&!r.attached,')
 sources['org/telegram/messenger/UserConfig.java'] = 'package org.telegram.messenger;public class UserConfig {public static int selectedAccount;}'
 with tempfile.TemporaryDirectory(prefix='nebula-emoji-') as temp:
  tree=Path(temp)

@@ -9,7 +9,7 @@ import android.view.Gravity;
 import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
-import android.widget.ScrollView;
+import androidx.core.widget.NestedScrollView;
 import android.widget.TextView;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.NotificationCenter;
@@ -39,7 +39,7 @@ public final class NebulaUpdateSheet extends BottomSheet implements Notification
         setBackgroundColor(theme.surface()); fixNavigationBar(theme.surface());
         setApplyTopPadding(false); setApplyBottomPadding(false);
         // The body owns scroll gestures; Back/outside/Later still dismiss the sheet.
-        setCanDismissWithSwipe(false);
+        setCanDismissWithSwipe(false); // BottomSheet handles the nested scroll drag and dismissal.
 
         LinearLayout body = column(activity); body.setPadding(dp(16), dp(12), dp(16), dp(4));
         View handle = new View(activity);
@@ -90,7 +90,7 @@ public final class NebulaUpdateSheet extends BottomSheet implements Notification
         retry = button(activity,text("Скачать заново", "Download again"),false);
         retry.setOnClickListener(v -> { if (valid()) updates.redownload(); else dismiss(); }); body.addView(retry,new LinearLayout.LayoutParams(-1,-2));
 
-        ScrollView scroll = new ScrollView(activity); scroll.setVerticalScrollBarEnabled(false); scroll.addView(body);
+        NestedScrollView scroll = new NestedScrollView(activity); scroll.setNestedScrollingEnabled(true); scroll.setVerticalScrollBarEnabled(false); scroll.addView(body);
         LinearLayout footer = column(activity); footer.setPadding(dp(20),dp(12),dp(20),dp(8));
         action = button(activity,"",true); action.setOnClickListener(v -> performAction()); footer.addView(action,new LinearLayout.LayoutParams(-1,-2));
         LinearLayout secondary = new LinearLayout(activity);
@@ -180,9 +180,9 @@ public final class NebulaUpdateSheet extends BottomSheet implements Notification
     }
     /** Measure the footer first; only the release body scrolls on small screens. */
     private static final class SheetContent extends LinearLayout {
-        private final ScrollView body; private final LinearLayout footer;
+        private final NestedScrollView body; private final LinearLayout footer;
         private boolean footerInBody;
-        SheetContent(Context c,ScrollView body,LinearLayout footer) {
+        SheetContent(Context c,NestedScrollView body,LinearLayout footer) {
             super(c); setOrientation(VERTICAL); this.body=body; this.footer=footer;
             addView(body,new LayoutParams(-1,-2)); addView(footer,new LayoutParams(-1,-2));
         }

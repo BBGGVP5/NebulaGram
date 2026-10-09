@@ -9,7 +9,7 @@ import android.view.Gravity;
 import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.ImageView;
-import android.widget.ScrollView;
+import androidx.core.widget.NestedScrollView;
 import android.widget.TextView;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.BuildConfig;
@@ -43,7 +43,7 @@ public final class NebulaUpdateSettingsSheet extends BottomSheet implements Noti
         activity = host.getParentActivity(); updates = NebulaTelegramUpdates.get(host.getCurrentAccount());
         NebulaTheme theme = NebulaTheme.of(activity);
         setBackgroundColor(theme.modalSurface()); fixNavigationBar(theme.modalSurface());
-        setApplyTopPadding(false); setApplyBottomPadding(false); setCanDismissWithSwipe(false);
+        setApplyTopPadding(false); setApplyBottomPadding(false); setCanDismissWithSwipe(false); // BottomSheet handles the nested scroll drag and dismissal.
         LinearLayout body = column(activity); body.setPadding(dp(16), dp(12), dp(16), dp(16));
         View handle = new View(activity); GradientDrawable shape = new GradientDrawable();
         shape.setCornerRadius(dp(2)); shape.setColor(NebulaTheme.stateLayer(theme.onSurface(), .25f)); handle.setBackground(shape);
@@ -75,13 +75,13 @@ public final class NebulaUpdateSettingsSheet extends BottomSheet implements Noti
         check.setOnClickListener(v -> { if (valid()) updates.check(true, null); }); actions.addView(check, new LinearLayout.LayoutParams(0, -2, 1));
         ImageView channel = new ImageView(activity); channel.setScaleType(ImageView.ScaleType.CENTER); channel.setImageResource(R.drawable.msg_channel); channel.setColorFilter(theme.onPrimaryContainer()); channel.setBackground(new NebulaButton(activity, NebulaButton.STYLE_TONAL).getBackground()); channel.setFocusable(true); channel.setContentDescription(text("Канал обновлений NebulaGram", "NebulaGram update channel")); channel.setOnClickListener(v -> Browser.openUrl(activity, "https://t.me/" + NebulaRelease.CHANNEL));
         LinearLayout.LayoutParams cp = new LinearLayout.LayoutParams(dp(52), dp(52)); cp.setMarginStart(dp(10)); actions.addView(channel, cp); addCard(body, actions, 14);
-        ScrollView scroll = new ScrollView(activity) {
+        NestedScrollView scroll = new NestedScrollView(activity) {
             @Override protected void onMeasure(int width, int height) {
                 int available = MeasureSpec.getMode(height) == MeasureSpec.UNSPECIFIED ? AndroidUtilities.displaySize.y : MeasureSpec.getSize(height);
                 super.onMeasure(width, MeasureSpec.makeMeasureSpec(Math.max(1, (int)(available * .88f)), MeasureSpec.AT_MOST));
             }
         };
-        scroll.setVerticalScrollBarEnabled(false); scroll.addView(body); setCustomView(scroll); refresh();
+        scroll.setNestedScrollingEnabled(true); scroll.setVerticalScrollBarEnabled(false); scroll.addView(body); setCustomView(scroll); refresh();
     }
     private boolean valid() { return !activity.isFinishing() && !activity.isDestroyed() && updates.currentAccountSelected() && !SharedConfig.appLocked && !SharedConfig.isWaitingForPasscodeEnter; }
     private void refresh() {

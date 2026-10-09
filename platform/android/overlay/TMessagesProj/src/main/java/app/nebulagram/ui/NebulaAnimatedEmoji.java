@@ -22,12 +22,26 @@ public final class NebulaAnimatedEmoji extends FrameLayout implements Notificati
     private final ImageView fallbackImage;
     private final Rect visibleBounds = new Rect();
     private final ViewTreeObserver.OnScrollChangedListener scrollListener = this::updatePlayback;
+    private final ViewTreeObserver.OnPreDrawListener preDrawListener = this::beforeDraw;
     private String emoji;
     private long documentId;
     private boolean attached, visualPosted;
     private int attachment;
     private ImageReceiver receiver;
     private boolean activeLast, rewindPending = true;
+
+    // A sheet animates a cached display list: onDraw/onLayout of this child
+    // need not run when its translated parent finally enters the viewport.
+    private boolean beforeDraw() {
+        boolean wasActive = activeLast;
+        updatePlayback();
+        boolean ready = frameReady();
+        if (wasActive != activeLast || ready == (fallback().getVisibility() == VISIBLE)) {
+            showFallback(!ready);
+            invalidate();
+        }
+        return true;
+    }
 
     public NebulaAnimatedEmoji(Context c, int account, String emoji, int size) {
         this(c, account, emoji, size, 7);
@@ -156,7 +170,7 @@ public final class NebulaAnimatedEmoji extends FrameLayout implements Notificati
     @Override protected void onVisibilityChanged(View v,int state){super.onVisibilityChanged(v,state);if(attached)updatePlayback();}
     @Override protected void onLayout(boolean changed,int l,int t,int r,int b){super.onLayout(changed,l,t,r,b);if(attached)updatePlayback();}
     @Override protected void onAttachedToWindow(){super.onAttachedToWindow();attached=true;attachment++;
-        NotificationCenter.getInstance(account).addObserver(this,NotificationCenter.stickersDidLoad);getViewTreeObserver().addOnScrollChangedListener(scrollListener);
+        NotificationCenter.getInstance(account).addObserver(this,NotificationCenter.stickersDidLoad);getViewTreeObserver().addOnScrollChangedListener(scrollListener);getViewTreeObserver().addOnPreDrawListener(preDrawListener);
         NotificationCenter.getInstance(account).addObserver(this,NotificationCenter.groupStickersDidLoad);
         NotificationCenter.getInstance(account).addObserver(this,NotificationCenter.diceStickersDidLoad);
         NotificationCenter.getGlobalInstance().addObserver(this,NotificationCenter.emojiLoaded);
@@ -165,7 +179,7 @@ public final class NebulaAnimatedEmoji extends FrameLayout implements Notificati
         NotificationCenter.getInstance(account).removeObserver(this,NotificationCenter.groupStickersDidLoad);
         NotificationCenter.getInstance(account).removeObserver(this,NotificationCenter.diceStickersDidLoad);
         NotificationCenter.getGlobalInstance().removeObserver(this,NotificationCenter.emojiLoaded);
-        if(getViewTreeObserver().isAlive())getViewTreeObserver().removeOnScrollChangedListener(scrollListener);
+        if(getViewTreeObserver().isAlive()){getViewTreeObserver().removeOnScrollChangedListener(scrollListener);getViewTreeObserver().removeOnPreDrawListener(preDrawListener);}
         releaseReceiver();showFallback(true);super.onDetachedFromWindow();}
     @Override public void didReceivedNotification(int id,int account,Object...args){if(!attached)return;
         if(id==NotificationCenter.stickersDidLoad||id==NotificationCenter.groupStickersDidLoad||id==NotificationCenter.diceStickersDidLoad)refresh();else if(id==NotificationCenter.emojiLoaded)fallbackImage.invalidate();}

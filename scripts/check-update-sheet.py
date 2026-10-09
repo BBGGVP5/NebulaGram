@@ -39,3 +39,13 @@ assert 'nebula_launcher_nova_monochrome' not in mascot
 assert 'footer.measure(width' in sheet and 'compact?limit:remaining' in sheet
 assert 'content.addView(footer' in sheet and 'content.removeView(footer)' in sheet
 print('PASS: updater/sheet source guards (not device UI verification)')
+
+settings = (UI/'NebulaUpdateSettingsSheet.java').read_text(encoding='utf-8')
+for source in (sheet, settings):
+    assert 'import androidx.core.widget.NestedScrollView;' in source
+    assert 'new NestedScrollView(activity)' in source
+    assert 'scroll.setNestedScrollingEnabled(true)' in source
+    # Telegram BottomSheet accepts nested scrolling only with direct swipe disabled.
+    assert 'setCanDismissWithSwipe(false)' in source
+    assert 'android.widget.ScrollView' not in source
+print('PASS: both update sheets participate in native nested dragging/dismissal')
