@@ -17,6 +17,10 @@ public final class NebulaBehaviorController: UITableViewController {
     private var lookup: Disposable?
     private var theme: PresentationTheme { context.sharedContext.currentPresentationData.with { $0 }.theme }
     private var ru: Bool { context.sharedContext.currentPresentationData.with { $0 }.strings.baseLanguageCode.hasPrefix("ru") }
+    private lazy var hero = NebulaSettingsHero(symbol: "🧰", title: t("Поведение", "Behavior"), summary: t("Уведомления, действия и защита", "Notifications, actions and protection"), context: context, theme: theme)
+    public override func viewDidLayoutSubviews() { super.viewDidLayoutSubviews(); hero.fit(in: tableView) }
+    public override func viewWillAppear(_ animated: Bool) { super.viewWillAppear(animated); hero.setPageVisible(true) }
+    public override func viewWillDisappear(_ animated: Bool) { super.viewWillDisappear(animated); hero.setPageVisible(false) }
     public init(context: AccountContext, choosePeer: @escaping (Bool, @escaping (Int64, String) -> Void) -> Void) {
         self.context = context; self.account = String(context.account.peerId.toInt64()); self.choosePeer = choosePeer
         super.init(style: .insetGrouped)

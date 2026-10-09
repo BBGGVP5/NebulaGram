@@ -9,30 +9,36 @@
 **Tech Stack:** Swift, UIKit, Postbox, TelegramUI/ContextUI, XCTest, ordered patches, macOS Bazel/Xcode CI.
 
 ## 1. Baseline and audit
-- [ ] Download and independently inspect successful IPA run 37897185784 at fffe517fb640d74651bd5d5c2e16986f5ca25855 (revision, digest, arm64, bundle and extension).
-- [ ] Compare Android settings classes and their native consumers with iOS overlays and patches. Record implemented, native equivalent, excluded and missing separately in platform/ios/PARITY.md. Check beyond the shared catalog: menu controls, home title, notifications, authentication and local tools.
-- [ ] Reconstruct build/ios-remaining-1009 from vendor's pinned commit plus all 85 patches; commit only the ignored reconstruction baseline for a precise new patch.
+- [x] Download and independently inspect successful IPA run 37897185784 at fffe517fb640d74651bd5d5c2e16986f5ca25855 (revision, digest, arm64, bundle and extension).
+- [x] Compare Android settings classes and their native consumers with iOS overlays and patches. Record implemented, native equivalent, excluded and missing separately in platform/ios/PARITY.md. Check beyond the shared catalog: menu controls, home title, notifications, authentication and local tools.
+- [x] Reconstruct build/ios-remaining-1009 from vendor's pinned commit plus all 85 patches; commit only the ignored reconstruction baseline for a precise new patch.
 
 ## 2. Chat preferences and gestures
-- [ ] Wire existing transferable keys sticker_time_style, channel_forward_count, inline_math, folder_unmuted_only and swipe_actions in NebulaSettingsStore.swift. Add XCTest for defaults, import preservation, persistence and invalid input.
-- [ ] Add a bounded Decimal arithmetic parser with no evaluation/runtime execution; test precedence, percentages, decimal separators, division by zero, phone/date suppression and resource limits. Display a non-mutating composer hint.
-- [ ] Add message/media controls and an ordered swipe editor in SettingsUI. Preserve native Reply as the default; copy keeps entities, tools/translation use existing explicit UI and reject protected content.
-- [ ] Wire native sticker status layout and channel forward-count metadata. Exclude unrelated message types, preserve native delivery/reaction controls and accessibility.
-- [ ] Compute unmuted folder badge counts from native unread state without changing folder membership, server filters or read state; refresh after preference/notification changes.
+- [x] Wire existing transferable keys sticker_time_style, channel_forward_count, inline_math, folder_unmuted_only and swipe_actions in NebulaSettingsStore.swift. Add XCTest for defaults, import preservation, persistence and invalid input.
+- [x] Add a bounded Decimal arithmetic parser with no evaluation/runtime execution; test precedence, percentages, decimal separators, division by zero, phone/date suppression and resource limits. Display a non-mutating composer hint.
+- [x] Add message/media controls and an ordered swipe editor in SettingsUI. Preserve native Reply as the default; copy keeps entities, tools/translation use existing explicit UI and reject protected content.
+- [x] Wire native sticker status layout and channel forward-count metadata. Exclude unrelated message types, preserve native delivery/reaction controls and accessibility.
+- [x] Compute unmuted folder badge counts from native unread state without changing folder membership, server filters or read state; refresh after preference/notification changes.
 
 ## 3. Message menus
-- [ ] Add NebulaMessageMenuPreferences.swift and tests for action visibility, immutable Edit/Delete and bounded presentation choices.
-- [ ] Extend the actual extracted-message preview/settings with action toggles and compact layout. Filter native eligible actions by semantic identity, never translated labels; retain security and permission checks and required actions.
-- [ ] Apply the same preferences to preview and real context menus, preserving native scrolling, extraction and dismissal ownership.
+- [x] Add NebulaMessageMenuPreferences.swift and tests for action visibility, immutable Edit/Delete and bounded presentation choices.
+- [x] Extend the actual extracted-message preview/settings with action toggles and compact layout. Filter native eligible actions by semantic identity, never translated labels; retain security and permission checks and required actions.
+- [x] Apply the same preferences to preview and real context menus, preserving native scrolling, extraction and dismissal ownership.
 
 ## 4. Other audit findings
-- [ ] Implement confirmed portable gaps found in step 1 with native consumers and explicit settings. Do not copy Android-only camera, OS notification suppression, font or volume-button emulation into iOS switches. Document native equivalents precisely instead of silently omitting them.
-- [ ] Align supported seek intervals with Android while preserving existing iOS values.
+- [x] Implement confirmed portable gaps found in step 1 with native consumers and explicit settings. Do not copy Android-only camera, OS notification suppression, font or volume-button emulation into iOS switches. Document native equivalents precisely instead of silently omitting them.
+- [x] Align supported seek intervals with Android while preserving existing iOS values.
 
 ## 5. Verification and delivery
-- [ ] Regenerate mirrors with python platform/ios/tools/generate-overlay.py; run python platform/ios/tools/check-bootstrap.py, python scripts/check-settings-contract.py and native/IPA driver tests.
-- [ ] Extend bootstrap guards only for integration boundaries; use executable Swift tests for policy/algorithm behavior.
+- [x] Regenerate mirrors with python platform/ios/tools/generate-overlay.py; run python platform/ios/tools/check-bootstrap.py, python scripts/check-settings-contract.py and native/IPA driver tests.
+- [x] Extend bootstrap guards only for integration boundaries; use executable Swift tests for policy/algorithm behavior.
 - [ ] Commit intended files, push authorized branches, run macOS bootstrap and full ios-ipa.yml. Diagnose actual native compiler errors and verify the final artifact.
 - [ ] Update the inventory and earlier plans with exact evidence. Physical iPhone/simulator acceptance remains unverified unless an actual runtime becomes available.
 
 Self-review: This plan covers identified missing consumers rather than inferring parity from stored/importable keys. Existing cloud sync, rich editor, browser blocking, accounts, native Community and selection toolbar are already implemented. An unsigned IPA is not installation or visual QA evidence.
+
+## Runtime / evidence
+
+- 7728305 + 169b4a7: five missing catalog consumers, arithmetic, ordered gestures, semantic menu controls and seek 25s. macOS bootstrap 37935705936 passed. Native 37935477697 targets 7728305.
+- 7d9c483: account notifications, home title, nondestructive authentication test, peer ID format/copy, NebulaLink pull-to-refresh and app display name. 87 patches / 155 native paths, shared contract and driver tests pass locally. Bootstrap 37937153272 and full IPA 37937153786 dispatched.
+- Platform differences explicitly recorded in PARITY.md. Camera scope remains excluded. Final artifact verification is pending; source completion is not physical acceptance.

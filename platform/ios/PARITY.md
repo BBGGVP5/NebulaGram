@@ -1,6 +1,29 @@
-# iOS implementation inventory — 2026-10-08
+# iOS implementation inventory — 2026-10-09
 
 This inventory distinguishes **wired source** from native build and device acceptance. A setting with a validated import format is not necessarily functional on iOS.
+
+## October 9: remaining non-camera consumers
+
+This section supersedes older pending-source statements below. Source implementation and tests do **not** establish physical iPhone acceptance. Plan: [remaining consumers](../../docs/superpowers/plans/2026-10-09-ios-remaining-consumers.md).
+
+| Android area audited | iOS implementation / adaptation |
+|---|---|
+| Sticker time and channel forward count | `0086`: default/beside/hidden sticker timestamp; native forward-count metadata in broadcast-channel status. Delivery/reaction controls remain native. Reopen the chat to apply layout changes. |
+| Inline arithmetic | Bounded Decimal parser, no evaluation engine; drawing-only hint beside the final draft glyph when space permits. Plain phone/date/ID-like strings are excluded. |
+| Folder unmuted count | Native unmuted unread counter, refreshed on preference changes; folder membership, server filters and read state are unchanged. Native folder exclusion rules still apply. |
+| Ordered swipe actions | Reply / entity-preserving Copy / Nebula tools / Translate. Snapshot of configured order at gesture start, native horizontal recognition, vertical choice, execution only on release after the native threshold. Fresh message and native permissions are rechecked; protected text cannot be exported. |
+| Message menu | Semantic action visibility and compact rows with at least 44-point targets. Preview and real menu share policy. Edit/Delete/Select and unknown native actions stay reachable. Photos/Files are the native destinations; sharing remains within the native forward/share flow rather than separate Android destinations. |
+| Account notification switch | `0087`: per-account foreground suppression plus APS token registration filtering. Native global account-notification policy remains effective; VoIP registration is unchanged. Requires network connectivity to update Telegram's push registration; already delivered/in-flight notifications are not retroactively removed. |
+| Home title and deletion protection | Chats/NebulaGram title with live refresh. Explicit nondestructive Face ID/Touch ID/passcode test, including while the deletion toggle is off. |
+| Peer IDs | Tap-to-copy user/group/channel IDs in profiles; Telegram/Bot API format in General. Bot API channel IDs use the numeric 1,000,000,000,000 offset, including short IDs; secret-chat internal IDs are not exposed. |
+| NebulaLink refresh | Pull-to-refresh on overview and subscription list invokes the same `subscription.refreshAll` core operation, with busy gating, aggregate outcome and spinner cleanup on success/failure. No connection or server change is implicit. |
+| App branding | Main app display name corrected to NebulaGram; baseline build 84 still contained Telegram in CFBundleDisplayName. |
+
+Platform adaptations (not equivalent Android switches): native extracted-menu viewport/scrolling replaces percentage-height and below-message placement controls; native navigation/keyboard dismissal replaces Predictive Back and Android keyboard swipe sensitivity; UIKit/Telegram material and navigation components own the home header glass. Face ID/passcode selection belongs to LocalAuthentication, not an Android “prefer PIN” switch. Volume-button playback, Android recording audio focus, Material You and Android font substitution are not emulated. Camera engines/lenses/recording controls/phone-camera preview remain explicitly excluded by the user. These are documented differences, not hidden unfinished consumers.
+
+Validation: source `7728305` + import-test correction `169b4a7` passed macOS bootstrap `37935705936`, including new policy/parser/store tests and real UIKit typechecking for the arithmetic hint. Current `7d9c483` applies **87 patches / 155 upstream paths**; all 78 shared setting definitions and 6 native-preparation + 8 IPA-driver tests pass locally. Bootstrap `37937153272` passed all 132 Swift tests and actual iOS SDK checks. Full device IPA `37937153786` was dispatched; final runtime follow-up and artifact status are recorded below. Native module run `37935477697` targets the earlier `7728305` revision, so it cannot validate the later account/ID changes.
+
+Independently verified baseline: full IPA `37897185784`, source `fffe517fb640d74651bd5d5c2e16986f5ca25855`, build 84, app.nebulagram / arm64, one Notification Service Extension; SHA-256 `812aee67e1e45656f6c387c546136a6e7f6b4ad1bb106d53837dbfc31172d994` matches its manifest. It excludes 0086/0087 and is not the new delivery. Signing and physical/simulator UI, gestures, Dynamic Type, notification and authentication acceptance remain unverified.
 
 ## October 8 port: current checkpoint
 
@@ -62,6 +85,11 @@ Continuation `03a08a0` wires opt-in Saved Messages cloud settings sync with the 
 | `bottom_bar_order` | navigation.bottom_bar | Wired; native build passed; device QA pending | Yes |
 | `bottom_bar_profile` | navigation.bottom_bar | Wired; native build passed; device QA pending | Yes |
 | `bottom_bar_settings` | navigation.bottom_bar | Wired; native build passed; device QA pending | Yes |
+| `sticker_time_style` | chat.messages | Wired by 0086; current native build pending | Yes |
+| `channel_forward_count` | chat.messages | Wired by 0086; current native build pending | Yes |
+| `inline_math` | chat.input | Parser tests and UIKit hint typecheck passed; full native build pending | Yes |
+| `folder_unmuted_only` | navigation.folders | Wired by 0086; current native build pending | Yes |
+| `swipe_actions` | chat.messages | Wired by 0086; current native build pending | Yes |
 | `center_home` | navigation.folders | Wired; native build passed; device QA pending | Yes |
 | `centered_chat_header` | chat.header | Wired; native build passed; device QA pending | Yes |
 | `compact_bottom_bar` | navigation.bottom_bar | Wired; native build passed; device QA pending | Yes |

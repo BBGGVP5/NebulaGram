@@ -29,4 +29,11 @@ final class NebulaArithmeticTests: XCTestCase {
         XCTAssertEqual(NebulaSwipeActions.action(order: order, verticalOffset: 5000), .translate)
         XCTAssertEqual(NebulaSwipeActions.action(order: order, verticalOffset: .nan), .reply)
     }
+    func testCalendarDatesDoNotBecomeDivisionHints() {
+        XCTAssertNil(NebulaArithmetic.result("09/10/2026"))
+        XCTAssertNil(NebulaArithmetic.result("9/10/26"))
+        XCTAssertNil(NebulaArithmetic.result("09.10.2026"))
+        XCTAssertEqual(NebulaArithmetic.result("12/3/2"), "2")
+        XCTAssertNotNil(NebulaArithmetic.result("09/10/2026="))
+    }
 }

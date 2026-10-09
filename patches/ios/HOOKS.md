@@ -256,3 +256,21 @@
 - Adds native header selection actions with eligibility checks and opt-in bottom Without Author action. The optional panel callback avoids changing unrelated panel initializers.
 - Carries explicit forwarding options into recipient preview and every direct/draft forwarding path. Ordinary forwarding retains native defaults.
 - Moves ordinary selection cancellation to the left, including reply threads; report and message-option states remain native. Appends Go to beginning followed by retained-message cleanup to native history menu routes.
+
+
+## 0086 — chat preferences, swipe actions and message menu consumers
+
+- Native sticker timestamp positioning/hiding and channel forward-count metadata; no replacement media/reaction layouts.
+- Native folder-tab unread pipeline observes `folder_unmuted_only`, disposes its preference observation and selects existing unmuted counts without editing filters.
+- Four message item nodes reuse the native swipe recognizer and thresholds; the available order comes from ChatController and actions execute only on `.ended`. ChatController re-fetches and rechecks eligible message data; copy preserves entities and external tools reject protected/secret content. Follow-up overlay uses native `canSetupReply` for Reply.
+- Drawing-only arithmetic hint on the native UITextView, with marked-text exclusion and bounds checks.
+- Stable semantic ContextMenu action IDs connect real Telegram actions to local visibility choices. Native eligibility is evaluated first; compact rows retain 44-point targets, Edit/Delete/Select stay native. Preview uses the same filter.
+
+## 0087 — account notifications, home title, profile IDs and branding
+
+- Foreground notifications respect the account switch. APS registration filters disabled accounts; token removal follows the native inactive-account path. VoIP calls and native all-account settings are unchanged. Preference observer is disposed with its signal.
+- Native root chat-list title responds to the Chats/NebulaGram preference without overriding folder/archive/connection titles.
+- Profile ID row delegates numeric formatting to the tested Foundation helper; explicit tap copies. General contains a highlight-only Telegram/Bot API picker.
+- Main application Info.plist uses NebulaGram as CFBundleDisplayName. Build 84 was inspected and still had Telegram.
+- Related overlays add the nondestructive LocalAuthentication test and pull-to-refresh for both NebulaLink subscription surfaces, with busy and failure cleanup.
+- Local ordered-patch/contract/driver checks pass; macOS native/device builds and runtime acceptance are tracked separately in PARITY.md.

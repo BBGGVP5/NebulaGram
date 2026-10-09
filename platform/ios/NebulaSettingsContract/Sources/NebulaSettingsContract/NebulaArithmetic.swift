@@ -1,6 +1,6 @@
 import Foundation
 
-/// Bounded decimal arithmetic, deliberately not a scripting language or an expression evaluator.
+/// Bounded decimal arithmetic, with no scripting engine or executable input.
 public enum NebulaArithmetic {
     public static func result(_ text: String) -> String? {
         guard text.utf16.count <= 120 else { return nil }
@@ -8,6 +8,8 @@ public enum NebulaArithmetic {
             .replacingOccurrences(of: "×", with: "*").replacingOccurrences(of: "÷", with: "/").replacingOccurrences(of: ",", with: ".")
         let marked = source.hasSuffix("=")
         if marked { source.removeLast() }
+        // A calendar date containing slashes must not turn into a division hint.
+        if !marked && source.range(of: #"^\d{1,2}[/.-]\d{1,2}[/.-]\d{2,4}$"#, options: .regularExpression) != nil { return nil }
         // Suppress phone numbers, unspaced dates and plain identifiers.
         guard marked || (source.contains("+") && !source.hasPrefix("+")) || source.contains(where: { "*/%()".contains($0) }) || source.range(of: #"\s[+-]\s"#, options: .regularExpression) != nil else { return nil }
         guard source.allSatisfy({ "0123456789. +-*/%()\t\r\n".contains($0) }) else { return nil }
