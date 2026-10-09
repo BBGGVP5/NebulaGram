@@ -40,6 +40,7 @@ public final class NebulaAiSettingsFragment extends BaseFragment {
         main.add(link(R.drawable.msg_openprofile, text("Роли", "Roles"), NebulaAiRoles.displayName(role), () -> presentFragment(new NebulaAiRolesFragment())));
         main.add(link(R.drawable.msg_recent, text("История сообщений", "Message history"), NebulaAiHistory.enabled() ? text("Включена", "Enabled") : text("Выключена", "Disabled"), () -> presentFragment(new NebulaAiHistorySettingsFragment())));
         main.add(link(R.drawable.msg_translate, text("Переводчик", "Translator"), text("Живой перевод и мой текст", "Live translation and my text"), () -> presentFragment(new NebulaTranslationFragment(currentAccount, 0))));
+        main.add(link(R.drawable.msg_voice_unmuted, text("Аудио и голоса", "Audio & voices"), text("Расшифровка, перевод и озвучивание", "Transcription, translation and speech"), () -> presentFragment(new NebulaAudioSettingsFragment())));
         NebulaFormUi.group(content, text("Основные", "General"), main);
         NebulaCard replacements = new NebulaCard(c);
         replacements.add(toggle("replace_editor", text("Редактор Nebula AI", "Nebula AI editor"), text("Заменяет кнопку ИИ Telegram · при выключении возвращается Telegram", "Replaces Telegram AI · turn off to use Telegram"), false));

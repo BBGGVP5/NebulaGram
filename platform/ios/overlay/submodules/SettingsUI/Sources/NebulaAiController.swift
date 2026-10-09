@@ -91,7 +91,7 @@ final class NebulaAiController: UITableViewController {
     @objc private func close() { dismiss(animated: true) }
 
     override func numberOfSections(in tableView: UITableView) -> Int { 5 }
-    override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int { section == 2 && settings.provider == .appleIntelligence ? 0 : [3, 3, 3, 1, 2][section] }
+    override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int { section == 2 && settings.provider == .appleIntelligence ? 0 : [3, 4, 3, 1, 2][section] }
     override func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
         [nil, text("Основные", "Settings"), text("Генерация", "Generation"), text("Состояние", "State"), text("Чат", "Chat")][section]
     }
@@ -120,6 +120,7 @@ final class NebulaAiController: UITableViewController {
         case (1, 1):
             cell.textLabel?.text = text("Роли", "Roles"); cell.detailTextLabel?.text = settings.roles.selected(russian: ru)?.name ?? text("Свои инструкции", "General instructions"); cell.accessoryType = .disclosureIndicator
         case (1, 2): toggle(text("История сообщений", "Message history"), settings.historyEnabled, 2)
+        case (1, 3): cell.textLabel?.text = text("Аудио и голоса", "Audio & voices"); cell.detailTextLabel?.text = text("Расшифровка, перевод и озвучивание", "Transcription, translation and speech"); cell.accessoryType = .disclosureIndicator
         case (2, 0): toggle(text("Потоковый ответ", "Streaming response"), settings.streaming, 3)
         case (2, 1):
             toggle(text("Рассуждения", "Reasoning"), settings.reasoning, 4)
@@ -154,6 +155,7 @@ final class NebulaAiController: UITableViewController {
         case (0, 2): next = NebulaTranslationController(account: translationAccount, peer: translationPeer, russian: ru, theme: theme)
         case (1, 0): next = NebulaAiServicesController(russian: ru, theme: theme, context: context)
         case (1, 1): next = NebulaAiRolesController(russian: ru, theme: theme, context: context)
+        case (1, 3): next = NebulaAudioSettingsController(russian: ru, theme: theme, context: context)
         case (2, 2):
             let values = (0...20).map { Double($0) / 10 }
             NebulaChoiceController.show(from: self, title: text("Температура", "Temperature"), choices: values.map { String(format: "%.1f", $0) }, selected: Int((settings.temperature * 10).rounded()), russian: ru, theme: theme) { [weak self] index in

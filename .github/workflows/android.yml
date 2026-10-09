@@ -194,6 +194,7 @@ jobs:
           python3 scripts/check-browser-adblock.py
           python3 scripts/check-extera-preferences.py vendor/telegram-android
           python3 scripts/check-ai-protocol.py
+          python3 scripts/check-audio-protocol.py
           python3 scripts/check-ai-availability.py
           python3 scripts/check-private-features.py
           python3 scripts/check-settings-design.py

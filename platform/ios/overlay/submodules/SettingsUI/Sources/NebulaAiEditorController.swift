@@ -27,9 +27,9 @@ public final class NebulaAiEditorController: UIViewController {
     private let primary = UIButton(type: .system)
     private let reset = UIButton(type: .system)
     private var styleButtons: [UIButton] = []
-    public init(source: NSAttributedString, russian: Bool, theme: PresentationTheme, account: String, peer: String? = nil, action: NebulaAiAction = .translate, apply: ((NSAttributedString) -> Void)? = nil) {
+    public init(source: NSAttributedString, russian: Bool, theme: PresentationTheme, account: String, peer: String? = nil, action: NebulaAiAction = .translate, resultLanguage: String? = nil, apply: ((NSAttributedString) -> Void)? = nil) {
         self.source = NSAttributedString(attributedString: source); ru = russian; self.theme = theme; self.account = account; self.peer = peer; self.apply = apply
-        language = russian ? "ru" : "en"
+        language = resultLanguage ?? (russian ? "ru" : "en")
         mode = action == .proofread ? 2 : action == .rewrite ? 1 : 0
         super.init(nibName: nil, bundle: nil); title = "Nebula AI"
     }

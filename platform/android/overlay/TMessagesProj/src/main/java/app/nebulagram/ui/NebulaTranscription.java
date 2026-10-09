@@ -8,8 +8,19 @@ import org.telegram.ui.ActionBar.BaseFragment;
 public final class NebulaTranscription {
     private NebulaTranscription() { }
     public static boolean selected(){return NebulaMessagePreferences.enabled("ai_transcription",false);}
+    public static boolean eligible(MessageObject message) {
+        if(message==null||message.messageOwner==null||message.getId()<=0||message.deleted||message.messageOwner.noforwards||message.messageOwner.ttl>0||message.isSecretMedia()
+                ||message.isRestrictedMessage||message.isSponsored()||org.telegram.messenger.DialogObject.isEncryptedDialog(message.getDialogId())
+                ||!(message.isVoice()||message.isRoundVideo()||message.isVideo())) return false;
+        org.telegram.messenger.MessagesController controller=org.telegram.messenger.MessagesController.getInstance(message.currentAccount);
+        long peer=message.getDialogId();
+        if(peer<0){org.telegram.tgnet.TLRPC.Chat chat=controller.getChat(-peer);return chat!=null&&!chat.noforwards;}
+        org.telegram.tgnet.TLRPC.UserFull full=controller.getUserFull(peer);
+        return full==null||!(full.noforwards_my_enabled||full.noforwards_peer_enabled);
+    }
     public static boolean open(MessageObject message){
         if(!selected()||message==null||message.messageOwner==null)return false;
+        if(!eligible(message))return true;
         BaseFragment host=LaunchActivity.getLastFragment();
         if(!(host instanceof ChatActivity)||host.getCurrentAccount()!=message.currentAccount
                 ||((ChatActivity)host).getDialogId()!=message.getDialogId())return true;

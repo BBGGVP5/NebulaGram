@@ -69,6 +69,8 @@ public final class NebulaMessageToolsFragment extends BaseFragment {
     private boolean busy, resumed;
     private NebulaAiClient client;
     private NebulaTranslationClient translationClient;
+    private NebulaAudioClient audioClient;
+    private String originalTranscript = "";
     private TextToSpeech speech;
     private boolean speechReady, destroyed;
     private int generation;
@@ -154,7 +156,7 @@ public final class NebulaMessageToolsFragment extends BaseFragment {
         });
         copyResult = copy; copyResult.setVisibility(View.GONE);
         resultHeader.addView(copyResult, new LinearLayout.LayoutParams(dp(48), dp(48)));
-        result.addView(resultHeader); result.addView(output);
+        result.addView(resultHeader); result.addView(output); addAudioResultActions(result, c);
         if (applyDraft != null) {
             NebulaButton use = new NebulaButton(c, NebulaButton.STYLE_TEXT); use.setText(t("Применить к черновику", "Apply to draft"));
             use.setOnClickListener(v -> { if (!lastResult.isEmpty()) { applyResult(); } }); result.addView(use);
@@ -182,7 +184,7 @@ public final class NebulaMessageToolsFragment extends BaseFragment {
         LinearLayout.LayoutParams settingsParams = new LinearLayout.LayoutParams(-1, -2);
         settingsParams.topMargin = dp(12);
         column.addView(settings, settingsParams); column.addView(preferences);
-        column.addView(NebulaFormUi.note(c, t("Текст обрабатывает выбранный провайдер ИИ. Озвучивание — Android.", "Text is processed by your selected AI provider. Speech uses Android.")));
+        column.addView(NebulaFormUi.note(c, t("Текст обрабатывает выбранный провайдер ИИ. Сервис и голоса озвучивания выбираются отдельно.", "Text is processed by your selected AI provider. Choose speech services and voices separately.")));
         observeInput();
         return fragmentView = NebulaSettingsLayout.wrap(c, actionBar, scroll);
     }
@@ -254,7 +256,7 @@ public final class NebulaMessageToolsFragment extends BaseFragment {
         copy.setBackground(Theme.createSelectorDrawable(theme.outline(), 1));
         copy.setOnClickListener(v -> { if (!lastResult.isEmpty()) AndroidUtilities.addToClipboard(lastRichResult); });
         copyResult = copy; copyResult.setVisibility(View.GONE); resultHeader.addView(copy, new LinearLayout.LayoutParams(dp(48), dp(48)));
-        result.addView(resultHeader); output = resultView(c); result.addView(output, new LinearLayout.LayoutParams(-1, -2));
+        result.addView(resultHeader); output = resultView(c); result.addView(output, new LinearLayout.LayoutParams(-1, -2)); addAudioResultActions(result, c);
         resultSection.addView(result, new LinearLayout.LayoutParams(-1, -2));
         LinearLayout.LayoutParams resultParams = new LinearLayout.LayoutParams(-1, -2); resultParams.topMargin = dp(12);
         column.addView(resultSection, resultParams);
@@ -486,30 +488,22 @@ public final class NebulaMessageToolsFragment extends BaseFragment {
         updatePrimary();
     }
     private void speak(){
-        if (speech == null) {
-            updateStop();
-            speech = new TextToSpeech(getContext(), status -> AndroidUtilities.runOnUIThread(() -> {
-                speechReady = status == TextToSpeech.SUCCESS;
-                if (destroyed || !resumed || !speechRequested) return;
-                if (speechReady) speak();
-                else { speechRequested = false; updateStop(); showOutput(t("Движок озвучивания недоступен", "Speech engine unavailable"), false); }
-            }));
-            return;
+        speechRequested = false; updateStop();
+        presentFragment(new NebulaSpeechFragment(currentAccount, !lastResult.isEmpty() ? lastResult : input.getText().toString(),
+                !lastResult.isEmpty() ? targetLanguage : LocaleController.getInstance().getCurrentLocale().getLanguage()));
+    }
+    private void addAudioResultActions(NebulaCard card, Context c) {
+        if (message == null || !(message.isVoice() || message.isRoundVideo() || message.isVideo())) return;
+        String[] names={t("Исходная расшифровка", "Original transcript"),t("Перевести расшифровку", "Translate transcript"),t("Краткое содержание", "Summary"),t("Озвучить результат", "Read result aloud")};
+        for(int i=0;i<names.length;i++){
+            final int action=i; NebulaButton button=new NebulaButton(c,NebulaButton.STYLE_TEXT);button.setText(names[i]);
+            button.setOnClickListener(v->{
+                if(originalTranscript.isEmpty())return;
+                if(action==3){speak();return;}
+                input.setText(originalTranscript);
+                if(action==0)showOutput(originalTranscript,true);else request(action==2);
+            });card.addView(button);
         }
-        if(!speechReady){speechRequested=false;updateStop();showOutput(t("Движок озвучивания недоступен", "Speech engine unavailable"),false);return;}
-        int language=speech.setLanguage(LocaleController.getInstance().getCurrentLocale());
-        if(language<0){speechRequested=false;updateStop();showOutput(t("Установите голос для выбранного языка в настройках Android", "Install a voice for this language in Android settings"),false);return;}
-        String value=!lastResult.isEmpty()?lastResult:input.getText().toString();
-        if(value.trim().isEmpty()){speechRequested=false;updateStop();input.setError(t("Введите текст", "Enter text"));return;}
-        speech.stop(); updateStop();
-        speech.setOnUtteranceProgressListener(new android.speech.tts.UtteranceProgressListener() {
-            public void onStart(String id) { }
-            public void onDone(String id) { if("nebula-last".equals(id)) finishSpeech(); }
-            public void onError(String id) { finishSpeech(); }
-            private void finishSpeech(){AndroidUtilities.runOnUIThread(()->{speechRequested=false;updateStop();});}
-        });
-        int limit=TextToSpeech.getMaxSpeechInputLength()-1;
-        for(int start=0;start<value.length();start+=limit)speech.speak(value.substring(start,Math.min(value.length(),start+limit)),TextToSpeech.QUEUE_ADD,null,start+limit>=value.length()?"nebula-last":"nebula-"+start);
     }
     private void request(boolean summary){
         if (!summary) { translate(); return; }
@@ -564,9 +558,25 @@ public final class NebulaMessageToolsFragment extends BaseFragment {
         applyDraft.accept(NebulaRichText.snapshot(lastRichResult)); finishFragment();
     }
     private void transcribe(){
-        java.io.File file=FileLoader.getInstance(currentAccount).getPathToMessage(message.messageOwner);
+        cancel();
+        if(!NebulaTranscription.eligible(message)){showOutput(t("Эту запись нельзя отправить на распознавание", "This recording cannot be sent for transcription"),false);return;}
+        final java.io.File file=FileLoader.getInstance(currentAccount).getPathToMessage(message.messageOwner);
         if(file==null||!file.isFile()){showOutput(t("Сначала скачайте сообщение в чате", "Download the message in the chat first"),false);return;}
-        execute((client,p,provider,key)->client.transcribe(provider,p.getString("endpoint",""),key,p.getString("model_"+provider,""),file,message.isVoice()?"audio/ogg":"video/mp4"));
+        final NebulaAudioClient.Configuration config;
+        try{config=NebulaAudioPreferences.capture(false);}catch(Exception e){showOutput(e.getMessage(),false);return;}
+        final int token=++generation;final long owner=NebulaTasks.user(currentAccount);
+        final String sourceKey=NebulaRichText.key(currentAccount,input.getText());
+        final NebulaAudioClient request=audioClient=new NebulaAudioClient();busy=true;showOutput(t("Распознаём речь… · ","Transcribing… · ")+NebulaAudioPreferences.title(false),false);updateStop();
+        new Thread(()->{
+            try{
+                if(owner!=NebulaTasks.user(currentAccount)||!NebulaTranscription.eligible(message))throw new java.io.InterruptedIOException();
+                String answer=request.transcribe(config,file,message.isVoice()?"audio/ogg":"video/mp4");
+                AndroidUtilities.runOnUIThread(()->{
+                    if(!currentInput(token,owner,sourceKey)||!resumed)return;
+                    busy=false;audioClient=null;originalTranscript=answer;input.setText(answer);showOutput(answer,true);updateStop();
+                });
+            }catch(Exception error){AndroidUtilities.runOnUIThread(()->{if(!destroyed&&token==generation){busy=false;audioClient=null;showOutput(t("Не удалось распознать: ","Transcription failed: ")+error.getMessage(),false);updateStop();}});}
+        },"NebulaTranscription").start();
     }
     private interface Work {String run(NebulaAiClient client,SharedPreferences prefs,int provider,String key)throws Exception;}
     private void execute(Work work){ execute(work, null, null); }
@@ -618,7 +628,7 @@ public final class NebulaMessageToolsFragment extends BaseFragment {
             });
         }, "NebulaMessageTool").start();
     }
-    private void cancel(){generation++;if(busy&&output!=null)showOutput(t("Остановлено", "Stopped"),false);busy=false;speechRequested=false;updateStop();if(client!=null){client.cancel();client=null;}if(translationClient!=null){translationClient.cancel();translationClient=null;}if(speech!=null)speech.stop();}
+    private void cancel(){generation++;if(busy&&output!=null)showOutput(t("Остановлено", "Stopped"),false);busy=false;speechRequested=false;updateStop();if(client!=null){client.cancel();client=null;}if(translationClient!=null){translationClient.cancel();translationClient=null;}if(audioClient!=null){audioClient.cancel();audioClient=null;}if(speech!=null)speech.stop();}
     @Override public void onResume(){super.onResume();resumed=true;refreshTranslation();if(transcriptionRequested){transcriptionRequested=false;transcribe();}else if(translateOnOpen){translateOnOpen=false;request(false);}}
     @Override public void onPause(){resumed=false;super.onPause();cancel();}
     @Override public void onFragmentDestroy(){destroyed=true;cancel();if(speech!=null){speech.shutdown();speech=null;}super.onFragmentDestroy();}

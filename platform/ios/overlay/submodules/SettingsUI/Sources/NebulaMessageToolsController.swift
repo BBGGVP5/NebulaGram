@@ -188,16 +188,17 @@ public final class NebulaMessageToolsController: UIViewController {
     @objc private func performTool(_ sender: UIButton) {
         switch sender.tag {
         case 3:
-            if speech.isSpeaking { speech.stopSpeaking(at: .immediate); return }
-            let utterance = AVSpeechUtterance(string: result.isEmpty ? source : result)
-            if !result.isEmpty { utterance.voice = AVSpeechSynthesisVoice(language: language) }
-            speech.speak(utterance)
+            if #available(iOS 15.0, *) {
+                navigationController?.pushViewController(NebulaSpeechController(text: result.isEmpty ? source : result, language: result.isEmpty ? (russian ? "ru" : "en") : language, russian: russian, theme: theme), animated: true)
+            } else {
+                let utterance = AVSpeechUtterance(string: result.isEmpty ? source : result); utterance.voice = AVSpeechSynthesisVoice(language: language); speech.speak(utterance)
+            }
         case 4:
             navigationController?.pushViewController(NebulaTasksController(accountId: accountId, russian: russian, theme: theme, draft: result.isEmpty ? source : result), animated: true)
         default:
             let action: NebulaAiAction = sender.tag == 1 ? .translate : sender.tag == 2 ? .summarize : sender.tag == 5 ? .proofread : .ask
             if action == .translate || action == .proofread || action == .rewrite {
-                let editor = NebulaAiEditorController(source: attributedSource, russian: russian, theme: theme, account: accountId, peer: peerId, action: action, apply: { [weak self] value in
+                let editor = NebulaAiEditorController(source: attributedSource, russian: russian, theme: theme, account: accountId, peer: peerId, action: action, resultLanguage: language, apply: { [weak self] value in
                     self?.result = value.string; self?.output.attributedText = value; self?.output.isHidden = false
                 })
                 navigationController?.pushViewController(editor, animated: true); return

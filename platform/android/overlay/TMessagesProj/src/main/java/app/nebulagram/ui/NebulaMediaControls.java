@@ -30,9 +30,9 @@ public final class NebulaMediaControls {
         }));
         NebulaFormUi.group(body,text("Жесты и управление","Gestures and controls"),card);
         card=new NebulaCard(c);
-        card.add(new NebulaRow(c).title(text("Расшифровка аудио","Audio transcription")).subtitle(NebulaTranscription.selected()?text("Сервис ИИ · Gemini","AI service · Gemini"):"Telegram",true).trailing(NebulaRow.TRAIL_CHEVRON).withClick(v->{
-            String[] labels={"Telegram",text("Сервис ИИ · Gemini","AI service · Gemini")};
-            host.showDialog(new NebulaDialog.Builder(c,host.getResourceProvider()).setTitle(text("Расшифровка аудио","Audio transcription")).setMessage(text("Для ИИ выберите сервис Gemini и модель с поддержкой аудио в настройках ИИ. Файл отправляется выбранному сервису по нажатию кнопки расшифровки.","For AI, select a Gemini service and an audio-capable model in AI settings. Tapping transcribe sends the file to that service."))
+        card.add(new NebulaRow(c).title(text("Расшифровка аудио","Audio transcription")).subtitle(NebulaTranscription.selected()?text("Nebula AI","Nebula AI"):"Telegram",true).trailing(NebulaRow.TRAIL_CHEVRON).withClick(v->{
+            String[] labels={"Telegram",text("Nebula AI","Nebula AI")};
+            host.showDialog(new NebulaDialog.Builder(c,host.getResourceProvider()).setTitle(text("Расшифровка аудио","Audio transcription")).setMessage(text("Сервис распознавания выбирается в «ИИ → Аудио и голоса». Файл отправляется выбранному сервису по нажатию кнопки расшифровки.","Choose a transcription service in AI → Audio & voices. Tapping transcribe sends the file to that service."))
                 .setSelectedIndex(NebulaTranscription.selected()?1:0).setItems(labels,(d,i)->{NebulaMessagePreferences.set("ai_transcription",i==1);((NebulaRow)v).subtitle(labels[i],true);}).create());
         }));
         card.add(toggle(c,"video_microphones",false,"Микрофоны в режиме видеокамеры","Camcorder microphone processing"));
