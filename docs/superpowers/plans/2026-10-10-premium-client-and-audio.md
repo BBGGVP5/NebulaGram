@@ -64,3 +64,9 @@ Self-review: the request asks for feasible Premium functions and audio tools, no
 - Added pure Java audio formats and actual HTTPS fixture transport; 42 assertions pass. Existing AI protocol/services and 78-setting contract checks pass.
 - Added independent audio service/model/voice/style/speed choices, Android speech preview/export, iOS speech preview/export, and transcript actions on both platforms. Local mirror/ordered iOS guards pass; native compilation and UI/provider acceptance are still required.
 - Provider references were fetched on October 10. Gemini speech defaults to documented `gemini-3.8-flash-tts`; audio model IDs remain editable. OpenAI defaults to `gpt-4o-mini-transcribe` and `gpt-4o-mini-tts`, with WAV output.
+
+
+## Saved labels source checkpoint
+
+- Added account/user-ID scoped metadata stores, native Saved message-menu entries, highlight-only assignment and searchable label browsers with native message navigation on both platforms. Java metadata has 20 passing assertions; Swift has three equivalent XCTest cases.
+- Current ordered validation: 187 Android patches apply to pinned 12.10.6 without touching vendor; 90 iOS patches / 157 native paths apply. Audio Swift bootstrap passed at e7503f6 (140 tests); Saved label additions still need the latest native build.

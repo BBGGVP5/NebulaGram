@@ -15,3 +15,6 @@ assert hashlib.sha256(jar.read_bytes()).hexdigest() == sha, 'Unexpected org.json
 overlay = root / 'platform/android/overlay/TMessagesProj/src/main/java/app/nebulagram/ui'
 subprocess.run(['javac', '-encoding', 'UTF-8', '-cp', str(jar), '-d', str(work), str(root / 'tests/android/AudioProtocolCheck.java'), str(overlay / 'NebulaAudioProtocol.java'), str(overlay / 'NebulaAudioClient.java')], check=True)
 subprocess.run(['java', '-cp', os.pathsep.join([str(work), str(jar)]), 'AudioProtocolCheck'], check=True)
+
+subprocess.run(['javac', '-encoding', 'UTF-8', '-cp', str(jar), '-d', str(work), str(root / 'tests/android/SavedTagsCheck.java'), str(overlay / 'NebulaSavedTagStore.java')], check=True)
+subprocess.run(['java', '-cp', os.pathsep.join([str(work), str(jar)]), 'SavedTagsCheck'], check=True)

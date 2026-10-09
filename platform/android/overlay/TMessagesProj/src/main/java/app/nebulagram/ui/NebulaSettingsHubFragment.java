@@ -104,6 +104,7 @@ public final class NebulaSettingsHubFragment extends BaseFragment {
             tools.add(row(context, R.drawable.msg_translate, "Переводчик", "Translator", "Входящие, свои сообщения и текст при наборе", "Incoming, sent messages and typing", () -> presentFragment(new NebulaTranslationFragment(currentAccount, 0))));
             tools.add(row(context, R.drawable.nebula_settings_text_tools, "Инструменты текста", "Text tools", "Перевод, сокращение, озвучивание и задачи", "Translation, summaries, speech and tasks", () -> presentFragment(new NebulaMessageToolsFragment(null))));
             tools.add(row(context, R.drawable.msg_calendar, "Список дел", "Tasks", "Задачи и напоминания", "Tasks and reminders", () -> presentFragment(new NebulaTasksFragment())));
+            tools.add(row(context, R.drawable.msg_saved, "Метки в Избранном", "Saved Messages labels", "Ваши метки и сохранённые сообщения", "Your labels and saved messages", () -> presentFragment(new NebulaSavedTagsFragment(currentAccount, 0, null))));
             NebulaFormUi.group(content, NebulaText.text("Инструменты и ИИ", "Tools and AI"), tools);
         }
         return fragmentView = NebulaSettingsLayout.wrap(context, actionBar, scroll, -1);

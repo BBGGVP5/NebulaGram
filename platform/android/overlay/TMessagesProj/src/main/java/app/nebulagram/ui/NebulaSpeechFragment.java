@@ -31,7 +31,7 @@ public final class NebulaSpeechFragment extends BaseFragment {
         NebulaFormUi.bar(this,actionBar,c,text("Озвучивание","Speech"));
         LinearLayout body=NebulaFormUi.column(c);
         body.addView(new NebulaSettingsHero(c,"🔊",text("Озвучивание","Speech"),text("Выберите голос и послушайте результат.","Choose a voice and listen to the result.")));
-        input=NebulaFormUi.field(c,text("Текст для озвучивания","Text to read aloud"),1,NebulaAudioProtocol.MAX_TEXT);input.setSingleLine(false);input.setMinLines(3);
+        input=NebulaFormUi.field(c,text("Текст для озвучивания","Text to read aloud"),1,50000);input.setSingleLine(false);input.setMinLines(3);
         input.setText(source);body.addView(input);
         input.addTextChangedListener(new android.text.TextWatcher(){public void beforeTextChanged(CharSequence s,int start,int count,int after){}public void onTextChanged(CharSequence s,int start,int before,int count){stop();discard();refresh();}public void afterTextChanged(android.text.Editable e){}});
         NebulaCard choices=new NebulaCard(c);
@@ -50,7 +50,7 @@ public final class NebulaSpeechFragment extends BaseFragment {
     }
     private void refresh(){if(generate!=null){generate.setEnabled(!busy);listen.setVisibility(audio!=null?android.view.View.VISIBLE:android.view.View.GONE);share.setVisibility(audio!=null?android.view.View.VISIBLE:android.view.View.GONE);}}
     private void start() {
-        String value=input.getText().toString();if(value.trim().isEmpty()){input.setError(text("Введите текст","Enter text"));return;}
+        String value=input.getText().toString();if(value.length()>NebulaAudioProtocol.MAX_TEXT){input.setError(text("До 4000 символов за один запрос","Up to 4000 characters per request"));return;}if(value.trim().isEmpty()){input.setError(text("Введите текст","Enter text"));return;}
         stop();discard();
         if("device".equals(NebulaAudioPreferences.serviceId(true))){startDevice(value);return;}
         final NebulaAudioClient.Configuration config;

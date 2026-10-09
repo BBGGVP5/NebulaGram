@@ -1,0 +1,24 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
+@@ -33894,6 +33894,9 @@
+         }
+         boolean preserveDim = false;
+         switch (option) {
++            case 7918:
++                app.nebulagram.ui.NebulaSavedTags.open(this, selectedObject);
++                break;
+             case 7912:
+                 app.nebulagram.ui.NebulaMessageToolsFragment.show(this, new app.nebulagram.ui.NebulaMessageToolsFragment(selectedObject));
+                 break;
+@@ -46340,6 +46343,10 @@
+             items.add(app.nebulagram.ui.NebulaText.text("Сохранить в выбранный чат", "Save to chosen chat"));
+             icons.add(R.drawable.msg_saved); options.add(7913);
+         }
++        if (!isEphemeral && app.nebulagram.ui.NebulaSavedTags.eligible(message)) {
++            items.add(app.nebulagram.ui.NebulaText.text("Метки в Избранном", "Saved Messages labels"));
++            icons.add(R.drawable.msg_saved); options.add(7918);
++        }
+         boolean noforwardsOrPaidMedia = noforwards || message.type == MessageObject.TYPE_PAID_MEDIA;
+         boolean allowUnpin = !isEphemeral && message.getDialogId() != mergeDialogId && allowPin && (pinnedMessageObjects.containsKey(message.getId()) || groupedMessages != null && !groupedMessages.messages.isEmpty() && pinnedMessageObjects.containsKey(groupedMessages.messages.get(0).getId())) && !message.isExpiredStory();
+         boolean allowEdit = !isEphemeral && message.canEditMessage(currentChat) && !chatActivityEnterView.hasAudioToSend() && message.getDialogId() != mergeDialogId && message.type != MessageObject.TYPE_STORY && message.type != MessageObject.TYPE_POLL;

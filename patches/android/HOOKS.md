@@ -650,3 +650,8 @@ Bottom actions remain native by default. `selection_without_author` is an opt-in
 ## 0191 — generated speech export
 
 Add a narrow FileProvider cache path for explicit generated-audio sharing. Audio tools reuse named Keystore services, independent audio models and voice settings, protected-recording checks and cancelled/stale-result guards. Remote speech/transcription supports OpenAI and Gemini; system speech is an explicit separate choice. No Telegram Premium entitlement or server quota is changed.
+
+
+## 0192 — local Saved Messages labels
+
+Only positive cloud-message IDs in the account's own Saved Messages expose local label actions. Assign/rename/remove controls and a label browser use real user-ID scoping, bounded metadata and native ChatActivity message navigation. No stored text/media, cloud reactions or changed Premium flags.

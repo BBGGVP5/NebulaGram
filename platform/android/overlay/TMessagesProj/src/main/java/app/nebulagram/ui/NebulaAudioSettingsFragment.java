@@ -37,7 +37,7 @@ public final class NebulaAudioSettingsFragment extends BaseFragment {
         }
         String[] styles={"neutral","warm","calm","lively"},names={text("Естественно","Natural"),text("Дружелюбно","Friendly"),text("Спокойно","Calm"),text("Живо","Expressive")};
         int style=java.util.Arrays.asList(styles).indexOf(NebulaAudioPreferences.prefs().getString("style","neutral"));
-        card.add(row(text("Манера речи ИИ","AI speaking style"),names[Math.max(0,style)],()->showDialog(new NebulaDialog.Builder(c,getResourceProvider()).setTitle(text("Манера речи","Speaking style")).setSelectedIndex(style).setItems(names,(d,i)->{NebulaAudioPreferences.prefs().edit().putString("style",styles[i]).apply();rebuild();}).create())));
+        if(service!=null && NebulaAudioPreferences.supported(service)) card.add(row(text("Манера речи ИИ","AI speaking style"),names[Math.max(0,style)],()->showDialog(new NebulaDialog.Builder(c,getResourceProvider()).setTitle(text("Манера речи","Speaking style")).setSelectedIndex(style).setItems(names,(d,i)->{NebulaAudioPreferences.prefs().edit().putString("style",styles[i]).apply();rebuild();}).create())));
         float speed=NebulaAudioPreferences.prefs().getFloat("speed",1);
         card.add(row(text("Темп речи","Speaking pace"),speed+"×",()->showDialog(new NebulaDialog.Builder(c,getResourceProvider()).setTitle(text("Темп речи","Speaking pace")).setSelectedIndex(speed<1?0:speed>1?2:1).setItems(new String[]{"0.8×","1×","1.2×"},(d,i)->{NebulaAudioPreferences.prefs().edit().putFloat("speed",new float[]{.8f,1f,1.2f}[i]).apply();rebuild();}).create())));
         NebulaFormUi.group(body,text("Озвучивание текста","Text to speech"),card);

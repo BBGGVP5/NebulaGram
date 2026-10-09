@@ -23,7 +23,7 @@ final class NebulaSpeechController: UITableViewController, UITextViewDelegate {
     private func text(_ ru: String, _ en: String) -> String { self.ru ? ru : en }
     override func viewDidLoad() {
         super.viewDidLoad(); NebulaSettingsStyle.apply(theme: theme, to: self); tableView.rowHeight = UITableView.automaticDimension; tableView.estimatedRowHeight = 64
-        input.text = source; input.delegate = self; input.font = .preferredFont(forTextStyle: .body); input.adjustsFontForContentSizeCategory = true; input.backgroundColor = .clear; input.textColor = theme?.list.itemPrimaryTextColor ?? .label
+        input.text = source; input.delegate = self; input.font = .preferredFont(forTextStyle: .body); input.adjustsFontForContentSizeCategory = true; input.backgroundColor = .clear; input.textColor = theme?.list.itemPrimaryTextColor ?? .label; input.heightAnchor.constraint(equalToConstant: 180).isActive = true
         NotificationCenter.default.addObserver(self, selector: #selector(stop), name: UIApplication.willResignActiveNotification, object: nil)
     }
     override func viewWillAppear(_ animated: Bool) { super.viewWillAppear(animated); visible = true; hero.setPageVisible(true); tableView.reloadData() }
@@ -38,7 +38,7 @@ final class NebulaSpeechController: UITableViewController, UITextViewDelegate {
         let cell = UITableViewCell(style: .subtitle, reuseIdentifier: nil); NebulaSettingsStyle.finish(cell, theme: theme); cell.textLabel?.numberOfLines = 0
         if path.section == 0 {
             cell.selectionStyle = .none; input.removeFromSuperview(); input.translatesAutoresizingMaskIntoConstraints = false; cell.contentView.addSubview(input)
-            NSLayoutConstraint.activate([input.leadingAnchor.constraint(equalTo: cell.contentView.leadingAnchor, constant: 12), input.trailingAnchor.constraint(equalTo: cell.contentView.trailingAnchor, constant: -12), input.topAnchor.constraint(equalTo: cell.contentView.topAnchor, constant: 8), input.bottomAnchor.constraint(equalTo: cell.contentView.bottomAnchor, constant: -8), input.heightAnchor.constraint(equalToConstant: 180)]); return cell
+            NSLayoutConstraint.activate([input.leadingAnchor.constraint(equalTo: cell.contentView.leadingAnchor, constant: 12), input.trailingAnchor.constraint(equalTo: cell.contentView.trailingAnchor, constant: -12), input.topAnchor.constraint(equalTo: cell.contentView.topAnchor, constant: 8), input.bottomAnchor.constraint(equalTo: cell.contentView.bottomAnchor, constant: -8)]); return cell
         }
         if path.section == 1 {
             cell.accessoryType = .disclosureIndicator
@@ -49,7 +49,7 @@ final class NebulaSpeechController: UITableViewController, UITextViewDelegate {
         return cell
     }
     func textViewDidChange(_ textView: UITextView) { stop(); discard(); tableView.reloadSections(IndexSet(integer: 2), with: .none) }
-    func textView(_ textView: UITextView, shouldChangeTextIn range: NSRange, replacementText text: String) -> Bool { ((textView.text ?? "") as NSString).length - range.length + (text as NSString).length <= NebulaAudioProtocol.maximumText }
+    func textView(_ textView: UITextView, shouldChangeTextIn range: NSRange, replacementText text: String) -> Bool { ((textView.text ?? "") as NSString).length - range.length + (text as NSString).length <= NebulaAudioProtocol.maximumText || (text as NSString).length < range.length }
     override func tableView(_ tableView: UITableView, didSelectRowAt path: IndexPath) {
         tableView.deselectRow(at: path, animated: true)
         if path.section == 1 {
@@ -64,7 +64,7 @@ final class NebulaSpeechController: UITableViewController, UITextViewDelegate {
     private func chooseDeviceVoice() {
         let voices = self.voices, ids = [""] + self.voices.map(\.identifier)
         let names = [text("Автоматически · лучший доступный", "Automatic · best available")] + voices.map { $0.name + " · " + $0.language + ($0.quality.rawValue > 1 ? text(" · улучшенный", " · enhanced") : "") }
-        NebulaChoiceController.show(from: self, title: text("Голос", "Voice"), choices: names, selected: ids.firstIndex(of: NebulaAudioPreferences.shared.deviceVoice), russian: ru, theme: theme) { [weak self] index in self?.stop(); NebulaAudioPreferences.shared.deviceVoice = ids[index]; self?.tableView.reloadData() }
+        NebulaChoiceController.show(from: self, title: text("Голос", "Voice"), choices: names, selected: ids.firstIndex(of: NebulaAudioPreferences.shared.deviceVoice), russian: ru, selectionIndicatorVisible: false, theme: theme) { [weak self] index in self?.stop(); NebulaAudioPreferences.shared.deviceVoice = ids[index]; self?.tableView.reloadData() }
     }
     private func start() {
         let value = input.text ?? ""

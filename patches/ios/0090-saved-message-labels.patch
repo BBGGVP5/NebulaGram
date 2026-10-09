@@ -1,0 +1,21 @@
+diff --git a/submodules/TelegramUI/Sources/ChatInterfaceStateContextMenus.swift b/submodules/TelegramUI/Sources/ChatInterfaceStateContextMenus.swift
+--- a/submodules/TelegramUI/Sources/ChatInterfaceStateContextMenus.swift
++++ b/submodules/TelegramUI/Sources/ChatInterfaceStateContextMenus.swift
+@@ -1333,6 +1333,17 @@
+             }
+         }
+         
++        if messages.count == 1, message.id.peerId == context.account.peerId, message.id.namespace == Namespaces.Message.Cloud, message.id.id > 0, !isExpired {
++            let russian = chatPresentationInterfaceState.strings.baseLanguageCode.hasPrefix("ru")
++            actions.append(.action(ContextMenuActionItem(text: russian ? "Метки в Избранном" : "Saved Messages labels", icon: { theme in
++                generateTintedImage(image: UIImage(bundleImageName: "Chat/Context Menu/Save"), color: theme.actionSheet.primaryTextColor)
++            }, action: { c, f in
++                let present: () -> Void = {
++                    controllerInteraction.navigationController()?.present(NebulaToolsNavigationController(root: NebulaSavedTagsController(context: context, messageId: message.id.id)), animated: true)
++                }
++                if let c { c.dismiss(completion: present) } else { f(.default); present() }
++            })))
++        }
+         let isCopyProtected = chatPresentationInterfaceState.copyProtectionEnabled || message.isCopyProtected()
+         if #available(iOS 15.0, *), NebulaAiSettings.shared.enabled, !isCopyProtected, !isExpired,
+            !message.containsSecretMedia, messages.count == 1, message.id.peerId.namespace != Namespaces.Peer.SecretChat,

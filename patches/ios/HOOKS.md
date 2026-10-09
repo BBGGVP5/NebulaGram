@@ -288,3 +288,8 @@
 ## 0089 — Bazel application display name
 
 The device build consumes `TelegramInfoPlist` in `Telegram/BUILD`, not the Xcode plist changed in 0087. Set the actual generated main-app `CFBundleDisplayName` to NebulaGram. Keep executable/bundle names, identifiers and extension metadata unchanged. IPA validation rejects an incorrect display name before artifact publication. No Swift/native binary code changes.
+
+
+## 0090 — local Saved Messages labels
+
+One non-expired Saved Messages cloud message can open the label picker. Settings expose the local label browser; AccountContext's native navigation opens the original message. The Foundation index is user-ID scoped and stores only names/message IDs. No Premium flags, server reactions or remote sync are fabricated.

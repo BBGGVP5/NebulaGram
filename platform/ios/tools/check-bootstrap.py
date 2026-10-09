@@ -198,6 +198,8 @@ def main():
         account_context = (temp / 'submodules/TelegramUI/Sources/SharedAccountContext.swift').read_text(encoding='utf-8')
         assert 'disabledNotificationAccounts' in account_context and 'apsProductionUserIds' in account_context
         assert 'return ActionDisposable { NotificationCenter.default.removeObserver(observer) }' in account_context
+        saved_menu = (temp / 'submodules/TelegramUI/Sources/ChatInterfaceStateContextMenus.swift').read_text(encoding='utf-8')
+        assert 'message.id.peerId == context.account.peerId' in saved_menu and 'NebulaSavedTagsController(context: context, messageId: message.id.id)' in saved_menu
         assert '<string>NebulaGram</string>' in (temp / 'Telegram/Telegram-iOS/Info.plist').read_text(encoding='utf-8')
         app_build = (temp / 'Telegram/BUILD').read_text(encoding='utf-8')
         app_fragment = app_build.split('name = "TelegramInfoPlist",', 1)[1].split('ios_application(', 1)[0]

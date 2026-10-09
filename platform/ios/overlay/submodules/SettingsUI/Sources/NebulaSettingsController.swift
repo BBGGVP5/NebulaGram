@@ -483,6 +483,7 @@ public func nebulaSettingsController(context: AccountContext, page: Int = 0, sea
             .category(19, ru ? "Браузер и блокировка рекламы" : "Browser and ad blocking", ru ? "Фильтры и исключения сайтов" : "Filters and excluded sites", "globe"),
             .category(17, ru ? "Перевод в реальном времени" : "Real-time translation", ru ? "Входящие, мой текст, языки, кнопка ИИ" : "Incoming, typing, languages, AI button", "character.bubble"),
             .category(16, ru ? "Уведомления и действия" : "Notifications and actions", ru ? "Упоминания, сохранение, защита" : "Mentions, saving, protection", "bell.badge"),
+            .category(29, ru ? "Метки в Избранном" : "Saved Messages labels", ru ? "Ваши метки и сохранённые сообщения" : "Your labels and saved messages", "tag"),
             .category(9, ru ? "Задачи" : "Tasks", "", "checkmark.circle"),
             .category(10, ru ? "Поведение чатов" : "Chat behavior", ru ? "Архив, вибрация, пересылка" : "Archive, vibration, forwarding", "hand.tap"),
             .category(11, ru ? "Архивация историй" : "Story archiving", "", "circle.dotted.circle"),
@@ -494,7 +495,7 @@ public func nebulaSettingsController(context: AccountContext, page: Int = 0, sea
             switch entry {
             case .widePosts, .stories, .ai:
                 return true
-            case let .category(index, _, _, _): return index == 9 || index == 10 || index == 11 || index == 12 || index == 16 || index == 17 || index == 20 || index == 22 || index == 23
+            case let .category(index, _, _, _): return index == 9 || index == 10 || index == 11 || index == 12 || index == 16 || index == 17 || index == 20 || index == 22 || index == 23 || index == 29
             case let .navigationToggle(key, _, _, _):
                 return key.hasPrefix("reply_") || ["hide_dividers", "hide_send_as", "hide_attach_camera", "menu_search", "menu_mute",
                     "menu_call", "menu_video", "centered_chat_header", "adaptive_chat_header", "floating_chat_header_v2", "header_unread", "message_menu_blur", "disable_next_channel", "seconds_in_time", "hide_search_field"].contains(key)
@@ -731,6 +732,10 @@ public func nebulaSettingsController(context: AccountContext, page: Int = 0, sea
         if index == 10 || index == 11 {
             let data = context.sharedContext.currentPresentationData.with { $0 }
             controller.present(UINavigationController(rootViewController: NebulaPrivacyController(context: context, russian: data.strings.baseLanguageCode.hasPrefix("ru"), mode: index == 10 ? 1 : 2)), animated: true)
+            return
+        }
+        if index == 29 {
+            controller.present(NebulaToolsNavigationController(root: NebulaSavedTagsController(context: context)), animated: true)
             return
         }
         if index == 9 {
