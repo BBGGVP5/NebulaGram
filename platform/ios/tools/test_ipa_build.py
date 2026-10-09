@@ -20,11 +20,12 @@ def binary(platform=2, cpu=0x0100000c):
     return struct.pack('<8I', 0xfeedfacf, cpu, 0, 2, 1, 24, 0, 0) + struct.pack('<6I', 0x32, 24, platform, 0, 0, 0)
 
 
-def archive(path, *, platform=2, extension=True, provisioned=False, traversal=False):
+def archive(path, *, platform=2, extension=True, provisioned=False, traversal=False, display_name="NebulaGram"):
     with zipfile.ZipFile(path, 'w') as z:
         root = 'Payload/Telegram.app/'
-        info = {'CFBundleIdentifier': 'app.nebulagram', 'CFBundleExecutable': 'Telegram',
+        info = {'CFBundleIdentifier': 'app.nebulagram', 'CFBundleExecutable': 'Telegram', 'CFBundleDisplayName': display_name,
                 'CFBundleSupportedPlatforms': ['iPhoneOS'], 'CFBundlePackageType': 'APPL'}
+        if display_name is None: info.pop('CFBundleDisplayName')
         z.writestr(root + 'Info.plist', plistlib.dumps(info))
         z.writestr(root + 'Telegram', binary(platform))
         if extension:
@@ -129,7 +130,7 @@ class IpaBuildTests(unittest.TestCase):
             self.assertNotIn('api_hash', json.dumps(report))
 
     def test_invalid_archives_never_publish(self):
-        for options in [dict(platform=7), dict(extension=False), dict(provisioned=True), dict(traversal=True)]:
+        for options in [dict(platform=7), dict(extension=False), dict(provisioned=True), dict(traversal=True), dict(display_name="Telegram"), dict(display_name=None)]:
             with self.subTest(options=options), tempfile.TemporaryDirectory() as work:
                 path = Path(work) / 'app.ipa'
                 archive(path, **options)

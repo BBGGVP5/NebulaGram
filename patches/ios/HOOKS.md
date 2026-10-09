@@ -283,3 +283,8 @@
 - `ChatListController` obtains interpolation/reordered IDs from the visible component, avoiding stale top-tab ownership.
 - `HeaderPanelContainerComponent` and `HorizontalTabsComponent` accept optional presentation parameters with unchanged defaults elsewhere. Solid/minimal style reparents the native content/scroll view, retaining its gesture recognizers and hit tests.
 - Settings expose validated `folder_panel_style` and local `folder_tabs_bottom`; store/behavior tests cover persistence and bounds. Physical layout/rotation/reordering remains unverified.
+
+
+## 0089 — Bazel application display name
+
+The device build consumes `TelegramInfoPlist` in `Telegram/BUILD`, not the Xcode plist changed in 0087. Set the actual generated main-app `CFBundleDisplayName` to NebulaGram. Keep executable/bundle names, identifiers and extension metadata unchanged. IPA validation rejects an incorrect display name before artifact publication. No Swift/native binary code changes.

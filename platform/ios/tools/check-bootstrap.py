@@ -199,6 +199,9 @@ def main():
         assert 'disabledNotificationAccounts' in account_context and 'apsProductionUserIds' in account_context
         assert 'return ActionDisposable { NotificationCenter.default.removeObserver(observer) }' in account_context
         assert '<string>NebulaGram</string>' in (temp / 'Telegram/Telegram-iOS/Info.plist').read_text(encoding='utf-8')
+        app_build = (temp / 'Telegram/BUILD').read_text(encoding='utf-8')
+        app_fragment = app_build.split('name = "TelegramInfoPlist",', 1)[1].split('ios_application(', 1)[0]
+        assert '<key>CFBundleDisplayName</key>\n    <string>NebulaGram</string>' in app_fragment
         for name in ['NebulaLinkController.swift', 'NebulaSubscriptionsController.swift']:
             link_controller = (temp / 'submodules/NebulaLinkUI/Sources' / name).read_text(encoding='utf-8')
             assert 'refreshControl = UIRefreshControl()' in link_controller

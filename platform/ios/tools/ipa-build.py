@@ -110,6 +110,8 @@ def inspect_archive(path, bundle_id):
         info = read_info(roots[0])
         if info.get('CFBundleIdentifier') != bundle_id or info.get('CFBundleSupportedPlatforms') != ['iPhoneOS']:
             raise ValueError('Unexpected bundle identifier or simulator platform')
+        if info.get('CFBundleDisplayName') != 'NebulaGram':
+            raise ValueError('Unexpected application display name')
         check_executable(root, info)
         notification_services = 0
         for name in names:
