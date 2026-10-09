@@ -29,3 +29,5 @@
 - [x] Update `platform/ios/PARITY.md` and `patches/ios/HOOKS.md`. Record no physical iOS runtime is available here; compilation does not prove gesture/visual acceptance.
 
 Android follow-up from the October 9 video: restore nested drag/dismiss in both update sheets and diagnose the static rocket fallback. This does not replace the iOS port.
+
+Validation checkpoint: macOS bootstrap 37897184535 passed at fffe517fb640d74651bd5d5c2e16986f5ca25855, including the new contract tests, native hook parsing and component checks. Full unsigned IPA run 37897185784 is still compiling; no IPA/device acceptance is claimed at this checkpoint. Android-only d9804f2 does not change these iOS runtime inputs.
