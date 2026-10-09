@@ -69,4 +69,13 @@ final class NebulaBehaviorTests: XCTestCase {
             XCTAssertGreaterThanOrEqual(next, previous); previous = next
         }
     }
+    func testFolderPositionPersistsIndependentlyOfHomeTitle() {
+        let suite = "FolderPosition." + UUID().uuidString
+        let defaults = UserDefaults(suiteName: suite)!; defer { defaults.removePersistentDomain(forName: suite) }
+        let prefs = NebulaBehaviorPreferences(defaults: defaults)
+        XCTAssertFalse(prefs.folderTabsBottom)
+        prefs.setFolderTabsBottom(true)
+        XCTAssertTrue(NebulaBehaviorPreferences(defaults: defaults).folderTabsBottom)
+        XCTAssertTrue(prefs.homeChatsTitle)
+    }
 }

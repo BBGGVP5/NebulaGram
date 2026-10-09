@@ -79,7 +79,7 @@ private enum NebulaSettingsEntry: ItemListNodeEntry {
         switch self {
         case .introduction: return -2
         case .search, .empty: return -1
-        case let .category(index, _, _, _): return index == 26 ? 0 : index == 25 ? 4 : index == 23 ? 7 : index == 24 ? 5 : index == 22 ? 9 : index == 19 ? 0 : index == 20 ? 9 : index == 21 ? 5 : index == 18 ? 12 : index == 17 ? 8 : index == 10 || index == 12 || index == 16 ? 9 : index == 11 ? 10 : index >= 13 ? 1 : 0
+        case let .category(index, _, _, _): return index == 27 || index == 28 ? 2 : index == 26 ? 0 : index == 25 ? 4 : index == 23 ? 7 : index == 24 ? 5 : index == 22 ? 9 : index == 19 ? 0 : index == 20 ? 9 : index == 21 ? 5 : index == 18 ? 12 : index == 17 ? 8 : index == 10 || index == 12 || index == 16 ? 9 : index == 11 ? 10 : index >= 13 ? 1 : 0
         case .toolsHeader, .link, .ai, .buildInfo, .memory, .support, .community: return 0
         case let .chatHeader(section, _): return Int32(section)
         case .widePosts: return 9
@@ -476,6 +476,8 @@ public func nebulaSettingsController(context: AccountContext, page: Int = 0, sea
             .category(22, ru ? "Фильтр сообщений" : "Message filter", ru ? "Слова, фразы и исключения" : "Words, phrases and exceptions", "line.3.horizontal.decrease.circle"),
             .category(20, ru ? "Сообщения и медиа" : "Messages and media", ru ? "Отметки, пересылка и голосовые" : "Labels, forwarding and voice messages", "bubble.left.and.bubble.right"),
             .category(21, ru ? "Данные профиля" : "Profile information", ru ? "Номер и DC фотографии" : "Phone number and photo data center", "person.crop.circle"),
+            .category(27, ru ? "Панель папок" : "Folder panel", ru ? "Стекло, обычная или минимальная" : "Glass, solid or minimal", "rectangle.bottomthird.inset.filled"),
+            .category(28, ru ? "Расположение папок" : "Folder position", ru ? "Сверху или снизу" : "Top or bottom", "arrow.up.arrow.down"),
             .category(26, ru ? "Формат ID" : "ID format", "Telegram / Bot API", "number"),
             .category(25, ru ? "Синхронизация настроек" : "Settings sync", ru ? "Через Избранное между устройствами" : "Across devices via Saved Messages", "arrow.triangle.2.circlepath"),
             .category(19, ru ? "Браузер и блокировка рекламы" : "Browser and ad blocking", ru ? "Фильтры и исключения сайтов" : "Filters and excluded sites", "globe"),
@@ -641,6 +643,19 @@ public func nebulaSettingsController(context: AccountContext, page: Int = 0, sea
         }
         if index == 20 || index == 21 {
             controller.present(UINavigationController(rootViewController: NebulaMessageControlsController(context: context, profile: index == 21)), animated: true)
+            return
+        }
+        if index == 27 || index == 28 {
+            let data = context.sharedContext.currentPresentationData.with { $0 }
+            let ru = data.strings.baseLanguageCode.hasPrefix("ru")
+            let panel = index == 27
+            NebulaChoiceController.show(from: controller,
+                title: panel ? (ru ? "Панель папок" : "Folder panel") : (ru ? "Расположение папок" : "Folder position"),
+                choices: panel ? (ru ? ["Жидкое стекло", "Обычная", "Минимальная"] : ["Liquid Glass", "Solid", "Minimal"]) : (ru ? ["Сверху", "Снизу"] : ["Top", "Bottom"]),
+                selected: panel ? store.folderPanelStyle : (NebulaBehaviorPreferences.shared.folderTabsBottom ? 1 : 0), russian: ru, theme: data.theme) { value in
+                    if panel { do { try store.set(.integer(value), for: "folder_panel_style"); writeFailed.set(false) } catch { writeFailed.set(true) } }
+                    else { NebulaBehaviorPreferences.shared.setFolderTabsBottom(value == 1) }
+                }
             return
         }
         if index == 26 {

@@ -274,3 +274,12 @@
 - Main application Info.plist uses NebulaGram as CFBundleDisplayName. Build 84 was inspected and still had Telegram.
 - Related overlays add the nondestructive LocalAuthentication test and pull-to-refresh for both NebulaLink subscription surfaces, with busy and failure cleanup.
 - Local ordered-patch/contract/driver checks pass; macOS native/device builds and runtime acceptance are tracked separately in PARITY.md.
+
+
+## 0088 — actual home folder panel
+
+- `ChatListControllerNode` constructs the current `HorizontalTabsComponent`, not the older peer-picker container. Pass folder title/icon style, outline and glass/solid/minimal panel policy at this call site.
+- Optional bottom component uses the existing native tabs/actions; its measured height is reserved in chat-list insets above native bottom controls. Search, selection toolbar and inline-stack layouts retain header placement.
+- `ChatListController` obtains interpolation/reordered IDs from the visible component, avoiding stale top-tab ownership.
+- `HeaderPanelContainerComponent` and `HorizontalTabsComponent` accept optional presentation parameters with unchanged defaults elsewhere. Solid/minimal style reparents the native content/scroll view, retaining its gesture recognizers and hit tests.
+- Settings expose validated `folder_panel_style` and local `folder_tabs_bottom`; store/behavior tests cover persistence and bounds. Physical layout/rotation/reordering remains unverified.

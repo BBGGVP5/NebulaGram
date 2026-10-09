@@ -13,6 +13,8 @@ public final class NebulaBehaviorPreferences {
     /// Preserve iOS's native title until a user chooses the brand title.
     public var homeChatsTitle: Bool { defaults.object(forKey: "nebula.behavior.home_chats_title") as? Bool ?? true }
     public func setHomeChatsTitle(_ value: Bool) { defaults.set(value, forKey: "nebula.behavior.home_chats_title"); notify() }
+    public var folderTabsBottom: Bool { defaults.bool(forKey: "nebula.behavior.folder_tabs_bottom") }
+    public func setFolderTabsBottom(_ value: Bool) { defaults.set(value, forKey: "nebula.behavior.folder_tabs_bottom"); notify() }
     private func key(_ account: String, _ name: String) -> String { "nebula.behavior." + account + "." + name }
     public func enabled(_ name: String, account: String) -> Bool {
         defaults.object(forKey: key(account, name)) as? Bool ?? ["custom_chat_wallpaper", "notifications"].contains(name)

@@ -422,4 +422,14 @@ final class SettingsStoreTests: XCTestCase {
             XCTAssertNil(defaults.object(forKey: NebulaSettingsStore.storageKey))
         }
     }
+    func testFolderPanelStyleHasAValidatedNativeConsumerValue() throws {
+        try withDefaults { defaults in
+            let store = NebulaSettingsStore(defaults: defaults)
+            XCTAssertEqual(store.folderPanelStyle, 0)
+            try store.set(.integer(2), for: "folder_panel_style")
+            XCTAssertEqual(NebulaSettingsStore(defaults: defaults).folderPanelStyle, 2)
+            XCTAssertThrowsError(try store.set(.integer(3), for: "folder_panel_style"))
+            XCTAssertEqual(store.folderPanelStyle, 2)
+        }
+    }
 }

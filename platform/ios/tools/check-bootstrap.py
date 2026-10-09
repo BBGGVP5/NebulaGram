@@ -202,6 +202,15 @@ def main():
             assert 'refreshControl = UIRefreshControl()' in link_controller
             assert 'guard !busy else { refreshControl?.endRefreshing(); return }' in link_controller
             assert 'self.refreshControl?.endRefreshing()' in link_controller
+        home_layout = (temp / 'submodules/ChatListUI/Sources/ChatListControllerNode.swift').read_text(encoding='utf-8')
+        assert 'let styled = nebulaFolderTitle(' in home_layout
+        assert 'mainInsets.bottom += self.nebulaBottomFoldersHeight' in home_layout
+        assert 'self.toolbarData == nil && self.searchDisplayController == nil' in home_layout
+        assert 'nebulaPanelStyle: NebulaSettingsStore.shared.folderPanelStyle' in home_layout
+        home_controller = (temp / 'submodules/ChatListUI/Sources/ChatListController.swift').read_text(encoding='utf-8')
+        assert home_controller.count('.nebulaVisibleFolderTabs') == 2
+        modern_tabs = (temp / 'submodules/TelegramUI/Components/HorizontalTabsComponent/Sources/HorizontalTabsComponent.swift').read_text(encoding='utf-8')
+        assert 'self.scrollView.superview !== scrollParent' in modern_tabs and 'self.nebulaSelection.isUserInteractionEnabled = false' in modern_tabs
         filter_counts = (temp / 'submodules/ChatListUI/Sources/TabBarChatListFilterController.swift').read_text(encoding='utf-8')
         assert 'unmutedOnly ? unmutedUnreadCount : count' in filter_counts
         assert 'ActionDisposable { observation.cancel() }' in filter_counts

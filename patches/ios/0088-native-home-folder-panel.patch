@@ -1,0 +1,300 @@
+diff --git a/submodules/ChatListUI/Sources/ChatListController.swift b/submodules/ChatListUI/Sources/ChatListController.swift
+index 07e090d..82fe91f 100644
+--- a/submodules/ChatListUI/Sources/ChatListController.swift
++++ b/submodules/ChatListUI/Sources/ChatListController.swift
+@@ -779,7 +779,7 @@ public class ChatListControllerImpl: TelegramBaseController, ChatListController
+                     return
+                 }
+                 
+-                if let navigationBarView = strongSelf.chatListDisplayNode.navigationBarView.view as? ChatListNavigationBar.View, let headerPanelsView = navigationBarView.headerPanels as? HeaderPanelContainerComponent.View, let tabsView = headerPanelsView.tabs as? HorizontalTabsComponent.View {
++                if let tabsView = strongSelf.chatListDisplayNode.nebulaVisibleFolderTabs {
+                     tabsView.updateTabSwitchFraction(fraction: fraction, isDragging: strongSelf.chatListDisplayNode.mainContainerNode.isSwitchingCurrentItemFilterByDragging, transition: ComponentTransition(transition))
+                 }
+             }
+@@ -3674,7 +3674,7 @@ public class ChatListControllerImpl: TelegramBaseController, ChatListController
+         let _ = defaultFilterIds
+         
+         var reorderedFilterIdsValue: [Int32]?
+-        if let navigationBarView = self.chatListDisplayNode.navigationBarView.view as? ChatListNavigationBar.View, let headerPanelsView = navigationBarView.headerPanels as? HeaderPanelContainerComponent.View, let tabsView = headerPanelsView.tabs as? HorizontalTabsComponent.View, let reorderedItemIds = tabsView.reorderedItemIds {
++        if let tabsView = self.chatListDisplayNode.nebulaVisibleFolderTabs, let reorderedItemIds = tabsView.reorderedItemIds {
+             reorderedFilterIdsValue = reorderedItemIds.compactMap { item -> Int32? in
+                 guard let value = item.base as? Int32 else {
+                     return nil
+diff --git a/submodules/ChatListUI/Sources/ChatListControllerNode.swift b/submodules/ChatListUI/Sources/ChatListControllerNode.swift
+index 3efb129..002a061 100644
+--- a/submodules/ChatListUI/Sources/ChatListControllerNode.swift
++++ b/submodules/ChatListUI/Sources/ChatListControllerNode.swift
+@@ -1151,6 +1151,14 @@ final class ChatListControllerNode: ASDisplayNode, ASGestureRecognizerDelegate {
+     private var tapRecognizer: UITapGestureRecognizer?
+     var navigationBar: NavigationBar?
+     let navigationBarView = ComponentView<Empty>()
++    private let nebulaBottomFolders = ComponentView<Empty>()
++    private var nebulaBottomFoldersHeight: CGFloat = 0.0
++    var nebulaVisibleFolderTabs: HorizontalTabsComponent.View? {
++        if nebulaBottomFoldersHeight > 0, let host = nebulaBottomFolders.view as? HeaderPanelContainerComponent.View { return host.tabs as? HorizontalTabsComponent.View }
++        guard let navigation = navigationBarView.view as? ChatListNavigationBar.View,
++              let host = navigation.headerPanels as? HeaderPanelContainerComponent.View else { return nil }
++        return host.tabs as? HorizontalTabsComponent.View
++    }
+     weak var controller: ChatListControllerImpl?
+     
+     private var toolbar: ComponentView<Empty>?
+@@ -1524,6 +1532,10 @@ final class ChatListControllerNode: ASDisplayNode, ASGestureRecognizerDelegate {
+         }
+         
+         var navigationHeaderPanels: AnyComponent<Empty>?
++        var bottomFolderComponent: AnyComponent<Empty>?
++        let foldersAtBottom = NebulaBehaviorPreferences.shared.folderTabsBottom
++            && self.controller?.location == .chatList(groupId: .root)
++            && self.inlineStackContainerNode == nil && self.toolbarData == nil && self.searchDisplayController == nil
+         if self.controller?.tabContainerData != nil || !panels.isEmpty {
+             var tabs: AnyComponent<Empty>?
+             if let tabContainerData = self.controller?.tabContainerData, tabContainerData.0.count > 1 {
+@@ -1560,7 +1572,7 @@ final class ChatListControllerNode: ASDisplayNode, ASGestureRecognizerDelegate {
+                     theme: self.presentationData.theme,
+                     tabs: tabContainerData.0.map { entry -> HorizontalTabsComponent.Tab in
+                         let id: HorizontalTabsComponent.Tab.Id
+-                        let title: HorizontalTabsComponent.Tab.Title
++                        var title: HorizontalTabsComponent.Tab.Title
+                         var badge: HorizontalTabsComponent.Tab.Badge?
+                         var isMainTab = false
+                         switch entry {
+@@ -1579,6 +1591,8 @@ final class ChatListControllerNode: ASDisplayNode, ASGestureRecognizerDelegate {
+                             }
+                         }
+                         
++                        let styled = nebulaFolderTitle(ChatFolderTitle(text: title.text, entities: title.entities, enableAnimations: title.enableAnimations), style: NebulaSettingsStore.shared.folderStyle, isAllChats: isMainTab)
++                        title = HorizontalTabsComponent.Tab.Title(text: styled.text, entities: styled.entities, enableAnimations: styled.enableAnimations)
+                         return HorizontalTabsComponent.Tab(
+                             id: id,
+                             content: .title(title),
+@@ -1658,17 +1672,43 @@ final class ChatListControllerNode: ASDisplayNode, ASGestureRecognizerDelegate {
+                     },
+                     selectedTab: selectedTab,
+                     isEditing: isEditing,
+-                    liftWhileSwitching: layout.deviceMetrics.type != .tablet
++                    liftWhileSwitching: layout.deviceMetrics.type != .tablet && NebulaSettingsStore.shared.folderPanelStyle == 0,
++                    nebulaPanelStyle: NebulaSettingsStore.shared.folderPanelStyle,
++                    nebulaOutline: NebulaSettingsStore.shared.folderOutline
+                 ))
+             }
+                 
+-            navigationHeaderPanels = AnyComponent(HeaderPanelContainerComponent(
+-                theme: self.presentationData.theme,
+-                tabs: tabs,
+-                panels: panels
+-            ))
++            if foldersAtBottom, let tabs {
++                bottomFolderComponent = AnyComponent(HeaderPanelContainerComponent(theme: self.presentationData.theme,
++                    nebulaPanelStyle: NebulaSettingsStore.shared.folderPanelStyle, tabs: tabs, panels: []))
++            }
++            if !foldersAtBottom || !panels.isEmpty {
++                navigationHeaderPanels = AnyComponent(HeaderPanelContainerComponent(
++                    theme: self.presentationData.theme,
++                    nebulaPanelStyle: tabs != nil && panels.isEmpty ? NebulaSettingsStore.shared.folderPanelStyle : 0,
++                    tabs: foldersAtBottom ? nil : tabs,
++                    panels: panels
++                ))
++            }
+         }
+         
++        if let bottomFolderComponent {
++            let bottomSize = self.nebulaBottomFolders.update(transition: transition, component: bottomFolderComponent,
++                environment: {}, containerSize: CGSize(width: layout.size.width, height: 100.0))
++            self.nebulaBottomFoldersHeight = bottomSize.height + 8.0
++            if let bottomView = self.nebulaBottomFolders.view {
++                if bottomView.superview == nil { self.view.addSubview(bottomView) }
++                bottomView.isHidden = false
++                transition.setFrame(view: bottomView, frame: CGRect(x: 0.0,
++                    y: max(0, layout.size.height - max(8.0, layout.insets(options: [.input]).bottom) - self.nebulaBottomFoldersHeight),
++                    width: layout.size.width, height: bottomSize.height))
++                self.view.bringSubviewToFront(bottomView)
++            }
++        } else {
++            self.nebulaBottomFoldersHeight = 0.0
++            self.nebulaBottomFolders.view?.isHidden = true
++        }
++
+         var effectiveStorySubscriptions: EngineStorySubscriptions?
+         if let controller = self.controller, case .forum = controller.location {
+             effectiveStorySubscriptions = nil
+@@ -1968,6 +2008,7 @@ final class ChatListControllerNode: ASDisplayNode, ASGestureRecognizerDelegate {
+         var mainNavigationBarHeight = navigationBarHeight
+         var cleanMainNavigationBarHeight = cleanNavigationBarHeight
+         var mainInsets = insets
++        mainInsets.bottom += self.nebulaBottomFoldersHeight
+         if self.inlineStackContainerNode != nil && "".isEmpty {
+             mainNavigationBarHeight = visualNavigationHeight
+             cleanMainNavigationBarHeight = visualNavigationHeight
+diff --git a/submodules/TelegramUI/Components/ChatList/ChatListFilterTabContainerNode/Sources/ChatListFilterTabContainerNode.swift b/submodules/TelegramUI/Components/ChatList/ChatListFilterTabContainerNode/Sources/ChatListFilterTabContainerNode.swift
+index 2137c84..03daccc 100644
+--- a/submodules/TelegramUI/Components/ChatList/ChatListFilterTabContainerNode/Sources/ChatListFilterTabContainerNode.swift
++++ b/submodules/TelegramUI/Components/ChatList/ChatListFilterTabContainerNode/Sources/ChatListFilterTabContainerNode.swift
+@@ -11,7 +11,7 @@ import GlassBackgroundComponent
+ import ComponentFlow
+ import ComponentDisplayAdapters
+ 
+-private func nebulaFolderTitle(_ title: ChatFolderTitle, style: Int, isAllChats: Bool) -> ChatFolderTitle {
++public func nebulaFolderTitle(_ title: ChatFolderTitle, style: Int, isAllChats: Bool) -> ChatFolderTitle {
+     guard style == 1 || style == 2 else { return title }
+ 
+     var icon = isAllChats ? "💬" : "📁"
+diff --git a/submodules/TelegramUI/Components/HeaderPanelContainerComponent/Sources/HeaderPanelContainerComponent.swift b/submodules/TelegramUI/Components/HeaderPanelContainerComponent/Sources/HeaderPanelContainerComponent.swift
+index 4d60d6c..8d1c94c 100644
+--- a/submodules/TelegramUI/Components/HeaderPanelContainerComponent/Sources/HeaderPanelContainerComponent.swift
++++ b/submodules/TelegramUI/Components/HeaderPanelContainerComponent/Sources/HeaderPanelContainerComponent.swift
+@@ -36,6 +36,7 @@ public final class HeaderPanelContainerComponent: Component {
+     }
+     
+     public let theme: PresentationTheme
++    public let nebulaPanelStyle: Int
+     public let preferClearGlass: Bool
+     public let tabs: AnyComponent<Empty>?
+     public let panels: [Panel]
+@@ -43,9 +44,11 @@ public final class HeaderPanelContainerComponent: Component {
+     public init(
+         theme: PresentationTheme,
+         preferClearGlass: Bool = false,
++        nebulaPanelStyle: Int = 0,
+         tabs: AnyComponent<Empty>?,
+         panels: [Panel]
+     ) {
++        self.nebulaPanelStyle = nebulaPanelStyle
+         self.theme = theme
+         self.preferClearGlass = preferClearGlass
+         self.tabs = tabs
+@@ -53,6 +56,7 @@ public final class HeaderPanelContainerComponent: Component {
+     }
+     
+     public static func ==(lhs: HeaderPanelContainerComponent, rhs: HeaderPanelContainerComponent) -> Bool {
++        if lhs.nebulaPanelStyle != rhs.nebulaPanelStyle { return false }
+         if lhs.theme !== rhs.theme {
+             return false
+         }
+@@ -84,6 +88,7 @@ public final class HeaderPanelContainerComponent: Component {
+     public final class View: UIView {
+         private let backgroundContainer: GlassBackgroundContainerView
+         private let backgroundView: GlassBackgroundView
++        private let plainBackground = UIView()
+         private let contentContainer: UIView
+         
+         private var tabsView: ComponentView<Empty>?
+@@ -108,6 +113,7 @@ public final class HeaderPanelContainerComponent: Component {
+             
+             super.init(frame: frame)
+             
++            self.addSubview(self.plainBackground)
+             self.backgroundContainer.contentView.addSubview(self.backgroundView)
+             self.addSubview(self.backgroundContainer)
+             
+@@ -269,6 +275,14 @@ public final class HeaderPanelContainerComponent: Component {
+             
+             transition.setAlpha(view: self.backgroundContainer, alpha: (component.tabs != nil || !component.panels.isEmpty) ? 1.0 : 0.0)
+             
++            let plain = component.nebulaPanelStyle != 0
++            self.backgroundContainer.isHidden = plain
++            self.plainBackground.isHidden = !plain
++            self.plainBackground.backgroundColor = component.nebulaPanelStyle == 1 ? component.theme.list.itemBlocksBackgroundColor : .clear
++            self.plainBackground.layer.cornerRadius = cornerRadius
++            transition.setFrame(view: self.plainBackground, frame: CGRect(x: sideInset, y: 0.0, width: backgroundFrame.width, height: backgroundFrame.height))
++            let contentParent = plain ? self.plainBackground : self.backgroundView.contentView
++            if self.contentContainer.superview !== contentParent { contentParent.addSubview(self.contentContainer) }
+             transition.setFrame(view: self.contentContainer, frame: CGRect(origin: CGPoint(), size: backgroundFrame.size))
+             
+             transition.setCornerRadius(layer: self.contentContainer.layer, cornerRadius: min(cornerRadius, backgroundFrame.height * 0.5))
+diff --git a/submodules/TelegramUI/Components/HorizontalTabsComponent/Sources/HorizontalTabsComponent.swift b/submodules/TelegramUI/Components/HorizontalTabsComponent/Sources/HorizontalTabsComponent.swift
+index 1528573..cd96728 100644
+--- a/submodules/TelegramUI/Components/HorizontalTabsComponent/Sources/HorizontalTabsComponent.swift
++++ b/submodules/TelegramUI/Components/HorizontalTabsComponent/Sources/HorizontalTabsComponent.swift
+@@ -223,6 +223,8 @@ public final class HorizontalTabsComponent: Component {
+     public let selectedTab: Tab.Id?
+     public let isEditing: Bool
+     public let layout: Layout
++    public let nebulaPanelStyle: Int
++    public let nebulaOutline: Bool
+     public let liftWhileSwitching: Bool
+     
+     public init(
+@@ -232,7 +234,9 @@ public final class HorizontalTabsComponent: Component {
+         selectedTab: Tab.Id?,
+         isEditing: Bool,
+         layout: Layout = .fill,
+-        liftWhileSwitching: Bool = true
++        liftWhileSwitching: Bool = true,
++        nebulaPanelStyle: Int = 0,
++        nebulaOutline: Bool = false
+     ) {
+         self.context = context
+         self.theme = theme
+@@ -240,10 +244,13 @@ public final class HorizontalTabsComponent: Component {
+         self.selectedTab = selectedTab
+         self.isEditing = isEditing
+         self.layout = layout
++        self.nebulaPanelStyle = nebulaPanelStyle
++        self.nebulaOutline = nebulaOutline
+         self.liftWhileSwitching = liftWhileSwitching
+     }
+     
+     public static func ==(lhs: HorizontalTabsComponent, rhs: HorizontalTabsComponent) -> Bool {
++        if lhs.nebulaPanelStyle != rhs.nebulaPanelStyle || lhs.nebulaOutline != rhs.nebulaOutline { return false }
+         if lhs.theme !== rhs.theme {
+             return false
+         }
+@@ -296,6 +303,8 @@ public final class HorizontalTabsComponent: Component {
+     }
+     
+     public final class View: UIView, UIScrollViewDelegate, HeaderPanelContainerChildView {
++        private let plainContainer = UIView()
++        private let nebulaSelection = UIView()
+         private let lensView: LiquidLensView
+         private let scrollView: ScrollView
+         private let selectedScrollView: UIView
+@@ -351,7 +360,11 @@ public final class HorizontalTabsComponent: Component {
+                 return self.scrollView.contentOffset.x > .ulpOfOne
+             }
+             
++            self.addSubview(self.plainContainer)
++            self.plainContainer.clipsToBounds = true
+             self.addSubview(self.lensView)
++            self.addSubview(self.nebulaSelection)
++            self.nebulaSelection.isUserInteractionEnabled = false
+             
+             self.lensView.contentView.addSubview(self.scrollView)
+             self.lensView.selectedContentView.addSubview(self.selectedScrollView)
+@@ -591,6 +604,19 @@ public final class HorizontalTabsComponent: Component {
+             } else {
+                 isLifted = false
+             }
++            let style = component.nebulaPanelStyle
++            self.lensView.isHidden = style != 0
++            self.plainContainer.isHidden = style == 0
++            let scrollParent = style == 0 ? self.lensView.contentView : self.plainContainer
++            if self.scrollView.superview !== scrollParent { scrollParent.addSubview(self.scrollView) }
++            let selectionFrame = CGRect(x: 3.0 - self.scrollView.contentOffset.x + layoutData.selectedItemFrame.minX, y: 3.0,
++                width: layoutData.selectedItemFrame.width, height: layoutData.size.height - 6.0)
++            self.nebulaSelection.isHidden = style == 0 && !component.nebulaOutline
++            self.nebulaSelection.backgroundColor = style == 2 ? component.theme.list.itemAccentColor : style == 1 ? component.theme.list.itemAccentColor.withAlphaComponent(0.12) : .clear
++            self.nebulaSelection.layer.cornerRadius = style == 2 ? 1.5 : selectionFrame.height * 0.5
++            self.nebulaSelection.layer.borderWidth = component.nebulaOutline && style != 2 ? 1.0 : 0.0
++            self.nebulaSelection.layer.borderColor = component.theme.list.itemAccentColor.withAlphaComponent(0.4).cgColor
++            transition.setFrame(view: self.nebulaSelection, frame: style == 2 ? CGRect(x: selectionFrame.minX + 8.0, y: selectionFrame.maxY - 3.0, width: max(0, selectionFrame.width - 16.0), height: 3.0) : selectionFrame)
+             self.lensView.update(size: CGSize(width: layoutData.size.width - 3.0 * 2.0, height: layoutData.size.height - 3.0 * 2.0), selectionOrigin: CGPoint(x:  -self.scrollView.contentOffset.x + layoutData.selectedItemFrame.minX, y: 0.0), selectionSize: CGSize(width: layoutData.selectedItemFrame.width, height: layoutData.size.height - 3.0 * 2.0), inset: 0.0, liftedInset: 6.0, isDark: component.theme.overallDarkAppearance, isLifted: isLifted, transition: transition)
+             
+             transition.setPosition(view: self.selectedScrollView, position: CGRect(origin: CGPoint(x: 3.0, y: 0.0), size: CGSize(width: layoutData.size.width - 3.0 * 2.0, height: layoutData.size.height - 3.0 * 2.0)).center)
+@@ -693,7 +719,7 @@ public final class HorizontalTabsComponent: Component {
+                         context: component.context,
+                         theme: component.theme,
+                         tab: tab,
+-                        isSelected: false,
++                        isSelected: component.nebulaPanelStyle != 0 && tabId == component.selectedTab,
+                         editing: itemEditing
+                     )),
+                     environment: {},
+@@ -888,6 +914,7 @@ public final class HorizontalTabsComponent: Component {
+             self.selectedScrollView.layer.cornerRadius = (size.height - 3.0 * 2.0) * 0.5
+             
+             transition.setFrame(view: self.lensView, frame: CGRect(origin: CGPoint(x: 3.0, y: 3.0), size: CGSize(width: size.width - 3.0 * 2.0, height: size.height - 3.0 * 2.0)))
++            transition.setFrame(view: self.plainContainer, frame: CGRect(origin: CGPoint(x: 3.0, y: 3.0), size: CGSize(width: size.width - 6.0, height: size.height - 6.0)))
+             self.lensView.clipsToBounds = true
+             self.lensView.layer.cornerRadius = (size.height - 3.0 * 2.0) * 0.5
+             self.ignoreScrolling = false

@@ -10,6 +10,7 @@ This section supersedes older pending-source statements below. Source implementa
 |---|---|
 | Sticker time and channel forward count | `0086`: default/beside/hidden sticker timestamp; native forward-count metadata in broadcast-channel status. Delivery/reaction controls remain native. Reopen the chat to apply layout changes. |
 | Inline arithmetic | Bounded Decimal parser, no evaluation engine; drawing-only hint beside the final draft glyph when space permits. Plain phone/date/ID-like strings are excluded. |
+| Folder panel and position | `0088`: the actual home `HorizontalTabsComponent` now consumes title/icon style and selection outline. Glass / solid / minimal panels; optional bottom position with list insets reserved, native tab-switch fraction and reorder ownership retained. Header stays native while searching, selecting chats or showing an inline stack. |
 | Folder unmuted count | Native unmuted unread counter, refreshed on preference changes; folder membership, server filters and read state are unchanged. Native folder exclusion rules still apply. |
 | Ordered swipe actions | Reply / entity-preserving Copy / Nebula tools / Translate. Snapshot of configured order at gesture start, native horizontal recognition, vertical choice, execution only on release after the native threshold. Fresh message and native permissions are rechecked; protected text cannot be exported. |
 | Message menu | Semantic action visibility and compact rows with at least 44-point targets. Preview and real menu share policy. Edit/Delete/Select and unknown native actions stay reachable. Photos/Files are the native destinations; sharing remains within the native forward/share flow rather than separate Android destinations. |
@@ -96,8 +97,9 @@ Continuation `03a08a0` wires opt-in Saved Messages cloud settings sync with the 
 | `custom_avatar_corners` | appearance.general | Wired; native build passed; device QA pending | Local only |
 | `disable_next_channel` | chat.messages | Wired; native build passed; device QA pending | Yes |
 | `floating_chat_header_v2` | chat.header | Wired; native build passed; device QA pending | Yes |
-| `folder_outline` | navigation.folders | Wired; native build passed; device QA pending | Yes |
-| `folder_style` | navigation.folders | Wired for three native tab styles; native build passed; device QA pending | Yes |
+| `folder_outline` | navigation.folders | 0088 wires the current home component in addition to the legacy peer-picker component; current native build/device QA pending | Yes |
+| `folder_style` | navigation.folders | 0088 corrects the consumer on the current home tabs; earlier 0054 covered the legacy peer-picker tabs only. Current native build/device QA pending | Yes |
+| `folder_panel_style` | appearance.folders | 0088 glass/solid/minimal home panel; current native build/device QA pending | Local only |
 | `folder_title` | navigation.folders | Wired; native build passed; device QA pending | Yes |
 | `glass_blur` | appearance.glass | Wired to native material tiers; native build passed; device QA pending | Local only |
 | `glass_custom` | appearance.glass | Wired; native build passed; device QA pending | Local only |
@@ -229,3 +231,10 @@ Continuation `03a08a0` wires opt-in Saved Messages cloud settings sync with the 
 - Bottom actions remain standard by default. The optional Without Author button propagates hide-author options through the native recipient preview, Saved Messages delivery and both same-chat and other-chat drafts, retaining captions.
 - History menus place Go to beginning before retained-message cleanup. Settings introductions re-evaluate playback after layout and stop replaced decoders. The installed iOS build page uses the shared animated rocket header and opens release news; it does not offer Android APK installation.
 - Local patch/bootstrap and build-driver tests pass. Current macOS compilation and physical iPhone visual/gesture acceptance are still pending. Camera backends remain excluded.
+
+
+## 0088 audit correction: current home folder component
+
+The old 0054/0061 folder title/outline hooks were valid for `ChatListFilterTabContainerNode`, but Telegram 12.9.2 constructs **HorizontalTabsComponent** on the actual home screen. 0088 connects the existing preferences to that real constructor and adds a typed panel-style parameter (default unchanged for every unrelated caller). Solid/minimal panels reparent the same native scrolling view instead of duplicating gestures or actions. Bottom placement reserves content inset, uses the same filter selection/context actions, and routes both selection interpolation and reorder saving through the currently visible component. This finding corrects the older inventory's source-coverage claim; prior successful compilation did not establish that home-page consumer.
+
+All 78 shared catalog keys are now classified: 70 have editable native consumers; the other eight are `glass_refraction` (system optical effect), `ios_composer`, `ios_icons`, `ios_unread`, `message_menu_below`, `useSystemBoldFont`, `useSystemEmoji` (native iOS behavior), and Android `material_you`. `folder_tabs_bottom` is local, outside transfer v1. Runtime verification of the new panel remains part of the iPhone acceptance checklist.

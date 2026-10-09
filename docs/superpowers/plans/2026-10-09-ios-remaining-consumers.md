@@ -42,3 +42,5 @@ Self-review: This plan covers identified missing consumers rather than inferring
 - 7728305 + 169b4a7: five missing catalog consumers, arithmetic, ordered gestures, semantic menu controls and seek 25s. macOS bootstrap 37935705936 passed. Native 37935477697 targets 7728305.
 - 7d9c483: account notifications, home title, nondestructive authentication test, peer ID format/copy, NebulaLink pull-to-refresh and app display name. 87 patches / 155 native paths, shared contract and driver tests pass locally. Bootstrap 37937153272 and full IPA 37937153786 dispatched.
 - Platform differences explicitly recorded in PARITY.md. Camera scope remains excluded. Final artifact verification is pending; source completion is not physical acceptance.
+
+- Deepened consumer audit found the old folder title/outline hooks only in the legacy peer-picker container. 0088 connects the actual home HorizontalTabsComponent, adds validated glass/solid/minimal panel style and local bottom placement with reserved insets and current-view reorder/selection forwarding. Source guards and persistence tests added; final macOS compilation still required.
