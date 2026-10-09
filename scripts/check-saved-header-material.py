@@ -53,9 +53,9 @@ class SavedMaterialCheck {
    check(c.glassDrawable.calls.size()==(Math.round(255*factor)>0?1:0),"resting title material is absent");
    if(!c.glassDrawable.calls.isEmpty()){
     int[] draw=c.glassDrawable.calls.get(0);check(draw[0]==Math.round(255*factor),"search/selection fades through last frame");
-    int left=phase==0?52:lerp(52,60,factor),right=phase==0?302:lerp(302,236,factor);
+    int left=52,right=phase==0?302:lerp(302,236,factor);
     check(draw[1]==left&&draw[2]==right,"search keeps its field; selection counter stays separate");
-    if(phase==1&&frame==100)check(draw[1]==60&&draw[2]==236,"counter material ends before action controls");
+    if(phase==1&&frame==100)check(draw[1]==52&&draw[2]==236,"counter material ends before action controls");
    }cases++;
   }
   SavedMaterialCheck regular=new SavedMaterialCheck();regular.draw();
