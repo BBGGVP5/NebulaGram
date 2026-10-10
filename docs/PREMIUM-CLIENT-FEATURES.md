@@ -35,7 +35,7 @@ Updated 2026-10-10. NebulaGram adds client tools; it does not mark the account a
 ## Evidence
 
 - Java production request/response and HTTPS fixture transport: 42 assertions; local label metadata: 20 assertions. Existing AI protocols/services and 78-setting checks pass.
-- macOS bootstrap at e7503f6 passed the original audio batch, including five new audio protocol/preferences XCTest cases (140 total). Local Saved label XCTest cases and native menu hooks are added afterward; latest native builds and artifact evidence are recorded in the implementation plan.
+- Final macOS bootstrap 38000181948 passed **143 XCTest cases**. Android run 38000181843 and full iOS IPA run 38000183038 succeeded at **028a35d**. Verified deliveries: APK 1000469 and iOS IPA 90; exact hashes, archive provenance and device limitations are recorded in [the implementation plan](superpowers/plans/2026-10-10-premium-client-and-audio.md).
 - Physical rendering, live service model/key access, audio quality and native sharing acceptance remain pending until tested on actual devices. No generated paid API request was made from developer credentials.
 
 ## Primary references

@@ -2,6 +2,13 @@
 
 This inventory distinguishes **wired source** from native build and device acceptance. A setting with a validated import format is not necessarily functional on iOS.
 
+## October 10: audio and local Saved labels
+
+- Independent OpenAI/Gemini transcription service/model choice, original transcript plus translation/summary/speech actions, and natural speech generation with voice/style/pace choices. Installed device voices are selected separately and prioritize available enhanced quality. Text is sent explicitly; generated cloud WAV can be previewed and shared with the native activity sheet. These are Nebula client tools, not granted Telegram Premium server privileges.
+- Local Saved Messages labels are real-user-ID scoped, bounded, renameable/removable and searchable. The native context menu assigns labels; the browser uses native message-ID navigation. Only label names/message IDs are stored, outside settings transfer; no text/media snapshot or fabricated cloud reactions.
+- Full runtime **028a35d**: bootstrap **38000181948** passed **143 XCTest cases**; full arm64 device IPA **38000183038** succeeded. Independently inspected **build 90** has app.nebulagram, NebulaGram display name and one notification extension. Original CI SHA-256 `2adab655d0ddd566c55d48eb7dd683e41ea97674cd3df7c11f74f5dbddaee4a8` matches the manifest; no local archive rewrite. **90 patches / 157 native paths**, 43 mirrored contract sources.
+- User signing, live provider access/voice quality, physical playback/sharing and rendered UI acceptance remain unverified. Android phone was unavailable by the user's response. [Feature inventory](../../docs/PREMIUM-CLIENT-FEATURES.md), [implementation and exact artifact evidence](../../docs/superpowers/plans/2026-10-10-premium-client-and-audio.md).
+
 ## October 9: remaining non-camera consumers
 
 This section supersedes older pending-source statements below. Source implementation and tests do **not** establish physical iPhone acceptance. Plan: [remaining consumers](../../docs/superpowers/plans/2026-10-09-ios-remaining-consumers.md).
