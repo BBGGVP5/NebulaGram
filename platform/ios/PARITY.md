@@ -2,6 +2,14 @@
 
 This inventory distinguishes **wired source** from native build and device acceptance. A setting with a validated import format is not necessarily functional on iOS.
 
+## October 10: audio setup correction
+
+The audio screen now exposes an independent transcription switch, direct Add OpenAI/Add Gemini entries even with an empty saved-service list, and a scoped save callback selecting the new audio profile without changing the text-chat provider. Legacy text-AI menu visibility is respected until an explicit audio choice is made. The actual full native build found a missing Display import and a String.isEmpty call; source **9710eae** fixes both.
+
+Bootstrap **38034905748** passed **144 XCTest cases**; full arm64 device IPA **38034906505** passed at 9710eae. Independently checked unmodified CI **build 92**: app.nebulagram, NebulaGram display name, arm64 device app/extension and one Notification Service Extension; **87,980,254 bytes**, SHA-256 `f07dbcc8694e7725a4b38c8e2661a2fa72ee84e18f44c108e228ac7060d61149` matches its manifest. The failed 38030936135 run is superseded. User signing and physical-device acceptance remain required.
+
+Android-specific Gemini Nano/ML Kit Speech Recognition was added afterward. iOS/patch/core/bind/runtime inputs are unchanged through **d3a475c**, so this IPA covers the current iOS runtime but does not claim Nano support on Apple devices. Android also corrects custom settings-row long-press ownership and restores its chat back/avatar material surfaces. [Correction plan](../../docs/superpowers/plans/2026-10-10-audio-settings-and-header-fixes.md), [Nano plan](../../docs/superpowers/plans/2026-10-10-nano-recording-transcription.md).
+
 ## October 10: audio and local Saved labels
 
 - Independent OpenAI/Gemini transcription service/model choice, original transcript plus translation/summary/speech actions, and natural speech generation with voice/style/pace choices. Installed device voices are selected separately and prioritize available enhanced quality. Text is sent explicitly; generated cloud WAV can be previewed and shared with the native activity sheet. These are Nebula client tools, not granted Telegram Premium server privileges.
