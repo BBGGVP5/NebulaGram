@@ -43,7 +43,7 @@ extension ChatControllerImpl {
             if action == .translate {
                 controller = NebulaAiEditorController(source: source, russian: russian, theme: self.presentationData.theme, account: String(self.context.account.peerId.toInt64()), peer: String(id.peerId.toInt64()))
             } else {
-                controller = NebulaMessageToolsController(text: message.text, russian: russian, theme: self.presentationData.theme, accountId: String(self.context.account.peerId.toInt64()), peerId: String(id.peerId.toInt64()), attributedSource: source)
+                controller = NebulaMessageToolsController(text: message.text, russian: russian, theme: self.presentationData.theme, accountId: String(self.context.account.peerId.toInt64()), peerId: String(id.peerId.toInt64()), attributedSource: source, context: self.context)
             }
             self.navigationController?.present(NebulaToolsNavigationController(root: controller), animated: true)
         })

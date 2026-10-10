@@ -6,7 +6,9 @@ This inventory distinguishes **wired source** from native build and device accep
 
 Apple on-device transcription is now an explicit service in Audio & voices, with persisted recording language and permission/model availability. The downloaded OGG/MP4 recording uses Telegram's existing local software decoder; bounded sequential recognition handles up to 14 MB / 10 minutes without an implicit cloud fallback. Translation, summary and speech receive only the completed transcript. The eligible menu also includes normal video audio, matching Android. This is Apple's native analogue; Google's Nano/AICore remains Android-only. Camera capture/encoders/phone preview remain excluded.
 
-Source and ordered integration checks are being validated; native compilation and physical iPhone/offline audio acceptance for this addition are pending. The earlier verified IPA 92 below excludes this new runtime. Plan: [remaining local audio](../../docs/superpowers/plans/2026-10-10-ios-local-recording-transcription.md).
+An additional source audit found that the shared Telegram emoji renderer still used one-shot playback. It now loops while visible/foregrounded, retains Reduce Motion pausing and rewind on return. Message tools now pass AccountContext into Speech/Tasks from the native menu and swipe entry; those destinations previously used the static fallback. Shared header sizes/spacing are retained.
+
+148 XCTest cases and real SDK checks for Speech and CoreMedia/AVFoundation adapters passed at b1c34b4 in **38049746389**. The follow-up emoji/context runtime still requires native compilation and physical iPhone/offline audio acceptance. The earlier verified IPA 92 below excludes these additions. Plan: [remaining local audio and animation](../../docs/superpowers/plans/2026-10-10-ios-local-recording-transcription.md).
 
 ## October 10: audio setup correction
 

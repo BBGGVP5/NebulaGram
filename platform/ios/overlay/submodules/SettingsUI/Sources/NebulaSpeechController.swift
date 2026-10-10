@@ -1,11 +1,13 @@
 import UIKit
 import AVFoundation
+import AccountContext
 import NebulaSettingsContract
 import TelegramPresentationData
 
 @available(iOS 15.0, *)
 final class NebulaSpeechController: UITableViewController, UITextViewDelegate {
     private let ru: Bool, theme: PresentationTheme?
+    private let context: AccountContext?
     private var language: String
     private let source: String
     private let input = UITextView()
@@ -14,9 +16,9 @@ final class NebulaSpeechController: UITableViewController, UITextViewDelegate {
     private var ownsAudioSession = false
     private var task: Task<Void, Never>?, generation = 0, busy = false, visible = false
     private var status = "", audio: URL?, audioText = ""
-    private lazy var hero = NebulaSettingsHero(symbol: "🔊", title: text("Озвучивание", "Speech"), summary: text("Выберите голос и послушайте результат", "Choose a voice and listen to the result"), theme: theme)
-    init(text: String, language: String, russian: Bool, theme: PresentationTheme?) {
-        self.source = text; self.language = language; self.ru = russian; self.theme = theme
+    private lazy var hero = NebulaSettingsHero(symbol: "🔊", title: text("Озвучивание", "Speech"), summary: text("Выберите голос и послушайте результат", "Choose a voice and listen to the result"), context: context, theme: theme)
+    init(text: String, language: String, russian: Bool, theme: PresentationTheme?, context: AccountContext? = nil) {
+        self.source = text; self.language = language; self.ru = russian; self.theme = theme; self.context = context
         super.init(style: .insetGrouped); title = self.text("Озвучивание", "Speech")
     }
     required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }

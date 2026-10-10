@@ -1,11 +1,13 @@
 import UIKit
 import Display
+import AccountContext
 import NebulaSettingsContract
 import AVFoundation
 import TelegramPresentationData
 
 public final class NebulaMessageToolsController: UIViewController {
     private let russian: Bool
+    private let context: AccountContext?
     private let theme: PresentationTheme
     private let source: String
     private let attributedSource: NSAttributedString
@@ -21,7 +23,8 @@ public final class NebulaMessageToolsController: UIViewController {
     private let outgoingSwitch = NebulaSwitchControl()
     private let draftSwitch = NebulaSwitchControl()
 
-    public init(text: String, russian: Bool, theme: PresentationTheme, accountId: String, peerId: String? = nil, applyDraft: ((String) -> Void)? = nil, attributedSource: NSAttributedString? = nil) {
+    public init(text: String, russian: Bool, theme: PresentationTheme, accountId: String, peerId: String? = nil, applyDraft: ((String) -> Void)? = nil, attributedSource: NSAttributedString? = nil, context: AccountContext? = nil) {
+        self.context = context
         self.source = String(text.prefix(50_000))
         self.attributedSource = attributedSource ?? NSAttributedString(string: String(text.prefix(50_000)))
         self.russian = russian
@@ -189,12 +192,12 @@ public final class NebulaMessageToolsController: UIViewController {
         switch sender.tag {
         case 3:
             if #available(iOS 15.0, *) {
-                navigationController?.pushViewController(NebulaSpeechController(text: result.isEmpty ? source : result, language: result.isEmpty ? (russian ? "ru" : "en") : language, russian: russian, theme: theme), animated: true)
+                navigationController?.pushViewController(NebulaSpeechController(text: result.isEmpty ? source : result, language: result.isEmpty ? (russian ? "ru" : "en") : language, russian: russian, theme: theme, context: context), animated: true)
             } else {
                 let utterance = AVSpeechUtterance(string: result.isEmpty ? source : result); utterance.voice = AVSpeechSynthesisVoice(language: language); speech.speak(utterance)
             }
         case 4:
-            navigationController?.pushViewController(NebulaTasksController(accountId: accountId, russian: russian, theme: theme, draft: result.isEmpty ? source : result), animated: true)
+            navigationController?.pushViewController(NebulaTasksController(accountId: accountId, russian: russian, theme: theme, draft: result.isEmpty ? source : result, context: context), animated: true)
         default:
             let action: NebulaAiAction = sender.tag == 1 ? .translate : sender.tag == 2 ? .summarize : sender.tag == 5 ? .proofread : .ask
             if action == .translate || action == .proofread || action == .rewrite {

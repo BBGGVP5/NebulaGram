@@ -1,0 +1,12 @@
+diff --git a/submodules/TelegramUI/Sources/ChatInterfaceStateContextMenus.swift b/submodules/TelegramUI/Sources/ChatInterfaceStateContextMenus.swift
+--- a/submodules/TelegramUI/Sources/ChatInterfaceStateContextMenus.swift
++++ b/submodules/TelegramUI/Sources/ChatInterfaceStateContextMenus.swift
+@@ -1514,7 +1514,7 @@
+                         return generateTintedImage(image: UIImage(bundleImageName: "Chat/Context Menu/Translate"), color: theme.actionSheet.primaryTextColor)
+                     }, action: { c, f in
+                         c?.dismiss(completion: {
+-                            controllerInteraction.navigationController()?.present(NebulaToolsNavigationController(root: NebulaMessageToolsController(text: selectedText, russian: russian, theme: chatPresentationInterfaceState.theme, accountId: String(context.account.peerId.toInt64()), peerId: String(message.id.peerId.toInt64()), attributedSource: attributedSource)), animated: true)
++                            controllerInteraction.navigationController()?.present(NebulaToolsNavigationController(root: NebulaMessageToolsController(text: selectedText, russian: russian, theme: chatPresentationInterfaceState.theme, accountId: String(context.account.peerId.toInt64()), peerId: String(message.id.peerId.toInt64()), attributedSource: attributedSource, context: context)), animated: true)
+                         })
+                         if c == nil { f(.default) }
+                     })))

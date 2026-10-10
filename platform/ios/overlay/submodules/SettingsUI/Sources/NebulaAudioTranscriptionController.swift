@@ -73,7 +73,7 @@ public final class NebulaAudioTranscriptionController: UITableViewController {
             case 2:
                 let editor = NebulaAiEditorController(source: NSAttributedString(string: transcript), russian: ru, theme: theme, account: String(context.account.peerId.toInt64()), peer: String(message.id.peerId.toInt64()), action: .translate, resultLanguage: language, apply: { [weak self] value in self?.translated = value.string; self?.tableView.reloadData() })
                 navigationController?.pushViewController(editor, animated: true)
-            case 3: navigationController?.pushViewController(NebulaSpeechController(text: translated.isEmpty ? transcript : translated, language: translated.isEmpty ? transcriptLanguage : language, russian: ru, theme: theme), animated: true)
+            case 3: navigationController?.pushViewController(NebulaSpeechController(text: translated.isEmpty ? transcript : translated, language: translated.isEmpty ? transcriptLanguage : language, russian: ru, theme: theme, context: context), animated: true)
             case 4: NebulaResultLanguage.show(from: self, selected: language, russian: ru, theme: theme) { [weak self] code in self?.language = code; self?.tableView.reloadData() }
             case 5: translated = ""; tableView.reloadData()
             case 6: navigationController?.pushViewController(NebulaAiChatController(russian: ru, initialText: transcript, action: .summarize, applyResult: { [weak self] value in self?.translated = value; self?.tableView.reloadData() }, theme: theme, resultLanguage: language, applyTitle: text("Использовать результат", "Use result"), account: String(context.account.peerId.toInt64()), peer: String(message.id.peerId.toInt64())), animated: true)

@@ -60,7 +60,7 @@ final class NebulaAnimatedSettingsEmoji: UIView {
         sticker = node; insertSubview(node.view, belowSubview: fallback)
         let path = context.engine.resources.shortLivedResourceCachePathPrefix(id: EngineMediaResource.Id(file.resource.id))
         node.setup(source: AnimatedStickerResourceSource(account: context.account, resource: file.resource, isVideo: file.isVideoSticker),
-            width: Int(88 * UIScreen.main.scale), height: Int(88 * UIScreen.main.scale), playbackMode: .once, mode: .direct(cachePathPrefix: path))
+            width: Int(88 * UIScreen.main.scale), height: Int(88 * UIScreen.main.scale), playbackMode: .loop, mode: .direct(cachePathPrefix: path))
         fetch.set(context.engine.resources.fetch(reference: .media(media: .standalone(media: file), resource: file.resource), userLocation: .other, userContentType: .other).start())
         active = false; rewind = true; setNeedsLayout(); updatePlayback()
     }
