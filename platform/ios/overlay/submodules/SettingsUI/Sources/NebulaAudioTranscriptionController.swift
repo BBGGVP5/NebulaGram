@@ -25,7 +25,7 @@ public final class NebulaAudioTranscriptionController: UITableViewController {
         super.viewDidLoad(); NebulaSettingsStyle.apply(theme: theme, to: self)
         tableView.rowHeight = UITableView.automaticDimension; tableView.estimatedRowHeight = 64
         navigationItem.leftBarButtonItem = UIBarButtonItem(barButtonSystemItem: .close, target: self, action: #selector(close))
-        NotificationCenter.default.addObserver(self, selector: #selector(cancel), name: UIApplication.willResignActiveNotification, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(cancel), name: UIApplication.didEnterBackgroundNotification, object: nil)
     }
     public override func viewDidLayoutSubviews() { super.viewDidLayoutSubviews(); hero.fit(in: tableView) }
     public override func viewWillAppear(_ animated: Bool) { super.viewWillAppear(animated); hero.setPageVisible(true) }
@@ -37,6 +37,9 @@ public final class NebulaAudioTranscriptionController: UITableViewController {
         let settings = NebulaAudioPreferences.shared
         settings.migrate(services: NebulaAiSettings.shared.services)
         let service = settings.connection(speech: false, services: NebulaAiSettings.shared.services)
+        if settings.localTranscription {
+            return text("Apple распознаёт запись на устройстве. До 14 МБ и 10 минут. Язык записи: ", "Apple transcribes this recording on device. Up to 14 MB and 10 minutes. Recording language: ") + settings.transcriptionLocale + "\n" + NebulaLocalTranscription.availability(locale: settings.transcriptionLocale, russian: ru) + (status.isEmpty ? "" : "\n\n" + status)
+        }
         return text("По нажатию запись отправится выбранному сервису для распознавания. Максимум 14 МБ. Исходное сообщение не изменится.", "Tapping sends this recording to the selected service for transcription. Maximum 14 MB. The original message stays unchanged.") + (service.map { "\n" + $0.name + " · " + settings.model(speech: false, connection: $0) } ?? text("\nВыберите сервис в «ИИ → Аудио и голоса»", "\nChoose a service in AI → Audio & voices")) + (status.isEmpty ? "" : "\n\n" + status)
 
     }
@@ -79,25 +82,47 @@ public final class NebulaAudioTranscriptionController: UITableViewController {
     }
     private func start() {
         guard !message.containsSecretMedia, !message.isCopyProtected(), message.id.peerId.namespace != Namespaces.Peer.SecretChat,
-              file.isVoice || file.isInstantVideo, let size = file.size, size > 0, size <= Int64(NebulaAudioTranscription.maximumBytes) else { report(text("Эту запись нельзя расшифровать", "This recording cannot be transcribed")); return }
+              file.isVoice || file.isInstantVideo || file.isVideo, let size = file.size, size > 0, size <= Int64(NebulaAudioTranscription.maximumBytes) else { report(text("Эту запись нельзя расшифровать", "This recording cannot be transcribed")); return }
         do {
-            let service = try NebulaAudioService()
+            let local = NebulaAudioPreferences.shared.localTranscription, locale = NebulaAudioPreferences.shared.transcriptionLocale
+            let service = local ? nil : try NebulaAudioService()
             generation += 1; let token = generation; busy = true; status = text("Загружаем запись…", "Downloading recording…"); tableView.reloadData()
             deadline = Foundation.Timer.scheduledTimer(withTimeInterval: 180, repeats: false) { [weak self] _ in guard let self, self.generation == token else { return }; self.cancel(); self.report(self.text("Время ожидания истекло. Попробуйте ещё раз.", "Request timed out. Please try again.")) }
             let reference = MediaReference<TelegramMediaFile>.message(message: MessageReference(message), media: file)
             fetch.set(context.engine.resources.fetch(reference: reference.resourceReference(file.resource), userLocation: .peer(message.id.peerId), userContentType: .other).start())
             data.set((context.account.postbox.mediaBox.resourceData(file.resource) |> filter { $0.complete } |> take(1) |> deliverOnMainQueue).start(next: { [weak self] resource in
                 guard let self, self.generation == token, self.busy else { return }
+                if local {
+                    self.deadline?.invalidate()
+                    self.deadline = Foundation.Timer.scheduledTimer(withTimeInterval: 1200, repeats: false) { [weak self] _ in guard let self, self.generation == token else { return }; self.cancel(); self.report(self.text("Время ожидания истекло", "Request timed out")) }
+                }
                 self.status = self.text("Распознаём речь…", "Transcribing…"); self.tableView.reloadData()
                 self.task = Task { @MainActor [weak self] in
                     guard let self else { return }
                     do {
-                        let result = try await service.transcribe(file: URL(fileURLWithPath: resource.path), mime: self.file.mimeType)
+                        let result: String
+                        if local {
+                            try await NebulaLocalTranscription.authorize()
+                            try Task.checkCancellation(); guard self.generation == token else { return }
+                            try NebulaLocalTranscription.requireAvailable(locale: locale)
+                            let directory = FileManager.default.temporaryDirectory.appendingPathComponent("nebula-transcript-\(UUID().uuidString)", isDirectory: true)
+                            try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true, attributes: [.posixPermissions: 0o700, .protectionKey: FileProtectionType.complete])
+                            defer { try? FileManager.default.removeItem(at: directory) }
+                            let pcm = directory.appendingPathComponent("recording.caf")
+                            self.status = self.text("Готовим запись на устройстве…", "Preparing recording on device…"); self.tableView.reloadData()
+                            try await NebulaRecordingPCM.decode(source: URL(fileURLWithPath: resource.path), destination: pcm, expectedDuration: self.file.duration)
+                            result = try await NebulaLocalTranscription.transcribe(pcm: pcm, directory: directory, locale: locale) { [weak self] value in
+                                guard let self, self.generation == token, self.busy else { return }
+                                self.status = self.text("Распознаём на устройстве…", "Transcribing on device…") + (value.isEmpty ? "" : "\n" + String(value.suffix(2000))); self.tableView.reloadData()
+                            }
+                        } else if let service {
+                            result = try await service.transcribe(file: URL(fileURLWithPath: resource.path), mime: self.file.mimeType)
+                        } else { throw NebulaLocalAudioPolicy.Failure.incomplete }
                         try Task.checkCancellation(); guard self.generation == token else { return }
                         self.transcript = result; self.translated = ""; self.finish(); self.status = self.text("Готово", "Done"); self.tableView.reloadData()
                     } catch {
                         guard self.generation == token, !Task.isCancelled else { return }
-                        self.finish(); self.report(NebulaAiService.message(for: error, russian: self.ru))
+                        self.finish(); self.report(local ? NebulaLocalTranscription.message(for: error, russian: self.ru) : NebulaAiService.message(for: error, russian: self.ru))
                     }
                 }
             }))

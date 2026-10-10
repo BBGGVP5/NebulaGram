@@ -2,6 +2,12 @@
 
 This inventory distinguishes **wired source** from native build and device acceptance. A setting with a validated import format is not necessarily functional on iOS.
 
+## October 10: final portable audio gap
+
+Apple on-device transcription is now an explicit service in Audio & voices, with persisted recording language and permission/model availability. The downloaded OGG/MP4 recording uses Telegram's existing local software decoder; bounded sequential recognition handles up to 14 MB / 10 minutes without an implicit cloud fallback. Translation, summary and speech receive only the completed transcript. The eligible menu also includes normal video audio, matching Android. This is Apple's native analogue; Google's Nano/AICore remains Android-only. Camera capture/encoders/phone preview remain excluded.
+
+Source and ordered integration checks are being validated; native compilation and physical iPhone/offline audio acceptance for this addition are pending. The earlier verified IPA 92 below excludes this new runtime. Plan: [remaining local audio](../../docs/superpowers/plans/2026-10-10-ios-local-recording-transcription.md).
+
 ## October 10: audio setup correction
 
 The audio screen now exposes an independent transcription switch, direct Add OpenAI/Add Gemini entries even with an empty saved-service list, and a scoped save callback selecting the new audio profile without changing the text-chat provider. Legacy text-AI menu visibility is respected until an explicit audio choice is made. The actual full native build found a missing Display import and a String.isEmpty call; source **9710eae** fixes both.

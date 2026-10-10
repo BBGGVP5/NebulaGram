@@ -1,0 +1,48 @@
+# iOS local recording transcription implementation plan
+
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+
+**Goal:** Complete the remaining portable audio gap with explicitly selected Apple on-device transcription of existing Telegram voice notes and round videos.
+
+**Architecture:** Preserve the existing recording menu, transcription switch, cloud service choices and result tools. Use Telegram's existing software decoder for OGG/MP4, bounded private PCM, and sequential file recognition requests with `supportsOnDeviceRecognition` checked and `requiresOnDeviceRecognition = true`. No implicit cloud fallback, Google Nano label, microphone recording or camera port. Available languages and permission belong to Apple Speech; only complete results become transcript actions.
+
+**Tech Stack:** Swift 5, UIKit, Speech, AVFoundation/CoreMedia, UniversalMediaPlayer, Foundation contract/XCTest, ordered Bazel plist patch.
+
+---
+
+The writing-plans skill was applied earlier in this task. Execution continues inline: its optional execution plugins are not installed. The previously audited shared catalog and non-camera consumers are already compiled in IPA 92. This plan addresses the confirmed new Android audio capability's native iOS analogue, not historical superseded inventory entries.
+
+## Task 1: Explicit local choice and bounded policy
+
+Files: `platform/ios/NebulaSettingsContract/Sources/NebulaSettingsContract/NebulaAudioPreferences.swift`, new `NebulaLocalAudioPolicy.swift`, new `Tests/NebulaSettingsContractTests/NebulaLocalAudioPolicyTests.swift`.
+
+- [ ] Add persisted `apple-device` transcription choice and validated locale independently of speech/text services. Never resolve this ID to a cloud connection. Test reopening and unchanged speech/text choices.
+- [ ] Test and implement integer frame ranges at 48 kHz: maximum 600 seconds, chunks of 55 seconds, exact contiguous coverage with a bounded final remainder. Reject zero, negative and excessive duration. Example assertion: `XCTAssertEqual(try NebulaLocalAudioPolicy.ranges(frameCount: 2_640_001).map(\.count), [2_640_000, 1])`.
+- [ ] Enforce complete transcript aggregation with a 100,000 UTF-16 limit and reject empty/incomplete recognition. Keep transient partial text separate from completed output.
+
+## Task 2: Actual local recognition
+
+Files: new `platform/ios/overlay/submodules/SettingsUI/Sources/NebulaLocalTranscription.swift`, new `NebulaRecordingPCM.swift`.
+
+- [ ] Decode the downloaded recording off the main queue using `SoftwareAudioSource.readSampleBuffer()`. Its native decoder emits mono 48 kHz PCM16. Validate the actual format and input size; write private CAF under a UUID directory, bounded to 600 seconds. Check cancellation and a 120-second decode deadline; reject implausibly incomplete duration. Delete the directory on every outcome.
+- [ ] Request Speech authorization only after explicit Transcribe. Separate denial, unavailable local locale, invalid recording, no speech and timeout errors. Show safe RU/EN messages without raw recording paths/provider diagnostics.
+- [ ] Use sequential <=55-second CAF requests. Before each request require a recognizer with `supportsOnDeviceRecognition == true`; set `requiresOnDeviceRecognition = true`, `shouldReportPartialResults = true`. Each request has a 90-second deadline, a single terminal callback, main-queue cancellation and task cleanup. Publish aggregate output only after every chunk finalizes; empty silence chunks may finish, but an entirely empty result is an error.
+- [ ] Add an SDK typecheck of the real Speech adapter in bootstrap (native decoder is checked in the real SettingsUI graph). Use a small fake request driver to exercise final/error/deadline/cancellation ownership if its API can be factored without mirroring implementation.
+
+## Task 3: Settings, recording screen, permission packaging
+
+Files: `NebulaAudioSettingsController.swift`, `NebulaAudioTranscriptionController.swift`, new `patches/ios/0092-local-speech-permission.patch`, `patches/ios/HOOKS.md`.
+
+- [ ] Include `Apple · on device` beside Not selected/OpenAI/Gemini. Local row chooses among `SFSpeechRecognizer.supportedLocales()` with clear local availability, and displays recognition permission/status. Selecting does not prompt or send audio. Enable the existing switch after explicit service selection.
+- [ ] Capture local/cloud mode and locale at start. Download through the existing native MediaBox flow, then invoke the selected decoder/recognizer. Local mode shows progress and partial text as status only; protected/secret/expired recordings remain ineligible. Cancel on background/disappear and prevent stale callbacks.
+- [ ] Distinguish the local footer from cloud upload disclosure; result translation, summary and speech continue to use separately selected tools. No change to the source recording.
+- [ ] Add `NSSpeechRecognitionUsageDescription` to the actual Bazel `Telegram/BUILD` main plist and Xcode main plist. Explain existing selected recordings and on-device-only use. Verify ordered application rather than editing the vendor checkout.
+
+## Task 4: Compile, artifact and inventory
+
+- [ ] Generate contract mirrors; run ordered bootstrap, 78-setting checker and native/IPA driver tests locally. macOS bootstrap must execute new XCTest policy/persistence assertions and typecheck Speech against the pinned SDK.
+- [ ] Commit intended overlay/patch/contract/plan files only, push the authorized branches and dispatch full iOS IPA/native integration. Diagnose actual compiler errors before reporting success. Keep Android/vendored/unrelated files untouched.
+- [ ] Inspect the successful original IPA for source revision, bundle, display name, permission key, arm64 app/extension and digest. Record build status accurately in `platform/ios/PARITY.md` and `docs/PREMIUM-CLIENT-FEATURES.md`.
+- [ ] Keep physical acceptance pending: offline OGG/round-video recognition, Russian/English local model readiness, >=1-minute recordings, silence, Stop/background/reopen, denial, unavailable locale and protected recordings. No iPhone or simulator runtime is currently available.
+
+Primary Apple references: [local-only requirement](https://developer.apple.com/documentation/speech/sfspeechrecognitionrequest/requiresondevicerecognition), [availability](https://developer.apple.com/documentation/speech/sfspeechrecognizer/supportsondevicerecognition), [authorization and plist](https://developer.apple.com/documentation/speech/asking-permission-to-use-speech-recognition), [recognizer duration guidance](https://developer.apple.com/documentation/speech/sfspeechrecognizer).

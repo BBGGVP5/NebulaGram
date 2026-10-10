@@ -1,0 +1,12 @@
+diff --git a/submodules/TelegramUI/Sources/ChatInterfaceStateContextMenus.swift b/submodules/TelegramUI/Sources/ChatInterfaceStateContextMenus.swift
+--- a/submodules/TelegramUI/Sources/ChatInterfaceStateContextMenus.swift
++++ b/submodules/TelegramUI/Sources/ChatInterfaceStateContextMenus.swift
+@@ -1347,7 +1347,7 @@
+         let isCopyProtected = chatPresentationInterfaceState.copyProtectionEnabled || message.isCopyProtected()
+         if #available(iOS 15.0, *), NebulaAudioPreferences.shared.transcriptionEnabled, !isCopyProtected, !isExpired,
+            !message.containsSecretMedia, messages.count == 1, message.id.peerId.namespace != Namespaces.Peer.SecretChat,
+-           let audioFile = message.effectiveMedia.compactMap({ $0 as? TelegramMediaFile }).first(where: { $0.isVoice || $0.isInstantVideo }),
++           let audioFile = message.effectiveMedia.compactMap({ $0 as? TelegramMediaFile }).first(where: { $0.isVoice || $0.isInstantVideo || $0.isVideo }),
+            let size = audioFile.size, size > 0, size <= Int64(NebulaAudioTranscription.maximumBytes) {
+             let russian = chatPresentationInterfaceState.strings.baseLanguageCode.hasPrefix("ru")
+             actions.append(.action(ContextMenuActionItem(id: NebulaMessageMenuAction.transcribe.identifier, text: russian ? "Nebula AI · расшифровать" : "Nebula AI · Transcribe", icon: { theme in

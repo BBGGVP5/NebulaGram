@@ -458,10 +458,13 @@ final class Composer {
                             str(temp / 'submodules/Display/Source/NebulaAIOutline.swift')], check=True)
             subprocess.run(['swiftc', *ios_flags, '-typecheck', '-I', str(temp),
                             str(settings_ui / 'NebulaAiService.swift'), str(settings_ui / 'NebulaAiModelCatalog.swift'), str(settings_ui / 'NebulaAudioService.swift')], check=True)
+            subprocess.run(['swiftc', *ios_flags, '-typecheck', '-I', str(temp),
+                            str(settings_ui / 'NebulaLocalTranscription.swift')], check=True)
+            print('OK: local Speech recognition and cancellation adapter typechecked against the real iOS SDK')
             subprocess.run(['swiftc', *ios_flags, '-typecheck', str(settings_ui / 'NebulaEditorSegments.swift')], check=True)
             subprocess.run(['swiftc', *ios_flags, '-typecheck', '-I', str(temp),
                             str(temp / 'submodules/NebulaBrowserCore/Sources/NebulaBrowserContentRules.swift')], check=True)
-            ai_sources = ['NebulaSettingsStyle.swift', 'NebulaSettingsSymbols.swift', 'NebulaSettingsHero.swift',
+            ai_sources = ['NebulaRecordingPCM.swift', 'NebulaAudioSettingsController.swift', 'NebulaSettingsStyle.swift', 'NebulaSettingsSymbols.swift', 'NebulaSettingsHero.swift',
                           'NebulaAudioTranscriptionController.swift', 'NebulaCloudSettingsController.swift', 'NebulaCloudSettingsSync.swift', 'NebulaChoiceController.swift', 'NebulaAiChatController.swift', 'NebulaAiController.swift',
                           'NebulaAiService.swift', 'NebulaAiHistoryController.swift', 'NebulaActionGrid.swift',
                           'NebulaResultLanguage.swift', 'NebulaMessageToolsController.swift', 'NebulaTasksController.swift',

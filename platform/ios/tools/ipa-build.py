@@ -112,6 +112,9 @@ def inspect_archive(path, bundle_id):
             raise ValueError('Unexpected bundle identifier or simulator platform')
         if info.get('CFBundleDisplayName') != 'NebulaGram':
             raise ValueError('Unexpected application display name')
+        speech_usage = info.get('NSSpeechRecognitionUsageDescription')
+        if not isinstance(speech_usage, str) or not speech_usage.strip():
+            raise ValueError('Speech recognition permission description is required')
         check_executable(root, info)
         notification_services = 0
         for name in names:

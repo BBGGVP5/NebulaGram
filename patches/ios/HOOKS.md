@@ -298,3 +298,9 @@ One non-expired Saved Messages cloud message can open the label picker. Settings
 ## 0091 — explicit audio transcription choice
 
 An independently persisted audio switch controls the native Nebula recording-menu action. Legacy text-AI visibility is respected until an explicit audio choice is made. Audio setup always offers direct OpenAI/Gemini creation and selects the saved audio profile through a callback without activating it for text chat. Native recording protection/expiration checks remain effective.
+
+## 0092–0093 — Apple local recording transcription
+
+The actual Bazel main plist explains explicitly selected recording recognition; the Xcode plist gains the same Speech privacy key. IPA publication rejects a missing/empty key. Apple on-device recognition is an independent audio service and locale, with permission/runtime availability shown. Telegram's existing software decoder provides bounded mono PCM for OGG/MP4; <=55-second requests require local support and force on-device recognition. A final transcript requires every segment to complete. Background/leave/Stop cancel work and remove private temporary PCM. No Google Nano emulation or implicit cloud fallback.
+
+The existing eligible native recording-menu action also covers normal videos, matching Android audio extraction. It retains copy protection, expiry, secret-chat and size guards. Camera capture/encoders remain untouched. Translation/summary/speech use the existing explicitly selected result tools.

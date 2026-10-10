@@ -16,6 +16,11 @@ public final class NebulaAudioPreferences {
         set { defaults.set(newValue, forKey: "nebula.audio.transcriptionEnabled") }
     }
     public var transcriptionService: String { get { defaults.string(forKey: "nebula.audio.transcriptionService") ?? "" } set { defaults.set(newValue, forKey: "nebula.audio.transcriptionService") } }
+    public var localTranscription: Bool { transcriptionService == NebulaLocalAudioPolicy.service }
+    public var transcriptionLocale: String {
+        get { NebulaLocalAudioPolicy.locale(defaults.string(forKey: "nebula.audio.transcriptionLocale") ?? "") ?? (Locale.current.languageCode == "ru" ? "ru-RU" : "en-US") }
+        set { if let value = NebulaLocalAudioPolicy.locale(newValue) { defaults.set(value, forKey: "nebula.audio.transcriptionLocale") } }
+    }
     public var speechService: String { get { defaults.string(forKey: "nebula.audio.speechService") ?? "device" } set { defaults.set(newValue, forKey: "nebula.audio.speechService") } }
     public var style: String { get { let value = defaults.string(forKey: "nebula.audio.style") ?? "neutral"; return ["neutral", "warm", "calm", "lively"].contains(value) ? value : "neutral" } set { if ["neutral", "warm", "calm", "lively"].contains(newValue) { defaults.set(newValue, forKey: "nebula.audio.style") } } }
     public var speed: Double { get { let value = defaults.object(forKey: "nebula.audio.speed") as? Double ?? 1; return value.isFinite && (0.8...1.2).contains(value) ? value : 1 } set { if newValue.isFinite && (0.8...1.2).contains(newValue) { defaults.set(newValue, forKey: "nebula.audio.speed") } } }

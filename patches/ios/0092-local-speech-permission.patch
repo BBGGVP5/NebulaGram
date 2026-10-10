@@ -1,0 +1,24 @@
+diff --git a/Telegram/BUILD b/Telegram/BUILD
+--- a/Telegram/BUILD
++++ b/Telegram/BUILD
+@@ -1648,7 +1648,7 @@
+     <key>NSSiriUsageDescription</key>
+     <string>You can use Siri to send messages.</string>
+     <key>NSSpeechRecognitionUsageDescription</key>
+-    <string>We need this to transcribe audio messages on your request.</string>
++    <string>NebulaGram uses speech recognition to transcribe the voice or video message you select. Apple on-device mode keeps its audio on this device.</string>
+     <key>NSUserActivityTypes</key>
+     <array>
+         <string>INSendMessageIntent</string>
+diff --git a/Telegram/Telegram-iOS/Info.plist b/Telegram/Telegram-iOS/Info.plist
+--- a/Telegram/Telegram-iOS/Info.plist
++++ b/Telegram/Telegram-iOS/Info.plist
+@@ -293,6 +293,8 @@
+ 	<string>We need this so that you can share photos and videos from your photo library.</string>
+ 	<key>NSSiriUsageDescription</key>
+ 	<string>You can use Siri to send messages.</string>
++	<key>NSSpeechRecognitionUsageDescription</key>
++	<string>NebulaGram uses speech recognition to transcribe the voice or video message you select. Apple on-device mode keeps its audio on this device.</string>
+ 	<key>NSUserActivityTypes</key>
+ 	<array>
+ 		<string>INSendMessageIntent</string>

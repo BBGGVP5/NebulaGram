@@ -1,5 +1,6 @@
 import UIKit
 import Display
+import Speech
 import AccountContext
 import TelegramPresentationData
 import NebulaSettingsContract
@@ -21,20 +22,26 @@ final class NebulaAudioSettingsController: UITableViewController {
     override func viewWillDisappear(_ animated: Bool) { super.viewWillDisappear(animated); hero.setPageVisible(false) }
     override func viewDidLayoutSubviews() { super.viewDidLayoutSubviews(); hero.fit(in: tableView) }
     override func numberOfSections(in tableView: UITableView) -> Int { 3 }
-    override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int { section == 1 ? (audio.speechService == "device" ? 2 : 5) : [3, 5, 1][section] }
+    override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int { section == 0 ? (audio.localTranscription ? 4 : 3) : section == 1 ? (audio.speechService == "device" ? 2 : 5) : 1 }
     override func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? { [text("Распознавание", "Transcription"), text("Озвучивание", "Speech"), nil][section] }
     override func tableView(_ tableView: UITableView, titleForFooterInSection section: Int) -> String? {
-        if section == 0 { return text("Включите расшифровку Nebula, выберите или добавьте OpenAI/Gemini, затем удерживайте голосовое или кружок и выберите «Nebula AI · расшифровать». Telegram Premium для этого не требуется.", "Enable Nebula transcription, choose or add OpenAI/Gemini, then hold a voice or video message and choose Nebula AI · Transcribe. Telegram Premium is not required.") }
+        if section == 0 { return text("Включите расшифровку Nebula, выберите Apple на устройстве или OpenAI/Gemini, затем удерживайте голосовое или кружок и выберите «Nebula AI · расшифровать». Telegram Premium для этого не требуется. Локальный режим: до 10 минут, язык должен поддерживаться устройством; запись не отправляется в облако.", "Enable Nebula transcription, choose Apple on device or OpenAI/Gemini, then hold a voice or video message and choose Nebula AI · Transcribe. Telegram Premium is not required. Local mode: up to 10 minutes, with a language supported by this device; the recording is not uploaded to a cloud service.") }
         return section == 1 ? text("Облачный голос создан ИИ. По нажатию текст или запись отправится указанному сервису с вашим ключом. Доступ и стоимость зависят от сервиса. Аудиомодели выбираются отдельно от текстового чата. Записи: до 14 МБ, озвучивание: до 4000 символов. Голоса устройства выбираются в окне озвучивания.", "Cloud speech is AI-generated. Tapping sends text or recordings to the named service using your key; availability and cost depend on that service. Audio models are separate from text chat. Recordings: up to 14 MB; speech: up to 4000 characters. Choose installed device voices in the speech screen.") : nil
     }
     private func title(speech: Bool) -> String {
         if speech && audio.speechService == "device" { return text("На устройстве", "On device") }
+        if !speech && audio.localTranscription { return text("Apple · на устройстве", "Apple · on device") }
         return audio.connection(speech: speech, services: services)?.name ?? text("Выбрать сервис", "Choose service")
     }
     override func tableView(_ tableView: UITableView, cellForRowAt path: IndexPath) -> UITableViewCell {
         let cell = UITableViewCell(style: .subtitle, reuseIdentifier: nil); NebulaSettingsStyle.finish(cell, theme: theme)
         cell.textLabel?.numberOfLines = 0; cell.detailTextLabel?.numberOfLines = 0; cell.accessoryType = .disclosureIndicator
         let speech = path.section == 1, connection = audio.connection(speech: speech, services: services)
+        if path.section == 0, audio.localTranscription, path.row >= 2 {
+            cell.textLabel?.text = path.row == 2 ? text("Язык записи", "Recording language") : text("Локальное распознавание", "On-device recognition")
+            cell.detailTextLabel?.text = path.row == 2 ? Locale(identifier: ru ? "ru" : "en").localizedString(forIdentifier: audio.transcriptionLocale) ?? audio.transcriptionLocale : localAvailability()
+            return cell
+        }
         if speech, audio.speechService == "device", path.row == 1 { cell.textLabel?.text = text("Темп речи", "Speaking pace"); cell.detailTextLabel?.text = String(format: "%.1f×", audio.speed); return cell }
         switch (path.section, path.row) {
         case (0, 0):
@@ -58,6 +65,9 @@ final class NebulaAudioSettingsController: UITableViewController {
         if path.section == 2 { navigationController?.pushViewController(NebulaAiServicesController(russian: ru, theme: theme, context: context), animated: true); return }
         if path.section == 0 && path.row == 0 { return }
         if path.row == (speech ? 0 : 1) { chooseService(speech: speech); return }
+        if path.section == 0, audio.localTranscription {
+            if path.row == 2 { chooseLocalLanguage() } else { showLocalStatus() }; return
+        }
         if path.row == 4 || speech && audio.speechService == "device" && path.row == 1 { let values = [0.8, 1, 1.2]; choose(text("Темп речи", "Speaking pace"), values.map { String(format: "%.1f×", $0) }, values.firstIndex(of: audio.speed)) { [weak self] index in self?.audio.speed = values[index]; self?.tableView.reloadData() }; return }
         if path.row == 3 { choose(text("Манера речи", "Speaking style"), styleNames, styleIds.firstIndex(of: audio.style)) { [weak self] index in guard let self else { return }; self.audio.style = self.styleIds[index]; self.tableView.reloadData() }; return }
         guard let connection = audio.connection(speech: speech, services: services) else { return }
@@ -75,13 +85,15 @@ final class NebulaAudioSettingsController: UITableViewController {
     }
     @objc private func toggleTranscription(_ sender: NebulaSwitchControl) {
         if !sender.isOn { audio.transcriptionEnabled = false; tableView.reloadData(); return }
-        if audio.connection(speech: false, services: services) != nil { audio.transcriptionEnabled = true; tableView.reloadData() }
+        if audio.localTranscription || audio.connection(speech: false, services: services) != nil { audio.transcriptionEnabled = true; tableView.reloadData() }
         else { tableView.reloadData(); chooseService(speech: false, enableAfterSelection: true) }
     }
     private func chooseService(speech: Bool, enableAfterSelection: Bool = false) {
         let connections = services.connections.filter { NebulaAudioPreferences.supports($0.provider) }
-        let ids = [speech ? "device" : ""] + connections.map(\.id)
-        let names = [speech ? text("На устройстве", "On device") : text("Не выбран", "Not selected")] + connections.map { $0.name + " · " + $0.provider.title } + [text("Добавить OpenAI", "Add OpenAI"), text("Добавить Gemini", "Add Gemini")]
+        let localIds = speech ? ["device"] : ["", NebulaLocalAudioPolicy.service]
+        let localNames = speech ? [text("На устройстве", "On device")] : [text("Не выбран", "Not selected"), text("Apple · на устройстве", "Apple · on device")]
+        let ids = localIds + connections.map(\.id)
+        let names = localNames + connections.map { $0.name + " · " + $0.provider.title } + [text("Добавить OpenAI", "Add OpenAI"), text("Добавить Gemini", "Add Gemini")]
         choose(text("Сервис аудио", "Audio service"), names, ids.firstIndex(of: speech ? audio.speechService : audio.transcriptionService)) { [weak self] index in
             guard let self else { return }
             if index >= ids.count {
@@ -97,6 +109,26 @@ final class NebulaAudioSettingsController: UITableViewController {
             else { self.audio.transcriptionService = ids[index]; if ids[index].isEmpty { self.audio.transcriptionEnabled = false } else if enableAfterSelection { self.audio.transcriptionEnabled = true } }
             self.tableView.reloadData()
         }
+    }
+    private func localAvailability() -> String {
+        if #available(iOS 15.0, *) { return NebulaLocalTranscription.availability(locale: audio.transcriptionLocale, russian: ru) }
+        return text("Требуется iOS 15 или новее", "Requires iOS 15 or later")
+    }
+    private func chooseLocalLanguage() {
+        let display = Locale(identifier: ru ? "ru" : "en")
+        let codes = SFSpeechRecognizer.supportedLocales().compactMap { NebulaLocalAudioPolicy.locale($0.identifier) }.sorted {
+            let a = $0 == audio.transcriptionLocale ? 0 : $0 == "ru-RU" || $0 == "en-US" ? 1 : 2
+            let b = $1 == audio.transcriptionLocale ? 0 : $1 == "ru-RU" || $1 == "en-US" ? 1 : 2
+            return a == b ? $0 < $1 : a < b
+        }
+        choose(text("Язык записи", "Recording language"), codes.map { display.localizedString(forIdentifier: $0) ?? $0 }, codes.firstIndex(of: audio.transcriptionLocale)) { [weak self] index in self?.audio.transcriptionLocale = codes[index]; self?.tableView.reloadData() }
+    }
+    private func showLocalStatus() {
+        let alert = UIAlertController(title: text("Apple · на устройстве", "Apple · on device"), message: localAvailability() + "\n\n" + text("Apple управляет доступностью языковых моделей. Разрешение запрашивается при нажатии «Расшифровать». Этот режим использует только выбранную локальную модель, без облачного запасного варианта.", "Apple manages language model availability. Permission is requested when you tap Transcribe. This mode uses only the selected on-device model with no cloud fallback."), preferredStyle: .alert)
+        if SFSpeechRecognizer.authorizationStatus() == .denied {
+            alert.addAction(UIAlertAction(title: text("Настройки iOS", "iOS Settings"), style: .default) { _ in if let url = URL(string: UIApplication.openSettingsURLString) { UIApplication.shared.open(url) } })
+        }
+        alert.addAction(UIAlertAction(title: "OK", style: .cancel)); present(alert, animated: true)
     }
     private func choose(_ title: String, _ names: [String], _ selected: Int?, _ action: @escaping (Int) -> Void) { NebulaChoiceController.show(from: self, title: title, choices: names, selected: selected, russian: ru, selectionIndicatorVisible: false, theme: theme, choose: action) }
 }
