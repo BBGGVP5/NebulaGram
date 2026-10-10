@@ -1,4 +1,4 @@
-# iOS implementation inventory — 2026-10-09
+# iOS implementation inventory — 2026-10-10
 
 This inventory distinguishes **wired source** from native build and device acceptance. A setting with a validated import format is not necessarily functional on iOS.
 
@@ -11,7 +11,9 @@ Glass style selection now uses the same accent highlight as other choices, with 
 
 The existing voice/round-video transcription button now opens Nebula while the independent switch is enabled. Eligible recordings show it without a Premium trial; switching Nebula off retains the native route. Actual switch changes and returning to the chat refresh the visible recording rows, including underlying chats that stay visible beneath a page sheet. An AccountContext bridge avoids UI module cycles and shares protected/secret/temporary/retained/bounded positive-cloud eligibility with the menu and Transcribe action. The opened sheet presents the selected service before explicit recognition.
 
-148 XCTest cases and real SDK checks for Speech and CoreMedia/AVFoundation adapters passed at b1c34b4 in **38049746389**. The follow-up emoji/context runtime still requires native compilation and physical iPhone/offline audio acceptance. The earlier verified IPA 92 below excludes these additions. Plan: [remaining local audio and animation](../../docs/superpowers/plans/2026-10-10-ios-local-recording-transcription.md).
+Runtime **db19c74** passed bootstrap **38053787473** (149 XCTest cases, actual Speech callback/recording eligibility fixtures and SDK checks), native integration **38053788005** and full IPA **38053790313**. Independently verified original CI **build 100**: 12.9.2, app.nebulagram, NebulaGram display name, arm64 device app/extension, one Notification Service Extension and the actual Speech privacy purpose string. **88,011,414 bytes**, SHA-256 `d2acc24bd24b625b56632c03b24401cfcc13c2b5dbb07fe9e6569177736d3eae` matches its receipt. 97 ordered patches / 159 native paths / 44 contract sources. User signing and physical iPhone/offline audio acceptance remain required. Failed dc4483f integration 38052113196 is superseded by the Postbox import and real NebulaDeletedMessages API fixes. Plan: [remaining local audio and animation](../../docs/superpowers/plans/2026-10-10-ios-local-recording-transcription.md).
+
+The subsequent user-requested chat design/leading Assistant-prefix repair is a new checkpoint; build 100 predates it. [Chat plan](../../docs/superpowers/plans/2026-10-10-ai-chat-design-and-role-prefix.md).
 
 ## October 10: audio setup correction
 

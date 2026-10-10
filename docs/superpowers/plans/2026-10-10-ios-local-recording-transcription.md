@@ -55,9 +55,9 @@ Files: `NebulaAudioSettingsController.swift`, `NebulaAudioTranscriptionControlle
 
 ## Task 4: Compile, artifact and inventory
 
-- [ ] Generate contract mirrors; run ordered bootstrap, 78-setting checker and native/IPA driver tests locally. macOS bootstrap must execute new XCTest policy/persistence assertions and typecheck Speech against the pinned SDK.
-- [ ] Commit intended overlay/patch/contract/plan files only, push the authorized branches and dispatch full iOS IPA/native integration. Diagnose actual compiler errors before reporting success. Keep Android/vendored/unrelated files untouched.
-- [ ] Inspect the successful original IPA for source revision, bundle, display name, permission key, arm64 app/extension and digest. Record build status accurately in `platform/ios/PARITY.md` and `docs/PREMIUM-CLIENT-FEATURES.md`.
+- [x] Generate contract mirrors; run ordered bootstrap, 78-setting checker and native/IPA driver tests locally. macOS bootstrap must execute new XCTest policy/persistence assertions and typecheck Speech against the pinned SDK.
+- [x] Commit intended overlay/patch/contract/plan files only, push the authorized branches and dispatch full iOS IPA/native integration. Diagnose actual compiler errors before reporting success. Keep Android/vendored/unrelated files untouched.
+- [x] Inspect the successful original IPA for source revision, bundle, display name, permission key, arm64 app/extension and digest. Record build status accurately in `platform/ios/PARITY.md` and `docs/PREMIUM-CLIENT-FEATURES.md`.
 - [ ] Keep physical acceptance pending: offline OGG/round-video recognition, Russian/English local model readiness, >=1-minute recordings, silence, Stop/background/reopen, denial, unavailable locale and protected recordings. No iPhone or simulator runtime is currently available.
 
 Primary Apple references: [local-only requirement](https://developer.apple.com/documentation/speech/sfspeechrecognitionrequest/requiresondevicerecognition), [availability](https://developer.apple.com/documentation/speech/sfspeechrecognizer/supportsondevicerecognition), [authorization and plist](https://developer.apple.com/documentation/speech/asking-permission-to-use-speech-recognition), [recognizer duration guidance](https://developer.apple.com/documentation/speech/sfspeechrecognizer).
@@ -68,3 +68,17 @@ Primary Apple references: [local-only requirement](https://developer.apple.com/d
 - Runtime `f86671e` added local audio and ordinary video eligibility. Ordered local checks apply 93 patches / 157 native paths and 44 contract sources; 78 settings and 6 native/8 IPA driver cases pass.
 - Bootstrap 38049460756 passed all **148 XCTest cases** and the actual Speech callback/cancellation fixture, then caught a deprecated macOS locale property in the embedded contract. `b1c34b48716b3d5404d333c6b1fdd7af93e8efbd` uses preferred language identifiers and adds early CoreMedia/AVFoundation decoder API typechecking.
 - Superseded f86671e native/IPA runs 38049461543 / 38049464050 were cancelled for that runtime repair. Current bootstrap **38049746389**, native **38049747343**, IPA **38049749580** target b1c34b4; their final results are pending. No artifact or device-success claim is made at this checkpoint.
+
+## Current compilation after the audit additions
+
+- b1c34b4 bootstrap **38049746389** succeeded with 148 XCTest cases, real Speech/CoreMedia/AVFoundation SDK checks and the actual request callback/cancellation fixture. Its native/IPA jobs were superseded by the subsequently discovered looping/context/button changes.
+- The live button switch raises the suite to **149 cases**. Final dc4483f bootstrap **38052112264** passed all 149, the actual Speech lifetime fixture, actual recording eligibility fixture, 96 ordered patches / 159 upstream paths and SDK checks. Native **38052113196** found the missing Postbox import in AccountContext's new protocol; `0097` fixes that dependency boundary. IPA **38052116151** was cancelled for the repair.
+- Review corrected the real retained-message API name from a filename-derived guess to **NebulaDeletedMessages**. The eligibility fixture now also verifies the real public declaration before compiling its message-shaped fixtures.
+- Current runtime **db19c74b12df3463d6bebb4fb36e50bda2ce5709**: bootstrap **38053787473**, native **38053788005**, IPA **38053790313**. 97 ordered patches / 159 paths / 44 mirrored contract sources apply locally. Superseded 5bee38d native/IPA 38053644882 / 38053647148 were cancelled for the corrected API reference. Current full-build/artifact results remain pending; physical acceptance remains unexecuted.
+
+## Verified delivery, superseding pending build statements above
+
+- All three db19c74 jobs succeeded: bootstrap **38053787473** with **149 XCTest cases**, actual Speech lifetime and recording eligibility fixtures plus real SDK checks; native **38053788005**; full device IPA **38053790313**.
+- Original untouched CI archive: `build/artifact-38053790313/NebulaGram-unsigned.ipa`, version **12.9.2 / build 100**, bundle **app.nebulagram**, display **NebulaGram**, arm64 iOS device app/extension and one Notification Service Extension. Its Speech purpose string matches the actual Bazel plist patch.
+- **88,011,414 bytes**, SHA-256 **d2acc24bd24b625b56632c03b24401cfcc13c2b5dbb07fe9e6569177736d3eae**. Digest and source revision match the CI receipt; no archive rewrite. Independent record: `build/artifact-38053790313/verified-ipa.json`.
+- User signing is required. Physical iPhone rendering, offline/model/locale quality, inline-button interaction and audio playback remain untested. The next user request (chat design/Assistant prefix) is tracked separately; IPA 100 predates that next runtime.
