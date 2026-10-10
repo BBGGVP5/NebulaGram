@@ -46,7 +46,7 @@ public final class NebulaLocalAudioSettingsFragment extends BaseFragment {
         final NebulaLocalTranscription task=request=new NebulaLocalTranscription(advanced,NebulaAudioPreferences.localLocale());
         new Thread(()->{
             try{
-                int result=download?task.download(new NebulaLocalTranscription.Progress(){public void text(String value){}public void status(String value){if(value.startsWith("DOWNLOAD:")){String size=value.substring(9);AndroidUtilities.runOnUIThread(()->{if(current(token)){detail=text("Скачано байт: ","Downloaded bytes: ")+size;refresh();}});}}}):task.checkStatus();
+                int result=download?task.download(new NebulaLocalTranscription.Progress(){public void text(String value){}public void status(String value){if(value.startsWith("DOWNLOAD:")){String size=value.substring(9);AndroidUtilities.runOnUIThread(()->{if(current(token)){detail=NebulaText.text("Скачано байт: ","Downloaded bytes: ")+size;refresh();}});}}}):task.checkStatus();
                 AndroidUtilities.runOnUIThread(()->{if(current(token)){request=null;busy=false;status=result;detail=!NebulaLocalTranscription.supported(advanced)?NebulaLocalTranscription.errorText(new java.io.IOException(advanced?"LOCAL_AUDIO_NANO_UNAVAILABLE":"LOCAL_AUDIO_UNAVAILABLE")):"";refresh();}});
             }catch(Exception error){AndroidUtilities.runOnUIThread(()->{if(current(token)){request=null;busy=false;status=-1;detail=NebulaLocalTranscription.errorText(error);refresh();}});}
         },"NebulaLocalSpeechSetup").start();

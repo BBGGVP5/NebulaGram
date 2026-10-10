@@ -21,7 +21,7 @@ import java.util.Locale;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
-/** The recording stays in the app; only AICore's explicit model download can use the network. */
+/** Recording bytes go to the on-device recognizer; model download needs connectivity. */
 public final class NebulaLocalTranscription {
     public interface Progress { void text(String value); void status(String value); }
     private final boolean advanced;

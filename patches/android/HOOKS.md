@@ -665,3 +665,8 @@ The explicit audio switch rebinds voice/round-video cells on resume using the na
 ## 0194 — local voice/video transcription
 
 Pin ML Kit Speech Recognition alpha1 alongside the existing Prompt API and coroutine BOM. Local audio settings expose separate Advanced Gemini Nano and Basic Android choices, per-language readiness and explicit download. Existing recording-button/menu routes use the selected local worker. The OGG/MP4 audio track is decoded to bounded PCM16 mono 16 kHz and fed through a paced descriptor pipe; partial results remain provisional. Cancellation closes pipes, stops/closes the model, deletes temporary PCM and releases the shared inference gate. No microphone input, API-key read, provider upload or silent mode/cloud fallback is introduced.
+
+
+## 0195 — guarded local speech manifest compatibility
+
+Add the speech AAR package to the existing ML Kit manifest override for the library and standalone app. Local speech entry points require API 31 before SDK construction; Advanced additionally checks documented device families and runtime feature status. The pinned speech AAR introduces no startup provider/service/receiver. This does not lower the API requirements of recognition itself.

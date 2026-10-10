@@ -10,13 +10,14 @@ public final class NebulaPcmResampler {
     private final boolean floating;
     private final OutputStream out;
     private final byte[] pending, output = new byte[4096];
+    private final ByteBuffer frameBuffer;
     private int pendingCount, outputCount;
     private long frames, nextTime, samples;
     private int previous;
     private boolean finished;
     public NebulaPcmResampler(int rate, int channels, boolean floating, OutputStream out) throws IOException {
         if (rate < 8000 || rate > 192000 || channels < 1 || channels > 8) throw new IOException("Unsupported decoded audio format");
-        this.rate=rate;this.channels=channels;this.floating=floating;this.sampleBytes=floating?4:2;this.out=out;pending=new byte[channels*sampleBytes];
+        this.rate=rate;this.channels=channels;this.floating=floating;this.sampleBytes=floating?4:2;this.out=out;pending=new byte[channels*sampleBytes];frameBuffer=ByteBuffer.wrap(pending).order(ByteOrder.LITTLE_ENDIAN);
     }
     public void accept(ByteBuffer input) throws IOException {
         if (finished) throw new IOException("PCM stream already complete");
@@ -27,7 +28,7 @@ public final class NebulaPcmResampler {
     }
     private void frame() throws IOException {
         if(frames >= (long)rate * NebulaLocalAudioPolicy.MAX_SECONDS)throw new IOException("LOCAL_AUDIO_DURATION_LIMIT");
-        ByteBuffer buffer=ByteBuffer.wrap(pending).order(ByteOrder.LITTLE_ENDIAN);long mix=0;
+        ByteBuffer buffer=frameBuffer;buffer.position(0);long mix=0;
         for(int channel=0;channel<channels;channel++){
             if(floating){float value=buffer.getFloat();if(!Float.isFinite(value))throw new IOException("Invalid PCM float");mix+=Math.round(Math.max(-1,Math.min(1,value))*32767);}
             else mix+=buffer.getShort();

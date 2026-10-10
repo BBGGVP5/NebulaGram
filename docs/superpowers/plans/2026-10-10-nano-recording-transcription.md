@@ -27,3 +27,10 @@ Sources: https://developers.google.com/ml-kit/genai/speech-recognition/android (
 - 122 executable PCM/resampling/downmix/chunk-boundary/pacing/cancel/partial-final transcript/device-policy assertions pass. Tests include 600-second bounds and a blocked-pipe clock; no catch-up data burst is allowed.
 - The production Java suspend/Flow bridge executes with actual Kotlin/coroutine runtime: synchronous status, response Flow, timeout and thread interruption/cancellation cleanup pass. Production media decoder and ML Kit recognizer compile against Android SDK 36 and the exact official alpha1 AAR (verified digest).
 - Shared Nano inference gate, existing cloud audio/labels (42 + 20 assertions), settings-link ownership, local/remote setup callbacks and native header tests pass. All **189 ordered Android patches** apply to the pinned 12.10.6 tree, leaving vendor untouched. No physical/live-model acceptance is inferred.
+
+
+## Android integration repair
+
+- Run 38035984143 stopped at a shadowed `text` helper in the download UI callback and the speech AAR's minSdk 26 versus the app's existing minSdk 21. Qualified the callback helper and appended a narrow speech-package override beside the existing guarded ML Kit packages in both manifests.
+- The new recognizer rejects API 21–30 before constructing the SDK client. The AAR has no provider/service/receiver startup components. Actual callback compilation/background-state tests and actual platform guard tests pass; this preserves support for the rest of the app on old Android versions rather than invoking an unavailable speech API.
+- Resampling reuses one frame ByteBuffer instead of allocating a wrapper for every decoded sample frame. All 122 PCM/timing assertions and real coroutine/SDK checks still pass. The failed build has no deliverable APK.

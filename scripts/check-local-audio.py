@@ -75,3 +75,43 @@ bridge = work / 'LocalBridgeCheck.java'; bridge.write_text(program,encoding='utf
 runtime_cp = os.pathsep.join(map(str,[work,work/'kotlin.jar',work/'coroutines.jar']))
 subprocess.run(['javac','-encoding','UTF-8','-cp',runtime_cp,'-d',str(work),str(bridge)],check=True)
 subprocess.run(['java','-cp',runtime_cp,'LocalBridgeCheck'],check=True)
+
+
+# Compile and run the actual UI download callback (its text callback shadows static imports).
+ui_source = (ui / 'NebulaLocalAudioSettingsFragment.java').read_text(encoding='utf-8')
+start = ui_source.index('new NebulaLocalTranscription.Progress(){')
+end = ui_source.index('):task.checkStatus()', start)
+callback = ui_source[start:end]
+program = r"""
+import app.nebulagram.ui.*;
+import org.telegram.messenger.AndroidUtilities;
+import static app.nebulagram.ui.NebulaText.text;
+public class LocalDownloadCallbackCheck {
+ String detail="";int generation=7;boolean visible=true;
+ boolean current(int token){return generation==token&&visible;}void refresh(){}
+ NebulaLocalTranscription.Progress create(int token){return __CALLBACK__;}
+ public static void main(String[] args){LocalDownloadCallbackCheck host=new LocalDownloadCallbackCheck();NebulaLocalTranscription.Progress callback=host.create(7);callback.status("DOWNLOAD:42");if(!host.detail.equals("Downloaded bytes: 42"))throw new AssertionError("Download callback update");host.visible=false;callback.status("DOWNLOAD:99");if(!host.detail.equals("Downloaded bytes: 42"))throw new AssertionError("Background callback updated UI");System.out.println("Actual download UI callback compiles and rejects obsolete/background updates");}
+}
+""".replace('__CALLBACK__',callback)
+android_utilities = work / 'org/telegram/messenger/AndroidUtilities.java'
+android_utilities.write_text('package org.telegram.messenger; public class AndroidUtilities {public static void runOnUIThread(Runnable action){action.run();}}',encoding='utf-8')
+callback_path=work/'LocalDownloadCallbackCheck.java';callback_path.write_text(program,encoding='utf-8')
+ui_cp=os.pathsep.join(map(str,[work/'sdk',work,android,work/'speech.jar',work/'common.jar',work/'kotlin.jar',work/'coroutines.jar']))
+subprocess.run(['javac','-encoding','UTF-8','-cp',ui_cp,'-d',str(work),str(android_utilities),str(callback_path)],check=True)
+subprocess.run(['java','-cp',ui_cp,'LocalDownloadCallbackCheck'],check=True)
+
+# Test the actual version/device guard before the SDK factory can be reached.
+start=source.index('    public static boolean supported(boolean advanced)')
+end=source.index('    public void cancel()',start)
+support=source[start:end]
+program='import app.nebulagram.ui.NebulaLocalAudioPolicy; class Build {static String MANUFACTURER="Google",MODEL="Pixel 10";static class VERSION {static int SDK_INT;}} public class AudioPlatformGuardCheck {'+support+' public static void main(String[] args){for(int sdk:new int[]{21,25,26,30,31,36}){Build.VERSION.SDK_INT=sdk;if(supported(false)!=(sdk>=31)||supported(true)!=(sdk>=31))throw new AssertionError("Unsafe API gate");} Build.VERSION.SDK_INT=36;Build.MODEL="Pixel 8";if(supported(true)||!supported(false))throw new AssertionError("Advanced must not silently become Basic");System.out.println("Actual audio platform guard rejects SDK 21-30 before model construction; Basic and Advanced remain distinct");}}'
+guard=work/'AudioPlatformGuardCheck.java';guard.write_text(program,encoding='utf-8')
+subprocess.run(['javac','-encoding','UTF-8','-cp',str(work),'-d',str(work),str(guard)],check=True)
+subprocess.run(['java','-cp',str(work),'AudioPlatformGuardCheck'],check=True)
+with zipfile.ZipFile(work/'speech.aar') as archive:
+ manifest=archive.read('AndroidManifest.xml').decode()
+ assert '<provider' not in manifest and '<service' not in manifest and '<receiver' not in manifest, 'New startup hooks need separate old-platform review'
+assert 'if(!supported(advanced))return FeatureStatus.UNAVAILABLE;' in source
+platform_patch=(root/'patches/android/0195-local-audio-platform-guard.patch').read_text(encoding='utf-8')
+assert platform_patch.count('+    <uses-sdk tools:overrideLibrary=')==2 and 'com.google.mlkit.genai.speechrecognition' in platform_patch
+print('Narrow library-manifest override is paired with explicit API 31 guards and no speech-SDK startup components')

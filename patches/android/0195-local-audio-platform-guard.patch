@@ -1,0 +1,24 @@
+diff --git a/TMessagesProj/src/main/AndroidManifest.xml b/TMessagesProj/src/main/AndroidManifest.xml
+--- a/TMessagesProj/src/main/AndroidManifest.xml
++++ b/TMessagesProj/src/main/AndroidManifest.xml
+@@ -84,7 +84,7 @@
+ 
+     <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
+ 
+-    <uses-sdk tools:overrideLibrary="com.google.mlkit.vision.segmentation.subject,com.google.mlkit.genai.prompt,com.google.mlkit.genai.common,com.google.android.gms.common"/>
++    <uses-sdk tools:overrideLibrary="com.google.mlkit.vision.segmentation.subject,com.google.mlkit.genai.prompt,com.google.mlkit.genai.speechrecognition,com.google.mlkit.genai.common,com.google.android.gms.common"/>
+ 
+     <queries>
+         <package android:name="com.google.android.apps.maps"/>
+diff --git a/TMessagesProj/config/release/AndroidManifest_standalone.xml b/TMessagesProj/config/release/AndroidManifest_standalone.xml
+--- a/TMessagesProj/config/release/AndroidManifest_standalone.xml
++++ b/TMessagesProj/config/release/AndroidManifest_standalone.xml
+@@ -33,7 +33,7 @@
+     <uses-permission android:name="android.permission.READ_PHONE_NUMBERS" />
+     <uses-permission android:name="android.permission.SEND_SMS" />
+ 
+-    <uses-sdk tools:overrideLibrary="com.google.mlkit.genai.prompt,com.google.mlkit.genai.common,com.google.android.gms.common" />
++    <uses-sdk tools:overrideLibrary="com.google.mlkit.genai.prompt,com.google.mlkit.genai.speechrecognition,com.google.mlkit.genai.common,com.google.android.gms.common" />
+ 
+     <application
+         android:icon="@mipmap/nebula_launcher_blue"
