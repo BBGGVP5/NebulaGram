@@ -14,6 +14,8 @@ while depth:
     end += 1
 method = source[start:end]
 policy = (root / 'platform/ios/NebulaSettingsContract/Sources/NebulaSettingsContract/NebulaAudioTranscription.swift').read_text(encoding='utf-8')
+capture = (root / 'platform/ios/overlay/submodules/TelegramCore/Sources/State/NebulaDeletedCapture.swift').read_text(encoding='utf-8')
+assert 'public enum NebulaDeletedMessages' in capture and 'public static func isRetained(_ message: Message) -> Bool' in capture
 fixture = r'''
 import Foundation
 enum Namespaces { enum Message { static let Cloud: Int32 = 0 }; enum Peer { static let SecretChat: Int32 = 3 } }
@@ -21,7 +23,7 @@ struct PeerId { var namespace: Int32 = 0 }
 struct MessageId { var namespace: Int32 = 0, id: Int32 = 1; var peerId = PeerId() }
 final class TelegramMediaFile { var isVoice = false, isInstantVideo = false, isVideo = false; var size: Int64? = 1 }
 final class Message { var id = MessageId(); var containsSecretMedia = false, protected = false, retained = false; var effectiveMedia: [Any] = []; func isCopyProtected() -> Bool { protected } }
-enum NebulaDeletedCapture { static func isRetained(_ message: Message) -> Bool { message.retained } }
+enum NebulaDeletedMessages { static func isRetained(_ message: Message) -> Bool { message.retained } }
 @MainActor final class Gate {
 '''
 fixture += method + r'''

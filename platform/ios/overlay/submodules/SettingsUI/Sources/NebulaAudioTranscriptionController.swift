@@ -18,7 +18,7 @@ public final class NebulaAudioTranscriptionController: UITableViewController {
     public nonisolated static func eligibleFile(_ message: Message) -> TelegramMediaFile? {
         guard message.id.namespace == Namespaces.Message.Cloud, message.id.id > 0,
               message.id.peerId.namespace != Namespaces.Peer.SecretChat,
-              !message.containsSecretMedia, !message.isCopyProtected(), !NebulaDeletedCapture.isRetained(message),
+              !message.containsSecretMedia, !message.isCopyProtected(), !NebulaDeletedMessages.isRetained(message),
               let file = message.effectiveMedia.compactMap({ $0 as? TelegramMediaFile }).first(where: { $0.isVoice || $0.isInstantVideo || $0.isVideo }),
               let size = file.size, size > 0, size <= Int64(NebulaAudioTranscription.maximumBytes) else { return nil }
         return file
