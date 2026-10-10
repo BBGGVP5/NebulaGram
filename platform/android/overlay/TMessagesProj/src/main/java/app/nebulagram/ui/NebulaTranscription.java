@@ -26,7 +26,7 @@ public final class NebulaTranscription {
     }
     public static void openTools(BaseFragment host, MessageObject message) {
         if (!eligible(message) || host == null || host.getCurrentAccount() != message.currentAccount) return;
-        if (!selected() || NebulaAiServices.find(NebulaAudioPreferences.serviceId(false)) == null) { host.presentFragment(new NebulaAudioSettingsFragment()); return; }
+        if (!selected() || !NebulaAudioPreferences.hasTranscriptionService()) { host.presentFragment(new NebulaAudioSettingsFragment()); return; }
         NebulaMessageToolsFragment.show(host,new NebulaMessageToolsFragment(message).transcribeOnOpen());
     }
     public static boolean open(MessageObject message){

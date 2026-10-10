@@ -70,6 +70,7 @@ public final class NebulaMessageToolsFragment extends BaseFragment {
     private NebulaAiClient client;
     private NebulaTranslationClient translationClient;
     private NebulaAudioClient audioClient;
+    private NebulaLocalTranscription localAudioClient;
     private String originalTranscript = "";
     private TextToSpeech speech;
     private boolean speechReady, destroyed;
@@ -562,20 +563,30 @@ public final class NebulaMessageToolsFragment extends BaseFragment {
         if(!NebulaTranscription.eligible(message)){showOutput(t("Эту запись нельзя отправить на распознавание", "This recording cannot be sent for transcription"),false);return;}
         final java.io.File file=FileLoader.getInstance(currentAccount).getPathToMessage(message.messageOwner);
         if(file==null||!file.isFile()){showOutput(t("Сначала скачайте сообщение в чате", "Download the message in the chat first"),false);return;}
+        final boolean local=NebulaAudioPreferences.localTranscription();
         final NebulaAudioClient.Configuration config;
-        try{config=NebulaAudioPreferences.capture(false);}catch(Exception e){showOutput(e.getMessage(),false);return;}
+        try{config=local?null:NebulaAudioPreferences.capture(false);}catch(Exception e){showOutput(e.getMessage(),false);return;}
         final int token=++generation;final long owner=NebulaTasks.user(currentAccount);
         final String sourceKey=NebulaRichText.key(currentAccount,input.getText());
-        final NebulaAudioClient request=audioClient=new NebulaAudioClient();busy=true;showOutput(t("Распознаём речь… · ","Transcribing… · ")+NebulaAudioPreferences.title(false),false);updateStop();
+        final NebulaAudioClient request=local?null:(audioClient=new NebulaAudioClient());
+        final NebulaLocalTranscription localRequest=local?(localAudioClient=new NebulaLocalTranscription(NebulaLocalAudioPolicy.NANO.equals(NebulaAudioPreferences.serviceId(false)),NebulaAudioPreferences.localLocale())):null;
+        busy=true;showOutput(t("Распознаём речь… · ","Transcribing… · ")+NebulaAudioPreferences.title(false),false);updateStop();
         new Thread(()->{
             try{
                 if(owner!=NebulaTasks.user(currentAccount)||!NebulaTranscription.eligible(message))throw new java.io.InterruptedIOException();
-                String answer=request.transcribe(config,file,message.isVoice()?"audio/ogg":"video/mp4");
+                String answer;
+                if(local){
+                    final long[] lastProgress={0};
+                    answer=localRequest.transcribe(file,new NebulaLocalTranscription.Progress(){
+                        public void text(String value){long now=System.nanoTime();if(now-lastProgress[0]<150_000_000L)return;lastProgress[0]=now;AndroidUtilities.runOnUIThread(()->{if(currentInput(token,owner,sourceKey)&&resumed)output.setText(value);});}
+                        public void status(String value){AndroidUtilities.runOnUIThread(()->{if(currentInput(token,owner,sourceKey)&&resumed)output.setText("DECODING".equals(value)?t("Подготавливаем звук на устройстве…","Preparing audio on device…"):t("Распознаём локально в темпе записи…","Transcribing locally at the recording's pace…"));});}
+                    });
+                }else answer=request.transcribe(config,file,message.isVoice()?"audio/ogg":"video/mp4");
                 AndroidUtilities.runOnUIThread(()->{
                     if(!currentInput(token,owner,sourceKey)||!resumed)return;
-                    busy=false;audioClient=null;originalTranscript=answer;input.setText(answer);showOutput(answer,true);updateStop();
+                    busy=false;audioClient=null;localAudioClient=null;originalTranscript=answer;input.setText(answer);showOutput(answer,true);updateStop();
                 });
-            }catch(Exception error){AndroidUtilities.runOnUIThread(()->{if(!destroyed&&token==generation){busy=false;audioClient=null;showOutput(t("Не удалось распознать: ","Transcription failed: ")+error.getMessage(),false);updateStop();}});}
+            }catch(Exception error){AndroidUtilities.runOnUIThread(()->{if(!destroyed&&token==generation){busy=false;audioClient=null;localAudioClient=null;showOutput(local?NebulaLocalTranscription.errorText(error):t("Не удалось распознать: ","Transcription failed: ")+error.getMessage(),false);updateStop();}});}
         },"NebulaTranscription").start();
     }
     private interface Work {String run(NebulaAiClient client,SharedPreferences prefs,int provider,String key)throws Exception;}
@@ -628,7 +639,7 @@ public final class NebulaMessageToolsFragment extends BaseFragment {
             });
         }, "NebulaMessageTool").start();
     }
-    private void cancel(){generation++;if(busy&&output!=null)showOutput(t("Остановлено", "Stopped"),false);busy=false;speechRequested=false;updateStop();if(client!=null){client.cancel();client=null;}if(translationClient!=null){translationClient.cancel();translationClient=null;}if(audioClient!=null){audioClient.cancel();audioClient=null;}if(speech!=null)speech.stop();}
+    private void cancel(){generation++;if(busy&&output!=null)showOutput(t("Остановлено", "Stopped"),false);busy=false;speechRequested=false;updateStop();if(client!=null){client.cancel();client=null;}if(translationClient!=null){translationClient.cancel();translationClient=null;}if(audioClient!=null){audioClient.cancel();audioClient=null;}if(localAudioClient!=null){localAudioClient.cancel();localAudioClient=null;}if(speech!=null)speech.stop();}
     @Override public void onResume(){super.onResume();resumed=true;refreshTranslation();if(transcriptionRequested){transcriptionRequested=false;transcribe();}else if(translateOnOpen){translateOnOpen=false;request(false);}}
     @Override public void onPause(){resumed=false;super.onPause();cancel();}
     @Override public void onFragmentDestroy(){destroyed=true;cancel();if(speech!=null){speech.shutdown();speech=null;}super.onFragmentDestroy();}

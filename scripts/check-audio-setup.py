@@ -26,6 +26,8 @@ class NebulaAiServices {
 }
 class Prefs {Map<String,String> values=new HashMap<>();Prefs edit(){return this;}Prefs putString(String k,String v){values.put(k,v);return this;}void apply(){}}
 class NebulaAudioPreferences {static Prefs p=new Prefs();static Prefs prefs(){return p;}static boolean supported(NebulaAiServices.Service s){return s.provider==0||s.provider==2;}static String serviceId(boolean speech){return p.values.getOrDefault(speech?"speech_service":"transcription_service",speech?"device":"");}}
+class NebulaLocalAudioPolicy {static final String NANO="nano",BASIC="device-recognition";static boolean local(String id){return NANO.equals(id)||BASIC.equals(id);}}
+class NebulaLocalAudioSettingsFragment {NebulaLocalAudioSettingsFragment(boolean advanced){}}
 class NebulaTranscription {static boolean enabled;static void setEnabled(boolean value){enabled=value;}}
 class NebulaAiServiceEditorFragment {
  String id;int provider;boolean audioEditor,speechEditor;Consumer<NebulaAiServices.Service> saved;
@@ -40,7 +42,7 @@ class NebulaDialog {
 }
 class AudioScreen {
  Body body=new Body();NebulaDialog.Builder dialog;NebulaAiServiceEditorFragment editor;int rebuilds;
- Object getResourceProvider(){return null;}String text(String ru,String en){return en;}void showDialog(NebulaDialog.Builder d){dialog=d;}void presentFragment(NebulaAiServiceEditorFragment value){editor=value;}void rebuild(){rebuilds++;}
+ Object getResourceProvider(){return null;}String text(String ru,String en){return en;}void showDialog(NebulaDialog.Builder d){dialog=d;}void presentFragment(NebulaAiServiceEditorFragment value){editor=value;}void presentFragment(NebulaLocalAudioSettingsFragment value){}void rebuild(){rebuilds++;}
 __METHOD__
  void choose(boolean speech,boolean enable){chooseService(speech,enable);}
 }
@@ -48,14 +50,16 @@ public class AudioSetupCheck {
  static void check(boolean yes,String detail){if(!yes)throw new AssertionError(detail);}
  public static void main(String[] args){
   NebulaAiServices.values.add(new NebulaAiServices.Service("nano",4,"nano"));AudioScreen screen=new AudioScreen();
-  screen.choose(false,true);check(Arrays.equals(screen.dialog.items,new String[]{"Not selected","Add OpenAI","Add Gemini"}),"Empty audio list offers both supported providers");
-  screen.dialog.click.click(null,2);check(screen.editor.audioEditor&&!screen.editor.speechEditor&&screen.editor.provider==2,"Direct Gemini transcription editor");check(screen.editor.defaultModel().equals("gemini-3.8-flash"),"Transcription model seeded");
+  screen.choose(false,true);check(Arrays.equals(screen.dialog.items,new String[]{"Not selected","Gemini Nano · on device","Android · on device","Add OpenAI","Add Gemini"}),"Empty audio list offers both supported providers");
+  screen.dialog.click.click(null,4);check(screen.editor.audioEditor&&!screen.editor.speechEditor&&screen.editor.provider==2,"Direct Gemini transcription editor");check(screen.editor.defaultModel().equals("gemini-3.8-flash"),"Transcription model seeded");
   check(!NebulaTranscription.enabled,"Opening setup does not enable transcription");screen.editor.finishSave(new NebulaAiServices.Service("audio-gemini",2,"chosen-audio-model"));
   check(NebulaTranscription.enabled&&NebulaAudioPreferences.serviceId(false).equals("audio-gemini"),"Saving completes the explicit enable flow");check(NebulaAudioPreferences.p.values.get("transcription_model_2").equals("chosen-audio-model"),"Saved audio model used");
   screen.choose(false,true);screen.dialog.click.click(null,0);check(!NebulaTranscription.enabled&&NebulaAudioPreferences.serviceId(false).isEmpty(),"Clearing selection disables replacement");
   screen.choose(true,false);check(screen.dialog.items[0].equals("On device"),"Device speech remains available");screen.dialog.click.click(null,1);check(screen.editor.provider==0&&screen.editor.speechEditor&&screen.editor.defaultModel().equals("gpt-4o-mini-tts"),"Direct OpenAI speech editor");
   screen.editor.finishSave(new NebulaAiServices.Service("audio-openai",0,"chosen-tts"));check(NebulaAudioPreferences.serviceId(true).equals("audio-openai")&&!NebulaTranscription.enabled,"Speech setup changes only speech");
-  NebulaAiServices.values.add(new NebulaAiServices.Service("saved-openai",0,"text-model"));screen.choose(false,true);screen.dialog.click.click(null,1);check(NebulaAudioPreferences.serviceId(false).equals("saved-openai")&&NebulaTranscription.enabled,"Saved compatible connection selectable");
+  NebulaAiServices.values.add(new NebulaAiServices.Service("saved-openai",0,"text-model"));screen.choose(false,true);screen.dialog.click.click(null,3);check(NebulaAudioPreferences.serviceId(false).equals("saved-openai")&&NebulaTranscription.enabled,"Saved compatible connection selectable");
+  screen.choose(false,true);screen.dialog.click.click(null,1);check(NebulaAudioPreferences.serviceId(false).equals("nano")&&NebulaTranscription.enabled,"Nano local selection");
+  screen.choose(false,true);screen.dialog.click.click(null,2);check(NebulaAudioPreferences.serviceId(false).equals("device-recognition")&&NebulaTranscription.enabled,"Basic is a separate explicit selection");
   try{NebulaAiServiceEditorFragment.forAudio(4,false,s->{});throw new AssertionError("Nano offered as audio");}catch(IllegalArgumentException expected){}
   System.out.println("Audio setup: empty list, provider creation, existing services, explicit enable/cancel and independent speech passed");
  }

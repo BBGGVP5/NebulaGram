@@ -660,3 +660,8 @@ Only positive cloud-message IDs in the account's own Saved Messages expose local
 ## 0193 — discoverable transcription and chat control materials
 
 The explicit audio switch rebinds voice/round-video cells on resume using the native forceUpdate path. An eligible recording's context menu routes to Nebula tools or audio setup. Chat back/avatar controls draw the original GlassDrawable with their existing bounds and search/selection alpha; home/shared-header and other header action drawing stay unchanged. Settings-link binding is a fallback and preserves each row's own long-press handler.
+
+
+## 0194 — local voice/video transcription
+
+Pin ML Kit Speech Recognition alpha1 alongside the existing Prompt API and coroutine BOM. Local audio settings expose separate Advanced Gemini Nano and Basic Android choices, per-language readiness and explicit download. Existing recording-button/menu routes use the selected local worker. The OGG/MP4 audio track is decoded to bounded PCM16 mono 16 kHz and fed through a paced descriptor pipe; partial results remain provisional. Cancellation closes pipes, stops/closes the model, deletes temporary PCM and releases the shared inference gate. No microphone input, API-key read, provider upload or silent mode/cloud fallback is introduced.

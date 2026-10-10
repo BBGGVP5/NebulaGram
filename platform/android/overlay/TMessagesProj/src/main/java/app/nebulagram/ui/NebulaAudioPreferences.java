@@ -19,8 +19,13 @@ public final class NebulaAudioPreferences {
     }
     public static boolean supported(NebulaAiServices.Service service) { return service.provider == 0 || service.provider == 2; }
     public static String serviceId(boolean speech) { return prefs().getString(speech ? "speech_service" : "transcription_service", speech ? "device" : ""); }
+    public static boolean localTranscription() { return NebulaLocalAudioPolicy.local(serviceId(false)); }
+    public static boolean hasTranscriptionService() { NebulaAiServices.Service s=NebulaAiServices.find(serviceId(false)); return localTranscription() || s!=null && supported(s); }
+    public static String localLocale() { return NebulaLocalAudioPolicy.locale(prefs().getString("local_audio_locale", org.telegram.messenger.LocaleController.getInstance().getCurrentLocale().toLanguageTag())); }
     public static String title(boolean speech) {
         String id = serviceId(speech);
+        if (!speech && NebulaLocalAudioPolicy.NANO.equals(id)) return "Gemini Nano · " + NebulaText.text("на устройстве", "on device");
+        if (!speech && NebulaLocalAudioPolicy.BASIC.equals(id)) return NebulaText.text("Android · на устройстве", "Android · on device");
         if (speech && "device".equals(id)) return NebulaText.text("На устройстве", "On device");
         NebulaAiServices.Service service = NebulaAiServices.find(id);
         return service == null ? NebulaText.text("Выбрать сервис", "Choose service") : service.name;
