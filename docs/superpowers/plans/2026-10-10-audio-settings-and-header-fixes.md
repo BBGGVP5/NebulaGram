@@ -24,3 +24,9 @@ The user previously reported the phone unavailable; no device acceptance is assu
 - Actual audio chooser callbacks pass: Nano-only/empty lists offer OpenAI/Gemini creation, opening setup does not enable anything, explicit enable completes after selecting/saving a compatible service, clearing selection disables replacement, and speech selection is independent.
 - Native ActionBar branches pass normal chat, full selection, search, returning from selection and home/shared-header tests; the original bounds and alpha helpers are retained. Android 188 ordered patches apply; iOS 91 patches / 157 paths and 43 mirrored sources pass.
 - Existing 42 audio protocol/transport and 20 label assertions plus AI services pass. Added a Swift test for the explicit audio switch and legacy text-AI preference fallback; macOS/native compilation remains pending.
+
+
+## Build follow-up
+
+- Source 77d7efa: macOS bootstrap 38030935745 passed **144 XCTest cases**. Full device IPA 38030936135 is still packaging.
+- Android 38030935744 stopped in the regression suite before compilation: the older avatar-material test still expected its drawable suppressed. Its test contract now expects the restored normal avatar surface and verifies the existing selection/search fade and touch bounds: **12,928 cases**, 101 search/return pairs, 404 Saved title material frames and native selection/footer tests pass locally. No native/runtime source changes were needed for this follow-up.

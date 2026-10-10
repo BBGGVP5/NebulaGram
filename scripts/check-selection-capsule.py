@@ -54,7 +54,8 @@ class CapsuleCheck {
    CapsuleCheck c=new CapsuleCheck();c.nebulaFloatingChatHeader=separate;c.nebulaChatAvatarContainer.visible=visible;
    c.hasForcedMenuWidth=forced;c.menuWidth=width;c.glassOnlyBack=(flags&1)!=0;c.doNotDrawGlassMenu=(flags&2)!=0;
    c.actionModeFactor=frame/100f;c.draw();
-   boolean avatar=false; // Separate avatars share the header; no independent plate.
+   boolean avatar=separate&&visible&&frame<100; // The restored chat avatar surface fades out for selection.
+   if(avatar){int[] d=c.glassDrawableMenu.calls.get(0);check(d[0]==Math.round(255*(1f-frame/100f)));check(d[1]==340&&d[2]==400);}
    boolean menu=width>0&&flags==0&&!separate;
    check(c.glassDrawableMenu.calls.size()==(avatar?1:0)+(menu?1:0));
    if(menu){int[] d=c.glassDrawableMenu.calls.get(c.glassDrawableMenu.calls.size()-1);
@@ -62,6 +63,11 @@ class CapsuleCheck {
     check(d[1]==400-Math.max(48,width)-12&&d[2]==400);
    }
    cases++;
+  }
+  for(int frame=0;frame<=100;frame++){
+   CapsuleCheck search=new CapsuleCheck();search.nebulaChatAvatarContainer.visible=true;search.searchFactor=frame/100f;search.draw();
+   check(search.glassDrawableMenu.calls.size()==1);check(search.glassDrawableMenu.calls.get(0)[0]==Math.round(255*(1f-frame/100f)));
+   search.glassDrawableMenu.calls.clear();search.searchFactor=0;search.draw();check(search.glassDrawableMenu.calls.size()==1&&search.glassDrawableMenu.calls.get(0)[0]==255);
   }
   CapsuleCheck home=new CapsuleCheck();home.nebulaFloatingChatHeader=false;home.nebulaHomeGlass=true;
   home.menuWidth=138;home.menu.children[3].visibility=8;home.draw();
