@@ -30,3 +30,14 @@ The user previously reported the phone unavailable; no device acceptance is assu
 
 - Source 77d7efa: macOS bootstrap 38030935745 passed **144 XCTest cases**. Full device IPA 38030936135 is still packaging.
 - Android 38030935744 stopped in the regression suite before compilation: the older avatar-material test still expected its drawable suppressed. Its test contract now expects the restored normal avatar surface and verifies the existing selection/search fade and touch bounds: **12,928 cases**, 101 search/return pairs, 404 Saved title material frames and native selection/footer tests pass locally. No native/runtime source changes were needed for this follow-up.
+
+
+## Verified Android delivery
+
+- Android run **38033372792** succeeded at **15569c4127660ea5ff7bac552f31bf13a4cb3c21**; this revision changes only the updated regression contract/document after native source 77d7efa. Full interface/regression suite, Java/native compilation and APK packaging pass.
+- Independently checked **1.0.0 / 1000474**, package app.nebulagram.messenger, arm64-v8a, Telegram native library and NebulaLink libgojni, signed with the same certificate as prior releases (`a08d7dc323ddf71ef3201944397e0d3cce7d40847263e11f328b68bbe19229ab`). Audio setup labels/choices appear in the compiled DEX.
+- File `build/artifact-38033372792/NebulaGram-1.0.0-TG-12.10.6-b1000474-arm64-v8a.apk`: **59,741,513 bytes**, SHA-256 `296b2c861affd1059ff159b6ab293811f90ee0d8a034d53d0bcbe7b61a8f198e`. Artifact retrieval verifies successful run and expected commit; no local APK rewrite.
+- Physical-device checks remain unavailable under the user's prior response. A successful build is not live-provider/gesture/visual acceptance.
+
+
+- IPA 38030936135 failed at the new AudioSettingsController: missing Display import for NebulaSwitchControl and `String.isEmpty()` called as a function. Both source errors were fixed before the next device build; the failed run is not a delivered IPA. APK 1000474 remains verified, since Android runtime is unchanged by this iOS repair.

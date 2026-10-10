@@ -1,4 +1,5 @@
 import UIKit
+import Display
 import AccountContext
 import TelegramPresentationData
 import NebulaSettingsContract
@@ -93,7 +94,7 @@ final class NebulaAudioSettingsController: UITableViewController {
                 self.navigationController?.pushViewController(editor, animated: true); return
             }
             if speech { self.audio.speechService = ids[index] }
-            else { self.audio.transcriptionService = ids[index]; if ids[index].isEmpty() { self.audio.transcriptionEnabled = false } else if enableAfterSelection { self.audio.transcriptionEnabled = true } }
+            else { self.audio.transcriptionService = ids[index]; if ids[index].isEmpty { self.audio.transcriptionEnabled = false } else if enableAfterSelection { self.audio.transcriptionEnabled = true } }
             self.tableView.reloadData()
         }
     }
