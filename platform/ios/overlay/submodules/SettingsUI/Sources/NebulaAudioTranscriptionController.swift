@@ -13,10 +13,12 @@ public final class NebulaAudioTranscriptionController: UITableViewController {
     private let fetch = MetaDisposable(), data = MetaDisposable()
     private var task: Task<Void, Never>?, deadline: Foundation.Timer?
     private var busy = false, generation = 0, transcript = "", translated = "", language = "ru", status = ""
+    private var transcriptLanguage = "en"
     private lazy var hero = NebulaSettingsHero(symbol: "🎙️", title: text("Расшифровка", "Transcription"), summary: text("Голосовые и видеосообщения", "Voice and video messages"), context: context, theme: theme)
     public init(context: AccountContext, message: Message, file: TelegramMediaFile) {
         self.context = context; self.message = message; self.file = file
         let presentation = context.sharedContext.currentPresentationData.with { $0 }; theme = presentation.theme; ru = presentation.strings.baseLanguageCode.hasPrefix("ru"); language = ru ? "ru" : "en"
+        transcriptLanguage = language
         super.init(style: .insetGrouped); title = "Nebula AI"
     }
     required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
@@ -71,7 +73,7 @@ public final class NebulaAudioTranscriptionController: UITableViewController {
             case 2:
                 let editor = NebulaAiEditorController(source: NSAttributedString(string: transcript), russian: ru, theme: theme, account: String(context.account.peerId.toInt64()), peer: String(message.id.peerId.toInt64()), action: .translate, resultLanguage: language, apply: { [weak self] value in self?.translated = value.string; self?.tableView.reloadData() })
                 navigationController?.pushViewController(editor, animated: true)
-            case 3: navigationController?.pushViewController(NebulaSpeechController(text: translated.isEmpty ? transcript : translated, language: translated.isEmpty ? (ru ? "ru" : "en") : language, russian: ru, theme: theme), animated: true)
+            case 3: navigationController?.pushViewController(NebulaSpeechController(text: translated.isEmpty ? transcript : translated, language: translated.isEmpty ? transcriptLanguage : language, russian: ru, theme: theme), animated: true)
             case 4: NebulaResultLanguage.show(from: self, selected: language, russian: ru, theme: theme) { [weak self] code in self?.language = code; self?.tableView.reloadData() }
             case 5: translated = ""; tableView.reloadData()
             case 6: navigationController?.pushViewController(NebulaAiChatController(russian: ru, initialText: transcript, action: .summarize, applyResult: { [weak self] value in self?.translated = value; self?.tableView.reloadData() }, theme: theme, resultLanguage: language, applyTitle: text("Использовать результат", "Use result"), account: String(context.account.peerId.toInt64()), peer: String(message.id.peerId.toInt64())), animated: true)
@@ -119,7 +121,7 @@ public final class NebulaAudioTranscriptionController: UITableViewController {
                             result = try await service.transcribe(file: URL(fileURLWithPath: resource.path), mime: self.file.mimeType)
                         } else { throw NebulaLocalAudioPolicy.Failure.incomplete }
                         try Task.checkCancellation(); guard self.generation == token else { return }
-                        self.transcript = result; self.translated = ""; self.finish(); self.status = self.text("Готово", "Done"); self.tableView.reloadData()
+                        self.transcript = result; self.transcriptLanguage = local ? locale : (self.ru ? "ru" : "en"); self.translated = ""; self.finish(); self.status = self.text("Готово", "Done"); self.tableView.reloadData()
                     } catch {
                         guard self.generation == token, !Task.isCancelled else { return }
                         self.finish(); self.report(local ? NebulaLocalTranscription.message(for: error, russian: self.ru) : NebulaAiService.message(for: error, russian: self.ru))

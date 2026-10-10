@@ -461,6 +461,17 @@ final class Composer {
             subprocess.run(['swiftc', *ios_flags, '-typecheck', '-I', str(temp),
                             str(settings_ui / 'NebulaLocalTranscription.swift')], check=True)
             print('OK: local Speech recognition and cancellation adapter typechecked against the real iOS SDK')
+            # Check actual CoreMedia/AVFoundation decoder calls early. The shim
+            # supplies only the pinned public SoftwareAudioSource signatures;
+            # actual UniversalMediaPlayer linkage is checked by the native build.
+            software_audio = temp / 'SoftwareAudioSourceAPI.swift'
+            software_audio.write_text('import CoreMedia\npublic final class SoftwareAudioSource {\npublic init(path: String) {}\npublic var hasStream: Bool { true }\npublic func readSampleBuffer() -> CMSampleBuffer? { nil }\n}\n', encoding='utf-8')
+            subprocess.run(['swiftc', *ios_flags, '-emit-module', '-parse-as-library',
+                            '-module-name', 'UniversalMediaPlayer', str(software_audio),
+                            '-emit-module-path', str(temp / 'UniversalMediaPlayer.swiftmodule')], check=True)
+            subprocess.run(['swiftc', *ios_flags, '-typecheck', '-I', str(temp),
+                            str(settings_ui / 'NebulaRecordingPCM.swift')], check=True)
+            print('OK: production PCM decoder adapter typechecked against CoreMedia/AVFoundation and pinned media API signatures')
             subprocess.run(['swiftc', *ios_flags, '-typecheck', str(settings_ui / 'NebulaEditorSegments.swift')], check=True)
             subprocess.run(['swiftc', *ios_flags, '-typecheck', '-I', str(temp),
                             str(temp / 'submodules/NebulaBrowserCore/Sources/NebulaBrowserContentRules.swift')], check=True)

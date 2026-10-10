@@ -18,7 +18,7 @@ public final class NebulaAudioPreferences {
     public var transcriptionService: String { get { defaults.string(forKey: "nebula.audio.transcriptionService") ?? "" } set { defaults.set(newValue, forKey: "nebula.audio.transcriptionService") } }
     public var localTranscription: Bool { transcriptionService == NebulaLocalAudioPolicy.service }
     public var transcriptionLocale: String {
-        get { NebulaLocalAudioPolicy.locale(defaults.string(forKey: "nebula.audio.transcriptionLocale") ?? "") ?? (Locale.current.languageCode == "ru" ? "ru-RU" : "en-US") }
+        get { NebulaLocalAudioPolicy.locale(defaults.string(forKey: "nebula.audio.transcriptionLocale") ?? "") ?? (Locale.preferredLanguages.first?.hasPrefix("ru") == true ? "ru-RU" : "en-US") }
         set { if let value = NebulaLocalAudioPolicy.locale(newValue) { defaults.set(value, forKey: "nebula.audio.transcriptionLocale") } }
     }
     public var speechService: String { get { defaults.string(forKey: "nebula.audio.speechService") ?? "device" } set { defaults.set(newValue, forKey: "nebula.audio.speechService") } }
