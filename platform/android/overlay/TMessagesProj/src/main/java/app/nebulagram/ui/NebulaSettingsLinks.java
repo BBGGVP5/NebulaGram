@@ -36,7 +36,7 @@ public final class NebulaSettingsLinks {
         if (view instanceof NebulaRow) {
             NebulaRow row = (NebulaRow) view;
             int index = rowIndex[0]++;
-            row.setOnLongClickListener(v -> {
+            row.bindSettingsLinkLongClick(v -> {
                 String title = row.linkTitle();
                 int target = destination(section, title);
                 Uri.Builder link = new Uri.Builder().scheme("tg").authority("settings").appendPath("nebula");

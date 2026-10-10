@@ -293,3 +293,8 @@ The device build consumes `TelegramInfoPlist` in `Telegram/BUILD`, not the Xcode
 ## 0090 — local Saved Messages labels
 
 One non-expired Saved Messages cloud message can open the label picker. Settings expose the local label browser; AccountContext's native navigation opens the original message. The Foundation index is user-ID scoped and stores only names/message IDs. No Premium flags, server reactions or remote sync are fabricated.
+
+
+## 0091 — explicit audio transcription choice
+
+An independently persisted audio switch controls the native Nebula recording-menu action. Legacy text-AI visibility is respected until an explicit audio choice is made. Audio setup always offers direct OpenAI/Gemini creation and selects the saved audio profile through a callback without activating it for text chat. Native recording protection/expiration checks remain effective.

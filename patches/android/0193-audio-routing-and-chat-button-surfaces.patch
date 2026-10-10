@@ -1,0 +1,66 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
+@@ -2667,9 +2667,9 @@
+             } else {
+                 glassDrawableBack.setBounds(0, t, nebulaBackWidth, b);
+             }
+-            if (!nebulaPlainHeaderButtons || actionModeFactor > 0f
+-                    && (nebulaFloatingChatHeader || nebulaClassicSavedHeader || nebulaSavedMessagesHeader)) {
+-                if (nebulaPlainHeaderButtons) glassDrawableBack.setAlpha(Math.round(255 * actionModeFactor));
++            // Chat back controls retain their own material in normal and selection mode.
++            if (!nebulaPlainHeaderButtons || nebulaFloatingChatHeader
++                    || nebulaClassicSavedHeader || nebulaSavedMessagesHeader) {
+                 glassDrawableBack.draw(canvas);
+             }
+         }
+@@ -2680,7 +2680,7 @@
+                 glassDrawableMenu.setBounds(getWidth() - s - p * 2, t, getWidth(), b);
+                 glassDrawableMenu.setAlpha(app.nebulagram.ui.NebulaChatStyle.avatarBackdropAlpha(
+                         searchFactor, actionModeFactor, nebulaChatAvatarContainer.getAlpha()));
+-                if (!nebulaPlainHeaderButtons) glassDrawableMenu.draw(canvas);
++                glassDrawableMenu.draw(canvas);
+             }
+         }
+         if (actionModeFactor > 0f && actionMode != null && !glassOnlyBack && !doNotDrawGlassMenu
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
+@@ -30225,9 +30225,16 @@
+ 
+     private boolean nebulaWidePosts;
+ 
++    private boolean nebulaTranscriptionEnabled;
+     @Override
+     public void onResume() {
+         super.onResume();
++        boolean transcriptionEnabled = app.nebulagram.ui.NebulaTranscription.selected();
++        if (nebulaTranscriptionEnabled != transcriptionEnabled) {
++            nebulaTranscriptionEnabled = transcriptionEnabled;
++            for (MessageObject object : messages) if (object.isVoice() || object.isRoundVideo()) object.forceUpdate = true;
++            updateVisibleRows();
++        }
+         boolean widePosts = app.nebulagram.ui.NebulaWidePosts.enabled();
+         if (nebulaWidePosts != widePosts) {
+             nebulaWidePosts = widePosts;
+@@ -33894,6 +33901,9 @@
+         }
+         boolean preserveDim = false;
+         switch (option) {
++            case 7919:
++                app.nebulagram.ui.NebulaTranscription.openTools(this, selectedObject);
++                break;
+             case 7918:
+                 app.nebulagram.ui.NebulaSavedTags.open(this, selectedObject);
+                 break;
+@@ -46343,6 +46353,10 @@
+             items.add(app.nebulagram.ui.NebulaText.text("Сохранить в выбранный чат", "Save to chosen chat"));
+             icons.add(R.drawable.msg_saved); options.add(7913);
+         }
++        if (!isEphemeral && app.nebulagram.ui.NebulaTranscription.eligible(message)) {
++            items.add(app.nebulagram.ui.NebulaText.text("Расшифровать Nebula", "Nebula transcription"));
++            icons.add(R.drawable.msg_voice_unmuted); options.add(7919);
++        }
+         if (!isEphemeral && app.nebulagram.ui.NebulaSavedTags.eligible(message)) {
+             items.add(app.nebulagram.ui.NebulaText.text("Метки в Избранном", "Saved Messages labels"));
+             icons.add(R.drawable.msg_saved); options.add(7918);

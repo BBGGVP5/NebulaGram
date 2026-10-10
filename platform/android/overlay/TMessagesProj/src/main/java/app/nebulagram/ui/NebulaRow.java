@@ -45,6 +45,16 @@ public class NebulaRow extends FrameLayout {
     private boolean valueMode;
     private NebulaSwitch toggle;
 
+    private View.OnLongClickListener featureLongClick, settingsLinkLongClick;
+    @Override public void setOnLongClickListener(View.OnLongClickListener listener) {
+        featureLongClick = listener;
+        super.setOnLongClickListener(listener != null ? listener : settingsLinkLongClick);
+    }
+    public void bindSettingsLinkLongClick(View.OnLongClickListener listener) {
+        settingsLinkLongClick = listener;
+        super.setOnLongClickListener(featureLongClick != null ? featureLongClick : listener);
+    }
+
     public NebulaRow(@NonNull Context context) {
         super(context);
         theme = NebulaTheme.of(context);

@@ -655,3 +655,8 @@ Add a narrow FileProvider cache path for explicit generated-audio sharing. Audio
 ## 0192 — local Saved Messages labels
 
 Only positive cloud-message IDs in the account's own Saved Messages expose local label actions. Assign/rename/remove controls and a label browser use real user-ID scoping, bounded metadata and native ChatActivity message navigation. No stored text/media, cloud reactions or changed Premium flags.
+
+
+## 0193 — discoverable transcription and chat control materials
+
+The explicit audio switch rebinds voice/round-video cells on resume using the native forceUpdate path. An eligible recording's context menu routes to Nebula tools or audio setup. Chat back/avatar controls draw the original GlassDrawable with their existing bounds and search/selection alpha; home/shared-header and other header action drawing stay unchanged. Settings-link binding is a fallback and preserves each row's own long-press handler.

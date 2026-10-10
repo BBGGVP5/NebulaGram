@@ -1,0 +1,12 @@
+diff --git a/submodules/TelegramUI/Sources/ChatInterfaceStateContextMenus.swift b/submodules/TelegramUI/Sources/ChatInterfaceStateContextMenus.swift
+--- a/submodules/TelegramUI/Sources/ChatInterfaceStateContextMenus.swift
++++ b/submodules/TelegramUI/Sources/ChatInterfaceStateContextMenus.swift
+@@ -1345,7 +1345,7 @@
+             })))
+         }
+         let isCopyProtected = chatPresentationInterfaceState.copyProtectionEnabled || message.isCopyProtected()
+-        if #available(iOS 15.0, *), NebulaAiSettings.shared.enabled, !isCopyProtected, !isExpired,
++        if #available(iOS 15.0, *), NebulaAudioPreferences.shared.transcriptionEnabled, !isCopyProtected, !isExpired,
+            !message.containsSecretMedia, messages.count == 1, message.id.peerId.namespace != Namespaces.Peer.SecretChat,
+            let audioFile = message.effectiveMedia.compactMap({ $0 as? TelegramMediaFile }).first(where: { $0.isVoice || $0.isInstantVideo }),
+            let size = audioFile.size, size > 0, size <= Int64(NebulaAudioTranscription.maximumBytes) {

@@ -19,16 +19,27 @@ public final class NebulaAiServiceEditorFragment extends BaseFragment {
     private NebulaAiServices.Service original;
     private NebulaAiClient loading;
     private boolean destroyed;
+    private boolean audioEditor, speechEditor;
+    private java.util.function.Consumer<NebulaAiServices.Service> saved;
     public NebulaAiServiceEditorFragment(String id) { this.id = id; }
+    public static NebulaAiServiceEditorFragment forAudio(int provider, boolean speech, java.util.function.Consumer<NebulaAiServices.Service> saved) {
+        if (provider != NebulaAiClient.OPENAI && provider != NebulaAiClient.GEMINI) throw new IllegalArgumentException("Unsupported audio provider");
+        NebulaAiServiceEditorFragment editor = new NebulaAiServiceEditorFragment(null);
+        editor.provider = provider; editor.audioEditor = true; editor.speechEditor = speech; editor.saved = saved; return editor;
+    }
+    private String initialAudioModel() { return provider == NebulaAiClient.OPENAI ? (speechEditor ? "gpt-4o-mini-tts" : "gpt-4o-mini-transcribe") : (speechEditor ? "gemini-3.8-flash-tts" : "gemini-3.8-flash"); }
+
     @Override public View createView(Context c) {
         original = id == null ? null : NebulaAiServices.find(id);
         if (original != null) provider = original.provider;
         NebulaFormUi.bar(this, actionBar, c, original == null ? text("Новый сервис", "New service") : text("Изменить сервис", "Edit service"));
         LinearLayout content = NebulaFormUi.column(c);
         NebulaCard providers = new NebulaCard(c); ArrayList<NebulaRow> rows = new ArrayList<>();
-        for (int choice : PROVIDERS) {
+        final int[] choices = audioEditor ? new int[]{NebulaAiClient.OPENAI, NebulaAiClient.GEMINI} : PROVIDERS;
+        for (int choice : choices) {
             NebulaRow row = new NebulaRow(c).title(NebulaAiServices.providerName(choice)).radio(choice == provider).withClick(v -> {
-                provider = choice; for (int i = 0; i < rows.size(); i++) rows.get(i).radio(PROVIDERS[i] == choice);
+                int previous = provider; provider = choice; for (int i = 0; i < rows.size(); i++) rows.get(i).radio(choices[i] == choice);
+                if (audioEditor && choice != previous) { name.setText(NebulaAiServices.providerName(choice) + text(" · аудио", " · audio")); model.setText(initialAudioModel()); key.setText(""); }
                 endpoint.setVisibility(choice == NebulaAiClient.CUSTOM ? View.VISIBLE : View.GONE);
                 if (original == null && name.getText().toString().trim().isEmpty()) name.setText(NebulaAiServices.providerName(choice));
                 if (loading != null) { loading.cancel(); loading = null; }
@@ -36,10 +47,10 @@ public final class NebulaAiServiceEditorFragment extends BaseFragment {
         }
         NebulaFormUi.group(content, text("Провайдер", "Provider"), providers);
         NebulaCard fields = new NebulaCard(c);
-        name = field(c, fields, text("Название сервиса", "Service name"), original == null ? "" : original.name, 64);
+        name = field(c, fields, text("Название сервиса", "Service name"), original == null ? audioEditor ? NebulaAiServices.providerName(provider) + text(" · аудио", " · audio") : "" : original.name, 64);
         endpoint = field(c, fields, text("Адрес API · https://…/v1", "API address · https://…/v1"), original == null ? "https://example.com/v1" : original.endpoint, 1000);
         endpoint.setVisibility(provider == NebulaAiClient.CUSTOM ? View.VISIBLE : View.GONE);
-        model = field(c, fields, text("ID модели", "Model ID"), original == null ? "" : original.model, 256);
+        model = field(c, fields, text("ID модели", "Model ID"), original == null ? audioEditor ? initialAudioModel() : "" : original.model, 256);
         key = field(c, fields, original == null ? text("API-ключ", "API key") : text("Новый API-ключ · пусто = оставить прежний", "New API key · blank keeps the saved key"), "", 10000);
         key.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD); key.setTypeface(android.graphics.Typeface.DEFAULT);
         if (android.os.Build.VERSION.SDK_INT >= 26) key.setImportantForAutofill(View.IMPORTANT_FOR_AUTOFILL_NO_EXCLUDE_DESCENDANTS);
@@ -50,10 +61,11 @@ public final class NebulaAiServiceEditorFragment extends BaseFragment {
             try {
                 String secret = secret();
                 if (name.getText().toString().trim().isEmpty() || model.getText().toString().trim().isEmpty() || secret.isEmpty()) { toast(c, text("Укажите название, модель и API-ключ.", "Enter a name, model and API key.")); return; }
-                NebulaAiServices.save(id, name.getText().toString(), provider, endpoint.getText().toString(), model.getText().toString(), secret); finishFragment();
+                NebulaAiServices.Service service = NebulaAiServices.save(id, name.getText().toString(), provider, endpoint.getText().toString(), model.getText().toString(), secret);
+                if (saved != null) saved.accept(service); finishFragment();
             } catch (Exception e) { toast(c, text("Проверьте адрес HTTPS и ключ сервиса.", "Check the HTTPS address and service key.")); }
         }));
-        content.addView(NebulaFormUi.note(c, text("После сохранения выберите сервис в списке. Запросы отправляются выбранному провайдеру с вашим ключом.", "After saving, select the service from the list. Requests use your key and the selected provider.")));
+        content.addView(NebulaFormUi.note(c, audioEditor ? text("После сохранения сервис будет выбран для этой операции с аудио.", "Saving selects this service for this audio operation.") : text("После сохранения выберите сервис в списке. Запросы отправляются выбранному провайдеру с вашим ключом.", "After saving, select the service from the list. Requests use your key and the selected provider.")));
         return fragmentView = NebulaSettingsLayout.wrap(c, actionBar, NebulaFormUi.scroll(c, content), -12);
     }
     private EditText field(Context c, NebulaCard card, String hint, String value, int limit) {

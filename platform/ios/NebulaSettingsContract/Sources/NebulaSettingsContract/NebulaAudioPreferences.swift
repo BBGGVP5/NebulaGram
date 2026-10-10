@@ -11,6 +11,10 @@ public final class NebulaAudioPreferences {
         defaults.set(true, forKey: "nebula.audio.initialized")
     }
     public static func supports(_ provider: NebulaAiProvider) -> Bool { provider == .openAI || provider == .gemini }
+    public var transcriptionEnabled: Bool {
+        get { defaults.object(forKey: "nebula.audio.transcriptionEnabled") as? Bool ?? defaults.bool(forKey: "nebula.ai.enabled") }
+        set { defaults.set(newValue, forKey: "nebula.audio.transcriptionEnabled") }
+    }
     public var transcriptionService: String { get { defaults.string(forKey: "nebula.audio.transcriptionService") ?? "" } set { defaults.set(newValue, forKey: "nebula.audio.transcriptionService") } }
     public var speechService: String { get { defaults.string(forKey: "nebula.audio.speechService") ?? "device" } set { defaults.set(newValue, forKey: "nebula.audio.speechService") } }
     public var style: String { get { let value = defaults.string(forKey: "nebula.audio.style") ?? "neutral"; return ["neutral", "warm", "calm", "lively"].contains(value) ? value : "neutral" } set { if ["neutral", "warm", "calm", "lively"].contains(newValue) { defaults.set(newValue, forKey: "nebula.audio.style") } } }

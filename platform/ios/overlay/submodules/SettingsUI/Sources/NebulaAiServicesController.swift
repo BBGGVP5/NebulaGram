@@ -66,11 +66,13 @@ final class NebulaAiServicesController: UITableViewController {
     }
 }
 
-private final class NebulaAiConnectionController: UITableViewController {
+final class NebulaAiConnectionController: UITableViewController {
     private let ru: Bool
     private let theme: PresentationTheme?
     private let isNew: Bool
     private let recovering: Bool
+    private let audioSpeech: Bool?
+    private let savedCallback: ((NebulaAiConnection) -> Void)?
     private var catalogTask: Task<Void, Never>?
     private var catalogRevision = 0
     private var value: NebulaAiConnection
@@ -78,13 +80,17 @@ private final class NebulaAiConnectionController: UITableViewController {
     private let modelField = UITextField()
     private let endpointField = UITextField()
     private let keyField = UITextField()
-    init(connection: NebulaAiConnection?, russian: Bool, theme: PresentationTheme?, recovering: Bool = false) {
-        value = connection ?? NebulaAiConnection(name: "", provider: .openAI)
+    init(connection: NebulaAiConnection?, russian: Bool, theme: PresentationTheme?, recovering: Bool = false, audioSpeech: Bool? = nil, audioProvider: NebulaAiProvider = .openAI, savedCallback: ((NebulaAiConnection) -> Void)? = nil) {
+        var initial = connection ?? NebulaAiConnection(name: "", provider: .openAI)
+        if let audioSpeech, connection == nil { initial.provider = audioProvider; initial.name = audioProvider.title + (russian ? " · аудио" : " · audio"); initial.model = Self.audioModel(provider: audioProvider, speech: audioSpeech) }
+        value = initial; self.audioSpeech = audioSpeech; self.savedCallback = savedCallback
         isNew = connection == nil || recovering; ru = russian; self.theme = theme; self.recovering = recovering
         super.init(style: .insetGrouped)
         title = russian ? (connection == nil ? "Новый сервис" : "Настройки сервиса") : (connection == nil ? "New service" : "Service settings")
         if recovering { title = russian ? "Восстановление сервиса" : "Recover service" }
     }
+    private var providers: [NebulaAiProvider] { audioSpeech == nil ? NebulaAiProvider.allCases : [.openAI, .gemini] }
+    private static func audioModel(provider: NebulaAiProvider, speech: Bool) -> String { provider == .openAI ? (speech ? "gpt-4o-mini-tts" : "gpt-4o-mini-transcribe") : (speech ? "gemini-3.8-flash-tts" : "gemini-3.8-flash") }
     required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
     override func viewDidLoad() {
         super.viewDidLoad(); NebulaSettingsStyle.apply(theme: theme, to: self)
@@ -103,14 +109,14 @@ private final class NebulaAiConnectionController: UITableViewController {
     }
     override func numberOfSections(in tableView: UITableView) -> Int { isNew ? 3 : 4 }
     private var fields: [UITextField] { value.provider == .appleIntelligence ? [nameField] : value.provider == .custom ? [nameField, endpointField, modelField, keyField] : [nameField, modelField, keyField] }
-    override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int { section == 0 ? NebulaAiProvider.allCases.count : section == 1 ? fields.count : section == 2 && value.provider == .appleIntelligence ? 0 : 1 }
+    override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int { section == 0 ? providers.count : section == 1 ? fields.count : section == 2 && value.provider == .appleIntelligence ? 0 : 1 }
     override func tableView(_ tableView: UITableView, titleForFooterInSection section: Int) -> String? {
         section == 1 ? (ru ? "Пустое поле ключа сохраняет прежний ключ. Он хранится только в связке ключей." : "An empty key field keeps the existing key. Keys are stored only in Keychain.") : nil
     }
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = UITableViewCell(style: .default, reuseIdentifier: nil); NebulaSettingsStyle.finish(cell, theme: theme)
         if indexPath.section == 0 {
-            let provider = NebulaAiProvider.allCases[indexPath.row]
+            let provider = providers[indexPath.row]
             cell.textLabel?.text = provider == .custom ? (ru ? "Свой сервис" : "Custom service") : provider.title
             if provider == value.provider { cell.backgroundColor = (theme?.list.itemAccentColor ?? .systemBlue).withAlphaComponent(0.16); cell.accessibilityTraits.insert(.selected) }
         } else if indexPath.section == 1 {
@@ -125,7 +131,10 @@ private final class NebulaAiConnectionController: UITableViewController {
     }
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         if indexPath.section == 0 {
-            cancelCatalog(); view.endEditing(true); value.provider = NebulaAiProvider.allCases[indexPath.row]; tableView.reloadData()
+            cancelCatalog(); view.endEditing(true)
+            let provider = providers[indexPath.row]
+            if let audioSpeech, provider != value.provider { keyField.text = ""; modelField.text = Self.audioModel(provider: provider, speech: audioSpeech); nameField.text = provider.title + (ru ? " · аудио" : " · audio") }
+            value.provider = provider; tableView.reloadData()
         } else if indexPath.section == 2 { chooseModel()
         } else if indexPath.section == 3 {
             let alert = UIAlertController(title: ru ? "Удалить сервис и его ключ?" : "Delete this service and its key?", message: nil, preferredStyle: .alert)
@@ -180,9 +189,14 @@ private final class NebulaAiConnectionController: UITableViewController {
         value.model = (modelField.text ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
         value.endpoint = (endpointField.text ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
         let key = (keyField.text ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+        if audioSpeech != nil && isNew && key.isEmpty {
+            let alert = UIAlertController(title: ru ? "Добавьте API-ключ" : "Add an API key", message: ru ? "Для этого аудиосервиса нужен ваш ключ OpenAI или Gemini." : "This audio service needs your OpenAI or Gemini key.", preferredStyle: .alert)
+            alert.addAction(UIAlertAction(title: "OK", style: .default)); present(alert, animated: true); return
+        }
         do {
             if recovering { try NebulaAiSettings.shared.services.recoverLegacy(value, apiKey: key.isEmpty ? nil : key, secrets: .shared) }
             else { try NebulaAiSettings.shared.services.save(value, apiKey: key.isEmpty ? nil : key, secrets: .shared) }
+            savedCallback?(value)
             navigationController?.popViewController(animated: true)
         } catch { report() }
     }

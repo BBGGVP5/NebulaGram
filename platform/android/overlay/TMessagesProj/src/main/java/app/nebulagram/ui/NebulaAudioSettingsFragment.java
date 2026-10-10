@@ -22,8 +22,17 @@ public final class NebulaAudioSettingsFragment extends BaseFragment {
         Context c=body.getContext();body.removeAllViews();
         body.addView(new NebulaSettingsHero(c,"🎙️",text("Аудио и голоса","Audio & voices"),text("Распознавайте, переводите и озвучивайте сообщения.","Transcribe, translate and read messages aloud.")));
         NebulaCard card=new NebulaCard(c);
+        card.add(new NebulaRow(c).title(text("Расшифровка Nebula", "Nebula transcription"))
+                .subtitle(text("Голосовые и кружки через ваш ИИ-сервис · без Telegram Premium", "Voice and video messages through your AI service · no Telegram Premium required"), false)
+                .trailing(NebulaRow.TRAIL_SWITCH).checked(NebulaTranscription.selected()).withClick(v -> {
+                    if (NebulaTranscription.selected()) { NebulaTranscription.setEnabled(false); rebuild(); }
+                    else if (NebulaAiServices.find(NebulaAudioPreferences.serviceId(false)) == null) chooseService(false, true);
+                    else { NebulaTranscription.setEnabled(true); rebuild(); }
+                }));
         card.add(row(text("Сервис расшифровки","Transcription service"),NebulaAudioPreferences.title(false),()->chooseService(false)));
         addModel(card,false);NebulaFormUi.group(body,text("Распознавание речи","Speech recognition"),card);
+        body.addView(NebulaFormUi.note(c,text("Включите тумблер, выберите или добавьте OpenAI/Gemini, затем нажмите кнопку расшифровки у голосового или кружка. Также доступно: удержание сообщения → «Расшифровать Nebula». Gemini Nano работает с текстом; для распознавания записи нужен аудиосервис.", "Enable the switch, choose or add OpenAI/Gemini, then tap the transcription button on a voice or video message. You can also hold the message and choose Nebula transcription. Gemini Nano handles text; recordings need an audio service.")));
+
         card=new NebulaCard(c);
         card.add(row(text("Озвучивание","Speech"),NebulaAudioPreferences.title(true),()->chooseService(true)));
         addModel(card,true);
@@ -55,11 +64,24 @@ public final class NebulaAudioSettingsFragment extends BaseFragment {
             }).setNegativeButton(text("Отмена","Cancel"),null).create());
         }));
     }
-    private void chooseService(boolean speech) {
+    private void chooseService(boolean speech) { chooseService(speech, false); }
+    private void chooseService(boolean speech, boolean enableAfterSelection) {
         ArrayList<String> ids=new ArrayList<>(),titles=new ArrayList<>();
         if(speech){ids.add("device");titles.add(text("На устройстве","On device"));}
         else {ids.add("");titles.add(text("Не выбран","Not selected"));}
-        for(NebulaAiServices.Service s:NebulaAiServices.list()) if(NebulaAudioPreferences.supported(s)){ids.add(s.id);titles.add(s.name+" · "+NebulaAiServices.providerName(s.provider));}
-        showDialog(new NebulaDialog.Builder(body.getContext(),getResourceProvider()).setTitle(text("Сервис аудио","Audio service")).setSelectedIndex(ids.indexOf(NebulaAudioPreferences.serviceId(speech))).setItems(titles.toArray(new String[0]),(d,i)->{NebulaAudioPreferences.prefs().edit().putString(speech?"speech_service":"transcription_service",ids.get(i)).apply();rebuild();}).create());
+        for(NebulaAiServices.Service service:NebulaAiServices.list()) if(NebulaAudioPreferences.supported(service)){ids.add(service.id);titles.add(service.name+" · "+NebulaAiServices.providerName(service.provider));}
+        int createOpenAI=ids.size();ids.add("create-openai");titles.add(text("Добавить OpenAI","Add OpenAI"));
+        int createGemini=ids.size();ids.add("create-gemini");titles.add(text("Добавить Gemini","Add Gemini"));
+        showDialog(new NebulaDialog.Builder(body.getContext(),getResourceProvider()).setTitle(text("Сервис аудио","Audio service")).setSelectedIndex(ids.indexOf(NebulaAudioPreferences.serviceId(speech))).setItems(titles.toArray(new String[0]),(d,i)->{
+            if(i==createOpenAI || i==createGemini) {
+                presentFragment(NebulaAiServiceEditorFragment.forAudio(i==createOpenAI?NebulaAiClient.OPENAI:NebulaAiClient.GEMINI,speech,service->{
+                    NebulaAudioPreferences.prefs().edit().putString(speech?"speech_service":"transcription_service",service.id).putString((speech?"speech_model_":"transcription_model_")+service.provider,service.model).apply();
+                    if(!speech&&enableAfterSelection)NebulaTranscription.setEnabled(true);
+                }));return;
+            }
+            NebulaAudioPreferences.prefs().edit().putString(speech?"speech_service":"transcription_service",ids.get(i)).apply();
+            if(!speech){if(ids.get(i).isEmpty())NebulaTranscription.setEnabled(false);else if(enableAfterSelection)NebulaTranscription.setEnabled(true);}
+            rebuild();
+        }).create());
     }
 }

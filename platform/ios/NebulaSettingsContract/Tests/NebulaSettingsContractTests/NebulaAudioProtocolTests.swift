@@ -60,4 +60,16 @@ final class NebulaAudioProtocolTests: XCTestCase {
         XCTAssertEqual(audio.model(speech: true, connection: connection), "tts-1-hd"); XCTAssertEqual(connection.model, "text-model")
         let reopened = NebulaAudioPreferences(defaults: defaults); XCTAssertEqual(reopened.style, "calm"); XCTAssertEqual(reopened.speechService, "selected")
     }
+    func testExplicitTranscriptionSwitchPreservesLegacyAndOverridesTextAI() throws {
+        let suite = "audio-switch-\(UUID().uuidString)", defaults = UserDefaults(suiteName: suite)!
+        defer { defaults.removePersistentDomain(forName: suite) }
+        let audio = NebulaAudioPreferences(defaults: defaults)
+        XCTAssertFalse(audio.transcriptionEnabled)
+        defaults.set(true, forKey: "nebula.ai.enabled"); XCTAssertTrue(audio.transcriptionEnabled)
+        audio.transcriptionEnabled = false; XCTAssertFalse(audio.transcriptionEnabled)
+        defaults.set(false, forKey: "nebula.ai.enabled"); audio.transcriptionEnabled = true
+        XCTAssertTrue(NebulaAudioPreferences(defaults: defaults).transcriptionEnabled)
+        XCTAssertFalse(defaults.bool(forKey: "nebula.ai.enabled"))
+    }
+
 }
