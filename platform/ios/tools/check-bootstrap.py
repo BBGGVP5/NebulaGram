@@ -61,6 +61,9 @@ def main():
         for patch in patches:
             subprocess.run(['git', '-C', str(temp), 'apply', '--whitespace=error', str(patch)], check=True)
         overlay = ROOT / 'platform/ios/overlay'
+        account_context = (temp / 'submodules/AccountContext/Sources/AccountContext.swift').read_text(encoding='utf-8')
+        assert 'import Postbox' in account_context
+        assert 'func canTranscribeWithNebula(message: Message) -> Bool' in account_context
         for source in overlay.rglob('*'):
             if source.is_file():
                 dest = temp / source.relative_to(overlay)

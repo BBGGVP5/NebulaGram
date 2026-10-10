@@ -1,0 +1,11 @@
+diff --git a/submodules/AccountContext/Sources/AccountContext.swift b/submodules/AccountContext/Sources/AccountContext.swift
+--- a/submodules/AccountContext/Sources/AccountContext.swift
++++ b/submodules/AccountContext/Sources/AccountContext.swift
+@@ -1,6 +1,7 @@
+ import Foundation
+ import UIKit
+ import AsyncDisplayKit
++import Postbox
+ import TelegramCore
+ import TelegramPresentationData
+ import TelegramUIPreferences

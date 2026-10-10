@@ -316,3 +316,7 @@ Existing voice/round-video buttons route to Nebula while its independent switch 
 ## 0096 — live transcription switch
 
 Actual transcription-switch changes notify the existing owned chat observer list. Refresh visible voice/round-video rows after collecting their message IDs; returning to the chat also refreshes them. This covers settings inside a page sheet where the underlying controller may stay visible. Repeated values and unrelated speech/service changes do not emit the switch notification. Observer cleanup remains in the existing controller lifetime.
+
+## 0097 — transcription bridge type import
+
+The new AccountContext protocol methods reference Postbox.Message. AccountContext already declares the Bazel dependency but did not import that module in its protocol source. Add the explicit import; native run 38052113196 identified this compiler error, which earlier parser/standalone SDK checks cannot detect.
