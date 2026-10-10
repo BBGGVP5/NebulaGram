@@ -39,4 +39,19 @@ final class NebulaLocalAudioPolicyTests: XCTestCase {
         XCTAssertEqual(NebulaLocalAudioPolicy.locale("en_US"), "en-US"); XCTAssertEqual(NebulaLocalAudioPolicy.locale("zh-Hans-CN"), "zh-Hans-CN")
         for value in ["", "en--US", "x-US", "12-US", "ru\nRU", "en-US/", String(repeating: "a", count: 65)] { XCTAssertNil(NebulaLocalAudioPolicy.locale(value)) }
     }
+    func testOnlyActualTranscriptionSwitchChangesRefreshTheChat() {
+        let suite = "audio-notification-\(UUID().uuidString)", defaults = UserDefaults(suiteName: suite)!
+        defer { defaults.removePersistentDomain(forName: suite) }
+        let audio = NebulaAudioPreferences(defaults: defaults)
+        let changes = expectation(description: "Enable and disable refresh native buttons")
+        changes.expectedFulfillmentCount = 2; changes.assertForOverFulfill = true
+        let token = NotificationCenter.default.addObserver(forName: NebulaAudioPreferences.transcriptionChanged, object: nil, queue: nil) { notification in
+            if notification.object as? NebulaAudioPreferences === audio { changes.fulfill() }
+        }
+        defer { NotificationCenter.default.removeObserver(token) }
+        audio.transcriptionEnabled = true; audio.transcriptionEnabled = true
+        audio.transcriptionService = NebulaLocalAudioPolicy.service; audio.speechService = "device"
+        audio.transcriptionEnabled = false; audio.transcriptionEnabled = false
+        wait(for: [changes], timeout: 1)
+    }
 }

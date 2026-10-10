@@ -49,6 +49,7 @@ Files: `NebulaAudioSettingsController.swift`, `NebulaAudioTranscriptionControlle
 - [x] Route the native voice/round-video button to Nebula while the independent switch is on; make the existing button visible on eligible recordings without relying on Premium trial availability. Preserve native behavior when switched off and native preview/view-once/layout guards.
 - [x] Add `0095` AccountContext eligibility/presentation bridge instead of introducing a SettingsUI/recording-node import cycle. The context menu and explicit Transcribe action share the same positive-cloud/size/media/protection/secret/retained-content gate.
 - [x] Add an executable fixture using the production eligibility function and actual size constant. Exercise voice/round/video, maximum size and all excluded message states; add it to bootstrap.
+- [x] Notify actual switch changes and refresh visible recording rows through the existing owned chat observer list, plus on returning to the chat (`0096`). Collect IDs before requesting relayout. Test exactly one enable/disable notification, with no notification for repeated values or unrelated audio choices.
 - [ ] Verify the physical inline button, configuration changes, switch-off return to native behavior and absence of overlapping/double presentations on iPhone.
 
 ## Task 4: Compile, artifact and inventory

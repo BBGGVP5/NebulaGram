@@ -2,6 +2,7 @@ import Foundation
 
 public final class NebulaAudioPreferences {
     public static let shared = NebulaAudioPreferences()
+    public static let transcriptionChanged = Notification.Name("NebulaAudioTranscriptionChanged")
     private let defaults: UserDefaults
     public init(defaults: UserDefaults = .standard) { self.defaults = defaults }
     public func migrate(services: NebulaAiServices) {
@@ -13,7 +14,11 @@ public final class NebulaAudioPreferences {
     public static func supports(_ provider: NebulaAiProvider) -> Bool { provider == .openAI || provider == .gemini }
     public var transcriptionEnabled: Bool {
         get { defaults.object(forKey: "nebula.audio.transcriptionEnabled") as? Bool ?? defaults.bool(forKey: "nebula.ai.enabled") }
-        set { defaults.set(newValue, forKey: "nebula.audio.transcriptionEnabled") }
+        set {
+            let changed = transcriptionEnabled != newValue
+            defaults.set(newValue, forKey: "nebula.audio.transcriptionEnabled")
+            if changed { NotificationCenter.default.post(name: Self.transcriptionChanged, object: self) }
+        }
     }
     public var transcriptionService: String { get { defaults.string(forKey: "nebula.audio.transcriptionService") ?? "" } set { defaults.set(newValue, forKey: "nebula.audio.transcriptionService") } }
     public var localTranscription: Bool { transcriptionService == NebulaLocalAudioPolicy.service }

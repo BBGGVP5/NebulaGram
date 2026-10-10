@@ -1,0 +1,21 @@
+diff --git a/submodules/TelegramUI/Sources/ChatController.swift b/submodules/TelegramUI/Sources/ChatController.swift
+--- a/submodules/TelegramUI/Sources/ChatController.swift
++++ b/submodules/TelegramUI/Sources/ChatController.swift
+@@ -279,6 +279,9 @@
+             nebulaTranslationTimer = Foundation.Timer.scheduledTimer(withTimeInterval: 0.15, repeats: true) { [weak self] _ in self?.nebulaTickChatAI() }
+         }
+         if nebulaTranslationObservers.isEmpty {
++            nebulaTranslationObservers.append(NotificationCenter.default.addObserver(forName: NebulaAudioPreferences.transcriptionChanged, object: nil, queue: .main) { [weak self] _ in
++                self?.nebulaRefreshRecordingButtons()
++            })
+             nebulaTranslationObservers.append(NotificationCenter.default.addObserver(forName: NebulaTranslationActivity.changed, object: nil, queue: .main) { [weak self] _ in
+                 guard let self, self.isNodeLoaded, self.nebulaTranslationVisible else { return }
+                 self.chatDisplayNode.historyNode.forEachVisibleMessageItemNode { node in
+@@ -7831,6 +7834,7 @@
+     
+     override public func viewWillAppear(_ animated: Bool) {
+         super.viewWillAppear(animated)
++        self.nebulaRefreshRecordingButtons()
+         if let peerId = self.chatLocation.peerId, peerId != self.context.account.peerId {
+             let russian = self.presentationData.strings.baseLanguageCode.lowercased().hasPrefix("ru")
+             NebulaChatLockGate.attach(to: self, account: self.context.account.peerId.toInt64(), peer: peerId.toInt64(), russian: russian)
