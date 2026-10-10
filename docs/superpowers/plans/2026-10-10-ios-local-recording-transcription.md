@@ -42,6 +42,7 @@ Files: `NebulaAudioSettingsController.swift`, `NebulaAudioTranscriptionControlle
 
 - [x] `NebulaAnimatedSettingsEmoji.swift` still used `.once`, whereas current Android uses indefinite playback. Change the native sticker playback to `.loop`, retaining foreground/window/page visibility, return-to-page rewind and Reduce Motion pausing.
 - [x] Pass AccountContext from the real message context menu (`0094`) and swipe handler into Message tools. Pass it onward to Speech and Tasks; pass the existing recording context to Speech. These destinations previously fell back to system emoji because their hero received no context. Preserve source-compatible optional initializers and shared 88-point header geometry.
+- [x] Remove the remaining selection checkmark from Glass style rows. Apply the same accent highlight and selected accessibility trait as other choice screens, after the shared theme finisher so it cannot overwrite the highlight. Task completion checkmarks keep their action meaning.
 - [ ] Verify actual on-device pack resolution, continuous visible playback, pause while covered/backgrounded and still-frame Reduce Motion. Compiler checks cannot establish rendered animation.
 
 ## Additional audit finding: native transcription button

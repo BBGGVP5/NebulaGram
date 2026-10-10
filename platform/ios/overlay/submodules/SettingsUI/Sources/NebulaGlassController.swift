@@ -66,7 +66,14 @@ final class NebulaGlassController: UITableViewController {
     }
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = UITableViewCell(style: .subtitle, reuseIdentifier: nil)
-        defer { NebulaSettingsStyle.finish(cell, theme: theme) }
+        defer {
+            NebulaSettingsStyle.finish(cell, theme: theme)
+            if indexPath.section == 1, store.iosGlassStyle == indexPath.row {
+                let accent = theme?.list.itemAccentColor ?? .systemBlue
+                cell.backgroundColor = accent.withAlphaComponent(0.18)
+                cell.textLabel?.textColor = accent; cell.accessibilityTraits.insert(.selected)
+            }
+        }
         switch indexPath.section {
         case 0:
             preview.removeFromSuperview(); cell.contentView.addSubview(preview)
@@ -75,7 +82,7 @@ final class NebulaGlassController: UITableViewController {
             cell.selectionStyle = .none
         case 1:
             cell.textLabel?.text = styles[indexPath.row]
-            cell.accessoryType = store.iosGlassStyle == indexPath.row ? .checkmark : .none
+            cell.accessoryType = .none
         case 2:
             if indexPath.row == 0 {
                 cell.textLabel?.text = tintTitle()
