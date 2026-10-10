@@ -44,6 +44,13 @@ Files: `NebulaAudioSettingsController.swift`, `NebulaAudioTranscriptionControlle
 - [x] Pass AccountContext from the real message context menu (`0094`) and swipe handler into Message tools. Pass it onward to Speech and Tasks; pass the existing recording context to Speech. These destinations previously fell back to system emoji because their hero received no context. Preserve source-compatible optional initializers and shared 88-point header geometry.
 - [ ] Verify actual on-device pack resolution, continuous visible playback, pause while covered/backgrounded and still-frame Reduce Motion. Compiler checks cannot establish rendered animation.
 
+## Additional audit finding: native transcription button
+
+- [x] Route the native voice/round-video button to Nebula while the independent switch is on; make the existing button visible on eligible recordings without relying on Premium trial availability. Preserve native behavior when switched off and native preview/view-once/layout guards.
+- [x] Add `0095` AccountContext eligibility/presentation bridge instead of introducing a SettingsUI/recording-node import cycle. The context menu and explicit Transcribe action share the same positive-cloud/size/media/protection/secret/retained-content gate.
+- [x] Add an executable fixture using the production eligibility function and actual size constant. Exercise voice/round/video, maximum size and all excluded message states; add it to bootstrap.
+- [ ] Verify the physical inline button, configuration changes, switch-off return to native behavior and absence of overlapping/double presentations on iPhone.
+
 ## Task 4: Compile, artifact and inventory
 
 - [ ] Generate contract mirrors; run ordered bootstrap, 78-setting checker and native/IPA driver tests locally. macOS bootstrap must execute new XCTest policy/persistence assertions and typecheck Speech against the pinned SDK.

@@ -15,6 +15,14 @@ public final class NebulaAudioTranscriptionController: UITableViewController {
     private var busy = false, generation = 0, transcript = "", translated = "", language = "ru", status = ""
     private var transcriptLanguage = "en"
     private lazy var hero = NebulaSettingsHero(symbol: "🎙️", title: text("Расшифровка", "Transcription"), summary: text("Голосовые и видеосообщения", "Voice and video messages"), context: context, theme: theme)
+    public nonisolated static func eligibleFile(_ message: Message) -> TelegramMediaFile? {
+        guard message.id.namespace == Namespaces.Message.Cloud, message.id.id > 0,
+              message.id.peerId.namespace != Namespaces.Peer.SecretChat,
+              !message.containsSecretMedia, !message.isCopyProtected(), !NebulaDeletedCapture.isRetained(message),
+              let file = message.effectiveMedia.compactMap({ $0 as? TelegramMediaFile }).first(where: { $0.isVoice || $0.isInstantVideo || $0.isVideo }),
+              let size = file.size, size > 0, size <= Int64(NebulaAudioTranscription.maximumBytes) else { return nil }
+        return file
+    }
     public init(context: AccountContext, message: Message, file: TelegramMediaFile) {
         self.context = context; self.message = message; self.file = file
         let presentation = context.sharedContext.currentPresentationData.with { $0 }; theme = presentation.theme; ru = presentation.strings.baseLanguageCode.hasPrefix("ru"); language = ru ? "ru" : "en"
@@ -83,8 +91,7 @@ public final class NebulaAudioTranscriptionController: UITableViewController {
         if busy { cancel() } else { start() }
     }
     private func start() {
-        guard !message.containsSecretMedia, !message.isCopyProtected(), message.id.peerId.namespace != Namespaces.Peer.SecretChat,
-              file.isVoice || file.isInstantVideo || file.isVideo, let size = file.size, size > 0, size <= Int64(NebulaAudioTranscription.maximumBytes) else { report(text("Эту запись нельзя расшифровать", "This recording cannot be transcribed")); return }
+        guard Self.eligibleFile(message)?.fileId == file.fileId else { report(text("Эту запись нельзя расшифровать", "This recording cannot be transcribed")); return }
         do {
             let local = NebulaAudioPreferences.shared.localTranscription, locale = NebulaAudioPreferences.shared.transcriptionLocale
             let service = local ? nil : try NebulaAudioService()

@@ -308,3 +308,7 @@ The existing eligible native recording-menu action also covers normal videos, ma
 ## 0094 — message tool animation context
 
 Pass the native account context into Message tools without changing text, entities or permissions. The swipe entry does the same in its overlay. Speech and Tasks receive that context and use Telegram's animated header renderer instead of the system-label fallback. Shared emoji now use native looping playback while visible, with existing pause/Reduce Motion/rewind ownership.
+
+## 0095 — native recording transcription buttons
+
+Existing voice/round-video buttons route to Nebula while its independent switch is on, and eligible recordings show the button regardless of native Premium trial availability. Native behavior remains when the switch is off or the recording is ineligible. An AccountContext protocol bridge keeps SettingsUI out of the recording-node module graph. The menu, button and Transcribe action share one gate: positive cloud message, bounded recording, no secret/temporary/protected/retained content. Native preview/view-once/layout guards remain. The opened sheet exposes the actual service and explicit Transcribe action; no paid generation or source-message mutation is implicit.

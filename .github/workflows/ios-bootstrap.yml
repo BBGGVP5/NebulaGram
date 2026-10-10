@@ -1,9 +1,9 @@
 name: iOS bootstrap checks
 on:
   push:
-    paths: ['platform/ios/**', 'patches/ios/**', 'shared/settings/**', 'design/settings/icons.json', 'scripts/generate-settings-icons.py', 'scripts/check-swift-local-speech.py', '.gitmodules', 'vendor/telegram-ios', '.github/workflows/ios-bootstrap.yml']
+    paths: ['platform/ios/**', 'patches/ios/**', 'shared/settings/**', 'design/settings/icons.json', 'scripts/generate-settings-icons.py', 'scripts/check-swift-local-speech.py', 'scripts/check-swift-recording-eligibility.py', '.gitmodules', 'vendor/telegram-ios', '.github/workflows/ios-bootstrap.yml']
   pull_request:
-    paths: ['platform/ios/**', 'patches/ios/**', 'shared/settings/**', 'design/settings/icons.json', 'scripts/generate-settings-icons.py', 'scripts/check-swift-local-speech.py', '.gitmodules', 'vendor/telegram-ios', '.github/workflows/ios-bootstrap.yml']
+    paths: ['platform/ios/**', 'patches/ios/**', 'shared/settings/**', 'design/settings/icons.json', 'scripts/generate-settings-icons.py', 'scripts/check-swift-local-speech.py', 'scripts/check-swift-recording-eligibility.py', '.gitmodules', 'vendor/telegram-ios', '.github/workflows/ios-bootstrap.yml']
   workflow_dispatch:
 jobs:
   bootstrap:
@@ -28,6 +28,8 @@ jobs:
         run: python scripts/check-swift-live-translation.py
       - name: Test actual local speech callback and cancellation lifetime
         run: python scripts/check-swift-local-speech.py
+      - name: Test production recording export eligibility
+        run: python scripts/check-swift-recording-eligibility.py
       - name: Test notification signing diagnostics
         run: python platform/ios/tools/test_notification_signing.py
       - name: Test native build preparation safety

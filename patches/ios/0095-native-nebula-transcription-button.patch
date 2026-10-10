@@ -1,0 +1,101 @@
+diff --git a/submodules/AccountContext/Sources/AccountContext.swift b/submodules/AccountContext/Sources/AccountContext.swift
+--- a/submodules/AccountContext/Sources/AccountContext.swift
++++ b/submodules/AccountContext/Sources/AccountContext.swift
+@@ -1362,6 +1362,8 @@
+ }
+ 
+ public protocol SharedAccountContext: AnyObject {
++    func canTranscribeWithNebula(message: Message) -> Bool
++    func presentNebulaAudioTranscription(context: AccountContext, from view: UIView, message: Message)
+     func presentNebulaCaptionTools(context: AccountContext, from view: UIView, text: NSAttributedString, apply: @escaping (NSAttributedString) -> Void)
+     var sharedContainerPath: String { get }
+     var basePath: String { get }
+diff --git a/submodules/TelegramUI/Sources/SharedAccountContext.swift b/submodules/TelegramUI/Sources/SharedAccountContext.swift
+--- a/submodules/TelegramUI/Sources/SharedAccountContext.swift
++++ b/submodules/TelegramUI/Sources/SharedAccountContext.swift
+@@ -145,6 +145,23 @@
+ private var testHasInstance = false
+ 
+ public final class SharedAccountContextImpl: SharedAccountContext {
++    public func canTranscribeWithNebula(message: Message) -> Bool {
++        if #available(iOS 15.0, *), NebulaAudioPreferences.shared.transcriptionEnabled {
++            return NebulaAudioTranscriptionController.eligibleFile(message) != nil
++        }
++        return false
++    }
++    public func presentNebulaAudioTranscription(context: AccountContext, from view: UIView, message: Message) {
++        guard #available(iOS 15.0, *), canTranscribeWithNebula(message: message),
++              let file = NebulaAudioTranscriptionController.eligibleFile(message) else { return }
++        var responder: UIResponder? = view
++        while responder != nil && !(responder is UIViewController) { responder = responder?.next }
++        guard var presenter = responder as? UIViewController else { return }
++        while let presented = presenter.presentedViewController { presenter = presented }
++        guard !presenter.isBeingDismissed, !presenter.isBeingPresented else { return }
++        presenter.present(NebulaToolsNavigationController(root: NebulaAudioTranscriptionController(context: context, message: message, file: file)), animated: true)
++    }
++
+     public func presentNebulaCaptionTools(context: AccountContext, from view: UIView, text: NSAttributedString, apply: @escaping (NSAttributedString) -> Void) {
+         var responder: UIResponder? = view
+         while responder != nil && !(responder is UIViewController) { responder = responder?.next }
+diff --git a/submodules/TelegramUI/Components/Chat/ChatMessageInteractiveFileNode/Sources/ChatMessageInteractiveFileNode.swift b/submodules/TelegramUI/Components/Chat/ChatMessageInteractiveFileNode/Sources/ChatMessageInteractiveFileNode.swift
+--- a/submodules/TelegramUI/Components/Chat/ChatMessageInteractiveFileNode/Sources/ChatMessageInteractiveFileNode.swift
++++ b/submodules/TelegramUI/Components/Chat/ChatMessageInteractiveFileNode/Sources/ChatMessageInteractiveFileNode.swift
+@@ -352,6 +352,10 @@
+             return
+         }
+         
++        if context.sharedContext.canTranscribeWithNebula(message: message) {
++            context.sharedContext.presentNebulaAudioTranscription(context: context, from: self.view, message: message)
++            return
++        }
+         if !context.isPremium, case .inProgress = self.audioTranscriptionState {
+             return
+         }
+@@ -788,6 +792,10 @@
+                     }
+                 }
+                 
++                if !isViewOnceMessage, !arguments.presentationData.isPreview,
++                   arguments.context.sharedContext.canTranscribeWithNebula(message: arguments.message) {
++                    displayTranscribe = true
++                }
+                 let transcribedText = forcedAudioTranscriptionText ?? transcribedText(message: EngineMessage(arguments.message))
+                 
+                 switch audioTranscriptionState {
+diff --git a/submodules/TelegramUI/Components/Chat/ChatMessageInteractiveInstantVideoNode/Sources/ChatMessageInteractiveInstantVideoNode.swift b/submodules/TelegramUI/Components/Chat/ChatMessageInteractiveInstantVideoNode/Sources/ChatMessageInteractiveInstantVideoNode.swift
+--- a/submodules/TelegramUI/Components/Chat/ChatMessageInteractiveInstantVideoNode/Sources/ChatMessageInteractiveInstantVideoNode.swift
++++ b/submodules/TelegramUI/Components/Chat/ChatMessageInteractiveInstantVideoNode/Sources/ChatMessageInteractiveInstantVideoNode.swift
+@@ -855,6 +855,10 @@
+                         }
+                     }
+                     
++                    if statusDisplayType == .free, !isViewOnceMessage, !item.presentationData.isPreview,
++                       item.context.sharedContext.canTranscribeWithNebula(message: item.message) {
++                        displayTranscribe = true
++                    }
+                     if displayTranscribe, let durationBlurColor = durationBlurColor {
+                         var added = false
+                         let audioTranscriptionButton: ComponentHostView<Empty>
+@@ -1824,6 +1828,10 @@
+             return
+         }
+         
++        if item.context.sharedContext.canTranscribeWithNebula(message: item.message) {
++            item.context.sharedContext.presentNebulaAudioTranscription(context: item.context, from: self.view, message: item.message)
++            return
++        }
+         if !item.context.isPremium, case .inProgress = self.audioTranscriptionState {
+             return
+         }
+diff --git a/submodules/TelegramUI/Sources/ChatInterfaceStateContextMenus.swift b/submodules/TelegramUI/Sources/ChatInterfaceStateContextMenus.swift
+--- a/submodules/TelegramUI/Sources/ChatInterfaceStateContextMenus.swift
++++ b/submodules/TelegramUI/Sources/ChatInterfaceStateContextMenus.swift
+@@ -1347,7 +1347,7 @@
+         let isCopyProtected = chatPresentationInterfaceState.copyProtectionEnabled || message.isCopyProtected()
+         if #available(iOS 15.0, *), NebulaAudioPreferences.shared.transcriptionEnabled, !isCopyProtected, !isExpired,
+            !message.containsSecretMedia, messages.count == 1, message.id.peerId.namespace != Namespaces.Peer.SecretChat,
+-           let audioFile = message.effectiveMedia.compactMap({ $0 as? TelegramMediaFile }).first(where: { $0.isVoice || $0.isInstantVideo || $0.isVideo }),
++           let audioFile = NebulaAudioTranscriptionController.eligibleFile(message),
+            let size = audioFile.size, size > 0, size <= Int64(NebulaAudioTranscription.maximumBytes) {
+             let russian = chatPresentationInterfaceState.strings.baseLanguageCode.hasPrefix("ru")
+             actions.append(.action(ContextMenuActionItem(id: NebulaMessageMenuAction.transcribe.identifier, text: russian ? "Nebula AI · расшифровать" : "Nebula AI · Transcribe", icon: { theme in
