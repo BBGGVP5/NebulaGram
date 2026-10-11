@@ -2,9 +2,13 @@
 
 This inventory distinguishes **wired source** from native build and device acceptance. A setting with a validated import format is not necessarily functional on iOS.
 
-## October 11: live native tab visibility and Profile icon repair
+## October 11: profile banner continuity and reversible gallery transitions
 
-The follow-up banner port (patch 0099) moves the themed fade outside the shrinking gallery, follows the native header edge including controls/music, protects the small avatar, resumes decorative transitions from current presentation state and ignores obsolete collapse callbacks/queued resets. Native photo/video/gallery rendering is retained. Local bootstrap passes 99 patches on 160 native paths and 46 mirrored contract sources; macOS Swift checks and a new full IPA build are pending. [Banner port plan](../../docs/superpowers/plans/2026-10-11-ios-profile-banner-transition.md).
+Runtime **e632317** (patch 0099) moves the themed fade outside the shrinking gallery, follows the native header edge including controls/music, protects the small avatar, resumes decorative transitions from current presentation state and ignores obsolete collapse callbacks/queued resets. Native photo/video/gallery rendering is retained. Bootstrap **38137794024** passed **157 XCTest cases**, **106 executed actual banner-update states**, cancellation/reversal/weak-lifetime checks and real UIKit/Core Animation typechecking, plus **99 patches / 160 native paths / 46 mirrored contract sources**.
+
+Full device IPA **38138116020 / 106** succeeded at the same runtime. Independently verified original archive: 12.9.2/app.nebulagram/NebulaGram, arm64 device executable, one Notification Service Extension and Speech privacy purpose; **88,018,657 bytes**, SHA-256 `9d70b2eea62b5fb2bfaa5c056b191286c89f8a432e77b438192669cfd8902d90` matches its manifest. Later Android-only b452ec3 leaves iOS runtime inputs unchanged. User signing and physical iPhone appearance/gesture/push acceptance remain unverified. [Banner port plan](../../docs/superpowers/plans/2026-10-11-ios-profile-banner-transition.md).
+
+## October 11: live native tab visibility and Profile icon repair
 
 Runtime **92468e6** removes appearance-mode overrides from Contacts/Profile/Settings visibility, with the Settings recovery route retained when Profile is absent. Settings updates coalesce to the next main-queue turn, and the native tab controller requests reconciliation on return. Existing controller identity and Chats fallback are retained. Profile reuses the native account avatar even with one account; its person fallback has no Settings gear animation and uses an explicit symbol size plus pre-rendered native regular/selected colors (the stock image path has no tint). The native bar's theme color/lens/search/badge rendering remains unchanged.
 

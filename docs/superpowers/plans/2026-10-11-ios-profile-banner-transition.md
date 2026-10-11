@@ -6,7 +6,7 @@
 
 **Architecture:** Keep Telegram's native image/gallery crossfade. Put the themed fade in the common header foreground, after the avatar clipping node and before controls/title, rather than inside the gallery that shrinks and hides. Follow the real header bottom including its buttons/music, protect the small avatar from the fade, and continue Core Animation transitions from their current presentation state. Ignore obsolete collapse completions after reopening.
 
-**Tech Stack:** Swift/Foundation geometry policy, ASDisplayNode/CAGradientLayer, ContainedViewLayoutTransition, XCTest, extracted native-hook execution, full arm64 IPA CI.
+**Tech Stack:** Swift/Foundation/CoreGraphics geometry policy, ASDisplayNode/CAGradientLayer, ContainedViewLayoutTransition, XCTest, extracted native-hook execution, full arm64 IPA CI.
 
 ---
 
@@ -66,16 +66,24 @@ if self.isAvatarExpanded != expanded {
 }
 ```
 
-- [ ] Check the complete ordered iOS patch series and generated contract mirrors locally, then run bootstrap XCTest/native-hook checks on macOS. Preserve the native gallery's image crossfade instead of adding a competing photo snapshot or a midpoint source switch.
+- [x] Check the complete ordered iOS patch series and generated contract mirrors locally, then run bootstrap XCTest/native-hook checks on macOS. Preserve the native gallery's image crossfade instead of adding a competing photo snapshot or a midpoint source switch.
 
 ### 3. Build and delivery
 
-- [ ] Commit exact affected files, push the already-authorized main/working branch refs, run bootstrap and the full arm64 IPA build at the same runtime revision.
-- [ ] Download and independently check successful IPA source manifest, bundle/build, arm64 executable, extensions and SHA-256. Record these facts in this plan and `platform/ios/PARITY.md`.
-- [ ] Report the unsigned IPA and physical-iPhone acceptance limit without claiming device visual verification.
+- [x] Commit exact affected files, push the already-authorized main/working branch refs, run bootstrap and the full arm64 IPA build at the same runtime revision.
+- [x] Download and independently check successful IPA source manifest, bundle/build, arm64 executable, extensions and SHA-256. Record these facts in this plan and `platform/ios/PARITY.md`.
+- [x] Report the unsigned IPA and physical-iPhone acceptance limit without claiming device visual verification.
 
 The prior Android plan audited that iOS lacks Android's hidden OverlaysView/midpoint source bugs. This explicit follow-up now requests the equivalent iOS behavior; the native adaptation also addresses iOS's shrinking fade parent and unguarded late collapse completion.
 
 Local baseline regression rejects the old source with `fade shrinks/hides with the native gallery`. Local bootstrap passes all 99 patches on 160 pristine native paths at pin `6ad963e5b62d354da79040f388ae2b9132fb17b8`, including 46 generated contract mirrors and new layer/call-site guards. Swift execution and UIKit typechecking are not available on this Windows host and run in macOS bootstrap CI, followed by full IPA native compilation.
 
 While porting, the user confirmed Android 1000492 still has a photo handoff gap. Follow-up Android revision `2fb2c4d` keeps the backdrop visible while native gallery alpha is zero and guards cancelled animator callbacks. Its 628 rendering, 48 order and 8 actual animator cases pass; the equivalent iOS foreground is independent of native gallery hiding and has generation-guarded completions.
+
+macOS bootstrap [38137794024](https://github.com/BBGGVP5/NebulaGram/actions/runs/38137794024) succeeded at runtime `e632317555be215bd0c95462b34447a0d475c7c9`: 157 XCTest cases with zero failures, 106 executed actual banner-update states, cancellation/reversal/queued reset/weak-lifetime checks, UIKit/Core Animation typecheck, complete 99 patches/160 native paths and 46 generated mirrors. The initial bootstrap failure at d7bdad5 was a missing CoreGraphics import; e632317 fixes it. Full IPA [38138116020 / 106](https://github.com/BBGGVP5/NebulaGram/actions/runs/38138116020) is building the same revision. Physical iPhone acceptance remains pending.
+
+## Final delivery
+
+Full release-arm64 IPA workflow [38138116020 / 106](https://github.com/BBGGVP5/NebulaGram/actions/runs/38138116020) succeeded at e632317. Its original downloaded archive `build/artifact-38138116020/NebulaGram-unsigned.ipa` was independently checked against its CI manifest: `app.nebulagram`, NebulaGram display name, version 12.9.2/build 106, arm64 iOS device executable, exactly one Notification Service Extension and retained on-device Speech privacy purpose. Size: 88,018,657 bytes. SHA-256: `9d70b2eea62b5fb2bfaa5c056b191286c89f8a432e77b438192669cfd8902d90`. The archive requires user signing; physical iPhone appearance/gesture and push-delivery acceptance are unverified.
+
+Android 1000495 also passed its full build and artifact/signature verification after the explicit instant-collapse endpoint follow-up. Its source b452ec3 changes Android/docs only; the iOS runtime inputs are identical to e632317, so IPA 106 includes the final iOS source. The user confirms the Android phone is unavailable; no device appearance/gesture claim is made for either archive.
