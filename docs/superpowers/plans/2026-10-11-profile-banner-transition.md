@@ -37,9 +37,9 @@ Files: `platform/android/overlay/TMessagesProj/src/main/java/app/nebulagram/ui/N
 
 ## 3. Delivery
 
-- [ ] Build and independently verify APK source/version/signature/ABI. Inspect phone rendering only if it becomes reachable; current adb inventory is empty.
+- [x] Build and independently verify APK source/version/signature/ABI. Inspect phone rendering only if it becomes reachable; final adb inventory is empty.
 - [x] Audit the corresponding iOS banner behavior for the same dependency/threshold before deciding whether it needs a matching fix. The supplied video is Android, so do not apply an unrelated iOS visual change.
-- [ ] Record exact acceptance and limits; keep previous unrelated changes intact.
+- [x] Record exact acceptance and limits; keep previous unrelated changes intact.
 
 User confirmed both the hard boundary and the transition jerk need fixing.
 
@@ -50,3 +50,12 @@ Local checks pass: 48 actual native child-order cases, 627 production rendering 
 iOS audit: patch 0062 attaches its CAGradientLayer fade directly to the native avatar list container and updates frame/alpha through the native transition. It has neither Android's hidden OverlaysView draw dependency nor the midpoint image-receiver selection. No iOS runtime change is made for this Android video report.
 
 The complete 191-patch Android series applies to 134 pristine native paths from pinned upstream `f2908b14133bbffbf7ab04f641ecb5bfaf533242`; the resulting profile source matches the reviewed fixture after line-ending normalization. Banner tests pass on this complete tree. Glass preference/effect/shader cache tests and 505,505 scalar glass-edge samples also pass; GPU rendering still requires device acceptance.
+
+## Delivery evidence
+
+- Runtime revision: `7e4d810e1cfcda933e3744e21cc049303e154e00`.
+- Android workflow [38132549337](https://github.com/BBGGVP5/NebulaGram/actions/runs/38132549337) succeeded. All workflow interface/regression checks passed, including the 48 native order and 627 banner state cases; the production hero/actions were SDK-checked in CI, followed by the complete native/Java/R8 application build.
+- Downloaded immutable artifact: `build/artifact-38132549337/NebulaGram-1.0.0-TG-12.10.6-b1000492-arm64-v8a.apk` (60,051,757 bytes).
+- Independently checked `app.nebulagram.messenger`, version `1.0.0`, build `1000492`, arm64 Telegram and NebulaLink libraries, retained local audio/chat markers and valid signature with the existing certificate SHA-256 `a08d7dc323ddf71ef3201944397e0d3cce7d40847263e11f328b68bbe19229ab`.
+- APK SHA-256: `7b025b3dbc07b2e1b471d5188a316368de8922508b1809afc7bd30f0e630e46a`. Retrieval and verification receipts are saved beside it.
+- The phone remains absent from the final USB inventory. APK installation and physical-device visual/GPU acceptance are **not verified**. No iOS rebuild is needed because this fix changes only the Android profile renderer.
