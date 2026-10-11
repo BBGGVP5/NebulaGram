@@ -5,17 +5,18 @@ import re
 import subprocess
 import sys
 import tempfile
+from check_profile_banner_order import check as check_native_order
 
 root = Path(__file__).resolve().parents[1]
 ui = root / 'platform/android/overlay/TMessagesProj/src/main/java/app/nebulagram/ui'
 tree = Path(sys.argv[1]) if len(sys.argv) > 1 else root / 'vendor/telegram-android'
 
 native = (tree / 'TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java').read_text(encoding='utf-8')
+check_native_order(native)
 start = native.index('        avatarContainer2 = new FrameLayout(context) {')
 end = native.index('        fallbackImage =', start)
 header = native[start:end]
-assert header.index('super.drawChild(canvas, child, drawingTime)') < header.index('nebulaHero.drawForeground(canvas)')
-assert 'child == overlaysView && !isInLandscapeMode' in header
+assert 'nebulaForegroundDrawn = false;' in header
 assert 'extraHeight + searchTransitionOffset) * (1f - mediaHeaderAnimationProgress)' in header
 assert 'avatarsViewPager.getCurrentItemView()' in header and 'nebulaHero.clear(actionsView)' in header
 assert native.index('avatarContainer2.addView(overlaysView)') < native.index('avatarContainer2.addView(actionsView,')
@@ -41,13 +42,13 @@ contracts = {
  public final org.telegram.messenger.ImageReceiver receiver=new org.telegram.messenger.ImageReceiver();
  public BackupImageView(android.content.Context c){super(c);}public org.telegram.messenger.ImageReceiver getImageReceiver(){return receiver;}}""",
  'org/telegram/messenger/ImageReceiver.java': """package org.telegram.messenger;public class ImageReceiver {
- public float x=11,y=12,w=90,h=100,alpha=.7f;public final int[] radii={9,8,7,6};public boolean loaded=true,throwDraw;public int draws;
+ public float x=11,y=12,w=90,h=100,alpha=.7f,lastDrawAlpha;public final int[] radii={9,8,7,6};public boolean loaded=true,throwDraw;public int draws;
  public float getImageX(){return x;}public float getImageY(){return y;}public float getImageWidth(){return w;}public float getImageHeight(){return h;}
  public float getAlpha(){return alpha;}public int[] getRoundRadius(){return radii;}public boolean hasImageLoaded(){return loaded;}
  public void setAlpha(float a){alpha=a;}public void setRoundRadius(int[] r){System.arraycopy(r,0,radii,0,4);}
  public void setImageCoords(float xx,float yy,float ww,float hh){x=xx;y=yy;w=ww;h=hh;}
  public void setImageCoords(android.graphics.RectF r){setImageCoords(r.left,r.top,r.width(),r.height());}
- public void draw(android.graphics.Canvas c,Object ignored){draws++;if(throwDraw)throw new IllegalStateException("test draw failure");}}""",
+ public void draw(android.graphics.Canvas c,Object ignored){draws++;lastDrawAlpha=alpha;if(throwDraw)throw new IllegalStateException("test draw failure");}}""",
  'org/telegram/ui/Components/ProfileActionsView.java': """package org.telegram.ui.Components;public class ProfileActionsView extends android.view.View {
  public int color;public boolean byId;public ProfileActionsView(android.content.Context c,int h){super(c);}
  public void setActionsColor(int c,boolean b){color=c;byId=b;}public float getRoundRadius(){return 16;}
@@ -60,10 +61,10 @@ contracts = {
  public static NebulaTheme of(android.content.Context c){return new NebulaTheme();}public boolean isDynamic(){return false;}public int surfaceContainer(){return 0xff112233;}}""",
  'app/nebulagram/ui/NebulaMenuStyle.java': 'package app.nebulagram.ui;public class NebulaMenuStyle {public static boolean enabled(){return true;}}',
  'app/nebulagram/ui/NebulaProfileGlass.java': """package app.nebulagram.ui;class NebulaProfileGlass {
- static boolean enabled=true;static int captures,ends,draws;static CanvasSize last;
+ static boolean enabled=true;static int captures,ends,draws;static CanvasSize last;static android.graphics.Canvas lastCanvas;
  static class CanvasSize {int w,h;CanvasSize(int w,int h){this.w=w;this.h=h;}}
  static boolean supported(){return enabled;}NebulaProfileGlass(org.telegram.ui.ActionBar.Theme.ResourcesProvider p){}
- android.graphics.Canvas begin(int w,int h){captures++;last=new CanvasSize(w,h);return new android.graphics.Canvas();}
+ android.graphics.Canvas begin(int w,int h){captures++;last=new CanvasSize(w,h);return lastCanvas=new android.graphics.Canvas();}
  void end(){ends++;}void draw(android.graphics.Canvas c,android.graphics.RectF r,int key,float radius,float alpha,float x,float y){draws++;}}""",
  'androidx/core/graphics/ColorUtils.java': """package androidx.core.graphics;public class ColorUtils {
  public static int blendARGB(int a,int b,float f){return a;}public static double calculateContrast(int a,int b){return 5;}
@@ -98,9 +99,10 @@ android = {
  public Paint(){}public Paint(int f){}public void setStyle(Style s){}public void setColor(int c){color=c;}public int getColor(){return color;}
  public void setStrokeWidth(float w){}public void setShader(Shader s){shader=s;}public void setAlpha(int a){alpha=a;}}""",
  'android/graphics/Canvas.java':"""package android.graphics;public class Canvas {
- public boolean hardware=true;public int saves;public java.util.List<Op> ops=new java.util.ArrayList<>();
+ public boolean hardware=true;public int saves,layers,layerAlpha;public java.util.List<Op> ops=new java.util.ArrayList<>();
  public static class Op {public float bottom;public int alpha;public Shader shader;Op(float b,Paint p){bottom=b;alpha=p.alpha;shader=p.shader;}}
  public boolean isHardwareAccelerated(){return hardware;}public int save(){return ++saves;}public void restoreToCount(int n){saves=n-1;}
+ public int saveLayerAlpha(RectF bounds,int alpha){layers++;layerAlpha=alpha;return save();}
  public void clipPath(Path p){}public void drawRect(RectF r,Paint p){ops.add(new Op(r.bottom,p));}
  public void drawRect(float l,float t,float r,float b,Paint p){ops.add(new Op(b,p));}
  public void drawPath(Path x,Paint p){}public void drawRoundRect(RectF r,float x,float y,Paint p){ops.add(new Op(r.bottom,p));}}""",
@@ -123,8 +125,8 @@ class ProfileCheck {
   NebulaProfileArt.Actions buttons=new NebulaProfileArt.Actions(null,74,null);buttons.y=350;buttons.setActionsColor(0xff778899,true);
   NebulaProfileArt.Hero hero=new NebulaProfileArt.Hero();
   int cases=0;
-  for(float end:new float[]{449.5f,474.5f,704.25f})for(int phase=0;phase<=100;phase++){
-   float expanded=phase/100f;Canvas canvas=new Canvas();int s=small.receiver.draws,g=gallery.receiver.draws;
+  for(float end:new float[]{449.5f,474.5f,704.25f})for(int direction=0;direction<2;direction++)for(int phase=0;phase<=100;phase++){
+   float expanded=(direction==0?phase:100-phase)/100f;Canvas canvas=new Canvas();int s=small.receiver.draws,g=gallery.receiver.draws;
    hero.draw(canvas,393,avatar,title,subtitle,buttons,gallery,end,1,expanded,0,1,null);
    check(buttons.hasCustomActionSurface(canvas),"glass missing during expansion");
    check(NebulaProfileGlass.last.h==(int)Math.ceil(end),"capture does not include complete header/music row");
@@ -132,8 +134,19 @@ class ProfileCheck {
    check(fade.alpha==255&&fade.bottom==end+1,"fade disappears on expansion or exposes fractional seam");
    LinearGradient gradient=(LinearGradient)fade.shader;
    check(gradient.colors[gradient.colors.length-1]==Theme.page&&gradient.y1==end,"fade does not end at exact page colour/header bottom");
-   if(expanded>.5f)check(gallery.receiver.draws>g&&small.receiver.draws==s,"expanded glass freezes the first avatar");
-   else check(small.receiver.draws>s&&gallery.receiver.draws==g,"collapsed glass must use the actual small avatar");
+   if(expanded>0)check(gallery.receiver.draws>g,"gallery enters too late during expansion");
+   else check(gallery.receiver.draws==g,"collapsed capture unexpectedly uses gallery");
+   if(expanded<1)check(small.receiver.draws>s,"collapsed source disappears before expansion completes");
+   else check(small.receiver.draws==s,"fully expanded capture retains collapsed image");
+   Canvas captured=NebulaProfileGlass.lastCanvas;
+   check(captured.saves==0&&captured.ops.size()==3,"capture repeats treatment/fade or leaks a layer");
+   if(expanded>0&&expanded<1){
+    check(small.receiver.lastDrawAlpha==1f&&Math.abs(gallery.receiver.lastDrawAlpha-expanded)<.00001f,"source blend does not follow native expansion continuously");
+    check(captured.layers==1&&captured.layerAlpha==Math.round(255*.78f),"crossfade changes group opacity");
+   }else{
+    check(captured.layers==0,"endpoint retains an unnecessary offscreen layer");
+    check((expanded==0?small:gallery).receiver.lastDrawAlpha==.78f,"endpoint opacity changes");
+   }
    restored(small.receiver);restored(gallery.receiver);cases++;
   }
   int created=LinearGradient.created;
@@ -150,6 +163,18 @@ class ProfileCheck {
    check(buttons.color==0xff778899&&buttons.byId,"native peer colour not restored without banner");cases++;
   }
   NebulaAppearance.banner=true;NebulaAppearance.style=true;small.receiver.loaded=true;gallery.receiver.loaded=true;
+  for(int missing=0;missing<2;missing++)for(float expanded:new float[]{0,.49f,.5f,.51f,1}){
+   small.receiver.loaded=missing!=0;gallery.receiver.loaded=missing!=1;
+   int s=small.receiver.draws,g=gallery.receiver.draws;
+   Canvas canvas=new Canvas();hero.draw(canvas,393,avatar,title,subtitle,buttons,gallery,474.5f,1,expanded,0,1,null);
+   check((missing==0?small:gallery).receiver.draws==(missing==0?s:g),"unloaded photo participates in capture");
+   check((missing==0?gallery:small).receiver.lastDrawAlpha==.78f&&NebulaProfileGlass.lastCanvas.layers==0,"available photo fallback changes opacity or keeps a blend layer");
+   restored(small.receiver);restored(gallery.receiver);cases++;
+  }
+  small.receiver.loaded=true;gallery.receiver.loaded=true;
+  Canvas same=new Canvas();int before=small.receiver.draws;
+  hero.draw(same,393,avatar,title,subtitle,buttons,small,474.5f,1,.5f,0,1,null);
+  check(small.receiver.draws-before==2&&NebulaProfileGlass.lastCanvas.layers==0,"identical sources are painted twice in the capture");cases++;
   for(int fallback=0;fallback<2;fallback++){
    Canvas canvas=new Canvas();canvas.hardware=fallback!=0;NebulaProfileGlass.enabled=fallback!=1;
    hero.draw(canvas,393,avatar,title,subtitle,buttons,gallery,474.5f,1,1,0,1,null);
@@ -162,13 +187,14 @@ class ProfileCheck {
   check(canvas.ops.isEmpty()&&buttons.color==0xff778899,"landscape reset retains portrait material");
   canvas=new Canvas();hero.draw(canvas,393,avatar,title,subtitle,buttons,gallery,474.5f,1,1,0,1,null);
   buttons.onDetachedFromWindow();check(buttons.color==0xff778899&&buttons.byId,"detach leaves captured glass or neutral colour behind");
-  for(int expanded=0;expanded<2;expanded++){
+  for(float expanded:new float[]{0,.5f,1}){
    ImageReceiver receiver=expanded==0?small.receiver:gallery.receiver;receiver.throwDraw=true;
    canvas=new Canvas();int captures=NebulaProfileGlass.captures,ends=NebulaProfileGlass.ends;
    try{hero.draw(canvas,393,avatar,title,subtitle,buttons,gallery,474.5f,1,expanded,0,1,null);throw new AssertionError("draw did not throw");}
    catch(IllegalStateException expected){}
-   receiver.throwDraw=false;restored(receiver);check(canvas.saves==0,"canvas save leaked on failure");
+   receiver.throwDraw=false;restored(small.receiver);restored(gallery.receiver);check(canvas.saves==0,"canvas save leaked on failure");
    check(NebulaProfileGlass.captures-captures==NebulaProfileGlass.ends-ends,"glass recording not closed on failure");cases++;
+   if(expanded>0)check(NebulaProfileGlass.lastCanvas.saves==0,"capture layer leaked on draw failure");
   }
   System.out.println(cases+" production banner state cases: music boundary, expansion, gallery, theme, fallback, shader reuse and exception restoration passed");
  }

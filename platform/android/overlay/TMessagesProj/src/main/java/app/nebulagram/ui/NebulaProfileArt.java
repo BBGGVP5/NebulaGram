@@ -112,13 +112,16 @@ public final class NebulaProfileArt {
             // Its bounds also follow the search/media transition and expansion.
             final float bottom = headerBottom;
             rect.set(0, 0, width, bottom);
-            BackupImageView photo = galleryPhoto != null && expanded > .5f
-                    && galleryPhoto.getImageReceiver().hasImageLoaded() ? galleryPhoto : findPhoto(avatar);
-            final boolean banner = NebulaAppearance.profilePhotoBanner() && photo != null
-                    && photo.getImageReceiver().hasImageLoaded();
+            BackupImageView collapsedPhoto = findPhoto(avatar);
+            if (collapsedPhoto != null && !collapsedPhoto.getImageReceiver().hasImageLoaded()) collapsedPhoto = null;
+            if (galleryPhoto != null && !galleryPhoto.getImageReceiver().hasImageLoaded()) galleryPhoto = null;
+            final boolean banner = NebulaAppearance.profilePhotoBanner() && (collapsedPhoto != null || galleryPhoto != null);
             if (buttons != null) buttons.setBannerActive(banner);
             // Keep Telegram's peer colour/emoji decoration when no photo is available.
             if (!banner) return;
+            final ImageReceiver collapsedReceiver = (collapsedPhoto != null ? collapsedPhoto : galleryPhoto).getImageReceiver();
+            final ImageReceiver galleryReceiver = galleryPhoto != null ? galleryPhoto.getImageReceiver() : collapsedReceiver;
+            final float expansion = clamp(expanded);
             final NebulaTheme material = NebulaTheme.of(avatar.getContext());
             final int accent = accent(provider);
             int base = material.isDynamic() ? material.surfaceContainer() : surface(provider);
@@ -149,10 +152,10 @@ public final class NebulaProfileArt {
             foregroundAlpha = alpha;
             // Only the decorative image gives way to Telegram's native gallery.
             // The foreground fade and glass remain continuous through expansion.
-            float backdropAlpha = alpha * (1f - clamp(expanded));
-            if (backdropAlpha > 0) drawBannerBackdrop(canvas, photo.getImageReceiver(), rect, backdropAlpha);
+            float backdropAlpha = alpha * (1f - expansion);
+            if (backdropAlpha > 0) drawBannerBackdrop(canvas, collapsedReceiver, rect, backdropAlpha);
             if (buttons != null && canvas.isHardwareAccelerated()) {
-                buttons.captureBanner(this, photo.getImageReceiver(), rect);
+                buttons.captureBanner(this, collapsedReceiver, galleryReceiver, rect, expansion);
             }
         }
 
@@ -174,16 +177,39 @@ public final class NebulaProfileArt {
         }
 
         private void drawBannerBackdrop(Canvas canvas, ImageReceiver receiver, RectF bounds, float alpha) {
-            drawPhotoBanner(canvas, receiver, bounds, alpha);
+            drawPhotoBanner(canvas, receiver, bounds, .78f * alpha);
+            drawBannerTreatment(canvas, bounds, alpha);
+        }
+
+        private void drawBannerTreatment(Canvas canvas, RectF bounds, float alpha) {
             paint.setStyle(Paint.Style.FILL);
+            paint.setShader(null);
+            paint.setColor(Color.BLACK);
+            paint.setAlpha(Math.round(110 * alpha));
+            canvas.drawRect(bounds, paint);
             paint.setShader(gradient);
             paint.setAlpha(Math.round(255 * alpha * .20f));
             canvas.drawRect(bounds, paint);
             paint.setShader(null);
         }
 
-        private void drawBannerSurface(Canvas canvas, ImageReceiver receiver, RectF bounds, float alpha) {
-            drawBannerBackdrop(canvas, receiver, bounds, alpha);
+        private void drawBannerSurface(Canvas canvas, ImageReceiver collapsed, ImageReceiver gallery,
+                                       RectF bounds, float expansion, float alpha) {
+            if (collapsed == gallery || expansion <= 0f) {
+                drawPhotoBanner(canvas, collapsed, bounds, .78f * alpha);
+            } else if (expansion >= 1f) {
+                drawPhotoBanner(canvas, gallery, bounds, .78f * alpha);
+            } else {
+                // Crossfade at constant group opacity; tint/veil are painted once.
+                int save = canvas.saveLayerAlpha(bounds, Math.round(255 * .78f * alpha));
+                try {
+                    drawPhotoBanner(canvas, collapsed, bounds, 1f);
+                    drawPhotoBanner(canvas, gallery, bounds, expansion);
+                } finally {
+                    canvas.restoreToCount(save);
+                }
+            }
+            drawBannerTreatment(canvas, bounds, alpha);
             paint.setShader(bottomFade);
             paint.setAlpha(Math.round(255 * alpha));
             canvas.drawRect(bounds, paint);
@@ -225,12 +251,8 @@ public final class NebulaProfileArt {
                 receiver.setImageCoords(target);
                 // The array overload preserves the user's base avatar radius.
                 receiver.setRoundRadius(squareRadii);
-                receiver.setAlpha(.78f * alpha);
+                receiver.setAlpha(alpha);
                 receiver.draw(canvas, null);
-                paint.setShader(null);
-                paint.setColor(Color.BLACK);
-                paint.setAlpha((int) (110 * alpha));
-                canvas.drawRect(target, paint);
             } finally {
                 canvas.restoreToCount(save);
                 receiver.setAlpha(imageAlpha);
@@ -269,11 +291,11 @@ public final class NebulaProfileArt {
             return bannerActive?android.graphics.Color.WHITE:Theme.getColor(Theme.key_windowBackgroundWhiteBlackText,provider);
         }
 
-        private void captureBanner(Hero hero, ImageReceiver receiver, RectF bounds) {
+        private void captureBanner(Hero hero, ImageReceiver collapsed, ImageReceiver gallery, RectF bounds, float expansion) {
             if (!NebulaProfileGlass.supported()) return;
             if (glass == null) glass = new NebulaProfileGlass(provider);
             Canvas capture = glass.begin((int) Math.ceil(bounds.width()), (int) Math.ceil(bounds.height()));
-            try { hero.drawBannerSurface(capture, receiver, bounds, 1f); }
+            try { hero.drawBannerSurface(capture, collapsed, gallery, bounds, expansion, 1f); }
             finally { glass.end(); }
             bannerReady = true;
         }
