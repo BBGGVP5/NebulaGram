@@ -455,6 +455,9 @@ final class Composer {
                             str(settings_ui / 'NebulaActionGrid.swift')], check=True)
             subprocess.run(['swiftc', *ios_flags, '-typecheck',
                             str(settings_ui / 'NebulaToolsNavigationController.swift')], check=True)
+            subprocess.run(['swiftc', *ios_flags, '-typecheck',
+                            str(settings_ui / 'NebulaAiChatBubble.swift')], check=True)
+            print('OK: selectable AI chat bubble typechecked against the real UIKit SDK')
             subprocess.run(['swiftc', *ios_flags, '-typecheck', '-I', str(temp),
                             str(temp / 'submodules/Display/Source/NebulaSwitchControl.swift')], check=True)
             subprocess.run(['swiftc', *ios_flags, '-typecheck',

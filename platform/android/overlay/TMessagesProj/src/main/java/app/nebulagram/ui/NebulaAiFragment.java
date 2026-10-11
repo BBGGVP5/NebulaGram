@@ -48,7 +48,7 @@ public final class NebulaAiFragment extends BaseFragment {
     @Override public View createView(Context c) {
         prefs = c.getSharedPreferences("nebula_ai_settings", 0);
         provider = nanoSettingsOnly ? NebulaAiClient.NANO : Math.max(0, Math.min(NebulaAiClient.MAX_PROVIDER, prefs.getInt("provider", 0)));
-        NebulaFormUi.bar(this, actionBar, c, text("Искусственный интеллект", "AI assistant"));
+        NebulaFormUi.bar(this, actionBar, c, "Nebula AI");
         NebulaTheme t = NebulaTheme.of(c); actionBar.setBackgroundColor(t.opaqueSurface()); actionBar.setTitleColor(t.onSurface()); actionBar.setItemsColor(t.onSurface(), false);
         actionBar.setActionBarMenuOnItemClick(new ActionBar.ActionBarMenuOnItemClick() { @Override public void onItemClick(int id) { if (id == -1) finishFragment(); } });
         content = new LinearLayout(c); content.setOrientation(LinearLayout.VERTICAL); content.setBackgroundColor(t.opaqueSurface()); content.setPadding(dp(16), dp(12), dp(16), dp(8));

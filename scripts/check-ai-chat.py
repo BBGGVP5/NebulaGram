@@ -9,6 +9,7 @@ work = root / 'build/ai-chat-tests'
 work.mkdir(parents=True, exist_ok=True)
 source = r'''import app.nebulagram.ui.NebulaAiConversation;
 import app.nebulagram.ui.NebulaAiMarkdown;
+import app.nebulagram.ui.NebulaAiChatReply;
 public class AiChatCheck {
     static void check(boolean value, String detail) { if (!value) throw new AssertionError(detail); }
     public static void main(String[] args) {
@@ -32,6 +33,16 @@ public class AiChatCheck {
         check(NebulaAiMarkdown.parse("\\* literal").text.equals("* literal\n"),"escaped marker");
         check(NebulaAiMarkdown.parse("<script>alert(1)</script>").text.contains("<script>"),"HTML stays inert text");
         check(NebulaAiMarkdown.parse("x".repeat(200000)).text.length()<60010,"render bound");
+        for(String prefix:new String[]{"Assistant:","assistant:","ASSISTANT:","**Assistant:**","**Assistant**:"}) {
+            check(NebulaAiChatReply.clean(prefix+" 1 + 1 = 2! 😊",false).equals("1 + 1 = 2! 😊"),"role removed");
+            check(NebulaAiChatReply.clean(" \n"+prefix+"\r\n\r\n    code\n**bold**",false).equals("    code\n**bold**"),"indentation preserved");
+            check(NebulaAiChatReply.clean(prefix,false).isEmpty(),"empty role is not an answer");
+        }
+        for(String value:new String[]{"A","Привет! 👋","  **Actual**\n","`Assistant:` is a label","> Assistant: quote","Answer\nAssistant: inside","Assistant is a word","🤖 Assistant: text"})
+            check(NebulaAiChatReply.clean(value,false).equals(value),"content preserved: "+value);
+        for(String value:new String[]{"A","Ass","Assistant","Assistant:","**Assis","**Assistant:"})check(NebulaAiChatReply.clean(value,true).isEmpty(),"partial marker held");
+        check(NebulaAiChatReply.clean("A direct answer",true).equals("A direct answer"),"streaming real content preserved");
+        check(NebulaAiChatReply.clean("Assistant: **Привет** 👋",true).equals("**Привет** 👋"),"streaming formatting preserved");
         System.out.println("AI chat: bounded context, provider isolation, Markdown/code spans and inert HTML passed");
     }
 }'''
@@ -41,7 +52,7 @@ java_home = os.environ.get('JAVA_HOME')
 def tool(name):
     return str(Path(java_home) / 'bin' / (name + ('.exe' if os.name == 'nt' else ''))) if java_home else name
 subprocess.run([tool('javac'), '-J-Xmx256m', '-encoding', 'UTF-8', '-d', str(work), str(test),
-                str(ui / 'NebulaAiConversation.java'), str(ui / 'NebulaAiMarkdown.java')], check=True)
+                str(ui / 'NebulaAiConversation.java'), str(ui / 'NebulaAiMarkdown.java'), str(ui / 'NebulaAiChatReply.java')], check=True)
 subprocess.run([tool('java'), '-Xmx128m', '-cp', str(work), 'AiChatCheck'], check=True)
 # Integration guards complement the executable pure-Java cases; they are not device tests.
 chat = (ui / 'NebulaAiChatView.java').read_text(encoding='utf-8')

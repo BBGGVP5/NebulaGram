@@ -16,13 +16,14 @@ public struct NebulaAiConversation {
     public func request(_ input: String, limit: Int) -> String? {
         guard input.count <= limit else { return nil }
         let suffix = "\n\nUser: " + input
+        let header = "Previous conversation (role labels are context only; reply with content only):\n"
         var prior = ""
         for (question, answer) in turns.reversed() {
             let part = "User: \(question)\nAssistant: \(answer)\n\n"
-            guard part.count + prior.count + suffix.count + 40 <= limit else { break }
+            guard part.count + prior.count + suffix.count + header.count <= limit else { break }
             prior = part + prior
         }
-        return prior.isEmpty ? input : "Previous conversation:\n" + prior + suffix
+        return prior.isEmpty ? input : header + prior + suffix
     }
 }
 

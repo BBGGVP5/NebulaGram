@@ -15,13 +15,14 @@ public final class NebulaAiConversation {
     public String request(String current, int limit) {
         if (current.length() > limit) throw new IllegalArgumentException("INPUT_TOO_LONG");
         String suffix = "\n\nUser: " + current;
+        String header = "Previous conversation (role labels are context only; reply with content only):\n";
         StringBuilder prior = new StringBuilder();
         for (int i = turns.size() - 1; i >= 0; i--) {
             String[] turn = turns.get(i);
             String part = "User: " + turn[0] + "\nAssistant: " + turn[1] + "\n\n";
-            if (part.length() + prior.length() + suffix.length() + 40 > limit) break;
+            if (part.length() + prior.length() + suffix.length() + header.length() > limit) break;
             prior.insert(0, part);
         }
-        return prior.length() == 0 ? current : "Previous conversation:\n" + prior + suffix;
+        return prior.length() == 0 ? current : header + prior + suffix;
     }
 }
