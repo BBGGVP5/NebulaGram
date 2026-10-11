@@ -1,0 +1,126 @@
+diff --git a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoHeaderNode.swift b/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoHeaderNode.swift
+--- a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoHeaderNode.swift
++++ b/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoHeaderNode.swift
+@@ -102,6 +102,7 @@
+     private let chatLocation: ChatLocation
+     
+     private(set) var isAvatarExpanded: Bool
++    private var nebulaAvatarTransitionGeneration = 0
+     var skipCollapseCompletion = false
+     var ignoreCollapse = false
+     
+@@ -343,7 +344,7 @@
+         self.nebulaBannerFade.isUserInteractionEnabled = false
+         self.nebulaBannerGradient.locations = [0.0, 0.32, 0.72, 1.0]
+         self.nebulaBannerFade.layer.addSublayer(self.nebulaBannerGradient)
+-        self.avatarListNode.listContainerNode.addSubnode(self.nebulaBannerFade)
++        self.regularContentNode.addSubnode(self.nebulaBannerFade)
+ 
+         
+         self.regularContentNode.addSubnode(self.avatarListNode.listContainerNode.controlsClippingOffsetNode)
+@@ -1762,24 +1763,6 @@
+         let bottomShadowFrame = CGRect(origin: CGPoint(x: 0.0, y: expandedAvatarHeight - bottomShadowHeight), size: CGSize(width: width, height: bottomShadowHeight))
+         transition.updateFrame(node: self.avatarListNode.listContainerNode.bottomShadowNode, frame: bottomShadowFrame, beginWithCurrentState: true)
+         self.avatarListNode.listContainerNode.bottomShadowNode.update(size: bottomShadowFrame.size, transition: transition)
+-        let bannerColor = presentationData.theme.list.blocksBackgroundColor
+-        if self.nebulaBannerColor != bannerColor {
+-            self.nebulaBannerColor = bannerColor
+-            CATransaction.begin()
+-            CATransaction.setDisableActions(true)
+-            self.nebulaBannerGradient.colors = [bannerColor.withAlphaComponent(0.0).cgColor,
+-                bannerColor.withAlphaComponent(0.11).cgColor,
+-                bannerColor.withAlphaComponent(0.54).cgColor, bannerColor.cgColor]
+-            CATransaction.commit()
+-        }
+-        let fadeHeight = min(160.0, expandedAvatarHeight * 0.42)
+-        let fadeFrame = CGRect(x: 0.0, y: expandedAvatarHeight - fadeHeight, width: width, height: fadeHeight)
+-        transition.updateFrame(node: self.nebulaBannerFade, frame: fadeFrame)
+-        transition.updateFrame(layer: self.nebulaBannerGradient, frame: CGRect(origin: .zero, size: fadeFrame.size))
+-        let showFade = self.isAvatarExpanded && NebulaSettingsStore.shared.profileStyle
+-            && NebulaSettingsStore.shared.profilePhotoBanner && !state.isEditing
+-        transition.updateAlpha(node: self.nebulaBannerFade, alpha: showFade ? 1.0 : 0.0)
+-
+         
+         let singleTitleLockOffset: CGFloat = ((peer?.id == self.context.account.peerId && !self.isMyProfile) || subtitleSize.height.isZero) ? 8.0 : 0.0
+         
+@@ -1981,15 +1964,19 @@
+             }
+         } else if self.avatarListNode.listContainerNode.cornerRadius != avatarCornerRadius {
+             transition.updateCornerRadius(node: self.avatarListNode.listContainerNode.controlsClippingNode, cornerRadius: avatarCornerRadius)
+-            transition.updateCornerRadius(node: self.avatarListNode.listContainerNode, cornerRadius: avatarCornerRadius, completion: { [weak self] _ in
+-                guard let strongSelf = self else {
++            let collapseGeneration = self.nebulaAvatarTransitionGeneration
++            transition.updateCornerRadius(node: self.avatarListNode.listContainerNode, cornerRadius: avatarCornerRadius, completion: { [weak self] finished in
++                guard finished, let strongSelf = self, !strongSelf.isAvatarExpanded,
++                      strongSelf.nebulaAvatarTransitionGeneration == collapseGeneration else {
+                     return
+                 }
+                 strongSelf.avatarListNode.avatarContainerNode.canAttachVideo = true
+                 strongSelf.avatarListNode.listContainerNode.isHidden = true
+                 if !strongSelf.skipCollapseCompletion {
+-                    DispatchQueue.main.async {
+-                        strongSelf.avatarListNode.listContainerNode.isCollapsing = false
++                    DispatchQueue.main.async { [weak self] in
++                        guard let self, !self.isAvatarExpanded,
++                              self.nebulaAvatarTransitionGeneration == collapseGeneration else { return }
++                        self.avatarListNode.listContainerNode.isCollapsing = false
+                     }
+                 }
+             })
+@@ -2627,6 +2614,12 @@
+         }
+         
+         transition.updateFrame(node: self.regularContentNode, frame: CGRect(origin: CGPoint(), size: CGSize(width: width, height: resolvedHeight)))
++
++        self.nebulaUpdateBanner(width: width, bottom: apparentBackgroundHeight,
++            protectedBottom: self.isAvatarExpanded ? 0.0 : apparentAvatarFrame.maxY,
++            hasPhoto: peer?.profileImageRepresentations.isEmpty == false && self.forumTopicThreadId == nil,
++            editing: state.isEditing, color: presentationData.theme.list.blocksBackgroundColor,
++            transition: transition)
+         
+         transition.updateFrameAdditive(node: self.buttonsContainerNode, frame: CGRect(origin: CGPoint(x: 0.0, y: apparentBackgroundHeight - backgroundHeight), size: CGSize(width: width, height: 1000.0)))
+         
+@@ -3016,13 +3009,39 @@
+         return result
+     }
+     
++    private func nebulaUpdateBanner(width: CGFloat, bottom: CGFloat, protectedBottom: CGFloat,
++                                   hasPhoto: Bool, editing: Bool, color: UIColor,
++                                   transition: ContainedViewLayoutTransition) {
++        if self.nebulaBannerColor != color {
++            self.nebulaBannerColor = color
++            CATransaction.begin()
++            CATransaction.setDisableActions(true)
++            self.nebulaBannerGradient.colors = [color.withAlphaComponent(0.0).cgColor,
++                color.withAlphaComponent(0.11).cgColor,
++                color.withAlphaComponent(0.54).cgColor, color.cgColor]
++            CATransaction.commit()
++        }
++        let frame = NebulaProfileBannerPolicy.fadeFrame(width: width, bottom: bottom,
++            protectedBottom: protectedBottom, pixel: UIScreenPixel)
++        let fadeTransition: ContainedViewLayoutTransition = UIAccessibility.isReduceMotionEnabled ? .immediate : transition
++        fadeTransition.updateFrame(node: self.nebulaBannerFade, frame: frame, beginWithCurrentState: true)
++        let gradientFrame = CGRect(origin: .zero, size: CGSize(width: frame.width, height: max(0.0, frame.height - UIScreenPixel)))
++        fadeTransition.updateFrame(layer: self.nebulaBannerGradient, frame: gradientFrame, beginWithCurrentState: true)
++        let alpha = frame.isEmpty ? 0.0 : NebulaProfileBannerPolicy.opacity(
++            style: NebulaSettingsStore.shared.profileStyle, photoBanner: NebulaSettingsStore.shared.profilePhotoBanner,
++            hasPhoto: hasPhoto, editing: editing)
++        fadeTransition.updateAlpha(node: self.nebulaBannerFade, alpha: alpha, beginWithCurrentState: true)
++    }
++
+     func updateIsAvatarExpanded(_ isAvatarExpanded: Bool, transition: ContainedViewLayoutTransition) {
+-        if self.isAvatarExpanded != isAvatarExpanded {
+-            self.isAvatarExpanded = isAvatarExpanded && NebulaSettingsStore.shared.profilePhotoBanner
+-            if isAvatarExpanded {
++        let expanded = isAvatarExpanded && NebulaSettingsStore.shared.profilePhotoBanner
++        if self.isAvatarExpanded != expanded {
++            self.nebulaAvatarTransitionGeneration += 1
++            self.isAvatarExpanded = expanded
++            if expanded {
+                 self.avatarListNode.listContainerNode.selectFirstItem()
+             }
+-            if case .animated = transition, !isAvatarExpanded {
++            if case .animated = transition, !expanded {
+                 self.avatarListNode.animateAvatarCollapse(transition: transition)
+             }
+             

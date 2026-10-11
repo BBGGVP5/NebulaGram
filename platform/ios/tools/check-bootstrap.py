@@ -14,6 +14,7 @@ import tempfile
 from pathlib import Path
 from check_onboarding import check as check_onboarding
 from check_navigation_refresh import check as check_navigation_refresh
+from check_profile_banner import check as check_profile_banner
 
 ROOT = Path(__file__).resolve().parents[3]
 
@@ -83,6 +84,7 @@ def main():
             assert '"//submodules/NebulaSettingsContract:NebulaSettingsContract"' in build.read_text(encoding='utf-8')
         peer = temp / 'submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources'
         header = (peer / 'PeerInfoHeaderNode.swift').read_text(encoding='utf-8')
+        check_profile_banner(header, temp, args.swift)
         assert '"//submodules/NebulaSettingsContract:NebulaSettingsContract"' in (peer.parent / 'BUILD').read_text(encoding='utf-8')
         assert 'case .user = peer, threadData == nil' in header
         assert 'self.nebulaBadgeUserId == userId else { return }' in header
