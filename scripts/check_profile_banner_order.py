@@ -53,6 +53,13 @@ def check_animation(native: str) -> None:
     """Execute native listeners, including Android's cancel-then-end dispatch."""
     scope = native.index('if (h > headerExtraHeight || isPulledDown)')
     expressions = []
+    start = native.index('private void collapseAvatarInstant()')
+    opening = native.index('{', start)
+    end, depth = opening + 1, 1
+    while depth:
+        depth += (native[end] == '{') - (native[end] == '}')
+        end += 1
+    instant = native[start:end]
     for target in ['1f', '0f']:
         start = native.index('new AnimatorListenerAdapter() {', native.index('expandAnimatorValues[1] = ' + target + ';', scope))
         opening = native.index('{', start)
@@ -72,14 +79,21 @@ class View {
 }
 class Color {static int BLACK=0xff000000;}
 class Theme {static int key_windowBackgroundGray=1;}
-class ListView {boolean canStopFlinger;}
+class ListView {boolean canStopFlinger;int getPaddingTop(){return 0;}void post(Runnable action){action.run();}}
+class LayoutManager {void scrollToPositionWithOffset(int position,int offset){}}
 class Image {Receiver receiver=new Receiver();Receiver getImageReceiver(){return receiver;}}
 class Receiver {Object getAnimation(){return null;}}
-class ExpandAnimator {int removals;void removeListener(AnimatorListenerAdapter a){removals++;}}
+class ExpandAnimator {int removals;boolean running;AnimatorListenerAdapter listener;
+ void removeListener(AnimatorListenerAdapter a){removals++;}boolean isRunning(){return running;}
+ void cancel(){running=false;listener.onAnimationCancel(new Animator());listener.onAnimationEnd(new Animator());}}
 public class NativeAnimationCheck {
  boolean isPulledDown,justFullyExpanded;final ListView listView=new ListView();
+ boolean allowPullingDown=true,targetExpanded;float currentExpandAnimatorValue=1;final LayoutManager layoutManager=new LayoutManager();
  final ExpandAnimator expandAnimator=new ExpandAnimator();final View topView=new View(),avatarContainer=new View(),avatarsViewPager=new View();final Image avatarImage=new Image();
  void setForegroundImage(boolean value){}int getThemedColor(int key){return 12;}
+ int getHeaderExtraHeight(){return 250;}void needLayout(boolean instant){isPulledDown=targetExpanded;}
+ void setAvatarExpandProgress(float progress){currentExpandAnimatorValue=isPulledDown?1:0;}
+ INSTANT
  AnimatorListenerAdapter opening(){return OPEN;}
  AnimatorListenerAdapter closing(){return CLOSE;}
  static void check(boolean b,String why){if(!b)throw new AssertionError(why);}
@@ -100,10 +114,18 @@ public class NativeAnimationCheck {
    if(opening)check(complete.avatarContainer.visibility==View.GONE&&complete.avatarsViewPager.visibility==View.VISIBLE&&complete.avatarsViewPager.alpha==1f&&complete.topView.background==Color.BLACK,"normal opening fails to show gallery");
    else check(complete.avatarsViewPager.visibility==View.GONE&&complete.avatarsViewPager.alpha==1f,"normal closing fails to hide gallery");cases++;
   }
+  for(boolean target:new boolean[]{false,true})for(boolean running:new boolean[]{false,true}){
+   NativeAnimationCheck root=new NativeAnimationCheck();root.targetExpanded=target;
+   root.avatarsViewPager.visibility=View.VISIBLE;root.avatarsViewPager.alpha=0f;
+   root.expandAnimator.running=running;root.expandAnimator.listener=target?root.opening():root.closing();
+   root.collapseAvatarInstant();
+   check(root.avatarsViewPager.visibility==(target?View.VISIBLE:View.GONE)&&root.avatarsViewPager.alpha==1f
+     &&root.avatarContainer.visibility==(target?View.GONE:View.VISIBLE),"instant endpoint leaves a transparent/incorrect gallery after cancellation");cases++;
+  }
   System.out.println(cases+" actual native animator cases: cancel/end, repeated callback, reversed state and normal completion passed");
  }
 }
-'''.replace('OPEN', expressions[0]).replace('CLOSE', expressions[1])
+'''.replace('OPEN', expressions[0]).replace('CLOSE', expressions[1]).replace('INSTANT', instant)
     with tempfile.TemporaryDirectory(prefix='nebula-profile-animation-') as folder:
         work = Path(folder)
         source = work / 'NativeAnimationCheck.java'

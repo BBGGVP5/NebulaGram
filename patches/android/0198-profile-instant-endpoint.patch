@@ -1,0 +1,15 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
+@@ -6286,6 +6286,11 @@
+                     expandAnimator.cancel();
+                 }
+                 setAvatarExpandProgress(1f);
++                // Cancellation skips stale end callbacks; settle this forced endpoint explicitly.
++                topView.setBackgroundColor(isPulledDown ? Color.BLACK : getThemedColor(Theme.key_windowBackgroundGray));
++                avatarContainer.setVisibility(isPulledDown ? View.GONE : View.VISIBLE);
++                avatarsViewPager.setVisibility(isPulledDown ? View.VISIBLE : View.GONE);
++                avatarsViewPager.setAlpha(1f);
+             });
+         }
+     }
