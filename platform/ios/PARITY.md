@@ -2,6 +2,10 @@
 
 This inventory distinguishes **wired source** from native build and device acceptance. A setting with a validated import format is not necessarily functional on iOS.
 
+## October 11: collapsed story header spacing
+
+Patch 0100 replaces the fixed 46 pt title allowance with the actual story-ring/stack, lock and status footprint. Native 24 pt collapsed photos, 52 pt expanded photos, story gradients and actions remain. The centered group stays inside the occupied toolbar edges; narrow layouts reduce the stack before squeezing the title. Current subscriptions are sorted before title measurement, stale wider title rasters are removed after a budget change, and single-avatar interpolation avoids division by zero. Local bootstrap applies all 100 ordered patches successfully. The macOS check executes production geometry and the native ring/interpolation expressions; full IPA and device appearance acceptance are pending. [Header layout plan](../../docs/superpowers/plans/2026-10-11-ios-header-story-layout.md).
+
 ## October 11: profile banner continuity and reversible gallery transitions
 
 Runtime **e632317** (patch 0099) moves the themed fade outside the shrinking gallery, follows the native header edge including controls/music, protects the small avatar, resumes decorative transitions from current presentation state and ignores obsolete collapse callbacks/queued resets. Native photo/video/gallery rendering is retained. Bootstrap **38137794024** passed **157 XCTest cases**, **106 executed actual banner-update states**, cancellation/reversal/weak-lifetime checks and real UIKit/Core Animation typechecking, plus **99 patches / 160 native paths / 46 mirrored contract sources**.

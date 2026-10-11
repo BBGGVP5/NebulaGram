@@ -1,0 +1,168 @@
+diff --git a/submodules/TelegramUI/Components/ChatListHeaderComponent/Sources/ChatListHeaderComponent.swift b/submodules/TelegramUI/Components/ChatListHeaderComponent/Sources/ChatListHeaderComponent.swift
+--- a/submodules/TelegramUI/Components/ChatListHeaderComponent/Sources/ChatListHeaderComponent.swift
++++ b/submodules/TelegramUI/Components/ChatListHeaderComponent/Sources/ChatListHeaderComponent.swift
+@@ -650,10 +650,10 @@
+             }
+             
+             var centerContentLeftInset: CGFloat = 0.0
+-            centerContentLeftInset = nextLeftButtonX + 4.0
++            centerContentLeftInset = sideInset + (nextLeftButtonX > 0.0 ? max(44.0, nextLeftButtonX) : 0.0) + 8.0
+             
+             var centerContentRightInset: CGFloat = 0.0
+-            centerContentRightInset = nextRightButtonX + 20.0
++            centerContentRightInset = sideInset + (nextRightButtonX > 0.0 ? max(44.0, nextRightButtonX) : 0.0) + 8.0
+             
+             var centerContentWidth: CGFloat = 0.0
+             var centerContentOffsetX: CGFloat = 0.0
+diff --git a/submodules/TelegramUI/Components/Stories/StoryPeerListComponent/Sources/StoryPeerListComponent.swift b/submodules/TelegramUI/Components/Stories/StoryPeerListComponent/Sources/StoryPeerListComponent.swift
+--- a/submodules/TelegramUI/Components/Stories/StoryPeerListComponent/Sources/StoryPeerListComponent.swift
++++ b/submodules/TelegramUI/Components/Stories/StoryPeerListComponent/Sources/StoryPeerListComponent.swift
+@@ -720,20 +720,12 @@
+                 }
+             }
+             
+-            let collapseStartIndex: Int
+-            if component.useHiddenList {
+-                collapseStartIndex = 0
+-            } else if let storySubscriptions = component.storySubscriptions {
+-                if self.sortedItems.count < 3, let accountItem = storySubscriptions.accountItem, accountItem.storyCount != 0 {
+-                    collapseStartIndex = 1
+-                } else if let accountItem = storySubscriptions.accountItem, (accountItem.hasUnseen || accountItem.hasPending) {
+-                    collapseStartIndex = 0
+-                } else {
+-                    collapseStartIndex = 1
+-                }
+-            } else {
+-                collapseStartIndex = 1
+-            }
++            let collapseStartIndex = NebulaStoryHeaderLayout.collapseStartIndex(
++                itemCount: self.sortedItems.count, useHiddenList: component.useHiddenList,
++                accountStoryCount: component.storySubscriptions?.accountItem?.storyCount,
++                accountHasUnseen: component.storySubscriptions?.accountItem?.hasUnseen ?? false,
++                accountHasPending: component.storySubscriptions?.accountItem?.hasPending ?? false
++            )
+             
+             struct CollapseState {
+                 var globalFraction: CGFloat
+@@ -768,14 +760,18 @@
+                 targetSideAlphaFraction = 0.0
+             }
+             
+-            let collapsedItemWidth: CGFloat = 24.0
+-            let collapsedItemDistance: CGFloat = 14.0
++            let collapsedItemWidth = NebulaStoryHeaderLayout.collapsedItemWidth
++            let collapsedItemDistance = NebulaStoryHeaderLayout.collapsedItemDistance
+             let collapsedItemOffsetY: CGFloat = -66.0
+-            let titleContentSpacing: CGFloat = 8.0
+-            
+-            let collapsedItemCount: CGFloat = CGFloat(min(self.sortedItems.count - collapseStartIndex, 3))
++
++            let collapsedItemCount = CGFloat(NebulaStoryHeaderLayout.storyCount(
++                availableWidth: component.maxTitleX - component.minTitleX,
++                itemCount: self.sortedItems.count - collapseStartIndex,
++                hasLock: component.titleHasLock, hasStatus: component.titlePeerStatus != nil
++            ))
+             
+             let targetActivityFraction: CGFloat = component.titleHasActivity ? 1.0 : 0.0
++            let titleContentSpacing: CGFloat = collapsedItemCount > 0.0 || component.titleHasActivity ? 8.0 : 0.0
+             
+             let timestamp = CACurrentMediaTime()
+             
+@@ -891,9 +887,10 @@
+             
+             let centralContentWidth: CGFloat = collapsedContentWidth + titleContentSpacing + collapsedState.titleWidth
+             
+-            collapsedContentOrigin = (itemLayout.containerSize.width - centralContentWidth) * 0.5
+-            
+-            collapsedContentOrigin = min(collapsedContentOrigin, component.maxTitleX - centralContentWidth - 4.0)
++            collapsedContentOrigin = NebulaStoryHeaderLayout.origin(
++                containerWidth: itemLayout.containerSize.width, contentWidth: centralContentWidth,
++                minX: component.minTitleX, maxX: component.maxTitleX
++            )
+             
+             let collapsedContentOriginOffset: CGFloat = 0.0
+             collapsedContentOrigin -= collapsedContentOriginOffset
+@@ -971,7 +968,7 @@
+                 var collapsedMaxItemFrame = collapsedItemFrame
+                 
+                 if itemLayout.itemCount > 1 {
+-                    var collapseDistance: CGFloat = CGFloat(collapseIndex - collapseStartIndex) / CGFloat(collapseEndIndex - collapseStartIndex)
++                    var collapseDistance: CGFloat = CGFloat(collapseIndex - collapseStartIndex) / CGFloat(max(1, collapseEndIndex - collapseStartIndex))
+                     collapseDistance = max(0.0, min(1.0, collapseDistance))
+                     collapsedMaxItemFrame.origin.x -= collapsedState.minFraction * 4.0
+                     collapsedMaxItemFrame.origin.x += collapseDistance * 20.0
+@@ -1386,7 +1383,7 @@
+             if self.sortedItems.isEmpty {
+                 titleContentOffset = collapsedTitleOffset
+             } else {
+-                titleContentOffset = titleMinContentOffset.interpolate(to: ((itemLayout.containerSize.width - collapsedState.titleWidth) * 0.5) as CGFloat, amount: min(1.0, collapsedState.maxFraction) * (1.0 - collapsedState.activityFraction))
++                titleContentOffset = titleMinContentOffset.interpolate(to: NebulaStoryHeaderLayout.origin(containerWidth: itemLayout.containerSize.width, contentWidth: collapsedState.titleWidth, minX: component.minTitleX, maxX: component.maxTitleX), amount: min(1.0, collapsedState.maxFraction) * (1.0 - collapsedState.activityFraction))
+                 titleContentOffset += -expandBoundsFraction * 4.0
+             }
+             
+@@ -1694,9 +1691,43 @@
+             self.component = component
+             self.state = state
+             
++            self.sortedItems.removeAll(keepingCapacity: true)
++            if let storySubscriptions = component.storySubscriptions {
++                if !component.useHiddenList, let accountItem = storySubscriptions.accountItem {
++                    self.sortedItems.append(accountItem)
++                }
++
++                for itemSet in storySubscriptions.items {
++                    if itemSet.peer.id == component.context.account.peerId {
++                        continue
++                    }
++                    self.sortedItems.append(itemSet)
++                }
++            }
++
+             // A cached raster must be rebuilt after toolbar controls or window width
+             // change, even if the folder still has the same emoji-only name.
+-            let titleAvailableWidth = max(1.0, component.maxTitleX - component.minTitleX - 46.0)
++            let collapseStartIndex = NebulaStoryHeaderLayout.collapseStartIndex(
++                itemCount: self.sortedItems.count, useHiddenList: component.useHiddenList,
++                accountStoryCount: component.storySubscriptions?.accountItem?.storyCount,
++                accountHasUnseen: component.storySubscriptions?.accountItem?.hasUnseen ?? false,
++                accountHasPending: component.storySubscriptions?.accountItem?.hasPending ?? false
++            )
++            let titleAvailableWidth = NebulaStoryHeaderLayout.titleWidth(
++                availableWidth: component.maxTitleX - component.minTitleX,
++                storyCount: max(0, self.sortedItems.count - collapseStartIndex),
++                hasLock: component.titleHasLock, hasStatus: component.titlePeerStatus != nil,
++                hasActivity: component.titleHasActivity
++            )
++            if let previousTitle = self.titleState, previousTitle.availableWidth != titleAvailableWidth {
++                // An outgoing raster must not retain the old, wider toolbar budget.
++                self.animationState = nil
++                self.titleViewAnimation = nil
++                for title in self.disappearingTitleViews {
++                    title.imageView.removeFromSuperview()
++                }
++                self.disappearingTitleViews.removeAll()
++            }
+             let updatedTitleState = TitleState(text: component.title, color: component.theme.rootController.navigationBar.primaryTextColor, availableWidth: titleAvailableWidth)
+             if self.titleState != updatedTitleState {
+                 self.titleState = updatedTitleState
+@@ -1736,20 +1767,6 @@
+             }
+             
+             self.collapsedButton.isUserInteractionEnabled = !component.unlocked
+-            
+-            self.sortedItems.removeAll(keepingCapacity: true)
+-            if let storySubscriptions = component.storySubscriptions {
+-                if !component.useHiddenList, let accountItem = storySubscriptions.accountItem {
+-                    self.sortedItems.append(accountItem)
+-                }
+-                
+-                for itemSet in storySubscriptions.items {
+-                    if itemSet.peer.id == component.context.account.peerId {
+-                        continue
+-                    }
+-                    self.sortedItems.append(itemSet)
+-                }
+-            }
+             
+             let itemLayout = ItemLayout(
+                 containerSize: availableSize,

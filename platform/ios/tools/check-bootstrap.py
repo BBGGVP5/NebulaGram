@@ -15,6 +15,7 @@ from pathlib import Path
 from check_onboarding import check as check_onboarding
 from check_navigation_refresh import check as check_navigation_refresh
 from check_profile_banner import check as check_profile_banner
+from check_story_header import check as check_story_header
 
 ROOT = Path(__file__).resolve().parents[3]
 
@@ -364,6 +365,11 @@ def main():
         ai_chat = (temp / 'submodules/SettingsUI/Sources/NebulaAiChatController.swift').read_text(encoding='utf-8')
         ai_settings = (temp / 'submodules/SettingsUI/Sources/NebulaAiController.swift').read_text(encoding='utf-8')
         ai_home = (temp / 'submodules/ChatListUI/Sources/ChatListController.swift').read_text(encoding='utf-8')
+        story_header = (temp / 'submodules/TelegramUI/Components/ChatListHeaderComponent/Sources/ChatListHeaderComponent.swift').read_text(encoding='utf-8')
+        story_list = (temp / 'submodules/TelegramUI/Components/Stories/StoryPeerListComponent/Sources/StoryPeerListComponent.swift').read_text(encoding='utf-8')
+        story_item_path = 'submodules/TelegramUI/Components/Stories/StoryPeerListComponent/Sources/StoryPeerListItemComponent.swift'
+        story_item = run('git', '-C', str(tree), 'show', revision + ':' + story_item_path).decode('utf-8')
+        check_story_header(story_header, story_list, story_item, temp, args.swift)
         ai_root = (temp / 'submodules/TelegramUI/Sources/TelegramRootController.swift').read_text(encoding='utf-8')
         assert 'NebulaAiMarkdown.parse(raw)' in ai_chat and 'self.gate.accepts(id)' in ai_chat
         assert 'view.keyboardLayoutGuide.topAnchor' in ai_chat and 'work?.cancel()' in ai_chat
