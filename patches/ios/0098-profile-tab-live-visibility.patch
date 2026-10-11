@@ -42,7 +42,7 @@ diff --git a/submodules/TelegramUI/Sources/TelegramRootController.swift b/submod
  
      private func nebulaOrderedControllers(_ source: [ViewController]) -> [ViewController] {
          let store = NebulaSettingsStore.shared
-+        let visible = NebulaNavigationPolicy.visibleRootTabs(customized: store.showBottomBar, showContacts: store.showContactsTab, showProfile: store.showProfileTab, showSettings: store.showSettingsTab)
++        let visible = NebulaNavigationPolicy.visibleRootTabs(showContacts: store.showContactsTab, showProfile: store.showProfileTab, showSettings: store.showSettingsTab)
          var result: [ViewController] = []
          for key in store.bottomTabOrder {
              switch key {

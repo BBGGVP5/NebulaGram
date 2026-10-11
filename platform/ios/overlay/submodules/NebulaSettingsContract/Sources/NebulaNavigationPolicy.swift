@@ -3,11 +3,11 @@ import Foundation
 /// Policies shared by native navigation and its headless regression checks.
 public enum NebulaNavigationPolicy {
     /// Native/default presentation still respects Profile's independent choice.
-    public static func visibleRootTabs(customized: Bool, showContacts: Bool, showProfile: Bool, showSettings: Bool) -> Set<String> {
+    public static func visibleRootTabs(showContacts: Bool, showProfile: Bool, showSettings: Bool) -> Set<String> {
         var result: Set<String> = ["chats"]
-        if showContacts || !customized { result.insert("contacts") }
+        if showContacts { result.insert("contacts") }
         if showProfile { result.insert("profile") }
-        if showSettings || !showProfile || !customized { result.insert("settings") }
+        if showSettings || !showProfile { result.insert("settings") }
         return result
     }
 

@@ -290,7 +290,7 @@ def main():
         assert 'pair.0 !== pair.1' in root_controller and '$0 === old' in root_controller
         for argument, key in [('showContacts', 'showContactsTab'), ('showProfile', 'showProfileTab'), ('showSettings', 'showSettingsTab')]:
             assert f'{argument}: store.{key}' in root_controller
-        assert 'NebulaNavigationPolicy.visibleRootTabs(customized: store.showBottomBar' in root_controller
+        assert 'NebulaNavigationPolicy.visibleRootTabs(showContacts: store.showContactsTab' in root_controller
         for key in ['contacts', 'settings', 'profile']:
             assert f'if visible.contains("{key}"),' in root_controller
         assert 'self?.nebulaScheduleRootRefresh()' in root_controller
