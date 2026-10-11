@@ -20,6 +20,16 @@ overlay="$root/platform/$platform/overlay"
 patches="$root/patches/$platform"
 tree="$root/$submodule"
 
+if [ "$platform" = android ]; then
+  expected="$(git -C "$root" rev-parse HEAD:vendor/telegram-android)"
+  actual="$(git -C "$tree" rev-parse HEAD)"
+  if [ "$actual" != "$expected" ]; then
+    echo "error: Android checkout is not at the committed Telegram revision; nothing was reset" >&2
+    echo "Prepare fresh current sources: python scripts/prepare-android-tree.py --destination build/android-current --dependencies" >&2
+    exit 1
+  fi
+fi
+
 echo "resetting $submodule to its pinned commit"
 git -C "$tree" reset --hard
 git -C "$tree" clean -fdx

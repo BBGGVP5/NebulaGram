@@ -1,5 +1,35 @@
 # Сборка Android
 
+## Актуальные исходники
+
+Закреплённая база — Telegram **12.10.6 (7112)**, commit
+`f2908b14133bbffbf7ab04f641ecb5bfaf533242`. Версия определяется этим gitlink,
+а не старой локальной папкой с уже применёнными патчами.
+
+Если рабочая копия `vendor/telegram-android` содержит локальные изменения или
+осталась на другой версии, подготовьте отдельный каталог:
+
+```bash
+python scripts/prepare-android-tree.py --destination build/android-current --dependencies
+```
+
+Каталог должен быть новым. Команда получает закреплённую версию, применяет
+оверлей и все патчи, сохраняет `.nebula-android-source.json` с ревизией и
+хешами входных файлов. Для локальной сборки сначала соберите AAR и укажите
+этот каталог при подстановке своих ключей:
+
+```bash
+bash scripts/build-core.sh android
+python scripts/prepare-android-tree.py --destination build/android-current --dependencies
+TELEGRAM_APP_ID=1234567 TELEGRAM_APP_HASH=ваш_хеш \
+  bash scripts/inject-keys.sh android build/android-current
+cd build/android-current
+./gradlew :TMessagesProj_AppStandalone:assembleAfatStandalone
+```
+
+`apply-overlay.sh` используется CI с чистым checkout. Он отказывается
+пересобирать Android из checkout, чей HEAD отличается от закреплённой ревизии.
+
 ## Что нужно один раз: свой API-ключ Telegram
 
 В репозитории Telegram лежит его собственный ключ (`APP_ID = 4`). Он
@@ -165,7 +195,7 @@ APK и изменения: [@ngram_releases](https://t.me/ngram_releases).
    CI проверяет совпадение версии и кода в имени и внутри APK. Сохраняйте ключ
    подписи и пакет `app.nebulagram.messenger`.
 3. Скачайте APK из артефакта и отправьте **файлом** в канал релизов, сохранив имя:
-   `NebulaGram-1.0.0-TG-12.10.5-b1000123-arm64-v8a.apk`.
+   `NebulaGram-1.0.0-TG-12.10.6-b1000123-arm64-v8a.apk`.
    Несколько архитектур можно публиковать альбомом. Приложение предпочитает
    подходящую архитектуру, затем universal.
 4. Напишите изменения в подписи к APK/альбому. Обычные и Premium-эмодзи,

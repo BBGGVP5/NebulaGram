@@ -142,6 +142,9 @@ jobs:
       - name: Проверка повторов сетевых загрузок
         run: python3 scripts/check-build-core.py
 
+      - name: Проверка безопасной подготовки актуальных исходников
+        run: python3 scripts/test-prepare-android-tree.py
+
       - name: Сборка ядра NebulaLink
         run: bash scripts/build-core.sh android
 
@@ -156,6 +159,7 @@ jobs:
           python3 scripts/check-launcher-icons.py vendor/telegram-android
           python3 scripts/check-render-hot-path.py vendor/telegram-android
           python3 scripts/check-profile-banner.py vendor/telegram-android
+          python3 scripts/check-phone-confirmation.py vendor/telegram-android
           python3 scripts/check-deleted-retention.py vendor/telegram-android
           python3 scripts/check-archive-pipeline.py
           python3 scripts/check-glass-edge.py vendor/telegram-android

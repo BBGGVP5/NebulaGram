@@ -1,0 +1,52 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/LoginActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/LoginActivity.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/LoginActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/LoginActivity.java
+@@ -8600,6 +8600,7 @@
+         private FrameLayout popupLayout;
+ 
+         private boolean dismissed;
++        private boolean positionLocked;
+ 
+         private PhoneNumberConfirmView(@NonNull Context context, ViewGroup fragmentView, View fabContainer, String numberText, IConfirmDialogCallback callback) {
+             super(context);
+@@ -8675,6 +8676,7 @@
+ 
+         private final PointF pointF = new PointF();
+         private void updateFabPosition() {
++            if (positionLocked) return;
+             ViewPositionWatcher.computeCoordinatesInParent(fabContainer, fragmentView, pointF);
+             fabButton.setTranslationX(pointF.x + (LocaleController.isRTL ? 0 : Math.max(0, fabContainer.getWidth() - dp(56))));
+             fabButton.setTranslationY(pointF.y);
+@@ -8693,15 +8695,32 @@
+         }
+ 
+         @Override
++        protected void onSizeChanged(int width, int height, int oldWidth, int oldHeight) {
++            super.onSizeChanged(width, height, oldWidth, oldHeight);
++            if (oldWidth > 0 && width != oldWidth) {
++                positionLocked = false;
++                updateFabPosition();
++                positionLocked = true;
++            }
++        }
++
++        @Override
+         protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
+             super.onLayout(changed, left, top, right, bottom);
+ 
+             int height = popupLayout.getMeasuredHeight();
++            int maxFabY = Math.max(0, getHeight() - fabButton.getMeasuredHeight() - dp(24));
++            int minFabY = Math.min(maxFabY, height + dp(32));
++            fabButton.setTranslationY(Math.max(minFabY, Math.min(fabButton.getTranslationY(), maxFabY)));
+             int popupBottom = (int) (fabButton.getTranslationY() - AndroidUtilities.dp(32));
+             popupLayout.layout(popupLayout.getLeft(), popupBottom - height, popupLayout.getRight(), popupBottom);
+         }
+ 
+         private void show() {
++            // The background action may still be settling after keyboard dismissal.
++            // Keep this modal at its opening anchor instead of following that action.
++            updateFabPosition();
++            positionLocked = true;
+             ValueAnimator anim = ValueAnimator.ofFloat(0, 1).setDuration(250);
+             anim.addListener(new AnimatorListenerAdapter() {
+                 @Override

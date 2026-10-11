@@ -9,13 +9,17 @@
 # never reach git. Run it after scripts/apply-overlay.sh.
 set -euo pipefail
 
-platform="${1:?usage: inject-keys.sh <android>}"
+platform="${1:?usage: inject-keys.sh <android> [prepared-tree]}"
 root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
 case "$platform" in
   android) tree="$root/vendor/telegram-android" ;;
   *) echo "unknown platform: $platform" >&2; exit 2 ;;
 esac
+
+if [ -n "${2:-}" ]; then
+  tree="$(cd "$2" && pwd)"
+fi
 
 app_id="${TELEGRAM_APP_ID:-}"
 app_hash="${TELEGRAM_APP_HASH:-}"
