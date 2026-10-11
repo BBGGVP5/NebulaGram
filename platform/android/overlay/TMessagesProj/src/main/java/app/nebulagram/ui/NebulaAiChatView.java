@@ -58,6 +58,7 @@ public final class NebulaAiChatView extends LinearLayout {
         status = label("", 14, theme.onSurface());
         status.setTypeface(AndroidUtilities.bold());
         status.setMaxLines(2); status.setEllipsize(TextUtils.TruncateAt.END);
+        status.setMinHeight(dp(48));
         status.setGravity(Gravity.START | Gravity.CENTER_VERTICAL);
         status.setPadding(dp(12), dp(6), dp(10), dp(6));
         status.setBackground(actionBackground());
