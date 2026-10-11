@@ -301,6 +301,8 @@ def main():
         profile_source = (peer / 'PeerInfoScreen.swift').read_text(encoding='utf-8')
         assert 'isMyProfileTab || !primaryAndOther.1.isEmpty' in profile_source
         assert 'animationName = isMyProfileTab || isAvatar || reduceMotion ? nil : "TabSettings"' in profile_source
+        assert 'UIImage.SymbolConfiguration(pointSize: 28.0, weight: .regular)' in profile_source
+        assert 'let selectedProfileIcon = accountTabBarAvatar?.1 ?? person?.withTintColor(presentationData.theme.rootController.tabBar.selectedTextColor, renderingMode: .alwaysOriginal)' in profile_source
         if args.swift:
             check_navigation_refresh(root_controller, temp)
         assert 'nebulaNavigationButton' in (temp / 'submodules/TabBarUI/Sources/TabBarContollerNode.swift').read_text(encoding='utf-8')

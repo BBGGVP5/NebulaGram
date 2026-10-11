@@ -88,7 +88,20 @@ diff --git a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/Pe
              let tabBarItem: Signal<(String, UIImage?, UIImage?, String?, Bool, Bool), NoError> = combineLatest(queue: .mainQueue(), self.context.sharedContext.presentationData, notificationsAuthorizationStatus.get(), notificationsWarningSuppressed.get(), context.engine.notices.getServerProvidedSuggestions(), accountTabBarAvatar, accountTabBarAvatarBadge)
              |> map { presentationData, notificationsAuthorizationStatus, notificationsWarningSuppressed, suggestions, accountTabBarAvatar, accountTabBarAvatarBadge -> (String, UIImage?, UIImage?, String?, Bool, Bool) in
                  let notificationsWarning = shouldDisplayNotificationsPermissionWarning(status: notificationsAuthorizationStatus, suppressed:  notificationsWarningSuppressed)
-@@ -6749,7 +6749,7 @@
+@@ -6738,8 +6738,10 @@
+                 }
+                 if isMyProfileTab {
+                     let title = presentationData.strings.baseLanguageCode.lowercased().hasPrefix("ru") ? "Профиль" : "Profile"
+-                    let profileIcon = accountTabBarAvatar?.0 ?? UIImage(systemName: "person.crop.circle") ?? icon
+-                    return (title, profileIcon, accountTabBarAvatar?.1 ?? profileIcon, nil, accountTabBarAvatar != nil, presentationData.reduceMotion)
++                    let person = UIImage(systemName: "person.crop.circle", withConfiguration: UIImage.SymbolConfiguration(pointSize: 28.0, weight: .regular)) ?? UIImage(bundleImageName: "Chat List/Tabs/IconContacts")
++                    let profileIcon = accountTabBarAvatar?.0 ?? person?.withTintColor(presentationData.theme.rootController.tabBar.textColor, renderingMode: .alwaysOriginal)
++                    let selectedProfileIcon = accountTabBarAvatar?.1 ?? person?.withTintColor(presentationData.theme.rootController.tabBar.selectedTextColor, renderingMode: .alwaysOriginal)
++                    return (title, profileIcon, selectedProfileIcon, nil, accountTabBarAvatar != nil, presentationData.reduceMotion)
+                 }
+                 return (presentationData.strings.Settings_Title, icon, icon, notificationsWarning || phoneNumberWarning || passwordWarning ? "!" : otherAccountsBadge, false, presentationData.reduceMotion)
+             }
+@@ -6749,7 +6751,7 @@
                      strongSelf.tabBarItem.title = title
                      strongSelf.tabBarItem.image = image
                      strongSelf.tabBarItem.selectedImage = selectedImage
