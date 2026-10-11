@@ -5,7 +5,7 @@ import re
 import subprocess
 import sys
 import tempfile
-from check_profile_banner_order import check as check_native_order
+from check_profile_banner_order import check as check_native_order, check_animation
 
 root = Path(__file__).resolve().parents[1]
 ui = root / 'platform/android/overlay/TMessagesProj/src/main/java/app/nebulagram/ui'
@@ -13,6 +13,7 @@ tree = Path(sys.argv[1]) if len(sys.argv) > 1 else root / 'vendor/telegram-andro
 
 native = (tree / 'TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java').read_text(encoding='utf-8')
 check_native_order(native)
+check_animation(native)
 start = native.index('        avatarContainer2 = new FrameLayout(context) {')
 end = native.index('        fallbackImage =', start)
 header = native[start:end]
@@ -42,13 +43,13 @@ contracts = {
  public final org.telegram.messenger.ImageReceiver receiver=new org.telegram.messenger.ImageReceiver();
  public BackupImageView(android.content.Context c){super(c);}public org.telegram.messenger.ImageReceiver getImageReceiver(){return receiver;}}""",
  'org/telegram/messenger/ImageReceiver.java': """package org.telegram.messenger;public class ImageReceiver {
- public float x=11,y=12,w=90,h=100,alpha=.7f,lastDrawAlpha;public final int[] radii={9,8,7,6};public boolean loaded=true,throwDraw;public int draws;
+ public float x=11,y=12,w=90,h=100,alpha=.7f,lastDrawAlpha;public final int[] radii={9,8,7,6};public boolean loaded=true,throwDraw;public int draws,failAtDraw=-1;
  public float getImageX(){return x;}public float getImageY(){return y;}public float getImageWidth(){return w;}public float getImageHeight(){return h;}
  public float getAlpha(){return alpha;}public int[] getRoundRadius(){return radii;}public boolean hasImageLoaded(){return loaded;}
  public void setAlpha(float a){alpha=a;}public void setRoundRadius(int[] r){System.arraycopy(r,0,radii,0,4);}
  public void setImageCoords(float xx,float yy,float ww,float hh){x=xx;y=yy;w=ww;h=hh;}
  public void setImageCoords(android.graphics.RectF r){setImageCoords(r.left,r.top,r.width(),r.height());}
- public void draw(android.graphics.Canvas c,Object ignored){draws++;lastDrawAlpha=alpha;if(throwDraw)throw new IllegalStateException("test draw failure");}}""",
+ public void draw(android.graphics.Canvas c,Object ignored){draws++;lastDrawAlpha=alpha;if(throwDraw||draws==failAtDraw)throw new IllegalStateException("test draw failure");}}""",
  'org/telegram/ui/Components/ProfileActionsView.java': """package org.telegram.ui.Components;public class ProfileActionsView extends android.view.View {
  public int color;public boolean byId;public ProfileActionsView(android.content.Context c,int h){super(c);}
  public void setActionsColor(int c,boolean b){color=c;byId=b;}public float getRoundRadius(){return 16;}
@@ -128,6 +129,8 @@ class ProfileCheck {
   for(float end:new float[]{449.5f,474.5f,704.25f})for(int direction=0;direction<2;direction++)for(int phase=0;phase<=100;phase++){
    float expanded=(direction==0?phase:100-phase)/100f;Canvas canvas=new Canvas();int s=small.receiver.draws,g=gallery.receiver.draws;
    hero.draw(canvas,393,avatar,title,subtitle,buttons,gallery,end,1,expanded,0,1,null);
+   check(canvas.ops.size()==2&&canvas.ops.get(0).alpha==110&&canvas.ops.get(1).alpha==51,
+     "decorative photo fades before the native alpha-zero gallery handoff");
    check(buttons.hasCustomActionSurface(canvas),"glass missing during expansion");
    check(NebulaProfileGlass.last.h==(int)Math.ceil(end),"capture does not include complete header/music row");
    hero.drawForeground(canvas);Canvas.Op fade=canvas.ops.get(canvas.ops.size()-1);
@@ -196,6 +199,13 @@ class ProfileCheck {
    check(NebulaProfileGlass.captures-captures==NebulaProfileGlass.ends-ends,"glass recording not closed on failure");cases++;
    if(expanded>0)check(NebulaProfileGlass.lastCanvas.saves==0,"capture layer leaked on draw failure");
   }
+  gallery.receiver.failAtDraw=gallery.receiver.draws+2;
+  canvas=new Canvas();int captures=NebulaProfileGlass.captures,ends=NebulaProfileGlass.ends;
+  try{hero.draw(canvas,393,avatar,title,subtitle,buttons,gallery,474.5f,1,.5f,0,1,null);throw new AssertionError("capture did not throw");}
+  catch(IllegalStateException expected){}
+  gallery.receiver.failAtDraw=-1;restored(small.receiver);restored(gallery.receiver);
+  check(canvas.saves==0&&NebulaProfileGlass.lastCanvas.saves==0,"main/capture layer leaked on capture failure");
+  check(NebulaProfileGlass.captures==captures+1&&NebulaProfileGlass.ends==ends+1,"failed capture recording was not closed");cases++;
   System.out.println(cases+" production banner state cases: music boundary, expansion, gallery, theme, fallback, shader reuse and exception restoration passed");
  }
 }

@@ -1,0 +1,50 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
+@@ -8542,6 +8542,8 @@
+                             expandAnimator.setDuration((long) ((1f - value) * 250f / durationFactor));
+                         }
+                         expandAnimator.addListener(new AnimatorListenerAdapter() {
++                            private boolean nebulaCancelled;
++
+                             @Override
+                             public void onAnimationStart(Animator animation) {
+                                 setForegroundImage(false);
+@@ -8551,9 +8553,10 @@
+ 
+                             @Override
+                             public void onAnimationEnd(Animator animation) {
++                                expandAnimator.removeListener(this);
++                                if (nebulaCancelled || !isPulledDown) return;
+                                 justFullyExpanded = false;
+                                 listView.canStopFlinger = true;
+-                                expandAnimator.removeListener(this);
+                                 topView.setBackgroundColor(Color.BLACK);
+                                 avatarContainer.setVisibility(View.GONE);
+                                 avatarsViewPager.setVisibility(View.VISIBLE);
+@@ -8562,6 +8565,7 @@
+ 
+                             @Override
+                             public void onAnimationCancel(Animator animation) {
++                                nebulaCancelled = true;
+                                 justFullyExpanded = false;
+                                 listView.canStopFlinger = true;
+                             }
+@@ -8651,9 +8655,17 @@
+                             }
+                         }
+                         expandAnimator.addListener(new AnimatorListenerAdapter() {
++                            private boolean nebulaCancelled;
++
++                            @Override
++                            public void onAnimationCancel(Animator animation) {
++                                nebulaCancelled = true;
++                            }
++
+                             @Override
+                             public void onAnimationEnd(Animator animation) {
+                                 expandAnimator.removeListener(this);
++                                if (nebulaCancelled || isPulledDown) return;
+                                 avatarsViewPager.setVisibility(View.GONE);
+                                 avatarsViewPager.setAlpha(1f);
+                             }

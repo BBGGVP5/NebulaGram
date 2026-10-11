@@ -59,3 +59,14 @@ The complete 191-patch Android series applies to 134 pristine native paths from 
 - Independently checked `app.nebulagram.messenger`, version `1.0.0`, build `1000492`, arm64 Telegram and NebulaLink libraries, retained local audio/chat markers and valid signature with the existing certificate SHA-256 `a08d7dc323ddf71ef3201944397e0d3cce7d40847263e11f328b68bbe19229ab`.
 - APK SHA-256: `7b025b3dbc07b2e1b471d5188a316368de8922508b1809afc7bd30f0e630e46a`. Retrieval and verification receipts are saved beside it.
 - The phone remains absent from the final USB inventory. APK installation and physical-device visual/GPU acceptance are **not verified**. No iOS rebuild is needed because this fix changes only the Android profile renderer.
+
+## Follow-up after testing APK 1000492
+
+User confirms Android 1000492 still shows the plain background and jerks. Native source shows `avatarsViewPager.setAlpha(0f)` throughout expansion/collapse, restoring its opacity only in the completion. Fading our decorative photo by `1 - expansion` therefore removes the background before native gallery handoff. Native end callbacks also apply visibility changes when cancellation dispatches `onAnimationEnd`.
+
+- [x] Require a full-strength photo/veil backdrop in every production expansion frame, including when native gallery alpha is zero. Observe the failure on 1000492 rendering code before changing it.
+- [x] Reuse the existing constant-opacity two-photo blend for both the real backdrop and captured glass; retain the backdrop under the native gallery and apply the foreground fade once. Do not hand off by expansion progress while the actual gallery remains transparent.
+- [x] Execute the two actual native listeners with cancel/end, reversed state, repeated end and normal completion. Add ordered patch 0197 so cancelled/stale completions cannot swap avatar/gallery visibility; native sizing and duration remain intact.
+- [ ] Re-run banner/native checks and build the replacement APK. Adapt the equivalent current-state and interrupted-completion behavior to iOS as explicitly requested in the separate iOS plan.
+
+Both regressions fail on 1000492 source: `decorative photo fades before the native alpha-zero gallery handoff` and `cancelled callback changes native photo visibility`. After the fix, all 192 patches apply to 134 pinned native paths. The 48 native order cases, 8 actual animator cases, 628 rendering states (including main/capture exception restoration) and SDK compile pass on the full tree, as do render/cache checks. Physical-device acceptance still requires a reachable phone.

@@ -150,10 +150,9 @@ public final class NebulaProfileArt {
                 previousFadeTop = fadeTop; previousFadeBottom = bottom;
             }
             foregroundAlpha = alpha;
-            // Only the decorative image gives way to Telegram's native gallery.
-            // The foreground fade and glass remain continuous through expansion.
-            float backdropAlpha = alpha * (1f - expansion);
-            if (backdropAlpha > 0) drawBannerBackdrop(canvas, collapsedReceiver, rect, backdropAlpha);
+            // Telegram keeps the gallery transparent until its animation ends.
+            // Retain a full backdrop underneath it throughout either direction.
+            drawBannerBackdrop(canvas, collapsedReceiver, galleryReceiver, rect, expansion, alpha);
             if (buttons != null && canvas.isHardwareAccelerated()) {
                 buttons.captureBanner(this, collapsedReceiver, galleryReceiver, rect, expansion);
             }
@@ -176,11 +175,6 @@ public final class NebulaProfileArt {
             paint.setShader(null);
         }
 
-        private void drawBannerBackdrop(Canvas canvas, ImageReceiver receiver, RectF bounds, float alpha) {
-            drawPhotoBanner(canvas, receiver, bounds, .78f * alpha);
-            drawBannerTreatment(canvas, bounds, alpha);
-        }
-
         private void drawBannerTreatment(Canvas canvas, RectF bounds, float alpha) {
             paint.setStyle(Paint.Style.FILL);
             paint.setShader(null);
@@ -193,7 +187,7 @@ public final class NebulaProfileArt {
             paint.setShader(null);
         }
 
-        private void drawBannerSurface(Canvas canvas, ImageReceiver collapsed, ImageReceiver gallery,
+        private void drawBannerBackdrop(Canvas canvas, ImageReceiver collapsed, ImageReceiver gallery,
                                        RectF bounds, float expansion, float alpha) {
             if (collapsed == gallery || expansion <= 0f) {
                 drawPhotoBanner(canvas, collapsed, bounds, .78f * alpha);
@@ -210,6 +204,11 @@ public final class NebulaProfileArt {
                 }
             }
             drawBannerTreatment(canvas, bounds, alpha);
+        }
+
+        private void drawBannerSurface(Canvas canvas, ImageReceiver collapsed, ImageReceiver gallery,
+                                       RectF bounds, float expansion, float alpha) {
+            drawBannerBackdrop(canvas, collapsed, gallery, bounds, expansion, alpha);
             paint.setShader(bottomFade);
             paint.setAlpha(Math.round(255 * alpha));
             canvas.drawRect(bounds, paint);

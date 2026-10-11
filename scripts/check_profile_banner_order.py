@@ -47,3 +47,66 @@ public class NativeHeaderCheck extends Parent {
         source.write_text(code, encoding='utf-8')
         subprocess.run(['javac', '-encoding', 'UTF-8', '-d', str(work), str(source)], check=True)
         subprocess.run(['java', '-cp', str(work), 'NativeHeaderCheck'], check=True)
+
+
+def check_animation(native: str) -> None:
+    """Execute native listeners, including Android's cancel-then-end dispatch."""
+    scope = native.index('if (h > headerExtraHeight || isPulledDown)')
+    expressions = []
+    for target in ['1f', '0f']:
+        start = native.index('new AnimatorListenerAdapter() {', native.index('expandAnimatorValues[1] = ' + target + ';', scope))
+        opening = native.index('{', start)
+        end, depth = opening + 1, 1
+        while depth:
+            depth += (native[end] == '{') - (native[end] == '}')
+            end += 1
+        expressions.append(native[start:end])
+    code = '''class Animator {}
+class AnimatorListenerAdapter {
+ public void onAnimationStart(Animator a){}public void onAnimationCancel(Animator a){}public void onAnimationEnd(Animator a){}
+}
+class View {
+ static final int VISIBLE=0,GONE=8;int visibility=7,background=19;float alpha=.37f;
+ void setVisibility(int v){visibility=v;}void setAlpha(float a){alpha=a;}void setBackgroundColor(int c){background=c;}
+ void setAnimatedFileMaybe(Object a){}void resetCurrentItem(){}
+}
+class Color {static int BLACK=0xff000000;}
+class Theme {static int key_windowBackgroundGray=1;}
+class ListView {boolean canStopFlinger;}
+class Image {Receiver receiver=new Receiver();Receiver getImageReceiver(){return receiver;}}
+class Receiver {Object getAnimation(){return null;}}
+class ExpandAnimator {int removals;void removeListener(AnimatorListenerAdapter a){removals++;}}
+public class NativeAnimationCheck {
+ boolean isPulledDown,justFullyExpanded;final ListView listView=new ListView();
+ final ExpandAnimator expandAnimator=new ExpandAnimator();final View topView=new View(),avatarContainer=new View(),avatarsViewPager=new View();final Image avatarImage=new Image();
+ void setForegroundImage(boolean value){}int getThemedColor(int key){return 12;}
+ AnimatorListenerAdapter opening(){return OPEN;}
+ AnimatorListenerAdapter closing(){return CLOSE;}
+ static void check(boolean b,String why){if(!b)throw new AssertionError(why);}
+ public static void main(String[] args){int cases=0;
+  for(boolean opening:new boolean[]{false,true}){
+   for(boolean target:new boolean[]{false,true}){
+    NativeAnimationCheck root=new NativeAnimationCheck();root.isPulledDown=target;
+    AnimatorListenerAdapter listener=opening?root.opening():root.closing();listener.onAnimationStart(new Animator());
+    listener.onAnimationCancel(new Animator());listener.onAnimationEnd(new Animator());listener.onAnimationEnd(new Animator());
+    check(root.avatarContainer.visibility==7&&root.avatarsViewPager.visibility==7&&root.avatarsViewPager.alpha==.37f&&root.topView.background==19,"cancelled callback changes native photo visibility");
+    check(root.expandAnimator.removals==2,"completed listener is retained");cases++;
+   }
+   NativeAnimationCheck stale=new NativeAnimationCheck();stale.isPulledDown=!opening;
+   (opening?stale.opening():stale.closing()).onAnimationEnd(new Animator());
+   check(stale.avatarContainer.visibility==7&&stale.avatarsViewPager.visibility==7,"stale opposite-state completion changes visibility");cases++;
+   NativeAnimationCheck complete=new NativeAnimationCheck();complete.isPulledDown=opening;
+   (opening?complete.opening():complete.closing()).onAnimationEnd(new Animator());
+   if(opening)check(complete.avatarContainer.visibility==View.GONE&&complete.avatarsViewPager.visibility==View.VISIBLE&&complete.avatarsViewPager.alpha==1f&&complete.topView.background==Color.BLACK,"normal opening fails to show gallery");
+   else check(complete.avatarsViewPager.visibility==View.GONE&&complete.avatarsViewPager.alpha==1f,"normal closing fails to hide gallery");cases++;
+  }
+  System.out.println(cases+" actual native animator cases: cancel/end, repeated callback, reversed state and normal completion passed");
+ }
+}
+'''.replace('OPEN', expressions[0]).replace('CLOSE', expressions[1])
+    with tempfile.TemporaryDirectory(prefix='nebula-profile-animation-') as folder:
+        work = Path(folder)
+        source = work / 'NativeAnimationCheck.java'
+        source.write_text(code, encoding='utf-8')
+        subprocess.run(['javac', '-encoding', 'UTF-8', '-d', str(work), str(source)], check=True)
+        subprocess.run(['java', '-cp', str(work), 'NativeAnimationCheck'], check=True)
