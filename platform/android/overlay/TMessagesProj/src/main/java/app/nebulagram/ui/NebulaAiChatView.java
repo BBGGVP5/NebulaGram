@@ -80,8 +80,9 @@ public final class NebulaAiChatView extends LinearLayout {
         GradientDrawable capsule = shape(theme.surfaceContainer(), 28); capsule.setStroke(dp(1), (theme.onSurfaceVariant() & 0x00ffffff) | 0x24000000); input.setBackground(capsule);
         composer = new EditText(context); composer.setTextSize(16); composer.setTextColor(theme.onSurface());
         composer.setHintTextColor(theme.onSurfaceVariant()); composer.setHint(text("Напишите запрос…", "Write a prompt…"));
-        composer.setBackgroundColor(Color.TRANSPARENT); composer.setPadding(dp(4), dp(10), dp(4), dp(10));
+        composer.setBackgroundColor(Color.TRANSPARENT); composer.setPadding(dp(4), dp(12), dp(4), dp(12));
         composer.setInputType(android.text.InputType.TYPE_CLASS_TEXT | android.text.InputType.TYPE_TEXT_FLAG_MULTI_LINE | android.text.InputType.TYPE_TEXT_FLAG_CAP_SENTENCES);
+        composer.setIncludeFontPadding(false); composer.setGravity(Gravity.START | Gravity.CENTER_VERTICAL); composer.setMinHeight(dp(44));
         composer.setMaxLines(5); composer.setFilters(new InputFilter[]{new InputFilter.LengthFilter(50000)});
         composer.setImeOptions(EditorInfo.IME_ACTION_SEND | EditorInfo.IME_FLAG_NO_EXTRACT_UI);
         composer.setText(initial); input.addView(composer, new LayoutParams(0, -2, 1));
@@ -89,7 +90,7 @@ public final class NebulaAiChatView extends LinearLayout {
         send.setPadding(dp(11), dp(11), dp(11), dp(11)); send.setScaleType(ImageView.ScaleType.FIT_CENTER);
         send.setBackground(shape(theme.primaryContainer(), 22)); send.setContentDescription(text("Отправить", "Send"));
         send.setOnClickListener(v -> { if (active != null) stop(); else send(); });
-        LayoutParams sendParams = new LayoutParams(dp(44), dp(44)); sendParams.gravity = Gravity.BOTTOM; sendParams.bottomMargin = dp(2);
+        LayoutParams sendParams = new LayoutParams(dp(44), dp(44)); sendParams.gravity = Gravity.BOTTOM;
         input.addView(send, sendParams); addView(input, new LayoutParams(-1, -2));
         composer.setOnEditorActionListener((v, action, event) -> { if (action == EditorInfo.IME_ACTION_SEND) { if (active == null) send(); return true; } return false; });
         composer.addTextChangedListener(new TextWatcher() { public void beforeTextChanged(CharSequence s, int start, int count, int after) {} public void onTextChanged(CharSequence s, int start, int before, int count) {} public void afterTextChanged(Editable text) { updateSendState(); } });
@@ -236,6 +237,22 @@ public final class NebulaAiChatView extends LinearLayout {
         };
         waitingRow.postDelayed(waitingTimer, 5000);
     }
+    private void failed(String value, String request) {
+        LinearLayout notice = new LinearLayout(getContext()); notice.setOrientation(VERTICAL);
+        notice.setPadding(dp(14), dp(12), dp(14), dp(8)); notice.setBackground(shape(theme.surfaceContainer(), 18));
+        TextView detail = label(value, 15, theme.onSurfaceVariant()); detail.setAccessibilityLiveRegion(ACCESSIBILITY_LIVE_REGION_POLITE);
+        notice.addView(detail, new LayoutParams(-1, -2));
+        LinearLayout actions = new LinearLayout(getContext()); actions.setBaselineAligned(false);
+        TextView edit = control(text("Изменить запрос", "Edit request")); edit.setMinHeight(dp(44)); edit.setBackground(actionBackground());
+        edit.setOnClickListener(v -> { composer.setText(request); composer.setSelection(composer.length()); composer.requestFocus(); AndroidUtilities.showKeyboard(composer); });
+        actions.addView(edit, new LayoutParams(0, -2, 1));
+        TextView connection = control(text("Подключение", "Connection")); connection.setMinHeight(dp(44)); connection.setBackground(actionBackground());
+        connection.setOnClickListener(v -> settings.run());
+        LayoutParams connectionParams = new LayoutParams(0, -2, 1); connectionParams.setMarginStart(dp(8)); actions.addView(connection, connectionParams);
+        LayoutParams actionsParams = new LayoutParams(-1, -2); actionsParams.topMargin = dp(8); notice.addView(actions, actionsParams);
+        LayoutParams params = new LayoutParams(-1, -2); params.bottomMargin = dp(18); messages.addView(notice, params);
+        scroll.post(() -> { if (!disposed) scroll.smoothScrollTo(0, notice.getTop()); });
+    }
     private void finish() {
         if (streamingAnswer != null) messages.removeView(streamingAnswer);
         streamingAnswer = null;
@@ -306,9 +323,7 @@ public final class NebulaAiChatView extends LinearLayout {
                 final String failure = failure(provider, e);
                 AndroidUtilities.runOnUIThread(() -> {
                     if (disposed || active != task) return;
-                    messages.removeView(streaming); finish(); completed++; answer(failure);
-                    TextView retry = control(text("Изменить запрос", "Edit request")); messages.addView(retry);
-                    retry.setOnClickListener(v -> { composer.setText(message); composer.setSelection(composer.length()); composer.requestFocus(); });
+                    messages.removeView(streaming); finish(); completed++; failed(failure, message);
                 });
             } finally {
                 if (nanoInFlight == Thread.currentThread()) {
