@@ -2,6 +2,15 @@ import Foundation
 
 /// Policies shared by native navigation and its headless regression checks.
 public enum NebulaNavigationPolicy {
+    /// Native/default presentation still respects Profile's independent choice.
+    public static func visibleRootTabs(customized: Bool, showContacts: Bool, showProfile: Bool, showSettings: Bool) -> Set<String> {
+        var result: Set<String> = ["chats"]
+        if showContacts || !customized { result.insert("contacts") }
+        if showProfile { result.insert("profile") }
+        if showSettings || !showProfile || !customized { result.insert("settings") }
+        return result
+    }
+
     public static func hideAllChats(requested: Bool, customFolderCount: Int) -> Bool {
         // Never leave the root list with no reachable destination.
         requested && customFolderCount > 0

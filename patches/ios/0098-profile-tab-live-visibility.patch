@@ -1,0 +1,119 @@
+diff --git a/submodules/TelegramUI/Sources/TelegramRootController.swift b/submodules/TelegramUI/Sources/TelegramRootController.swift
+--- a/submodules/TelegramUI/Sources/TelegramRootController.swift
++++ b/submodules/TelegramUI/Sources/TelegramRootController.swift
+@@ -76,6 +76,7 @@
+     
+     private var nebulaNavigationObservation: SettingsObservation?
+     private var nebulaShowCalls = false
++    private var nebulaNavigationRefreshScheduled = false
+     public var rootTabController: TabBarController?
+     
+     public var contactsController: ContactsController?
+@@ -260,13 +261,26 @@
+         self.callListController = callListController
+         self.chatListController = chatListController
+         self.rootTabController = tabBarController
++        tabBarController.nebulaRefreshControllers = { [weak self] in
++            self?.nebulaScheduleRootRefresh()
++        }
+         self.pushViewController(tabBarController, animated: false)
+         self.nebulaNavigationObservation = NebulaSettingsStore.shared.observe { [weak self] in
+-            guard let self = self else { return }
++            self?.nebulaScheduleRootRefresh()
++        }
++    }
++
++    private func nebulaScheduleRootRefresh() {
++        guard !self.nebulaNavigationRefreshScheduled else { return }
++        self.nebulaNavigationRefreshScheduled = true
++        // Finish the settings item's current UI transaction before rebuilding.
++        Queue.mainQueue().async { [weak self] in
++            guard let self else { return }
++            self.nebulaNavigationRefreshScheduled = false
+             self.updateRootControllers(showCallsTab: self.nebulaShowCalls)
+         }
+     }
+-        
++
+     public func updateRootControllers(showCallsTab: Bool) {
+         self.nebulaShowCalls = showCallsTab
+         guard let rootTabController = self.rootTabController as? TabBarControllerImpl else {
+@@ -301,17 +315,18 @@
+ 
+     private func nebulaOrderedControllers(_ source: [ViewController]) -> [ViewController] {
+         let store = NebulaSettingsStore.shared
++        let visible = NebulaNavigationPolicy.visibleRootTabs(customized: store.showBottomBar, showContacts: store.showContactsTab, showProfile: store.showProfileTab, showSettings: store.showSettingsTab)
+         var result: [ViewController] = []
+         for key in store.bottomTabOrder {
+             switch key {
+             case "contacts":
+-                if (store.showContactsTab || !store.showBottomBar), let value = source.first(where: { $0 is ContactsController }) { result.append(value) }
++                if visible.contains("contacts"), let value = source.first(where: { $0 is ContactsController }) { result.append(value) }
+                 if let value = source.first(where: { $0 is CallListController }) { result.append(value) }
+             case "chats": if let value = source.first(where: { $0 is ChatListController }) { result.append(value) }
+             case "settings":
+-                if (store.showSettingsTab || !store.showBottomBar), let value = self.accountSettingsController { result.append(value) }
++                if visible.contains("settings"), let value = self.accountSettingsController { result.append(value) }
+             case "profile":
+-                if (store.showProfileTab || !store.showBottomBar), let value = self.nebulaProfileController { result.append(value) }
++                if visible.contains("profile"), let value = self.nebulaProfileController { result.append(value) }
+             default: break
+             }
+         }
+diff --git a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoScreen.swift b/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoScreen.swift
+--- a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoScreen.swift
++++ b/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoScreen.swift
+@@ -6585,6 +6585,7 @@
+         self.navigationBar?.enableAutomaticBackButton = false
+                 
+         if isSettings || isMyProfile {
++            let isMyProfileTab = self.isMyProfile
+             let activeSessionsContextAndCountSignal = deferred { () -> Signal<(ActiveSessionsContext, Int, WebSessionsContext)?, NoError> in
+                 let activeSessionsContext = context.engine.privacy.activeSessions()
+                 let webSessionsContext = context.engine.privacy.webSessions()
+@@ -6633,7 +6634,7 @@
+             
+             let accountTabBarAvatar: Signal<(UIImage, UIImage)?, NoError> = combineLatest(self.accountsAndPeers.get(), context.sharedContext.presentationData)
+             |> map { primaryAndOther, presentationData -> (Account, EnginePeer, PresentationTheme)? in
+-                if let primary = primaryAndOther.0, !primaryAndOther.1.isEmpty {
++                if let primary = primaryAndOther.0, isMyProfileTab || !primaryAndOther.1.isEmpty {
+                     return (primary.0.account, primary.1, presentationData.theme)
+                 } else {
+                     return nil
+@@ -6726,7 +6727,6 @@
+                 icon = UIImage(bundleImageName: "Chat List/Tabs/IconSettings")
+             }
+             
+-            let isMyProfileTab = self.isMyProfile
+             let tabBarItem: Signal<(String, UIImage?, UIImage?, String?, Bool, Bool), NoError> = combineLatest(queue: .mainQueue(), self.context.sharedContext.presentationData, notificationsAuthorizationStatus.get(), notificationsWarningSuppressed.get(), context.engine.notices.getServerProvidedSuggestions(), accountTabBarAvatar, accountTabBarAvatarBadge)
+             |> map { presentationData, notificationsAuthorizationStatus, notificationsWarningSuppressed, suggestions, accountTabBarAvatar, accountTabBarAvatarBadge -> (String, UIImage?, UIImage?, String?, Bool, Bool) in
+                 let notificationsWarning = shouldDisplayNotificationsPermissionWarning(status: notificationsAuthorizationStatus, suppressed:  notificationsWarningSuppressed)
+@@ -6749,7 +6749,7 @@
+                     strongSelf.tabBarItem.title = title
+                     strongSelf.tabBarItem.image = image
+                     strongSelf.tabBarItem.selectedImage = selectedImage
+-                    strongSelf.tabBarItem.animationName = isAvatar || reduceMotion ? nil : "TabSettings"
++                    strongSelf.tabBarItem.animationName = isMyProfileTab || isAvatar || reduceMotion ? nil : "TabSettings"
+                     strongSelf.tabBarItem.ringSelection = isAvatar
+                     strongSelf.tabBarItem.badgeValue = badgeValue
+                 }
+diff --git a/submodules/TabBarUI/Sources/TabBarController.swift b/submodules/TabBarUI/Sources/TabBarController.swift
+--- a/submodules/TabBarUI/Sources/TabBarController.swift
++++ b/submodules/TabBarUI/Sources/TabBarController.swift
+@@ -66,6 +66,8 @@
+         return self._ready
+     }
+     
++    public var nebulaRefreshControllers: (() -> Void)?
++
+     private var _selectedIndex: Int?
+     public var selectedIndex: Int {
+         get {
+@@ -422,6 +424,7 @@
+     }
+     
+     override open func viewWillAppear(_ animated: Bool) {
++        self.nebulaRefreshControllers?()
+         if let currentController = self.currentController {
+             currentController.viewWillAppear(animated)
+         }

@@ -13,6 +13,7 @@ import sys
 import tempfile
 from pathlib import Path
 from check_onboarding import check as check_onboarding
+from check_navigation_refresh import check as check_navigation_refresh
 
 ROOT = Path(__file__).resolve().parents[3]
 
@@ -287,8 +288,21 @@ def main():
         root_controller = (temp / 'submodules/TelegramUI/Sources/TelegramRootController.swift').read_text(encoding='utf-8')
         assert 'controllers = nebulaOrderedControllers(controllers)' in root_controller
         assert 'pair.0 !== pair.1' in root_controller and '$0 === old' in root_controller
-        for key in ['showContactsTab', 'showProfileTab', 'showSettingsTab']:
-            assert f'(store.{key} || !store.showBottomBar)' in root_controller
+        for argument, key in [('showContacts', 'showContactsTab'), ('showProfile', 'showProfileTab'), ('showSettings', 'showSettingsTab')]:
+            assert f'{argument}: store.{key}' in root_controller
+        assert 'NebulaNavigationPolicy.visibleRootTabs(customized: store.showBottomBar' in root_controller
+        for key in ['contacts', 'settings', 'profile']:
+            assert f'if visible.contains("{key}"),' in root_controller
+        assert 'self?.nebulaScheduleRootRefresh()' in root_controller
+        assert 'guard !self.nebulaNavigationRefreshScheduled else { return }' in root_controller
+        assert 'tabBarController.nebulaRefreshControllers = { [weak self] in' in root_controller
+        tab_controller = (temp / 'submodules/TabBarUI/Sources/TabBarController.swift').read_text(encoding='utf-8')
+        assert 'self.nebulaRefreshControllers?()' in tab_controller
+        profile_source = (peer / 'PeerInfoScreen.swift').read_text(encoding='utf-8')
+        assert 'isMyProfileTab || !primaryAndOther.1.isEmpty' in profile_source
+        assert 'animationName = isMyProfileTab || isAvatar || reduceMotion ? nil : "TabSettings"' in profile_source
+        if args.swift:
+            check_navigation_refresh(root_controller, temp)
         assert 'nebulaNavigationButton' in (temp / 'submodules/TabBarUI/Sources/TabBarContollerNode.swift').read_text(encoding='utf-8')
         assert root_controller.index('self.nebulaProfileController = profileController') < root_controller.index('controllers = nebulaOrderedControllers(controllers)')
         assert 'self.pushViewController(settings, animated: true)' in root_controller
