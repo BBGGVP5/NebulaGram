@@ -40,6 +40,7 @@ def check(header: str, work: Path, execute: bool) -> None:
     if not execute:
         return
     program = '''import Foundation
+import CoreGraphics
 let UIScreenPixel: CGFloat = 1.0 / 3.0
 struct UIColor: Equatable {
  let id: Int;var alpha: CGFloat = 1

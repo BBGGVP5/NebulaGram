@@ -1,4 +1,5 @@
 import Foundation
+import CoreGraphics
 
 /// Shared geometry for the native profile foreground and its regression checks.
 public enum NebulaProfileBannerPolicy {

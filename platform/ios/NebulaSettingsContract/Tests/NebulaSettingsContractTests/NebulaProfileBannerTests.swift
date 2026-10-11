@@ -1,4 +1,5 @@
 import XCTest
+import CoreGraphics
 @testable import NebulaSettingsContract
 
 final class NebulaProfileBannerTests: XCTestCase {
