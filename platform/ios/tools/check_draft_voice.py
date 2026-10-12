@@ -6,6 +6,9 @@ ROOT = Path(__file__).resolve().parents[3]
 
 
 def check(preview: str, work: Path, execute: bool) -> None:
+    assert 'import AccountContext' in preview, 'text-draft type belongs to AccountContext'
+    build = work / 'submodules/TelegramUI/Components/Chat/ChatRecordingPreviewInputPanelNode/BUILD'
+    assert '"//submodules/AccountContext"' in build.read_text(encoding='utf-8')
     assert 'presentNebulaDraftVoice(' in preview and 'forControlEvents: .touchUpInside' in preview
     assert 'self.nebulaDraftGeneration == token' in preview and 'self.view.window != nil' in preview
     assert 'self.interfaceInteraction?.deleteRecordedMedia()' in preview
