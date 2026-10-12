@@ -8,7 +8,7 @@
     <string name="nl_add_key">Add server key</string>
     <string name="nl_add_key_sub">VLESS, VMess, Trojan, Shadowsocks, Hysteria2 or TUIC</string>
     <string name="nl_add_sub">Add subscription</string>
-    <string name="nl_add_sub_sub">HTTP or HTTPS link to a Remnawave panel</string>
+    <string name="nl_add_sub_sub">HTTP or HTTPS subscription link</string>
     <string name="nl_advanced">Connection settings</string>
     <string name="nl_advanced_sub">Automatic connection, ping and calls</string>
     <string name="nl_all_protocols">All protocols</string>
@@ -18,10 +18,10 @@
     <string name="nl_auto_ping_sub">Periodic, always over TCP so the tunnel is never interrupted</string>
     <string name="nl_call_state">Call state</string>
     <string name="nl_call_state_sub">Route, airtime, sent and received</string>
-    <string name="nl_check_page">Check page</string>
-    <string name="nl_check_page_sub">Measures the servers currently visible</string>
     <string name="nl_clear">Clear servers</string>
     <string name="nl_clear_sub">Subscriptions are kept, the tunnel is stopped</string>
+    <string name="nl_clipboard">From clipboard</string>
+    <string name="nl_clipboard_sub">Paste a subscription, server key or configuration</string>
     <string name="nl_connection">Connection</string>
     <string name="nl_current_server">Current server</string>
     <string name="nl_dns">DNS inside the tunnel</string>
@@ -36,10 +36,6 @@
     <string name="nl_mode_proxy">Messenger only (local proxy)</string>
     <string name="nl_mode_sub">Messenger only, or the whole device</string>
     <string name="nl_mode_vpn">Whole device (VPN)</string>
-    <string name="nl_open_provider">Subscription profile</string>
-    <string name="nl_open_provider_sub">Payment and support from your provider</string>
-    <string name="nl_per_page">Servers per page</string>
-    <string name="nl_per_page_sub">More servers at once, less paging</string>
     <string name="nl_ping_http">HTTP GET</string>
     <string name="nl_ping_nimbo">Nimbo Ping</string>
     <string name="nl_ping_tcp">TCP</string>
@@ -47,8 +43,6 @@
     <string name="nl_ping_url">URL</string>
     <string name="nl_protocol">Protocol</string>
     <string name="nl_protocol_sub">Show only the selected protocol</string>
-    <string name="nl_provider">Provider</string>
-    <string name="nl_provider_sub">Pick a built-in or custom source</string>
     <string name="nl_refresh">Refresh subscriptions</string>
     <string name="nl_refresh_on_start">Refresh subscriptions on launch</string>
     <string name="nl_refresh_on_start_sub">On open, when the lists are stale</string>
@@ -62,9 +56,8 @@
     <string name="nl_sec_calls">CALLS</string>
     <string name="nl_sec_connection">CONNECTION</string>
     <string name="nl_sec_core">CORE</string>
-    <string name="nl_sec_servers">SERVERS</string>
+    <string name="nl_sec_quick">QUICK ACTIONS</string>
     <string name="nl_sec_source">SOURCE AND FILTERS</string>
-    <string name="nl_server_list">Server list</string>
     <string name="nl_servers">NebulaLink servers</string>
     <string name="nl_socks_port">Local SOCKS port</string>
     <string name="nl_source">Subscriptions and keys</string>

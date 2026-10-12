@@ -365,6 +365,13 @@ def main():
         ai_chat = (temp / 'submodules/SettingsUI/Sources/NebulaAiChatController.swift').read_text(encoding='utf-8')
         ai_settings = (temp / 'submodules/SettingsUI/Sources/NebulaAiController.swift').read_text(encoding='utf-8')
         ai_home = (temp / 'submodules/ChatListUI/Sources/ChatListController.swift').read_text(encoding='utf-8')
+        native_toolbar = (temp / 'submodules/TelegramUI/Components/ChatListHeaderComponent/Sources/ChatListNavigationBar.swift').read_text(encoding='utf-8')
+        native_buttons = (temp / 'submodules/TelegramUI/Components/ChatListHeaderComponent/Sources/NavigationButtonComponent.swift').read_text(encoding='utf-8')
+        assert 'nebulaHeaderGlass' not in native_toolbar, 'single rounded material still covers the entire header'
+        assert 'theme.chat.inputPanel.panelControlColor' not in native_buttons
+        assert 'theme.rootController.navigationBar.primaryTextColor' in native_buttons
+        assert 'if !NebulaBehaviorPreferences.shared.homeChatsTitle, NebulaSettingsStore.shared.folderTitle,' in ai_home
+        assert '"Chat List/AddStoryIcon"' in ai_home and 'id: "compose"' in ai_home and 'id: "edit"' in ai_home
         story_header = (temp / 'submodules/TelegramUI/Components/ChatListHeaderComponent/Sources/ChatListHeaderComponent.swift').read_text(encoding='utf-8')
         story_list = (temp / 'submodules/TelegramUI/Components/Stories/StoryPeerListComponent/Sources/StoryPeerListComponent.swift').read_text(encoding='utf-8')
         story_item_path = 'submodules/TelegramUI/Components/Stories/StoryPeerListComponent/Sources/StoryPeerListItemComponent.swift'

@@ -22,7 +22,7 @@ public final class NebulaMenuStrings {
         TEXTS.put("nl_add_key", new String[]{"Добавить ключ сервера", "Add server key"});
         TEXTS.put("nl_add_key_sub", new String[]{"VLESS, VMess, Trojan, Shadowsocks, Hysteria2 или TUIC", "VLESS, VMess, Trojan, Shadowsocks, Hysteria2 or TUIC"});
         TEXTS.put("nl_add_sub", new String[]{"Добавить подписку", "Add subscription"});
-        TEXTS.put("nl_add_sub_sub", new String[]{"Ссылка на панель Remnawave или обычную подписку", "HTTP or HTTPS link to a Remnawave panel"});
+        TEXTS.put("nl_add_sub_sub", new String[]{"Ссылка на подписку HTTP или HTTPS", "HTTP or HTTPS subscription link"});
         TEXTS.put("nl_advanced", new String[]{"Настройки соединения", "Connection settings"});
         TEXTS.put("nl_advanced_sub", new String[]{"Автоподключение, пинг и звонки", "Automatic connection, ping and calls"});
         TEXTS.put("nl_all_protocols", new String[]{"Все протоколы", "All protocols"});
@@ -32,10 +32,10 @@ public final class NebulaMenuStrings {
         TEXTS.put("nl_auto_ping_sub", new String[]{"Периодически и всегда по TCP, чтобы не рвать соединение", "Periodic, always over TCP so the tunnel is never interrupted"});
         TEXTS.put("nl_call_state", new String[]{"Состояние звонков", "Call state"});
         TEXTS.put("nl_call_state_sub", new String[]{"Маршрут, время в эфире, отправлено и получено", "Route, airtime, sent and received"});
-        TEXTS.put("nl_check_page", new String[]{"Проверить задержку", "Check page"});
-        TEXTS.put("nl_check_page_sub", new String[]{"Измеряет серверы на текущей странице", "Measures the servers currently visible"});
         TEXTS.put("nl_clear", new String[]{"Очистить серверы", "Clear servers"});
         TEXTS.put("nl_clear_sub", new String[]{"Подписки сохранятся, туннель отключится", "Subscriptions are kept, the tunnel is stopped"});
+        TEXTS.put("nl_clipboard", new String[]{"Из буфера", "From clipboard"});
+        TEXTS.put("nl_clipboard_sub", new String[]{"Подписка, ключ сервера или конфигурация", "Paste a subscription, server key or configuration"});
         TEXTS.put("nl_connection", new String[]{"Соединение", "Connection"});
         TEXTS.put("nl_current_server", new String[]{"Текущий сервер", "Current server"});
         TEXTS.put("nl_dns", new String[]{"DNS внутри туннеля", "DNS inside the tunnel"});
@@ -50,10 +50,6 @@ public final class NebulaMenuStrings {
         TEXTS.put("nl_mode_proxy", new String[]{"Только мессенджер", "Messenger only (local proxy)"});
         TEXTS.put("nl_mode_sub", new String[]{"Только мессенджер или всё устройство", "Messenger only, or the whole device"});
         TEXTS.put("nl_mode_vpn", new String[]{"Всё устройство (VPN)", "Whole device (VPN)"});
-        TEXTS.put("nl_open_provider", new String[]{"Профиль подписки", "Subscription profile"});
-        TEXTS.put("nl_open_provider_sub", new String[]{"Оплата и поддержка вашего провайдера", "Payment and support from your provider"});
-        TEXTS.put("nl_per_page", new String[]{"Серверов на странице", "Servers per page"});
-        TEXTS.put("nl_per_page_sub", new String[]{"Больше сразу — меньше перелистывания", "More servers at once, less paging"});
         TEXTS.put("nl_ping_http", new String[]{"HTTP GET", "HTTP GET"});
         TEXTS.put("nl_ping_nimbo", new String[]{"Nimbo Ping", "Nimbo Ping"});
         TEXTS.put("nl_ping_tcp", new String[]{"TCP", "TCP"});
@@ -61,8 +57,6 @@ public final class NebulaMenuStrings {
         TEXTS.put("nl_ping_url", new String[]{"URL", "URL"});
         TEXTS.put("nl_protocol", new String[]{"Протокол", "Protocol"});
         TEXTS.put("nl_protocol_sub", new String[]{"Показывать только выбранный", "Show only the selected protocol"});
-        TEXTS.put("nl_provider", new String[]{"Провайдер", "Provider"});
-        TEXTS.put("nl_provider_sub", new String[]{"Встроенный или свой источник", "Pick a built-in or custom source"});
         TEXTS.put("nl_refresh", new String[]{"Обновить подписки", "Refresh subscriptions"});
         TEXTS.put("nl_refresh_on_start", new String[]{"Обновлять подписки при запуске", "Refresh subscriptions on launch"});
         TEXTS.put("nl_refresh_on_start_sub", new String[]{"При открытии, если списки устарели", "On open, when the lists are stale"});
@@ -76,9 +70,8 @@ public final class NebulaMenuStrings {
         TEXTS.put("nl_sec_calls", new String[]{"ЗВОНКИ", "CALLS"});
         TEXTS.put("nl_sec_connection", new String[]{"ПОДКЛЮЧЕНИЕ", "CONNECTION"});
         TEXTS.put("nl_sec_core", new String[]{"ЯДРО", "CORE"});
-        TEXTS.put("nl_sec_servers", new String[]{"СЕРВЕРЫ", "SERVERS"});
+        TEXTS.put("nl_sec_quick", new String[]{"БЫСТРЫЕ ДЕЙСТВИЯ", "QUICK ACTIONS"});
         TEXTS.put("nl_sec_source", new String[]{"ИСТОЧНИК И ФИЛЬТРЫ", "SOURCE AND FILTERS"});
-        TEXTS.put("nl_server_list", new String[]{"Список серверов", "Server list"});
         TEXTS.put("nl_servers", new String[]{"Серверы NebulaLink", "NebulaLink servers"});
         TEXTS.put("nl_socks_port", new String[]{"Локальный порт SOCKS", "Local SOCKS port"});
         TEXTS.put("nl_source", new String[]{"Подписки и ключи", "Subscriptions and keys"});

@@ -25,19 +25,19 @@ OVERLAY = os.path.join(ROOT, "platform", "android", "overlay",
 RUSSIAN = {
     "nl_title": "NebulaLink",
     "nl_guard": "NebulaGuard",
-    "nl_guard_sub": "Ваш лучший сервис для свободного интернета",
+    "nl_guard_sub": "Продление, пополнение и поддержка",
     "nl_ping_nimbo": "Nimbo Ping",
     "nl_connection": "Соединение",
     "nl_current_server": "Текущий сервер",
     "nl_auto_connect": "Автоподключение",
     "nl_auto_connect_sub": "Подключаться к выбранному серверу при запуске Telegram",
     "nl_sec_connection": "ПОДКЛЮЧЕНИЕ",
-    "nl_source": "Источник серверов",
-    "nl_source_sub": "Подписки, ключи и фильтры",
+    "nl_source": "Подписки и ключи",
+    "nl_source_sub": "Добавление, обновление и управление серверами",
     "nl_open_provider": "Страница провайдера",
     "nl_open_provider_sub": "Пополнить, продлить, прочитать объявления",
-    "nl_advanced": "Дополнительно",
-    "nl_advanced_sub": "Способ замера, идентификатор и ядра",
+    "nl_advanced": "Настройки соединения",
+    "nl_advanced_sub": "Автоподключение, пинг и звонки",
     "nl_servers": "Серверы NebulaLink",
     "nl_sec_source": "ИСТОЧНИК И ФИЛЬТРЫ",
     "nl_provider": "Провайдер",
@@ -55,7 +55,10 @@ RUSSIAN = {
     "nl_add_key": "Добавить ключ сервера",
     "nl_add_key_sub": "VLESS, VMess, Trojan, Shadowsocks, Hysteria2 или TUIC",
     "nl_add_sub": "Добавить подписку",
-    "nl_add_sub_sub": "Ссылка на панель Remnawave или обычную подписку",
+    "nl_add_sub_sub": "Ссылка на подписку HTTP или HTTPS",
+    "nl_sec_quick": "БЫСТРЫЕ ДЕЙСТВИЯ",
+    "nl_clipboard": "Из буфера",
+    "nl_clipboard_sub": "Подписка, ключ сервера или конфигурация",
     "nl_clear": "Очистить серверы",
     "nl_clear_sub": "Подписки сохранятся, туннель отключится",
     "nl_sec_servers": "СЕРВЕРЫ",
@@ -117,6 +120,8 @@ def collect() -> dict[str, str]:
             key_field + r': "([a-z0-9_]+)",\s*' + text_field + r': "((?:[^"\\]|\\.)*)"')
         for key, text in pattern.findall(source):
             found.setdefault(key, text)
+    # Native server management has its own title outside the core menu rows.
+    found.setdefault("nl_servers", "NebulaLink servers")
     return found
 
 

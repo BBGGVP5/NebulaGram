@@ -307,8 +307,10 @@ public class NebulaMenuFragment extends BaseFragment {
                         askAndRun(context, title, command, "url");
                     } else if ("server.addLink".equals(command)) {
                         askAndRun(context, title, command, "link");
-                    } else if ("provider.open".equals(command)) {
-                        openProvider();
+                    } else if ("clipboard.import".equals(command)) {
+                        String pasted = NebulaLinkClipboard.read(context);
+                        if (pasted.isEmpty()) report(NebulaLinkClipboard.empty());
+                        else askAndRun(context, NebulaText.text("Добавить из буфера", "Import from clipboard"), "onboarding.import", "input", pasted);
                     } else if ("calls.stats".equals(command)) {
                         // Клиентская команда: о звонках знает устройство, а не ядро.
                         showCallState(context);
@@ -457,6 +459,11 @@ public class NebulaMenuFragment extends BaseFragment {
      * ядро само разбирает, подписка это, ключ или целый конфиг.
      */
     private void askAndRun(Context context, String title, String command, String field) {
+        askAndRun(context, title, "subscription.add".equals(command) ? "onboarding.import" : command,
+                "subscription.add".equals(command) ? "input" : field, "");
+    }
+
+    private void askAndRun(Context context, String title, String command, String field, String initial) {
         NebulaTheme theme = NebulaTheme.of(context);
 
         EditTextBoldCursor field_ = new EditTextBoldCursor(context);
@@ -469,10 +476,23 @@ public class NebulaMenuFragment extends BaseFragment {
         field_.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_URI);
         field_.setPadding(AndroidUtilities.dp(24), AndroidUtilities.dp(8),
                 AndroidUtilities.dp(24), AndroidUtilities.dp(8));
+        field_.setText(initial);
+        field_.setSelection(field_.length());
+        LinearLayout editor = new LinearLayout(context);
+        editor.setOrientation(LinearLayout.VERTICAL);
+        editor.addView(field_);
+        NebulaButton paste = new NebulaButton(context, NebulaButton.STYLE_TEXT);
+        paste.setText(NebulaLinkClipboard.title());
+        paste.setOnClickListener(v -> {
+            String value = NebulaLinkClipboard.read(context);
+            if (value.isEmpty()) report(NebulaLinkClipboard.empty());
+            else { field_.setText(value); field_.setSelection(field_.length()); }
+        });
+        editor.addView(paste);
 
         NebulaDialog.Builder builder = new NebulaDialog.Builder(context);
         builder.setTitle(title);
-        builder.setView(field_);
+        builder.setView(editor);
         builder.setPositiveButton(LocaleController.getString(R.string.OK), (dialog, which) -> {
             String typed = field_.getText().toString().trim();
             if (typed.isEmpty()) {
@@ -493,23 +513,6 @@ public class NebulaMenuFragment extends BaseFragment {
         });
         builder.setNegativeButton(LocaleController.getString(R.string.Cancel), null);
         showDialog(builder.create());
-    }
-
-    /**
-     * Личный кабинет провайдера. Ядро знает только адрес, открыть его может
-     * лишь платформа — без этого строка выполнялась и никуда не вела.
-     */
-    private void openProvider() {
-        NebulaLink.call("provider.open", null, result -> {
-            if (!result.ok || result.data == null) {
-                report(result.error);
-                return;
-            }
-            String url = result.data.optString("url");
-            if (!url.isEmpty() && getParentActivity() != null) {
-                org.telegram.messenger.browser.Browser.openUrl(getParentActivity(), url);
-            }
-        });
     }
 
     /**
@@ -590,6 +593,8 @@ public class NebulaMenuFragment extends BaseFragment {
                 return R.drawable.msg_download;
             case "edit":
                 return R.drawable.msg_edit;
+            case "paste":
+                return R.drawable.msg_copy;
             case "trash":
                 return R.drawable.delete;
             case "chart":

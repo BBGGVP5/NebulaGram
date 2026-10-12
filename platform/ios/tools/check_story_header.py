@@ -19,6 +19,7 @@ def check(header: str, stories: str, item: str, work: Path, execute: bool) -> No
     assert 'let minimizedDefaultItemScale: CGFloat = 24.0 / 52.0' in stories
     assert 'collapseFraction: 1.0 - component.storiesFraction' in header
     assert 'self.storyPeerAction?(peer)' in header and 'self.storyComposeAction?(offset)' in header
+    assert 'isInteractive: true, isVisible: false' not in header, 'toolbar control materials are hidden'
     print('OK: story header reserves native ring/stack/status footprints and toolbar bounds', flush=True)
     if not execute:
         return

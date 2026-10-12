@@ -99,10 +99,15 @@ func serversScreen() Screen {
 	return Screen{
 		ID: ScreenServers, TitleKey: "nl_source", Title: "Subscriptions and keys",
 		Sections: []Section{
+			{TitleKey: "nl_sec_quick", Title: "QUICK ACTIONS", Rows: []Row{
+				{Key: "clipboard_import", Type: RowAction, Command: "clipboard.import", Icon: "paste",
+					TitleKey: "nl_clipboard", Title: "From clipboard",
+					SubtitleKey: "nl_clipboard_sub", Subtitle: "Paste a subscription, server key or configuration"},
+				{Key: "refresh", Type: RowAction, Command: "subscription.refreshAll", Icon: "refresh",
+					TitleKey: "nl_refresh", Title: "Refresh subscriptions",
+					SubtitleKey: "nl_refresh_sub", Subtitle: "Fetch fresh servers from saved sources"},
+			}},
 			{TitleKey: "nl_sec_source", Title: "SOURCE AND FILTERS", Rows: []Row{
-				{Key: "open_provider", Type: RowAction, Command: "provider.open", Icon: "info",
-					TitleKey: "nl_open_provider", Title: "Subscription profile",
-					SubtitleKey: "nl_open_provider_sub", Subtitle: "Your provider's payment and support page"},
 				{Key: "search_query", Type: RowText, Icon: "search",
 					TitleKey: "nl_search", Title: "Search",
 					SubtitleKey: "nl_search_sub", Subtitle: "By server or source name"},
@@ -117,7 +122,7 @@ func serversScreen() Screen {
 					SubtitleKey: "nl_add_key_sub", Subtitle: "VLESS, VMess, Trojan, Shadowsocks, Hysteria2 or TUIC"},
 				{Key: "add_subscription", Type: RowAction, Command: "subscription.add", Icon: "download",
 					TitleKey: "nl_add_sub", Title: "Add subscription",
-					SubtitleKey: "nl_add_sub_sub", Subtitle: "HTTP or HTTPS link to a Remnawave panel"},
+					SubtitleKey: "nl_add_sub_sub", Subtitle: "HTTP or HTTPS subscription link"},
 				{Key: "clear", Type: RowAction, Command: "server.clearAll", Icon: "trash", Destructive: true,
 					TitleKey: "nl_clear", Title: "Clear servers",
 					SubtitleKey: "nl_clear_sub", Subtitle: "Subscriptions are kept, the tunnel is stopped"},

@@ -88,11 +88,22 @@ public class NebulaSubscriptionsFragment extends BaseFragment {
         content.removeAllViews();
 
         NebulaCard actions = new NebulaCard(context);
+        actions.add(new NebulaRow(context).icon(R.drawable.msg_copy)
+                .title(NebulaLinkClipboard.title()).withClick(v -> {
+                    String value = NebulaLinkClipboard.read(context);
+                    if (value.isEmpty()) report(NebulaLinkClipboard.empty()); else add(context, value);
+                }));
         actions.add(new NebulaRow(context)
                 .icon(R.drawable.msg_download)
                 .title(LocaleController.getString(R.string.nl_add_sub))
                 .subtitle(LocaleController.getString(R.string.nl_add_sub_sub), false)
                 .withClick(v -> add(context)));
+        actions.add(new NebulaRow(context).icon(R.drawable.msg_retry)
+                .title(LocaleController.getString(R.string.nl_refresh)).withClick(v ->
+                    NebulaLink.call("subscription.refreshAll", null, result -> {
+                        report(result.ok ? LocaleController.getString(R.string.NebulaDone) : result.error);
+                        load();
+                    })));
         content.addView(actions, cardParams());
 
         int count = subscriptions == null ? 0 : subscriptions.length();
@@ -169,6 +180,10 @@ public class NebulaSubscriptionsFragment extends BaseFragment {
     }
 
     private void add(Context context) {
+        add(context, "");
+    }
+
+    private void add(Context context, String initial) {
         NebulaTheme theme = NebulaTheme.of(context);
 
         EditTextBoldCursor input = new EditTextBoldCursor(context);
@@ -181,10 +196,23 @@ public class NebulaSubscriptionsFragment extends BaseFragment {
         input.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_URI);
         input.setPadding(AndroidUtilities.dp(24), AndroidUtilities.dp(8),
                 AndroidUtilities.dp(24), AndroidUtilities.dp(8));
+        input.setText(initial);
+        input.setSelection(input.length());
+        LinearLayout editor = new LinearLayout(context);
+        editor.setOrientation(LinearLayout.VERTICAL);
+        editor.addView(input);
+        NebulaButton paste = new NebulaButton(context, NebulaButton.STYLE_TEXT);
+        paste.setText(NebulaLinkClipboard.title());
+        paste.setOnClickListener(v -> {
+            String value = NebulaLinkClipboard.read(context);
+            if (value.isEmpty()) report(NebulaLinkClipboard.empty());
+            else { input.setText(value); input.setSelection(input.length()); }
+        });
+        editor.addView(paste);
 
         NebulaDialog.Builder builder = new NebulaDialog.Builder(context);
         builder.setTitle(LocaleController.getString(R.string.nl_add_sub));
-        builder.setView(input);
+        builder.setView(editor);
         builder.setPositiveButton(LocaleController.getString(R.string.OK), (dialog, which) -> {
             String typed = input.getText().toString().trim();
             if (typed.isEmpty()) {
@@ -192,11 +220,11 @@ public class NebulaSubscriptionsFragment extends BaseFragment {
             }
             JSONObject payload = new JSONObject();
             try {
-                payload.put("url", typed);
+                payload.put("input", typed);
             } catch (JSONException e) {
                 return;
             }
-            NebulaLink.call("subscription.add", payload, result -> {
+            NebulaLink.call("onboarding.import", payload, result -> {
                 report(result.ok ? LocaleController.getString(R.string.NebulaSubAdded) : result.error);
                 load();
             });

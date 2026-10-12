@@ -2,6 +2,12 @@
 
 This inventory distinguishes **wired source** from native build and device acceptance. A setting with a validated import format is not necessarily functional on iOS.
 
+## October 12: complete chat-list toolbar and explicit clipboard import
+
+Patch 0101 replaces the single rounded material covering status/title/folders with native edge treatment and visible, separate Edit/right-control capsules. Toolbar glyphs use the navigation text color. The Chats-title preference takes precedence over the active folder name; explicit compose/camera hiding and the configured AI shortcut remain. Patch 0100 story-ring geometry is retained. Native actions and expanded story scrolling remain.
+
+NebulaLink now offers explicit clipboard actions and paste in its import editor, using the same `onboarding.import` route for URLs/keys/configurations. Clipboard reads happen only on user action; busy guards and size limits apply. Provider-panel navigation/branding is removed from the shared menu. Local Go API/settings, Android SDK helper checks, layout guards and 101-patch bootstrap passed. macOS checks/full IPA and physical iPhone appearance acceptance are pending.
+
 ## October 11: collapsed story header spacing
 
 Patch 0100 replaces the fixed 46 pt title allowance with the actual story-ring/stack, lock and status footprint. Native 24 pt collapsed photos, 52 pt expanded photos, story gradients and actions remain. The centered group stays inside the occupied toolbar edges; narrow layouts reduce the stack before squeezing the title. Current subscriptions are sorted before title measurement, stale wider title rasters are removed after a budget change, and single-avatar interpolation avoids division by zero. Runtime **80e2d1c** passed bootstrap **38170188364**: **157 XCTest cases**, **5394 executed production geometry/native ring/interpolation cases**, and strict application of **100 patches / 160 native paths / 46 mirrored contract sources**. Full device IPA **38170244650 / 107** succeeded with **6041 native build actions**. Independently verified original archive: 12.9.2/app.nebulagram/NebulaGram, arm64 device application, one Notification Service Extension and Speech privacy purpose; **88,019,222 bytes**, SHA-256 `7c3cf4f31ffe745521e0c8f3b96b84c2a4dc3e3caca8ab063e70486edcbaf083` matches its manifest. User signing and physical iPhone appearance/gesture acceptance remain unverified. [Header layout plan](../../docs/superpowers/plans/2026-10-11-ios-header-story-layout.md).

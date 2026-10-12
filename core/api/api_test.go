@@ -223,8 +223,9 @@ func TestTunnelStartWithoutCoreFails(t *testing.T) {
 // clientCommands are handled on the platform side rather than by the core:
 // they touch UI or OS APIs the core has no access to.
 var clientCommands = map[string]bool{
-	"calls.stats": true,
-	"log.export":  true,
+	"clipboard.import": true,
+	"calls.stats":      true,
+	"log.export":       true,
 }
 
 func TestMenuIsRenderable(t *testing.T) {

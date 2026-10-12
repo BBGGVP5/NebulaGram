@@ -8,7 +8,7 @@
     <string name="nl_add_key">Добавить ключ сервера</string>
     <string name="nl_add_key_sub">VLESS, VMess, Trojan, Shadowsocks, Hysteria2 или TUIC</string>
     <string name="nl_add_sub">Добавить подписку</string>
-    <string name="nl_add_sub_sub">Ссылка на панель Remnawave или обычную подписку</string>
+    <string name="nl_add_sub_sub">Ссылка на подписку HTTP или HTTPS</string>
     <string name="nl_advanced">Настройки соединения</string>
     <string name="nl_advanced_sub">Автоподключение, пинг и звонки</string>
     <string name="nl_all_protocols">Все протоколы</string>
@@ -18,10 +18,10 @@
     <string name="nl_auto_ping_sub">Периодически и всегда по TCP, чтобы не рвать соединение</string>
     <string name="nl_call_state">Состояние звонков</string>
     <string name="nl_call_state_sub">Маршрут, время в эфире, отправлено и получено</string>
-    <string name="nl_check_page">Проверить задержку</string>
-    <string name="nl_check_page_sub">Измеряет серверы на текущей странице</string>
     <string name="nl_clear">Очистить серверы</string>
     <string name="nl_clear_sub">Подписки сохранятся, туннель отключится</string>
+    <string name="nl_clipboard">Из буфера</string>
+    <string name="nl_clipboard_sub">Подписка, ключ сервера или конфигурация</string>
     <string name="nl_connection">Соединение</string>
     <string name="nl_current_server">Текущий сервер</string>
     <string name="nl_dns">DNS внутри туннеля</string>
@@ -36,10 +36,6 @@
     <string name="nl_mode_proxy">Только мессенджер</string>
     <string name="nl_mode_sub">Только мессенджер или всё устройство</string>
     <string name="nl_mode_vpn">Всё устройство (VPN)</string>
-    <string name="nl_open_provider">Профиль подписки</string>
-    <string name="nl_open_provider_sub">Оплата и поддержка вашего провайдера</string>
-    <string name="nl_per_page">Серверов на странице</string>
-    <string name="nl_per_page_sub">Больше сразу — меньше перелистывания</string>
     <string name="nl_ping_http">HTTP GET</string>
     <string name="nl_ping_nimbo">Nimbo Ping</string>
     <string name="nl_ping_tcp">TCP</string>
@@ -47,8 +43,6 @@
     <string name="nl_ping_url">URL</string>
     <string name="nl_protocol">Протокол</string>
     <string name="nl_protocol_sub">Показывать только выбранный</string>
-    <string name="nl_provider">Провайдер</string>
-    <string name="nl_provider_sub">Встроенный или свой источник</string>
     <string name="nl_refresh">Обновить подписки</string>
     <string name="nl_refresh_on_start">Обновлять подписки при запуске</string>
     <string name="nl_refresh_on_start_sub">При открытии, если списки устарели</string>
@@ -62,9 +56,8 @@
     <string name="nl_sec_calls">ЗВОНКИ</string>
     <string name="nl_sec_connection">ПОДКЛЮЧЕНИЕ</string>
     <string name="nl_sec_core">ЯДРО</string>
-    <string name="nl_sec_servers">СЕРВЕРЫ</string>
+    <string name="nl_sec_quick">БЫСТРЫЕ ДЕЙСТВИЯ</string>
     <string name="nl_sec_source">ИСТОЧНИК И ФИЛЬТРЫ</string>
-    <string name="nl_server_list">Список серверов</string>
     <string name="nl_servers">Серверы NebulaLink</string>
     <string name="nl_socks_port">Локальный порт SOCKS</string>
     <string name="nl_source">Подписки и ключи</string>

@@ -289,7 +289,7 @@ public final class NebulaLinkController: UITableViewController, UITextFieldDeleg
     public override func numberOfSections(in tableView: UITableView) -> Int { continueAction == nil ? 3 : 4 }
     public override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         switch section {
-        case 0: return 3
+        case 0: return 4
         case 1: return 4
         case 2: return max(1, servers.count + (pages > 1 ? 1 : 0))
         default: return 1
@@ -331,10 +331,11 @@ public final class NebulaLinkController: UITableViewController, UITextFieldDeleg
             ])
             cell.selectionStyle = .none
         } else if indexPath.section == 0 {
-            cell.textLabel?.text = indexPath.row == 1
+            cell.textLabel?.text = indexPath.row == 3 ? text("Из буфера", "From clipboard") : indexPath.row == 1
                 ? text("Добавить подписку или ключ", "Add subscription or key")
                 : text("Управление подписками", "Manage subscriptions")
-            cell.imageView?.image = UIImage(systemName: indexPath.row == 1 ? "link" : "list.bullet.rectangle")
+            cell.imageView?.image = UIImage(systemName: indexPath.row == 3 ? "doc.on.clipboard" : indexPath.row == 1 ? "link" : "list.bullet.rectangle")
+            if indexPath.row == 3 { cell.accessibilityIdentifier = "NebulaLink.Paste" }
             if indexPath.row == 2 { cell.accessoryType = .disclosureIndicator }
         } else if indexPath.section == 1 {
             cell.textLabel?.text = [probeActionTitle,
@@ -388,6 +389,14 @@ public final class NebulaLinkController: UITableViewController, UITextFieldDeleg
                 self?.reloadServers()
             }
             navigationController?.pushViewController(manager, animated: true)
+        case (0, 3):
+            guard let value = UIPasteboard.general.string?.trimmingCharacters(in: .whitespacesAndNewlines),
+                  !value.isEmpty, value.utf8.count <= 512 * 1024 else {
+                message = text("В буфере нет текста для импорта", "No import text in the clipboard")
+                tableView.reloadData(); return
+            }
+            input.text = value
+            input.becomeFirstResponder()
         case (1, 0):
             if probeRequestId == nil { probeVisibleServers() } else { cancelProbe() }
         case (1, 1): chooseSort()

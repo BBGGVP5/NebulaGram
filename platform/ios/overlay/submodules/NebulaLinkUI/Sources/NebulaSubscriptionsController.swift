@@ -7,6 +7,7 @@ final class NebulaSubscriptionsController: UITableViewController {
     private var subscriptions: [[String: Any]] = []
     private var busy = false
     private var message: String?
+    private weak var importField: UITextField?
     var onChange: (() -> Void)?
 
     init(russian: Bool) {
@@ -19,8 +20,11 @@ final class NebulaSubscriptionsController: UITableViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         title = text("Подписки", "Subscriptions")
-        navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .add,
-                target: self, action: #selector(addSubscription))
+        navigationItem.rightBarButtonItems = [
+            UIBarButtonItem(barButtonSystemItem: .add, target: self, action: #selector(addSubscription)),
+            UIBarButtonItem(image: UIImage(systemName: "doc.on.clipboard"), style: .plain, target: self, action: #selector(addFromClipboard))
+        ]
+        navigationItem.rightBarButtonItems?.last?.accessibilityLabel = text("Из буфера", "From clipboard")
         tableView.rowHeight = UITableView.automaticDimension
         tableView.estimatedRowHeight = 68
         refreshControl = UIRefreshControl()
@@ -31,12 +35,12 @@ final class NebulaSubscriptionsController: UITableViewController {
     @objc private func refreshSubscriptions() {
         guard !busy else { refreshControl?.endRefreshing(); return }
         busy = true
-        navigationItem.rightBarButtonItem?.isEnabled = false
+        navigationItem.rightBarButtonItems?.forEach { $0.isEnabled = false }
         service.call("subscription.refreshAll") { [weak self] result in
             guard let self else { return }
             self.busy = false
             self.refreshControl?.endRefreshing()
-            self.navigationItem.rightBarButtonItem?.isEnabled = true
+            self.navigationItem.rightBarButtonItems?.forEach { $0.isEnabled = true }
             switch result {
             case let .success(data):
                 let results = data as? [[String: Any]] ?? []
@@ -142,16 +146,43 @@ final class NebulaSubscriptionsController: UITableViewController {
     }
 
     @objc private func addSubscription() {
+        presentImport(initial: "")
+    }
+
+    @objc private func addFromClipboard() {
+        guard !busy else { return }
+        guard let value = UIPasteboard.general.string?.trimmingCharacters(in: .whitespacesAndNewlines),
+              !value.isEmpty, value.utf8.count <= 512 * 1024 else {
+            message = text("В буфере нет текста для импорта", "No import text in the clipboard")
+            tableView.reloadData(); return
+        }
+        presentImport(initial: value)
+    }
+
+    @objc private func pasteToImportField() {
+        guard !busy, let value = UIPasteboard.general.string, value.utf8.count <= 512 * 1024 else { return }
+        importField?.text = value.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    private func presentImport(initial: String) {
         guard !busy else { return }
         let alert = UIAlertController(title: text("Добавить подписку", "Add subscription"),
                                       message: nil, preferredStyle: .alert)
         alert.addTextField { field in
-            field.placeholder = self.text("Ссылка подписки", "Subscription URL")
+            field.placeholder = self.text("Ссылка подписки или ключ сервера", "Subscription URL or server key")
+            field.text = initial
             field.keyboardType = .URL
             field.autocapitalizationType = .none
             field.autocorrectionType = .no
             field.textContentType = .URL
         }
+        let paste = UIButton(type: .system)
+        paste.setTitle(text("Из буфера", "From clipboard"), for: .normal)
+        paste.addTarget(self, action: #selector(pasteToImportField), for: .touchUpInside)
+        let toolbar = UIToolbar(); toolbar.sizeToFit()
+        toolbar.items = [UIBarButtonItem(customView: paste)]
+        alert.textFields?.first?.inputAccessoryView = toolbar
+        importField = alert.textFields?.first
         alert.addAction(UIAlertAction(title: text("Отмена", "Cancel"), style: .cancel))
         alert.addAction(UIAlertAction(title: text("Добавить", "Add"), style: .default) { [weak self, weak alert] _ in
             guard let self = self,
@@ -166,12 +197,12 @@ final class NebulaSubscriptionsController: UITableViewController {
         guard !busy else { return }
         busy = true
         message = text("Добавляем подписку…", "Adding subscription…")
-        navigationItem.rightBarButtonItem?.isEnabled = false
+        navigationItem.rightBarButtonItems?.forEach { $0.isEnabled = false }
         tableView.reloadData()
-        service.call("subscription.add", payload: ["url": url]) { [weak self] result in
+        service.call("onboarding.import", payload: ["input": url]) { [weak self] result in
             guard let self = self else { return }
             self.busy = false
-            self.navigationItem.rightBarButtonItem?.isEnabled = true
+            self.navigationItem.rightBarButtonItems?.forEach { $0.isEnabled = true }
             switch result {
             case .success:
                 self.message = nil
@@ -193,12 +224,12 @@ final class NebulaSubscriptionsController: UITableViewController {
         message = method == "subscription.remove"
             ? text("Удаляем подписку…", "Removing subscription…")
             : text("Обновляем подписку…", "Refreshing subscription…")
-        navigationItem.rightBarButtonItem?.isEnabled = false
+        navigationItem.rightBarButtonItems?.forEach { $0.isEnabled = false }
         tableView.reloadData()
         service.call(method, payload: ["id": id]) { [weak self] result in
             guard let self = self else { return }
             self.busy = false
-            self.navigationItem.rightBarButtonItem?.isEnabled = true
+            self.navigationItem.rightBarButtonItems?.forEach { $0.isEnabled = true }
             switch result {
             case .success:
                 self.message = nil

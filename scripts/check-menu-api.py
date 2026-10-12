@@ -16,6 +16,8 @@ platforms = sorted((path for path in (sdk / 'platforms').glob('android-*/android
 if not platforms or version(platforms[-1])[0] < 31:
     raise SystemExit('An Android SDK platform >= 31 is required for the popup API check')
 stubs = {
+    'app/nebulagram/ui/NebulaText.java': '''package app.nebulagram.ui;
+public class NebulaText {public static String text(String ru,String en){return en;}}''',
     'org/telegram/messenger/AndroidUtilities.java': '''package org.telegram.messenger;
 public class AndroidUtilities { public static int dp(float x){return (int)x;}public static float dpf2(float x){return x;} }''',
     'org/telegram/messenger/LiteMode.java': '''package org.telegram.messenger;
@@ -61,7 +63,7 @@ with tempfile.TemporaryDirectory(prefix='nebula-menu-api-') as folder:
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(source, encoding='utf-8')
     production = ['NebulaMenuReveal.java', 'NebulaMenuMotion.java', 'NebulaMenuBubble.java',
-                  'NebulaMenuFocus.java', 'NebulaSelectionGlass.java', 'NebulaMenuViewport.java']
+                  'NebulaMenuFocus.java', 'NebulaSelectionGlass.java', 'NebulaMenuViewport.java', 'NebulaLinkClipboard.java']
     subprocess.run(['javac', '-encoding', 'UTF-8', '-cp', str(platforms[-1]), '-d', folder,
                     *map(str, work.rglob('*.java')), *[str(ui / name) for name in production]], check=True)
 print('Production popup drawing, focus and touch helpers typechecked against ' + platforms[-1].parent.name)
