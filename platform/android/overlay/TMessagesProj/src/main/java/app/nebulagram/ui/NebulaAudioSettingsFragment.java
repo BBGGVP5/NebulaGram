@@ -30,6 +30,11 @@ public final class NebulaAudioSettingsFragment extends BaseFragment {
                     else { NebulaTranscription.setEnabled(true); rebuild(); }
                 }));
         card.add(row(text("Сервис расшифровки","Transcription service"),NebulaAudioPreferences.title(false),()->chooseService(false)));
+        card.add(new NebulaRow(c).title(text("Голосовое в текст перед отправкой", "Voice to text before sending"))
+                .subtitle(text("Кнопка Aa рядом с паузой в закреплённой записи", "Aa next to Pause in a locked recording"), false)
+                .trailing(NebulaRow.TRAIL_SWITCH).checked(NebulaDraftVoiceTranscription.enabled()).withClick(v -> {
+                    NebulaAudioPreferences.prefs().edit().putBoolean("draft_transcription", !NebulaDraftVoiceTranscription.enabled()).apply(); rebuild();
+                }));
         if (NebulaAudioPreferences.localTranscription()) {
             card.add(row(text("Локальная модель", "Local model"),NebulaAudioPreferences.localLocale(),()->presentFragment(new NebulaLocalAudioSettingsFragment(NebulaLocalAudioPolicy.NANO.equals(NebulaAudioPreferences.serviceId(false))))));
         }

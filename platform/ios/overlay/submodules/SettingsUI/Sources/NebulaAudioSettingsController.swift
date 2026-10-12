@@ -21,10 +21,11 @@ final class NebulaAudioSettingsController: UITableViewController {
     override func viewWillAppear(_ animated: Bool) { super.viewWillAppear(animated); hero.setPageVisible(true); tableView.reloadData() }
     override func viewWillDisappear(_ animated: Bool) { super.viewWillDisappear(animated); hero.setPageVisible(false) }
     override func viewDidLayoutSubviews() { super.viewDidLayoutSubviews(); hero.fit(in: tableView) }
-    override func numberOfSections(in tableView: UITableView) -> Int { 3 }
+    override func numberOfSections(in tableView: UITableView) -> Int { 4 }
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int { section == 0 ? (audio.localTranscription ? 4 : 3) : section == 1 ? (audio.speechService == "device" ? 2 : 5) : 1 }
-    override func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? { [text("Распознавание", "Transcription"), text("Озвучивание", "Speech"), nil][section] }
+    override func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? { [text("Распознавание", "Transcription"), text("Озвучивание", "Speech"), nil, text("Перед отправкой", "Before sending")][section] }
     override func tableView(_ tableView: UITableView, titleForFooterInSection section: Int) -> String? {
+        if section == 3 { return text("Поставьте свою запись на паузу и нажмите Aa в предпросмотре. Можно использовать текст или оставить голосовое. После продолжения записи или обрезки потребуется новая расшифровка.", "Pause your recording and tap Aa in the preview. Use text or keep the voice message. Resuming or trimming requires a new transcript.") }
         if section == 0 { return text("Включите расшифровку Nebula, выберите Apple на устройстве или OpenAI/Gemini, затем удерживайте голосовое или кружок и выберите «Nebula AI · расшифровать». Telegram Premium для этого не требуется. Локальный режим: до 10 минут, язык должен поддерживаться устройством; запись не отправляется в облако.", "Enable Nebula transcription, choose Apple on device or OpenAI/Gemini, then hold a voice or video message and choose Nebula AI · Transcribe. Telegram Premium is not required. Local mode: up to 10 minutes, with a language supported by this device; the recording is not uploaded to a cloud service.") }
         return section == 1 ? text("Облачный голос создан ИИ. По нажатию текст или запись отправится указанному сервису с вашим ключом. Доступ и стоимость зависят от сервиса. Аудиомодели выбираются отдельно от текстового чата. Записи: до 14 МБ, озвучивание: до 4000 символов. Голоса устройства выбираются в окне озвучивания.", "Cloud speech is AI-generated. Tapping sends text or recordings to the named service using your key; availability and cost depend on that service. Audio models are separate from text chat. Recordings: up to 14 MB; speech: up to 4000 characters. Choose installed device voices in the speech screen.") : nil
     }
@@ -34,6 +35,14 @@ final class NebulaAudioSettingsController: UITableViewController {
         return audio.connection(speech: speech, services: services)?.name ?? text("Выбрать сервис", "Choose service")
     }
     override func tableView(_ tableView: UITableView, cellForRowAt path: IndexPath) -> UITableViewCell {
+        if path.section == 3 {
+            let cell = UITableViewCell(style: .subtitle, reuseIdentifier: nil); NebulaSettingsStyle.finish(cell, theme: theme)
+            cell.textLabel?.text = text("Голосовое в текст до отправки", "Voice to text before sending"); cell.textLabel?.numberOfLines = 0
+            cell.detailTextLabel?.text = text("Без Telegram Premium", "No Telegram Premium required")
+            let toggle = NebulaSwitchControl(); toggle.isOn = audio.draftTranscriptionEnabled; toggle.accessibilityLabel = cell.textLabel?.text
+            toggle.addTarget(self, action: #selector(toggleDraft(_:)), for: .valueChanged); cell.accessoryView = toggle; cell.selectionStyle = .none
+            return cell
+        }
         let cell = UITableViewCell(style: .subtitle, reuseIdentifier: nil); NebulaSettingsStyle.finish(cell, theme: theme)
         cell.textLabel?.numberOfLines = 0; cell.detailTextLabel?.numberOfLines = 0; cell.accessoryType = .disclosureIndicator
         let speech = path.section == 1, connection = audio.connection(speech: speech, services: services)
@@ -60,6 +69,7 @@ final class NebulaAudioSettingsController: UITableViewController {
     private var styleIds: [String] { ["neutral", "warm", "calm", "lively"] }
     private var styleNames: [String] { [text("Естественно", "Natural"), text("Дружелюбно", "Friendly"), text("Спокойно", "Calm"), text("Живо", "Expressive")] }
     override func tableView(_ tableView: UITableView, didSelectRowAt path: IndexPath) {
+        if path.section == 3 { return }
         tableView.deselectRow(at: path, animated: true)
         let speech = path.section == 1
         if path.section == 2 { navigationController?.pushViewController(NebulaAiServicesController(russian: ru, theme: theme, context: context), animated: true); return }
@@ -83,6 +93,7 @@ final class NebulaAudioSettingsController: UITableViewController {
             catch { let error = UIAlertController(title: self.text("Проверьте ID модели", "Check the model ID"), message: nil, preferredStyle: .alert); error.addAction(UIAlertAction(title: "OK", style: .default)); self.present(error, animated: true) }
         }); alert.addAction(UIAlertAction(title: text("Отмена", "Cancel"), style: .cancel)); present(alert, animated: true)
     }
+    @objc private func toggleDraft(_ sender: NebulaSwitchControl) { audio.draftTranscriptionEnabled = sender.isOn }
     @objc private func toggleTranscription(_ sender: NebulaSwitchControl) {
         if !sender.isOn { audio.transcriptionEnabled = false; tableView.reloadData(); return }
         if audio.localTranscription || audio.connection(speech: false, services: services) != nil { audio.transcriptionEnabled = true; tableView.reloadData() }

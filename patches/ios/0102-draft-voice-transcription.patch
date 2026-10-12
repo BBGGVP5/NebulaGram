@@ -1,0 +1,171 @@
+diff --git a/submodules/AccountContext/Sources/AccountContext.swift b/submodules/AccountContext/Sources/AccountContext.swift
+--- a/submodules/AccountContext/Sources/AccountContext.swift
++++ b/submodules/AccountContext/Sources/AccountContext.swift
+@@ -1366,6 +1366,7 @@
+     func canTranscribeWithNebula(message: Message) -> Bool
+     func presentNebulaAudioTranscription(context: AccountContext, from view: UIView, message: Message)
+     func presentNebulaCaptionTools(context: AccountContext, from view: UIView, text: NSAttributedString, apply: @escaping (NSAttributedString) -> Void)
++    func presentNebulaDraftVoice(context: AccountContext, from view: UIView, file: URL, duration: Double, start: Double, end: Double, localOnly: Bool, initialText: String?, changed: Bool, isCurrent: @escaping () -> Bool, remember: @escaping (String) -> Void, apply: @escaping (String) -> Void)
+     var sharedContainerPath: String { get }
+     var basePath: String { get }
+     var networkArguments: NetworkInitializationArguments { get }
+diff --git a/submodules/TelegramUI/Sources/SharedAccountContext.swift b/submodules/TelegramUI/Sources/SharedAccountContext.swift
+--- a/submodules/TelegramUI/Sources/SharedAccountContext.swift
++++ b/submodules/TelegramUI/Sources/SharedAccountContext.swift
+@@ -162,6 +162,19 @@
+         presenter.present(NebulaToolsNavigationController(root: NebulaAudioTranscriptionController(context: context, message: message, file: file)), animated: true)
+     }
+ 
++    public func presentNebulaDraftVoice(context: AccountContext, from view: UIView, file: URL, duration: Double, start: Double, end: Double, localOnly: Bool, initialText: String?, changed: Bool, isCurrent: @escaping () -> Bool, remember: @escaping (String) -> Void, apply: @escaping (String) -> Void) {
++        guard #available(iOS 15.0, *), isCurrent() else { return }
++        var responder: UIResponder? = view
++        while responder != nil && !(responder is UIViewController) { responder = responder?.next }
++        guard var presenter = responder as? UIViewController else { return }
++        while let presented = presenter.presentedViewController { presenter = presented }
++        guard !presenter.isBeingDismissed else { return }
++        let tools = NebulaDraftVoiceController(context: context, file: file, duration: duration, start: start, end: end,
++            localOnly: localOnly, initialText: initialText, changed: changed, isCurrent: isCurrent, remember: remember, apply: apply)
++        view.endEditing(true)
++        presenter.present(NebulaToolsNavigationController(root: tools), animated: true)
++    }
++
+     public func presentNebulaCaptionTools(context: AccountContext, from view: UIView, text: NSAttributedString, apply: @escaping (NSAttributedString) -> Void) {
+         var responder: UIResponder? = view
+         while responder != nil && !(responder is UIViewController) { responder = responder?.next }
+diff --git a/submodules/TelegramUI/Components/Chat/ChatRecordingPreviewInputPanelNode/Sources/ChatRecordingPreviewInputPanelNode.swift b/submodules/TelegramUI/Components/Chat/ChatRecordingPreviewInputPanelNode/Sources/ChatRecordingPreviewInputPanelNode.swift
+--- a/submodules/TelegramUI/Components/Chat/ChatRecordingPreviewInputPanelNode/Sources/ChatRecordingPreviewInputPanelNode.swift
++++ b/submodules/TelegramUI/Components/Chat/ChatRecordingPreviewInputPanelNode/Sources/ChatRecordingPreviewInputPanelNode.swift
+@@ -1,4 +1,5 @@
+ import Foundation
++import NebulaSettingsContract
+ import UIKit
+ import AsyncDisplayKit
+ import Display
+@@ -209,6 +210,64 @@
+ }
+ 
+ public final class ChatRecordingPreviewInputPanelNodeImpl: ChatInputPanelNode {
++    private let nebulaAaNode = ASButtonNode()
++    private let nebulaDraftFetch = MetaDisposable()
++    private var nebulaDraftGeneration = 0
++    private var nebulaDraftFetching = false
++    private var nebulaDraftTranscript: (generation: Int, service: String, text: String)?
++
++    private func nebulaDraftServiceKey() -> String {
++        let audio = NebulaAudioPreferences.shared
++        return audio.transcriptionService + "|" + audio.transcriptionLocale
++    }
++
++    @objc private func nebulaAaPressed() {
++        guard !self.nebulaDraftFetching, NebulaAudioPreferences.shared.draftTranscriptionEnabled,
++              let context = self.context, let state = self.presentationInterfaceState,
++              let draft = state.interfaceState.mediaDraftState, case let .audio(audio) = draft,
++              self.view.window != nil else { return }
++        self.mediaPlayer?.pause()
++        let token = self.nebulaDraftGeneration, account = context.account.peerId
++        let service = self.nebulaDraftServiceKey()
++        self.nebulaDraftFetching = true
++        self.nebulaAaNode.isEnabled = false
++        self.nebulaDraftFetch.set((context.account.postbox.mediaBox.resourceData(audio.resource)
++        |> filter { $0.complete } |> take(1) |> deliverOnMainQueue).start(next: { [weak self] resource in
++            guard let self else { return }
++            self.nebulaDraftFetching = false
++            self.nebulaAaNode.isEnabled = true
++            guard self.nebulaDraftGeneration == token, self.presentationInterfaceState?.interfaceState.mediaDraftState == draft,
++                  self.context?.account.peerId == account, self.view.window != nil else { return }
++            let cached = self.nebulaDraftTranscript.flatMap { $0.generation == token && $0.service == service ? $0.text : nil }
++            context.sharedContext.presentNebulaDraftVoice(context: context, from: self.view, file: URL(fileURLWithPath: resource.path),
++                duration: audio.duration, start: audio.trimRange?.lowerBound ?? 0.0, end: audio.trimRange?.upperBound ?? audio.duration,
++                localOnly: state.renderedPeer?.peer?.id.namespace == Namespaces.Peer.SecretChat,
++                initialText: cached, changed: cached == nil && self.nebulaDraftTranscript != nil,
++                isCurrent: { [weak self] in
++                    guard let self else { return false }
++                    return self.nebulaDraftGeneration == token && self.presentationInterfaceState?.interfaceState.mediaDraftState == draft
++                        && self.context?.account.peerId == account && self.view.window != nil
++                }, remember: { [weak self] text in
++                    guard let self, self.nebulaDraftGeneration == token else { return }
++                    self.nebulaDraftTranscript = (token, self.nebulaDraftServiceKey(), text)
++                }, apply: { [weak self] text in
++                    guard let self, self.nebulaDraftGeneration == token,
++                          self.presentationInterfaceState?.interfaceState.mediaDraftState == draft,
++                          self.context?.account.peerId == account else { return }
++                    self.interfaceInteraction?.deleteRecordedMedia()
++                    self.interfaceInteraction?.updateTextInputStateAndMode { _, _ in
++                        return (ChatTextInputState(inputText: NSAttributedString(string: text)), .text)
++                    }
++                })
++        }))
++        DispatchQueue.main.asyncAfter(deadline: .now() + 10) { [weak self] in
++            guard let self, self.nebulaDraftGeneration == token, self.nebulaDraftFetching else { return }
++            self.nebulaDraftFetch.set(nil)
++            self.nebulaDraftFetching = false
++            self.nebulaAaNode.isEnabled = true
++        }
++    }
++
+     private let waveformButton: ASButtonNode
+     let waveformBackgroundNodeImpl: ASImageNode
+     var waveformBackgroundNode: ASDisplayNode {
+@@ -296,6 +355,8 @@
+         
+         self.view.addSubview(self.trimViewImpl)
+         self.addSubnode(self.playButtonNodeImpl)
++        self.addSubnode(self.nebulaAaNode)
++        self.nebulaAaNode.addTarget(self, action: #selector(self.nebulaAaPressed), forControlEvents: .touchUpInside)
+         
+         self.playButtonNodeImpl.pressed = { [weak self] in
+             guard let self else {
+@@ -328,6 +389,7 @@
+     }
+     
+     deinit {
++        self.nebulaDraftFetch.dispose()
+         self.mediaPlayer?.pause()
+         self.statusDisposable.dispose()
+         self.scrubbingDisposable?.dispose()
+@@ -392,11 +454,24 @@
+     }
+     
+     override public func updateLayout(width: CGFloat, leftInset: CGFloat, rightInset: CGFloat, bottomInset: CGFloat, additionalSideInsets: UIEdgeInsets, maxHeight: CGFloat, maxOverlayHeight: CGFloat, isSecondary: Bool, transition: ContainedViewLayoutTransition, interfaceState: ChatPresentationInterfaceState, metrics: LayoutMetrics, deviceMetrics: DeviceMetrics, isMediaInputExpanded: Bool) -> CGFloat {
+-        let waveformBackgroundFrame = CGRect(origin: CGPoint(x: 3.0, y: 3.0), size: CGSize(width: width - 3.0 * 2.0, height: 40.0 - 3.0 * 2.0))
++        let showsAa: Bool
++        if #available(iOS 15.0, *), case .audio? = interfaceState.interfaceState.mediaDraftState {
++            showsAa = NebulaAudioPreferences.shared.draftTranscriptionEnabled && width >= 124.0
++        } else { showsAa = false }
++        let audioWidth = width - (showsAa ? 44.0 : 0.0)
++        self.nebulaAaNode.isHidden = !showsAa
++        self.nebulaAaNode.setAttributedTitle(NSAttributedString(string: "Aa", font: Font.semibold(17.0), textColor: interfaceState.theme.chat.inputPanel.panelControlColor), for: .normal)
++        self.nebulaAaNode.accessibilityLabel = interfaceState.strings.baseLanguageCode.hasPrefix("ru") ? "Распознать голосовое перед отправкой" : "Transcribe voice before sending"
++        transition.updateFrame(node: self.nebulaAaNode, frame: CGRect(x: audioWidth, y: -2.0, width: 44.0, height: 44.0))
++        let waveformBackgroundFrame = CGRect(origin: CGPoint(x: 3.0, y: 3.0), size: CGSize(width: audioWidth - 3.0 * 2.0, height: 40.0 - 3.0 * 2.0))
+         
+         if self.presentationInterfaceState != interfaceState {
+             var updateWaveform = false
+             if self.presentationInterfaceState?.interfaceState.mediaDraftState != interfaceState.interfaceState.mediaDraftState {
++                self.nebulaDraftGeneration += 1
++                self.nebulaDraftFetch.set(nil)
++                self.nebulaDraftFetching = false
++                self.nebulaAaNode.isEnabled = true
+                 updateWaveform = true
+             }
+             if self.presentationInterfaceState?.strings !== interfaceState.strings {
+@@ -577,7 +652,7 @@
+         
+         transition.updateFrame(node: self.waveformButton, frame: waveformBackgroundFrame)
+         
+-        let waveformScrubberFrame = CGRect(origin: CGPoint(x: 21.0, y: floor((40.0 - 13.0) / 2.0)), size: CGSize(width: width - 21.0 * 2.0, height: 13.0))
++        let waveformScrubberFrame = CGRect(origin: CGPoint(x: 21.0, y: floor((40.0 - 13.0) / 2.0)), size: CGSize(width: audioWidth - 21.0 * 2.0, height: 13.0))
+         transition.updateFrame(node: self.waveformScrubberNodeImpl, frame: waveformScrubberFrame)
+         transition.updateFrame(node: self.tintWaveformNode, frame: waveformScrubberFrame)
+         
+diff --git a/submodules/TelegramUI/Components/Chat/ChatRecordingPreviewInputPanelNode/BUILD b/submodules/TelegramUI/Components/Chat/ChatRecordingPreviewInputPanelNode/BUILD
+--- a/submodules/TelegramUI/Components/Chat/ChatRecordingPreviewInputPanelNode/BUILD
++++ b/submodules/TelegramUI/Components/Chat/ChatRecordingPreviewInputPanelNode/BUILD
+@@ -10,6 +10,7 @@
+         "-warnings-as-errors",
+     ],
+     deps = [
++        "//submodules/NebulaSettingsContract:NebulaSettingsContract",
+         "//submodules/AsyncDisplayKit",
+         "//submodules/Display",
+         "//submodules/TelegramCore",

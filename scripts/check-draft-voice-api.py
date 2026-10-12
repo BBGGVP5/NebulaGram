@@ -1,0 +1,34 @@
+"""Typecheck the production Aa sheet and decoder against the installed Android SDK."""
+from pathlib import Path
+import os, re, subprocess, tempfile
+
+ROOT=Path(__file__).resolve().parents[1]
+UI=ROOT/'platform/android/overlay/TMessagesProj/src/main/java/app/nebulagram/ui'
+sdk=Path(os.environ.get('ANDROID_HOME') or os.environ.get('ANDROID_SDK_ROOT') or str(Path.home()/'AppData/Local/Android/Sdk'))
+platforms=sorted((p for p in (sdk/'platforms').glob('android-*/android.jar') if re.fullmatch(r'android-\d+(?:\.\d+)*',p.parent.name)),key=lambda p:tuple(map(int,p.parent.name[8:].split('.'))))
+assert platforms,'Android SDK is required'
+stubs={
+ 'org/telegram/messenger/AndroidUtilities.java':'package org.telegram.messenger;public class AndroidUtilities {public static void runOnUIThread(Runnable r){}public static void runOnUIThread(Runnable r,long d){}public static void cancelRunOnUIThread(Runnable r){}}',
+ 'org/telegram/messenger/ApplicationLoader.java':'package org.telegram.messenger;public class ApplicationLoader {public static android.content.Context applicationContext;}',
+ 'org/telegram/messenger/DialogObject.java':'package org.telegram.messenger;public class DialogObject {public static boolean isEncryptedDialog(long id){return false;}}',
+ 'org/telegram/ui/ActionBar/Theme.java':'package org.telegram.ui.ActionBar;public class Theme {public interface ResourcesProvider{}}',
+ 'org/telegram/ui/ActionBar/BaseFragment.java':'package org.telegram.ui.ActionBar;public class BaseFragment {public android.app.Activity getParentActivity(){return null;}public Theme.ResourcesProvider getResourceProvider(){return null;}public void presentFragment(Object f){}public void showDialog(android.app.Dialog d){}}',
+ 'org/telegram/ui/ActionBar/BottomSheet.java':'package org.telegram.ui.ActionBar;public class BottomSheet extends android.app.Dialog {public BottomSheet(android.content.Context c){super(c);}public static class Builder {public Builder(android.content.Context c,boolean focus,Theme.ResourcesProvider p){}public Builder setCustomView(android.view.View v){return this;}public BottomSheet create(){return null;}}}',
+ 'app/nebulagram/ui/NebulaText.java':'package app.nebulagram.ui;public class NebulaText {public static String text(String ru,String en){return en;}}',
+ 'app/nebulagram/ui/NebulaButton.java':'package app.nebulagram.ui;public class NebulaButton extends android.widget.Button {public static int STYLE_TEXT=1;public NebulaButton(android.content.Context c,int style){super(c);}}',
+ 'app/nebulagram/ui/NebulaRow.java':'package app.nebulagram.ui;public class NebulaRow extends android.widget.LinearLayout {public NebulaRow(android.content.Context c){super(c);}public NebulaRow title(String s){return this;}public NebulaRow subtitle(String s,boolean accent){return this;}public NebulaRow withClick(android.view.View.OnClickListener l){return this;}}',
+ 'app/nebulagram/ui/NebulaFormUi.java':'package app.nebulagram.ui;public class NebulaFormUi {public static android.widget.LinearLayout column(android.content.Context c){return null;}public static android.widget.TextView note(android.content.Context c,String s){return null;}public static android.widget.EditText field(android.content.Context c,String s,int lines,int max){return null;}public static NebulaButton primary(android.content.Context c,String s,android.view.View.OnClickListener l){return null;}public static android.widget.ScrollView scroll(android.content.Context c,android.widget.LinearLayout v){return null;}}',
+ 'app/nebulagram/ui/NebulaAudioSettingsFragment.java':'package app.nebulagram.ui;public class NebulaAudioSettingsFragment {}',
+ 'app/nebulagram/ui/NebulaAiServices.java':'package app.nebulagram.ui;public class NebulaAiServices {public static class Service {}public static Service find(String s){return null;}}',
+ 'app/nebulagram/ui/NebulaAudioPreferences.java':'package app.nebulagram.ui;public class NebulaAudioPreferences {public static android.content.SharedPreferences prefs(){return null;}public static String serviceId(boolean s){return "";}public static String localLocale(){return "";}public static String model(boolean s,NebulaAiServices.Service c){return "";}public static String title(boolean s){return "";}public static boolean localTranscription(){return true;}public static NebulaAudioClient.Configuration capture(boolean s)throws Exception{return null;}}',
+ 'app/nebulagram/ui/NebulaAudioClient.java':'package app.nebulagram.ui;public class NebulaAudioClient {public static class Configuration {}public void cancel(){}public String transcribe(Configuration c,java.io.File f,String mime)throws Exception{return "";}}',
+ 'app/nebulagram/ui/NebulaAudioProtocol.java':'package app.nebulagram.ui;public class NebulaAudioProtocol {public static final int MAX_INPUT=14000000;}',
+ 'app/nebulagram/ui/NebulaLocalTranscription.java':'package app.nebulagram.ui;public class NebulaLocalTranscription {public interface Progress {void text(String s);void status(String s);}public NebulaLocalTranscription(boolean advanced,String locale){}public void cancel(){}public String transcribe(java.io.File f,Progress p)throws Exception{return "";}public static String errorText(Exception e){return "";}}'
+}
+with tempfile.TemporaryDirectory(prefix='nebula-draft-voice-api-') as folder:
+ work=Path(folder)
+ for name,source in stubs.items():
+  p=work/name;p.parent.mkdir(parents=True,exist_ok=True);p.write_text(source,encoding='utf-8')
+ production=['NebulaDraftVoicePolicy.java','NebulaDraftVoiceTranscription.java','NebulaLocalAudioDecoder.java','NebulaLocalAudioPolicy.java','NebulaPcmResampler.java']
+ subprocess.run(['javac','-encoding','UTF-8','-cp',str(platforms[-1]),'-d',str(work),*map(str,work.rglob('*.java')),*[str(UI/n) for n in production]],check=True)
+print('OK: production Aa sheet, selected-clip policy and decoder typecheck against '+platforms[-1].parent.name)

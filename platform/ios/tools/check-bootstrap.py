@@ -16,6 +16,7 @@ from check_onboarding import check as check_onboarding
 from check_navigation_refresh import check as check_navigation_refresh
 from check_profile_banner import check as check_profile_banner
 from check_story_header import check as check_story_header
+from check_draft_voice import check as check_draft_voice
 
 ROOT = Path(__file__).resolve().parents[3]
 
@@ -377,6 +378,8 @@ def main():
         story_item_path = 'submodules/TelegramUI/Components/Stories/StoryPeerListComponent/Sources/StoryPeerListItemComponent.swift'
         story_item = run('git', '-C', str(tree), 'show', revision + ':' + story_item_path).decode('utf-8')
         check_story_header(story_header, story_list, story_item, temp, args.swift)
+        draft_preview = (temp / 'submodules/TelegramUI/Components/Chat/ChatRecordingPreviewInputPanelNode/Sources/ChatRecordingPreviewInputPanelNode.swift').read_text(encoding='utf-8')
+        check_draft_voice(draft_preview, temp, args.swift)
         ai_root = (temp / 'submodules/TelegramUI/Sources/TelegramRootController.swift').read_text(encoding='utf-8')
         assert 'NebulaAiMarkdown.parse(raw)' in ai_chat and 'self.gate.accepts(id)' in ai_chat
         assert 'view.keyboardLayoutGuide.topAnchor' in ai_chat and 'work?.cancel()' in ai_chat
