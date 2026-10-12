@@ -29,9 +29,13 @@
 
 ### Task 3: Build and validate
 
-- [ ] Commit only the exact patch/helper/check/document paths, then push the authorized main and working branch refs.
-- [ ] Require successful iOS bootstrap checks and a full `ios-ipa.yml` build at the runtime revision.
-- [ ] Download and verify the resulting original IPA, source revision, arm64 application and extension metadata. Record its build number and hash in `platform/ios/PARITY.md` and this plan.
-- [ ] Report the source fix, verified build and remaining physical iPhone appearance check honestly.
+- [x] Commit only the exact patch/helper/check/document paths, then push the authorized main and working branch refs.
+- [x] Require successful iOS bootstrap checks and a full `ios-ipa.yml` build at the runtime revision.
+- [x] Download and verify the resulting original IPA, source revision, arm64 application and extension metadata. Record its build number and hash in `platform/ios/PARITY.md` and this plan.
+- [x] Report the source fix, verified build and remaining physical iPhone appearance check honestly.
 
 Local evidence: the existing baseline failed the fixed 46 pt assertion. The patched pinned tree passes the strict bootstrap with 100 patches / 160 native paths / 46 mirrored contract sources. The native ring values and single-avatar interpolation are extracted from production sources for the macOS execution fixture. No physical iPhone verification has occurred.
+
+Final build evidence: runtime `80e2d1cbba151e45098444fc5a2b53817ac958cb`; bootstrap `38170188364` passed 157 XCTest cases and 5394 production geometry/native interpolation cases. Full device IPA `38170244650` / build 107 succeeded with 6041 native actions, including StoryPeerListComponent and ChatListHeaderComponent. The branch bootstrap duplicate was cancelled; the main bootstrap passed.
+
+Verified artifact: `build/artifact-38170244650/NebulaGram-unsigned.ipa`, 88,019,222 bytes, SHA-256 `7c3cf4f31ffe745521e0c8f3b96b84c2a4dc3e3caca8ab063e70486edcbaf083`. Its source revision, 12.9.2/build107, app.nebulagram, arm64 device executable, one Notification Service Extension and Speech privacy purpose match the original CI manifest. The artifact is unsigned and physical iPhone appearance/gesture/push verification has not occurred. No additional runtime changes followed this build.
