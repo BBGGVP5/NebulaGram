@@ -32,4 +32,12 @@ public final class NebulaHomeTitleGeometry {
         int animatedPrefix = Math.round(prefix * Math.max(0f, Math.min(1f, progress)));
         return left(barWidth, startInset, endInset, titleWidth + animatedPrefix);
     }
+
+    public static float groupLeftFloat(int barWidth, int startInset, int endInset,
+                                       int titleWidth, int prefix, float progress) {
+        float animatedPrefix = prefix * Math.max(0f, Math.min(1f, progress));
+        float groupWidth = titleWidth + animatedPrefix;
+        return Math.max(startInset, Math.min((barWidth - groupWidth) / 2f,
+                barWidth - endInset - groupWidth));
+    }
 }

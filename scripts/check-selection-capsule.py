@@ -20,7 +20,8 @@ java = r"""
 import java.util.*;
 class CapsuleCheck {
  static void check(boolean b){if(!b)throw new AssertionError();}
- static class Draw {int alpha,left,right;List<int[]> calls=new ArrayList<>();
+ static class Draw {int alpha,left,right;float strokeTop=1,strokeBottom=1;List<int[]> calls=new ArrayList<>();
+  void setStrokeWidth(float t,float b){strokeTop=t;strokeBottom=b;}
   void setBounds(int l,int t,int r,int b){left=l;right=r;}void setAlpha(int a){alpha=a;}int getAlpha(){return alpha;}
   void draw(Object c){calls.add(new int[]{alpha,left,right});}}
  static class Avatar {boolean visible;boolean hasVisibleAvatar(){return visible;}float getAlpha(){return 1f;}}
@@ -77,6 +78,7 @@ class CapsuleCheck {
   tabs.menuWidth=138;tabs.menu.children[3].visibility=8;tabs.draw();
   check(tabs.glassDrawableMenu.calls.size()==1 && tabs.glassDrawableMenu.calls.get(0)[0]==Math.round(255*.6f));
   check(tabs.glassDrawableMenu.left==236&&tabs.glassDrawableMenu.right==382);
+  check(tabs.glassDrawableMenu.strokeTop==0 && tabs.glassDrawableMenu.strokeBottom==0);
   tabs.glassDrawableMenu.calls.clear();tabs.searchFactor=1f;tabs.draw();
   check(tabs.glassDrawableMenu.calls.isEmpty());
   for(int frame=1;frame<=100;frame++){
@@ -85,6 +87,7 @@ class CapsuleCheck {
    selection.actionMode.x=0;selection.actionMode.children=new View[]{new View(0),new View(54),new ActionBarMenuItem(240),new ActionBarMenuItem(286),new ActionBarMenuItem(332)};
    selection.draw();check(selection.glassDrawableMenu.calls.size()==1 && selection.glassDrawableMenu.calls.get(0)[0]==Math.round(255*frame/100f));
    check(selection.glassDrawableMenu.left==236&&selection.glassDrawableMenu.right==382);
+   check(selection.glassDrawableMenu.strokeTop==0 && selection.glassDrawableMenu.strokeBottom==0);
   }
   for(int mode=0;mode<4;mode++)for(int frame=0;frame<=100;frame++) {
    CapsuleCheck selected=new CapsuleCheck();selected.nebulaFloatingChatHeader=mode==0;

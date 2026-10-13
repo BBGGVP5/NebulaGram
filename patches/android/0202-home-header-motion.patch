@@ -1,0 +1,225 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
+@@ -232,18 +232,18 @@
+         return width;
+     }
+ 
+-    public int getNebulaHomeStoriesLeft() {
+-        return app.nebulagram.ui.NebulaHomeTitleGeometry.groupLeft(getMeasuredWidth(), dp(84),
++    public float getNebulaHomeStoriesLeft() {
++        return app.nebulagram.ui.NebulaHomeTitleGeometry.groupLeftFloat(getMeasuredWidth(), dp(84),
+                 nebulaTitleEndInset(), nebulaHomeTitleWidth(), nebulaHomeStoryPrefix(), nebulaHomeStoryProgress);
+     }
+ 
+-    public int getNebulaHomeTitleLeft() {
+-        return getNebulaHomeStoriesLeft() + Math.round(nebulaHomeStoryPrefix() * nebulaHomeStoryProgress);
++    public float getNebulaHomeTitleLeft() {
++        return getNebulaHomeStoriesLeft() + nebulaHomeStoryPrefix() * nebulaHomeStoryProgress;
+     }
+ 
+     private void applyNebulaHomeStoryLayout() {
+         if (!nebulaHomeTabsGlass || getMeasuredWidth() == 0) return;
+-        final int left = getNebulaHomeTitleLeft();
++        final float left = getNebulaHomeTitleLeft();
+         for (SimpleTextView title : titleTextView) {
+             if (title != null) title.setTranslationX(left - title.getLeft());
+         }
+@@ -2716,6 +2716,7 @@
+             glassDrawableHomeLeading.setBounds(nebulaHomeLeadingView.getLeft(), nebulaHomeLeadingView.getTop(),
+                     nebulaHomeLeadingView.getRight(), nebulaHomeLeadingView.getBottom());
+             glassDrawableHomeLeading.setAlpha(Math.round(255 * nebulaHomeLeadingView.getAlpha()));
++            glassDrawableHomeLeading.setStrokeWidth(0f, 0f);
+             glassDrawableHomeLeading.draw(canvas);
+         }
+         final boolean nebulaPlainHeaderButtons = (nebulaHomeGlass || isNebulaSharedHeaderGlass()) && !nebulaHomeTabsGlass
+@@ -2727,6 +2728,7 @@
+             final int cy = (t + b) / 2;
+             glassDrawableBack.setBounds(cx - dp(23), cy - dp(23), cx + dp(23), cy + dp(23));
+             glassDrawableBack.setAlpha(Math.round(255 * actionModeFactor));
++            glassDrawableBack.setStrokeWidth(0f, 0f);
+             if (!nebulaPlainHeaderButtons) glassDrawableBack.draw(canvas);
+         } else if (glassDrawableBack != null && hasBackButton) {
+             glassDrawableBack.setAlpha(255);
+@@ -2778,6 +2780,7 @@
+                     glassDrawableMenu.setBounds(Math.max(0, first - dp(4)), t,
+                             Math.min(getWidth() - dp(4), last + dp(4)), b);
+                     glassDrawableMenu.setAlpha(Math.round(255 * actionModeFactor));
++                    glassDrawableMenu.setStrokeWidth(0f, 0f);
+                     if (!nebulaPlainHeaderButtons) glassDrawableMenu.draw(canvas);
+                 }
+             } else if (nebulaHomeTabsGlass && actionModeFactor < 0.01f
+@@ -2798,6 +2801,7 @@
+                     glassDrawableMenu.setBounds(Math.max(0, first - dp(4)), t,
+                             Math.min(getWidth(), last + dp(4)), b);
+                     glassDrawableMenu.setAlpha(Math.round(255 * menuAlpha * (1f - searchFactor)));
++                    glassDrawableMenu.setStrokeWidth(0f, 0f);
+                     if (glassDrawableMenu.getAlpha() > 0 && !nebulaPlainHeaderButtons) glassDrawableMenu.draw(canvas);
+                 }
+             } else if (nebulaHomeGlass && actionModeFactor < 0.01f && searchFactor < 0.01f
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/drawable/BlurredBackgroundDrawable.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/drawable/BlurredBackgroundDrawable.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/drawable/BlurredBackgroundDrawable.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/drawable/BlurredBackgroundDrawable.java
+@@ -422,6 +422,7 @@
+         float[] radii, float strokeWidth, boolean isTop,
+         Paint paint
+     ) {
++        if (strokeWidth <= 0f) return;
+ 
+         final boolean radiiAreSame = isTop ?
+             radii[0] == radii[1] && radii[1] == radii[2] && radii[2] == radii[3]:
+@@ -523,6 +524,7 @@
+ 
+     public static void drawStroke(Canvas canvas, float left, float top, float right, float bottom,
+                                      float radii, float strokeWidth, boolean isTop, Paint paint) {
++        if (strokeWidth <= 0f) return;
+         final float strokeHalf = strokeWidth / 2f;
+         canvas.save();
+         if (isTop) {
+@@ -573,8 +575,11 @@
+     }
+ 
+     public void setStrokeWidth(float strokeWidthTop, float strokeWidthBottom) {
++        if (boundProps.strokeWidthTop == strokeWidthTop && boundProps.strokeWidthBottom == strokeWidthBottom) return;
+         boundProps.strokeWidthTop = strokeWidthTop;
+         boundProps.strokeWidthBottom = strokeWidthBottom;
++        boundProps.build();
++        onBoundPropsChanged();
+     }
+ 
+ 
+@@ -736,11 +741,11 @@
+         final int strokeColorTop = Theme.multAlpha(this.strokeColorTop, alpha / 255f);
+         final int strokeColorBottom = Theme.multAlpha(this.strokeColorBottom, alpha / 255f);
+ 
+-        if (Color.alpha(strokeColorTop) > 0) {
++        if (Color.alpha(strokeColorTop) > 0 && boundProps.strokeWidthTop > 0f) {
+             paintStrokeFill.setColor(strokeColorTop);
+             canvas.drawPath(boundProps.strokePathTop, paintStrokeFill);
+         }
+-        if (Color.alpha(strokeColorBottom) > 0) {
++        if (Color.alpha(strokeColorBottom) > 0 && boundProps.strokeWidthBottom > 0f) {
+             paintStrokeFill.setColor(strokeColorBottom);
+             canvas.drawPath(boundProps.strokePathBottom, paintStrokeFill);
+         }
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Stories/DialogStoriesCell.java b/TMessagesProj/src/main/java/org/telegram/ui/Stories/DialogStoriesCell.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Stories/DialogStoriesCell.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Stories/DialogStoriesCell.java
+@@ -669,9 +669,7 @@
+         }
+         adapter.setItems(oldItems, items);
+         miniAdapter.setItems(oldMiniItems, miniItems);
+-        if (actionBar != null && actionBar.isNebulaHomeTabsGlass()) {
+-            actionBar.setNebulaHomeStories(miniItems.size(), Math.min(collapsedProgress, collapsedProgress2));
+-        }
++        publishNebulaHomeHeader();
+ 
+         oldItems.clear();
+         invalidate();
+@@ -696,7 +694,6 @@
+         listViewMini.setTranslationY(bottomY);
+         final boolean nebulaHome = actionBar != null && actionBar.isNebulaHomeTabsGlass();
+         final float progress = MathUtils.clamp(Math.min(collapsedProgress, collapsedProgress2), 0, 1);
+-        if (nebulaHome) actionBar.setNebulaHomeStories(miniItems.size(), progress);
+         final float storiesOffset = nebulaHome
+                 ? actionBar.getNebulaHomeStoriesLeft() + dp(4) - getX() : menuItemsOffset;
+         listViewMini.setTranslationX(storiesOffset);
+@@ -758,7 +755,7 @@
+                 cell.setClipInParent(false);
+                 int adapterPosition = recyclerListView.getChildAdapterPosition(cell);
+                 float cellCollapsedProgress = collapsedProgress;
+-                if (adapterPosition >= animateFromPosition && adapterPosition < animateFromPosition + animateToDialogIds.size()) {
++                if (!nebulaHome && adapterPosition >= animateFromPosition && adapterPosition < animateFromPosition + animateToDialogIds.size()) {
+                     int positionOffset = adapterPosition - animateFromPosition;
+                     if (positionOffset == animateFromPosition + 2) {
+                         cellCollapsedProgress = collapsedProgress;
+@@ -768,7 +765,7 @@
+                         cellCollapsedProgress = (float) Math.pow(collapsedProgress, 0.25f);
+                     }
+                 }
+-                if (adapterPosition < animateFromPosition) {
++                if (!nebulaHome && adapterPosition < animateFromPosition) {
+                     cellCollapsedProgress = (float) Math.pow(collapsedProgress, 0.25f);
+                 }
+                 cell.setProgressToCollapsed(cellCollapsedProgress, collapsedProgress2, overscrollProgress, overscrollSelectedPosition == cell.position);
+@@ -835,7 +832,10 @@
+                     toX = dp(COLLAPSED_DIS) + dp(COLLAPSED_DIS) * cellCollapsedProgress - AndroidUtilities.dpf2(0.5f) + AndroidUtilities.lerp(dp(COLLAPSED_DIS + COLLAPSED_DIS), 0f, collapsedProgress);
+                 }
+                 toX += storiesOffset;
+-                if (!collapsed) {
++                if (nebulaHome) {
++                    // Use the same reversible scroll frame as the title and size.
++                    translationX = (toX - cell.getLeft()) * progress;
++                } else if (!collapsed) {
+                     float dstCellX = 0;
+                     if (overscrollProgress > 0) {
+                         if (cell.position < overscrollSelectedPosition) {
+@@ -869,6 +869,7 @@
+                     }
+ //              }
+                 translationY = lerp(translationY2, translationY1, collapsedFactor);
++                if (nebulaHome) translationY = 0f;
+ 
+                 if (collapsedProgress > 0) {
+                     boolean drawInParent = adapterPosition >= animateFromPosition && adapterPosition <= animateFromPosition + 2;
+@@ -1073,6 +1074,7 @@
+ 
+     AnimatorSet storiesAnimatorSet;
+     public void setProgressToCollapse(float progress, boolean animated) {
++        if (updateNebulaHomeCollapse(progress)) return;
+         if (collapsedProgress1 == progress) {
+             return;
+         }
+@@ -1154,8 +1156,34 @@
+         }
+     }
+ 
++    private boolean updateNebulaHomeCollapse(float progress) {
++        if (actionBar == null || !actionBar.isNebulaHomeTabsGlass()) return false;
++        progress = MathUtils.clamp(progress, 0f, 1f);
++        if (storiesAnimatorSet != null) {
++            storiesAnimatorSet.removeAllListeners();
++            storiesAnimatorSet.cancel();
++            storiesAnimatorSet = null;
++        }
++        if (collapsedProgress1 == progress && collapsedProgress2 == progress) {
++            publishNebulaHomeHeader();
++            return true;
++        }
++        collapsedProgress1 = collapsedProgress2 = progress;
++        collapsed = progress > K;
++        checkCollapsedProgress();
++        return true;
++    }
++
++    private void publishNebulaHomeHeader() {
++        if (actionBar == null || !actionBar.isNebulaHomeTabsGlass()) return;
++        final int count = getVisibility() == VISIBLE ? miniItems.size() : 0;
++        actionBar.setNebulaHomeStories(count, MathUtils.clamp(collapsedProgress, 0f, 1f));
++    }
++
+     private void checkCollapsedProgress() {
+-        collapsedProgress = 1f - AndroidUtilities.lerp(1f - collapsedProgress1, 1f, 1f - collapsedProgress2);
++        collapsedProgress = actionBar != null && actionBar.isNebulaHomeTabsGlass()
++                ? collapsedProgress1 : 1f - AndroidUtilities.lerp(1f - collapsedProgress1, 1f, 1f - collapsedProgress2);
++        publishNebulaHomeHeader();
+         checkUi_titleVisibility();
+ 
+         int state = EXPANDED_STATE;
+@@ -1384,6 +1412,7 @@
+ 
+     public void setActionBar(ActionBar actionBar) {
+         this.actionBar = actionBar;
++        publishNebulaHomeHeader();
+         app.nebulagram.ui.NebulaDialogsTitle.bind(actionBar, telegramLogoView);
+     }
+ 
+@@ -2177,7 +2206,7 @@
+             if (actionBar != null && actionBar.isNebulaHomeTabsGlass()) {
+                 int count = actionBar.getNebulaHomeVisibleStories();
+                 if (count == 0) return super.onTouchEvent(event);
+-                int left = actionBar.getNebulaHomeStoriesLeft() - (int) getX();
++                int left = (int) Math.floor(actionBar.getNebulaHomeStoriesLeft() - getX());
+                 int width = app.nebulagram.ui.NebulaHomeTitleGeometry.storyPrefix(count, dp(34), dp(16), 0);
+                 int top = (int) listViewMini.getY() + (ActionBar.getCurrentActionBarHeight() - dp(44)) / 2;
+                 miniItemsClickArea.setRect(left, top, left + width, top + dp(44));

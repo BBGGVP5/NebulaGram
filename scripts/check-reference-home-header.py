@@ -63,7 +63,7 @@ def method(source, signature):
 methods='\n'.join(method(bar, signature) for signature in [
     'public void setNebulaHomeStories(', 'public int getNebulaHomeVisibleStories()',
     'private int nebulaHomeStoryPrefix()', 'private int nebulaHomeTitleWidth()',
-    'public int getNebulaHomeStoriesLeft()', 'public int getNebulaHomeTitleLeft()',
+    'public float getNebulaHomeStoriesLeft()', 'public float getNebulaHomeTitleLeft()',
     'private void applyNebulaHomeStoryLayout()',
 ])
 actions=method(dialogs,'private void checkUi_nebulaHomeActions()')
@@ -96,8 +96,8 @@ class NativeHeaderCheck {
  public static void main(String[] args){Bar b=new Bar();
   b.setNebulaHomeStories(3,0);check(b.layouts==1,"Count must trigger measurement");b.nebulaHomeVisibleStories=3;
   for(int frame=0;frame<=60;frame++){
-   b.setNebulaHomeStories(3,frame/60f);int x=(int)(b.titleTextView[0].left+b.titleTextView[0].translation);
-   check(x==b.getNebulaHomeTitleLeft(),"Native title not at shared slot");
+   b.setNebulaHomeStories(3,frame/60f);float x=b.titleTextView[0].left+b.titleTextView[0].translation;
+   check(Math.abs(x-b.getNebulaHomeTitleLeft())<.001f,"Native title not at shared slot");
    check(b.additionalSubTitleOverlayContainer.left+b.additionalSubTitleOverlayContainer.translation==x,"Status subtitle detached");
    check(b.layouts==1,"Collapse animation repeatedly requests measurement");
   }
@@ -127,7 +127,9 @@ class NativeHeaderCheck {
     subprocess.run(['java','-cp',str(work),'NativeHeaderCheck'],check=True)
 
 assert 'applyNebulaHomeStoryLayout()' in bar, 'Title does not follow the shared story slot'
-assert 'actionBar.setNebulaHomeStories(miniItems.size(), progress)' in stories, 'Collapse is disconnected from title geometry'
+assert 'actionBar.setNebulaHomeStories(count,' in method(stories,'private void publishNebulaHomeHeader()'), 'Collapse is disconnected from title geometry'
+assert 'publishNebulaHomeHeader()' in method(stories,'private void checkCollapsedProgress()')
+assert 'setNebulaHomeStories(' not in method(stories,'protected void dispatchDraw(Canvas canvas)'), 'Paint is mutating a previously painted sibling title'
 assert 'getNebulaHomeStoriesLeft()' in stories and 'getNebulaHomeVisibleStories()' in stories
 assert 'nebulaHomeStoriesClip' in stories, 'Story rings can paint over the title or controls'
 assert 'nebulaHomeStoryItem = menu.addItemWithWidth' in dialogs
