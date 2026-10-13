@@ -1,4 +1,4 @@
-"""Run the native home collapse publisher, reversals and border-free Edit draw branch."""
+"""Run the native home collapse publisher, reversals and backdrop-free Edit draw branch."""
 from pathlib import Path
 import subprocess
 import sys
@@ -51,7 +51,7 @@ class HomeMotionCheck {
   int getTop(){return 30;}int getRight(){return 76;}int getBottom(){return 74;}float getAlpha(){return alpha;}}
  static class Material {float top=1,bottom=1;int alpha,draws;void setStrokeWidth(float t,float b){top=t;bottom=b;}
   void setBounds(int l,int t,int r,int b){}void setAlpha(int a){alpha=a;}void draw(Object c){draws++;}}
- static class Bar {boolean nebulaHomeTabsGlass=true;Material glassDrawableHomeLeading=new Material();
+ static class Bar {boolean nebulaHomeTabsGlass=true,nebulaHomeLayout=true;Material glassDrawableHomeLeading=new Material();
   View nebulaHomeLeadingView=new View();Object canvas=new Object();void draw(){
 ''' + leading + '''
  }}
@@ -101,8 +101,7 @@ class HomeMotionCheck {
   check(a!=b && Math.abs(a-b)<.01f,"Fractional movement snaps to integer pixels");
   Bar edit=new Bar();for(int frame=0;frame<=100;frame++){
    edit.glassDrawableHomeLeading.top=edit.glassDrawableHomeLeading.bottom=1;edit.nebulaHomeLeadingView.alpha=frame/100f;
-   edit.draw();check(edit.glassDrawableHomeLeading.top==0 && edit.glassDrawableHomeLeading.bottom==0,"Theme update restores button border");
-   check(edit.glassDrawableHomeLeading.alpha==Math.round(255*frame/100f),"Fill/blur fade lost");
+   edit.draw();check(edit.glassDrawableHomeLeading.draws==0,"Home Edit retains a separate material background");
   }
   edit.nebulaHomeLeadingView.visibility=8;int before=edit.glassDrawableHomeLeading.draws;edit.draw();check(before==edit.glassDrawableHomeLeading.draws,"Hidden Edit still draws");
   Glass g=new Glass();g.setStrokeWidth(0,0);check(g.boundProps.builds==1 && g.invalidations==1,"Cached outline geometry survives width change");
@@ -171,7 +170,7 @@ class HomeMotionCheck {
   }
   check(escapedFrames>0,"Fixture never reproduces rings outside the moving 81 dp layer");
   System.out.println(escapedFrames+" moving-layer escape frames remain unclipped; classic fade preserved");
-  System.out.println(cases+" native shared-frame/reversal cases and 101 border-free Edit frames passed");
+  System.out.println(cases+" native shared-frame/reversal cases and 101 backdrop-free Edit frames passed");
   System.out.println(poses+" full-ring trajectory poses avoid title/Edit collisions, including overscroll and narrow toolbars");
  }
 }'''

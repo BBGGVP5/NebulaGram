@@ -1,0 +1,35 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
+index dfaa6f9..959a4df 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
+@@ -2715,7 +2715,7 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
+                     && (!isNebulaSharedHeaderGlass() || glassDrawable.getAlpha() > 0)
+                     && !((nebulaClassicSavedHeader || nebulaFloatingChatHeader && !app.nebulagram.ui.NebulaAppearance.chatHeader()) && actionModeFactor == 0f && searchFactor == 0f)) glassDrawable.draw(canvas);
+         }
+-        if (nebulaHomeTabsGlass && glassDrawableHomeLeading != null && nebulaHomeLeadingView != null
++        if (nebulaHomeTabsGlass && glassDrawableHomeLeading != null && !nebulaHomeLayout && nebulaHomeLeadingView != null
+                 && nebulaHomeLeadingView.getVisibility() == VISIBLE) {
+             glassDrawableHomeLeading.setBounds(nebulaHomeLeadingView.getLeft(), nebulaHomeLeadingView.getTop(),
+                     nebulaHomeLeadingView.getRight(), nebulaHomeLeadingView.getBottom());
+@@ -2723,7 +2723,7 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
+             glassDrawableHomeLeading.setStrokeWidth(0f, 0f);
+             glassDrawableHomeLeading.draw(canvas);
+         }
+-        final boolean nebulaPlainHeaderButtons = (nebulaHomeGlass || isNebulaSharedHeaderGlass()) && !nebulaHomeTabsGlass
++        final boolean nebulaPlainHeaderButtons = nebulaHomeLayout || (nebulaHomeGlass || isNebulaSharedHeaderGlass()) && !nebulaHomeTabsGlass
+                 || nebulaFloatingChatHeader || nebulaClassicSavedHeader || nebulaSavedMessagesHeader;
+         if (glassDrawableBack != null && nebulaHomeTabsGlass && actionModeFactor > 0f
+                 && actionMode != null && actionMode.getChildCount() > 0) {
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
+index 629bcb4..d2b655f 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
+@@ -935,7 +935,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+ 
+         @Override
+         public void drawBlurRect(Canvas canvas, float y, Rect rectTmp, Paint blurScrimPaint, boolean top) {
+-            if (top && actionBar != null && actionBar.isNebulaSharedHeaderGlass() && !actionBar.isNebulaHomeTabsGlass()) {
++            if (top && actionBar != null && actionBar.isNebulaSharedHeaderGlass()) {
+                 if (nebulaHeaderGlass == null) {
+                     nebulaHeaderGlass = iBlur3FactoryLiquidGlass.create(this, BlurredBackgroundProviderImpl.topPanel(resourceProvider));
+                     nebulaHeaderGlass.setPadding(0);

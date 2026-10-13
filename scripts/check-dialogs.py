@@ -138,6 +138,19 @@ public class AlertDialog implements DialogInterface {
     'app/nebulagram/ui/NebulaText.java': '''package app.nebulagram.ui;
 public class NebulaText {public static String text(String ru,String en){return en;}}
 ''',
+    'org/telegram/ui/ActionBar/BottomSheet.java': '''package org.telegram.ui.ActionBar;
+public class BottomSheet {
+ public static BottomSheet shown;public boolean visible;public Runnable onDismiss;public java.util.function.IntConsumer selected;
+ public void show(){shown=this;visible=true;}public void dismiss(){if(!visible)return;visible=false;if(onDismiss!=null)onDismiss.run();}
+ public void setOnDismissListener(Runnable listener){onDismiss=listener;}
+ public void select(int index){if(!visible)return;dismiss();selected.accept(index);}
+}''',
+    'app/nebulagram/ui/NebulaRoundCameraSheet.java': '''package app.nebulagram.ui;
+public class NebulaRoundCameraSheet {
+ public static org.telegram.ui.ActionBar.BottomSheet create(android.content.Context c,org.telegram.ui.ActionBar.Theme.ResourcesProvider p,boolean front,java.util.function.IntConsumer selected){
+  org.telegram.ui.ActionBar.BottomSheet sheet=new org.telegram.ui.ActionBar.BottomSheet();sheet.selected=selected;return sheet;
+ }
+}''',
     'DialogCheck.java': '''import app.nebulagram.ui.*;import android.content.*;import android.widget.*;import android.view.*;
 import android.graphics.drawable.*;import android.view.accessibility.*;import org.telegram.ui.ActionBar.*;
 import org.telegram.messenger.*;
@@ -190,8 +203,8 @@ public class DialogCheck {
   popup(confirmation,null);check(confirmation.content==null,"confirmation uses native content without duplicate scrolling or padding");confirmation.press(-2);
   for(int action:new int[]{0,1,2,3,4}){
    int[] started={0},cancelled={0};NebulaRoundCamera.askForRecording(context,null,()->started[0]++,()->cancelled[0]++);
-   AlertDialog d=AlertDialog.shown;popup(d,null);
-   if(action<2)group(d).children.get(action).performClick();else if(action==2)d.press(-2);else d.dismiss();
+   BottomSheet d=BottomSheet.shown;
+   if(action<2){d.select(action);d.select(action);}else {d.dismiss();d.dismiss();}
    AndroidUtilities.drain();check(started[0]==(action<2?1:0)&&cancelled[0]==(action<2?0:1),"camera starts only on selection; negative/back/outside cancel once");
    if(action<2)check(NebulaRoundCamera.frontface(false)==(action==0),"selected camera remembered");
   }

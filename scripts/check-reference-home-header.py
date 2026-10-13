@@ -140,8 +140,10 @@ assert 'nebulaHomeComposeItem = menu.addItemWithWidth' in dialogs
 assert 'nebula_header_add_story' in dialogs and 'nebula_header_compose' in dialogs
 assert 'checkUi_nebulaHomeActions()' in dialogs
 assert 'nebulaHomeEditButton.setOnLongClickListener' in dialogs, 'Home options became inaccessible'
-assert 'isNebulaSharedHeaderGlass() && !actionBar.isNebulaHomeTabsGlass()' in dialogs, 'Home still paints the whole rounded glass panel'
-assert 'glassDrawableHomeLeading.draw(canvas)' in bar, 'Edit has no separate glass backing'
+assert 'if (top && actionBar != null && actionBar.isNebulaSharedHeaderGlass())' in dialogs, 'Home lost its shared rounded header surface'
+assert 'nebulaHeaderGlass.setRadius(0, 0, dp(22), dp(22))' in dialogs
+assert 'glassDrawableHomeLeading != null && !nebulaHomeLayout' in bar, 'Home Edit retains a separate backing'
+assert 'nebulaPlainHeaderButtons = nebulaHomeLayout ||' in bar, 'Home right actions retain material fills'
 assert 'nebulaHomeTabsGlass && actionModeFactor < 0.01f' in bar
 assert 'getBoolean("home_chats_title", false)' in (ui/'NebulaAppearance.java').read_text(encoding='utf-8')
 assert '!NebulaAppearance.homeChatsTitle() && NebulaAppearance.folderTitle()' in (ui/'NebulaDialogsTitle.java').read_text(encoding='utf-8')

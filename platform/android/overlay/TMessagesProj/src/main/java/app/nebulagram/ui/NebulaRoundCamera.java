@@ -3,7 +3,7 @@ package app.nebulagram.ui;
 import android.content.SharedPreferences;
 
 import org.telegram.messenger.ApplicationLoader;
-import org.telegram.ui.ActionBar.AlertDialog;
+import org.telegram.ui.ActionBar.BottomSheet;
 
 /**
  * С какой камеры открывается видеосообщение — «кружок».
@@ -55,21 +55,16 @@ public final class NebulaRoundCamera {
             return;
         }
         final boolean[] selected = {false};
-        AlertDialog dialog = new NebulaDialog.Builder(context, provider)
-                .setTitle(NebulaText.text("Камера кружка", "Round video camera"))
-                .setSelectedIndex(prefs().getBoolean(KEY_LAST, true) ? 0 : 1).setItems(new CharSequence[]{
-                        NebulaText.text("Фронтальная", "Front"),
-                        NebulaText.text("Основная", "Rear"),
-                }, (choiceDialog, which) -> {
+        BottomSheet dialog = NebulaRoundCameraSheet.create(context, provider,
+                prefs().getBoolean(KEY_LAST, true), which -> {
                     selected[0] = true;
                     remember(which == 0);
                     onSelected.run();
-                })
-                .setNegativeButton(NebulaText.text("Отмена", "Cancel"), null)
-                .show();
-        dialog.setOnDismissListener(dismissedDialog -> org.telegram.messenger.AndroidUtilities.runOnUIThread(() -> {
+                });
+        dialog.setOnDismissListener((Runnable) () -> org.telegram.messenger.AndroidUtilities.runOnUIThread(() -> {
             if (!selected[0]) onCancel.run();
         }));
+        dialog.show();
     }
 
     /**

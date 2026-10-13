@@ -44,6 +44,10 @@ def build():
   public interface Progress {void text(String s);void status(String s);}public NebulaLocalTranscription(boolean a,String l){}public void cancel(){}
   public String transcribe(java.io.File f,Progress p){throw new IllegalStateException("No recognition request in widget QA");}public static String errorText(Exception e){return "QA";}
  }'''
+ stubs['org/telegram/ui/ActionBar/Theme.java']='''package org.telegram.ui.ActionBar;public class Theme {
+  public interface ResourcesProvider{}public static int key_dialogBackground=0,key_dialogTextBlack=1,key_dialogTextGray=2,key_dialogTextBlue=3;
+  public static int getColor(int key,ResourcesProvider r){app.nebulagram.ui.NebulaTheme t=app.nebulagram.ui.NebulaTheme.of(null);return key==0?t.modalSurface():key==1?t.onSurface():key==2?t.onSurfaceVariant():t.primary();}
+ }'''
  for name,source in stubs.items():write(name,source)
  write('app/nebulagram/uiqa/MainActivity.java',r'''package app.nebulagram.uiqa;
 import android.app.*;import android.os.*;import android.view.*;import android.widget.*;import app.nebulagram.ui.*;import org.telegram.messenger.*;
@@ -61,6 +65,7 @@ public class MainActivity extends Activity {
    if(bounds.height!=height||bounds.topMargin!=top){bounds.height=height;bounds.topMargin=top;root.setLayoutParams(bounds);}return insets;
   });
   decor.post(decor::requestApplyInsets);
+  if(getIntent().getBooleanExtra("camera",false)){showCamera();return;}
   TextView title=new TextView(this);title.setText("Предпросмотр записи · QA\nБез запросов к сервисам");title.setTextColor(NebulaTheme.of(this).onSurface());title.setTextSize(18);title.setPadding(dp(16),dp(18),dp(16),0);root.addView(title,new FrameLayout.LayoutParams(-1,-2));
   LinearLayout recorder=new LinearLayout(this);recorder.setGravity(Gravity.CENTER_VERTICAL);recorder.setPadding(dp(12),0,dp(12),0);
   TextView waveform=NebulaAiPanelUi.button(this,"▶  ▂ ▅ ▃ ▆ ▁ ▄  00:14",false,v->{});recorder.addView(waveform,new LinearLayout.LayoutParams(0,dp(54),1));
@@ -85,6 +90,27 @@ public class MainActivity extends Activity {
    }catch(Exception e){throw new RuntimeException(e);}if(!isFinishing()&&!isDestroyed())root.postDelayed(this,333);}},1400);
   });
  }
+ private void showCamera(){
+  boolean front=!getIntent().getStringExtra("case").contains("rear");
+  ScrollView sheet=NebulaRoundCameraSheet.content(this,null,front,index->{},()->{});
+  root.addView(sheet,new FrameLayout.LayoutParams(-1,-2,Gravity.BOTTOM));
+  int[] clicks={0},closes={0};
+  ScrollView detached=NebulaRoundCameraSheet.content(this,null,front,index->{if(index!=1)throw new AssertionError("Wrong camera index");clicks[0]++;},()->closes[0]++);
+  View rear=(View)findText(detached,"Основная").getParent().getParent();rear.performClick();rear.performClick();
+  findDescription(detached,"Закрыть").performClick();
+  if(clicks[0]!=1||closes[0]!=1)throw new AssertionError("Camera callback duplicated or close inaccessible");
+  root.postDelayed(new Runnable(){public void run(){try{
+   TextView frontLabel=findText(root,"Фронтальная"),rearLabel=findText(root,"Основная");
+   View frontRow=(View)frontLabel.getParent().getParent(),rearRow=(View)rearLabel.getParent().getParent();
+   org.json.JSONObject report=new org.json.JSONObject();report.put("case",getIntent().getStringExtra("case"));
+   report.put("camera",true);report.put("dark",NebulaTheme.dark);report.put("scale",getResources().getConfiguration().fontScale);report.put("keyboardRequested",false);
+   report.put("titleVisible",fullyVisible(findText(root,"Камера кружка")));report.put("frontVisible",fullyVisible(frontRow));report.put("rearVisible",fullyVisible(rearRow));
+   report.put("closeVisible",fullyVisible(findDescription(root,"Закрыть")));report.put("frontSelected",frontRow.isSelected());report.put("rearSelected",rearRow.isSelected());
+   report.put("callbackCount",clicks[0]);report.put("closeCount",closes[0]);report.put("sheetHeight",sheet.getHeight());
+   java.io.FileOutputStream out=openFileOutput("layout.json",0);out.write(report.toString().getBytes(java.nio.charset.StandardCharsets.UTF_8));out.close();
+  }catch(Exception e){throw new RuntimeException(e);}if(!isFinishing()&&!isDestroyed())root.postDelayed(this,333);}},1400);
+ }
+ private View findDescription(View v,String text){if(text.equals(v.getContentDescription()))return v;if(v instanceof ViewGroup){ViewGroup g=(ViewGroup)v;for(int i=0;i<g.getChildCount();i++){View child=findDescription(g.getChildAt(i),text);if(child!=null)return child;}}return null;}
  private EditText findEditor(View v){if(v instanceof EditText)return (EditText)v;if(v instanceof ViewGroup){ViewGroup group=(ViewGroup)v;for(int i=0;i<group.getChildCount();i++){EditText e=findEditor(group.getChildAt(i));if(e!=null)return e;}}return null;}
  private TextView findText(View v,String text){if(v instanceof TextView&&text.contentEquals(((TextView)v).getText()))return (TextView)v;if(v instanceof ViewGroup){ViewGroup g=(ViewGroup)v;for(int i=0;i<g.getChildCount();i++){TextView t=findText(g.getChildAt(i),text);if(t!=null)return t;}}return null;}
  private boolean fullyVisible(View v){if(v==null||v.getHeight()==0)return false;android.graphics.Rect r=new android.graphics.Rect();return v.getGlobalVisibleRect(r)&&r.width()>=v.getWidth()-1&&r.height()>=v.getHeight()-1;}
@@ -94,7 +120,7 @@ public class MainActivity extends Activity {
  tools=sorted((p for p in (SDK/'build-tools').iterdir() if re.fullmatch(r'\d+(?:\.\d+)*',p.name) and p.is_dir() and ((p/'aapt2').exists() or (p/'aapt2.exe').exists())),key=lambda p:tuple(map(int,p.name.split('.'))))[-1]
  def tool(name):return tools/(name+('.exe' if os.name=='nt' and name=='aapt2' else '.bat' if os.name=='nt' else ''))
  classes=WORK/'classes';classes.mkdir(exist_ok=True)
- production=['NebulaDraftVoicePolicy.java','NebulaDraftVoiceTranscription.java','NebulaDraftVoiceInlineHost.java','NebulaAiPanelUi.java','NebulaLocalAudioDecoder.java','NebulaLocalAudioPolicy.java','NebulaPcmResampler.java']
+ production=['NebulaDraftVoicePolicy.java','NebulaDraftVoiceTranscription.java','NebulaDraftVoiceInlineHost.java','NebulaAiPanelUi.java','NebulaLocalAudioDecoder.java','NebulaLocalAudioPolicy.java','NebulaPcmResampler.java','NebulaRoundCameraSheet.java']
  run('javac','-encoding','UTF-8','-source','17','-target','17','-cp',platform,'-d',classes,*list((WORK/'src').rglob('*.java')),*[UI/n for n in production])
  jar=WORK/'widgets.jar';run('jar','cf',jar,'-C',classes,'.');run(tool('d8'),'--lib',platform,'--min-api','26','--output',WORK,jar)
  manifest=WORK/'AndroidManifest.xml';manifest.write_text('<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="app.nebulagram.uiqa"><uses-sdk android:minSdkVersion="26" android:targetSdkVersion="35"/><application android:debuggable="true" android:label="Nebula widget QA" android:theme="@android:style/Theme.Material.Light.NoActionBar"><activity android:name=".MainActivity" android:exported="true" android:windowSoftInputMode="adjustResize"><intent-filter><action android:name="android.intent.action.MAIN"/><category android:name="android.intent.category.LAUNCHER"/></intent-filter></activity></application></manifest>')
@@ -115,11 +141,12 @@ def render():
  device('install','-r',WORK/'widgets.apk')
  output=WORK/'screenshots';output.mkdir(exist_ok=True)
  try:
-  for name,width,dark,scale,keyboard in [('dark',1080,True,1,False),('light',1080,False,1,False),('narrow-large',840,True,1.3,False),('keyboard',1080,True,1,True)]:
+  for name,width,dark,scale,keyboard in [('dark',1080,True,1,False),('light',1080,False,1,False),('narrow-large',840,True,1.3,False),('keyboard',1080,True,1,True),('camera-dark-front',1080,True,1,False),('camera-light-rear',1080,False,1,False),('camera-narrow-large-rear',840,True,1.3,False)]:
    device('shell','am','force-stop','app.nebulagram.uiqa')
    device('shell','wm','size',f'{width}x1920');device('shell','wm','density','420');device('shell','settings','put','system','font_scale',str(scale));time.sleep(3)
    device('shell','input','keyevent','KEYCODE_WAKEUP');device('shell','wm','dismiss-keyguard')
-   device('shell','am','start','-W','-n','app.nebulagram.uiqa/.MainActivity','--es','case',name,'--ez','dark',str(dark).lower(),'--ez','keyboard',str(keyboard).lower())
+   camera=name.startswith('camera-')
+   device('shell','am','start','-W','-n','app.nebulagram.uiqa/.MainActivity','--es','case',name,'--ez','dark',str(dark).lower(),'--ez','keyboard',str(keyboard).lower(),'--ez','camera',str(camera).lower())
    report=None
    for attempt in range(15):
     time.sleep(1)
@@ -139,9 +166,14 @@ def render():
      if report['imeVisible']:break
     assert report['imeVisible'],'Keyboard was requested but not actually shown'
    with (output/(name+'.png')).open('wb') as f:device('exec-out','screencap','-p',stdout=f)
-   assert report['editorWidth']>0 and report['editorHeight']>0,report
-   assert report['voiceChoiceVisible'] and report['textChoiceVisible'] and report['editorVisible'],report
-   if not keyboard:assert report['retryVisible'],report
+   if camera:
+    assert report.get('camera') and report['titleVisible'] and report['frontVisible'] and report['rearVisible'] and report['closeVisible'],report
+    assert report['frontSelected']==('front' in name) and report['rearSelected']==('rear' in name),report
+    assert report['callbackCount']==1 and report['closeCount']==1,report
+   else:
+    assert report['editorWidth']>0 and report['editorHeight']>0,report
+    assert report['voiceChoiceVisible'] and report['textChoiceVisible'] and report['editorVisible'],report
+    if not keyboard:assert report['retryVisible'],report
    (output/(name+'.json')).write_text(json.dumps(report,indent=2)+'\n')
   crash=subprocess.check_output([str(adb),'-s',serials[0],'logcat','-d','-b','crash'],text=True)
   (output/'crash.log').write_text(crash)
