@@ -5,7 +5,7 @@ load("@build_bazel_rules_apple//apple:ios.bzl", "ios_build_test")
 # Apply the same Apple platform transition as an iOS bundle, without packaging one.
 ios_build_test(
     name = "NebulaIntegrationChecks",
-    minimum_os_version = "13.0",
+    minimum_os_version = "15.0",
     targets = [
         "//Telegram:Lib",
         "//Telegram:WidgetExtensionLib",
