@@ -80,11 +80,14 @@ public class MainActivity extends Activity {
     boolean ime=Build.VERSION.SDK_INT>=30&&root.getRootWindowInsets()!=null&&root.getRootWindowInsets().isVisible(WindowInsets.Type.ime());report.put("imeVisible",ime);
     android.graphics.Rect editorRect=new android.graphics.Rect();if(edit!=null)edit.getGlobalVisibleRect(editorRect);
     report.put("editorLeft",editorRect.left);report.put("editorTop",editorRect.top);report.put("editorRight",editorRect.right);report.put("editorBottom",editorRect.bottom);
+    report.put("voiceChoiceVisible",fullyVisible(findText(root,"Голосовое")));report.put("textChoiceVisible",fullyVisible(findText(root,"Текст")));report.put("retryVisible",fullyVisible(findText(root,"Повторить")));report.put("editorVisible",fullyVisible(edit));
     java.io.FileOutputStream out=openFileOutput("layout.json",0);out.write(report.toString().getBytes(java.nio.charset.StandardCharsets.UTF_8));out.close();
    }catch(Exception e){throw new RuntimeException(e);}if(!isFinishing()&&!isDestroyed())root.postDelayed(this,333);}},1400);
   });
  }
  private EditText findEditor(View v){if(v instanceof EditText)return (EditText)v;if(v instanceof ViewGroup){ViewGroup group=(ViewGroup)v;for(int i=0;i<group.getChildCount();i++){EditText e=findEditor(group.getChildAt(i));if(e!=null)return e;}}return null;}
+ private TextView findText(View v,String text){if(v instanceof TextView&&text.contentEquals(((TextView)v).getText()))return (TextView)v;if(v instanceof ViewGroup){ViewGroup g=(ViewGroup)v;for(int i=0;i<g.getChildCount();i++){TextView t=findText(g.getChildAt(i),text);if(t!=null)return t;}}return null;}
+ private boolean fullyVisible(View v){if(v==null||v.getHeight()==0)return false;android.graphics.Rect r=new android.graphics.Rect();return v.getGlobalVisibleRect(r)&&r.width()>=v.getWidth()-1&&r.height()>=v.getHeight()-1;}
  protected void onDestroy(){if(preview!=null)preview.cancel();super.onDestroy();}
 }''')
  platform=sorted((p for p in (SDK/'platforms').glob('android-*/android.jar') if re.fullmatch(r'android-\d+(?:\.\d+)*',p.parent.name)),key=lambda p:tuple(map(int,p.parent.name[8:].split('.'))))[-1]
@@ -137,6 +140,8 @@ def render():
     assert report['imeVisible'],'Keyboard was requested but not actually shown'
    with (output/(name+'.png')).open('wb') as f:device('exec-out','screencap','-p',stdout=f)
    assert report['editorWidth']>0 and report['editorHeight']>0,report
+   assert report['voiceChoiceVisible'] and report['textChoiceVisible'] and report['editorVisible'],report
+   if not keyboard:assert report['retryVisible'],report
    (output/(name+'.json')).write_text(json.dumps(report,indent=2)+'\n')
   crash=subprocess.check_output([str(adb),'-s',serials[0],'logcat','-d','-b','crash'],text=True)
   (output/'crash.log').write_text(crash)
