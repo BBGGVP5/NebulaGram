@@ -49,7 +49,7 @@ if (recordingAudioVideo || recordCircle.isSendButtonVisible()) {
 - [x] Implement the iOS inline preview, common native payment/scheduling/send action and compact AI/audio presentation. Preserve draft/trim/account/service ownership, reviewed text, original voice and native message transforms. Native compilation and device acceptance remain pending.
 
 - [ ] Apply the complete ordered patch series to the committed 12.10.6 pin in a fresh owned tree; verify vendor HEAD/status are preserved.
-- [ ] Render the production new views in a QA activity on a read-only emulator: light/dark, narrow/normal width, larger font, loading/error/result and keyboard-visible states. Inspect saved screenshots and fix clipping/spacing. Label this separately from real-device ASR acceptance.
+- [x] Rendered the actual Android Aa widgets on the isolated CI emulator: light/dark, narrow width, font scale 1.3 and visible IME. Inspected images and fixed clipped retry/format controls. The QA recording host models native keyboard movement; this is widget geometry evidence, not full application/device ASR acceptance.
 - [x] All 106 Android interface/regression checks pass against the owned pinned tree; native C++ account slots were syntax-checked locally and remain runtime-tested in Linux CI.
 - [x] Android and iOS source upgrade are committed and pushed to main/working branch.
 - [x] Signed APK 1000516, run 38397138020, downloaded and verified: source 98d6d76759adc6b5464ed748e4ba8eb84606d146, certificate a08d7dc323ddf71ef3201944397e0d3cce7d40847263e11f328b68bbe19229ab, arm64-v8a, SHA256 6c23db2a960c394f18d9b3b587ff70aaed91cacd550108b183e8595452987761. No physical device test; the read-only emulator did not boot.
