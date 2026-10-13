@@ -96,21 +96,25 @@ public final class NebulaDraftVoiceTranscription {
             public void afterTextChanged(android.text.Editable e){}
         });
         if(inline!=null) {
+            ScrollView content=NebulaAiPanelUi.scroll(context,body);
             if(inline instanceof NebulaDraftVoiceInlineHost) {
                 NebulaDraftVoiceInlineHost recorder=(NebulaDraftVoiceInlineHost)inline;
                 recorder.onDismiss(this::cancel);
                 java.util.function.IntConsumer viewport=height->{
                     if(closed)return;
                     boolean compact=height<NebulaAiPanelUi.dp(240)&&transcript.hasFocus();
+                    boolean modeChanged=(header.getVisibility()==View.GONE)!=compact;
                     header.setVisibility(compact?View.GONE:View.VISIBLE);footer.setVisibility(compact?View.GONE:View.VISIBLE);
                     body.setPadding(NebulaAiPanelUi.dp(14),NebulaAiPanelUi.dp(compact?8:12),NebulaAiPanelUi.dp(14),NebulaAiPanelUi.dp(compact?8:12));
                     LinearLayout.LayoutParams params=(LinearLayout.LayoutParams)choices.getLayoutParams();
                     int margin=NebulaAiPanelUi.dp(compact?0:10);if(params.topMargin!=margin){params.topMargin=margin;choices.setLayoutParams(params);}
+                    transcript.setHeight(compact?Math.min(NebulaAiPanelUi.dp(96),Math.max(NebulaAiPanelUi.dp(48),height-NebulaAiPanelUi.dp(76))):NebulaAiPanelUi.dp(96));
+                    if(modeChanged)content.scrollTo(0,0);
                 };
                 recorder.onHeightChanged(viewport);
                 transcript.setOnFocusChangeListener((v,focused)->viewport.accept(recorder.availableHeight()));
             }
-            inline.show(NebulaAiPanelUi.scroll(context,body));
+            inline.show(content);
         }
         else {
             apply=NebulaAiPanelUi.button(context,NebulaText.text("Использовать текст","Use text"),true,v->{
