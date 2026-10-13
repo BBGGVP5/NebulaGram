@@ -30,9 +30,10 @@ public final class NebulaSpeechFragment extends BaseFragment {
     @Override public android.view.View createView(Context c) {
         NebulaFormUi.bar(this,actionBar,c,text("Озвучивание","Speech"));
         LinearLayout body=NebulaFormUi.column(c);
-        body.addView(new NebulaSettingsHero(c,"🔊",text("Озвучивание","Speech"),text("Выберите голос и послушайте результат.","Choose a voice and listen to the result.")));
-        input=NebulaFormUi.field(c,text("Текст для озвучивания","Text to read aloud"),1,50000);input.setSingleLine(false);input.setMinLines(3);
-        input.setText(source);body.addView(input);
+        body.addView(NebulaAiPanelUi.header(c,NebulaAiPanelUi.SPEECH,text("Текст в голос","Text to speech"),
+                text("Выберите голос и послушайте результат","Choose a voice and listen to the result"),null));
+        input=NebulaAiPanelUi.editor(c,text("Текст для озвучивания","Text to read aloud"),3);
+        input.setText(source);NebulaAiPanelUi.add(body,input,18);
         input.addTextChangedListener(new android.text.TextWatcher(){public void beforeTextChanged(CharSequence s,int start,int count,int after){}public void onTextChanged(CharSequence s,int start,int before,int count){stop();discard();refresh();}public void afterTextChanged(android.text.Editable e){}});
         NebulaCard choices=new NebulaCard(c);
         choices.add(new NebulaRow(c).title(text("Сервис","Service")).subtitle(NebulaAudioPreferences.title(true),true).trailing(NebulaRow.TRAIL_CHEVRON).withClick(v->presentFragment(new NebulaAudioSettingsFragment())));
@@ -40,10 +41,11 @@ public final class NebulaSpeechFragment extends BaseFragment {
         voiceRow=new NebulaRow(c).title(text("Голос на устройстве","Device voice")).subtitle(text("Автоматически · лучший доступный","Automatic · best available"),true).trailing(NebulaRow.TRAIL_CHEVRON).withClick(v->chooseVoice());
         if("device".equals(NebulaAudioPreferences.serviceId(true))){choices.add(languageRow);choices.add(voiceRow);}
         NebulaFormUi.group(body,text("Голос","Voice"),choices);
-        generate=NebulaFormUi.primary(c,text("Создать озвучивание","Generate speech"),v->start());body.addView(generate);
-        listen=new NebulaButton(c,NebulaButton.STYLE_TEXT);listen.setText(text("Прослушать","Listen"));listen.setOnClickListener(v->play());body.addView(listen);
-        NebulaButton stop=new NebulaButton(c,NebulaButton.STYLE_TEXT);stop.setText(text("Остановить","Stop"));stop.setOnClickListener(v->{stop();refresh();});body.addView(stop);
-        share=new NebulaButton(c,NebulaButton.STYLE_TEXT);share.setText(text("Поделиться аудио","Share audio"));share.setOnClickListener(v->share());body.addView(share);
+        generate=NebulaFormUi.primary(c,text("Создать озвучивание","Generate speech"),v->start());NebulaAiPanelUi.styleButton(generate,true);NebulaAiPanelUi.add(body,generate,16);
+        listen=new NebulaButton(c,NebulaButton.STYLE_TEXT);listen.setText(text("Прослушать","Listen"));listen.setOnClickListener(v->play());NebulaAiPanelUi.styleButton(listen,false);
+        NebulaButton stop=new NebulaButton(c,NebulaButton.STYLE_TEXT);stop.setText(text("Стоп","Stop"));stop.setOnClickListener(v->{stop();refresh();});NebulaAiPanelUi.styleButton(stop,false);
+        share=new NebulaButton(c,NebulaButton.STYLE_TEXT);share.setText(text("Поделиться","Share"));share.setOnClickListener(v->share());NebulaAiPanelUi.styleButton(share,false);
+        NebulaAiPanelUi.add(body,NebulaAiPanelUi.actions(c,listen,stop,share),10);
         status=NebulaFormUi.note(c,"");body.addView(status);
         body.addView(NebulaFormUi.note(c,text("Облачный голос создан ИИ. Текст отправится выбранному сервису только после нажатия. Системные голоса могут требовать установленный языковой пакет или сеть. Аудио отправляется через обычное меню «Поделиться».","Cloud speech is AI-generated. Text is sent to the selected service only after tapping. Device voices may require an installed language pack or network. Audio is shared using the standard share menu.")));
         refresh();return fragmentView=NebulaSettingsLayout.wrap(c,actionBar,NebulaFormUi.scroll(c,body),-12);

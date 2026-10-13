@@ -60,6 +60,9 @@ public final class NebulaMessageToolsFragment extends BaseFragment {
     private View copyResult, stopAction;
     private boolean speechRequested;
     private boolean transcriptionRequested;
+    private boolean audioPopup;
+    private NebulaAiPanelUi.Glyph audioGlyph;
+    private View audioResultActions;
     public NebulaMessageToolsFragment transcribeOnOpen(){transcriptionRequested=true;return this;}
     private String lastResult = "";
     private CharSequence lastRichResult = "";
@@ -84,7 +87,10 @@ public final class NebulaMessageToolsFragment extends BaseFragment {
             actionBar.setOccupyStatusBar(false);
             actionBar.setBackButtonImage(R.drawable.ic_close_white);
         }
-        if (popup) return createPopup(c);
+        if (popup) {
+            audioPopup=transcriptionRequested&&message!=null&&(message.isVoice()||message.isRoundVideo()||message.isVideo());
+            return audioPopup?createAudioPopup(c):createPopup(c);
+        }
         LinearLayout column = NebulaFormUi.column(c);
         ScrollView scroll = contentScroll = NebulaFormUi.scroll(c, column);
         if (!popup) column.addView(new NebulaSettingsHero(c, "🧰", t("Инструменты текста", "Text tools"), t("Перевод, ИИ, озвучивание и задачи в одном месте.", "Translation, AI, reading aloud and tasks in one place.")));
@@ -202,6 +208,49 @@ public final class NebulaMessageToolsFragment extends BaseFragment {
         return view;
     }
     /** Compact editor sheet: modes above the text, Apply always within reach. */
+    private View createAudioPopup(Context c) {
+        NebulaTheme theme=NebulaTheme.of(c);
+        actionBar.setTitle(t("Распознавание","Transcription"));
+        LinearLayout root=NebulaAiPanelUi.column(c,false);
+        LinearLayout header=NebulaAiPanelUi.header(c,NebulaAiPanelUi.VOICE,
+                message.isVoice()?t("Голосовое в текст","Voice to text"):t("Речь из видео","Speech from video"),
+                NebulaAudioPreferences.title(false),null);
+        audioGlyph=(NebulaAiPanelUi.Glyph)header.getChildAt(0);
+        header.getChildAt(1).setOnClickListener(v->presentFragment(new NebulaAudioSettingsFragment()));
+        header.getChildAt(1).setContentDescription(t("Выбрать сервис распознавания","Choose recognition service"));
+        root.addView(header);
+        LinearLayout column=new LinearLayout(c);column.setOrientation(LinearLayout.VERTICAL);
+        contentScroll=NebulaAiPanelUi.scroll(c,column);
+        LinearLayout.LayoutParams scrollParams=new LinearLayout.LayoutParams(-1,0,1);scrollParams.topMargin=dp(16);
+        root.addView(contentScroll,scrollParams);
+        input=NebulaAiPanelUi.editor(c,t("Исходная расшифровка","Original transcript"),3);
+        input.setText(sourceText(input));input.setVisibility(View.GONE);column.addView(input);
+        if(targetLanguage==null)targetLanguage=TranslateController.currentLanguage();
+        if(targetLanguage==null||targetLanguage.isEmpty())targetLanguage="en";
+        target=new NebulaRow(c).title(t("Язык перевода","Translation language")).subtitle(languageLabel(),true)
+                .trailing(NebulaRow.TRAIL_CHEVRON).withClick(v->chooseLanguage());
+        NebulaAiPanelUi.add(column,target,0);
+        resultSection=new LinearLayout(c);resultSection.setOrientation(LinearLayout.VERTICAL);
+        NebulaCard result=new NebulaCard(c);result.setBackground(NebulaAiPanelUi.shape(theme.surfaceContainer(),22));
+        LinearLayout resultHeader=new LinearLayout(c);resultHeader.setGravity(android.view.Gravity.CENTER_VERTICAL);
+        TextView label=NebulaAiPanelUi.caption(c,t("Расшифровка","Transcript"));label.setTypeface(AndroidUtilities.bold());
+        label.setPadding(dp(16),dp(12),0,dp(10));resultHeader.addView(label,new LinearLayout.LayoutParams(0,-2,1));
+        ImageView copy=new ImageView(c);copy.setImageResource(R.drawable.msg_copy);copy.setColorFilter(theme.primary());
+        copy.setScaleType(ImageView.ScaleType.CENTER);copy.setContentDescription(t("Скопировать текст","Copy text"));
+        copy.setOnClickListener(v->{if(!lastResult.isEmpty())AndroidUtilities.addToClipboard(lastRichResult);});
+        copyResult=copy;copy.setVisibility(View.GONE);resultHeader.addView(copy,new LinearLayout.LayoutParams(dp(48),dp(48)));
+        result.addView(resultHeader);output=resultView(c);output.setTextSize(17);output.setMinHeight(dp(120));
+        output.setAccessibilityLiveRegion(View.ACCESSIBILITY_LIVE_REGION_POLITE);
+        result.addView(output,new LinearLayout.LayoutParams(-1,-2));addAudioResultActions(result,c);
+        resultSection.addView(result);NebulaAiPanelUi.add(column,resultSection,12);
+        NebulaButton stop=new NebulaButton(c,NebulaButton.STYLE_TEXT);stop.setText(t("Остановить","Stop"));
+        stop.setOnClickListener(v->cancel());NebulaAiPanelUi.styleButton(stop,false);stop.setVisibility(View.GONE);
+        stopAction=stop;NebulaAiPanelUi.add(root,stop,10);
+        primaryAction=new NebulaButton(c,NebulaButton.STYLE_FILLED);NebulaAiPanelUi.styleButton(primaryAction,true);
+        primaryAction.setOnClickListener(v->transcribe());NebulaAiPanelUi.add(root,primaryAction,10);
+        updatePrimary();observeInput();
+        return fragmentView=NebulaSettingsLayout.wrap(c,actionBar,root);
+    }
     private View createPopup(Context c) {
         NebulaTheme theme = NebulaTheme.of(c);
         actionBar.setTitle("Nebula AI");
@@ -241,7 +290,7 @@ public final class NebulaMessageToolsFragment extends BaseFragment {
         TextView originalTitle = NebulaFormUi.note(c, t("Оригинал", "Original"));
         originalTitle.setTypeface(AndroidUtilities.bold()); original.addView(originalTitle);
         original.setBackground(rounded(Theme.multAlpha(theme.surfaceContainer(), .86f), 20));
-        input = NebulaFormUi.field(c, t("Введите или вставьте текст", "Type or paste text"), 1, 50000);
+        input = NebulaAiPanelUi.editor(c, t("Введите или вставьте текст", "Type or paste text"), 3);
         input.setBackground(null); input.setSingleLine(false); input.setMinLines(3); input.setMaxLines(7);
         input.setText(sourceText(input)); original.addView(input, new LinearLayout.LayoutParams(-1, -2));
         LinearLayout.LayoutParams originalParams = new LinearLayout.LayoutParams(-1, -2);
@@ -265,6 +314,7 @@ public final class NebulaMessageToolsFragment extends BaseFragment {
         stop.setOnClickListener(v -> cancel()); stopAction = stop; stop.setVisibility(View.GONE);
         root.addView(stop, new LinearLayout.LayoutParams(-1, -2));
         primaryAction = new NebulaButton(c, NebulaButton.STYLE_FILLED); primaryAction.setMinHeight(dp(48));
+        NebulaAiPanelUi.styleButton(primaryAction,true);
         primaryAction.setOnClickListener(v -> {
             if (!lastResult.isEmpty() && applyDraft != null) { applyResult(); }
             else if (selectedTool == 0) request(false);
@@ -342,6 +392,11 @@ public final class NebulaMessageToolsFragment extends BaseFragment {
     }
     private void updatePrimary() {
         if (primaryAction == null) return;
+        if(audioPopup) {
+            NebulaAiPanelUi.enabled(primaryAction,!busy);
+            primaryAction.setText(busy?t("Распознаём…","Transcribing…"):originalTranscript.isEmpty()?t("Распознать речь","Transcribe speech"):t("Распознать ещё раз","Transcribe again"));
+            return;
+        }
         primaryAction.setEnabled(!busy);
         primaryAction.setText(busy ? t("Обработка…", "Working…") : !lastResult.isEmpty() && applyDraft != null ? t("Применить", "Apply")
             : selectedTool == 0 ? t("Перевести", "Translate") : selectedTool == 1 ? t("Изменить стиль", "Change style") : t("Исправить", "Correct"));
@@ -483,8 +538,10 @@ public final class NebulaMessageToolsFragment extends BaseFragment {
         output.setText(text);
         updatePrimary();
         copyResult.setVisibility(success && text.length() > 0 ? View.VISIBLE : View.GONE);
+        if(audioResultActions!=null)audioResultActions.setVisibility(!originalTranscript.isEmpty()&&!busy?View.VISIBLE:View.GONE);
     }
     private void updateStop() {
+        if(audioGlyph!=null)audioGlyph.setBusy(busy);
         if (stopAction != null) stopAction.setVisibility(busy || speechRequested ? View.VISIBLE : View.GONE);
         updatePrimary();
     }
@@ -496,14 +553,25 @@ public final class NebulaMessageToolsFragment extends BaseFragment {
     private void addAudioResultActions(NebulaCard card, Context c) {
         if (message == null || !(message.isVoice() || message.isRoundVideo() || message.isVideo())) return;
         String[] names={t("Исходная расшифровка", "Original transcript"),t("Перевести расшифровку", "Translate transcript"),t("Краткое содержание", "Summary"),t("Озвучить результат", "Read result aloud")};
+        String[] shortNames={t("Исходный текст","Original"),t("Перевести","Translate"),t("Кратко","Summarize"),t("Озвучить","Read aloud")};
+        LinearLayout group=null,row=null;
+        if(audioPopup) {
+            group=new LinearLayout(c);group.setOrientation(LinearLayout.VERTICAL);group.setPadding(dp(12),0,dp(12),dp(12));
+            group.setVisibility(View.GONE);audioResultActions=group;card.addView(group);
+        }
         for(int i=0;i<names.length;i++){
             final int action=i; NebulaButton button=new NebulaButton(c,NebulaButton.STYLE_TEXT);button.setText(names[i]);
+            if(audioPopup){NebulaAiPanelUi.styleButton(button,false);button.setText(shortNames[i]);button.setContentDescription(names[i]);}
             button.setOnClickListener(v->{
                 if(originalTranscript.isEmpty())return;
                 if(action==3){speak();return;}
                 input.setText(originalTranscript);
                 if(action==0)showOutput(originalTranscript,true);else request(action==2);
-            });card.addView(button);
+            });
+            if(audioPopup) {
+                if(i%2==0){row=new LinearLayout(c);LinearLayout.LayoutParams rp=new LinearLayout.LayoutParams(-1,-2);rp.topMargin=dp(8);group.addView(row,rp);}
+                LinearLayout.LayoutParams bp=new LinearLayout.LayoutParams(0,-2,1);if(i%2==1)bp.leftMargin=dp(8);row.addView(button,bp);
+            }else card.addView(button);
         }
     }
     private void request(boolean summary){

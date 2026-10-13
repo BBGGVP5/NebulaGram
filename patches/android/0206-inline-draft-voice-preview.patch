@@ -1,0 +1,150 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
+index e341904..607086b 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
+@@ -1152,6 +1152,9 @@ public class ChatActivityEnterView extends FrameLayout implements
+     private app.nebulagram.ui.NebulaDraftVoiceTranscription nebulaVoiceSheet;
+     private app.nebulagram.ui.NebulaDraftVoicePolicy.Snapshot nebulaVoiceResultSource;
+     private String nebulaVoiceResult;
++    private app.nebulagram.ui.NebulaDraftVoicePolicy.Snapshot nebulaVoiceSendSource;
++    private String nebulaVoiceSendText;
++    private Object nebulaVoiceSendAttempt;
+ 
+     private app.nebulagram.ui.NebulaDraftVoicePolicy.Snapshot nebulaVoiceSnapshot() {
+         if (parentFragment == null || isPaused || recordingAudioVideo || isInVideoMode() || audioToSend == null || audioToSendPath == null) return null;
+@@ -1165,6 +1168,8 @@ public class ChatActivityEnterView extends FrameLayout implements
+     }
+ 
+     private void nebulaCancelVoiceTranscription() {
++        nebulaVoiceSendSource = null;
++        nebulaVoiceSendText = null;
+         ++nebulaVoiceRevision;
+         nebulaVoicePending = false;
+         if (nebulaVoiceSheet != null) { nebulaVoiceSheet.cancel(); nebulaVoiceSheet = null; }
+@@ -1194,10 +1199,24 @@ public class ChatActivityEnterView extends FrameLayout implements
+             parentFragment.presentFragment(new app.nebulagram.ui.NebulaAudioSettingsFragment());
+             return;
+         }
+-        if (nebulaVoiceSheet != null) nebulaVoiceSheet.cancel();
++        if (nebulaVoiceSheet != null && nebulaVoiceSheet.isShowing()) {
++            nebulaVoiceSheet.cancel();
++            nebulaVoiceSheet = null;
++            return;
++        }
+         boolean cached = source.equals(nebulaVoiceResultSource);
++        app.nebulagram.ui.NebulaDraftVoiceInlineHost inline = new app.nebulagram.ui.NebulaDraftVoiceInlineHost(this, sizeNotifierLayout, () -> {
++            if (controlsView == null || !controlsView.isShown() || pauseRect.isEmpty()) return null;
++            int[] position = new int[2];
++            controlsView.getLocationOnScreen(position);
++            return position[1] + Math.round(nebulaAaRect.isEmpty() ? pauseRect.top : Math.min(pauseRect.top, nebulaAaRect.top));
++        }, () -> {
++            nebulaVoiceSendSource = null;
++            nebulaVoiceSendText = null;
++            updateSendButtonPaid();
++        });
+         nebulaVoiceSheet = new app.nebulagram.ui.NebulaDraftVoiceTranscription(parentFragment, source, this::nebulaVoiceSnapshot,
+-            cached ? nebulaVoiceResult : null, !cached && nebulaVoiceResult != null,
++            nebulaVoiceResult, !cached && nebulaVoiceResult != null,
+             text -> {
+                 if (!source.equals(nebulaVoiceSnapshot())) return;
+                 resetRecordedState();
+@@ -1207,7 +1226,42 @@ public class ChatActivityEnterView extends FrameLayout implements
+                 if (!signature.equals(nebulaVoiceSnapshot())) return;
+                 nebulaVoiceResultSource = signature;
+                 nebulaVoiceResult = text;
+-            });
++                updateSendButtonPaid();
++            }, inline);
++        updateSendButtonPaid();
++    }
++
++    private boolean nebulaPrepareVoiceSend(boolean allowConfirm) {
++        if (allowConfirm || nebulaVoiceSendAttempt == null) {
++            nebulaVoiceSendAttempt = new Object();
++            nebulaVoiceSendSource = null;
++            nebulaVoiceSendText = null;
++            if (nebulaVoiceSheet != null && nebulaVoiceSheet.isTextSelected()) {
++                String selectedText = nebulaVoiceSheet.textForSend();
++                app.nebulagram.ui.NebulaDraftVoicePolicy.Snapshot selectedSource = nebulaVoiceSnapshot();
++                if (selectedText == null || selectedSource == null) return false;
++                nebulaVoiceSendSource = selectedSource;
++                nebulaVoiceSendText = selectedText;
++            }
++        }
++        return true;
++    }
++
++    private boolean nebulaVoiceSendCurrent(Object attempt, app.nebulagram.ui.NebulaDraftVoicePolicy.Snapshot source) {
++        return attempt == nebulaVoiceSendAttempt && (source == null
++                || source == nebulaVoiceSendSource && source.equals(nebulaVoiceSnapshot()));
++    }
++
++    private boolean nebulaApplyVoiceText(Object attempt, app.nebulagram.ui.NebulaDraftVoicePolicy.Snapshot source, String text) {
++        if (!nebulaVoiceSendCurrent(attempt, source)) return false;
++        if (source != null) {
++            nebulaVoiceSendSource = null;
++            nebulaVoiceSendText = null;
++            resetRecordedState();
++            setFieldText(text);
++            voiceOnce = false;
++        }
++        return true;
+     }
+ 
+     private android.graphics.Rect sendRect = new Rect();
+@@ -3800,8 +3854,10 @@ public class ChatActivityEnterView extends FrameLayout implements
+         if (parentFragment != null && parentFragment.messagePreviewParams != null) {
+             count += parentFragment.messagePreviewParams.getForwardedMessagesCount();
+         }
+-        if (messageEditText != null && !TextUtils.isEmpty(messageEditText.getText())) {
+-            String textFinal = SendMessagesHelper.getTrimmedString(messageEditText.getText().toString());
++        String voiceText = nebulaVoiceSendText;
++        if (voiceText == null && nebulaVoiceSheet != null && nebulaVoiceSheet.isTextSelected()) voiceText = nebulaVoiceSheet.textForSend();
++        if (voiceText != null || messageEditText != null && !TextUtils.isEmpty(messageEditText.getText())) {
++            String textFinal = SendMessagesHelper.getTrimmedString(voiceText != null ? voiceText : messageEditText.getText().toString());
+             final int limit = accountInstance.getMessagesController().getMaxMessageLength();
+             if (textFinal.length() != 0) {
+                 count += (int) Math.ceil(textFinal.length() / (float) limit);
+@@ -7492,9 +7548,14 @@ public class ChatActivityEnterView extends FrameLayout implements
+     }
+ 
+     protected boolean sendMessageInternal(boolean notify, int scheduleDate, int scheduleRepeatPeriod, long payStars, boolean allowConfirm) {
++        if (!nebulaPrepareVoiceSend(allowConfirm)) return false;
++        final Object voiceSendAttempt = nebulaVoiceSendAttempt;
++        final app.nebulagram.ui.NebulaDraftVoicePolicy.Snapshot voiceSendSource = nebulaVoiceSendSource;
++        final String voiceSendText = nebulaVoiceSendText;
+         final boolean allowConfirmFinal = allowConfirm && !animatorEphemeralMessageVisibility.getValue();
+ 
+         final Runnable send = () -> {
++            if (!nebulaVoiceSendCurrent(voiceSendAttempt, voiceSendSource)) return;
+             if (slowModeTimer == Integer.MAX_VALUE && !isInScheduleMode()) {
+                 if (delegate != null) {
+                     delegate.scrollToSendingMessage();
+@@ -7516,10 +7577,13 @@ public class ChatActivityEnterView extends FrameLayout implements
+                 }
+             }
+             if (allowConfirmFinal && showConfirmAlert(() -> {
+-                sendMessageInternal(notify, scheduleDate, scheduleRepeatPeriod, payStars, false);
++                if (nebulaVoiceSendCurrent(voiceSendAttempt, voiceSendSource)) {
++                    sendMessageInternal(notify, scheduleDate, scheduleRepeatPeriod, payStars, false);
++                }
+             })) {
+                 return;
+             }
++            if (!nebulaApplyVoiceText(voiceSendAttempt, voiceSendSource, voiceSendText)) return;
+             dismissSendPreviewSent = true;
+             if (videoToSendMessageObject != null) {
+                 delegate.needStartRecordVideo(4, notify, scheduleDate, 0, voiceOnce ? 0x7FFFFFFF : 0, effectId, payStars);
+@@ -7640,7 +7704,11 @@ public class ChatActivityEnterView extends FrameLayout implements
+             updateSendButtonPaid();
+         };
+         if (allowConfirmFinal) {
+-            boolean alertShown = AlertsCreator.ensurePaidMessageConfirmation(currentAccount, dialog_id, getMessagesCount(), starsPrice -> sendMessageInternal(notify, scheduleDate, scheduleRepeatPeriod, starsPrice, false), payStars);
++            boolean alertShown = AlertsCreator.ensurePaidMessageConfirmation(currentAccount, dialog_id, getMessagesCount(), starsPrice -> {
++                if (nebulaVoiceSendCurrent(voiceSendAttempt, voiceSendSource)) {
++                    sendMessageInternal(notify, scheduleDate, scheduleRepeatPeriod, starsPrice, false);
++                }
++            }, payStars);
+             if (alertShown && sendButtonVisible) {
+                 if (isInVideoMode()) {
+                     if (delegate.isVideoRecordingPaused())

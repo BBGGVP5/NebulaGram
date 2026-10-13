@@ -1,6 +1,7 @@
 package app.nebulagram.ui;
 
 import android.content.Context;
+import android.view.View;
 import android.view.ViewGroup;
 import android.widget.*;
 import org.telegram.messenger.AndroidUtilities;
@@ -14,6 +15,7 @@ import java.util.function.Supplier;
 
 /** Explicit Aa preview: recognizes a paused snapshot, never sends or deletes the voice. */
 public final class NebulaDraftVoiceTranscription {
+    public interface InlineHost { void show(View content); void hide(); }
     private final NebulaDraftVoicePolicy.Snapshot source;
     private final Supplier<NebulaDraftVoicePolicy.Snapshot> current;
     private final Consumer<String> useText;
@@ -23,7 +25,10 @@ public final class NebulaDraftVoiceTranscription {
     private BottomSheet sheet;
     private EditText transcript;
     private TextView status;
-    private NebulaButton retry, apply;
+    private TextView retry, apply;
+    private NebulaAiPanelUi.Glyph glyph;
+    private final InlineHost inline;
+    private boolean textSelected = true;
     private volatile boolean cancelled;
     private boolean closed, busy, ready;
     private NebulaAudioClient cloud;
@@ -46,33 +51,74 @@ public final class NebulaDraftVoiceTranscription {
     public NebulaDraftVoiceTranscription(BaseFragment host,NebulaDraftVoicePolicy.Snapshot source,
             Supplier<NebulaDraftVoicePolicy.Snapshot> current,String cached,boolean changed,
             Consumer<String> useText,BiConsumer<NebulaDraftVoicePolicy.Snapshot,String> remember) {
+        this(host,source,current,cached,changed,useText,remember,null);
+    }
+    public NebulaDraftVoiceTranscription(BaseFragment host,NebulaDraftVoicePolicy.Snapshot source,
+            Supplier<NebulaDraftVoicePolicy.Snapshot> current,String cached,boolean changed,
+            Consumer<String> useText,BiConsumer<NebulaDraftVoicePolicy.Snapshot,String> remember,InlineHost inline) {
         this.host=host;this.source=source;this.current=current;this.useText=useText;this.remember=remember;
+        this.inline=inline;
         Context context=host.getParentActivity();
-        LinearLayout body=NebulaFormUi.column(context);
-        TextView title=NebulaFormUi.note(context,NebulaText.text("Голосовое в текст","Voice to text"));
-        title.setTextSize(22);body.addView(title);
-        body.addView(new NebulaRow(context).title(NebulaText.text("Сервис распознавания","Recognition service"))
-                .subtitle(NebulaAudioPreferences.title(false),true).withClick(v->{cancel();host.presentFragment(new NebulaAudioSettingsFragment());}));
-        status=NebulaFormUi.note(context,changed?NebulaText.text("Запись или фрагмент изменились. Расшифруйте заново.","The recording or fragment changed. Transcribe it again."):"");body.addView(status);
-        transcript=NebulaFormUi.field(context,NebulaText.text("Здесь появится текст записи","The transcript appears here"),1,50000);
-        transcript.setSingleLine(false);transcript.setMinLines(3);transcript.setMaxLines(8);transcript.setText(cached==null?"":cached);
-        body.addView(transcript,new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,ViewGroup.LayoutParams.WRAP_CONTENT));
-        ready=cached!=null&&!cached.trim().isEmpty();
-        retry=NebulaFormUi.primary(context,NebulaText.text("Расшифровать","Transcribe"),v->start());body.addView(retry);
-        apply=NebulaFormUi.primary(context,NebulaText.text("Использовать текст","Use text"),v->{
-            String value=transcript.getText().toString().trim();
-            if(!ready||busy||value.isEmpty()||!source.equals(current.get()))return;
-            cancel();useText.accept(value);
-        });body.addView(apply);
-        NebulaButton keep=new NebulaButton(context,NebulaButton.STYLE_TEXT);keep.setText(NebulaText.text("Оставить голосовое","Keep voice message"));keep.setOnClickListener(v->cancel());body.addView(keep);
-        body.addView(NebulaFormUi.note(context,NebulaText.text("Текст заменит голосовое в поле сообщения. Перед отправкой его можно проверить и отредактировать.","The text replaces the voice draft in the composer. You can review and edit it before sending.")));
-        sheet=new BottomSheet.Builder(context,false,host.getResourceProvider()).setCustomView(NebulaFormUi.scroll(context,body)).create();
-        sheet.setOnDismissListener(d->{closed=true;stop();});
-        refresh();host.showDialog(sheet);
+        LinearLayout body=NebulaAiPanelUi.column(context,inline!=null);
+        LinearLayout header=NebulaAiPanelUi.header(context,NebulaAiPanelUi.VOICE,
+                NebulaText.text("Голосовое в текст","Voice to text"),NebulaAudioPreferences.title(false),this::cancel);
+        glyph=(NebulaAiPanelUi.Glyph)header.getChildAt(0);
+        LinearLayout labels=(LinearLayout)header.getChildAt(1);
+        ((TextView)labels.getChildAt(0)).setTextSize(inline==null?20:17);
+        labels.setOnClickListener(v->{cancel();host.presentFragment(new NebulaAudioSettingsFragment());});
+        labels.setContentDescription(NebulaText.text("Выбрать сервис распознавания","Choose recognition service"));
+        body.addView(header);
+        TextView voice=NebulaAiPanelUi.button(context,NebulaText.text("Голосовое","Voice"),false,v->{textSelected=false;cancel();});
+        TextView text=NebulaAiPanelUi.button(context,NebulaText.text("Текст","Text"),true,v->{textSelected=true;transcript.requestFocus();});
+        NebulaAiPanelUi.add(body,NebulaAiPanelUi.actions(context,voice,text),10);
+        transcript=NebulaAiPanelUi.editor(context,NebulaText.text("Здесь появится текст записи","The transcript appears here"),3);
+        transcript.setMaxLines(inline==null?8:4);transcript.setText(cached==null?"":cached);
+        NebulaAiPanelUi.add(body,transcript,10);
+        status=NebulaAiPanelUi.caption(context,changed?NebulaText.text("Запись или сервис изменились. Распознайте заново.","The recording or service changed. Transcribe again."):"");
+        status.setAccessibilityLiveRegion(View.ACCESSIBILITY_LIVE_REGION_POLITE);
+        retry=NebulaAiPanelUi.button(context,NebulaText.text("Распознать","Transcribe"),false,v->start());
+        retry.setTextSize(13);
+        LinearLayout footer=new LinearLayout(context);footer.setGravity(android.view.Gravity.CENTER_VERTICAL);
+        footer.addView(status,new LinearLayout.LayoutParams(0,-2,1));
+        LinearLayout.LayoutParams retryParams=new LinearLayout.LayoutParams(-2,-2);retryParams.leftMargin=NebulaAiPanelUi.dp(10);
+        footer.addView(retry,retryParams);NebulaAiPanelUi.add(body,footer,8);
+        ready=cached!=null&&!changed;
+        transcript.addTextChangedListener(new android.text.TextWatcher() {
+            public void beforeTextChanged(CharSequence s,int start,int count,int after){}
+            public void onTextChanged(CharSequence s,int start,int before,int count){
+                if(!busy&&transcript.hasFocus()&&source.equals(current.get())) {
+                    ready=true;remember.accept(source,s.toString());refresh();
+                }
+            }
+            public void afterTextChanged(android.text.Editable e){}
+        });
+        if(inline!=null) {
+            if(inline instanceof NebulaDraftVoiceInlineHost)((NebulaDraftVoiceInlineHost)inline).onDismiss(this::cancel);
+            inline.show(NebulaAiPanelUi.scroll(context,body));
+        }
+        else {
+            apply=NebulaAiPanelUi.button(context,NebulaText.text("Использовать текст","Use text"),true,v->{
+                String value=textForSend();if(value==null)return;cancel();useText.accept(value);
+            });NebulaAiPanelUi.add(body,apply,12);
+            sheet=new BottomSheet.Builder(context,false,host.getResourceProvider()).setCustomView(NebulaAiPanelUi.scroll(context,body)).create();
+            sheet.setOnDismissListener(d->{closed=true;stop();});host.showDialog(sheet);
+        }
+        refresh();
         AndroidUtilities.runOnUIThread(scopeCheck,250);
         if(!ready&&!changed)start();
     }
-    private void refresh(){retry.setEnabled(!busy);apply.setEnabled(ready&&!busy);transcript.setEnabled(!busy);}
+    public boolean isTextSelected(){return !closed&&textSelected;}
+    public boolean isShowing(){return !closed;}
+    public String textForSend(){
+        if(!isTextSelected()||!ready||busy||!source.equals(current.get()))return null;
+        String value=transcript.getText().toString().trim();return value.isEmpty()?null:value;
+    }
+    private void refresh(){
+        NebulaAiPanelUi.enabled(retry,!busy);
+        retry.setText(ready?NebulaText.text("Повторить","Retry"):NebulaText.text("Распознать","Transcribe"));
+        if(apply!=null)NebulaAiPanelUi.enabled(apply,ready&&!busy);
+        transcript.setEnabled(!busy);glyph.setBusy(busy);
+    }
     private void start() {
         if(closed||busy||!source.equals(current.get()))return;
         stop();cancelled=false;ready=false;busy=true;refresh();
@@ -117,5 +163,9 @@ public final class NebulaDraftVoiceTranscription {
         },"NebulaDraftVoice");worker.start();
     }
     private void stop(){cancelled=true;gate.cancel();if(cloud!=null)cloud.cancel();if(local!=null)local.cancel();if(worker!=null)worker.interrupt();cloud=null;local=null;worker=null;busy=false;if(closed)AndroidUtilities.cancelRunOnUIThread(scopeCheck);}
-    public void cancel(){if(closed)return;closed=true;stop();if(sheet!=null)sheet.dismiss();}
+    public void cancel(){
+        if(closed)return;
+        if(ready&&!busy&&source.equals(current.get()))remember.accept(source,transcript.getText().toString());
+        closed=true;stop();glyph.setBusy(false);if(sheet!=null)sheet.dismiss();if(inline!=null)inline.hide();
+    }
 }

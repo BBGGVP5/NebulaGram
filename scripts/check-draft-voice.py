@@ -29,11 +29,12 @@ with tempfile.TemporaryDirectory(prefix='nebula-draft-voice-') as folder:
         subprocess.run(['git', '-C', str(work), 'apply', '--whitespace=nowarn', '--include=' + path, '-'],
                        input=patch.read_text(encoding='utf-8').encode('utf-8'), check=True)
     source = dest.read_text(encoding='utf-8')
-    methods = '\n'.join(method(source, name) for name in ['nebulaVoiceSnapshot()', 'nebulaCancelVoiceTranscription()', 'nebulaRequestVoiceTranscription()'])
+    methods = '\n'.join(method(source, name) for name in ['nebulaVoiceSnapshot()', 'nebulaCancelVoiceTranscription()', 'nebulaRequestVoiceTranscription()',
+        'private boolean nebulaPrepareVoiceSend(', 'private boolean nebulaVoiceSendCurrent(', 'private boolean nebulaApplyVoiceText(', 'public int getMessagesCount()'])
     # The first occurrences are declarations, not calls.
     assert 'MediaController.getInstance().toggleRecordingPause(voiceOnce)' in methods
     assert 'resetRecordedState();' in methods and methods.index('resetRecordedState();') < methods.index('setFieldText(text);')
-    assert 'SendMessagesHelper' not in methods, 'Aa must not auto-send'
+    assert 'SendMessagesHelper' not in method(source, 'nebulaRequestVoiceTranscription()'), 'Aa must not auto-send'
     for signature in ['private void resetRecordedState()', 'public void onPause()', 'public void onDestroy()', 'public void setDialogId(long id, int account)']:
         body = method(source, signature)
         assert body.index('nebulaCancelVoiceTranscription();') < 150
@@ -49,11 +50,16 @@ import java.util.function.*;
 public class NebulaDraftVoiceTranscription {
  public static boolean allowed=true;public static int starts;
  public final NebulaDraftVoicePolicy.Snapshot source;public final Supplier<NebulaDraftVoicePolicy.Snapshot> current;
- public final Consumer<String> use;public final BiConsumer<NebulaDraftVoicePolicy.Snapshot,String> remember;public final String cached;public final boolean changed;public boolean cancelled;
+ public final Consumer<String> use;public final BiConsumer<NebulaDraftVoicePolicy.Snapshot,String> remember;public final String cached;public final boolean changed;public boolean cancelled;public String edited;
  public static boolean enabled(){return allowed;}public static String serviceKey(){return "device|ru";}
  public NebulaDraftVoiceTranscription(Object host,NebulaDraftVoicePolicy.Snapshot s,Supplier<NebulaDraftVoicePolicy.Snapshot> c,String cache,boolean changed,Consumer<String> use,BiConsumer<NebulaDraftVoicePolicy.Snapshot,String> remember){starts++;source=s;current=c;cached=cache;this.changed=changed;this.use=use;this.remember=remember;}
+ public boolean isShowing(){return !cancelled;}
+ public boolean isTextSelected(){return !cancelled;}
+ public String textForSend(){return edited==null||edited.trim().isEmpty()?null:edited;}
+ public NebulaDraftVoiceTranscription(Object host,NebulaDraftVoicePolicy.Snapshot s,Supplier<NebulaDraftVoicePolicy.Snapshot> c,String cache,boolean changed,Consumer<String> use,BiConsumer<NebulaDraftVoicePolicy.Snapshot,String> remember,Object inline){this(host,s,c,cache,changed,use,remember);}
  public void cancel(){cancelled=true;}
 }''',
+        'app/nebulagram/ui/NebulaDraftVoiceInlineHost.java': '''package app.nebulagram.ui;public class NebulaDraftVoiceInlineHost {public NebulaDraftVoiceInlineHost(Object anchor,Object parent,java.util.function.Supplier<Integer> top,Runnable closed){}}''',
         'app/nebulagram/ui/NebulaAudioPreferences.java': '''package app.nebulagram.ui;
 public class NebulaAudioPreferences {public static boolean available=true;public static boolean hasTranscriptionService(){return available;}}''',
         'app/nebulagram/ui/NebulaAudioSettingsFragment.java': 'package app.nebulagram.ui;public class NebulaAudioSettingsFragment {}'
@@ -64,23 +70,36 @@ public class NebulaAudioPreferences {public static boolean available=true;public
 import java.nio.file.*;
 import java.util.*;
 import app.nebulagram.ui.*;
-class Rect {void setEmpty(){}}
-class Parent {int settings;void presentFragment(Object value){settings++;}}
+class Rect {float top;void setEmpty(){}boolean isEmpty(){return false;}}
+class PreviewParams {int forwarded;int getForwardedMessagesCount(){return forwarded;}}
+class Parent {int settings;PreviewParams messagePreviewParams=new PreviewParams();void presentFragment(Object value){settings++;}}
+class TextUtils {static boolean isEmpty(CharSequence s){return s==null||s.length()==0;}}
+class SendMessagesHelper {static String getTrimmedString(String s){return s.trim();}}
+class MessageInput {String value="";CharSequence getText(){return value;}}
+class Controller {int getMaxMessageLength(){return 4096;}}
+class Account {Controller getMessagesController(){return new Controller();}}
 class MediaController {static final MediaController shared=new MediaController();int pauses;static MediaController getInstance(){return shared;}void toggleRecordingPause(boolean once){pauses++;}}
 class UserConfig {static long owner=101;static UserConfig getInstance(int account){return new UserConfig();}long getClientUserId(){return owner;}}
 class AndroidUtilities {static final List<Runnable> now=new ArrayList<>(),later=new ArrayList<>();static void runOnUIThread(Runnable r){now.add(r);}static void runOnUIThread(Runnable r,long delay){later.add(r);}static void drain(){List<Runnable> p=new ArrayList<>(now);now.clear();for(Runnable r:p)r.run();}}
 class Timeline {long left,right;long getAudioLeftMs(){return left;}long getAudioRightMs(){return right;}}
-class Control {void invalidate(){}void setEnabled(boolean value){}}
+class Control {void invalidate(){}void setEnabled(boolean value){}boolean isShown(){return true;}void getLocationOnScreen(int[] position){}}
 class Delegate {void needStartRecordAudio(int value){}}
 class Hooks {
  Parent parentFragment=new Parent();boolean isPaused,recordingAudioVideo,video,sendButtonVisible=true,voiceOnce,nebulaVoicePending;
  int currentAccount,recordingGuid=7,resets;long dialog_id=30,nebulaVoiceRevision;
  Object audioToSend=new Object();String audioToSendPath,text="";boolean focused;
- final Rect nebulaAaRect=new Rect();Timeline audioTimelineView=new Timeline();Control controlsView=new Control(),slideText=new Control();Delegate delegate=new Delegate();
+ final Rect nebulaAaRect=new Rect(),pauseRect=new Rect();Timeline audioTimelineView=new Timeline();Control controlsView=new Control(),slideText=new Control();Delegate delegate=new Delegate();Object sizeNotifierLayout=new Object();
+ NebulaDraftVoicePolicy.Snapshot nebulaVoiceSendSource;String nebulaVoiceSendText;Object nebulaVoiceSendAttempt;
+ MessageInput messageEditText=new MessageInput();Account accountInstance=new Account();
  NebulaDraftVoiceTranscription nebulaVoiceSheet;NebulaDraftVoicePolicy.Snapshot nebulaVoiceResultSource;String nebulaVoiceResult;
  boolean isInVideoMode(){return video;}
  void resetRecordedState(){resets++;nebulaCancelVoiceTranscription();audioToSend=null;}
  void setFieldText(String value){text=value;}void setFieldFocused(boolean value){focused=value;}
+ void updateSendButtonPaid(){}
+ boolean hasAudioToSend(){return audioToSend!=null;}
+ boolean prepareSend(){return nebulaPrepareVoiceSend(true);}
+ boolean currentSend(Object attempt,NebulaDraftVoicePolicy.Snapshot source){return nebulaVoiceSendCurrent(attempt,source);}
+ boolean applySend(Object attempt,NebulaDraftVoicePolicy.Snapshot source,String text){return nebulaApplyVoiceText(attempt,source,text);}
  METHODS
  void request(){nebulaRequestVoiceTranscription();}void cancel(){nebulaCancelVoiceTranscription();}
  void completePause(){recordingAudioVideo=false;audioToSend=new Object();if(nebulaVoicePending){nebulaVoicePending=false;AndroidUtilities.runOnUIThread(this::nebulaRequestVoiceTranscription);}}
@@ -94,12 +113,28 @@ public class DraftVoiceCheck {
   h.request();h.request();check(MediaController.shared.pauses==1&&h.nebulaVoicePending&&NebulaDraftVoiceTranscription.starts==0,"double Aa must pause once and wait for the file");
   h.completePause();AndroidUtilities.drain();check(h.nebulaVoiceSheet!=null&&!h.recordingAudioVideo,"Aa opens only after native pause completion");
   NebulaDraftVoiceTranscription first=h.nebulaVoiceSheet;first.remember.accept(first.source,"hello");check("hello".equals(h.nebulaVoiceResult),"completed transcript is cached for this draft");
+  h.request();check(h.nebulaVoiceSheet==null&&h.resets==0,"Aa toggles back to original voice without discarding it");
   h.request();check("hello".equals(h.nebulaVoiceSheet.cached),"same recording reuses reviewed result");
-  h.audioTimelineView.left=1;h.request();check(h.nebulaVoiceSheet.cached==null&&h.nebulaVoiceSheet.changed,"trim requires fresh recognition");
+  h.audioTimelineView.left=1;h.request();h.request();check("hello".equals(h.nebulaVoiceSheet.cached)&&h.nebulaVoiceSheet.changed,"trim displays stale text and requires fresh recognition");
   first.use.accept("stale");check(h.resets==0&&h.text.isEmpty(),"old trim must not replace audio");
   NebulaDraftVoiceTranscription trimmed=h.nebulaVoiceSheet;h.cancel();h.recordingAudioVideo=true;trimmed.use.accept("stale after resume");check(h.resets==0,"resume invalidates a pending text action");
   h.recordingAudioVideo=false;h.audioTimelineView.left=0;h.request();NebulaDraftVoiceTranscription good=h.nebulaVoiceSheet;good.use.accept("reviewed");check(h.resets==1&&"reviewed".equals(h.text)&&h.focused,"explicit text choice replaces audio and focuses composer");
   check(Arrays.equals(original,Files.readAllBytes(voice.toPath())),"recognition and cancellation must preserve original recording");
+  Hooks sending=new Hooks();sending.audioToSendPath=voice.getPath();sending.request();
+  check(!sending.prepareSend()&&sending.audioToSend!=null&&sending.resets==0,"loading/empty text cannot send or discard original voice");
+  sending.nebulaVoiceSheet.edited="x".repeat(8193);sending.parentFragment.messagePreviewParams.forwarded=2;
+  check(sending.prepareSend()&&sending.getMessagesCount()==5&&sending.resets==0,"paid text chunks and forwarded messages counted before confirmation");
+  Object attempt=sending.nebulaVoiceSendAttempt;NebulaDraftVoicePolicy.Snapshot chosen=sending.nebulaVoiceSendSource;String chosenText=sending.nebulaVoiceSendText;
+  sending.nebulaVoiceSheet.edited="changed while confirmation is open";
+  check(sending.currentSend(attempt,chosen)&&chosenText.length()==8193,"confirmation captures reviewed text instead of reading mutable UI later");
+  check(sending.applySend(attempt,chosen,chosenText)&&sending.resets==1&&sending.audioToSend==null&&sending.text.equals(chosenText)&&!sending.voiceOnce,"confirmed text uses native text path exactly once");
+  check(!sending.applySend(attempt,chosen,chosenText)&&sending.resets==1,"duplicate confirmation cannot discard or send twice");
+  for(int mutation=0;mutation<4;mutation++){
+   Hooks pending=new Hooks();pending.audioToSendPath=voice.getPath();pending.request();pending.nebulaVoiceSheet.edited="reviewed";
+   check(pending.prepareSend(),"reviewed text prepares");Object token=pending.nebulaVoiceSendAttempt;NebulaDraftVoicePolicy.Snapshot selected=pending.nebulaVoiceSendSource;
+   switch(mutation){case 0:pending.cancel();break;case 1:pending.audioTimelineView.left=1;break;case 2:pending.dialog_id++;break;case 3:pending.prepareSend();break;}
+   check(!pending.currentSend(token,selected)&&!pending.applySend(token,selected,"stale")&&pending.resets==0&&pending.audioToSend!=null,"cancel/trim/peer/new attempt invalidates old confirmation "+mutation);
+  }
   Hooks missing=new Hooks();missing.audioToSendPath=voice.getPath();NebulaAudioPreferences.available=false;missing.request();check(missing.parentFragment.settings==1&&missing.resets==0,"missing service opens settings with voice kept");NebulaAudioPreferences.available=true;
   for(int field=0;field<8;field++) {
    Hooks owner=new Hooks();owner.audioToSendPath=voice.getPath();owner.request();NebulaDraftVoiceTranscription job=owner.nebulaVoiceSheet;

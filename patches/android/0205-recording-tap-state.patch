@@ -1,0 +1,67 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
+@@ -895,6 +895,7 @@
+ 
+     private boolean recordAudioVideoRunnableStarted;
+     private boolean calledRecordRunnable;
++    private boolean nebulaRecordActionTap;
+     private boolean nebulaCameraChoicePending;
+     private boolean nebulaIgnoreCameraChoiceRelease;
+     private boolean nebulaCameraChoiceResolved;
+@@ -3123,10 +3124,14 @@
+                 if (isLiveComment) return false;
+                 createRecordCircle();
+                 if (motionEvent.getAction() == MotionEvent.ACTION_DOWN) {
++                    nebulaRecordActionTap = false;
+                     if (nebulaCameraChoicePending) return true;
+                     nebulaIgnoreCameraChoiceRelease = false;
+-                    if (recordCircle.isSendButtonVisible()) {
+-                        if (!hasRecordVideo || calledRecordRunnable) {
++                    if (recordingAudioVideo || recordCircle.isSendButtonVisible()) {
++                        nebulaRecordActionTap = true;
++                        AndroidUtilities.cancelRunOnUIThread(recordAudioVideoRunnable);
++                        recordAudioVideoRunnableStarted = false;
++                        if (recordingAudioVideo || !hasRecordVideo || calledRecordRunnable) {
+                             startedDraggingX = -1;
+                             if (hasRecordVideo && isInVideoMode()) {
+                                 if (AlertsCreator.needsPaidMessageAlert(currentAccount, dialog_id)) {
+@@ -3139,6 +3144,7 @@
+                                     });
+                                     return true;
+                                 }
++                                CameraController.getInstance().cancelOnInitRunnable(onFinishInitCameraRunnable);
+                                 delegate.needStartRecordVideo(1, true, 0, 0, voiceOnce ? 0x7FFFFFFF : 0, effectId, 0);
+                                 sendButton.setEffect(effectId = 0);
+                             } else {
+@@ -3198,6 +3204,10 @@
+                     }
+                     return true;
+                 } else if (motionEvent.getAction() == MotionEvent.ACTION_UP || motionEvent.getAction() == MotionEvent.ACTION_CANCEL) {
++                    if (nebulaRecordActionTap) {
++                        nebulaRecordActionTap = false;
++                        return true;
++                    }
+                     if (nebulaCameraChoicePending || nebulaIgnoreCameraChoiceRelease) {
+                         if (!nebulaCameraChoicePending) nebulaIgnoreCameraChoiceRelease = false;
+                         return true;
+@@ -3246,6 +3256,8 @@
+                     } else {
+                         if (recordAudioVideoRunnableStarted) {
+                             AndroidUtilities.cancelRunOnUIThread(recordAudioVideoRunnable);
++                            recordAudioVideoRunnableStarted = false;
++                            if (motionEvent.getAction() == MotionEvent.ACTION_CANCEL) return true;
+                             if (sendVoiceEnabled && sendRoundEnabled) {
+                                 delegate.onSwitchRecordMode(!isInVideoMode());
+                                 setRecordVideoButtonVisible(!isInVideoMode(), true);
+@@ -4797,6 +4809,10 @@
+     }
+ 
+     private void startLockTransition() {
++        // Camera-choice auto-lock does not pass through RecordCircle.setLockTranslation.
++        sendButtonVisible = true;
++        if (recordCircle != null) recordCircle.invalidate();
++        if (controlsView != null) controlsView.invalidate();
+         AnimatorSet animatorSet = new AnimatorSet();
+         try {
+             performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP, HapticFeedbackConstants.FLAG_IGNORE_GLOBAL_SETTING);

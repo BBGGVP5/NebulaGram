@@ -77,7 +77,7 @@ public final class NebulaAiChatView extends LinearLayout {
         addView(scroll, new LayoutParams(-1, 0, 1));
         LinearLayout input = new LinearLayout(context); input.setGravity(Gravity.BOTTOM);
         input.setPadding(dp(12), dp(6), dp(6), dp(6));
-        GradientDrawable capsule = shape(theme.surfaceContainer(), 28); capsule.setStroke(dp(1), (theme.onSurfaceVariant() & 0x00ffffff) | 0x24000000); input.setBackground(capsule);
+        GradientDrawable capsule = shape(theme.surfaceContainer(), 28); input.setBackground(capsule);
         composer = new EditText(context); composer.setTextSize(16); composer.setTextColor(theme.onSurface());
         composer.setHintTextColor(theme.onSurfaceVariant()); composer.setHint(text("Напишите запрос…", "Write a prompt…"));
         composer.setBackgroundColor(Color.TRANSPARENT); composer.setPadding(dp(4), dp(12), dp(4), dp(12));

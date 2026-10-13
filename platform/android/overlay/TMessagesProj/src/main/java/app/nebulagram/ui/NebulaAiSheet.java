@@ -24,7 +24,7 @@ public final class NebulaAiSheet {
         int surface = theme.modalSurface();
         BottomSheet sheet = new BottomSheet.Builder(c, true, surface).create();
         sheet.setBackgroundColor(android.graphics.Color.TRANSPARENT);
-        sheet.setApplyTopPadding(false); sheet.setApplyBottomPadding(false); sheet.setCanDismissWithSwipe(false);
+        sheet.setApplyTopPadding(false); sheet.setApplyBottomPadding(false); sheet.setCanDismissWithSwipe(true);
         LinearLayout root = new LinearLayout(c) {
             @Override protected void onMeasure(int w, int h) {
                 int available = MeasureSpec.getSize(h);
@@ -35,14 +35,12 @@ public final class NebulaAiSheet {
         root.setOrientation(LinearLayout.VERTICAL); root.setPadding(dp(16), dp(12), dp(16), dp(12));
         GradientDrawable background = new GradientDrawable(); background.setColor(surface); background.setCornerRadius(dp(28));
         root.setBackground(background); root.setClipToOutline(true);
-        LinearLayout header = new LinearLayout(c); header.setGravity(Gravity.CENTER_VERTICAL);
-        TextView title = button(c, "Nebula AI", theme.onSurface()); title.setTextSize(20); title.setTypeface(AndroidUtilities.bold());
-        header.addView(title, new LinearLayout.LayoutParams(0, -2, 1));
-        TextView settings = button(c, NebulaText.text("Настройки", "Settings"), theme.primary()); header.addView(settings);
-        TextView close = button(c, "×", theme.onSurface()); close.setTextSize(26); close.setContentDescription(NebulaText.text("Закрыть", "Close"));
-        close.setOnClickListener(v -> sheet.dismiss()); header.addView(close); root.addView(header);
+        LinearLayout header = NebulaAiPanelUi.header(c,NebulaAiPanelUi.CHAT,"Nebula AI",
+                NebulaText.text("Чат и инструменты","Chat and tools"),sheet::dismiss);
+        root.addView(header);
         Runnable setup = () -> { sheet.dismiss(); host.presentFragment(new NebulaAiFragment().openConnection()); };
-        settings.setOnClickListener(v -> setup.run());
+        header.getChildAt(1).setOnClickListener(v -> setup.run());
+        header.getChildAt(1).setContentDescription(NebulaText.text("Настройки ИИ","AI settings"));
         NebulaAiChatView chat = new NebulaAiChatView(c, "", setup);
         chat.setBackgroundColor(surface);
         root.addView(chat, new LinearLayout.LayoutParams(-1, 0, 1));
