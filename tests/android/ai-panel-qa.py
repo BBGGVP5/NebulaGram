@@ -52,7 +52,15 @@ public class MainActivity extends Activity {
  private int dp(int n){return AndroidUtilities.dp(n);}
  public void onCreate(Bundle state){super.onCreate(state);ApplicationLoader.applicationContext=getApplicationContext();
   NebulaTheme.dark=getIntent().getBooleanExtra("dark",true);getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
-  root=new FrameLayout(this);root.setBackgroundColor(NebulaTheme.dark?0xff090d0f:0xffe4eded);setContentView(root);
+  root=new FrameLayout(this);root.setBackgroundColor(NebulaTheme.dark?0xff090d0f:0xffe4eded);
+  FrameLayout decor=new FrameLayout(this);decor.setBackgroundColor(NebulaTheme.dark?0xff090d0f:0xffe4eded);decor.addView(root,new FrameLayout.LayoutParams(-1,-1));setContentView(decor);
+  // The real Telegram recorder is moved by its keyboard layout. Model that host contract here.
+  if(Build.VERSION.SDK_INT>=30)decor.setOnApplyWindowInsetsListener((v,insets)->{
+   int top=insets.getInsets(WindowInsets.Type.systemBars()).top,bottom=Math.max(insets.getInsets(WindowInsets.Type.systemBars()).bottom,insets.getInsets(WindowInsets.Type.ime()).bottom);
+   FrameLayout.LayoutParams bounds=(FrameLayout.LayoutParams)root.getLayoutParams();int height=Math.max(0,decor.getHeight()-top-bottom);
+   if(bounds.height!=height||bounds.topMargin!=top){bounds.height=height;bounds.topMargin=top;root.setLayoutParams(bounds);}return insets;
+  });
+  decor.post(decor::requestApplyInsets);
   TextView title=new TextView(this);title.setText("Предпросмотр записи · QA\nБез запросов к сервисам");title.setTextColor(NebulaTheme.of(this).onSurface());title.setTextSize(18);title.setPadding(dp(16),dp(18),dp(16),0);root.addView(title,new FrameLayout.LayoutParams(-1,-2));
   LinearLayout recorder=new LinearLayout(this);recorder.setGravity(Gravity.CENTER_VERTICAL);recorder.setPadding(dp(12),0,dp(12),0);
   TextView waveform=NebulaAiPanelUi.button(this,"▶  ▂ ▅ ▃ ▆ ▁ ▄  00:14",false,v->{});recorder.addView(waveform,new LinearLayout.LayoutParams(0,dp(54),1));
@@ -66,11 +74,12 @@ public class MainActivity extends Activity {
    NebulaDraftVoiceInlineHost inline=new NebulaDraftVoiceInlineHost(recorder,root,()->{int[] p=new int[2];aa.getLocationOnScreen(p);return p[1];},()->{});
    preview=new NebulaDraftVoiceTranscription(host,source,()->source,"Всем привет! Встречаемся в четверг в 18:00. Обсудим новый дизайн и запишем основные задачи. Проверьте текст перед отправкой.",false,v->{},(s,t)->{},inline);
    if(getIntent().getBooleanExtra("keyboard",false))root.postDelayed(()->{EditText edit=findEditor(root);if(edit!=null){edit.requestFocus();((android.view.inputmethod.InputMethodManager)getSystemService(INPUT_METHOD_SERVICE)).showSoftInput(edit,0);}},600);
-   root.postDelayed(()->{try{
+   root.postDelayed(new Runnable(){public void run(){try{
     org.json.JSONObject report=new org.json.JSONObject();EditText edit=findEditor(root);report.put("editorWidth",edit==null?0:edit.getWidth());report.put("editorHeight",edit==null?0:edit.getHeight());
     report.put("scale",getResources().getConfiguration().fontScale);report.put("dark",NebulaTheme.dark);report.put("keyboardRequested",getIntent().getBooleanExtra("keyboard",false));report.put("case",getIntent().getStringExtra("case"));
+    boolean ime=Build.VERSION.SDK_INT>=30&&root.getRootWindowInsets()!=null&&root.getRootWindowInsets().isVisible(WindowInsets.Type.ime());report.put("imeVisible",ime);
     java.io.FileOutputStream out=openFileOutput("layout.json",0);out.write(report.toString().getBytes(java.nio.charset.StandardCharsets.UTF_8));out.close();
-   }catch(Exception e){throw new RuntimeException(e);}},1400);
+   }catch(Exception e){throw new RuntimeException(e);}if(!isFinishing()&&!isDestroyed())root.postDelayed(this,333);}},1400);
   });
  }
  private EditText findEditor(View v){if(v instanceof EditText)return (EditText)v;if(v instanceof ViewGroup){ViewGroup group=(ViewGroup)v;for(int i=0;i<group.getChildCount();i++){EditText e=findEditor(group.getChildAt(i));if(e!=null)return e;}}return null;}
@@ -111,13 +120,12 @@ def render():
     time.sleep(1)
     try:report=json.loads(subprocess.check_output([str(adb),'-s',serials[0],'shell','run-as','app.nebulagram.uiqa','cat','files/layout.json'],stderr=subprocess.DEVNULL))
     except (ValueError,subprocess.CalledProcessError):continue
-    if report.get('case')==name and abs(report['scale']-scale)<0.01 and report['dark']==dark and report['keyboardRequested']==keyboard:break
+    if report.get('case')==name and abs(report['scale']-scale)<0.01 and report['dark']==dark and report['keyboardRequested']==keyboard and (not keyboard or report['imeVisible']):break
    assert report and report.get('case')==name and abs(report['scale']-scale)<0.01 and report['dark']==dark and report['keyboardRequested']==keyboard,report
    foreground=subprocess.check_output([str(adb),'-s',serials[0],'shell','dumpsys','activity','activities'],text=True)
    resumed=[line for line in foreground.splitlines() if 'mResumedActivity:' in line or 'topResumedActivity=' in line]
    assert any('app.nebulagram.uiqa/.MainActivity' in line for line in resumed),resumed
-   if keyboard:
-    device('shell','input','tap',str(width//2),'1300');time.sleep(2)
+   if keyboard:assert report['imeVisible'],'Keyboard was requested but not actually shown'
    with (output/(name+'.png')).open('wb') as f:device('exec-out','screencap','-p',stdout=f)
    assert report['editorWidth']>0 and report['editorHeight']>0,report
    (output/(name+'.json')).write_text(json.dumps(report,indent=2)+'\n')
