@@ -220,7 +220,7 @@ index e225baf..52e4df0 100644
 +        }
 +        return { [weak self] silent, date, repeatPeriod, once, effect in
 +            guard let self, current() else { return }
-+            self.presentPaidMessageAlertIfNeeded(count: count, completion: { [weak self] postpone in
++            self.presentPaidMessageAlertIfNeeded(count: Int32(count), completion: { [weak self] postpone in
 +                guard let self, current() else { return }; consumed = true
 +                self.sendMediaRecording(silentPosting: silent, scheduleTime: date, repeatPeriod: repeatPeriod,
 +                    viewOnce: once && text == nil, messageEffect: effect, postpone: postpone, nebulaText: text)

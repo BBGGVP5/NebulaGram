@@ -55,6 +55,9 @@ def main():
             if a != b or not (a.startswith('submodules/') or a in {'third-party/ZipArchive/PublicHeaders/ZipArchive/ZipArchive.h', 'third-party/ZipArchive/Sources/SSZipArchive.m', 'Telegram/NotificationService/Sources/NotificationService.swift', 'Telegram/NotificationService/BUILD', 'Telegram/BUILD', 'Telegram/WidgetKitWidget/TodayViewController.swift', 'Telegram/Telegram-iOS/Info.plist', 'Telegram/Telegram-iOS/AlternateIcons.plist', 'Telegram/Telegram-iOS/AlternateIcons-iPad.plist'}) or '..' in Path(a).parts or '\\' in a:
                 raise SystemExit('Unexpected patch path: ' + a)
             paths.add(a)
+    # The executable recording-send adapter must use the pinned payment API type,
+    # including its unmodified upstream declaration.
+    paths.add('submodules/TelegramUI/Sources/Chat/ChatControllerPaidMessage.swift')
     with tempfile.TemporaryDirectory(prefix='nebula-ios-bootstrap-') as temporary:
         temp = Path(temporary)
         subprocess.run(['git', 'init', '--quiet', str(temp)], check=True)

@@ -7,6 +7,8 @@ def check(tree: Path) -> None:
     start=source.index('    func nebulaRecordingSendAction()')
     stop=source.index('    func sendMediaRecording(',start)
     method=source[start:stop]
+    paid=(tree/'submodules/TelegramUI/Sources/Chat/ChatControllerPaidMessage.swift').read_text(encoding='utf-8')
+    assert 'func presentPaidMessageAlertIfNeeded(count: Int32 = 1,' in paid, 'Payment adapter must match the pinned native count type'
     assert source.index('if let nebulaText {',stop)<source.index('let resource: TelegramMediaResource',stop)
     assert 'mediaReference: nil' in source and 'self.transformEnqueueMessages(messages' in source
     assert 'self.nebulaRecordedSendingDraft = recordedMediaPreview' in source
@@ -29,8 +31,8 @@ func breakChatInputText(_ text:NSAttributedString)->[NSAttributedString] {
 final class NativeRecorder {
  let context=Context(),chatLocation=Location(),presentationInterfaceState=Presentation()
  var interfaceInteraction:Interaction?=Interaction(),nebulaRecordedSendGeneration=0,nebulaRecordedSendingDraft:Int?
- var counts:[Int]=[],callbacks:[(Bool)->Void]=[],sent:[(String?,Bool,Int32?,Int32?)]=[]
- func presentPaidMessageAlertIfNeeded(count:Int,completion:@escaping(Bool)->Void) { counts.append(count);callbacks.append(completion) }
+ var counts:[Int32]=[],callbacks:[(Bool)->Void]=[],sent:[(String?,Bool,Int32?,Int32?)]=[]
+ func presentPaidMessageAlertIfNeeded(count:Int32,completion:@escaping(Bool)->Void) { counts.append(count);callbacks.append(completion) }
  func sendMediaRecording(silentPosting:Bool?,scheduleTime:Int32?,repeatPeriod:Int32?,viewOnce:Bool,messageEffect:ChatSendMessageEffect?,postpone:Bool,nebulaText:String?) {
   nebulaRecordedSendingDraft=presentationInterfaceState.interfaceState.mediaDraftState
   sent.append((nebulaText,viewOnce,scheduleTime,repeatPeriod))
