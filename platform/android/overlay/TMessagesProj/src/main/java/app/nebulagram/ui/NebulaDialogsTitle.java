@@ -51,7 +51,7 @@ public final class NebulaDialogsTitle {
         CharSequence title = NebulaAppearance.homeChatsTitle()
                 ? NebulaText.text("Чаты", "Chats") : "NebulaGram";
         MessagesController.DialogFilter selected = null;
-        if (NebulaAppearance.folderTitle() && controller != null) {
+        if (!NebulaAppearance.homeChatsTitle() && NebulaAppearance.folderTitle() && controller != null) {
             ArrayList<MessagesController.DialogFilter> filters = controller.getDialogFilters();
             if (selectedType >= 0 && selectedType < filters.size()) {
                 MessagesController.DialogFilter candidate = filters.get(selectedType);

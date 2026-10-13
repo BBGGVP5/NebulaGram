@@ -94,7 +94,7 @@ home_menu = method(dialogs, 'private void showItemOptions()')
 assert 'io.addGap()' not in home_menu, 'Main menu still mixes thick and hairline separators'
 assert 'if (nebulaHomeEditButton == null) io.setTranslationY(-dp(64));' in home_menu
 appearance = (ui / 'NebulaAppearance.java').read_text(encoding='utf-8')
-assert 'getBoolean("home_chats_title", false)' in appearance
+assert 'getBoolean("home_chats_title", true)' in appearance
 assert 'putBoolean("home_chats_title", value)' in appearance
 assert 'NebulaAppearance.homeChatsTitle(), NebulaAppearance::setHomeChatsTitle' in (ui / 'NebulaExtras.java').read_text(encoding='utf-8')
 assert 'isNebulaSharedHeaderGlass()' in (ui / 'NebulaLinkShortcut.java').read_text(encoding='utf-8')

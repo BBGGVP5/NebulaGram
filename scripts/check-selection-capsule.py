@@ -75,7 +75,7 @@ class CapsuleCheck {
   check(home.glassDrawableMenu.left==332&&home.glassDrawableMenu.right==378); // bounds retained for hit testing
   CapsuleCheck tabs=new CapsuleCheck();tabs.nebulaFloatingChatHeader=false;tabs.nebulaHomeTabsGlass=true;
   tabs.menuWidth=138;tabs.menu.children[3].visibility=8;tabs.draw();
-  check(tabs.glassDrawableMenu.calls.isEmpty());
+  check(tabs.glassDrawableMenu.calls.size()==1 && tabs.glassDrawableMenu.calls.get(0)[0]==Math.round(255*.6f));
   check(tabs.glassDrawableMenu.left==236&&tabs.glassDrawableMenu.right==382);
   tabs.glassDrawableMenu.calls.clear();tabs.searchFactor=1f;tabs.draw();
   check(tabs.glassDrawableMenu.calls.isEmpty());
@@ -83,7 +83,7 @@ class CapsuleCheck {
    CapsuleCheck selection=new CapsuleCheck();selection.nebulaFloatingChatHeader=false;
    selection.nebulaHomeTabsGlass=true;selection.actionModeFactor=frame/100f;
    selection.actionMode.x=0;selection.actionMode.children=new View[]{new View(0),new View(54),new ActionBarMenuItem(240),new ActionBarMenuItem(286),new ActionBarMenuItem(332)};
-   selection.draw();check(selection.glassDrawableMenu.calls.isEmpty());
+   selection.draw();check(selection.glassDrawableMenu.calls.size()==1 && selection.glassDrawableMenu.calls.get(0)[0]==Math.round(255*frame/100f));
    check(selection.glassDrawableMenu.left==236&&selection.glassDrawableMenu.right==382);
   }
   for(int mode=0;mode<4;mode++)for(int frame=0;frame<=100;frame++) {

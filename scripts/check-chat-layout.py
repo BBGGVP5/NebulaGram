@@ -267,7 +267,7 @@ for(boolean glass:new boolean[]{false,true})for(boolean chats:new boolean[]{fals
 NebulaAppearance.homeGlass=glass;NebulaAppearance.chatsTitle=chats;NebulaDialogsTitle.apply(bar1,controller,0,null);
 check(bar1.title.getText().equals(chats?"Чаты":"NebulaGram"),"Home label preference must be independent of glass");
 NebulaDialogsTitle.apply(bar1,controller,6,null);
-check(bar1.title.getText()==controller.filters.get(6).name,"Home label preference replaced the folder title");
+check(chats?bar1.title.getText().equals("Чаты"):bar1.title.getText()==controller.filters.get(6).name,"Chats preference must take precedence; disabling it retains the folder title");
 }
 NebulaAppearance.chatsTitle=false;NebulaDialogsTitle.apply(bar1,controller,0,null);
 check(bar1.title.getText().equals("NebulaGram"),"Disabling Chats did not restore branding");

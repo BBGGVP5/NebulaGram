@@ -49,7 +49,7 @@ assert 'NebulaHomeTitleGeometry.width(' in bar and 'NebulaHomeTitleGeometry.left
 assert 'titleTextView[i].getTextWidth() + titleTextView[i].getSideDrawablesSize()' in bar
 # Definition, title measurement, title layout, and the subtitle overlay laid
 # out under that title: one boundary for everything sharing the centred slot.
-assert bar.count('nebulaTitleEndInset()') == 4, 'Measurement/layout must use the same menu boundary'
+assert bar.count('nebulaTitleEndInset()') == 5, 'Title/story group measurement and layout must share the menu boundary'
 assert 'additionalSubTitleOverlayContainer.getMeasuredWidth())' in bar, 'Overlay subtitle must sit under the centred title'
 assert 'titlesContainer.getTranslationX()' in bar
 assert 'if (nebulaCenterTitle())' in bar

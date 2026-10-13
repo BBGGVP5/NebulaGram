@@ -15,4 +15,21 @@ public final class NebulaHomeTitleGeometry {
         int lastSafeStart = barWidth - endInset - titleWidth;
         return Math.max(startInset, Math.min(centered, lastSafeStart));
     }
+
+    public static int storyPrefix(int count, int footprint, int step, int gap) {
+        return count <= 0 ? 0 : footprint + step * (Math.min(3, count) - 1) + gap;
+    }
+
+    public static int visibleStories(int count, int available, int titleWidth,
+                                     int footprint, int step, int gap) {
+        count = Math.max(0, Math.min(3, count));
+        while (count > 0 && titleWidth + storyPrefix(count, footprint, step, gap) > available) count--;
+        return count;
+    }
+
+    public static int groupLeft(int barWidth, int startInset, int endInset,
+                                int titleWidth, int prefix, float progress) {
+        int animatedPrefix = Math.round(prefix * Math.max(0f, Math.min(1f, progress)));
+        return left(barWidth, startInset, endInset, titleWidth + animatedPrefix);
+    }
 }
