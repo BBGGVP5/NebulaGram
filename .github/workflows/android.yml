@@ -255,6 +255,7 @@ jobs:
           python3 scripts/check-home-header-controls.py vendor/telegram-android
           python3 scripts/check-reference-home-header.py vendor/telegram-android
           python3 scripts/check-home-header-motion.py vendor/telegram-android
+          python3 scripts/check-home-button-contours.py vendor/telegram-android
           python3 scripts/check-telegram-updates.py
           python3 scripts/check-update-sheet.py
 

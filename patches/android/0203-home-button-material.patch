@@ -1,0 +1,46 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/drawable/color/impl/BlurredBackgroundProviderImpl.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/drawable/color/impl/BlurredBackgroundProviderImpl.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/drawable/color/impl/BlurredBackgroundProviderImpl.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/drawable/color/impl/BlurredBackgroundProviderImpl.java
+@@ -40,6 +40,14 @@
+     }
+ 
+     public static BlurredBackgroundProvider topPanel(Theme.ResourcesProvider resourcesProvider) {
++        return topPanel(resourcesProvider, false);
++    }
++
++    public static BlurredBackgroundProvider topPanelButtons(Theme.ResourcesProvider resourcesProvider) {
++        return topPanel(resourcesProvider, true);
++    }
++
++    private static BlurredBackgroundProvider topPanel(Theme.ResourcesProvider resourcesProvider, boolean noContour) {
+         return new BlurredBackgroundProviderBuilder(resourcesProvider)
+             .setBackgroundColor((r, isDark) -> {
+                 final float alpha = LiteMode.isEnabled(LiteMode.FLAG_LIQUID_GLASS) ? 0.85f : 0.76f;
+@@ -47,11 +55,11 @@
+                 final int colorTarget = Theme.getColor(Theme.key_glass_targetMainTopPanel, r);
+                 return solveSrcColor(colorBg, colorTarget, alpha);
+             })
+-            .setStrokeColorTop(0x11000000, 0x06FFFFFF)
+-            .setStrokeColorBottom(0x20000000, 0x11FFFFFF)
+-            .setShadowColor(0x20000000, 0x04FFFFFF)
++            .setStrokeColorTop(noContour ? 0 : 0x11000000, noContour ? 0 : 0x06FFFFFF)
++            .setStrokeColorBottom(noContour ? 0 : 0x20000000, noContour ? 0 : 0x11FFFFFF)
++            .setShadowColor(noContour ? 0 : 0x20000000, noContour ? 0 : 0x04FFFFFF)
+             .setShadowLayer(dpf2(2.667f), 0, dpf2(0.85f))
+-            .setStrokeWidth(dpf2(0.4f), dpf2(0.4f))
++            .setStrokeWidth(noContour ? 0f : dpf2(0.4f), noContour ? 0f : dpf2(0.4f))
+             .build();
+     }
+ 
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
+@@ -3229,7 +3229,7 @@
+         if (initialDialogsType == DIALOGS_TYPE_DEFAULT && !onlySelect && !inPreviewMode
+                 && folderId == 0 && communityId == 0 && TextUtils.isEmpty(searchString)
+                 && app.nebulagram.ui.NebulaAppearance.homeGlassHeader()) {
+-            actionBar.setupGlass(iBlur3FactoryLiquidGlass, BlurredBackgroundProviderImpl.topPanel(resourceProvider));
++            actionBar.setupGlass(iBlur3FactoryLiquidGlass, BlurredBackgroundProviderImpl.topPanelButtons(resourceProvider));
+             actionBar.setNebulaHomeGlass(true);
+             actionBar.setNebulaHomeTabsGlass(true);
+             nebulaHomeEditButton = new TextView(context);
