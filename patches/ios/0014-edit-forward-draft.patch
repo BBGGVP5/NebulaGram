@@ -1,8 +1,7 @@
 diff --git a/submodules/TelegramUI/Sources/Chat/ChatMessageActionOptions.swift b/submodules/TelegramUI/Sources/Chat/ChatMessageActionOptions.swift
-index 4669b24..2a3ed6f 100644
 --- a/submodules/TelegramUI/Sources/Chat/ChatMessageActionOptions.swift
 +++ b/submodules/TelegramUI/Sources/Chat/ChatMessageActionOptions.swift
-@@ -305,6 +305,25 @@ private func chatForwardOptions(selfController: ChatControllerImpl, sourceView:
+@@ -305,6 +305,25 @@
              items.append(.separator)
          }
          

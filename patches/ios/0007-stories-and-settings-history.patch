@@ -1,7 +1,7 @@
 diff --git a/submodules/ChatListUI/Sources/ChatListControllerNode.swift b/submodules/ChatListUI/Sources/ChatListControllerNode.swift
 --- a/submodules/ChatListUI/Sources/ChatListControllerNode.swift
 +++ b/submodules/ChatListUI/Sources/ChatListControllerNode.swift
-@@ -1274,6 +1274,7 @@
+@@ -1306,6 +1306,7 @@
          }
          
          self.nebulaSettingsObservation = NebulaSettingsStore.shared.observe { [weak self] in
@@ -9,30 +9,13 @@ diff --git a/submodules/ChatListUI/Sources/ChatListControllerNode.swift b/submod
              self?.controller?.requestLayout(transition: .immediate)
          }
          self.mainContainerNode.onFilterSwitch = { [weak self] in
-@@ -2464,6 +2465,7 @@
+@@ -2498,6 +2499,7 @@
  }
  
  func shouldDisplayStoriesInChatListHeader(storySubscriptions: EngineStorySubscriptions, isHidden: Bool) -> Bool {
 +    guard NebulaSettingsStore.shared.showStories else { return false }
      if !storySubscriptions.items.isEmpty {
          return true
-     }
-diff --git a/submodules/SettingsUI/Sources/Search/SettingsSearchRecentQueries.swift b/submodules/SettingsUI/Sources/Search/SettingsSearchRecentQueries.swift
---- a/submodules/SettingsUI/Sources/Search/SettingsSearchRecentQueries.swift
-+++ b/submodules/SettingsUI/Sources/Search/SettingsSearchRecentQueries.swift
-@@ -1,4 +1,5 @@
- import Foundation
-+import NebulaSettingsContract
- import UIKit
- import TelegramCore
- import SwiftSignalKit
-@@ -38,6 +39,7 @@
- }
- 
- func addRecentSettingsSearchItem(engine: TelegramEngine, item: AnyHashable) {
-+    guard NebulaSettingsStore.shared.settingsSearchHistory else { return }
-     guard let id = item.base as? String, let data = id.data(using: .ascii) else {
-         return
      }
 diff --git a/submodules/SettingsUI/Sources/Search/SettingsSearchItem.swift b/submodules/SettingsUI/Sources/Search/SettingsSearchItem.swift
 --- a/submodules/SettingsUI/Sources/Search/SettingsSearchItem.swift
@@ -61,3 +44,20 @@ diff --git a/submodules/SettingsUI/Sources/Search/SettingsSearchItem.swift b/sub
              let searchableItemsMap = searchableItems.reduce([AnyHashable : SettingsSearchableItem]()) { (map, item) -> [AnyHashable: SettingsSearchableItem] in
                  var map = map
                  map[item.id] = item
+diff --git a/submodules/SettingsUI/Sources/Search/SettingsSearchRecentQueries.swift b/submodules/SettingsUI/Sources/Search/SettingsSearchRecentQueries.swift
+--- a/submodules/SettingsUI/Sources/Search/SettingsSearchRecentQueries.swift
++++ b/submodules/SettingsUI/Sources/Search/SettingsSearchRecentQueries.swift
+@@ -1,4 +1,5 @@
+ import Foundation
++import NebulaSettingsContract
+ import UIKit
+ import TelegramCore
+ import SwiftSignalKit
+@@ -38,6 +39,7 @@
+ }
+ 
+ func addRecentSettingsSearchItem(engine: TelegramEngine, item: AnyHashable) {
++    guard NebulaSettingsStore.shared.settingsSearchHistory else { return }
+     guard let id = item.base as? String, let data = id.data(using: .ascii) else {
+         return
+     }

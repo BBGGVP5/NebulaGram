@@ -14,8 +14,8 @@ def check(header: str, stories: str, item: str, work: Path, execute: bool) -> No
     assert 'NebulaStoryHeaderLayout.origin(' in stories
     assert 'max(1, collapseEndIndex - collapseStartIndex)' in stories
     assert stories.index('self.sortedItems.removeAll(keepingCapacity: true)', stories.index('func update(component: StoryPeerListComponent')) < stories.index('let titleAvailableWidth =')
-    assert 'centerContentLeftInset = sideInset + (nextLeftButtonX > 0.0 ? max(44.0, nextLeftButtonX) : 0.0) + 8.0' in header
-    assert 'centerContentRightInset = sideInset + (nextRightButtonX > 0.0 ? max(44.0, nextRightButtonX) : 0.0) + 8.0' in header
+    assert 'centerContentLeftInset = leftInset + (nextLeftButtonX > 0.0 ? max(44.0, nextLeftButtonX) : 0.0) + 8.0' in header
+    assert 'centerContentRightInset = rightInset + (nextRightButtonX > 0.0 ? max(44.0, nextRightButtonX) : 0.0) + 8.0' in header
     assert 'let minimizedDefaultItemScale: CGFloat = 24.0 / 52.0' in stories
     assert 'collapseFraction: 1.0 - component.storiesFraction' in header
     assert 'self.storyPeerAction?(peer)' in header and 'self.storyComposeAction?(offset)' in header

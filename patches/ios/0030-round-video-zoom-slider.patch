@@ -1,7 +1,7 @@
 diff --git a/submodules/TelegramUI/Components/VideoMessageCameraScreen/Sources/VideoMessageCameraScreen.swift b/submodules/TelegramUI/Components/VideoMessageCameraScreen/Sources/VideoMessageCameraScreen.swift
 --- a/submodules/TelegramUI/Components/VideoMessageCameraScreen/Sources/VideoMessageCameraScreen.swift
 +++ b/submodules/TelegramUI/Components/VideoMessageCameraScreen/Sources/VideoMessageCameraScreen.swift
-@@ -879,6 +879,7 @@
+@@ -885,6 +885,7 @@
          fileprivate var additionalPreviewView: CameraSimplePreviewView
          private var progressView: RecordingProgressView
          private let loadingView: LoadingEffectView
@@ -9,7 +9,7 @@ diff --git a/submodules/TelegramUI/Components/VideoMessageCameraScreen/Sources/V
          
          private var resultPreviewView: ResultPreviewView?
          
-@@ -908,6 +909,10 @@
+@@ -914,6 +915,10 @@
                  
          var cameraState: CameraState {
              didSet {
@@ -20,7 +20,7 @@ diff --git a/submodules/TelegramUI/Components/VideoMessageCameraScreen/Sources/V
                  if self.cameraState.isViewOnceEnabled != oldValue.isViewOnceEnabled {
                      if self.cameraState.isViewOnceEnabled {
                          let presentationData = self.context.sharedContext.currentPresentationData.with { $0 }
-@@ -924,6 +929,7 @@
+@@ -930,6 +935,7 @@
              didSet {
                  self.previewStatePromise.set(.single(self.previewState))
                  self.resultPreviewView?.isMuted = self.previewState?.isMuted ?? true
@@ -28,7 +28,7 @@ diff --git a/submodules/TelegramUI/Components/VideoMessageCameraScreen/Sources/V
              }
          }
          var previewStatePromise = Promise<PreviewState?>()
-@@ -958,6 +964,8 @@
+@@ -971,6 +977,8 @@
              self.progressView = RecordingProgressView(frame: .zero)
              
              self.loadingView = LoadingEffectView(effectAlpha: 0.1, borderAlpha: 0.25, duration: 1.0)
@@ -37,7 +37,7 @@ diff --git a/submodules/TelegramUI/Components/VideoMessageCameraScreen/Sources/V
              
              self.previewBlurView = BlurView()
              self.previewBlurView.isUserInteractionEnabled = false
-@@ -988,6 +995,12 @@
+@@ -1001,6 +1009,12 @@
              self.backgroundColor = .clear
              
              self.view.addSubview(self.containerView)
@@ -50,20 +50,32 @@ diff --git a/submodules/TelegramUI/Components/VideoMessageCameraScreen/Sources/V
              
              self.containerView.addSubview(self.previewContainerView)
  
-@@ -1118,9 +1134,11 @@
-             case .changed:
+@@ -1133,6 +1147,7 @@
+                 }
                  let scale = gestureRecognizer.scale
                  camera.setZoomDelta(scale)
 +                self.nebulaZoomSlider.reflectPinch(scale)
                  gestureRecognizer.scale = 1.0
-             case .ended, .cancelled:
-                 camera.rampZoom(1.0, rate: 8.0)
+             case .ended:
+                 let pinchStartTimestamp = self.pinchStartTimestamp
+@@ -1141,9 +1156,11 @@
+                     return
+                 }
+                 self.camera?.rampZoom(1.0, rate: 8.0)
 +                self.nebulaZoomSlider.setCurrent(1)
+             case .cancelled:
+                 self.pinchStartTimestamp = nil
+                 self.camera?.rampZoom(1.0, rate: 8.0)
++                self.nebulaZoomSlider.setCurrent(1)
+             case .failed:
+                 self.pinchStartTimestamp = nil
              default:
-                 break
+@@ -1534,6 +1551,8 @@
+                 backgroundFrame = CGRect(origin: .zero, size: CGSize(width: layout.size.width, height: layout.size.height - layout.intrinsicInsets.bottom - controller.inputPanelFrame.0.height - 8.0))
              }
-@@ -1490,2 +1504,4 @@
+                         
 +            let zoomWidth = min(320.0, layout.size.width - 32.0)
 +            self.nebulaZoomSlider.frame = CGRect(x: floor((layout.size.width - zoomWidth) / 2.0), y: max((layout.statusBarHeight ?? 0.0) + 8.0, backgroundFrame.maxY - 136.0), width: zoomWidth, height: 52.0)
              transition.setPosition(view: self.backgroundView, position: actualBackgroundFrame.center)
              transition.setBounds(view: self.backgroundView, bounds: CGRect(origin: .zero, size: actualBackgroundFrame.size))
+             

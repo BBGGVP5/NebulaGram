@@ -1,8 +1,7 @@
 diff --git a/submodules/AccountUtils/Sources/AccountUtils.swift b/submodules/AccountUtils/Sources/AccountUtils.swift
-index 44d09f5..0185a18 100644
 --- a/submodules/AccountUtils/Sources/AccountUtils.swift
 +++ b/submodules/AccountUtils/Sources/AccountUtils.swift
-@@ -4,8 +4,8 @@ import TelegramCore
+@@ -4,8 +4,8 @@
  import TelegramUIPreferences
  import AccountContext
  
@@ -14,10 +13,9 @@ index 44d09f5..0185a18 100644
  public func activeAccountsAndPeers(context: AccountContext, includePrimary: Bool = false) -> Signal<((AccountContext, EnginePeer)?, [(AccountContext, EnginePeer, Int32)]), NoError> {
      let sharedContext = context.sharedContext
 diff --git a/submodules/AppBundle/Sources/AppBundle/AppBundle.m b/submodules/AppBundle/Sources/AppBundle/AppBundle.m
-index 94b80d8..b00f545 100644
 --- a/submodules/AppBundle/Sources/AppBundle/AppBundle.m
 +++ b/submodules/AppBundle/Sources/AppBundle/AppBundle.m
-@@ -39,7 +39,8 @@ static NSInteger NebulaSelectedIconPack(void) {
+@@ -39,7 +39,8 @@
          if ([document isKindOfClass:NSDictionary.class] && [document[@"settings"] isKindOfClass:NSDictionary.class]) {
              id raw = document[@"settings"][@"icon_pack"];
              if ([raw isKindOfClass:NSNumber.class]) {
@@ -28,10 +26,9 @@ index 94b80d8..b00f545 100644
                  id legacy = document[@"settings"][@"ios_icons"];
                  if ([legacy isKindOfClass:NSNumber.class]) pack = [legacy boolValue] ? 1 : 0;
 diff --git a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoScreenSettingsActions.swift b/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoScreenSettingsActions.swift
-index 74f85e4..00be367 100644
 --- a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoScreenSettingsActions.swift
 +++ b/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoScreenSettingsActions.swift
-@@ -219,33 +219,15 @@ extension PeerInfoScreenNode {
+@@ -226,33 +226,15 @@
                  guard let strongSelf = self else {
                      return
                  }

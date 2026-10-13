@@ -1,7 +1,7 @@
 diff --git a/submodules/TelegramUI/Components/GlassBackgroundComponent/Sources/GlassBackgroundComponent.swift b/submodules/TelegramUI/Components/GlassBackgroundComponent/Sources/GlassBackgroundComponent.swift
 --- a/submodules/TelegramUI/Components/GlassBackgroundComponent/Sources/GlassBackgroundComponent.swift
 +++ b/submodules/TelegramUI/Components/GlassBackgroundComponent/Sources/GlassBackgroundComponent.swift
-@@ -878,5 +878,8 @@
+@@ -884,7 +884,10 @@
          if nebulaCustom { nativeView?.effect = nil }
          legacyView?.isHidden = nebulaCustom || reduced
          foregroundView?.isHidden = nebulaCustom
@@ -11,3 +11,5 @@ diff --git a/submodules/TelegramUI/Components/GlassBackgroundComponent/Sources/G
 +        nebulaMaterial.layer.borderWidth = nebulaCustom && nebulaHighlights ? 0.8 : 0.0
 +        nebulaMaterial.layer.borderColor = UIColor.white.withAlphaComponent(isDark ? 0.22 : 0.70).cgColor
          if nebulaCustom {
+             nebulaFallback.isHidden = true
+             nebulaMaterial.frame = CGRect(origin: .zero, size: size)

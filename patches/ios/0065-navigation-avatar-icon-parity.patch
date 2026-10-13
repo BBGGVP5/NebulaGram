@@ -94,7 +94,7 @@ diff --git a/submodules/AvatarNode/Sources/AvatarNode.swift b/submodules/AvatarN
  import UIKit
  import AsyncDisplayKit
  import Display
-@@ -259,11 +260,6 @@
+@@ -263,11 +264,6 @@
              context.fill(bounds)
          }
          
@@ -106,7 +106,7 @@ diff --git a/submodules/AvatarNode/Sources/AvatarNode.swift b/submodules/AvatarN
          context.setFillColor(UIColor(rgb: 0x000000, alpha: 0.4).cgColor)
          context.fill(bounds)
          
-@@ -388,6 +384,29 @@
+@@ -392,6 +388,29 @@
          private var currentImage: UIImage?
          
          private var params: Params?
@@ -136,7 +136,7 @@ diff --git a/submodules/AvatarNode/Sources/AvatarNode.swift b/submodules/AvatarN
          private var loadDisposable = MetaDisposable()
          
          var clipStyle: AvatarNodeClipStyle {
-@@ -442,6 +461,9 @@
+@@ -446,6 +465,9 @@
              self.isOpaque = false
              self.displaysAsynchronously = true
              self.disableClearContentsOnHide = true
@@ -146,7 +146,7 @@ diff --git a/submodules/AvatarNode/Sources/AvatarNode.swift b/submodules/AvatarN
              
              self.imageNode.isUserInteractionEnabled = false
              self.addSubnode(self.imageNode)
-@@ -476,6 +498,7 @@
+@@ -480,6 +502,7 @@
          }
          
          public func updateSize(size: CGSize) {
@@ -154,7 +154,7 @@ diff --git a/submodules/AvatarNode/Sources/AvatarNode.swift b/submodules/AvatarN
              self.imageNode.frame = CGRect(origin: CGPoint(), size: size)
              self.editOverlayNode?.frame = self.imageNode.frame
              if let imageNodeMask = self.imageNodeMask {
-@@ -635,6 +658,8 @@
+@@ -639,6 +662,8 @@
                  representation = peer?.smallProfileImage
              }
              
@@ -163,7 +163,7 @@ diff --git a/submodules/AvatarNode/Sources/AvatarNode.swift b/submodules/AvatarN
              let updatedState: AvatarNodeState = .peerAvatar(peer?.id ?? EnginePeer.Id(0), peer?.nameColor, peer?.displayLetters ?? [], representation, clipStyle, cutoutRect)
              if updatedState != self.state || overrideImage != self.overrideImage || theme !== self.theme {
                  self.state = updatedState
-@@ -643,7 +668,7 @@
+@@ -647,7 +672,7 @@
                  
                  let parameters: AvatarNodeParameters
                  
@@ -172,7 +172,7 @@ diff --git a/submodules/AvatarNode/Sources/AvatarNode.swift b/submodules/AvatarN
                      self.contents = nil
                      self.displaySuspended = true
                      self.imageReady.set(self.imageNode.contentReady)
-@@ -722,6 +747,8 @@
+@@ -726,6 +751,8 @@
                  displayDimensions: displayDimensions,
                  clipStyle: clipStyle
              )
@@ -181,7 +181,7 @@ diff --git a/submodules/AvatarNode/Sources/AvatarNode.swift b/submodules/AvatarN
              if self.params == params {
                  return
              }
-@@ -733,11 +760,11 @@
+@@ -737,11 +764,11 @@
                  self.imageNode.clipsToBounds = false
                  self.imageNode.cornerRadius = 0.0
              case .round:
@@ -197,7 +197,7 @@ diff --git a/submodules/AvatarNode/Sources/AvatarNode.swift b/submodules/AvatarN
              case .bubble:
                  break
              }
-@@ -842,6 +869,8 @@
+@@ -846,6 +873,8 @@
                  representation = peer?.smallProfileImage
              }
              
@@ -206,7 +206,7 @@ diff --git a/submodules/AvatarNode/Sources/AvatarNode.swift b/submodules/AvatarN
              let updatedState: AvatarNodeState = .peerAvatar(peer?.id ?? EnginePeer.Id(0), peer?.nameColor, peer?.displayLetters ?? [], representation, clipStyle, cutoutRect)
              if updatedState != self.state || overrideImage != self.overrideImage || theme !== self.theme {
                  self.state = updatedState
-@@ -852,7 +881,7 @@
+@@ -856,7 +885,7 @@
                  
                  let account = account ?? genericContext.account
                  
@@ -215,7 +215,7 @@ diff --git a/submodules/AvatarNode/Sources/AvatarNode.swift b/submodules/AvatarN
                      self.contents = nil
                      self.displaySuspended = true
                      self.imageReady.set(self.imageNode.contentReady)
-@@ -912,6 +941,8 @@
+@@ -916,6 +945,8 @@
          }
          
          public func setCustomLetters(_ letters: [String], explicitColor: AvatarNodeColorOverride? = nil, icon: AvatarNodeExplicitIcon? = nil, cutoutRect: CGRect? = nil) {
@@ -224,7 +224,7 @@ diff --git a/submodules/AvatarNode/Sources/AvatarNode.swift b/submodules/AvatarN
              var explicitIndex: Int?
              if let explicitColor = explicitColor {
                  switch explicitColor {
-@@ -964,16 +995,7 @@
+@@ -968,16 +999,7 @@
              if let parameters = parameters as? AvatarNodeParameters {
                  colors = parameters.colors
                  
@@ -242,7 +242,7 @@ diff --git a/submodules/AvatarNode/Sources/AvatarNode.swift b/submodules/AvatarN
                      context.beginPath()
                      AvatarNode.addAvatarBubblePath(context: context, rect: CGRect(x: 0.0, y: 0.0, width: bounds.size.width, height: bounds.size.height))
                      context.clip()
-@@ -1183,6 +1205,7 @@
+@@ -1187,6 +1209,7 @@
      }
      
      public private(set) var storyStats: StoryStats?
@@ -250,7 +250,7 @@ diff --git a/submodules/AvatarNode/Sources/AvatarNode.swift b/submodules/AvatarN
      
      public var font: UIFont {
          get {
-@@ -1226,8 +1249,11 @@
+@@ -1230,8 +1253,11 @@
      
      public init(font: UIFont) {
          self.contentNode = ContentNode(font: font)
@@ -263,7 +263,7 @@ diff --git a/submodules/AvatarNode/Sources/AvatarNode.swift b/submodules/AvatarN
          
          self.onDidLoad { [weak self] _ in
              guard let self else {
-@@ -1475,7 +1501,8 @@
+@@ -1479,7 +1505,8 @@
                          unseenCount: storyStats.unseenCount
                      ),
                      progress: mappedProgress,
@@ -287,7 +287,7 @@ diff --git a/submodules/ChatListUI/Sources/ChatListController.swift b/submodules
          self.nebulaStoryArchiveObserver = NotificationCenter.default.addObserver(forName: Notification.Name("NebulaStoryArchiveSettingsChanged"), object: nil, queue: .main) { [weak self] _ in
              self?.nebulaArchiveStoriesIfNeeded()
          }
-@@ -4017,6 +4021,7 @@
+@@ -4042,6 +4046,7 @@
          })
      }
      
@@ -295,7 +295,7 @@ diff --git a/submodules/ChatListUI/Sources/ChatListController.swift b/submodules
      private var initializedFilters = false
      private func reloadFilters(firstUpdate: (() -> Void)? = nil) {
          let filterItems = chatListFilterItems(context: self.context)
-@@ -4034,7 +4039,11 @@
+@@ -4059,7 +4064,11 @@
              let isPremium = peerView.peers[peerView.peerId]?.isPremium
              strongSelf.isPremium = isPremium ?? false
              
@@ -308,7 +308,7 @@ diff --git a/submodules/ChatListUI/Sources/ChatListController.swift b/submodules
              var filterItems: [ChatListFilterTabEntry] = []
              
              for (filter, unreadCount, hasUnmutedUnread) in items {
-@@ -4056,7 +4065,7 @@
+@@ -4081,7 +4090,7 @@
                  resolvedItems = []
              }
              
@@ -317,7 +317,7 @@ diff --git a/submodules/ChatListUI/Sources/ChatListController.swift b/submodules
              let firstItemEntryId: ChatListFilterTabEntryId
              switch firstItem {
                  case .allChats:
-@@ -4072,7 +4081,7 @@
+@@ -4097,7 +4106,7 @@
                  if let tabContainerData = strongSelf.tabContainerData {
                      var found = false
                      if let index = tabContainerData.0.firstIndex(where: { $0.id == selectedEntryId }) {
@@ -326,7 +326,7 @@ diff --git a/submodules/ChatListUI/Sources/ChatListController.swift b/submodules
                              if resolvedItems.contains(where: { $0.id == tabContainerData.0[i].id }) {
                                  selectedEntryId = tabContainerData.0[i].id
                                  found = true
-@@ -4081,12 +4090,13 @@
+@@ -4106,12 +4115,13 @@
                          }
                      }
                      if !found {
@@ -344,7 +344,7 @@ diff --git a/submodules/ChatListUI/Sources/ChatListController.swift b/submodules
              let filtersLimit = isPremium == false ? limits.maxFoldersCount : nil
              strongSelf.tabContainerData = (resolvedItems, false, filtersLimit)
              var availableFilters: [ChatListContainerNodeFilter] = []
-@@ -4104,7 +4114,7 @@
+@@ -4129,7 +4139,7 @@
                          availableFilters.append(.filter(item.0))
                  }
              }
@@ -356,7 +356,7 @@ diff --git a/submodules/ChatListUI/Sources/ChatListController.swift b/submodules
 diff --git a/submodules/ChatListUI/Sources/ChatListControllerNode.swift b/submodules/ChatListUI/Sources/ChatListControllerNode.swift
 --- a/submodules/ChatListUI/Sources/ChatListControllerNode.swift
 +++ b/submodules/ChatListUI/Sources/ChatListControllerNode.swift
-@@ -851,9 +851,15 @@
+@@ -883,9 +883,15 @@
                  }
              }
              if !availableFilters.contains(where: { $0.id == self.selectedId }) {
@@ -523,7 +523,7 @@ diff --git a/submodules/TelegramUI/Components/ChatListHeaderComponent/Sources/Ch
  import UIKit
  import Display
  import ComponentFlow
-@@ -697,7 +698,11 @@
+@@ -710,7 +711,11 @@
                  if chatListTitle.activity {
                      chatListTitleOffset = 0.0
                  } else {
@@ -596,7 +596,7 @@ diff --git a/submodules/TelegramUI/Components/Stories/AvatarStoryIndicatorCompon
 diff --git a/submodules/TelegramUI/Sources/TelegramRootController.swift b/submodules/TelegramUI/Sources/TelegramRootController.swift
 --- a/submodules/TelegramUI/Sources/TelegramRootController.swift
 +++ b/submodules/TelegramUI/Sources/TelegramRootController.swift
-@@ -289,6 +289,7 @@
+@@ -285,6 +285,7 @@
              let old = rootTabController.controllers.indices.contains(rootTabController.selectedIndex) ? rootTabController.controllers[rootTabController.selectedIndex] : nil
              rootTabController.setControllers(controllers, selectedIndex: controllers.firstIndex(where: { $0 === old }) ?? controllers.firstIndex(where: { $0 is ChatListController }) ?? 0)
          }
@@ -604,7 +604,7 @@ diff --git a/submodules/TelegramUI/Sources/TelegramRootController.swift b/submod
      }
  
      @objc private func nebulaOpenAiChat(_ notification: Notification) {
-@@ -304,13 +305,13 @@
+@@ -300,13 +301,13 @@
          for key in store.bottomTabOrder {
              switch key {
              case "contacts":

@@ -1,3 +1,14 @@
+diff --git a/submodules/TelegramUI/BUILD b/submodules/TelegramUI/BUILD
+--- a/submodules/TelegramUI/BUILD
++++ b/submodules/TelegramUI/BUILD
+@@ -64,6 +64,7 @@
+         "-warnings-as-errors",
+     ],
+     deps = [
++        "//submodules/NebulaSettingsContract:NebulaSettingsContract",
+         "//submodules/NebulaLinkUI:NebulaLinkUI",
+         "//third-party/recaptcha:RecaptchaEnterprise",
+         "//submodules/SSignalKit/SwiftSignalKit:SwiftSignalKit",
 diff --git a/submodules/TelegramUI/Sources/TelegramRootController.swift b/submodules/TelegramUI/Sources/TelegramRootController.swift
 --- a/submodules/TelegramUI/Sources/TelegramRootController.swift
 +++ b/submodules/TelegramUI/Sources/TelegramRootController.swift
@@ -17,7 +28,7 @@ diff --git a/submodules/TelegramUI/Sources/TelegramRootController.swift b/submod
      public var rootTabController: TabBarController?
      
      public var contactsController: ContactsController?
-@@ -199,6 +202,7 @@
+@@ -195,6 +198,7 @@
      }
      
      public func addRootControllers(showCallsTab: Bool) {
@@ -25,7 +36,7 @@ diff --git a/submodules/TelegramUI/Sources/TelegramRootController.swift b/submod
          let tabBarController = TabBarControllerImpl(theme: self.presentationData.theme, strings: self.presentationData.strings)
          tabBarController.navigationPresentation = .master
          let chatListController = self.context.sharedContext.makeChatListController(context: self.context, location: .chatList(groupId: .root), controlsHistoryPreload: true, hideNetworkActivityStatus: false, previewing: false, enableDebugActions: !GlobalExperimentalSettings.isAppStoreBuild)
-@@ -239,7 +243,9 @@
+@@ -235,7 +239,9 @@
          accountSettingsController.parentController = self
          controllers.append(accountSettingsController)
                  
@@ -36,7 +47,7 @@ diff --git a/submodules/TelegramUI/Sources/TelegramRootController.swift b/submod
          
          self.contactsController = contactsController
          self.callListController = callListController
-@@ -247,9 +253,14 @@
+@@ -243,9 +249,14 @@
          self.accountSettingsController = accountSettingsController
          self.rootTabController = tabBarController
          self.pushViewController(tabBarController, animated: false)
@@ -51,7 +62,7 @@ diff --git a/submodules/TelegramUI/Sources/TelegramRootController.swift b/submod
          guard let rootTabController = self.rootTabController as? TabBarControllerImpl else {
              return
          }
-@@ -261,9 +272,30 @@
+@@ -257,9 +268,30 @@
          controllers.append(self.chatListController!)
          controllers.append(self.accountSettingsController!)
          
@@ -85,7 +96,7 @@ diff --git a/submodules/TelegramUI/Sources/TelegramRootController.swift b/submod
      public func openChatsController(activateSearch: Bool, filter: ChatListSearchFilter = .chats, query: String? = nil) {
          guard let rootTabController = self.rootTabController else {
              return
-@@ -803,6 +835,8 @@
+@@ -808,6 +840,8 @@
      
          if let index = rootTabController.controllers.firstIndex(where: { $0 is ContactsController }) {
              rootTabController.selectedIndex = index
@@ -94,14 +105,3 @@ diff --git a/submodules/TelegramUI/Sources/TelegramRootController.swift b/submod
          }
      }
          
-diff --git a/submodules/TelegramUI/BUILD b/submodules/TelegramUI/BUILD
---- a/submodules/TelegramUI/BUILD
-+++ b/submodules/TelegramUI/BUILD
-@@ -49,6 +49,7 @@
-         "-warnings-as-errors",
-     ],
-     deps = [
-+        "//submodules/NebulaSettingsContract:NebulaSettingsContract",
-         "//submodules/NebulaLinkUI:NebulaLinkUI",
-         "//third-party/recaptcha:RecaptchaEnterprise",
-         "//submodules/SSignalKit/SwiftSignalKit:SwiftSignalKit",

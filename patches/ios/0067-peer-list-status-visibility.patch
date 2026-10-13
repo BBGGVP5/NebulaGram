@@ -50,7 +50,7 @@ diff --git a/submodules/ContactsPeerItem/Sources/ContactsPeerItem.swift b/submod
  import Foundation
  import UIKit
  import AsyncDisplayKit
-@@ -867,12 +868,12 @@
+@@ -879,12 +880,12 @@
                          credibilityStatusIcon = .text(color: item.presentationData.theme.chat.message.incoming.scamColor, string: item.presentationData.strings.Message_ScamAccount.uppercased())
                      } else if peer.isFake {
                          credibilityStatusIcon = .text(color: item.presentationData.theme.chat.message.incoming.scamColor, string: item.presentationData.strings.Message_FakeAccount.uppercased())
@@ -84,7 +84,7 @@ diff --git a/submodules/ItemListPeerItem/Sources/ItemListPeerItem.swift b/submod
  import Foundation
  import UIKit
  import Display
-@@ -938,12 +939,12 @@
+@@ -950,12 +951,12 @@
                      credibilityIcon = .text(color: item.presentationData.theme.chat.message.incoming.scamColor, string: item.presentationData.strings.Message_ScamAccount.uppercased())
                  } else if item.peer.isFake {
                      credibilityIcon = .text(color: item.presentationData.theme.chat.message.incoming.scamColor, string: item.presentationData.strings.Message_FakeAccount.uppercased())
@@ -102,14 +102,14 @@ diff --git a/submodules/ItemListPeerItem/Sources/ItemListPeerItem.swift b/submod
 diff --git a/submodules/TelegramCallsUI/BUILD b/submodules/TelegramCallsUI/BUILD
 --- a/submodules/TelegramCallsUI/BUILD
 +++ b/submodules/TelegramCallsUI/BUILD
-@@ -53,6 +53,7 @@
+@@ -55,6 +55,7 @@
          ":TelegramCallsUIBundle",
      ],
      deps = [
 +        "//submodules/NebulaSettingsContract:NebulaSettingsContract",
          "//submodules/SSignalKit/SSignalKit",
+         "//submodules/LottieSettings:LottieSettings",
      	"//submodules/SSignalKit/SwiftSignalKit:SwiftSignalKit",
-         "//submodules/Display:Display",
 diff --git a/submodules/TelegramCallsUI/Sources/VoiceChatParticipantItem.swift b/submodules/TelegramCallsUI/Sources/VoiceChatParticipantItem.swift
 --- a/submodules/TelegramCallsUI/Sources/VoiceChatParticipantItem.swift
 +++ b/submodules/TelegramCallsUI/Sources/VoiceChatParticipantItem.swift
@@ -118,7 +118,7 @@ diff --git a/submodules/TelegramCallsUI/Sources/VoiceChatParticipantItem.swift b
  import Foundation
  import UIKit
  import Display
-@@ -840,11 +841,11 @@
+@@ -844,11 +845,11 @@
                  credibilityIcon = .text(color: item.presentationData.theme.chat.message.incoming.scamColor, string: item.presentationData.strings.Message_ScamAccount.uppercased())
              } else if item.peer.isFake {
                  credibilityIcon = .text(color: item.presentationData.theme.chat.message.incoming.scamColor, string: item.presentationData.strings.Message_FakeAccount.uppercased())

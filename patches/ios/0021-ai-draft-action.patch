@@ -1,8 +1,7 @@
 diff --git a/submodules/TelegramUI/Sources/ChatController.swift b/submodules/TelegramUI/Sources/ChatController.swift
-index 23695c2..6bc5423 100644
 --- a/submodules/TelegramUI/Sources/ChatController.swift
 +++ b/submodules/TelegramUI/Sources/ChatController.swift
-@@ -46,6 +46,7 @@ import AppBundle
+@@ -47,6 +47,7 @@
  import LocalizedPeerData
  import PhoneNumberFormat
  import SettingsUI
@@ -10,7 +9,7 @@ index 23695c2..6bc5423 100644
  import UrlWhitelist
  import TelegramIntents
  import TooltipUI
-@@ -6008,6 +6009,27 @@ public final class ChatControllerImpl: TelegramBaseController, ChatController, G
+@@ -6120,6 +6121,27 @@
                              f(.dismissWithoutContent)
                              self?.interfaceInteraction?.beginMessageSearch(.everything, "")
                          })))

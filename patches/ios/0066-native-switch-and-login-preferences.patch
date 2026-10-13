@@ -8,17 +8,18 @@ diff --git a/submodules/AuthorizationUI/BUILD b/submodules/AuthorizationUI/BUILD
 +        "//submodules/NebulaSettingsContract:NebulaSettingsContract",
          "//submodules/NebulaLinkUI:NebulaLinkUI",
          "//submodules/AsyncDisplayKit:AsyncDisplayKit",
-         "//submodules/TelegramCore:TelegramCore",
+         "//submodules/LottieSettings:LottieSettings",
 diff --git a/submodules/AuthorizationUI/Sources/AuthorizationSequenceCodeEntryControllerNode.swift b/submodules/AuthorizationUI/Sources/AuthorizationSequenceCodeEntryControllerNode.swift
 --- a/submodules/AuthorizationUI/Sources/AuthorizationSequenceCodeEntryControllerNode.swift
 +++ b/submodules/AuthorizationUI/Sources/AuthorizationSequenceCodeEntryControllerNode.swift
-@@ -1,4 +1,5 @@
+@@ -1,5 +1,6 @@
  import Foundation
+ import LottieSettings
 +import NebulaSettingsContract
  import UIKit
  import AsyncDisplayKit
  import Display
-@@ -21,6 +22,7 @@
+@@ -22,6 +23,7 @@
      private let theme: PresentationTheme
      
      private let animationNode: AnimatedStickerNode
@@ -26,7 +27,7 @@ diff --git a/submodules/AuthorizationUI/Sources/AuthorizationSequenceCodeEntryCo
      private let nebulaArtwork: NebulaAuthArtNode
      private let nebulaBackdrop: NebulaAuthBackdropNode
      private var nebulaLegacyArtConfigured = false
-@@ -511,6 +513,7 @@
+@@ -512,6 +514,7 @@
      }
      
      func containerLayoutUpdated(_ layout: ContainerViewLayout, navigationBarHeight: CGFloat, transition: ContainedViewLayoutTransition) {
@@ -34,7 +35,7 @@ diff --git a/submodules/AuthorizationUI/Sources/AuthorizationSequenceCodeEntryCo
          transition.updateFrame(node: self.nebulaBackdrop, frame: CGRect(origin: .zero, size: layout.size))
          let previousInputHeight = self.layoutArguments?.0.inputHeight ?? 0.0
          let newInputHeight = layout.inputHeight ?? 0.0
-@@ -534,14 +537,14 @@
+@@ -535,14 +538,14 @@
          if let codeType = self.codeType {
              switch codeType {
              case .missedCall:
@@ -53,7 +54,7 @@ diff --git a/submodules/AuthorizationUI/Sources/AuthorizationSequenceCodeEntryCo
                 
                  self.proceedNode.title = self.strings.Login_OpenFragment
                  self.proceedNode.updateTheme(SolidRoundedButtonTheme(backgroundColor: UIColor(rgb: 0x37475a), foregroundColor: .white))
-@@ -551,16 +554,16 @@
+@@ -552,16 +555,16 @@
                  animationPlaybackMode = .count(3)
                  self.proceedNode.animation = "anim_fragment"
              case .word:
@@ -74,7 +75,7 @@ diff --git a/submodules/AuthorizationUI/Sources/AuthorizationSequenceCodeEntryCo
          }
          
          self.textField.textField.attributedPlaceholder = NSAttributedString(string: textFieldPlaceholder, font: Font.regular(20.0), textColor: self.theme.list.itemPlaceholderTextColor)
-@@ -584,7 +587,7 @@
+@@ -585,7 +588,7 @@
              self.animationNode.visibility = false
          }
          
@@ -83,7 +84,7 @@ diff --git a/submodules/AuthorizationUI/Sources/AuthorizationSequenceCodeEntryCo
          let titleSize = self.titleNode.updateLayout(CGSize(width: maximumWidth, height: CGFloat.greatestFiniteMagnitude))
          
          let currentOptionSize = self.currentOptionNode.updateLayout(CGSize(width: maximumWidth - 48.0, height: CGFloat.greatestFiniteMagnitude))
-@@ -643,11 +646,11 @@
+@@ -644,11 +647,11 @@
          
          var items: [AuthorizationLayoutItem] = []
          if layout.size.width > 320.0 {
@@ -102,13 +103,14 @@ diff --git a/submodules/AuthorizationUI/Sources/AuthorizationSequenceCodeEntryCo
 diff --git a/submodules/AuthorizationUI/Sources/AuthorizationSequencePasswordEntryControllerNode.swift b/submodules/AuthorizationUI/Sources/AuthorizationSequencePasswordEntryControllerNode.swift
 --- a/submodules/AuthorizationUI/Sources/AuthorizationSequencePasswordEntryControllerNode.swift
 +++ b/submodules/AuthorizationUI/Sources/AuthorizationSequencePasswordEntryControllerNode.swift
-@@ -1,4 +1,5 @@
+@@ -1,5 +1,6 @@
  import Foundation
+ import LottieSettings
 +import NebulaSettingsContract
  import UIKit
  import AsyncDisplayKit
  import Display
-@@ -14,6 +15,7 @@
+@@ -15,6 +16,7 @@
      private let theme: PresentationTheme
      
      private let animationNode: AnimatedStickerNode
@@ -116,7 +118,7 @@ diff --git a/submodules/AuthorizationUI/Sources/AuthorizationSequencePasswordEnt
      private let nebulaArtwork: NebulaAuthArtNode
      private let nebulaBackdrop: NebulaAuthBackdropNode
      private let titleNode: ASTextNode
-@@ -73,7 +75,7 @@
+@@ -74,7 +76,7 @@
          self.titleNode = ASTextNode()
          self.titleNode.isUserInteractionEnabled = false
          self.titleNode.displaysAsynchronously = false
@@ -125,7 +127,7 @@ diff --git a/submodules/AuthorizationUI/Sources/AuthorizationSequencePasswordEnt
          
          self.titleActivateAreaNode = AccessibilityAreaNode()
          self.titleActivateAreaNode.accessibilityTraits = .staticText
-@@ -169,6 +171,7 @@
+@@ -170,6 +172,7 @@
      }
      
      func containerLayoutUpdated(_ layout: ContainerViewLayout, navigationBarHeight: CGFloat, transition: ContainedViewLayoutTransition) {
@@ -133,7 +135,7 @@ diff --git a/submodules/AuthorizationUI/Sources/AuthorizationSequencePasswordEnt
          transition.updateFrame(node: self.nebulaBackdrop, frame: CGRect(origin: .zero, size: layout.size))
          let previousInputHeight = self.layoutArguments?.0.inputHeight ?? 0.0
          let newInputHeight = layout.inputHeight ?? 0.0
-@@ -192,7 +195,7 @@
+@@ -193,7 +196,7 @@
          let titleInset: CGFloat = layout.size.width > 320.0 ? 18.0 : 0.0
          let additionalBottomInset: CGFloat = layout.size.width > 320.0 ? 110.0 : 20.0
          
@@ -142,7 +144,7 @@ diff --git a/submodules/AuthorizationUI/Sources/AuthorizationSequencePasswordEnt
          
          let animationSize = CGSize(width: 100.0, height: 100.0)
          let titleSize = self.titleNode.measure(CGSize(width: maximumWidth, height: CGFloat.greatestFiniteMagnitude))
-@@ -220,11 +223,11 @@
+@@ -221,11 +224,11 @@
          }
          
          if layout.size.width > 320.0 {
@@ -161,13 +163,14 @@ diff --git a/submodules/AuthorizationUI/Sources/AuthorizationSequencePasswordEnt
 diff --git a/submodules/AuthorizationUI/Sources/AuthorizationSequencePhoneEntryControllerNode.swift b/submodules/AuthorizationUI/Sources/AuthorizationSequencePhoneEntryControllerNode.swift
 --- a/submodules/AuthorizationUI/Sources/AuthorizationSequencePhoneEntryControllerNode.swift
 +++ b/submodules/AuthorizationUI/Sources/AuthorizationSequencePhoneEntryControllerNode.swift
-@@ -1,4 +1,5 @@
+@@ -1,5 +1,6 @@
  import Foundation
+ import LottieSettings
 +import NebulaSettingsContract
  import UIKit
  import AsyncDisplayKit
  import Display
-@@ -263,7 +264,7 @@
+@@ -264,7 +265,7 @@
      
      func updateLayout(width: CGFloat) -> CGSize {
          var switchSize = CGSize(width: 51.0, height: 31.0)
@@ -176,7 +179,7 @@ diff --git a/submodules/AuthorizationUI/Sources/AuthorizationSequencePhoneEntryC
              if self.switchNode.bounds.size.width.isZero {
                  switchView.sizeToFit()
              }
-@@ -287,6 +288,7 @@
+@@ -288,6 +289,7 @@
      private let hasOtherAccounts: Bool
      
      private let animationNode: AnimatedStickerNode
@@ -184,7 +187,7 @@ diff --git a/submodules/AuthorizationUI/Sources/AuthorizationSequencePhoneEntryC
      private let nebulaArtwork: NebulaAuthArtNode
      private let nebulaBackdrop: NebulaAuthBackdropNode
      private let managedAnimationNode: ManagedPhoneAnimationNode
-@@ -385,7 +387,7 @@
+@@ -386,7 +388,7 @@
          self.titleNode = ASTextNode()
          self.titleNode.isUserInteractionEnabled = true
          self.titleNode.displaysAsynchronously = false
@@ -193,7 +196,7 @@ diff --git a/submodules/AuthorizationUI/Sources/AuthorizationSequencePhoneEntryC
          
          self.titleActivateAreaNode = AccessibilityAreaNode()
          self.titleActivateAreaNode.accessibilityTraits = .staticText
-@@ -582,6 +584,7 @@
+@@ -583,6 +585,7 @@
      }
      
      func containerLayoutUpdated(_ layout: ContainerViewLayout, navigationBarHeight: CGFloat, transition: ContainedViewLayoutTransition) {
@@ -201,7 +204,7 @@ diff --git a/submodules/AuthorizationUI/Sources/AuthorizationSequencePhoneEntryC
          transition.updateFrame(node: self.nebulaBackdrop, frame: CGRect(origin: .zero, size: layout.size))
          var insets = layout.insets(options: [])
          insets.top = layout.statusBarHeight ?? 20.0
-@@ -592,13 +595,13 @@
+@@ -593,13 +596,13 @@
          let titleInset: CGFloat = layout.size.width > 320.0 ? 18.0 : 0.0
          let additionalBottomInset: CGFloat = layout.size.width > 320.0 ? 80.0 : 10.0
          
@@ -217,7 +220,7 @@ diff --git a/submodules/AuthorizationUI/Sources/AuthorizationSequencePhoneEntryC
          let titleSize = self.titleNode.measure(CGSize(width: maximumWidth, height: CGFloat.greatestFiniteMagnitude))
          
          let noticeInset: CGFloat = self.account == nil ? 32.0 : 0.0
-@@ -614,11 +617,11 @@
+@@ -615,11 +618,11 @@
          ]
          
          if layout.size.width > 320.0 {
@@ -372,7 +375,7 @@ diff --git a/submodules/InstantPageUI/Sources/InstantPageSettingsSwitchItemNode.
 diff --git a/submodules/ItemListPeerItem/Sources/ItemListPeerItem.swift b/submodules/ItemListPeerItem/Sources/ItemListPeerItem.swift
 --- a/submodules/ItemListPeerItem/Sources/ItemListPeerItem.swift
 +++ b/submodules/ItemListPeerItem/Sources/ItemListPeerItem.swift
-@@ -1066,7 +1066,7 @@
+@@ -1078,7 +1078,7 @@
                  currentCheckNode = nil
              }
              
@@ -501,7 +504,7 @@ diff --git a/submodules/PeerInfoUI/Sources/ItemListReactionItem.swift b/submodul
 diff --git a/submodules/TelegramUI/Components/ListActionItemComponent/Sources/ListActionItemComponent.swift b/submodules/TelegramUI/Components/ListActionItemComponent/Sources/ListActionItemComponent.swift
 --- a/submodules/TelegramUI/Components/ListActionItemComponent/Sources/ListActionItemComponent.swift
 +++ b/submodules/TelegramUI/Components/ListActionItemComponent/Sources/ListActionItemComponent.swift
-@@ -827,7 +827,7 @@
+@@ -833,7 +833,7 @@
                      }
                      
                      var switchSize = CGSize(width: 51.0, height: 31.0)
@@ -510,7 +513,7 @@ diff --git a/submodules/TelegramUI/Components/ListActionItemComponent/Sources/Li
                          if switchNode.bounds.size.width.isZero {
                              switchView.sizeToFit()
                          }
-@@ -933,7 +933,7 @@
+@@ -939,7 +939,7 @@
                      }
                      
                      var switchSize = CGSize(width: 51.0, height: 31.0)

@@ -1,7 +1,7 @@
 diff --git a/Telegram/BUILD b/Telegram/BUILD
 --- a/Telegram/BUILD
 +++ b/Telegram/BUILD
-@@ -1648,7 +1648,7 @@
+@@ -1721,7 +1721,7 @@
      <key>NSSiriUsageDescription</key>
      <string>You can use Siri to send messages.</string>
      <key>NSSpeechRecognitionUsageDescription</key>

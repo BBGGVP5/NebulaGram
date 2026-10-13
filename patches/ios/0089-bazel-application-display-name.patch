@@ -1,7 +1,7 @@
 diff --git a/Telegram/BUILD b/Telegram/BUILD
 --- a/Telegram/BUILD
 +++ b/Telegram/BUILD
-@@ -1588,7 +1588,7 @@
+@@ -1641,7 +1641,7 @@
      <key>CFBundleDevelopmentRegion</key>
      <string>en</string>
      <key>CFBundleDisplayName</key>

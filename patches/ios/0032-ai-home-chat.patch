@@ -7,7 +7,7 @@ diff --git a/submodules/ChatListUI/Sources/ChatListController.swift b/submodules
  import UIKit
  import Postbox
  import SwiftSignalKit
-@@ -6895,6 +6896,16 @@
+@@ -6910,6 +6911,16 @@
          }
          #endif
          
@@ -24,7 +24,7 @@ diff --git a/submodules/ChatListUI/Sources/ChatListController.swift b/submodules
          switch location {
          case .chatList:
              if !hideNetworkActivityStatus {
-@@ -6906,7 +6917,7 @@
+@@ -6921,7 +6932,7 @@
                      isReorderingTabs,
                      peerStatus,
                      parentController.updatedPresentationData.1,
@@ -33,7 +33,7 @@ diff --git a/submodules/ChatListUI/Sources/ChatListController.swift b/submodules
                  ).startStrict(next: { [weak self] networkState, proxy, passcode, stateAndFilterId, isReorderingTabs, peerStatus, presentationData, storyPostingAvailable in
                      guard let self else {
                          return
-@@ -7258,14 +7269,18 @@
+@@ -7273,14 +7284,18 @@
                      }
                  }
                  
@@ -54,32 +54,6 @@ diff --git a/submodules/ChatListUI/Sources/ChatListController.swift b/submodules
                              if let componentView = parentController.chatListHeaderView(), let storyPeerListView = componentView.storyPeerListView(), storyPeerListView.isLiveStreaming {
                                  parentController.displayContinueLiveStream()
                              } else {
-diff --git a/submodules/TelegramUI/Sources/TelegramRootController.swift b/submodules/TelegramUI/Sources/TelegramRootController.swift
---- a/submodules/TelegramUI/Sources/TelegramRootController.swift
-+++ b/submodules/TelegramUI/Sources/TelegramRootController.swift
-@@ -202,6 +202,8 @@
-     }
-     
-     public func addRootControllers(showCallsTab: Bool) {
-+        NotificationCenter.default.removeObserver(self, name: NebulaAiSettings.openHomeChat, object: nil)
-+        NotificationCenter.default.addObserver(self, selector: #selector(nebulaOpenAiChat(_:)), name: NebulaAiSettings.openHomeChat, object: nil)
-         self.nebulaShowCalls = showCallsTab
-         let tabBarController = TabBarControllerImpl(theme: self.presentationData.theme, strings: self.presentationData.strings)
-         tabBarController.navigationPresentation = .master
-@@ -278,6 +280,13 @@
-             let old = rootTabController.controllers.indices.contains(rootTabController.selectedIndex) ? rootTabController.controllers[rootTabController.selectedIndex] : nil
-             rootTabController.setControllers(controllers, selectedIndex: controllers.firstIndex(where: { $0 === old }) ?? controllers.firstIndex(where: { $0 is ChatListController }) ?? 0)
-         }
-+    }
-+
-+    @objc private func nebulaOpenAiChat(_ notification: Notification) {
-+        guard let host = notification.object as? UIViewController, host === self,
-+              NebulaAiSettings.shared.homeShortcut else { return }
-+        let russian = self.presentationData.strings.baseLanguageCode.lowercased().hasPrefix("ru")
-+        NebulaAiChatController.presentSheet(from: self, russian: russian)
-     }
- 
-     private func nebulaOrderedControllers(_ source: [ViewController]) -> [ViewController] {
 diff --git a/submodules/TelegramUI/Components/ChatListHeaderComponent/Sources/NavigationButtonComponent.swift b/submodules/TelegramUI/Components/ChatListHeaderComponent/Sources/NavigationButtonComponent.swift
 --- a/submodules/TelegramUI/Components/ChatListHeaderComponent/Sources/NavigationButtonComponent.swift
 +++ b/submodules/TelegramUI/Components/ChatListHeaderComponent/Sources/NavigationButtonComponent.swift
@@ -94,3 +68,29 @@ diff --git a/submodules/TelegramUI/Components/ChatListHeaderComponent/Sources/Na
                  }
                  
                  if let iconSize = iconView.image?.size {
+diff --git a/submodules/TelegramUI/Sources/TelegramRootController.swift b/submodules/TelegramUI/Sources/TelegramRootController.swift
+--- a/submodules/TelegramUI/Sources/TelegramRootController.swift
++++ b/submodules/TelegramUI/Sources/TelegramRootController.swift
+@@ -198,6 +198,8 @@
+     }
+     
+     public func addRootControllers(showCallsTab: Bool) {
++        NotificationCenter.default.removeObserver(self, name: NebulaAiSettings.openHomeChat, object: nil)
++        NotificationCenter.default.addObserver(self, selector: #selector(nebulaOpenAiChat(_:)), name: NebulaAiSettings.openHomeChat, object: nil)
+         self.nebulaShowCalls = showCallsTab
+         let tabBarController = TabBarControllerImpl(theme: self.presentationData.theme, strings: self.presentationData.strings)
+         tabBarController.navigationPresentation = .master
+@@ -274,6 +276,13 @@
+             let old = rootTabController.controllers.indices.contains(rootTabController.selectedIndex) ? rootTabController.controllers[rootTabController.selectedIndex] : nil
+             rootTabController.setControllers(controllers, selectedIndex: controllers.firstIndex(where: { $0 === old }) ?? controllers.firstIndex(where: { $0 is ChatListController }) ?? 0)
+         }
++    }
++
++    @objc private func nebulaOpenAiChat(_ notification: Notification) {
++        guard let host = notification.object as? UIViewController, host === self,
++              NebulaAiSettings.shared.homeShortcut else { return }
++        let russian = self.presentationData.strings.baseLanguageCode.lowercased().hasPrefix("ru")
++        NebulaAiChatController.presentSheet(from: self, russian: russian)
+     }
+ 
+     private func nebulaOrderedControllers(_ source: [ViewController]) -> [ViewController] {

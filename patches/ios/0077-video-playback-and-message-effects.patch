@@ -1,25 +1,23 @@
 diff --git a/submodules/GalleryUI/BUILD b/submodules/GalleryUI/BUILD
-index e1c6b89..9d5017a 100644
 --- a/submodules/GalleryUI/BUILD
 +++ b/submodules/GalleryUI/BUILD
-@@ -10,6 +10,7 @@ swift_library(
-         "-warnings-as-errors",
+@@ -11,6 +11,7 @@
      ],
      deps = [
+         "//submodules/UrlWhitelist",
 +        "//submodules/NebulaSettingsContract:NebulaSettingsContract",
          "//submodules/SSignalKit/SwiftSignalKit:SwiftSignalKit",
+         "//submodules/LottieSettings:LottieSettings",
          "//submodules/AsyncDisplayKit:AsyncDisplayKit",
-         "//submodules/Display:Display",
 diff --git a/submodules/GalleryUI/Sources/ChatItemGalleryFooterContentNode.swift b/submodules/GalleryUI/Sources/ChatItemGalleryFooterContentNode.swift
-index 4570cbf..a04ff13 100644
 --- a/submodules/GalleryUI/Sources/ChatItemGalleryFooterContentNode.swift
 +++ b/submodules/GalleryUI/Sources/ChatItemGalleryFooterContentNode.swift
 @@ -1,3 +1,4 @@
 +import NebulaSettingsContract
  import Foundation
+ import LottieSettings
  import UIKit
- import AsyncDisplayKit
-@@ -410,13 +411,13 @@ final class ChatItemGalleryFooterContentNode: GalleryFooterContentNode, ASScroll
+@@ -411,13 +412,13 @@
          self.backwardButton = PlaybackButtonNode()
          self.backwardButton.alpha = 0.0
          self.backwardButton.isUserInteractionEnabled = false
@@ -35,7 +33,7 @@ index 4570cbf..a04ff13 100644
          
          self.playbackControlButton = HighlightableButtonNode()
          self.playbackControlButton.isHidden = true
-@@ -2249,13 +2250,13 @@ final class ChatItemGalleryFooterContentNode: GalleryFooterContentNode, ASScroll
+@@ -2250,13 +2251,13 @@
      
      @objc func backwardButtonPressed() {
          self.interacting?(true)
@@ -52,7 +50,6 @@ index 4570cbf..a04ff13 100644
      }
      
 diff --git a/submodules/GalleryUI/Sources/Items/UniversalVideoGalleryItem.swift b/submodules/GalleryUI/Sources/Items/UniversalVideoGalleryItem.swift
-index c21dab5..406504e 100644
 --- a/submodules/GalleryUI/Sources/Items/UniversalVideoGalleryItem.swift
 +++ b/submodules/GalleryUI/Sources/Items/UniversalVideoGalleryItem.swift
 @@ -1,3 +1,4 @@
@@ -60,7 +57,7 @@ index c21dab5..406504e 100644
  import Foundation
  import UIKit
  import AsyncDisplayKit
-@@ -830,6 +831,8 @@ private final class NativePictureInPictureContentImpl: NSObject, AVPictureInPict
+@@ -830,6 +831,8 @@
          }
      }
      
@@ -69,7 +66,7 @@ index c21dab5..406504e 100644
      func beginPictureInPicture() {
          guard let pictureInPictureController = self.pictureInPictureController else {
              return
-@@ -994,6 +997,7 @@ final class UniversalVideoGalleryItemNode: ZoomableContentGalleryItemNode {
+@@ -994,6 +997,7 @@
      
      private var customUnembedWhenPortrait: ((OverlayMediaItemNode) -> Bool)?
  
@@ -77,7 +74,7 @@ index c21dab5..406504e 100644
      private var nativePictureInPictureContent: AnyObject?
      
      private var activePictureInPictureNavigationController: NavigationController?
-@@ -1035,6 +1039,15 @@ final class UniversalVideoGalleryItemNode: ZoomableContentGalleryItemNode {
+@@ -1035,6 +1039,15 @@
          super.init()
  
          self.clipsToBounds = true
@@ -93,7 +90,7 @@ index c21dab5..406504e 100644
          
          self.footerContentNode.shareMediaParameters = { [weak self] in
              guard let self, let playerStatusValue = self.playerStatusValue else {
-@@ -1197,6 +1210,7 @@ final class UniversalVideoGalleryItemNode: ZoomableContentGalleryItemNode {
+@@ -1197,6 +1210,7 @@
      }
      
      deinit {
@@ -101,7 +98,7 @@ index c21dab5..406504e 100644
          self.statusDisposable.dispose()
          self.moreButtonStateDisposable.dispose()
          self.mediaPlaybackStateDisposable.dispose()
-@@ -1226,9 +1240,9 @@ final class UniversalVideoGalleryItemNode: ZoomableContentGalleryItemNode {
+@@ -1226,9 +1240,9 @@
          
          if case let .playback(_, seekable) = self.footerContentNode.content, seekable {
              if location.x >= self.bounds.width * 0.3 {
@@ -113,7 +110,7 @@ index c21dab5..406504e 100644
              }
              return true
          }
-@@ -1300,9 +1314,9 @@ final class UniversalVideoGalleryItemNode: ZoomableContentGalleryItemNode {
+@@ -1300,9 +1314,9 @@
                          return
                      }
                      if isForward {
@@ -126,27 +123,25 @@ index c21dab5..406504e 100644
                  }
              )),
 diff --git a/submodules/TelegramUI/Components/Chat/ChatMessageItemView/BUILD b/submodules/TelegramUI/Components/Chat/ChatMessageItemView/BUILD
-index eba7dfe..b698743 100644
 --- a/submodules/TelegramUI/Components/Chat/ChatMessageItemView/BUILD
 +++ b/submodules/TelegramUI/Components/Chat/ChatMessageItemView/BUILD
-@@ -10,6 +10,7 @@ swift_library(
+@@ -10,6 +10,7 @@
          "-warnings-as-errors",
      ],
      deps = [
 +        "//submodules/NebulaSettingsContract:NebulaSettingsContract",
          "//submodules/AsyncDisplayKit",
+         "//submodules/LottieSettings:LottieSettings",
          "//submodules/Display",
-         "//submodules/TelegramCore",
 diff --git a/submodules/TelegramUI/Components/Chat/ChatMessageItemView/Sources/ChatMessageItemView.swift b/submodules/TelegramUI/Components/Chat/ChatMessageItemView/Sources/ChatMessageItemView.swift
-index 81db004..27e9083 100644
 --- a/submodules/TelegramUI/Components/Chat/ChatMessageItemView/Sources/ChatMessageItemView.swift
 +++ b/submodules/TelegramUI/Components/Chat/ChatMessageItemView/Sources/ChatMessageItemView.swift
 @@ -1,3 +1,4 @@
 +import NebulaSettingsContract
  import Foundation
+ import LottieSettings
  import UIKit
- import AsyncDisplayKit
-@@ -1114,6 +1115,7 @@ open class ChatMessageItemView: ListViewItemNode, ChatMessageItemNodeProtocol {
+@@ -1114,6 +1115,7 @@
      }
      
      public func playMessageEffect(force: Bool) {

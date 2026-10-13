@@ -1,7 +1,7 @@
 diff --git a/Telegram/BUILD b/Telegram/BUILD
 --- a/Telegram/BUILD
 +++ b/Telegram/BUILD
-@@ -371,6 +371,7 @@
+@@ -376,6 +376,7 @@
      module_name = "Lib",
      srcs = glob([
          "Telegram-iOS/Application.swift",
@@ -9,7 +9,7 @@ diff --git a/Telegram/BUILD b/Telegram/BUILD
      ]),
      data = [
          ":Icons",
-@@ -392,6 +393,7 @@
+@@ -397,6 +398,7 @@
      deps = [
          "//submodules/TelegramUI:TelegramUI",
          "//third-party/boringssl:crypto",
@@ -20,7 +20,7 @@ diff --git a/Telegram/BUILD b/Telegram/BUILD
 diff --git a/Telegram/WidgetKitWidget/TodayViewController.swift b/Telegram/WidgetKitWidget/TodayViewController.swift
 --- a/Telegram/WidgetKitWidget/TodayViewController.swift
 +++ b/Telegram/WidgetKitWidget/TodayViewController.swift
-@@ -940,6 +940,7 @@
+@@ -942,6 +942,7 @@
     var body: some Widget {
          Static_Widget()
          Static_AvatarsWidget()
@@ -31,7 +31,7 @@ diff --git a/Telegram/WidgetKitWidget/TodayViewController.swift b/Telegram/Widge
 diff --git a/submodules/SettingsUI/Sources/Search/SettingsSearchableItems.swift b/submodules/SettingsUI/Sources/Search/SettingsSearchableItems.swift
 --- a/submodules/SettingsUI/Sources/Search/SettingsSearchableItems.swift
 +++ b/submodules/SettingsUI/Sources/Search/SettingsSearchableItems.swift
-@@ -4607,6 +4607,7 @@
+@@ -4559,6 +4559,7 @@
  }
  
  public func handleSettingsPathUrl(context: AccountContext, path: String, navigationController: NavigationController) {

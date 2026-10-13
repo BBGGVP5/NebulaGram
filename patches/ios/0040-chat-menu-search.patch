@@ -1,8 +1,9 @@
 diff --git a/submodules/TelegramUI/Sources/ChatController.swift b/submodules/TelegramUI/Sources/ChatController.swift
-index db94294..c4b26bd 100644
 --- a/submodules/TelegramUI/Sources/ChatController.swift
 +++ b/submodules/TelegramUI/Sources/ChatController.swift
-@@ -6020,8 +6020,10 @@ public final class ChatControllerImpl: TelegramBaseController, ChatController, G
+@@ -6128,12 +6128,14 @@
+                                 strongSelf.push(statsController)
+                             })))
                          }
 -                        items.append(.action(ContextMenuActionItem(text: strongSelf.presentationData.strings.Conversation_Search, icon: { theme in
 -                            return generateTintedImage(image: UIImage(bundleImageName: "Chat/Context Menu/Search"), color: theme.actionSheet.primaryTextColor)
@@ -19,7 +20,11 @@ index db94294..c4b26bd 100644
 +                            })))
 +                        }
                          let aiSettings = NebulaAiSettings.shared
-@@ -6305,10 +6307,10 @@ public final class ChatControllerImpl: TelegramBaseController, ChatController, G
+                         let draft = strongSelf.presentationInterfaceState.interfaceState.effectiveInputState.inputText.string
+                         if aiSettings.enabled && aiSettings.isConfigured() && !draft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+@@ -6413,14 +6415,14 @@
+                                 }
+                             })))
                          }
 -                        
 -                        items.append(.action(ContextMenuActionItem(text: strongSelf.presentationData.strings.Conversation_Search, icon: { theme in
@@ -38,3 +43,5 @@ index db94294..c4b26bd 100644
 +                            })))
 +                        }
                          if threadId != 1 {
+                             var canOpenClose = false
+                             if channel.flags.contains(.isCreator) {

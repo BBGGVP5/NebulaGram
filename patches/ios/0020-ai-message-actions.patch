@@ -1,8 +1,7 @@
 diff --git a/submodules/TelegramUI/Sources/ChatInterfaceStateContextMenus.swift b/submodules/TelegramUI/Sources/ChatInterfaceStateContextMenus.swift
-index 07cef5b..e241193 100644
 --- a/submodules/TelegramUI/Sources/ChatInterfaceStateContextMenus.swift
 +++ b/submodules/TelegramUI/Sources/ChatInterfaceStateContextMenus.swift
-@@ -31,6 +31,7 @@ import Pasteboard
+@@ -31,6 +31,7 @@
  import BrowserUI
  import ChatRichTextEditorComposer
  import SettingsUI
@@ -10,7 +9,7 @@ index 07cef5b..e241193 100644
  import TextNodeWithEntities
  import ChatControllerInteraction
  import ChatMessageItemCommon
-@@ -1444,7 +1445,18 @@ func contextMenuForChatPresentationInterfaceState(chatPresentationInterfaceState
+@@ -1467,7 +1468,18 @@
                  if canTranslate {
                      actions.append(.action(ContextMenuActionItem(text: chatPresentationInterfaceState.strings.Conversation_ContextMenuTranslate, icon: { theme in
                          return generateTintedImage(image: UIImage(bundleImageName: "Chat/Context Menu/Translate"), color: theme.actionSheet.primaryTextColor)
@@ -30,7 +29,7 @@ index 07cef5b..e241193 100644
                          var messageEntities: [MessageTextEntity]?
                          for attribute in message.attributes {
                              if let attribute = attribute as? TextEntitiesMessageAttribute {
-@@ -1457,6 +1469,30 @@ func contextMenuForChatPresentationInterfaceState(chatPresentationInterfaceState
+@@ -1480,6 +1492,30 @@
                      })))
                  }
                  

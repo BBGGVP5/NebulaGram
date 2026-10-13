@@ -1,7 +1,7 @@
 diff --git a/submodules/ChatListUI/Sources/ChatListController.swift b/submodules/ChatListUI/Sources/ChatListController.swift
 --- a/submodules/ChatListUI/Sources/ChatListController.swift
 +++ b/submodules/ChatListUI/Sources/ChatListController.swift
-@@ -7251,7 +7251,7 @@
+@@ -7266,7 +7266,7 @@
                  // Resolve the committed id from the filter model. The previous
                  // item node may survive during a swipe; do not flash the default
                  // title while waiting for that node to be replaced.
@@ -10,18 +10,62 @@ diff --git a/submodules/ChatListUI/Sources/ChatListController.swift b/submodules
                     let selectedId = stateAndFilterId.filterId,
                     let filter = self.containerNode?.availableFilters.compactMap({ $0.filter }).first(where: { $0.id == selectedId }),
                     case let .filter(_, folderTitle, _, _) = filter,
+diff --git a/submodules/TelegramUI/Components/ChatListHeaderComponent/Sources/ChatListHeaderComponent.swift b/submodules/TelegramUI/Components/ChatListHeaderComponent/Sources/ChatListHeaderComponent.swift
+--- a/submodules/TelegramUI/Components/ChatListHeaderComponent/Sources/ChatListHeaderComponent.swift
++++ b/submodules/TelegramUI/Components/ChatListHeaderComponent/Sources/ChatListHeaderComponent.swift
+@@ -708,8 +708,8 @@
+                 if chatListTitle.activity {
+                     chatListTitleOffset = 0.0
+                 } else {
+-                    let leftEdge = sideInset + nextLeftButtonX + 8.0
+-                    let rightEdge = size.width - sideInset - nextRightButtonX - 8.0
++                    let leftEdge = leftInset + nextLeftButtonX + 8.0
++                    let rightEdge = size.width - rightInset - nextRightButtonX - 8.0
+                     let desiredOrigin = NebulaSettingsStore.shared.centerHome ? (size.width - titleContentRect.width) * 0.5 : leftEdge
+                     let safeOrigin = max(leftEdge, min(desiredOrigin, rightEdge - titleContentRect.width))
+                     chatListTitleOffset = (safeOrigin - titleContentRect.minX) * sideContentFraction
+@@ -1168,7 +1168,7 @@
+                 }
+                 let leftButtonsContainerFrame = CGRect(origin: CGPoint(x: component.leftInset, y: 0.0), size: CGSize(width: max(44.0, leftButtonsEffectiveWidth), height: 44.0))
+                 leftButtonsBackgroundContainerTransition.setFrame(view: leftButtonsBackgroundContainer, frame: leftButtonsContainerFrame)
+-                leftButtonsBackgroundContainer.update(size: leftButtonsContainerFrame.size, cornerRadius: leftButtonsContainerFrame.height * 0.5, isDark: component.theme.overallDarkAppearance, tintColor: .init(kind: .panel), isInteractive: true, isVisible: false, transition: leftButtonsBackgroundContainerTransition)
++                leftButtonsBackgroundContainer.update(size: leftButtonsContainerFrame.size, cornerRadius: leftButtonsContainerFrame.height * 0.5, isDark: component.theme.overallDarkAppearance, tintColor: .init(kind: .panel), isInteractive: true, isVisible: true, transition: leftButtonsBackgroundContainerTransition)
+                 leftButtonsBackgroundContainer.morphsIntoContextMenu = leftButtonCount == 1
+                 leftButtonsBackgroundContainerTransition.setFrame(view: self.leftButtonsContainer, frame: CGRect(origin: CGPoint(), size: leftButtonsContainerFrame.size)) 
+             } else {
+@@ -1195,17 +1195,17 @@
+                     self.addSubview(rightButtonsBackgroundContainer)
+                     rightButtonsBackgroundContainer.contentView.addSubview(self.rightButtonsContainer)
+                     
+-                    rightButtonsBackgroundContainer.update(size: rightButtonsContainerFrame.size, cornerRadius: rightButtonsContainerFrame.height * 0.5, isDark: component.theme.overallDarkAppearance, tintColor: .init(kind: .panel), isInteractive: true, isVisible: false, transition: .immediate)
++                    rightButtonsBackgroundContainer.update(size: rightButtonsContainerFrame.size, cornerRadius: rightButtonsContainerFrame.height * 0.5, isDark: component.theme.overallDarkAppearance, tintColor: .init(kind: .panel), isInteractive: true, isVisible: true, transition: .immediate)
+                 }
+                 rightButtonsBackgroundContainerTransition.setFrame(view: rightButtonsBackgroundContainer, frame: rightButtonsContainerFrame)
+-                rightButtonsBackgroundContainer.update(size: rightButtonsContainerFrame.size, cornerRadius: rightButtonsContainerFrame.height * 0.5, isDark: component.theme.overallDarkAppearance, tintColor: .init(kind: .panel), isInteractive: true, isVisible: false, transition: transition)
++                rightButtonsBackgroundContainer.update(size: rightButtonsContainerFrame.size, cornerRadius: rightButtonsContainerFrame.height * 0.5, isDark: component.theme.overallDarkAppearance, tintColor: .init(kind: .panel), isInteractive: true, isVisible: true, transition: transition)
+                 rightButtonsBackgroundContainer.morphsIntoContextMenu = rightButtonCount == 1
+                 rightButtonsBackgroundContainerTransition.setFrame(view: self.rightButtonsContainer, frame: CGRect(origin: CGPoint(), size: rightButtonsContainerFrame.size))
+             } else {
+                 if let rightButtonsBackgroundContainer = self.rightButtonsBackgroundContainer {
+                     self.rightButtonsBackgroundContainer = nil
+                     
+-                    rightButtonsBackgroundContainer.update(size: rightButtonsBackgroundContainer.bounds.size, cornerRadius: rightButtonsBackgroundContainer.bounds.height * 0.5, isDark: component.theme.overallDarkAppearance, tintColor: .init(kind: .panel), isInteractive: true, isVisible: false, transition: transition)
++                    rightButtonsBackgroundContainer.update(size: rightButtonsBackgroundContainer.bounds.size, cornerRadius: rightButtonsBackgroundContainer.bounds.height * 0.5, isDark: component.theme.overallDarkAppearance, tintColor: .init(kind: .panel), isInteractive: true, isVisible: true, transition: transition)
+                     transition.attachAnimation(view: rightButtonsBackgroundContainer, id: "remove", completion: { [weak rightButtonsBackgroundContainer] _ in
+                         rightButtonsBackgroundContainer?.removeFromSuperview()
+                     })
 diff --git a/submodules/TelegramUI/Components/ChatListHeaderComponent/Sources/ChatListNavigationBar.swift b/submodules/TelegramUI/Components/ChatListHeaderComponent/Sources/ChatListNavigationBar.swift
 --- a/submodules/TelegramUI/Components/ChatListHeaderComponent/Sources/ChatListNavigationBar.swift
 +++ b/submodules/TelegramUI/Components/ChatListHeaderComponent/Sources/ChatListNavigationBar.swift
-@@ -193,7 +193,6 @@
- 
-     public final class View: UIView {
-         private let edgeEffectView: EdgeEffectView
+@@ -222,7 +222,6 @@
+         public var edgeEffectBackgroundView: UIView {
+             return self.edgeEffectView
+         }
 -        private let nebulaHeaderGlass = GlassBackgroundView(frame: .zero)
          private var nebulaHeaderObservation: SettingsObservation?
          
-         private let headerBackgroundContainer: GlassBackgroundContainerView
-@@ -247,9 +246,6 @@
+         private var headerBackgroundContainer: UIView
+@@ -277,9 +276,6 @@
              super.init(frame: frame)
              
              self.addSubview(self.edgeEffectView)
@@ -31,7 +75,7 @@ diff --git a/submodules/TelegramUI/Components/ChatListHeaderComponent/Sources/Ch
              self.nebulaHeaderObservation = NebulaSettingsStore.shared.observe { [weak self] in
                  guard let self else { return }
                  self.state?.updated(transition: .immediate)
-@@ -425,20 +421,7 @@
+@@ -466,20 +462,7 @@
              transition.setFrame(view: self.edgeEffectView, frame: edgeEffectFrame)
              self.edgeEffectView.update(content: nil, blur: true, alpha: 0.85, rect: edgeEffectFrame, edge: .top, edgeSize: min(54.0, edgeEffectHeight), transition: transition)
              
@@ -53,7 +97,7 @@ diff --git a/submodules/TelegramUI/Components/ChatListHeaderComponent/Sources/Ch
  
              let headerTransition = transition
              
-@@ -843,7 +826,7 @@
+@@ -913,7 +896,7 @@
              
              self.updateEdgeEffectColor(transition: transition)
              
@@ -62,38 +106,6 @@ diff --git a/submodules/TelegramUI/Components/ChatListHeaderComponent/Sources/Ch
              
              return size
          }
-diff --git a/submodules/TelegramUI/Components/ChatListHeaderComponent/Sources/ChatListHeaderComponent.swift b/submodules/TelegramUI/Components/ChatListHeaderComponent/Sources/ChatListHeaderComponent.swift
---- a/submodules/TelegramUI/Components/ChatListHeaderComponent/Sources/ChatListHeaderComponent.swift
-+++ b/submodules/TelegramUI/Components/ChatListHeaderComponent/Sources/ChatListHeaderComponent.swift
-@@ -1134,7 +1134,7 @@
-                 }
-                 let leftButtonsContainerFrame = CGRect(origin: CGPoint(x: component.sideInset, y: 0.0), size: CGSize(width: max(44.0, leftButtonsEffectiveWidth), height: 44.0))
-                 leftButtonsBackgroundContainerTransition.setFrame(view: leftButtonsBackgroundContainer, frame: leftButtonsContainerFrame)
--                leftButtonsBackgroundContainer.update(size: leftButtonsContainerFrame.size, cornerRadius: leftButtonsContainerFrame.height * 0.5, isDark: component.theme.overallDarkAppearance, tintColor: .init(kind: .panel), isInteractive: true, isVisible: false, transition: leftButtonsBackgroundContainerTransition)
-+                leftButtonsBackgroundContainer.update(size: leftButtonsContainerFrame.size, cornerRadius: leftButtonsContainerFrame.height * 0.5, isDark: component.theme.overallDarkAppearance, tintColor: .init(kind: .panel), isInteractive: true, isVisible: true, transition: leftButtonsBackgroundContainerTransition)
-                 leftButtonsBackgroundContainerTransition.setFrame(view: self.leftButtonsContainer, frame: CGRect(origin: CGPoint(), size: leftButtonsContainerFrame.size)) 
-             } else {
-                 if let leftButtonsBackgroundContainer = self.leftButtonsBackgroundContainer {
-@@ -1160,16 +1160,16 @@
-                     self.addSubview(rightButtonsBackgroundContainer)
-                     rightButtonsBackgroundContainer.contentView.addSubview(self.rightButtonsContainer)
-                     
--                    rightButtonsBackgroundContainer.update(size: rightButtonsContainerFrame.size, cornerRadius: rightButtonsContainerFrame.height * 0.5, isDark: component.theme.overallDarkAppearance, tintColor: .init(kind: .panel), isInteractive: true, isVisible: false, transition: .immediate)
-+                    rightButtonsBackgroundContainer.update(size: rightButtonsContainerFrame.size, cornerRadius: rightButtonsContainerFrame.height * 0.5, isDark: component.theme.overallDarkAppearance, tintColor: .init(kind: .panel), isInteractive: true, isVisible: true, transition: .immediate)
-                 }
-                 rightButtonsBackgroundContainerTransition.setFrame(view: rightButtonsBackgroundContainer, frame: rightButtonsContainerFrame)
--                rightButtonsBackgroundContainer.update(size: rightButtonsContainerFrame.size, cornerRadius: rightButtonsContainerFrame.height * 0.5, isDark: component.theme.overallDarkAppearance, tintColor: .init(kind: .panel), isInteractive: true, isVisible: false, transition: transition)
-+                rightButtonsBackgroundContainer.update(size: rightButtonsContainerFrame.size, cornerRadius: rightButtonsContainerFrame.height * 0.5, isDark: component.theme.overallDarkAppearance, tintColor: .init(kind: .panel), isInteractive: true, isVisible: true, transition: transition)
-                 rightButtonsBackgroundContainerTransition.setFrame(view: self.rightButtonsContainer, frame: CGRect(origin: CGPoint(), size: rightButtonsContainerFrame.size))
-             } else {
-                 if let rightButtonsBackgroundContainer = self.rightButtonsBackgroundContainer {
-                     self.rightButtonsBackgroundContainer = nil
-                     
--                    rightButtonsBackgroundContainer.update(size: rightButtonsBackgroundContainer.bounds.size, cornerRadius: rightButtonsBackgroundContainer.bounds.height * 0.5, isDark: component.theme.overallDarkAppearance, tintColor: .init(kind: .panel), isInteractive: true, isVisible: false, transition: transition)
-+                    rightButtonsBackgroundContainer.update(size: rightButtonsBackgroundContainer.bounds.size, cornerRadius: rightButtonsBackgroundContainer.bounds.height * 0.5, isDark: component.theme.overallDarkAppearance, tintColor: .init(kind: .panel), isInteractive: true, isVisible: true, transition: transition)
-                     transition.attachAnimation(view: rightButtonsBackgroundContainer, id: "remove", completion: { [weak rightButtonsBackgroundContainer] _ in
-                         rightButtonsBackgroundContainer?.removeFromSuperview()
-                     })
 diff --git a/submodules/TelegramUI/Components/ChatListHeaderComponent/Sources/NavigationButtonComponent.swift b/submodules/TelegramUI/Components/ChatListHeaderComponent/Sources/NavigationButtonComponent.swift
 --- a/submodules/TelegramUI/Components/ChatListHeaderComponent/Sources/NavigationButtonComponent.swift
 +++ b/submodules/TelegramUI/Components/ChatListHeaderComponent/Sources/NavigationButtonComponent.swift

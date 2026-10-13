@@ -1,8 +1,7 @@
 diff --git a/submodules/TelegramUI/Sources/ChatInterfaceStateContextMenus.swift b/submodules/TelegramUI/Sources/ChatInterfaceStateContextMenus.swift
-index f76cb73..a92869d 100644
 --- a/submodules/TelegramUI/Sources/ChatInterfaceStateContextMenus.swift
 +++ b/submodules/TelegramUI/Sources/ChatInterfaceStateContextMenus.swift
-@@ -1334,6 +1334,20 @@ func contextMenuForChatPresentationInterfaceState(chatPresentationInterfaceState
+@@ -1350,6 +1350,20 @@
          }
          
          let isCopyProtected = chatPresentationInterfaceState.copyProtectionEnabled || message.isCopyProtected()

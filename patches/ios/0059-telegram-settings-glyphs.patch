@@ -1,5 +1,4 @@
 diff --git a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoSettingsItems.swift b/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoSettingsItems.swift
-index 791169a..8de2335 100644
 --- a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoSettingsItems.swift
 +++ b/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoSettingsItems.swift
 @@ -1,4 +1,5 @@
@@ -8,7 +7,7 @@ index 791169a..8de2335 100644
  import UIKit
  import Display
  import AccountContext
-@@ -147,7 +148,7 @@ func settingsItems(data: PeerInfoScreenData?, context: AccountContext, presentat
+@@ -149,7 +150,7 @@
              }))
          }
          
@@ -17,7 +16,7 @@ index 791169a..8de2335 100644
              interaction.openSettings(.profile)
          }))
          
-@@ -163,7 +164,7 @@ func settingsItems(data: PeerInfoScreenData?, context: AccountContext, presentat
+@@ -189,7 +190,7 @@
              } else {
                  proxyType = presentationData.strings.Settings_ProxyDisabled
              }
@@ -26,7 +25,7 @@ index 791169a..8de2335 100644
                  interaction.openSettings(.proxy)
              }))
          }
-@@ -196,10 +197,10 @@ func settingsItems(data: PeerInfoScreenData?, context: AccountContext, presentat
+@@ -222,10 +223,10 @@
          }
      }
      
@@ -39,7 +38,7 @@ index 791169a..8de2335 100644
          interaction.openSettings(.recentCalls)
      }))
      
-@@ -214,10 +215,10 @@ func settingsItems(data: PeerInfoScreenData?, context: AccountContext, presentat
+@@ -240,10 +241,10 @@
          devicesLabel = ""
      }
      
@@ -52,7 +51,7 @@ index 791169a..8de2335 100644
          interaction.openSettings(.chatFolders)
      }))
      
-@@ -227,36 +228,36 @@ func settingsItems(data: PeerInfoScreenData?, context: AccountContext, presentat
+@@ -253,36 +254,36 @@
      } else {
          notificationsWarning = false
      }
@@ -97,7 +96,7 @@ index 791169a..8de2335 100644
              interaction.openSettings(.premium)
          }))
      }
-@@ -272,7 +273,7 @@ func settingsItems(data: PeerInfoScreenData?, context: AccountContext, presentat
+@@ -298,7 +299,7 @@
              } else {
                  balanceText = NSAttributedString()
              }
@@ -106,11 +105,11 @@ index 791169a..8de2335 100644
                  interaction.openSettings(.stars)
              }))
          }
-@@ -289,19 +290,19 @@ func settingsItems(data: PeerInfoScreenData?, context: AccountContext, presentat
+@@ -315,19 +316,19 @@
              } else {
                  balanceText = NSAttributedString()
              }
--            items[.payment]!.append(PeerInfoScreenDisclosureItem(id: 103, label: .attributedText(balanceText), text: presentationData.strings.Settings_MyTon, icon: PresentationResourcesSettings.ton, action: {
+-            items[.payment]!.append(PeerInfoScreenDisclosureItem(id: 103, label: .attributedText(balanceText), text: presentationData.strings.Settings_MyTon, icon: PresentationResourcesSettings.gramEarnings, action: {
 +            items[.payment]!.append(PeerInfoScreenDisclosureItem(id: 103, label: .attributedText(balanceText), text: presentationData.strings.Settings_MyTon, icon: NebulaSettingsStyle.icon(symbol: "diamond", color: .systemBlue), action: {
                  interaction.openSettings(.ton)
              }))
@@ -129,7 +128,7 @@ index 791169a..8de2335 100644
                  interaction.openSettings(.premiumGift)
              }))
          }
-@@ -309,24 +310,24 @@ func settingsItems(data: PeerInfoScreenData?, context: AccountContext, presentat
+@@ -335,24 +336,24 @@
      
      if let settings = data.globalSettings {
          if settings.hasPassport {
@@ -159,7 +158,7 @@ index 791169a..8de2335 100644
          interaction.openSettings(.tips)
      }))
      
-@@ -417,7 +418,7 @@ func settingsEditingItems(data: PeerInfoScreenData?, state: PeerInfoState, conte
+@@ -443,7 +444,7 @@
      }
      
      let isEditingBirthDate = state.isEditingBirthDate
@@ -168,7 +167,7 @@ index 791169a..8de2335 100644
          interaction.updateIsEditingBirthdate(!isEditingBirthDate)
      }))
      if isEditingBirthDate, let birthday {
-@@ -448,7 +449,7 @@ func settingsEditingItems(data: PeerInfoScreenData?, state: PeerInfoState, conte
+@@ -474,7 +475,7 @@
      }
      
      if case let .user(user) = data.peer {
@@ -177,7 +176,7 @@ index 791169a..8de2335 100644
              interaction.openSettings(.phoneNumber)
          }))
      }
-@@ -456,7 +457,7 @@ func settingsEditingItems(data: PeerInfoScreenData?, state: PeerInfoState, conte
+@@ -482,7 +483,7 @@
      if let addressName = data.peer?.addressName, !addressName.isEmpty {
          username = "@\(addressName)"
      }
@@ -186,7 +185,7 @@ index 791169a..8de2335 100644
            interaction.openSettings(.username)
      }))
      
-@@ -477,7 +478,7 @@ func settingsEditingItems(data: PeerInfoScreenData?, state: PeerInfoState, conte
+@@ -503,7 +504,7 @@
          }
          let colorImage = generateSettingsMenuPeerColorsLabelIcon(colors: colors)
          
@@ -195,7 +194,7 @@ index 791169a..8de2335 100644
              interaction.editingOpenNameColorSetup()
          }))
          
-@@ -493,7 +494,7 @@ func settingsEditingItems(data: PeerInfoScreenData?, state: PeerInfoState, conte
+@@ -519,7 +520,7 @@
                  personalChannelTitle = peer.compactDisplayTitle
              }
              
@@ -204,7 +203,7 @@ index 791169a..8de2335 100644
                  interaction.editingOpenPersonalChannel()
              }))
          }
-@@ -506,7 +507,7 @@ func settingsEditingItems(data: PeerInfoScreenData?, state: PeerInfoState, conte
+@@ -532,7 +533,7 @@
      } else {
          automationBotTitle = presentationData.strings.Settings_ChatAutomationOff
      }

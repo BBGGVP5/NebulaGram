@@ -1,7 +1,7 @@
 diff --git a/submodules/TelegramUI/Components/Chat/ChatMessageTextBubbleContentNode/Sources/ChatMessageTextBubbleContentNode.swift b/submodules/TelegramUI/Components/Chat/ChatMessageTextBubbleContentNode/Sources/ChatMessageTextBubbleContentNode.swift
 --- a/submodules/TelegramUI/Components/Chat/ChatMessageTextBubbleContentNode/Sources/ChatMessageTextBubbleContentNode.swift
 +++ b/submodules/TelegramUI/Components/Chat/ChatMessageTextBubbleContentNode/Sources/ChatMessageTextBubbleContentNode.swift
-@@ -423,17 +423,19 @@
+@@ -419,17 +419,19 @@
                          isSummarized = true
                      }
                      
@@ -28,7 +28,7 @@ diff --git a/submodules/TelegramUI/Components/Chat/ChatMessageTextBubbleContentN
 diff --git a/submodules/TelegramUI/Sources/Chat/ChatControllerLoadDisplayNode.swift b/submodules/TelegramUI/Sources/Chat/ChatControllerLoadDisplayNode.swift
 --- a/submodules/TelegramUI/Sources/Chat/ChatControllerLoadDisplayNode.swift
 +++ b/submodules/TelegramUI/Sources/Chat/ChatControllerLoadDisplayNode.swift
-@@ -4392,7 +4392,7 @@
+@@ -4404,7 +4404,7 @@
                  return
              }
              let nebulaOptions = NebulaTranslationPreferences.shared.options(account: "\(self.context.account.peerId.toInt64())", peer: "\(peerId.toInt64())")
@@ -37,7 +37,7 @@ diff --git a/submodules/TelegramUI/Sources/Chat/ChatControllerLoadDisplayNode.sw
                  if type != .translated { self.nebulaShowOriginalMessages() }
                  return
              }
-@@ -4411,7 +4411,7 @@
+@@ -4423,7 +4423,7 @@
                  return
              }
              let nebulaOptions = NebulaTranslationPreferences.shared.options(account: "\(self.context.account.peerId.toInt64())", peer: "\(peerId.toInt64())")
@@ -46,7 +46,7 @@ diff --git a/submodules/TelegramUI/Sources/Chat/ChatControllerLoadDisplayNode.sw
                  NebulaTranslationPreferences.shared.update(account: "\(self.context.account.peerId.toInt64())", peer: "\(peerId.toInt64())") { $0.incomingLanguage = normalizeTranslationLanguage(langCode) }
                  return
              }
-@@ -4467,7 +4467,7 @@
+@@ -4479,7 +4479,7 @@
                  return
              }
              let nebulaOptions = NebulaTranslationPreferences.shared.options(account: "\(strongSelf.context.account.peerId.toInt64())", peer: "\(peerId.toInt64())")
@@ -58,7 +58,7 @@ diff --git a/submodules/TelegramUI/Sources/Chat/ChatControllerLoadDisplayNode.sw
 diff --git a/submodules/TelegramUI/Sources/ChatController.swift b/submodules/TelegramUI/Sources/ChatController.swift
 --- a/submodules/TelegramUI/Sources/ChatController.swift
 +++ b/submodules/TelegramUI/Sources/ChatController.swift
-@@ -275,8 +275,8 @@
+@@ -276,8 +276,8 @@
          nebulaTranslationTimer?.invalidate(); nebulaTranslationTimer = nil
          let options = NebulaTranslationPreferences.shared.options(account: account, peer: peerKey)
          nebulaTickChatAI()
@@ -69,7 +69,7 @@ diff --git a/submodules/TelegramUI/Sources/ChatController.swift b/submodules/Tel
          }
          if nebulaTranslationObservers.isEmpty {
              nebulaTranslationObservers.append(NotificationCenter.default.addObserver(forName: NebulaTranslationActivity.changed, object: nil, queue: .main) { [weak self] _ in
-@@ -301,7 +301,7 @@
+@@ -302,7 +302,7 @@
          guard let peer = chatLocation.peerId else { return }
          // An explicit Original/Hide action must not restore a previously active native translator.
          nebulaPreviousTranslationState = nil
@@ -78,7 +78,7 @@ diff --git a/submodules/TelegramUI/Sources/ChatController.swift b/submodules/Tel
      }
      private func nebulaPresentTools(_ controller: UIViewController) {
          guard !nebulaToolsVisible, presentedViewController == nil else { return }
-@@ -330,7 +330,7 @@
+@@ -331,7 +331,7 @@
          guard nebulaTranslationVisible, UIApplication.shared.applicationState == .active, let peer = chatLocation.peerId else { return }
          let options = NebulaTranslationPreferences.shared.options(account: "\(context.account.peerId.toInt64())", peer: "\(peer.toInt64())")
          let allowed = peer.namespace != Namespaces.Peer.SecretChat && !presentationInterfaceState.copyProtectionEnabled
@@ -87,7 +87,7 @@ diff --git a/submodules/TelegramUI/Sources/ChatController.swift b/submodules/Tel
          if incoming {
              if !nebulaHadAiTranslation { nebulaPreviousTranslationState = presentationInterfaceState.translationState; nebulaHadAiTranslation = true }
              if presentationInterfaceState.translationState?.isEnabled != true || presentationInterfaceState.translationState?.toLang != options.incomingLanguage || presentationInterfaceState.translationState?.fromLang != "nebula-ai" {
-@@ -343,7 +343,7 @@
+@@ -344,7 +344,7 @@
              let previous = nebulaPreviousTranslationState
              updateChatPresentationInterfaceState(animated: !UIAccessibility.isReduceMotionEnabled, interactive: false, { $0.updatedTranslationState(previous) })
          }

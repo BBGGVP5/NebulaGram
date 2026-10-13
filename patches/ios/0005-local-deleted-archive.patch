@@ -1,26 +1,26 @@
 diff --git a/submodules/TelegramCore/BUILD b/submodules/TelegramCore/BUILD
 --- a/submodules/TelegramCore/BUILD
 +++ b/submodules/TelegramCore/BUILD
-@@ -10,6 +10,7 @@
+@@ -12,6 +12,7 @@
          "-warnings-as-errors",
      ],
      deps = [
 +        "//submodules/NebulaSettingsContract:NebulaSettingsContract",
          "//submodules/TelegramApi:TelegramApi",
          "//submodules/MtProtoKit:MtProtoKit",
-         "//submodules/SSignalKit/SwiftSignalKit:SwiftSignalKit",
+         "//submodules/MediaPreuploadRegistry:MediaPreuploadRegistry",
 diff --git a/submodules/TelegramCore/Sources/State/AccountStateManagementUtils.swift b/submodules/TelegramCore/Sources/State/AccountStateManagementUtils.swift
 --- a/submodules/TelegramCore/Sources/State/AccountStateManagementUtils.swift
 +++ b/submodules/TelegramCore/Sources/State/AccountStateManagementUtils.swift
-@@ -4440,6 +4440,7 @@
-                     }
-                 }
+@@ -4597,6 +4597,7 @@
+             case let .DeleteEphemeralMessages(peerId, ids):
+                 deleteEphemeralMessages(transaction: transaction, peerId: peerId, ids: ids)
              case let .DeleteMessagesWithGlobalIds(ids):
 +                NebulaDeletedCapture.capture(transaction: transaction, accountPeerId: accountPeerId, ids: transaction.messageIdsForGlobalIds(ids))
                  var resourceIds: [MediaResourceId] = []
                  transaction.deleteMessagesWithGlobalIds(ids, forEachMedia: { media in
                      addMessageMediaResourceIdsToRemove(media: media, resourceIds: &resourceIds)
-@@ -4449,6 +4450,7 @@
+@@ -4606,6 +4607,7 @@
                  }
                  deletedMessageIds.append(contentsOf: ids.map { .global($0) })
              case let .DeleteMessages(ids):

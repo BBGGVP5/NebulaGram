@@ -1,8 +1,7 @@
 diff --git a/submodules/TelegramUI/Components/Chat/ChatTextInputPanelNode/Sources/ChatTextInputPanelNode.swift b/submodules/TelegramUI/Components/Chat/ChatTextInputPanelNode/Sources/ChatTextInputPanelNode.swift
-index 43eee8f..cd36034 100644
 --- a/submodules/TelegramUI/Components/Chat/ChatTextInputPanelNode/Sources/ChatTextInputPanelNode.swift
 +++ b/submodules/TelegramUI/Components/Chat/ChatTextInputPanelNode/Sources/ChatTextInputPanelNode.swift
-@@ -367,7 +367,7 @@ public class ChatTextInputPanelNode: ChatInputPanelNode, ASEditableTextNodeDeleg
+@@ -332,7 +332,7 @@
              let state = self.presentationInterfaceState,
              state.inputTextPanelState.mediaRecordingState == nil, state.interfaceState.mediaDraftState == nil,
              state.editMessageState == nil, state.chatLocation.peerId?.namespace != Namespaces.Peer.SecretChat else { return 0 }
@@ -11,7 +10,7 @@ index 43eee8f..cd36034 100644
      }
      public var isAIEnabled: Bool = false
      
-@@ -3326,9 +3326,14 @@ public class ChatTextInputPanelNode: ChatInputPanelNode, ASEditableTextNodeDeleg
+@@ -3306,9 +3306,14 @@
          
          if let button = self.nebulaToolsButton {
              button.isHidden = self.nebulaToolsWidth == 0 || audioRecordingItemsAlpha == 0
@@ -29,7 +28,6 @@ index 43eee8f..cd36034 100644
          }
  
 diff --git a/submodules/TelegramUI/Components/ChatListHeaderComponent/Sources/ChatListNavigationBar.swift b/submodules/TelegramUI/Components/ChatListHeaderComponent/Sources/ChatListNavigationBar.swift
-index 23ea726..6397992 100644
 --- a/submodules/TelegramUI/Components/ChatListHeaderComponent/Sources/ChatListNavigationBar.swift
 +++ b/submodules/TelegramUI/Components/ChatListHeaderComponent/Sources/ChatListNavigationBar.swift
 @@ -1,4 +1,5 @@
@@ -38,16 +36,16 @@ index 23ea726..6397992 100644
  import UIKit
  import Display
  import AsyncDisplayKit
-@@ -192,6 +193,8 @@ public final class ChatListNavigationBar: Component {
- 
-     public final class View: UIView {
-         private let edgeEffectView: EdgeEffectView
+@@ -221,6 +222,8 @@
+         public var edgeEffectBackgroundView: UIView {
+             return self.edgeEffectView
+         }
 +        private let nebulaHeaderGlass = GlassBackgroundView(frame: .zero)
 +        private var nebulaHeaderObservation: SettingsObservation?
          
-         private let headerBackgroundContainer: GlassBackgroundContainerView
+         private var headerBackgroundContainer: UIView
          public let headerContent = ComponentView<Empty>()
-@@ -244,6 +247,16 @@ public final class ChatListNavigationBar: Component {
+@@ -274,6 +277,16 @@
              super.init(frame: frame)
              
              self.addSubview(self.edgeEffectView)
@@ -64,7 +62,7 @@ index 23ea726..6397992 100644
              self.addSubview(self.bottomContentsContainer)
          }
          
-@@ -412,6 +425,21 @@ public final class ChatListNavigationBar: Component {
+@@ -453,6 +466,21 @@
              transition.setFrame(view: self.edgeEffectView, frame: edgeEffectFrame)
              self.edgeEffectView.update(content: nil, blur: true, alpha: 0.85, rect: edgeEffectFrame, edge: .top, edgeSize: min(54.0, edgeEffectHeight), transition: transition)
              
@@ -86,7 +84,7 @@ index 23ea726..6397992 100644
              let headerTransition = transition
              
              let storiesOffsetFraction: CGFloat
-@@ -815,7 +843,7 @@ public final class ChatListNavigationBar: Component {
+@@ -885,7 +913,7 @@
              
              self.updateEdgeEffectColor(transition: transition)
              
@@ -96,10 +94,9 @@ index 23ea726..6397992 100644
              return size
          }
 diff --git a/submodules/TelegramUI/Components/Stories/StoryPeerListComponent/Sources/StoryPeerListComponent.swift b/submodules/TelegramUI/Components/Stories/StoryPeerListComponent/Sources/StoryPeerListComponent.swift
-index 0b19bc5..1312e28 100644
 --- a/submodules/TelegramUI/Components/Stories/StoryPeerListComponent/Sources/StoryPeerListComponent.swift
 +++ b/submodules/TelegramUI/Components/Stories/StoryPeerListComponent/Sources/StoryPeerListComponent.swift
-@@ -1448,7 +1448,8 @@ public final class StoryPeerListComponent: Component {
+@@ -1454,7 +1454,8 @@
                  
                  self.titleView.alpha = titleFraction
                  
@@ -109,7 +106,7 @@ index 0b19bc5..1312e28 100644
                  self.titleView.layer.transform = CATransform3DMakeScale(titleScale, titleScale, 1.0)
              }
              
-@@ -1493,7 +1494,7 @@ public final class StoryPeerListComponent: Component {
+@@ -1499,7 +1500,7 @@
                      
                      disappearingTitleView.imageView.alpha = titleFraction
                      
@@ -119,10 +116,9 @@ index 0b19bc5..1312e28 100644
                  }
              }
 diff --git a/submodules/TelegramUI/Sources/ChatController.swift b/submodules/TelegramUI/Sources/ChatController.swift
-index 691a8cc..b0e444c 100644
 --- a/submodules/TelegramUI/Sources/ChatController.swift
 +++ b/submodules/TelegramUI/Sources/ChatController.swift
-@@ -251,6 +251,7 @@ public final class ChatControllerImpl: TelegramBaseController, ChatController, G
+@@ -252,6 +252,7 @@
      private var nebulaTranslationTimer: Foundation.Timer?
      private var nebulaTranslationObservers: [NSObjectProtocol] = []
      private var nebulaTranslationVisible = false
@@ -130,7 +126,7 @@ index 691a8cc..b0e444c 100644
      private var nebulaHadAiTranslation = false
      private var nebulaPreviousTranslationState: ChatPresentationTranslationState?
      private var nebulaIncomingTick = Date.distantPast
-@@ -264,12 +265,11 @@ public final class ChatControllerImpl: TelegramBaseController, ChatController, G
+@@ -265,12 +266,11 @@
          chatDisplayNode.textInputPanelNode?.nebulaToolsButton = nebulaDraftTranslation.button
          nebulaDraftTranslation.openSettings = { [weak self] in self?.nebulaOpenTranslationSettings() }
          nebulaDraftTranslation.openTools = { [weak self] in
@@ -145,7 +141,7 @@ index 691a8cc..b0e444c 100644
          }
          nebulaDraftTranslation.apply = { [weak self] source, result in self?.nebulaApplyDraft(source: source, result: result) }
          nebulaTranslationTimer?.invalidate(); nebulaTranslationTimer = nil
-@@ -296,12 +296,22 @@ public final class ChatControllerImpl: TelegramBaseController, ChatController, G
+@@ -297,12 +297,22 @@
          nebulaPreviousTranslationState = nil
          NebulaTranslationPreferences.shared.update(account: "\(context.account.peerId.toInt64())", peer: "\(peer.toInt64())") { $0.incoming = false }
      }
@@ -170,7 +166,7 @@ index 691a8cc..b0e444c 100644
      }
      private func nebulaApplyDraft(source: String, result: String) {
          guard presentationInterfaceState.interfaceState.effectiveInputState.inputText.string == source else { return }
-@@ -333,7 +343,7 @@ public final class ChatControllerImpl: TelegramBaseController, ChatController, G
+@@ -334,7 +344,7 @@
              nebulaLiveTranslation.update(context: context, peer: peer, messages: messages, allowed: incoming)
          }
          let composerVisible = chatDisplayNode.inputPanelNode === chatDisplayNode.textInputPanelNode
@@ -179,7 +175,7 @@ index 691a8cc..b0e444c 100644
              && presentationInterfaceState.editMessageState == nil && presentationInterfaceState.inputTextPanelState.mediaRecordingState == nil
              && presentationInterfaceState.interfaceState.mediaDraftState == nil
          nebulaDraftTranslation.update(source: presentationInterfaceState.interfaceState.effectiveInputState.inputText.string, options: options, allowed: canTranslateDraft)
-@@ -6203,14 +6213,9 @@ public final class ChatControllerImpl: TelegramBaseController, ChatController, G
+@@ -6313,14 +6323,9 @@
                              }, action: { _, f in
                                  f(.dismissWithoutContent)
                                  let editor = NebulaAiChatController(russian: russian, initialText: draft, action: .proofread, applyResult: { [weak self] value in
@@ -197,10 +193,9 @@ index 691a8cc..b0e444c 100644
                          }
                                                  
 diff --git a/submodules/TelegramUI/Sources/ChatInterfaceStateContextMenus.swift b/submodules/TelegramUI/Sources/ChatInterfaceStateContextMenus.swift
-index 71f40dc..aa73caa 100644
 --- a/submodules/TelegramUI/Sources/ChatInterfaceStateContextMenus.swift
 +++ b/submodules/TelegramUI/Sources/ChatInterfaceStateContextMenus.swift
-@@ -1452,7 +1452,7 @@ func contextMenuForChatPresentationInterfaceState(chatPresentationInterfaceState
+@@ -1475,7 +1475,7 @@
                              let selectedText = messageText
                              let russian = chatPresentationInterfaceState.strings.baseLanguageCode.lowercased().hasPrefix("ru")
                              c?.dismiss(completion: {
@@ -209,7 +204,7 @@ index 71f40dc..aa73caa 100644
                              })
                              if c == nil { f(.default) }
                              return
-@@ -1476,7 +1476,7 @@ func contextMenuForChatPresentationInterfaceState(chatPresentationInterfaceState
+@@ -1499,7 +1499,7 @@
                          return generateTintedImage(image: UIImage(bundleImageName: "Chat/Context Menu/Translate"), color: theme.actionSheet.primaryTextColor)
                      }, action: { c, f in
                          c?.dismiss(completion: {
@@ -218,7 +213,7 @@ index 71f40dc..aa73caa 100644
                          })
                          if c == nil { f(.default) }
                      })))
-@@ -1484,7 +1484,7 @@ func contextMenuForChatPresentationInterfaceState(chatPresentationInterfaceState
+@@ -1507,7 +1507,7 @@
                          return generateTintedImage(image: UIImage(bundleImageName: "Chat/Context Menu/Translate"), color: theme.actionSheet.primaryTextColor)
                      }, action: { c, f in
                          c?.dismiss(completion: {

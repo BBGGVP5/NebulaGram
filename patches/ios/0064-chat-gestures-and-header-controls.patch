@@ -1,7 +1,7 @@
 diff --git a/submodules/TelegramUI/Components/Chat/ChatMessageAnimatedStickerItemNode/Sources/ChatMessageAnimatedStickerItemNode.swift b/submodules/TelegramUI/Components/Chat/ChatMessageAnimatedStickerItemNode/Sources/ChatMessageAnimatedStickerItemNode.swift
 --- a/submodules/TelegramUI/Components/Chat/ChatMessageAnimatedStickerItemNode/Sources/ChatMessageAnimatedStickerItemNode.swift
 +++ b/submodules/TelegramUI/Components/Chat/ChatMessageAnimatedStickerItemNode/Sources/ChatMessageAnimatedStickerItemNode.swift
-@@ -2066,6 +2066,10 @@
+@@ -2025,6 +2025,10 @@
          switch recognizer.state {
          case .ended:
              if let item = self.item, let (gesture, location) = recognizer.lastRecognizedGestureAndLocation {
@@ -15,7 +15,7 @@ diff --git a/submodules/TelegramUI/Components/Chat/ChatMessageAnimatedStickerIte
 diff --git a/submodules/TelegramUI/Components/Chat/ChatMessageBubbleItemNode/Sources/ChatMessageBubbleItemNode.swift b/submodules/TelegramUI/Components/Chat/ChatMessageBubbleItemNode/Sources/ChatMessageBubbleItemNode.swift
 --- a/submodules/TelegramUI/Components/Chat/ChatMessageBubbleItemNode/Sources/ChatMessageBubbleItemNode.swift
 +++ b/submodules/TelegramUI/Components/Chat/ChatMessageBubbleItemNode/Sources/ChatMessageBubbleItemNode.swift
-@@ -2493,14 +2493,14 @@
+@@ -2534,14 +2534,14 @@
                  authorNameColor = color
  
                  if case let .peer(peerId) = item.chatLocation, let authorPeerId = item.message.author?.id, authorPeerId == peerId {
@@ -32,7 +32,7 @@ diff --git a/submodules/TelegramUI/Components/Chat/ChatMessageBubbleItemNode/Sou
                      currentCredibilityIcon = (.animation(content: .customEmoji(fileId: emojiStatus.fileId), size: CGSize(width: 20.0, height: 20.0), placeholderColor: incoming ? item.presentationData.theme.theme.chat.message.incoming.mediaPlaceholderColor : item.presentationData.theme.theme.chat.message.outgoing.mediaPlaceholderColor, themeColor: color.withMultipliedAlpha(0.4), loopMode: .count(2)), emojiStatus.color.flatMap { UIColor(rgb: UInt32(bitPattern: $0)) })
                  } else if effectiveAuthor.isVerified {
                      currentCredibilityIcon = (.verified(fillColor: item.presentationData.theme.theme.list.itemCheckColors.fillColor, foregroundColor: item.presentationData.theme.theme.list.itemCheckColors.foregroundColor, sizeType: .compact), nil)
-@@ -5761,6 +5761,9 @@
+@@ -5852,6 +5852,9 @@
                      case let .optionalAction(f):
                          f()
                      case let .openContextMenu(openContextMenu):
@@ -42,7 +42,7 @@ diff --git a/submodules/TelegramUI/Components/Chat/ChatMessageBubbleItemNode/Sou
                          if canAddMessageReactions(message: EngineMessage(openContextMenu.tapMessage)) {
                              item.controllerInteraction.updateMessageReaction(openContextMenu.tapMessage, .default, false, nil)
                          } else {
-@@ -5770,6 +5773,10 @@
+@@ -5861,6 +5864,10 @@
                  } else if case .tap = gesture {
                      item.controllerInteraction.clickThroughMessage(self.view, location)
                  } else if case .doubleTap = gesture {
@@ -56,7 +56,7 @@ diff --git a/submodules/TelegramUI/Components/Chat/ChatMessageBubbleItemNode/Sou
 diff --git a/submodules/TelegramUI/Components/Chat/ChatMessageInstantVideoItemNode/Sources/ChatMessageInstantVideoItemNode.swift b/submodules/TelegramUI/Components/Chat/ChatMessageInstantVideoItemNode/Sources/ChatMessageInstantVideoItemNode.swift
 --- a/submodules/TelegramUI/Components/Chat/ChatMessageInstantVideoItemNode/Sources/ChatMessageInstantVideoItemNode.swift
 +++ b/submodules/TelegramUI/Components/Chat/ChatMessageInstantVideoItemNode/Sources/ChatMessageInstantVideoItemNode.swift
-@@ -959,6 +959,10 @@
+@@ -948,6 +948,10 @@
          switch recognizer.state {
          case .ended:
              if let (gesture, location) = recognizer.lastRecognizedGestureAndLocation {
@@ -82,7 +82,7 @@ diff --git a/submodules/TelegramUI/Components/Chat/ChatMessageItem/BUILD b/submo
 diff --git a/submodules/TelegramUI/Components/Chat/ChatMessageStickerItemNode/Sources/ChatMessageStickerItemNode.swift b/submodules/TelegramUI/Components/Chat/ChatMessageStickerItemNode/Sources/ChatMessageStickerItemNode.swift
 --- a/submodules/TelegramUI/Components/Chat/ChatMessageStickerItemNode/Sources/ChatMessageStickerItemNode.swift
 +++ b/submodules/TelegramUI/Components/Chat/ChatMessageStickerItemNode/Sources/ChatMessageStickerItemNode.swift
-@@ -1501,6 +1501,10 @@
+@@ -1452,6 +1452,10 @@
                  if case .doubleTap = gesture {
                      self.containerNode.cancelGesture()
                  }
@@ -96,7 +96,7 @@ diff --git a/submodules/TelegramUI/Components/Chat/ChatMessageStickerItemNode/So
 diff --git a/submodules/TelegramUI/Components/ChatControllerInteraction/Sources/ChatControllerInteraction.swift b/submodules/TelegramUI/Components/ChatControllerInteraction/Sources/ChatControllerInteraction.swift
 --- a/submodules/TelegramUI/Components/ChatControllerInteraction/Sources/ChatControllerInteraction.swift
 +++ b/submodules/TelegramUI/Components/ChatControllerInteraction/Sources/ChatControllerInteraction.swift
-@@ -307,6 +307,8 @@
+@@ -318,6 +318,8 @@
      public let requestMessageUpdate: (EngineMessage.Id, Bool, ControlledTransition?) -> Void
      /// Synchronous editability predicate for rich-text checkbox toggling (bridges the
      /// internal `canEditMessage`, which the component module cannot call). Mirrors `canSetupReply`.

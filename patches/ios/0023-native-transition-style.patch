@@ -1,7 +1,8 @@
 diff --git a/submodules/Display/BUILD b/submodules/Display/BUILD
 --- a/submodules/Display/BUILD
 +++ b/submodules/Display/BUILD
-@@ -11,5 +11,6 @@ swift_library(
+@@ -16,6 +16,7 @@
+     	"//submodules/SSignalKit/SwiftSignalKit:SwiftSignalKit",
          "//submodules/Markdown:Markdown",
          "//submodules/AsyncDisplayKit:AsyncDisplayKit",
 +        "//submodules/NebulaSettingsContract:NebulaSettingsContract",
@@ -11,14 +12,15 @@ diff --git a/submodules/Display/BUILD b/submodules/Display/BUILD
 diff --git a/submodules/Display/Source/Navigation/NavigationController.swift b/submodules/Display/Source/Navigation/NavigationController.swift
 --- a/submodules/Display/Source/Navigation/NavigationController.swift
 +++ b/submodules/Display/Source/Navigation/NavigationController.swift
-@@ -1,5 +1,6 @@
- import Foundation
+@@ -2,6 +2,7 @@
  import UIKit
  import AsyncDisplayKit
  import SwiftSignalKit
 +import NebulaSettingsContract
  
-@@ -1701,7 +1702,17 @@ open class NavigationController: UINavigationController, ContainableController
+ public enum NavigationStatusBarStyle {
+     case black
+@@ -1701,7 +1702,17 @@
              return controller
          }
          if let layout = self.validLayout {

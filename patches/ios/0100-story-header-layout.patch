@@ -1,23 +1,24 @@
 diff --git a/submodules/TelegramUI/Components/ChatListHeaderComponent/Sources/ChatListHeaderComponent.swift b/submodules/TelegramUI/Components/ChatListHeaderComponent/Sources/ChatListHeaderComponent.swift
 --- a/submodules/TelegramUI/Components/ChatListHeaderComponent/Sources/ChatListHeaderComponent.swift
 +++ b/submodules/TelegramUI/Components/ChatListHeaderComponent/Sources/ChatListHeaderComponent.swift
-@@ -650,10 +650,10 @@
+@@ -662,11 +662,8 @@
+                 }
              }
              
-             var centerContentLeftInset: CGFloat = 0.0
--            centerContentLeftInset = nextLeftButtonX + 4.0
-+            centerContentLeftInset = sideInset + (nextLeftButtonX > 0.0 ? max(44.0, nextLeftButtonX) : 0.0) + 8.0
-             
-             var centerContentRightInset: CGFloat = 0.0
--            centerContentRightInset = nextRightButtonX + 20.0
-+            centerContentRightInset = sideInset + (nextRightButtonX > 0.0 ? max(44.0, nextRightButtonX) : 0.0) + 8.0
+-            // Measured from the bar's edges, so each side includes its own inset (they differ where the
+-            // system reserves one side, e.g. iPhone Duo's vertical status bar). With the standard 16pt
+-            // inset these equal the former `nextLeftButtonX + 4.0` / `nextRightButtonX + 20.0`.
+-            let centerContentLeftInset: CGFloat = leftInset + nextLeftButtonX - 12.0
+-            let centerContentRightInset: CGFloat = rightInset + nextRightButtonX + 4.0
++            let centerContentLeftInset = leftInset + (nextLeftButtonX > 0.0 ? max(44.0, nextLeftButtonX) : 0.0) + 8.0
++            let centerContentRightInset = rightInset + (nextRightButtonX > 0.0 ? max(44.0, nextRightButtonX) : 0.0) + 8.0
              
              var centerContentWidth: CGFloat = 0.0
              var centerContentOffsetX: CGFloat = 0.0
 diff --git a/submodules/TelegramUI/Components/Stories/StoryPeerListComponent/Sources/StoryPeerListComponent.swift b/submodules/TelegramUI/Components/Stories/StoryPeerListComponent/Sources/StoryPeerListComponent.swift
 --- a/submodules/TelegramUI/Components/Stories/StoryPeerListComponent/Sources/StoryPeerListComponent.swift
 +++ b/submodules/TelegramUI/Components/Stories/StoryPeerListComponent/Sources/StoryPeerListComponent.swift
-@@ -720,20 +720,12 @@
+@@ -726,20 +726,12 @@
                  }
              }
              
@@ -44,7 +45,7 @@ diff --git a/submodules/TelegramUI/Components/Stories/StoryPeerListComponent/Sou
              
              struct CollapseState {
                  var globalFraction: CGFloat
-@@ -768,14 +760,18 @@
+@@ -774,14 +766,18 @@
                  targetSideAlphaFraction = 0.0
              }
              
@@ -68,7 +69,7 @@ diff --git a/submodules/TelegramUI/Components/Stories/StoryPeerListComponent/Sou
              
              let timestamp = CACurrentMediaTime()
              
-@@ -891,9 +887,10 @@
+@@ -897,9 +893,10 @@
              
              let centralContentWidth: CGFloat = collapsedContentWidth + titleContentSpacing + collapsedState.titleWidth
              
@@ -82,7 +83,7 @@ diff --git a/submodules/TelegramUI/Components/Stories/StoryPeerListComponent/Sou
              
              let collapsedContentOriginOffset: CGFloat = 0.0
              collapsedContentOrigin -= collapsedContentOriginOffset
-@@ -971,7 +968,7 @@
+@@ -977,7 +974,7 @@
                  var collapsedMaxItemFrame = collapsedItemFrame
                  
                  if itemLayout.itemCount > 1 {
@@ -91,7 +92,7 @@ diff --git a/submodules/TelegramUI/Components/Stories/StoryPeerListComponent/Sou
                      collapseDistance = max(0.0, min(1.0, collapseDistance))
                      collapsedMaxItemFrame.origin.x -= collapsedState.minFraction * 4.0
                      collapsedMaxItemFrame.origin.x += collapseDistance * 20.0
-@@ -1386,7 +1383,7 @@
+@@ -1392,7 +1389,7 @@
              if self.sortedItems.isEmpty {
                  titleContentOffset = collapsedTitleOffset
              } else {
@@ -100,7 +101,7 @@ diff --git a/submodules/TelegramUI/Components/Stories/StoryPeerListComponent/Sou
                  titleContentOffset += -expandBoundsFraction * 4.0
              }
              
-@@ -1694,9 +1691,43 @@
+@@ -1700,9 +1697,43 @@
              self.component = component
              self.state = state
              
@@ -145,7 +146,7 @@ diff --git a/submodules/TelegramUI/Components/Stories/StoryPeerListComponent/Sou
              let updatedTitleState = TitleState(text: component.title, color: component.theme.rootController.navigationBar.primaryTextColor, availableWidth: titleAvailableWidth)
              if self.titleState != updatedTitleState {
                  self.titleState = updatedTitleState
-@@ -1736,20 +1767,6 @@
+@@ -1742,20 +1773,6 @@
              }
              
              self.collapsedButton.isUserInteractionEnabled = !component.unlocked

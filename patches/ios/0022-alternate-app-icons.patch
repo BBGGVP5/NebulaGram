@@ -1,8 +1,7 @@
 diff --git a/Telegram/BUILD b/Telegram/BUILD
-index 9ad13cf..d044677 100644
 --- a/Telegram/BUILD
 +++ b/Telegram/BUILD
-@@ -329,6 +329,22 @@ alternate_icon_folders = [
+@@ -334,6 +334,22 @@
      "Premium",
      "PremiumBlack",
      "PremiumTurbo",
@@ -26,7 +25,6 @@ index 9ad13cf..d044677 100644
  
  composer_icon_folders = ["Telegram"]
 diff --git a/Telegram/Telegram-iOS/AlternateIcons-iPad.plist b/Telegram/Telegram-iOS/AlternateIcons-iPad.plist
-index a9ebd91..674f89d 100644
 --- a/Telegram/Telegram-iOS/AlternateIcons-iPad.plist
 +++ b/Telegram/Telegram-iOS/AlternateIcons-iPad.plist
 @@ -112,4 +112,100 @@
@@ -132,7 +130,6 @@ index a9ebd91..674f89d 100644
  </dict>
 \ No newline at end of file
 diff --git a/Telegram/Telegram-iOS/AlternateIcons.plist b/Telegram/Telegram-iOS/AlternateIcons.plist
-index d97e8c7..254c507 100644
 --- a/Telegram/Telegram-iOS/AlternateIcons.plist
 +++ b/Telegram/Telegram-iOS/AlternateIcons.plist
 @@ -106,4 +106,100 @@

@@ -1,12 +1,17 @@
 diff --git a/submodules/ChatListUI/Sources/Node/ChatListItem.swift b/submodules/ChatListUI/Sources/Node/ChatListItem.swift
-index ef56599..058b3a3 100644
 --- a/submodules/ChatListUI/Sources/Node/ChatListItem.swift
 +++ b/submodules/ChatListUI/Sources/Node/ChatListItem.swift
-@@ -1420,2 +1420,3 @@ public class ChatListItemNode: ItemListRevealOptionsItemNode {
+@@ -1422,6 +1422,7 @@
+     public let separatorNode: ASDisplayNode
+     private var nebulaSeparatorBaseHidden = false
      private var nebulaSettingsObservation: SettingsObservation?
 +    private var nebulaHidePremiumStatus = NebulaSettingsStore.shared.hidePremiumStatus
      let statusNode: ChatListStatusNode
-@@ -1758,2 +1759,10 @@ public class ChatListItemNode: ItemListRevealOptionsItemNode {
+     let badgeNode: ChatListBadgeNode
+     let mentionBadgeNode: ChatListBadgeNode
+@@ -1760,6 +1761,14 @@
+         self.nebulaSettingsObservation = NebulaSettingsStore.shared.observe { [weak self] in
+             guard let self else { return }
              self.separatorNode.isHidden = self.nebulaSeparatorBaseHidden || NebulaSettingsStore.shared.hideDividers
 +            let hidePremiumStatus = NebulaSettingsStore.shared.hidePremiumStatus
 +            if self.nebulaHidePremiumStatus != hidePremiumStatus {
@@ -17,23 +22,35 @@ index ef56599..058b3a3 100644
 +                }
 +            }
          }
-@@ -3566,3 +3575,3 @@ public class ChatListItemNode: ItemListRevealOptionsItemNode {
+         
+         self.addSubnode(self.contextContainer)
+@@ -3585,12 +3594,12 @@
+                                 currentCredibilityIconContent = .text(color: item.presentationData.theme.chat.message.incoming.scamColor, string: item.presentationData.strings.Message_ScamAccount.uppercased())
+                             } else if peer.isFake {
                                  currentCredibilityIconContent = .text(color: item.presentationData.theme.chat.message.incoming.scamColor, string: item.presentationData.strings.Message_FakeAccount.uppercased())
 -                            } else if let emojiStatus = peer.emojiStatus {
 +                            } else if !NebulaSettingsStore.shared.hidePremiumStatus, let emojiStatus = peer.emojiStatus {
                                  currentStatusIconContent = .animation(content: .customEmoji(fileId: emojiStatus.fileId), size: CGSize(width: 32.0, height: 32.0), placeholderColor: item.presentationData.theme.list.mediaPlaceholderColor, themeColor: item.presentationData.theme.list.itemAccentColor, loopMode: .count(2))
-@@ -3571,3 +3580,3 @@ public class ChatListItemNode: ItemListRevealOptionsItemNode {
+                                 if let color = emojiStatus.color {
+                                     currentStatusIconParticleColor = UIColor(rgb: UInt32(bitPattern: color))
                                  }
 -                            } else if peer.isPremium && !premiumConfiguration.isPremiumDisabled {
 +                            } else if peer.isPremium && !NebulaSettingsStore.shared.hidePremiumStatus && !premiumConfiguration.isPremiumDisabled {
                                  currentCredibilityIconContent = .premium(color: item.presentationData.theme.list.itemAccentColor)
-@@ -3597,3 +3606,3 @@ public class ChatListItemNode: ItemListRevealOptionsItemNode {
+                             }
+                             
+@@ -3616,12 +3625,12 @@
+                         currentCredibilityIconContent = .text(color: item.presentationData.theme.chat.message.incoming.scamColor, string: item.presentationData.strings.Message_ScamAccount.uppercased())
+                     } else if peer.isFake {
                          currentCredibilityIconContent = .text(color: item.presentationData.theme.chat.message.incoming.scamColor, string: item.presentationData.strings.Message_FakeAccount.uppercased())
 -                    } else if let emojiStatus = peer.emojiStatus {
 +                    } else if !NebulaSettingsStore.shared.hidePremiumStatus, let emojiStatus = peer.emojiStatus {
                          currentStatusIconContent = .animation(content: .customEmoji(fileId: emojiStatus.fileId), size: CGSize(width: 32.0, height: 32.0), placeholderColor: item.presentationData.theme.list.mediaPlaceholderColor, themeColor: item.presentationData.theme.list.itemAccentColor, loopMode: .count(2))
-@@ -3602,3 +3611,3 @@ public class ChatListItemNode: ItemListRevealOptionsItemNode {
+                         if let color = emojiStatus.color {
+                             currentStatusIconParticleColor = UIColor(rgb: UInt32(bitPattern: color))
                          }
 -                    } else if peer.isPremium && !premiumConfiguration.isPremiumDisabled {
 +                    } else if peer.isPremium && !NebulaSettingsStore.shared.hidePremiumStatus && !premiumConfiguration.isPremiumDisabled {
                          currentCredibilityIconContent = .premium(color: item.presentationData.theme.list.itemAccentColor)
+                     }
+                     

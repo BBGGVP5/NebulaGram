@@ -19,7 +19,7 @@ diff --git a/submodules/TelegramUI/Sources/Chat/ChatControllerNavigationButtonAc
 diff --git a/submodules/TelegramUI/Sources/Chat/ChatControllerOpenPeer.swift b/submodules/TelegramUI/Sources/Chat/ChatControllerOpenPeer.swift
 --- a/submodules/TelegramUI/Sources/Chat/ChatControllerOpenPeer.swift
 +++ b/submodules/TelegramUI/Sources/Chat/ChatControllerOpenPeer.swift
-@@ -335,6 +335,14 @@
+@@ -349,6 +349,14 @@
          let strings = self.presentationData.strings
          
          var items: [ContextMenuItem] = []

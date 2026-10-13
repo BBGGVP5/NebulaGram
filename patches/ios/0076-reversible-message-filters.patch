@@ -1,8 +1,7 @@
 diff --git a/submodules/TelegramUI/Sources/ChatController.swift b/submodules/TelegramUI/Sources/ChatController.swift
-index e1d677f..4579a96 100644
 --- a/submodules/TelegramUI/Sources/ChatController.swift
 +++ b/submodules/TelegramUI/Sources/ChatController.swift
-@@ -3414,6 +3414,7 @@ public final class ChatControllerImpl: TelegramBaseController, ChatController, G
+@@ -3530,6 +3530,7 @@
                  return
              }
              let url = urlData.url
@@ -11,22 +10,20 @@ index e1d677f..4579a96 100644
              let message = urlData.message
              let progress = urlData.progress
 diff --git a/submodules/TelegramUI/Sources/ChatHistoryEntriesForView.swift b/submodules/TelegramUI/Sources/ChatHistoryEntriesForView.swift
-index 6cac18a..27f6b22 100644
 --- a/submodules/TelegramUI/Sources/ChatHistoryEntriesForView.swift
 +++ b/submodules/TelegramUI/Sources/ChatHistoryEntriesForView.swift
-@@ -143,6 +143,7 @@ func chatHistoryEntriesForView(
+@@ -143,6 +143,7 @@
      var count = 0
      loop: for entry in view.entries {
-         var message = entry.message
+         var message = entry.message.withAppliedEphemeralReplacementMessage()
 +        message = NebulaHistoryFilter.mask(message, account: context.account.peerId, russian: presentationData.strings.baseLanguageCode.hasPrefix("ru"))
          var isRead = entry.isRead
          
          var pinToTop = false
 diff --git a/submodules/TelegramUI/Sources/ChatHistoryListNode.swift b/submodules/TelegramUI/Sources/ChatHistoryListNode.swift
-index e1246f2..617d103 100644
 --- a/submodules/TelegramUI/Sources/ChatHistoryListNode.swift
 +++ b/submodules/TelegramUI/Sources/ChatHistoryListNode.swift
-@@ -624,6 +624,7 @@ public final class ChatHistoryListNodeImpl: ASDisplayNode, ChatHistoryNode, Chat
+@@ -671,6 +671,7 @@
          return self.isInteractivelyScrollingPromise.get()
      }
      
@@ -34,8 +31,8 @@ index e1246f2..617d103 100644
      private var currentPresentationData: ChatPresentationData
      private var chatPresentationDataPromise: Promise<ChatPresentationData>
      private var presentationDataDisposable: Disposable?
-@@ -933,6 +934,10 @@ public final class ChatHistoryListNodeImpl: ASDisplayNode, ChatHistoryNode, Chat
-         self.listView = ListViewImpl()
+@@ -1028,6 +1029,10 @@
+         self.listView = ChatHistoryListNodeImpl.makeListView(rotated: rotated, useCoreListBackend: useCoreListBackend)
  
          super.init()
 +        self.nebulaHistoryFilter = NebulaHistoryFilter(context: context) { [weak self] in

@@ -1,7 +1,7 @@
 diff --git a/Telegram/NotificationService/Sources/NotificationService.swift b/Telegram/NotificationService/Sources/NotificationService.swift
 --- a/Telegram/NotificationService/Sources/NotificationService.swift
 +++ b/Telegram/NotificationService/Sources/NotificationService.swift
-@@ -20,6 +20,27 @@
+@@ -22,6 +22,27 @@
  import CoreServices
  import ImageIO
  import UniformTypeIdentifiers
@@ -29,7 +29,7 @@ diff --git a/Telegram/NotificationService/Sources/NotificationService.swift b/Te
  
  private let queue = Queue()
  
-@@ -1943,7 +1964,7 @@
+@@ -2083,7 +2104,7 @@
                                  let pollWithUpdatedContent: Signal<(NotificationContent, Media?), NoError>
                                  if interactionAuthorId != nil || messageId != nil {
                                      pollWithUpdatedContent = stateManager.postbox.transaction { transaction -> (NotificationContent, Media?) in
@@ -38,7 +38,7 @@ diff --git a/Telegram/NotificationService/Sources/NotificationService.swift b/Te
                                          
                                          if let interactionAuthorId = interactionAuthorId {
                                              if inAppNotificationSettings.displayNameOnLockscreen, var peer = transaction.getPeer(interactionAuthorId) {
-@@ -2030,6 +2051,7 @@
+@@ -2170,6 +2191,7 @@
                                                  }
                                              }
                                              
@@ -49,7 +49,7 @@ diff --git a/Telegram/NotificationService/Sources/NotificationService.swift b/Te
 diff --git a/submodules/ChatListUI/Sources/ChatListController.swift b/submodules/ChatListUI/Sources/ChatListController.swift
 --- a/submodules/ChatListUI/Sources/ChatListController.swift
 +++ b/submodules/ChatListUI/Sources/ChatListController.swift
-@@ -4940,6 +4940,19 @@
+@@ -4951,6 +4951,19 @@
      }
      
      override public func toolbarActionSelected(action: ToolbarActionOption) {
@@ -69,7 +69,7 @@ diff --git a/submodules/ChatListUI/Sources/ChatListController.swift b/submodules
          let peerIds = self.chatListDisplayNode.effectiveContainerNode.currentItemNode.currentState.selectedPeerIds
          let threadIds = self.chatListDisplayNode.effectiveContainerNode.currentItemNode.currentState.selectedThreadIds
          if case .left = action {
-@@ -5443,6 +5456,13 @@
+@@ -5458,6 +5471,13 @@
      }
      
      func deletePeerChat(peerId: PeerId, joined: Bool) {
@@ -83,7 +83,7 @@ diff --git a/submodules/ChatListUI/Sources/ChatListController.swift b/submodules
          let _ = (self.context.engine.data.get(TelegramEngine.EngineData.Item.Peer.RenderedPeer(id: peerId))
          |> deliverOnMainQueue).startStandalone(next: { [weak self] peer in
              guard let strongSelf = self, let peer = peer, let chatPeer = peer.peers[peer.peerId], let mainPeer = peer.chatOrMonoforumMainPeer else {
-@@ -5461,7 +5481,7 @@
+@@ -5476,7 +5496,7 @@
              }
              
              if case let .user(user) = chatPeer, user.botInfo == nil, canRemoveGlobally {
@@ -92,7 +92,7 @@ diff --git a/submodules/ChatListUI/Sources/ChatListController.swift b/submodules
              } else {
                  let actionSheet = ActionSheetController(presentationData: strongSelf.presentationData)
                  var items: [ActionSheetItem] = []
-@@ -5595,7 +5615,7 @@
+@@ -5610,7 +5630,7 @@
                              actionSheet?.dismissAnimated()
                              
                              if let strongSelf = self {
@@ -101,7 +101,7 @@ diff --git a/submodules/ChatListUI/Sources/ChatListController.swift b/submodules
                                  }, removed: {
                                      guard let strongSelf = self else {
                                          return
-@@ -5781,7 +5801,7 @@
+@@ -5796,7 +5816,7 @@
                                  ])
                                  strongSelf.present(actionSheet, in: .window(.root))
                              } else {
@@ -110,7 +110,7 @@ diff --git a/submodules/ChatListUI/Sources/ChatListController.swift b/submodules
                              }
                          }))
                      }
-@@ -5800,6 +5820,13 @@
+@@ -5815,6 +5835,13 @@
      }
      
      func deletePeerThread(peerId: EnginePeer.Id, threadId: Int64) {
@@ -124,7 +124,7 @@ diff --git a/submodules/ChatListUI/Sources/ChatListController.swift b/submodules
          let actionSheet = ActionSheetController(presentationData: self.presentationData)
          var items: [ActionSheetItem] = []
          
-@@ -5924,6 +5951,13 @@
+@@ -5939,6 +5966,13 @@
      }
      
      public func maybeAskForPeerChatRemoval(peer: EngineRenderedPeer, joined: Bool = false, deleteGloballyIfPossible: Bool = false, completion: @escaping (Bool) -> Void, removed: @escaping () -> Void) {
@@ -141,7 +141,7 @@ diff --git a/submodules/ChatListUI/Sources/ChatListController.swift b/submodules
 diff --git a/submodules/ChatListUI/Sources/Node/ChatListItem.swift b/submodules/ChatListUI/Sources/Node/ChatListItem.swift
 --- a/submodules/ChatListUI/Sources/Node/ChatListItem.swift
 +++ b/submodules/ChatListUI/Sources/Node/ChatListItem.swift
-@@ -1417,6 +1417,7 @@
+@@ -1421,6 +1421,7 @@
      var dateDisclosureIconView: UIImageView?
      public let separatorNode: ASDisplayNode
      private var nebulaSeparatorBaseHidden = false
@@ -149,7 +149,7 @@ diff --git a/submodules/ChatListUI/Sources/Node/ChatListItem.swift b/submodules/
      private var nebulaSettingsObservation: SettingsObservation?
      private var nebulaHidePremiumStatus = NebulaSettingsStore.shared.hidePremiumStatus
      let statusNode: ChatListStatusNode
-@@ -1754,6 +1755,11 @@
+@@ -1758,6 +1759,11 @@
          
          self.addSubnode(self.backgroundNode)
          self.addSubnode(self.separatorNode)
@@ -161,7 +161,7 @@ diff --git a/submodules/ChatListUI/Sources/Node/ChatListItem.swift b/submodules/
          self.nebulaSettingsObservation = NebulaSettingsStore.shared.observe { [weak self] in
              guard let self else { return }
              self.separatorNode.isHidden = self.nebulaSeparatorBaseHidden || NebulaSettingsStore.shared.hideDividers
-@@ -1841,6 +1847,7 @@
+@@ -1845,6 +1851,7 @@
      }
  
      deinit {
@@ -169,7 +169,7 @@ diff --git a/submodules/ChatListUI/Sources/Node/ChatListItem.swift b/submodules/
          self.cachedDataDisposable.dispose()
      }
      
-@@ -2375,7 +2382,7 @@
+@@ -2376,7 +2383,7 @@
                      let combinedReadStateValue = peerData.combinedReadState
                      let isRemovedFromTotalUnreadCountValue = peerData.isRemovedFromTotalUnreadCount
                      let peerPresenceValue = peerData.presence
@@ -228,7 +228,7 @@ diff --git a/submodules/TelegramUI/Sources/ApplicationContext.swift b/submodules
 diff --git a/submodules/TelegramUI/Sources/Chat/ChatControllerLoadDisplayNode.swift b/submodules/TelegramUI/Sources/Chat/ChatControllerLoadDisplayNode.swift
 --- a/submodules/TelegramUI/Sources/Chat/ChatControllerLoadDisplayNode.swift
 +++ b/submodules/TelegramUI/Sources/Chat/ChatControllerLoadDisplayNode.swift
-@@ -594,7 +594,8 @@
+@@ -595,7 +595,8 @@
          
          if let initialNavigationBadge = contentData.initialNavigationBadge {
              contentData.initialNavigationBadge = nil
@@ -238,7 +238,7 @@ diff --git a/submodules/TelegramUI/Sources/Chat/ChatControllerLoadDisplayNode.sw
          }
          
          if let performDismissAction = contentData.state.performDismissAction, !self.didHandlePerformDismissAction {
-@@ -1675,6 +1676,15 @@
+@@ -1676,6 +1677,15 @@
              strongSelf.window?.presentInGlobalOverlay(controller)
          }
          
@@ -254,7 +254,7 @@ diff --git a/submodules/TelegramUI/Sources/Chat/ChatControllerLoadDisplayNode.sw
          let interfaceInteraction = ChatPanelInterfaceInteraction(setupReplyMessage: { [weak self] messageId, innerSubject, completion in
              guard let strongSelf = self, strongSelf.isNodeLoaded else {
                  return
-@@ -1698,10 +1708,17 @@
+@@ -1699,10 +1709,17 @@
                  if canSendMessagesHere {
                      let _ = strongSelf.presentVoiceMessageDiscardAlert(action: {
                          if let message = strongSelf.chatDisplayNode.historyNode.messageInCurrentHistoryView(messageId)?._asMessage() {
@@ -273,7 +273,7 @@ diff --git a/submodules/TelegramUI/Sources/Chat/ChatControllerLoadDisplayNode.sw
                                      innerSubject: innerSubject
                                  ))
                              }).updatedReplyMessage(message).updatedSearch(nil).updatedShowCommands(false) }, completion: { t in
-@@ -5108,8 +5125,10 @@
+@@ -5120,8 +5137,10 @@
                          }
                          
                          if globalRemainingUnreadChatCount > 0 {
@@ -285,7 +285,7 @@ diff --git a/submodules/TelegramUI/Sources/Chat/ChatControllerLoadDisplayNode.sw
                              strongSelf.navigationItem.badge = ""
                          }
                      })
-@@ -5122,7 +5141,8 @@
+@@ -5134,7 +5153,8 @@
                                  strongSelf.chatDisplayNode.navigateButtons.reactionsCount = 0
                                  strongSelf.chatDisplayNode.navigateButtons.pollVotesCount = 0
                              } else {
@@ -295,7 +295,7 @@ diff --git a/submodules/TelegramUI/Sources/Chat/ChatControllerLoadDisplayNode.sw
                                  strongSelf.chatDisplayNode.navigateButtons.reactionsCount = reactionCount
                                  strongSelf.chatDisplayNode.navigateButtons.pollVotesCount = pollVoteCount
                              }
-@@ -5137,7 +5157,8 @@
+@@ -5149,7 +5169,8 @@
                                  strongSelf.chatDisplayNode.navigateButtons.reactionsCount = 0
                                  strongSelf.chatDisplayNode.navigateButtons.pollVotesCount = 0
                              } else {
@@ -308,7 +308,7 @@ diff --git a/submodules/TelegramUI/Sources/Chat/ChatControllerLoadDisplayNode.sw
 diff --git a/submodules/TelegramUI/Sources/ChatController.swift b/submodules/TelegramUI/Sources/ChatController.swift
 --- a/submodules/TelegramUI/Sources/ChatController.swift
 +++ b/submodules/TelegramUI/Sources/ChatController.swift
-@@ -241,6 +241,9 @@
+@@ -242,6 +242,9 @@
  
  public final class ChatControllerImpl: TelegramBaseController, ChatController, GalleryHiddenMediaTarget, UIDropInteractionDelegate {    
      var validLayout: ContainerViewLayout?
@@ -318,7 +318,7 @@ diff --git a/submodules/TelegramUI/Sources/ChatController.swift b/submodules/Tel
      private var nebulaNextChannelObservation: SettingsObservation?
      private var nebulaReplyAppearance = [NebulaSettingsStore.shared.replyBackground, NebulaSettingsStore.shared.replyColors, NebulaSettingsStore.shared.replyEmoji]
      private let nebulaLiveTranslation = NebulaLiveTranslation()
-@@ -869,6 +872,10 @@
+@@ -877,6 +880,10 @@
          self.moreBarButton.isUserInteractionEnabled = true
          
          super.init(context: context, navigationBarPresentationData: navigationBarPresentationData)
@@ -329,7 +329,7 @@ diff --git a/submodules/TelegramUI/Sources/ChatController.swift b/submodules/Tel
          self.nebulaNextChannelObservation = NebulaSettingsStore.shared.observe { [weak self] in
              guard let self else { return }
              let seconds = NebulaSettingsStore.shared.secondsInTime
-@@ -877,6 +884,7 @@
+@@ -885,6 +892,7 @@
              self.nebulaReplyAppearance = replyAppearance
              self.nebulaLastSecondsInTime = seconds
              guard self.isViewLoaded else { return }
@@ -337,7 +337,7 @@ diff --git a/submodules/TelegramUI/Sources/ChatController.swift b/submodules/Tel
              self.updateNextChannelToReadVisibility()
              if refreshMessageTimes {
                  self.updateChatPresentationInterfaceState(transition: .immediate, interactive: false, force: true) { $0 }
-@@ -6852,6 +6860,7 @@
+@@ -6962,6 +6970,7 @@
              if let strongSelf = self {
                  let (chatThemePreview, darkAppearancePreview) = chatThemeAndDarkAppearance
                  
@@ -345,7 +345,7 @@ diff --git a/submodules/TelegramUI/Sources/ChatController.swift b/submodules/Tel
                  var chatWallpaper = chatWallpaper
                  
                  let previousTheme = strongSelf.presentationData.theme
-@@ -7008,6 +7017,10 @@
+@@ -7118,6 +7127,10 @@
                      presentationData = presentationData.withUpdated(chatWallpaper: chatWallpaper)
                  }
                  
@@ -356,7 +356,7 @@ diff --git a/submodules/TelegramUI/Sources/ChatController.swift b/submodules/Tel
                  let isFirstTime = !strongSelf.didSetPresentationData
                  strongSelf.presentationData = presentationData
                  strongSelf.didSetPresentationData = true
-@@ -7174,6 +7187,7 @@
+@@ -7285,6 +7298,7 @@
      }
  
      deinit {
@@ -364,7 +364,7 @@ diff --git a/submodules/TelegramUI/Sources/ChatController.swift b/submodules/Tel
          nebulaTranslationTimer?.invalidate()
          for observer in nebulaTranslationObservers { NotificationCenter.default.removeObserver(observer) }
          let _ = ChatControllerCount.modify { value in
-@@ -8665,6 +8679,13 @@
+@@ -8805,6 +8819,13 @@
      }
      
      public func beginClearHistory(type: InteractiveHistoryClearingType) {
@@ -378,7 +378,7 @@ diff --git a/submodules/TelegramUI/Sources/ChatController.swift b/submodules/Tel
          guard case let .peer(peerId) = self.chatLocation else {
              return
          }
-@@ -9928,6 +9949,13 @@
+@@ -10076,6 +10097,13 @@
      }
      
      func deleteChat(reportChatSpam: Bool) {
@@ -431,7 +431,7 @@ diff --git a/submodules/TelegramUI/Sources/ChatControllerForwardMessages.swift b
 diff --git a/submodules/TelegramUI/Sources/ChatInterfaceStateContextMenus.swift b/submodules/TelegramUI/Sources/ChatInterfaceStateContextMenus.swift
 --- a/submodules/TelegramUI/Sources/ChatInterfaceStateContextMenus.swift
 +++ b/submodules/TelegramUI/Sources/ChatInterfaceStateContextMenus.swift
-@@ -1957,6 +1957,16 @@
+@@ -1980,6 +1980,16 @@
  
          if data.messageActions.options.contains(.forward) {
              if !isCopyProtected {

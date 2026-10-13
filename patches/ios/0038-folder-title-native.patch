@@ -1,8 +1,7 @@
 diff --git a/submodules/ChatListUI/Sources/ChatListController.swift b/submodules/ChatListUI/Sources/ChatListController.swift
-index 428804d..cb128a6 100644
 --- a/submodules/ChatListUI/Sources/ChatListController.swift
 +++ b/submodules/ChatListUI/Sources/ChatListController.swift
-@@ -6769,6 +6769,7 @@ private final class ChatListLocationContext {
+@@ -6784,6 +6784,7 @@
      let context: AccountContext
      let location: ChatListControllerLocation
      weak var parentController: ChatListControllerImpl?
@@ -10,7 +9,7 @@ index 428804d..cb128a6 100644
      
      private var proxyUnavailableTooltipController: TooltipController?
      private var didShowProxyUnavailableTooltipController = false
-@@ -6819,6 +6820,7 @@ private final class ChatListLocationContext {
+@@ -6834,6 +6835,7 @@
          self.context = context
          self.location = location
          self.parentController = parentController
@@ -18,7 +17,7 @@ index 428804d..cb128a6 100644
          
          let hasProxy = context.sharedContext.accountManager.sharedData(keys: [SharedDataKeys.proxySettings])
          |> map { sharedData -> (Bool, Bool) in
-@@ -7170,7 +7172,19 @@ private final class ChatListLocationContext {
+@@ -7185,7 +7187,19 @@
          switch location {
          case let .chatList(groupId):
              if groupId == .root {

@@ -1,8 +1,7 @@
 diff --git a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoHeaderNode.swift b/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoHeaderNode.swift
-index c7bc84d..a0cf39c 100644
 --- a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoHeaderNode.swift
 +++ b/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoHeaderNode.swift
-@@ -238,9 +238,10 @@ final class PeerInfoHeaderNode: ASDisplayNode {
+@@ -238,9 +238,10 @@
          for view in [self.nebulaBadgeView, self.nebulaExpandedBadgeView] {
              view.contentMode = .scaleAspectFit
              view.isHidden = true
@@ -15,7 +14,7 @@ index c7bc84d..a0cf39c 100644
          }
          self.titleNode.stateNode(forKey: TitleNodeStateRegular)?.view.addSubview(self.nebulaBadgeView)
          self.titleNode.stateNode(forKey: TitleNodeStateExpanded)?.view.addSubview(self.nebulaExpandedBadgeView)
-@@ -522,11 +523,77 @@ final class PeerInfoHeaderNode: ASDisplayNode {
+@@ -522,9 +523,75 @@
                  view.image = image
                  view.isHidden = image == nil
                  view.accessibilityLabel = badge?.title
@@ -41,8 +40,8 @@ index c7bc84d..a0cf39c 100644
              }
              self.requestUpdateLayout?(false)
          }
-     }
- 
++    }
++
 +    @objc private func nebulaBadgeTapped() {
 +        guard let badge = self.nebulaBadge, let controller = self.controller,
 +              let presentationData = self.presentationData else { return }
@@ -88,8 +87,6 @@ index c7bc84d..a0cf39c 100644
 +            return false
 +        })
 +        controller.present(overlay, in: .current)
-+    }
-+
+     }
+ 
      private var currentPanelStatusData: PeerInfoStatusData?
-     func update(width: CGFloat, containerHeight: CGFloat, containerInset: CGFloat, statusBarHeight: CGFloat, navigationHeight: CGFloat, isModalOverlay: Bool, isMediaOnly: Bool, contentOffset: CGFloat, paneContainerY: CGFloat, presentationData: PresentationData, peer: EnginePeer?, cachedData: EngineCachedPeerData?, threadData: MessageHistoryThreadData?, peerNotificationSettings: TelegramPeerNotificationSettings?, threadNotificationSettings: TelegramPeerNotificationSettings?, globalNotificationSettings: EngineGlobalNotificationSettings?, statusData: PeerInfoStatusData?, panelStatusData: (PeerInfoStatusData?, PeerInfoStatusData?, CGFloat?), isSecretChat: Bool, isContact: Bool, isSettings: Bool, state: PeerInfoState, profileGiftsContext: ProfileGiftsContext?, screenData: PeerInfoScreenData?, isSearching: Bool, metrics: LayoutMetrics, deviceMetrics: DeviceMetrics, transition: ContainedViewLayoutTransition, additive: Bool, animateHeader: Bool) -> CGFloat {
-         if self.appliedCustomNavigationContentNode !== self.customNavigationContentNode {

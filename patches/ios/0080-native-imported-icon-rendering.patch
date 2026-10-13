@@ -1,8 +1,7 @@
 diff --git a/submodules/AppBundle/Sources/AppBundle/AppBundle.m b/submodules/AppBundle/Sources/AppBundle/AppBundle.m
-index b00f545..76bf3c1 100644
 --- a/submodules/AppBundle/Sources/AppBundle/AppBundle.m
 +++ b/submodules/AppBundle/Sources/AppBundle/AppBundle.m
-@@ -40,7 +40,8 @@ static NSInteger NebulaSelectedIconPack(void) {
+@@ -40,7 +40,8 @@
              id raw = document[@"settings"][@"icon_pack"];
              if ([raw isKindOfClass:NSNumber.class]) {
                  pack = [raw intValue];
@@ -12,7 +11,7 @@ index b00f545..76bf3c1 100644
              } else {
                  id legacy = document[@"settings"][@"ios_icons"];
                  if ([legacy isKindOfClass:NSNumber.class]) pack = [legacy boolValue] ? 1 : 0;
-@@ -59,15 +60,24 @@ static NSInteger NebulaSelectedIconPack(void) {
+@@ -59,15 +60,24 @@
      if (!original || !names) return original;
      NSInteger pack = NebulaSelectedIconPack();
      if (pack == 0) return original;

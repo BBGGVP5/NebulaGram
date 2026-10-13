@@ -1,18 +1,27 @@
 diff --git a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoHeaderNode.swift b/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoHeaderNode.swift
-index 6f2e31e..5874e7b 100644
 --- a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoHeaderNode.swift
 +++ b/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoHeaderNode.swift
-@@ -127,2 +127,3 @@ final class PeerInfoHeaderNode: ASDisplayNode {
+@@ -125,6 +125,7 @@
+     private let nebulaBadgeView = UIImageView()
+     private let nebulaExpandedBadgeView = UIImageView()
      private var nebulaBadgeUserId: Int64?
 +    private var nebulaSettingsObservation: SettingsObservation?
      private var nebulaBadge: NebulaBadge?
-@@ -319,2 +320,5 @@ final class PeerInfoHeaderNode: ASDisplayNode {
+     
+     let titleCredibilityIconView: ComponentHostView<Empty>
+@@ -317,6 +318,9 @@
+         self.animationRenderer = context.animationRenderer
+         
          super.init()
 +        self.nebulaSettingsObservation = NebulaSettingsStore.shared.observe { [weak self] in
 +            self?.requestUpdateLayout?(false)
 +        }
          for view in [self.nebulaBadgeView, self.nebulaExpandedBadgeView] {
-@@ -718,5 +722,5 @@ final class PeerInfoHeaderNode: ASDisplayNode {
+             view.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(self.nebulaBadgeTapped)))
+         }
+@@ -716,9 +720,9 @@
+                 credibilityIcon = .fake
+             } else if peer.isScam {
                  credibilityIcon = .scam
 -            } else if let emojiStatus = peer.emojiStatus {
 +            } else if !NebulaSettingsStore.shared.hidePremiumStatus, let emojiStatus = peer.emojiStatus {
@@ -20,3 +29,5 @@ index 6f2e31e..5874e7b 100644
 -            } else if peer.isPremium && !premiumConfiguration.isPremiumDisabled && (peer.id != self.context.account.peerId || self.isSettings || self.isMyProfile) {
 +            } else if peer.isPremium && !NebulaSettingsStore.shared.hidePremiumStatus && !premiumConfiguration.isPremiumDisabled && (peer.id != self.context.account.peerId || self.isSettings || self.isMyProfile) {
                  credibilityIcon = .premium
+             } else {
+                 credibilityIcon = .none

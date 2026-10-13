@@ -21,8 +21,8 @@ spec = importlib.util.spec_from_file_location('native_build', Path(__file__).wit
 native = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(native)
 TARGET = '//Telegram:Telegram'
-RULES_PIN = '1791d916de4083388f22e20248d8b010d23f0d6b'
-RULES_SOURCE_SHA256 = '900fe828aa2d5f9ac236aec3555cf4f01944a012273ea03a12f9b52e8b601540'
+RULES_PIN = '485016eb5b0948cc17307064e7977a6d68e94046'
+RULES_SOURCE_SHA256 = 'b6776b1c10a2c965f01259dd95ebe1b045afc5e22b3446b8ae81d44f11c3a7da'
 
 
 def prepare_unsigned_rules(tree):
@@ -195,7 +195,7 @@ def main():
     args = parser.parse_args()
     if args.preflight:
         configuration(os.environ, args.bundle_id)
-        native.select_xcode('26.2')
+        native.select_xcode('26.6')
         print('Device build prerequisites available (no signing or push delivery check)')
     else:
         if not args.tree or not args.output: parser.error('--tree and --output are required')

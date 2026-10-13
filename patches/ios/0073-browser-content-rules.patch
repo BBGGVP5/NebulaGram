@@ -1,26 +1,25 @@
 diff --git a/submodules/BrowserUI/BUILD b/submodules/BrowserUI/BUILD
-index 154518e..cf1d79e 100644
 --- a/submodules/BrowserUI/BUILD
 +++ b/submodules/BrowserUI/BUILD
-@@ -10,6 +10,7 @@ swift_library(
+@@ -10,6 +10,7 @@
          "-warnings-as-errors",
      ],
      deps = [
 +        "//submodules/NebulaBrowserCore:NebulaBrowserCore",
          "//submodules/SSignalKit/SwiftSignalKit",
+         "//submodules/LottieSettings:LottieSettings",
          "//submodules/AsyncDisplayKit",
-         "//submodules/Display",
 diff --git a/submodules/BrowserUI/Sources/BrowserWebContent.swift b/submodules/BrowserUI/Sources/BrowserWebContent.swift
-index 31353c2..bc309ff 100644
 --- a/submodules/BrowserUI/Sources/BrowserWebContent.swift
 +++ b/submodules/BrowserUI/Sources/BrowserWebContent.swift
-@@ -1,4 +1,5 @@
+@@ -1,5 +1,6 @@
  import Foundation
+ import LottieSettings
 +import NebulaBrowserCore
  import UIKit
  import Display
  import ComponentFlow
-@@ -202,6 +203,7 @@ private func computedUserAgent() -> String {
+@@ -203,6 +204,7 @@
  }
  
  final class BrowserWebContent: UIView, BrowserContent, WKNavigationDelegate, WKUIDelegate, UIScrollViewDelegate, WKDownloadDelegate {
@@ -28,7 +27,7 @@ index 31353c2..bc309ff 100644
      private let context: AccountContext
      private var presentationData: PresentationData
      
-@@ -341,9 +343,10 @@ final class BrowserWebContent: UIView, BrowserContent, WKNavigationDelegate, WKU
+@@ -344,9 +346,10 @@
          self.webView.backgroundColor = presentationData.theme.list.plainBackgroundColor
          self.webView.alpha = 0.0
          
@@ -43,10 +42,9 @@ index 31353c2..bc309ff 100644
          self.webView.allowsBackForwardNavigationGestures = true
          self.webView.scrollView.delegate = self
 diff --git a/submodules/SettingsUI/BUILD b/submodules/SettingsUI/BUILD
-index cff9193..1434765 100644
 --- a/submodules/SettingsUI/BUILD
 +++ b/submodules/SettingsUI/BUILD
-@@ -10,6 +10,7 @@ swift_library(
+@@ -12,6 +12,7 @@
          "-warnings-as-errors",
      ],
      deps = [

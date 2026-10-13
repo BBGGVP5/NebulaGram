@@ -1,8 +1,9 @@
 diff --git a/submodules/ChatListUI/Sources/ChatListController.swift b/submodules/ChatListUI/Sources/ChatListController.swift
-index cb128a6..d433bf1 100644
 --- a/submodules/ChatListUI/Sources/ChatListController.swift
 +++ b/submodules/ChatListUI/Sources/ChatListController.swift
-@@ -214,2 +214,24 @@ public class ChatListControllerImpl: TelegramBaseController, ChatListController
+@@ -212,6 +212,28 @@
+     private var shouldFixStorySubscriptionOrder: Bool = false
+     private var fixedStorySubscriptionOrder: [EnginePeer.Id] = []
      private(set) var orderedStorySubscriptions: EngineStorySubscriptions?
 +    private var nebulaStoryArchiveObserver: NSObjectProtocol?
 +    private var nebulaArchivedStoryPeerIds = Set<EnginePeer.Id>()
@@ -27,17 +28,31 @@ index cb128a6..d433bf1 100644
 +        }
 +    }
      private var displayedStoriesTooltip: Bool = false
-@@ -284,2 +306,5 @@ public class ChatListControllerImpl: TelegramBaseController, ChatListController
+     
+     public var hasStorySubscriptions: Bool {
+@@ -282,6 +304,9 @@
+         )
+                 
          super.init(context: context, navigationBarPresentationData: nil)
 +        self.nebulaStoryArchiveObserver = NotificationCenter.default.addObserver(forName: Notification.Name("NebulaStoryArchiveSettingsChanged"), object: nil, queue: .main) { [weak self] _ in
 +            self?.nebulaArchiveStoriesIfNeeded()
 +        }
          
-@@ -792,2 +817,3 @@ public class ChatListControllerImpl: TelegramBaseController, ChatListController
+         self.accessoryPanelContainer = ASDisplayNode()
+         
+@@ -788,6 +813,7 @@
+     }
+     
      deinit {
 +        if let observer = self.nebulaStoryArchiveObserver { NotificationCenter.default.removeObserver(observer) }
          self.openMessageFromSearchDisposable.dispose()
-@@ -2191,2 +2217,3 @@ public class ChatListControllerImpl: TelegramBaseController, ChatListController
+         self.badgeDisposable?.dispose()
+         self.badgeIconDisposable?.dispose()
+@@ -2210,6 +2236,7 @@
+                         items: items,
+                         hasMoreToken: rawStorySubscriptions.hasMoreToken
                      )
 +                    self.nebulaArchiveStoriesIfNeeded()
                      self.fixedStorySubscriptionOrder = items.map(\.peer.id)
+                     
+                     let transition: ContainedViewLayoutTransition

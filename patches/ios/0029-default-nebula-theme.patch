@@ -1,7 +1,9 @@
 diff --git a/submodules/TelegramUIPreferences/Sources/PresentationThemeSettings.swift b/submodules/TelegramUIPreferences/Sources/PresentationThemeSettings.swift
 --- a/submodules/TelegramUIPreferences/Sources/PresentationThemeSettings.swift
 +++ b/submodules/TelegramUIPreferences/Sources/PresentationThemeSettings.swift
-@@ -654,3 +654,9 @@
+@@ -652,7 +652,13 @@
+     }
+     
      public static var defaultSettings: PresentationThemeSettings {
 -        return PresentationThemeSettings(theme: .builtin(.dayClassic), themePreferredBaseTheme: [:], themeSpecificAccentColors: [:], themeSpecificChatWallpapers: [:], useSystemFont: true, fontSize: .regular, listsFontSize: .regular, chatBubbleSettings: .default, automaticThemeSwitchSetting: AutomaticThemeSwitchSetting(force: false, trigger: .system, theme: .builtin(.night)), largeEmoji: true, reduceMotion: false)
 +        let day: PresentationThemeReference = .builtin(.day)
@@ -12,3 +14,5 @@ diff --git a/submodules/TelegramUIPreferences/Sources/PresentationThemeSettings.
 +        ]
 +        return PresentationThemeSettings(theme: day, themePreferredBaseTheme: [:], themeSpecificAccentColors: accents, themeSpecificChatWallpapers: [:], useSystemFont: true, fontSize: .regular, listsFontSize: .regular, chatBubbleSettings: .default, automaticThemeSwitchSetting: AutomaticThemeSwitchSetting(force: false, trigger: .system, theme: night), largeEmoji: true, reduceMotion: false)
      }
+     
+     public init(theme: PresentationThemeReference, themePreferredBaseTheme: [Int64: TelegramBaseTheme], themeSpecificAccentColors: [Int64: PresentationThemeAccentColor], themeSpecificChatWallpapers: [Int64: TelegramWallpaper], useSystemFont: Bool, fontSize: PresentationFontSize, listsFontSize: PresentationFontSize, chatBubbleSettings: PresentationChatBubbleSettings, automaticThemeSwitchSetting: AutomaticThemeSwitchSetting, largeEmoji: Bool, reduceMotion: Bool) {

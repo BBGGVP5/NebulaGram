@@ -1,7 +1,7 @@
 diff --git a/submodules/TelegramUI/Components/GlassBackgroundComponent/Sources/GlassBackgroundComponent.swift b/submodules/TelegramUI/Components/GlassBackgroundComponent/Sources/GlassBackgroundComponent.swift
 --- a/submodules/TelegramUI/Components/GlassBackgroundComponent/Sources/GlassBackgroundComponent.swift
 +++ b/submodules/TelegramUI/Components/GlassBackgroundComponent/Sources/GlassBackgroundComponent.swift
-@@ -494,6 +494,7 @@
+@@ -500,6 +500,7 @@
      private var nebulaSize: CGSize = .zero
      private var nebulaReduced = false
      private var nebulaObservation: SettingsObservation?
@@ -9,7 +9,7 @@ diff --git a/submodules/TelegramUI/Components/GlassBackgroundComponent/Sources/G
      private let nebulaMaterial = UIVisualEffectView()
      private var nebulaMaterialState: NebulaGlassMaterialState?
      private lazy var nebulaMaterialClip = ClippingShapeContext(view: self.nebulaMaterial)
-@@ -550,6 +551,8 @@
+@@ -558,6 +559,8 @@
          nebulaMaterial.isUserInteractionEnabled = false
          nebulaMaterial.clipsToBounds = true
          insertSubview(nebulaMaterial, at: 0)
@@ -18,7 +18,7 @@ diff --git a/submodules/TelegramUI/Components/GlassBackgroundComponent/Sources/G
          nebulaFallback.isUserInteractionEnabled = false
          nebulaFallback.clipsToBounds = true
          insertSubview(nebulaFallback, at: 0)
-@@ -883,4 +886,22 @@
+@@ -888,6 +891,24 @@
          legacyHighlightContainerView?.isHidden = nebulaCustom || !nebulaHighlights
          nebulaMaterial.layer.borderWidth = nebulaCustom && nebulaHighlights ? 0.8 : 0.0
          nebulaMaterial.layer.borderColor = UIColor.white.withAlphaComponent(isDark ? 0.22 : 0.70).cgColor
@@ -41,3 +41,5 @@ diff --git a/submodules/TelegramUI/Components/GlassBackgroundComponent/Sources/G
 +            }
 +        }
          if nebulaCustom {
+             nebulaFallback.isHidden = true
+             nebulaMaterial.frame = CGRect(origin: .zero, size: size)

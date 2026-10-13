@@ -1,8 +1,7 @@
 diff --git a/submodules/SettingsUI/BUILD b/submodules/SettingsUI/BUILD
-index 1e36d27..e0c41a2 100644
 --- a/submodules/SettingsUI/BUILD
 +++ b/submodules/SettingsUI/BUILD
-@@ -10,6 +10,8 @@ swift_library(
+@@ -12,6 +12,8 @@
          "-warnings-as-errors",
      ],
      deps = [
@@ -12,26 +11,26 @@ index 1e36d27..e0c41a2 100644
          "//submodules/NebulaLinkUI:NebulaLinkUI",
          "//submodules/NebulaSettingsContract:NebulaSettingsContract",
 diff --git a/third-party/ZipArchive/PublicHeaders/ZipArchive/ZipArchive.h b/third-party/ZipArchive/PublicHeaders/ZipArchive/ZipArchive.h
-index 58d0fec..511fdcc 100644
 --- a/third-party/ZipArchive/PublicHeaders/ZipArchive/ZipArchive.h
 +++ b/third-party/ZipArchive/PublicHeaders/ZipArchive/ZipArchive.h
-@@ -42,6 +42,8 @@ typedef NS_ENUM(NSInteger, SSZipArchiveErrorCode) {
+@@ -41,6 +41,8 @@
+ @end
  
  @interface SSZipArchive : NSObject
- 
-++ (NSData * _Nullable)nebulaReadFileAtPath:(NSString *)path filePath:(NSString *)filePath maximumSize:(NSUInteger)maximumSize NS_SWIFT_NAME(nebulaReadFile(atPath:filePath:maximumSize:));
 +
+++ (NSData * _Nullable)nebulaReadFileAtPath:(NSString *)path filePath:(NSString *)filePath maximumSize:(NSUInteger)maximumSize NS_SWIFT_NAME(nebulaReadFile(atPath:filePath:maximumSize:));
+ 
  + (NSArray<SSZipEntry *> * _Nullable)getEntriesForFileAtPath:(NSString *)path;
  + (BOOL)extractFileFromArchiveAtPath:(NSString *)path filePath:(NSString *)filePath toPath:(NSString *)toPath;
- 
 diff --git a/third-party/ZipArchive/Sources/SSZipArchive.m b/third-party/ZipArchive/Sources/SSZipArchive.m
-index 9669fd7..2ace504 100644
 --- a/third-party/ZipArchive/Sources/SSZipArchive.m
 +++ b/third-party/ZipArchive/Sources/SSZipArchive.m
-@@ -44,6 +44,29 @@ BOOL _fileIsSymbolicLink(const unz_file_info *fileInfo);
+@@ -42,6 +42,29 @@
+     /// path for zip file
+     NSString *_path;
      zipFile _zip;
- }
- 
++}
++
 +// Bounded in-memory read. Never extract an imported icon archive to disk.
 ++ (NSData *)nebulaReadFileAtPath:(NSString *)path filePath:(NSString *)filePath maximumSize:(NSUInteger)maximumSize {
 +    if (maximumSize == 0 || maximumSize > 262144) return nil;
@@ -53,8 +52,6 @@ index 9669fd7..2ace504 100644
 +    if (unzCloseCurrentFile(file) != UNZ_OK) valid = NO;
 +    unzClose(file);
 +    return valid ? data : nil;
-+}
-+
- #pragma mark - Password check
+ }
  
- + (BOOL)isFilePasswordProtectedAtPath:(NSString *)path {
+ #pragma mark - Password check

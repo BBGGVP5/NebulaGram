@@ -1,145 +1,41 @@
-diff --git a/submodules/Camera/BUILD b/submodules/Camera/BUILD
---- a/submodules/Camera/BUILD
-+++ b/submodules/Camera/BUILD
-@@ -53,6 +53,7 @@
-         ":CameraBundle",
-     ],
-     deps = [
-+        "//submodules/NebulaSettingsContract:NebulaSettingsContract",
-         "//submodules/SSignalKit/SwiftSignalKit:SwiftSignalKit",
-         "//submodules/AsyncDisplayKit:AsyncDisplayKit",
-         "//submodules/Display:Display",
 diff --git a/submodules/Camera/Sources/Camera.swift b/submodules/Camera/Sources/Camera.swift
 --- a/submodules/Camera/Sources/Camera.swift
 +++ b/submodules/Camera/Sources/Camera.swift
-@@ -1,3 +1,4 @@
-+import NebulaSettingsContract
- import Foundation
- import UIKit
+@@ -5,6 +5,16 @@
  import SwiftSignalKit
-@@ -12,8 +13,8 @@
-     
-     let hasMultiCam: Bool
-         
--    init(forRoundVideo: Bool) {
--        if #available(iOS 13.0, *), Camera.isDualCameraSupported(forRoundVideo: forRoundVideo) {
-+    init(forRoundVideo: Bool, allowDual: Bool = true) {
-+        if #available(iOS 13.0, *), allowDual && Camera.isDualCameraSupported(forRoundVideo: forRoundVideo) {
-             self.multiSession = AVCaptureMultiCamSession()
-             self.singleSession = nil
-             self.hasMultiCam = true
-@@ -512,6 +513,27 @@
-         self._flashMode = mode
-     }
-     
-+    private var nebulaActiveDevice: CameraDevice? {
-+        if self.initialConfiguration.isRoundVideo && self.positionValue == .front, let additional = self.additionalDeviceContext {
-+            return additional.device
-+        }
-+        return self.mainDeviceContext?.device
-+    }
-+
-+    var nebulaZoomState: Camera.NebulaZoomState? {
-+        guard let device = self.nebulaActiveDevice?.videoDevice else { return nil }
-+        let neutral = device.neutralZoomFactor
-+        let range = NebulaZoomRange(neutral: Double(neutral), minimumDeviceFactor: Double(device.minAvailableVideoZoomFactor), maximumDeviceFactor: Double(device.maxAvailableVideoZoomFactor))
-+        let optical = range.presets(deviceStops: device.virtualDeviceSwitchOverVideoZoomFactors.map { $0.doubleValue }).map { CGFloat($0) }
-+        return Camera.NebulaZoomState(front: device.position == .front, minimum: CGFloat(range.minimum), maximum: CGFloat(range.maximum),
-+            current: CGFloat(range.displayed(Double(device.videoZoomFactor))), stops: optical)
-+    }
-+
-+    func setNebulaZoom(_ value: CGFloat, front: Bool, animated: Bool) {
-+        guard (self.positionValue == .front) == front else { return }
-+        self.nebulaActiveDevice?.setNebulaZoom(value, animated: animated)
-+    }
-+
-     func setZoomLevel(_ zoomLevel: CGFloat) {
-         if self.initialConfiguration.isRoundVideo {
-             if self.positionValue == .front {
-@@ -787,7 +809,7 @@
-         
-         self.metrics = Camera.Metrics(model: DeviceModel.current)
-         
--        let session = CameraSession(forRoundVideo: configuration.isRoundVideo)
-+        let session = CameraSession(forRoundVideo: configuration.isRoundVideo, allowDual: !configuration.isRoundVideo || configuration.isDualEnabled)
-         session.session.automaticallyConfiguresApplicationAudioSession = false
-         session.session.automaticallyConfiguresCaptureDeviceForWideColor = false
-         session.session.usesApplicationAudioSession = true
-@@ -956,6 +978,44 @@
-         }
-     }
-     
+ 
+ public enum Camera {
 +    public struct NebulaZoomState {
 +        public let front: Bool
 +        public let minimum: CGFloat
 +        public let maximum: CGFloat
 +        public let current: CGFloat
 +        public let stops: [CGFloat]
-+    }
-+
-+    /// Read only the device attached to this capture session, after configuration.
-+    public func readNebulaZoom(_ completion: @escaping (NebulaZoomState?) -> Void) {
-+        self.queue.async {
-+            let state = self.contextRef?.takeUnretainedValue().nebulaZoomState
-+            Queue.mainQueue().async { completion(state) }
++        public init(front: Bool, minimum: CGFloat, maximum: CGFloat, current: CGFloat, stops: [CGFloat]) {
++            self.front = front; self.minimum = minimum; self.maximum = maximum; self.current = current; self.stops = stops
 +        }
 +    }
-+
-+    private let nebulaZoomLock = NSLock()
-+    private var nebulaPendingZoom: (CGFloat, Bool, Bool)?
-+    private var nebulaZoomScheduled = false
-+
-+    public func setNebulaZoom(_ value: CGFloat, front: Bool, animated: Bool) {
-+        guard value.isFinite && value > 0 else { return }
-+        self.nebulaZoomLock.lock()
-+        self.nebulaPendingZoom = (value, front, animated)
-+        let schedule = !self.nebulaZoomScheduled
-+        self.nebulaZoomScheduled = true
-+        self.nebulaZoomLock.unlock()
-+        guard schedule else { return }
-+        self.queue.async {
-+            self.nebulaZoomLock.lock()
-+            let pending = self.nebulaPendingZoom
-+            self.nebulaPendingZoom = nil
-+            self.nebulaZoomScheduled = false
-+            self.nebulaZoomLock.unlock()
-+            if let pending { self.contextRef?.takeUnretainedValue().setNebulaZoom(pending.0, front: pending.1, animated: pending.2) }
-+        }
-+    }
-+
-     public func setZoomLevel(_ zoomLevel: CGFloat) {
-         self.queue.async {
-             if let context = self.contextRef?.takeUnretainedValue() {
-diff --git a/submodules/Camera/Sources/CameraDevice.swift b/submodules/Camera/Sources/CameraDevice.swift
---- a/submodules/Camera/Sources/CameraDevice.swift
-+++ b/submodules/Camera/Sources/CameraDevice.swift
-@@ -1,3 +1,4 @@
-+import NebulaSettingsContract
- import Foundation
- import AVFoundation
- import SwiftSignalKit
-@@ -300,6 +301,21 @@
-         }
+     public typealias Preset = AVCaptureSession.Preset
+     public typealias Position = AVCaptureDevice.Position
+     public typealias FocusMode = AVCaptureDevice.FocusMode
+@@ -93,6 +103,8 @@
+     func focus(at point: CGPoint, autoFocus: Bool)
+     func setFps(_ fps: Double)
+     func setFlashMode(_ flashMode: Camera.FlashMode)
++    func readNebulaZoom(_ completion: @escaping (Camera.NebulaZoomState?) -> Void)
++    func setNebulaZoom(_ value: CGFloat, front: Bool, animated: Bool)
+     func setZoomLevel(_ zoomLevel: CGFloat)
+     func setZoomDelta(_ zoomDelta: CGFloat)
+     func rampZoom(_ zoomLevel: CGFloat, rate: CGFloat)
+@@ -113,6 +125,8 @@
+ }
+ 
+ public extension CameraProtocol {
++    func readNebulaZoom(_ completion: @escaping (Camera.NebulaZoomState?) -> Void) { completion(nil) }
++    func setNebulaZoom(_ value: CGFloat, front: Bool, animated: Bool) { }
+     func stopCapture() {
+         self.stopCapture(invalidate: false)
      }
-     
-+    func setNebulaZoom(_ factor: CGFloat, animated: Bool) {
-+        guard let device = self.videoDevice, factor.isFinite else { return }
-+        let range = NebulaZoomRange(neutral: Double(device.neutralZoomFactor), minimumDeviceFactor: Double(device.minAvailableVideoZoomFactor), maximumDeviceFactor: Double(device.maxAvailableVideoZoomFactor))
-+        let target = CGFloat(range.deviceFactor(Double(factor)))
-+        guard device.isRampingVideoZoom || abs(device.videoZoomFactor - target) > 0.0001 else { return }
-+        self.transaction(device) { device in
-+            if device.isRampingVideoZoom { device.cancelVideoZoomRamp() }
-+            if animated {
-+                device.ramp(toVideoZoomFactor: target, withRate: Float(max(12, abs(target - device.videoZoomFactor) * 16)))
-+            } else {
-+                device.videoZoomFactor = target
-+            }
-+        }
-+    }
-+
-     func setZoomLevel(_ zoomLevel: CGFloat) {
-         guard let device = self.videoDevice else {
-             return
 diff --git a/submodules/TelegramUI/Components/Chat/ChatMessageReplyInfoNode/BUILD b/submodules/TelegramUI/Components/Chat/ChatMessageReplyInfoNode/BUILD
 --- a/submodules/TelegramUI/Components/Chat/ChatMessageReplyInfoNode/BUILD
 +++ b/submodules/TelegramUI/Components/Chat/ChatMessageReplyInfoNode/BUILD
@@ -168,7 +64,7 @@ diff --git a/submodules/TelegramUI/Components/Chat/ChatMessageReplyInfoNode/Sour
              case let .preset(nameColor):
                  let colors = arguments.context.peerNameColors.get(nameColor, dark: arguments.presentationData.theme.theme.overallDarkAppearance)
                  authorNameColor = colors.main
-@@ -903,7 +904,7 @@
+@@ -899,7 +900,7 @@
                  node.backgroundView.frame = backgroundFrame
                  
                  var pattern: MessageInlineBlockBackgroundView.Pattern?
@@ -177,7 +73,7 @@ diff --git a/submodules/TelegramUI/Components/Chat/ChatMessageReplyInfoNode/Sour
                      pattern = MessageInlineBlockBackgroundView.Pattern(
                          context: arguments.context,
                          fileId: backgroundEmojiId,
-@@ -914,7 +915,7 @@
+@@ -910,7 +911,7 @@
                          emptyCorner: giftEmojiFileId != nil
                      )
                  }
@@ -189,7 +85,7 @@ diff --git a/submodules/TelegramUI/Components/Chat/ChatMessageReplyInfoNode/Sour
 diff --git a/submodules/TelegramUI/Components/GlassBackgroundComponent/Sources/GlassBackgroundComponent.swift b/submodules/TelegramUI/Components/GlassBackgroundComponent/Sources/GlassBackgroundComponent.swift
 --- a/submodules/TelegramUI/Components/GlassBackgroundComponent/Sources/GlassBackgroundComponent.swift
 +++ b/submodules/TelegramUI/Components/GlassBackgroundComponent/Sources/GlassBackgroundComponent.swift
-@@ -908,8 +908,13 @@
+@@ -914,8 +914,13 @@
              nebulaFallback.isHidden = true
              nebulaMaterial.frame = CGRect(origin: .zero, size: size)
              nebulaMaterialClip.update(shape: shape, size: size, transition: transition)
@@ -239,7 +135,7 @@ diff --git a/submodules/TelegramUI/Components/PeerInfo/PeerInfoCoverComponent/So
      public let context: AccountContext
      public let subject: Subject?
      public let files: [Int64: TelegramMediaFile]
-@@ -168,6 +171,7 @@
+@@ -171,6 +174,7 @@
      }
      
      public static func ==(lhs: PeerInfoCoverComponent, rhs: PeerInfoCoverComponent) -> Bool {
@@ -343,7 +239,7 @@ diff --git a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/Pe
                  ratingBackgroundColor = UIColor(white: 1.0, alpha: 1.0).mixedWith(presentationData.theme.list.itemCheckColors.fillColor, alpha: effectiveTransitionFraction)
                  
                  let backgroundColors = self.context.peerNameColors.getProfile(profileColor, dark: presentationData.theme.overallDarkAppearance)
-@@ -2992,7 +2992,7 @@
+@@ -3000,7 +3000,7 @@
      
      func updateIsAvatarExpanded(_ isAvatarExpanded: Bool, transition: ContainedViewLayoutTransition) {
          if self.isAvatarExpanded != isAvatarExpanded {
@@ -360,7 +256,7 @@ diff --git a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/Pe
  import Foundation
  import UIKit
  import Display
-@@ -119,7 +120,7 @@
+@@ -137,7 +138,7 @@
              items[.calls]!.append(PeerInfoScreenCallListItem(id: ItemCallList, messages: callMessages))
          }
          
@@ -369,7 +265,7 @@ diff --git a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/Pe
              let peerId = personalChannel.peer.peerId
              var label: String?
              if let subscriberCount = personalChannel.subscriberCount {
-@@ -206,7 +207,7 @@
+@@ -224,7 +225,7 @@
          }
          
          if let cachedData = data.cachedData as? CachedUserData {
@@ -378,7 +274,7 @@ diff --git a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/Pe
                  let isBirthdayToday = hasBirthdayToday(birthday: birthday)
                  
                  var birthdayAction: ((ASDisplayNode, Promise<Bool>?) -> Void)?
-@@ -350,13 +351,13 @@
+@@ -368,13 +369,13 @@
                  }
              }
              
@@ -394,7 +290,7 @@ diff --git a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/Pe
                  if let coordinates = businessLocation.coordinates {
                      let imageSignal = chatMapSnapshotImage(engine: context.engine, resource: MapSnapshotMediaResource(latitude: coordinates.latitude, longitude: coordinates.longitude, width: 90, height: 90))
                      items[currentPeerInfoSection]!.append(PeerInfoScreenAddressItem(
-@@ -1279,7 +1280,7 @@
+@@ -1285,7 +1286,7 @@
                          interaction.editingOpenPostSuggestionsSetup()
                      }))
                      
@@ -406,7 +302,7 @@ diff --git a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/Pe
 diff --git a/submodules/TelegramUI/Components/VideoMessageCameraScreen/Sources/VideoMessageCameraScreen.swift b/submodules/TelegramUI/Components/VideoMessageCameraScreen/Sources/VideoMessageCameraScreen.swift
 --- a/submodules/TelegramUI/Components/VideoMessageCameraScreen/Sources/VideoMessageCameraScreen.swift
 +++ b/submodules/TelegramUI/Components/VideoMessageCameraScreen/Sources/VideoMessageCameraScreen.swift
-@@ -910,7 +910,7 @@
+@@ -916,7 +916,7 @@
          var cameraState: CameraState {
              didSet {
                  if self.cameraState.position != oldValue.position {
@@ -415,15 +311,15 @@ diff --git a/submodules/TelegramUI/Components/VideoMessageCameraScreen/Sources/V
                  }
                  self.nebulaZoomSlider.isHidden = self.cameraState.recording == .none || self.previewState != nil
                  if self.cameraState.isViewOnceEnabled != oldValue.isViewOnceEnabled {
-@@ -955,7 +955,6 @@
+@@ -968,7 +968,6 @@
              self.previewContainerContentView.clipsToBounds = true
              self.previewContainerView.addSubview(self.previewContainerContentView)
                          
--            let isDualCameraEnabled = Camera.isDualCameraSupported(forRoundVideo: true)
+-            let isDualCameraEnabled = cameraImpl.isDualCameraSupported(forRoundVideo: true)
              let isFrontPosition = controller.initialFrontCamera
              
-             self.mainPreviewView = CameraSimplePreviewView(frame: .zero, main: true, roundVideo: true)
-@@ -966,16 +965,12 @@
+             self.mainPreviewView = cameraImpl.makeCameraSimplePreviewView(frame: .zero, main: true, roundVideo: true)
+@@ -979,16 +978,12 @@
              self.loadingView = LoadingEffectView(effectAlpha: 0.1, borderAlpha: 0.25, duration: 1.0)
              self.nebulaZoomSlider = NebulaVideoZoomSlider()
              self.nebulaZoomSlider.tintColor = self.presentationData.theme.list.itemAccentColor
@@ -442,7 +338,7 @@ diff --git a/submodules/TelegramUI/Components/VideoMessageCameraScreen/Sources/V
              
              self.cameraState = CameraState(
                  position: isFrontPosition ? .front : .back,
-@@ -985,7 +980,7 @@
+@@ -998,7 +993,7 @@
                  flashTintSize: 1.0,
                  recording: .none,
                  duration: 0.0,
@@ -451,7 +347,7 @@ diff --git a/submodules/TelegramUI/Components/VideoMessageCameraScreen/Sources/V
                  isViewOnceEnabled: false
              )
              
-@@ -998,17 +993,14 @@
+@@ -1011,17 +1006,14 @@
              self.view.addSubview(self.containerView)
              self.view.addSubview(self.nebulaZoomSlider)
              self.nebulaZoomSlider.isHidden = true
@@ -472,7 +368,7 @@ diff --git a/submodules/TelegramUI/Components/VideoMessageCameraScreen/Sources/V
              self.previewContainerContentView.addSubview(self.progressView)
              self.previewContainerContentView.addSubview(self.previewBlurView)
              self.previewContainerContentView.addSubview(self.loadingView)
-@@ -1018,16 +1010,11 @@
+@@ -1031,16 +1023,11 @@
                      self.addCaptureResult(result)
                  }
              }
@@ -490,7 +386,7 @@ diff --git a/submodules/TelegramUI/Components/VideoMessageCameraScreen/Sources/V
                  self.loadingView.alpha = 0.0
                  self.additionalPreviewView.removePlaceholder(delay: 0.0)
              })
-@@ -1118,25 +1105,31 @@
+@@ -1131,13 +1118,24 @@
              camera.startCapture()
              
              self.camera = camera
@@ -511,24 +407,37 @@ diff --git a/submodules/TelegramUI/Components/VideoMessageCameraScreen/Sources/V
 +        }
 +
          @objc private func handlePinch(_ gestureRecognizer: UIPinchGestureRecognizer) {
--            guard let camera = self.camera else {
--                return
--            }
 +            guard self.camera != nil else { return }
              switch gestureRecognizer.state {
-             case .changed:
+             case .began:
+                 self.pinchStartTimestamp = CACurrentMediaTime()
+@@ -1146,23 +1144,10 @@
+                     return
+                 }
                  let scale = gestureRecognizer.scale
 -                camera.setZoomDelta(scale)
                  self.nebulaZoomSlider.reflectPinch(scale)
                  gestureRecognizer.scale = 1.0
-             case .ended, .cancelled:
--                camera.rampZoom(1.0, rate: 8.0)
+-            case .ended:
+-                let pinchStartTimestamp = self.pinchStartTimestamp
+-                self.pinchStartTimestamp = nil
+-                if let pinchStartTimestamp, CACurrentMediaTime() - pinchStartTimestamp <= 0.5 {
+-                    return
+-                }
+-                self.camera?.rampZoom(1.0, rate: 8.0)
 -                self.nebulaZoomSlider.setCurrent(1)
-+                break // Keep the final pinch factor.
+-            case .cancelled:
+-                self.pinchStartTimestamp = nil
+-                self.camera?.rampZoom(1.0, rate: 8.0)
+-                self.nebulaZoomSlider.setCurrent(1)
+-            case .failed:
+-                self.pinchStartTimestamp = nil
++            case .ended, .cancelled, .failed:
++                self.pinchStartTimestamp = nil // Keep the reviewed zoom factor.
              default:
                  break
              }
-@@ -1503,7 +1496,7 @@
+@@ -1551,7 +1536,7 @@
                  backgroundFrame = CGRect(origin: .zero, size: CGSize(width: layout.size.width, height: layout.size.height - layout.intrinsicInsets.bottom - controller.inputPanelFrame.0.height - 8.0))
              }
                          
@@ -540,7 +449,7 @@ diff --git a/submodules/TelegramUI/Components/VideoMessageCameraScreen/Sources/V
 diff --git a/submodules/TelegramUI/Sources/Chat/ChatControllerMediaRecording.swift b/submodules/TelegramUI/Sources/Chat/ChatControllerMediaRecording.swift
 --- a/submodules/TelegramUI/Sources/Chat/ChatControllerMediaRecording.swift
 +++ b/submodules/TelegramUI/Sources/Chat/ChatControllerMediaRecording.swift
-@@ -148,28 +148,11 @@
+@@ -149,28 +149,11 @@
      func requestVideoRecorder(initialFrontCamera: Bool? = nil) {
          if self.videoRecorderValue == nil && initialFrontCamera == nil {
              let presentationData = self.presentationData
@@ -577,7 +486,7 @@ diff --git a/submodules/TelegramUI/Sources/Chat/ChatControllerMediaRecording.swi
 diff --git a/submodules/TelegramUI/Sources/ChatController.swift b/submodules/TelegramUI/Sources/ChatController.swift
 --- a/submodules/TelegramUI/Sources/ChatController.swift
 +++ b/submodules/TelegramUI/Sources/ChatController.swift
-@@ -242,6 +242,7 @@
+@@ -243,6 +243,7 @@
  public final class ChatControllerImpl: TelegramBaseController, ChatController, GalleryHiddenMediaTarget, UIDropInteractionDelegate {    
      var validLayout: ContainerViewLayout?
      private var nebulaNextChannelObservation: SettingsObservation?
@@ -585,7 +494,7 @@ diff --git a/submodules/TelegramUI/Sources/ChatController.swift b/submodules/Tel
      private var nebulaLastSecondsInTime = NebulaSettingsStore.shared.secondsInTime
      
      public weak var parentController: ViewController?
-@@ -775,7 +776,9 @@
+@@ -783,7 +784,9 @@
          self.nebulaNextChannelObservation = NebulaSettingsStore.shared.observe { [weak self] in
              guard let self else { return }
              let seconds = NebulaSettingsStore.shared.secondsInTime
@@ -596,7 +505,7 @@ diff --git a/submodules/TelegramUI/Sources/ChatController.swift b/submodules/Tel
              self.nebulaLastSecondsInTime = seconds
              guard self.isViewLoaded else { return }
              self.updateNextChannelToReadVisibility()
-@@ -6094,7 +6097,7 @@
+@@ -6204,7 +6207,7 @@
                                              $0.withUpdatedEffectiveInputState(ChatTextInputState(inputText: NSAttributedString(string: value)))
                                          }
                                      })
@@ -608,7 +517,7 @@ diff --git a/submodules/TelegramUI/Sources/ChatController.swift b/submodules/Tel
 diff --git a/submodules/TelegramUI/Sources/ChatInterfaceStateContextMenus.swift b/submodules/TelegramUI/Sources/ChatInterfaceStateContextMenus.swift
 --- a/submodules/TelegramUI/Sources/ChatInterfaceStateContextMenus.swift
 +++ b/submodules/TelegramUI/Sources/ChatInterfaceStateContextMenus.swift
-@@ -1452,7 +1452,7 @@
+@@ -1475,7 +1475,7 @@
                              let selectedText = messageText
                              let russian = chatPresentationInterfaceState.strings.baseLanguageCode.lowercased().hasPrefix("ru")
                              c?.dismiss(completion: {
@@ -617,7 +526,7 @@ diff --git a/submodules/TelegramUI/Sources/ChatInterfaceStateContextMenus.swift 
                              })
                              if c == nil { f(.default) }
                              return
-@@ -1469,17 +1469,14 @@
+@@ -1492,17 +1492,14 @@
                      })))
                  }
                  
@@ -637,7 +546,7 @@ diff --git a/submodules/TelegramUI/Sources/ChatInterfaceStateContextMenus.swift 
                          })
                          if c == nil { f(.default) }
                      })))
-@@ -1487,7 +1484,7 @@
+@@ -1510,7 +1507,7 @@
                          return generateTintedImage(image: UIImage(bundleImageName: "Chat/Context Menu/Translate"), color: theme.actionSheet.primaryTextColor)
                      }, action: { c, f in
                          c?.dismiss(completion: {
@@ -649,7 +558,7 @@ diff --git a/submodules/TelegramUI/Sources/ChatInterfaceStateContextMenus.swift 
 diff --git a/submodules/TelegramUI/Sources/TelegramRootController.swift b/submodules/TelegramUI/Sources/TelegramRootController.swift
 --- a/submodules/TelegramUI/Sources/TelegramRootController.swift
 +++ b/submodules/TelegramUI/Sources/TelegramRootController.swift
-@@ -295,7 +295,7 @@
+@@ -291,7 +291,7 @@
          guard let host = notification.object as? UIViewController, host === self,
                NebulaAiSettings.shared.homeShortcut else { return }
          let russian = self.presentationData.strings.baseLanguageCode.lowercased().hasPrefix("ru")
@@ -658,3 +567,137 @@ diff --git a/submodules/TelegramUI/Sources/TelegramRootController.swift b/submod
      }
  
      private func nebulaOrderedControllers(_ source: [ViewController]) -> [ViewController] {
+diff --git a/submodules/Camera/CameraLegacy/Sources/LegacyCamera.swift b/submodules/Camera/CameraLegacy/Sources/LegacyCamera.swift
+--- a/submodules/Camera/CameraLegacy/Sources/LegacyCamera.swift
++++ b/submodules/Camera/CameraLegacy/Sources/LegacyCamera.swift
+@@ -1,3 +1,4 @@
++import NebulaSettingsContract
+ import Foundation
+ import UIKit
+ import SwiftSignalKit
+@@ -13,8 +14,8 @@
+     
+     let hasMultiCam: Bool
+         
+-    init(forRoundVideo: Bool) {
+-        if #available(iOS 13.0, *), legacyIsDualCameraSupported(forRoundVideo: forRoundVideo) {
++    init(forRoundVideo: Bool, allowDual: Bool = true) {
++        if #available(iOS 13.0, *), allowDual && legacyIsDualCameraSupported(forRoundVideo: forRoundVideo) {
+             self.multiSession = AVCaptureMultiCamSession()
+             self.singleSession = nil
+             self.hasMultiCam = true
+@@ -513,6 +514,27 @@
+         self._flashMode = mode
+     }
+     
++    private var nebulaActiveDevice: CameraDevice? {
++        if self.initialConfiguration.isRoundVideo && self.positionValue == .front, let additional = self.additionalDeviceContext {
++            return additional.device
++        }
++        return self.mainDeviceContext?.device
++    }
++
++    var nebulaZoomState: Camera.NebulaZoomState? {
++        guard let device = self.nebulaActiveDevice?.videoDevice else { return nil }
++        let neutral = device.neutralZoomFactor
++        let range = NebulaZoomRange(neutral: Double(neutral), minimumDeviceFactor: Double(device.minAvailableVideoZoomFactor), maximumDeviceFactor: Double(device.maxAvailableVideoZoomFactor))
++        let optical = range.presets(deviceStops: device.virtualDeviceSwitchOverVideoZoomFactors.map { $0.doubleValue }).map { CGFloat($0) }
++        return Camera.NebulaZoomState(front: device.position == .front, minimum: CGFloat(range.minimum), maximum: CGFloat(range.maximum),
++            current: CGFloat(range.displayed(Double(device.videoZoomFactor))), stops: optical)
++    }
++
++    func setNebulaZoom(_ value: CGFloat, front: Bool, animated: Bool) {
++        guard (self.positionValue == .front) == front else { return }
++        self.nebulaActiveDevice?.setNebulaZoom(value, animated: animated)
++    }
++
+     func setZoomLevel(_ zoomLevel: CGFloat) {
+         if self.initialConfiguration.isRoundVideo {
+             if self.positionValue == .front {
+@@ -736,7 +758,7 @@
+         
+         self.metrics = Camera.Metrics(model: DeviceModel.current)
+         
+-        let session = CameraSession(forRoundVideo: configuration.isRoundVideo)
++        let session = CameraSession(forRoundVideo: configuration.isRoundVideo, allowDual: !configuration.isRoundVideo || configuration.isDualEnabled)
+         session.session.automaticallyConfiguresApplicationAudioSession = false
+         session.session.automaticallyConfiguresCaptureDeviceForWideColor = false
+         session.session.usesApplicationAudioSession = true
+@@ -905,6 +927,36 @@
+         }
+     }
+     
++    /// Read only the device attached to this capture session, after configuration.
++    func readNebulaZoom(_ completion: @escaping (Camera.NebulaZoomState?) -> Void) {
++        self.queue.async {
++            let state = self.contextRef?.takeUnretainedValue().nebulaZoomState
++            Queue.mainQueue().async { completion(state) }
++        }
++    }
++
++    private let nebulaZoomLock = NSLock()
++    private var nebulaPendingZoom: (CGFloat, Bool, Bool)?
++    private var nebulaZoomScheduled = false
++
++    func setNebulaZoom(_ value: CGFloat, front: Bool, animated: Bool) {
++        guard value.isFinite && value > 0 else { return }
++        self.nebulaZoomLock.lock()
++        self.nebulaPendingZoom = (value, front, animated)
++        let schedule = !self.nebulaZoomScheduled
++        self.nebulaZoomScheduled = true
++        self.nebulaZoomLock.unlock()
++        guard schedule else { return }
++        self.queue.async {
++            self.nebulaZoomLock.lock()
++            let pending = self.nebulaPendingZoom
++            self.nebulaPendingZoom = nil
++            self.nebulaZoomScheduled = false
++            self.nebulaZoomLock.unlock()
++            if let pending { self.contextRef?.takeUnretainedValue().setNebulaZoom(pending.0, front: pending.1, animated: pending.2) }
++        }
++    }
++
+     func setZoomLevel(_ zoomLevel: CGFloat) {
+         self.queue.async {
+             if let context = self.contextRef?.takeUnretainedValue() {
+diff --git a/submodules/Camera/CameraLegacy/Sources/CameraDevice.swift b/submodules/Camera/CameraLegacy/Sources/CameraDevice.swift
+--- a/submodules/Camera/CameraLegacy/Sources/CameraDevice.swift
++++ b/submodules/Camera/CameraLegacy/Sources/CameraDevice.swift
+@@ -1,3 +1,4 @@
++import NebulaSettingsContract
+ import Foundation
+ import AVFoundation
+ import SwiftSignalKit
+@@ -301,6 +302,21 @@
+         }
+     }
+     
++    func setNebulaZoom(_ factor: CGFloat, animated: Bool) {
++        guard let device = self.videoDevice, factor.isFinite else { return }
++        let range = NebulaZoomRange(neutral: Double(device.neutralZoomFactor), minimumDeviceFactor: Double(device.minAvailableVideoZoomFactor), maximumDeviceFactor: Double(device.maxAvailableVideoZoomFactor))
++        let target = CGFloat(range.deviceFactor(Double(factor)))
++        guard device.isRampingVideoZoom || abs(device.videoZoomFactor - target) > 0.0001 else { return }
++        self.transaction(device) { device in
++            if device.isRampingVideoZoom { device.cancelVideoZoomRamp() }
++            if animated {
++                device.ramp(toVideoZoomFactor: target, withRate: Float(max(12, abs(target - device.videoZoomFactor) * 16)))
++            } else {
++                device.videoZoomFactor = target
++            }
++        }
++    }
++
+     func setZoomLevel(_ zoomLevel: CGFloat) {
+         guard let device = self.videoDevice else {
+             return
+diff --git a/submodules/Camera/CameraLegacy/BUILD b/submodules/Camera/CameraLegacy/BUILD
+--- a/submodules/Camera/CameraLegacy/BUILD
++++ b/submodules/Camera/CameraLegacy/BUILD
+@@ -13,6 +13,7 @@
+         "//submodules/Camera:CameraBundle",
+     ],
+     deps = [
++        "//submodules/NebulaSettingsContract:NebulaSettingsContract",
+         "//submodules/Camera",
+         "//submodules/SSignalKit/SwiftSignalKit:SwiftSignalKit",
+         "//submodules/Display:Display",

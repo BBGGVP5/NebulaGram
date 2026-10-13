@@ -1,8 +1,7 @@
 diff --git a/submodules/TelegramUI/Sources/ChatController.swift b/submodules/TelegramUI/Sources/ChatController.swift
-index aee0e60..5333702 100644
 --- a/submodules/TelegramUI/Sources/ChatController.swift
 +++ b/submodules/TelegramUI/Sources/ChatController.swift
-@@ -6033,6 +6033,21 @@ public final class ChatControllerImpl: TelegramBaseController, ChatController, G
+@@ -6143,6 +6143,21 @@
                              })))
                          }
                                                  
@@ -24,7 +23,7 @@ index aee0e60..5333702 100644
                          return items
                      }
                  case let .replyThread(message):
-@@ -7588,6 +7603,10 @@ public final class ChatControllerImpl: TelegramBaseController, ChatController, G
+@@ -7699,6 +7714,10 @@
      
      override public func viewWillAppear(_ animated: Bool) {
          super.viewWillAppear(animated)
@@ -35,7 +34,7 @@ index aee0e60..5333702 100644
                  
          if self.willAppear {
              self.chatDisplayNode.historyNode.refreshPollActionsForVisibleMessages()
-@@ -8168,6 +8187,7 @@ public final class ChatControllerImpl: TelegramBaseController, ChatController, G
+@@ -8297,6 +8316,7 @@
      
      override public func viewWillDisappear(_ animated: Bool) {
          super.viewWillDisappear(animated)

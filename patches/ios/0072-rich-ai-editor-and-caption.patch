@@ -1,8 +1,7 @@
 diff --git a/submodules/AccountContext/Sources/AccountContext.swift b/submodules/AccountContext/Sources/AccountContext.swift
-index 1f33a3f..f0d9e75 100644
 --- a/submodules/AccountContext/Sources/AccountContext.swift
 +++ b/submodules/AccountContext/Sources/AccountContext.swift
-@@ -1362,7 +1362,7 @@ public enum EmojiStatusSelectionControllerMode {
+@@ -1405,7 +1405,7 @@
  }
  
  public protocol SharedAccountContext: AnyObject {
@@ -12,10 +11,9 @@ index 1f33a3f..f0d9e75 100644
      var basePath: String { get }
      var networkArguments: NetworkInitializationArguments { get }
 diff --git a/submodules/AttachmentTextInputPanelNode/Sources/AttachmentTextInputPanelNode.swift b/submodules/AttachmentTextInputPanelNode/Sources/AttachmentTextInputPanelNode.swift
-index 042879b..8f0c1a8 100644
 --- a/submodules/AttachmentTextInputPanelNode/Sources/AttachmentTextInputPanelNode.swift
 +++ b/submodules/AttachmentTextInputPanelNode/Sources/AttachmentTextInputPanelNode.swift
-@@ -2344,10 +2344,10 @@ public class AttachmentTextInputPanelNode: ASDisplayNode, TGCaptionPanelView, AS
+@@ -2347,10 +2347,10 @@
  
      @objc private func aiButtonPressed() {
          if self.nebulaShortcut {
@@ -30,10 +28,9 @@ index 042879b..8f0c1a8 100644
              return
          }
 diff --git a/submodules/TelegramUI/Sources/ChatController.swift b/submodules/TelegramUI/Sources/ChatController.swift
-index f34b69f..e1d677f 100644
 --- a/submodules/TelegramUI/Sources/ChatController.swift
 +++ b/submodules/TelegramUI/Sources/ChatController.swift
-@@ -266,12 +266,12 @@ public final class ChatControllerImpl: TelegramBaseController, ChatController, G
+@@ -267,12 +267,12 @@
          nebulaDraftTranslation.openSettings = { [weak self] in self?.nebulaOpenTranslationSettings() }
          nebulaDraftTranslation.openTools = { [weak self] in
              guard let self = self, !self.nebulaToolsVisible, self.presentedViewController == nil else { return }
@@ -50,7 +47,7 @@ index f34b69f..e1d677f 100644
          nebulaTranslationTimer?.invalidate(); nebulaTranslationTimer = nil
          let options = NebulaTranslationPreferences.shared.options(account: account, peer: peerKey)
          nebulaTickChatAI()
-@@ -320,10 +320,10 @@ public final class ChatControllerImpl: TelegramBaseController, ChatController, G
+@@ -321,10 +321,10 @@
              russian: presentationData.strings.baseLanguageCode.lowercased().hasPrefix("ru"), theme: presentationData.theme)
          nebulaPresentTools(settings)
      }
@@ -64,7 +61,7 @@ index f34b69f..e1d677f 100644
          })
      }
      private func nebulaTickChatAI() {
-@@ -353,7 +353,7 @@ public final class ChatControllerImpl: TelegramBaseController, ChatController, G
+@@ -354,7 +354,7 @@
          let canTranslateDraft = composerVisible && !nebulaToolsVisible && peer.namespace != Namespaces.Peer.SecretChat
              && presentationInterfaceState.editMessageState == nil && presentationInterfaceState.inputTextPanelState.mediaRecordingState == nil
              && presentationInterfaceState.interfaceState.mediaDraftState == nil
@@ -73,7 +70,7 @@ index f34b69f..e1d677f 100644
          if let panel = chatDisplayNode.textInputPanelNode, composerVisible {
              nebulaDraftTranslation.layout(above: panel.view.convert(panel.view.bounds, to: view), in: view)
          }
-@@ -6219,9 +6219,11 @@ public final class ChatControllerImpl: TelegramBaseController, ChatController, G
+@@ -6329,9 +6329,11 @@
                                  return generateTintedImage(image: UIImage(bundleImageName: "Chat/Context Menu/Translate"), color: theme.actionSheet.primaryTextColor)
                              }, action: { _, f in
                                  f(.dismissWithoutContent)
@@ -89,10 +86,9 @@ index f34b69f..e1d677f 100644
                              })))
                          }
 diff --git a/submodules/TelegramUI/Sources/ChatInterfaceStateContextMenus.swift b/submodules/TelegramUI/Sources/ChatInterfaceStateContextMenus.swift
-index aa73caa..f76cb73 100644
 --- a/submodules/TelegramUI/Sources/ChatInterfaceStateContextMenus.swift
 +++ b/submodules/TelegramUI/Sources/ChatInterfaceStateContextMenus.swift
-@@ -31,6 +31,7 @@ import Pasteboard
+@@ -31,6 +31,7 @@
  import BrowserUI
  import ChatRichTextEditorComposer
  import SettingsUI
@@ -100,7 +96,7 @@ index aa73caa..f76cb73 100644
  import NebulaSettingsContract
  import TextNodeWithEntities
  import ChatControllerInteraction
-@@ -1450,9 +1451,11 @@ func contextMenuForChatPresentationInterfaceState(chatPresentationInterfaceState
+@@ -1473,9 +1474,11 @@
                          let localReady = aiSettings.provider != .appleIntelligence || NebulaAiChatController.onDeviceAvailable
                          if aiSettings.enabled && aiSettings.isConfigured() && localReady && !isCopyProtected && messages.count == 1 && message.id.peerId.namespace != Namespaces.Peer.SecretChat {
                              let selectedText = messageText
@@ -113,7 +109,7 @@ index aa73caa..f76cb73 100644
                              })
                              if c == nil { f(.default) }
                              return
-@@ -1471,6 +1474,8 @@ func contextMenuForChatPresentationInterfaceState(chatPresentationInterfaceState
+@@ -1494,6 +1497,8 @@
                  
                  if !messageText.isEmpty && !isCopyProtected && messages.count == 1 && message.id.peerId.namespace != Namespaces.Peer.SecretChat && messageText.count <= 50_000 {
                      let selectedText = messageText
@@ -122,7 +118,7 @@ index aa73caa..f76cb73 100644
                      let russian = chatPresentationInterfaceState.strings.baseLanguageCode.lowercased().hasPrefix("ru")
                      actions.append(.action(ContextMenuActionItem(text: russian ? "Nebula AI · пересказ" : "Nebula AI · Summarize", icon: { theme in
                          return generateTintedImage(image: UIImage(bundleImageName: "Chat/Context Menu/Translate"), color: theme.actionSheet.primaryTextColor)
-@@ -1484,7 +1489,7 @@ func contextMenuForChatPresentationInterfaceState(chatPresentationInterfaceState
+@@ -1507,7 +1512,7 @@
                          return generateTintedImage(image: UIImage(bundleImageName: "Chat/Context Menu/Translate"), color: theme.actionSheet.primaryTextColor)
                      }, action: { c, f in
                          c?.dismiss(completion: {
@@ -132,10 +128,9 @@ index aa73caa..f76cb73 100644
                          if c == nil { f(.default) }
                      })))
 diff --git a/submodules/TelegramUI/Sources/SharedAccountContext.swift b/submodules/TelegramUI/Sources/SharedAccountContext.swift
-index 984673f..faf799f 100644
 --- a/submodules/TelegramUI/Sources/SharedAccountContext.swift
 +++ b/submodules/TelegramUI/Sources/SharedAccountContext.swift
-@@ -144,15 +144,15 @@ private enum AddedAccountsResult {
+@@ -158,15 +158,15 @@
  private var testHasInstance = false
  
  public final class SharedAccountContextImpl: SharedAccountContext {

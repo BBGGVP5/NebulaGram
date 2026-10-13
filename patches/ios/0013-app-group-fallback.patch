@@ -1,7 +1,7 @@
 diff --git a/submodules/TelegramUI/Sources/AppDelegate.swift b/submodules/TelegramUI/Sources/AppDelegate.swift
 --- a/submodules/TelegramUI/Sources/AppDelegate.swift
 +++ b/submodules/TelegramUI/Sources/AppDelegate.swift
-@@ -214,6 +214,22 @@
+@@ -238,6 +238,22 @@
      )
  }
  
@@ -24,7 +24,7 @@ diff --git a/submodules/TelegramUI/Sources/AppDelegate.swift b/submodules/Telegr
  @objc(AppDelegate) class AppDelegate: UIResponder, UIApplicationDelegate, PKPushRegistryDelegate, UNUserNotificationCenterDelegate, URLSessionDelegate, URLSessionTaskDelegate {
      @objc var window: UIWindow?
      var nativeWindow: (UIWindow & WindowHost)?
-@@ -290,7 +306,9 @@
+@@ -315,7 +331,9 @@
          let appGroupName = "group.\(baseAppBundleId)"
  
          let configuration = URLSessionConfiguration.background(withIdentifier: identifier)
@@ -35,10 +35,10 @@ diff --git a/submodules/TelegramUI/Sources/AppDelegate.swift b/submodules/Telegr
          configuration.isDiscretionary = false
          let session = URLSession(configuration: configuration, delegate: self, delegateQueue: .main)
          self.urlSessions.append(session)
-@@ -529,7 +547,15 @@
-         
-         let baseAppBundleId = Bundle.main.bundleIdentifier!
-         let appGroupName = "group.\(baseAppBundleId)"
+@@ -562,7 +580,15 @@
+         try! PasscodeEnvironment.shared.configure(PasscodeConfiguration(appGroupIdentifier: appGroupName, processRole: .mainApp, biometricKeychainService: walletBiometricKeychainService), privateAccessGroup: {
+             BuildConfig.keychainAccessGroup(baseAppBundleId: baseAppBundleId)
+         })
 +        // NebulaGram: a sideloaded build usually has no App Group. A personal
 +        // Apple team cannot create one at all, and a re-signing tool that swaps
 +        // the bundle id rarely registers group.<new id> either. Every path below

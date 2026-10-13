@@ -1,7 +1,7 @@
 diff --git a/submodules/AccountContext/Sources/AccountContext.swift b/submodules/AccountContext/Sources/AccountContext.swift
 --- a/submodules/AccountContext/Sources/AccountContext.swift
 +++ b/submodules/AccountContext/Sources/AccountContext.swift
-@@ -1366,6 +1366,7 @@
+@@ -1409,6 +1409,7 @@
      func canTranscribeWithNebula(message: Message) -> Bool
      func presentNebulaAudioTranscription(context: AccountContext, from view: UIView, message: Message)
      func presentNebulaCaptionTools(context: AccountContext, from view: UIView, text: NSAttributedString, apply: @escaping (NSAttributedString) -> Void)
@@ -9,39 +9,28 @@ diff --git a/submodules/AccountContext/Sources/AccountContext.swift b/submodules
      var sharedContainerPath: String { get }
      var basePath: String { get }
      var networkArguments: NetworkInitializationArguments { get }
-diff --git a/submodules/TelegramUI/Sources/SharedAccountContext.swift b/submodules/TelegramUI/Sources/SharedAccountContext.swift
---- a/submodules/TelegramUI/Sources/SharedAccountContext.swift
-+++ b/submodules/TelegramUI/Sources/SharedAccountContext.swift
-@@ -162,6 +162,19 @@
-         presenter.present(NebulaToolsNavigationController(root: NebulaAudioTranscriptionController(context: context, message: message, file: file)), animated: true)
-     }
- 
-+    public func presentNebulaDraftVoice(context: AccountContext, from view: UIView, file: URL, duration: Double, start: Double, end: Double, localOnly: Bool, initialText: String?, changed: Bool, isCurrent: @escaping () -> Bool, remember: @escaping (String) -> Void, apply: @escaping (String) -> Void) {
-+        guard #available(iOS 15.0, *), isCurrent() else { return }
-+        var responder: UIResponder? = view
-+        while responder != nil && !(responder is UIViewController) { responder = responder?.next }
-+        guard var presenter = responder as? UIViewController else { return }
-+        while let presented = presenter.presentedViewController { presenter = presented }
-+        guard !presenter.isBeingDismissed else { return }
-+        let tools = NebulaDraftVoiceController(context: context, file: file, duration: duration, start: start, end: end,
-+            localOnly: localOnly, initialText: initialText, changed: changed, isCurrent: isCurrent, remember: remember, apply: apply)
-+        view.endEditing(true)
-+        presenter.present(NebulaToolsNavigationController(root: tools), animated: true)
-+    }
-+
-     public func presentNebulaCaptionTools(context: AccountContext, from view: UIView, text: NSAttributedString, apply: @escaping (NSAttributedString) -> Void) {
-         var responder: UIResponder? = view
-         while responder != nil && !(responder is UIViewController) { responder = responder?.next }
+diff --git a/submodules/TelegramUI/Components/Chat/ChatRecordingPreviewInputPanelNode/BUILD b/submodules/TelegramUI/Components/Chat/ChatRecordingPreviewInputPanelNode/BUILD
+--- a/submodules/TelegramUI/Components/Chat/ChatRecordingPreviewInputPanelNode/BUILD
++++ b/submodules/TelegramUI/Components/Chat/ChatRecordingPreviewInputPanelNode/BUILD
+@@ -10,6 +10,7 @@
+         "-warnings-as-errors",
+     ],
+     deps = [
++        "//submodules/NebulaSettingsContract:NebulaSettingsContract",
+         "//submodules/AsyncDisplayKit",
+         "//submodules/LottieSettings:LottieSettings",
+         "//submodules/Display",
 diff --git a/submodules/TelegramUI/Components/Chat/ChatRecordingPreviewInputPanelNode/Sources/ChatRecordingPreviewInputPanelNode.swift b/submodules/TelegramUI/Components/Chat/ChatRecordingPreviewInputPanelNode/Sources/ChatRecordingPreviewInputPanelNode.swift
 --- a/submodules/TelegramUI/Components/Chat/ChatRecordingPreviewInputPanelNode/Sources/ChatRecordingPreviewInputPanelNode.swift
 +++ b/submodules/TelegramUI/Components/Chat/ChatRecordingPreviewInputPanelNode/Sources/ChatRecordingPreviewInputPanelNode.swift
-@@ -1,4 +1,5 @@
+@@ -1,5 +1,6 @@
  import Foundation
+ import LottieSettings
 +import NebulaSettingsContract
  import UIKit
  import AsyncDisplayKit
  import Display
-@@ -209,6 +210,64 @@
+@@ -210,6 +211,64 @@
  }
  
  public final class ChatRecordingPreviewInputPanelNodeImpl: ChatInputPanelNode {
@@ -106,7 +95,7 @@ diff --git a/submodules/TelegramUI/Components/Chat/ChatRecordingPreviewInputPane
      private let waveformButton: ASButtonNode
      let waveformBackgroundNodeImpl: ASImageNode
      var waveformBackgroundNode: ASDisplayNode {
-@@ -296,6 +355,8 @@
+@@ -297,6 +356,8 @@
          
          self.view.addSubview(self.trimViewImpl)
          self.addSubnode(self.playButtonNodeImpl)
@@ -115,7 +104,7 @@ diff --git a/submodules/TelegramUI/Components/Chat/ChatRecordingPreviewInputPane
          
          self.playButtonNodeImpl.pressed = { [weak self] in
              guard let self else {
-@@ -328,6 +389,7 @@
+@@ -329,6 +390,7 @@
      }
      
      deinit {
@@ -123,7 +112,7 @@ diff --git a/submodules/TelegramUI/Components/Chat/ChatRecordingPreviewInputPane
          self.mediaPlayer?.pause()
          self.statusDisposable.dispose()
          self.scrubbingDisposable?.dispose()
-@@ -392,11 +454,24 @@
+@@ -393,11 +455,24 @@
      }
      
      override public func updateLayout(width: CGFloat, leftInset: CGFloat, rightInset: CGFloat, bottomInset: CGFloat, additionalSideInsets: UIEdgeInsets, maxHeight: CGFloat, maxOverlayHeight: CGFloat, isSecondary: Bool, transition: ContainedViewLayoutTransition, interfaceState: ChatPresentationInterfaceState, metrics: LayoutMetrics, deviceMetrics: DeviceMetrics, isMediaInputExpanded: Bool) -> CGFloat {
@@ -149,7 +138,7 @@ diff --git a/submodules/TelegramUI/Components/Chat/ChatRecordingPreviewInputPane
                  updateWaveform = true
              }
              if self.presentationInterfaceState?.strings !== interfaceState.strings {
-@@ -577,7 +652,7 @@
+@@ -578,7 +653,7 @@
          
          transition.updateFrame(node: self.waveformButton, frame: waveformBackgroundFrame)
          
@@ -158,14 +147,26 @@ diff --git a/submodules/TelegramUI/Components/Chat/ChatRecordingPreviewInputPane
          transition.updateFrame(node: self.waveformScrubberNodeImpl, frame: waveformScrubberFrame)
          transition.updateFrame(node: self.tintWaveformNode, frame: waveformScrubberFrame)
          
-diff --git a/submodules/TelegramUI/Components/Chat/ChatRecordingPreviewInputPanelNode/BUILD b/submodules/TelegramUI/Components/Chat/ChatRecordingPreviewInputPanelNode/BUILD
---- a/submodules/TelegramUI/Components/Chat/ChatRecordingPreviewInputPanelNode/BUILD
-+++ b/submodules/TelegramUI/Components/Chat/ChatRecordingPreviewInputPanelNode/BUILD
-@@ -10,6 +10,7 @@
-         "-warnings-as-errors",
-     ],
-     deps = [
-+        "//submodules/NebulaSettingsContract:NebulaSettingsContract",
-         "//submodules/AsyncDisplayKit",
-         "//submodules/Display",
-         "//submodules/TelegramCore",
+diff --git a/submodules/TelegramUI/Sources/SharedAccountContext.swift b/submodules/TelegramUI/Sources/SharedAccountContext.swift
+--- a/submodules/TelegramUI/Sources/SharedAccountContext.swift
++++ b/submodules/TelegramUI/Sources/SharedAccountContext.swift
+@@ -176,6 +176,19 @@
+         presenter.present(NebulaToolsNavigationController(root: NebulaAudioTranscriptionController(context: context, message: message, file: file)), animated: true)
+     }
+ 
++    public func presentNebulaDraftVoice(context: AccountContext, from view: UIView, file: URL, duration: Double, start: Double, end: Double, localOnly: Bool, initialText: String?, changed: Bool, isCurrent: @escaping () -> Bool, remember: @escaping (String) -> Void, apply: @escaping (String) -> Void) {
++        guard #available(iOS 15.0, *), isCurrent() else { return }
++        var responder: UIResponder? = view
++        while responder != nil && !(responder is UIViewController) { responder = responder?.next }
++        guard var presenter = responder as? UIViewController else { return }
++        while let presented = presenter.presentedViewController { presenter = presented }
++        guard !presenter.isBeingDismissed else { return }
++        let tools = NebulaDraftVoiceController(context: context, file: file, duration: duration, start: start, end: end,
++            localOnly: localOnly, initialText: initialText, changed: changed, isCurrent: isCurrent, remember: remember, apply: apply)
++        view.endEditing(true)
++        presenter.present(NebulaToolsNavigationController(root: tools), animated: true)
++    }
++
+     public func presentNebulaCaptionTools(context: AccountContext, from view: UIView, text: NSAttributedString, apply: @escaping (NSAttributedString) -> Void) {
+         var responder: UIResponder? = view
+         while responder != nil && !(responder is UIViewController) { responder = responder?.next }

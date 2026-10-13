@@ -274,7 +274,7 @@ def main():
         marker = '            self.backgroundContainer.nebulaPreservesNativeAppearance = true\n'
         assert native_tab.count(marker) == 1
         original_tab = run('git', '-C', str(tree), 'show', revision + ':' + native_tab_path).decode('utf-8')
-        expected_tab = original_tab.replace('import Foundation\n', 'import Foundation\nimport NebulaSettingsContract\n', 1)
+        expected_tab = original_tab.replace('import LottieSettings\n', 'import LottieSettings\nimport NebulaSettingsContract\n', 1)
         expected_tab = expected_tab.replace('            self.addSubview(self.backgroundContainer)\n', '            self.addSubview(self.backgroundContainer)\n' + marker, 1)
         expected_tab = expected_tab.replace('            let availableSize = CGSize(width: min(500.0, availableSize.width), height: availableSize.height)\n',
             '            let preferredWidth = NebulaSettingsStore.shared.compactBottomBar ? max(160.0, CGFloat(component.items.count) * 72.0 + 8.0) : 500.0\n'
@@ -359,7 +359,7 @@ def main():
         zoom = (temp / 'submodules/TelegramUI/Components/VideoMessageCameraScreen/Sources/NebulaVideoZoomSlider.swift').read_text(encoding='utf-8')
         assert 'device.neutralZoomFactor' not in zoom
         assert 'AVCaptureDevice.default' not in zoom and 'setRange(minimum:' in zoom
-        camera = (temp / 'submodules/Camera/Sources/Camera.swift').read_text(encoding='utf-8')
+        camera = (temp / 'submodules/Camera/CameraLegacy/Sources/LegacyCamera.swift').read_text(encoding='utf-8')
         assert 'maximumDeviceFactor: Double(device.maxAvailableVideoZoomFactor)' in camera
         assert 'private let nebulaZoomLock = NSLock()' in camera
         print('OK: Saved Messages retention, async archive hook, native choice sheets, live glass preview and public zoom API', flush=True)

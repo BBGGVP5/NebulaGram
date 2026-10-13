@@ -200,7 +200,7 @@ def main():
     b.add_argument('--tree', required=True, type=Path)
     b.add_argument('--jobs', type=int, choices=range(1, 9), default=2)
     preflight = sub.add_parser('preflight')
-    preflight.add_argument('--xcode', default='26.2')
+    preflight.add_argument('--xcode', default='26.6')
     args = parser.parse_args()
     if args.command == 'prepare': prepare(args.destination)
     elif args.command == 'build': build(args.tree, args.jobs)

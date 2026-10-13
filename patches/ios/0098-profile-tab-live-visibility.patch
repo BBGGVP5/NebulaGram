@@ -1,3 +1,73 @@
+diff --git a/submodules/TabBarUI/Sources/TabBarController.swift b/submodules/TabBarUI/Sources/TabBarController.swift
+--- a/submodules/TabBarUI/Sources/TabBarController.swift
++++ b/submodules/TabBarUI/Sources/TabBarController.swift
+@@ -66,6 +66,8 @@
+         return self._ready
+     }
+     
++    public var nebulaRefreshControllers: (() -> Void)?
++
+     private var _selectedIndex: Int?
+     public var selectedIndex: Int {
+         get {
+@@ -422,6 +424,7 @@
+     }
+     
+     override open func viewWillAppear(_ animated: Bool) {
++        self.nebulaRefreshControllers?()
+         if let currentController = self.currentController {
+             currentController.viewWillAppear(animated)
+         }
+diff --git a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoScreen.swift b/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoScreen.swift
+--- a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoScreen.swift
++++ b/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoScreen.swift
+@@ -6553,6 +6553,7 @@
+         self.navigationBar?.enableAutomaticBackButton = false
+                 
+         if isSettings || isMyProfile {
++            let isMyProfileTab = self.isMyProfile
+             let activeSessionsContextAndCountSignal = deferred { () -> Signal<(ActiveSessionsContext, Int, WebSessionsContext)?, NoError> in
+                 let activeSessionsContext = context.engine.privacy.activeSessions()
+                 let webSessionsContext = context.engine.privacy.webSessions()
+@@ -6601,7 +6602,7 @@
+             
+             let accountTabBarAvatar: Signal<(UIImage, UIImage)?, NoError> = combineLatest(self.accountsAndPeers.get(), context.sharedContext.presentationData)
+             |> map { primaryAndOther, presentationData -> (Account, EnginePeer, PresentationTheme)? in
+-                if let primary = primaryAndOther.0, !primaryAndOther.1.isEmpty {
++                if let primary = primaryAndOther.0, isMyProfileTab || !primaryAndOther.1.isEmpty {
+                     return (primary.0.account, primary.1, presentationData.theme)
+                 } else {
+                     return nil
+@@ -6694,7 +6695,6 @@
+                 icon = UIImage(bundleImageName: "Chat List/Tabs/IconSettings")
+             }
+             
+-            let isMyProfileTab = self.isMyProfile
+             let tabBarItem: Signal<(String, UIImage?, UIImage?, String?, Bool, Bool), NoError> = combineLatest(queue: .mainQueue(), self.context.sharedContext.presentationData, notificationsAuthorizationStatus.get(), notificationsWarningSuppressed.get(), context.engine.notices.getServerProvidedSuggestions(), accountTabBarAvatar, accountTabBarAvatarBadge)
+             |> map { presentationData, notificationsAuthorizationStatus, notificationsWarningSuppressed, suggestions, accountTabBarAvatar, accountTabBarAvatarBadge -> (String, UIImage?, UIImage?, String?, Bool, Bool) in
+                 let notificationsWarning = shouldDisplayNotificationsPermissionWarning(status: notificationsAuthorizationStatus, suppressed:  notificationsWarningSuppressed)
+@@ -6706,8 +6706,10 @@
+                 }
+                 if isMyProfileTab {
+                     let title = presentationData.strings.baseLanguageCode.lowercased().hasPrefix("ru") ? "Профиль" : "Profile"
+-                    let profileIcon = accountTabBarAvatar?.0 ?? UIImage(systemName: "person.crop.circle") ?? icon
+-                    return (title, profileIcon, accountTabBarAvatar?.1 ?? profileIcon, nil, accountTabBarAvatar != nil, presentationData.reduceMotion)
++                    let person = UIImage(systemName: "person.crop.circle", withConfiguration: UIImage.SymbolConfiguration(pointSize: 28.0, weight: .regular)) ?? UIImage(bundleImageName: "Chat List/Tabs/IconContacts")
++                    let profileIcon = accountTabBarAvatar?.0 ?? person?.withTintColor(presentationData.theme.rootController.tabBar.textColor, renderingMode: .alwaysOriginal)
++                    let selectedProfileIcon = accountTabBarAvatar?.1 ?? person?.withTintColor(presentationData.theme.rootController.tabBar.selectedTextColor, renderingMode: .alwaysOriginal)
++                    return (title, profileIcon, selectedProfileIcon, nil, accountTabBarAvatar != nil, presentationData.reduceMotion)
+                 }
+                 return (presentationData.strings.Settings_Title, icon, icon, notificationsWarning || phoneNumberWarning || passwordWarning ? "!" : otherAccountsBadge, false, presentationData.reduceMotion)
+             }
+@@ -6717,7 +6719,7 @@
+                     strongSelf.tabBarItem.title = title
+                     strongSelf.tabBarItem.image = image
+                     strongSelf.tabBarItem.selectedImage = selectedImage
+-                    strongSelf.tabBarItem.animationName = isAvatar || reduceMotion ? nil : "TabSettings"
++                    strongSelf.tabBarItem.animationName = isMyProfileTab || isAvatar || reduceMotion ? nil : "TabSettings"
+                     strongSelf.tabBarItem.ringSelection = isAvatar
+                     strongSelf.tabBarItem.badgeValue = badgeValue
+                 }
 diff --git a/submodules/TelegramUI/Sources/TelegramRootController.swift b/submodules/TelegramUI/Sources/TelegramRootController.swift
 --- a/submodules/TelegramUI/Sources/TelegramRootController.swift
 +++ b/submodules/TelegramUI/Sources/TelegramRootController.swift
@@ -9,7 +79,7 @@ diff --git a/submodules/TelegramUI/Sources/TelegramRootController.swift b/submod
      public var rootTabController: TabBarController?
      
      public var contactsController: ContactsController?
-@@ -260,13 +261,26 @@
+@@ -256,13 +257,26 @@
          self.callListController = callListController
          self.chatListController = chatListController
          self.rootTabController = tabBarController
@@ -38,7 +108,7 @@ diff --git a/submodules/TelegramUI/Sources/TelegramRootController.swift b/submod
      public func updateRootControllers(showCallsTab: Bool) {
          self.nebulaShowCalls = showCallsTab
          guard let rootTabController = self.rootTabController as? TabBarControllerImpl else {
-@@ -301,17 +315,18 @@
+@@ -297,17 +311,18 @@
  
      private func nebulaOrderedControllers(_ source: [ViewController]) -> [ViewController] {
          let store = NebulaSettingsStore.shared
@@ -59,74 +129,4 @@ diff --git a/submodules/TelegramUI/Sources/TelegramRootController.swift b/submod
 +                if visible.contains("profile"), let value = self.nebulaProfileController { result.append(value) }
              default: break
              }
-         }
-diff --git a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoScreen.swift b/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoScreen.swift
---- a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoScreen.swift
-+++ b/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoScreen.swift
-@@ -6585,6 +6585,7 @@
-         self.navigationBar?.enableAutomaticBackButton = false
-                 
-         if isSettings || isMyProfile {
-+            let isMyProfileTab = self.isMyProfile
-             let activeSessionsContextAndCountSignal = deferred { () -> Signal<(ActiveSessionsContext, Int, WebSessionsContext)?, NoError> in
-                 let activeSessionsContext = context.engine.privacy.activeSessions()
-                 let webSessionsContext = context.engine.privacy.webSessions()
-@@ -6633,7 +6634,7 @@
-             
-             let accountTabBarAvatar: Signal<(UIImage, UIImage)?, NoError> = combineLatest(self.accountsAndPeers.get(), context.sharedContext.presentationData)
-             |> map { primaryAndOther, presentationData -> (Account, EnginePeer, PresentationTheme)? in
--                if let primary = primaryAndOther.0, !primaryAndOther.1.isEmpty {
-+                if let primary = primaryAndOther.0, isMyProfileTab || !primaryAndOther.1.isEmpty {
-                     return (primary.0.account, primary.1, presentationData.theme)
-                 } else {
-                     return nil
-@@ -6726,7 +6727,6 @@
-                 icon = UIImage(bundleImageName: "Chat List/Tabs/IconSettings")
-             }
-             
--            let isMyProfileTab = self.isMyProfile
-             let tabBarItem: Signal<(String, UIImage?, UIImage?, String?, Bool, Bool), NoError> = combineLatest(queue: .mainQueue(), self.context.sharedContext.presentationData, notificationsAuthorizationStatus.get(), notificationsWarningSuppressed.get(), context.engine.notices.getServerProvidedSuggestions(), accountTabBarAvatar, accountTabBarAvatarBadge)
-             |> map { presentationData, notificationsAuthorizationStatus, notificationsWarningSuppressed, suggestions, accountTabBarAvatar, accountTabBarAvatarBadge -> (String, UIImage?, UIImage?, String?, Bool, Bool) in
-                 let notificationsWarning = shouldDisplayNotificationsPermissionWarning(status: notificationsAuthorizationStatus, suppressed:  notificationsWarningSuppressed)
-@@ -6738,8 +6738,10 @@
-                 }
-                 if isMyProfileTab {
-                     let title = presentationData.strings.baseLanguageCode.lowercased().hasPrefix("ru") ? "Профиль" : "Profile"
--                    let profileIcon = accountTabBarAvatar?.0 ?? UIImage(systemName: "person.crop.circle") ?? icon
--                    return (title, profileIcon, accountTabBarAvatar?.1 ?? profileIcon, nil, accountTabBarAvatar != nil, presentationData.reduceMotion)
-+                    let person = UIImage(systemName: "person.crop.circle", withConfiguration: UIImage.SymbolConfiguration(pointSize: 28.0, weight: .regular)) ?? UIImage(bundleImageName: "Chat List/Tabs/IconContacts")
-+                    let profileIcon = accountTabBarAvatar?.0 ?? person?.withTintColor(presentationData.theme.rootController.tabBar.textColor, renderingMode: .alwaysOriginal)
-+                    let selectedProfileIcon = accountTabBarAvatar?.1 ?? person?.withTintColor(presentationData.theme.rootController.tabBar.selectedTextColor, renderingMode: .alwaysOriginal)
-+                    return (title, profileIcon, selectedProfileIcon, nil, accountTabBarAvatar != nil, presentationData.reduceMotion)
-                 }
-                 return (presentationData.strings.Settings_Title, icon, icon, notificationsWarning || phoneNumberWarning || passwordWarning ? "!" : otherAccountsBadge, false, presentationData.reduceMotion)
-             }
-@@ -6749,7 +6751,7 @@
-                     strongSelf.tabBarItem.title = title
-                     strongSelf.tabBarItem.image = image
-                     strongSelf.tabBarItem.selectedImage = selectedImage
--                    strongSelf.tabBarItem.animationName = isAvatar || reduceMotion ? nil : "TabSettings"
-+                    strongSelf.tabBarItem.animationName = isMyProfileTab || isAvatar || reduceMotion ? nil : "TabSettings"
-                     strongSelf.tabBarItem.ringSelection = isAvatar
-                     strongSelf.tabBarItem.badgeValue = badgeValue
-                 }
-diff --git a/submodules/TabBarUI/Sources/TabBarController.swift b/submodules/TabBarUI/Sources/TabBarController.swift
---- a/submodules/TabBarUI/Sources/TabBarController.swift
-+++ b/submodules/TabBarUI/Sources/TabBarController.swift
-@@ -66,6 +66,8 @@
-         return self._ready
-     }
-     
-+    public var nebulaRefreshControllers: (() -> Void)?
-+
-     private var _selectedIndex: Int?
-     public var selectedIndex: Int {
-         get {
-@@ -422,6 +424,7 @@
-     }
-     
-     override open func viewWillAppear(_ animated: Bool) {
-+        self.nebulaRefreshControllers?()
-         if let currentController = self.currentController {
-             currentController.viewWillAppear(animated)
          }

@@ -1,8 +1,8 @@
 diff --git a/submodules/TelegramUI/Sources/ChatController.swift b/submodules/TelegramUI/Sources/ChatController.swift
-index 7328f80..0d20dbb 100644
 --- a/submodules/TelegramUI/Sources/ChatController.swift
 +++ b/submodules/TelegramUI/Sources/ChatController.swift
-@@ -5999,4 +5999,23 @@ public final class ChatControllerImpl: TelegramBaseController, ChatController, G
+@@ -6108,6 +6108,25 @@
+                             f(.dismissWithoutContent)
                              self?.navigationButtonAction(.openChatInfo(expandAvatar: true, section: nil))
                          })))
 +
@@ -26,3 +26,4 @@ index 7328f80..0d20dbb 100644
 +                        }
                          
                          if canViewStats {
+                             items.append(.action(ContextMenuActionItem(text: strongSelf.presentationData.strings.ChannelInfo_Stats, icon: { theme in

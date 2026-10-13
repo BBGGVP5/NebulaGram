@@ -1,7 +1,7 @@
 diff --git a/submodules/TelegramUI/Components/Chat/ChatMessageDateAndStatusNode/BUILD b/submodules/TelegramUI/Components/Chat/ChatMessageDateAndStatusNode/BUILD
 --- a/submodules/TelegramUI/Components/Chat/ChatMessageDateAndStatusNode/BUILD
 +++ b/submodules/TelegramUI/Components/Chat/ChatMessageDateAndStatusNode/BUILD
-@@ -10,6 +10,7 @@
+@@ -12,6 +12,7 @@
          "-warnings-as-errors",
      ],
      deps = [

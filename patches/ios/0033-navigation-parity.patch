@@ -1,7 +1,7 @@
 diff --git a/submodules/ChatListUI/Sources/ChatListController.swift b/submodules/ChatListUI/Sources/ChatListController.swift
 --- a/submodules/ChatListUI/Sources/ChatListController.swift
 +++ b/submodules/ChatListUI/Sources/ChatListController.swift
-@@ -6901,7 +6901,13 @@
+@@ -6916,7 +6916,13 @@
              let token = NotificationCenter.default.addObserver(forName: NebulaAiSettings.homeShortcutChanged, object: nil, queue: .main) { _ in
                  subscriber.putNext(NebulaAiSettings.shared.homeShortcut)
              }
@@ -16,7 +16,7 @@ diff --git a/submodules/ChatListUI/Sources/ChatListController.swift b/submodules
          }
          let nebulaStoryAvailability = combineLatest(storyPostingAvailable, nebulaHomeChanges)
          |> map { available, _ in available }
-@@ -7235,13 +7241,15 @@
+@@ -7250,13 +7256,15 @@
                              self?.parentController?.editPressed()
                          }
                      )))
@@ -33,7 +33,7 @@ diff --git a/submodules/ChatListUI/Sources/ChatListController.swift b/submodules
                  }
                  
                  if isReorderingTabs {
-@@ -7269,7 +7277,7 @@
+@@ -7284,7 +7292,7 @@
                      }
                  }
                  
@@ -51,8 +51,8 @@ diff --git a/submodules/TabBarUI/BUILD b/submodules/TabBarUI/BUILD
      deps = [
 +        "//submodules/NebulaSettingsContract:NebulaSettingsContract",
          "//submodules/AsyncDisplayKit",
+         "//submodules/LottieSettings:LottieSettings",
          "//submodules/Display",
-     	"//submodules/SSignalKit/SwiftSignalKit",
 diff --git a/submodules/TabBarUI/Sources/TabBarContollerNode.swift b/submodules/TabBarUI/Sources/TabBarContollerNode.swift
 --- a/submodules/TabBarUI/Sources/TabBarContollerNode.swift
 +++ b/submodules/TabBarUI/Sources/TabBarContollerNode.swift
@@ -83,7 +83,7 @@ diff --git a/submodules/TabBarUI/Sources/TabBarContollerNode.swift b/submodules/
 diff --git a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoHeaderNavigationButton.swift b/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoHeaderNavigationButton.swift
 --- a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoHeaderNavigationButton.swift
 +++ b/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoHeaderNavigationButton.swift
-@@ -217,6 +217,10 @@
+@@ -218,6 +218,10 @@
                  text = ""
                  accessibilityText = presentationData.strings.Common_Back
                  icon = PresentationResourcesRootController.navigationBackIcon(presentationData.theme)
@@ -114,7 +114,7 @@ diff --git a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/Pe
  import UIKit
  import Display
  import AsyncDisplayKit
-@@ -1636,6 +1637,8 @@
+@@ -1581,6 +1582,8 @@
              switch key {
              case .back:
                  strongSelf.controller?.dismiss()
@@ -123,8 +123,8 @@ diff --git a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/Pe
              case .edit:
                  if case let .replyThread(message) = strongSelf.chatLocation {
                      let threadId = message.threadId
-@@ -5919,6 +5922,9 @@
-                     leftNavigationButtons.append(PeerInfoHeaderNavigationButtonSpec(key: .qrCode, isForExpandedView: false))
+@@ -5887,6 +5890,9 @@
+                     rightNavigationButtons.append(PeerInfoHeaderNavigationButtonSpec(key: .search, isForExpandedView: false))
                      rightNavigationButtons.append(PeerInfoHeaderNavigationButtonSpec(key: .edit, isForExpandedView: false))
                  } else if self.isMyProfile {
 +                    if !NebulaSettingsStore.shared.showSettingsTab {
@@ -133,7 +133,7 @@ diff --git a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/Pe
                      rightNavigationButtons.append(PeerInfoHeaderNavigationButtonSpec(key: .edit, isForExpandedView: false))
                  } else if peerInfoCanEdit(peer: self.data?.peer, chatLocation: self.chatLocation, threadData: self.data?.threadData, cachedData: self.data?.cachedData, isContact: self.data?.isContact) {
                      rightNavigationButtons.append(PeerInfoHeaderNavigationButtonSpec(key: .edit, isForExpandedView: false))
-@@ -6717,6 +6723,7 @@
+@@ -6685,6 +6691,7 @@
                  icon = UIImage(bundleImageName: "Chat List/Tabs/IconSettings")
              }
              
@@ -141,7 +141,7 @@ diff --git a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/Pe
              let tabBarItem: Signal<(String, UIImage?, UIImage?, String?, Bool, Bool), NoError> = combineLatest(queue: .mainQueue(), self.context.sharedContext.presentationData, notificationsAuthorizationStatus.get(), notificationsWarningSuppressed.get(), context.engine.notices.getServerProvidedSuggestions(), accountTabBarAvatar, accountTabBarAvatarBadge)
              |> map { presentationData, notificationsAuthorizationStatus, notificationsWarningSuppressed, suggestions, accountTabBarAvatar, accountTabBarAvatarBadge -> (String, UIImage?, UIImage?, String?, Bool, Bool) in
                  let notificationsWarning = shouldDisplayNotificationsPermissionWarning(status: notificationsAuthorizationStatus, suppressed:  notificationsWarningSuppressed)
-@@ -6726,7 +6733,12 @@
+@@ -6694,7 +6701,12 @@
                  if accountTabBarAvatarBadge > 0 {
                      otherAccountsBadge = compactNumericCountString(Int(accountTabBarAvatarBadge), decimalSeparator: presentationData.dateTimeFormat.decimalSeparator)
                  }
@@ -164,18 +164,19 @@ diff --git a/submodules/TelegramUI/Components/TabBarComponent/BUILD b/submodules
      deps = [
 +        "//submodules/NebulaSettingsContract:NebulaSettingsContract",
          "//submodules/Display",
+         "//submodules/LottieSettings:LottieSettings",
          "//submodules/TelegramPresentationData",
-         "//submodules/ComponentFlow",
 diff --git a/submodules/TelegramUI/Components/TabBarComponent/Sources/TabBarComponent.swift b/submodules/TelegramUI/Components/TabBarComponent/Sources/TabBarComponent.swift
 --- a/submodules/TelegramUI/Components/TabBarComponent/Sources/TabBarComponent.swift
 +++ b/submodules/TelegramUI/Components/TabBarComponent/Sources/TabBarComponent.swift
-@@ -1,4 +1,5 @@
+@@ -1,5 +1,6 @@
  import Foundation
+ import LottieSettings
 +import NebulaSettingsContract
  import UIKit
  import Display
  import TelegramPresentationData
-@@ -654,7 +655,8 @@
+@@ -655,7 +656,8 @@
              let _ = alphaTransition
  
              let innerInset: CGFloat = 4.0
@@ -185,7 +186,7 @@ diff --git a/submodules/TelegramUI/Components/TabBarComponent/Sources/TabBarComp
              
              let previousComponent = self.component
              self.component = component
-@@ -1291,7 +1293,7 @@
+@@ -1294,7 +1296,7 @@
                      self.contextContainerView.contentView.addSubview(titleView)
                  }
                  titleView.frame = titleFrame
@@ -205,7 +206,7 @@ diff --git a/submodules/TelegramUI/Sources/TelegramRootController.swift b/submod
      
      private var permissionsDisposable: Disposable?
      private var presentationDataDisposable: Disposable?
-@@ -244,15 +245,19 @@
+@@ -240,15 +241,19 @@
          }
          accountSettingsController.parentController = self
          controllers.append(accountSettingsController)
@@ -227,7 +228,7 @@ diff --git a/submodules/TelegramUI/Sources/TelegramRootController.swift b/submod
          self.rootTabController = tabBarController
          self.pushViewController(tabBarController, animated: false)
          self.nebulaNavigationObservation = NebulaSettingsStore.shared.observe { [weak self] in
-@@ -273,6 +278,9 @@
+@@ -269,6 +274,9 @@
          }
          controllers.append(self.chatListController!)
          controllers.append(self.accountSettingsController!)
@@ -237,7 +238,7 @@ diff --git a/submodules/TelegramUI/Sources/TelegramRootController.swift b/submod
          
          controllers = nebulaOrderedControllers(controllers)
          // Preserve selected controller identity, not an index that moved with the order.
-@@ -298,7 +306,10 @@
+@@ -294,7 +302,10 @@
                  if store.showContactsTab, let value = source.first(where: { $0 is ContactsController }) { result.append(value) }
                  if let value = source.first(where: { $0 is CallListController }) { result.append(value) }
              case "chats": if let value = source.first(where: { $0 is ChatListController }) { result.append(value) }
@@ -249,7 +250,7 @@ diff --git a/submodules/TelegramUI/Sources/TelegramRootController.swift b/submod
              default: break
              }
          }
-@@ -342,7 +353,8 @@
+@@ -338,7 +349,8 @@
          
          self.popToRoot(animated: false)
          
@@ -259,7 +260,7 @@ diff --git a/submodules/TelegramUI/Sources/TelegramRootController.swift b/submod
              rootTabController.selectedIndex = index
          }
          
-@@ -856,8 +868,11 @@
+@@ -861,8 +873,11 @@
          
          self.popToRoot(animated: false)
      

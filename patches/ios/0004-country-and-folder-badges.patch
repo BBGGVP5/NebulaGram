@@ -1,7 +1,19 @@
+diff --git a/submodules/AuthorizationUI/Sources/AuthorizationSequenceCodeEntryControllerNode.swift b/submodules/AuthorizationUI/Sources/AuthorizationSequenceCodeEntryControllerNode.swift
+--- a/submodules/AuthorizationUI/Sources/AuthorizationSequenceCodeEntryControllerNode.swift
++++ b/submodules/AuthorizationUI/Sources/AuthorizationSequenceCodeEntryControllerNode.swift
+@@ -585,7 +585,7 @@
+             self.animationNode.visibility = false
+         }
+         
+-        let animationSize = CGSize(width: 100.0, height: 100.0)
++        let animationSize = CGSize(width: min(260.0, max(100.0, layout.size.width - 64.0)), height: 100.0)
+         let titleSize = self.titleNode.updateLayout(CGSize(width: maximumWidth, height: CGFloat.greatestFiniteMagnitude))
+         
+         let currentOptionSize = self.currentOptionNode.updateLayout(CGSize(width: maximumWidth - 48.0, height: CGFloat.greatestFiniteMagnitude))
 diff --git a/submodules/AuthorizationUI/Sources/AuthorizationSequencePhoneEntryControllerNode.swift b/submodules/AuthorizationUI/Sources/AuthorizationSequencePhoneEntryControllerNode.swift
 --- a/submodules/AuthorizationUI/Sources/AuthorizationSequencePhoneEntryControllerNode.swift
 +++ b/submodules/AuthorizationUI/Sources/AuthorizationSequencePhoneEntryControllerNode.swift
-@@ -40,37 +40,11 @@
+@@ -41,37 +41,11 @@
          
          let inset: CGFloat = 24.0
          
@@ -43,7 +55,7 @@ diff --git a/submodules/AuthorizationUI/Sources/AuthorizationSequencePhoneEntryC
          let phoneInputBackground = generateImage(CGSize(width: 96.0, height: 57.0), rotatedContext: { size, context in
              let lineWidth = UIScreenPixel
              context.clear(CGRect(origin: CGPoint(), size: size))
-@@ -86,7 +60,9 @@
+@@ -87,7 +61,9 @@
          
          self.countryButton = ASButtonNode()
          self.countryButton.displaysAsynchronously = false
@@ -54,7 +66,7 @@ diff --git a/submodules/AuthorizationUI/Sources/AuthorizationSequencePhoneEntryC
          self.countryButton.titleNode.maximumNumberOfLines = 1
          self.countryButton.titleNode.truncationMode = .byTruncatingTail
          self.countryButton.setBackgroundImage(countryButtonHighlightedBackground, for: .highlighted)
-@@ -126,7 +102,7 @@
+@@ -127,7 +103,7 @@
          self.phoneInputNode.countryCodeField.textField.disableAutomaticKeyboardHandling = [.forward]
          self.phoneInputNode.numberField.textField.disableAutomaticKeyboardHandling = [.forward]
          
@@ -63,7 +75,7 @@ diff --git a/submodules/AuthorizationUI/Sources/AuthorizationSequencePhoneEntryC
          self.countryButton.contentHorizontalAlignment = .left
          
          self.countryButton.addTarget(self, action: #selector(self.countryPressed), forControlEvents: .touchUpInside)
-@@ -245,11 +221,11 @@
+@@ -246,11 +222,11 @@
          let size = self.bounds.size
          let inset: CGFloat = 24.0
          
@@ -77,6 +89,26 @@ diff --git a/submodules/AuthorizationUI/Sources/AuthorizationSequencePhoneEntryC
          }
          
          let countryCodeFrame = CGRect(origin: CGPoint(x: 18.0, y: size.height - 58.0), size: CGSize(width: 71.0, height: 57.0))
+@@ -623,7 +599,7 @@
+         let inset: CGFloat = 24.0
+         let maximumWidth: CGFloat = min(430.0, layout.size.width)
+         
+-        let animationSize = CGSize(width: 100.0, height: 100.0)
++        let animationSize = CGSize(width: min(260.0, max(100.0, layout.size.width - 64.0)), height: 100.0)
+         let titleSize = self.titleNode.measure(CGSize(width: maximumWidth, height: CGFloat.greatestFiniteMagnitude))
+         
+         let noticeInset: CGFloat = self.account == nil ? 32.0 : 0.0
+diff --git a/submodules/ChatListUI/BUILD b/submodules/ChatListUI/BUILD
+--- a/submodules/ChatListUI/BUILD
++++ b/submodules/ChatListUI/BUILD
+@@ -12,6 +12,7 @@
+         "-warnings-as-errors",
+     ],
+     deps = [
++        "//submodules/NebulaSettingsContract:NebulaSettingsContract",
+         "//submodules/SSignalKit/SwiftSignalKit:SwiftSignalKit",
+         "//submodules/LottieSettings:LottieSettings",
+         "//submodules/AsyncDisplayKit:AsyncDisplayKit",
 diff --git a/submodules/ChatListUI/Sources/ChatListControllerNode.swift b/submodules/ChatListUI/Sources/ChatListControllerNode.swift
 --- a/submodules/ChatListUI/Sources/ChatListControllerNode.swift
 +++ b/submodules/ChatListUI/Sources/ChatListControllerNode.swift
@@ -86,7 +118,7 @@ diff --git a/submodules/ChatListUI/Sources/ChatListControllerNode.swift b/submod
  import UIKit
  import AsyncDisplayKit
  import Display
-@@ -1119,6 +1120,7 @@
+@@ -1151,6 +1152,7 @@
  }
  
  final class ChatListControllerNode: ASDisplayNode, ASGestureRecognizerDelegate {
@@ -94,7 +126,7 @@ diff --git a/submodules/ChatListUI/Sources/ChatListControllerNode.swift b/submod
      private let context: AccountContext
      private let location: ChatListControllerLocation
      private var presentationData: PresentationData
-@@ -1271,6 +1273,9 @@
+@@ -1303,6 +1305,9 @@
              controller.push(self.context.sharedContext.makeArchiveSettingsController(context: self.context))
          }
          
@@ -104,7 +136,7 @@ diff --git a/submodules/ChatListUI/Sources/ChatListControllerNode.swift b/submod
          self.mainContainerNode.onFilterSwitch = { [weak self] in
              if let strongSelf = self {
                  strongSelf.controller?.dismissAllUndoControllers()
-@@ -1559,7 +1564,7 @@
+@@ -1592,7 +1597,7 @@
                          case let .filter(idValue, text, unread):
                              id = AnyHashable(idValue)
                              title = HorizontalTabsComponent.Tab.Title(text: text.text, entities: text.entities, enableAnimations: text.enableAnimations)
@@ -113,21 +145,10 @@ diff --git a/submodules/ChatListUI/Sources/ChatListControllerNode.swift b/submod
                                  badge = HorizontalTabsComponent.Tab.Badge(
                                      title: "\(unread.value)",
                                      isAccent: unread.hasUnmuted
-diff --git a/submodules/ChatListUI/BUILD b/submodules/ChatListUI/BUILD
---- a/submodules/ChatListUI/BUILD
-+++ b/submodules/ChatListUI/BUILD
-@@ -10,6 +10,7 @@
-         "-warnings-as-errors",
-     ],
-     deps = [
-+        "//submodules/NebulaSettingsContract:NebulaSettingsContract",
-         "//submodules/SSignalKit/SwiftSignalKit:SwiftSignalKit",
-         "//submodules/AsyncDisplayKit:AsyncDisplayKit",
-         "//submodules/Display:Display",
 diff --git a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoSettingsItems.swift b/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoSettingsItems.swift
 --- a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoSettingsItems.swift
 +++ b/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoSettingsItems.swift
-@@ -244,7 +244,7 @@
+@@ -270,7 +270,7 @@
          interaction.openSettings(.powerSaving)
      }))
      
@@ -136,27 +157,3 @@ diff --git a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/Pe
          interaction.openSettings(.nebulaGram)
      }))
  
-diff --git a/submodules/AuthorizationUI/Sources/AuthorizationSequencePhoneEntryControllerNode.swift b/submodules/AuthorizationUI/Sources/AuthorizationSequencePhoneEntryControllerNode.swift
---- a/submodules/AuthorizationUI/Sources/AuthorizationSequencePhoneEntryControllerNode.swift
-+++ b/submodules/AuthorizationUI/Sources/AuthorizationSequencePhoneEntryControllerNode.swift
-@@ -598,7 +598,7 @@
-         let inset: CGFloat = 24.0
-         let maximumWidth: CGFloat = min(430.0, layout.size.width)
-         
--        let animationSize = CGSize(width: 100.0, height: 100.0)
-+        let animationSize = CGSize(width: min(260.0, max(100.0, layout.size.width - 64.0)), height: 100.0)
-         let titleSize = self.titleNode.measure(CGSize(width: maximumWidth, height: CGFloat.greatestFiniteMagnitude))
-         
-         let noticeInset: CGFloat = self.account == nil ? 32.0 : 0.0
-diff --git a/submodules/AuthorizationUI/Sources/AuthorizationSequenceCodeEntryControllerNode.swift b/submodules/AuthorizationUI/Sources/AuthorizationSequenceCodeEntryControllerNode.swift
---- a/submodules/AuthorizationUI/Sources/AuthorizationSequenceCodeEntryControllerNode.swift
-+++ b/submodules/AuthorizationUI/Sources/AuthorizationSequenceCodeEntryControllerNode.swift
-@@ -584,7 +584,7 @@
-             self.animationNode.visibility = false
-         }
-         
--        let animationSize = CGSize(width: 100.0, height: 100.0)
-+        let animationSize = CGSize(width: min(260.0, max(100.0, layout.size.width - 64.0)), height: 100.0)
-         let titleSize = self.titleNode.updateLayout(CGSize(width: maximumWidth, height: CGFloat.greatestFiniteMagnitude))
-         
-         let currentOptionSize = self.currentOptionNode.updateLayout(CGSize(width: maximumWidth - 48.0, height: CGFloat.greatestFiniteMagnitude))

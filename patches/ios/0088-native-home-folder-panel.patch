@@ -1,8 +1,7 @@
 diff --git a/submodules/ChatListUI/Sources/ChatListController.swift b/submodules/ChatListUI/Sources/ChatListController.swift
-index 07e090d..82fe91f 100644
 --- a/submodules/ChatListUI/Sources/ChatListController.swift
 +++ b/submodules/ChatListUI/Sources/ChatListController.swift
-@@ -779,7 +779,7 @@ public class ChatListControllerImpl: TelegramBaseController, ChatListController
+@@ -779,7 +779,7 @@
                      return
                  }
                  
@@ -11,7 +10,7 @@ index 07e090d..82fe91f 100644
                      tabsView.updateTabSwitchFraction(fraction: fraction, isDragging: strongSelf.chatListDisplayNode.mainContainerNode.isSwitchingCurrentItemFilterByDragging, transition: ComponentTransition(transition))
                  }
              }
-@@ -3674,7 +3674,7 @@ public class ChatListControllerImpl: TelegramBaseController, ChatListController
+@@ -3699,7 +3699,7 @@
          let _ = defaultFilterIds
          
          var reorderedFilterIdsValue: [Int32]?
@@ -21,10 +20,9 @@ index 07e090d..82fe91f 100644
                  guard let value = item.base as? Int32 else {
                      return nil
 diff --git a/submodules/ChatListUI/Sources/ChatListControllerNode.swift b/submodules/ChatListUI/Sources/ChatListControllerNode.swift
-index 3efb129..7226070 100644
 --- a/submodules/ChatListUI/Sources/ChatListControllerNode.swift
 +++ b/submodules/ChatListUI/Sources/ChatListControllerNode.swift
-@@ -1151,6 +1151,14 @@ final class ChatListControllerNode: ASDisplayNode, ASGestureRecognizerDelegate {
+@@ -1183,6 +1183,14 @@
      private var tapRecognizer: UITapGestureRecognizer?
      var navigationBar: NavigationBar?
      let navigationBarView = ComponentView<Empty>()
@@ -39,7 +37,7 @@ index 3efb129..7226070 100644
      weak var controller: ChatListControllerImpl?
      
      private var toolbar: ComponentView<Empty>?
-@@ -1524,6 +1532,10 @@ final class ChatListControllerNode: ASDisplayNode, ASGestureRecognizerDelegate {
+@@ -1556,6 +1564,10 @@
          }
          
          var navigationHeaderPanels: AnyComponent<Empty>?
@@ -50,7 +48,7 @@ index 3efb129..7226070 100644
          if self.controller?.tabContainerData != nil || !panels.isEmpty {
              var tabs: AnyComponent<Empty>?
              if let tabContainerData = self.controller?.tabContainerData, tabContainerData.0.count > 1 {
-@@ -1560,7 +1572,7 @@ final class ChatListControllerNode: ASDisplayNode, ASGestureRecognizerDelegate {
+@@ -1593,7 +1605,7 @@
                      theme: self.presentationData.theme,
                      tabs: tabContainerData.0.map { entry -> HorizontalTabsComponent.Tab in
                          let id: HorizontalTabsComponent.Tab.Id
@@ -59,7 +57,7 @@ index 3efb129..7226070 100644
                          var badge: HorizontalTabsComponent.Tab.Badge?
                          var isMainTab = false
                          switch entry {
-@@ -1579,6 +1591,8 @@ final class ChatListControllerNode: ASDisplayNode, ASGestureRecognizerDelegate {
+@@ -1612,6 +1624,8 @@
                              }
                          }
                          
@@ -68,7 +66,7 @@ index 3efb129..7226070 100644
                          return HorizontalTabsComponent.Tab(
                              id: id,
                              content: .title(title),
-@@ -1658,17 +1672,44 @@ final class ChatListControllerNode: ASDisplayNode, ASGestureRecognizerDelegate {
+@@ -1691,17 +1705,44 @@
                      },
                      selectedTab: selectedTab,
                      isEditing: isEditing,
@@ -84,6 +82,8 @@ index 3efb129..7226070 100644
 -                tabs: tabs,
 -                panels: panels
 -            ))
+-        }
+-        
 +            if foldersAtBottom, let tabs {
 +                bottomFolderComponent = AnyComponent(HeaderPanelContainerComponent(theme: self.presentationData.theme,
 +                    nebulaPanelStyle: NebulaSettingsStore.shared.folderPanelStyle, tabs: tabs, panels: []))
@@ -96,8 +96,8 @@ index 3efb129..7226070 100644
 +                    panels: panels
 +                ))
 +            }
-         }
-         
++        }
++
 +        if let bottomFolderComponent {
 +            let bottomSize = self.nebulaBottomFolders.update(transition: transition, component: bottomFolderComponent,
 +                environment: {}, containerSize: CGSize(width: layout.size.width, height: 100.0))
@@ -119,7 +119,7 @@ index 3efb129..7226070 100644
          var effectiveStorySubscriptions: EngineStorySubscriptions?
          if let controller = self.controller, case .forum = controller.location {
              effectiveStorySubscriptions = nil
-@@ -1968,6 +2009,7 @@ final class ChatListControllerNode: ASDisplayNode, ASGestureRecognizerDelegate {
+@@ -2002,6 +2043,7 @@
          var mainNavigationBarHeight = navigationBarHeight
          var cleanMainNavigationBarHeight = cleanNavigationBarHeight
          var mainInsets = insets
@@ -128,10 +128,9 @@ index 3efb129..7226070 100644
              mainNavigationBarHeight = visualNavigationHeight
              cleanMainNavigationBarHeight = visualNavigationHeight
 diff --git a/submodules/TelegramUI/Components/ChatList/ChatListFilterTabContainerNode/Sources/ChatListFilterTabContainerNode.swift b/submodules/TelegramUI/Components/ChatList/ChatListFilterTabContainerNode/Sources/ChatListFilterTabContainerNode.swift
-index 2137c84..03daccc 100644
 --- a/submodules/TelegramUI/Components/ChatList/ChatListFilterTabContainerNode/Sources/ChatListFilterTabContainerNode.swift
 +++ b/submodules/TelegramUI/Components/ChatList/ChatListFilterTabContainerNode/Sources/ChatListFilterTabContainerNode.swift
-@@ -11,7 +11,7 @@ import GlassBackgroundComponent
+@@ -11,7 +11,7 @@
  import ComponentFlow
  import ComponentDisplayAdapters
  
@@ -141,10 +140,9 @@ index 2137c84..03daccc 100644
  
      var icon = isAllChats ? "💬" : "📁"
 diff --git a/submodules/TelegramUI/Components/HeaderPanelContainerComponent/Sources/HeaderPanelContainerComponent.swift b/submodules/TelegramUI/Components/HeaderPanelContainerComponent/Sources/HeaderPanelContainerComponent.swift
-index 4d60d6c..8d1c94c 100644
 --- a/submodules/TelegramUI/Components/HeaderPanelContainerComponent/Sources/HeaderPanelContainerComponent.swift
 +++ b/submodules/TelegramUI/Components/HeaderPanelContainerComponent/Sources/HeaderPanelContainerComponent.swift
-@@ -36,6 +36,7 @@ public final class HeaderPanelContainerComponent: Component {
+@@ -36,6 +36,7 @@
      }
      
      public let theme: PresentationTheme
@@ -152,7 +150,7 @@ index 4d60d6c..8d1c94c 100644
      public let preferClearGlass: Bool
      public let tabs: AnyComponent<Empty>?
      public let panels: [Panel]
-@@ -43,9 +44,11 @@ public final class HeaderPanelContainerComponent: Component {
+@@ -43,9 +44,11 @@
      public init(
          theme: PresentationTheme,
          preferClearGlass: Bool = false,
@@ -164,7 +162,7 @@ index 4d60d6c..8d1c94c 100644
          self.theme = theme
          self.preferClearGlass = preferClearGlass
          self.tabs = tabs
-@@ -53,6 +56,7 @@ public final class HeaderPanelContainerComponent: Component {
+@@ -53,6 +56,7 @@
      }
      
      public static func ==(lhs: HeaderPanelContainerComponent, rhs: HeaderPanelContainerComponent) -> Bool {
@@ -172,7 +170,7 @@ index 4d60d6c..8d1c94c 100644
          if lhs.theme !== rhs.theme {
              return false
          }
-@@ -84,6 +88,7 @@ public final class HeaderPanelContainerComponent: Component {
+@@ -84,6 +88,7 @@
      public final class View: UIView {
          private let backgroundContainer: GlassBackgroundContainerView
          private let backgroundView: GlassBackgroundView
@@ -180,7 +178,7 @@ index 4d60d6c..8d1c94c 100644
          private let contentContainer: UIView
          
          private var tabsView: ComponentView<Empty>?
-@@ -108,6 +113,7 @@ public final class HeaderPanelContainerComponent: Component {
+@@ -108,6 +113,7 @@
              
              super.init(frame: frame)
              
@@ -188,7 +186,7 @@ index 4d60d6c..8d1c94c 100644
              self.backgroundContainer.contentView.addSubview(self.backgroundView)
              self.addSubview(self.backgroundContainer)
              
-@@ -269,6 +275,14 @@ public final class HeaderPanelContainerComponent: Component {
+@@ -269,6 +275,14 @@
              
              transition.setAlpha(view: self.backgroundContainer, alpha: (component.tabs != nil || !component.panels.isEmpty) ? 1.0 : 0.0)
              
@@ -204,10 +202,9 @@ index 4d60d6c..8d1c94c 100644
              
              transition.setCornerRadius(layer: self.contentContainer.layer, cornerRadius: min(cornerRadius, backgroundFrame.height * 0.5))
 diff --git a/submodules/TelegramUI/Components/HorizontalTabsComponent/Sources/HorizontalTabsComponent.swift b/submodules/TelegramUI/Components/HorizontalTabsComponent/Sources/HorizontalTabsComponent.swift
-index 1528573..cd96728 100644
 --- a/submodules/TelegramUI/Components/HorizontalTabsComponent/Sources/HorizontalTabsComponent.swift
 +++ b/submodules/TelegramUI/Components/HorizontalTabsComponent/Sources/HorizontalTabsComponent.swift
-@@ -223,6 +223,8 @@ public final class HorizontalTabsComponent: Component {
+@@ -286,6 +286,8 @@
      public let selectedTab: Tab.Id?
      public let isEditing: Bool
      public let layout: Layout
@@ -216,7 +213,7 @@ index 1528573..cd96728 100644
      public let liftWhileSwitching: Bool
      
      public init(
-@@ -232,7 +234,9 @@ public final class HorizontalTabsComponent: Component {
+@@ -295,7 +297,9 @@
          selectedTab: Tab.Id?,
          isEditing: Bool,
          layout: Layout = .fill,
@@ -227,7 +224,7 @@ index 1528573..cd96728 100644
      ) {
          self.context = context
          self.theme = theme
-@@ -240,10 +244,13 @@ public final class HorizontalTabsComponent: Component {
+@@ -303,10 +307,13 @@
          self.selectedTab = selectedTab
          self.isEditing = isEditing
          self.layout = layout
@@ -241,7 +238,7 @@ index 1528573..cd96728 100644
          if lhs.theme !== rhs.theme {
              return false
          }
-@@ -296,6 +303,8 @@ public final class HorizontalTabsComponent: Component {
+@@ -363,6 +370,8 @@
      }
      
      public final class View: UIView, UIScrollViewDelegate, HeaderPanelContainerChildView {
@@ -250,7 +247,7 @@ index 1528573..cd96728 100644
          private let lensView: LiquidLensView
          private let scrollView: ScrollView
          private let selectedScrollView: UIView
-@@ -351,7 +360,11 @@ public final class HorizontalTabsComponent: Component {
+@@ -418,7 +427,11 @@
                  return self.scrollView.contentOffset.x > .ulpOfOne
              }
              
@@ -262,10 +259,10 @@ index 1528573..cd96728 100644
              
              self.lensView.contentView.addSubview(self.scrollView)
              self.lensView.selectedContentView.addSubview(self.selectedScrollView)
-@@ -591,6 +604,19 @@ public final class HorizontalTabsComponent: Component {
-             } else {
+@@ -693,6 +706,19 @@
                  isLifted = false
              }
+             let lensSize = layoutData.lensSize
 +            let style = component.nebulaPanelStyle
 +            self.lensView.isHidden = style != 0
 +            self.plainContainer.isHidden = style == 0
@@ -279,10 +276,10 @@ index 1528573..cd96728 100644
 +            self.nebulaSelection.layer.borderWidth = component.nebulaOutline && style != 2 ? 1.0 : 0.0
 +            self.nebulaSelection.layer.borderColor = component.theme.list.itemAccentColor.withAlphaComponent(0.4).cgColor
 +            transition.setFrame(view: self.nebulaSelection, frame: style == 2 ? CGRect(x: selectionFrame.minX + 8.0, y: selectionFrame.maxY - 3.0, width: max(0, selectionFrame.width - 16.0), height: 3.0) : selectionFrame)
-             self.lensView.update(size: CGSize(width: layoutData.size.width - 3.0 * 2.0, height: layoutData.size.height - 3.0 * 2.0), selectionOrigin: CGPoint(x:  -self.scrollView.contentOffset.x + layoutData.selectedItemFrame.minX, y: 0.0), selectionSize: CGSize(width: layoutData.selectedItemFrame.width, height: layoutData.size.height - 3.0 * 2.0), inset: 0.0, liftedInset: 6.0, isDark: component.theme.overallDarkAppearance, isLifted: isLifted, transition: transition)
+             self.lensView.update(size: lensSize, selectionOrigin: CGPoint(x:  -self.scrollView.contentOffset.x + layoutData.selectedItemFrame.minX, y: 0.0), selectionSize: CGSize(width: layoutData.selectedItemFrame.width, height: lensSize.height), inset: 0.0, liftedInset: 6.0, isDark: component.theme.overallDarkAppearance, isLifted: isLifted, transition: transition)
              
-             transition.setPosition(view: self.selectedScrollView, position: CGRect(origin: CGPoint(x: 3.0, y: 0.0), size: CGSize(width: layoutData.size.width - 3.0 * 2.0, height: layoutData.size.height - 3.0 * 2.0)).center)
-@@ -693,7 +719,7 @@ public final class HorizontalTabsComponent: Component {
+             transition.setPosition(view: self.selectedScrollView, position: CGRect(origin: CGPoint(), size: lensSize).center)
+@@ -795,7 +821,7 @@
                          context: component.context,
                          theme: component.theme,
                          tab: tab,
@@ -291,11 +288,11 @@ index 1528573..cd96728 100644
                          editing: itemEditing
                      )),
                      environment: {},
-@@ -888,6 +914,7 @@ public final class HorizontalTabsComponent: Component {
-             self.selectedScrollView.layer.cornerRadius = (size.height - 3.0 * 2.0) * 0.5
+@@ -999,6 +1025,7 @@
+             self.selectedScrollView.layer.cornerRadius = lensSize.height * 0.5
              
-             transition.setFrame(view: self.lensView, frame: CGRect(origin: CGPoint(x: 3.0, y: 3.0), size: CGSize(width: size.width - 3.0 * 2.0, height: size.height - 3.0 * 2.0)))
-+            transition.setFrame(view: self.plainContainer, frame: CGRect(origin: CGPoint(x: 3.0, y: 3.0), size: CGSize(width: size.width - 6.0, height: size.height - 6.0)))
+             transition.setFrame(view: self.lensView, frame: CGRect(origin: CGPoint(x: lensInset, y: lensInset), size: lensSize))
++            transition.setFrame(view: self.plainContainer, frame: CGRect(origin: CGPoint(x: lensInset, y: lensInset), size: lensSize))
              self.lensView.clipsToBounds = true
-             self.lensView.layer.cornerRadius = (size.height - 3.0 * 2.0) * 0.5
+             self.lensView.layer.cornerRadius = lensSize.height * 0.5
              self.ignoreScrolling = false
