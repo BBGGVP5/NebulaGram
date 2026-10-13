@@ -71,11 +71,13 @@ Files:
 - Create `platform/ios/overlay/submodules/SettingsUI/Sources/NebulaRoundCameraController.swift`.
 - Create `patches/ios/0106-rounded-home-header-and-camera-sheet.patch` from the owned iOS 13 fixture after all 105 patches.
 - Modify `platform/ios/tools/check-bootstrap.py` and `platform/ios/tools/check_story_header.py`.
+- Create `platform/ios/tools/camera-ui-qa.py` and `.github/workflows/ios-camera-ui-qa.yml` to render the real controller on an owned CI simulator with only a palette adapter.
 
 - [ ] Present a dedicated native UIKit sheet through `nebulaPresentRecordingCamera(from:russian:theme:choose:)`. Use the same two code-drawn phone sides, captions, last-choice color fill, unfilled close control and scrollable Dynamic Type content. Native sheet gestures dismiss without selecting. Guard repeated taps; start the existing recorder only in the successful dismissal completion.
 - [ ] Replace only the native recording camera call with the new public SettingsUI bridge; keep generic setting choices and camera/recording implementations.
 - [ ] Restore parent-owned `nebulaHeaderGlass` with bottom radii 22 points, no material border and native scroll bounds. In ChatListHeaderComponent set its four independent toolbar material updates to `isInteractive: false, isVisible: false`; keep content, hit areas and menu extraction containers intact. This hides effects, not button views.
 - [ ] Update bootstrap assertions to require the rounded shared surface and plain control effects, then run `python platform/ios/tools/check-bootstrap.py`. Expected: 106 ordered patches apply and camera bridge/header guards pass.
 - [ ] Run macOS UIKit type checks and native integration/IPA builds on the new source revision; report successful artifacts separately from pending builds. Never claim physical iPhone acceptance from compilation.
+- [ ] Run `gh workflow run ios-camera-ui-qa.yml --ref main`, inspect dark/light/large-font screenshots, and require that repeated rear-camera taps select once while closing a reopened panel never selects.
 
 Android receipt: APK 1000527 from CI `38427510947`, source `14af4ed642342864cf6b52f4a15bd8188557406d`, 60,072,411 bytes, SHA256 `dcbb3d997ac4ff8c246d50d755fe63f8cc4ed8bd2f7cfdd2450555c9e0863b4a`. ZIP, arm64 libraries, package/version, expected signing certificate and the new camera text in DEX verified. Widget QA `38427566360` passed; dark/light/narrow font-1.3 images inspected, both camera rows and close fully visible, repeated choice invokes its callback once. Another 606 executed native home draw states have no button backing. iOS bootstrap `38427510980` attempt 2 passed on the same source; attempt 1 failed a transient GitHub blob fetch. The updated payment adapter passed macOS execution.

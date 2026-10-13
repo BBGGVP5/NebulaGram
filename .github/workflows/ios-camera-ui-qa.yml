@@ -1,0 +1,23 @@
+name: iOS recording camera widget QA
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  camera:
+    runs-on: macos-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Compile and render actual camera controller with offline palette adapter
+        run: python platform/ios/tools/camera-ui-qa.py
+      - name: Save UIKit widget screenshots and callback evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-camera-widget-screenshots
+          path: build/ios-camera-widget-qa/screenshots/
+          if-no-files-found: warn
