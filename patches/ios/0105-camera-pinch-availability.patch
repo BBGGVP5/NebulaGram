@@ -1,0 +1,14 @@
+diff --git a/submodules/TelegramUI/Components/VideoMessageCameraScreen/Sources/VideoMessageCameraScreen.swift b/submodules/TelegramUI/Components/VideoMessageCameraScreen/Sources/VideoMessageCameraScreen.swift
+--- a/submodules/TelegramUI/Components/VideoMessageCameraScreen/Sources/VideoMessageCameraScreen.swift
++++ b/submodules/TelegramUI/Components/VideoMessageCameraScreen/Sources/VideoMessageCameraScreen.swift
+@@ -1140,9 +1140,7 @@
+             case .began:
+                 self.pinchStartTimestamp = CACurrentMediaTime()
+             case .changed:
+-                guard let camera = self.camera else {
+-                    return
+-                }
++                guard self.camera != nil else { return }
+                 let scale = gestureRecognizer.scale
+                 self.nebulaZoomSlider.reflectPinch(scale)
+                 gestureRecognizer.scale = 1.0

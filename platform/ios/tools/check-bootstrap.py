@@ -428,7 +428,7 @@ print("OK: embedded catalog and Bazel-side Foundation store compiled and ran")
             header.parent.mkdir(parents=True, exist_ok=True)
             header.write_bytes(run('git', '-C', str(tree), 'show', revision + ':' + header_path))
             subprocess.run(['xcrun', '--sdk', 'iphonesimulator', 'clang', '-fsyntax-only',
-                            '-fobjc-arc', '-fmodules', '-Werror', '-target', 'arm64-apple-ios13.0-simulator',
+                            '-fobjc-arc', '-fmodules', '-Werror', '-target', 'arm64-apple-ios' + upstream_minimum + '-simulator',
                             '-isysroot', sdk, '-I', str(app_bundle / 'PublicHeaders'),
                             str(app_bundle / 'Sources/AppBundle/AppBundle.m')], check=True)
             icon_catalog = temp / 'IconPacks.xcassets'
@@ -439,10 +439,10 @@ print("OK: embedded catalog and Bazel-side Foundation store compiled and ran")
             icon_output = temp / 'compiled-icons'
             icon_output.mkdir()
             subprocess.run(['xcrun', 'actool', '--compile', str(icon_output), '--platform', 'iphonesimulator',
-                            '--minimum-deployment-target', '13.0', '--target-device', 'iphone',
+                            '--minimum-deployment-target', upstream_minimum, '--target-device', 'iphone',
                             '--output-format', 'human-readable-text', str(icon_catalog)], check=True)
             ios_flags = ['-swift-version', '5', '-warnings-as-errors', '-sdk', sdk,
-                         '-target', 'arm64-apple-ios13.0-simulator']
+                         '-target', 'arm64-apple-ios' + upstream_minimum + '-simulator']
             # Compile the actual composer hook against its declared UIView type.
             # Parsing alone cannot detect UIButton-only APIs used on that hook.
             composer = temp / 'submodules/TelegramUI/Components/Chat/ChatTextInputPanelNode/Sources/ChatTextInputPanelNode.swift'

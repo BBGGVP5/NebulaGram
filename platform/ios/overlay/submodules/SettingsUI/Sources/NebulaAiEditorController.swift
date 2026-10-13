@@ -76,7 +76,9 @@ public final class NebulaAiEditorController: UIViewController {
         for (index, title) in styles.enumerated() {
             let button = UIButton(type: .system); button.tag = index; button.setTitle(title, for: .normal)
             button.titleLabel?.font = .preferredFont(forTextStyle: .body); button.titleLabel?.adjustsFontForContentSizeCategory = true
-            button.contentEdgeInsets = UIEdgeInsets(top: 12, left: 16, bottom: 12, right: 16); button.layer.cornerRadius = 20
+            var configuration = UIButton.Configuration.plain()
+            configuration.contentInsets = NSDirectionalEdgeInsets(top: 12, leading: 16, bottom: 12, trailing: 16)
+            button.configuration = configuration; button.layer.cornerRadius = 20
             button.addTarget(self, action: #selector(chooseStyle(_:)), for: .touchUpInside); styleStack.addArrangedSubview(button); styleButtons.append(button)
         }
         stack.addArrangedSubview(styleScroll)

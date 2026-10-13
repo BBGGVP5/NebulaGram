@@ -19,7 +19,7 @@ final class NebulaSettingsIntroItem: ListViewItem, ItemListItem {
     private func makeHero() -> NebulaSettingsHero {
         NebulaSettingsHero(symbol: symbol, title: title, summary: summary, context: context, theme: theme)
     }
-    func nodeConfiguredForParams(async: @escaping (@escaping () -> Void) -> Void, params: ListViewItemLayoutParams, synchronousLoads: Bool, previousItem: ListViewItem?, nextItem: ListViewItem?, completion: @escaping (ListViewItemNode, @escaping () -> (Signal<Void, NoError>?, (ListViewItemApply) -> Void)) -> Void) {
+    func nodeConfiguredForParams(async: @escaping (@escaping () -> Void) -> Void, params: ListViewItemLayoutParams, synchronousLoads: Bool, neighbors: ListViewItemNeighbors, completion: @escaping (ListViewItemNode, @escaping () -> (Signal<Void, NoError>?, (ListViewItemApply) -> Void)) -> Void) {
         Queue.mainQueue().async {
             let node = NebulaSettingsIntroNode(hero: self.makeHero())
             let layout = node.measure(width: params.width)
@@ -27,7 +27,7 @@ final class NebulaSettingsIntroItem: ListViewItem, ItemListItem {
             completion(node, { (nil, { _ in node.apply(layout) }) })
         }
     }
-    func updateNode(async: @escaping (@escaping () -> Void) -> Void, node: @escaping () -> ListViewItemNode, params: ListViewItemLayoutParams, previousItem: ListViewItem?, nextItem: ListViewItem?, animation: ListViewItemUpdateAnimation, completion: @escaping (ListViewItemNodeLayout, @escaping (ListViewItemApply) -> Void) -> Void) {
+    func updateNode(async: @escaping (@escaping () -> Void) -> Void, node: @escaping () -> ListViewItemNode, params: ListViewItemLayoutParams, neighbors: ListViewItemNeighbors, animation: ListViewItemUpdateAnimation, completion: @escaping (ListViewItemNodeLayout, @escaping (ListViewItemApply) -> Void) -> Void) {
         Queue.mainQueue().async {
             guard let node = node() as? NebulaSettingsIntroNode else { return }
             node.replaceHero(self.makeHero())

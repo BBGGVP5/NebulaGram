@@ -850,12 +850,21 @@ public func nebulaSettingsController(context: AccountContext, page: Int = 0, sea
         let ru = context.sharedContext.currentPresentationData.with { $0 }.strings.baseLanguageCode.lowercased().hasPrefix("ru")
         let privacy = NebulaPrivacyController(context: context, russian: ru)
         privacy.openAppLock = { [weak controller] in
-            let push: (ViewController) -> Void = { [weak controller] next in
-                (controller?.navigationController as? NavigationController)?.pushViewController(next)
+            guard let controller else { return }
+            let begin = { [weak controller] in
+                let replace: (ViewController) -> Void = { [weak controller] next in
+                    (controller?.navigationController as? NavigationController)?.replaceTopController(next, animated: true)
+                }
+                let _ = passcodeOptionsAccessController(context: context, replaceController: replace, authorizationCompleted: { [weak controller] result in
+                    guard case let .success(session) = result else { return }
+                    guard let navigation = controller?.navigationController as? NavigationController else { session.invalidate(); return }
+                    navigation.replaceTopController(passcodeOptionsController(context: context, settingsSession: session), animated: true)
+                }).start(next: { [weak controller] next in
+                    if let next { (controller?.navigationController as? NavigationController)?.pushViewController(next) }
+                })
             }
-            let _ = passcodeOptionsAccessController(context: context, pushController: push, completion: { _ in
-                push(passcodeOptionsController(context: context))
-            }).start(next: { next in if let next = next { push(next) } })
+            if let modal = controller.presentedViewController { modal.dismiss(animated: true, completion: begin) }
+            else { begin() }
         }
         controller.present(UINavigationController(rootViewController: privacy), animated: true)
     }

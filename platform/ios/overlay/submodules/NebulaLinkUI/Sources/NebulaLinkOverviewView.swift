@@ -41,7 +41,9 @@ final class NebulaLinkOverviewView: UIView {
         action.titleLabel?.adjustsFontForContentSizeCategory = true
         action.titleLabel?.numberOfLines = 0
         action.titleLabel?.textAlignment = .center
-        action.contentEdgeInsets = UIEdgeInsets(top: 14, left: 18, bottom: 14, right: 18)
+        var configuration = UIButton.Configuration.plain()
+        configuration.contentInsets = NSDirectionalEdgeInsets(top: 14, leading: 18, bottom: 14, trailing: 18)
+        action.configuration = configuration
         action.layer.cornerRadius = 22
         action.clipsToBounds = true
         action.accessibilityIdentifier = "NebulaLink.ConnectionAction"

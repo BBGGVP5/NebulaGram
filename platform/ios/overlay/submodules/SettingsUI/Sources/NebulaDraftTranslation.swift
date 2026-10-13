@@ -26,7 +26,9 @@ public final class NebulaDraftTranslation: NSObject {
     public override init() {
         super.init()
         button.setImage(NebulaAIOutline.image, for: .normal)
-        button.contentEdgeInsets = UIEdgeInsets(top: 0, left: 8, bottom: 0, right: 0)
+        var configuration = UIButton.Configuration.plain()
+        configuration.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: 8, bottom: 0, trailing: 0)
+        button.configuration = configuration
         button.addTarget(self, action: #selector(tools), for: .touchUpInside)
         button.addGestureRecognizer(UILongPressGestureRecognizer(target: self, action: #selector(held(_:))))
         preview.layer.cornerRadius = 16; preview.clipsToBounds = true; preview.isHidden = true
