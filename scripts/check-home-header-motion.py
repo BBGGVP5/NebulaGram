@@ -28,6 +28,8 @@ stroke='\n'.join(method(glass,s) for s in [
     'public void setStrokeWidth(float strokeWidthTop, float strokeWidthBottom)',
     'private void drawStrokeInternalIfNeeded(Canvas canvas)'
 ])
+layer_line=next(line.strip() for line in method(stories,'protected void dispatchDraw(Canvas canvas)').splitlines()
+                if 'final boolean needSaveLayer =' in line)
 java='''import java.util.*;import app.nebulagram.ui.NebulaHomeTitleGeometry;
 class HomeMotionCheck {
  static final int VISIBLE=0,EXPANDED_STATE=0,TRANSITION_STATE=1,COLLAPSED_STATE=2;
@@ -67,6 +69,10 @@ class HomeMotionCheck {
 ''' + stroke + '''
  }
  static void check(boolean ok,String why){if(!ok)throw new AssertionError(why);}
+ static boolean nativeLayer(boolean nebulaHome,float progress,float clipRightPadding){
+''' + layer_line + '''
+  return needSaveLayer;
+ }
  public static void main(String[] args){int cases=0;
   for(float density:new float[]{1,1.5f,2.625f,3.5f})for(int count=0;count<=3;count++) {
    Stories s=new Stories();s.miniItems.clear();for(int i=0;i<count;i++)s.miniItems.add(i);
@@ -118,29 +124,53 @@ class HomeMotionCheck {
    int footprint=(int)Math.ceil(34*density),step=(int)Math.ceil(16*density),gap=(int)Math.ceil(8*density);
    int visible=NebulaHomeTitleGeometry.visibleStories(count,available,title,footprint,step,gap);
    int prefix=NebulaHomeTitleGeometry.storyPrefix(visible,footprint,step,gap);
-   for(int frame=0;frame<=120;frame++)for(float extra:new float[]{0,24*density}) {
+   for(int frame=0;frame<=120;frame++)for(float extra:new float[]{0,(float)Math.ceil(8*density)+(float)Math.ceil(16*density)})for(int barHeight:new int[]{48,56}) {
     float p=frame/120f,q=NebulaHomeTitleGeometry.gather(p),lift=NebulaHomeTitleGeometry.lift(p);
-    check(q>=0 && q<=1 && lift>=0 && lift<=1,"Invalid phase");check(lift==0 || q==1,"Rings rise before gathering");
+    check(q>=0 && q<=1 && lift>=0 && lift<=1,"Invalid scroll fraction");
     float cellWidth=(float)Math.ceil(70*density),size=(float)Math.ceil(48*density)+extra;
     float finalSize=size+((float)Math.ceil(26.33f*density)-size)*q;
-    float radius=finalSize/2+(float)Math.ceil(4*density),bottom=100*density,barCenter=bottom-28*density;
-    float expanded=bottom+25*density+extra/2;
-    float y=NebulaHomeTitleGeometry.avatarCenterY(expanded,bottom,barCenter,radius,2*density,p);
+    float radius=finalSize/2+(float)Math.ceil(4*density),bottom=100*density,barCenter=bottom-barHeight/2f*density;
+    // A fully selected overscroll adds 8+16 dp to the avatar and moves its row
+    // down by storiesOverscroll/2 (90 dp / 2), not just by the added radius.
+    float expanded=bottom+(float)Math.ceil(5*density)+(float)Math.ceil(48*density)/2-(float)Math.ceil(8*density)+extra/2;
+    if(extra>0)expanded+=(float)Math.ceil(90*density)/2;
+    float y=NebulaHomeTitleGeometry.avatarCenterY(expanded,barCenter,p);
     check(Float.isFinite(y),"Invalid vertical pose");
-    if(lift==0)check(y-radius>=bottom-4*density-.001f,"Gathering rings collide with header buttons");
     float slot=NebulaHomeTitleGeometry.groupLeftFloat(w,left,right,title,prefix,q),titleLeft=slot+prefix*q;
     for(int i=0;i<visible;i++) {
      float startLeft=(i+1)*cellWidth,target=slot+(float)Math.ceil(4*density)+i*step;
      float avatarCx=(cellWidth-finalSize)/2*(1-q)+finalSize/2;
      float x=startLeft+(target-startLeft)*q+avatarCx;
-     if(lift>0){check(x-radius>=left-.001f,"Ring overlaps Edit");
-      check(x+radius<=titleLeft-3*density+.001f,"Ring intersects title; would need rectangular clipping");}
+     // Edit occupies x=8..76 dp, height=44 dp. The title slot starts at 84 dp.
+     if(y-radius<barCenter+22*density)check(x-radius>=Math.ceil(76*density)-.001f,"Ring overlaps Edit");
+     if(y-radius<barCenter+14*density)check(x+radius<=titleLeft-3*density+.001f,"Ring intersects title; would need rectangular clipping");
      poses++;
     }
     if(frame==120)check(Math.abs(y-barCenter)<.001f,"Mini-list handoff jumps vertically");
    }
   }
-  check(NebulaHomeTitleGeometry.gather(.6f)==1 && NebulaHomeTitleGeometry.lift(.6f)==0,"Phase seam jumps");
+  float previous=0;
+  for(int frame=1;frame<=120;frame++){
+   float p=frame/120f,lift=NebulaHomeTitleGeometry.lift(p);
+   check(lift>previous,"Vertical movement stops between phases");previous=lift;
+   float y=NebulaHomeTitleGeometry.avatarCenterY(121,72,p);
+   float previousY=NebulaHomeTitleGeometry.avatarCenterY(121,72,(frame-1)/120f);
+   check(y<=previousY,"Opening reverses vertical direction");
+   if(frame>6)check(y<previousY,"Vertical path contains an intermediate stop");
+  }
+  check(NebulaHomeTitleGeometry.lift(-1)==0 && NebulaHomeTitleGeometry.lift(2)==1,"Overscroll escapes endpoints");
+  int escapedFrames=0;
+  for(int frame=0;frame<=120;frame++)for(float d:new float[]{1,1.5f,2.625f,3.5f})for(int barHeight:new int[]{48,56}){
+   float p=frame/120f,q=NebulaHomeTitleGeometry.gather(p);
+   float radius=(48+(26.33f-48)*q)/2*d+4*d;
+   float globalCenter=NebulaHomeTitleGeometry.avatarCenterY(121*d,(100-barHeight/2f)*d,p);
+   float movingViewY=100*d-81*d*p-8*d;
+   float localBottom=globalCenter-movingViewY+radius;
+   if(localBottom>81*d){escapedFrames++;check(!nativeLayer(true,p,80*d*p-6*d),"Legacy layer slices a reversed home ring");}
+   check(nativeLayer(false,p,80*d*p-6*d)==(p!=0 && 80*d*p-6*d>0),"Classic right-menu fade changed");
+  }
+  check(escapedFrames>0,"Fixture never reproduces rings outside the moving 81 dp layer");
+  System.out.println(escapedFrames+" moving-layer escape frames remain unclipped; classic fade preserved");
   System.out.println(cases+" native shared-frame/reversal cases and 101 border-free Edit frames passed");
   System.out.println(poses+" full-ring trajectory poses avoid title/Edit collisions, including overscroll and narrow toolbars");
  }
@@ -155,7 +185,6 @@ assert 'setNebulaHomeStories(' not in draw, 'Story paint mutates an already-pain
 assert 'if (updateNebulaHomeCollapse(progress)) return;' in method(stories,'public void setProgressToCollapse(float progress, boolean animated)')
 assert 'translationX = (toX - cell.getLeft()) * homeGather;' in draw
 assert 'NebulaHomeTitleGeometry.avatarCenterY(' in draw
-assert 'cell.getNebulaAvatarSize(homeGather)' in draw
 assert 'nebulaHomeStoriesClip' not in stories
 assert 'drawInParent &= adapterPosition < animateFromPosition + actionBar.getNebulaHomeVisibleStories()' in draw
 assert '!nebulaHome && adapterPosition' in draw

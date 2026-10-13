@@ -131,7 +131,7 @@ assert 'actionBar.setNebulaHomeStories(count,' in method(stories,'private void p
 assert 'publishNebulaHomeHeader()' in method(stories,'private void checkCollapsedProgress()')
 assert 'setNebulaHomeStories(' not in method(stories,'protected void dispatchDraw(Canvas canvas)'), 'Paint is mutating a previously painted sibling title'
 assert 'getNebulaHomeStoriesLeft()' in stories and 'getNebulaHomeVisibleStories()' in stories
-assert 'NebulaHomeTitleGeometry.avatarCenterY(' in stories, 'Full rings must gather below the toolbar before rising beside the title'
+assert 'NebulaHomeTitleGeometry.avatarCenterY(' in stories, 'Story rings must follow the continuous header trajectory'
 assert 'nebulaHomeStoriesClip' not in stories, 'Rectangular mask cuts story rings during expansion'
 assert 'nebulaHomeStoryItem = menu.addItemWithWidth' in dialogs
 assert 'nebulaHomeComposeItem = menu.addItemWithWidth' in dialogs

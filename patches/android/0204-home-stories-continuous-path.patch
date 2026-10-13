@@ -1,0 +1,24 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Stories/DialogStoriesCell.java b/TMessagesProj/src/main/java/org/telegram/ui/Stories/DialogStoriesCell.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Stories/DialogStoriesCell.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Stories/DialogStoriesCell.java
+@@ -878,8 +878,7 @@
+                     float toolbarBottom = actionBar.getY() + actionBar.getHeight();
+                     float toolbarCenter = toolbarBottom - ActionBar.getCurrentActionBarHeight() / 2f;
+                     float expandedCenter = getY() + dp(HEIGHT_IN_DP) * progress + recyclerListView.getTop() + cell.getTop() + cell.getNebulaAvatarCenter(0f);
+-                    float radius = cell.getNebulaAvatarSize(homeGather) / 2f + dp(4);
+-                    float center = app.nebulagram.ui.NebulaHomeTitleGeometry.avatarCenterY(expandedCenter, toolbarBottom, toolbarCenter, radius, dp(2), progress);
++                    float center = app.nebulagram.ui.NebulaHomeTitleGeometry.avatarCenterY(expandedCenter, toolbarCenter, progress);
+                     translationY = center - getY() - recyclerListView.getY() - cell.getTop() - cell.getCy();
+                 }
+ 
+@@ -947,7 +946,9 @@
+         }
+ 
+         final float clipRightPadding = actionBar.menu.getVisibleItemsMeasuredWidthWithAlpha() * progress - dp(6);
+-        final boolean needSaveLayer = progress != 0 && clipRightPadding > 0;
++        // Home rings already occupy the reserved title slot. The legacy layer clips
++        // their bottom against this moving 81 dp view during a reversed gesture.
++        final boolean needSaveLayer = !nebulaHome && progress != 0 && clipRightPadding > 0;
+         if (needSaveLayer) {
+             final float clipWidth = getWidth() - clipRightPadding;
+             final float layerWidth = getWidth(); // - clipRightPadding;

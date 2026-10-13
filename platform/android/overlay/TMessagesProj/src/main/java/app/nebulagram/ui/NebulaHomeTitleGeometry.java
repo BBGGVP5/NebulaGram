@@ -46,14 +46,15 @@ public final class NebulaHomeTitleGeometry {
         return p * p * (3f - 2f * p);
     }
 
-    /** Gather full rings below the toolbar before raising them into the title slot. */
+    /** The horizontal slot settles early; vertical movement has no separate phase seam. */
     public static float gather(float progress) { return smooth(progress / .6f); }
-    public static float lift(float progress) { return smooth((progress - .6f) / .4f); }
+    public static float lift(float progress) {
+        float p = Math.max(0f, Math.min(1f, progress));
+        // Keep large rings below the controls until they fit the horizontal slot.
+        return smooth(p * p);
+    }
 
-    public static float avatarCenterY(float expandedCenter, float toolbarBottom,
-                                       float toolbarCenter, float ringRadius, float gap, float progress) {
-        float gatheredCenter = toolbarBottom + ringRadius + gap;
-        float center = expandedCenter + (gatheredCenter - expandedCenter) * gather(progress);
-        return center + (toolbarCenter - center) * lift(progress);
+    public static float avatarCenterY(float expandedCenter, float toolbarCenter, float progress) {
+        return expandedCenter + (toolbarCenter - expandedCenter) * lift(progress);
     }
 }

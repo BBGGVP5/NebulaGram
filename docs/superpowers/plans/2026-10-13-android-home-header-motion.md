@@ -39,9 +39,18 @@ The native `topPanel` provider still supplies a light shadow in dark mode (`0x04
 - [x] Prepare the verified 1000510 native baseline in `build/android-home-contours-20261013` without changing vendor.
 - [x] Add `topPanelButtons(resourcesProvider)` delegating to a private `topPanel(resourcesProvider, true)` builder. The existing `topPanel(resourcesProvider)` delegates with false. Set stroke/shadow colors and widths to zero only for the buttons variant.
 - [x] Pass `BlurredBackgroundProviderImpl.topPanelButtons(resourceProvider)` to the home `DialogsActivity.setupGlass` call.
-- [ ] Execute the production provider and builder in both themes and blur settings; assert transparent contours, identical fill, and unchanged ordinary provider. Run existing header checks and the final APK build.
+- [x] Execute the production provider and builder in both themes and blur settings; assert transparent contours, identical fill, and unchanged ordinary provider. Run existing header checks and the contour APK build (38355079181 / 1000512 succeeds at b0e8a687; final motion follow-up below).
 - [ ] Apply the user's specific motion correction once clarified and test that transition before building the final combined follow-up.
 
 The production provider methods and production builder/interfaces pass 1,000 live theme/blur/density states through `scripts/check-home-button-contours.py`. Fill matches the ordinary provider, the home contour colors/widths remain zero, and ordinary header strokes/shadows stay unchanged. This is provider/draw-path evidence, not physical screenshot acceptance.
 
 All 198 ordered patches apply in `build/android-home-contours-12106-20261013`, with the dirty vendor checkout preserved. All 105 Android interface/regression commands pass locally (native account-slot execution is syntax-only locally and executable in Linux CI). The user's next video link displays an upload-error deletion page; no frames from that replacement have been seen. A pending text question requests a local original path. The trajectory remains unchanged in this contour correction because the user identified another, as yet unspecified motion issue.
+
+The next recording is valid: 22,264,574 bytes, SHA-256 `e15b4b9b51deb291f15c43093ef226f0dd9d8b472ae813d128776df9704ebdf0`, 1008×2244, 12.71 seconds. Dense crops show the detached stack below the title on expansion and the bottom of the rings sliced on repeated gestures (around 6.65–7.0 seconds). The native right-menu `saveLayer` / rectangular clip still limits drawing to the moving story view's 81 dp height. The earlier ring safety test did not cover this remaining layer.
+
+- [x] Preserve the horizontal gathering and shared title slot, replace the piecewise vertical stop with a continuous reversible path whose endpoints match both native renderers.
+- [x] Bypass the old right-menu layer in the home header, where the safe reserved slot already limits the selected rings. Keep the classic mask and its fade unchanged.
+- [x] Test the continuous path with native row geometry, overscroll, narrow toolbars and both endpoint renderers; execute the actual mask condition with moving view bounds.
+- [ ] Run all interface checks and a combined final APK build; record artifact verification separately from physical device acceptance.
+
+Patch 0204 and the overlay helper apply after the preceding 198 patches in `build/android-home-motion-video-final-12106-20261013`. All 105 interface checks pass; the strengthened motion check passes again after correcting its landscape/overscroll fixture to use native Edit bounds (8..76 dp, 44 dp height) and the row's `storiesOverscroll/2` offset. It covers 716,320 full-ring poses for 48/56 dp toolbars and 84 frames extending outside the old moving layer. The vertical fraction is `smooth(progress²)`, with no threshold or intermediate stop; horizontal gathering is unchanged. No Android device appears in `adb devices`.
