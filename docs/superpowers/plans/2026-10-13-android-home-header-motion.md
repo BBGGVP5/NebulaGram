@@ -4,7 +4,7 @@
 
 **Goal:** Remove outlines from home buttons and make title/story motion share the same scroll frame, with smooth reversals and no delayed title position.
 
-**Architecture:** Add ordered patch 0202 over the verified 12.10.6 / patch 0201 sources in an owned fixture. Keep native story artwork, selection and menus. One reversible scroll fraction drives two smooth phases: shrink/gather full rings below the toolbar, then raise the complete stack into its reserved title slot. The classic header retains its existing animation. Use fractional coordinates for the shared slot and publish its state before drawing instead of from the story draw pass.
+**Architecture:** Ordered patches 0202–0204 extend the verified 12.10.6 / patch 0201 sources in owned fixtures. Keep native story artwork, selection and menus. One reversible scroll fraction drives horizontal gathering and a continuous vertical curve into the reserved title slot. The home material has transparent strokes/shadows and bypasses the old moving-view mask. The classic header retains its existing animation and mask. Use fractional coordinates for the shared slot and publish its state before drawing instead of from the story draw pass.
 
 **Stack:** Java ActionBar / DialogsActivity / DialogStoriesCell, geometry helper, executable native-method fixtures, full Android APK CI.
 
@@ -40,7 +40,7 @@ The native `topPanel` provider still supplies a light shadow in dark mode (`0x04
 - [x] Add `topPanelButtons(resourcesProvider)` delegating to a private `topPanel(resourcesProvider, true)` builder. The existing `topPanel(resourcesProvider)` delegates with false. Set stroke/shadow colors and widths to zero only for the buttons variant.
 - [x] Pass `BlurredBackgroundProviderImpl.topPanelButtons(resourceProvider)` to the home `DialogsActivity.setupGlass` call.
 - [x] Execute the production provider and builder in both themes and blur settings; assert transparent contours, identical fill, and unchanged ordinary provider. Run existing header checks and the contour APK build (38355079181 / 1000512 succeeds at b0e8a687; final motion follow-up below).
-- [ ] Apply the user's specific motion correction once clarified and test that transition before building the final combined follow-up.
+- [x] Apply the user's specific motion correction from the valid recording and test that transition before building the final combined follow-up.
 
 The production provider methods and production builder/interfaces pass 1,000 live theme/blur/density states through `scripts/check-home-button-contours.py`. Fill matches the ordinary provider, the home contour colors/widths remain zero, and ordinary header strokes/shadows stay unchanged. This is provider/draw-path evidence, not physical screenshot acceptance.
 
@@ -51,6 +51,8 @@ The next recording is valid: 22,264,574 bytes, SHA-256 `e15b4b9b51deb291f15c4309
 - [x] Preserve the horizontal gathering and shared title slot, replace the piecewise vertical stop with a continuous reversible path whose endpoints match both native renderers.
 - [x] Bypass the old right-menu layer in the home header, where the safe reserved slot already limits the selected rings. Keep the classic mask and its fade unchanged.
 - [x] Test the continuous path with native row geometry, overscroll, narrow toolbars and both endpoint renderers; execute the actual mask condition with moving view bounds.
-- [ ] Run all interface checks and a combined final APK build; record artifact verification separately from physical device acceptance.
+- [x] Run all interface checks and a combined final APK build; record artifact verification separately from physical device acceptance.
 
 Patch 0204 and the overlay helper apply after the preceding 198 patches in `build/android-home-motion-video-final-12106-20261013`. All 105 interface checks pass; the strengthened motion check passes again after correcting its landscape/overscroll fixture to use native Edit bounds (8..76 dp, 44 dp height) and the row's `storiesOverscroll/2` offset. It covers 716,320 full-ring poses for 48/56 dp toolbars and 84 frames extending outside the old moving layer. The vertical fraction is `smooth(progress²)`, with no threshold or intermediate stop; horizontal gathering is unchanged. No Android device appears in `adb devices`.
+
+Combined delivery: Android run **38358678000**, APK **1000513**, source **afdf120faa6629c504fca1ca00f6554adb60bf4d**, succeeds including all 105 interface checks and the full app/native build. Settings contract **38358678210** succeeds at the same revision. Downloaded APK: `build/artifact-38358678000/NebulaGram-1.0.0-TG-12.10.6-b1000513-arm64-v8a.apk`, **60,065,653 bytes**, SHA-256 **34654834413ea226da9490ac00b32ccaf0cbacf577a99bf4476863fc8d6dfb0f**. Verified package `app.nebulagram.messenger`, version 1.0.0 / code 1000513, arm64 Telegram/NebulaLink libraries, expected certificate `a08d7dc323ddf71ef3201944397e0d3cce7d40847263e11f328b68bbe19229ab`, ZIP integrity and toolbar/voice/chat runtime markers. Receipt: `verified-apk.json` in the artifact directory. No physical device acceptance is claimed. The optional blue active-folder outline is separate from the corrected automatic home-header contour.
