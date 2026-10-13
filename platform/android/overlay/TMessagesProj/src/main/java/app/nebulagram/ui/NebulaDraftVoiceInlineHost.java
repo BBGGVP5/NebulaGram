@@ -27,7 +27,7 @@ public final class NebulaDraftVoiceInlineHost implements NebulaDraftVoiceTranscr
         if(panel!=null)hide();
         panel=new FrameLayout(anchor.getContext()) {
             @Override protected void onMeasure(int width,int height) {
-                int max=availableHeight>0?availableHeight:AndroidUtilities.dp(280);
+                int max=availableHeight>0?availableHeight:AndroidUtilities.dp(320);
                 super.onMeasure(width,MeasureSpec.makeMeasureSpec(max,MeasureSpec.AT_MOST));
             }
             @Override public boolean dispatchKeyEvent(KeyEvent event) {
@@ -48,7 +48,7 @@ public final class NebulaDraftVoiceInlineHost implements NebulaDraftVoiceTranscr
             parent.getLocationOnScreen(parentPosition);anchor.getLocationOnScreen(anchorPosition);
             Integer control=controlsTop.get();
             int top=Math.min(anchorPosition[1],control==null?anchorPosition[1]:control)-parentPosition[1];
-            int height=Math.max(AndroidUtilities.dp(64),Math.min(AndroidUtilities.dp(280),top-AndroidUtilities.dp(72)));
+            int height=Math.max(AndroidUtilities.dp(64),Math.min(AndroidUtilities.dp(320),top-AndroidUtilities.dp(72)));
             FrameLayout.LayoutParams layout=(FrameLayout.LayoutParams)panel.getLayoutParams();
             int bottom=Math.max(0,parent.getHeight()-top+AndroidUtilities.dp(8));
             if(layout.bottomMargin!=bottom||availableHeight!=height) {

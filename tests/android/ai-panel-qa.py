@@ -32,7 +32,7 @@ def build():
   public int onSurfaceVariant(){return dark?0xffaab4b8:0xff485158;}
  }'''
  stubs['app/nebulagram/ui/NebulaFormUi.java']='''package app.nebulagram.ui;public class NebulaFormUi {
-  public static android.widget.EditText field(android.content.Context c,String hint,int lines,int maximum){android.widget.EditText v=new android.widget.EditText(c);v.setHint(hint);v.setInputType(android.text.InputType.TYPE_CLASS_TEXT|android.text.InputType.TYPE_TEXT_FLAG_MULTI_LINE);v.setFilters(new android.text.InputFilter[]{new android.text.InputFilter.LengthFilter(maximum)});return v;}
+  public static android.widget.EditText field(android.content.Context c,String hint,int lines,int maximum){android.widget.EditText v=new android.widget.EditText(c);v.setTextColor(NebulaTheme.of(c).onSurface());v.setHintTextColor(NebulaTheme.of(c).onSurfaceVariant());v.setHint(hint);v.setInputType(android.text.InputType.TYPE_CLASS_TEXT|android.text.InputType.TYPE_TEXT_FLAG_MULTI_LINE);v.setFilters(new android.text.InputFilter[]{new android.text.InputFilter.LengthFilter(maximum)});return v;}
  }'''
  stubs['app/nebulagram/ui/NebulaAudioPreferences.java']='''package app.nebulagram.ui;public class NebulaAudioPreferences {
   public static android.content.SharedPreferences prefs(){return org.telegram.messenger.ApplicationLoader.applicationContext.getSharedPreferences("qa",0);}
@@ -68,7 +68,7 @@ public class MainActivity extends Activity {
    if(getIntent().getBooleanExtra("keyboard",false))root.postDelayed(()->{EditText edit=findEditor(root);if(edit!=null){edit.requestFocus();((android.view.inputmethod.InputMethodManager)getSystemService(INPUT_METHOD_SERVICE)).showSoftInput(edit,0);}},600);
    root.postDelayed(()->{try{
     org.json.JSONObject report=new org.json.JSONObject();EditText edit=findEditor(root);report.put("editorWidth",edit==null?0:edit.getWidth());report.put("editorHeight",edit==null?0:edit.getHeight());
-    report.put("scale",getResources().getConfiguration().fontScale);report.put("dark",NebulaTheme.dark);report.put("keyboardRequested",getIntent().getBooleanExtra("keyboard",false));
+    report.put("scale",getResources().getConfiguration().fontScale);report.put("dark",NebulaTheme.dark);report.put("keyboardRequested",getIntent().getBooleanExtra("keyboard",false));report.put("case",getIntent().getStringExtra("case"));
     java.io.FileOutputStream out=openFileOutput("layout.json",0);out.write(report.toString().getBytes(java.nio.charset.StandardCharsets.UTF_8));out.close();
    }catch(Exception e){throw new RuntimeException(e);}},1400);
   });
@@ -102,11 +102,23 @@ def render():
  output=WORK/'screenshots';output.mkdir(exist_ok=True)
  try:
   for name,width,dark,scale,keyboard in [('dark',1080,True,1,False),('light',1080,False,1,False),('narrow-large',840,True,1.3,False),('keyboard',1080,True,1,True)]:
-   device('shell','wm','size',f'{width}x1920');device('shell','wm','density','420');device('shell','settings','put','system','font_scale',str(scale))
-   device('shell','am','force-stop','app.nebulagram.uiqa');device('shell','am','start','-n','app.nebulagram.uiqa/.MainActivity','--ez','dark',str(dark).lower(),'--ez','keyboard',str(keyboard).lower())
-   time.sleep(3)
+   device('shell','am','force-stop','app.nebulagram.uiqa')
+   device('shell','wm','size',f'{width}x1920');device('shell','wm','density','420');device('shell','settings','put','system','font_scale',str(scale));time.sleep(3)
+   device('shell','input','keyevent','KEYCODE_WAKEUP');device('shell','wm','dismiss-keyguard')
+   device('shell','am','start','-W','-n','app.nebulagram.uiqa/.MainActivity','--es','case',name,'--ez','dark',str(dark).lower(),'--ez','keyboard',str(keyboard).lower())
+   report=None
+   for attempt in range(15):
+    time.sleep(1)
+    try:report=json.loads(subprocess.check_output([str(adb),'-s',serials[0],'shell','run-as','app.nebulagram.uiqa','cat','files/layout.json'],stderr=subprocess.DEVNULL))
+    except (ValueError,subprocess.CalledProcessError):continue
+    if report.get('case')==name and abs(report['scale']-scale)<0.01 and report['dark']==dark and report['keyboardRequested']==keyboard:break
+   assert report and report.get('case')==name and abs(report['scale']-scale)<0.01 and report['dark']==dark and report['keyboardRequested']==keyboard,report
+   foreground=subprocess.check_output([str(adb),'-s',serials[0],'shell','dumpsys','activity','activities'],text=True)
+   resumed=[line for line in foreground.splitlines() if 'mResumedActivity:' in line or 'topResumedActivity=' in line]
+   assert any('app.nebulagram.uiqa/.MainActivity' in line for line in resumed),resumed
+   if keyboard:
+    device('shell','input','tap',str(width//2),'1300');time.sleep(2)
    with (output/(name+'.png')).open('wb') as f:device('exec-out','screencap','-p',stdout=f)
-   report=json.loads(subprocess.check_output([str(adb),'-s',serials[0],'shell','run-as','app.nebulagram.uiqa','cat','files/layout.json']))
    assert report['editorWidth']>0 and report['editorHeight']>0,report
    (output/(name+'.json')).write_text(json.dumps(report,indent=2)+'\n')
   crash=subprocess.check_output([str(adb),'-s',serials[0],'logcat','-d','-b','crash'],text=True)

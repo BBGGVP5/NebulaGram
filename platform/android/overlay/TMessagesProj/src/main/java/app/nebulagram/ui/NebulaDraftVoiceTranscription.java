@@ -70,11 +70,13 @@ public final class NebulaDraftVoiceTranscription {
         body.addView(header);
         TextView voice=NebulaAiPanelUi.button(context,NebulaText.text("Голосовое","Voice"),false,v->{textSelected=false;cancel();});
         TextView text=NebulaAiPanelUi.button(context,NebulaText.text("Текст","Text"),true,v->{textSelected=true;transcript.requestFocus();});
+        text.setSelected(true);
         NebulaAiPanelUi.add(body,NebulaAiPanelUi.actions(context,voice,text),10);
         transcript=NebulaAiPanelUi.editor(context,NebulaText.text("Здесь появится текст записи","The transcript appears here"),3);
         transcript.setMaxLines(inline==null?8:4);transcript.setText(cached==null?"":cached);
+        if(inline!=null) { transcript.setHeight(NebulaAiPanelUi.dp(96));transcript.setVerticalScrollBarEnabled(true); }
         NebulaAiPanelUi.add(body,transcript,10);
-        status=NebulaAiPanelUi.caption(context,changed?NebulaText.text("Запись или сервис изменились. Распознайте заново.","The recording or service changed. Transcribe again."):"");
+        status=NebulaAiPanelUi.caption(context,changed?NebulaText.text("Запись или сервис изменились. Распознайте заново.","The recording or service changed. Transcribe again."):cached!=null?NebulaText.text("Проверьте текст перед отправкой","Review the text before sending"):"");
         status.setAccessibilityLiveRegion(View.ACCESSIBILITY_LIVE_REGION_POLITE);
         retry=NebulaAiPanelUi.button(context,NebulaText.text("Распознать","Transcribe"),false,v->start());
         retry.setTextSize(13);
