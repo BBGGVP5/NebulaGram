@@ -72,6 +72,7 @@ public final class NebulaMessageToolsController: UIViewController {
             stack.bottomAnchor.constraint(equalTo: scroll.contentLayoutGuide.bottomAnchor, constant: -16),
             stack.widthAnchor.constraint(equalTo: scroll.frameLayoutGuide.widthAnchor, constant: -32)
         ])
+        stack.addArrangedSubview(NebulaAiPanelHeader(kind: .chat, title: "Nebula AI", detail: text("Инструменты сообщения", "Message tools"), theme: theme))
         let original = UILabel()
         original.font = .preferredFont(forTextStyle: .body)
         original.adjustsFontForContentSizeCategory = true
@@ -93,7 +94,7 @@ public final class NebulaMessageToolsController: UIViewController {
             button.tag = index
             button.setTitle(title, for: .normal)
             button.setImage(UIImage(systemName: symbols[index]), for: .normal)
-            button.backgroundColor = .clear
+            button.backgroundColor = theme.list.itemBlocksBackgroundColor
             button.tintColor = theme.list.itemAccentColor
             button.setTitleColor(theme.list.itemPrimaryTextColor, for: .normal)
             button.addTarget(self, action: #selector(performTool(_:)), for: .touchUpInside)

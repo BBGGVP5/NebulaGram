@@ -145,7 +145,8 @@ public final class NebulaAiChatController: UIViewController, UITextViewDelegate 
             chevron.trailingAnchor.constraint(equalTo: modelButton.trailingAnchor, constant: -4), chevron.centerYAnchor.constraint(equalTo: modelButton.centerYAnchor), chevron.widthAnchor.constraint(equalToConstant: 12), chevron.heightAnchor.constraint(equalToConstant: 12), modelButton.heightAnchor.constraint(greaterThanOrEqualToConstant: 44)])
         chatActions.addArrangedSubview(modelButton)
         let freshButton = UIButton(type: .system)
-        freshButton.setImage(UIImage(systemName: "square.and.pencil"), for: .normal); freshButton.accessibilityLabel = text("Новый чат", "New chat")
+        freshButton.setImage(UIImage(systemName: "plus.bubble"), for: .normal); freshButton.accessibilityLabel = text("Новый чат", "New chat")
+        NebulaAiPanelUi.button(chatsButton, theme: theme); NebulaAiPanelUi.button(freshButton, theme: theme)
         freshButton.addTarget(self, action: #selector(newChat), for: .touchUpInside)
         freshButton.heightAnchor.constraint(greaterThanOrEqualToConstant: 44).isActive = true
         freshButton.widthAnchor.constraint(equalToConstant: 44).isActive = true
@@ -175,7 +176,7 @@ public final class NebulaAiChatController: UIViewController, UITextViewDelegate 
         let input = UIStackView(); input.axis = .horizontal; input.alignment = .bottom; input.spacing = 8
         input.isLayoutMarginsRelativeArrangement = true; input.layoutMargins = UIEdgeInsets(top: 6, left: 12, bottom: 6, right: 6)
         input.backgroundColor = theme?.list.itemBlocksBackgroundColor ?? .secondarySystemBackground; input.layer.cornerRadius = 26
-        input.layer.borderWidth = 1; input.layer.borderColor = (theme?.list.itemSecondaryTextColor ?? .secondaryLabel).withAlphaComponent(0.14).cgColor
+        input.layer.borderWidth = 0
         setupText(composer); composer.isEditable = true; composer.isScrollEnabled = true
         composer.delegate = self; composer.text = initial; composer.accessibilityLabel = text("Сообщение для ИИ", "Message to AI")
         composerHeight = composer.heightAnchor.constraint(equalToConstant: 44); composerHeight.isActive = true

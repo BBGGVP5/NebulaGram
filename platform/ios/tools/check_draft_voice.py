@@ -9,15 +9,19 @@ def check(preview: str, work: Path, execute: bool) -> None:
     assert 'import AccountContext' in preview, 'text-draft type belongs to AccountContext'
     build = work / 'submodules/TelegramUI/Components/Chat/ChatRecordingPreviewInputPanelNode/BUILD'
     assert '"//submodules/AccountContext"' in build.read_text(encoding='utf-8')
-    assert 'presentNebulaDraftVoice(' in preview and 'forControlEvents: .touchUpInside' in preview
+    assert 'makeNebulaDraftVoicePreview(' in preview and 'forControlEvents: .touchUpInside' in preview
     assert 'self.nebulaDraftGeneration == token' in preview and 'self.view.window != nil' in preview
-    assert 'self.interfaceInteraction?.deleteRecordedMedia()' in preview
-    assert preview.index('deleteRecordedMedia()', preview.index('}, apply:')) < preview.index('updateTextInputStateAndMode', preview.index('}, apply:'))
+    aa = preview[preview.index('@objc private func nebulaAaPressed()'):preview.index('    private var presentationInterfaceState:')]
+    assert 'deleteRecordedMedia()' not in aa and 'updateTextInputStateAndMode' not in aa
+    assert 'nebulaRecordedTextOwner = self' in aa and 'preview.selection()' in aa
+    assert 'self.nebulaInlinePreview === preview' in aa
     assert 'cached == nil && self.nebulaDraftTranscript != nil' in preview
     assert 'self.nebulaDraftFetch.dispose()' in preview
     if not execute:
-        print('OK: iOS Aa preview resource/owner/trim guards, explicit text choice and private file bridge', flush=True)
+        print('OK: inline iOS Aa preview keeps audio, validates owner/trim/service and feeds the common send action', flush=True)
         return
+    from check_recorded_send import check as check_recorded_send
+    check_recorded_send(work)
     work = work / 'draft-voice-audio'
     work.mkdir()
     contract = ROOT / 'platform/ios/NebulaSettingsContract/Sources/NebulaSettingsContract'

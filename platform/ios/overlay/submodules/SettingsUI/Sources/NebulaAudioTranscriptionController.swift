@@ -14,7 +14,7 @@ public final class NebulaAudioTranscriptionController: UITableViewController {
     private var task: Task<Void, Never>?, deadline: Foundation.Timer?
     private var busy = false, generation = 0, transcript = "", translated = "", language = "ru", status = ""
     private var transcriptLanguage = "en"
-    private lazy var hero = NebulaSettingsHero(symbol: "🎙️", title: text("Расшифровка", "Transcription"), summary: text("Голосовые и видеосообщения", "Voice and video messages"), context: context, theme: theme)
+    private lazy var hero = NebulaAiPanelHeader(kind: .voice, title: text("Распознавание речи", "Speech recognition"), detail: text("Голосовые и видеосообщения", "Voice and video messages"), theme: theme)
     public nonisolated static func eligibleFile(_ message: Message) -> TelegramMediaFile? {
         guard message.id.namespace == Namespaces.Message.Cloud, message.id.id > 0,
               message.id.peerId.namespace != Namespaces.Peer.SecretChat,
@@ -37,11 +37,11 @@ public final class NebulaAudioTranscriptionController: UITableViewController {
         navigationItem.leftBarButtonItem = UIBarButtonItem(barButtonSystemItem: .close, target: self, action: #selector(close))
         NotificationCenter.default.addObserver(self, selector: #selector(cancel), name: UIApplication.didEnterBackgroundNotification, object: nil)
     }
-    public override func viewDidLayoutSubviews() { super.viewDidLayoutSubviews(); hero.fit(in: tableView) }
+    public override func viewDidLayoutSubviews() { super.viewDidLayoutSubviews(); hero.setBusy(busy); hero.fit(in: tableView) }
     public override func viewWillAppear(_ animated: Bool) { super.viewWillAppear(animated); hero.setPageVisible(true) }
     public override func viewWillDisappear(_ animated: Bool) { super.viewWillDisappear(animated); hero.setPageVisible(false); cancel() }
     public override func numberOfSections(in tableView: UITableView) -> Int { transcript.isEmpty ? 1 : 2 }
-    public override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int { section == 0 ? 2 : 7 }
+    public override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int { 2 }
     public override func tableView(_ tableView: UITableView, titleForFooterInSection section: Int) -> String? {
         guard section == 0 else { return nil }
         let settings = NebulaAudioPreferences.shared
@@ -59,9 +59,23 @@ public final class NebulaAudioTranscriptionController: UITableViewController {
         if indexPath.section == 0 {
             cell.textLabel?.text = indexPath.row == 1 ? text("Аудио и голоса", "Audio & voices") : busy ? text("Отменить расшифровку", "Cancel transcription") : text("Расшифровать", "Transcribe")
             cell.textLabel?.textColor = theme.list.itemAccentColor
+            if indexPath.row == 0 {
+                cell.backgroundColor = theme.list.itemAccentColor
+                cell.textLabel?.textColor = theme.list.itemCheckColors.foregroundColor
+                cell.textLabel?.font = .preferredFont(forTextStyle: .headline)
+            } else { cell.accessoryType = .disclosureIndicator }
         } else if indexPath.row > 0 {
-            cell.textLabel?.text = ["", text("Копировать результат", "Copy result"), text("Перевести расшифровку", "Translate transcript"), text("Озвучить результат", "Read result aloud"), text("Язык результата", "Result language") + " · " + language, text("Исходная расшифровка", "Original transcript"), text("Краткое содержание", "Summary")][indexPath.row]
-            cell.textLabel?.textColor = theme.list.itemAccentColor
+            cell.selectionStyle = .none
+            let titles = [text("Оригинал", "Original"), text("Перевести", "Translate"), text("Сократить", "Summarize"), text("Озвучить", "Read aloud"), text("Копировать", "Copy"), text("Язык", "Language") + " · " + language]
+            let symbols = ["waveform", "character.bubble", "text.alignleft", "speaker.wave.2", "doc.on.doc", "globe"]
+            let tags = [5, 2, 6, 3, 1, 4]
+            let buttons = titles.enumerated().map { index, title -> UIButton in
+                let button = UIButton(type: .system); button.setTitle(title, for: .normal); button.setImage(UIImage(systemName: symbols[index]), for: .normal)
+                button.tag = tags[index]; NebulaAiPanelUi.button(button, theme: theme); button.isEnabled = !busy
+                button.addTarget(self, action: #selector(resultAction(_:)), for: .touchUpInside); return button
+            }
+            let grid = NebulaActionGrid(buttons: buttons); grid.translatesAutoresizingMaskIntoConstraints = false; cell.contentView.addSubview(grid)
+            NSLayoutConstraint.activate([grid.leadingAnchor.constraint(equalTo: cell.contentView.leadingAnchor, constant: 12), grid.trailingAnchor.constraint(equalTo: cell.contentView.trailingAnchor, constant: -12), grid.topAnchor.constraint(equalTo: cell.contentView.topAnchor, constant: 8), grid.bottomAnchor.constraint(equalTo: cell.contentView.bottomAnchor, constant: -8)])
         } else {
             cell.selectionStyle = .none
             let view = UITextView(); view.isEditable = false; view.isSelectable = true; view.text = translated.isEmpty ? transcript : translated
@@ -71,6 +85,10 @@ public final class NebulaAudioTranscriptionController: UITableViewController {
             NSLayoutConstraint.activate([view.leadingAnchor.constraint(equalTo: cell.contentView.leadingAnchor, constant: 12), view.trailingAnchor.constraint(equalTo: cell.contentView.trailingAnchor, constant: -12), view.topAnchor.constraint(equalTo: cell.contentView.topAnchor, constant: 8), view.bottomAnchor.constraint(equalTo: cell.contentView.bottomAnchor, constant: -8), view.heightAnchor.constraint(equalToConstant: min(340, max(180, self.view.bounds.height * 0.4)))])
         }
         return cell
+    }
+    @objc private func resultAction(_ button: UIButton) {
+        guard !busy else { return }
+        self.tableView(tableView, didSelectRowAt: IndexPath(row: button.tag, section: 1))
     }
     public override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)

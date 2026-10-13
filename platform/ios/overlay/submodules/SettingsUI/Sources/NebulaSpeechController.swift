@@ -16,7 +16,7 @@ final class NebulaSpeechController: UITableViewController, UITextViewDelegate {
     private var ownsAudioSession = false
     private var task: Task<Void, Never>?, generation = 0, busy = false, visible = false
     private var status = "", audio: URL?, audioText = ""
-    private lazy var hero = NebulaSettingsHero(symbol: "🔊", title: text("Озвучивание", "Speech"), summary: text("Выберите голос и послушайте результат", "Choose a voice and listen to the result"), context: context, theme: theme)
+    private lazy var hero = NebulaAiPanelHeader(kind: .speech, title: text("Текст в голос", "Text to speech"), detail: text("Выберите голос и послушайте результат", "Choose a voice and listen to the result"), theme: theme)
     init(text: String, language: String, russian: Bool, theme: PresentationTheme?, context: AccountContext? = nil) {
         self.source = text; self.language = language; self.ru = russian; self.theme = theme; self.context = context
         super.init(style: .insetGrouped); title = self.text("Озвучивание", "Speech")
@@ -25,12 +25,12 @@ final class NebulaSpeechController: UITableViewController, UITextViewDelegate {
     private func text(_ ru: String, _ en: String) -> String { self.ru ? ru : en }
     override func viewDidLoad() {
         super.viewDidLoad(); NebulaSettingsStyle.apply(theme: theme, to: self); tableView.rowHeight = UITableView.automaticDimension; tableView.estimatedRowHeight = 64
-        input.text = source; input.delegate = self; input.font = .preferredFont(forTextStyle: .body); input.adjustsFontForContentSizeCategory = true; input.backgroundColor = .clear; input.textColor = theme?.list.itemPrimaryTextColor ?? .label; input.heightAnchor.constraint(equalToConstant: 180).isActive = true
+        input.text = source; input.delegate = self; NebulaAiPanelUi.editor(input, theme: theme); input.heightAnchor.constraint(equalToConstant: 160).isActive = true
         NotificationCenter.default.addObserver(self, selector: #selector(stop), name: UIApplication.willResignActiveNotification, object: nil)
     }
     override func viewWillAppear(_ animated: Bool) { super.viewWillAppear(animated); visible = true; hero.setPageVisible(true); tableView.reloadData() }
     override func viewWillDisappear(_ animated: Bool) { super.viewWillDisappear(animated); visible = false; hero.setPageVisible(false); stop() }
-    override func viewDidLayoutSubviews() { super.viewDidLayoutSubviews(); hero.fit(in: tableView) }
+    override func viewDidLayoutSubviews() { super.viewDidLayoutSubviews(); hero.setBusy(busy); hero.fit(in: tableView) }
     override func numberOfSections(in tableView: UITableView) -> Int { 3 }
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int { [1, 3, audio == nil ? 2 : 4][section] }
     override func tableView(_ tableView: UITableView, titleForFooterInSection section: Int) -> String? {

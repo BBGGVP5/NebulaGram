@@ -26,6 +26,7 @@ public final class NebulaAiEditorController: UIViewController {
     private let caption = UILabel()
     private let primary = UIButton(type: .system)
     private let reset = UIButton(type: .system)
+    private lazy var header = NebulaAiPanelHeader(kind: .chat, title: text("Работа с текстом", "Text tools"), detail: text("Перевод, стиль и исправление", "Translation, style and corrections"), theme: theme)
     private var styleButtons: [UIButton] = []
     public init(source: NSAttributedString, russian: Bool, theme: PresentationTheme, account: String, peer: String? = nil, action: NebulaAiAction = .translate, resultLanguage: String? = nil, apply: ((NSAttributedString) -> Void)? = nil) {
         self.source = NSAttributedString(attributedString: source); ru = russian; self.theme = theme; self.account = account; self.peer = peer; self.apply = apply
@@ -55,7 +56,7 @@ public final class NebulaAiEditorController: UIViewController {
         primary.titleLabel?.font = .preferredFont(forTextStyle: .headline); primary.titleLabel?.adjustsFontForContentSizeCategory = true
         primary.titleLabel?.numberOfLines = 2; primary.backgroundColor = theme.list.itemAccentColor
         primary.setTitleColor(theme.list.itemCheckColors.foregroundColor, for: .normal); primary.layer.cornerRadius = 24
-        primary.contentEdgeInsets = UIEdgeInsets(top: 16, left: 20, bottom: 16, right: 20)
+        NebulaAiPanelUi.button(primary, theme: theme, primary: true)
         primary.addTarget(self, action: #selector(run), for: .touchUpInside)
         NSLayoutConstraint.activate([
             primary.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 16), primary.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -16), primary.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -16), primary.heightAnchor.constraint(greaterThanOrEqualToConstant: 52),
@@ -64,6 +65,7 @@ public final class NebulaAiEditorController: UIViewController {
         ])
         let segments = NebulaEditorSegments(titles: [text("Перевод", "Translate"), text("Стили", "Styles"), text("Исправить", "Correct")], accent: theme.list.itemAccentColor, selected: mode)
         segments.changed = { [weak self] value in self?.mode = value; self?.resetResult(); self?.refresh(animated: true) }; stack.addArrangedSubview(segments)
+        stack.insertArrangedSubview(header, at: 0)
         languageButton.titleLabel?.font = .preferredFont(forTextStyle: .body); languageButton.titleLabel?.adjustsFontForContentSizeCategory = true
         languageButton.heightAnchor.constraint(greaterThanOrEqualToConstant: 44).isActive = true
         languageButton.addTarget(self, action: #selector(chooseLanguage), for: .touchUpInside); stack.addArrangedSubview(languageButton)
@@ -91,6 +93,7 @@ public final class NebulaAiEditorController: UIViewController {
     }
     private func refresh(animated: Bool) {
         let update = {
+            self.header.setBusy(self.work != nil)
             self.languageButton.isHidden = self.mode != 0; self.styleScroll.isHidden = self.mode != 1
             self.languageButton.setTitle(NebulaResultLanguage.title(self.language, russian: self.ru) + "  ›", for: .normal)
             self.caption.text = self.result == nil ? self.text("Оригинал", "Original") : self.text("Результат", "Result")

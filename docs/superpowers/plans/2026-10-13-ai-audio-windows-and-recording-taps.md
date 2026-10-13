@@ -45,11 +45,12 @@ if (recordingAudioVideo || recordCircle.isSendButtonVisible()) {
 
 ## Verification and delivery
 
-- [ ] Upgrade published iOS native sources from 12.9.2 (`6ad963e5b62d354da79040f388ae2b9132fb17b8`) to 13.0 (`f1dd7a2dbd02cbbf513e75d5695d8d36d1cf5838`), rebase the 103 current native patches, and update the Xcode preflight from 26.2 to 26.6. The official runner image includes Xcode 26.6. Preserve the user's Android vendor checkout. Android master remains 12.10.6 / `f2908b14133bbffbf7ab04f641ecb5bfaf533242`; dev/dev2 are older sources, and 13.0.3 beta sources are not published there.
-- [ ] Port the inline draft preview and shared modern AI/audio presentation to iOS native preview/SettingsUI controllers. Preserve account/draft/trim ownership, editable results, voice choice and native sending.
+- [x] Upgrade the published iOS pin to 13.0 (`f1dd7a2dbd02cbbf513e75d5695d8d36d1cf5838`), rebase all 103 patches, and update Xcode to 26.6 and the exact rules_apple build pin. Ordered patch/bootstrap checks pass locally and on GitHub; native integration compilation is running. Android master remains 12.10.6 / `f2908b14133bbffbf7ab04f641ecb5bfaf533242`; 13.0.3 beta sources are not published there.
+- [x] Implement the iOS inline preview, common native payment/scheduling/send action and compact AI/audio presentation. Preserve draft/trim/account/service ownership, reviewed text, original voice and native message transforms. Native compilation and device acceptance remain pending.
 
 - [ ] Apply the complete ordered patch series to the committed 12.10.6 pin in a fresh owned tree; verify vendor HEAD/status are preserved.
 - [ ] Render the production new views in a QA activity on a read-only emulator: light/dark, narrow/normal width, larger font, loading/error/result and keyboard-visible states. Inspect saved screenshots and fix clipping/spacing. Label this separately from real-device ASR acceptance.
 - [x] All 106 Android interface/regression checks pass against the owned pinned tree; native C++ account slots were syntax-checked locally and remain runtime-tested in Linux CI.
-- [ ] Commit only task paths and push the already authorized main/working branch.
-- [ ] Build the signed APK, download it and verify its source revision, version, certificate, ABI and integrity before delivery. Record physical device availability honestly.
+- [x] Android and iOS source upgrade are committed and pushed to main/working branch.
+- [x] Signed APK 1000516, run 38397138020, downloaded and verified: source 98d6d76759adc6b5464ed748e4ba8eb84606d146, certificate a08d7dc323ddf71ef3201944397e0d3cce7d40847263e11f328b68bbe19229ab, arm64-v8a, SHA256 6c23db2a960c394f18d9b3b587ff70aaed91cacd550108b183e8595452987761. No physical device test; the read-only emulator did not boot.
+- [ ] Run the actual new iOS recording-send callback fixture, UIKit/native compilation and full unsigned IPA build; inspect and repair any compiler failures before claiming success.
