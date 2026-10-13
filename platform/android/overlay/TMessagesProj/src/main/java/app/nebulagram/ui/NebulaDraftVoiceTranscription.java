@@ -71,7 +71,8 @@ public final class NebulaDraftVoiceTranscription {
         TextView voice=NebulaAiPanelUi.button(context,NebulaText.text("Голосовое","Voice"),false,v->{textSelected=false;cancel();});
         TextView text=NebulaAiPanelUi.button(context,NebulaText.text("Текст","Text"),true,v->{textSelected=true;transcript.requestFocus();});
         text.setSelected(true);
-        NebulaAiPanelUi.add(body,NebulaAiPanelUi.actions(context,voice,text),10);
+        LinearLayout choices=NebulaAiPanelUi.actions(context,voice,text);
+        NebulaAiPanelUi.add(body,choices,10);
         transcript=NebulaAiPanelUi.editor(context,NebulaText.text("Здесь появится текст записи","The transcript appears here"),3);
         transcript.setMaxLines(inline==null?8:4);transcript.setText(cached==null?"":cached);
         if(inline!=null) { transcript.setHeight(NebulaAiPanelUi.dp(96));transcript.setVerticalScrollBarEnabled(true); }
@@ -95,7 +96,20 @@ public final class NebulaDraftVoiceTranscription {
             public void afterTextChanged(android.text.Editable e){}
         });
         if(inline!=null) {
-            if(inline instanceof NebulaDraftVoiceInlineHost)((NebulaDraftVoiceInlineHost)inline).onDismiss(this::cancel);
+            if(inline instanceof NebulaDraftVoiceInlineHost) {
+                NebulaDraftVoiceInlineHost recorder=(NebulaDraftVoiceInlineHost)inline;
+                recorder.onDismiss(this::cancel);
+                java.util.function.IntConsumer viewport=height->{
+                    if(closed)return;
+                    boolean compact=height<NebulaAiPanelUi.dp(240)&&transcript.hasFocus();
+                    header.setVisibility(compact?View.GONE:View.VISIBLE);footer.setVisibility(compact?View.GONE:View.VISIBLE);
+                    body.setPadding(NebulaAiPanelUi.dp(14),NebulaAiPanelUi.dp(compact?8:12),NebulaAiPanelUi.dp(14),NebulaAiPanelUi.dp(compact?8:12));
+                    LinearLayout.LayoutParams params=(LinearLayout.LayoutParams)choices.getLayoutParams();
+                    int margin=NebulaAiPanelUi.dp(compact?0:10);if(params.topMargin!=margin){params.topMargin=margin;choices.setLayoutParams(params);}
+                };
+                recorder.onHeightChanged(viewport);
+                transcript.setOnFocusChangeListener((v,focused)->viewport.accept(recorder.availableHeight()));
+            }
             inline.show(NebulaAiPanelUi.scroll(context,body));
         }
         else {

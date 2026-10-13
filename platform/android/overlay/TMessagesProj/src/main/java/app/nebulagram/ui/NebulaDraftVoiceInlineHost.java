@@ -6,6 +6,7 @@ import android.view.View;
 import android.view.ViewTreeObserver;
 import android.widget.FrameLayout;
 import java.util.function.Supplier;
+import java.util.function.IntConsumer;
 import org.telegram.messenger.AndroidUtilities;
 
 /** Places the editable transcript above the real recorder, following keyboard/inset changes. */
@@ -19,6 +20,9 @@ public final class NebulaDraftVoiceInlineHost implements NebulaDraftVoiceTranscr
     private ViewTreeObserver.OnPreDrawListener listener;
     private int availableHeight;
     private Runnable dismiss;
+    private IntConsumer viewport;
+    public int availableHeight() { return availableHeight; }
+    public void onHeightChanged(IntConsumer viewport) { this.viewport=viewport; }
     public NebulaDraftVoiceInlineHost(View anchor, FrameLayout parent, Supplier<Integer> controlsTop, Runnable closed) {
         this.anchor=anchor;this.parent=parent;this.controlsTop=controlsTop;this.closed=closed;
     }
@@ -39,6 +43,8 @@ public final class NebulaDraftVoiceInlineHost implements NebulaDraftVoiceTranscr
         };
         panel.setFocusableInTouchMode(true);
         panel.setElevation(AndroidUtilities.dp(4));
+        panel.setBackground(NebulaAiPanelUi.shape(NebulaTheme.of(anchor.getContext()).modalSurface(),24));
+        panel.setClipToOutline(true);
         panel.addView(content,new FrameLayout.LayoutParams(-1,-2));
         FrameLayout.LayoutParams lp=new FrameLayout.LayoutParams(-1,-2,Gravity.BOTTOM);
         lp.leftMargin=lp.rightMargin=AndroidUtilities.dp(12);
@@ -53,6 +59,7 @@ public final class NebulaDraftVoiceInlineHost implements NebulaDraftVoiceTranscr
             int bottom=Math.max(0,parent.getHeight()-top+AndroidUtilities.dp(8));
             if(layout.bottomMargin!=bottom||availableHeight!=height) {
                 availableHeight=height;layout.bottomMargin=bottom;panel.setLayoutParams(layout);
+                if(viewport!=null)viewport.accept(height);
             }
             return true;
         };
@@ -66,6 +73,7 @@ public final class NebulaDraftVoiceInlineHost implements NebulaDraftVoiceTranscr
     @Override public void hide() {
         if(listener!=null&&parent.getViewTreeObserver().isAlive())parent.getViewTreeObserver().removeOnPreDrawListener(listener);
         listener=null;
+        viewport=null;
         if(panel!=null) {
             View focused=panel.findFocus();if(focused!=null)AndroidUtilities.hideKeyboard(focused);
             panel.animate().cancel();parent.removeView(panel);panel=null;
