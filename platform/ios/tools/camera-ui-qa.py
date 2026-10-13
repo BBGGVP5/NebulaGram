@@ -4,7 +4,7 @@ Only the Telegram palette is adapted. This is UIKit widget QA, not camera,
 Telegram account, audio or physical iPhone acceptance.
 """
 from pathlib import Path
-import json, os, platform, plistlib, subprocess, time
+import json, os, platform, plistlib, shutil, subprocess, time
 
 ROOT = Path(__file__).resolve().parents[3]
 WORK = ROOT / 'build/ios-camera-widget-qa'
@@ -56,6 +56,7 @@ final class SceneDelegate:UIResponder,UIWindowSceneDelegate {
    if self.name.contains("large"){self.root.presentedViewController?.presentationController?.overrideTraitCollection=UITraitCollection(preferredContentSizeCategory:.extraExtraExtraLarge)}
    DispatchQueue.main.asyncAfter(deadline:.now()+2){self.report()}
   }
+  _ = Timer.scheduledTimer(timeInterval:0.2,target:self,selector:#selector(checkTrigger),userInfo:nil,repeats:true)
  }
  func presentCamera(){nebulaPresentRecordingCamera(from:root,russian:true,theme:theme){index in
   precondition(index==1,"Incorrect selected camera");self.calls+=1
@@ -83,32 +84,42 @@ final class SceneDelegate:UIResponder,UIWindowSceneDelegate {
        "frontSelected":front.isSelected,"rearSelected":rear.isSelected,"largeFont":large,
        "frontHeight":front.bounds.height,"rearHeight":rear.bounds.height,"panelHeight":controller.view.bounds.height])
  }
- func scene(_ scene:UIScene,openURLContexts contexts:Set<UIOpenURLContext>) {
-  guard contexts.contains(where:{$0.url.scheme=="nebulacameraqa"}),let controller=root.presentedViewController,
+ @objc func checkTrigger() {
+  let trigger=FileManager.default.urls(for:.documentDirectory,in:.userDomainMask)[0].appendingPathComponent("verify.trigger")
+  guard (try? String(contentsOf:trigger,encoding:.utf8))==name else{return}
+  try! FileManager.default.removeItem(at:trigger);verifyCallbacks()
+ }
+ func verifyCallbacks() {
+  save("callback-stage.json",["case":name,"stage":"start","hostInWindow":root.view.window != nil])
+  guard let controller=root.presentedViewController,
         let rear=find(controller.view,"nebula.camera.rear") as? UIControl else{fatalError("No camera to verify")}
   rear.sendActions(for:.touchUpInside);rear.sendActions(for:.touchUpInside)
-  DispatchQueue.main.asyncAfter(deadline:.now()+1){
-   precondition(self.calls==1 && self.root.presentedViewController==nil,"Duplicate choice or failed native dismissal")
+  waitForDismiss(stage:"choice",attempt:0){
    self.presentCamera()
    DispatchQueue.main.asyncAfter(deadline:.now()+1){
     guard let controller=self.root.presentedViewController,let close=self.find(controller.view,"nebula.camera.close") as? UIControl else{fatalError("No close control")}
     close.sendActions(for:.touchUpInside)
-    DispatchQueue.main.asyncAfter(deadline:.now()+1){
-     precondition(self.calls==1 && self.root.presentedViewController==nil,"Closing starts recording")
+    self.waitForDismiss(stage:"close",attempt:0){
      self.save("callbacks.json",["case":self.name,"selections":self.calls,"cancelDidNotSelect":true])
     }
    }
   }
  }
+ func waitForDismiss(stage:String,attempt:Int,completion:@escaping()->Void) {
+  if calls==1 && root.presentedViewController==nil{completion();return}
+  save("callback-stage.json",["case":name,"stage":stage,"attempt":attempt,"selections":calls,
+       "stillPresented":root.presentedViewController != nil,"hostInWindow":root.view.window != nil])
+  precondition(attempt<60 && calls<=1,"Incorrect native camera callback or dismissal")
+  DispatchQueue.main.asyncAfter(deadline:.now()+0.2){self.waitForDismiss(stage:stage,attempt:attempt+1,completion:completion)}
+ }
 }
 ''', encoding='utf-8')
     sdk = output('xcrun', '--sdk', 'iphonesimulator', '--show-sdk-path').strip()
-    run('xcrun', 'swiftc', '-swift-version', '5', '-warnings-as-errors', '-sdk', sdk,
+    run('xcrun', '--sdk', 'iphonesimulator', 'swiftc', '-swift-version', '5', '-warnings-as-errors', '-sdk', sdk,
         '-target', platform.machine() + '-apple-ios15.0-simulator', actual, harness, '-o', app / 'CameraWidgets')
     info = dict(CFBundleExecutable='CameraWidgets', CFBundleIdentifier=BUNDLE, CFBundleName='Camera widget QA',
                 CFBundlePackageType='APPL', CFBundleVersion='1', CFBundleShortVersionString='1.0', MinimumOSVersion='15.0',
-                UILaunchScreen={}, UIApplicationSceneManifest={'UIApplicationSupportsMultipleScenes': False},
-                CFBundleURLTypes=[{'CFBundleURLSchemes': ['nebulacameraqa']}])
+                UILaunchScreen={}, UIApplicationSceneManifest={'UIApplicationSupportsMultipleScenes': False})
     (app / 'Info.plist').write_bytes(plistlib.dumps(info)); run('codesign', '--force', '--sign', '-', app)
     runtimes = json.loads(output('xcrun', 'simctl', 'list', 'runtimes', '--json'))['runtimes']
     runtime = max((r for r in runtimes if r.get('isAvailable') and r['name'].startswith('iOS ')),
@@ -130,11 +141,18 @@ final class SceneDelegate:UIResponder,UIWindowSceneDelegate {
             assert report['largeFont']==('large' in name),report
             run('xcrun','simctl','io',device,'screenshot',images/(name+'.png'))
             (images/(name+'.json')).write_text(json.dumps(report,indent=2)+'\n')
-            run('xcrun','simctl','openurl',device,'nebulacameraqa://verify')
+            (container/'verify.trigger').write_text(name)
             callbacks = wait_report(container/'callbacks.json',name)
             assert callbacks['selections']==1 and callbacks['cancelDidNotSelect'],callbacks
             (images/(name+'-callbacks.json')).write_text(json.dumps(callbacks,indent=2)+'\n')
         print('Production UIKit camera sheet: visible controls, Dynamic Type, repeated choice and cancellation passed')
+    except Exception:
+        if 'container' in locals() and container.exists():
+            for report in container.glob('*.json'):shutil.copyfile(report,images/('failed-'+report.name))
+        with (images/'simulator-app.log').open('w') as log:
+            subprocess.run(['xcrun','simctl','spawn',device,'log','show','--last','2m','--style','compact',
+                            '--predicate','process == "CameraWidgets"'],stdout=log,stderr=subprocess.STDOUT,check=False)
+        raise
     finally:
         subprocess.run(['xcrun','simctl','shutdown',device],check=False)
         run('xcrun','simctl','delete',device)
