@@ -105,7 +105,10 @@ jobs:
           # core_settings.gradle settings.gradle applies while configuring.
           # Both the native build and the Gradle configuration need all of them.
           fetch_with_retry 'Telegram nested submodules' \
-            git -C vendor/telegram-android -c submodule.fetchJobs=8 submodule update --init --depth 1 --jobs 8 --progress --recursive
+            git -C vendor/telegram-android -c submodule.fetchJobs=8 submodule update --init --checkout --force --depth 1 --jobs 8 --progress --recursive
+          # A failed parallel clone can leave HEAD at the pin with no working files.
+          # Force checkout only in this fresh CI tree and verify before Gradle.
+          python3 tests/android/check-dependency-checkout.py vendor/telegram-android
 
       - name: Установка Go
         uses: actions/setup-go@v5
