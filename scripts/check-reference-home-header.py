@@ -78,7 +78,7 @@ class NativeHeaderCheck {
  static class SimpleTextView {int left=110,width=96,visibility;float translation;
   int getVisibility(){return visibility;}int getMeasuredWidth(){return width;}int getLeft(){return left;}
   void setTranslationX(float x){translation=x;}}
- static class Bar {boolean nebulaHomeTabsGlass=true;int nebulaHomeStoryCount,nebulaHomeVisibleStories,layouts;
+ static class Bar {boolean nebulaHomeLayout=true,nebulaHomeTabsGlass=false;int nebulaHomeStoryCount,nebulaHomeVisibleStories,layouts;
   float nebulaHomeStoryProgress;int width=393,end=97;
   SimpleTextView[] titleTextView={new SimpleTextView(),null};SimpleTextView additionalSubTitleOverlayContainer=new SimpleTextView();
   int dp(float x){return Math.round(x);}int getMeasuredWidth(){return width;}int nebulaTitleEndInset(){return end;}
@@ -103,7 +103,9 @@ class NativeHeaderCheck {
   }
   b.setNebulaHomeStories(0,1);check(b.getNebulaHomeVisibleStories()==0 && b.layouts==2,"Removed stories retain space");
   b.setNebulaHomeStories(0,1);check(b.layouts==2,"Duplicate update relayouts");
-  b.nebulaHomeTabsGlass=false;b.setNebulaHomeStories(3,1);check(b.layouts==2,"Unrelated header changed");
+  b.nebulaHomeLayout=false;b.setNebulaHomeStories(3,1);check(b.layouts==2,"Unrelated header changed");
+  b.nebulaHomeLayout=true;
+  for(boolean material:new boolean[]{false,true}){b.nebulaHomeTabsGlass=material;b.setNebulaHomeStories(2,1);check(b.getNebulaHomeVisibleStories()<=2,"Glass preference changes layout ownership");}
   int cases=0;
   for(int state=0;state<5;state++)for(int flags=0;flags<8;flags++) {
    Host h=new Host();NebulaAppearance.camera=(flags&1)!=0;NebulaAppearance.compose=(flags&2)!=0;NebulaAiSheet.ai=(flags&4)!=0;
@@ -144,3 +146,9 @@ assert 'nebulaHomeTabsGlass && actionModeFactor < 0.01f' in bar
 assert 'getBoolean("home_chats_title", false)' in (ui/'NebulaAppearance.java').read_text(encoding='utf-8')
 assert '!NebulaAppearance.homeChatsTitle() && NebulaAppearance.folderTitle()' in (ui/'NebulaDialogsTitle.java').read_text(encoding='utf-8')
 print('Reference Android toolbar, native actions and shared story slot are connected')
+
+root_setup=dialogs[dialogs.index("        nebulaHomeEditButton = null;"):dialogs.index("        if (initialDialogsType == DIALOGS_TYPE_DEFAULT && !onlySelect && !inPreviewMode\n                && communityId != 0") ]
+assert "&& app.nebulagram.ui.NebulaAppearance.homeGlassHeader()" not in root_setup
+assert "setNebulaHomeGlass(homeMaterial)" in root_setup and "setNebulaHomeTabsGlass(homeMaterial)" in root_setup
+assert "nebulaHomeLayout = view != null" in bar
+print("Home composition and story slot remain active with the glass material disabled")

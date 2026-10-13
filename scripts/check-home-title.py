@@ -55,7 +55,7 @@ assert 'titlesContainer.getTranslationX()' in bar
 assert 'if (nebulaCenterTitle())' in bar
 assert 'glassMode && !nebulaHomeGlass && !nebulaCommunityGlass ? 17' in bar, 'Glass home/community titles must keep normal title size'
 dialogs = (tree / 'TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java').read_text(encoding='utf-8')
-assert 'setNebulaHomeGlass(true)' in dialogs and 'setNebulaHomeTabsGlass(true)' in dialogs
+assert 'setNebulaHomeGlass(homeMaterial)' in dialogs and 'setNebulaHomeTabsGlass(homeMaterial)' in dialogs
 assert 'isNebulaSharedHeaderGlass() ? 4 : 16' in bar, 'Home title must use the compact grouped-action boundary'
 assert 'int first = Integer.MAX_VALUE;' in bar and 'int last = Integer.MIN_VALUE;' in bar
 assert 'glassDrawableMenu.setBounds(Math.max(0, first - dp(4)), t,' in bar
@@ -67,7 +67,7 @@ assert 'NebulaLinkShortcut.setHeaderSearchProgress(this, searchFieldVisible)' in
 assert 'showOrUpdateActionMode(0, null)' in dialogs, 'Home Edit must enter chat selection'
 assert 'selectedDialogs.isEmpty() && !nebulaHomeEditing' in dialogs, 'Edit mode must remain open with no chats selected'
 assert 'initialDialogsType == DIALOGS_TYPE_DEFAULT && nebulaHomeEditButton == null' in dialogs, 'Main glass header must omit overflow'
-assert bar.count('if (nebulaHomeTabsGlass) textLeft = Math.max(textLeft, dp(84));') == 2, 'The wider Edit button needs matching measure and layout insets'
+assert bar.count('if (nebulaHomeLayout) textLeft = Math.max(textLeft, dp(84));') == 2, 'The wider Edit button needs matching measure and layout insets'
 folder_title = (root / 'platform/android/overlay/TMessagesProj/src/main/java/app/nebulagram/ui/NebulaFolderTitleView.java').read_text(encoding='utf-8')
 assert 'AndroidUtilities.displaySize.x / 2' not in folder_title, 'Folder title must use available parent width'
 print('PASS: native title slots include status drawable and share menu/translation bounds')

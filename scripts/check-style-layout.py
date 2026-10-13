@@ -41,7 +41,7 @@ java = '''class StyleLayoutCheck {
 ''' + methods + expanded + '''
  }
  static class TitleBar {
-  Object parentFragment;boolean isSearchFieldVisible,nebulaHomeTabsGlass,nebulaCommunityGlass;float mode;
+  Object parentFragment;boolean isSearchFieldVisible,nebulaHomeLayout,nebulaHomeTabsGlass,nebulaCommunityGlass;float mode;
   float getActionModeFactor(){return mode;}
 ''' + center + '''
  }
@@ -107,7 +107,7 @@ java = '''class StyleLayoutCheck {
   bar.parentFragment=null;bar.isSearchFieldVisible=true;check(!bar.nebulaCenterTitle(),"Search title overridden");
   bar.isSearchFieldVisible=false;bar.mode=1;check(!bar.nebulaCenterTitle(),"Selection title overridden");
   bar.mode=0;app.nebulagram.ui.NebulaAppearance.center=false;check(!bar.nebulaCenterTitle(),"Disabled centering still active");
-  bar.parentFragment=dialogs;bar.nebulaHomeTabsGlass=true;
+  bar.parentFragment=dialogs;bar.nebulaHomeLayout=true;
   check(bar.nebulaCenterTitle(),"Glass home title should remain centered with optional centering disabled");
   bar.isSearchFieldVisible=true;check(bar.nebulaCenterTitle(),"Glass search shifts title before fade finishes");
   bar.isSearchFieldVisible=false;bar.mode=.5f;check(bar.nebulaCenterTitle(),"Home title jumps left during Edit transition");

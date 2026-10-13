@@ -60,7 +60,7 @@ class TitleAnimationCheck {
  SimpleTextView[] titleTextView={new SimpleTextView("First"),null};
  SimpleTextView subtitleTextView=new SimpleTextView("");
  CharSequence subtitle;
- boolean overlayTitleAnimation, titleAnimationRunning, fromBottom, nebulaHomeTabsGlass=true;
+ boolean overlayTitleAnimation, titleAnimationRunning, fromBottom, nebulaHomeLayout=true;
  boolean titleOverlayShown, overlayTitleAnimationInProgress, attached=true;
  Object parentFragment=new org.telegram.ui.DialogsActivity();
  CharSequence lastTitle;

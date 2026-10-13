@@ -36,7 +36,7 @@ class HomeMotionCheck {
  static class MathUtils {static float clamp(float p,float min,float max){return Math.max(min,Math.min(max,p));}}
  static class AndroidUtilities {static float lerp(float a,float b,float p){return a+(b-a)*p;}}
  static class ActionBar {boolean home=true;int count,updates;float progress;
-  boolean isNebulaHomeTabsGlass(){return home;}void setNebulaHomeStories(int c,float p){count=c;progress=p;updates++;}}
+  boolean isNebulaHomeLayout(){return home;}void setNebulaHomeStories(int c,float p){count=c;progress=p;updates++;}}
  static class AnimatorSet {int cancels,removes;void removeAllListeners(){removes++;}void cancel(){cancels++;}}
  static class Stories {
   ActionBar actionBar=new ActionBar();ArrayList<Integer> miniItems=new ArrayList<>(Arrays.asList(1,2,3));
