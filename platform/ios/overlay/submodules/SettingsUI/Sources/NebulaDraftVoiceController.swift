@@ -42,9 +42,10 @@ public final class NebulaDraftVoiceController: UIViewController, UITextViewDeleg
         let keep=UIButton(type:.system);keep.setTitle(text("Голосовое","Voice"),for:.normal);keep.addTarget(self,action:#selector(close),for:.touchUpInside)
         let selected=UIButton(type:.system);selected.setTitle(text("Текст","Text"),for:.normal);selected.addTarget(self,action:#selector(editText),for:.touchUpInside)
         NebulaAiPanelUi.button(keep,theme:theme);NebulaAiPanelUi.button(selected,theme:theme,primary:true)
+        selected.accessibilityTraits.insert(.selected)
         NebulaAiPanelUi.button(recognize,theme:theme);NebulaAiPanelUi.button(useText,theme:theme,primary:true)
         let choices=UIStackView(arrangedSubviews:[keep,selected]);choices.axis = .horizontal;choices.spacing=8;choices.distribution = .fillEqually
-        header.addGestureRecognizer(UITapGestureRecognizer(target:self,action:#selector(settings)))
+        header.setAction({ [weak self] in self?.settings() },label:text("Выбрать сервис распознавания", "Choose recognition service") + ": " + header.detail)
         let footer=UIStackView(arrangedSubviews:[status,recognize]);footer.axis = .horizontal;footer.spacing=8;footer.alignment = .center
         recognize.setContentHuggingPriority(.required,for:.horizontal);recognize.setContentCompressionResistancePriority(.required,for:.horizontal)
         let stack=UIStackView(arrangedSubviews:[header,choices,editor,footer]);stack.axis = .vertical;stack.spacing=8;stack.translatesAutoresizingMaskIntoConstraints=false

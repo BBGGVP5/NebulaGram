@@ -4,7 +4,7 @@ import NebulaSettingsContract
 
 /// Compact, theme-owned presentation for AI and audio tools.
 enum NebulaAiPanelUi {
-    static func button(_ button: UIButton, theme: PresentationTheme?, primary: Bool = false) {
+    static func button(_ button: UIButton, theme: PresentationTheme?, primary: Bool = false, constrainHeight: Bool = true) {
         let accent = theme?.list.itemAccentColor ?? .systemTeal
         let foreground = primary ? (theme?.list.itemCheckColors.foregroundColor ?? .white) : (theme?.list.itemPrimaryTextColor ?? .label)
         let surface = primary ? accent : (theme?.list.itemBlocksBackgroundColor ?? .secondarySystemBackground)
@@ -24,7 +24,7 @@ enum NebulaAiPanelUi {
         button.titleLabel?.font = .preferredFont(forTextStyle: .subheadline)
         button.titleLabel?.adjustsFontForContentSizeCategory = true
         button.titleLabel?.numberOfLines = 2
-        button.heightAnchor.constraint(greaterThanOrEqualToConstant: 44).isActive = true
+        if constrainHeight { button.heightAnchor.constraint(greaterThanOrEqualToConstant: 44).isActive = true }
     }
     static func editor(_ editor: UITextView, theme: PresentationTheme?) {
         editor.font = .preferredFont(forTextStyle: .body); editor.adjustsFontForContentSizeCategory = true
@@ -39,6 +39,7 @@ final class NebulaAiPanelHeader: UIView {
     enum Kind { case voice, speech, chat }
     private let glyph: Glyph
     private let subtitle = UILabel()
+    private var action: (() -> Void)?
     var detail: String { get { subtitle.text ?? "" } set { subtitle.text = newValue } }
     init(kind: Kind, title: String, detail: String, theme: PresentationTheme?) {
         glyph = Glyph(kind: kind, color: theme?.list.itemAccentColor ?? .systemTeal)
@@ -58,6 +59,12 @@ final class NebulaAiPanelHeader: UIView {
     }
     required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
     func setBusy(_ busy: Bool) { glyph.busy = busy }
+    func setAction(_ action: @escaping () -> Void, label: String) {
+        self.action = action; isAccessibilityElement = true; accessibilityLabel = label; accessibilityTraits = [.button, .header]
+        addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(activate)))
+    }
+    @objc private func activate() { action?() }
+    override func accessibilityActivate() -> Bool { guard let action else { return false }; action(); return true }
     func setPageVisible(_ visible: Bool) { glyph.pageVisible = visible }
     func fit(in table: UITableView) {
         let width = table.bounds.width

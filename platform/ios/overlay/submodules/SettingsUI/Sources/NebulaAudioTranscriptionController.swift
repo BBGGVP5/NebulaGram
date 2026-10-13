@@ -71,7 +71,7 @@ public final class NebulaAudioTranscriptionController: UITableViewController {
             let tags = [5, 2, 6, 3, 1, 4]
             let buttons = titles.enumerated().map { index, title -> UIButton in
                 let button = UIButton(type: .system); button.setTitle(title, for: .normal); button.setImage(UIImage(systemName: symbols[index]), for: .normal)
-                button.tag = tags[index]; NebulaAiPanelUi.button(button, theme: theme); button.isEnabled = !busy
+                button.tag = tags[index]; NebulaAiPanelUi.button(button, theme: theme, constrainHeight: false); button.isEnabled = !busy
                 button.addTarget(self, action: #selector(resultAction(_:)), for: .touchUpInside); return button
             }
             let grid = NebulaActionGrid(buttons: buttons); grid.translatesAutoresizingMaskIntoConstraints = false; cell.contentView.addSubview(grid)
