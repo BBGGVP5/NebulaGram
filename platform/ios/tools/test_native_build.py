@@ -56,7 +56,7 @@ class NativeBuildTests(unittest.TestCase):
         build = (native.ROOT / 'platform/ios/overlay/submodules/NebulaIntegrationChecks/BUILD').read_text(encoding='utf-8')
         self.assertIn('ios_build_test(', build)
         self.assertNotIn('filegroup(', build)
-        self.assertIn('minimum_os_version = "13.0"', build)
+        self.assertIn('minimum_os_version = "15.0"', build)
         for target in ['SettingsUI:SettingsUI', 'PeerInfoScreen:PeerInfoScreen',
                        'ChatListFilterTabContainerNode:ChatListFilterTabContainerNode']:
             self.assertIn(target, build)

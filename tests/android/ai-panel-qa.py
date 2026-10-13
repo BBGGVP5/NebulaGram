@@ -3,7 +3,7 @@
 This is a UI geometry fixture, not a full Telegram/camera/ASR acceptance test.
 """
 from pathlib import Path
-import ast, json, os, shutil, subprocess, sys, time, zipfile
+import ast, json, os, re, subprocess, sys, time, zipfile
 
 ROOT=Path(__file__).resolve().parents[2]
 WORK=ROOT/'build/ai-panel-widget-qa'
@@ -76,8 +76,8 @@ public class MainActivity extends Activity {
  private EditText findEditor(View v){if(v instanceof EditText)return (EditText)v;if(v instanceof ViewGroup){ViewGroup group=(ViewGroup)v;for(int i=0;i<group.getChildCount();i++){EditText e=findEditor(group.getChildAt(i));if(e!=null)return e;}}return null;}
  protected void onDestroy(){if(preview!=null)preview.cancel();super.onDestroy();}
 }''')
- platform=sorted((SDK/'platforms').glob('android-*/android.jar'),key=lambda p:tuple(map(int,p.parent.name[8:].split('.'))))[-1]
- tools=sorted((p for p in (SDK/'build-tools').iterdir() if p.is_dir() and (p/'aapt2').exists() or p.is_dir() and (p/'aapt2.exe').exists()),key=lambda p:tuple(map(int,p.name.split('.'))))[-1]
+ platform=sorted((p for p in (SDK/'platforms').glob('android-*/android.jar') if re.fullmatch(r'android-\d+(?:\.\d+)*',p.parent.name)),key=lambda p:tuple(map(int,p.parent.name[8:].split('.'))))[-1]
+ tools=sorted((p for p in (SDK/'build-tools').iterdir() if re.fullmatch(r'\d+(?:\.\d+)*',p.name) and p.is_dir() and ((p/'aapt2').exists() or (p/'aapt2.exe').exists())),key=lambda p:tuple(map(int,p.name.split('.'))))[-1]
  def tool(name):return tools/(name+('.exe' if os.name=='nt' and name=='aapt2' else '.bat' if os.name=='nt' else ''))
  classes=WORK/'classes';classes.mkdir(exist_ok=True)
  production=['NebulaDraftVoicePolicy.java','NebulaDraftVoiceTranscription.java','NebulaDraftVoiceInlineHost.java','NebulaAiPanelUi.java','NebulaLocalAudioDecoder.java','NebulaLocalAudioPolicy.java','NebulaPcmResampler.java']
