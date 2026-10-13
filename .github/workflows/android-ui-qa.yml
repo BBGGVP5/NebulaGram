@@ -1,0 +1,41 @@
+name: Android AI panel widget QA
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  widgets:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: android-actions/setup-android@v3
+        with:
+          packages: 'platform-tools platforms;android-35 build-tools;35.0.0'
+      - name: Compile actual production widgets with offline QA adapters
+        run: python3 tests/android/ai-panel-qa.py build
+      - name: Enable emulator acceleration on the disposable runner
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - name: Render narrow, large-font, keyboard, light and dark states
+        uses: reactivecircus/android-emulator-runner@ed009f5318f15b1cf93a191b856c4f1748a2d4c1
+        with:
+          api-level: 35
+          target: google_apis
+          arch: x86_64
+          profile: pixel_7_pro
+          disable-animations: true
+          script: python3 tests/android/ai-panel-qa.py render
+      - name: Save widget images and geometry (not an app acceptance test)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ai-panel-widget-screenshots
+          path: build/ai-panel-widget-qa/screenshots/
+          if-no-files-found: warn
