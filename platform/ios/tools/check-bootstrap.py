@@ -374,7 +374,10 @@ def main():
         ai_home = (temp / 'submodules/ChatListUI/Sources/ChatListController.swift').read_text(encoding='utf-8')
         native_toolbar = (temp / 'submodules/TelegramUI/Components/ChatListHeaderComponent/Sources/ChatListNavigationBar.swift').read_text(encoding='utf-8')
         native_buttons = (temp / 'submodules/TelegramUI/Components/ChatListHeaderComponent/Sources/NavigationButtonComponent.swift').read_text(encoding='utf-8')
-        assert 'nebulaHeaderGlass' not in native_toolbar, 'single rounded material still covers the entire header'
+        assert 'private let nebulaHeaderGlass = GlassBackgroundView(frame: .zero)' in native_toolbar
+        assert 'nebulaHeaderGlass.drawsMaterialBorder = false' in native_toolbar
+        assert 'bottomLeft: 22.0, bottomRight: 22.0' in native_toolbar
+        assert 'component.activeSearch == nil' in native_toolbar
         assert 'theme.chat.inputPanel.panelControlColor' not in native_buttons
         assert 'theme.rootController.navigationBar.primaryTextColor' in native_buttons
         assert 'if !NebulaBehaviorPreferences.shared.homeChatsTitle, NebulaSettingsStore.shared.folderTitle,' in ai_home
@@ -384,6 +387,16 @@ def main():
         story_item_path = 'submodules/TelegramUI/Components/Stories/StoryPeerListComponent/Sources/StoryPeerListItemComponent.swift'
         story_item = run('git', '-C', str(tree), 'show', revision + ':' + story_item_path).decode('utf-8')
         check_story_header(story_header, story_list, story_item, temp, args.swift)
+        camera_picker = (temp / 'submodules/SettingsUI/Sources/NebulaRoundCameraController.swift').read_text(encoding='utf-8')
+        recording = (temp / 'submodules/TelegramUI/Sources/Chat/ChatControllerMediaRecording.swift').read_text(encoding='utf-8')
+        assert 'nebulaPresentRecordingCamera(from: self' in recording
+        assert 'self?.requestVideoRecorder(initialFrontCamera: index == 0)' in recording
+        assert 'controller.modalPresentationStyle = .pageSheet' in camera_picker
+        assert 'sheet.prefersGrabberVisible = true' in camera_picker
+        assert 'guard !didChoose, view.window != nil' in camera_picker
+        assert 'dismiss(animated: true) { action(index) }' in camera_picker
+        assert 'withAlphaComponent(0.15)' in camera_picker and 'layer.borderWidth' not in camera_picker
+        print('OK: dedicated native recording camera sheet retains facing, cancellation and unfilled controls', flush=True)
         draft_preview = (temp / 'submodules/TelegramUI/Components/Chat/ChatRecordingPreviewInputPanelNode/Sources/ChatRecordingPreviewInputPanelNode.swift').read_text(encoding='utf-8')
         check_draft_voice(draft_preview, temp, args.swift)
         ai_root = (temp / 'submodules/TelegramUI/Sources/TelegramRootController.swift').read_text(encoding='utf-8')
@@ -487,6 +500,29 @@ final class Composer {
                             str(peer / 'NebulaProfileBadgeImages.swift')], check=True)
             print('OK: profile badge artwork typechecked against the real iOS simulator SDK')
             settings_ui = temp / 'submodules/SettingsUI/Sources'
+            # Palette adapter only; the real SettingsUI/Telegram theme linkage is
+            # checked by the native build. UIKit APIs and deployment guards are real.
+            theme_api = temp / 'CameraThemeAPI.swift'
+            theme_api.write_text('''import UIKit
+public struct PresentationThemeList {
+ public var blocksBackgroundColor: UIColor = .systemBackground
+ public var itemAccentColor: UIColor = .systemTeal
+ public var itemPrimaryTextColor: UIColor = .label
+ public var itemSecondaryTextColor: UIColor = .secondaryLabel
+ public init() {}
+}
+public final class PresentationTheme {
+ public var overallDarkAppearance = false
+ public var list = PresentationThemeList()
+ public init() {}
+}
+''', encoding='utf-8')
+            subprocess.run(['swiftc', *ios_flags, '-emit-module', '-parse-as-library',
+                            '-module-name', 'TelegramPresentationData', str(theme_api),
+                            '-emit-module-path', str(temp / 'TelegramPresentationData.swiftmodule')], check=True)
+            subprocess.run(['swiftc', *ios_flags, '-typecheck', '-I', str(temp),
+                            str(settings_ui / 'NebulaRoundCameraController.swift')], check=True)
+            print('OK: actual recording camera controller typechecked against UIKit at the upstream iOS minimum')
             # These views have no Telegram module dependency. Typecheck them
             # against UIKit early, including warnings-as-errors, before Bazel.
             zoom_slider = temp / 'submodules/TelegramUI/Components/VideoMessageCameraScreen/Sources/NebulaVideoZoomSlider.swift'

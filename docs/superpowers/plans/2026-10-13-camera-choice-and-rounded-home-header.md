@@ -64,3 +64,18 @@ if (top && actionBar != null && actionBar.isNebulaSharedHeaderGlass()) {
 Local implementation is complete. `check-dialogs.py` covers each camera choice, repeated selection, dismissal and missing activity. SDK 37 compiles the real camera panel/controller. The full 106 Android interface/regression commands pass on the owned tree after patch 0208, including 101 frames with no Edit backing and the existing story/title geometry and reversible motion checks. The credential-free QA APK compiles the actual new camera views; CI rendering and release APK verification remain pending.
 
 The previously pending iOS native run `38417177542` reported a recording-send count type mismatch (`Int` versus native `Int32`). Patch 0104 now converts the native chunk count at the payment call; the executable test adapter uses the actual `Int32` signature, and bootstrap includes that upstream declaration so fixture drift cannot hide it. All 105 ordered iOS patches apply locally. New macOS execution/build evidence remains pending.
+
+### Task 4: Port the current presentation to iOS (user requested during verification)
+
+Files:
+- Create `platform/ios/overlay/submodules/SettingsUI/Sources/NebulaRoundCameraController.swift`.
+- Create `patches/ios/0106-rounded-home-header-and-camera-sheet.patch` from the owned iOS 13 fixture after all 105 patches.
+- Modify `platform/ios/tools/check-bootstrap.py` and `platform/ios/tools/check_story_header.py`.
+
+- [ ] Present a dedicated native UIKit sheet through `nebulaPresentRecordingCamera(from:russian:theme:choose:)`. Use the same two code-drawn phone sides, captions, last-choice color fill, unfilled close control and scrollable Dynamic Type content. Native sheet gestures dismiss without selecting. Guard repeated taps; start the existing recorder only in the successful dismissal completion.
+- [ ] Replace only the native recording camera call with the new public SettingsUI bridge; keep generic setting choices and camera/recording implementations.
+- [ ] Restore parent-owned `nebulaHeaderGlass` with bottom radii 22 points, no material border and native scroll bounds. In ChatListHeaderComponent set its four independent toolbar material updates to `isInteractive: false, isVisible: false`; keep content, hit areas and menu extraction containers intact. This hides effects, not button views.
+- [ ] Update bootstrap assertions to require the rounded shared surface and plain control effects, then run `python platform/ios/tools/check-bootstrap.py`. Expected: 106 ordered patches apply and camera bridge/header guards pass.
+- [ ] Run macOS UIKit type checks and native integration/IPA builds on the new source revision; report successful artifacts separately from pending builds. Never claim physical iPhone acceptance from compilation.
+
+Android receipt: APK 1000527 from CI `38427510947`, source `14af4ed642342864cf6b52f4a15bd8188557406d`, 60,072,411 bytes, SHA256 `dcbb3d997ac4ff8c246d50d755fe63f8cc4ed8bd2f7cfdd2450555c9e0863b4a`. ZIP, arm64 libraries, package/version, expected signing certificate and the new camera text in DEX verified. Widget QA `38427566360` passed; dark/light/narrow font-1.3 images inspected, both camera rows and close fully visible, repeated choice invokes its callback once. Another 606 executed native home draw states have no button backing. iOS bootstrap `38427510980` attempt 2 passed on the same source; attempt 1 failed a transient GitHub blob fetch. The updated payment adapter passed macOS execution.
