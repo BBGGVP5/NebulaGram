@@ -11,6 +11,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import time
 from pathlib import Path
 from check_onboarding import check as check_onboarding
 from check_navigation_refresh import check as check_navigation_refresh
@@ -22,7 +23,22 @@ ROOT = Path(__file__).resolve().parents[3]
 
 
 def run(*args, **kwargs):
-    return subprocess.check_output(args, **kwargs)
+    # A partial clone may need a GitHub blob while reading an immutable source.
+    # Retry only transient object-fetch errors; bad pins/paths still fail once.
+    source_read = args[0] == 'git' and 'show' in args
+    if not source_read:
+        return subprocess.check_output(args, **kwargs)
+    for attempt in range(3):
+        try:
+            return subprocess.check_output(args, **dict(kwargs, stderr=subprocess.PIPE))
+        except subprocess.CalledProcessError as error:
+            detail = error.stderr.decode('utf-8', errors='replace') if isinstance(error.stderr, bytes) else (error.stderr or '')
+            if attempt < 2 and 'promisor remote' in detail and ('Failed to connect' in detail or 'Could not resolve host' in detail or 'RPC failed' in detail):
+                print(f'Retrying interrupted pinned GitHub object fetch ({attempt + 1}/2)', flush=True)
+                time.sleep(2)
+                continue
+            sys.stderr.write(detail)
+            raise
 
 
 def main():
