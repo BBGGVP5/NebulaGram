@@ -131,7 +131,8 @@ assert 'actionBar.setNebulaHomeStories(count,' in method(stories,'private void p
 assert 'publishNebulaHomeHeader()' in method(stories,'private void checkCollapsedProgress()')
 assert 'setNebulaHomeStories(' not in method(stories,'protected void dispatchDraw(Canvas canvas)'), 'Paint is mutating a previously painted sibling title'
 assert 'getNebulaHomeStoriesLeft()' in stories and 'getNebulaHomeVisibleStories()' in stories
-assert 'nebulaHomeStoriesClip' in stories, 'Story rings can paint over the title or controls'
+assert 'NebulaHomeTitleGeometry.avatarCenterY(' in stories, 'Full rings must gather below the toolbar before rising beside the title'
+assert 'nebulaHomeStoriesClip' not in stories, 'Rectangular mask cuts story rings during expansion'
 assert 'nebulaHomeStoryItem = menu.addItemWithWidth' in dialogs
 assert 'nebulaHomeComposeItem = menu.addItemWithWidth' in dialogs
 assert 'nebula_header_add_story' in dialogs and 'nebula_header_compose' in dialogs
@@ -140,6 +141,6 @@ assert 'nebulaHomeEditButton.setOnLongClickListener' in dialogs, 'Home options b
 assert 'isNebulaSharedHeaderGlass() && !actionBar.isNebulaHomeTabsGlass()' in dialogs, 'Home still paints the whole rounded glass panel'
 assert 'glassDrawableHomeLeading.draw(canvas)' in bar, 'Edit has no separate glass backing'
 assert 'nebulaHomeTabsGlass && actionModeFactor < 0.01f' in bar
-assert 'getBoolean("home_chats_title", true)' in (ui/'NebulaAppearance.java').read_text(encoding='utf-8')
+assert 'getBoolean("home_chats_title", false)' in (ui/'NebulaAppearance.java').read_text(encoding='utf-8')
 assert '!NebulaAppearance.homeChatsTitle() && NebulaAppearance.folderTitle()' in (ui/'NebulaDialogsTitle.java').read_text(encoding='utf-8')
 print('Reference Android toolbar, native actions and shared story slot are connected')

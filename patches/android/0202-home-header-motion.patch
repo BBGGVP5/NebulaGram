@@ -105,7 +105,26 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/drawab
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Stories/DialogStoriesCell.java b/TMessagesProj/src/main/java/org/telegram/ui/Stories/DialogStoriesCell.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Stories/DialogStoriesCell.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Stories/DialogStoriesCell.java
-@@ -669,9 +669,7 @@
+@@ -125,7 +125,6 @@
+     public RadialProgress radialProgress;
+ 
+     RecyclerListView listViewMini;
+-    private final Path nebulaHomeStoriesClip = new Path();
+     StoriesController storiesController;
+     ArrayList<Item> oldItems = new ArrayList<>();
+     ArrayList<Item> oldMiniItems = new ArrayList<>();
+@@ -376,7 +375,9 @@
+                             && storyCell.position >= actionBar.getNebulaHomeVisibleStories()) continue;
+                     storyCell.drawInParent = true;
+                     storyCell.isFirst = storyCell.position == 0;
+-                    storyCell.isLast = storyCell.position == miniItems.size() - 1;
++                    int visibleCount = actionBar != null && actionBar.isNebulaHomeTabsGlass()
++                            ? Math.min(miniItems.size(), actionBar.getNebulaHomeVisibleStories()) : miniItems.size();
++                    storyCell.isLast = storyCell.position == visibleCount - 1;
+                     viewsDrawInParent.add(storyCell);
+                 }
+ 
+@@ -669,9 +670,7 @@
          }
          adapter.setItems(oldItems, items);
          miniAdapter.setItems(oldMiniItems, miniItems);
@@ -116,24 +135,36 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Stories/DialogStoriesCe
  
          oldItems.clear();
          invalidate();
-@@ -696,7 +694,6 @@
+@@ -696,14 +695,13 @@
          listViewMini.setTranslationY(bottomY);
          final boolean nebulaHome = actionBar != null && actionBar.isNebulaHomeTabsGlass();
          final float progress = MathUtils.clamp(Math.min(collapsedProgress, collapsedProgress2), 0, 1);
 -        if (nebulaHome) actionBar.setNebulaHomeStories(miniItems.size(), progress);
++        final float homeGather = nebulaHome ? app.nebulagram.ui.NebulaHomeTitleGeometry.gather(progress) : progress;
          final float storiesOffset = nebulaHome
                  ? actionBar.getNebulaHomeStoriesLeft() + dp(4) - getX() : menuItemsOffset;
          listViewMini.setTranslationX(storiesOffset);
-@@ -758,7 +755,7 @@
+         if (nebulaHome) {
+-            // Native stories sit four dp above the toolbar centre after collapse.
+-            recyclerListView.setTranslationY(bottomY + dp(4) * progress);
+-            listViewMini.setTranslationY(bottomY + dp(4) * progress);
++            final float toolbarCenter = actionBar.getY() + actionBar.getHeight() - ActionBar.getCurrentActionBarHeight() / 2f;
++            listViewMini.setTranslationY(toolbarCenter - getY() - listViewMini.getTop() - ActionBar.getCurrentActionBarHeight() / 2f);
+         }
+ 
+         for (int i = 0; i < viewsDrawInParent.size(); i++) {
+@@ -757,8 +755,8 @@
+                 StoryCell cell = (StoryCell) recyclerListView.getChildAt(i);
                  cell.setClipInParent(false);
                  int adapterPosition = recyclerListView.getChildAdapterPosition(cell);
-                 float cellCollapsedProgress = collapsedProgress;
+-                float cellCollapsedProgress = collapsedProgress;
 -                if (adapterPosition >= animateFromPosition && adapterPosition < animateFromPosition + animateToDialogIds.size()) {
++                float cellCollapsedProgress = nebulaHome ? homeGather : collapsedProgress;
 +                if (!nebulaHome && adapterPosition >= animateFromPosition && adapterPosition < animateFromPosition + animateToDialogIds.size()) {
                      int positionOffset = adapterPosition - animateFromPosition;
                      if (positionOffset == animateFromPosition + 2) {
                          cellCollapsedProgress = collapsedProgress;
-@@ -768,7 +765,7 @@
+@@ -768,11 +766,12 @@
                          cellCollapsedProgress = (float) Math.pow(collapsedProgress, 0.25f);
                      }
                  }
@@ -141,28 +172,95 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Stories/DialogStoriesCe
 +                if (!nebulaHome && adapterPosition < animateFromPosition) {
                      cellCollapsedProgress = (float) Math.pow(collapsedProgress, 0.25f);
                  }
-                 cell.setProgressToCollapsed(cellCollapsedProgress, collapsedProgress2, overscrollProgress, overscrollSelectedPosition == cell.position);
-@@ -835,7 +832,10 @@
+-                cell.setProgressToCollapsed(cellCollapsedProgress, collapsedProgress2, overscrollProgress, overscrollSelectedPosition == cell.position);
+-                if (adapterPosition > animateFromPosition && adapterPosition < animateFromPosition + animateToDialogIds.size()) {
++                cell.setProgressToCollapsed(cellCollapsedProgress, nebulaHome ? homeGather : collapsedProgress2, overscrollProgress, overscrollSelectedPosition == cell.position);
++                int visibleCount = nebulaHome ? actionBar.getNebulaHomeVisibleStories() : animateToDialogIds.size();
++                if (adapterPosition > animateFromPosition && adapterPosition < animateFromPosition + visibleCount) {
+                     StoryCell previousCell = (StoryCell) recyclerListView.getChildAt(i - 1);
+                     if (previousCell != null) {
+                         float size = dp(48);
+@@ -827,7 +826,10 @@
+                 float translationX = 0;
+                 float toX = 0;
+                 // wave effect
+-                if (adapterPosition <= animateFromPosition) {
++                if (nebulaHome) {
++                    int slot = Math.max(0, adapterPosition - animateFromPosition);
++                    toX = dp(COLLAPSED_DIS) * slot;
++                } else if (adapterPosition <= animateFromPosition) {
+                     toX = 0;
+                 } else if (adapterPosition == animateFromPosition + 1) {
+                     toX = dp(COLLAPSED_DIS) * cellCollapsedProgress - AndroidUtilities.dpf2(0.5f) + AndroidUtilities.lerp(dp(COLLAPSED_DIS), 0f, collapsedProgress);
+@@ -835,7 +837,10 @@
                      toX = dp(COLLAPSED_DIS) + dp(COLLAPSED_DIS) * cellCollapsedProgress - AndroidUtilities.dpf2(0.5f) + AndroidUtilities.lerp(dp(COLLAPSED_DIS + COLLAPSED_DIS), 0f, collapsedProgress);
                  }
                  toX += storiesOffset;
 -                if (!collapsed) {
 +                if (nebulaHome) {
 +                    // Use the same reversible scroll frame as the title and size.
-+                    translationX = (toX - cell.getLeft()) * progress;
++                    translationX = (toX - cell.getLeft()) * homeGather;
 +                } else if (!collapsed) {
                      float dstCellX = 0;
                      if (overscrollProgress > 0) {
                          if (cell.position < overscrollSelectedPosition) {
-@@ -869,6 +869,7 @@
+@@ -869,9 +874,18 @@
                      }
  //              }
                  translationY = lerp(translationY2, translationY1, collapsedFactor);
-+                if (nebulaHome) translationY = 0f;
++                if (nebulaHome) {
++                    float toolbarBottom = actionBar.getY() + actionBar.getHeight();
++                    float toolbarCenter = toolbarBottom - ActionBar.getCurrentActionBarHeight() / 2f;
++                    float expandedCenter = getY() + dp(HEIGHT_IN_DP) * progress + recyclerListView.getTop() + cell.getTop() + cell.getNebulaAvatarCenter(0f);
++                    float radius = cell.getNebulaAvatarSize(homeGather) / 2f + dp(4);
++                    float center = app.nebulagram.ui.NebulaHomeTitleGeometry.avatarCenterY(expandedCenter, toolbarBottom, toolbarCenter, radius, dp(2), progress);
++                    translationY = center - getY() - recyclerListView.getY() - cell.getTop() - cell.getCy();
++                }
  
                  if (collapsedProgress > 0) {
                      boolean drawInParent = adapterPosition >= animateFromPosition && adapterPosition <= animateFromPosition + 2;
-@@ -1073,6 +1074,7 @@
++                    if (nebulaHome) drawInParent &= adapterPosition < animateFromPosition + actionBar.getNebulaHomeVisibleStories();
+                     if (crossfade) {
+                         int p = adapterPosition - animateFromPosition;
+                         if (p >= 0 && p < animateToDialogIds.size()) {
+@@ -885,7 +899,7 @@
+                     }
+                     cell.drawInParent = drawInParent;
+                     cell.isFirst = adapterPosition == animateFromPosition;
+-                    cell.isLast = adapterPosition >= animateFromPosition + animateToDialogIds.size() - 1;
++                    cell.isLast = adapterPosition >= animateFromPosition + visibleCount - 1;
+                     cell.setTranslationX(translationX);
+                     cell.setTranslationY(translationY);
+ 
+@@ -965,19 +979,6 @@
+             subtitleOverlayContainer.setTranslationY(bottomY + dp(15 + FAKE_TOP_PADDING + 4.333f + 8));
+         }
+ 
+-        // The expanded row can still draw below the toolbar during collapse.
+-        // Its rings may only enter the shared story slot in the toolbar itself.
+-        final int nebulaClipSave = canvas.save();
+-        if (nebulaHome && progress > 0f) {
+-            nebulaHomeStoriesClip.rewind();
+-            final float toolbarBottom = Math.max(0f, Math.min(getHeight(), actionBar.getY() + actionBar.getHeight() - getY()));
+-            nebulaHomeStoriesClip.addRect(0, toolbarBottom, getWidth(), getHeight(), Path.Direction.CW);
+-            if (actionBar.getNebulaHomeVisibleStories() > 0) {
+-                nebulaHomeStoriesClip.addRect(dp(84) - getX(), 0,
+-                        actionBar.getNebulaHomeTitleLeft() - dp(8) - getX(), toolbarBottom, Path.Direction.CW);
+-            }
+-            canvas.clipPath(nebulaHomeStoriesClip);
+-        }
+         super.dispatchDraw(canvas);
+         if (currentState >= 0 && currentState != COLLAPSED_STATE) {
+             Collections.sort(viewsDrawInParent, comparator);
+@@ -989,7 +990,6 @@
+                 canvas.restore();
+             }
+         }
+-        canvas.restoreToCount(nebulaClipSave);
+ 
+         if (needSaveLayer) {
+             final float w = dp(16);
+@@ -1073,6 +1073,7 @@
  
      AnimatorSet storiesAnimatorSet;
      public void setProgressToCollapse(float progress, boolean animated) {
@@ -170,7 +268,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Stories/DialogStoriesCe
          if (collapsedProgress1 == progress) {
              return;
          }
-@@ -1154,8 +1156,34 @@
+@@ -1154,8 +1155,34 @@
          }
      }
  
@@ -194,8 +292,8 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Stories/DialogStoriesCe
 +
 +    private void publishNebulaHomeHeader() {
 +        if (actionBar == null || !actionBar.isNebulaHomeTabsGlass()) return;
-+        final int count = getVisibility() == VISIBLE ? miniItems.size() : 0;
-+        actionBar.setNebulaHomeStories(count, MathUtils.clamp(collapsedProgress, 0f, 1f));
++        final int count = getVisibility() == VISIBLE && getAlpha() > 0f ? miniItems.size() : 0;
++        actionBar.setNebulaHomeStories(count, app.nebulagram.ui.NebulaHomeTitleGeometry.gather(collapsedProgress));
 +    }
 +
      private void checkCollapsedProgress() {
@@ -206,7 +304,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Stories/DialogStoriesCe
          checkUi_titleVisibility();
  
          int state = EXPANDED_STATE;
-@@ -1384,6 +1412,7 @@
+@@ -1384,6 +1411,7 @@
  
      public void setActionBar(ActionBar actionBar) {
          this.actionBar = actionBar;
@@ -214,7 +312,32 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Stories/DialogStoriesCe
          app.nebulagram.ui.NebulaDialogsTitle.bind(actionBar, telegramLogoView);
      }
  
-@@ -2177,7 +2206,7 @@
+@@ -1671,6 +1699,7 @@
+         }
+ 
+         float getCy() {
++            if (actionBar != null && actionBar.isNebulaHomeTabsGlass()) return getNebulaAvatarCenter(progressToCollapsed);
+             float size = dp(48);
+             float collapsedSize = dp(COLLAPSED_SIZE);
+ 
+@@ -1679,6 +1708,16 @@
+ 
+             float y = AndroidUtilities.lerp(dp(5), (ActionBar.getCurrentActionBarHeight() - collapsedSize) / 2f, collapsedProgress1);
+             return y + radius;
++        }
++
++        private float getNebulaAvatarCenter(float progress) {
++            return AndroidUtilities.lerp(dp(5), (ActionBar.getCurrentActionBarHeight() - dp(COLLAPSED_SIZE)) / 2f, progress) + getNebulaAvatarSize(progress) / 2f;
++        }
++
++        private float getNebulaAvatarSize(float progress) {
++            float extra = dp(8) * Utilities.clamp(DialogStoriesCell.this.overscrollProgress / .5f, 1f, 0f);
++            if (selectedForOverscroll) extra += dp(16) * Utilities.clamp((DialogStoriesCell.this.overscrollProgress - .5f) / .5f, 1f, 0f);
++            return AndroidUtilities.lerp(dp(48) + extra, dp(COLLAPSED_SIZE), progress);
+         }
+ 
+         @Override
+@@ -2177,7 +2216,7 @@
              if (actionBar != null && actionBar.isNebulaHomeTabsGlass()) {
                  int count = actionBar.getNebulaHomeVisibleStories();
                  if (count == 0) return super.onTouchEvent(event);

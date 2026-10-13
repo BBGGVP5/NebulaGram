@@ -39,7 +39,8 @@ class HomeMotionCheck {
  static class Stories {
   ActionBar actionBar=new ActionBar();ArrayList<Integer> miniItems=new ArrayList<>(Arrays.asList(1,2,3));
   AnimatorSet storiesAnimatorSet;float collapsedProgress1=-1,collapsedProgress2,collapsedProgress,K=.3f;
-  boolean collapsed;int visibility=VISIBLE,state,drawInvalidations,titleUpdates;
+  boolean collapsed;float alpha=1;int visibility=VISIBLE,state,drawInvalidations,titleUpdates;
+  float getAlpha(){return alpha;}
   int getVisibility(){return visibility;}void checkUi_titleVisibility(){titleUpdates++;}
   void updateCurrentState(int s){state=s;}void invalidate(){drawInvalidations++;}
 ''' + native + '''
@@ -73,7 +74,7 @@ class HomeMotionCheck {
    float[] path={0,.01f,.3f,.31f,.8f,.8f,.4f,.4f,.9f,1,.99f,.5f,0,1,0};
    for(float p:path){int before=s.actionBar.updates;
     check(s.updateNebulaHomeCollapse(p),"Home did not take the synchronous path");
-    check(s.collapsedProgress==p && s.actionBar.progress==p && s.collapsedProgress2==p,"Title and avatar progress differ");
+    check(s.collapsedProgress==p && s.actionBar.progress==NebulaHomeTitleGeometry.gather(p) && s.collapsedProgress2==p,"Title and avatar progress differ");
     check(s.actionBar.updates>before,"Title was not published before paint / on paused frames");
     check(s.actionBar.count==count,"Story identity count lost");
     check(s.state==(p==0?EXPANDED_STATE:p==1?COLLAPSED_STATE:TRANSITION_STATE),"Wrong renderer at reversal");
@@ -84,6 +85,7 @@ class HomeMotionCheck {
    }
    check(old.cancels==1 && old.removes==1 && s.storiesAnimatorSet==null,"Old spring survived reversal");
    s.visibility=8;s.updateNebulaHomeCollapse(.5f);check(s.actionBar.count==0,"Hidden row leaves a phantom stack");
+   s.visibility=VISIBLE;s.alpha=0;s.updateNebulaHomeCollapse(.5f);check(s.actionBar.count==0,"Transparent row leaves a phantom stack");
    s.actionBar.home=false;float before=s.collapsedProgress;check(!s.updateNebulaHomeCollapse(.7f) && s.collapsedProgress==before,"Classic renderer changed");
    s.collapsedProgress1=.6f;s.collapsedProgress2=.8f;s.checkCollapsedProgress();
    check(Math.abs(s.collapsedProgress-.48f)<.001f,"Classic native interpolation changed");
@@ -108,7 +110,39 @@ class HomeMotionCheck {
   Glass.drawStroke(c,0,0,60,44,radii,1,true,paint);Glass.drawStroke(c,0,0,60,44,12,1,false,paint);
   check(c.strokes==2,"Ordinary glass borders changed");g.setStrokeWidth(1,1);g.drawStrokeInternalIfNeeded(c);
   check(c.strokes==4 && g.invalidations==2,"Re-enabling ordinary outline fails");
+  int poses=0;
+  for(float density:new float[]{1,1.5f,2,2.625f,3.5f})for(int screen:new int[]{320,360,393,448,600,900})
+  for(int actions=2;actions<=5;actions++)for(int count=0;count<=3;count++)for(int text:new int[]{60,96,160,260}) {
+   int w=(int)Math.ceil(screen*density),left=(int)Math.ceil(84*density),right=(int)Math.ceil((actions*44+9)*density);
+   int available=Math.max(0,w-left-right),title=Math.min((int)Math.ceil(text*density),available);
+   int footprint=(int)Math.ceil(34*density),step=(int)Math.ceil(16*density),gap=(int)Math.ceil(8*density);
+   int visible=NebulaHomeTitleGeometry.visibleStories(count,available,title,footprint,step,gap);
+   int prefix=NebulaHomeTitleGeometry.storyPrefix(visible,footprint,step,gap);
+   for(int frame=0;frame<=120;frame++)for(float extra:new float[]{0,24*density}) {
+    float p=frame/120f,q=NebulaHomeTitleGeometry.gather(p),lift=NebulaHomeTitleGeometry.lift(p);
+    check(q>=0 && q<=1 && lift>=0 && lift<=1,"Invalid phase");check(lift==0 || q==1,"Rings rise before gathering");
+    float cellWidth=(float)Math.ceil(70*density),size=(float)Math.ceil(48*density)+extra;
+    float finalSize=size+((float)Math.ceil(26.33f*density)-size)*q;
+    float radius=finalSize/2+(float)Math.ceil(4*density),bottom=100*density,barCenter=bottom-28*density;
+    float expanded=bottom+25*density+extra/2;
+    float y=NebulaHomeTitleGeometry.avatarCenterY(expanded,bottom,barCenter,radius,2*density,p);
+    check(Float.isFinite(y),"Invalid vertical pose");
+    if(lift==0)check(y-radius>=bottom-4*density-.001f,"Gathering rings collide with header buttons");
+    float slot=NebulaHomeTitleGeometry.groupLeftFloat(w,left,right,title,prefix,q),titleLeft=slot+prefix*q;
+    for(int i=0;i<visible;i++) {
+     float startLeft=(i+1)*cellWidth,target=slot+(float)Math.ceil(4*density)+i*step;
+     float avatarCx=(cellWidth-finalSize)/2*(1-q)+finalSize/2;
+     float x=startLeft+(target-startLeft)*q+avatarCx;
+     if(lift>0){check(x-radius>=left-.001f,"Ring overlaps Edit");
+      check(x+radius<=titleLeft-3*density+.001f,"Ring intersects title; would need rectangular clipping");}
+     poses++;
+    }
+    if(frame==120)check(Math.abs(y-barCenter)<.001f,"Mini-list handoff jumps vertically");
+   }
+  }
+  check(NebulaHomeTitleGeometry.gather(.6f)==1 && NebulaHomeTitleGeometry.lift(.6f)==0,"Phase seam jumps");
   System.out.println(cases+" native shared-frame/reversal cases and 101 border-free Edit frames passed");
+  System.out.println(poses+" full-ring trajectory poses avoid title/Edit collisions, including overscroll and narrow toolbars");
  }
 }'''
 with tempfile.TemporaryDirectory(prefix='nebula-home-motion-') as directory:
@@ -119,7 +153,10 @@ with tempfile.TemporaryDirectory(prefix='nebula-home-motion-') as directory:
 draw=method(stories,'protected void dispatchDraw(Canvas canvas)')
 assert 'setNebulaHomeStories(' not in draw, 'Story paint mutates an already-painted sibling'
 assert 'if (updateNebulaHomeCollapse(progress)) return;' in method(stories,'public void setProgressToCollapse(float progress, boolean animated)')
-assert 'translationX = (toX - cell.getLeft()) * progress;' in draw
-assert 'if (nebulaHome) translationY = 0f;' in draw
+assert 'translationX = (toX - cell.getLeft()) * homeGather;' in draw
+assert 'NebulaHomeTitleGeometry.avatarCenterY(' in draw
+assert 'cell.getNebulaAvatarSize(homeGather)' in draw
+assert 'nebulaHomeStoriesClip' not in stories
+assert 'drawInParent &= adapterPosition < animateFromPosition + actionBar.getNebulaHomeVisibleStories()' in draw
 assert '!nebulaHome && adapterPosition' in draw
 print('Home uses one reversible scroll frame; classic spring and ring safety remain separate')

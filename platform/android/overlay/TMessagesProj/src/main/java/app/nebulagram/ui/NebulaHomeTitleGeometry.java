@@ -40,4 +40,20 @@ public final class NebulaHomeTitleGeometry {
         return Math.max(startInset, Math.min((barWidth - groupWidth) / 2f,
                 barWidth - endInset - groupWidth));
     }
+
+    private static float smooth(float progress) {
+        float p = Math.max(0f, Math.min(1f, progress));
+        return p * p * (3f - 2f * p);
+    }
+
+    /** Gather full rings below the toolbar before raising them into the title slot. */
+    public static float gather(float progress) { return smooth(progress / .6f); }
+    public static float lift(float progress) { return smooth((progress - .6f) / .4f); }
+
+    public static float avatarCenterY(float expandedCenter, float toolbarBottom,
+                                       float toolbarCenter, float ringRadius, float gap, float progress) {
+        float gatheredCenter = toolbarBottom + ringRadius + gap;
+        float center = expandedCenter + (gatheredCenter - expandedCenter) * gather(progress);
+        return center + (toolbarCenter - center) * lift(progress);
+    }
 }

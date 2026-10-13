@@ -11,7 +11,7 @@ public final class NebulaBehaviorPreferences {
     public var smoothFade: Bool { defaults.bool(forKey: "nebula.behavior.smooth_fade") }
     public func setSmoothFade(_ value: Bool) { defaults.set(value, forKey: "nebula.behavior.smooth_fade"); notify() }
     /// Preserve iOS's native title until a user chooses the brand title.
-    public var homeChatsTitle: Bool { defaults.object(forKey: "nebula.behavior.home_chats_title") as? Bool ?? true }
+    public var homeChatsTitle: Bool { defaults.object(forKey: "nebula.behavior.home_chats_title") as? Bool ?? false }
     public func setHomeChatsTitle(_ value: Bool) { defaults.set(value, forKey: "nebula.behavior.home_chats_title"); notify() }
     public var folderTabsBottom: Bool { defaults.bool(forKey: "nebula.behavior.folder_tabs_bottom") }
     public func setFolderTabsBottom(_ value: Bool) { defaults.set(value, forKey: "nebula.behavior.folder_tabs_bottom"); notify() }

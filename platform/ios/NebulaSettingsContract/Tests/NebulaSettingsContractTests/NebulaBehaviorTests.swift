@@ -15,7 +15,9 @@ final class NebulaBehaviorTests: XCTestCase {
         XCTAssertEqual(prefs.disabledNotificationAccounts, ["a"])
         prefs.set("notifications", account: "a", value: true)
         XCTAssertTrue(prefs.disabledNotificationAccounts.isEmpty)
-        XCTAssertTrue(prefs.homeChatsTitle)
+        XCTAssertFalse(prefs.homeChatsTitle)
+        prefs.setHomeChatsTitle(true)
+        XCTAssertTrue(NebulaBehaviorPreferences(defaults: defaults).homeChatsTitle)
         prefs.setHomeChatsTitle(false)
         XCTAssertFalse(NebulaBehaviorPreferences(defaults: defaults).homeChatsTitle)
         for key in ["mute_non_contacts", "ignore_mentions", "quote_full_reply", "biometric_delete"] {
@@ -76,6 +78,6 @@ final class NebulaBehaviorTests: XCTestCase {
         XCTAssertFalse(prefs.folderTabsBottom)
         prefs.setFolderTabsBottom(true)
         XCTAssertTrue(NebulaBehaviorPreferences(defaults: defaults).folderTabsBottom)
-        XCTAssertTrue(prefs.homeChatsTitle)
+        XCTAssertFalse(prefs.homeChatsTitle)
     }
 }
