@@ -33,6 +33,7 @@ class InputControlsCheck {
  static int dp(int x){return x;}
  static class Home {boolean onlySelect,inPreviewMode,searching,floatingButtonHidden;int initialDialogsType,folderId,communityId;
  int navigationBarHeight=20,additionFloatingButtonOffset=70,additionalFloatingTranslation=3,floatingButtonPanOffset=2;
+ int headerUpdates;void checkUi_nebulaHomeActions(){headerUpdates++;}
  View floatingButton3=new View(),floatingButtonStories=new View(),storyHint=new View(); VIS OFFSET }
  static class ViewPager {static int SCROLL_STATE_IDLE=0;int current;int getCurrentItem(){return current;}}
  static class Tab {boolean selected;void setSelected(boolean b){selected=b;}}
@@ -56,6 +57,7 @@ class InputControlsCheck {
  for(boolean ai:new boolean[]{false,true})for(boolean camera:new boolean[]{false,true})for(boolean compose:new boolean[]{false,true})for(boolean select:new boolean[]{false,true})for(boolean hidden:new boolean[]{false,true}){
  app.nebulagram.ui.NebulaAiSheet.enabled=ai;NebulaAppearance.camera=camera;NebulaAppearance.compose=compose;Home h=new Home();h.onlySelect=select;h.initialDialogsType=10;h.floatingButtonHidden=hidden;
  h.updateFloatingButtonVisibility(false);h.updateFloatingButtonOffset();
+ check(h.headerUpdates==1);
  check(h.floatingButton3.visible==(!hidden&&(select||!compose)));check(h.floatingButtonStories.visible==(!hidden&&(!select&&ai||!camera)));
  check(h.floatingButton3.y==-95);check(h.floatingButtonStories.y==(-95-(!select&&compose?0:52)));check(h.storyHint.y==h.floatingButtonStories.y);cases++;
  }
