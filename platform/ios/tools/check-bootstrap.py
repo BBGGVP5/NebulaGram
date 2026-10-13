@@ -164,6 +164,9 @@ def main():
         handler = (temp / 'submodules/SettingsUI/Sources/Search/SettingsSearchableItems.swift').read_text(encoding='utf-8')
         assert 'if nebulaOpenQuickAction(context: context, path: path, navigationController: navigationController)' in handler
         app_build = (temp / 'Telegram/BUILD').read_text(encoding='utf-8')
+        upstream_minimum = re.search(r'^minimum_os_version = "([0-9.]+)"', app_build, re.M)[1]
+        integration_build = (temp / 'submodules/NebulaIntegrationChecks/BUILD').read_text(encoding='utf-8')
+        assert 'minimum_os_version = "' + upstream_minimum + '"' in integration_build, 'integration deployment must match the upstream application'
         assert 'composer_icon_folders = ["NebulaGram"]' in app_build
         theme_defaults = (temp / 'submodules/TelegramUIPreferences/Sources/PresentationThemeSettings.swift').read_text(encoding='utf-8')
         assert 'day.index: PresentationThemeAccentColor(index: -1, baseColor: .blue, accentColor: 0x3C8DF0)' in theme_defaults

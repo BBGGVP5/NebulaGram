@@ -78,6 +78,8 @@ public class MainActivity extends Activity {
     org.json.JSONObject report=new org.json.JSONObject();EditText edit=findEditor(root);report.put("editorWidth",edit==null?0:edit.getWidth());report.put("editorHeight",edit==null?0:edit.getHeight());
     report.put("scale",getResources().getConfiguration().fontScale);report.put("dark",NebulaTheme.dark);report.put("keyboardRequested",getIntent().getBooleanExtra("keyboard",false));report.put("case",getIntent().getStringExtra("case"));
     boolean ime=Build.VERSION.SDK_INT>=30&&root.getRootWindowInsets()!=null&&root.getRootWindowInsets().isVisible(WindowInsets.Type.ime());report.put("imeVisible",ime);
+    android.graphics.Rect editorRect=new android.graphics.Rect();if(edit!=null)edit.getGlobalVisibleRect(editorRect);
+    report.put("editorLeft",editorRect.left);report.put("editorTop",editorRect.top);report.put("editorRight",editorRect.right);report.put("editorBottom",editorRect.bottom);
     java.io.FileOutputStream out=openFileOutput("layout.json",0);out.write(report.toString().getBytes(java.nio.charset.StandardCharsets.UTF_8));out.close();
    }catch(Exception e){throw new RuntimeException(e);}if(!isFinishing()&&!isDestroyed())root.postDelayed(this,333);}},1400);
   });
@@ -120,12 +122,19 @@ def render():
     time.sleep(1)
     try:report=json.loads(subprocess.check_output([str(adb),'-s',serials[0],'shell','run-as','app.nebulagram.uiqa','cat','files/layout.json'],stderr=subprocess.DEVNULL))
     except (ValueError,subprocess.CalledProcessError):continue
-    if report.get('case')==name and abs(report['scale']-scale)<0.01 and report['dark']==dark and report['keyboardRequested']==keyboard and (not keyboard or report['imeVisible']):break
+    if report.get('case')==name and abs(report['scale']-scale)<0.01 and report['dark']==dark and report['keyboardRequested']==keyboard:break
    assert report and report.get('case')==name and abs(report['scale']-scale)<0.01 and report['dark']==dark and report['keyboardRequested']==keyboard,report
    foreground=subprocess.check_output([str(adb),'-s',serials[0],'shell','dumpsys','activity','activities'],text=True)
    resumed=[line for line in foreground.splitlines() if 'mResumedActivity:' in line or 'topResumedActivity=' in line]
    assert any('app.nebulagram.uiqa/.MainActivity' in line for line in resumed),resumed
-   if keyboard:assert report['imeVisible'],'Keyboard was requested but not actually shown'
+   if keyboard:
+    assert report['editorRight']>report['editorLeft'] and report['editorBottom']>report['editorTop'],report
+    device('shell','input','tap',str((report['editorLeft']+report['editorRight'])//2),str((report['editorTop']+report['editorBottom'])//2))
+    for attempt in range(15):
+     time.sleep(1)
+     report=json.loads(subprocess.check_output([str(adb),'-s',serials[0],'shell','run-as','app.nebulagram.uiqa','cat','files/layout.json']))
+     if report['imeVisible']:break
+    assert report['imeVisible'],'Keyboard was requested but not actually shown'
    with (output/(name+'.png')).open('wb') as f:device('exec-out','screencap','-p',stdout=f)
    assert report['editorWidth']>0 and report['editorHeight']>0,report
    (output/(name+'.json')).write_text(json.dumps(report,indent=2)+'\n')
