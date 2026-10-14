@@ -49,8 +49,8 @@ User confirmed the shield remains static on Android APK1000534. The native iOS13
 
 - [x] Add a regression adapter that rejects the empty keyword request and returns `TL_emojiList` IDs. Before the fix, `python scripts/check-settings-emoji.py` failed the request-contract assertion. The corrected production loader passes existing decoder/lifetime checks and new two-stage resolution checks.
 - [x] Use `TL_messages_searchCustomEmoji.emoticon = "🛡️"`, `hash=0`; resolve a bounded set of IDs through the native document fetcher, skipping static/unrelated/missing documents, select one animated shield only and retain attachment/account guards.
-- [ ] Run existing emoji playback/cancel/cache tests plus SDK/native build. Request actual phone connection early; do not claim a live Telegram shield or physical animation test without it.
-- [ ] Commit exact task files, push authorized branches and rebuild Android. Inspect CI failure logs and verify the APK source/package/signature before delivery.
+- [x] Run existing emoji playback/cancel/cache tests plus SDK/native build. Request actual phone connection early; do not claim a live Telegram shield or physical animation test without it.
+- [x] Commit exact task files, push authorized branches and rebuild Android. Inspect CI failure logs and verify the APK source/package/signature before delivery.
 
 Follow-up source `dc91134a351328aa56d5451dced5fa51ac2711a0` is pushed to both authorized branches. APK1000536 run `38572301639` is compiling. Phone connection was provided by the user; installed version1000534 confirmed. Actual ad-block settings reproduced the static shield: five unobscured crops over roughly3seconds have zero changed frames (`build/shield-live-before-1000534/report.json`). The earlier sample was obscured by an unrelated popup and is not counted as animation evidence. Power saving is disabled; glass quality UI reads Automatic/full effect active. No settings were changed. New live verification remains pending the updated APK.
 
@@ -60,9 +60,9 @@ Android widget QA `38564461638` passed. Actual production card and modal window 
 
 iOS widget QA `38564466506` passed. Actual UIKit controller rendered in dark/light/XXXL states, all images inspected. Card bottom is8pt above composer, backdrop alpha0.55, close and both choices visible. Moving input60pt moves card60pt; repeated activation selects once, closing and backdrop never select. On narrow screens with large fonts, buttons become vertical so "Фронтальная" fits whole. Normal layouts keep equal side-by-side pills.
 
-Both macOS bootstrap runs `38564460005` and `38564455866` passed, including real UIKit SDK type checking at iOS15 and all107 ordered patches. Full native build `38564568776`, APK1000534 (`38564459994`) and unsigned IPA117 (`38564573555`) are in progress; they are not reported as successful artifacts yet. Retrieval/verification helper: ignored `build/fetch-inline-camera-artifacts.py`.
+Both macOS bootstrap runs `38564460005` and `38564455866` passed, including real UIKit SDK type checking at iOS15 and all107 ordered patches. Full native build `38564568776` succeeded with result `compiled`; APK1000534 (`38564459994`) succeeded and was verified. Unsigned IPA117 (`38564573555`) remains in progress at the latest check. Retrieval/verification helper: ignored `build/fetch-inline-camera-artifacts.py`.
 
-Shield search/cancellation/playback were tested with deterministic Telegram API/decoder adapters. No live Telegram shield download or physical phone/camera/ASR acceptance is claimed. A first uncached emoji still needs Telegram connectivity; reduced-motion/system animation preferences remain respected.
+Initial shield search/cancellation/playback verification used deterministic Telegram API/decoder adapters. Live shield verification followed with APK1000536 below. Physical camera/ASR acceptance is not claimed. A first uncached emoji still needs Telegram connectivity; reduced-motion/system animation preferences remain respected.
 
 ### Shield smoothness follow-up
 
@@ -71,5 +71,9 @@ APK1000536 (`38572301639`, source `dc91134a351328aa56d5451dced5fa51ac2711a0`) pa
 The production ImageLoader treats filters <=90dp as small icons: it halves60fps TGS and caps decoding at160px unless `nolimit` is present. Our72/88dp page heroes hit that path. Use `_pcache_nolimit` for large TGS to retain the source frame rate and cache rasterized frames between loops. Keep compact icons and WebM policy, per-view playheads and reduced-motion/lifecycle guards.
 
 - [x] Binding regression fails before the fix at72dp and passes after it for72/88/112dp, compact48dp and WebM. Existing async lookup/cache/visibility/focus/replay tests pass.
-- [ ] Rebuild, verify and install the fixed APK. Compare recorded shield movement and steady rendering on the same phone, including reentry; report actual measurements without calling mock results physical evidence.
-- [ ] Restore temporary asset-only log tag and remove exact task-owned phone recordings.
+- [x] Rebuild, verify and install the fixed APK. Compare recorded shield movement and steady rendering on the same phone, including reentry; report actual measurements without calling mock results physical evidence.
+- [x] Restore temporary asset-only log tag and remove exact task-owned phone recordings.
+
+APK1000538 run `38578229684` succeeded, source `1362f09923c4d6eadf19bf110762ca2f85389503`; all106 interface/regression checks passed. Verified arm64 package/signature and new filter in DEX. SHA256 `ea58650ff88f70bf2ab0c6faec15988ce4e7917d117cdb33bf3498a23254faba`. Installed successfully on the authorized Pixel9ProXL/API37. Only settings navigation/diagnostics were used; no settings values were changed.
+
+Eight-second shield recordings: APK536 had117 captured frames,103 visual changes, median change interval83.07ms. APK538 has479 captured frames,449 visual changes, median16.73ms; after closing/reopening the page it has479 frames,436 visual changes, median16.67ms. Crop covers only the public hero asset; native animation holds are included, so visual changes/second (12.91 before,56.46 after,54.8 on reentry) are not claimed as an exact decoder FPS benchmark. Actual hero crops inspected. New steady rendering profile:700 frames,3 missed deadlines (0.43%), median8ms/95th11ms/99th16ms. Asset-only logs confirm native custom-emoji lookup returned4 IDs and loaded an animated TGS shield with180 frames. Physical evidence: `build/shield-device-538.json` and cropped recordings `build/nebula-shield-fps-538/`, `build/nebula-shield-reentry-538/`.
