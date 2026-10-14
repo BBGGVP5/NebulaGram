@@ -44,21 +44,27 @@ public final class PresentationTheme {
  }
 }
 final class SceneDelegate:UIResponder,UIWindowSceneDelegate {
- var window:UIWindow?;let root=UIViewController();var calls=0
+ var window:UIWindow?;let root=UIViewController();var calls=0;let composer=UIView()
  let name=ProcessInfo.processInfo.arguments.dropFirst().first ?? "dark-front"
  var theme:PresentationTheme {PresentationTheme(dark: !name.contains("light"))}
  func scene(_ scene:UIScene,willConnectTo session:UISceneSession,options:UIScene.ConnectionOptions) {
   guard let scene=scene as? UIWindowScene else{return}
   let window=UIWindow(windowScene:scene);self.window=window;window.rootViewController=root
   root.view.backgroundColor=theme.overallDarkAppearance ? UIColor(white:0.05,alpha:1):UIColor(white:0.88,alpha:1)
+  composer.backgroundColor=theme.list.itemAccentColor.withAlphaComponent(0.3);composer.layer.cornerRadius=24
+  root.view.addSubview(composer)
+  let title=UILabel();title.text="Чат · Предпросмотр выбора камеры";title.textColor=theme.list.itemPrimaryTextColor
+  title.frame=CGRect(x:16,y:100,width:340,height:50);root.view.addSubview(title)
   window.makeKeyAndVisible();UserDefaults.standard.set(name.contains("front"),forKey:"nebula.round.last_front")
-  DispatchQueue.main.asyncAfter(deadline:.now()+0.8){self.presentCamera()
+  DispatchQueue.main.asyncAfter(deadline:.now()+0.8){
+   self.composer.frame=CGRect(x:12,y:self.root.view.bounds.height-self.root.view.safeAreaInsets.bottom-68,width:self.root.view.bounds.width-24,height:56)
+   self.presentCamera()
    if self.name.contains("large"){self.root.presentedViewController?.presentationController?.overrideTraitCollection=UITraitCollection(preferredContentSizeCategory:.extraExtraExtraLarge)}
    DispatchQueue.main.asyncAfter(deadline:.now()+2){self.report()}
   }
   _ = Timer.scheduledTimer(timeInterval:0.2,target:self,selector:#selector(checkTrigger),userInfo:nil,repeats:true)
  }
- func presentCamera(){nebulaPresentRecordingCamera(from:root,russian:true,theme:theme){index in
+ func presentCamera(){nebulaPresentRecordingCamera(from:root,russian:true,theme:theme,inputFrame:{self.composer.frame}){index in
   precondition(index==1,"Incorrect selected camera");self.calls+=1
  }}
  func find(_ view:UIView,_ id:String)->UIView? {
@@ -80,9 +86,11 @@ final class SceneDelegate:UIResponder,UIWindowSceneDelegate {
   guard let controller=root.presentedViewController,let front=find(controller.view,"nebula.camera.front") as? UIControl,
         let rear=find(controller.view,"nebula.camera.rear") as? UIControl,let close=find(controller.view,"nebula.camera.close") else{fatalError("Camera controls missing")}
   let large=controller.traitCollection.preferredContentSizeCategory == .extraExtraExtraLarge
+  guard let card=find(controller.view,"nebula.camera.card"),let backdrop=find(controller.view,"nebula.camera.backdrop") else{fatalError("Missing inline card or dim backdrop")}
   save("layout.json",["case":name,"frontVisible":visible(front),"rearVisible":visible(rear),"closeVisible":visible(close),
        "frontSelected":front.isSelected,"rearSelected":rear.isSelected,"largeFont":large,
-       "frontHeight":front.bounds.height,"rearHeight":rear.bounds.height,"panelHeight":controller.view.bounds.height])
+       "frontHeight":front.bounds.height,"rearHeight":rear.bounds.height,"panelHeight":card.bounds.height,
+       "aboveComposer":card.frame.maxY<=composer.frame.minY-7.5,"dimAmount":backdrop.backgroundColor?.cgColor.alpha ?? 0])
  }
  @objc func checkTrigger() {
   let trigger=FileManager.default.urls(for:.documentDirectory,in:.userDomainMask)[0].appendingPathComponent("verify.trigger")
@@ -93,16 +101,26 @@ final class SceneDelegate:UIResponder,UIWindowSceneDelegate {
   save("callback-stage.json",["case":name,"stage":"start","hostInWindow":root.view.window != nil])
   guard let controller=root.presentedViewController,
         let rear=find(controller.view,"nebula.camera.rear") as? UIControl else{fatalError("No camera to verify")}
-  rear.sendActions(for:.touchUpInside);rear.sendActions(for:.touchUpInside)
-  waitForDismiss(stage:"choice",attempt:0){
+  guard let card=find(controller.view,"nebula.camera.card") else{fatalError("No inline card")}
+  let oldBottom=card.frame.maxY;composer.frame.origin.y-=60
+  DispatchQueue.main.asyncAfter(deadline:.now()+0.3){
+   precondition(abs(oldBottom-card.frame.maxY-60)<1,"Inline card did not follow native input")
+   rear.sendActions(for:.touchUpInside);rear.sendActions(for:.touchUpInside)
+   self.waitForDismiss(stage:"choice",attempt:0){
    self.presentCamera()
    DispatchQueue.main.asyncAfter(deadline:.now()+1){
     guard let controller=self.root.presentedViewController,let close=self.find(controller.view,"nebula.camera.close") as? UIControl else{fatalError("No close control")}
     close.sendActions(for:.touchUpInside)
     self.waitForDismiss(stage:"close",attempt:0){
-     self.save("callbacks.json",["case":self.name,"selections":self.calls,"cancelDidNotSelect":true])
+     self.presentCamera()
+     DispatchQueue.main.asyncAfter(deadline:.now()+0.5){
+      guard let controller=self.root.presentedViewController,let backdrop=self.find(controller.view,"nebula.camera.backdrop") as? UIControl else{fatalError("No backdrop")}
+      backdrop.sendActions(for:.touchUpInside)
+      self.waitForDismiss(stage:"outside",attempt:0){self.save("callbacks.json",["case":self.name,"selections":self.calls,"cancelDidNotSelect":true,"anchorFollowed":true])}
+     }
     }
    }
+  }
   }
  }
  func waitForDismiss(stage:String,attempt:Int,completion:@escaping()->Void) {
@@ -139,11 +157,12 @@ final class SceneDelegate:UIResponder,UIWindowSceneDelegate {
             assert all(report[k] for k in ['frontVisible','rearVisible','closeVisible']),report
             assert report['frontSelected']==('front' in name) and report['rearSelected']==('rear' in name),report
             assert report['largeFont']==('large' in name),report
+            assert report['aboveComposer'] and abs(report['dimAmount']-0.55)<0.01,report
             run('xcrun','simctl','io',device,'screenshot',images/(name+'.png'))
             (images/(name+'.json')).write_text(json.dumps(report,indent=2)+'\n')
             (container/'verify.trigger').write_text(name)
             callbacks = wait_report(container/'callbacks.json',name)
-            assert callbacks['selections']==1 and callbacks['cancelDidNotSelect'],callbacks
+            assert callbacks['selections']==1 and callbacks['cancelDidNotSelect'] and callbacks['anchorFollowed'],callbacks
             (images/(name+'-callbacks.json')).write_text(json.dumps(callbacks,indent=2)+'\n')
         print('Production UIKit camera sheet: visible controls, Dynamic Type, repeated choice and cancellation passed')
     except Exception:

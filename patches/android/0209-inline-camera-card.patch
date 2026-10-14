@@ -1,0 +1,13 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
+index 607086b..66eb946 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
+@@ -909,7 +909,7 @@ public class ChatActivityEnterView extends FrameLayout implements
+                     && !nebulaCameraChoiceResolved) {
+                 nebulaCameraChoicePending = true;
+                 recordAudioVideoRunnableStarted = false;
+-                app.nebulagram.ui.NebulaRoundCamera.askForRecording(getContext(), resourcesProvider, () -> {
++                app.nebulagram.ui.NebulaRoundCamera.askForRecording(getContext(), resourcesProvider, ChatActivityEnterView.this, () -> {
+                     if (!nebulaCameraChoicePending) return;
+                     nebulaCameraChoicePending = false;
+                     if (getWindowToken() == null) return;

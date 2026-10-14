@@ -407,12 +407,13 @@ def main():
         recording = (temp / 'submodules/TelegramUI/Sources/Chat/ChatControllerMediaRecording.swift').read_text(encoding='utf-8')
         assert 'nebulaPresentRecordingCamera(from: self' in recording
         assert 'self?.requestVideoRecorder(initialFrontCamera: index == 0)' in recording
-        assert 'controller.modalPresentationStyle = .pageSheet' in camera_picker
-        assert 'sheet.prefersGrabberVisible = true' in camera_picker
-        assert 'guard !didChoose, view.window != nil' in camera_picker
-        assert 'dismiss(animated: true) { action(index) }' in camera_picker
-        assert 'withAlphaComponent(0.15)' in camera_picker and 'layer.borderWidth' not in camera_picker
-        print('OK: dedicated native recording camera sheet retains facing, cancellation and unfilled controls', flush=True)
+        assert 'controller.modalPresentationStyle = .overFullScreen' in camera_picker
+        assert 'UIColor.black.withAlphaComponent(0.55)' in camera_picker
+        assert 'currentInputPanelFrame()' in recording and 'inputFrame:' in recording
+        assert 'guard !didChoose, !closing, view.window != nil' in camera_picker
+        assert 'self.dismiss(animated: false) { if let index { action(index) } }' in camera_picker
+        assert 'choices.distribution = .fillEqually' in camera_picker and 'layer.borderWidth' not in camera_picker
+        print('OK: inline recording camera card retains facing, native input anchor, dimming and cancellation', flush=True)
         draft_preview = (temp / 'submodules/TelegramUI/Components/Chat/ChatRecordingPreviewInputPanelNode/Sources/ChatRecordingPreviewInputPanelNode.swift').read_text(encoding='utf-8')
         check_draft_voice(draft_preview, temp, args.swift)
         ai_root = (temp / 'submodules/TelegramUI/Sources/TelegramRootController.swift').read_text(encoding='utf-8')

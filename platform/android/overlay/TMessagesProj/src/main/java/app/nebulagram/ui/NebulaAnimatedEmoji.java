@@ -12,6 +12,7 @@ import android.widget.FrameLayout;
 import android.widget.ImageView;
 import org.telegram.messenger.*;
 import org.telegram.tgnet.TLRPC;
+import org.telegram.tgnet.ConnectionsManager;
 
 /** Owns the receiver for one attachment; only a decoded frame can replace the fallback. */
 public final class NebulaAnimatedEmoji extends FrameLayout implements NotificationCenter.NotificationCenterDelegate {
@@ -29,6 +30,9 @@ public final class NebulaAnimatedEmoji extends FrameLayout implements Notificati
     private int attachment;
     private ImageReceiver receiver;
     private boolean activeLast, rewindPending = true;
+    private static final java.util.Map<Integer, TLRPC.Document> shieldDocuments = new java.util.HashMap<>();
+    private int searchRequest;
+    private boolean searchAttempted;
 
     // A sheet animates a cached display list: onDraw/onLayout of this child
     // need not run when its translated parent finally enters the viewport.
@@ -55,6 +59,7 @@ public final class NebulaAnimatedEmoji extends FrameLayout implements Notificati
         setImportantForAccessibility(IMPORTANT_FOR_ACCESSIBILITY_NO); setEmoji(emoji);
     }
     public void setEmoji(String value) {
+        cancelSearch(); searchAttempted=false;
         emoji=value;
         android.graphics.drawable.Drawable glyph=Emoji.getEmojiBigDrawable(value);
         if(glyph==null)glyph=Emoji.getEmojiBigDrawable(normalize(value));
@@ -99,6 +104,9 @@ public final class NebulaAnimatedEmoji extends FrameLayout implements Notificati
         if(!attached)return;
         TLRPC.Document document=pageDocument();
         if(document==null)document=MediaDataController.getInstance(account).getEmojiAnimatedSticker(emoji);
+        if(document!=null&&!animated(document))document=null;
+        if(document==null&&normalize(emoji).equals("🛡"))document=shieldDocuments.get(account);
+        if(document==null)searchShield();
         if(document!=null&&(receiver==null||documentId!=document.id)) {
             releaseReceiver(); documentId=document.id;
             final ImageReceiver next=receiver=new ImageReceiver(this);
@@ -116,6 +124,27 @@ public final class NebulaAnimatedEmoji extends FrameLayout implements Notificati
             next.setImage(ImageLocation.getForDocument(document),filter,null,null,null,document.size,null,document,1);
         }
         updateVisual();
+    }
+    private void searchShield() {
+        if(!attached||searchAttempted||size<72||!normalize(emoji).equals("🛡"))return;
+        searchAttempted=true;
+        TLRPC.TL_messages_searchStickers request=new TLRPC.TL_messages_searchStickers();
+        request.emojis=true;request.q="";request.emoticon="🛡";request.limit=32;
+        int epoch=attachment;
+        searchRequest=ConnectionsManager.getInstance(account).sendRequest(request,(response,error)->AndroidUtilities.runOnUIThread(()->{
+            if(!attached||epoch!=attachment)return;
+            searchRequest=0;
+            if(!(response instanceof TLRPC.TL_messages_foundStickers))return;
+            for(TLRPC.Document candidate:((TLRPC.TL_messages_foundStickers)response).stickers) {
+                if(animated(candidate)&&normalize(MessageObject.findAnimatedEmojiEmoticon(candidate,null)).contains("🛡")) {
+                    shieldDocuments.put(account,candidate);refresh();return;
+                }
+            }
+        }));
+    }
+    private void cancelSearch() {
+        if(searchRequest!=0)ConnectionsManager.getInstance(account).cancelRequest(searchRequest,true);
+        searchRequest=0;
     }
     private void postVisual(ImageReceiver source,int epoch) {
         if(visualPosted||!attached||source!=receiver||epoch!=attachment)return; visualPosted=true;
@@ -169,13 +198,13 @@ public final class NebulaAnimatedEmoji extends FrameLayout implements Notificati
     @Override public void onWindowFocusChanged(boolean focus){super.onWindowFocusChanged(focus);if(attached)updatePlayback();}
     @Override protected void onVisibilityChanged(View v,int state){super.onVisibilityChanged(v,state);if(attached)updatePlayback();}
     @Override protected void onLayout(boolean changed,int l,int t,int r,int b){super.onLayout(changed,l,t,r,b);if(attached)updatePlayback();}
-    @Override protected void onAttachedToWindow(){super.onAttachedToWindow();attached=true;attachment++;
+    @Override protected void onAttachedToWindow(){super.onAttachedToWindow();attached=true;attachment++;searchAttempted=false;
         NotificationCenter.getInstance(account).addObserver(this,NotificationCenter.stickersDidLoad);getViewTreeObserver().addOnScrollChangedListener(scrollListener);getViewTreeObserver().addOnPreDrawListener(preDrawListener);
         NotificationCenter.getInstance(account).addObserver(this,NotificationCenter.groupStickersDidLoad);
         NotificationCenter.getInstance(account).addObserver(this,NotificationCenter.diceStickersDidLoad);
         NotificationCenter.getGlobalInstance().addObserver(this,NotificationCenter.emojiLoaded);
         loadPageSet();MediaDataController.getInstance(account).checkStickers(MediaDataController.TYPE_EMOJI);refresh();post(()->{if(attached)updateVisual();});}
-    @Override protected void onDetachedFromWindow(){attached=false;NotificationCenter.getInstance(account).removeObserver(this,NotificationCenter.stickersDidLoad);
+    @Override protected void onDetachedFromWindow(){attached=false;cancelSearch();NotificationCenter.getInstance(account).removeObserver(this,NotificationCenter.stickersDidLoad);
         NotificationCenter.getInstance(account).removeObserver(this,NotificationCenter.groupStickersDidLoad);
         NotificationCenter.getInstance(account).removeObserver(this,NotificationCenter.diceStickersDidLoad);
         NotificationCenter.getGlobalInstance().removeObserver(this,NotificationCenter.emojiLoaded);

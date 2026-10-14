@@ -22,7 +22,7 @@ import org.telegram.messenger.AndroidUtilities;
 
 /** Scoped presentation for AI and audio tools; native requests remain in their controllers. */
 public final class NebulaAiPanelUi {
-    public static final int VOICE = 0, CHAT = 1, SPEECH = 2;
+    public static final int VOICE = 0, CHAT = 1, SPEECH = 2, CAMERA = 3;
     private NebulaAiPanelUi() { }
     public static int dp(float value) { return AndroidUtilities.dp(value); }
     private static int tint(int color, float alpha) {
@@ -162,7 +162,11 @@ public final class NebulaAiPanelUi {
             paint.setStyle(Paint.Style.FILL); paint.setColor(tint(theme.primary(), theme.isDark() ? .13f : .09f));
             rect.set(-31, -31, 31, 31); canvas.drawRoundRect(rect, 20, 20, paint);
             paint.setStyle(Paint.Style.STROKE); paint.setStrokeWidth(2.1f); paint.setColor(theme.primary());
-            if (kind == CHAT) {
+            if (kind == CAMERA) {
+                rect.set(-18, -11, 18, 15); canvas.drawRoundRect(rect, 7, 7, paint);
+                path.reset(); path.moveTo(-10, -11); path.lineTo(-6, -17); path.lineTo(6, -17); path.lineTo(10, -11); canvas.drawPath(path, paint);
+                canvas.drawCircle(0, 2, 8, paint); canvas.drawCircle(12, -5, 1, paint);
+            } else if (kind == CHAT) {
                 path.reset(); path.moveTo(-17,-13); path.cubicTo(-17,-18,16,-18,17,-13);
                 path.lineTo(17,7); path.quadTo(17,12,12,12); path.lineTo(-6,12);
                 path.lineTo(-16,19); path.lineTo(-13,11); path.quadTo(-18,10,-17,5); path.close(); canvas.drawPath(path,paint);

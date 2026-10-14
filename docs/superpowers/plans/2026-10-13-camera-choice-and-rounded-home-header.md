@@ -17,8 +17,8 @@ Files:
 - Modify `platform/android/overlay/TMessagesProj/src/main/java/app/nebulagram/ui/NebulaRoundCamera.java`.
 - Modify `scripts/check-dialogs.py`; extend SDK/widget QA to compile and render the actual new panel.
 
-- [ ] Create a dedicated 28dp rounded sheet, heading and explanation, two 88dp minimum rows with code-drawn phone/lens artwork and two-line labels. Highlight the last camera with a color fill, without a checkmark, radio circle, or stroke. A scrollable body must fit large fonts/landscape. Close is an unfilled 48dp target.
-- [ ] Preserve callback order: set selected first, remember facing, dismiss, then start. Dismiss without selection runs cancellation once.
+- [x] Create a dedicated 28dp rounded sheet, heading and explanation, two 88dp minimum rows with code-drawn phone/lens artwork and two-line labels. Highlight the last camera with a color fill, without a checkmark, radio circle, or stroke. A scrollable body must fit large fonts/landscape. Close is an unfilled 48dp target.
+- [x] Preserve callback order: set selected first, remember facing, dismiss, then start. Dismiss without selection runs cancellation once.
 
 ```java
 BottomSheet dialog = NebulaRoundCameraSheet.create(context, provider,
@@ -33,7 +33,7 @@ dialog.setOnDismissListener((Runnable) () -> AndroidUtilities.runOnUIThread(() -
 dialog.show();
 ```
 
-- [ ] Run `python scripts/check-dialogs.py`, `python scripts/check-recording-taps.py build/android-home-motion-video-final-12106-20261013`, and SDK type checks. Expected: both camera choices start once; close/back/outside/swipe never start recording. Type checks succeed.
+- [x] Run `python scripts/check-dialogs.py`, `python scripts/check-recording-taps.py build/android-home-motion-video-final-12106-20261013`, and SDK type checks. Expected: both camera choices start once; close/back/outside/swipe never start recording. Type checks succeed.
 
 ### Task 2: Shared header material
 
@@ -41,7 +41,7 @@ Files:
 - Create `patches/android/0208-rounded-home-header-with-plain-actions.patch` from an owned fixture after patch 0207.
 - Modify `scripts/check-reference-home-header.py` to expect the restored shared surface instead of separate button fills.
 
-- [ ] Restore the existing rounded parent material for all shared headers:
+- [x] Restore the existing rounded parent material for all shared headers:
 
 ```java
 if (top && actionBar != null && actionBar.isNebulaSharedHeaderGlass()) {
@@ -49,21 +49,21 @@ if (top && actionBar != null && actionBar.isNebulaSharedHeaderGlass()) {
 }
 ```
 
-- [ ] Suppress the independent Edit material for the home layout. Include `nebulaHomeLayout` in the plain-controls predicate, retaining search and selection behavior and unrelated chat/profile styling.
-- [ ] Run header geometry/motion/controls regression checks on the owned patched tree. Expected: original reversible story path and title geometry still pass; shared header owns its rounded surface; no independent home button fills.
+- [x] Suppress the independent Edit material for the home layout. Include `nebulaHomeLayout` in the plain-controls predicate, retaining search and selection behavior and unrelated chat/profile styling.
+- [x] Run header geometry/motion/controls regression checks on the owned patched tree. Expected: original reversible story path and title geometry still pass; shared header owns its rounded surface; no independent home button fills.
 
 ### Task 3: Verification and delivery
 
-- [ ] Copy changed overlay files to the owned Android fixture; run all required Android interface/regression checks once. Do not reset or stage the user's dirty vendor submodule.
-- [ ] Render the real camera panel in dark/light/narrow-large-font states in the credential-free CI widget app. Inspect screenshots. This is widget verification, not a physical Telegram camera acceptance test.
-- [ ] Commit only these task paths, push the authorized main/working branches, build Android, inspect CI errors if any, and verify the APK package/version/signature/source revision.
-- [ ] Record exact checks, CI/source/artifact provenance and physical-device limitations here before delivery.
+- [x] Copy changed overlay files to the owned Android fixture; run all required Android interface/regression checks once. Do not reset or stage the user's dirty vendor submodule.
+- [x] Render the real camera panel in dark/light/narrow-large-font states in the credential-free CI widget app. Inspect screenshots. This is widget verification, not a physical Telegram camera acceptance test.
+- [x] Commit only these task paths, push the authorized main/working branches, build Android, inspect CI errors if any, and verify the APK package/version/signature/source revision.
+- [x] Record exact checks, CI/source/artifact provenance and physical-device limitations here before delivery.
 
 ## Verification receipt
 
-Local implementation is complete. `check-dialogs.py` covers each camera choice, repeated selection, dismissal and missing activity. SDK 37 compiles the real camera panel/controller. The full 106 Android interface/regression commands pass on the owned tree after patch 0208, including 101 frames with no Edit backing and the existing story/title geometry and reversible motion checks. The credential-free QA APK compiles the actual new camera views; CI rendering and release APK verification remain pending.
+Local implementation is complete. `check-dialogs.py` covers each camera choice, repeated selection, dismissal and missing activity. SDK 37 compiles the real camera panel/controller. The full 106 Android interface/regression commands pass on the owned tree after patch 0208, including 101 frames with no Edit backing and the existing story/title geometry and reversible motion checks. The credential-free QA APK renders the actual new camera views; screenshots and APK 1000527 are verified below.
 
-The previously pending iOS native run `38417177542` reported a recording-send count type mismatch (`Int` versus native `Int32`). Patch 0104 now converts the native chunk count at the payment call; the executable test adapter uses the actual `Int32` signature, and bootstrap includes that upstream declaration so fixture drift cannot hide it. All 105 ordered iOS patches apply locally. New macOS execution/build evidence remains pending.
+The previously pending iOS native run `38417177542` reported a recording-send count type mismatch (`Int` versus native `Int32`). Patch 0104 now converts the native chunk count at the payment call; the executable test adapter uses the actual `Int32` signature, and bootstrap includes that upstream declaration so fixture drift cannot hide it. The updated payment adapter passed macOS execution; the current 106-patch integration is compiled and verified below.
 
 ### Task 4: Port the current presentation to iOS (user requested during verification)
 
@@ -73,11 +73,18 @@ Files:
 - Modify `platform/ios/tools/check-bootstrap.py` and `platform/ios/tools/check_story_header.py`.
 - Create `platform/ios/tools/camera-ui-qa.py` and `.github/workflows/ios-camera-ui-qa.yml` to render the real controller on an owned CI simulator with only a palette adapter.
 
-- [ ] Present a dedicated native UIKit sheet through `nebulaPresentRecordingCamera(from:russian:theme:choose:)`. Use the same two code-drawn phone sides, captions, last-choice color fill, unfilled close control and scrollable Dynamic Type content. Native sheet gestures dismiss without selecting. Guard repeated taps; start the existing recorder only in the successful dismissal completion.
-- [ ] Replace only the native recording camera call with the new public SettingsUI bridge; keep generic setting choices and camera/recording implementations.
-- [ ] Restore parent-owned `nebulaHeaderGlass` with bottom radii 22 points, no material border and native scroll bounds. In ChatListHeaderComponent set its four independent toolbar material updates to `isInteractive: false, isVisible: false`; keep content, hit areas and menu extraction containers intact. This hides effects, not button views.
-- [ ] Update bootstrap assertions to require the rounded shared surface and plain control effects, then run `python platform/ios/tools/check-bootstrap.py`. Expected: 106 ordered patches apply and camera bridge/header guards pass.
+- [x] Present a dedicated native UIKit sheet through `nebulaPresentRecordingCamera(from:russian:theme:choose:)`. Use the same two code-drawn phone sides, captions, last-choice color fill, unfilled close control and scrollable Dynamic Type content. Native sheet gestures dismiss without selecting. Guard repeated taps; start the existing recorder only in the successful dismissal completion.
+- [x] Replace only the native recording camera call with the new public SettingsUI bridge; keep generic setting choices and camera/recording implementations.
+- [x] Restore parent-owned `nebulaHeaderGlass` with bottom radii 22 points, no material border and native scroll bounds. In ChatListHeaderComponent set its four independent toolbar material updates to `isInteractive: false, isVisible: false`; keep content, hit areas and menu extraction containers intact. This hides effects, not button views.
+- [x] Update bootstrap assertions to require the rounded shared surface and plain control effects, then run `python platform/ios/tools/check-bootstrap.py`. Expected: 106 ordered patches apply and camera bridge/header guards pass.
 - [ ] Run macOS UIKit type checks and native integration/IPA builds on the new source revision; report successful artifacts separately from pending builds. Never claim physical iPhone acceptance from compilation.
-- [ ] Run `gh workflow run ios-camera-ui-qa.yml --ref main`, inspect dark/light/large-font screenshots, and require that repeated rear-camera taps select once while closing a reopened panel never selects.
+- [x] Run `gh workflow run ios-camera-ui-qa.yml --ref main`, inspect dark/light/large-font screenshots, and require that repeated rear-camera taps select once while closing a reopened panel never selects.
 
 Android receipt: APK 1000527 from CI `38427510947`, source `14af4ed642342864cf6b52f4a15bd8188557406d`, 60,072,411 bytes, SHA256 `dcbb3d997ac4ff8c246d50d755fe63f8cc4ed8bd2f7cfdd2450555c9e0863b4a`. ZIP, arm64 libraries, package/version, expected signing certificate and the new camera text in DEX verified. Widget QA `38427566360` passed; dark/light/narrow font-1.3 images inspected, both camera rows and close fully visible, repeated choice invokes its callback once. Another 606 executed native home draw states have no button backing. iOS bootstrap `38427510980` attempt 2 passed on the same source; attempt 1 failed a transient GitHub blob fetch. The updated payment adapter passed macOS execution.
+
+
+Current iOS runtime source is `2e9807c860d3a7245ec40c2488d57b54151f8d57`. Bootstrap `38433271203` passed all 106 ordered patches and real UIKit SDK type checks; native integration run `38433362548` completed with status `compiled` under Xcode 26.6/Bazel 9.2, upstream iOS 13.0. Downloaded result input hashes match the exact camera controller and patch 0106 in the workspace.
+
+iOS widget QA `38436546157` passed with the actual controller on an owned iPhone SE simulator: dark/light palettes, extra-extra-extra-large Dynamic Type, both camera rows and close fully visible, exactly one rear selection despite repeated activation, and no selection on closing the reopened panel. All three screenshots were inspected. Only the palette and the presenting app are offline adapters; no Telegram account, camera, microphone, audio or physical iPhone was exercised. The first fixture run `38434836215` rendered correctly but did not complete callback reporting; the final driver stays in its existing scene and waits for actual dismissal instead of assuming a fixed duration.
+
+Unsigned device IPA 115 completed successfully in `38433368728` from that runtime source. Downloaded archive verified: 91,361,585 bytes, SHA256 `b4979a7cdbd2453128c0d723604dea1c7b1ccd73fdf64130c735e9b8b0374921`, arm64 device binary, bundle/version/extensions and report match; status `packaged-for-user-signing`, physical device not tested. Later QA commits do not change those runtime files. The user subsequently requested the inline card design, tracked separately in `2026-10-14-inline-camera-and-shield.md`; IPA115 predates that revision.

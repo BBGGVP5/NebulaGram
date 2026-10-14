@@ -14,6 +14,8 @@ final class NebulaAnimatedSettingsEmoji: UIView {
     private let fallback = UILabel()
     private let pack = MetaDisposable()
     private let fetch = MetaDisposable()
+    private let search = MetaDisposable()
+    private var searchStarted = false
     private var sticker: AnimatedStickerNode?
     private var fileId: MediaId?
     private var pageVisible = true
@@ -36,18 +38,38 @@ final class NebulaAnimatedSettingsEmoji: UIView {
             guard let self else { return }
             func match(_ result: LoadedStickerPack) -> TelegramMediaFile? {
                 guard case let .result(_, items, _) = result else { return nil }
-                for item in items where item.getStringRepresentationsOfIndexKeys().contains(where: { Self.normalized($0) == Self.normalized(self.emoji) }) {
+                for item in items {
                     let file = item.file._parse()
-                    if file.isAnimatedSticker || file.isVideoSticker { return file }
+                    let matches = item.getStringRepresentationsOfIndexKeys().contains(where: { Self.normalized($0) == Self.normalized(self.emoji) })
+                        || Self.emojiCode(file).contains(Self.normalized(self.emoji))
+                    if matches && (file.isAnimatedSticker || file.isVideoSticker) { return file }
                 }
                 return nil
             }
             if let file = match(pages) ?? match(native) { self.show(file) }
+            else { self.searchShield() }
         }))
     }
     required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
-    deinit { pack.dispose(); fetch.dispose(); NotificationCenter.default.removeObserver(self) }
+    deinit { pack.dispose(); fetch.dispose(); search.dispose(); NotificationCenter.default.removeObserver(self) }
     private static func normalized(_ value: String) -> String { value.replacingOccurrences(of: "\u{FE0F}", with: "") }
+    private static func emojiCode(_ file: TelegramMediaFile) -> String {
+        for attribute in file.attributes {
+            if case let .CustomEmoji(_, _, alt, _) = attribute { return normalized(alt) }
+        }
+        return ""
+    }
+    private func searchShield() {
+        guard !searchStarted, fileId == nil, Self.normalized(emoji) == "🛡" else { return }
+        searchStarted = true
+        search.set((context.engine.stickers.searchEmoji(query: nil, emoticon: ["🛡"])
+            |> deliverOnMainQueue).start(next: { [weak self] result in
+                guard let self, self.fileId == nil else { return }
+                if let file = result.items.first(where: {
+                    ($0.isAnimatedSticker || $0.isVideoSticker) && Self.emojiCode($0).contains("🛡")
+                }) { self.show(file) }
+            }))
+    }
     private func show(_ file: TelegramMediaFile) {
         guard fileId != file.fileId else { return }
         fileId = file.fileId; sticker?.visibility = false; sticker?.pause()
@@ -67,7 +89,9 @@ final class NebulaAnimatedSettingsEmoji: UIView {
     }
     func setPageVisible(_ visible: Bool) {
         if pageVisible != visible { rewind = true }
+        if !visible { search.set(nil); searchStarted = false }
         pageVisible = visible; updatePlayback()
+        if visible && fileId == nil { searchShield() }
     }
     override func didMoveToWindow() { super.didMoveToWindow(); rewind = true; updatePlayback() }
     override func layoutSubviews() {

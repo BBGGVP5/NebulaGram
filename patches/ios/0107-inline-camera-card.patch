@@ -1,0 +1,16 @@
+diff --git a/submodules/TelegramUI/Sources/Chat/ChatControllerMediaRecording.swift b/submodules/TelegramUI/Sources/Chat/ChatControllerMediaRecording.swift
+index aa3f4ce..09aee6b 100644
+--- a/submodules/TelegramUI/Sources/Chat/ChatControllerMediaRecording.swift
++++ b/submodules/TelegramUI/Sources/Chat/ChatControllerMediaRecording.swift
+@@ -150,7 +150,10 @@ extension ChatControllerImpl {
+         if self.videoRecorderValue == nil && initialFrontCamera == nil {
+             let presentationData = self.presentationData
+             let russian = presentationData.strings.baseLanguageCode.lowercased().hasPrefix("ru")
+-            nebulaPresentRecordingCamera(from: self, russian: russian, theme: presentationData.theme) { [weak self] index in
++            nebulaPresentRecordingCamera(from: self, russian: russian, theme: presentationData.theme, inputFrame: { [weak self] in
++                guard let self, let frame = self.chatDisplayNode.currentInputPanelFrame() else { return nil }
++                return self.chatDisplayNode.view.convert(frame, to: self.view)
++            }) { [weak self] index in
+                     self?.requestVideoRecorder(initialFrontCamera: index == 0)
+                 }
+             return

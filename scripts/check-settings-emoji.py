@@ -364,6 +364,39 @@ sources['CheckEmoji.java'] = sources['CheckEmoji.java'].replace(
     'rocket.viewport=true;rocket.tree.preDraw();check(r.started,"return to viewport resumes decoder");'
     'rocket.detach();check(rocket.tree.preDraw.isEmpty(),"pre-draw listener detached");check(!r.started&&!r.attached,')
 sources['org/telegram/messenger/UserConfig.java'] = 'package org.telegram.messenger;public class UserConfig {public static int selectedAccount;}'
+sources['org/telegram/messenger/AndroidUtilities.java'] = sources['org/telegram/messenger/AndroidUtilities.java'].replace('public static float dpf2', 'public static void runOnUIThread(Runnable r){android.view.View.posts.add(r);}public static float dpf2')
+sources['org/telegram/tgnet/TLRPC.java'] = sources['org/telegram/tgnet/TLRPC.java'].replace('public static class Document', '''public static class TL_messages_searchStickers {public boolean emojis;public String q,emoticon;public int limit;}
+ public static class TL_messages_foundStickers {public java.util.ArrayList<Document> stickers=new java.util.ArrayList<>();}
+ public static class Document''')
+sources['org/telegram/tgnet/ConnectionsManager.java'] = '''package org.telegram.tgnet;
+public class ConnectionsManager {
+ public interface Callback {void result(Object response,Object error);}
+ public static int requests,cancelled;public static Callback callback;
+ public static ConnectionsManager getInstance(int account){return new ConnectionsManager();}
+ public int sendRequest(TLRPC.TL_messages_searchStickers request,Callback cb){
+  if(!request.emojis||!"🛡".equals(request.emoticon)||!request.q.isEmpty())throw new AssertionError("Wrong shield query");
+  requests++;callback=cb;return requests;
+ }
+ public void cancelRequest(int id,boolean notify){cancelled++;}
+}'''
+# Delayed Telegram results must select a real animation and respect attachment/account ownership.
+code = '''{ MediaDataController.pageSet=null;MediaDataController.doc=null;
+ var searched=new NebulaAnimatedEmoji(new android.content.Context(),17,"🛡️",88);searched.attach();
+ var cb=org.telegram.tgnet.ConnectionsManager.callback;
+ var results=new org.telegram.tgnet.TLRPC.TL_messages_foundStickers();
+ var staticShield=new org.telegram.tgnet.TLRPC.Document();staticShield.id=101;staticShield.alt="🛡️";staticShield.mime_type="image/webp";results.stickers.add(staticShield);
+ var wrong=new org.telegram.tgnet.TLRPC.Document();wrong.id=102;wrong.alt="🚀";results.stickers.add(wrong);
+ var animatedShield=new org.telegram.tgnet.TLRPC.Document();animatedShield.id=103;animatedShield.alt="🛡️";results.stickers.add(animatedShield);
+ cb.result(results,null);View.flush();check(receiver().boundId==103,"shield uses animated search document, skipping static and unrelated results");
+ receiver().decode(false,true);View.flush();check(receiver().started,"searched shield decoder loops");searched.detach();
+ int searches=org.telegram.tgnet.ConnectionsManager.requests;searched.attach();check(org.telegram.tgnet.ConnectionsManager.requests==searches,"account-scoped shield cache used on reentry");searched.detach();
+ var stale=new NebulaAnimatedEmoji(new android.content.Context(),18,"🛡️",88);stale.attach();var late=org.telegram.tgnet.ConnectionsManager.callback;stale.detach();
+ check(org.telegram.tgnet.ConnectionsManager.cancelled>0,"detaching cancels native search");int count=ImageReceiver.all.size();late.result(results,null);View.flush();
+ check(ImageReceiver.all.size()==count,"detached result cannot bind receiver or populate another account");
+ var changed=new NebulaAnimatedEmoji(new android.content.Context(),19,"🛡️",88);changed.attach();late=org.telegram.tgnet.ConnectionsManager.callback;changed.setEmoji("🚀");late.result(results,null);View.flush();
+ check(ImageReceiver.all.size()==count,"changed emoji ignores stale shield result");changed.detach(); }
+ '''
+sources['CheckEmoji.java'] = sources['CheckEmoji.java'].replace('System.out.println(', code + 'System.out.println(', 1)
 with tempfile.TemporaryDirectory(prefix='nebula-emoji-') as temp:
  tree=Path(temp)
  for name,text in sources.items():

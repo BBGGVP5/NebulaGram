@@ -3,7 +3,6 @@ package app.nebulagram.ui;
 import android.content.SharedPreferences;
 
 import org.telegram.messenger.ApplicationLoader;
-import org.telegram.ui.ActionBar.BottomSheet;
 
 /**
  * С какой камеры открывается видеосообщение — «кружок».
@@ -49,19 +48,20 @@ public final class NebulaRoundCamera {
     /** A deliberate camera choice starts recording; dismissing leaves it idle. */
     public static void askForRecording(android.content.Context context,
                                        org.telegram.ui.ActionBar.Theme.ResourcesProvider provider,
+                                       android.view.View anchor,
                                        Runnable onSelected, Runnable onCancel) {
-        if (context == null) {
+        if (context == null || anchor == null || anchor.getWindowToken() == null) {
             onCancel.run();
             return;
         }
         final boolean[] selected = {false};
-        BottomSheet dialog = NebulaRoundCameraSheet.create(context, provider,
+        NebulaRoundCameraPanelHost dialog = new NebulaRoundCameraPanelHost(context, anchor, provider,
                 prefs().getBoolean(KEY_LAST, true), which -> {
                     selected[0] = true;
                     remember(which == 0);
                     onSelected.run();
                 });
-        dialog.setOnDismissListener((Runnable) () -> org.telegram.messenger.AndroidUtilities.runOnUIThread(() -> {
+        dialog.setOnDismissListener(ignored -> org.telegram.messenger.AndroidUtilities.runOnUIThread(() -> {
             if (!selected[0]) onCancel.run();
         }));
         dialog.show();

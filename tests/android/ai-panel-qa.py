@@ -92,25 +92,43 @@ public class MainActivity extends Activity {
  }
  private void showCamera(){
   boolean front=!getIntent().getStringExtra("case").contains("rear");
-  ScrollView sheet=NebulaRoundCameraSheet.content(this,null,front,index->{},()->{});
-  root.addView(sheet,new FrameLayout.LayoutParams(-1,-2,Gravity.BOTTOM));
+  TextView chat=new TextView(this);chat.setText("Избранное · Чат\nВыбор камеры над панелью ввода");chat.setTextSize(20);chat.setTextColor(NebulaTheme.of(this).onSurface());chat.setPadding(dp(16),dp(24),dp(16),0);root.addView(chat);
+  TextView composer=NebulaAiPanelUi.button(this,"Сообщение…                         ◉",false,v->{});
+  FrameLayout.LayoutParams bar=new FrameLayout.LayoutParams(-1,dp(56),Gravity.BOTTOM);bar.leftMargin=bar.rightMargin=dp(12);bar.bottomMargin=dp(24);root.addView(composer,bar);
   int[] clicks={0},closes={0};
   ScrollView detached=NebulaRoundCameraSheet.content(this,null,front,index->{if(index!=1)throw new AssertionError("Wrong camera index");clicks[0]++;},()->closes[0]++);
-  View rear=(View)findText(detached,"Основная").getParent().getParent();rear.performClick();rear.performClick();
-  findDescription(detached,"Закрыть").performClick();
+  findText(detached,"Основная").performClick();findText(detached,"Основная").performClick();findDescription(detached,"Закрыть").performClick();
   if(clicks[0]!=1||closes[0]!=1)throw new AssertionError("Camera callback duplicated or close inaccessible");
-  root.postDelayed(new Runnable(){public void run(){try{
-   TextView frontLabel=findText(root,"Фронтальная"),rearLabel=findText(root,"Основная");
-   View frontRow=(View)frontLabel.getParent().getParent(),rearRow=(View)rearLabel.getParent().getParent();
-   org.json.JSONObject report=new org.json.JSONObject();report.put("case",getIntent().getStringExtra("case"));
-   report.put("camera",true);report.put("dark",NebulaTheme.dark);report.put("scale",getResources().getConfiguration().fontScale);report.put("keyboardRequested",false);
-   report.put("titleVisible",fullyVisible(findText(root,"Камера кружка")));report.put("frontVisible",fullyVisible(frontRow));report.put("rearVisible",fullyVisible(rearRow));
-   report.put("closeVisible",fullyVisible(findDescription(root,"Закрыть")));report.put("frontSelected",frontRow.isSelected());report.put("rearSelected",rearRow.isSelected());
-   report.put("callbackCount",clicks[0]);report.put("closeCount",closes[0]);report.put("sheetHeight",sheet.getHeight());
-   java.io.FileOutputStream out=openFileOutput("layout.json",0);out.write(report.toString().getBytes(java.nio.charset.StandardCharsets.UTF_8));out.close();
-  }catch(Exception e){throw new RuntimeException(e);}if(!isFinishing()&&!isDestroyed())root.postDelayed(this,333);}},1400);
+  root.post(()->{
+   int[] nativeCalls={0};NebulaRoundCameraPanelHost modal=new NebulaRoundCameraPanelHost(this,composer,null,front,index->nativeCalls[0]++);modal.show();
+   root.postDelayed(new Runnable(){public void run(){try{
+    View dialog=modal.getWindow().getDecorView();TextView first=findText(dialog,"Фронтальная"),second=findText(dialog,"Основная");
+    View card=(View)first.getParent().getParent().getParent();int[] panelPosition=new int[2],inputPosition=new int[2];card.getLocationOnScreen(panelPosition);composer.getLocationOnScreen(inputPosition);
+    org.json.JSONObject report=new org.json.JSONObject();report.put("case",getIntent().getStringExtra("case"));report.put("camera",true);report.put("dark",NebulaTheme.dark);report.put("scale",getResources().getConfiguration().fontScale);report.put("keyboardRequested",false);
+    report.put("titleVisible",fullyVisible(findText(dialog,"Камера кружка")));report.put("frontVisible",fullyVisible(first));report.put("rearVisible",fullyVisible(second));report.put("closeVisible",fullyVisible(findDescription(dialog,"Закрыть")));
+    report.put("frontSelected",first.isSelected());report.put("rearSelected",second.isSelected());report.put("callbackCount",clicks[0]);report.put("closeCount",closes[0]);report.put("sheetHeight",card.getHeight());
+    report.put("aboveComposer",panelPosition[1]+card.getHeight()<=inputPosition[1]-dp(7));report.put("dimAmount",modal.getWindow().getAttributes().dimAmount);
+    java.io.FileOutputStream out=openFileOutput("layout.json",0);out.write(report.toString().getBytes(java.nio.charset.StandardCharsets.UTF_8));out.close();
+    java.io.File trigger=new java.io.File(getFilesDir(),"verify.trigger");
+    if(trigger.exists()){
+     if(!trigger.delete())throw new AssertionError("Trigger not removed");
+     int originalBottom=panelPosition[1]+card.getHeight();composer.setTranslationY(-dp(60));
+     root.postDelayed(()->verifyCamera(modal,composer,originalBottom,nativeCalls),300);return;
+    }
+   }catch(Exception e){throw new RuntimeException(e);}if(!isFinishing()&&!isDestroyed())root.postDelayed(this,333);}},1400);
+  });
  }
- private View findDescription(View v,String text){if(text.equals(v.getContentDescription()))return v;if(v instanceof ViewGroup){ViewGroup g=(ViewGroup)v;for(int i=0;i<g.getChildCount();i++){View child=findDescription(g.getChildAt(i),text);if(child!=null)return child;}}return null;}
+ private void verifyCamera(NebulaRoundCameraPanelHost modal,View composer,int originalBottom,int[] calls){
+  View content=modal.getWindow().getDecorView();TextView choice=findText(content,"Основная");View card=(View)choice.getParent().getParent().getParent();int[] position=new int[2];card.getLocationOnScreen(position);
+  if(Math.abs(originalBottom-position[1]-card.getHeight()-dp(60))>2)throw new AssertionError("Camera card did not follow the input");
+  choice.performClick();choice.performClick();if(calls[0]!=1||modal.isShowing())throw new AssertionError("Native modal duplicated selection");
+  NebulaRoundCameraPanelHost closed=new NebulaRoundCameraPanelHost(this,composer,null,true,index->calls[0]++);closed.show();findDescription(closed.getWindow().getDecorView(),"Закрыть").performClick();if(closed.isShowing())throw new AssertionError("Close failed");
+  NebulaRoundCameraPanelHost back=new NebulaRoundCameraPanelHost(this,composer,null,true,index->calls[0]++);back.show();back.cancel();
+  NebulaRoundCameraPanelHost outside=new NebulaRoundCameraPanelHost(this,composer,null,true,index->calls[0]++);outside.show();((ViewGroup)outside.findViewById(android.R.id.content)).getChildAt(0).performClick();
+  if(calls[0]!=1||back.isShowing()||outside.isShowing())throw new AssertionError("Cancellation selected a camera");
+  try{org.json.JSONObject report=new org.json.JSONObject();report.put("case",getIntent().getStringExtra("case"));report.put("selections",calls[0]);report.put("anchorFollowed",true);report.put("cancelDidNotSelect",true);java.io.FileOutputStream out=openFileOutput("callbacks.json",0);out.write(report.toString().getBytes(java.nio.charset.StandardCharsets.UTF_8));out.close();}catch(Exception e){throw new RuntimeException(e);}
+ }
+ private View findDescription(View v,String name){if(name.contentEquals(v.getContentDescription()==null?"":v.getContentDescription()))return v;if(v instanceof ViewGroup){ViewGroup g=(ViewGroup)v;for(int i=0;i<g.getChildCount();i++){View result=findDescription(g.getChildAt(i),name);if(result!=null)return result;}}return null;}
  private EditText findEditor(View v){if(v instanceof EditText)return (EditText)v;if(v instanceof ViewGroup){ViewGroup group=(ViewGroup)v;for(int i=0;i<group.getChildCount();i++){EditText e=findEditor(group.getChildAt(i));if(e!=null)return e;}}return null;}
  private TextView findText(View v,String text){if(v instanceof TextView&&text.contentEquals(((TextView)v).getText()))return (TextView)v;if(v instanceof ViewGroup){ViewGroup g=(ViewGroup)v;for(int i=0;i<g.getChildCount();i++){TextView t=findText(g.getChildAt(i),text);if(t!=null)return t;}}return null;}
  private boolean fullyVisible(View v){if(v==null||v.getHeight()==0)return false;android.graphics.Rect r=new android.graphics.Rect();return v.getGlobalVisibleRect(r)&&r.width()>=v.getWidth()-1&&r.height()>=v.getHeight()-1;}
@@ -120,7 +138,7 @@ public class MainActivity extends Activity {
  tools=sorted((p for p in (SDK/'build-tools').iterdir() if re.fullmatch(r'\d+(?:\.\d+)*',p.name) and p.is_dir() and ((p/'aapt2').exists() or (p/'aapt2.exe').exists())),key=lambda p:tuple(map(int,p.name.split('.'))))[-1]
  def tool(name):return tools/(name+('.exe' if os.name=='nt' and name=='aapt2' else '.bat' if os.name=='nt' else ''))
  classes=WORK/'classes';classes.mkdir(exist_ok=True)
- production=['NebulaDraftVoicePolicy.java','NebulaDraftVoiceTranscription.java','NebulaDraftVoiceInlineHost.java','NebulaAiPanelUi.java','NebulaLocalAudioDecoder.java','NebulaLocalAudioPolicy.java','NebulaPcmResampler.java','NebulaRoundCameraSheet.java']
+ production=['NebulaDraftVoicePolicy.java','NebulaDraftVoiceTranscription.java','NebulaDraftVoiceInlineHost.java','NebulaAiPanelUi.java','NebulaLocalAudioDecoder.java','NebulaLocalAudioPolicy.java','NebulaPcmResampler.java','NebulaRoundCameraSheet.java','NebulaRoundCameraPanelHost.java']
  run('javac','-encoding','UTF-8','-source','17','-target','17','-cp',platform,'-d',classes,*list((WORK/'src').rglob('*.java')),*[UI/n for n in production])
  jar=WORK/'widgets.jar';run('jar','cf',jar,'-C',classes,'.');run(tool('d8'),'--lib',platform,'--min-api','26','--output',WORK,jar)
  manifest=WORK/'AndroidManifest.xml';manifest.write_text('<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="app.nebulagram.uiqa"><uses-sdk android:minSdkVersion="26" android:targetSdkVersion="35"/><application android:debuggable="true" android:label="Nebula widget QA" android:theme="@android:style/Theme.Material.Light.NoActionBar"><activity android:name=".MainActivity" android:exported="true" android:windowSoftInputMode="adjustResize"><intent-filter><action android:name="android.intent.action.MAIN"/><category android:name="android.intent.category.LAUNCHER"/></intent-filter></activity></application></manifest>')
@@ -170,6 +188,16 @@ def render():
     assert report.get('camera') and report['titleVisible'] and report['frontVisible'] and report['rearVisible'] and report['closeVisible'],report
     assert report['frontSelected']==('front' in name) and report['rearSelected']==('rear' in name),report
     assert report['callbackCount']==1 and report['closeCount']==1,report
+    assert report['aboveComposer'] and abs(report['dimAmount']-0.55)<0.01,report
+    device('shell','run-as','app.nebulagram.uiqa','touch','files/verify.trigger')
+    callbacks=None
+    for attempt in range(15):
+     time.sleep(1)
+     try:callbacks=json.loads(subprocess.check_output([str(adb),'-s',serials[0],'shell','run-as','app.nebulagram.uiqa','cat','files/callbacks.json'],stderr=subprocess.DEVNULL))
+     except (ValueError,subprocess.CalledProcessError):continue
+     if callbacks.get('case')==name:break
+    assert callbacks and callbacks.get('case')==name and callbacks['selections']==1 and callbacks['anchorFollowed'] and callbacks['cancelDidNotSelect'],callbacks
+    (output/(name+'-callbacks.json')).write_text(json.dumps(callbacks,indent=2)+'\n')
    else:
     assert report['editorWidth']>0 and report['editorHeight']>0,report
     assert report['voiceChoiceVisible'] and report['textChoiceVisible'] and report['editorVisible'],report

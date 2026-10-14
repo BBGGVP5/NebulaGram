@@ -68,7 +68,7 @@ public class View {
  public void setPaddingRelative(int a,int b,int c,int d){setPadding(a,b,c,d);}
  public void setContentDescription(CharSequence s){description=s;}
  public void setOnClickListener(OnClickListener listener){click=listener;}public void performClick(){click.onClick(this);}
- public int getWidth(){return 24;}public int getHeight(){return 24;}
+ public int getWidth(){return 24;}public int getHeight(){return 24;}public Object getWindowToken(){return this;}
  protected void onDraw(Canvas c){}public void onInitializeAccessibilityNodeInfo(AccessibilityNodeInfo info){}
 }''',
     'android/widget/LinearLayout.java': '''package android.widget;
@@ -145,11 +145,10 @@ public class BottomSheet {
  public void setOnDismissListener(Runnable listener){onDismiss=listener;}
  public void select(int index){if(!visible)return;dismiss();selected.accept(index);}
 }''',
-    'app/nebulagram/ui/NebulaRoundCameraSheet.java': '''package app.nebulagram.ui;
-public class NebulaRoundCameraSheet {
- public static org.telegram.ui.ActionBar.BottomSheet create(android.content.Context c,org.telegram.ui.ActionBar.Theme.ResourcesProvider p,boolean front,java.util.function.IntConsumer selected){
-  org.telegram.ui.ActionBar.BottomSheet sheet=new org.telegram.ui.ActionBar.BottomSheet();sheet.selected=selected;return sheet;
- }
+    'app/nebulagram/ui/NebulaRoundCameraPanelHost.java': '''package app.nebulagram.ui;
+public class NebulaRoundCameraPanelHost extends org.telegram.ui.ActionBar.BottomSheet {
+ public NebulaRoundCameraPanelHost(android.content.Context c,android.view.View anchor,org.telegram.ui.ActionBar.Theme.ResourcesProvider p,boolean front,java.util.function.IntConsumer selected){this.selected=selected;}
+ public void setOnDismissListener(android.content.DialogInterface.OnDismissListener listener){onDismiss=()->listener.onDismiss(null);}
 }''',
     'DialogCheck.java': '''import app.nebulagram.ui.*;import android.content.*;import android.widget.*;import android.view.*;
 import android.graphics.drawable.*;import android.view.accessibility.*;import org.telegram.ui.ActionBar.*;
@@ -202,14 +201,16 @@ public class DialogCheck {
    .setPositiveButton("Clear",null).setNegativeButton("Cancel",null).show();
   popup(confirmation,null);check(confirmation.content==null,"confirmation uses native content without duplicate scrolling or padding");confirmation.press(-2);
   for(int action:new int[]{0,1,2,3,4}){
-   int[] started={0},cancelled={0};NebulaRoundCamera.askForRecording(context,null,()->started[0]++,()->cancelled[0]++);
+   int[] started={0},cancelled={0};NebulaRoundCamera.askForRecording(context,null,new View(context),()->started[0]++,()->cancelled[0]++);
    BottomSheet d=BottomSheet.shown;
    if(action<2){d.select(action);d.select(action);}else {d.dismiss();d.dismiss();}
    AndroidUtilities.drain();check(started[0]==(action<2?1:0)&&cancelled[0]==(action<2?0:1),"camera starts only on selection; negative/back/outside cancel once");
    if(action<2)check(NebulaRoundCamera.frontface(false)==(action==0),"selected camera remembered");
   }
-  int[] cancelled={0};NebulaRoundCamera.askForRecording(null,null,()->{throw new AssertionError("missing context starts recording");},()->cancelled[0]++);
+  int[] cancelled={0};NebulaRoundCamera.askForRecording(null,null,null,()->{throw new AssertionError("missing context starts recording");},()->cancelled[0]++);
   check(cancelled[0]==1,"missing context cancels once");
+  NebulaRoundCamera.askForRecording(context,null,new View(context){public Object getWindowToken(){return null;}},()->{throw new AssertionError("detached input starts recording");},()->cancelled[0]++);
+  check(cancelled[0]==2,"detached input cancels once");
   System.out.println("Actual dialog callbacks, dim/center configuration, Telegram palettes and camera cancellation passed");
  }
 }''',

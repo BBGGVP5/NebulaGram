@@ -21,3 +21,12 @@ APK 1000522 failed dependency resolution after an interrupted parallel submodule
 Full unsigned iOS IPA run `38403389424` and native run `38405018482` failed compilation. The reported issues are repaired in `f6254352e00e23480c1723d7eddace1c9d5b22cd`: ListViewItemNeighbors, modern UIButton configuration insets, successful PasscodeSession routing and an unused camera binding. All 105 ordered patches pass local bootstrap. New native run `38417177542` and IPA run `38417186420` are in progress; neither is claimed successful. The integration minimum is iOS 15, matching upstream, and bootstrap checks this parity.
 
 No physical device acceptance was performed. Both local read-only emulator attempts stalled; their owned processes were stopped. CI widget images do not prove camera operation, voice-recognition availability on a particular phone, iOS installation or APNs delivery.
+
+
+## Current camera/header delivery (October 13 follow-up)
+
+Android APK 1000527, CI `38427510947`, source `14af4ed642342864cf6b52f4a15bd8188557406d`, is verified and includes the dedicated recording camera panel and restored rounded home header without action backplates. Size 60,072,411 bytes; SHA256 `dcbb3d997ac4ff8c246d50d755fe63f8cc4ed8bd2f7cfdd2450555c9e0863b4a`. All 106 Android interface checks passed; widget QA `38427566360` rendered the actual camera and Aa controls successfully.
+
+iOS now applies 106 patches to 164 native paths. Runtime source `2e9807c860d3a7245ec40c2488d57b54151f8d57` passed bootstrap `38433271203`, UIKit type checks and actual native integration build `38433362548`. Result hashes match the current camera controller and header patch. The reviewed recording payment count now matches the upstream `Int32` API and its 15 executable cases pass.
+
+UIKit widget QA `38436546157` passed in light/dark and large-font states and exercised repeated camera choice and cancellation on an owned simulator. This is a controller test with an offline palette/presenter; camera hardware and a physical iPhone are not verified. The full unsigned device IPA 115 in `38433368728` remains in progress.

@@ -31,6 +31,6 @@ with tempfile.TemporaryDirectory(prefix='nebula-draft-voice-api-') as folder:
  work=Path(folder)
  for name,source in stubs.items():
   p=work/name;p.parent.mkdir(parents=True,exist_ok=True);p.write_text(source,encoding='utf-8')
- production=['NebulaDraftVoicePolicy.java','NebulaDraftVoiceTranscription.java','NebulaDraftVoiceInlineHost.java','NebulaAiPanelUi.java','NebulaLocalAudioDecoder.java','NebulaLocalAudioPolicy.java','NebulaPcmResampler.java','NebulaRoundCameraSheet.java','NebulaRoundCamera.java']
+ production=['NebulaDraftVoicePolicy.java','NebulaDraftVoiceTranscription.java','NebulaDraftVoiceInlineHost.java','NebulaAiPanelUi.java','NebulaLocalAudioDecoder.java','NebulaLocalAudioPolicy.java','NebulaPcmResampler.java','NebulaRoundCameraSheet.java','NebulaRoundCameraPanelHost.java','NebulaRoundCamera.java']
  subprocess.run(['javac','-encoding','UTF-8','-cp',str(platforms[-1]),'-d',str(work),*map(str,work.rglob('*.java')),*[str(UI/n) for n in production]],check=True)
 print('OK: production Aa sheet, selected-clip policy and decoder typecheck against '+platforms[-1].parent.name)
