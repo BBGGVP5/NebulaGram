@@ -25,6 +25,7 @@ private final class NebulaRoundCameraController: UIViewController {
     private let backdrop = UIButton(type: .custom)
     private let card = UIScrollView()
     private let stack = UIStackView()
+    private let choices = UIStackView()
     private var didChoose = false
     private var closing = false
     private var displayLink: CADisplayLink?
@@ -75,7 +76,7 @@ private final class NebulaRoundCameraController: UIViewController {
         close.widthAnchor.constraint(equalToConstant: 44).isActive = true; close.heightAnchor.constraint(equalToConstant: 44).isActive = true
         let header = UIStackView(arrangedSubviews: [glyph, labels, close]); header.alignment = .center; header.spacing = 12
         stack.addArrangedSubview(header)
-        let choices = UIStackView(); choices.axis = .horizontal; choices.spacing = 8; choices.distribution = .fillEqually; choices.alignment = .fill
+        choices.axis = .horizontal; choices.spacing = 8; choices.distribution = .fillEqually; choices.alignment = .fill
         let front = UserDefaults.standard.object(forKey: Self.lastFrontKey) as? Bool ?? true
         for index in 0..<2 {
             let name = ru ? (index == 0 ? "Фронтальная" : "Основная") : (index == 0 ? "Front camera" : "Rear camera")
@@ -116,6 +117,8 @@ private final class NebulaRoundCameraController: UIViewController {
         let top = host.view.convert(input, to: view).minY - 8
         let left = view.safeAreaInsets.left + 12
         let width = max(0, view.bounds.width - left - view.safeAreaInsets.right - 12)
+        let stacked = traitCollection.preferredContentSizeCategory >= .extraExtraExtraLarge && width < 360
+        choices.axis = stacked ? .vertical : .horizontal
         let height = stack.systemLayoutSizeFitting(CGSize(width: max(0, width - 28), height: 0),
             withHorizontalFittingPriority: .required, verticalFittingPriority: .fittingSizeLevel).height + 24
         let available = max(0, top - view.safeAreaInsets.top - 12)

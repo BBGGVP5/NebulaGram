@@ -23,6 +23,9 @@ public final class NebulaRoundCameraSheet {
                 NebulaText.text("С какой стороны начать запись?", "Which camera should start recording?"), close),
                 new LinearLayout.LayoutParams(-1, -2));
         LinearLayout choices = new LinearLayout(c);
+        boolean stacked = c.getResources().getConfiguration().fontScale > 1.2f
+                && c.getResources().getConfiguration().screenWidthDp < 360;
+        if (stacked) choices.setOrientation(LinearLayout.VERTICAL);
         final boolean[] completed = {false};
         for (int index = 0; index < 2; index++) {
             final int facing = index;
@@ -37,8 +40,8 @@ public final class NebulaRoundCameraSheet {
                     info.setClassName("android.widget.Button"); info.setCheckable(true); info.setChecked(host.isSelected());
                 }
             });
-            LinearLayout.LayoutParams bounds = new LinearLayout.LayoutParams(0, -1, 1);
-            if (index > 0) bounds.leftMargin = NebulaAiPanelUi.dp(8);
+            LinearLayout.LayoutParams bounds = new LinearLayout.LayoutParams(stacked ? -1 : 0, -2, stacked ? 0 : 1);
+            if (index > 0) { if (stacked) bounds.topMargin = NebulaAiPanelUi.dp(8); else bounds.leftMargin = NebulaAiPanelUi.dp(8); }
             choices.addView(button, bounds);
         }
         LinearLayout.LayoutParams bounds = new LinearLayout.LayoutParams(-1, -2); bounds.topMargin = NebulaAiPanelUi.dp(12);
