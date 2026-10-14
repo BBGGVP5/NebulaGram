@@ -364,29 +364,44 @@ sources['CheckEmoji.java'] = sources['CheckEmoji.java'].replace(
     'rocket.viewport=true;rocket.tree.preDraw();check(r.started,"return to viewport resumes decoder");'
     'rocket.detach();check(rocket.tree.preDraw.isEmpty(),"pre-draw listener detached");check(!r.started&&!r.attached,')
 sources['org/telegram/messenger/UserConfig.java'] = 'package org.telegram.messenger;public class UserConfig {public static int selectedAccount;}'
+sources['org/telegram/ui/Components/RLottieDrawable.java'] = sources['org/telegram/ui/Components/RLottieDrawable.java'].replace('public boolean hasBitmap()', 'public int getFramesCount(){return 90;}public boolean hasBitmap()')
 sources['org/telegram/messenger/AndroidUtilities.java'] = sources['org/telegram/messenger/AndroidUtilities.java'].replace('public static float dpf2', 'public static void runOnUIThread(Runnable r){android.view.View.posts.add(r);}public static float dpf2')
 sources['org/telegram/tgnet/TLRPC.java'] = sources['org/telegram/tgnet/TLRPC.java'].replace('public static class Document', '''public static class TL_messages_searchStickers {public boolean emojis;public String q,emoticon;public int limit;}
  public static class TL_messages_foundStickers {public java.util.ArrayList<Document> stickers=new java.util.ArrayList<>();}
+ public static class TL_messages_searchCustomEmoji {public String emoticon;public long hash;}
+ public static class TL_emojiList {public java.util.ArrayList<Long> document_id=new java.util.ArrayList<>();}
  public static class Document''')
 sources['org/telegram/tgnet/ConnectionsManager.java'] = '''package org.telegram.tgnet;
 public class ConnectionsManager {
  public interface Callback {void result(Object response,Object error);}
  public static int requests,cancelled;public static Callback callback;
  public static ConnectionsManager getInstance(int account){return new ConnectionsManager();}
- public int sendRequest(TLRPC.TL_messages_searchStickers request,Callback cb){
-  if(!request.emojis||!"🛡".equals(request.emoticon)||!request.q.isEmpty())throw new AssertionError("Wrong shield query");
+ public int sendRequest(TLRPC.TL_messages_searchStickers request,Callback cb){throw new AssertionError("Shield emoji-only search must use searchCustomEmoji, not an empty keyword query");}
+ public int sendRequest(TLRPC.TL_messages_searchCustomEmoji request,Callback cb){
+  if(!"🛡️".equals(request.emoticon)||request.hash!=0)throw new AssertionError("Wrong shield custom emoji query");
   requests++;callback=cb;return requests;
  }
  public void cancelRequest(int id,boolean notify){cancelled++;}
 }'''
+sources['org/telegram/ui/Components/AnimatedEmojiDrawable.java'] = '''package org.telegram.ui.Components;
+import java.util.*;import org.telegram.tgnet.TLRPC;
+public class AnimatedEmojiDrawable {
+ public interface ReceivedDocument {void run(TLRPC.Document document);}
+ public static final Map<Long,TLRPC.Document> documents=new HashMap<>();public static int fetched;
+ public static class EmojiDocumentFetcher {
+  public void fetchDocument(long id,ReceivedDocument callback){fetched++;android.view.View.posts.add(()->callback.run(documents.get(id)));}
+ }
+ public static EmojiDocumentFetcher getDocumentFetcher(int account){return new EmojiDocumentFetcher();}
+}'''
+sources['android/util/Log.java'] = 'package android.util;public class Log {public static int d(String tag,String message){return 0;}}'
 # Delayed Telegram results must select a real animation and respect attachment/account ownership.
 code = '''{ MediaDataController.pageSet=null;MediaDataController.doc=null;
  var searched=new NebulaAnimatedEmoji(new android.content.Context(),17,"🛡️",88);searched.attach();
  var cb=org.telegram.tgnet.ConnectionsManager.callback;
- var results=new org.telegram.tgnet.TLRPC.TL_messages_foundStickers();
- var staticShield=new org.telegram.tgnet.TLRPC.Document();staticShield.id=101;staticShield.alt="🛡️";staticShield.mime_type="image/webp";results.stickers.add(staticShield);
- var wrong=new org.telegram.tgnet.TLRPC.Document();wrong.id=102;wrong.alt="🚀";results.stickers.add(wrong);
- var animatedShield=new org.telegram.tgnet.TLRPC.Document();animatedShield.id=103;animatedShield.alt="🛡️";results.stickers.add(animatedShield);
+ var results=new org.telegram.tgnet.TLRPC.TL_emojiList();
+ var staticShield=new org.telegram.tgnet.TLRPC.Document();staticShield.id=101;staticShield.alt="🛡️";staticShield.mime_type="image/webp";results.document_id.add(staticShield.id);org.telegram.ui.Components.AnimatedEmojiDrawable.documents.put(staticShield.id,staticShield);
+ var wrong=new org.telegram.tgnet.TLRPC.Document();wrong.id=102;wrong.alt="🚀";results.document_id.add(wrong.id);org.telegram.ui.Components.AnimatedEmojiDrawable.documents.put(wrong.id,wrong);
+ var animatedShield=new org.telegram.tgnet.TLRPC.Document();animatedShield.id=103;animatedShield.alt="🛡️";results.document_id.add(animatedShield.id);org.telegram.ui.Components.AnimatedEmojiDrawable.documents.put(animatedShield.id,animatedShield);
  cb.result(results,null);View.flush();check(receiver().boundId==103,"shield uses animated search document, skipping static and unrelated results");
  receiver().decode(false,true);View.flush();check(receiver().started,"searched shield decoder loops");searched.detach();
  int searches=org.telegram.tgnet.ConnectionsManager.requests;searched.attach();check(org.telegram.tgnet.ConnectionsManager.requests==searches,"account-scoped shield cache used on reentry");searched.detach();

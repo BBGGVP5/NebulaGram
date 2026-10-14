@@ -43,6 +43,15 @@ Local checks: all 106 Android CI interface/regression commands pass on the owned
 
 ## Final source and visual verification
 
+### Shield follow-up after APK1000534
+
+User confirmed the shield remains static on Android APK1000534. The native iOS13 emoji search implementation calls `messages.searchCustomEmoji` when its text query is absent; our Android shield code incorrectly always used `messages.searchStickers` with an empty query. Correct the Android emoji-only request, then resolve returned IDs through `AnimatedEmojiDrawable.getDocumentFetcher(account)` for native disk cache/deduplication. Retain exact shield/animated candidate filtering, receiver ownership, stale callback protection and reduced-motion policy. Do not replace the glyph with a synthetic rocking bitmap.
+
+- [ ] Add a regression adapter that rejects the empty keyword request and returns `TL_emojiList` IDs. Before the fix, `python scripts/check-settings-emoji.py` must fail the request-contract assertion.
+- [ ] Use `TL_messages_searchCustomEmoji.emoticon = "🛡️"`, `hash=0`; resolve IDs in order through the native document fetcher, skipping static/unrelated/missing documents, select one animated shield only and retain attachment/account guards.
+- [ ] Run existing emoji playback/cancel/cache tests plus SDK/native build. Request actual phone connection early; do not claim a live Telegram shield or physical animation test without it.
+- [ ] Commit exact task files, push authorized branches and rebuild Android. Inspect CI failure logs and verify the APK source/package/signature before delivery.
+
 Runtime revision: `9747336cab74865a78170f415e91edb909eb74ff`, pushed to both authorized branches. Native header changes from patches0208/0106 are preserved.
 
 Android widget QA `38564461638` passed. Actual production card and modal window rendered in dark/light/narrow font1.3 states; all images inspected. Card is above composer, native dim amount0.55, chosen facing uses color only. Moving the underlying input60dp moves the modal card60dp; repeated selection calls once, close/back/outside never select. Crash log empty. The first test at `38563336602` failed callback completion; observing the underlying composer's window as well as the modal window fixed tracking, confirmed by `38564205028` and the final run.

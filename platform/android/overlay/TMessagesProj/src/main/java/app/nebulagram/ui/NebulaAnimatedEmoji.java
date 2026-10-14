@@ -13,6 +13,7 @@ import android.widget.ImageView;
 import org.telegram.messenger.*;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.tgnet.ConnectionsManager;
+import org.telegram.ui.Components.AnimatedEmojiDrawable;
 
 /** Owns the receiver for one attachment; only a decoded frame can replace the fallback. */
 public final class NebulaAnimatedEmoji extends FrameLayout implements NotificationCenter.NotificationCenterDelegate {
@@ -33,6 +34,7 @@ public final class NebulaAnimatedEmoji extends FrameLayout implements Notificati
     private static final java.util.Map<Integer, TLRPC.Document> shieldDocuments = new java.util.HashMap<>();
     private int searchRequest;
     private boolean searchAttempted;
+    private boolean shieldReported;
 
     // A sheet animates a cached display list: onDraw/onLayout of this child
     // need not run when its translated parent finally enters the viewport.
@@ -128,17 +130,32 @@ public final class NebulaAnimatedEmoji extends FrameLayout implements Notificati
     private void searchShield() {
         if(!attached||searchAttempted||size<72||!normalize(emoji).equals("🛡"))return;
         searchAttempted=true;
-        TLRPC.TL_messages_searchStickers request=new TLRPC.TL_messages_searchStickers();
-        request.emojis=true;request.q="";request.emoticon="🛡";request.limit=32;
+        // Native emoji-only lookup returns IDs. Keyword search with q="" can
+        // return no stickers; use the same path as Telegram's emoji picker.
+        TLRPC.TL_messages_searchCustomEmoji request=new TLRPC.TL_messages_searchCustomEmoji();
+        request.emoticon="🛡️";request.hash=0;
         int epoch=attachment;
+        android.util.Log.d("NebulaEmoji","Shield: searchCustomEmoji");
         searchRequest=ConnectionsManager.getInstance(account).sendRequest(request,(response,error)->AndroidUtilities.runOnUIThread(()->{
             if(!attached||epoch!=attachment)return;
             searchRequest=0;
-            if(!(response instanceof TLRPC.TL_messages_foundStickers))return;
-            for(TLRPC.Document candidate:((TLRPC.TL_messages_foundStickers)response).stickers) {
-                if(animated(candidate)&&normalize(MessageObject.findAnimatedEmojiEmoticon(candidate,null)).contains("🛡")) {
-                    shieldDocuments.put(account,candidate);refresh();return;
-                }
+            if(!(response instanceof TLRPC.TL_emojiList)) {
+                android.util.Log.d("NebulaEmoji","Shield: lookup did not return emoji IDs");return;
+            }
+            java.util.ArrayList<Long> ids=((TLRPC.TL_emojiList)response).document_id;
+            android.util.Log.d("NebulaEmoji","Shield: returned IDs="+ids.size());
+            // Native fetcher batches and deduplicates metadata requests, and
+            // reads/writes the existing animated_emoji disk cache.
+            AnimatedEmojiDrawable.EmojiDocumentFetcher fetcher=AnimatedEmojiDrawable.getDocumentFetcher(account);
+            for(int i=0;i<Math.min(ids.size(),128)&&epoch==attachment;i++) {
+                Long id=ids.get(i);if(id==null||id==0)continue;
+                fetcher.fetchDocument(id,candidate->AndroidUtilities.runOnUIThread(()->{
+                    if(!attached||epoch!=attachment||candidate==null)return;
+                    if(animated(candidate)&&normalize(MessageObject.findAnimatedEmojiEmoticon(candidate,null)).contains("🛡")) {
+                        android.util.Log.d("NebulaEmoji","Shield: matched "+candidate.mime_type+" document="+candidate.id);
+                        shieldDocuments.put(account,candidate);refresh();
+                    }
+                }));
             }
         }));
     }
@@ -150,7 +167,14 @@ public final class NebulaAnimatedEmoji extends FrameLayout implements Notificati
         if(visualPosted||!attached||source!=receiver||epoch!=attachment)return; visualPosted=true;
         post(()->{if(epoch!=attachment||source!=receiver)return;visualPosted=false;if(attached)updateVisual();});
     }
-    private void updateVisual() { showFallback(!frameReady()); updatePlayback(); invalidate(); }
+    private void updateVisual() {
+        if(!shieldReported&&normalize(emoji).equals("🛡")&&frameReady()) {
+            shieldReported=true;
+            int frames=receiver.getLottieAnimation()==null?-1:receiver.getLottieAnimation().getFramesCount();
+            android.util.Log.d("NebulaEmoji","Shield: decoded frames="+frames+" motion="+motionAllowed()+" focus="+hasWindowFocus());
+        }
+        showFallback(!frameReady()); updatePlayback(); invalidate();
+    }
     @Override protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
         if(receiver==null)return;
@@ -165,7 +189,7 @@ public final class NebulaAnimatedEmoji extends FrameLayout implements Notificati
         else if(!ready&&fallback().getVisibility()!=VISIBLE)postVisual(receiver,attachment);
     }
     private void releaseReceiver() {
-        documentId=0; visualPosted=false; attachment++; activeLast=false; rewindPending=true;
+        documentId=0; visualPosted=false; attachment++; activeLast=false; rewindPending=true;shieldReported=false;
         if(receiver!=null) { ImageReceiver old=receiver;receiver=null;old.setDelegate(null);old.stopAnimation();old.onDetachedFromWindow(); }
     }
     private void updatePlayback() {
