@@ -47,10 +47,12 @@ Local checks: all 106 Android CI interface/regression commands pass on the owned
 
 User confirmed the shield remains static on Android APK1000534. The native iOS13 emoji search implementation calls `messages.searchCustomEmoji` when its text query is absent; our Android shield code incorrectly always used `messages.searchStickers` with an empty query. Correct the Android emoji-only request, then resolve returned IDs through `AnimatedEmojiDrawable.getDocumentFetcher(account)` for native disk cache/deduplication. Retain exact shield/animated candidate filtering, receiver ownership, stale callback protection and reduced-motion policy. Do not replace the glyph with a synthetic rocking bitmap.
 
-- [ ] Add a regression adapter that rejects the empty keyword request and returns `TL_emojiList` IDs. Before the fix, `python scripts/check-settings-emoji.py` must fail the request-contract assertion.
-- [ ] Use `TL_messages_searchCustomEmoji.emoticon = "🛡️"`, `hash=0`; resolve IDs in order through the native document fetcher, skipping static/unrelated/missing documents, select one animated shield only and retain attachment/account guards.
+- [x] Add a regression adapter that rejects the empty keyword request and returns `TL_emojiList` IDs. Before the fix, `python scripts/check-settings-emoji.py` failed the request-contract assertion. The corrected production loader passes existing decoder/lifetime checks and new two-stage resolution checks.
+- [x] Use `TL_messages_searchCustomEmoji.emoticon = "🛡️"`, `hash=0`; resolve a bounded set of IDs through the native document fetcher, skipping static/unrelated/missing documents, select one animated shield only and retain attachment/account guards.
 - [ ] Run existing emoji playback/cancel/cache tests plus SDK/native build. Request actual phone connection early; do not claim a live Telegram shield or physical animation test without it.
 - [ ] Commit exact task files, push authorized branches and rebuild Android. Inspect CI failure logs and verify the APK source/package/signature before delivery.
+
+Follow-up source `dc91134a351328aa56d5451dced5fa51ac2711a0` is pushed to both authorized branches. APK1000536 run `38572301639` is compiling. Phone connection was provided by the user; installed version1000534 confirmed. Actual ad-block settings reproduced the static shield: five unobscured crops over roughly3seconds have zero changed frames (`build/shield-live-before-1000534/report.json`). The earlier sample was obscured by an unrelated popup and is not counted as animation evidence. Power saving is disabled; glass quality UI reads Automatic/full effect active. No settings were changed. New live verification remains pending the updated APK.
 
 Runtime revision: `9747336cab74865a78170f415e91edb909eb74ff`, pushed to both authorized branches. Native header changes from patches0208/0106 are preserved.
 
