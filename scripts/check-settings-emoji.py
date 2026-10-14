@@ -412,6 +412,26 @@ code = '''{ MediaDataController.pageSet=null;MediaDataController.doc=null;
  check(ImageReceiver.all.size()==count,"changed emoji ignores stale shield result");changed.detach(); }
  '''
 sources['CheckEmoji.java'] = sources['CheckEmoji.java'].replace('System.out.println(', code + 'System.out.println(', 1)
+# A page hero at 72/88dp used to hit ImageLoader's <=90dp half-rate and
+# 160px rules. Inspect the actual receiver binding, preserving compact icons.
+sources['org/telegram/messenger/ImageReceiver.java'] = sources['org/telegram/messenger/ImageReceiver.java'].replace(
+    'public long boundId;', 'public String filter;public long boundId;').replace(
+    'binding++;boundId=', 'filter=f;binding++;boundId=')
+code = '''
+ { MediaDataController.doc=new org.telegram.tgnet.TLRPC.Document();
+   for(int size:new int[]{72,88,112}) {
+    var hero=new NebulaAnimatedEmoji(new android.content.Context(),0,"🚀",size);hero.attach();
+    check(receiver().filter.equals(size+"_"+size+"_pcache_nolimit"),"large TGS must keep source frame rate and use native bitmap cache: "+size);
+    hero.detach();
+   }
+   var compact=new NebulaAnimatedEmoji(new android.content.Context(),0,"🚀",48);compact.attach();
+   check(receiver().filter.equals("48_48"),"compact TGS retains native performance limit");compact.detach();
+   MediaDataController.doc.mime_type="video/webm";
+   var videoHero=new NebulaAnimatedEmoji(new android.content.Context(),0,"🚀",88);videoHero.attach();
+   check(receiver().filter.equals("88_88_"+ImageLoader.AUTOPLAY_FILTER),"WebM retains native autoplay without Lottie bitmap cache");videoHero.detach();
+ }
+ '''
+sources['CheckEmoji.java'] = sources['CheckEmoji.java'].replace('System.out.println(', code + 'System.out.println(', 1)
 with tempfile.TemporaryDirectory(prefix='nebula-emoji-') as temp:
  tree=Path(temp)
  for name,text in sources.items():

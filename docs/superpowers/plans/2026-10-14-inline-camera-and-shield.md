@@ -63,3 +63,13 @@ iOS widget QA `38564466506` passed. Actual UIKit controller rendered in dark/lig
 Both macOS bootstrap runs `38564460005` and `38564455866` passed, including real UIKit SDK type checking at iOS15 and all107 ordered patches. Full native build `38564568776`, APK1000534 (`38564459994`) and unsigned IPA117 (`38564573555`) are in progress; they are not reported as successful artifacts yet. Retrieval/verification helper: ignored `build/fetch-inline-camera-artifacts.py`.
 
 Shield search/cancellation/playback were tested with deterministic Telegram API/decoder adapters. No live Telegram shield download or physical phone/camera/ASR acceptance is claimed. A first uncached emoji still needs Telegram connectivity; reduced-motion/system animation preferences remain respected.
+
+### Shield smoothness follow-up
+
+APK1000536 (`38572301639`, source `dc91134a351328aa56d5451dced5fa51ac2711a0`) passed CI/package/signature verification and was installed on the authorized Pixel9 ProXL. The actual Telegram shield loaded and animates; the user reports choppy motion. Asset-only log reports180 decoded TGS frames. Steady app rendering profile:592 frames,2 missed deadlines (0.34%), median6ms/95th10ms, no slow UI-thread frames. This does not indicate sustained UI-thread stalls.
+
+The production ImageLoader treats filters <=90dp as small icons: it halves60fps TGS and caps decoding at160px unless `nolimit` is present. Our72/88dp page heroes hit that path. Use `_pcache_nolimit` for large TGS to retain the source frame rate and cache rasterized frames between loops. Keep compact icons and WebM policy, per-view playheads and reduced-motion/lifecycle guards.
+
+- [x] Binding regression fails before the fix at72dp and passes after it for72/88/112dp, compact48dp and WebM. Existing async lookup/cache/visibility/focus/replay tests pass.
+- [ ] Rebuild, verify and install the fixed APK. Compare recorded shield movement and steady rendering on the same phone, including reentry; report actual measurements without calling mock results physical evidence.
+- [ ] Restore temporary asset-only log tag and remove exact task-owned phone recordings.

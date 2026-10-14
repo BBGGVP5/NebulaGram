@@ -122,7 +122,12 @@ public final class NebulaAnimatedEmoji extends FrameLayout implements Notificati
                 @Override public void onAnimationReady(ImageReceiver r) { postVisual(next,epoch); }
             });
             next.onAttachedToWindow();
-            String filter=size+"_"+size+("video/webm".equals(document.mime_type)?"_"+ImageLoader.AUTOPLAY_FILTER:"");
+            // ImageLoader halves 60fps TGS at <=90dp and caps them to 160px.
+            // Page/sheet heroes need their source rate and full display size;
+            // the native bitmap cache avoids rendering the vector every loop.
+            // Compact icons and WebM keep Telegram's existing loading policy.
+            String filter=size+"_"+size+("video/webm".equals(document.mime_type)?"_"+ImageLoader.AUTOPLAY_FILTER:
+                    size>=72?"_pcache_nolimit":"");
             next.setImage(ImageLocation.getForDocument(document),filter,null,null,null,document.size,null,document,1);
         }
         updateVisual();
