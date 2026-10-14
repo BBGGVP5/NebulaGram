@@ -113,7 +113,9 @@ public class MainActivity extends Activity {
     if(trigger.exists()){
      if(!trigger.delete())throw new AssertionError("Trigger not removed");
      int originalBottom=panelPosition[1]+card.getHeight();composer.setTranslationY(-dp(60));
-     root.postDelayed(()->verifyCamera(modal,composer,originalBottom,nativeCalls),300);return;
+     root.postDelayed(()->{try{verifyCamera(modal,composer,originalBottom,nativeCalls);}catch(Throwable e){
+      try{org.json.JSONObject failure=new org.json.JSONObject();failure.put("case",getIntent().getStringExtra("case"));failure.put("error",e.toString());java.io.FileOutputStream log=openFileOutput("callbacks.json",0);log.write(failure.toString().getBytes(java.nio.charset.StandardCharsets.UTF_8));log.close();}catch(Exception ignored){}throw new RuntimeException(e);
+     }},300);return;
     }
    }catch(Exception e){throw new RuntimeException(e);}if(!isFinishing()&&!isDestroyed())root.postDelayed(this,333);}},1400);
   });
@@ -196,7 +198,7 @@ def render():
      try:callbacks=json.loads(subprocess.check_output([str(adb),'-s',serials[0],'shell','run-as','app.nebulagram.uiqa','cat','files/callbacks.json'],stderr=subprocess.DEVNULL))
      except (ValueError,subprocess.CalledProcessError):continue
      if callbacks.get('case')==name:break
-    assert callbacks and callbacks.get('case')==name and callbacks['selections']==1 and callbacks['anchorFollowed'] and callbacks['cancelDidNotSelect'],callbacks
+    assert callbacks and callbacks.get('case')==name and not callbacks.get('error') and callbacks['selections']==1 and callbacks['anchorFollowed'] and callbacks['cancelDidNotSelect'],callbacks
     (output/(name+'-callbacks.json')).write_text(json.dumps(callbacks,indent=2)+'\n')
    else:
     assert report['editorWidth']>0 and report['editorHeight']>0,report
@@ -207,6 +209,8 @@ def render():
   (output/'crash.log').write_text(crash)
   assert 'FATAL EXCEPTION' not in crash,crash
  finally:
+  crash=subprocess.check_output([str(adb),'-s',serials[0],'logcat','-d','-b','crash'],text=True)
+  (output/'crash.log').write_text(crash)
   device('shell','wm','size','reset');device('shell','wm','density','reset');device('shell','settings','put','system','font_scale','1')
  print('Rendered actual widgets in light/dark, narrow/large-font and keyboard states; screenshots require visual inspection')
 

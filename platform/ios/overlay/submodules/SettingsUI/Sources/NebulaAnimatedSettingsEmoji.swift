@@ -60,7 +60,7 @@ final class NebulaAnimatedSettingsEmoji: UIView {
         return ""
     }
     private func searchShield() {
-        guard !searchStarted, fileId == nil, Self.normalized(emoji) == "🛡" else { return }
+        guard pageVisible, !searchStarted, fileId == nil, Self.normalized(emoji) == "🛡" else { return }
         searchStarted = true
         search.set((context.engine.stickers.searchEmoji(query: nil, emoticon: ["🛡"])
             |> deliverOnMainQueue).start(next: { [weak self] result in

@@ -53,6 +53,9 @@ public final class NebulaRoundCameraPanelHost extends Dialog {
         super.onStart();
         if (getWindow() != null) getWindow().setLayout(-1, -1);
         root.getViewTreeObserver().addOnPreDrawListener(position);
+        // Changes in the underlying chat do not invalidate this modal window.
+        // Observe that window too so keyboard/composer motion repositions the card.
+        anchor.getViewTreeObserver().addOnPreDrawListener(position);
         positionCard();
         if (!NebulaGlass.reduced()) {
             card.setAlpha(0); card.setTranslationY(dp(8));
@@ -76,6 +79,7 @@ public final class NebulaRoundCameraPanelHost extends Dialog {
     }
     @Override protected void onStop() {
         if (root.getViewTreeObserver().isAlive()) root.getViewTreeObserver().removeOnPreDrawListener(position);
+        if (anchor.getViewTreeObserver().isAlive()) anchor.getViewTreeObserver().removeOnPreDrawListener(position);
         card.animate().cancel(); super.onStop();
     }
     private static int dp(float value) { return AndroidUtilities.dp(value); }
