@@ -40,3 +40,15 @@ Files: `platform/ios/overlay/submodules/SettingsUI/Sources/NebulaRoundCameraCont
 - [ ] Record artifacts/source revision and checks. Prior IPA115 is verified at `build/ios-ipa-38433368728/verified-ipa.json`; it predates this new design.
 
 Local checks: all 106 Android CI interface/regression commands pass on the owned 12.10.6 tree after patch0209. Actual compact content/modal host compile against SDK37; credential-free widget APK builds. Real controller callback checks cover repeated choice, close/back/outside and detached composer. Emoji executable checks resolve delayed animated shield results while skipping static/unrelated documents and rejecting obsolete callbacks; account-scoped reentry is cached. iOS bootstrap applies all107 patches to164 upstream paths; macOS SDK/module and visual checks follow in CI.
+
+## Final source and visual verification
+
+Runtime revision: `9747336cab74865a78170f415e91edb909eb74ff`, pushed to both authorized branches. Native header changes from patches0208/0106 are preserved.
+
+Android widget QA `38564461638` passed. Actual production card and modal window rendered in dark/light/narrow font1.3 states; all images inspected. Card is above composer, native dim amount0.55, chosen facing uses color only. Moving the underlying input60dp moves the modal card60dp; repeated selection calls once, close/back/outside never select. Crash log empty. The first test at `38563336602` failed callback completion; observing the underlying composer's window as well as the modal window fixed tracking, confirmed by `38564205028` and the final run.
+
+iOS widget QA `38564466506` passed. Actual UIKit controller rendered in dark/light/XXXL states, all images inspected. Card bottom is8pt above composer, backdrop alpha0.55, close and both choices visible. Moving input60pt moves card60pt; repeated activation selects once, closing and backdrop never select. On narrow screens with large fonts, buttons become vertical so "Фронтальная" fits whole. Normal layouts keep equal side-by-side pills.
+
+Both macOS bootstrap runs `38564460005` and `38564455866` passed, including real UIKit SDK type checking at iOS15 and all107 ordered patches. Full native build `38564568776`, APK1000534 (`38564459994`) and unsigned IPA117 (`38564573555`) are in progress; they are not reported as successful artifacts yet. Retrieval/verification helper: ignored `build/fetch-inline-camera-artifacts.py`.
+
+Shield search/cancellation/playback were tested with deterministic Telegram API/decoder adapters. No live Telegram shield download or physical phone/camera/ASR acceptance is claimed. A first uncached emoji still needs Telegram connectivity; reduced-motion/system animation preferences remain respected.
