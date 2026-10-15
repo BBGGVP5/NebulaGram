@@ -24,6 +24,7 @@ public final class NebulaLocalTranslation {
         java.util.concurrent.Executors.newSingleThreadScheduledExecutor(r -> {
             Thread t = new Thread(r, "nebula-translation-idle"); t.setDaemon(true); return t;
         });
+    private static java.util.concurrent.ScheduledFuture<?> idleSweep;
     private NebulaLocalTranslation() { }
     private static final class Session {
         final Translator client;
@@ -32,8 +33,8 @@ public final class NebulaLocalTranslation {
         long lastUse;
         Session(String from, String to) {
             client = Translation.getClient(new TranslatorOptions.Builder().setSourceLanguage(from).setTargetLanguage(to).build());
-            prepared = client.downloadModelIfNeeded(new DownloadConditions.Builder().requireWifi().build());
-            prepared.addOnCompleteListener(cleanup, task -> cleanup.schedule(NebulaLocalTranslation::closeIdle, 60, TimeUnit.SECONDS));
+            try { prepared = client.downloadModelIfNeeded(new DownloadConditions.Builder().requireWifi().build()); }
+            catch (RuntimeException error) { client.close(); throw error; }
         }
     }
     private static synchronized Session acquire(String from, String to) {
@@ -49,7 +50,17 @@ public final class NebulaLocalTranslation {
             sessions.values().remove(session); session.client.close(); return;
         }
         closeIdle();
-        cleanup.schedule(NebulaLocalTranslation::closeIdle, 60, TimeUnit.SECONDS);
+        scheduleSweep();
+    }
+    private static synchronized void scheduleSweep() {
+        if (idleSweep != null || sessions.isEmpty()) return;
+        idleSweep = cleanup.schedule(() -> {
+            synchronized (NebulaLocalTranslation.class) {
+                idleSweep = null;
+                closeIdle();
+                if (!sessions.isEmpty()) scheduleSweep();
+            }
+        }, 60, TimeUnit.SECONDS);
     }
     private static synchronized void closeIdle() {
         java.util.Iterator<Map.Entry<String, Session>> iterator = sessions.entrySet().iterator();
@@ -72,31 +83,47 @@ public final class NebulaLocalTranslation {
     public static String translate(String text, String language, BooleanSupplier cancelled, Consumer<String> progress) throws Exception {
         String target = TranslateLanguage.fromLanguageTag(language);
         if (target == null) throw new IllegalArgumentException("LOCAL_LANGUAGE_UNSUPPORTED");
+        if (cancelled.getAsBoolean()) throw new InterruptedIOException();
         String source;
-        try (LanguageIdentifier identifier = LanguageIdentification.getClient()) {
-            source = TranslateLanguage.fromLanguageTag(await(identifier.identifyLanguage(text), cancelled, 10));
+        LanguageIdentifier identifier = LanguageIdentification.getClient();
+        Task<String> identification = null;
+        try {
+            identification = identifier.identifyLanguage(text);
+            source = TranslateLanguage.fromLanguageTag(await(identification, cancelled, 10));
+        } finally {
+            if (identification != null && !identification.isComplete())
+                identification.addOnCompleteListener(cleanup, task -> identifier.close());
+            else identifier.close();
         }
         if (source == null) {
-            boolean latin = false, cyrillic = false, letters = false;
+            boolean letters = false;
             for (int i = 0; i < text.length(); i++) {
-                char c = text.charAt(i); if (!Character.isLetter(c)) continue; letters = true;
-                if (Character.UnicodeBlock.of(c) == Character.UnicodeBlock.CYRILLIC) cyrillic = true;
-                else if (c < 128) latin = true;
+                if (Character.isLetter(text.charAt(i))) { letters = true; break; }
             }
             if (!letters) return text;
-            if (cyrillic && !latin) source = "ru";
-            else if (latin && !cyrillic) source = "en";
-            else throw new IllegalArgumentException("LOCAL_LANGUAGE_UNKNOWN");
+            // An alphabet is not a language: Latin is not necessarily English,
+            // and Cyrillic is also used by Ukrainian, Bulgarian and others.
+            throw new IllegalArgumentException("LOCAL_LANGUAGE_UNKNOWN");
         }
         if (source.equals(target)) return text;
         if (cancelled.getAsBoolean()) throw new InterruptedIOException();
         Session session = acquire(source, target);
+        Task<String> translation = null;
         try {
             if (!session.prepared.isComplete()) progress.accept(NebulaText.text("Подготовка языкового пакета · нужен Wi-Fi", "Preparing language pack · Wi-Fi required"));
-            await(session.prepared, cancelled, 120);
+            try { await(session.prepared, cancelled, 120); }
+            catch (InterruptedIOException error) { throw error; }
+            catch (Exception error) { throw new Exception("LOCAL_MODEL_UNAVAILABLE", error); }
             progress.accept(NebulaText.text("Перевод на устройстве…", "Translating on device…"));
-            return await(session.client.translate(text), cancelled, 30);
-        } finally { release(session); }
+            translation = session.client.translate(text);
+            return await(translation, cancelled, 30);
+        } finally {
+            // Tasks.await cancellation does not cancel ML Kit. Keep the lease
+            // until inference finishes, including when another caller shares it.
+            if (translation != null && !translation.isComplete())
+                translation.addOnCompleteListener(cleanup, task -> release(session));
+            else release(session);
+        }
     }
     public static String errorText(Exception error) {
         for (Throwable cause = error; cause != null; cause = cause.getCause()) {
@@ -104,7 +131,9 @@ public final class NebulaLocalTranslation {
                 return NebulaText.text("Этот язык недоступен в быстром режиме. Выберите перевод через ИИ.", "This language is unavailable in fast mode. Select AI translation.");
             if ("LOCAL_LANGUAGE_UNKNOWN".equals(cause.getMessage()))
                 return NebulaText.text("Не удалось определить язык текста. Попробуйте более длинную фразу или перевод через ИИ.", "Could not identify the language. Try a longer phrase or AI translation.");
+            if ("LOCAL_MODEL_UNAVAILABLE".equals(cause.getMessage()))
+                return NebulaText.text("Языковой пакет не готов. Загрузите языки по Wi-Fi в настройках перевода.", "Language pack is not ready. Download languages over Wi-Fi in translation settings.");
         }
-        return NebulaText.text("Языковой пакет не готов. Подключитесь к Wi-Fi и повторите перевод.", "Language pack is not ready. Connect to Wi-Fi and retry translation.");
+        return NebulaText.text("Не удалось перевести на устройстве. Повторите запрос. Текст не отправлялся в облако.", "On-device translation failed. Retry the request. Text was not sent to the cloud.");
     }
 }

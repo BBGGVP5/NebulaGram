@@ -6,7 +6,8 @@ import android.view.View;
 import android.widget.LinearLayout;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.ui.ActionBar.BaseFragment;
-import org.telegram.ui.Components.InstantCameraViewBase;
+import org.telegram.messenger.AppGlobalConfig;
+import org.telegram.messenger.UserConfig;
 import org.telegram.utils.camera.roundvideo.RoundVideoSession;
 import org.telegram.utils.settings.SharedSettings;
 import java.util.ArrayList;
@@ -24,7 +25,7 @@ public final class NebulaCameraFragment extends BaseFragment {
         content.addView(new NebulaSettingsHero(c,"🎬",text("Камера", "Camera"),text("Фото, видео и кружки в вашем стиле", "Photos, videos and round messages your way")));
         preview = new NebulaCameraPreview(c, backend -> {
             NebulaCameraSettings.set("backend", backend);
-            if (backend == NebulaCameraSettings.LEGACY || backend == NebulaCameraSettings.CAMERAX) InstantCameraViewBase.setUseCamera2Implementation(false);
+            if (backend == NebulaCameraSettings.LEGACY || backend == NebulaCameraSettings.CAMERAX) SharedSettings.roundVideoCamera2Enabled.set(false);
             rebuild();
         });
         content.addView(preview);
@@ -62,11 +63,13 @@ public final class NebulaCameraFragment extends BaseFragment {
         body.addView(NebulaFormUi.note(c,text("Применяется при следующем открытии камеры. Недоступное разрешение заменяется ближайшим поддерживаемым.","Applies the next time the camera opens. Unavailable resolution falls back to a supported size.")));
 
         NebulaCard round = new NebulaCard(c);
-        boolean modern = InstantCameraViewBase.isUsingCamera2Implementation();
+        boolean modern = SharedSettings.roundVideoCamera2Enabled.isSet()
+            ? SharedSettings.roundVideoCamera2Enabled.get()
+            : AppGlobalConfig.getInstance(UserConfig.selectedAccount).roundVideoRecorder2Allowed.get();
         round.add(new NebulaRow(c).title(text("Новый движок кружков","New round-video engine"))
             .subtitle(text("Camera2 · запись, пауза и монтаж Telegram","Camera2 · Telegram recording, pause and trimming"),false)
             .trailing(NebulaRow.TRAIL_SWITCH).checked(modern).withClick(v -> {
-                boolean enabled=((NebulaRow)v).toggleChecked(); InstantCameraViewBase.setUseCamera2Implementation(enabled);
+                boolean enabled=((NebulaRow)v).toggleChecked(); SharedSettings.roundVideoCamera2Enabled.set(enabled);
                 if(enabled && (NebulaCameraSettings.backend()==1 || NebulaCameraSettings.backend()==3)) NebulaCameraSettings.set("backend",2);
                 rebuild();
             }));

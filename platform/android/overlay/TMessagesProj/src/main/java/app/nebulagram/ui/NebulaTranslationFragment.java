@@ -25,6 +25,9 @@ public final class NebulaTranslationFragment extends BaseFragment {
                 if (dialog != 0) NebulaAutoTranslate.retry(currentAccount, dialog);
             }).setNegativeButton(t("Отмена", "Cancel"), null).create()));
         tools.add(engine);
+        tools.add(new NebulaRow(c).title(t("Языки на устройстве", "On-device languages"))
+            .subtitle(t("Загрузить заранее · перевод без интернета", "Download in advance · translate offline"), false)
+            .trailing(NebulaRow.TRAIL_CHEVRON).withClick(v -> presentFragment(new NebulaTranslationModelsFragment())));
         tools.add(new NebulaRow(c).title(t("Редактор Nebula AI", "Nebula AI editor"))
             .subtitle(t("Вместо кнопки Telegram · удержание открывает инструменты", "Replaces Telegram's button · hold for tools"), false)
             .trailing(NebulaRow.TRAIL_SWITCH).checked(NebulaAiReplacements.editor())

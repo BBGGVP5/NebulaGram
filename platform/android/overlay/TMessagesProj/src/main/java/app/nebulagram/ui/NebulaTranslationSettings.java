@@ -36,6 +36,8 @@ public final class NebulaTranslationSettings {
     }
     public static void choose(BaseFragment host, String selected, Consumer<String> completion) {
         ArrayList<TranslateController.Language> all = TranslateController.getLanguages(), sorted = new ArrayList<>();
+        all = new ArrayList<>(all);
+        if (local()) all.removeIf(language -> com.google.mlkit.nl.translate.TranslateLanguage.fromLanguageTag(language.code) == null);
         for (String code : new String[]{"ru", "en"}) for (TranslateController.Language l : all) if (code.equals(l.code)) sorted.add(l);
         int quick = sorted.size();
         for (TranslateController.Language l : all) if (!"ru".equals(l.code) && !"en".equals(l.code)) sorted.add(l);

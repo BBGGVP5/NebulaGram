@@ -148,7 +148,8 @@ class RuntimeShader {
  void setFloatUniform(String name,float... values){if(name.equals("refract_intensity"))intensity=values[0];}
 }
 class RenderEffect {
- static RenderEffect createRuntimeShaderEffect(RuntimeShader s,String name){return new RenderEffect();}
+ static int creates;
+ static RenderEffect createRuntimeShaderEffect(RuntimeShader s,String name){creates++;return new RenderEffect();}
 }
 class Color {
  static int alpha(int c){return c>>>24;} static int red(int c){return (c>>16)&255;}
@@ -171,8 +172,14 @@ class LiquidSliderCheck {
   check(node.installs==installs,"unchanged intensity rebuilds shader");
   effect.setEnabled(false);check(node.effect==null,"zero/reduced bypass retains distortion");
   installs=node.installs;effect.setEnabled(false);check(node.installs==installs,"bypass not cached");
+  int creates=RenderEffect.creates;
+  for(int i=0;i<10000;i++)update(effect,(i%101)*.005f);
+  check(node.effect==null&&node.installs==installs,"disabled geometry update restored refraction");
+  check(RenderEffect.creates==creates,"disabled frames create GPU effects");
   effect.setEnabled(true);check(node.effect!=null,"effect not restored");
-  System.out.println("Liquid glass: all 100 slider ticks applied, 10,000 unchanged frames cached, disable/restore passed");
+  check(RenderEffect.creates==creates+1,"latest disabled state not published once on enable");
+  check(Math.abs(RuntimeShader.intensity-(9999%101)*.005f)<.00001f,"stale uniforms on enable");
+  System.out.println("Liquid glass: 100 slider ticks, 10,000 unchanged frames and 10,000 disabled updates without GPU effects passed");
  }
 }''', encoding='utf-8')
     subprocess.run(['javac','-encoding','UTF-8',str(work/'LiquidGlassEffect.java'),str(work/'LiquidSliderCheck.java')],check=True)

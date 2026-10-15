@@ -87,8 +87,8 @@ public final class NebulaMessageToolsController: UIViewController {
         languageButton.addTarget(self, action: #selector(chooseLanguage), for: .touchUpInside)
         updateLanguage()
         stack.addArrangedSubview(languageButton)
-        let titles = [text("Спросить ИИ", "Ask AI"), text("Перевести", "Translate"), text("Сократить", "Summarize"), text("Озвучить", "Read aloud"), text("В задачу", "Create task"), text("Исправить", "Correct")]
-        let symbols = ["sparkles", "character.bubble", "text.alignleft", "speaker.wave.2", "checkmark.circle", "checkmark.magnifyingglass"]
+        let titles = [text("Спросить ИИ", "Ask AI"), text("Перевести", "Translate"), text("Сократить", "Summarize"), text("Озвучить", "Read aloud"), text("В задачу", "Create task"), text("Исправить", "Correct"), text("Быстрые ответы", "Quick replies")]
+        let symbols = ["sparkles", "character.bubble", "text.alignleft", "speaker.wave.2", "checkmark.circle", "checkmark.magnifyingglass", "text.bubble"]
         let buttons = titles.enumerated().map { index, title -> UIButton in
             let button = NebulaToolButton(type: .system)
             button.tag = index
@@ -191,6 +191,10 @@ public final class NebulaMessageToolsController: UIViewController {
     }
     @objc private func performTool(_ sender: UIButton) {
         switch sender.tag {
+        case 6:
+            navigationController?.pushViewController(NebulaQuickRepliesController(account: accountId, source: source, russian: russian, theme: theme) { [weak self] value in
+                self?.result = value; self?.output.text = value; self?.output.isHidden = false
+            }, animated: true)
         case 3:
             if #available(iOS 15.0, *) {
                 navigationController?.pushViewController(NebulaSpeechController(text: result.isEmpty ? source : result, language: result.isEmpty ? (russian ? "ru" : "en") : language, russian: russian, theme: theme, context: context), animated: true)

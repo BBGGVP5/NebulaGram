@@ -184,6 +184,7 @@ jobs:
           python3 scripts/check-settings-links.py
           python3 scripts/check-wide-posts.py vendor/telegram-android
           python3 scripts/check-menu-feedback.py vendor/telegram-android
+          python3 scripts/check-tab-lens-motion.py
           python3 scripts/check-liquid-popup.py
           python3 scripts/check-menu-api.py
           python3 scripts/check-menu-focus.py
@@ -221,6 +222,8 @@ jobs:
           python3 scripts/check-translation-format.py
           python3 scripts/check-draft-original.py
           python3 scripts/check-translation-api.py
+          python3 scripts/check-local-translation-lifecycle.py
+          python3 scripts/check-quick-replies.py
           python3 scripts/check-composer-shortcut.py vendor/telegram-android
           python3 scripts/check-settings-root.py
           python3 scripts/check-settings-emoji.py

@@ -23,7 +23,7 @@ public final class NebulaTabLens {
     private final LinearGradient highlight = new LinearGradient(0, 0, 0, 1,
             new int[]{0x66ffffff, 0x0affffff, 0x24ffffff}, new float[]{0, .55f, 1}, Shader.TileMode.CLAMP);
     private ValueAnimator animation;
-    private boolean initialized;
+    private boolean initialized, pressed;
     private float stretch, bubble, pressure;
     private ValueAnimator pulse, pressAnimation;
 
@@ -32,11 +32,18 @@ public final class NebulaTabLens {
         edge.setStyle(Paint.Style.STROKE);
         edge.setStrokeWidth(AndroidUtilities.dpf2(.65f));
         edge.setShader(highlight);
+        host.addOnAttachStateChangeListener(new View.OnAttachStateChangeListener() {
+            @Override public void onViewAttachedToWindow(View view) { }
+            @Override public void onViewDetachedFromWindow(View view) { reset(); }
+        });
     }
 
     public void draw(Canvas canvas, float left, float top, float right, float bottom, int accent) {
         if (right <= left || bottom <= top) return;
-        if (!initialized) {
+        if (!initialized || !animated()) {
+            if (animation != null) { animation.cancel(); animation = null; }
+            stretch = 0;
+            if (!animated()) stopFeedback();
             target.set(left, top, right, bottom);
             current.set(target);
             initialized = true;
@@ -44,6 +51,11 @@ public final class NebulaTabLens {
                 || Math.abs(target.top - top) > .5f || Math.abs(target.bottom - bottom) > .5f) {
             if (animation != null) animation.cancel();
             start.set(current);
+            // Retarget the shape actually on screen, including its stretch.
+            // Rapid taps must not snap back to the undeformed logical rectangle.
+            start.inset(-stretch, stretch * .24f);
+            current.set(start);
+            stretch = 0;
             target.set(left, top, right, bottom);
             final float travel = Math.abs(target.centerX() - start.centerX());
             final float bulge = Math.min(AndroidUtilities.dpf2(20), travel * .20f);
@@ -66,6 +78,7 @@ public final class NebulaTabLens {
     }
 
     public void drawDrag(Canvas canvas, float left, float top, float right, float bottom, int accent) {
+        if (!animated()) stopFeedback();
         if (animation != null) { animation.cancel(); animation = null; }
         stretch = 0;
         current.set(left, top, right, bottom); target.set(current); initialized = true;
@@ -88,15 +101,18 @@ public final class NebulaTabLens {
         canvas.drawRoundRect(bounds, radius, radius, tint);
         tint.setColor(Theme.isCurrentThemeDark() ? 0x0fffffff : 0x32ffffff);
         canvas.drawRoundRect(bounds, radius, radius, tint);
-        gradientMatrix.setScale(1, bounds.height());
-        gradientMatrix.postTranslate(0, bounds.top);
-        highlight.setLocalMatrix(gradientMatrix);
-        float inset = edge.getStrokeWidth() * .5f;
-        bounds.inset(inset, inset);
-        canvas.drawRoundRect(bounds, radius, radius, edge);
+        if (NebulaGlass.highlights()) {
+            gradientMatrix.setScale(1, bounds.height());
+            gradientMatrix.postTranslate(0, bounds.top);
+            highlight.setLocalMatrix(gradientMatrix);
+            float inset = edge.getStrokeWidth() * .5f;
+            bounds.inset(inset, inset);
+            canvas.drawRoundRect(bounds, radius, radius, edge);
+        }
     }
 
     public void pulse() {
+        if (!animated()) { stopFeedback(); return; }
         if (pulse != null) pulse.cancel();
         pulse = ValueAnimator.ofFloat(0, 1);
         pulse.setDuration(380);
@@ -118,6 +134,9 @@ public final class NebulaTabLens {
     }
 
     public void setPressed(boolean pressed) {
+        if (this.pressed == pressed) return;
+        this.pressed = pressed;
+        if (!animated()) { stopFeedback(); host.invalidate(); return; }
         if (pressAnimation != null) pressAnimation.cancel();
         if (pressed && pulse != null) { pulse.cancel(); bubble = 0; }
         pressAnimation = ValueAnimator.ofFloat(pressure, pressed ? 1f : 0f);
@@ -128,13 +147,19 @@ public final class NebulaTabLens {
     }
 
     public void reset() {
+        stopFeedback(); pressed = false;
+        if (animation != null) { animation.cancel(); animation = null; }
+        initialized = false;
+        stretch = 0;
+        paintedBounds.setEmpty();
+    }
+
+    private boolean animated() { return NebulaMenuStyle.animated(host) && !NebulaGlass.reduced(); }
+    private void stopFeedback() {
         if (pulse != null) { pulse.cancel(); pulse = null; }
         bubble = 0;
         if (pressAnimation != null) { pressAnimation.cancel(); pressAnimation = null; }
         pressure = 0;
-        if (animation != null) { animation.cancel(); animation = null; }
-        initialized = false;
-        stretch = 0;
     }
 
     private static float mix(float a, float b, float p) { return a + (b - a) * p; }

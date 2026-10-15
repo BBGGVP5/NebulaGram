@@ -16,15 +16,19 @@
 ## Execution
 
 - [x] Query official branch heads through GitHub and inspect local pins and source preparation.
-- [ ] Run `python scripts/check-upstream-series.py android --tree build/android-upstream-1302-20261015 --keep-temp-on-error`; inspect the first incompatible patch and its upstream method before adapting it.
-- [ ] Adapt only incompatible `patches/android/*.patch` and affected overlay calls. Preserve new official behavior and all recent home-title/camera/recording hooks. Replay the complete ordered series from a fresh baseline.
-- [ ] Change the explicit version guard in `scripts/prepare-android-tree.py` and fixtures in `scripts/test-prepare-android-tree.py` to 13.0.2 / 7175; test rejection of the old baseline and source preservation.
-- [ ] Check new native/Gradle dependency requirements; update `.github/workflows/android.yml` only where necessary. Add the vendor gitlink to its push paths so future source-only bumps build.
+- [x] Run `python scripts/check-upstream-series.py android --tree build/android-upstream-1302-20261015 --keep-temp-on-error`; inspect the first incompatible patch and its upstream method before adapting it.
+- [x] Adapt only incompatible `patches/android/*.patch` and affected overlay calls. Preserve new official behavior and all recent home-title/camera/recording hooks. Replay the complete ordered series from a fresh baseline.
+- [x] Change the explicit version guard in `scripts/prepare-android-tree.py` and fixtures in `scripts/test-prepare-android-tree.py` to 13.0.2 / 7175; test rejection of the old baseline and source preservation.
+- [x] Check new native/Gradle dependency requirements; update `.github/workflows/android.yml` only where necessary. Add the vendor gitlink to its push paths so future source-only bumps build.
 - [ ] Run the Android workflow regression commands against the prepared tree. Compile the complete app in CI; inspect failures and repair actual API/build incompatibilities.
-- [ ] Update the Android gitlink using its exact immutable SHA without staging the dirty vendor working tree. Correct current-version documentation in `docs/UPSTREAM.md`, `docs/USER-CHANGES.md`, and `platform/ios/README.md`.
-- [ ] Research official fork repositories/documentation (Forkgram, Nekogram, Cherrygram, exteraGram, Nicegram); compare candidate features against both native overlays, patch series, and settings. Save `docs/FORK-FEATURES-2026-10-15.md` with source links, missing/partial status, platform effort and concrete integration points.
+- [x] Update the Android gitlink using its exact immutable SHA without staging the dirty vendor working tree. Correct current-version documentation in `docs/UPSTREAM.md`, `docs/USER-CHANGES.md`, and `platform/ios/README.md`.
+- [x] Research official fork repositories/documentation (Forkgram, Nekogram, Cherrygram, exteraGram, Nicegram); compare candidate features against both native overlays, patch series, and settings. Save `docs/FORK-FEATURES-2026-10-15.md` with source links, missing/partial status, platform effort and concrete integration points.
 - [ ] Commit exact changed paths, push authorized branches, verify resulting APK metadata/signature and record build status. Physical acceptance remains separate: the latest user report says the phone is unavailable.
 
 ## Acceptance
 
 The published build must use the new source pin, retain NebulaGram's signing/package identity, and pass the existing behavior checks including interrupted header fades and pre-send transcription. Research recommendations must exclude features already implemented and distinguish client-side additions from server-controlled capabilities.
+
+## First full build result
+
+Run 38691766619 passed the regression suite and reached Java compilation. Telegram 13.0.2 removed `InstantCameraViewBase.isUsingCamera2Implementation` and `setUseCamera2Implementation`; the overlay camera screen now uses `SharedSettings.roundVideoCamera2Enabled` and the same AppGlobalConfig fallback as the native factory. A new full build is required.

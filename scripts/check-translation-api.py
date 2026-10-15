@@ -41,4 +41,17 @@ with tempfile.TemporaryDirectory(prefix='nebula-translation-api-') as folder:
         p=work/name;p.parent.mkdir(parents=True,exist_ok=True);p.write_text(source,encoding='utf-8')
     production=['NebulaLocalTranslation.java','NebulaTranslationClient.java','NebulaTranslationText.java','NebulaTranslationFormat.java','NebulaDraftTranslation.java','NebulaDraftOriginal.java','NebulaDraftRequestGate.java']
     subprocess.run(['javac','-encoding','UTF-8','-cp',os.pathsep.join(map(str,[platforms[-1],*jars])),'-d',folder,*map(str,work.rglob('*.java')),*[str(ui/n) for n in production]],check=True)
+    # The new model screen uses the real RemoteModelManager and TranslateRemoteModel
+    # APIs too; only our UI wrapper types are replaced here.
+    more = {
+      'org/telegram/ui/ActionBar/BaseFragment.java': 'package org.telegram.ui.ActionBar;public class BaseFragment {protected android.view.View fragmentView;protected Object actionBar;public android.view.View createView(android.content.Context c){return null;}public void onFragmentDestroy(){}public android.app.Activity getParentActivity(){return null;}public void presentFragment(Object o){} }',
+      'app/nebulagram/ui/NebulaRow.java': 'package app.nebulagram.ui;public class NebulaRow extends android.view.View {public NebulaRow(android.content.Context c){super(c);}public NebulaRow title(String s){return this;}public NebulaRow subtitle(String s,boolean b){return this;}public NebulaRow withClick(android.view.View.OnClickListener l){return this;}}',
+      'app/nebulagram/ui/NebulaCard.java': 'package app.nebulagram.ui;public class NebulaCard extends android.widget.LinearLayout {public NebulaCard(android.content.Context c){super(c);}public void add(NebulaRow r){}}',
+      'app/nebulagram/ui/NebulaFormUi.java': 'package app.nebulagram.ui;public class NebulaFormUi {public static void bar(Object h,Object a,android.content.Context c,String s){}public static android.widget.LinearLayout column(android.content.Context c){return null;}public static android.view.View note(android.content.Context c,String s){return null;}public static android.view.View scroll(android.content.Context c,android.view.View v){return null;}}',
+      'app/nebulagram/ui/NebulaSettingsLayout.java': 'package app.nebulagram.ui;public class NebulaSettingsLayout {public static android.view.View wrap(android.content.Context c,Object a,android.view.View v){return v;}}',
+      'app/nebulagram/ui/NebulaTranslationSettings.java': 'package app.nebulagram.ui;public class NebulaTranslationSettings {public static String label(String s){return s;}}'
+    }
+    for name, source in more.items():
+        p=work/name;p.parent.mkdir(parents=True,exist_ok=True);p.write_text(source,encoding='utf-8')
+    subprocess.run(['javac','-encoding','UTF-8','-cp',os.pathsep.join(map(str,[platforms[-1],*jars,work])),'-d',folder,*[str(work/n) for n in more],str(ui/'NebulaTranslationModelsFragment.java')],check=True)
 print('Actual draft UI and language-pack transport compile against '+platforms[-1].parent.name+' and ML Kit Translation 17.0.3')

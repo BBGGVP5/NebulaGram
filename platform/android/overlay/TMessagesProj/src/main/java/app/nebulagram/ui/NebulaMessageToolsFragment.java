@@ -121,6 +121,7 @@ public final class NebulaMessageToolsFragment extends BaseFragment {
         }
         addTool(actions, ai, "🔊", R.drawable.msg_voice_unmuted, t("Озвучить", "Read aloud"), t("Озвучить результат или исходный текст", "Listen to the result or source text"), v -> { speechRequested = true; speak(); });
         addTool(actions, ai, "✅", R.drawable.msg_calendar, t("В задачу", "Create task"), t("Сохранить текст и добавить напоминание", "Save the text and add a reminder"), v -> presentFragment(new NebulaTaskEditorFragment(null, input.getText().toString(), currentAccount)));
+        addTool(actions, ai, "💬", R.drawable.msg_list, t("Быстрые ответы", "Quick replies"), t("Личные шаблоны без Business", "Personal templates without Business"), v -> quickReplies());
         if (editorAction != null) addTool(actions, ai, "📝", R.drawable.msg_edit, t("Редактор", "Editor"), t("Стилизация и исправление текста", "Style and correct text"), v -> {
             afterDismiss = editorAction; finishFragment();
         });
@@ -422,7 +423,7 @@ public final class NebulaMessageToolsFragment extends BaseFragment {
     }
     private void showMore() {
         java.util.ArrayList<CharSequence> options = new java.util.ArrayList<>(java.util.Arrays.asList(t("Спросить ИИ", "Ask AI"), t("Озвучить", "Read aloud"), t("В задачу", "Create task"),
-            t("Настройки перевода", "Translation settings"), t("Сервисы ИИ", "AI services"), t("Фильтр сообщений", "Message filter")));
+            t("Настройки перевода", "Translation settings"), t("Сервисы ИИ", "AI services"), t("Фильтр сообщений", "Message filter"), t("Быстрые ответы", "Quick replies")));
         if (message != null && (message.isVoice() || message.isRoundVideo() || message.isVideo())) options.add(t("Распознать", "Transcribe"));
         showDialog(new NebulaDialog.Builder(getContext(), getResourceProvider()).setTitle(t("Инструменты", "Tools"))
             .setItems(options.toArray(new CharSequence[0]), (dialog, which) -> {
@@ -432,8 +433,17 @@ public final class NebulaMessageToolsFragment extends BaseFragment {
                 else if (which == 3) presentFragment(new NebulaTranslationFragment(currentAccount, translationDialog()));
                 else if (which == 4) presentFragment(new NebulaAiServicesFragment());
                 else if (which == 5) NebulaMessageFilter.configure(this);
+                else if (which == 6) quickReplies();
                 else transcribe();
             }).setNegativeButton(t("Закрыть", "Close"), null).create());
+    }
+    private void quickReplies() {
+        final long owner = NebulaTasks.user(currentAccount);
+        presentFragment(new NebulaQuickRepliesFragment(currentAccount, input.getText().toString(), value -> {
+            if (destroyed || owner != NebulaTasks.user(currentAccount)) return;
+            cancel();
+            showOutput(value, true);
+        }));
     }
     private void addLiveTranslation(Context c, LinearLayout column) {
         long dialog = translationDialog();
