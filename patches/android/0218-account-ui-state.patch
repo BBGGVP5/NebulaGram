@@ -1,0 +1,225 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/Theme.java b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/Theme.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/Theme.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/Theme.java
+@@ -2212,9 +2212,27 @@
+ 
+     private static int loadingCurrentTheme;
+     private static int lastLoadingCurrentThemeTime;
+-    private static boolean[] loadingRemoteThemes = new boolean[UserConfig.MAX_ACCOUNT_COUNT];
+-    private static int[] lastLoadingThemesTime = new int[UserConfig.MAX_ACCOUNT_COUNT];
+-    private static long[] remoteThemesHash = new long[UserConfig.MAX_ACCOUNT_COUNT];
++    private static final class RemoteThemeState {
++        int account;
++        boolean loading;
++        int lastLoadingTime;
++        long hash;
++    }
++    private static final org.telegram.messenger.AccountInstanceRegistry<RemoteThemeState> remoteThemeStates = new org.telegram.messenger.AccountInstanceRegistry<>();
++
++    private static RemoteThemeState remoteThemeState(int account) {
++        return remoteThemeStates.get(account, id -> {
++            RemoteThemeState state = new RemoteThemeState();
++            state.account = id;
++            SharedPreferences preferences = ApplicationLoader.applicationContext.getSharedPreferences("themeconfig", Activity.MODE_PRIVATE);
++            if (preferences.getInt("remote_version", 0) == 1) {
++                String suffix = id == 0 ? "" : Integer.toString(id);
++                state.hash = preferences.getLong("2remoteThemesHash" + suffix, 0);
++                state.lastLoadingTime = preferences.getInt("lastLoadingThemesTime" + suffix, 0);
++            }
++            return state;
++        });
++    }
+ 
+     public static ArrayList<ThemeInfo> themes;
+     private static ArrayList<ThemeInfo> otherThemes;
+@@ -4020,12 +4038,6 @@
+ 
+         int remoteVersion = themeConfig.getInt("remote_version", 0);
+         int appRemoteThemesVersion = 1;
+-        if (remoteVersion == appRemoteThemesVersion) {
+-            for (int a = 0; a < UserConfig.MAX_ACCOUNT_COUNT; a++) {
+-                remoteThemesHash[a] = themeConfig.getLong("2remoteThemesHash" + (a != 0 ? a : ""), 0);
+-                lastLoadingThemesTime[a] = themeConfig.getInt("lastLoadingThemesTime" + (a != 0 ? a : ""), 0);
+-            }
+-        }
+         themeConfig.edit().putInt("remote_version", appRemoteThemesVersion).apply();
+         if (!TextUtils.isEmpty(themesString)) {
+             try {
+@@ -6352,9 +6364,10 @@
+             }
+             editor.putString("themes2", array.toString());
+         }
+-        for (int a = 0; a < UserConfig.MAX_ACCOUNT_COUNT; a++) {
+-            editor.putLong("2remoteThemesHash" + (a != 0 ? a : ""), remoteThemesHash[a]);
+-            editor.putInt("lastLoadingThemesTime" + (a != 0 ? a : ""), lastLoadingThemesTime[a]);
++        for (RemoteThemeState state : remoteThemeStates.valuesSnapshot()) {
++            String suffix = state.account == 0 ? "" : Integer.toString(state.account);
++            editor.putLong("2remoteThemesHash" + suffix, state.hash);
++            editor.putInt("lastLoadingThemesTime" + suffix, state.lastLoadingTime);
+         }
+ 
+         editor.putInt("lastLoadingCurrentThemeTime", lastLoadingCurrentThemeTime);
+@@ -6943,24 +6956,24 @@
+     }
+ 
+     public static void loadRemoteThemes(final int currentAccount, boolean force) {
+-        if (loadingRemoteThemes[currentAccount] || !force && Math.abs(System.currentTimeMillis() / 1000 - lastLoadingThemesTime[currentAccount]) < 60 * 60 || !UserConfig.getInstance(currentAccount).isClientActivated()) {
++        if (remoteThemeState(currentAccount).loading || !force && Math.abs(System.currentTimeMillis() / 1000 - remoteThemeState(currentAccount).lastLoadingTime) < 60 * 60 || !UserConfig.getInstance(currentAccount).isClientActivated()) {
+             return;
+         }
+-        loadingRemoteThemes[currentAccount] = true;
++        remoteThemeState(currentAccount).loading = true;
+         TL_account.getThemes req = new TL_account.getThemes();
+         req.format = "android";
+         if (!MediaDataController.getInstance(currentAccount).defaultEmojiThemes.isEmpty()) {
+-            req.hash = remoteThemesHash[currentAccount];
++            req.hash = remoteThemeState(currentAccount).hash;
+         }
+         if (BuildVars.LOGS_ENABLED) {
+             Log.i("theme", "loading remote themes, hash " + req.hash);
+         }
+         ConnectionsManager.getInstance(currentAccount).sendRequest(req, (response, error) -> AndroidUtilities.runOnUIThread(() -> {
+-            loadingRemoteThemes[currentAccount] = false;
++            remoteThemeState(currentAccount).loading = false;
+             if (response instanceof TL_account.TL_themes) {
+                 TL_account.TL_themes res = (TL_account.TL_themes) response;
+-                remoteThemesHash[currentAccount] = res.hash;
+-                lastLoadingThemesTime[currentAccount] = (int) (System.currentTimeMillis() / 1000);
++                remoteThemeState(currentAccount).hash = res.hash;
++                remoteThemeState(currentAccount).lastLoadingTime = (int) (System.currentTimeMillis() / 1000);
+                 ArrayList<TLRPC.TL_theme> emojiPreviewThemes = new ArrayList<>();
+                 ArrayList<Object> oldServerThemes = new ArrayList<>();
+                 for (int a = 0, N = themes.size(); a < N; a++) {
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
+@@ -650,7 +650,13 @@
+     private String addToGroupAlertString;
+     public boolean resetDelegate = true;
+ 
+-    public static boolean[] dialogsLoaded = new boolean[UserConfig.MAX_ACCOUNT_COUNT];
++    private static final java.util.Set<Integer> dialogsLoaded = java.util.Collections.newSetFromMap(new java.util.concurrent.ConcurrentHashMap<Integer, Boolean>());
++
++    public static void setDialogsLoaded(int account, boolean loaded) {
++        if (account < 0) throw new IllegalArgumentException("Invalid account ID");
++        if (loaded) dialogsLoaded.add(account);
++        else dialogsLoaded.remove(account);
++    }
+     private boolean searching;
+     private boolean searchWas;
+     private boolean onlySelect;
+@@ -3037,7 +3043,7 @@
+ 
+     public static void loadDialogs(AccountInstance accountInstance) {
+         int currentAccount = accountInstance.getCurrentAccount();
+-        if (!dialogsLoaded[currentAccount]) {
++        if (!dialogsLoaded.contains(currentAccount)) {
+             MessagesController messagesController = accountInstance.getMessagesController();
+             messagesController.loadGlobalNotificationsSettings();
+             messagesController.loadDialogs(0, 0, 100, true);
+@@ -3049,7 +3055,7 @@
+             for (String emoji : messagesController.diceEmojies) {
+                 accountInstance.getMediaDataController().loadStickersByEmojiOrName(emoji, true, true);
+             }
+-            dialogsLoaded[currentAccount] = true;
++            setDialogsLoaded(currentAccount, true);
+         }
+     }
+ 
+@@ -10832,7 +10838,7 @@
+             }
+             updateStatus(UserConfig.getInstance(account).getCurrentUser(), true);
+         } else if (id == NotificationCenter.appDidLogout) {
+-            dialogsLoaded[currentAccount] = false;
++            setDialogsLoaded(currentAccount, false);
+         } else if (id == NotificationCenter.encryptedChatUpdated) {
+             updateVisibleRows(0);
+         } else if (id == NotificationCenter.contactsDidLoad) {
+@@ -11045,7 +11051,7 @@
+             updateStatus(UserConfig.getInstance(account).getCurrentUser(), true);
+             updateStoriesPosting();
+         } else if (id == NotificationCenter.onDatabaseReset) {
+-            dialogsLoaded[currentAccount] = false;
++            setDialogsLoaded(currentAccount, false);
+             loadDialogs(getAccountInstance());
+             getMessagesController().loadPinnedDialogs(folderId, 0, null);
+         } else if (id == NotificationCenter.chatlistFolderUpdate) {
+diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/MessagesController.java b/TMessagesProj/src/main/java/org/telegram/messenger/MessagesController.java
+--- a/TMessagesProj/src/main/java/org/telegram/messenger/MessagesController.java
++++ b/TMessagesProj/src/main/java/org/telegram/messenger/MessagesController.java
+@@ -6444,7 +6444,7 @@
+ 
+         showFiltersTooltip = false;
+ 
+-        DialogsActivity.dialogsLoaded[currentAccount] = false;
++        DialogsActivity.setDialogsLoaded(currentAccount, false);
+ 
+         SharedPreferences.Editor editor = notificationsPreferences.edit();
+         editor.clear().commit();
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/SelectAnimatedEmojiDialog.java b/TMessagesProj/src/main/java/org/telegram/ui/SelectAnimatedEmojiDialog.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/SelectAnimatedEmojiDialog.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/SelectAnimatedEmojiDialog.java
+@@ -3638,13 +3638,13 @@
+         }
+     }
+ 
+-    private static boolean[] preloaded = new boolean[UserConfig.MAX_ACCOUNT_COUNT];
++    private static final java.util.Set<Integer> preloaded = java.util.Collections.newSetFromMap(new java.util.concurrent.ConcurrentHashMap<Integer, Boolean>());
+ 
+     public static void preload(int account) {
+-        if (preloaded[account] || MediaDataController.getInstance(account) == null) {
++        if (preloaded.contains(account) || MediaDataController.getInstance(account) == null) {
+             return;
+         }
+-        preloaded[account] = true;
++        preloaded.add(account);
+         MediaDataController.getInstance(account).checkStickers(MediaDataController.TYPE_EMOJIPACKS);
+         MediaDataController.getInstance(account).fetchEmojiStatuses(0, true);
+         MediaDataController.getInstance(account).checkReactions();
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/FragmentContextView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/FragmentContextView.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Components/FragmentContextView.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/FragmentContextView.java
+@@ -1419,7 +1419,7 @@
+         wasDraw = false;
+     }
+ 
+-    private final NotificationCenter.ObserversGroup[] observersGroup = new NotificationCenter.ObserversGroup[UserConfig.MAX_ACCOUNT_COUNT];
++    private final java.util.HashMap<Integer, NotificationCenter.ObserversGroup> observersGroup = new java.util.HashMap<>();
+     private NotificationCenter.ObserversGroup globalObserversGroup;
+ 
+     private void removeObservers() {
+@@ -1427,12 +1427,10 @@
+             globalObserversGroup.removeAllObservers();
+             globalObserversGroup = null;
+         }
+-        for (int a = 0; a < UserConfig.MAX_ACCOUNT_COUNT; a++) {
+-            if (observersGroup[a] != null) {
+-                observersGroup[a].removeAllObservers();
+-                observersGroup[a] = null;
+-            }
+-        }
++        for (NotificationCenter.ObserversGroup group : observersGroup.values()) {
++            group.removeAllObservers();
++        }
++        observersGroup.clear();
+     }
+ 
+ 
+@@ -1449,7 +1447,7 @@
+             checkLiveLocation(true);
+         } else {
+             for (int a = 0; a < UserConfig.MAX_ACCOUNT_COUNT; a++) {
+-                observersGroup[a] = NotificationCenter.getInstance(a)
++                observersGroup.put(a, NotificationCenter.getInstance(a)
+                     .createObserversGroup(this)
+                     .add(NotificationCenter.messagePlayingDidReset)
+                     .add(NotificationCenter.messagePlayingPlayStateChanged)
+@@ -1458,7 +1456,7 @@
+                     .add(NotificationCenter.groupCallTypingsUpdated)
+                     .add(NotificationCenter.historyImportProgressChanged)
+                     .add(NotificationCenter.liveStoryUpdated)
+-                    .add(NotificationCenter.messagePlayingProgressDidChanged);
++                    .add(NotificationCenter.messagePlayingProgressDidChanged));
+                 GroupCallMessagesController.getInstance(a).subscribeToCallMessages(0, this);
+             }
+ 

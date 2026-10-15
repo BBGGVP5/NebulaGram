@@ -37,3 +37,10 @@ Commit `7827492`: all 113 Android workflow regression commands passed locally ag
 The settings-contract workflow passed. Full APK [run 38726030302](https://github.com/BBGGVP5/NebulaGram/actions/runs/38726030302) is running; neither a successful full build of this commit nor device acceptance is claimed yet. Previously verified APK 1000555 and IPA 120 do not include this new Android registry patch.
 
 Follow-up: the full Java compiler rejected the old NotificationCenter for-each loop and four lazy-child-controller locks in MessagesController. Patch 0217 moves diagnostics to an existing-values snapshot and shares the registry's per-account monitor with those child controllers. The regression harness now compiles and executes the actual sanitize method and all four lazy-child getters, checking account IDs as well as singleton identity. Full rebuild is required.
+
+
+## UI state migration checkpoint
+
+Patch 0218 replaces fixed account arrays in Theme, DialogsActivity, SelectAnimatedEmojiDialog and FragmentContextView. Theme state restores each account lazily, preserves the existing account-0 preference suffix and saves only initialized entries, avoiding overwrites of unopened accounts. Dialog flags and observer teardown accept sparse IDs; the MessagesController reset call uses the same accessor.
+
+`python scripts/check-account-state.py build/android-1302-integrated-20261015` executes native state methods for 128 accounts and ID 1000000, late theme restore, unrelated cache preservation and repeated observer teardown. The 35 production singleton getters and 16,384 concurrent registry lookups also pass. All 213 patches replay on the pinned official source. Account allocation, dynamic observer enrollment and notification identities remain the next integration phase; the ten-account UI gate is still present.

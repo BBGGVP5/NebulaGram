@@ -239,6 +239,7 @@ jobs:
           python3 scripts/check-premium-emoji-copy.py vendor/telegram-android
           python3 scripts/check-account-slots.py vendor/telegram-android
           python3 scripts/check-dynamic-account-instances.py vendor/telegram-android
+          python3 scripts/check-account-state.py vendor/telegram-android
           python3 scripts/check-forward-editing.py
           python3 scripts/check-protected-copies.py
           python3 scripts/check-theme-toggle.py

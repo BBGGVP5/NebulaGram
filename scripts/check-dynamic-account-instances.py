@@ -104,10 +104,10 @@ with tempfile.TemporaryDirectory(prefix='nebula-accounts-') as directory:
         files, calls = [], []
         for path in tree.rglob('*.java'):
             text = path.read_text(encoding='utf-8')
-            declarations = re.findall(r'private static final org\.telegram\.messenger\.AccountInstanceRegistry<[^\n]+;', text)
+            name = path.stem
+            declarations = re.findall(r'private static final org\.telegram\.messenger\.AccountInstanceRegistry<' + re.escape(name) + r'>[^\n]+;', text)
             if not declarations:
                 continue
-            name = path.stem
             pattern = r'public static ' + name + r' getInstance\((?:final )?int \w+' + (r', boolean ton' if name == 'StarsController' else '') + r'\) \{'
             match = re.search(pattern, text)
             assert match, path
