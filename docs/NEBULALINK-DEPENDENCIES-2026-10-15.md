@@ -78,3 +78,9 @@ Run [38713620156](https://github.com/BBGGVP5/NebulaGram/actions/runs/38713620156
 The Windows DLL from core run 38708490245 was loaded through its real C ABI. Initialization, component-version reporting (NebulaLink 1.0.0 / Xray 26.10.10), synthetic key import, invalid-key rejection, partial settings update and persistence after reinitialization passed. SHA-256: `65d160f88e9f0cbe7514564f4c00c5eeeaa07e5e58f73748ed2d915348147c4f`. No external VPN server or real account was used.
 
 Android 1000555 / run 38716266186 validates the subsequent test/build-workflow improvements; application/runtime source is unchanged from verified 1000554. Full iOS run 38708491103 remains in progress at this checkpoint. The local read-only Android emulator stayed offline on both normal and cold/software-rendered starts, so no rendered UI/device acceptance is claimed. Both emulator processes launched for this check were stopped.
+
+## Verified follow-up artifacts
+
+Android run [38716266186](https://github.com/BBGGVP5/NebulaGram/actions/runs/38716266186) passed: APK 1000555, SHA-256 `5e1cada710050f4d05ad81599eb1198aea9bb01f1762f4dabd3fa63109ba4b90`, 63,185,324 bytes. Original certificate, package, minSDK 23, arm64 and 16-KB ZIP alignment verified again.
+
+iOS run [38708491103](https://github.com/BBGGVP5/NebulaGram/actions/runs/38708491103) passed: IPA build 120, version 13.0, bundle `app.nebulagram`, minimum iOS 15.0, 91,897,325 bytes. SHA-256 `219997b05b9b720effef7fc46dafe64f05be1f02236af49b0c4574c611405c7a` matches the build receipt and ZIP integrity passes. This includes dynamic account entry points and the formatting toolbar. The IPA is unsigned and requires user signing; device UI, authentication and push acceptance are not verified.

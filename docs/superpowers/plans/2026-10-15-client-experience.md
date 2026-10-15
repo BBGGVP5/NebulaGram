@@ -99,4 +99,9 @@ Files: `runtime/xray/go.mod`, `bind/go.mod`, `core/go.mod`, related sums/build s
 
 - Onboarding regression tests now execute the actual import/list/connect methods with delayed callback delivery: skip, return, retry, duplicate submissions, destruction and editing. Artwork checks exercise attach, empty bounds, repeated layout, hide/resume, reduced motion and detach. Android SDK compilation of the artwork also passes. These are behavioral checks, not a rendered UI acceptance result.
 
-- Android 1000554 successfully compiled; downloaded package, original signature, minSDK 23, arm64 ABI, ZIP alignment and embedded Go/Xray/mobile versions verified. iOS full native 38708491103 remains running. The emulator failed to boot (offline); physical-device/rendered UI acceptance remains open.
+- Android 1000554 successfully compiled; downloaded package, original signature, minSDK 23, arm64 ABI, ZIP alignment and embedded Go/Xray/mobile versions verified. iOS full native 38708491103 subsequently passed; downloaded IPA 120 verified (requires signing). The emulator failed to boot (offline); physical-device/rendered UI acceptance remains open.
+
+## Checkpoint: verified Android 1000555 / iOS 120 and dynamic registries
+
+- Android run 38716266186 passed and its APK signature, version, ABI, alignment and embedded core were verified. Full iOS run 38708491103 passed; IPA 120 integrity, bundle ID and version verified. Device UI/authentication/push testing remains open.
+- Account registry migration is tracked in [its focused implementation plan](2026-10-15-dynamic-accounts.md). Patch 0216 removes fixed singleton arrays in 35 Java controllers and the native networking switch, with per-thread JNI environments. Java/native concurrent tests pass for 128 synthetic accounts. Persisted account allocation, screen-state arrays and notification namespaces still require migration before removing the Android ten-account UI gate.
