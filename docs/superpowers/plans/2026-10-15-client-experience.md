@@ -8,7 +8,7 @@
 
 Execution is inline in the existing workspace. Preserve the dirty Android vendor checkout and work against owned source trees. Each phase must be independently buildable. Check boxes describe verified work, not intentions.
 
-Current checkpoint: the implementation phases below are present on both platforms. Android 1000568 (source `63f55b1`) compiled and was independently verified, including final masking and subscription-link protection. Full iOS 121 passed for the preceding accounts/settings batch; later native builds are tracked separately. Final iOS bootstrap 38758977626 passed all 160 contract tests, native patch replay and SDK checks. Device keyboard, authentication, push, VoiceOver/TalkBack and rendered motion acceptance remain open; the user's phone is unavailable. Earlier checkpoints at the end of this file are historical, not the current feature status.
+Current checkpoint: the implementation phases below are present on both platforms. Android 1000568 (source `63f55b1`) compiled and passed package verification, but the now-connected Pixel 9 Pro XL exposed an immediate provider startup crash. Fix `e106718` is delivered in APK 1000569 / run 38768946384: all 126 regression commands, 222 ordered patches and 460 parsed Java units pass. The original signing identity and package/core metadata were independently verified. Installed over 1000568 without clearing data, it passes three cold starts, background resume and warm start on Pixel 9 Pro XL / Android 17, with no new Java/native DropBox crash; settings render. Full iOS 121 passed for the preceding accounts/settings batch; final IPA 123 is building in run 38758514021. Final iOS bootstrap 38758977626 passed all 160 contract tests, native patch replay and SDK checks. Device keyboard, authentication, push, VoiceOver/TalkBack and rendered motion acceptance remain open. Earlier checkpoints at the end of this file are historical, not the current feature status.
 
 ## 1. Research and acceptance criteria
 
@@ -72,11 +72,11 @@ Files: Android `NebulaIntroFragment`, `NebulaIntroArt`, `NebulaOnboardingLayout`
 
 ## 8. Verification and delivery
 
-- [x] Run focused executable checks and all 125 Android regression commands; replay 221 Android / 114 iOS patches. The final focused changes are rechecked separately.
-- [ ] Compile real Android APK and full iOS IPA, inspect failed jobs and fix integration errors.
-- [x] Verify APK version, signature and package; publish through the authorized branch/build workflow. Final Android 1000568 / run 38758973567 verified: original certificate, API 23/arm64, 16-KB alignment, Go 1.27.2 and Xray 701af60772cd.
-- [ ] Record exact artifact links and distinguish source checks, full compilation and device QA. Device testing remains pending while the user's phone is unavailable.
-- [ ] Update `docs/USER-CHANGES.md`, fork audit and this checklist with actual completed work and remaining items.
+- [x] Run focused executable checks and all 126 Android regression commands; replay 222 Android / 114 iOS patches. The final startup regression also reproduces the original failure before applying the fix.
+- [ ] Compile real Android APK and full iOS IPA, inspect failed jobs and fix integration errors. Android 1000569 passes; final full IPA 123 is still running.
+- [x] Verify APK version, signature and package; publish through the authorized branch/build workflow. Final Android 1000569 / run 38768946384 verified: original certificate, API 23/arm64, 16-KB alignment, Go 1.27.2 and Xray 701af60772cd.
+- [x] Record available artifact links and distinguish source checks, full compilation and device QA. Android 1000569 startup is tested on hardware; final iOS 123 compilation and broader physical UI/authentication acceptance remain open.
+- [x] Update `docs/USER-CHANGES.md`, fork audit and this checklist with actual completed work and remaining items.
 
 ## 9. NebulaLink runtime and dependency refresh
 
@@ -90,7 +90,7 @@ Files: `runtime/xray/go.mod`, `bind/go.mod`, `core/go.mod`, related sums/build s
 
 ## Remaining acceptance (requires the stated environment)
 
-- [x] Final Android APK 1000568 / 38758973567: full compilation, download and independent receipt verification complete.
+- [x] Final Android APK 1000569 / 38768946384: full compilation, download, independent receipt verification and five device launch checks complete.
 - [ ] Final full iOS IPA for the last privacy/link-protection source batch; inspect integration failures, verify receipt and record exact artifact.
 - [ ] Android/iOS physical UI acceptance: native IME/undo/keyboard, recording, large text/RTL, interrupted folder/header motion and screen-reader output.
 - [ ] Signed physical authentication/push, more than ten real account logins, native VPN consent/connect/reconnect/server switching. Synthetic account/native tests and five binding builds do not replace these checks.
@@ -124,8 +124,8 @@ Pixel 9 Pro XL running 1000568 immediately crashes in `NotificationImageProvider
 
 - [x] Execute the unmodified provider against a null application context and reproduce the same NPE.
 - [x] Execute the fixed production provider/catalogue: pre-application startup, legacy sparse migration, later account allocation/retirement, queued changes and cancellation before/after registration.
-- [ ] Replay all patches and run the Android regression suite with the new startup check registered in CI.
-- [ ] Build the corrected APK, verify identity/signature, update the attached phone without clearing app data, and confirm cold/warm launch survives without a new crash.
+- [x] Replay all 222 patches and run all 126 Android regression commands with the new startup check registered in CI; parse 460 native/overlay Java units.
+- [x] Build corrected APK 1000569, verify identity/signature, update the attached phone without clearing app data, and confirm three cold starts, background resume and warm start without a new Java/native DropBox crash. Receipt: `build/artifact-38768946384/device-startup/verification.json`; settings screenshot inspected. This does not close multi-account authentication/push or other physical feature acceptance.
 
 Android persistent IDs and all account enumeration have been migrated in patches 0218-0221. Notification tags and PendingIntent destinations include full account/dialog identities. The independent catalogue, native instance and notification fixtures pass for 128/256 synthetic accounts; native parser checks the actual patched sources. Full APK rebuild and real authentication/push remain open.
 
