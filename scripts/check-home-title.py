@@ -47,9 +47,14 @@ bar = (tree / 'TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.j
 assert 'width - 2 * Math.max(textLeft, end)' not in bar, 'Obsolete symmetric-only measurement'
 assert 'NebulaHomeTitleGeometry.width(' in bar and 'NebulaHomeTitleGeometry.left(' in bar
 assert 'titleTextView[i].getTextWidth() + titleTextView[i].getSideDrawablesSize()' in bar
-# Definition, title measurement, title layout, and the subtitle overlay laid
-# out under that title: one boundary for everything sharing the centred slot.
-assert bar.count('nebulaTitleEndInset()') == 5, 'Title/story group measurement and layout must share the menu boundary'
+# Verify the relevant paths instead of counting all uses: animated-title
+# clipping also needs this same boundary, without replacing measure/layout.
+for signature in ['protected void onMeasure(', 'protected void onLayout(',
+                  'public float getNebulaHomeStoriesLeft(', 'protected boolean drawChild(']:
+    start=bar.index(signature);end=bar.index('{',start)+1;depth=1
+    while depth:
+        depth+=(bar[end]=='{')-(bar[end]=='}');end+=1
+    assert 'nebulaTitleEndInset()' in bar[start:end], signature+' lost the shared toolbar boundary'
 assert 'additionalSubTitleOverlayContainer.getMeasuredWidth())' in bar, 'Overlay subtitle must sit under the centred title'
 assert 'titlesContainer.getTranslationX()' in bar
 assert 'if (nebulaCenterTitle())' in bar

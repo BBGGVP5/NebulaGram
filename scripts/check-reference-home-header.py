@@ -62,7 +62,7 @@ def method(source, signature):
 
 methods='\n'.join(method(bar, signature) for signature in [
     'public void setNebulaHomeStories(', 'public int getNebulaHomeVisibleStories()',
-    'private int nebulaHomeStoryPrefix()', 'private int nebulaHomeTitleWidth()',
+    'private int nebulaHomeStoryPrefix()', 'private float nebulaHomeTitleWidth()',
     'public float getNebulaHomeStoriesLeft()', 'public float getNebulaHomeTitleLeft()',
     'private void applyNebulaHomeStoryLayout()',
 ])
@@ -76,10 +76,10 @@ with tempfile.TemporaryDirectory(prefix='nebula-native-home-') as directory:
 class NativeHeaderCheck {
  static final int GONE=8;
  static class SimpleTextView {int left=110,width=96,visibility;float translation;
-  int getVisibility(){return visibility;}int getMeasuredWidth(){return width;}int getLeft(){return left;}
+  int getVisibility(){return visibility;}int getMeasuredWidth(){return width;}int getLeft(){return left;}float getAlpha(){return 1f;}
   void setTranslationX(float x){translation=x;}}
  static class Bar {boolean nebulaHomeLayout=true,nebulaHomeTabsGlass=false;int nebulaHomeStoryCount,nebulaHomeVisibleStories,layouts;
-  float nebulaHomeStoryProgress;int width=393,end=97;
+  float nebulaHomeStoryProgress,nebulaHomeTitleStartWidth;boolean titleAnimationRunning;int width=393,end=97;
   SimpleTextView[] titleTextView={new SimpleTextView(),null};SimpleTextView additionalSubTitleOverlayContainer=new SimpleTextView();
   int dp(float x){return Math.round(x);}int getMeasuredWidth(){return width;}int nebulaTitleEndInset(){return end;}
   void requestLayout(){layouts++;}

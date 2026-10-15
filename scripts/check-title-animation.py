@@ -3,6 +3,7 @@ from pathlib import Path
 import subprocess
 import sys
 import tempfile
+import re
 
 source = (Path(sys.argv[1]) / 'TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java').read_text(encoding='utf-8')
 start = source.index('    public void setTitleAnimated(CharSequence title, boolean fromBottom, long duration, Interpolator interpolator)')
@@ -22,6 +23,7 @@ def extract(signature):
     return source[begin:end]
 
 folder_method = extract('    public void setNebulaTitle(')
+width_method = extract(re.search(r'    private (?:int|float) nebulaHomeTitleWidth\(', source).group())
 restore = extract('                    if (!overlayTitleAnimationInProgress && !titleOverlayShown')
 harness = r'''
 class TitleAnimationCheck {
@@ -40,18 +42,22 @@ class TitleAnimationCheck {
   ViewPropertyAnimator setDuration(long l){return this;}
   ViewPropertyAnimator setInterpolator(Interpolator i){return this;}
   ViewPropertyAnimator setListener(AnimatorListenerAdapter l){listener=l;return this;}
+  ViewPropertyAnimator setUpdateListener(java.util.function.Consumer<Object> l){return this;}
   void start(){}
   void cancel(){if(listener!=null)listener.onAnimationEnd(new Animator());}
  }
  static class SimpleTextView {
   ViewGroup parent=new ViewGroup();
   CharSequence text;
+  float alpha=1;
   final ViewPropertyAnimator animator=new ViewPropertyAnimator();
   SimpleTextView(CharSequence t){text=t;}
   CharSequence getText(){return text;}
   ViewGroup getParent(){return parent;}
   ViewPropertyAnimator animate(){return animator;}
-  void setAlpha(float f){}
+  void setAlpha(float f){alpha=f;}
+  float getAlpha(){return alpha;}
+  int getMeasuredWidth(){return text==null?0:text.length()*10;}
   void setTranslationY(float f){}
   int getVisibility(){return View.VISIBLE;}
   void setVisibility(int i){}
@@ -61,17 +67,19 @@ class TitleAnimationCheck {
  SimpleTextView subtitleTextView=new SimpleTextView("");
  CharSequence subtitle;
  boolean overlayTitleAnimation, titleAnimationRunning, fromBottom, nebulaHomeLayout=true;
+ float nebulaHomeTitleStartWidth;
  boolean titleOverlayShown, overlayTitleAnimationInProgress, attached=true;
  Object parentFragment=new org.telegram.ui.DialogsActivity();
  CharSequence lastTitle;
  Drawable lastRightDrawable;
- static final int VISIBLE=View.VISIBLE;
+ static final int VISIBLE=View.VISIBLE, GONE=View.GONE;
  int getMeasuredWidth(){return 400;}
  int dp(int v){return v;}
  void requestLayout(){}
+ void updateNebulaHomeTitleLayout(){}
  void setTitle(CharSequence t){if(titleTextView[0]==null)titleTextView[0]=new SimpleTextView(t);else titleTextView[0].text=t;}
  void setTitle(CharSequence t,Drawable d){lastTitle=t;lastRightDrawable=d;setTitle(t);}
-''' + method + folder_method + ' void restoreFolderAfterNetworkTransition(){' + restore + '}' + r'''
+''' + width_method + method + folder_method + ' void restoreFolderAfterNetworkTransition(){' + restore + '}' + r'''
  public static void main(String[] args) {
   TitleAnimationCheck t=new TitleAnimationCheck();
   for(int i=0;i<100;i++) {

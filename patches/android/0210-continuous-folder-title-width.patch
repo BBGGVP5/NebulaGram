@@ -1,0 +1,115 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
+@@ -205,6 +205,18 @@
+     private View nebulaHomeLeadingView;
+     private int nebulaHomeStoryCount, nebulaHomeVisibleStories;
+     private float nebulaHomeStoryProgress;
++    private float nebulaHomeTitleStartWidth;
++    private Runnable nebulaHomeTitleLayoutChanged;
++
++    public void setNebulaHomeTitleLayoutChangedListener(Runnable listener) {
++        nebulaHomeTitleLayoutChanged = listener;
++    }
++
++    private void updateNebulaHomeTitleLayout() {
++        if (!nebulaHomeLayout) return;
++        applyNebulaHomeStoryLayout();
++        if (nebulaHomeTitleLayoutChanged != null) nebulaHomeTitleLayoutChanged.run();
++    }
+ 
+     public void setNebulaHomeStories(int count, float progress) {
+         if (!nebulaHomeLayout) return;
+@@ -225,7 +237,15 @@
+                 nebulaHomeVisibleStories, dp(34), dp(16), dp(8));
+     }
+ 
+-    private int nebulaHomeTitleWidth() {
++    private float nebulaHomeTitleWidth() {
++        if (nebulaHomeLayout && titleAnimationRunning && titleTextView[0] != null) {
++            // The old slot may be much wider (brand -> emoji-only folder).
++            // Follow the native fade instead of keeping max(old, new) until
++            // removal; a superseding transition snapshots this displayed width.
++            float progress = Math.max(0f, Math.min(1f, titleTextView[0].getAlpha()));
++            return nebulaHomeTitleStartWidth
++                    + (titleTextView[0].getMeasuredWidth() - nebulaHomeTitleStartWidth) * progress;
++        }
+         int width = 0;
+         for (SimpleTextView title : titleTextView) {
+             if (title != null && title.getVisibility() != GONE) width = Math.max(width, title.getMeasuredWidth());
+@@ -569,9 +589,17 @@
+         }
+ 
+         boolean clip = shouldClipChild(child);
++        boolean clipHomeTitle = nebulaHomeLayout && titleAnimationRunning
++                && (child == titleTextView[0] || child == titleTextView[1]
++                    || child == titlesContainer && useContainerForTitles
++                    || child == additionalSubTitleOverlayContainer);
++        if (clip || clipHomeTitle) canvas.save();
+         if (clip) {
+-            canvas.save();
+             canvas.clipRect(0, -getTranslationY() + (occupyStatusBar ? AndroidUtilities.statusBarHeight : 0), getMeasuredWidth(), getMeasuredHeight());
++        }
++        if (clipHomeTitle) {
++            // Fading wider text must not move over the plain toolbar actions.
++            canvas.clipRect(dp(84), 0, Math.max(dp(84), getMeasuredWidth() - nebulaTitleEndInset()), getMeasuredHeight());
+         }
+         boolean result = super.drawChild(canvas, child, drawingTime);
+         if (supportsHolidayImage && !titleOverlayShown && !LocaleController.isRTL && (child == titleTextView[0] || child == titleTextView[1] || child == titlesContainer && useContainerForTitles)) {
+@@ -609,7 +637,7 @@
+                 }
+             }
+         }
+-        if (clip) {
++        if (clip || clipHomeTitle) {
+             canvas.restore();
+         }
+         return result;
+@@ -2241,11 +2269,12 @@
+             setTitle(title);
+             return;
+         }
++        final float homeStartWidth = nebulaHomeLayout ? nebulaHomeTitleWidth() : 0f;
+         // Cancel callbacks before reusing either slot. A superseded animation must
+         // never remove the incoming view from a newer folder transition.
+-        titleTextView[0].animate().setListener(null).cancel();
++        titleTextView[0].animate().setListener(null).setUpdateListener(null).cancel();
+         if (titleTextView[1] != null) {
+-            titleTextView[1].animate().setListener(null).cancel();
++            titleTextView[1].animate().setListener(null).setUpdateListener(null).cancel();
+         }
+         boolean crossfade = overlayTitleAnimation && !TextUtils.isEmpty(subtitle);
+         if (crossfade) {
+@@ -2272,11 +2301,17 @@
+             titleTextView[0].setTranslationY(fromBottom ? dp(nebulaHomeLayout ? 8 : 20) : -dp(nebulaHomeLayout ? 8 : 20));
+         }
+         ViewPropertyAnimator a1 = titleTextView[0].animate().alpha(1f).translationY(0).setDuration(duration);
++        if (nebulaHomeLayout) {
++            // Property animation can reuse the siblings' display lists. Publish
++            // this pose and explicitly redraw the separate story canvas too.
++            a1.setUpdateListener(a -> updateNebulaHomeTitleLayout());
++        }
+         if (interpolator != null) {
+             a1.setInterpolator(interpolator);
+         }
+         a1.start();
+ 
++        nebulaHomeTitleStartWidth = homeStartWidth;
+         titleAnimationRunning = true;
+         ViewPropertyAnimator a = titleTextView[1].animate().alpha(0);
+         if (!crossfade) {
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Stories/DialogStoriesCell.java b/TMessagesProj/src/main/java/org/telegram/ui/Stories/DialogStoriesCell.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Stories/DialogStoriesCell.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Stories/DialogStoriesCell.java
+@@ -1411,7 +1411,11 @@
+     }
+ 
+     public void setActionBar(ActionBar actionBar) {
++        if (this.actionBar != null && this.actionBar != actionBar) {
++            this.actionBar.setNebulaHomeTitleLayoutChangedListener(null);
++        }
+         this.actionBar = actionBar;
++        if (actionBar != null) actionBar.setNebulaHomeTitleLayoutChangedListener(this::invalidate);
+         publishNebulaHomeHeader();
+         app.nebulagram.ui.NebulaDialogsTitle.bind(actionBar, telegramLogoView);
+     }
