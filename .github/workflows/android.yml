@@ -193,6 +193,7 @@ jobs:
           python3 scripts/check-link-cleanup.py
           python3 scripts/check-message-details.py
           python3 scripts/check-edit-history.py
+          python3 scripts/check-local-chat-pins.py
           python3 scripts/check-wide-posts.py vendor/telegram-android
           python3 scripts/check-menu-feedback.py vendor/telegram-android
           python3 scripts/check-tab-lens-motion.py

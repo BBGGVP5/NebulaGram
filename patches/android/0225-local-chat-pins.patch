@@ -1,0 +1,159 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/MessagesController.java b/TMessagesProj/src/main/java/org/telegram/messenger/MessagesController.java
+--- a/TMessagesProj/src/main/java/org/telegram/messenger/MessagesController.java
++++ b/TMessagesProj/src/main/java/org/telegram/messenger/MessagesController.java
+@@ -1421,6 +1421,8 @@
+                 return 0;
+             }
+         }
++        int nebulaLocalPinOrder = app.nebulagram.ui.NebulaLocalPins.compare(currentAccount, sortingDialogFilter, dialog1, dialog2);
++        if (nebulaLocalPinOrder != 0) return nebulaLocalPinOrder;
+         MediaDataController mediaDataController = getMediaDataController();
+         long date1 = DialogObject.getLastMessageOrDraftDate(dialog1, mediaDataController.getDraft(dialog1.id, 0));
+         long date2 = DialogObject.getLastMessageOrDraftDate(dialog2, mediaDataController.getDraft(dialog2.id, 0));
+@@ -1457,6 +1459,8 @@
+                 return 0;
+             }
+         }
++        int nebulaLocalPinOrder = app.nebulagram.ui.NebulaLocalPins.compare(currentAccount, null, dialog1, dialog2);
++        if (nebulaLocalPinOrder != 0) return nebulaLocalPinOrder;
+         MediaDataController mediaDataController = getMediaDataController();
+         long date1 = DialogObject.getLastMessageOrDraftDate(dialog1, mediaDataController.getDraft(dialog1.id, 0));
+         long date2 = DialogObject.getLastMessageOrDraftDate(dialog2, mediaDataController.getDraft(dialog2.id, 0));
+@@ -12739,6 +12743,41 @@
+         getNotificationsController().deleteAllNotificationChannels();
+     }
+ 
++    /** Read-only peer-dialog hydration for this device's additional pin order. */
++    public void applyNebulaLocalPinDialogs(TLRPC.TL_messages_peerDialogs response) {
++        final long owner = getUserConfig().getClientUserId();
++        if (owner == 0) return;
++        getMessagesStorage().getStorageQueue().postRunnable(() -> {
++            try {
++                // Hydration must not reset a cached native pin number or race
++                // a freshly loaded/pinned dialog. Existing DB rows are not replaced.
++                for (TLRPC.Dialog dialog : response.dialogs) {
++                    long id = DialogObject.getPeerDialogId(dialog.peer);
++                    org.telegram.SQLite.SQLiteCursor cursor = getMessagesStorage().getDatabase().queryFinalized("SELECT pinned FROM dialogs WHERE did = " + id);
++                    try { if (cursor.next()) { dialog.pinnedNum = cursor.intValue(0); dialog.pinned = dialog.pinnedNum != 0; } }
++                    finally { cursor.dispose(); }
++                }
++                AndroidUtilities.runOnUIThread(() -> {
++                    if (getUserConfig().getClientUserId() != owner) return;
++                    java.util.HashMap<Integer, TLRPC.TL_messages_dialogs> groups = new java.util.HashMap<>();
++                    for (TLRPC.Dialog dialog : response.dialogs) {
++                        if (dialog.top_message == 0 || dialog.folder_id < 0 || dialog.folder_id > 1) continue;
++                        TLRPC.TL_messages_dialogs group = groups.computeIfAbsent(dialog.folder_id, key -> new TLRPC.TL_messages_dialogs());
++                        group.dialogs.add(dialog);
++                    }
++                    for (java.util.Map.Entry<Integer, TLRPC.TL_messages_dialogs> entry : groups.entrySet()) {
++                        TLRPC.TL_messages_dialogs group = entry.getValue();
++                        group.users.addAll(response.users); group.chats.addAll(response.chats);
++                        java.util.HashSet<Long> ids = new java.util.HashSet<>();
++                        for (TLRPC.Dialog dialog : group.dialogs) ids.add(DialogObject.getPeerDialogId(dialog.peer));
++                        for (TLRPC.Message message : response.messages) if (ids.contains(MessageObject.getDialogId(message))) group.messages.add(message);
++                        processLoadedDialogs(group, null, null, entry.getKey(), 0, group.dialogs.size(), DIALOGS_LOAD_TYPE_NEBULA_LOCAL_PINS, false, false, false);
++                    }
++                });
++            } catch (Exception failure) { FileLog.e(failure); }
++        });
++    }
++
+     protected void loadUnknownDialog(final TLRPC.InputPeer peer, long taskId) {
+         if (peer == null) {
+             return;
+@@ -13303,6 +13342,7 @@
+     private int DIALOGS_LOAD_TYPE_CACHE = 1;
+     private int DIALOGS_LOAD_TYPE_CHANNEL = 2;
+     private int DIALOGS_LOAD_TYPE_UNKNOWN = 3;
++    private static final int DIALOGS_LOAD_TYPE_NEBULA_LOCAL_PINS = 5;
+ 
+     public void processLoadedDialogs(final TLRPC.messages_Dialogs dialogsRes, ArrayList<TLRPC.EncryptedChat> encChats, ArrayList<TLRPC.UserFull> fullUsers, int folderId, int offset, int count, int loadType, boolean resetEnd, boolean migrate, boolean fromCache) {
+         Utilities.stageQueue.postRunnable(() -> {
+@@ -13552,7 +13592,7 @@
+                         message.unread = value < message.id;
+                     }
+                 }
+-                getMessagesStorage().putDialogs(dialogsRes, loadType == DIALOGS_LOAD_TYPE_UNKNOWN ? 3 : 0);
++                getMessagesStorage().putDialogs(dialogsRes, loadType == DIALOGS_LOAD_TYPE_NEBULA_LOCAL_PINS ? 1 : loadType == DIALOGS_LOAD_TYPE_UNKNOWN ? 3 : 0);
+             }
+             if (loadType == DIALOGS_LOAD_TYPE_CHANNEL) {
+                 TLRPC.Chat chat = dialogsRes.chats.get(0);
+@@ -13562,10 +13602,12 @@
+ 
+             TLRPC.Message lastMessageFinal = lastMessage;
+             AndroidUtilities.runOnUIThread(() -> {
++                if (loadType != DIALOGS_LOAD_TYPE_NEBULA_LOCAL_PINS) {
+                 if (lastMessageFinal != null) {
+                     dialogsLoadedTillDate = Math.min(dialogsLoadedTillDate, lastMessageFinal.date);
+                 } else {
+                     dialogsLoadedTillDate = Integer.MIN_VALUE;
++                }
+                 }
+                 if (loadType != DIALOGS_LOAD_TYPE_CACHE) {
+                     applyDialogsNotificationsSettings(dialogsRes.dialogs);
+@@ -13590,7 +13632,7 @@
+                         putEncryptedChat(encryptedChat, true);
+                     }
+                 }
+-                if (!migrate && loadType != DIALOGS_LOAD_TYPE_UNKNOWN && loadType != DIALOGS_LOAD_TYPE_CHANNEL) {
++                if (!migrate && loadType != DIALOGS_LOAD_TYPE_UNKNOWN && loadType != DIALOGS_LOAD_TYPE_NEBULA_LOCAL_PINS && loadType != DIALOGS_LOAD_TYPE_CHANNEL) {
+                     loadingDialogs.put(folderId, false);
+                 }
+                 boolean added = false;
+@@ -13602,6 +13644,7 @@
+                     long key = new_dialogs_dict.keyAt(a);
+                     TLRPC.Dialog value = new_dialogs_dict.valueAt(a);
+                     TLRPC.Dialog currentDialog = dialogs_dict.get(key);
++                    if (loadType == DIALOGS_LOAD_TYPE_NEBULA_LOCAL_PINS && currentDialog != null) continue;
+                     if (migrate && currentDialog != null) {
+                         currentDialog.folder_id = value.folder_id;
+                     }
+@@ -13743,7 +13786,7 @@
+ 
+                 putAllNeededDraftDialogs();
+ 
+-                if (loadType != DIALOGS_LOAD_TYPE_CHANNEL && loadType != DIALOGS_LOAD_TYPE_UNKNOWN) {
++                if (loadType != DIALOGS_LOAD_TYPE_CHANNEL && loadType != DIALOGS_LOAD_TYPE_UNKNOWN && loadType != DIALOGS_LOAD_TYPE_NEBULA_LOCAL_PINS) {
+                     if (!migrate) {
+                         dialogsEndReached.put(folderId, (dialogsRes.dialogs.size() == 0 || dialogsRes.dialogs.size() != count) && loadType == 0);
+                         if (archivedDialogsCount > 0 && archivedDialogsCount < 20 && folderId == 0) {
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
+@@ -2882,6 +2882,7 @@
+     @Override
+     public boolean onFragmentCreate() {
+         super.onFragmentCreate();
++        app.nebulagram.ui.NebulaLocalPins.warmup(currentAccount);
+ 
+         if (arguments != null) {
+             onlySelect = arguments.getBoolean("onlySelect", false);
+@@ -8866,6 +8867,28 @@
+                 (containsFilter = (viewPages[0].dialogsType == 7 || viewPages[0].dialogsType == 8) && (!actionBar.isActionModeShowed() || actionBar.isActionModeShowed(null))) ?
+                         getMessagesController().selectedDialogFilter[viewPages[0].dialogsType == 8 ? 1 : 0] : null
+         );
++        final String nebulaPinScope = app.nebulagram.ui.NebulaLocalPins.scope(folderId, filter);
++        if (!isCommunityCell && !DialogObject.isEncryptedDialog(dialogId)
++                && app.nebulagram.ui.NebulaLocalPinStore.validScope(nebulaPinScope)
++                && app.nebulagram.ui.NebulaLocalPins.snapshot(currentAccount).enabled) {
++            boolean localPinned = app.nebulagram.ui.NebulaLocalPins.pinned(currentAccount, nebulaPinScope, dialogId);
++            ActionBarMenuSubItem localPin = new ActionBarMenuSubItem(getParentActivity(), false, false);
++            localPin.setTextAndIcon(localPinned ? app.nebulagram.ui.NebulaText.text("Открепить на устройстве", "Unpin on this device")
++                    : app.nebulagram.ui.NebulaText.text("Закрепить на устройстве", "Pin on this device"), localPinned ? R.drawable.msg_unpin : R.drawable.msg_pin);
++            localPin.setMinimumWidth(160);
++            localPin.setOnClickListener(v -> {
++                finishPreviewFragment();
++                AndroidUtilities.runOnUIThread(() -> {
++                    if (!app.nebulagram.ui.NebulaLocalPins.toggle(currentAccount, nebulaPinScope, dialogId)) {
++                        showDialog(new app.nebulagram.ui.NebulaDialog.Builder(getParentActivity())
++                            .setTitle(app.nebulagram.ui.NebulaText.text("Не удалось сохранить закрепление", "Could not save pin"))
++                            .setMessage(app.nebulagram.ui.NebulaText.text("До 1000 локальных закреплений на аккаунт. Проверьте свободное место и доступность чата.", "Up to 1000 local pins per account. Check free storage and chat availability."))
++                            .setPositiveButton(app.nebulagram.ui.NebulaText.text("Понятно", "OK"), null).create());
++                    }
++                }, 60);
++            });
++            previewMenu[0].addView(localPin);
++        }
+         if (!isDialogPinned(dialog)) {
+             int pinnedCount = 0;
+             int pinnedSecretCount = 0;

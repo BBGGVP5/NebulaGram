@@ -19,14 +19,14 @@ with tempfile.TemporaryDirectory(prefix='nebula-settings-routes-') as work:
  static void check(boolean b){if(!b)throw new AssertionError();}
  public static void main(String[]args){BaseFragment host=new BaseFragment();int checked=0;
  for(int id=0;id<=12;id++){check(NebulaSettingsSearch.openSection(host,id,"focus",3));Target target=(Target)host.last;check(target instanceof NebulaSectionFragment&&target.row==3&&(int)target.args[0]==id);checked++;}
- int[]ids={-1,-10,-11,-12,-13,-14,-15,-16,-17,-18,-19,-20,-21,-22,-23,-24,-25,-26,-27,-28,-29,-30,-31};
+ int[]ids={-1,-10,-11,-12,-13,-14,-15,-16,-17,-18,-19,-20,-21,-22,-23,-24,-25,-26,-27,-28,-29,-30,-31,-32,-33};
  for(int id:ids){check(NebulaSettingsSearch.openSection(host,id,"focus",-1));check(host.last!=null);checked++;}
  check(NebulaSettingsSearch.openSection(host,-15,"privacy",-1));check(((Target)host.last).focus.equals("privacy"));
  check(NebulaSettingsSearch.openSection(host,-23,null,-1));check(((Target)host.last).args[0].equals(127));
  check(NebulaSettingsSearch.openSection(host,-17,null,-1));check(((Target)host.last).args[0].equals(127));
  check(NebulaSettingsSearch.openSection(host,-29,null,-1)&&host.last instanceof NebulaAccountsFragment);
  check(NebulaSettingsSearch.openSection(host,-30,null,-1)&&host.last instanceof NebulaAudioSettingsFragment);
- for(int id:new int[]{-2,-9,-32,13,999,Integer.MIN_VALUE}){Object last=host.last;check(!NebulaSettingsSearch.openSection(host,id,null,-1)&&host.last==last);}
+ for(int id:new int[]{-2,-9,-34,13,999,Integer.MIN_VALUE}){Object last=host.last;check(!NebulaSettingsSearch.openSection(host,id,null,-1)&&host.last==last);}
  System.out.println(checked+" shared settings destinations, account ownership, legacy focus and unknown-route rejection passed");}}
 '''
  (package/'RouteCheck.java').write_text(harness,encoding='utf-8')

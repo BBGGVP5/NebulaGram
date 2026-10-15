@@ -40,6 +40,8 @@ public final class NebulaSettingsSearch {
         else if (section == -29) f.presentFragment(new NebulaAccountsFragment());
         else if (section == -30) f.presentFragment(new NebulaAudioSettingsFragment());
         else if (section == -31) f.presentFragment(new NebulaSettingsHubFragment(NebulaSettingsHubFragment.TOOLS));
+        else if (section == -32) f.presentFragment(new NebulaLocalPinsFragment(f.getCurrentAccount()));
+        else if (section == -33) f.presentFragment(new NebulaEditHistoryFragment(f.getCurrentAccount(), null));
         else if (section == -13) NebulaUpdateSettingsSheet.show(f);
         else if (section == -14) f.presentFragment(new NebulaMenuFragment(NebulaMenuFragment.SCREEN_ADVANCED));
         else if (section == -15) f.presentFragment(row >= 0 ? new NebulaPrivacyFragment().focusRowIndex(row) : new NebulaPrivacyFragment().focus(focus));
@@ -48,6 +50,8 @@ public final class NebulaSettingsSearch {
     }
     public static ArrayList<Entry> all() {
         ArrayList<Entry> result = new ArrayList<>();
+        result.add(new Entry(-32, NebulaText.text("Локальные закрепления", "Local pins"), NebulaText.text("На устройстве · отдельно для папок", "On device · per folder"), R.drawable.msg_pin));
+        result.add(new Entry(-33, NebulaText.text("История правок", "Edit history"), NebulaText.text("Предыдущие версии сообщений", "Previous message versions"), R.drawable.msg_edit));
         result.add(new Entry(-29, NebulaText.text("Аккаунты", "Accounts"), NebulaText.text("Поиск, порядок, переключение, добавить аккаунт", "Search, order, switch, add account"), R.drawable.msg_openprofile));
         result.add(new Entry(-30, NebulaText.text("Аудио и голоса", "Audio and voices"), NebulaText.text("Расшифровка голосовых, Aa, озвучивание, на устройстве", "Voice transcription, Aa, speech, on device"), R.drawable.msg_voicechat));
         result.add(new Entry(-31, NebulaText.text("ИИ и аудио", "AI and audio"), NebulaText.text("Сервисы, модели, перевод и распознавание", "Services, models, translation and recognition"), R.drawable.nebula_ai_spark));

@@ -1,0 +1,159 @@
+diff --git a/submodules/Postbox/Sources/ChatListView.swift b/submodules/Postbox/Sources/ChatListView.swift
+--- a/submodules/Postbox/Sources/ChatListView.swift
++++ b/submodules/Postbox/Sources/ChatListView.swift
+@@ -444,6 +444,9 @@
+ }
+ 
+ public struct ChatListFilterPredicate {
++    // Nebula uses a view-only pinned projection, preserving ordinary root extras.
++    public var nebulaGroupOnly: PeerGroupId? = nil
++    public var nebulaKeepsRootItems: Bool = false
+     public var includePeerIds: Set<PeerId>
+     public var excludePeerIds: Set<PeerId>
+     public var pinnedPeerIds: [PeerId]
+@@ -461,6 +464,7 @@
+     }
+     
+     public func includes(peer: Peer, groupId: PeerGroupId, isRemovedFromTotalUnreadCount: Bool, isUnread: Bool, isContact: Bool, messageTagSummaryResult: Bool?) -> Bool {
++        if let onlyGroup = self.nebulaGroupOnly, groupId != onlyGroup { return false }
+         if self.pinnedPeerIds.contains(peer.id) {
+             return false
+         }
+@@ -476,7 +480,7 @@
+         if self.includePeerIds.contains(includePeerId) {
+             return true
+         }
+-        if groupId != .root {
++        if self.nebulaGroupOnly == nil && groupId != .root {
+             if !self.includeAdditionalPeerGroupIds.contains(groupId) {
+                 return false
+             }
+@@ -637,7 +641,7 @@
+         
+         self.count = count
+         
+-        if case .root = groupId, self.filterPredicate == nil {
++        if case .root = groupId, (self.filterPredicate == nil || self.filterPredicate?.nebulaKeepsRootItems == true) {
+             let items = postbox.additionalChatListItemsTable.get()
+             self.additionalItems = items
+             self.additionalItemIds = Set(items.map { $0.peerId })
+@@ -662,7 +666,7 @@
+     
+     private func reloadGroups(postbox: PostboxImpl) {
+         self.groupEntries.removeAll()
+-        if case .root = self.groupId, self.filterPredicate == nil {
++        if case .root = self.groupId, (self.filterPredicate == nil || self.filterPredicate?.nebulaKeepsRootItems == true) {
+             for groupId in postbox.chatListTable.existingGroups() {
+                 var foundIndices: [(ChatListIndex, MessageIndex)] = []
+                 var unpinnedCount = 0
+@@ -814,7 +818,7 @@
+             }
+         }
+         
+-        if case .root = self.groupId, self.filterPredicate == nil {
++        if case .root = self.groupId, (self.filterPredicate == nil || self.filterPredicate?.nebulaKeepsRootItems == true) {
+             var invalidatedGroups = false
+             for (groupId, groupOperations) in operations {
+                 if case .group = groupId, !groupOperations.isEmpty {
+@@ -867,7 +871,7 @@
+         }
+         
+         var updateAdditionalItems = false
+-        if case .root = self.groupId, self.filterPredicate == nil, let items = transaction.replacedAdditionalChatListItems {
++        if case .root = self.groupId, (self.filterPredicate == nil || self.filterPredicate?.nebulaKeepsRootItems == true), let items = transaction.replacedAdditionalChatListItems {
+             self.additionalItems = items
+             self.additionalItemIds = Set(items.map { $0.peerId })
+             updateAdditionalItems = true
+diff --git a/submodules/ChatListUI/Sources/Node/ChatListNodeLocation.swift b/submodules/ChatListUI/Sources/Node/ChatListNodeLocation.swift
+--- a/submodules/ChatListUI/Sources/Node/ChatListNodeLocation.swift
++++ b/submodules/ChatListUI/Sources/Node/ChatListNodeLocation.swift
+@@ -196,12 +196,51 @@
+ }
+ 
+ public func chatListViewForLocation(chatListLocation: ChatListControllerLocation, location: ChatListNodeLocation, account: Account, shouldLoadCanMessagePeer: Bool) -> Signal<ChatListNodeViewUpdate, NoError> {
++    guard case let .chatList(groupId) = chatListLocation else {
++        return nebulaNativeChatListViewForLocation(chatListLocation: chatListLocation, location: location, account: account, shouldLoadCanMessagePeer: shouldLoadCanMessagePeer)
++    }
++    let group = groupId._asGroup()
++    var originalPredicate: ChatListFilterPredicate?
++    var filterId: Int32?
++    if let filter = location.filter, case let .filter(id, _, _, data) = filter {
++        filterId = id
++        originalPredicate = chatListFilterPredicate(filter: data, accountPeerId: account.peerId)
++    }
++    let scope = NebulaLocalPins.scope(group: group, filterId: filterId)
++    return NebulaLocalPins.changes
++    |> mapToSignal { _ -> Signal<ChatListNodeViewUpdate, NoError> in
++        let state = NebulaLocalPins.snapshot(account: account)
++        let base = nebulaNativeChatListViewForLocation(chatListLocation: chatListLocation, location: location, account: account, shouldLoadCanMessagePeer: shouldLoadCanMessagePeer)
++        guard state.enabled, !(state.orders[scope] ?? []).isEmpty else { return base }
++        // Only an enabled nonempty scope adds a dependency view. Rebuild the
++        // projected view when pin membership changes, never for every message.
++        let pins = base
++        |> mapToSignal { _ -> Signal<[PeerId], NoError> in
++            return account.postbox.transaction { transaction -> [PeerId] in
++                let native: [PeerId]
++                if let predicate = originalPredicate { native = predicate.pinnedPeerIds }
++                else { native = transaction.getPinnedItemIds(groupId: group).map { item in switch item { case let .peer(peer): return peer } } }
++                return NebulaLocalPins.projectedPins(transaction: transaction, accountPeerId: account.peerId, group: group, filterId: filterId, native: native, excluded: originalPredicate?.excludePeerIds ?? [])
++            }
++        }
++        |> distinctUntilChanged
++        return pins |> mapToSignal { ids -> Signal<ChatListNodeViewUpdate, NoError> in
++            var predicate = originalPredicate ?? ChatListFilterPredicate(includePeerIds: [], excludePeerIds: [], pinnedPeerIds: [], messageTagSummary: nil, includeAdditionalPeerGroupIds: [], include: { _, _, _, _, _ in true })
++            predicate.pinnedPeerIds = ids
++            if originalPredicate == nil { predicate.nebulaGroupOnly = group; predicate.nebulaKeepsRootItems = true }
++            return nebulaNativeChatListViewForLocation(chatListLocation: chatListLocation, location: location, account: account, shouldLoadCanMessagePeer: shouldLoadCanMessagePeer, predicateOverride: predicate)
++        }
++    }
++}
++
++private func nebulaNativeChatListViewForLocation(chatListLocation: ChatListControllerLocation, location: ChatListNodeLocation, account: Account, shouldLoadCanMessagePeer: Bool, predicateOverride: ChatListFilterPredicate? = nil) -> Signal<ChatListNodeViewUpdate, NoError> {
+     let accountPeerId = account.peerId
+     
+     switch chatListLocation {
+     case let .chatList(groupId):
+         let filterPredicate: ChatListFilterPredicate?
+-        if let filter = location.filter, case let .filter(_, _, _, data) = filter {
++        if let predicateOverride { filterPredicate = predicateOverride }
++        else if let filter = location.filter, case let .filter(_, _, _, data) = filter {
+             filterPredicate = chatListFilterPredicate(filter: data, accountPeerId: account.peerId)
+         } else {
+             filterPredicate = nil
+diff --git a/submodules/ChatListUI/Sources/ChatContextMenus.swift b/submodules/ChatListUI/Sources/ChatContextMenus.swift
+--- a/submodules/ChatListUI/Sources/ChatContextMenus.swift
++++ b/submodules/ChatListUI/Sources/ChatContextMenus.swift
+@@ -136,6 +136,20 @@
+                     }
+ 
+                     var items: [ContextMenuItem] = []
++                    if case .chatList = source, peerId.namespace != Namespaces.Peer.SecretChat,
++                       NebulaLocalPinStore.validScope(NebulaLocalPins.scope(location: location)), NebulaLocalPins.snapshot(account: context.account).enabled {
++                        let localPinned = NebulaLocalPins.pinned(account: context.account, location: location, peer: peerId)
++                        let ru = presentationData.strings.baseLanguageCode.hasPrefix("ru")
++                        items.append(.action(ContextMenuActionItem(text: localPinned ? (ru ? "Открепить на устройстве" : "Unpin on this device") : (ru ? "Закрепить на устройстве" : "Pin on this device"), icon: { theme in
++                            generateTintedImage(image: UIImage(bundleImageName: localPinned ? "Chat/Context Menu/Unpin" : "Chat/Context Menu/Pin"), color: theme.contextMenu.primaryColor)
++                        }, action: { _, finish in
++                            finish(.default)
++                            if !NebulaLocalPins.toggle(account: context.account, location: location, peer: peerId) {
++                                chatListController?.present(textAlertController(context: context, title: ru ? "Не удалось сохранить закрепление" : "Could not save pin", text: ru ? "До 1000 локальных закреплений на аккаунт." : "Up to 1000 local pins per account.", actions: [TextAlertAction(type: .defaultAction, title: presentationData.strings.Common_OK, action: {})]), in: .window(.root))
++                            }
++                        })))
++                    }
++
+ 
+                     if case let .search(search) = source {
+                         switch search {
+diff --git a/submodules/TelegramCore/Sources/TelegramEngine/Peers/TelegramEnginePeers.swift b/submodules/TelegramCore/Sources/TelegramEngine/Peers/TelegramEnginePeers.swift
+--- a/submodules/TelegramCore/Sources/TelegramEngine/Peers/TelegramEnginePeers.swift
++++ b/submodules/TelegramCore/Sources/TelegramEngine/Peers/TelegramEnginePeers.swift
+@@ -889,7 +889,8 @@
+ 
+         public func reorderPinnedItemIds(location: TogglePeerChatPinnedLocation, itemIds: [PinnedItemId]) -> Signal<Bool, NoError> {
+             return self.account.postbox.transaction { transaction -> Bool in
+-                return _internal_reorderPinnedItemIds(transaction: transaction, location: location, itemIds: itemIds)
++                let remoteItems = NebulaLocalPins.remoteReorder(transaction: transaction, accountPeerId: self.account.peerId, location: location, requested: itemIds)
++                return _internal_reorderPinnedItemIds(transaction: transaction, location: location, itemIds: remoteItems)
+             }
+         }
+ 

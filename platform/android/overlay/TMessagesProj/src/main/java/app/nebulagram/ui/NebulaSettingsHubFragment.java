@@ -87,6 +87,8 @@ public final class NebulaSettingsHubFragment extends BaseFragment {
                         NebulaSectionFragment.SECTION_TABS));
                 card.add(section(context, R.drawable.files_folder, "Папки", "Folders",
                         NebulaSectionFragment.SECTION_FOLDERS));
+                card.add(row(context, R.drawable.msg_pin, "Локальные закрепления", "Local pins", "Только на этом устройстве", "Only on this device",
+                        () -> presentFragment(new NebulaLocalPinsFragment(currentAccount))));
                 break;
             case PRIVACY:
                 card.add(row(context, R.drawable.msg_secret, "Удалённые сообщения", "Deleted messages", "Локальный архив", "Local archive",

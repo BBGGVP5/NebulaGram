@@ -33,6 +33,7 @@ jobs:
           python scripts/check-link-cleanup.py --swift
           python scripts/check-message-details.py --swift
           python scripts/check-edit-history.py --swift
+          python scripts/check-local-chat-pins.py --swift
       - name: Test actual local speech callback and cancellation lifetime
         run: python scripts/check-swift-local-speech.py
       - name: Test production recording export eligibility
