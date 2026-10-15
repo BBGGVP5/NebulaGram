@@ -61,8 +61,9 @@ public final class NebulaFolderTabs {
     }
 
     private static void notifyChanged() {
-        Runnable listener = onChanged;
-        if (listener != null) listener.run();
+        for (Runnable listener : new java.util.ArrayList<>(changeListeners)) {
+            if (changeListeners.contains(listener)) listener.run();
+        }
     }
 
     /** Compact home has no floating top content requiring a rectangular blur. */
@@ -72,11 +73,14 @@ public final class NebulaFolderTabs {
                 && actionMode == 0f && rightSliding == 0f;
     }
 
-    private static Runnable onChanged;
+    private static final java.util.LinkedHashSet<Runnable> changeListeners = new java.util.LinkedHashSet<>();
 
-    /** Список чатов сообщает, что умеет переставить панель на ходу. */
-    public static void setChangeListener(Runnable listener) {
-        onChanged = listener;
+    /** Each live chat-list root owns its subscription, including embedded lists. */
+    public static void addChangeListener(Runnable listener) {
+        if (listener != null) changeListeners.add(listener);
+    }
+    public static void removeChangeListener(Runnable listener) {
+        changeListeners.remove(listener);
     }
 
     /** Гравитация для панели вкладок. */

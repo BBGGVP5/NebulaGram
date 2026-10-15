@@ -24,7 +24,7 @@ public final class NebulaFormattingToolbar extends HorizontalScrollView {
     };
     private final LinearLayout row;
     private boolean preferenceEnabled;
-    private int palette;
+    private int palette, paletteInk;
 
     public static boolean enabled() { return preferences().getBoolean("formatting_toolbar", false); }
     public static void setPreferenceEnabled(boolean value) { preferences().edit().putBoolean(KEY, value).apply(); }
@@ -91,13 +91,15 @@ public final class NebulaFormattingToolbar extends HorizontalScrollView {
     private void updatePalette() {
         NebulaTheme theme = NebulaTheme.of(getContext());
         int color = theme.surfaceContainer();
-        if (palette == color && getBackground() != null) return;
+        int ink = theme.onSurface();
+        if (palette == color && paletteInk == ink && getBackground() != null) return;
         palette = color;
+        paletteInk = ink;
         GradientDrawable background = new GradientDrawable();
         background.setColor(color);
         background.setCornerRadius(AndroidUtilities.dp(22));
         setBackground(background);
-        for (int i = 0; i < row.getChildCount(); i++) ((TextView) row.getChildAt(i)).setTextColor(theme.onSurface());
+        for (int i = 0; i < row.getChildCount(); i++) ((TextView) row.getChildAt(i)).setTextColor(ink);
     }
 
     private void refreshPreference() { preferenceEnabled = enabled(); layoutChanged.run(); }

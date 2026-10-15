@@ -121,3 +121,11 @@ The welcome pages now place measured copy before scalable product scenes. Androi
 iOS mirrors the editorial hierarchy, actual localized scene labels and password illustration. Its native phone/code/password nodes use Dynamic Type heading metrics and the theme's primary text color; authentication handlers remain unchanged. Onboarding shows an explicit Skip navigation action and removes the overview-card border.
 
 Verification: Android SDK compilation of the real artwork; existing production request/animation and 488 phone-confirmation scenarios pass. All 110 iOS patches and native handler/source-registration checks pass. The three production UIKit presentation components also compiled and packaged under xtool with iOS SDK 27.2, in a separate unsigned component probe (not a full Telegram client). The component-probe receipt is `build/xtool-probe/onboarding-verification.json`. Full application builds and rendered device acceptance remain separate.
+
+## Message tools and presentation lifetime checkpoint
+
+Both message tool controllers now expose explicit plain-text link cleanup and loaded-message/file details. Java and Swift execute the same 149 cleanup fixtures, including signed/authentication URLs, malformed escaping, Unicode whitespace, pathological punctuation and idempotence. Metadata fixtures check exact 64-bit identity/size, Unicode filenames, missing fields and 2038 timestamps. No implicit paste rewrite, domain mirror or network lookup was introduced.
+
+Android folder changes now notify every attached root and detach only that root's listener. Executable tests cover simultaneous roots, removal during notification and 1,000 recreation cycles. The formatting toolbar cache also invalidates for foreground-only theme changes while retaining its surface through 1,000 idle layouts. Native keyboard and rendered motion acceptance remain open.
+
+All 111 iOS patches replay and registration checks pass. The actual Java parser accepts 453 touched/native overlay units. Full application dependency typechecking and builds are tracked separately; edit history, local pins and presentation privacy are still the following phase.

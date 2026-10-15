@@ -1,6 +1,7 @@
 import UIKit
 import Display
 import AccountContext
+import Postbox
 import NebulaSettingsContract
 import AVFoundation
 import TelegramPresentationData
@@ -8,6 +9,7 @@ import TelegramPresentationData
 public final class NebulaMessageToolsController: UIViewController {
     private let russian: Bool
     private let context: AccountContext?
+    private let message: Message?
     private let theme: PresentationTheme
     private let source: String
     private let attributedSource: NSAttributedString
@@ -23,8 +25,9 @@ public final class NebulaMessageToolsController: UIViewController {
     private let outgoingSwitch = NebulaSwitchControl()
     private let draftSwitch = NebulaSwitchControl()
 
-    public init(text: String, russian: Bool, theme: PresentationTheme, accountId: String, peerId: String? = nil, applyDraft: ((String) -> Void)? = nil, attributedSource: NSAttributedString? = nil, context: AccountContext? = nil) {
+    public init(text: String, russian: Bool, theme: PresentationTheme, accountId: String, peerId: String? = nil, applyDraft: ((String) -> Void)? = nil, attributedSource: NSAttributedString? = nil, context: AccountContext? = nil, message: Message? = nil) {
         self.context = context
+        self.message = message
         self.source = String(text.prefix(50_000))
         self.attributedSource = attributedSource ?? NSAttributedString(string: String(text.prefix(50_000)))
         self.russian = russian
@@ -87,8 +90,8 @@ public final class NebulaMessageToolsController: UIViewController {
         languageButton.addTarget(self, action: #selector(chooseLanguage), for: .touchUpInside)
         updateLanguage()
         stack.addArrangedSubview(languageButton)
-        let titles = [text("Спросить ИИ", "Ask AI"), text("Перевести", "Translate"), text("Сократить", "Summarize"), text("Озвучить", "Read aloud"), text("В задачу", "Create task"), text("Исправить", "Correct"), text("Быстрые ответы", "Quick replies")]
-        let symbols = ["sparkles", "character.bubble", "text.alignleft", "speaker.wave.2", "checkmark.circle", "checkmark.magnifyingglass", "text.bubble"]
+        let titles = [text("Спросить ИИ", "Ask AI"), text("Перевести", "Translate"), text("Сократить", "Summarize"), text("Озвучить", "Read aloud"), text("В задачу", "Create task"), text("Исправить", "Correct"), text("Быстрые ответы", "Quick replies"), text("Очистить ссылки", "Clean links")]
+        let symbols = ["sparkles", "character.bubble", "text.alignleft", "speaker.wave.2", "checkmark.circle", "checkmark.magnifyingglass", "text.bubble", "link"]
         let buttons = titles.enumerated().map { index, title -> UIButton in
             let button = NebulaToolButton(type: .system)
             button.tag = index
@@ -101,6 +104,16 @@ public final class NebulaMessageToolsController: UIViewController {
             return button
         }
         stack.addArrangedSubview(NebulaActionGrid(buttons: buttons))
+        if message != nil {
+            let details = UIButton(type: .system)
+            details.setTitle(text("Подробности сообщения", "Message details"), for: .normal)
+            details.contentHorizontalAlignment = .leading
+            details.titleLabel?.font = .preferredFont(forTextStyle: .body)
+            details.titleLabel?.adjustsFontForContentSizeCategory = true
+            details.heightAnchor.constraint(greaterThanOrEqualToConstant: 48).isActive = true
+            details.addTarget(self, action: #selector(showDetails), for: .touchUpInside)
+            stack.addArrangedSubview(details)
+        }
         addLiveTranslation(to: stack)
         output.font = .preferredFont(forTextStyle: .body)
         output.adjustsFontForContentSizeCategory = true
@@ -191,6 +204,10 @@ public final class NebulaMessageToolsController: UIViewController {
     }
     @objc private func performTool(_ sender: UIButton) {
         switch sender.tag {
+        case 7:
+            result = NebulaLinkCleanup.clean(source)
+            output.text = result
+            output.isHidden = false
         case 6:
             navigationController?.pushViewController(NebulaQuickRepliesController(account: accountId, source: source, russian: russian, theme: theme) { [weak self] value in
                 self?.result = value; self?.output.text = value; self?.output.isHidden = false
@@ -218,6 +235,10 @@ public final class NebulaMessageToolsController: UIViewController {
             }, theme: theme, resultLanguage: language, applyTitle: text("Использовать результат", "Use result"), account: accountId, peer: peerId)
             navigationController?.pushViewController(editor, animated: true)
         }
+    }
+    @objc private func showDetails() {
+        guard let message else { return }
+        navigationController?.pushViewController(NebulaMessageDetailsController(message: message, russian: russian, theme: theme), animated: true)
     }
     @objc private func settings() { navigationController?.pushViewController(NebulaTranslationController(account: accountId, peer: peerId, russian: russian, theme: theme), animated: true) }
     @objc private func useDraft() { guard !result.isEmpty else { return }; applyDraft?(result); dismiss(animated: true) }

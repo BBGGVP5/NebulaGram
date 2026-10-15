@@ -1,0 +1,586 @@
+[
+  {
+    "input": "https://example.com/a?utm_source=mail&item=12#part",
+    "expected": "https://example.com/a?item=12#part"
+  },
+  {
+    "input": "Ссылка 🚀 https://example.com/?a=1&fbclid=x&b=%2f%2F 👍",
+    "expected": "Ссылка 🚀 https://example.com/?a=1&b=%2f%2F 👍"
+  },
+  {
+    "input": "[подробнее](https://x.test/p?UTM_CAMPAIGN=x).",
+    "expected": "[подробнее](https://x.test/p)."
+  },
+  {
+    "input": "https://x.test/a(b)?utm_source=x",
+    "expected": "https://x.test/a(b)"
+  },
+  {
+    "input": "https://x.test/?utm_source=x&utm_medium=y#anchor",
+    "expected": "https://x.test/#anchor"
+  },
+  {
+    "input": "https://x.test/?%75tm_source=x&a=1&a=2",
+    "expected": "https://x.test/?a=1&a=2"
+  },
+  {
+    "input": "https://x.test/?utm_source=x&&keep=",
+    "expected": "https://x.test/?&keep="
+  },
+  {
+    "input": "https://x.test/?gclid=x&v=123&t=4",
+    "expected": "https://x.test/?v=123&t=4"
+  },
+  {
+    "input": "https://пример.рф/путь?utm_source=x&id=4",
+    "expected": "https://пример.рф/путь?id=4"
+  },
+  {
+    "input": "http://[::1]:8080/a?utm_source=x&x=1",
+    "expected": "http://[::1]:8080/a?x=1"
+  },
+  {
+    "input": "https://x.test/?utm_source=x конец",
+    "expected": "https://x.test/ конец"
+  },
+  {
+    "input": "tg://resolve?domain=test&utm_source=x",
+    "expected": "tg://resolve?domain=test&utm_source=x"
+  },
+  {
+    "input": "https://u:p@x.test/?utm_source=x",
+    "expected": "https://u:p@x.test/?utm_source=x"
+  },
+  {
+    "input": "https://x.test/?bad=%GG&utm_source=x",
+    "expected": "https://x.test/?bad=%GG&utm_source=x"
+  },
+  {
+    "input": "https://x.test/?bad%=x&utm_source=x",
+    "expected": "https://x.test/?bad%=x&utm_source=x"
+  },
+  {
+    "input": "https://x.test/?%FF=x&utm_source=x",
+    "expected": "https://x.test/?%FF=x&utm_source=x"
+  },
+  {
+    "input": "https://x.test/?a=https%3A%2F%2Fq.test%2F%3Futm_source%3Dx&utm_source=y",
+    "expected": "https://x.test/?a=https%3A%2F%2Fq.test%2F%3Futm_source%3Dx"
+  },
+  {
+    "input": "https://x.test/#?utm_source=x",
+    "expected": "https://x.test/#?utm_source=x"
+  },
+  {
+    "input": "https://x.test/?UTM_SOURCE=a https://y.test/?fbclid=b",
+    "expected": "https://x.test/ https://y.test/"
+  },
+  {
+    "input": "https://x.test/a?utm_source=x],",
+    "expected": "https://x.test/a],"
+  },
+  {
+    "input": "https://x.test/?item=12#utm_source=x",
+    "expected": "https://x.test/?item=12#utm_source=x"
+  },
+  {
+    "input": "обычный текст без ссылок",
+    "expected": "обычный текст без ссылок"
+  },
+  {
+    "input": "https://x.test/?utm_source=x&signature=example",
+    "expected": "https://x.test/?utm_source=x&signature=example"
+  },
+  {
+    "input": "https://x.test/?utm_source=x#signature=example",
+    "expected": "https://x.test/?utm_source=x#signature=example"
+  },
+  {
+    "input": "https://x.test/?utm_source=x&sig=example",
+    "expected": "https://x.test/?utm_source=x&sig=example"
+  },
+  {
+    "input": "https://x.test/?utm_source=x#sig=example",
+    "expected": "https://x.test/?utm_source=x#sig=example"
+  },
+  {
+    "input": "https://x.test/?utm_source=x&token=example",
+    "expected": "https://x.test/?utm_source=x&token=example"
+  },
+  {
+    "input": "https://x.test/?utm_source=x#token=example",
+    "expected": "https://x.test/?utm_source=x#token=example"
+  },
+  {
+    "input": "https://x.test/?utm_source=x&access_token=example",
+    "expected": "https://x.test/?utm_source=x&access_token=example"
+  },
+  {
+    "input": "https://x.test/?utm_source=x#access_token=example",
+    "expected": "https://x.test/?utm_source=x#access_token=example"
+  },
+  {
+    "input": "https://x.test/?utm_source=x&state=example",
+    "expected": "https://x.test/?utm_source=x&state=example"
+  },
+  {
+    "input": "https://x.test/?utm_source=x#state=example",
+    "expected": "https://x.test/?utm_source=x#state=example"
+  },
+  {
+    "input": "https://x.test/?utm_source=x&code=example",
+    "expected": "https://x.test/?utm_source=x&code=example"
+  },
+  {
+    "input": "https://x.test/?utm_source=x#code=example",
+    "expected": "https://x.test/?utm_source=x#code=example"
+  },
+  {
+    "input": "https://x.test/?utm_source=x&expires=example",
+    "expected": "https://x.test/?utm_source=x&expires=example"
+  },
+  {
+    "input": "https://x.test/?utm_source=x#expires=example",
+    "expected": "https://x.test/?utm_source=x#expires=example"
+  },
+  {
+    "input": "https://x.test/?utm_source=x&hash=example",
+    "expected": "https://x.test/?utm_source=x&hash=example"
+  },
+  {
+    "input": "https://x.test/?utm_source=x#hash=example",
+    "expected": "https://x.test/?utm_source=x#hash=example"
+  },
+  {
+    "input": "https://x.test/?utm_source=x&X-Amz-Credential=example",
+    "expected": "https://x.test/?utm_source=x&X-Amz-Credential=example"
+  },
+  {
+    "input": "https://x.test/?utm_source=x#X-Amz-Credential=example",
+    "expected": "https://x.test/?utm_source=x#X-Amz-Credential=example"
+  },
+  {
+    "input": "https://x.test/?utm_source=x&X-Goog-Signature=example",
+    "expected": "https://x.test/?utm_source=x&X-Goog-Signature=example"
+  },
+  {
+    "input": "https://x.test/?utm_source=x#X-Goog-Signature=example",
+    "expected": "https://x.test/?utm_source=x#X-Goog-Signature=example"
+  },
+  {
+    "input": "https://x.test/?utm_source=x&client_secret=example",
+    "expected": "https://x.test/?utm_source=x&client_secret=example"
+  },
+  {
+    "input": "https://x.test/?utm_source=x#client_secret=example",
+    "expected": "https://x.test/?utm_source=x#client_secret=example"
+  },
+  {
+    "input": "https://x.test/?utm_source=x&invoice=example",
+    "expected": "https://x.test/?utm_source=x&invoice=example"
+  },
+  {
+    "input": "https://x.test/?utm_source=x#invoice=example",
+    "expected": "https://x.test/?utm_source=x#invoice=example"
+  },
+  {
+    "input": "https://x.test/?id=0&data=%26a%3Db&utm_source=tracking&extra=",
+    "expected": "https://x.test/?id=0&data=%26a%3Db&extra="
+  },
+  {
+    "input": "https://x.test/?id=1&data=%26a%3Db&fbclid=tracking&extra=",
+    "expected": "https://x.test/?id=1&data=%26a%3Db&extra="
+  },
+  {
+    "input": "https://x.test/?id=2&data=%26a%3Db&gclid=tracking&extra=",
+    "expected": "https://x.test/?id=2&data=%26a%3Db&extra="
+  },
+  {
+    "input": "https://x.test/?id=3&data=%26a%3Db&yclid=tracking&extra=",
+    "expected": "https://x.test/?id=3&data=%26a%3Db&extra="
+  },
+  {
+    "input": "https://x.test/?id=4&data=%26a%3Db&msclkid=tracking&extra=",
+    "expected": "https://x.test/?id=4&data=%26a%3Db&extra="
+  },
+  {
+    "input": "https://x.test/?id=5&data=%26a%3Db&utm_source=tracking&extra=",
+    "expected": "https://x.test/?id=5&data=%26a%3Db&extra="
+  },
+  {
+    "input": "https://x.test/?id=6&data=%26a%3Db&fbclid=tracking&extra=",
+    "expected": "https://x.test/?id=6&data=%26a%3Db&extra="
+  },
+  {
+    "input": "https://x.test/?id=7&data=%26a%3Db&gclid=tracking&extra=",
+    "expected": "https://x.test/?id=7&data=%26a%3Db&extra="
+  },
+  {
+    "input": "https://x.test/?id=8&data=%26a%3Db&yclid=tracking&extra=",
+    "expected": "https://x.test/?id=8&data=%26a%3Db&extra="
+  },
+  {
+    "input": "https://x.test/?id=9&data=%26a%3Db&msclkid=tracking&extra=",
+    "expected": "https://x.test/?id=9&data=%26a%3Db&extra="
+  },
+  {
+    "input": "https://x.test/?id=10&data=%26a%3Db&utm_source=tracking&extra=",
+    "expected": "https://x.test/?id=10&data=%26a%3Db&extra="
+  },
+  {
+    "input": "https://x.test/?id=11&data=%26a%3Db&fbclid=tracking&extra=",
+    "expected": "https://x.test/?id=11&data=%26a%3Db&extra="
+  },
+  {
+    "input": "https://x.test/?id=12&data=%26a%3Db&gclid=tracking&extra=",
+    "expected": "https://x.test/?id=12&data=%26a%3Db&extra="
+  },
+  {
+    "input": "https://x.test/?id=13&data=%26a%3Db&yclid=tracking&extra=",
+    "expected": "https://x.test/?id=13&data=%26a%3Db&extra="
+  },
+  {
+    "input": "https://x.test/?id=14&data=%26a%3Db&msclkid=tracking&extra=",
+    "expected": "https://x.test/?id=14&data=%26a%3Db&extra="
+  },
+  {
+    "input": "https://x.test/?id=15&data=%26a%3Db&utm_source=tracking&extra=",
+    "expected": "https://x.test/?id=15&data=%26a%3Db&extra="
+  },
+  {
+    "input": "https://x.test/?id=16&data=%26a%3Db&fbclid=tracking&extra=",
+    "expected": "https://x.test/?id=16&data=%26a%3Db&extra="
+  },
+  {
+    "input": "https://x.test/?id=17&data=%26a%3Db&gclid=tracking&extra=",
+    "expected": "https://x.test/?id=17&data=%26a%3Db&extra="
+  },
+  {
+    "input": "https://x.test/?id=18&data=%26a%3Db&yclid=tracking&extra=",
+    "expected": "https://x.test/?id=18&data=%26a%3Db&extra="
+  },
+  {
+    "input": "https://x.test/?id=19&data=%26a%3Db&msclkid=tracking&extra=",
+    "expected": "https://x.test/?id=19&data=%26a%3Db&extra="
+  },
+  {
+    "input": "https://x.test/?id=20&data=%26a%3Db&utm_source=tracking&extra=",
+    "expected": "https://x.test/?id=20&data=%26a%3Db&extra="
+  },
+  {
+    "input": "https://x.test/?id=21&data=%26a%3Db&fbclid=tracking&extra=",
+    "expected": "https://x.test/?id=21&data=%26a%3Db&extra="
+  },
+  {
+    "input": "https://x.test/?id=22&data=%26a%3Db&gclid=tracking&extra=",
+    "expected": "https://x.test/?id=22&data=%26a%3Db&extra="
+  },
+  {
+    "input": "https://x.test/?id=23&data=%26a%3Db&yclid=tracking&extra=",
+    "expected": "https://x.test/?id=23&data=%26a%3Db&extra="
+  },
+  {
+    "input": "https://x.test/?id=24&data=%26a%3Db&msclkid=tracking&extra=",
+    "expected": "https://x.test/?id=24&data=%26a%3Db&extra="
+  },
+  {
+    "input": "https://x.test/?id=25&data=%26a%3Db&utm_source=tracking&extra=",
+    "expected": "https://x.test/?id=25&data=%26a%3Db&extra="
+  },
+  {
+    "input": "https://x.test/?id=26&data=%26a%3Db&fbclid=tracking&extra=",
+    "expected": "https://x.test/?id=26&data=%26a%3Db&extra="
+  },
+  {
+    "input": "https://x.test/?id=27&data=%26a%3Db&gclid=tracking&extra=",
+    "expected": "https://x.test/?id=27&data=%26a%3Db&extra="
+  },
+  {
+    "input": "https://x.test/?id=28&data=%26a%3Db&yclid=tracking&extra=",
+    "expected": "https://x.test/?id=28&data=%26a%3Db&extra="
+  },
+  {
+    "input": "https://x.test/?id=29&data=%26a%3Db&msclkid=tracking&extra=",
+    "expected": "https://x.test/?id=29&data=%26a%3Db&extra="
+  },
+  {
+    "input": "https://x.test/?id=30&data=%26a%3Db&utm_source=tracking&extra=",
+    "expected": "https://x.test/?id=30&data=%26a%3Db&extra="
+  },
+  {
+    "input": "https://x.test/?id=31&data=%26a%3Db&fbclid=tracking&extra=",
+    "expected": "https://x.test/?id=31&data=%26a%3Db&extra="
+  },
+  {
+    "input": "https://x.test/?id=32&data=%26a%3Db&gclid=tracking&extra=",
+    "expected": "https://x.test/?id=32&data=%26a%3Db&extra="
+  },
+  {
+    "input": "https://x.test/?id=33&data=%26a%3Db&yclid=tracking&extra=",
+    "expected": "https://x.test/?id=33&data=%26a%3Db&extra="
+  },
+  {
+    "input": "https://x.test/?id=34&data=%26a%3Db&msclkid=tracking&extra=",
+    "expected": "https://x.test/?id=34&data=%26a%3Db&extra="
+  },
+  {
+    "input": "https://x.test/?id=35&data=%26a%3Db&utm_source=tracking&extra=",
+    "expected": "https://x.test/?id=35&data=%26a%3Db&extra="
+  },
+  {
+    "input": "https://x.test/?id=36&data=%26a%3Db&fbclid=tracking&extra=",
+    "expected": "https://x.test/?id=36&data=%26a%3Db&extra="
+  },
+  {
+    "input": "https://x.test/?id=37&data=%26a%3Db&gclid=tracking&extra=",
+    "expected": "https://x.test/?id=37&data=%26a%3Db&extra="
+  },
+  {
+    "input": "https://x.test/?id=38&data=%26a%3Db&yclid=tracking&extra=",
+    "expected": "https://x.test/?id=38&data=%26a%3Db&extra="
+  },
+  {
+    "input": "https://x.test/?id=39&data=%26a%3Db&msclkid=tracking&extra=",
+    "expected": "https://x.test/?id=39&data=%26a%3Db&extra="
+  },
+  {
+    "input": "https://x.test/?id=40&data=%26a%3Db&utm_source=tracking&extra=",
+    "expected": "https://x.test/?id=40&data=%26a%3Db&extra="
+  },
+  {
+    "input": "https://x.test/?id=41&data=%26a%3Db&fbclid=tracking&extra=",
+    "expected": "https://x.test/?id=41&data=%26a%3Db&extra="
+  },
+  {
+    "input": "https://x.test/?id=42&data=%26a%3Db&gclid=tracking&extra=",
+    "expected": "https://x.test/?id=42&data=%26a%3Db&extra="
+  },
+  {
+    "input": "https://x.test/?id=43&data=%26a%3Db&yclid=tracking&extra=",
+    "expected": "https://x.test/?id=43&data=%26a%3Db&extra="
+  },
+  {
+    "input": "https://x.test/?id=44&data=%26a%3Db&msclkid=tracking&extra=",
+    "expected": "https://x.test/?id=44&data=%26a%3Db&extra="
+  },
+  {
+    "input": "https://x.test/?id=45&data=%26a%3Db&utm_source=tracking&extra=",
+    "expected": "https://x.test/?id=45&data=%26a%3Db&extra="
+  },
+  {
+    "input": "https://x.test/?id=46&data=%26a%3Db&fbclid=tracking&extra=",
+    "expected": "https://x.test/?id=46&data=%26a%3Db&extra="
+  },
+  {
+    "input": "https://x.test/?id=47&data=%26a%3Db&gclid=tracking&extra=",
+    "expected": "https://x.test/?id=47&data=%26a%3Db&extra="
+  },
+  {
+    "input": "https://x.test/?id=48&data=%26a%3Db&yclid=tracking&extra=",
+    "expected": "https://x.test/?id=48&data=%26a%3Db&extra="
+  },
+  {
+    "input": "https://x.test/?id=49&data=%26a%3Db&msclkid=tracking&extra=",
+    "expected": "https://x.test/?id=49&data=%26a%3Db&extra="
+  },
+  {
+    "input": "https://x.test/?id=50&data=%26a%3Db&utm_source=tracking&extra=",
+    "expected": "https://x.test/?id=50&data=%26a%3Db&extra="
+  },
+  {
+    "input": "https://x.test/?id=51&data=%26a%3Db&fbclid=tracking&extra=",
+    "expected": "https://x.test/?id=51&data=%26a%3Db&extra="
+  },
+  {
+    "input": "https://x.test/?id=52&data=%26a%3Db&gclid=tracking&extra=",
+    "expected": "https://x.test/?id=52&data=%26a%3Db&extra="
+  },
+  {
+    "input": "https://x.test/?id=53&data=%26a%3Db&yclid=tracking&extra=",
+    "expected": "https://x.test/?id=53&data=%26a%3Db&extra="
+  },
+  {
+    "input": "https://x.test/?id=54&data=%26a%3Db&msclkid=tracking&extra=",
+    "expected": "https://x.test/?id=54&data=%26a%3Db&extra="
+  },
+  {
+    "input": "https://x.test/?id=55&data=%26a%3Db&utm_source=tracking&extra=",
+    "expected": "https://x.test/?id=55&data=%26a%3Db&extra="
+  },
+  {
+    "input": "https://x.test/?id=56&data=%26a%3Db&fbclid=tracking&extra=",
+    "expected": "https://x.test/?id=56&data=%26a%3Db&extra="
+  },
+  {
+    "input": "https://x.test/?id=57&data=%26a%3Db&gclid=tracking&extra=",
+    "expected": "https://x.test/?id=57&data=%26a%3Db&extra="
+  },
+  {
+    "input": "https://x.test/?id=58&data=%26a%3Db&yclid=tracking&extra=",
+    "expected": "https://x.test/?id=58&data=%26a%3Db&extra="
+  },
+  {
+    "input": "https://x.test/?id=59&data=%26a%3Db&msclkid=tracking&extra=",
+    "expected": "https://x.test/?id=59&data=%26a%3Db&extra="
+  },
+  {
+    "input": "https://x.test/?id=60&data=%26a%3Db&utm_source=tracking&extra=",
+    "expected": "https://x.test/?id=60&data=%26a%3Db&extra="
+  },
+  {
+    "input": "https://x.test/?id=61&data=%26a%3Db&fbclid=tracking&extra=",
+    "expected": "https://x.test/?id=61&data=%26a%3Db&extra="
+  },
+  {
+    "input": "https://x.test/?id=62&data=%26a%3Db&gclid=tracking&extra=",
+    "expected": "https://x.test/?id=62&data=%26a%3Db&extra="
+  },
+  {
+    "input": "https://x.test/?id=63&data=%26a%3Db&yclid=tracking&extra=",
+    "expected": "https://x.test/?id=63&data=%26a%3Db&extra="
+  },
+  {
+    "input": "https://x.test/?id=64&data=%26a%3Db&msclkid=tracking&extra=",
+    "expected": "https://x.test/?id=64&data=%26a%3Db&extra="
+  },
+  {
+    "input": "https://x.test/?id=65&data=%26a%3Db&utm_source=tracking&extra=",
+    "expected": "https://x.test/?id=65&data=%26a%3Db&extra="
+  },
+  {
+    "input": "https://x.test/?id=66&data=%26a%3Db&fbclid=tracking&extra=",
+    "expected": "https://x.test/?id=66&data=%26a%3Db&extra="
+  },
+  {
+    "input": "https://x.test/?id=67&data=%26a%3Db&gclid=tracking&extra=",
+    "expected": "https://x.test/?id=67&data=%26a%3Db&extra="
+  },
+  {
+    "input": "https://x.test/?id=68&data=%26a%3Db&yclid=tracking&extra=",
+    "expected": "https://x.test/?id=68&data=%26a%3Db&extra="
+  },
+  {
+    "input": "https://x.test/?id=69&data=%26a%3Db&msclkid=tracking&extra=",
+    "expected": "https://x.test/?id=69&data=%26a%3Db&extra="
+  },
+  {
+    "input": "https://x.test/?id=70&data=%26a%3Db&utm_source=tracking&extra=",
+    "expected": "https://x.test/?id=70&data=%26a%3Db&extra="
+  },
+  {
+    "input": "https://x.test/?id=71&data=%26a%3Db&fbclid=tracking&extra=",
+    "expected": "https://x.test/?id=71&data=%26a%3Db&extra="
+  },
+  {
+    "input": "https://x.test/?id=72&data=%26a%3Db&gclid=tracking&extra=",
+    "expected": "https://x.test/?id=72&data=%26a%3Db&extra="
+  },
+  {
+    "input": "https://x.test/?id=73&data=%26a%3Db&yclid=tracking&extra=",
+    "expected": "https://x.test/?id=73&data=%26a%3Db&extra="
+  },
+  {
+    "input": "https://x.test/?id=74&data=%26a%3Db&msclkid=tracking&extra=",
+    "expected": "https://x.test/?id=74&data=%26a%3Db&extra="
+  },
+  {
+    "input": "https://x.test/?id=75&data=%26a%3Db&utm_source=tracking&extra=",
+    "expected": "https://x.test/?id=75&data=%26a%3Db&extra="
+  },
+  {
+    "input": "https://x.test/?id=76&data=%26a%3Db&fbclid=tracking&extra=",
+    "expected": "https://x.test/?id=76&data=%26a%3Db&extra="
+  },
+  {
+    "input": "https://x.test/?id=77&data=%26a%3Db&gclid=tracking&extra=",
+    "expected": "https://x.test/?id=77&data=%26a%3Db&extra="
+  },
+  {
+    "input": "https://x.test/?id=78&data=%26a%3Db&yclid=tracking&extra=",
+    "expected": "https://x.test/?id=78&data=%26a%3Db&extra="
+  },
+  {
+    "input": "https://x.test/?id=79&data=%26a%3Db&msclkid=tracking&extra=",
+    "expected": "https://x.test/?id=79&data=%26a%3Db&extra="
+  },
+  {
+    "input": "https://x.test/?id=80&data=%26a%3Db&utm_source=tracking&extra=",
+    "expected": "https://x.test/?id=80&data=%26a%3Db&extra="
+  },
+  {
+    "input": "https://x.test/?id=81&data=%26a%3Db&fbclid=tracking&extra=",
+    "expected": "https://x.test/?id=81&data=%26a%3Db&extra="
+  },
+  {
+    "input": "https://x.test/?id=82&data=%26a%3Db&gclid=tracking&extra=",
+    "expected": "https://x.test/?id=82&data=%26a%3Db&extra="
+  },
+  {
+    "input": "https://x.test/?id=83&data=%26a%3Db&yclid=tracking&extra=",
+    "expected": "https://x.test/?id=83&data=%26a%3Db&extra="
+  },
+  {
+    "input": "https://x.test/?id=84&data=%26a%3Db&msclkid=tracking&extra=",
+    "expected": "https://x.test/?id=84&data=%26a%3Db&extra="
+  },
+  {
+    "input": "https://x.test/?id=85&data=%26a%3Db&utm_source=tracking&extra=",
+    "expected": "https://x.test/?id=85&data=%26a%3Db&extra="
+  },
+  {
+    "input": "https://x.test/?id=86&data=%26a%3Db&fbclid=tracking&extra=",
+    "expected": "https://x.test/?id=86&data=%26a%3Db&extra="
+  },
+  {
+    "input": "https://x.test/?id=87&data=%26a%3Db&gclid=tracking&extra=",
+    "expected": "https://x.test/?id=87&data=%26a%3Db&extra="
+  },
+  {
+    "input": "https://x.test/?id=88&data=%26a%3Db&yclid=tracking&extra=",
+    "expected": "https://x.test/?id=88&data=%26a%3Db&extra="
+  },
+  {
+    "input": "https://x.test/?id=89&data=%26a%3Db&msclkid=tracking&extra=",
+    "expected": "https://x.test/?id=89&data=%26a%3Db&extra="
+  },
+  {
+    "input": "https://x.test/?id=90&data=%26a%3Db&utm_source=tracking&extra=",
+    "expected": "https://x.test/?id=90&data=%26a%3Db&extra="
+  },
+  {
+    "input": "https://x.test/?id=91&data=%26a%3Db&fbclid=tracking&extra=",
+    "expected": "https://x.test/?id=91&data=%26a%3Db&extra="
+  },
+  {
+    "input": "https://x.test/?id=92&data=%26a%3Db&gclid=tracking&extra=",
+    "expected": "https://x.test/?id=92&data=%26a%3Db&extra="
+  },
+  {
+    "input": "https://x.test/?id=93&data=%26a%3Db&yclid=tracking&extra=",
+    "expected": "https://x.test/?id=93&data=%26a%3Db&extra="
+  },
+  {
+    "input": "https://x.test/?id=94&data=%26a%3Db&msclkid=tracking&extra=",
+    "expected": "https://x.test/?id=94&data=%26a%3Db&extra="
+  },
+  {
+    "input": "https://x.test/?id=95&data=%26a%3Db&utm_source=tracking&extra=",
+    "expected": "https://x.test/?id=95&data=%26a%3Db&extra="
+  },
+  {
+    "input": "https://x.test/?id=96&data=%26a%3Db&fbclid=tracking&extra=",
+    "expected": "https://x.test/?id=96&data=%26a%3Db&extra="
+  },
+  {
+    "input": "https://x.test/?id=97&data=%26a%3Db&gclid=tracking&extra=",
+    "expected": "https://x.test/?id=97&data=%26a%3Db&extra="
+  },
+  {
+    "input": "https://x.test/?id=98&data=%26a%3Db&yclid=tracking&extra=",
+    "expected": "https://x.test/?id=98&data=%26a%3Db&extra="
+  },
+  {
+    "input": "https://x.test/?id=99&data=%26a%3Db&msclkid=tracking&extra=",
+    "expected": "https://x.test/?id=99&data=%26a%3Db&extra="
+  }
+]
