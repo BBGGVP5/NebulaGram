@@ -1,0 +1,51 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/MessagesController.java b/TMessagesProj/src/main/java/org/telegram/messenger/MessagesController.java
+--- a/TMessagesProj/src/main/java/org/telegram/messenger/MessagesController.java
++++ b/TMessagesProj/src/main/java/org/telegram/messenger/MessagesController.java
+@@ -226,7 +226,7 @@
+         if (channelBoostsControler != null) {
+             return channelBoostsControler;
+         }
+-        synchronized (lockObjects[currentAccount]) {
++        synchronized (Instance.lockFor(currentAccount)) {
+             if (channelBoostsControler != null) {
+                 return channelBoostsControler;
+             }
+@@ -23723,7 +23723,7 @@
+         if (storiesController != null) {
+             return storiesController;
+         }
+-        synchronized (lockObjects[currentAccount]) {
++        synchronized (Instance.lockFor(currentAccount)) {
+             if (storiesController != null) {
+                 return storiesController;
+             }
+@@ -23736,7 +23736,7 @@
+         if (savedMessagesController != null) {
+             return savedMessagesController;
+         }
+-        synchronized (lockObjects[currentAccount]) {
++        synchronized (Instance.lockFor(currentAccount)) {
+             if (savedMessagesController != null) {
+                 return savedMessagesController;
+             }
+@@ -23749,7 +23749,7 @@
+         if (unconfirmedAuthController != null) {
+             return unconfirmedAuthController;
+         }
+-        synchronized (lockObjects[currentAccount]) {
++        synchronized (Instance.lockFor(currentAccount)) {
+             if (unconfirmedAuthController != null) {
+                 return unconfirmedAuthController;
+             }
+diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/NotificationCenter.java b/TMessagesProj/src/main/java/org/telegram/messenger/NotificationCenter.java
+--- a/TMessagesProj/src/main/java/org/telegram/messenger/NotificationCenter.java
++++ b/TMessagesProj/src/main/java/org/telegram/messenger/NotificationCenter.java
+@@ -1030,7 +1030,7 @@
+ 
+     public static void sanitize() {
+         sanitizeInternal(globalInstance);
+-        for (NotificationCenter notificationCenter : Instance) {
++        for (NotificationCenter notificationCenter : Instance.valuesSnapshot()) {
+             sanitizeInternal(notificationCenter);
+         }
+     }

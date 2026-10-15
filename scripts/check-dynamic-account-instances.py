@@ -28,6 +28,15 @@ public class RegistryCheck {
     public static void main(String[] args) throws Exception {
         AccountInstanceRegistry<Item> registry = new AccountInstanceRegistry<>();
         check(registry.peek(1000000) == null);
+        check(registry.valuesSnapshot().isEmpty());
+        AccountInstanceRegistry<Item> monitorRegistry = new AccountInstanceRegistry<>();
+        monitorRegistry.get(5, id -> {
+            check(Thread.holdsLock(monitorRegistry.lockFor(id)));
+            return new Item(id);
+        });
+        Object monitor = registry.lockFor(0);
+        check(monitor == registry.lockFor(0) && monitor != registry.lockFor(1));
+        check(registry.valuesSnapshot().isEmpty());
         ExecutorService pool = Executors.newFixedThreadPool(16);
         AtomicInteger creations = new AtomicInteger();
         CountDownLatch start = new CountDownLatch(1);
@@ -44,6 +53,7 @@ public class RegistryCheck {
         start.countDown();
         for (Future<?> job : jobs) job.get(20, TimeUnit.SECONDS);
         check(creations.get() == 128);
+        check(registry.valuesSnapshot().size() == 128);
         Set<Item> identities = Collections.newSetFromMap(new IdentityHashMap<>());
         for (int id = 0; id < 128; id++) identities.add(registry.peek(id));
         check(identities.size() == 128);
@@ -106,12 +116,37 @@ with tempfile.TemporaryDirectory(prefix='nebula-accounts-') as directory:
                 depth += (text[end] == '{') - (text[end] == '}')
                 end += 1
             method = text[match.start():end]
+            consumers = ''
+            if name == 'NotificationCenter':
+                begin = text.index('public static void sanitize() {')
+                finish = text.index('\n    }', begin) + len('\n    }')
+                consumers = ('static NotificationCenter globalInstance = new NotificationCenter(-1);\n'
+                             'static int sanitized;\n'
+                             'static void sanitizeInternal(NotificationCenter value) { if (value != null) sanitized++; }\n'
+                             + text[begin:finish])
+            if name == 'MessagesController':
+                assert 'lockObjects[' not in text
+                consumers = 'private int currentAccount;\n'
+                for method_name, type_name, field in [
+                    ('getBoostsController', 'ChannelBoostsController', 'channelBoostsControler'),
+                    ('getStoriesController', 'StoriesController', 'storiesController'),
+                    ('getSavedMessagesController', 'SavedMessagesController', 'savedMessagesController'),
+                    ('getUnconfirmedAuthController', 'UnconfirmedAuthController', 'unconfirmedAuthController'),
+                ]:
+                    begin = text.index('public ' + type_name + ' ' + method_name + '() {')
+                    finish = text.index('\n    }', begin) + len('\n    }')
+                    consumers += (f'private volatile {type_name} {field};\n'
+                                  f'static class {type_name} {{ final int account; {type_name}(int account) {{ this.account = account; }} }}\n'
+                                  + text[begin:finish] + '\n')
+                    calls.append(f'if (MessagesController.getInstance(id).{method_name}() != MessagesController.getInstance(id).{method_name}()) throw new AssertionError("{method_name}");')
+                    calls.append(f'if (MessagesController.getInstance(id).{method_name}().account != id) throw new AssertionError("Child account ID");')
             extra_parameter = ', boolean ton' if name == 'StarsController' else ''
             item = work / (name + '.java')
             item.write_text('public class ' + name + ' {\n' + '\n'.join(declarations) + '\n'
                             + 'public final int account;\n'
-                            + 'private ' + name + '(int account' + extra_parameter + ') { this.account = account; }\n'
-                            + method + '\n}', encoding='utf-8')
+                            + 'private ' + name + '(int account' + extra_parameter + ') { this.account = account; '
+                            + ('this.currentAccount = account;' if name == 'MessagesController' else '') + ' }\n'
+                            + method + '\n' + consumers + '\n}', encoding='utf-8')
             files.append(str(item))
             arg = ', false' if name == 'StarsController' else ''
             calls.append(f'if ({name}.getInstance(id{arg}).account != id || {name}.getInstance(id{arg}) != {name}.getInstance(id{arg})) throw new AssertionError("{name}");')
@@ -120,7 +155,7 @@ with tempfile.TemporaryDirectory(prefix='nebula-accounts-') as directory:
         assert len(files) == 35, len(files)
         test = work / 'ControllerFactoriesCheck.java'
         test.write_text('public class ControllerFactoriesCheck { public static void main(String[] args) { for (int id = 0; id < 128; id++) { '
-                        + '\n'.join(calls) + ' } } }', encoding='utf-8')
+                        + '\n'.join(calls) + ' } NotificationCenter.sanitize(); if (NotificationCenter.sanitized != 129) throw new AssertionError("Sanitize must visit existing accounts and the global center"); } }', encoding='utf-8')
         subprocess.run([javac, '--release', '8', '-cp', str(work), '-d', str(work), *files, str(test)], check=True)
         subprocess.run([java, '-cp', str(work), 'ControllerFactoriesCheck'], check=True, timeout=45)
         print('All 35 production singleton getters compiled and exercised with 128 synthetic IDs; currencies isolated')

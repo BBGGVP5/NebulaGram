@@ -1,6 +1,8 @@
 package org.telegram.messenger;
 
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Lazy, process-lifetime controller instances keyed by the existing account ID.
@@ -26,7 +28,7 @@ public final class AccountInstanceRegistry<T> {
         return entry == null ? null : entry.value;
     }
 
-    public T get(int account, Factory<T> factory) {
+    private Entry<T> entryFor(int account) {
         checkAccount(account);
         Entry<T> entry = entries.get(account);
         if (entry == null) {
@@ -34,6 +36,26 @@ public final class AccountInstanceRegistry<T> {
             Entry<T> existing = entries.putIfAbsent(account, candidate);
             entry = existing == null ? candidate : existing;
         }
+        return entry;
+    }
+
+    /** The same monitor guards controller creation and its lazy child controllers. */
+    public Object lockFor(int account) {
+        return entryFor(account);
+    }
+
+    /** Existing values only; diagnostics must not initialize inactive accounts. */
+    public List<T> valuesSnapshot() {
+        ArrayList<T> values = new ArrayList<>();
+        for (Entry<T> entry : entries.values()) {
+            T value = entry.value;
+            if (value != null) values.add(value);
+        }
+        return values;
+    }
+
+    public T get(int account, Factory<T> factory) {
+        Entry<T> entry = entryFor(account);
         T value = entry.value;
         if (value == null) {
             // Never hold a ConcurrentHashMap bin lock while constructing a
