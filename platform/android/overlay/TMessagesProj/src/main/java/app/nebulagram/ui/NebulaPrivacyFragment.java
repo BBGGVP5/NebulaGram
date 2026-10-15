@@ -139,6 +139,10 @@ public final class NebulaPrivacyFragment extends BaseFragment {
         card(row(R.drawable.nebula_settings_chat_lock, text("Пароли чатов", "Chat passwords"))
                 .trailing(NebulaRow.TRAIL_CHEVRON)
                 .withClick(v -> presentFragment(new NebulaLockedChatsFragment())));
+        card(row(R.drawable.msg_edit, text("История правок", "Edit history"))
+                .subtitle(text("Предыдущие версии сообщений на устройстве", "Previous message versions on device"), false)
+                .trailing(NebulaRow.TRAIL_CHEVRON)
+                .withClick(v -> presentFragment(new NebulaEditHistoryFragment(currentAccount, null))));
         header(text("Удалённые сообщения", "Deleted messages"));
         card(row(R.drawable.msg_delete, text("Сохранять удалённые сообщения", "Save deleted messages"))
                         .subtitle(text("Остаются на своём месте в чате", "They stay in place in the chat"), false)

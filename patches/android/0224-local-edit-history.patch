@@ -1,0 +1,11 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/MessagesStorage.java b/TMessagesProj/src/main/java/org/telegram/messenger/MessagesStorage.java
+--- a/TMessagesProj/src/main/java/org/telegram/messenger/MessagesStorage.java
++++ b/TMessagesProj/src/main/java/org/telegram/messenger/MessagesStorage.java
+@@ -12601,6 +12601,7 @@
+                     if (message == null) {
+                         continue;
+                     }
++                    if (mode == ChatActivity.MODE_DEFAULT) app.nebulagram.ui.NebulaEditHistory.capture(currentAccount, message);
+                     fixUnsupportedMedia(message);
+                     long topicId = MessageObject.getTopicId(currentAccount, message, getForumTypeFlags(message.dialog_id));
+ 

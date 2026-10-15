@@ -1,0 +1,11 @@
+diff --git a/submodules/TelegramCore/Sources/State/AccountStateManagementUtils.swift b/submodules/TelegramCore/Sources/State/AccountStateManagementUtils.swift
+--- a/submodules/TelegramCore/Sources/State/AccountStateManagementUtils.swift
++++ b/submodules/TelegramCore/Sources/State/AccountStateManagementUtils.swift
+@@ -4648,6 +4648,7 @@
+                     invalidateGroupStats.insert(Namespaces.PeerGroup.archive)
+                 }
+             case let .EditMessage(id, message):
++                NebulaEditHistory.capture(transaction: transaction, accountPeerId: accountPeerId, id: id, incoming: message)
+                 var generatedEvent: (reactionAuthor: Peer, reaction: MessageReaction.Reaction, message: Message, timestamp: Int32)?
+                 transaction.updateMessage(id, update: { previousMessage in
+                     var updatedFlags = message.flags

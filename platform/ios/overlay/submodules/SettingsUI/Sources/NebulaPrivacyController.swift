@@ -27,7 +27,7 @@ final class NebulaPrivacyController: UITableViewController {
                       "Keep messages in the chat. Choose their marker and clear copies when needed."), context: context, theme: currentTheme)
     init(context: AccountContext, russian: Bool, mode: Int = 0) {
         self.context = context; self.ru = russian; self.mode = mode
-        self.sections = mode == 1 ? [7, 5] : mode == 2 ? [8] : [0, 1, 2, 3, 6, 4]
+        self.sections = mode == 1 ? [7, 5] : mode == 2 ? [8] : [0, 9, 1, 2, 3, 6, 4]
         super.init(style: .insetGrouped)
         title = mode == 1 ? (russian ? "Поведение чатов" : "Chat behavior") : mode == 2 ? (russian ? "Истории" : "Stories") : (russian ? "Удалённые сообщения" : "Deleted messages")
     }
@@ -65,7 +65,7 @@ final class NebulaPrivacyController: UITableViewController {
     override func tableView(_ tableView: UITableView, numberOfRowsInSection displaySection: Int) -> Int { let section = sections[displaySection]; return section == 6 ? NebulaRetentionScope.allCases.count : section == 0 || section == 7 || section == 8 ? 3 : (section == 3 ? 2 : 1) }
     override func tableView(_ tableView: UITableView, titleForHeaderInSection displaySection: Int) -> String? {
         let section = sections[displaySection]
-        return [text("Удалённые сообщения", "Deleted messages"), text("Оформление", "Appearance"), text("Локальный кэш", "Local cache"), text("Защита", "Protection"), nil, text("Пересылка", "Forwarding"), text("Где сохранять", "Where to save"), text("Чаты", "Chats"), text("Истории", "Stories")][section]
+        return [text("Удалённые сообщения", "Deleted messages"), text("Оформление", "Appearance"), text("Локальный кэш", "Local cache"), text("Защита", "Protection"), nil, text("Пересылка", "Forwarding"), text("Где сохранять", "Where to save"), text("Чаты", "Chats"), text("Истории", "Stories"), text("Правки сообщений", "Message edits")][section]
     }
     override func tableView(_ tableView: UITableView, titleForFooterInSection displaySection: Int) -> String? {
         let section = sections[displaySection]
@@ -97,6 +97,13 @@ final class NebulaPrivacyController: UITableViewController {
         cell.textLabel?.font = .preferredFont(forTextStyle: .body)
         cell.textLabel?.adjustsFontForContentSizeCategory = true
         cell.textLabel?.numberOfLines = 0
+        if indexPath.section == 9 {
+            cell.textLabel?.text = text("История правок", "Edit history")
+            cell.detailTextLabel?.text = text("Предыдущие версии на устройстве", "Previous versions on device")
+            cell.accessoryType = .disclosureIndicator
+            NebulaSettingsHero.style(cell, symbol: "clock.arrow.circlepath")
+            return cell
+        }
         if indexPath.section == 8 {
             let key = storyArchiveKey(indexPath.row)
             NebulaSettingsHero.style(cell, symbol: "circle.dotted.circle")
@@ -232,6 +239,10 @@ final class NebulaPrivacyController: UITableViewController {
                     return settings
                 }).startStandalone()
             }
+            return
+        }
+        if indexPath.section == 9 {
+            navigationController?.pushViewController(NebulaEditHistoryController(context: context, russian: ru), animated: true)
             return
         }
         if indexPath.section == 4 { helpExpanded.toggle(); tableView.reloadData(); return }

@@ -129,3 +129,9 @@ Both message tool controllers now expose explicit plain-text link cleanup and lo
 Android folder changes now notify every attached root and detach only that root's listener. Executable tests cover simultaneous roots, removal during notification and 1,000 recreation cycles. The formatting toolbar cache also invalidates for foreground-only theme changes while retaining its surface through 1,000 idle layouts. Native keyboard and rendered motion acceptance remain open.
 
 All 111 iOS patches replay and registration checks pass. The actual Java parser accepts 453 touched/native overlay units. Full application dependency typechecking and builds are tracked separately; edit history, local pins and presentation privacy are still the following phase.
+
+## Local edit history checkpoint
+
+The account-owned edit-history implementation is now present on both platforms; see [its focused plan](2026-10-15-local-message-history.md). Android captures the prior TL row before default-message replacement. iOS captures text and exact Codable entities in the same Postbox transaction as `.EditMessage`, using collection 126 (outside the pinned upstream collection list). Both are opt-in and bounded to 32 previous versions / 1,000 recently edited messages. No network request, Premium status substitution or automatic restore/send is added. Native account database removal also removes history.
+
+Production adapter tests execute opt-in, text-only and formatting edits, no-op/stale updates, protected/expiring/service exclusions, bounds, account isolation and per-message/all clearing. The actual Android schema/pruning statements execute in SQLite; iOS versions are encoded/decoded through the Codable item-cache fixture. Native bootstrap passes all 112 patches. Full APK/IPA dependency compilation and device acceptance remain open.

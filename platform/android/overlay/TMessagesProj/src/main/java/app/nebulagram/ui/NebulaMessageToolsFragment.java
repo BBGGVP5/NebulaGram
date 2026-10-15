@@ -124,6 +124,7 @@ public final class NebulaMessageToolsFragment extends BaseFragment {
         addTool(actions, ai, "💬", R.drawable.msg_list, t("Быстрые ответы", "Quick replies"), t("Личные шаблоны без Business", "Personal templates without Business"), v -> quickReplies());
         addTool(actions, ai, "🔗", R.drawable.msg_link, t("Очистить ссылки", "Clean links"), t("Убрать метки отслеживания в обычном тексте · на устройстве", "Remove tracking fields from plain text · on device"), v -> cleanLinks());
         if (message != null) addTool(actions, ai, "📄", R.drawable.msg_info, t("Подробности", "Details"), t("ID, точные даты и свойства файла", "IDs, exact dates and file properties"), v -> presentFragment(new NebulaMessageDetailsFragment(message)));
+        if (message != null) addTool(actions, ai, "📝", R.drawable.msg_edit, t("История правок", "Edit history"), t("Предыдущие версии на этом устройстве", "Previous versions on this device"), v -> presentFragment(new NebulaEditHistoryFragment(currentAccount, message)));
         if (editorAction != null) addTool(actions, ai, "📝", R.drawable.msg_edit, t("Редактор", "Editor"), t("Стилизация и исправление текста", "Style and correct text"), v -> {
             afterDismiss = editorAction; finishFragment();
         });
@@ -428,6 +429,8 @@ public final class NebulaMessageToolsFragment extends BaseFragment {
             t("Настройки перевода", "Translation settings"), t("Сервисы ИИ", "AI services"), t("Фильтр сообщений", "Message filter"), t("Быстрые ответы", "Quick replies"), t("Очистить ссылки", "Clean links")));
         final int detailsIndex = message == null ? -1 : options.size();
         if (message != null) options.add(t("Подробности сообщения", "Message details"));
+        final int historyIndex = message == null ? -1 : options.size();
+        if (message != null) options.add(t("История правок", "Edit history"));
         if (message != null && (message.isVoice() || message.isRoundVideo() || message.isVideo())) options.add(t("Распознать", "Transcribe"));
         showDialog(new NebulaDialog.Builder(getContext(), getResourceProvider()).setTitle(t("Инструменты", "Tools"))
             .setItems(options.toArray(new CharSequence[0]), (dialog, which) -> {
@@ -440,6 +443,7 @@ public final class NebulaMessageToolsFragment extends BaseFragment {
                 else if (which == 6) quickReplies();
                 else if (which == 7) cleanLinks();
                 else if (which == detailsIndex && message != null) presentFragment(new NebulaMessageDetailsFragment(message));
+                else if (which == historyIndex && message != null) presentFragment(new NebulaEditHistoryFragment(currentAccount, message));
                 else transcribe();
             }).setNegativeButton(t("Закрыть", "Close"), null).create());
     }

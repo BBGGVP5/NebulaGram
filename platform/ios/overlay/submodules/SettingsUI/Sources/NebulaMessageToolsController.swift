@@ -113,6 +113,16 @@ public final class NebulaMessageToolsController: UIViewController {
             details.heightAnchor.constraint(greaterThanOrEqualToConstant: 48).isActive = true
             details.addTarget(self, action: #selector(showDetails), for: .touchUpInside)
             stack.addArrangedSubview(details)
+            if context != nil {
+                let history = UIButton(type: .system)
+                history.setTitle(text("История правок", "Edit history"), for: .normal)
+                history.titleLabel?.font = .preferredFont(forTextStyle: .body)
+                history.titleLabel?.adjustsFontForContentSizeCategory = true
+                history.contentHorizontalAlignment = .leading
+                history.heightAnchor.constraint(greaterThanOrEqualToConstant: 48).isActive = true
+                history.addTarget(self, action: #selector(showHistory), for: .touchUpInside)
+                stack.addArrangedSubview(history)
+            }
         }
         addLiveTranslation(to: stack)
         output.font = .preferredFont(forTextStyle: .body)
@@ -235,6 +245,10 @@ public final class NebulaMessageToolsController: UIViewController {
             }, theme: theme, resultLanguage: language, applyTitle: text("Использовать результат", "Use result"), account: accountId, peer: peerId)
             navigationController?.pushViewController(editor, animated: true)
         }
+    }
+    @objc private func showHistory() {
+        guard let context, let message else { return }
+        navigationController?.pushViewController(NebulaEditHistoryController(context: context, message: message, russian: russian), animated: true)
     }
     @objc private func showDetails() {
         guard let message else { return }
