@@ -1,0 +1,59 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/NotificationImageProvider.java b/TMessagesProj/src/main/java/org/telegram/messenger/NotificationImageProvider.java
+--- a/TMessagesProj/src/main/java/org/telegram/messenger/NotificationImageProvider.java
++++ b/TMessagesProj/src/main/java/org/telegram/messenger/NotificationImageProvider.java
+@@ -5,6 +5,8 @@
+ import android.content.UriMatcher;
+ import android.database.Cursor;
+ import android.net.Uri;
++import android.os.Handler;
++import android.os.Looper;
+ import android.os.ParcelFileDescriptor;
+ import android.text.TextUtils;
+ 
+@@ -25,6 +27,16 @@
+ 	private HashSet<String> waitingForFiles = new HashSet<>();
+ 	private final Object sync = new Object();
+ 	private HashMap<String, Long> fileStartTimes = new HashMap<>();
++	private final Handler observerHandler = new Handler(Looper.getMainLooper());
++	private volatile boolean stopped;
++	private AccountDirectory.Subscription accountSubscription;
++	private final Runnable bindAccounts = () -> {
++		if (!stopped && accountSubscription == null) {
++			accountSubscription = AccountDirectory.observe(
++				account -> NotificationCenter.getInstance(account).addObserver(this, NotificationCenter.fileLoaded),
++				account -> NotificationCenter.getInstance(account).removeObserver(this, NotificationCenter.fileLoaded));
++		}
++	};
+ 
+ 	public static String getAuthority() {
+ 		if (authority == null) {
+@@ -43,17 +55,23 @@
+ 
+ 	@Override
+ 	public boolean onCreate() {
+-		for (int i = 0; i < UserConfig.getActivatedAccountsCount(); i++) {
+-			NotificationCenter.getInstance(i).addObserver(this, NotificationCenter.fileLoaded);
+-		}
++		// Providers precede Application.onCreate. Defer all account access until
++		// the main Looper returns from framework application initialization.
++		observerHandler.post(bindAccounts);
+ 		return true;
+ 	}
+ 
+ 	@Override
+ 	public void shutdown() {
+-		for (int i = 0; i < UserConfig.getActivatedAccountsCount(); i++) {
+-			NotificationCenter.getInstance(i).removeObserver(this, NotificationCenter.fileLoaded);
+-		}
++		stopped = true;
++		observerHandler.removeCallbacks(bindAccounts);
++		observerHandler.post(() -> {
++			if (accountSubscription != null) {
++				accountSubscription.close();
++				accountSubscription = null;
++			}
++		});
++		super.shutdown();
+ 	}
+ 
+ 	@Nullable

@@ -252,6 +252,7 @@ jobs:
           python3 scripts/check-dynamic-account-instances.py vendor/telegram-android
           python3 scripts/check-account-state.py vendor/telegram-android
           python3 scripts/check-account-catalog.py
+          python3 scripts/check-notification-provider-startup.py vendor/telegram-android
           python3 scripts/check-account-notifications.py vendor/telegram-android
           python3 scripts/check-forward-editing.py
           python3 scripts/check-protected-copies.py

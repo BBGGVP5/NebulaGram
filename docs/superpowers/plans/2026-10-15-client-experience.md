@@ -118,6 +118,15 @@ Files: `runtime/xray/go.mod`, `bind/go.mod`, `core/go.mod`, related sums/build s
 
 ## Account/settings execution checkpoint
 
+### Android startup regression discovered on device
+
+Pixel 9 Pro XL running 1000568 immediately crashes in `NotificationImageProvider.onCreate`: providers run before `Application.onCreate`, but the new account enumeration needs the application context. Fix native provider registration rather than publishing a temporary empty catalogue that could destroy legacy migration. Post registration to the main Looper, use `AccountDirectory.observe` with actual sparse IDs, and cancel/close subscriptions on the same Looper at shutdown.
+
+- [x] Execute the unmodified provider against a null application context and reproduce the same NPE.
+- [x] Execute the fixed production provider/catalogue: pre-application startup, legacy sparse migration, later account allocation/retirement, queued changes and cancellation before/after registration.
+- [ ] Replay all patches and run the Android regression suite with the new startup check registered in CI.
+- [ ] Build the corrected APK, verify identity/signature, update the attached phone without clearing app data, and confirm cold/warm launch survives without a new crash.
+
 Android persistent IDs and all account enumeration have been migrated in patches 0218-0221. Notification tags and PendingIntent destinations include full account/dialog identities. The independent catalogue, native instance and notification fixtures pass for 128/256 synthetic accounts; native parser checks the actual patched sources. Full APK rebuild and real authentication/push remain open.
 
 Both settings roots now expose AI/audio separately from chat presentation, plus searchable account switching and ordering. Android copied links and search share a single destination dispatcher; 36 routes, invalid destinations, row focus and account ownership execute in regression tests. The iOS settings overlay and new controller pass Swift parsing and the full ordered bootstrap/source-registration check; native module typechecking and the complete IPA build remain separate checks. No session credentials are included in settings export.
