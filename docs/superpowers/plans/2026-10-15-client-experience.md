@@ -72,7 +72,7 @@ Files: Android `NebulaIntroFragment`, `NebulaIntroArt`, `NebulaOnboardingLayout`
 
 - [ ] Run focused executable regression tests for each phase and full ordered patch replay on pinned upstream sources.
 - [ ] Compile real Android APK and full iOS IPA, inspect failed jobs and fix integration errors.
-- [ ] Verify APK version, signature and package; publish through the existing authorized branch/build workflow.
+- [x] Verify APK version, signature and package; publish through the existing authorized branch/build workflow. Android 1000554 / run 38713620156 verified.
 - [ ] Record exact artifact links and distinguish source checks, full compilation and device QA. Device testing remains pending while the user's phone is unavailable.
 - [ ] Update `docs/USER-CHANGES.md`, fork audit and this checklist with actual completed work and remaining items.
 
@@ -98,3 +98,5 @@ Files: `runtime/xray/go.mod`, `bind/go.mod`, `core/go.mod`, related sums/build s
 - Welcome/auth work so far removes field outlines/floating labels, adds explicit clipboard import, preserves keyboard editing and caches illustration resources. The full visual redesign remains open.
 
 - Onboarding regression tests now execute the actual import/list/connect methods with delayed callback delivery: skip, return, retry, duplicate submissions, destruction and editing. Artwork checks exercise attach, empty bounds, repeated layout, hide/resume, reduced motion and detach. Android SDK compilation of the artwork also passes. These are behavioral checks, not a rendered UI acceptance result.
+
+- Android 1000554 successfully compiled; downloaded package, original signature, minSDK 23, arm64 ABI, ZIP alignment and embedded Go/Xray/mobile versions verified. iOS full native 38708491103 remains running. The emulator failed to boot (offline); physical-device/rendered UI acceptance remains open.

@@ -70,3 +70,11 @@ Android run 38709488599 exposed two further integration failures: WebKit 1.17.1 
 ## Build feedback improvements
 
 The Android workflow now runs AAR metadata, manifest merging and Java compilation before native assembly. Transport retries recognize Maven 429/502/503/504 responses, while manifest, Java compiler and checksum failures stop immediately even if an earlier log entry mentions a network outage. Eight executable retry scenarios pass. Onboarding tests run production methods with delayed callbacks instead of merely comparing the request-ownership predicate to itself.
+
+## Verified Android application artifact
+
+Run [38713620156](https://github.com/BBGGVP5/NebulaGram/actions/runs/38713620156), source `2c7892b`, successfully built `NebulaGram-1.0.0-TG-13.0.2-b1000554-arm64-v8a.apk` (63,185,304 bytes). Downloaded SHA-256: `f21dc3e9ca025024d12a89d79ef57c1000fdfa32f51db2b3f5695243219665c6`. Verified package `app.nebulagram.messenger`, versionCode 1000554, minSDK 23, arm64-v8a, original signing certificate `a08d7dc323ddf71ef3201944397e0d3cce7d40847263e11f328b68bbe19229ab` and 16-KB APK ZIP alignment. The extracted libgojni.so reports Go 1.27.2, Xray commit 701af60772cd and x/mobile 197770444867.
+
+The Windows DLL from core run 38708490245 was loaded through its real C ABI. Initialization, component-version reporting (NebulaLink 1.0.0 / Xray 26.10.10), synthetic key import, invalid-key rejection, partial settings update and persistence after reinitialization passed. SHA-256: `65d160f88e9f0cbe7514564f4c00c5eeeaa07e5e58f73748ed2d915348147c4f`. No external VPN server or real account was used.
+
+Android 1000555 / run 38716266186 validates the subsequent test/build-workflow improvements; application/runtime source is unchanged from verified 1000554. Full iOS run 38708491103 remains in progress at this checkpoint. The local read-only Android emulator stayed offline on both normal and cold/software-rendered starts, so no rendered UI/device acceptance is claimed. Both emulator processes launched for this check were stopped.
