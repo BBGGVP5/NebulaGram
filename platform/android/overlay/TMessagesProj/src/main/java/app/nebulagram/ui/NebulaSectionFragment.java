@@ -73,6 +73,7 @@ public class NebulaSectionFragment extends BaseFragment {
         }
     }
     private NebulaFoldersPreview folderPreview;
+    private NebulaRow folderPresetRow;
     private final int section;
     private LinearLayout content;
     private FrameLayout root;
@@ -333,7 +334,7 @@ public class NebulaSectionFragment extends BaseFragment {
                 NebulaAppearance.iosComposer(), NebulaAppearance::setIosComposer));
         composer.add(new NebulaRow(context).icon(R.drawable.msg_edit)
                 .title(NebulaText.text("Панель форматирования", "Formatting toolbar"))
-                .subtitle(NebulaText.text("Над клавиатурой: выделите текст и выберите оформление", "Above the keyboard: select text, then choose a format"), false)
+                .subtitle(NebulaText.text("Над полем ввода: выделите текст и выберите оформление", "Above the input field: select text, then choose a format"), false)
                 .trailing(NebulaRow.TRAIL_SWITCH).checked(NebulaFormattingToolbar.enabled())
                 .withClick(v -> {
                     boolean enabled = !NebulaFormattingToolbar.enabled();
@@ -462,15 +463,16 @@ public class NebulaSectionFragment extends BaseFragment {
 
     private void buildFolders(Context context) {
         NebulaCard preset = new NebulaCard(context);
-        preset.add(new NebulaRow(context).icon(R.drawable.msg_customize)
+        folderPresetRow = new NebulaRow(context).icon(R.drawable.msg_customize)
                 .title(NebulaText.text("Как на iOS", "Like iOS"))
-                .subtitle(NebulaText.text("Жидкое стекло, мягкое выделение и папки снизу", "Liquid Glass, soft selection and folders at the bottom"), false)
-                .trailing(NebulaRow.TRAIL_CHEVRON).withClick(v -> {
+                .radio(iosFolderPresetSelected()).withClick(v -> {
                     NebulaAppearance.setFolderOutline(false);
                     NebulaFolderTabs.setPanelStyle(NebulaFolderTabs.GLASS);
                     NebulaFolderTabs.setBottom(true);
                     refreshPalette();
-                }));
+                });
+        updateFolderPresetState();
+        preset.add(folderPresetRow);
         content.addView(preset, cardParams());
         // Превью показывает те же вкладки, что и список чатов: стиль, обводку и
         // счётчики видно сразу, без ухода на главный экран и обратно.
@@ -907,7 +909,21 @@ public class NebulaSectionFragment extends BaseFragment {
         return view;
     }
 
+    private boolean iosFolderPresetSelected() {
+        return NebulaFolderTabs.bottom() && NebulaFolderTabs.panelStyle() == NebulaFolderTabs.GLASS
+                && !NebulaAppearance.folderOutline();
+    }
+
+    private void updateFolderPresetState() {
+        if (folderPresetRow == null) return;
+        boolean selected = iosFolderPresetSelected();
+        folderPresetRow.radio(selected).subtitle(selected
+                ? NebulaText.text("Выбрано · Папки снизу, жидкое стекло", "Selected · Bottom folders, Liquid Glass")
+                : NebulaText.text("Применить: папки снизу, жидкое стекло", "Apply: bottom folders, Liquid Glass"), selected);
+    }
+
     private void refreshPreviews() {
+        updateFolderPresetState();
         if (profilePreview != null) { profilePreview.requestLayout(); profilePreview.invalidate(); }
         if (folderPreview != null) folderPreview.refresh();
         for (NebulaWallpaperPreview view : wallpaperPreviews) {

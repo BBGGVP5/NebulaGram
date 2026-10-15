@@ -47,3 +47,9 @@ About composition: keep the native “About NebulaGram” title visible at rest,
 - [ ] Run focused regressions, the full Android suite, ordered patch replay and native parser.
 - [ ] Build the complete APK, verify original signing/package identity, install over 1000569 without clearing data, and verify launch plus the changed UI on the connected phone.
 - [ ] Record precise evidence and outstanding server/device acceptance. Port shared presentation changes to iOS where applicable, keeping the full IPA build status explicit.
+
+## Follow-up from the actual 1000570 phone check
+
+The user clarifies that the formatting strip belongs **above the input field**. On the Pixel, 1000570 shows the editor again but leaves a blank reserved accessory area: FrameLayout clips children placed in its padding. The isolated clip calculation missed this parent `clipToPadding` boundary. Correct the parent boundary, put the accessory in top padding and explicitly measure its overlay without inflating the native field. Keep the native bubble below it and preserve reply/AI, recording, disabled and keyboard transitions. Extend the executable geometry check to include parent clipping, actual toolbar layout and padding changes; repeat physical typing/selection and cleanup before accepting.
+
+The iOS preset must show its selected state instead of a navigation arrow on an immediate action. Refresh that state after individual folder options change. Put About in the main settings card; mirror the grouping and accessory placement on iOS. The existing iOS 124 source predates this clarification.

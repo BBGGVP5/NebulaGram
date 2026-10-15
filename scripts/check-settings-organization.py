@@ -4,7 +4,8 @@ root=Path(__file__).resolve().parents[1]
 ui=root/'platform/android/overlay/TMessagesProj/src/main/java/app/nebulagram/ui'
 home=(ui/'NebulaSettingsFragment.java').read_text(encoding='utf-8')
 body=home[home.index('private void buildSections('):home.index('private NebulaRow hub(')]
-assert body.rfind('sections.addView(')==body.index('sections.addView(about,')
+assert 'NebulaCard about' not in body
+assert body.index('categories.add(new NebulaRow(context).icon(R.drawable.msg_info)') < body.rfind('sections.addView(categories,')
 assert 'NebulaSupportFragment' not in body and 'NebulaMessageToolsFragment' not in body
 assert 'Чаты и сообщения' in body and 'Браузер и блокировка рекламы' not in body
 hub=(ui/'NebulaSettingsHubFragment.java').read_text(encoding='utf-8')
@@ -38,4 +39,4 @@ assert not (ui/'NebulaShieldDrawable.java').exists()
 native=(root/'patches/android/0183-settings-emoji-replay-profile-controls.patch').read_text(encoding='utf-8')
 assert 'replayPage(resumedView)' in native and 'fragmentView instanceof app.nebulagram.ui.NebulaSettingsLayout' in native
 assert 'ProfileActionsView.java' not in native
-print('Settings organization: About last, support/community/updates in About, grouped chat/AI/tools/tasks, browser under General, emoji introductions and compact message sheet retained')
+print('Settings organization: About stays in the main settings card, support/community/updates in About, grouped chat/AI/tools/tasks, browser under General, emoji introductions and compact message sheet retained')

@@ -178,12 +178,10 @@ public class NebulaSettingsFragment extends BaseFragment {
         categories.add(accountsRow);
         categories.add(hub(context, R.drawable.msg_secret, "Конфиденциальность", "Privacy",
                 "Архив и защита", "Archive and protection", NebulaSettingsHubFragment.PRIVACY));
-        sections.addView(categories, cardParams());
-        NebulaCard about = new NebulaCard(context);
-        about.add(new NebulaRow(context).icon(R.drawable.msg_info).title(NebulaText.text("О приложении", "About"))
+        categories.add(new NebulaRow(context).icon(R.drawable.msg_info).title(NebulaText.text("О приложении", "About"))
                 .subtitle(NebulaText.text("Версия, обновления, сообщество и поддержка", "Version, updates, community and support"), false)
                 .trailing(NebulaRow.TRAIL_CHEVRON).withClick(v -> presentFragment(new NebulaSectionFragment(NebulaSectionFragment.SECTION_ABOUT))));
-        sections.addView(about, cardParams());
+        sections.addView(categories, cardParams());
 
     }
 

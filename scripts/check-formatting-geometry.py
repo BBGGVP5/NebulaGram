@@ -1,4 +1,4 @@
-"""Execute real editor clip and native bubble bounds with a separate keyboard accessory."""
+"""Execute actual accessory padding/layout, parent clipping and native composer bounds."""
 from pathlib import Path
 import os, shutil, subprocess, sys, tempfile
 
@@ -8,6 +8,12 @@ base=tree/'TMessagesProj/src/main/java/org/telegram/ui'
 editor=(base/'Components/ChatActivityEnterView.java').read_text(encoding='utf-8')
 start=editor.index('        boolean clip = child == topView || child == textFieldContainer;')
 clip=editor[start:editor.index('        boolean result = super.drawChild(canvas, child, drawingTime);',start)]
+padding_start=editor.index('        if (nebulaFormattingHeight != formattingHeight) {')
+padding=editor[padding_start:editor.index('        boolean compactBotMenu',padding_start)]
+layout_start=editor.index('            nebulaFormattingToolbar.layout(')
+layout=editor[layout_start:editor.index('\n        }',layout_start)]
+measure_start=editor.index('            nebulaFormattingToolbar.measure(')
+measure=editor[measure_start:editor.index(';',measure_start)+1]
 container=(base/'Components/chat/ChatInputViewsContainer.java').read_text(encoding='utf-8')
 start=container.index('        tmpRect.set(\n            Math.round(inputBubbleOffsetLeft),')
 bounds=container[start:container.index('        tmpRect.inset(',start)]
@@ -16,13 +22,18 @@ start=toolbar.index('        LinearLayout.LayoutParams params = ')
 button=toolbar[start:toolbar.index('\n    }',start)]
 source=r'''
 class FormattingGeometryCheck {
- static class View {float y;float getY(){return y;}}
- static class Canvas {float top=Float.NEGATIVE_INFINITY,bottom=Float.POSITIVE_INFINITY;void save(){}void clipRect(float l,float t,float r,float b){top=t;bottom=b;}}
+ static class View {float y;int top,bottom,measuredWidth,measuredHeight;void measure(int w,int h){measuredWidth=w;measuredHeight=h;}float getY(){return y;}void layout(int l,int t,int r,int b){top=t;bottom=b;}}
+ static class Canvas {float top=Float.NEGATIVE_INFINITY,bottom=Float.POSITIVE_INFINITY;void save(){}void clipRect(float l,float t,float r,float b){top=Math.max(top,t);bottom=Math.min(bottom,b);}}
  static class Animator {float height;float getFactor(){return height;}}
  static class Style {boolean active;boolean isActive(){return active;}}
  final View textFieldContainer=new View(),aiButton=new View();View topView=new View();
  final Animator animatorInputFieldHeight=new Animator();final Style nebulaComposerStyle=new Style();
- int height,nebulaFormattingHeight;boolean shownAiButton;int getMeasuredHeight(){return height;}int getMeasuredWidth(){return 360;}
+ int height,nebulaFormattingHeight,paddingTop,paddingBottom;boolean shownAiButton,clipPadding=true;View nebulaFormattingToolbar=new View();int getMeasuredHeight(){return height;}int getMeasuredWidth(){return 360;}
+ int getPaddingLeft(){return 0;}int getPaddingRight(){return 0;}int getPaddingTop(){return paddingTop;}int getPaddingBottom(){return paddingBottom;}
+ void setPadding(int l,int t,int r,int b){paddingTop=t;paddingBottom=b;}void setClipToPadding(boolean value){clipPadding=value;}
+ static class MeasureSpec {static int EXACTLY=0;static int makeMeasureSpec(int value,int mode){return value;}}
+ static int dp(int value){return value;}void measure(){MEASURE}void padding(int formattingHeight){PADDING}void layout(){LAYOUT}
+ void parentClip(Canvas canvas){if(clipPadding&&(paddingTop!=0||paddingBottom!=0))canvas.clipRect(0,paddingTop,360,height-paddingBottom);}
  void draw(View child,Canvas canvas){CLIP}
  static class Rect {int top,bottom;void set(int l,int t,int r,int b){top=t;bottom=b;}}
  final Rect tmpRect=new Rect();int inputBubbleHeightRound,inputAccessoryHeightRound;float inputBubbleOffsetLeft,inputBubbleOffsetRight;
@@ -35,17 +46,27 @@ class FormattingGeometryCheck {
  public static void main(String[] args){int cases=0;
   for(int field:new int[]{44,52,88,176})for(int accessory:new int[]{0,52})for(int reply:new int[]{0,48,96})
   for(boolean ai:new boolean[]{false,true}){
-   FormattingGeometryCheck c=new FormattingGeometryCheck();c.height=field+accessory+reply+1;c.nebulaFormattingHeight=accessory;
-   c.animatorInputFieldHeight.height=field;c.textFieldContainer.y=reply+1;c.aiButton.y=-20;
+   FormattingGeometryCheck c=new FormattingGeometryCheck();c.height=field+accessory+reply+1;c.padding(accessory);c.layout();
+   if(accessory>0){
+    c.measure();check(c.nebulaFormattingToolbar.measuredWidth==344&&c.nebulaFormattingToolbar.measuredHeight==accessory,"accessory overlay has zero measured content");
+    Canvas bar=new Canvas();c.parentClip(bar);
+    check(bar.top<=c.nebulaFormattingToolbar.top&&bar.bottom>=c.nebulaFormattingToolbar.bottom,"FrameLayout clipToPadding hides formatting actions");
+    check(c.nebulaFormattingToolbar.top==0&&c.nebulaFormattingToolbar.bottom==accessory,"formatting toolbar is not above native composer");
+   }
+   c.animatorInputFieldHeight.height=field;c.textFieldContainer.y=reply+accessory+1;c.aiButton.y=-20;
    c.nebulaComposerStyle.active=ai;c.shownAiButton=ai;
-   Canvas canvas=new Canvas();c.draw(c.textFieldContainer,canvas);
-   float fieldTop=c.height-accessory-field,fieldBottom=c.height-accessory;
+   Canvas canvas=new Canvas();c.parentClip(canvas);c.draw(c.textFieldContainer,canvas);
+   float fieldTop=c.height-field,fieldBottom=c.height;
    check(canvas.top<=fieldTop&&canvas.bottom>=fieldBottom,"formatting row clips native text/buttons");
    if(ai)check(canvas.top<=c.textFieldContainer.y-20,"AI accessory clipped");
-   Canvas preview=new Canvas();c.draw(c.topView,preview);check(preview.bottom==fieldTop,"reply separator overlaps composer");
+   Canvas preview=new Canvas();c.parentClip(preview);c.draw(c.topView,preview);check(preview.bottom==fieldTop,"reply separator overlaps composer");
    c.inputBubbleHeightRound=field+reply+accessory;c.inputAccessoryHeightRound=accessory;c.bubble();
    check(c.tmpRect.bottom-c.tmpRect.top==field+reply,"formatting toolbar expands input bubble instead of separate strip");
-   check(c.inputBubbleHeightRound==field+reply+accessory,"accessory lost from chat content reserve");cases++;
+   check(c.inputBubbleHeightRound==field+reply+accessory,"accessory lost from chat content reserve");
+   if(accessory>0){
+    check(c.tmpRect.top==accessory&&c.tmpRect.bottom==field+reply+accessory,"input drawable overlaps the separate top toolbar");
+   }
+   c.padding(0);check(c.paddingTop==0&&c.paddingBottom==0&&c.clipPadding,"keyboard close leaks reserved height or parent clipping");cases++;
   }
   for(float density:new float[]{1,1.5f,2.75f,3.5f}){
    AndroidUtilities.density=density;FormattingGeometryCheck c=new FormattingGeometryCheck();c.button();
@@ -53,10 +74,10 @@ class FormattingGeometryCheck {
   }
   FormattingGeometryCheck poll=new FormattingGeometryCheck();poll.inputBubbleHeightRound=-7;poll.bubble();
   check(poll.tmpRect.bottom==-7,"disabled toolbar changes native poll transition");
-  System.out.println(cases+" native composer clip/bubble cases and fixed-width accessory actions passed");
+  System.out.println(cases+" native composer parent-clip/padding/top-accessory cases and fixed-width accessory actions passed");
  }
 }
-'''.replace('CLIP',clip).replace('BOUNDS',bounds).replace('BUTTON',button)
+'''.replace('CLIP',clip).replace('BOUNDS',bounds).replace('BUTTON',button).replace('PADDING',padding).replace('LAYOUT',layout).replace('MEASURE',measure)
 java_home=Path(os.environ.get('JAVA_HOME','C:/Program Files/Java/jdk-26.0.2'))
 with tempfile.TemporaryDirectory(prefix='nebula-format-geometry-') as directory:
  work=Path(directory);test=work/'FormattingGeometryCheck.java';test.write_text(source,encoding='utf-8')

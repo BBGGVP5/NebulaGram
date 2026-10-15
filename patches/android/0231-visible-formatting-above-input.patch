@@ -1,0 +1,91 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
+@@ -4908,7 +4908,7 @@
+     protected boolean drawChild(Canvas canvas, View child, long drawingTime) {
+         boolean clip = child == topView || child == textFieldContainer;
+         if (clip) {
+-            final float separatorY = getMeasuredHeight() - nebulaFormattingHeight - animatorInputFieldHeight.getFactor();
++            final float separatorY = getMeasuredHeight() - animatorInputFieldHeight.getFactor();
+             canvas.save();
+             if (child == textFieldContainer) {
+                 // The split composer's AI row sits above the native text island.
+@@ -6044,7 +6044,7 @@
+         if (parentFragment != null && isChat) {
+             nebulaFormattingToolbar = new app.nebulagram.ui.NebulaFormattingToolbar(getContext(), messageEditText, this::requestLayout);
+             addView(nebulaFormattingToolbar, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT,
+-                    app.nebulagram.ui.NebulaFormattingToolbar.HEIGHT_DP, Gravity.BOTTOM, 8, 0, 8, 0));
++                    0, Gravity.TOP, 8, 0, 8, 0));
+             nebulaDraftTranslation = new app.nebulagram.ui.NebulaDraftTranslation(parentFragment, messageEditText, this, this::setFieldText);
+             aiButton.setOnLongClickListener(v -> { openNebulaTools(); return true; });
+         }
+@@ -14905,8 +14905,10 @@
+                 nebulaSupported && keyboardVisible && messageEditText != null
+                 && messageEditText.getVisibility() == VISIBLE && messageEditText.isEnabled() && !isPaused);
+         if (nebulaFormattingHeight != formattingHeight) {
+-            setPadding(getPaddingLeft(), getPaddingTop(), getPaddingRight(),
+-                    getPaddingBottom() - nebulaFormattingHeight + formattingHeight);
++            setPadding(getPaddingLeft(), getPaddingTop() - nebulaFormattingHeight + formattingHeight,
++                    getPaddingRight(), getPaddingBottom());
++            // The accessory occupies reserved padding; FrameLayout otherwise clips it away.
++            setClipToPadding(formattingHeight == 0);
+             nebulaFormattingHeight = formattingHeight;
+         }
+         boolean compactBotMenu = nebulaSupported && app.nebulagram.ui.NebulaAppearance.iosComposer()
+@@ -14966,6 +14968,11 @@
+         textFieldContainer.setMinimumHeight(app.nebulagram.ui.NebulaComposerSlots.accessoryHeight(
+                 nebulaComposerStyle.isActive(), shownAiButton, dp(DEFAULT_HEIGHT), dp(4)));
+         super.onMeasure(widthMeasureSpec, heightMeasureSpec);
++        if (nebulaFormattingToolbar != null && nebulaFormattingHeight > 0) {
++            // An overlay must not increase the native field's minimum measured height.
++            nebulaFormattingToolbar.measure(MeasureSpec.makeMeasureSpec(Math.max(0, getMeasuredWidth() - dp(16)), MeasureSpec.EXACTLY),
++                    MeasureSpec.makeMeasureSpec(nebulaFormattingHeight, MeasureSpec.EXACTLY));
++        }
+ 
+         if (botWebViewButton != null) {
+             if (botCommandsMenuButton != null) {
+@@ -15011,8 +15018,8 @@
+         super.onLayout(changed, left, top, right, bottom);
+         nebulaComposerStyle.layout(emojiButton, attachButton, senderSelectView, aiButton, richButton);
+         if (nebulaFormattingToolbar != null && nebulaFormattingHeight > 0) {
+-            nebulaFormattingToolbar.layout(dp(8), getMeasuredHeight() - nebulaFormattingHeight,
+-                    getMeasuredWidth() - dp(8), getMeasuredHeight());
++            nebulaFormattingToolbar.layout(dp(8), 0,
++                    getMeasuredWidth() - dp(8), nebulaFormattingHeight);
+         }
+ 
+ 
+@@ -16065,7 +16072,7 @@
+         final float visibility = animatorTopViewVisibility.getFloatValue();
+ 
+         if (topView != null) {
+-            final float y = getMeasuredHeight() - nebulaFormattingHeight - animatorInputFieldHeight.getFactor();
++            final float y = getMeasuredHeight() - animatorInputFieldHeight.getFactor();
+ 
+             topView.setTranslationY(y - topView.getMeasuredHeight() * visibility);
+             topView.setVisibility(visibility > 0 ? VISIBLE : GONE);
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/chat/ChatInputViewsContainer.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/chat/ChatInputViewsContainer.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Components/chat/ChatInputViewsContainer.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/chat/ChatInputViewsContainer.java
+@@ -211,7 +211,7 @@
+ 
+     private float inputBubbleHeight;
+     private int inputBubbleHeightRound;
+-    // The accessory reserves chat-list space but has its own drawable below the editor.
++    // The accessory reserves chat-list space but has its own drawable above the editor.
+     private int inputAccessoryHeightRound;
+     public void setInputAccessoryHeight(float height) {
+         int value = Math.max(0, Math.round(height));
+@@ -281,10 +281,9 @@
+ 
+         tmpRect.set(
+             Math.round(inputBubbleOffsetLeft),
+-            0,
++            inputAccessoryHeightRound == 0 ? 0 : Math.min(inputAccessoryHeightRound, Math.max(0, inputBubbleHeightRound)),
+             getMeasuredWidth() - Math.round(inputBubbleOffsetRight),
+-            inputAccessoryHeightRound == 0 ? inputBubbleHeightRound
+-                    : Math.max(0, inputBubbleHeightRound - inputAccessoryHeightRound)
++            inputBubbleHeightRound
+         );
+         tmpRect.inset(0, -dp(7));
+         tmpRect.offset(0, blurTop + (int) bubbleInputTranlationY);
