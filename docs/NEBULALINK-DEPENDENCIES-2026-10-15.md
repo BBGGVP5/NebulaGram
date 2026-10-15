@@ -57,3 +57,10 @@ ML Kit language-id 17.0.6, translate 17.0.3, genai-prompt beta4, speech-recognit
 The inventory is `ANDROID-DEPENDENCIES-2026-10-15.json`, including source URLs and unchanged dependencies. Remaining major migrations include AGP 9.4.1 / Kotlin 2.4.21, AndroidX core 1.19.1 (requires compileSdk 37 and AGP >=9.1), Billing 9, Firebase, Google service APIs and Stripe 23. The Telegram application modules still use legacy `applicationVariants` / `variantFilter` DSL; these migrations require adapting code and checking their runtime paths, not suppressing metadata requirements. Native media/crypto submodules remain at the Telegram pins. No claim is made that all technologies have been updated.
 
 Android run 38706584331 found that reCAPTCHA 18.9.x requires minSdk 24. The published AAR manifests confirm all 18.9 releases require 24 and 18.8.0 supports 23; selected 18.8.0 to preserve existing device support. No manifest override is used. The same full compilation found an out-of-scope context variable in the toolbar hook; it now uses the view’s getContext(), covered by a native-callsite SDK compilation check.
+
+
+## Downloaded core artifact receipt
+
+Downloaded `nebulalink.aar` from run 38704456335, SHA-256 `d09668ed29dfdafcef37d446f88115e5d2b2677c1f13020d9f6cea8009057533`. Parsed the real ELF program headers: all four ABIs (armv7, arm64, x86 and x86_64) have 16,384-byte PT_LOAD alignment and matching file/virtual-address page offsets. This verifies the library alignment, not APK ZIP alignment or a device connection.
+
+The repeated core workflow on main, run 38708490245, also passed after the test-bootstrap Go pin update. Latest Android application rebuild: 38709488599 (source c60b2e3); latest full iOS build: 38708491103 (source 1e20168; later changes affect Android only).

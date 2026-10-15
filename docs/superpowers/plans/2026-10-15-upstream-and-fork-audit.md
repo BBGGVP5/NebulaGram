@@ -43,3 +43,8 @@ Run 38691766619 passed the regression suite and reached Java compilation. Telegr
 - Duplicate main-branch build [1000548](https://github.com/BBGGVP5/NebulaGram/actions/runs/38696112595) was still running when this receipt was recorded; it uses the identical runtime commit.
 - iOS already had the latest published 13.0 source. New template code passed bootstrap/Swift checks; full unsigned IPA [118](https://github.com/BBGGVP5/NebulaGram/actions/runs/38694717642) remains in progress. No new IPA is claimed as verified.
 - Physical device acceptance is pending; the user reported the Android phone unavailable.
+
+
+## iOS 118 receipt, completed later on 15 October
+
+Run 38694717642 succeeded. Downloaded `build/ios-ipa-38694717642/NebulaGram-unsigned.ipa`, 91,376,788 bytes, SHA-256 `d03fef40e3e748eed5a2b378ea6eabb1a5138f3f9be9d73e9748b6dd54a9bc48`. The local checksum matches the CI build receipt. Info.plist confirms app.nebulagram / 13.0 / 118, minimum iOS 15.0 and the Speech usage description. Source is cafe1d5: this IPA predates the formatting toolbar and October 15 core refresh. It remains unsigned and has not been tested on an iPhone. IPA 120 is a separate full build for the newer changes.
