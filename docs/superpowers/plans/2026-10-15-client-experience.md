@@ -8,7 +8,7 @@
 
 Execution is inline in the existing workspace. Preserve the dirty Android vendor checkout and work against owned source trees. Each phase must be independently buildable. Check boxes describe verified work, not intentions.
 
-Current checkpoint: the implementation phases below are present on both platforms. Android 1000566 (source `8ab0d13`) compiled and was independently verified; it includes the new accounts, onboarding, message tools, edit history and local pins. Full iOS 121 passed for the preceding accounts/settings batch; the later native build is tracked separately. Presentation masking is the final source batch. Device keyboard, authentication, push, VoiceOver/TalkBack and rendered motion acceptance remain open; the user's phone is unavailable. Earlier checkpoints at the end of this file are historical, not the current feature status.
+Current checkpoint: the implementation phases below are present on both platforms. Android 1000568 (source `63f55b1`) compiled and was independently verified, including final masking and subscription-link protection. Full iOS 121 passed for the preceding accounts/settings batch; later native builds are tracked separately. Final iOS bootstrap 38758977626 passed all 160 contract tests, native patch replay and SDK checks. Device keyboard, authentication, push, VoiceOver/TalkBack and rendered motion acceptance remain open; the user's phone is unavailable. Earlier checkpoints at the end of this file are historical, not the current feature status.
 
 ## 1. Research and acceptance criteria
 
@@ -74,7 +74,7 @@ Files: Android `NebulaIntroFragment`, `NebulaIntroArt`, `NebulaOnboardingLayout`
 
 - [x] Run focused executable checks and all 125 Android regression commands; replay 221 Android / 114 iOS patches. The final focused changes are rechecked separately.
 - [ ] Compile real Android APK and full iOS IPA, inspect failed jobs and fix integration errors.
-- [x] Verify APK version, signature and package; publish through the authorized branch/build workflow. Android 1000566 / run 38750210762 verified. Final privacy batch remains a newer build.
+- [x] Verify APK version, signature and package; publish through the authorized branch/build workflow. Final Android 1000568 / run 38758973567 verified: original certificate, API 23/arm64, 16-KB alignment, Go 1.27.2 and Xray 701af60772cd.
 - [ ] Record exact artifact links and distinguish source checks, full compilation and device QA. Device testing remains pending while the user's phone is unavailable.
 - [ ] Update `docs/USER-CHANGES.md`, fork audit and this checklist with actual completed work and remaining items.
 
@@ -90,7 +90,8 @@ Files: `runtime/xray/go.mod`, `bind/go.mod`, `core/go.mod`, related sums/build s
 
 ## Remaining acceptance (requires the stated environment)
 
-- [ ] Final Android APK and full iOS IPA for the last privacy/link-protection source batch; inspect integration failures, verify receipts and record exact artifacts.
+- [x] Final Android APK 1000568 / 38758973567: full compilation, download and independent receipt verification complete.
+- [ ] Final full iOS IPA for the last privacy/link-protection source batch; inspect integration failures, verify receipt and record exact artifact.
 - [ ] Android/iOS physical UI acceptance: native IME/undo/keyboard, recording, large text/RTL, interrupted folder/header motion and screen-reader output.
 - [ ] Signed physical authentication/push, more than ten real account logins, native VPN consent/connect/reconnect/server switching. Synthetic account/native tests and five binding builds do not replace these checks.
 
