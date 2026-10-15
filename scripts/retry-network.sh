@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Retry only transport failures. Never bypass Go checksum verification or hide compiler errors.
+# Retry only transport failures. Never bypass integrity checks or hide compiler errors.
 retry_network() {
   local attempt status log
   log="$(mktemp)" || return 1
@@ -11,8 +11,8 @@ retry_network() {
     fi
     cat "$log" >&2
     # Integrity and source errors must fail immediately, even if a network phrase is present.
-    if grep -Eqi 'checksum mismatch|SECURITY ERROR|syntax error|undefined:|cannot use .* as' "$log" ||
-       ! grep -Eqi 'stream error:.*INTERNAL_ERROR|unexpected EOF|TLS handshake timeout|i/o timeout|connection reset|connection refused|temporary failure in name resolution|no such host|(^|[ :])(502 Bad Gateway|503 Service Unavailable|504 Gateway Timeout)' "$log" ||
+    if grep -Eqi 'checksum mismatch|SECURITY ERROR|syntax error|undefined:|cannot use .* as|error: cannot find symbol|error: package .* does not exist|Manifest merger failed|uses-sdk:minSdkVersion|requires libraries and applications that depend on it to compile against' "$log" ||
+       ! grep -Eqi 'stream error:.*INTERNAL_ERROR|unexpected EOF|TLS handshake timeout|i/o timeout|connection reset|connection refused|temporary failure in name resolution|no such host|(^|[ :])(429 Too Many Requests|502 Bad Gateway|503 Service Unavailable|504 Gateway Timeout)|Received status code (429|502|503|504) from server' "$log" ||
        [ "$attempt" -eq 3 ]; then
       rm -f -- "$log"; return "$status"
     fi

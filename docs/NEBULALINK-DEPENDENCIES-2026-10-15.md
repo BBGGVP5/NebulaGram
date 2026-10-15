@@ -66,3 +66,7 @@ Downloaded `nebulalink.aar` from run 38704456335, SHA-256 `d09668ed29dfdafcef37d
 The repeated core workflow on main, run 38708490245, also passed after the test-bootstrap Go pin update. Latest Android application rebuild: 38709488599 (source c60b2e3); latest full iOS build: 38708491103 (source 1e20168; later changes affect Android only).
 
 Android run 38709488599 exposed two further integration failures: WebKit 1.17.1 requires API 24, and Guava no longer supplies javax.annotation.Nullable transitively. Audited the published manifests of all selected AARs; WebKit 1.15.0 is the newest stable version supporting API 23 (1.16/1.17 require 24). Patch 0215 migrates the three upstream Nullable imports to the already-declared AndroidX annotations. This preserves nullability without adding an unused legacy JSR-305 dependency. Full rebuild remains required.
+
+## Build feedback improvements
+
+The Android workflow now runs AAR metadata, manifest merging and Java compilation before native assembly. Transport retries recognize Maven 429/502/503/504 responses, while manifest, Java compiler and checksum failures stop immediately even if an earlier log entry mentions a network outage. Eight executable retry scenarios pass. Onboarding tests run production methods with delayed callbacks instead of merely comparing the request-ownership predicate to itself.

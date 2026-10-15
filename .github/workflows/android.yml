@@ -282,16 +282,17 @@ jobs:
           NEBULA_MINIFY: ${{ github.event_name == 'workflow_dispatch' && inputs.minify || 'true' }}
         run: |
           echo "архитектуры: $NEBULA_ABIS"
-          # Maven Central отвечает 429, когда раннеры GitHub стучатся к нему
-          # пачкой. Один повтор дешевле, чем потерянные двадцать минут сборки.
-          for attempt in 1 2; do
-            if ./gradlew --no-daemon -I ../../scripts/check-nano-runtime.init.gradle -PnebulaAbis="$NEBULA_ABIS" -PnebulaMinify="$NEBULA_MINIFY" -PnebulaVersionName="$NEBULA_VERSION" -PnebulaVersionCode="$NEBULA_BUILD_CODE" :TMessagesProj_AppStandalone:verifyNebulaNanoRuntime :TMessagesProj_AppStandalone:assembleAfatStandalone; then
-              exit 0
-            fi
-            echo "::warning::попытка $attempt не удалась, повтор через 60 секунд"
-            sleep 60
-          done
-          exit 1
+          source ../../scripts/retry-network.sh
+          args=(--no-daemon -I ../../scripts/check-nano-runtime.init.gradle
+                -PnebulaAbis="$NEBULA_ABIS" -PnebulaMinify="$NEBULA_MINIFY"
+                -PnebulaVersionName="$NEBULA_VERSION" -PnebulaVersionCode="$NEBULA_BUILD_CODE")
+          # Reject incompatible dependencies and Java APIs before the expensive C++ build.
+          retry_network ./gradlew "${args[@]}" \
+            :TMessagesProj_AppStandalone:verifyNebulaNanoRuntime \
+            :TMessagesProj_AppStandalone:checkAfatStandaloneAarMetadata \
+            :TMessagesProj_AppStandalone:processAfatStandaloneMainManifest \
+            :TMessagesProj:compileStandaloneJavaWithJavac
+          retry_network ./gradlew "${args[@]}" :TMessagesProj_AppStandalone:assembleAfatStandalone
 
       - name: Формирование имени APK
         id: name

@@ -80,9 +80,9 @@ Files: Android `NebulaIntroFragment`, `NebulaIntroArt`, `NebulaOnboardingLayout`
 
 Files: `runtime/xray/go.mod`, `bind/go.mod`, `core/go.mod`, related sums/build scripts, Android and iOS dependency manifests.
 
-- [ ] Inventory exact runtime (Xray-core vs libXray wrapper), Go/toolchain/mobile binding, transport engines, native libraries and UI dependencies; identify latest stable releases from primary sources.
+- [x] Inventory exact runtime (Xray-core vs libXray wrapper), Go/toolchain/mobile binding, transport engines, native libraries and UI dependencies; identify latest stable releases from primary sources.
 - [ ] Update compatible versions in isolated dependency groups and reconcile API changes; retain reproducible pins. Major/toolchain changes require successful target-platform builds, not blanket version replacement.
-- [ ] Run core/bind/runtime tests and race checks where supported; validate subscriptions, malformed configurations, protocol routing, DNS, cancellation and repeated start/stop.
+- [x] Run core/bind/runtime tests and race checks where supported; validate subscriptions, malformed configurations, protocol routing, DNS, cancellation and repeated start/stop.
 - [ ] Build both mobile bindings and full applications; test VPN consent, import, connection, reconnect and server switching on hardware when available.
 - [x] Record before/after versions and release notes; report any blocked or intentionally unadopted upgrade explicitly.
 
@@ -97,4 +97,4 @@ Files: `runtime/xray/go.mod`, `bind/go.mod`, `core/go.mod`, related sums/build s
 - iOS patch 0109 removes count gates from profile, search, logout and deactivation routes using the existing dynamic AccountManager records. Android still has fixed Java/JNI/native registries; its unlimited-account migration is not implemented.
 - Welcome/auth work so far removes field outlines/floating labels, adds explicit clipboard import, preserves keyboard editing and caches illustration resources. The full visual redesign remains open.
 
-- Additional onboarding checks execute the actual request-ownership predicate over 40,800 states and artwork playback over 32 states; Android SDK compilation of the artwork passes. Full native UI verification remains pending.
+- Onboarding regression tests now execute the actual import/list/connect methods with delayed callback delivery: skip, return, retry, duplicate submissions, destruction and editing. Artwork checks exercise attach, empty bounds, repeated layout, hide/resume, reduced motion and detach. Android SDK compilation of the artwork also passes. These are behavioral checks, not a rendered UI acceptance result.

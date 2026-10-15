@@ -34,6 +34,31 @@ count=0
 success() { count=$((count + 1)); return 0; }
 retry_network success
 [ "$count" -eq 1 ]
+count=0
+maven_rate_limit() {
+  count=$((count + 1))
+  if [ "$count" -eq 1 ]; then echo 'Could not GET artifact: Received status code 429 from server: Too Many Requests'; return 12; fi
+}
+retry_network maven_rate_limit
+[ "$count" -eq 2 ]
+count=0
+android_manifest() {
+  count=$((count + 1))
+  echo 'Earlier download: 503 Service Unavailable'
+  echo 'Manifest merger failed : uses-sdk:minSdkVersion 23 cannot be smaller than version 24'
+  return 13
+}
+if retry_network android_manifest; then exit 1; else [ "$?" -eq 13 ]; fi
+[ "$count" -eq 1 ]
+count=0
+java_compile() {
+  count=$((count + 1))
+  echo 'Earlier download: Received status code 429 from server'
+  echo 'WebInstantView.java:62: error: package javax.annotation does not exist'
+  return 14
+}
+if retry_network java_compile; then exit 1; else [ "$?" -eq 14 ]; fi
+[ "$count" -eq 1 ]
 '''.encode())
     subprocess.run([bash,'test.sh'],cwd=temp,check=True)
 script = (root/'scripts/build-core.sh').read_text(encoding='utf-8')
@@ -48,4 +73,4 @@ assert '-checklinkname=0' not in script[script.index('  ios)'):]
 assert 'GOSUMDB=off' not in script and 'GONOSUMDB=*' not in script
 workflow = (root/'.github/workflows/android.yml').read_text(encoding='utf-8')
 assert "go-version-file: 'bind/go.mod'" in workflow
-print('5 retry scenarios passed; pinned Go tooling, bounded retries and checksum enforcement verified')
+print('8 retry scenarios passed; pinned tooling, bounded transport retries and immediate compiler/integrity failures verified')
