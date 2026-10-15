@@ -4,6 +4,7 @@ import Foundation
 public enum NebulaLinkCleanup {
     private static let tracking: Set<String> = ["fbclid", "gclid", "dclid", "msclkid", "yclid", "igshid", "_openstat", "mc_cid", "mc_eid"]
     private static let protected: Set<String> = ["sig", "signature", "token", "access_token", "auth", "authorization", "key", "api_key", "code", "state", "expires", "expiry", "policy", "hmac", "hash", "client_secret", "session_id", "payment_id", "invoice"]
+    private static let protectedPaths: Set<String> = ["sub", "subscription", "subscriptions", "subscribe", "auth", "oauth", "oauth2", "authorize", "login", "callback", "payment", "invoice"]
     private static let expression = try! NSRegularExpression(pattern: "https?://[^\\s<>\"']+", options: .caseInsensitive)
 
     public static func clean(_ text: String) -> String {
@@ -67,6 +68,12 @@ public enum NebulaLinkCleanup {
               let question = value.firstIndex(of: "?") else { return value }
         let hash = value.firstIndex(of: "#") ?? value.endIndex
         guard question < hash else { return value }
+        let lowerHost = host.lowercased()
+        if lowerHost.hasPrefix("sub.") || lowerHost.hasPrefix("subs.") || lowerHost.hasPrefix("subscription.") { return value }
+        guard let path = components.percentEncodedPath.removingPercentEncoding, !path.contains("\u{fffd}") else { return value }
+        for part in path.lowercased().split(separator: "/") {
+            if protectedPaths.contains(String(part)) || opaquePath.firstMatch(in: String(part), range: NSRange(location: 0, length: part.utf16.count)) != nil { return value }
+        }
         let query = String(value[value.index(after: question)..<hash])
         guard !protectedParts(query), hash == value.endIndex || !protectedParts(String(value[value.index(after: hash)...])) else { return value }
         var kept: [String] = []
@@ -79,4 +86,5 @@ public enum NebulaLinkCleanup {
         let rest = kept.joined(separator: "&")
         return String(value[..<question]) + (rest.isEmpty ? "" : "?" + rest) + String(value[hash...])
     }
+    private static let opaquePath = try! NSRegularExpression(pattern: "^(?:[a-f0-9]{32}|[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12})$")
 }

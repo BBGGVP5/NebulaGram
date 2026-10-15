@@ -7,8 +7,9 @@ import java.util.List;
 /**
  * Lazy, process-lifetime controller instances keyed by the existing account ID.
  * Does not allocate account IDs or change authentication/session ownership.
- * Entries deliberately survive logout, just as Telegram's singleton arrays did:
- * controllers must finish their native cleanup before a slot may be reused.
+ * Entries deliberately survive logout, just as Telegram's singleton arrays did,
+ * so queued callbacks can finish cleanup for their original identity. Account
+ * allocation retires IDs permanently; a different login never reuses a handle.
  */
 public final class AccountInstanceRegistry<T> {
     public interface Factory<T> {

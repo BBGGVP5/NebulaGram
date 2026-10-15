@@ -1,0 +1,63 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Cells/DialogCell.java b/TMessagesProj/src/main/java/org/telegram/ui/Cells/DialogCell.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Cells/DialogCell.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Cells/DialogCell.java
+@@ -3807,8 +3807,12 @@
+     @SuppressLint("DrawAllocation")
+     @Override
+     protected void onDraw(Canvas canvas) {
++        final boolean nebulaMask = app.nebulagram.ui.NebulaPresentationPrivacy.enabled();
+         if (app.nebulagram.ui.NebulaChatLocks.protectedChat(currentAccount, currentDialogId)) {
+-            app.nebulagram.ui.NebulaChatLocks.mask(canvas, this);
++            if (nebulaMask) {
++                emojiStatusView.setVisibility(View.INVISIBLE);
++                app.nebulagram.ui.NebulaPresentationPrivacy.draw(canvas, this, isFolderCell());
++            } else app.nebulagram.ui.NebulaChatLocks.mask(canvas, this);
+             return;
+         }
+         if (currentDialogId == 0 && customDialog == null) {
+@@ -4064,6 +4068,9 @@
+             gty += collapseOffset;
+         }
+ 
++        // Keep native swipe/clip transforms and animation advancement outside
++        // this sensitive drawing block; no account/message state is rewritten.
++        if (!nebulaMask) {
+         if (rightFragmentOpenedProgress != 1) {
+             int restoreToCount = -1;
+             if (rightFragmentOpenedProgress != 0) {
+@@ -4815,6 +4822,10 @@
+             int countLeftOld =  (int) (storyParams.originalAvatarRect.left + storyParams.originalAvatarRect.width() - countWidthOld - dp(5f));
+             int countTop = (int) (avatarImage.getImageY() + storyParams.originalAvatarRect.height() - dp(22));
+             drawCounter(canvas, drawCounterMuted, countTop, countLeftLocal, countLeftOld, rightFragmentOpenedProgress, true);
++        }
++
++        } else {
++            app.nebulagram.ui.NebulaPresentationPrivacy.draw(canvas, this, isFolderCell(), cornersRadius);
+         }
+ 
+         if (collapseOffset != 0) {
+@@ -5533,6 +5544,12 @@
+     @Override
+     public void onInitializeAccessibilityNodeInfo(AccessibilityNodeInfo info) {
+         super.onInitializeAccessibilityNodeInfo(info);
++        if (app.nebulagram.ui.NebulaPresentationPrivacy.enabled()) {
++            String label = app.nebulagram.ui.NebulaPresentationPrivacy.label(isFolderCell());
++            info.setText(label); info.setContentDescription(label); info.addAction(AccessibilityNodeInfo.ACTION_CLICK);
++            if (checkBox != null && checkBox.isChecked()) { info.setCheckable(true); info.setChecked(true); }
++            return;
++        }
+         if (app.nebulagram.ui.NebulaChatLocks.protectedChat(currentAccount, currentDialogId)) {
+             info.setContentDescription(app.nebulagram.ui.NebulaText.text("Чат защищён паролем", "Password-protected chat"));
+             info.addAction(AccessibilityNodeInfo.ACTION_CLICK);
+@@ -5557,6 +5574,11 @@
+     @Override
+     public void onPopulateAccessibilityEvent(AccessibilityEvent event) {
+         super.onPopulateAccessibilityEvent(event);
++        if (app.nebulagram.ui.NebulaPresentationPrivacy.enabled()) {
++            String label = app.nebulagram.ui.NebulaPresentationPrivacy.label(isFolderCell());
++            event.getText().clear(); event.getText().add(label); event.setContentDescription(label);
++            return;
++        }
+         if (app.nebulagram.ui.NebulaChatLocks.protectedChat(currentAccount, currentDialogId)) {
+             event.getText().clear();
+             event.getText().add(app.nebulagram.ui.NebulaText.text("Чат защищён паролем", "Password-protected chat"));

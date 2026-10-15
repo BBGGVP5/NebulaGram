@@ -22,14 +22,14 @@ final class NebulaPrivacyController: UITableViewController {
     private var currentTheme: PresentationTheme { context.sharedContext.currentPresentationData.with { $0 }.theme }
     private let archive = NebulaDeletedArchive.shared
     private lazy var hero = NebulaSettingsHero(symbol: "hand.raised",
-        title: text("Локальные копии", "Local copies"),
-        summary: text("Сохраняйте сообщения в чате. Выбирайте значок и очищайте копии, когда нужно.",
-                      "Keep messages in the chat. Choose their marker and clear copies when needed."), context: context, theme: currentTheme)
+        title: text("Конфиденциальность", "Privacy"),
+        summary: text("Показ списков, защита чатов и локальные версии сообщений.",
+                      "List presentation, chat protection and local message versions."), context: context, theme: currentTheme)
     init(context: AccountContext, russian: Bool, mode: Int = 0) {
         self.context = context; self.ru = russian; self.mode = mode
-        self.sections = mode == 1 ? [7, 5] : mode == 2 ? [8] : [0, 9, 1, 2, 3, 6, 4]
+        self.sections = mode == 1 ? [7, 5] : mode == 2 ? [8] : mode == 3 ? [10] : [10, 0, 9, 1, 2, 3, 6, 4]
         super.init(style: .insetGrouped)
-        title = mode == 1 ? (russian ? "Поведение чатов" : "Chat behavior") : mode == 2 ? (russian ? "Истории" : "Stories") : (russian ? "Удалённые сообщения" : "Deleted messages")
+        title = mode == 1 ? (russian ? "Поведение чатов" : "Chat behavior") : mode == 2 ? (russian ? "Истории" : "Stories") : mode == 3 ? (russian ? "Скрыть строки чатов" : "Hide chat rows") : (russian ? "Конфиденциальность" : "Privacy")
     }
     required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
     deinit { operation?.dispose() }
@@ -59,16 +59,17 @@ final class NebulaPrivacyController: UITableViewController {
         hero.fit(in: tableView)
     }
     @objc private func close() { dismiss(animated: true) }
-    override func viewWillAppear(_ animated: Bool) { super.viewWillAppear(animated); hero.setPageVisible(true) }
-    override func viewWillDisappear(_ animated: Bool) { super.viewWillDisappear(animated); hero.setPageVisible(false) }
+    override func viewWillAppear(_ animated: Bool) { super.viewWillAppear(animated); if mode == 0 { hero.setPageVisible(true) } }
+    override func viewWillDisappear(_ animated: Bool) { super.viewWillDisappear(animated); if mode == 0 { hero.setPageVisible(false) } }
     override func numberOfSections(in tableView: UITableView) -> Int { sections.count }
     override func tableView(_ tableView: UITableView, numberOfRowsInSection displaySection: Int) -> Int { let section = sections[displaySection]; return section == 6 ? NebulaRetentionScope.allCases.count : section == 0 || section == 7 || section == 8 ? 3 : (section == 3 ? 2 : 1) }
     override func tableView(_ tableView: UITableView, titleForHeaderInSection displaySection: Int) -> String? {
         let section = sections[displaySection]
-        return [text("Удалённые сообщения", "Deleted messages"), text("Оформление", "Appearance"), text("Локальный кэш", "Local cache"), text("Защита", "Protection"), nil, text("Пересылка", "Forwarding"), text("Где сохранять", "Where to save"), text("Чаты", "Chats"), text("Истории", "Stories"), text("Правки сообщений", "Message edits")][section]
+        return [text("Удалённые сообщения", "Deleted messages"), text("Оформление", "Appearance"), text("Локальный кэш", "Local cache"), text("Защита", "Protection"), nil, text("Пересылка", "Forwarding"), text("Где сохранять", "Where to save"), text("Чаты", "Chats"), text("Истории", "Stories"), text("Правки сообщений", "Message edits"), text("Показ списка", "List presentation")][section]
     }
     override func tableView(_ tableView: UITableView, titleForFooterInSection displaySection: Int) -> String? {
         let section = sections[displaySection]
+        if section == 10 { return text("Скрывает строки главного списка, архива и папок, истории в шапке и имена в экране «Аккаунты» NebulaGram. Открытые переписки, уведомления, другие профили и системные экраны не скрываются. Это оформление, а не блокировка доступа.", "Masks the main list, archive and folder rows, header stories and names in NebulaGram's Accounts screen. Open conversations, notifications, other profiles and system screens are not masked. This changes presentation, not access permissions.") }
         if section == 6 { return text("В «Избранном» сохраняется уже полученное на iPhone, удалённое с другого устройства. Удаление в этом приложении работает как обычно.", "Saved Messages already received on this iPhone are kept when deleted on another device. Deleting in this app works as usual.") }
         if section == 7 { return text("Скрытый архив можно снова открыть из списка чатов. Настройка сохраняется в аккаунте Telegram.", "The hidden archive can still be opened from the chat list. Telegram stores this setting for your account.") }
         if section == 8 { return text("Истории выбранных типов будут скрываться через штатный архив Telegram для этого аккаунта.", "Stories from selected peer types will be hidden using Telegram's native story archive for this account.") }
@@ -97,6 +98,15 @@ final class NebulaPrivacyController: UITableViewController {
         cell.textLabel?.font = .preferredFont(forTextStyle: .body)
         cell.textLabel?.adjustsFontForContentSizeCategory = true
         cell.textLabel?.numberOfLines = 0
+        if indexPath.section == 10 {
+            cell.textLabel?.text = text("Скрыть строки чатов", "Hide chat rows")
+            cell.detailTextLabel?.text = text("Имена, фото и превью в списках", "Names, photos and previews in lists")
+            let toggle = NebulaSwitchControl(); toggle.isOn = NebulaPresentationPrivacy.enabled
+            toggle.addTarget(self, action: #selector(presentationChanged(_:)), for: .valueChanged)
+            cell.accessoryView = toggle; cell.selectionStyle = .none
+            NebulaSettingsHero.style(cell, symbol: "eye.slash")
+            return cell
+        }
         if indexPath.section == 9 {
             cell.textLabel?.text = text("История правок", "Edit history")
             cell.detailTextLabel?.text = text("Предыдущие версии на устройстве", "Previous versions on device")
@@ -208,6 +218,7 @@ final class NebulaPrivacyController: UITableViewController {
     @objc private func forwardEditingChanged(_ toggle: NebulaSwitchControl) {
         NebulaForwardEditing.shared.enabled = toggle.isOn
     }
+    @objc private func presentationChanged(_ toggle: NebulaSwitchControl) { NebulaPresentationPrivacy.setEnabled(toggle.isOn) }
     @objc private func changed(_ toggle: NebulaSwitchControl) {
         let kind = toggle.tag
         if !toggle.isOn { set(kind, false); return }

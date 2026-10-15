@@ -582,5 +582,85 @@
   {
     "input": "https://x.test/?id=99&data=%26a%3Db&msclkid=tracking&extra=",
     "expected": "https://x.test/?id=99&data=%26a%3Db&extra="
+  },
+  {
+    "input": "https://x.test/sub/token?utm_source=x",
+    "expected": "https://x.test/sub/token?utm_source=x"
+  },
+  {
+    "input": "https://x.test/api/subscribe/key?utm_source=x",
+    "expected": "https://x.test/api/subscribe/key?utm_source=x"
+  },
+  {
+    "input": "https://x.test/subscription/key?utm_source=x",
+    "expected": "https://x.test/subscription/key?utm_source=x"
+  },
+  {
+    "input": "https://x.test/api/subscriptions/key?utm_source=x",
+    "expected": "https://x.test/api/subscriptions/key?utm_source=x"
+  },
+  {
+    "input": "https://x.test/api/%73ub/key?utm_source=x",
+    "expected": "https://x.test/api/%73ub/key?utm_source=x"
+  },
+  {
+    "input": "https://sub.x.test/key?utm_source=x",
+    "expected": "https://sub.x.test/key?utm_source=x"
+  },
+  {
+    "input": "https://subs.x.test/key?utm_source=x",
+    "expected": "https://subs.x.test/key?utm_source=x"
+  },
+  {
+    "input": "https://subscription.x.test/key?utm_source=x",
+    "expected": "https://subscription.x.test/key?utm_source=x"
+  },
+  {
+    "input": "https://x.test/oauth/authorize?utm_source=x",
+    "expected": "https://x.test/oauth/authorize?utm_source=x"
+  },
+  {
+    "input": "https://x.test/login?utm_source=x",
+    "expected": "https://x.test/login?utm_source=x"
+  },
+  {
+    "input": "https://x.test/payment/invoice?utm_source=x",
+    "expected": "https://x.test/payment/invoice?utm_source=x"
+  },
+  {
+    "input": "https://x.test/auth/callback?utm_source=x",
+    "expected": "https://x.test/auth/callback?utm_source=x"
+  },
+  {
+    "input": "https://x.test/11111111111111111111111111111111?utm_source=x",
+    "expected": "https://x.test/11111111111111111111111111111111?utm_source=x"
+  },
+  {
+    "input": "https://x.test/12345678-1234-1234-1234-123456789012?utm_source=x",
+    "expected": "https://x.test/12345678-1234-1234-1234-123456789012?utm_source=x"
+  },
+  {
+    "input": "https://x.test/%31%31%31%31%31%31%31%31%31%31%31%31%31%31%31%31%31%31%31%31%31%31%31%31%31%31%31%31%31%31%31%31?utm_source=x",
+    "expected": "https://x.test/%31%31%31%31%31%31%31%31%31%31%31%31%31%31%31%31%31%31%31%31%31%31%31%31%31%31%31%31%31%31%31%31?utm_source=x"
+  },
+  {
+    "input": "https://x.test/%FF/file?utm_source=x",
+    "expected": "https://x.test/%FF/file?utm_source=x"
+  },
+  {
+    "input": "https://x.test/blog/subscription-tips?utm_source=x",
+    "expected": "https://x.test/blog/subscription-tips"
+  },
+  {
+    "input": "https://x.test/oauth-guide?utm_source=x",
+    "expected": "https://x.test/oauth-guide"
+  },
+  {
+    "input": "https://x.test/submarine?utm_source=x",
+    "expected": "https://x.test/submarine"
+  },
+  {
+    "input": "https://x.test/download/11111111111111111111111111111111.png?utm_source=x",
+    "expected": "https://x.test/download/11111111111111111111111111111111.png"
   }
 ]

@@ -747,6 +747,8 @@ public class NebulaSectionFragment extends BaseFragment {
                 .title(NebulaText.text("Истории в списке чатов", "Stories in the chat list"))
                 .subtitle(NebulaText.text("Показывать ленту историй на главной и в архиве", "Show the story strip on home and in the archive"), false)
                 .trailing(NebulaRow.TRAIL_SWITCH).checked(NebulaAppearance.showStories());
+        storyToggle.setEnabled(!NebulaPresentationPrivacy.enabled());
+        if (NebulaPresentationPrivacy.enabled()) storyToggle.subtitle(NebulaText.text("Скрыты при показе списка чатов", "Hidden while chat rows are masked"), false);
         storyToggle.setOnClickListener(v -> NebulaAppearance.setShowStories(storyToggle.toggleChecked()));
         stories.add(storyToggle);
         content.addView(stories, cardParams());

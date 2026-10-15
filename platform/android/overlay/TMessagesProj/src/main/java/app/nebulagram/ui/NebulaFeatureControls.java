@@ -94,6 +94,14 @@ public final class NebulaFeatureControls {
     }
     public static void privacy(BaseFragment host, LinearLayout parent) {
         NebulaCard card = new NebulaCard(parent.getContext());
+        NebulaRow mask = new NebulaRow(parent.getContext()).title(text("Скрыть строки чатов", "Hide chat rows"))
+                .subtitle(text("Имена, фото и превью в списке чатов", "Names, photos and previews in chat rows"), false)
+                .trailing(NebulaRow.TRAIL_SWITCH).checked(NebulaPresentationPrivacy.enabled());
+        mask.withClick(v -> NebulaPresentationPrivacy.setEnabled(mask.toggleChecked()));
+        card.add(mask);
+        add(parent, card);
+        parent.addView(NebulaFormUi.note(parent.getContext(), text("Скрывает строки главного списка, архива и папок, истории в шапке и имена в экране «Аккаунты» NebulaGram. Открытые переписки, уведомления, другие профили и системные экраны не скрываются. Это оформление, а не блокировка доступа.", "Masks the main list, archive and folder rows, header stories and names in NebulaGram's Accounts screen. Open conversations, notifications, other profiles and system screens are not masked. This changes presentation, not access permissions.")));
+        card = new NebulaCard(parent.getContext());
         if (android.os.Build.VERSION.SDK_INT >= 29) card.add(toggle(parent, "biometric_delete", "Подтверждать удаление", "Authenticate before deletion", "Системная биометрия или пароль перед удалением чата и очисткой истории", "System biometrics or passcode before deleting a chat or clearing history"));
         if (android.os.Build.VERSION.SDK_INT >= 30) card.add(NebulaMediaControls.toggle(parent.getContext(), "prefer_device_pin", false, "Предпочитать системный PIN или пароль", "Prefer device PIN or passcode"));
         if (android.os.Build.VERSION.SDK_INT >= 29) card.add(new NebulaRow(parent.getContext()).title(text("Проверить защиту", "Test authentication"))

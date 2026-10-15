@@ -174,7 +174,7 @@ public final class NebulaSettingsStore {
     public var replyColors: Bool { boolean("reply_colors", fallback: true) }
     public var replyEmoji: Bool { boolean("reply_emoji", fallback: true) }
     public var widePosts: Bool { boolean("wide_posts", fallback: false) }
-    public var showStories: Bool { boolean("show_stories", fallback: true) }
+    public var showStories: Bool { NebulaPresentationPrivacy.showStories(preference: boolean("show_stories", fallback: true)) }
     public var settingsSearchHistory: Bool { boolean("settings_search_history", fallback: true) }
     private func boolean(_ key: String, fallback: Bool) -> Bool {
         lock.lock(); defer { lock.unlock() }
@@ -256,4 +256,6 @@ public final class NebulaSettingsStore {
         let token = center.addObserver(forName: changed, object: nil, queue: queue) { _ in callback() }
         return SettingsObservation(center: center, token: token)
     }
+    /// External device-local presentation state; does not change/export preference values.
+    public func refreshPresentation() { center.post(name: changed, object: nil) }
 }

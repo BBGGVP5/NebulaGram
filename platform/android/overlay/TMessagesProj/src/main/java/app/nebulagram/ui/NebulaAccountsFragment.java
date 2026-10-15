@@ -23,8 +23,14 @@ public final class NebulaAccountsFragment extends BaseFragment {
     private EditTextBoldCursor search;
     private NebulaRow ordering;
     private Runnable pendingSearch;
+    private final org.telegram.messenger.NotificationCenter.NotificationCenterDelegate maskChanged = (id, account, args) -> { cancelSearch(); rebuild(); };
     private int order;
     private String t(String ru, String en) { return NebulaText.text(ru, en); }
+    @Override public boolean onFragmentCreate() {
+        super.onFragmentCreate();
+        org.telegram.messenger.NotificationCenter.getInstance(currentAccount).addObserver(maskChanged, org.telegram.messenger.NotificationCenter.dialogsNeedReload);
+        return true;
+    }
 
     @Override public View createView(Context context) {
         NebulaFormUi.bar(this, actionBar, context, t("Аккаунты", "Accounts"));
@@ -75,14 +81,18 @@ public final class NebulaAccountsFragment extends BaseFragment {
             TLRPC.User user = config.getCurrentUser();
             if (user != null) entries.add(new NebulaAccountList.Entry(id, UserObject.getUserName(user), UserObject.getPublicUsername(user), config.loginTime));
         }
-        List<NebulaAccountList.Entry> visible = NebulaAccountList.visible(entries, search.getText().toString(), order);
+        boolean masked = NebulaPresentationPrivacy.enabled();
+        search.setEnabled(!masked);
+        if (masked && search.length() != 0) { search.setText(""); AndroidUtilities.hideKeyboard(search); }
+        List<NebulaAccountList.Entry> visible = NebulaAccountList.visible(entries, masked ? "" : search.getText().toString(), order);
         Context context = results.getContext(); results.removeAllViews();
         results.addView(NebulaCard.header(context, t("Аккаунты · ", "Accounts · ") + visible.size()));
         NebulaCard card = new NebulaCard(context);
+        int aliasPosition = 0;
         for (NebulaAccountList.Entry entry : visible) {
             String subtitle = entry.id == UserConfig.selectedAccount ? t("Текущий аккаунт", "Current account") : "";
-            if (!entry.username.isEmpty()) subtitle += (subtitle.isEmpty() ? "" : " · ") + "@" + entry.username;
-            NebulaRow row = new NebulaRow(context).title(entry.name).subtitle(subtitle, false);
+            if (!masked && !entry.username.isEmpty()) subtitle += (subtitle.isEmpty() ? "" : " · ") + "@" + entry.username;
+            NebulaRow row = new NebulaRow(context).title(masked ? t("Аккаунт ", "Account ") + (++aliasPosition) : entry.name).subtitle(subtitle, false);
             if (entry.id == UserConfig.selectedAccount) row.badge("✓", NebulaTheme.of(context).primary());
             row.withClick(v -> {
                 if (entry.id == UserConfig.selectedAccount || !UserConfig.isValidAccount(entry.id)) return;
@@ -96,5 +106,8 @@ public final class NebulaAccountsFragment extends BaseFragment {
     }
     private void cancelSearch() { if (pendingSearch != null) AndroidUtilities.cancelRunOnUIThread(pendingSearch); pendingSearch = null; }
     @Override public void onResume() { super.onResume(); cancelSearch(); rebuild(); }
-    @Override public void onFragmentDestroy() { cancelSearch(); super.onFragmentDestroy(); }
+    @Override public void onFragmentDestroy() {
+        org.telegram.messenger.NotificationCenter.getInstance(currentAccount).removeObserver(maskChanged, org.telegram.messenger.NotificationCenter.dialogsNeedReload);
+        cancelSearch(); super.onFragmentDestroy();
+    }
 }

@@ -545,9 +545,14 @@ public struct PresentationThemeList {
  public var itemSecondaryTextColor: UIColor = .secondaryLabel
  public init() {}
 }
+public struct PresentationThemeChatList {
+ public var backgroundColor: UIColor = .systemBackground
+ public init() {}
+}
 public final class PresentationTheme {
  public var overallDarkAppearance = false
  public var list = PresentationThemeList()
+ public var chatList = PresentationThemeChatList()
  public init() {}
 }
 ''', encoding='utf-8')
@@ -557,6 +562,18 @@ public final class PresentationTheme {
             subprocess.run(['swiftc', *ios_flags, '-typecheck', '-I', str(temp),
                             str(settings_ui / 'NebulaRoundCameraController.swift')], check=True)
             print('OK: actual recording camera controller typechecked against UIKit at the upstream iOS minimum')
+            asdk_api = temp / 'PrivacyNodeAPI.swift'
+            asdk_api.write_text('''import UIKit
+public class ASDisplayNode: NSObject {
+ public let view = UIView()
+}
+''', encoding='utf-8')
+            subprocess.run(['swiftc', *ios_flags, '-emit-module', '-parse-as-library',
+                            '-module-name', 'AsyncDisplayKit', str(asdk_api),
+                            '-emit-module-path', str(temp / 'AsyncDisplayKit.swiftmodule')], check=True)
+            subprocess.run(['swiftc', *ios_flags, '-typecheck', '-I', str(temp),
+                            str(temp / 'submodules/ChatListUI/Sources/NebulaChatListPrivacy.swift')], check=True)
+            print('OK: actual opaque chat-row mask and observation lifetime typechecked against UIKit')
             # These views have no Telegram module dependency. Typecheck them
             # against UIKit early, including warnings-as-errors, before Bazel.
             zoom_slider = temp / 'submodules/TelegramUI/Components/VideoMessageCameraScreen/Sources/NebulaVideoZoomSlider.swift'

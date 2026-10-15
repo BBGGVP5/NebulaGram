@@ -18,6 +18,9 @@ public final class NebulaLinkCleanup {
     private static final Set<String> PROTECTED = new HashSet<>(Arrays.asList(
             "sig", "signature", "token", "access_token", "auth", "authorization", "key", "api_key", "code", "state",
             "expires", "expiry", "policy", "hmac", "hash", "client_secret", "session_id", "payment_id", "invoice"));
+    private static final Set<String> PROTECTED_PATHS = new HashSet<>(Arrays.asList(
+            "sub", "subscription", "subscriptions", "subscribe", "auth", "oauth", "oauth2", "authorize", "login", "callback", "payment", "invoice"));
+    private static final Pattern OPAQUE_PATH = Pattern.compile("[a-f0-9]{32}|[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}");
     private NebulaLinkCleanup() {}
 
     public static String clean(String text) {
@@ -73,6 +76,15 @@ public final class NebulaLinkCleanup {
             URI parsed = new URI(value);
             String authority = parsed.getRawAuthority();
             if (authority == null || authority.isEmpty() || authority.contains("@")) return value;
+            String host = authority.toLowerCase(Locale.ROOT);
+            if (host.startsWith("sub.") || host.startsWith("subs.") || host.startsWith("subscription.")) return value;
+            String path = parsed.getPath();
+            if (path != null) {
+                if (path.indexOf('\ufffd') >= 0) return value;
+                for (String part : path.toLowerCase(Locale.ROOT).split("/")) {
+                    if (PROTECTED_PATHS.contains(part) || OPAQUE_PATH.matcher(part).matches()) return value;
+                }
+            }
             int hash = value.indexOf('#');
             int question = value.indexOf('?');
             if (question < 0 || hash >= 0 && question > hash) return value;

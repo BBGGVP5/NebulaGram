@@ -90,7 +90,7 @@ public final class NebulaSettingsTransfer {
                 }
                 if (!editor.commit()) throw new IOException();
                 NebulaIcons.setPack(NebulaIcons.pack());
-                NebulaTheme.setMaterialYouEnabled(prefs.getBoolean("material_you", true));
+                NebulaTheme.setMaterialYouEnabled(prefs.getBoolean("material_you", false));
                 NebulaTheme.applyMaterialYou(c); Theme.reloadAllResources(c);
                 notice(f, text("Настройки импортированы. Откройте нужный экран заново.", "Settings imported. Reopen the affected screen."));
             }

@@ -1,0 +1,33 @@
+diff --git a/submodules/ChatListUI/Sources/Node/ChatListItem.swift b/submodules/ChatListUI/Sources/Node/ChatListItem.swift
+--- a/submodules/ChatListUI/Sources/Node/ChatListItem.swift
++++ b/submodules/ChatListUI/Sources/Node/ChatListItem.swift
+@@ -1507,6 +1507,11 @@
+     
+     override public var accessibilityLabel: String? {
+         get {
++            if NebulaPresentationPrivacy.enabled {
++                let ru = self.item?.presentationData.strings.baseLanguageCode.hasPrefix("ru") == true
++                if let item = self.item, case .groupReference = item.content { return ru ? "Архив" : "Archive" }
++                return ru ? "Чат скрыт" : "Chat hidden"
++            }
+             guard let item = self.item else {
+                 return nil
+             }
+@@ -1541,6 +1546,7 @@
+     
+     override public var accessibilityValue: String? {
+         get {
++            if NebulaPresentationPrivacy.enabled { return nil }
+             guard let item = self.item else {
+                 return nil
+             }
+@@ -4111,6 +4117,9 @@
+                     strongSelf.layoutParams = (item, first, last, firstWithHeader, nextIsPinned, nextHasActiveRevealControls, params, countersSize)
+                     strongSelf.nextHasActiveRevealControls = nextHasActiveRevealControls
+                     strongSelf.currentItemHeight = itemHeight
++                    let nebulaArchive: Bool
++                    if case .groupReference = item.content { nebulaArchive = true } else { nebulaArchive = false }
++                    NebulaChatListPrivacy.update(node: strongSelf.contextContainer, size: layout.contentSize, theme: item.presentationData.theme, russian: item.presentationData.strings.baseLanguageCode.hasPrefix("ru"), archive: nebulaArchive)
+                     strongSelf.cachedChatListText = chatListText
+                     strongSelf.cachedChatListSearchResult = chatListSearchResult
+                     strongSelf.cachedChatListQuoteSearchResult = chatListQuoteSearchResult

@@ -264,7 +264,7 @@ public final class NebulaAppearance {
         preferences().edit().putBoolean("settings_search_history", value).apply();
         NebulaSettingsHistory.refresh();
     }
-    public static boolean showStories() { return preferences().getBoolean("show_stories", true); }
+    public static boolean showStories() { return preferences().getBoolean("show_stories", true) && !NebulaPresentationPrivacy.enabled(); }
     public static void setShowStories(boolean value) {
         preferences().edit().putBoolean("show_stories", value).apply();
         for (int account : org.telegram.messenger.UserConfig.getAccountIds()) {

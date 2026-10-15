@@ -50,6 +50,7 @@ public final class NebulaSettingsSearch {
     }
     public static ArrayList<Entry> all() {
         ArrayList<Entry> result = new ArrayList<>();
+        result.add(new Entry(-15, NebulaText.text("Скрыть строки чатов", "Hide chat rows"), NebulaText.text("Имена, фото и превью · показ списка", "Names, photos and previews · list presentation"), R.drawable.msg_secret));
         result.add(new Entry(-32, NebulaText.text("Локальные закрепления", "Local pins"), NebulaText.text("На устройстве · отдельно для папок", "On device · per folder"), R.drawable.msg_pin));
         result.add(new Entry(-33, NebulaText.text("История правок", "Edit history"), NebulaText.text("Предыдущие версии сообщений", "Previous message versions"), R.drawable.msg_edit));
         result.add(new Entry(-29, NebulaText.text("Аккаунты", "Accounts"), NebulaText.text("Поиск, порядок, переключение, добавить аккаунт", "Search, order, switch, add account"), R.drawable.msg_openprofile));

@@ -1,4 +1,5 @@
 import UIKit
+import NebulaSettingsContract
 import AccountContext
 import TelegramCore
 import SwiftSignalKit
@@ -10,6 +11,7 @@ final class NebulaAccountsController: UITableViewController, UISearchResultsUpda
     private var russian: Bool
     private let search = UISearchController(searchResultsController: nil)
     private let accountsDisposable = MetaDisposable()
+    private var privacyObservation: SettingsObservation?
     private var accounts: [AccountWithInfo] = []
     private var visible: [AccountWithInfo] = []
     // Presentation order stays device-local; no account/session data is exported.
@@ -24,7 +26,7 @@ final class NebulaAccountsController: UITableViewController, UISearchResultsUpda
         title = text("Аккаунты", "Accounts")
     }
     required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
-    deinit { accountsDisposable.dispose() }
+    deinit { accountsDisposable.dispose(); privacyObservation?.cancel() }
     private func text(_ ru: String, _ en: String) -> String { russian ? ru : en }
 
     override func viewDidLoad() {
@@ -45,6 +47,7 @@ final class NebulaAccountsController: UITableViewController, UISearchResultsUpda
             self.accounts = value.accounts
             self.rebuild()
         }))
+        privacyObservation = NebulaSettingsStore.shared.observe { [weak self] in self?.rebuild() }
     }
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
@@ -64,6 +67,9 @@ final class NebulaAccountsController: UITableViewController, UISearchResultsUpda
     }
     func updateSearchResults(for searchController: UISearchController) { rebuild() }
     private func rebuild() {
+        let masked = NebulaPresentationPrivacy.enabled
+        search.searchBar.isUserInteractionEnabled = !masked
+        if masked && !(search.searchBar.text ?? "").isEmpty { search.searchBar.text = nil; view.endEditing(true) }
         var query = (search.searchBar.text ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
         if query.hasPrefix("@") { query.removeFirst() }
         visible = accounts.filter { entry in
@@ -108,10 +114,10 @@ final class NebulaAccountsController: UITableViewController, UISearchResultsUpda
             cell.selectionStyle = .none
         } else {
             let entry = visible[path.row]
-            cell.textLabel?.text = entry.peer.compactDisplayTitle
+            cell.textLabel?.text = NebulaPresentationPrivacy.enabled ? NebulaPresentationPrivacy.accountLabel(position: path.row, russian: russian) : entry.peer.compactDisplayTitle
             var details: [String] = []
             if entry.account.id == context.account.id { details.append(text("Текущий аккаунт", "Current account")); cell.accessoryType = .checkmark }
-            if let username = entry.peer.addressName, !username.isEmpty { details.append("@" + username) }
+            if !NebulaPresentationPrivacy.enabled, let username = entry.peer.addressName, !username.isEmpty { details.append("@" + username) }
             cell.detailTextLabel?.text = details.joined(separator: " · ")
         }
         return cell

@@ -8,71 +8,73 @@
 
 Execution is inline in the existing workspace. Preserve the dirty Android vendor checkout and work against owned source trees. Each phase must be independently buildable. Check boxes describe verified work, not intentions.
 
+Current checkpoint: the implementation phases below are present on both platforms. Android 1000566 (source `8ab0d13`) compiled and was independently verified; it includes the new accounts, onboarding, message tools, edit history and local pins. Full iOS 121 passed for the preceding accounts/settings batch; the later native build is tracked separately. Presentation masking is the final source batch. Device keyboard, authentication, push, VoiceOver/TalkBack and rendered motion acceptance remain open; the user's phone is unavailable. Earlier checkpoints at the end of this file are historical, not the current feature status.
+
 ## 1. Research and acceptance criteria
 
 - [x] Compare Swiftgram, Cherrygram, iMe, Ghostgram and TGExtra primary sources with `docs/FORK-FEATURES-2026-10-15.md`; record exact repositories and distinguish existing features, additions and unverified claims.
-- [ ] Formatting: separate toggle, default off; bar between input and keyboard; native bold/italic/mono/quote/spoiler/link/clear; preserve selection, entities, undo, IME and draft ownership; hide during recording and non-text modes.
-- [ ] Folders: one rounded glass strip and sliding selected capsule, compact counters, no rectangular individual tiles; support top/bottom placement, scrolling, RTL, reduced motion, light/dark themes and blur fallback.
+- [x] Define and implement formatting acceptance paths: separate default-off toggle, native entity actions, keyboard accessory layout, recording/non-text visibility and draft ownership. Device IME/undo acceptance is recorded below.
+- [x] Define and implement folder paths: shared rounded material/selected capsule, compact counters, top/bottom placement, RTL, reduced motion, theme and fallback.
 
 ## 2. Formatting toolbar
 
 Files: new Android `NebulaFormattingToolbar.java`; native `ChatActivityEnterView.java` patch; Android `NebulaSectionFragment.java`, `NebulaSettingsSearch.java`; shared `settings/catalog.json`; iOS SettingsUI and native `ChatTextInputPanelNode.swift` integration.
 
 - [x] Implement Android toolbar using `EditTextCaption` formatting actions, not Markdown text rewriting.
-- [ ] Integrate measured keyboard space and lifecycle; preserve reply/edit previews and native recording controls.
+- [x] Integrate measured keyboard space and lifecycle; preserve reply/edit previews and native recording controls. Source/selection checks pass; physical keyboard transitions remain below.
 - [x] Register preference, settings/search entry and platform contract.
 - [x] Implement equivalent native iOS selection actions and accessory layout.
-- [ ] Check empty/collapsed/reversed selection, links, emoji UTF-16 ranges, RTL, keyboard transitions, recording, theme and preference changes.
+- [x] Execute empty/collapsed/reversed selection, links, emoji UTF-16 ranges, theme and preference fixtures (324 Android selection cases); compile production UIKit toolbar against the real SDK. Native keyboard/IME acceptance remains below.
 
 ## 3. Folders and motion
 
 Files: `NebulaFolderGlass.java`, `NebulaFolderTabs.java`, `NebulaTabLens.java`, native `FilterTabsView.java` / `DialogsActivity.java`, iOS folder components.
 
 - [x] Inspect existing glass mode and fix the real visual gaps against the supplied reference; avoid adding a duplicate style.
-- [ ] Reuse shared blur capture and selected capsule; cache render resources and avoid idle animation.
-- [ ] Test interrupted swipe/tap, long labels, unread badges, narrow width, font scale, reorder, detach and system reduce motion.
+- [x] Reuse shared blur capture and selected capsule; cache render resources and avoid idle animation.
+- [x] Execute folder/motion geometry, interruption, reduce-motion and listener lifetime fixtures, including 1,000 recreation cycles. Rendered scroll/swipe acceptance remains below.
 
 ## 4. Accounts without an artificial client cap
 
 Files: Android `UserConfig`, controller singleton holders, account iteration and notifications, native `ConnectionsManager` registry / JNI, iOS account management.
 
-- [ ] Inventory fixed arrays, bitmasks, native special slots, notification IDs and persisted account indices on both platforms.
-- [ ] Design persistent account IDs and a dynamic registry with lazy controller creation; preserve existing account directories and keys.
-- [ ] Migrate fixed arrays and native slots consistently; do not advertise an increased constant as unlimited.
-- [ ] Implement account search/order and explicit resource policy for inactive accounts without silently breaking notifications.
-- [ ] Test more than ten accounts using synthetic identities, restart/removal/reuse, concurrent lookup, notification routing and migration; no real accounts or credentials in fixtures.
+- [x] Inventory fixed arrays, bitmasks, native special slots, notification IDs and persisted account indices on both platforms.
+- [x] Design persistent account IDs and a dynamic registry with lazy controller creation; preserve existing account directories and keys.
+- [x] Migrate fixed arrays and native slots consistently, including the AppStandalone SMS manager; remove the UI gate after catalog/iteration migration.
+- [x] Implement account search/order and explicit resource policy: native notification behavior retained, controller handles kept for process lifetime, retired IDs never reassigned.
+- [x] Test 128/256 synthetic identities, restart/removal, failed allocation, concurrent lookup, notification routing and migration; no real credentials in fixtures. Full Android compilation passed; real login/push acceptance remains below.
 
 ## 5. Settings structure and performance
 
 Files: Android `NebulaSettingsFragment`, `NebulaSettingsHubFragment`, `NebulaSettingsSearch`, `NebulaSectionFragment`; iOS `NebulaSettingsController`, `NebulaSettingsSearch`; shared settings contract.
 
 - [x] Organize into Appearance, Chats and composer, AI and audio, Navigation and folders, Accounts, Privacy, Connection and About; retain legacy deep links while grouping the visible routes.
-- [ ] Add direct access to frequently used options, searchable labels and current-value summaries; preserve deep links and exported settings.
+- [x] Add direct access to frequently used options, searchable labels and current-value summaries; preserve deep links and exported settings. Android's shared dispatcher executes 38 destinations.
 - [x] Debounce search, cancel pending work on detach and avoid rebuilding unchanged results / stale theme caches.
-- [ ] Test preference round trips, migration, dependencies, live updates, search/deep links, accessibility and locale changes.
+- [x] Execute preference/route, migration, dependency, live refresh, search and cache fixtures. Full screen-reader/locale layout acceptance remains below.
 
 ## 6. Welcome, NebulaLink and authorization redesign
 
 Files: Android `NebulaIntroFragment`, `NebulaIntroArt`, `NebulaOnboardingLayout`, `NebulaConnectFragment`, `NebulaLoginStyle`, `NebulaAuthArt`; iOS AuthorizationUI `NebulaWelcomeController`, matching native phone/code/password presentation adapters.
 
-- [ ] Create common visual language: calm rounded surfaces, clear typography and generous spacing; remove leftover outlined Material controls, floating labels and floating action buttons in styled flows.
-- [ ] Recompose welcome illustrations around real product actions, consistent drawing style and theme-aware contrast; reuse code-native art instead of loading large decorative bitmaps.
-- [ ] Redesign NebulaLink import/connect with explicit optional skip, clipboard import, server state, errors/retry and a stable primary action.
-- [ ] Redesign phone/country, confirmation, code/resend and password/recovery while preserving native validation, timers, autofill and authentication requests.
-- [ ] Respect keyboard/safe areas, small screens, landscape, large text and reduce motion; never hide the keyboard merely because a phone-length guess was reached.
-- [ ] Port visual changes to iOS using native layout and interactions, not Android-specific widgets.
+- [x] Implement the common rounded surfaces, typography and spacing; remove outlined/floating Material presentation in the styled flows while retaining native validation controls.
+- [x] Recompose theme-aware product scenes in code; remove the 1.25 MB decorative bitmap.
+- [x] Redesign NebulaLink import/connect with explicit optional skip, clipboard import, server state, errors/retry and a stable primary action.
+- [x] Redesign phone/country, confirmation, code/resend and password/recovery presentation while preserving native validation, timers, autofill and authentication requests.
+- [x] Implement measured safe areas, keyboard bounds, scalable artwork/type and reduce motion; retain the keyboard while editing. Production request/artwork checks and 488 confirmation cases pass; rendered acceptance remains below.
+- [x] Port visual changes to native iOS layout/interactions; compile three production presentation components with xtool/SDK 27.2 and package the unsigned onboarding probe.
 
 ## 7. Additional fork features
 
-- [ ] Use the audit to implement missing message/file details, explicit link cleanup, edit-history storage, local pins and privacy presentation as separate tested units; keep already implemented local translation, templates, filters and mention controls.
-- [ ] Assess encrypted local session backup separately: document keychain/keystore and logout semantics before exposing any export or restore UI. Do not copy authorization data into ordinary settings backups.
-- [ ] Keep per-feature switches and precise descriptions; client-only features must work without a fabricated server Premium status.
+- [x] Implement message/file details, explicit link cleanup, edit-history storage, local pins and chat-list privacy presentation as separate tested units; keep existing local translation/templates/filters/mention controls. Native builds for the final batch are tracked below.
+- [x] Assess encrypted session backup separately in `docs/SESSION-BACKUP-ASSESSMENT-2026-10-15.md`: native key boundaries, reinstall/logout/revocation and device tests. No session-export UI or authorization data in ordinary settings backups.
+- [x] Keep per-feature switches and precise descriptions, including privacy scope and history/pin limits; no fabricated server Premium status.
 
 ## 8. Verification and delivery
 
-- [ ] Run focused executable regression tests for each phase and full ordered patch replay on pinned upstream sources.
+- [x] Run focused executable checks and all 125 Android regression commands; replay 221 Android / 114 iOS patches. The final focused changes are rechecked separately.
 - [ ] Compile real Android APK and full iOS IPA, inspect failed jobs and fix integration errors.
-- [x] Verify APK version, signature and package; publish through the existing authorized branch/build workflow. Android 1000554 / run 38713620156 verified.
+- [x] Verify APK version, signature and package; publish through the authorized branch/build workflow. Android 1000566 / run 38750210762 verified. Final privacy batch remains a newer build.
 - [ ] Record exact artifact links and distinguish source checks, full compilation and device QA. Device testing remains pending while the user's phone is unavailable.
 - [ ] Update `docs/USER-CHANGES.md`, fork audit and this checklist with actual completed work and remaining items.
 
@@ -81,10 +83,16 @@ Files: Android `NebulaIntroFragment`, `NebulaIntroArt`, `NebulaOnboardingLayout`
 Files: `runtime/xray/go.mod`, `bind/go.mod`, `core/go.mod`, related sums/build scripts, Android and iOS dependency manifests.
 
 - [x] Inventory exact runtime (Xray-core vs libXray wrapper), Go/toolchain/mobile binding, transport engines, native libraries and UI dependencies; identify latest stable releases from primary sources.
-- [ ] Update compatible versions in isolated dependency groups and reconcile API changes; retain reproducible pins. Major/toolchain changes require successful target-platform builds, not blanket version replacement.
+- [x] Update compatible dependency groups and reconcile APIs with reproducible pins. Sixteen Android library updates and core/mobile bindings passed; incompatible major/payment/push/toolchain changes are explicitly listed in the dependency assessment rather than silently bumped.
 - [x] Run core/bind/runtime tests and race checks where supported; validate subscriptions, malformed configurations, protocol routing, DNS, cancellation and repeated start/stop.
 - [ ] Build both mobile bindings and full applications; test VPN consent, import, connection, reconnect and server switching on hardware when available.
 - [x] Record before/after versions and release notes; report any blocked or intentionally unadopted upgrade explicitly.
+
+## Remaining acceptance (requires the stated environment)
+
+- [ ] Final Android APK and full iOS IPA for the last privacy/link-protection source batch; inspect integration failures, verify receipts and record exact artifacts.
+- [ ] Android/iOS physical UI acceptance: native IME/undo/keyboard, recording, large text/RTL, interrupted folder/header motion and screen-reader output.
+- [ ] Signed physical authentication/push, more than ten real account logins, native VPN consent/connect/reconnect/server switching. Synthetic account/native tests and five binding builds do not replace these checks.
 
 
 ## Checkpoint: 15 October, commits 0d88126 / c987ee0 and following batch

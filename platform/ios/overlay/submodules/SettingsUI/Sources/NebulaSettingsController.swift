@@ -79,7 +79,7 @@ private enum NebulaSettingsEntry: ItemListNodeEntry {
         switch self {
         case .introduction: return -2
         case .search, .empty: return -1
-        case let .category(index, _, _, _): return index == 34 ? 3 : index == 33 ? 2 : index == 30 || index == 31 ? 0 : index == 27 || index == 28 ? 2 : index == 26 ? 0 : index == 25 ? 4 : index == 23 ? 7 : index == 24 ? 5 : index == 22 ? 9 : index == 19 ? 0 : index == 20 ? 9 : index == 21 ? 5 : index == 18 ? 12 : index == 17 ? 8 : index == 10 || index == 12 || index == 16 ? 9 : index == 11 ? 10 : index >= 13 ? 1 : 0
+        case let .category(index, _, _, _): return index == 35 ? 3 : index == 34 ? 3 : index == 33 ? 2 : index == 30 || index == 31 ? 0 : index == 27 || index == 28 ? 2 : index == 26 ? 0 : index == 25 ? 4 : index == 23 ? 7 : index == 24 ? 5 : index == 22 ? 9 : index == 19 ? 0 : index == 20 ? 9 : index == 21 ? 5 : index == 18 ? 12 : index == 17 ? 8 : index == 10 || index == 12 || index == 16 ? 9 : index == 11 ? 10 : index >= 13 ? 1 : 0
         case .toolsHeader, .link, .ai, .buildInfo, .memory, .support, .community: return 0
         case let .chatHeader(section, _): return Int32(section)
         case .widePosts: return 9
@@ -101,7 +101,7 @@ private enum NebulaSettingsEntry: ItemListNodeEntry {
     private var order: Int {
         switch self {
         case .introduction: return -3
-        case let .category(index, _, _, _): return index == 34 ? 115 : index == 33 ? 95 : index == 30 ? 35 : index == 7 ? 45 : index == 31 ? 48 : index == 8 ? 35 : index * 10
+        case let .category(index, _, _, _): return index == 35 ? 110 : index == 34 ? 115 : index == 33 ? 95 : index == 30 ? 35 : index == 7 ? 45 : index == 31 ? 48 : index == 8 ? 35 : index * 10
         case .search: return -2
         case .empty: return -1
         case .toolsHeader: return 0
@@ -407,6 +407,7 @@ public func nebulaSettingsController(context: AccountContext, page: Int = 0, sea
             .toolsHeader(ru ? "Основное" : "Essentials"),
             .appearanceHeader(ru ? "Интерфейс" : "Interface"),
             .privacyHeader(ru ? "Конфиденциальность" : "Privacy"),
+            .category(35, ru ? "Скрыть строки чатов" : "Hide chat rows", ru ? "Имена, фото и превью · показ списка" : "Names, photos and previews · list presentation", "eye.slash"),
             .header(ru ? "Папки чатов" : "Chat folders"),
             .folderStyle(ru ? "Стиль папок" : "Folder style", folderModes[max(0, min(2, store.folderStyle))]),
             .category(33, ru ? "Локальные закрепления" : "Local pins", ru ? "Только на этом устройстве" : "Only on this device", "pin"),
@@ -424,7 +425,7 @@ public func nebulaSettingsController(context: AccountContext, page: Int = 0, sea
             .community("NebulaHub", community.peer, community.count),
             .privacy(ru ? "Конфиденциальность" : "Privacy"),
             .widePosts(ru ? "Широкие посты в каналах" : "Wide posts in channels", store.widePosts, !store.hasLoadError),
-            .stories(ru ? "Показывать истории" : "Show stories", store.showStories, !store.hasLoadError),
+            .stories(ru ? "Показывать истории" : "Show stories", store.showStories, !store.hasLoadError && !NebulaPresentationPrivacy.enabled),
             .history(ru ? "История поиска настроек" : "Settings search history", store.settingsSearchHistory, !store.hasLoadError),
             .clearHistory(ru ? "Очистить историю поиска настроек" : "Clear settings search history"),
             .glass(ru ? "Адаптивное стекло" : "Adaptive glass", modes[max(0, min(2, store.glassQuality))]),
@@ -626,6 +627,11 @@ public func nebulaSettingsController(context: AccountContext, page: Int = 0, sea
     transfer.host = controller
     arguments.openCategory = { [weak controller] index in
         guard let controller else { return }
+        if index == 35 {
+            let ru = context.sharedContext.currentPresentationData.with { $0 }.strings.baseLanguageCode.hasPrefix("ru")
+            controller.present(UINavigationController(rootViewController: NebulaPrivacyController(context: context, russian: ru, mode: 3)), animated: true)
+            return
+        }
         if index == 34 {
             let ru = context.sharedContext.currentPresentationData.with { $0 }.strings.baseLanguageCode.hasPrefix("ru")
             controller.present(UINavigationController(rootViewController: NebulaEditHistoryController(context: context, russian: ru)), animated: true)
