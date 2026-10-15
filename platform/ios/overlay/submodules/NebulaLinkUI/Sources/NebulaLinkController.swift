@@ -35,7 +35,9 @@ public final class NebulaLinkController: UITableViewController, UITextFieldDeleg
     public override func viewDidLoad() {
         super.viewDidLoad()
         title = "NebulaLink"
-        navigationItem.leftBarButtonItem = UIBarButtonItem(barButtonSystemItem: .close, target: self, action: #selector(close))
+        navigationItem.leftBarButtonItem = continueAction == nil
+            ? UIBarButtonItem(barButtonSystemItem: .close, target: self, action: #selector(close))
+            : UIBarButtonItem(title: text("Пропустить", "Skip"), style: .plain, target: self, action: #selector(close))
         input.placeholder = text("Подписка или ключ сервера", "Subscription or server key")
         input.autocapitalizationType = .none
         input.autocorrectionType = .no
@@ -57,6 +59,24 @@ public final class NebulaLinkController: UITableViewController, UITextFieldDeleg
         tableView.estimatedRowHeight = 60
         header.axis = .vertical; header.spacing = 0
         if let introduction { header.addArrangedSubview(introduction) }
+        if continueAction != nil {
+            let optional = UILabel()
+            optional.text = text("Необязательный шаг · подключение можно настроить позже", "Optional step · set up a connection later")
+            optional.font = .preferredFont(forTextStyle: .footnote)
+            optional.adjustsFontForContentSizeCategory = true
+            optional.numberOfLines = 0
+            optional.textColor = .secondaryLabel
+            optional.translatesAutoresizingMaskIntoConstraints = false
+            let container = UIView()
+            container.addSubview(optional)
+            NSLayoutConstraint.activate([
+                optional.leadingAnchor.constraint(equalTo: container.leadingAnchor, constant: 20),
+                optional.trailingAnchor.constraint(equalTo: container.trailingAnchor, constant: -20),
+                optional.topAnchor.constraint(equalTo: container.topAnchor, constant: 8),
+                optional.bottomAnchor.constraint(equalTo: container.bottomAnchor, constant: -4)
+            ])
+            header.addArrangedSubview(container)
+        }
         header.addArrangedSubview(overview)
         tableView.tableHeaderView = header
         overview.onAction = { [weak self] in

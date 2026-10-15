@@ -1,0 +1,85 @@
+diff --git a/submodules/AuthorizationUI/Sources/AuthorizationSequencePhoneEntryControllerNode.swift b/submodules/AuthorizationUI/Sources/AuthorizationSequencePhoneEntryControllerNode.swift
+--- a/submodules/AuthorizationUI/Sources/AuthorizationSequencePhoneEntryControllerNode.swift
++++ b/submodules/AuthorizationUI/Sources/AuthorizationSequencePhoneEntryControllerNode.swift
+@@ -388,7 +388,7 @@
+         self.titleNode = ASTextNode()
+         self.titleNode.isUserInteractionEnabled = true
+         self.titleNode.displaysAsynchronously = false
+-        self.titleNode.attributedText = NSAttributedString(string: account == nil ? strings.Login_NewNumber : (NebulaSettingsStore.shared.loginStyle ? NebulaAuthCopy(strings.baseLanguageCode).phone : strings.Login_PhoneTitle), font: Font.light(30.0), textColor: NebulaSettingsStore.shared.loginStyle ? theme.list.itemAccentColor : theme.list.itemPrimaryTextColor)
++        self.titleNode.attributedText = NSAttributedString(string: account == nil ? strings.Login_NewNumber : (NebulaSettingsStore.shared.loginStyle ? NebulaAuthCopy(strings.baseLanguageCode).phone : strings.Login_PhoneTitle), font: NebulaSettingsStore.shared.loginStyle ? NebulaAuthTypography.title() : Font.light(30.0), textColor: theme.list.itemPrimaryTextColor)
+         
+         self.titleActivateAreaNode = AccessibilityAreaNode()
+         self.titleActivateAreaNode.accessibilityTraits = .staticText
+@@ -596,7 +596,7 @@
+         let titleInset: CGFloat = layout.size.width > 320.0 ? 18.0 : 0.0
+         let additionalBottomInset: CGFloat = layout.size.width > 320.0 ? 80.0 : 10.0
+         
+-        self.titleNode.attributedText = NSAttributedString(string: self.account == nil ? self.strings.Login_NewNumber : (self.nebulaStyleEnabled ? NebulaAuthCopy(self.strings.baseLanguageCode).phone : self.strings.Login_PhoneTitle), font: Font.bold(28.0), textColor: self.nebulaStyleEnabled ? self.theme.list.itemAccentColor : self.theme.list.itemPrimaryTextColor)
++        self.titleNode.attributedText = NSAttributedString(string: self.account == nil ? self.strings.Login_NewNumber : (self.nebulaStyleEnabled ? NebulaAuthCopy(self.strings.baseLanguageCode).phone : self.strings.Login_PhoneTitle), font: self.nebulaStyleEnabled ? NebulaAuthTypography.title() : Font.bold(28.0), textColor: self.theme.list.itemPrimaryTextColor)
+         self.titleActivateAreaNode.accessibilityLabel = self.titleNode.attributedText?.string ?? ""
+         
+         let inset: CGFloat = 24.0
+diff --git a/submodules/AuthorizationUI/Sources/AuthorizationSequenceCodeEntryControllerNode.swift b/submodules/AuthorizationUI/Sources/AuthorizationSequenceCodeEntryControllerNode.swift
+--- a/submodules/AuthorizationUI/Sources/AuthorizationSequenceCodeEntryControllerNode.swift
++++ b/submodules/AuthorizationUI/Sources/AuthorizationSequenceCodeEntryControllerNode.swift
+@@ -538,14 +538,14 @@
+         if let codeType = self.codeType {
+             switch codeType {
+             case .missedCall:
+-                self.titleNode.attributedText = NSAttributedString(string: self.strings.Login_EnterMissingDigits, font: Font.semibold(28.0), textColor: self.nebulaStyleEnabled ? self.theme.list.itemAccentColor : self.theme.list.itemPrimaryTextColor)
++                self.titleNode.attributedText = NSAttributedString(string: self.strings.Login_EnterMissingDigits, font: self.nebulaStyleEnabled ? NebulaAuthTypography.title() : Font.semibold(28.0), textColor: self.theme.list.itemPrimaryTextColor)
+             case .email:
+-                self.titleNode.attributedText = NSAttributedString(string: self.strings.Login_EnterCodeEmailTitle, font: Font.semibold(28.0), textColor: self.nebulaStyleEnabled ? self.theme.list.itemAccentColor : self.theme.list.itemPrimaryTextColor)
++                self.titleNode.attributedText = NSAttributedString(string: self.strings.Login_EnterCodeEmailTitle, font: self.nebulaStyleEnabled ? NebulaAuthTypography.title() : Font.semibold(28.0), textColor: self.theme.list.itemPrimaryTextColor)
+                 animationName = "IntroLetter"
+             case .sms:
+-                self.titleNode.attributedText = NSAttributedString(string: self.strings.Login_EnterCodeSMSTitle, font: Font.semibold(28.0), textColor: self.nebulaStyleEnabled ? self.theme.list.itemAccentColor : self.theme.list.itemPrimaryTextColor)
++                self.titleNode.attributedText = NSAttributedString(string: self.strings.Login_EnterCodeSMSTitle, font: self.nebulaStyleEnabled ? NebulaAuthTypography.title() : Font.semibold(28.0), textColor: self.theme.list.itemPrimaryTextColor)
+             case .fragment:
+-                self.titleNode.attributedText = NSAttributedString(string: self.strings.Login_EnterCodeFragmentTitle, font: Font.semibold(28.0), textColor: self.nebulaStyleEnabled ? self.theme.list.itemAccentColor : self.theme.list.itemPrimaryTextColor)
++                self.titleNode.attributedText = NSAttributedString(string: self.strings.Login_EnterCodeFragmentTitle, font: self.nebulaStyleEnabled ? NebulaAuthTypography.title() : Font.semibold(28.0), textColor: self.theme.list.itemPrimaryTextColor)
+                
+                 self.proceedNode.title = self.strings.Login_OpenFragment
+                 self.proceedNode.updateTheme(SolidRoundedButtonTheme(backgroundColor: UIColor(rgb: 0x37475a), foregroundColor: .white))
+@@ -555,16 +555,16 @@
+                 animationPlaybackMode = .count(3)
+                 self.proceedNode.animation = "anim_fragment"
+             case .word:
+-                self.titleNode.attributedText = NSAttributedString(string: self.strings.Login_EnterWordTitle, font: Font.semibold(28.0), textColor: self.nebulaStyleEnabled ? self.theme.list.itemAccentColor : self.theme.list.itemPrimaryTextColor)
++                self.titleNode.attributedText = NSAttributedString(string: self.strings.Login_EnterWordTitle, font: self.nebulaStyleEnabled ? NebulaAuthTypography.title() : Font.semibold(28.0), textColor: self.theme.list.itemPrimaryTextColor)
+                 textFieldPlaceholder = self.strings.Login_EnterWordPlaceholder
+             case .phrase:
+-                self.titleNode.attributedText = NSAttributedString(string: self.strings.Login_EnterPhraseTitle, font: Font.semibold(28.0), textColor: self.nebulaStyleEnabled ? self.theme.list.itemAccentColor : self.theme.list.itemPrimaryTextColor)
++                self.titleNode.attributedText = NSAttributedString(string: self.strings.Login_EnterPhraseTitle, font: self.nebulaStyleEnabled ? NebulaAuthTypography.title() : Font.semibold(28.0), textColor: self.theme.list.itemPrimaryTextColor)
+                 textFieldPlaceholder = self.strings.Login_EnterPhrasePlaceholder
+             default:
+-                self.titleNode.attributedText = NSAttributedString(string: self.strings.Login_EnterCodeTelegramTitle, font: Font.semibold(28.0), textColor: self.nebulaStyleEnabled ? self.theme.list.itemAccentColor : self.theme.list.itemPrimaryTextColor)
++                self.titleNode.attributedText = NSAttributedString(string: self.strings.Login_EnterCodeTelegramTitle, font: self.nebulaStyleEnabled ? NebulaAuthTypography.title() : Font.semibold(28.0), textColor: self.theme.list.itemPrimaryTextColor)
+             }
+         } else {
+-            self.titleNode.attributedText = NSAttributedString(string: self.strings.Login_EnterCodeTelegramTitle, font: Font.semibold(40.0), textColor: self.nebulaStyleEnabled ? self.theme.list.itemAccentColor : self.theme.list.itemPrimaryTextColor)
++            self.titleNode.attributedText = NSAttributedString(string: self.strings.Login_EnterCodeTelegramTitle, font: self.nebulaStyleEnabled ? NebulaAuthTypography.title() : Font.semibold(40.0), textColor: self.theme.list.itemPrimaryTextColor)
+         }
+         
+         self.textField.textField.attributedPlaceholder = NSAttributedString(string: textFieldPlaceholder, font: Font.regular(20.0), textColor: self.theme.list.itemPlaceholderTextColor)
+diff --git a/submodules/AuthorizationUI/Sources/AuthorizationSequencePasswordEntryControllerNode.swift b/submodules/AuthorizationUI/Sources/AuthorizationSequencePasswordEntryControllerNode.swift
+--- a/submodules/AuthorizationUI/Sources/AuthorizationSequencePasswordEntryControllerNode.swift
++++ b/submodules/AuthorizationUI/Sources/AuthorizationSequencePasswordEntryControllerNode.swift
+@@ -76,7 +76,7 @@
+         self.titleNode = ASTextNode()
+         self.titleNode.isUserInteractionEnabled = false
+         self.titleNode.displaysAsynchronously = false
+-        self.titleNode.attributedText = NSAttributedString(string: NebulaSettingsStore.shared.loginStyle ? NebulaAuthCopy(strings.baseLanguageCode).password : strings.LoginPassword_Title, font: Font.semibold(28.0), textColor: self.nebulaStyleEnabled ? self.theme.list.itemAccentColor : self.theme.list.itemPrimaryTextColor)
++        self.titleNode.attributedText = NSAttributedString(string: NebulaSettingsStore.shared.loginStyle ? NebulaAuthCopy(strings.baseLanguageCode).password : strings.LoginPassword_Title, font: self.nebulaStyleEnabled ? NebulaAuthTypography.title() : Font.semibold(28.0), textColor: self.theme.list.itemPrimaryTextColor)
+         
+         self.titleActivateAreaNode = AccessibilityAreaNode()
+         self.titleActivateAreaNode.accessibilityTraits = .staticText
+@@ -196,7 +196,7 @@
+         let titleInset: CGFloat = layout.size.width > 320.0 ? 18.0 : 0.0
+         let additionalBottomInset: CGFloat = layout.size.width > 320.0 ? 110.0 : 20.0
+         
+-        self.titleNode.attributedText = NSAttributedString(string: self.nebulaStyleEnabled ? NebulaAuthCopy(self.strings.baseLanguageCode).password : self.strings.LoginPassword_Title, font: Font.semibold(28.0), textColor: self.nebulaStyleEnabled ? self.theme.list.itemAccentColor : self.theme.list.itemPrimaryTextColor)
++        self.titleNode.attributedText = NSAttributedString(string: self.nebulaStyleEnabled ? NebulaAuthCopy(self.strings.baseLanguageCode).password : self.strings.LoginPassword_Title, font: self.nebulaStyleEnabled ? NebulaAuthTypography.title() : Font.semibold(28.0), textColor: self.theme.list.itemPrimaryTextColor)
+         
+         let animationSize = CGSize(width: 100.0, height: 100.0)
+         let titleSize = self.titleNode.measure(CGSize(width: maximumWidth, height: CGFloat.greatestFiniteMagnitude))

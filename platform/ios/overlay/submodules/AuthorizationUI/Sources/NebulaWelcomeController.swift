@@ -43,7 +43,7 @@ final class NebulaWelcomeController: UIViewController {
         scroll.alwaysBounceVertical = false
         for label in [titleLabel, subtitleLabel] {
             label.numberOfLines = 0
-            label.textAlignment = .center
+            label.textAlignment = .natural
             label.textColor = textColor
             label.adjustsFontForContentSizeCategory = true
             scroll.addSubview(label)
@@ -87,7 +87,7 @@ final class NebulaWelcomeController: UIViewController {
         languageButton.isHidden = page != 0
         skipButton.isHidden = page == 0 || page == 4
         previousButton.isHidden = page == 0
-        art.setPage(page)
+        art.setPage(page, language: selectedLanguage)
         progress.setCurrent(page)
         languageChanged?(selectedLanguage)
         pageChanged?(page, selectedLanguage)
@@ -168,15 +168,15 @@ final class NebulaWelcomeController: UIViewController {
         titleLabel.font = UIFontMetrics(forTextStyle: .largeTitle).scaledFont(for: .systemFont(ofSize: 32, weight: .bold))
         subtitleLabel.font = .preferredFont(forTextStyle: .body)
         let artWidth = min(320, view.bounds.width - 40)
-        art.frame = CGRect(x: (view.bounds.width - artWidth) / 2, y: 10,
-                           width: artWidth, height: 250)
-        var y: CGFloat = art.frame.maxY + 24
+        var y: CGFloat = 12
         for label in [titleLabel, subtitleLabel] {
             let height = label.sizeThatFits(CGSize(width: width, height: .greatestFiniteMagnitude)).height
             label.frame = CGRect(x: x, y: y, width: width, height: height)
             y += height + 20
         }
-        scroll.contentSize = CGSize(width: view.bounds.width, height: y)
+        art.frame = CGRect(x: (view.bounds.width - artWidth) / 2, y: y + 4,
+                           width: artWidth, height: artWidth * 250 / 320)
+        scroll.contentSize = CGSize(width: view.bounds.width, height: art.frame.maxY + 20)
     }
     func animateIn() {
         guard !UIAccessibility.isReduceMotionEnabled else { return }
@@ -203,6 +203,8 @@ private final class NebulaWelcomeSceneView: UIView {
     private let cyan = UIColor(red: 0.24, green: 0.79, blue: 0.87, alpha: 1)
     private let violet = UIColor(red: 0.43, green: 0.44, blue: 0.94, alpha: 1)
     private var page = 0
+    private var russian = false
+    private func copy(_ ru: String, _ en: String) -> String { russian ? ru : en }
 
     init(accent: UIColor, text: UIColor, surface: UIColor) {
         self.accent = accent
@@ -215,7 +217,7 @@ private final class NebulaWelcomeSceneView: UIView {
         isAccessibilityElement = false
     }
     required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
-    func setPage(_ value: Int) { page = value; setNeedsDisplay() }
+    func setPage(_ value: Int, language: String) { page = value; russian = language.hasPrefix("ru"); setNeedsDisplay() }
 
     override func draw(_ rect: CGRect) {
         guard let ctx = UIGraphicsGetCurrentContext() else { return }
@@ -241,8 +243,10 @@ private final class NebulaWelcomeSceneView: UIView {
         for i in 0..<3 {
             let y = CGFloat(82 + i * 42)
             dot(86, y + 12, 14, i == 1 ? violet : cyan)
-            box(110, y, 233, y + 10, 5, text.withAlphaComponent(0.25))
-            box(110, y + 16, CGFloat(194 + i * 10), y + 23, 4, accent.withAlphaComponent(0.22))
+            let names = [copy("Избранное", "Saved Messages"), copy("Команда Nebula", "Nebula team"), copy("Аня", "Anna")]
+            let messages = [copy("Всё важное — здесь", "Keep what matters"), copy("Новая идея", "A new idea"), copy("Увидимся вечером?", "See you tonight?")]
+            label(names[i], 110, y - 2, 12, text)
+            label(messages[i], 110, y + 15, 9, text.withAlphaComponent(0.62))
         }
         box(74, 201, 246, 216, 8, accent.withAlphaComponent(0.2))
         for i in 0..<3 { dot(CGFloat(110 + i * 50), 208, 4, accent) }
@@ -270,11 +274,11 @@ private final class NebulaWelcomeSceneView: UIView {
     private func privacy() {
         box(43, 38, 277, 207, 27, text.withAlphaComponent(0.09))
         box(60, 55, 230, 106, 18, accent.withAlphaComponent(0.18))
-        box(73, 69, 193, 79, 5, text.withAlphaComponent(0.38))
-        box(73, 86, 210, 93, 4, text.withAlphaComponent(0.23))
+        label(copy("Личное", "Private"), 73, 66, 13, text)
+        label(copy("Защита кодом", "Protected by passcode"), 73, 86, 10, text.withAlphaComponent(0.65))
         box(90, 121, 259, 174, 18, violet)
-        box(108, 136, 230, 146, 5, UIColor.white.withAlphaComponent(0.9))
-        box(108, 154, 190, 161, 4, UIColor.white.withAlphaComponent(0.55))
+        label(copy("Только для тебя", "Just for you"), 108, 133, 12, .white)
+        label("••••", 108, 151, 11, UIColor.white.withAlphaComponent(0.7))
         dot(58, 175, 29, cyan)
         UIImage(systemName: "lock.fill")?.withTintColor(.white, renderingMode: .alwaysOriginal)
             .draw(in: CGRect(x: 46, y: 162, width: 24, height: 24))
@@ -286,8 +290,9 @@ private final class NebulaWelcomeSceneView: UIView {
         box(67, 39, 252, 86, 17, accent.withAlphaComponent(0.18))
         label("Nebula AI", 83, 50, 18, accent)
         box(89, 111, 240, 143, 15, accent.withAlphaComponent(0.2))
+        label(copy("Объясни попроще", "Make this simpler"), 101, 121, 11, text)
         box(75, 158, 220, 193, 16, violet)
-        box(92, 171, 182, 179, 4, UIColor.white.withAlphaComponent(0.88))
+        label(copy("Главное — в двух строках", "The key points, in two lines"), 87, 170, 9, .white)
         dot(54, 114, 27, cyan)
         sparkle(54, 114, 18, .white)
         sparkle(270, 179, 15, violet)
@@ -307,8 +312,7 @@ private final class NebulaWelcomeSceneView: UIView {
         dot(91, 143, 17, cyan)
         dot(162, 154, 20, violet)
         dot(229, 143, 17, UIColor(red: 0.32, green: 0.85, blue: 0.76, alpha: 1))
-        box(79, 191, 241, 204, 7, accent.withAlphaComponent(0.18))
-        for i in 0..<3 { dot(CGFloat(105 + i * 55), 197, 3, accent) }
+        label(copy("Твоя подписка, твой выбор", "Your subscription, your choice"), 78, 188, 11, text)
         sparkle(267, 108, 11, cyan)
     }
 

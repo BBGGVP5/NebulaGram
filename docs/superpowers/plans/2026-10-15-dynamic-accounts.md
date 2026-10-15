@@ -58,3 +58,6 @@ The native registry test executes under WSL with 128 synthetic accounts and conc
 
 
 Build 38734389269 rejected two account-entrypoint branches containing orphaned remnants of the old Premium check. Patch 0221 removes those remnants. The workflow now parses every patched native Java file and every overlay Java file with the real javac parser before dependency compilation; the current 448-unit syntax pass succeeds. This adds integration coverage beyond the isolated allocator/controller fixtures. Rebuilding the APK is required.
+
+
+The complete application compiler then found two additional fixed holders in the separate AppStandalone SMS Jobs sources, outside TMessagesProj. Patch 0222 migrates its controller and service-intent maps, scopes the settings PendingIntent and removes stale service-instance references. The executable singleton inventory now covers 36 production getters, including AppStandalone, and the catalogue invariant scans every Java source module. AppStandalone Java compilation is now included before native assembly. No SMS enrollment, sending policy or server eligibility behavior is enabled by this migration.

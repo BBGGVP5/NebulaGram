@@ -183,6 +183,7 @@ jobs:
           python3 scripts/check-search-stories-pager.py vendor/telegram-android
           python3 scripts/check-formatting-toolbar.py
           python3 scripts/check-connect-lifecycle.py
+          python3 scripts/check-onboarding-artwork.py
           python3 scripts/check-settings-contract.py
           python3 scripts/check-settings-links.py
           python3 scripts/check-settings-routes.py
@@ -298,7 +299,8 @@ jobs:
             :TMessagesProj_AppStandalone:verifyNebulaNanoRuntime \
             :TMessagesProj_AppStandalone:checkAfatStandaloneAarMetadata \
             :TMessagesProj_AppStandalone:processAfatStandaloneMainManifest \
-            :TMessagesProj:compileStandaloneJavaWithJavac
+            :TMessagesProj:compileStandaloneJavaWithJavac \
+            :TMessagesProj_AppStandalone:compileAfatStandaloneJavaWithJavac
           retry_network ./gradlew "${args[@]}" :TMessagesProj_AppStandalone:assembleAfatStandalone
 
       - name: Формирование имени APK

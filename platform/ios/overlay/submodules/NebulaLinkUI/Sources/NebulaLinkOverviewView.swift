@@ -93,11 +93,11 @@ final class NebulaLinkOverviewView: UIView {
         gradient.frame = card.bounds
         gradient.startPoint = CGPoint(x: 0, y: 0)
         gradient.endPoint = CGPoint(x: 1, y: 1)
-        gradient.colors = [UIColor.systemBlue.withAlphaComponent(0.16).resolvedColor(with: traitCollection).cgColor,
-                           accent.withAlphaComponent(connected ? 0.22 : 0.04).resolvedColor(with: traitCollection).cgColor]
+        gradient.colors = [UIColor.systemBlue.withAlphaComponent(0.08).resolvedColor(with: traitCollection).cgColor,
+                           accent.withAlphaComponent(connected ? 0.12 : 0.03).resolvedColor(with: traitCollection).cgColor]
         CATransaction.commit()
         card.backgroundColor = .secondarySystemGroupedBackground
-        card.layer.borderWidth = 1 / max(traitCollection.displayScale, 1)
+        card.layer.borderWidth = 0
         card.layer.borderColor = accent.withAlphaComponent(0.25).resolvedColor(with: traitCollection).cgColor
         status.textColor = .label
         symbol.tintColor = accent

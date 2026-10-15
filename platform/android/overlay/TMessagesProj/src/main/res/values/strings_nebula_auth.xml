@@ -17,7 +17,7 @@
     <string name="NebulaIntroLinkTitle">NebulaLink when you need it</string>
     <string name="NebulaIntroLinkSubtitle">Import an Xray subscription or a server key. Connection setup is optional and stays inside the app.</string>
     <string name="NebulaAuthLinkTitle">Connect NebulaLink</string>
-    <string name="NebulaAuthLinkSubtitle">Paste a subscription link or a server key — without the tunnel the login code may not reach you.</string>
+    <string name="NebulaAuthLinkSubtitle">Add your subscription or a server key when you need a connection. You can skip this step.</string>
     <string name="NebulaAuthLinkField">Subscription or server key</string>
     <string name="NebulaAuthLinkHint">Paste a link</string>
     <string name="NebulaAuthLinkFormats">Subscriptions and server keys · VLESS, VMess, Trojan, Shadowsocks, Hysteria2, TUIC</string>

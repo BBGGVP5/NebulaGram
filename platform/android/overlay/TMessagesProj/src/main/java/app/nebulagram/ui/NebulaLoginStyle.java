@@ -161,7 +161,7 @@ public final class NebulaLoginStyle {
 
     private static void decorate(SlideView slide, TextView title, TextView subtitle, int step, int eyebrow) {
         slide.setTag(R.id.nebula_auth_step, step);
-        slide.setGravity(Gravity.CENTER_VERTICAL | Gravity.CENTER_HORIZONTAL);
+        slide.setGravity(Gravity.TOP | Gravity.CENTER_HORIZONTAL);
         slide.setPadding(AndroidUtilities.dp(8), compact(26), AndroidUtilities.dp(8), compact(20));
         slide.setLayoutDirection(LocaleController.isRTL ? View.LAYOUT_DIRECTION_RTL : View.LAYOUT_DIRECTION_LTR);
 
@@ -178,10 +178,10 @@ public final class NebulaLoginStyle {
                 Theme.getColor(Theme.key_windowBackgroundWhiteGrayText), artAccent, .25f);
         final android.graphics.drawable.Drawable art;
         final Runnable release;
-        final boolean animated = step == 2 || step == 3;
+        final boolean animated = step == 2 || step == 3 || step == 4;
         if (animated) {
             final NebulaAuthArt animation = new NebulaAuthArt(
-                    step == 2 ? NebulaAuthArt.KIND_PHONE : NebulaAuthArt.KIND_CODE,
+                    step == 2 ? NebulaAuthArt.KIND_PHONE : step == 3 ? NebulaAuthArt.KIND_CODE : NebulaAuthArt.KIND_PASSWORD,
                     artAccent, artMuted);
             art = animation;
             release = animation::detach;
@@ -213,44 +213,41 @@ public final class NebulaLoginStyle {
             badge.setBackground(surface(28));
         }
         badge.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
-        final int side = compact(animated ? 188 : 84);
+        final int side = compact(step == 2 ? 168 : animated ? 112 : 84);
         // Экрану номера высота квадрата ни к чему: там широкая полоса
         // барабанов, и под ней с над ней оставалась пустота в треть картинки.
-        final int tall = step == 2 ? compact(112) : side;
+        final int tall = step == 2 ? compact(84) : side;
         LinearLayout.LayoutParams badgeParams = new LinearLayout.LayoutParams(side, tall);
-        badgeParams.gravity = Gravity.CENTER_HORIZONTAL;
-        badgeParams.bottomMargin = compact(22);
+        badgeParams.gravity = Gravity.START;
+        badgeParams.bottomMargin = compact(18);
         slide.addView(badge, 0, badgeParams);
         TextView stepLabel = new TextView(slide.getContext());
         stepLabel.setText(LocaleController.getString(eyebrow));
         stepLabel.setTextSize(TypedValue.COMPLEX_UNIT_SP, 11);
         stepLabel.setTypeface(AndroidUtilities.bold());
         stepLabel.setLetterSpacing(0.06f);
-        stepLabel.setGravity(Gravity.CENTER);
+        stepLabel.setGravity(Gravity.START);
         stepLabel.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlueText4));
-        stepLabel.setPadding(AndroidUtilities.dp(12), AndroidUtilities.dp(6), AndroidUtilities.dp(12), AndroidUtilities.dp(6));
-        GradientDrawable stepBackground = new GradientDrawable();
-        stepBackground.setColor(ColorUtils.setAlphaComponent(Theme.getColor(Theme.key_windowBackgroundWhiteBlueText4), 28));
-        stepBackground.setCornerRadius(AndroidUtilities.dp(14));
-        stepLabel.setBackground(stepBackground);
+        stepLabel.setPadding(0, AndroidUtilities.dp(6), 0, AndroidUtilities.dp(6));
         LinearLayout.LayoutParams stepParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        stepParams.gravity = Gravity.CENTER_HORIZONTAL;
+        stepParams.gravity = Gravity.START;
         stepParams.bottomMargin = compact(12);
         slide.addView(stepLabel, 1, stepParams);
 
         // Кегль ужимается вдвое медленнее отступов: читаемость важнее места.
-        title.setTextSize(TypedValue.COMPLEX_UNIT_SP, 22 + 4 * vertical());
+        title.setTextSize(TypedValue.COMPLEX_UNIT_SP, 30);
+        title.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText));
         title.setTypeface(AndroidUtilities.bold());
-        title.setGravity(Gravity.CENTER);
+        title.setGravity(Gravity.START);
         // Длинный заголовок обрезался: тридцать пунктов в одну строку не
         // помещаются на узком экране. Даём вторую строку вместо многоточия.
         title.setSingleLine(false);
-        title.setMaxLines(2);
+        title.setMaxLines(4);
         title.setEllipsize(null);
         title.setLineSpacing(AndroidUtilities.dp(2), 1f);
         margins(title, 0, 0, 0, 0);
         subtitle.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14 + vertical());
-        subtitle.setGravity(Gravity.CENTER);
+        subtitle.setGravity(Gravity.START);
         subtitle.setLineSpacing(AndroidUtilities.dp(3), 1f);
         margins(subtitle, 8, Math.round(10 * vertical()), 8, 0);
     }

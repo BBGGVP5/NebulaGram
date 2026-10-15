@@ -4,7 +4,6 @@ import android.content.Context;
 import android.graphics.*;
 import android.view.View;
 import org.telegram.messenger.AndroidUtilities;
-import org.telegram.messenger.R;
 
 /** Localized product previews with an original illustrated Nebula mascot. */
 public final class NebulaIntroArt extends View {
@@ -12,7 +11,7 @@ public final class NebulaIntroArt extends View {
     private final RectF r = new RectF();
     private final Path leader = new Path();
     private final Path avatarClip = new Path();
-    private final RadialGradient halo = new RadialGradient(180,195,180,0x334d60db,0x004d60db,Shader.TileMode.CLAMP);
+    private final RadialGradient halo;
     private final java.util.ArrayList<Shade> gradients = new java.util.ArrayList<>();
     private static final class Shade {
         final float l,t,r,b; final int first,last; final LinearGradient shader;
@@ -28,19 +27,29 @@ public final class NebulaIntroArt extends View {
         }
         Shade value=new Shade(l,t,r,b,first,last);gradients.add(value);return value.shader;
     }
-    private final Bitmap astronaut;
     private int page;
-    private final int ink = 0xfff2f5ff, muted = 0xffa9b8cd, cyan = 0xff57dfe0;
+    private final int ink, muted, cyan, panelTop, panelBottom, edge;
+    private static int blend(int first, int last, float amount) {
+        int red = Math.round(Color.red(first) * (1 - amount) + Color.red(last) * amount);
+        int green = Math.round(Color.green(first) * (1 - amount) + Color.green(last) * amount);
+        int blue = Math.round(Color.blue(first) * (1 - amount) + Color.blue(last) * amount);
+        return Color.rgb(red, green, blue);
+    }
     public NebulaIntroArt(Context context) {
         super(context);
-        BitmapFactory.Options options = new BitmapFactory.Options(); options.inSampleSize = 2;
-        astronaut = BitmapFactory.decodeResource(getResources(), R.drawable.nebula_intro_astronaut, options);
+        NebulaTheme theme = NebulaTheme.of(context);
+        ink = theme.onSurface(); muted = theme.onSurfaceVariant(); cyan = theme.primary();
+        panelTop = blend(theme.surface(), ink, .085f);
+        panelBottom = blend(theme.surface(), ink, .045f);
+        edge = (ink & 0x00ffffff) | 0x14000000;
+        halo = new RadialGradient(180,195,180,(cyan & 0x00ffffff) | 0x14000000,
+                cyan & 0x00ffffff,Shader.TileMode.CLAMP);
         setImportantForAccessibility(IMPORTANT_FOR_ACCESSIBILITY_NO);
     }
     public void setPage(int value) { page = value; invalidate(); }
     @Override protected void onMeasure(int w, int h) {
         int maxWidth = MeasureSpec.getSize(w);
-        int maxHeight = AndroidUtilities.dp(340 * NebulaLoginStyle.vertical());
+        int maxHeight = AndroidUtilities.dp(280 * NebulaLoginStyle.vertical());
         // Measure the view to the drawing canvas, instead of forcing a narrow
         // canvas into the full text column and shrinking the art inside it.
         int width = Math.min(maxWidth, Math.round(maxHeight * (360f / 340f)));
@@ -83,21 +92,21 @@ public final class NebulaIntroArt extends View {
         String[] icons={"✦","◈","Aa","☷","N","▣"};
         for(int i=0;i<6;i++) {
             int x=50+(i%3)*91,y=61+(i/3)*84;
-            gradient(c,x,y,x+78,y+74,22,colors[i],0xff19253b);
+            gradient(c,x,y,x+78,y+74,22,blend(panelTop,colors[i],.24f),blend(panelBottom,colors[i],.06f));
             centeredText(c,icons[i],x+39,y+48,i==2?27:35,ink,true);
         }
         annotation(c,42,247,318,287,"Aa",t("Темы, папки и иконки","Themes, folders, icons"),180,224);
     }
     private void privacy(Canvas c) {
         annotation(c,72,5,288,39,"●",t("Код и биометрия","Passcode and biometrics"),252,75);
-        gradient(c,64,48,296,324,28,0xff435678,0xff202a3b);
+        gradient(c,64,48,296,324,28,panelTop,panelBottom);
         centeredText(c,t("Код доступа","Passcode"),180,91,16,ink,true);
         centeredText(c,"••••",180,134,28,ink,true);
         for(int i=0;i<9;i++) {
             int x=124+(i%3)*56,y=176+(i/3)*41;
-            circle(c,x,y,17,0x203cd4d4);centeredText(c,""+(i+1),x,y+6,15,ink,false);
+            circle(c,x,y,17,(cyan & 0x00ffffff) | 0x20000000);centeredText(c,""+(i+1),x,y+6,15,ink,false);
         }
-        circle(c,180,299,17,0x203cd4d4);centeredText(c,"0",180,304,15,ink,false);
+        circle(c,180,299,17,(cyan & 0x00ffffff) | 0x20000000);centeredText(c,"0",180,304,15,ink,false);
         circle(c,270,77,21,0xff496ddb);
         p.setStyle(Paint.Style.STROKE);p.setStrokeWidth(3);p.setColor(ink);
         r.set(264,64,276,78);c.drawRoundRect(r,6,6,p);p.setStyle(Paint.Style.FILL);
@@ -106,7 +115,7 @@ public final class NebulaIntroArt extends View {
     private void ai(Canvas c) {
         text(c,"Nebula AI",35,44,20,ink,true);
         sticker(c,238,3,345,116);
-        gradient(c,62,105,325,171,19,0xff7465dc,0xff435fca);
+        gradient(c,62,105,325,171,19,blend(panelTop,cyan,.23f),blend(panelBottom,cyan,.12f));
         fitText(c,t("Объясни это проще","Make this easier to understand"),78,133,12,231,ink,true);
         text(c,t("И выдели главное","And highlight what matters"),78,154,11,ink,false);
         arrow(c,284,174,304,190,cyan);
@@ -117,7 +126,7 @@ public final class NebulaIntroArt extends View {
     }
     private void link(Canvas c) {
         card(c,49,16,311,320,24);text(c,"NebulaLink",70,52,20,ink,true);
-        circle(c,180,111,32,0xff304f62);
+        circle(c,180,111,32,blend(panelTop,cyan,.12f));
         // Draw the power symbol ourselves so it is independent of emoji fonts.
         p.setStyle(Paint.Style.STROKE);p.setStrokeWidth(4);p.setStrokeCap(Paint.Cap.ROUND);p.setColor(cyan);
         r.set(164,95,196,127);c.drawArc(r,-50,280,false,p);c.drawLine(180,89,180,111,p);
@@ -130,16 +139,26 @@ public final class NebulaIntroArt extends View {
         pingBadge(c,211,204,282,242,t("89 мс","89 ms"));
         centeredText(c,t("Сервер можно сменить","Change servers anytime"),180,286,11,muted,false);
     }
-    private void sticker(Canvas c,float l,float t,float rr,float b){if(astronaut!=null){p.setColor(-1);float scale=Math.min((rr-l)/astronaut.getWidth(),(b-t)/astronaut.getHeight());float w=astronaut.getWidth()*scale,h=astronaut.getHeight()*scale;r.set((l+rr-w)/2,(t+b-h)/2,(l+rr+w)/2,(t+b+h)/2);c.drawBitmap(astronaut,null,r,p);}}
-    private void card(Canvas c,float l,float t,float rr,float b,float rad){gradient(c,l,t,rr,b,rad,0xff2c384b,0xff192332);}
-    private void gradient(Canvas c,float l,float t,float rr,float b,float rad,int a,int z){r.set(l,t,rr,b);p.setShader(shade(l,t,rr,b,a,z));p.setStyle(Paint.Style.FILL);c.drawRoundRect(r,rad,rad,p);p.setShader(null);p.setStyle(Paint.Style.STROKE);p.setStrokeWidth(.8f);p.setColor(0x30ffffff);c.drawRoundRect(r,rad,rad,p);p.setStyle(Paint.Style.FILL);}
+    private void sticker(Canvas c,float l,float top,float right,float bottom) {
+        int save = c.save();
+        c.translate(l, top); c.scale((right-l)/80f, (bottom-top)/80f); c.rotate(-9,40,40);
+        // A small drawn message note, with no decoded bitmap or bundled mascot.
+        gradient(c,9,12,69,65,15,blend(panelTop,cyan,.20f),panelBottom);
+        leader.reset();leader.moveTo(22,65);leader.lineTo(18,75);leader.lineTo(35,65);
+        p.setColor(cyan);p.setStyle(Paint.Style.STROKE);p.setStrokeWidth(2);p.setStrokeCap(Paint.Cap.ROUND);c.drawPath(leader,p);
+        c.drawLine(23,29,55,29,p);c.drawLine(23,40,47,40,p);
+        leader.reset();leader.moveTo(44,55);leader.lineTo(50,61);leader.lineTo(62,48);c.drawPath(leader,p);
+        p.setStyle(Paint.Style.FILL);p.setStrokeCap(Paint.Cap.BUTT);c.restoreToCount(save);
+    }
+    private void card(Canvas c,float l,float top,float right,float bottom,float radius){gradient(c,l,top,right,bottom,radius,panelTop,panelBottom);}
+    private void gradient(Canvas c,float l,float t,float rr,float b,float rad,int a,int z){r.set(l,t,rr,b);p.setShader(shade(l,t,rr,b,a,z));p.setStyle(Paint.Style.FILL);c.drawRoundRect(r,rad,rad,p);p.setShader(null);p.setStyle(Paint.Style.STROKE);p.setStrokeWidth(.8f);p.setColor(edge);c.drawRoundRect(r,rad,rad,p);p.setStyle(Paint.Style.FILL);}
     private void ribbon(Canvas c,float l,float t,float rr,float b,String icon,String label){card(c,l,t,rr,b,19);circle(c,l+24,(t+b)/2,14,0xff496ddb);centeredText(c,icon,l+24,(t+b)/2+5,15,ink,true);fitText(c,label,l+48,(t+b)/2+5,13,rr-l-62,ink,true);}
     private void fitText(Canvas c,String s,float x,float y,float size,float available,int color,boolean bold){p.setTypeface(bold?AndroidUtilities.bold():Typeface.DEFAULT);p.setTextSize(size);float measured=p.measureText(s);text(c,s,x,y,measured>available?size*available/measured:size,color,bold);}
-    private void pill(Canvas c,float l,float t,float rr,float b,String text,int color){gradient(c,l,t,rr,b,12,0xff385b6b,0xff2e4256);centeredText(c,text,(l+rr)*.5f,b-7,10,color,true);}
+    private void pill(Canvas c,float l,float t,float rr,float b,String text,int color){gradient(c,l,t,rr,b,12,blend(panelTop,cyan,.16f),blend(panelBottom,cyan,.10f));centeredText(c,text,(l+rr)*.5f,b-7,10,color,true);}
     private void circle(Canvas c,float x,float y,float radius,int color){p.setColor(color);c.drawCircle(x,y,radius,p);}
     private void text(Canvas c,String s,float x,float y,float size,int color,boolean bold){p.setColor(color);p.setTextSize(size);p.setTypeface(bold?AndroidUtilities.bold():Typeface.DEFAULT);c.drawText(s,x,y,p);}
     private void rightText(Canvas c,String s,float right,float baseline,float size,int color,boolean bold){p.setTypeface(bold?AndroidUtilities.bold():Typeface.DEFAULT);p.setTextSize(size);text(c,s,right-p.measureText(s),baseline,size,color,bold);}
-    private void divider(Canvas c,float sx,float sy,float ex,float ey){p.setColor(0x273a4a60);p.setStrokeWidth(.8f);p.setStyle(Paint.Style.STROKE);c.drawLine(sx,sy,ex,ey,p);p.setStyle(Paint.Style.FILL);}
+    private void divider(Canvas c,float sx,float sy,float ex,float ey){p.setColor(edge);p.setStrokeWidth(.8f);p.setStyle(Paint.Style.STROKE);c.drawLine(sx,sy,ex,ey,p);p.setStyle(Paint.Style.FILL);}
     private void centeredText(Canvas c,String s,float centerX,float baseline,float size,int color,boolean bold){p.setTypeface(bold?AndroidUtilities.bold():Typeface.DEFAULT);p.setTextSize(size);text(c,s,centerX-p.measureText(s)*.5f,baseline,size,color,bold);}
     private void drawChatAvatar(Canvas c,float x,float y,int type) {
         int save=c.save();avatarClip.reset();avatarClip.addCircle(x,y,15,Path.Direction.CW);c.clipPath(avatarClip);
@@ -162,7 +181,7 @@ public final class NebulaIntroArt extends View {
         p.setColor(0xff3976c7);r.set(x-5,y-9,x-1,y+9);c.drawRect(r,p);r.set(x-11,y-2,x+11,y+2);c.drawRect(r,p);
     }
     private void pingBadge(Canvas c,float l,float top,float rr,float bottom,String label) {
-        gradient(c,l,top,rr,bottom,11,0xff304b62,0xff26394f);
+        gradient(c,l,top,rr,bottom,11,blend(panelTop,cyan,.12f),blend(panelBottom,cyan,.06f));
         p.setTypeface(AndroidUtilities.bold());p.setTextSize(10);
         Paint.FontMetrics metrics=p.getFontMetrics();
         float baseline=(top+bottom)*.5f-(metrics.ascent+metrics.descent)*.5f;
@@ -176,7 +195,7 @@ public final class NebulaIntroArt extends View {
     }
     private void annotation(Canvas c,float l,float top,float rr,float bottom,String icon,String label,float targetX,float targetY) {
         arrow(c,(l+rr)*.5f,bottom,targetX,targetY,cyan);
-        gradient(c,l,top,rr,bottom,(bottom-top)*.48f,0xff29384f,0xff202c40);
+        gradient(c,l,top,rr,bottom,(bottom-top)*.48f,panelTop,panelBottom);
         circle(c,l+19,(top+bottom)*.5f,12,0xff496ddb);
         centeredText(c,icon,l+19,(top+bottom)*.5f+4,12,ink,true);
         fitText(c,label,l+39,(top+bottom)*.5f+4,12,rr-l-50,ink,true);

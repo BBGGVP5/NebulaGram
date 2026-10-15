@@ -3,7 +3,6 @@ package app.nebulagram.ui;
 import android.animation.ValueAnimator;
 import android.graphics.Canvas;
 import android.graphics.ColorFilter;
-import android.graphics.DashPathEffect;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.PathMeasure;
@@ -38,6 +37,7 @@ public class NebulaAuthArt extends Drawable {
     public static final int KIND_CODE = 1;
     /** Экран подключения NebulaLink: щит, который ставит галочку. */
     public static final int KIND_LINK = 2;
+    public static final int KIND_PASSWORD = 3;
 
     /** Сколько барабанов крутится справа от кода страны. */
     private static final int REELS = 4;
@@ -50,7 +50,7 @@ public class NebulaAuthArt extends Drawable {
     private static final int[] REEL_TURNS = {3, 4, 2, 5};
 
     /** Длина цикла для каждого вида, мс. */
-    private static final int[] DURATION = {9000, 13500, 2400};
+    private static final int[] DURATION = {9000, 13500, 2400, 4800};
 
     /** Доли цикла подключения: рисование галочки, начало и время растворения. */
     private static final float DRAW_UNTIL = 0.28f;
@@ -100,6 +100,9 @@ public class NebulaAuthArt extends Drawable {
             case KIND_LINK:
                 drawLink(canvas, unit);
                 break;
+            case KIND_PASSWORD:
+                drawPassword(canvas, unit);
+                break;
             default:
                 drawPhone(canvas, unit);
                 break;
@@ -139,10 +142,11 @@ public class NebulaAuthArt extends Drawable {
 
         for (int i = 0; i < REELS; i++) {
             rect.set(left, top, left + reel, top + height);
-            paint.setStyle(Paint.Style.STROKE);
-            paint.setStrokeWidth(unit * 2.6f);
-            paint.setColor(muted);
+            paint.setStyle(Paint.Style.FILL);
+            paint.setColor(accent);
+            paint.setAlpha(24);
             canvas.drawRoundRect(rect, radius, radius, paint);
+            paint.setAlpha(255);
 
             int digit = (int) (phase * REEL_TURNS[i] * 10) % 10;
             canvas.drawText(String.valueOf(digit), rect.centerX(), baseline, digits);
@@ -155,27 +159,20 @@ public class NebulaAuthArt extends Drawable {
     private void drawCode(Canvas canvas, float unit) {
         final float time = phase * DURATION[KIND_CODE];
 
-        // Кольцо делает за цикл два полных оборота, поэтому на стыке цикла
-        // пунктир не дёргается.
-        paint.setStyle(Paint.Style.STROKE);
-        paint.setStrokeWidth(unit * 2.2f);
-        paint.setColor(muted);
-        paint.setPathEffect(new DashPathEffect(new float[]{unit * 7, unit * 11}, 0));
-        canvas.save();
-        canvas.rotate(phase * 720f, unit * 50, unit * 50);
-        canvas.drawCircle(unit * 50, unit * 50, unit * 48, paint);
-        canvas.restore();
-        paint.setPathEffect(null);
-
-        rect.set(unit * 16, unit * 26, unit * 84, unit * 74);
+        // Two offset message notes replace the old spinning dotted ring.
         paint.setStyle(Paint.Style.FILL);
         paint.setColor(accent);
-        paint.setAlpha(48);
-        canvas.drawRoundRect(rect, unit * 15, unit * 15, paint);
+        paint.setAlpha(18);
+        canvas.save(); canvas.rotate(-8, unit * 50, unit * 50);
+        rect.set(unit * 12, unit * 19, unit * 88, unit * 75);
+        canvas.drawRoundRect(rect, unit * 16, unit * 16, paint); canvas.restore();
+        paint.setAlpha(42);
+        rect.set(unit * 12, unit * 26, unit * 88, unit * 78);
+        canvas.drawRoundRect(rect, unit * 16, unit * 16, paint);
+        path.reset(); path.moveTo(unit * 27, unit * 76);
+        path.quadTo(unit * 27, unit * 85, unit * 20, unit * 89);
+        path.quadTo(unit * 39, unit * 87, unit * 45, unit * 76);path.close();canvas.drawPath(path,paint);
         paint.setAlpha(255);
-        paint.setStyle(Paint.Style.STROKE);
-        paint.setStrokeWidth(unit * 3);
-        canvas.drawRoundRect(rect, unit * 15, unit * 15, paint);
 
         // Точки всплывают одна за другой со сдвигом — знак приходящего кода.
         paint.setStyle(Paint.Style.FILL);
@@ -190,6 +187,23 @@ public class NebulaAuthArt extends Drawable {
             canvas.drawCircle(unit * (32 + 18 * i), unit * 50 - unit * 6 * wave, unit * 6.5f, paint);
         }
         paint.setAlpha(255);
+    }
+
+    private void drawPassword(Canvas canvas, float unit) {
+        paint.setColor(accent); paint.setAlpha(38); paint.setStyle(Paint.Style.FILL);
+        rect.set(unit*22, unit*38, unit*78, unit*77);
+        canvas.drawRoundRect(rect, unit*13, unit*13, paint); paint.setAlpha(255);
+        paint.setStyle(Paint.Style.STROKE);paint.setStrokeWidth(unit*5);paint.setStrokeCap(Paint.Cap.ROUND);
+        rect.set(unit*34, unit*14, unit*66, unit*61);canvas.drawArc(rect,180,180,false,paint);
+        paint.setStyle(Paint.Style.FILL);canvas.drawCircle(unit*50,unit*53,unit*4,paint);
+        rect.set(unit*48,unit*53,unit*52,unit*65);canvas.drawRoundRect(rect,unit*2,unit*2,paint);
+        paint.setAlpha(20);rect.set(unit*17,unit*81,unit*83,unit*98);canvas.drawRoundRect(rect,unit*8,unit*8,paint);
+        paint.setAlpha(255);
+        for(int i=0;i<4;i++) {
+            float wave=(float)(.5-.5*Math.cos((phase-i*.08f)*Math.PI*2));
+            canvas.drawCircle(unit*(32+i*12),unit*89,unit*(2.5f+wave*.4f),paint);
+        }
+        paint.setStrokeCap(Paint.Cap.BUTT);
     }
 
     /** Подключение: щит ставит галочку, вокруг расходится волна. */

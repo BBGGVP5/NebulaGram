@@ -62,22 +62,25 @@ public class NebulaConnectFragment extends BaseFragment {
         image.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
         // Плитки под рисунком нет: в макетах её не было, а здесь она ещё и
         // срезала расходящуюся волну по краям квадрата.
-        int badge = NebulaLoginStyle.compact(164);
+        int badge = NebulaLoginStyle.compact(104);
         LinearLayout.LayoutParams badgeParams = new LinearLayout.LayoutParams(badge, badge);
-        badgeParams.gravity = Gravity.CENTER_HORIZONTAL;
+        badgeParams.gravity = Gravity.START;
         badgeParams.bottomMargin = NebulaLoginStyle.compact(12);
         root.content.addView(image, badgeParams);
 
-        root.content.setGravity(Gravity.CENTER_VERTICAL);
+        root.content.setGravity(Gravity.TOP);
         root.content.setPadding(0, NebulaLoginStyle.compact(12), 0, NebulaLoginStyle.compact(12));
-        title = NebulaIntroFragment.text(context, 23 + 3 * NebulaLoginStyle.vertical(), theme.onSurface(), true);
-        title.setGravity(Gravity.CENTER);
+        TextView optional = NebulaIntroFragment.text(context, 13, theme.primary(), true);
+        optional.setText(NebulaText.text("Необязательный шаг", "Optional step"));
+        root.content.addView(optional, NebulaIntroFragment.width());
+        title = NebulaIntroFragment.text(context, 30, theme.onSurface(), true);
+        title.setGravity(Gravity.START);
         title.setText(NebulaIntroFragment.highlight(
                 LocaleController.getString(R.string.NebulaAuthLinkTitle), "NebulaLink", theme.primary()));
         root.content.addView(title, NebulaIntroFragment.width());
-        subtitle = NebulaIntroFragment.text(context, 14, theme.onSurfaceVariant(), false);
-        subtitle.setGravity(Gravity.CENTER);
-        subtitle.setMaxLines(3);
+        subtitle = NebulaIntroFragment.text(context, 16, theme.onSurfaceVariant(), false);
+        subtitle.setGravity(Gravity.START);
+        subtitle.setMaxLines(6);
         subtitle.setText(LocaleController.getString(R.string.NebulaAuthLinkSubtitle));
         LinearLayout.LayoutParams subtitleParams = NebulaIntroFragment.width();
         subtitleParams.topMargin = AndroidUtilities.dp(12);

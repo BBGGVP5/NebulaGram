@@ -112,3 +112,12 @@ Files: `runtime/xray/go.mod`, `bind/go.mod`, `core/go.mod`, related sums/build s
 Android persistent IDs and all account enumeration have been migrated in patches 0218-0221. Notification tags and PendingIntent destinations include full account/dialog identities. The independent catalogue, native instance and notification fixtures pass for 128/256 synthetic accounts; native parser checks the actual patched sources. Full APK rebuild and real authentication/push remain open.
 
 Both settings roots now expose AI/audio separately from chat presentation, plus searchable account switching and ordering. Android copied links and search share a single destination dispatcher; 36 routes, invalid destinations, row focus and account ownership execute in regression tests. The iOS settings overlay and new controller pass Swift parsing and the full ordered bootstrap/source-registration check; native module typechecking and the complete IPA build remain separate checks. No session credentials are included in settings export.
+
+
+## Welcome and authorization presentation checkpoint
+
+The welcome pages now place measured copy before scalable product scenes. Android's scene palette follows the Telegram surface/text/accent and replaces the 1.25 MB bundled decorative bitmap with a drawn message note. Native phone/code/password headers use a consistent heading/step hierarchy; password has its own lock artwork and code artwork no longer creates a rotating dashed path effect on every frame. NebulaLink explicitly labels setup optional and retains clipboard/import/retry/native-state ownership.
+
+iOS mirrors the editorial hierarchy, actual localized scene labels and password illustration. Its native phone/code/password nodes use Dynamic Type heading metrics and the theme's primary text color; authentication handlers remain unchanged. Onboarding shows an explicit Skip navigation action and removes the overview-card border.
+
+Verification: Android SDK compilation of the real artwork; existing production request/animation and 488 phone-confirmation scenarios pass. All 110 iOS patches and native handler/source-registration checks pass. The three production UIKit presentation components also compiled and packaged under xtool with iOS SDK 27.2, in a separate unsigned component probe (not a full Telegram client). The component-probe receipt is `build/xtool-probe/onboarding-verification.json`. Full application builds and rendered device acceptance remain separate.

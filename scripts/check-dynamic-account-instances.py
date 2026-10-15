@@ -100,9 +100,11 @@ with tempfile.TemporaryDirectory(prefix='nebula-accounts-') as directory:
     subprocess.run([java, '-cp', str(work), 'RegistryCheck'], check=True, timeout=45)
 
     if len(sys.argv) > 1:
-        tree = Path(sys.argv[1]) / 'TMessagesProj/src/main/java/org'
+        tree = Path(sys.argv[1])
+        controller_paths = list((tree / 'TMessagesProj/src/main/java/org').rglob('*.java'))
+        controller_paths += list((tree / 'TMessagesProj_AppStandalone/src/main/java/org').rglob('*.java'))
         files, calls = [], []
-        for path in tree.rglob('*.java'):
+        for path in controller_paths:
             text = path.read_text(encoding='utf-8')
             name = path.stem
             declarations = re.findall(r'private static final org\.telegram\.messenger\.AccountInstanceRegistry<' + re.escape(name) + r'>[^\n]+;', text)
@@ -152,10 +154,10 @@ with tempfile.TemporaryDirectory(prefix='nebula-accounts-') as directory:
             calls.append(f'if ({name}.getInstance(id{arg}).account != id || {name}.getInstance(id{arg}) != {name}.getInstance(id{arg})) throw new AssertionError("{name}");')
             if name == 'StarsController':
                 calls.append('if (StarsController.getInstance(id, false) == StarsController.getInstance(id, true)) throw new AssertionError("Currencies shared");')
-        assert len(files) == 35, len(files)
+        assert len(files) == 36, len(files)
         test = work / 'ControllerFactoriesCheck.java'
         test.write_text('public class ControllerFactoriesCheck { public static void main(String[] args) { for (int id = 0; id < 128; id++) { '
                         + '\n'.join(calls) + ' } NotificationCenter.sanitize(); if (NotificationCenter.sanitized != 129) throw new AssertionError("Sanitize must visit existing accounts and the global center"); } }', encoding='utf-8')
         subprocess.run([javac, '--release', '8', '-cp', str(work), '-d', str(work), *files, str(test)], check=True)
         subprocess.run([java, '-cp', str(work), 'ControllerFactoriesCheck'], check=True, timeout=45)
-        print('All 35 production singleton getters compiled and exercised with 128 synthetic IDs; currencies isolated')
+        print('All 36 production singleton getters compiled and exercised with 128 synthetic IDs; currencies isolated')

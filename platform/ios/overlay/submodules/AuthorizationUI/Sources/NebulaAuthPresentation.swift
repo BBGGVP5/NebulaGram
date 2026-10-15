@@ -33,6 +33,12 @@ struct NebulaAuthCopy {
     }
 }
 
+enum NebulaAuthTypography {
+    static func title() -> UIFont {
+        UIFontMetrics(forTextStyle: .largeTitle).scaledFont(for: .systemFont(ofSize: 30, weight: .bold), maximumPointSize: 44)
+    }
+}
+
 final class NebulaAuthArtView: UIView {
     enum Kind { case welcome, phone, code, password, link }
     let kind: Kind
@@ -93,7 +99,7 @@ final class NebulaAuthArtView: UIView {
         for (index, character) in examples[phase].enumerated() {
             let label = digits[index]
             label.text = String(character)
-            label.backgroundColor = index == 0 ? accent.withAlphaComponent(0.15) : .clear
+            label.backgroundColor = accent.withAlphaComponent(index == 0 ? 0.16 : 0.07)
             if animated {
                 let spring = CASpringAnimation(keyPath: "transform.translation.y")
                 spring.fromValue = -8; spring.toValue = 0; spring.damping = 18; spring.stiffness = 170
@@ -108,11 +114,11 @@ final class NebulaAuthArtView: UIView {
         let width = min(250, bounds.width)
         let gap: CGFloat = 4
         let cell = max(1, (width - gap * 4) / 5)
-        let height = min(90, bounds.height)
+        let height = min(74, bounds.height)
         for (index, label) in digits.enumerated() {
             label.frame = CGRect(x: (bounds.width - width) / 2 + CGFloat(index) * (cell + gap), y: (bounds.height - height) / 2, width: cell, height: height)
-            label.layer.cornerRadius = cell / 2
-            label.font = .monospacedDigitSystemFont(ofSize: min(46, cell * 0.95), weight: .medium)
+            label.layer.cornerRadius = min(16, cell / 3)
+            label.font = .monospacedDigitSystemFont(ofSize: min(34, cell * 0.80), weight: .medium)
         }
     }
 
@@ -125,6 +131,19 @@ final class NebulaAuthArtView: UIView {
         let tile = UIBezierPath(roundedRect: CGRect(x: 10, y: 10, width: 180, height: 180), cornerRadius: 54)
         accent.withAlphaComponent(0.10).setFill()
         tile.fill()
+        if kind == .password {
+            let shackle = UIBezierPath(arcCenter: CGPoint(x: 100, y: 76), radius: 30, startAngle: .pi, endAngle: 0, clockwise: true)
+            shackle.lineWidth = 9; shackle.lineCapStyle = .round; accent.setStroke(); shackle.stroke()
+            let lock = UIBezierPath(roundedRect: CGRect(x: 49, y: 77, width: 102, height: 71), cornerRadius: 23)
+            accent.withAlphaComponent(0.18).setFill(); lock.fill()
+            accent.setFill(); UIBezierPath(ovalIn: CGRect(x: 93, y: 98, width: 14, height: 14)).fill()
+            UIBezierPath(roundedRect: CGRect(x: 97, y: 105, width: 6, height: 23), cornerRadius: 3).fill()
+            accent.withAlphaComponent(0.08).setFill()
+            UIBezierPath(roundedRect: CGRect(x: 40, y: 161, width: 120, height: 27), cornerRadius: 13).fill()
+            accent.setFill()
+            for index in 0..<4 { UIBezierPath(ovalIn: CGRect(x: 66 + CGFloat(index) * 20, y: 170, width: 7, height: 7)).fill() }
+            return
+        }
         // Identical 200-unit dart/trails to Android's NebulaMark, not a stock paper plane.
         let dart = UIBezierPath()
         dart.move(to: CGPoint(x: 148, y: 52))

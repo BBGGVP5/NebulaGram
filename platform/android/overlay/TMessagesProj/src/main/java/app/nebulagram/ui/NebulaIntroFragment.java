@@ -74,21 +74,23 @@ public class NebulaIntroFragment extends BaseFragment {
                 ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         artParams.gravity = Gravity.CENTER_HORIZONTAL;
         artParams.bottomMargin = NebulaLoginStyle.compact(14);
-        root.content.addView(art, artParams);
 
-        title = text(context, 24, theme.onSurface(), true);
-        title.setGravity(Gravity.CENTER);
-        title.setMaxLines(2);
+
+        title = text(context, 30, theme.onSurface(), true);
+        title.setGravity(Gravity.START);
+        title.setMaxLines(4);
         title.setIncludeFontPadding(false);
         root.content.addView(title, width());
 
-        subtitle = text(context, 15, theme.onSurfaceVariant(), false);
-        subtitle.setGravity(Gravity.CENTER);
-        subtitle.setMaxLines(4);
+        subtitle = text(context, 16, theme.onSurfaceVariant(), false);
+        subtitle.setGravity(Gravity.START);
+        subtitle.setMaxLines(8);
         subtitle.setIncludeFontPadding(false);
         LinearLayout.LayoutParams subtitleParams = width();
         subtitleParams.topMargin = AndroidUtilities.dp(8);
         root.content.addView(subtitle, subtitleParams);
+        artParams.topMargin = NebulaLoginStyle.compact(24);
+        root.content.addView(art, artParams);
 
         next = new NebulaButton(context, NebulaButton.STYLE_FILLED);
         NebulaOnboardingLayout.action(next);
@@ -97,10 +99,10 @@ public class NebulaIntroFragment extends BaseFragment {
             else continueToSignIn();
         });
         root.actions.addView(next);
-        root.content.setGravity(Gravity.CENTER_VERTICAL);
+        root.content.setGravity(Gravity.TOP);
         // Slightly lower the illustration-and-copy group so the visual center
         // accounts for the anchored pager controls below it.
-        root.content.setPadding(0, NebulaLoginStyle.compact(38), 0, 0);
+        root.content.setPadding(0, NebulaLoginStyle.compact(20), 0, 0);
         root.setOnSwipeListener(direction -> showPage(Math.max(0,
                 Math.min(TITLES.length - 1, page + direction))));
         language = new NebulaButton(context, NebulaButton.STYLE_TEXT);

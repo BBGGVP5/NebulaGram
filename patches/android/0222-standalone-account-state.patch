@@ -1,0 +1,125 @@
+diff --git a/TMessagesProj_AppStandalone/src/main/java/org/telegram/messenger/SMSJobController.java b/TMessagesProj_AppStandalone/src/main/java/org/telegram/messenger/SMSJobController.java
+--- a/TMessagesProj_AppStandalone/src/main/java/org/telegram/messenger/SMSJobController.java
++++ b/TMessagesProj_AppStandalone/src/main/java/org/telegram/messenger/SMSJobController.java
+@@ -39,24 +39,9 @@
+ 
+ public class SMSJobController implements NotificationCenter.NotificationCenterDelegate {
+ 
+-    private static volatile SMSJobController[] Instance = new SMSJobController[UserConfig.MAX_ACCOUNT_COUNT];
+-    private static final Object[] lockObjects = new Object[UserConfig.MAX_ACCOUNT_COUNT];
+-    static {
+-        for (int i = 0; i < UserConfig.MAX_ACCOUNT_COUNT; i++) {
+-            lockObjects[i] = new Object();
+-        }
+-    }
++    private static final org.telegram.messenger.AccountInstanceRegistry<SMSJobController> Instance = new org.telegram.messenger.AccountInstanceRegistry<>();
+     public static SMSJobController getInstance(int num) {
+-        SMSJobController localInstance = Instance[num];
+-        if (localInstance == null) {
+-            synchronized (lockObjects[num]) {
+-                localInstance = Instance[num];
+-                if (localInstance == null) {
+-                    Instance[num] = localInstance = new SMSJobController(num);
+-                }
+-            }
+-        }
+-        return localInstance;
++        return Instance.get(num, SMSJobController::new);
+     }
+ 
+     public final static int STATE_NONE = 0;
+diff --git a/TMessagesProj_AppStandalone/src/main/java/org/telegram/messenger/SMSJobsNotification.java b/TMessagesProj_AppStandalone/src/main/java/org/telegram/messenger/SMSJobsNotification.java
+--- a/TMessagesProj_AppStandalone/src/main/java/org/telegram/messenger/SMSJobsNotification.java
++++ b/TMessagesProj_AppStandalone/src/main/java/org/telegram/messenger/SMSJobsNotification.java
+@@ -19,8 +19,8 @@
+ 
+ public class SMSJobsNotification extends Service {
+ 
+-    private static SMSJobsNotification[] instance = new SMSJobsNotification[UserConfig.MAX_ACCOUNT_COUNT];
+-    private static Intent[] service = new Intent[UserConfig.MAX_ACCOUNT_COUNT];
++    private static final java.util.concurrent.ConcurrentHashMap<Integer, SMSJobsNotification> instance = new java.util.concurrent.ConcurrentHashMap<>();
++    private static final java.util.concurrent.ConcurrentHashMap<Integer, Intent> service = new java.util.concurrent.ConcurrentHashMap<>();
+ 
+     public int currentAccount;
+     public boolean shown;
+@@ -31,7 +31,7 @@
+ 
+     public static boolean check() {
+         boolean shown = false;
+-        for (int i = 0; i < UserConfig.MAX_ACCOUNT_COUNT; ++i) {
++        for (int i : UserConfig.getAccountIds()) {
+             shown = check(i) || shown;
+         }
+         return shown;
+@@ -49,24 +49,25 @@
+             );
+         }
+ 
+-        final boolean shownNow = instance[currentAccount] != null && instance[currentAccount].shown;
++        final boolean shownNow = instance.get(currentAccount) != null && instance.get(currentAccount).shown;
+         if (shownNow != showNotification) {
+             if (showNotification) {
+-                service[currentAccount] = new Intent(ApplicationLoader.applicationContext, SMSJobsNotification.class);
+-                service[currentAccount].putExtra("account", currentAccount);
++                Intent intent = new Intent(ApplicationLoader.applicationContext, SMSJobsNotification.class);
++                intent.putExtra("account", currentAccount);
++                service.put(currentAccount, intent);
+                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+-                    ApplicationLoader.applicationContext.startForegroundService(service[currentAccount]);
++                    ApplicationLoader.applicationContext.startForegroundService(service.get(currentAccount));
+                 } else {
+-                    ApplicationLoader.applicationContext.startService(service[currentAccount]);
++                    ApplicationLoader.applicationContext.startService(service.get(currentAccount));
+                 }
+             } else {
+-                if (service[currentAccount] != null) {
+-                    ApplicationLoader.applicationContext.stopService(service[currentAccount]);
+-                    service[currentAccount] = null;
++                if (service.get(currentAccount) != null) {
++                    ApplicationLoader.applicationContext.stopService(service.get(currentAccount));
++                    service.remove(currentAccount);
+                 }
+             }
+         } else if (shownNow) {
+-            instance[currentAccount].update();
++            instance.get(currentAccount).update();
+         }
+ 
+         return showNotification;
+@@ -75,6 +76,8 @@
+     @Override
+     public void onDestroy() {
+         shown = false;
++        instance.remove(currentAccount, this);
++        service.remove(currentAccount);
+         super.onDestroy();
+         try {
+             stopForeground(true);
+@@ -94,12 +97,15 @@
+ 
+     @Override
+     public int onStartCommand(Intent intent, int flags, int startId) {
++        instance.remove(currentAccount, this);
++        if (intent == null) { stopSelf(); return Service.START_NOT_STICKY; }
+         currentAccount = intent.getIntExtra("account", UserConfig.selectedAccount);
++        if (!UserConfig.isValidAccount(currentAccount)) { stopSelf(); return Service.START_NOT_STICKY; }
+ 
+-        if (instance[currentAccount] != this && instance[currentAccount] != null) {
+-            instance[currentAccount].stopSelf();
++        if (instance.get(currentAccount) != this && instance.get(currentAccount) != null) {
++            instance.get(currentAccount).stopSelf();
+         }
+-        instance[currentAccount] = this;
++        instance.put(currentAccount, this);
+         shown = true;
+ 
+         if (builder == null) {
+@@ -111,6 +117,8 @@
+ 
+             Intent openIntent = new Intent(ApplicationLoader.applicationContext, LaunchActivity.class);
+             openIntent.setData(Uri.parse("tg://settings/premium_sms"));
++            openIntent.putExtra("currentAccount", currentAccount);
++            AccountNotificationIdentity.scope(openIntent, currentAccount);
+             PendingIntent pendingIntent = PendingIntent.getActivity(getApplicationContext(), 0, openIntent, PendingIntent.FLAG_IMMUTABLE);
+             builder.setContentIntent(pendingIntent);
+         }

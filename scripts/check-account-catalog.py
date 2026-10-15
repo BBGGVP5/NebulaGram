@@ -76,7 +76,7 @@ with tempfile.TemporaryDirectory(prefix='nebula-catalog-') as work:
 
 if len(__import__('sys').argv) > 1:
  native=Path(__import__('sys').argv[1])/'TMessagesProj/src/main/java'
- for path in native.rglob('*.java'):
+ for path in Path(__import__('sys').argv[1]).rglob('*.java'):
   text=path.read_text(encoding='utf-8')
   assert 'MAX_ACCOUNT_COUNT' not in text, path
  login=(native/'org/telegram/ui/LoginActivity.java').read_text(encoding='utf-8')

@@ -16,7 +16,7 @@
     <string name="NebulaIntroLinkTitle">NebulaLink, когда нужен</string>
     <string name="NebulaIntroLinkSubtitle">Добавь подписку Xray или ключ сервера. Настройка подключения необязательна и доступна прямо в приложении.</string>
     <string name="NebulaAuthLinkTitle">Подключите NebulaLink</string>
-    <string name="NebulaAuthLinkSubtitle">Вставьте ссылку на подписку или ключ сервера — без туннеля код для входа может не дойти.</string>
+    <string name="NebulaAuthLinkSubtitle">Добавьте свою подписку или ключ сервера, если нужно подключение. Этот шаг можно пропустить.</string>
     <string name="NebulaAuthLinkField">Подписка или ключ сервера</string>
     <string name="NebulaAuthLinkHint">Вставьте ссылку</string>
     <string name="NebulaAuthLinkFormats">Подписки и ключи серверов · VLESS, VMess, Trojan, Shadowsocks, Hysteria2, TUIC</string>
