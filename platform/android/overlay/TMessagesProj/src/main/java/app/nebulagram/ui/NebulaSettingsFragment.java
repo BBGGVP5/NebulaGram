@@ -29,6 +29,8 @@ public class NebulaSettingsFragment extends BaseFragment {
     private android.widget.EditText search;
     private FrameLayout root;
     private int paletteSurface, palettePrimary;
+    private Runnable pendingSearch;
+    private String displayedQuery;
 
     @Override
     public View createView(Context context) {
@@ -77,6 +79,8 @@ public class NebulaSettingsFragment extends BaseFragment {
         else if (root != null) build(root.getContext());
     }
     private void build(Context context) {
+        if (pendingSearch != null) AndroidUtilities.cancelRunOnUIThread(pendingSearch);
+        displayedQuery = null;
         content.removeAllViews();
         NebulaTheme theme = NebulaTheme.of(context);
         search = new android.widget.EditText(context);
@@ -106,13 +110,28 @@ public class NebulaSettingsFragment extends BaseFragment {
         content.addView(sections, new LinearLayout.LayoutParams(-1, -2));
         search.addTextChangedListener(new android.text.TextWatcher() {
             @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) { }
-            @Override public void onTextChanged(CharSequence s, int start, int before, int count) { showSearch(context, s.toString()); }
+            @Override public void onTextChanged(CharSequence s, int start, int before, int count) { scheduleSearch(context, s.toString()); }
             @Override public void afterTextChanged(android.text.Editable s) { }
         });
         buildSections(context);
     }
 
+    private void scheduleSearch(Context context, String query) {
+        if (pendingSearch != null) AndroidUtilities.cancelRunOnUIThread(pendingSearch);
+        pendingSearch = () -> { pendingSearch = null; showSearch(context, query); };
+        AndroidUtilities.runOnUIThread(pendingSearch, query.trim().length() < 2 ? 0 : 120);
+    }
+
+    @Override public void onFragmentDestroy() {
+        if (pendingSearch != null) AndroidUtilities.cancelRunOnUIThread(pendingSearch);
+        pendingSearch = null;
+        super.onFragmentDestroy();
+    }
+
     private void showSearch(Context context, String query) {
+        String normalized = query.trim().toLowerCase(java.util.Locale.ROOT);
+        if (normalized.equals(displayedQuery)) return;
+        displayedQuery = normalized;
         boolean searching = query.trim().length() >= 2;
         sections.setVisibility(searching ? View.GONE : View.VISIBLE);
         searchResults.setVisibility(searching ? View.VISIBLE : View.GONE);

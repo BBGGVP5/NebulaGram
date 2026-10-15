@@ -52,8 +52,8 @@ class FolderStyleCheck {
    int expected=Math.max(0,Math.min(2,style));check(NebulaFolderTabs.panelStyle()==expected);
    for(boolean bottom:new boolean[]{true,false,true})for(boolean motion:new boolean[]{true,false}) {
     NebulaAppearance.liquid=motion;host.setNebulaBottomPanel(bottom);
-    check(host.nebulaPanelStyle==(bottom?expected:0));
-    check(host.nebulaLiquidSelector()==(motion&&(!bottom||expected==0)));cases++;
+    check(host.nebulaPanelStyle==expected);
+    check(host.nebulaLiquidSelector()==(expected==0));cases++;
    }
   }
   for(boolean top:new boolean[]{false,true})for(boolean stories:new boolean[]{false,true})

@@ -57,7 +57,7 @@ public class NebulaConnectFragment extends BaseFragment {
         image.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
         // Плитки под рисунком нет: в макетах её не было, а здесь она ещё и
         // срезала расходящуюся волну по краям квадрата.
-        int badge = NebulaLoginStyle.compact(220);
+        int badge = NebulaLoginStyle.compact(164);
         LinearLayout.LayoutParams badgeParams = new LinearLayout.LayoutParams(badge, badge);
         badgeParams.gravity = Gravity.CENTER_HORIZONTAL;
         badgeParams.bottomMargin = NebulaLoginStyle.compact(12);
@@ -83,7 +83,7 @@ public class NebulaConnectFragment extends BaseFragment {
         field.setPadding(AndroidUtilities.dp(18), AndroidUtilities.dp(16), AndroidUtilities.dp(18), AndroidUtilities.dp(12));
         GradientDrawable surface = new GradientDrawable();
         surface.setColor(theme.surfaceContainer());
-        surface.setCornerRadius(AndroidUtilities.dp(22));
+        surface.setCornerRadius(AndroidUtilities.dp(26));
         field.setBackground(surface);
         TextView label = NebulaIntroFragment.text(context, 13, theme.primary(), true);
         label.setText(LocaleController.getString(R.string.NebulaAuthLinkField));
@@ -110,6 +110,24 @@ public class NebulaConnectFragment extends BaseFragment {
             return false;
         });
         field.addView(input, NebulaIntroFragment.width());
+        NebulaButton clipboard = new NebulaButton(context, NebulaButton.STYLE_TEXT);
+        clipboard.setText(NebulaText.text("Вставить из буфера", "Paste from clipboard"));
+        clipboard.setOnClickListener(v -> {
+            if (busy || destroyed) return;
+            android.content.ClipboardManager manager = (android.content.ClipboardManager) context.getSystemService(Context.CLIPBOARD_SERVICE);
+            android.content.ClipData clip = manager == null ? null : manager.getPrimaryClip();
+            CharSequence value = clip != null && clip.getItemCount() > 0 ? clip.getItemAt(0).getText() : null;
+            if (value == null || value.length() == 0) {
+                fail(NebulaText.text("В буфере нет текста", "No text in clipboard"));
+            } else if (value.length() > 1024 * 1024) {
+                fail(NebulaText.text("Текст слишком большой. Вставьте ссылку на подписку", "Text is too large. Paste a subscription URL"));
+            } else {
+                input.setText(value);
+                input.setSelection(input.length());
+                status.setVisibility(View.GONE);
+            }
+        });
+        field.addView(clipboard, NebulaIntroFragment.width());
         LinearLayout.LayoutParams fieldParams = NebulaIntroFragment.width();
         fieldParams.topMargin = NebulaLoginStyle.compact(22);
         root.content.addView(field, fieldParams);

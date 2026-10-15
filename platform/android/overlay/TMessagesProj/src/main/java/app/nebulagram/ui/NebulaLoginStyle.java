@@ -96,7 +96,8 @@ public final class NebulaLoginStyle {
                              View country, View phone, View field, Keyboard keyboard) {
         decorate(slide, title, subtitle, 2, R.string.NebulaAuthPhoneEyebrow);
         title.setText(LocaleController.getString(R.string.NebulaAuthPhoneTitle));
-        hideKeyboardWhenComplete(field, keyboard);
+        // Phone masks are hints, not completion signals: keep editing under user control.
+        if (keyboard != null) field.setOnClickListener(v -> keyboard.setVisible(true));
         fieldMargins(country, Math.round(26 * vertical()), 6);
         fieldMargins(phone, 8, Math.round(12 * vertical()));
         centerFieldContent(country);
@@ -112,48 +113,6 @@ public final class NebulaLoginStyle {
                 params.setMarginEnd(0);
             }
         }
-    }
-
-    /**
-     * Убирает цифровую клавиатуру, когда номер набран целиком.
-     *
-     * <p>Полноту определяем по подсказке поля: Telegram держит там образец
-     * номера для выбранной страны и дорисовывает нули на месте недостающих
-     * цифр. Как только дорисовывать нечего — номер введён, и клавиатура
-     * только закрывает кнопку «Продолжить».
-     *
-     * <p>Нажатие по полю возвращает её обратно: без этого исправить набранный
-     * номер было бы нечем.
-     */
-    private static void hideKeyboardWhenComplete(View field, Keyboard keyboard) {
-        if (!(field instanceof HintEditText) || keyboard == null) {
-            return;
-        }
-        final HintEditText input = (HintEditText) field;
-        input.addTextChangedListener(new TextWatcher() {
-            private int previous = input.length();
-
-            @Override
-            public void beforeTextChanged(CharSequence text, int start, int count, int after) { }
-
-            @Override
-            public void onTextChanged(CharSequence text, int start, int before, int count) { }
-
-            @Override
-            public void afterTextChanged(Editable text) {
-                final int now = input.length();
-                // Прячем только когда номер дописывают. При стирании подсказка
-                // укорачивается вслед за текстом, условие «номер набран»
-                // срабатывало снова, и клавиатура пропадала посреди правки.
-                final boolean grew = now > previous;
-                previous = now;
-                String hint = input.getHintText();
-                if (grew && hint != null && hint.length() > 0 && now >= hint.length()) {
-                    keyboard.setVisible(false);
-                }
-            }
-        });
-        input.setOnClickListener(v -> keyboard.setVisible(true));
     }
 
     public static void code(SlideView slide, TextView title, TextView subtitle,
@@ -378,64 +337,49 @@ public final class NebulaLoginStyle {
         return background;
     }
 
-    /** Same outline, hint, focus and error animator, with a rounded filled surface. */
+    /** Filled authorization field with a stationary label, preserving native focus/error callbacks. */
     public static class Field extends OutlineTextContainerView {
-        /**
-         * Скругление поля — ровно там, где Telegram начинает вырез под
-         * заголовок (PADDING_LEFT - PADDING_TEXT = 10dp). При большем радиусе
-         * вырез попадал внутрь дуги: заголовок наезжал на закругление, а концы
-         * линий висели в воздухе. Теперь линия начинается точно в точке
-         * касания, и подгонять на глаз нечего.
-         */
-        private static final int RADIUS = 10;
-
         private boolean rounded;
-
+        private String caption = "";
+        private final android.text.TextPaint captionPaint = new android.text.TextPaint(android.graphics.Paint.ANTI_ALIAS_FLAG);
+        private float error;
         public Field(Context context, boolean rounded) {
             super(context);
             this.rounded = rounded;
             if (rounded) applySurface();
         }
-
-        /**
-         * Ставит фон, не потеряв отступ сверху.
-         *
-         * <p>Конструктор Telegram задаёт полю отступ в шесть точек — это место,
-         * куда рисуется заголовок поверх рамки. Установка фона сбрасывает
-         * отступы вью на отступы самого фона, а у заливки их нет: место
-         * исчезало, и у «Страны» с «Номером телефона» срезало верх букв.
-         */
         private void applySurface() {
-            // Заливку сдвигаем внутрь на толщину обводки: Telegram рисует её
-            // по прямоугольнику, отступающему от края на эту величину, и без
-            // сдвига края заливки и обводки не совпадали — грань выглядела
-            // двойной.
-            final int inset = Math.max(2, AndroidUtilities.dp(0.5f));
-            // Сверху отступ больше на те шесть точек, которые Telegram
-            // оставляет под заголовок: рамка начинается под ними, а заливка
-            // шла от самого верха и торчала над рамкой на всю эту полоску.
-            final int top = AndroidUtilities.dp(6) + inset;
-            setBackground(new android.graphics.drawable.InsetDrawable(
-                    surface(RADIUS), inset, top, inset, inset));
-            setPadding(0, AndroidUtilities.dp(6), 0, 0);
+            GradientDrawable fill = surface(20);
+            if (error > 0f) fill.setColor(ColorUtils.blendARGB(
+                    Theme.getColor(Theme.key_windowBackgroundWhite), Theme.getColor(Theme.key_text_RedBold), .10f));
+            setBackground(fill);
+            setPadding(0, AndroidUtilities.dp(20), 0, AndroidUtilities.dp(2));
         }
-
-        @Override
-        protected float getCornerRadius() {
-            return rounded ? AndroidUtilities.dp(RADIUS) : super.getCornerRadius();
+        @Override public void setText(String text) {
+            super.setText(text);
+            caption = text;
+            setContentDescription(text);
         }
-
-        @Override
-        public void updateColor() {
+        @Override public void animateError(float value) {
+            error = value;
+            super.animateError(value);
+            if (rounded) applySurface();
+        }
+        @Override public void updateColor() {
             super.updateColor();
             if (rounded) applySurface();
         }
-
-        // Обрезка по форме поля здесь была и оказалась вредной: заголовок
-        // сидит на линии рамки, и его верхняя половина уходила под обрезку —
-        // «Страна» и «Номер телефона» читались срезанными. Вылет линий за
-        // дугу, ради которого она вводилась, решён радиусом: он совпадает с
-        // началом выреза, и обрезать больше нечего.
+        @Override protected float getCornerRadius() { return rounded ? AndroidUtilities.dp(20) : super.getCornerRadius(); }
+        @Override protected void onDraw(Canvas canvas) {
+            if (!rounded) { super.onDraw(canvas); return; }
+            captionPaint.setTextSize(AndroidUtilities.dp(11));
+            captionPaint.setColor(Theme.getColor(error > 0f ? Theme.key_text_RedBold : Theme.key_windowBackgroundWhiteGrayText));
+            float inset = AndroidUtilities.dp(18);
+            CharSequence label = android.text.TextUtils.ellipsize(caption, captionPaint,
+                    Math.max(0, getWidth() - inset * 2), android.text.TextUtils.TruncateAt.END);
+            float x = LocaleController.isRTL ? getWidth() - inset - captionPaint.measureText(label.toString()) : inset;
+            canvas.drawText(label.toString(), x, AndroidUtilities.dp(15), captionPaint);
+        }
     }
 
     /** Native OTP input/autofill/backspace/error handling, with adaptive cell geometry. */
@@ -474,10 +418,15 @@ public final class NebulaLoginStyle {
             super.onMeasure(widthMeasureSpec, heightMeasureSpec);
         }
 
+        private GradientDrawable cellFill;
+        private int cellPalette;
+
         @Override
         protected void dispatchDraw(Canvas canvas) {
             if (rounded) {
-                GradientDrawable fill = surface(14);
+                int color = Theme.getColor(Theme.key_windowBackgroundWhite);
+                if (cellFill == null || cellPalette != color) { cellFill = surface(18); cellPalette = color; }
+                GradientDrawable fill = cellFill;
                 for (int i = 0; i < getChildCount(); i++) {
                     View child = getChildAt(i);
                     fill.setBounds(child.getLeft(), child.getTop(), child.getRight(), child.getBottom());

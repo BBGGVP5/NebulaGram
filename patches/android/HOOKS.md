@@ -686,3 +686,6 @@ Round-video warm camera requests use that selection's characteristics/recording 
 activation refreshes Nebula capability options. Keep upstream null-session diagnostics and wallet-effect
 exclusion alongside Nebula's effect setting. The later 0200–0210 recording/header patches remain intact.
 Source compatibility is checked separately from full CI compilation and physical-device acceptance.
+# 2026-10-15: composer accessory and folder material
+
+`0212-formatting-toolbar.patch` connects an opt-in native-selection formatting bar below the text composer. Its height participates in the native input island and reply-preview geometry; recording and rich-editor modes retain their own controls. `0213-unified-folder-glass.patch` applies the chosen folder style at both positions and separates static glass appearance from motion preferences. Neither patch changes sending, cloud entitlements or account limits.

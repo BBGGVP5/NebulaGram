@@ -969,6 +969,18 @@ enum NebulaEmbeddedCatalog {
       "ios_mapping": "native",
       "default": "0",
       "max_length": 40
+    },
+    {
+      "key": "formatting_toolbar",
+      "type": "boolean",
+      "feature": "chat.composer",
+      "android_store": "nebulagram",
+      "android_source": "NebulaFormattingToolbar.java",
+      "transfer_v1": true,
+      "ios_status": "planned",
+      "ios_mapping": "native",
+      "default": false,
+      "literal_default_binding": true
     }
   ]
 }

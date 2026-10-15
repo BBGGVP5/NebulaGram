@@ -40,12 +40,13 @@ public final class NebulaSettingsSearch {
     }
     public static ArrayList<Entry> all() {
         ArrayList<Entry> result = new ArrayList<>();
+        result.add(new Entry(1, NebulaText.text("Панель форматирования", "Formatting toolbar"), NebulaText.text("Клавиатура, жирный, курсив, цитата, спойлер, ссылка", "Keyboard, bold, italic, quote, spoiler, link"), R.drawable.msg_edit));
         result.add(new Entry(-27, NebulaText.text("Фильтр сообщений", "Message filter"), NebulaText.text("Слова, транслитерация, исключения, заблокированные", "Words, transliteration, exceptions, blocked users"), R.drawable.msg_search));
         result.add(new Entry(-28, NebulaText.text("Меню сообщения", "Message menu"), NebulaText.text("Действия, высота, компактный вид и размытие", "Actions, height, compact appearance and blur"), R.drawable.msg_list));
         result.add(new Entry(-26, NebulaText.text("Камера", "Camera"), NebulaText.text("Движок кружков, CameraX, качество, стабилизация, экспозиция и размытие", "Round-video engine, CameraX, quality, stabilization, exposure and blur"), R.drawable.msg_videocall));
         result.add(new Entry(-22, NebulaText.text("Поддержать проект", "Support the project"),
                 NebulaText.text("Донат и значок поддержки NebulaGram", "Donation and NebulaGram supporter badge"), R.drawable.nebula_settings_support));
-        result.add(new Entry(5, NebulaText.text("Оформление нижних папок", "Bottom folder appearance"),
+        result.add(new Entry(5, NebulaText.text("Оформление папок", "Folder appearance"),
                 NebulaText.text("iOS, жидкое стекло, обычные, минималистичные", "iOS, Liquid Glass, ordinary, minimal"), R.drawable.files_folder));
         result.add(new Entry(-14, NebulaText.text("Кнопка NebulaLink", "NebulaLink button"), NebulaText.text("Щит на главной, подключение, сервер, пинг", "Shield on home, connection, server, ping"), R.drawable.nebula_link_shield));
         result.add(new Entry(12, NebulaText.text("Стекло", "Glass"), NebulaText.text("Прозрачность, размытие, блики", "Transparency, blur, highlights"), R.drawable.msg_customize));

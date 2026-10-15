@@ -118,7 +118,7 @@ final class NebulaWelcomeController: UIViewController {
             titleLabel.transform = art.transform
             subtitleLabel.transform = art.transform
             updateCopy()
-            UIView.animate(withDuration: 0.22, delay: 0, options: .curveEaseOut) {
+            UIView.animate(withDuration: 0.22, delay: 0, options: [.beginFromCurrentState, .allowUserInteraction, .curveEaseOut]) {
                 self.art.alpha = 1
                 self.titleLabel.alpha = 1
                 self.subtitleLabel.alpha = 0.8
@@ -152,9 +152,9 @@ final class NebulaWelcomeController: UIViewController {
         skipButton.frame = CGRect(x: x + half + 12, y: secondaryY, width: half, height: 44)
         for button in [languageButton, previousButton, skipButton] {
             button.layer.cornerRadius = 14
-            button.layer.borderWidth = 1
+            button.layer.borderWidth = 0
             button.layer.borderColor = accent.withAlphaComponent(0.26).cgColor
-            button.backgroundColor = accent.withAlphaComponent(0.07)
+            button.backgroundColor = .clear
         }
         if primary == nil, let button = createStartButton?(width) {
             primary = button

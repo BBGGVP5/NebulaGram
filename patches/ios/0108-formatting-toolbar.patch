@@ -1,0 +1,70 @@
+diff --git a/submodules/TelegramUI/Components/Chat/ChatTextInputPanelNode/Sources/ChatTextInputPanelNode.swift b/submodules/TelegramUI/Components/Chat/ChatTextInputPanelNode/Sources/ChatTextInputPanelNode.swift
+--- a/submodules/TelegramUI/Components/Chat/ChatTextInputPanelNode/Sources/ChatTextInputPanelNode.swift
++++ b/submodules/TelegramUI/Components/Chat/ChatTextInputPanelNode/Sources/ChatTextInputPanelNode.swift
+@@ -307,6 +307,7 @@
+     
+     private var presentationInterfaceState: ChatPresentationInterfaceState?
+     private let nebulaArithmeticHint = NebulaArithmeticHint()
++    private var nebulaFormattingToolbar: NebulaFormattingToolbar?
+     private var nebulaAppearanceObservation: SettingsObservation?
+     private var initializedPlaceholder = false
+     
+@@ -3908,7 +3909,28 @@
+         self.glassBackgroundContainer.update(size: containerFrame.size, isDark: interfaceState.theme.overallDarkAppearance, transition: ComponentTransition(transition))
+         
+         self.nebulaArithmeticHint.update(input: audioRecordingItemsAlpha > 0 ? self.richTextInputNode?.inputView : nil, container: self.textInputNodeClippingContainer, color: interfaceState.theme.chat.inputPanel.inputPlaceholderColor)
+-        return contentHeight
++        var formattingHeight: CGFloat = 0
++        var textMode = false
++        if case .text = interfaceState.inputMode { textMode = true }
++        if NebulaSettingsStore.shared.formattingToolbar && self.isFocused && textMode && audioRecordingItemsAlpha > 0 && !self.sendingTextDisabled {
++            let toolbar: NebulaFormattingToolbar
++            if let current = self.nebulaFormattingToolbar { toolbar = current } else {
++                toolbar = NebulaFormattingToolbar(frame: .zero)
++                toolbar.action = { [weak self] index in self?.nebulaFormatSelection(index) }
++                self.nebulaFormattingToolbar = toolbar
++                self.view.addSubview(toolbar)
++            }
++            toolbar.update(color: interfaceState.theme.chat.inputPanel.actionControlForegroundColor,
++                russian: interfaceState.strings.baseLanguageCode.lowercased().hasPrefix("ru"),
++                hasSelection: !self.inputTextState.selectionRange.isEmpty)
++            formattingHeight = 52
++            transition.updateFrame(view: toolbar, frame: CGRect(x: leftInset + 8, y: contentHeight + 4,
++                width: max(0, width - leftInset - rightInset - 16), height: 44))
++        } else if let toolbar = self.nebulaFormattingToolbar {
++            toolbar.removeFromSuperview()
++            self.nebulaFormattingToolbar = nil
++        }
++        return contentHeight + formattingHeight
+     }
+     
+     @objc private func slowModeButtonPressed() {
+@@ -5314,6 +5336,28 @@
+         }
+     }
+     
++    private func nebulaFormatSelection(_ index: Int) {
++        guard !self.inputTextState.selectionRange.isEmpty else { return }
++        switch index {
++        case 0: self.formatAttributesBold(self)
++        case 1: self.formatAttributesItalic(self)
++        case 2: self.formatAttributesMonospace(self)
++        case 3: self.formatAttributesQuote(self)
++        case 4: self.formatAttributesSpoiler(self)
++        case 5: self.formatAttributesLink(self)
++        default:
++            self.interfaceInteraction?.updateTextInputStateAndMode { current, mode in
++                let text = NSMutableAttributedString(attributedString: current.inputText)
++                let range = NSRange(location: current.selectionRange.lowerBound, length: current.selectionRange.count)
++                guard range.location >= 0 && NSMaxRange(range) <= text.length else { return (current, mode) }
++                for key in [ChatTextInputAttributes.bold, ChatTextInputAttributes.italic, ChatTextInputAttributes.monospace,
++                    ChatTextInputAttributes.strikethrough, ChatTextInputAttributes.underline, ChatTextInputAttributes.spoiler,
++                    ChatTextInputAttributes.block, ChatTextInputAttributes.textUrl] { text.removeAttribute(key, range: range) }
++                return (ChatTextInputState(inputText: text, selectionRange: current.selectionRange), mode)
++            }
++        }
++    }
++
+     @objc public func formatAttributesBold(_ sender: Any) {
+         self.inputMenu.back()
+         self.interfaceInteraction?.updateTextInputStateAndMode { current, inputMode in

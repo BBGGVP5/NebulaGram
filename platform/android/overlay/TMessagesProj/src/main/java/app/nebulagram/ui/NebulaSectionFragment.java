@@ -321,6 +321,15 @@ public class NebulaSectionFragment extends BaseFragment {
         composer.add(toggle(context, R.drawable.msg_edit,
                 R.string.NebulaIosComposer, R.string.NebulaIosComposerInfo,
                 NebulaAppearance.iosComposer(), NebulaAppearance::setIosComposer));
+        composer.add(new NebulaRow(context).icon(R.drawable.msg_edit)
+                .title(NebulaText.text("Панель форматирования", "Formatting toolbar"))
+                .subtitle(NebulaText.text("Над клавиатурой: выделите текст и выберите оформление", "Above the keyboard: select text, then choose a format"), false)
+                .trailing(NebulaRow.TRAIL_SWITCH).checked(NebulaFormattingToolbar.enabled())
+                .withClick(v -> {
+                    boolean enabled = !NebulaFormattingToolbar.enabled();
+                    NebulaFormattingToolbar.setPreferenceEnabled(enabled);
+                    ((NebulaRow) v).checked(enabled);
+                }));
         composer.add(toggle(context, R.drawable.msg_photo_settings,
                 R.string.NebulaHideCameraTitle, R.string.NebulaHideCameraSub,
                 NebulaAppearance.hideAttachCamera(), NebulaAppearance::setHideAttachCamera));

@@ -54,8 +54,8 @@ final class NebulaAuthArtView: UIView {
                 let label = UILabel()
                 label.textAlignment = .center
                 label.textColor = accent
-                label.layer.borderWidth = 2
-                label.layer.borderColor = accent.withAlphaComponent(0.45).cgColor
+                label.layer.borderWidth = 0
+                label.backgroundColor = accent.withAlphaComponent(0.12)
                 label.clipsToBounds = true
                 addSubview(label); digits.append(label)
             }
@@ -228,9 +228,9 @@ final class NebulaAuthBackdropView: UIView {
         glow.startPoint = CGPoint(x: 0.9, y: 0)
         glow.endPoint = CGPoint(x: 0.1, y: 1)
         layer.addSublayer(glow)
-        card.layer.cornerRadius = 24
+        card.layer.cornerRadius = 26
         card.clipsToBounds = true
-        card.layer.borderWidth = 0.5
+        card.layer.borderWidth = 0
         addSubview(card)
         NotificationCenter.default.addObserver(self, selector: #selector(updateAccessibility), name: UIAccessibility.reduceTransparencyStatusDidChangeNotification, object: nil)
         updateAccessibility()

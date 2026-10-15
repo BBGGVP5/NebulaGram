@@ -3,6 +3,20 @@ import XCTest
 @testable import NebulaSettingsContract
 
 final class SettingsStoreTests: XCTestCase {
+    func testFormattingToolbarIsOptInAndSurvivesTransfer() throws {
+        try withDefaults { defaults in
+            let store = NebulaSettingsStore(defaults: defaults)
+            XCTAssertFalse(store.formattingToolbar)
+            try store.set(.boolean(true), for: "formatting_toolbar")
+            XCTAssertTrue(NebulaSettingsStore(defaults: defaults).formattingToolbar)
+            let exported = try store.exportData()
+            try store.set(.boolean(false), for: "formatting_toolbar")
+            try store.importData(exported)
+            XCTAssertTrue(store.formattingToolbar)
+            XCTAssertThrowsError(try store.set(.integer(1), for: "formatting_toolbar"))
+        }
+    }
+
     func testGlassMasterAndStyleRemainConsistentAcrossRestart() throws {
         try withDefaults { defaults in
             let store = NebulaSettingsStore(defaults: defaults)

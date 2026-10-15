@@ -11,6 +11,23 @@ public final class NebulaIntroArt extends View {
     private final Paint p = new Paint(3);
     private final RectF r = new RectF();
     private final Path leader = new Path();
+    private final Path avatarClip = new Path();
+    private final RadialGradient halo = new RadialGradient(180,195,180,0x334d60db,0x004d60db,Shader.TileMode.CLAMP);
+    private final java.util.ArrayList<Shade> gradients = new java.util.ArrayList<>();
+    private static final class Shade {
+        final float l,t,r,b; final int first,last; final LinearGradient shader;
+        Shade(float l,float t,float r,float b,int first,int last) {
+            this.l=l;this.t=t;this.r=r;this.b=b;this.first=first;this.last=last;
+            shader=new LinearGradient(l,t,r,b,first,last,Shader.TileMode.CLAMP);
+        }
+    }
+    private LinearGradient shade(float l,float t,float r,float b,int first,int last) {
+        for(int i=0;i<gradients.size();i++) {
+            Shade value=gradients.get(i);
+            if(value.l==l&&value.t==t&&value.r==r&&value.b==b&&value.first==first&&value.last==last) return value.shader;
+        }
+        Shade value=new Shade(l,t,r,b,first,last);gradients.add(value);return value.shader;
+    }
     private final Bitmap astronaut;
     private int page;
     private final int ink = 0xfff2f5ff, muted = 0xffa9b8cd, cyan = 0xff57dfe0;
@@ -34,7 +51,7 @@ public final class NebulaIntroArt extends View {
     @Override protected void onDraw(Canvas c) {
         float scale = Math.min(getWidth()/360f, getHeight()/340f);
         c.save(); c.translate((getWidth()-360*scale)/2, (getHeight()-340*scale)/2); c.scale(scale, scale);
-        p.setShader(new RadialGradient(180,195,180,0x334d60db,0x004d60db,Shader.TileMode.CLAMP));
+        p.setShader(halo);
         c.drawCircle(180,195,180,p); p.setShader(null);
         if(page==0) welcome(c); else if(page==1) design(c); else if(page==2) privacy(c); else if(page==3) ai(c); else link(c);
         c.restore();
@@ -43,7 +60,8 @@ public final class NebulaIntroArt extends View {
         annotation(c,70,5,290,39,"✦",t("Твои разговоры","Your conversations"),178,55);
         card(c,38,54,322,324,24);
         text(c,"NebulaGram",58,84,18,ink,true);
-        pill(c,56,98,110,122,t("Все","All"),cyan);
+        card(c,50,94,310,128,17);
+        pill(c,54,97,112,125,t("Все","All"),cyan);
         text(c,t("Личные","Personal"),128,115,11,muted,false);
         text(c,t("Работа","Work"),190,115,11,muted,false);
         String[] names={t("Избранное","Saved Messages"),t("Команда Nebula","Nebula team"),t("Аня","Anna")};
@@ -114,7 +132,7 @@ public final class NebulaIntroArt extends View {
     }
     private void sticker(Canvas c,float l,float t,float rr,float b){if(astronaut!=null){p.setColor(-1);float scale=Math.min((rr-l)/astronaut.getWidth(),(b-t)/astronaut.getHeight());float w=astronaut.getWidth()*scale,h=astronaut.getHeight()*scale;r.set((l+rr-w)/2,(t+b-h)/2,(l+rr+w)/2,(t+b+h)/2);c.drawBitmap(astronaut,null,r,p);}}
     private void card(Canvas c,float l,float t,float rr,float b,float rad){gradient(c,l,t,rr,b,rad,0xff2c384b,0xff192332);}
-    private void gradient(Canvas c,float l,float t,float rr,float b,float rad,int a,int z){r.set(l,t,rr,b);p.setShader(new LinearGradient(l,t,rr,b,a,z,Shader.TileMode.CLAMP));p.setStyle(Paint.Style.FILL);c.drawRoundRect(r,rad,rad,p);p.setShader(null);p.setStyle(Paint.Style.STROKE);p.setStrokeWidth(.8f);p.setColor(0x30ffffff);c.drawRoundRect(r,rad,rad,p);p.setStyle(Paint.Style.FILL);}
+    private void gradient(Canvas c,float l,float t,float rr,float b,float rad,int a,int z){r.set(l,t,rr,b);p.setShader(shade(l,t,rr,b,a,z));p.setStyle(Paint.Style.FILL);c.drawRoundRect(r,rad,rad,p);p.setShader(null);p.setStyle(Paint.Style.STROKE);p.setStrokeWidth(.8f);p.setColor(0x30ffffff);c.drawRoundRect(r,rad,rad,p);p.setStyle(Paint.Style.FILL);}
     private void ribbon(Canvas c,float l,float t,float rr,float b,String icon,String label){card(c,l,t,rr,b,19);circle(c,l+24,(t+b)/2,14,0xff496ddb);centeredText(c,icon,l+24,(t+b)/2+5,15,ink,true);fitText(c,label,l+48,(t+b)/2+5,13,rr-l-62,ink,true);}
     private void fitText(Canvas c,String s,float x,float y,float size,float available,int color,boolean bold){p.setTypeface(bold?AndroidUtilities.bold():Typeface.DEFAULT);p.setTextSize(size);float measured=p.measureText(s);text(c,s,x,y,measured>available?size*available/measured:size,color,bold);}
     private void pill(Canvas c,float l,float t,float rr,float b,String text,int color){gradient(c,l,t,rr,b,12,0xff385b6b,0xff2e4256);centeredText(c,text,(l+rr)*.5f,b-7,10,color,true);}
@@ -124,7 +142,7 @@ public final class NebulaIntroArt extends View {
     private void divider(Canvas c,float sx,float sy,float ex,float ey){p.setColor(0x273a4a60);p.setStrokeWidth(.8f);p.setStyle(Paint.Style.STROKE);c.drawLine(sx,sy,ex,ey,p);p.setStyle(Paint.Style.FILL);}
     private void centeredText(Canvas c,String s,float centerX,float baseline,float size,int color,boolean bold){p.setTypeface(bold?AndroidUtilities.bold():Typeface.DEFAULT);p.setTextSize(size);text(c,s,centerX-p.measureText(s)*.5f,baseline,size,color,bold);}
     private void drawChatAvatar(Canvas c,float x,float y,int type) {
-        int save=c.save();Path clip=new Path();clip.addCircle(x,y,15,Path.Direction.CW);c.clipPath(clip);
+        int save=c.save();avatarClip.reset();avatarClip.addCircle(x,y,15,Path.Direction.CW);c.clipPath(avatarClip);
         int bg=type==0?0xff5d70df:type==1?0xff27afb3:0xffd48ea9; p.setColor(bg);c.drawCircle(x,y,15,p);
         if(type==0) {
             p.setColor(0xffffd66e);c.drawCircle(x,y-3,5,p);r.set(x-8,y+2,x+8,y+15);c.drawRoundRect(r,7,7,p);

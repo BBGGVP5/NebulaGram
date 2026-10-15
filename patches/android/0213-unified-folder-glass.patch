@@ -1,0 +1,42 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/FilterTabsView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/FilterTabsView.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Components/FilterTabsView.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/FilterTabsView.java
+@@ -1174,7 +1174,7 @@
+     }
+ 
+     public void setNebulaBottomPanel(boolean bottom) {
+-        int style = bottom ? app.nebulagram.ui.NebulaFolderTabs.panelStyle() : 0;
++        int style = app.nebulagram.ui.NebulaFolderTabs.panelStyle();
+         if (nebulaBottomPanel == bottom && nebulaPanelStyle == style && getBackground() != null) return;
+         nebulaBottomPanel = bottom;
+         nebulaPanelStyle = style;
+@@ -1183,16 +1183,13 @@
+     }
+ 
+     private boolean nebulaLiquidSelector() {
+-        return nebulaPanelStyle == app.nebulagram.ui.NebulaFolderTabs.GLASS
+-                && app.nebulagram.ui.NebulaAppearance.liquidAnimations();
++        return nebulaPanelStyle == app.nebulagram.ui.NebulaFolderTabs.GLASS;
+     }
+ 
+     private void applyNebulaPanelStyle() {
+         if (nebulaPanelStyle == app.nebulagram.ui.NebulaFolderTabs.GLASS) {
+             if (blurredBackgroundDrawable != null) {
+-                blurredBackgroundDrawable.setColorProvider(nebulaBottomPanel
+-                        ? app.nebulagram.ui.NebulaFolderGlass.provider(resourcesProvider)
+-                        : org.telegram.ui.Components.blur3.drawable.color.impl.BlurredBackgroundProviderImpl.topPanel(resourcesProvider));
++                blurredBackgroundDrawable.setColorProvider(app.nebulagram.ui.NebulaFolderGlass.provider(resourcesProvider));
+             }
+             setBackground(blurredBackgroundDrawable);
+         } else if (nebulaPanelStyle == app.nebulagram.ui.NebulaFolderTabs.ORDINARY) {
+@@ -1667,8 +1664,8 @@
+                 return;
+             }
+ 
+-            final int y = height / 2 - dp(14);
+-            selectorDrawable.setBounds((int) (indicatorX - dp(TAB_INTERNAL_PADDING) - add), y, (int) (indicatorX + indicatorWidth + dp(TAB_INTERNAL_PADDING) + add), y + dp(28));
++            final int y = height / 2 - dp(16);
++            selectorDrawable.setBounds((int) (indicatorX - dp(TAB_INTERNAL_PADDING) - add), y, (int) (indicatorX + indicatorWidth + dp(TAB_INTERNAL_PADDING) + add), y + dp(32));
+             selectorDrawable.setAlpha(31);
+             if (nebulaLiquidSelector()) {
+                 android.graphics.Rect r = selectorDrawable.getBounds();

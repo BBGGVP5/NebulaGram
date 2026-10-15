@@ -61,7 +61,8 @@ subprocess.run(['java', '-cp', str(work), 'FolderGlassCheck'], check=True)
 
 tabs = (tree / 'TMessagesProj/src/main/java/org/telegram/ui/Components/FilterTabsView.java').read_text(encoding='utf-8')
 assert 'NebulaFolderGlass.provider(resourcesProvider)' in tabs
-assert 'BlurredBackgroundProviderImpl.topPanel(resourcesProvider)' in tabs
+assert 'int style = app.nebulagram.ui.NebulaFolderTabs.panelStyle();' in tabs
+assert 'return nebulaPanelStyle == app.nebulagram.ui.NebulaFolderTabs.GLASS;' in tabs
 assert '!app.nebulagram.ui.NebulaFolderTabs.bottom() && filterTabsView != null' in dialogs
 preview = (ROOT / 'platform/android/overlay/TMessagesProj/src/main/java/app/nebulagram/ui/NebulaFoldersPreview.java').read_text(encoding='utf-8')
 assert 'sampleChats.draw(capture)' in preview and 'finally {' in preview

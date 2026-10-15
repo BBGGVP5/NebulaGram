@@ -1,0 +1,67 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
+@@ -236,6 +236,8 @@
+     SuggestEmojiView.AnchorViewDelegate,
+     FactorAnimator.Target, Theme.Colorable
+ {
++    private app.nebulagram.ui.NebulaFormattingToolbar nebulaFormattingToolbar;
++    private int nebulaFormattingHeight;
+     private final app.nebulagram.ui.NebulaMathHint nebulaMathHint = new app.nebulagram.ui.NebulaMathHint();
+ 
+     private int commonInputType;
+@@ -6039,6 +6041,9 @@
+         messageEditText.setHandlesColor(getThemedColor(Theme.key_chat_TextSelectionCursor));
+         messageEditTextContainer.addView(messageEditText, 1, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.BOTTOM, 52, 0, isChat ? 50 : 2, 1.5f));
+         if (parentFragment != null && isChat) {
++            nebulaFormattingToolbar = new app.nebulagram.ui.NebulaFormattingToolbar(context, messageEditText, this::requestLayout);
++            addView(nebulaFormattingToolbar, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT,
++                    app.nebulagram.ui.NebulaFormattingToolbar.HEIGHT_DP, Gravity.BOTTOM, 8, 0, 8, 0));
+             nebulaDraftTranslation = new app.nebulagram.ui.NebulaDraftTranslation(parentFragment, messageEditText, this, this::setFieldText);
+             aiButton.setOnLongClickListener(v -> { openNebulaTools(); return true; });
+         }
+@@ -14895,6 +14900,14 @@
+                 && !isRecordingAudioVideo()
+                 && (recordedAudioPanel == null || recordedAudioPanel.getVisibility() != VISIBLE)
+                 && (richDraftPreview == null || richDraftPreview.getVisibility() != VISIBLE);
++        int formattingHeight = nebulaFormattingToolbar == null ? 0 : nebulaFormattingToolbar.prepare(
++                nebulaSupported && keyboardVisible && messageEditText != null
++                && messageEditText.getVisibility() == VISIBLE && messageEditText.isEnabled() && !isPaused);
++        if (nebulaFormattingHeight != formattingHeight) {
++            setPadding(getPaddingLeft(), getPaddingTop(), getPaddingRight(),
++                    getPaddingBottom() - nebulaFormattingHeight + formattingHeight);
++            nebulaFormattingHeight = formattingHeight;
++        }
+         boolean compactBotMenu = nebulaSupported && app.nebulagram.ui.NebulaAppearance.iosComposer()
+                 && MeasureSpec.getSize(widthMeasureSpec) >= dp(260);
+         if (botCommandsMenuButton != null) {
+@@ -14996,6 +15009,11 @@
+     protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
+         super.onLayout(changed, left, top, right, bottom);
+         nebulaComposerStyle.layout(emojiButton, attachButton, senderSelectView, aiButton, richButton);
++        if (nebulaFormattingToolbar != null && nebulaFormattingHeight > 0) {
++            nebulaFormattingToolbar.layout(dp(8), getMeasuredHeight() - nebulaFormattingHeight,
++                    getMeasuredWidth() - dp(8), getMeasuredHeight());
++        }
++
+ 
+         updateNebulaDraftTranslation();
+         if (botCommandLastPosition != -1 && botCommandsMenuContainer != null) {
+@@ -16046,7 +16064,7 @@
+         final float visibility = animatorTopViewVisibility.getFloatValue();
+ 
+         if (topView != null) {
+-            final float y = getMeasuredHeight() - animatorInputFieldHeight.getFactor();
++            final float y = getMeasuredHeight() - nebulaFormattingHeight - animatorInputFieldHeight.getFactor();
+ 
+             topView.setTranslationY(y - topView.getMeasuredHeight() * visibility);
+             topView.setVisibility(visibility > 0 ? VISIBLE : GONE);
+@@ -16066,7 +16084,7 @@
+             (animatorTopViewVisibility.getValue() ? 1 : 0):
+             animatorTopViewVisibility.getFloatValue();
+ 
+-        return fieldHeight + (topView != null ? topView.getMeasuredHeight() : 0) * topViewVisibility;
++        return nebulaFormattingHeight + fieldHeight + (topView != null ? topView.getMeasuredHeight() : 0) * topViewVisibility;
+     }
+ 
+ 

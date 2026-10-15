@@ -90,7 +90,7 @@ private enum NebulaSettingsEntry: ItemListNodeEntry {
             if ["folder_title", "folder_outline", "hide_all_chats", "center_home"].contains(key) { return 2 }
             if ["hide_dividers", "hide_search_field"].contains(key) { return 6 }
             if key.hasPrefix("menu_") || ["centered_chat_header", "adaptive_chat_header", "floating_chat_header_v2", "header_unread", "message_menu_blur"].contains(key) { return 7 }
-            if ["hide_send_as", "hide_attach_camera"].contains(key) { return 8 }
+            if ["formatting_toolbar", "hide_send_as", "hide_attach_camera"].contains(key) { return 8 }
             if key.hasPrefix("reply_") || ["seconds_in_time", "disable_next_channel"].contains(key) { return 9 }
             return 1
         case .header, .hideCounters, .folderStyle, .footer: return 2
@@ -126,6 +126,7 @@ private enum NebulaSettingsEntry: ItemListNodeEntry {
             case "compact_bottom_bar": return 64
             case "hide_home_camera": return 65
             case "hide_home_compose": return 66
+            case "formatting_toolbar": return 79
             case "hide_send_as": return 67
             case "hide_attach_camera": return 74
             case "hide_dividers": return 78
@@ -176,6 +177,7 @@ private enum NebulaSettingsEntry: ItemListNodeEntry {
             case "compact_bottom_bar": return 33
             case "hide_home_camera": return 34
             case "hide_home_compose": return 35
+            case "formatting_toolbar": return 400
             case "hide_send_as": return 36
             case "hide_attach_camera": return 41
             case "hide_dividers": return 46
@@ -470,6 +472,7 @@ public func nebulaSettingsController(context: AccountContext, page: Int = 0, sea
             .category(13, ru ? "Аватары" : "Avatars", ru ? "Форма и скругление" : "Shape and corners", "person.crop.circle"),
             .category(14, ru ? "Значки интерфейса" : "Interface icons", (NebulaImportedIcons.activeName ?? ["Telegram", "Cupertino", "Solar"][store.iconPack]), "square.grid.2x2"),
             .category(15, ru ? "Переключатели" : "Switches", (ru ? ["Системные", "Округлые", "Компактные", "Минималистичные"] : ["System", "Rounded", "Compact", "Minimal"])[store.switchStyle], "switch.2"),
+            .navigationToggle("formatting_toolbar", ru ? "Панель форматирования" : "Formatting toolbar", store.formattingToolbar, !store.hasLoadError),
             .navigationToggle("login_style", ru ? "Экран входа NebulaGram" : "NebulaGram welcome screen", store.loginStyle, !store.hasLoadError),
             .category(23, ru ? "Предпросмотр меню" : "Menu preview", ru ? "Сообщение, анимация и кнопки" : "Message, animation and buttons", "rectangle.stack"),
             .category(24, ru ? "Предпросмотр профиля" : "Profile preview", ru ? "Оформление и видимые данные" : "Appearance and visible details", "person.crop.rectangle"),
@@ -497,7 +500,7 @@ public func nebulaSettingsController(context: AccountContext, page: Int = 0, sea
                 return true
             case let .category(index, _, _, _): return index == 9 || index == 10 || index == 11 || index == 12 || index == 16 || index == 17 || index == 20 || index == 22 || index == 23 || index == 29
             case let .navigationToggle(key, _, _, _):
-                return key.hasPrefix("reply_") || ["hide_dividers", "hide_send_as", "hide_attach_camera", "menu_search", "menu_mute",
+                return key.hasPrefix("reply_") || ["formatting_toolbar", "hide_dividers", "hide_send_as", "hide_attach_camera", "menu_search", "menu_mute",
                     "menu_call", "menu_video", "centered_chat_header", "adaptive_chat_header", "floating_chat_header_v2", "header_unread", "message_menu_blur", "disable_next_channel", "seconds_in_time", "hide_search_field"].contains(key)
             default:
                 return false

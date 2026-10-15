@@ -110,14 +110,14 @@ public class NebulaIntroFragment extends BaseFragment {
         root.content.setPadding(0, NebulaLoginStyle.compact(38), 0, 0);
         root.setOnSwipeListener(direction -> showPage(Math.max(0,
                 Math.min(TITLES.length - 1, page + direction))));
-        language = new NebulaButton(context, NebulaButton.STYLE_OUTLINED);
+        language = new NebulaButton(context, NebulaButton.STYLE_TEXT);
         language.setText("🌐  " + LocaleController.getString(R.string.NebulaChangeLanguage));
         language.setContentDescription(LocaleController.getString(R.string.NebulaChangeLanguage));
         language.setOnClickListener(v -> presentFragment(new NebulaLanguageFragment()));
         skip = new NebulaButton(context, NebulaButton.STYLE_TONAL);
         skip.setText(LocaleController.getString(R.string.NebulaIntroSkip));
         skip.setOnClickListener(v -> continueToSignIn());
-        previous = new NebulaButton(context, NebulaButton.STYLE_OUTLINED);
+        previous = new NebulaButton(context, NebulaButton.STYLE_TEXT);
         previous.setText(LocaleController.getString(R.string.Back));
         previous.setOnClickListener(v -> showPage(Math.max(0, page - 1)));
         secondaryActions = new LinearLayout(context);
