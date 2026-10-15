@@ -80,7 +80,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.jav
          }
          boolean crossfade = overlayTitleAnimation && !TextUtils.isEmpty(subtitle);
          if (crossfade) {
-@@ -2272,11 +2301,17 @@
+@@ -2272,12 +2301,18 @@
              titleTextView[0].setTranslationY(fromBottom ? dp(nebulaHomeLayout ? 8 : 20) : -dp(nebulaHomeLayout ? 8 : 20));
          }
          ViewPropertyAnimator a1 = titleTextView[0].animate().alpha(1f).translationY(0).setDuration(duration);
@@ -92,12 +92,14 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.jav
          if (interpolator != null) {
              a1.setInterpolator(interpolator);
          }
++        nebulaHomeTitleStartWidth = homeStartWidth;
++        titleAnimationRunning = true;
          a1.start();
  
-+        nebulaHomeTitleStartWidth = homeStartWidth;
-         titleAnimationRunning = true;
+-        titleAnimationRunning = true;
          ViewPropertyAnimator a = titleTextView[1].animate().alpha(0);
          if (!crossfade) {
+             a.translationY(fromBottom ? -dp(nebulaHomeLayout ? 8 : 20) : dp(nebulaHomeLayout ? 8 : 20));
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Stories/DialogStoriesCell.java b/TMessagesProj/src/main/java/org/telegram/ui/Stories/DialogStoriesCell.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Stories/DialogStoriesCell.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Stories/DialogStoriesCell.java

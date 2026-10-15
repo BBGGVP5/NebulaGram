@@ -45,7 +45,7 @@ class HeaderTitleMotionCheck {
   ViewPropertyAnimator setInterpolator(Interpolator x){return this;}
   ViewPropertyAnimator setListener(AnimatorListenerAdapter x){listener=x;return this;}
   ViewPropertyAnimator setUpdateListener(java.util.function.Consumer<Object> x){update=x;return this;}
-  void start(){}void cancel(){if(listener!=null)listener.onAnimationEnd(new Animator());}
+  void start(){if(update!=null)update.accept(null);}void cancel(){if(listener!=null)listener.onAnimationEnd(new Animator());}
  }
  static class SimpleTextView {
   int width,left=110,visibility=VISIBLE;float alpha=1,translation;CharSequence text;
@@ -102,7 +102,9 @@ class HeaderTitleMotionCheck {
    float interruption=(pass%9+1)/10f;b.pose(interruption);
    float width=b.nebulaHomeTitleWidth(),left=b.getNebulaHomeStoriesLeft();
    var stale=b.titleTextView[1].animator.listener;
-   b.setTitleAnimated("Long",false,220,null);b.pose(0);
+   b.setTitleAnimated("Long",false,220,null);
+   close(b.paintedStoryLeft,b.getNebulaHomeStoriesLeft(),"First synchronous fade tick publishes an obsolete width");
+   b.pose(0);
    close(b.nebulaHomeTitleWidth(),width,"Interrupted fade must snapshot visible width before slot reuse");
    close(b.getNebulaHomeStoriesLeft(),left,"Interrupted fade jumps the stack");
    stale.onAnimationEnd(new Animator());check(b.titleAnimationRunning,"Stale callback ends newer motion");
