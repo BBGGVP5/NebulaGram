@@ -29,10 +29,10 @@ class PreparationTests(unittest.TestCase):
                 module.fresh_destination(link, root)
 
     def test_rejects_stale_or_missing_version(self):
-        for contents in ['APP_VERSION_NAME=12.10.4', 'APP_VERSION_NAME=12.10.5', '# APP_VERSION_NAME=12.10.6', '']:
+        for contents in ['APP_VERSION_NAME=12.10.6', 'APP_VERSION_NAME=13.0.1', 'APP_VERSION_NAME=12.10.4', 'APP_VERSION_NAME=12.10.5', '# APP_VERSION_NAME=13.0.2', '']:
             with self.assertRaises(ValueError):
                 module.version(contents)
-        self.assertEqual(module.version('APP_VERSION_NAME=12.10.6\nAPP_VERSION_CODE=7112'), '12.10.6')
+        self.assertEqual(module.version('APP_VERSION_NAME=13.0.2\nAPP_VERSION_CODE=7175'), '13.0.2')
 
     def test_prepares_pinned_version_without_copying_or_resetting_dirty_source(self):
         with tempfile.TemporaryDirectory() as folder:
@@ -41,7 +41,7 @@ class PreparationTests(unittest.TestCase):
             source.mkdir(parents=True)
             subprocess.run(['git', 'init', '--quiet', str(source)], check=True)
             subprocess.run(['git', '-C', str(source), 'config', 'core.autocrlf', 'false'], check=True)
-            (source / 'gradle.properties').write_bytes(b'APP_VERSION_NAME=12.10.6\nAPP_VERSION_CODE=7112\n')
+            (source / 'gradle.properties').write_bytes(b'APP_VERSION_NAME=13.0.2\nAPP_VERSION_CODE=7175\n')
             (source / 'native.java').write_bytes(b'old\n')
             subprocess.run(['git', '-C', str(source), 'add', '.'], check=True)
             subprocess.run(['git', '-C', str(source), '-c', 'user.name=Test', '-c', 'user.email=test@local', 'commit', '--quiet', '-m', 'Pinned version'], check=True)

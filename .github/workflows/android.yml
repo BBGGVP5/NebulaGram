@@ -21,6 +21,7 @@ on:
       - 'bind/**'
       - 'runtime/**'
       - 'platform/android/**'
+      - 'vendor/telegram-android'
       - 'patches/android/**'
       - 'scripts/**'
       - 'shared/settings/**'

@@ -1,7 +1,7 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
-@@ -1893,27 +1893,22 @@ public class ChatActivity extends BaseFragment implements
+@@ -1942,27 +1942,22 @@
              createMenu(view, true, false, x, y, false);
          }
  
@@ -37,7 +37,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
              MessageObject messageObject;
              if (view instanceof ChatMessageCell) {
                  messageObject = ((ChatMessageCell) view).getPrimaryMessageObject();
-@@ -1922,7 +1917,7 @@ public class ChatActivity extends BaseFragment implements
+@@ -1971,7 +1966,7 @@
              } else {
                  return false;
              }
@@ -46,7 +46,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
          }
  
          @Override
-@@ -1941,9 +1936,10 @@ public class ChatActivity extends BaseFragment implements
+@@ -1990,9 +1985,10 @@
              } else {
                  return;
              }
@@ -60,12 +60,11 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
                  else if (action == 2) showFieldPanelForReply(messageObject);
                  else if (action == 3) AndroidUtilities.addToClipboard(messageObject.messageOwner.message);
                  return;
-@@ -1955,14 +1951,24 @@ public class ChatActivity extends BaseFragment implements
+@@ -2004,14 +2000,24 @@
                  return;
              }
  
--            ReactionsEffectOverlay.removeCurrent(false);
-             String reactionString = getMediaDataController().getDoubleTapReaction();
++            String reactionString = getMediaDataController().getDoubleTapReaction();
 +            TLRPC.TL_availableReaction configuredReaction = getMediaDataController().getReactionsMap().get(reactionString);
 +            boolean available = reactionString != null && (reactionString.startsWith("animated_") || configuredReaction != null)
 +                    && (dialog_id >= 0 || (chatInfo != null && ChatObject.reactionIsAvailable(chatInfo, reactionString)));
@@ -76,32 +75,35 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
 +                }
 +                return;
 +            }
-+            ReactionsEffectOverlay.removeCurrent(false);
+             ReactionsEffectOverlay.removeCurrent(false);
+-            String reactionString = getMediaDataController().getDoubleTapReaction();
              if (reactionString.startsWith("animated_")) {
 -                boolean available = dialog_id >= 0;
 -                if (!available && chatInfo != null) {
 -                    available = ChatObject.reactionIsAvailable(chatInfo, reactionString);
+-                }
+-                if (!available) {
 +                boolean allowed = dialog_id >= 0;
 +                if (!allowed && chatInfo != null) {
 +                    allowed = ChatObject.reactionIsAvailable(chatInfo, reactionString);
-                 }
--                if (!available) {
++                }
 +                if (!allowed) {
                      return;
                  }
                  selectReaction(view, messageObject, null, null, x, y, ReactionsLayoutInBubble.VisibleReaction.fromEmojicon(reactionString), true, false, false, false);
-@@ -1971,11 +1977,11 @@ public class ChatActivity extends BaseFragment implements
+@@ -2020,11 +2026,11 @@
                  if (reaction == null || messageObject.isSponsored()) {
                      return;
                  }
 -                boolean available = dialog_id >= 0;
 -                if (!available && chatInfo != null) {
 -                    available = ChatObject.reactionIsAvailable(chatInfo, reaction.reaction);
+-                }
+-                if (!available) {
 +                boolean allowed = dialog_id >= 0;
 +                if (!allowed && chatInfo != null) {
 +                    allowed = ChatObject.reactionIsAvailable(chatInfo, reaction.reaction);
-                 }
--                if (!available) {
++                }
 +                if (!allowed) {
                      return;
                  }
@@ -109,7 +111,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAttachAlert.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAttachAlert.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAttachAlert.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAttachAlert.java
-@@ -6801,6 +6801,11 @@ public class ChatAttachAlert extends BottomSheet implements NotificationCenter.N
+@@ -6871,6 +6871,11 @@
                  if (app.nebulagram.ui.NebulaAppearance.hideAttachCamera() && (photosEnabled || videosEnabled)) {
                      cameraButton = buttonsCount++;
                  }
@@ -118,16 +120,16 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAttachAl
 +                        && MessagesController.getInstance(currentAccount).richEditorAvailable()) {
 +                    richButton = buttonsCount++;
 +                }
-                 if ((photosEnabled || videosEnabled) && !paidUser && (chat == null || !ChatObject.isMonoForum(chat))) {
-                     if (baseFragment instanceof ChatActivity && !((ChatActivity) baseFragment).isInScheduleMode() && !((ChatActivity) baseFragment).isSecretChat() && ((ChatActivity) baseFragment).getChatMode() != ChatActivity.MODE_QUICK_REPLIES) {
-                         ChatActivity chatActivity = (ChatActivity) baseFragment;
-@@ -6822,9 +6827,6 @@ public class ChatAttachAlert extends BottomSheet implements NotificationCenter.N
+                 documentButton = buttonsCount++;
+                 if (MessagesController.getInstance(currentAccount).config.walletAvailable.get() && ((ChatActivity) baseFragment).getChatMode() == ChatActivity.MODE_DEFAULT && isMoneyTabRecipient(user)) {
+                     moneyButton = buttonsCount++;
+@@ -6878,9 +6883,6 @@
+ 
                  if (plainTextEnabled) {
                      locationButton = buttonsCount++;
-                 }
+-                }
 -                if (plainTextEnabled && MessagesController.getInstance(currentAccount).richEditorAvailable()) {
 -                    richButton = buttonsCount++;
--                }
+                 }
  
                  if (pollsEnabled) {
-                     pollButton = buttonsCount++;

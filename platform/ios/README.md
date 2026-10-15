@@ -3,9 +3,11 @@
 ## Current scope
 
 Official Telegram iOS is pinned by the `vendor/telegram-ios` gitlink to
-`6ad963e5b62d354da79040f388ae2b9132fb17b8` (12.9.2). Its `versions.json` specifies
-Xcode 26.2, Bazel 8.4.2 and macOS 26. These are upstream build requirements,
-not a claim that the full app has been built here.
+`f1dd7a2dbd02cbbf513e75d5695d8d36d1cf5838` (13.0), still the latest official
+master checked on 2026-10-15. Its `versions.json` specifies Xcode 26.6
+(deployment Xcode 26.2), Bazel 9.2.0 and macOS 26. Full native CI and unsigned
+IPA 117 succeeded at NebulaGram source `9747336`; physical iPhone acceptance
+has not been performed. See the 2026-10-14 inline-camera plan for artifact receipts.
 
 - `NebulaSettingsContract`: validated settings, persistent stores and tested layout/camera math.
 - `overlay/submodules/SettingsUI`: native RU/EN settings, AI screens, message tools,

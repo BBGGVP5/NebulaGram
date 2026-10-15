@@ -1,8 +1,7 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/camera/Camera2Session.java b/TMessagesProj/src/main/java/org/telegram/messenger/camera/Camera2Session.java
-index 75469e1..342447a 100644
 --- a/TMessagesProj/src/main/java/org/telegram/messenger/camera/Camera2Session.java
 +++ b/TMessagesProj/src/main/java/org/telegram/messenger/camera/Camera2Session.java
-@@ -83,6 +83,10 @@ public class Camera2Session {
+@@ -83,6 +83,10 @@
      private long lastTime;
  
      public static Camera2Session create(boolean front, int viewWidth, int viewHeight) {
@@ -13,7 +12,7 @@ index 75469e1..342447a 100644
          final Context context = ApplicationLoader.applicationContext;
          final CameraManager cameraManager = (CameraManager) context.getSystemService(Context.CAMERA_SERVICE);
  
-@@ -93,6 +97,7 @@ public class Camera2Session {
+@@ -93,6 +97,7 @@
              String[] cameraIds = cameraManager.getCameraIdList();
              for (int i = 0; i < cameraIds.length; ++i) {
                  final String id = cameraIds[i];
@@ -21,7 +20,7 @@ index 75469e1..342447a 100644
                  CameraCharacteristics characteristics = cameraManager.getCameraCharacteristics(id);
                  if (characteristics == null) continue;
                  if (characteristics.get(CameraCharacteristics.LENS_FACING) != (front ? CameraCharacteristics.LENS_FACING_FRONT : CameraCharacteristics.LENS_FACING_BACK)) {
-@@ -256,6 +261,8 @@ public class Camera2Session {
+@@ -256,6 +261,8 @@
          }
      }
  
@@ -31,10 +30,9 @@ index 75469e1..342447a 100644
          return !isError && isSuccess && !isClosed;
      }
 diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/camera/CameraSession.java b/TMessagesProj/src/main/java/org/telegram/messenger/camera/CameraSession.java
-index 0fce940..59a3727 100644
 --- a/TMessagesProj/src/main/java/org/telegram/messenger/camera/CameraSession.java
 +++ b/TMessagesProj/src/main/java/org/telegram/messenger/camera/CameraSession.java
-@@ -478,6 +478,35 @@ public class CameraSession {
+@@ -478,6 +478,35 @@
          isVideo = true;
      }
  
@@ -71,10 +69,9 @@ index 0fce940..59a3727 100644
          currentZoom = value;
          if (isVideo && Camera.Parameters.FLASH_MODE_ON.equals(currentFlashMode)) {
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/InstantCameraView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/InstantCameraView.java
-index 478bd98..3a0cf62 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/InstantCameraView.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/InstantCameraView.java
-@@ -260,6 +260,11 @@ public class InstantCameraView extends InstantCameraViewBase implements Notifica
+@@ -266,6 +266,11 @@
  
      private final LinearLayout buttonsLayout;
      private final NebulaZoomSlider nebulaZoomSlider;
@@ -86,7 +83,7 @@ index 478bd98..3a0cf62 100644
      private final int buttonsSizePx;
  
  
-@@ -320,8 +325,8 @@ public class InstantCameraView extends InstantCameraViewBase implements Notifica
+@@ -326,8 +331,8 @@
          addView(flashViews.foregroundView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT, Gravity.FILL));
          nebulaZoomSlider = new NebulaZoomSlider(context, this::applyNebulaZoom);
          nebulaZoomSlider.setVisibility(View.GONE);
@@ -97,7 +94,7 @@ index 478bd98..3a0cf62 100644
          addView(nebulaZoomSlider, zoomParams);
  
  
-@@ -601,6 +606,7 @@ public class InstantCameraView extends InstantCameraViewBase implements Notifica
+@@ -607,6 +612,7 @@
      }
  
      public void destroy(boolean async) {
@@ -105,7 +102,7 @@ index 478bd98..3a0cf62 100644
          if (useCamera2) {
              for (int a = 0; a < camera2Sessions.length; ++a) {
                  if (camera2Sessions[a] != null) {
-@@ -786,10 +792,12 @@ public class InstantCameraView extends InstantCameraViewBase implements Notifica
+@@ -792,10 +798,12 @@
  
          if (useCamera2) {
              bothCameras = DualCameraView.roundDualAvailableStatic(getContext());
@@ -119,7 +116,7 @@ index 478bd98..3a0cf62 100644
                          if (camera2Sessions[a] != null) {
                              camera2Sessions[a].setRecordingVideo(true);
                              previewSize[a] = new Size(camera2Sessions[a].getPreviewWidth(), camera2Sessions[a].getPreviewHeight());
-@@ -803,7 +811,7 @@ public class InstantCameraView extends InstantCameraViewBase implements Notifica
+@@ -815,7 +823,7 @@
                  }
                  if (camera2SessionCurrent == null) return;
              } else {
@@ -128,7 +125,7 @@ index 478bd98..3a0cf62 100644
                  if (camera2SessionCurrent == null) return;
                  camera2SessionCurrent.setRecordingVideo(true);
                  previewSize[0] = new Size(camera2SessionCurrent.getPreviewWidth(), camera2SessionCurrent.getPreviewHeight());
-@@ -1151,6 +1159,8 @@ public class InstantCameraView extends InstantCameraViewBase implements Notifica
+@@ -1177,6 +1185,8 @@
                  textureOverlayView.setAlpha(1f);
              }
          }
@@ -137,16 +134,16 @@ index 478bd98..3a0cf62 100644
          isFrontface = !isFrontface;
          app.nebulagram.ui.NebulaRoundCamera.remember(isFrontface);
          updateFlash();
-@@ -1165,7 +1175,7 @@ public class InstantCameraView extends InstantCameraViewBase implements Notifica
+@@ -1191,7 +1201,7 @@
                      camera2SessionCurrent = null;
                      camera2Sessions[isFrontface ? 1 : 0] = null;
                  }
 -                camera2SessionCurrent = camera2Sessions[isFrontface ? 0 : 1] = Camera2Session.create(isFrontface, MessagesController.getInstance(UserConfig.selectedAccount).roundVideoSize, MessagesController.getInstance(UserConfig.selectedAccount).roundVideoSize);
 +                camera2SessionCurrent = camera2Sessions[isFrontface ? 0 : 1] = createNebulaCamera(isFrontface);
-                 if (camera2SessionCurrent == null) return;
-                 camera2SessionCurrent.setRecordingVideo(true);
-                 previewSize[0] = new Size(camera2SessionCurrent.getPreviewWidth(), camera2SessionCurrent.getPreviewHeight());
-@@ -1836,6 +1846,7 @@ public class InstantCameraView extends InstantCameraViewBase implements Notifica
+                 if (camera2SessionCurrent == null) {
+                     legacyCameraSwitchAwaitingFrame = false;
+                     logLegacyCameraSwitchStage("failed: Camera2Session.create returned null");
+@@ -1886,6 +1896,7 @@
                      scaleY = temp;
                  }
                  recording = true;
@@ -154,7 +151,7 @@ index 478bd98..3a0cf62 100644
                  updateFlash();
              }
  
-@@ -3741,31 +3752,134 @@ public class InstantCameraView extends InstantCameraViewBase implements Notifica
+@@ -3803,31 +3814,134 @@
      }
  
  
@@ -226,6 +223,17 @@ index 478bd98..3a0cf62 100644
 +        if (catalog == null) {
 +            camera2SessionCurrent.setZoom(factor);
              nebulaZoomSlider.setCurrent(camera2SessionCurrent.getZoom());
+-        }
+-        nebulaZoomSlider.setVisibility(View.VISIBLE);
+-    }
+-
+-    private void applyNebulaZoom(float factor) {
+-        if (!recording || !isCameraSessionInitiated()) return;
+-        if (useCamera2) {
+-            if (camera2SessionCurrent != null) camera2SessionCurrent.setZoom(factor);
+-        } else if (cameraSession != null) {
+-            cameraSession.setZoom(Math.min(1f, Math.max(0f, factor - 1f)));
+-        }
 +            return;
 +        }
 +        app.nebulagram.ui.NebulaZoomCapabilities.Module module = catalog.select(factor);
@@ -235,16 +243,9 @@ index 478bd98..3a0cf62 100644
 +            nebulaZoomSlider.setCurrent(nebulaCurrentZoom());
 +        } else {
 +            openNebulaModule(module.id, camera2SessionCurrent.cameraId, false);
-         }
--        nebulaZoomSlider.setVisibility(View.VISIBLE);
-     }
- 
--    private void applyNebulaZoom(float factor) {
--        if (!recording || !isCameraSessionInitiated()) return;
--        if (useCamera2) {
--            if (camera2SessionCurrent != null) camera2SessionCurrent.setZoom(factor);
--        } else if (cameraSession != null) {
--            cameraSession.setZoom(Math.min(1f, Math.max(0f, factor - 1f)));
++        }
++    }
++
 +    private void openNebulaModule(String id, String previousId, boolean restoring) {
 +        if (!recording || cameraThread == null || camera2SessionCurrent == null) return;
 +        nebulaSwitchingModule = true;
@@ -273,7 +274,7 @@ index 478bd98..3a0cf62 100644
 +                }
 +            }
 +            return;
-         }
++        }
 +        next.setRecordingVideo(true);
 +        previewSize[0] = new Size(next.getPreviewWidth(), next.getPreviewHeight());
 +        cameraThread.setCurrentSession(next);
@@ -302,7 +303,7 @@ index 478bd98..3a0cf62 100644
      }
  
      @Override
-@@ -3806,7 +3920,8 @@ public class InstantCameraView extends InstantCameraViewBase implements Notifica
+@@ -3868,7 +3982,8 @@
              if (maybePinchToZoomTouchMode && !isInPinchToZoomTouchMode && ev.getPointerCount() == 2 && finishZoomTransition == null && recording) {
                  pinchStartDistance = (float) Math.hypot(ev.getX(1) - ev.getX(0), ev.getY(1) - ev.getY(0));
  
@@ -312,7 +313,7 @@ index 478bd98..3a0cf62 100644
  
                  pointerId1 = ev.getPointerId(0);
                  pointerId2 = ev.getPointerId(1);
-@@ -3834,18 +3949,8 @@ public class InstantCameraView extends InstantCameraViewBase implements Notifica
+@@ -3896,18 +4011,8 @@
                  finishZoom();
                  return false;
              }
@@ -333,7 +334,7 @@ index 478bd98..3a0cf62 100644
          } else if ((ev.getActionMasked() == MotionEvent.ACTION_UP || (ev.getActionMasked() == MotionEvent.ACTION_POINTER_UP && checkPointerIds(ev)) || ev.getActionMasked() == MotionEvent.ACTION_CANCEL) && isInPinchToZoomTouchMode) {
              isInPinchToZoomTouchMode = false;
              finishZoom();
-@@ -3856,45 +3961,10 @@ public class InstantCameraView extends InstantCameraViewBase implements Notifica
+@@ -3918,45 +4023,10 @@
      ValueAnimator finishZoomTransition;
  
      public void finishZoom() {

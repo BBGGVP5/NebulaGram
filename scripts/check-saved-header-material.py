@@ -7,7 +7,7 @@ import tempfile
 root = Path(__file__).resolve().parents[1]
 tree = Path(sys.argv[1]) if len(sys.argv) > 1 else root / 'build/android-validation'
 source = (tree / 'TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java').read_text(encoding='utf-8')
-start = source.index('        if (glassDrawable != null && !glassOnlyBack) {', source.index('protected void dispatchDraw(Canvas canvas)'))
+start = source.index('        if (glassDrawable != null && !glassOnlyBack && drawGlassTitle) {', source.index('protected void dispatchDraw(Canvas canvas)'))
 block = source[start:source.index('        if (nebulaHomeTabsGlass && glassDrawableHomeLeading != null', start)]
 block = block.replace('app.nebulagram.ui.NebulaAppearance.', 'Appearance.').replace('app.nebulagram.ui.NebulaChatStyle.', 'Style.')
 block = block.replace('app.nebulagram.ui.NebulaSelectionGlass.', 'Selection.')
@@ -36,6 +36,7 @@ class SavedMaterialCheck {
   void setAlpha(int a){alpha=a;}int getAlpha(){return alpha;}
   void draw(Object canvas){calls.add(new int[]{alpha,left,right});}
  }
+ boolean drawGlassTitle=true;
  boolean nebulaClassicSavedHeader,nebulaSavedMessagesHeader,nebulaFloatingChatHeader=true,glassOnlyBack;
  boolean hasForcedMenuWidth,hasForcedMenuMinWidth,nebulaHomeGlass,nebulaHomeTabsGlass,nebulaCommunityGlass,nebulaProfileGlass,isSearchFieldVisible;
  int menuWidth=92,p=6,s=46,nebulaBackWidth=58,t=0,b=60;boolean hasBackButton=true;
@@ -60,6 +61,8 @@ class SavedMaterialCheck {
   }
   SavedMaterialCheck regular=new SavedMaterialCheck();regular.draw();
   int[] draw=regular.glassDrawable.calls.get(0);check(draw[0]==255&&draw[2]-draw[1]==140,"regular chat capsule retained");
+  SavedMaterialCheck hidden=new SavedMaterialCheck();hidden.drawGlassTitle=false;hidden.draw();
+  check(hidden.glassDrawable.calls.isEmpty(),"upstream title material visibility is respected");
   System.out.println(cases+" Saved Messages search/selection fade cases passed; regular title capsule retained");
  }
 }

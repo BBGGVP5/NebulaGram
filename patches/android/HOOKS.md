@@ -670,3 +670,15 @@ Pin ML Kit Speech Recognition alpha1 alongside the existing Prompt API and corou
 ## 0195 — guarded local speech manifest compatibility
 
 Add the speech AAR package to the existing ML Kit manifest override for the library and standalone app. Local speech entry points require API 31 before SDK construction; Advanced additionally checks documented device families and runtime feature status. The pinned speech AAR introduces no startup provider/service/receiver. This does not lower the API requirements of recognition itself.
+
+
+## 2026-10-15 — Telegram 13.0.2 baseline
+
+The 205 ordered patches target official `f32ffeec763f0bdbf4bec25b52d654f77bff733d` (7175).
+Rebased 0011, 0045, 0052, 0055, 0060, 0062, 0092, 0105, 0113, 0155 and 0186.
+Preserve the upstream `drawGlassTitle` gate, wallet settings/actions and moved attachment-bot section.
+The rich editor and Nebula camera action precede the single native attachment-bot section.
+Round-video warm camera requests use that selection's characteristics/recording size; cached selection
+activation refreshes Nebula capability options. Keep upstream null-session diagnostics and wallet-effect
+exclusion alongside Nebula's effect setting. The later 0200–0210 recording/header patches remain intact.
+Source compatibility is checked separately from full CI compilation and physical-device acceptance.
