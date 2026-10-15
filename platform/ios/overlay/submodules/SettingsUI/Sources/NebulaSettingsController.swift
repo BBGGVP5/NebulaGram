@@ -586,6 +586,8 @@ public func nebulaSettingsController(context: AccountContext, page: Int = 0, sea
             }
         }
         if page != 0 && query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            let appVersion = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? ""
+            let appBuild = Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String ?? ""
             let descriptions: [Int: (String, String, String)] = [
                 1: ("gearshape", ru ? "Основные" : "General", ru ? "Настройте поведение приложения" : "Make the app work your way"),
                 2: ("paintpalette", ru ? "Оформление" : "Appearance", ru ? "Настройте цвета, стекло и значки" : "Choose colors, glass and icons"),
@@ -596,7 +598,7 @@ public func nebulaSettingsController(context: AccountContext, page: Int = 0, sea
                 6: ("🔄", ru ? "Перенос настроек" : "Transfer", ru ? "Сохраните оформление и предпочтения" : "Save your appearance and preferences"),
                 7: ("rectangle.bottomthird.inset.filled", ru ? "Навигация" : "Navigation", ru ? "Нижняя панель и быстрые действия" : "Bottom bar and quick actions"),
                 8: ("person.crop.circle", ru ? "Профиль" : "Profile", ru ? "Настройте содержимое и оформление" : "Choose content and appearance"),
-                18: ("info.circle", ru ? "О приложении" : "About", ru ? "NebulaGram, сообщество и поддержка" : "NebulaGram, community and support")
+                18: ("🚀", "NebulaGram", (ru ? "Общение, перевод и NebulaLink" : "Messaging, translation and NebulaLink") + "\n" + (ru ? "Версия " : "Version ") + appVersion + " · " + appBuild)
             ]
             if let intro = descriptions[page] { entries.append(.introduction(intro.0, intro.1, intro.2)) }
         }
@@ -696,9 +698,18 @@ public func nebulaSettingsController(context: AccountContext, page: Int = 0, sea
             let panel = index == 27
             NebulaChoiceController.show(from: controller,
                 title: panel ? (ru ? "Панель папок" : "Folder panel") : (ru ? "Расположение папок" : "Folder position"),
-                choices: panel ? (ru ? ["Жидкое стекло", "Обычная", "Минимальная"] : ["Liquid Glass", "Solid", "Minimal"]) : (ru ? ["Сверху", "Снизу"] : ["Top", "Bottom"]),
-                selected: panel ? store.folderPanelStyle : (NebulaBehaviorPreferences.shared.folderTabsBottom ? 1 : 0), russian: ru, theme: data.theme) { value in
-                    if panel { do { try store.set(.integer(value), for: "folder_panel_style"); writeFailed.set(false) } catch { writeFailed.set(true) } }
+                choices: panel ? (ru ? ["Как в Swiftgram · снизу", "Жидкое стекло", "Обычная", "Минимальная"] : ["Like Swiftgram · bottom", "Liquid Glass", "Solid", "Minimal"]) : (ru ? ["Сверху", "Снизу"] : ["Top", "Bottom"]),
+                selected: panel ? (store.folderPanelStyle == 0 && NebulaBehaviorPreferences.shared.folderTabsBottom && !store.folderOutline ? 0 : store.folderPanelStyle + 1) : (NebulaBehaviorPreferences.shared.folderTabsBottom ? 1 : 0), russian: ru, theme: data.theme) { value in
+                    if panel {
+                        do {
+                            try store.set(.integer(max(0, value - 1)), for: "folder_panel_style")
+                            if value == 0 {
+                                try store.set(.boolean(false), for: "folder_outline")
+                                NebulaBehaviorPreferences.shared.setFolderTabsBottom(true)
+                            }
+                            writeFailed.set(false)
+                        } catch { writeFailed.set(true) }
+                    }
                     else { NebulaBehaviorPreferences.shared.setFolderTabsBottom(value == 1) }
                 }
             return

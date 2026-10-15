@@ -12,17 +12,20 @@ final class NebulaFormattingToolbar: UIView {
     override init(frame: CGRect) {
         super.init(frame: frame)
         background.clipsToBounds = true
-        background.layer.cornerRadius = 22
+        background.layer.cornerRadius = 16
         addSubview(background)
         scroll.showsHorizontalScrollIndicator = false
         scroll.delaysContentTouches = false
         addSubview(scroll)
         stack.axis = .horizontal
         stack.distribution = .fillEqually
+        stack.spacing = 6
         scroll.addSubview(stack)
-        for (index, symbol) in symbols.enumerated() {
+        for index in [6, 3, 4, 0, 1, 2, 5] {
+            let symbol = symbols[index]
             let button = UIButton(type: .system)
             button.tag = index
+            button.layer.cornerRadius = 10
             button.setImage(UIImage(systemName: symbol, withConfiguration: UIImage.SymbolConfiguration(pointSize: 18, weight: .medium)), for: .normal)
             button.addTarget(self, action: #selector(pressed(_:)), for: .touchUpInside)
             stack.addArrangedSubview(button)
@@ -34,22 +37,25 @@ final class NebulaFormattingToolbar: UIView {
         tintColor = color
         background.isHidden = UIAccessibility.isReduceTransparencyEnabled
         backgroundColor = UIAccessibility.isReduceTransparencyEnabled ? .secondarySystemBackground : .clear
-        layer.cornerRadius = 22
+        layer.cornerRadius = 16
         let language = russian ? "ru" : "en"
         if labelsLanguage != language {
             labelsLanguage = language
             let titles = russian ? ["Жирный", "Курсив", "Моноширинный", "Цитата", "Спойлер", "Ссылка", "Убрать форматирование"]
                 : ["Bold", "Italic", "Monospace", "Quote", "Spoiler", "Link", "Clear formatting"]
-            for (index, view) in stack.arrangedSubviews.enumerated() { view.accessibilityLabel = titles[index] }
+            for case let button as UIButton in stack.arrangedSubviews { button.accessibilityLabel = titles[button.tag] }
         }
-        for case let button as UIButton in stack.arrangedSubviews { button.isEnabled = hasSelection }
+        for case let button as UIButton in stack.arrangedSubviews {
+            button.isEnabled = hasSelection
+            button.backgroundColor = color.withAlphaComponent(0.08)
+        }
     }
     override func layoutSubviews() {
         super.layoutSubviews()
         background.frame = bounds
-        scroll.frame = bounds
-        let width = max(bounds.width, CGFloat(symbols.count) * 44)
-        stack.frame = CGRect(x: 0, y: 0, width: width, height: bounds.height)
+        scroll.frame = bounds.insetBy(dx: 6, dy: 4)
+        let width = max(scroll.bounds.width, CGFloat(symbols.count) * 44 + CGFloat(symbols.count - 1) * 6)
+        stack.frame = CGRect(x: 0, y: 0, width: width, height: scroll.bounds.height)
         scroll.contentSize = stack.bounds.size
     }
     @objc private func pressed(_ sender: UIButton) { action?(sender.tag) }
