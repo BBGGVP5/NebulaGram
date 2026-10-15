@@ -9,10 +9,11 @@ swift_source = root / 'platform/ios/overlay/submodules/TelegramCore/Sources/Stat
 # Validate the actual SQL statements with SQLite, including Android-6-compatible syntax.
 source = java_source.read_text(encoding='utf-8')
 # A reserved cache collection must never collide with the pinned Telegram namespace.
-upstream = root / 'build/ios-13-upstream-20261013'
-if not upstream.exists(): upstream = root / 'vendor/telegram-ios'
-namespace = subprocess.check_output(['git', '-C', str(upstream), 'show', 'HEAD:submodules/TelegramCore/Sources/SyncCore/SyncCore_Namespaces.swift'], text=True, encoding='utf-8')
-assert not re.search(r'public static let \w+: Int8 = 126\b', namespace), 'Reserved Nebula collection collides with upstream'
+if '--swift' in sys.argv:
+    upstream = root / 'build/ios-13-upstream-20261013'
+    if not upstream.exists(): upstream = root / 'vendor/telegram-ios'
+    namespace = subprocess.check_output(['git', '-C', str(upstream), 'show', 'HEAD:submodules/TelegramCore/Sources/SyncCore/SyncCore_Namespaces.swift'], text=True, encoding='utf-8')
+    assert not re.search(r'public static let \w+: Int8 = 126\b', namespace), 'Reserved Nebula collection collides with upstream'
 db = sqlite3.connect(':memory:')
 for sql in re.findall(r'db.executeFast\("(CREATE [^"]+)"\)', source): db.execute(sql)
 insert = re.search(r'db.executeFast\("(INSERT [^"]+)"\)', source)[1]
