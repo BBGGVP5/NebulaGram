@@ -39,6 +39,8 @@ public class NebulaConnectFragment extends BaseFragment {
     private LinearLayout servers;
     private boolean busy;
     private boolean destroyed;
+    private boolean loginOpened;
+    private int requestGeneration;
     /** Выбранный сервер и общее их число, пока экран в режиме выбора. */
     private String selected;
     private int total;
@@ -46,6 +48,9 @@ public class NebulaConnectFragment extends BaseFragment {
     @Override
     public View createView(Context context) {
         destroyed = false;
+        busy = false;
+        loginOpened = false;
+        final int initialRequest = ++requestGeneration;
         NebulaTheme theme = NebulaTheme.of(context);
         actionBar.setAddToContainer(false);
         actionBar.setVisibility(View.GONE);
@@ -113,7 +118,7 @@ public class NebulaConnectFragment extends BaseFragment {
         NebulaButton clipboard = new NebulaButton(context, NebulaButton.STYLE_TEXT);
         clipboard.setText(NebulaText.text("Вставить из буфера", "Paste from clipboard"));
         clipboard.setOnClickListener(v -> {
-            if (busy || destroyed) return;
+            if (busy || destroyed || loginOpened) return;
             android.content.ClipboardManager manager = (android.content.ClipboardManager) context.getSystemService(Context.CLIPBOARD_SERVICE);
             android.content.ClipData clip = manager == null ? null : manager.getPrimaryClip();
             CharSequence value = clip != null && clip.getItemCount() > 0 ? clip.getItemAt(0).getText() : null;
@@ -196,7 +201,8 @@ public class NebulaConnectFragment extends BaseFragment {
         // Серверы могли остаться от прошлого запуска или прошлой попытки: тогда
         // вставлять ссылку заново незачем, сразу показываем выбор.
         NebulaLink.call("servers.list", page(), result -> {
-            if (!destroyed && result.ok && result.data != null && result.data.optInt("total") > 0) {
+            if (acceptsRequest(initialRequest) && !busy && !input.hasFocus() && input.length() == 0
+                    && result.ok && result.data != null && result.data.optInt("total") > 0) {
                 choose(result.data);
             }
         });
@@ -219,7 +225,7 @@ public class NebulaConnectFragment extends BaseFragment {
      * подключение выбранным сервером.
      */
     private void submit() {
-        if (busy || destroyed) return;
+        if (busy || destroyed || loginOpened) return;
         if (servers.getVisibility() == View.VISIBLE) {
             start();
             return;
@@ -241,16 +247,16 @@ public class NebulaConnectFragment extends BaseFragment {
         // onboarding.import, а не onboarding.connect: connect сразу поднимал
         // туннель через первый сервер подписки, и выбрать другой было негде —
         // список серверов на первом экране вообще не показывался.
-        begin(LocaleController.getString(R.string.NebulaConnecting));
+        final int request = begin(LocaleController.getString(R.string.NebulaConnecting));
         NebulaLink.call("onboarding.import", payload, added -> {
-            if (destroyed) return;
+            if (!acceptsRequest(request)) return;
             if (!added.ok) {
                 end();
                 fail(added.error);
                 return;
             }
             NebulaLink.call("servers.list", page(), listed -> {
-                if (destroyed) return;
+                if (!acceptsRequest(request)) return;
                 end();
                 if (!listed.ok) fail(listed.error);
                 else if (listed.data == null || listed.data.optInt("total") == 0) {
@@ -262,13 +268,14 @@ public class NebulaConnectFragment extends BaseFragment {
 
     /** Поднимает туннель выбранным сервером; он же становится выбранным в ядре. */
     private void start() {
+        if (busy || destroyed || loginOpened) return;
         JSONObject payload = new JSONObject();
         try {
             if (selected != null && !selected.isEmpty()) payload.put("id", selected);
         } catch (JSONException e) { return; }
-        begin(LocaleController.getString(R.string.NebulaConnecting));
+        final int request = begin(LocaleController.getString(R.string.NebulaConnecting));
         NebulaLink.call("tunnel.start", payload, result -> {
-            if (destroyed) return;
+            if (!acceptsRequest(request)) return;
             end();
             if (result.ok) openLogin();
             else fail(result.error);
@@ -298,7 +305,7 @@ public class NebulaConnectFragment extends BaseFragment {
 
     /** Возврат к полю: подписка уже сохранена, но добавить можно и вторую. */
     private void paste() {
-        if (busy || destroyed) return;
+        if (busy || destroyed || loginOpened) return;
         title.setText(NebulaIntroFragment.highlight(
                 LocaleController.getString(R.string.NebulaAuthLinkTitle), "NebulaLink",
                 NebulaTheme.of(getContext()).primary()));
@@ -368,12 +375,17 @@ public class NebulaConnectFragment extends BaseFragment {
         return row;
     }
 
-    private void begin(String message) {
+    private int begin(String message) {
         busy = true;
         input.setEnabled(false);
         connect.setEnabled(false);
         connect.setText(message);
         show(message);
+        return ++requestGeneration;
+    }
+
+    private boolean acceptsRequest(int request) {
+        return request == requestGeneration && !destroyed && !loginOpened;
     }
 
     private void end() {
@@ -396,17 +408,34 @@ public class NebulaConnectFragment extends BaseFragment {
     }
 
     private void openLogin() {
-        if (destroyed) return;
+        if (destroyed || loginOpened) return;
+        loginOpened = true;
+        ++requestGeneration;
+        end();
         AndroidUtilities.hideKeyboard(input);
         // Без удаления предыдущего экрана: с параметром true стек оставался
         // пустым, и с ввода номера некуда было вернуться — ни кнопкой, ни
         // жестом от края. Приветствие остаётся позади, как и ожидается.
-        presentFragment(new org.telegram.ui.LoginActivity());
+        if (!presentFragment(new org.telegram.ui.LoginActivity())) loginOpened = false;
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        loginOpened = false;
+        if (art != null) art.setVisible(true, false);
+    }
+
+    @Override
+    public void onPause() {
+        if (art != null) art.setVisible(false, false);
+        super.onPause();
     }
 
     @Override
     public void onFragmentDestroy() {
         destroyed = true;
+        ++requestGeneration;
         if (art != null) art.detach();
         art = null;
         super.onFragmentDestroy();

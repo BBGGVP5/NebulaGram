@@ -92,13 +92,6 @@ public class NebulaIntroFragment extends BaseFragment {
 
         next = new NebulaButton(context, NebulaButton.STYLE_FILLED);
         NebulaOnboardingLayout.action(next);
-        android.graphics.drawable.GradientDrawable gradient = new android.graphics.drawable.GradientDrawable(
-                android.graphics.drawable.GradientDrawable.Orientation.LEFT_RIGHT, new int[]{0xff675fe8, 0xff289fc4});
-        gradient.setCornerRadius(AndroidUtilities.dp(28));
-        android.graphics.drawable.GradientDrawable mask = new android.graphics.drawable.GradientDrawable();
-        mask.setColor(-1); mask.setCornerRadius(AndroidUtilities.dp(28));
-        next.setBackground(new android.graphics.drawable.RippleDrawable(android.content.res.ColorStateList.valueOf(0x30ffffff), gradient, mask));
-        next.setTextColor(0xffffffff);
         next.setOnClickListener(v -> {
             if (page < TITLES.length - 1) showPage(page + 1);
             else continueToSignIn();
@@ -114,7 +107,7 @@ public class NebulaIntroFragment extends BaseFragment {
         language.setText("🌐  " + LocaleController.getString(R.string.NebulaChangeLanguage));
         language.setContentDescription(LocaleController.getString(R.string.NebulaChangeLanguage));
         language.setOnClickListener(v -> presentFragment(new NebulaLanguageFragment()));
-        skip = new NebulaButton(context, NebulaButton.STYLE_TONAL);
+        skip = new NebulaButton(context, NebulaButton.STYLE_TEXT);
         skip.setText(LocaleController.getString(R.string.NebulaIntroSkip));
         skip.setOnClickListener(v -> continueToSignIn());
         previous = new NebulaButton(context, NebulaButton.STYLE_TEXT);
@@ -145,19 +138,15 @@ public class NebulaIntroFragment extends BaseFragment {
         int previousPage = page;
         page = index;
         int direction = Integer.compare(index, previousPage);
-        float offset = AndroidUtilities.dp(14) * (direction == 0 ? 1 : direction);
-        art.animate().cancel();
-        art.setAlpha(0f);
-        art.setTranslationX(offset);
+        float offset = AndroidUtilities.dp(14) * direction * (LocaleController.isRTL ? -1 : 1);
+        boolean animate = direction != 0 && NebulaGlass.animations() && !NebulaGlass.reduced()
+                && (android.os.Build.VERSION.SDK_INT < 26 || android.animation.ValueAnimator.areAnimatorsEnabled());
+        for (View view : new View[]{art, title, subtitle}) {
+            view.animate().cancel();
+            view.setAlpha(animate ? Math.max(.6f, view.getAlpha()) : 1f);
+            view.setTranslationX(animate ? offset : 0f);
+        }
         art.setPage(index);
-        art.animate().alpha(1f).translationX(0).setDuration(220).start();
-        NebulaTheme theme = NebulaTheme.of(title.getContext());
-        title.animate().cancel();
-        subtitle.animate().cancel();
-        title.setAlpha(0f);
-        subtitle.setAlpha(0f);
-        title.setTranslationX(offset);
-        subtitle.setTranslationX(offset);
         title.setText(new String[]{NebulaText.text("Добро пожаловать\nв NebulaGram", "Welcome to\nNebulaGram"),
                 NebulaText.text("Настрой под себя", "Make it yours"), NebulaText.text("Твоё личное пространство", "Your private space"),
                 NebulaText.text("Помощник в твоём ритме", "An assistant at your pace"), NebulaText.text("NebulaLink рядом", "NebulaLink, built in")}[index]);
@@ -168,8 +157,12 @@ public class NebulaIntroFragment extends BaseFragment {
                 NebulaText.text("Переводи сообщения и выделяй главное с помощью выбранной тобой модели ИИ.", "Translate messages and find the key points with the AI model you choose."),
                 NebulaText.text("Добавь подписку Xray, выбери сервер и управляй подключением прямо здесь.", "Add an Xray subscription, pick a server, and manage your connection right here.")
         }[index]);
-        title.animate().alpha(1f).translationX(0).setDuration(220).start();
-        subtitle.animate().alpha(1f).translationX(0).setDuration(220).start();
+        if (animate) {
+            for (View view : new View[]{art, title, subtitle}) {
+                view.animate().alpha(1f).translationX(0).setDuration(220)
+                        .setInterpolator(org.telegram.ui.Components.CubicBezierInterpolator.EASE_OUT_QUINT).start();
+            }
+        }
         next.setText(LocaleController.getString(index == TITLES.length - 1
                 ? R.string.NebulaAuthStart : R.string.NebulaIntroNext)
                 + (LocaleController.isRTL ? "  ←" : "  →"));

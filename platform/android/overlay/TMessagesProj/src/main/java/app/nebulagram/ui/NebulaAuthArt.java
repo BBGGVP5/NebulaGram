@@ -255,7 +255,27 @@ public class NebulaAuthArt extends Drawable {
     @Override
     protected void onBoundsChange(Rect bounds) {
         super.onBoundsChange(bounds);
-        if (cycle == null && !bounds.isEmpty()) {
+        updatePlayback();
+    }
+
+    @Override
+    public boolean setVisible(boolean visible, boolean restart) {
+        boolean changed = super.setVisible(visible, restart);
+        updatePlayback();
+        return changed;
+    }
+
+    private boolean motionEnabled() {
+        return NebulaGlass.animations() && !NebulaGlass.reduced()
+                && (android.os.Build.VERSION.SDK_INT < 26 || ValueAnimator.areAnimatorsEnabled());
+    }
+
+    private void updatePlayback() {
+        if (!isVisible() || getCallback() == null || getBounds().isEmpty() || !motionEnabled()) {
+            detach();
+            phase = .5f;
+            invalidateSelf();
+        } else if (cycle == null) {
             start();
         }
     }
@@ -266,6 +286,12 @@ public class NebulaAuthArt extends Drawable {
         cycle.setRepeatCount(ValueAnimator.INFINITE);
         cycle.setInterpolator(new LinearInterpolator());
         cycle.addUpdateListener(animation -> {
+            if (!isVisible() || getCallback() == null || !motionEnabled()) {
+                detach();
+                phase = .5f;
+                invalidateSelf();
+                return;
+            }
             phase = (float) animation.getAnimatedValue();
             invalidateSelf();
         });

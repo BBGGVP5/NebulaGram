@@ -193,7 +193,14 @@ public final class NebulaLoginStyle {
         }
         ImageView badge = new ImageView(slide.getContext()) {
             @Override
+            protected void onAttachedToWindow() {
+                super.onAttachedToWindow();
+                art.setVisible(isShown(), false);
+            }
+
+            @Override
             protected void onDetachedFromWindow() {
+                art.setVisible(false, false);
                 release.run();
                 super.onDetachedFromWindow();
             }

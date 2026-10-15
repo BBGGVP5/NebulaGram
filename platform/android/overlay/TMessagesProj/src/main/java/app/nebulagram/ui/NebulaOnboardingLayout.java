@@ -110,7 +110,7 @@ public final class NebulaOnboardingLayout extends FrameLayout {
             float dx = event.getX() - downX;
             float dy = event.getY() - downY;
             if (Math.abs(dx) > touchSlop && Math.abs(dx) > Math.abs(dy) * 1.2f) {
-                onSwipeListener.onSwipe(dx < 0 ? 1 : -1);
+                onSwipeListener.onSwipe((dx < 0 ? 1 : -1) * (LocaleController.isRTL ? -1 : 1));
             }
             interceptingSwipe = false;
             return true;

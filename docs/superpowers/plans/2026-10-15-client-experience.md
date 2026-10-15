@@ -96,3 +96,5 @@ Files: `runtime/xray/go.mod`, `bind/go.mod`, `core/go.mod`, related sums/build s
 - Android library patch 0214 updates 16 compatible dependencies; complete version inventory is saved separately. Major toolchain/payment/push migrations remain open.
 - iOS patch 0109 removes count gates from profile, search, logout and deactivation routes using the existing dynamic AccountManager records. Android still has fixed Java/JNI/native registries; its unlimited-account migration is not implemented.
 - Welcome/auth work so far removes field outlines/floating labels, adds explicit clipboard import, preserves keyboard editing and caches illustration resources. The full visual redesign remains open.
+
+- Additional onboarding checks execute the actual request-ownership predicate over 40,800 states and artwork playback over 32 states; Android SDK compilation of the artwork passes. Full native UI verification remains pending.
