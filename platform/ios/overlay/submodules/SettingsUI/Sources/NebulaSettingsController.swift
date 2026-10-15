@@ -79,7 +79,7 @@ private enum NebulaSettingsEntry: ItemListNodeEntry {
         switch self {
         case .introduction: return -2
         case .search, .empty: return -1
-        case let .category(index, _, _, _): return index == 35 ? 3 : index == 34 ? 3 : index == 33 ? 2 : index == 30 || index == 31 ? 0 : index == 27 || index == 28 ? 2 : index == 26 ? 0 : index == 25 ? 4 : index == 23 ? 7 : index == 24 ? 5 : index == 22 ? 9 : index == 19 ? 0 : index == 20 ? 9 : index == 21 ? 5 : index == 18 ? 12 : index == 17 ? 8 : index == 10 || index == 12 || index == 16 ? 9 : index == 11 ? 10 : index >= 13 ? 1 : 0
+        case let .category(index, _, _, _): return index == 35 ? 3 : index == 34 ? 3 : index == 33 ? 2 : index == 30 || index == 31 ? 0 : index == 27 || index == 28 ? 2 : index == 26 ? 0 : index == 25 ? 4 : index == 23 ? 7 : index == 24 ? 5 : index == 22 ? 9 : index == 19 ? 0 : index == 20 ? 9 : index == 21 ? 5 : index == 18 ? 0 : index == 17 ? 8 : index == 10 || index == 12 || index == 16 ? 9 : index == 11 ? 10 : index >= 13 ? 1 : 0
         case .toolsHeader, .link, .ai, .buildInfo, .memory, .support, .community: return 0
         case let .chatHeader(section, _): return Int32(section)
         case .widePosts: return 9

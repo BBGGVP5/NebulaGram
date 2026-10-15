@@ -1,0 +1,112 @@
+diff --git a/submodules/TelegramUI/Components/Chat/ChatTextInputPanelNode/Sources/ChatTextInputPanelNode.swift b/submodules/TelegramUI/Components/Chat/ChatTextInputPanelNode/Sources/ChatTextInputPanelNode.swift
+--- a/submodules/TelegramUI/Components/Chat/ChatTextInputPanelNode/Sources/ChatTextInputPanelNode.swift
++++ b/submodules/TelegramUI/Components/Chat/ChatTextInputPanelNode/Sources/ChatTextInputPanelNode.swift
+@@ -1584,7 +1584,7 @@
+         self.absoluteRect = (rect, containerSize)
+ 
+         if !self.sendActionButtons.frame.width.isZero {
+-            self.sendActionButtons.updateAbsoluteRect(CGRect(origin: rect.origin.offsetBy(dx: self.sendActionButtons.frame.minX, dy: self.sendActionButtons.frame.minY), size: self.sendActionButtons.frame.size), within: containerSize, transition: transition)
++            self.sendActionButtons.updateAbsoluteRect(CGRect(origin: rect.origin.offsetBy(dx: self.sendActionButtons.frame.minX, dy: self.glassBackgroundContainer.frame.minY + self.sendActionButtons.frame.minY), size: self.sendActionButtons.frame.size), within: containerSize, transition: transition)
+         }
+         
+         let absoluteFrame = self.startButton.view.convert(self.startButton.bounds, to: nil)
+@@ -2596,6 +2596,11 @@
+             effectiveActionButtonsSize.width += 6.0 + liveMicrophoneButtonSize.width
+         }
+         
++        var nebulaTextMode = false
++        if case .text = interfaceState.inputMode { nebulaTextMode = true }
++        let formattingHeight: CGFloat = NebulaSettingsStore.shared.formattingToolbar && self.isFocused && nebulaTextMode
++            && mediaRecordingState == nil && !hasMediaDraft && !isEditingMedia && !displayBotStartButton && !self.sendingTextDisabled ? 52 : 0
++
+         let baseWidth = width - leftInset - leftMenuInset - rightInset - rightSlowModeInset
+         let (accessoryButtonsWidth, textFieldHeight, isTextFieldOverflow) = self.calculateTextFieldMetrics(width: baseWidth, sendActionControlsWidth: sendActionButtonsSize.width, maxHeight: maxHeight, metrics: metrics, bottomInset: bottomInset, interfaceState: interfaceState)
+         var panelHeight = self.panelHeight(textFieldHeight: textFieldHeight, metrics: metrics, bottomInset: bottomInset)
+@@ -3446,12 +3451,12 @@
+         }
+         transition.updateFrame(node: self.mediaActionButtons, frame: mediaActionButtonsFrame)
+         if let (rect, containerSize) = self.absoluteRect {
+-            self.mediaActionButtons.updateAbsoluteRect(CGRect(x: rect.origin.x + mediaActionButtonsFrame.origin.x, y: rect.origin.y + mediaActionButtonsFrame.origin.y, width: mediaActionButtonsFrame.width, height: mediaActionButtonsFrame.height), within: containerSize, transition: transition)
++            self.mediaActionButtons.updateAbsoluteRect(CGRect(x: rect.origin.x + mediaActionButtonsFrame.origin.x, y: rect.origin.y + formattingHeight + mediaActionButtonsFrame.origin.y, width: mediaActionButtonsFrame.width, height: mediaActionButtonsFrame.height), within: containerSize, transition: transition)
+         }
+         
+         var nextRightActionButtonX: CGFloat = textInputContainerBackgroundFrame.maxX + 6.0
+         if let liveMicrophoneButtonView = self.liveMicrophoneButton?.view, let liveMicrophoneButtonSize {
+-            var liveMicrophoneButtonFrame = CGRect(origin: CGPoint(x: nextRightActionButtonX, y: textInputContainerBackgroundFrame.maxY - liveMicrophoneButtonSize.height), size: liveMicrophoneButtonSize)
++            var liveMicrophoneButtonFrame = CGRect(origin: CGPoint(x: nextRightActionButtonX, y: formattingHeight + textInputContainerBackgroundFrame.maxY - liveMicrophoneButtonSize.height), size: liveMicrophoneButtonSize)
+             nextRightActionButtonX += 6.0 + liveMicrophoneButtonSize.width
+             if inputHasText || self.extendedSearchLayout || hasMediaDraft {
+                 liveMicrophoneButtonFrame.origin.x = width + 8.0
+@@ -3469,7 +3474,7 @@
+         }
+         
+         if let starReactionButtonView = self.starReactionButton?.view, let starReactionButtonSize {
+-            var starReactionButtonFrame = CGRect(origin: CGPoint(x: nextRightActionButtonX, y: textInputContainerBackgroundFrame.maxY - starReactionButtonSize.height), size: starReactionButtonSize)
++            var starReactionButtonFrame = CGRect(origin: CGPoint(x: nextRightActionButtonX, y: formattingHeight + textInputContainerBackgroundFrame.maxY - starReactionButtonSize.height), size: starReactionButtonSize)
+             nextRightActionButtonX += 6.0 + starReactionButtonSize.width
+             if inputHasText || self.extendedSearchLayout || hasMediaDraft {
+                 starReactionButtonFrame.origin.x = width + 8.0
+@@ -3501,7 +3506,7 @@
+         
+         transition.updateBounds(node: self.sendActionButtons, bounds: CGRect(origin: CGPoint(), size: sendActionButtonsFrame.size))
+         if let (rect, containerSize) = self.absoluteRect {
+-            self.sendActionButtons.updateAbsoluteRect(CGRect(x: rect.origin.x + sendActionButtonsFrame.origin.x, y: rect.origin.y + sendActionButtonsFrame.origin.y, width: sendActionButtonsFrame.width, height: sendActionButtonsFrame.height), within: containerSize, transition: transition)
++            self.sendActionButtons.updateAbsoluteRect(CGRect(x: rect.origin.x + sendActionButtonsFrame.origin.x, y: rect.origin.y + formattingHeight + sendActionButtonsFrame.origin.y, width: sendActionButtonsFrame.width, height: sendActionButtonsFrame.height), within: containerSize, transition: transition)
+         }
+         
+         let slowModeButtonFrame = CGRect(origin: CGPoint(x: hideOffset.x + width - rightInset - 5.0 - slowModeButtonSize.width + composeButtonsOffset, y: hideOffset.y + panelHeight - minimalHeight), size: slowModeButtonSize)
+@@ -3682,7 +3687,7 @@
+         }
+         
+         if let settingsButtonView = self.settingsButton?.view, let settingsButtonSize {
+-            let settingsButtonFrame = CGRect(origin: CGPoint(x: attachmentButtonX, y: attachmentButtonFrame.maxY - settingsButtonSize.height), size: settingsButtonSize)
++            let settingsButtonFrame = CGRect(origin: CGPoint(x: attachmentButtonX, y: formattingHeight + attachmentButtonFrame.maxY - settingsButtonSize.height), size: settingsButtonSize)
+             attachmentButtonX += 6.0 + 40.0
+             
+             if settingsButtonView.superview == nil {
+@@ -3772,7 +3777,7 @@
+         
+         let contextPanelMaskInset: CGFloat = 32.0
+         let contextPanelBottomInset = floor(minimalInputHeight * 0.5)
+-        let contextPanelFrame = CGRect(origin: CGPoint(x: textInputContainerBackgroundFrame.minX, y: contentHeight - maxOverlayHeight), size: CGSize(width: textInputContainerBackgroundFrame.width, height: max(0.0, maxOverlayHeight - contentHeight + contextPanelBottomInset)))
++        let contextPanelFrame = CGRect(origin: CGPoint(x: textInputContainerBackgroundFrame.minX, y: formattingHeight + contentHeight - maxOverlayHeight), size: CGSize(width: textInputContainerBackgroundFrame.width, height: max(0.0, maxOverlayHeight - contentHeight + contextPanelBottomInset)))
+         
+         if contextPanelNode !== previousContextPanel?.panel, let previousContextPanel {
+             let panelContainer = previousContextPanel.container
+@@ -3802,7 +3807,7 @@
+         }
+         
+         if let contextPanel = self.contextPanel {
+-            let previousContextPanelFrame = CGRect(origin: CGPoint(x: previousTextInputContainerBackgroundFrame.minX, y: contentHeight - maxOverlayHeight), size: CGSize(width: previousTextInputContainerBackgroundFrame.width, height: max(0.0, maxOverlayHeight - contentHeight + contextPanelBottomInset)))
++            let previousContextPanelFrame = CGRect(origin: CGPoint(x: previousTextInputContainerBackgroundFrame.minX, y: formattingHeight + contentHeight - maxOverlayHeight), size: CGSize(width: previousTextInputContainerBackgroundFrame.width, height: max(0.0, maxOverlayHeight - contentHeight + contextPanelBottomInset)))
+             
+             if contextPanel.container.superview == nil {
+                 self.view.insertSubview(contextPanel.container, at: 0)
+@@ -3904,15 +3909,12 @@
+             }
+         }
+ 
+-        let containerFrame = CGRect(origin: CGPoint(), size: CGSize(width: width, height: contentHeight + 64.0))
++        let containerFrame = CGRect(origin: CGPoint(x: 0, y: formattingHeight), size: CGSize(width: width, height: contentHeight + 64.0))
+         transition.updateFrame(view: self.glassBackgroundContainer, frame: containerFrame)
+         self.glassBackgroundContainer.update(size: containerFrame.size, isDark: interfaceState.theme.overallDarkAppearance, transition: ComponentTransition(transition))
+         
+         self.nebulaArithmeticHint.update(input: audioRecordingItemsAlpha > 0 ? self.richTextInputNode?.inputView : nil, container: self.textInputNodeClippingContainer, color: interfaceState.theme.chat.inputPanel.inputPlaceholderColor)
+-        var formattingHeight: CGFloat = 0
+-        var textMode = false
+-        if case .text = interfaceState.inputMode { textMode = true }
+-        if NebulaSettingsStore.shared.formattingToolbar && self.isFocused && textMode && audioRecordingItemsAlpha > 0 && !self.sendingTextDisabled {
++        if formattingHeight > 0 {
+             let toolbar: NebulaFormattingToolbar
+             if let current = self.nebulaFormattingToolbar { toolbar = current } else {
+                 toolbar = NebulaFormattingToolbar(frame: .zero)
+@@ -3923,8 +3925,7 @@
+             toolbar.update(color: interfaceState.theme.chat.inputPanel.actionControlForegroundColor,
+                 russian: interfaceState.strings.baseLanguageCode.lowercased().hasPrefix("ru"),
+                 hasSelection: !self.inputTextState.selectionRange.isEmpty)
+-            formattingHeight = 52
+-            transition.updateFrame(view: toolbar, frame: CGRect(x: leftInset + 8, y: contentHeight + 4,
++            transition.updateFrame(view: toolbar, frame: CGRect(x: leftInset + 8, y: 4,
+                 width: max(0, width - leftInset - rightInset - 16), height: 44))
+         } else if let toolbar = self.nebulaFormattingToolbar {
+             toolbar.removeFromSuperview()
