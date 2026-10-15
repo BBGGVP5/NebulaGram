@@ -46,7 +46,7 @@ Files: Android `UserConfig`, controller singleton holders, account iteration and
 
 Files: Android `NebulaSettingsFragment`, `NebulaSettingsHubFragment`, `NebulaSettingsSearch`, `NebulaSectionFragment`; iOS `NebulaSettingsController`, `NebulaSettingsSearch`; shared settings contract.
 
-- [ ] Organize into Appearance, Chats and composer, AI and audio, Navigation and folders, Accounts, Privacy, Connection and About; remove duplicate paths and clarify dependent controls.
+- [x] Organize into Appearance, Chats and composer, AI and audio, Navigation and folders, Accounts, Privacy, Connection and About; retain legacy deep links while grouping the visible routes.
 - [ ] Add direct access to frequently used options, searchable labels and current-value summaries; preserve deep links and exported settings.
 - [x] Debounce search, cancel pending work on detach and avoid rebuilding unchanged results / stale theme caches.
 - [ ] Test preference round trips, migration, dependencies, live updates, search/deep links, accessibility and locale changes.
@@ -105,3 +105,10 @@ Files: `runtime/xray/go.mod`, `bind/go.mod`, `core/go.mod`, related sums/build s
 
 - Android run 38716266186 passed and its APK signature, version, ABI, alignment and embedded core were verified. Full iOS run 38708491103 passed; IPA 120 integrity, bundle ID and version verified. Device UI/authentication/push testing remains open.
 - Account registry migration is tracked in [its focused implementation plan](2026-10-15-dynamic-accounts.md). Patch 0216 removes fixed singleton arrays in 35 Java controllers and the native networking switch, with per-thread JNI environments. Java/native concurrent tests pass for 128 synthetic accounts. Persisted account allocation, screen-state arrays and notification namespaces still require migration before removing the Android ten-account UI gate.
+
+
+## Account/settings execution checkpoint
+
+Android persistent IDs and all account enumeration have been migrated in patches 0218-0221. Notification tags and PendingIntent destinations include full account/dialog identities. The independent catalogue, native instance and notification fixtures pass for 128/256 synthetic accounts; native parser checks the actual patched sources. Full APK rebuild and real authentication/push remain open.
+
+Both settings roots now expose AI/audio separately from chat presentation, plus searchable account switching and ordering. Android copied links and search share a single destination dispatcher; 36 routes, invalid destinations, row focus and account ownership execute in regression tests. The iOS settings overlay and new controller pass Swift parsing and the full ordered bootstrap/source-registration check; native module typechecking and the complete IPA build remain separate checks. No session credentials are included in settings export.

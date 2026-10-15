@@ -185,6 +185,8 @@ jobs:
           python3 scripts/check-connect-lifecycle.py
           python3 scripts/check-settings-contract.py
           python3 scripts/check-settings-links.py
+          python3 scripts/check-settings-routes.py
+          python3 scripts/check-account-list.py
           python3 scripts/check-wide-posts.py vendor/telegram-android
           python3 scripts/check-menu-feedback.py vendor/telegram-android
           python3 scripts/check-tab-lens-motion.py

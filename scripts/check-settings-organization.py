@@ -6,7 +6,7 @@ home=(ui/'NebulaSettingsFragment.java').read_text(encoding='utf-8')
 body=home[home.index('private void buildSections('):home.index('private NebulaRow hub(')]
 assert body.rfind('sections.addView(')==body.index('sections.addView(about,')
 assert 'NebulaSupportFragment' not in body and 'NebulaMessageToolsFragment' not in body
-assert 'Чаты и инструменты' in body and 'Браузер и блокировка рекламы' not in body
+assert 'Чаты и сообщения' in body and 'Браузер и блокировка рекламы' not in body
 hub=(ui/'NebulaSettingsHubFragment.java').read_text(encoding='utf-8')
 for target in ['NebulaAiSettingsFragment','NebulaTranslationFragment','NebulaMessageToolsFragment','NebulaTasksFragment']:
     assert target in hub,target

@@ -88,23 +88,7 @@ public final class NebulaSettingsLinks {
             if (key != null && key.startsWith("Nebula") && key.length() < 120) {
                 focus = LocaleController.getString(R.string.class.getField(key).getInt(null));
             }
-            if (section == 12 || section >= 0 && section <= 9) host.presentFragment(row >= 0
-                    ? new NebulaSectionFragment(section).focusRowIndex(row)
-                    : new NebulaSectionFragment(section).focus(focus));
-            else if (section == -1) host.presentFragment(new NebulaSettingsFragment());
-            else if (section == -16) host.presentFragment(new NebulaTasksFragment());
-            else if (section == -17) host.presentFragment(new NebulaMessageToolsFragment(null));
-            else if (section == -18) host.presentFragment(new NebulaSyncFragment());
-            else if (section == -19) host.presentFragment(new NebulaLockedChatsFragment());
-            else if (section == -12) host.presentFragment(new NebulaAiFragment());
-            else if (section == -10 || section == -11) host.presentFragment(new NebulaDesignFragment(section == -11));
-            else if (section == -13) NebulaUpdateSettingsSheet.show(host);
-            else if (section == -14) host.presentFragment(new NebulaMenuFragment(NebulaMenuFragment.SCREEN_ADVANCED));
-            else if (section == -15) host.presentFragment(row >= 0
-                    ? new NebulaPrivacyFragment().focusRowIndex(row)
-                    : new NebulaPrivacyFragment().focus(focus));
-            else return false;
-            return true;
+            return NebulaSettingsSearch.openSection(host, section, focus, row);
         } catch (Exception ignored) { return false; }
     }
 }

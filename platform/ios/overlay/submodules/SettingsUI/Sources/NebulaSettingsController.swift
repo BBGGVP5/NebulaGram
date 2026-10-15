@@ -79,7 +79,7 @@ private enum NebulaSettingsEntry: ItemListNodeEntry {
         switch self {
         case .introduction: return -2
         case .search, .empty: return -1
-        case let .category(index, _, _, _): return index == 27 || index == 28 ? 2 : index == 26 ? 0 : index == 25 ? 4 : index == 23 ? 7 : index == 24 ? 5 : index == 22 ? 9 : index == 19 ? 0 : index == 20 ? 9 : index == 21 ? 5 : index == 18 ? 12 : index == 17 ? 8 : index == 10 || index == 12 || index == 16 ? 9 : index == 11 ? 10 : index >= 13 ? 1 : 0
+        case let .category(index, _, _, _): return index == 30 || index == 31 ? 0 : index == 27 || index == 28 ? 2 : index == 26 ? 0 : index == 25 ? 4 : index == 23 ? 7 : index == 24 ? 5 : index == 22 ? 9 : index == 19 ? 0 : index == 20 ? 9 : index == 21 ? 5 : index == 18 ? 12 : index == 17 ? 8 : index == 10 || index == 12 || index == 16 ? 9 : index == 11 ? 10 : index >= 13 ? 1 : 0
         case .toolsHeader, .link, .ai, .buildInfo, .memory, .support, .community: return 0
         case let .chatHeader(section, _): return Int32(section)
         case .widePosts: return 9
@@ -101,7 +101,7 @@ private enum NebulaSettingsEntry: ItemListNodeEntry {
     private var order: Int {
         switch self {
         case .introduction: return -3
-        case let .category(index, _, _, _): return index == 7 ? 25 : index == 8 ? 35 : index * 10
+        case let .category(index, _, _, _): return index == 30 ? 35 : index == 7 ? 45 : index == 31 ? 48 : index == 8 ? 35 : index * 10
         case .search: return -2
         case .empty: return -1
         case .toolsHeader: return 0
@@ -491,14 +491,19 @@ public func nebulaSettingsController(context: AccountContext, page: Int = 0, sea
             .category(10, ru ? "Поведение чатов" : "Chat behavior", ru ? "Архив, вибрация, пересылка" : "Archive, vibration, forwarding", "hand.tap"),
             .category(11, ru ? "Архивация историй" : "Story archiving", "", "circle.dotted.circle"),
             .ai(ru ? "Искусственный интеллект" : "AI assistant"),
+            .category(4, ru ? "Папки" : "Folders", ru ? "Стекло, вкладки и счётчики" : "Glass, tabs and counters", "folder"),
+            .category(8, ru ? "Профиль" : "Profile", ru ? "Фото, фон и информация" : "Photo, background and details", "person.crop.circle"),
+            .category(30, ru ? "ИИ и аудио" : "AI and audio", ru ? "Ассистент, перевод и голоса" : "Assistant, translation and voices", "sparkles"),
+            .category(31, ru ? "Аккаунты" : "Accounts", ru ? "Поиск, порядок и переключение" : "Search, order and switching", "person.2"),
+            .category(32, ru ? "Аудио и голоса" : "Audio and voices", ru ? "Расшифровка, Aa и озвучивание" : "Transcription, Aa and speech", "waveform"),
             .buildInfo(ru ? "О сборке" : "Build information"),
             .memory(ru ? "Память приложения" : "App memory")
         ]
         func isChatOption(_ entry: NebulaSettingsEntry) -> Bool {
             switch entry {
-            case .widePosts, .stories, .ai:
+            case .widePosts, .stories:
                 return true
-            case let .category(index, _, _, _): return index == 9 || index == 10 || index == 11 || index == 12 || index == 16 || index == 17 || index == 20 || index == 22 || index == 23 || index == 29
+            case let .category(index, _, _, _): return index == 8 || index == 9 || index == 10 || index == 11 || index == 12 || index == 16 || index == 20 || index == 22 || index == 23 || index == 29
             case let .navigationToggle(key, _, _, _):
                 return key.hasPrefix("reply_") || ["formatting_toolbar", "hide_dividers", "hide_send_as", "hide_attach_camera", "menu_search", "menu_mute",
                     "menu_call", "menu_video", "centered_chat_header", "adaptive_chat_header", "floating_chat_header_v2", "header_unread", "message_menu_blur", "disable_next_channel", "seconds_in_time", "hide_search_field"].contains(key)
@@ -506,9 +511,16 @@ public func nebulaSettingsController(context: AccountContext, page: Int = 0, sea
                 return false
             }
         }
+        func isAiOption(_ entry: NebulaSettingsEntry) -> Bool {
+            switch entry {
+            case .ai: return true
+            case let .category(index, _, _, _): return index == 17 || index == 32
+            default: return false
+            }
+        }
         func isNavigationOption(_ entry: NebulaSettingsEntry) -> Bool {
             switch entry {
-            case .navigation, .contacts: return true
+            case .navigation, .contacts, .category(4, _, _, _): return true
             case let .navigationToggle(key, _, _, _):
                 return ["bottom_bar", "bottom_bar_profile", "bottom_bar_settings", "tab_labels", "compact_bottom_bar",
                     "hide_home_camera", "hide_home_compose"].contains(key)
@@ -530,9 +542,9 @@ public func nebulaSettingsController(context: AccountContext, page: Int = 0, sea
                 .category(1, ru ? "Основные" : "General", ru ? "Поведение приложения и перенос настроек" : "App behavior and settings transfer", "gearshape"),
                 .category(2, ru ? "Оформление" : "Appearance", ru ? "Стекло, значки, анимации" : "Glass, icons, animations", "paintpalette"),
                 .category(7, ru ? "Навигация" : "Navigation", ru ? "Нижняя панель и кнопки" : "Bottom bar and buttons", "rectangle.bottomthird.inset.filled"),
-                .category(3, ru ? "Чаты и инструменты" : "Chats and tools", ru ? "Сообщения, ИИ, перевод и задачи" : "Messages, AI, translation and tasks", "bubble.left"),
-                .category(8, ru ? "Профиль" : "Profile", ru ? "Фото, фон и информация" : "Photo, background and details", "person.crop.circle"),
-                .category(4, ru ? "Папки" : "Folders", ru ? "Вкладки и счётчики" : "Tabs and counters", "folder"),
+                .category(3, ru ? "Чаты и сообщения" : "Chats and messages", ru ? "Ввод, действия, камера и задачи" : "Composer, actions, camera and tasks", "bubble.left"),
+                .category(30, ru ? "ИИ и аудио" : "AI and audio", ru ? "Ассистент, перевод, расшифровка и голоса" : "Assistant, translation, transcription and voices", "sparkles"),
+                .category(31, ru ? "Аккаунты" : "Accounts", ru ? "Поиск, порядок и переключение" : "Search, order and switching", "person.2"),
                 .category(5, ru ? "Конфиденциальность" : "Privacy", ru ? "Архив, защита, поиск" : "Archive, protection, search", "hand.raised"),
                 .category(18, ru ? "О приложении" : "About", ru ? "Поддержка, сообщество и версия" : "Support, community and version", "info.circle")
             ]
@@ -550,6 +562,7 @@ public func nebulaSettingsController(context: AccountContext, page: Int = 0, sea
                     return false
                 case 2: return entry.section == 1 && !isChatOption(entry) && !isNavigationOption(entry) && !isFolderOption(entry)
                 case 3: return isChatOption(entry)
+                case 30: return isAiOption(entry)
                 case 4: return isFolderOption(entry)
                 case 5: return entry.section == 3
                 case 6: return entry.section == 4
@@ -573,7 +586,8 @@ public func nebulaSettingsController(context: AccountContext, page: Int = 0, sea
             let descriptions: [Int: (String, String, String)] = [
                 1: ("gearshape", ru ? "Основные" : "General", ru ? "Настройте поведение приложения" : "Make the app work your way"),
                 2: ("paintpalette", ru ? "Оформление" : "Appearance", ru ? "Настройте цвета, стекло и значки" : "Choose colors, glass and icons"),
-                3: ("bubble.left.and.bubble.right", ru ? "Чаты и инструменты" : "Chats and tools", ru ? "Сообщения, ИИ, перевод и задачи" : "Messages, AI, translation and tasks"),
+                3: ("bubble.left.and.bubble.right", ru ? "Чаты и сообщения" : "Chats and messages", ru ? "Ввод, действия, камера и задачи" : "Composer, actions, camera and tasks"),
+                30: ("sparkles", ru ? "ИИ и аудио" : "AI and audio", ru ? "Выберите сервисы перевода, распознавания и голоса" : "Choose translation, transcription and speech services"),
                 4: ("folder", ru ? "Папки" : "Folders", ru ? "Соберите нужные чаты вместе" : "Keep related chats together"),
                 5: ("lock.shield", ru ? "Конфиденциальность" : "Privacy", ru ? "Защита, архив и локальные копии" : "Protection, archive and local copies"),
                 6: ("🔄", ru ? "Перенос настроек" : "Transfer", ru ? "Сохраните оформление и предпочтения" : "Save your appearance and preferences"),
@@ -610,6 +624,15 @@ public func nebulaSettingsController(context: AccountContext, page: Int = 0, sea
     transfer.host = controller
     arguments.openCategory = { [weak controller] index in
         guard let controller else { return }
+        if index == 31 {
+            controller.present(UINavigationController(rootViewController: NebulaAccountsController(context: context)), animated: true)
+            return
+        }
+        if index == 32 {
+            let data = context.sharedContext.currentPresentationData.with { $0 }
+            controller.present(UINavigationController(rootViewController: NebulaAudioSettingsController(russian: data.strings.baseLanguageCode.hasPrefix("ru"), theme: data.theme, context: context)), animated: true)
+            return
+        }
         if index == 14 {
             let data = context.sharedContext.currentPresentationData.with { $0 }
             controller.present(UINavigationController(rootViewController: NebulaIconPacksController(russian: data.strings.baseLanguageCode.hasPrefix("ru"), theme: data.theme)), animated: true); return

@@ -29,6 +29,7 @@ public class NebulaSettingsFragment extends BaseFragment {
     private android.widget.EditText search;
     private FrameLayout root;
     private int paletteSurface, palettePrimary;
+    private NebulaRow accountsRow;
     private Runnable pendingSearch;
     private String displayedQuery;
 
@@ -165,13 +166,16 @@ public class NebulaSettingsFragment extends BaseFragment {
                 "Подключение и поведение", "Connection and behavior", NebulaSettingsHubFragment.GENERAL));
         categories.add(hub(context, R.drawable.msg_customize, "Внешний вид", "Appearance",
                 "Цвета, стекло, значки", "Colors, glass, icons", NebulaSettingsHubFragment.APPEARANCE));
-        categories.add(hub(context, R.drawable.msg_discussion, "Чаты и инструменты", "Chats and tools",
-                "Переписка, ИИ, перевод и задачи", "Conversations, AI, translation and tasks", NebulaSettingsHubFragment.CHATS));
-        categories.add(new NebulaRow(context).icon(R.drawable.msg_videocall).title(NebulaText.text("Камера", "Camera"))
-                .subtitle(NebulaText.text("Съёмка, кружки и управление", "Capture, round videos and controls"), false)
-                .trailing(NebulaRow.TRAIL_CHEVRON).withClick(v -> presentFragment(new NebulaCameraFragment())));
+        categories.add(hub(context, R.drawable.msg_discussion, "Чаты и сообщения", "Chats and messages",
+                "Ввод, камера, действия и задачи", "Composer, camera, actions and tasks", NebulaSettingsHubFragment.CHATS));
+        categories.add(hub(context, R.drawable.nebula_ai_spark, "ИИ и аудио", "AI and audio",
+                "Ассистент, перевод, расшифровка и голоса", "Assistant, translation, transcription and voices", NebulaSettingsHubFragment.TOOLS));
         categories.add(hub(context, R.drawable.msg_list, "Навигация", "Navigation",
                 "Панель и папки", "Bar and folders", NebulaSettingsHubFragment.NAVIGATION));
+        accountsRow = new NebulaRow(context).icon(R.drawable.msg_openprofile).title(NebulaText.text("Аккаунты", "Accounts"))
+                .subtitle(accountSummary(), false).trailing(NebulaRow.TRAIL_CHEVRON)
+                .withClick(v -> presentFragment(new NebulaAccountsFragment()));
+        categories.add(accountsRow);
         categories.add(hub(context, R.drawable.msg_secret, "Конфиденциальность", "Privacy",
                 "Архив и защита", "Archive and protection", NebulaSettingsHubFragment.PRIVACY));
         sections.addView(categories, cardParams());
@@ -181,6 +185,11 @@ public class NebulaSettingsFragment extends BaseFragment {
                 .trailing(NebulaRow.TRAIL_CHEVRON).withClick(v -> presentFragment(new NebulaSectionFragment(NebulaSectionFragment.SECTION_ABOUT))));
         sections.addView(about, cardParams());
 
+    }
+
+    private String accountSummary() {
+        return org.telegram.messenger.UserConfig.getActivatedAccountsCount()
+                + NebulaText.text(" · поиск и переключение", " · search and switch");
     }
 
     private NebulaRow hub(Context context, int icon, String titleRu, String titleEn,
@@ -209,6 +218,7 @@ public class NebulaSettingsFragment extends BaseFragment {
     public void onResume() {
         super.onResume();
         if (root == null) return;
+        if (accountsRow != null) accountsRow.subtitle(accountSummary(), false);
         NebulaTheme theme = NebulaTheme.of(root.getContext());
         if (paletteSurface == theme.surface() && palettePrimary == theme.primary()) return;
         paletteSurface = theme.surface();

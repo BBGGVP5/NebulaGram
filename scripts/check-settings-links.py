@@ -13,8 +13,10 @@ assert '.appendQueryParameter("s", Integer.toString(section))' in links
 assert '.appendQueryParameter("r", Integer.toString(index))' in links
 assert 'uri.getQueryParameter("s")' in links and 'uri.getQueryParameter("section")' in links
 assert 'uri.getQueryParameter("focus")' in links and 'uri.getQueryParameter("key")' in links
-assert '.focusRowIndex(row)' in links and 'focusRowIndex(content, new int[]{0}, focusIndex)' in section
-assert 'section == 12 || section >= 0 && section <= 9' in links
+routing = (ui / 'NebulaSettingsSearch.java').read_text(encoding='utf-8')
+assert 'NebulaSettingsSearch.openSection(host, section, focus, row)' in links
+assert '.focusRowIndex(row)' in routing and 'focusRowIndex(content, new int[]{0}, focusIndex)' in section
+assert 'section >= 0 && section <= NebulaSectionFragment.SECTION_GLASS' in routing
 assert 'SECTION_GLASS = 12' in section
 assert 'buildChats(context); buildMessages(context); buildProfile(context)' not in section
 assert 'buildTabs(context); buildFolders(context)' not in section

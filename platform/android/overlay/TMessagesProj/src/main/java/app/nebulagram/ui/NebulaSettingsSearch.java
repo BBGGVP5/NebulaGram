@@ -15,31 +15,42 @@ public final class NebulaSettingsSearch {
             this(section, LocaleController.getString(title), LocaleController.getString(info), icon);
         }
         Entry(int section, String title, String info, int icon) { this.section = section; this.title = title; this.info = info; this.icon = icon; }
-        public void open(BaseFragment f) {
-            if (section == -22) f.presentFragment(new NebulaSupportFragment());
-            else if (section == -16) f.presentFragment(new NebulaTasksFragment());
-            else if (section == -17) NebulaMessageToolsFragment.show(f, new NebulaMessageToolsFragment(f.getCurrentAccount(), 0, "", null));
-            else if (section == -23) f.presentFragment(new NebulaTranslationFragment(f.getCurrentAccount(), 0));
-            else if (section == -18) f.presentFragment(new NebulaSyncFragment());
-            else if (section == -19) f.presentFragment(new NebulaLockedChatsFragment());
-            else if (section == -20) f.presentFragment(new NebulaIconPickerFragment());
-            else if (section == -21) f.presentFragment(new NebulaAiHistoryFragment());
-            else if (section == -1) f.presentFragment(new NebulaSettingsFragment());
-            else if (section == -10 || section == -11) f.presentFragment(new NebulaDesignFragment(section == -11));
-            else if (section == -12) f.presentFragment(new NebulaAiSettingsFragment());
-            else if (section == -24) f.presentFragment(new NebulaBrowserSettingsFragment());
-            else if (section == -25) f.presentFragment(new NebulaIconPacksFragment());
-            else if (section == -26) f.presentFragment(new NebulaCameraFragment());
-            else if (section == -27) f.presentFragment(new NebulaMessageFilterFragment());
-            else if (section == -28) f.presentFragment(new NebulaMessageMenuFragment());
-            else if (section == -13) NebulaUpdateSettingsSheet.show(f);
-            else if (section == -14) f.presentFragment(new NebulaMenuFragment(NebulaMenuFragment.SCREEN_ADVANCED));
-            else if (section == -15) f.presentFragment(new NebulaPrivacyFragment());
-            else f.presentFragment(new NebulaSectionFragment(section).focus(title));
-        }
+        public void open(BaseFragment f) { openSection(f, section, title, -1); }
+    }
+    public static boolean openSection(BaseFragment f, int section, String focus, int row) {
+        if (section >= 0 && section <= NebulaSectionFragment.SECTION_GLASS) {
+            NebulaSectionFragment target = new NebulaSectionFragment(section);
+            f.presentFragment(row >= 0 ? target.focusRowIndex(row) : target.focus(focus));
+        } else if (section == -22) f.presentFragment(new NebulaSupportFragment());
+        else if (section == -16) f.presentFragment(new NebulaTasksFragment());
+        else if (section == -17) f.presentFragment(new NebulaMessageToolsFragment(f.getCurrentAccount(), 0, "", null));
+        else if (section == -23) f.presentFragment(new NebulaTranslationFragment(f.getCurrentAccount(), 0));
+        else if (section == -18) f.presentFragment(new NebulaSyncFragment());
+        else if (section == -19) f.presentFragment(new NebulaLockedChatsFragment());
+        else if (section == -20) f.presentFragment(new NebulaIconPickerFragment());
+        else if (section == -21) f.presentFragment(new NebulaAiHistoryFragment());
+        else if (section == -1) f.presentFragment(new NebulaSettingsFragment());
+        else if (section == -10 || section == -11) f.presentFragment(new NebulaDesignFragment(section == -11));
+        else if (section == -12) f.presentFragment(new NebulaAiSettingsFragment());
+        else if (section == -24) f.presentFragment(new NebulaBrowserSettingsFragment());
+        else if (section == -25) f.presentFragment(new NebulaIconPacksFragment());
+        else if (section == -26) f.presentFragment(new NebulaCameraFragment());
+        else if (section == -27) f.presentFragment(new NebulaMessageFilterFragment());
+        else if (section == -28) f.presentFragment(new NebulaMessageMenuFragment());
+        else if (section == -29) f.presentFragment(new NebulaAccountsFragment());
+        else if (section == -30) f.presentFragment(new NebulaAudioSettingsFragment());
+        else if (section == -31) f.presentFragment(new NebulaSettingsHubFragment(NebulaSettingsHubFragment.TOOLS));
+        else if (section == -13) NebulaUpdateSettingsSheet.show(f);
+        else if (section == -14) f.presentFragment(new NebulaMenuFragment(NebulaMenuFragment.SCREEN_ADVANCED));
+        else if (section == -15) f.presentFragment(row >= 0 ? new NebulaPrivacyFragment().focusRowIndex(row) : new NebulaPrivacyFragment().focus(focus));
+        else return false;
+        return true;
     }
     public static ArrayList<Entry> all() {
         ArrayList<Entry> result = new ArrayList<>();
+        result.add(new Entry(-29, NebulaText.text("Аккаунты", "Accounts"), NebulaText.text("Поиск, порядок, переключение, добавить аккаунт", "Search, order, switch, add account"), R.drawable.msg_openprofile));
+        result.add(new Entry(-30, NebulaText.text("Аудио и голоса", "Audio and voices"), NebulaText.text("Расшифровка голосовых, Aa, озвучивание, на устройстве", "Voice transcription, Aa, speech, on device"), R.drawable.msg_voicechat));
+        result.add(new Entry(-31, NebulaText.text("ИИ и аудио", "AI and audio"), NebulaText.text("Сервисы, модели, перевод и распознавание", "Services, models, translation and recognition"), R.drawable.nebula_ai_spark));
         result.add(new Entry(1, NebulaText.text("Панель форматирования", "Formatting toolbar"), NebulaText.text("Клавиатура, жирный, курсив, цитата, спойлер, ссылка", "Keyboard, bold, italic, quote, spoiler, link"), R.drawable.msg_edit));
         result.add(new Entry(-27, NebulaText.text("Фильтр сообщений", "Message filter"), NebulaText.text("Слова, транслитерация, исключения, заблокированные", "Words, transliteration, exceptions, blocked users"), R.drawable.msg_search));
         result.add(new Entry(-28, NebulaText.text("Меню сообщения", "Message menu"), NebulaText.text("Действия, высота, компактный вид и размытие", "Actions, height, compact appearance and blur"), R.drawable.msg_list));
