@@ -1,0 +1,51 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
+@@ -5292,6 +5292,8 @@
+             app.nebulagram.ui.NebulaFolderTabs.removeChangeListener(nebulaFolderChangeListener);
+             nebulaFolderChangeListener = () -> {
+                 if (filterTabsView == null || !(filterTabsView.getLayoutParams() instanceof FrameLayout.LayoutParams)) return;
++                filterTabsView.setNebulaBottomPanel(app.nebulagram.ui.NebulaFolderTabs.bottom());
++                filterTabsView.getTabsContainer().invalidateViews();
+                 FrameLayout.LayoutParams tabsParams = (FrameLayout.LayoutParams) filterTabsView.getLayoutParams();
+                 tabsParams.gravity = app.nebulagram.ui.NebulaFolderTabs.gravity();
+                 filterTabsView.setLayoutParams(tabsParams);
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/FilterTabsView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/FilterTabsView.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Components/FilterTabsView.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/FilterTabsView.java
+@@ -1202,6 +1202,7 @@
+         // Drawable padding must not change tab measurement when styles switch.
+         setPadding(0, dp(7), 0, dp(7));
+         invalidate();
++        if (listView != null) listView.invalidateViews();
+     }
+ 
+     private void finishNebulaTabTransition() {
+@@ -1672,20 +1673,22 @@
+                 if (nebulaDragging) {
+                     nebulaReleaseCenter = nebulaDragX;
+                     nebulaReleaseWidth = indicatorWidth;
+-                    nebulaLens.drawDrag(canvas, nebulaDragX-r.width()/2f, r.top, nebulaDragX+r.width()/2f, r.bottom, Theme.getColor(activeTextColorKey));
++                    nebulaLens.drawDrag(canvas, nebulaDragX-r.width()/2f, r.top, nebulaDragX+r.width()/2f, r.bottom, Theme.getColor(activeTextColorKey, resourcesProvider));
+                 } else if (nebulaReleaseFromDrag && !animatingIndicator && manualScrollingToPosition == -1) {
+                     // A cancelled/locked drag returns gently without selecting a page.
+-                    nebulaLens.draw(canvas, r.left, r.top, r.right, r.bottom, Theme.getColor(activeTextColorKey));
++                    nebulaLens.draw(canvas, r.left, r.top, r.right, r.bottom, Theme.getColor(activeTextColorKey, resourcesProvider));
+                 } else {
+                     // Native page progress already supplies the animation: do not animate it twice.
+-                    nebulaLens.drawDrag(canvas, r.left, r.top, r.right, r.bottom, Theme.getColor(activeTextColorKey));
++                    nebulaLens.drawDrag(canvas, r.left, r.top, r.right, r.bottom, Theme.getColor(activeTextColorKey, resourcesProvider));
+                 }
+             } else selectorDrawable.draw(canvas);
+             if (app.nebulagram.ui.NebulaAppearance.folderOutline()) {
+                 Paint outline = nebulaOutlinePaint;
+                 outline.setStyle(Paint.Style.STROKE);
+-                outline.setStrokeWidth(dp(1.5f));
+-                outline.setColor(Theme.getColor(activeTextColorKey));
++                outline.setStrokeWidth(nebulaPanelStyle == app.nebulagram.ui.NebulaFolderTabs.GLASS ? AndroidUtilities.dpf2(.65f) : dp(1.5f));
++                outline.setColor(nebulaPanelStyle == app.nebulagram.ui.NebulaFolderTabs.GLASS
++                        ? Theme.multAlpha(Theme.getColor(activeTextColorKey, resourcesProvider), .18f)
++                        : Theme.getColor(activeTextColorKey, resourcesProvider));
+                 if (nebulaLiquidSelector()) {
+                     nebulaLens.drawOutline(canvas, outline);
+                 } else {

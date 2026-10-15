@@ -127,7 +127,9 @@ public class NebulaSectionFragment extends BaseFragment {
         build(context, theme);
         if (focusIndex >= 0) content.post(() -> focusRowIndex(content, new int[]{0}, focusIndex));
         else if (focusTitle != null) content.post(() -> focusRow(content));
-        return fragmentView = NebulaSettingsLayout.wrap(context, actionBar, root, section);
+        return fragmentView = section == SECTION_ABOUT
+                ? NebulaSettingsLayout.wrapWithVisibleTitle(context, actionBar, root, section)
+                : NebulaSettingsLayout.wrap(context, actionBar, root, section);
     }
 
     private int titleKey() {
@@ -158,6 +160,7 @@ public class NebulaSectionFragment extends BaseFragment {
         String introEmoji;
         String introDescription;
         switch (section) {
+            case SECTION_ABOUT: introEmoji = "🚀"; introTitle = "NebulaGram"; introDescription = NebulaText.text("Общение, перевод и NebulaLink в одном приложении.", "Messaging, translation and NebulaLink in one app."); break;
             case SECTION_GENERAL: introEmoji = "🧰"; introDescription = NebulaText.text("Настройте подключение и поведение приложения.", "Customize connection and app behavior."); break;
             case SECTION_APPEARANCE: case SECTION_GLASS: introEmoji = "🎨"; introDescription = NebulaText.text("Настройте цвета, стекло и значки.", "Customize colors, glass and icons."); break;
             case SECTION_CHATS: case SECTION_MESSAGES: introEmoji = "💬"; introDescription = NebulaText.text("Внешний вид и действия в переписке.", "Appearance and actions in conversations."); break;
@@ -166,7 +169,14 @@ public class NebulaSectionFragment extends BaseFragment {
             case SECTION_TABS: case SECTION_NAVIGATION: introEmoji = "🧭"; introDescription = NebulaText.text("Панель, переходы и расположение разделов.", "The bar, transitions and section order."); break;
             default: introEmoji = "✈️"; introDescription = NebulaText.text("NebulaGram и информация о приложении.", "NebulaGram and app information."); break;
         }
-        content.addView(new NebulaSettingsHero(context, introEmoji, introTitle, introDescription));
+        NebulaSettingsHero introduction = new NebulaSettingsHero(context, introEmoji, introTitle, introDescription);
+        if (section == SECTION_ABOUT) {
+            try {
+                android.content.pm.PackageInfo info = context.getPackageManager().getPackageInfo(context.getPackageName(), 0);
+                introduction.setStatus(NebulaText.text("Версия ", "Version ") + info.versionName + " · " + info.versionCode);
+            } catch (Exception ignored) { }
+        }
+        content.addView(introduction);
         previews.clear();
         wallpaperPreviews.clear();
         composerPreview = null;
@@ -451,6 +461,17 @@ public class NebulaSectionFragment extends BaseFragment {
     }
 
     private void buildFolders(Context context) {
+        NebulaCard preset = new NebulaCard(context);
+        preset.add(new NebulaRow(context).icon(R.drawable.msg_customize)
+                .title(NebulaText.text("Как на iOS", "Like iOS"))
+                .subtitle(NebulaText.text("Жидкое стекло, мягкое выделение и папки снизу", "Liquid Glass, soft selection and folders at the bottom"), false)
+                .trailing(NebulaRow.TRAIL_CHEVRON).withClick(v -> {
+                    NebulaAppearance.setFolderOutline(false);
+                    NebulaFolderTabs.setPanelStyle(NebulaFolderTabs.GLASS);
+                    NebulaFolderTabs.setBottom(true);
+                    refreshPalette();
+                }));
+        content.addView(preset, cardParams());
         // Превью показывает те же вкладки, что и список чатов: стиль, обводку и
         // счётчики видно сразу, без ухода на главный экран и обратно.
         folderPreview = new NebulaFoldersPreview(context);
@@ -489,11 +510,11 @@ public class NebulaSectionFragment extends BaseFragment {
                     refreshPreviews();
                 }));
         NebulaRow panelStyle = new NebulaRow(context).icon(R.drawable.msg_customize)
-                .title(NebulaText.text("Оформление нижних папок", "Bottom folder appearance"))
+                .title(NebulaText.text("Оформление папок", "Folder appearance"))
                 .value(NebulaFolderTabs.panelStyleTitle(NebulaFolderTabs.panelStyle()))
                 .trailing(NebulaRow.TRAIL_CHEVRON);
         panelStyle.setOnClickListener(v -> new NebulaDialog.Builder(context)
-                .setTitle(NebulaText.text("Оформление нижних папок", "Bottom folder appearance"))
+                .setTitle(NebulaText.text("Оформление папок", "Folder appearance"))
                 .setSelectedIndex(NebulaFolderTabs.panelStyle()).setItems(new CharSequence[] {NebulaFolderTabs.panelStyleTitle(0),
                         NebulaFolderTabs.panelStyleTitle(1), NebulaFolderTabs.panelStyleTitle(2)},
                         (d, which) -> { NebulaFolderTabs.setPanelStyle(which); refreshPalette(); }).show());

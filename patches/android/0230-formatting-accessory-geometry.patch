@@ -1,0 +1,61 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
+@@ -238,6 +238,7 @@
+ {
+     private app.nebulagram.ui.NebulaFormattingToolbar nebulaFormattingToolbar;
+     private int nebulaFormattingHeight;
++    public int getNebulaFormattingHeight() { return nebulaFormattingHeight; }
+     private final app.nebulagram.ui.NebulaMathHint nebulaMathHint = new app.nebulagram.ui.NebulaMathHint();
+ 
+     private int commonInputType;
+@@ -4907,7 +4908,7 @@
+     protected boolean drawChild(Canvas canvas, View child, long drawingTime) {
+         boolean clip = child == topView || child == textFieldContainer;
+         if (clip) {
+-            final float separatorY = getMeasuredHeight() - animatorInputFieldHeight.getFactor();
++            final float separatorY = getMeasuredHeight() - nebulaFormattingHeight - animatorInputFieldHeight.getFactor();
+             canvas.save();
+             if (child == textFieldContainer) {
+                 // The split composer's AI row sits above the native text island.
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/chat/ChatInputViewsContainer.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/chat/ChatInputViewsContainer.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Components/chat/ChatInputViewsContainer.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/chat/ChatInputViewsContainer.java
+@@ -211,6 +211,15 @@
+ 
+     private float inputBubbleHeight;
+     private int inputBubbleHeightRound;
++    // The accessory reserves chat-list space but has its own drawable below the editor.
++    private int inputAccessoryHeightRound;
++    public void setInputAccessoryHeight(float height) {
++        int value = Math.max(0, Math.round(height));
++        if (inputAccessoryHeightRound != value) {
++            inputAccessoryHeightRound = value;
++            invalidate();
++        }
++    }
+     public void setInputBubbleHeight(float height) {
+         inputBubbleHeight = height;
+         inputBubbleHeightRound = Math.round(inputBubbleHeight);
+@@ -274,7 +283,8 @@
+             Math.round(inputBubbleOffsetLeft),
+             0,
+             getMeasuredWidth() - Math.round(inputBubbleOffsetRight),
+-            inputBubbleHeightRound
++            inputAccessoryHeightRound == 0 ? inputBubbleHeightRound
++                    : Math.max(0, inputBubbleHeightRound - inputAccessoryHeightRound)
+         );
+         tmpRect.inset(0, -dp(7));
+         tmpRect.offset(0, blurTop + (int) bubbleInputTranlationY);
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
+@@ -47261,6 +47261,8 @@
+         inputIslandHeightTarget = calculateInputIslandHeight(true);
+ 
+         chatInputViewsContainer.setInputBubbleHeight(inputIslandHeightCurrent);
++        chatInputViewsContainer.setInputAccessoryHeight(chatActivityEnterView == null ? 0
++                : chatActivityEnterView.getNebulaFormattingHeight() * bottomViewsVisibilityController.getVisibility(MESSAGE_INPUT_CONTAINER));
+         updatePagedownButtonsPosition();
+         updateBotforumTabsBottomMargin();
+         checkUi_botMenuPosition();

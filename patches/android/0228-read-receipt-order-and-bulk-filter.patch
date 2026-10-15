@@ -1,0 +1,64 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/MessagesController.java b/TMessagesProj/src/main/java/org/telegram/messenger/MessagesController.java
+--- a/TMessagesProj/src/main/java/org/telegram/messenger/MessagesController.java
++++ b/TMessagesProj/src/main/java/org/telegram/messenger/MessagesController.java
+@@ -8192,13 +8192,15 @@
+             FileLog.d("processNewDifferenceParams seq = " + seq + " pts = " + pts + " date = " + date + " pts_count = " + pts_count);
+         }
+         if (pts != -1) {
+-            if (getMessagesStorage().getLastPtsValue() + pts_count == pts) {
++            // RPC acknowledgements can follow newer pushed updates. Only a
++            // forward gap needs recovery; duplicate/overlapping PTS is ignored.
++            if ((long) getMessagesStorage().getLastPtsValue() + pts_count == pts) {
+                 if (BuildVars.LOGS_ENABLED) {
+                     FileLog.d("APPLY PTS");
+                 }
+                 getMessagesStorage().setLastPtsValue(pts);
+                 getMessagesStorage().saveDiffParams(getMessagesStorage().getLastSeqValue(), getMessagesStorage().getLastPtsValue(), getMessagesStorage().getLastDateValue(), getMessagesStorage().getLastQtsValue());
+-            } else if (getMessagesStorage().getLastPtsValue() != pts) {
++            } else if ((long) getMessagesStorage().getLastPtsValue() + pts_count < pts) {
+                 if (gettingDifference || updatesStartWaitTimePts == 0 || Math.abs(System.currentTimeMillis() - updatesStartWaitTimePts) <= 1500) {
+                     if (BuildVars.LOGS_ENABLED) {
+                         FileLog.d("ADD UPDATE TO QUEUE pts = " + pts + " pts_count = " + pts_count);
+@@ -8216,7 +8218,7 @@
+             }
+         }
+         if (seq != -1) {
+-            if (getMessagesStorage().getLastSeqValue() + 1 == seq) {
++            if ((long) getMessagesStorage().getLastSeqValue() + 1 == seq) {
+                 if (BuildVars.LOGS_ENABLED) {
+                     FileLog.d("APPLY SEQ");
+                 }
+@@ -8225,7 +8227,7 @@
+                     getMessagesStorage().setLastDateValue(date);
+                 }
+                 getMessagesStorage().saveDiffParams(getMessagesStorage().getLastSeqValue(), getMessagesStorage().getLastPtsValue(), getMessagesStorage().getLastDateValue(), getMessagesStorage().getLastQtsValue());
+-            } else if (getMessagesStorage().getLastSeqValue() != seq) {
++            } else if ((long) getMessagesStorage().getLastSeqValue() + 1 < seq) {
+                 if (gettingDifference || updatesStartWaitTimeSeq == 0 || Math.abs(System.currentTimeMillis() - updatesStartWaitTimeSeq) <= 1500) {
+                     if (BuildVars.LOGS_ENABLED) {
+                         FileLog.d("ADD UPDATE TO QUEUE seq = " + seq);
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
+@@ -9842,13 +9842,17 @@
+         setDialogsListFrozen(true);
+         checkAnimationFinished();
+         for (int i = 0; i < dialogs.size(); i++) {
+-            long did = dialogs.get(i).id;
+             TLRPC.Dialog dialog = dialogs.get(i);
+-            if (getMessagesController().isForum(did) || getMessagesController().isMonoForumWithManageRights(did)) {
++            if (dialog == null || DialogObject.isFolderDialogId(dialog.id)) continue;
++            boolean unread = dialog.unread_count > 0 || dialog.unread_mark;
++            boolean mentions = dialog.unread_mentions_count > 0;
++            if (!unread && !mentions) continue;
++            long did = dialog.id;
++            if (unread && (getMessagesController().isForum(did) || getMessagesController().isMonoForumWithManageRights(did))) {
+                 getMessagesController().markAllTopicsAsRead(did);
+             }
+-            getMessagesController().markMentionsAsRead(did, 0);
+-            getMessagesController().markDialogAsRead(did, dialog.top_message, dialog.top_message, dialog.last_message_date, false, 0, 0, true, 0);
++            if (mentions) getMessagesController().markMentionsAsRead(did, 0);
++            if (unread) getMessagesController().markDialogAsRead(did, dialog.top_message, dialog.top_message, dialog.last_message_date, false, 0, 0, true, 0);
+         }
+         if (selectedDialogIndex >= 0) {
+             frozenDialogsList.remove(selectedDialogIndex);

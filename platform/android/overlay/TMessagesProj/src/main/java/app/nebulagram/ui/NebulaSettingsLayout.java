@@ -9,6 +9,7 @@ import org.telegram.ui.ActionBar.ActionBar;
 /** One native bar. Scrolling forms reserve its inset and sample only the content beneath it. */
 public final class NebulaSettingsLayout extends FrameLayout {
     private int linkSection = -100;
+    private boolean keepTitle;
     private final ActionBar bar;
     private final View body;
     private final boolean overlayHeader;
@@ -25,6 +26,13 @@ public final class NebulaSettingsLayout extends FrameLayout {
     public static View wrap(Context context, ActionBar bar, View body, int section) {
         NebulaSettingsLayout layout = new NebulaSettingsLayout(context, bar, body);
         layout.linkSection = section;
+        return layout;
+    }
+
+    public static View wrapWithVisibleTitle(Context context, ActionBar bar, View body, int section) {
+        NebulaSettingsLayout layout = new NebulaSettingsLayout(context, bar, body);
+        layout.linkSection = section;
+        layout.keepTitle = true;
         return layout;
     }
 
@@ -65,7 +73,7 @@ public final class NebulaSettingsLayout extends FrameLayout {
     }
     private void updateTitle() {
         float alpha = 1f;
-        if (scroll != null && scroll.getChildCount() == 1 && scroll.getChildAt(0) instanceof ViewGroup) {
+        if (!keepTitle && scroll != null && scroll.getChildCount() == 1 && scroll.getChildAt(0) instanceof ViewGroup) {
             ViewGroup column = (ViewGroup) scroll.getChildAt(0);
             if (column.getChildCount() > 0 && column.getChildAt(0) instanceof NebulaSettingsHero) {
                 int anchor = ((NebulaSettingsHero) column.getChildAt(0)).titleScrollAnchor();

@@ -102,6 +102,10 @@ public class RootTest {
   if(frame.top!=0||scroll.pt!=64||scroll.clipped||bar.title.alpha!=0)throw new AssertionError("nested scrolling introduction/header geometry");
   scroll.sy=128;root.layout(0,0,390,800);if(bar.title.alpha!=.5f)throw new AssertionError("title must fade as the introduction collapses");
   scroll.sy=170;root.layout(0,0,390,800);if(bar.title.alpha!=1)throw new AssertionError("collapsed title missing");
+  scroll.sy=0;root=NebulaSettingsLayout.wrapWithVisibleTitle(new android.content.Context(),bar,frame,3);
+  root.measure(390,800);root.layout(0,0,390,800);
+  if(bar.title.alpha!=1)throw new AssertionError("About title hidden at rest");
+  scroll.sy=128;root.layout(0,0,390,800);if(bar.title.alpha!=1)throw new AssertionError("About title fades during scroll");
   System.out.println("OK: nested glass scroll and large-to-small title collapse");
   System.out.println("OK: actual settings-root geometry, 36 size/bar combinations, hidden bar and opt-in setting links");
  }

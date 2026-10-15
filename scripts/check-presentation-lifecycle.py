@@ -23,18 +23,24 @@ source='''class FolderCheck {
  System.out.println("Folder roots: simultaneous updates, duplicate registration, exact detach and 1000 recreate cycles passed");
  }}'''.replace('NOTIFY',notify).replace('ADD',add).replace('REMOVE',remove)
 bar=(ui/'NebulaFormattingToolbar.java').read_text(encoding='utf-8');palette=method(bar,'private void updatePalette(')
+palette=palette.replace('android.graphics.drawable.RippleDrawable','RippleDrawable').replace('android.content.res.ColorStateList','ColorStateList')
 source+='''
 class PaletteCheck {
- static class NebulaTheme {static int surface=1,ink=2;static NebulaTheme of(Object c){return new NebulaTheme();}int surfaceContainer(){return surface;}int onSurface(){return ink;}}
+ static class NebulaTheme {static int surface=1,ink=2,chip=4;static NebulaTheme of(Object c){return new NebulaTheme();}int surfaceContainer(){return surface;}int onSurface(){return ink;}int surface(){return chip;}static int stateLayer(int c,float a){return c;}}
  static class AndroidUtilities {static int dp(int n){return n;}}
- static class GradientDrawable {static int created;GradientDrawable(){created++;}void setColor(int n){}void setCornerRadius(int n){}}
- static class TextView {int color;void setTextColor(int n){color=n;}}
- static class Row {TextView[]items={new TextView(),new TextView()};int getChildCount(){return items.length;}TextView getChildAt(int n){return items[n];}}
- int palette,paletteInk;Object background;Row row=new Row();Object getContext(){return null;}Object getBackground(){return background;}void setBackground(Object b){background=b;}
+ static class GradientDrawable {static int created;int color;GradientDrawable(){created++;}void setColor(int n){color=n;}void setCornerRadius(int n){}}
+ static class ColorStateList {static Object valueOf(int c){return c;}}
+ static class RippleDrawable {GradientDrawable tile;RippleDrawable(Object c,GradientDrawable tile,Object mask){this.tile=tile;}}
+ static class View {int color;Object background;void setBackground(Object b){background=b;}}
+ static class TextView extends View {void setTextColor(int n){color=n;}}
+ static class ImageView extends View {void setColorFilter(int n){color=n;}}
+ static class Row {View[]items={new TextView(),new ImageView()};int getChildCount(){return items.length;}View getChildAt(int n){return items[n];}}
+ int palette,paletteInk,paletteChip;Object background;Row row=new Row();Object getContext(){return null;}Object getBackground(){return background;}void setBackground(Object b){background=b;}
  PALETTE
  public static void main(String[]args){PaletteCheck p=new PaletteCheck();p.updatePalette();
- for(int i=0;i<1000;i++)p.updatePalette();if(GradientDrawable.created!=1)throw new AssertionError("Idle cache rebuilt");
+ for(int i=0;i<1000;i++)p.updatePalette();if(GradientDrawable.created!=3)throw new AssertionError("Idle cache rebuilt");
  NebulaTheme.ink=3;p.updatePalette();if(p.row.items[0].color!=3||p.row.items[1].color!=3)throw new AssertionError("Unchanged surface kept stale foreground");
+ NebulaTheme.chip=5;p.updatePalette();for(View item:p.row.items)if(((RippleDrawable)item.background).tile.color!=5)throw new AssertionError("Chip-only theme change lost");
  System.out.println("Toolbar palette: 1000 idle layouts retain the cached surface; foreground-only theme changes refresh all controls");}}
 '''.replace('PALETTE',palette)
 java_home=Path(os.environ.get('JAVA_HOME','C:/Program Files/Java/jdk-26.0.2'))

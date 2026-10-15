@@ -20,7 +20,7 @@ public final class NebulaFolderGlass {
                 })
                 .setStrokeColorTop(0xBFFFFFFF, 0x50FFFFFF)
                 .setStrokeColorBottom(0x22000000, 0x18FFFFFF)
-                .setStrokeWidth(AndroidUtilities.dpf2(.65f), AndroidUtilities.dpf2(.45f))
+                .setStrokeWidth(0, 0)
                 .setShadowColor(0x18000000, 0x14000000)
                 .setShadowLayer(AndroidUtilities.dpf2(3), 0, AndroidUtilities.dpf2(1))
                 .build();

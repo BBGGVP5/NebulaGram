@@ -17,7 +17,8 @@ stubs = {
     'org/telegram/messenger/AndroidUtilities.java': 'package org.telegram.messenger; public class AndroidUtilities { public static int dp(float x){return (int)x;} }',
     'org/telegram/messenger/ApplicationLoader.java': 'package org.telegram.messenger; public class ApplicationLoader { public static android.content.Context applicationContext; }',
     'app/nebulagram/ui/NebulaText.java': 'package app.nebulagram.ui; public class NebulaText { public static String text(String a,String b){return b;} }',
-    'app/nebulagram/ui/NebulaTheme.java': 'package app.nebulagram.ui; public class NebulaTheme {public static NebulaTheme of(android.content.Context c){return new NebulaTheme();} public int surfaceContainer(){return 0;}public int onSurface(){return 0;}}',
+    'app/nebulagram/ui/NebulaTheme.java': 'package app.nebulagram.ui; public class NebulaTheme {public static NebulaTheme of(android.content.Context c){return new NebulaTheme();} public int surfaceContainer(){return 0;}public int onSurface(){return 0;}public int surface(){return 0;}public static int stateLayer(int c,float a){return c;}}',
+    'org/telegram/messenger/R.java': 'package org.telegram.messenger;public class R {public static class drawable {public static int msg_clear=1,formatting_quote=2,formatting_spoiler=3,msg_link=4;}}',
     'org/telegram/ui/Components/EditTextCaption.java': '''package org.telegram.ui.Components;
 public class EditTextCaption extends android.widget.EditText {
  public EditTextCaption(android.content.Context c){super(c);}

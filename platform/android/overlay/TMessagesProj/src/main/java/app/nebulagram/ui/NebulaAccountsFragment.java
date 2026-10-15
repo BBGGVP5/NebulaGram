@@ -21,37 +21,58 @@ import java.util.List;
 public final class NebulaAccountsFragment extends BaseFragment {
     private LinearLayout results;
     private EditTextBoldCursor search;
-    private NebulaRow ordering;
+    private android.widget.TextView ordering, count;
     private Runnable pendingSearch;
-    private final org.telegram.messenger.NotificationCenter.NotificationCenterDelegate maskChanged = (id, account, args) -> { cancelSearch(); rebuild(); };
+    private boolean lastMasked;
+    private org.telegram.messenger.AccountDirectory.Subscription accountSubscription;
+    private final org.telegram.messenger.NotificationCenter.NotificationCenterDelegate maskChanged = (id, account, args) -> {
+        if (id == org.telegram.messenger.NotificationCenter.dialogsNeedReload && lastMasked == NebulaPresentationPrivacy.enabled()) return;
+        cancelSearch(); rebuild();
+    };
     private int order;
     private String t(String ru, String en) { return NebulaText.text(ru, en); }
     @Override public boolean onFragmentCreate() {
         super.onFragmentCreate();
         org.telegram.messenger.NotificationCenter.getInstance(currentAccount).addObserver(maskChanged, org.telegram.messenger.NotificationCenter.dialogsNeedReload);
+        accountSubscription = org.telegram.messenger.AccountDirectory.observe(
+                id -> org.telegram.messenger.NotificationCenter.getInstance(id).addObserver(maskChanged, org.telegram.messenger.NotificationCenter.mainUserInfoChanged),
+                id -> org.telegram.messenger.NotificationCenter.getInstance(id).removeObserver(maskChanged, org.telegram.messenger.NotificationCenter.mainUserInfoChanged));
         return true;
     }
 
     @Override public View createView(Context context) {
         NebulaFormUi.bar(this, actionBar, context, t("Аккаунты", "Accounts"));
         LinearLayout column = NebulaFormUi.column(context);
-        column.addView(new NebulaSettingsHero(context, "👥", t("Все ваши аккаунты", "All your accounts"),
-                t("Переключайтесь, ищите по имени и выбирайте порядок.", "Switch accounts, search by name and choose their order.")));
-        search = NebulaFormUi.field(context, t("Имя или @username", "Name or @username"), 1, 120);
+        column.setLayoutDirection(org.telegram.messenger.LocaleController.isRTL ? View.LAYOUT_DIRECTION_RTL : View.LAYOUT_DIRECTION_LTR);
+        actionBar.createMenu().addItem(1, R.drawable.msg_add).setContentDescription(t("Добавить аккаунт", "Add account"));
+        actionBar.setActionBarMenuOnItemClick(new org.telegram.ui.ActionBar.ActionBar.ActionBarMenuOnItemClick() {
+            @Override public void onItemClick(int id) {
+                if (id == -1) finishFragment();
+                else if (id == 1) { AndroidUtilities.hideKeyboard(search); NebulaNavigation.addAccount(NebulaAccountsFragment.this); }
+            }
+        });
+        android.widget.FrameLayout searchBox = new android.widget.FrameLayout(context);
+        searchBox.setBackground(org.telegram.ui.ActionBar.Theme.createRoundRectDrawable(AndroidUtilities.dp(16), NebulaTheme.of(context).surfaceContainer()));
+        search = NebulaFormUi.cardField(context, t("Найти аккаунт", "Find account"), 1, 120);
+        search.setPaddingRelative(AndroidUtilities.dp(48), AndroidUtilities.dp(14), AndroidUtilities.dp(16), AndroidUtilities.dp(14));
         search.setImeOptions(android.view.inputmethod.EditorInfo.IME_ACTION_SEARCH);
-        column.addView(search);
+        searchBox.addView(search, new android.widget.FrameLayout.LayoutParams(-1,-2));
+        android.widget.ImageView searchIcon = new android.widget.ImageView(context); searchIcon.setImageResource(R.drawable.msg_search);
+        searchIcon.setColorFilter(NebulaTheme.of(context).onSurfaceVariant());searchIcon.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
+        android.widget.FrameLayout.LayoutParams iconParams = new android.widget.FrameLayout.LayoutParams(AndroidUtilities.dp(22),AndroidUtilities.dp(22),android.view.Gravity.START|android.view.Gravity.CENTER_VERTICAL);
+        iconParams.setMarginStart(AndroidUtilities.dp(16));searchBox.addView(searchIcon,iconParams);column.addView(searchBox);
         order = Math.max(0, Math.min(2, ApplicationLoader.applicationContext.getSharedPreferences("nebulagram", 0).getInt("account_list_order", 0)));
-        ordering = new NebulaRow(context).title(t("Порядок аккаунтов", "Account order"))
-                .trailing(NebulaRow.TRAIL_CHEVRON).withClick(v -> chooseOrder());
-        NebulaCard controls = new NebulaCard(context);
-        controls.add(ordering);
-        controls.add(new NebulaRow(context).icon(R.drawable.msg_add).title(t("Добавить аккаунт", "Add account"))
-                .withClick(v -> { AndroidUtilities.hideKeyboard(search); NebulaNavigation.addAccount(this); }));
-        NebulaFormUi.group(column, t("Управление", "Manage"), controls);
+        LinearLayout tools = new LinearLayout(context);tools.setGravity(android.view.Gravity.CENTER_VERTICAL);
+        tools.setPadding(AndroidUtilities.dp(4),AndroidUtilities.dp(12),0,AndroidUtilities.dp(8));
+        count = new android.widget.TextView(context);count.setTextSize(13);count.setTextColor(NebulaTheme.of(context).onSurfaceVariant());
+        tools.addView(count,new LinearLayout.LayoutParams(0,-2,1));
+        ordering = new android.widget.TextView(context);ordering.setTextSize(13);ordering.setTextColor(NebulaTheme.of(context).primary());
+        ordering.setPadding(AndroidUtilities.dp(10),AndroidUtilities.dp(12),AndroidUtilities.dp(4),AndroidUtilities.dp(12));
+        ordering.setOnClickListener(v -> chooseOrder());tools.addView(ordering,new LinearLayout.LayoutParams(-2,-2));column.addView(tools);
         results = new LinearLayout(context); results.setOrientation(LinearLayout.VERTICAL); column.addView(results);
         column.addView(NebulaFormUi.note(context, t(
-                "Лимита числа аккаунтов в NebulaGram нет. Все активные аккаунты продолжают получать уведомления. Большее число подключений использует больше памяти и заряда.",
-                "NebulaGram has no account-count limit. All active accounts keep receiving notifications. More connections use more memory and battery.")));
+                "Уведомления работают для всех аккаунтов. Добавить новый можно кнопкой + вверху. Больше подключений — больше расход памяти и заряда.",
+                "All accounts receive notifications. Add another with + above. More connections use more memory and battery.")));
         search.addTextChangedListener(new TextWatcher() {
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
             public void onTextChanged(CharSequence s, int start, int before, int count) {
@@ -74,7 +95,8 @@ public final class NebulaAccountsFragment extends BaseFragment {
     }
     private void rebuild() {
         if (results == null) return;
-        ordering.subtitle(orders()[order], false);
+        ordering.setText(orders()[order]);
+        ordering.setContentDescription(t("Порядок аккаунтов: ", "Account order: ") + orders()[order]);
         ArrayList<NebulaAccountList.Entry> entries = new ArrayList<>();
         for (int id : UserConfig.getAccountIds()) {
             UserConfig config = UserConfig.getInstance(id);
@@ -82,19 +104,20 @@ public final class NebulaAccountsFragment extends BaseFragment {
             if (user != null) entries.add(new NebulaAccountList.Entry(id, UserObject.getUserName(user), UserObject.getPublicUsername(user), config.loginTime));
         }
         boolean masked = NebulaPresentationPrivacy.enabled();
+        lastMasked = masked;
         search.setEnabled(!masked);
         if (masked && search.length() != 0) { search.setText(""); AndroidUtilities.hideKeyboard(search); }
         List<NebulaAccountList.Entry> visible = NebulaAccountList.visible(entries, masked ? "" : search.getText().toString(), order);
         Context context = results.getContext(); results.removeAllViews();
-        results.addView(NebulaCard.header(context, t("Аккаунты · ", "Accounts · ") + visible.size()));
+        count.setText(t("Аккаунты · ", "Accounts · ") + visible.size());
         NebulaCard card = new NebulaCard(context);
         int aliasPosition = 0;
         for (NebulaAccountList.Entry entry : visible) {
             String subtitle = entry.id == UserConfig.selectedAccount ? t("Текущий аккаунт", "Current account") : "";
             if (!masked && !entry.username.isEmpty()) subtitle += (subtitle.isEmpty() ? "" : " · ") + "@" + entry.username;
-            NebulaRow row = new NebulaRow(context).title(masked ? t("Аккаунт ", "Account ") + (++aliasPosition) : entry.name).subtitle(subtitle, false);
-            if (entry.id == UserConfig.selectedAccount) row.badge("✓", NebulaTheme.of(context).primary());
-            row.withClick(v -> {
+            NebulaAccountRow row = new NebulaAccountRow(context,entry.id,UserConfig.getInstance(entry.id).getCurrentUser(),
+                    masked ? t("Аккаунт ", "Account ") + (++aliasPosition) : entry.name,subtitle,entry.id == UserConfig.selectedAccount,masked);
+            row.setOnClickListener(v -> {
                 if (entry.id == UserConfig.selectedAccount || !UserConfig.isValidAccount(entry.id)) return;
                 AndroidUtilities.hideKeyboard(search);
                 if (LaunchActivity.instance != null) LaunchActivity.instance.switchToAccount(entry.id, true);
@@ -108,6 +131,7 @@ public final class NebulaAccountsFragment extends BaseFragment {
     @Override public void onResume() { super.onResume(); cancelSearch(); rebuild(); }
     @Override public void onFragmentDestroy() {
         org.telegram.messenger.NotificationCenter.getInstance(currentAccount).removeObserver(maskChanged, org.telegram.messenger.NotificationCenter.dialogsNeedReload);
+        if (accountSubscription != null) { accountSubscription.close(); accountSubscription = null; }
         cancelSearch(); super.onFragmentDestroy();
     }
 }

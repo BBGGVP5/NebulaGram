@@ -183,12 +183,14 @@ jobs:
           python3 scripts/check-emoji-panel.py vendor/telegram-android
           python3 scripts/check-search-stories-pager.py vendor/telegram-android
           python3 scripts/check-formatting-toolbar.py
+          python3 scripts/check-formatting-geometry.py vendor/telegram-android
           python3 scripts/check-connect-lifecycle.py
           python3 scripts/check-onboarding-artwork.py
           python3 scripts/check-settings-contract.py
           python3 scripts/check-settings-links.py
           python3 scripts/check-settings-routes.py
           python3 scripts/check-account-list.py
+          python3 scripts/check-account-row.py
           python3 scripts/check-presentation-lifecycle.py
           python3 scripts/check-link-cleanup.py
           python3 scripts/check-message-details.py
@@ -253,6 +255,7 @@ jobs:
           python3 scripts/check-account-state.py vendor/telegram-android
           python3 scripts/check-account-catalog.py
           python3 scripts/check-notification-provider-startup.py vendor/telegram-android
+          python3 scripts/check-read-receipt-order.py vendor/telegram-android
           python3 scripts/check-account-notifications.py vendor/telegram-android
           python3 scripts/check-forward-editing.py
           python3 scripts/check-protected-copies.py
