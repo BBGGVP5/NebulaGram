@@ -21,6 +21,9 @@ with tempfile.TemporaryDirectory(prefix='nebula-presentation-privacy-') as tempo
         manager = unit(row, 'enum NebulaChatListPrivacy')
         stubs = r'''
 import Foundation
+#if canImport(CoreGraphics)
+import CoreGraphics
+#endif
 final class NebulaSettingsStore {
  static let shared=NebulaSettingsStore();private let center=NotificationCenter();private let changed=Notification.Name("changed");var calls=0
  func refreshPresentation(){center.post(name:changed,object:nil)}
