@@ -20,7 +20,7 @@ diff --git a/TMessagesProj/build.gradle b/TMessagesProj/build.gradle
      implementation 'androidx.interpolator:interpolator:1.0.0'
      implementation 'androidx.biometric:biometric:1.1.0'
 -    implementation 'androidx.webkit:webkit:1.14.0'
-+    implementation 'androidx.webkit:webkit:1.17.1'
++    implementation 'androidx.webkit:webkit:1.15.0'
  
      implementation 'com.google.android.gms:play-services-cast-framework:21.4.0'
 -    implementation "androidx.mediarouter:mediarouter:1.7.0"

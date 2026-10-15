@@ -39,7 +39,7 @@ Patch `0214-client-library-refresh.patch` selects the following published stable
 | `androidx.camera:camera-lifecycle` | 1.4.2 | 1.6.2 |
 | `androidx.exifinterface:exifinterface` | 1.3.6 | 1.4.2 |
 | `androidx.dynamicanimation:dynamicanimation` | 1.0.0 | 1.1.0 |
-| `androidx.webkit:webkit` | 1.14.0 | 1.17.1 |
+| `androidx.webkit:webkit` | 1.14.0 | 1.15.0 |
 | `androidx.mediarouter:mediarouter` | 1.7.0 | 1.8.1 |
 | `androidx.car.app:app` | 1.4.0 | 1.7.0 |
 | `androidx.car.app:app-projected` | 1.4.0 | 1.7.0 |
@@ -64,3 +64,5 @@ Android run 38706584331 found that reCAPTCHA 18.9.x requires minSdk 24. The publ
 Downloaded `nebulalink.aar` from run 38704456335, SHA-256 `d09668ed29dfdafcef37d446f88115e5d2b2677c1f13020d9f6cea8009057533`. Parsed the real ELF program headers: all four ABIs (armv7, arm64, x86 and x86_64) have 16,384-byte PT_LOAD alignment and matching file/virtual-address page offsets. This verifies the library alignment, not APK ZIP alignment or a device connection.
 
 The repeated core workflow on main, run 38708490245, also passed after the test-bootstrap Go pin update. Latest Android application rebuild: 38709488599 (source c60b2e3); latest full iOS build: 38708491103 (source 1e20168; later changes affect Android only).
+
+Android run 38709488599 exposed two further integration failures: WebKit 1.17.1 requires API 24, and Guava no longer supplies javax.annotation.Nullable transitively. Audited the published manifests of all selected AARs; WebKit 1.15.0 is the newest stable version supporting API 23 (1.16/1.17 require 24). Patch 0215 migrates the three upstream Nullable imports to the already-declared AndroidX annotations. This preserves nullability without adding an unused legacy JSR-305 dependency. Full rebuild remains required.

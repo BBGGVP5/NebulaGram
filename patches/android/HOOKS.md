@@ -693,3 +693,7 @@ Source compatibility is checked separately from full CI compilation and physical
 ## 0214 — client library refresh
 
 Updates 16 compatible published dependencies, with explicit version inventory in docs/ANDROID-DEPENDENCIES-2026-10-15.json. Leaves native payment/push API and AGP major migrations separate. Ordered patch replay passes; full APK is the compatibility gate.
+
+## 0215 — explicit AndroidX nullability
+
+Use AndroidX Nullable in the three upstream files that depended on Guava bringing JSR-305 transitively. No runtime behavior change; keeps the updated Guava graph independent of legacy javax.annotation. WebKit in 0214 is capped at 1.15.0 to preserve API 23 support.
