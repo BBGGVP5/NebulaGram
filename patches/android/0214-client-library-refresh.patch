@@ -72,7 +72,7 @@ diff --git a/TMessagesProj/build.gradle b/TMessagesProj/build.gradle
  //    implementation 'com.google.mlkit:translate:17.0.3'
  
 -    implementation 'com.google.android.recaptcha:recaptcha:18.7.1'
-+    implementation 'com.google.android.recaptcha:recaptcha:18.9.3'
++    implementation 'com.google.android.recaptcha:recaptcha:18.8.0'
  
      coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.1.5'
  }

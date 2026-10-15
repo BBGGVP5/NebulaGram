@@ -35,6 +35,18 @@ with tempfile.TemporaryDirectory(prefix='nebula-formatting-') as tmp:
         path.write_text(text, encoding='utf-8')
     path = tmp / 'app/nebulagram/ui/NebulaFormattingToolbar.java'
     path.write_text(source, encoding='utf-8')
+    # Compile the actual native callsite inside a method, not a constructor:
+    # createEditText has no local Context parameter.
+    patch = (root / 'patches/android/0212-formatting-toolbar.patch').read_text(encoding='utf-8')
+    callsite = next(line[1:].strip() for line in patch.splitlines()
+                    if line.startswith('+') and 'new app.nebulagram.ui.NebulaFormattingToolbar(' in line)
+    (tmp / 'NativeToolbarHook.java').write_text('''
+class NativeToolbarHook extends android.widget.FrameLayout {
+ app.nebulagram.ui.NebulaFormattingToolbar nebulaFormattingToolbar;
+ org.telegram.ui.Components.EditTextCaption messageEditText;
+ NativeToolbarHook(android.content.Context context){super(context);}
+ void createEditText(){CALLSITE}
+}'''.replace('CALLSITE', callsite), encoding='utf-8')
     subprocess.run(['javac', '-encoding', 'UTF-8', '-cp', str(jar), '-d', str(tmp / 'classes'), *map(str, tmp.rglob('*.java'))], check=True)
     body = source.split('button.setOnClickListener(v -> {', 1)[1].split('\n        });', 1)[0]
     test = '''class SelectionCheck {

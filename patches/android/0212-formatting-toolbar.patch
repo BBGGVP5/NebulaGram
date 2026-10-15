@@ -14,7 +14,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivity
          messageEditText.setHandlesColor(getThemedColor(Theme.key_chat_TextSelectionCursor));
          messageEditTextContainer.addView(messageEditText, 1, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.BOTTOM, 52, 0, isChat ? 50 : 2, 1.5f));
          if (parentFragment != null && isChat) {
-+            nebulaFormattingToolbar = new app.nebulagram.ui.NebulaFormattingToolbar(context, messageEditText, this::requestLayout);
++            nebulaFormattingToolbar = new app.nebulagram.ui.NebulaFormattingToolbar(getContext(), messageEditText, this::requestLayout);
 +            addView(nebulaFormattingToolbar, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT,
 +                    app.nebulagram.ui.NebulaFormattingToolbar.HEIGHT_DP, Gravity.BOTTOM, 8, 0, 8, 0));
              nebulaDraftTranslation = new app.nebulagram.ui.NebulaDraftTranslation(parentFragment, messageEditText, this, this::setFieldText);
