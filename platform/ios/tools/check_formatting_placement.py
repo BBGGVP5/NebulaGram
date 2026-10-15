@@ -22,6 +22,9 @@ def check(source, swift=False):
         print('OK: iOS accessory, root controls, completion panels and absolute media/send anchors share the top inset')
         return
     program = r'''import Foundation
+#if canImport(CoreGraphics)
+import CoreGraphics
+#endif
 final class Store {static let shared=Store();var formattingToolbar=false}
 typealias NebulaSettingsStore=Store
 enum Mode {case text,other}
