@@ -35,6 +35,12 @@ SDK availability checks are real; Telegram theme and ASDisplayNode modules use
 small explicit API adapters. Full Telegram module linkage, application packaging,
 device layout and signing are separate checks.
 
+Run the complete Swift package's executable tests on macOS (the bootstrap CI
+does this). It imports Apple's Security framework; ordinary Linux `swift test`
+cannot provide that framework. The WSL check above targets iOS with the installed
+Darwin SDK and typechecks production sources instead of substituting a Linux
+implementation of key storage.
+
 `verification.json` records exact source hashes, compiler/SDK and check scope.
 No authorization keys, Xcode archive, signing identity or provisioning profile
 is read or exported. WSL builds on this host should run in a memory-limited
