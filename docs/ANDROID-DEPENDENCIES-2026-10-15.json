@@ -1,0 +1,407 @@
+[
+  {
+    "coordinate": "com.android.tools.build:gradle",
+    "current": "8.13.2",
+    "stable": "9.4.1",
+    "latest": "9.5.0-alpha09",
+    "url": "https://dl.google.com/dl/android/maven2/com/android/tools/build/gradle/maven-metadata.xml"
+  },
+  {
+    "coordinate": "com.google.gms:google-services",
+    "current": "4.3.15",
+    "stable": "4.5.0",
+    "latest": "4.5.0",
+    "url": "https://dl.google.com/dl/android/maven2/com/google/gms/google-services/maven-metadata.xml"
+  },
+  {
+    "coordinate": "com.huawei.agconnect:agcp",
+    "current": "1.9.1.301",
+    "error": "HTTP Error 404: Not Found",
+    "url": "https://repo.maven.apache.org/maven2/com/huawei/agconnect/agcp/maven-metadata.xml"
+  },
+  {
+    "coordinate": "com.google.firebase:firebase-crashlytics-gradle",
+    "current": "2.9.0",
+    "stable": "3.0.8",
+    "latest": "3.0.8",
+    "url": "https://dl.google.com/dl/android/maven2/com/google/firebase/firebase-crashlytics-gradle/maven-metadata.xml"
+  },
+  {
+    "coordinate": "org.jetbrains.kotlin:kotlin-gradle-plugin",
+    "current": "2.1.0",
+    "stable": "2.4.21",
+    "latest": "2.5.0-Beta1",
+    "url": "https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-gradle-plugin/maven-metadata.xml"
+  },
+  {
+    "coordinate": "androidx.camera:camera-camera2",
+    "current": "1.4.2",
+    "stable": "1.6.2",
+    "latest": "1.7.0-alpha03",
+    "url": "https://dl.google.com/dl/android/maven2/androidx/camera/camera-camera2/maven-metadata.xml"
+  },
+  {
+    "coordinate": "androidx.camera:camera-lifecycle",
+    "current": "1.4.2",
+    "stable": "1.6.2",
+    "latest": "1.7.0-alpha03",
+    "url": "https://dl.google.com/dl/android/maven2/androidx/camera/camera-lifecycle/maven-metadata.xml"
+  },
+  {
+    "coordinate": "androidx.core:core",
+    "current": "1.16.0",
+    "stable": "1.19.1",
+    "latest": "1.19.1",
+    "url": "https://dl.google.com/dl/android/maven2/androidx/core/core/maven-metadata.xml"
+  },
+  {
+    "coordinate": "androidx.palette:palette",
+    "current": "1.0.0",
+    "stable": "1.0.0",
+    "latest": "1.1.0-rc01",
+    "url": "https://dl.google.com/dl/android/maven2/androidx/palette/palette/maven-metadata.xml"
+  },
+  {
+    "coordinate": "androidx.exifinterface:exifinterface",
+    "current": "1.3.6",
+    "stable": "1.4.2",
+    "latest": "1.4.2",
+    "url": "https://dl.google.com/dl/android/maven2/androidx/exifinterface/exifinterface/maven-metadata.xml"
+  },
+  {
+    "coordinate": "androidx.dynamicanimation:dynamicanimation",
+    "current": "1.0.0",
+    "stable": "1.1.0",
+    "latest": "1.1.0",
+    "url": "https://dl.google.com/dl/android/maven2/androidx/dynamicanimation/dynamicanimation/maven-metadata.xml"
+  },
+  {
+    "coordinate": "androidx.sharetarget:sharetarget",
+    "current": "1.2.0",
+    "stable": "1.2.0",
+    "latest": "1.2.0",
+    "url": "https://dl.google.com/dl/android/maven2/androidx/sharetarget/sharetarget/maven-metadata.xml"
+  },
+  {
+    "coordinate": "androidx.interpolator:interpolator",
+    "current": "1.0.0",
+    "stable": "1.0.0",
+    "latest": "1.0.0",
+    "url": "https://dl.google.com/dl/android/maven2/androidx/interpolator/interpolator/maven-metadata.xml"
+  },
+  {
+    "coordinate": "androidx.biometric:biometric",
+    "current": "1.1.0",
+    "stable": "1.1.0",
+    "latest": "1.4.0-alpha07",
+    "url": "https://dl.google.com/dl/android/maven2/androidx/biometric/biometric/maven-metadata.xml"
+  },
+  {
+    "coordinate": "androidx.webkit:webkit",
+    "current": "1.14.0",
+    "stable": "1.17.1",
+    "latest": "1.18.0-rc01",
+    "url": "https://dl.google.com/dl/android/maven2/androidx/webkit/webkit/maven-metadata.xml"
+  },
+  {
+    "coordinate": "com.google.android.gms:play-services-cast-framework",
+    "current": "21.4.0",
+    "stable": "22.3.1",
+    "latest": "22.3.1",
+    "url": "https://dl.google.com/dl/android/maven2/com/google/android/gms/play-services-cast-framework/maven-metadata.xml"
+  },
+  {
+    "coordinate": "androidx.mediarouter:mediarouter",
+    "current": "1.7.0",
+    "stable": "1.8.1",
+    "latest": "1.9.0-beta01",
+    "url": "https://dl.google.com/dl/android/maven2/androidx/mediarouter/mediarouter/maven-metadata.xml"
+  },
+  {
+    "coordinate": "com.google.zxing:core",
+    "current": "3.5.4",
+    "stable": "3.5.4",
+    "latest": "3.5.4",
+    "url": "https://repo.maven.apache.org/maven2/com/google/zxing/core/maven-metadata.xml"
+  },
+  {
+    "coordinate": "com.neovisionaries:nv-websocket-client",
+    "current": "2.14",
+    "stable": "2.14",
+    "latest": "2.14",
+    "url": "https://repo.maven.apache.org/maven2/com/neovisionaries/nv-websocket-client/maven-metadata.xml"
+  },
+  {
+    "coordinate": "androidx.car.app:app",
+    "current": "1.4.0",
+    "stable": "1.7.0",
+    "latest": "1.9.0-alpha03",
+    "url": "https://dl.google.com/dl/android/maven2/androidx/car/app/app/maven-metadata.xml"
+  },
+  {
+    "coordinate": "androidx.car.app:app-projected",
+    "current": "1.4.0",
+    "stable": "1.7.0",
+    "latest": "1.9.0-alpha03",
+    "url": "https://dl.google.com/dl/android/maven2/androidx/car/app/app-projected/maven-metadata.xml"
+  },
+  {
+    "coordinate": "org.nanohttpd:nanohttpd",
+    "current": "2.3.1",
+    "stable": "2.3.1",
+    "latest": "2.3.1",
+    "url": "https://repo.maven.apache.org/maven2/org/nanohttpd/nanohttpd/maven-metadata.xml"
+  },
+  {
+    "coordinate": "org.checkerframework:checker-qual",
+    "current": "2.5.2",
+    "stable": "4.3.1",
+    "latest": "4.3.1",
+    "url": "https://repo.maven.apache.org/maven2/org/checkerframework/checker-qual/maven-metadata.xml"
+  },
+  {
+    "coordinate": "org.checkerframework:checker-compat-qual",
+    "current": "2.5.0",
+    "stable": "2.5.6",
+    "latest": "2.5.6",
+    "url": "https://repo.maven.apache.org/maven2/org/checkerframework/checker-compat-qual/maven-metadata.xml"
+  },
+  {
+    "coordinate": "com.google.firebase:firebase-messaging",
+    "current": "22.0.0",
+    "stable": "26.0.0",
+    "latest": "26.0.0",
+    "url": "https://dl.google.com/dl/android/maven2/com/google/firebase/firebase-messaging/maven-metadata.xml"
+  },
+  {
+    "coordinate": "com.google.firebase:firebase-datatransport",
+    "current": "18.1.0",
+    "stable": "21.0.0",
+    "latest": "21.0.0",
+    "url": "https://dl.google.com/dl/android/maven2/com/google/firebase/firebase-datatransport/maven-metadata.xml"
+  },
+  {
+    "coordinate": "com.google.firebase:firebase-appindexing",
+    "current": "20.0.0",
+    "stable": "20.0.0",
+    "latest": "20.0.0",
+    "url": "https://dl.google.com/dl/android/maven2/com/google/firebase/firebase-appindexing/maven-metadata.xml"
+  },
+  {
+    "coordinate": "com.google.android.gms:play-services-maps",
+    "current": "18.1.0",
+    "stable": "20.1.0",
+    "latest": "20.1.0",
+    "url": "https://dl.google.com/dl/android/maven2/com/google/android/gms/play-services-maps/maven-metadata.xml"
+  },
+  {
+    "coordinate": "com.google.android.gms:play-services-auth",
+    "current": "20.4.0",
+    "stable": "22.0.0",
+    "latest": "22.0.0",
+    "url": "https://dl.google.com/dl/android/maven2/com/google/android/gms/play-services-auth/maven-metadata.xml"
+  },
+  {
+    "coordinate": "com.google.android.gms:play-services-vision",
+    "current": "20.1.3",
+    "stable": "20.1.3",
+    "latest": "20.1.3",
+    "url": "https://dl.google.com/dl/android/maven2/com/google/android/gms/play-services-vision/maven-metadata.xml"
+  },
+  {
+    "coordinate": "com.google.android.gms:play-services-wearable",
+    "current": "18.0.0",
+    "stable": "20.0.1",
+    "latest": "20.0.1",
+    "url": "https://dl.google.com/dl/android/maven2/com/google/android/gms/play-services-wearable/maven-metadata.xml"
+  },
+  {
+    "coordinate": "com.google.android.gms:play-services-location",
+    "current": "21.0.1",
+    "stable": "21.4.0",
+    "latest": "21.4.0",
+    "url": "https://dl.google.com/dl/android/maven2/com/google/android/gms/play-services-location/maven-metadata.xml"
+  },
+  {
+    "coordinate": "com.google.android.gms:play-services-wallet",
+    "current": "19.1.0",
+    "stable": "20.0.0",
+    "latest": "20.0.0",
+    "url": "https://dl.google.com/dl/android/maven2/com/google/android/gms/play-services-wallet/maven-metadata.xml"
+  },
+  {
+    "coordinate": "com.googlecode.mp4parser:isoparser",
+    "current": "1.0.6",
+    "stable": "1.1.22",
+    "latest": "1.1.22",
+    "url": "https://repo.maven.apache.org/maven2/com/googlecode/mp4parser/isoparser/maven-metadata.xml"
+  },
+  {
+    "coordinate": "com.stripe:stripe-android",
+    "current": "2.0.2",
+    "stable": "23.23.0",
+    "latest": "23.23.0",
+    "url": "https://repo.maven.apache.org/maven2/com/stripe/stripe-android/maven-metadata.xml"
+  },
+  {
+    "coordinate": "com.google.mlkit:language-id",
+    "current": "17.0.6",
+    "stable": "17.0.6",
+    "latest": "17.0.6",
+    "url": "https://dl.google.com/dl/android/maven2/com/google/mlkit/language-id/maven-metadata.xml"
+  },
+  {
+    "coordinate": "com.google.mlkit:translate",
+    "current": "17.0.3",
+    "stable": "17.0.3",
+    "latest": "17.0.3",
+    "url": "https://dl.google.com/dl/android/maven2/com/google/mlkit/translate/maven-metadata.xml"
+  },
+  {
+    "coordinate": "com.google.mlkit:genai-prompt",
+    "current": "1.0.0-beta4",
+    "stable": null,
+    "latest": "1.0.0-beta4",
+    "url": "https://dl.google.com/dl/android/maven2/com/google/mlkit/genai-prompt/maven-metadata.xml"
+  },
+  {
+    "coordinate": "com.google.mlkit:genai-speech-recognition",
+    "current": "1.0.0-alpha1",
+    "stable": null,
+    "latest": "1.0.0-alpha1",
+    "url": "https://dl.google.com/dl/android/maven2/com/google/mlkit/genai-speech-recognition/maven-metadata.xml"
+  },
+  {
+    "coordinate": "org.jetbrains.kotlinx:kotlinx-coroutines-bom",
+    "current": "1.11.0",
+    "stable": "1.11.0",
+    "latest": "1.11.0",
+    "url": "https://repo.maven.apache.org/maven2/org/jetbrains/kotlinx/kotlinx-coroutines-bom/maven-metadata.xml"
+  },
+  {
+    "coordinate": "org.jetbrains.kotlinx:kotlinx-coroutines-android",
+    "current": "1.11.0",
+    "stable": "1.11.0",
+    "latest": "1.11.0",
+    "url": "https://repo.maven.apache.org/maven2/org/jetbrains/kotlinx/kotlinx-coroutines-android/maven-metadata.xml"
+  },
+  {
+    "coordinate": "com.android.billingclient:billing",
+    "current": "8.0.0",
+    "stable": "9.1.0",
+    "latest": "9.1.0",
+    "url": "https://dl.google.com/dl/android/maven2/com/android/billingclient/billing/maven-metadata.xml"
+  },
+  {
+    "coordinate": "com.google.code.gson:gson",
+    "current": "2.11.0",
+    "stable": "2.14.0",
+    "latest": "2.14.0",
+    "url": "https://repo.maven.apache.org/maven2/com/google/code/gson/gson/maven-metadata.xml"
+  },
+  {
+    "coordinate": "com.google.guava:guava",
+    "current": "31.1-android",
+    "stable": "33.7.2-android",
+    "latest": "33.7.2-jre",
+    "url": "https://repo.maven.apache.org/maven2/com/google/guava/guava/maven-metadata.xml"
+  },
+  {
+    "coordinate": "com.google.android.play:integrity",
+    "current": "1.3.0",
+    "stable": "1.6.0",
+    "latest": "1.6.0",
+    "url": "https://dl.google.com/dl/android/maven2/com/google/android/play/integrity/maven-metadata.xml"
+  },
+  {
+    "coordinate": "com.google.android.gms:play-services-safetynet",
+    "current": "18.0.1",
+    "stable": "18.1.0",
+    "latest": "18.1.0",
+    "url": "https://dl.google.com/dl/android/maven2/com/google/android/gms/play-services-safetynet/maven-metadata.xml"
+  },
+  {
+    "coordinate": "com.google.android.gms:play-services-mlkit-subject-segmentation",
+    "current": "16.0.0-beta1",
+    "stable": null,
+    "latest": "16.0.0-beta1",
+    "url": "https://dl.google.com/dl/android/maven2/com/google/android/gms/play-services-mlkit-subject-segmentation/maven-metadata.xml"
+  },
+  {
+    "coordinate": "com.google.android.gms:play-services-mlkit-image-labeling",
+    "current": "16.0.8",
+    "stable": "16.0.8",
+    "latest": "16.0.8",
+    "url": "https://dl.google.com/dl/android/maven2/com/google/android/gms/play-services-mlkit-image-labeling/maven-metadata.xml"
+  },
+  {
+    "coordinate": "androidx.credentials:credentials",
+    "current": "1.6.0-alpha04",
+    "stable": "1.6.0",
+    "latest": "1.7.0-alpha03",
+    "url": "https://dl.google.com/dl/android/maven2/androidx/credentials/credentials/maven-metadata.xml"
+  },
+  {
+    "coordinate": "androidx.credentials:credentials-play-services-auth",
+    "current": "1.6.0-alpha04",
+    "stable": "1.6.0",
+    "latest": "1.7.0-alpha03",
+    "url": "https://dl.google.com/dl/android/maven2/androidx/credentials/credentials-play-services-auth/maven-metadata.xml"
+  },
+  {
+    "coordinate": "io.noties.markwon:core",
+    "current": "4.6.2",
+    "stable": "4.6.2",
+    "latest": "4.6.2",
+    "url": "https://repo.maven.apache.org/maven2/io/noties/markwon/core/maven-metadata.xml"
+  },
+  {
+    "coordinate": "io.noties.markwon:ext-strikethrough",
+    "current": "4.6.2",
+    "stable": "4.6.2",
+    "latest": "4.6.2",
+    "url": "https://repo.maven.apache.org/maven2/io/noties/markwon/ext-strikethrough/maven-metadata.xml"
+  },
+  {
+    "coordinate": "io.noties.markwon:ext-tables",
+    "current": "4.6.2",
+    "stable": "4.6.2",
+    "latest": "4.6.2",
+    "url": "https://repo.maven.apache.org/maven2/io/noties/markwon/ext-tables/maven-metadata.xml"
+  },
+  {
+    "coordinate": "io.noties.markwon:html",
+    "current": "4.6.2",
+    "stable": "4.6.2",
+    "latest": "4.6.2",
+    "url": "https://repo.maven.apache.org/maven2/io/noties/markwon/html/maven-metadata.xml"
+  },
+  {
+    "coordinate": "io.noties.markwon:inline-parser",
+    "current": "4.6.2",
+    "stable": "4.6.2",
+    "latest": "4.6.2",
+    "url": "https://repo.maven.apache.org/maven2/io/noties/markwon/inline-parser/maven-metadata.xml"
+  },
+  {
+    "coordinate": "io.noties.markwon:ext-latex",
+    "current": "4.6.2",
+    "stable": "4.6.2",
+    "latest": "4.6.2",
+    "url": "https://repo.maven.apache.org/maven2/io/noties/markwon/ext-latex/maven-metadata.xml"
+  },
+  {
+    "coordinate": "com.google.android.recaptcha:recaptcha",
+    "current": "18.7.1",
+    "stable": "18.9.3",
+    "latest": "18.9.3",
+    "url": "https://dl.google.com/dl/android/maven2/com/google/android/recaptcha/recaptcha/maven-metadata.xml"
+  },
+  {
+    "coordinate": "com.android.tools:desugar_jdk_libs",
+    "current": "2.1.5",
+    "stable": "2.1.5",
+    "latest": "2.1.5",
+    "url": "https://dl.google.com/dl/android/maven2/com/android/tools/desugar_jdk_libs/maven-metadata.xml"
+  }
+]

@@ -1,0 +1,164 @@
+diff --git a/submodules/AccountUtils/Sources/AccountUtils.swift b/submodules/AccountUtils/Sources/AccountUtils.swift
+--- a/submodules/AccountUtils/Sources/AccountUtils.swift
++++ b/submodules/AccountUtils/Sources/AccountUtils.swift
+@@ -4,8 +4,8 @@
+ import TelegramUIPreferences
+ import AccountContext
+ 
+-public let maximumNumberOfAccounts = 10
+-public let maximumPremiumNumberOfAccounts = 10
++// AccountManager persists dynamic AccountRecordId values. NebulaGram does not
++// impose a client-side account count limit; authentication remains server-controlled.
+ 
+ public func activeAccountsAndPeers(context: AccountContext, includePrimary: Bool = false) -> Signal<((AccountContext, EnginePeer)?, [(AccountContext, EnginePeer, Int32)]), NoError> {
+     let sharedContext = context.sharedContext
+diff --git a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoScreenSettingsActions.swift b/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoScreenSettingsActions.swift
+--- a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoScreenSettingsActions.swift
++++ b/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoScreenSettingsActions.swift
+@@ -219,26 +219,7 @@
+             }
+             push(usernameSetupController(context: self.context))
+         case .addAccount:
+-            let _ = (activeAccountsAndPeers(context: context)
+-            |> take(1)
+-            |> deliverOnMainQueue
+-            ).startStandalone(next: { [weak self] accountAndPeer, accountsAndPeers in
+-                guard let strongSelf = self else {
+-                    return
+-                }
+-                let maximumAvailableAccounts = maximumNumberOfAccounts
+-                let count = accountsAndPeers.count + (accountAndPeer == nil ? 0 : 1)
+-                
+-                if count >= maximumAvailableAccounts {
+-                    let data = strongSelf.context.sharedContext.currentPresentationData.with { $0 }
+-                    let russian = data.strings.baseLanguageCode.hasPrefix("ru")
+-                    let alert = UIAlertController(title: "NebulaGram", message: russian ? "Можно добавить до 10 аккаунтов. Выйдите из одного из них, чтобы добавить новый." : "You can add up to 10 accounts. Log out of one to add another.", preferredStyle: .alert)
+-                    alert.addAction(UIAlertAction(title: data.strings.Common_OK, style: .default))
+-                    strongSelf.controller?.present(alert, animated: true)
+-                } else {
+-                    strongSelf.context.sharedContext.beginNewAuth(testingEnvironment: strongSelf.context.account.testingEnvironment)
+-                }
+-            })
++            context.sharedContext.beginNewAuth(testingEnvironment: context.account.testingEnvironment)
+         case .logout:
+             if case let .user(user) = self.data?.peer, let phoneNumber = user.phone {
+                 if let controller = self.controller, let navigationController = controller.navigationController as? NavigationController {
+diff --git a/submodules/SettingsUI/Sources/LogoutOptionsController.swift b/submodules/SettingsUI/Sources/LogoutOptionsController.swift
+--- a/submodules/SettingsUI/Sources/LogoutOptionsController.swift
++++ b/submodules/SettingsUI/Sources/LogoutOptionsController.swift
+@@ -138,41 +138,8 @@
+     let logoutConfirmationDisposable = MetaDisposable()
+     
+     let arguments = LogoutOptionsItemArguments(addAccount: {
+-        let _ = (activeAccountsAndPeers(context: context)
+-        |> take(1)
+-        |> deliverOnMainQueue
+-        ).start(next: { accountAndPeer, accountsAndPeers in
+-            var maximumAvailableAccounts: Int = 3
+-            if accountAndPeer?.1.isPremium == true && !context.account.testingEnvironment {
+-                maximumAvailableAccounts = 4
+-            }
+-            var count: Int = 1
+-            for (accountContext, peer, _) in accountsAndPeers {
+-                if !accountContext.account.testingEnvironment {
+-                    if peer.isPremium {
+-                        maximumAvailableAccounts = 4
+-                    }
+-                    count += 1
+-                }
+-            }
+-            
+-            if count >= maximumAvailableAccounts {
+-                var replaceImpl: ((ViewController) -> Void)?
+-                let controller = PremiumLimitScreen(context: context, subject: .accounts, count: Int32(count), action: {
+-                    let controller = PremiumIntroScreen(context: context, source: .accounts)
+-                    replaceImpl?(controller)
+-                    return true
+-                })
+-                replaceImpl = { [weak controller] c in
+-                    controller?.replace(with: c)
+-                }
+-                pushControllerImpl?(controller)
+-            } else {
+-                context.sharedContext.beginNewAuth(testingEnvironment: context.account.testingEnvironment)
+-                
+-                dismissImpl?()
+-            }
+-        })
++        context.sharedContext.beginNewAuth(testingEnvironment: context.account.testingEnvironment)
++        dismissImpl?()
+     }, setPasscode: {
+         let _ = passcodeOptionsAccessController(context: context, replaceController: { controller in
+             replaceTopControllerImpl?(controller)
+diff --git a/submodules/SettingsUI/Sources/DeleteAccountOptionsController.swift b/submodules/SettingsUI/Sources/DeleteAccountOptionsController.swift
+--- a/submodules/SettingsUI/Sources/DeleteAccountOptionsController.swift
++++ b/submodules/SettingsUI/Sources/DeleteAccountOptionsController.swift
+@@ -197,41 +197,8 @@
+     }, addAccount: {
+         context.engine.accountData.addAppLogEvent(type: "deactivate.options_add_account_tap")
+         
+-        let _ = (activeAccountsAndPeers(context: context)
+-        |> take(1)
+-        |> deliverOnMainQueue
+-        ).start(next: { accountAndPeer, accountsAndPeers in
+-            var maximumAvailableAccounts: Int = 3
+-            if accountAndPeer?.1.isPremium == true && !context.account.testingEnvironment {
+-                maximumAvailableAccounts = 4
+-            }
+-            var count: Int = 1
+-            for (accountContext, peer, _) in accountsAndPeers {
+-                if !accountContext.account.testingEnvironment {
+-                    if peer.isPremium {
+-                        maximumAvailableAccounts = 4
+-                    }
+-                    count += 1
+-                }
+-            }
+-
+-            if count >= maximumAvailableAccounts {
+-                var replaceImpl: ((ViewController) -> Void)?
+-                let controller = PremiumLimitScreen(context: context, subject: .accounts, count: Int32(count), action: {
+-                    let controller = PremiumIntroScreen(context: context, source: .accounts)
+-                    replaceImpl?(controller)
+-                    return true
+-                })
+-                replaceImpl = { [weak controller] c in
+-                    controller?.replace(with: c)
+-                }
+-                pushControllerImpl?(controller)
+-            } else {
+-                context.sharedContext.beginNewAuth(testingEnvironment: context.account.testingEnvironment)
+-
+-                dismissImpl?()
+-            }
+-        })
++        context.sharedContext.beginNewAuth(testingEnvironment: context.account.testingEnvironment)
++        dismissImpl?()
+     }, setupPrivacy: {
+         context.engine.accountData.addAppLogEvent(type: "deactivate.options_privacy_tap")
+         
+@@ -422,7 +389,7 @@
+                 break
+         }
+         
+-        let canAddAccounts = accountsAndPeers.1.count + 1 < maximumNumberOfAccounts
++        let canAddAccounts = true
+ 
+         let controllerState = ItemListControllerState(presentationData: ItemListPresentationData(presentationData), title: .text(presentationData.strings.DeleteAccount_AlternativeOptionsTitle), leftNavigationButton: leftNavigationButton, rightNavigationButton: nil, backNavigationButton: ItemListBackButton(title: presentationData.strings.Common_Back))
+         let listState = ItemListNodeState(presentationData: ItemListPresentationData(presentationData), entries: deleteAccountOptionsEntries(presentationData: presentationData, canAddAccounts: canAddAccounts, hasTwoStepAuth: hasTwoStepAuth, hasPasscode: hasPasscode), style: .blocks)
+diff --git a/submodules/SettingsUI/Sources/Search/SettingsSearchableItems.swift b/submodules/SettingsUI/Sources/Search/SettingsSearchableItems.swift
+--- a/submodules/SettingsUI/Sources/Search/SettingsSearchableItems.swift
++++ b/submodules/SettingsUI/Sources/Search/SettingsSearchableItems.swift
+@@ -4264,11 +4264,7 @@
+     activeSessionsContext: Signal<ActiveSessionsContext?, NoError> = .single(nil),
+     webSessionsContext: Signal<WebSessionsContext?, NoError> = .single(nil)
+ ) -> Signal<[SettingsSearchableItem], NoError> {
+-    let canAddAccount = activeAccountsAndPeers(context: context)
+-    |> take(1)
+-    |> map { accountsAndPeers -> Bool in
+-        return accountsAndPeers.1.count + 1 < maximumNumberOfAccounts
+-    }
++    let canAddAccount: Signal<Bool, NoError> = .single(true)
+     
+     let notificationSettings = context.engine.data.subscribe(TelegramEngine.EngineData.Item.Configuration.ApplicationSpecificPreference(key: PreferencesKeys.globalNotifications))
+     |> take(1)

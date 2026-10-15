@@ -320,3 +320,7 @@ Actual transcription-switch changes notify the existing owned chat observer list
 ## 0097 — transcription bridge type import
 
 The new AccountContext protocol methods reference Postbox.Message. AccountContext already declares the Bazel dependency but did not import that module in its protocol source. Add the explicit import; native run 38052113196 identified this compiler error, which earlier parser/standalone SDK checks cannot detect.
+
+## 0109 — dynamic account entrypoints
+
+Removes all client count checks from profile, settings search, logout and deactivation alternatives. Retains native beginNewAuth and testing-environment routing, account records, logout and session storage. Does not replace the old cap with another numeric constant. Bootstrap checks all five affected sources; full native and device acceptance remain required. Android account registries are a separate migration.

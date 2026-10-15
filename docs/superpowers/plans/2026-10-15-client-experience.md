@@ -10,7 +10,7 @@ Execution is inline in the existing workspace. Preserve the dirty Android vendor
 
 ## 1. Research and acceptance criteria
 
-- [ ] Compare Swiftgram, Cherrygram, iMe, Ghostgram and TGExtra primary sources with `docs/FORK-FEATURES-2026-10-15.md`; record exact repositories and distinguish existing features, additions and unverified claims.
+- [x] Compare Swiftgram, Cherrygram, iMe, Ghostgram and TGExtra primary sources with `docs/FORK-FEATURES-2026-10-15.md`; record exact repositories and distinguish existing features, additions and unverified claims.
 - [ ] Formatting: separate toggle, default off; bar between input and keyboard; native bold/italic/mono/quote/spoiler/link/clear; preserve selection, entities, undo, IME and draft ownership; hide during recording and non-text modes.
 - [ ] Folders: one rounded glass strip and sliding selected capsule, compact counters, no rectangular individual tiles; support top/bottom placement, scrolling, RTL, reduced motion, light/dark themes and blur fallback.
 
@@ -18,17 +18,17 @@ Execution is inline in the existing workspace. Preserve the dirty Android vendor
 
 Files: new Android `NebulaFormattingToolbar.java`; native `ChatActivityEnterView.java` patch; Android `NebulaSectionFragment.java`, `NebulaSettingsSearch.java`; shared `settings/catalog.json`; iOS SettingsUI and native `ChatTextInputPanelNode.swift` integration.
 
-- [ ] Implement Android toolbar using `EditTextCaption` formatting actions, not Markdown text rewriting.
+- [x] Implement Android toolbar using `EditTextCaption` formatting actions, not Markdown text rewriting.
 - [ ] Integrate measured keyboard space and lifecycle; preserve reply/edit previews and native recording controls.
-- [ ] Register preference, settings/search entry and platform contract.
-- [ ] Implement equivalent native iOS selection actions and accessory layout.
+- [x] Register preference, settings/search entry and platform contract.
+- [x] Implement equivalent native iOS selection actions and accessory layout.
 - [ ] Check empty/collapsed/reversed selection, links, emoji UTF-16 ranges, RTL, keyboard transitions, recording, theme and preference changes.
 
 ## 3. Folders and motion
 
 Files: `NebulaFolderGlass.java`, `NebulaFolderTabs.java`, `NebulaTabLens.java`, native `FilterTabsView.java` / `DialogsActivity.java`, iOS folder components.
 
-- [ ] Inspect existing glass mode and fix the real visual gaps against the supplied reference; avoid adding a duplicate style.
+- [x] Inspect existing glass mode and fix the real visual gaps against the supplied reference; avoid adding a duplicate style.
 - [ ] Reuse shared blur capture and selected capsule; cache render resources and avoid idle animation.
 - [ ] Test interrupted swipe/tap, long labels, unread badges, narrow width, font scale, reorder, detach and system reduce motion.
 
@@ -48,7 +48,7 @@ Files: Android `NebulaSettingsFragment`, `NebulaSettingsHubFragment`, `NebulaSet
 
 - [ ] Organize into Appearance, Chats and composer, AI and audio, Navigation and folders, Accounts, Privacy, Connection and About; remove duplicate paths and clarify dependent controls.
 - [ ] Add direct access to frequently used options, searchable labels and current-value summaries; preserve deep links and exported settings.
-- [ ] Debounce search, cancel pending work on detach and avoid rebuilding unchanged results / stale theme caches.
+- [x] Debounce search, cancel pending work on detach and avoid rebuilding unchanged results / stale theme caches.
 - [ ] Test preference round trips, migration, dependencies, live updates, search/deep links, accessibility and locale changes.
 
 ## 6. Welcome, NebulaLink and authorization redesign
@@ -84,4 +84,15 @@ Files: `runtime/xray/go.mod`, `bind/go.mod`, `core/go.mod`, related sums/build s
 - [ ] Update compatible versions in isolated dependency groups and reconcile API changes; retain reproducible pins. Major/toolchain changes require successful target-platform builds, not blanket version replacement.
 - [ ] Run core/bind/runtime tests and race checks where supported; validate subscriptions, malformed configurations, protocol routing, DNS, cancellation and repeated start/stop.
 - [ ] Build both mobile bindings and full applications; test VPN consent, import, connection, reconnect and server switching on hardware when available.
-- [ ] Record before/after versions and release notes; report any blocked or intentionally unadopted upgrade explicitly.
+- [x] Record before/after versions and release notes; report any blocked or intentionally unadopted upgrade explicitly.
+
+
+## Checkpoint: 15 October, commits 0d88126 / c987ee0 and following batch
+
+- Formatting bars are implemented on both platforms, default off; 324 Android selection checks and SDK compilation pass. Native keyboard/device QA remains open.
+- 111 Android regression commands passed locally. The first CI run failed in SDK-name parsing, repaired by c987ee0; full APK rebuild is in progress.
+- 0d88126 iOS bootstrap and settings tests passed. Full IPA is running; this is not a full UI acceptance result.
+- NebulaLink CI 38704456335 passed all three race-test jobs and all five mobile/desktop binding builds.
+- Android library patch 0214 updates 16 compatible dependencies; complete version inventory is saved separately. Major toolchain/payment/push migrations remain open.
+- iOS patch 0109 removes count gates from profile, search, logout and deactivation routes using the existing dynamic AccountManager records. Android still has fixed Java/JNI/native registries; its unlimited-account migration is not implemented.
+- Welcome/auth work so far removes field outlines/floating labels, adds explicit clipboard import, preserves keyboard editing and caches illustration resources. The full visual redesign remains open.

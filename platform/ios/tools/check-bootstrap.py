@@ -173,6 +173,23 @@ def main():
         assert 'case .search: return 19' in controller and 'case .empty: return 20' in controller
         assert 'ItemListDisclosureItem(' in controller
         check_onboarding(temp, tree, revision)
+        # All add-account routes must agree. Logout/deactivation used to retain
+        # the upstream 3/4-account gate even after the profile limit was raised.
+        account_paths = [
+            'submodules/AccountUtils/Sources/AccountUtils.swift',
+            'submodules/SettingsUI/Sources/LogoutOptionsController.swift',
+            'submodules/SettingsUI/Sources/DeleteAccountOptionsController.swift',
+            'submodules/SettingsUI/Sources/Search/SettingsSearchableItems.swift',
+            'submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoScreenSettingsActions.swift',
+        ]
+        for account_path in account_paths:
+            account_source = (temp / account_path).read_text(encoding='utf-8')
+            assert 'maximumNumberOfAccounts' not in account_source, account_path
+            assert 'maximumAvailableAccounts' not in account_source, account_path
+            assert 'subject: .accounts' not in account_source, account_path
+        for account_path in [account_paths[1], account_paths[2], account_paths[4]]:
+            assert 'beginNewAuth(testingEnvironment: context.account.testingEnvironment)' in (temp / account_path).read_text(encoding='utf-8'), account_path
+        print('OK: iOS account entrypoints have no count/Premium gate; native account persistence is unchanged')
         widget = (temp / 'Telegram/WidgetKitWidget/NebulaQuickActionsWidget.swift').read_text(encoding='utf-8')
         assert '.policy' not in widget or 'Timeline' in widget
         assert 'policy: .never' in widget and 'UserDefaults' not in widget and 'Postbox' not in widget

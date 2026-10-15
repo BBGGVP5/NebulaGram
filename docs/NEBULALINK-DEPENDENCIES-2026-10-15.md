@@ -23,7 +23,35 @@ Other compatible transitive updates are pinned in `runtime/xray/go.mod`, `bind/g
 
 - `go test ./...` and `go vet ./...` pass for `core`, `runtime/xray` and `bind` after the selected dependency updates.
 - `go mod verify` passes for the runtime graph.
-- Local Windows race tests cannot run: no host C compiler is installed in PATH. The existing Linux CI executes `go test -race ./...` for all three modules and builds Android AAR, Apple XCFramework and desktop libraries.
+- GitHub Actions run [38704456335](https://github.com/BBGGVP5/NebulaGram/actions/runs/38704456335) passed race tests for all three modules and built Android AAR, Apple XCFramework and Windows/Linux/macOS shared libraries. Local Windows race tests remain unavailable without a host C compiler.
 - Full mobile build acceptance and actual VPN connection/reconnection on a device remain separate checks. A successful configuration test is not evidence of a live server connection.
 
 This refresh covers the NebulaLink Go graph. It does not claim that every Telegram-owned native submodule or Android/iOS UI library has been upgraded; those need independent API/ABI checks against the pinned Telegram sources.
+
+
+## Android client libraries — separate upgrade group
+
+Patch `0214-client-library-refresh.patch` selects the following published stable versions from Google Maven / Maven Central. The AAR metadata of the AndroidX updates was checked against compileSdk 36 / AGP 8.13.2. Full app compilation and device acceptance are still required.
+
+| Dependency | Before | Selected |
+|---|---|---|
+| `androidx.camera:camera-camera2` | 1.4.2 | 1.6.2 |
+| `androidx.camera:camera-lifecycle` | 1.4.2 | 1.6.2 |
+| `androidx.exifinterface:exifinterface` | 1.3.6 | 1.4.2 |
+| `androidx.dynamicanimation:dynamicanimation` | 1.0.0 | 1.1.0 |
+| `androidx.webkit:webkit` | 1.14.0 | 1.17.1 |
+| `androidx.mediarouter:mediarouter` | 1.7.0 | 1.8.1 |
+| `androidx.car.app:app` | 1.4.0 | 1.7.0 |
+| `androidx.car.app:app-projected` | 1.4.0 | 1.7.0 |
+| `com.google.android.gms:play-services-location` | 21.0.1 | 21.4.0 |
+| `com.google.code.gson:gson` | 2.11.0 | 2.14.0 |
+| `com.google.guava:guava` | 31.1-android | 33.7.2-android |
+| `com.google.android.play:integrity` | 1.3.0 | 1.6.0 |
+| `com.google.android.gms:play-services-safetynet` | 18.0.1 | 18.1.0 |
+| `androidx.credentials:credentials` | 1.6.0-alpha04 | 1.6.0 |
+| `androidx.credentials:credentials-play-services-auth` | 1.6.0-alpha04 | 1.6.0 |
+| `com.google.android.recaptcha:recaptcha` | 18.7.1 | 18.9.3 |
+
+ML Kit language-id 17.0.6, translate 17.0.3, genai-prompt beta4, speech-recognition alpha1 and coroutines 1.11.0 already match the latest published artifacts. Their version numbers are not changed for appearance.
+
+The inventory is `ANDROID-DEPENDENCIES-2026-10-15.json`, including source URLs and unchanged dependencies. Remaining major migrations include AGP 9.4.1 / Kotlin 2.4.21, AndroidX core 1.19.1 (requires compileSdk 37 and AGP >=9.1), Billing 9, Firebase, Google service APIs and Stripe 23. The Telegram application modules still use legacy `applicationVariants` / `variantFilter` DSL; these migrations require adapting code and checking their runtime paths, not suppressing metadata requirements. Native media/crypto submodules remain at the Telegram pins. No claim is made that all technologies have been updated.

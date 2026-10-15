@@ -689,3 +689,7 @@ Source compatibility is checked separately from full CI compilation and physical
 # 2026-10-15: composer accessory and folder material
 
 `0212-formatting-toolbar.patch` connects an opt-in native-selection formatting bar below the text composer. Its height participates in the native input island and reply-preview geometry; recording and rich-editor modes retain their own controls. `0213-unified-folder-glass.patch` applies the chosen folder style at both positions and separates static glass appearance from motion preferences. Neither patch changes sending, cloud entitlements or account limits.
+
+## 0214 — client library refresh
+
+Updates 16 compatible published dependencies, with explicit version inventory in docs/ANDROID-DEPENDENCIES-2026-10-15.json. Leaves native payment/push API and AGP major migrations separate. Ordered patch replay passes; full APK is the compatibility gate.
