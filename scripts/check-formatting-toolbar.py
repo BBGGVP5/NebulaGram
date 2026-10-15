@@ -8,7 +8,10 @@ import tempfile
 root = Path(__file__).resolve().parents[1]
 source = (root / 'platform/android/overlay/TMessagesProj/src/main/java/app/nebulagram/ui/NebulaFormattingToolbar.java').read_text(encoding='utf-8')
 sdk = Path(os.environ.get('ANDROID_HOME') or str(Path.home() / 'AppData/Local/Android/Sdk'))
-jars = list((sdk / 'platforms').glob('android-*/android.jar'))
+jars = [p for p in (sdk / 'platforms').glob('android-*/android.jar')
+        if re.fullmatch(r'android-\d+(?:\.\d+)*', p.parent.name)]
+if not jars:
+    raise SystemExit('Install a numeric Android SDK platform and set ANDROID_HOME before running this check')
 jar = max(jars, key=lambda p: tuple(int(x) for x in p.parent.name.removeprefix('android-').split('.')))
 stubs = {
     'org/telegram/messenger/AndroidUtilities.java': 'package org.telegram.messenger; public class AndroidUtilities { public static int dp(float x){return (int)x;} }',
