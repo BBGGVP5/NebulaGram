@@ -1,0 +1,27 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/UserInfoActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/UserInfoActivity.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/UserInfoActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/UserInfoActivity.java
+@@ -460,9 +460,6 @@
+     protected void onClick(UItem item, View view, int position, float x, float y) {
+         if (item.id == BUTTON_ADD_ACCOUNT) {
+             app.nebulagram.ui.NebulaNavigation.addAccount(this);
+-        } else if (!UserConfig.hasPremiumOnAccounts()) {
+-                showDialog(new LimitReachedBottomSheet(this, getContext(), TYPE_ACCOUNTS, currentAccount, null));
+-            }
+         } else if (item.instanceOf(SettingsActivity.AccountCell.Factory.class)) {
+             final int account = item.intValue;
+             if (LaunchActivity.instance != null) {
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/LogoutActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/LogoutActivity.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/LogoutActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/LogoutActivity.java
+@@ -125,10 +125,6 @@
+         listView.setOnItemClickListener((view, position, x, y) -> {
+             if (position == addAccountRow) {
+                 app.nebulagram.ui.NebulaNavigation.addAccount(LogoutActivity.this);
+-            } else if (!UserConfig.hasPremiumOnAccounts()) {
+-                    LimitReachedBottomSheet limitReachedBottomSheet = new LimitReachedBottomSheet(this, getContext(), TYPE_ACCOUNTS, currentAccount, null);
+-                    showDialog(limitReachedBottomSheet);
+-                }
+             } else if (position == passcodeRow) {
+                 presentFragment(PasscodeActivity.determineOpenFragment());
+             } else if (position == cacheRow) {

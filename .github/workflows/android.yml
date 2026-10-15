@@ -157,6 +157,7 @@ jobs:
 
       - name: Проверка интерфейса и регрессий
         run: |
+          python3 scripts/check-native-java-syntax.py vendor/telegram-android
           python3 scripts/check-chat-layout.py
           python3 scripts/check-navigation.py
           python3 scripts/check-settings-tab-icon.py vendor/telegram-android
