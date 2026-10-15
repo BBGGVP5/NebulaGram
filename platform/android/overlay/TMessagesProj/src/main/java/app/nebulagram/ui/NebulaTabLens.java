@@ -154,7 +154,10 @@ public final class NebulaTabLens {
         paintedBounds.setEmpty();
     }
 
-    private boolean animated() { return NebulaMenuStyle.animated(host) && !NebulaGlass.reduced(); }
+    private boolean animated() {
+        return NebulaGlass.animations() && !NebulaGlass.reduced()
+            && (android.os.Build.VERSION.SDK_INT < 26 || ValueAnimator.areAnimatorsEnabled());
+    }
     private void stopFeedback() {
         if (pulse != null) { pulse.cancel(); pulse = null; }
         bubble = 0;

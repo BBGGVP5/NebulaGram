@@ -12,19 +12,20 @@ public final class NebulaGlass {
     private static volatile boolean powerSave, thermalHot, lowRam;
     // SharedPreferences keeps weak listeners. Keep this one strongly, without holding any View/Activity.
     private static final SharedPreferences.OnSharedPreferenceChangeListener listener = (prefs, key) -> {
-        if (key == null || "glass_custom".equals(key) || "glass_opacity".equals(key)
+        if (key == null || "liquid_animations".equals(key) || "glass_custom".equals(key) || "glass_opacity".equals(key)
                 || "glass_highlights".equals(key) || "glass_quality".equals(key) || "glass_blur".equals(key)
                 || "glass_refraction".equals(key) || "glass_depth".equals(key)
                 || "glass_depth_enabled".equals(key)) refresh();
     };
 
     private static final class Snapshot {
-        final boolean custom, highlights;
+        final boolean custom, highlights, animations;
         final int quality;
         final float opacity, blur, refraction, depth;
         Snapshot(SharedPreferences prefs) {
             custom = prefs.getBoolean("glass_custom", false);
             highlights = prefs.getBoolean("glass_highlights", true);
+            animations = prefs.getBoolean("liquid_animations", true);
             quality = Math.max(0, Math.min(2, prefs.getInt("glass_quality", 0)));
             opacity = custom ? .25f + clamp(prefs.getInt("glass_opacity", 63)) * .0075f : .72f;
             blur = custom ? clamp(prefs.getInt("glass_blur", 40)) * .3f : 12f;
@@ -33,7 +34,7 @@ public final class NebulaGlass {
                     ? clamp(prefs.getInt("glass_depth", 35)) / 100f : 0f;
         }
         boolean sameAs(Snapshot other) {
-            return other != null && custom == other.custom && highlights == other.highlights
+            return other != null && custom == other.custom && highlights == other.highlights && animations == other.animations
                     && quality == other.quality && opacity == other.opacity && blur == other.blur
                     && refraction == other.refraction && depth == other.depth;
         }
@@ -76,6 +77,7 @@ public final class NebulaGlass {
         return value;
     }
     public static boolean highlights() { return snapshot().highlights; }
+    public static boolean animations() { return snapshot().animations; }
     public static long revision() { snapshot(); return revision; }
     public static boolean custom() { return snapshot().custom; }
     public static void custom(boolean value) {

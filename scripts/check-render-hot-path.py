@@ -53,8 +53,10 @@ class GlassPrefsCheck {
   var c=ApplicationLoader.applicationContext;var p=c.p;
   near(NebulaGlass.opacity(),.72f);near(NebulaGlass.blur(),12f);near(NebulaGlass.refraction(),0f);check(!NebulaGlass.custom(),"default override");
   int reads=p.reads,lookups=c.lookups;
-  for(int i=0;i<10000;i++){NebulaGlass.custom();NebulaGlass.opacity();NebulaGlass.blur();NebulaGlass.refraction();}
+  for(int i=0;i<10000;i++){NebulaGlass.custom();NebulaGlass.opacity();NebulaGlass.blur();NebulaGlass.refraction();NebulaGlass.animations();}
   check(p.reads==reads&&c.lookups==lookups,"render hot path repeatedly reads preferences");
+  p.edit().putBoolean("liquid_animations",false).apply();check(!NebulaGlass.animations(),"motion preference not invalidated");
+  p.edit().putBoolean("liquid_animations",true).apply();check(NebulaGlass.animations(),"motion preference not restored");
   long revision=NebulaGlass.revision();p.edit().putBoolean("glass_highlights",false).apply();check(NebulaGlass.revision()>revision&&!NebulaGlass.highlights(),"highlight setting not live");
   NebulaGlass.custom(true);NebulaGlass.setValue("blur",25);near(NebulaGlass.blur(),7.5f);
   NebulaGlass.setValue("opacity",-20);near(NebulaGlass.opacity(),.25f);
