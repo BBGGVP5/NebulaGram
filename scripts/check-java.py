@@ -112,8 +112,9 @@ def main() -> int:
             for number, variable in duplicates(text):
                 problems.append("%s:%d — %s уже объявлена в этой области"
                                 % (filename, number, variable))
-            for name in unresolved_classes(text, own):
-                problems.append("%s — %s используется без импорта" % (filename, name))
+            if "--duplicates-only" not in sys.argv:
+                for name in unresolved_classes(text, own):
+                    problems.append("%s — %s используется без импорта" % (filename, name))
     if problems:
         print("Повторные объявления:")
         for problem in problems:

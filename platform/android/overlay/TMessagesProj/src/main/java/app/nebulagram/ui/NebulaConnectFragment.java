@@ -70,9 +70,9 @@ public class NebulaConnectFragment extends BaseFragment {
 
         root.content.setGravity(Gravity.TOP);
         root.content.setPadding(0, NebulaLoginStyle.compact(12), 0, NebulaLoginStyle.compact(12));
-        TextView optional = NebulaIntroFragment.text(context, 13, theme.primary(), true);
-        optional.setText(NebulaText.text("Необязательный шаг", "Optional step"));
-        root.content.addView(optional, NebulaIntroFragment.width());
+        TextView optionalStep = NebulaIntroFragment.text(context, 13, theme.primary(), true);
+        optionalStep.setText(NebulaText.text("Необязательный шаг", "Optional step"));
+        root.content.addView(optionalStep, NebulaIntroFragment.width());
         title = NebulaIntroFragment.text(context, 30, theme.onSurface(), true);
         title.setGravity(Gravity.START);
         title.setText(NebulaIntroFragment.highlight(
