@@ -29,3 +29,9 @@ Execution is inline; the optional superpowers execution skills are not installed
 - [ ] Test migration, restart, removal, failed login, more than ten accounts, stale callbacks and simultaneous notifications using synthetic accounts.
 - [ ] Enable the additional-account UI after all preceding checks pass, add search/order for long lists, and document resource behavior.
 - [ ] Compile APK, inspect package/signature and report device QA separately.
+
+## Verification checkpoint
+
+Commit `7827492`: all 113 Android workflow regression commands passed locally against the owned integrated tree. All 211 ordered patches replay on pinned upstream `f32ffeec763f0bdbf4bec25b52d654f77bff733d`. Java tests execute the production registry and all 35 extracted singleton getters; native tests execute the production getter concurrently under WSL. The three changed native translation units also pass NDK arm64/API 23 syntax checking using the pinned BoringSSL headers. Existing unrelated upstream warnings remain.
+
+The settings-contract workflow passed. Full APK [run 38726030302](https://github.com/BBGGVP5/NebulaGram/actions/runs/38726030302) is running; neither a successful full build of this commit nor device acceptance is claimed yet. Previously verified APK 1000555 and IPA 120 do not include this new Android registry patch.
