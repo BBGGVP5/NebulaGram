@@ -267,7 +267,7 @@ public final class NebulaAppearance {
     public static boolean showStories() { return preferences().getBoolean("show_stories", true); }
     public static void setShowStories(boolean value) {
         preferences().edit().putBoolean("show_stories", value).apply();
-        for (int account = 0; account < org.telegram.messenger.UserConfig.MAX_ACCOUNT_COUNT; account++) {
+        for (int account : org.telegram.messenger.UserConfig.getAccountIds()) {
             org.telegram.messenger.NotificationCenter.getInstance(account).postNotificationName(
                     org.telegram.messenger.NotificationCenter.storiesUpdated);
         }

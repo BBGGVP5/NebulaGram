@@ -13,7 +13,7 @@ public final class NebulaSettingsHistory {
     }
     public static void refresh() {
         // Settings history is global; refresh every open account's settings adapter.
-        for (int account = 0; account < UserConfig.MAX_ACCOUNT_COUNT; account++) {
+        for (int account : UserConfig.getAccountIds()) {
             NotificationCenter.getInstance(account).postNotificationName(NotificationCenter.updateSearchSettings);
         }
     }

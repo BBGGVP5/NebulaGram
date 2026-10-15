@@ -15,8 +15,9 @@ cpp = (base / 'jni/tgnet/ConnectionsManager.cpp').read_text(encoding='utf-8')
 wrapper = (base / 'jni/TgNetWrapper.cpp').read_text(encoding='utf-8')
 header = (base / 'jni/tgnet/ConnectionsManager.h').read_text(encoding='utf-8')
 defines = (base / 'jni/tgnet/Defines.h').read_text(encoding='utf-8')
-# Keep the UI gate until persisted IDs and notification routing migrate.
-assert re.search(r'MAX_ACCOUNT_COUNT\s*=\s*10;', java)
+# Native storage and public enumeration have no fixed account array bound.
+assert 'MAX_ACCOUNT_COUNT' not in java
+assert 'AccountDirectory.ids()' in java
 assert '#define MAX_ACCOUNT_COUNT' not in defines
 assert 'extern thread_local JNIEnv *jniEnv;' in header
 assert 'jniEnv[' not in cpp + wrapper + header

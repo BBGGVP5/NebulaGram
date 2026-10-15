@@ -12,13 +12,13 @@ public final class NebulaTaskReminder extends BroadcastReceiver {
         ApplicationLoader.postInitApplication();
         try {
             if(Intent.ACTION_BOOT_COMPLETED.equals(intent.getAction())){
-                for(int a=0;a<UserConfig.MAX_ACCOUNT_COUNT;a++)if(UserConfig.getInstance(a).isClientActivated()){
+                for (int a : UserConfig.getAccountIds())if(UserConfig.getInstance(a).isClientActivated()){
                     long user=NebulaTasks.user(a);JSONArray all=NebulaTasks.read(user);for(int i=0;i<all.length();i++)NebulaTasks.schedule(user,all.getJSONObject(i));
                 }
                 return;
             }
             long user=intent.getLongExtra("user",0);int account=-1;
-            for(int a=0;a<UserConfig.MAX_ACCOUNT_COUNT;a++)if(UserConfig.getInstance(a).isClientActivated()&&NebulaTasks.user(a)==user)account=a;
+            for (int a : UserConfig.getAccountIds())if(UserConfig.getInstance(a).isClientActivated()&&NebulaTasks.user(a)==user)account=a;
             if(account<0)return;
             JSONArray all=NebulaTasks.read(user);
             for(int i=0;i<all.length();i++){

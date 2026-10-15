@@ -44,6 +44,8 @@ public class AccountStateCheck {
  SETTER
  static void save(){SharedPreferences.Editor editor=ApplicationLoader.applicationContext.prefs.edit();SAVE}
  static class NotificationCenter {static class ObserversGroup {int removed;void removeAllObservers(){removed++;}}}
+ static class DirectorySubscription {void close(){}}
+ private DirectorySubscription accountSubscription;
  private final HashMap<Integer,NotificationCenter.ObserversGroup> observersGroup=new HashMap<>();
  private NotificationCenter.ObserversGroup globalObserversGroup;
  REMOVE

@@ -1,0 +1,1303 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/AndroidUtilities.java b/TMessagesProj/src/main/java/org/telegram/messenger/AndroidUtilities.java
+--- a/TMessagesProj/src/main/java/org/telegram/messenger/AndroidUtilities.java
++++ b/TMessagesProj/src/main/java/org/telegram/messenger/AndroidUtilities.java
+@@ -2892,7 +2892,7 @@
+     public static int getAccountInProduction() {
+         if (UserConfig.getInstance(UserConfig.selectedAccount).isClientActivated() && !ConnectionsManager.getInstance(UserConfig.selectedAccount).isTestBackend())
+             return UserConfig.selectedAccount;
+-        for (int i = 0; i < UserConfig.MAX_ACCOUNT_COUNT; ++i) {
++        for (int i : UserConfig.getAccountIds()) {
+             if (UserConfig.getInstance(i).isClientActivated() && !ConnectionsManager.getInstance(i).isTestBackend())
+                 return i;
+         }
+diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/ApplicationLoader.java b/TMessagesProj/src/main/java/org/telegram/messenger/ApplicationLoader.java
+--- a/TMessagesProj/src/main/java/org/telegram/messenger/ApplicationLoader.java
++++ b/TMessagesProj/src/main/java/org/telegram/messenger/ApplicationLoader.java
+@@ -221,7 +221,7 @@
+                     }
+ 
+                     boolean isSlow = isConnectionSlow();
+-                    for (int a = 0; a < UserConfig.MAX_ACCOUNT_COUNT; a++) {
++                    for (int a : UserConfig.getAccountIds()) {
+                         ConnectionsManager.getInstance(a).checkConnection();
+                         FileLoader.getInstance(a).onNetworkChanged(isSlow);
+                     }
+@@ -254,7 +254,8 @@
+ 
+         SharedConfig.loadConfig();
+         SharedPrefsHelper.init(applicationContext);
+-        for (int a = 0; a < UserConfig.MAX_ACCOUNT_COUNT; a++) { //TODO improve account
++        UserConfig.getInstance(0).loadConfig();
++        for (int a : UserConfig.getAccountIds()) { //TODO improve account
+             UserConfig.getInstance(a).loadConfig();
+             MessagesController.getInstance(a);
+             if (a == 0) {
+@@ -276,7 +277,7 @@
+         }
+ 
+         MediaController.getInstance();
+-        for (int a = 0; a < UserConfig.MAX_ACCOUNT_COUNT; a++) { //TODO improve account
++        for (int a : UserConfig.getAccountIds()) { //TODO improve account
+             ContactsController.getInstance(a).checkAppAccount();
+             DownloadController.getInstance(a);
+         }
+diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/AutoDeleteMediaTask.java b/TMessagesProj/src/main/java/org/telegram/messenger/AutoDeleteMediaTask.java
+--- a/TMessagesProj/src/main/java/org/telegram/messenger/AutoDeleteMediaTask.java
++++ b/TMessagesProj/src/main/java/org/telegram/messenger/AutoDeleteMediaTask.java
+@@ -31,7 +31,7 @@
+             }
+             boolean hasExceptions = false;
+             ArrayList<CacheByChatsController> cacheByChatsControllers = new ArrayList<>();
+-            for (int account = 0; account < UserConfig.MAX_ACCOUNT_COUNT; account++) {
++            for (int account : UserConfig.getAccountIds()) {
+                 if (UserConfig.getInstance(account).isClientActivated()) {
+                     CacheByChatsController cacheByChatsController = UserConfig.getInstance(account).getMessagesController().getCacheByChatsController();
+                     cacheByChatsControllers.add(cacheByChatsController);
+diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/ContactsController.java b/TMessagesProj/src/main/java/org/telegram/messenger/ContactsController.java
+--- a/TMessagesProj/src/main/java/org/telegram/messenger/ContactsController.java
++++ b/TMessagesProj/src/main/java/org/telegram/messenger/ContactsController.java
+@@ -110,7 +110,7 @@
+     private class MyContentObserver extends ContentObserver {
+ 
+         private Runnable checkRunnable = () -> {
+-            for (int a = 0; a < UserConfig.MAX_ACCOUNT_COUNT; a++) {
++            for (int a : UserConfig.getAccountIds()) {
+                 if (UserConfig.getInstance(a).isClientActivated()) {
+                     ConnectionsManager.getInstance(a).resumeNetworkMaybe();
+                     ContactsController.getInstance(a).checkContacts();
+@@ -386,7 +386,7 @@
+                 for (int a = 0; a < accounts.length; a++) {
+                     Account acc = accounts[a];
+                     boolean found = false;
+-                    for (int b = 0; b < UserConfig.MAX_ACCOUNT_COUNT; b++) {
++                    for (int b : UserConfig.getAccountIds()) {
+                         TLRPC.User user = UserConfig.getInstance(b).getCurrentUser();
+                         if (user != null) {
+                             if (acc.name.equals("" + user.id)) {
+@@ -432,7 +432,7 @@
+             for (int a = 0; a < accounts.length; a++) {
+                 Account acc = accounts[a];
+                 boolean found = false;
+-                for (int b = 0; b < UserConfig.MAX_ACCOUNT_COUNT; b++) {
++                for (int b : UserConfig.getAccountIds()) {
+                     TLRPC.User user = UserConfig.getInstance(b).getCurrentUser();
+                     if (user != null) {
+                         if (acc.name.equals("" + user.id)) {
+@@ -508,7 +508,7 @@
+                         systemAccount = null;
+                         for (int a = 0; a < accounts.length; a++) {
+                             Account acc = accounts[a];
+-                            for (int b = 0; b < UserConfig.MAX_ACCOUNT_COUNT; b++) {
++                            for (int b : UserConfig.getAccountIds()) {
+                                 TLRPC.User user = UserConfig.getInstance(b).getCurrentUser();
+                                 if (user != null) {
+                                     if (acc.name.equals("" + user.id)) {
+diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/ImageLoader.java b/TMessagesProj/src/main/java/org/telegram/messenger/ImageLoader.java
+--- a/TMessagesProj/src/main/java/org/telegram/messenger/ImageLoader.java
++++ b/TMessagesProj/src/main/java/org/telegram/messenger/ImageLoader.java
+@@ -2179,7 +2179,7 @@
+         AndroidUtilities.createEmptyFile(new File(cachePath, ".nomedia"));
+         mediaDirs.put(FileLoader.MEDIA_DIR_CACHE, cachePath);
+ 
+-        for (int a = 0; a < UserConfig.MAX_ACCOUNT_COUNT; a++) {
++        org.telegram.messenger.AccountDirectory.observe(a -> {
+             final int currentAccount = a;
+             FileLoader.getInstance(a).setDelegate(new FileLoader.FileLoaderDelegate() {
+                 @Override
+@@ -2310,7 +2310,7 @@
+                     }
+                 }
+             });
+-        }
++        }, null);
+         FileLoader.setMediaDirs(mediaDirs);
+ 
+         BroadcastReceiver receiver = new BroadcastReceiver() {
+diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/ImportingService.java b/TMessagesProj/src/main/java/org/telegram/messenger/ImportingService.java
+--- a/TMessagesProj/src/main/java/org/telegram/messenger/ImportingService.java
++++ b/TMessagesProj/src/main/java/org/telegram/messenger/ImportingService.java
+@@ -16,15 +16,20 @@
+ import androidx.core.app.NotificationManagerCompat;
+ 
+ public class ImportingService extends Service implements NotificationCenter.NotificationCenterDelegate {
++    private org.telegram.messenger.AccountDirectory.Subscription accountSubscription;
++
+ 
+     private NotificationCompat.Builder builder;
+ 
+     public ImportingService() {
+         super();
+-        for (int a = 0; a < UserConfig.MAX_ACCOUNT_COUNT; a++) {
++        accountSubscription = org.telegram.messenger.AccountDirectory.observe(a -> {
+             NotificationCenter.getInstance(a).addObserver(this, NotificationCenter.historyImportProgressChanged);
+             NotificationCenter.getInstance(a).addObserver(this, NotificationCenter.stickersImportProgressChanged);
+-        }
++        }, a -> {
++            NotificationCenter.getInstance(a).removeObserver(this, NotificationCenter.historyImportProgressChanged);
++            NotificationCenter.getInstance(a).removeObserver(this, NotificationCenter.stickersImportProgressChanged);
++        });
+     }
+ 
+     public IBinder onBind(Intent arg2) {
+@@ -39,9 +44,9 @@
+ 
+         }
+         NotificationManagerCompat.from(ApplicationLoader.applicationContext).cancel(5);
+-        for (int a = 0; a < UserConfig.MAX_ACCOUNT_COUNT; a++) {
+-            NotificationCenter.getInstance(a).removeObserver(this, NotificationCenter.historyImportProgressChanged);
+-            NotificationCenter.getInstance(a).removeObserver(this, NotificationCenter.stickersImportProgressChanged);
++        if (accountSubscription != null) {
++            accountSubscription.close();
++            accountSubscription = null;
+         }
+         if (BuildVars.LOGS_ENABLED) {
+             FileLog.d("destroy import service");
+@@ -58,7 +63,7 @@
+     }
+ 
+     private boolean hasImportingHistory() {
+-        for (int a = 0; a < UserConfig.MAX_ACCOUNT_COUNT; a++) {
++        for (int a : UserConfig.getAccountIds()) {
+             if (SendMessagesHelper.getInstance(a).isImportingHistory()) {
+                 return true;
+             }
+@@ -67,7 +72,7 @@
+     }
+ 
+     private boolean hasImportingStickers() {
+-        for (int a = 0; a < UserConfig.MAX_ACCOUNT_COUNT; a++) {
++        for (int a : UserConfig.getAccountIds()) {
+             if (SendMessagesHelper.getInstance(a).isImportingStickers()) {
+                 return true;
+             }
+diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/LocaleController.java b/TMessagesProj/src/main/java/org/telegram/messenger/LocaleController.java
+--- a/TMessagesProj/src/main/java/org/telegram/messenger/LocaleController.java
++++ b/TMessagesProj/src/main/java/org/telegram/messenger/LocaleController.java
+@@ -3269,7 +3269,7 @@
+                     }
+                 }, ConnectionsManager.RequestFlagWithoutLogin);
+             } else {
+-                for (int a = 0; a < UserConfig.MAX_ACCOUNT_COUNT; a++) {
++                for (int a : UserConfig.getAccountIds()) {
+                     ConnectionsManager.setLangCode(localeInfo.getLangCode());
+                 }
+                 FileLog.d("applyRemoteLanguage getLangPack");
+diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/LocationController.java b/TMessagesProj/src/main/java/org/telegram/messenger/LocationController.java
+--- a/TMessagesProj/src/main/java/org/telegram/messenger/LocationController.java
++++ b/TMessagesProj/src/main/java/org/telegram/messenger/LocationController.java
+@@ -931,7 +931,7 @@
+ 
+     public static int getLocationsCount() {
+         int count = 0;
+-        for (int a = 0; a < UserConfig.MAX_ACCOUNT_COUNT; a++) {
++        for (int a : UserConfig.getAccountIds()) {
+             count += LocationController.getInstance(a).sharingLocationsUI.size();
+         }
+         return count;
+diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/LocationSharingService.java b/TMessagesProj/src/main/java/org/telegram/messenger/LocationSharingService.java
+--- a/TMessagesProj/src/main/java/org/telegram/messenger/LocationSharingService.java
++++ b/TMessagesProj/src/main/java/org/telegram/messenger/LocationSharingService.java
+@@ -39,7 +39,7 @@
+         runnable = () -> {
+             handler.postDelayed(runnable, 1000);
+             Utilities.stageQueue.postRunnable(() -> {
+-                for (int a = 0; a < UserConfig.MAX_ACCOUNT_COUNT; a++) {
++                for (int a : UserConfig.getAccountIds()) {
+                     LocationController.getInstance(a).update();
+                 }
+             });
+@@ -79,7 +79,7 @@
+ 
+     private ArrayList<LocationController.SharingLocationInfo> getInfos() {
+         ArrayList<LocationController.SharingLocationInfo> infos = new ArrayList<>();
+-        for (int a = 0; a < UserConfig.MAX_ACCOUNT_COUNT; a++) {
++        for (int a : UserConfig.getAccountIds()) {
+             ArrayList<LocationController.SharingLocationInfo> arrayList = LocationController.getInstance(a).sharingLocationsUI;
+             if (!arrayList.isEmpty()) {
+                 infos.addAll(arrayList);
+diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/MediaController.java b/TMessagesProj/src/main/java/org/telegram/messenger/MediaController.java
+--- a/TMessagesProj/src/main/java/org/telegram/messenger/MediaController.java
++++ b/TMessagesProj/src/main/java/org/telegram/messenger/MediaController.java
+@@ -1490,7 +1490,7 @@
+         fileBuffer = ByteBuffer.allocateDirect(1920);
+ 
+         AndroidUtilities.runOnUIThread(() -> {
+-            for (int a = 0; a < UserConfig.MAX_ACCOUNT_COUNT; a++) {
++            org.telegram.messenger.AccountDirectory.observe(a -> {
+                 NotificationCenter.getInstance(a).addObserver(MediaController.this, NotificationCenter.fileLoaded);
+                 NotificationCenter.getInstance(a).addObserver(MediaController.this, NotificationCenter.httpFileDidLoad);
+                 NotificationCenter.getInstance(a).addObserver(MediaController.this, NotificationCenter.didReceiveNewMessages);
+@@ -1500,7 +1500,7 @@
+                 NotificationCenter.getInstance(a).addObserver(MediaController.this, NotificationCenter.mediaDidLoad);
+                 NotificationCenter.getInstance(a).addObserver(MediaController.this, NotificationCenter.musicListLoaded);
+                 NotificationCenter.getGlobalInstance().addObserver(MediaController.this, NotificationCenter.playerDidStartPlaying);
+-            }
++            }, null);
+         });
+ 
+         mediaProjections = new String[]{
+@@ -1675,7 +1675,7 @@
+         cleanupPlayer(true, true);
+         audioInfo = null;
+         playMusicAgain = false;
+-        for (int a = 0; a < UserConfig.MAX_ACCOUNT_COUNT; a++) {
++        for (int a : UserConfig.getAccountIds()) {
+             DownloadController.getInstance(a).cleanup();
+         }
+         videoConvertQueue.clear();
+diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/MessagesController.java b/TMessagesProj/src/main/java/org/telegram/messenger/MessagesController.java
+--- a/TMessagesProj/src/main/java/org/telegram/messenger/MessagesController.java
++++ b/TMessagesProj/src/main/java/org/telegram/messenger/MessagesController.java
+@@ -16118,7 +16118,7 @@
+             TL_account.unregisterDevice req = new TL_account.unregisterDevice();
+             req.token = SharedConfig.pushString;
+             req.token_type = SharedConfig.pushType;
+-            for (int a = 0; a < UserConfig.MAX_ACCOUNT_COUNT; a++) {
++            for (int a : UserConfig.getAccountIds()) {
+                 UserConfig userConfig = UserConfig.getInstance(a);
+                 if (a != currentAccount && userConfig.isClientActivated()) {
+                     req.other_uids.add(userConfig.getClientUserId());
+@@ -16149,6 +16149,7 @@
+             getConnectionsManager().cleanup(type == 2);
+         }
+         getUserConfig().clearConfig();
++        AccountDirectory.retire(currentAccount);
+         SharedPrefsHelper.cleanupAccount(currentAccount);
+ 
+         boolean shouldHandle = true;
+@@ -16164,7 +16165,7 @@
+         if (shouldHandle) {
+             if (UserConfig.selectedAccount == currentAccount) {
+                 int account = -1;
+-                for (int a = 0; a < UserConfig.MAX_ACCOUNT_COUNT; a++) {
++                for (int a : UserConfig.getAccountIds()) {
+                     if (UserConfig.getInstance(a).isClientActivated()) {
+                         account = a;
+                         break;
+@@ -16204,7 +16205,7 @@
+         req.token = regid;
+         req.no_muted = false;
+         req.secret = SharedConfig.pushAuthKey;
+-        for (int a = 0; a < UserConfig.MAX_ACCOUNT_COUNT; a++) {
++        for (int a : UserConfig.getAccountIds()) {
+             UserConfig userConfig = UserConfig.getInstance(a);
+             if (a != currentAccount && userConfig.isClientActivated()) {
+                 long uid = userConfig.getClientUserId();
+diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/MusicPlayerService.java b/TMessagesProj/src/main/java/org/telegram/messenger/MusicPlayerService.java
+--- a/TMessagesProj/src/main/java/org/telegram/messenger/MusicPlayerService.java
++++ b/TMessagesProj/src/main/java/org/telegram/messenger/MusicPlayerService.java
+@@ -50,6 +50,8 @@
+ import java.io.File;
+ 
+ public class MusicPlayerService extends Service implements NotificationCenter.NotificationCenterDelegate {
++    private org.telegram.messenger.AccountDirectory.Subscription accountSubscription;
++
+ 
+     public static final String NOTIFY_PREVIOUS = "org.telegram.android.musicplayer.previous";
+     public static final String NOTIFY_CLOSE = "org.telegram.android.musicplayer.close";
+@@ -94,12 +96,17 @@
+     @Override
+     public void onCreate() {
+         audioManager = (AudioManager) getSystemService(AUDIO_SERVICE);
+-        for (int a = 0; a < UserConfig.MAX_ACCOUNT_COUNT; a++) {
++        accountSubscription = org.telegram.messenger.AccountDirectory.observe(a -> {
+             NotificationCenter.getInstance(a).addObserver(this, NotificationCenter.messagePlayingDidSeek);
+             NotificationCenter.getInstance(a).addObserver(this, NotificationCenter.messagePlayingPlayStateChanged);
+             NotificationCenter.getInstance(a).addObserver(this, NotificationCenter.httpFileDidLoad);
+             NotificationCenter.getInstance(a).addObserver(this, NotificationCenter.fileLoaded);
+-        }
++        }, a -> {
++            NotificationCenter.getInstance(a).removeObserver(this, NotificationCenter.messagePlayingDidSeek);
++            NotificationCenter.getInstance(a).removeObserver(this, NotificationCenter.messagePlayingPlayStateChanged);
++            NotificationCenter.getInstance(a).removeObserver(this, NotificationCenter.httpFileDidLoad);
++            NotificationCenter.getInstance(a).removeObserver(this, NotificationCenter.fileLoaded);
++        });
+         imageReceiver = new ImageReceiver(null);
+         imageReceiver.setDelegate((imageReceiver, set, thumb, memCache) -> {
+             if (set && !TextUtils.isEmpty(loadingFilePath)) {
+@@ -822,11 +829,9 @@
+         if (mediaSession != null) {
+             mediaSession.release();
+         }
+-        for (int a = 0; a < UserConfig.MAX_ACCOUNT_COUNT; a++) {
+-            NotificationCenter.getInstance(a).removeObserver(this, NotificationCenter.messagePlayingDidSeek);
+-            NotificationCenter.getInstance(a).removeObserver(this, NotificationCenter.messagePlayingPlayStateChanged);
+-            NotificationCenter.getInstance(a).removeObserver(this, NotificationCenter.httpFileDidLoad);
+-            NotificationCenter.getInstance(a).removeObserver(this, NotificationCenter.fileLoaded);
++        if (accountSubscription != null) {
++            accountSubscription.close();
++            accountSubscription = null;
+         }
+     }
+ 
+diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/NotificationsController.java b/TMessagesProj/src/main/java/org/telegram/messenger/NotificationsController.java
+--- a/TMessagesProj/src/main/java/org/telegram/messenger/NotificationsController.java
++++ b/TMessagesProj/src/main/java/org/telegram/messenger/NotificationsController.java
+@@ -1766,7 +1766,7 @@
+ 
+     private int getTotalAllUnreadCount() {
+         int count = 0;
+-        for (int a = 0; a < UserConfig.MAX_ACCOUNT_COUNT; a++) {
++        for (int a : UserConfig.getAccountIds()) {
+             if (!UserConfig.getInstance(a).isClientActivated()) {
+                 continue;
+             }
+diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/ProxyRotationController.java b/TMessagesProj/src/main/java/org/telegram/messenger/ProxyRotationController.java
+--- a/TMessagesProj/src/main/java/org/telegram/messenger/ProxyRotationController.java
++++ b/TMessagesProj/src/main/java/org/telegram/messenger/ProxyRotationController.java
+@@ -84,9 +84,9 @@
+     }
+ 
+     private void initInternal() {
+-        for (int i = 0; i < UserConfig.MAX_ACCOUNT_COUNT; i++) {
++        org.telegram.messenger.AccountDirectory.observe(i -> {
+             NotificationCenter.getInstance(i).addObserver(this, NotificationCenter.didUpdateConnectionState);
+-        }
++        }, null);
+         NotificationCenter.getGlobalInstance().addObserver(this, NotificationCenter.proxyCheckDone);
+         NotificationCenter.getGlobalInstance().addObserver(this, NotificationCenter.proxySettingsChanged);
+     }
+diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/PushListenerController.java b/TMessagesProj/src/main/java/org/telegram/messenger/PushListenerController.java
+--- a/TMessagesProj/src/main/java/org/telegram/messenger/PushListenerController.java
++++ b/TMessagesProj/src/main/java/org/telegram/messenger/PushListenerController.java
+@@ -59,7 +59,7 @@
+             }
+             SharedConfig.pushString = token;
+             SharedConfig.pushType = pushType;
+-            for (int a = 0; a < UserConfig.MAX_ACCOUNT_COUNT; a++) {
++            for (int a : UserConfig.getAccountIds()) {
+                 UserConfig userConfig = UserConfig.getInstance(a);
+                 userConfig.registeredForPush = false;
+                 userConfig.saveConfig(false);
+@@ -199,7 +199,7 @@
+                     }
+                     int account = UserConfig.selectedAccount;
+                     boolean foundAccount = false;
+-                    for (int a = 0; a < UserConfig.MAX_ACCOUNT_COUNT; a++) {
++                    for (int a : UserConfig.getAccountIds()) {
+                         if (UserConfig.getInstance(a).getClientUserId() == accountUserId) {
+                             account = a;
+                             foundAccount = true;
+@@ -1764,7 +1764,7 @@
+     }
+ 
+     private static void onDecryptError() {
+-        for (int a = 0; a < UserConfig.MAX_ACCOUNT_COUNT; a++) {
++        for (int a : UserConfig.getAccountIds()) {
+             if (UserConfig.getInstance(a).isClientActivated()) {
+                 ConnectionsManager.onInternalPushReceived(a);
+                 ConnectionsManager.getInstance(a).resumeNetworkMaybe();
+diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/StopLiveLocationReceiver.java b/TMessagesProj/src/main/java/org/telegram/messenger/StopLiveLocationReceiver.java
+--- a/TMessagesProj/src/main/java/org/telegram/messenger/StopLiveLocationReceiver.java
++++ b/TMessagesProj/src/main/java/org/telegram/messenger/StopLiveLocationReceiver.java
+@@ -16,7 +16,7 @@
+ 
+     @Override
+     public void onReceive(Context context, Intent intent) {
+-        for (int a = 0; a < UserConfig.MAX_ACCOUNT_COUNT; a++) {
++        for (int a : UserConfig.getAccountIds()) {
+             LocationController.getInstance(a).removeAllLocationSharings();
+         }
+     }
+diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/UserConfig.java b/TMessagesProj/src/main/java/org/telegram/messenger/UserConfig.java
+--- a/TMessagesProj/src/main/java/org/telegram/messenger/UserConfig.java
++++ b/TMessagesProj/src/main/java/org/telegram/messenger/UserConfig.java
+@@ -24,8 +24,23 @@
+ public class UserConfig extends BaseController {
+ 
+     public static int selectedAccount;
+-    public final static int MAX_ACCOUNT_DEFAULT_COUNT = 10;
+-    public final static int MAX_ACCOUNT_COUNT = 10;
++    public static int[] getAccountIds() { return AccountDirectory.ids(); }
++
++    public static int[] getAccountIdsSelectedFirst() {
++        int[] known = getAccountIds();
++        final int selected = selectedAccount;
++        boolean present = false;
++        for (int id : known) if (id == selected) { present = true; break; }
++        if (!present) return known;
++        int[] result = new int[known.length];
++        result[0] = selected;
++        int index = 1;
++        for (int id : known) if (id != selected) result[index++] = id;
++        return result;
++    }
++
++    public static int allocateAccount() { return AccountDirectory.allocate(); }
++    public static boolean canAddAccount() { return AccountDirectory.canAllocate(); }
+ 
+     private final Object sync = new Object();
+     private volatile boolean configLoaded;
+@@ -91,8 +103,8 @@
+ 
+     public static int getActivatedAccountsCount() {
+         int count = 0;
+-        for (int a = 0; a < MAX_ACCOUNT_COUNT; a++) {
+-            if (AccountInstance.getInstance(a).getUserConfig().isClientActivated()) {
++        for (int a : UserConfig.getAccountIds()) {
++            if (getInstance(a).isClientActivated()) {
+                 count++;
+             }
+         }
+@@ -104,16 +116,12 @@
+     }
+ 
+     public static boolean hasPremiumOnAccounts() {
+-        for (int a = 0; a < MAX_ACCOUNT_COUNT; a++) {
+-            if (AccountInstance.getInstance(a).getUserConfig().isClientActivated() && AccountInstance.getInstance(a).getUserConfig().getUserConfig().isPremium()) {
++        for (int a : UserConfig.getAccountIds()) {
++            if (getInstance(a).isClientActivated() && getInstance(a).isPremium()) {
+                 return true;
+             }
+         }
+         return false;
+-    }
+-
+-    public static int getMaxAccountCount() {
+-        return MAX_ACCOUNT_COUNT;
+     }
+ 
+     public int getNewMessageId() {
+@@ -222,7 +230,7 @@
+     }
+ 
+     public static boolean isValidAccount(int num) {
+-         return num >= 0 && num < UserConfig.MAX_ACCOUNT_COUNT && getInstance(num).isClientActivated();
++         return AccountDirectory.contains(num) && getInstance(num).isClientActivated();
+     }
+ 
+     public boolean isClientActivated() {
+@@ -487,8 +495,8 @@
+         lastHintsSyncTime = (int) (System.currentTimeMillis() / 1000) - 25 * 60 * 60;
+         resetSavedPassword();
+         boolean hasActivated = false;
+-        for (int a = 0; a < MAX_ACCOUNT_COUNT; a++) {
+-            if (AccountInstance.getInstance(a).getUserConfig().isClientActivated()) {
++        for (int a : UserConfig.getAccountIds()) {
++            if (getInstance(a).isClientActivated()) {
+                 hasActivated = true;
+                 break;
+             }
+@@ -610,7 +618,7 @@
+     }
+ 
+     public static int getProductionAccount() {
+-        for (int i = -1; i < MAX_ACCOUNT_COUNT; ++i) {
++        for (int i : UserConfig.getAccountIdsSelectedFirst()) {
+             final int account = i < 0 ? selectedAccount : i;
+             if (getInstance(account).isClientActivated() && !ConnectionsManager.getInstance(account).isTestBackend())
+                 return account;
+diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/utils/BillingUtilities.java b/TMessagesProj/src/main/java/org/telegram/messenger/utils/BillingUtilities.java
+--- a/TMessagesProj/src/main/java/org/telegram/messenger/utils/BillingUtilities.java
++++ b/TMessagesProj/src/main/java/org/telegram/messenger/utils/BillingUtilities.java
+@@ -256,7 +256,7 @@
+ 
+     private static AccountInstance findAccountById(long accountId) {
+         AccountInstance result = null;
+-        for (int i = 0; i < UserConfig.MAX_ACCOUNT_COUNT; i++) {
++        for (int i : UserConfig.getAccountIds()) {
+             AccountInstance acc = AccountInstance.getInstance(i);
+             if (acc.getUserConfig().getClientUserId() == accountId) {
+                 result = acc;
+diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/voip/VoIPPreNotificationService.java b/TMessagesProj/src/main/java/org/telegram/messenger/voip/VoIPPreNotificationService.java
+--- a/TMessagesProj/src/main/java/org/telegram/messenger/voip/VoIPPreNotificationService.java
++++ b/TMessagesProj/src/main/java/org/telegram/messenger/voip/VoIPPreNotificationService.java
+@@ -590,7 +590,7 @@
+         nm.cancel(VoIPService.ID_INCOMING_CALL_PRENOTIFICATION);
+         stopRinging();
+         if (!answered) {
+-            for (int i = 0; i < UserConfig.MAX_ACCOUNT_COUNT; ++i) {
++            for (int i : UserConfig.getAccountIds()) {
+                 MessagesController.getInstance(i).ignoreSetOnline = false;
+             }
+             AndroidUtilities.runOnUIThread(() -> {
+diff --git a/TMessagesProj/src/main/java/org/telegram/tgnet/ConnectionsManager.java b/TMessagesProj/src/main/java/org/telegram/tgnet/ConnectionsManager.java
+--- a/TMessagesProj/src/main/java/org/telegram/tgnet/ConnectionsManager.java
++++ b/TMessagesProj/src/main/java/org/telegram/tgnet/ConnectionsManager.java
+@@ -685,7 +685,7 @@
+ 
+     public static void setLangCode(String langCode) {
+         langCode = langCode.replace('_', '-').toLowerCase();
+-        for (int a = 0; a < UserConfig.MAX_ACCOUNT_COUNT; a++) {
++        for (int a : UserConfig.getAccountIds()) {
+             native_setLangCode(a, langCode);
+         }
+     }
+@@ -702,14 +702,14 @@
+             String tag = type == PushListenerController.PUSH_TYPE_FIREBASE ? "FIREBASE" : "HUAWEI";
+             pushString = SharedConfig.pushStringStatus = "__" + tag + "_GENERATING_SINCE_" + getInstance(0).getCurrentTime() + "__";
+         }
+-        for (int a = 0; a < UserConfig.MAX_ACCOUNT_COUNT; a++) {
++        for (int a : UserConfig.getAccountIds()) {
+             native_setRegId(a, pushString);
+         }
+     }
+ 
+     public static void setSystemLangCode(String langCode) {
+         langCode = langCode.replace('_', '-').toLowerCase();
+-        for (int a = 0; a < UserConfig.MAX_ACCOUNT_COUNT; a++) {
++        for (int a : UserConfig.getAccountIds()) {
+             native_setSystemLangCode(a, langCode);
+         }
+     }
+@@ -976,7 +976,7 @@
+             WebProxyTransport.stop();
+         }
+ 
+-        for (int a = 0; a < UserConfig.MAX_ACCOUNT_COUNT; a++) {
++        for (int a : UserConfig.getAccountIds()) {
+             if (enabled && settings != null && settings.isValid()) {
+                 native_setProxySettings(a, address, port, username, password, secret);
+             } else {
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/CacheControlActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/CacheControlActivity.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/CacheControlActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/CacheControlActivity.java
+@@ -609,7 +609,7 @@
+                     cacheModel.add(addToType, fileInfo);
+                 }
+                 //TODO measure for other accounts
+-//                for (int i = 0; i < UserConfig.MAX_ACCOUNT_COUNT; i++) {
++//                for (int i : UserConfig.getAccountIds()) {
+ //                    if (i != currentAccount && UserConfig.getInstance(currentAccount).isClientActivated()) {
+ //                        FileLoader.getInstance(currentAccount).getFileDatabase().getFileDialogId(fileEntry);
+ //                    }
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
+@@ -14716,7 +14716,7 @@
+         final ArrayList<Integer> accountNumbers = new ArrayList<>();
+ 
+         accountNumbers.clear();
+-        for (int a = 0; a < UserConfig.MAX_ACCOUNT_COUNT; a++) {
++        for (int a : UserConfig.getAccountIds()) {
+             if (UserConfig.getInstance(a).isClientActivated()) {
+                 accountNumbers.add(a);
+             }
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/LanguageSelectActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/LanguageSelectActivity.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/LanguageSelectActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/LanguageSelectActivity.java
+@@ -271,7 +271,7 @@
+ //                                            }
+ //                                        }
+ //                                        if (languages2.isEmpty()) return;
+-//                                        for (int account = 0; account < UserConfig.MAX_ACCOUNT_COUNT; ++account) {
++//                                        for (int account : UserConfig.getAccountIds()) {
+ //                                            MessagesController.getInstance(account).getTranslateController().clearDownloadingModels();
+ //                                        }
+ //                                        BaseFragment lastFragment = LaunchActivity.getSafeLastFragment();
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/LaunchActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/LaunchActivity.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/LaunchActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/LaunchActivity.java
+@@ -1263,7 +1263,7 @@
+ 
+     private void switchToAvailableAccountOrLogout() {
+         int account = -1;
+-        for (int a = 0; a < UserConfig.MAX_ACCOUNT_COUNT; a++) {
++        for (int a : UserConfig.getAccountIds()) {
+             if (UserConfig.getInstance(a).isClientActivated()) {
+                 account = a;
+                 break;
+@@ -2596,7 +2596,7 @@
+                                         if (accountUserID != null) {
+                                             try {
+                                                 long wantUserId = Long.parseLong(accountUserID);
+-                                                for (int a = 0; a < UserConfig.MAX_ACCOUNT_COUNT; a++) {
++                                                for (int a : UserConfig.getAccountIds()) {
+                                                     UserConfig cfg = UserConfig.getInstance(a);
+                                                     if (cfg.isClientActivated() && cfg.getClientUserId() == wantUserId) {
+                                                         intentAccount[0] = a;
+@@ -2876,7 +2876,7 @@
+                                         if (cursor.moveToFirst()) {
+                                             long userId = cursor.getLong(cursor.getColumnIndex(ContactsContract.Data.DATA4));
+                                             int accountId = Utilities.parseInt(cursor.getString(cursor.getColumnIndex(ContactsContract.RawContacts.ACCOUNT_NAME)));
+-                                            for (int a = -1; a < UserConfig.MAX_ACCOUNT_COUNT; a++) {
++                                            for (int a : UserConfig.getAccountIdsSelectedFirst()) {
+                                                 int i = a == -1 ? intentAccount[0] : a;
+                                                 if ((a == -1 && MessagesStorage.getInstance(i).containsLocalDialog(userId)) || UserConfig.getInstance(i).getClientUserId() == accountId) {
+                                                     intentAccount[0] = i;
+@@ -8561,7 +8561,7 @@
+                 layersActionBarLayout.getView().setVisibility(View.VISIBLE);
+ 
+                 int account = -1;
+-                for (int a = 0; a < UserConfig.MAX_ACCOUNT_COUNT; a++) {
++                for (int a : UserConfig.getAccountIds()) {
+                     if (UserConfig.getInstance(a).isClientActivated()) {
+                         account = a;
+                         break;
+@@ -8634,7 +8634,7 @@
+                 layersActionBarLayout.getView().setVisibility(View.VISIBLE);
+ 
+                 int account = -1;
+-                for (int a = 0; a < UserConfig.MAX_ACCOUNT_COUNT; a++) {
++                for (int a : UserConfig.getAccountIds()) {
+                     if (UserConfig.getInstance(a).isClientActivated()) {
+                         account = a;
+                         break;
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/LoginActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/LoginActivity.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/LoginActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/LoginActivity.java
+@@ -527,10 +527,22 @@
+         }
+         getNotificationCenter().removeObserver(this, NotificationCenter.didUpdateConnectionState);
+         getNotificationCenter().removeObserver(this, NotificationCenter.newSuggestionsAvailable);
++        if (activityMode == MODE_LOGIN && newAccount && !getUserConfig().isClientActivated()) {
++            org.telegram.messenger.AccountDirectory.retire(currentAccount);
++            getConnectionsManager().cleanup(false);
++        }
+     }
+ 
+     @Override
+     public boolean onFragmentCreate() {
++        if (activityMode == MODE_LOGIN && !org.telegram.messenger.AccountDirectory.contains(currentAccount)) {
++            currentAccount = UserConfig.allocateAccount();
++            newAccount = UserConfig.getActivatedAccountsCount() > 0;
++            if (!newAccount) {
++                UserConfig.selectedAccount = currentAccount;
++                UserConfig.getInstance(0).saveConfig(false);
++            }
++        }
+         getNotificationCenter().addObserver(this, NotificationCenter.didUpdateConnectionState);
+         getNotificationCenter().addObserver(this, NotificationCenter.newSuggestionsAvailable);
+         return super.onFragmentCreate();
+@@ -3090,7 +3102,7 @@
+             String phone = PhoneFormat.stripExceptNumbers("" + codeField.getText() + phoneField.getText());
+             if (activityMode == MODE_LOGIN) {
+                 if (getParentActivity() instanceof LaunchActivity) {
+-                    for (int a = 0; a < UserConfig.MAX_ACCOUNT_COUNT; a++) {
++                    for (int a : UserConfig.getAccountIds()) {
+                         UserConfig userConfig = UserConfig.getInstance(a);
+                         if (!userConfig.isClientActivated()) {
+                             continue;
+@@ -3469,7 +3481,7 @@
+                     return;
+                 }
+                 if (userId != 0 && getParentActivity() instanceof LaunchActivity) {
+-                    for (int a = 0; a < UserConfig.MAX_ACCOUNT_COUNT; a++) {
++                    for (int a : UserConfig.getAccountIds()) {
+                         UserConfig userConfig = UserConfig.getInstance(a);
+                         if (!userConfig.isClientActivated()) {
+                             continue;
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/MainTabsActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/MainTabsActivity.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/MainTabsActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/MainTabsActivity.java
+@@ -645,7 +645,7 @@
+         final ArrayList<Integer> accountNumbers = new ArrayList<>();
+ 
+         accountNumbers.clear();
+-        for (int a = 0; a < UserConfig.MAX_ACCOUNT_COUNT; a++) {
++        for (int a : UserConfig.getAccountIds()) {
+             if (UserConfig.getInstance(a).isClientActivated()) {
+                 accountNumbers.add(a);
+             }
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/NotificationPermissionDialog.java b/TMessagesProj/src/main/java/org/telegram/ui/NotificationPermissionDialog.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/NotificationPermissionDialog.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/NotificationPermissionDialog.java
+@@ -41,6 +41,8 @@
+ import org.telegram.ui.Components.RLottieImageView;
+ 
+ public class NotificationPermissionDialog extends BottomSheet implements NotificationCenter.NotificationCenterDelegate {
++    private org.telegram.messenger.AccountDirectory.Subscription accountSubscription;
++
+ 
+     private CounterView counterView;
+     private RLottieImageView rLottieImageView;
+@@ -110,11 +112,15 @@
+         });
+         linearLayout.addView(textView, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, 48, 14, 14, 14, 10));
+ 
+-        for (int a = 0; a < UserConfig.MAX_ACCOUNT_COUNT; ++a) {
++        accountSubscription = org.telegram.messenger.AccountDirectory.observe(a -> {
+             try {
+                 NotificationCenter.getInstance(a).addObserver(this, NotificationCenter.updateInterfaces);
+             } catch (Exception ignore) {}
+-        }
++        }, a -> {
++            try {
++                NotificationCenter.getInstance(a).removeObserver(this, NotificationCenter.updateInterfaces);
++            } catch (Exception ignore) {}
++        });
+     }
+ 
+     @Override
+@@ -129,7 +135,7 @@
+ 
+     public void updateCounter() {
+         int counter = 0;
+-        for (int a = 0; a < UserConfig.MAX_ACCOUNT_COUNT; ++a) {
++        for (int a : UserConfig.getAccountIds()) {
+             MessagesStorage messagesStorage = MessagesStorage.getInstance(a);
+             if (messagesStorage != null) {
+                 counter += messagesStorage.getMainUnreadCount();
+@@ -159,10 +165,9 @@
+             whenGranted = null;
+             askLater();
+         }
+-        for (int a = 0; a < UserConfig.MAX_ACCOUNT_COUNT; ++a) {
+-            try {
+-                NotificationCenter.getInstance(a).removeObserver(this, NotificationCenter.updateInterfaces);
+-            } catch (Exception ignore) {}
++        if (accountSubscription != null) {
++            accountSubscription.close();
++            accountSubscription = null;
+         }
+     }
+ 
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/NotificationsSettingsActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/NotificationsSettingsActivity.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/NotificationsSettingsActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/NotificationsSettingsActivity.java
+@@ -743,7 +743,7 @@
+                 editor.putBoolean("AllAccounts", !enabled);
+                 editor.commit();
+                 SharedConfig.showNotificationsForAllAccounts = !enabled;
+-                for (int a = 0; a < UserConfig.MAX_ACCOUNT_COUNT; a++) {
++                for (int a : UserConfig.getAccountIds()) {
+                     if (SharedConfig.showNotificationsForAllAccounts) {
+                         NotificationsController.getInstance(a).showNotifications();
+                     } else {
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/OAuthSheet.java b/TMessagesProj/src/main/java/org/telegram/ui/OAuthSheet.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/OAuthSheet.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/OAuthSheet.java
+@@ -152,7 +152,7 @@
+         final ArrayList<Integer> accountNumbers = new ArrayList<>();
+         final boolean testBackend = ConnectionsManager.getInstance(currentAccount).isTestBackend();
+         accountNumbers.clear();
+-        for (int a = 0; a < UserConfig.MAX_ACCOUNT_COUNT; a++) {
++        for (int a : UserConfig.getAccountIds()) {
+             if (UserConfig.getInstance(a).isClientActivated() && ConnectionsManager.getInstance(a).isTestBackend() == testBackend) {
+                 accountNumbers.add(a);
+             }
+@@ -618,7 +618,7 @@
+ 
+         int accountForEmoji = currentAccount;
+         if (ConnectionsManager.getInstance(accountForEmoji).isTestBackend()) {
+-            for (int i = 0; i < UserConfig.MAX_ACCOUNT_COUNT; ++i) {
++            for (int i : UserConfig.getAccountIds()) {
+                 if (UserConfig.getInstance(i).isClientActivated() && !ConnectionsManager.getInstance(i).isTestBackend()) {
+                     accountForEmoji = i;
+                     break;
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/PopupNotificationActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/PopupNotificationActivity.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/PopupNotificationActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/PopupNotificationActivity.java
+@@ -84,6 +84,8 @@
+ import java.util.ArrayList;
+ 
+ public class PopupNotificationActivity extends Activity implements NotificationCenter.NotificationCenterDelegate {
++    private org.telegram.messenger.AccountDirectory.Subscription accountSubscription;
++
+ 
+     private ActionBar actionBar;
+     private ChatActivityEnterView chatActivityEnterView;
+@@ -165,13 +167,19 @@
+         Theme.createChatResources(this, false);
+ 
+         AndroidUtilities.fillStatusBarHeight(this, false);
+-        for (int a = 0; a < UserConfig.MAX_ACCOUNT_COUNT; a++) {
++        accountSubscription = org.telegram.messenger.AccountDirectory.observe(a -> {
+             NotificationCenter.getInstance(a).addObserver(this, NotificationCenter.appDidLogout);
+             NotificationCenter.getInstance(a).addObserver(this, NotificationCenter.updateInterfaces);
+             NotificationCenter.getInstance(a).addObserver(this, NotificationCenter.messagePlayingProgressDidChanged);
+             NotificationCenter.getInstance(a).addObserver(this, NotificationCenter.messagePlayingDidReset);
+             NotificationCenter.getInstance(a).addObserver(this, NotificationCenter.contactsDidLoad);
+-        }
++        }, a -> {
++            NotificationCenter.getInstance(a).removeObserver(this, NotificationCenter.appDidLogout);
++            NotificationCenter.getInstance(a).removeObserver(this, NotificationCenter.updateInterfaces);
++            NotificationCenter.getInstance(a).removeObserver(this, NotificationCenter.messagePlayingProgressDidChanged);
++            NotificationCenter.getInstance(a).removeObserver(this, NotificationCenter.messagePlayingDidReset);
++            NotificationCenter.getInstance(a).removeObserver(this, NotificationCenter.contactsDidLoad);
++        });
+         NotificationCenter.getGlobalInstance().addObserver(this, NotificationCenter.pushMessagesUpdated);
+         NotificationCenter.getGlobalInstance().addObserver(this, NotificationCenter.emojiLoaded);
+         classGuid = ConnectionsManager.generateClassGuid();
+@@ -1201,7 +1209,7 @@
+             }
+             popupMessages.addAll(NotificationsController.getInstance(account).popupReplyMessages);
+         } else {
+-            for (int a = 0; a < UserConfig.MAX_ACCOUNT_COUNT; a++) {
++            for (int a : UserConfig.getAccountIds()) {
+                 if (UserConfig.getInstance(a).isClientActivated()) {
+                     popupMessages.addAll(NotificationsController.getInstance(a).popupMessages);
+                 }
+@@ -1471,7 +1479,7 @@
+         } else if (id == NotificationCenter.pushMessagesUpdated) {
+             if (!isReply) {
+                 popupMessages.clear();
+-                for (int a = 0; a < UserConfig.MAX_ACCOUNT_COUNT; a++) {
++                for (int a : UserConfig.getAccountIds()) {
+                     if (UserConfig.getInstance(a).isClientActivated()) {
+                         popupMessages.addAll(NotificationsController.getInstance(a).popupMessages);
+                     }
+@@ -1587,12 +1595,9 @@
+         if (isReply) {
+             popupMessages.clear();
+         }
+-        for (int a = 0; a < UserConfig.MAX_ACCOUNT_COUNT; a++) {
+-            NotificationCenter.getInstance(a).removeObserver(this, NotificationCenter.appDidLogout);
+-            NotificationCenter.getInstance(a).removeObserver(this, NotificationCenter.updateInterfaces);
+-            NotificationCenter.getInstance(a).removeObserver(this, NotificationCenter.messagePlayingProgressDidChanged);
+-            NotificationCenter.getInstance(a).removeObserver(this, NotificationCenter.messagePlayingDidReset);
+-            NotificationCenter.getInstance(a).removeObserver(this, NotificationCenter.contactsDidLoad);
++        if (accountSubscription != null) {
++            accountSubscription.close();
++            accountSubscription = null;
+         }
+         NotificationCenter.getGlobalInstance().removeObserver(this, NotificationCenter.pushMessagesUpdated);
+         NotificationCenter.getGlobalInstance().removeObserver(this, NotificationCenter.emojiLoaded);
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
+@@ -14708,16 +14708,7 @@
+                     new SearchResult(500, getString(R.string.EditName), 0, () -> f.presentFragment(new ChangeNameActivity(resourcesProvider))),
+                     new SearchResult(501, getString(R.string.ChangePhoneNumber), 0, () -> f.presentFragment(new ActionIntroActivity(ActionIntroActivity.ACTION_TYPE_CHANGE_PHONE_NUMBER))).withLink("tg://settings/edit/change-number"),
+                     new SearchResult(502, getString(R.string.AddAnotherAccount), 0, () -> {
+-                        int freeAccount = -1;
+-                        for (int a = 0; a < UserConfig.MAX_ACCOUNT_COUNT; a++) {
+-                            if (!UserConfig.getInstance(a).isClientActivated()) {
+-                                freeAccount = a;
+-                                break;
+-                            }
+-                        }
+-                        if (freeAccount >= 0) {
+-                            f.presentFragment(new LoginActivity(freeAccount));
+-                        }
++                        app.nebulagram.ui.NebulaNavigation.addAccount(f);
+                     }).withLink("tg://settings/edit/add-account"),
+                     // TODO:
+ //                    new SearchResult(503, getString(R.string.UserBio), 0, () -> {
+@@ -15286,7 +15277,7 @@
+                         if (stringBuilder != null && i == searchArgs.length - 1) {
+                             if (result.guid == 502) {
+                                 int freeAccount = -1;
+-                                for (int b = 0; b < UserConfig.MAX_ACCOUNT_COUNT; b++) {
++                                for (int b : UserConfig.getAccountIds()) {
+                                     if (!UserConfig.getInstance(b).isClientActivated()) {
+                                         freeAccount = b;
+                                         break;
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/RestrictedLanguagesSelectActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/RestrictedLanguagesSelectActivity.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/RestrictedLanguagesSelectActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/RestrictedLanguagesSelectActivity.java
+@@ -552,7 +552,7 @@
+                 edit.putInt("translate_button_restricted_languages_version", LAST_DO_NOT_TRANSLATE_VERSION).apply();
+                 invalidateRestrictedLanguages();
+ 
+-                for (int i = 0; i < UserConfig.MAX_ACCOUNT_COUNT; ++i) {
++                for (int i : UserConfig.getAccountIds()) {
+                     final int account = i;
+                     try {
+                         MessagesController.getInstance(account).getTranslateController().checkRestrictedLanguagesUpdate();
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/SessionsActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/SessionsActivity.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/SessionsActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/SessionsActivity.java
+@@ -364,7 +364,7 @@
+                                     }
+                                 });
+ 
+-                                for (int a = 0; a < UserConfig.MAX_ACCOUNT_COUNT; a++) {
++                                for (int a : UserConfig.getAccountIds()) {
+                                     UserConfig userConfig = UserConfig.getInstance(a);
+                                     if (!userConfig.isClientActivated()) {
+                                         continue;
+@@ -404,7 +404,7 @@
+                                 }
+                             });
+ 
+-                            for (int a = 0; a < UserConfig.MAX_ACCOUNT_COUNT; a++) {
++                            for (int a : UserConfig.getAccountIds()) {
+                                 UserConfig userConfig = UserConfig.getInstance(a);
+                                 if (!userConfig.isClientActivated()) {
+                                     continue;
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/SettingsActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/SettingsActivity.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/SettingsActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/SettingsActivity.java
+@@ -626,7 +626,7 @@
+         items.add(UItem.asCustomShadow(topView, 200 - 12));
+ 
+         accountNumbers.clear();
+-        for (int a = 0; a < UserConfig.MAX_ACCOUNT_COUNT; a++) {
++        for (int a : UserConfig.getAccountIds()) {
+             if (UserConfig.getInstance(a).isClientActivated() && currentAccount != a) {
+                 accountNumbers.add(a);
+             }
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/UserInfoActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/UserInfoActivity.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/UserInfoActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/UserInfoActivity.java
+@@ -301,7 +301,7 @@
+     private final ArrayList<Integer> accountNumbers = new ArrayList<>();
+     private void updateAccounts() {
+         accountNumbers.clear();
+-        for (int a = 0; a < UserConfig.MAX_ACCOUNT_COUNT; a++) {
++        for (int a : UserConfig.getAccountIds()) {
+             if (UserConfig.getInstance(a).isClientActivated() && currentAccount != a) {
+                 accountNumbers.add(a);
+             }
+@@ -419,7 +419,7 @@
+             items.add(SettingsActivity.SettingCell.Factory.of(BUTTON_AI, IconBackgroundColors.PURPLE.top, IconBackgroundColors.PURPLE.bottom, R.drawable.premium_ai_editor, applyNewSpan(getString(R.string.EditProfileChatAutomation))));
+         }
+         items.add(UItem.asShadow(-3, getString(R.string.EditProfileChatAutomationInfo)));
+-        final boolean hasAddAccount = UserConfig.getActivatedAccountsCount() < UserConfig.MAX_ACCOUNT_COUNT;
++        final boolean hasAddAccount = UserConfig.canAddAccount();
+         if (hasAddAccount) {
+             addAccountRow = items.size();
+             items.add(InfoCell.Factory.of(BUTTON_ADD_ACCOUNT, R.drawable.outline_add_account, getString(R.string.AddAccount), null, 0).accent());
+@@ -431,19 +431,7 @@
+             for (int i = 0; i < accountNumbers.size(); ++i) {
+                 items.add(SettingsActivity.AccountCell.Factory.of(i, accountNumbers.get(i)));
+             }
+-            if (!UserConfig.hasPremiumOnAccounts()) {
+-                final int moreAccounts = Math.max(0, UserConfig.getMaxAccountCount() - UserConfig.getActivatedAccountsCount());
+-                items.add(UItem.asShadow(
+-                    TextUtils.concat(
+-                        moreAccounts > 0 ? LocaleController.formatPluralStringComma("AddAccountInfo1", moreAccounts) + " " : "",
+-                        replaceSingleTag(LocaleController.formatPluralStringComma("AddAccountInfo2", UserConfig.getMaxAccountCount()), () -> {
+-                            presentFragment(new PremiumPreviewFragment("add_account"));
+-                        })
+-                    )
+-                ));
+-            } else {
+-                items.add(UItem.asShadow(null));
+-            }
++            items.add(UItem.asShadow(null));
+         }
+         logoutRow = items.size();
+         items.add(InfoCell.Factory.of(BUTTON_LOGOUT, R.drawable.msg_leave, getString(R.string.LogOut), null, 0).red());
+@@ -471,22 +459,8 @@
+     @Override
+     protected void onClick(UItem item, View view, int position, float x, float y) {
+         if (item.id == BUTTON_ADD_ACCOUNT) {
+-            int freeAccounts = 0;
+-            Integer availableAccount = null;
+-            for (int a = UserConfig.MAX_ACCOUNT_COUNT - 1; a >= 0; a--) {
+-                if (!UserConfig.getInstance(a).isClientActivated()) {
+-                    freeAccounts++;
+-                    if (availableAccount == null) {
+-                        availableAccount = a;
+-                    }
+-                }
+-            }
+-            if (!UserConfig.hasPremiumOnAccounts()) {
+-                freeAccounts -= (UserConfig.MAX_ACCOUNT_COUNT - UserConfig.MAX_ACCOUNT_DEFAULT_COUNT);
+-            }
+-            if (freeAccounts > 0 && availableAccount != null) {
+-                presentFragment(new LoginActivity(availableAccount));
+-            } else if (!UserConfig.hasPremiumOnAccounts()) {
++            app.nebulagram.ui.NebulaNavigation.addAccount(this);
++        } else if (!UserConfig.hasPremiumOnAccounts()) {
+                 showDialog(new LimitReachedBottomSheet(this, getContext(), TYPE_ACCOUNTS, currentAccount, null));
+             }
+         } else if (item.instanceOf(SettingsActivity.AccountCell.Factory.class)) {
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/WearAuthSheet.java b/TMessagesProj/src/main/java/org/telegram/ui/WearAuthSheet.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/WearAuthSheet.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/WearAuthSheet.java
+@@ -201,7 +201,7 @@
+         int nonTestAccount = UserConfig.selectedAccount;
+         final ArrayList<Integer> accountNumbers = new ArrayList<>();
+         accountNumbers.clear();
+-        for (int a = 0; a < UserConfig.MAX_ACCOUNT_COUNT; a++) {
++        for (int a : UserConfig.getAccountIds()) {
+             if (UserConfig.getInstance(a).isClientActivated()) {
+                 if (!ConnectionsManager.getInstance(a).isTestBackend()) {
+                     nonTestAccount = a;
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/bots/BotBiometry.java b/TMessagesProj/src/main/java/org/telegram/ui/bots/BotBiometry.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/bots/BotBiometry.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/bots/BotBiometry.java
+@@ -491,7 +491,7 @@
+     public static void clear() {
+         Context context = ApplicationLoader.applicationContext;
+         if (context == null) return;
+-        for (int i = 0; i < UserConfig.MAX_ACCOUNT_COUNT; ++i) {
++        for (int i : UserConfig.getAccountIds()) {
+             final SharedPreferences prefs = context.getSharedPreferences(PREF + i, Activity.MODE_PRIVATE);
+             prefs.edit().clear().apply();
+         }
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/bots/BotDownloads.java b/TMessagesProj/src/main/java/org/telegram/ui/bots/BotDownloads.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/bots/BotDownloads.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/bots/BotDownloads.java
+@@ -867,7 +867,7 @@
+     public static void clear() {
+         Context context = ApplicationLoader.applicationContext;
+         if (context == null) return;
+-        for (int i = 0; i < UserConfig.MAX_ACCOUNT_COUNT; ++i) {
++        for (int i : UserConfig.getAccountIds()) {
+             final SharedPreferences prefs = context.getSharedPreferences(PREF + i, Activity.MODE_PRIVATE);
+             prefs.edit().clear().apply();
+         }
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/bots/BotLocation.java b/TMessagesProj/src/main/java/org/telegram/ui/bots/BotLocation.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/bots/BotLocation.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/bots/BotLocation.java
+@@ -558,7 +558,7 @@
+     public static void clear() {
+         Context context = ApplicationLoader.applicationContext;
+         if (context == null) return;
+-        for (int i = 0; i < UserConfig.MAX_ACCOUNT_COUNT; ++i) {
++        for (int i : UserConfig.getAccountIds()) {
+             final SharedPreferences prefs = context.getSharedPreferences(PREF + i, Activity.MODE_PRIVATE);
+             prefs.edit().clear().apply();
+         }
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/bots/BotStorage.java b/TMessagesProj/src/main/java/org/telegram/ui/bots/BotStorage.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/bots/BotStorage.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/bots/BotStorage.java
+@@ -301,7 +301,7 @@
+         boolean can_restore = false;
+         if (secured && value == null && !thisJSON.keys().hasNext()) {
+             final HashSet<Long> activeUsers = new HashSet<>();
+-            for (int i = 0; i < UserConfig.MAX_ACCOUNT_COUNT; ++i) {
++            for (int i : UserConfig.getAccountIds()) {
+                 final UserConfig userConfig = UserConfig.getInstance(i);
+                 if (userConfig.isClientActivated()) {
+                     activeUsers.add(userConfig.getClientUserId());
+@@ -341,7 +341,7 @@
+         final ArrayList<StorageConfig> result = new ArrayList<>();
+ 
+         final HashSet<Long> activeUsers = new HashSet<>();
+-        for (int i = 0; i < UserConfig.MAX_ACCOUNT_COUNT; ++i) {
++        for (int i : UserConfig.getAccountIds()) {
+             final UserConfig userConfig = UserConfig.getInstance(i);
+             if (userConfig.isClientActivated()) {
+                 activeUsers.add(userConfig.getClientUserId());
+@@ -378,7 +378,7 @@
+         }
+ 
+         final HashSet<Long> activeUsers = new HashSet<>();
+-        for (int i = 0; i < UserConfig.MAX_ACCOUNT_COUNT; ++i) {
++        for (int i : UserConfig.getAccountIds()) {
+             final UserConfig userConfig = UserConfig.getInstance(i);
+             if (userConfig.isClientActivated()) {
+                 activeUsers.add(userConfig.getClientUserId());
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/bots/SetupEmojiStatusSheet.java b/TMessagesProj/src/main/java/org/telegram/ui/bots/SetupEmojiStatusSheet.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/bots/SetupEmojiStatusSheet.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/bots/SetupEmojiStatusSheet.java
+@@ -499,7 +499,7 @@
+     public static void clear() {
+         Context context = ApplicationLoader.applicationContext;
+         if (context == null) return;
+-        for (int i = 0; i < UserConfig.MAX_ACCOUNT_COUNT; ++i) {
++        for (int i : UserConfig.getAccountIds()) {
+             final SharedPreferences prefs = context.getSharedPreferences(PREF + i, Activity.MODE_PRIVATE);
+             prefs.edit().clear().apply();
+         }
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Cells/ThemesHorizontalListCell.java b/TMessagesProj/src/main/java/org/telegram/ui/Cells/ThemesHorizontalListCell.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Cells/ThemesHorizontalListCell.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Cells/ThemesHorizontalListCell.java
+@@ -65,6 +65,8 @@
+ import java.util.HashMap;
+ 
+ public class ThemesHorizontalListCell extends RecyclerListView implements NotificationCenter.NotificationCenterDelegate {
++    private org.telegram.messenger.AccountDirectory.Subscription accountSubscription;
++
+ 
+     public static byte[] bytes = new byte[1024];
+ 
+@@ -811,18 +813,21 @@
+     @Override
+     protected void onAttachedToWindow() {
+         super.onAttachedToWindow();
+-        for (int a = 0; a < UserConfig.MAX_ACCOUNT_COUNT; a++) {
++        accountSubscription = org.telegram.messenger.AccountDirectory.observe(a -> {
+             NotificationCenter.getInstance(a).addObserver(this, NotificationCenter.fileLoaded);
+             NotificationCenter.getInstance(a).addObserver(this, NotificationCenter.fileLoadFailed);
+-        }
++        }, a -> {
++            NotificationCenter.getInstance(a).removeObserver(this, NotificationCenter.fileLoaded);
++            NotificationCenter.getInstance(a).removeObserver(this, NotificationCenter.fileLoadFailed);
++        });
+     }
+ 
+     @Override
+     protected void onDetachedFromWindow() {
+         super.onDetachedFromWindow();
+-        for (int a = 0; a < UserConfig.MAX_ACCOUNT_COUNT; a++) {
+-            NotificationCenter.getInstance(a).removeObserver(this, NotificationCenter.fileLoaded);
+-            NotificationCenter.getInstance(a).removeObserver(this, NotificationCenter.fileLoadFailed);
++        if (accountSubscription != null) {
++            accountSubscription.close();
++            accountSubscription = null;
+         }
+     }
+ 
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/AIEditorAlert.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/AIEditorAlert.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Components/AIEditorAlert.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/AIEditorAlert.java
+@@ -1874,7 +1874,7 @@
+ 
+                 int accountForEmoji = currentAccount;
+                 if (ConnectionsManager.getInstance(accountForEmoji).isTestBackend()) {
+-                    for (int i = 0; i < UserConfig.MAX_ACCOUNT_COUNT; ++i) {
++                    for (int i : UserConfig.getAccountIds()) {
+                         if (UserConfig.getInstance(i).isClientActivated() && !ConnectionsManager.getInstance(i).isTestBackend()) {
+                             accountForEmoji = i;
+                             break;
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/AlertsCreator.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/AlertsCreator.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Components/AlertsCreator.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/AlertsCreator.java
+@@ -7710,7 +7710,7 @@
+ 
+         final LinearLayout linearLayout = new LinearLayout(parentActivity);
+         linearLayout.setOrientation(LinearLayout.VERTICAL);
+-        for (int a = 0; a < UserConfig.MAX_ACCOUNT_COUNT; a++) {
++        for (int a : UserConfig.getAccountIds()) {
+             TLRPC.User u = UserConfig.getInstance(a).getCurrentUser();
+             if (u != null) {
+                 AccountSelectCell cell = new AccountSelectCell(parentActivity, false);
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/FragmentContextView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/FragmentContextView.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Components/FragmentContextView.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/FragmentContextView.java
+@@ -718,7 +718,7 @@
+                 }
+                 builder.setPositiveButton(getString(R.string.Stop), (dialogInterface, i) -> {
+                     if (fragment instanceof DialogsActivity) {
+-                        for (int a = 0; a < UserConfig.MAX_ACCOUNT_COUNT; a++) {
++                        for (int a : UserConfig.getAccountIds()) {
+                             LocationController.getInstance(a).removeAllLocationSharings();
+                         }
+                     } else {
+@@ -802,7 +802,7 @@
+                     did = chatActivity.getDialogId();
+                     account = fragment.getCurrentAccount();
+                 } else if (LocationController.getLocationsCount() == 1) {
+-                    for (int a = 0; a < UserConfig.MAX_ACCOUNT_COUNT; a++) {
++                    for (int a : UserConfig.getAccountIds()) {
+                         ArrayList<LocationController.SharingLocationInfo> arrayList = LocationController.getInstance(a).sharingLocationsUI;
+                         if (!arrayList.isEmpty()) {
+                             LocationController.SharingLocationInfo info = LocationController.getInstance(a).sharingLocationsUI.get(0);
+@@ -1403,11 +1403,6 @@
+         topPadding = 0;
+ 
+         removeObservers();
+-        if (!isLocation) {
+-            for (int a = 0; a < UserConfig.MAX_ACCOUNT_COUNT; a++) {
+-                GroupCallMessagesController.getInstance(a).unsubscribeFromCallMessages(0, this);
+-            }
+-        }
+ 
+         if (currentStyle == STYLE_ACTIVE_GROUP_CALL || currentStyle == STYLE_CONNECTING_GROUP_CALL) {
+             Theme.getFragmentContextViewWavesDrawable().removeParent(this);
+@@ -1421,8 +1416,13 @@
+ 
+     private final java.util.HashMap<Integer, NotificationCenter.ObserversGroup> observersGroup = new java.util.HashMap<>();
+     private NotificationCenter.ObserversGroup globalObserversGroup;
++    private org.telegram.messenger.AccountDirectory.Subscription accountSubscription;
+ 
+     private void removeObservers() {
++        if (accountSubscription != null) {
++            accountSubscription.close();
++            accountSubscription = null;
++        }
+         if (globalObserversGroup != null) {
+             globalObserversGroup.removeAllObservers();
+             globalObserversGroup = null;
+@@ -1446,7 +1446,7 @@
+                 .add(NotificationCenter.liveLocationsCacheChanged);
+             checkLiveLocation(true);
+         } else {
+-            for (int a = 0; a < UserConfig.MAX_ACCOUNT_COUNT; a++) {
++            accountSubscription = org.telegram.messenger.AccountDirectory.observe(a -> {
+                 observersGroup.put(a, NotificationCenter.getInstance(a)
+                     .createObserversGroup(this)
+                     .add(NotificationCenter.messagePlayingDidReset)
+@@ -1458,7 +1458,11 @@
+                     .add(NotificationCenter.liveStoryUpdated)
+                     .add(NotificationCenter.messagePlayingProgressDidChanged));
+                 GroupCallMessagesController.getInstance(a).subscribeToCallMessages(0, this);
+-            }
++            }, a -> {
++                NotificationCenter.ObserversGroup group = observersGroup.remove(a);
++                if (group != null) group.removeAllObservers();
++                GroupCallMessagesController.getInstance(a).unsubscribeFromCallMessages(0, this);
++            });
+ 
+             globalObserversGroup = NotificationCenter.getGlobalInstance()
+                 .createObserversGroup(this)
+@@ -1697,7 +1701,7 @@
+                 String param;
+                 String str;
+                 ArrayList<LocationController.SharingLocationInfo> infos = new ArrayList<>();
+-                for (int a = 0; a < UserConfig.MAX_ACCOUNT_COUNT; a++) {
++                for (int a : UserConfig.getAccountIds()) {
+                     infos.addAll(LocationController.getInstance(a).sharingLocationsUI);
+                 }
+                 if (infos.size() == 1) {
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/SharingLocationsAlert.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/SharingLocationsAlert.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Components/SharingLocationsAlert.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/SharingLocationsAlert.java
+@@ -181,7 +181,7 @@
+         pickerBottomLayout.cancelButton.setTextColor(getThemedColor(Theme.key_text_RedBold));
+         pickerBottomLayout.cancelButton.setText(LocaleController.getString(R.string.StopAllLocationSharings));
+         pickerBottomLayout.cancelButton.setOnClickListener(view -> {
+-            for (int a = 0; a < UserConfig.MAX_ACCOUNT_COUNT; a++) {
++            for (int a : UserConfig.getAccountIds()) {
+                 LocationController.getInstance(a).removeAllLocationSharings();
+             }
+             dismiss();
+@@ -229,7 +229,7 @@
+     }
+ 
+     private LocationController.SharingLocationInfo getLocation(int position) {
+-        for (int a = 0; a < UserConfig.MAX_ACCOUNT_COUNT; a++) {
++        for (int a : UserConfig.getAccountIds()) {
+             ArrayList<LocationController.SharingLocationInfo> infos = LocationController.getInstance(a).sharingLocationsUI;
+             if (position >= infos.size()) {
+                 position -= infos.size();
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/LogoutActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/LogoutActivity.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/LogoutActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/LogoutActivity.java
+@@ -74,7 +74,7 @@
+ 
+         rowCount = 0;
+         alternativeHeaderRow = rowCount++;
+-        if (UserConfig.getActivatedAccountsCount() < UserConfig.MAX_ACCOUNT_COUNT) {
++        if (UserConfig.canAddAccount()) {
+             addAccountRow = rowCount++;
+         } else {
+             addAccountRow = -1;
+@@ -124,22 +124,8 @@
+         listView.setAdapter(listAdapter);
+         listView.setOnItemClickListener((view, position, x, y) -> {
+             if (position == addAccountRow) {
+-                int freeAccounts = 0;
+-                Integer availableAccount = null;
+-                for (int a = UserConfig.MAX_ACCOUNT_COUNT - 1; a >= 0; a--) {
+-                    if (!UserConfig.getInstance(a).isClientActivated()) {
+-                        freeAccounts++;
+-                        if (availableAccount == null) {
+-                            availableAccount = a;
+-                        }
+-                    }
+-                }
+-                if (!UserConfig.hasPremiumOnAccounts()) {
+-                    freeAccounts -= (UserConfig.MAX_ACCOUNT_COUNT - UserConfig.MAX_ACCOUNT_DEFAULT_COUNT);
+-                }
+-                if (freeAccounts > 0 && availableAccount != null) {
+-                    presentFragment(new LoginActivity(availableAccount));
+-                } else if (!UserConfig.hasPremiumOnAccounts()) {
++                app.nebulagram.ui.NebulaNavigation.addAccount(LogoutActivity.this);
++            } else if (!UserConfig.hasPremiumOnAccounts()) {
+                     LimitReachedBottomSheet limitReachedBottomSheet = new LimitReachedBottomSheet(this, getContext(), TYPE_ACCOUNTS, currentAccount, null);
+                     showDialog(limitReachedBottomSheet);
+                 }
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/Premium/DoubledLimitsBottomSheet.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/Premium/DoubledLimitsBottomSheet.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Components/Premium/DoubledLimitsBottomSheet.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/Premium/DoubledLimitsBottomSheet.java
+@@ -318,11 +318,6 @@
+                     LocaleController.getString(R.string.ChatPerFolderLimitTitle),
+                     LocaleController.formatString(R.string.ChatPerFolderLimitSubtitle, messagesController.dialogFiltersChatsLimitPremium),
+                     messagesController.dialogFiltersChatsLimitDefault, messagesController.dialogFiltersChatsLimitPremium
+-            ));
+-            limits.add(new Limit(
+-                    LocaleController.getString(R.string.ConnectedAccountsLimitTitle),
+-                    LocaleController.formatString(R.string.ConnectedAccountsLimitSubtitle, 4),
+-                    UserConfig.MAX_ACCOUNT_DEFAULT_COUNT, UserConfig.MAX_ACCOUNT_COUNT
+             ));
+             limits.add(new Limit(
+                     LocaleController.getString(R.string.SimilarChannelsLimitTitle),
+diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/NotificationsDisabledReceiver.java b/TMessagesProj/src/main/java/org/telegram/messenger/NotificationsDisabledReceiver.java
+--- a/TMessagesProj/src/main/java/org/telegram/messenger/NotificationsDisabledReceiver.java
++++ b/TMessagesProj/src/main/java/org/telegram/messenger/NotificationsDisabledReceiver.java
+@@ -38,7 +38,7 @@
+         }
+         ApplicationLoader.postInitApplication();
+         int account = Utilities.parseInt(args[0]);
+-        if (account < 0 || account >= UserConfig.MAX_ACCOUNT_COUNT) {
++        if (!AccountDirectory.contains(account)) {
+             return;
+         }
+         if (BuildVars.LOGS_ENABLED) {

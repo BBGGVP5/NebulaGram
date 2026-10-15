@@ -32,7 +32,7 @@ public final class NebulaFeatureControls {
         card = new NebulaCard(parent.getContext());
         card.add(toggle(parent, "mute_non_contacts", "Приглушить не-контакты", "Silence non-contacts", "Сообщения незнакомых людей приходят без звука и вибрации", "Messages from unknown people arrive without sound or vibration"));
         card.add(toggle(parent, "ignore_mentions", "Игнорировать упоминания", "Ignore mentions", "Не уведомлять об упоминаниях и скрывать их счётчик", "Skip mention notifications and hide their counter"));
-        for (int account = 0; account < org.telegram.messenger.UserConfig.MAX_ACCOUNT_COUNT; account++) {
+        for (int account : org.telegram.messenger.UserConfig.getAccountIds()) {
             if (!org.telegram.messenger.UserConfig.getInstance(account).isClientActivated()) continue;
             final int selectedAccount = account;
             org.telegram.tgnet.TLRPC.User user = org.telegram.messenger.UserConfig.getInstance(account).getCurrentUser();
@@ -79,7 +79,7 @@ public final class NebulaFeatureControls {
             .subtitle(text("Не учитывать чаты без звука в числах папок; состав папок сохраняется", "Exclude muted chats from folder counts, keeping folder membership"), false)
             .trailing(NebulaRow.TRAIL_SWITCH).checked(NebulaChatPreferences.unmuted()).withClick(v -> {
                 NebulaChatPreferences.set("folder_unmuted_only", ((NebulaRow)v).toggleChecked());
-                for (int a=0; a<org.telegram.messenger.UserConfig.MAX_ACCOUNT_COUNT; a++)
+                for (int a : org.telegram.messenger.UserConfig.getAccountIds())
                     if (org.telegram.messenger.UserConfig.getInstance(a).isClientActivated()) org.telegram.messenger.MessagesStorage.getInstance(a).nebulaRecountFilters();
             }));
         String[] styles = {text("Обычно", "Default"), text("Сбоку", "Beside sticker"), text("Скрыто", "Hidden")};

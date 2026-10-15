@@ -27,7 +27,7 @@ assert 'NebulaAppearance.settingsSearchHistory()' in load
 assert 'NebulaAppearance.settingsSearchHistory()' in add
 helper = (overlay / 'NebulaSettingsHistory.java').read_text(encoding='utf-8')
 assert '.remove("settingsSearchRecent2").apply()' in helper
-assert 'MAX_ACCOUNT_COUNT' in helper and 'NotificationCenter.updateSearchSettings' in helper
+assert 'UserConfig.getAccountIds()' in helper and 'NotificationCenter.updateSearchSettings' in helper
 appearance = (overlay / 'NebulaAppearance.java').read_text(encoding='utf-8')
 assert 'NebulaSettingsHistory.refresh();' in appearance
 assert 'NotificationCenter.storiesUpdated' in appearance

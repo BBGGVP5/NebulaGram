@@ -1,0 +1,244 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/NotificationsController.java b/TMessagesProj/src/main/java/org/telegram/messenger/NotificationsController.java
+--- a/TMessagesProj/src/main/java/org/telegram/messenger/NotificationsController.java
++++ b/TMessagesProj/src/main/java/org/telegram/messenger/NotificationsController.java
+@@ -174,6 +174,7 @@
+         if (Build.VERSION.SDK_INT >= 26 && ApplicationLoader.applicationContext != null) {
+             notificationManager = NotificationManagerCompat.from(ApplicationLoader.applicationContext);
+             systemNotificationManager = (NotificationManager) ApplicationLoader.applicationContext.getSystemService(Context.NOTIFICATION_SERVICE);
++        AccountNotificationIdentity.removeLegacyMessages(ApplicationLoader.applicationContext);
+             checkOtherNotificationsChannel();
+         }
+         audioManager = (AudioManager) ApplicationLoader.applicationContext.getSystemService(Context.AUDIO_SERVICE);
+@@ -188,7 +189,7 @@
+ 
+     public NotificationsController(int instance) {
+         super(instance);
+-        notificationId = currentAccount + 1;
++        notificationId = 1;
+         notificationGroup = "messages" + (currentAccount == 0 ? "" : currentAccount);
+         SharedPreferences preferences = getAccountInstance().getNotificationsSettings();
+         inChatSoundEnabled = preferences.getBoolean("EnableInChatSound", true);
+@@ -379,7 +380,7 @@
+                 intent.putExtra("currentAccount", currentAccount);
+                 intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                 PendingIntent contentIntent = PendingIntent.getActivity(ApplicationLoader.applicationContext,
+-                        currentAccount, intent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
++                        currentAccount, AccountNotificationIdentity.scope(intent, currentAccount), PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+                 NotificationCompat.Builder builder = new NotificationCompat.Builder(ApplicationLoader.applicationContext, channelId)
+                         .setSmallIcon(R.drawable.notification)
+                         .setContentTitle(LocaleController.getString(R.string.AppName))
+@@ -3288,7 +3289,7 @@
+         try {
+             Intent intent = new Intent(ApplicationLoader.applicationContext, NotificationRepeat.class);
+             intent.putExtra("currentAccount", currentAccount);
+-            PendingIntent pintent = PendingIntent.getService(ApplicationLoader.applicationContext, 0, intent, PendingIntent.FLAG_MUTABLE);
++            PendingIntent pintent = PendingIntent.getService(ApplicationLoader.applicationContext, 0, AccountNotificationIdentity.scope(intent, currentAccount), PendingIntent.FLAG_MUTABLE);
+             SharedPreferences preferences = getAccountInstance().getNotificationsSettings();
+             int minutes = preferences.getInt("repeat_messages", 60);
+             if (minutes > 0 && personalCount > 0) {
+@@ -3326,10 +3327,10 @@
+ 
+     public void hideNotifications() {
+         notificationsQueue.postRunnable(() -> {
+-            notificationManager.cancel(notificationId);
++            notificationManager.cancel(AccountNotificationIdentity.summary(currentAccount), notificationId);
+             lastWearNotifiedMessageId.clear();
+             for (int a = 0; a < wearNotificationsIds.size(); a++) {
+-                notificationManager.cancel(wearNotificationsIds.valueAt(a));
++                notificationManager.cancel(AccountNotificationIdentity.dialog(currentAccount, wearNotificationsIds.keyAt(a), wearNotificationsIds.valueAt(a) == Integer.MAX_VALUE - 1), wearNotificationsIds.valueAt(a));
+             }
+             wearNotificationsIds.clear();
+         });
+@@ -3338,7 +3339,7 @@
+     private void dismissNotification() {
+         FileLog.d("NotificationsController dismissNotification");
+         try {
+-            notificationManager.cancel(notificationId);
++            notificationManager.cancel(AccountNotificationIdentity.summary(currentAccount), notificationId);
+             pushMessages.clear();
+             pushMessagesDict.clear();
+             lastWearNotifiedMessageId.clear();
+@@ -3347,7 +3348,7 @@
+                 if (openedInBubbleDialogs.contains(did)) {
+                     continue;
+                 }
+-                notificationManager.cancel(wearNotificationsIds.valueAt(a));
++                notificationManager.cancel(AccountNotificationIdentity.dialog(currentAccount, wearNotificationsIds.keyAt(a), wearNotificationsIds.valueAt(a) == Integer.MAX_VALUE - 1), wearNotificationsIds.valueAt(a));
+             }
+             wearNotificationsIds.clear();
+             AndroidUtilities.runOnUIThread(() -> NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.pushMessagesUpdated));
+@@ -3450,7 +3451,7 @@
+         notificationsQueue.postRunnable(() -> {
+             int hour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY);
+             if (hour >= 11 && hour <= 22) {
+-                notificationManager.cancel(notificationId);
++                notificationManager.cancel(AccountNotificationIdentity.summary(currentAccount), notificationId);
+                 showOrUpdateNotification(true);
+             } else {
+                 scheduleNotificationRepeat();
+@@ -3705,7 +3706,7 @@
+             if (supportsBubble) {
+                 NotificationCompat.BubbleMetadata.Builder bubbleBuilder =
+                         new NotificationCompat.BubbleMetadata.Builder(
+-                                PendingIntent.getActivity(ApplicationLoader.applicationContext, 0, intent, PendingIntent.FLAG_MUTABLE | PendingIntent.FLAG_UPDATE_CURRENT),
++                                PendingIntent.getActivity(ApplicationLoader.applicationContext, 0, AccountNotificationIdentity.scope(intent, currentAccount), PendingIntent.FLAG_MUTABLE | PendingIntent.FLAG_UPDATE_CURRENT),
+                                 icon);
+                 bubbleBuilder.setSuppressNotification(openedDialogId == did);
+                 bubbleBuilder.setAutoExpandBubble(false);
+@@ -4638,7 +4639,7 @@
+                 }
+             }
+             intent.putExtra("currentAccount", currentAccount);
+-            PendingIntent contentIntent = PendingIntent.getActivity(ApplicationLoader.applicationContext, 0, intent, PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_ONE_SHOT);
++            PendingIntent contentIntent = PendingIntent.getActivity(ApplicationLoader.applicationContext, 0, AccountNotificationIdentity.scope(intent, currentAccount), PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_ONE_SHOT);
+ 
+             mBuilder.setContentTitle(name)
+                     .setSmallIcon(R.drawable.notification)
+@@ -4669,7 +4670,7 @@
+                 if (lastMessageObject.isStoryReactionPush) {
+                     dismissIntent.putExtra("storyReaction", true);
+                 }
+-                mBuilder.setDeleteIntent(PendingIntent.getBroadcast(ApplicationLoader.applicationContext, 1, dismissIntent, PendingIntent.FLAG_MUTABLE | PendingIntent.FLAG_UPDATE_CURRENT));
++                mBuilder.setDeleteIntent(PendingIntent.getBroadcast(ApplicationLoader.applicationContext, 1, AccountNotificationIdentity.scope(dismissIntent, currentAccount), PendingIntent.FLAG_MUTABLE | PendingIntent.FLAG_UPDATE_CURRENT));
+             } catch (Throwable e) {
+                 FileLog.e(e);
+             }
+@@ -4798,7 +4799,7 @@
+                                     callbackIntent.putExtra("data", buttonTypeCallback.data);
+                                 }
+                                 callbackIntent.putExtra("mid", lastMessageObject.getId());
+-                                mBuilder.addAction(0, button.text, PendingIntent.getBroadcast(ApplicationLoader.applicationContext, lastButtonId++, callbackIntent, PendingIntent.FLAG_MUTABLE | PendingIntent.FLAG_UPDATE_CURRENT));
++                                mBuilder.addAction(0, button.text, PendingIntent.getBroadcast(ApplicationLoader.applicationContext, lastButtonId++, AccountNotificationIdentity.scope(callbackIntent, currentAccount), PendingIntent.FLAG_MUTABLE | PendingIntent.FLAG_UPDATE_CURRENT));
+                                 hasCallback = true;
+                             }
+                         }
+@@ -4810,9 +4811,9 @@
+                 Intent replyIntent = new Intent(ApplicationLoader.applicationContext, PopupReplyReceiver.class);
+                 replyIntent.putExtra("currentAccount", currentAccount);
+                 if (Build.VERSION.SDK_INT <= 19) {
+-                    mBuilder.addAction(R.drawable.ic_ab_reply2, LocaleController.getString(R.string.Reply), PendingIntent.getBroadcast(ApplicationLoader.applicationContext, 2, replyIntent, PendingIntent.FLAG_MUTABLE | PendingIntent.FLAG_UPDATE_CURRENT));
++                    mBuilder.addAction(R.drawable.ic_ab_reply2, LocaleController.getString(R.string.Reply), PendingIntent.getBroadcast(ApplicationLoader.applicationContext, 2, AccountNotificationIdentity.scope(replyIntent, currentAccount), PendingIntent.FLAG_MUTABLE | PendingIntent.FLAG_UPDATE_CURRENT));
+                 } else {
+-                    mBuilder.addAction(R.drawable.ic_ab_reply, LocaleController.getString(R.string.Reply), PendingIntent.getBroadcast(ApplicationLoader.applicationContext, 2, replyIntent, PendingIntent.FLAG_MUTABLE | PendingIntent.FLAG_UPDATE_CURRENT));
++                    mBuilder.addAction(R.drawable.ic_ab_reply, LocaleController.getString(R.string.Reply), PendingIntent.getBroadcast(ApplicationLoader.applicationContext, 2, AccountNotificationIdentity.scope(replyIntent, currentAccount), PendingIntent.FLAG_MUTABLE | PendingIntent.FLAG_UPDATE_CURRENT));
+                 }
+             }
+             showExtraNotifications(mBuilder, detailText, dialog_id, topicId, chatName, vibrationPattern, ledColor, sound, configImportance, isDefault, isInApp, notifyDisabled, chatType);
+@@ -4876,7 +4877,7 @@
+             editor.commit();
+             sound = Settings.System.DEFAULT_RINGTONE_URI;
+             notificationBuilder.setChannelId(validateChannelId(dialogId, topicId, chatName, vibrationPattern, ledColor, sound, importance, isDefault, isInApp, isSilent, chatType));
+-            notificationManager.notify(notificationId, notificationBuilder.build());
++            notificationManager.notify(AccountNotificationIdentity.summary(currentAccount), notificationId, notificationBuilder.build());
+         }
+     }
+ 
+@@ -4888,7 +4889,7 @@
+         }
+         Notification mainNotification = notificationBuilder.build();
+         if (Build.VERSION.SDK_INT <= 19) {
+-            notificationManager.notify(notificationId, mainNotification);
++            notificationManager.notify(AccountNotificationIdentity.summary(currentAccount), notificationId, mainNotification);
+             if (BuildVars.LOGS_ENABLED) {
+                 FileLog.d("show summary notification by SDK check");
+             }
+@@ -4954,7 +4955,7 @@
+                     FileLog.w("show dialog notification with id " + id + " " + dialogId +  " user=" + user + " chat=" + chat);
+                 }
+                 try {
+-                    notificationManager.notify(id, notification.build());
++                    notificationManager.notify(AccountNotificationIdentity.dialog(currentAccount, dialogId, story), id, notification.build());
+                 } catch (SecurityException e) {
+                     FileLog.e(e);
+                     resetNotificationSound(notification, dialogId, lastTopicId, chatName, vibrationPattern, ledColor, sound, importance, isDefault, isInApp, isSilent, chatType);
+@@ -5012,6 +5013,7 @@
+                 internalId = Integer.MAX_VALUE - 1;
+             } else if (internalId == null) {
+                 internalId = (int) dialogKey.dialogId + (int) (dialogKey.dialogId >> 32);
++                if (internalId == Integer.MAX_VALUE - 1) internalId--;
+             } else {
+                 oldIdsWear.remove(dialogKey.dialogId);
+             }
+@@ -5220,7 +5222,7 @@
+                         replyIntent.putExtra("voice_msg_ids", voiceIds);
+                     }
+                 }
+-                PendingIntent replyPendingIntent = PendingIntent.getBroadcast(ApplicationLoader.applicationContext, internalId, replyIntent, PendingIntent.FLAG_MUTABLE | PendingIntent.FLAG_UPDATE_CURRENT);
++                PendingIntent replyPendingIntent = PendingIntent.getBroadcast(ApplicationLoader.applicationContext, internalId, AccountNotificationIdentity.scope(replyIntent, currentAccount), PendingIntent.FLAG_MUTABLE | PendingIntent.FLAG_UPDATE_CURRENT);
+                 RemoteInput remoteInputWear = new RemoteInput.Builder(EXTRA_VOICE_REPLY).setLabel(LocaleController.getString(R.string.Reply)).build();
+                 String replyToString;
+                 if (DialogObject.isChatDialog(dialogId)) {
+@@ -5599,7 +5601,7 @@
+                 intent.putExtra("topicId", topicId);
+             }
+             intent.putExtra("currentAccount", currentAccount);
+-            PendingIntent contentIntent = PendingIntent.getActivity(ApplicationLoader.applicationContext, 0, intent, PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_ONE_SHOT);
++            PendingIntent contentIntent = PendingIntent.getActivity(ApplicationLoader.applicationContext, 0, AccountNotificationIdentity.scope(intent, currentAccount), PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_ONE_SHOT);
+ 
+             NotificationCompat.WearableExtender wearableExtender = new NotificationCompat.WearableExtender();
+             if (wearReplyAction != null) {
+@@ -5611,7 +5613,7 @@
+             msgHeardIntent.putExtra("dialog_id", dialogId);
+             msgHeardIntent.putExtra("max_id", maxId);
+             msgHeardIntent.putExtra("currentAccount", currentAccount);
+-            PendingIntent readPendingIntent = PendingIntent.getBroadcast(ApplicationLoader.applicationContext, internalId, msgHeardIntent, PendingIntent.FLAG_MUTABLE | PendingIntent.FLAG_UPDATE_CURRENT);
++            PendingIntent readPendingIntent = PendingIntent.getBroadcast(ApplicationLoader.applicationContext, internalId, AccountNotificationIdentity.scope(msgHeardIntent, currentAccount), PendingIntent.FLAG_MUTABLE | PendingIntent.FLAG_UPDATE_CURRENT);
+             NotificationCompat.Action readAction = new NotificationCompat.Action.Builder(R.drawable.msg_markread, LocaleController.getString(R.string.MarkAsRead), readPendingIntent)
+                     .setSemanticAction(NotificationCompat.Action.SEMANTIC_ACTION_MARK_AS_READ)
+                     .setShowsUserInterface(false)
+@@ -5675,7 +5677,7 @@
+                 if (lastMessageObject != null && lastMessageObject.isStoryReactionPush) {
+                     dismissIntent.putExtra("storyReaction", true);
+                 }
+-                builder.setDeleteIntent(PendingIntent.getBroadcast(ApplicationLoader.applicationContext, internalId, dismissIntent, PendingIntent.FLAG_MUTABLE | PendingIntent.FLAG_UPDATE_CURRENT));
++                builder.setDeleteIntent(PendingIntent.getBroadcast(ApplicationLoader.applicationContext, internalId, AccountNotificationIdentity.scope(dismissIntent, currentAccount), PendingIntent.FLAG_MUTABLE | PendingIntent.FLAG_UPDATE_CURRENT));
+             } catch (Exception e) {
+                 FileLog.e(e);
+             }
+@@ -5706,7 +5708,9 @@
+                 copyIntent.addFlags(Intent.FLAG_INCLUDE_STOPPED_PACKAGES);
+                 copyIntent.setAction("org.telegram.messenger.ACTION_COPY_CODE");
+                 copyIntent.putExtra("text", copyButtonType.copy_text);
+-                PendingIntent copyPendingIntent = PendingIntent.getBroadcast(ApplicationLoader.applicationContext, internalId, copyIntent, PendingIntent.FLAG_MUTABLE | PendingIntent.FLAG_UPDATE_CURRENT);
++                copyIntent.putExtra("currentAccount", currentAccount);
++                copyIntent.putExtra("dialog_id", dialogId);
++                PendingIntent copyPendingIntent = PendingIntent.getBroadcast(ApplicationLoader.applicationContext, internalId, AccountNotificationIdentity.scope(copyIntent, currentAccount), PendingIntent.FLAG_MUTABLE | PendingIntent.FLAG_UPDATE_CURRENT);
+                 NotificationCompat.Action copyAction = new NotificationCompat.Action.Builder(R.drawable.msg_copy, copybutton.text, copyPendingIntent)
+                         .setShowsUserInterface(false)
+                         .build();
+@@ -5745,7 +5749,7 @@
+                                     callbackIntent.putExtra("data", buttonTypeCallback.data);
+                                 }
+                                 callbackIntent.putExtra("mid", rowsMid);
+-                                builder.addAction(0, button.text, PendingIntent.getBroadcast(ApplicationLoader.applicationContext, lastButtonId++, callbackIntent, PendingIntent.FLAG_MUTABLE | PendingIntent.FLAG_UPDATE_CURRENT));
++                                builder.addAction(0, button.text, PendingIntent.getBroadcast(ApplicationLoader.applicationContext, lastButtonId++, AccountNotificationIdentity.scope(callbackIntent, currentAccount), PendingIntent.FLAG_MUTABLE | PendingIntent.FLAG_UPDATE_CURRENT));
+                             }
+                         }
+                     }
+@@ -5769,7 +5773,7 @@
+                 FileLog.d("show summary with id " + notificationId);
+             }
+             try {
+-                notificationManager.notify(notificationId, mainNotification);
++                notificationManager.notify(AccountNotificationIdentity.summary(currentAccount), notificationId, mainNotification);
+             } catch (SecurityException e) {
+                 FileLog.e(e);
+                 resetNotificationSound(notificationBuilder, lastDialogId, lastTopicId, chatName, vibrationPattern, ledColor, sound, importance, isDefault, isInApp, isSilent, chatType);
+@@ -5779,7 +5783,7 @@
+                 if (BuildVars.LOGS_ENABLED) {
+                     FileLog.d("cancel summary with id " + notificationId);
+                 }
+-                notificationManager.cancel(notificationId);
++                notificationManager.cancel(AccountNotificationIdentity.summary(currentAccount), notificationId);
+             }
+         }
+ 
+@@ -5792,7 +5796,7 @@
+             if (BuildVars.LOGS_ENABLED) {
+                 FileLog.d("cancel notification id " + id);
+             }
+-            notificationManager.cancel(id);
++            notificationManager.cancel(AccountNotificationIdentity.dialog(currentAccount, did, id == Integer.MAX_VALUE - 1), id);
+         }
+ 
+         ArrayList<String> ids = new ArrayList<>(holders.size());

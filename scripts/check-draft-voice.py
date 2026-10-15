@@ -23,7 +23,8 @@ with tempfile.TemporaryDirectory(prefix='nebula-draft-voice-') as folder:
     path = 'TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java'
     pin = subprocess.check_output(['git', 'rev-parse', 'HEAD:vendor/telegram-android'], cwd=ROOT, text=True).strip()
     dest = work / path; dest.parent.mkdir(parents=True)
-    dest.write_bytes(subprocess.check_output(['git', '-C', str(ROOT / 'vendor/telegram-android'), 'show', pin + ':' + path]))
+    upstream = Path(os.environ.get('NEBULA_ANDROID_UPSTREAM_TREE', ROOT / 'vendor/telegram-android'))
+    dest.write_bytes(subprocess.check_output(['git', '-C', str(upstream), 'show', pin + ':' + path]))
     subprocess.run(['git', 'init', '--quiet', str(work)], check=True)
     for patch in sorted((ROOT / 'patches/android').glob('*.patch')):
         subprocess.run(['git', '-C', str(work), 'apply', '--whitespace=nowarn', '--include=' + path, '-'],
