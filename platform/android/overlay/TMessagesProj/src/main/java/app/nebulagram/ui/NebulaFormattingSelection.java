@@ -11,32 +11,31 @@ public final class NebulaFormattingSelection {
             int cursor = start;
             if (cursor > 0 && cursor < text.length() && Character.isLowSurrogate(text.charAt(cursor))
                     && Character.isHighSurrogate(text.charAt(cursor - 1))) cursor--;
-            if (cursor == text.length() || !wordAt(text, cursor)) {
-                while (cursor > 0 && !wordAt(text, Character.offsetByCodePoints(text, cursor, -1)))
-                    cursor -= Character.charCount(Character.codePointBefore(text, cursor));
+            int run = -1;
+            int previousStart = -1, previousEnd = -1;
+            // One pass also bounds work for pasted words with thousands of combining
+            // marks. Rechecking each mark's base character makes that case quadratic.
+            for (int index = 0; index <= text.length(); ) {
+                int point = index < text.length() ? Character.codePointAt(text, index) : -1;
+                boolean base = Character.isLetterOrDigit(point) || point == '_';
+                int type = point < 0 ? -1 : Character.getType(point);
+                boolean mark = type == Character.NON_SPACING_MARK || type == Character.COMBINING_SPACING_MARK;
+                if (base && run < 0) run = index;
+                if (!base && !(mark && run >= 0) && run >= 0) {
+                    if (run <= cursor && cursor <= index) return new int[]{run, index};
+                    if (run > cursor) break;
+                    previousStart = run; previousEnd = index;
+                    run = -1;
+                }
+                if (index == text.length()) break;
+                index += Character.charCount(point);
             }
-            start = end = cursor;
-            while (start > 0 && wordAt(text, Character.offsetByCodePoints(text, start, -1)))
-                start -= Character.charCount(Character.codePointBefore(text, start));
-            while (end < text.length() && wordAt(text, end))
-                end += Character.charCount(Character.codePointAt(text, end));
-            if (start == end) return null;
+            return previousStart < 0 ? null : new int[]{previousStart, previousEnd};
         }
         if (start > 0 && start < text.length() && Character.isLowSurrogate(text.charAt(start))
                 && Character.isHighSurrogate(text.charAt(start - 1))) start--;
         if (end > 0 && end < text.length() && Character.isLowSurrogate(text.charAt(end))
                 && Character.isHighSurrogate(text.charAt(end - 1))) end++;
         return new int[]{start, end};
-    }
-
-    private static boolean wordAt(CharSequence text, int offset) {
-        int point = Character.codePointAt(text, offset);
-        while (Character.getType(point) == Character.NON_SPACING_MARK
-                || Character.getType(point) == Character.COMBINING_SPACING_MARK) {
-            if (offset == 0) return false;
-            offset = Character.offsetByCodePoints(text, offset, -1);
-            point = Character.codePointAt(text, offset);
-        }
-        return Character.isLetterOrDigit(point) || point == '_';
     }
 }

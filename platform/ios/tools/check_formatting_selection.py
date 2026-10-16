@@ -22,6 +22,8 @@ test("Привет мир!  ",13..<13,7..<10);test("one\n你好",6..<6,4..<6)
 test("e\u{301}",2..<2,0..<2);test("a🚀b",2..<3,1..<3)
 test("🚀",2..<2,nil);test("",0..<0,nil);test("",0..<0,0..<0,false)
 test("abc",4..<4,nil);test("abc",1..<2,1..<2)
+let longWord="a"+String(repeating:"\u{301}",count:8000)
+test(longWord,8001..<8001,0..<8001)
 for i in 0...1000 {test("word \(i)",("word \(i)" as NSString).length..<("word \(i)" as NSString).length,5..<("word \(i)" as NSString).length)}
 print("iOS native word selection: empty, bounds, Cyrillic, CJK, combining marks, surrogate pairs and 1001 caret edits passed")
 '''

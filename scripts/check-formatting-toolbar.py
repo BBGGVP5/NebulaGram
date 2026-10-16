@@ -74,7 +74,15 @@ class SelectionCheck {
 '''.replace('BODY', body).replace(' public static void main', '''
  static void range(String text,int a,int b,int start,int end){int[] range=app.nebulagram.ui.NebulaFormattingSelection.range(text,a,b,true);
  if(range==null||range[0]!=start||range[1]!=end)throw new AssertionError(text+":"+java.util.Arrays.toString(range));}
+ static class CountingText implements CharSequence {
+ String text="a"+"\\u0301".repeat(8000);int reads;public int length(){return text.length();}
+ public char charAt(int i){reads++;return text.charAt(i);}public CharSequence subSequence(int a,int z){return text.subSequence(a,z);}}
  public static void main''')
+    test=test.replace('System.out.println(cases+', '''CountingText longWord=new CountingText();
+ int[] longRange=NebulaFormattingSelection.range(longWord,longWord.length(),longWord.length(),true);
+ if(longRange==null||longRange[0]!=0||longRange[1]!=longWord.length()||longWord.reads>longWord.length()*12)throw new AssertionError("Word selection rescans combining marks quadratically: "+longWord.reads);
+ System.out.println("8001-unit accented word selected with "+longWord.reads+" character reads");
+ System.out.println(cases+''')
     path = tmp / 'SelectionCheck.java'
     path.write_text(test, encoding='utf-8')
     subprocess.run(['javac', '-encoding', 'UTF-8', '-d', str(tmp / 'test'), str(path), str(tmp / 'app/nebulagram/ui/NebulaFormattingSelection.java')], check=True)
