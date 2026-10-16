@@ -1,4 +1,4 @@
-name: Android AI panel widget QA
+name: Android message widget QA
 on:
   workflow_dispatch:
 permissions:
@@ -17,7 +17,9 @@ jobs:
         with:
           packages: 'platform-tools platforms;android-35 build-tools;35.0.0'
       - name: Compile actual production widgets with offline QA adapters
-        run: python3 tests/android/ai-panel-qa.py build
+        run: |
+          python3 tests/android/ai-panel-qa.py build
+          python3 tests/android/formatting-widget-qa.py build
       - name: Enable emulator acceleration on the disposable runner
         run: |
           echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
@@ -31,11 +33,15 @@ jobs:
           arch: x86_64
           profile: pixel_7_pro
           disable-animations: true
-          script: python3 tests/android/ai-panel-qa.py render
+          script: |
+            python3 tests/android/ai-panel-qa.py render
+            python3 tests/android/formatting-widget-qa.py render
       - name: Save widget images and geometry (not an app acceptance test)
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: ai-panel-widget-screenshots
-          path: build/ai-panel-widget-qa/screenshots/
+          path: |
+            build/ai-panel-widget-qa/screenshots/
+            build/formatting-widget-qa/screenshots/
           if-no-files-found: warn
