@@ -54,8 +54,8 @@ public class MainActivity extends Activity {
  FrameLayout root;Composer composer;EditTextCaption editor;NebulaFormattingToolbar toolbar;boolean keyboard;int sends;
  int dp(float n){return AndroidUtilities.dp(n);}
  public void onCreate(Bundle state){super.onCreate(state);ApplicationLoader.applicationContext=getApplicationContext();
-  NebulaTheme.dark=getIntent().getBooleanExtra("dark",true);getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE|WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
-  root=new FrameLayout(this);root.setBackgroundColor(NebulaTheme.dark?0xff101418:0xfff6f4f0);setContentView(root);
+  NebulaTheme.dark=getIntent().getBooleanExtra("dark",true);getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
+  root=new FrameLayout(this);root.setFocusableInTouchMode(true);root.setBackgroundColor(NebulaTheme.dark?0xff101418:0xfff6f4f0);setContentView(root);root.requestFocus();
   TextView heading=new TextView(this);heading.setText("Панель форматирования · QA\nРеальные виджеты, адаптер редактора\nБез аккаунта и сетевых запросов");heading.setTextSize(17);heading.setTextColor(new NebulaTheme().onSurface());heading.setPadding(dp(16),dp(16),dp(16),0);root.addView(heading,new FrameLayout.LayoutParams(-1,-2));
   composer=new Composer();editor=new EditTextCaption(this);editor.setTextColor(new NebulaTheme().onSurface());editor.setHintTextColor(0xff888888);editor.setTextSize(18);editor.setHint("Сообщение");editor.setPadding(dp(16),dp(10),dp(16),dp(10));editor.setMinHeight(dp(44));editor.setMaxLines(5);editor.setInputType(0x20001);editor.setImeOptions(android.view.inputmethod.EditorInfo.IME_ACTION_SEND);
   editor.setOnEditorActionListener((v,a,e)->{sends++;return true;});
@@ -66,9 +66,9 @@ public class MainActivity extends Activity {
   NebulaFormattingToolbar.setPreferenceEnabled(!getIntent().getBooleanExtra("off",false));
   root.setOnApplyWindowInsetsListener((v,insets)->{boolean next=insets.isVisible(WindowInsets.Type.ime());int bottom=Math.max(insets.getInsets(WindowInsets.Type.ime()).bottom,insets.getInsets(WindowInsets.Type.systemBars()).bottom);root.setPadding(0,insets.getInsets(WindowInsets.Type.systemBars()).top,0,bottom);if(keyboard!=next){keyboard=next;composer.requestLayout();}return insets;});
   root.post(root::requestApplyInsets);
-  if(getIntent().getBooleanExtra("keyboard",true))root.postDelayed(()->{editor.requestFocus();((android.view.inputmethod.InputMethodManager)getSystemService(INPUT_METHOD_SERVICE)).showSoftInput(editor,0);},600);
   root.postDelayed(new Runnable(){public void run(){report();java.io.File trigger=new java.io.File(getFilesDir(),"verify.trigger");if(trigger.exists()){trigger.delete();verify();}root.postDelayed(this,300);}},900);
  }
+ public void onWindowFocusChanged(boolean focused){super.onWindowFocusChanged(focused);if(focused&&getIntent().getBooleanExtra("keyboard",true))root.postDelayed(()->{editor.setFocusableInTouchMode(true);editor.requestFocus();getWindow().getInsetsController().show(WindowInsets.Type.ime());},300);}
  class Composer extends FrameLayout {
   int height;Composer(){super(MainActivity.this);}
   protected void onMeasure(int w,int h){int next=toolbar==null?0:toolbar.prepare(keyboard);if(next!=height){setPadding(0,next,0,0);setClipToPadding(next==0);height=next;}
@@ -76,6 +76,7 @@ public class MainActivity extends Activity {
   protected void onLayout(boolean c,int l,int t,int r,int b){super.onLayout(c,l,t,r,b);if(height>0)toolbar.layout(dp(8),0,getMeasuredWidth()-dp(8),height);}
  }
  void report(){try{org.json.JSONObject j=new org.json.JSONObject();j.put("case",getIntent().getStringExtra("case"));j.put("keyboard",keyboard);j.put("accessory",composer.height);j.put("editorHeight",editor.getHeight());j.put("scale",getResources().getConfiguration().fontScale);j.put("rectEditor",rect(editor));
+  j.put("editorFocused",editor.isFocused());j.put("editorFocusable",editor.isFocusableInTouchMode());j.put("windowFocused",root.hasWindowFocus());
   View button=find(toolbar,"Новая строка");j.put("returnVisible",button!=null&&button.isShown());j.put("rectReturn",button==null?new org.json.JSONArray():rect(button));save("layout.json",j);}catch(Exception e){throw new RuntimeException(e);}}
  org.json.JSONArray rect(View v)throws org.json.JSONException{Rect r=new Rect();v.getGlobalVisibleRect(r);return new org.json.JSONArray(new int[]{r.left,r.top,r.right,r.bottom});}
  void verify(){try{
@@ -148,6 +149,8 @@ def render():
     finally:
         crash=subprocess.check_output([str(adb),'-s',serials[0],'logcat','-d','-b','crash'],text=True)
         (output/'crash.log').write_text(crash)
+        for service in ['input_method','window']:
+            (output/(service+'.log')).write_text(subprocess.check_output([str(adb),'-s',serials[0],'shell','dumpsys',service],text=True))
         command('shell','wm','size','reset');command('shell','wm','density','reset');command('shell','settings','put','system','font_scale','1')
     print('Real widget rendering/IME, word callback, direct newline and horizontal overflow verified. Native Telegram parent/serialization/network acceptance remains separate.')
 
