@@ -1,0 +1,24 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/AnimationNotificationsLocker.java b/TMessagesProj/src/main/java/org/telegram/messenger/AnimationNotificationsLocker.java
+--- a/TMessagesProj/src/main/java/org/telegram/messenger/AnimationNotificationsLocker.java
++++ b/TMessagesProj/src/main/java/org/telegram/messenger/AnimationNotificationsLocker.java
+@@ -24,7 +24,7 @@
+         }
+         int currentAccount = UserConfig.selectedAccount;
+         if (this.currentAccount != currentAccount) {
+-            NotificationCenter.getInstance(currentAccount).onAnimationFinish(notificationsIndex);
++            NotificationCenter.getInstance(this.currentAccount).onAnimationFinish(notificationsIndex);
+             notificationsIndex = -1;
+             this.currentAccount = currentAccount;
+         }
+diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/NotificationCenter.java b/TMessagesProj/src/main/java/org/telegram/messenger/NotificationCenter.java
+--- a/TMessagesProj/src/main/java/org/telegram/messenger/NotificationCenter.java
++++ b/TMessagesProj/src/main/java/org/telegram/messenger/NotificationCenter.java
+@@ -503,7 +503,7 @@
+         }
+         if (minTime != Long.MAX_VALUE) {
+             long time = EXPIRE_NOTIFICATIONS_TIME - (currentTime - minTime);
+-            AndroidUtilities.runOnUIThread(() -> checkForExpiredNotifications = this::checkForExpiredNotifications, Math.max(17, time));
++            AndroidUtilities.runOnUIThread(checkForExpiredNotifications = this::checkForExpiredNotifications, Math.max(17, time));
+         }
+     }
+ 
