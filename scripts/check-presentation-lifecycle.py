@@ -32,17 +32,21 @@ class PaletteCheck {
  static class ColorStateList {static Object valueOf(int c){return c;}}
  static class InsetDrawable {GradientDrawable tile;InsetDrawable(GradientDrawable tile,int inset){this.tile=tile;}}
  static class RippleDrawable {GradientDrawable tile;RippleDrawable(Object c,InsetDrawable tile,Object mask){this.tile=tile.tile;}}
- static class View {int color;Object background;void setBackground(Object b){background=b;}}
+ static class View {int color,padding=11;Object background;void setBackground(Object b){background=b;padding=3;}void setPadding(int l,int t,int r,int b){if(l!=t||l!=r||l!=b)throw new AssertionError("Uneven icon inset");padding=l;}}
  static class TextView extends View {void setTextColor(int n){color=n;}}
  static class ImageView extends View {void setColorFilter(int n){color=n;}}
  static class Row {View[]items={new TextView(),new ImageView()};int getChildCount(){return items.length;}View getChildAt(int n){return items[n];}}
  int palette,paletteInk,paletteChip;Object background;Row row=new Row();Object getContext(){return null;}Object getBackground(){return background;}void setBackground(Object b){background=b;}
  static int blend(int base,int ink,float fraction){return NebulaTheme.chip;}
  PALETTE
+ static void checkInset(PaletteCheck p){if(p.row.items[1].padding!=11)throw new AssertionError("Background reset glyph inset");}
  public static void main(String[]args){PaletteCheck p=new PaletteCheck();p.updatePalette();
+ checkInset(p);
  for(int i=0;i<1000;i++)p.updatePalette();if(GradientDrawable.created!=3)throw new AssertionError("Idle cache rebuilt");
  NebulaTheme.ink=3;p.updatePalette();if(p.row.items[0].color!=3||p.row.items[1].color!=3)throw new AssertionError("Unchanged surface kept stale foreground");
+ checkInset(p);
  NebulaTheme.chip=5;p.updatePalette();for(View item:p.row.items)if(((RippleDrawable)item.background).tile.color!=5)throw new AssertionError("Chip-only theme change lost");
+ checkInset(p);
  System.out.println("Toolbar palette: 1000 idle layouts retain the cached surface; foreground-only theme changes refresh all controls");}}
 '''.replace('PALETTE',palette)
 java_home=Path(os.environ.get('JAVA_HOME','C:/Program Files/Java/jdk-26.0.2'))
