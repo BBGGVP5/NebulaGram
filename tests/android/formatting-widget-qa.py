@@ -77,6 +77,7 @@ public class MainActivity extends Activity {
  }
  void report(){try{org.json.JSONObject j=new org.json.JSONObject();j.put("case",getIntent().getStringExtra("case"));j.put("keyboard",keyboard);j.put("accessory",composer.height);j.put("editorHeight",editor.getHeight());j.put("scale",getResources().getConfiguration().fontScale);j.put("rectEditor",rect(editor));
   j.put("editorFocused",editor.isFocused());j.put("editorFocusable",editor.isFocusableInTouchMode());j.put("windowFocused",root.hasWindowFocus());
+  View icon=((ViewGroup)toolbar.getChildAt(0)).getChildAt(0);j.put("iconContentDp",(icon.getWidth()-icon.getPaddingLeft()-icon.getPaddingRight())/getResources().getDisplayMetrics().density);j.put("roundedClip",toolbar.getClipToOutline());
   View button=find(toolbar,"Новая строка");j.put("returnVisible",button!=null&&button.isShown());j.put("rectReturn",button==null?new org.json.JSONArray():rect(button));save("layout.json",j);}catch(Exception e){throw new RuntimeException(e);}}
  org.json.JSONArray rect(View v)throws org.json.JSONException{Rect r=new Rect();v.getGlobalVisibleRect(r);return new org.json.JSONArray(new int[]{r.left,r.top,r.right,r.bottom});}
  void verify(){try{
@@ -135,6 +136,7 @@ def render():
             assert report['editorHeight']>0 and (report['accessory']>0)==visible,report
             if visible:
                 a,b=report['rectReturn'],report['rectEditor'];assert a[2]>a[0] and a[3]>a[1] and a[3]<=b[1],report
+                assert 20<=report['iconContentDp']<=23 and report['roundedClip'],report
             if visible:
                 command('shell','run-as',PACKAGE,'touch','files/verify.trigger');callbacks=None
                 for attempt in range(15):

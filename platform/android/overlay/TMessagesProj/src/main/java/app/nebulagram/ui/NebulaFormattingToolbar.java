@@ -43,12 +43,13 @@ public final class NebulaFormattingToolbar extends HorizontalScrollView {
         setHorizontalScrollBarEnabled(false);
         setFillViewport(true);
         setClipToPadding(false);
+        setClipToOutline(true);
         setPadding(AndroidUtilities.dp(8), AndroidUtilities.dp(4), AndroidUtilities.dp(8), AndroidUtilities.dp(4));
         setFocusable(false);
         row = new LinearLayout(context);
         row.setGravity(Gravity.CENTER_VERTICAL);
         addView(row, new LayoutParams(-2, -1));
-        add("↵", "Новая строка", "New line", Typeface.NORMAL, this::insertNewLine, false);
+        addIcon(R.drawable.nebula_format_newline, "Новая строка", "New line", this::insertNewLine, false);
         addIcon(R.drawable.nebula_format_clear, "Убрать форматирование", "Clear formatting", editor::makeSelectedRegular);
         addIcon(R.drawable.nebula_format_quote, "Цитата", "Quote", editor::makeSelectedQuote);
         addIcon(R.drawable.nebula_format_spoiler, "Спойлер", "Spoiler", editor::makeSelectedSpoiler);
@@ -78,10 +79,13 @@ public final class NebulaFormattingToolbar extends HorizontalScrollView {
     }
 
     private void addIcon(int resource, String ru, String en, Runnable action) {
+        addIcon(resource, ru, en, action, true);
+    }
+
+    private void addIcon(int resource, String ru, String en, Runnable action, boolean needsSelection) {
         ImageView button = new ImageView(getContext());
         button.setImageResource(resource);button.setScaleType(ImageView.ScaleType.FIT_CENTER);
-        int inset = AndroidUtilities.dp(12);button.setPadding(inset,inset,inset,inset);
-        bind(button,ru,en,action,true);
+        bind(button,ru,en,action,needsSelection);
     }
 
     private void bind(View button, String ru, String en, Runnable action, boolean needsSelection) {
@@ -151,6 +155,12 @@ public final class NebulaFormattingToolbar extends HorizontalScrollView {
             button.setBackground(new android.graphics.drawable.RippleDrawable(
                     android.content.res.ColorStateList.valueOf(NebulaTheme.stateLayer(ink,.1f)),
                     new InsetDrawable(tile, AndroidUtilities.dp(2.5f)),null));
+            // A new RippleDrawable adopts its InsetDrawable's padding. Restore the
+            // glyph's own inset after every theme/background change, not before it.
+            if (button instanceof ImageView) {
+                int inset = AndroidUtilities.dp(11);
+                button.setPadding(inset, inset, inset, inset);
+            }
         }
     }
 
