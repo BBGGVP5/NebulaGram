@@ -118,19 +118,22 @@ def render():
             command('shell','am','force-stop',PACKAGE);command('shell','wm','size',str(width)+'x1920');command('shell','wm','density','420');command('shell','settings','put','system','font_scale',str(scale));time.sleep(2)
             command('shell','input','keyevent','KEYCODE_WAKEUP');command('shell','wm','dismiss-keyguard')
             command('shell','am','start','-W','-n',PACKAGE+'/.MainActivity','--es','case',name,'--ez','dark',str(dark).lower(),'--ez','keyboard',str(keyboard).lower(),'--ez','off',str(off).lower())
-            report=None
+            report=None;tapped=False
             for attempt in range(20):
                 time.sleep(1)
                 try:report=read('layout.json')
                 except (ValueError,subprocess.CalledProcessError):continue
+                if report.get('case')==name and keyboard and not report['keyboard'] and not tapped:
+                    # Some fresh emulator IMEs need a tap after the window gains focus.
+                    a=report['rectEditor'];command('shell','input','tap',str((a[0]+a[2])//2),str((a[1]+a[3])//2));tapped=True
                 if report.get('case')==name and report['keyboard']==keyboard and abs(report['scale']-scale)<.01:break
+            with (output/(name+'.png')).open('wb') as target:command('exec-out','screencap','-p',stdout=target)
+            (output/(name+'.json')).write_text(json.dumps(report,indent=2)+'\n')
             assert report and report['case']==name and report['keyboard']==keyboard and abs(report['scale']-scale)<.01,report
             visible=keyboard and not off;assert report['returnVisible']==visible,report
             assert report['editorHeight']>0 and (report['accessory']>0)==visible,report
             if visible:
                 a,b=report['rectReturn'],report['rectEditor'];assert a[2]>a[0] and a[3]>a[1] and a[3]<=b[1],report
-            with (output/(name+'.png')).open('wb') as target:command('exec-out','screencap','-p',stdout=target)
-            (output/(name+'.json')).write_text(json.dumps(report,indent=2)+'\n')
             if visible:
                 command('shell','run-as',PACKAGE,'touch','files/verify.trigger');callbacks=None
                 for attempt in range(15):
@@ -143,6 +146,8 @@ def render():
         crash=subprocess.check_output([str(adb),'-s',serials[0],'logcat','-d','-b','crash'],text=True)
         assert PACKAGE not in crash,crash[-2000:]
     finally:
+        crash=subprocess.check_output([str(adb),'-s',serials[0],'logcat','-d','-b','crash'],text=True)
+        (output/'crash.log').write_text(crash)
         command('shell','wm','size','reset');command('shell','wm','density','reset');command('shell','settings','put','system','font_scale','1')
     print('Real widget rendering/IME, word callback, direct newline and horizontal overflow verified. Native Telegram parent/serialization/network acceptance remains separate.')
 
