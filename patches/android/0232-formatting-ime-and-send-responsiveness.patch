@@ -1,0 +1,56 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
+@@ -238,6 +238,7 @@
+ {
+     private app.nebulagram.ui.NebulaFormattingToolbar nebulaFormattingToolbar;
+     private int nebulaFormattingHeight;
++    private boolean nebulaFormattingKeyboardVisible;
+     public int getNebulaFormattingHeight() { return nebulaFormattingHeight; }
+     private final app.nebulagram.ui.NebulaMathHint nebulaMathHint = new app.nebulagram.ui.NebulaMathHint();
+ 
+@@ -6716,6 +6717,12 @@
+     }
+ 
+     private void onWindowSizeChanged() {
++        // Insets can change without remeasuring the composer. Refresh once per IME
++        // visibility transition, including an empty draft; never poll/restart on typing.
++        if (nebulaFormattingToolbar != null && nebulaFormattingKeyboardVisible != keyboardVisible) {
++            nebulaFormattingKeyboardVisible = keyboardVisible;
++            requestLayout();
++        }
+         int size = sizeNotifierLayout.getHeight();
+         if (!keyboardVisible) {
+             size -= emojiPadding;
+@@ -7572,7 +7579,7 @@
+                 TLRPC.Chat chat = parentFragment.getCurrentChat();
+                 TLRPC.User user = parentFragment.getCurrentUser();
+                 if (user != null || ChatObject.isChannel(chat) && chat.megagroup || !ChatObject.isChannel(chat)) {
+-                    MessagesController.getNotificationsSettings(currentAccount).edit().putBoolean("silent_" + dialog_id, !notify).commit();
++                    MessagesController.getNotificationsSettings(currentAccount).edit().putBoolean("silent_" + dialog_id, !notify).apply();
+                 }
+             }
+             if (stickersExpanded) {
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/EditTextCaption.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/EditTextCaption.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Components/EditTextCaption.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/EditTextCaption.java
+@@ -172,6 +172,19 @@
+         TextStyleSpan.TextStyleRun run = new TextStyleSpan.TextStyleRun();
+         run.flags |= TextStyleSpan.FLAG_STYLE_MONO;
+         applyTextStyleToSelection(new TextStyleSpan(run));
++    }
++
++    public void makeSelectedCode() {
++        int start = Math.min(getSelectionStart(), getSelectionEnd());
++        int end = Math.max(getSelectionStart(), getSelectionEnd());
++        Editable text = getText();
++        if (text == null || start < 0 || start >= end || end > text.length()) return;
++        // The native serializer reads this span as TL_messageEntityPre, not inline code.
++        makeSelectedRegular();
++        text.setSpan(new CodeHighlighting.Span(false, 0, null, "", text.subSequence(start, end).toString()),
++                start, end, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
++        if (delegate != null) delegate.onSpansChanged();
++        invalidate();
+     }
+ 
+     public void makeSelectedStrike() {

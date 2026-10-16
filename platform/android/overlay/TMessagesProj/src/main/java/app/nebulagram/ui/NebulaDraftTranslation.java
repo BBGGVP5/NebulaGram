@@ -44,6 +44,13 @@ public final class NebulaDraftTranslation {
         long user = NebulaTasks.user(account);
         if (activeDialog != dialog || activeAccount != account || activeUser != user) { original.clear(); cache.clear(); appliedPrefix = ""; dismissedField = null; stop(); }
         activeDialog = dialog; activeAccount = account; activeUser = user;
+        // Most composers have draft translation disabled. Layout/formatting changes
+        // must not copy the entire styled draft or inspect provider credentials then.
+        if (!allowed || !NebulaTranslationSettings.draft(account, dialog) || user <= 0
+                || DialogObject.isEncryptedDialog(dialog) || dialog == 0) {
+            if (editor.length() == 0) original.clear();
+            stop(); return;
+        }
         CharSequence source = NebulaRichText.snapshot(editor.getText());
         if (source.toString().equals(dismissedField)) return;
         dismissedField = null;

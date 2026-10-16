@@ -40,7 +40,7 @@ class FormattingGeometryCheck {
  void bubble(){BOUNDS}
  static class AndroidUtilities {static float density=1;static int dp(float v){return Math.round(v*density);}}
  static class LinearLayout {static class LayoutParams {int width,height,margin;LayoutParams(int w,int h){width=w;height=h;}void setMarginEnd(int m){margin=m;}}}
- static class Row {LinearLayout.LayoutParams captured;void addView(View v,LinearLayout.LayoutParams p){captured=p;}}
+ static class Row {int getChildCount(){return 0;}LinearLayout.LayoutParams captured;void addView(View v,LinearLayout.LayoutParams p){captured=p;}}
  Row row=new Row();View button=new View();void button(){BUTTON}
  static void check(boolean b,String s){if(!b)throw new AssertionError(s);}
  public static void main(String[] args){int cases=0;

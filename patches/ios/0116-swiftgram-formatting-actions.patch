@@ -1,0 +1,45 @@
+diff --git a/submodules/TelegramUI/Components/Chat/ChatTextInputPanelNode/Sources/ChatTextInputPanelNode.swift b/submodules/TelegramUI/Components/Chat/ChatTextInputPanelNode/Sources/ChatTextInputPanelNode.swift
+--- a/submodules/TelegramUI/Components/Chat/ChatTextInputPanelNode/Sources/ChatTextInputPanelNode.swift
++++ b/submodules/TelegramUI/Components/Chat/ChatTextInputPanelNode/Sources/ChatTextInputPanelNode.swift
+@@ -3924,7 +3924,7 @@
+             }
+             toolbar.update(color: interfaceState.theme.chat.inputPanel.actionControlForegroundColor,
+                 russian: interfaceState.strings.baseLanguageCode.lowercased().hasPrefix("ru"),
+-                hasSelection: !self.inputTextState.selectionRange.isEmpty)
++                hasSelection: !self.inputTextState.inputText.string.isEmpty)
+             transition.updateFrame(view: toolbar, frame: CGRect(x: leftInset + 8, y: 4,
+                 width: max(0, width - leftInset - rightInset - 16), height: 44))
+         } else if let toolbar = self.nebulaFormattingToolbar {
+@@ -5338,7 +5338,21 @@
+     }
+     
+     private func nebulaFormatSelection(_ index: Int) {
+-        guard !self.inputTextState.selectionRange.isEmpty else { return }
++        if index == 7 {
++            self.interfaceInteraction?.updateTextInputStateAndMode { current, mode in
++                guard let range = NebulaFormattingSelection.range(current.inputText.string, selection: current.selectionRange, selectWord: false) else { return (current, mode) }
++                let text = NSMutableAttributedString(attributedString: current.inputText)
++                text.replaceCharacters(in: NSRange(location: range.lowerBound, length: range.count), with: "\n")
++                let cursor = range.lowerBound + 1
++                return (ChatTextInputState(inputText: text, selectionRange: cursor ..< cursor), mode)
++            }
++            return
++        }
++        guard let range = NebulaFormattingSelection.range(self.inputTextState.inputText.string, selection: self.inputTextState.selectionRange, selectWord: true), !range.isEmpty else { return }
++        self.interfaceInteraction?.updateTextInputStateAndMode { current, mode in
++            guard let selected = NebulaFormattingSelection.range(current.inputText.string, selection: current.selectionRange, selectWord: true) else { return (current, mode) }
++            return (ChatTextInputState(inputText: current.inputText, selectionRange: selected), mode)
++        }
+         switch index {
+         case 0: self.formatAttributesBold(self)
+         case 1: self.formatAttributesItalic(self)
+@@ -5346,6 +5360,9 @@
+         case 3: self.formatAttributesQuote(self)
+         case 4: self.formatAttributesSpoiler(self)
+         case 5: self.formatAttributesLink(self)
++        case 8: self.formatAttributesUnderline(self)
++        case 9: self.formatAttributesStrikethrough(self)
++        case 10: self.formatAttributesCodeBlock(self)
+         default:
+             self.interfaceInteraction?.updateTextInputStateAndMode { current, mode in
+                 let text = NSMutableAttributedString(attributedString: current.inputText)

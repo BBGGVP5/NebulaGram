@@ -73,9 +73,9 @@ Files: Android `NebulaIntroFragment`, `NebulaIntroArt`, `NebulaOnboardingLayout`
 ## 8. Verification and delivery
 
 - [x] Run focused executable checks and all 126 Android regression commands; replay 222 Android / 114 iOS patches. The final startup regression also reproduces the original failure before applying the fix.
-- [ ] Compile real Android APK and full iOS IPA, inspect failed jobs and fix integration errors. Android 1000569 passes; final full IPA 123 is still running.
+- [ ] Compile real Android APK and full iOS IPA, inspect failed jobs and fix integration errors. Android 1000570 and full IPA 123 passed compilation/archive checks; latest UI builds 1000571 / 125 are compiling.
 - [x] Verify APK version, signature and package; publish through the authorized branch/build workflow. Final Android 1000569 / run 38768946384 verified: original certificate, API 23/arm64, 16-KB alignment, Go 1.27.2 and Xray 701af60772cd.
-- [x] Record available artifact links and distinguish source checks, full compilation and device QA. Android 1000569 startup is tested on hardware; final iOS 123 compilation and broader physical UI/authentication acceptance remain open.
+- [x] Record available artifact links and distinguish source checks, full compilation and device QA. Android 1000570 startup is tested on hardware; full IPA 123 compilation/archive checks passed. Latest UI builds and broader physical UI/authentication acceptance remain separate.
 - [x] Update `docs/USER-CHANGES.md`, fork audit and this checklist with actual completed work and remaining items.
 
 ## 9. NebulaLink runtime and dependency refresh
@@ -91,7 +91,7 @@ Files: `runtime/xray/go.mod`, `bind/go.mod`, `core/go.mod`, related sums/build s
 ## Remaining acceptance (requires the stated environment)
 
 - [x] Final Android APK 1000569 / 38768946384: full compilation, download, independent receipt verification and five device launch checks complete.
-- [ ] Final full iOS IPA for the last privacy/link-protection source batch; inspect integration failures, verify receipt and record exact artifact.
+- [x] Full iOS IPA for the privacy/link-protection source batch: build 123 / run 38758514021, source 7c36630, downloaded and independently verified. Requires user signing; physical iPhone/push delivery is untested. Subsequent UI changes are in build 125, which is still compiling.
 - [ ] Android/iOS physical UI acceptance: native IME/undo/keyboard, recording, large text/RTL, interrupted folder/header motion and screen-reader output.
 - [ ] Signed physical authentication/push, more than ten real account logins, native VPN consent/connect/reconnect/server switching. Synthetic account/native tests and five binding builds do not replace these checks.
 

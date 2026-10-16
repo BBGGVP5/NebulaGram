@@ -27,15 +27,17 @@ palette=palette.replace('android.graphics.drawable.RippleDrawable','RippleDrawab
 source+='''
 class PaletteCheck {
  static class NebulaTheme {static int surface=1,ink=2,chip=4;static NebulaTheme of(Object c){return new NebulaTheme();}int surfaceContainer(){return surface;}int onSurface(){return ink;}int surface(){return chip;}static int stateLayer(int c,float a){return c;}}
- static class AndroidUtilities {static int dp(int n){return n;}}
+ static class AndroidUtilities {static int dp(float n){return Math.round(n);}}
  static class GradientDrawable {static int created;int color;GradientDrawable(){created++;}void setColor(int n){color=n;}void setCornerRadius(int n){}}
  static class ColorStateList {static Object valueOf(int c){return c;}}
- static class RippleDrawable {GradientDrawable tile;RippleDrawable(Object c,GradientDrawable tile,Object mask){this.tile=tile;}}
+ static class InsetDrawable {GradientDrawable tile;InsetDrawable(GradientDrawable tile,int inset){this.tile=tile;}}
+ static class RippleDrawable {GradientDrawable tile;RippleDrawable(Object c,InsetDrawable tile,Object mask){this.tile=tile.tile;}}
  static class View {int color;Object background;void setBackground(Object b){background=b;}}
  static class TextView extends View {void setTextColor(int n){color=n;}}
  static class ImageView extends View {void setColorFilter(int n){color=n;}}
  static class Row {View[]items={new TextView(),new ImageView()};int getChildCount(){return items.length;}View getChildAt(int n){return items[n];}}
  int palette,paletteInk,paletteChip;Object background;Row row=new Row();Object getContext(){return null;}Object getBackground(){return background;}void setBackground(Object b){background=b;}
+ static int blend(int base,int ink,float fraction){return NebulaTheme.chip;}
  PALETTE
  public static void main(String[]args){PaletteCheck p=new PaletteCheck();p.updatePalette();
  for(int i=0;i<1000;i++)p.updatePalette();if(GradientDrawable.created!=3)throw new AssertionError("Idle cache rebuilt");

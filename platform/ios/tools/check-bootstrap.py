@@ -19,6 +19,7 @@ from check_profile_banner import check as check_profile_banner
 from check_story_header import check as check_story_header
 from check_draft_voice import check as check_draft_voice
 from check_formatting_placement import check as check_formatting_placement
+from check_formatting_selection import check as check_formatting_selection
 
 ROOT = Path(__file__).resolve().parents[3]
 
@@ -356,6 +357,7 @@ def main():
 
         input_panel = (temp / 'submodules/TelegramUI/Components/Chat/ChatTextInputPanelNode/Sources/ChatTextInputPanelNode.swift').read_text(encoding='utf-8')
         check_formatting_placement(input_panel, args.swift)
+        check_formatting_selection(args.swift)
         assert 'let isExpandInputEnabled = self.enableRichTextInput\n' in input_panel
         assert 'let isTallPanel = actualTextFieldFrame.height >= 70.0' in input_panel
         assert input_panel.count('if !NebulaSettingsStore.shared.hideSendAs, let sendAsPeers = interfaceState.sendAsPeers') == 3
