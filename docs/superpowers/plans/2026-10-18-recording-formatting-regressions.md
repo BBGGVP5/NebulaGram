@@ -60,3 +60,9 @@ The user explicitly identifies the flying message and broken field when sending 
 
 ## iOS artifact completion
 - IPA 127, run 39122976768, completed successfully. Downloaded and verified original e20bc2a source, app.nebulagram, version 13.0/build 127, arm64 executable and notification extension. SHA-256 ce8d5e03b696af68eae645ae7e5544374b613d99a5299cd7283d8f1c356dab26. Receipt: build/ios-ipa-39122976768/verified-ipa.json. User signing is required; no iPhone or push-delivery acceptance was performed.
+
+## Android follow-up artifact completion
+- APK 1000580, run 39128931235, source 7f145557ee694941bcd76052d196cb93203d5306, completed successfully. All CI regression checks passed. Verified downloaded package/version, original certificate, arm64 and 16 KB alignment. SHA-256 9bd1659ad68a329d087a2bcc16967f5a0f729260fa3f6d35732a27927de7b43e; receipt build/artifact-39128931235/verification.json.
+- Widget QA 39128960936 passed; scrolled dark and narrow/large-font screenshots were inspected. Tiles remain inside the inner gutter.
+- The connected Pixel was on 1000579: reproduced hidden reply/cancel; captured two self-message sends (plain and formatted/multiline) without the reported long pre-bubble pause. These samples do not establish a universal latency fix or exact input-to-render timing.
+- USB disconnected before the new APK finished. Do not mark 1000580 device-tested. Prepared build/test-reply-accessory-device.py for reply placement, clickable cancellation, multiline editing and keyboard closure when the phone is available; it preserves pre-existing drafts and sends no messages.
