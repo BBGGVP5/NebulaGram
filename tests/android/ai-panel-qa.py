@@ -21,7 +21,7 @@ def build():
   public static void cancelRunOnUIThread(Runnable r){handler.removeCallbacks(r);}
   public static int dp(float n){return (int)Math.ceil(n*ApplicationLoader.applicationContext.getResources().getDisplayMetrics().density);}
   public static android.graphics.Typeface bold(){return android.graphics.Typeface.create("sans-serif",android.graphics.Typeface.BOLD);}
-  public static void hideKeyboard(android.view.View v){((android.view.inputmethod.InputMethodManager)v.getContext().getSystemService(android.content.Context.INPUT_METHOD_SERVICE)).hideSoftInputFromWindow(v.getWindowToken(),0);}
+  public static int hideCalls;public static void hideKeyboard(android.view.View v){hideCalls++;((android.view.inputmethod.InputMethodManager)v.getContext().getSystemService(android.content.Context.INPUT_METHOD_SERVICE)).hideSoftInputFromWindow(v.getWindowToken(),0);}
  }'''
  stubs['app/nebulagram/ui/NebulaText.java']='package app.nebulagram.ui; public class NebulaText {public static String text(String ru,String en){return ru;}}'
  stubs['app/nebulagram/ui/NebulaTheme.java']='''package app.nebulagram.ui; public class NebulaTheme {
@@ -87,8 +87,25 @@ public class MainActivity extends Activity {
     report.put("editorLeft",editorRect.left);report.put("editorTop",editorRect.top);report.put("editorRight",editorRect.right);report.put("editorBottom",editorRect.bottom);
     report.put("voiceChoiceVisible",fullyVisible(findText(root,"Голосовое")));report.put("textChoiceVisible",fullyVisible(findText(root,"Текст")));report.put("retryVisible",fullyVisible(findText(root,"Повторить")));report.put("editorVisible",fullyVisible(edit));
     java.io.FileOutputStream out=openFileOutput("layout.json",0);out.write(report.toString().getBytes(java.nio.charset.StandardCharsets.UTF_8));out.close();
-   }catch(Exception e){throw new RuntimeException(e);}if(!isFinishing()&&!isDestroyed())root.postDelayed(this,333);}},1400);
+   }catch(Exception e){throw new RuntimeException(e);}java.io.File trigger=new java.io.File(getFilesDir(),"transcript-send.trigger");if(trigger.exists()){trigger.delete();verifyTranscriptDismiss();}
+   if(!isFinishing()&&!isDestroyed())root.postDelayed(this,333);}},1400);
   });
+ }
+ private void verifyTranscriptDismiss(){
+  // Execute the native handoff contract with the real inline host and Android IME.
+  // Telegram's recorded-panel animation and message transport are tested separately.
+  EditText transcript=findEditor(root);if(transcript==null||!transcript.hasFocus())throw new AssertionError("Transcript must own IME focus first");
+  EditText composer=new EditText(this);composer.setTextColor(NebulaTheme.of(this).onSurface());composer.setHint("Сообщение");composer.setAlpha(0);
+  FrameLayout.LayoutParams bar=new FrameLayout.LayoutParams(-1,dp(56),Gravity.BOTTOM);bar.bottomMargin=dp(24);root.addView(composer,bar);
+  int hides=AndroidUtilities.hideCalls;boolean focused=composer.requestFocus();preview.cancel();
+  composer.animate().alpha(1).setDuration(150).start();
+  root.postDelayed(()->{try{
+   org.json.JSONObject result=new org.json.JSONObject();result.put("case",getIntent().getStringExtra("case"));
+   result.put("focusTransferred",focused&&composer.hasFocus());result.put("noKeyboardHide",AndroidUtilities.hideCalls==hides);
+   result.put("imePreserved",root.getRootWindowInsets()!=null&&root.getRootWindowInsets().isVisible(WindowInsets.Type.ime()));
+   result.put("previewClosed",!preview.isShowing());result.put("composerVisible",composer.getAlpha()==1&&fullyVisible(composer));
+   java.io.FileOutputStream out=openFileOutput("transcript-send.json",0);out.write(result.toString().getBytes(java.nio.charset.StandardCharsets.UTF_8));out.close();
+  }catch(Exception e){throw new RuntimeException(e);}},600);
  }
  private void showCamera(){
   boolean front=!getIntent().getStringExtra("case").contains("rear");
@@ -117,7 +134,8 @@ public class MainActivity extends Activity {
       try{org.json.JSONObject failure=new org.json.JSONObject();failure.put("case",getIntent().getStringExtra("case"));failure.put("error",e.toString());java.io.FileOutputStream log=openFileOutput("callbacks.json",0);log.write(failure.toString().getBytes(java.nio.charset.StandardCharsets.UTF_8));log.close();}catch(Exception ignored){}throw new RuntimeException(e);
      }},300);return;
     }
-   }catch(Exception e){throw new RuntimeException(e);}if(!isFinishing()&&!isDestroyed())root.postDelayed(this,333);}},1400);
+   }catch(Exception e){throw new RuntimeException(e);}java.io.File trigger=new java.io.File(getFilesDir(),"transcript-send.trigger");if(trigger.exists()){trigger.delete();verifyTranscriptDismiss();}
+   if(!isFinishing()&&!isDestroyed())root.postDelayed(this,333);}},1400);
   });
  }
  private void verifyCamera(NebulaRoundCameraPanelHost modal,View composer,int originalBottom,int[] calls){
@@ -205,6 +223,18 @@ def render():
     assert report['voiceChoiceVisible'] and report['textChoiceVisible'] and report['editorVisible'],report
     if not keyboard:assert report['retryVisible'],report
    (output/(name+'.json')).write_text(json.dumps(report,indent=2)+'\n')
+   if keyboard:
+    device('shell','run-as','app.nebulagram.uiqa','touch','files/transcript-send.trigger')
+    handoff=None
+    for attempt in range(15):
+     time.sleep(1)
+     try:handoff=json.loads(subprocess.check_output([str(adb),'-s',serials[0],'shell','run-as','app.nebulagram.uiqa','cat','files/transcript-send.json'],stderr=subprocess.DEVNULL))
+     except (ValueError,subprocess.CalledProcessError):continue
+     if handoff.get('case')==name:break
+    assert handoff and handoff.get('case')==name and all(handoff[k] for k in ['focusTransferred','noKeyboardHide','imePreserved','previewClosed','composerVisible']),handoff
+    (output/'transcript-send.json').write_text(json.dumps(handoff,indent=2)+'\n')
+    with (output/'transcript-send.png').open('wb') as f:device('exec-out','screencap','-p',stdout=f)
+
   crash=subprocess.check_output([str(adb),'-s',serials[0],'logcat','-d','-b','crash'],text=True)
   (output/'crash.log').write_text(crash)
   assert 'FATAL EXCEPTION' not in crash,crash
