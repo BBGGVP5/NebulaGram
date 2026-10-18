@@ -34,7 +34,8 @@ with tempfile.TemporaryDirectory(prefix='nebula-draft-voice-') as folder:
         'private boolean nebulaPrepareVoiceSend(', 'private boolean nebulaVoiceSendCurrent(', 'private boolean nebulaApplyVoiceText(', 'public int getMessagesCount()'])
     # The first occurrences are declarations, not calls.
     assert 'MediaController.getInstance().toggleRecordingPause(voiceOnce)' in methods
-    assert 'resetRecordedState(true);' in methods and methods.index('resetRecordedState(true);') < methods.index('setFieldText(text);')
+    apply_text = method(source, 'private boolean nebulaApplyVoiceText(')
+    assert apply_text.index('resetRecordedState(true);') < apply_text.index('setFieldText(text);')
     assert 'SendMessagesHelper' not in method(source, 'nebulaRequestVoiceTranscription()'), 'Aa must not auto-send'
     for signature in ['private void resetRecordedState(boolean sentAsText)', 'public void onPause()', 'public void onDestroy()', 'public void setDialogId(long id, int account)']:
         body = method(source, signature)
@@ -71,13 +72,12 @@ public class NebulaAudioPreferences {public static boolean available=true;public
 import java.nio.file.*;
 import java.util.*;
 import app.nebulagram.ui.*;
-class Input {void requestFocus(){}}
 class Rect {float top;void setEmpty(){}boolean isEmpty(){return false;}}
 class PreviewParams {int forwarded;int getForwardedMessagesCount(){return forwarded;}}
 class Parent {int settings;PreviewParams messagePreviewParams=new PreviewParams();void presentFragment(Object value){settings++;}}
 class TextUtils {static boolean isEmpty(CharSequence s){return s==null||s.length()==0;}}
 class SendMessagesHelper {static String getTrimmedString(String s){return s.trim();}}
-class MessageInput {String value="";CharSequence getText(){return value;}}
+class MessageInput {String value="";CharSequence getText(){return value;}void requestFocus(){}}
 class Controller {int getMaxMessageLength(){return 4096;}}
 class Account {Controller getMessagesController(){return new Controller();}}
 class MediaController {static final MediaController shared=new MediaController();int pauses;static MediaController getInstance(){return shared;}void toggleRecordingPause(boolean once){pauses++;}}
@@ -95,7 +95,6 @@ class Hooks {
  MessageInput messageEditText=new MessageInput();Account accountInstance=new Account();
  NebulaDraftVoiceTranscription nebulaVoiceSheet;NebulaDraftVoicePolicy.Snapshot nebulaVoiceResultSource;String nebulaVoiceResult;
  boolean isInVideoMode(){return video;}
- Input messageEditText=new Input();
  void resetRecordedState(){resetRecordedState(false);}void resetRecordedState(boolean sentAsText){resets++;nebulaCancelVoiceTranscription();audioToSend=null;}
  void setFieldText(String value){text=value;}void setFieldFocused(boolean value){focused=value;}
  void updateSendButtonPaid(){}
