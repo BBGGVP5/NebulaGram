@@ -57,3 +57,6 @@ The user explicitly identifies the flying message and broken field when sending 
 - Patch 0236 admits quick ACK updates through the separate text-flight notification lock, matching the chat-list lock. This does not claim to fix pre-bubble latency.
 - Swiftgram's inspected SGInputToolbar integration hides on lost input focus and has no separate collapse control. Preserve this behavior rather than inventing a button from an uncertain reference.
 - Remaining: measure input-to-bubble latency on the connected phone; build/install and verify reply positioning, edge clipping and sending in the full client. Earlier fixture tests do not prove device timing.
+
+## iOS artifact completion
+- IPA 127, run 39122976768, completed successfully. Downloaded and verified original e20bc2a source, app.nebulagram, version 13.0/build 127, arm64 executable and notification extension. SHA-256 ce8d5e03b696af68eae645ae7e5544374b613d99a5299cd7283d8f1c356dab26. Receipt: build/ios-ipa-39122976768/verified-ipa.json. User signing is required; no iPhone or push-delivery acceptance was performed.
