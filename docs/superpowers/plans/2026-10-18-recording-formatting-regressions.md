@@ -33,3 +33,10 @@ The user confirms local transcription is working and requests better accuracy, n
 - Implicit word formatting restores the caret; native quote caret movement and explicit selections are retained. IME changes are batched on Android.
 - Clear/link/code icons and long-press labels make actions identifiable.
 - Prepared PCM goes directly to the paced local stream; cloud packaging remains WAV. No microphone/cloud fallback is added.
+
+## Additional video finding: transcript send
+The user explicitly identifies the flying message and broken field when sending a transcript. Native `resetRecordedState()` took the deletion path (`hideRecordedAudioPanel(false)`), whose editor fade starts after 750 ms. The text-flight animator could meanwhile sample this hidden editor.
+- Added a send-specific reset overload; the existing trash action keeps its behavior.
+- Transfer IME focus before removing the transcript view, cancel obsolete recorder animation, use the 150 ms sent transition and clear the recorder send control.
+- Start a text-flight effect only when the actual editor is visible, opaque and laid out and the recorded panel is gone. Otherwise keep native animated row insertion. Voice-flight behavior is unchanged.
+- Regression executes 32 editor/recording origin states and validates focus/reset/text order against native source.

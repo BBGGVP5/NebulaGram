@@ -34,9 +34,9 @@ with tempfile.TemporaryDirectory(prefix='nebula-draft-voice-') as folder:
         'private boolean nebulaPrepareVoiceSend(', 'private boolean nebulaVoiceSendCurrent(', 'private boolean nebulaApplyVoiceText(', 'public int getMessagesCount()'])
     # The first occurrences are declarations, not calls.
     assert 'MediaController.getInstance().toggleRecordingPause(voiceOnce)' in methods
-    assert 'resetRecordedState();' in methods and methods.index('resetRecordedState();') < methods.index('setFieldText(text);')
+    assert 'resetRecordedState(true);' in methods and methods.index('resetRecordedState(true);') < methods.index('setFieldText(text);')
     assert 'SendMessagesHelper' not in method(source, 'nebulaRequestVoiceTranscription()'), 'Aa must not auto-send'
-    for signature in ['private void resetRecordedState()', 'public void onPause()', 'public void onDestroy()', 'public void setDialogId(long id, int account)']:
+    for signature in ['private void resetRecordedState(boolean sentAsText)', 'public void onPause()', 'public void onDestroy()', 'public void setDialogId(long id, int account)']:
         body = method(source, signature)
         assert body.index('nebulaCancelVoiceTranscription();') < 150
     assert 'if (id == 5 && action == AccessibilityNodeInfoCompat.ACTION_CLICK) nebulaRequestVoiceTranscription();' in source
@@ -71,6 +71,7 @@ public class NebulaAudioPreferences {public static boolean available=true;public
 import java.nio.file.*;
 import java.util.*;
 import app.nebulagram.ui.*;
+class Input {void requestFocus(){}}
 class Rect {float top;void setEmpty(){}boolean isEmpty(){return false;}}
 class PreviewParams {int forwarded;int getForwardedMessagesCount(){return forwarded;}}
 class Parent {int settings;PreviewParams messagePreviewParams=new PreviewParams();void presentFragment(Object value){settings++;}}
@@ -94,7 +95,8 @@ class Hooks {
  MessageInput messageEditText=new MessageInput();Account accountInstance=new Account();
  NebulaDraftVoiceTranscription nebulaVoiceSheet;NebulaDraftVoicePolicy.Snapshot nebulaVoiceResultSource;String nebulaVoiceResult;
  boolean isInVideoMode(){return video;}
- void resetRecordedState(){resets++;nebulaCancelVoiceTranscription();audioToSend=null;}
+ Input messageEditText=new Input();
+ void resetRecordedState(){resetRecordedState(false);}void resetRecordedState(boolean sentAsText){resets++;nebulaCancelVoiceTranscription();audioToSend=null;}
  void setFieldText(String value){text=value;}void setFieldFocused(boolean value){focused=value;}
  void updateSendButtonPaid(){}
  boolean hasAudioToSend(){return audioToSend!=null;}

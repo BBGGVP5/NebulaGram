@@ -17,6 +17,15 @@ post=method(center,'public void postNotificationName(final int id,')
 names=set(re.findall(r'\b(?:messageReceivedBy\w+|startAllHeavyOperations|stopAllHeavyOperations|didReplacedPhotoInMemCache|closeChats|invalidateMotionBackground|needCheckSystemBarColors)\b',post))
 names.update(re.findall(r'\b[a-zA-Z]\w*\b',allowed));names.add('messageReceivedByServer')
 constants=';'.join(f'static final int {n}={i+1}' for i,n in enumerate(sorted(names)))+';'
+enter=(tree/'TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java').read_text(encoding='utf-8')
+text_transition=method(enter,'public boolean canShowTextMessageTransition()')
+apply=method(enter,'private boolean nebulaApplyVoiceText(')
+assert apply.index('messageEditText.requestFocus()') < apply.index('resetRecordedState(true)') < apply.index('setFieldText(text)')
+reset=method(enter,'private void resetRecordedState(boolean sentAsText)')
+assert 'hideRecordedAudioPanel(sentAsText)' in reset and 'recordPannelAnimation.cancel()' in reset
+assert 'recordCircle.setSendButtonInvisible()' in reset
+item=(tree/'TMessagesProj/src/main/java/org/telegram/ui/recyclerview/ChatListItemAnimator.java').read_text(encoding='utf-8')
+assert 'chatMessageCell.getMessageObject().isVoice() || activity.getChatActivityEnterView().canShowTextMessageTransition()' in item
 program=r'''
 import java.util.*;
 class View {boolean isLaidOut(){return true;}}
@@ -45,9 +54,19 @@ class AckGate {
  void postNotificationName(final int id,Object...args){POST}
  static int[] chatAllowed={ALLOWED};
 }
+class ComposerOrigin {
+ static int VISIBLE=0;static class Field {int visibility;float alpha=1;boolean layout;int getVisibility(){return visibility;}float getAlpha(){return alpha;}boolean isLayoutRequested(){return layout;}}
+ Field messageEditText,recordedAudioPanel;boolean valid(){TEXT_TRANSITION}
+}
 class Regression {
  static void check(boolean b,String why){if(!b)throw new AssertionError(why);}
  public static void main(String[]args){
+  for(int bits=0;bits<32;bits++) {
+   ComposerOrigin c=new ComposerOrigin();c.messageEditText=new ComposerOrigin.Field();c.recordedAudioPanel=new ComposerOrigin.Field();
+   c.messageEditText.visibility=(bits&1)!=0?8:0;c.messageEditText.alpha=(bits&2)!=0?.5f:1f;c.messageEditText.layout=(bits&4)!=0;c.recordedAudioPanel.visibility=(bits&8)!=0?0:8;
+   if((bits&16)!=0)c.messageEditText=null;
+   check(c.valid()==(bits==0),"text flight uses hidden, stale, recording or absent field geometry");
+  }
   Motion t=new Motion();check(t.prepare(true)==0&&t.reveal!=null,"first appearance snaps");
   t.reveal.step(.5f);check(t.prepare(true)>0&&t.prepare(true)<60&&t.alpha>0&&t.alpha<1,"no intermediate motion");
   Animator previous=t.reveal;t.prepare(false);previous.step(1);check(t.reservedHeight<60,"cancelled reveal changes height");t.reveal.step(1);check(t.prepare(false)==0&&t.visibility==8,"hidden toolbar reserves space");
@@ -59,6 +78,6 @@ class Regression {
   System.out.println("1000 reversible reveal/hide cycles, reduced motion, gap and actual native ACK admission passed; no network simulation");
  }
 }
-'''.replace('PREPARE',prepare).replace('CONSTANTS',constants).replace('POST',post).replace('ALLOWED',allowed)
+'''.replace('TEXT_TRANSITION',text_transition).replace('PREPARE',prepare).replace('CONSTANTS',constants).replace('POST',post).replace('ALLOWED',allowed)
 with tempfile.TemporaryDirectory(prefix='nebula-motion-') as tmp:
  p=Path(tmp)/'Regression.java';p.write_text(program,encoding='utf-8');subprocess.run(['javac','-encoding','UTF-8','-d',tmp,str(p)],check=True);subprocess.run(['java','-cp',tmp,'Regression'],check=True)

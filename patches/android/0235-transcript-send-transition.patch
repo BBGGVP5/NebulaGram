@@ -1,0 +1,68 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
+@@ -1261,7 +1261,9 @@
+         if (source != null) {
+             nebulaVoiceSendSource = null;
+             nebulaVoiceSendText = null;
+-            resetRecordedState();
++            // Transfer IME focus before removing its transcript editor.
++            if (messageEditText != null) messageEditText.requestFocus();
++            resetRecordedState(true);
+             setFieldText(text);
+             voiceOnce = false;
+         }
+@@ -4304,6 +4306,10 @@
+     }
+ 
+     private void resetRecordedState() {
++        resetRecordedState(false);
++    }
++
++    private void resetRecordedState(boolean sentAsText) {
+         nebulaCancelVoiceTranscription();
+         if (audioTimelineView != null) {
+             audioTimelineView.setPlaying(false);
+@@ -4328,7 +4334,13 @@
+         MediaDataController.getInstance(currentAccount).pushDraftVoiceMessage(dialog_id, parentFragment != null && parentFragment.isTopic ? parentFragment.getTopicId() : 0, null);
+         MediaController.getInstance().stopRecording(0, false, 0, false, 0);
+         millisecondsRecorded = 0;
+-        hideRecordedAudioPanel(false);
++        if (sentAsText && recordPannelAnimation != null) {
++            recordPannelAnimation.cancel();
++            recordPannelAnimation = null;
++        }
++        // Text conversion is a send, not the slow trash-can deletion animation.
++        hideRecordedAudioPanel(sentAsText);
++        if (sentAsText && recordCircle != null) recordCircle.setSendButtonInvisible();
+         checkSendButton(true);
+     }
+ 
+@@ -9158,6 +9170,14 @@
+         }
+     }
+ 
++    public boolean canShowTextMessageTransition() {
++        // A transcript is sent while the recorder is fading out; the hidden composer
++        // has no valid origin for the text-flight animation. Keep normal row insertion.
++        return messageEditText != null && messageEditText.getVisibility() == VISIBLE
++                && messageEditText.getAlpha() == 1f && !messageEditText.isLayoutRequested()
++                && (recordedAudioPanel == null || recordedAudioPanel.getVisibility() != VISIBLE);
++    }
++
+     public boolean canShowMessageTransition() {
+         boolean r = moveToSendStateRunnable != null && (messageSendPreview == null || !messageSendPreview.isShowing()) && System.currentTimeMillis() - sentFromPreview > 300;
+         sentFromPreview = -1;
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/recyclerview/ChatListItemAnimator.java b/TMessagesProj/src/main/java/org/telegram/ui/recyclerview/ChatListItemAnimator.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/recyclerview/ChatListItemAnimator.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/recyclerview/ChatListItemAnimator.java
+@@ -351,7 +351,8 @@
+         }
+         if (activity != null && chatMessageCell != null && activity.animatingMessageObjects.contains(chatMessageCell.getMessageObject())) {
+             activity.animatingMessageObjects.remove(chatMessageCell.getMessageObject());
+-            if (activity.getChatActivityEnterView().canShowMessageTransition()) {
++            if (activity.getChatActivityEnterView().canShowMessageTransition()
++                    && (chatMessageCell.getMessageObject().isVoice() || activity.getChatActivityEnterView().canShowTextMessageTransition())) {
+                 if (chatMessageCell.getMessageObject().isVoice()) {
+                     if (Math.abs(view.getTranslationY()) < view.getMeasuredHeight() * 3f) {
+                         VoiceMessageEnterTransition transition = new VoiceMessageEnterTransition(chatMessageCell, activity.getChatActivityEnterView(), recyclerListView, activity.messageEnterTransitionContainer, resourcesProvider);
