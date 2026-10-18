@@ -7,19 +7,19 @@
 **Tech Stack:** Android Java/Editable/ML Kit, Swift native input state, Python regression harnesses.
 
 ## Evidence and scope
-- Video: 55.95 seconds, Saved Messages. Formatting/keyboard transitions, automatic word selection, multiline blank draft, voice recording and failed local transcription.
+- Video: 55.95 seconds, Saved Messages. Formatting/keyboard transitions, automatic word selection, multiline blank draft, voice recording and the local transcription status. The user subsequently clarified that recognition itself is working.
 - No connected Android device at investigation start. Visual recording cannot identify the recognizer exception or prove a transport delay.
 - The local draft pipeline currently decodes Opus → PCM → WAV → MediaCodec(audio/raw); the second decode is unnecessary and depends on a PCM decoder being installed.
 
 ## Tasks
-- [ ] Add a regression that applies a toolbar action at a caret and then types: the existing word must survive. Preserve explicit selections and the native quote-inserted caret. Batch native edits with beginBatchEdit/endBatchEdit in finally.
+- [x] Add a regression that applies a toolbar action at a caret and then types: the existing word must survive. Preserve explicit selections and the native quote-inserted caret. Batch native edits with beginBatchEdit/endBatchEdit in finally.
   Files: platform/android/overlay/TMessagesProj/src/main/java/app/nebulagram/ui/NebulaFormattingToolbar.java; scripts/check-formatting-toolbar.py; tests/android/formatting-widget-qa.py.
   Run: `python scripts/check-formatting-toolbar.py`.
-- [ ] Add a raw PCM trim path sharing exact bounds/cancellation checks with WAV packaging. Expose an owned-input transcribePcm entry point which does not decode or delete its caller's file. Use it for local drafts; leave WAV for cloud.
+- [x] Add a raw PCM trim path sharing exact bounds/cancellation checks with WAV packaging. Expose an owned-input transcribePcm entry point which does not decode or delete its caller's file. Use it for local drafts; leave WAV for cloud.
   Files: NebulaDraftVoicePolicy.java, NebulaLocalTranscription.java, NebulaDraftVoiceTranscription.java in the same Android overlay UI directory; scripts/check-draft-voice.py, scripts/check-draft-voice-api.py, scripts/check-local-audio.py.
   Test exact trimmed bytes, length limits, cancellation, no header and source preservation.
-- [ ] Inspect native accessory eligibility and placement during focus, reply, IME and recording transitions; fix demonstrated inconsistencies and execute native integration checks against build/android-1302-integrated-20261015.
-- [ ] Apply the implicit-selection caret fix to the iOS native callback while preserving explicit selection/link behavior; run iOS patch/bootstrap checks.
+- [x] Inspect native accessory eligibility and placement during focus, reply, IME and recording transitions; fix demonstrated inconsistencies and execute native integration checks against build/android-1302-integrated-20261015.
+- [x] Apply the implicit-selection caret fix to the iOS native callback while preserving explicit selection/link behavior; run iOS patch/bootstrap checks.
 - [ ] Run targeted checks, full CI checks and actual widget rendering. Build updated Android and applicable iOS sources, verify artifact identity, and record any remaining device-only checks.
 
 Execution stays in this authorized task; no separate agents or permission handoff.
@@ -40,3 +40,12 @@ The user explicitly identifies the flying message and broken field when sending 
 - Transfer IME focus before removing the transcript view, cancel obsolete recorder animation, use the 150 ms sent transition and clear the recorder send control.
 - Start a text-flight effect only when the actual editor is visible, opaque and laid out and the recorded panel is gone. Otherwise keep native animated row insertion. Voice-flight behavior is unchanged.
 - Regression executes 32 editor/recording origin states and validates focus/reset/text order against native source.
+
+## Validation checkpoint
+- All 132 Android checks passed across the full local batch and the corrected focused draft test. The initial batch had one test-fixture failure: a send-order assertion searched across multiple methods; the corrected test scopes it to the send callback and passes 442 checks. No production workaround was added for this fixture error.
+- CI widget run 39123211567 passed. Dark/light and narrow/large-font formatting screenshots were inspected; the strip is separate from the editor and overflow remains scrollable. These are production widgets with explicit editor/parent adapters, not an authenticated Telegram session.
+- Native text-flight eligibility executes 32 combinations of visibility, opacity, layout and recorded-panel state; native quick-ACK admission preserves other exclusive locks and structural event ordering. Toolbar motion executes 1000 interrupted/reversible cycles.
+- iOS bootstrap passed 117 ordered patches across 170 paths. Android-specific transcript reset is unnecessary in the current iOS path: it already uses the native sending transition with updateRecordedMediaDeleted(false) and enqueues the explicit text.
+- Additional emulator run 39124156836 passed: it checks focus transfer from the real transcript host to an alpha-zero composer and verifies that closing the transcript does not hide the IME. This fixture does not emulate message delivery or the full Telegram recorded-panel animation.
+- Full APK 1000579 (39123874816, 2b932c0) and unsigned IPA 127 (39122976768, e20bc2a) are building. Subsequent commits change tests only; application sources match these build heads.
+- USB phone remains unavailable. Real delivery latency, device animation smoothness and speech recognition accuracy have not been measured.
