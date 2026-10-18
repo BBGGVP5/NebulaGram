@@ -49,3 +49,11 @@ The user explicitly identifies the flying message and broken field when sending 
 - Additional emulator run 39124156836 passed: it checks focus transfer from the real transcript host to an alpha-zero composer and verifies that closing the transcript does not hide the IME. This fixture does not emulate message delivery or the full Telegram recorded-panel animation.
 - Full APK 1000579 (39123874816, 2b932c0) succeeded and was downloaded/verified: original certificate, exact version/package, arm64-v8a, 16 KB alignment and Go/Xray library identity. Receipt: build/artifact-39123874816/verification.json. Unsigned IPA 127 (39122976768, e20bc2a) is still building. Subsequent commits change tests only; application sources match these build heads.
 - USB phone remains unavailable. Real delivery latency, device animation smoothness and speech recognition accuracy have not been measured.
+
+## Follow-up: reply preview, clipped tiles and pre-bubble latency
+- Pixel is connected with APK 1000579. The user clarifies the remaining delay occurs before a bubble appears, not while waiting for a server acknowledgement.
+- Reproduced the hidden reply preview in Saved Messages: with the keyboard open, its cancel button overlaps the editor in the UI hierarchy. FrameLayout lays out the preview below accessory padding, then the old translation adds that offset again. Patch 0237 subtracts the actual layout top and reapplies positioning after layout; the regression fails before the fix and passes across reply heights and animation fractions afterward.
+- Clip horizontally scrolling toolbar tiles to the inner padding; widget QA captures the scrolled edge in dark, light and narrow configurations.
+- Patch 0236 admits quick ACK updates through the separate text-flight notification lock, matching the chat-list lock. This does not claim to fix pre-bubble latency.
+- Swiftgram's inspected SGInputToolbar integration hides on lost input focus and has no separate collapse control. Preserve this behavior rather than inventing a button from an uncertain reference.
+- Remaining: measure input-to-bubble latency on the connected phone; build/install and verify reply positioning, edge clipping and sending in the full client. Earlier fixture tests do not prove device timing.

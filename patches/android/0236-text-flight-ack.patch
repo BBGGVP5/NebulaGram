@@ -1,0 +1,24 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/TextMessageEnterTransition.java b/TMessagesProj/src/main/java/org/telegram/ui/TextMessageEnterTransition.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/TextMessageEnterTransition.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/TextMessageEnterTransition.java
+@@ -38,6 +38,7 @@
+ import org.telegram.messenger.AnimationNotificationsLocker;
+ import org.telegram.messenger.Emoji;
+ import org.telegram.messenger.MessageObject;
++import org.telegram.messenger.NotificationCenter;
+ import org.telegram.messenger.SharedConfig;
+ import org.telegram.messenger.UserConfig;
+ import org.telegram.tgnet.TLRPC;
+@@ -105,7 +106,11 @@
+     private float scaleFrom;
+ 
+     private final int currentAccount;
+-    private AnimationNotificationsLocker notificationsLocker = new AnimationNotificationsLocker();
++    // A quick acknowledgement only changes the existing row's send status.
++    // Keep structural updates deferred, but do not retain the sending clock
++    // behind this second lock while the chat-list lock already admits the ACK.
++    private AnimationNotificationsLocker notificationsLocker = new AnimationNotificationsLocker(
++            new int[]{NotificationCenter.messageReceivedByAck});
+     MessageObject.TextLayoutBlock textLayoutBlock;
+     Drawable fromMessageDrawable;
+     ChatActivityEnterView enterView;

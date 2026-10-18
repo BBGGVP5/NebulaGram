@@ -46,7 +46,8 @@ public final class NebulaFormattingToolbar extends HorizontalScrollView {
         preferenceEnabled = enabled();
         setHorizontalScrollBarEnabled(false);
         setFillViewport(true);
-        setClipToPadding(false);
+        // Keep scrolling tiles inside the rounded bar's inner gutter.
+        setClipToPadding(true);
         setClipToOutline(true);
         setPadding(AndroidUtilities.dp(8), AndroidUtilities.dp(4), AndroidUtilities.dp(8), AndroidUtilities.dp(4));
         setFocusable(false);

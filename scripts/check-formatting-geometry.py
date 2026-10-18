@@ -20,9 +20,11 @@ bounds=container[start:container.index('        tmpRect.inset(',start)]
 toolbar=(root/'platform/android/overlay/TMessagesProj/src/main/java/app/nebulagram/ui/NebulaFormattingToolbar.java').read_text(encoding='utf-8')
 start=toolbar.index('        LinearLayout.LayoutParams params = ')
 button=toolbar[start:toolbar.index('\n    }',start)]
+position_start=editor.index('            topView.setTranslationY(')
+position=editor[position_start:editor.index(';',position_start)+1]
 source=r'''
 class FormattingGeometryCheck {
- static class View {float y;int top,bottom,measuredWidth,measuredHeight;void measure(int w,int h){measuredWidth=w;measuredHeight=h;}float getY(){return y;}void layout(int l,int t,int r,int b){top=t;bottom=b;}}
+ static class View {float y,translationY;int top,bottom,measuredWidth,measuredHeight;int getTop(){return top;}int getMeasuredHeight(){return measuredHeight;}void setTranslationY(float y){translationY=y;}void measure(int w,int h){measuredWidth=w;measuredHeight=h;}float getY(){return y;}void layout(int l,int t,int r,int b){top=t;bottom=b;}}
  static class Canvas {float top=Float.NEGATIVE_INFINITY,bottom=Float.POSITIVE_INFINITY;void save(){}void clipRect(float l,float t,float r,float b){top=Math.max(top,t);bottom=Math.min(bottom,b);}}
  static class Animator {float height;float getFactor(){return height;}}
  static class Style {boolean active;boolean isActive(){return active;}}
@@ -34,6 +36,7 @@ class FormattingGeometryCheck {
  static class MeasureSpec {static int EXACTLY=0;static int makeMeasureSpec(int value,int mode){return value;}}
  static class app {static class nebulagram {static class ui {static class NebulaFormattingToolbar {static int HEIGHT_DP=52,GAP_DP=8;}}}}
  static int dp(int value){return value;}void measure(){MEASURE}void padding(int formattingHeight){PADDING}void layout(){LAYOUT}
+ void position(float y,float visibility){POSITION}
  void parentClip(Canvas canvas){if(clipPadding&&(paddingTop!=0||paddingBottom!=0))canvas.clipRect(0,paddingTop,360,height-paddingBottom);}
  void draw(View child,Canvas canvas){CLIP}
  static class Rect {int top,bottom;void set(int l,int t,int r,int b){top=t;bottom=b;}}
@@ -53,6 +56,12 @@ class FormattingGeometryCheck {
     Canvas bar=new Canvas();c.parentClip(bar);
     check(bar.top<=c.nebulaFormattingToolbar.top&&bar.bottom>=c.nebulaFormattingToolbar.bottom,"FrameLayout clipToPadding hides formatting actions");
     check(c.nebulaFormattingToolbar.top==0&&c.nebulaFormattingToolbar.bottom==accessory-8,"formatting toolbar is not above native composer");
+   }
+   c.topView.top=accessory;c.topView.measuredHeight=reply;
+   for(float visibility:new float[]{0,.25f,.5f,1}){
+    float separator=accessory+reply*visibility;
+    c.position(separator,visibility);
+    check(Math.abs(c.topView.top+c.topView.translationY+reply*visibility-separator)<.01f,"reply preview translated twice by toolbar padding");
    }
    c.animatorInputFieldHeight.height=field;c.textFieldContainer.y=reply+accessory+1;c.aiButton.y=-20;
    c.nebulaComposerStyle.active=ai;c.shownAiButton=ai;
@@ -78,7 +87,7 @@ class FormattingGeometryCheck {
   System.out.println(cases+" native composer parent-clip/padding/top-accessory cases and fixed-width accessory actions passed");
  }
 }
-'''.replace('CLIP',clip).replace('BOUNDS',bounds).replace('BUTTON',button).replace('PADDING',padding).replace('LAYOUT',layout).replace('MEASURE',measure)
+'''.replace('POSITION',position).replace('CLIP',clip).replace('BOUNDS',bounds).replace('BUTTON',button).replace('PADDING',padding).replace('LAYOUT',layout).replace('MEASURE',measure)
 java_home=Path(os.environ.get('JAVA_HOME','C:/Program Files/Java/jdk-26.0.2'))
 with tempfile.TemporaryDirectory(prefix='nebula-format-geometry-') as directory:
  work=Path(directory);test=work/'FormattingGeometryCheck.java';test.write_text(source,encoding='utf-8')

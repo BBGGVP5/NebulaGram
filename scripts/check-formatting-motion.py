@@ -26,6 +26,9 @@ assert 'hideRecordedAudioPanel(sentAsText)' in reset and 'recordPannelAnimation.
 assert 'recordCircle.setSendButtonInvisible()' in reset
 item=(tree/'TMessagesProj/src/main/java/org/telegram/ui/recyclerview/ChatListItemAnimator.java').read_text(encoding='utf-8')
 assert 'chatMessageCell.getMessageObject().isVoice() || activity.getChatActivityEnterView().canShowTextMessageTransition()' in item
+flight=(tree/'TMessagesProj/src/main/java/org/telegram/ui/TextMessageEnterTransition.java').read_text(encoding='utf-8')
+flight_allowed=re.search(r'notificationsLocker\s*=\s*new AnimationNotificationsLocker\((.*?)\);',flight,re.S).group(1).strip() or 'null'
+flight_allowed=re.sub(r'//[^\n]*','',flight_allowed).replace('NotificationCenter.','')
 program=r'''
 import java.util.*;
 class View {boolean isLaidOut(){return true;}}
@@ -52,7 +55,7 @@ class AckGate {
  Sparse allowedNotifications=new Sparse();boolean shouldDebounce(int id,Object[] args){return false;}void postNotificationDebounced(int id,Object[]args){throw new AssertionError();}
  void postNotificationNameInternal(int id,boolean allowed,Object...args){admitted=allowed;}void onAnimationFinish(int i){throw new AssertionError("unexpected expiry");}
  void postNotificationName(final int id,Object...args){POST}
- static int[] chatAllowed={ALLOWED};
+ static int[] chatAllowed={ALLOWED};static int[] flightAllowed=FLIGHT_ALLOWED;
 }
 class ComposerOrigin {
  static int VISIBLE=0;static class Field {int visibility;float alpha=1;boolean layout;int getVisibility(){return visibility;}float getAlpha(){return alpha;}boolean isLayoutRequested(){return layout;}}
@@ -73,11 +76,12 @@ class Regression {
   for(int i=0;i<1000;i++){t.prepare(true);t.reveal.step(1);int starts=Animator.starts;check(t.prepare(true)==60,"toolbar loses 8dp gap");t.prepare(true);check(starts==Animator.starts,"typing restarts animation");t.prepare(false);t.reveal.step(1);}
   NebulaGlass.reduced=true;check(t.prepare(true)==60&&t.visibility==0&&t.alpha==1,"reduced motion not immediate");check(t.prepare(false)==0&&t.visibility==8,"reduced hide retains toolbar");
   AckGate gate=new AckGate();gate.allowedNotifications.data.add(new AckGate.AllowedNotifications(AckGate.chatAllowed));gate.postNotificationName(AckGate.messageReceivedByAck);check(gate.admitted,"real ACK waits behind chat animation");
+  gate.allowedNotifications.data.add(new AckGate.AllowedNotifications(AckGate.flightAllowed));gate.postNotificationName(AckGate.messageReceivedByAck);check(gate.admitted,"text-flight lock delays real ACK even though chat-list lock allows it");
   gate.postNotificationName(AckGate.messageReceivedByServer);check(!gate.admitted,"structural server event bypasses ordering");
   gate.allowedNotifications.data.add(new AckGate.AllowedNotifications(null));gate.postNotificationName(AckGate.messageReceivedByAck);check(!gate.admitted,"unrelated exclusive animation bypassed");
   System.out.println("1000 reversible reveal/hide cycles, reduced motion, gap and actual native ACK admission passed; no network simulation");
  }
 }
-'''.replace('TEXT_TRANSITION',text_transition).replace('PREPARE',prepare).replace('CONSTANTS',constants).replace('POST',post).replace('ALLOWED',allowed)
+'''.replace('TEXT_TRANSITION',text_transition).replace('PREPARE',prepare).replace('CONSTANTS',constants).replace('POST',post).replace('FLIGHT_ALLOWED',flight_allowed).replace('ALLOWED',allowed)
 with tempfile.TemporaryDirectory(prefix='nebula-motion-') as tmp:
  p=Path(tmp)/'Regression.java';p.write_text(program,encoding='utf-8');subprocess.run(['javac','-encoding','UTF-8','-d',tmp,str(p)],check=True);subprocess.run(['java','-cp',tmp,'Regression'],check=True)
