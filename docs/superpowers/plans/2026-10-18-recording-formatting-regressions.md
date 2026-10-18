@@ -66,3 +66,11 @@ The user explicitly identifies the flying message and broken field when sending 
 - Widget QA 39128960936 passed; scrolled dark and narrow/large-font screenshots were inspected. Tiles remain inside the inner gutter.
 - The connected Pixel was on 1000579: reproduced hidden reply/cancel; captured two self-message sends (plain and formatted/multiline) without the reported long pre-bubble pause. These samples do not establish a universal latency fix or exact input-to-render timing.
 - USB disconnected before the new APK finished. Do not mark 1000580 device-tested. Prepared build/test-reply-accessory-device.py for reply placement, clickable cancellation, multiline editing and keyboard closure when the phone is available; it preserves pre-existing drafts and sends no messages.
+
+## New recording at 17:38 and source/core update
+- [x] Review video_2026-10-18_17-38-54.mp4. Native text flight visibly crosses the floating formatting controls. Inspect the native item insertion callback and its composer-clear handshake before editing timers.
+- [ ] Extend the extracted native regression: with a visible formatting accessory, use ordinary animated row insertion above the accessory; complete the composer-clear handshake when insertion starts even when text-flight eligibility rejects the origin. Preserve voice flights, unobstructed text flights and native structural notification ordering.
+- [ ] Apply the smallest ordered Android patch, run affected motion/geometry/draft checks and build the complete application.
+- [x] Query exact official Telegram production branch heads. Android f32ffeec763f0bdbf4bec25b52d654f77bff733d and iOS f1dd7a2dbd02cbbf513e75d5695d8d36d1cf5838 already match both gitlinks. No artificial version/source bump.
+- [ ] Verify Xray 26.10.17 and latest libXray 75ccb623c807a1113a064278e3e544b0049c16a5. Update the actual Xray dependency in runtime/xray and bind (NebulaLink uses its own bindings), refresh required module checksums, and run core/runtime/mobile protocol tests and vet.
+- [ ] Build Android and the affected iOS core/application, verify artifact identity and report device-testing limits explicitly.

@@ -1,0 +1,43 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
+@@ -9171,9 +9171,10 @@
+     }
+ 
+     public boolean canShowTextMessageTransition() {
+-        // A transcript is sent while the recorder is fading out; the hidden composer
+-        // has no valid origin for the text-flight animation. Keep normal row insertion.
+-        return messageEditText != null && messageEditText.getVisibility() == VISIBLE
++        // The floating toolbar occupies the flight path, including while it hides.
++        // A fading recorder also has no valid editor origin. Use animated row insertion.
++        return nebulaFormattingHeight == 0
++                && messageEditText != null && messageEditText.getVisibility() == VISIBLE
+                 && messageEditText.getAlpha() == 1f && !messageEditText.isLayoutRequested()
+                 && (recordedAudioPanel == null || recordedAudioPanel.getVisibility() != VISIBLE);
+     }
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/recyclerview/ChatListItemAnimator.java b/TMessagesProj/src/main/java/org/telegram/ui/recyclerview/ChatListItemAnimator.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/recyclerview/ChatListItemAnimator.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/recyclerview/ChatListItemAnimator.java
+@@ -351,19 +351,19 @@
+         }
+         if (activity != null && chatMessageCell != null && activity.animatingMessageObjects.contains(chatMessageCell.getMessageObject())) {
+             activity.animatingMessageObjects.remove(chatMessageCell.getMessageObject());
+-            if (activity.getChatActivityEnterView().canShowMessageTransition()
+-                    && (chatMessageCell.getMessageObject().isVoice() || activity.getChatActivityEnterView().canShowTextMessageTransition())) {
++            if (activity.getChatActivityEnterView().canShowMessageTransition()) {
+                 if (chatMessageCell.getMessageObject().isVoice()) {
+                     if (Math.abs(view.getTranslationY()) < view.getMeasuredHeight() * 3f) {
+                         VoiceMessageEnterTransition transition = new VoiceMessageEnterTransition(chatMessageCell, activity.getChatActivityEnterView(), recyclerListView, activity.messageEnterTransitionContainer, resourcesProvider);
+                         transition.start();
+                     }
+-                } else {
++                } else if (activity.getChatActivityEnterView().canShowTextMessageTransition()) {
+                     if (SharedConfig.getDevicePerformanceClass() != SharedConfig.PERFORMANCE_CLASS_LOW && Math.abs(view.getTranslationY()) < recyclerListView.getMeasuredHeight()) {
+                         TextMessageEnterTransition transition = new TextMessageEnterTransition(chatMessageCell, activity, recyclerListView, activity.messageEnterTransitionContainer, resourcesProvider);
+                         transition.start();
+                     }
+                 }
++                // Row insertion owns the composer-clear handshake even without a flight.
+                 activity.getChatActivityEnterView().startMessageTransition();
+             }
+         }
