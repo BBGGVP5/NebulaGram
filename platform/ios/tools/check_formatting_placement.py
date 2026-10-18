@@ -56,8 +56,8 @@ func frames(width:CGFloat,contentHeight:CGFloat,formattingHeight:CGFloat) {
  precondition(containerFrame.minY==formattingHeight)
 }
 let check=NativeCheck()
-for bits in 0..<256 {precondition(check.height(bits)==(bits==7 ? 60:0),"recording/media/disabled keyboard shows formatting")}
-for width in [CGFloat(240),320,390,720] {for height in [CGFloat(44),88,176,224] {for accessory in [CGFloat(0),60] {frames(width:width,contentHeight:height,formattingHeight:accessory)}}}
+for bits in 0..<256 {precondition(check.height(bits)==(bits==7 ? 56:0),"recording/media/disabled keyboard shows formatting")}
+for width in [CGFloat(240),320,390,720] {for height in [CGFloat(44),88,176,224] {for accessory in [CGFloat(0),56] {frames(width:width,contentHeight:height,formattingHeight:accessory)}}}
 print("Native iOS formatting: 256 eligibility states, 32 toolbar/native/root-button frame combinations passed")
 '''.replace('ELIGIBILITY', eligibility).replace('CONTAINER', container).replace('TOOLBAR', toolbar)
     for token, frame in zip(['LIVE', 'STAR', 'SETTINGS'], frames):

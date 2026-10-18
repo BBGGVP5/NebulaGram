@@ -44,7 +44,7 @@ class Animator {
  void start(){starts++;}Object getAnimatedValue(){return value;}void step(float f){if(!cancelled){value=Math.round(start+(end-start)*f);listener.accept(this);}}
 }
 class Motion {
- static int HEIGHT_DP=52,GAP_DP=8,VISIBLE=0,GONE=8;boolean preferenceEnabled=true,expanded,attached=true;int reservedHeight,visibility=GONE,layouts;float alpha;Animator reveal;
+ static int HEIGHT_DP=52,GAP_DP=4,VISIBLE=0,GONE=8;boolean preferenceEnabled=true,expanded,attached=true;int reservedHeight,visibility=GONE,layouts;float alpha;Animator reveal;
  Runnable layoutChanged=()->layouts++;Object getParent(){return new View();}boolean isAttachedToWindow(){return attached;}void setVisibility(int v){visibility=v;}void setAlpha(float a){alpha=a;}void updatePalette(){}
  int prepare(boolean eligible){PREPARE}
 }
@@ -99,10 +99,10 @@ class Regression {
    s.insert();check(s.activity.editor.clears==(outgoing&&pending?1:0),"repeated row callback clears a new draft");
   }
   Motion t=new Motion();check(t.prepare(true)==0&&t.reveal!=null,"first appearance snaps");
-  t.reveal.step(.5f);check(t.prepare(true)>0&&t.prepare(true)<60&&t.alpha>0&&t.alpha<1,"no intermediate motion");
-  Animator previous=t.reveal;t.prepare(false);previous.step(1);check(t.reservedHeight<60,"cancelled reveal changes height");t.reveal.step(1);check(t.prepare(false)==0&&t.visibility==8,"hidden toolbar reserves space");
-  for(int i=0;i<1000;i++){t.prepare(true);t.reveal.step(1);int starts=Animator.starts;check(t.prepare(true)==60,"toolbar loses 8dp gap");t.prepare(true);check(starts==Animator.starts,"typing restarts animation");t.prepare(false);t.reveal.step(1);}
-  NebulaGlass.reduced=true;check(t.prepare(true)==60&&t.visibility==0&&t.alpha==1,"reduced motion not immediate");check(t.prepare(false)==0&&t.visibility==8,"reduced hide retains toolbar");
+  t.reveal.step(.5f);check(t.prepare(true)>0&&t.prepare(true)<56&&t.alpha>0&&t.alpha<1,"no intermediate motion");
+  Animator previous=t.reveal;t.prepare(false);previous.step(1);check(t.reservedHeight<56,"cancelled reveal changes height");t.reveal.step(1);check(t.prepare(false)==0&&t.visibility==8,"hidden toolbar reserves space");
+  for(int i=0;i<1000;i++){t.prepare(true);t.reveal.step(1);int starts=Animator.starts;check(t.prepare(true)==56,"toolbar loses 4dp gap");t.prepare(true);check(starts==Animator.starts,"typing restarts animation");t.prepare(false);t.reveal.step(1);}
+  NebulaGlass.reduced=true;check(t.prepare(true)==56&&t.visibility==0&&t.alpha==1,"reduced motion not immediate");check(t.prepare(false)==0&&t.visibility==8,"reduced hide retains toolbar");
   AckGate gate=new AckGate();gate.allowedNotifications.data.add(new AckGate.AllowedNotifications(AckGate.chatAllowed));gate.postNotificationName(AckGate.messageReceivedByAck);check(gate.admitted,"real ACK waits behind chat animation");
   gate.allowedNotifications.data.add(new AckGate.AllowedNotifications(AckGate.flightAllowed));gate.postNotificationName(AckGate.messageReceivedByAck);check(gate.admitted,"text-flight lock delays real ACK even though chat-list lock allows it");
   gate.postNotificationName(AckGate.messageReceivedByServer);check(!gate.admitted,"structural server event bypasses ordering");

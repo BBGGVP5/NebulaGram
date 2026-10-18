@@ -20,7 +20,7 @@ import org.telegram.ui.Components.EditTextCaption;
 public final class NebulaFormattingToolbar extends HorizontalScrollView {
     public static final String KEY = "formatting_toolbar";
     public static final int HEIGHT_DP = 52;
-    public static final int GAP_DP = 8;
+    public static final int GAP_DP = 4;
     private final EditTextCaption editor;
     private final Runnable layoutChanged;
     private final SharedPreferences.OnSharedPreferenceChangeListener preferencesChanged = (prefs, key) -> {

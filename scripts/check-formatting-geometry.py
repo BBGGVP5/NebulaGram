@@ -34,7 +34,7 @@ class FormattingGeometryCheck {
  int getPaddingLeft(){return 0;}int getPaddingRight(){return 0;}int getPaddingTop(){return paddingTop;}int getPaddingBottom(){return paddingBottom;}
  void setPadding(int l,int t,int r,int b){paddingTop=t;paddingBottom=b;}void setClipToPadding(boolean value){clipPadding=value;}
  static class MeasureSpec {static int EXACTLY=0;static int makeMeasureSpec(int value,int mode){return value;}}
- static class app {static class nebulagram {static class ui {static class NebulaFormattingToolbar {static int HEIGHT_DP=52,GAP_DP=8;}}}}
+ static class app {static class nebulagram {static class ui {static class NebulaFormattingToolbar {static int HEIGHT_DP=52,GAP_DP=4;}}}}
  static int dp(int value){return value;}void measure(){MEASURE}void padding(int formattingHeight){PADDING}void layout(){LAYOUT}
  void position(float y,float visibility){POSITION}
  void parentClip(Canvas canvas){if(clipPadding&&(paddingTop!=0||paddingBottom!=0))canvas.clipRect(0,paddingTop,360,height-paddingBottom);}
@@ -48,14 +48,14 @@ class FormattingGeometryCheck {
  Row row=new Row();View button=new View();void button(){BUTTON}
  static void check(boolean b,String s){if(!b)throw new AssertionError(s);}
  public static void main(String[] args){int cases=0;
-  for(int field:new int[]{44,52,88,176})for(int accessory:new int[]{0,60})for(int reply:new int[]{0,48,96})
+  for(int field:new int[]{44,52,88,176})for(int accessory:new int[]{0,56})for(int reply:new int[]{0,48,96})
   for(boolean ai:new boolean[]{false,true}){
    FormattingGeometryCheck c=new FormattingGeometryCheck();c.height=field+accessory+reply+1;c.padding(accessory);c.layout();
    if(accessory>0){
     c.measure();check(c.nebulaFormattingToolbar.measuredWidth==344&&c.nebulaFormattingToolbar.measuredHeight==52,"accessory overlay has zero measured content");
     Canvas bar=new Canvas();c.parentClip(bar);
     check(bar.top<=c.nebulaFormattingToolbar.top&&bar.bottom>=c.nebulaFormattingToolbar.bottom,"FrameLayout clipToPadding hides formatting actions");
-    check(c.nebulaFormattingToolbar.top==0&&c.nebulaFormattingToolbar.bottom==accessory-8,"formatting toolbar is not above native composer");
+    check(c.nebulaFormattingToolbar.top==0&&c.nebulaFormattingToolbar.bottom==accessory-4,"formatting toolbar is not above native composer");
    }
    c.topView.top=accessory;c.topView.measuredHeight=reply;
    for(float visibility:new float[]{0,.25f,.5f,1}){
