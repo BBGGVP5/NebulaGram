@@ -42,7 +42,7 @@ def build():
  }'''
  stubs['app/nebulagram/ui/NebulaLocalTranscription.java']='''package app.nebulagram.ui; public class NebulaLocalTranscription {
   public interface Progress {void text(String s);void status(String s);}public NebulaLocalTranscription(boolean a,String l){}public void cancel(){}
-  public String transcribe(java.io.File f,Progress p){throw new IllegalStateException("No recognition request in widget QA");}public static String errorText(Exception e){return "QA";}
+  public String transcribePcm(java.io.File f,Progress p){throw new IllegalStateException("No recognition request in widget QA");}public static String errorText(Exception e){return "QA";}
  }'''
  stubs['org/telegram/ui/ActionBar/Theme.java']='''package org.telegram.ui.ActionBar;public class Theme {
   public interface ResourcesProvider{}public static int key_dialogBackground=0,key_dialogTextBlack=1,key_dialogTextGray=2,key_dialogTextBlue=3;
