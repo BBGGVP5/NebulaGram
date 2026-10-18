@@ -38,6 +38,7 @@ def build():
  public int surfaceContainer(){return dark?0xff242424:0xffeee8dc;}public int onSurface(){return dark?0xffeeeeee:0xff202020;}
  public static int stateLayer(int c,float f){return (c&0xffffff)|Math.round(f*255)<<24;}}
 ''')
+    write('app/nebulagram/ui/NebulaGlass.java','package app.nebulagram.ui;public class NebulaGlass {public static boolean reduced(){return false;}}')
     write('org/telegram/ui/Components/EditTextCaption.java','''package org.telegram.ui.Components;
 public class EditTextCaption extends android.widget.EditText {
  public int calls;public EditTextCaption(android.content.Context c){super(c);}public void setSelectionOverride(int a,int b){}
@@ -72,8 +73,8 @@ public class MainActivity extends Activity {
  class Composer extends FrameLayout {
   int height;Composer(){super(MainActivity.this);}
   protected void onMeasure(int w,int h){int next=toolbar==null?0:toolbar.prepare(keyboard);if(next!=height){setPadding(0,next,0,0);setClipToPadding(next==0);height=next;}
-   super.onMeasure(w,h);if(height>0)toolbar.measure(MeasureSpec.makeMeasureSpec(Math.max(0,getMeasuredWidth()-dp(16)),MeasureSpec.EXACTLY),MeasureSpec.makeMeasureSpec(height,MeasureSpec.EXACTLY));}
-  protected void onLayout(boolean c,int l,int t,int r,int b){super.onLayout(c,l,t,r,b);if(height>0)toolbar.layout(dp(8),0,getMeasuredWidth()-dp(8),height);}
+   super.onMeasure(w,h);if(height>0)toolbar.measure(MeasureSpec.makeMeasureSpec(Math.max(0,getMeasuredWidth()-dp(16)),MeasureSpec.EXACTLY),MeasureSpec.makeMeasureSpec(dp(NebulaFormattingToolbar.HEIGHT_DP),MeasureSpec.EXACTLY));}
+  protected void onLayout(boolean c,int l,int t,int r,int b){super.onLayout(c,l,t,r,b);if(height>0)toolbar.layout(dp(8),height-dp(NebulaFormattingToolbar.GAP_DP+NebulaFormattingToolbar.HEIGHT_DP),getMeasuredWidth()-dp(8),height-dp(NebulaFormattingToolbar.GAP_DP));}
  }
  void report(){try{org.json.JSONObject j=new org.json.JSONObject();j.put("case",getIntent().getStringExtra("case"));j.put("keyboard",keyboard);j.put("accessory",composer.height);j.put("editorHeight",editor.getHeight());j.put("scale",getResources().getConfiguration().fontScale);j.put("rectEditor",rect(editor));
   j.put("editorFocused",editor.isFocused());j.put("editorFocusable",editor.isFocusableInTouchMode());j.put("windowFocused",root.hasWindowFocus());
@@ -83,7 +84,12 @@ public class MainActivity extends Activity {
  void verify(){try{
   if(!keyboard||toolbar.getVisibility()!=View.VISIBLE)throw new AssertionError("No real keyboard/accessory");
   String text="Hello world";editor.setText(text);editor.setSelection(text.length());find(toolbar,"Жирный").performClick();
-  if(editor.calls!=1||editor.getSelectionStart()!=6||editor.getSelectionEnd()!=11||!text.contentEquals(editor.getText()))throw new AssertionError("Word callback lost selection/text");
+  if(editor.calls!=1||editor.getSelectionStart()!=11||editor.getSelectionEnd()!=11||!text.contentEquals(editor.getText()))throw new AssertionError("Word callback lost selection/text");
+  android.text.style.StyleSpan[] spans=editor.getText().getSpans(0,editor.length(),android.text.style.StyleSpan.class);
+  if(spans.length!=1||editor.getText().getSpanStart(spans[0])!=6||editor.getText().getSpanEnd(spans[0])!=11)throw new AssertionError("Formatting did not reach selected word");
+  editor.getText().insert(editor.getSelectionEnd(),"!");if(!"Hello world!".contentEquals(editor.getText()))throw new AssertionError("Typing after formatting erased word");
+  editor.setSelection(0,5);find(toolbar,"Курсив").performClick();if(editor.getSelectionStart()!=0||editor.getSelectionEnd()!=5)throw new AssertionError("Explicit selection collapsed");
+  editor.setText(text);
   editor.setSelection(editor.length());find(toolbar,"Новая строка").performClick();if(!((text+"\n").contentEquals(editor.getText()))||sends!=0)throw new AssertionError("Newline dispatched Send");
   editor.setText("");toolbar.scrollTo(((ViewGroup)toolbar.getChildAt(0)).getWidth(),0);
   root.postDelayed(()->{try{View code=find(toolbar,"Блок кода");Rect visible=new Rect();if(!code.getGlobalVisibleRect(visible)||visible.width()==0)throw new AssertionError("Overflow actions inaccessible");

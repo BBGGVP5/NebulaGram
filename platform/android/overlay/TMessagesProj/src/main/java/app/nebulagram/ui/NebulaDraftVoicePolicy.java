@@ -43,13 +43,22 @@ public final class NebulaDraftVoicePolicy {
         return new long[]{left*32,Math.min(pcmBytes,right*32)};
     }
     public static void wave(File pcm, File target, long leftMs, long rightMs, int maxBytes, BooleanSupplier cancelled) throws IOException {
+        writeRegion(pcm, target, leftMs, rightMs, maxBytes, cancelled, true);
+    }
+    public static void pcm(File source, File target, long leftMs, long rightMs, int maxBytes, BooleanSupplier cancelled) throws IOException {
+        writeRegion(source, target, leftMs, rightMs, maxBytes, cancelled, false);
+    }
+    private static void writeRegion(File pcm, File target, long leftMs, long rightMs, int maxBytes, BooleanSupplier cancelled, boolean wave) throws IOException {
         long[] range=region(pcm.length(),leftMs,rightMs);
         long length=range[1]-range[0];
-        if(length+44>maxBytes)throw new IOException("DRAFT_VOICE_TOO_LONG");
+        if(length+(wave?44:0)>maxBytes)throw new IOException("DRAFT_VOICE_TOO_LONG");
         try(RandomAccessFile input=new RandomAccessFile(pcm,"r");OutputStream out=new FileOutputStream(target)) {
+            if(wave) {
             out.write(new byte[]{'R','I','F','F'});little(out,length+36,4);out.write(new byte[]{'W','A','V','E','f','m','t',' '});
             little(out,16,4);little(out,1,2);little(out,1,2);little(out,16000,4);little(out,32000,4);little(out,2,2);little(out,16,2);
-            out.write(new byte[]{'d','a','t','a'});little(out,length,4);input.seek(range[0]);
+            out.write(new byte[]{'d','a','t','a'});little(out,length,4);
+            }
+            input.seek(range[0]);
             byte[] buffer=new byte[8192];long remaining=length;
             while(remaining>0) {
                 if(cancelled.getAsBoolean()||Thread.currentThread().isInterrupted())throw new InterruptedIOException("Cancelled");

@@ -156,12 +156,13 @@ public final class NebulaDraftVoiceTranscription {
             File pcm=null,wave=null;
             try {
                 pcm=File.createTempFile("nebula-draft-",".pcm",ApplicationLoader.applicationContext.getCacheDir());
-                wave=File.createTempFile("nebula-draft-",".wav",ApplicationLoader.applicationContext.getCacheDir());
+                wave=File.createTempFile("nebula-draft-",localMode?".pcm":".wav",ApplicationLoader.applicationContext.getCacheDir());
                 NebulaLocalAudioDecoder.decode(new File(source.path),pcm,()->cancelled);
-                NebulaDraftVoicePolicy.wave(pcm,wave,source.leftMs,source.rightMs,NebulaAudioProtocol.MAX_INPUT,()->cancelled);
+                if(localMode)NebulaDraftVoicePolicy.pcm(pcm,wave,source.leftMs,source.rightMs,NebulaAudioProtocol.MAX_INPUT,()->cancelled);
+                else NebulaDraftVoicePolicy.wave(pcm,wave,source.leftMs,source.rightMs,NebulaAudioProtocol.MAX_INPUT,()->cancelled);
                 if(cancelled)throw new InterruptedIOException("Cancelled");
                 String answer;
-                if(localMode)answer=localRequest.transcribe(wave,new NebulaLocalTranscription.Progress(){
+                if(localMode)answer=localRequest.transcribePcm(wave,new NebulaLocalTranscription.Progress(){
                     public void text(String value){AndroidUtilities.runOnUIThread(()->{if(!closed&&gate.accepts(token,current.get()))transcript.setText(value);});}
                     public void status(String value){ }
                 });

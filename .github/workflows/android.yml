@@ -185,6 +185,7 @@ jobs:
           python3 scripts/check-formatting-toolbar.py
           python3 scripts/check-formatting-geometry.py vendor/telegram-android
           python3 scripts/check-formatting-responsiveness.py vendor/telegram-android
+          python3 scripts/check-formatting-motion.py vendor/telegram-android
           python3 scripts/check-animation-notification-lifetime.py vendor/telegram-android
           python3 scripts/check-connect-lifecycle.py
           python3 scripts/check-onboarding-artwork.py

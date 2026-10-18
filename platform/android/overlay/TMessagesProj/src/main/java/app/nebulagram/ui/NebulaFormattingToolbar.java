@@ -20,6 +20,7 @@ import org.telegram.ui.Components.EditTextCaption;
 public final class NebulaFormattingToolbar extends HorizontalScrollView {
     public static final String KEY = "formatting_toolbar";
     public static final int HEIGHT_DP = 52;
+    public static final int GAP_DP = 8;
     private final EditTextCaption editor;
     private final Runnable layoutChanged;
     private final SharedPreferences.OnSharedPreferenceChangeListener preferencesChanged = (prefs, key) -> {
@@ -27,6 +28,9 @@ public final class NebulaFormattingToolbar extends HorizontalScrollView {
     };
     private final LinearLayout row;
     private boolean preferenceEnabled;
+    private boolean expanded;
+    private int reservedHeight;
+    private android.animation.ValueAnimator reveal;
     private int palette, paletteInk, paletteChip;
 
     public static boolean enabled() { return preferences().getBoolean("formatting_toolbar", false); }
@@ -56,10 +60,10 @@ public final class NebulaFormattingToolbar extends HorizontalScrollView {
         add("B", "Жирный", "Bold", Typeface.BOLD, editor::makeSelectedBold);
         add("I", "Курсив", "Italic", Typeface.ITALIC, editor::makeSelectedItalic);
         add("M", "Моноширинный", "Monospace", Typeface.NORMAL, editor::makeSelectedMono);
-        addIcon(R.drawable.msg_link, "Ссылка", "Link", editor::makeSelectedUrl);
+        addIcon(R.drawable.nebula_format_link, "Ссылка", "Link", editor::makeSelectedUrl);
         addIcon(R.drawable.formatting_underline, "Подчёркнутый", "Underline", editor::makeSelectedUnderline);
         addIcon(R.drawable.formatting_strikethrough, "Зачёркнутый", "Strikethrough", editor::makeSelectedStrike);
-        addIcon(R.drawable.formatting_code, "Блок кода", "Code block", editor::makeSelectedCode);
+        addIcon(R.drawable.nebula_format_code, "Блок кода", "Code block", editor::makeSelectedCode);
         updatePalette();
         setVisibility(GONE);
     }
@@ -91,16 +95,32 @@ public final class NebulaFormattingToolbar extends HorizontalScrollView {
     private void bind(View button, String ru, String en, Runnable action, boolean needsSelection) {
         button.setContentDescription(NebulaText.text(ru, en));
         button.setFocusable(false); // tapping must not move focus/selection away from the IME
+        if (android.os.Build.VERSION.SDK_INT >= 26) button.setTooltipText(button.getContentDescription());
         button.setOnClickListener(v -> {
+            if (!expanded) return;
             if (!needsSelection) { action.run(); return; }
+            int caret = editor.getSelectionStart();
+            boolean implicit = caret == editor.getSelectionEnd();
             int[] selection = NebulaFormattingSelection.range(editor.getText(), editor.getSelectionStart(), editor.getSelectionEnd(), true);
             if (selection == null || selection[0] == selection[1]) {
                 announceForAccessibility(NebulaText.text("Сначала выделите текст", "Select text first"));
                 return;
             }
-            editor.setSelection(selection[0], selection[1]);
-            editor.setSelectionOverride(selection[0], selection[1]);
-            action.run();
+            editor.beginBatchEdit();
+            try {
+                editor.setSelection(selection[0], selection[1]);
+                editor.setSelectionOverride(selection[0], selection[1]);
+                action.run();
+                // Selecting a word on the user's behalf must not make subsequent
+                // typing replace it. Keep explicit selections and native quote caret moves.
+                if (implicit && editor.getSelectionStart() == selection[0]
+                        && editor.getSelectionEnd() == selection[1]) {
+                    editor.setSelection(Math.min(caret, editor.length()));
+                }
+            } finally {
+                editor.setSelectionOverride(-1, -1);
+                editor.endBatchEdit();
+            }
             editor.invalidate();
         });
         LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(AndroidUtilities.dp(44), -1);
@@ -129,9 +149,30 @@ public final class NebulaFormattingToolbar extends HorizontalScrollView {
 
     public int prepare(boolean eligible) {
         boolean visible = eligible && preferenceEnabled;
-        if (getVisibility() != (visible ? VISIBLE : GONE)) setVisibility(visible ? VISIBLE : GONE);
+        if (expanded != visible) {
+            expanded = visible;
+            if (reveal != null) { reveal.cancel(); reveal = null; }
+            int target = visible ? AndroidUtilities.dp(HEIGHT_DP + GAP_DP) : 0;
+            if (!isAttachedToWindow() || !(getParent() instanceof View) || !((View) getParent()).isLaidOut() || NebulaGlass.reduced()) {
+                reservedHeight = target;
+                setAlpha(visible ? 1f : 0f);
+                setVisibility(visible ? VISIBLE : GONE);
+            } else {
+                setVisibility(VISIBLE);
+                reveal = android.animation.ValueAnimator.ofInt(reservedHeight, target);
+                reveal.setDuration(180);
+                reveal.setInterpolator(new android.view.animation.DecelerateInterpolator());
+                reveal.addUpdateListener(animation -> {
+                    reservedHeight = (Integer) animation.getAnimatedValue();
+                    setAlpha(Math.min(1f, reservedHeight / (float) AndroidUtilities.dp(HEIGHT_DP + GAP_DP)));
+                    if (reservedHeight == 0 && !expanded) setVisibility(GONE);
+                    layoutChanged.run();
+                });
+                reveal.start();
+            }
+        }
         if (visible) updatePalette();
-        return visible ? AndroidUtilities.dp(HEIGHT_DP) : 0;
+        return reservedHeight;
     }
 
     private void updatePalette() {
@@ -177,6 +218,11 @@ public final class NebulaFormattingToolbar extends HorizontalScrollView {
         refreshPreference();
     }
     @Override protected void onDetachedFromWindow() {
+        if (reveal != null) { reveal.cancel(); reveal = null; }
+        expanded = false;
+        reservedHeight = 0;
+        setAlpha(0f);
+        setVisibility(GONE);
         preferences().unregisterOnSharedPreferenceChangeListener(preferencesChanged);
         super.onDetachedFromWindow();
     }

@@ -33,6 +33,27 @@ enum NebulaFormattingSelection {
 /// Native editor actions are supplied by the input panel; this view never rewrites a draft.
 final class NebulaFormattingToolbar: UIView {
     var action: ((Int) -> Void)?
+    private var presented = false
+    func setPresented(_ value: Bool) {
+        guard presented != value else { return }
+        presented = value
+        isUserInteractionEnabled = value
+        accessibilityElementsHidden = !value
+        if value { isHidden = false }
+        let changes = {
+            self.alpha = value ? 1 : 0
+            self.transform = value ? .identity : CGAffineTransform(translationX: 0, y: 8)
+        }
+        if UIAccessibility.isReduceMotionEnabled || !UIView.areAnimationsEnabled {
+            layer.removeAllAnimations()
+            changes()
+            isHidden = !value
+        } else {
+            UIView.animate(withDuration: 0.18, delay: 0, options: [.beginFromCurrentState, .curveEaseOut], animations: changes) { _ in
+                if !self.presented { self.isHidden = true }
+            }
+        }
+    }
     private let background = UIVisualEffectView(effect: UIBlurEffect(style: .systemThinMaterial))
     private let scroll = UIScrollView()
     private let stack = UIStackView()
@@ -42,6 +63,9 @@ final class NebulaFormattingToolbar: UIView {
 
     override init(frame: CGRect) {
         super.init(frame: frame)
+        alpha = 0
+        isHidden = true
+        transform = CGAffineTransform(translationX: 0, y: 8)
         background.clipsToBounds = true
         background.layer.cornerRadius = 18
         addSubview(background)

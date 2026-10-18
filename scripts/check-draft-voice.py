@@ -156,6 +156,12 @@ public class DraftVoiceCheck {
   check(Arrays.equals(Arrays.copyOfRange(result,44,result.length),Arrays.copyOfRange(bytes,4000,28000)),"only selected PCM samples are recognized");
   check(Arrays.equals(bytes,Files.readAllBytes(pcm.toPath())),"PCM source is immutable");
   long[] full=NebulaDraftVoicePolicy.region(32000,Long.MIN_VALUE,Long.MAX_VALUE);check(full[0]==0&&full[1]==32000,"extreme trim clamps without overflow");
+  byte[] expectedPcm=Arrays.copyOfRange(Files.readAllBytes(pcm.toPath()),4000,28000);
+  NebulaDraftVoicePolicy.pcm(pcm,wave,125,875,24000,()->false);
+  check(Arrays.equals(expectedPcm,Files.readAllBytes(wave.toPath())),"local clip is exact headerless PCM, no second codec decode");
+  check(pcm.length()==32000,"source PCM retained");
+  try{NebulaDraftVoicePolicy.pcm(pcm,wave,125,875,23999,()->false);throw new AssertionError("PCM limit ignored");}catch(IOException expected){checks++;}
+  try{NebulaDraftVoicePolicy.pcm(pcm,wave,0,0,14000000,()->true);throw new AssertionError("PCM cancel ignored");}catch(InterruptedIOException expected){checks++;}
   try{NebulaDraftVoicePolicy.wave(pcm,wave,0,0,100,()->false);throw new AssertionError("size limit ignored");}catch(IOException expected){checks++;}
   try{NebulaDraftVoicePolicy.wave(pcm,wave,0,0,14000000,()->true);throw new AssertionError("cancel ignored");}catch(InterruptedIOException expected){checks++;}
   System.out.println("OK: "+checks+" production/native draft pause, stale owner/trim/resume, explicit text/audio and selected WAV checks");

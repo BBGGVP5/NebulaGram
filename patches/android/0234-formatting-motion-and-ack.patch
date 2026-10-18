@@ -1,0 +1,37 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
+@@ -14978,7 +14978,7 @@
+         if (nebulaFormattingToolbar != null && nebulaFormattingHeight > 0) {
+             // An overlay must not increase the native field's minimum measured height.
+             nebulaFormattingToolbar.measure(MeasureSpec.makeMeasureSpec(Math.max(0, getMeasuredWidth() - dp(16)), MeasureSpec.EXACTLY),
+-                    MeasureSpec.makeMeasureSpec(nebulaFormattingHeight, MeasureSpec.EXACTLY));
++                    MeasureSpec.makeMeasureSpec(dp(app.nebulagram.ui.NebulaFormattingToolbar.HEIGHT_DP), MeasureSpec.EXACTLY));
+         }
+ 
+         if (botWebViewButton != null) {
+@@ -15025,8 +15025,9 @@
+         super.onLayout(changed, left, top, right, bottom);
+         nebulaComposerStyle.layout(emojiButton, attachButton, senderSelectView, aiButton, richButton);
+         if (nebulaFormattingToolbar != null && nebulaFormattingHeight > 0) {
+-            nebulaFormattingToolbar.layout(dp(8), 0,
+-                    getMeasuredWidth() - dp(8), nebulaFormattingHeight);
++            int toolbarBottom = nebulaFormattingHeight - dp(app.nebulagram.ui.NebulaFormattingToolbar.GAP_DP);
++            nebulaFormattingToolbar.layout(dp(8), toolbarBottom - dp(app.nebulagram.ui.NebulaFormattingToolbar.HEIGHT_DP),
++                    getMeasuredWidth() - dp(8), toolbarBottom);
+         }
+ 
+ 
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
+@@ -1271,6 +1271,9 @@
+     public final static int OPTION_SEND_MONEY = 117;
+ 
+     private final static int[] allowedNotificationsDuringChatListAnimations = new int[]{
++            // A real quick acknowledgement only refreshes an existing message row.
++            // Do not hold its clock icon until list/composer animations complete.
++            NotificationCenter.messageReceivedByAck,
+             NotificationCenter.messagesRead,
+             NotificationCenter.threadMessagesRead,
+             NotificationCenter.monoForumMessagesRead,

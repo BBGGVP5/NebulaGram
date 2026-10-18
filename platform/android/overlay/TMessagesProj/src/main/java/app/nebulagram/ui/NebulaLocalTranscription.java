@@ -73,6 +73,17 @@ public final class NebulaLocalTranscription {
         },continuation));
     }
     public String transcribe(File recording, Progress progress) throws Exception {
+        return transcribe(recording, progress, false);
+    }
+    /** Caller owns this already decoded 16 kHz mono PCM file, including cleanup. */
+    public String transcribePcm(File recording, Progress progress) throws Exception {
+        if(recording==null||!recording.isFile()||recording.length()==0||(recording.length()&1)!=0)
+            throw new IOException("LOCAL_AUDIO_INVALID_PCM");
+        if(recording.length()>(long)NebulaLocalAudioPolicy.BYTES_PER_SECOND*NebulaLocalAudioPolicy.MAX_SECONDS)
+            throw new IOException("LOCAL_AUDIO_DURATION_LIMIT");
+        return transcribe(recording, progress, true);
+    }
+    private String transcribe(File recording, Progress progress, boolean preparedPcm) throws Exception {
         check();owner=Thread.currentThread();boolean gate=false;File pcm=null;SpeechRecognizer recognizer=null;Thread feeder=null;
         try{
             if(!supported(advanced))throw new IOException(advanced?"LOCAL_AUDIO_NANO_UNAVAILABLE":"LOCAL_AUDIO_UNAVAILABLE");
@@ -80,10 +91,15 @@ public final class NebulaLocalTranscription {
             recognizer=client();final SpeechRecognizer active=recognizer;
             int status=blocking(45000,(scope,continuation)->active.checkStatus(continuation));
             if(status!=FeatureStatus.AVAILABLE)throw new IOException(status==FeatureStatus.DOWNLOADABLE?"LOCAL_AUDIO_DOWNLOAD_REQUIRED":status==FeatureStatus.DOWNLOADING?"LOCAL_AUDIO_DOWNLOADING":"LOCAL_AUDIO_UNAVAILABLE");
-            if(progress!=null)progress.status("DECODING");
-            File directory=new File(ApplicationLoader.applicationContext.getCacheDir(),"nebula-local-audio");if(!directory.isDirectory()&&!directory.mkdirs())throw new IOException("Local audio cache unavailable");
-            File[] old=directory.listFiles();if(old!=null)for(File file:old)if(file.isFile()&&file.getName().startsWith("pcm-")&&System.currentTimeMillis()-file.lastModified()>86400000L)file.delete();
-            pcm=File.createTempFile("pcm-",".raw",directory);NebulaLocalAudioDecoder.decode(recording,pcm,()->cancelled);check();
+            if(preparedPcm) {
+                pcm=recording;
+            } else {
+                if(progress!=null)progress.status("DECODING");
+                File directory=new File(ApplicationLoader.applicationContext.getCacheDir(),"nebula-local-audio");if(!directory.isDirectory()&&!directory.mkdirs())throw new IOException("Local audio cache unavailable");
+                File[] old=directory.listFiles();if(old!=null)for(File file:old)if(file.isFile()&&file.getName().startsWith("pcm-")&&System.currentTimeMillis()-file.lastModified()>86400000L)file.delete();
+                pcm=File.createTempFile("pcm-",".raw",directory);NebulaLocalAudioDecoder.decode(recording,pcm,()->cancelled);check();
+            }
+            check();
             ParcelFileDescriptor[] pipe=ParcelFileDescriptor.createReliablePipe();reader=pipe[0];writer=pipe[1];
             final File audio=pcm;final ParcelFileDescriptor sink=writer;
             AtomicReference<Exception> feederError=new AtomicReference<>();AtomicBoolean fullyFed=new AtomicBoolean();
@@ -104,7 +120,7 @@ public final class NebulaLocalTranscription {
         }finally{
             closePipes();if(feeder!=null){feeder.interrupt();try{feeder.join(2000);}catch(InterruptedException ignored){Thread.currentThread().interrupt();}}
             if(recognizer!=null){boolean interrupted=Thread.interrupted();final SpeechRecognizer active=recognizer;try{blocking(3000,(scope,continuation)->active.stopRecognition(continuation));}catch(Exception ignored){}finally{try{active.close();}catch(RuntimeException ignored){}if(interrupted)Thread.currentThread().interrupt();}}
-            if(pcm!=null)pcm.delete();owner=null;if(gate)NebulaNanoInferenceGate.release();
+            if(!preparedPcm) { if(pcm!=null)pcm.delete(); } owner=null;if(gate)NebulaNanoInferenceGate.release();
         }
     }
     private void feed(File pcm,ParcelFileDescriptor output,AtomicBoolean fullyFed,AtomicReference<Exception> failure){

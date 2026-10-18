@@ -16,9 +16,10 @@ jar = max(jars, key=lambda p: tuple(int(x) for x in p.parent.name.removeprefix('
 stubs = {
     'org/telegram/messenger/AndroidUtilities.java': 'package org.telegram.messenger; public class AndroidUtilities { public static int dp(float x){return (int)x;} }',
     'org/telegram/messenger/ApplicationLoader.java': 'package org.telegram.messenger; public class ApplicationLoader { public static android.content.Context applicationContext; }',
+    'app/nebulagram/ui/NebulaGlass.java': 'package app.nebulagram.ui;public class NebulaGlass {public static boolean reduced(){return false;}}',
     'app/nebulagram/ui/NebulaText.java': 'package app.nebulagram.ui; public class NebulaText { public static String text(String a,String b){return b;} }',
     'app/nebulagram/ui/NebulaTheme.java': 'package app.nebulagram.ui; public class NebulaTheme {public static NebulaTheme of(android.content.Context c){return new NebulaTheme();} public int surfaceContainer(){return 0;}public int onSurface(){return 0;}public int surface(){return 0;}public static int stateLayer(int c,float a){return c;}}',
-    'org/telegram/messenger/R.java': 'package org.telegram.messenger;public class R {public static class drawable {public static int nebula_format_clear=1,nebula_format_quote=2,nebula_format_spoiler=3,msg_link=4,formatting_underline=5,formatting_strikethrough=6,formatting_code=7,nebula_format_newline=8;}}',
+    'org/telegram/messenger/R.java': 'package org.telegram.messenger;public class R {public static class drawable {public static int nebula_format_clear=1,nebula_format_quote=2,nebula_format_spoiler=3,msg_link=4,formatting_underline=5,formatting_strikethrough=6,formatting_code=7,nebula_format_newline=8,nebula_format_link=9,nebula_format_code=10;}}',
     'org/telegram/ui/Components/EditTextCaption.java': '''package org.telegram.ui.Components;
 public class EditTextCaption extends android.widget.EditText {
  public EditTextCaption(android.content.Context c){super(c);}
@@ -54,17 +55,17 @@ class NativeToolbarHook extends android.widget.FrameLayout {
     body = source.split('button.setOnClickListener(v -> {', 1)[1].split('\n        });', 1)[0]
     test = '''import app.nebulagram.ui.NebulaFormattingSelection;
 class SelectionCheck {
- static class Editor {int a,b,length=12,calls; String getText(){return "hello world!";}int getSelectionStart(){return a;}int getSelectionEnd(){return b;}int length(){return length;}
- void setSelection(int a,int b){this.a=a;this.b=b;}void setSelectionOverride(int a,int b){if(a!=this.a||b!=this.b)throw new AssertionError();}void invalidate(){}}
+ static class Editor {int a,b,length=12,calls,batch; String getText(){return "hello world!";}int getSelectionStart(){return a;}int getSelectionEnd(){return b;}int length(){return length;}
+ void beginBatchEdit(){batch++;}void endBatchEdit(){batch--;}void setSelection(int p){a=b=p;}void setSelection(int a,int b){this.a=a;this.b=b;}void setSelectionOverride(int a,int b){if(a>=0&&(a!=this.a||b!=this.b))throw new AssertionError();}void invalidate(){}}
  static class NebulaText {static String text(String a,String b){return b;}}
- Editor editor=new Editor();boolean needsSelection=true;int calls;Runnable action=()->calls++;void announceForAccessibility(String x){}
+ Editor editor=new Editor();boolean needsSelection=true,expanded=true;int calls;Runnable action=()->calls++;void announceForAccessibility(String x){}
  void click(){BODY}
  public static void main(String[]args){SelectionCheck t=new SelectionCheck();int cases=0;
  for(int a=-2;a<16;a++)for(int b=-2;b<16;b++){t.editor.a=a;t.editor.b=b;t.calls=0;t.click();
  int[] expected=app.nebulagram.ui.NebulaFormattingSelection.range(t.editor.getText(),a,b,true);
  boolean valid=expected!=null&&expected[0]!=expected[1];
  if(t.calls!=(valid?1:0))throw new AssertionError(a+":"+b);
- if(valid&&(t.editor.a!=expected[0]||t.editor.b!=expected[1]))throw new AssertionError("selection lost");cases++;}
+ if(valid&&(t.editor.a!=(a==b?a:expected[0])||t.editor.b!=(a==b?a:expected[1])))throw new AssertionError("implicit selection replaces the next typed word: "+a+":"+b);if(t.editor.batch!=0)throw new AssertionError("unbalanced IME batch");cases++;}
  range("Hello world",11,11,6,11);range("Hello world",8,8,6,11);range("Привет мир!  ",13,13,7,10);
  range("one\\n你好",6,6,4,6);range("e\\u0301",2,2,0,2);range("a\\uD83D\\uDE80b",2,3,1,3);
  range("word ❤️",7,7,0,4);

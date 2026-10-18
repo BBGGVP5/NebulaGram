@@ -10,7 +10,7 @@ start=editor.index('        boolean clip = child == topView || child == textFiel
 clip=editor[start:editor.index('        boolean result = super.drawChild(canvas, child, drawingTime);',start)]
 padding_start=editor.index('        if (nebulaFormattingHeight != formattingHeight) {')
 padding=editor[padding_start:editor.index('        boolean compactBotMenu',padding_start)]
-layout_start=editor.index('            nebulaFormattingToolbar.layout(')
+layout_start=editor.index('            int toolbarBottom =')
 layout=editor[layout_start:editor.index('\n        }',layout_start)]
 measure_start=editor.index('            nebulaFormattingToolbar.measure(')
 measure=editor[measure_start:editor.index(';',measure_start)+1]
@@ -32,6 +32,7 @@ class FormattingGeometryCheck {
  int getPaddingLeft(){return 0;}int getPaddingRight(){return 0;}int getPaddingTop(){return paddingTop;}int getPaddingBottom(){return paddingBottom;}
  void setPadding(int l,int t,int r,int b){paddingTop=t;paddingBottom=b;}void setClipToPadding(boolean value){clipPadding=value;}
  static class MeasureSpec {static int EXACTLY=0;static int makeMeasureSpec(int value,int mode){return value;}}
+ static class app {static class nebulagram {static class ui {static class NebulaFormattingToolbar {static int HEIGHT_DP=52,GAP_DP=8;}}}}
  static int dp(int value){return value;}void measure(){MEASURE}void padding(int formattingHeight){PADDING}void layout(){LAYOUT}
  void parentClip(Canvas canvas){if(clipPadding&&(paddingTop!=0||paddingBottom!=0))canvas.clipRect(0,paddingTop,360,height-paddingBottom);}
  void draw(View child,Canvas canvas){CLIP}
@@ -44,14 +45,14 @@ class FormattingGeometryCheck {
  Row row=new Row();View button=new View();void button(){BUTTON}
  static void check(boolean b,String s){if(!b)throw new AssertionError(s);}
  public static void main(String[] args){int cases=0;
-  for(int field:new int[]{44,52,88,176})for(int accessory:new int[]{0,52})for(int reply:new int[]{0,48,96})
+  for(int field:new int[]{44,52,88,176})for(int accessory:new int[]{0,60})for(int reply:new int[]{0,48,96})
   for(boolean ai:new boolean[]{false,true}){
    FormattingGeometryCheck c=new FormattingGeometryCheck();c.height=field+accessory+reply+1;c.padding(accessory);c.layout();
    if(accessory>0){
-    c.measure();check(c.nebulaFormattingToolbar.measuredWidth==344&&c.nebulaFormattingToolbar.measuredHeight==accessory,"accessory overlay has zero measured content");
+    c.measure();check(c.nebulaFormattingToolbar.measuredWidth==344&&c.nebulaFormattingToolbar.measuredHeight==52,"accessory overlay has zero measured content");
     Canvas bar=new Canvas();c.parentClip(bar);
     check(bar.top<=c.nebulaFormattingToolbar.top&&bar.bottom>=c.nebulaFormattingToolbar.bottom,"FrameLayout clipToPadding hides formatting actions");
-    check(c.nebulaFormattingToolbar.top==0&&c.nebulaFormattingToolbar.bottom==accessory,"formatting toolbar is not above native composer");
+    check(c.nebulaFormattingToolbar.top==0&&c.nebulaFormattingToolbar.bottom==accessory-8,"formatting toolbar is not above native composer");
    }
    c.animatorInputFieldHeight.height=field;c.textFieldContainer.y=reply+accessory+1;c.aiButton.y=-20;
    c.nebulaComposerStyle.active=ai;c.shownAiButton=ai;
