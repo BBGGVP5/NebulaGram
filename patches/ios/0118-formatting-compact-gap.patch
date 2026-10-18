@@ -7,6 +7,6 @@ diff --git a/submodules/TelegramUI/Components/Chat/ChatTextInputPanelNode/Source
          let formattingHeight: CGFloat = NebulaSettingsStore.shared.formattingToolbar && self.isFocused && nebulaTextMode
 -            && mediaRecordingState == nil && !hasMediaDraft && !isEditingMedia && !displayBotStartButton && !self.sendingTextDisabled ? 60 : 0
 +            && mediaRecordingState == nil && !hasMediaDraft && !isEditingMedia && !displayBotStartButton && !self.sendingTextDisabled ? 56 : 0
- 
+
          let baseWidth = width - leftInset - leftMenuInset - rightInset - rightSlowModeInset
          let (accessoryButtonsWidth, textFieldHeight, isTextFieldOverflow) = self.calculateTextFieldMetrics(width: baseWidth, sendActionControlsWidth: sendActionButtonsSize.width, maxHeight: maxHeight, metrics: metrics, bottomInset: bottomInset, interfaceState: interfaceState)
