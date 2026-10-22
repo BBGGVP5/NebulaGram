@@ -28,6 +28,12 @@ def check_series(platform, tree, ref='HEAD', keep_temp_on_error=False):
     with tempfile.TemporaryDirectory(prefix='nebula-upstream-') as temp:
         temp = Path(temp)
         subprocess.run(['git', 'init', '--quiet', str(temp)], check=True)
+        # Без этого проверка зависит от настроек машины: при core.autocrlf=true
+        # git сам сглаживает переводы строк, и патч, записанный в CRLF, ложится
+        # здесь, но не ложится у того, у кого нормализация выключена. Семнадцать
+        # таких патчей пролежали в серии незамеченными.
+        for key, value in (('core.autocrlf', 'false'), ('core.eol', 'lf')):
+            subprocess.run(['git', '-C', str(temp), 'config', key, value], check=True)
         for path in existing:
             target = temp / path
             target.parent.mkdir(parents=True, exist_ok=True)
