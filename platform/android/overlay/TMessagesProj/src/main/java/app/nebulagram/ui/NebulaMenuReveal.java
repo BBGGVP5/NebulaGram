@@ -122,6 +122,12 @@ public final class NebulaMenuReveal {
             host.getLocationOnScreen(location);
             originX = x - location[0];
             originY = y - location[1];
+            // Кнопка указывает, какой угол ближе, — но расти меню должно из
+            // своего угла, а не из точки, куда спроецирован центр кнопки. У
+            // большого якоря — пузыря сообщения — эта точка уезжает далеко за
+            // край, и меню выползало вбок вместо того, чтобы раскрыться на месте.
+            originX = originX < host.getWidth() / 2f ? 0 : host.getWidth();
+            originY = originY < host.getHeight() / 2f ? 0 : host.getHeight();
         }
         // Native backgrounds inset 8dp. Map the seed through the same padded
         // rectangle rather than adding a fixed amount that enlarges the button.
@@ -163,7 +169,11 @@ public final class NebulaMenuReveal {
         focusContent = null; focusStep = -1;
     }
     private void updateFrame() {
-        if (!viewportReady) {
+        if (!viewportReady || !morphEnabled) {
+            // Без морфа поверхность не перетекает из зерна в прямоугольник: она
+            // уже своего размера, и остаётся только проявиться. Этого и ждут от
+            // меню по удержанию — оно раскрывается на месте, у самого сообщения,
+            // а не выползает из угла, как меню трёх точек.
             frame.x = host.getWidth() / 2f; frame.y = host.getHeight() / 2f;
             frame.width = host.getWidth(); frame.height = host.getHeight(); frame.radius = NebulaMenuStyle.radius();
             frame.alpha = closing ? closeFrame.alpha * (1 - closeProgress) : Math.min(1, progress * 5);
