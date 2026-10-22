@@ -46,7 +46,7 @@ public class CheckMenuDrag {
  }
  static class Reveal {
   Host host=new Host();float progress=1,pullX,pullY,originX=240,originY=0,seed=48,seedWidth=48,seedHeight=48,seedRadius=24,closeProgress;
-  Rect screen=new Rect();boolean closing,viewportReady=true;NebulaMenuBubble.Frame frame=new NebulaMenuBubble.Frame(),closeFrame=new NebulaMenuBubble.Frame();
+  Rect screen=new Rect();boolean closing,viewportReady=true,morphEnabled=true;NebulaMenuBubble.Frame frame=new NebulaMenuBubble.Frame(),closeFrame=new NebulaMenuBubble.Frame();
   Matrix contentTransform=new Matrix(),inverseContentTransform=new Matrix();
   METHODS
  }
@@ -85,6 +85,21 @@ public class CheckMenuDrag {
    moving++;
   }
   System.out.println(moving+" moving bubble/drag matrices and actual native pointer conversions passed");
+  // Меню по удержанию выключает морф: оно должно проявляться на месте, своего
+  // размера, а не вытекать из угла, как меню трёх точек. Флаг три раза ставили,
+  // и ни разу не читали, так что здесь проверяется именно чтение.
+  Reveal still=new Reveal();still.morphEnabled=false;int held=0;
+  for(int corner=0;corner<4;corner++)for(int p=0;p<=100;p++){
+   still.originX=(corner&1)==0?0:still.host.w;still.originY=(corner&2)==0?0:still.host.h;
+   still.progress=p/100f;still.updateFrame();
+   near(still.frame.x,still.host.w/2f,"held menu stays centred");
+   near(still.frame.y,still.host.h/2f,"held menu stays vertically centred");
+   near(still.frame.width,still.host.w,"held menu keeps its width");
+   near(still.frame.height,still.host.h,"held menu keeps its height");
+   near(still.frame.alpha,Math.min(1,still.progress*5),"held menu only fades in");
+   held++;
+  }
+  System.out.println(held+" held-menu frames opened in place with the morph switch off");
  }
 }
 '''
@@ -98,6 +113,7 @@ assert 'canvas.concat(contentTransform)' in reveal
 assert 'contentTransform.invert(inverseContentTransform)' in reveal
 assert 'copy.transform(inverseContentTransform)' in reveal
 assert 'return event;' in reveal, 'identity path must not allocate an event'
+assert 'if (!viewportReady || !morphEnabled) {' in reveal, 'the morph switch must gate the frame'
 popup = native.read_text(encoding='utf-8')
 assert 'nebulaReveal.contentTouchEvent(event)' in popup
 assert 'super.dispatchTouchEvent(contentEvent)' in popup
