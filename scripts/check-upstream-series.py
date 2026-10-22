@@ -17,6 +17,15 @@ def check_series(platform, tree, ref='HEAD', keep_temp_on_error=False):
     if not patches:
         print(f'{platform}: no patches; UI/API compatibility NOT tested')
         return
+    # CI применяет патчи файлом: scripts/apply-overlay.sh отдаёт git apply
+    # путь, и тот сверяет контекст побайтово. Ниже патч читается через
+    # read_text, а он склеивает CRLF в LF, то есть проверка сама исправляет
+    # то, на чём упадёт сборка. Поэтому инвариант сверяется отдельно и по
+    # байтам, до первого чтения текстом.
+    crlf = [patch.name for patch in patches if b'\r\n' in patch.read_bytes()]
+    if crlf:
+        raise SystemExit('патчи записаны в CRLF, в CI git apply их не примет:\n  '
+                         + '\n  '.join(crlf))
     paths = set()
     for patch in patches:
         for a, b in re.findall(r'^diff --git a/(\S+) b/(\S+)$', patch.read_text(encoding='utf-8'), re.M):

@@ -28,8 +28,8 @@ def fresh_destination(destination, root=ROOT):
 def version(contents):
     values = dict(line.split('=', 1) for line in contents.splitlines() if '=' in line and not line.lstrip().startswith('#'))
     value = values.get('APP_VERSION_NAME', '').strip()
-    if value != '13.0.2':
-        raise ValueError('Expected Telegram 13.0.2, found ' + repr(value))
+    if value != '13.0.3':
+        raise ValueError('Expected Telegram 13.0.3, found ' + repr(value))
     return value
 
 

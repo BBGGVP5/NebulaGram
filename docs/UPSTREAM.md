@@ -57,9 +57,9 @@ scripts/sync-upstream.sh android            # свежий коммит master
 scripts/sync-upstream.sh android 62b56a07   # конкретный коммит
 ```
 
-Актуальная проверка официальных production-веток от 2026-10-18:
+Актуальная проверка официальных production-веток от 2026-10-22:
 
-- Android **13.0.2 (7175)** — `f32ffeec763f0bdbf4bec25b52d654f77bff733d`.
+- Android **13.0.3 (7183)** — `0aae959806c57be8ad457980f2a5c6277ff18635`.
 - iOS **13.0** — `f1dd7a2dbd02cbbf513e75d5695d8d36d1cf5838`; master не изменился с предыдущего переноса.
 
 Android фиксируется полным SHA официального master. Номер установленного приложения

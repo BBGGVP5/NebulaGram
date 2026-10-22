@@ -14,7 +14,7 @@
 Каждый патч в `patches/android/` описан здесь.
 Патч без записи не принимается: см. docs/UPSTREAM.md, раздел 4.
 
-Текущий апстрим: `DrKLO/Telegram` 13.0.2 (7175), `f32ffeec763f0bdbf4bec25b52d654f77bff733d`. Таблица ниже хранит историю хуков, включая первоначальную базу 12.10.1.
+Текущий апстрим: `DrKLO/Telegram` 13.0.3 (7183), `0aae959806c57be8ad457980f2a5c6277ff18635`. Таблица ниже хранит историю хуков, включая первоначальную базу 12.10.1.
 
 | Патч | Файл апстрима | Якорь | Назначение | Добавлено / удалено |
 |---|---|---|---|---|
@@ -697,3 +697,23 @@ Updates 16 compatible published dependencies, with explicit version inventory in
 ## 0215 — explicit AndroidX nullability
 
 Use AndroidX Nullable in the three upstream files that depended on Guava bringing JSR-305 transitively. No runtime behavior change; keeps the updated Guava graph independent of legacy javax.annotation. WebKit in 0214 is capped at 1.15.0 to preserve API 23 support.
+
+## 2026-10-22 — Telegram 13.0.3 (7183) baseline
+
+Все 233 упорядоченных патча ложатся на официальный `0aae959806c57be8ad457980f2a5c6277ff18635`.
+
+Перенос затронул один патч. В 13.0.3 пакет записи кружка переименован:
+`org/telegram/utils/camera/roundvideo/` → `org/telegram/utils/recorder/round/`,
+содержимое девяти файлов не изменилось, кроме строки `package`. Поэтому
+`0186-camera-menu-media-controls.patch` переадресован на новые пути для
+`RoundVideoCameraController`, `RoundVideoCodecRecorder` и `RoundVideoSession`;
+сами хуки (экспозиция, ultrawide-зум, стереозвук кружка) не менялись. Тот же
+импорт обновлён в оверлее `NebulaCameraFragment.java`.
+
+`0214-client-library-refresh.patch` падал только следом за `0186`: зависимости
+CameraX добавляет `0186`, а `0214` поднимает их версию. После переноса патч
+ложится без изменений.
+
+Апстрим 13.0.3 добавил собственную запись звука (`utils/recorder/audio/`,
+`AudioRecorderSettingsActivity`, два поля в `SharedSettings`) — только
+дополнения, ни один используемый нами символ не удалён.
