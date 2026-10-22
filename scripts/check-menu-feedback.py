@@ -88,7 +88,7 @@ public class CheckMenuFeedback {
   r.begin();r.setProgress(.3f);r.resolveOrigin();
   check(!r.originResolved && r.host.alpha==0,"must wait for popup attachment");
   r.host.attached=true;r.resolveOrigin();
-  check(r.host.px==160 && r.host.py== -40,"top anchor must override bottom flag");
+  check(r.host.px==r.host.w && r.host.py==0,"top anchor must override bottom flag");
   check(Math.abs(r.frame.width*(r.host.w-16)/r.host.w-44)<.001 && Math.abs(r.frame.height*(r.host.h-16)/r.host.h-44)<.001 && r.frame.radius==22 && r.frame.content==0,"visible seed remains a fixed circle after native drawable padding");
   check(r.host.observer.listener==null,"pre-draw listener removed");
   float peak=0;
@@ -99,13 +99,13 @@ public class CheckMenuFeedback {
   for(int i=1;i<=100;i++){r.setCloseProgress(i/100f);check(r.host.py==pivot && r.frame.width<=previous+.001f,"reverse reveal never jumps origin or grows");previous=r.frame.width;}
   check(r.host.alpha==0 && Math.abs(r.frame.width-r.seedWidth)<.001 && Math.abs(r.frame.height-r.seedHeight)<.001,"close ends at source bounds");
   anchor.y=450;r.host.shownFromBottom=false;r.begin();r.resolveOrigin();
-  check(r.host.py==390,"bottom anchor must override top flag");
+  check(r.host.py==r.host.h && r.host.px==r.host.w,"bottom anchor must override top flag");
   r.reset();check(r.host.alpha==1 && r.host.sx==1 && !r.began,"detach reset");
   for(int side=0;side<4;side++)for(int cycle=0;cycle<25;cycle++){
    anchor.x=(side%2==0?20:500);anchor.y=(side<2?20:500);r.setAnchor(anchor);r.viewportReady=true;r.begin();
    float px=r.host.px,py=r.host.py;r.setProgress(.1f);
    check(r.originResolved && r.host.observer.listener==null,"resolve attached anchor before first visible frame");
-   check(px==(side%2==0?-60:420)&&py==(side<2?-40:440),"correct source corner");
+   check(px==(side%2==0?0:r.host.w)&&py==(side<2?0:r.host.h),"correct source corner");
    check(Math.abs(r.seedWidth*(r.host.w-16)/r.host.w-44)<.001 && Math.abs(r.seedHeight*(r.host.h-16)/r.host.h-44)<.001,"initial circle is independent of source button dimensions");
    r.prepareClose();r.setCloseProgress(.5f);r.reset();check(NebulaMenuFocus.step==0,"cancel releases focus");
   }
