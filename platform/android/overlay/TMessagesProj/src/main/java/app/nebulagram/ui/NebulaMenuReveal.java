@@ -122,12 +122,15 @@ public final class NebulaMenuReveal {
             host.getLocationOnScreen(location);
             originX = x - location[0];
             originY = y - location[1];
-            // Кнопка указывает, какой угол ближе, — но расти меню должно из
-            // своего угла, а не из точки, куда спроецирован центр кнопки. У
-            // большого якоря — пузыря сообщения — эта точка уезжает далеко за
-            // край, и меню выползало вбок вместо того, чтобы раскрыться на месте.
-            originX = originX < host.getWidth() / 2f ? 0 : host.getWidth();
-            originY = originY < host.getHeight() / 2f ? 0 : host.getHeight();
+            // Центр якоря почти всегда лежит за пределами меню: кнопка стоит
+            // рядом с ним, а не внутри. Снаружи расти неоткуда, поэтому точка
+            // прижимается к краю — по каждой оси отдельно, а не целиком в угол.
+            // Углы при этом получаются сами: у кнопки меню трёх точек обе оси
+            // выходят за край, и источник оказывается в ближнем углу. А у
+            // вкладки папки за край уходит только высота, и меню растёт из
+            // своего верхнего края прямо под папкой, а не выезжает из угла.
+            originX = Math.max(0, Math.min(host.getWidth(), originX));
+            originY = Math.max(0, Math.min(host.getHeight(), originY));
         }
         // Native backgrounds inset 8dp. Map the seed through the same padded
         // rectangle rather than adding a fixed amount that enlarges the button.
