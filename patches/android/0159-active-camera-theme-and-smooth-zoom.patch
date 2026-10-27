@@ -1,8 +1,8 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/InstantCameraView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/InstantCameraView.java
-index 468ab6f..6c39523 100644
+index 72ec2715..5a57b8e0 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/InstantCameraView.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/InstantCameraView.java
-@@ -323,9 +323,9 @@ public class InstantCameraView extends InstantCameraViewBase implements Notifica
+@@ -329,9 +329,9 @@ public class InstantCameraView extends InstantCameraViewBase implements Notifica
  
          addView(cameraContainer, new LayoutParams(AndroidUtilities.roundPlayingMessageSize, AndroidUtilities.roundPlayingMessageSize, Gravity.CENTER));
          addView(flashViews.foregroundView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT, Gravity.FILL));
@@ -14,7 +14,7 @@ index 468ab6f..6c39523 100644
          zoomParams.bottomMargin = dp(104);
          addView(nebulaZoomSlider, zoomParams);
  
-@@ -1069,20 +1069,20 @@ public class InstantCameraView extends InstantCameraViewBase implements Notifica
+@@ -1081,20 +1081,20 @@ public class InstantCameraView extends InstantCameraViewBase implements Notifica
      }
  
      private void saveLastCameraBitmap() {
@@ -44,7 +44,7 @@ index 468ab6f..6c39523 100644
          }
      }
  
-@@ -3803,26 +3803,25 @@ public class InstantCameraView extends InstantCameraViewBase implements Notifica
+@@ -3865,26 +3865,25 @@ public class InstantCameraView extends InstantCameraViewBase implements Notifica
  
      private void applyNebulaZoom(float factor) {
          if (!recording || cameraThread == null) return;

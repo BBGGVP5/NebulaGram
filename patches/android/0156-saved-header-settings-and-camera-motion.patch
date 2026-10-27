@@ -1,5 +1,5 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/camera/Camera2Session.java b/TMessagesProj/src/main/java/org/telegram/messenger/camera/Camera2Session.java
-index 342447a..cedaa76 100644
+index 342447a9..cedaa76d 100644
 --- a/TMessagesProj/src/main/java/org/telegram/messenger/camera/Camera2Session.java
 +++ b/TMessagesProj/src/main/java/org/telegram/messenger/camera/Camera2Session.java
 @@ -424,16 +424,17 @@ public class Camera2Session {
@@ -31,10 +31,10 @@ index 342447a..cedaa76 100644
          } else {
              if (captureSession != null) {
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
-index 9bc7c7e..916ecec 100644
+index b5c73e0c..06f94160 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
-@@ -2505,7 +2505,12 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
+@@ -2516,7 +2516,12 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
              int left, right;
              final ChatAvatarContainer centeredNebulaAvatar = nebulaFloatingChatHeader
                      ? nebulaChatAvatarContainer : null;
@@ -48,7 +48,7 @@ index 9bc7c7e..916ecec 100644
                  // The title, subtitle and image have independent places: a
                  // compact real glass capsule stays centred, while the avatar
                  // remains a reachable round control at the trailing edge.
-@@ -2555,13 +2560,16 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
+@@ -2566,13 +2571,16 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
              if (nebulaFloatingChatHeader && app.nebulagram.ui.NebulaAppearance.centeredHeader()) {
                  glassDrawable.setRadius(Math.min(glassDrawable.getPaddedBounds().height(), glassDrawable.getPaddedBounds().width()) / 2f);
              }
@@ -67,10 +67,10 @@ index 9bc7c7e..916ecec 100644
                      && !((nebulaClassicSavedHeader || nebulaFloatingChatHeader && !app.nebulagram.ui.NebulaAppearance.chatHeader()) && actionModeFactor == 0f && searchFactor == 0f)) glassDrawable.draw(canvas);
          }
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/InstantCameraView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/InstantCameraView.java
-index 3a0cf62..864b015 100644
+index 1ac98df8..6f0205c1 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/InstantCameraView.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/InstantCameraView.java
-@@ -3835,7 +3835,17 @@ public class InstantCameraView extends InstantCameraViewBase implements Notifica
+@@ -3897,7 +3897,17 @@ public class InstantCameraView extends InstantCameraViewBase implements Notifica
              textureOverlayView.setImageBitmap(lastBitmap);
              textureOverlayView.setAlpha(1f);
          }
@@ -90,10 +90,10 @@ index 3a0cf62..864b015 100644
          final Camera2Session next = Camera2Session.create(front, size, size, id);
          camera2SessionCurrent = camera2Sessions[front ? 0 : 1] = next;
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
-index aff950e..48a889d 100644
+index 7a2e43a4..cd8cd140 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
-@@ -13942,28 +13942,28 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+@@ -14000,28 +14000,28 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                          textCell.setTextAndValueAndIcon(LocaleController.getString(R.string.NebulaSettings), "", false, R.drawable.nebula_settings_mark, true);
                          textCell.setImageLeft(23);
                      } else if (position == languageRow) {
@@ -133,7 +133,7 @@ index aff950e..48a889d 100644
                      } else if (position == sendLogsRow) {
                          textCell.setText(LocaleController.getString(R.string.DebugSendLogs), true);
                      } else if (position == sendLastLogsRow) {
-@@ -13973,7 +13973,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+@@ -14031,7 +14031,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                      } else if (position == switchBackendRow) {
                          textCell.setText("Switch Backend", false);
                      } else if (position == devicesRow) {
@@ -143,10 +143,10 @@ index aff950e..48a889d 100644
                          cellCameraDrawable.setCustomEndFrame(86);
                          cellCameraDrawable.setCurrentFrame(85, false);
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/SettingsActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/SettingsActivity.java
-index f27133b..a4ed643 100644
+index a03550a3..1ff8892d 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/SettingsActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/SettingsActivity.java
-@@ -1227,7 +1227,7 @@ public class SettingsActivity extends BaseFragment implements NotificationCenter
+@@ -1261,7 +1261,7 @@ public class SettingsActivity extends BaseFragment implements NotificationCenter
              subtitleView.setTranslationX(icon == 0 ? dp(2) : 0);
  
              iconBackground.setColor(iconColorTop, iconColorBottom);

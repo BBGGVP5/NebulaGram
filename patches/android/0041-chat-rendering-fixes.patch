@@ -1,7 +1,7 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
-@@ -8090,6 +8090,8 @@ public class ChatActivity extends BaseFragment implements
+@@ -8140,6 +8140,8 @@ public class ChatActivity extends BaseFragment implements
  
          chatInputBubbleContainer.addView(chatActivityEnterView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.LEFT | Gravity.BOTTOM, 7, 0, 7, 0));
          chatInputViewsContainer.nebulaComposerStyle = chatActivityEnterView.nebulaComposerStyle;
@@ -13,7 +13,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
-@@ -4604,7 +4604,7 @@ public class ChatActivityEnterView extends FrameLayout implements
+@@ -4637,7 +4637,7 @@ public class ChatActivityEnterView extends FrameLayout implements
          }
          if (botCommandsMenuButton != null) {
              boolean wasExpanded = botCommandsMenuButton.expanded;
@@ -22,7 +22,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivity
              if (wasExpanded != botCommandsMenuButton.expanded) {
                  beginDelayedTransition();
              }
-@@ -14418,6 +14418,22 @@ public class ChatActivityEnterView extends FrameLayout implements
+@@ -14522,6 +14522,22 @@ public class ChatActivityEnterView extends FrameLayout implements
      @Override
      protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
          nebulaComposerStyle.restoreInsets();
@@ -45,7 +45,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivity
          int wasHeight = textFieldContainer.getMeasuredHeight();
          if (botCommandsMenuButton != null && botCommandsMenuButton.getTag() != null) {
              botCommandsMenuButton.measure(widthMeasureSpec, heightMeasureSpec);
-@@ -14457,11 +14473,7 @@ public class ChatActivityEnterView extends FrameLayout implements
+@@ -14561,11 +14577,7 @@ public class ChatActivityEnterView extends FrameLayout implements
              }
          }
          updateBotCommandsMenuContainerTopPadding();

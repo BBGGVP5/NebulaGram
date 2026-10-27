@@ -1,5 +1,5 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/FilterTabsView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/FilterTabsView.java
-index 10d6551..5fcb6b5 100644
+index 10d65517..5fcb6b54 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/FilterTabsView.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/FilterTabsView.java
 @@ -1165,9 +1165,41 @@ public class FilterTabsView extends FrameLayout {
@@ -94,10 +94,10 @@ index 10d6551..5fcb6b5 100644
  
      @Override
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
-index 2a78bcf..b971645 100644
+index 0e4b6fb8..5942c424 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
-@@ -930,6 +930,13 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+@@ -932,6 +932,13 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
  
          @Override
          public void drawBlurRect(Canvas canvas, float y, Rect rectTmp, Paint blurScrimPaint, boolean top) {
@@ -119,7 +119,7 @@ index 2a78bcf..b971645 100644
          updateNebulaBottomInsets();
      }
  
-@@ -5179,6 +5187,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+@@ -5176,6 +5184,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
              filterTabsViewBackground.setPadding(dp(6.666f));
              filterTabsView.setPadding(0, dp(7), 0, dp(7));
              filterTabsView.setBlurredBackground(filterTabsViewBackground);
@@ -127,7 +127,7 @@ index 2a78bcf..b971645 100644
              contentView.addView(filterTabsView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 36 + 7 + 7,
                      app.nebulagram.ui.NebulaFolderTabs.gravity(), 4, 0, 4, 0));
              // Список чатов — корневой экран: из настроек сюда не возвращаются
-@@ -14425,7 +14434,16 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+@@ -14473,7 +14482,16 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
          }
      }
  

@@ -1,7 +1,7 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/MessagesController.java b/TMessagesProj/src/main/java/org/telegram/messenger/MessagesController.java
 --- a/TMessagesProj/src/main/java/org/telegram/messenger/MessagesController.java
 +++ b/TMessagesProj/src/main/java/org/telegram/messenger/MessagesController.java
-@@ -8192,13 +8192,15 @@
+@@ -8200,13 +8200,15 @@ public class MessagesController extends BaseController implements NotificationCe
              FileLog.d("processNewDifferenceParams seq = " + seq + " pts = " + pts + " date = " + date + " pts_count = " + pts_count);
          }
          if (pts != -1) {
@@ -19,7 +19,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/MessagesControll
                  if (gettingDifference || updatesStartWaitTimePts == 0 || Math.abs(System.currentTimeMillis() - updatesStartWaitTimePts) <= 1500) {
                      if (BuildVars.LOGS_ENABLED) {
                          FileLog.d("ADD UPDATE TO QUEUE pts = " + pts + " pts_count = " + pts_count);
-@@ -8216,7 +8218,7 @@
+@@ -8224,7 +8226,7 @@ public class MessagesController extends BaseController implements NotificationCe
              }
          }
          if (seq != -1) {
@@ -28,7 +28,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/MessagesControll
                  if (BuildVars.LOGS_ENABLED) {
                      FileLog.d("APPLY SEQ");
                  }
-@@ -8225,7 +8227,7 @@
+@@ -8233,7 +8235,7 @@ public class MessagesController extends BaseController implements NotificationCe
                      getMessagesStorage().setLastDateValue(date);
                  }
                  getMessagesStorage().saveDiffParams(getMessagesStorage().getLastSeqValue(), getMessagesStorage().getLastPtsValue(), getMessagesStorage().getLastDateValue(), getMessagesStorage().getLastQtsValue());
@@ -40,7 +40,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/MessagesControll
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
-@@ -9842,13 +9842,17 @@
+@@ -9844,13 +9844,17 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
          setDialogsListFrozen(true);
          checkAnimationFinished();
          for (int i = 0; i < dialogs.size(); i++) {

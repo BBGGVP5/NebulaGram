@@ -1,7 +1,7 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Cells/DialogCell.java b/TMessagesProj/src/main/java/org/telegram/ui/Cells/DialogCell.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Cells/DialogCell.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Cells/DialogCell.java
-@@ -3807,8 +3807,12 @@
+@@ -3807,8 +3807,12 @@ public class DialogCell extends BaseCell implements StoriesListPlaceProvider.Ava
      @SuppressLint("DrawAllocation")
      @Override
      protected void onDraw(Canvas canvas) {
@@ -15,7 +15,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Cells/DialogCell.java b
              return;
          }
          if (currentDialogId == 0 && customDialog == null) {
-@@ -4064,6 +4068,9 @@
+@@ -4064,6 +4068,9 @@ public class DialogCell extends BaseCell implements StoriesListPlaceProvider.Ava
              gty += collapseOffset;
          }
  
@@ -25,18 +25,18 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Cells/DialogCell.java b
          if (rightFragmentOpenedProgress != 1) {
              int restoreToCount = -1;
              if (rightFragmentOpenedProgress != 0) {
-@@ -4815,6 +4822,10 @@
-             int countLeftOld =  (int) (storyParams.originalAvatarRect.left + storyParams.originalAvatarRect.width() - countWidthOld - dp(5f));
-             int countTop = (int) (avatarImage.getImageY() + storyParams.originalAvatarRect.height() - dp(22));
+@@ -4817,6 +4824,10 @@ public class DialogCell extends BaseCell implements StoriesListPlaceProvider.Ava
              drawCounter(canvas, drawCounterMuted, countTop, countLeftLocal, countLeftOld, rightFragmentOpenedProgress, true);
-+        }
-+
-+        } else {
-+            app.nebulagram.ui.NebulaPresentationPrivacy.draw(canvas, this, isFolderCell(), cornersRadius);
          }
  
++        } else {
++            app.nebulagram.ui.NebulaPresentationPrivacy.draw(canvas, this, isFolderCell(), cornersRadius);
++        }
++
          if (collapseOffset != 0) {
-@@ -5533,6 +5544,12 @@
+             canvas.restore();
+         }
+@@ -5533,6 +5544,12 @@ public class DialogCell extends BaseCell implements StoriesListPlaceProvider.Ava
      @Override
      public void onInitializeAccessibilityNodeInfo(AccessibilityNodeInfo info) {
          super.onInitializeAccessibilityNodeInfo(info);
@@ -49,7 +49,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Cells/DialogCell.java b
          if (app.nebulagram.ui.NebulaChatLocks.protectedChat(currentAccount, currentDialogId)) {
              info.setContentDescription(app.nebulagram.ui.NebulaText.text("Чат защищён паролем", "Password-protected chat"));
              info.addAction(AccessibilityNodeInfo.ACTION_CLICK);
-@@ -5557,6 +5574,11 @@
+@@ -5557,6 +5574,11 @@ public class DialogCell extends BaseCell implements StoriesListPlaceProvider.Ava
      @Override
      public void onPopulateAccessibilityEvent(AccessibilityEvent event) {
          super.onPopulateAccessibilityEvent(event);

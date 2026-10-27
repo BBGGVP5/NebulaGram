@@ -1,7 +1,7 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
-@@ -195,6 +195,8 @@
+@@ -195,6 +195,8 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
  
      private boolean glassMode;
      private boolean nebulaHomeGlass;
@@ -10,12 +10,10 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.jav
      private boolean nebulaProfileGlass;
      private boolean nebulaHomeTabsGlass;
      private View nebulaHomeLeadingView;
-@@ -288,6 +290,17 @@
-             actionMode.setTranslationX(enabled ? 0 : -dp(10));
-         }
+@@ -290,6 +292,17 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
          invalidate();
-+    }
-+
+     }
+ 
 +    public void setNebulaCommunityGlass(boolean enabled, boolean hasAvatar) {
 +        nebulaCommunityGlass = enabled;
 +        nebulaCommunityTitleInset = dp(hasAvatar ? 104 : 56);
@@ -25,10 +23,12 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.jav
 +
 +    public boolean isNebulaSharedHeaderGlass() {
 +        return nebulaHomeTabsGlass || nebulaCommunityGlass;
-     }
- 
++    }
++
      public boolean isNebulaHomeTabsGlass() {
-@@ -626,7 +639,7 @@
+         return nebulaHomeTabsGlass;
+     }
+@@ -626,7 +639,7 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
          titleTextView[i] = new SimpleTextView(getContext());
          // Folder emoji spans can be created before the first measure pass.
          // Give them the toolbar font metrics instead of Paint's tiny pixel default.
@@ -37,7 +37,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.jav
          titleTextView[i].setGravity(isCenterTitle ? Gravity.CENTER : Gravity.LEFT | Gravity.CENTER_VERTICAL);
          if (titleColorToSet != 0) {
              titleTextView[i].setTextColor(titleColorToSet);
-@@ -653,10 +666,11 @@
+@@ -653,10 +666,11 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
          int translation = useContainerForTitles && titlesContainer != null
                  ? (int) Math.ceil(Math.max(0f, titlesContainer.getTranslationX())) : 0;
          return (menu != null && menu.getVisibility() != GONE ? menu.getMeasuredWidth() : 0)
@@ -50,7 +50,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.jav
          // Native sheet headers own their sliding title position.
          if (parentFragment == null) return false;
          if ((!nebulaHomeTabsGlass && !app.nebulagram.ui.NebulaAppearance.centerHome())
-@@ -1573,6 +1587,7 @@
+@@ -1573,6 +1587,7 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
              textLeft = dp(AndroidUtilities.isTablet() ? 26 : 18);
          }
          if (nebulaHomeTabsGlass) textLeft = Math.max(textLeft, dp(84));
@@ -58,7 +58,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.jav
          // textLeft += additionalTextLeft;
  
          if (menu != null && menu.getVisibility() != GONE) {
-@@ -1607,11 +1622,11 @@
+@@ -1609,11 +1624,11 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
                  availableWidth = Math.max(availableWidth, 0);
  
                  if (((fromBottom && i == 0) || (!fromBottom && i == 1)) && overlayTitleAnimation && titleAnimationRunning) {
@@ -72,7 +72,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.jav
                          }
                          subtitleTextView.setTextSize(AndroidUtilities.isTablet() ? 16 : 14);
                          if (additionalSubtitleTextView != null) {
-@@ -1619,7 +1634,7 @@
+@@ -1621,7 +1636,7 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
                          }
                      } else {
                          if (titleTextView[i] != null && titleTextView[i].getVisibility() != GONE) {
@@ -81,7 +81,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.jav
                          }
                          if (subtitleTextView != null && subtitleTextView.getVisibility() != GONE) {
                              subtitleTextView.setTextSize(!AndroidUtilities.isTablet() && getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE ? 14 : 16);
-@@ -1721,6 +1736,7 @@
+@@ -1723,6 +1738,7 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
          }
          textLeft += additionalTextLeft;
          if (nebulaHomeTabsGlass) textLeft = Math.max(textLeft, dp(84));
@@ -89,7 +89,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.jav
  
          if (menu != null && menu.getVisibility() != GONE) {
              int menuLeft = menu.searchFieldVisible() ? dp(menuOccupyBack ? 0 : AndroidUtilities.isTablet() ? 74 : 66) : (getMeasuredWidth()) - menu.getMeasuredWidth();
-@@ -1747,7 +1763,7 @@
+@@ -1749,7 +1765,7 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
                  int titleTop = additionalTop + textTop - titleTextView[i].getPaddingTop();
                  // Keep both measured paddings: animated emoji can extend beyond the
                  // font ascent/descent, especially when the whole title is one emoji.
@@ -98,7 +98,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.jav
                          ? titleTop + titleTextView[i].getMeasuredHeight()
                          : additionalTop + textTop + titleTextView[i].getTextHeight() - titleTextView[i].getPaddingTop() + titleTextView[i].getPaddingBottom();
                  titleTextView[i].layout(titleLeft, titleTop, titleLeft + titleTextView[i].getMeasuredWidth(), titleBottom);
-@@ -2615,18 +2631,18 @@
+@@ -2626,18 +2642,18 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
              }
              if (nebulaClassicSavedHeader || nebulaSavedMessagesHeader) {
                  glassDrawable.setAlpha(Math.round(255 * Math.max(searchFactor, actionModeFactor)));
@@ -124,7 +124,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.jav
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
-@@ -934,7 +934,7 @@
+@@ -936,7 +936,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
  
          @Override
          public void drawBlurRect(Canvas canvas, float y, Rect rectTmp, Paint blurScrimPaint, boolean top) {
@@ -133,7 +133,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/
                  if (nebulaHeaderGlass == null) {
                      nebulaHeaderGlass = iBlur3FactoryLiquidGlass.create(this, BlurredBackgroundProviderImpl.topPanel(resourceProvider));
                      nebulaHeaderGlass.setPadding(0);
-@@ -1697,7 +1697,7 @@
+@@ -1699,7 +1699,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
              actionBar.setTranslationY(0);
          }
          // The glass toolbar owns a persistent title; stories only collapse their avatars.
@@ -142,20 +142,20 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/
          containersAlpha *= (1f - factorSearch);
          if (containersAlpha != 1f) {
              actionBar.getTitlesContainer().setPivotY(AndroidUtilities.statusBarHeight);
-@@ -3244,6 +3244,12 @@
-             editLayout.leftMargin = dp(8);
+@@ -3247,6 +3247,12 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
              actionBar.addView(nebulaHomeEditButton, editLayout);
              actionBar.setNebulaHomeLeadingView(nebulaHomeEditButton);
-+        }
+         }
 +        if (initialDialogsType == DIALOGS_TYPE_DEFAULT && !onlySelect && !inPreviewMode
 +                && communityId != 0 && TextUtils.isEmpty(searchString)
 +                && app.nebulagram.ui.NebulaAppearance.homeGlassHeader()) {
 +            actionBar.setupGlass(iBlur3FactoryLiquidGlass, BlurredBackgroundProviderImpl.topPanel(resourceProvider));
 +            actionBar.setNebulaCommunityGlass(true, true);
-         }
++        }
          actionBar.createAdditionalSubTitleOverlayContainer();
          actionBar.getAdditionalSubTitleOverlayContainer().setTranslationX(dp(4));
-@@ -14252,8 +14258,8 @@
+         actionBar.getAdditionalSubTitleOverlayContainer().setTranslationY(-dp(3));
+@@ -14306,8 +14312,8 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
          final float actionModeVisible = Math.max(progressToActionMode, animatorActionModeVisible.getFloatValue());
          final float searchFieldVisible = animatorSearchVisible.getFloatValue();
          app.nebulagram.ui.NebulaLinkShortcut.setHeaderSearchProgress(this, searchFieldVisible);
@@ -165,7 +165,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/
              final float editAlpha = (1f - searchFieldVisible) * (1f - actionModeVisible)
                      * (1f - getRightSlidingProgress());
              nebulaHomeEditButton.setAlpha(editAlpha);
-@@ -14568,7 +14574,7 @@
+@@ -14622,7 +14628,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
      }
  
      private void drawHeaderShadow(Canvas canvas, int sy) {
@@ -177,7 +177,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/community/CommunitySheet.java b/TMessagesProj/src/main/java/org/telegram/ui/community/CommunitySheet.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/community/CommunitySheet.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/community/CommunitySheet.java
-@@ -744,7 +744,9 @@
+@@ -744,7 +744,9 @@ public class CommunitySheet extends BottomSheet implements NotificationCenter.No
              actionBar.setActionBarMenuOnItemClick(new ActionBar.ActionBarMenuOnItemClick() {
                  @Override
                  public void onItemClick(int id) {
@@ -188,7 +188,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/community/CommunityShee
                          Bundle args = new Bundle();
                          args.putLong("community_id", communityId);
                          parentFragment.presentFragment(new CommunityEditActivity(args));
-@@ -994,6 +996,7 @@
+@@ -994,6 +996,7 @@ public class CommunitySheet extends BottomSheet implements NotificationCenter.No
          public int pageType;
  
          protected ActionBar actionBar;
@@ -196,7 +196,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/community/CommunityShee
          protected ChatActivityFadeView fadeView;
          protected final FrameLayout contentView;
          protected UniversalRecyclerView listView;
-@@ -1001,7 +1004,13 @@
+@@ -1001,7 +1004,13 @@ public class CommunitySheet extends BottomSheet implements NotificationCenter.No
          public Page(Context context) {
              super(context);
  
@@ -211,7 +211,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/community/CommunityShee
              contentView.setPadding(0, 0, 0, 0);
              contentView.setClipToPadding(true);
              addView(contentView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT, Gravity.FILL));
-@@ -1016,6 +1025,12 @@
+@@ -1016,6 +1025,12 @@ public class CommunitySheet extends BottomSheet implements NotificationCenter.No
          }
  
          protected void afterInit() {

@@ -1,7 +1,7 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/MessagesController.java b/TMessagesProj/src/main/java/org/telegram/messenger/MessagesController.java
 --- a/TMessagesProj/src/main/java/org/telegram/messenger/MessagesController.java
 +++ b/TMessagesProj/src/main/java/org/telegram/messenger/MessagesController.java
-@@ -21005,7 +21005,20 @@ public class MessagesController extends BaseController implements NotificationCe
+@@ -21062,7 +21062,20 @@ public class MessagesController extends BaseController implements NotificationCe
          LongSparseArray<ArrayList<Integer>> scheduledDeletedMessagesFinal = scheduledDeletedMessages;
          LongSparseArray<ArrayList<Integer>> scheduledDeletedMessagesSentFinal = scheduledDeletedMessagesSent;
          LongSparseIntArray clearHistoryMessagesFinal = clearHistoryMessages;
@@ -23,7 +23,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/MessagesControll
              int updateMask = 0;
              if (markAsReadMessagesInboxFinal != null || markAsReadMessagesOutboxFinal != null) {
                  getNotificationCenter().postNotificationName(NotificationCenter.messagesRead, markAsReadMessagesInboxFinal, markAsReadMessagesOutboxFinal);
-@@ -21168,7 +21181,8 @@ public class MessagesController extends BaseController implements NotificationCe
+@@ -21225,7 +21238,8 @@ public class MessagesController extends BaseController implements NotificationCe
              if (updateMask != 0) {
                  getNotificationCenter().postNotificationName(NotificationCenter.updateInterfaces, updateMask);
              }
@@ -33,7 +33,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/MessagesControll
  
          if (webPages != null) {
              getMessagesStorage().putWebPages(webPages);
-@@ -21212,7 +21226,6 @@ public class MessagesController extends BaseController implements NotificationCe
+@@ -21269,7 +21283,6 @@ public class MessagesController extends BaseController implements NotificationCe
                  long key = deletedMessages.keyAt(a);
                  ArrayList<Integer> arrayList = deletedMessages.valueAt(a);
                  getMessagesStorage().getStorageQueue().postRunnable(() -> {
@@ -44,7 +44,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/MessagesControll
 diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/MessagesStorage.java b/TMessagesProj/src/main/java/org/telegram/messenger/MessagesStorage.java
 --- a/TMessagesProj/src/main/java/org/telegram/messenger/MessagesStorage.java
 +++ b/TMessagesProj/src/main/java/org/telegram/messenger/MessagesStorage.java
-@@ -386,6 +386,7 @@
+@@ -386,6 +386,7 @@ public class MessagesStorage extends BaseController {
                  }
              }
              databaseCreated = true;
@@ -52,11 +52,10 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/MessagesStorage.
          } catch (Exception e) {
              FileLog.e(e);
              if (openTries < 3 && e.getMessage() != null && e.getMessage().contains("malformed")) {
-
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Cells/ChatMessageCell.java b/TMessagesProj/src/main/java/org/telegram/ui/Cells/ChatMessageCell.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Cells/ChatMessageCell.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Cells/ChatMessageCell.java
-@@ -18547,6 +18547,9 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
+@@ -18592,6 +18592,9 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
                  currentTimeString = TextUtils.concat(formatString(R.string.MessageScheduledRepeatSeconds, period), ", ", currentTimeString);
              }
          }
@@ -66,7 +65,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Cells/ChatMessageCell.j
          timeTextWidth = timeWidth = (int) Math.ceil(Theme.chat_timePaint.measureText(currentTimeString, 0, currentTimeString == null ? 0 : currentTimeString.length()));
          if (currentMessageObject.scheduled && currentMessageObject.messageOwner.date == 0x7FFFFFFE || currentMessageObject.notime) {
              timeWidth -= dp(8);
-@@ -20151,7 +20154,25 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
+@@ -20196,7 +20199,25 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
      protected void onDraw(Canvas canvas) {
          drawInternal(canvas);
      }
@@ -95,7 +94,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Cells/ChatMessageCell.j
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
-@@ -3718,6 +3718,10 @@ public class ChatActivity extends BaseFragment implements
+@@ -3762,6 +3762,10 @@ public class ChatActivity extends BaseFragment implements
          actionBar.setActionBarMenuOnItemClick(new ActionBar.ActionBarMenuOnItemClick() {
              @Override
              public void onItemClick(final int id) {
@@ -106,7 +105,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
                  if (id == -1) {
                      if (isInPollAddOptionMode()) {
                          pollAddOptionModeClose();
-@@ -4546,6 +4550,11 @@
+@@ -4595,6 +4599,11 @@ public class ChatActivity extends BaseFragment implements
              closeTopicItem = headerItem.lazilyAddSubItem(topic_close, R.drawable.msg_topic_close, LocaleController.getString(R.string.CloseTopic));
              closeTopicItem.setVisibility(currentChat != null && ChatObject.canManageTopic(currentAccount, currentChat, forumTopic) && forumTopic != null && !forumTopic.closed ? View.VISIBLE : View.GONE);
          }

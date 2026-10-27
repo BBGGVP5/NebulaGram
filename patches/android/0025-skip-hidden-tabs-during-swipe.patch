@@ -38,7 +38,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ViewPagerFix
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/MainTabsActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/MainTabsActivity.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/MainTabsActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/MainTabsActivity.java
-@@ -762,15 +762,29 @@ public class MainTabsActivity extends ViewPagerActivity implements NotificationC
+@@ -763,15 +763,29 @@ public class MainTabsActivity extends ViewPagerActivity implements NotificationC
  
      }
  

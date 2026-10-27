@@ -178,7 +178,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/LoginActivity.java b/TM
                      @Override
                      protected void processNextPressed() {
                          onNextPressed(null);
-@@ -5366,7 +5392,7 @@ public class LoginActivity extends BaseFragment implements NotificationCenter.No
+@@ -5378,7 +5404,7 @@ public class LoginActivity extends BaseFragment implements NotificationCenter.No
              confirmTextView.setText(getString(R.string.LoginPasswordTextShort));
              addView(confirmTextView, LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, Gravity.CENTER_HORIZONTAL, 12, 8, 12, 0));
  
@@ -187,7 +187,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/LoginActivity.java b/TM
              outlineCodeField.setText(getString(R.string.EnterPassword));
              codeField = new EditTextBoldCursor(context);
              codeField.setCursorSize(AndroidUtilities.dp(20));
-@@ -8481,6 +8507,7 @@ public class LoginActivity extends BaseFragment implements NotificationCenter.No
+@@ -8495,6 +8521,7 @@ public class LoginActivity extends BaseFragment implements NotificationCenter.No
          }
  
          keyboardView.updateColors();
@@ -195,7 +195,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/LoginActivity.java b/TM
          if (phoneNumberConfirmView != null) {
              phoneNumberConfirmView.updateColors();
          }
-@@ -8635,7 +8662,7 @@ public class LoginActivity extends BaseFragment implements NotificationCenter.No
+@@ -8649,7 +8676,7 @@ public class LoginActivity extends BaseFragment implements NotificationCenter.No
          private final PointF pointF = new PointF();
          private void updateFabPosition() {
              ViewPositionWatcher.computeCoordinatesInParent(fabContainer, fragmentView, pointF);

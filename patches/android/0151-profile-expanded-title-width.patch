@@ -1,8 +1,8 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
-index 5f8e02f..aff950e 100644
+index f7e368b2..7a2e43a4 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
-@@ -8807,7 +8807,10 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+@@ -8845,7 +8845,10 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                      }
  
                      FrameLayout.LayoutParams params1 = (FrameLayout.LayoutParams) nameTextView[a].getLayoutParams();
@@ -12,5 +12,5 @@ index 5f8e02f..aff950e 100644
 +                            Math.min(a == 1 ? params1.width : nameTextView[a].getMeasuredWidth(), availableNameWidth));
 +                    float nameX = viewportWidth / 2f - (params1.leftMargin + Math.max(0, visibleNameWidth) * nameScale * 0.5f);
                      FrameLayout.LayoutParams params2 = (FrameLayout.LayoutParams) onlineTextView[a].getLayoutParams();
-                     float onlineX = viewportWidth / 2f - (params2.leftMargin + Math.min(onlineTextView[hasFallbackPhoto ? 3 : a].getExactWidth(), a == 1 ? params2.width : viewportWidth) * 0.5f);
- 
+                     final SimpleTextView onlineView = onlineTextView[hasFallbackPhoto ? 3 : a];
+                     final float onlineMaxWidth = a == 1 ? params2.width : viewportWidth;

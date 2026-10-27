@@ -16,7 +16,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.jav
      public void centerTitle() {
          isCenterTitle = true;
          if (titleTextView != null) {
-@@ -1526,8 +1534,8 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
+@@ -1528,8 +1536,8 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
  
                  if (titleTextView[i] != null && titleTextView[i].getVisibility() != GONE) {
                      int titleAvailableWidth = availableWidth;
@@ -27,7 +27,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.jav
                          titleTextView[i].setGravity(centerHome ? Gravity.CENTER_HORIZONTAL : (isCenterTitle ? Gravity.CENTER : Gravity.LEFT | Gravity.CENTER_VERTICAL));
                          if (centerHome) {
                              int end = menu != null && menu.getVisibility() != GONE ? menu.getMeasuredWidth() + dp(16) : dp(16);
-@@ -1621,7 +1629,7 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
+@@ -1623,7 +1631,7 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
                      }
                  }
                  int titleLeft = textLeft;
@@ -36,7 +36,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.jav
                      titleLeft = Math.max(textLeft, (getMeasuredWidth() - titleTextView[i].getMeasuredWidth()) / 2);
                  }
                  titleTextView[i].layout(titleLeft, additionalTop + textTop - titleTextView[i].getPaddingTop(), titleLeft + titleTextView[i].getMeasuredWidth(), additionalTop + textTop + titleTextView[i].getTextHeight() - titleTextView[i].getPaddingTop() + titleTextView[i].getPaddingBottom());
-@@ -2305,6 +2313,16 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
+@@ -2316,6 +2324,16 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
  
      private boolean nebulaChatMenuHidden;
      private boolean nebulaSavedMessagesHeader;
@@ -53,7 +53,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.jav
  
      private int nebulaObservedAccount = -1;
      private final NotificationCenter.NotificationCenterDelegate nebulaUnreadObserver = (id, account, args) -> invalidate();
-@@ -2349,6 +2367,14 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
+@@ -2360,6 +2378,14 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
  
      @Override
      protected void dispatchDraw(Canvas canvas) {
@@ -68,7 +68,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.jav
          final int p = dp(6);
          final int s = dp(46);
  
-@@ -2397,7 +2423,7 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
+@@ -2408,7 +2434,7 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
              }
  
              glassDrawable.setBounds(left, t, right, b);
@@ -80,17 +80,23 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.jav
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
-@@ -2991,4 +2991,5 @@ public class ChatActivity extends BaseFragment implements
+@@ -3054,6 +3054,7 @@ public class ChatActivity extends BaseFragment implements
+             .addGlobal(NotificationCenter.emojiLoaded)
+             .addGlobal(NotificationCenter.invalidateMotionBackground)
              .addGlobal(NotificationCenter.didSetNewWallpapper)
 +            .addGlobal(NotificationCenter.didSetNewTheme)
              .addGlobal(NotificationCenter.didApplyNewTheme)
              .addGlobal(NotificationCenter.goingToPreviewTheme);
  
-@@ -3132,2 +3133,3 @@ public class ChatActivity extends BaseFragment implements
+@@ -3195,6 +3196,7 @@ public class ChatActivity extends BaseFragment implements
+         }
+ 
+ 
 +        app.nebulagram.ui.NebulaTheme.applyMaterialYou(ApplicationLoader.applicationContext);
          themeDelegate = parentThemeDelegate != null ? parentThemeDelegate : new ThemeDelegate();
          if (themeDelegate.isThemeChangeAvailable(false)) {
-@@ -4282,7 +4284,7 @@ public class ChatActivity extends BaseFragment implements
+             observersGroup.addGlobal(NotificationCenter.needSetDayNightTheme);
+@@ -4326,7 +4328,7 @@ public class ChatActivity extends BaseFragment implements
  
          if (chatMode == 0 && (threadMessageId == 0 || isTopic) && !UserObject.isReplyUser(currentUser) && !isReport()) {
              TLRPC.UserFull userFull = null;
@@ -99,7 +105,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
                  audioCallIconItem = menu.lazilyAddItem(call, R.drawable.call, themeDelegate);
                  audioCallIconItem.setContentDescription(LocaleController.getString(R.string.Call));
                  userFull = getMessagesController().getUserFull(currentUser.id);
-@@ -4609,6 +4611,7 @@ public class ChatActivity extends BaseFragment implements
+@@ -4657,6 +4659,7 @@ public class ChatActivity extends BaseFragment implements
          if (chatMode == 0 && !isComments) {
              actionBar.setNebulaChatAvatarContainer(avatarContainer);
          }
@@ -107,7 +113,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
          actionBar.nebulaHeaderAccount = currentAccount;
          actionBar.invalidate();
          app.nebulagram.ui.NebulaChatStyle.header(actionBar,
-@@ -18318,6 +18321,7 @@ public class ChatActivity extends BaseFragment implements
+@@ -18581,6 +18584,7 @@ public class ChatActivity extends BaseFragment implements
                  }*/ else {
                      showSearchAsIcon = false;
                  }
@@ -115,7 +121,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
                  if (showSearchAsIcon || showAudioCallAsIcon || UserObject.isBotForumWithEditableTopics(currentUser)) {
                      if (avatarContainer != null && avatarContainer.getLayoutParams() != null) {
                          ((ViewGroup.MarginLayoutParams) avatarContainer.getLayoutParams()).rightMargin = AndroidUtilities.dp(chatMode == MODE_SAVED ? 52 : 92);
-@@ -20548,6 +20552,10 @@ public class ChatActivity extends BaseFragment implements
+@@ -20851,6 +20855,10 @@ public class ChatActivity extends BaseFragment implements
  
      @Override
      public void didReceivedNotification(int id, int account, final Object... args) {
@@ -126,7 +132,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
          if (id == NotificationCenter.messagesDidLoad) {
              didReceivedNotification_messagesDidLoad(id, account, args);
          } else {
-@@ -29822,11 +29830,33 @@ public class ChatActivity extends BaseFragment implements
+@@ -30133,11 +30141,33 @@ public class ChatActivity extends BaseFragment implements
          }
      }
  
@@ -163,7 +169,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
-@@ -867,7 +867,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+@@ -869,7 +869,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                  h += storiesHeight * (1f - searchAnimationProgress) * (1f - rightSlidingProgress) * (1f - progressToActionMode);
              }
              h += storiesOverscroll;
@@ -172,7 +178,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/
  
              return (int) h;
          }
-@@ -1045,8 +1045,8 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+@@ -1047,8 +1047,8 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
              tabsYOffset = 0;
              storiesYOffset = 0;
              tabsYOffset -= Math.min(
@@ -183,7 +189,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/
              );
              storiesYOffset = tabsYOffset;
              if ((rightSlidingDialogContainer != null && rightSlidingDialogContainer.hasFragment())) {
-@@ -1072,7 +1072,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+@@ -1074,7 +1074,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                  if (hasStories) {
                      addH += dp(DialogStoriesCell.HEIGHT_IN_DP);
                  }
@@ -192,7 +198,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/
                  addH *= rightSlidingDialogContainer.openedProgress;
  
                  viewPages[0].setTranslationY(rightFragmentOffset - addH);
-@@ -1080,7 +1080,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+@@ -1082,7 +1082,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                  if (fragmentSearchField != null) {
                      fragmentSearchField.setTranslationY(lerp(
                          scrollYOffset + tabsYOffset + storiesOverscroll - dp(4),
@@ -201,7 +207,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/
                          searchAnimationProgress
                      ));
                  }
-@@ -1171,7 +1171,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+@@ -1173,7 +1173,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                          if (hasStories) {
                              h += dp(DialogStoriesCell.HEIGHT_IN_DP);
                          }
@@ -210,7 +216,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/
                      }
                      h += actionModeAdditionalHeight;
                      if (actionBarColorAnimator == null) {
-@@ -1285,10 +1285,10 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+@@ -1287,10 +1287,10 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                  if (child == fragmentSearchField || child == searchTabsAndFiltersLayout || child == dialogStoriesCell) {
                      childTop = actionBar.getMeasuredHeight();
                      if (child != fragmentSearchField && child != dialogStoriesCell && child != searchTabsAndFiltersLayout) {
@@ -223,7 +229,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/
                      //}
                      if (hasStories && child == fragmentSearchField) {
                          childTop += dp(DialogStoriesCell.HEIGHT_IN_DP);
-@@ -1310,7 +1310,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+@@ -1312,7 +1312,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                      childTop = 0;
                  } else if (child == topPanelLayout || child == topBubblesFadeView || child == filterTabsView) {
                      childTop += actionBar.getMeasuredHeight();
@@ -232,7 +238,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/
                  } else if (dialogStoriesCell != null && dialogStoriesCell.getPremiumHint() == child) {
                      continue;
                  }
-@@ -2070,7 +2070,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+@@ -2072,7 +2072,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                  t += dp(DialogStoriesCell.HEIGHT_IN_DP);
              }
              if (!actionModeFullyShowed) {
@@ -241,7 +247,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/
              }
              additionalPadding = 0;
  
-@@ -2381,7 +2381,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+@@ -2383,7 +2383,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                          offset += dp(DialogStoriesCell.HEIGHT_IN_DP);
                      }
                      if (backward) {
@@ -250,7 +256,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/
                          // offset += canShowFilterTabsView ? dp(50) : 0;
                      }
                      if (p >= 0) {
-@@ -4217,13 +4217,13 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+@@ -4213,13 +4213,13 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                                  }
                                  int canScrollDy = -(view.getTop() - pTop) + viewsH;
                                  if (!rightSlidingDialogContainer.hasFragment() && !(actionBar != null && actionBar.isActionModeShowed())) {
@@ -266,7 +272,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/
                                  }
                                  int positiveDy = Math.abs(dy);
                                  if (canScrollDy < positiveDy) {
-@@ -4586,7 +4586,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+@@ -4582,7 +4582,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                          if (applyScrollY) {
                              int maxScrollYOffset = getMaxScrollYOffset();
                              if (!(filterTabsView != null && filterTabsView.getVisibility() == View.VISIBLE && animatorFilterTabsVisible.getValue())) {
@@ -275,7 +281,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/
                              }
                              if (newTranslation < -maxScrollYOffset) {
                                  newTranslation = -maxScrollYOffset;
-@@ -5721,7 +5721,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+@@ -5718,7 +5718,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                  }
  
                  if (actionBarHeightNoSearch < scrollY && scrollY < actionBarHeight) {
@@ -284,7 +290,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/
                      int s = scrollY - actionBarHeightNoSearch;
                      if (s < h / 2) {
                          viewPage.scroller.smoothScrollBy(-s);
-@@ -5759,9 +5759,9 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+@@ -5756,9 +5756,9 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
  
      private int getMaxScrollYOffset() {
          if (hasStories) {
@@ -296,7 +302,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/
          }
      }
  
-@@ -7054,6 +7054,11 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+@@ -7051,6 +7051,11 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
      @Override
      public void onResume() {
          super.onResume();
@@ -308,7 +314,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/
          checkUi_menuItems();
          if (statusDrawable != null) {
              int selectedType = filterTabsView == null
-@@ -7233,7 +7238,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+@@ -7230,7 +7235,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                      (filterTabsView != null && filterTabsView.getVisibility() == View.VISIBLE ? filterTabsView.getMeasuredHeight() : 0) +
                      (topPanelLayout != null ? topPanelLayout.getHeight() : 0) +
                      (dialogStoriesCell != null && dialogStoriesCellVisible ? (int) ((1f - dialogStoriesCell.getCollapsedProgress()) * dp(DialogStoriesCell.HEIGHT_IN_DP)) : 0) +
@@ -317,7 +323,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/
                  );
              }
  
-@@ -7612,7 +7617,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+@@ -7609,7 +7614,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
              if (searchViewPager != null) {
                  animators.add(ObjectAnimator.ofFloat(searchViewPager, View.ALPHA, show ? 1.0f : 0.0f));
                  if (hasStories) {
@@ -326,7 +332,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/
                      animators.add(ObjectAnimator.ofFloat(searchViewPager, SEARCH_TRANSLATION_Y, show ? translationY : 0, show ? 0 : translationY));
                  }
                  if (!budget) {
-@@ -8971,6 +8976,10 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+@@ -8968,6 +8973,10 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
          }, 300);
      }
  
@@ -337,7 +343,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/
      private void setScrollY(float value) {
          if (viewPages != null) {
              int glowOffset = viewPages[0].listView.getPaddingTop() + (int) value;
-@@ -8981,7 +8990,9 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+@@ -8978,7 +8987,9 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
          if (fragmentView == null || value == scrollYOffset) {
              return;
          }
@@ -347,7 +353,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/
          if (topBulletin != null) {
              topBulletin.updatePosition();
          }
-@@ -9092,7 +9103,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+@@ -9089,7 +9100,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                  viewPages[i].listView.cancelClickRunnables(true);
              }
          }
@@ -356,7 +362,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/
          float finalTranslateListHeight = translateListHeight;
          actionBarColorAnimator = ValueAnimator.ofFloat(progressToActionMode, 0);
          actionBarColorAnimator.addUpdateListener(valueAnimator -> {
-@@ -9118,7 +9129,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+@@ -9115,7 +9126,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                  invalidateScrollY = true;
                  fixScrollYAfterArchiveOpened = true;
                  fragmentView.invalidate();
@@ -365,7 +371,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/
                  viewPages[0].setTranslationY(0);
                  for (int i = 0; i < viewPages.length; i++) {
                      if (viewPages[i] != null) {
-@@ -10106,7 +10117,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+@@ -10103,7 +10114,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                      viewPages[i].listView.cancelClickRunnables(true);
                  }
              }
@@ -374,7 +380,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/
              if (translateListHeight != 0) {
                  actionModeAdditionalHeight = (int) translateListHeight;
                  fragmentView.requestLayout();
-@@ -10133,7 +10144,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+@@ -10130,7 +10141,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                      actionBarColorAnimator = null;
                      actionModeAdditionalHeight = 0;
                      actionModeFullyShowed = true;
@@ -383,7 +389,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/
                      viewPages[0].setTranslationY(0);
                      for (int i = 0; i < viewPages.length; i++) {
                          if (viewPages[i] != null) {
-@@ -14099,7 +14110,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+@@ -14147,7 +14158,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
          final float actionModeVisible = Math.max(progressToActionMode, animatorActionModeVisible.getFloatValue());
          final float searchFieldVisible = animatorSearchVisible.getFloatValue();
  
@@ -392,7 +398,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/
          final float factor1 = (1f - actionModeVisible) * (1f - animatorDoneButtonVisible.getFloatValue());
          final float factor2 = Math.max(searchFieldVisible, alphaByScrollOffset * (1f - getRightSlidingProgress()));
  
-@@ -14190,6 +14201,10 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+@@ -14238,6 +14249,10 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
          }
      }
  
@@ -403,7 +409,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/
      private boolean isSupportSearch() {
          return initialDialogsType != DIALOGS_TYPE_ADD_USERS_TO;
      }
-@@ -14232,7 +14247,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+@@ -14280,7 +14295,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
          final int mainTabTop = mainTabBottom - dp(DialogsActivity.MAIN_TABS_HEIGHT);
  
          final int actionBarHeight = actionBar.getMeasuredHeight()
@@ -415,7 +421,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/LaunchActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/LaunchActivity.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/LaunchActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/LaunchActivity.java
-@@ -557,6 +557,7 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
+@@ -561,6 +561,7 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
              }
          });
          actionBarLayout.setDelegate(this);

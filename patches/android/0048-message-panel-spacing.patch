@@ -1,7 +1,7 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Cells/ChatMessageCell.java b/TMessagesProj/src/main/java/org/telegram/ui/Cells/ChatMessageCell.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Cells/ChatMessageCell.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Cells/ChatMessageCell.java
-@@ -13726,9 +13726,9 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
+@@ -13756,9 +13756,9 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
  //            pad += dp(4);
  //        }
          if (SharedConfig.bubbleRadius >= 15) {

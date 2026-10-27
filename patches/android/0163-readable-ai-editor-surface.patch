@@ -1,5 +1,5 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
-index 916ecec..8e38f32 100644
+index 06f94160..62db1e1b 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
 @@ -654,6 +654,8 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
@@ -12,7 +12,7 @@ index 916ecec..8e38f32 100644
                  || (isSearchFieldVisible && !nebulaHomeTabsGlass)
                  || (getActionModeFactor() != 0 && !nebulaHomeTabsGlass)) return false;
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/BottomSheet.java b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/BottomSheet.java
-index a058f1b..37caff7 100644
+index 287091da..010d2797 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/BottomSheet.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/BottomSheet.java
 @@ -1328,6 +1328,9 @@ public class BottomSheet extends Dialog implements BaseFragment.AttachedSheet {
@@ -35,7 +35,7 @@ index a058f1b..37caff7 100644
              android.app.Activity owner = AndroidUtilities.findActivity(getContext());
              if (owner != null) {
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/AIEditorAlert.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/AIEditorAlert.java
-index f25a5e7..a9aaeee 100644
+index ab86429e..f33c6bab 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/AIEditorAlert.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/AIEditorAlert.java
 @@ -150,6 +150,9 @@ public class AIEditorAlert extends BottomSheetWithRecyclerListView implements No

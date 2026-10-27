@@ -1,7 +1,7 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Cells/ChatMessageCell.java b/TMessagesProj/src/main/java/org/telegram/ui/Cells/ChatMessageCell.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Cells/ChatMessageCell.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Cells/ChatMessageCell.java
-@@ -5764,6 +5764,23 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
+@@ -5765,6 +5765,23 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
          overridenDuration = duration;
      }
  
@@ -28,7 +28,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Cells/ChatMessageCell.j
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
-@@ -8335,6 +8335,7 @@ public class ChatActivity extends BaseFragment implements
+@@ -8385,6 +8385,7 @@ public class ChatActivity extends BaseFragment implements
              }
          });
          chatActivityEnterTopView.addEditView(editView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT, Gravity.NO_GRAVITY, 0, 0, 48, 0));
@@ -36,7 +36,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
  
          for (int i = 0; i < 2; i++) {
              final boolean firstButton = i == 0;
-@@ -17720,12 +17721,20 @@ public class ChatActivity extends BaseFragment implements
+@@ -17983,12 +17984,20 @@ public class ChatActivity extends BaseFragment implements
              return false;
          }
  
@@ -58,7 +58,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
              canvas.translate(canvasOffsetX, canvasOffsetY);
              cell.setInvalidatesParent(true);
              if (type == 0) {
-@@ -17938,11 +17947,11 @@ public class ChatActivity extends BaseFragment implements
+@@ -18201,11 +18210,11 @@ public class ChatActivity extends BaseFragment implements
                                  b += scrimGroup.transitionParams.cell.getTranslationY();
                              }
  
@@ -72,7 +72,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
                                  b = chatListView.getMeasuredHeight() + AndroidUtilities.dp(20);
                              }
  
-@@ -17963,7 +17972,7 @@ public class ChatActivity extends BaseFragment implements
+@@ -18226,7 +18235,7 @@ public class ChatActivity extends BaseFragment implements
                                      - dp(9)
                                      - (mentionContainer != null ? mentionContainer.clipBottom() : 0);
  
@@ -81,7 +81,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
                              canvas.translate(0, chatListView.getY());
                              scrimGroup.transitionParams.cell.drawBackground(canvas, (int) l, (int) t, (int) r, (int) b, scrimGroup.transitionParams.pinnedTop, scrimGroup.transitionParams.pinnedBotton, selected, 0);
                              canvas.restore();
-@@ -17994,15 +18003,9 @@ public class ChatActivity extends BaseFragment implements
+@@ -18257,15 +18266,9 @@ public class ChatActivity extends BaseFragment implements
                          viewClipTop += clipTop;
                          viewClipBottom -= clipBottom;
  
@@ -100,7 +100,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
  
                          if (cell == null || !cell.getTransitionParams().animateBackgroundBoundsInner) {
                              viewClipLeft = Math.max(viewClipLeft, chatListView.getLeft() + child.getX());
-@@ -18040,7 +18043,11 @@ public class ChatActivity extends BaseFragment implements
+@@ -18303,7 +18306,11 @@ public class ChatActivity extends BaseFragment implements
                                  cell.drawBackgroundInternal(canvas, true);
                                  canvas.restore();
                              }
@@ -113,7 +113,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
                              if (cell != null && cell.hasOutboundsContent()) {
                                  canvas.save();
                                  canvas.translate(0, cell.getPaddingTop());
-@@ -32540,7 +32547,7 @@ public class ChatActivity extends BaseFragment implements
+@@ -32855,7 +32862,7 @@ public class ChatActivity extends BaseFragment implements
              if (app.nebulagram.ui.NebulaAppearance.messageMenuBelow()
                      && v instanceof ChatMessageCell && !isInsideContainer) {
                  // Cap the scrolling menu so a visible message always fits above it.
@@ -122,7 +122,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
                  scrimPopupContainerLayout.setMaxHeight(menuLimit);
                  scrimPopupContainerLayout.measure(View.MeasureSpec.makeMeasureSpec(dp(1000), View.MeasureSpec.AT_MOST),
                          View.MeasureSpec.makeMeasureSpec(menuLimit, View.MeasureSpec.AT_MOST));
-@@ -32584,7 +32591,7 @@ public class ChatActivity extends BaseFragment implements
+@@ -32899,7 +32906,7 @@ public class ChatActivity extends BaseFragment implements
                          popupY = (int) sourceTop - height - dp(8);
                      } else {
                          // Wide media cannot fit beside the menu. Keep both visible instead of covering the bubble.

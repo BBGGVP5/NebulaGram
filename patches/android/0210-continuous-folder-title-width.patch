@@ -1,7 +1,7 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
-@@ -205,6 +205,18 @@
+@@ -205,6 +205,18 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
      private View nebulaHomeLeadingView;
      private int nebulaHomeStoryCount, nebulaHomeVisibleStories;
      private float nebulaHomeStoryProgress;
@@ -20,7 +20,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.jav
  
      public void setNebulaHomeStories(int count, float progress) {
          if (!nebulaHomeLayout) return;
-@@ -225,7 +237,15 @@
+@@ -225,7 +237,15 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
                  nebulaHomeVisibleStories, dp(34), dp(16), dp(8));
      }
  
@@ -37,7 +37,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.jav
          int width = 0;
          for (SimpleTextView title : titleTextView) {
              if (title != null && title.getVisibility() != GONE) width = Math.max(width, title.getMeasuredWidth());
-@@ -569,9 +589,17 @@
+@@ -569,10 +589,18 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
          }
  
          boolean clip = shouldClipChild(child);
@@ -49,14 +49,15 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.jav
          if (clip) {
 -            canvas.save();
              canvas.clipRect(0, -getTranslationY() + (occupyStatusBar ? AndroidUtilities.statusBarHeight : 0), getMeasuredWidth(), getMeasuredHeight());
-+        }
+         }
 +        if (clipHomeTitle) {
 +            // Fading wider text must not move over the plain toolbar actions.
 +            canvas.clipRect(dp(84), 0, Math.max(dp(84), getMeasuredWidth() - nebulaTitleEndInset()), getMeasuredHeight());
-         }
++        }
          boolean result = super.drawChild(canvas, child, drawingTime);
          if (supportsHolidayImage && !titleOverlayShown && !LocaleController.isRTL && (child == titleTextView[0] || child == titleTextView[1] || child == titlesContainer && useContainerForTitles)) {
-@@ -609,7 +637,7 @@
+             Drawable drawable = Theme.getCurrentHolidayDrawable();
+@@ -609,7 +637,7 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
                  }
              }
          }
@@ -65,7 +66,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.jav
              canvas.restore();
          }
          return result;
-@@ -2241,11 +2269,12 @@
+@@ -2243,11 +2271,12 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
              setTitle(title);
              return;
          }
@@ -80,7 +81,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.jav
          }
          boolean crossfade = overlayTitleAnimation && !TextUtils.isEmpty(subtitle);
          if (crossfade) {
-@@ -2272,12 +2301,18 @@
+@@ -2274,12 +2303,18 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
              titleTextView[0].setTranslationY(fromBottom ? dp(nebulaHomeLayout ? 8 : 20) : -dp(nebulaHomeLayout ? 8 : 20));
          }
          ViewPropertyAnimator a1 = titleTextView[0].animate().alpha(1f).translationY(0).setDuration(duration);
@@ -103,7 +104,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.jav
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Stories/DialogStoriesCell.java b/TMessagesProj/src/main/java/org/telegram/ui/Stories/DialogStoriesCell.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Stories/DialogStoriesCell.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Stories/DialogStoriesCell.java
-@@ -1411,7 +1411,11 @@
+@@ -1411,7 +1411,11 @@ public class DialogStoriesCell extends FrameLayout implements NotificationCenter
      }
  
      public void setActionBar(ActionBar actionBar) {

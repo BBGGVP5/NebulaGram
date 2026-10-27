@@ -50,7 +50,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/SimpleTextVie
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
-@@ -43455,6 +43455,12 @@ public class ChatActivity extends BaseFragment implements
+@@ -43805,6 +43805,12 @@ public class ChatActivity extends BaseFragment implements
  
          @Override
          public int getColor(int key) {
@@ -63,7 +63,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
              if (animatingColors != null) {
                  int index = animatingColors.indexOfKey(key);
                  if (index >= 0) {
-@@ -43485,6 +43491,13 @@ public class ChatActivity extends BaseFragment implements
+@@ -43835,6 +43841,13 @@ public class ChatActivity extends BaseFragment implements
          }
  
          public int getCurrentColor(int key, boolean ignoreAnimation) {
@@ -112,7 +112,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarCo
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
-@@ -1542,11 +1542,13 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+@@ -1544,11 +1544,13 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                                      viewPages[0] = viewPages[1];
                                      viewPages[1] = tempPage;
                                      filterTabsView.selectTabWithId(viewPages[0].selectedType, 1.0f);
@@ -126,7 +126,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/
                                  showScrollbars(true);
                                  tabsAnimationInProgress = false;
                                  maybeStartTracking = false;
-@@ -3659,6 +3661,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+@@ -3655,6 +3657,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                          viewPages[0] = viewPages[1];
                          viewPages[1] = tempPage;
                          viewPages[1].setVisibility(View.GONE);
@@ -134,7 +134,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/
                          showScrollbars(true);
                          updateCounters(false);
                          filterTabsView.stopAnimatingIndicator();
-@@ -6801,7 +6804,15 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+@@ -6798,7 +6801,15 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
          }
      }
  
@@ -153,7 +153,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
-@@ -5241,7 +5241,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+@@ -5270,7 +5270,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
              @Override
              protected void dispatchDraw(Canvas canvas) {
                  if (!isInLandscapeMode) {

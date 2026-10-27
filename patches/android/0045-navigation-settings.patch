@@ -1,7 +1,7 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ViewPagerFixed.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ViewPagerFixed.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ViewPagerFixed.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ViewPagerFixed.java
-@@ -519,8 +519,19 @@
+@@ -519,8 +519,19 @@ public class ViewPagerFixed extends FrameLayout {
          return currentPosition + (forward ? 1 : -1);
      }
  
@@ -24,7 +24,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ViewPagerFix
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/glass/GlassTabView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/glass/GlassTabView.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/glass/GlassTabView.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/glass/GlassTabView.java
-@@ -278,6 +278,11 @@
+@@ -278,6 +278,11 @@ public class GlassTabView extends FrameLayout implements MainTabsLayout.Tab, Fac
      private long lastBotIconId;
  
      private void checkPlayAnimation(boolean animated) {
@@ -39,7 +39,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/glass/GlassT
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
-@@ -13622,6 +13622,17 @@
+@@ -13669,6 +13669,17 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
          }
      }
  
@@ -57,7 +57,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/
      @Override
      public boolean canParentTabsSlide(MotionEvent ev, boolean forward) {
          if (searchIsShowed || rightSlidingDialogContainer != null && rightSlidingDialogContainer.hasFragment()) {
-@@ -13645,11 +13656,6 @@
+@@ -13692,11 +13703,6 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
          if (forward) {
              return isLastTab && !isFirstTab;
          } else {
@@ -72,7 +72,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/MainTabsActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/MainTabsActivity.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/MainTabsActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/MainTabsActivity.java
-@@ -327,6 +327,7 @@
+@@ -327,6 +327,7 @@ public class MainTabsActivity extends ViewPagerActivity implements NotificationC
          tabs[INDEX_CONTACTS].setOnLongClickListener(this::openContactsSelector);
          tabs[INDEX_CALLS].setOnLongClickListener(this::openCallsSelector);
          tabs[INDEX_PROFILE].setOnLongClickListener(this::openAccountSelector);
@@ -80,7 +80,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/MainTabsActivity.java b
  
          tabsView.addTabToIgnoreClick(tabs[INDEX_CHATS]);
          tabsView.addTabToIgnoreClick(tabs[INDEX_CONTACTS]);
-@@ -429,6 +430,10 @@
+@@ -429,6 +430,10 @@ public class MainTabsActivity extends ViewPagerActivity implements NotificationC
              args.putBoolean("needFinishFragment", false);
              presentFragment(new CallLogActivity(args));
          });
@@ -91,7 +91,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/MainTabsActivity.java b
          o.setBlur(true);
          o.translate(0, -dp(4));
          o.setGravity(Gravity.LEFT);
-@@ -456,6 +461,10 @@
+@@ -456,6 +461,10 @@ public class MainTabsActivity extends ViewPagerActivity implements NotificationC
                  NotificationCenter.getInstance(currentAccount).postNotificationName(NotificationCenter.callTabsVisibleToggled);
              });
          }
@@ -102,7 +102,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/MainTabsActivity.java b
          o.setBlur(true);
          o.translate(0, -dp(4));
          final ShapeDrawable bg = Theme.createRoundRectDrawable(dp(28), getThemedColor(Theme.key_windowBackgroundWhite));
-@@ -470,10 +479,17 @@
+@@ -470,10 +479,17 @@ public class MainTabsActivity extends ViewPagerActivity implements NotificationC
      private boolean openFoldersSelector(View anchor) {
          if (getContext() == null || getParentActivity() == null) return false;
          final ArrayList<MessagesController.DialogFilter> filters = getMessagesController().getDialogFilters();
@@ -122,7 +122,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/MainTabsActivity.java b
              final MessagesController.DialogFilter folder = filters.get(i);
              final ActionBarMenuSubItem folderItem = new ActionBarMenuSubItem(getParentActivity(), 2, false, false, getResourceProvider());
              folderItem.setPadding(dp(18), 0, dp(18), 0);
-@@ -508,14 +524,26 @@
+@@ -508,14 +524,26 @@ public class MainTabsActivity extends ViewPagerActivity implements NotificationC
              final int color = getMessagesController().folderTags ? folder.color : -1;
              folderItem.setTextAndIcon(title, 0, new FolderDrawable(getContext(), R.drawable.msg_folders, color));
              folderItem.getTextView().setEmojiColor(getThemedColor(Theme.key_featuredStickers_addButton));
@@ -151,7 +151,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/MainTabsActivity.java b
          o.translate(-dp(8), -dp(4));
          o.setMaxHeight(dp(400));
          final ShapeDrawable bg = Theme.createRoundRectDrawable(dp(28), getThemedColor(Theme.key_windowBackgroundWhite));
-@@ -629,28 +657,8 @@
+@@ -629,28 +657,8 @@ public class MainTabsActivity extends ViewPagerActivity implements NotificationC
          });
  
          ItemOptions o = ItemOptions.makeOptions(this, button);
@@ -182,7 +182,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/MainTabsActivity.java b
  
          if (BuildConfig.DEBUG_PRIVATE_VERSION) {
              o.add(R.drawable.menu_download_round, "Dump Canvas", () -> AndroidUtilities.runOnUIThread(this::dumpCanvas, 1000));
-@@ -672,6 +680,10 @@
+@@ -672,6 +680,10 @@ public class MainTabsActivity extends ViewPagerActivity implements NotificationC
              }
          }
  
@@ -193,7 +193,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/MainTabsActivity.java b
          o.setBlur(true);
          o.translate(0, -dp(4));
          final ShapeDrawable bg = Theme.createRoundRectDrawable(dp(28), getThemedColor(Theme.key_windowBackgroundWhite));
-@@ -725,7 +737,21 @@
+@@ -725,7 +737,21 @@ public class MainTabsActivity extends ViewPagerActivity implements NotificationC
          textView.setText(UserObject.getUserName(user));
          textView.setMaxLines(2);
          textView.setEllipsize(TextUtils.TruncateAt.END);
@@ -216,7 +216,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/MainTabsActivity.java b
  
          return btn;
      }
-@@ -920,6 +946,15 @@
+@@ -920,6 +946,15 @@ public class MainTabsActivity extends ViewPagerActivity implements NotificationC
          return canScrollInternal(ev, false);
      }
  
@@ -235,7 +235,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/MainTabsActivity.java b
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/MainTabsLayout.java b/TMessagesProj/src/main/java/org/telegram/ui/MainTabsLayout.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/MainTabsLayout.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/MainTabsLayout.java
-@@ -66,7 +66,12 @@
+@@ -66,7 +66,12 @@ public class MainTabsLayout extends AnimatedLinearLayout {
          }
  
          final int maxTotalWidthForTabs = width - getPaddingLeft() - getPaddingRight();
@@ -252,7 +252,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/MainTabsLayout.java b/T
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/SettingsActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/SettingsActivity.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/SettingsActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/SettingsActivity.java
-@@ -461,7 +461,7 @@
+@@ -472,7 +472,7 @@ public class SettingsActivity extends BaseFragment implements NotificationCenter
          titleView.setEllipsize(TextUtils.TruncateAt.END);
          topView.addView(titleView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.CENTER_HORIZONTAL | Gravity.TOP, 16, 138.333f - 12, 16, 0));
  
@@ -261,10 +261,11 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/SettingsActivity.java b
          subtitleView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 13);
          subtitleView.setGravity(Gravity.CENTER);
          subtitleView.setSingleLine();
-@@ -501,6 +501,14 @@
+@@ -511,6 +511,14 @@ public class SettingsActivity extends BaseFragment implements NotificationCenter
+         return fragmentView = contentView;
      }
  
-     @Override
++    @Override
 +    public void onResume() {
 +        super.onResume();
 +        if (subtitleView != null) {
@@ -272,11 +273,10 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/SettingsActivity.java b
 +        }
 +    }
 +
-+    @Override
+     @Override
      public void onFragmentDestroy() {
          super.onFragmentDestroy();
- 
-@@ -536,15 +544,7 @@
+@@ -547,15 +555,7 @@ public class SettingsActivity extends BaseFragment implements NotificationCenter
          avatarDrawable.setInfo(user);
          avatarView.setForUserOrChat(user, avatarDrawable);
          titleView.setText(UserObject.getUserName(user));
@@ -293,7 +293,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/SettingsActivity.java b
  
          versionView.setText(getVersionName());
      }
-@@ -682,13 +682,13 @@
+@@ -701,13 +701,13 @@ public class SettingsActivity extends BaseFragment implements NotificationCenter
              items.add(UItem.asShadow(null));
          }
  
@@ -303,18 +303,17 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/SettingsActivity.java b
 -                items.add(AccountCell.Factory.of(i, accountNumbers.get(i)));
 -            }
 -            items.add(UItem.asShadow(null));
--        }
 +        items.add(UItem.asHeader(getString(R.string.SettingsAccounts)));
 +        for (int i = 0; i < accountNumbers.size(); ++i) {
 +            items.add(AccountCell.Factory.of(i, accountNumbers.get(i)));
-+        }
+         }
 +        items.add(SettingCell.Factory.of(0x4e44, IconBackgroundColors.BLUE.top, IconBackgroundColors.BLUE.bottom,
 +                R.drawable.msg_addbot, getString(R.string.AddAccount)));
 +        items.add(UItem.asShadow(null));
  
          final boolean walletAbove = getConnectionsManager().getCurrentTime() - 1791538462 < 4 * 7 * 24 * 60 * 60;
          if (walletAbove && getMessagesController().config.walletAvailable.get()) {
-@@ -697,17 +697,15 @@
+@@ -716,17 +716,15 @@ public class SettingsActivity extends BaseFragment implements NotificationCenter
              items.add(UItem.asShadow(null));
          }
  
@@ -341,7 +340,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/SettingsActivity.java b
          items.add(SettingCell.Factory.of(2, IconBackgroundColors.ORANGE.top, IconBackgroundColors.ORANGE.bottom, R.drawable.settings_chat, getString(R.string.SettingsChat), getString(R.string.SettingsChatInfo)));
          items.add(SettingCell.Factory.of(3, IconBackgroundColors.GREEN.top, IconBackgroundColors.GREEN.bottom, R.drawable.settings_privacy, getString(R.string.SettingsPrivacySecurity), getString(R.string.SettingsPrivacySecurityInfo)));
          items.add(SettingCell.Factory.of(5, IconBackgroundColors.RED.top, IconBackgroundColors.RED.bottom, R.drawable.settings_sounds, getString(R.string.SettingsNotifications), getString(R.string.SettingsNotificationsInfo)));
-@@ -830,16 +828,22 @@
+@@ -850,16 +848,22 @@ public class SettingsActivity extends BaseFragment implements NotificationCenter
              case 0x4e42:
                  presentSettingFragment(new app.nebulagram.ui.NebulaSettingsFragment());
                  break;
@@ -350,11 +349,6 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/SettingsActivity.java b
 -                profileArgs.putLong("user_id", getUserConfig().clientUserId);
 -                profileArgs.putBoolean("my_profile", true);
 -                presentSettingFragment(new ProfileActivity(profileArgs));
--                break;
--            }
--            case 1:
--                presentSettingFragment(new UserInfoActivity());
--                break;
 +            case 0x4e44:
 +                app.nebulagram.ui.NebulaNavigation.addAccount(this);
 +                break;
@@ -362,14 +356,16 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/SettingsActivity.java b
 +                Bundle args = new Bundle();
 +                args.putLong("user_id", getUserConfig().getClientUserId());
 +                presentSettingFragment(new ChatActivity(args));
-+                break;
-+            }
+                 break;
+             }
+-            case 1:
+-                presentSettingFragment(new UserInfoActivity());
 +            case 1: {
 +                Bundle args = new Bundle();
 +                args.putLong("user_id", getUserConfig().getClientUserId());
 +                args.putBoolean("my_profile", true);
 +                presentSettingFragment(new ProfileActivity(args));
-+                break;
+                 break;
 +            }
              case 2:
                  presentSettingFragment(new ThemeActivity(ThemeActivity.THEME_TYPE_BASIC));
@@ -377,7 +373,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/SettingsActivity.java b
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ViewPagerActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ViewPagerActivity.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ViewPagerActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ViewPagerActivity.java
-@@ -130,6 +130,10 @@
+@@ -130,6 +130,10 @@ public abstract class ViewPagerActivity extends BaseFragment {
          fragmentsArr.put(position, new FragmentState(fragment));
      }
  
@@ -388,15 +384,15 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ViewPagerActivity.java 
      protected boolean canScrollBackward(MotionEvent ev) {
          return true;
      }
-@@ -476,6 +480,11 @@
+@@ -475,6 +479,11 @@ public abstract class ViewPagerActivity extends BaseFragment {
+             checkSystemBarColors();
          }
  
-         @Override
++        @Override
 +        protected boolean onEdgeSwipe(MotionEvent e, boolean forward, float startX) {
 +            return ViewPagerActivity.this.onPagerEdgeSwipe(e, forward, startX);
 +        }
 +
-+        @Override
+         @Override
          protected boolean canScrollBackward(MotionEvent e) {
              return ViewPagerActivity.this.canScrollBackward(e);
-         }

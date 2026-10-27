@@ -1,7 +1,7 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
-@@ -3717,6 +3717,10 @@
+@@ -3768,6 +3768,10 @@ public class ChatActivity extends BaseFragment implements
          actionBar.setActionBarMenuOnItemClick(new ActionBar.ActionBarMenuOnItemClick() {
              @Override
              public void onItemClick(final int id) {
@@ -12,7 +12,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
                  if (id == 0x4e4753) {
                      jumpToDate(1);
                      return;
-@@ -4355,7 +4359,7 @@
+@@ -4406,7 +4410,7 @@ public class ChatActivity extends BaseFragment implements
              headerItem.setContentDescription(LocaleController.getString(R.string.AccDescrMoreOptions));
  
              if (currentUser != null && currentUser.self && chatMode != MODE_SAVED) {
@@ -21,7 +21,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
                  savedChatsGap = headerItem.lazilyAddColoredGap();
                  savedChatsItem.setVisibility(getMessagesController().getSavedMessagesController().hasDialogs() ? View.VISIBLE : View.GONE);
                  savedChatsGap.setVisibility(getMessagesController().getSavedMessagesController().hasDialogs() ? View.VISIBLE : View.GONE);
-@@ -4478,13 +4482,13 @@
+@@ -4533,13 +4537,13 @@ public class ChatActivity extends BaseFragment implements
                  viewAsTopics = headerItem.lazilyAddSubItem(view_as_topics, R.drawable.msg_topics, LocaleController.getString(R.string.TopicViewAsTopics));
              }
              if (themeDelegate.isThemeChangeAvailable(true)) {
@@ -38,7 +38,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
                      LocaleController.getString(UserObject.isBotForum(currentUser) ? R.string.ClearAllHistory : R.string.ClearHistory));
              }
              boolean addedSettings = false;
-@@ -4512,7 +4516,7 @@
+@@ -4567,7 +4571,7 @@ public class ChatActivity extends BaseFragment implements
                          headerItem.lazilyAddSubItem(delete_chat, R.drawable.msg_block2, LocaleController.getString(R.string.DeleteAndBlock)).setColors(getThemedColor(Theme.key_text_RedRegular), getThemedColor(Theme.key_text_RedRegular));
                          updateBotButtons();
                      } else {
@@ -47,7 +47,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
                      }
                  }
              }
-@@ -4535,7 +4539,7 @@
+@@ -4590,7 +4594,7 @@ public class ChatActivity extends BaseFragment implements
              headerItem.lazilyAddSubItem(copy_business_link, R.drawable.msg_copy, getString(R.string.Copy));
              headerItem.lazilyAddSubItem(share_business_link, R.drawable.msg_share, getString(R.string.LinkActionShare));
              headerItem.lazilyAddSubItem(rename_business_link, R.drawable.msg_edit, getString(R.string.Rename));
@@ -56,7 +56,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
          }
          if (ChatObject.isForum(currentChat) && isTopic && getParentLayout() != null && getParentLayout().getFragmentStack() != null && chatMode == MODE_DEFAULT) {
              boolean hasMyForum = false;
-@@ -8220,8 +8224,13 @@
+@@ -8276,8 +8280,13 @@ public class ChatActivity extends BaseFragment implements
          }
  
          actionsButtonsLayout = new ChatActivityActionsButtonsLayout(context, resourceProvider, blurredBackgroundColorProvider, glassBackgroundDrawableFactory);
@@ -70,7 +70,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
              MessageObject messageObject = null;
              for (int a = 1; a >= 0; a--) {
                  if (messageObject == null && selectedMessagesIds[a].size() != 0) {
-@@ -10412,7 +10421,7 @@
+@@ -10482,7 +10491,7 @@ public class ChatActivity extends BaseFragment implements
          final ActionBarMenu actionMode = actionBar.createActionMode();
  
          LayoutTransition transition = new LayoutTransition();
@@ -79,7 +79,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
          transition.setInterpolator(LayoutTransition.APPEARING, CubicBezierInterpolator.EASE_OUT_QUINT);
          transition.setInterpolator(LayoutTransition.CHANGE_APPEARING, CubicBezierInterpolator.EASE_OUT_QUINT);
          transition.setInterpolator(LayoutTransition.CHANGING, CubicBezierInterpolator.EASE_OUT_QUINT);
-@@ -10460,26 +10469,31 @@
+@@ -10530,26 +10539,31 @@ public class ChatActivity extends BaseFragment implements
          counterLayout.leftMargin = dp(52) - Math.round(actionMode.getX());
          actionMode.addView(selectedMessagesCountTextView, counterLayout);
          actionMode.setOnLayoutListener(actionBar::invalidate);
@@ -104,11 +104,10 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
 +            actionModeViews.add(actionMode.addItemWithWidth(copy, R.drawable.nebula_msg_copy_solar, dp(48), LocaleController.getString(R.string.Copy)));
              if (!isSavedMessages && getDialogId() != UserObject.VERIFY) {
 -                actionModeViews.add(actionMode.addItemWithWidth(forward, R.drawable.msg_forward, dp(48), LocaleController.getString(R.string.Forward)));
--            }
++                actionModeViews.add(actionMode.addItemWithWidth(forward, R.drawable.nebula_input_forward_solar, dp(48), LocaleController.getString(R.string.Forward)));
+             }
 -            actionModeViews.add(actionMode.addItemWithWidth(share, R.drawable.msg_shareout, dp(48), LocaleController.getString(R.string.ShareFile)));
 -            actionModeViews.add(actionMode.addItemWithWidth(delete, R.drawable.msg_delete, dp(48), LocaleController.getString(R.string.Delete)));
-+                actionModeViews.add(actionMode.addItemWithWidth(forward, R.drawable.nebula_input_forward_solar, dp(48), LocaleController.getString(R.string.Forward)));
-+            }
 +            actionModeViews.add(actionMode.addItemWithWidth(share, R.drawable.nebula_msg_shareout_solar, dp(48), LocaleController.getString(R.string.ShareFile)));
 +            actionModeViews.add(actionMode.addItemWithWidth(delete, R.drawable.nebula_msg_delete_solar, dp(48), LocaleController.getString(R.string.Delete)));
          } else {
@@ -123,7 +122,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
          }
          actionMode.setItemVisibility(edit, canEditMessagesCount == 1 && selectedMessagesIds[0].size() + selectedMessagesIds[1].size() == 1 ? View.VISIBLE : View.GONE);
          actionMode.setItemVisibility(copy, !isPeerNoForwards() && selectedMessagesCanCopyIds[0].size() + selectedMessagesCanCopyIds[1].size() != 0 ? View.VISIBLE : View.GONE);
-@@ -12534,6 +12548,10 @@
+@@ -12611,6 +12625,10 @@ public class ChatActivity extends BaseFragment implements
      }
  
      private void openForward(boolean fromActionBar) {
@@ -134,7 +133,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
          if (isPeerNoForwards() || hasSelectedNoforwardsMessage()) {
              // We should update text if user changed locale without re-opening chat activity
              String str;
-@@ -12612,7 +12630,8 @@
+@@ -12689,7 +12707,8 @@ public class ChatActivity extends BaseFragment implements
          args.putBoolean("hasInvoice", hasInvoice);
          args.putBoolean("canSelectTopics", true);
          DialogsActivity fragment = new DialogsActivity(args);
@@ -144,7 +143,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
          presentFragment(fragment);
      }
  
-@@ -14988,6 +15007,17 @@
+@@ -15183,6 +15202,17 @@ public class ChatActivity extends BaseFragment implements
          showFieldPanel(show, null, null, null, webPage, true, 0, null, cancel, 0, true);
      }
  
@@ -162,7 +161,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
      public void showFieldPanelForForward(boolean show, ArrayList<MessageObject> messageObjectsToForward) {
          showFieldPanel(show, null, null, messageObjectsToForward, null, true, 0, null, false, 0, true);
      }
-@@ -19396,6 +19426,32 @@
+@@ -19642,6 +19672,32 @@ public class ChatActivity extends BaseFragment implements
          }
      }
  
@@ -195,7 +194,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
      private void addToSelectedMessages(MessageObject messageObject, boolean outside) {
          addToSelectedMessages(messageObject, outside, true);
      }
-@@ -19515,6 +19571,7 @@
+@@ -19761,6 +19817,7 @@ public class ChatActivity extends BaseFragment implements
                  updatePinnedMessageView(true);
              } else {
                  createActionMode();
@@ -203,7 +202,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
                  ActionBarMenuItem saveItem = actionBar.createActionMode().getItem(save_to);
                  ActionBarMenuItem copyItem = actionBar.createActionMode().getItem(copy);
                  ActionBarMenuItem starItem = actionBar.createActionMode().getItem(star);
-@@ -19597,7 +19654,7 @@
+@@ -19843,7 +19900,7 @@ public class ChatActivity extends BaseFragment implements
                      }
                  }
                  if (starItem != null) {
@@ -212,7 +211,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
                  }
                  final int newEditVisibility = canEditMessagesCount == 1 && selectedCount == 1 ? View.VISIBLE : View.GONE;
                  if (actionsButtonsLayout != null) {
-@@ -19646,7 +19703,13 @@
+@@ -19892,7 +19949,13 @@ public class ChatActivity extends BaseFragment implements
                              }
                          }
                      }
@@ -227,7 +226,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
                  }
  
                  if (editItem != null) {
-@@ -32995,10 +33058,12 @@
+@@ -33287,10 +33350,12 @@ public class ChatActivity extends BaseFragment implements
          for (int a = 0; a < actionModeViews.size(); a++) {
              View view = actionModeViews.get(a);
              AndroidUtilities.clearDrawableAnimation(view);
@@ -242,7 +241,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
          animatorSet.start();
  
          addToSelectedMessages(message, listView);
-@@ -34898,6 +34963,10 @@
+@@ -35206,6 +35271,10 @@ public class ChatActivity extends BaseFragment implements
  
      @Override
      public boolean didSelectDialogs(DialogsActivity fragment, ArrayList<MessagesStorage.TopicKey> dids, CharSequence message, boolean param, boolean notify, int scheduleDate, int scheduleRepeatPeriod, TopicsFragment topicsFragment) {
@@ -253,7 +252,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
          if ((messagePreviewParams == null && (!fragment.isQuote || replyingMessageObject == null) || fragment.isQuote && replyingMessageObject == null) && forwardingMessage == null && selectedMessagesIds[0].size() == 0 && selectedMessagesIds[1].size() == 0) {
              return false;
          }
-@@ -34970,7 +35039,7 @@
+@@ -35278,7 +35347,7 @@ public class ChatActivity extends BaseFragment implements
                          params.suggestionParams = messageSuggestionParams;
                          getSendMessagesHelper().sendMessage(params);
                      }
@@ -262,7 +261,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
                  }
                  fragment.finishFragment();
                  createUndoView();
-@@ -35057,7 +35126,7 @@
+@@ -35365,7 +35434,7 @@ public class ChatActivity extends BaseFragment implements
                          };
                          chatActivity.showFieldPanelForReplyQuote(replyingMessageObject, replyingQuote);
                      } else {
@@ -271,7 +270,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
                      }
                      if (chatActivity.getDialogId() == getDialogId() && !AndroidUtilities.isTablet()) {
                          removeSelfFromStack();
-@@ -35085,7 +35154,7 @@
+@@ -35393,7 +35462,7 @@ public class ChatActivity extends BaseFragment implements
                  if (fragment.isQuote && replyingMessageObject != null) {
                      showFieldPanelForReplyQuote(replyingMessageObject, replyingQuote);
                  } else {
@@ -280,7 +279,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
                  }
                  if (AndroidUtilities.isTablet()) {
                      hideActionMode();
-@@ -44891,7 +44960,7 @@
+@@ -45216,7 +45285,7 @@ public class ChatActivity extends BaseFragment implements
                      } else if (currentUser != null && currentUser.bot) {
                          headerItem.lazilyAddSubItem(delete_chat, R.drawable.msg_block2, LocaleController.getString(R.string.DeleteAndBlock)).setColors(getThemedColor(Theme.key_text_RedRegular), getThemedColor(Theme.key_text_RedRegular));
                      } else {
@@ -292,12 +291,10 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/chat/layouts/ChatActivityActionsButtonsLayout.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/chat/layouts/ChatActivityActionsButtonsLayout.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/chat/layouts/ChatActivityActionsButtonsLayout.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/chat/layouts/ChatActivityActionsButtonsLayout.java
-@@ -66,6 +66,31 @@
- 
-         addView(replyButton.button, LayoutHelper.createLinear(0, 56, 1f, 1, 0, -1, 0));
+@@ -68,6 +68,31 @@ public class ChatActivityActionsButtonsLayout extends LinearLayout {
          addView(forwardButton.button, LayoutHelper.createLinear(0, 56, 1f, -1, 0, 1, 0));
-+    }
-+
+     }
+ 
 +    private boolean withoutAuthorMode;
 +
 +    public void setWithoutAuthorMode(boolean enabled) {
@@ -321,6 +318,8 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/chat/layouts
 +        holder.textView.setPadding(padding, 0, padding, 0);
 +        holder.textView.setSingleLine(withoutAuthorMode);
 +        holder.textView.setEllipsize(withoutAuthorMode ? android.text.TextUtils.TruncateAt.END : null);
-     }
- 
++    }
++
      public void setReplyButtonOnClickListener(View.OnClickListener listener) {
+         replyButton.button.setOnClickListener(listener);
+     }

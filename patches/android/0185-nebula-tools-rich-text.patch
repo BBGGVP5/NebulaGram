@@ -1,7 +1,7 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
-@@ -2879,6 +2879,7 @@
+@@ -2879,6 +2879,7 @@ public class ChatActivityEnterView extends FrameLayout implements
          aiButton.setContentDescription(getString(R.string.AIEditor));
          ScaleStateListAnimator.apply(aiButton);
          aiButton.setOnClickListener(v -> {
@@ -9,7 +9,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivity
              MessagesController.getGlobalMainSettings().edit().putInt("aihintshown", 3).apply();
              final long dialogId = parentFragment != null ? parentFragment.getDialogId() : dialog_id;
              if (richDraftActive) {
-@@ -6128,14 +6129,17 @@
+@@ -6126,14 +6127,17 @@ public class ChatActivityEnterView extends FrameLayout implements
  
      private void openNebulaTools() {
          if (parentFragment == null || messageEditText == null || parentFragment.isSecretChat()) return;
@@ -30,7 +30,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivity
                      nebulaToolsVisible = nebulaAiModals.closed(); updateNebulaDraftTranslation();
                  });
      }
-@@ -6147,10 +6151,10 @@
+@@ -6145,10 +6149,10 @@ public class ChatActivityEnterView extends FrameLayout implements
          final boolean nebula = app.nebulagram.ui.NebulaAiReplacements.editor();
          if (nebulaAiIcon != nebula) {
              nebulaAiIcon = nebula;
@@ -46,7 +46,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivity
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAttachAlert.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAttachAlert.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAttachAlert.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAttachAlert.java
-@@ -6519,14 +6519,15 @@
+@@ -6571,14 +6571,15 @@ public class ChatAttachAlert extends BottomSheet implements NotificationCenter.N
  
      private boolean openNebulaCaptionTools(EditTextEmoji field) {
          if (!app.nebulagram.ui.NebulaTranslationSettings.shortcut() || baseFragment == null) return false;
@@ -67,7 +67,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAttachAl
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/PhotoViewer.java b/TMessagesProj/src/main/java/org/telegram/ui/PhotoViewer.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/PhotoViewer.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/PhotoViewer.java
-@@ -9885,14 +9885,15 @@
+@@ -9925,14 +9925,15 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
      private void openNebulaCaptionTools(CaptionPhotoViewer caption) {
          BaseFragment host = parentFragment != null ? parentFragment : parentChatActivity;
          if (host == null || caption == null) return;

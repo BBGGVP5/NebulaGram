@@ -1,8 +1,8 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/MediaController.java b/TMessagesProj/src/main/java/org/telegram/messenger/MediaController.java
-index 8b97eb3..4362c14 100644
+index 58a5e349..28190fde 100644
 --- a/TMessagesProj/src/main/java/org/telegram/messenger/MediaController.java
 +++ b/TMessagesProj/src/main/java/org/telegram/messenger/MediaController.java
-@@ -3267,8 +3267,11 @@ public class MediaController implements AudioManager.OnAudioFocusChangeListener,
+@@ -3291,8 +3291,11 @@ public class MediaController implements AudioManager.OnAudioFocusChangeListener,
      }
  
      public void setPlaybackSpeed(boolean music, float speed) {
@@ -15,7 +15,7 @@ index 8b97eb3..4362c14 100644
                  audioPlayer.pause();
                  float p = playingMessageObject.audioProgress;
                  final MessageObject currentMessage = playingMessageObject;
-@@ -3291,10 +3294,10 @@ public class MediaController implements AudioManager.OnAudioFocusChangeListener,
+@@ -3315,10 +3318,10 @@ public class MediaController implements AudioManager.OnAudioFocusChangeListener,
                  fastPlaybackSpeed = speed;
              }
          }
@@ -30,7 +30,7 @@ index 8b97eb3..4362c14 100644
          }
          MessagesController.getGlobalMainSettings().edit()
                  .putFloat(music ? "musicPlaybackSpeed" : "playbackSpeed", speed)
-@@ -3847,9 +3850,7 @@ public class MediaController implements AudioManager.OnAudioFocusChangeListener,
+@@ -3871,9 +3874,7 @@ public class MediaController implements AudioManager.OnAudioFocusChangeListener,
              }
              if (messageObject.isRoundVideo()) {
                  videoPlayer.setStreamType(useFrontSpeaker ? AudioManager.STREAM_VOICE_CALL : AudioManager.STREAM_MUSIC);
@@ -41,7 +41,7 @@ index 8b97eb3..4362c14 100644
  
                  if (messageObject.forceSeekTo >= 0) {
                      messageObject.audioProgress = seekToProgressPending = messageObject.forceSeekTo;
-@@ -3951,14 +3952,13 @@ public class MediaController implements AudioManager.OnAudioFocusChangeListener,
+@@ -3975,14 +3976,13 @@ public class MediaController implements AudioManager.OnAudioFocusChangeListener,
                          }
                          shouldSavePositionForCurrentAudio = name;
                      }

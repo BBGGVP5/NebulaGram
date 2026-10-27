@@ -1,7 +1,7 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/drawable/color/impl/BlurredBackgroundProviderImpl.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/drawable/color/impl/BlurredBackgroundProviderImpl.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/drawable/color/impl/BlurredBackgroundProviderImpl.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/drawable/color/impl/BlurredBackgroundProviderImpl.java
-@@ -40,6 +40,14 @@
+@@ -40,6 +40,14 @@ public class BlurredBackgroundProviderImpl {
      }
  
      public static BlurredBackgroundProvider topPanel(Theme.ResourcesProvider resourcesProvider) {
@@ -16,7 +16,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/drawab
          return new BlurredBackgroundProviderBuilder(resourcesProvider)
              .setBackgroundColor((r, isDark) -> {
                  final float alpha = LiteMode.isEnabled(LiteMode.FLAG_LIQUID_GLASS) ? 0.85f : 0.76f;
-@@ -47,11 +55,11 @@
+@@ -47,11 +55,11 @@ public class BlurredBackgroundProviderImpl {
                  final int colorTarget = Theme.getColor(Theme.key_glass_targetMainTopPanel, r);
                  return solveSrcColor(colorBg, colorTarget, alpha);
              })
@@ -35,7 +35,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/drawab
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
-@@ -3229,7 +3229,7 @@
+@@ -3231,7 +3231,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
          if (initialDialogsType == DIALOGS_TYPE_DEFAULT && !onlySelect && !inPreviewMode
                  && folderId == 0 && communityId == 0 && TextUtils.isEmpty(searchString)
                  && app.nebulagram.ui.NebulaAppearance.homeGlassHeader()) {

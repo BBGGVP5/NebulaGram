@@ -1,7 +1,7 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
---- --- a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
-+++ +++ b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
-@@ -415,7 +415,7 @@
+--- a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
+@@ -427,7 +427,7 @@ public class ChatActivity extends BaseFragment implements
      private final @NonNull BlurredBackgroundDrawableViewFactory glassBackgroundDrawableFactory;
      private final @NonNull BlurredBackgroundDrawableViewFactory glassBackgroundDrawableFactoryFrosted;
      public org.telegram.ui.Components.blur3.drawable.BlurredBackgroundDrawable createNebulaEmojiBackground(View view) {
@@ -11,9 +11,9 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
                  .setRadius(dp(22));
      }
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/EmojiView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/EmojiView.java
---- --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/EmojiView.java
-+++ +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/EmojiView.java
-@@ -1559,17 +1559,21 @@
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Components/EmojiView.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/EmojiView.java
+@@ -1559,17 +1559,21 @@ public class EmojiView extends FrameLayout implements
  
      private final GlassEngine glassEngine = new GlassEngine();
  
@@ -38,7 +38,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/EmojiView.ja
  
          if (frozenAtStart) {
              freeze(true);
-@@ -2873,10 +2877,9 @@
+@@ -2873,10 +2877,9 @@ public class EmojiView extends FrameLayout implements
          setBlurredBackgroundDrawableFactory(blurredBackgroundDrawableFactory);
  
          if (glassDesign && app.nebulagram.ui.NebulaMenuStyle.enabled()) hideBottomTabContainerBackground();
@@ -52,20 +52,20 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/EmojiView.ja
  
          glassEngine.setRoot(this);
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/PagerSlidingTabStrip.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/PagerSlidingTabStrip.java
---- --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/PagerSlidingTabStrip.java
-+++ +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/PagerSlidingTabStrip.java
-@@ -66,6 +66,14 @@
-                 float x = tabsContainer.getX() - getScrollX();
-                 out.set(x + tab.getLeft() + tab.getPaddingLeft() - AndroidUtilities.dp(11), getPaddingTop(),
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Components/PagerSlidingTabStrip.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/PagerSlidingTabStrip.java
+@@ -68,6 +68,14 @@ public class PagerSlidingTabStrip extends HorizontalScrollView {
                          x + tab.getRight() - tab.getPaddingRight() + AndroidUtilities.dp(11), getHeight() - getPaddingBottom());
-+                return true;
-+            }
+                 return true;
+             }
 +            public boolean hitBounds(int index, android.graphics.RectF out) {
 +                if (!bounds(index, out)) return false;
 +                View tab = getTab(index);
 +                float x = tabsContainer.getX() - getScrollX();
 +                // Full touch cells, not the smaller text/lens rectangle.
 +                out.set(x + tab.getLeft(), 0, x + tab.getRight(), getHeight());
-                 return true;
-             }
++                return true;
++            }
              public void select(int index) { getTab(index).performClick(); }
+         });
+         invalidate();

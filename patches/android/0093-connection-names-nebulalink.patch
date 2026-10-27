@@ -1,7 +1,7 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
-@@ -1665,7 +1665,16 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
+@@ -1667,7 +1667,16 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
          }
          if (additionalSubTitleOverlayContainer != null) {
              int textTop = getCurrentActionBarHeight() / 2 + (getCurrentActionBarHeight() / 2 - additionalSubTitleOverlayContainer.getMeasuredHeight()) / 2 - dp(2);
@@ -19,7 +19,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.jav
          }
          if (subtitleTextView != null && subtitleTextView.getVisibility() != GONE) {
              int textTop = getCurrentActionBarHeight() / 2 + (getCurrentActionBarHeight() / 2 - subtitleTextView.getTextHeight()) / 2 - dp(2);
-@@ -1783,7 +1792,9 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
+@@ -1785,7 +1794,9 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
  
          if (additionalSubTitleOverlayContainer != null) {
              final CharSequence textToSet;
@@ -45,7 +45,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarCo
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/LaunchActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/LaunchActivity.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/LaunchActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/LaunchActivity.java
-@@ -8141,8 +8141,10 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
+@@ -8274,8 +8274,10 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
              title = "Updating";
              titleId = R.string.Updating;
          } else if (currentConnectionState == ConnectionsManager.ConnectionStateConnectingToProxy) {
@@ -58,7 +58,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/LaunchActivity.java b/T
          } else if (currentConnectionState == ConnectionsManager.ConnectionStateConnecting) {
              title = "Connecting";
              titleId = R.string.Connecting;
-@@ -8159,6 +8161,13 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
+@@ -8292,6 +8294,13 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
                          lastFragment = mainFragmentsStack.get(mainFragmentsStack.size() - 1);
                      }
                  }
@@ -75,7 +75,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/LaunchActivity.java b/T
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
-@@ -11319,7 +11319,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+@@ -11374,7 +11374,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
          } else if (currentConnectionState == ConnectionsManager.ConnectionStateUpdating) {
              onlineTextOverride = LocaleController.getString(R.string.Updating);
          } else if (currentConnectionState == ConnectionsManager.ConnectionStateConnectingToProxy) {

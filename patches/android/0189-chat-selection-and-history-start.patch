@@ -1,7 +1,19 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
+@@ -2636,7 +2636,7 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
+             // Keep the counter clear of independently drawn selection actions.
+             if (actionModeFactor > 0f && actionMode != null
+                     && (nebulaFloatingChatHeader || nebulaClassicSavedHeader || nebulaSavedMessagesHeader)) {
+-                left = lerp(left, dp(60), actionModeFactor);
++                left = lerp(left, dp(52), actionModeFactor);
+                 right = Math.max(left, lerp(right,
+                         app.nebulagram.ui.NebulaSelectionGlass.counterRight(actionMode, rightDefault), actionModeFactor));
+             }
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
-@@ -3717,6 +3717,10 @@
+@@ -3768,6 +3768,10 @@ public class ChatActivity extends BaseFragment implements
          actionBar.setActionBarMenuOnItemClick(new ActionBar.ActionBarMenuOnItemClick() {
              @Override
              public void onItemClick(final int id) {
@@ -12,7 +24,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
                  if (id == 0x4e4443) {
                      app.nebulagram.ui.NebulaPrivacyFragment.confirmClear(ChatActivity.this, currentAccount, dialog_id, null);
                      return;
-@@ -4552,7 +4556,11 @@
+@@ -4607,7 +4611,11 @@ public class ChatActivity extends BaseFragment implements
              closeTopicItem.setVisibility(currentChat != null && ChatObject.canManageTopic(currentAccount, currentChat, forumTopic) && forumTopic != null && !forumTopic.closed ? View.VISIBLE : View.GONE);
          }
          if (headerItem != null) {
@@ -25,7 +37,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
              headerItem.lazilyAddSubItem(0x4e4443, R.drawable.msg_clearcache,
                      app.nebulagram.ui.NebulaText.text("Очистить удаленки", "Clear deleted messages"));
          }
-@@ -10443,9 +10451,14 @@
+@@ -10513,9 +10521,14 @@ public class ChatActivity extends BaseFragment implements
          selectedMessagesCountTextView.setTextColor(getThemedColor(Theme.key_actionBarActionModeDefaultIcon));
          selectedMessagesCountTextView.setOnTouchListener((v, event) -> true);
          selectedMessagesCountTextView.setEllipsizeByGradient(true);
@@ -42,15 +54,3 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
          actionMode.setOnLayoutListener(actionBar::invalidate);
  
          if (currentEncryptedChat == null) {
-diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
---- a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
-+++ b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
-@@ -2625,7 +2625,7 @@
-             // Keep the counter clear of independently drawn selection actions.
-             if (actionModeFactor > 0f && actionMode != null
-                     && (nebulaFloatingChatHeader || nebulaClassicSavedHeader || nebulaSavedMessagesHeader)) {
--                left = lerp(left, dp(60), actionModeFactor);
-+                left = lerp(left, dp(52), actionModeFactor);
-                 right = Math.max(left, lerp(right,
-                         app.nebulagram.ui.NebulaSelectionGlass.counterRight(actionMode, rightDefault), actionModeFactor));
-             }

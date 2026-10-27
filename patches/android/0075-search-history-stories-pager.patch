@@ -1,7 +1,7 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
-@@ -12822,16 +12822,21 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+@@ -12864,16 +12864,21 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
              animated = false;
          }
          boolean onlySelfStories = !isArchive() && getStoriesController().hasOnlySelfStories();
@@ -30,7 +30,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/MainTabsActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/MainTabsActivity.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/MainTabsActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/MainTabsActivity.java
-@@ -773,6 +773,7 @@ public class MainTabsActivity extends ViewPagerActivity implements NotificationC
+@@ -774,6 +774,7 @@ public class MainTabsActivity extends ViewPagerActivity implements NotificationC
          if (tabsView != null) {
              selectTab(viewPager.getCurrentPosition(), true);
              setGestureSelectedOverride(0, false);
@@ -38,7 +38,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/MainTabsActivity.java b
          }
          blur3_invalidateBlur();
  
-@@ -802,6 +803,16 @@ public class MainTabsActivity extends ViewPagerActivity implements NotificationC
+@@ -803,6 +804,16 @@ public class MainTabsActivity extends ViewPagerActivity implements NotificationC
      protected void onViewPagerTabAnimationUpdate(boolean manual) {
          final boolean isDragByGesture = !manual;
  
@@ -112,7 +112,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/MainTabsLayout.java b/T
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
-@@ -14527,6 +14527,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+@@ -14585,6 +14585,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
          }
  
          private void updateSearchArray() {
@@ -120,7 +120,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java b/
              HashMap<Integer, SearchResult> resultHashMap = new HashMap<>();
              for (int a = 0; a < searchArray.length; a++) {
                  if (searchArray[a] == null) {
-@@ -14534,7 +14535,8 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+@@ -14592,7 +14593,8 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                  }
                  resultHashMap.put(searchArray[a].guid, searchArray[a]);
              }
@@ -130,7 +130,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java b/
              if (set != null) {
                  for (String value : set) {
                      try {
-@@ -15065,6 +15067,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+@@ -15122,6 +15124,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
          }
  
          public void addRecent(Object object) {

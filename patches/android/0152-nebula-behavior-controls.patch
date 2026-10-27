@@ -1,5 +1,5 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/ApplicationLoader.java b/TMessagesProj/src/main/java/org/telegram/messenger/ApplicationLoader.java
-index 2adc7ed..bf01957 100644
+index 2adc7edd..bf019577 100644
 --- a/TMessagesProj/src/main/java/org/telegram/messenger/ApplicationLoader.java
 +++ b/TMessagesProj/src/main/java/org/telegram/messenger/ApplicationLoader.java
 @@ -725,6 +725,14 @@ public class ApplicationLoader extends Application {
@@ -18,10 +18,10 @@ index 2adc7ed..bf01957 100644
      public BetaUpdate getUpdate() {
          return null;
 diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/NotificationsController.java b/TMessagesProj/src/main/java/org/telegram/messenger/NotificationsController.java
-index 2afbcaf..fe48163 100644
+index b52b0c56..319df230 100644
 --- a/TMessagesProj/src/main/java/org/telegram/messenger/NotificationsController.java
 +++ b/TMessagesProj/src/main/java/org/telegram/messenger/NotificationsController.java
-@@ -1183,7 +1183,7 @@ public class NotificationsController extends BaseController implements Notificat
+@@ -1237,7 +1237,7 @@ public class NotificationsController extends BaseController implements Notificat
                  long originalDialogId = dialogId;
                  long topicId = MessageObject.getTopicId(currentAccount, messageObject.messageOwner, getMessagesController().isForum(messageObject));
                  if (dialogId == openedDialogId && ApplicationLoader.isScreenOn && !messageObject.isStoryReactionPush && !messageObject.isOauthPush) {
@@ -30,7 +30,7 @@ index 2afbcaf..fe48163 100644
                          playInChatSound();
                      }
                      if (BuildVars.LOGS_ENABLED) {
-@@ -1200,6 +1200,7 @@ public class NotificationsController extends BaseController implements Notificat
+@@ -1254,6 +1254,7 @@ public class NotificationsController extends BaseController implements Notificat
                      }
                      dialogId = messageObject.getFromChatId();
                  }
@@ -38,7 +38,7 @@ index 2afbcaf..fe48163 100644
                  if (isPersonalMessage(messageObject)) {
                      personalCount++;
                  }
-@@ -1546,6 +1547,7 @@ public class NotificationsController extends BaseController implements Notificat
+@@ -1600,6 +1601,7 @@ public class NotificationsController extends BaseController implements Notificat
                          continue;
                      }
                      MessageObject messageObject = new MessageObject(currentAccount, message, false, false);
@@ -46,7 +46,7 @@ index 2afbcaf..fe48163 100644
                      if (isPersonalMessage(messageObject)) {
                          personalCount++;
                      }
-@@ -1620,6 +1622,7 @@ public class NotificationsController extends BaseController implements Notificat
+@@ -1674,6 +1676,7 @@ public class NotificationsController extends BaseController implements Notificat
                      if (pushMessagesDict.indexOfKey(mid) >= 0) {
                          continue;
                      }
@@ -54,7 +54,7 @@ index 2afbcaf..fe48163 100644
                      if (isPersonalMessage(messageObject)) {
                          personalCount++;
                      }
-@@ -1799,6 +1802,7 @@ public class NotificationsController extends BaseController implements Notificat
+@@ -1853,6 +1856,7 @@ public class NotificationsController extends BaseController implements Notificat
      }
  
      public String getShortStringForMessage(MessageObject messageObject, String[] userName, boolean[] preview) {
@@ -62,7 +62,7 @@ index 2afbcaf..fe48163 100644
          if (app.nebulagram.ui.NebulaChatLocks.protectedChat(currentAccount, messageObject.getDialogId())) {
              if (preview != null) preview[0] = false;
              if (userName != null && userName.length > 0) userName[0] = LocaleController.getString(R.string.NotificationHiddenName);
-@@ -2490,6 +2494,7 @@ public class NotificationsController extends BaseController implements Notificat
+@@ -2546,6 +2550,7 @@ public class NotificationsController extends BaseController implements Notificat
      }
  
      private String getStringForMessage(MessageObject messageObject, boolean shortMessage, boolean[] text, boolean[] preview) {
@@ -70,7 +70,7 @@ index 2afbcaf..fe48163 100644
          if (app.nebulagram.ui.NebulaChatLocks.protectedChat(currentAccount, messageObject.getDialogId())) {
              if (preview != null) preview[0] = false;
              return LocaleController.getString(R.string.YouHaveNewMessage);
-@@ -4772,7 +4777,7 @@ public class NotificationsController extends BaseController implements Notificat
+@@ -4830,7 +4835,7 @@ public class NotificationsController extends BaseController implements Notificat
      }
  
      private boolean isSilentMessage(MessageObject messageObject) {
@@ -80,10 +80,10 @@ index 2afbcaf..fe48163 100644
  
      @SuppressLint("NewApi")
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarLayout.java b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarLayout.java
-index 3cfcd70..78cced5 100644
+index c202ec90..509911fa 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarLayout.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarLayout.java
-@@ -1879,7 +1879,7 @@ public class ActionBarLayout extends FrameLayout implements INavigationLayout, F
+@@ -1891,7 +1891,7 @@ public class ActionBarLayout extends FrameLayout implements INavigationLayout, F
                  }
                  if (open) {
                      float clampedInterpolated = MathUtils.clamp(interpolated, 0, 1);
@@ -92,7 +92,7 @@ index 3cfcd70..78cced5 100644
                      if (preview) {
                          containerView.setScaleX(0.7f + 0.3f * interpolated);
                          containerView.setScaleY(0.7f + 0.3f * interpolated);
-@@ -1901,7 +1901,7 @@ public class ActionBarLayout extends FrameLayout implements INavigationLayout, F
+@@ -1913,7 +1913,7 @@ public class ActionBarLayout extends FrameLayout implements INavigationLayout, F
                      }
                  } else {
                      float clampedReverseInterpolated = MathUtils.clamp(1f - interpolated, 0, 1);
@@ -102,7 +102,7 @@ index 3cfcd70..78cced5 100644
                          containerViewBack.setScaleX(0.9f + 0.1f * (1.0f - interpolated));
                          containerViewBack.setScaleY(0.9f + 0.1f * (1.0f - interpolated));
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/BaseFragment.java b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/BaseFragment.java
-index cbe8844..00c8fbd 100644
+index cbe8844b..00c8fbd4 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/BaseFragment.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/BaseFragment.java
 @@ -507,6 +507,7 @@ public abstract class BaseFragment {
@@ -114,10 +114,10 @@ index cbe8844..00c8fbd 100644
          getMessagesStorage().cancelTasksForGuid(classGuid);
          isFinished = true;
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Cells/DialogCell.java b/TMessagesProj/src/main/java/org/telegram/ui/Cells/DialogCell.java
-index 75c1b8c..58d354e 100644
+index 110e8ae2..5bc0f16d 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Cells/DialogCell.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Cells/DialogCell.java
-@@ -3301,6 +3301,7 @@ public class DialogCell extends BaseCell implements StoriesListPlaceProvider.Ava
+@@ -3338,6 +3338,7 @@ public class DialogCell extends BaseCell implements StoriesListPlaceProvider.Ava
                  reactionMentionCount = forumTopic.unread_reactions_count;
                  pollVotesMentionCount = forumTopic.unread_poll_votes_count;
              }
@@ -125,7 +125,7 @@ index 75c1b8c..58d354e 100644
              if (dialogsType == DialogsActivity.DIALOGS_TYPE_ADD_USERS_TO) {
                  drawPin = false;
              }
-@@ -3450,6 +3451,7 @@ public class DialogCell extends BaseCell implements StoriesListPlaceProvider.Ava
+@@ -3487,6 +3488,7 @@ public class DialogCell extends BaseCell implements StoriesListPlaceProvider.Ava
                          if (ChatObject.isMonoForum(localChat)) {
                              newMentionCount = 0;
                          }
@@ -134,10 +134,10 @@ index 75c1b8c..58d354e 100644
                              unreadCount = newCount;
                              mentionCount = newMentionCount;
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
-index d1758d1..8cfb9b9 100644
+index d6ebeebe..b975caf8 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
-@@ -5093,7 +5093,7 @@ public class ChatActivity extends BaseFragment implements
+@@ -5149,7 +5149,7 @@ public class ChatActivity extends BaseFragment implements
                          if (Math.abs(dx) >= AndroidUtilities.dp(50)) {
                              if (!wasTrackingVibrate) {
                                  try {
@@ -146,7 +146,7 @@ index d1758d1..8cfb9b9 100644
                                  } catch (Exception ignore) {}
                                  wasTrackingVibrate = true;
                              }
-@@ -13422,7 +13422,7 @@ public class ChatActivity extends BaseFragment implements
+@@ -13522,7 +13522,7 @@ public class ChatActivity extends BaseFragment implements
          }
  
          try {
@@ -155,7 +155,7 @@ index d1758d1..8cfb9b9 100644
          } catch (Exception e) {
              FileLog.e(e);
          }
-@@ -14933,7 +14933,13 @@ public class ChatActivity extends BaseFragment implements
+@@ -15129,7 +15129,13 @@ public class ChatActivity extends BaseFragment implements
      }
  
      public void showFieldPanelForReply(MessageObject messageObjectToReply) {
@@ -170,7 +170,7 @@ index d1758d1..8cfb9b9 100644
      }
  
      private Runnable onHideFieldPanelRunnable;
-@@ -18477,6 +18483,7 @@ public class ChatActivity extends BaseFragment implements
+@@ -18724,6 +18730,7 @@ public class ChatActivity extends BaseFragment implements
                  canvas.restore();
              }
  
@@ -178,7 +178,7 @@ index d1758d1..8cfb9b9 100644
              emojiAnimationsOverlay.draw(canvas);
  
              if (restoreToCount >= 0) {
-@@ -23373,7 +23380,7 @@ public class ChatActivity extends BaseFragment implements
+@@ -23663,7 +23670,7 @@ public class ChatActivity extends BaseFragment implements
                          }
                          if (hasChosen) {
                              try {
@@ -187,7 +187,7 @@ index d1758d1..8cfb9b9 100644
                              } catch (Exception ignored) {
                              }
                              if (isQuizWin) {
-@@ -28718,7 +28725,7 @@ public class ChatActivity extends BaseFragment implements
+@@ -29013,7 +29020,7 @@ public class ChatActivity extends BaseFragment implements
                          if (buttonTypeUrl != null) {
                              openClickableLink(null, buttonTypeUrl.url, true, null, buttonMessage, false);
                              try {
@@ -196,7 +196,7 @@ index d1758d1..8cfb9b9 100644
                              } catch (Exception ignore) {}
                              return true;
                          }
-@@ -33234,7 +33241,7 @@ public class ChatActivity extends BaseFragment implements
+@@ -33533,7 +33540,7 @@ public class ChatActivity extends BaseFragment implements
              if (bigEmoji) {
                  if (cell != null) {
                      try {
@@ -205,7 +205,7 @@ index d1758d1..8cfb9b9 100644
                      } catch (Exception ignored) {}
                  }
                  ArrayList<TLRPC.MessageReactor> reactors = null;
-@@ -33256,7 +33263,7 @@ public class ChatActivity extends BaseFragment implements
+@@ -33555,7 +33562,7 @@ public class ChatActivity extends BaseFragment implements
              }
              if (fragmentView != null) {
                  try {
@@ -214,7 +214,7 @@ index d1758d1..8cfb9b9 100644
                  } catch (Exception ignore) {}
              }
              final long chatId = -StarsController.MessageId.from(primaryMessage).did;
-@@ -33723,6 +33730,13 @@ public class ChatActivity extends BaseFragment implements
+@@ -34022,6 +34029,13 @@ public class ChatActivity extends BaseFragment implements
              case 7912:
                  presentFragment(new app.nebulagram.ui.NebulaMessageToolsFragment(selectedObject));
                  break;
@@ -228,7 +228,7 @@ index d1758d1..8cfb9b9 100644
              case OPTION_RETRY: {
                  final MessageObject object = selectedObject;
                  final MessageObject.GroupedMessages group = selectedObjectGroup;
-@@ -34296,7 +34310,7 @@ public class ChatActivity extends BaseFragment implements
+@@ -34611,7 +34625,7 @@ public class ChatActivity extends BaseFragment implements
                      View view = bulletin.getLayout();
                      view.postDelayed(() -> {
                          try {
@@ -237,7 +237,7 @@ index d1758d1..8cfb9b9 100644
                          } catch (Exception ignored) {}
                      }, 550);
                  });
-@@ -40558,7 +40572,7 @@ public class ChatActivity extends BaseFragment implements
+@@ -40890,7 +40904,7 @@ public class ChatActivity extends BaseFragment implements
                      getMessagesController().pressTranscribeButton();
                  });
                  try {
@@ -246,7 +246,7 @@ index d1758d1..8cfb9b9 100644
                  } catch (Exception ignored) {}
              } else if (type == 1) {
                  String until = LocaleController.formatDateTime(getMessagesController().transcribeAudioTrialCooldownUntil, true);
-@@ -40567,7 +40581,7 @@ public class ChatActivity extends BaseFragment implements
+@@ -40899,7 +40913,7 @@ public class ChatActivity extends BaseFragment implements
                      AndroidUtilities.replaceTags(LocaleController.formatPluralString("TranscriptionTrialLeft", TranscribeButton.getTranscribeTrialCount(currentAccount)));
                  BulletinFactory.of(ChatActivity.this).createSimpleBulletin(R.raw.transcribe, text, 6).show(true);
                  try {
@@ -255,7 +255,7 @@ index d1758d1..8cfb9b9 100644
                  } catch (Exception ignored) {}
              } else if (type == 2 || type == 3) {
                  String until = LocaleController.formatDateTime(getMessagesController().transcribeAudioTrialCooldownUntil, true);
-@@ -40619,7 +40633,7 @@ public class ChatActivity extends BaseFragment implements
+@@ -40951,7 +40965,7 @@ public class ChatActivity extends BaseFragment implements
              if (buttonTypeUrl != null) {
                  openClickableLink(null, buttonTypeUrl.url, true, cell, cell.getMessageObject(), false);
                  try {
@@ -264,7 +264,7 @@ index d1758d1..8cfb9b9 100644
                  } catch (Exception ignore) {}
              }
          }
-@@ -44089,6 +44103,7 @@ public class ChatActivity extends BaseFragment implements
+@@ -44421,6 +44435,7 @@ public class ChatActivity extends BaseFragment implements
          }
  
          private void setupChatTheme(EmojiThemes chatTheme, TLRPC.WallPaper wallPaper, boolean withAnimation, boolean createNewResources) {
@@ -272,7 +272,7 @@ index d1758d1..8cfb9b9 100644
              if (parentThemeDelegate != null) return;
  
              this.chatTheme = chatTheme;
-@@ -45657,7 +45672,7 @@ public class ChatActivity extends BaseFragment implements
+@@ -46073,7 +46088,7 @@ public class ChatActivity extends BaseFragment implements
              return;
          }
          if (longpress && reaction.reaction instanceof TLRPC.TL_reactionPaid) {
@@ -281,7 +281,7 @@ index d1758d1..8cfb9b9 100644
              ArrayList<TLRPC.MessageReactor> reactors = null;
              if (messageObject.messageOwner != null && messageObject.messageOwner.reactions != null) {
                  reactors = messageObject.messageOwner.reactions.top_reactors;
-@@ -45670,7 +45685,7 @@ public class ChatActivity extends BaseFragment implements
+@@ -46086,7 +46101,7 @@ public class ChatActivity extends BaseFragment implements
              return;
          }
          if (longpress || messageObject.areTags() && (isInsideContainer || searchingReaction != null && searchingReaction.isSame(reaction.reaction))) {
@@ -290,7 +290,7 @@ index d1758d1..8cfb9b9 100644
              FrameLayout scrimPopupContainerLayout = new FrameLayout(getParentActivity()) {
                  @Override
                  public boolean dispatchKeyEvent(KeyEvent event) {
-@@ -46147,6 +46162,8 @@ public class ChatActivity extends BaseFragment implements
+@@ -46563,6 +46578,8 @@ public class ChatActivity extends BaseFragment implements
                  && (!TextUtils.isEmpty(message.messageOwner.message) || message.isVoice() || message.isRoundVideo() || message.isVideo())) {
              items.add(app.nebulagram.ui.NebulaText.text("Инструменты Nebula", "Nebula tools"));
              icons.add(R.drawable.nebula_ai_spark); options.add(7912);
@@ -299,7 +299,7 @@ index d1758d1..8cfb9b9 100644
          }
          boolean noforwardsOrPaidMedia = noforwards || message.type == MessageObject.TYPE_PAID_MEDIA;
          boolean allowUnpin = !isEphemeral && message.getDialogId() != mergeDialogId && allowPin && (pinnedMessageObjects.containsKey(message.getId()) || groupedMessages != null && !groupedMessages.messages.isEmpty() && pinnedMessageObjects.containsKey(groupedMessages.messages.get(0).getId())) && !message.isExpiredStory();
-@@ -47331,7 +47348,7 @@ public class ChatActivity extends BaseFragment implements
+@@ -47765,7 +47782,7 @@ public class ChatActivity extends BaseFragment implements
              }
          });
          try {
@@ -308,7 +308,7 @@ index d1758d1..8cfb9b9 100644
          } catch (Exception ignored) {}
          return true;
      }
-@@ -47521,7 +47538,7 @@ public class ChatActivity extends BaseFragment implements
+@@ -47955,7 +47972,7 @@ public class ChatActivity extends BaseFragment implements
          }
          fireworksOverlay.start();
          try {
@@ -318,7 +318,7 @@ index d1758d1..8cfb9b9 100644
      }
  
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/AlertsCreator.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/AlertsCreator.java
-index 181e0eb..a38a3dd 100644
+index 0ef54fc9..787a466c 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/AlertsCreator.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/AlertsCreator.java
 @@ -2604,6 +2604,7 @@ public class AlertsCreator {
@@ -346,10 +346,10 @@ index 181e0eb..a38a3dd 100644
              return;
          }
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
-index 1a428e8..e274861 100644
+index 0b807e71..a0ef3733 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
-@@ -1098,6 +1098,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+@@ -1100,6 +1100,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
              updateContextViewPosition();
              updateStoriesViewAlpha(storiesAlpha);
              super.dispatchDraw(canvas);
@@ -357,7 +357,7 @@ index 1a428e8..e274861 100644
              drawHeaderShadow(canvas, top + actionBarHeight);
  
              /*if (fragmentContextView != null && fragmentContextView.isCallStyle()) {
-@@ -11167,11 +11168,11 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+@@ -11170,11 +11171,11 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
      @NonNull
      public ArrayList<TLRPC.Dialog> getDialogsArray(int currentAccount, int dialogsType, int folderId, boolean frozen) {
          if (frozen && frozenDialogsList != null) {
@@ -372,10 +372,10 @@ index 1a428e8..e274861 100644
              return messagesController.dialogsServerOnly;
          } else if (dialogsType == DIALOGS_TYPE_ADD_USERS_TO) {
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/LaunchActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/LaunchActivity.java
-index 73acad2..cf92677 100644
+index 4b553cc9..4d87c341 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/LaunchActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/LaunchActivity.java
-@@ -784,6 +784,7 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
+@@ -787,6 +787,7 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
                      }
  
                      private void onBackStartedInternal(BackEvent backEvent) {
@@ -383,7 +383,7 @@ index 73acad2..cf92677 100644
                          if (AndroidUtilities.isTablet()) return;
                          if (!onBackPressed(false)) return;
                          if (actionBarLayout != null) {
-@@ -801,6 +802,7 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
+@@ -804,6 +805,7 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
  
                      @Override
                      public void onBackProgressed(@NonNull BackEvent backEvent) {
@@ -392,7 +392,7 @@ index 73acad2..cf92677 100644
  
                          final float progress = backEvent.getProgress();
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Stories/StoriesController.java b/TMessagesProj/src/main/java/org/telegram/ui/Stories/StoriesController.java
-index 12dc19d..a084ce8 100644
+index 12dc19d2..a084ce84 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Stories/StoriesController.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Stories/StoriesController.java
 @@ -153,6 +153,7 @@ public class StoriesController {

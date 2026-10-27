@@ -1,7 +1,7 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
-@@ -3189,7 +3189,7 @@ public class ChatActivityEnterView extends FrameLayout implements
+@@ -3224,7 +3224,7 @@ public class ChatActivityEnterView extends FrameLayout implements
  
              @Override
              protected void dispatchDraw(@NonNull Canvas canvas) {

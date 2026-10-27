@@ -1,8 +1,7 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
-@@ -4047,6 +4047,13 @@
-         iBlur3FactoryFrostedLiquidGlass.setSourceRootView(viewPositionWatcher, contentView);
+@@ -4087,6 +4087,13 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
          iBlur3FactoryLiquidGlass.setSourceRootView(viewPositionWatcher, contentView);
          iBlur3FactoryFade.setSourceRootView(viewPositionWatcher, contentView);
          iBlur3FactoryBlur.setSourceRootView(viewPositionWatcher, contentView);
@@ -15,3 +14,4 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/
 +        });
  
          final PointF tmpPoint = new PointF();
+         iBlur3Capture = (canvas, position) -> {

@@ -1,7 +1,7 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
-@@ -33894,6 +33894,9 @@
+@@ -34186,6 +34186,9 @@ public class ChatActivity extends BaseFragment implements
          }
          boolean preserveDim = false;
          switch (option) {
@@ -11,7 +11,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
              case 7912:
                  app.nebulagram.ui.NebulaMessageToolsFragment.show(this, new app.nebulagram.ui.NebulaMessageToolsFragment(selectedObject));
                  break;
-@@ -46340,6 +46343,10 @@
+@@ -46749,6 +46752,10 @@ public class ChatActivity extends BaseFragment implements
              items.add(app.nebulagram.ui.NebulaText.text("Сохранить в выбранный чат", "Save to chosen chat"));
              icons.add(R.drawable.msg_saved); options.add(7913);
          }

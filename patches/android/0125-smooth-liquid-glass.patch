@@ -1,7 +1,7 @@
 diff --git a/TMessagesProj/src/main/res/raw/liquid_glass_shader.agsl b/TMessagesProj/src/main/res/raw/liquid_glass_shader.agsl
 --- a/TMessagesProj/src/main/res/raw/liquid_glass_shader.agsl
 +++ b/TMessagesProj/src/main/res/raw/liquid_glass_shader.agsl
-@@ -22,11 +22,19 @@
+@@ -22,11 +22,19 @@ half4 srcOver(half4 src, half4 dst) {
      return half4(outRGB, outA);
  }
  
@@ -22,7 +22,7 @@ diff --git a/TMessagesProj/src/main/res/raw/liquid_glass_shader.agsl b/TMessages
      half sdX = sdfRect(p + half2(1.0, 0.0), radius);
      half sdY = sdfRect(p + half2(0.0, 1.0), radius);
  
-@@ -39,7 +47,9 @@
+@@ -39,7 +47,9 @@ half4 main(in float2 fragCoord) {
      half h = sd < -thickness ? thickness : sqrt(sd * (-2.0 * thickness - sd));
      half refract_length = (h + 8.0 * thickness) / -refract_vec.z;
  

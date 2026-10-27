@@ -1,31 +1,7 @@
-diff --git a/TMessagesProj/src/main/java/org/telegram/ui/web/WebInstantView.java b/TMessagesProj/src/main/java/org/telegram/ui/web/WebInstantView.java
---- a/TMessagesProj/src/main/java/org/telegram/ui/web/WebInstantView.java
-+++ b/TMessagesProj/src/main/java/org/telegram/ui/web/WebInstantView.java
-@@ -59,7 +59,7 @@
- import java.util.List;
- import java.util.Map;
- 
--import javax.annotation.Nullable;
-+import androidx.annotation.Nullable;
- 
- public class WebInstantView {
- 
-diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/voip/GroupCallMessage.java b/TMessagesProj/src/main/java/org/telegram/messenger/voip/GroupCallMessage.java
---- a/TMessagesProj/src/main/java/org/telegram/messenger/voip/GroupCallMessage.java
-+++ b/TMessagesProj/src/main/java/org/telegram/messenger/voip/GroupCallMessage.java
-@@ -6,7 +6,7 @@
- 
- import java.util.ArrayList;
- 
--import javax.annotation.Nullable;
-+import androidx.annotation.Nullable;
- 
- import me.vkryl.core.BitwiseUtils;
- 
 diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/MusicBrowserService.java b/TMessagesProj/src/main/java/org/telegram/messenger/MusicBrowserService.java
 --- a/TMessagesProj/src/main/java/org/telegram/messenger/MusicBrowserService.java
 +++ b/TMessagesProj/src/main/java/org/telegram/messenger/MusicBrowserService.java
-@@ -20,7 +20,7 @@
+@@ -20,7 +20,7 @@ import androidx.annotation.NonNull;
  
  import java.util.List;
  
@@ -34,3 +10,27 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/MusicBrowserServ
  
  @TargetApi(Build.VERSION_CODES.LOLLIPOP)
  public class MusicBrowserService extends MediaBrowserService {
+diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/voip/GroupCallMessage.java b/TMessagesProj/src/main/java/org/telegram/messenger/voip/GroupCallMessage.java
+--- a/TMessagesProj/src/main/java/org/telegram/messenger/voip/GroupCallMessage.java
++++ b/TMessagesProj/src/main/java/org/telegram/messenger/voip/GroupCallMessage.java
+@@ -6,7 +6,7 @@ import org.telegram.ui.Components.Reactions.ReactionsLayoutInBubble;
+ 
+ import java.util.ArrayList;
+ 
+-import javax.annotation.Nullable;
++import androidx.annotation.Nullable;
+ 
+ import me.vkryl.core.BitwiseUtils;
+ 
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/web/WebInstantView.java b/TMessagesProj/src/main/java/org/telegram/ui/web/WebInstantView.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/web/WebInstantView.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/web/WebInstantView.java
+@@ -59,7 +59,7 @@ import java.util.HashSet;
+ import java.util.List;
+ import java.util.Map;
+ 
+-import javax.annotation.Nullable;
++import androidx.annotation.Nullable;
+ 
+ public class WebInstantView {
+ 

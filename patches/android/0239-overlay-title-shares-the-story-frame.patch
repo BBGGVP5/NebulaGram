@@ -1,7 +1,7 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
-@@ -2064,10 +2064,20 @@
+@@ -2066,10 +2066,20 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
              titleTextView[0] = tmp;
              titleTextView[0].setAlpha(0);
              titleTextView[0].setTranslationY(-dp(20));
@@ -24,7 +24,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.jav
              ViewPropertyAnimator animator = titleTextView[1].animate()
                      .alpha(0);
              if (subtitleTextView == null) {
-@@ -2087,6 +2097,10 @@
+@@ -2089,6 +2099,10 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
                      ellipsizeSpanAnimator.removeView(titleTextView[1]);
                      titleTextView[1] = null;
                      overlayTitleAnimationInProgress = false;

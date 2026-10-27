@@ -1,5 +1,5 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
-index fe437ce..dfaa6f9 100644
+index 5e9a7db8..1c296c9f 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
 @@ -186,7 +186,7 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
@@ -106,8 +106,8 @@ index fe437ce..dfaa6f9 100644
 +        if (nebulaHomeLayout) nebulaHomeVisibleStories = nebulaHomeStoryCount;
          for (int i = 0; i < 2; i++) {
              if (titleTextView[0] != null && titleTextView[0].getVisibility() != GONE || subtitleTextView != null && subtitleTextView.getVisibility() != GONE) {
-                 int availableWidth = width - (menu != null ? menu.getMeasuredWidth() : 0) - dp(16) - textLeft - titleRightMargin;
-@@ -1707,7 +1711,7 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
+                 // A closing search field keeps filling the menu during its fade-out; don't squeeze the title for it.
+@@ -1709,7 +1713,7 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
                      int titleAvailableWidth = availableWidth;
                      if (!(parentFragment instanceof org.telegram.ui.ChatActivity)) {
                          boolean centerHome = nebulaCenterTitle();
@@ -116,7 +116,7 @@ index fe437ce..dfaa6f9 100644
                          if (centerHome) {
                              // First measure the real text (including emoji spans) against
                              // all free space, rather than mirroring the menu on the left.
-@@ -1719,7 +1723,7 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
+@@ -1721,7 +1725,7 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
                          int contentWidth = titleTextView[i].getTextWidth() + titleTextView[i].getSideDrawablesSize()
                                  + titleTextView[i].getPaddingLeft() + titleTextView[i].getPaddingRight();
                          int centeredWidth;
@@ -125,7 +125,7 @@ index fe437ce..dfaa6f9 100644
                              nebulaHomeVisibleStories = Math.min(nebulaHomeVisibleStories,
                                      app.nebulagram.ui.NebulaHomeTitleGeometry.visibleStories(nebulaHomeStoryCount,
                                              titleAvailableWidth, contentWidth, dp(34), dp(16), dp(8)));
-@@ -1801,7 +1805,7 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
+@@ -1803,7 +1807,7 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
              textLeft = glassMode ? dp(24) : dp(AndroidUtilities.isTablet() ? 26 : 18);
          }
          textLeft += additionalTextLeft;
@@ -134,7 +134,7 @@ index fe437ce..dfaa6f9 100644
          if (nebulaCommunityGlass) textLeft = Math.max(textLeft, nebulaCommunityTitleInset);
  
          if (menu != null && menu.getVisibility() != GONE) {
-@@ -2265,7 +2269,7 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
+@@ -2267,7 +2271,7 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
          this.fromBottom = fromBottom;
          titleTextView[0].setAlpha(0);
          if (!crossfade) {
@@ -143,7 +143,7 @@ index fe437ce..dfaa6f9 100644
          }
          ViewPropertyAnimator a1 = titleTextView[0].animate().alpha(1f).translationY(0).setDuration(duration);
          if (interpolator != null) {
-@@ -2276,7 +2280,7 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
+@@ -2278,7 +2282,7 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
          titleAnimationRunning = true;
          ViewPropertyAnimator a = titleTextView[1].animate().alpha(0);
          if (!crossfade) {
@@ -153,10 +153,10 @@ index fe437ce..dfaa6f9 100644
          if (interpolator != null) {
              a.setInterpolator(interpolator);
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
-index 058ac1b..629bcb4 100644
+index ad25f3d2..bbffdaa5 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
-@@ -1662,7 +1662,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+@@ -1664,7 +1664,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
      }
  
      private void updateStoriesViewAlpha(float alpha) {
@@ -165,7 +165,7 @@ index 058ac1b..629bcb4 100644
                  || dialogStoriesCell.getVisibility() != View.VISIBLE || progressToDialogStoriesCell == 0f)) {
              actionBar.setNebulaHomeStories(0, 0f);
          }
-@@ -3227,11 +3227,11 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+@@ -3229,11 +3229,11 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
          actionBar.setItemsColor(getThemedColor(Theme.key_actionBarActionModeDefaultIcon), true);
          nebulaHomeEditButton = null;
          if (initialDialogsType == DIALOGS_TYPE_DEFAULT && !onlySelect && !inPreviewMode
@@ -183,7 +183,7 @@ index 058ac1b..629bcb4 100644
              nebulaHomeEditButton.setText(app.nebulagram.ui.NebulaText.text("Изм.", "Edit"));
              nebulaHomeEditButton.setContentDescription(app.nebulagram.ui.NebulaText.text("Выбрать чаты", "Select chats"));
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Stories/DialogStoriesCell.java b/TMessagesProj/src/main/java/org/telegram/ui/Stories/DialogStoriesCell.java
-index 3dcf167..ec3296b 100644
+index 3dcf1678..ec3296bd 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Stories/DialogStoriesCell.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Stories/DialogStoriesCell.java
 @@ -371,11 +371,11 @@ public class DialogStoriesCell extends FrameLayout implements NotificationCenter

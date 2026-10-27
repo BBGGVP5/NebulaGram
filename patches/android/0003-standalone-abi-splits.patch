@@ -1,7 +1,7 @@
 diff --git a/TMessagesProj_AppStandalone/build.gradle b/TMessagesProj_AppStandalone/build.gradle
 --- a/TMessagesProj_AppStandalone/build.gradle
 +++ b/TMessagesProj_AppStandalone/build.gradle
-@@ -113,6 +113,23 @@ android {
+@@ -118,6 +118,23 @@ android {
          }
      }
  

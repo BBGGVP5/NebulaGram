@@ -1,7 +1,7 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
-@@ -4729,7 +4729,12 @@
+@@ -4727,7 +4727,12 @@ public class ChatActivityEnterView extends FrameLayout implements
              final float separatorY = getMeasuredHeight() - animatorInputFieldHeight.getFactor();
              canvas.save();
              if (child == textFieldContainer) {
@@ -15,7 +15,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivity
              }
              if (child == topView) {
                  canvas.clipRect(0, 0, getMeasuredWidth(), separatorY);
-@@ -6166,6 +6171,7 @@
+@@ -6164,6 +6169,7 @@ public class ChatActivityEnterView extends FrameLayout implements
              MessagesController.getInstance(currentAccount).getTonesController().load();
          }
          shownAiButton = show;
@@ -23,7 +23,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivity
          aiButton.animate().cancel();
          aiButton.setVisibility(View.VISIBLE);
          aiButton.animate()
-@@ -14741,6 +14747,9 @@
+@@ -14746,6 +14752,9 @@ public class ChatActivityEnterView extends FrameLayout implements
          updateBotCommandsMenuContainerTopPadding();
          updateFieldRight(lastAttachVisible);
          nebulaComposerStyle.prepare(this, messageEditText, MeasureSpec.getSize(widthMeasureSpec), nebulaSupported);
@@ -33,7 +33,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivity
          super.onMeasure(widthMeasureSpec, heightMeasureSpec);
  
          if (botWebViewButton != null) {
-@@ -14762,6 +14771,10 @@
+@@ -14767,6 +14776,10 @@ public class ChatActivityEnterView extends FrameLayout implements
          if (wasHeight > 0 && textFieldContainer.getMeasuredHeight() != wasHeight) {
              for (int i = 0; i < 2; ++i) {
                  final View view = i == 0 ? aiButton : richButton;

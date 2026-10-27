@@ -1,8 +1,8 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
-index c504b9a..f87a89c 100644
+index 3eb089e7..ca14ac43 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
-@@ -15637,6 +15637,7 @@ public class ChatActivityEnterView extends FrameLayout implements
+@@ -15642,6 +15642,7 @@ public class ChatActivityEnterView extends FrameLayout implements
      }
  
      public boolean drawMessageEditText(Canvas canvas, Utilities.Callback0Return<Boolean> drawChild) {

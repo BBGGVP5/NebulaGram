@@ -1,8 +1,8 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
-index 936fcef..9bc7c7e 100644
+index a14577d2..b5c73e0c 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
-@@ -2556,9 +2556,8 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
+@@ -2567,9 +2567,8 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
                  glassDrawable.setRadius(Math.min(glassDrawable.getPaddedBounds().height(), glassDrawable.getPaddedBounds().width()) / 2f);
              }
              if (nebulaHomeTabsGlass) {
@@ -14,7 +14,7 @@ index 936fcef..9bc7c7e 100644
              } else {
                  glassDrawable.setAlpha(255);
              }
-@@ -2566,7 +2565,16 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
+@@ -2577,7 +2576,16 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
                      && (!nebulaHomeTabsGlass || glassDrawable.getAlpha() > 0)
                      && !((nebulaClassicSavedHeader || nebulaFloatingChatHeader && !app.nebulagram.ui.NebulaAppearance.chatHeader()) && actionModeFactor == 0f && searchFactor == 0f)) glassDrawable.draw(canvas);
          }
@@ -32,7 +32,7 @@ index 936fcef..9bc7c7e 100644
              if (nebulaProfileGlass) {
                  // Match the individual 46dp liquid-glass menu controls instead
                  // of the wider default back capsule. Both share one material.
-@@ -2592,7 +2600,22 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
+@@ -2603,7 +2611,22 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
          if (glassDrawableMenu != null && menuWidth > 0 && !glassOnlyBack && !doNotDrawGlassMenu
                  && (!separateAvatar || actionModeFactor > 0f)) {
              final float menuAlpha = hasForcedMenuWidth ? 1f : animatorHasMenuItems.getFloatValue();

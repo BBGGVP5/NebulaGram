@@ -1,7 +1,7 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/LaunchActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/LaunchActivity.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/LaunchActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/LaunchActivity.java
-@@ -562,6 +562,11 @@
+@@ -562,6 +562,11 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
          });
          actionBarLayout.setDelegate(this);
          app.nebulagram.ui.NebulaTheme.applyMaterialYou(this);
@@ -13,7 +13,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/LaunchActivity.java b/T
          Theme.loadWallpaper(true);
  
          checkCurrentAccount();
-@@ -1560,6 +1565,9 @@
+@@ -1560,6 +1565,9 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
                  return false;
              }
          }
@@ -23,7 +23,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/LaunchActivity.java b/T
          boolean pushOpened = false;
          long push_user_id = 0;
          long push_chat_id = 0;
-@@ -3359,6 +3367,10 @@
+@@ -3378,6 +3386,10 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
          }
  
          intent.setAction(null);
@@ -34,7 +34,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/LaunchActivity.java b/T
          return pushOpened;
      }
  
-@@ -5969,102 +5981,8 @@
+@@ -6082,102 +6094,8 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
          return foundContacts;
      }
  
@@ -151,7 +151,7 @@ diff --git a/TMessagesProj/src/main/res/xml/provider_paths.xml b/TMessagesProj/s
 diff --git a/TMessagesProj_AppStandalone/build.gradle b/TMessagesProj_AppStandalone/build.gradle
 --- a/TMessagesProj_AppStandalone/build.gradle
 +++ b/TMessagesProj_AppStandalone/build.gradle
-@@ -142,7 +142,9 @@
+@@ -142,7 +142,9 @@ android {
      applicationVariants.all { variant ->
          variant.outputs.all { output ->
              outputFileName = "app.apk"
@@ -162,7 +162,7 @@ diff --git a/TMessagesProj_AppStandalone/build.gradle b/TMessagesProj_AppStandal
          }
      }
  
-@@ -156,7 +158,7 @@
+@@ -156,7 +158,7 @@ android {
      defaultConfig {
          minSdkVersion 23
          targetSdkVersion 36

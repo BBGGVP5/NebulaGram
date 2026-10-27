@@ -1,7 +1,7 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
-@@ -13639,6 +13639,11 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+@@ -13681,6 +13681,11 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
          if (forward) {
              return isLastTab && !isFirstTab;
          } else {

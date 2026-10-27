@@ -1,7 +1,7 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/ApplicationLoader.java b/TMessagesProj/src/main/java/org/telegram/messenger/ApplicationLoader.java
 --- a/TMessagesProj/src/main/java/org/telegram/messenger/ApplicationLoader.java
 +++ b/TMessagesProj/src/main/java/org/telegram/messenger/ApplicationLoader.java
-@@ -298,6 +298,7 @@ public class ApplicationLoader extends Application {
+@@ -299,6 +299,7 @@ public class ApplicationLoader extends Application {
          super.onCreate();
  
          app.nebulagram.nebulalink.NebulaLink.init(this); // NebulaGram
@@ -37,7 +37,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/drawab
  
      @RequiresApi(api = Build.VERSION_CODES.TIRAMISU)
      public void setLiquidGlassEffectAllowed() {
-@@ -112,7 +113,8 @@ public class BlurredBackgroundDrawableRenderNode extends BlurredBackgroundDrawab
+@@ -114,7 +115,8 @@ public class BlurredBackgroundDrawableRenderNode extends BlurredBackgroundDrawab
          c = renderNodeFill.beginRecording();
          c.save();
          c.translate(-sL, -sT);
@@ -47,7 +47,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/drawab
              final int thickness = Math.max(Math.min(
                  boundProps.liquidThickness <= 0 ? dp(11) : boundProps.liquidThickness,
                  Math.min(boundProps.boundsWithPadding.width(), boundProps.boundsWithPadding.height()) / 5), 1);
-@@ -136,7 +138,7 @@ public class BlurredBackgroundDrawableRenderNode extends BlurredBackgroundDrawab
+@@ -138,7 +140,7 @@ public class BlurredBackgroundDrawableRenderNode extends BlurredBackgroundDrawab
              c.drawColor(backgroundColor);
          } else {
              c.drawRenderNode(renderNodeFill);
@@ -56,7 +56,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/drawab
                  c.drawColor(backgroundColor);
              }
          }
-@@ -166,6 +168,8 @@ public class BlurredBackgroundDrawableRenderNode extends BlurredBackgroundDrawab
+@@ -168,6 +170,8 @@ public class BlurredBackgroundDrawableRenderNode extends BlurredBackgroundDrawab
  
      @Override
      public void draw(@NonNull Canvas canvas) {

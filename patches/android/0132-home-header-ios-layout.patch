@@ -1,5 +1,5 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
-index 31caa64..30f9f3c 100644
+index a7dacdfb..292aee96 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
 @@ -195,6 +195,7 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
@@ -45,7 +45,7 @@ index 31caa64..30f9f3c 100644
          // textLeft += additionalTextLeft;
  
          if (menu != null && menu.getVisibility() != GONE) {
-@@ -1659,6 +1667,7 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
+@@ -1661,6 +1669,7 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
              textLeft = glassMode ? dp(24) : dp(AndroidUtilities.isTablet() ? 26 : 18);
          }
          textLeft += additionalTextLeft;
@@ -53,7 +53,7 @@ index 31caa64..30f9f3c 100644
  
          if (menu != null && menu.getVisibility() != GONE) {
              int menuLeft = menu.searchFieldVisible() ? dp(menuOccupyBack ? 0 : AndroidUtilities.isTablet() ? 74 : 66) : (getMeasuredWidth()) - menu.getMeasuredWidth();
-@@ -2517,7 +2526,15 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
+@@ -2528,7 +2537,15 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
              if (nebulaFloatingChatHeader && app.nebulagram.ui.NebulaAppearance.centeredHeader()) {
                  glassDrawable.setRadius(Math.min(glassDrawable.getPaddedBounds().height(), glassDrawable.getPaddedBounds().width()) / 2f);
              }
@@ -70,7 +70,7 @@ index 31caa64..30f9f3c 100644
          }
          if (glassDrawableBack != null && hasBackButton) {
              glassDrawableBack.setBounds(0, t, nebulaBackWidth, b);
-@@ -2537,7 +2554,27 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
+@@ -2548,7 +2565,27 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
          if (glassDrawableMenu != null && menuWidth > 0 && !glassOnlyBack && !doNotDrawGlassMenu
                  && (!separateAvatar || actionModeFactor > 0f)) {
              final float menuAlpha = hasForcedMenuWidth ? 1f : animatorHasMenuItems.getFloatValue();
@@ -100,10 +100,10 @@ index 31caa64..30f9f3c 100644
                  // Three independent round surfaces follow the actual visible
                  // actions. Passcode/downloads remain accessible when present.
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
-index 21344e3..04eb34f 100644
+index 19146b06..f3b1ac6e 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
-@@ -504,6 +504,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+@@ -505,6 +505,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
      private boolean downloadsItemVisible;
      public ActionBarMenuItem searchItem;
      private ActionBarMenuItem optionsItem;
@@ -111,7 +111,7 @@ index 21344e3..04eb34f 100644
      private ActionBarMenuItem speedItem;
      public static boolean switchingTheme;
      private ActionBarMenuItem doneItem;
-@@ -3201,11 +3202,29 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+@@ -3203,11 +3204,29 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
          actionBar.setItemsBackgroundColor(getThemedColor(Theme.key_actionBarActionModeDefaultSelector), true);
          actionBar.setItemsColor(getThemedColor(Theme.key_actionBarDefaultIcon), false);
          actionBar.setItemsColor(getThemedColor(Theme.key_actionBarActionModeDefaultIcon), true);
@@ -141,7 +141,7 @@ index 21344e3..04eb34f 100644
          }
          actionBar.createAdditionalSubTitleOverlayContainer();
          actionBar.getAdditionalSubTitleOverlayContainer().setTranslationX(dp(4));
-@@ -12170,6 +12189,10 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+@@ -12218,6 +12237,10 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                  actionBar.setPopupItemsSelectorColor(getThemedColor(Theme.key_dialogButtonSelector), true);
                  actionBar.updateColors();
              }
@@ -152,7 +152,7 @@ index 21344e3..04eb34f 100644
              if (statusDrawable != null) {
                  updateStatus(UserConfig.getInstance(currentAccount).getCurrentUser(), false);
              }
-@@ -14188,6 +14211,14 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+@@ -14242,6 +14265,14 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
  
          final float actionModeVisible = Math.max(progressToActionMode, animatorActionModeVisible.getFloatValue());
          final float searchFieldVisible = animatorSearchVisible.getFloatValue();

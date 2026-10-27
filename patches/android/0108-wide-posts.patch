@@ -1,8 +1,8 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/MessageObject.java b/TMessagesProj/src/main/java/org/telegram/messenger/MessageObject.java
-index 12c669c..2e822fc 100644
+index a9f8c4e4..b7768c94 100644
 --- a/TMessagesProj/src/main/java/org/telegram/messenger/MessageObject.java
 +++ b/TMessagesProj/src/main/java/org/telegram/messenger/MessageObject.java
-@@ -350,6 +350,7 @@ public class MessageObject {
+@@ -352,6 +352,7 @@ public class MessageObject {
      public int totalAnimatedEmojiCount;
      private boolean layoutCreated;
      private int generatedWithMinSize;
@@ -10,7 +10,7 @@ index 12c669c..2e822fc 100644
      private float generatedWithDensity;
      private float generatedWithFontSize;
      public boolean wasJustSent;
-@@ -6793,7 +6794,7 @@ public class MessageObject {
+@@ -6843,7 +6844,7 @@ public class MessageObject {
          if (layoutCreated) {
              int newMinSize = AndroidUtilities.isTablet() ? AndroidUtilities.getMinTabletSide() : AndroidUtilities.displaySize.x;
              float newFontSize = Theme.chat_msgTextPaint != null ? Theme.chat_msgTextPaint.getTextSize() : 0;
@@ -19,7 +19,7 @@ index 12c669c..2e822fc 100644
                  layoutCreated = false;
              }
          }
-@@ -8448,6 +8449,7 @@ public class MessageObject {
+@@ -8507,6 +8508,7 @@ public class MessageObject {
  
      public boolean sideMenuEnabled;
      public int getMaxMessageTextWidth() {
@@ -27,7 +27,7 @@ index 12c669c..2e822fc 100644
          int maxWidth = 0;
          if (AndroidUtilities.isTablet() && eventId != 0) {
              generatedWithMinSize = dp(530);
-@@ -8478,7 +8480,8 @@ public class MessageObject {
+@@ -8537,7 +8539,8 @@ public class MessageObject {
          }
          if (maxWidth == 0) {
              final boolean needDrawAvatarInternal = needDrawAvatarInternal();
@@ -38,10 +38,10 @@ index 12c669c..2e822fc 100644
                  maxWidth -= dp(64);
              } else if (needDrawAvatarInternal && !isOutOwner() && !messageOwner.isThreadMessage) {
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Cells/ChatMessageCell.java b/TMessagesProj/src/main/java/org/telegram/ui/Cells/ChatMessageCell.java
-index d103d20..fd5721e 100644
+index 821f9e8d..975e61ea 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Cells/ChatMessageCell.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Cells/ChatMessageCell.java
-@@ -6792,9 +6792,13 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
+@@ -6801,9 +6801,13 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
      }
  
      public MultiLayoutTypingAnimator botDraftTypingAnimator;
@@ -56,7 +56,7 @@ index d103d20..fd5721e 100644
              currentMessageObject = null;
          }
          messageObject.isOutOwnerCached = null;
-@@ -7419,10 +7423,12 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
+@@ -7428,10 +7432,12 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
                  boolean measuredReactions = false;
  
                  final boolean isArticle = messageObject.type == MessageObject.TYPE_ARTICLE;
@@ -71,7 +71,7 @@ index d103d20..fd5721e 100644
                  }
                  drawName = drawAvatar || isPinnedChat || isSavedChat && !messageObject.isOutOwner() && (messageObject.getSavedDialogId() < 0 || messageObject.getSavedDialogId() == UserObject.ANONYMOUS) || (messageObject.messageOwner.peer_id != null && messageObject.messageOwner.peer_id.channel_id != 0 && (!messageObject.isOutOwner() || messageObject.isSupergroup())) || messageObject.isImportedForward() && messageObject.messageOwner.fwd_from.from_id == null;
  
-@@ -9839,7 +9845,13 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
+@@ -9848,7 +9854,13 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
                          documentAttach = messageObject.getDocument();
                          documentAttachType = DOCUMENT_ATTACH_TYPE_ROUND;
                      } else {
@@ -87,10 +87,10 @@ index d103d20..fd5721e 100644
                          } else {
                              if (
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
-index b08d327..f139552 100644
+index 7063de7f..c24eb48a 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
-@@ -30040,9 +30040,16 @@ public class ChatActivity extends BaseFragment implements
+@@ -30354,9 +30354,16 @@ public class ChatActivity extends BaseFragment implements
  
      Bulletin.Delegate bulletinDelegate;
  

@@ -1,7 +1,7 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/glass/GlassTabView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/glass/GlassTabView.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/glass/GlassTabView.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/glass/GlassTabView.java
-@@ -633,6 +633,11 @@ public class GlassTabView extends FrameLayout implements MainTabsLayout.Tab, Fac
+@@ -634,6 +634,11 @@ public class GlassTabView extends FrameLayout implements MainTabsLayout.Tab, Fac
          checkPlayAnimation(false);
      }
  

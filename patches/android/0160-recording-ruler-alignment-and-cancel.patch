@@ -1,8 +1,8 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
-index db47a28..c504b9a 100644
+index f88d5645..3eb089e7 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
-@@ -9796,7 +9796,9 @@ public class ChatActivityEnterView extends FrameLayout implements
+@@ -9794,7 +9794,9 @@ public class ChatActivityEnterView extends FrameLayout implements
      }
  
      protected void isRecordingStateChanged() {
@@ -13,7 +13,7 @@ index db47a28..c504b9a 100644
      }
  
      private void createRecordPanel() {
-@@ -14589,7 +14591,7 @@ public class ChatActivityEnterView extends FrameLayout implements
+@@ -14594,7 +14596,7 @@ public class ChatActivityEnterView extends FrameLayout implements
          boolean nebulaRecordingIslands = nebulaRecordingSupported && app.nebulagram.ui.NebulaAppearance.iosComposer();
          if (recordTimerView != null) {
              MarginLayoutParams timerParams = (MarginLayoutParams) recordTimerView.getLayoutParams();
@@ -23,10 +23,10 @@ index db47a28..c504b9a 100644
                  timerParams.leftMargin = margin;
                  recordTimerView.forceLayout();
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/InstantCameraView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/InstantCameraView.java
-index 6c39523..7c0369f 100644
+index 5a57b8e0..362b4baa 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/InstantCameraView.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/InstantCameraView.java
-@@ -326,7 +326,7 @@ public class InstantCameraView extends InstantCameraViewBase implements Notifica
+@@ -332,7 +332,7 @@ public class InstantCameraView extends InstantCameraViewBase implements Notifica
          nebulaZoomSlider = new NebulaZoomSlider(context, this::applyNebulaZoom, resourcesProvider);
          nebulaZoomSlider.setVisibility(View.GONE);
          FrameLayout.LayoutParams zoomParams = new FrameLayout.LayoutParams(LayoutParams.MATCH_PARENT, dp(96), Gravity.BOTTOM | Gravity.CENTER_HORIZONTAL);

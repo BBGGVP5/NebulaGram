@@ -21,7 +21,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/MessagePreviewPa
 diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/SendMessagesHelper.java b/TMessagesProj/src/main/java/org/telegram/messenger/SendMessagesHelper.java
 --- a/TMessagesProj/src/main/java/org/telegram/messenger/SendMessagesHelper.java
 +++ b/TMessagesProj/src/main/java/org/telegram/messenger/SendMessagesHelper.java
-@@ -2080,6 +2080,7 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
+@@ -2246,6 +2246,7 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
          if (messages == null || messages.isEmpty()) {
              return 0;
          }
@@ -29,7 +29,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/SendMessagesHelp
          int sendResult = 0;
          long myId = getUserConfig().getClientUserId();
          boolean isChannel = false;
-@@ -2146,6 +2147,18 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
+@@ -2312,6 +2313,18 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
                  canSendMusic = ChatObject.canSendMusic(chat);
              }
  
@@ -51,7 +51,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/SendMessagesHelp
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
-@@ -11131,6 +11131,32 @@ public class ChatActivity extends BaseFragment implements
+@@ -11221,6 +11221,32 @@ public class ChatActivity extends BaseFragment implements
          keyboardWasVisible = chatActivityEnterView.isKeyboardVisible();
          forwardingPreviewView = new MessagePreviewView(contentView.getContext(), this, scrimBlur3Factory, messagePreviewParams, currentUser, currentChat, currentAccount, themeDelegate, startTab, replyingQuote != null && replyingQuote.outdated) {
  
@@ -87,7 +87,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/MessagePreviewView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/MessagePreviewView.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/MessagePreviewView.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/MessagePreviewView.java
-@@ -1032,6 +1032,15 @@ public class MessagePreviewView extends FrameLayout {
+@@ -1035,6 +1035,15 @@ public class MessagePreviewView extends FrameLayout {
                      captionButton = null;
                  }
  
@@ -103,7 +103,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/MessagePrevi
                  ActionBarMenuSubItem changeRecipientView = new ActionBarMenuSubItem(context, true, false, resourcesProvider);
                  changeRecipientView.setOnClickListener(view -> selectAnotherChat(true));
                  changeRecipientView.setTextAndIcon(LocaleController.getString(R.string.ChangeRecipient), R.drawable.msg_forward_replace);
-@@ -1997,6 +2006,10 @@ public class MessagePreviewView extends FrameLayout {
+@@ -2032,6 +2041,10 @@ public class MessagePreviewView extends FrameLayout {
  
      }
  

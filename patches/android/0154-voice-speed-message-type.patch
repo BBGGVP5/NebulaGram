@@ -1,8 +1,10 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/MediaController.java b/TMessagesProj/src/main/java/org/telegram/messenger/MediaController.java
-index 4362c14..fafbb5a 100644
+index 28190fde..67538db7 100644
 --- a/TMessagesProj/src/main/java/org/telegram/messenger/MediaController.java
 +++ b/TMessagesProj/src/main/java/org/telegram/messenger/MediaController.java
-@@ -3297,3 +3297,9 @@ public class MediaController implements AudioManager.OnAudioFocusChangeListener,
+@@ -3319,7 +3319,13 @@ public class MediaController implements AudioManager.OnAudioFocusChangeListener,
+             }
+         }
          // Changing a stored music preference must not change an active voice note.
 -        if (playingMessageObject != null && music == playingMessageObject.isMusic()) {
 +        // Voice notes and round videos share the non-music speed even if a
@@ -13,3 +15,5 @@ index 4362c14..fafbb5a 100644
 +                && playingMessageObject.isMusic();
 +        if (playingMessageObject != null && music == playingMusic) {
              if (audioPlayer != null) audioPlayer.setPlaybackSpeed(speed);
+             if (videoPlayer != null) videoPlayer.setPlaybackSpeed(speed);
+         }

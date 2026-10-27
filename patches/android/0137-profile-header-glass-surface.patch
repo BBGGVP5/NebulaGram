@@ -1,14 +1,15 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
-@@ -194,5 +194,6 @@
+@@ -195,6 +195,7 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
+ 
      private boolean glassMode;
      private boolean nebulaHomeGlass;
 +    private boolean nebulaProfileGlass;
      private boolean nebulaHomeTabsGlass;
      private View nebulaHomeLeadingView;
      private boolean glassOnlyBack;
-@@ -271,6 +272,11 @@
+@@ -276,6 +277,11 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
          invalidate();
      }
  
@@ -20,7 +21,8 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.jav
      public void setNebulaHomeTabsGlass(boolean enabled) {
          nebulaHomeTabsGlass = enabled;
          invalidate();
-@@ -2529,5 +2535,6 @@
+@@ -2563,7 +2569,8 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
+             } else {
                  glassDrawable.setAlpha(255);
              }
 -            if ((!nebulaHomeTabsGlass || glassDrawable.getAlpha() > 0)
@@ -28,12 +30,15 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.jav
 +                    && (!nebulaHomeTabsGlass || glassDrawable.getAlpha() > 0)
                      && !((nebulaClassicSavedHeader || nebulaFloatingChatHeader && !app.nebulagram.ui.NebulaAppearance.chatHeader()) && actionModeFactor == 0f && searchFactor == 0f)) glassDrawable.draw(canvas);
          }
+         if (glassDrawableBack != null && hasBackButton) {
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
-@@ -3518,4 +3518,5 @@
+@@ -3540,6 +3540,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
              // profile artwork, using the same source as the profile's menus.
              actionBar.setupGlass(iBlur3FactoryLiquidGlass, BlurredBackgroundProviderImpl.topPanel(resourcesProvider));
              actionBar.setNebulaHomeGlass(true);
 +            actionBar.setNebulaProfileGlass(true);
          }
+ 
+         FrameLayout frameLayout = (FrameLayout) fragmentView;

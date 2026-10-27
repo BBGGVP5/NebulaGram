@@ -1,7 +1,7 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarLayout.java b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarLayout.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarLayout.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarLayout.java
-@@ -1827,7 +1827,9 @@
+@@ -1839,7 +1839,9 @@ public class ActionBarLayout extends FrameLayout implements INavigationLayout, F
                      dt = 18;
                  }
                  lastFrameTime = newTime;
@@ -12,7 +12,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarLayo
                  animationProgress += dt / duration;
                  if (animationProgress > 1.0f) {
                      animationProgress = 1.0f;
-@@ -1870,7 +1872,10 @@
+@@ -1882,7 +1884,10 @@ public class ActionBarLayout extends FrameLayout implements INavigationLayout, F
                          interpolated = CubicBezierInterpolator.EASE_OUT_QUINT.getInterpolation(animationProgress);
                      }
                  } else {
@@ -24,7 +24,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarLayo
                  }
                  if (open) {
                      float clampedInterpolated = MathUtils.clamp(interpolated, 0, 1);
-@@ -1889,7 +1894,10 @@
+@@ -1901,7 +1906,10 @@ public class ActionBarLayout extends FrameLayout implements INavigationLayout, F
                          containerView.invalidate();
                          invalidate();
                      } else {
@@ -36,7 +36,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarLayo
                      }
                  } else {
                      float clampedReverseInterpolated = MathUtils.clamp(1f - interpolated, 0, 1);
-@@ -1904,7 +1912,10 @@
+@@ -1916,7 +1924,10 @@ public class ActionBarLayout extends FrameLayout implements INavigationLayout, F
                          containerView.invalidate();
                          invalidate();
                      } else {

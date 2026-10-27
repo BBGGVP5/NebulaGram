@@ -60,7 +60,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/glass/GlassT
      public void updateUserAvatar(int currentAccount) {
          TLRPC.User user = MessagesController.getInstance(currentAccount).getUser(UserConfig.getInstance(currentAccount).getClientUserId());
          AvatarDrawable avatarDrawable = new AvatarDrawable(user);
-@@ -666,8 +688,9 @@ public class GlassTabView extends FrameLayout implements MainTabsLayout.Tab, Fac
+@@ -667,8 +689,9 @@ public class GlassTabView extends FrameLayout implements MainTabsLayout.Tab, Fac
  
      /** NebulaGram: применить настройку подписей к этой вкладке. */
      public void nebulaApplyLabel() {
@@ -74,7 +74,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/glass/GlassT
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/MainTabsActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/MainTabsActivity.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/MainTabsActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/MainTabsActivity.java
-@@ -320,6 +320,7 @@ public class MainTabsActivity extends ViewPagerActivity implements NotificationC
+@@ -321,6 +321,7 @@ public class MainTabsActivity extends ViewPagerActivity implements NotificationC
          tabs[INDEX_CHATS] = GlassTabView.createMainTab(context, resourceProvider, GlassTabView.TabAnimation.CHATS, R.string.MainTabsChats);
          tabs[INDEX_CONTACTS] = GlassTabView.createMainTab(context, resourceProvider, GlassTabView.TabAnimation.CONTACTS, R.string.MainTabsContacts);
          tabs[INDEX_SETTINGS] = GlassTabView.createMainTab(context, resourceProvider, GlassTabView.TabAnimation.SETTINGS, R.string.Settings);
@@ -82,7 +82,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/MainTabsActivity.java b
          tabs[INDEX_CALLS] = GlassTabView.createMainTab(context, resourceProvider, GlassTabView.TabAnimation.CALLS, R.string.MainTabsCalls);
          tabs[INDEX_PROFILE] = GlassTabView.createAvatar(context, resourceProvider, currentAccount, R.string.MainTabsProfile);
          tabs[INDEX_CHATS].setOnLongClickListener(this::openFoldersSelector);
-@@ -1074,6 +1075,7 @@ public class MainTabsActivity extends ViewPagerActivity implements NotificationC
+@@ -1075,6 +1076,7 @@ public class MainTabsActivity extends ViewPagerActivity implements NotificationC
          } else if (id == NotificationCenter.mainUserInfoChanged) {
              if (tabs != null && tabs[INDEX_PROFILE] != null) {
                  tabs[INDEX_PROFILE].updateUserAvatar(currentAccount);

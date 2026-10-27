@@ -34,7 +34,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarPopu
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAttachAlert.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAttachAlert.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAttachAlert.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAttachAlert.java
-@@ -5309,10 +5309,14 @@ public class ChatAttachAlert extends BottomSheet implements NotificationCenter.N
+@@ -5346,10 +5346,14 @@ public class ChatAttachAlert extends BottomSheet implements NotificationCenter.N
      protected boolean onCustomOpenAnimation() {
          super.containerView.animate().cancel();
          super.containerView.setScaleX(1f);
@@ -54,7 +54,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAttachAl
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ItemOptions.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ItemOptions.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ItemOptions.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ItemOptions.java
-@@ -1259,6 +1259,8 @@ public class ItemOptions {
+@@ -1270,6 +1270,8 @@ public class ItemOptions {
              }
          }
  
@@ -63,7 +63,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ItemOptions.
          if ((blur || blurForMenu) && scrimBlur3SourceBitmap == null) {
              scrimBlur3SourceBitmap = new BlurredBackgroundSourceBitmap();
          }
-@@ -1487,7 +1489,10 @@ public class ItemOptions {
+@@ -1498,7 +1500,10 @@ public class ItemOptions {
  
          if (blurForMenu && scrimBlur3SourceBitmap != null) {
              setGapBackgroundColor(Theme.multAlpha(Theme.getColor(Theme.key_actionBarDefaultSubmenuItem, resourcesProvider), 0.06f));

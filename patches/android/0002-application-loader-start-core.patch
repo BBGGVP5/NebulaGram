@@ -1,7 +1,7 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/ApplicationLoader.java b/TMessagesProj/src/main/java/org/telegram/messenger/ApplicationLoader.java
 --- a/TMessagesProj/src/main/java/org/telegram/messenger/ApplicationLoader.java
 +++ b/TMessagesProj/src/main/java/org/telegram/messenger/ApplicationLoader.java
-@@ -289,6 +289,8 @@ public class ApplicationLoader extends Application {
+@@ -290,6 +290,8 @@ public class ApplicationLoader extends Application {
  
          super.onCreate();
  

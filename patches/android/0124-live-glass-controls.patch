@@ -1,7 +1,21 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/LiquidGlassEffect.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/LiquidGlassEffect.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/LiquidGlassEffect.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/LiquidGlassEffect.java
+@@ -83,8 +83,8 @@ public class LiquidGlassEffect {
+             Math.abs(this.radiusRightBottom - radiusRightBottom) > 0.1f ||
+             Math.abs(this.radiusLeftBottom - radiusLeftBottom) > 0.1f ||
+             Math.abs(this.thickness - thickness) > 0.1f ||
+-            Math.abs(this.intensity - intensity) > 0.1f ||
+-            Math.abs(this.index - index) > 0.1f ||
++            Math.abs(this.intensity - intensity) > 0.0001f ||
++            Math.abs(this.index - index) > 0.0001f ||
+             this.foregroundColor != foregroundColor
+         ) {
+             this.foregroundColor = foregroundColor;
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/drawable/BlurredBackgroundDrawableRenderNode.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/drawable/BlurredBackgroundDrawableRenderNode.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/drawable/BlurredBackgroundDrawableRenderNode.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/drawable/BlurredBackgroundDrawableRenderNode.java
-@@ -54,6 +54,7 @@
+@@ -54,6 +54,7 @@ public class BlurredBackgroundDrawableRenderNode extends BlurredBackgroundDrawab
  
      private LiquidGlassEffect liquidGlassEffect;
      private boolean nebulaReduced;
@@ -9,7 +23,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/drawab
  
      @RequiresApi(api = Build.VERSION_CODES.TIRAMISU)
      public void setLiquidGlassEffectAllowed() {
-@@ -115,8 +116,11 @@
+@@ -115,8 +116,11 @@ public class BlurredBackgroundDrawableRenderNode extends BlurredBackgroundDrawab
          c = renderNodeFill.beginRecording();
          c.save();
          c.translate(-sL, -sT);
@@ -23,7 +37,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/drawab
              final int thickness = Math.max(Math.min(
                  boundProps.liquidThickness <= 0 ? dp(11) : boundProps.liquidThickness,
                  Math.min(boundProps.boundsWithPadding.width(), boundProps.boundsWithPadding.height()) / 5), 1);
-@@ -125,13 +129,13 @@
+@@ -125,13 +129,13 @@ public class BlurredBackgroundDrawableRenderNode extends BlurredBackgroundDrawab
                  0, 0, boundProps.boundsWithPadding.width(), boundProps.boundsWithPadding.height(),
                  boundProps.shaderRadii[0], boundProps.shaderRadii[2], boundProps.shaderRadii[4], boundProps.shaderRadii[6],
                  thickness,
@@ -39,7 +53,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/drawab
          renderNodeFill.endRecording();
  
  
-@@ -140,16 +144,16 @@
+@@ -140,16 +144,16 @@ public class BlurredBackgroundDrawableRenderNode extends BlurredBackgroundDrawab
              c.drawColor(backgroundColor);
          } else {
              c.drawRenderNode(renderNodeFill);
@@ -59,7 +73,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/drawab
              drawStroke(c, 0, 0, boundProps.boundsWithPadding.width(),
                      boundProps.boundsWithPadding.height(), boundProps.radii,
                      boundProps.strokeWidthBottom, false, paintStrokeBottom);
-@@ -160,6 +164,12 @@
+@@ -160,6 +164,12 @@ public class BlurredBackgroundDrawableRenderNode extends BlurredBackgroundDrawab
      @Override
      public void updateColors() {
          super.updateColors();
@@ -72,7 +86,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/drawab
  
          paintShadow.setShadowLayer(shadowLayerRadius, shadowLayerDx, shadowLayerDy, shadowColor);
          paintStrokeTop.setColor(strokeColorTop);
-@@ -170,6 +180,8 @@
+@@ -170,6 +180,8 @@ public class BlurredBackgroundDrawableRenderNode extends BlurredBackgroundDrawab
  
      @Override
      public void draw(@NonNull Canvas canvas) {
@@ -81,17 +95,3 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/drawab
          boolean reduced = app.nebulagram.ui.NebulaGlass.reduced();
          if (nebulaReduced != reduced) { nebulaReduced = reduced; renderNodeInvalidated = true; }
          if (boundProps.boundsWithPadding.isEmpty()) {
-diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/LiquidGlassEffect.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/LiquidGlassEffect.java
---- a/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/LiquidGlassEffect.java
-+++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/LiquidGlassEffect.java
-@@ -83,8 +83,8 @@
-             Math.abs(this.radiusRightBottom - radiusRightBottom) > 0.1f ||
-             Math.abs(this.radiusLeftBottom - radiusLeftBottom) > 0.1f ||
-             Math.abs(this.thickness - thickness) > 0.1f ||
--            Math.abs(this.intensity - intensity) > 0.1f ||
--            Math.abs(this.index - index) > 0.1f ||
-+            Math.abs(this.intensity - intensity) > 0.0001f ||
-+            Math.abs(this.index - index) > 0.0001f ||
-             this.foregroundColor != foregroundColor
-         ) {
-             this.foregroundColor = foregroundColor;

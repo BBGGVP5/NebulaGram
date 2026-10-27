@@ -1,7 +1,7 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
-@@ -15043,6 +15043,8 @@
+@@ -15048,6 +15048,8 @@ public class ChatActivityEnterView extends FrameLayout implements
      @Override
      protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
          super.onLayout(changed, left, top, right, bottom);
@@ -10,7 +10,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivity
          nebulaComposerStyle.layout(emojiButton, attachButton, senderSelectView, aiButton, richButton);
          if (nebulaFormattingToolbar != null && nebulaFormattingHeight > 0) {
              int toolbarBottom = nebulaFormattingHeight - dp(app.nebulagram.ui.NebulaFormattingToolbar.GAP_DP);
-@@ -16102,7 +16104,7 @@
+@@ -16107,7 +16109,7 @@ public class ChatActivityEnterView extends FrameLayout implements
          if (topView != null) {
              final float y = getMeasuredHeight() - animatorInputFieldHeight.getFactor();
  
