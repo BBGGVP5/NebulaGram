@@ -1,0 +1,37 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
+@@ -2064,10 +2064,20 @@
+             titleTextView[0] = tmp;
+             titleTextView[0].setAlpha(0);
+             titleTextView[0].setTranslationY(-dp(20));
+-            titleTextView[0].animate()
++            ViewPropertyAnimator incomingTitle = titleTextView[0].animate()
+                     .alpha(adaptiveBackgroundHideTitle ? 1.0f - onTopAnimated : 1f)
+                     .translationY(0)
+-                    .setDuration(220).start();
++                    .setDuration(220);
++            if (nebulaHomeLayout) {
++                // Пока идёт перекличка, живы оба заголовка, и ширина группы
++                // считается по большему из них. Кольца историй берут её каждый
++                // кадр, а заголовок стоит там, где его оставила вёрстка до
++                // замены текста: длинное «Подключение к NebulaLink…» сдвигает
++                // группу влево, и кольца наезжают на текст. Ведём обоих от
++                // одного кадра — ровно так, как это уже делает setTitleAnimated.
++                incomingTitle.setUpdateListener(a -> updateNebulaHomeTitleLayout());
++            }
++            incomingTitle.start();
+             ViewPropertyAnimator animator = titleTextView[1].animate()
+                     .alpha(0);
+             if (subtitleTextView == null) {
+@@ -2087,6 +2097,10 @@
+                     ellipsizeSpanAnimator.removeView(titleTextView[1]);
+                     titleTextView[1] = null;
+                     overlayTitleAnimationInProgress = false;
++                    // Ширина группы только что перестала быть максимумом из
++                    // двух: уходящий заголовок больше не участвует. Сводим
++                    // заголовок с кольцами сразу, не дожидаясь чужой вёрстки.
++                    updateNebulaHomeTitleLayout();
+                     setTitleOverlayText((String) overlayTitleToSet[0], (int) overlayTitleToSet[1], (Runnable) overlayTitleToSet[2]);
+                     // A folder may change while the connection title is fading out.
+                     // The native overlay deduplicates null titles, so explicitly

@@ -56,6 +56,18 @@ for signature in ['protected void onMeasure(', 'protected void onLayout(',
         depth+=(bar[end]=='{')-(bar[end]=='}');end+=1
     assert 'nebulaTitleEndInset()' in bar[start:end], signature+' lost the shared toolbar boundary'
 assert 'additionalSubTitleOverlayContainer.getMeasuredWidth())' in bar, 'Overlay subtitle must sit under the centred title'
+# Во время перехода живы оба заголовка, и ширина группы — максимум из них.
+# Кольца историй пересчитывают её каждый кадр, заголовок — только на вёрстке.
+# Без общего кадра длинный «Подключение к NebulaLink...» уезжает под кольца.
+start = bar.index('public void setTitleOverlayText(String title, int titleId, Runnable action) {')
+end = bar.index('{', start) + 1
+depth = 1
+while depth:
+    depth += (bar[end] == '{') - (bar[end] == '}')
+    end += 1
+overlay = bar[start:end]
+assert 'setUpdateListener(a -> updateNebulaHomeTitleLayout())' in overlay,     'Overlay title crossfade must move with the story rings, not only on layout'
+assert overlay.count('updateNebulaHomeTitleLayout()') >= 2,     'The crossfade must also settle the group once the outgoing title stops counting'
 assert 'titlesContainer.getTranslationX()' in bar
 assert 'if (nebulaCenterTitle())' in bar
 assert 'glassMode && !nebulaHomeGlass && !nebulaCommunityGlass ? 17' in bar, 'Glass home/community titles must keep normal title size'
