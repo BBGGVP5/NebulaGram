@@ -183,6 +183,17 @@ public class NebulaSettingsFragment extends BaseFragment {
                 .trailing(NebulaRow.TRAIL_CHEVRON).withClick(v -> presentFragment(new NebulaSectionFragment(NebulaSectionFragment.SECTION_ABOUT))));
         sections.addView(categories, cardParams());
 
+        sections.addView(NebulaCard.header(context, NebulaText.text("Ссылки", "Links")));
+        NebulaCard links = new NebulaCard(context);
+        // Здесь только то, что существует. Канал у проекта один; бета-канал,
+        // форум и аккаунт разработчика появятся, когда появятся сами, а не
+        // ссылками в никуда.
+        links.add(new NebulaRow(context).icon(R.drawable.msg_channel)
+                .title(NebulaText.text("Канал", "Channel"))
+                .subtitle("@ngram_official", true).trailing(NebulaRow.TRAIL_CHEVRON)
+                .withClick(v -> org.telegram.messenger.browser.Browser.openUrl(
+                        context, "https://t.me/ngram_official")));
+        sections.addView(links, cardParams());
     }
 
     private String accountSummary() {
