@@ -61,7 +61,23 @@ public final class NebulaFeatureControls {
         add(parent, card);
     }
     public static void appearance(LinearLayout parent) {
-        NebulaCard card = new NebulaCard(parent.getContext());
+        Context context = parent.getContext();
+        NebulaCard motion = new NebulaCard(context);
+        NebulaRow style = new NebulaRow(context).title(text("Анимация", "Animation"))
+                .subtitle(NebulaMotion.title(), true).trailing(NebulaRow.TRAIL_CHEVRON);
+        String[] names = {text("Стандарт", "Standard"), "Expressive"};
+        style.withClick(v -> new NebulaDialog.Builder(context).setTitle(text("Анимация", "Animation"))
+                .setSelectedIndex(NebulaMotion.expressive() ? 1 : 0)
+                .setItems(names, (dialog, which) -> {
+                    NebulaMotion.setExpressive(which == 1);
+                    style.subtitle(NebulaMotion.title(), true);
+                }).show());
+        motion.add(style);
+        add(parent, motion);
+        parent.addView(NebulaFormUi.note(context, text(
+                "Expressive — лёгкий перелёт и возврат, как сейчас. Стандарт — то же время и те же границы, но затухание без перелёта.",
+                "Expressive overshoots slightly and settles back, as it does today. Standard keeps the same duration and bounds, but eases out without the overshoot.")));
+        NebulaCard card = new NebulaCard(context);
         card.add(toggle(parent, "snowflakes", "Снежинки", "Snowflakes", "В списке чатов и переписках; отключаются при экономии энергии", "In the chat list and conversations; pauses in power-saving mode"));
         add(parent, card);
     }

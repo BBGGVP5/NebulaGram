@@ -11,10 +11,30 @@ public final class NebulaMenuMotion {
     public static float seedScale(float anchorExtent, float popupExtent) {
         return popupExtent > 0 ? Math.max(.12f, Math.min(.65f, anchorExtent / popupExtent)) : .3f;
     }
-    /** A lightly damped response with exact endpoints and at most 2.5% overshoot. */
+    /**
+     * Пружинистость движения. Читается с каждого кадра и компилируется в
+     * фикстурах без Android, поэтому это поле, а не чтение настроек;
+     * значение приносит {@code NebulaMotion.apply()}. По умолчанию — то
+     * поведение, что было до появления настройки.
+     */
+    private static volatile boolean expressive = true;
+    public static void setExpressive(boolean value) { expressive = value; }
+    public static boolean isExpressive() { return expressive; }
+
+    /**
+     * A lightly damped response with exact endpoints and at most 2.5% overshoot.
+     *
+     * <p>В спокойном режиме — то же время и те же концы, но затухание без
+     * перелёта: кубический выход, у которого производная на конце равна нулю,
+     * поэтому движение не «дёргается» там, где пружина возвращалась.
+     */
     public static float response(float progress) {
         float t = unit(progress);
         if (t == 0 || t == 1) return t;
+        if (!expressive) {
+            float remaining = 1 - t;
+            return 1 - remaining * remaining * remaining;
+        }
         double end = 1 - Math.exp(-8) * (Math.cos(6) + 8d / 6 * Math.sin(6));
         return (float) Math.min(1.025, (1 - Math.exp(-8 * t) * (Math.cos(6 * t) + 8d / 6 * Math.sin(6 * t))) / end);
     }
