@@ -165,6 +165,7 @@ assert 'ThanosEffect.supports()' in chat, 'the device check must stay: the effec
 dialogs = (tree / 'TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java').read_text(encoding='utf-8')
 assert dialogs.count('NebulaEdgeCompression.apply(') == 2,     'edge compression needs both hooks: scrolling moves the rows, layout paints the first frame'
 edge = (ui / 'NebulaEdgeCompression.java').read_text(encoding='utf-8')
+assert 'animator.isRunning()' in edge, 'edge compression must yield to the list animator, which owns row alpha while it runs'
 assert 'child.setScaleX(1f)' in edge,     'turning it off must restore recycled rows, which the list reuses rather than rebuilds'
 util = (tree / 'TMessagesProj/src/main/java/org/telegram/messenger/AndroidUtilities.java').read_text(encoding='utf-8')
 assert 'NebulaFont.substitute(assetPath)' in util, 'the font choice must sit in the one funnel every typeface goes through'

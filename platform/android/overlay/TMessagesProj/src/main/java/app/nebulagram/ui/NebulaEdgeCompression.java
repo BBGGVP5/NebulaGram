@@ -45,6 +45,15 @@ public final class NebulaEdgeCompression {
     public static void apply(ViewGroup list) {
         if (list == null) return;
         final boolean on = enabled();
+        // Пока список проигрывает свою анимацию, строки принадлежат ей: она
+        // ведёт их прозрачность при добавлении и удалении. Перебивать её на
+        // каждой прокрутке значит гасить исчезающий чат на середине. Строки
+        // вернутся под сжатие со следующей прокруткой или вёрсткой.
+        if (on && list instanceof androidx.recyclerview.widget.RecyclerView) {
+            androidx.recyclerview.widget.RecyclerView.ItemAnimator animator =
+                    ((androidx.recyclerview.widget.RecyclerView) list).getItemAnimator();
+            if (animator != null && animator.isRunning()) return;
+        }
         final float top = list.getPaddingTop();
         final float range = AndroidUtilities.dp(RANGE_DP);
         for (int i = 0, count = list.getChildCount(); i < count; i++) {
