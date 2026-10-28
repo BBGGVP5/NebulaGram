@@ -150,4 +150,7 @@ assert 'NebulaChatCards.draw(canvas, this, translateY, resourcesProvider)' in di
 assert dialog.index('NebulaChatCards.draw') < dialog.index('boolean needInvalidate'),     'the backdrop must be drawn before the row, not over it'
 cards = (ui / 'NebulaChatCards.java').read_text(encoding='utf-8')
 assert 'stateLayer' in cards, 'the card must tint whatever background is there, not paint its own colour'
+strip = (tree / 'TMessagesProj/src/main/java/org/telegram/ui/Components/ScrollSlidingTextTabStrip.java').read_text(encoding='utf-8')
+assert 'NebulaTabButtons.draw(canvas, tabsContainer, resourcesProvider)' in strip,     'profile tab buttons must reach the strip that draws the tabs'
+assert strip.index('NebulaTabButtons.draw') < strip.index('super.dispatchDraw'),     'tab backdrops belong under the labels, not over them'
 print('PASS: shape and the three media sizes each reach a different place in the app')

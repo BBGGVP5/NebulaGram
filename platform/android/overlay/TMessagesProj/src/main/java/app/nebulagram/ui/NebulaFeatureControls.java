@@ -87,6 +87,11 @@ public final class NebulaFeatureControls {
                     .postNotificationName(org.telegram.messenger.NotificationCenter.mainUserInfoChanged);
         });
         list.add(cards);
+        NebulaRow tabs = new NebulaRow(context).title(text("Вкладки профиля", "Profile tabs"))
+                .subtitle(text("Отдельные кнопки вместо общей полосы", "Separate buttons instead of one strip"), false)
+                .trailing(NebulaRow.TRAIL_SWITCH).checked(NebulaTabButtons.enabled());
+        tabs.withClick(v -> NebulaTabButtons.setEnabled(tabs.toggleChecked()));
+        list.add(tabs);
         add(parent, list);
         NebulaCard card = new NebulaCard(context);
         card.add(toggle(parent, "snowflakes", "Снежинки", "Snowflakes", "В списке чатов и переписках; отключаются при экономии энергии", "In the chat list and conversations; pauses in power-saving mode"));
