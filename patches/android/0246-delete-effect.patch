@@ -1,0 +1,22 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
+@@ -45309,11 +45309,16 @@ public class ChatActivity extends BaseFragment implements
+     }
+ 
+     public boolean supportsThanosEffect() {
+-        return ThanosEffect.supports() && LiteMode.isEnabled(LiteMode.FLAG_CHAT_THANOS);
++        // Проверка устройства остаётся: эффект считается на GPU, и там, где он
++        // не поддерживается, включать нечего. Отменяется только флаг экономии
++        // энергии — он выключает распыление заодно с десятком чужих анимаций.
++        return ThanosEffect.supports()
++                && app.nebulagram.ui.NebulaDeleteEffect.dust(LiteMode.isEnabled(LiteMode.FLAG_CHAT_THANOS));
+     }
+ 
+     public ThanosEffect getChatThanosEffect() {
+-        if (!LiteMode.isEnabled(LiteMode.FLAG_CHAT_THANOS) || !ThanosEffect.supports()) {
++        if (!app.nebulagram.ui.NebulaDeleteEffect.dust(LiteMode.isEnabled(LiteMode.FLAG_CHAT_THANOS))
++                || !ThanosEffect.supports()) {
+             return null;
+         }
+         if (chatListThanosEffect == null || chatListThanosEffect.destroyed) {

@@ -153,4 +153,13 @@ assert 'stateLayer' in cards, 'the card must tint whatever background is there, 
 strip = (tree / 'TMessagesProj/src/main/java/org/telegram/ui/Components/ScrollSlidingTextTabStrip.java').read_text(encoding='utf-8')
 assert 'NebulaTabButtons.draw(canvas, tabsContainer, resourcesProvider)' in strip,     'profile tab buttons must reach the strip that draws the tabs'
 assert strip.index('NebulaTabButtons.draw') < strip.index('super.dispatchDraw'),     'tab backdrops belong under the labels, not over them'
+style = (ui / 'NebulaComposerStyle.java').read_text(encoding='utf-8')
+assert 'NebulaComposer.fieldSurface()' in style, 'the Buttons style must reach the surfaces it removes'
+preview_composer = (ui / 'NebulaComposerPreview.java').read_text(encoding='utf-8')
+assert 'if (fieldSurface) surfaces[1].draw(canvas)' in preview_composer,     'the composer preview must show the missing field surface, not only the chat'
+composer = (ui / 'NebulaComposer.java').read_text(encoding='utf-8')
+assert 'setIosComposer(style != TELEGRAM)' in composer,     'picking Telegram must switch the layout back, not only the surfaces'
+chat = (tree / 'TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java').read_text(encoding='utf-8')
+assert chat.count('NebulaDeleteEffect.dust(LiteMode.isEnabled(LiteMode.FLAG_CHAT_THANOS))') == 2,     'both gates on the dust effect must consult the setting, or one of them still refuses'
+assert 'ThanosEffect.supports()' in chat, 'the device check must stay: the effect runs on the GPU'
 print('PASS: shape and the three media sizes each reach a different place in the app')

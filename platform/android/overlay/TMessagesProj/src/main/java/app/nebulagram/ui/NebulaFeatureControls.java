@@ -123,8 +123,22 @@ public final class NebulaFeatureControls {
         card.add(new NebulaRow(parent.getContext()).title(text("Действия свайпа", "Swipe actions"))
             .subtitle(text("Ответ, копирование, перевод и инструменты; настройте порядок", "Reply, copy, translation and tools; set their order"), false)
             .trailing(NebulaRow.TRAIL_CHEVRON).withClick(v -> host.presentFragment(new NebulaSwipeSettingsFragment())));
+        String[] effects = {text("Нет", "None"), text("Пыль", "Dust")};
+        NebulaRow deletion = new NebulaRow(parent.getContext()).title(text("Эффект удаления", "Deletion effect"))
+                .subtitle(NebulaDeleteEffect.title(), true).trailing(NebulaRow.TRAIL_CHEVRON);
+        deletion.withClick(v -> host.showDialog(new NebulaDialog.Builder(parent.getContext())
+                .setTitle(text("Эффект удаления", "Deletion effect"))
+                .setSelectedIndex(NebulaDeleteEffect.style())
+                .setItems(effects, (dialog, which) -> {
+                    NebulaDeleteEffect.setStyle(which);
+                    deletion.subtitle(NebulaDeleteEffect.title(), true);
+                }).create()));
+        card.add(deletion);
         NebulaPeerSelections.savedRow(host, card);
         add(parent, card);
+        parent.addView(NebulaFormUi.note(parent.getContext(), text(
+                "«Пыль» отменяет флаг экономии энергии Telegram, который гасит распыление заодно с другими анимациями. Проверка устройства остаётся: эффект считается на видеоускорителе и включается только там, где он есть.",
+                "Dust overrides Telegram's power-saving flag, which turns the effect off along with other animations. The device check stays: the effect runs on the GPU and only appears where that is available.")));
         stickerSize(parent);
     }
 

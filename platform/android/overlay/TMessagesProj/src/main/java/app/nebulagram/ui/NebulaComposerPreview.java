@@ -29,6 +29,7 @@ public final class NebulaComposerPreview extends FrameLayout {
     private final org.telegram.ui.Components.BackupImageView sender;
     private final BlurredBackgroundDrawable[] surfaces = new BlurredBackgroundDrawable[3];
     private boolean separate;
+    private boolean fieldSurface = true;
     private boolean showSender;
     private int fieldLeft, fieldRight, top;
 
@@ -81,6 +82,7 @@ public final class NebulaComposerPreview extends FrameLayout {
 
     public void refresh() {
         separate = NebulaAppearance.iosComposer();
+        fieldSurface = NebulaComposer.fieldSurface();
         showSender = !NebulaAppearance.hideSendAs();
         sender.setVisibility(showSender ? VISIBLE : GONE);
         attachment.setImageResource(R.drawable.msg_input_attach2);
@@ -139,6 +141,8 @@ public final class NebulaComposerPreview extends FrameLayout {
 
     @Override protected void onDraw(Canvas canvas) {
         if (separate) { surfaces[0].draw(canvas); surfaces[2].draw(canvas); }
-        surfaces[1].draw(canvas);
+        // В варианте «Кнопки» поле остаётся без подложки — превью обязано
+        // показывать именно это, иначе выбор виден только в самом чате.
+        if (fieldSurface) surfaces[1].draw(canvas);
     }
 }
