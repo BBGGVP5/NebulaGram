@@ -53,7 +53,7 @@ public class CheckMenuFeedback {
  }
  static class Reveal {
   View host=new View(); WeakReference<View> anchor;
-  float progress=1,originX,originY,seed,seedWidth,seedHeight,seedRadius,closeProgress,closeStart,clockStart;
+  float progress=1,originX,originY,originShareX,originShareY,seed,seedWidth,seedHeight,seedRadius,closeProgress,closeStart,clockStart;
   final NebulaMenuBubble.Frame frame=new NebulaMenuBubble.Frame(),closeFrame=new NebulaMenuBubble.Frame();
   View focusContent;boolean morphEnabled=true;
   boolean began,originResolved,closing,viewportReady=true;int focusStep=-1;
@@ -116,6 +116,24 @@ public class CheckMenuFeedback {
   r.viewportReady=false;r.begin();r.setProgress(.1f);
   check(r.frame.x==100&&r.frame.y==150&&r.frame.width==200&&r.frame.height==300&&r.frame.content==1,"unsupported drawing surfaces fade at native bounds");
   r.reset();check(!r.viewportReady,"detach forgets old drawing viewport");
+  // Закрытие ищет источник там, где якорь сейчас. Окно, сдвинутое после
+  // открытия, иначе сворачивалось бы к точке первого кадра — в чужой угол.
+  r.setMorphEnabled(true);anchor.w=40;anchor.h=40;anchor.x=20;anchor.y=20;r.host.x=100;r.host.y=80;
+  r.setAnchor(anchor);r.viewportReady=true;r.begin();r.setProgress(1);check(r.host.px==0&&r.host.py==0,"opens from the near corner");
+  r.host.x=-200;r.prepareClose();check(r.host.px==r.host.w&&r.host.py==0,"close follows the anchor after the window moved");
+  for(int i=1;i<=100;i++)r.setCloseProgress(i/100f);
+  check(Math.abs(r.frame.x-r.host.w)<.001&&Math.abs(r.frame.y)<.001,"close lands on the live anchor side");
+  r.reset();r.host.x=100;
+  // Якорь ушёл из окна, а подменю поменяло размер: край остаётся краем.
+  r.setAnchor(anchor);r.begin();r.setProgress(1);anchor.attached=false;r.host.w=320;r.prepareClose();
+  check(r.host.px==0&&r.host.py==0,"lost anchor keeps the opening edge");
+  r.reset();anchor.attached=true;anchor.x=500;r.setAnchor(anchor);r.begin();r.setProgress(1);anchor.attached=false;r.host.w=150;r.prepareClose();
+  check(r.host.px==150&&r.host.py==0,"a right-edge source stays on the right edge of a resized menu");
+  r.reset();r.host.w=200;anchor.attached=true;
+  // Меню, открытое без нашей анимации и без якоря, сворачивается на месте,
+  // а не в угол по умолчанию.
+  r.anchor=null;r.began=false;r.prepareClose();check(r.host.px==100&&r.host.py==150&&r.progress==1,"anchorless native popup closes in place");
+  r.reset();
   r.setMorphEnabled(false);r.reset();r.setAnchor(anchor);check(!r.isMorphEnabled(),"native message policy survives reuse/reset");
   check(anchor.alpha==1,"trigger remains visible throughout all cycles");
   for(int sourceWidth:new int[]{24,40,160,320})for(int sourceHeight:new int[]{24,56,96}) {
@@ -134,7 +152,7 @@ public class CheckMenuFeedback {
 }
 '''
 source = source.replace('REVEAL_METHODS', '\n'.join(method(reveal, sig) for sig in [
-    'public void setAnchor(', 'public void begin(', 'private boolean resolveOrigin(',
+    'public void setAnchor(', 'public void begin(', 'private boolean resolveOrigin(', 'private boolean locateOrigin(',
     'private void removeOriginListener(', 'private void applyMotion(', 'private void updateFrame(', 'private void clearFocus(', 'public void setProgress(', 'public void reset(',
     'public void prepareClose(', 'public void setCloseProgress(', 'public int getCloseDuration(', 'public boolean isMorphEnabled(', 'public void setMorphEnabled(']))
 # The no-entry caller path only needs an endpoint in this lifecycle fixture.

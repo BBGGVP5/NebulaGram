@@ -34,7 +34,7 @@ public final class NebulaMenuReveal {
     private float seed;
     private float seedWidth, seedHeight, seedRadius;
     private View focusContent;
-    private float progress = 1, originX, originY, clockStart;
+    private float progress = 1, originX, originY, originShareX, originShareY, clockStart;
     private float closeProgress, closeStart;
     private boolean closing;
     private int focusStep = -1;
@@ -110,11 +110,24 @@ public final class NebulaMenuReveal {
     private void removeOriginListener() {
         if (host.getViewTreeObserver().isAlive()) host.getViewTreeObserver().removeOnPreDrawListener(originListener);
     }
-    private boolean resolveOrigin() {
+    private boolean resolveOrigin() { return locateOrigin(true); }
+    private boolean locateOrigin(boolean opening) {
         if (!host.isAttachedToWindow() || host.getWidth() == 0 || host.getHeight() == 0) return true;
-        originX = host.getWidth();
-        originY = host.shownFromBottom ? host.getHeight() : 0;
         View view = anchor == null ? null : anchor.get();
+        if (originResolved) {
+            // Якоря уже нет — меню закрывается туда же, откуда открылось. Доля,
+            // а не пиксели: подменю меняет размер окна, и правый край, взятый
+            // в старых пикселях, оказался бы посреди меню.
+            originX = originShareX * host.getWidth(); originY = originShareY * host.getHeight();
+        } else if (opening) {
+            originX = host.getWidth();
+            originY = host.shownFromBottom ? host.getHeight() : 0;
+        } else {
+            // Меню открылось без нашей анимации и без якоря: угла, из которого
+            // оно выросло, не было. Сворачиваться в выдуманный угол хуже, чем
+            // на месте.
+            originX = host.getWidth() / 2f; originY = host.getHeight() / 2f;
+        }
         float diameter=AndroidUtilities.dp(NebulaMenuBubble.SEED_DP);
         if (view != null && view.isAttachedToWindow()) {
             view.getLocationOnScreen(location);
@@ -132,6 +145,7 @@ public final class NebulaMenuReveal {
             originX = Math.max(0, Math.min(host.getWidth(), originX));
             originY = Math.max(0, Math.min(host.getHeight(), originY));
         }
+        originShareX = originX / host.getWidth(); originShareY = originY / host.getHeight();
         // Native backgrounds inset 8dp. Map the seed through the same padded
         // rectangle rather than adding a fixed amount that enlarges the button.
         float padding=AndroidUtilities.dp(16);
@@ -142,7 +156,7 @@ public final class NebulaMenuReveal {
         host.getLocationOnScreen(location);
         screen.offset(-location[0], -location[1]);
         host.setPivotX(originX); host.setPivotY(originY);
-        clockStart = progress; progress = 0;
+        if (opening) { clockStart = progress; progress = 0; }
         originResolved = true; removeOriginListener(); applyMotion();
         return true;
     }
@@ -276,11 +290,14 @@ public final class NebulaMenuReveal {
         }
     }
     public void prepareClose() {
-        // Some native callers show a popup without an entry animation.
-        // Resolve its anchor once instead of collapsing toward the default (0, 0).
-        if (!began) { begin(); finish(); }
+        // Some native callers show a popup without an entry animation: it is
+        // already open, so only its source is missing, not its progress.
+        if (!began) { removeOriginListener(); clearFocus(); began = true; originResolved = false; progress = 1; clockStart = 0; }
         stopTouch();
-        if (!originResolved) resolveOrigin();
+        // Источник ищется заново, где якорь сейчас: окно меню могли сдвинуть
+        // после открытия, а подменю — изменить его размер. Точка, посчитанная
+        // в первом кадре, уводила закрытие в чужой угол.
+        locateOrigin(false);
         closeProgress = 0; closeStart = progress;
         updateFrame(); closeFrame.copy(frame);
         closing = true;
