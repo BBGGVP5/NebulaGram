@@ -166,4 +166,14 @@ dialogs = (tree / 'TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.j
 assert dialogs.count('NebulaEdgeCompression.apply(') == 2,     'edge compression needs both hooks: scrolling moves the rows, layout paints the first frame'
 edge = (ui / 'NebulaEdgeCompression.java').read_text(encoding='utf-8')
 assert 'child.setScaleX(1f)' in edge,     'turning it off must restore recycled rows, which the list reuses rather than rebuilds'
+util = (tree / 'TMessagesProj/src/main/java/org/telegram/messenger/AndroidUtilities.java').read_text(encoding='utf-8')
+assert 'NebulaFont.substitute(assetPath)' in util, 'the font choice must sit in the one funnel every typeface goes through'
+assert 'nebulaClearTypefaces' in util, 'the typeface cache must be clearable, or the old font survives the change'
+font = (ui / 'NebulaFont.java').read_text(encoding='utf-8')
+assert 'Typeface.MONOSPACE' in font, 'monospace must stay monospace: code in messages is aligned by it'
+row = (ui / 'NebulaRow.java').read_text(encoding='utf-8')
+assert 'public NebulaRow tile(int resource, int color)' in row, 'section rows need a coloured tile'
+assert 'icon.setColorFilter(0xFFFFFFFF' in row, 'an icon inside a coloured tile must be white, not themed'
+root = (ui / 'NebulaSettingsFragment.java').read_text(encoding='utf-8')
+assert root.count('NebulaRow.TILE_') >= 7, 'every top-level section must carry its own tile colour'
 print('PASS: shape and the three media sizes each reach a different place in the app')

@@ -140,6 +140,32 @@ public class NebulaRow extends FrameLayout {
         highlightAnimation.start();
     }
 
+    /**
+     * Значок цветной плиткой — так выглядят разделы верхнего уровня.
+     *
+     * <p>Отличается от {@link #icon(int)} не только фоном: внутри плитки
+     * значок белый, а снаружи — по цвету текста. Красить один и тот же значок
+     * в два цвета по месту вызова значило бы разносить это знание по экранам.
+     */
+    public NebulaRow tile(int resource, int color) {
+        icon(resource);
+        if (resource == 0) return this;
+        android.graphics.drawable.GradientDrawable background =
+                new android.graphics.drawable.GradientDrawable();
+        background.setCornerRadius(NebulaShape.radius(9));
+        background.setColor(color);
+        icon.setBackground(background);
+        icon.setColorFilter(0xFFFFFFFF, PorterDuff.Mode.SRC_IN);
+        icon.setPadding(AndroidUtilities.dp(6), AndroidUtilities.dp(6),
+                AndroidUtilities.dp(6), AndroidUtilities.dp(6));
+        return this;
+    }
+
+    /** Цвета плиток разделов, в порядке их появления на экране. */
+    public static final int TILE_BLUE = 0xFF2F82EC, TILE_PURPLE = 0xFF8E5CF0,
+            TILE_GREEN = 0xFF3CBF5E, TILE_INDIGO = 0xFF4E6BF5, TILE_ORANGE = 0xFFF0923C,
+            TILE_TEAL = 0xFF17A6A6, TILE_GREY = 0xFF8A8F98, TILE_PINK = 0xFFE4588A;
+
     public NebulaRow icon(int resource) {
         if (animatedEmoji != null) animatedEmoji.setVisibility(GONE);
         if (emojiIcon != null) {

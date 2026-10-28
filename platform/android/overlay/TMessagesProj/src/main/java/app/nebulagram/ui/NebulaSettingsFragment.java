@@ -162,21 +162,21 @@ public class NebulaSettingsFragment extends BaseFragment {
         sections.addView(connection, cardParams());
         sections.addView(NebulaCard.header(context, NebulaText.text("Настройки", "Settings")));
         NebulaCard categories = new NebulaCard(context);
-        categories.add(hub(context, R.drawable.msg_settings, "Основные", "General",
+        categories.add(hub(context, R.drawable.msg_settings, NebulaRow.TILE_BLUE, "Основные", "General",
                 "Подключение и поведение", "Connection and behavior", NebulaSettingsHubFragment.GENERAL));
-        categories.add(hub(context, R.drawable.msg_customize, "Внешний вид", "Appearance",
+        categories.add(hub(context, R.drawable.msg_customize, NebulaRow.TILE_PURPLE, "Внешний вид", "Appearance",
                 "Цвета, стекло, значки", "Colors, glass, icons", NebulaSettingsHubFragment.APPEARANCE));
-        categories.add(hub(context, R.drawable.msg_discussion, "Чаты и сообщения", "Chats and messages",
+        categories.add(hub(context, R.drawable.msg_discussion, NebulaRow.TILE_GREEN, "Чаты и сообщения", "Chats and messages",
                 "Ввод, камера, действия и задачи", "Composer, camera, actions and tasks", NebulaSettingsHubFragment.CHATS));
-        categories.add(hub(context, R.drawable.nebula_ai_spark, "ИИ и аудио", "AI and audio",
+        categories.add(hub(context, R.drawable.nebula_ai_spark, NebulaRow.TILE_INDIGO, "ИИ и аудио", "AI and audio",
                 "Ассистент, перевод, расшифровка и голоса", "Assistant, translation, transcription and voices", NebulaSettingsHubFragment.TOOLS));
-        categories.add(hub(context, R.drawable.msg_list, "Навигация", "Navigation",
+        categories.add(hub(context, R.drawable.msg_list, NebulaRow.TILE_ORANGE, "Навигация", "Navigation",
                 "Панель и папки", "Bar and folders", NebulaSettingsHubFragment.NAVIGATION));
-        accountsRow = new NebulaRow(context).icon(R.drawable.msg_openprofile).title(NebulaText.text("Аккаунты", "Accounts"))
+        accountsRow = new NebulaRow(context).tile(R.drawable.msg_openprofile, NebulaRow.TILE_TEAL).title(NebulaText.text("Аккаунты", "Accounts"))
                 .subtitle(accountSummary(), false).trailing(NebulaRow.TRAIL_CHEVRON)
                 .withClick(v -> presentFragment(new NebulaAccountsFragment()));
         categories.add(accountsRow);
-        categories.add(hub(context, R.drawable.msg_secret, "Конфиденциальность", "Privacy",
+        categories.add(hub(context, R.drawable.msg_secret, NebulaRow.TILE_GREY, "Конфиденциальность", "Privacy",
                 "Архив и защита", "Archive and protection", NebulaSettingsHubFragment.PRIVACY));
         categories.add(new NebulaRow(context).icon(R.drawable.msg_info).title(NebulaText.text("О приложении", "About"))
                 .subtitle(NebulaText.text("Версия, обновления, сообщество и поддержка", "Version, updates, community and support"), false)
@@ -192,7 +192,12 @@ public class NebulaSettingsFragment extends BaseFragment {
 
     private NebulaRow hub(Context context, int icon, String titleRu, String titleEn,
                           String detailRu, String detailEn, int category) {
-        return new NebulaRow(context).icon(icon).title(NebulaText.text(titleRu, titleEn))
+        return hub(context, icon, NebulaRow.TILE_GREY, titleRu, titleEn, detailRu, detailEn, category);
+    }
+
+    private NebulaRow hub(Context context, int icon, int tint, String titleRu, String titleEn,
+                          String detailRu, String detailEn, int category) {
+        return new NebulaRow(context).tile(icon, tint).title(NebulaText.text(titleRu, titleEn))
                 .subtitle(NebulaText.text(detailRu, detailEn), false)
                 .trailing(NebulaRow.TRAIL_CHEVRON)
                 .withClick(v -> {
