@@ -1,0 +1,46 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/QrShare/QrBackdrops.java b/TMessagesProj/src/main/java/org/telegram/ui/QrShare/QrBackdrops.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/QrShare/QrBackdrops.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/QrShare/QrBackdrops.java
+@@ -26,7 +26,8 @@ public final class QrBackdrops {
+ 
+     private static final String KEY = "qrBackdrops";
+ 
+-    private static final QrBackdrops[] instances = new QrBackdrops[UserConfig.MAX_ACCOUNT_COUNT];
++    private static final org.telegram.messenger.AccountInstanceRegistry<QrBackdrops> instances =
++        new org.telegram.messenger.AccountInstanceRegistry<>();
+ 
+     private final int account;
+     private @Nullable TLRPC.TL_shareThemeBackdrops backdrops;
+@@ -34,10 +35,7 @@ public final class QrBackdrops {
+     private final ArrayList<Runnable> callbacks = new ArrayList<>();
+ 
+     public static QrBackdrops get(int account) {
+-        if (instances[account] == null) {
+-            instances[account] = new QrBackdrops(account);
+-        }
+-        return instances[account];
++        return instances.get(account, QrBackdrops::new);
+     }
+ 
+     private QrBackdrops(int account) {
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/QrShare/QrShareServer.java b/TMessagesProj/src/main/java/org/telegram/ui/QrShare/QrShareServer.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/QrShare/QrShareServer.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/QrShare/QrShareServer.java
+@@ -502,14 +502,11 @@ final class QrShareServer implements NotificationCenter.NotificationCenterDelega
+     /** A full that left the server just before the save may still come with the old theme this long after it. */
+     private static final long LOCAL_THEME_HOLD = 10_000;
+ 
+-    @SuppressWarnings("unchecked")
+-    private static final android.util.LongSparseArray<LocalTheme>[] localThemes = new android.util.LongSparseArray[UserConfig.MAX_ACCOUNT_COUNT];
++    private static final org.telegram.messenger.AccountInstanceRegistry<android.util.LongSparseArray<LocalTheme>> localThemes =
++        new org.telegram.messenger.AccountInstanceRegistry<>();
+ 
+     private static android.util.LongSparseArray<LocalTheme> localThemes(int account) {
+-        if (localThemes[account] == null) {
+-            localThemes[account] = new android.util.LongSparseArray<>();
+-        }
+-        return localThemes[account];
++        return localThemes.get(account, ignored -> new android.util.LongSparseArray<>());
+     }
+ 
+     private @Nullable TLRPC.ShareTheme loadedTheme;

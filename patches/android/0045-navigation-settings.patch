@@ -261,22 +261,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/SettingsActivity.java b
          subtitleView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 13);
          subtitleView.setGravity(Gravity.CENTER);
          subtitleView.setSingleLine();
-@@ -511,6 +511,14 @@ public class SettingsActivity extends BaseFragment implements NotificationCenter
-         return fragmentView = contentView;
-     }
- 
-+    @Override
-+    public void onResume() {
-+        super.onResume();
-+        if (subtitleView != null) {
-+            subtitleView.setText(app.nebulagram.ui.NebulaNavigation.privateSubtitle(getUserConfig().getCurrentUser()));
-+        }
-+    }
-+
-     @Override
-     public void onFragmentDestroy() {
-         super.onFragmentDestroy();
-@@ -547,15 +555,7 @@ public class SettingsActivity extends BaseFragment implements NotificationCenter
+@@ -547,15 +547,7 @@ public class SettingsActivity extends BaseFragment implements NotificationCenter
          avatarDrawable.setInfo(user);
          avatarView.setForUserOrChat(user, avatarDrawable);
          titleView.setText(UserObject.getUserName(user));
@@ -293,7 +278,19 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/SettingsActivity.java b
  
          versionView.setText(getVersionName());
      }
-@@ -701,13 +701,13 @@ public class SettingsActivity extends BaseFragment implements NotificationCenter
+@@ -629,6 +621,11 @@ public class SettingsActivity extends BaseFragment implements NotificationCenter
+     @Override
+     public void onResume() {
+         super.onResume();
++        // 13.1.1 завёл здесь свой onResume. Подпись обновляется в том же
++        // месте, где и список: второй переопределённый метод не компилируется.
++        if (subtitleView != null) {
++            subtitleView.setText(app.nebulagram.ui.NebulaNavigation.privateSubtitle(getUserConfig().getCurrentUser()));
++        }
+         if (listView.adapter != null) {
+             listView.adapter.notifyDataSetChanged();
+         }
+@@ -701,13 +698,13 @@ public class SettingsActivity extends BaseFragment implements NotificationCenter
              items.add(UItem.asShadow(null));
          }
  
@@ -313,7 +310,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/SettingsActivity.java b
  
          final boolean walletAbove = getConnectionsManager().getCurrentTime() - 1791538462 < 4 * 7 * 24 * 60 * 60;
          if (walletAbove && getMessagesController().config.walletAvailable.get()) {
-@@ -716,17 +716,15 @@ public class SettingsActivity extends BaseFragment implements NotificationCenter
+@@ -716,17 +713,15 @@ public class SettingsActivity extends BaseFragment implements NotificationCenter
              items.add(UItem.asShadow(null));
          }
  
@@ -340,7 +337,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/SettingsActivity.java b
          items.add(SettingCell.Factory.of(2, IconBackgroundColors.ORANGE.top, IconBackgroundColors.ORANGE.bottom, R.drawable.settings_chat, getString(R.string.SettingsChat), getString(R.string.SettingsChatInfo)));
          items.add(SettingCell.Factory.of(3, IconBackgroundColors.GREEN.top, IconBackgroundColors.GREEN.bottom, R.drawable.settings_privacy, getString(R.string.SettingsPrivacySecurity), getString(R.string.SettingsPrivacySecurityInfo)));
          items.add(SettingCell.Factory.of(5, IconBackgroundColors.RED.top, IconBackgroundColors.RED.bottom, R.drawable.settings_sounds, getString(R.string.SettingsNotifications), getString(R.string.SettingsNotificationsInfo)));
-@@ -850,16 +848,22 @@ public class SettingsActivity extends BaseFragment implements NotificationCenter
+@@ -850,16 +845,22 @@ public class SettingsActivity extends BaseFragment implements NotificationCenter
              case 0x4e42:
                  presentSettingFragment(new app.nebulagram.ui.NebulaSettingsFragment());
                  break;
