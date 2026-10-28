@@ -102,7 +102,7 @@ public class ShapeCheck {
 source = source.replace('TABLE', table.group(0).replace('private static final', 'static final'))
 source = source.replace('RADIUS', method(shape, 'public static int radius(float naturalDp)')
                         .replace('org.telegram.messenger.AndroidUtilities', 'AndroidUtilities'))
-source = source.replace('AVATAR', method(shape, 'public static void avatarRadii(int side, int[] out)'))
+source = source.replace('AVATAR', method(shape, 'public static void avatarRadii(float side, int[] out)'))
 source = source.replace('GAP', method(shape, 'public static int gap(float naturalDp)')
                         .replace('org.telegram.messenger.AndroidUtilities', 'AndroidUtilities'))
 

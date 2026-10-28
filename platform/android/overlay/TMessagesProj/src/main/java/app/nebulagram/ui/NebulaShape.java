@@ -129,13 +129,15 @@ public final class NebulaShape {
 
     /**
      * Радиусы четырёх углов фото профиля для стороны {@code side} в пикселях,
-     * в порядке {@code ImageReceiver.setRoundRadius}.
+     * в порядке {@code ImageReceiver.setRoundRadius}. Сторона — дробная:
+     * {@code imageW} и {@code imageH} у {@code ImageReceiver} хранятся во
+     * float, и округлять их до вызова значило бы терять полпикселя зря.
      *
      * <p>Пишет в чужой массив намеренно: вызывается это из {@code draw}, по
      * разу на каждое фото в каждом кадре, и возвращать оттуда новый массив
      * значит сорить в самом горячем месте отрисовки.
      */
-    public static void avatarRadii(int side, int[] out) {
+    public static void avatarRadii(float side, int[] out) {
         float[] factors = cornerFactors(avatarShape());
         float half = side * .5f;
         // Старая настройка процентов остаётся главной: пока её не трогали, она
@@ -146,7 +148,7 @@ public final class NebulaShape {
     }
 
     /** То же для превью, где кадр один и лишний массив ничего не стоит. */
-    public static int[] avatarRadii(int side) {
+    public static int[] avatarRadii(float side) {
         int[] radii = new int[4];
         avatarRadii(side, radii);
         return radii;
