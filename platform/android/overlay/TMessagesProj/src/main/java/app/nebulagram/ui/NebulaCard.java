@@ -111,7 +111,7 @@ public class NebulaCard extends LinearLayout {
             }
             // The introduction already owns the gap to the first setting.
             // Later group headers retain their separation from the last card.
-            int top = afterIntroduction ? 0 : AndroidUtilities.dp(18);
+            int top = afterIntroduction ? 0 : NebulaShape.gap(18);
             if (getPaddingTop() != top) {
                 setPadding(getPaddingLeft(), top, getPaddingRight(), getPaddingBottom());
             }

@@ -61,6 +61,27 @@ public final class NebulaShape {
         return org.telegram.messenger.AndroidUtilities.dp(dp);
     }
 
+    // --- Отступы между секциями --------------------------------------------
+
+    /** Ступень плотности, 0..6; середина — нынешние отступы. */
+    public static int sectionGap() {
+        return Math.max(0, Math.min(6, prefs().getInt("section_gap", 3)));
+    }
+
+    public static void setSectionGap(int value) {
+        prefs().edit().putInt("section_gap", Math.max(0, Math.min(6, value))).apply();
+    }
+
+    /**
+     * Отступ между группами настроек. {@code naturalDp} — нынешний отступ, и
+     * на средней ступени возвращается он сам: настройка сдвигает плотность
+     * вокруг того, что есть, а не назначает её заново.
+     */
+    public static int gap(float naturalDp) {
+        float scale = .4f + sectionGap() * .2f;
+        return org.telegram.messenger.AndroidUtilities.dp(naturalDp * scale);
+    }
+
     // --- Форма фото профиля ------------------------------------------------
 
     public static final int CIRCLE = 0, SQUIRCLE = 1, ROUNDED = 2, SQUARE = 3, LEAF = 4, DROP = 5;

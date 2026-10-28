@@ -1,6 +1,8 @@
 package app.nebulagram.ui;
 
+import android.content.Context;
 import android.os.Bundle;
+import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import org.telegram.messenger.AndroidUtilities;
@@ -20,7 +22,7 @@ public final class NebulaFeatureControls {
     }
     private static void add(LinearLayout parent, NebulaCard card) {
         LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        params.topMargin = AndroidUtilities.dp(12);
+        params.topMargin = NebulaShape.gap(12);
         parent.addView(card, params);
     }
     public static void general(BaseFragment host, LinearLayout parent) {
@@ -91,6 +93,55 @@ public final class NebulaFeatureControls {
             .trailing(NebulaRow.TRAIL_CHEVRON).withClick(v -> host.presentFragment(new NebulaSwipeSettingsFragment())));
         NebulaPeerSelections.savedRow(host, card);
         add(parent, card);
+        stickerSize(parent);
+    }
+
+    /** Размеры медиа — с превью: по одному проценту трудно представить итог. */
+    private static void stickerSize(LinearLayout parent) {
+        Context context = parent.getContext();
+        parent.addView(NebulaCard.header(context, text("Размер стикеров, эмодзи и GIF", "Sticker, emoji and GIF size")));
+        NebulaCard card = new NebulaCard(context);
+        NebulaMediaSizePreview preview = new NebulaMediaSizePreview(context);
+        card.add(preview);
+        card.add(sizeSlider(context, preview, text("Стикеры", "Stickers"),
+                NebulaMediaSize.stickerPercent(), NebulaMediaSize::setStickerPercent));
+        card.add(sizeSlider(context, preview, text("Анимированные эмодзи", "Animated emoji"),
+                NebulaMediaSize.emojiPercent(), NebulaMediaSize::setEmojiPercent));
+        card.add(sizeSlider(context, preview, "GIF",
+                NebulaMediaSize.gifPercent(), NebulaMediaSize::setGifPercent));
+        add(parent, card);
+        parent.addView(NebulaFormUi.note(context, text(
+                "Множится доля экрана, а не пиксели, поэтому размер одинаков на телефоне и планшете. У GIF свой ползунок, но Telegram не даёт им стать меньше его собственного предела: иначе поверх гифки не помещаются время и проценты загрузки.",
+                "This scales the share of the screen rather than pixels, so sizes match on a phone and a tablet. GIFs have their own slider, but Telegram keeps a floor under them: below it the time and loading percentage no longer fit on top.")));
+    }
+
+    private interface Percent { void set(int value); }
+
+    private static View sizeSlider(Context context, View preview, String title, int value, Percent apply) {
+        LinearLayout column = new LinearLayout(context);
+        column.setOrientation(LinearLayout.VERTICAL);
+        android.widget.TextView label = new android.widget.TextView(context);
+        label.setText(title);
+        label.setTextSize(15);
+        label.setTextColor(NebulaTheme.of(context).onSurface());
+        label.setPadding(AndroidUtilities.dp(20), AndroidUtilities.dp(12), AndroidUtilities.dp(20), 0);
+        column.addView(label);
+        android.widget.SeekBar slider = new android.widget.SeekBar(context);
+        slider.setMax(NebulaMediaSize.maximum() - NebulaMediaSize.minimum());
+        slider.setProgress(value - NebulaMediaSize.minimum());
+        slider.setPadding(AndroidUtilities.dp(20), AndroidUtilities.dp(4),
+                AndroidUtilities.dp(20), AndroidUtilities.dp(10));
+        slider.setOnSeekBarChangeListener(new android.widget.SeekBar.OnSeekBarChangeListener() {
+            @Override public void onProgressChanged(android.widget.SeekBar bar, int progress, boolean fromUser) {
+                if (!fromUser) return;
+                apply.set(NebulaMediaSize.minimum() + progress);
+                preview.invalidate();
+            }
+            @Override public void onStartTrackingTouch(android.widget.SeekBar bar) { }
+            @Override public void onStopTrackingTouch(android.widget.SeekBar bar) { }
+        });
+        column.addView(slider);
+        return column;
     }
     public static void privacy(BaseFragment host, LinearLayout parent) {
         NebulaCard card = new NebulaCard(parent.getContext());

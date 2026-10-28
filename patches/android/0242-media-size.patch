@@ -1,0 +1,56 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Cells/ChatMessageCell.java b/TMessagesProj/src/main/java/org/telegram/ui/Cells/ChatMessageCell.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Cells/ChatMessageCell.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Cells/ChatMessageCell.java
+@@ -9732,19 +9732,30 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
+                     }
+                     String filter;
+                     if (messageObject.isAnimatedEmoji() || messageObject.isDice()) {
+-                        float zoom = MessagesController.getInstance(currentAccount).animatedEmojisZoom;
++                        // Анимированные эмодзи уже масштабируются своим zoom —
++                        // настройка множит именно его, поэтому они отделены от
++                        // стикеров, хотя и делят с ними этот расчёт.
++                        float zoom = MessagesController.getInstance(currentAccount).animatedEmojisZoom
++                                * app.nebulagram.ui.NebulaMediaSize.emojiScale();
+                         photoWidth = (int) ((photoWidth / 512.0f) * maxWidth * zoom);
+                         photoHeight = (int) ((photoHeight / 512.0f) * maxHeight * zoom);
+                     } else {
++                        // Размер стикера — доля стороны экрана. Настройка множит
++                        // именно её, поэтому одинакова на телефоне и планшете.
++                        // Коробка считается в локальных переменных: сами maxWidth
++                        // и maxHeight нужны дальше неизменными.
++                        final float nebulaSticker = app.nebulagram.ui.NebulaMediaSize.stickerScale();
++                        final float nebulaMaxWidth = maxWidth * nebulaSticker;
++                        final float nebulaMaxHeight = maxHeight * nebulaSticker;
+                         if (photoWidth == 0) {
+-                            photoHeight = (int) maxHeight;
++                            photoHeight = (int) nebulaMaxHeight;
+                             photoWidth = photoHeight + dp(100);
+                         }
+-                        photoHeight *= maxWidth / (float) photoWidth;
+-                        photoWidth = (int) maxWidth;
+-                        if (photoHeight > maxHeight) {
+-                            photoWidth *= maxHeight / photoHeight;
+-                            photoHeight = (int) maxHeight;
++                        photoHeight *= nebulaMaxWidth / (float) photoWidth;
++                        photoWidth = (int) nebulaMaxWidth;
++                        if (photoHeight > nebulaMaxHeight) {
++                            photoWidth *= nebulaMaxHeight / photoHeight;
++                            photoHeight = (int) nebulaMaxHeight;
+                         }
+                     }
+                     Object parentObject = messageObject;
+@@ -9891,6 +9902,14 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
+                         }
+                     }
+                     photoHeight = photoWidth + dp(100);
++                    // GIF делят расчёт с фотографиями и видео, поэтому коробка
++                    // множится только для них и только здесь — до потолков ниже,
++                    // чтобы увеличенная гифка всё равно осталась в их пределах.
++                    if (messageObject.type == MessageObject.TYPE_GIF) {
++                        final float nebulaGif = app.nebulagram.ui.NebulaMediaSize.gifScale();
++                        photoWidth = Math.max(dp(1), (int) (photoWidth * nebulaGif));
++                        photoHeight = Math.max(dp(1), (int) (photoHeight * nebulaGif));
++                    }
+                     if (!useFullWidth) {
+                         if (messageObject.type != MessageObject.TYPE_ROUND_VIDEO && checkNeedDrawShareButton(messageObject)) {
+                             photoWidth -= dp(20);

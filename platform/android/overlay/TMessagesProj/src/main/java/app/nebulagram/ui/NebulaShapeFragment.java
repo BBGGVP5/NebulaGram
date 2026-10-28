@@ -103,6 +103,35 @@ public final class NebulaShapeFragment extends BaseFragment {
         });
         content.addView(corners);
 
+        content.addView(NebulaCard.header(context, text("Плотность", "Density")));
+        NebulaCard density = new NebulaCard(context);
+        TextView gapValue = new TextView(context);
+        gapValue.setTextSize(15);
+        gapValue.setTextColor(NebulaTheme.of(context).primary());
+        gapValue.setPadding(dp(20), dp(14), dp(20), dp(2));
+        density.add(gapValue);
+        SeekBar gap = new SeekBar(context);
+        gap.setMax(6);
+        gap.setProgress(NebulaShape.sectionGap());
+        gap.setPadding(dp(20), dp(8), dp(20), dp(14));
+        density.add(gap);
+        Runnable gapLabel = () -> gapValue.setText(text("Отступы между секциями", "Space between groups")
+                + "  ·  " + NebulaShape.sectionGap());
+        gapLabel.run();
+        gap.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override public void onProgressChanged(SeekBar bar, int progress, boolean fromUser) {
+                if (!fromUser) return;
+                NebulaShape.setSectionGap(progress);
+                gapLabel.run();
+                // Отступ меняет вёрстку уже открытого экрана: перестроить его
+                // на месте честнее, чем показать результат только при возврате.
+                content.requestLayout();
+            }
+            @Override public void onStartTrackingTouch(SeekBar bar) { }
+            @Override public void onStopTrackingTouch(SeekBar bar) { }
+        });
+        content.addView(density);
+
         content.addView(NebulaCard.header(context, text("Фото профиля", "Profile photo")));
         NebulaCard shapes = new NebulaCard(context);
         shapes.add(shapePicker(context));

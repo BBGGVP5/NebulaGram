@@ -38,6 +38,8 @@ public class ShapeCheck {
  static int roundness() { return roundnessValue; }
  static boolean uniform() { return uniformValue; }
  static int shapeValue; static int avatarShape() { return shapeValue; }
+ static int gapValue = 3; static int sectionGap() { return gapValue; }
+ GAP
  TABLE
  static float[] cornerFactors(int s) { return CORNERS[Math.max(0, Math.min(CORNERS.length - 1, s))]; }
  RADIUS
@@ -84,7 +86,16 @@ public class ShapeCheck {
   check(radius(20) == 0, "straight corners remove the radius");
   roundnessValue = 50;
   check(radius(20) == AndroidUtilities.dp(10), "half roundness halves the radius");
-  System.out.println("PASS: " + CORNERS.length + " profile photo shapes and uniform corner scaling");
+  // Середина ступеней не должна ничего двигать: настройка сдвигает плотность
+  // вокруг нынешних отступов, а не назначает их заново.
+  gapValue = 3;
+  check(gap(12) == AndroidUtilities.dp(12), "the middle density step keeps today's spacing");
+  gapValue = 0;
+  check(gap(12) < AndroidUtilities.dp(12), "the lowest step tightens spacing");
+  gapValue = 6;
+  check(gap(12) > AndroidUtilities.dp(12), "the highest step loosens spacing");
+  for (int step = 0; step <= 6; step++) { gapValue = step; check(gap(12) >= 0, "spacing stays positive"); }
+  System.out.println("PASS: " + CORNERS.length + " profile photo shapes, uniform corners and density steps");
  }
 }
 '''
@@ -92,6 +103,8 @@ source = source.replace('TABLE', table.group(0).replace('private static final', 
 source = source.replace('RADIUS', method(shape, 'public static int radius(float naturalDp)')
                         .replace('org.telegram.messenger.AndroidUtilities', 'AndroidUtilities'))
 source = source.replace('AVATAR', method(shape, 'public static void avatarRadii(int side, int[] out)'))
+source = source.replace('GAP', method(shape, 'public static int gap(float naturalDp)')
+                        .replace('org.telegram.messenger.AndroidUtilities', 'AndroidUtilities'))
 
 with tempfile.TemporaryDirectory(prefix='nebula-shape-') as directory:
     work = Path(directory)
@@ -117,4 +130,19 @@ assert 'NebulaShape.radius(' in menu, 'menus must follow the uniform corner sett
 preview = (ui / 'NebulaShapePreview.java').read_text(encoding='utf-8')
 assert 'NebulaShape.radius(' in preview and 'NebulaShape.avatarRadii(' in preview, \
     'the preview must read the same values the app does, not redraw its own guess'
-print('PASS: shape settings reach profile photos, bubbles, cards, menus and the preview')
+# Each of the three sliders has to move something different, or they are one
+# slider wearing three labels.
+assert 'NebulaMediaSize.stickerScale()' in cell, 'stickers must read their own scale'
+assert 'NebulaMediaSize.emojiScale()' in cell, 'animated emoji must read their own scale'
+assert 'NebulaMediaSize.gifScale()' in cell, 'GIFs must read their own scale'
+assert 'animatedEmojisZoom' in cell, 'the emoji scale must multiply Telegram zoom, not replace it'
+assert 'messageObject.type == MessageObject.TYPE_GIF' in cell and 'nebulaGif' in cell,     'the GIF scale must apply only to GIFs, not to the shared photo and video box'
+assert 'nebulaMaxWidth' in cell and 'maxWidth * nebulaSticker' in cell,     'the sticker box must be scaled in locals, leaving maxWidth for its other readers'
+size = (ui / 'NebulaMediaSize.java').read_text(encoding='utf-8')
+for name in ('stickerScale', 'emojiScale', 'gifScale'):
+    assert name in size, name + ' must exist for the slider that sets it'
+card_text = card
+assert 'NebulaShape.gap(18)' in card_text, 'group headers must follow the density setting'
+controls = (ui / 'NebulaFeatureControls.java').read_text(encoding='utf-8')
+assert 'NebulaShape.gap(12)' in controls, 'the gap between cards must follow the density setting'
+print('PASS: shape and the three media sizes each reach a different place in the app')
