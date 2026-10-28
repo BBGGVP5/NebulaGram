@@ -92,6 +92,11 @@ public final class NebulaFeatureControls {
                 .trailing(NebulaRow.TRAIL_SWITCH).checked(NebulaTabButtons.enabled());
         tabs.withClick(v -> NebulaTabButtons.setEnabled(tabs.toggleChecked()));
         list.add(tabs);
+        NebulaRow edges = new NebulaRow(context).title(text("Сжатие у краёв", "Edge compression"))
+                .subtitle(text("Чаты плавно уходят за верхний край", "Chats slide away past the top edge"), false)
+                .trailing(NebulaRow.TRAIL_SWITCH).checked(NebulaEdgeCompression.enabled());
+        edges.withClick(v -> NebulaEdgeCompression.setEnabled(edges.toggleChecked()));
+        list.add(edges);
         add(parent, list);
         NebulaCard card = new NebulaCard(context);
         card.add(toggle(parent, "snowflakes", "Снежинки", "Snowflakes", "В списке чатов и переписках; отключаются при экономии энергии", "In the chat list and conversations; pauses in power-saving mode"));

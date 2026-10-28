@@ -162,4 +162,8 @@ assert 'setIosComposer(style != TELEGRAM)' in composer,     'picking Telegram mu
 chat = (tree / 'TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java').read_text(encoding='utf-8')
 assert chat.count('NebulaDeleteEffect.dust(LiteMode.isEnabled(LiteMode.FLAG_CHAT_THANOS))') == 2,     'both gates on the dust effect must consult the setting, or one of them still refuses'
 assert 'ThanosEffect.supports()' in chat, 'the device check must stay: the effect runs on the GPU'
+dialogs = (tree / 'TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java').read_text(encoding='utf-8')
+assert dialogs.count('NebulaEdgeCompression.apply(') == 2,     'edge compression needs both hooks: scrolling moves the rows, layout paints the first frame'
+edge = (ui / 'NebulaEdgeCompression.java').read_text(encoding='utf-8')
+assert 'child.setScaleX(1f)' in edge,     'turning it off must restore recycled rows, which the list reuses rather than rebuilds'
 print('PASS: shape and the three media sizes each reach a different place in the app')
