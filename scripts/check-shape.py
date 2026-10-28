@@ -145,4 +145,9 @@ card_text = card
 assert 'NebulaShape.gap(18)' in card_text, 'group headers must follow the density setting'
 controls = (ui / 'NebulaFeatureControls.java').read_text(encoding='utf-8')
 assert 'NebulaShape.gap(12)' in controls, 'the gap between cards must follow the density setting'
+dialog = (tree / 'TMessagesProj/src/main/java/org/telegram/ui/Cells/DialogCell.java').read_text(encoding='utf-8')
+assert 'NebulaChatCards.draw(canvas, this, translateY, resourcesProvider)' in dialog,     'the chat card backdrop must reach the cell that draws a chat row'
+assert dialog.index('NebulaChatCards.draw') < dialog.index('boolean needInvalidate'),     'the backdrop must be drawn before the row, not over it'
+cards = (ui / 'NebulaChatCards.java').read_text(encoding='utf-8')
+assert 'stateLayer' in cards, 'the card must tint whatever background is there, not paint its own colour'
 print('PASS: shape and the three media sizes each reach a different place in the app')

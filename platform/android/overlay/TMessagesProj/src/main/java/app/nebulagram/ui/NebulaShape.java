@@ -61,6 +61,17 @@ public final class NebulaShape {
         return org.telegram.messenger.AndroidUtilities.dp(dp);
     }
 
+    // --- Контейнеры --------------------------------------------------------
+
+    /** Своя карточка у каждой строки вместо одной на группу. */
+    public static boolean separateRows() {
+        return prefs().getBoolean("separate_rows", false);
+    }
+
+    public static void setSeparateRows(boolean value) {
+        prefs().edit().putBoolean("separate_rows", value).apply();
+    }
+
     // --- Отступы между секциями --------------------------------------------
 
     /** Ступень плотности, 0..6; середина — нынешние отступы. */

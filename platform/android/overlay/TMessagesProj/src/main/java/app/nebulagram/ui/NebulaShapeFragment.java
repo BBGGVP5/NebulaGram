@@ -103,6 +103,19 @@ public final class NebulaShapeFragment extends BaseFragment {
         });
         content.addView(corners);
 
+        content.addView(NebulaCard.header(context, text("Контейнеры", "Containers")));
+        NebulaCard containers = new NebulaCard(context);
+        containers.add(NebulaExtras.toggle(context, R.drawable.msg_list,
+                text("Своя карточка у каждой строки", "A card for every row"),
+                text("Вместо одной карточки на группу", "Instead of one card per group"),
+                NebulaShape.separateRows(), enabled -> {
+                    NebulaShape.setSeparateRows(enabled);
+                    // Карточки создаются при сборке экрана, поэтому его нужно
+                    // собрать заново: иначе выбор виден только при следующем входе.
+                    build(context);
+                }));
+        content.addView(containers);
+
         content.addView(NebulaCard.header(context, text("Плотность", "Density")));
         NebulaCard density = new NebulaCard(context);
         TextView gapValue = new TextView(context);

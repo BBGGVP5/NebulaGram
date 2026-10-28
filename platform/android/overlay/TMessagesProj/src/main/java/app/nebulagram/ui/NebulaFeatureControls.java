@@ -77,6 +77,17 @@ public final class NebulaFeatureControls {
         parent.addView(NebulaFormUi.note(context, text(
                 "Expressive — лёгкий перелёт и возврат, как сейчас. Стандарт — то же время и те же границы, но затухание без перелёта.",
                 "Expressive overshoots slightly and settles back, as it does today. Standard keeps the same duration and bounds, but eases out without the overshoot.")));
+        NebulaCard list = new NebulaCard(context);
+        NebulaRow cards = new NebulaRow(context).title(text("Список чатов", "Chat list"))
+                .subtitle(text("Каждый чат своей карточкой", "Each chat on its own card"), false)
+                .trailing(NebulaRow.TRAIL_SWITCH).checked(NebulaChatCards.enabled());
+        cards.withClick(v -> {
+            NebulaChatCards.setEnabled(cards.toggleChecked());
+            org.telegram.messenger.NotificationCenter.getGlobalInstance()
+                    .postNotificationName(org.telegram.messenger.NotificationCenter.mainUserInfoChanged);
+        });
+        list.add(cards);
+        add(parent, list);
         NebulaCard card = new NebulaCard(context);
         card.add(toggle(parent, "snowflakes", "Снежинки", "Snowflakes", "В списке чатов и переписках; отключаются при экономии энергии", "In the chat list and conversations; pauses in power-saving mode"));
         add(parent, card);
