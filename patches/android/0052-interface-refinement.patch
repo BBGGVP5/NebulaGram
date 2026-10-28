@@ -1,26 +1,34 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/ImageReceiver.java b/TMessagesProj/src/main/java/org/telegram/messenger/ImageReceiver.java
 --- a/TMessagesProj/src/main/java/org/telegram/messenger/ImageReceiver.java
 +++ b/TMessagesProj/src/main/java/org/telegram/messenger/ImageReceiver.java
-@@ -1876,6 +1876,14 @@ public class ImageReceiver implements NotificationCenter.NotificationCenterDeleg
+@@ -1876,6 +1876,21 @@ public class ImageReceiver implements NotificationCenter.NotificationCenterDeleg
      }
  
      public boolean draw(Canvas canvas) {
 +        if (staticThumbDrawable instanceof AvatarDrawable && imageW > 0 && imageH > 0) {
 +            boolean forum = currentParentObject instanceof TLRPC.Chat && ((TLRPC.Chat) currentParentObject).forum;
 +            {
-+                int radius = Math.round(Math.min(imageW, imageH) * .5f * app.nebulagram.ui.NebulaAppearance.avatarRound() / 100f);
-+                if (forum && !app.nebulagram.ui.NebulaAppearance.uniformAvatars() && nebulaAvatarBaseRadius >= 0) radius = nebulaAvatarBaseRadius;
-+                if (roundRadius[0] != radius) setRoundRadius(new int[] {radius, radius, radius, radius});
++                // Четыре угла, а не один радиус: форма фото профиля ими и
++                // задаётся. Массив переиспользуется — это вызывается на каждый
++                // кадр каждого фото, и новый массив здесь был бы мусором.
++                app.nebulagram.ui.NebulaShape.avatarRadii(Math.min(imageW, imageH), nebulaAvatarCorners);
++                if (forum && !app.nebulagram.ui.NebulaAppearance.uniformAvatars() && nebulaAvatarBaseRadius >= 0) {
++                    java.util.Arrays.fill(nebulaAvatarCorners, nebulaAvatarBaseRadius);
++                }
++                boolean changed = false;
++                for (int i = 0; i < 4; i++) changed |= roundRadius[i] != nebulaAvatarCorners[i];
++                if (changed) setRoundRadius(nebulaAvatarCorners.clone());
 +            }
 +        }
          return draw(canvas, null);
      }
  
-@@ -2535,7 +2543,9 @@ public class ImageReceiver implements NotificationCenter.NotificationCenterDeleg
+@@ -2535,7 +2550,10 @@ public class ImageReceiver implements NotificationCenter.NotificationCenterDeleg
          return forcePreview;
      }
  
 +    private int nebulaAvatarBaseRadius = -1;
++    private final int[] nebulaAvatarCorners = new int[4];
      public void setRoundRadius(int value) {
 +        nebulaAvatarBaseRadius = value;
          setRoundRadius(new int[]{value, value, value, value});

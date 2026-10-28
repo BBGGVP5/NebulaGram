@@ -1,0 +1,14 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Cells/ChatMessageCell.java b/TMessagesProj/src/main/java/org/telegram/ui/Cells/ChatMessageCell.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Cells/ChatMessageCell.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Cells/ChatMessageCell.java
+@@ -6962,6 +6962,10 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
+                 drawPinnedTop = pinnedTop && (currentPosition == null || (currentPosition.flags & MessageObject.POSITION_FLAG_TOP) != 0);
+                 drawPinnedBottom = pinnedBottom && (currentPosition == null || (currentPosition.flags & MessageObject.POSITION_FLAG_BOTTOM) != 0);
+             }
++            // Хвост рисуется там, где пузырь не примыкает к соседнему снизу.
++            // Поэтому «без хвостов» — это не отдельная картинка, а тот же
++            // примыкающий вариант, применённый ко всем сообщениям подряд.
++            if (!app.nebulagram.ui.NebulaShape.tails()) drawPinnedBottom = true;
+ 
+             boolean wasPlayingRound = isPlayingRound;
+             isPlayingRound = isRoundVideo && MediaController.getInstance().isPlayingMessage(currentMessageObject) && delegate != null && !delegate.keyboardIsOpened() && !delegate.isLandscape();

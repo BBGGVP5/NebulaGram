@@ -29,7 +29,7 @@ public class NebulaCard extends LinearLayout {
         setOrientation(VERTICAL);
 
         GradientDrawable background = new GradientDrawable();
-        background.setCornerRadius(AndroidUtilities.dp(20));
+        background.setCornerRadius(NebulaShape.radius(20));
         background.setColor(theme.surfaceContainer());
         setBackground(background);
         // Rows draw ripples that must be clipped to the rounded shape.
