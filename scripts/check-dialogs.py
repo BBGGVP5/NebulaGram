@@ -108,9 +108,25 @@ public class ApplicationLoader {public static android.content.Context applicatio
     'org/telegram/ui/ActionBar/Theme.java': '''package org.telegram.ui.ActionBar;
 public class Theme {
  public static final int key_dialogBackgroundGray=0,key_dialogTextBlack=1,key_dialogTextGray=2,key_dialogTextBlue=3;
+ public static final int key_listSelector=0,key_radioBackground=1,key_dialogRadioBackgroundChecked=3,key_dialogBackground=0;
+ public static final int RIPPLE_MASK_ALL=1;
  public interface ResourcesProvider {int color(int key);}
  public static int[] colors={0xffededed,0xff121212,0xff696969,0xff269a94};
  public static int getColor(int key,ResourcesProvider provider){return provider==null?colors[key]:provider.color(key);}
+ public static android.graphics.drawable.GradientDrawable createSelectorDrawable(int color,int mask){
+  android.graphics.drawable.GradientDrawable d=new android.graphics.drawable.GradientDrawable();d.color=color;return d;}
+ /** Отличимый объект: фикстура проверяет, что поле получило именно его. */
+ public static android.graphics.drawable.GradientDrawable editTextDrawable=new android.graphics.drawable.GradientDrawable();
+ public static android.graphics.drawable.GradientDrawable createEditTextDrawable(android.content.Context c,boolean alert){
+  return editTextDrawable;}
+}''',
+    'org/telegram/ui/Cells/RadioColorCell.java': '''package org.telegram.ui.Cells;
+public class RadioColorCell extends android.widget.LinearLayout {
+ public CharSequence text,text2;public boolean checked;public int unchecked,checkedColor;
+ public RadioColorCell(android.content.Context c,org.telegram.ui.ActionBar.Theme.ResourcesProvider p){super(c);}
+ public void setCheckColor(int a,int b){unchecked=a;checkedColor=b;}
+ public void setTextAndValue(CharSequence t,boolean value){text=t;text2=null;checked=value;}
+ public void setTextAndText2AndValue(CharSequence t,CharSequence t2,boolean value){text=t;text2=t2;checked=value;}
 }''',
     'org/telegram/ui/ActionBar/AlertDialog.java': '''package org.telegram.ui.ActionBar;
 import android.content.*;import android.view.*;
@@ -151,11 +167,11 @@ public class NebulaRoundCameraPanelHost extends org.telegram.ui.ActionBar.Bottom
  public void setOnDismissListener(android.content.DialogInterface.OnDismissListener listener){onDismiss=()->listener.onDismiss(null);}
 }''',
     'DialogCheck.java': '''import app.nebulagram.ui.*;import android.content.*;import android.widget.*;import android.view.*;
+import org.telegram.ui.Cells.RadioColorCell;
 import android.graphics.drawable.*;import android.view.accessibility.*;import org.telegram.ui.ActionBar.*;
 import org.telegram.messenger.*;
 public class DialogCheck {
  static void check(boolean b,String message){if(!b)throw new AssertionError(message);}
- static LinearLayout group(AlertDialog d){return (LinearLayout)((LinearLayout)d.content).children.get(0);}
  static void popup(AlertDialog d,Theme.ResourcesProvider p){
   check(d.dim&&d.alpha>=.5f&&d.alpha<=.7f,"dim surrounding screen");
   check(d.getWindow().gravity==Gravity.CENTER,"centered popup");
@@ -168,26 +184,34 @@ public class DialogCheck {
    AlertDialog d=new NebulaDialog.Builder(context,palette).setTitle("Camera").setSelectedIndex(1)
     .setItems(new CharSequence[]{"Front",null,"Rear"},(dialog,index)->selected[0]=index)
     .setDescriptions(new CharSequence[]{"Front lens",null,"Rear lens"}).setNegativeButton("Cancel",null).show();popup(d,palette);
-   check(group(d).children.size()==2,"null choices skipped without changing indices");
-   LinearLayout row=(LinearLayout)group(d).children.get(0);TextView label=(TextView)((LinearLayout)row.children.get(0)).children.get(0);
-   check(label.color==Theme.getColor(Theme.key_dialogTextBlack,palette),"choice inherits Telegram text color");
-   check(((GradientDrawable)((RippleDrawable)row.background).content).color==Theme.getColor(Theme.key_dialogBackgroundGray,palette),"choice inherits Telegram surface");
-   row=(LinearLayout)group(d).children.get(1);row.performClick();check(selected[0]==2&&!d.visible,"selection returns original index and dismisses");
+   LinearLayout content=(LinearLayout)d.content;
+   check(content.children.size()==2,"null choices skipped without changing indices");
+   RadioColorCell cell=(RadioColorCell)content.children.get(0);
+   check("Front".contentEquals(cell.text)&&"Front lens".contentEquals(cell.text2),"a described choice keeps both lines");
+   // Выбран индекс 1, а это пропущенный элемент: отмеченных строк быть не
+   // должно, и индексы при этом не съезжают — следующая проверка про это.
+   check(!cell.checked&&!((RadioColorCell)content.children.get(1)).checked,"a selection pointing at a skipped item marks nothing");
+   check(cell.checkedColor==Theme.getColor(Theme.key_dialogRadioBackgroundChecked,palette),"radio colours come from the palette in use");
+   check(((GradientDrawable)cell.background).color==Theme.getColor(Theme.key_listSelector,palette),"rows take Telegram list ripple");
+   content.children.get(1).performClick();check(selected[0]==2&&!d.visible,"selection returns original index and dismisses");
+   // Роль для озвучки теперь приходит вместе с ячейкой Telegram, поэтому
+   // проверяется то, что передали в неё мы: отмеченность выбранной строки.
    d=new NebulaDialog.Builder(context,palette).setSelectedIndex(0).setItems(new String[]{"Selected"},null).create();
-   row=(LinearLayout)group(d).children.get(0);AccessibilityNodeInfo info=new AccessibilityNodeInfo();row.onInitializeAccessibilityNodeInfo(info);
-   check(info.checked&&info.checkable&&row.minimumHeight>=48,"accessible selected option");
-   label=(TextView)((LinearLayout)row.children.get(0)).children.get(0);check(label.color==Theme.getColor(Theme.key_dialogTextBlue,palette),"selected accent from Telegram");
+   check(((RadioColorCell)((LinearLayout)d.content).children.get(0)).checked,"the selected option is handed over as checked");
+   // Без выбора кружка быть не должно: это список действий, а не переключатель.
+   d=new NebulaDialog.Builder(context,palette).setItems(new String[]{"Delete"},null).create();
+   check(((LinearLayout)d.content).children.get(0) instanceof TextView,"a plain action list shows no radio");
    d=new NebulaDialog.Builder(context,palette).setSelectedIndex(2).setSection(2,"Other languages")
     .setItems(new String[]{"Russian","English","Spanish"},(dialog,index)->selected[0]=index).show();
-   LinearLayout content=(LinearLayout)d.content;
-   check(content.children.size()==3&&group(d).children.size()==2,"quick choices have a separate first group");
-   TextView heading=(TextView)content.children.get(1);
+   content=(LinearLayout)d.content;
+   check(content.children.size()==4,"the section heading sits between the rows it splits");
+   TextView heading=(TextView)content.children.get(2);
    check(heading.color==Theme.getColor(Theme.key_dialogTextGray,palette),"section label uses Telegram palette");
-   LinearLayout remainder=(LinearLayout)content.children.get(2);
-   check(remainder.children.size()==1&&remainder.children.get(0).selected,"checked state preserved across groups");
-   remainder.children.get(0).performClick();check(selected[0]==2&&!d.visible,"section does not shift callback index");
+   check(((RadioColorCell)content.children.get(3)).checked,"checked state survives the section split");
+   content.children.get(3).performClick();check(selected[0]==2&&!d.visible,"section does not shift callback index");
    EditText editor=new EditText(context);d=new NebulaDialog.Builder(context,palette).setView(editor).create();
    check(d.offset==12,"native margin remains in dp at every density");
+   check(editor.background==Theme.editTextDrawable,"the field is underlined by Telegram, not filled by us");
    check(editor.color==Theme.getColor(Theme.key_dialogTextBlack,palette)&&editor.hintColor==Theme.getColor(Theme.key_dialogTextGray,palette),"editor inherits Telegram palette");
   }
   for(int which:new int[]{-1,-2,-3}){

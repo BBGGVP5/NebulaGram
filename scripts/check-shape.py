@@ -177,4 +177,12 @@ assert 'public NebulaRow tile(int resource, int color)' in row, 'section rows ne
 assert 'icon.setColorFilter(0xFFFFFFFF' in row, 'an icon inside a coloured tile must be white, not themed'
 root = (ui / 'NebulaSettingsFragment.java').read_text(encoding='utf-8')
 assert root.count('NebulaRow.TILE_') >= 7, 'every top-level section must carry its own tile colour'
+sheet = (ui / 'NebulaRoundCameraSheet.java').read_text(encoding='utf-8')
+assert 'RadioColorCell' in sheet, 'the camera choice is a choice, so it shows Telegram radios'
+assert 'key_dialogBackground' in sheet, 'the camera card must take the dialog surface'
+dlg = (ui / 'NebulaDialog.java').read_text(encoding='utf-8')
+assert 'RadioColorCell' in dlg, 'choice dialogs must use the cell Telegram builds its own choices from'
+assert 'Theme.createSelectorDrawable' in dlg and 'key_listSelector' in dlg,     'rows must take Telegram list ripple, not a hand-rolled one'
+assert 'Theme.createEditTextDrawable(context, true)' in dlg,     'a dialog text field is underlined in Telegram, not a filled box'
+assert 'GradientDrawable' not in dlg, 'the Material card behind choices is what this replaced'
 print('PASS: shape and the three media sizes each reach a different place in the app')
