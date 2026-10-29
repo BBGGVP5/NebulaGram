@@ -86,6 +86,13 @@ def main():
         for patch in patches:
             subprocess.run(['git', '-C', str(temp), 'apply', '--whitespace=error', str(patch)], check=True)
         overlay = ROOT / 'platform/ios/overlay'
+        # Telegram 13.1 restricts Postbox clients. Keep our two native consumers
+        # explicitly allowed instead of disabling Bazel visibility checking.
+        postbox_build = (temp / 'submodules/Postbox/BUILD').read_text(encoding='utf-8')
+        clients = postbox_build.split('name = "clients",', 1)[1].split('    ],', 1)[0]
+        for package in ('NebulaLinkUI', 'TelegramUI/Components/Chat/ChatMessageItem'):
+            assert '"//submodules/' + package + '"' in clients, package
+        assert '":clients"' in postbox_build
         account_context = (temp / 'submodules/AccountContext/Sources/AccountContext.swift').read_text(encoding='utf-8')
         assert 'import Postbox' in account_context
         assert 'func canTranscribeWithNebula(message: Message) -> Bool' in account_context

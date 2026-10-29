@@ -345,3 +345,10 @@ and deleted `NavigationButtonComponent`, `NavigationBarImpl`, `PeerInfoHeaderNav
 - 0082: `messageInCurrentHistoryView` returns `EngineMessage`; `openUrl` gets `._asMessage()`.
 - 0108: the toolbar's clear-format runs the native rich-text engine's `.clearFormatting` first, so tables,
   headings and lists the input state cannot express are not rebuilt away.
+
+## 0119 — Postbox clients after the 13.1.1 rebase
+
+`submodules/Postbox/BUILD`, `package_group(name = "clients")`: explicitly permit
+NebulaLinkUI's existing database adapter and ChatMessageItem's local retained-message
+hook. Keep the upstream visibility boundary for every other package. The bootstrap
+check asserts both entries; native and IPA builds enforce the dependency graph.
