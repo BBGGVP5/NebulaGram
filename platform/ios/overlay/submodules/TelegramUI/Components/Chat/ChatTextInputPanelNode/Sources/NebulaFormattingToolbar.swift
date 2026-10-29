@@ -30,6 +30,13 @@ enum NebulaFormattingSelection {
     }
 }
 
+enum NebulaFormattingFeedback {
+    static func values(enabled: Bool, highlighted: Bool, reduceMotion: Bool) -> (scale: Double, alpha: Double) {
+        let pressed = enabled && highlighted
+        return (pressed && !reduceMotion ? 0.92 : 1, enabled ? (pressed ? 0.7 : 1) : 0.35)
+    }
+}
+
 /// Native editor actions are supplied by the input panel; this view never rewrites a draft.
 final class NebulaFormattingToolbar: UIView {
     var action: ((Int) -> Void)?
@@ -74,11 +81,11 @@ final class NebulaFormattingToolbar: UIView {
         addSubview(scroll)
         stack.axis = .horizontal
         stack.distribution = .fill
-        stack.spacing = 7
+        stack.spacing = 4
         scroll.addSubview(stack)
         for index in [7, 6, 3, 4, 0, 1, 2, 5, 8, 9, 10] {
             let symbol = symbols[index]
-            let button = UIButton(type: .system)
+            let button = NebulaFormattingButton(type: .system)
             button.tag = index
             button.widthAnchor.constraint(equalToConstant: 44).isActive = true
             button.layer.cornerRadius = 11
@@ -90,7 +97,7 @@ final class NebulaFormattingToolbar: UIView {
             }
             button.addTarget(self, action: #selector(pressed(_:)), for: .touchUpInside)
             stack.addArrangedSubview(button)
-            if index == 6 { stack.setCustomSpacing(19, after: button) }
+            if index == 6 { stack.setCustomSpacing(12, after: button) }
         }
     }
     required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
@@ -123,9 +130,37 @@ final class NebulaFormattingToolbar: UIView {
         super.layoutSubviews()
         background.frame = bounds
         scroll.frame = bounds.insetBy(dx: 8, dy: 0)
-        let width = CGFloat(symbols.count) * 44 + CGFloat(symbols.count - 1) * 7 + 12
+        let width = CGFloat(symbols.count) * 44 + CGFloat(symbols.count - 1) * 4 + 8
         stack.frame = CGRect(x: 0, y: 0, width: width, height: scroll.bounds.height)
         scroll.contentSize = stack.bounds.size
     }
     @objc private func pressed(_ sender: UIButton) { action?(sender.tag) }
+}
+
+/// Press feedback only; formatting state never turns a tile into a selected chip.
+private final class NebulaFormattingButton: UIButton {
+    override var isHighlighted: Bool { didSet { updateFeedback() } }
+    override var isEnabled: Bool { didSet { updateFeedback() } }
+
+    override func didMoveToWindow() {
+        super.didMoveToWindow()
+        if window == nil { layer.removeAllAnimations(); transform = .identity }
+    }
+
+    private func updateFeedback() {
+        let pressed = isEnabled && isHighlighted
+        let feedback = NebulaFormattingFeedback.values(enabled: isEnabled, highlighted: isHighlighted,
+            reduceMotion: UIAccessibility.isReduceMotionEnabled)
+        let changes = {
+            self.transform = CGAffineTransform(scaleX: CGFloat(feedback.scale), y: CGFloat(feedback.scale))
+            self.alpha = CGFloat(feedback.alpha)
+        }
+        if window == nil || UIAccessibility.isReduceMotionEnabled || !UIView.areAnimationsEnabled {
+            layer.removeAllAnimations()
+            changes()
+        } else {
+            UIView.animate(withDuration: pressed ? 0.08 : 0.16, delay: 0,
+                options: [.beginFromCurrentState, .allowUserInteraction, .curveEaseOut], animations: changes)
+        }
+    }
 }

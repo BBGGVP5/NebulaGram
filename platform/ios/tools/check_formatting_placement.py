@@ -8,6 +8,7 @@ import tempfile
 def check(source, swift=False):
     start = source.index('        var nebulaTextMode = false')
     eligibility = source[start:source.index('        let baseWidth =', start)]
+    reserved_height = int(re.search(r'\? (\d+) : 0', eligibility).group(1))
     container = re.search(r'        let containerFrame = (CGRect[^\n]+)', source).group(1)
     toolbar = re.search(r'updateFrame\(view: toolbar, frame: (CGRect[\s\S]+?height: 44\))\)', source).group(1)
     frames = []
@@ -56,10 +57,10 @@ func frames(width:CGFloat,contentHeight:CGFloat,formattingHeight:CGFloat) {
  precondition(containerFrame.minY==formattingHeight)
 }
 let check=NativeCheck()
-for bits in 0..<256 {precondition(check.height(bits)==(bits==7 ? 56:0),"recording/media/disabled keyboard shows formatting")}
-for width in [CGFloat(240),320,390,720] {for height in [CGFloat(44),88,176,224] {for accessory in [CGFloat(0),56] {frames(width:width,contentHeight:height,formattingHeight:accessory)}}}
+for bits in 0..<256 {precondition(check.height(bits)==(bits==7 ? RESERVED:0),"recording/media/disabled keyboard shows formatting")}
+for width in [CGFloat(240),320,390,720] {for height in [CGFloat(44),88,176,224] {for accessory in [CGFloat(0),RESERVED] {frames(width:width,contentHeight:height,formattingHeight:accessory)}}}
 print("Native iOS formatting: 256 eligibility states, 32 toolbar/native/root-button frame combinations passed")
-'''.replace('ELIGIBILITY', eligibility).replace('CONTAINER', container).replace('TOOLBAR', toolbar)
+'''.replace('ELIGIBILITY', eligibility).replace('CONTAINER', container).replace('TOOLBAR', toolbar).replace('RESERVED', str(reserved_height))
     for token, frame in zip(['LIVE', 'STAR', 'SETTINGS'], frames):
         program = program.replace(token, frame)
     with tempfile.TemporaryDirectory(prefix='nebula-ios-formatting-') as directory:

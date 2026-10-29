@@ -364,3 +364,11 @@ native size before status/layout, excluding stickers and unconstrained album til
 Native minimum timestamp bounds and maximum chat width remain authoritative. Add its
 NebulaSettingsContract Bazel dependency. SettingsUI exposes three sliders and previews;
 Foundation tests cover independence, persistence, transfer, bounds and narrow layouts.
+
+## 0121 — compact formatting toolbar and press feedback
+
+`ChatTextInputPanelNode.updateLayout`: reserve 50 points, including a 44-point touch
+target and 3-point top/bottom gaps. The overlay button gives transient scale/opacity
+feedback, resets on release/reuse, and honors Reduce Motion. No selected-format chips.
+`check_formatting_placement.py` executes the actual height/frame expressions rather
+than duplicating the reserved height; selection tests exercise all feedback states.
