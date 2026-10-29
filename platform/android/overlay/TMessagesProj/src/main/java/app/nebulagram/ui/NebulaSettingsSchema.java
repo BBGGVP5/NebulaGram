@@ -19,6 +19,7 @@ public final class NebulaSettingsSchema {
         map.put("channel_forward_count", Boolean.class);
         map.put("compact_bottom_bar", Boolean.class);
         map.put("disable_next_channel", Boolean.class);
+        map.put("emoji_percent", Integer.class);
         map.put("floating_chat_header_v2", Boolean.class);
         map.put("folder_outline", Boolean.class);
         map.put("folder_style", Integer.class);
@@ -26,6 +27,7 @@ public final class NebulaSettingsSchema {
         map.put("folder_unmuted_only", Boolean.class);
         map.put("formatting_toolbar", Boolean.class);
         map.put("fragment_transition_style", Integer.class);
+        map.put("gif_percent", Integer.class);
         map.put("glass_highlights", Boolean.class);
         map.put("glass_quality", Integer.class);
         map.put("header_unread", Boolean.class);
@@ -64,6 +66,7 @@ public final class NebulaSettingsSchema {
         map.put("reply_colors", Boolean.class);
         map.put("reply_emoji", Boolean.class);
         map.put("seconds_in_time", Boolean.class);
+        map.put("sticker_percent", Integer.class);
         map.put("sticker_time_style", Integer.class);
         map.put("swipe_actions", String.class);
         map.put("switch_style", Integer.class);

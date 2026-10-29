@@ -978,6 +978,48 @@
       "ios_mapping": "native",
       "default": false,
       "literal_default_binding": true
+    },
+    {
+      "key": "sticker_percent",
+      "type": "integer",
+      "feature": "chat.media_size",
+      "android_store": "nebulagram",
+      "android_source": "NebulaMediaSize.java",
+      "transfer_v1": true,
+      "ios_status": "planned",
+      "ios_mapping": "native",
+      "default": 100,
+      "min": 50,
+      "max": 150,
+      "literal_default_binding": true
+    },
+    {
+      "key": "emoji_percent",
+      "type": "integer",
+      "feature": "chat.media_size",
+      "android_store": "nebulagram",
+      "android_source": "NebulaMediaSize.java",
+      "transfer_v1": true,
+      "ios_status": "planned",
+      "ios_mapping": "native",
+      "default": 100,
+      "min": 50,
+      "max": 150,
+      "literal_default_binding": true
+    },
+    {
+      "key": "gif_percent",
+      "type": "integer",
+      "feature": "chat.media_size",
+      "android_store": "nebulagram",
+      "android_source": "NebulaMediaSize.java",
+      "transfer_v1": true,
+      "ios_status": "planned",
+      "ios_mapping": "native",
+      "default": 100,
+      "min": 50,
+      "max": 150,
+      "literal_default_binding": true
     }
   ]
 }

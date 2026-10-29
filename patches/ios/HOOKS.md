@@ -352,3 +352,15 @@ and deleted `NavigationButtonComponent`, `NavigationBarImpl`, `PeerInfoHeaderNav
 NebulaLinkUI's existing database adapter and ChatMessageItem's local retained-message
 hook. Keep the upstream visibility boundary for every other package. The bootstrap
 check asserts both entries; native and IPA builds enforce the dependency graph.
+
+## 0120 — independent media sizes
+
+`ChatMessageStickerItemNode.asyncLayout` and `ChatMessageAnimatedStickerItemNode.asyncLayout`:
+scale sticker bounds before image layout, with a width cap; scale emoji fonts/animation
+independently while retaining Telegram's animated-emoji multiplier. Never mutate the
+captured base display size, so repeated layout cannot accumulate scale.
+`ChatMessageInteractiveMediaNode.asyncLayout`: scale standalone nonsecret animated-file
+native size before status/layout, excluding stickers and unconstrained album tiles.
+Native minimum timestamp bounds and maximum chat width remain authoritative. Add its
+NebulaSettingsContract Bazel dependency. SettingsUI exposes three sliders and previews;
+Foundation tests cover independence, persistence, transfer, bounds and narrow layouts.

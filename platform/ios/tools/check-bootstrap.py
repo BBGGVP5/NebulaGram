@@ -103,6 +103,18 @@ def main():
                     raise SystemExit(f'Overlay unexpectedly replaces upstream file: {dest}')
                 dest.parent.mkdir(parents=True, exist_ok=True)
                 dest.write_bytes(source.read_bytes())
+        media_root = temp / 'submodules/TelegramUI/Components/Chat'
+        for component in ('ChatMessageStickerItemNode', 'ChatMessageAnimatedStickerItemNode'):
+            media_source = (media_root / component / 'Sources' / (component + '.swift')).read_text(encoding='utf-8')
+            assert 'NebulaSettingsStore.shared.stickerPercent' in media_source
+            assert 'NebulaSettingsStore.shared.emoji' in media_source
+            assert 'NebulaMediaGeometry.boundedScale' in media_source
+        media_source = (media_root / 'ChatMessageInteractiveMediaNode/Sources/ChatMessageInteractiveMediaNode.swift').read_text(encoding='utf-8')
+        gif_hook = media_source.split('// Standalone GIFs only.', 1)[1].split('var statusSize', 1)[0]
+        assert 'case .constrained = sizeCalculation, !isSecretMedia' in gif_hook
+        assert 'file.isAnimated' in gif_hook and '!file.isSticker' in gif_hook
+        assert '!file.isAnimatedSticker' in gif_hook and '!file.isVideoSticker' in gif_hook
+        assert 'NebulaSettingsStore.shared.gifScale' in gif_hook
         folder = temp / 'submodules/TelegramUI/Components/ChatList/ChatListFilterTabContainerNode'
         tabs = (folder / 'Sources/ChatListFilterTabContainerNode.swift').read_text(encoding='utf-8')
         assert 'self.badgeContainerNode.isHidden = NebulaSettingsStore.shared.hideTabCounters' in tabs
