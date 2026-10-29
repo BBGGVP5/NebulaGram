@@ -1,7 +1,7 @@
 diff --git a/submodules/TelegramUI/Components/GlassBackgroundComponent/Sources/GlassBackgroundComponent.swift b/submodules/TelegramUI/Components/GlassBackgroundComponent/Sources/GlassBackgroundComponent.swift
 --- a/submodules/TelegramUI/Components/GlassBackgroundComponent/Sources/GlassBackgroundComponent.swift
 +++ b/submodules/TelegramUI/Components/GlassBackgroundComponent/Sources/GlassBackgroundComponent.swift
-@@ -553,6 +553,7 @@
+@@ -621,6 +621,7 @@
          
          super.init(frame: frame)
          nebulaFallback.isUserInteractionEnabled = false
@@ -9,7 +9,7 @@ diff --git a/submodules/TelegramUI/Components/GlassBackgroundComponent/Sources/G
          insertSubview(nebulaFallback, at: 0)
          nebulaObservation = NebulaSettingsStore.shared.observe { [weak self] in self?.nebulaRefreshGlass() }
          for name in [Notification.Name.NSProcessInfoPowerStateDidChange, ProcessInfo.thermalStateDidChangeNotification, UIAccessibility.reduceTransparencyStatusDidChangeNotification, UIApplication.didBecomeActiveNotification] {
-@@ -613,6 +614,17 @@
+@@ -681,6 +682,17 @@
          return nil
      }
      
@@ -27,7 +27,7 @@ diff --git a/submodules/TelegramUI/Components/GlassBackgroundComponent/Sources/G
      @objc private func nebulaRefreshGlass() {
          guard Thread.isMainThread else { DispatchQueue.main.async { [weak self] in self?.nebulaRefreshGlass() }; return }
          guard let params = self.params else { return }
-@@ -632,7 +644,7 @@
+@@ -700,7 +712,7 @@
  
      func update(size: CGSize, shape: Shape, isDark: Bool, tintColor: TintColor, isInteractive: Bool = false, isVisible: Bool = true, transition: ComponentTransition) {
          nebulaSize = size
@@ -36,7 +36,7 @@ diff --git a/submodules/TelegramUI/Components/GlassBackgroundComponent/Sources/G
              lowPower: ProcessInfo.processInfo.isLowPowerModeEnabled,
              hot: ProcessInfo.processInfo.thermalState.rawValue >= ProcessInfo.ThermalState.serious.rawValue,
              reduceTransparency: UIAccessibility.isReduceTransparencyEnabled)
-@@ -880,6 +892,10 @@
+@@ -946,6 +958,10 @@
  }
  
  public final class GlassBackgroundContainerView: UIView {
@@ -50,7 +50,7 @@ diff --git a/submodules/TelegramUI/Components/GlassBackgroundComponent/Sources/G
 diff --git a/submodules/TelegramUI/Components/TabBarComponent/Sources/TabBarComponent.swift b/submodules/TelegramUI/Components/TabBarComponent/Sources/TabBarComponent.swift
 --- a/submodules/TelegramUI/Components/TabBarComponent/Sources/TabBarComponent.swift
 +++ b/submodules/TelegramUI/Components/TabBarComponent/Sources/TabBarComponent.swift
-@@ -444,6 +444,7 @@
+@@ -460,6 +460,7 @@
              }
              
              self.addSubview(self.backgroundContainer)

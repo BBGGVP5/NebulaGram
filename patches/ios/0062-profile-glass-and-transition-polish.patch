@@ -7,33 +7,24 @@ diff --git a/submodules/Display/Source/NavigationTransitionCoordinator.swift b/s
  import AppBundle
  import AsyncDisplayKit
  
-@@ -27,6 +28,7 @@
- }
- 
+@@ -35,6 +36,7 @@
  final class NavigationTransitionCoordinator {
+     static let keyframeKeyPrefix = "navigationTransition."
+ 
 +    private let nebulaSmoothFade = NebulaBehaviorPreferences.shared.smoothFade && !UIAccessibility.isReduceMotionEnabled
      private var _progress: CGFloat = 0.0
+     /// The progress now: read from its curve while the transition runs on the render server.
      var progress: CGFloat {
-         get {
-@@ -172,8 +174,16 @@
-         canInvokeCompletion = true
-         transition.updateFrame(node: self.dimNode, frame: CGRect(origin: CGPoint(x: 0.0, y: dimInset), size: CGSize(width: max(0.0, topFrame.minX + self.container.overflowInset + 62.0), height: self.container.bounds.size.height - dimInset)))
-         transition.updateFrame(node: self.shadowNode, frame: CGRect(origin: CGPoint(x: self.dimNode.frame.maxX - shadowWidth, y: dimInset), size: CGSize(width: shadowWidth, height: containerSize.height - dimInset)))
--        transition.updateAlpha(node: self.dimNode, alpha: (1.0 - position) * 0.15)
--        transition.updateAlpha(node: self.shadowNode, alpha: (1.0 - position) * 0.9)
-+        let fadeProgress = max(0.0, min(1.0, 1.0 - position))
-+        let fade = CGFloat(NebulaBehaviorPreferences.fade(Double(fadeProgress), enabled: nebulaSmoothFade))
-+        let fadeTransition: ContainedViewLayoutTransition
-+        if nebulaSmoothFade, case let .animated(duration, _) = transition {
-+            fadeTransition = .animated(duration: duration, curve: .easeInOut)
-+        } else {
-+            fadeTransition = transition
-+        }
-+        fadeTransition.updateAlpha(node: self.dimNode, alpha: fade * 0.15)
-+        fadeTransition.updateAlpha(node: self.shadowNode, alpha: fade * 0.9)
-         
-         transition.updateFrame(node: self.bottomNode, frame: bottomFrame)
-         
+@@ -345,7 +347,8 @@
+         let bottomFrame = CGRect(origin: CGPoint(x: self.isFlat ? -floorToScreenPixels((1.0 - position) * containerSize.width) : ((position - 1.0) * containerSize.width * 0.3), y: 0.0), size: containerSize)
+         let dimFrame = CGRect(origin: CGPoint(x: 0.0, y: dimInset), size: CGSize(width: max(0.0, topFrame.minX + self.container.overflowInset + 62.0), height: containerSize.height - dimInset))
+         // UIKit: black at 0.1, linear in the progress.
+-        let dimAlpha = max(0.0, min(1.0, 1.0 - position)) * 0.1
++        let dimProgress = max(0.0, min(1.0, 1.0 - position))
++        let dimAlpha = CGFloat(NebulaBehaviorPreferences.fade(Double(dimProgress), enabled: self.nebulaSmoothFade)) * 0.1
+         return NavigationTransitionScreenLayout(topFrame: topFrame, bottomFrame: bottomFrame, dimFrame: dimFrame, dimAlpha: dimAlpha, fraction: 1.0 - position)
+     }
+ 
 diff --git a/submodules/TelegramUI/Components/GlassBackgroundComponent/Sources/GlassBackgroundComponent.swift b/submodules/TelegramUI/Components/GlassBackgroundComponent/Sources/GlassBackgroundComponent.swift
 --- a/submodules/TelegramUI/Components/GlassBackgroundComponent/Sources/GlassBackgroundComponent.swift
 +++ b/submodules/TelegramUI/Components/GlassBackgroundComponent/Sources/GlassBackgroundComponent.swift
@@ -47,7 +38,7 @@ diff --git a/submodules/TelegramUI/Components/GlassBackgroundComponent/Sources/G
      public protocol ContentView: UIView {
          var tintMask: UIView { get }
      }
-@@ -588,6 +591,10 @@
+@@ -656,6 +659,10 @@
              self.addSubview(foregroundView)
              foregroundView.mask = self.maskContainerView
          }
@@ -58,7 +49,7 @@ diff --git a/submodules/TelegramUI/Components/GlassBackgroundComponent/Sources/G
          self.addSubview(self.contentContainer)
          if let legacyHighlightContainerView = self.legacyHighlightContainerView {
              self.addSubview(legacyHighlightContainerView)
-@@ -653,6 +660,7 @@
+@@ -721,6 +728,7 @@
  
      func update(size: CGSize, shape: Shape, isDark: Bool, tintColor: TintColor, isInteractive: Bool = false, isVisible: Bool = true, transition: ComponentTransition) {
          nebulaSize = size
@@ -66,7 +57,7 @@ diff --git a/submodules/TelegramUI/Components/GlassBackgroundComponent/Sources/G
          let reduced = !self.nebulaInNativeContainer && NebulaGlassPolicy.reduced(mode: NebulaSettingsStore.shared.glassQuality,
              lowPower: ProcessInfo.processInfo.isLowPowerModeEnabled,
              hot: ProcessInfo.processInfo.thermalState.rawValue >= ProcessInfo.ThermalState.serious.rawValue,
-@@ -788,9 +796,9 @@
+@@ -863,9 +871,9 @@
                  }
                  switch shape {
                  case let .roundedRect(cornerRadius):
@@ -78,7 +69,7 @@ diff --git a/submodules/TelegramUI/Components/GlassBackgroundComponent/Sources/G
                  }
                  #if DEBUG
                  //foregroundView.image = nil
-@@ -889,8 +897,8 @@
+@@ -933,8 +941,8 @@
          legacyView?.isHidden = nebulaCustom || reduced
          foregroundView?.isHidden = nebulaCustom
          let nebulaHighlights = NebulaSettingsStore.shared.glassHighlights && !reduced
@@ -149,7 +140,7 @@ diff --git a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/Pe
 diff --git a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoHeaderNode.swift b/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoHeaderNode.swift
 --- a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoHeaderNode.swift
 +++ b/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoHeaderNode.swift
-@@ -105,6 +105,9 @@
+@@ -87,6 +87,9 @@
      var skipCollapseCompletion = false
      var ignoreCollapse = false
      
@@ -159,7 +150,7 @@ diff --git a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/Pe
      let avatarClippingNode: SparseNode
      let avatarListNode: PeerInfoAvatarListNode
      
-@@ -337,6 +340,11 @@
+@@ -386,6 +389,11 @@
  
          self.regularContentNode.addSubnode(self.avatarClippingNode)
          self.avatarClippingNode.addSubnode(self.avatarListNode)
@@ -171,7 +162,7 @@ diff --git a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/Pe
          
          self.regularContentNode.addSubnode(self.avatarListNode.listContainerNode.controlsClippingOffsetNode)
          self.regularContentNode.addSubnode(self.titleNodeContainer)
-@@ -1833,6 +1841,24 @@
+@@ -1856,6 +1864,24 @@
          let bottomShadowFrame = CGRect(origin: CGPoint(x: 0.0, y: expandedAvatarHeight - bottomShadowHeight), size: CGSize(width: width, height: bottomShadowHeight))
          transition.updateFrame(node: self.avatarListNode.listContainerNode.bottomShadowNode, frame: bottomShadowFrame, beginWithCurrentState: true)
          self.avatarListNode.listContainerNode.bottomShadowNode.update(size: bottomShadowFrame.size, transition: transition)
@@ -199,7 +190,7 @@ diff --git a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/Pe
 diff --git a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoScreen.swift b/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoScreen.swift
 --- a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoScreen.swift
 +++ b/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoScreen.swift
-@@ -3450,8 +3450,11 @@
+@@ -3593,8 +3593,11 @@
                                  
                                  strongSelf.activeActionDisposable.set(strongSelf.context.engine.privacy.requestUpdatePeerIsBlocked(peerId: peer.id, isBlocked: true, sourceMessageId: strongSelf.sourceMessageId).startStrict())
                                  if deleteChat {
@@ -216,7 +207,7 @@ diff --git a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/Pe
 diff --git a/submodules/TelegramUI/Sources/ChatController.swift b/submodules/TelegramUI/Sources/ChatController.swift
 --- a/submodules/TelegramUI/Sources/ChatController.swift
 +++ b/submodules/TelegramUI/Sources/ChatController.swift
-@@ -246,7 +246,7 @@
+@@ -247,7 +247,7 @@
      private var nebulaReplyAppearance = [NebulaSettingsStore.shared.replyBackground, NebulaSettingsStore.shared.replyColors, NebulaSettingsStore.shared.replyEmoji]
      private let nebulaLiveTranslation = NebulaLiveTranslation()
      private let nebulaDraftTranslation = NebulaDraftTranslation()
@@ -225,7 +216,7 @@ diff --git a/submodules/TelegramUI/Sources/ChatController.swift b/submodules/Tel
      private var nebulaTranslationObservers: [NSObjectProtocol] = []
      private var nebulaTranslationVisible = false
      private var nebulaHadAiTranslation = false
-@@ -274,7 +274,7 @@
+@@ -275,7 +275,7 @@
          let options = NebulaTranslationPreferences.shared.options(account: account, peer: peerKey)
          nebulaTickChatAI()
          if options.incoming || options.draft {

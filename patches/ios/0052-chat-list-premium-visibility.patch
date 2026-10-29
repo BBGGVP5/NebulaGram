@@ -1,7 +1,7 @@
 diff --git a/submodules/ChatListUI/Sources/Node/ChatListItem.swift b/submodules/ChatListUI/Sources/Node/ChatListItem.swift
 --- a/submodules/ChatListUI/Sources/Node/ChatListItem.swift
 +++ b/submodules/ChatListUI/Sources/Node/ChatListItem.swift
-@@ -1422,6 +1422,7 @@
+@@ -1423,6 +1423,7 @@
      public let separatorNode: ASDisplayNode
      private var nebulaSeparatorBaseHidden = false
      private var nebulaSettingsObservation: SettingsObservation?
@@ -9,7 +9,7 @@ diff --git a/submodules/ChatListUI/Sources/Node/ChatListItem.swift b/submodules/
      let statusNode: ChatListStatusNode
      let badgeNode: ChatListBadgeNode
      let mentionBadgeNode: ChatListBadgeNode
-@@ -1760,6 +1761,14 @@
+@@ -1761,6 +1762,14 @@
          self.nebulaSettingsObservation = NebulaSettingsStore.shared.observe { [weak self] in
              guard let self else { return }
              self.separatorNode.isHidden = self.nebulaSeparatorBaseHidden || NebulaSettingsStore.shared.hideDividers
@@ -24,7 +24,7 @@ diff --git a/submodules/ChatListUI/Sources/Node/ChatListItem.swift b/submodules/
          }
          
          self.addSubnode(self.contextContainer)
-@@ -3585,12 +3594,12 @@
+@@ -3570,12 +3579,12 @@
                                  currentCredibilityIconContent = .text(color: item.presentationData.theme.chat.message.incoming.scamColor, string: item.presentationData.strings.Message_ScamAccount.uppercased())
                              } else if peer.isFake {
                                  currentCredibilityIconContent = .text(color: item.presentationData.theme.chat.message.incoming.scamColor, string: item.presentationData.strings.Message_FakeAccount.uppercased())
@@ -39,7 +39,7 @@ diff --git a/submodules/ChatListUI/Sources/Node/ChatListItem.swift b/submodules/
                                  currentCredibilityIconContent = .premium(color: item.presentationData.theme.list.itemAccentColor)
                              }
                              
-@@ -3616,12 +3625,12 @@
+@@ -3601,12 +3610,12 @@
                          currentCredibilityIconContent = .text(color: item.presentationData.theme.chat.message.incoming.scamColor, string: item.presentationData.strings.Message_ScamAccount.uppercased())
                      } else if peer.isFake {
                          currentCredibilityIconContent = .text(color: item.presentationData.theme.chat.message.incoming.scamColor, string: item.presentationData.strings.Message_FakeAccount.uppercased())

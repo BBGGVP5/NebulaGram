@@ -1,7 +1,7 @@
 diff --git a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoHeaderNode.swift b/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoHeaderNode.swift
 --- a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoHeaderNode.swift
 +++ b/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoHeaderNode.swift
-@@ -238,9 +238,10 @@
+@@ -288,9 +288,10 @@
          for view in [self.nebulaBadgeView, self.nebulaExpandedBadgeView] {
              view.contentMode = .scaleAspectFit
              view.isHidden = true
@@ -14,7 +14,7 @@ diff --git a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/Pe
          }
          self.titleNode.stateNode(forKey: TitleNodeStateRegular)?.view.addSubview(self.nebulaBadgeView)
          self.titleNode.stateNode(forKey: TitleNodeStateExpanded)?.view.addSubview(self.nebulaExpandedBadgeView)
-@@ -522,9 +523,75 @@
+@@ -569,11 +570,77 @@
                  view.image = image
                  view.isHidden = image == nil
                  view.accessibilityLabel = badge?.title
@@ -40,8 +40,8 @@ diff --git a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/Pe
              }
              self.requestUpdateLayout?(false)
          }
-+    }
-+
+     }
+ 
 +    @objc private func nebulaBadgeTapped() {
 +        guard let badge = self.nebulaBadge, let controller = self.controller,
 +              let presentationData = self.presentationData else { return }
@@ -87,6 +87,8 @@ diff --git a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/Pe
 +            return false
 +        })
 +        controller.present(overlay, in: .current)
-     }
- 
++    }
++
      private var currentPanelStatusData: PeerInfoStatusData?
+     func update(width: CGFloat, containerHeight: CGFloat, containerInset: CGFloat, sideInsets: PeerInfoSideInsets, statusBarHeight: CGFloat, navigationHeight: CGFloat, presentedInFormSheet: Bool, isMediaOnly: Bool, contentOffset: CGFloat, paneContainerY: CGFloat, presentationData: PresentationData, peer: EnginePeer?, cachedData: EngineCachedPeerData?, threadData: MessageHistoryThreadData?, peerNotificationSettings: TelegramPeerNotificationSettings?, threadNotificationSettings: TelegramPeerNotificationSettings?, globalNotificationSettings: EngineGlobalNotificationSettings?, statusData: PeerInfoStatusData?, panelStatusData: (PeerInfoStatusData?, PeerInfoStatusData?, CGFloat?), isSecretChat: Bool, isContact: Bool, isSettings: Bool, state: PeerInfoState, profileGiftsContext: ProfileGiftsContext?, screenData: PeerInfoScreenData?, isSearching: Bool, metrics: LayoutMetrics, deviceMetrics: DeviceMetrics, transition: ContainedViewLayoutTransition, additive: Bool, animateHeader: Bool) -> CGFloat {
+         // iPhone Duo: keep the header out of the side strip; without one every expression below is today's.

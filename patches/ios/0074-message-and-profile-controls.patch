@@ -19,7 +19,7 @@ diff --git a/submodules/TelegramUI/Components/Chat/ChatMessageAnimatedStickerIte
  import UIKit
  import AVFoundation
  import AsyncDisplayKit
-@@ -1005,6 +1006,7 @@
+@@ -1004,6 +1005,7 @@
              if Namespaces.Message.allEphemeral.contains(item.message.id.namespace) || Namespaces.Message.allWelcomeMessages.contains(item.message.id.namespace) {
                  needsShareButton = false
              }
@@ -30,7 +30,7 @@ diff --git a/submodules/TelegramUI/Components/Chat/ChatMessageAnimatedStickerIte
 diff --git a/submodules/TelegramUI/Components/Chat/ChatMessageBubbleItemNode/Sources/ChatMessageBubbleItemNode.swift b/submodules/TelegramUI/Components/Chat/ChatMessageBubbleItemNode/Sources/ChatMessageBubbleItemNode.swift
 --- a/submodules/TelegramUI/Components/Chat/ChatMessageBubbleItemNode/Sources/ChatMessageBubbleItemNode.swift
 +++ b/submodules/TelegramUI/Components/Chat/ChatMessageBubbleItemNode/Sources/ChatMessageBubbleItemNode.swift
-@@ -2034,6 +2034,8 @@
+@@ -2036,6 +2036,8 @@
              allowFullWidth = true
          }
  
@@ -128,7 +128,7 @@ diff --git a/submodules/TelegramUI/Components/Chat/ChatMessageStickerItemNode/So
 diff --git a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoHeaderNode.swift b/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoHeaderNode.swift
 --- a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoHeaderNode.swift
 +++ b/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoHeaderNode.swift
-@@ -1339,7 +1339,7 @@
+@@ -1382,7 +1382,7 @@
                  title = "" //"\u{00A0}"
              }
              if title.isEmpty {
@@ -149,18 +149,18 @@ diff --git a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/Pe
              let formattedPhone = formatPhoneNumber(context: context, number: phone)
              let label: String
              if formattedPhone.hasPrefix("+888 ") {
-@@ -189,6 +189,11 @@
-             }, requestLayout: { animated in
+@@ -190,6 +190,11 @@
                  interaction.requestLayout(animated)
              }))
-+        }
+         }
 +        if NebulaMessagePreferences.shared.enabled("profile_photo_dc"), let photo = user.photo.first,
 +            let resource = photo.resource as? CloudPeerPhotoSizeMediaResource {
 +            let russian = presentationData.strings.baseLanguageCode.hasPrefix("ru")
 +            items[currentPeerInfoSection]!.append(PeerInfoScreenLabeledValueItem(id: "nebula-photo-dc", label: russian ? "DC фотографии" : "Photo data center", text: "DC \(resource.datacenterId)", action: nil, requestLayout: { interaction.requestLayout($0) }))
-         }
++        }
          if let mainUsername = user.addressName {
              var additionalUsernames: String?
+             let usernames = user.usernames.filter { $0.isActive && $0.username != mainUsername }
 diff --git a/submodules/TelegramUI/Sources/SharedMediaPlayer.swift b/submodules/TelegramUI/Sources/SharedMediaPlayer.swift
 --- a/submodules/TelegramUI/Sources/SharedMediaPlayer.swift
 +++ b/submodules/TelegramUI/Sources/SharedMediaPlayer.swift

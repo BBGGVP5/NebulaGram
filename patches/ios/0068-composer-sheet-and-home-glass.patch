@@ -1,7 +1,7 @@
 diff --git a/submodules/TelegramUI/Components/Chat/ChatTextInputPanelNode/Sources/ChatTextInputPanelNode.swift b/submodules/TelegramUI/Components/Chat/ChatTextInputPanelNode/Sources/ChatTextInputPanelNode.swift
 --- a/submodules/TelegramUI/Components/Chat/ChatTextInputPanelNode/Sources/ChatTextInputPanelNode.swift
 +++ b/submodules/TelegramUI/Components/Chat/ChatTextInputPanelNode/Sources/ChatTextInputPanelNode.swift
-@@ -332,7 +332,7 @@
+@@ -340,7 +340,7 @@
              let state = self.presentationInterfaceState,
              state.inputTextPanelState.mediaRecordingState == nil, state.interfaceState.mediaDraftState == nil,
              state.editMessageState == nil, state.chatLocation.peerId?.namespace != Namespaces.Peer.SecretChat else { return 0 }
@@ -10,7 +10,7 @@ diff --git a/submodules/TelegramUI/Components/Chat/ChatTextInputPanelNode/Source
      }
      public var isAIEnabled: Bool = false
      
-@@ -3306,9 +3306,14 @@
+@@ -3352,9 +3352,14 @@
          
          if let button = self.nebulaToolsButton {
              button.isHidden = self.nebulaToolsWidth == 0 || audioRecordingItemsAlpha == 0
@@ -36,7 +36,7 @@ diff --git a/submodules/TelegramUI/Components/ChatListHeaderComponent/Sources/Ch
  import UIKit
  import Display
  import AsyncDisplayKit
-@@ -221,6 +222,8 @@
+@@ -241,6 +242,8 @@
          public var edgeEffectBackgroundView: UIView {
              return self.edgeEffectView
          }
@@ -45,13 +45,13 @@ diff --git a/submodules/TelegramUI/Components/ChatListHeaderComponent/Sources/Ch
          
          private var headerBackgroundContainer: UIView
          public let headerContent = ComponentView<Empty>()
-@@ -274,6 +277,16 @@
-             super.init(frame: frame)
+@@ -317,6 +320,16 @@
              
-             self.addSubview(self.edgeEffectView)
+             self.addSubview(self.contentView)
+             self.contentView.addSubview(self.edgeEffectView)
 +            self.nebulaHeaderGlass.isUserInteractionEnabled = false
 +            self.nebulaHeaderGlass.drawsMaterialBorder = false
-+            self.addSubview(self.nebulaHeaderGlass)
++            self.contentView.addSubview(self.nebulaHeaderGlass)
 +            self.nebulaHeaderObservation = NebulaSettingsStore.shared.observe { [weak self] in
 +                guard let self else { return }
 +                self.state?.updated(transition: .immediate)
@@ -59,12 +59,12 @@ diff --git a/submodules/TelegramUI/Components/ChatListHeaderComponent/Sources/Ch
 +                    self.applyScroll(offset: offset, allowAvatarsExpansion: self.currentAllowAvatarsExpansion, forceUpdate: true, transition: .immediate)
 +                }
 +            }
-             self.addSubview(self.bottomContentsContainer)
-         }
-         
-@@ -453,6 +466,21 @@
+             self.contentView.addSubview(self.bottomContentsContainer)
+ 
+             self.glassHold.changed = { [weak self] in
+@@ -589,6 +602,21 @@
              transition.setFrame(view: self.edgeEffectView, frame: edgeEffectFrame)
-             self.edgeEffectView.update(content: nil, blur: true, alpha: 0.85, rect: edgeEffectFrame, edge: .top, edgeSize: min(54.0, edgeEffectHeight), transition: transition)
+             self.edgeEffectView.update(content: nil, blur: true, alpha: ChatListNavigationBar.View.edgeEffectTintAlpha, rect: edgeEffectFrame, edge: .top, edgeSize: min(ChatListNavigationBar.View.edgeEffectEdgeLength, edgeEffectHeight), transition: transition)
              
 +            // One native material covers status bar, title, search and folders.
 +            // Reuse the glass component's theme, quality and accessibility policy.
@@ -84,21 +84,21 @@ diff --git a/submodules/TelegramUI/Components/ChatListHeaderComponent/Sources/Ch
              let headerTransition = transition
              
              let storiesOffsetFraction: CGFloat
-@@ -885,7 +913,7 @@
+@@ -1037,7 +1065,7 @@
              
              self.updateEdgeEffectColor(transition: transition)
              
 -            self.edgeEffectView.isHidden = !component.hasEdgeEffect
 +            self.edgeEffectView.isHidden = !component.hasEdgeEffect || (NebulaSettingsStore.shared.iosGlassStyle != 0 && component.activeSearch == nil)
-             
-             return size
-         }
+ 
+             if self.isContentLifted {
+                 self.transitionContentFrameUpdated?(CGRect(origin: CGPoint(), size: size))
 diff --git a/submodules/TelegramUI/Components/Stories/StoryPeerListComponent/Sources/StoryPeerListComponent.swift b/submodules/TelegramUI/Components/Stories/StoryPeerListComponent/Sources/StoryPeerListComponent.swift
 --- a/submodules/TelegramUI/Components/Stories/StoryPeerListComponent/Sources/StoryPeerListComponent.swift
 +++ b/submodules/TelegramUI/Components/Stories/StoryPeerListComponent/Sources/StoryPeerListComponent.swift
-@@ -1454,7 +1454,8 @@
+@@ -1509,7 +1509,8 @@
                  
-                 self.titleView.alpha = titleFraction
+                 self.titleView.alpha = titleFraction * titleTextFraction
                  
 -                let titleScale: CGFloat = titleFraction * 1.0 + (1.0 - titleFraction) * 0.3
 +                // Crossfade titles at their readable size instead of shrinking to a dot.
@@ -106,9 +106,9 @@ diff --git a/submodules/TelegramUI/Components/Stories/StoryPeerListComponent/Sou
                  self.titleView.layer.transform = CATransform3DMakeScale(titleScale, titleScale, 1.0)
              }
              
-@@ -1499,7 +1500,7 @@
+@@ -1554,7 +1555,7 @@
                      
-                     disappearingTitleView.imageView.alpha = titleFraction
+                     disappearingTitleView.imageView.alpha = titleFraction * titleTextFraction
                      
 -                    let titleScale: CGFloat = titleFraction * 1.0 + (1.0 - titleFraction) * 0.3
 +                    let titleScale: CGFloat = 1.0
@@ -118,7 +118,7 @@ diff --git a/submodules/TelegramUI/Components/Stories/StoryPeerListComponent/Sou
 diff --git a/submodules/TelegramUI/Sources/ChatController.swift b/submodules/TelegramUI/Sources/ChatController.swift
 --- a/submodules/TelegramUI/Sources/ChatController.swift
 +++ b/submodules/TelegramUI/Sources/ChatController.swift
-@@ -252,6 +252,7 @@
+@@ -253,6 +253,7 @@
      private var nebulaTranslationTimer: Foundation.Timer?
      private var nebulaTranslationObservers: [NSObjectProtocol] = []
      private var nebulaTranslationVisible = false
@@ -126,7 +126,7 @@ diff --git a/submodules/TelegramUI/Sources/ChatController.swift b/submodules/Tel
      private var nebulaHadAiTranslation = false
      private var nebulaPreviousTranslationState: ChatPresentationTranslationState?
      private var nebulaIncomingTick = Date.distantPast
-@@ -265,12 +266,11 @@
+@@ -266,12 +267,11 @@
          chatDisplayNode.textInputPanelNode?.nebulaToolsButton = nebulaDraftTranslation.button
          nebulaDraftTranslation.openSettings = { [weak self] in self?.nebulaOpenTranslationSettings() }
          nebulaDraftTranslation.openTools = { [weak self] in
@@ -141,7 +141,7 @@ diff --git a/submodules/TelegramUI/Sources/ChatController.swift b/submodules/Tel
          }
          nebulaDraftTranslation.apply = { [weak self] source, result in self?.nebulaApplyDraft(source: source, result: result) }
          nebulaTranslationTimer?.invalidate(); nebulaTranslationTimer = nil
-@@ -297,12 +297,22 @@
+@@ -298,12 +298,22 @@
          nebulaPreviousTranslationState = nil
          NebulaTranslationPreferences.shared.update(account: "\(context.account.peerId.toInt64())", peer: "\(peer.toInt64())") { $0.incoming = false }
      }
@@ -166,7 +166,7 @@ diff --git a/submodules/TelegramUI/Sources/ChatController.swift b/submodules/Tel
      }
      private func nebulaApplyDraft(source: String, result: String) {
          guard presentationInterfaceState.interfaceState.effectiveInputState.inputText.string == source else { return }
-@@ -334,7 +344,7 @@
+@@ -335,7 +345,7 @@
              nebulaLiveTranslation.update(context: context, peer: peer, messages: messages, allowed: incoming)
          }
          let composerVisible = chatDisplayNode.inputPanelNode === chatDisplayNode.textInputPanelNode
@@ -175,7 +175,7 @@ diff --git a/submodules/TelegramUI/Sources/ChatController.swift b/submodules/Tel
              && presentationInterfaceState.editMessageState == nil && presentationInterfaceState.inputTextPanelState.mediaRecordingState == nil
              && presentationInterfaceState.interfaceState.mediaDraftState == nil
          nebulaDraftTranslation.update(source: presentationInterfaceState.interfaceState.effectiveInputState.inputText.string, options: options, allowed: canTranslateDraft)
-@@ -6313,14 +6323,9 @@
+@@ -6321,14 +6331,9 @@
                              }, action: { _, f in
                                  f(.dismissWithoutContent)
                                  let editor = NebulaAiChatController(russian: russian, initialText: draft, action: .proofread, applyResult: { [weak self] value in

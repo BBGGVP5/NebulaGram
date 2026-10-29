@@ -8,7 +8,7 @@ concurrency:
   cancel-in-progress: false
 jobs:
   native:
-    runs-on: macos-latest
+    runs-on: xcode-27
     timeout-minutes: 120
     env:
       PYTHONUNBUFFERED: '1'
@@ -29,7 +29,7 @@ jobs:
           mkdir -p native-logs
           echo "NEBULA_IOS_TREE=$RUNNER_TEMP/nebulagram-ios-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT" >> "$GITHUB_ENV"
           python platform/ios/tools/test_native_build.py 2>&1 | tee native-logs/safety.log
-          python platform/ios/tools/native-build.py preflight --xcode 26.6 2>&1 | tee native-logs/preflight.log
+          python platform/ios/tools/native-build.py preflight --xcode 27.1 2>&1 | tee native-logs/preflight.log
       - name: Prepare actual Telegram sources, dependencies and overlay
         run: |
           set -o pipefail

@@ -1,7 +1,7 @@
 diff --git a/submodules/TelegramUI/Components/Chat/ChatMessageBubbleItemNode/Sources/ChatMessageBubbleItemNode.swift b/submodules/TelegramUI/Components/Chat/ChatMessageBubbleItemNode/Sources/ChatMessageBubbleItemNode.swift
 --- a/submodules/TelegramUI/Components/Chat/ChatMessageBubbleItemNode/Sources/ChatMessageBubbleItemNode.swift
 +++ b/submodules/TelegramUI/Components/Chat/ChatMessageBubbleItemNode/Sources/ChatMessageBubbleItemNode.swift
-@@ -7299,7 +7299,7 @@
+@@ -7305,7 +7305,7 @@
                  self.currentSwipeToReplyTranslation = 0.0
                  if self.swipeToReplyFeedback == nil {
                      self.swipeToReplyFeedback = HapticFeedback()
@@ -10,7 +10,7 @@ diff --git a/submodules/TelegramUI/Components/Chat/ChatMessageBubbleItemNode/Sou
                  }
                  self.item?.controllerInteraction.cancelInteractiveKeyboardGestures()
              case .changed:
-@@ -7359,7 +7359,7 @@
+@@ -7365,7 +7365,7 @@
                      
                      if progress > 1.0 - .ulpOfOne && !self.playedSwipeToReplyHaptic {
                          self.playedSwipeToReplyHaptic = true
@@ -22,7 +22,7 @@ diff --git a/submodules/TelegramUI/Components/Chat/ChatMessageBubbleItemNode/Sou
 diff --git a/submodules/TelegramUI/Components/Chat/ChatTextInputPanelNode/Sources/ChatTextInputPanelNode.swift b/submodules/TelegramUI/Components/Chat/ChatTextInputPanelNode/Sources/ChatTextInputPanelNode.swift
 --- a/submodules/TelegramUI/Components/Chat/ChatTextInputPanelNode/Sources/ChatTextInputPanelNode.swift
 +++ b/submodules/TelegramUI/Components/Chat/ChatTextInputPanelNode/Sources/ChatTextInputPanelNode.swift
-@@ -5637,7 +5637,7 @@
+@@ -5856,7 +5856,7 @@
  
              if remainingCount < 0 {
                  richTextInputNode.inputView.layer.addShakeAnimation()
@@ -31,7 +31,7 @@ diff --git a/submodules/TelegramUI/Components/Chat/ChatTextInputPanelNode/Source
                  return
              }
          }
-@@ -5655,7 +5655,7 @@
+@@ -5874,7 +5874,7 @@
      }
      
      @objc func menuButtonPressed() {
@@ -43,7 +43,7 @@ diff --git a/submodules/TelegramUI/Components/Chat/ChatTextInputPanelNode/Source
 diff --git a/submodules/TelegramUI/Sources/ChatController.swift b/submodules/TelegramUI/Sources/ChatController.swift
 --- a/submodules/TelegramUI/Sources/ChatController.swift
 +++ b/submodules/TelegramUI/Sources/ChatController.swift
-@@ -1932,7 +1932,7 @@
+@@ -1945,7 +1945,7 @@
                          if strongSelf.selectPollOptionFeedback == nil {
                              strongSelf.selectPollOptionFeedback = HapticFeedback()
                          }
@@ -52,7 +52,7 @@ diff --git a/submodules/TelegramUI/Sources/ChatController.swift b/submodules/Tel
                          
                          itemNode.awaitingAppliedReaction = (chosenReaction, { [weak itemNode] in
                              guard let strongSelf = self else {
-@@ -2130,7 +2130,7 @@
+@@ -2143,7 +2143,7 @@
                              if strongSelf.selectPollOptionFeedback == nil {
                                  strongSelf.selectPollOptionFeedback = HapticFeedback()
                              }
@@ -61,7 +61,7 @@ diff --git a/submodules/TelegramUI/Sources/ChatController.swift b/submodules/Tel
                              
                              itemNode.awaitingAppliedReaction = (chosenReaction, { [weak itemNode] in
                                  guard let strongSelf = self else {
-@@ -4145,7 +4145,7 @@
+@@ -4158,7 +4158,7 @@
                          if strongSelf.selectPollOptionFeedback == nil {
                              strongSelf.selectPollOptionFeedback = HapticFeedback()
                          }
@@ -70,7 +70,7 @@ diff --git a/submodules/TelegramUI/Sources/ChatController.swift b/submodules/Tel
                      case .quiz:
                          if let voters = resultPoll.results.voters {
                              var selectedCount = 0
-@@ -4168,7 +4168,7 @@
+@@ -4181,7 +4181,7 @@
                                  if strongSelf.selectPollOptionFeedback == nil {
                                      strongSelf.selectPollOptionFeedback = HapticFeedback()
                                  }
@@ -79,7 +79,7 @@ diff --git a/submodules/TelegramUI/Sources/ChatController.swift b/submodules/Tel
                                  
                                  strongSelf.chatDisplayNode.playConfettiAnimation()
                              } else {
-@@ -4179,7 +4179,7 @@
+@@ -4192,7 +4192,7 @@
                                          if strongSelf.selectPollOptionFeedback == nil {
                                              strongSelf.selectPollOptionFeedback = HapticFeedback()
                                          }
@@ -88,7 +88,7 @@ diff --git a/submodules/TelegramUI/Sources/ChatController.swift b/submodules/Tel
                                          
                                          itemNode.animateQuizInvalidOptionSelected()
                                          
-@@ -4266,7 +4266,7 @@
+@@ -4279,7 +4279,7 @@
                      if strongSelf.selectPollOptionFeedback == nil {
                          strongSelf.selectPollOptionFeedback = HapticFeedback()
                      }
@@ -97,7 +97,7 @@ diff --git a/submodules/TelegramUI/Sources/ChatController.swift b/submodules/Tel
                      
                      if controllerInteraction.pollActionState.pollMessageIdsInProgress.removeValue(forKey: id) != nil {
                          Queue.mainQueue().after(1.0, {
-@@ -4708,7 +4708,7 @@
+@@ -4735,7 +4735,7 @@
                  strongSelf.selectPollOptionFeedback = HapticFeedback()
              }
              if haptic {
@@ -106,7 +106,7 @@ diff --git a/submodules/TelegramUI/Sources/ChatController.swift b/submodules/Tel
              }
              if confetti {
                  strongSelf.chatDisplayNode.playConfettiAnimation()
-@@ -5172,7 +5172,7 @@
+@@ -5193,7 +5193,7 @@
                      guard let controller else {
                          return
                      }
@@ -115,7 +115,7 @@ diff --git a/submodules/TelegramUI/Sources/ChatController.swift b/submodules/Tel
                      controller.present(UndoOverlayController(presentationData: presentationData, content: .info(title: nil, text: presentationData.strings.RequestPeer_ReachedMaximum(limit), timeout: nil, customUndoText: nil), elevatedLayout: true, position: .bottom, animateInAsReplacement: false, action: { _ in return false }), in: .current)
                  }
                  
-@@ -5826,14 +5826,14 @@
+@@ -5847,14 +5847,14 @@
                  if self.selectPollOptionFeedback == nil {
                      self.selectPollOptionFeedback = HapticFeedback()
                  }
@@ -132,7 +132,7 @@ diff --git a/submodules/TelegramUI/Sources/ChatController.swift b/submodules/Tel
              }
              let signal = self.context.engine.messages.requestUpdateTodoMessageItems(messageId: messageId, completedIds: completedIds, incompletedIds: incompletedIds)
              disposables.set((signal
-@@ -5925,9 +5925,9 @@
+@@ -5946,9 +5946,9 @@
                  self.selectPollOptionFeedback = HapticFeedback()
              }
              if value {
@@ -144,7 +144,7 @@ diff --git a/submodules/TelegramUI/Sources/ChatController.swift b/submodules/Tel
              }
  
              // Debounce: coalesce a rapid burst of taps into one edit once tapping quiesces.
-@@ -11106,7 +11106,7 @@
+@@ -11177,7 +11177,7 @@
          if self.shakeFeedback == nil {
              self.shakeFeedback = HapticFeedback()
          }

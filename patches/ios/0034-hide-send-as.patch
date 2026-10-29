@@ -19,7 +19,7 @@ diff --git a/submodules/TelegramUI/Components/Chat/ChatTextInputPanelNode/Source
  import UniformTypeIdentifiers
  import UIKit
  import Display
-@@ -305,6 +306,7 @@
+@@ -313,6 +314,7 @@
      private var sendingTextDisabled: Bool = false
      
      private var presentationInterfaceState: ChatPresentationInterfaceState?
@@ -27,7 +27,7 @@ diff --git a/submodules/TelegramUI/Components/Chat/ChatTextInputPanelNode/Source
      private var initializedPlaceholder = false
      
      private var keepSendButtonEnabled = false
-@@ -763,6 +765,9 @@
+@@ -771,6 +773,9 @@
          self.recordMoreButton = ChatRecordingViewOnceButtonNode(icon: .recordMore)
          
          super.init()
@@ -37,7 +37,7 @@ diff --git a/submodules/TelegramUI/Components/Chat/ChatTextInputPanelNode/Source
          
          self.view.addSubview(self.glassBackgroundContainer)
          
-@@ -1398,7 +1403,7 @@
+@@ -1439,7 +1444,7 @@
          }
          
          var hasSendAsButton = false
@@ -46,7 +46,7 @@ diff --git a/submodules/TelegramUI/Components/Chat/ChatTextInputPanelNode/Source
              hasSendAsButton = true
          }
          
-@@ -1783,7 +1788,7 @@
+@@ -1824,7 +1829,7 @@
          
          var displaySendAsAvatarButton = false
          let mediaRecordingState = interfaceState.inputTextPanelState.mediaRecordingState
@@ -55,7 +55,7 @@ diff --git a/submodules/TelegramUI/Components/Chat/ChatTextInputPanelNode/Source
              menuButtonExpanded = false
              displaySendAsAvatarButton = true
              
-@@ -3148,7 +3153,7 @@
+@@ -3189,7 +3194,7 @@
          }
          
          var hasSendAsButton = false

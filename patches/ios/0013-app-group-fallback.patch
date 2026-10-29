@@ -1,7 +1,7 @@
 diff --git a/submodules/TelegramUI/Sources/AppDelegate.swift b/submodules/TelegramUI/Sources/AppDelegate.swift
 --- a/submodules/TelegramUI/Sources/AppDelegate.swift
 +++ b/submodules/TelegramUI/Sources/AppDelegate.swift
-@@ -238,6 +238,22 @@
+@@ -241,6 +241,22 @@
      )
  }
  
@@ -24,7 +24,7 @@ diff --git a/submodules/TelegramUI/Sources/AppDelegate.swift b/submodules/Telegr
  @objc(AppDelegate) class AppDelegate: UIResponder, UIApplicationDelegate, PKPushRegistryDelegate, UNUserNotificationCenterDelegate, URLSessionDelegate, URLSessionTaskDelegate {
      @objc var window: UIWindow?
      var nativeWindow: (UIWindow & WindowHost)?
-@@ -315,7 +331,9 @@
+@@ -319,7 +335,9 @@
          let appGroupName = "group.\(baseAppBundleId)"
  
          let configuration = URLSessionConfiguration.background(withIdentifier: identifier)
@@ -35,7 +35,7 @@ diff --git a/submodules/TelegramUI/Sources/AppDelegate.swift b/submodules/Telegr
          configuration.isDiscretionary = false
          let session = URLSession(configuration: configuration, delegate: self, delegateQueue: .main)
          self.urlSessions.append(session)
-@@ -562,7 +580,15 @@
+@@ -573,7 +591,15 @@
          try! PasscodeEnvironment.shared.configure(PasscodeConfiguration(appGroupIdentifier: appGroupName, processRole: .mainApp, biometricKeychainService: walletBiometricKeychainService), privateAccessGroup: {
              BuildConfig.keychainAccessGroup(baseAppBundleId: baseAppBundleId)
          })

@@ -1,7 +1,7 @@
 diff --git a/submodules/TelegramUI/Components/Chat/ChatTextInputPanelNode/Sources/ChatTextInputPanelNode.swift b/submodules/TelegramUI/Components/Chat/ChatTextInputPanelNode/Sources/ChatTextInputPanelNode.swift
 --- a/submodules/TelegramUI/Components/Chat/ChatTextInputPanelNode/Sources/ChatTextInputPanelNode.swift
 +++ b/submodules/TelegramUI/Components/Chat/ChatTextInputPanelNode/Sources/ChatTextInputPanelNode.swift
-@@ -3924,7 +3924,7 @@
+@@ -3970,7 +3970,7 @@
              }
              toolbar.update(color: interfaceState.theme.chat.inputPanel.actionControlForegroundColor,
                  russian: interfaceState.strings.baseLanguageCode.lowercased().hasPrefix("ru"),
@@ -10,7 +10,7 @@ diff --git a/submodules/TelegramUI/Components/Chat/ChatTextInputPanelNode/Source
              transition.updateFrame(view: toolbar, frame: CGRect(x: leftInset + 8, y: 4,
                  width: max(0, width - leftInset - rightInset - 16), height: 44))
          } else if let toolbar = self.nebulaFormattingToolbar {
-@@ -5338,7 +5338,21 @@
+@@ -5451,7 +5451,21 @@
      }
      
      private func nebulaFormatSelection(_ index: Int) {
@@ -33,7 +33,7 @@ diff --git a/submodules/TelegramUI/Components/Chat/ChatTextInputPanelNode/Source
          switch index {
          case 0: self.formatAttributesBold(self)
          case 1: self.formatAttributesItalic(self)
-@@ -5346,6 +5360,9 @@
+@@ -5459,6 +5473,9 @@
          case 3: self.formatAttributesQuote(self)
          case 4: self.formatAttributesSpoiler(self)
          case 5: self.formatAttributesLink(self)
@@ -41,5 +41,5 @@ diff --git a/submodules/TelegramUI/Components/Chat/ChatTextInputPanelNode/Source
 +        case 9: self.formatAttributesStrikethrough(self)
 +        case 10: self.formatAttributesCodeBlock(self)
          default:
-             self.interfaceInteraction?.updateTextInputStateAndMode { current, mode in
-                 let text = NSMutableAttributedString(attributedString: current.inputText)
+             // The native engine keeps tables, headings and lists the input state cannot
+             // express; rebuilding from that state would drop them. Its own command clears.

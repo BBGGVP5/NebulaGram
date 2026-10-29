@@ -1,7 +1,7 @@
 diff --git a/submodules/TelegramUI/Components/Chat/ChatTextInputPanelNode/Sources/ChatTextInputPanelNode.swift b/submodules/TelegramUI/Components/Chat/ChatTextInputPanelNode/Sources/ChatTextInputPanelNode.swift
 --- a/submodules/TelegramUI/Components/Chat/ChatTextInputPanelNode/Sources/ChatTextInputPanelNode.swift
 +++ b/submodules/TelegramUI/Components/Chat/ChatTextInputPanelNode/Sources/ChatTextInputPanelNode.swift
-@@ -322,6 +322,18 @@
+@@ -330,6 +330,18 @@
      
      private let hapticFeedback = HapticFeedback()
      
@@ -20,7 +20,7 @@ diff --git a/submodules/TelegramUI/Components/Chat/ChatTextInputPanelNode/Source
      public var isAIEnabled: Bool = false
      
      public var inputTextState: ChatTextInputState {
-@@ -1252,7 +1264,7 @@
+@@ -1277,7 +1289,7 @@
              self.textInputBackgroundNode.view.removeGestureRecognizer(textInputBackgroundTapRecognizer)
          }
          
@@ -29,7 +29,7 @@ diff --git a/submodules/TelegramUI/Components/Chat/ChatTextInputPanelNode/Source
          var firstButton = true
          for (_, button) in self.accessoryItemButtons {
              if firstButton {
-@@ -1375,7 +1387,7 @@
+@@ -1416,7 +1428,7 @@
          let textFieldInsets = self.textFieldInsets(metrics: metrics, bottomInset: bottomInset)
          let fieldMaxHeight = self.textFieldMaxHeight(maxHeight, metrics: metrics, bottomInset: bottomInset)
          
@@ -38,7 +38,7 @@ diff --git a/submodules/TelegramUI/Components/Chat/ChatTextInputPanelNode/Source
          var firstButton = true
          for (item, button) in self.accessoryItemButtons {
              if firstButton {
-@@ -3292,6 +3304,14 @@
+@@ -3338,6 +3350,14 @@
              }
          }
          
@@ -98,8 +98,8 @@ diff --git a/submodules/TelegramUI/Sources/Chat/ChatControllerLoadDisplayNode.sw
 +import NebulaSettingsContract
  import Foundation
  import UIKit
- import Postbox
-@@ -4385,6 +4386,11 @@
+ import SwiftSignalKit
+@@ -4295,6 +4296,11 @@
              guard let self, let peerId = self.chatLocation.peerId else {
                  return
              }
@@ -111,7 +111,7 @@ diff --git a/submodules/TelegramUI/Sources/Chat/ChatControllerLoadDisplayNode.sw
              let _ = (updateChatTranslationStateInteractively(engine: self.context.engine, peerId: peerId, threadId: self.chatLocation.threadId,  { current in
                  return current?.withIsEnabled(type == .translated)
              })
-@@ -4399,6 +4405,11 @@
+@@ -4309,6 +4315,11 @@
              guard let self, let peerId = self.chatLocation.peerId else {
                  return
              }
@@ -123,22 +123,22 @@ diff --git a/submodules/TelegramUI/Sources/Chat/ChatControllerLoadDisplayNode.sw
              let langCode = normalizeTranslationLanguage(langCode)
              let _ = updateChatTranslationStateInteractively(engine: self.context.engine, peerId: peerId, threadId: self.chatLocation.threadId, { current in
                  return current?.withToLang(langCode).withIsEnabled(true)
-@@ -4448,6 +4459,11 @@
-             }), in: .current)
-         }, hideTranslationPanel: { [weak self] in
+@@ -4360,6 +4371,11 @@
              guard let strongSelf = self, let peerId = strongSelf.chatLocation.peerId else {
-+                return
-+            }
+                 return
+             }
 +            let nebulaOptions = NebulaTranslationPreferences.shared.options(account: "\(strongSelf.context.account.peerId.toInt64())", peer: "\(peerId.toInt64())")
 +            if nebulaOptions.incoming {
 +                strongSelf.nebulaShowOriginalMessages()
-                 return
-             }
++                return
++            }
              let context = strongSelf.context
+             let presentationData = strongSelf.presentationData
+             let _ = context.engine.messages.togglePeerMessagesTranslationHidden(peerId: peerId, hidden: true).startStandalone()
 diff --git a/submodules/TelegramUI/Sources/ChatController.swift b/submodules/TelegramUI/Sources/ChatController.swift
 --- a/submodules/TelegramUI/Sources/ChatController.swift
 +++ b/submodules/TelegramUI/Sources/ChatController.swift
-@@ -244,6 +244,102 @@
+@@ -245,6 +245,102 @@
      var validLayout: ContainerViewLayout?
      private var nebulaNextChannelObservation: SettingsObservation?
      private var nebulaReplyAppearance = [NebulaSettingsStore.shared.replyBackground, NebulaSettingsStore.shared.replyColors, NebulaSettingsStore.shared.replyEmoji]
@@ -241,22 +241,22 @@ diff --git a/submodules/TelegramUI/Sources/ChatController.swift b/submodules/Tel
      private var nebulaLastSecondsInTime = NebulaSettingsStore.shared.secondsInTime
      
      public weak var parentController: ViewController?
-@@ -6188,6 +6284,14 @@
-                             }, action: { _, f in
-                                 f(.dismissWithoutContent)
+@@ -6198,6 +6294,14 @@
                                  self?.interfaceInteraction?.beginMessageSearch(.everything, "")
-+                            })))
-+                        }
+                             })))
+                         }
 +                        if peer.id.namespace != Namespaces.Peer.SecretChat {
 +                            let russian = strongSelf.presentationData.strings.baseLanguageCode.lowercased().hasPrefix("ru")
 +                            items.append(.action(ContextMenuActionItem(text: russian ? "ИИ в чате" : "AI in this chat", icon: { theme in
 +                                generateTintedImage(image: UIImage(bundleImageName: "Chat/Context Menu/Translate"), color: theme.actionSheet.primaryTextColor)
 +                            }, action: { [weak self] _, f in
 +                                f(.dismissWithoutContent); self?.nebulaOpenTranslationSettings()
-                             })))
-                         }
++                            })))
++                        }
                          let aiSettings = NebulaAiSettings.shared
-@@ -7181,6 +7285,8 @@
+                         let draft = strongSelf.presentationInterfaceState.interfaceState.effectiveInputState.inputText.string
+                         if aiSettings.enabled && aiSettings.isConfigured() && !draft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+@@ -7190,6 +7294,8 @@
      }
  
      deinit {
@@ -265,7 +265,7 @@ diff --git a/submodules/TelegramUI/Sources/ChatController.swift b/submodules/Tel
          let _ = ChatControllerCount.modify { value in
              return value - 1
          }
-@@ -7955,6 +8061,8 @@
+@@ -7981,6 +8087,8 @@
  
      override public func viewDidAppear(_ animated: Bool) {
          super.viewDidAppear(animated)
@@ -274,10 +274,10 @@ diff --git a/submodules/TelegramUI/Sources/ChatController.swift b/submodules/Tel
          self.nebulaUpdateSnow()
          
          self.didAppear = true
-@@ -8386,6 +8494,9 @@
-     
-     override public func viewWillDisappear(_ animated: Bool) {
+@@ -8430,6 +8538,9 @@
          super.viewWillDisappear(animated)
+ 
+         self.walletTransferAnimationsVisible = false
 +        nebulaTranslationVisible = false
 +        nebulaTranslationTimer?.invalidate(); nebulaTranslationTimer = nil
 +        nebulaLiveTranslation.stop(); nebulaDraftTranslation.stop()
@@ -293,7 +293,7 @@ diff --git a/submodules/TelegramUI/Sources/ChatHistoryListNode.swift b/submodule
  import Foundation
  import UIKit
  import SwiftSignalKit
-@@ -1092,6 +1094,9 @@
+@@ -1104,6 +1106,9 @@
          }
          self.translationProcessingManager.process = { [weak self, weak context] messageIds in
              if let context, let translationLang = self?.translationLang {

@@ -1,7 +1,7 @@
 diff --git a/submodules/TelegramUI/Sources/ChatController.swift b/submodules/TelegramUI/Sources/ChatController.swift
 --- a/submodules/TelegramUI/Sources/ChatController.swift
 +++ b/submodules/TelegramUI/Sources/ChatController.swift
-@@ -6143,6 +6143,21 @@
+@@ -6151,6 +6151,21 @@
                              })))
                          }
                                                  
@@ -23,10 +23,10 @@ diff --git a/submodules/TelegramUI/Sources/ChatController.swift b/submodules/Tel
                          return items
                      }
                  case let .replyThread(message):
-@@ -7699,6 +7714,10 @@
-     
-     override public func viewWillAppear(_ animated: Bool) {
-         super.viewWillAppear(animated)
+@@ -7726,6 +7741,10 @@
+         self.chatDisplayNode.historyNode.forEachVisibleMessageItemNode { itemNode in
+             itemNode.unreadMessageRangeUpdated()
+         }
 +        if let peerId = self.chatLocation.peerId, peerId != self.context.account.peerId {
 +            let russian = self.presentationData.strings.baseLanguageCode.lowercased().hasPrefix("ru")
 +            NebulaChatLockGate.attach(to: self, account: self.context.account.peerId.toInt64(), peer: peerId.toInt64(), russian: russian)
@@ -34,10 +34,10 @@ diff --git a/submodules/TelegramUI/Sources/ChatController.swift b/submodules/Tel
                  
          if self.willAppear {
              self.chatDisplayNode.historyNode.refreshPollActionsForVisibleMessages()
-@@ -8297,6 +8316,7 @@
-     
-     override public func viewWillDisappear(_ animated: Bool) {
+@@ -8341,6 +8360,7 @@
          super.viewWillDisappear(animated)
+ 
+         self.walletTransferAnimationsVisible = false
 +        NebulaChatLockGate.seal(host: self)
          
          if #available(iOS 18.0, *) {

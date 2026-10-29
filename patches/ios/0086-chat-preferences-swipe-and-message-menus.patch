@@ -64,7 +64,7 @@ diff --git a/submodules/ContextUI/Sources/ContextController.swift b/submodules/C
 diff --git a/submodules/TelegramUI/Components/Chat/ChatMessageAnimatedStickerItemNode/Sources/ChatMessageAnimatedStickerItemNode.swift b/submodules/TelegramUI/Components/Chat/ChatMessageAnimatedStickerItemNode/Sources/ChatMessageAnimatedStickerItemNode.swift
 --- a/submodules/TelegramUI/Components/Chat/ChatMessageAnimatedStickerItemNode/Sources/ChatMessageAnimatedStickerItemNode.swift
 +++ b/submodules/TelegramUI/Components/Chat/ChatMessageAnimatedStickerItemNode/Sources/ChatMessageAnimatedStickerItemNode.swift
-@@ -338,11 +338,11 @@
+@@ -337,11 +337,11 @@
                  
                  let action = item.controllerInteraction.canSetupReply(item.message)
                  strongSelf.currentSwipeAction = action
@@ -81,7 +81,7 @@ diff --git a/submodules/TelegramUI/Components/Chat/ChatMessageAnimatedStickerIte
              }
              return false
          }
-@@ -1692,7 +1692,13 @@
+@@ -1696,7 +1696,13 @@
                          strongSelf.shareButtonNode = nil
                      }
                      
@@ -96,7 +96,7 @@ diff --git a/submodules/TelegramUI/Components/Chat/ChatMessageAnimatedStickerIte
                      animation.animator.updateFrame(layer: strongSelf.dateAndStatusNode.layer, frame: dateAndStatusFrame, completion: nil)
                      dateAndStatusApply(animation)
                      if case .customChatContents = item.associatedData.subject {
-@@ -2636,6 +2642,8 @@
+@@ -2640,6 +2646,8 @@
          }
      }
      
@@ -105,7 +105,7 @@ diff --git a/submodules/TelegramUI/Components/Chat/ChatMessageAnimatedStickerIte
      private var playedSwipeToReplyHaptic = false
      @objc private func swipeToReplyGesture(_ recognizer: ChatSwipeToReplyRecognizer) {
          var offset: CGFloat = 0.0
-@@ -2661,6 +2669,7 @@
+@@ -2665,6 +2673,7 @@
                  self.item?.controllerInteraction.cancelInteractiveKeyboardGestures()
              case .changed:
                  var translation = recognizer.translation(in: self.view)
@@ -113,7 +113,7 @@ diff --git a/submodules/TelegramUI/Components/Chat/ChatMessageAnimatedStickerIte
                  func rubberBandingOffset(offset: CGFloat, bandingStart: CGFloat) -> CGFloat {
                      let bandedOffset = offset - bandingStart
                      if offset < bandingStart {
-@@ -2710,6 +2719,7 @@
+@@ -2714,6 +2723,7 @@
                      }
                      
                      let progress = abs(translation.x) / swipeOffset
@@ -121,7 +121,7 @@ diff --git a/submodules/TelegramUI/Components/Chat/ChatMessageAnimatedStickerIte
                      swipeToReplyNode.updateProgress(progress)
                      
                      if progress > 1.0 - .ulpOfOne && !self.playedSwipeToReplyHaptic {
-@@ -2731,7 +2741,9 @@
+@@ -2735,7 +2745,9 @@
              
                  if case .ended = recognizer.state, gestureRecognized {
                      if let item = self.item {
@@ -135,7 +135,7 @@ diff --git a/submodules/TelegramUI/Components/Chat/ChatMessageAnimatedStickerIte
 diff --git a/submodules/TelegramUI/Components/Chat/ChatMessageBubbleItemNode/Sources/ChatMessageBubbleItemNode.swift b/submodules/TelegramUI/Components/Chat/ChatMessageBubbleItemNode/Sources/ChatMessageBubbleItemNode.swift
 --- a/submodules/TelegramUI/Components/Chat/ChatMessageBubbleItemNode/Sources/ChatMessageBubbleItemNode.swift
 +++ b/submodules/TelegramUI/Components/Chat/ChatMessageBubbleItemNode/Sources/ChatMessageBubbleItemNode.swift
-@@ -1513,11 +1513,11 @@
+@@ -1515,11 +1515,11 @@
                  
                  let action = item.controllerInteraction.canSetupReply(item.message)
                  strongSelf.currentSwipeAction = action
@@ -152,7 +152,7 @@ diff --git a/submodules/TelegramUI/Components/Chat/ChatMessageBubbleItemNode/Sou
              }
              return false
          }
-@@ -7288,6 +7288,8 @@
+@@ -7294,6 +7294,8 @@
          item.controllerInteraction.openRankInfo(EnginePeer(peer), role, rank)
      }
      
@@ -161,7 +161,7 @@ diff --git a/submodules/TelegramUI/Components/Chat/ChatMessageBubbleItemNode/Sou
      private var playedSwipeToReplyHaptic = false
      @objc private func swipeToReplyGesture(_ recognizer: ChatSwipeToReplyRecognizer) {
          var offset: CGFloat = 0.0
-@@ -7313,6 +7315,7 @@
+@@ -7319,6 +7321,7 @@
                  self.item?.controllerInteraction.cancelInteractiveKeyboardGestures()
              case .changed:
                  var translation = recognizer.translation(in: self.view)
@@ -169,7 +169,7 @@ diff --git a/submodules/TelegramUI/Components/Chat/ChatMessageBubbleItemNode/Sou
                  func rubberBandingOffset(offset: CGFloat, bandingStart: CGFloat) -> CGFloat {
                      let bandedOffset = offset - bandingStart
                      if offset < bandingStart {
-@@ -7364,6 +7367,7 @@
+@@ -7370,6 +7373,7 @@
                      }
                      
                      let progress = abs(translation.x) / swipeOffset
@@ -177,7 +177,7 @@ diff --git a/submodules/TelegramUI/Components/Chat/ChatMessageBubbleItemNode/Sou
                      swipeToReplyNode.updateProgress(progress)
                      
                      if progress > 1.0 - .ulpOfOne && !self.playedSwipeToReplyHaptic {
-@@ -7383,7 +7387,9 @@
+@@ -7389,7 +7393,9 @@
                  }
                  if case .ended = recognizer.state, gestureRecognized {
                      if let item = self.item {
@@ -226,7 +226,7 @@ diff --git a/submodules/TelegramUI/Components/Chat/ChatMessageInstantVideoItemNo
              }
              return false
          }
-@@ -1063,6 +1063,8 @@
+@@ -1068,6 +1068,8 @@
          }
      }
          
@@ -235,7 +235,7 @@ diff --git a/submodules/TelegramUI/Components/Chat/ChatMessageInstantVideoItemNo
      private var playedSwipeToReplyHaptic = false
      @objc private func swipeToReplyGesture(_ recognizer: ChatSwipeToReplyRecognizer) {
          var offset: CGFloat = 0.0
-@@ -1098,6 +1100,7 @@
+@@ -1103,6 +1105,7 @@
                  }
              
                  var translation = recognizer.translation(in: self.view)
@@ -243,7 +243,7 @@ diff --git a/submodules/TelegramUI/Components/Chat/ChatMessageInstantVideoItemNo
                  if translation.x < 0.0 {
                      translation.x = max(-80.0, min(0.0, -rubberBandingOffset(offset: abs(translation.x), bandingStart: swipeOffset)))
                  } else {
-@@ -1137,6 +1140,7 @@
+@@ -1142,6 +1145,7 @@
                      }
                      
                      let progress = abs(translation.x) / swipeOffset
@@ -251,7 +251,7 @@ diff --git a/submodules/TelegramUI/Components/Chat/ChatMessageInstantVideoItemNo
                      swipeToReplyNode.updateProgress(progress)
                      
                      if progress > 1.0 - .ulpOfOne && !self.playedSwipeToReplyHaptic {
-@@ -1156,7 +1160,9 @@
+@@ -1161,7 +1165,9 @@
                  }
                  if case .ended = recognizer.state, gestureRecognized {
                      if let item = self.item {
@@ -282,7 +282,7 @@ diff --git a/submodules/TelegramUI/Components/Chat/ChatMessageStickerItemNode/So
              }
              return false
          }
-@@ -952,6 +952,12 @@
+@@ -957,6 +957,12 @@
                  }
              }
              var dateAndStatusFrame = CGRect(origin: CGPoint(x: min(layoutSize.width - dateAndStatusSize.width - 14.0, max(displayLeftInset, updatedImageFrame.maxX - dateOffset.x)), y: updatedImageFrame.maxY - dateOffset.y), size: dateAndStatusSize)
@@ -295,7 +295,7 @@ diff --git a/submodules/TelegramUI/Components/Chat/ChatMessageStickerItemNode/So
              
              let baseShareButtonSize = CGSize(width: 30.0, height: 60.0)
              var baseShareButtonFrame = CGRect(origin: CGPoint(x: !incoming ? updatedImageFrame.minX - baseShareButtonSize.width - 6.0 : updatedImageFrame.maxX + 6.0, y: updatedImageFrame.maxY - 10.0 - baseShareButtonSize.height - 4.0), size: baseShareButtonSize)
-@@ -1614,6 +1620,8 @@
+@@ -1619,6 +1625,8 @@
          }
      }
      
@@ -304,7 +304,7 @@ diff --git a/submodules/TelegramUI/Components/Chat/ChatMessageStickerItemNode/So
      private var playedSwipeToReplyHaptic = false
      @objc private func swipeToReplyGesture(_ recognizer: ChatSwipeToReplyRecognizer) {
          var offset: CGFloat = 0.0
-@@ -1639,6 +1647,7 @@
+@@ -1644,6 +1652,7 @@
                  self.item?.controllerInteraction.cancelInteractiveKeyboardGestures()
              case .changed:
                  var translation = recognizer.translation(in: self.view)
@@ -312,7 +312,7 @@ diff --git a/submodules/TelegramUI/Components/Chat/ChatMessageStickerItemNode/So
                  func rubberBandingOffset(offset: CGFloat, bandingStart: CGFloat) -> CGFloat {
                      let bandedOffset = offset - bandingStart
                      if offset < bandingStart {
-@@ -1688,6 +1697,7 @@
+@@ -1693,6 +1702,7 @@
                      }
                      
                      let progress = abs(translation.x) / swipeOffset
@@ -320,7 +320,7 @@ diff --git a/submodules/TelegramUI/Components/Chat/ChatMessageStickerItemNode/So
                      swipeToReplyNode.updateProgress(progress)
                      
                      if progress > 1.0 - .ulpOfOne && !self.playedSwipeToReplyHaptic {
-@@ -1707,7 +1717,9 @@
+@@ -1712,7 +1722,9 @@
                  }
                  if case .ended = recognizer.state, gestureRecognized {
                      if let item = self.item {
@@ -363,7 +363,7 @@ diff --git a/submodules/TelegramUI/Components/Chat/ChatMessageSwipeToReplyNode/S
 diff --git a/submodules/TelegramUI/Components/Chat/ChatTextInputPanelNode/Sources/ChatTextInputPanelNode.swift b/submodules/TelegramUI/Components/Chat/ChatTextInputPanelNode/Sources/ChatTextInputPanelNode.swift
 --- a/submodules/TelegramUI/Components/Chat/ChatTextInputPanelNode/Sources/ChatTextInputPanelNode.swift
 +++ b/submodules/TelegramUI/Components/Chat/ChatTextInputPanelNode/Sources/ChatTextInputPanelNode.swift
-@@ -306,6 +306,7 @@
+@@ -314,6 +314,7 @@
      private var sendingTextDisabled: Bool = false
      
      private var presentationInterfaceState: ChatPresentationInterfaceState?
@@ -371,7 +371,7 @@ diff --git a/submodules/TelegramUI/Components/Chat/ChatTextInputPanelNode/Source
      private var nebulaAppearanceObservation: SettingsObservation?
      private var initializedPlaceholder = false
      
-@@ -3902,6 +3903,7 @@
+@@ -3948,6 +3949,7 @@
          transition.updateFrame(view: self.glassBackgroundContainer, frame: containerFrame)
          self.glassBackgroundContainer.update(size: containerFrame.size, isDark: interfaceState.theme.overallDarkAppearance, transition: ComponentTransition(transition))
          
@@ -445,7 +445,7 @@ diff --git a/submodules/TelegramUI/Components/ContextControllerImpl/Sources/Cont
 diff --git a/submodules/TelegramUI/Sources/ChatController.swift b/submodules/TelegramUI/Sources/ChatController.swift
 --- a/submodules/TelegramUI/Sources/ChatController.swift
 +++ b/submodules/TelegramUI/Sources/ChatController.swift
-@@ -6219,6 +6219,8 @@
+@@ -6240,6 +6240,8 @@
          }, automaticMediaDownloadSettings: self.automaticMediaDownloadSettings, pollActionState: ChatInterfacePollActionState(), stickerSettings: self.stickerSettings, presentationContext: ChatPresentationContext(context: context, backgroundNode: self.chatBackgroundNode))
          controllerInteraction.enableFullTranslucency = context.sharedContext.energyUsageSettings.fullTranslucency
          

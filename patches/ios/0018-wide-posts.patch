@@ -17,7 +17,7 @@ diff --git a/submodules/TelegramUI/Components/Chat/ChatMessageBubbleItemNode/Sou
  import Foundation
  import LottieSettings
  import UIKit
-@@ -544,6 +545,9 @@
+@@ -546,6 +547,9 @@
  }
  
  public class ChatMessageBubbleItemNode: ChatMessageItemView, ChatMessagePreviewItemNode {
@@ -27,7 +27,7 @@ diff --git a/submodules/TelegramUI/Components/Chat/ChatMessageBubbleItemNode/Sou
      public class ContentContainer {
          public let contentMessageStableId: UInt32
          public let sourceNode: ContextExtractedContentContainingNode
-@@ -1268,6 +1272,15 @@
+@@ -1270,6 +1274,15 @@
      
      override public func didLoad() {
          super.didLoad()
@@ -43,7 +43,7 @@ diff --git a/submodules/TelegramUI/Components/Chat/ChatMessageBubbleItemNode/Sou
          
          let recognizer = TapLongTapOrDoubleTapGestureRecognizer(target: self, action: #selector(self.tapLongTapOrDoubleTapGesture(_:)))
          recognizer.tapActionAtPoint = { [weak self] point in
-@@ -2022,7 +2035,13 @@
+@@ -2024,7 +2037,13 @@
          }
  
          var tmpWidth: CGFloat

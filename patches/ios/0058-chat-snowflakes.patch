@@ -1,7 +1,7 @@
 diff --git a/submodules/TelegramUI/Sources/ChatController.swift b/submodules/TelegramUI/Sources/ChatController.swift
 --- a/submodules/TelegramUI/Sources/ChatController.swift
 +++ b/submodules/TelegramUI/Sources/ChatController.swift
-@@ -360,6 +360,38 @@
+@@ -369,6 +369,38 @@
      
      var selectMessagePollOptionDisposables: DisposableDict<MessageId>?
      var selectPollOptionFeedback: HapticFeedback?
@@ -40,7 +40,7 @@ diff --git a/submodules/TelegramUI/Sources/ChatController.swift b/submodules/Tel
      
      var updateMessageTodoDisposables: DisposableDict<MessageId>?
  
-@@ -7920,6 +7952,7 @@
+@@ -7946,6 +7978,7 @@
  
      override public func viewDidAppear(_ animated: Bool) {
          super.viewDidAppear(animated)
@@ -48,16 +48,16 @@ diff --git a/submodules/TelegramUI/Sources/ChatController.swift b/submodules/Tel
          
          self.didAppear = true
          
-@@ -8350,6 +8383,8 @@
-     
-     override public func viewWillDisappear(_ animated: Bool) {
+@@ -8394,6 +8427,8 @@
          super.viewWillDisappear(animated)
+ 
+         self.walletTransferAnimationsVisible = false
 +        self.nebulaSnowLayer?.removeFromSuperlayer()
 +        self.nebulaSnowLayer = nil
          NebulaChatLockGate.seal(host: self)
          
          if #available(iOS 18.0, *) {
-@@ -8491,6 +8526,9 @@
+@@ -8534,6 +8569,9 @@
      override public func containerLayoutUpdated(_ layout: ContainerViewLayout, transition: ContainedViewLayoutTransition) {
          self.suspendNavigationBarLayout = true
          super.containerLayoutUpdated(layout, transition: transition)

@@ -8,7 +8,7 @@ concurrency:
   cancel-in-progress: false
 jobs:
   ipa:
-    runs-on: macos-latest
+    runs-on: xcode-27
     timeout-minutes: 240
     env:
       PYTHONUNBUFFERED: '1'

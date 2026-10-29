@@ -1,7 +1,7 @@
 diff --git a/submodules/AccountContext/Sources/AccountContext.swift b/submodules/AccountContext/Sources/AccountContext.swift
 --- a/submodules/AccountContext/Sources/AccountContext.swift
 +++ b/submodules/AccountContext/Sources/AccountContext.swift
-@@ -1409,6 +1409,7 @@
+@@ -1423,6 +1423,7 @@
      func canTranscribeWithNebula(message: Message) -> Bool
      func presentNebulaAudioTranscription(context: AccountContext, from view: UIView, message: Message)
      func presentNebulaCaptionTools(context: AccountContext, from view: UIView, text: NSAttributedString, apply: @escaping (NSAttributedString) -> Void)
@@ -150,7 +150,7 @@ diff --git a/submodules/TelegramUI/Components/Chat/ChatRecordingPreviewInputPane
 diff --git a/submodules/TelegramUI/Sources/SharedAccountContext.swift b/submodules/TelegramUI/Sources/SharedAccountContext.swift
 --- a/submodules/TelegramUI/Sources/SharedAccountContext.swift
 +++ b/submodules/TelegramUI/Sources/SharedAccountContext.swift
-@@ -176,6 +176,19 @@
+@@ -178,6 +178,19 @@
          presenter.present(NebulaToolsNavigationController(root: NebulaAudioTranscriptionController(context: context, message: message, file: file)), animated: true)
      }
  

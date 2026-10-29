@@ -7,7 +7,7 @@ diff --git a/submodules/TelegramUI/Components/ChatTitleView/Sources/ChatTitleCom
  import UIKit
  import Display
  import ComponentFlow
-@@ -70,6 +71,8 @@
+@@ -113,6 +114,8 @@
      
      private var contentData: ContentData?
      private var activities: ChatTitleComponent.Activities?
@@ -16,7 +16,7 @@ diff --git a/submodules/TelegramUI/Components/ChatTitleView/Sources/ChatTitleCom
      private var networkState: AccountNetworkState?
      
      private var ignoreParentTransitionRequests: Bool = false
-@@ -80,6 +83,13 @@
+@@ -123,6 +126,13 @@
      
      override public init(frame: CGRect) {
          super.init(frame: frame)
@@ -30,7 +30,7 @@ diff --git a/submodules/TelegramUI/Components/ChatTitleView/Sources/ChatTitleCom
      }
      
      required public init?(coder: NSCoder) {
-@@ -172,6 +182,7 @@
+@@ -247,6 +257,7 @@
                      content: contentData.content,
                      activities: self.activities,
                      networkState: self.networkState,
@@ -38,7 +38,7 @@ diff --git a/submodules/TelegramUI/Components/ChatTitleView/Sources/ChatTitleCom
                      tapped: { [weak self] in
                          guard let self else {
                              return
-@@ -239,6 +250,7 @@
+@@ -316,6 +327,7 @@
      public let content: ChatTitleContent
      public let activities: Activities?
      public let networkState: AccountNetworkState?
@@ -46,7 +46,7 @@ diff --git a/submodules/TelegramUI/Components/ChatTitleView/Sources/ChatTitleCom
      public let tapped: () -> Void
      public let longTapped: () -> Void
      
-@@ -253,6 +265,7 @@
+@@ -330,6 +342,7 @@
          content: ChatTitleContent,
          activities: Activities?,
          networkState: AccountNetworkState?,
@@ -54,7 +54,7 @@ diff --git a/submodules/TelegramUI/Components/ChatTitleView/Sources/ChatTitleCom
          tapped: @escaping () -> Void,
          longTapped: @escaping () -> Void
      ) {
-@@ -266,6 +279,7 @@
+@@ -343,6 +356,7 @@
          self.content = content
          self.activities = activities
          self.networkState = networkState
@@ -62,17 +62,17 @@ diff --git a/submodules/TelegramUI/Components/ChatTitleView/Sources/ChatTitleCom
          self.tapped = tapped
          self.longTapped = longTapped
      }
-@@ -299,6 +313,9 @@
+@@ -378,6 +392,9 @@
+         if lhs.networkState != rhs.networkState {
              return false
          }
-         if lhs.networkState != rhs.networkState {
++        if lhs.hidePremiumStatus != rhs.hidePremiumStatus {
 +            return false
 +        }
-+        if lhs.hidePremiumStatus != rhs.hidePremiumStatus {
-             return false
-         }
          return true
-@@ -447,9 +464,9 @@
+     }
+     
+@@ -647,9 +664,9 @@
                                  titleCredibilityIcon = .fake
                              } else if peer.isScam {
                                  titleCredibilityIcon = .scam

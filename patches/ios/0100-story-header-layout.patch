@@ -1,24 +1,35 @@
-diff --git a/submodules/TelegramUI/Components/ChatListHeaderComponent/Sources/ChatListHeaderComponent.swift b/submodules/TelegramUI/Components/ChatListHeaderComponent/Sources/ChatListHeaderComponent.swift
---- a/submodules/TelegramUI/Components/ChatListHeaderComponent/Sources/ChatListHeaderComponent.swift
-+++ b/submodules/TelegramUI/Components/ChatListHeaderComponent/Sources/ChatListHeaderComponent.swift
-@@ -662,11 +662,8 @@
-                 }
-             }
-             
--            // Measured from the bar's edges, so each side includes its own inset (they differ where the
--            // system reserves one side, e.g. iPhone Duo's vertical status bar). With the standard 16pt
--            // inset these equal the former `nextLeftButtonX + 4.0` / `nextRightButtonX + 20.0`.
--            let centerContentLeftInset: CGFloat = leftInset + nextLeftButtonX - 12.0
--            let centerContentRightInset: CGFloat = rightInset + nextRightButtonX + 4.0
-+            let centerContentLeftInset = leftInset + (nextLeftButtonX > 0.0 ? max(44.0, nextLeftButtonX) : 0.0) + 8.0
-+            let centerContentRightInset = rightInset + (nextRightButtonX > 0.0 ? max(44.0, nextRightButtonX) : 0.0) + 8.0
-             
-             var centerContentWidth: CGFloat = 0.0
-             var centerContentOffsetX: CGFloat = 0.0
+diff --git a/submodules/TelegramUI/Components/Stories/StoryPeerListComponent/BUILD b/submodules/TelegramUI/Components/Stories/StoryPeerListComponent/BUILD
+--- a/submodules/TelegramUI/Components/Stories/StoryPeerListComponent/BUILD
++++ b/submodules/TelegramUI/Components/Stories/StoryPeerListComponent/BUILD
+@@ -70,6 +70,7 @@
+         "//submodules/Components/HierarchyTrackingLayer",
+         "//submodules/TelegramUI/Components/ChatListTitleView",
+         "//submodules/TelegramUI/Components/Utils/AnimatableProperty",
++        "//submodules/NebulaSettingsContract:NebulaSettingsContract",
+     ],
+     visibility = [
+         "//visibility:public",
 diff --git a/submodules/TelegramUI/Components/Stories/StoryPeerListComponent/Sources/StoryPeerListComponent.swift b/submodules/TelegramUI/Components/Stories/StoryPeerListComponent/Sources/StoryPeerListComponent.swift
 --- a/submodules/TelegramUI/Components/Stories/StoryPeerListComponent/Sources/StoryPeerListComponent.swift
 +++ b/submodules/TelegramUI/Components/Stories/StoryPeerListComponent/Sources/StoryPeerListComponent.swift
-@@ -726,20 +726,12 @@
+@@ -11,6 +11,16 @@
+ import StoryContainerScreen
+ import EmojiStatusComponent
+ import ChatListTitleView
++import NebulaSettingsContract
++
++/// The chat-list title sits at the leading edge unless the user asked for it centred, as NebulaGram always
++/// offered; centred, it keeps the upstream balancing between the bar's buttons.
++private func nebulaTitleContentOrigin(containerWidth: CGFloat, contentWidth: CGFloat, minX: CGFloat, maxX: CGFloat) -> CGFloat {
++    if NebulaSettingsStore.shared.centerHome {
++        return StoryPeerListTitleLayout.contentOrigin(containerWidth: containerWidth, contentWidth: contentWidth, minX: minX, maxX: maxX)
++    }
++    return minX + StoryPeerListTitleLayout.leadingMargin
++}
+ 
+ public final class StoryPeerListComponent: Component {
+     public enum PeerStatus: Equatable {
+@@ -773,20 +783,12 @@
                  }
              }
              
@@ -45,7 +56,7 @@ diff --git a/submodules/TelegramUI/Components/Stories/StoryPeerListComponent/Sou
              
              struct CollapseState {
                  var globalFraction: CGFloat
-@@ -774,14 +766,18 @@
+@@ -821,14 +823,18 @@
                  targetSideAlphaFraction = 0.0
              }
              
@@ -69,21 +80,16 @@ diff --git a/submodules/TelegramUI/Components/Stories/StoryPeerListComponent/Sou
              
              let timestamp = CACurrentMediaTime()
              
-@@ -897,9 +893,10 @@
-             
-             let centralContentWidth: CGFloat = collapsedContentWidth + titleContentSpacing + collapsedState.titleWidth
-             
--            collapsedContentOrigin = (itemLayout.containerSize.width - centralContentWidth) * 0.5
--            
--            collapsedContentOrigin = min(collapsedContentOrigin, component.maxTitleX - centralContentWidth - 4.0)
-+            collapsedContentOrigin = NebulaStoryHeaderLayout.origin(
-+                containerWidth: itemLayout.containerSize.width, contentWidth: centralContentWidth,
-+                minX: component.minTitleX, maxX: component.maxTitleX
-+            )
+@@ -954,7 +960,7 @@
+             let titleWidth = collapsedState.titleWidth - hiddenTitleWidth
+             let placedContentWidth = centralContentWidth - hiddenTitleWidth
+             self.titleOriginWidths = (itemLayout.containerSize.width, placedContentWidth)
+-            collapsedContentOrigin = StoryPeerListTitleLayout.contentOrigin(containerWidth: itemLayout.containerSize.width, contentWidth: placedContentWidth, minX: component.minTitleX, maxX: component.maxTitleX) + (self.titleOriginOffsetCurve?.value(at: CACurrentMediaTime()) ?? 0.0)
++            collapsedContentOrigin = nebulaTitleContentOrigin(containerWidth: itemLayout.containerSize.width, contentWidth: placedContentWidth, minX: component.minTitleX, maxX: component.maxTitleX) + (self.titleOriginOffsetCurve?.value(at: CACurrentMediaTime()) ?? 0.0)
              
              let collapsedContentOriginOffset: CGFloat = 0.0
              collapsedContentOrigin -= collapsedContentOriginOffset
-@@ -977,7 +974,7 @@
+@@ -1032,7 +1038,7 @@
                  var collapsedMaxItemFrame = collapsedItemFrame
                  
                  if itemLayout.itemCount > 1 {
@@ -92,16 +98,18 @@ diff --git a/submodules/TelegramUI/Components/Stories/StoryPeerListComponent/Sou
                      collapseDistance = max(0.0, min(1.0, collapseDistance))
                      collapsedMaxItemFrame.origin.x -= collapsedState.minFraction * 4.0
                      collapsedMaxItemFrame.origin.x += collapseDistance * 20.0
-@@ -1392,7 +1389,7 @@
-             if self.sortedItems.isEmpty {
-                 titleContentOffset = collapsedTitleOffset
-             } else {
--                titleContentOffset = titleMinContentOffset.interpolate(to: ((itemLayout.containerSize.width - collapsedState.titleWidth) * 0.5) as CGFloat, amount: min(1.0, collapsedState.maxFraction) * (1.0 - collapsedState.activityFraction))
-+                titleContentOffset = titleMinContentOffset.interpolate(to: NebulaStoryHeaderLayout.origin(containerWidth: itemLayout.containerSize.width, contentWidth: collapsedState.titleWidth, minX: component.minTitleX, maxX: component.maxTitleX), amount: min(1.0, collapsedState.maxFraction) * (1.0 - collapsedState.activityFraction))
-                 titleContentOffset += -expandBoundsFraction * 4.0
-             }
-             
-@@ -1700,9 +1697,43 @@
+@@ -1642,8 +1648,8 @@
+                     // Where the content stands now, against where the new band places it. Only the content's actual
+                     // movement springs: a band change that does not move it (content centred far from both sides)
+                     // starts nothing.
+-                    let from = StoryPeerListTitleLayout.contentOrigin(containerWidth: widths.container, contentWidth: widths.content, minX: previousComponent.minTitleX, maxX: previousComponent.maxTitleX) + (self.titleOriginOffsetCurve?.value(at: now) ?? 0.0)
+-                    let to = StoryPeerListTitleLayout.contentOrigin(containerWidth: widths.container, contentWidth: widths.content, minX: component.minTitleX, maxX: component.maxTitleX)
++                    let from = nebulaTitleContentOrigin(containerWidth: widths.container, contentWidth: widths.content, minX: previousComponent.minTitleX, maxX: previousComponent.maxTitleX) + (self.titleOriginOffsetCurve?.value(at: now) ?? 0.0)
++                    let to = nebulaTitleContentOrigin(containerWidth: widths.container, contentWidth: widths.content, minX: component.minTitleX, maxX: component.maxTitleX)
+                     self.titleOriginOffsetCurve = from == to ? nil : NavigationSpringCurve(startTime: now, from: from - to, velocity: self.titleOriginOffsetCurve?.velocity(at: now) ?? 0.0, target: 0.0, spring: NavigationTransitionSpring(duration: CGFloat(duration), bounce: 0.0), rest: .glass(0.01))
+                 } else {
+                     self.titleOriginOffsetCurve = nil
+@@ -1765,9 +1771,43 @@
              self.component = component
              self.state = state
              
@@ -146,11 +154,10 @@ diff --git a/submodules/TelegramUI/Components/Stories/StoryPeerListComponent/Sou
              let updatedTitleState = TitleState(text: component.title, color: component.theme.rootController.navigationBar.primaryTextColor, availableWidth: titleAvailableWidth)
              if self.titleState != updatedTitleState {
                  self.titleState = updatedTitleState
-@@ -1742,20 +1773,6 @@
-             }
+@@ -1808,20 +1848,6 @@
              
              self.collapsedButton.isUserInteractionEnabled = !component.unlocked
--            
+             
 -            self.sortedItems.removeAll(keepingCapacity: true)
 -            if let storySubscriptions = component.storySubscriptions {
 -                if !component.useHiddenList, let accountItem = storySubscriptions.accountItem {
@@ -164,6 +171,7 @@ diff --git a/submodules/TelegramUI/Components/Stories/StoryPeerListComponent/Sou
 -                    self.sortedItems.append(itemSet)
 -                }
 -            }
-             
+-            
              let itemLayout = ItemLayout(
                  containerSize: availableSize,
+                 containerInsets: UIEdgeInsets(top: 16.0, left: component.leftInset - 4.0, bottom: 0.0, right: component.rightInset - 4.0),

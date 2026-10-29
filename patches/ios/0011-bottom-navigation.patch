@@ -1,10 +1,10 @@
 diff --git a/submodules/TelegramUI/BUILD b/submodules/TelegramUI/BUILD
 --- a/submodules/TelegramUI/BUILD
 +++ b/submodules/TelegramUI/BUILD
-@@ -64,6 +64,7 @@
-         "-warnings-as-errors",
+@@ -65,6 +65,7 @@
      ],
      deps = [
+         "//submodules/CrashReporting:CrashReporting",
 +        "//submodules/NebulaSettingsContract:NebulaSettingsContract",
          "//submodules/NebulaLinkUI:NebulaLinkUI",
          "//third-party/recaptcha:RecaptchaEnterprise",
@@ -19,63 +19,70 @@ diff --git a/submodules/TelegramUI/Sources/TelegramRootController.swift b/submod
  import Display
  import AsyncDisplayKit
  import TelegramCore
-@@ -73,6 +74,8 @@
+@@ -74,6 +75,9 @@
  public final class TelegramRootController: NavigationController, TelegramRootControllerInterface {
      private let context: AccountContext
      
 +    private var nebulaNavigationObservation: SettingsObservation?
 +    private var nebulaShowCalls = false
++    private var nebulaShowNews = false
      public var rootTabController: TabBarController?
      
      public var contactsController: ContactsController?
-@@ -195,6 +198,7 @@
+@@ -197,6 +201,8 @@
      }
      
-     public func addRootControllers(showCallsTab: Bool) {
+     public func addRootControllers(showCallsTab: Bool, showNewsTab: Bool) {
 +        self.nebulaShowCalls = showCallsTab
++        self.nebulaShowNews = showNewsTab
          let tabBarController = TabBarControllerImpl(theme: self.presentationData.theme, strings: self.presentationData.strings)
          tabBarController.navigationPresentation = .master
          let chatListController = self.context.sharedContext.makeChatListController(context: self.context, location: .chatList(groupId: .root), controlsHistoryPreload: true, hideNetworkActivityStatus: false, previewing: false, enableDebugActions: !GlobalExperimentalSettings.isAppStoreBuild)
-@@ -235,7 +239,9 @@
+@@ -242,8 +248,9 @@
          accountSettingsController.parentController = self
          controllers.append(accountSettingsController)
                  
--        tabBarController.setControllers(controllers, selectedIndex: restoreSettignsController != nil ? (controllers.count - 1) : (controllers.count - 2))
+-        let chatsIndex = controllers.firstIndex(where: { $0 === chatListController }) ?? 0
+-        tabBarController.setControllers(controllers, selectedIndex: restoreSettignsController != nil ? (controllers.count - 1) : chatsIndex)
 +        controllers = nebulaOrderedControllers(controllers)
 +        let initial: ViewController = restoreSettignsController != nil ? accountSettingsController : chatListController
 +        tabBarController.setControllers(controllers, selectedIndex: controllers.firstIndex(where: { $0 === initial }) ?? 0)
          
          self.contactsController = contactsController
          self.callListController = callListController
-@@ -243,9 +249,14 @@
+@@ -252,9 +259,15 @@
          self.accountSettingsController = accountSettingsController
          self.rootTabController = tabBarController
          self.pushViewController(tabBarController, animated: false)
 +        self.nebulaNavigationObservation = NebulaSettingsStore.shared.observe { [weak self] in
 +            guard let self = self else { return }
-+            self.updateRootControllers(showCallsTab: self.nebulaShowCalls)
++            self.updateRootControllers(showCallsTab: self.nebulaShowCalls, showNewsTab: self.nebulaShowNews)
 +        }
      }
          
-     public func updateRootControllers(showCallsTab: Bool) {
+     public func updateRootControllers(showCallsTab: Bool, showNewsTab: Bool) {
 +        self.nebulaShowCalls = showCallsTab
++        self.nebulaShowNews = showNewsTab
          guard let rootTabController = self.rootTabController as? TabBarControllerImpl else {
              return
          }
-@@ -257,9 +268,30 @@
-         controllers.append(self.chatListController!)
+@@ -269,14 +282,33 @@
+         }
          controllers.append(self.accountSettingsController!)
-         
--        rootTabController.setControllers(controllers, selectedIndex: nil)
--    }
--    
+ 
+-        // A removed selected tab would otherwise fall back to index 0 (Contacts): select Chats instead.
+-        var selectedIndex: Int?
+-        if let currentController = rootTabController.currentController, !controllers.contains(where: { $0 === currentController }) {
+-            selectedIndex = controllers.firstIndex(where: { $0 === self.chatListController })
 +        controllers = nebulaOrderedControllers(controllers)
 +        // Preserve selected controller identity, not an index that moved with the order.
 +        if rootTabController.controllers.count != controllers.count || zip(rootTabController.controllers, controllers).contains(where: { pair in pair.0 !== pair.1 }) {
 +            let old = rootTabController.controllers.indices.contains(rootTabController.selectedIndex) ? rootTabController.controllers[rootTabController.selectedIndex] : nil
 +            rootTabController.setControllers(controllers, selectedIndex: controllers.firstIndex(where: { $0 === old }) ?? controllers.firstIndex(where: { $0 is ChatListController }) ?? 0)
-+        }
-+    }
+         }
+-        rootTabController.setControllers(controllers, selectedIndex: selectedIndex)
+     }
+-    
 +
 +    private func nebulaOrderedControllers(_ source: [ViewController]) -> [ViewController] {
 +        let store = NebulaSettingsStore.shared
@@ -90,13 +97,16 @@ diff --git a/submodules/TelegramUI/Sources/TelegramRootController.swift b/submod
 +            default: break
 +            }
 +        }
++        for value in source where !result.contains(where: { $0 === value }) {
++            result.append(value)
++        }
 +        return result
 +    }
 +
      public func openChatsController(activateSearch: Bool, filter: ChatListSearchFilter = .chats, query: String? = nil) {
          guard let rootTabController = self.rootTabController else {
              return
-@@ -808,6 +840,8 @@
+@@ -825,6 +857,8 @@
      
          if let index = rootTabController.controllers.firstIndex(where: { $0 is ContactsController }) {
              rootTabController.selectedIndex = index

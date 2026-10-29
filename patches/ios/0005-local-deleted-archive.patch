@@ -12,7 +12,7 @@ diff --git a/submodules/TelegramCore/BUILD b/submodules/TelegramCore/BUILD
 diff --git a/submodules/TelegramCore/Sources/State/AccountStateManagementUtils.swift b/submodules/TelegramCore/Sources/State/AccountStateManagementUtils.swift
 --- a/submodules/TelegramCore/Sources/State/AccountStateManagementUtils.swift
 +++ b/submodules/TelegramCore/Sources/State/AccountStateManagementUtils.swift
-@@ -4597,6 +4597,7 @@
+@@ -4622,6 +4622,7 @@
              case let .DeleteEphemeralMessages(peerId, ids):
                  deleteEphemeralMessages(transaction: transaction, peerId: peerId, ids: ids)
              case let .DeleteMessagesWithGlobalIds(ids):
@@ -20,7 +20,7 @@ diff --git a/submodules/TelegramCore/Sources/State/AccountStateManagementUtils.s
                  var resourceIds: [MediaResourceId] = []
                  transaction.deleteMessagesWithGlobalIds(ids, forEachMedia: { media in
                      addMessageMediaResourceIdsToRemove(media: media, resourceIds: &resourceIds)
-@@ -4606,6 +4607,7 @@
+@@ -4631,6 +4632,7 @@
                  }
                  deletedMessageIds.append(contentsOf: ids.map { .global($0) })
              case let .DeleteMessages(ids):

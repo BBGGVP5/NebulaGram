@@ -37,8 +37,8 @@
 | 0029-default-nebula-theme.patch | `submodules/TelegramUIPreferences/Sources/PresentationThemeSettings.swift` | `defaultSettings` | Использует фирменный синий акцент при первом запуске, сохраняя выбор темы существующих пользователей | 1 |
 | 0030-round-video-zoom-slider.patch | `submodules/TelegramUI/Components/VideoMessageCameraScreen/Sources/VideoMessageCameraScreen.swift` | `Node` | Добавляет нативный ползунок зума с пределом активной камеры к записи круглого видео | 7 |
 
-| 0032-ai-home-chat.patch | `submodules/ChatListUI/Sources/ChatListController.swift`, `submodules/TelegramUI/Sources/TelegramRootController.swift`, `submodules/TelegramUI/Components/ChatListHeaderComponent/Sources/NavigationButtonComponent.swift` | `storyButton`, `addRootControllers`, icon rendering | Опциональная кнопка ИИ на месте камеры со штатным стеклом, живое обновление выбора и открытие UIKit-чата через уведомление, ограниченное текущим root controller | 30+ |
-| 0033-navigation-parity.patch | `TelegramRootController.swift`, `PeerInfoScreen.swift`, `PeerInfoHeaderNavigationButton*.swift`, `ChatListController.swift`, `TabBarContollerNode.swift`, `TabBarComponent.swift` и Bazel `BUILD` | штатные контроллеры вкладок, кнопки шапки и компонент нижней панели | Отдельная вкладка профиля, скрытие профиля/настроек с запасным переходом, подписи и компактная ширина нижней панели, скрытие камеры и создания чата на главной; изменения применяются без перезапуска | 60+ |
+| 0032-ai-home-chat.patch | `submodules/ChatListUI/Sources/ChatListController.swift`, `submodules/TelegramUI/Sources/TelegramRootController.swift` | `storyButton`, `addRootControllers`, icon rendering | Опциональная кнопка ИИ на месте камеры со штатным стеклом, живое обновление выбора и открытие UIKit-чата через уведомление, ограниченное текущим root controller | 30+ |
+| 0033-navigation-parity.patch | `TelegramRootController.swift`, `PeerInfoScreen.swift`, `PeerInfoNavigationButtons.swift`, `PeerInfoNavigationItems.swift`, `ChatListController.swift`, `TabBarContollerNode.swift`, `TabBarComponent.swift` и Bazel `BUILD` | штатные контроллеры вкладок, кнопки шапки и компонент нижней панели | Отдельная вкладка профиля, скрытие профиля/настроек с запасным переходом, подписи и компактная ширина нижней панели, скрытие камеры и создания чата на главной; изменения применяются без перезапуска | 60+ |
 | 0034-hide-send-as.patch | `ChatTextInputPanelNode.swift`, `ChatTextInputPanelNode/BUILD` | `hasSendAsButton`, `displaySendAsAvatarButton`, `requestLayout` | Скрывает аватар «Отправить от имени» в обоих проходах измерения и отрисовки, освобождает место в поле ввода и обновляет панель без смены отправителя | 15 |
 | 0035-chat-title-alignment.patch | `ChatTitleView.swift`, `ChatTitleView/BUILD` | `titleFrame`, `activityFrame`, `requestUpdate` | Переключает положение заголовка и подзаголовка чата между штатным центром и выравниванием влево; обновляет открытый чат при смене настройки | 15 |
 | 0036-next-channel-prompt.patch | `TelegramUI/Sources/ChatController.swift` | `updateNextChannelToReadVisibility`, `updateChatPresentationInterfaceState` | Отключает предложение перейти к следующему каналу без изменения счётчиков; пересчитывает открытый чат при смене навигации и формата времени | 15 |
@@ -324,3 +324,24 @@ The new AccountContext protocol methods reference Postbox.Message. AccountContex
 ## 0109 — dynamic account entrypoints
 
 Removes all client count checks from profile, settings search, logout and deactivation alternatives. Retains native beginNewAuth and testing-environment routing, account records, logout and session storage. Does not replace the old cap with another numeric constant. Bootstrap checks all five affected sources; full native and device acceptance remain required. Android account registries are a separate migration.
+
+## 2026-10-29 — Telegram iOS 13.1.1 base
+
+The series was rebuilt as commits on 13.0 and moved with `git rebase --onto` to `fb0e62ba` (13.1.1); every
+patch still applies strictly and in order. Upstream rewrote the navigation bar into `NavigationBarComponent`
+and deleted `NavigationButtonComponent`, `NavigationBarImpl`, `PeerInfoHeaderNavigationButton` and
+`PeerInfoHeaderNavigationButtonContainerNode`, so the hooks that lived there moved or were dropped:
+
+- 0033: the profile's Settings button is a `PeerInfoHeaderNavigationButtonKey.settings` in upstream's
+  `PeerInfoNavigationButtons`/`PeerInfoNavigationItems`, shown through `PeerInfoNavigationFlags.showsSettingsButton`.
+  Its resources have defaults, so upstream's own tests keep compiling.
+- 0032: the home AI shortcut is upstream's `.image(UIImage)` button content (an `overflow` entry with `priority: nil`
+  only for its VoiceOver label); the name-based icon override in the deleted component is gone.
+- 0065/0100: the home title's position is upstream's `StoryPeerListTitleLayout`; `center_home` chooses between that
+  and the leading edge. The text budget leaves the layout's 4 pt margins, so upstream never drops a long title.
+- 0069/0101/0106: hiding the glass capsules behind header buttons is removed — they belong to the bar itself now.
+  The single header glass (0106) stays, inside upstream's new `contentView`.
+- 0081: `TelegramMediaResource` signatures from upstream; only our effect gates are added.
+- 0082: `messageInCurrentHistoryView` returns `EngineMessage`; `openUrl` gets `._asMessage()`.
+- 0108: the toolbar's clear-format runs the native rich-text engine's `.clearFormatting` first, so tables,
+  headings and lists the input state cannot express are not rebuilt away.

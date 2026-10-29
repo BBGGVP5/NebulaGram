@@ -9,7 +9,7 @@ diff --git a/submodules/ChatListUI/Sources/Node/ChatListItem.swift b/submodules/
  
  public enum ChatListItemContent {
      public final class ThreadInfo: Equatable {
-@@ -1419,6 +1420,8 @@
+@@ -1420,6 +1421,8 @@
      var dateStatusIconNode: ASImageNode?
      var dateDisclosureIconView: UIImageView?
      public let separatorNode: ASDisplayNode
@@ -18,7 +18,7 @@ diff --git a/submodules/ChatListUI/Sources/Node/ChatListItem.swift b/submodules/
      let statusNode: ChatListStatusNode
      let badgeNode: ChatListBadgeNode
      let mentionBadgeNode: ChatListBadgeNode
-@@ -1754,6 +1757,10 @@
+@@ -1755,6 +1758,10 @@
          
          self.addSubnode(self.backgroundNode)
          self.addSubnode(self.separatorNode)
@@ -29,7 +29,7 @@ diff --git a/submodules/ChatListUI/Sources/Node/ChatListItem.swift b/submodules/
          
          self.addSubnode(self.contextContainer)
          self.contextContainer.addSubnode(self.mainContentContainerNode)
-@@ -5419,6 +5426,8 @@
+@@ -5404,6 +5411,8 @@
                              strongSelf.separatorNode.isHidden = true
                          }
                      }

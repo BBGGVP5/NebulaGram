@@ -1,7 +1,7 @@
 diff --git a/submodules/TelegramUI/Sources/ChatController.swift b/submodules/TelegramUI/Sources/ChatController.swift
 --- a/submodules/TelegramUI/Sources/ChatController.swift
 +++ b/submodules/TelegramUI/Sources/ChatController.swift
-@@ -6108,6 +6108,25 @@
+@@ -6116,6 +6116,25 @@
                              f(.dismissWithoutContent)
                              self?.navigationButtonAction(.openChatInfo(expandAvatar: true, section: nil))
                          })))

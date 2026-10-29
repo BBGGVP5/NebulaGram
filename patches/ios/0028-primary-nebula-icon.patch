@@ -1,7 +1,7 @@
 diff --git a/Telegram/BUILD b/Telegram/BUILD
 --- a/Telegram/BUILD
 +++ b/Telegram/BUILD
-@@ -352,7 +352,7 @@
+@@ -357,7 +357,7 @@
      "NebulaMonogramIcon",
  ]
  

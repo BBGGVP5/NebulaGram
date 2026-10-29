@@ -10,8 +10,8 @@ public final class NebulaBuildInfoController: UITableViewController {
     private let theme: PresentationTheme
     private lazy var hero = NebulaSettingsHero(symbol: "info.circle", title: russian ? "Обновления" : "Updates",
         summary: russian ? "Версия приложения и новости выпусков" : "Installed version and release news", context: context, theme: theme)
-    private let sourceVersion = "13.0"
-    private let sourceRevision = "f1dd7a2dbd02cbbf513e75d5695d8d36d1cf5838"
+    private let sourceVersion = "13.1.1"
+    private let sourceRevision = "fb0e62ba8a147f0821da6aa63c09da7d79a10111"
 
     public init(context: AccountContext, russian: Bool) {
         self.context = context

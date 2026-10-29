@@ -10,7 +10,7 @@ diff --git a/submodules/TabBarUI/Sources/TabBarController.swift b/submodules/Tab
      private var _selectedIndex: Int?
      public var selectedIndex: Int {
          get {
-@@ -422,6 +424,7 @@
+@@ -436,6 +438,7 @@
      }
      
      override open func viewWillAppear(_ animated: Bool) {
@@ -21,15 +21,15 @@ diff --git a/submodules/TabBarUI/Sources/TabBarController.swift b/submodules/Tab
 diff --git a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoScreen.swift b/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoScreen.swift
 --- a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoScreen.swift
 +++ b/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoScreen.swift
-@@ -6553,6 +6553,7 @@
-         self.navigationBar?.enableAutomaticBackButton = false
+@@ -6711,6 +6711,7 @@
+         
                  
          if isSettings || isMyProfile {
 +            let isMyProfileTab = self.isMyProfile
              let activeSessionsContextAndCountSignal = deferred { () -> Signal<(ActiveSessionsContext, Int, WebSessionsContext)?, NoError> in
                  let activeSessionsContext = context.engine.privacy.activeSessions()
                  let webSessionsContext = context.engine.privacy.webSessions()
-@@ -6601,7 +6602,7 @@
+@@ -6759,7 +6760,7 @@
              
              let accountTabBarAvatar: Signal<(UIImage, UIImage)?, NoError> = combineLatest(self.accountsAndPeers.get(), context.sharedContext.presentationData)
              |> map { primaryAndOther, presentationData -> (Account, EnginePeer, PresentationTheme)? in
@@ -38,7 +38,7 @@ diff --git a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/Pe
                      return (primary.0.account, primary.1, presentationData.theme)
                  } else {
                      return nil
-@@ -6694,7 +6695,6 @@
+@@ -6852,7 +6853,6 @@
                  icon = UIImage(bundleImageName: "Chat List/Tabs/IconSettings")
              }
              
@@ -46,7 +46,7 @@ diff --git a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/Pe
              let tabBarItem: Signal<(String, UIImage?, UIImage?, String?, Bool, Bool), NoError> = combineLatest(queue: .mainQueue(), self.context.sharedContext.presentationData, notificationsAuthorizationStatus.get(), notificationsWarningSuppressed.get(), context.engine.notices.getServerProvidedSuggestions(), accountTabBarAvatar, accountTabBarAvatarBadge)
              |> map { presentationData, notificationsAuthorizationStatus, notificationsWarningSuppressed, suggestions, accountTabBarAvatar, accountTabBarAvatarBadge -> (String, UIImage?, UIImage?, String?, Bool, Bool) in
                  let notificationsWarning = shouldDisplayNotificationsPermissionWarning(status: notificationsAuthorizationStatus, suppressed:  notificationsWarningSuppressed)
-@@ -6706,8 +6706,10 @@
+@@ -6864,8 +6864,10 @@
                  }
                  if isMyProfileTab {
                      let title = presentationData.strings.baseLanguageCode.lowercased().hasPrefix("ru") ? "Профиль" : "Profile"
@@ -59,7 +59,7 @@ diff --git a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/Pe
                  }
                  return (presentationData.strings.Settings_Title, icon, icon, notificationsWarning || phoneNumberWarning || passwordWarning ? "!" : otherAccountsBadge, false, presentationData.reduceMotion)
              }
-@@ -6717,7 +6719,7 @@
+@@ -6875,7 +6877,7 @@
                      strongSelf.tabBarItem.title = title
                      strongSelf.tabBarItem.image = image
                      strongSelf.tabBarItem.selectedImage = selectedImage
@@ -71,16 +71,16 @@ diff --git a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/Pe
 diff --git a/submodules/TelegramUI/Sources/TelegramRootController.swift b/submodules/TelegramUI/Sources/TelegramRootController.swift
 --- a/submodules/TelegramUI/Sources/TelegramRootController.swift
 +++ b/submodules/TelegramUI/Sources/TelegramRootController.swift
-@@ -76,6 +76,7 @@
-     
+@@ -78,6 +78,7 @@
      private var nebulaNavigationObservation: SettingsObservation?
      private var nebulaShowCalls = false
+     private var nebulaShowNews = false
 +    private var nebulaNavigationRefreshScheduled = false
      public var rootTabController: TabBarController?
      
      public var contactsController: ContactsController?
-@@ -256,13 +257,26 @@
-         self.callListController = callListController
+@@ -266,13 +267,26 @@
+         self.newsController = newsController
          self.chatListController = chatListController
          self.rootTabController = tabBarController
 +        tabBarController.nebulaRefreshControllers = { [weak self] in
@@ -100,15 +100,15 @@ diff --git a/submodules/TelegramUI/Sources/TelegramRootController.swift b/submod
 +        Queue.mainQueue().async { [weak self] in
 +            guard let self else { return }
 +            self.nebulaNavigationRefreshScheduled = false
-             self.updateRootControllers(showCallsTab: self.nebulaShowCalls)
+             self.updateRootControllers(showCallsTab: self.nebulaShowCalls, showNewsTab: self.nebulaShowNews)
          }
      }
 -        
 +
-     public func updateRootControllers(showCallsTab: Bool) {
+     public func updateRootControllers(showCallsTab: Bool, showNewsTab: Bool) {
          self.nebulaShowCalls = showCallsTab
-         guard let rootTabController = self.rootTabController as? TabBarControllerImpl else {
-@@ -297,17 +311,18 @@
+         self.nebulaShowNews = showNewsTab
+@@ -311,17 +325,18 @@
  
      private func nebulaOrderedControllers(_ source: [ViewController]) -> [ViewController] {
          let store = NebulaSettingsStore.shared

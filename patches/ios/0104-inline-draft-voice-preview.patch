@@ -1,8 +1,7 @@
 diff --git a/submodules/AccountContext/Sources/AccountContext.swift b/submodules/AccountContext/Sources/AccountContext.swift
-index ca05d19..3caadf4 100644
 --- a/submodules/AccountContext/Sources/AccountContext.swift
 +++ b/submodules/AccountContext/Sources/AccountContext.swift
-@@ -1409,6 +1409,7 @@ public protocol SharedAccountContext: AnyObject {
+@@ -1423,6 +1423,7 @@
      func canTranscribeWithNebula(message: Message) -> Bool
      func presentNebulaAudioTranscription(context: AccountContext, from view: UIView, message: Message)
      func presentNebulaCaptionTools(context: AccountContext, from view: UIView, text: NSAttributedString, apply: @escaping (NSAttributedString) -> Void)
@@ -11,10 +10,9 @@ index ca05d19..3caadf4 100644
      var sharedContainerPath: String { get }
      var basePath: String { get }
 diff --git a/submodules/ChatPresentationInterfaceState/Sources/ChatPanelInterfaceInteraction.swift b/submodules/ChatPresentationInterfaceState/Sources/ChatPanelInterfaceInteraction.swift
-index 5f83cd9..15157ca 100644
 --- a/submodules/ChatPresentationInterfaceState/Sources/ChatPanelInterfaceInteraction.swift
 +++ b/submodules/ChatPresentationInterfaceState/Sources/ChatPanelInterfaceInteraction.swift
-@@ -118,6 +118,8 @@ public final class ChatPanelInterfaceInteraction {
+@@ -118,6 +118,8 @@
      public let lockMediaRecording: () -> Void
      public let resumeMediaRecording: () -> Void
      public let deleteRecordedMedia: () -> Void
@@ -24,10 +22,9 @@ index 5f83cd9..15157ca 100644
      public let displayRestrictedInfo: (ChatPanelRestrictionInfoSubject, ChatPanelRestrictionInfoDisplayType) -> Void
      public let displayVideoUnmuteTip: (CGPoint?) -> Void
 diff --git a/submodules/TelegramUI/Components/Chat/ChatRecordingPreviewInputPanelNode/Sources/ChatRecordingPreviewInputPanelNode.swift b/submodules/TelegramUI/Components/Chat/ChatRecordingPreviewInputPanelNode/Sources/ChatRecordingPreviewInputPanelNode.swift
-index 6b78cfb..a5a692c 100644
 --- a/submodules/TelegramUI/Components/Chat/ChatRecordingPreviewInputPanelNode/Sources/ChatRecordingPreviewInputPanelNode.swift
 +++ b/submodules/TelegramUI/Components/Chat/ChatRecordingPreviewInputPanelNode/Sources/ChatRecordingPreviewInputPanelNode.swift
-@@ -212,6 +212,26 @@ private final class ClippedWaveformNode: ASDisplayNode, CustomMediaPlayerScrubbi
+@@ -212,6 +212,26 @@
  }
  
  public final class ChatRecordingPreviewInputPanelNodeImpl: ChatInputPanelNode {
@@ -54,7 +51,7 @@ index 6b78cfb..a5a692c 100644
      private let nebulaAaNode = ASButtonNode()
      private let nebulaDraftFetch = MetaDisposable()
      private var nebulaDraftGeneration = 0
-@@ -220,10 +240,12 @@ public final class ChatRecordingPreviewInputPanelNodeImpl: ChatInputPanelNode {
+@@ -220,10 +240,12 @@
  
      private func nebulaDraftServiceKey() -> String {
          let audio = NebulaAudioPreferences.shared
@@ -68,7 +65,7 @@ index 6b78cfb..a5a692c 100644
          guard !self.nebulaDraftFetching, NebulaAudioPreferences.shared.draftTranscriptionEnabled,
                let context = self.context, let state = self.presentationInterfaceState,
                let draft = state.interfaceState.mediaDraftState, case let .audio(audio) = draft,
-@@ -241,26 +263,36 @@ public final class ChatRecordingPreviewInputPanelNodeImpl: ChatInputPanelNode {
+@@ -241,26 +263,36 @@
              guard self.nebulaDraftGeneration == token, self.presentationInterfaceState?.interfaceState.mediaDraftState == draft,
                    self.context?.account.peerId == account, self.view.window != nil else { return }
              let cached = self.nebulaDraftTranscript.flatMap { $0.generation == token && $0.service == service ? $0.text : nil }
@@ -116,7 +113,7 @@ index 6b78cfb..a5a692c 100644
          }))
          DispatchQueue.main.asyncAfter(deadline: .now() + 10) { [weak self] in
              guard let self, self.nebulaDraftGeneration == token, self.nebulaDraftFetching else { return }
-@@ -391,6 +423,7 @@ public final class ChatRecordingPreviewInputPanelNodeImpl: ChatInputPanelNode {
+@@ -391,6 +423,7 @@
      }
      
      deinit {
@@ -124,7 +121,7 @@ index 6b78cfb..a5a692c 100644
          self.nebulaDraftFetch.dispose()
          self.mediaPlayer?.pause()
          self.statusDisposable.dispose()
-@@ -470,6 +503,7 @@ public final class ChatRecordingPreviewInputPanelNodeImpl: ChatInputPanelNode {
+@@ -470,6 +503,7 @@
          if self.presentationInterfaceState != interfaceState {
              var updateWaveform = false
              if self.presentationInterfaceState?.interfaceState.mediaDraftState != interfaceState.interfaceState.mediaDraftState {
@@ -132,7 +129,7 @@ index 6b78cfb..a5a692c 100644
                  self.nebulaDraftGeneration += 1
                  self.nebulaDraftFetch.set(nil)
                  self.nebulaDraftFetching = false
-@@ -658,6 +692,7 @@ public final class ChatRecordingPreviewInputPanelNodeImpl: ChatInputPanelNode {
+@@ -658,6 +692,7 @@
          transition.updateFrame(node: self.waveformScrubberNodeImpl, frame: waveformScrubberFrame)
          transition.updateFrame(node: self.tintWaveformNode, frame: waveformScrubberFrame)
          
@@ -140,7 +137,7 @@ index 6b78cfb..a5a692c 100644
          return panelHeight
      }
      
-@@ -666,6 +701,7 @@ public final class ChatRecordingPreviewInputPanelNodeImpl: ChatInputPanelNode {
+@@ -666,6 +701,7 @@
      }
      
      @objc private func deletePressed() {
@@ -148,7 +145,7 @@ index 6b78cfb..a5a692c 100644
          self.tooltipController?.dismiss()
          
          self.mediaPlayer?.pause()
-@@ -675,6 +711,7 @@ public final class ChatRecordingPreviewInputPanelNodeImpl: ChatInputPanelNode {
+@@ -675,6 +711,7 @@
      private weak var tooltipController: TooltipScreen?
      
      @objc private func recordMorePressed() {
@@ -157,10 +154,9 @@ index 6b78cfb..a5a692c 100644
          
          self.interfaceInteraction?.resumeMediaRecording()
 diff --git a/submodules/TelegramUI/Components/Chat/ChatTextInputPanelNode/Sources/ChatTextInputPanelNode.swift b/submodules/TelegramUI/Components/Chat/ChatTextInputPanelNode/Sources/ChatTextInputPanelNode.swift
-index 6175e25..bedf5b1 100644
 --- a/submodules/TelegramUI/Components/Chat/ChatTextInputPanelNode/Sources/ChatTextInputPanelNode.swift
 +++ b/submodules/TelegramUI/Components/Chat/ChatTextInputPanelNode/Sources/ChatTextInputPanelNode.swift
-@@ -2494,6 +2494,10 @@ public class ChatTextInputPanelNode: ChatInputPanelNode, ASEditableTextNodeDeleg
+@@ -2535,6 +2535,10 @@
          // The layout below reserves the send slot and scales the send button in on exactly this condition.
          let sendButtonIsLaidOut = inputHasText || hasMediaDraft || hasForward || isEditingMedia
          self.updateActionButtons(hasText: inputHasText, sendButtonIsLaidOut: sendButtonIsLaidOut, transition: transition)
@@ -172,10 +168,9 @@ index 6175e25..bedf5b1 100644
          var mediaActionButtonsSize = CGSize(width: 40.0, height: 40.0)
          var sendActionButtonsSize = CGSize(width: 40.0, height: 40.0)
 diff --git a/submodules/TelegramUI/Sources/Chat/ChatControllerLoadDisplayNode.swift b/submodules/TelegramUI/Sources/Chat/ChatControllerLoadDisplayNode.swift
-index 551ecec..32a89d1 100644
 --- a/submodules/TelegramUI/Sources/Chat/ChatControllerLoadDisplayNode.swift
 +++ b/submodules/TelegramUI/Sources/Chat/ChatControllerLoadDisplayNode.swift
-@@ -2852,9 +2852,7 @@ extension ChatControllerImpl {
+@@ -2775,9 +2775,7 @@
          }, deleteRecordedMedia: { [weak self] in
              self?.deleteMediaRecording()
          }, sendRecordedMedia: { [weak self] silentPosting, viewOnce in
@@ -187,10 +182,9 @@ index 551ecec..32a89d1 100644
              guard let strongSelf = self else {
                  return
 diff --git a/submodules/TelegramUI/Sources/Chat/ChatControllerMediaRecording.swift b/submodules/TelegramUI/Sources/Chat/ChatControllerMediaRecording.swift
-index e225baf..52e4df0 100644
 --- a/submodules/TelegramUI/Sources/Chat/ChatControllerMediaRecording.swift
 +++ b/submodules/TelegramUI/Sources/Chat/ChatControllerMediaRecording.swift
-@@ -689,13 +689,48 @@ extension ChatControllerImpl {
+@@ -689,13 +689,48 @@
          }
      }
      
@@ -240,7 +234,7 @@ index e225baf..52e4df0 100644
      ) {
          self.chatDisplayNode.updateRecordedMediaDeleted(false)
          
-@@ -719,6 +754,7 @@ extension ChatControllerImpl {
+@@ -719,6 +754,7 @@
                  return
              }
              
@@ -248,7 +242,7 @@ index e225baf..52e4df0 100644
              self.chatDisplayNode.setupSendActionOnViewUpdate({ [weak self] in
                  if let strongSelf = self {
                      strongSelf.chatDisplayNode.collapseInput()
-@@ -739,24 +775,34 @@ extension ChatControllerImpl {
+@@ -739,24 +775,34 @@
                  attributes.append(EffectMessageAttribute(id: messageEffect.id))
              }
              
@@ -297,7 +291,7 @@ index e225baf..52e4df0 100644
              let effectiveSilentPosting = silentPosting ?? self.presentationInterfaceState.interfaceState.silentPosting
              let transformedMessages = self.transformEnqueueMessages(messages, silentPosting: effectiveSilentPosting, scheduleTime: scheduleTime, repeatPeriod: repeatPeriod, postpone: postpone)
              
-@@ -776,6 +822,7 @@ extension ChatControllerImpl {
+@@ -776,6 +822,7 @@
              guard let videoRecorderValue = self.videoRecorderValue else {
                  return
              }
@@ -306,10 +300,9 @@ index e225baf..52e4df0 100644
          }
      }
 diff --git a/submodules/TelegramUI/Sources/ChatController.swift b/submodules/TelegramUI/Sources/ChatController.swift
-index df248c6..1113113 100644
 --- a/submodules/TelegramUI/Sources/ChatController.swift
 +++ b/submodules/TelegramUI/Sources/ChatController.swift
-@@ -544,6 +544,8 @@ public final class ChatControllerImpl: TelegramBaseController, ChatController, G
+@@ -553,6 +553,8 @@
      
      var recordingModeFeedback: HapticFeedback?
      var recorderFeedback: HapticFeedback?
@@ -318,7 +311,7 @@ index df248c6..1113113 100644
      var audioRecorderValue: ManagedAudioRecorder?
      var audioRecorder = Promise<ManagedAudioRecorder?>()
      var audioRecorderDisposable: Disposable?
-@@ -2505,7 +2507,7 @@ public final class ChatControllerImpl: TelegramBaseController, ChatController, G
+@@ -2518,7 +2520,7 @@
          }, sendCurrentMessage: { [weak self] silentPosting, messageEffect in
              if let self {
                  if let _ = self.presentationInterfaceState.interfaceState.mediaDraftState {
@@ -327,7 +320,7 @@ index df248c6..1113113 100644
                  } else {
                      self.chatDisplayNode.maybeSendEphemeralMessage(sendNormally: { [weak self] in
                          guard let self else {
-@@ -4549,10 +4551,13 @@ public final class ChatControllerImpl: TelegramBaseController, ChatController, G
+@@ -4562,10 +4564,13 @@
              guard !self.presentAccountFrozenInfoIfNeeded(delay: true) else {
                  return
              }
@@ -344,10 +337,9 @@ index df248c6..1113113 100644
                          })
                      } else {
 diff --git a/submodules/TelegramUI/Sources/SharedAccountContext.swift b/submodules/TelegramUI/Sources/SharedAccountContext.swift
-index 5c91407..72c816f 100644
 --- a/submodules/TelegramUI/Sources/SharedAccountContext.swift
 +++ b/submodules/TelegramUI/Sources/SharedAccountContext.swift
-@@ -176,6 +176,15 @@ public final class SharedAccountContextImpl: SharedAccountContext {
+@@ -178,6 +178,15 @@
          presenter.present(NebulaToolsNavigationController(root: NebulaAudioTranscriptionController(context: context, message: message, file: file)), animated: true)
      }
  

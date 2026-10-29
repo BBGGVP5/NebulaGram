@@ -1,7 +1,7 @@
 diff --git a/submodules/TelegramUI/Components/Chat/ChatMessageAnimatedStickerItemNode/Sources/ChatMessageAnimatedStickerItemNode.swift b/submodules/TelegramUI/Components/Chat/ChatMessageAnimatedStickerItemNode/Sources/ChatMessageAnimatedStickerItemNode.swift
 --- a/submodules/TelegramUI/Components/Chat/ChatMessageAnimatedStickerItemNode/Sources/ChatMessageAnimatedStickerItemNode.swift
 +++ b/submodules/TelegramUI/Components/Chat/ChatMessageAnimatedStickerItemNode/Sources/ChatMessageAnimatedStickerItemNode.swift
-@@ -2025,6 +2025,10 @@
+@@ -2029,6 +2029,10 @@
          switch recognizer.state {
          case .ended:
              if let item = self.item, let (gesture, location) = recognizer.lastRecognizedGestureAndLocation {
@@ -15,7 +15,7 @@ diff --git a/submodules/TelegramUI/Components/Chat/ChatMessageAnimatedStickerIte
 diff --git a/submodules/TelegramUI/Components/Chat/ChatMessageBubbleItemNode/Sources/ChatMessageBubbleItemNode.swift b/submodules/TelegramUI/Components/Chat/ChatMessageBubbleItemNode/Sources/ChatMessageBubbleItemNode.swift
 --- a/submodules/TelegramUI/Components/Chat/ChatMessageBubbleItemNode/Sources/ChatMessageBubbleItemNode.swift
 +++ b/submodules/TelegramUI/Components/Chat/ChatMessageBubbleItemNode/Sources/ChatMessageBubbleItemNode.swift
-@@ -2534,14 +2534,14 @@
+@@ -2540,14 +2540,14 @@
                  authorNameColor = color
  
                  if case let .peer(peerId) = item.chatLocation, let authorPeerId = item.message.author?.id, authorPeerId == peerId {
@@ -32,7 +32,7 @@ diff --git a/submodules/TelegramUI/Components/Chat/ChatMessageBubbleItemNode/Sou
                      currentCredibilityIcon = (.animation(content: .customEmoji(fileId: emojiStatus.fileId), size: CGSize(width: 20.0, height: 20.0), placeholderColor: incoming ? item.presentationData.theme.theme.chat.message.incoming.mediaPlaceholderColor : item.presentationData.theme.theme.chat.message.outgoing.mediaPlaceholderColor, themeColor: color.withMultipliedAlpha(0.4), loopMode: .count(2)), emojiStatus.color.flatMap { UIColor(rgb: UInt32(bitPattern: $0)) })
                  } else if effectiveAuthor.isVerified {
                      currentCredibilityIcon = (.verified(fillColor: item.presentationData.theme.theme.list.itemCheckColors.fillColor, foregroundColor: item.presentationData.theme.theme.list.itemCheckColors.foregroundColor, sizeType: .compact), nil)
-@@ -5852,6 +5852,9 @@
+@@ -5858,6 +5858,9 @@
                      case let .optionalAction(f):
                          f()
                      case let .openContextMenu(openContextMenu):
@@ -42,7 +42,7 @@ diff --git a/submodules/TelegramUI/Components/Chat/ChatMessageBubbleItemNode/Sou
                          if canAddMessageReactions(message: EngineMessage(openContextMenu.tapMessage)) {
                              item.controllerInteraction.updateMessageReaction(openContextMenu.tapMessage, .default, false, nil)
                          } else {
-@@ -5861,6 +5864,10 @@
+@@ -5867,6 +5870,10 @@
                  } else if case .tap = gesture {
                      item.controllerInteraction.clickThroughMessage(self.view, location)
                  } else if case .doubleTap = gesture {
@@ -56,7 +56,7 @@ diff --git a/submodules/TelegramUI/Components/Chat/ChatMessageBubbleItemNode/Sou
 diff --git a/submodules/TelegramUI/Components/Chat/ChatMessageInstantVideoItemNode/Sources/ChatMessageInstantVideoItemNode.swift b/submodules/TelegramUI/Components/Chat/ChatMessageInstantVideoItemNode/Sources/ChatMessageInstantVideoItemNode.swift
 --- a/submodules/TelegramUI/Components/Chat/ChatMessageInstantVideoItemNode/Sources/ChatMessageInstantVideoItemNode.swift
 +++ b/submodules/TelegramUI/Components/Chat/ChatMessageInstantVideoItemNode/Sources/ChatMessageInstantVideoItemNode.swift
-@@ -948,6 +948,10 @@
+@@ -953,6 +953,10 @@
          switch recognizer.state {
          case .ended:
              if let (gesture, location) = recognizer.lastRecognizedGestureAndLocation {
@@ -82,7 +82,7 @@ diff --git a/submodules/TelegramUI/Components/Chat/ChatMessageItem/BUILD b/submo
 diff --git a/submodules/TelegramUI/Components/Chat/ChatMessageStickerItemNode/Sources/ChatMessageStickerItemNode.swift b/submodules/TelegramUI/Components/Chat/ChatMessageStickerItemNode/Sources/ChatMessageStickerItemNode.swift
 --- a/submodules/TelegramUI/Components/Chat/ChatMessageStickerItemNode/Sources/ChatMessageStickerItemNode.swift
 +++ b/submodules/TelegramUI/Components/Chat/ChatMessageStickerItemNode/Sources/ChatMessageStickerItemNode.swift
-@@ -1452,6 +1452,10 @@
+@@ -1457,6 +1457,10 @@
                  if case .doubleTap = gesture {
                      self.containerNode.cancelGesture()
                  }
@@ -108,7 +108,7 @@ diff --git a/submodules/TelegramUI/Components/ChatControllerInteraction/Sources/
 diff --git a/submodules/TelegramUI/Components/ChatTitleView/Sources/ChatTitleComponent.swift b/submodules/TelegramUI/Components/ChatTitleView/Sources/ChatTitleComponent.swift
 --- a/submodules/TelegramUI/Components/ChatTitleView/Sources/ChatTitleComponent.swift
 +++ b/submodules/TelegramUI/Components/ChatTitleView/Sources/ChatTitleComponent.swift
-@@ -73,6 +73,9 @@
+@@ -116,6 +116,9 @@
      private var activities: ChatTitleComponent.Activities?
      private var nebulaSettingsObservation: SettingsObservation?
      private var nebulaWasPremiumHidden = NebulaSettingsStore.shared.hidePremiumStatus
@@ -118,7 +118,7 @@ diff --git a/submodules/TelegramUI/Components/ChatTitleView/Sources/ChatTitleCom
      private var networkState: AccountNetworkState?
      
      private var ignoreParentTransitionRequests: Bool = false
-@@ -86,8 +89,14 @@
+@@ -129,8 +132,14 @@
          self.nebulaSettingsObservation = NebulaSettingsStore.shared.observe { [weak self] in
              guard let self else { return }
              let hidden = NebulaSettingsStore.shared.hidePremiumStatus
@@ -134,7 +134,7 @@ diff --git a/submodules/TelegramUI/Components/ChatTitleView/Sources/ChatTitleCom
              self.update(transition: .immediate)
          }
      }
-@@ -167,7 +176,7 @@
+@@ -242,7 +251,7 @@
          let transition = ComponentTransition(transition)
          
          if let contentData = self.contentData {
@@ -143,7 +143,7 @@ diff --git a/submodules/TelegramUI/Components/ChatTitleView/Sources/ChatTitleCom
              
              let titleSize = self.title.update(
                  transition: transition,
-@@ -183,6 +192,8 @@
+@@ -258,6 +267,8 @@
                      activities: self.activities,
                      networkState: self.networkState,
                      hidePremiumStatus: NebulaSettingsStore.shared.hidePremiumStatus,
@@ -152,8 +152,8 @@ diff --git a/submodules/TelegramUI/Components/ChatTitleView/Sources/ChatTitleCom
                      tapped: { [weak self] in
                          guard let self else {
                              return
-@@ -212,7 +223,7 @@
-                 }
+@@ -289,7 +300,7 @@
+                 (titleView as? ChatTitleComponent.View)?.isGlassPillDetached = self.isGlassPillDetached
                  transition.setFrame(view: titleView, frame: CGRect(origin: CGPoint(), size: titleSize))
              }
 -            return titleSize
@@ -161,7 +161,7 @@ diff --git a/submodules/TelegramUI/Components/ChatTitleView/Sources/ChatTitleCom
          } else {
              return availableSize
          }
-@@ -251,6 +262,8 @@
+@@ -328,6 +339,8 @@
      public let activities: Activities?
      public let networkState: AccountNetworkState?
      public let hidePremiumStatus: Bool
@@ -170,7 +170,7 @@ diff --git a/submodules/TelegramUI/Components/ChatTitleView/Sources/ChatTitleCom
      public let tapped: () -> Void
      public let longTapped: () -> Void
      
-@@ -266,6 +279,8 @@
+@@ -343,6 +356,8 @@
          activities: Activities?,
          networkState: AccountNetworkState?,
          hidePremiumStatus: Bool = NebulaSettingsStore.shared.hidePremiumStatus,
@@ -179,7 +179,7 @@ diff --git a/submodules/TelegramUI/Components/ChatTitleView/Sources/ChatTitleCom
          tapped: @escaping () -> Void,
          longTapped: @escaping () -> Void
      ) {
-@@ -280,6 +295,8 @@
+@@ -357,6 +372,8 @@
          self.activities = activities
          self.networkState = networkState
          self.hidePremiumStatus = hidePremiumStatus
@@ -188,7 +188,7 @@ diff --git a/submodules/TelegramUI/Components/ChatTitleView/Sources/ChatTitleCom
          self.tapped = tapped
          self.longTapped = longTapped
      }
-@@ -315,6 +332,7 @@
+@@ -392,6 +409,7 @@
          if lhs.networkState != rhs.networkState {
              return false
          }
@@ -196,7 +196,7 @@ diff --git a/submodules/TelegramUI/Components/ChatTitleView/Sources/ChatTitleCom
          if lhs.hidePremiumStatus != rhs.hidePremiumStatus {
              return false
          }
-@@ -1098,10 +1116,10 @@
+@@ -1330,10 +1348,10 @@
              contentSize.width = max(min(150.0, availableSize.width - containerSideInset * 2.0), contentSize.width)
              contentSize.height += subtitleSize.height
              
@@ -209,15 +209,15 @@ diff --git a/submodules/TelegramUI/Components/ChatTitleView/Sources/ChatTitleCom
              if let titleView = self.title.view {
                  if titleView.superview == nil {
                      titleView.isUserInteractionEnabled = false
-@@ -1110,7 +1128,7 @@
-                 transition.setFrame(view: titleView, frame: titleFrame)
+@@ -1345,7 +1363,7 @@
+                 }
              }
              
 -            let subtitleFrame = CGRect(origin: CGPoint(x: floor((containerFrame.width - subtitleSize.width) * 0.5), y: titleFrame.maxY), size: subtitleSize)
 +            let subtitleFrame = CGRect(origin: CGPoint(x: component.centeredTitle ? floor((containerFrame.width - subtitleSize.width) * 0.5) : containerSideInset, y: titleFrame.maxY), size: subtitleSize)
              // Internally, the status view has zero width
-             transition.setFrame(view: subtitleNode.view, frame: CGRect(origin: CGPoint(x: subtitleFrame.midX, y: subtitleFrame.minY), size: CGSize(width: 0.0, height: subtitleFrame.height)))
-             
+             let subtitleViewFrame = CGRect(origin: CGPoint(x: subtitleFrame.midX, y: subtitleFrame.minY), size: CGSize(width: 0.0, height: subtitleFrame.height))
+             if self.lentExpansionLabels?.status == nil {
 diff --git a/submodules/TelegramUI/Components/ChatTitleView/Sources/ChatTitleView.swift b/submodules/TelegramUI/Components/ChatTitleView/Sources/ChatTitleView.swift
 --- a/submodules/TelegramUI/Components/ChatTitleView/Sources/ChatTitleView.swift
 +++ b/submodules/TelegramUI/Components/ChatTitleView/Sources/ChatTitleView.swift
@@ -243,7 +243,7 @@ diff --git a/submodules/TelegramUI/Components/ChatTitleView/Sources/ChatTitleVie
              self.nebulaWasCentered = centered
              if self.nebulaWasPremiumHidden != premiumHidden {
                  self.nebulaWasPremiumHidden = premiumHidden
-@@ -1123,6 +1129,11 @@
+@@ -1129,6 +1135,11 @@
              backgroundFrame.size.width = max(backgroundFrame.maxX, activityFrame.maxX) - backgroundFrame.minX
          }
          backgroundFrame = backgroundFrame.insetBy(dx: -12.0, dy: 0.0)

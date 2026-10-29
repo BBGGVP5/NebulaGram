@@ -50,7 +50,7 @@ diff --git a/submodules/ContactsPeerItem/Sources/ContactsPeerItem.swift b/submod
  import Foundation
  import UIKit
  import AsyncDisplayKit
-@@ -879,12 +880,12 @@
+@@ -875,12 +876,12 @@
                          credibilityStatusIcon = .text(color: item.presentationData.theme.chat.message.incoming.scamColor, string: item.presentationData.strings.Message_ScamAccount.uppercased())
                      } else if peer.isFake {
                          credibilityStatusIcon = .text(color: item.presentationData.theme.chat.message.incoming.scamColor, string: item.presentationData.strings.Message_FakeAccount.uppercased())
@@ -109,7 +109,7 @@ diff --git a/submodules/TelegramCallsUI/BUILD b/submodules/TelegramCallsUI/BUILD
 +        "//submodules/NebulaSettingsContract:NebulaSettingsContract",
          "//submodules/SSignalKit/SSignalKit",
          "//submodules/LottieSettings:LottieSettings",
-     	"//submodules/SSignalKit/SwiftSignalKit:SwiftSignalKit",
+         "//submodules/Postbox:Postbox",
 diff --git a/submodules/TelegramCallsUI/Sources/VoiceChatParticipantItem.swift b/submodules/TelegramCallsUI/Sources/VoiceChatParticipantItem.swift
 --- a/submodules/TelegramCallsUI/Sources/VoiceChatParticipantItem.swift
 +++ b/submodules/TelegramCallsUI/Sources/VoiceChatParticipantItem.swift
@@ -196,7 +196,7 @@ diff --git a/submodules/TelegramUI/Components/Stories/PeerListItemComponent/Sour
  import Foundation
  import Foundation
  import UIKit
-@@ -871,14 +872,14 @@
+@@ -882,14 +883,14 @@
                      statusIcon = .text(color: component.theme.chat.message.incoming.scamColor, string: component.strings.Message_ScamAccount.uppercased())
                  } else if peer.isFake {
                      statusIcon = .text(color: component.theme.chat.message.incoming.scamColor, string: component.strings.Message_FakeAccount.uppercased())

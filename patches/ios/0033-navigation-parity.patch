@@ -1,7 +1,7 @@
 diff --git a/submodules/ChatListUI/Sources/ChatListController.swift b/submodules/ChatListUI/Sources/ChatListController.swift
 --- a/submodules/ChatListUI/Sources/ChatListController.swift
 +++ b/submodules/ChatListUI/Sources/ChatListController.swift
-@@ -6916,7 +6916,13 @@
+@@ -6962,7 +6962,13 @@
              let token = NotificationCenter.default.addObserver(forName: NebulaAiSettings.homeShortcutChanged, object: nil, queue: .main) { _ in
                  subscriber.putNext(NebulaAiSettings.shared.homeShortcut)
              }
@@ -16,32 +16,33 @@ diff --git a/submodules/ChatListUI/Sources/ChatListController.swift b/submodules
          }
          let nebulaStoryAvailability = combineLatest(storyPostingAvailable, nebulaHomeChanges)
          |> map { available, _ in available }
-@@ -7250,13 +7256,15 @@
+@@ -7296,7 +7302,7 @@
                              self?.parentController?.editPressed()
                          }
-                     )))
+                     )
 -                } else {
 +                } else if !NebulaSettingsStore.shared.hideHomeCompose {
-                     self.rightButton = AnyComponentWithIdentity(id: "compose", component: AnyComponent(NavigationButtonComponent(
+                     self.rightButton = NavigationBarComponent.Button(id: "compose",
                          content: .icon(imageName: "Chat List/ComposeIcon"),
-                         pressed: { [weak self] _ in
+                         tint: .accent,
+@@ -7304,6 +7310,8 @@
                              self?.parentController?.composePressed()
                          }
-                     )))
+                     )
 +                } else {
 +                    self.rightButton = nil
                  }
                  
                  if isReorderingTabs {
-@@ -7284,7 +7292,7 @@
+@@ -7331,7 +7339,7 @@
                      }
                  }
                  
 -                if storyPostingAvailable || NebulaAiSettings.shared.homeShortcut {
 +                if NebulaAiSettings.shared.homeShortcut || (storyPostingAvailable && !NebulaSettingsStore.shared.hideHomeCamera) {
-                     self.storyButton = AnyComponentWithIdentity(id: "story", component: AnyComponent(NavigationButtonComponent(
-                         content: .icon(imageName: NebulaAiSettings.shared.homeShortcut ? "NebulaAI" : "Chat List/AddStoryIcon"),
-                         pressed: { [weak self] _ in
+                     let nebulaShortcut = NebulaAiSettings.shared.homeShortcut
+                     self.storyButton = NavigationBarComponent.Button(id: "story",
+                         content: nebulaShortcut ? .image(nebulaAiShortcutImage()) : .icon(imageName: "Chat List/AddStoryIcon"),
 diff --git a/submodules/TabBarUI/BUILD b/submodules/TabBarUI/BUILD
 --- a/submodules/TabBarUI/BUILD
 +++ b/submodules/TabBarUI/BUILD
@@ -62,15 +63,15 @@ diff --git a/submodules/TabBarUI/Sources/TabBarContollerNode.swift b/submodules/
  import UIKit
  import AsyncDisplayKit
  import Display
-@@ -72,6 +73,7 @@
-     private var layoutResult: LayoutResult?
+@@ -79,6 +80,7 @@
+     private var appliedPlacement: TabBarAppliedPlacement?
      private var isUpdateRequested: Bool = false
      private var isChangingSelectedIndex: Bool = false
 +    private var nebulaAppearanceObservation: SettingsObservation?
      
      func setCurrentController(_ controller: ViewController?) -> () -> Void {
          guard controller !== self.currentController else {
-@@ -121,6 +123,9 @@
+@@ -128,6 +130,9 @@
          self.deactivateSearch = deactivateSearch
  
          super.init()
@@ -80,31 +81,78 @@ diff --git a/submodules/TabBarUI/Sources/TabBarContollerNode.swift b/submodules/
          
          self.setViewBlock({
              return View(frame: CGRect())
-diff --git a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoHeaderNavigationButton.swift b/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoHeaderNavigationButton.swift
---- a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoHeaderNavigationButton.swift
-+++ b/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoHeaderNavigationButton.swift
-@@ -218,6 +218,10 @@
-                 text = ""
-                 accessibilityText = presentationData.strings.Common_Back
-                 icon = PresentationResourcesRootController.navigationBackIcon(presentationData.theme)
-+            case .settings:
-+                text = ""
-+                accessibilityText = presentationData.strings.Settings_Title
-+                icon = UIImage(systemName: "gearshape")
-             case .edit:
-                 text = presentationData.strings.Common_Edit
-                 accessibilityText = text
-diff --git a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoHeaderNavigationButtonContainerNode.swift b/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoHeaderNavigationButtonContainerNode.swift
---- a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoHeaderNavigationButtonContainerNode.swift
-+++ b/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoHeaderNavigationButtonContainerNode.swift
-@@ -10,6 +10,7 @@
- 
- enum PeerInfoHeaderNavigationButtonKey {
+diff --git a/submodules/TelegramUI/Components/PeerInfo/PeerInfoPaneNode/Sources/PeerInfoNavigationButtons.swift b/submodules/TelegramUI/Components/PeerInfo/PeerInfoPaneNode/Sources/PeerInfoNavigationButtons.swift
+--- a/submodules/TelegramUI/Components/PeerInfo/PeerInfoPaneNode/Sources/PeerInfoNavigationButtons.swift
++++ b/submodules/TelegramUI/Components/PeerInfo/PeerInfoPaneNode/Sources/PeerInfoNavigationButtons.swift
+@@ -6,6 +6,7 @@
+ /// now; `.select`, `.editPhoto` and `.editVideo` are produced by no set.
+ public enum PeerInfoHeaderNavigationButtonKey {
      case back
 +    case settings
      case edit
      case done
      case cancel
+@@ -27,7 +28,7 @@
+ /// (Apple: text-only items stay horizontal).
+ public func peerInfoNavigationButtonIsIcon(_ key: PeerInfoHeaderNavigationButtonKey) -> Bool {
+     switch key {
+-    case .back, .qrCode, .search, .searchWithTags, .standaloneSearch, .more, .sort, .moreSearchSort, .postStory:
++    case .back, .settings, .qrCode, .search, .searchWithTags, .standaloneSearch, .more, .sort, .moreSearchSort, .postStory:
+         return true
+     case .edit, .done, .cancel, .select, .selectionDone, .editPhoto, .editVideo:
+         return false
+@@ -73,6 +74,8 @@
+     public var canEditBotPreviews = false
+     /// The stories pane shows the account's own stories.
+     public var isOwnStories = false
++    /// NebulaGram: the account's own profile opens Settings from the bar when the Settings tab is hidden.
++    public var showsSettingsButton = false
+ 
+     public init() {
+     }
+@@ -93,6 +96,9 @@
+         normal.right.append(.search)
+         normal.right.append(.edit)
+     } else if flags.isMyProfile || flags.canEdit {
++        if flags.isMyProfile && flags.showsSettingsButton {
++            normal.left.append(.settings)
++        }
+         normal.right.append(.edit)
+     }
+     if flags.channelCanPostStories || flags.isMyProfile {
+diff --git a/submodules/TelegramUI/Components/PeerInfo/PeerInfoPaneNode/Sources/PeerInfoNavigationItems.swift b/submodules/TelegramUI/Components/PeerInfo/PeerInfoPaneNode/Sources/PeerInfoNavigationItems.swift
+--- a/submodules/TelegramUI/Components/PeerInfo/PeerInfoPaneNode/Sources/PeerInfoNavigationItems.swift
++++ b/submodules/TelegramUI/Components/PeerInfo/PeerInfoPaneNode/Sources/PeerInfoNavigationItems.swift
+@@ -17,8 +17,10 @@
+     public var searchWithTagsImage: UIImage?
+     public var searchLabel: String
+     public var moreLabel: String
++    public var settingsImage: UIImage?
++    public var settingsLabel: String
+ 
+-    public init(edit: String, cancel: String, done: String, qrCodeImage: UIImage?, qrCodeLabel: String, postStoryImage: UIImage?, postStoryLabel: String, standaloneSearchImage: UIImage?, searchWithTagsImage: UIImage?, searchLabel: String, moreLabel: String) {
++    public init(edit: String, cancel: String, done: String, qrCodeImage: UIImage?, qrCodeLabel: String, postStoryImage: UIImage?, postStoryLabel: String, standaloneSearchImage: UIImage?, searchWithTagsImage: UIImage?, searchLabel: String, moreLabel: String, settingsImage: UIImage? = nil, settingsLabel: String = "") {
+         self.edit = edit
+         self.cancel = cancel
+         self.done = done
+@@ -30,6 +32,8 @@
+         self.searchWithTagsImage = searchWithTagsImage
+         self.searchLabel = searchLabel
+         self.moreLabel = moreLabel
++        self.settingsImage = settingsImage
++        self.settingsLabel = settingsLabel
+     }
+ }
+ 
+@@ -113,6 +117,8 @@
+             item = self.imageItem(resources.qrCodeImage, label: resources.qrCodeLabel)
+         case .postStory:
+             item = self.imageItem(resources.postStoryImage, label: resources.postStoryLabel)
++        case .settings:
++            item = self.imageItem(resources.settingsImage, label: resources.settingsLabel)
+         case .standaloneSearch, .searchWithTags:
+             item = self.imageItem(itemKey == .searchWithTags ? resources.searchWithTagsImage : resources.standaloneSearchImage, label: resources.searchLabel)
+             // A pill of its own beside the "…": a pane without search (Media) keeps the "…" pill as it is, and only
 diff --git a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoScreen.swift b/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoScreen.swift
 --- a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoScreen.swift
 +++ b/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoScreen.swift
@@ -114,7 +162,7 @@ diff --git a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/Pe
  import UIKit
  import Display
  import AsyncDisplayKit
-@@ -1581,6 +1582,8 @@
+@@ -1682,6 +1683,8 @@
              switch key {
              case .back:
                  strongSelf.controller?.dismiss()
@@ -123,17 +171,26 @@ diff --git a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/Pe
              case .edit:
                  if case let .replyThread(message) = strongSelf.chatLocation {
                      let threadId = message.threadId
-@@ -5887,6 +5890,9 @@
-                     rightNavigationButtons.append(PeerInfoHeaderNavigationButtonSpec(key: .search, isForExpandedView: false))
-                     rightNavigationButtons.append(PeerInfoHeaderNavigationButtonSpec(key: .edit, isForExpandedView: false))
-                 } else if self.isMyProfile {
-+                    if !NebulaSettingsStore.shared.showSettingsTab {
-+                        leftNavigationButtons.append(PeerInfoHeaderNavigationButtonSpec(key: .settings, isForExpandedView: false))
-+                    }
-                     rightNavigationButtons.append(PeerInfoHeaderNavigationButtonSpec(key: .edit, isForExpandedView: false))
-                 } else if peerInfoCanEdit(peer: self.data?.peer, chatLocation: self.chatLocation, threadData: self.data?.threadData, cachedData: self.data?.cachedData, isContact: self.data?.isContact) {
-                     rightNavigationButtons.append(PeerInfoHeaderNavigationButtonSpec(key: .edit, isForExpandedView: false))
-@@ -6685,6 +6691,7 @@
+@@ -5514,7 +5517,9 @@
+             standaloneSearchImage: PresentationResourcesRootController.navigationCompactSearchWhiteIcon(theme),
+             searchWithTagsImage: PresentationResourcesRootController.navigationCompactTagsSearchWhiteIcon(theme),
+             searchLabel: strings.Common_Search,
+-            moreLabel: strings.Common_More
++            moreLabel: strings.Common_More,
++            settingsImage: UIImage(systemName: "gearshape"),
++            settingsLabel: strings.Settings_Title
+         )
+         self.cachedNavigationItemResources = (theme, strings, resources)
+         return resources
+@@ -6116,6 +6121,7 @@
+             navigationFlags.isEditing = self.state.isEditing
+             navigationFlags.isSettings = self.isSettings
+             navigationFlags.isMyProfile = self.isMyProfile
++            navigationFlags.showsSettingsButton = !NebulaSettingsStore.shared.showSettingsTab
+             navigationFlags.canEdit = peerInfoCanEdit(peer: self.data?.peer, chatLocation: self.chatLocation, threadData: self.data?.threadData, cachedData: self.data?.cachedData, isContact: self.data?.isContact)
+             if let data = self.data, !data.isPremiumRequiredForStoryPosting || data.accountIsPremium, case let .channel(channel) = data.peer, channel.hasPermission(.postStories) {
+                 navigationFlags.channelCanPostStories = true
+@@ -6843,6 +6849,7 @@
                  icon = UIImage(bundleImageName: "Chat List/Tabs/IconSettings")
              }
              
@@ -141,7 +198,7 @@ diff --git a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/Pe
              let tabBarItem: Signal<(String, UIImage?, UIImage?, String?, Bool, Bool), NoError> = combineLatest(queue: .mainQueue(), self.context.sharedContext.presentationData, notificationsAuthorizationStatus.get(), notificationsWarningSuppressed.get(), context.engine.notices.getServerProvidedSuggestions(), accountTabBarAvatar, accountTabBarAvatarBadge)
              |> map { presentationData, notificationsAuthorizationStatus, notificationsWarningSuppressed, suggestions, accountTabBarAvatar, accountTabBarAvatarBadge -> (String, UIImage?, UIImage?, String?, Bool, Bool) in
                  let notificationsWarning = shouldDisplayNotificationsPermissionWarning(status: notificationsAuthorizationStatus, suppressed:  notificationsWarningSuppressed)
-@@ -6694,7 +6701,12 @@
+@@ -6852,7 +6859,12 @@
                  if accountTabBarAvatarBadge > 0 {
                      otherAccountsBadge = compactNumericCountString(Int(accountTabBarAvatarBadge), decimalSeparator: presentationData.dateTimeFormat.decimalSeparator)
                  }
@@ -176,37 +233,37 @@ diff --git a/submodules/TelegramUI/Components/TabBarComponent/Sources/TabBarComp
  import UIKit
  import Display
  import TelegramPresentationData
-@@ -655,7 +656,8 @@
-             let _ = alphaTransition
- 
+@@ -672,7 +673,8 @@
+         
+         func update(component: TabBarComponent, availableSize: CGSize, state: EmptyComponentState, environment: Environment<Empty>, transition: ComponentTransition) -> CGSize {
              let innerInset: CGFloat = 4.0
 -            let availableSize = CGSize(width: min(500.0, availableSize.width), height: availableSize.height)
 +            let preferredWidth = NebulaSettingsStore.shared.compactBottomBar ? max(160.0, CGFloat(component.items.count) * 72.0 + 8.0) : 500.0
 +            let availableSize = CGSize(width: min(preferredWidth, availableSize.width), height: availableSize.height)
              
              let previousComponent = self.component
-             self.component = component
-@@ -1294,7 +1296,7 @@
+             // A new axis or mode is applied without animation, so the capsule does not morph through
+@@ -1305,7 +1307,7 @@
                      self.contextContainerView.contentView.addSubview(titleView)
                  }
                  titleView.frame = titleFrame
--                alphaTransition.setAlpha(view: titleView, alpha: component.isCompact ? 0.0 : 1.0)
-+                alphaTransition.setAlpha(view: titleView, alpha: component.isCompact || !NebulaSettingsStore.shared.showTabLabels ? 0.0 : 1.0)
+-                alphaTransition.setAlpha(view: titleView, alpha: (component.isSearchActive || !component.showsTitle) ? 0.0 : 1.0)
++                alphaTransition.setAlpha(view: titleView, alpha: (component.isSearchActive || !component.showsTitle || !NebulaSettingsStore.shared.showTabLabels) ? 0.0 : 1.0)
              }
  
              if let badgeText = badgeValue, !badgeText.isEmpty {
 diff --git a/submodules/TelegramUI/Sources/TelegramRootController.swift b/submodules/TelegramUI/Sources/TelegramRootController.swift
 --- a/submodules/TelegramUI/Sources/TelegramRootController.swift
 +++ b/submodules/TelegramUI/Sources/TelegramRootController.swift
-@@ -82,6 +82,7 @@
-     public var callListController: CallListController?
+@@ -85,6 +85,7 @@
      public var chatListController: ChatListController?
      public var accountSettingsController: PeerInfoScreen?
+     public var newsController: NewsScreen?
 +    private var nebulaProfileController: PeerInfoScreenImpl?
      
      private var permissionsDisposable: Disposable?
      private var presentationDataDisposable: Disposable?
-@@ -240,15 +241,19 @@
+@@ -249,16 +250,20 @@
          }
          accountSettingsController.parentController = self
          controllers.append(accountSettingsController)
@@ -223,22 +280,23 @@ diff --git a/submodules/TelegramUI/Sources/TelegramRootController.swift b/submod
          
          self.contactsController = contactsController
          self.callListController = callListController
+         self.newsController = newsController
          self.chatListController = chatListController
 -        self.accountSettingsController = accountSettingsController
          self.rootTabController = tabBarController
          self.pushViewController(tabBarController, animated: false)
          self.nebulaNavigationObservation = NebulaSettingsStore.shared.observe { [weak self] in
-@@ -269,6 +274,9 @@
+@@ -283,6 +288,9 @@
+             controllers.append(newsController)
          }
-         controllers.append(self.chatListController!)
          controllers.append(self.accountSettingsController!)
 +        if let profileController = self.nebulaProfileController {
 +            controllers.append(profileController)
 +        }
-         
+ 
          controllers = nebulaOrderedControllers(controllers)
          // Preserve selected controller identity, not an index that moved with the order.
-@@ -294,7 +302,10 @@
+@@ -308,7 +316,10 @@
                  if store.showContactsTab, let value = source.first(where: { $0 is ContactsController }) { result.append(value) }
                  if let value = source.first(where: { $0 is CallListController }) { result.append(value) }
              case "chats": if let value = source.first(where: { $0 is ChatListController }) { result.append(value) }
@@ -250,7 +308,7 @@ diff --git a/submodules/TelegramUI/Sources/TelegramRootController.swift b/submod
              default: break
              }
          }
-@@ -338,7 +349,8 @@
+@@ -355,7 +366,8 @@
          
          self.popToRoot(animated: false)
          
@@ -260,7 +318,7 @@ diff --git a/submodules/TelegramUI/Sources/TelegramRootController.swift b/submod
              rootTabController.selectedIndex = index
          }
          
-@@ -861,8 +873,11 @@
+@@ -878,8 +890,11 @@
          
          self.popToRoot(animated: false)
      

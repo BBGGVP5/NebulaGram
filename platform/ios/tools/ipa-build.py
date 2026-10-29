@@ -195,7 +195,7 @@ def main():
     args = parser.parse_args()
     if args.preflight:
         configuration(os.environ, args.bundle_id)
-        native.select_xcode('26.6')
+        native.select_xcode('27.1')
         print('Device build prerequisites available (no signing or push delivery check)')
     else:
         if not args.tree or not args.output: parser.error('--tree and --output are required')
