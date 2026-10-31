@@ -123,6 +123,16 @@ assert 'new int[4]' in image and 'avatarRadii(Math.min' in image
 cell = (tree / 'TMessagesProj/src/main/java/org/telegram/ui/Cells/ChatMessageCell.java').read_text(encoding='utf-8')
 assert 'if (!app.nebulagram.ui.NebulaShape.tails()) drawPinnedBottom = true;' in cell, \
     'turning tails off must reach the bubble that draws them'
+assert 'private boolean nebulaPinnedBottom;' in cell and 'nebulaPinnedBottom = drawPinnedBottom;' in cell, \
+    'the real neighbour relationship must survive the tailless draw override'
+assert cell.count('if (nebulaPinnedBottom && drawPinnedTop) {') == 4, \
+    'cell height and all three bottom offsets must use the real neighbour'
+assert cell.count('} else if (nebulaPinnedBottom) {') == 4, \
+    'cell height and all three bottom offsets must use the real neighbour'
+assert cell.count('if (nebulaPinnedBottom) {') == 8, \
+    'every vertical bottom adjustment must use the real neighbour'
+assert 'if (!mediaBackground && !currentMessageObject.isOutOwner() && (app.nebulagram.ui.NebulaShape.tails() || nebulaPinnedBottom)) {' in cell, \
+    'tailless independent incoming bubbles need full corners; real neighbours keep nearRad'
 card = (ui / 'NebulaCard.java').read_text(encoding='utf-8')
 assert 'NebulaShape.radius(20)' in card, 'settings cards must follow the uniform corner setting'
 menu = (ui / 'NebulaMenuStyle.java').read_text(encoding='utf-8')

@@ -1,14 +1,115 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Cells/ChatMessageCell.java b/TMessagesProj/src/main/java/org/telegram/ui/Cells/ChatMessageCell.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Cells/ChatMessageCell.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Cells/ChatMessageCell.java
-@@ -6962,6 +6962,10 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
+@@ -1027,6 +1027,7 @@
+     public boolean lastInChatList;
+     public boolean drawPinnedTop;
+     public boolean drawPinnedBottom;
++    private boolean nebulaPinnedBottom;
+     private MessageObject.GroupedMessages currentMessagesGroup;
+     private MessageObject.GroupedMessagePosition currentPosition;
+     private boolean groupPhotoInvisible;
+@@ -6962,6 +6963,10 @@
                  drawPinnedTop = pinnedTop && (currentPosition == null || (currentPosition.flags & MessageObject.POSITION_FLAG_TOP) != 0);
                  drawPinnedBottom = pinnedBottom && (currentPosition == null || (currentPosition.flags & MessageObject.POSITION_FLAG_BOTTOM) != 0);
              }
-+            // Хвост рисуется там, где пузырь не примыкает к соседнему снизу.
-+            // Поэтому «без хвостов» — это не отдельная картинка, а тот же
-+            // примыкающий вариант, применённый ко всем сообщениям подряд.
-+            if (!app.nebulagram.ui.NebulaShape.tails() && currentMessagesGroup != null) drawPinnedBottom = true;
++            // «Без хвостов» меняет только рисуемый пузырь. Настоящее примыкание
++            // сохраняем отдельно: высота ячейки и вертикальные отступы должны
++            // остаться такими же, как у обычного Telegram.
++            nebulaPinnedBottom = drawPinnedBottom;
+             // Хвост рисуется там, где пузырь не примыкает к соседнему снизу.
+             // Поэтому «без хвостов» — это не отдельная картинка, а тот же
+             // примыкающий вариант, применённый ко всем сообщениям подряд.
+@@ -11021,9 +11026,9 @@
+             if (hasFactCheck && currentPosition != null) {
+                 totalHeight += dp(2 + (reactionsLayoutInBubble.isEmpty ? 18 : 0)) + factCheckHeight;
+             }
+-            if (drawPinnedBottom && drawPinnedTop) {
++            if (nebulaPinnedBottom && drawPinnedTop) {
+                 totalHeight -= dp(2);
+-            } else if (drawPinnedBottom) {
++            } else if (nebulaPinnedBottom) {
+                 totalHeight -= dp(1);
+             } else if (drawPinnedTop && pinnedBottom && currentPosition != null && currentPosition.siblingHeights == null) {
+                 totalHeight -= dp(1);
+@@ -11032,7 +11037,7 @@
+                 if (messageObject.type == MessageObject.TYPE_TEXT) {
+                     totalHeight -= dp(2);
+                 }
+-                if (drawPinnedBottom) {
++                if (nebulaPinnedBottom) {
+                     totalHeight -= dp(1);
+                 }
+                 if (drawPinnedTop) {
+@@ -11132,7 +11137,7 @@
+                         bl = nearRad;
+                     }
+                 }
+-                if (!mediaBackground && !currentMessageObject.isOutOwner()) {
++                if (!mediaBackground && !currentMessageObject.isOutOwner() && (app.nebulagram.ui.NebulaShape.tails() || nebulaPinnedBottom)) {
+                     bl = nearRad;
+                 }
+                 if (currentMessageObject.type == MessageObject.TYPE_GEO && (MessageObject.getMedia(currentMessageObject) instanceof TLRPC.TL_messageMediaVenue || !locationExpired && MessageObject.getMedia(currentMessageObject) instanceof TLRPC.TL_messageMediaGeoLive)) {
+@@ -20716,9 +20721,9 @@
+                 }
+             }
+             int offsetBottom;
+-            if (drawPinnedBottom && drawPinnedTop) {
++            if (nebulaPinnedBottom && drawPinnedTop) {
+                 offsetBottom = 0;
+-            } else if (drawPinnedBottom) {
++            } else if (nebulaPinnedBottom) {
+                 offsetBottom = dp(1);
+             } else {
+                 offsetBottom = dp(2);
+@@ -20732,7 +20737,7 @@
+                     backgroundDrawableTop -= dp(1);
+                     backgroundHeight += dp(1);
+                 }
+-                if (drawPinnedBottom) {
++                if (nebulaPinnedBottom) {
+                     backgroundDrawableBottom += dp(1);
+                     backgroundHeight += dp(1);
+                 }
+@@ -20799,9 +20804,9 @@
+                 }
+             }
+             int offsetBottom;
+-            if (drawPinnedBottom && drawPinnedTop) {
++            if (nebulaPinnedBottom && drawPinnedTop) {
+                 offsetBottom = 0;
+-            } else if (drawPinnedBottom) {
++            } else if (nebulaPinnedBottom) {
+                 offsetBottom = dp(1);
+             } else {
+                 offsetBottom = dp(2);
+@@ -20815,7 +20820,7 @@
+                     backgroundDrawableTop -= dp(1);
+                     backgroundHeight += dp(1);
+                 }
+-                if (drawPinnedBottom) {
++                if (nebulaPinnedBottom) {
+                     backgroundDrawableBottom += dp(1);
+                     backgroundHeight += dp(1);
+                 }
+@@ -22070,9 +22075,9 @@
+         }
  
-             boolean wasPlayingRound = isPlayingRound;
-             isPlayingRound = isRoundVideo && MediaController.getInstance().isPlayingMessage(currentMessageObject) && delegate != null && !delegate.keyboardIsOpened() && !delegate.isLandscape();
+         int offsetBottom;
+-        if (drawPinnedBottom && drawPinnedTop) {
++        if (nebulaPinnedBottom && drawPinnedTop) {
+             offsetBottom = 0;
+-        } else if (drawPinnedBottom) {
++        } else if (nebulaPinnedBottom) {
+             offsetBottom = dp(1);
+         } else {
+             offsetBottom = dp(2);
+@@ -22083,7 +22088,7 @@
+             if (drawPinnedTop) {
+                 bottom += dp(1);
+             }
+-            if (drawPinnedBottom) {
++            if (nebulaPinnedBottom) {
+                 bottom += dp(1);
+             }
+         }
