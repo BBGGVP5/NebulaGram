@@ -14,6 +14,17 @@ def check(swift=False):
         print('iOS formatting range helper, cached tiles and native action order present')
         return
     program='import Foundation\n'+helper+r'''
+for enabled in [false, true] {
+ for highlighted in [false, true] {
+  for reduceMotion in [false, true] {
+   let value = NebulaFormattingFeedback.values(enabled: enabled, highlighted: highlighted, reduceMotion: reduceMotion)
+   precondition(value.scale == (enabled && highlighted && !reduceMotion ? 0.92 : 1))
+   precondition(value.alpha == (!enabled ? 0.35 : highlighted ? 0.7 : 1))
+  }
+ }
+}
+let released = NebulaFormattingFeedback.values(enabled: true, highlighted: false, reduceMotion: false)
+precondition(released.scale == 1 && released.alpha == 1, "release and reuse restore the tile")
 func test(_ text:String,_ range:Range<Int>,_ expected:Range<Int>?,_ word:Bool=true) {
  precondition(NebulaFormattingSelection.range(text,selection:range,selectWord:word)==expected,text)
 }
