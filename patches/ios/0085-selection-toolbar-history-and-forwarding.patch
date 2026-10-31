@@ -158,7 +158,7 @@ diff --git a/submodules/TelegramUI/Components/PeerSelectionController/Sources/Pe
 diff --git a/submodules/TelegramUI/Sources/Chat/ChatControllerLoadDisplayNode.swift b/submodules/TelegramUI/Sources/Chat/ChatControllerLoadDisplayNode.swift
 --- a/submodules/TelegramUI/Sources/Chat/ChatControllerLoadDisplayNode.swift
 +++ b/submodules/TelegramUI/Sources/Chat/ChatControllerLoadDisplayNode.swift
-@@ -4901,6 +4901,9 @@
+@@ -4811,6 +4811,9 @@
              return self
          }, statuses: ChatPanelInterfaceInteractionStatuses(editingMessage: self.editingMessage.get(), startingBot: self.startingBot.get(), unblockingPeer: self.unblockingPeer.get(), searching: self.searching.get(), loadingMessage: self.loadingMessage.get(), inlineSearch: self.performingInlineSearch.get()))
          
@@ -219,10 +219,12 @@ diff --git a/submodules/TelegramUI/Sources/Chat/ChatControllerOpenPeer.swift b/s
 diff --git a/submodules/TelegramUI/Sources/Chat/UpdateChatPresentationInterfaceState.swift b/submodules/TelegramUI/Sources/Chat/UpdateChatPresentationInterfaceState.swift
 --- a/submodules/TelegramUI/Sources/Chat/UpdateChatPresentationInterfaceState.swift
 +++ b/submodules/TelegramUI/Sources/Chat/UpdateChatPresentationInterfaceState.swift
-@@ -52,6 +52,10 @@
-         if let secondaryRightNavigationButton = self.secondaryRightNavigationButton {
-             rightBarButtons.append(secondaryRightNavigationButton.buttonItem)
+@@ -45,7 +45,11 @@
+             self.secondaryRightNavigationButton = nil
          }
+ 
+-        let rightBarButtons = [self.rightNavigationButton, self.secondaryRightNavigationButton].compactMap { $0?.buttonItem }
++        var rightBarButtons: [UIBarButtonItem] = [self.rightNavigationButton, self.secondaryRightNavigationButton].compactMap { $0?.buttonItem }
 +        if let selectionButtons = self.nebulaSelectionButtons(state: presentationInterfaceState) {
 +            rightBarButtons = selectionButtons
 +            buttonsAnimated = buttonsAnimated && !UIAccessibility.isReduceMotionEnabled
@@ -233,7 +235,7 @@ diff --git a/submodules/TelegramUI/Sources/Chat/UpdateChatPresentationInterfaceS
 diff --git a/submodules/TelegramUI/Sources/ChatController.swift b/submodules/TelegramUI/Sources/ChatController.swift
 --- a/submodules/TelegramUI/Sources/ChatController.swift
 +++ b/submodules/TelegramUI/Sources/ChatController.swift
-@@ -435,6 +435,12 @@
+@@ -444,6 +444,12 @@
  
      let chatBackgroundNode: WallpaperBackgroundNode
      public private(set) var controllerInteraction: ChatControllerInteraction?
@@ -246,20 +248,20 @@ diff --git a/submodules/TelegramUI/Sources/ChatController.swift b/submodules/Tel
      var interfaceInteraction: ChatPanelInterfaceInteraction?
      
      let messageContextDisposable = MetaDisposable()
-@@ -6361,6 +6367,12 @@
-                                 }
-                                 strongSelf.present(UINavigationController(rootViewController: editor), animated: true)
+@@ -6371,6 +6377,12 @@
                              })))
-+                        }
-+
+                         }
+ 
 +                        let historyItems = strongSelf.nebulaHistoryMenuItems()
 +                        if !historyItems.isEmpty {
 +                            if !items.isEmpty { items.append(.separator) }
 +                            items.append(contentsOf: historyItems)
-                         }
- 
++                        }
++
                          return items
-@@ -7322,6 +7334,7 @@
+                     }
+                 case let .replyThread(message):
+@@ -7331,6 +7343,7 @@
      }
  
      deinit {
@@ -315,16 +317,16 @@ diff --git a/submodules/TelegramUI/Sources/ChatControllerForwardMessages.swift b
 diff --git a/submodules/TelegramUI/Sources/ChatInterfaceStateNavigationButtons.swift b/submodules/TelegramUI/Sources/ChatInterfaceStateNavigationButtons.swift
 --- a/submodules/TelegramUI/Sources/ChatInterfaceStateNavigationButtons.swift
 +++ b/submodules/TelegramUI/Sources/ChatInterfaceStateNavigationButtons.swift
-@@ -14,6 +14,12 @@
-         }
+@@ -15,6 +15,12 @@
          if let _ = presentationInterfaceState.reportReason {
              return ChatNavigationButton(action: .spacer, buttonItem: UIBarButtonItem(title: " ", style: .plain, target: nil, action: nil))
-+        }
+         }
 +        if presentationInterfaceState.subject == nil {
 +            if let currentButton, currentButton.action == .cancelMessageSelection { return currentButton }
 +            let item = UIBarButtonItem(image: UIImage(systemName: "chevron.left"), style: .plain, target: target, action: selector)
 +            item.accessibilityLabel = strings.Common_Cancel
 +            return ChatNavigationButton(action: .cancelMessageSelection, buttonItem: item)
-         }
++        }
          if case .replyThread = presentationInterfaceState.chatLocation {
              return nil
+         }

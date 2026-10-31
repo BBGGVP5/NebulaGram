@@ -406,6 +406,7 @@ public func nebulaSettingsController(context: AccountContext, page: Int = 0, sea
             .search(query, ru ? "Поиск настроек" : "Search settings"),
             .toolsHeader(ru ? "Основное" : "Essentials"),
             .appearanceHeader(ru ? "Интерфейс" : "Interface"),
+            .category(36, ru ? "Размеры медиа" : "Media sizes", ru ? "Стикеры, эмодзи и GIF" : "Stickers, emoji and GIF", "photo"),
             .privacyHeader(ru ? "Конфиденциальность" : "Privacy"),
             .category(35, ru ? "Скрыть строки чатов" : "Hide chat rows", ru ? "Имена, фото и превью · показ списка" : "Names, photos and previews · list presentation", "eye.slash"),
             .header(ru ? "Папки чатов" : "Chat folders"),
@@ -629,6 +630,11 @@ public func nebulaSettingsController(context: AccountContext, page: Int = 0, sea
     transfer.host = controller
     arguments.openCategory = { [weak controller] index in
         guard let controller else { return }
+        if index == 36 {
+            let data = context.sharedContext.currentPresentationData.with { $0 }
+            controller.present(UINavigationController(rootViewController: NebulaMediaSizeController(russian: data.strings.baseLanguageCode.hasPrefix("ru"), theme: data.theme)), animated: true)
+            return
+        }
         if index == 35 {
             let ru = context.sharedContext.currentPresentationData.with { $0 }.strings.baseLanguageCode.hasPrefix("ru")
             controller.present(UINavigationController(rootViewController: NebulaPrivacyController(context: context, russian: ru, mode: 3)), animated: true)

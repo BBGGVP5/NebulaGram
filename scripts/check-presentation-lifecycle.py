@@ -23,10 +23,10 @@ source='''class FolderCheck {
  System.out.println("Folder roots: simultaneous updates, duplicate registration, exact detach and 1000 recreate cycles passed");
  }}'''.replace('NOTIFY',notify).replace('ADD',add).replace('REMOVE',remove)
 bar=(ui/'NebulaFormattingToolbar.java').read_text(encoding='utf-8');palette=method(bar,'private void updatePalette(')
-palette=palette.replace('android.graphics.drawable.RippleDrawable','RippleDrawable').replace('android.content.res.ColorStateList','ColorStateList')
+palette=palette.replace('android.graphics.drawable.RippleDrawable','RippleDrawable').replace('android.content.res.ColorStateList','ColorStateList').replace('NebulaShape.radius(','AndroidUtilities.dp(')
 source+='''
 class PaletteCheck {
- static class NebulaTheme {static int surface=1,ink=2,chip=4;static NebulaTheme of(Object c){return new NebulaTheme();}int surfaceContainer(){return surface;}int onSurface(){return ink;}int surface(){return chip;}static int stateLayer(int c,float a){return c;}}
+ static class NebulaTheme {static int surface=1,ink=2,chip=4;static NebulaTheme of(Object c){return new NebulaTheme();}int surfaceContainer(){return surface;}int onSurface(){return ink;}int surface(){return chip;}int primary(){return 7;}static int stateLayer(int c,float a){return c;}}
  static class AndroidUtilities {static int dp(float n){return Math.round(n);}}
  static class GradientDrawable {static int created;int color;GradientDrawable(){created++;}void setColor(int n){color=n;}void setCornerRadius(int n){}}
  static class ColorStateList {static Object valueOf(int c){return c;}}
@@ -42,7 +42,10 @@ class PaletteCheck {
  static void checkInset(PaletteCheck p){if(p.row.items[1].padding!=11)throw new AssertionError("Background reset glyph inset");}
  public static void main(String[]args){PaletteCheck p=new PaletteCheck();p.updatePalette();
  checkInset(p);
- for(int i=0;i<1000;i++)p.updatePalette();if(GradientDrawable.created!=3)throw new AssertionError("Idle cache rebuilt");
+ for(int i=0;i<1000;i++)p.updatePalette();
+ // Фон панели плюс по плитке на кнопку. Важно не число, а что тысяча
+ // повторов его не увеличила.
+ if(GradientDrawable.created!=1+p.row.getChildCount())throw new AssertionError("Idle cache rebuilt");
  NebulaTheme.ink=3;p.updatePalette();if(p.row.items[0].color!=3||p.row.items[1].color!=3)throw new AssertionError("Unchanged surface kept stale foreground");
  checkInset(p);
  NebulaTheme.chip=5;p.updatePalette();for(View item:p.row.items)if(((RippleDrawable)item.background).tile.color!=5)throw new AssertionError("Chip-only theme change lost");

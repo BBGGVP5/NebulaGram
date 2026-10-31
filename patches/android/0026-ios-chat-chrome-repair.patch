@@ -19,7 +19,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.jav
              nebulaChatAvatarContainer.setLayoutParams(params);
          }
          nebulaAvatarWidth = Integer.MIN_VALUE;
-@@ -2274,11 +2274,14 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
+@@ -2285,11 +2285,14 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
      private boolean nebulaFloatingChatHeader;
  
      private boolean nebulaChatMenuHidden;
@@ -39,7 +39,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.jav
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
-@@ -4302,6 +4302,7 @@ public class ChatActivity extends BaseFragment implements
+@@ -4346,6 +4346,7 @@ public class ChatActivity extends BaseFragment implements
                  userFull = getMessagesController().getUserFull(currentUser.id);
              }
              headerItem = menu.addItem(chat_menu_options, otherIcon);
@@ -50,7 +50,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
-@@ -14506,7 +14506,7 @@ public class ChatActivityEnterView extends FrameLayout implements
+@@ -14610,7 +14610,7 @@ public class ChatActivityEnterView extends FrameLayout implements
      @Override
      protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
          super.onLayout(changed, left, top, right, bottom);

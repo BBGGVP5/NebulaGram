@@ -1,7 +1,7 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
-@@ -3045,5 +3045,7 @@
+@@ -3079,7 +3079,9 @@ public class ChatActivityEnterView extends FrameLayout implements
                      if (hasRecordVideo) {
                          calledRecordRunnable = false;
                          recordAudioVideoRunnableStarted = true;
@@ -10,3 +10,5 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivity
 +                                isInVideoMode() && app.nebulagram.ui.NebulaRoundCamera.mode() == app.nebulagram.ui.NebulaRoundCamera.ASK
 +                                        ? ViewConfiguration.getLongPressTimeout() : 150);
                      } else {
+                         recordAudioVideoRunnable.run();
+                     }

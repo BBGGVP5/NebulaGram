@@ -163,6 +163,11 @@ func HTTPGet(ctx context.Context, s model.Server, timeout time.Duration) int {
 
 // Batch measures many servers concurrently and writes the result back into the
 // slice. It is what the "Check page" action calls for the visible page.
+//
+// A cancelled check leaves its servers untouched. Both measurement methods
+// report Failed when the context ends, so writing their answer back would mark
+// every server still in the queue as dead the moment the user leaves the
+// screen — indistinguishable from a server that really did not answer.
 func Batch(ctx context.Context, servers []model.Server, concurrency int, timeout time.Duration, method Method) {
 	if concurrency <= 0 {
 		concurrency = 16
@@ -174,13 +179,25 @@ func Batch(ctx context.Context, servers []model.Server, concurrency int, timeout
 		wg.Add(1)
 		go func(idx int) {
 			defer wg.Done()
-			sem <- struct{}{}
-			defer func() { <-sem }()
-			if method == MethodHTTP {
-				servers[idx].LatencyMs = HTTPGet(ctx, servers[idx], timeout)
-			} else {
-				servers[idx].LatencyMs = TCP(ctx, servers[idx], timeout)
+			select {
+			case sem <- struct{}{}:
+			case <-ctx.Done():
+				return
 			}
+			defer func() { <-sem }()
+			if ctx.Err() != nil {
+				return
+			}
+			var latency int
+			if method == MethodHTTP {
+				latency = HTTPGet(ctx, servers[idx], timeout)
+			} else {
+				latency = TCP(ctx, servers[idx], timeout)
+			}
+			if ctx.Err() != nil {
+				return
+			}
+			servers[idx].LatencyMs = latency
 			servers[idx].CheckedAt = now
 		}(i)
 	}

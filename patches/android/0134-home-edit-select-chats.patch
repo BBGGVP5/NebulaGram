@@ -1,5 +1,5 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
-index d8edc6c..5b6b674 100644
+index 734a3de3..66639486 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
 @@ -1538,7 +1538,7 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
@@ -11,7 +11,7 @@ index d8edc6c..5b6b674 100644
          // textLeft += additionalTextLeft;
  
          if (menu != null && menu.getVisibility() != GONE) {
-@@ -1686,7 +1686,7 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
+@@ -1688,7 +1688,7 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
              textLeft = glassMode ? dp(24) : dp(AndroidUtilities.isTablet() ? 26 : 18);
          }
          textLeft += additionalTextLeft;
@@ -21,10 +21,10 @@ index d8edc6c..5b6b674 100644
          if (menu != null && menu.getVisibility() != GONE) {
              int menuLeft = menu.searchFieldVisible() ? dp(menuOccupyBack ? 0 : AndroidUtilities.isTablet() ? 74 : 66) : (getMeasuredWidth()) - menu.getMeasuredWidth();
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
-index c47eec0..c263ccc 100644
+index c11cb46f..26c2dfdc 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
-@@ -505,6 +505,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+@@ -506,6 +506,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
      public ActionBarMenuItem searchItem;
      private ActionBarMenuItem optionsItem;
      private TextView nebulaHomeEditButton;
@@ -32,7 +32,7 @@ index c47eec0..c263ccc 100644
      private ActionBarMenuItem speedItem;
      public static boolean switchingTheme;
      private ActionBarMenuItem doneItem;
-@@ -3211,8 +3212,8 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+@@ -3213,8 +3214,8 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
              actionBar.setNebulaHomeTabsGlass(true);
              nebulaHomeEditButton = new TextView(context);
              nebulaHomeEditButton.setText(app.nebulagram.ui.NebulaText.text("Изм.", "Edit"));
@@ -43,7 +43,7 @@ index c47eec0..c263ccc 100644
              nebulaHomeEditButton.setTextColor(getThemedColor(Theme.key_actionBarDefaultTitle));
              nebulaHomeEditButton.setGravity(Gravity.CENTER);
              BlurredBackgroundDrawable editGlass = iBlur3FactoryLiquidGlass.create(nebulaHomeEditButton,
-@@ -3220,8 +3221,13 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+@@ -3222,8 +3223,13 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
              editGlass.setRadius(dp(22));
              editGlass.setPadding(dp(3));
              nebulaHomeEditButton.setBackground(editGlass);
@@ -59,7 +59,7 @@ index c47eec0..c263ccc 100644
              editLayout.leftMargin = dp(8);
              actionBar.addView(nebulaHomeEditButton, editLayout);
              actionBar.setNebulaHomeLeadingView(nebulaHomeEditButton);
-@@ -3488,7 +3494,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+@@ -3490,7 +3496,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
          });
          fragmentSearchFieldWatcher.setDoNotCloseAfterFieldEmpty();
  
@@ -68,7 +68,7 @@ index c47eec0..c263ccc 100644
              if (!onlySelect && folderId == 0) app.nebulagram.ui.NebulaLinkShortcut.install(this, menu);
              optionsItem = menu.addItem(4, R.drawable.ic_ab_other);
              optionsItem.setContentDescription(LocaleController.getString(R.string.AccDescrMoreOptions));
-@@ -3501,6 +3507,8 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+@@ -3503,6 +3509,8 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                  showItemOptions();
                  return true;
              });
@@ -77,7 +77,7 @@ index c47eec0..c263ccc 100644
          }
  
          searchItem.setSearchFieldHint(getString(R.string.Search));
-@@ -3917,6 +3925,9 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+@@ -3919,6 +3927,9 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
          actionBar.setActionBarMenuOnItemClick(new ActionBar.ActionBarMenuOnItemClick() {
              @Override
              public void onItemClick(int id) {
@@ -87,7 +87,7 @@ index c47eec0..c263ccc 100644
                  if ((id == SearchViewPager.forwardItemId || id == SearchViewPager.gotoItemId || id == SearchViewPager.deleteItemId || id == SearchViewPager.speedItemId) && searchViewPager != null) {
                      searchViewPager.onActionBarItemClick(id);
                      return;
-@@ -9168,6 +9179,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+@@ -9171,6 +9182,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
      }
  
      private void hideActionMode(boolean animateCheck) {
@@ -95,7 +95,7 @@ index c47eec0..c263ccc 100644
          actionBar.hideActionMode();
          selectedDialogs.clear();
          if (backDrawable != null) {
-@@ -10151,10 +10163,12 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+@@ -10154,10 +10166,12 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
      }
  
      private void showOrUpdateActionMode(long dialogId, View cell) {
@@ -110,7 +110,7 @@ index c47eec0..c263ccc 100644
                  hideActionMode(true);
                  return;
              }
-@@ -10255,6 +10269,15 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+@@ -10258,6 +10272,15 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
          }
          updateCounters(false);
          selectedDialogsCountTextView.setNumber(selectedDialogs.size(), updateAnimated);

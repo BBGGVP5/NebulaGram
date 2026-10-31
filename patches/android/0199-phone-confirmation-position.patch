@@ -1,7 +1,7 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/LoginActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/LoginActivity.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/LoginActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/LoginActivity.java
-@@ -8600,6 +8600,7 @@
+@@ -8614,6 +8614,7 @@ public class LoginActivity extends BaseFragment implements NotificationCenter.No
          private FrameLayout popupLayout;
  
          private boolean dismissed;
@@ -9,7 +9,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/LoginActivity.java b/TM
  
          private PhoneNumberConfirmView(@NonNull Context context, ViewGroup fragmentView, View fabContainer, String numberText, IConfirmDialogCallback callback) {
              super(context);
-@@ -8675,6 +8676,7 @@
+@@ -8689,6 +8690,7 @@ public class LoginActivity extends BaseFragment implements NotificationCenter.No
  
          private final PointF pointF = new PointF();
          private void updateFabPosition() {
@@ -17,10 +17,11 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/LoginActivity.java b/TM
              ViewPositionWatcher.computeCoordinatesInParent(fabContainer, fragmentView, pointF);
              fabButton.setTranslationX(pointF.x + (LocaleController.isRTL ? 0 : Math.max(0, fabContainer.getWidth() - dp(56))));
              fabButton.setTranslationY(pointF.y);
-@@ -8693,15 +8695,32 @@
+@@ -8706,16 +8708,33 @@ public class LoginActivity extends BaseFragment implements NotificationCenter.No
+             fabButton.updateColors();
          }
  
-         @Override
++        @Override
 +        protected void onSizeChanged(int width, int height, int oldWidth, int oldHeight) {
 +            super.onSizeChanged(width, height, oldWidth, oldHeight);
 +            if (oldWidth > 0 && width != oldWidth) {
@@ -30,7 +31,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/LoginActivity.java b/TM
 +            }
 +        }
 +
-+        @Override
+         @Override
          protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
              super.onLayout(changed, left, top, right, bottom);
  

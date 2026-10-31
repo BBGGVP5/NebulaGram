@@ -1,7 +1,7 @@
 diff --git a/submodules/AccountContext/Sources/AccountContext.swift b/submodules/AccountContext/Sources/AccountContext.swift
 --- a/submodules/AccountContext/Sources/AccountContext.swift
 +++ b/submodules/AccountContext/Sources/AccountContext.swift
-@@ -1405,6 +1405,8 @@
+@@ -1419,6 +1419,8 @@
  }
  
  public protocol SharedAccountContext: AnyObject {
@@ -38,7 +38,7 @@ diff --git a/submodules/TelegramUI/Components/Chat/ChatMessageInteractiveFileNod
 diff --git a/submodules/TelegramUI/Components/Chat/ChatMessageInteractiveInstantVideoNode/Sources/ChatMessageInteractiveInstantVideoNode.swift b/submodules/TelegramUI/Components/Chat/ChatMessageInteractiveInstantVideoNode/Sources/ChatMessageInteractiveInstantVideoNode.swift
 --- a/submodules/TelegramUI/Components/Chat/ChatMessageInteractiveInstantVideoNode/Sources/ChatMessageInteractiveInstantVideoNode.swift
 +++ b/submodules/TelegramUI/Components/Chat/ChatMessageInteractiveInstantVideoNode/Sources/ChatMessageInteractiveInstantVideoNode.swift
-@@ -844,6 +844,10 @@
+@@ -843,6 +843,10 @@
                          }
                      }
                      
@@ -49,7 +49,7 @@ diff --git a/submodules/TelegramUI/Components/Chat/ChatMessageInteractiveInstant
                      if displayTranscribe, let durationBlurColor = durationBlurColor {
                          var added = false
                          let audioTranscriptionButton: ComponentHostView<Empty>
-@@ -1813,6 +1817,10 @@
+@@ -1812,6 +1816,10 @@
              return
          }
          
@@ -75,7 +75,7 @@ diff --git a/submodules/TelegramUI/Sources/ChatInterfaceStateContextMenus.swift 
 diff --git a/submodules/TelegramUI/Sources/SharedAccountContext.swift b/submodules/TelegramUI/Sources/SharedAccountContext.swift
 --- a/submodules/TelegramUI/Sources/SharedAccountContext.swift
 +++ b/submodules/TelegramUI/Sources/SharedAccountContext.swift
-@@ -159,6 +159,23 @@
+@@ -161,6 +161,23 @@
  private var testHasInstance = false
  
  public final class SharedAccountContextImpl: SharedAccountContext {

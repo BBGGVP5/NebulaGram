@@ -49,7 +49,7 @@ diff --git a/submodules/AuthorizationUI/Sources/AuthorizationSequenceCodeEntryCo
          let previousInputHeight = self.layoutArguments?.0.inputHeight ?? 0.0
          let newInputHeight = layout.inputHeight ?? 0.0
          
-@@ -526,14 +535,14 @@
+@@ -539,14 +548,14 @@
          if let codeType = self.codeType {
              switch codeType {
              case .missedCall:
@@ -68,7 +68,7 @@ diff --git a/submodules/AuthorizationUI/Sources/AuthorizationSequenceCodeEntryCo
                 
                  self.proceedNode.title = self.strings.Login_OpenFragment
                  self.proceedNode.updateTheme(SolidRoundedButtonTheme(backgroundColor: UIColor(rgb: 0x37475a), foregroundColor: .white))
-@@ -543,16 +552,16 @@
+@@ -556,16 +565,16 @@
                  animationPlaybackMode = .count(3)
                  self.proceedNode.animation = "anim_fragment"
              case .word:
@@ -89,7 +89,7 @@ diff --git a/submodules/AuthorizationUI/Sources/AuthorizationSequenceCodeEntryCo
          }
          
          self.textField.textField.attributedPlaceholder = NSAttributedString(string: textFieldPlaceholder, font: Font.regular(20.0), textColor: self.theme.list.itemPlaceholderTextColor)
-@@ -570,9 +579,10 @@
+@@ -583,9 +592,10 @@
              }
          }
          
@@ -102,7 +102,7 @@ diff --git a/submodules/AuthorizationUI/Sources/AuthorizationSequenceCodeEntryCo
          }
          
          let animationSize = CGSize(width: 100.0, height: 100.0)
-@@ -634,12 +644,14 @@
+@@ -647,12 +657,14 @@
          
          var items: [AuthorizationLayoutItem] = []
          if layout.size.width > 320.0 {
@@ -120,7 +120,7 @@ diff --git a/submodules/AuthorizationUI/Sources/AuthorizationSequenceCodeEntryCo
              self.animationNode.isHidden = true
          }
          
-@@ -884,6 +896,7 @@
+@@ -899,6 +911,7 @@
              self.nextOptionArrowNode.frame = CGRect(origin: CGPoint(x: self.nextOptionTitleNode.frame.maxX + 7.0, y: self.nextOptionTitleNode.frame.midY - icon.size.height / 2.0), size: icon.size)
          }
          
@@ -175,7 +175,7 @@ diff --git a/submodules/AuthorizationUI/Sources/AuthorizationSequencePasswordEnt
          let previousInputHeight = self.layoutArguments?.0.inputHeight ?? 0.0
          let newInputHeight = layout.inputHeight ?? 0.0
          
-@@ -185,7 +193,7 @@
+@@ -197,7 +205,7 @@
          let titleInset: CGFloat = layout.size.width > 320.0 ? 18.0 : 0.0
          let additionalBottomInset: CGFloat = layout.size.width > 320.0 ? 110.0 : 20.0
          
@@ -184,7 +184,7 @@ diff --git a/submodules/AuthorizationUI/Sources/AuthorizationSequencePasswordEnt
          
          let animationSize = CGSize(width: 100.0, height: 100.0)
          let titleSize = self.titleNode.measure(CGSize(width: maximumWidth, height: CGFloat.greatestFiniteMagnitude))
-@@ -213,13 +221,15 @@
+@@ -225,13 +233,15 @@
          }
          
          if layout.size.width > 320.0 {
@@ -203,7 +203,7 @@ diff --git a/submodules/AuthorizationUI/Sources/AuthorizationSequencePasswordEnt
              self.animationNode.isHidden = true
          }
          
-@@ -232,6 +242,7 @@
+@@ -244,6 +254,7 @@
          self.titleActivateAreaNode.accessibilityLabel = self.titleNode.attributedText?.string ?? ""
          self.noticeActivateAreaNode.accessibilityLabel = self.noticeNode.attributedText?.string ?? ""
          
@@ -214,7 +214,7 @@ diff --git a/submodules/AuthorizationUI/Sources/AuthorizationSequencePasswordEnt
 diff --git a/submodules/AuthorizationUI/Sources/AuthorizationSequencePhoneEntryControllerNode.swift b/submodules/AuthorizationUI/Sources/AuthorizationSequencePhoneEntryControllerNode.swift
 --- a/submodules/AuthorizationUI/Sources/AuthorizationSequencePhoneEntryControllerNode.swift
 +++ b/submodules/AuthorizationUI/Sources/AuthorizationSequencePhoneEntryControllerNode.swift
-@@ -273,7 +273,7 @@
+@@ -270,7 +270,7 @@
      init(theme: PresentationTheme, strings: PresentationStrings) {
          self.titleNode = ImmediateTextNode()
          self.titleNode.maximumNumberOfLines = 1
@@ -223,7 +223,7 @@ diff --git a/submodules/AuthorizationUI/Sources/AuthorizationSequencePhoneEntryC
          self.switchNode = SwitchNode()
          self.switchNode.frameColor = theme.list.itemSwitchColors.frameColor
          self.switchNode.contentColor = theme.list.itemSwitchColors.contentColor
-@@ -312,6 +312,8 @@
+@@ -309,6 +309,8 @@
      private let hasOtherAccounts: Bool
      
      private let animationNode: AnimatedStickerNode
@@ -232,7 +232,7 @@ diff --git a/submodules/AuthorizationUI/Sources/AuthorizationSequencePhoneEntryC
      private let managedAnimationNode: ManagedPhoneAnimationNode
      private let titleNode: ASTextNode
      private let titleActivateAreaNode: AccessibilityAreaNode
-@@ -396,6 +398,9 @@
+@@ -393,6 +395,9 @@
          self.debugAction = debugAction
          self.hasOtherAccounts = hasOtherAccounts
          
@@ -242,7 +242,7 @@ diff --git a/submodules/AuthorizationUI/Sources/AuthorizationSequencePhoneEntryC
          self.animationNode = DefaultAnimatedStickerNodeImpl(lottieSettings: .noAccountFallback)
          self.animationNode.setup(source: AnimatedStickerNodeLocalFileSource(name: "IntroPhone"), width: 256, height: 256, playbackMode: .once, mode: .direct(cachePathPrefix: nil))
          
-@@ -405,7 +410,7 @@
+@@ -402,7 +407,7 @@
          self.titleNode = ASTextNode()
          self.titleNode.isUserInteractionEnabled = true
          self.titleNode.displaysAsynchronously = false
@@ -251,7 +251,7 @@ diff --git a/submodules/AuthorizationUI/Sources/AuthorizationSequencePhoneEntryC
          
          self.titleActivateAreaNode = AccessibilityAreaNode()
          self.titleActivateAreaNode.accessibilityTraits = .staticText
-@@ -437,6 +442,8 @@
+@@ -434,6 +439,8 @@
          })
          
          self.backgroundColor = theme.list.plainBackgroundColor
@@ -260,7 +260,7 @@ diff --git a/submodules/AuthorizationUI/Sources/AuthorizationSequencePhoneEntryC
          
          self.addSubnode(self.titleNode)
          self.addSubnode(self.noticeNode)
-@@ -600,6 +607,7 @@
+@@ -597,6 +604,7 @@
      }
      
      func containerLayoutUpdated(_ layout: ContainerViewLayout, navigationBarHeight: CGFloat, transition: ContainedViewLayoutTransition) {
@@ -268,7 +268,7 @@ diff --git a/submodules/AuthorizationUI/Sources/AuthorizationSequencePhoneEntryC
          var insets = layout.insets(options: [])
          insets.top = layout.statusBarHeight ?? 20.0
          if let inputHeight = layout.inputHeight, !inputHeight.isZero {
-@@ -609,7 +617,7 @@
+@@ -606,7 +614,7 @@
          let titleInset: CGFloat = layout.size.width > 320.0 ? 18.0 : 0.0
          let additionalBottomInset: CGFloat = layout.size.width > 320.0 ? 80.0 : 10.0
          
@@ -276,8 +276,8 @@ diff --git a/submodules/AuthorizationUI/Sources/AuthorizationSequencePhoneEntryC
 +        self.titleNode.attributedText = NSAttributedString(string: self.account == nil ? self.strings.Login_NewNumber : NebulaAuthCopy(self.strings.baseLanguageCode).phone, font: Font.bold(28.0), textColor: self.theme.list.itemAccentColor)
          self.titleActivateAreaNode.accessibilityLabel = self.titleNode.attributedText?.string ?? ""
          
-         let inset: CGFloat = 24.0
-@@ -631,13 +639,15 @@
+         // iPhone Duo: beside a side strip the content keeps to the band between the side insets. With equal
+@@ -640,13 +648,15 @@
          ]
          
          if layout.size.width > 320.0 {
@@ -296,7 +296,7 @@ diff --git a/submodules/AuthorizationUI/Sources/AuthorizationSequencePhoneEntryC
              self.animationNode.isHidden = true
              self.managedAnimationNode.isHidden = true
          }
-@@ -665,6 +675,7 @@
+@@ -674,6 +684,7 @@
          
          transition.updateFrame(node: self.managedAnimationNode, frame: self.animationNode.frame)
          
@@ -386,8 +386,6 @@ diff --git a/submodules/AuthorizationUI/Sources/AuthorizationSequenceSplashContr
          
          self.startButton.pressed = { [weak self] in
 -            self?.activateLocalization("en")
--        }
--        
 +            self?.controller.advance()
 +        }
 +
@@ -397,11 +395,12 @@ diff --git a/submodules/AuthorizationUI/Sources/AuthorizationSequenceSplashContr
 +        self.controller.pageChanged = { [weak self] page, language in
 +            let copy = NebulaAuthCopy(language)
 +            self?.startButton.title = page == 4 ? copy.start : copy.next
-+        }
+         }
+-        
          self.controller.createStartButton = { [weak self] width in
              let _ = self?.startButton.updateLayout(width: width, transition: .immediate)
              return self?.startButton.view
-@@ -188,6 +163,17 @@
+@@ -209,6 +184,17 @@
          }
      }
      

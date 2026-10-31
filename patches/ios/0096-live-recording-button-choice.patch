@@ -1,7 +1,7 @@
 diff --git a/submodules/TelegramUI/Sources/ChatController.swift b/submodules/TelegramUI/Sources/ChatController.swift
 --- a/submodules/TelegramUI/Sources/ChatController.swift
 +++ b/submodules/TelegramUI/Sources/ChatController.swift
-@@ -280,6 +280,9 @@
+@@ -281,6 +281,9 @@
              nebulaTranslationTimer = Foundation.Timer.scheduledTimer(withTimeInterval: 0.15, repeats: true) { [weak self] _ in self?.nebulaTickChatAI() }
          }
          if nebulaTranslationObservers.isEmpty {
@@ -11,10 +11,10 @@ diff --git a/submodules/TelegramUI/Sources/ChatController.swift b/submodules/Tel
              nebulaTranslationObservers.append(NotificationCenter.default.addObserver(forName: NebulaTranslationActivity.changed, object: nil, queue: .main) { [weak self] _ in
                  guard let self, self.isNodeLoaded, self.nebulaTranslationVisible else { return }
                  self.chatDisplayNode.historyNode.forEachVisibleMessageItemNode { node in
-@@ -7942,6 +7945,7 @@
-     
-     override public func viewWillAppear(_ animated: Bool) {
-         super.viewWillAppear(animated)
+@@ -7969,6 +7972,7 @@
+         self.chatDisplayNode.historyNode.forEachVisibleMessageItemNode { itemNode in
+             itemNode.unreadMessageRangeUpdated()
+         }
 +        self.nebulaRefreshRecordingButtons()
          if let peerId = self.chatLocation.peerId, peerId != self.context.account.peerId {
              let russian = self.presentationData.strings.baseLanguageCode.lowercased().hasPrefix("ru")

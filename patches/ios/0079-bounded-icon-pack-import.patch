@@ -13,24 +13,22 @@ diff --git a/submodules/SettingsUI/BUILD b/submodules/SettingsUI/BUILD
 diff --git a/third-party/ZipArchive/PublicHeaders/ZipArchive/ZipArchive.h b/third-party/ZipArchive/PublicHeaders/ZipArchive/ZipArchive.h
 --- a/third-party/ZipArchive/PublicHeaders/ZipArchive/ZipArchive.h
 +++ b/third-party/ZipArchive/PublicHeaders/ZipArchive/ZipArchive.h
-@@ -41,6 +41,8 @@
- @end
+@@ -42,6 +42,8 @@
  
  @interface SSZipArchive : NSObject
-+
-++ (NSData * _Nullable)nebulaReadFileAtPath:(NSString *)path filePath:(NSString *)filePath maximumSize:(NSUInteger)maximumSize NS_SWIFT_NAME(nebulaReadFile(atPath:filePath:maximumSize:));
  
+++ (NSData * _Nullable)nebulaReadFileAtPath:(NSString *)path filePath:(NSString *)filePath maximumSize:(NSUInteger)maximumSize NS_SWIFT_NAME(nebulaReadFile(atPath:filePath:maximumSize:));
++
  + (NSArray<SSZipEntry *> * _Nullable)getEntriesForFileAtPath:(NSString *)path;
  + (BOOL)extractFileFromArchiveAtPath:(NSString *)path filePath:(NSString *)filePath toPath:(NSString *)toPath;
+ 
 diff --git a/third-party/ZipArchive/Sources/SSZipArchive.m b/third-party/ZipArchive/Sources/SSZipArchive.m
 --- a/third-party/ZipArchive/Sources/SSZipArchive.m
 +++ b/third-party/ZipArchive/Sources/SSZipArchive.m
-@@ -42,6 +42,29 @@
-     /// path for zip file
-     NSString *_path;
+@@ -44,6 +44,29 @@
      zipFile _zip;
-+}
-+
+ }
+ 
 +// Bounded in-memory read. Never extract an imported icon archive to disk.
 ++ (NSData *)nebulaReadFileAtPath:(NSString *)path filePath:(NSString *)filePath maximumSize:(NSUInteger)maximumSize {
 +    if (maximumSize == 0 || maximumSize > 262144) return nil;
@@ -52,6 +50,8 @@ diff --git a/third-party/ZipArchive/Sources/SSZipArchive.m b/third-party/ZipArch
 +    if (unzCloseCurrentFile(file) != UNZ_OK) valid = NO;
 +    unzClose(file);
 +    return valid ? data : nil;
- }
- 
++}
++
  #pragma mark - Password check
+ 
+ + (BOOL)isFilePasswordProtectedAtPath:(NSString *)path {

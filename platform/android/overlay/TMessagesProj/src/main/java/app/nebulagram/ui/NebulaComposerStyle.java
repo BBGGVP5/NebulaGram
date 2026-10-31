@@ -203,7 +203,13 @@ public final class NebulaComposerStyle {
         if (attachment != null && attachment.getVisibility() == View.VISIBLE) {
             surface(canvas, surfaces[0], left, padded.bottom - diameter, left + diameter, padded.bottom, padding);
         }
-        surface(canvas, surfaces[1], editorLeft, padded.top, editorRight, padded.bottom, padding);
+        // Вариант «Кнопки» — та же раскладка, но поле остаётся без подложки:
+        // стекло держат только кружки по краям.
+        if (NebulaComposer.fieldSurface()) {
+            surface(canvas, surfaces[1], editorLeft, padded.top, editorRight, padded.bottom, padding);
+        } else {
+            surfaces[1].setAlpha(0);
+        }
         surface(canvas, surfaces[2], right - diameter, padded.bottom - diameter, right, padded.bottom, padding);
         smallButtonSurface(canvas, surfaces[3], drawingParent, replyClose, padding);
         smallButtonSurface(canvas, surfaces[4], drawingParent, aiButton, padding);

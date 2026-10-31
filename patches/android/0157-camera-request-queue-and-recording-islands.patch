@@ -1,5 +1,5 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/camera/Camera2Session.java b/TMessagesProj/src/main/java/org/telegram/messenger/camera/Camera2Session.java
-index cedaa76..73d3bc2 100644
+index cedaa76d..73d3bc25 100644
 --- a/TMessagesProj/src/main/java/org/telegram/messenger/camera/Camera2Session.java
 +++ b/TMessagesProj/src/main/java/org/telegram/messenger/camera/Camera2Session.java
 @@ -20,6 +20,7 @@ import android.media.ImageReader;
@@ -126,7 +126,7 @@ index cedaa76..73d3bc2 100644
              captureRequestBuilder.addTarget(surface);
              captureSession.setRepeatingRequest(captureRequestBuilder.build(), null, handler);
 diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/camera/CameraSession.java b/TMessagesProj/src/main/java/org/telegram/messenger/camera/CameraSession.java
-index 59a3727..61a4ded 100644
+index 59a3727e..61a4dedb 100644
 --- a/TMessagesProj/src/main/java/org/telegram/messenger/camera/CameraSession.java
 +++ b/TMessagesProj/src/main/java/org/telegram/messenger/camera/CameraSession.java
 @@ -478,10 +478,15 @@ public class CameraSession {
@@ -161,10 +161,10 @@ index 59a3727..61a4ded 100644
          setZoom(Math.min(1f, (best + .001f) / (ratios.size() - 1)));
      }
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
-index f7db432..db47a28 100644
+index 92d88e01..f88d5645 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
-@@ -14583,6 +14583,27 @@ public class ChatActivityEnterView extends FrameLayout implements
+@@ -14588,6 +14588,27 @@ public class ChatActivityEnterView extends FrameLayout implements
      @Override
      protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
          nebulaComposerStyle.restoreInsets();
@@ -193,10 +193,10 @@ index f7db432..db47a28 100644
                  && !isRecordingAudioVideo()
                  && (recordedAudioPanel == null || recordedAudioPanel.getVisibility() != VISIBLE)
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/InstantCameraView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/InstantCameraView.java
-index 864b015..468ab6f 100644
+index 6f0205c1..72ec2715 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/InstantCameraView.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/InstantCameraView.java
-@@ -334,7 +334,7 @@ public class InstantCameraView extends InstantCameraViewBase implements Notifica
+@@ -340,7 +340,7 @@ public class InstantCameraView extends InstantCameraViewBase implements Notifica
          buttonsLayout.setPadding(dp(6), dp(6), dp(6), dp(6));
  
          buttonsLayout.setOrientation(LinearLayout.HORIZONTAL);
@@ -205,7 +205,7 @@ index 864b015..468ab6f 100644
  
          switchCameraButton = new FlashViews.ImageViewInvertable(context);
          switchCameraButton.setScaleType(ImageView.ScaleType.CENTER);
-@@ -445,6 +445,7 @@ public class InstantCameraView extends InstantCameraViewBase implements Notifica
+@@ -451,6 +451,7 @@ public class InstantCameraView extends InstantCameraViewBase implements Notifica
      }
  
      public void setButtonsBackground(BlurredBackgroundDrawableViewFactory factory, BlurredBackgroundColorProvider colorProvider) {
@@ -213,7 +213,7 @@ index 864b015..468ab6f 100644
          BlurredBackgroundDrawable drawable = factory.create(buttonsLayout, colorProvider);
          drawable.setPadding(dp(6));
          drawable.setRadius(dp(21));
-@@ -3794,6 +3795,7 @@ public class InstantCameraView extends InstantCameraViewBase implements Notifica
+@@ -3856,6 +3857,7 @@ public class InstantCameraView extends InstantCameraViewBase implements Notifica
          float min = catalog != null ? catalog.minimum : useCamera2 ? camera2SessionCurrent.getMinZoom() : 1f;
          float max = catalog != null ? catalog.maximum : useCamera2 ? camera2SessionCurrent.getMaxZoom() : cameraSession.getMaxZoomFactor();
          nebulaZoomSlider.setRange(min, max);

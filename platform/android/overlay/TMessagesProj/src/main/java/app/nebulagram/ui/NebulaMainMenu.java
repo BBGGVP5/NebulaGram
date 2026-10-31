@@ -9,7 +9,7 @@ import org.telegram.ui.ActionIntroActivity;
 import org.telegram.ui.CallLogActivity;
 import org.telegram.ui.CameraScanActivity;
 import org.telegram.ui.DialogsActivity;
-import org.telegram.ui.QrActivity;
+import org.telegram.ui.QrShare.QrShareActivity;
 import org.telegram.ui.Components.ItemOptions;
 
 /** Main-screen destinations that remain reachable with hidden bottom tabs. */
@@ -52,10 +52,9 @@ public final class NebulaMainMenu {
                             }
                         });
         });
-        menu.add(new NebulaQrIcon(false), LocaleController.getString(R.string.NebulaMyQr), () -> {
-            Bundle args = new Bundle();
-            args.putLong("user_id", host.getUserConfig().getClientUserId());
-            host.presentFragment(new QrActivity(args));
-        });
+        // 13.1.1 заменил QrActivity на сцену QrShare с собственной фабрикой
+        // для своего кода: она сама подставляет текущий аккаунт.
+        menu.add(new NebulaQrIcon(false), LocaleController.getString(R.string.NebulaMyQr), () ->
+                host.presentFragment(QrShareActivity.self(host.getCurrentAccount())));
     }
 }

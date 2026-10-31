@@ -33,7 +33,7 @@ public final class SettingsObservation {
 public final class NebulaSettingsStore {
     public static let shared = NebulaSettingsStore(defaults: .standard)
     public static let storageKey = "app.nebulagram.presentation.settings.v1"
-    public static let editableKeys: Set<String> = ["formatting_toolbar", "folder_panel_style", "sticker_time_style", "channel_forward_count", "inline_math", "folder_unmuted_only", "swipe_actions", "icon_pack", "switch_style", "login_style", "adaptive_chat_header", "floating_chat_header_v2", "header_unread", "glass_custom", "glass_haptics", "glass_haptic_strength", "own_double_tap", "message_menu_blur", "bottom_bar", "hide_all_chats", "center_home", "avatar_round", "custom_avatar_corners", "uniform_avatars", "hide_tab_counters", "show_stories", "settings_search_history", "glass_quality", "glass_highlights", "glass_depth", "glass_depth_enabled", "glass_opacity", "glass_blur", "liquid_animations", "ios_glass_style", "ios_glass_tint", "bottom_bar_contacts", "bottom_bar_order", "bottom_bar_profile", "bottom_bar_settings", "tab_labels", "compact_bottom_bar", "hide_home_camera", "hide_home_compose", "hide_send_as", "hide_attach_camera", "hide_dividers", "hide_search_field", "hide_premium_status", "menu_search", "menu_mute", "menu_call", "menu_video", "folder_style", "folder_title", "folder_outline", "centered_chat_header", "disable_next_channel", "seconds_in_time", "wide_posts", "fragment_transition_style", "profile_style", "profile_channel", "profile_birthday", "profile_business", "profile_background", "profile_emoji", "profile_photo_banner", "reply_background", "reply_colors", "reply_emoji"]
+    public static let editableKeys: Set<String> = ["sticker_percent", "emoji_percent", "gif_percent", "formatting_toolbar", "folder_panel_style", "sticker_time_style", "channel_forward_count", "inline_math", "folder_unmuted_only", "swipe_actions", "icon_pack", "switch_style", "login_style", "adaptive_chat_header", "floating_chat_header_v2", "header_unread", "glass_custom", "glass_haptics", "glass_haptic_strength", "own_double_tap", "message_menu_blur", "bottom_bar", "hide_all_chats", "center_home", "avatar_round", "custom_avatar_corners", "uniform_avatars", "hide_tab_counters", "show_stories", "settings_search_history", "glass_quality", "glass_highlights", "glass_depth", "glass_depth_enabled", "glass_opacity", "glass_blur", "liquid_animations", "ios_glass_style", "ios_glass_tint", "bottom_bar_contacts", "bottom_bar_order", "bottom_bar_profile", "bottom_bar_settings", "tab_labels", "compact_bottom_bar", "hide_home_camera", "hide_home_compose", "hide_send_as", "hide_attach_camera", "hide_dividers", "hide_search_field", "hide_premium_status", "menu_search", "menu_mute", "menu_call", "menu_video", "folder_style", "folder_title", "folder_outline", "centered_chat_header", "disable_next_channel", "seconds_in_time", "wide_posts", "fragment_transition_style", "profile_style", "profile_channel", "profile_birthday", "profile_business", "profile_background", "profile_emoji", "profile_photo_banner", "reply_background", "reply_colors", "reply_emoji"]
     public static let maximumTransferBytes = 1024 * 1024
 
     private let defaults: UserDefaults
@@ -83,6 +83,12 @@ public final class NebulaSettingsStore {
     }
     public var glassHaptics: Bool { boolean("glass_haptics", fallback: false) }
     public var glassHapticStrength: Int { max(1, min(100, integer("glass_haptic_strength", fallback: 35))) }
+    public var stickerPercent: Int { integer("sticker_percent", fallback: 100) }
+    public var emojiPercent: Int { integer("emoji_percent", fallback: 100) }
+    public var gifPercent: Int { integer("gif_percent", fallback: 100) }
+    public var stickerScale: Double { NebulaMediaGeometry.scale(stickerPercent) }
+    public var emojiScale: Double { NebulaMediaGeometry.scale(emojiPercent) }
+    public var gifScale: Double { NebulaMediaGeometry.scale(gifPercent) }
     public var formattingToolbar: Bool { boolean("formatting_toolbar", fallback: false) }
     public var showBottomBar: Bool { boolean("bottom_bar", fallback: true) }
     public var hideAllChats: Bool { boolean("hide_all_chats", fallback: false) }

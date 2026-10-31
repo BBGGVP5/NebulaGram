@@ -1,7 +1,7 @@
 diff --git a/buildSrc/src/main/kotlin/org/telegram/plugin/TelegramBuildAppPlugin.kt b/buildSrc/src/main/kotlin/org/telegram/plugin/TelegramBuildAppPlugin.kt
 --- a/buildSrc/src/main/kotlin/org/telegram/plugin/TelegramBuildAppPlugin.kt
 +++ b/buildSrc/src/main/kotlin/org/telegram/plugin/TelegramBuildAppPlugin.kt
-@@ -27,19 +27,19 @@
+@@ -26,19 +26,19 @@ class TelegramBuildAppPlugin : Plugin<Project> {
              ) {
                  stringsXml.from(
                      telegramModule.fileTree("src/main/res/values") {
@@ -28,7 +28,7 @@ diff --git a/buildSrc/src/main/kotlin/org/telegram/plugin/TelegramBuildAppPlugin
 diff --git a/buildSrc/src/main/kotlin/org/telegram/plugin/TelegramBuildPlugin.kt b/buildSrc/src/main/kotlin/org/telegram/plugin/TelegramBuildPlugin.kt
 --- a/buildSrc/src/main/kotlin/org/telegram/plugin/TelegramBuildPlugin.kt
 +++ b/buildSrc/src/main/kotlin/org/telegram/plugin/TelegramBuildPlugin.kt
-@@ -21,7 +21,7 @@
+@@ -21,7 +21,7 @@ class TelegramBuildPlugin : Plugin<Project> {
              ) {
                  localizationFiles.from(
                      project.fileTree("src/main/res") {

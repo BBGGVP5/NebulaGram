@@ -13,7 +13,7 @@ diff --git a/Telegram/Telegram-iOS/Info.plist b/Telegram/Telegram-iOS/Info.plist
 diff --git a/submodules/ChatListUI/Sources/ChatListController.swift b/submodules/ChatListUI/Sources/ChatListController.swift
 --- a/submodules/ChatListUI/Sources/ChatListController.swift
 +++ b/submodules/ChatListUI/Sources/ChatListController.swift
-@@ -212,6 +212,7 @@
+@@ -227,6 +227,7 @@
      private var shouldFixStorySubscriptionOrder: Bool = false
      private var fixedStorySubscriptionOrder: [EnginePeer.Id] = []
      private(set) var orderedStorySubscriptions: EngineStorySubscriptions?
@@ -21,17 +21,17 @@ diff --git a/submodules/ChatListUI/Sources/ChatListController.swift b/submodules
      private var nebulaStoryArchiveObserver: NSObjectProtocol?
      private var nebulaArchivedStoryPeerIds = Set<EnginePeer.Id>()
  
-@@ -307,6 +308,9 @@
-         self.nebulaFilterObservation = NebulaSettingsStore.shared.observe { [weak self] in
+@@ -323,6 +324,9 @@
              guard let self, self.isNodeLoaded else { return }
              self.reloadFilters()
-+        }
+         }
 +        self.nebulaHomeTitleObserver = NotificationCenter.default.addObserver(forName: NebulaBehaviorPreferences.changed, object: nil, queue: .main) { [weak self] _ in
 +            guard let self, self.isNodeLoaded else { return }; self.reloadFilters()
-         }
++        }
          self.nebulaStoryArchiveObserver = NotificationCenter.default.addObserver(forName: Notification.Name("NebulaStoryArchiveSettingsChanged"), object: nil, queue: .main) { [weak self] _ in
              self?.nebulaArchiveStoriesIfNeeded()
-@@ -817,6 +821,7 @@
+         }
+@@ -833,6 +837,7 @@
      }
      
      deinit {
@@ -39,7 +39,7 @@ diff --git a/submodules/ChatListUI/Sources/ChatListController.swift b/submodules
          if let observer = self.nebulaStoryArchiveObserver { NotificationCenter.default.removeObserver(observer) }
          self.openMessageFromSearchDisposable.dispose()
          self.badgeDisposable?.dispose()
-@@ -7268,7 +7273,7 @@
+@@ -7314,7 +7319,7 @@
                     !folderTitle.text.isEmpty {
                      defaultTitle = folderTitle.text
                  } else {
@@ -80,7 +80,7 @@ diff --git a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/Pe
 diff --git a/submodules/TelegramUI/Sources/ApplicationContext.swift b/submodules/TelegramUI/Sources/ApplicationContext.swift
 --- a/submodules/TelegramUI/Sources/ApplicationContext.swift
 +++ b/submodules/TelegramUI/Sources/ApplicationContext.swift
-@@ -320,6 +320,7 @@
+@@ -323,6 +323,7 @@
              return context.account.postbox.transaction { transaction in
                  let prefs = NebulaBehaviorPreferences.shared
                  let account = String(context.account.peerId.toInt64())
@@ -97,7 +97,7 @@ diff --git a/submodules/TelegramUI/Sources/SharedAccountContext.swift b/submodul
  import NebulaLinkUI
  import UIKit
  import AsyncDisplayKit
-@@ -1681,14 +1682,22 @@
+@@ -1683,14 +1684,22 @@
              return true
          })
          
@@ -122,7 +122,7 @@ diff --git a/submodules/TelegramUI/Sources/SharedAccountContext.swift b/submodul
              let (primary, activeAccounts, _) = activeAccountsAndInfo
              var appliedApsList: [Signal<Bool?, NoError>] = []
              var appliedVoipList: [Signal<Never, NoError>] = []
-@@ -1713,6 +1722,9 @@
+@@ -1715,6 +1724,9 @@
                  }
              }
              
@@ -132,7 +132,7 @@ diff --git a/submodules/TelegramUI/Sources/SharedAccountContext.swift b/submodul
              for (_, account, _) in activeAccounts {
                  let appliedAps: Signal<Bool, NoError>
                  let appliedVoip: Signal<Never, NoError>
-@@ -1737,7 +1749,11 @@
+@@ -1739,7 +1751,11 @@
                      }
                  } else {
                      if let apsNotificationToken {

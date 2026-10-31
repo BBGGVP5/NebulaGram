@@ -1,7 +1,7 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
-@@ -2667,9 +2667,9 @@
+@@ -2678,9 +2678,9 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
              } else {
                  glassDrawableBack.setBounds(0, t, nebulaBackWidth, b);
              }
@@ -14,7 +14,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.jav
                  glassDrawableBack.draw(canvas);
              }
          }
-@@ -2680,7 +2680,7 @@
+@@ -2691,7 +2691,7 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
                  glassDrawableMenu.setBounds(getWidth() - s - p * 2, t, getWidth(), b);
                  glassDrawableMenu.setAlpha(app.nebulagram.ui.NebulaChatStyle.avatarBackdropAlpha(
                          searchFactor, actionModeFactor, nebulaChatAvatarContainer.getAlpha()));
@@ -26,7 +26,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.jav
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
-@@ -30225,9 +30225,16 @@
+@@ -30513,9 +30513,16 @@ public class ChatActivity extends BaseFragment implements
  
      private boolean nebulaWidePosts;
  
@@ -43,7 +43,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
          boolean widePosts = app.nebulagram.ui.NebulaWidePosts.enabled();
          if (nebulaWidePosts != widePosts) {
              nebulaWidePosts = widePosts;
-@@ -33894,6 +33901,9 @@
+@@ -34186,6 +34193,9 @@ public class ChatActivity extends BaseFragment implements
          }
          boolean preserveDim = false;
          switch (option) {
@@ -53,7 +53,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
              case 7918:
                  app.nebulagram.ui.NebulaSavedTags.open(this, selectedObject);
                  break;
-@@ -46343,6 +46353,10 @@
+@@ -46752,6 +46762,10 @@ public class ChatActivity extends BaseFragment implements
              items.add(app.nebulagram.ui.NebulaText.text("Сохранить в выбранный чат", "Save to chosen chat"));
              icons.add(R.drawable.msg_saved); options.add(7913);
          }

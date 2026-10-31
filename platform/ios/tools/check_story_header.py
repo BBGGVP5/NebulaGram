@@ -4,23 +4,26 @@ import subprocess
 import re
 
 HELPER = Path('submodules/TelegramUI/Components/Stories/StoryPeerListComponent/Sources/NebulaStoryHeaderLayout.swift')
+UPSTREAM_LAYOUT = Path('submodules/TelegramUI/Components/Stories/StoryPeerListComponent/Sources/StoryPeerListTitleLayout.swift')
 
 
-def check(header: str, stories: str, item: str, work: Path, execute: bool) -> None:
+def check(header: str, stories: str, item: str, title_layout: str, work: Path, execute: bool) -> None:
     assert 'component.maxTitleX - component.minTitleX - 46.0' not in stories, 'fixed 46 pt title budget ignores story rings, lock and status'
     assert 'NebulaStoryHeaderLayout.titleWidth(' in stories
     assert 'NebulaStoryHeaderLayout.collapsedItemWidth' in stories
     assert stories.count('NebulaStoryHeaderLayout.collapseStartIndex(') == 2
-    assert 'NebulaStoryHeaderLayout.origin(' in stories
+    # 13.1.1 places the title with StoryPeerListTitleLayout; NebulaGram only chooses between that and the leading edge.
+    assert stories.count('nebulaTitleContentOrigin(') == 4, 'every title placement honours the centring setting'
+    assert 'StoryPeerListTitleLayout.contentOrigin(' in stories and 'if NebulaSettingsStore.shared.centerHome {' in stories
+    assert 'return minX + StoryPeerListTitleLayout.leadingMargin' in stories
+    assert 'static func contentOrigin(' in title_layout and 'static func showsTitleText(' in title_layout
     assert 'max(1, collapseEndIndex - collapseStartIndex)' in stories
     assert stories.index('self.sortedItems.removeAll(keepingCapacity: true)', stories.index('func update(component: StoryPeerListComponent')) < stories.index('let titleAvailableWidth =')
-    assert 'centerContentLeftInset = leftInset + (nextLeftButtonX > 0.0 ? max(44.0, nextLeftButtonX) : 0.0) + 8.0' in header
-    assert 'centerContentRightInset = rightInset + (nextRightButtonX > 0.0 ? max(44.0, nextRightButtonX) : 0.0) + 8.0' in header
     assert 'let minimizedDefaultItemScale: CGFloat = 24.0 / 52.0' in stories
     assert 'collapseFraction: 1.0 - component.storiesFraction' in header
     assert 'self.storyPeerAction?(peer)' in header and 'self.storyComposeAction?(offset)' in header
-    assert header.count('isInteractive: false, isVisible: false') == 4, 'toolbar controls retain independent material'
-    assert 'BackgroundContainer.isHidden' not in header, 'hidden material must not hide its live controls'
+    # The capsules behind the header's buttons belong to NavigationBarComponent in 13.1.1 and stay visible.
+    assert 'isInteractive: false, isVisible: false' not in header
     print('OK: story header reserves native ring/stack/status footprints and toolbar bounds', flush=True)
     if not execute:
         return
@@ -36,6 +39,10 @@ import CoreGraphics
 func nativeCollapseDistance(collapseIndex: Int, collapseStartIndex: Int, collapseEndIndex: Int) -> CGFloat {
 __DISTANCE__
  return collapseDistance
+}
+// Mirrors StoryPeerListComponent's nebulaTitleContentOrigin, whose setting is the only input added to upstream's.
+func titleOrigin(_ centred: Bool, containerWidth: CGFloat, contentWidth: CGFloat, minX: CGFloat, maxX: CGFloat) -> CGFloat {
+ return centred ? StoryPeerListTitleLayout.contentOrigin(containerWidth: containerWidth, contentWidth: contentWidth, minX: minX, maxX: maxX) : minX + StoryPeerListTitleLayout.leadingMargin
 }
 var cases = 0
 for width: CGFloat in [320, 375, 390, 430, 768, 1024] {
@@ -55,9 +62,11 @@ for width: CGFloat in [320, 375, 390, 430, 768, 1024] {
        for naturalTextWidth: CGFloat in [34, 112, 600] {
         let textWidth = min(textBudget, naturalTextWidth)
         let contentWidth = prefix + suffix + textWidth
-        let origin = NebulaStoryHeaderLayout.origin(containerWidth: width, contentWidth: contentWidth, minX: minX, maxX: maxX)
+        precondition(StoryPeerListTitleLayout.showsTitleText(contentWidth: contentWidth, minX: minX, maxX: maxX), "budget makes upstream drop the title")
+        for centred in [false, true] {
+        let origin = titleOrigin(centred, containerWidth: width, contentWidth: contentWidth, minX: minX, maxX: maxX)
         precondition(origin >= minX - 0.001 && origin + contentWidth <= maxX + 0.001, "collapsed group covers toolbar")
-        let expanded = NebulaStoryHeaderLayout.origin(containerWidth: width, contentWidth: textWidth + suffix, minX: minX, maxX: maxX)
+        let expanded = titleOrigin(centred, containerWidth: width, contentWidth: textWidth + suffix, minX: minX, maxX: maxX)
         precondition(expanded >= minX && expanded + textWidth + suffix <= maxX + 0.001, "expanded title covers toolbar")
         if visibleCount > 0 && !activity {
          // Actual StoryPeerListItemComponent: 52 pt photo, native radius and stroke.
@@ -70,6 +79,7 @@ for width: CGFloat in [320, 375, 390, 430, 768, 1024] {
          precondition(origin + 17 - ringHalfWidth >= minX, "story ring covers left toolbar")
         }
         cases += 1
+        }
        }
       }
      }
@@ -113,5 +123,8 @@ print("OK: production story layout passed \\(cases) narrow/wide, controls, ring,
     main = work / 'main.swift'
     main.write_text(program, encoding='utf-8')
     executable = work / 'story-header-check'
-    subprocess.run(['swiftc', '-swift-version', '5', '-warnings-as-errors', str(work / HELPER), str(main), '-o', str(executable)], check=True)
+    upstream_layout = work / UPSTREAM_LAYOUT
+    upstream_layout.parent.mkdir(parents=True, exist_ok=True)
+    upstream_layout.write_text(title_layout, encoding='utf-8')
+    subprocess.run(['swiftc', '-swift-version', '5', '-warnings-as-errors', str(upstream_layout), str(work / HELPER), str(main), '-o', str(executable)], check=True)
     subprocess.run([str(executable)], check=True)

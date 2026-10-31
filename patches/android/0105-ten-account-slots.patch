@@ -1,7 +1,7 @@
 diff --git a/TMessagesProj/jni/tgnet/ConnectionsManager.cpp b/TMessagesProj/jni/tgnet/ConnectionsManager.cpp
 --- a/TMessagesProj/jni/tgnet/ConnectionsManager.cpp
 +++ b/TMessagesProj/jni/tgnet/ConnectionsManager.cpp
-@@ -151,9 +151,27 @@
+@@ -151,9 +151,27 @@ ConnectionsManager& ConnectionsManager::getInstance(int32_t instanceNum) {
              static ConnectionsManager instance3(3);
              return instance3;
          case 4:
@@ -45,7 +45,7 @@ diff --git a/TMessagesProj/jni/tgnet/Defines.h b/TMessagesProj/jni/tgnet/Defines
 diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/UserConfig.java b/TMessagesProj/src/main/java/org/telegram/messenger/UserConfig.java
 --- a/TMessagesProj/src/main/java/org/telegram/messenger/UserConfig.java
 +++ b/TMessagesProj/src/main/java/org/telegram/messenger/UserConfig.java
-@@ -24,8 +24,8 @@
+@@ -24,8 +24,8 @@ import java.util.Arrays;
  public class UserConfig extends BaseController {
  
      public static int selectedAccount;

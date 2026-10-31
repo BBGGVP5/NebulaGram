@@ -1,7 +1,7 @@
 diff --git a/submodules/TelegramUI/Components/Chat/ChatTextInputPanelNode/Sources/ChatTextInputPanelNode.swift b/submodules/TelegramUI/Components/Chat/ChatTextInputPanelNode/Sources/ChatTextInputPanelNode.swift
 --- a/submodules/TelegramUI/Components/Chat/ChatTextInputPanelNode/Sources/ChatTextInputPanelNode.swift
 +++ b/submodules/TelegramUI/Components/Chat/ChatTextInputPanelNode/Sources/ChatTextInputPanelNode.swift
-@@ -1584,7 +1584,7 @@
+@@ -1625,7 +1625,7 @@
          self.absoluteRect = (rect, containerSize)
  
          if !self.sendActionButtons.frame.width.isZero {
@@ -10,7 +10,7 @@ diff --git a/submodules/TelegramUI/Components/Chat/ChatTextInputPanelNode/Source
          }
          
          let absoluteFrame = self.startButton.view.convert(self.startButton.bounds, to: nil)
-@@ -2596,6 +2596,11 @@
+@@ -2637,6 +2637,11 @@
              effectiveActionButtonsSize.width += 6.0 + liveMicrophoneButtonSize.width
          }
          
@@ -22,7 +22,7 @@ diff --git a/submodules/TelegramUI/Components/Chat/ChatTextInputPanelNode/Source
          let baseWidth = width - leftInset - leftMenuInset - rightInset - rightSlowModeInset
          let (accessoryButtonsWidth, textFieldHeight, isTextFieldOverflow) = self.calculateTextFieldMetrics(width: baseWidth, sendActionControlsWidth: sendActionButtonsSize.width, maxHeight: maxHeight, metrics: metrics, bottomInset: bottomInset, interfaceState: interfaceState)
          var panelHeight = self.panelHeight(textFieldHeight: textFieldHeight, metrics: metrics, bottomInset: bottomInset)
-@@ -3446,12 +3451,12 @@
+@@ -3492,12 +3497,12 @@
          }
          transition.updateFrame(node: self.mediaActionButtons, frame: mediaActionButtonsFrame)
          if let (rect, containerSize) = self.absoluteRect {
@@ -37,7 +37,7 @@ diff --git a/submodules/TelegramUI/Components/Chat/ChatTextInputPanelNode/Source
              nextRightActionButtonX += 6.0 + liveMicrophoneButtonSize.width
              if inputHasText || self.extendedSearchLayout || hasMediaDraft {
                  liveMicrophoneButtonFrame.origin.x = width + 8.0
-@@ -3469,7 +3474,7 @@
+@@ -3515,7 +3520,7 @@
          }
          
          if let starReactionButtonView = self.starReactionButton?.view, let starReactionButtonSize {
@@ -46,7 +46,7 @@ diff --git a/submodules/TelegramUI/Components/Chat/ChatTextInputPanelNode/Source
              nextRightActionButtonX += 6.0 + starReactionButtonSize.width
              if inputHasText || self.extendedSearchLayout || hasMediaDraft {
                  starReactionButtonFrame.origin.x = width + 8.0
-@@ -3501,7 +3506,7 @@
+@@ -3547,7 +3552,7 @@
          
          transition.updateBounds(node: self.sendActionButtons, bounds: CGRect(origin: CGPoint(), size: sendActionButtonsFrame.size))
          if let (rect, containerSize) = self.absoluteRect {
@@ -55,7 +55,7 @@ diff --git a/submodules/TelegramUI/Components/Chat/ChatTextInputPanelNode/Source
          }
          
          let slowModeButtonFrame = CGRect(origin: CGPoint(x: hideOffset.x + width - rightInset - 5.0 - slowModeButtonSize.width + composeButtonsOffset, y: hideOffset.y + panelHeight - minimalHeight), size: slowModeButtonSize)
-@@ -3682,7 +3687,7 @@
+@@ -3728,7 +3733,7 @@
          }
          
          if let settingsButtonView = self.settingsButton?.view, let settingsButtonSize {
@@ -64,7 +64,7 @@ diff --git a/submodules/TelegramUI/Components/Chat/ChatTextInputPanelNode/Source
              attachmentButtonX += 6.0 + 40.0
              
              if settingsButtonView.superview == nil {
-@@ -3772,7 +3777,7 @@
+@@ -3818,7 +3823,7 @@
          
          let contextPanelMaskInset: CGFloat = 32.0
          let contextPanelBottomInset = floor(minimalInputHeight * 0.5)
@@ -73,7 +73,7 @@ diff --git a/submodules/TelegramUI/Components/Chat/ChatTextInputPanelNode/Source
          
          if contextPanelNode !== previousContextPanel?.panel, let previousContextPanel {
              let panelContainer = previousContextPanel.container
-@@ -3802,7 +3807,7 @@
+@@ -3848,7 +3853,7 @@
          }
          
          if let contextPanel = self.contextPanel {
@@ -82,7 +82,7 @@ diff --git a/submodules/TelegramUI/Components/Chat/ChatTextInputPanelNode/Source
              
              if contextPanel.container.superview == nil {
                  self.view.insertSubview(contextPanel.container, at: 0)
-@@ -3904,15 +3909,12 @@
+@@ -3950,15 +3955,12 @@
              }
          }
  
@@ -100,7 +100,7 @@ diff --git a/submodules/TelegramUI/Components/Chat/ChatTextInputPanelNode/Source
              let toolbar: NebulaFormattingToolbar
              if let current = self.nebulaFormattingToolbar { toolbar = current } else {
                  toolbar = NebulaFormattingToolbar(frame: .zero)
-@@ -3923,8 +3925,7 @@
+@@ -3969,8 +3971,7 @@
              toolbar.update(color: interfaceState.theme.chat.inputPanel.actionControlForegroundColor,
                  russian: interfaceState.strings.baseLanguageCode.lowercased().hasPrefix("ru"),
                  hasSelection: !self.inputTextState.selectionRange.isEmpty)

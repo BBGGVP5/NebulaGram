@@ -1,7 +1,7 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Stories/DialogStoriesCell.java b/TMessagesProj/src/main/java/org/telegram/ui/Stories/DialogStoriesCell.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Stories/DialogStoriesCell.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Stories/DialogStoriesCell.java
-@@ -878,8 +878,7 @@
+@@ -878,8 +878,7 @@ public class DialogStoriesCell extends FrameLayout implements NotificationCenter
                      float toolbarBottom = actionBar.getY() + actionBar.getHeight();
                      float toolbarCenter = toolbarBottom - ActionBar.getCurrentActionBarHeight() / 2f;
                      float expandedCenter = getY() + dp(HEIGHT_IN_DP) * progress + recyclerListView.getTop() + cell.getTop() + cell.getNebulaAvatarCenter(0f);
@@ -11,7 +11,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Stories/DialogStoriesCe
                      translationY = center - getY() - recyclerListView.getY() - cell.getTop() - cell.getCy();
                  }
  
-@@ -947,7 +946,9 @@
+@@ -947,7 +946,9 @@ public class DialogStoriesCell extends FrameLayout implements NotificationCenter
          }
  
          final float clipRightPadding = actionBar.menu.getVisibleItemsMeasuredWidthWithAlpha() * progress - dp(6);

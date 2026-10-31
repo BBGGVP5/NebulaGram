@@ -44,8 +44,11 @@ class Animator {
  void start(){starts++;}Object getAnimatedValue(){return value;}void step(float f){if(!cancelled){value=Math.round(start+(end-start)*f);listener.accept(this);}}
 }
 class Motion {
- static int HEIGHT_DP=52,GAP_DP=4,VISIBLE=0,GONE=8;boolean preferenceEnabled=true,expanded,attached=true;int reservedHeight,visibility=GONE,layouts;float alpha;Animator reveal;
+ static int HEIGHT_DP=BAR_HEIGHT,GAP_DP=BAR_GAP,VISIBLE=0,GONE=8;boolean preferenceEnabled=true,expanded,attached=true;int reservedHeight,visibility=GONE,layouts;float alpha;Animator reveal;
  Runnable layoutChanged=()->layouts++;Object getParent(){return new View();}boolean isAttachedToWindow(){return attached;}void setVisibility(int v){visibility=v;}void setAlpha(float a){alpha=a;}void updatePalette(){}
+ // Подсветка состояния к движению панели не относится: эта фикстура
+ // проверяет высоту и прозрачность, а состояние — check-formatting-toolbar.
+ int states;void refreshState(){states++;}
  int prepare(boolean eligible){PREPARE}
 }
 class SystemClock {static long elapsedRealtime(){return 100;}}
@@ -99,10 +102,11 @@ class Regression {
    s.insert();check(s.activity.editor.clears==(outgoing&&pending?1:0),"repeated row callback clears a new draft");
   }
   Motion t=new Motion();check(t.prepare(true)==0&&t.reveal!=null,"first appearance snaps");
-  t.reveal.step(.5f);check(t.prepare(true)>0&&t.prepare(true)<56&&t.alpha>0&&t.alpha<1,"no intermediate motion");
-  Animator previous=t.reveal;t.prepare(false);previous.step(1);check(t.reservedHeight<56,"cancelled reveal changes height");t.reveal.step(1);check(t.prepare(false)==0&&t.visibility==8,"hidden toolbar reserves space");
-  for(int i=0;i<1000;i++){t.prepare(true);t.reveal.step(1);int starts=Animator.starts;check(t.prepare(true)==56,"toolbar loses 4dp gap");t.prepare(true);check(starts==Animator.starts,"typing restarts animation");t.prepare(false);t.reveal.step(1);}
-  NebulaGlass.reduced=true;check(t.prepare(true)==56&&t.visibility==0&&t.alpha==1,"reduced motion not immediate");check(t.prepare(false)==0&&t.visibility==8,"reduced hide retains toolbar");
+  t.reveal.step(.5f);check(t.prepare(true)>0&&t.prepare(true)<Motion.HEIGHT_DP+Motion.GAP_DP&&t.alpha>0&&t.alpha<1,"no intermediate motion");
+  Animator previous=t.reveal;t.prepare(false);previous.step(1);check(t.reservedHeight<Motion.HEIGHT_DP+Motion.GAP_DP,"cancelled reveal changes height");t.reveal.step(1);check(t.prepare(false)==0&&t.visibility==8,"hidden toolbar reserves space");
+  for(int i=0;i<1000;i++){t.prepare(true);t.reveal.step(1);int starts=Animator.starts;check(t.prepare(true)==Motion.HEIGHT_DP+Motion.GAP_DP,"toolbar loses its gap");t.prepare(true);check(starts==Animator.starts,"typing restarts animation");t.prepare(false);t.reveal.step(1);}
+  check(t.states>0,"a visible toolbar refreshes what it shows");
+  NebulaGlass.reduced=true;check(t.prepare(true)==Motion.HEIGHT_DP+Motion.GAP_DP&&t.visibility==0&&t.alpha==1,"reduced motion not immediate");check(t.prepare(false)==0&&t.visibility==8,"reduced hide retains toolbar");
   AckGate gate=new AckGate();gate.allowedNotifications.data.add(new AckGate.AllowedNotifications(AckGate.chatAllowed));gate.postNotificationName(AckGate.messageReceivedByAck);check(gate.admitted,"real ACK waits behind chat animation");
   gate.allowedNotifications.data.add(new AckGate.AllowedNotifications(AckGate.flightAllowed));gate.postNotificationName(AckGate.messageReceivedByAck);check(gate.admitted,"text-flight lock delays real ACK even though chat-list lock allows it");
   gate.postNotificationName(AckGate.messageReceivedByServer);check(!gate.admitted,"structural server event bypasses ordering");
@@ -110,6 +114,6 @@ class Regression {
   System.out.println("128 composer origins, 64 native insertion cases, 1000 reversible reveal/hide cycles, reduced motion, gap and actual native ACK admission passed; no network simulation");
  }
 }
-'''.replace('SEND_BLOCK',send_block).replace('TEXT_TRANSITION',text_transition).replace('PREPARE',prepare).replace('CONSTANTS',constants).replace('POST',post).replace('FLIGHT_ALLOWED',flight_allowed).replace('ALLOWED',allowed)
+'''.replace('SEND_BLOCK',send_block).replace('TEXT_TRANSITION',text_transition).replace('PREPARE',prepare).replace('BAR_HEIGHT',re.search(r'HEIGHT_DP = (\d+)',bar).group(1)).replace('BAR_GAP',re.search(r'GAP_DP = (\d+)',bar).group(1)).replace('CONSTANTS',constants).replace('POST',post).replace('FLIGHT_ALLOWED',flight_allowed).replace('ALLOWED',allowed)
 with tempfile.TemporaryDirectory(prefix='nebula-motion-') as tmp:
  p=Path(tmp)/'Regression.java';p.write_text(program,encoding='utf-8');subprocess.run(['javac','-encoding','UTF-8','-d',tmp,str(p)],check=True);subprocess.run(['java','-cp',tmp,'Regression'],check=True)

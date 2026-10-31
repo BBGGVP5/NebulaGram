@@ -1,7 +1,7 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
-@@ -238,6 +238,7 @@
+@@ -238,6 +238,7 @@ public class ChatActivityEnterView extends FrameLayout implements
  {
      private app.nebulagram.ui.NebulaFormattingToolbar nebulaFormattingToolbar;
      private int nebulaFormattingHeight;
@@ -9,7 +9,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivity
      public int getNebulaFormattingHeight() { return nebulaFormattingHeight; }
      private final app.nebulagram.ui.NebulaMathHint nebulaMathHint = new app.nebulagram.ui.NebulaMathHint();
  
-@@ -6716,6 +6717,12 @@
+@@ -6714,6 +6715,12 @@ public class ChatActivityEnterView extends FrameLayout implements
      }
  
      private void onWindowSizeChanged() {
@@ -22,7 +22,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivity
          int size = sizeNotifierLayout.getHeight();
          if (!keyboardVisible) {
              size -= emojiPadding;
-@@ -7572,7 +7579,7 @@
+@@ -7570,7 +7577,7 @@ public class ChatActivityEnterView extends FrameLayout implements
                  TLRPC.Chat chat = parentFragment.getCurrentChat();
                  TLRPC.User user = parentFragment.getCurrentUser();
                  if (user != null || ChatObject.isChannel(chat) && chat.megagroup || !ChatObject.isChannel(chat)) {
@@ -34,12 +34,10 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivity
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/EditTextCaption.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/EditTextCaption.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/EditTextCaption.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/EditTextCaption.java
-@@ -172,6 +172,19 @@
-         TextStyleSpan.TextStyleRun run = new TextStyleSpan.TextStyleRun();
-         run.flags |= TextStyleSpan.FLAG_STYLE_MONO;
+@@ -174,6 +174,19 @@ public class EditTextCaption extends EditTextBoldCursor implements FloatingToolb
          applyTextStyleToSelection(new TextStyleSpan(run));
-+    }
-+
+     }
+ 
 +    public void makeSelectedCode() {
 +        int start = Math.min(getSelectionStart(), getSelectionEnd());
 +        int end = Math.max(getSelectionStart(), getSelectionEnd());
@@ -51,6 +49,8 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/EditTextCapt
 +                start, end, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
 +        if (delegate != null) delegate.onSpansChanged();
 +        invalidate();
-     }
- 
++    }
++
      public void makeSelectedStrike() {
+         TextStyleSpan.TextStyleRun run = new TextStyleSpan.TextStyleRun();
+         run.flags |= TextStyleSpan.FLAG_STYLE_STRIKE;

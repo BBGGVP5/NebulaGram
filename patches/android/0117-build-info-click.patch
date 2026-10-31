@@ -1,8 +1,8 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/SettingsActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/SettingsActivity.java
-index 7c93f3f9..aee00bbe 100644
+index c91fd9d1..a03550a3 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/SettingsActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/SettingsActivity.java
-@@ -187,7 +187,6 @@ public class SettingsActivity extends BaseFragment implements NotificationCenter
+@@ -191,7 +191,6 @@ public class SettingsActivity extends BaseFragment implements NotificationCenter
  
      private View navigationBar;
  
@@ -10,7 +10,7 @@ index 7c93f3f9..aee00bbe 100644
  
      public SettingsActivity() {
          this(null);
-@@ -478,18 +477,12 @@ public class SettingsActivity extends BaseFragment implements NotificationCenter
+@@ -492,18 +491,12 @@ public class SettingsActivity extends BaseFragment implements NotificationCenter
          versionView.setPadding(dp(21), dp(10), dp(21), dp(10));
          versionView.setGravity(Gravity.CENTER);
          versionView.setBackground(Theme.createSelectorDrawable(getThemedColor(Theme.key_listSelector), Theme.RIPPLE_MASK_ALL));

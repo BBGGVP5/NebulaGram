@@ -1,7 +1,19 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
+@@ -47475,6 +47475,8 @@ public class ChatActivity extends BaseFragment implements
+         inputIslandHeightTarget = calculateInputIslandHeight(true);
+ 
+         chatInputViewsContainer.setInputBubbleHeight(inputIslandHeightCurrent);
++        chatInputViewsContainer.setInputAccessoryHeight(chatActivityEnterView == null ? 0
++                : chatActivityEnterView.getNebulaFormattingHeight() * bottomViewsVisibilityController.getVisibility(MESSAGE_INPUT_CONTAINER));
+         updatePagedownButtonsPosition();
+         updateBotforumTabsBottomMargin();
+         checkUi_botMenuPosition();
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
-@@ -238,6 +238,7 @@
+@@ -238,6 +238,7 @@ public class ChatActivityEnterView extends FrameLayout implements
  {
      private app.nebulagram.ui.NebulaFormattingToolbar nebulaFormattingToolbar;
      private int nebulaFormattingHeight;
@@ -9,7 +21,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivity
      private final app.nebulagram.ui.NebulaMathHint nebulaMathHint = new app.nebulagram.ui.NebulaMathHint();
  
      private int commonInputType;
-@@ -4907,7 +4908,7 @@
+@@ -4905,7 +4906,7 @@ public class ChatActivityEnterView extends FrameLayout implements
      protected boolean drawChild(Canvas canvas, View child, long drawingTime) {
          boolean clip = child == topView || child == textFieldContainer;
          if (clip) {
@@ -21,7 +33,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivity
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/chat/ChatInputViewsContainer.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/chat/ChatInputViewsContainer.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/chat/ChatInputViewsContainer.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/chat/ChatInputViewsContainer.java
-@@ -211,6 +211,15 @@
+@@ -211,6 +211,15 @@ public class ChatInputViewsContainer extends FrameLayout {
  
      private float inputBubbleHeight;
      private int inputBubbleHeightRound;
@@ -37,7 +49,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/chat/ChatInp
      public void setInputBubbleHeight(float height) {
          inputBubbleHeight = height;
          inputBubbleHeightRound = Math.round(inputBubbleHeight);
-@@ -274,7 +283,8 @@
+@@ -274,7 +283,8 @@ public class ChatInputViewsContainer extends FrameLayout {
              Math.round(inputBubbleOffsetLeft),
              0,
              getMeasuredWidth() - Math.round(inputBubbleOffsetRight),
@@ -47,15 +59,3 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/chat/ChatInp
          );
          tmpRect.inset(0, -dp(7));
          tmpRect.offset(0, blurTop + (int) bubbleInputTranlationY);
-diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
---- a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
-+++ b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
-@@ -47261,6 +47261,8 @@
-         inputIslandHeightTarget = calculateInputIslandHeight(true);
- 
-         chatInputViewsContainer.setInputBubbleHeight(inputIslandHeightCurrent);
-+        chatInputViewsContainer.setInputAccessoryHeight(chatActivityEnterView == null ? 0
-+                : chatActivityEnterView.getNebulaFormattingHeight() * bottomViewsVisibilityController.getVisibility(MESSAGE_INPUT_CONTAINER));
-         updatePagedownButtonsPosition();
-         updateBotforumTabsBottomMargin();
-         checkUi_botMenuPosition();

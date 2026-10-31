@@ -36,6 +36,11 @@ class CheckSelectionActions {
   c.selectedMessagesIds[0].put(1,c.messages.get(0));c.nebulaSelectAllLoadedMessages();
   check(c.selectedMessagesIds[0].size()==100&&c.finalized==1&&c.titles==1&&c.rows==1&&c.reactions==1);
   c.nebulaSelectAllLoadedMessages();check(c.selectedMessagesIds[0].size()==100);
+  app.nebulagram.ui.NebulaFeatureSettings.unlimited=true;
+  c.nebulaSelectAllLoadedMessages();check(c.selectedMessagesIds[0].size()==130);
+  check(!app.nebulagram.ui.NebulaSelectionPolicy.full(10000,false));
+  check(app.nebulagram.ui.NebulaSelectionPolicy.full(100,true));
+  app.nebulagram.ui.NebulaFeatureSettings.unlimited=false;
   var blocked=new CheckSelectionActions();blocked.messages.add(null);blocked.messages.add(new MessageObject(0));
   for(int i=1;i<=13;i++) {var m=new MessageObject(i);blocked.messages.add(m);
    switch(i){case 1:m.isDateObject=true;break;case 2:m.sending=true;break;case 3:m.editing=true;break;
@@ -54,7 +59,10 @@ class CheckSelectionActions {
 '''.replace('METHOD',method)
 with tempfile.TemporaryDirectory(prefix='nebula-selection-actions-') as folder:
  p=Path(folder)/'CheckSelectionActions.java';p.write_text(java,encoding='utf-8')
- subprocess.run(['javac','-encoding','UTF-8',str(p)],check=True)
+ stub=Path(folder)/'app/nebulagram/ui/NebulaFeatureSettings.java';stub.parent.mkdir(parents=True,exist_ok=True)
+ stub.write_text('package app.nebulagram.ui; public class NebulaFeatureSettings {public static boolean unlimited;public static boolean enabled(String key){return unlimited;}}',encoding='utf-8')
+ policy=root/'platform/android/overlay/TMessagesProj/src/main/java/app/nebulagram/ui/NebulaSelectionPolicy.java'
+ subprocess.run(['javac','-encoding','UTF-8','-d',folder,str(stub),str(policy),str(p)],check=True)
  subprocess.run(['java','-cp',folder,'CheckSelectionActions'],check=True)
 # Regression guards on the actual patched paths: no mutable cross-picker flag;
 # both draft targets and immediate/multi-target sends use the captured choice.

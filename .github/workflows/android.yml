@@ -164,6 +164,8 @@ jobs:
           python3 scripts/check-settings-tab-icon.py vendor/telegram-android
           python3 scripts/check-launcher-icons.py vendor/telegram-android
           python3 scripts/check-render-hot-path.py vendor/telegram-android
+          python3 scripts/check-shape.py vendor/telegram-android
+          python3 scripts/check-motion-style.py vendor/telegram-android
           python3 scripts/check-profile-banner.py vendor/telegram-android
           python3 scripts/check-phone-confirmation.py vendor/telegram-android
           python3 scripts/check-deleted-retention.py vendor/telegram-android
@@ -180,6 +182,12 @@ jobs:
           python3 scripts/check-discussion-input.py vendor/telegram-android
           python3 scripts/check-input-controls.py vendor/telegram-android
           python3 scripts/check-header-text-clip.py --tree vendor/telegram-android
+          python3 scripts/check-header-status.py --tree vendor/telegram-android
+          python3 scripts/check-font-import.py
+          python3 scripts/check-chat-history-policy.py
+          python3 scripts/check-history-session.py
+          python3 scripts/check-bot-api.py
+          python3 scripts/check-media-effects.py
           python3 scripts/check-emoji-panel.py vendor/telegram-android
           python3 scripts/check-search-stories-pager.py vendor/telegram-android
           python3 scripts/check-formatting-toolbar.py

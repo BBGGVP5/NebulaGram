@@ -1,7 +1,7 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/MessagesController.java b/TMessagesProj/src/main/java/org/telegram/messenger/MessagesController.java
 --- a/TMessagesProj/src/main/java/org/telegram/messenger/MessagesController.java
 +++ b/TMessagesProj/src/main/java/org/telegram/messenger/MessagesController.java
-@@ -1421,6 +1421,8 @@
+@@ -1421,6 +1421,8 @@ public class MessagesController extends BaseController implements NotificationCe
                  return 0;
              }
          }
@@ -10,7 +10,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/MessagesControll
          MediaDataController mediaDataController = getMediaDataController();
          long date1 = DialogObject.getLastMessageOrDraftDate(dialog1, mediaDataController.getDraft(dialog1.id, 0));
          long date2 = DialogObject.getLastMessageOrDraftDate(dialog2, mediaDataController.getDraft(dialog2.id, 0));
-@@ -1457,6 +1459,8 @@
+@@ -1457,6 +1459,8 @@ public class MessagesController extends BaseController implements NotificationCe
                  return 0;
              }
          }
@@ -19,7 +19,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/MessagesControll
          MediaDataController mediaDataController = getMediaDataController();
          long date1 = DialogObject.getLastMessageOrDraftDate(dialog1, mediaDataController.getDraft(dialog1.id, 0));
          long date2 = DialogObject.getLastMessageOrDraftDate(dialog2, mediaDataController.getDraft(dialog2.id, 0));
-@@ -12739,6 +12743,41 @@
+@@ -12747,6 +12751,41 @@ public class MessagesController extends BaseController implements NotificationCe
          getNotificationsController().deleteAllNotificationChannels();
      }
  
@@ -61,7 +61,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/MessagesControll
      protected void loadUnknownDialog(final TLRPC.InputPeer peer, long taskId) {
          if (peer == null) {
              return;
-@@ -13303,6 +13342,7 @@
+@@ -13311,6 +13350,7 @@ public class MessagesController extends BaseController implements NotificationCe
      private int DIALOGS_LOAD_TYPE_CACHE = 1;
      private int DIALOGS_LOAD_TYPE_CHANNEL = 2;
      private int DIALOGS_LOAD_TYPE_UNKNOWN = 3;
@@ -69,7 +69,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/MessagesControll
  
      public void processLoadedDialogs(final TLRPC.messages_Dialogs dialogsRes, ArrayList<TLRPC.EncryptedChat> encChats, ArrayList<TLRPC.UserFull> fullUsers, int folderId, int offset, int count, int loadType, boolean resetEnd, boolean migrate, boolean fromCache) {
          Utilities.stageQueue.postRunnable(() -> {
-@@ -13552,7 +13592,7 @@
+@@ -13564,7 +13604,7 @@ public class MessagesController extends BaseController implements NotificationCe
                          message.unread = value < message.id;
                      }
                  }
@@ -78,7 +78,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/MessagesControll
              }
              if (loadType == DIALOGS_LOAD_TYPE_CHANNEL) {
                  TLRPC.Chat chat = dialogsRes.chats.get(0);
-@@ -13562,10 +13602,12 @@
+@@ -13574,11 +13614,13 @@ public class MessagesController extends BaseController implements NotificationCe
  
              TLRPC.Message lastMessageFinal = lastMessage;
              AndroidUtilities.runOnUIThread(() -> {
@@ -87,11 +87,12 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/MessagesControll
                      dialogsLoadedTillDate = Math.min(dialogsLoadedTillDate, lastMessageFinal.date);
                  } else {
                      dialogsLoadedTillDate = Integer.MIN_VALUE;
-+                }
                  }
++                }
                  if (loadType != DIALOGS_LOAD_TYPE_CACHE) {
                      applyDialogsNotificationsSettings(dialogsRes.dialogs);
-@@ -13590,7 +13632,7 @@
+                     getMediaDataController().loadDraftsIfNeed();
+@@ -13602,7 +13644,7 @@ public class MessagesController extends BaseController implements NotificationCe
                          putEncryptedChat(encryptedChat, true);
                      }
                  }
@@ -100,7 +101,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/MessagesControll
                      loadingDialogs.put(folderId, false);
                  }
                  boolean added = false;
-@@ -13602,6 +13644,7 @@
+@@ -13614,6 +13656,7 @@ public class MessagesController extends BaseController implements NotificationCe
                      long key = new_dialogs_dict.keyAt(a);
                      TLRPC.Dialog value = new_dialogs_dict.valueAt(a);
                      TLRPC.Dialog currentDialog = dialogs_dict.get(key);
@@ -108,7 +109,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/MessagesControll
                      if (migrate && currentDialog != null) {
                          currentDialog.folder_id = value.folder_id;
                      }
-@@ -13743,7 +13786,7 @@
+@@ -13755,7 +13798,7 @@ public class MessagesController extends BaseController implements NotificationCe
  
                  putAllNeededDraftDialogs();
  
@@ -120,7 +121,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/MessagesControll
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
-@@ -2882,6 +2882,7 @@
+@@ -2883,6 +2883,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
      @Override
      public boolean onFragmentCreate() {
          super.onFragmentCreate();
@@ -128,7 +129,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/
  
          if (arguments != null) {
              onlySelect = arguments.getBoolean("onlySelect", false);
-@@ -8866,6 +8867,28 @@
+@@ -8868,6 +8869,28 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                  (containsFilter = (viewPages[0].dialogsType == 7 || viewPages[0].dialogsType == 8) && (!actionBar.isActionModeShowed() || actionBar.isActionModeShowed(null))) ?
                          getMessagesController().selectedDialogFilter[viewPages[0].dialogsType == 8 ? 1 : 0] : null
          );

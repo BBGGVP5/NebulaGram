@@ -1,0 +1,16 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Stars/BotStarsActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/Stars/BotStarsActivity.java
+index 81b080a..69708e3 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Stars/BotStarsActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Stars/BotStarsActivity.java
+@@ -138,6 +138,11 @@ public class BotStarsActivity extends BaseFragment implements NotificationCenter
+     private double rate;
+ 
+     public BotStarsActivity(int type, long botId) {
++        this(org.telegram.messenger.UserConfig.selectedAccount, type, botId);
++    }
++
++    public BotStarsActivity(int account, int type, long botId) {
++        setCurrentAccount(account);
+         this.type = type;
+         this.bot_id = botId;
+         this.self = botId == getUserConfig().getClientUserId();

@@ -42,6 +42,8 @@ public final class NebulaSettingsSearch {
         else if (section == -31) f.presentFragment(new NebulaSettingsHubFragment(NebulaSettingsHubFragment.TOOLS));
         else if (section == -32) f.presentFragment(new NebulaLocalPinsFragment(f.getCurrentAccount()));
         else if (section == -33) f.presentFragment(new NebulaEditHistoryFragment(f.getCurrentAccount(), null));
+        else if (section == -34) f.presentFragment(new NebulaFontFragment());
+        else if (section == -35) f.presentFragment(new NebulaBotsFragment(f.getCurrentAccount()));
         else if (section == -13) NebulaUpdateSettingsSheet.show(f);
         else if (section == -14) f.presentFragment(new NebulaMenuFragment(NebulaMenuFragment.SCREEN_ADVANCED));
         else if (section == -15) f.presentFragment(row >= 0 ? new NebulaPrivacyFragment().focusRowIndex(row) : new NebulaPrivacyFragment().focus(focus));
@@ -50,6 +52,12 @@ public final class NebulaSettingsSearch {
     }
     public static ArrayList<Entry> all() {
         ArrayList<Entry> result = new ArrayList<>();
+        result.add(new Entry(-34, NebulaText.text("Свой шрифт", "Custom font"), "TTF · OTF", R.drawable.msg_edit));
+        result.add(new Entry(-35, NebulaText.text("Мои боты", "My bots"), NebulaText.text("Переводы, меню, права, звёзды и бизнес", "Translations, menu, rights, stars and business"), R.drawable.msg_settings));
+        result.add(new Entry(NebulaSectionFragment.SECTION_CHATS, NebulaText.text("Очередь медленного режима", "Slow mode queue"), NebulaText.text("Отложенные текстовые сообщения", "Scheduled text messages"), R.drawable.msg_calendar));
+        result.add(new Entry(NebulaSectionFragment.SECTION_CHATS, NebulaText.text("Выделение без лимита 100", "Unlimited selection"), NebulaText.text("Выбрать загруженные сообщения", "Select loaded messages"), R.drawable.msg_select));
+        result.add(new Entry(NebulaSectionFragment.SECTION_APPEARANCE, NebulaText.text("Свечение медиа", "Ambient media"), NebulaText.text("Подсветка фото и видео", "Photo and video glow"), R.drawable.msg_customize));
+        result.add(new Entry(NebulaSectionFragment.SECTION_APPEARANCE, "Monet · Material 3", NebulaText.text("Палитры, шапка и размытие", "Palettes, header and blur"), R.drawable.msg_customize));
         result.add(new Entry(-15, NebulaText.text("Скрыть строки чатов", "Hide chat rows"), NebulaText.text("Имена, фото и превью · показ списка", "Names, photos and previews · list presentation"), R.drawable.msg_secret));
         result.add(new Entry(-32, NebulaText.text("Локальные закрепления", "Local pins"), NebulaText.text("На устройстве · отдельно для папок", "On device · per folder"), R.drawable.msg_pin));
         result.add(new Entry(-33, NebulaText.text("История правок", "Edit history"), NebulaText.text("Предыдущие версии сообщений", "Previous message versions"), R.drawable.msg_edit));

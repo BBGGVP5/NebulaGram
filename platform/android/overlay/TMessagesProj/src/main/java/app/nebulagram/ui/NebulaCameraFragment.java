@@ -8,7 +8,7 @@ import org.telegram.messenger.AndroidUtilities;
 import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.messenger.AppGlobalConfig;
 import org.telegram.messenger.UserConfig;
-import org.telegram.utils.camera.roundvideo.RoundVideoSession;
+import org.telegram.utils.recorder.round.RoundVideoSession;
 import org.telegram.utils.settings.SharedSettings;
 import java.util.ArrayList;
 import java.util.function.IntConsumer;

@@ -1,8 +1,8 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
-index 47d1acb..7b5f083 100644
+index 9b574966..da6dd2a1 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
-@@ -2504,16 +2504,20 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
+@@ -2515,16 +2515,20 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
          }
          final boolean separateAvatar = nebulaFloatingChatHeader && nebulaChatMenuHidden
                  && nebulaChatAvatarContainer != null;

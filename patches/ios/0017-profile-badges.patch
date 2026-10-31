@@ -1,10 +1,10 @@
 diff --git a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/BUILD b/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/BUILD
 --- a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/BUILD
 +++ b/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/BUILD
-@@ -11,6 +11,7 @@
-     ],
-     deps = [
-         "//submodules/UrlWhitelist",
+@@ -14,6 +14,7 @@
+         "//submodules/TelegramUI/Components/NavigationBarNode",
+         "//submodules/TelegramUI/Components/NavigationBarComponent",
+         "//submodules/TelegramUI/Components/NavigationExpansionTransition",
 +        "//submodules/NebulaSettingsContract:NebulaSettingsContract",
          "//submodules/AccountContext",
          "//submodules/LottieSettings:LottieSettings",
@@ -18,7 +18,7 @@ diff --git a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/Pe
  import UIKit
  import AsyncDisplayKit
  import Display
-@@ -121,6 +122,10 @@
+@@ -103,6 +104,10 @@
      let titleNodeRawContainer: ASDisplayNode
      let titleNode: MultiScaleTextNode
      var standardTitle: ComponentView<Empty>?
@@ -29,7 +29,7 @@ diff --git a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/Pe
      
      let titleCredibilityIconView: ComponentHostView<Empty>
      var credibilityIconSize: CGSize?
-@@ -230,6 +235,15 @@
+@@ -280,6 +285,15 @@
          self.titleNodeRawContainer = ASDisplayNode()
          self.titleNode = MultiScaleTextNode(stateKeys: [TitleNodeStateRegular, TitleNodeStateExpanded])
          self.titleNode.displaysAsynchronously = false
@@ -45,7 +45,7 @@ diff --git a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/Pe
          
          self.titleCredibilityIconView = ComponentHostView<Empty>()
          self.titleNode.stateNode(forKey: TitleNodeStateRegular)?.view.addSubview(self.titleCredibilityIconView)
-@@ -491,6 +505,28 @@
+@@ -538,6 +552,28 @@
      private var currentVerifiedIcon: CredibilityIcon?
      private var currentStatusIcon: CredibilityIcon?
      
@@ -72,9 +72,9 @@ diff --git a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/Pe
 +    }
 +
      private var currentPanelStatusData: PeerInfoStatusData?
-     func update(width: CGFloat, containerHeight: CGFloat, containerInset: CGFloat, statusBarHeight: CGFloat, navigationHeight: CGFloat, presentedInFormSheet: Bool, isMediaOnly: Bool, contentOffset: CGFloat, paneContainerY: CGFloat, presentationData: PresentationData, peer: EnginePeer?, cachedData: EngineCachedPeerData?, threadData: MessageHistoryThreadData?, peerNotificationSettings: TelegramPeerNotificationSettings?, threadNotificationSettings: TelegramPeerNotificationSettings?, globalNotificationSettings: EngineGlobalNotificationSettings?, statusData: PeerInfoStatusData?, panelStatusData: (PeerInfoStatusData?, PeerInfoStatusData?, CGFloat?), isSecretChat: Bool, isContact: Bool, isSettings: Bool, state: PeerInfoState, profileGiftsContext: ProfileGiftsContext?, screenData: PeerInfoScreenData?, isSearching: Bool, metrics: LayoutMetrics, deviceMetrics: DeviceMetrics, transition: ContainedViewLayoutTransition, additive: Bool, animateHeader: Bool) -> CGFloat {
-         if self.appliedCustomNavigationContentNode !== self.customNavigationContentNode {
-@@ -519,6 +555,14 @@
+     func update(width: CGFloat, containerHeight: CGFloat, containerInset: CGFloat, sideInsets: PeerInfoSideInsets, statusBarHeight: CGFloat, navigationHeight: CGFloat, presentedInFormSheet: Bool, isMediaOnly: Bool, contentOffset: CGFloat, paneContainerY: CGFloat, presentationData: PresentationData, peer: EnginePeer?, cachedData: EngineCachedPeerData?, threadData: MessageHistoryThreadData?, peerNotificationSettings: TelegramPeerNotificationSettings?, threadNotificationSettings: TelegramPeerNotificationSettings?, globalNotificationSettings: EngineGlobalNotificationSettings?, statusData: PeerInfoStatusData?, panelStatusData: (PeerInfoStatusData?, PeerInfoStatusData?, CGFloat?), isSecretChat: Bool, isContact: Bool, isSettings: Bool, state: PeerInfoState, profileGiftsContext: ProfileGiftsContext?, screenData: PeerInfoScreenData?, isSearching: Bool, metrics: LayoutMetrics, deviceMetrics: DeviceMetrics, transition: ContainedViewLayoutTransition, additive: Bool, animateHeader: Bool) -> CGFloat {
+         // iPhone Duo: keep the header out of the side strip; without one every expression below is today's.
+@@ -585,6 +621,14 @@
          self.state = state
          self.peer = peer
          self.threadData = threadData
@@ -89,7 +89,7 @@ diff --git a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/Pe
          self.isSearching = isSearching
          self.avatarListNode.listContainerNode.peer = peer
          
-@@ -1357,9 +1401,13 @@
+@@ -1400,9 +1444,13 @@
              titleConstrainedSize.width -= 60.0
          }
          
@@ -105,7 +105,7 @@ diff --git a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/Pe
          ], mainState: TitleNodeStateRegular)
          
          var subtitleRatingSize: CGSize?
-@@ -1688,6 +1736,15 @@
+@@ -1711,6 +1759,15 @@
              }
          }
          

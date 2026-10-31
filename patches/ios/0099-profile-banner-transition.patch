@@ -1,7 +1,7 @@
 diff --git a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoHeaderNode.swift b/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoHeaderNode.swift
 --- a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoHeaderNode.swift
 +++ b/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoHeaderNode.swift
-@@ -102,6 +102,7 @@
+@@ -84,6 +84,7 @@
      private let chatLocation: ChatLocation
      
      private(set) var isAvatarExpanded: Bool
@@ -9,7 +9,7 @@ diff --git a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/Pe
      var skipCollapseCompletion = false
      var ignoreCollapse = false
      
-@@ -343,7 +344,7 @@
+@@ -392,7 +393,7 @@
          self.nebulaBannerFade.isUserInteractionEnabled = false
          self.nebulaBannerGradient.locations = [0.0, 0.32, 0.72, 1.0]
          self.nebulaBannerFade.layer.addSublayer(self.nebulaBannerGradient)
@@ -18,7 +18,7 @@ diff --git a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/Pe
  
          
          self.regularContentNode.addSubnode(self.avatarListNode.listContainerNode.controlsClippingOffsetNode)
-@@ -1841,24 +1842,6 @@
+@@ -1864,24 +1865,6 @@
          let bottomShadowFrame = CGRect(origin: CGPoint(x: 0.0, y: expandedAvatarHeight - bottomShadowHeight), size: CGSize(width: width, height: bottomShadowHeight))
          transition.updateFrame(node: self.avatarListNode.listContainerNode.bottomShadowNode, frame: bottomShadowFrame, beginWithCurrentState: true)
          self.avatarListNode.listContainerNode.bottomShadowNode.update(size: bottomShadowFrame.size, transition: transition)
@@ -43,8 +43,8 @@ diff --git a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/Pe
          
          let singleTitleLockOffset: CGFloat = ((peer?.id == self.context.account.peerId && !self.isMyProfile) || subtitleSize.height.isZero) ? 8.0 : 0.0
          
-@@ -2063,15 +2046,19 @@
-             }
+@@ -2044,15 +2027,19 @@
+             transition.updateCornerRadius(node: self.avatarListNode.listContainerNode.controlsClippingNode, cornerRadius: 0.0)
          } else if self.avatarListNode.listContainerNode.cornerRadius != avatarCornerRadius {
              transition.updateCornerRadius(node: self.avatarListNode.listContainerNode.controlsClippingNode, cornerRadius: avatarCornerRadius)
 -            transition.updateCornerRadius(node: self.avatarListNode.listContainerNode, cornerRadius: avatarCornerRadius, completion: { [weak self] _ in
@@ -67,7 +67,7 @@ diff --git a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/Pe
                      }
                  }
              })
-@@ -2635,6 +2622,12 @@
+@@ -2555,6 +2542,12 @@
          }
          
          transition.updateFrame(node: self.regularContentNode, frame: CGRect(origin: CGPoint(), size: CGSize(width: width, height: resolvedHeight)))
@@ -80,7 +80,7 @@ diff --git a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/Pe
          
          transition.updateFrameAdditive(node: self.buttonsContainerNode, frame: CGRect(origin: CGPoint(x: 0.0, y: apparentBackgroundHeight - backgroundHeight), size: CGSize(width: width, height: 1000.0)))
          
-@@ -3024,13 +3017,39 @@
+@@ -3084,13 +3077,39 @@
          return result
      }
      

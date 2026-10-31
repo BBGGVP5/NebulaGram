@@ -27,7 +27,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/
      public static void loadDialogs(AccountInstance accountInstance) {
          int currentAccount = accountInstance.getCurrentAccount();
          if (!dialogsLoaded[currentAccount]) {
-@@ -5165,7 +5176,23 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+@@ -5162,7 +5173,23 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
              filterTabsViewBackground.setPadding(dp(6.666f));
              filterTabsView.setPadding(0, dp(7), 0, dp(7));
              filterTabsView.setBlurredBackground(filterTabsViewBackground);
@@ -52,7 +52,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/
          }
  
          if (fragmentSearchField != null) {
-@@ -6604,10 +6631,19 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+@@ -6601,10 +6628,19 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
          float fadeViewT = totalOffset;
  
          if (filterTabsView != null) {
@@ -76,7 +76,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/
          }
  
          if (topPanelLayout != null) {
-@@ -7071,8 +7107,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+@@ -7068,8 +7104,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
              app.nebulagram.ui.NebulaDialogsTitle.apply(actionBar,
                      getMessagesController(), selectedType, statusDrawable);
          }
@@ -86,7 +86,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/
          if (fragmentView != null) {
              ViewCompat.requestApplyInsets(fragmentView);
          }
-@@ -7240,7 +7275,8 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+@@ -7237,7 +7272,8 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
              public int getTopOffset(int tag) {
                  return (
                      (actionBar != null ? actionBar.getMeasuredHeight() : 0) +

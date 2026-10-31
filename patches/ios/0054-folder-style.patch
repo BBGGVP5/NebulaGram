@@ -1,11 +1,10 @@
 diff --git a/submodules/TelegramUI/Components/ChatList/ChatListFilterTabContainerNode/Sources/ChatListFilterTabContainerNode.swift b/submodules/TelegramUI/Components/ChatList/ChatListFilterTabContainerNode/Sources/ChatListFilterTabContainerNode.swift
 --- a/submodules/TelegramUI/Components/ChatList/ChatListFilterTabContainerNode/Sources/ChatListFilterTabContainerNode.swift
 +++ b/submodules/TelegramUI/Components/ChatList/ChatListFilterTabContainerNode/Sources/ChatListFilterTabContainerNode.swift
-@@ -10,6 +10,37 @@
- import GlassBackgroundComponent
+@@ -11,6 +11,37 @@
  import ComponentFlow
  import ComponentDisplayAdapters
-+
+ 
 +private func nebulaFolderTitle(_ title: ChatFolderTitle, style: Int, isAllChats: Bool) -> ChatFolderTitle {
 +    guard style == 1 || style == 2 else { return title }
 +
@@ -36,9 +35,10 @@ diff --git a/submodules/TelegramUI/Components/ChatList/ChatListFilterTabContaine
 +    })
 +    return ChatFolderTitle(text: prefix + title.text, entities: entities, enableAnimations: title.enableAnimations)
 +}
- 
++
  private final class ItemNodeDeleteButtonNode: HighlightableButtonNode {
      private let pressed: () -> Void
+     
 @@ -206,7 +237,7 @@
          self.pressed(self.isDisabled)
      }

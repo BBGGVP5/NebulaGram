@@ -26,7 +26,7 @@ public final class NebulaAiReplacements {
         new Thread(() -> {
             try {
                 String result = client.generate(provider, endpoint, key, model, instruction, source, options, progress);
-                if (result.isEmpty()) throw new java.io.IOException("EMPTY_RESPONSE");
+                if (result == null || result.trim().isEmpty()) throw new java.io.IOException("EMPTY_RESPONSE");
                 AndroidUtilities.runOnUIThread(() -> done.accept(result));
             } catch (Exception error) { AndroidUtilities.runOnUIThread(() -> failed.accept(error)); }
         }, "NebulaAiEditor").start();

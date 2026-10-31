@@ -1,7 +1,8 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
-@@ -891,9 +891,31 @@
+@@ -891,12 +891,34 @@ public class ChatActivityEnterView extends FrameLayout implements
+ 
      private boolean recordAudioVideoRunnableStarted;
      private boolean calledRecordRunnable;
 +    private boolean nebulaCameraChoicePending;
@@ -33,7 +34,10 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivity
 +                return;
 +            }
              delegate.onPreAudioVideoRecord();
-@@ -2980,5 +3002,7 @@
+             calledRecordRunnable = true;
+             recordAudioVideoRunnableStarted = false;
+@@ -2990,6 +3012,8 @@ public class ChatActivityEnterView extends FrameLayout implements
+                 if (isLiveComment) return false;
                  createRecordCircle();
                  if (motionEvent.getAction() == MotionEvent.ACTION_DOWN) {
 +                    if (nebulaCameraChoicePending) return true;
@@ -41,7 +45,8 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivity
                      if (recordCircle.isSendButtonVisible()) {
                          if (!hasRecordVideo || calledRecordRunnable) {
                              startedDraggingX = -1;
-@@ -3051,5 +3075,9 @@
+@@ -3061,6 +3085,10 @@ public class ChatActivityEnterView extends FrameLayout implements
+                     }
                      return true;
                  } else if (motionEvent.getAction() == MotionEvent.ACTION_UP || motionEvent.getAction() == MotionEvent.ACTION_CANCEL) {
 +                    if (nebulaCameraChoicePending || nebulaIgnoreCameraChoiceRelease) {

@@ -1,7 +1,7 @@
 diff --git a/submodules/TelegramUI/Sources/ChatController.swift b/submodules/TelegramUI/Sources/ChatController.swift
 --- a/submodules/TelegramUI/Sources/ChatController.swift
 +++ b/submodules/TelegramUI/Sources/ChatController.swift
-@@ -3530,6 +3530,7 @@
+@@ -3543,6 +3543,7 @@
                  return
              }
              let url = urlData.url
@@ -23,7 +23,7 @@ diff --git a/submodules/TelegramUI/Sources/ChatHistoryEntriesForView.swift b/sub
 diff --git a/submodules/TelegramUI/Sources/ChatHistoryListNode.swift b/submodules/TelegramUI/Sources/ChatHistoryListNode.swift
 --- a/submodules/TelegramUI/Sources/ChatHistoryListNode.swift
 +++ b/submodules/TelegramUI/Sources/ChatHistoryListNode.swift
-@@ -671,6 +671,7 @@
+@@ -683,6 +683,7 @@
          return self.isInteractivelyScrollingPromise.get()
      }
      
@@ -31,7 +31,7 @@ diff --git a/submodules/TelegramUI/Sources/ChatHistoryListNode.swift b/submodule
      private var currentPresentationData: ChatPresentationData
      private var chatPresentationDataPromise: Promise<ChatPresentationData>
      private var presentationDataDisposable: Disposable?
-@@ -1028,6 +1029,10 @@
+@@ -1040,6 +1041,10 @@
          self.listView = ChatHistoryListNodeImpl.makeListView(rotated: rotated, useCoreListBackend: useCoreListBackend)
  
          super.init()

@@ -1,7 +1,7 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/MessagesStorage.java b/TMessagesProj/src/main/java/org/telegram/messenger/MessagesStorage.java
 --- a/TMessagesProj/src/main/java/org/telegram/messenger/MessagesStorage.java
 +++ b/TMessagesProj/src/main/java/org/telegram/messenger/MessagesStorage.java
-@@ -2736,6 +2736,26 @@ public class MessagesStorage extends BaseController {
+@@ -2737,6 +2737,26 @@ public class MessagesStorage extends BaseController {
      private LongSparseArray<Integer> dialogsWithMentions = new LongSparseArray<>();
      private LongSparseArray<Integer> dialogsWithUnread = new LongSparseArray<>();
  
@@ -28,7 +28,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/MessagesStorage.
      private void calcUnreadCounters(boolean apply) {
          SQLiteCursor cursor = null;
          try {
-@@ -2951,6 +2971,12 @@ public class MessagesStorage extends BaseController {
+@@ -2952,6 +2972,12 @@ public class MessagesStorage extends BaseController {
                          flags |= MessagesController.DIALOG_FILTER_FLAG_ONLY_ARCHIVED;
                      }
                  }
@@ -44,7 +44,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/MessagesStorage.
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
-@@ -11478,7 +11478,10 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+@@ -11533,7 +11533,10 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                          (getContactsController().contactsDict.size() != 0 || !getContactsController().isLoadingContacts())) {
                      nameTextView[a].setText(PhoneFormat.getInstance().format("+" + user.phone));
                  } else {

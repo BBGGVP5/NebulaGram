@@ -1,7 +1,7 @@
 diff --git a/submodules/AccountContext/Sources/AccountContext.swift b/submodules/AccountContext/Sources/AccountContext.swift
 --- a/submodules/AccountContext/Sources/AccountContext.swift
 +++ b/submodules/AccountContext/Sources/AccountContext.swift
-@@ -1405,6 +1405,7 @@
+@@ -1419,6 +1419,7 @@
  }
  
  public protocol SharedAccountContext: AnyObject {
@@ -38,7 +38,7 @@ diff --git a/submodules/AttachmentTextInputPanelNode/Sources/AttachmentTextInput
      public var isAIEnabled: Bool = false
  
      public var opaqueActionButtons: ASDisplayNode {
-@@ -806,7 +808,7 @@
+@@ -808,7 +810,7 @@
  
          let textFieldHeight: CGFloat
          if let textInputNode = self.textInputNode {
@@ -47,7 +47,7 @@ diff --git a/submodules/AttachmentTextInputPanelNode/Sources/AttachmentTextInput
  
              let measuredHeight = textInputNode.textHeightForWidth(maxTextWidth, rightInset: textFieldRealInsets.right)
              let unboundTextFieldHeight = max(textFieldMinHeight, ceil(measuredHeight))
-@@ -1356,7 +1358,7 @@
+@@ -1358,7 +1360,7 @@
          transition.updateFrame(layer: self.textInputBackgroundNode.layer, frame: CGRect(x: leftInset + textFieldInsets.left, y: panelOriginY + textFieldInsets.top, width: baseWidth - textFieldInsets.left - textFieldInsets.right + composeButtonsOffset - textBackgroundInset, height: panelHeight - textFieldInsets.top - textFieldInsets.bottom))
          transition.updateFrame(layer: self.textInputBackgroundImageNode.layer, frame: CGRect(x: 0.0, y: 0.0, width: baseWidth - textFieldInsets.left - textFieldInsets.right + composeButtonsOffset - textBackgroundInset, height: panelHeight - textFieldInsets.top - textFieldInsets.bottom))
  
@@ -56,7 +56,7 @@ diff --git a/submodules/AttachmentTextInputPanelNode/Sources/AttachmentTextInput
              let aiButton: (button: HighlightTrackingButton, icon: UIImageView)
              if let current = self.aiButton {
                  aiButton = current
-@@ -1384,14 +1386,19 @@
+@@ -1386,14 +1388,19 @@
              if let presentationInterfaceState = self.presentationInterfaceState {
                  aiButton.icon.tintColor = presentationInterfaceState.theme.chat.inputPanel.inputControlColor
              }
@@ -79,7 +79,7 @@ diff --git a/submodules/AttachmentTextInputPanelNode/Sources/AttachmentTextInput
              self.heightDependentAiButtonAlpha = aiButtonAlpha
              if !inputHasText {
                  aiButtonAlpha = 0.0
-@@ -1456,7 +1463,7 @@
+@@ -1458,7 +1465,7 @@
          }
          transition.updateFrame(node: self.textPlaceholderNode, frame: placeholderFrame)
  
@@ -88,7 +88,7 @@ diff --git a/submodules/AttachmentTextInputPanelNode/Sources/AttachmentTextInput
      }
  
      private var skipUpdate = false
-@@ -2339,6 +2346,14 @@
+@@ -2341,6 +2348,14 @@
      }
  
      @objc private func aiButtonPressed() {
@@ -106,7 +106,7 @@ diff --git a/submodules/AttachmentTextInputPanelNode/Sources/AttachmentTextInput
 diff --git a/submodules/ChatListUI/Sources/ChatListController.swift b/submodules/ChatListUI/Sources/ChatListController.swift
 --- a/submodules/ChatListUI/Sources/ChatListController.swift
 +++ b/submodules/ChatListUI/Sources/ChatListController.swift
-@@ -7258,13 +7258,12 @@
+@@ -7304,13 +7304,12 @@
          switch location {
          case let .chatList(groupId):
              if groupId == .root {
@@ -127,10 +127,10 @@ diff --git a/submodules/ChatListUI/Sources/ChatListController.swift b/submodules
 diff --git a/submodules/SettingsUI/Sources/Search/SettingsSearchableItems.swift b/submodules/SettingsUI/Sources/Search/SettingsSearchableItems.swift
 --- a/submodules/SettingsUI/Sources/Search/SettingsSearchableItems.swift
 +++ b/submodules/SettingsUI/Sources/Search/SettingsSearchableItems.swift
-@@ -4376,6 +4376,25 @@
-         let strings = context.sharedContext.currentPresentationData.with { $0 }.strings
-         
-         var allItems: [SettingsSearchableItem] = []
+@@ -4387,6 +4387,25 @@
+                 present(.push, crashReportsController(sharedContext: context.sharedContext, context: context))
+             }
+         ))
 +        let nebulaRussian = strings.baseLanguageCode.hasPrefix("ru")
 +        let nebulaEntries: [(String, String, String, Int, String, String)] = [
 +            ("translation", "Перевод в реальном времени", "Real-time translation", 0, "Входящие мой текст автоперевод ИИ язык кнопка", "incoming typing live translate AI language shortcut"),
@@ -191,7 +191,7 @@ diff --git a/submodules/TelegramUI/Components/Chat/ChatMessageTextBubbleContentN
 diff --git a/submodules/TelegramUI/Components/Chat/ChatTextInputPanelNode/Sources/ChatTextInputPanelNode.swift b/submodules/TelegramUI/Components/Chat/ChatTextInputPanelNode/Sources/ChatTextInputPanelNode.swift
 --- a/submodules/TelegramUI/Components/Chat/ChatTextInputPanelNode/Sources/ChatTextInputPanelNode.swift
 +++ b/submodules/TelegramUI/Components/Chat/ChatTextInputPanelNode/Sources/ChatTextInputPanelNode.swift
-@@ -3555,7 +3555,7 @@
+@@ -3601,7 +3601,7 @@
          var isAIButtonVisible = false
          var attachmentPillHeight: CGFloat = 40.0
          let inputHasNonWhitespaceText = !(self.richTextInputNode?.inputContentIsEmptyWhitespaceTrimmed ?? true)
@@ -200,79 +200,10 @@ diff --git a/submodules/TelegramUI/Components/Chat/ChatTextInputPanelNode/Source
              let threeLineHeight = self.threeLineFieldHeight(forWidth: baseWidth, node: node, metrics: metrics, bottomInset: bottomInset, textFieldInsets: textFieldInsets)
              if textInputHeight >= threeLineHeight - 0.5 {
                  isAIButtonVisible = true
-diff --git a/submodules/TelegramUI/Components/ChatListHeaderComponent/Sources/ChatListHeaderComponent.swift b/submodules/TelegramUI/Components/ChatListHeaderComponent/Sources/ChatListHeaderComponent.swift
---- a/submodules/TelegramUI/Components/ChatListHeaderComponent/Sources/ChatListHeaderComponent.swift
-+++ b/submodules/TelegramUI/Components/ChatListHeaderComponent/Sources/ChatListHeaderComponent.swift
-@@ -1171,7 +1171,7 @@
-                 }
-                 let leftButtonsContainerFrame = CGRect(origin: CGPoint(x: component.leftInset, y: 0.0), size: CGSize(width: max(44.0, leftButtonsEffectiveWidth), height: 44.0))
-                 leftButtonsBackgroundContainerTransition.setFrame(view: leftButtonsBackgroundContainer, frame: leftButtonsContainerFrame)
--                leftButtonsBackgroundContainer.update(size: leftButtonsContainerFrame.size, cornerRadius: leftButtonsContainerFrame.height * 0.5, isDark: component.theme.overallDarkAppearance, tintColor: .init(kind: .panel), isInteractive: true, transition: leftButtonsBackgroundContainerTransition)
-+                leftButtonsBackgroundContainer.update(size: leftButtonsContainerFrame.size, cornerRadius: leftButtonsContainerFrame.height * 0.5, isDark: component.theme.overallDarkAppearance, tintColor: .init(kind: .panel), isInteractive: true, isVisible: false, transition: leftButtonsBackgroundContainerTransition)
-                 leftButtonsBackgroundContainer.morphsIntoContextMenu = leftButtonCount == 1
-                 leftButtonsBackgroundContainerTransition.setFrame(view: self.leftButtonsContainer, frame: CGRect(origin: CGPoint(), size: leftButtonsContainerFrame.size)) 
-             } else {
-@@ -1201,7 +1201,7 @@
-                     rightButtonsBackgroundContainer.update(size: rightButtonsContainerFrame.size, cornerRadius: rightButtonsContainerFrame.height * 0.5, isDark: component.theme.overallDarkAppearance, tintColor: .init(kind: .panel), isInteractive: true, isVisible: false, transition: .immediate)
-                 }
-                 rightButtonsBackgroundContainerTransition.setFrame(view: rightButtonsBackgroundContainer, frame: rightButtonsContainerFrame)
--                rightButtonsBackgroundContainer.update(size: rightButtonsContainerFrame.size, cornerRadius: rightButtonsContainerFrame.height * 0.5, isDark: component.theme.overallDarkAppearance, tintColor: .init(kind: .panel), isInteractive: true, transition: transition)
-+                rightButtonsBackgroundContainer.update(size: rightButtonsContainerFrame.size, cornerRadius: rightButtonsContainerFrame.height * 0.5, isDark: component.theme.overallDarkAppearance, tintColor: .init(kind: .panel), isInteractive: true, isVisible: false, transition: transition)
-                 rightButtonsBackgroundContainer.morphsIntoContextMenu = rightButtonCount == 1
-                 rightButtonsBackgroundContainerTransition.setFrame(view: self.rightButtonsContainer, frame: CGRect(origin: CGPoint(), size: rightButtonsContainerFrame.size))
-             } else {
-diff --git a/submodules/TelegramUI/Components/NavigationBarImpl/Sources/NavigationBarImpl.swift b/submodules/TelegramUI/Components/NavigationBarImpl/Sources/NavigationBarImpl.swift
---- a/submodules/TelegramUI/Components/NavigationBarImpl/Sources/NavigationBarImpl.swift
-+++ b/submodules/TelegramUI/Components/NavigationBarImpl/Sources/NavigationBarImpl.swift
-@@ -1014,17 +1014,20 @@
-             leftButtonsBackgroundTransition.setFrame(view: leftButtonsBackgroundView.container, frame: CGRect(origin: CGPoint(), size: leftButtonsBackgroundFrame.size))
-             ComponentTransition(transition).setAlpha(view: leftButtonsBackgroundView.background, alpha: leftButtonsWidth == 0.0 ? 0.0 : 1.0)
-             
-+            var leftAccentMaterial = false
-             var leftButtonsColor: GlassBackgroundView.TintColor = .init(kind: self.presentationData.theme.glassStyle == .clear ? .clear : .panel)
-             switch self.leftButtonNodeImpl.commonContentType {
-             case .accent:
-+                leftAccentMaterial = true
-                 leftButtonsColor = .init(kind: .custom(style: self.presentationData.theme.glassStyle == .clear ? .clear : .default, color: self.presentationData.theme.accentButtonColor))
-             case .accentDisabled:
-+                leftAccentMaterial = true
-                 leftButtonsColor = .init(kind: .custom(style: self.presentationData.theme.glassStyle == .clear ? .clear : .default, color: self.presentationData.theme.accentDisabledButtonColor))
-             case .generic:
-                 break
-             }
-             
--            leftButtonsBackgroundView.background.update(size: leftButtonsBackgroundFrame.size, cornerRadius: leftButtonsBackgroundFrame.height * 0.5, isDark: self.presentationData.theme.overallDarkAppearance, tintColor: leftButtonsColor, isInteractive: true, isVisible: leftButtonsWidth != 0.0, transition: leftButtonsBackgroundTransition)
-+            leftButtonsBackgroundView.background.update(size: leftButtonsBackgroundFrame.size, cornerRadius: leftButtonsBackgroundFrame.height * 0.5, isDark: self.presentationData.theme.overallDarkAppearance, tintColor: leftButtonsColor, isInteractive: true, isVisible: leftButtonsWidth != 0.0 && leftAccentMaterial, transition: leftButtonsBackgroundTransition)
-             leftButtonsBackgroundView.background.morphsIntoContextMenu = leftButtonCount == 1
-         }
-         
-@@ -1051,18 +1054,21 @@
-                     })
-                 }
-                 
-+                var rightAccentMaterial = false
-                 var rightButtonsColor: GlassBackgroundView.TintColor = .init(kind: self.presentationData.theme.glassStyle == .clear ? .clear : .panel)
-                 switch self.rightButtonNodeImpl.commonContentType {
-                 case .accent:
-+                    rightAccentMaterial = true
-                     rightButtonsColor = .init(kind: .custom(style: self.presentationData.theme.glassStyle == .clear ? .clear : .default, color: self.presentationData.theme.accentButtonColor))
-                 case .accentDisabled:
-+                    rightAccentMaterial = true
-                     rightButtonsColor = .init(kind: .custom(style: self.presentationData.theme.glassStyle == .clear ? .clear : .default, color: self.presentationData.theme.accentDisabledButtonColor))
-                 case .generic:
-                     break
-                 }
-                 
-                 rightButtonsBackgroundView.background.isHidden = false
--                rightButtonsBackgroundView.background.update(size: rightButtonsBackgroundFrame.size, cornerRadius: rightButtonsBackgroundFrame.height * 0.5, isDark: self.presentationData.theme.overallDarkAppearance, tintColor: rightButtonsColor, isInteractive: true, transition: rightButtonsBackgroundTransition)
-+                rightButtonsBackgroundView.background.update(size: rightButtonsBackgroundFrame.size, cornerRadius: rightButtonsBackgroundFrame.height * 0.5, isDark: self.presentationData.theme.overallDarkAppearance, tintColor: rightButtonsColor, isInteractive: true, isVisible: rightAccentMaterial, transition: rightButtonsBackgroundTransition)
-             } else {
-                 rightButtonsBackgroundView.background.isHidden = true
-             }
 diff --git a/submodules/TelegramUI/Components/Stories/StoryPeerListComponent/Sources/StoryPeerListComponent.swift b/submodules/TelegramUI/Components/Stories/StoryPeerListComponent/Sources/StoryPeerListComponent.swift
 --- a/submodules/TelegramUI/Components/Stories/StoryPeerListComponent/Sources/StoryPeerListComponent.swift
 +++ b/submodules/TelegramUI/Components/Stories/StoryPeerListComponent/Sources/StoryPeerListComponent.swift
-@@ -309,10 +309,12 @@
+@@ -317,10 +317,12 @@
      private struct TitleState: Equatable {
          var text: String
          var color: UIColor
@@ -287,7 +218,7 @@ diff --git a/submodules/TelegramUI/Components/Stories/StoryPeerListComponent/Sou
          }
      }
      
-@@ -1591,6 +1593,16 @@
+@@ -1665,6 +1667,16 @@
                  self.animationState = nil
              }
              
@@ -304,7 +235,7 @@ diff --git a/submodules/TelegramUI/Components/Stories/StoryPeerListComponent/Sou
              let timestamp = CACurrentMediaTime()
              if let previousComponent = self.component, useAnimation {
                  let duration: Double
-@@ -1688,7 +1700,10 @@
+@@ -1753,7 +1765,10 @@
              self.component = component
              self.state = state
              
@@ -316,7 +247,7 @@ diff --git a/submodules/TelegramUI/Components/Stories/StoryPeerListComponent/Sou
              if self.titleState != updatedTitleState {
                  self.titleState = updatedTitleState
                  
-@@ -1697,7 +1712,7 @@
+@@ -1762,7 +1777,7 @@
                      NSAttributedString.Key.foregroundColor: component.theme.rootController.navigationBar.primaryTextColor
                  ])
                  
@@ -345,7 +276,7 @@ diff --git a/submodules/TelegramUI/Components/TranslateHeaderPanelComponent/Sour
 diff --git a/submodules/TelegramUI/Sources/ChatController.swift b/submodules/TelegramUI/Sources/ChatController.swift
 --- a/submodules/TelegramUI/Sources/ChatController.swift
 +++ b/submodules/TelegramUI/Sources/ChatController.swift
-@@ -280,6 +280,13 @@
+@@ -281,6 +281,13 @@
              nebulaTranslationTimer = Foundation.Timer.scheduledTimer(withTimeInterval: options.draft ? 0.25 : 1, repeats: true) { [weak self] _ in self?.nebulaTickChatAI() }
          }
          if nebulaTranslationObservers.isEmpty {
@@ -359,7 +290,7 @@ diff --git a/submodules/TelegramUI/Sources/ChatController.swift b/submodules/Tel
              nebulaTranslationObservers.append(NotificationCenter.default.addObserver(forName: NebulaTranslationPreferences.changed, object: nil, queue: .main) { [weak self] _ in
                  self?.chatDisplayNode.textInputPanelNode?.nebulaToolsButton = nil
                  self?.nebulaConfigureChatAI()
-@@ -328,14 +335,14 @@
+@@ -329,14 +336,14 @@
          if incoming {
              if !nebulaHadAiTranslation { nebulaPreviousTranslationState = presentationInterfaceState.translationState; nebulaHadAiTranslation = true }
              if presentationInterfaceState.translationState?.isEnabled != true || presentationInterfaceState.translationState?.toLang != options.incomingLanguage || presentationInterfaceState.translationState?.fromLang != "nebula-ai" {
@@ -379,7 +310,7 @@ diff --git a/submodules/TelegramUI/Sources/ChatController.swift b/submodules/Tel
 diff --git a/submodules/TelegramUI/Sources/SharedAccountContext.swift b/submodules/TelegramUI/Sources/SharedAccountContext.swift
 --- a/submodules/TelegramUI/Sources/SharedAccountContext.swift
 +++ b/submodules/TelegramUI/Sources/SharedAccountContext.swift
-@@ -158,6 +158,19 @@
+@@ -160,6 +160,19 @@
  private var testHasInstance = false
  
  public final class SharedAccountContextImpl: SharedAccountContext {

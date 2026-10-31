@@ -1,7 +1,7 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
-@@ -638,8 +638,8 @@
+@@ -638,8 +638,8 @@ public class ChatActivityEnterView extends FrameLayout implements
      private LinearLayout attachLayout;
      private ViewPropertyAnimator attachButtonAnimator;
      private ImageView attachButton;
@@ -11,7 +11,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivity
      private app.nebulagram.ui.NebulaDraftTranslation nebulaDraftTranslation;
      private AiButtonDrawable aiButtonIcon;
      private ImageView aiButton;
-@@ -5854,28 +5854,8 @@
+@@ -5852,28 +5852,8 @@ public class ChatActivityEnterView extends FrameLayout implements
          messageEditText.setHandlesColor(getThemedColor(Theme.key_chat_TextSelectionCursor));
          messageEditTextContainer.addView(messageEditText, 1, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.BOTTOM, 52, 0, isChat ? 50 : 2, 1.5f));
          if (parentFragment != null && isChat) {
@@ -41,7 +41,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivity
          }
  
  
-@@ -6135,26 +6115,54 @@
+@@ -6133,26 +6113,54 @@ public class ChatActivityEnterView extends FrameLayout implements
      }
  
      private AIEditorAlert createNebulaAwareAiEditor() {
@@ -99,7 +99,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivity
          aiButton.setVisibility(View.VISIBLE);
          aiButton.animate()
              .alpha(show ? 1.0f : 0.0f)
-@@ -6163,13 +6171,13 @@
+@@ -6161,13 +6169,13 @@ public class ChatActivityEnterView extends FrameLayout implements
              .setInterpolator(CubicBezierInterpolator.EASE_OUT_QUINT)
              .setDuration(420)
              .withEndAction(() -> {
@@ -115,7 +115,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivity
  
              if (aiHint != null) {
                  aiHint.hide();
-@@ -8885,9 +8893,8 @@
+@@ -8883,9 +8891,8 @@ public class ChatActivityEnterView extends FrameLayout implements
      private void updateFieldRight(int attachVisible) {
          lastAttachVisible = attachVisible;
          nebulaComposerStyle.restoreInsets();
@@ -127,7 +127,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivity
          if (messageEditText == null || (editingMessageObject != null && !editingMessageObject.needResendWhenEdit())) {
              return;
          }
-@@ -8914,26 +8921,7 @@
+@@ -8912,26 +8919,7 @@ public class ChatActivityEnterView extends FrameLayout implements
          if (doneButton != null && doneButton.getVisibility() == VISIBLE) {
              layoutParams.rightMargin = Math.max(layoutParams.rightMargin, Math.max(0, doneButton.width() - dp(DEFAULT_HEIGHT)));
          }
@@ -155,7 +155,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivity
          if (oldRightMargin != layoutParams.rightMargin) {
              messageEditText.setLayoutParams(layoutParams);
          }
-@@ -14790,10 +14778,7 @@
+@@ -14795,10 +14783,7 @@ public class ChatActivityEnterView extends FrameLayout implements
      protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
          super.onLayout(changed, left, top, right, bottom);
          nebulaComposerStyle.layout(emojiButton, attachButton, senderSelectView, aiButton, richButton);
@@ -167,7 +167,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivity
          updateNebulaDraftTranslation();
          if (botCommandLastPosition != -1 && botCommandsMenuContainer != null) {
              LinearLayoutManager layoutManager = (LinearLayoutManager) botCommandsMenuContainer.listView.getLayoutManager();
-@@ -14806,7 +14791,6 @@
+@@ -14811,7 +14796,6 @@ public class ChatActivityEnterView extends FrameLayout implements
  
      private void beginDelayedTransition() {
          animationParamsX.put(emojiButton, emojiButton.getX());
@@ -175,7 +175,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivity
          if (messageEditText != null) {
              animationParamsX.put(messageEditText, messageEditText.getX());
          }
-@@ -14920,7 +14904,6 @@
+@@ -14925,7 +14909,6 @@ public class ChatActivityEnterView extends FrameLayout implements
          emojiButtonPaddingAlpha = progress;
          updateEmojiButtonParams();
          emojiButton.setTranslationX(-leftPadding);
@@ -183,7 +183,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivity
          messageTextPaddingTranslationX = -leftPadding - (messageEditText == null ? 0 : dp(40) + (senderSelectView != null && senderSelectView.getVisibility() == View.VISIBLE ? dp(18) : 0)) * (1f - progress);
          if (recordDeleteImageView != null) {
              recordDeleteImageView.setTranslationX(-leftPadding);
-@@ -15013,11 +14996,7 @@
+@@ -15018,11 +15001,7 @@ public class ChatActivityEnterView extends FrameLayout implements
          emojiButton.setScaleX(emojiButtonPaddingScale * emojiButtonScale);
          emojiButton.setScaleY(emojiButtonPaddingScale * emojiButtonScale);
          emojiButton.setAlpha(emojiButtonPaddingAlpha * emojiButtonAlpha);

@@ -10,7 +10,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/glass/GlassT
          return tab;
      }
  
-@@ -635,7 +635,7 @@ public class GlassTabView extends FrameLayout implements MainTabsLayout.Tab, Fac
+@@ -636,7 +636,7 @@ public class GlassTabView extends FrameLayout implements MainTabsLayout.Tab, Fac
  
      /** NebulaGram: применить настройку подписей к этой вкладке. */
      public void nebulaApplyLabel() {

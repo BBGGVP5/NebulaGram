@@ -1,7 +1,7 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/InstantCameraView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/InstantCameraView.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/InstantCameraView.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/InstantCameraView.java
-@@ -97,6 +97,7 @@
+@@ -98,6 +98,7 @@ import org.telegram.messenger.video.Mp4Movie;
  import org.telegram.tgnet.ConnectionsManager;
  import org.telegram.tgnet.TLRPC;
  import org.telegram.ui.ActionBar.Theme;
@@ -9,7 +9,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/InstantCamer
  import org.telegram.ui.Components.blur3.BlurredBackgroundDrawableViewFactory;
  import org.telegram.ui.Components.blur3.drawable.BlurredBackgroundDrawable;
  import org.telegram.ui.Components.blur3.drawable.color.BlurredBackgroundColorProvider;
-@@ -258,6 +259,7 @@
+@@ -264,6 +265,7 @@ public class InstantCameraView extends InstantCameraViewBase implements Notifica
      private boolean allowSendingWhileRecording;
  
      private final LinearLayout buttonsLayout;
@@ -17,7 +17,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/InstantCamer
      private final int buttonsSizePx;
  
  
-@@ -316,6 +318,11 @@
+@@ -322,6 +324,11 @@ public class InstantCameraView extends InstantCameraViewBase implements Notifica
  
          addView(cameraContainer, new LayoutParams(AndroidUtilities.roundPlayingMessageSize, AndroidUtilities.roundPlayingMessageSize, Gravity.CENTER));
          addView(flashViews.foregroundView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT, Gravity.FILL));
@@ -29,7 +29,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/InstantCamer
  
  
          buttonsLayout = new LinearLayout(context);
-@@ -376,6 +383,7 @@
+@@ -382,6 +389,7 @@ public class InstantCameraView extends InstantCameraViewBase implements Notifica
                      cameraContainer.setRotationY(0f);
                      textureOverlayView.setRotationY(0f);
                      flipAnimationInProgress = false;
@@ -37,7 +37,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/InstantCamer
                      invalidate();
                  }
              });
-@@ -665,6 +673,7 @@
+@@ -671,6 +679,7 @@ public class InstantCameraView extends InstantCameraViewBase implements Notifica
          if (recording) {
              cancelled = recordedTime < 800;
              recording = false;
@@ -45,7 +45,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/InstantCamer
              updateFlash();
              if (cameraThread != null) {
                  NotificationCenter.getInstance(currentAccount).postNotificationName(NotificationCenter.recordStopped, recordingGuid, cancelled ? 4 : 2);
-@@ -1012,6 +1021,7 @@
+@@ -1031,6 +1040,7 @@ public class InstantCameraView extends InstantCameraViewBase implements Notifica
          } else {
              cancelled = recordedTime < 800;
              recording = false;
@@ -53,7 +53,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/InstantCamer
              flashing = false;
              updateFlash();
              int reason;
-@@ -1071,6 +1081,7 @@
+@@ -1090,6 +1100,7 @@ public class InstantCameraView extends InstantCameraViewBase implements Notifica
          }
          cancelled = true;
          recording = false;
@@ -61,7 +61,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/InstantCamer
          flashing = false;
          updateFlash();
          NotificationCenter.getInstance(currentAccount).postNotificationName(NotificationCenter.recordStopped, recordingGuid, byGesture ? 0 : 6);
-@@ -3249,6 +3260,7 @@
+@@ -3319,6 +3330,7 @@ public class InstantCameraView extends InstantCameraViewBase implements Notifica
                      recordPlusTime = fromPause ? recordedTime : 0;
                      recordStartTime = System.currentTimeMillis();
                      recording = true;
@@ -69,7 +69,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/InstantCamer
                      updateFlash();
                      invalidate();
                      NotificationCenter.getInstance(currentAccount).postNotificationName(NotificationCenter.recordStarted, recordingGuid, false);
-@@ -3720,6 +3732,29 @@
+@@ -3791,6 +3803,29 @@ public class InstantCameraView extends InstantCameraViewBase implements Notifica
      }
  
  

@@ -329,9 +329,22 @@ public class NebulaSectionFragment extends BaseFragment {
 
         composerPreview = new NebulaComposerPreview(context);
         NebulaCard composer = new NebulaCard(context);
-        composer.add(toggle(context, R.drawable.msg_edit,
-                R.string.NebulaIosComposer, R.string.NebulaIosComposerInfo,
-                NebulaAppearance.iosComposer(), NebulaAppearance::setIosComposer));
+        // Три вида поля ввода одной строкой: переключатель с третьим состоянием
+        // врать не умеет, а выбор из списка показывает все варианты сразу.
+        String[] composerStyles = {"Telegram", NebulaText.text("Expressive", "Expressive"),
+                NebulaText.text("Кнопки", "Buttons")};
+        NebulaRow composerStyle = new NebulaRow(context).icon(R.drawable.msg_edit)
+                .title(NebulaText.text("Поле ввода", "Composer"))
+                .subtitle(NebulaComposer.title(), true).trailing(NebulaRow.TRAIL_CHEVRON);
+        composerStyle.withClick(v -> showDialog(new NebulaDialog.Builder(context)
+                .setTitle(NebulaText.text("Поле ввода", "Composer"))
+                .setSelectedIndex(NebulaComposer.style())
+                .setItems(composerStyles, (dialog, which) -> {
+                    NebulaComposer.setStyle(which);
+                    composerStyle.subtitle(NebulaComposer.title(), true);
+                    if (composerPreview != null) composerPreview.invalidate();
+                }).create()));
+        composer.add(composerStyle);
         composer.add(new NebulaRow(context).icon(R.drawable.msg_edit)
                 .title(NebulaText.text("Панель форматирования", "Formatting toolbar"))
                 .subtitle(NebulaText.text("Над полем ввода: выделите текст и выберите оформление", "Above the input field: select text, then choose a format"), false)

@@ -9,7 +9,7 @@ diff --git a/submodules/TelegramUI/Sources/ChatController.swift b/submodules/Tel
  import UrlWhitelist
  import TelegramIntents
  import TooltipUI
-@@ -6120,6 +6121,27 @@
+@@ -6128,6 +6129,27 @@
                              f(.dismissWithoutContent)
                              self?.interfaceInteraction?.beginMessageSearch(.everything, "")
                          })))

@@ -171,7 +171,7 @@ diff --git a/TMessagesProj/config/release/AndroidManifest_standalone.xml b/TMess
 diff --git a/TMessagesProj/src/main/AndroidManifest.xml b/TMessagesProj/src/main/AndroidManifest.xml
 --- a/TMessagesProj/src/main/AndroidManifest.xml
 +++ b/TMessagesProj/src/main/AndroidManifest.xml
-@@ -700,6 +700,156 @@
+@@ -712,6 +712,156 @@
              android:name="com.google.android.gms.cast.framework.OPTIONS_PROVIDER_CLASS_NAME"
              android:value="org.telegram.messenger.chromecast.ChromecastOptionsProvider" />
  

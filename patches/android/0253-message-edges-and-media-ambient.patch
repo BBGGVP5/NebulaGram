@@ -1,0 +1,41 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
+index f3d1cd8..3958b39 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
+@@ -6129,6 +6129,13 @@ public class ChatActivity extends BaseFragment implements
+ 
+             @Override
+             public boolean drawChild(Canvas canvas, View child, long drawingTime) {
++                int edgeSave = child instanceof ChatMessageCell && ((ChatMessageCell) child).getCurrentPosition() == null
++                        ? app.nebulagram.ui.NebulaMessageEdge.begin(canvas, child, this) : -1;
++                try { return nebulaDrawMessageChild(canvas, child, drawingTime); }
++                finally { if (edgeSave >= 0) canvas.restoreToCount(edgeSave); }
++            }
++
++            private boolean nebulaDrawMessageChild(Canvas canvas, View child, long drawingTime) {
+                 if (isSkeletonVisible()) {
+                     invalidated = false;
+                     invalidate();
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/PhotoViewer.java b/TMessagesProj/src/main/java/org/telegram/ui/PhotoViewer.java
+index a4b54fb..591f8c3 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/PhotoViewer.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/PhotoViewer.java
+@@ -19566,6 +19566,8 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
+     }
+ 
+     @SuppressLint({"NewApi", "DrawAllocation"})
++    private final app.nebulagram.ui.NebulaMediaAmbient nebulaAmbient = new app.nebulagram.ui.NebulaMediaAmbient();
++
+     private void onDraw(Canvas canvas) {
+         Canvas realCanvas = canvas;
+         if (BLUR_RENDERNODE()) {
+@@ -19813,6 +19815,9 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
+             canvas.drawColor(0xff000000);
+         }
+ 
++        if (animationInProgress == 0 && !pipAnimationInProgress && !isInline && currentEditMode == EDIT_MODE_NONE && scale == 1f) {
++            nebulaAmbient.draw(canvas, containerView, centerImage.getBitmap(), isCurrentVideo && videoPlayer != null && videoPlayer.isPlaying() ? videoTextureView : null);
++        }
+         sideImage = null;
+         if (currentEditMode == EDIT_MODE_NONE && sendPhotoType != SELECT_TYPE_AVATAR && sendPhotoType != SELECT_TYPE_STICKER) {
+             if (scale >= 1.0f && !zoomAnimation && !zooming) {

@@ -1,7 +1,7 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
-@@ -196,6 +196,7 @@
+@@ -196,6 +196,7 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
      private boolean glassMode;
      private boolean nebulaHomeGlass;
      private boolean nebulaHomeTabsGlass;
@@ -9,12 +9,10 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.jav
      private boolean glassOnlyBack;
      private boolean glassModeIsForum;
  
-@@ -278,6 +279,23 @@
-     public void setNebulaHomeTabsGlass(boolean enabled) {
-         nebulaHomeTabsGlass = enabled;
+@@ -280,6 +281,23 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
          invalidate();
-+    }
-+
+     }
+ 
 +    public boolean isNebulaHomeTabsGlass() {
 +        return nebulaHomeTabsGlass;
 +    }
@@ -30,10 +28,12 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.jav
 +        int height = nebulaHomeLeadingView.getMeasuredHeight();
 +        int top = additionalTop + (getCurrentActionBarHeight() - height) / 2;
 +        nebulaHomeLeadingView.layout(dp(8), top, dp(8) + width, top + height);
-     }
- 
++    }
++
      public void setupGlass(BlurredBackgroundDrawableViewFactory factory,
-@@ -455,7 +473,7 @@
+                            BlurredBackgroundColorProvider colorProvider,
+                            boolean isForum) {
+@@ -455,7 +473,7 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
      }
  
      protected boolean shouldClipChild(View child) {
@@ -42,7 +42,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.jav
      }
  
      @Override
-@@ -1654,6 +1672,7 @@
+@@ -1656,6 +1674,7 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
      @Override
      protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
          int additionalTop = occupyStatusBar ? AndroidUtilities.statusBarHeight : 0;
@@ -50,7 +50,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.jav
          if (prevWidth != getMeasuredWidth()) {
              prevWidth = getMeasuredWidth();
              checkAvatarContainerWidth(animatorAvatarContainerWidth.isAnimating());
-@@ -1729,7 +1748,7 @@
+@@ -1731,7 +1750,7 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
          int childCount = getChildCount();
          for (int i = 0; i < childCount; i++) {
              View child = getChildAt(i);
@@ -62,7 +62,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.jav
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
-@@ -3223,8 +3223,8 @@
+@@ -3225,8 +3225,8 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
              nebulaHomeEditButton.setOnClickListener(v -> presentFragment(new FiltersSetupActivity()));
              FrameLayout.LayoutParams editLayout = new FrameLayout.LayoutParams(dp(58), dp(44), Gravity.LEFT | Gravity.TOP);
              editLayout.leftMargin = dp(8);
@@ -72,7 +72,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/
          }
          actionBar.createAdditionalSubTitleOverlayContainer();
          actionBar.getAdditionalSubTitleOverlayContainer().setTranslationX(dp(4));
-@@ -13812,7 +13812,7 @@
+@@ -13860,7 +13860,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                      presentFragment(new CommunityEditActivity(bundle));
                  });
                  if (CommunityUtils.COLLAPSED_SUPPORT) {
@@ -81,7 +81,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/
                  }
              }
  
-@@ -13884,7 +13884,7 @@
+@@ -13932,7 +13932,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                  presentFragment(new ThemeActivity(ThemeActivity.THEME_TYPE_NIGHT));
              });
          });
@@ -90,7 +90,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/
          io.add(R.drawable.outline_groups_24, getString(R.string.NewGroup), () -> {
              Bundle args = new Bundle();
              presentFragment(new GroupCreateActivity(args));
-@@ -13945,13 +13945,13 @@
+@@ -13999,13 +13999,13 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                      || getMessagesController().blockedCountry && !SharedConfig.proxyList.isEmpty();
  
              if (proxyVisible) {

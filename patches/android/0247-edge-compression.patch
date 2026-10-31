@@ -1,0 +1,22 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
+@@ -2178,6 +2178,10 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+             lastTop = t;
+             scrollAdditionalOffset = 0;
+             parentPage.pageAdditionalOffset = 0;
++            // Прокрутка покрывает движение, вёрстка — первый кадр и возврат на
++            // экран. Без второго списка открывался бы с нетронутыми строками,
++            // которые сжимались бы только после первого касания.
++            app.nebulagram.ui.NebulaEdgeCompression.apply(this);
+         }
+ 
+         @Override
+@@ -4630,6 +4634,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+                     if (contentView != null) {
+                         contentView.updateBlurContent();
+                     }
++                    app.nebulagram.ui.NebulaEdgeCompression.apply(recyclerView);
+                     viewPage.dialogsItemAnimator.onListScroll(-dy);
+                     int firstVisiblePosition = -1;
+                     int lastVisiblePosition = -1;

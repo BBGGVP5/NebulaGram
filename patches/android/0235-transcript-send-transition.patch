@@ -1,7 +1,7 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
-@@ -1261,7 +1261,9 @@
+@@ -1261,7 +1261,9 @@ public class ChatActivityEnterView extends FrameLayout implements
          if (source != null) {
              nebulaVoiceSendSource = null;
              nebulaVoiceSendText = null;
@@ -12,7 +12,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivity
              setFieldText(text);
              voiceOnce = false;
          }
-@@ -4304,6 +4306,10 @@
+@@ -4302,6 +4304,10 @@ public class ChatActivityEnterView extends FrameLayout implements
      }
  
      private void resetRecordedState() {
@@ -23,7 +23,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivity
          nebulaCancelVoiceTranscription();
          if (audioTimelineView != null) {
              audioTimelineView.setPlaying(false);
-@@ -4328,7 +4334,13 @@
+@@ -4326,7 +4332,13 @@ public class ChatActivityEnterView extends FrameLayout implements
          MediaDataController.getInstance(currentAccount).pushDraftVoiceMessage(dialog_id, parentFragment != null && parentFragment.isTopic ? parentFragment.getTopicId() : 0, null);
          MediaController.getInstance().stopRecording(0, false, 0, false, 0);
          millisecondsRecorded = 0;
@@ -38,7 +38,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivity
          checkSendButton(true);
      }
  
-@@ -9158,6 +9170,14 @@
+@@ -9156,6 +9168,14 @@ public class ChatActivityEnterView extends FrameLayout implements
          }
      }
  
@@ -56,7 +56,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivity
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/recyclerview/ChatListItemAnimator.java b/TMessagesProj/src/main/java/org/telegram/ui/recyclerview/ChatListItemAnimator.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/recyclerview/ChatListItemAnimator.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/recyclerview/ChatListItemAnimator.java
-@@ -351,7 +351,8 @@
+@@ -351,7 +351,8 @@ public class ChatListItemAnimator extends DefaultItemAnimator {
          }
          if (activity != null && chatMessageCell != null && activity.animatingMessageObjects.contains(chatMessageCell.getMessageObject())) {
              activity.animatingMessageObjects.remove(chatMessageCell.getMessageObject());

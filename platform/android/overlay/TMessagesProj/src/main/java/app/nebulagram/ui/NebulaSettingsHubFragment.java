@@ -69,6 +69,8 @@ public final class NebulaSettingsHubFragment extends BaseFragment {
             case APPEARANCE:
                 card.add(section(context, R.drawable.msg_customize, "Оформление", "Appearance",
                         NebulaSectionFragment.SECTION_APPEARANCE));
+                card.add(row(context, R.drawable.msg_customize, "Форма", "Shape", "Скругления и фото профиля", "Corners and profile photos",
+                        () -> presentFragment(new NebulaShapeFragment())));
                 card.add(row(context, R.drawable.nebula_settings_app_icon, "Иконка приложения", "App icon", "Значки NebulaGram", "NebulaGram icons",
                         () -> presentFragment(new NebulaIconPickerFragment())));
                 break;

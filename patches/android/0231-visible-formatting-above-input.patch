@@ -1,7 +1,7 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
-@@ -4908,7 +4908,7 @@
+@@ -4906,7 +4906,7 @@ public class ChatActivityEnterView extends FrameLayout implements
      protected boolean drawChild(Canvas canvas, View child, long drawingTime) {
          boolean clip = child == topView || child == textFieldContainer;
          if (clip) {
@@ -10,7 +10,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivity
              canvas.save();
              if (child == textFieldContainer) {
                  // The split composer's AI row sits above the native text island.
-@@ -6044,7 +6044,7 @@
+@@ -6042,7 +6042,7 @@ public class ChatActivityEnterView extends FrameLayout implements
          if (parentFragment != null && isChat) {
              nebulaFormattingToolbar = new app.nebulagram.ui.NebulaFormattingToolbar(getContext(), messageEditText, this::requestLayout);
              addView(nebulaFormattingToolbar, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT,
@@ -19,7 +19,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivity
              nebulaDraftTranslation = new app.nebulagram.ui.NebulaDraftTranslation(parentFragment, messageEditText, this, this::setFieldText);
              aiButton.setOnLongClickListener(v -> { openNebulaTools(); return true; });
          }
-@@ -14905,8 +14905,10 @@
+@@ -14910,8 +14910,10 @@ public class ChatActivityEnterView extends FrameLayout implements
                  nebulaSupported && keyboardVisible && messageEditText != null
                  && messageEditText.getVisibility() == VISIBLE && messageEditText.isEnabled() && !isPaused);
          if (nebulaFormattingHeight != formattingHeight) {
@@ -32,7 +32,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivity
              nebulaFormattingHeight = formattingHeight;
          }
          boolean compactBotMenu = nebulaSupported && app.nebulagram.ui.NebulaAppearance.iosComposer()
-@@ -14966,6 +14968,11 @@
+@@ -14971,6 +14973,11 @@ public class ChatActivityEnterView extends FrameLayout implements
          textFieldContainer.setMinimumHeight(app.nebulagram.ui.NebulaComposerSlots.accessoryHeight(
                  nebulaComposerStyle.isActive(), shownAiButton, dp(DEFAULT_HEIGHT), dp(4)));
          super.onMeasure(widthMeasureSpec, heightMeasureSpec);
@@ -44,7 +44,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivity
  
          if (botWebViewButton != null) {
              if (botCommandsMenuButton != null) {
-@@ -15011,8 +15018,8 @@
+@@ -15016,8 +15023,8 @@ public class ChatActivityEnterView extends FrameLayout implements
          super.onLayout(changed, left, top, right, bottom);
          nebulaComposerStyle.layout(emojiButton, attachButton, senderSelectView, aiButton, richButton);
          if (nebulaFormattingToolbar != null && nebulaFormattingHeight > 0) {
@@ -55,7 +55,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivity
          }
  
  
-@@ -16065,7 +16072,7 @@
+@@ -16070,7 +16077,7 @@ public class ChatActivityEnterView extends FrameLayout implements
          final float visibility = animatorTopViewVisibility.getFloatValue();
  
          if (topView != null) {
@@ -67,7 +67,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivity
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/chat/ChatInputViewsContainer.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/chat/ChatInputViewsContainer.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/chat/ChatInputViewsContainer.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/chat/ChatInputViewsContainer.java
-@@ -211,7 +211,7 @@
+@@ -211,7 +211,7 @@ public class ChatInputViewsContainer extends FrameLayout {
  
      private float inputBubbleHeight;
      private int inputBubbleHeightRound;
@@ -76,7 +76,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/chat/ChatInp
      private int inputAccessoryHeightRound;
      public void setInputAccessoryHeight(float height) {
          int value = Math.max(0, Math.round(height));
-@@ -281,10 +281,9 @@
+@@ -281,10 +281,9 @@ public class ChatInputViewsContainer extends FrameLayout {
  
          tmpRect.set(
              Math.round(inputBubbleOffsetLeft),

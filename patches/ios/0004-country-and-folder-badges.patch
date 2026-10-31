@@ -1,7 +1,7 @@
 diff --git a/submodules/AuthorizationUI/Sources/AuthorizationSequenceCodeEntryControllerNode.swift b/submodules/AuthorizationUI/Sources/AuthorizationSequenceCodeEntryControllerNode.swift
 --- a/submodules/AuthorizationUI/Sources/AuthorizationSequenceCodeEntryControllerNode.swift
 +++ b/submodules/AuthorizationUI/Sources/AuthorizationSequenceCodeEntryControllerNode.swift
-@@ -585,7 +585,7 @@
+@@ -598,7 +598,7 @@
              self.animationNode.visibility = false
          }
          
@@ -57,7 +57,7 @@ diff --git a/submodules/AuthorizationUI/Sources/AuthorizationSequencePhoneEntryC
              context.clear(CGRect(origin: CGPoint(), size: size))
 @@ -87,7 +61,9 @@
          
-         self.countryButton = ASButtonNode()
+         self.countryButton = CountryButtonNode()
          self.countryButton.displaysAsynchronously = false
 -        self.countryButton.setBackgroundImage(countryButtonBackground, for: [])
 +        self.countryButton.clipsToBounds = true
@@ -75,7 +75,7 @@ diff --git a/submodules/AuthorizationUI/Sources/AuthorizationSequencePhoneEntryC
          self.countryButton.contentHorizontalAlignment = .left
          
          self.countryButton.addTarget(self, action: #selector(self.countryPressed), forControlEvents: .touchUpInside)
-@@ -246,11 +222,11 @@
+@@ -243,11 +219,11 @@
          let size = self.bounds.size
          let inset: CGFloat = 24.0
          
@@ -89,9 +89,9 @@ diff --git a/submodules/AuthorizationUI/Sources/AuthorizationSequencePhoneEntryC
          }
          
          let countryCodeFrame = CGRect(origin: CGPoint(x: 18.0, y: size.height - 58.0), size: CGSize(width: 71.0, height: 57.0))
-@@ -623,7 +599,7 @@
-         let inset: CGFloat = 24.0
-         let maximumWidth: CGFloat = min(430.0, layout.size.width)
+@@ -632,7 +608,7 @@
+         let bottomBandWidth: CGFloat = insetsDiffer ? layout.size.width - bottomSideInsets.left - bottomSideInsets.right : layout.size.width
+         let bottomMaximumWidth: CGFloat = min(430.0, bottomBandWidth)
          
 -        let animationSize = CGSize(width: 100.0, height: 100.0)
 +        let animationSize = CGSize(width: min(260.0, max(100.0, layout.size.width - 64.0)), height: 100.0)
@@ -118,7 +118,7 @@ diff --git a/submodules/ChatListUI/Sources/ChatListControllerNode.swift b/submod
  import UIKit
  import AsyncDisplayKit
  import Display
-@@ -1151,6 +1152,7 @@
+@@ -1152,6 +1153,7 @@
  }
  
  final class ChatListControllerNode: ASDisplayNode, ASGestureRecognizerDelegate {
@@ -126,7 +126,7 @@ diff --git a/submodules/ChatListUI/Sources/ChatListControllerNode.swift b/submod
      private let context: AccountContext
      private let location: ChatListControllerLocation
      private var presentationData: PresentationData
-@@ -1303,6 +1305,9 @@
+@@ -1304,6 +1306,9 @@
              controller.push(self.context.sharedContext.makeArchiveSettingsController(context: self.context))
          }
          
@@ -136,7 +136,7 @@ diff --git a/submodules/ChatListUI/Sources/ChatListControllerNode.swift b/submod
          self.mainContainerNode.onFilterSwitch = { [weak self] in
              if let strongSelf = self {
                  strongSelf.controller?.dismissAllUndoControllers()
-@@ -1592,7 +1597,7 @@
+@@ -1593,7 +1598,7 @@
                          case let .filter(idValue, text, unread):
                              id = AnyHashable(idValue)
                              title = HorizontalTabsComponent.Tab.Title(text: text.text, entities: text.entities, enableAnimations: text.enableAnimations)

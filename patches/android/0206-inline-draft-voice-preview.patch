@@ -1,5 +1,5 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
-index e341904..607086b 100644
+index 45f52844..e3961148 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
 @@ -1152,6 +1152,9 @@ public class ChatActivityEnterView extends FrameLayout implements
@@ -92,7 +92,7 @@ index e341904..607086b 100644
      }
  
      private android.graphics.Rect sendRect = new Rect();
-@@ -3800,8 +3854,10 @@ public class ChatActivityEnterView extends FrameLayout implements
+@@ -3798,8 +3852,10 @@ public class ChatActivityEnterView extends FrameLayout implements
          if (parentFragment != null && parentFragment.messagePreviewParams != null) {
              count += parentFragment.messagePreviewParams.getForwardedMessagesCount();
          }
@@ -105,7 +105,7 @@ index e341904..607086b 100644
              final int limit = accountInstance.getMessagesController().getMaxMessageLength();
              if (textFinal.length() != 0) {
                  count += (int) Math.ceil(textFinal.length() / (float) limit);
-@@ -7492,9 +7548,14 @@ public class ChatActivityEnterView extends FrameLayout implements
+@@ -7490,9 +7546,14 @@ public class ChatActivityEnterView extends FrameLayout implements
      }
  
      protected boolean sendMessageInternal(boolean notify, int scheduleDate, int scheduleRepeatPeriod, long payStars, boolean allowConfirm) {
@@ -120,7 +120,7 @@ index e341904..607086b 100644
              if (slowModeTimer == Integer.MAX_VALUE && !isInScheduleMode()) {
                  if (delegate != null) {
                      delegate.scrollToSendingMessage();
-@@ -7516,10 +7577,13 @@ public class ChatActivityEnterView extends FrameLayout implements
+@@ -7514,10 +7575,13 @@ public class ChatActivityEnterView extends FrameLayout implements
                  }
              }
              if (allowConfirmFinal && showConfirmAlert(() -> {
@@ -135,7 +135,7 @@ index e341904..607086b 100644
              dismissSendPreviewSent = true;
              if (videoToSendMessageObject != null) {
                  delegate.needStartRecordVideo(4, notify, scheduleDate, 0, voiceOnce ? 0x7FFFFFFF : 0, effectId, payStars);
-@@ -7640,7 +7704,11 @@ public class ChatActivityEnterView extends FrameLayout implements
+@@ -7638,7 +7702,11 @@ public class ChatActivityEnterView extends FrameLayout implements
              updateSendButtonPaid();
          };
          if (allowConfirmFinal) {

@@ -1,7 +1,7 @@
 diff --git a/submodules/TelegramUI/Sources/ChatController.swift b/submodules/TelegramUI/Sources/ChatController.swift
 --- a/submodules/TelegramUI/Sources/ChatController.swift
 +++ b/submodules/TelegramUI/Sources/ChatController.swift
-@@ -6128,12 +6128,14 @@
+@@ -6136,12 +6136,14 @@
                                  strongSelf.push(statsController)
                              })))
                          }
@@ -22,7 +22,7 @@ diff --git a/submodules/TelegramUI/Sources/ChatController.swift b/submodules/Tel
                          let aiSettings = NebulaAiSettings.shared
                          let draft = strongSelf.presentationInterfaceState.interfaceState.effectiveInputState.inputText.string
                          if aiSettings.enabled && aiSettings.isConfigured() && !draft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-@@ -6413,14 +6415,14 @@
+@@ -6421,14 +6423,14 @@
                                  }
                              })))
                          }

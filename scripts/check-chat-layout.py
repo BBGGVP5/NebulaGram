@@ -73,6 +73,7 @@ public static class MarginLayoutParams {public int width,height,leftMargin,right
 'org/telegram/messenger/AndroidUtilities.java': 'package org.telegram.messenger; public class AndroidUtilities {public static android.graphics.RectF rectTmp=new android.graphics.RectF();public static float density=1; public static int dp(float v){return (int)Math.ceil(v*density);}}',
 'app/nebulagram/ui/NebulaHeaderCounter.java': 'package app.nebulagram.ui; public class NebulaHeaderCounter {public static int backWidth(){return org.telegram.messenger.AndroidUtilities.dp(58);}}',
 'app/nebulagram/ui/NebulaAppearance.java': 'package app.nebulagram.ui; public class NebulaAppearance {public static boolean enabled=true,homeGlass,chatsTitle; public static boolean iosComposer(){return enabled;} public static boolean chatHeader(){return enabled;} public static boolean adaptiveHeader(){return true;} public static boolean centeredHeader(){return true;} public static boolean folderTitle(){return enabled;} public static boolean homeGlassHeader(){return homeGlass;} public static boolean homeChatsTitle(){return chatsTitle;}}',
+'app/nebulagram/ui/NebulaComposer.java': 'package app.nebulagram.ui; public class NebulaComposer {public static boolean field=true; public static boolean fieldSurface(){return field;}}',
 'app/nebulagram/ui/NebulaText.java': 'package app.nebulagram.ui; public class NebulaText {public static String text(String ru,String en){return ru;}}',
 'org/telegram/ui/ActionBar/ActionBar.java': 'package org.telegram.ui.ActionBar; public class ActionBar {public SimpleTextView title=new SimpleTextView();public SimpleTextView getTitleTextView(){return title;} public SimpleTextView getTitleTextView2(){return null;} public void setTitleAnimated(CharSequence text,boolean bottom,long duration,Object interpolator){title.setText(text);} public void setTitle(CharSequence text,android.graphics.drawable.Drawable icon){title.setText(text);}public void setNebulaTitle(CharSequence text,android.graphics.drawable.Drawable icon,boolean animated){setTitle(text,icon);}public void requestLayout(){} public boolean floating,hidden,savedClassic;public void setNebulaClassicSavedHeader(boolean v){savedClassic=v;}public void setNebulaFloatingChatHeader(boolean a,boolean b,boolean c){floating=a;hidden=b;}}',
 'org/telegram/ui/ActionBar/ActionBarMenuItem.java': 'package org.telegram.ui.ActionBar; public class ActionBarMenuItem {public void setIcon(android.graphics.drawable.Drawable d){}}',
@@ -244,6 +245,11 @@ check(ai.getTop()==stableTop&&expand.getTop()==stableTop,"accessory gap accumula
 ai.setVisibility(View.GONE);expand.setAlpha(0);bg.surfaces.clear();bg.alphas.clear();
 style.draw(new Canvas(),bg,root);check(bg.surfaces.size()==3,"hidden AI/expand left background");
 }
+// Вариант «Кнопки»: та же раскладка, но поле остаётся без подложки.
+bg.surfaces.clear();NebulaComposer.field=false;style.draw(new Canvas(),bg,root);
+int withoutField=bg.surfaces.size();
+bg.surfaces.clear();NebulaComposer.field=true;style.draw(new Canvas(),bg,root);
+check(bg.surfaces.size()==withoutField+1,"Buttons style must drop exactly the field surface");
 int shortHeader=NebulaChatStyle.headerWidth(w,dp(120));int longHeader=NebulaChatStyle.headerWidth(w,dp(1000));
 check(shortHeader<=longHeader&&longHeader==w-dp(58)-dp(70),"dynamic header width");
 check((w-shortHeader)/2>=dp(64)-1,"header collides with back/avatar");

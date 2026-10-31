@@ -1,7 +1,7 @@
 diff --git a/submodules/ChatListUI/Sources/ChatListController.swift b/submodules/ChatListUI/Sources/ChatListController.swift
 --- a/submodules/ChatListUI/Sources/ChatListController.swift
 +++ b/submodules/ChatListUI/Sources/ChatListController.swift
-@@ -212,6 +212,28 @@
+@@ -227,6 +227,28 @@
      private var shouldFixStorySubscriptionOrder: Bool = false
      private var fixedStorySubscriptionOrder: [EnginePeer.Id] = []
      private(set) var orderedStorySubscriptions: EngineStorySubscriptions?
@@ -30,7 +30,7 @@ diff --git a/submodules/ChatListUI/Sources/ChatListController.swift b/submodules
      private var displayedStoriesTooltip: Bool = false
      
      public var hasStorySubscriptions: Bool {
-@@ -282,6 +304,9 @@
+@@ -297,6 +319,9 @@
          )
                  
          super.init(context: context, navigationBarPresentationData: nil)
@@ -40,7 +40,7 @@ diff --git a/submodules/ChatListUI/Sources/ChatListController.swift b/submodules
          
          self.accessoryPanelContainer = ASDisplayNode()
          
-@@ -788,6 +813,7 @@
+@@ -804,6 +829,7 @@
      }
      
      deinit {
@@ -48,7 +48,7 @@ diff --git a/submodules/ChatListUI/Sources/ChatListController.swift b/submodules
          self.openMessageFromSearchDisposable.dispose()
          self.badgeDisposable?.dispose()
          self.badgeIconDisposable?.dispose()
-@@ -2210,6 +2236,7 @@
+@@ -2211,6 +2237,7 @@
                          items: items,
                          hasMoreToken: rawStorySubscriptions.hasMoreToken
                      )

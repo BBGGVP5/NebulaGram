@@ -1,7 +1,7 @@
 diff --git a/TMessagesProj_AppStandalone/src/main/java/org/telegram/messenger/SMSJobController.java b/TMessagesProj_AppStandalone/src/main/java/org/telegram/messenger/SMSJobController.java
 --- a/TMessagesProj_AppStandalone/src/main/java/org/telegram/messenger/SMSJobController.java
 +++ b/TMessagesProj_AppStandalone/src/main/java/org/telegram/messenger/SMSJobController.java
-@@ -39,24 +39,9 @@
+@@ -39,24 +39,9 @@ import java.util.List;
  
  public class SMSJobController implements NotificationCenter.NotificationCenterDelegate {
  
@@ -31,7 +31,7 @@ diff --git a/TMessagesProj_AppStandalone/src/main/java/org/telegram/messenger/SM
 diff --git a/TMessagesProj_AppStandalone/src/main/java/org/telegram/messenger/SMSJobsNotification.java b/TMessagesProj_AppStandalone/src/main/java/org/telegram/messenger/SMSJobsNotification.java
 --- a/TMessagesProj_AppStandalone/src/main/java/org/telegram/messenger/SMSJobsNotification.java
 +++ b/TMessagesProj_AppStandalone/src/main/java/org/telegram/messenger/SMSJobsNotification.java
-@@ -19,8 +19,8 @@
+@@ -19,8 +19,8 @@ import org.telegram.ui.LaunchActivity;
  
  public class SMSJobsNotification extends Service {
  
@@ -42,7 +42,7 @@ diff --git a/TMessagesProj_AppStandalone/src/main/java/org/telegram/messenger/SM
  
      public int currentAccount;
      public boolean shown;
-@@ -31,7 +31,7 @@
+@@ -31,7 +31,7 @@ public class SMSJobsNotification extends Service {
  
      public static boolean check() {
          boolean shown = false;
@@ -51,7 +51,7 @@ diff --git a/TMessagesProj_AppStandalone/src/main/java/org/telegram/messenger/SM
              shown = check(i) || shown;
          }
          return shown;
-@@ -49,24 +49,25 @@
+@@ -49,24 +49,25 @@ public class SMSJobsNotification extends Service {
              );
          }
  
@@ -86,7 +86,7 @@ diff --git a/TMessagesProj_AppStandalone/src/main/java/org/telegram/messenger/SM
          }
  
          return showNotification;
-@@ -75,6 +76,8 @@
+@@ -75,6 +76,8 @@ public class SMSJobsNotification extends Service {
      @Override
      public void onDestroy() {
          shown = false;
@@ -95,7 +95,7 @@ diff --git a/TMessagesProj_AppStandalone/src/main/java/org/telegram/messenger/SM
          super.onDestroy();
          try {
              stopForeground(true);
-@@ -94,12 +97,15 @@
+@@ -94,12 +97,15 @@ public class SMSJobsNotification extends Service {
  
      @Override
      public int onStartCommand(Intent intent, int flags, int startId) {
@@ -114,7 +114,7 @@ diff --git a/TMessagesProj_AppStandalone/src/main/java/org/telegram/messenger/SM
          shown = true;
  
          if (builder == null) {
-@@ -111,6 +117,8 @@
+@@ -111,6 +117,8 @@ public class SMSJobsNotification extends Service {
  
              Intent openIntent = new Intent(ApplicationLoader.applicationContext, LaunchActivity.class);
              openIntent.setData(Uri.parse("tg://settings/premium_sms"));

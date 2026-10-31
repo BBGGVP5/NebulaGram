@@ -1,7 +1,7 @@
 diff --git a/submodules/TelegramUI/Sources/Chat/ChatMessageActionOptions.swift b/submodules/TelegramUI/Sources/Chat/ChatMessageActionOptions.swift
 --- a/submodules/TelegramUI/Sources/Chat/ChatMessageActionOptions.swift
 +++ b/submodules/TelegramUI/Sources/Chat/ChatMessageActionOptions.swift
-@@ -305,6 +305,25 @@
+@@ -306,6 +306,25 @@
              items.append(.separator)
          }
          

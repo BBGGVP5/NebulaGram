@@ -19,8 +19,9 @@ import org.telegram.ui.Components.EditTextCaption;
 /** Source reference: Swiftgram SGInputToolbar (cf8b23be); independent native editor accessory. */
 public final class NebulaFormattingToolbar extends HorizontalScrollView {
     public static final String KEY = "formatting_toolbar";
-    public static final int HEIGHT_DP = 52;
-    public static final int GAP_DP = 4;
+    /** Ниже прежних 52: панель стоит над полем ввода и отъедает у переписки. */
+    public static final int HEIGHT_DP = 44;
+    public static final int GAP_DP = 3;
     private final EditTextCaption editor;
     private final Runnable layoutChanged;
     private final SharedPreferences.OnSharedPreferenceChangeListener preferencesChanged = (prefs, key) -> {
@@ -73,6 +74,9 @@ public final class NebulaFormattingToolbar extends HorizontalScrollView {
         add(glyph, ru, en, style, action, true);
     }
 
+    private final java.util.List<View> selectionButtons = new java.util.ArrayList<>();
+    private boolean shownEmpty = true;
+
     private void add(String glyph, String ru, String en, int style, Runnable action, boolean needsSelection) {
         TextView button = new TextView(getContext());
         button.setText(glyph);
@@ -124,6 +128,23 @@ public final class NebulaFormattingToolbar extends HorizontalScrollView {
             }
             editor.invalidate();
         });
+        if (needsSelection) selectionButtons.add(button);
+        // Отклик на касание: кнопка коротко поджимается и возвращается. Без
+        // него нажатие на плитку ничем не отличается от промаха по панели.
+        button.setOnTouchListener((view, event) -> {
+            switch (event.getActionMasked()) {
+                case android.view.MotionEvent.ACTION_DOWN:
+                    if (view.isEnabled()) view.animate().scaleX(.88f).scaleY(.88f).setDuration(70).start();
+                    break;
+                case android.view.MotionEvent.ACTION_UP:
+                case android.view.MotionEvent.ACTION_CANCEL:
+                    view.animate().scaleX(1f).scaleY(1f).setDuration(110).start();
+                    break;
+                default:
+                    break;
+            }
+            return false; // жест остаётся у onClick и ряби
+        });
         LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(AndroidUtilities.dp(44), -1);
         // 39dp visual tile + 5dp touch inset + 7dp gap = Swiftgram's 12dp visual spacing.
         params.setMarginEnd(AndroidUtilities.dp(row.getChildCount() == 1 ? 19 : 7));
@@ -172,8 +193,27 @@ public final class NebulaFormattingToolbar extends HorizontalScrollView {
                 reveal.start();
             }
         }
-        if (visible) updatePalette();
+        if (visible) { updatePalette(); refreshState(); }
         return reservedHeight;
+    }
+
+    /**
+     * Гасит кнопки, которым нечего форматировать.
+     *
+     * <p>Состояние форматов панель не показывает намеренно: подсветка на
+     * одиннадцати плитках спорит за внимание с самим текстом, который в этот
+     * момент и пишут. Доступность — другое дело: кнопка, молчащая на нажатие,
+     * выглядит сломанной.
+     */
+    private void refreshState() {
+        final CharSequence text = editor.getText();
+        final boolean empty = text == null || text.length() == 0;
+        if (empty == shownEmpty) return;
+        shownEmpty = empty;
+        for (int i = 0; i < selectionButtons.size(); i++) {
+            selectionButtons.get(i).setEnabled(!empty);
+            selectionButtons.get(i).setAlpha(empty ? .45f : 1f);
+        }
     }
 
     private void updatePalette() {
@@ -193,7 +233,9 @@ public final class NebulaFormattingToolbar extends HorizontalScrollView {
             View button = row.getChildAt(i);
             if (button instanceof TextView) ((TextView) button).setTextColor(ink);
             else ((ImageView) button).setColorFilter(ink);
-            GradientDrawable tile = new GradientDrawable();tile.setColor(chip);tile.setCornerRadius(AndroidUtilities.dp(11));
+            GradientDrawable tile = new GradientDrawable();
+            tile.setColor(chip);
+            tile.setCornerRadius(NebulaShape.radius(11));
             button.setBackground(new android.graphics.drawable.RippleDrawable(
                     android.content.res.ColorStateList.valueOf(NebulaTheme.stateLayer(ink,.1f)),
                     new InsetDrawable(tile, AndroidUtilities.dp(2.5f)),null));
@@ -212,10 +254,18 @@ public final class NebulaFormattingToolbar extends HorizontalScrollView {
                 Math.round(android.graphics.Color.blue(base) * (1 - fraction) + android.graphics.Color.blue(ink) * fraction));
     }
 
+    private final android.text.TextWatcher emptiness = new android.text.TextWatcher() {
+        @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) { }
+        @Override public void onTextChanged(CharSequence s, int start, int before, int count) { }
+        @Override public void afterTextChanged(android.text.Editable s) { refreshState(); }
+    };
+
     private void refreshPreference() { preferenceEnabled = enabled(); layoutChanged.run(); }
     @Override protected void onAttachedToWindow() {
         super.onAttachedToWindow();
         preferences().registerOnSharedPreferenceChangeListener(preferencesChanged);
+        editor.addTextChangedListener(emptiness);
+        refreshState();
         refreshPreference();
     }
     @Override protected void onDetachedFromWindow() {
@@ -225,6 +275,7 @@ public final class NebulaFormattingToolbar extends HorizontalScrollView {
         setAlpha(0f);
         setVisibility(GONE);
         preferences().unregisterOnSharedPreferenceChangeListener(preferencesChanged);
+        editor.removeTextChangedListener(emptiness);
         super.onDetachedFromWindow();
     }
 }

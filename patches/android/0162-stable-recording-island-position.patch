@@ -1,8 +1,8 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
-index 8cfb9b9..71abc86 100644
+index b975caf8..7f70ee4f 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
-@@ -18398,21 +18398,23 @@ public class ChatActivity extends BaseFragment implements
+@@ -18645,21 +18645,23 @@ public class ChatActivity extends BaseFragment implements
                      }
                  }
  
@@ -39,7 +39,7 @@ index 8cfb9b9..71abc86 100644
  
              if (scrimView != null || messageEnterTransitionContainer.isRunning()) {
                  if (mentionContainer == null || mentionContainer.getVisibility() != View.VISIBLE) {
-@@ -33137,6 +33139,21 @@ public class ChatActivity extends BaseFragment implements
+@@ -33436,6 +33438,21 @@ public class ChatActivity extends BaseFragment implements
                  }
              });
              scrimViewAlphaAnimator.setDuration(150);
@@ -62,10 +62,10 @@ index 8cfb9b9..71abc86 100644
          }
      }
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
-index f87a89c..d715f06 100644
+index ca14ac43..003da56d 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
-@@ -14589,6 +14589,12 @@ public class ChatActivityEnterView extends FrameLayout implements
+@@ -14594,6 +14594,12 @@ public class ChatActivityEnterView extends FrameLayout implements
                  && MeasureSpec.getSize(widthMeasureSpec) >= dp(260);
          nebulaComposerStyle.setRecordingPanels(recordPanel, recordedAudioPanel, nebulaRecordingSupported);
          boolean nebulaRecordingIslands = nebulaRecordingSupported && app.nebulagram.ui.NebulaAppearance.iosComposer();

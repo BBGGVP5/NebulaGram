@@ -1,6 +1,8 @@
 package app.nebulagram.ui;
 
+import android.content.Context;
 import android.os.Bundle;
+import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import org.telegram.messenger.AndroidUtilities;
@@ -20,7 +22,7 @@ public final class NebulaFeatureControls {
     }
     private static void add(LinearLayout parent, NebulaCard card) {
         LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        params.topMargin = AndroidUtilities.dp(12);
+        params.topMargin = NebulaShape.gap(12);
         parent.addView(card, params);
     }
     public static void general(BaseFragment host, LinearLayout parent) {
@@ -59,11 +61,68 @@ public final class NebulaFeatureControls {
         add(parent, card);
     }
     public static void appearance(LinearLayout parent) {
-        NebulaCard card = new NebulaCard(parent.getContext());
+        Context context = parent.getContext();
+        NebulaCard media = new NebulaCard(context);
+        if (android.os.Build.VERSION.SDK_INT >= 31) media.add(toggle(parent, "material_home_header", "Шапка Material 3", "Material 3 header", "Размытый фон без преломления и скруглённый нижний край", "Blurred background without refraction and rounded bottom corners"));
+        media.add(toggle(parent, "message_text_fade", "Появление текста", "Text appearance", "Короткое затухание при появлении и обновлении текста", "A short fade when message text appears or changes"));
+        media.add(toggle(parent, "media_ambient", "Свечение медиа", "Ambient media", "Мягкий цветной свет вокруг фото и видео в просмотрщике", "Soft image and video colours in the viewer background"));
+        if (android.os.Build.VERSION.SDK_INT >= 33) media.add(toggle(parent, "message_edge_compression", "Сжатие сообщений у краёв", "Message edge compression", "Для отдельных сообщений; альбомы и активные анимации не меняются", "Individual messages; albums and active animations are unchanged"));
+        if (NebulaTheme.supportsDynamic()) {
+            NebulaRow palette = new NebulaRow(context).title(text("Палитра Monet", "Monet palette")).subtitle(NebulaMonetPalette.names()[NebulaMonetPalette.selected()], true).trailing(NebulaRow.TRAIL_CHEVRON);
+            palette.withClick(v -> new NebulaDialog.Builder(context).setTitle(text("Палитра Monet", "Monet palette"))
+                .setSelectedIndex(NebulaMonetPalette.selected()).setItems(NebulaMonetPalette.names(), (d, index) -> {
+                    NebulaMonetPalette.select(index); NebulaTheme.applyMaterialYou(context);
+                    org.telegram.ui.ActionBar.Theme.reloadAllResources(context);
+                    palette.subtitle(NebulaMonetPalette.names()[index], true);
+                }).show()); media.add(palette);
+            media.add(new NebulaRow(context).title(text("Палитра применяется при включённом Material You", "Palette applies when Material You is enabled")));
+        }
+        add(parent, media);
+        NebulaCard motion = new NebulaCard(context);
+        NebulaRow style = new NebulaRow(context).title(text("Анимация", "Animation"))
+                .subtitle(NebulaMotion.title(), true).trailing(NebulaRow.TRAIL_CHEVRON);
+        String[] names = {text("Стандарт", "Standard"), "Expressive"};
+        style.withClick(v -> new NebulaDialog.Builder(context).setTitle(text("Анимация", "Animation"))
+                .setSelectedIndex(NebulaMotion.expressive() ? 1 : 0)
+                .setItems(names, (dialog, which) -> {
+                    NebulaMotion.setExpressive(which == 1);
+                    style.subtitle(NebulaMotion.title(), true);
+                }).show());
+        motion.add(style);
+        add(parent, motion);
+        parent.addView(NebulaFormUi.note(context, text(
+                "Expressive — лёгкий перелёт и возврат, как сейчас. Стандарт — то же время и те же границы, но затухание без перелёта.",
+                "Expressive overshoots slightly and settles back, as it does today. Standard keeps the same duration and bounds, but eases out without the overshoot.")));
+        NebulaCard list = new NebulaCard(context);
+        NebulaRow cards = new NebulaRow(context).title(text("Список чатов", "Chat list"))
+                .subtitle(text("Каждый чат своей карточкой", "Each chat on its own card"), false)
+                .trailing(NebulaRow.TRAIL_SWITCH).checked(NebulaChatCards.enabled());
+        cards.withClick(v -> {
+            NebulaChatCards.setEnabled(cards.toggleChecked());
+            org.telegram.messenger.NotificationCenter.getGlobalInstance()
+                    .postNotificationName(org.telegram.messenger.NotificationCenter.mainUserInfoChanged);
+        });
+        list.add(cards);
+        NebulaRow tabs = new NebulaRow(context).title(text("Вкладки профиля", "Profile tabs"))
+                .subtitle(text("Отдельные кнопки вместо общей полосы", "Separate buttons instead of one strip"), false)
+                .trailing(NebulaRow.TRAIL_SWITCH).checked(NebulaTabButtons.enabled());
+        tabs.withClick(v -> NebulaTabButtons.setEnabled(tabs.toggleChecked()));
+        list.add(tabs);
+        NebulaRow edges = new NebulaRow(context).title(text("Сжатие у краёв", "Edge compression"))
+                .subtitle(text("Чаты плавно уходят за верхний край", "Chats slide away past the top edge"), false)
+                .trailing(NebulaRow.TRAIL_SWITCH).checked(NebulaEdgeCompression.enabled());
+        edges.withClick(v -> NebulaEdgeCompression.setEnabled(edges.toggleChecked()));
+        list.add(edges);
+        add(parent, list);
+        NebulaCard card = new NebulaCard(context);
         card.add(toggle(parent, "snowflakes", "Снежинки", "Snowflakes", "В списке чатов и переписках; отключаются при экономии энергии", "In the chat list and conversations; pauses in power-saving mode"));
         add(parent, card);
     }
     public static void chats(BaseFragment host, LinearLayout parent) {
+        NebulaCard additions = new NebulaCard(parent.getContext());
+        additions.add(toggle(parent, "unlimited_selection", "Выделение без лимита 100", "Unlimited selection", "Для обычного чата; ограничения Telegram на действия сохраняются", "For normal chats; Telegram action limits still apply"));
+        additions.add(toggle(parent, "slowmode_queue", "Очередь медленного режима", "Slow mode queue", "Текст ставится в отложенные сообщения с интервалом чата", "Text is scheduled using the chat's slow mode interval"));
+        add(parent, additions);
         NebulaCard card = new NebulaCard(parent.getContext());
         card.add(toggle(parent, "custom_chat_wallpaper", "Фон отдельных чатов", "Per-chat wallpaper", "Показывать обои, установленные для отдельных переписок", "Show wallpaper set for individual conversations"));
         card.add(toggle(parent, "quote_full_reply", "Цитировать ответы", "Quote replies", "Цитировать текст сообщения в пределах лимита Telegram. Не работает в топиках", "Quote the message text up to Telegram's limit. Unavailable in topics"));
@@ -89,8 +148,71 @@ public final class NebulaFeatureControls {
         card.add(new NebulaRow(parent.getContext()).title(text("Действия свайпа", "Swipe actions"))
             .subtitle(text("Ответ, копирование, перевод и инструменты; настройте порядок", "Reply, copy, translation and tools; set their order"), false)
             .trailing(NebulaRow.TRAIL_CHEVRON).withClick(v -> host.presentFragment(new NebulaSwipeSettingsFragment())));
+        String[] effects = {text("Нет", "None"), text("Пыль", "Dust")};
+        NebulaRow deletion = new NebulaRow(parent.getContext()).title(text("Эффект удаления", "Deletion effect"))
+                .subtitle(NebulaDeleteEffect.title(), true).trailing(NebulaRow.TRAIL_CHEVRON);
+        deletion.withClick(v -> host.showDialog(new NebulaDialog.Builder(parent.getContext())
+                .setTitle(text("Эффект удаления", "Deletion effect"))
+                .setSelectedIndex(NebulaDeleteEffect.style())
+                .setItems(effects, (dialog, which) -> {
+                    NebulaDeleteEffect.setStyle(which);
+                    deletion.subtitle(NebulaDeleteEffect.title(), true);
+                }).create()));
+        card.add(deletion);
         NebulaPeerSelections.savedRow(host, card);
         add(parent, card);
+        parent.addView(NebulaFormUi.note(parent.getContext(), text(
+                "«Пыль» отменяет флаг экономии энергии Telegram, который гасит распыление заодно с другими анимациями. Проверка устройства остаётся: эффект считается на видеоускорителе и включается только там, где он есть.",
+                "Dust overrides Telegram's power-saving flag, which turns the effect off along with other animations. The device check stays: the effect runs on the GPU and only appears where that is available.")));
+        stickerSize(parent);
+    }
+
+    /** Размеры медиа — с превью: по одному проценту трудно представить итог. */
+    private static void stickerSize(LinearLayout parent) {
+        Context context = parent.getContext();
+        parent.addView(NebulaCard.header(context, text("Размер стикеров, эмодзи и GIF", "Sticker, emoji and GIF size")));
+        NebulaCard card = new NebulaCard(context);
+        NebulaMediaSizePreview preview = new NebulaMediaSizePreview(context);
+        card.add(preview);
+        card.add(sizeSlider(context, preview, text("Стикеры", "Stickers"),
+                NebulaMediaSize.stickerPercent(), NebulaMediaSize::setStickerPercent));
+        card.add(sizeSlider(context, preview, text("Анимированные эмодзи", "Animated emoji"),
+                NebulaMediaSize.emojiPercent(), NebulaMediaSize::setEmojiPercent));
+        card.add(sizeSlider(context, preview, "GIF",
+                NebulaMediaSize.gifPercent(), NebulaMediaSize::setGifPercent));
+        add(parent, card);
+        parent.addView(NebulaFormUi.note(context, text(
+                "Множится доля экрана, а не пиксели, поэтому размер одинаков на телефоне и планшете. У GIF свой ползунок, но Telegram не даёт им стать меньше его собственного предела: иначе поверх гифки не помещаются время и проценты загрузки.",
+                "This scales the share of the screen rather than pixels, so sizes match on a phone and a tablet. GIFs have their own slider, but Telegram keeps a floor under them: below it the time and loading percentage no longer fit on top.")));
+    }
+
+    private interface Percent { void set(int value); }
+
+    private static View sizeSlider(Context context, View preview, String title, int value, Percent apply) {
+        LinearLayout column = new LinearLayout(context);
+        column.setOrientation(LinearLayout.VERTICAL);
+        android.widget.TextView label = new android.widget.TextView(context);
+        label.setText(title);
+        label.setTextSize(15);
+        label.setTextColor(NebulaTheme.of(context).onSurface());
+        label.setPadding(AndroidUtilities.dp(20), AndroidUtilities.dp(12), AndroidUtilities.dp(20), 0);
+        column.addView(label);
+        android.widget.SeekBar slider = new android.widget.SeekBar(context);
+        slider.setMax(NebulaMediaSize.maximum() - NebulaMediaSize.minimum());
+        slider.setProgress(value - NebulaMediaSize.minimum());
+        slider.setPadding(AndroidUtilities.dp(20), AndroidUtilities.dp(4),
+                AndroidUtilities.dp(20), AndroidUtilities.dp(10));
+        slider.setOnSeekBarChangeListener(new android.widget.SeekBar.OnSeekBarChangeListener() {
+            @Override public void onProgressChanged(android.widget.SeekBar bar, int progress, boolean fromUser) {
+                if (!fromUser) return;
+                apply.set(NebulaMediaSize.minimum() + progress);
+                preview.invalidate();
+            }
+            @Override public void onStartTrackingTouch(android.widget.SeekBar bar) { }
+            @Override public void onStopTrackingTouch(android.widget.SeekBar bar) { }
+        });
+        column.addView(slider);
+        return column;
     }
     public static void privacy(BaseFragment host, LinearLayout parent) {
         NebulaCard card = new NebulaCard(parent.getContext());

@@ -1,0 +1,30 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarContainer.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarContainer.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarContainer.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarContainer.java
+@@ -850,6 +850,8 @@
+         // Бегущая строка — родной механизм Telegram для этого случая.
+         titleTextView.setScrollNonFitText(enabled);
+         if (subtitleTextView != null) {
++            // Native END ellipsis reserves the status icon and keeps the start visible.
++            subtitleTextView.setEllipsizeByGradient(!enabled);
+             subtitleTextView.setGravity(enabled && app.nebulagram.ui.NebulaAppearance.chatHeader() ? Gravity.CENTER_HORIZONTAL : Gravity.LEFT);
+             subtitleTextView.setPadding(0, 0, enabled ? 0 : dp(10), 0);
+         }
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/SimpleTextView.java b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/SimpleTextView.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/SimpleTextView.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/SimpleTextView.java
+@@ -241,12 +241,13 @@
+     }
+ 
+     public void setEllipsizeByGradient(boolean value, Boolean forceLeft) {
+-        if (scrollNonFitText == value) {
++        if (ellipsizeByGradient == value && forceEllipsizeByGradientLeft == forceLeft) {
+             return;
+         }
+         ellipsizeByGradient = value;
+         this.forceEllipsizeByGradientLeft = forceLeft;
+         updateFadePaints();
++        requestLayout();
+         checkUi_layerType();
+     }
+ 

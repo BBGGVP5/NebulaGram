@@ -1,15 +1,17 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
-@@ -11508,5 +11508,4 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+@@ -11569,8 +11569,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+                 } else {
+                     // Р—РЅР°С‡РѕРє РїРѕРґРґРµСЂР¶Р°РІС€РµРіРѕ РґРѕРїРёСЃС‹РІР°РµС‚СЃСЏ Рє РёРјРµРЅРё СЃРїР°РЅРѕРј: СЃРїСЂР°РІР° РѕС‚
+                     // РёРјРµРЅРё Р¶РёРІСѓС‚ РѕС‚РјРµС‚РєР° РїСЂРѕРІРµСЂРµРЅРЅРѕРіРѕ Р°РєРєР°СѓРЅС‚Р° Рё СЌРјРѕРґР·Рё-СЃС‚Р°С‚СѓСЃ.
 -                    nameTextView[a].setText(app.nebulagram.ui.NebulaBadges.decorate(
 -                            newString, user.id, nameTextView[a].getTextPaint(), nameTextView[a]));
 +                    nameTextView[a].setText(newString);
                      nameTextView[a].setOnClickListener(v -> app.nebulagram.ui.NebulaBadges.showInfo(this, user.id));
                  }
                  if (a == 0 && onlineTextOverride != null) {
-@@ -11591,6 +11590,8 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
-                     } else {
+@@ -11646,6 +11645,8 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                          nameTextView[a].setRightDrawable(null);
                      }
                  }

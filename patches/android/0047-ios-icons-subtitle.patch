@@ -1,7 +1,7 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/ApplicationLoader.java b/TMessagesProj/src/main/java/org/telegram/messenger/ApplicationLoader.java
 --- a/TMessagesProj/src/main/java/org/telegram/messenger/ApplicationLoader.java
 +++ b/TMessagesProj/src/main/java/org/telegram/messenger/ApplicationLoader.java
-@@ -49,6 +49,14 @@ import java.io.File;
+@@ -50,6 +50,14 @@ import java.io.File;
  import java.util.Locale;
  
  public class ApplicationLoader extends Application {
@@ -98,7 +98,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/glass/GlassT
          final boolean isSelected = isSelectedAnimator.getValue();
  
          if (tabAnimationBot !=  null) {
-@@ -640,6 +650,7 @@ public class GlassTabView extends FrameLayout implements MainTabsLayout.Tab, Fac
+@@ -641,6 +651,7 @@ public class GlassTabView extends FrameLayout implements MainTabsLayout.Tab, Fac
  
      /** NebulaGram: применить настройку подписей к этой вкладке. */
      public void nebulaApplyLabel() {
@@ -109,7 +109,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/glass/GlassT
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/LaunchActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/LaunchActivity.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/LaunchActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/LaunchActivity.java
-@@ -257,6 +257,14 @@ import java.util.zip.ZipEntry;
+@@ -261,6 +261,14 @@ import java.util.zip.ZipEntry;
  import java.util.zip.ZipInputStream;
  
  public class LaunchActivity extends BasePermissionsActivity implements INavigationLayout.INavigationLayoutDelegate, NotificationCenter.NotificationCenterDelegate, DialogsActivity.DialogsActivityDelegate, IPipActivity {

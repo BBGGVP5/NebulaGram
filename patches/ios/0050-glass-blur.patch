@@ -1,7 +1,7 @@
 diff --git a/submodules/TelegramUI/Components/GlassBackgroundComponent/Sources/GlassBackgroundComponent.swift b/submodules/TelegramUI/Components/GlassBackgroundComponent/Sources/GlassBackgroundComponent.swift
 --- a/submodules/TelegramUI/Components/GlassBackgroundComponent/Sources/GlassBackgroundComponent.swift
 +++ b/submodules/TelegramUI/Components/GlassBackgroundComponent/Sources/GlassBackgroundComponent.swift
-@@ -915,6 +915,7 @@
+@@ -959,6 +959,7 @@
              nebulaMaterial.frame = CGRect(origin: .zero, size: size)
              nebulaMaterialClip.update(shape: shape, size: size, transition: transition)
              let state = NebulaGlassMaterialState(style: nebulaStyle, tint: NebulaSettingsStore.shared.iosGlassTint,

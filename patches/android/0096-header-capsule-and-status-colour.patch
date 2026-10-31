@@ -34,7 +34,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.jav
          if (actionBarColor == 0 || glassMode) {
              NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.needCheckSystemBarColors);
          } else if (ColorUtils.calculateLuminance(actionBarColor) < 0.7f) {
-@@ -2444,13 +2456,23 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
+@@ -2455,13 +2467,23 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
              final int widthDefault = rightDefault - leftDefault;
              final int left, right;
              final ChatAvatarContainer centeredNebulaAvatar = nebulaFloatingChatHeader

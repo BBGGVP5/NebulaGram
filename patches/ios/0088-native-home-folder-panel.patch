@@ -1,7 +1,7 @@
 diff --git a/submodules/ChatListUI/Sources/ChatListController.swift b/submodules/ChatListUI/Sources/ChatListController.swift
 --- a/submodules/ChatListUI/Sources/ChatListController.swift
 +++ b/submodules/ChatListUI/Sources/ChatListController.swift
-@@ -779,7 +779,7 @@
+@@ -795,7 +795,7 @@
                      return
                  }
                  
@@ -10,7 +10,7 @@ diff --git a/submodules/ChatListUI/Sources/ChatListController.swift b/submodules
                      tabsView.updateTabSwitchFraction(fraction: fraction, isDragging: strongSelf.chatListDisplayNode.mainContainerNode.isSwitchingCurrentItemFilterByDragging, transition: ComponentTransition(transition))
                  }
              }
-@@ -3699,7 +3699,7 @@
+@@ -3696,7 +3696,7 @@
          let _ = defaultFilterIds
          
          var reorderedFilterIdsValue: [Int32]?
@@ -22,7 +22,7 @@ diff --git a/submodules/ChatListUI/Sources/ChatListController.swift b/submodules
 diff --git a/submodules/ChatListUI/Sources/ChatListControllerNode.swift b/submodules/ChatListUI/Sources/ChatListControllerNode.swift
 --- a/submodules/ChatListUI/Sources/ChatListControllerNode.swift
 +++ b/submodules/ChatListUI/Sources/ChatListControllerNode.swift
-@@ -1183,6 +1183,14 @@
+@@ -1184,6 +1184,14 @@
      private var tapRecognizer: UITapGestureRecognizer?
      var navigationBar: NavigationBar?
      let navigationBarView = ComponentView<Empty>()
@@ -37,7 +37,7 @@ diff --git a/submodules/ChatListUI/Sources/ChatListControllerNode.swift b/submod
      weak var controller: ChatListControllerImpl?
      
      private var toolbar: ComponentView<Empty>?
-@@ -1556,6 +1564,10 @@
+@@ -1557,6 +1565,10 @@
          }
          
          var navigationHeaderPanels: AnyComponent<Empty>?
@@ -48,7 +48,7 @@ diff --git a/submodules/ChatListUI/Sources/ChatListControllerNode.swift b/submod
          if self.controller?.tabContainerData != nil || !panels.isEmpty {
              var tabs: AnyComponent<Empty>?
              if let tabContainerData = self.controller?.tabContainerData, tabContainerData.0.count > 1 {
-@@ -1593,7 +1605,7 @@
+@@ -1594,7 +1606,7 @@
                      theme: self.presentationData.theme,
                      tabs: tabContainerData.0.map { entry -> HorizontalTabsComponent.Tab in
                          let id: HorizontalTabsComponent.Tab.Id
@@ -57,7 +57,7 @@ diff --git a/submodules/ChatListUI/Sources/ChatListControllerNode.swift b/submod
                          var badge: HorizontalTabsComponent.Tab.Badge?
                          var isMainTab = false
                          switch entry {
-@@ -1612,6 +1624,8 @@
+@@ -1613,6 +1625,8 @@
                              }
                          }
                          
@@ -66,7 +66,7 @@ diff --git a/submodules/ChatListUI/Sources/ChatListControllerNode.swift b/submod
                          return HorizontalTabsComponent.Tab(
                              id: id,
                              content: .title(title),
-@@ -1691,17 +1705,44 @@
+@@ -1692,17 +1706,44 @@
                      },
                      selectedTab: selectedTab,
                      isEditing: isEditing,
@@ -82,8 +82,6 @@ diff --git a/submodules/ChatListUI/Sources/ChatListControllerNode.swift b/submod
 -                tabs: tabs,
 -                panels: panels
 -            ))
--        }
--        
 +            if foldersAtBottom, let tabs {
 +                bottomFolderComponent = AnyComponent(HeaderPanelContainerComponent(theme: self.presentationData.theme,
 +                    nebulaPanelStyle: NebulaSettingsStore.shared.folderPanelStyle, tabs: tabs, panels: []))
@@ -96,7 +94,8 @@ diff --git a/submodules/ChatListUI/Sources/ChatListControllerNode.swift b/submod
 +                    panels: panels
 +                ))
 +            }
-+        }
+         }
+-        
 +
 +        if let bottomFolderComponent {
 +            let bottomSize = self.nebulaBottomFolders.update(transition: transition, component: bottomFolderComponent,
@@ -119,7 +118,7 @@ diff --git a/submodules/ChatListUI/Sources/ChatListControllerNode.swift b/submod
          var effectiveStorySubscriptions: EngineStorySubscriptions?
          if let controller = self.controller, case .forum = controller.location {
              effectiveStorySubscriptions = nil
-@@ -2002,6 +2043,7 @@
+@@ -2026,6 +2067,7 @@
          var mainNavigationBarHeight = navigationBarHeight
          var cleanMainNavigationBarHeight = cleanNavigationBarHeight
          var mainInsets = insets

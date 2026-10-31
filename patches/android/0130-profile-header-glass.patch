@@ -1,5 +1,5 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
-index bfc1fd6..31caa64 100644
+index ced3dd30..a7dacdfb 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
 @@ -764,6 +764,10 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
@@ -14,10 +14,10 @@ index bfc1fd6..31caa64 100644
          return menu;
      }
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
-index 432225a..37ad8b3 100644
+index 67a617e5..82ab799a 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
-@@ -3513,6 +3513,12 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+@@ -3535,6 +3535,12 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
          viewPositionWatcher = new ViewPositionWatcher(fragmentView);
          iBlur3FactoryLiquidGlass.setSourceRootView(viewPositionWatcher, (ViewGroup) fragmentView);
          scrimBlur3Factory.setSourceRootView(viewPositionWatcher, (ViewGroup) fragmentView);

@@ -1,1152 +1,7 @@
-diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/AccountInstance.java b/TMessagesProj/src/main/java/org/telegram/messenger/AccountInstance.java
---- a/TMessagesProj/src/main/java/org/telegram/messenger/AccountInstance.java
-+++ b/TMessagesProj/src/main/java/org/telegram/messenger/AccountInstance.java
-@@ -8,18 +8,9 @@
- public class AccountInstance {
- 
-     private int currentAccount;
--    private static volatile AccountInstance[] Instance = new AccountInstance[UserConfig.MAX_ACCOUNT_COUNT];
-+    private static final org.telegram.messenger.AccountInstanceRegistry<AccountInstance> Instance = new org.telegram.messenger.AccountInstanceRegistry<>();
-     public static AccountInstance getInstance(int num) {
--        AccountInstance localInstance = Instance[num];
--        if (localInstance == null) {
--            synchronized (AccountInstance.class) {
--                localInstance = Instance[num];
--                if (localInstance == null) {
--                    Instance[num] = localInstance = new AccountInstance(num);
--                }
--            }
--        }
--        return localInstance;
-+        return Instance.get(num, AccountInstance::new);
-     }
- 
-     public AccountInstance(int instance) {
-diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/BirthdayController.java b/TMessagesProj/src/main/java/org/telegram/messenger/BirthdayController.java
---- a/TMessagesProj/src/main/java/org/telegram/messenger/BirthdayController.java
-+++ b/TMessagesProj/src/main/java/org/telegram/messenger/BirthdayController.java
-@@ -18,25 +18,11 @@
- 
- public class BirthdayController {
- 
--    private static volatile BirthdayController[] Instance = new BirthdayController[UserConfig.MAX_ACCOUNT_COUNT];
--    private static final Object[] lockObjects = new Object[UserConfig.MAX_ACCOUNT_COUNT];
--    static {
--        for (int i = 0; i < UserConfig.MAX_ACCOUNT_COUNT; i++) {
--            lockObjects[i] = new Object();
--        }
--    }
-+    private static final org.telegram.messenger.AccountInstanceRegistry<BirthdayController> Instance = new org.telegram.messenger.AccountInstanceRegistry<>();
-+
- 
-     public static BirthdayController getInstance(int num) {
--        BirthdayController localInstance = Instance[num];
--        if (localInstance == null) {
--            synchronized (lockObjects[num]) {
--                localInstance = Instance[num];
--                if (localInstance == null) {
--                    Instance[num] = localInstance = new BirthdayController(num);
--                }
--            }
--        }
--        return localInstance;
-+        return Instance.get(num, BirthdayController::new);
-     }
- 
-     private final int currentAccount;
-diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/BotForumHelper.java b/TMessagesProj/src/main/java/org/telegram/messenger/BotForumHelper.java
---- a/TMessagesProj/src/main/java/org/telegram/messenger/BotForumHelper.java
-+++ b/TMessagesProj/src/main/java/org/telegram/messenger/BotForumHelper.java
-@@ -632,18 +632,9 @@
-         preferences = ApplicationLoader.applicationContext.getSharedPreferences("bot_drafts" + currentAccount, Activity.MODE_PRIVATE);
-     }
- 
--    private static volatile BotForumHelper[] Instance = new BotForumHelper[UserConfig.MAX_ACCOUNT_COUNT];
-+    private static final org.telegram.messenger.AccountInstanceRegistry<BotForumHelper> Instance = new org.telegram.messenger.AccountInstanceRegistry<>();
-     public static BotForumHelper getInstance(final int num) {
--        BotForumHelper localInstance = Instance[num];
--        if (localInstance == null) {
--            synchronized (BotForumHelper.class) {
--                localInstance = Instance[num];
--                if (localInstance == null) {
--                    Instance[num] = localInstance = new BotForumHelper(num);
--                }
--            }
--        }
--        return localInstance;
-+        return Instance.get(num, BotForumHelper::new);
-     }
- 
- 
-diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/BotGuardHelper.java b/TMessagesProj/src/main/java/org/telegram/messenger/BotGuardHelper.java
---- a/TMessagesProj/src/main/java/org/telegram/messenger/BotGuardHelper.java
-+++ b/TMessagesProj/src/main/java/org/telegram/messenger/BotGuardHelper.java
-@@ -102,17 +102,8 @@
- 
- 
- 
--    private static volatile BotGuardHelper[] Instance = new BotGuardHelper[UserConfig.MAX_ACCOUNT_COUNT];
-+    private static final org.telegram.messenger.AccountInstanceRegistry<BotGuardHelper> Instance = new org.telegram.messenger.AccountInstanceRegistry<>();
-     public static BotGuardHelper getInstance(final int num) {
--        BotGuardHelper localInstance = Instance[num];
--        if (localInstance == null) {
--            synchronized (BotForumHelper.class) {
--                localInstance = Instance[num];
--                if (localInstance == null) {
--                    Instance[num] = localInstance = new BotGuardHelper(num);
--                }
--            }
--        }
--        return localInstance;
-+        return Instance.get(num, BotGuardHelper::new);
-     }
- }
-diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/ChatThemeController.java b/TMessagesProj/src/main/java/org/telegram/messenger/ChatThemeController.java
---- a/TMessagesProj/src/main/java/org/telegram/messenger/ChatThemeController.java
-+++ b/TMessagesProj/src/main/java/org/telegram/messenger/ChatThemeController.java
-@@ -239,20 +239,10 @@
-     }
- 
- 
--    private static final ChatThemeController[] instances = new ChatThemeController[UserConfig.MAX_ACCOUNT_COUNT];
-+    private static final org.telegram.messenger.AccountInstanceRegistry<ChatThemeController> instances = new org.telegram.messenger.AccountInstanceRegistry<>();
- 
-     public static ChatThemeController getInstance(int accountNum) {
--        ChatThemeController local = instances[accountNum];
--        if (local == null) {
--            synchronized (ChatThemeController.class) {
--                local = instances[accountNum];
--                if (local == null) {
--                    local = new ChatThemeController(accountNum);
--                    instances[accountNum] = local;
--                }
--            }
--        }
--        return local;
-+        return instances.get(accountNum, ChatThemeController::new);
-     }
- 
- 
-diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/ContactsController.java b/TMessagesProj/src/main/java/org/telegram/messenger/ContactsController.java
---- a/TMessagesProj/src/main/java/org/telegram/messenger/ContactsController.java
-+++ b/TMessagesProj/src/main/java/org/telegram/messenger/ContactsController.java
-@@ -247,18 +247,9 @@
- 
-     private int completedRequestsCount;
-     
--    private static volatile ContactsController[] Instance = new ContactsController[UserConfig.MAX_ACCOUNT_COUNT];
-+    private static final org.telegram.messenger.AccountInstanceRegistry<ContactsController> Instance = new org.telegram.messenger.AccountInstanceRegistry<>();
-     public static ContactsController getInstance(int num) {
--        ContactsController localInstance = Instance[num];
--        if (localInstance == null) {
--            synchronized (ContactsController.class) {
--                localInstance = Instance[num];
--                if (localInstance == null) {
--                    Instance[num] = localInstance = new ContactsController(num);
--                }
--            }
--        }
--        return localInstance;
-+        return Instance.get(num, ContactsController::new);
-     }
- 
-     public ContactsController(int instance) {
-diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/DownloadController.java b/TMessagesProj/src/main/java/org/telegram/messenger/DownloadController.java
---- a/TMessagesProj/src/main/java/org/telegram/messenger/DownloadController.java
-+++ b/TMessagesProj/src/main/java/org/telegram/messenger/DownloadController.java
-@@ -240,19 +240,10 @@
-     public int currentWifiPreset;
-     public int currentRoamingPreset;
-     
--    private static volatile DownloadController[] Instance = new DownloadController[UserConfig.MAX_ACCOUNT_COUNT];
-+    private static final org.telegram.messenger.AccountInstanceRegistry<DownloadController> Instance = new org.telegram.messenger.AccountInstanceRegistry<>();
- 
-     public static DownloadController getInstance(int num) {
--        DownloadController localInstance = Instance[num];
--        if (localInstance == null) {
--            synchronized (DownloadController.class) {
--                localInstance = Instance[num];
--                if (localInstance == null) {
--                    Instance[num] = localInstance = new DownloadController(num);
--                }
--            }
--        }
--        return localInstance;
-+        return Instance.get(num, DownloadController::new);
-     }
- 
-     public DownloadController(int instance) {
-diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/FactCheckController.java b/TMessagesProj/src/main/java/org/telegram/messenger/FactCheckController.java
---- a/TMessagesProj/src/main/java/org/telegram/messenger/FactCheckController.java
-+++ b/TMessagesProj/src/main/java/org/telegram/messenger/FactCheckController.java
-@@ -56,25 +56,11 @@
- 
- public class FactCheckController {
- 
--    private static volatile FactCheckController[] Instance = new FactCheckController[UserConfig.MAX_ACCOUNT_COUNT];
--    private static final Object[] lockObjects = new Object[UserConfig.MAX_ACCOUNT_COUNT];
--    static {
--        for (int i = 0; i < UserConfig.MAX_ACCOUNT_COUNT; i++) {
--            lockObjects[i] = new Object();
--        }
--    }
-+    private static final org.telegram.messenger.AccountInstanceRegistry<FactCheckController> Instance = new org.telegram.messenger.AccountInstanceRegistry<>();
-+
- 
-     public static FactCheckController getInstance(int num) {
--        FactCheckController localInstance = Instance[num];
--        if (localInstance == null) {
--            synchronized (lockObjects[num]) {
--                localInstance = Instance[num];
--                if (localInstance == null) {
--                    Instance[num] = localInstance = new FactCheckController(num);
--                }
--            }
--        }
--        return localInstance;
-+        return Instance.get(num, FactCheckController::new);
-     }
- 
-     public final int currentAccount;
-diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/FileLoader.java b/TMessagesProj/src/main/java/org/telegram/messenger/FileLoader.java
---- a/TMessagesProj/src/main/java/org/telegram/messenger/FileLoader.java
-+++ b/TMessagesProj/src/main/java/org/telegram/messenger/FileLoader.java
-@@ -228,19 +228,10 @@
-     private int lastReferenceId;
-     private final ConcurrentHashMap<Integer, Object> parentObjectReferences = new ConcurrentHashMap<>();
- 
--    private static final FileLoader[] Instance = new FileLoader[UserConfig.MAX_ACCOUNT_COUNT];
-+    private static final org.telegram.messenger.AccountInstanceRegistry<FileLoader> Instance = new org.telegram.messenger.AccountInstanceRegistry<>();
- 
-     public static FileLoader getInstance(int num) {
--        FileLoader localInstance = Instance[num];
--        if (localInstance == null) {
--            synchronized (FileLoader.class) {
--                localInstance = Instance[num];
--                if (localInstance == null) {
--                    Instance[num] = localInstance = new FileLoader(num);
--                }
--            }
--        }
--        return localInstance;
-+        return Instance.get(num, FileLoader::new);
-     }
- 
-     public FileLoader(int instance) {
-diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/FileRefController.java b/TMessagesProj/src/main/java/org/telegram/messenger/FileRefController.java
---- a/TMessagesProj/src/main/java/org/telegram/messenger/FileRefController.java
-+++ b/TMessagesProj/src/main/java/org/telegram/messenger/FileRefController.java
-@@ -56,19 +56,10 @@
-     private ArrayList<Waiter> recentStickersWaiter = new ArrayList<>();
-     private ArrayList<Waiter> favStickersWaiter = new ArrayList<>();
- 
--    private static volatile FileRefController[] Instance = new FileRefController[UserConfig.MAX_ACCOUNT_COUNT];
-+    private static final org.telegram.messenger.AccountInstanceRegistry<FileRefController> Instance = new org.telegram.messenger.AccountInstanceRegistry<>();
- 
-     public static FileRefController getInstance(int num) {
--        FileRefController localInstance = Instance[num];
--        if (localInstance == null) {
--            synchronized (FileRefController.class) {
--                localInstance = Instance[num];
--                if (localInstance == null) {
--                    Instance[num] = localInstance = new FileRefController(num);
--                }
--            }
--        }
--        return localInstance;
-+        return Instance.get(num, FileRefController::new);
-     }
- 
-     public FileRefController(int instance) {
-diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/GiftAuctionController.java b/TMessagesProj/src/main/java/org/telegram/messenger/GiftAuctionController.java
---- a/TMessagesProj/src/main/java/org/telegram/messenger/GiftAuctionController.java
-+++ b/TMessagesProj/src/main/java/org/telegram/messenger/GiftAuctionController.java
-@@ -762,18 +762,9 @@
-         super(num);
-     }
- 
--    private static volatile GiftAuctionController[] Instance = new GiftAuctionController[UserConfig.MAX_ACCOUNT_COUNT];
-+    private static final org.telegram.messenger.AccountInstanceRegistry<GiftAuctionController> Instance = new org.telegram.messenger.AccountInstanceRegistry<>();
- 
-     public static GiftAuctionController getInstance(int num) {
--        GiftAuctionController localInstance = Instance[num];
--        if (localInstance == null) {
--            synchronized (GiftAuctionController.class) {
--                localInstance = Instance[num];
--                if (localInstance == null) {
--                    Instance[num] = localInstance = new GiftAuctionController(num);
--                }
--            }
--        }
--        return localInstance;
-+        return Instance.get(num, GiftAuctionController::new);
-     }
- }
-diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/HashtagSearchController.java b/TMessagesProj/src/main/java/org/telegram/messenger/HashtagSearchController.java
---- a/TMessagesProj/src/main/java/org/telegram/messenger/HashtagSearchController.java
-+++ b/TMessagesProj/src/main/java/org/telegram/messenger/HashtagSearchController.java
-@@ -16,26 +16,11 @@
- import java.util.Objects;
- 
- public class HashtagSearchController {
--    private static volatile HashtagSearchController[] Instance = new HashtagSearchController[UserConfig.MAX_ACCOUNT_COUNT];
--    private static final Object[] lockObjects = new Object[UserConfig.MAX_ACCOUNT_COUNT];
--
--    static {
--        for (int i = 0; i < UserConfig.MAX_ACCOUNT_COUNT; i++) {
--            lockObjects[i] = new Object();
--        }
--    }
-+    private static final org.telegram.messenger.AccountInstanceRegistry<HashtagSearchController> Instance = new org.telegram.messenger.AccountInstanceRegistry<>();
-+
- 
-     public static HashtagSearchController getInstance(int num) {
--        HashtagSearchController localInstance = Instance[num];
--        if (localInstance == null) {
--            synchronized (lockObjects[num]) {
--                localInstance = Instance[num];
--                if (localInstance == null) {
--                    Instance[num] = localInstance = new HashtagSearchController(num);
--                }
--            }
--        }
--        return localInstance;
-+        return Instance.get(num, HashtagSearchController::new);
-     }
- 
-     public final int currentAccount;
-diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/LocationController.java b/TMessagesProj/src/main/java/org/telegram/messenger/LocationController.java
---- a/TMessagesProj/src/main/java/org/telegram/messenger/LocationController.java
-+++ b/TMessagesProj/src/main/java/org/telegram/messenger/LocationController.java
-@@ -77,19 +77,10 @@
- 
-     private ILocationServiceProvider.ILocationRequest locationRequest;
- 
--    private static volatile LocationController[] Instance = new LocationController[UserConfig.MAX_ACCOUNT_COUNT];
-+    private static final org.telegram.messenger.AccountInstanceRegistry<LocationController> Instance = new org.telegram.messenger.AccountInstanceRegistry<>();
- 
-     public static LocationController getInstance(int num) {
--        LocationController localInstance = Instance[num];
--        if (localInstance == null) {
--            synchronized (LocationController.class) {
--                localInstance = Instance[num];
--                if (localInstance == null) {
--                    Instance[num] = localInstance = new LocationController(num);
--                }
--            }
--        }
--        return localInstance;
-+        return Instance.get(num, LocationController::new);
-     }
- 
-     public static class SharingLocationInfo {
-diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/MediaDataController.java b/TMessagesProj/src/main/java/org/telegram/messenger/MediaDataController.java
---- a/TMessagesProj/src/main/java/org/telegram/messenger/MediaDataController.java
-+++ b/TMessagesProj/src/main/java/org/telegram/messenger/MediaDataController.java
-@@ -133,27 +133,12 @@
- 
-     public static String SHORTCUT_CATEGORY = "org.telegram.messenger.SHORTCUT_SHARE";
- 
--    private static volatile MediaDataController[] Instance = new MediaDataController[UserConfig.MAX_ACCOUNT_COUNT];
--    private static final Object[] lockObjects = new Object[UserConfig.MAX_ACCOUNT_COUNT];
--
--    static {
--        for (int i = 0; i < UserConfig.MAX_ACCOUNT_COUNT; i++) {
--            lockObjects[i] = new Object();
--        }
--    }
-+    private static final org.telegram.messenger.AccountInstanceRegistry<MediaDataController> Instance = new org.telegram.messenger.AccountInstanceRegistry<>();
-+
- 
- 
-     public static MediaDataController getInstance(int num) {
--        MediaDataController localInstance = Instance[num];
--        if (localInstance == null) {
--            synchronized (lockObjects) {
--                localInstance = Instance[num];
--                if (localInstance == null) {
--                    Instance[num] = localInstance = new MediaDataController(num);
--                }
--            }
--        }
--        return localInstance;
-+        return Instance.get(num, MediaDataController::new);
-     }
- 
-     public MediaDataController(int num) {
-diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/MemberRequestsController.java b/TMessagesProj/src/main/java/org/telegram/messenger/MemberRequestsController.java
---- a/TMessagesProj/src/main/java/org/telegram/messenger/MemberRequestsController.java
-+++ b/TMessagesProj/src/main/java/org/telegram/messenger/MemberRequestsController.java
-@@ -11,20 +11,10 @@
- 
- public class MemberRequestsController extends BaseController {
- 
--    private static final MemberRequestsController[] instances = new MemberRequestsController[UserConfig.MAX_ACCOUNT_COUNT];
-+    private static final org.telegram.messenger.AccountInstanceRegistry<MemberRequestsController> instances = new org.telegram.messenger.AccountInstanceRegistry<>();
- 
-     public static MemberRequestsController getInstance(int accountNum) {
--        MemberRequestsController local = instances[accountNum];
--        if (local == null) {
--            synchronized (MemberRequestsController.class) {
--                local = instances[accountNum];
--                if (local == null) {
--                    local = new MemberRequestsController(accountNum);
--                    instances[accountNum] = local;
--                }
--            }
--        }
--        return local;
-+        return instances.get(accountNum, MemberRequestsController::new);
-     }
- 
-     private final LongSparseArray<TLRPC.TL_messages_chatInviteImporters> firstImportersCache = new LongSparseArray<>();
-diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/MessagesController.java b/TMessagesProj/src/main/java/org/telegram/messenger/MessagesController.java
---- a/TMessagesProj/src/main/java/org/telegram/messenger/MessagesController.java
-+++ b/TMessagesProj/src/main/java/org/telegram/messenger/MessagesController.java
-@@ -1502,25 +1502,11 @@
-         return 0;
-     };
- 
--    private static volatile MessagesController[] Instance = new MessagesController[UserConfig.MAX_ACCOUNT_COUNT];
--    private static final Object[] lockObjects = new Object[UserConfig.MAX_ACCOUNT_COUNT];
--    static {
--        for (int i = 0; i < UserConfig.MAX_ACCOUNT_COUNT; i++) {
--            lockObjects[i] = new Object();
--        }
--    }
-+    private static final org.telegram.messenger.AccountInstanceRegistry<MessagesController> Instance = new org.telegram.messenger.AccountInstanceRegistry<>();
-+
- 
-     public static MessagesController getInstance(int num) {
--        MessagesController localInstance = Instance[num];
--        if (localInstance == null) {
--            synchronized (lockObjects[num]) {
--                localInstance = Instance[num];
--                if (localInstance == null) {
--                    Instance[num] = localInstance = new MessagesController(num);
--                }
--            }
--        }
--        return localInstance;
-+        return Instance.get(num, MessagesController::new);
-     }
- 
-     public SharedPreferences getMainSettings() {
-diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/MessagesStorage.java b/TMessagesProj/src/main/java/org/telegram/messenger/MessagesStorage.java
---- a/TMessagesProj/src/main/java/org/telegram/messenger/MessagesStorage.java
-+++ b/TMessagesProj/src/main/java/org/telegram/messenger/MessagesStorage.java
-@@ -110,13 +110,8 @@
- 
-     private final CountDownLatch openSync = new CountDownLatch(1);
- 
--    private static volatile MessagesStorage[] Instance = new MessagesStorage[UserConfig.MAX_ACCOUNT_COUNT];
--    private static final Object[] lockObjects = new Object[UserConfig.MAX_ACCOUNT_COUNT];
--    static {
--        for (int i = 0; i < UserConfig.MAX_ACCOUNT_COUNT; i++) {
--            lockObjects[i] = new Object();
--        }
--    }
-+    private static final org.telegram.messenger.AccountInstanceRegistry<MessagesStorage> Instance = new org.telegram.messenger.AccountInstanceRegistry<>();
-+
- 
-     public final static int LAST_DB_VERSION = 179;
-     private boolean databaseMigrationInProgress;
-@@ -131,16 +126,7 @@
- 
- 
-     public static MessagesStorage getInstance(int num) {
--        MessagesStorage localInstance = Instance[num];
--        if (localInstance == null) {
--            synchronized (lockObjects[num]) {
--                localInstance = Instance[num];
--                if (localInstance == null) {
--                    Instance[num] = localInstance = new MessagesStorage(num);
--                }
--            }
--        }
--        return localInstance;
-+        return Instance.get(num, MessagesStorage::new);
-     }
- 
-     private void ensureOpened() {
-diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/NotificationCenter.java b/TMessagesProj/src/main/java/org/telegram/messenger/NotificationCenter.java
---- a/TMessagesProj/src/main/java/org/telegram/messenger/NotificationCenter.java
-+++ b/TMessagesProj/src/main/java/org/telegram/messenger/NotificationCenter.java
-@@ -425,21 +425,12 @@
- 
-     private int currentAccount;
-     private int currentHeavyOperationFlags;
--    private static volatile NotificationCenter[] Instance = new NotificationCenter[UserConfig.MAX_ACCOUNT_COUNT];
-+    private static final org.telegram.messenger.AccountInstanceRegistry<NotificationCenter> Instance = new org.telegram.messenger.AccountInstanceRegistry<>();
-     private static volatile NotificationCenter globalInstance;
- 
-     @UiThread
-     public static NotificationCenter getInstance(int num) {
--        NotificationCenter localInstance = Instance[num];
--        if (localInstance == null) {
--            synchronized (NotificationCenter.class) {
--                localInstance = Instance[num];
--                if (localInstance == null) {
--                    Instance[num] = localInstance = new NotificationCenter(num);
--                }
--            }
--        }
--        return localInstance;
-+        return Instance.get(num, NotificationCenter::new);
-     }
- 
-     @UiThread
-diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/NotificationsController.java b/TMessagesProj/src/main/java/org/telegram/messenger/NotificationsController.java
---- a/TMessagesProj/src/main/java/org/telegram/messenger/NotificationsController.java
-+++ b/TMessagesProj/src/main/java/org/telegram/messenger/NotificationsController.java
-@@ -179,25 +179,11 @@
-         audioManager = (AudioManager) ApplicationLoader.applicationContext.getSystemService(Context.AUDIO_SERVICE);
-     }
- 
--    private static volatile NotificationsController[] Instance = new NotificationsController[UserConfig.MAX_ACCOUNT_COUNT];
--    private static final Object[] lockObjects = new Object[UserConfig.MAX_ACCOUNT_COUNT];
--    static {
--        for (int i = 0; i < UserConfig.MAX_ACCOUNT_COUNT; i++) {
--            lockObjects[i] = new Object();
--        }
--    }
-+    private static final org.telegram.messenger.AccountInstanceRegistry<NotificationsController> Instance = new org.telegram.messenger.AccountInstanceRegistry<>();
-+
- 
-     public static NotificationsController getInstance(int num) {
--        NotificationsController localInstance = Instance[num];
--        if (localInstance == null) {
--            synchronized (lockObjects[num]) {
--                localInstance = Instance[num];
--                if (localInstance == null) {
--                    Instance[num] = localInstance = new NotificationsController(num);
--                }
--            }
--        }
--        return localInstance;
-+        return Instance.get(num, NotificationsController::new);
-     }
- 
-     public NotificationsController(int instance) {
-diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/SecretChatHelper.java b/TMessagesProj/src/main/java/org/telegram/messenger/SecretChatHelper.java
---- a/TMessagesProj/src/main/java/org/telegram/messenger/SecretChatHelper.java
-+++ b/TMessagesProj/src/main/java/org/telegram/messenger/SecretChatHelper.java
-@@ -80,19 +80,10 @@
-     private ArrayList<Long> pendingEncMessagesToDelete = new ArrayList<>();
-     private boolean startingSecretChat = false;
- 
--    private static volatile SecretChatHelper[] Instance = new SecretChatHelper[UserConfig.MAX_ACCOUNT_COUNT];
-+    private static final org.telegram.messenger.AccountInstanceRegistry<SecretChatHelper> Instance = new org.telegram.messenger.AccountInstanceRegistry<>();
- 
-     public static SecretChatHelper getInstance(int num) {
--        SecretChatHelper localInstance = Instance[num];
--        if (localInstance == null) {
--            synchronized (SecretChatHelper.class) {
--                localInstance = Instance[num];
--                if (localInstance == null) {
--                    Instance[num] = localInstance = new SecretChatHelper(num);
--                }
--            }
--        }
--        return localInstance;
-+        return Instance.get(num, SecretChatHelper::new);
-     }
- 
-     public SecretChatHelper(int instance) {
-diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/SendMessagesHelper.java b/TMessagesProj/src/main/java/org/telegram/messenger/SendMessagesHelper.java
---- a/TMessagesProj/src/main/java/org/telegram/messenger/SendMessagesHelper.java
-+++ b/TMessagesProj/src/main/java/org/telegram/messenger/SendMessagesHelper.java
-@@ -947,18 +947,9 @@
-         }
-     }
- 
--    private static volatile SendMessagesHelper[] Instance = new SendMessagesHelper[UserConfig.MAX_ACCOUNT_COUNT];
-+    private static final org.telegram.messenger.AccountInstanceRegistry<SendMessagesHelper> Instance = new org.telegram.messenger.AccountInstanceRegistry<>();
-     public static SendMessagesHelper getInstance(int num) {
--        SendMessagesHelper localInstance = Instance[num];
--        if (localInstance == null) {
--            synchronized (SendMessagesHelper.class) {
--                localInstance = Instance[num];
--                if (localInstance == null) {
--                    Instance[num] = localInstance = new SendMessagesHelper(num);
--                }
--            }
--        }
--        return localInstance;
-+        return Instance.get(num, SendMessagesHelper::new);
-     }
- 
-     public SendMessagesHelper(int instance) {
-diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/StatsController.java b/TMessagesProj/src/main/java/org/telegram/messenger/StatsController.java
---- a/TMessagesProj/src/main/java/org/telegram/messenger/StatsController.java
-+++ b/TMessagesProj/src/main/java/org/telegram/messenger/StatsController.java
-@@ -118,19 +118,10 @@
-         }
-     };
- 
--    private static volatile StatsController[] Instance = new StatsController[UserConfig.MAX_ACCOUNT_COUNT];
-+    private static final org.telegram.messenger.AccountInstanceRegistry<StatsController> Instance = new org.telegram.messenger.AccountInstanceRegistry<>();
- 
-     public static StatsController getInstance(int num) {
--        StatsController localInstance = Instance[num];
--        if (localInstance == null) {
--            synchronized (StatsController.class) {
--                localInstance = Instance[num];
--                if (localInstance == null) {
--                    Instance[num] = localInstance = new StatsController(num);
--                }
--            }
--        }
--        return localInstance;
-+        return Instance.get(num, StatsController::new);
-     }
- 
-     private StatsController(int account) {
-diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/UserConfig.java b/TMessagesProj/src/main/java/org/telegram/messenger/UserConfig.java
---- a/TMessagesProj/src/main/java/org/telegram/messenger/UserConfig.java
-+++ b/TMessagesProj/src/main/java/org/telegram/messenger/UserConfig.java
-@@ -84,18 +84,9 @@
-     LongSparseArray<SaveToGallerySettingsHelper.DialogException> groupsSaveGalleryExceptions;
- 
- 
--    private static volatile UserConfig[] Instance = new UserConfig[UserConfig.MAX_ACCOUNT_COUNT];
-+    private static final org.telegram.messenger.AccountInstanceRegistry<UserConfig> Instance = new org.telegram.messenger.AccountInstanceRegistry<>();
-     public static UserConfig getInstance(int num) {
--        UserConfig localInstance = Instance[num];
--        if (localInstance == null) {
--            synchronized (UserConfig.class) {
--                localInstance = Instance[num];
--                if (localInstance == null) {
--                    Instance[num] = localInstance = new UserConfig(num);
--                }
--            }
--        }
--        return localInstance;
-+        return Instance.get(num, UserConfig::new);
-     }
- 
-     public static int getActivatedAccountsCount() {
-diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/utils/EphemeralMessagesHelper.java b/TMessagesProj/src/main/java/org/telegram/messenger/utils/EphemeralMessagesHelper.java
---- a/TMessagesProj/src/main/java/org/telegram/messenger/utils/EphemeralMessagesHelper.java
-+++ b/TMessagesProj/src/main/java/org/telegram/messenger/utils/EphemeralMessagesHelper.java
-@@ -472,17 +472,8 @@
-         super(currentAccount);
-     }
- 
--    private static volatile EphemeralMessagesHelper[] Instance = new EphemeralMessagesHelper[UserConfig.MAX_ACCOUNT_COUNT];
-+    private static final org.telegram.messenger.AccountInstanceRegistry<EphemeralMessagesHelper> Instance = new org.telegram.messenger.AccountInstanceRegistry<>();
-     public static EphemeralMessagesHelper getInstance(final int num) {
--        EphemeralMessagesHelper localInstance = Instance[num];
--        if (localInstance == null) {
--            synchronized (EphemeralMessagesHelper.class) {
--                localInstance = Instance[num];
--                if (localInstance == null) {
--                    Instance[num] = localInstance = new EphemeralMessagesHelper(num);
--                }
--            }
--        }
--        return localInstance;
-+        return Instance.get(num, EphemeralMessagesHelper::new);
-     }
- }
-diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/voip/GroupCallMessagesController.java b/TMessagesProj/src/main/java/org/telegram/messenger/voip/GroupCallMessagesController.java
---- a/TMessagesProj/src/main/java/org/telegram/messenger/voip/GroupCallMessagesController.java
-+++ b/TMessagesProj/src/main/java/org/telegram/messenger/voip/GroupCallMessagesController.java
-@@ -291,19 +291,10 @@
- 
-     /* * */
- 
--    private static volatile GroupCallMessagesController[] Instance = new GroupCallMessagesController[UserConfig.MAX_ACCOUNT_COUNT];
-+    private static final org.telegram.messenger.AccountInstanceRegistry<GroupCallMessagesController> Instance = new org.telegram.messenger.AccountInstanceRegistry<>();
- 
-     public static GroupCallMessagesController getInstance(int num) {
--        GroupCallMessagesController localInstance = Instance[num];
--        if (localInstance == null) {
--            synchronized (GroupCallMessagesController.class) {
--                localInstance = Instance[num];
--                if (localInstance == null) {
--                    Instance[num] = localInstance = new GroupCallMessagesController(num);
--                }
--            }
--        }
--        return localInstance;
-+        return Instance.get(num, GroupCallMessagesController::new);
-     }
- 
-     private GroupCallMessagesController(int accountId) {
-diff --git a/TMessagesProj/src/main/java/org/telegram/tgnet/ConnectionsManager.java b/TMessagesProj/src/main/java/org/telegram/tgnet/ConnectionsManager.java
---- a/TMessagesProj/src/main/java/org/telegram/tgnet/ConnectionsManager.java
-+++ b/TMessagesProj/src/main/java/org/telegram/tgnet/ConnectionsManager.java
-@@ -193,18 +193,9 @@
- 
-     private static int lastClassGuid = 1;
-     
--    private static final ConnectionsManager[] Instance = new ConnectionsManager[UserConfig.MAX_ACCOUNT_COUNT];
-+    private static final org.telegram.messenger.AccountInstanceRegistry<ConnectionsManager> Instance = new org.telegram.messenger.AccountInstanceRegistry<>();
-     public static ConnectionsManager getInstance(int num) {
--        ConnectionsManager localInstance = Instance[num];
--        if (localInstance == null) {
--            synchronized (ConnectionsManager.class) {
--                localInstance = Instance[num];
--                if (localInstance == null) {
--                    Instance[num] = localInstance = new ConnectionsManager(num);
--                }
--            }
--        }
--        return localInstance;
-+        return Instance.get(num, ConnectionsManager::new);
-     }
- 
-     public ConnectionsManager(int instance) {
-diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Business/BusinessChatbotController.java b/TMessagesProj/src/main/java/org/telegram/ui/Business/BusinessChatbotController.java
---- a/TMessagesProj/src/main/java/org/telegram/ui/Business/BusinessChatbotController.java
-+++ b/TMessagesProj/src/main/java/org/telegram/ui/Business/BusinessChatbotController.java
-@@ -12,24 +12,10 @@
- 
- public class BusinessChatbotController {
- 
--    private static volatile BusinessChatbotController[] Instance = new BusinessChatbotController[UserConfig.MAX_ACCOUNT_COUNT];
--    private static final Object[] lockObjects = new Object[UserConfig.MAX_ACCOUNT_COUNT];
--    static {
--        for (int i = 0; i < UserConfig.MAX_ACCOUNT_COUNT; i++) {
--            lockObjects[i] = new Object();
--        }
--    }
-+    private static final org.telegram.messenger.AccountInstanceRegistry<BusinessChatbotController> Instance = new org.telegram.messenger.AccountInstanceRegistry<>();
-+
-     public static BusinessChatbotController getInstance(int num) {
--        BusinessChatbotController localInstance = Instance[num];
--        if (localInstance == null) {
--            synchronized (lockObjects[num]) {
--                localInstance = Instance[num];
--                if (localInstance == null) {
--                    Instance[num] = localInstance = new BusinessChatbotController(num);
--                }
--            }
--        }
--        return localInstance;
-+        return Instance.get(num, BusinessChatbotController::new);
-     }
- 
-     private final int currentAccount;
-diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Business/BusinessLinksController.java b/TMessagesProj/src/main/java/org/telegram/ui/Business/BusinessLinksController.java
---- a/TMessagesProj/src/main/java/org/telegram/ui/Business/BusinessLinksController.java
-+++ b/TMessagesProj/src/main/java/org/telegram/ui/Business/BusinessLinksController.java
-@@ -24,26 +24,11 @@
- 
- public class BusinessLinksController {
- 
--    private static volatile BusinessLinksController[] Instance = new BusinessLinksController[UserConfig.MAX_ACCOUNT_COUNT];
--    private static final Object[] lockObjects = new Object[UserConfig.MAX_ACCOUNT_COUNT];
--
--    static {
--        for (int i = 0; i < UserConfig.MAX_ACCOUNT_COUNT; i++) {
--            lockObjects[i] = new Object();
--        }
--    }
-+    private static final org.telegram.messenger.AccountInstanceRegistry<BusinessLinksController> Instance = new org.telegram.messenger.AccountInstanceRegistry<>();
-+
- 
-     public static BusinessLinksController getInstance(int num) {
--        BusinessLinksController localInstance = Instance[num];
--        if (localInstance == null) {
--            synchronized (lockObjects[num]) {
--                localInstance = Instance[num];
--                if (localInstance == null) {
--                    Instance[num] = localInstance = new BusinessLinksController(num);
--                }
--            }
--        }
--        return localInstance;
-+        return Instance.get(num, BusinessLinksController::new);
-     }
- 
-     public final int currentAccount;
-diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Business/QuickRepliesController.java b/TMessagesProj/src/main/java/org/telegram/ui/Business/QuickRepliesController.java
---- a/TMessagesProj/src/main/java/org/telegram/ui/Business/QuickRepliesController.java
-+++ b/TMessagesProj/src/main/java/org/telegram/ui/Business/QuickRepliesController.java
-@@ -34,24 +34,10 @@
-         return GREETING.equalsIgnoreCase(name) || AWAY.equalsIgnoreCase(name);
-     }
- 
--    private static volatile QuickRepliesController[] Instance = new QuickRepliesController[UserConfig.MAX_ACCOUNT_COUNT];
--    private static final Object[] lockObjects = new Object[UserConfig.MAX_ACCOUNT_COUNT];
--    static {
--        for (int i = 0; i < UserConfig.MAX_ACCOUNT_COUNT; i++) {
--            lockObjects[i] = new Object();
--        }
--    }
-+    private static final org.telegram.messenger.AccountInstanceRegistry<QuickRepliesController> Instance = new org.telegram.messenger.AccountInstanceRegistry<>();
-+
-     public static QuickRepliesController getInstance(int num) {
--        QuickRepliesController localInstance = Instance[num];
--        if (localInstance == null) {
--            synchronized (lockObjects[num]) {
--                localInstance = Instance[num];
--                if (localInstance == null) {
--                    Instance[num] = localInstance = new QuickRepliesController(num);
--                }
--            }
--        }
--        return localInstance;
-+        return Instance.get(num, QuickRepliesController::new);
-     }
- 
-     public final int currentAccount;
-diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Business/TimezonesController.java b/TMessagesProj/src/main/java/org/telegram/ui/Business/TimezonesController.java
---- a/TMessagesProj/src/main/java/org/telegram/ui/Business/TimezonesController.java
-+++ b/TMessagesProj/src/main/java/org/telegram/ui/Business/TimezonesController.java
-@@ -22,24 +22,10 @@
- 
- public class TimezonesController {
- 
--    private static volatile TimezonesController[] Instance = new TimezonesController[UserConfig.MAX_ACCOUNT_COUNT];
--    private static final Object[] lockObjects = new Object[UserConfig.MAX_ACCOUNT_COUNT];
--    static {
--        for (int i = 0; i < UserConfig.MAX_ACCOUNT_COUNT; i++) {
--            lockObjects[i] = new Object();
--        }
--    }
-+    private static final org.telegram.messenger.AccountInstanceRegistry<TimezonesController> Instance = new org.telegram.messenger.AccountInstanceRegistry<>();
-+
-     public static TimezonesController getInstance(int num) {
--        TimezonesController localInstance = Instance[num];
--        if (localInstance == null) {
--            synchronized (lockObjects[num]) {
--                localInstance = Instance[num];
--                if (localInstance == null) {
--                    Instance[num] = localInstance = new TimezonesController(num);
--                }
--            }
--        }
--        return localInstance;
-+        return Instance.get(num, TimezonesController::new);
-     }
- 
-     public final int currentAccount;
-diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/Paint/PersistColorPalette.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/Paint/PersistColorPalette.java
---- a/TMessagesProj/src/main/java/org/telegram/ui/Components/Paint/PersistColorPalette.java
-+++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/Paint/PersistColorPalette.java
-@@ -49,7 +49,7 @@
-     public final static int COLORS_COUNT = MODIFIABLE_COLORS_COUNT + PRESET_COLORS_COUNT;
- 
-     private final static int BRUSH_TEXT = -1;
--    private static PersistColorPalette[] instances = new PersistColorPalette[UserConfig.MAX_ACCOUNT_COUNT];
-+    private static final org.telegram.messenger.AccountInstanceRegistry<PersistColorPalette> instances = new org.telegram.messenger.AccountInstanceRegistry<>();
- 
-     private final SharedPreferences mConfig;
-     private final List<Integer> colors = new ArrayList<>(COLORS_COUNT);
-@@ -78,10 +78,7 @@
-     }
- 
-     public static PersistColorPalette getInstance(int currentAccount) {
--        if (instances[currentAccount] == null) {
--            instances[currentAccount] = new PersistColorPalette(currentAccount);
--        }
--        return instances[currentAccount];
-+        return instances.get(currentAccount, PersistColorPalette::new);
-     }
- 
-     public int getCurrentTextType() {
-diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Stars/BotStarsController.java b/TMessagesProj/src/main/java/org/telegram/ui/Stars/BotStarsController.java
---- a/TMessagesProj/src/main/java/org/telegram/ui/Stars/BotStarsController.java
-+++ b/TMessagesProj/src/main/java/org/telegram/ui/Stars/BotStarsController.java
-@@ -30,25 +30,11 @@
- 
- public class BotStarsController {
- 
--    private static volatile BotStarsController[] Instance = new BotStarsController[UserConfig.MAX_ACCOUNT_COUNT];
--    private static final Object[] lockObjects = new Object[UserConfig.MAX_ACCOUNT_COUNT];
--    static {
--        for (int i = 0; i < UserConfig.MAX_ACCOUNT_COUNT; i++) {
--            lockObjects[i] = new Object();
--        }
--    }
-+    private static final org.telegram.messenger.AccountInstanceRegistry<BotStarsController> Instance = new org.telegram.messenger.AccountInstanceRegistry<>();
-+
- 
-     public static BotStarsController getInstance(int num) {
--        BotStarsController localInstance = Instance[num];
--        if (localInstance == null) {
--            synchronized (lockObjects[num]) {
--                localInstance = Instance[num];
--                if (localInstance == null) {
--                    Instance[num] = localInstance = new BotStarsController(num);
--                }
--            }
--        }
--        return localInstance;
-+        return Instance.get(num, BotStarsController::new);
-     }
- 
-     public final int currentAccount;
-diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Stars/StarsController.java b/TMessagesProj/src/main/java/org/telegram/ui/Stars/StarsController.java
---- a/TMessagesProj/src/main/java/org/telegram/ui/Stars/StarsController.java
-+++ b/TMessagesProj/src/main/java/org/telegram/ui/Stars/StarsController.java
-@@ -96,15 +96,8 @@
-     public static final int PERIOD_MINUTE = 60;
-     public static final int PERIOD_5MINUTES = 300;
- 
--    private static volatile StarsController[][] Instance = new StarsController[2][UserConfig.MAX_ACCOUNT_COUNT];
--    private static final Object[][] lockObjects = new Object[2][UserConfig.MAX_ACCOUNT_COUNT];
--    static {
--        for (int a = 0; a < 2; ++a) {
--            for (int i = 0; i < UserConfig.MAX_ACCOUNT_COUNT; i++) {
--                lockObjects[a][i] = new Object();
--            }
--        }
--    }
-+    private static final org.telegram.messenger.AccountInstanceRegistry<StarsController> starsInstances = new org.telegram.messenger.AccountInstanceRegistry<>();
-+    private static final org.telegram.messenger.AccountInstanceRegistry<StarsController> tonInstances = new org.telegram.messenger.AccountInstanceRegistry<>();
- 
-     public static StarsController getTonInstance(int num) {
-         return getInstance(num, true);
-@@ -119,16 +112,7 @@
-     }
- 
-     public static StarsController getInstance(int num, boolean ton) {
--        StarsController localInstance = Instance[ton ? 1 : 0][num];
--        if (localInstance == null) {
--            synchronized (lockObjects[ton ? 1 : 0][num]) {
--                localInstance = Instance[ton ? 1 : 0][num];
--                if (localInstance == null) {
--                    Instance[ton ? 1 : 0][num] = localInstance = new StarsController(num, ton);
--                }
--            }
--        }
--        return localInstance;
-+        return (ton ? tonInstances : starsInstances).get(num, account -> new StarsController(account, ton));
-     }
- 
-     public final int currentAccount;
-diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Stories/UserListPoller.java b/TMessagesProj/src/main/java/org/telegram/ui/Stories/UserListPoller.java
---- a/TMessagesProj/src/main/java/org/telegram/ui/Stories/UserListPoller.java
-+++ b/TMessagesProj/src/main/java/org/telegram/ui/Stories/UserListPoller.java
-@@ -22,7 +22,7 @@
- 
- public class UserListPoller {
- 
--    private static UserListPoller[] istances = new UserListPoller[UserConfig.MAX_ACCOUNT_COUNT];
-+    private static final org.telegram.messenger.AccountInstanceRegistry<UserListPoller> istances = new org.telegram.messenger.AccountInstanceRegistry<>();
- 
-     final int currentAccount;
- 
-@@ -31,10 +31,7 @@
-     }
- 
-     public static UserListPoller getInstance(int account) {
--        if (istances[account] == null) {
--            istances[account] = new UserListPoller(account);
--        }
--        return istances[account];
-+        return istances.get(account, UserListPoller::new);
-     }
- 
-     LongSparseLongArray userPollLastTime = new LongSparseLongArray();
-diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Wallet/GramWallet.java b/TMessagesProj/src/main/java/org/telegram/ui/Wallet/GramWallet.java
---- a/TMessagesProj/src/main/java/org/telegram/ui/Wallet/GramWallet.java
-+++ b/TMessagesProj/src/main/java/org/telegram/ui/Wallet/GramWallet.java
-@@ -135,19 +135,10 @@
-     private final HashMap<TL_wallet.walletTransaction, GramWalletPolling> polling = new HashMap<>();
-     private String pollingAddress;
- 
--    private static volatile GramWallet[] Instance = new GramWallet[UserConfig.MAX_ACCOUNT_COUNT];
-+    private static final org.telegram.messenger.AccountInstanceRegistry<GramWallet> Instance = new org.telegram.messenger.AccountInstanceRegistry<>();
- 
-     public static GramWallet getInstance(int num) {
--        GramWallet localInstance = Instance[num];
--        if (localInstance == null) {
--            synchronized (GramWallet.class) {
--                localInstance = Instance[num];
--                if (localInstance == null) {
--                    Instance[num] = localInstance = new GramWallet(num);
--                }
--            }
--        }
--        return localInstance;
-+        return Instance.get(num, GramWallet::new);
-     }
- 
-     public static void ensureLocalWalletBalances(int currentAccount, Runnable whenDone) {
-@@ -517,7 +508,7 @@
-     }
- 
-     public static void cleanup(int currentAccount) {
--        final GramWallet localInstance = Instance[currentAccount];
-+        final GramWallet localInstance = Instance.peek(currentAccount);
-         if (localInstance != null) {
-             localInstance.reset();
-         }
-@@ -541,11 +532,7 @@
-             streaming = null;
-         }
-         AndroidUtilities.cancelRunOnUIThread(refreshStreamingHistory);
--        synchronized (GramWallet.class) {
--            if (Instance[currentAccount] == this) {
--                Instance[currentAccount] = null;
--            }
--        }
-+        Instance.clearIfSame(currentAccount, this);
-     }
- 
-     private int lastListenToken = 0;
-diff --git a/TMessagesProj/jni/tgnet/ConnectionsManager.cpp b/TMessagesProj/jni/tgnet/ConnectionsManager.cpp
---- a/TMessagesProj/jni/tgnet/ConnectionsManager.cpp
-+++ b/TMessagesProj/jni/tgnet/ConnectionsManager.cpp
-@@ -17,6 +17,7 @@
- #include <openssl/rand.h>
- #include <zlib.h>
- #include <memory>
-+#include <mutex>
- #include <string>
- #include <cinttypes>
- #include "ConnectionsManager.h"
-@@ -38,7 +39,8 @@
- #ifdef ANDROID
- #include <jni.h>
- JavaVM *javaVm = nullptr;
--JNIEnv *jniEnv[MAX_ACCOUNT_COUNT];
-+thread_local JNIEnv *jniEnv = nullptr;
-+ConnectiosManagerDelegate *createJavaConnectionsDelegate();
- jclass jclass_ByteBuffer = nullptr;
- jmethodID jclass_ByteBuffer_allocateDirect = nullptr;
- #endif
-@@ -137,42 +139,37 @@
- }
- 
- ConnectionsManager& ConnectionsManager::getInstance(int32_t instanceNum) {
--    switch (instanceNum) {
--        case 0:
--            static ConnectionsManager instance0(0);
--            return instance0;
--        case 1:
--            static ConnectionsManager instance1(1);
--            return instance1;
--        case 2:
--            static ConnectionsManager instance2(2);
--            return instance2;
--        case 3:
--            static ConnectionsManager instance3(3);
--            return instance3;
--        case 4:
--            static ConnectionsManager instance4(4);
--            return instance4;
--        case 5:
--            static ConnectionsManager instance5(5);
--            return instance5;
--        case 6:
--            static ConnectionsManager instance6(6);
--            return instance6;
--        case 7:
--            static ConnectionsManager instance7(7);
--            return instance7;
--        case 8:
--            static ConnectionsManager instance8(8);
--            return instance8;
--        case 9:
--            static ConnectionsManager instance9(9);
--            return instance9;
--        case 10:
--        default:
--            static ConnectionsManager instance10(10);
--            return instance10;
--    }
-+    if (instanceNum < 0) {
-+        // Never alias malformed account IDs to another account's connection.
-+        std::abort();
-+    }
-+    // Network callbacks repeatedly look up their own account. Keep that hot
-+    // path lock-free without sharing the cache between threads.
-+    static thread_local int32_t cachedId = -1;
-+    static thread_local ConnectionsManager *cachedInstance = nullptr;
-+    if (cachedId == instanceNum) {
-+        return *cachedInstance;
-+    }
-+    // Network threads and their managers live for the process lifetime. Do not
-+    // destroy this registry during static teardown while those threads run.
-+    static auto *instances = new std::map<int32_t, std::unique_ptr<ConnectionsManager>>();
-+    static auto *instancesMutex = new std::mutex();
-+    std::lock_guard<std::mutex> lock(*instancesMutex);
-+    auto found = instances->find(instanceNum);
-+    if (found != instances->end()) {
-+        cachedId = instanceNum;
-+        cachedInstance = found->second.get();
-+        return *cachedInstance;
-+    }
-+    std::unique_ptr<ConnectionsManager> instance(new ConnectionsManager(instanceNum));
-+#ifdef ANDROID
-+    instance->setDelegate(createJavaConnectionsDelegate());
-+#endif
-+    auto *result = instance.get();
-+    instances->emplace(instanceNum, std::move(instance));
-+    cachedId = instanceNum;
-+    cachedInstance = result;
-+    return *result;
- }
- 
- int ConnectionsManager::callEvents(int64_t now) {
-@@ -365,7 +362,9 @@
-     if (LOGS_ENABLED) DEBUG_D("network thread started");
-     auto networkManager = (ConnectionsManager *) (data);
- #ifdef ANDROID
--    javaVm->AttachCurrentThread(&jniEnv[networkManager->instanceNum], nullptr);
-+    if (javaVm->AttachCurrentThread(&jniEnv, nullptr) != JNI_OK) {
-+        std::abort();
-+    }
- #endif
-     if (networkManager->currentUserId != 0 && networkManager->pushConnectionEnabled) {
-         Datacenter *datacenter = networkManager->getDatacenterWithId(networkManager->currentDatacenterId);
-@@ -377,6 +376,10 @@
-     do {
-         networkManager->select();
-     } while (!done);
-+#ifdef ANDROID
-+    javaVm->DetachCurrentThread();
-+    jniEnv = nullptr;
-+#endif
-     return nullptr;
- }
- 
-diff --git a/TMessagesProj/jni/tgnet/ConnectionsManager.h b/TMessagesProj/jni/tgnet/ConnectionsManager.h
---- a/TMessagesProj/jni/tgnet/ConnectionsManager.h
-+++ b/TMessagesProj/jni/tgnet/ConnectionsManager.h
-@@ -270,7 +270,8 @@
- 
- #ifdef ANDROID
- extern JavaVM *javaVm;
--extern JNIEnv *jniEnv[MAX_ACCOUNT_COUNT];
-+// A JNI environment belongs to the calling network thread, not an account slot.
-+extern thread_local JNIEnv *jniEnv;
- extern jclass jclass_ByteBuffer;
- extern jmethodID jclass_ByteBuffer_allocateDirect;
- #endif
-diff --git a/TMessagesProj/jni/tgnet/Defines.h b/TMessagesProj/jni/tgnet/Defines.h
---- a/TMessagesProj/jni/tgnet/Defines.h
-+++ b/TMessagesProj/jni/tgnet/Defines.h
-@@ -27,7 +27,6 @@
- #define DOWNLOAD_CONNECTIONS_COUNT 8
- #define UPLOAD_CONNECTIONS_COUNT 4
- #define CONNECTION_BACKGROUND_KEEP_TIME 10000
--#define MAX_ACCOUNT_COUNT 11 // Ten signed-in accounts plus the reserved native slot.
- #define USE_DELEGATE_HOST_RESOLVE
- 
- #define USE_IPV4_ONLY 0
-diff --git a/TMessagesProj/jni/tgnet/ProxyCheckInfo.cpp b/TMessagesProj/jni/tgnet/ProxyCheckInfo.cpp
---- a/TMessagesProj/jni/tgnet/ProxyCheckInfo.cpp
-+++ b/TMessagesProj/jni/tgnet/ProxyCheckInfo.cpp
-@@ -14,7 +14,7 @@
- #ifdef ANDROID
-     if (ptr1 != nullptr) {
-         DEBUG_DELREF("tgnet (2) request ptr1");
--        jniEnv[instanceNum]->DeleteGlobalRef(ptr1);
-+        jniEnv->DeleteGlobalRef(ptr1);
-         ptr1 = nullptr;
-     }
- #endif
 diff --git a/TMessagesProj/jni/TgNetWrapper.cpp b/TMessagesProj/jni/TgNetWrapper.cpp
 --- a/TMessagesProj/jni/TgNetWrapper.cpp
 +++ b/TMessagesProj/jni/TgNetWrapper.cpp
-@@ -122,27 +122,27 @@
+@@ -122,27 +122,27 @@ void sendRequest(JNIEnv *env, jclass c, jint instanceNum, jlong object, jint fla
              const char *text = error->text.c_str();
              size_t size = error->text.size();
              if (check_utf8(text, size)) {
@@ -1182,7 +37,7 @@ diff --git a/TMessagesProj/jni/TgNetWrapper.cpp b/TMessagesProj/jni/TgNetWrapper
      }));
  }
  
-@@ -312,7 +312,7 @@
+@@ -312,7 +312,7 @@ jlong checkProxy(JNIEnv *env, jclass c, jint instanceNum, jstring address, jint
  
      jlong result = ConnectionsManager::getInstance(instanceNum).checkProxy(addressStr, (uint16_t) port, usernameStr, passwordStr, secretStr, [instanceNum, requestTimeFunc](int64_t time) {
          if (requestTimeFunc != nullptr) {
@@ -1191,7 +46,7 @@ diff --git a/TMessagesProj/jni/TgNetWrapper.cpp b/TMessagesProj/jni/TgNetWrapper
          }
      }, requestTimeFunc);
  
-@@ -335,83 +335,83 @@
+@@ -335,83 +335,83 @@ jlong checkProxy(JNIEnv *env, jclass c, jint instanceNum, jstring address, jint
  class Delegate : public ConnectiosManagerDelegate {
      
      void onUpdate(int32_t instanceNum) {
@@ -1301,7 +156,7 @@ diff --git a/TMessagesProj/jni/TgNetWrapper.cpp b/TMessagesProj/jni/TgNetWrapper
      }
  
  };
-@@ -515,11 +515,12 @@
+@@ -515,11 +515,12 @@ void init(JNIEnv *env, jclass c, jint instanceNum, jint version, jint layer, jin
      }
  }
  
@@ -1317,3 +172,1145 @@ diff --git a/TMessagesProj/jni/TgNetWrapper.cpp b/TMessagesProj/jni/TgNetWrapper
  }
  
  static const char *ConnectionsManagerClassPathName = "org/telegram/tgnet/ConnectionsManager";
+diff --git a/TMessagesProj/jni/tgnet/ConnectionsManager.cpp b/TMessagesProj/jni/tgnet/ConnectionsManager.cpp
+--- a/TMessagesProj/jni/tgnet/ConnectionsManager.cpp
++++ b/TMessagesProj/jni/tgnet/ConnectionsManager.cpp
+@@ -17,6 +17,7 @@
+ #include <openssl/rand.h>
+ #include <zlib.h>
+ #include <memory>
++#include <mutex>
+ #include <string>
+ #include <cinttypes>
+ #include "ConnectionsManager.h"
+@@ -38,7 +39,8 @@
+ #ifdef ANDROID
+ #include <jni.h>
+ JavaVM *javaVm = nullptr;
+-JNIEnv *jniEnv[MAX_ACCOUNT_COUNT];
++thread_local JNIEnv *jniEnv = nullptr;
++ConnectiosManagerDelegate *createJavaConnectionsDelegate();
+ jclass jclass_ByteBuffer = nullptr;
+ jmethodID jclass_ByteBuffer_allocateDirect = nullptr;
+ #endif
+@@ -137,42 +139,37 @@ ConnectionsManager::~ConnectionsManager() {
+ }
+ 
+ ConnectionsManager& ConnectionsManager::getInstance(int32_t instanceNum) {
+-    switch (instanceNum) {
+-        case 0:
+-            static ConnectionsManager instance0(0);
+-            return instance0;
+-        case 1:
+-            static ConnectionsManager instance1(1);
+-            return instance1;
+-        case 2:
+-            static ConnectionsManager instance2(2);
+-            return instance2;
+-        case 3:
+-            static ConnectionsManager instance3(3);
+-            return instance3;
+-        case 4:
+-            static ConnectionsManager instance4(4);
+-            return instance4;
+-        case 5:
+-            static ConnectionsManager instance5(5);
+-            return instance5;
+-        case 6:
+-            static ConnectionsManager instance6(6);
+-            return instance6;
+-        case 7:
+-            static ConnectionsManager instance7(7);
+-            return instance7;
+-        case 8:
+-            static ConnectionsManager instance8(8);
+-            return instance8;
+-        case 9:
+-            static ConnectionsManager instance9(9);
+-            return instance9;
+-        case 10:
+-        default:
+-            static ConnectionsManager instance10(10);
+-            return instance10;
+-    }
++    if (instanceNum < 0) {
++        // Never alias malformed account IDs to another account's connection.
++        std::abort();
++    }
++    // Network callbacks repeatedly look up their own account. Keep that hot
++    // path lock-free without sharing the cache between threads.
++    static thread_local int32_t cachedId = -1;
++    static thread_local ConnectionsManager *cachedInstance = nullptr;
++    if (cachedId == instanceNum) {
++        return *cachedInstance;
++    }
++    // Network threads and their managers live for the process lifetime. Do not
++    // destroy this registry during static teardown while those threads run.
++    static auto *instances = new std::map<int32_t, std::unique_ptr<ConnectionsManager>>();
++    static auto *instancesMutex = new std::mutex();
++    std::lock_guard<std::mutex> lock(*instancesMutex);
++    auto found = instances->find(instanceNum);
++    if (found != instances->end()) {
++        cachedId = instanceNum;
++        cachedInstance = found->second.get();
++        return *cachedInstance;
++    }
++    std::unique_ptr<ConnectionsManager> instance(new ConnectionsManager(instanceNum));
++#ifdef ANDROID
++    instance->setDelegate(createJavaConnectionsDelegate());
++#endif
++    auto *result = instance.get();
++    instances->emplace(instanceNum, std::move(instance));
++    cachedId = instanceNum;
++    cachedInstance = result;
++    return *result;
+ }
+ 
+ int ConnectionsManager::callEvents(int64_t now) {
+@@ -365,7 +362,9 @@ void *ConnectionsManager::ThreadProc(void *data) {
+     if (LOGS_ENABLED) DEBUG_D("network thread started");
+     auto networkManager = (ConnectionsManager *) (data);
+ #ifdef ANDROID
+-    javaVm->AttachCurrentThread(&jniEnv[networkManager->instanceNum], nullptr);
++    if (javaVm->AttachCurrentThread(&jniEnv, nullptr) != JNI_OK) {
++        std::abort();
++    }
+ #endif
+     if (networkManager->currentUserId != 0 && networkManager->pushConnectionEnabled) {
+         Datacenter *datacenter = networkManager->getDatacenterWithId(networkManager->currentDatacenterId);
+@@ -377,6 +376,10 @@ void *ConnectionsManager::ThreadProc(void *data) {
+     do {
+         networkManager->select();
+     } while (!done);
++#ifdef ANDROID
++    javaVm->DetachCurrentThread();
++    jniEnv = nullptr;
++#endif
+     return nullptr;
+ }
+ 
+diff --git a/TMessagesProj/jni/tgnet/ConnectionsManager.h b/TMessagesProj/jni/tgnet/ConnectionsManager.h
+--- a/TMessagesProj/jni/tgnet/ConnectionsManager.h
++++ b/TMessagesProj/jni/tgnet/ConnectionsManager.h
+@@ -270,7 +270,8 @@ private:
+ 
+ #ifdef ANDROID
+ extern JavaVM *javaVm;
+-extern JNIEnv *jniEnv[MAX_ACCOUNT_COUNT];
++// A JNI environment belongs to the calling network thread, not an account slot.
++extern thread_local JNIEnv *jniEnv;
+ extern jclass jclass_ByteBuffer;
+ extern jmethodID jclass_ByteBuffer_allocateDirect;
+ #endif
+diff --git a/TMessagesProj/jni/tgnet/Defines.h b/TMessagesProj/jni/tgnet/Defines.h
+--- a/TMessagesProj/jni/tgnet/Defines.h
++++ b/TMessagesProj/jni/tgnet/Defines.h
+@@ -27,7 +27,6 @@
+ #define DOWNLOAD_CONNECTIONS_COUNT 8
+ #define UPLOAD_CONNECTIONS_COUNT 4
+ #define CONNECTION_BACKGROUND_KEEP_TIME 10000
+-#define MAX_ACCOUNT_COUNT 11 // Ten signed-in accounts plus the reserved native slot.
+ #define USE_DELEGATE_HOST_RESOLVE
+ 
+ #define USE_IPV4_ONLY 0
+diff --git a/TMessagesProj/jni/tgnet/ProxyCheckInfo.cpp b/TMessagesProj/jni/tgnet/ProxyCheckInfo.cpp
+--- a/TMessagesProj/jni/tgnet/ProxyCheckInfo.cpp
++++ b/TMessagesProj/jni/tgnet/ProxyCheckInfo.cpp
+@@ -14,7 +14,7 @@ ProxyCheckInfo::~ProxyCheckInfo() {
+ #ifdef ANDROID
+     if (ptr1 != nullptr) {
+         DEBUG_DELREF("tgnet (2) request ptr1");
+-        jniEnv[instanceNum]->DeleteGlobalRef(ptr1);
++        jniEnv->DeleteGlobalRef(ptr1);
+         ptr1 = nullptr;
+     }
+ #endif
+diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/AccountInstance.java b/TMessagesProj/src/main/java/org/telegram/messenger/AccountInstance.java
+--- a/TMessagesProj/src/main/java/org/telegram/messenger/AccountInstance.java
++++ b/TMessagesProj/src/main/java/org/telegram/messenger/AccountInstance.java
+@@ -8,18 +8,9 @@ import org.telegram.ui.Components.Paint.PersistColorPalette;
+ public class AccountInstance {
+ 
+     private int currentAccount;
+-    private static volatile AccountInstance[] Instance = new AccountInstance[UserConfig.MAX_ACCOUNT_COUNT];
++    private static final org.telegram.messenger.AccountInstanceRegistry<AccountInstance> Instance = new org.telegram.messenger.AccountInstanceRegistry<>();
+     public static AccountInstance getInstance(int num) {
+-        AccountInstance localInstance = Instance[num];
+-        if (localInstance == null) {
+-            synchronized (AccountInstance.class) {
+-                localInstance = Instance[num];
+-                if (localInstance == null) {
+-                    Instance[num] = localInstance = new AccountInstance(num);
+-                }
+-            }
+-        }
+-        return localInstance;
++        return Instance.get(num, AccountInstance::new);
+     }
+ 
+     public AccountInstance(int instance) {
+diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/BirthdayController.java b/TMessagesProj/src/main/java/org/telegram/messenger/BirthdayController.java
+--- a/TMessagesProj/src/main/java/org/telegram/messenger/BirthdayController.java
++++ b/TMessagesProj/src/main/java/org/telegram/messenger/BirthdayController.java
+@@ -18,25 +18,11 @@ import java.util.Set;
+ 
+ public class BirthdayController {
+ 
+-    private static volatile BirthdayController[] Instance = new BirthdayController[UserConfig.MAX_ACCOUNT_COUNT];
+-    private static final Object[] lockObjects = new Object[UserConfig.MAX_ACCOUNT_COUNT];
+-    static {
+-        for (int i = 0; i < UserConfig.MAX_ACCOUNT_COUNT; i++) {
+-            lockObjects[i] = new Object();
+-        }
+-    }
++    private static final org.telegram.messenger.AccountInstanceRegistry<BirthdayController> Instance = new org.telegram.messenger.AccountInstanceRegistry<>();
++
+ 
+     public static BirthdayController getInstance(int num) {
+-        BirthdayController localInstance = Instance[num];
+-        if (localInstance == null) {
+-            synchronized (lockObjects[num]) {
+-                localInstance = Instance[num];
+-                if (localInstance == null) {
+-                    Instance[num] = localInstance = new BirthdayController(num);
+-                }
+-            }
+-        }
+-        return localInstance;
++        return Instance.get(num, BirthdayController::new);
+     }
+ 
+     private final int currentAccount;
+diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/BotForumHelper.java b/TMessagesProj/src/main/java/org/telegram/messenger/BotForumHelper.java
+--- a/TMessagesProj/src/main/java/org/telegram/messenger/BotForumHelper.java
++++ b/TMessagesProj/src/main/java/org/telegram/messenger/BotForumHelper.java
+@@ -654,18 +654,9 @@ public class BotForumHelper extends BaseController {
+         preferences = ApplicationLoader.applicationContext.getSharedPreferences("bot_drafts" + currentAccount, Activity.MODE_PRIVATE);
+     }
+ 
+-    private static volatile BotForumHelper[] Instance = new BotForumHelper[UserConfig.MAX_ACCOUNT_COUNT];
++    private static final org.telegram.messenger.AccountInstanceRegistry<BotForumHelper> Instance = new org.telegram.messenger.AccountInstanceRegistry<>();
+     public static BotForumHelper getInstance(final int num) {
+-        BotForumHelper localInstance = Instance[num];
+-        if (localInstance == null) {
+-            synchronized (BotForumHelper.class) {
+-                localInstance = Instance[num];
+-                if (localInstance == null) {
+-                    Instance[num] = localInstance = new BotForumHelper(num);
+-                }
+-            }
+-        }
+-        return localInstance;
++        return Instance.get(num, BotForumHelper::new);
+     }
+ 
+ 
+diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/BotGuardHelper.java b/TMessagesProj/src/main/java/org/telegram/messenger/BotGuardHelper.java
+--- a/TMessagesProj/src/main/java/org/telegram/messenger/BotGuardHelper.java
++++ b/TMessagesProj/src/main/java/org/telegram/messenger/BotGuardHelper.java
+@@ -102,17 +102,8 @@ public class BotGuardHelper extends BaseController {
+ 
+ 
+ 
+-    private static volatile BotGuardHelper[] Instance = new BotGuardHelper[UserConfig.MAX_ACCOUNT_COUNT];
++    private static final org.telegram.messenger.AccountInstanceRegistry<BotGuardHelper> Instance = new org.telegram.messenger.AccountInstanceRegistry<>();
+     public static BotGuardHelper getInstance(final int num) {
+-        BotGuardHelper localInstance = Instance[num];
+-        if (localInstance == null) {
+-            synchronized (BotForumHelper.class) {
+-                localInstance = Instance[num];
+-                if (localInstance == null) {
+-                    Instance[num] = localInstance = new BotGuardHelper(num);
+-                }
+-            }
+-        }
+-        return localInstance;
++        return Instance.get(num, BotGuardHelper::new);
+     }
+ }
+diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/ChatThemeController.java b/TMessagesProj/src/main/java/org/telegram/messenger/ChatThemeController.java
+--- a/TMessagesProj/src/main/java/org/telegram/messenger/ChatThemeController.java
++++ b/TMessagesProj/src/main/java/org/telegram/messenger/ChatThemeController.java
+@@ -239,20 +239,10 @@ public class ChatThemeController extends BaseController {
+     }
+ 
+ 
+-    private static final ChatThemeController[] instances = new ChatThemeController[UserConfig.MAX_ACCOUNT_COUNT];
++    private static final org.telegram.messenger.AccountInstanceRegistry<ChatThemeController> instances = new org.telegram.messenger.AccountInstanceRegistry<>();
+ 
+     public static ChatThemeController getInstance(int accountNum) {
+-        ChatThemeController local = instances[accountNum];
+-        if (local == null) {
+-            synchronized (ChatThemeController.class) {
+-                local = instances[accountNum];
+-                if (local == null) {
+-                    local = new ChatThemeController(accountNum);
+-                    instances[accountNum] = local;
+-                }
+-            }
+-        }
+-        return local;
++        return instances.get(accountNum, ChatThemeController::new);
+     }
+ 
+ 
+diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/ContactsController.java b/TMessagesProj/src/main/java/org/telegram/messenger/ContactsController.java
+--- a/TMessagesProj/src/main/java/org/telegram/messenger/ContactsController.java
++++ b/TMessagesProj/src/main/java/org/telegram/messenger/ContactsController.java
+@@ -247,18 +247,9 @@ public class ContactsController extends BaseController {
+ 
+     private int completedRequestsCount;
+     
+-    private static volatile ContactsController[] Instance = new ContactsController[UserConfig.MAX_ACCOUNT_COUNT];
++    private static final org.telegram.messenger.AccountInstanceRegistry<ContactsController> Instance = new org.telegram.messenger.AccountInstanceRegistry<>();
+     public static ContactsController getInstance(int num) {
+-        ContactsController localInstance = Instance[num];
+-        if (localInstance == null) {
+-            synchronized (ContactsController.class) {
+-                localInstance = Instance[num];
+-                if (localInstance == null) {
+-                    Instance[num] = localInstance = new ContactsController(num);
+-                }
+-            }
+-        }
+-        return localInstance;
++        return Instance.get(num, ContactsController::new);
+     }
+ 
+     public ContactsController(int instance) {
+diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/DownloadController.java b/TMessagesProj/src/main/java/org/telegram/messenger/DownloadController.java
+--- a/TMessagesProj/src/main/java/org/telegram/messenger/DownloadController.java
++++ b/TMessagesProj/src/main/java/org/telegram/messenger/DownloadController.java
+@@ -240,19 +240,10 @@ public class DownloadController extends BaseController implements NotificationCe
+     public int currentWifiPreset;
+     public int currentRoamingPreset;
+     
+-    private static volatile DownloadController[] Instance = new DownloadController[UserConfig.MAX_ACCOUNT_COUNT];
++    private static final org.telegram.messenger.AccountInstanceRegistry<DownloadController> Instance = new org.telegram.messenger.AccountInstanceRegistry<>();
+ 
+     public static DownloadController getInstance(int num) {
+-        DownloadController localInstance = Instance[num];
+-        if (localInstance == null) {
+-            synchronized (DownloadController.class) {
+-                localInstance = Instance[num];
+-                if (localInstance == null) {
+-                    Instance[num] = localInstance = new DownloadController(num);
+-                }
+-            }
+-        }
+-        return localInstance;
++        return Instance.get(num, DownloadController::new);
+     }
+ 
+     public DownloadController(int instance) {
+diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/FactCheckController.java b/TMessagesProj/src/main/java/org/telegram/messenger/FactCheckController.java
+--- a/TMessagesProj/src/main/java/org/telegram/messenger/FactCheckController.java
++++ b/TMessagesProj/src/main/java/org/telegram/messenger/FactCheckController.java
+@@ -56,25 +56,11 @@ import java.util.HashMap;
+ 
+ public class FactCheckController {
+ 
+-    private static volatile FactCheckController[] Instance = new FactCheckController[UserConfig.MAX_ACCOUNT_COUNT];
+-    private static final Object[] lockObjects = new Object[UserConfig.MAX_ACCOUNT_COUNT];
+-    static {
+-        for (int i = 0; i < UserConfig.MAX_ACCOUNT_COUNT; i++) {
+-            lockObjects[i] = new Object();
+-        }
+-    }
++    private static final org.telegram.messenger.AccountInstanceRegistry<FactCheckController> Instance = new org.telegram.messenger.AccountInstanceRegistry<>();
++
+ 
+     public static FactCheckController getInstance(int num) {
+-        FactCheckController localInstance = Instance[num];
+-        if (localInstance == null) {
+-            synchronized (lockObjects[num]) {
+-                localInstance = Instance[num];
+-                if (localInstance == null) {
+-                    Instance[num] = localInstance = new FactCheckController(num);
+-                }
+-            }
+-        }
+-        return localInstance;
++        return Instance.get(num, FactCheckController::new);
+     }
+ 
+     public final int currentAccount;
+diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/FileLoader.java b/TMessagesProj/src/main/java/org/telegram/messenger/FileLoader.java
+--- a/TMessagesProj/src/main/java/org/telegram/messenger/FileLoader.java
++++ b/TMessagesProj/src/main/java/org/telegram/messenger/FileLoader.java
+@@ -228,19 +228,10 @@ public class FileLoader extends BaseController {
+     private int lastReferenceId;
+     private final ConcurrentHashMap<Integer, Object> parentObjectReferences = new ConcurrentHashMap<>();
+ 
+-    private static final FileLoader[] Instance = new FileLoader[UserConfig.MAX_ACCOUNT_COUNT];
++    private static final org.telegram.messenger.AccountInstanceRegistry<FileLoader> Instance = new org.telegram.messenger.AccountInstanceRegistry<>();
+ 
+     public static FileLoader getInstance(int num) {
+-        FileLoader localInstance = Instance[num];
+-        if (localInstance == null) {
+-            synchronized (FileLoader.class) {
+-                localInstance = Instance[num];
+-                if (localInstance == null) {
+-                    Instance[num] = localInstance = new FileLoader(num);
+-                }
+-            }
+-        }
+-        return localInstance;
++        return Instance.get(num, FileLoader::new);
+     }
+ 
+     public FileLoader(int instance) {
+diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/FileRefController.java b/TMessagesProj/src/main/java/org/telegram/messenger/FileRefController.java
+--- a/TMessagesProj/src/main/java/org/telegram/messenger/FileRefController.java
++++ b/TMessagesProj/src/main/java/org/telegram/messenger/FileRefController.java
+@@ -56,19 +56,10 @@ public class FileRefController extends BaseController {
+     private ArrayList<Waiter> recentStickersWaiter = new ArrayList<>();
+     private ArrayList<Waiter> favStickersWaiter = new ArrayList<>();
+ 
+-    private static volatile FileRefController[] Instance = new FileRefController[UserConfig.MAX_ACCOUNT_COUNT];
++    private static final org.telegram.messenger.AccountInstanceRegistry<FileRefController> Instance = new org.telegram.messenger.AccountInstanceRegistry<>();
+ 
+     public static FileRefController getInstance(int num) {
+-        FileRefController localInstance = Instance[num];
+-        if (localInstance == null) {
+-            synchronized (FileRefController.class) {
+-                localInstance = Instance[num];
+-                if (localInstance == null) {
+-                    Instance[num] = localInstance = new FileRefController(num);
+-                }
+-            }
+-        }
+-        return localInstance;
++        return Instance.get(num, FileRefController::new);
+     }
+ 
+     public FileRefController(int instance) {
+diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/GiftAuctionController.java b/TMessagesProj/src/main/java/org/telegram/messenger/GiftAuctionController.java
+--- a/TMessagesProj/src/main/java/org/telegram/messenger/GiftAuctionController.java
++++ b/TMessagesProj/src/main/java/org/telegram/messenger/GiftAuctionController.java
+@@ -762,18 +762,9 @@ public class GiftAuctionController extends BaseController {
+         super(num);
+     }
+ 
+-    private static volatile GiftAuctionController[] Instance = new GiftAuctionController[UserConfig.MAX_ACCOUNT_COUNT];
++    private static final org.telegram.messenger.AccountInstanceRegistry<GiftAuctionController> Instance = new org.telegram.messenger.AccountInstanceRegistry<>();
+ 
+     public static GiftAuctionController getInstance(int num) {
+-        GiftAuctionController localInstance = Instance[num];
+-        if (localInstance == null) {
+-            synchronized (GiftAuctionController.class) {
+-                localInstance = Instance[num];
+-                if (localInstance == null) {
+-                    Instance[num] = localInstance = new GiftAuctionController(num);
+-                }
+-            }
+-        }
+-        return localInstance;
++        return Instance.get(num, GiftAuctionController::new);
+     }
+ }
+diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/HashtagSearchController.java b/TMessagesProj/src/main/java/org/telegram/messenger/HashtagSearchController.java
+--- a/TMessagesProj/src/main/java/org/telegram/messenger/HashtagSearchController.java
++++ b/TMessagesProj/src/main/java/org/telegram/messenger/HashtagSearchController.java
+@@ -16,26 +16,11 @@ import java.util.HashMap;
+ import java.util.Objects;
+ 
+ public class HashtagSearchController {
+-    private static volatile HashtagSearchController[] Instance = new HashtagSearchController[UserConfig.MAX_ACCOUNT_COUNT];
+-    private static final Object[] lockObjects = new Object[UserConfig.MAX_ACCOUNT_COUNT];
++    private static final org.telegram.messenger.AccountInstanceRegistry<HashtagSearchController> Instance = new org.telegram.messenger.AccountInstanceRegistry<>();
+ 
+-    static {
+-        for (int i = 0; i < UserConfig.MAX_ACCOUNT_COUNT; i++) {
+-            lockObjects[i] = new Object();
+-        }
+-    }
+ 
+     public static HashtagSearchController getInstance(int num) {
+-        HashtagSearchController localInstance = Instance[num];
+-        if (localInstance == null) {
+-            synchronized (lockObjects[num]) {
+-                localInstance = Instance[num];
+-                if (localInstance == null) {
+-                    Instance[num] = localInstance = new HashtagSearchController(num);
+-                }
+-            }
+-        }
+-        return localInstance;
++        return Instance.get(num, HashtagSearchController::new);
+     }
+ 
+     public final int currentAccount;
+diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/LocationController.java b/TMessagesProj/src/main/java/org/telegram/messenger/LocationController.java
+--- a/TMessagesProj/src/main/java/org/telegram/messenger/LocationController.java
++++ b/TMessagesProj/src/main/java/org/telegram/messenger/LocationController.java
+@@ -77,19 +77,10 @@ public class LocationController extends BaseController implements NotificationCe
+ 
+     private ILocationServiceProvider.ILocationRequest locationRequest;
+ 
+-    private static volatile LocationController[] Instance = new LocationController[UserConfig.MAX_ACCOUNT_COUNT];
++    private static final org.telegram.messenger.AccountInstanceRegistry<LocationController> Instance = new org.telegram.messenger.AccountInstanceRegistry<>();
+ 
+     public static LocationController getInstance(int num) {
+-        LocationController localInstance = Instance[num];
+-        if (localInstance == null) {
+-            synchronized (LocationController.class) {
+-                localInstance = Instance[num];
+-                if (localInstance == null) {
+-                    Instance[num] = localInstance = new LocationController(num);
+-                }
+-            }
+-        }
+-        return localInstance;
++        return Instance.get(num, LocationController::new);
+     }
+ 
+     public static class SharingLocationInfo {
+diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/MediaDataController.java b/TMessagesProj/src/main/java/org/telegram/messenger/MediaDataController.java
+--- a/TMessagesProj/src/main/java/org/telegram/messenger/MediaDataController.java
++++ b/TMessagesProj/src/main/java/org/telegram/messenger/MediaDataController.java
+@@ -134,27 +134,12 @@ public class MediaDataController extends BaseController {
+ 
+     public static String SHORTCUT_CATEGORY = "org.telegram.messenger.SHORTCUT_SHARE";
+ 
+-    private static volatile MediaDataController[] Instance = new MediaDataController[UserConfig.MAX_ACCOUNT_COUNT];
+-    private static final Object[] lockObjects = new Object[UserConfig.MAX_ACCOUNT_COUNT];
++    private static final org.telegram.messenger.AccountInstanceRegistry<MediaDataController> Instance = new org.telegram.messenger.AccountInstanceRegistry<>();
+ 
+-    static {
+-        for (int i = 0; i < UserConfig.MAX_ACCOUNT_COUNT; i++) {
+-            lockObjects[i] = new Object();
+-        }
+-    }
+ 
+ 
+     public static MediaDataController getInstance(int num) {
+-        MediaDataController localInstance = Instance[num];
+-        if (localInstance == null) {
+-            synchronized (lockObjects) {
+-                localInstance = Instance[num];
+-                if (localInstance == null) {
+-                    Instance[num] = localInstance = new MediaDataController(num);
+-                }
+-            }
+-        }
+-        return localInstance;
++        return Instance.get(num, MediaDataController::new);
+     }
+ 
+     public MediaDataController(int num) {
+diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/MemberRequestsController.java b/TMessagesProj/src/main/java/org/telegram/messenger/MemberRequestsController.java
+--- a/TMessagesProj/src/main/java/org/telegram/messenger/MemberRequestsController.java
++++ b/TMessagesProj/src/main/java/org/telegram/messenger/MemberRequestsController.java
+@@ -11,20 +11,10 @@ import org.telegram.tgnet.tl.TL_update;
+ 
+ public class MemberRequestsController extends BaseController {
+ 
+-    private static final MemberRequestsController[] instances = new MemberRequestsController[UserConfig.MAX_ACCOUNT_COUNT];
++    private static final org.telegram.messenger.AccountInstanceRegistry<MemberRequestsController> instances = new org.telegram.messenger.AccountInstanceRegistry<>();
+ 
+     public static MemberRequestsController getInstance(int accountNum) {
+-        MemberRequestsController local = instances[accountNum];
+-        if (local == null) {
+-            synchronized (MemberRequestsController.class) {
+-                local = instances[accountNum];
+-                if (local == null) {
+-                    local = new MemberRequestsController(accountNum);
+-                    instances[accountNum] = local;
+-                }
+-            }
+-        }
+-        return local;
++        return instances.get(accountNum, MemberRequestsController::new);
+     }
+ 
+     private final LongSparseArray<TLRPC.TL_messages_chatInviteImporters> firstImportersCache = new LongSparseArray<>();
+diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/MessagesController.java b/TMessagesProj/src/main/java/org/telegram/messenger/MessagesController.java
+--- a/TMessagesProj/src/main/java/org/telegram/messenger/MessagesController.java
++++ b/TMessagesProj/src/main/java/org/telegram/messenger/MessagesController.java
+@@ -1502,25 +1502,11 @@ public class MessagesController extends BaseController implements NotificationCe
+         return 0;
+     };
+ 
+-    private static volatile MessagesController[] Instance = new MessagesController[UserConfig.MAX_ACCOUNT_COUNT];
+-    private static final Object[] lockObjects = new Object[UserConfig.MAX_ACCOUNT_COUNT];
+-    static {
+-        for (int i = 0; i < UserConfig.MAX_ACCOUNT_COUNT; i++) {
+-            lockObjects[i] = new Object();
+-        }
+-    }
++    private static final org.telegram.messenger.AccountInstanceRegistry<MessagesController> Instance = new org.telegram.messenger.AccountInstanceRegistry<>();
++
+ 
+     public static MessagesController getInstance(int num) {
+-        MessagesController localInstance = Instance[num];
+-        if (localInstance == null) {
+-            synchronized (lockObjects[num]) {
+-                localInstance = Instance[num];
+-                if (localInstance == null) {
+-                    Instance[num] = localInstance = new MessagesController(num);
+-                }
+-            }
+-        }
+-        return localInstance;
++        return Instance.get(num, MessagesController::new);
+     }
+ 
+     public SharedPreferences getMainSettings() {
+diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/MessagesStorage.java b/TMessagesProj/src/main/java/org/telegram/messenger/MessagesStorage.java
+--- a/TMessagesProj/src/main/java/org/telegram/messenger/MessagesStorage.java
++++ b/TMessagesProj/src/main/java/org/telegram/messenger/MessagesStorage.java
+@@ -110,13 +110,8 @@ public class MessagesStorage extends BaseController {
+ 
+     private final CountDownLatch openSync = new CountDownLatch(1);
+ 
+-    private static volatile MessagesStorage[] Instance = new MessagesStorage[UserConfig.MAX_ACCOUNT_COUNT];
+-    private static final Object[] lockObjects = new Object[UserConfig.MAX_ACCOUNT_COUNT];
+-    static {
+-        for (int i = 0; i < UserConfig.MAX_ACCOUNT_COUNT; i++) {
+-            lockObjects[i] = new Object();
+-        }
+-    }
++    private static final org.telegram.messenger.AccountInstanceRegistry<MessagesStorage> Instance = new org.telegram.messenger.AccountInstanceRegistry<>();
++
+ 
+     public final static int LAST_DB_VERSION = 179;
+     private boolean databaseMigrationInProgress;
+@@ -131,16 +126,7 @@ public class MessagesStorage extends BaseController {
+ 
+ 
+     public static MessagesStorage getInstance(int num) {
+-        MessagesStorage localInstance = Instance[num];
+-        if (localInstance == null) {
+-            synchronized (lockObjects[num]) {
+-                localInstance = Instance[num];
+-                if (localInstance == null) {
+-                    Instance[num] = localInstance = new MessagesStorage(num);
+-                }
+-            }
+-        }
+-        return localInstance;
++        return Instance.get(num, MessagesStorage::new);
+     }
+ 
+     private void ensureOpened() {
+diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/NotificationCenter.java b/TMessagesProj/src/main/java/org/telegram/messenger/NotificationCenter.java
+--- a/TMessagesProj/src/main/java/org/telegram/messenger/NotificationCenter.java
++++ b/TMessagesProj/src/main/java/org/telegram/messenger/NotificationCenter.java
+@@ -425,21 +425,12 @@ public class NotificationCenter {
+ 
+     private int currentAccount;
+     private int currentHeavyOperationFlags;
+-    private static volatile NotificationCenter[] Instance = new NotificationCenter[UserConfig.MAX_ACCOUNT_COUNT];
++    private static final org.telegram.messenger.AccountInstanceRegistry<NotificationCenter> Instance = new org.telegram.messenger.AccountInstanceRegistry<>();
+     private static volatile NotificationCenter globalInstance;
+ 
+     @UiThread
+     public static NotificationCenter getInstance(int num) {
+-        NotificationCenter localInstance = Instance[num];
+-        if (localInstance == null) {
+-            synchronized (NotificationCenter.class) {
+-                localInstance = Instance[num];
+-                if (localInstance == null) {
+-                    Instance[num] = localInstance = new NotificationCenter(num);
+-                }
+-            }
+-        }
+-        return localInstance;
++        return Instance.get(num, NotificationCenter::new);
+     }
+ 
+     @UiThread
+diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/NotificationsController.java b/TMessagesProj/src/main/java/org/telegram/messenger/NotificationsController.java
+--- a/TMessagesProj/src/main/java/org/telegram/messenger/NotificationsController.java
++++ b/TMessagesProj/src/main/java/org/telegram/messenger/NotificationsController.java
+@@ -179,25 +179,11 @@ public class NotificationsController extends BaseController implements Notificat
+         audioManager = (AudioManager) ApplicationLoader.applicationContext.getSystemService(Context.AUDIO_SERVICE);
+     }
+ 
+-    private static volatile NotificationsController[] Instance = new NotificationsController[UserConfig.MAX_ACCOUNT_COUNT];
+-    private static final Object[] lockObjects = new Object[UserConfig.MAX_ACCOUNT_COUNT];
+-    static {
+-        for (int i = 0; i < UserConfig.MAX_ACCOUNT_COUNT; i++) {
+-            lockObjects[i] = new Object();
+-        }
+-    }
++    private static final org.telegram.messenger.AccountInstanceRegistry<NotificationsController> Instance = new org.telegram.messenger.AccountInstanceRegistry<>();
++
+ 
+     public static NotificationsController getInstance(int num) {
+-        NotificationsController localInstance = Instance[num];
+-        if (localInstance == null) {
+-            synchronized (lockObjects[num]) {
+-                localInstance = Instance[num];
+-                if (localInstance == null) {
+-                    Instance[num] = localInstance = new NotificationsController(num);
+-                }
+-            }
+-        }
+-        return localInstance;
++        return Instance.get(num, NotificationsController::new);
+     }
+ 
+     public NotificationsController(int instance) {
+diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/SecretChatHelper.java b/TMessagesProj/src/main/java/org/telegram/messenger/SecretChatHelper.java
+--- a/TMessagesProj/src/main/java/org/telegram/messenger/SecretChatHelper.java
++++ b/TMessagesProj/src/main/java/org/telegram/messenger/SecretChatHelper.java
+@@ -80,19 +80,10 @@ public class SecretChatHelper extends BaseController {
+     private ArrayList<Long> pendingEncMessagesToDelete = new ArrayList<>();
+     private boolean startingSecretChat = false;
+ 
+-    private static volatile SecretChatHelper[] Instance = new SecretChatHelper[UserConfig.MAX_ACCOUNT_COUNT];
++    private static final org.telegram.messenger.AccountInstanceRegistry<SecretChatHelper> Instance = new org.telegram.messenger.AccountInstanceRegistry<>();
+ 
+     public static SecretChatHelper getInstance(int num) {
+-        SecretChatHelper localInstance = Instance[num];
+-        if (localInstance == null) {
+-            synchronized (SecretChatHelper.class) {
+-                localInstance = Instance[num];
+-                if (localInstance == null) {
+-                    Instance[num] = localInstance = new SecretChatHelper(num);
+-                }
+-            }
+-        }
+-        return localInstance;
++        return Instance.get(num, SecretChatHelper::new);
+     }
+ 
+     public SecretChatHelper(int instance) {
+diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/SendMessagesHelper.java b/TMessagesProj/src/main/java/org/telegram/messenger/SendMessagesHelper.java
+--- a/TMessagesProj/src/main/java/org/telegram/messenger/SendMessagesHelper.java
++++ b/TMessagesProj/src/main/java/org/telegram/messenger/SendMessagesHelper.java
+@@ -955,18 +955,9 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
+         }
+     }
+ 
+-    private static volatile SendMessagesHelper[] Instance = new SendMessagesHelper[UserConfig.MAX_ACCOUNT_COUNT];
++    private static final org.telegram.messenger.AccountInstanceRegistry<SendMessagesHelper> Instance = new org.telegram.messenger.AccountInstanceRegistry<>();
+     public static SendMessagesHelper getInstance(int num) {
+-        SendMessagesHelper localInstance = Instance[num];
+-        if (localInstance == null) {
+-            synchronized (SendMessagesHelper.class) {
+-                localInstance = Instance[num];
+-                if (localInstance == null) {
+-                    Instance[num] = localInstance = new SendMessagesHelper(num);
+-                }
+-            }
+-        }
+-        return localInstance;
++        return Instance.get(num, SendMessagesHelper::new);
+     }
+ 
+     public SendMessagesHelper(int instance) {
+diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/StatsController.java b/TMessagesProj/src/main/java/org/telegram/messenger/StatsController.java
+--- a/TMessagesProj/src/main/java/org/telegram/messenger/StatsController.java
++++ b/TMessagesProj/src/main/java/org/telegram/messenger/StatsController.java
+@@ -118,19 +118,10 @@ public class StatsController extends BaseController {
+         }
+     };
+ 
+-    private static volatile StatsController[] Instance = new StatsController[UserConfig.MAX_ACCOUNT_COUNT];
++    private static final org.telegram.messenger.AccountInstanceRegistry<StatsController> Instance = new org.telegram.messenger.AccountInstanceRegistry<>();
+ 
+     public static StatsController getInstance(int num) {
+-        StatsController localInstance = Instance[num];
+-        if (localInstance == null) {
+-            synchronized (StatsController.class) {
+-                localInstance = Instance[num];
+-                if (localInstance == null) {
+-                    Instance[num] = localInstance = new StatsController(num);
+-                }
+-            }
+-        }
+-        return localInstance;
++        return Instance.get(num, StatsController::new);
+     }
+ 
+     private StatsController(int account) {
+diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/UserConfig.java b/TMessagesProj/src/main/java/org/telegram/messenger/UserConfig.java
+--- a/TMessagesProj/src/main/java/org/telegram/messenger/UserConfig.java
++++ b/TMessagesProj/src/main/java/org/telegram/messenger/UserConfig.java
+@@ -84,18 +84,9 @@ public class UserConfig extends BaseController {
+     LongSparseArray<SaveToGallerySettingsHelper.DialogException> groupsSaveGalleryExceptions;
+ 
+ 
+-    private static volatile UserConfig[] Instance = new UserConfig[UserConfig.MAX_ACCOUNT_COUNT];
++    private static final org.telegram.messenger.AccountInstanceRegistry<UserConfig> Instance = new org.telegram.messenger.AccountInstanceRegistry<>();
+     public static UserConfig getInstance(int num) {
+-        UserConfig localInstance = Instance[num];
+-        if (localInstance == null) {
+-            synchronized (UserConfig.class) {
+-                localInstance = Instance[num];
+-                if (localInstance == null) {
+-                    Instance[num] = localInstance = new UserConfig(num);
+-                }
+-            }
+-        }
+-        return localInstance;
++        return Instance.get(num, UserConfig::new);
+     }
+ 
+     public static int getActivatedAccountsCount() {
+diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/utils/EphemeralMessagesHelper.java b/TMessagesProj/src/main/java/org/telegram/messenger/utils/EphemeralMessagesHelper.java
+--- a/TMessagesProj/src/main/java/org/telegram/messenger/utils/EphemeralMessagesHelper.java
++++ b/TMessagesProj/src/main/java/org/telegram/messenger/utils/EphemeralMessagesHelper.java
+@@ -472,17 +472,8 @@ public class EphemeralMessagesHelper extends BaseController {
+         super(currentAccount);
+     }
+ 
+-    private static volatile EphemeralMessagesHelper[] Instance = new EphemeralMessagesHelper[UserConfig.MAX_ACCOUNT_COUNT];
++    private static final org.telegram.messenger.AccountInstanceRegistry<EphemeralMessagesHelper> Instance = new org.telegram.messenger.AccountInstanceRegistry<>();
+     public static EphemeralMessagesHelper getInstance(final int num) {
+-        EphemeralMessagesHelper localInstance = Instance[num];
+-        if (localInstance == null) {
+-            synchronized (EphemeralMessagesHelper.class) {
+-                localInstance = Instance[num];
+-                if (localInstance == null) {
+-                    Instance[num] = localInstance = new EphemeralMessagesHelper(num);
+-                }
+-            }
+-        }
+-        return localInstance;
++        return Instance.get(num, EphemeralMessagesHelper::new);
+     }
+ }
+diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/voip/GroupCallMessagesController.java b/TMessagesProj/src/main/java/org/telegram/messenger/voip/GroupCallMessagesController.java
+--- a/TMessagesProj/src/main/java/org/telegram/messenger/voip/GroupCallMessagesController.java
++++ b/TMessagesProj/src/main/java/org/telegram/messenger/voip/GroupCallMessagesController.java
+@@ -291,19 +291,10 @@ public class GroupCallMessagesController extends BaseController {
+ 
+     /* * */
+ 
+-    private static volatile GroupCallMessagesController[] Instance = new GroupCallMessagesController[UserConfig.MAX_ACCOUNT_COUNT];
++    private static final org.telegram.messenger.AccountInstanceRegistry<GroupCallMessagesController> Instance = new org.telegram.messenger.AccountInstanceRegistry<>();
+ 
+     public static GroupCallMessagesController getInstance(int num) {
+-        GroupCallMessagesController localInstance = Instance[num];
+-        if (localInstance == null) {
+-            synchronized (GroupCallMessagesController.class) {
+-                localInstance = Instance[num];
+-                if (localInstance == null) {
+-                    Instance[num] = localInstance = new GroupCallMessagesController(num);
+-                }
+-            }
+-        }
+-        return localInstance;
++        return Instance.get(num, GroupCallMessagesController::new);
+     }
+ 
+     private GroupCallMessagesController(int accountId) {
+diff --git a/TMessagesProj/src/main/java/org/telegram/tgnet/ConnectionsManager.java b/TMessagesProj/src/main/java/org/telegram/tgnet/ConnectionsManager.java
+--- a/TMessagesProj/src/main/java/org/telegram/tgnet/ConnectionsManager.java
++++ b/TMessagesProj/src/main/java/org/telegram/tgnet/ConnectionsManager.java
+@@ -193,18 +193,9 @@ public class ConnectionsManager extends BaseController {
+ 
+     private static int lastClassGuid = 1;
+     
+-    private static final ConnectionsManager[] Instance = new ConnectionsManager[UserConfig.MAX_ACCOUNT_COUNT];
++    private static final org.telegram.messenger.AccountInstanceRegistry<ConnectionsManager> Instance = new org.telegram.messenger.AccountInstanceRegistry<>();
+     public static ConnectionsManager getInstance(int num) {
+-        ConnectionsManager localInstance = Instance[num];
+-        if (localInstance == null) {
+-            synchronized (ConnectionsManager.class) {
+-                localInstance = Instance[num];
+-                if (localInstance == null) {
+-                    Instance[num] = localInstance = new ConnectionsManager(num);
+-                }
+-            }
+-        }
+-        return localInstance;
++        return Instance.get(num, ConnectionsManager::new);
+     }
+ 
+     public ConnectionsManager(int instance) {
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Business/BusinessChatbotController.java b/TMessagesProj/src/main/java/org/telegram/ui/Business/BusinessChatbotController.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Business/BusinessChatbotController.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Business/BusinessChatbotController.java
+@@ -12,24 +12,10 @@ import java.util.ArrayList;
+ 
+ public class BusinessChatbotController {
+ 
+-    private static volatile BusinessChatbotController[] Instance = new BusinessChatbotController[UserConfig.MAX_ACCOUNT_COUNT];
+-    private static final Object[] lockObjects = new Object[UserConfig.MAX_ACCOUNT_COUNT];
+-    static {
+-        for (int i = 0; i < UserConfig.MAX_ACCOUNT_COUNT; i++) {
+-            lockObjects[i] = new Object();
+-        }
+-    }
++    private static final org.telegram.messenger.AccountInstanceRegistry<BusinessChatbotController> Instance = new org.telegram.messenger.AccountInstanceRegistry<>();
++
+     public static BusinessChatbotController getInstance(int num) {
+-        BusinessChatbotController localInstance = Instance[num];
+-        if (localInstance == null) {
+-            synchronized (lockObjects[num]) {
+-                localInstance = Instance[num];
+-                if (localInstance == null) {
+-                    Instance[num] = localInstance = new BusinessChatbotController(num);
+-                }
+-            }
+-        }
+-        return localInstance;
++        return Instance.get(num, BusinessChatbotController::new);
+     }
+ 
+     private final int currentAccount;
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Business/BusinessLinksController.java b/TMessagesProj/src/main/java/org/telegram/ui/Business/BusinessLinksController.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Business/BusinessLinksController.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Business/BusinessLinksController.java
+@@ -24,26 +24,11 @@ import java.util.ArrayList;
+ 
+ public class BusinessLinksController {
+ 
+-    private static volatile BusinessLinksController[] Instance = new BusinessLinksController[UserConfig.MAX_ACCOUNT_COUNT];
+-    private static final Object[] lockObjects = new Object[UserConfig.MAX_ACCOUNT_COUNT];
++    private static final org.telegram.messenger.AccountInstanceRegistry<BusinessLinksController> Instance = new org.telegram.messenger.AccountInstanceRegistry<>();
+ 
+-    static {
+-        for (int i = 0; i < UserConfig.MAX_ACCOUNT_COUNT; i++) {
+-            lockObjects[i] = new Object();
+-        }
+-    }
+ 
+     public static BusinessLinksController getInstance(int num) {
+-        BusinessLinksController localInstance = Instance[num];
+-        if (localInstance == null) {
+-            synchronized (lockObjects[num]) {
+-                localInstance = Instance[num];
+-                if (localInstance == null) {
+-                    Instance[num] = localInstance = new BusinessLinksController(num);
+-                }
+-            }
+-        }
+-        return localInstance;
++        return Instance.get(num, BusinessLinksController::new);
+     }
+ 
+     public final int currentAccount;
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Business/QuickRepliesController.java b/TMessagesProj/src/main/java/org/telegram/ui/Business/QuickRepliesController.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Business/QuickRepliesController.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Business/QuickRepliesController.java
+@@ -34,24 +34,10 @@ public class QuickRepliesController {
+         return GREETING.equalsIgnoreCase(name) || AWAY.equalsIgnoreCase(name);
+     }
+ 
+-    private static volatile QuickRepliesController[] Instance = new QuickRepliesController[UserConfig.MAX_ACCOUNT_COUNT];
+-    private static final Object[] lockObjects = new Object[UserConfig.MAX_ACCOUNT_COUNT];
+-    static {
+-        for (int i = 0; i < UserConfig.MAX_ACCOUNT_COUNT; i++) {
+-            lockObjects[i] = new Object();
+-        }
+-    }
++    private static final org.telegram.messenger.AccountInstanceRegistry<QuickRepliesController> Instance = new org.telegram.messenger.AccountInstanceRegistry<>();
++
+     public static QuickRepliesController getInstance(int num) {
+-        QuickRepliesController localInstance = Instance[num];
+-        if (localInstance == null) {
+-            synchronized (lockObjects[num]) {
+-                localInstance = Instance[num];
+-                if (localInstance == null) {
+-                    Instance[num] = localInstance = new QuickRepliesController(num);
+-                }
+-            }
+-        }
+-        return localInstance;
++        return Instance.get(num, QuickRepliesController::new);
+     }
+ 
+     public final int currentAccount;
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Business/TimezonesController.java b/TMessagesProj/src/main/java/org/telegram/ui/Business/TimezonesController.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Business/TimezonesController.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Business/TimezonesController.java
+@@ -22,24 +22,10 @@ import java.util.ArrayList;
+ 
+ public class TimezonesController {
+ 
+-    private static volatile TimezonesController[] Instance = new TimezonesController[UserConfig.MAX_ACCOUNT_COUNT];
+-    private static final Object[] lockObjects = new Object[UserConfig.MAX_ACCOUNT_COUNT];
+-    static {
+-        for (int i = 0; i < UserConfig.MAX_ACCOUNT_COUNT; i++) {
+-            lockObjects[i] = new Object();
+-        }
+-    }
++    private static final org.telegram.messenger.AccountInstanceRegistry<TimezonesController> Instance = new org.telegram.messenger.AccountInstanceRegistry<>();
++
+     public static TimezonesController getInstance(int num) {
+-        TimezonesController localInstance = Instance[num];
+-        if (localInstance == null) {
+-            synchronized (lockObjects[num]) {
+-                localInstance = Instance[num];
+-                if (localInstance == null) {
+-                    Instance[num] = localInstance = new TimezonesController(num);
+-                }
+-            }
+-        }
+-        return localInstance;
++        return Instance.get(num, TimezonesController::new);
+     }
+ 
+     public final int currentAccount;
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/Paint/PersistColorPalette.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/Paint/PersistColorPalette.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Components/Paint/PersistColorPalette.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/Paint/PersistColorPalette.java
+@@ -49,7 +49,7 @@ public class PersistColorPalette {
+     public final static int COLORS_COUNT = MODIFIABLE_COLORS_COUNT + PRESET_COLORS_COUNT;
+ 
+     private final static int BRUSH_TEXT = -1;
+-    private static PersistColorPalette[] instances = new PersistColorPalette[UserConfig.MAX_ACCOUNT_COUNT];
++    private static final org.telegram.messenger.AccountInstanceRegistry<PersistColorPalette> instances = new org.telegram.messenger.AccountInstanceRegistry<>();
+ 
+     private final SharedPreferences mConfig;
+     private final List<Integer> colors = new ArrayList<>(COLORS_COUNT);
+@@ -78,10 +78,7 @@ public class PersistColorPalette {
+     }
+ 
+     public static PersistColorPalette getInstance(int currentAccount) {
+-        if (instances[currentAccount] == null) {
+-            instances[currentAccount] = new PersistColorPalette(currentAccount);
+-        }
+-        return instances[currentAccount];
++        return instances.get(currentAccount, PersistColorPalette::new);
+     }
+ 
+     public int getCurrentTextType() {
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Stars/BotStarsController.java b/TMessagesProj/src/main/java/org/telegram/ui/Stars/BotStarsController.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Stars/BotStarsController.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Stars/BotStarsController.java
+@@ -30,25 +30,11 @@ import java.util.HashMap;
+ 
+ public class BotStarsController {
+ 
+-    private static volatile BotStarsController[] Instance = new BotStarsController[UserConfig.MAX_ACCOUNT_COUNT];
+-    private static final Object[] lockObjects = new Object[UserConfig.MAX_ACCOUNT_COUNT];
+-    static {
+-        for (int i = 0; i < UserConfig.MAX_ACCOUNT_COUNT; i++) {
+-            lockObjects[i] = new Object();
+-        }
+-    }
++    private static final org.telegram.messenger.AccountInstanceRegistry<BotStarsController> Instance = new org.telegram.messenger.AccountInstanceRegistry<>();
++
+ 
+     public static BotStarsController getInstance(int num) {
+-        BotStarsController localInstance = Instance[num];
+-        if (localInstance == null) {
+-            synchronized (lockObjects[num]) {
+-                localInstance = Instance[num];
+-                if (localInstance == null) {
+-                    Instance[num] = localInstance = new BotStarsController(num);
+-                }
+-            }
+-        }
+-        return localInstance;
++        return Instance.get(num, BotStarsController::new);
+     }
+ 
+     public final int currentAccount;
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Stars/StarsController.java b/TMessagesProj/src/main/java/org/telegram/ui/Stars/StarsController.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Stars/StarsController.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Stars/StarsController.java
+@@ -96,15 +96,8 @@ public class StarsController {
+     public static final int PERIOD_MINUTE = 60;
+     public static final int PERIOD_5MINUTES = 300;
+ 
+-    private static volatile StarsController[][] Instance = new StarsController[2][UserConfig.MAX_ACCOUNT_COUNT];
+-    private static final Object[][] lockObjects = new Object[2][UserConfig.MAX_ACCOUNT_COUNT];
+-    static {
+-        for (int a = 0; a < 2; ++a) {
+-            for (int i = 0; i < UserConfig.MAX_ACCOUNT_COUNT; i++) {
+-                lockObjects[a][i] = new Object();
+-            }
+-        }
+-    }
++    private static final org.telegram.messenger.AccountInstanceRegistry<StarsController> starsInstances = new org.telegram.messenger.AccountInstanceRegistry<>();
++    private static final org.telegram.messenger.AccountInstanceRegistry<StarsController> tonInstances = new org.telegram.messenger.AccountInstanceRegistry<>();
+ 
+     public static StarsController getTonInstance(int num) {
+         return getInstance(num, true);
+@@ -119,16 +112,7 @@ public class StarsController {
+     }
+ 
+     public static StarsController getInstance(int num, boolean ton) {
+-        StarsController localInstance = Instance[ton ? 1 : 0][num];
+-        if (localInstance == null) {
+-            synchronized (lockObjects[ton ? 1 : 0][num]) {
+-                localInstance = Instance[ton ? 1 : 0][num];
+-                if (localInstance == null) {
+-                    Instance[ton ? 1 : 0][num] = localInstance = new StarsController(num, ton);
+-                }
+-            }
+-        }
+-        return localInstance;
++        return (ton ? tonInstances : starsInstances).get(num, account -> new StarsController(account, ton));
+     }
+ 
+     public final int currentAccount;
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Stories/UserListPoller.java b/TMessagesProj/src/main/java/org/telegram/ui/Stories/UserListPoller.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Stories/UserListPoller.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Stories/UserListPoller.java
+@@ -22,7 +22,7 @@ import java.util.ArrayList;
+ 
+ public class UserListPoller {
+ 
+-    private static UserListPoller[] istances = new UserListPoller[UserConfig.MAX_ACCOUNT_COUNT];
++    private static final org.telegram.messenger.AccountInstanceRegistry<UserListPoller> istances = new org.telegram.messenger.AccountInstanceRegistry<>();
+ 
+     final int currentAccount;
+ 
+@@ -31,10 +31,7 @@ public class UserListPoller {
+     }
+ 
+     public static UserListPoller getInstance(int account) {
+-        if (istances[account] == null) {
+-            istances[account] = new UserListPoller(account);
+-        }
+-        return istances[account];
++        return istances.get(account, UserListPoller::new);
+     }
+ 
+     LongSparseLongArray userPollLastTime = new LongSparseLongArray();
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Wallet/GramWallet.java b/TMessagesProj/src/main/java/org/telegram/ui/Wallet/GramWallet.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Wallet/GramWallet.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Wallet/GramWallet.java
+@@ -137,19 +137,10 @@ public class GramWallet implements GramWalletStreaming.IGramWalletStreamingSubsc
+     private final HashMap<TL_wallet.walletTransaction, GramWalletPolling> polling = new HashMap<>();
+     private String pollingAddress;
+ 
+-    private static volatile GramWallet[] Instance = new GramWallet[UserConfig.MAX_ACCOUNT_COUNT];
++    private static final org.telegram.messenger.AccountInstanceRegistry<GramWallet> Instance = new org.telegram.messenger.AccountInstanceRegistry<>();
+ 
+     public static GramWallet getInstance(int num) {
+-        GramWallet localInstance = Instance[num];
+-        if (localInstance == null) {
+-            synchronized (GramWallet.class) {
+-                localInstance = Instance[num];
+-                if (localInstance == null) {
+-                    Instance[num] = localInstance = new GramWallet(num);
+-                }
+-            }
+-        }
+-        return localInstance;
++        return Instance.get(num, GramWallet::new);
+     }
+ 
+     public static void ensureLocalWalletBalances(int currentAccount, Runnable whenDone) {
+@@ -559,7 +550,7 @@ public class GramWallet implements GramWalletStreaming.IGramWalletStreamingSubsc
+     }
+ 
+     public static void cleanup(int currentAccount) {
+-        final GramWallet localInstance = Instance[currentAccount];
++        final GramWallet localInstance = Instance.peek(currentAccount);
+         if (localInstance != null) {
+             localInstance.reset();
+         }
+@@ -583,11 +574,7 @@ public class GramWallet implements GramWalletStreaming.IGramWalletStreamingSubsc
+             streaming = null;
+         }
+         AndroidUtilities.cancelRunOnUIThread(refreshStreamingHistory);
+-        synchronized (GramWallet.class) {
+-            if (Instance[currentAccount] == this) {
+-                Instance[currentAccount] = null;
+-            }
+-        }
++        Instance.clearIfSame(currentAccount, this);
+     }
+ 
+     private int lastListenToken = 0;

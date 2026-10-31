@@ -21,7 +21,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/glass/GlassT
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
-@@ -13631,13 +13631,6 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+@@ -13673,13 +13673,6 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
          return filterTabsView == null ? 0 : filterTabsView.getCurrentTabId();
      }
  
@@ -35,7 +35,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/
      @Override
      public boolean canParentTabsSlide(MotionEvent ev, boolean forward) {
          if (searchIsShowed || rightSlidingDialogContainer != null && rightSlidingDialogContainer.hasFragment()) {
-@@ -13763,6 +13756,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+@@ -13805,6 +13798,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
              Bundle args = new Bundle();
              presentFragment(new GroupCreateActivity(args));
          });
@@ -43,7 +43,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/
          io.add(R.drawable.outline_saved_24, getString(R.string.SavedMessages), () -> {
              Bundle args = new Bundle();
              args.putLong("user_id", UserConfig.getInstance(currentAccount).getClientUserId());
-@@ -13795,8 +13789,9 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+@@ -13843,8 +13837,9 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                  }
              }
          }
@@ -55,7 +55,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/
                  presentFragment(new SettingsActivity());
              });
          }
-@@ -14102,7 +14097,6 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+@@ -14150,7 +14145,6 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
      }
  
      private void checkUi_menuItems() {
@@ -66,7 +66,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/MainTabsActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/MainTabsActivity.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/MainTabsActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/MainTabsActivity.java
-@@ -945,15 +945,6 @@ public class MainTabsActivity extends ViewPagerActivity implements NotificationC
+@@ -946,15 +946,6 @@ public class MainTabsActivity extends ViewPagerActivity implements NotificationC
          return canScrollInternal(ev, false);
      }
  

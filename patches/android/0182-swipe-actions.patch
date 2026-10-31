@@ -1,7 +1,7 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
-@@ -5033,7 +5033,16 @@
+@@ -5088,7 +5088,16 @@ public class ChatActivity extends BaseFragment implements
                  }
  
                  int alpha = (int) (iconProgress * 0xFF);
@@ -19,7 +19,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
                  replyIconDrawable.setAlpha(alpha);
                  replyIconDrawable.setBounds((int) (x - replyIconDrawable.getIntrinsicWidth() / 2 * scale), (int) (y - replyIconDrawable.getIntrinsicHeight() / 2 * scale), (int) (x + replyIconDrawable.getIntrinsicWidth() / 2 * scale), (int) (y + replyIconDrawable.getIntrinsicHeight() / 2 * scale));
                  replyIconDrawable.draw(canvas);
-@@ -5043,6 +5052,9 @@
+@@ -5098,6 +5107,9 @@ public class ChatActivity extends BaseFragment implements
                  chatActionBackgroundDarkenPaint.setColor(wasDarkenColor);
              }
  
@@ -29,7 +29,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
              private void processTouchEvent(MotionEvent e) {
                  if (e != null) {
                      wasManualScroll = true;
-@@ -5073,6 +5085,7 @@
+@@ -5129,6 +5141,7 @@ public class ChatActivity extends BaseFragment implements
                          maybeStartTrackingSlidingView = true;
                          startedTrackingX = (int) e.getX();
                          startedTrackingY = (int) e.getY();
@@ -37,7 +37,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
                      }
                  } else if (slidingView != null && e != null && e.getAction() == MotionEvent.ACTION_MOVE && e.getPointerId(0) == startedTrackingPointerId) {
                      int dx = Math.max(AndroidUtilities.dp(-80), Math.min(0, (int) (e.getX() - startedTrackingX)));
-@@ -5090,6 +5103,7 @@
+@@ -5146,6 +5159,7 @@ public class ChatActivity extends BaseFragment implements
                              getParent().requestDisallowInterceptTouchEvent(true);
                          }
                      } else if (startedTrackingSlidingView) {
@@ -45,7 +45,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
                          if (Math.abs(dx) >= AndroidUtilities.dp(50)) {
                              if (!wasTrackingVibrate) {
                                  try {
-@@ -5113,6 +5127,17 @@
+@@ -5169,6 +5183,17 @@ public class ChatActivity extends BaseFragment implements
                  } else if (slidingView != null && (e == null || e.getPointerId(0) == startedTrackingPointerId && (e.getAction() == MotionEvent.ACTION_CANCEL || e.getAction() == MotionEvent.ACTION_UP || e.getAction() == MotionEvent.ACTION_POINTER_UP))) {
                      if (e != null && e.getAction() != MotionEvent.ACTION_CANCEL && Math.abs(getSlidingNonAnimationTranslationX(false)) >= AndroidUtilities.dp(50)) {
                          MessageObject message = getSlidingMessageObject();
@@ -63,11 +63,11 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
                          final boolean allowReplyOnOpenTopic = canSendMessageToTopic(message);
                          if (
                              bottomChannelButtonsLayout != null && bottomChannelButtonsLayout.getVisibility() == View.VISIBLE && !(bottomOverlayChatWaitsReply && allowReplyOnOpenTopic || message.wasJustSent) ||
-@@ -5145,6 +5170,7 @@
-                             presentFragment(fragment);
+@@ -5202,6 +5227,7 @@ public class ChatActivity extends BaseFragment implements
                          } else {
                              showFieldPanelForReply(getSlidingMessageObject());
-+                        }
                          }
++                        }
                      }
                      endTrackingX = slidingViewGetOffsetX();
+                     if (endTrackingX == 0) {

@@ -1,7 +1,7 @@
 diff --git a/submodules/TelegramUI/Sources/ChatController.swift b/submodules/TelegramUI/Sources/ChatController.swift
 --- a/submodules/TelegramUI/Sources/ChatController.swift
 +++ b/submodules/TelegramUI/Sources/ChatController.swift
-@@ -3556,6 +3556,11 @@
+@@ -3569,6 +3569,11 @@
              guard let self else {
                  return
              }
@@ -13,18 +13,18 @@ diff --git a/submodules/TelegramUI/Sources/ChatController.swift b/submodules/Tel
              let _ = (webpagePreviewWithProgress(account: self.context.account, urls: [instantPage.url], webpageId: instantPage.webpageId)
              |> deliverOnMainQueue).startStandalone(next: { [weak self] result in
                  Task { @MainActor in
-@@ -3719,6 +3724,10 @@
+@@ -3732,6 +3737,10 @@
              }
          }, openInstantPage: { [weak self] message, associatedData in
-             if let strongSelf = self, strongSelf.isNodeLoaded, let navigationController = strongSelf.effectiveNavigationController, let message = strongSelf.chatDisplayNode.historyNode.messageInCurrentHistoryView(message.id)?._asMessage() {
+             if let strongSelf = self, strongSelf.isNodeLoaded, let navigationController = strongSelf.effectiveNavigationController, let message = strongSelf.chatDisplayNode.historyNode.messageInCurrentHistoryView(message.id) {
 +                if !NebulaMessagePreferences.shared.enabled("instant_view"), let webpage = message.media.first(where: { $0 is TelegramMediaWebpage }) as? TelegramMediaWebpage, case let .Loaded(content) = webpage.content {
-+                    strongSelf.openUrl(content.url, concealed: true, message: message)
++                    strongSelf.openUrl(content.url, concealed: true, message: message._asMessage())
 +                    return
 +                }
                  let _ = strongSelf.presentVoiceMessageDiscardAlert(action: {
                      strongSelf.chatDisplayNode.dismissInput()
                      if let controller = strongSelf.context.sharedContext.makeInstantPageController(context: strongSelf.context, message: message, sourcePeerType: associatedData?.automaticDownloadPeerType) {
-@@ -10298,7 +10307,7 @@
+@@ -10369,7 +10378,7 @@
          
          if allowInlineWebpageResolution, let message, let webpage = message.media.first(where: { $0 is TelegramMediaWebpage }) as? TelegramMediaWebpage, case let .Loaded(content) = webpage.content, content.url == url {
              if content.instantPage != nil {
@@ -42,7 +42,7 @@ diff --git a/submodules/TelegramUI/Sources/ChatControllerAdminBanUsers.swift b/s
  import UIKit
  import TelegramPresentationData
  import AccountContext
-@@ -597,11 +598,11 @@
+@@ -596,11 +597,11 @@
                  }))
              }
              
@@ -65,7 +65,7 @@ diff --git a/submodules/TelegramUI/Sources/OpenResolvedUrl.swift b/submodules/Te
  import UIKit
  import AVFoundation
  import AsyncDisplayKit
-@@ -406,6 +407,10 @@
+@@ -449,6 +450,10 @@
              })
                  present(controller, nil)
          case let .instantView(webPage, anchor):

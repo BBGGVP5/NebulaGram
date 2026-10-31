@@ -1,7 +1,7 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/NotificationImageProvider.java b/TMessagesProj/src/main/java/org/telegram/messenger/NotificationImageProvider.java
 --- a/TMessagesProj/src/main/java/org/telegram/messenger/NotificationImageProvider.java
 +++ b/TMessagesProj/src/main/java/org/telegram/messenger/NotificationImageProvider.java
-@@ -5,6 +5,8 @@
+@@ -5,6 +5,8 @@ import android.content.ContentValues;
  import android.content.UriMatcher;
  import android.database.Cursor;
  import android.net.Uri;
@@ -10,7 +10,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/NotificationImag
  import android.os.ParcelFileDescriptor;
  import android.text.TextUtils;
  
-@@ -25,6 +27,16 @@
+@@ -25,6 +27,16 @@ public class NotificationImageProvider extends ContentProvider implements Notifi
  	private HashSet<String> waitingForFiles = new HashSet<>();
  	private final Object sync = new Object();
  	private HashMap<String, Long> fileStartTimes = new HashMap<>();
@@ -27,7 +27,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/NotificationImag
  
  	public static String getAuthority() {
  		if (authority == null) {
-@@ -43,17 +55,23 @@
+@@ -43,17 +55,23 @@ public class NotificationImageProvider extends ContentProvider implements Notifi
  
  	@Override
  	public boolean onCreate() {

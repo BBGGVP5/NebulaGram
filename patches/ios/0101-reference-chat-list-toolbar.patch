@@ -1,7 +1,7 @@
 diff --git a/submodules/ChatListUI/Sources/ChatListController.swift b/submodules/ChatListUI/Sources/ChatListController.swift
 --- a/submodules/ChatListUI/Sources/ChatListController.swift
 +++ b/submodules/ChatListUI/Sources/ChatListController.swift
-@@ -7266,7 +7266,7 @@
+@@ -7312,7 +7312,7 @@
                  // Resolve the committed id from the filter model. The previous
                  // item node may survive during a swipe; do not flash the default
                  // title while waiting for that node to be replaced.
@@ -10,54 +10,10 @@ diff --git a/submodules/ChatListUI/Sources/ChatListController.swift b/submodules
                     let selectedId = stateAndFilterId.filterId,
                     let filter = self.containerNode?.availableFilters.compactMap({ $0.filter }).first(where: { $0.id == selectedId }),
                     case let .filter(_, folderTitle, _, _) = filter,
-diff --git a/submodules/TelegramUI/Components/ChatListHeaderComponent/Sources/ChatListHeaderComponent.swift b/submodules/TelegramUI/Components/ChatListHeaderComponent/Sources/ChatListHeaderComponent.swift
---- a/submodules/TelegramUI/Components/ChatListHeaderComponent/Sources/ChatListHeaderComponent.swift
-+++ b/submodules/TelegramUI/Components/ChatListHeaderComponent/Sources/ChatListHeaderComponent.swift
-@@ -708,8 +708,8 @@
-                 if chatListTitle.activity {
-                     chatListTitleOffset = 0.0
-                 } else {
--                    let leftEdge = sideInset + nextLeftButtonX + 8.0
--                    let rightEdge = size.width - sideInset - nextRightButtonX - 8.0
-+                    let leftEdge = leftInset + nextLeftButtonX + 8.0
-+                    let rightEdge = size.width - rightInset - nextRightButtonX - 8.0
-                     let desiredOrigin = NebulaSettingsStore.shared.centerHome ? (size.width - titleContentRect.width) * 0.5 : leftEdge
-                     let safeOrigin = max(leftEdge, min(desiredOrigin, rightEdge - titleContentRect.width))
-                     chatListTitleOffset = (safeOrigin - titleContentRect.minX) * sideContentFraction
-@@ -1168,7 +1168,7 @@
-                 }
-                 let leftButtonsContainerFrame = CGRect(origin: CGPoint(x: component.leftInset, y: 0.0), size: CGSize(width: max(44.0, leftButtonsEffectiveWidth), height: 44.0))
-                 leftButtonsBackgroundContainerTransition.setFrame(view: leftButtonsBackgroundContainer, frame: leftButtonsContainerFrame)
--                leftButtonsBackgroundContainer.update(size: leftButtonsContainerFrame.size, cornerRadius: leftButtonsContainerFrame.height * 0.5, isDark: component.theme.overallDarkAppearance, tintColor: .init(kind: .panel), isInteractive: true, isVisible: false, transition: leftButtonsBackgroundContainerTransition)
-+                leftButtonsBackgroundContainer.update(size: leftButtonsContainerFrame.size, cornerRadius: leftButtonsContainerFrame.height * 0.5, isDark: component.theme.overallDarkAppearance, tintColor: .init(kind: .panel), isInteractive: true, isVisible: true, transition: leftButtonsBackgroundContainerTransition)
-                 leftButtonsBackgroundContainer.morphsIntoContextMenu = leftButtonCount == 1
-                 leftButtonsBackgroundContainerTransition.setFrame(view: self.leftButtonsContainer, frame: CGRect(origin: CGPoint(), size: leftButtonsContainerFrame.size)) 
-             } else {
-@@ -1195,17 +1195,17 @@
-                     self.addSubview(rightButtonsBackgroundContainer)
-                     rightButtonsBackgroundContainer.contentView.addSubview(self.rightButtonsContainer)
-                     
--                    rightButtonsBackgroundContainer.update(size: rightButtonsContainerFrame.size, cornerRadius: rightButtonsContainerFrame.height * 0.5, isDark: component.theme.overallDarkAppearance, tintColor: .init(kind: .panel), isInteractive: true, isVisible: false, transition: .immediate)
-+                    rightButtonsBackgroundContainer.update(size: rightButtonsContainerFrame.size, cornerRadius: rightButtonsContainerFrame.height * 0.5, isDark: component.theme.overallDarkAppearance, tintColor: .init(kind: .panel), isInteractive: true, isVisible: true, transition: .immediate)
-                 }
-                 rightButtonsBackgroundContainerTransition.setFrame(view: rightButtonsBackgroundContainer, frame: rightButtonsContainerFrame)
--                rightButtonsBackgroundContainer.update(size: rightButtonsContainerFrame.size, cornerRadius: rightButtonsContainerFrame.height * 0.5, isDark: component.theme.overallDarkAppearance, tintColor: .init(kind: .panel), isInteractive: true, isVisible: false, transition: transition)
-+                rightButtonsBackgroundContainer.update(size: rightButtonsContainerFrame.size, cornerRadius: rightButtonsContainerFrame.height * 0.5, isDark: component.theme.overallDarkAppearance, tintColor: .init(kind: .panel), isInteractive: true, isVisible: true, transition: transition)
-                 rightButtonsBackgroundContainer.morphsIntoContextMenu = rightButtonCount == 1
-                 rightButtonsBackgroundContainerTransition.setFrame(view: self.rightButtonsContainer, frame: CGRect(origin: CGPoint(), size: rightButtonsContainerFrame.size))
-             } else {
-                 if let rightButtonsBackgroundContainer = self.rightButtonsBackgroundContainer {
-                     self.rightButtonsBackgroundContainer = nil
-                     
--                    rightButtonsBackgroundContainer.update(size: rightButtonsBackgroundContainer.bounds.size, cornerRadius: rightButtonsBackgroundContainer.bounds.height * 0.5, isDark: component.theme.overallDarkAppearance, tintColor: .init(kind: .panel), isInteractive: true, isVisible: false, transition: transition)
-+                    rightButtonsBackgroundContainer.update(size: rightButtonsBackgroundContainer.bounds.size, cornerRadius: rightButtonsBackgroundContainer.bounds.height * 0.5, isDark: component.theme.overallDarkAppearance, tintColor: .init(kind: .panel), isInteractive: true, isVisible: true, transition: transition)
-                     transition.attachAnimation(view: rightButtonsBackgroundContainer, id: "remove", completion: { [weak rightButtonsBackgroundContainer] _ in
-                         rightButtonsBackgroundContainer?.removeFromSuperview()
-                     })
 diff --git a/submodules/TelegramUI/Components/ChatListHeaderComponent/Sources/ChatListNavigationBar.swift b/submodules/TelegramUI/Components/ChatListHeaderComponent/Sources/ChatListNavigationBar.swift
 --- a/submodules/TelegramUI/Components/ChatListHeaderComponent/Sources/ChatListNavigationBar.swift
 +++ b/submodules/TelegramUI/Components/ChatListHeaderComponent/Sources/ChatListNavigationBar.swift
-@@ -222,7 +222,6 @@
+@@ -242,7 +242,6 @@
          public var edgeEffectBackgroundView: UIView {
              return self.edgeEffectView
          }
@@ -65,19 +21,19 @@ diff --git a/submodules/TelegramUI/Components/ChatListHeaderComponent/Sources/Ch
          private var nebulaHeaderObservation: SettingsObservation?
          
          private var headerBackgroundContainer: UIView
-@@ -277,9 +276,6 @@
-             super.init(frame: frame)
+@@ -320,9 +319,6 @@
              
-             self.addSubview(self.edgeEffectView)
+             self.addSubview(self.contentView)
+             self.contentView.addSubview(self.edgeEffectView)
 -            self.nebulaHeaderGlass.isUserInteractionEnabled = false
 -            self.nebulaHeaderGlass.drawsMaterialBorder = false
--            self.addSubview(self.nebulaHeaderGlass)
+-            self.contentView.addSubview(self.nebulaHeaderGlass)
              self.nebulaHeaderObservation = NebulaSettingsStore.shared.observe { [weak self] in
                  guard let self else { return }
                  self.state?.updated(transition: .immediate)
-@@ -466,20 +462,7 @@
+@@ -602,20 +598,7 @@
              transition.setFrame(view: self.edgeEffectView, frame: edgeEffectFrame)
-             self.edgeEffectView.update(content: nil, blur: true, alpha: 0.85, rect: edgeEffectFrame, edge: .top, edgeSize: min(54.0, edgeEffectHeight), transition: transition)
+             self.edgeEffectView.update(content: nil, blur: true, alpha: ChatListNavigationBar.View.edgeEffectTintAlpha, rect: edgeEffectFrame, edge: .top, edgeSize: min(ChatListNavigationBar.View.edgeEffectEdgeLength, edgeEffectHeight), transition: transition)
              
 -            // One native material covers status bar, title, search and folders.
 -            // Reuse the glass component's theme, quality and accessibility policy.
@@ -97,45 +53,12 @@ diff --git a/submodules/TelegramUI/Components/ChatListHeaderComponent/Sources/Ch
  
              let headerTransition = transition
              
-@@ -913,7 +896,7 @@
+@@ -1065,7 +1048,7 @@
              
              self.updateEdgeEffectColor(transition: transition)
              
 -            self.edgeEffectView.isHidden = !component.hasEdgeEffect || (NebulaSettingsStore.shared.iosGlassStyle != 0 && component.activeSearch == nil)
 +            self.edgeEffectView.isHidden = !component.hasEdgeEffect
-             
-             return size
-         }
-diff --git a/submodules/TelegramUI/Components/ChatListHeaderComponent/Sources/NavigationButtonComponent.swift b/submodules/TelegramUI/Components/ChatListHeaderComponent/Sources/NavigationButtonComponent.swift
---- a/submodules/TelegramUI/Components/ChatListHeaderComponent/Sources/NavigationButtonComponent.swift
-+++ b/submodules/TelegramUI/Components/ChatListHeaderComponent/Sources/NavigationButtonComponent.swift
-@@ -119,7 +119,7 @@
-                 if title == "___done" {
-                     imageName = "Navigation/Done"
-                 } else {
--                    textString = NSAttributedString(string: title, font: isBold ? Font.bold(17.0) : Font.medium(17.0), textColor: theme.chat.inputPanel.panelControlColor)
-+                    textString = NSAttributedString(string: title, font: isBold ? Font.bold(17.0) : Font.medium(17.0), textColor: theme.rootController.navigationBar.primaryTextColor)
-                 }
-             case .more:
-                 isMore = true
-@@ -166,7 +166,7 @@
-                 if self.iconImageName != imageName || themeUpdated {
-                     self.iconImageName = imageName
-                     let image = imageName == "NebulaAI" ? UIImage(systemName: "sparkles", withConfiguration: UIImage.SymbolConfiguration(pointSize: 22, weight: .medium)) : UIImage(bundleImageName: imageName)
--                    iconView.image = generateTintedImage(image: image, color: theme.chat.inputPanel.panelControlColor)
-+                    iconView.image = generateTintedImage(image: image, color: theme.rootController.navigationBar.primaryTextColor)
-                     self.accessibilityLabel = imageName == "NebulaAI" ? "Nebula AI" : nil
-                 }
-                 
-@@ -214,9 +214,9 @@
-                         self.moreButton = nil
-                     }
-                     
--                    moreButton = MoreHeaderButton(color: theme.chat.inputPanel.panelControlColor)
-+                    moreButton = MoreHeaderButton(color: theme.rootController.navigationBar.primaryTextColor)
-                     moreButton.isUserInteractionEnabled = true
--                    moreButton.setContent(.more(MoreHeaderButton.optionsCircleImage(color: theme.chat.inputPanel.panelControlColor)))
-+                    moreButton.setContent(.more(MoreHeaderButton.optionsCircleImage(color: theme.rootController.navigationBar.primaryTextColor)))
-                     moreButton.onPressed = { [weak self] in
-                         guard let self, let component = self.component else {
-                             return
+ 
+             if self.isContentLifted {
+                 self.transitionContentFrameUpdated?(CGRect(origin: CGPoint(), size: size))

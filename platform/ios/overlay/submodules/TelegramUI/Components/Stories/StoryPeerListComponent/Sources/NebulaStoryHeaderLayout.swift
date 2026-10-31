@@ -5,6 +5,9 @@ enum NebulaStoryHeaderLayout {
     // The photo remains 24 pt; its native story ring extends beyond that frame.
     static let collapsedItemWidth: CGFloat = 34.0
     static let collapsedItemDistance: CGFloat = 14.0
+    // StoryPeerListTitleLayout keeps 4 pt clear of each side of the band, and drops the title's text altogether when
+    // the content does not fit inside that. The text budget leaves both margins, so a long title is truncated instead.
+    static let bandMargins: CGFloat = StoryPeerListTitleLayout.leadingMargin + StoryPeerListTitleLayout.trailingMargin
 
     static func collapseStartIndex(itemCount: Int, useHiddenList: Bool, accountStoryCount: Int?, accountHasUnseen: Bool, accountHasPending: Bool) -> Int {
         if useHiddenList {
@@ -26,7 +29,7 @@ enum NebulaStoryHeaderLayout {
     static func storyCount(availableWidth: CGFloat, itemCount: Int, hasLock: Bool, hasStatus: Bool) -> Int {
         var count = max(0, min(3, itemCount))
         let accessoryWidth: CGFloat = (hasLock ? 20.0 : 0.0) + (hasStatus ? 26.0 : 0.0)
-        while count > 1 && availableWidth - storyWidth(count: count) - 8.0 - accessoryWidth < 24.0 {
+        while count > 1 && availableWidth - bandMargins - storyWidth(count: count) - 8.0 - accessoryWidth < 24.0 {
             count -= 1
         }
         return count
@@ -38,10 +41,6 @@ enum NebulaStoryHeaderLayout {
         let spacing: CGFloat = leadingWidth > 0.0 ? 8.0 : 0.0
         let lockWidth: CGFloat = hasLock ? 20.0 : 0.0
         let statusWidth: CGFloat = hasStatus && !hasActivity ? 26.0 : 0.0
-        return max(1.0, availableWidth - leadingWidth - spacing - lockWidth - statusWidth)
-    }
-
-    static func origin(containerWidth: CGFloat, contentWidth: CGFloat, minX: CGFloat, maxX: CGFloat) -> CGFloat {
-        return max(minX, min((containerWidth - contentWidth) * 0.5, maxX - contentWidth))
+        return max(1.0, availableWidth - bandMargins - leadingWidth - spacing - lockWidth - statusWidth)
     }
 }

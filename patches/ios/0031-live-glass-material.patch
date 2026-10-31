@@ -1,7 +1,7 @@
 diff --git a/submodules/SettingsUI/BUILD b/submodules/SettingsUI/BUILD
 --- a/submodules/SettingsUI/BUILD
 +++ b/submodules/SettingsUI/BUILD
-@@ -135,6 +135,7 @@
+@@ -134,6 +134,7 @@
          "//submodules/ComponentFlow",
          "//submodules/Components/ViewControllerComponent",
          "//submodules/Components/MultilineTextComponent",
@@ -12,7 +12,7 @@ diff --git a/submodules/SettingsUI/BUILD b/submodules/SettingsUI/BUILD
 diff --git a/submodules/TelegramUI/Components/GlassBackgroundComponent/Sources/GlassBackgroundComponent.swift b/submodules/TelegramUI/Components/GlassBackgroundComponent/Sources/GlassBackgroundComponent.swift
 --- a/submodules/TelegramUI/Components/GlassBackgroundComponent/Sources/GlassBackgroundComponent.swift
 +++ b/submodules/TelegramUI/Components/GlassBackgroundComponent/Sources/GlassBackgroundComponent.swift
-@@ -500,6 +500,9 @@
+@@ -568,6 +568,9 @@
      private var nebulaSize: CGSize = .zero
      private var nebulaReduced = false
      private var nebulaObservation: SettingsObservation?
@@ -22,7 +22,7 @@ diff --git a/submodules/TelegramUI/Components/GlassBackgroundComponent/Sources/G
      private let nebulaFallback = UIView()
      private lazy var nebulaFallbackClip = ClippingShapeContext(view: self.nebulaFallback)
      public private(set) var params: Params?
-@@ -552,11 +555,14 @@
+@@ -620,11 +623,14 @@
          self.contentContainer = ContentContainer(maskContentView: self.maskContentView)
          
          super.init(frame: frame)
@@ -38,7 +38,7 @@ diff --git a/submodules/TelegramUI/Components/GlassBackgroundComponent/Sources/G
              NotificationCenter.default.addObserver(self, selector: #selector(nebulaRefreshGlass), name: name, object: nil)
          }
  
-@@ -872,6 +878,24 @@
+@@ -916,6 +922,24 @@
              }
          }
          

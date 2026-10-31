@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
 jobs:
   bootstrap:
-    runs-on: macos-latest
+    runs-on: xcode-27
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4

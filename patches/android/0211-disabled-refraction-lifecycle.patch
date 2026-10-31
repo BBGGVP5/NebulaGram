@@ -1,7 +1,7 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/LiquidGlassEffect.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/LiquidGlassEffect.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/LiquidGlassEffect.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/LiquidGlassEffect.java
-@@ -16,6 +16,7 @@
+@@ -16,6 +16,7 @@ public class LiquidGlassEffect {
      private final RenderNode node;
      private final RuntimeShader shader;
      private RenderEffect effect;
@@ -9,7 +9,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/Liquid
  
      public LiquidGlassEffect(RenderNode node) {
          this.node = node;
-@@ -28,6 +29,10 @@
+@@ -28,6 +29,10 @@ public class LiquidGlassEffect {
      public void setEnabled(boolean enabled) {
          if (this.enabled == enabled) return;
          this.enabled = enabled;
@@ -20,7 +20,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/Liquid
          node.setRenderEffect(enabled ? effect : null);
      }
  
-@@ -102,7 +107,13 @@
+@@ -102,7 +107,13 @@ public class LiquidGlassEffect {
              shader.setFloatUniform("refract_intensity", this.intensity = intensity);
              shader.setFloatUniform("refract_index", this.index = index);
              shader.setFloatUniform("foreground_color_premultiplied", r, g, b, a);

@@ -18,7 +18,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarPopu
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
-@@ -17994,6 +17994,16 @@ public class ChatActivity extends BaseFragment implements
+@@ -18257,6 +18257,16 @@ public class ChatActivity extends BaseFragment implements
                          viewClipTop += clipTop;
                          viewClipBottom -= clipBottom;
  

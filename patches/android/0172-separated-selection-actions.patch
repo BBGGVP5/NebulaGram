@@ -1,7 +1,7 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
-@@ -2619,11 +2619,12 @@
+@@ -2630,11 +2630,12 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
                  right = Math.min(menuLeft - dp(4), titleRight + dp(12));
                  if (right <= left) { left = leftDefault; right = rightDefault; }
              }
@@ -19,7 +19,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.jav
              }
              glassDrawable.setBounds(left, t, right, b);
              if (nebulaFloatingChatHeader && app.nebulagram.ui.NebulaAppearance.centeredHeader()) {
-@@ -2663,7 +2664,11 @@
+@@ -2674,7 +2675,11 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
              } else {
                  glassDrawableBack.setBounds(0, t, nebulaBackWidth, b);
              }
@@ -32,7 +32,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.jav
          }
          final boolean separateAvatar = nebulaFloatingChatHeader && nebulaChatMenuHidden
                  && nebulaChatAvatarContainer != null;
-@@ -2675,9 +2680,15 @@
+@@ -2686,9 +2691,15 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
                  if (!nebulaPlainHeaderButtons) glassDrawableMenu.draw(canvas);
              }
          }

@@ -1,7 +1,7 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ItemOptions.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ItemOptions.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ItemOptions.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ItemOptions.java
-@@ -991,6 +991,13 @@
+@@ -1002,6 +1002,13 @@ public class ItemOptions {
          return this;
      }
  
@@ -15,7 +15,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ItemOptions.
      private boolean hideScrimUnder;
      public ItemOptions hideScrimUnder() {
          hideScrimUnder = true;
-@@ -2185,7 +2192,7 @@
+@@ -2196,7 +2203,7 @@ public class ItemOptions {
                          canvas.restore();
                      }
                  } else {

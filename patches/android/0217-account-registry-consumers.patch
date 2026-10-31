@@ -1,7 +1,7 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/MessagesController.java b/TMessagesProj/src/main/java/org/telegram/messenger/MessagesController.java
 --- a/TMessagesProj/src/main/java/org/telegram/messenger/MessagesController.java
 +++ b/TMessagesProj/src/main/java/org/telegram/messenger/MessagesController.java
-@@ -226,7 +226,7 @@
+@@ -226,7 +226,7 @@ public class MessagesController extends BaseController implements NotificationCe
          if (channelBoostsControler != null) {
              return channelBoostsControler;
          }
@@ -10,7 +10,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/MessagesControll
              if (channelBoostsControler != null) {
                  return channelBoostsControler;
              }
-@@ -23723,7 +23723,7 @@
+@@ -23738,7 +23738,7 @@ public class MessagesController extends BaseController implements NotificationCe
          if (storiesController != null) {
              return storiesController;
          }
@@ -19,7 +19,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/MessagesControll
              if (storiesController != null) {
                  return storiesController;
              }
-@@ -23736,7 +23736,7 @@
+@@ -23751,7 +23751,7 @@ public class MessagesController extends BaseController implements NotificationCe
          if (savedMessagesController != null) {
              return savedMessagesController;
          }
@@ -28,7 +28,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/MessagesControll
              if (savedMessagesController != null) {
                  return savedMessagesController;
              }
-@@ -23749,7 +23749,7 @@
+@@ -23764,7 +23764,7 @@ public class MessagesController extends BaseController implements NotificationCe
          if (unconfirmedAuthController != null) {
              return unconfirmedAuthController;
          }
@@ -40,7 +40,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/MessagesControll
 diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/NotificationCenter.java b/TMessagesProj/src/main/java/org/telegram/messenger/NotificationCenter.java
 --- a/TMessagesProj/src/main/java/org/telegram/messenger/NotificationCenter.java
 +++ b/TMessagesProj/src/main/java/org/telegram/messenger/NotificationCenter.java
-@@ -1030,7 +1030,7 @@
+@@ -1030,7 +1030,7 @@ public class NotificationCenter {
  
      public static void sanitize() {
          sanitizeInternal(globalInstance);

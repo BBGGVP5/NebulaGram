@@ -1,0 +1,64 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Cells/ChatMessageCell.java b/TMessagesProj/src/main/java/org/telegram/ui/Cells/ChatMessageCell.java
+index d634c6d..dac684e 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Cells/ChatMessageCell.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Cells/ChatMessageCell.java
+@@ -16793,7 +16793,22 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
+         }
+     }
+ 
++    private final app.nebulagram.ui.NebulaTextFade nebulaTextFade = new app.nebulagram.ui.NebulaTextFade();
++
+     public void drawMessageText(Canvas canvas) {
++        boolean enabled = app.nebulagram.ui.NebulaFeatureSettings.enabled("message_text_fade")
++                && (android.os.Build.VERSION.SDK_INT < 26 || android.animation.ValueAnimator.areAnimatorsEnabled())
++                && transitionParams.animateChangeProgress == 1f;
++        int alpha = currentMessageObject == null ? 255 : nebulaTextFade.alpha(currentAccount,
++                currentMessageObject.getDialogId(), currentMessageObject.getId(), currentMessageObject.messageOwner.edit_date,
++                android.os.SystemClock.uptimeMillis(), enabled);
++        int save = alpha < 255 ? canvas.saveLayerAlpha(0, 0, getWidth(), getHeight(), alpha) : -1;
++        try { nebulaDrawMessageText(canvas); }
++        finally { if (save >= 0) canvas.restoreToCount(save); }
++        if (alpha < 255) postInvalidateOnAnimation();
++    }
++
++    private void nebulaDrawMessageText(Canvas canvas) {
+         if (currentMessageObject == null || currentMessageObject.isSponsored()) {
+             return;
+         }
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
+index 87f4ed2..5a91b2c 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
+@@ -942,10 +942,21 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+         }
+ 
+         private BlurredBackgroundDrawable nebulaHeaderGlass;
++        private BlurredBackgroundDrawable nebulaMaterialHeader;
+ 
+         @Override
+         public void drawBlurRect(Canvas canvas, float y, Rect rectTmp, Paint blurScrimPaint, boolean top) {
+             if (top && actionBar != null && actionBar.isNebulaSharedHeaderGlass()) {
++                if (app.nebulagram.ui.NebulaFeatureSettings.materialHeader()) {
++                    if (nebulaMaterialHeader == null) {
++                        nebulaMaterialHeader = iBlur3FactoryBlur.create(this, BlurredBackgroundProviderImpl.topPanel(resourceProvider));
++                        nebulaMaterialHeader.setPadding(0);
++                        nebulaMaterialHeader.setRadius(0, 0, dp(28), dp(28));
++                    }
++                    nebulaMaterialHeader.setBounds(rectTmp);
++                    nebulaMaterialHeader.draw(canvas);
++                    return;
++                }
+                 if (nebulaHeaderGlass == null) {
+                     nebulaHeaderGlass = iBlur3FactoryLiquidGlass.create(this, BlurredBackgroundProviderImpl.topPanel(resourceProvider));
+                     nebulaHeaderGlass.setPadding(0);
+@@ -3245,8 +3256,8 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+         nebulaHomeEditButton = null;
+         if (initialDialogsType == DIALOGS_TYPE_DEFAULT && !onlySelect && !inPreviewMode
+                 && folderId == 0 && communityId == 0 && TextUtils.isEmpty(searchString)) {
+-            final boolean homeMaterial = app.nebulagram.ui.NebulaAppearance.homeGlassHeader();
+-            if (homeMaterial) actionBar.setupGlass(iBlur3FactoryLiquidGlass, BlurredBackgroundProviderImpl.topPanelButtons(resourceProvider));
++            final boolean homeMaterial = app.nebulagram.ui.NebulaAppearance.homeGlassHeader() || app.nebulagram.ui.NebulaFeatureSettings.materialHeader();
++            if (homeMaterial) actionBar.setupGlass(app.nebulagram.ui.NebulaFeatureSettings.materialHeader() ? iBlur3FactoryBlur : iBlur3FactoryLiquidGlass, BlurredBackgroundProviderImpl.topPanelButtons(resourceProvider));
+             actionBar.setNebulaHomeGlass(homeMaterial);
+             actionBar.setNebulaHomeTabsGlass(homeMaterial);
+             nebulaHomeEditButton = new TextView(context);

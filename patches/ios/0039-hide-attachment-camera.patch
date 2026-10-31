@@ -19,7 +19,7 @@ diff --git a/submodules/MediaPickerUI/Sources/MediaPickerScreen.swift b/submodul
  import UIKit
  import Display
  import AsyncDisplayKit
-@@ -743,7 +744,7 @@
+@@ -751,7 +752,7 @@
              
              var useLegacyCamera = false
              var useModernCamera = false

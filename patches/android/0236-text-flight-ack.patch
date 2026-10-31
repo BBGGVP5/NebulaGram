@@ -1,7 +1,7 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/TextMessageEnterTransition.java b/TMessagesProj/src/main/java/org/telegram/ui/TextMessageEnterTransition.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/TextMessageEnterTransition.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/TextMessageEnterTransition.java
-@@ -38,6 +38,7 @@
+@@ -38,6 +38,7 @@ import org.telegram.messenger.AndroidUtilities;
  import org.telegram.messenger.AnimationNotificationsLocker;
  import org.telegram.messenger.Emoji;
  import org.telegram.messenger.MessageObject;
@@ -9,7 +9,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/TextMessageEnterTransit
  import org.telegram.messenger.SharedConfig;
  import org.telegram.messenger.UserConfig;
  import org.telegram.tgnet.TLRPC;
-@@ -105,7 +106,11 @@
+@@ -105,7 +106,11 @@ public class TextMessageEnterTransition implements MessageEnterTransitionContain
      private float scaleFrom;
  
      private final int currentAccount;

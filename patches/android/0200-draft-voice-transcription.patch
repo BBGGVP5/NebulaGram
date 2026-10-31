@@ -1,7 +1,7 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
-@@ -1142,6 +1142,73 @@
+@@ -1142,6 +1142,73 @@ public class ChatActivityEnterView extends FrameLayout implements
      private Drawable cameraDrawable;
      private Drawable sendDrawable;
      private RectF pauseRect = new RectF();
@@ -75,7 +75,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivity
      private android.graphics.Rect sendRect = new Rect();
      private android.graphics.Rect rect = new Rect();
  
-@@ -1737,6 +1804,23 @@
+@@ -1737,6 +1804,23 @@ public class ChatActivityEnterView extends FrameLayout implements
                  periodDrawable.draw(canvas);
                  canvas.restore();
              }
@@ -99,7 +99,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivity
          }
  
          @Override
-@@ -1805,12 +1889,24 @@
+@@ -1805,12 +1889,24 @@ public class ChatActivityEnterView extends FrameLayout implements
          }
  
          private boolean oncePressed;
@@ -124,7 +124,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivity
  
              if (event.getAction() == MotionEvent.ACTION_DOWN) {
                  if (sendButtonVisible) {
-@@ -1904,6 +2000,7 @@
+@@ -1904,6 +2000,7 @@ public class ChatActivityEnterView extends FrameLayout implements
  
              @Override
              protected int getVirtualViewAt(float x, float y) {
@@ -132,7 +132,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivity
                  if (sendButtonVisible && recordCircle != null && pauseRect.contains(x, y)) {
                      return 2;
                  }
-@@ -1915,6 +2012,7 @@
+@@ -1915,6 +2012,7 @@ public class ChatActivityEnterView extends FrameLayout implements
  
              @Override
              protected void getVisibleVirtualViews(List<Integer> list) {
@@ -140,7 +140,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivity
                  if (sendButtonVisible) {
                      list.add(2);
                  }
-@@ -1925,7 +2023,14 @@
+@@ -1925,7 +2023,14 @@ public class ChatActivityEnterView extends FrameLayout implements
  
              @Override
              protected void onPopulateNodeForVirtualView(int id, @NonNull AccessibilityNodeInfoCompat info) {
@@ -156,7 +156,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivity
                      rect.set((int) pauseRect.left, (int) pauseRect.top, (int) pauseRect.right, (int) pauseRect.bottom);
                      info.setBoundsInParent(rect);
                      info.setText(getString(transformToSeekbar > .5f ? R.string.AccActionResume : R.string.AccActionPause));
-@@ -1938,6 +2043,7 @@
+@@ -1938,6 +2043,7 @@ public class ChatActivityEnterView extends FrameLayout implements
  
              @Override
              protected boolean onPerformActionForVirtualView(int id, int action, @Nullable Bundle args) {
@@ -164,7 +164,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivity
                  return true;
              }
          }
-@@ -4126,6 +4232,7 @@
+@@ -4124,6 +4230,7 @@ public class ChatActivityEnterView extends FrameLayout implements
      }
  
      private void resetRecordedState() {
@@ -172,7 +172,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivity
          if (audioTimelineView != null) {
              audioTimelineView.setPlaying(false);
          }
-@@ -6582,6 +6689,7 @@
+@@ -6580,6 +6687,7 @@ public class ChatActivityEnterView extends FrameLayout implements
      }
  
      public void onDestroy() {
@@ -180,7 +180,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivity
          if (nebulaDraftTranslation != null) nebulaDraftTranslation.stop();
          if (audioTimelineView != null) {
              audioTimelineView.destroy();
-@@ -6704,6 +6812,7 @@
+@@ -6702,6 +6810,7 @@ public class ChatActivityEnterView extends FrameLayout implements
      private Runnable hideKeyboardRunnable;
  
      public void onPause() {
@@ -188,7 +188,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivity
          if (nebulaDraftTranslation != null) nebulaDraftTranslation.stop();
          isPaused = true;
          if (senderSelectPopupWindow != null) {
-@@ -6760,6 +6869,7 @@
+@@ -6758,6 +6867,7 @@ public class ChatActivityEnterView extends FrameLayout implements
      }
  
      public void setDialogId(long id, int account) {
@@ -196,7 +196,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivity
          if (nebulaDraftTranslation != null) nebulaDraftTranslation.stop();
          dialog_id = id;
          if (currentAccount != account) {
-@@ -13507,6 +13617,7 @@
+@@ -13512,6 +13622,7 @@ public class ChatActivityEnterView extends FrameLayout implements
              if (guid != recordingGuid) {
                  return;
              }
@@ -204,7 +204,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivity
              if (recordingAudioVideo) {
                  recordingAudioVideo = false;
                  if (id == NotificationCenter.recordStopped) {
-@@ -13537,6 +13648,7 @@
+@@ -13542,6 +13653,7 @@ public class ChatActivityEnterView extends FrameLayout implements
              if (guid != recordingGuid) {
                  return;
              }
@@ -212,7 +212,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivity
              boolean audio = (Boolean) args[1];
              isInVideoMode = !audio;
              if (audioVideoSendButton != null) {
-@@ -13559,6 +13671,7 @@
+@@ -13564,6 +13676,7 @@ public class ChatActivityEnterView extends FrameLayout implements
              audioToSend = null;
              videoToSendMessageObject = null;
          } else if (id == NotificationCenter.recordResumed) {
@@ -220,7 +220,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivity
              audioToSend = null;
              videoToSendMessageObject = null;
              if (recordTimerView != null) {
-@@ -13664,6 +13777,10 @@
+@@ -13669,6 +13782,10 @@ public class ChatActivityEnterView extends FrameLayout implements
                          }
                      }
                      updateRecordInterface(RECORD_STATE_PREPARING, !fromDraft);

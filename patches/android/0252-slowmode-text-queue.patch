@@ -1,0 +1,123 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
+index 92805c0..0727785 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
+@@ -7577,9 +7577,13 @@ public class ChatActivityEnterView extends FrameLayout implements
+         final String voiceSendText = nebulaVoiceSendText;
+         final boolean allowConfirmFinal = allowConfirm && !animatorEphemeralMessageVisibility.getValue();
+ 
++        final boolean nebulaQueued = scheduleDate == 0 && nebulaCanQueueText();
++        final int nebulaScheduleDate = nebulaQueued
++                ? app.nebulagram.ui.NebulaSlowModeQueue.next(currentAccount, dialog_id, info.slowmode_next_send_date, info.slowmode_seconds)
++                : scheduleDate;
+         final Runnable send = () -> {
+             if (!nebulaVoiceSendCurrent(voiceSendAttempt, voiceSendSource)) return;
+-            if (slowModeTimer == Integer.MAX_VALUE && !isInScheduleMode()) {
++            if (slowModeTimer == Integer.MAX_VALUE && !isInScheduleMode() && !nebulaQueued) {
+                 if (delegate != null) {
+                     delegate.scrollToSendingMessage();
+                 }
+@@ -7601,7 +7605,7 @@ public class ChatActivityEnterView extends FrameLayout implements
+             }
+             if (allowConfirmFinal && showConfirmAlert(() -> {
+                 if (nebulaVoiceSendCurrent(voiceSendAttempt, voiceSendSource)) {
+-                    sendMessageInternal(notify, scheduleDate, scheduleRepeatPeriod, payStars, false);
++                    sendMessageInternal(notify, nebulaScheduleDate, scheduleRepeatPeriod, payStars, false);
+                 }
+             })) {
+                 return;
+@@ -7609,7 +7613,7 @@ public class ChatActivityEnterView extends FrameLayout implements
+             if (!nebulaApplyVoiceText(voiceSendAttempt, voiceSendSource, voiceSendText)) return;
+             dismissSendPreviewSent = true;
+             if (videoToSendMessageObject != null) {
+-                delegate.needStartRecordVideo(4, notify, scheduleDate, 0, voiceOnce ? 0x7FFFFFFF : 0, effectId, payStars);
++                delegate.needStartRecordVideo(4, notify, nebulaScheduleDate, 0, voiceOnce ? 0x7FFFFFFF : 0, effectId, payStars);
+                 sendButton.setEffect(effectId = 0);
+                 hideRecordedAudioPanel(true);
+                 checkSendButton(true);
+@@ -7651,7 +7655,7 @@ public class ChatActivityEnterView extends FrameLayout implements
+                         }
+                     }
+                 }
+-                SendMessagesHelper.SendMessageParams params = SendMessagesHelper.SendMessageParams.of(audioToSend, null, audioToSendPath, dialog_id, replyingMessageObject, getThreadMessage(), null, null, null, null, notify, scheduleDate, 0, voiceOnce ? 0x7FFFFFFF : 0, null, null, false);
++                SendMessagesHelper.SendMessageParams params = SendMessagesHelper.SendMessageParams.of(audioToSend, null, audioToSendPath, dialog_id, replyingMessageObject, getThreadMessage(), null, null, null, null, notify, nebulaScheduleDate, 0, voiceOnce ? 0x7FFFFFFF : 0, null, null, false);
+                 params.sendMessageChatArguments = parentFragment != null ? parentFragment.getMessageChatSendParams() : null;
+                 params.effect_id = effectId;
+                 params.payStars = payStars;
+@@ -7666,7 +7670,7 @@ public class ChatActivityEnterView extends FrameLayout implements
+                 applyStoryToSendMessageParams(params);
+                 SendMessagesHelper.getInstance(currentAccount).sendMessage(params);
+                 if (delegate != null) {
+-                    delegate.onMessageSend(null, notify, scheduleDate, scheduleRepeatPeriod, payStars);
++                    delegate.onMessageSend(null, notify, nebulaScheduleDate, scheduleRepeatPeriod, payStars);
+                 }
+                 hideRecordedAudioPanel(true);
+                 checkSendButton(true);
+@@ -7678,7 +7682,7 @@ public class ChatActivityEnterView extends FrameLayout implements
+                 millisecondsRecorded = 0;
+                 return;
+             } else if (richDraftActive && richDraftMessage != null) {
+-                sendRichDraft(notify, scheduleDate, scheduleRepeatPeriod, payStars);
++                sendRichDraft(notify, nebulaScheduleDate, scheduleRepeatPeriod, payStars);
+                 return;
+             }
+             CharSequence message = messageEditText == null ? "" : messageEditText.getTextToUse();
+@@ -7697,13 +7701,14 @@ public class ChatActivityEnterView extends FrameLayout implements
+             if (checkPremiumAnimatedEmoji(currentAccount, dialog_id, parentFragment, null, message)) {
+                 return;
+             }
+-            if (processSendingText(message, notify, scheduleDate, scheduleRepeatPeriod, payStars)) {
+-                if (delegate.hasForwardingMessages() || (scheduleDate != 0 && !isInScheduleMode()) || isInScheduleMode()) {
++            if (processSendingText(message, notify, nebulaScheduleDate, scheduleRepeatPeriod, payStars)) {
++                if (nebulaQueued) app.nebulagram.ui.NebulaSlowModeQueue.sent(currentAccount, dialog_id, nebulaScheduleDate);
++                if (delegate.hasForwardingMessages() || (nebulaScheduleDate != 0 && !isInScheduleMode()) || isInScheduleMode()) {
+                     if (messageEditText != null) {
+                         messageEditText.setText("");
+                     }
+                     if (delegate != null) {
+-                        delegate.onMessageSend(message, notify, scheduleDate, scheduleRepeatPeriod, payStars);
++                        delegate.onMessageSend(message, notify, nebulaScheduleDate, scheduleRepeatPeriod, payStars);
+                     }
+                 } else {
+                     messageTransitionIsRunning = false;
+@@ -7714,14 +7719,14 @@ public class ChatActivityEnterView extends FrameLayout implements
+                             messageEditText.setText("");
+                         }
+                         if (delegate != null) {
+-                            delegate.onMessageSend(message, notify, scheduleDate, scheduleRepeatPeriod, payStars);
++                            delegate.onMessageSend(message, notify, nebulaScheduleDate, scheduleRepeatPeriod, payStars);
+                         }
+                     }, 200);
+                 }
+                 lastTypingTimeSend = 0;
+             } else if (forceShowSendButton) {
+                 if (delegate != null) {
+-                    delegate.onMessageSend(null, notify, scheduleDate, scheduleRepeatPeriod, payStars);
++                    delegate.onMessageSend(null, notify, nebulaScheduleDate, scheduleRepeatPeriod, payStars);
+                 }
+             }
+             updateSendButtonPaid();
+@@ -8254,8 +8259,22 @@ public class ChatActivityEnterView extends FrameLayout implements
+         return encryptedChat == null || AndroidUtilities.getPeerLayerVersion(encryptedChat.layer) >= 101;
+     }
+ 
++    private boolean nebulaCanQueueText() {
++        TLRPC.Chat chat = parentFragment == null ? null : parentFragment.getCurrentChat();
++        return app.nebulagram.ui.NebulaFeatureSettings.enabled("slowmode_queue")
++                && chat != null && chat.megagroup && chat.slowmode_enabled && !ChatObject.hasAdminRights(chat)
++                && info != null && info.slowmode_seconds > 0 && info.slowmode_seconds <= 86400
++                && !isInScheduleMode() && editingMessageObject == null && !richDraftActive
++                && audioToSend == null && videoToSendMessageObject == null && !recordingAudioVideo
++                && !animatorEphemeralMessageVisibility.getValue() && getStarsPrice() == 0
++                && delegate != null && !delegate.hasForwardingMessages() && !forceShowSendButton
++                && getSendMonoForumPeerId() == 0 && getSendMessageSuggestionParams() == null
++                && messageEditText != null && messageEditText.length() > 0
++                && messageEditText.length() <= accountInstance.getMessagesController().getMaxMessageLength();
++    }
++
+     private boolean isSlowModeIgnored() {
+-        return isInScheduleMode() || animatorEphemeralMessageVisibility.getValue();
++        return isInScheduleMode() || animatorEphemeralMessageVisibility.getValue() || nebulaCanQueueText();
+     }
+ 
+     public void checkSendButton(boolean animated) {

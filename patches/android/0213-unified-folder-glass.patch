@@ -1,7 +1,7 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/FilterTabsView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/FilterTabsView.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/FilterTabsView.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/FilterTabsView.java
-@@ -1174,7 +1174,7 @@
+@@ -1174,7 +1174,7 @@ public class FilterTabsView extends FrameLayout {
      }
  
      public void setNebulaBottomPanel(boolean bottom) {
@@ -10,7 +10,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/FilterTabsVi
          if (nebulaBottomPanel == bottom && nebulaPanelStyle == style && getBackground() != null) return;
          nebulaBottomPanel = bottom;
          nebulaPanelStyle = style;
-@@ -1183,16 +1183,13 @@
+@@ -1183,16 +1183,13 @@ public class FilterTabsView extends FrameLayout {
      }
  
      private boolean nebulaLiquidSelector() {
@@ -29,7 +29,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/FilterTabsVi
              }
              setBackground(blurredBackgroundDrawable);
          } else if (nebulaPanelStyle == app.nebulagram.ui.NebulaFolderTabs.ORDINARY) {
-@@ -1667,8 +1664,8 @@
+@@ -1667,8 +1664,8 @@ public class FilterTabsView extends FrameLayout {
                  return;
              }
  

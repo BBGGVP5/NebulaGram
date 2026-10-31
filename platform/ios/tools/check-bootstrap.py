@@ -86,6 +86,13 @@ def main():
         for patch in patches:
             subprocess.run(['git', '-C', str(temp), 'apply', '--whitespace=error', str(patch)], check=True)
         overlay = ROOT / 'platform/ios/overlay'
+        # Telegram 13.1 restricts Postbox clients. Keep our two native consumers
+        # explicitly allowed instead of disabling Bazel visibility checking.
+        postbox_build = (temp / 'submodules/Postbox/BUILD').read_text(encoding='utf-8')
+        clients = postbox_build.split('name = "clients",', 1)[1].split('    ],', 1)[0]
+        for package in ('NebulaLinkUI', 'TelegramUI/Components/Chat/ChatMessageItem'):
+            assert '"//submodules/' + package + '"' in clients, package
+        assert '":clients"' in postbox_build
         account_context = (temp / 'submodules/AccountContext/Sources/AccountContext.swift').read_text(encoding='utf-8')
         assert 'import Postbox' in account_context
         assert 'func canTranscribeWithNebula(message: Message) -> Bool' in account_context
@@ -96,6 +103,18 @@ def main():
                     raise SystemExit(f'Overlay unexpectedly replaces upstream file: {dest}')
                 dest.parent.mkdir(parents=True, exist_ok=True)
                 dest.write_bytes(source.read_bytes())
+        media_root = temp / 'submodules/TelegramUI/Components/Chat'
+        for component in ('ChatMessageStickerItemNode', 'ChatMessageAnimatedStickerItemNode'):
+            media_source = (media_root / component / 'Sources' / (component + '.swift')).read_text(encoding='utf-8')
+            assert 'NebulaSettingsStore.shared.stickerPercent' in media_source
+            assert 'NebulaSettingsStore.shared.emoji' in media_source
+            assert 'NebulaMediaGeometry.boundedScale' in media_source
+        media_source = (media_root / 'ChatMessageInteractiveMediaNode/Sources/ChatMessageInteractiveMediaNode.swift').read_text(encoding='utf-8')
+        gif_hook = media_source.split('// Standalone GIFs only.', 1)[1].split('var statusSize', 1)[0]
+        assert 'case .constrained = sizeCalculation, !isSecretMedia' in gif_hook
+        assert 'file.isAnimated' in gif_hook and '!file.isSticker' in gif_hook
+        assert '!file.isAnimatedSticker' in gif_hook and '!file.isVideoSticker' in gif_hook
+        assert 'NebulaSettingsStore.shared.gifScale' in gif_hook
         folder = temp / 'submodules/TelegramUI/Components/ChatList/ChatListFilterTabContainerNode'
         tabs = (folder / 'Sources/ChatListFilterTabContainerNode.swift').read_text(encoding='utf-8')
         assert 'self.badgeContainerNode.isHidden = NebulaSettingsStore.shared.hideTabCounters' in tabs
@@ -320,8 +339,8 @@ def main():
         expected_tab = expected_tab.replace('            let availableSize = CGSize(width: min(500.0, availableSize.width), height: availableSize.height)\n',
             '            let preferredWidth = NebulaSettingsStore.shared.compactBottomBar ? max(160.0, CGFloat(component.items.count) * 72.0 + 8.0) : 500.0\n'
             '            let availableSize = CGSize(width: min(preferredWidth, availableSize.width), height: availableSize.height)\n', 1)
-        expected_tab = expected_tab.replace('                alphaTransition.setAlpha(view: titleView, alpha: component.isCompact ? 0.0 : 1.0)\n',
-            '                alphaTransition.setAlpha(view: titleView, alpha: component.isCompact || !NebulaSettingsStore.shared.showTabLabels ? 0.0 : 1.0)\n', 1)
+        expected_tab = expected_tab.replace('                alphaTransition.setAlpha(view: titleView, alpha: (component.isSearchActive || !component.showsTitle) ? 0.0 : 1.0)\n',
+            '                alphaTransition.setAlpha(view: titleView, alpha: (component.isSearchActive || !component.showsTitle || !NebulaSettingsStore.shared.showTabLabels) ? 0.0 : 1.0)\n', 1)
         assert native_tab == expected_tab
         assert '//submodules/NebulaSettingsContract:NebulaSettingsContract' in (temp / 'submodules/TelegramUI/Components/TabBarComponent/BUILD').read_text(encoding='utf-8')
         assert '//submodules/NebulaSettingsContract:NebulaSettingsContract' in (temp / 'submodules/TabBarUI/BUILD').read_text(encoding='utf-8')
@@ -410,20 +429,23 @@ def main():
         ai_settings = (temp / 'submodules/SettingsUI/Sources/NebulaAiController.swift').read_text(encoding='utf-8')
         ai_home = (temp / 'submodules/ChatListUI/Sources/ChatListController.swift').read_text(encoding='utf-8')
         native_toolbar = (temp / 'submodules/TelegramUI/Components/ChatListHeaderComponent/Sources/ChatListNavigationBar.swift').read_text(encoding='utf-8')
-        native_buttons = (temp / 'submodules/TelegramUI/Components/ChatListHeaderComponent/Sources/NavigationButtonComponent.swift').read_text(encoding='utf-8')
+        # 13.1.1 removed NavigationButtonComponent; header buttons are NavigationBarComponent's, tinted with the
+        # navigation bar's button colour rather than the input panel's control colour we used to replace.
+        assert not (temp / 'submodules/TelegramUI/Components/ChatListHeaderComponent/Sources/NavigationButtonComponent.swift').exists()
+        native_bar = run('git', '-C', str(tree), 'show', revision + ':submodules/TelegramUI/Components/NavigationBarComponent/Sources/NavigationBarContentView.swift').decode('utf-8')
+        assert 'panelControlColor' not in native_bar and 'color: theme.buttonColor' in native_bar
         assert 'private let nebulaHeaderGlass = GlassBackgroundView(frame: .zero)' in native_toolbar
         assert 'nebulaHeaderGlass.drawsMaterialBorder = false' in native_toolbar
         assert 'bottomLeft: 22.0, bottomRight: 22.0' in native_toolbar
         assert 'component.activeSearch == nil' in native_toolbar
-        assert 'theme.chat.inputPanel.panelControlColor' not in native_buttons
-        assert 'theme.rootController.navigationBar.primaryTextColor' in native_buttons
         assert 'if !NebulaBehaviorPreferences.shared.homeChatsTitle, NebulaSettingsStore.shared.folderTitle,' in ai_home
         assert '"Chat List/AddStoryIcon"' in ai_home and 'id: "compose"' in ai_home and 'id: "edit"' in ai_home
         story_header = (temp / 'submodules/TelegramUI/Components/ChatListHeaderComponent/Sources/ChatListHeaderComponent.swift').read_text(encoding='utf-8')
         story_list = (temp / 'submodules/TelegramUI/Components/Stories/StoryPeerListComponent/Sources/StoryPeerListComponent.swift').read_text(encoding='utf-8')
         story_item_path = 'submodules/TelegramUI/Components/Stories/StoryPeerListComponent/Sources/StoryPeerListItemComponent.swift'
         story_item = run('git', '-C', str(tree), 'show', revision + ':' + story_item_path).decode('utf-8')
-        check_story_header(story_header, story_list, story_item, temp, args.swift)
+        title_layout = run('git', '-C', str(tree), 'show', revision + ':submodules/TelegramUI/Components/Stories/StoryPeerListComponent/Sources/StoryPeerListTitleLayout.swift').decode('utf-8')
+        check_story_header(story_header, story_list, story_item, title_layout, temp, args.swift)
         camera_picker = (temp / 'submodules/SettingsUI/Sources/NebulaRoundCameraController.swift').read_text(encoding='utf-8')
         recording = (temp / 'submodules/TelegramUI/Sources/Chat/ChatControllerMediaRecording.swift').read_text(encoding='utf-8')
         assert 'nebulaPresentRecordingCamera(from: self' in recording

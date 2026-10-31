@@ -22,8 +22,11 @@ final class Queue {
 final class Root {
     var nebulaNavigationRefreshScheduled = false
     var nebulaShowCalls = false
-    var updates: [Bool] = []
-    func updateRootControllers(showCallsTab: Bool) { updates.append(showCallsTab) }
+    var nebulaShowNews = false
+    var updates: [[Bool]] = []
+    func updateRootControllers(showCallsTab: Bool, showNewsTab: Bool) {
+        updates.append([showCallsTab, showNewsTab])
+    }
 METHOD
 }
 let root = Root()
@@ -31,12 +34,17 @@ root.nebulaScheduleRootRefresh()
 root.nebulaScheduleRootRefresh()
 precondition(root.updates.isEmpty && Queue.shared.pending.count == 1, "no reentrant UI rebuild")
 root.nebulaShowCalls = true
+root.nebulaShowNews = true
 Queue.shared.drain()
-precondition(root.updates == [true] && !root.nebulaNavigationRefreshScheduled, "latest settings after UI transaction")
+precondition(root.updates == [[true, true]] && !root.nebulaNavigationRefreshScheduled, "latest calls and news settings after UI transaction")
 root.nebulaShowCalls = false
 root.nebulaScheduleRootRefresh()
 Queue.shared.drain()
-precondition(root.updates == [true, false], "can refresh again on return")
+precondition(root.updates == [[true, true], [false, true]], "can refresh again without losing news")
+root.nebulaScheduleRootRefresh()
+root.nebulaShowNews = false
+Queue.shared.drain()
+precondition(root.updates.last == [false, false], "news changes are read when the callback executes")
 var transient: Root? = Root()
 weak var weakRoot = transient
 transient?.nebulaScheduleRootRefresh()

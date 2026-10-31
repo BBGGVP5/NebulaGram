@@ -2,13 +2,8 @@ package app.nebulagram.ui;
 
 import android.content.Context;
 import android.content.DialogInterface;
-import android.content.res.ColorStateList;
-import android.graphics.Color;
-import android.graphics.drawable.GradientDrawable;
-import android.graphics.drawable.RippleDrawable;
 import android.view.Gravity;
 import android.view.View;
-import android.view.accessibility.AccessibilityNodeInfo;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
@@ -60,11 +55,8 @@ public final class NebulaDialog {
         }
 
         public AlertDialog create() {
-            final int container = Theme.getColor(Theme.key_dialogBackgroundGray, resourcesProvider);
             final int onSurface = Theme.getColor(Theme.key_dialogTextBlack, resourcesProvider);
             final int muted = Theme.getColor(Theme.key_dialogTextGray, resourcesProvider);
-            final int accent = Theme.getColor(Theme.key_dialogTextBlue, resourcesProvider);
-            final int outline = stateLayer(onSurface, .24f);
             // Native AlertDialog owns the title, scroll viewport, footer and keyboard insets.
             AlertDialog.Builder builder = new AlertDialog.Builder(context, resourcesProvider)
                     .setDimEnabled(true).setDimAlpha(.6f).twoRowsButtonsWhenNeeded();
@@ -83,72 +75,59 @@ public final class NebulaDialog {
             dialog.getWindow().setGravity(Gravity.CENTER);
             LinearLayout content = new LinearLayout(context);
             content.setOrientation(LinearLayout.VERTICAL);
-            content.setPadding(dp(24), 0, dp(24), dp(8));
-            LinearLayout choicesGroup = new LinearLayout(context);
-            choicesGroup.setOrientation(LinearLayout.VERTICAL);
-            choicesGroup.setBackground(shape(container, 16));
-            choicesGroup.setClipToOutline(true);
-            choicesGroup.setPadding(dp(4), dp(4), dp(4), dp(4));
-            if (items != null) content.addView(choicesGroup, new LinearLayout.LayoutParams(-1, -2));
+            // Списки выбора идут ячейками Telegram, и отступы по бокам у них
+            // свои. Поля ввода остаются на отступах диалога.
+            content.setPadding(items != null ? 0 : dp(24), 0,
+                    items != null ? 0 : dp(24), dp(8));
             if (items != null) for (int i = 0; i < items.length; i++) {
                 if (items[i] == null) continue;
                 if (i == sectionStart && i > 0) {
-                    TextView heading = text(sectionTitle, 13, muted);
-                    heading.setPadding(dp(14), dp(16), dp(14), dp(8));
+                    TextView heading = text(sectionTitle, 14, muted);
+                    heading.setPadding(dp(21), dp(14), dp(21), dp(6));
                     content.addView(heading, new LinearLayout.LayoutParams(-1, -2));
-                    choicesGroup = new LinearLayout(context);
-                    choicesGroup.setOrientation(LinearLayout.VERTICAL);
-                    choicesGroup.setBackground(shape(container, 16));
-                    choicesGroup.setClipToOutline(true);
-                    choicesGroup.setPadding(dp(4), dp(4), dp(4), dp(4));
-                    content.addView(choicesGroup, new LinearLayout.LayoutParams(-1, -2));
                 }
                 final int index = i;
                 final boolean checked = choices && i == selected;
-                LinearLayout row = new LinearLayout(context) {
-                    @Override public void onInitializeAccessibilityNodeInfo(AccessibilityNodeInfo info) {
-                        super.onInitializeAccessibilityNodeInfo(info);
-                        if (choices) {
-                            info.setClassName("android.widget.RadioButton");
-                            info.setCheckable(true); info.setChecked(checked);
-                        }
-                    }
-                };
-                row.setGravity(Gravity.CENTER_VERTICAL);
-                row.setMinimumHeight(dp(52));
-                row.setSelected(checked);
-                row.setFocusable(true);
-                row.setBackground(new RippleDrawable(ColorStateList.valueOf(stateLayer(accent, .12f)),
-                        shape(checked ? androidx.core.graphics.ColorUtils.compositeColors(
-                                stateLayer(accent, .16f), container) : container, 12),
-                        shape(0xffffffff, 12)));
-                row.setPaddingRelative(dp(14), dp(10), dp(14), dp(10));
-                LinearLayout labels = new LinearLayout(context);
-                labels.setOrientation(LinearLayout.VERTICAL);
-                labels.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO_HIDE_DESCENDANTS);
-                labels.addView(text(items[i], 16, checked ? accent : onSurface));
-                row.setContentDescription(items[i]);
-                if (descriptions != null && i < descriptions.length && descriptions[i] != null) {
-                    TextView detail = text(descriptions[i], 13, muted);
-                    detail.setPadding(0, dp(4), 0, 0); labels.addView(detail);
-                    row.setContentDescription(items[i] + ". " + descriptions[i]);
+                final CharSequence detail = descriptions != null && i < descriptions.length
+                        ? descriptions[i] : null;
+                final View row;
+                if (choices) {
+                    // Та же ячейка, которой Telegram строит выбор в своих
+                    // диалогах: вместе с ней достаются кружок, его цвета по
+                    // теме и правильная роль для озвучки.
+                    org.telegram.ui.Cells.RadioColorCell cell =
+                            new org.telegram.ui.Cells.RadioColorCell(context, resourcesProvider);
+                    cell.setPadding(dp(4), 0, dp(4), 0);
+                    cell.setCheckColor(Theme.getColor(Theme.key_radioBackground, resourcesProvider),
+                            Theme.getColor(Theme.key_dialogRadioBackgroundChecked, resourcesProvider));
+                    if (detail != null) cell.setTextAndText2AndValue(items[i], detail, checked);
+                    else cell.setTextAndValue(items[i], checked);
+                    row = cell;
+                } else {
+                    // Без выбора кружок не нужен: это список действий, а не
+                    // переключатель, и пустой кружок обещал бы состояние.
+                    TextView label = text(items[i], 16, onSurface);
+                    label.setPadding(dp(21), dp(14), dp(21), dp(14));
+                    row = label;
                 }
-                row.addView(labels, new LinearLayout.LayoutParams(0, -2, 1));
+                row.setContentDescription(detail != null ? items[i] + ". " + detail : items[i]);
+                row.setBackground(Theme.createSelectorDrawable(
+                        Theme.getColor(Theme.key_listSelector, resourcesProvider), Theme.RIPPLE_MASK_ALL));
                 row.setOnClickListener(v -> {
                     dialog.dismiss();
                     if (itemClick != null) itemClick.onClick(dialog, index);
                 });
-                LinearLayout.LayoutParams rowParams = new LinearLayout.LayoutParams(-1, -2);
-                choicesGroup.addView(row, rowParams);
+                content.addView(row, new LinearLayout.LayoutParams(-1, -2));
             }
             if (customView != null) {
                 if (customView instanceof android.widget.EditText) {
                     android.widget.EditText editor = (android.widget.EditText) customView;
-                    GradientDrawable background = shape(container, 16);
-                    background.setStroke(dp(1), outline);
-                    editor.setBackground(background);
-                    editor.setPadding(dp(14), dp(10), dp(14), dp(10));
-                    editor.setMinHeight(dp(48));
+                    // Поле диалога у Telegram — строка с подчёркиванием, а не
+                    // залитый прямоугольник: подчёркивание само красится по теме
+                    // и подсвечивается при фокусе.
+                    editor.setBackground(Theme.createEditTextDrawable(context, true));
+                    editor.setPadding(0, dp(6), 0, dp(8));
+                    editor.setMinHeight(dp(42));
                     editor.setTextColor(onSurface); editor.setHintTextColor(muted);
                 }
                 content.addView(customView, new LinearLayout.LayoutParams(-1, -2));
@@ -166,13 +145,6 @@ public final class NebulaDialog {
             view.setText(value); view.setTextSize(size); view.setTextColor(color);
             view.setGravity(Gravity.START); view.setTextAlignment(View.TEXT_ALIGNMENT_VIEW_START);
             view.setLineSpacing(dp(2), 1f); return view;
-        }
-        private static int stateLayer(int color, float opacity) {
-            return androidx.core.graphics.ColorUtils.setAlphaComponent(color, Math.round(Color.alpha(color) * opacity));
-        }
-        private GradientDrawable shape(int color, int radius) {
-            GradientDrawable drawable = new GradientDrawable();
-            drawable.setColor(color); drawable.setCornerRadius(dp(radius)); return drawable;
         }
     }
 }

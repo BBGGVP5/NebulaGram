@@ -1,0 +1,16 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Cells/DialogCell.java b/TMessagesProj/src/main/java/org/telegram/ui/Cells/DialogCell.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Cells/DialogCell.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Cells/DialogCell.java
+@@ -3822,6 +3822,12 @@ public class DialogCell extends BaseCell implements StoriesListPlaceProvider.Ava
+             return;
+         }
+ 
++        // Подложка идёт до всего остального: выделение, свайп и архив рисуют
++        // поверх неё теми же координатами, что и раньше.
++        if (currentDialogFolderId == 0) {
++            app.nebulagram.ui.NebulaChatCards.draw(canvas, this, translateY, resourcesProvider);
++        }
++
+         boolean needInvalidate = false;
+ 
+         if (drawArchive && (currentDialogFolderId != 0 || isTopic && forumTopic != null && forumTopic.id == 1) && archivedChatsDrawable != null && archivedChatsDrawable.outProgress == 0.0f && translationX == 0.0f) {

@@ -1,7 +1,7 @@
 diff --git a/submodules/TelegramUI/Components/GlassBackgroundComponent/Sources/GlassBackgroundComponent.swift b/submodules/TelegramUI/Components/GlassBackgroundComponent/Sources/GlassBackgroundComponent.swift
 --- a/submodules/TelegramUI/Components/GlassBackgroundComponent/Sources/GlassBackgroundComponent.swift
 +++ b/submodules/TelegramUI/Components/GlassBackgroundComponent/Sources/GlassBackgroundComponent.swift
-@@ -883,6 +883,7 @@
+@@ -927,6 +927,7 @@
          
          let nebulaStyle = NebulaSettingsStore.shared.iosGlassStyle
          let nebulaCustom = nebulaStyle != 0 && !nebulaInNativeContainer

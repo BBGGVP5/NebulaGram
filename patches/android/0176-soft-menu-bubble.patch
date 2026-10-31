@@ -1,7 +1,7 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarPopupWindow.java b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarPopupWindow.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarPopupWindow.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarPopupWindow.java
-@@ -600,7 +600,6 @@
+@@ -600,7 +600,6 @@ public class ActionBarPopupWindow extends PopupWindow {
                  }
              }
              int nebulaClipSave = canvas.save();
@@ -9,7 +9,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarPopu
              nebulaReveal.clip(canvas);
              if (reactionsEnterProgress != 1f) {
                  canvas.saveLayerAlpha((float) AndroidUtilities.rectTmp2.left, (float) AndroidUtilities.rectTmp2.top, AndroidUtilities.rectTmp2.right, AndroidUtilities.rectTmp2.bottom, (int) (255 * reactionsEnterProgress), Canvas.ALL_SAVE_FLAG);
-@@ -941,7 +940,7 @@
+@@ -941,7 +940,7 @@ public class ActionBarPopupWindow extends PopupWindow {
              finalScaleY = content.backScaleY;
          }
          AnimatorSet windowAnimatorSet;
@@ -18,7 +18,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarPopu
              content.updateAnimation = false;
              windowAnimatorSet = app.nebulagram.ui.NebulaMenuStyle.opening(content, finalScaleY);
          } else {
-@@ -1033,7 +1032,7 @@
+@@ -1033,7 +1032,7 @@ public class ActionBarPopupWindow extends PopupWindow {
                  content.getSwipeBack().invalidateTransforms();
                  finalScaleY = content.backScaleY;
              }
@@ -27,7 +27,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarPopu
                  content.updateAnimation = false;
                  windowAnimatorSet = app.nebulagram.ui.NebulaMenuStyle.opening(content, finalScaleY);
              } else {
-@@ -1140,8 +1139,8 @@
+@@ -1140,8 +1139,8 @@ public class ActionBarPopupWindow extends PopupWindow {
              if (outEmptyTime > 0) {
                  windowAnimatorSet.playTogether(ValueAnimator.ofFloat(0, 1f));
                  windowAnimatorSet.setDuration(outEmptyTime);
@@ -41,7 +41,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarPopu
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
-@@ -31420,6 +31420,7 @@
+@@ -31712,6 +31712,7 @@ public class ChatActivity extends BaseFragment implements
              }
  
              ActionBarPopupWindow.ActionBarPopupWindowLayout popupLayout = new ActionBarPopupWindow.ActionBarPopupWindowLayout(getParentActivity(), R.drawable.popup_fixed_alert4, themeDelegate, flags);
@@ -49,7 +49,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
              popupLayout.setMinimumWidth(AndroidUtilities.dp(200));
              Rect backgroundPaddings = new Rect();
              Drawable shadowDrawable = getParentActivity().getResources().getDrawable(R.drawable.popup_fixed_alert4).mutate();
-@@ -32722,7 +32723,6 @@
+@@ -33014,7 +33015,6 @@ public class ChatActivity extends BaseFragment implements
              } else {
                  scrimPopupWindow.setAnimationStyle(0);
              }
@@ -57,7 +57,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
              popupLayout.nebulaReveal.setAnchor(v);
              scrimPopupWindow.setFocusable(true);
              scrimPopupContainerLayout.measure(View.MeasureSpec.makeMeasureSpec(AndroidUtilities.dp(1000), View.MeasureSpec.AT_MOST), View.MeasureSpec.makeMeasureSpec(AndroidUtilities.dp(1000), View.MeasureSpec.AT_MOST));
-@@ -32858,7 +32858,6 @@
+@@ -33150,7 +33150,6 @@ public class ChatActivity extends BaseFragment implements
                      return;
                  }
                  scrimPopupWindow.showAtLocation(chatListView, Gravity.LEFT | Gravity.TOP, finalPopupX, finalPopupY);
@@ -65,7 +65,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
                  if (isReactionsAvailableFinal && finalReactionsLayout != null) {
                      finalReactionsLayout.startEnterAnimation(true);
                  }
-@@ -40754,6 +40753,7 @@
+@@ -41079,6 +41078,7 @@ public class ChatActivity extends BaseFragment implements
              };
              scrimPopupContainerLayout.setLayoutParams(LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT));
              ActionBarPopupWindow.ActionBarPopupWindowLayout popupLayout = new ActionBarPopupWindow.ActionBarPopupWindowLayout(getParentActivity(), 0, getResourceProvider(), 0);
@@ -73,7 +73,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
              scrimPopupContainerLayout.addView(popupLayout);
  
              boolean showCompletion = false;
-@@ -45781,6 +45781,7 @@
+@@ -46190,6 +46190,7 @@ public class ChatActivity extends BaseFragment implements
                  MessagesController.getGlobalMainSettings().edit().putInt("savedsearchtaghint", 1).apply();
  
                  ActionBarPopupWindow.ActionBarPopupWindowLayout popupLayout = new ActionBarPopupWindow.ActionBarPopupWindowLayout(getParentActivity(), 0, getResourceProvider(), 0);

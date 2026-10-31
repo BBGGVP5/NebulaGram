@@ -1,0 +1,14 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
+@@ -1892,7 +1892,9 @@
+             additionalSubtitleTextView.layout(textLeft, additionalTop + textTop, textLeft + additionalSubtitleTextView.getMeasuredWidth(), additionalTop + textTop + additionalSubtitleTextView.getTextHeight());
+         }
+ 
+-        applyNebulaHomeStoryLayout();
++        // Loading/remeasuring changes the shared slot without a title animation.
++        // Repaint the sibling stories display list with the final title position.
++        updateNebulaHomeTitleLayout();
+ 
+         if (avatarSearchImageView != null) {
+             avatarSearchImageView.layout(

@@ -1,7 +1,7 @@
 diff --git a/Telegram/BUILD b/Telegram/BUILD
 --- a/Telegram/BUILD
 +++ b/Telegram/BUILD
-@@ -334,6 +334,22 @@
+@@ -339,6 +339,22 @@
      "Premium",
      "PremiumBlack",
      "PremiumTurbo",

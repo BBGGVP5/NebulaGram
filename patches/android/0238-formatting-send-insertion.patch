@@ -1,7 +1,7 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
-@@ -9171,9 +9171,10 @@
+@@ -9169,9 +9169,10 @@ public class ChatActivityEnterView extends FrameLayout implements
      }
  
      public boolean canShowTextMessageTransition() {
@@ -18,7 +18,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivity
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/recyclerview/ChatListItemAnimator.java b/TMessagesProj/src/main/java/org/telegram/ui/recyclerview/ChatListItemAnimator.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/recyclerview/ChatListItemAnimator.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/recyclerview/ChatListItemAnimator.java
-@@ -351,19 +351,19 @@
+@@ -351,19 +351,19 @@ public class ChatListItemAnimator extends DefaultItemAnimator {
          }
          if (activity != null && chatMessageCell != null && activity.animatingMessageObjects.contains(chatMessageCell.getMessageObject())) {
              activity.animatingMessageObjects.remove(chatMessageCell.getMessageObject());

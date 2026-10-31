@@ -12,10 +12,10 @@ diff --git a/submodules/SettingsUI/BUILD b/submodules/SettingsUI/BUILD
 diff --git a/submodules/TelegramUI/BUILD b/submodules/TelegramUI/BUILD
 --- a/submodules/TelegramUI/BUILD
 +++ b/submodules/TelegramUI/BUILD
-@@ -64,6 +64,7 @@
-         "-warnings-as-errors",
+@@ -65,6 +65,7 @@
      ],
      deps = [
+         "//submodules/CrashReporting:CrashReporting",
 +        "//submodules/NebulaLinkUI:NebulaLinkUI",
          "//third-party/recaptcha:RecaptchaEnterprise",
          "//submodules/SSignalKit/SwiftSignalKit:SwiftSignalKit",
@@ -28,8 +28,8 @@ diff --git a/submodules/TelegramUI/Sources/SharedAccountContext.swift b/submodul
 +import NebulaLinkUI
  import UIKit
  import AsyncDisplayKit
- import Postbox
-@@ -327,6 +328,7 @@
+ import TelegramCore
+@@ -329,6 +330,7 @@
          self.basePath = basePath
          self.networkArguments = networkArguments
          self.accountManager = accountManager

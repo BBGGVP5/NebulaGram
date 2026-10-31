@@ -1,19 +1,7 @@
-diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
---- a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
-+++ b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
-@@ -5292,6 +5292,8 @@
-             app.nebulagram.ui.NebulaFolderTabs.removeChangeListener(nebulaFolderChangeListener);
-             nebulaFolderChangeListener = () -> {
-                 if (filterTabsView == null || !(filterTabsView.getLayoutParams() instanceof FrameLayout.LayoutParams)) return;
-+                filterTabsView.setNebulaBottomPanel(app.nebulagram.ui.NebulaFolderTabs.bottom());
-+                filterTabsView.getTabsContainer().invalidateViews();
-                 FrameLayout.LayoutParams tabsParams = (FrameLayout.LayoutParams) filterTabsView.getLayoutParams();
-                 tabsParams.gravity = app.nebulagram.ui.NebulaFolderTabs.gravity();
-                 filterTabsView.setLayoutParams(tabsParams);
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/FilterTabsView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/FilterTabsView.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/FilterTabsView.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/FilterTabsView.java
-@@ -1202,6 +1202,7 @@
+@@ -1202,6 +1202,7 @@ public class FilterTabsView extends FrameLayout {
          // Drawable padding must not change tab measurement when styles switch.
          setPadding(0, dp(7), 0, dp(7));
          invalidate();
@@ -21,7 +9,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/FilterTabsVi
      }
  
      private void finishNebulaTabTransition() {
-@@ -1672,20 +1673,22 @@
+@@ -1672,20 +1673,22 @@ public class FilterTabsView extends FrameLayout {
                  if (nebulaDragging) {
                      nebulaReleaseCenter = nebulaDragX;
                      nebulaReleaseWidth = indicatorWidth;
@@ -49,3 +37,15 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/FilterTabsVi
                  if (nebulaLiquidSelector()) {
                      nebulaLens.drawOutline(canvas, outline);
                  } else {
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
+@@ -5294,6 +5294,8 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+             app.nebulagram.ui.NebulaFolderTabs.removeChangeListener(nebulaFolderChangeListener);
+             nebulaFolderChangeListener = () -> {
+                 if (filterTabsView == null || !(filterTabsView.getLayoutParams() instanceof FrameLayout.LayoutParams)) return;
++                filterTabsView.setNebulaBottomPanel(app.nebulagram.ui.NebulaFolderTabs.bottom());
++                filterTabsView.getTabsContainer().invalidateViews();
+                 FrameLayout.LayoutParams tabsParams = (FrameLayout.LayoutParams) filterTabsView.getLayoutParams();
+                 tabsParams.gravity = app.nebulagram.ui.NebulaFolderTabs.gravity();
+                 filterTabsView.setLayoutParams(tabsParams);

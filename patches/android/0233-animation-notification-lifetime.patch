@@ -1,7 +1,7 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/AnimationNotificationsLocker.java b/TMessagesProj/src/main/java/org/telegram/messenger/AnimationNotificationsLocker.java
 --- a/TMessagesProj/src/main/java/org/telegram/messenger/AnimationNotificationsLocker.java
 +++ b/TMessagesProj/src/main/java/org/telegram/messenger/AnimationNotificationsLocker.java
-@@ -24,7 +24,7 @@
+@@ -24,7 +24,7 @@ public class AnimationNotificationsLocker {
          }
          int currentAccount = UserConfig.selectedAccount;
          if (this.currentAccount != currentAccount) {
@@ -13,7 +13,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/AnimationNotific
 diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/NotificationCenter.java b/TMessagesProj/src/main/java/org/telegram/messenger/NotificationCenter.java
 --- a/TMessagesProj/src/main/java/org/telegram/messenger/NotificationCenter.java
 +++ b/TMessagesProj/src/main/java/org/telegram/messenger/NotificationCenter.java
-@@ -503,7 +503,7 @@
+@@ -503,7 +503,7 @@ public class NotificationCenter {
          }
          if (minTime != Long.MAX_VALUE) {
              long time = EXPIRE_NOTIFICATIONS_TIME - (currentTime - minTime);

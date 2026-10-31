@@ -28,16 +28,23 @@ public class NebulaCard extends LinearLayout {
         theme = NebulaTheme.of(context);
         setOrientation(VERTICAL);
 
-        GradientDrawable background = new GradientDrawable();
-        background.setCornerRadius(AndroidUtilities.dp(20));
-        background.setColor(theme.surfaceContainer());
-        setBackground(background);
-        // Rows draw ripples that must be clipped to the rounded shape.
-        setClipToOutline(true);
+        if (NebulaShape.separateRows()) {
+            // Каждая строка со своей карточкой: у группы фона нет, иначе он
+            // проступал бы в промежутках между ними.
+            setClipToOutline(false);
+        } else {
+            GradientDrawable background = new GradientDrawable();
+            background.setCornerRadius(NebulaShape.radius(20));
+            background.setColor(theme.surfaceContainer());
+            setBackground(background);
+            // Rows draw ripples that must be clipped to the rounded shape.
+            setClipToOutline(true);
+        }
     }
 
     /** Adds a row, with a divider between neighbours. */
     public NebulaCard add(View row) {
+        if (NebulaShape.separateRows()) return addSeparate(row);
         if (hasRows) {
             View divider = NebulaRow.divider(getContext());
             LayoutParams dividerParams = (LayoutParams) divider.getLayoutParams();
@@ -57,6 +64,24 @@ public class NebulaCard extends LinearLayout {
             rowParams.setMargins(inset, inset, inset, AndroidUtilities.dp(8));
         }
         addView(row, rowParams);
+        hasRows = true;
+        return this;
+    }
+
+    /**
+     * Строка со своей карточкой. Разделители не нужны: их работу делает
+     * промежуток, а рисовать и то и другое значит разделять дважды.
+     */
+    private NebulaCard addSeparate(View row) {
+        GradientDrawable background = new GradientDrawable();
+        background.setCornerRadius(NebulaShape.radius(18));
+        background.setColor(theme.surfaceContainer());
+        row.setBackground(background);
+        row.setClipToOutline(true);
+        LayoutParams params = new LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        if (hasRows) params.topMargin = AndroidUtilities.dp(6);
+        addView(row, params);
         hasRows = true;
         return this;
     }
@@ -111,7 +136,7 @@ public class NebulaCard extends LinearLayout {
             }
             // The introduction already owns the gap to the first setting.
             // Later group headers retain their separation from the last card.
-            int top = afterIntroduction ? 0 : AndroidUtilities.dp(18);
+            int top = afterIntroduction ? 0 : NebulaShape.gap(18);
             if (getPaddingTop() != top) {
                 setPadding(getPaddingLeft(), top, getPaddingRight(), getPaddingBottom());
             }

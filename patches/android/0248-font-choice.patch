@@ -1,0 +1,28 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/AndroidUtilities.java b/TMessagesProj/src/main/java/org/telegram/messenger/AndroidUtilities.java
+--- a/TMessagesProj/src/main/java/org/telegram/messenger/AndroidUtilities.java
++++ b/TMessagesProj/src/main/java/org/telegram/messenger/AndroidUtilities.java
+@@ -2389,7 +2389,24 @@ public class AndroidUtilities {
+         return result;
+     }
+ 
++    /**
++     * NebulaGram: кэш держит начертания по имени ресурса, поэтому при смене
++     * шрифта в нём остаются старые. Без сброса настройка подействовала бы
++     * только на то, что ещё не успели нарисовать.
++     */
++    public static void nebulaClearTypefaces() {
++        synchronized (typefaceCache) {
++            typefaceCache.clear();
++        }
++    }
++
+     public static Typeface getTypeface(String assetPath) {
++        // Одна воронка на все начертания приложения: подмена здесь охватывает
++        // весь интерфейс, а не те экраны, до которых дошли руки.
++        Typeface nebulaSubstitute = app.nebulagram.ui.NebulaFont.substitute(assetPath);
++        if (nebulaSubstitute != null) {
++            return nebulaSubstitute;
++        }
+         synchronized (typefaceCache) {
+             if (!typefaceCache.containsKey(assetPath)) {
+                 try {

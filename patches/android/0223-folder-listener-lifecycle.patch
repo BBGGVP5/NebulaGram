@@ -1,7 +1,7 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
-@@ -284,6 +284,8 @@
+@@ -284,6 +284,8 @@ import me.vkryl.android.animator.FactorAnimator;
  import me.vkryl.android.util.ClickHelper;
  
  public class DialogsActivity extends BaseFragment implements NotificationCenter.NotificationCenterDelegate, FloatingDebugProvider, FactorAnimator.Target, MainTabsActivity.TabFragmentDelegate {
@@ -10,7 +10,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/
      private final int ADDITIONAL_LIST_HEIGHT_DP = Build.VERSION.SDK_INT >= 31 ? 48 : 0;
  
      private static final boolean TMP_DISABLE_TOPICS_TWO_COLUMNS = false;
-@@ -3126,6 +3128,8 @@
+@@ -3127,6 +3129,8 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
  
      @Override
      public void onFragmentDestroy() {
@@ -19,7 +19,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/
          super.onFragmentDestroy();
          if (observersGroup != null) {
              observersGroup.removeAllObservers();
-@@ -5284,7 +5288,8 @@
+@@ -5286,7 +5290,8 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
              // Список чатов — корневой экран: из настроек сюда не возвращаются
              // заново, его никто не пересоздаёт. Поэтому панель умеет переезжать
              // на ходу, иначе переключатель оживал бы только после перезапуска.
@@ -29,7 +29,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/
                  if (filterTabsView == null || !(filterTabsView.getLayoutParams() instanceof FrameLayout.LayoutParams)) return;
                  FrameLayout.LayoutParams tabsParams = (FrameLayout.LayoutParams) filterTabsView.getLayoutParams();
                  tabsParams.gravity = app.nebulagram.ui.NebulaFolderTabs.gravity();
-@@ -5295,7 +5300,8 @@
+@@ -5297,7 +5302,8 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                      ViewCompat.requestApplyInsets(fragmentView);
                      fragmentView.requestLayout();
                  }

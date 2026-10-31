@@ -1,6 +1,8 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
-@@ -653,6 +653,7 @@
+@@ -652,7 +652,8 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
+ 
      private boolean nebulaCenterTitle() {
          if ((!nebulaHomeTabsGlass && !app.nebulagram.ui.NebulaAppearance.centerHome())
 -                || (isSearchFieldVisible && !nebulaHomeTabsGlass) || getActionModeFactor() != 0) return false;
@@ -9,7 +11,8 @@
          if (parentFragment instanceof org.telegram.ui.DialogsActivity) {
              return ((org.telegram.ui.DialogsActivity) parentFragment).nebulaIsHeaderExpanded();
          }
-@@ -2563,5 +2564,13 @@
+@@ -2574,7 +2575,15 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
+                     && !((nebulaClassicSavedHeader || nebulaFloatingChatHeader && !app.nebulagram.ui.NebulaAppearance.chatHeader()) && actionModeFactor == 0f && searchFactor == 0f)) glassDrawable.draw(canvas);
          }
          if (glassDrawableBack != null && hasBackButton) {
 -            glassDrawableBack.setBounds(0, t, nebulaBackWidth, b);
@@ -24,3 +27,4 @@
 +            }
              glassDrawableBack.draw(canvas);
          }
+         final boolean separateAvatar = nebulaFloatingChatHeader && nebulaChatMenuHidden

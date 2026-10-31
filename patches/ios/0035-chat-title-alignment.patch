@@ -42,7 +42,7 @@ diff --git a/submodules/TelegramUI/Components/ChatTitleView/Sources/ChatTitleVie
          
          self.isAccessibilityElement = true
          self.accessibilityTraits = .header
-@@ -1043,10 +1054,14 @@
+@@ -1048,10 +1059,14 @@
          let titleInfoSpacing: CGFloat = 0.0
          
          var activityFrame = CGRect()
@@ -58,7 +58,7 @@ diff --git a/submodules/TelegramUI/Components/ChatTitleView/Sources/ChatTitleVie
                  titleFrame.origin.x = floor((size.width - titleFrame.width) / 2.0)
              }
              titleTransition.updateFrameAdditive(view: self.titleContainerView, frame: titleFrame)
-@@ -1059,12 +1074,16 @@
+@@ -1064,12 +1079,16 @@
              contentX = max(contentX, 20.0)
              
              titleFrame = CGRect(origin: CGPoint(x: contentX + floor((contentWidth - titleSize.width) / 2.0), y: floor((size.height - combinedHeight) / 2.0)), size: titleSize)

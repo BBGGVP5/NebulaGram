@@ -1,7 +1,7 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
-@@ -2341,7 +2341,7 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
+@@ -2352,7 +2352,7 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
                  // compact real glass capsule stays centred, while the avatar
                  // remains a reachable round control at the trailing edge.
                  final int width = centeredNebulaAvatar.getNebulaCenteredHeaderWidth();
@@ -13,7 +13,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.jav
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
-@@ -4584,11 +4584,11 @@ public class ChatActivity extends BaseFragment implements
+@@ -4632,11 +4632,11 @@ public class ChatActivity extends BaseFragment implements
              glassBackgroundDrawableFactory,
              BlurredBackgroundProviderImpl.topPanelChatActivity(themeDelegate),
              ChatObject.isForum(currentChat));
@@ -27,7 +27,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
                  UserObject.isUserSelf(currentUser));
  
          if (chatMode == MODE_PINNED) {
-@@ -29784,7 +29784,7 @@ public class ChatActivity extends BaseFragment implements
+@@ -30095,7 +30095,7 @@ public class ChatActivity extends BaseFragment implements
      public void onResume() {
          super.onResume();
          app.nebulagram.ui.NebulaChatStyle.header(actionBar,
