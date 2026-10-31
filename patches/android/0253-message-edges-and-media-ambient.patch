@@ -34,7 +34,7 @@ index a4b54fb..591f8c3 100644
          }
  
 +        if (animationInProgress == 0 && !pipAnimationInProgress && !isInline && currentEditMode == EDIT_MODE_NONE && scale == 1f) {
-+            nebulaAmbient.draw(canvas, containerView, centerImage.getBitmap(), isCurrentVideo ? videoTextureView : null);
++            nebulaAmbient.draw(canvas, containerView, centerImage.getBitmap(), isCurrentVideo && videoPlayer != null && videoPlayer.isPlaying() ? videoTextureView : null);
 +        }
          sideImage = null;
          if (currentEditMode == EDIT_MODE_NONE && sendPhotoType != SELECT_TYPE_AVATAR && sendPhotoType != SELECT_TYPE_STICKER) {

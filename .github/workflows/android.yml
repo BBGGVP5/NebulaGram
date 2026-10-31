@@ -187,6 +187,7 @@ jobs:
           python3 scripts/check-chat-history-policy.py
           python3 scripts/check-history-session.py
           python3 scripts/check-bot-api.py
+          python3 scripts/check-media-effects.py
           python3 scripts/check-emoji-panel.py vendor/telegram-android
           python3 scripts/check-search-stories-pager.py vendor/telegram-android
           python3 scripts/check-formatting-toolbar.py

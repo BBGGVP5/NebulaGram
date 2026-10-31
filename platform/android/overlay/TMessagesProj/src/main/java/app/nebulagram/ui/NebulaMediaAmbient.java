@@ -12,7 +12,7 @@ public final class NebulaMediaAmbient {
     private final RadialGradient[] gradients = new RadialGradient[4];
     private Bitmap videoSample;
     private int imageKey, width, height;
-    private long sampled;
+    private long sampled, nextInvalidate;
     public void draw(Canvas canvas, View host, Bitmap image, TextureView video) {
         if (!NebulaFeatureSettings.enabled("media_ambient") || host == null) return;
         int w = canvas.getWidth(), h = canvas.getHeight();
@@ -20,7 +20,7 @@ public final class NebulaMediaAmbient {
         int key = image == null || image.isRecycled() ? 0 : System.identityHashCode(image) ^ image.getGenerationId();
         boolean changed = key != imageKey || w != width || h != height;
         long now = SystemClock.uptimeMillis();
-        if (changed || now - sampled >= 500) {
+        if (changed || video != null && now - sampled >= 500) {
             sampled = now; imageKey = key; width = w; height = h;
             Bitmap sample = image;
             try {
@@ -44,6 +44,9 @@ public final class NebulaMediaAmbient {
         }
         for (RadialGradient gradient : gradients) if (gradient != null) { paint.setShader(gradient); canvas.drawRect(0, 0, w, h, paint); }
         paint.setShader(null);
-        if (video != null && video.isAvailable()) host.postInvalidateDelayed(500);
+        if (video != null && video.isAvailable() && now >= nextInvalidate) {
+            nextInvalidate = now + 500;
+            host.postInvalidateDelayed(500);
+        }
     }
 }
