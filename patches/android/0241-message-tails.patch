@@ -8,7 +8,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Cells/ChatMessageCell.j
 +            // Хвост рисуется там, где пузырь не примыкает к соседнему снизу.
 +            // Поэтому «без хвостов» — это не отдельная картинка, а тот же
 +            // примыкающий вариант, применённый ко всем сообщениям подряд.
-+            if (!app.nebulagram.ui.NebulaShape.tails()) drawPinnedBottom = true;
++            if (!app.nebulagram.ui.NebulaShape.tails() && currentMessagesGroup != null) drawPinnedBottom = true;
  
              boolean wasPlayingRound = isPlayingRound;
              isPlayingRound = isRoundVideo && MediaController.getInstance().isPlayingMessage(currentMessageObject) && delegate != null && !delegate.keyboardIsOpened() && !delegate.isLandscape();
