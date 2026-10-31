@@ -176,6 +176,9 @@ public class NebulaSettingsFragment extends BaseFragment {
                 .subtitle(accountSummary(), false).trailing(NebulaRow.TRAIL_CHEVRON)
                 .withClick(v -> presentFragment(new NebulaAccountsFragment()));
         categories.add(accountsRow);
+        categories.add(new NebulaRow(context).icon(R.drawable.msg_settings).title(NebulaText.text("Мои боты", "My bots"))
+                .subtitle(NebulaText.text("Профиль, переводы и управление", "Profiles, translations and management"), false)
+                .trailing(NebulaRow.TRAIL_CHEVRON).withClick(v -> presentFragment(new NebulaBotsFragment(currentAccount))));
         categories.add(hub(context, R.drawable.msg_secret, NebulaRow.TILE_GREY, "Конфиденциальность", "Privacy",
                 "Архив и защита", "Archive and protection", NebulaSettingsHubFragment.PRIVACY));
         categories.add(new NebulaRow(context).icon(R.drawable.msg_info).title(NebulaText.text("О приложении", "About"))

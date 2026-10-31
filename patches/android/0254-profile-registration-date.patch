@@ -1,0 +1,25 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
+index 47cf744..8cb93bd 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
+@@ -2562,6 +2562,10 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+         actionBar.setActionBarMenuOnItemClick(new ActionBar.ActionBarMenuOnItemClick() {
+             @Override
+             public void onItemClick(final int id) {
++                if (id == 0x4e5244) {
++                    app.nebulagram.ui.NebulaRegistrationDate.show(ProfileActivity.this, currentAccount, userId);
++                    return;
++                }
+                 if (getParentActivity() == null) {
+                     return;
+                 }
+@@ -12287,6 +12291,9 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+             if (user == null) {
+                 return;
+             }
++            if (!user.bot && !user.deleted) {
++                otherItem.addSubItem(0x4e5244, R.drawable.msg_calendar, app.nebulagram.ui.NebulaText.text("Дата регистрации", "Registration date"));
++            }
+             if (UserObject.isUserSelf(user)) {
+                 if (myProfile) {
+                     if (actionsView != null) {

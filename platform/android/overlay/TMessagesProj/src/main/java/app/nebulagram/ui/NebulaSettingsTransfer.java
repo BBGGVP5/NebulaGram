@@ -16,7 +16,7 @@ import org.telegram.messenger.R;
 import org.telegram.ui.ActionBar.*;
 
 public final class NebulaSettingsTransfer {
-    public static final int EXPORT = 9710, IMPORT = 9711, REPORT = 9712, RESTART = 9713;
+    public static final int EXPORT = 9710, IMPORT = 9711, REPORT = 9712, RESTART = 9713, RESET = 9714;
     private NebulaSettingsTransfer() { }
     public static void menu(BaseFragment f) {
         ActionBarMenuItem menu = f.getActionBar().createMenu().addItem(9700, R.drawable.ic_ab_other);
@@ -24,6 +24,7 @@ public final class NebulaSettingsTransfer {
         menu.addSubItem(IMPORT, R.drawable.msg_download, text("Импорт настроек", "Import settings"));
         menu.addSubItem(REPORT, R.drawable.msg_copy, text("Скопировать детали отчёта", "Copy report details"));
         menu.addSubItem(RESTART, R.drawable.msg_retry, text("Перезапустить приложение", "Restart app"));
+        menu.addSubItem(RESET, R.drawable.msg_clearcache, text("Сбросить переносимые настройки", "Reset transferable settings"));
     }
     public static void action(BaseFragment f, int id) {
         try {
@@ -32,6 +33,18 @@ public final class NebulaSettingsTransfer {
                 intent.addCategory(Intent.CATEGORY_OPENABLE); intent.setType("application/json");
                 if (id == EXPORT) intent.putExtra(Intent.EXTRA_TITLE, "NebulaGram-settings.json");
                 f.startActivityForResult(intent, id);
+            } else if (id == RESET) {
+                f.showDialog(new NebulaDialog.Builder(f.getParentActivity()).setTitle(text("Сбросить настройки?", "Reset settings?"))
+                    .setMessage(text("Будут сброшены настройки, включаемые в экспорт, и выбор своего шрифта. Аккаунты, ключи ИИ и уже отложенные сообщения сохранятся.", "Resets settings included in exports and the custom font choice. Accounts, AI keys and already scheduled messages remain."))
+                    .setPositiveButton(text("Сбросить", "Reset"), (dialog, which) -> {
+                        Context c = ApplicationLoader.applicationContext;
+                        NebulaTheme.setMaterialYouEnabled(false);
+                        SharedPreferences.Editor editor = c.getSharedPreferences("nebulagram", 0).edit();
+                        for (String key : NebulaSettingsSchema.types.keySet()) editor.remove(key);
+                        editor.remove("font_custom").apply();
+                        NebulaIcons.setPack(NebulaIcons.pack()); AndroidUtilities.nebulaClearTypefaces(); Theme.reloadAllResources(c);
+                        f.finishFragment();
+                    }).setNegativeButton(text("Отмена", "Cancel"), null).create());
             } else if (id == REPORT) {
                 AndroidUtilities.addToClipboard("NebulaGram " + BuildVars.BUILD_VERSION_STRING + "\nAndroid " + Build.VERSION.RELEASE + " / API " + Build.VERSION.SDK_INT + "\n" + Build.MANUFACTURER + " " + Build.MODEL + "\nMaterial You: " + NebulaTheme.materialYouEnabled() + "\nIcon pack: " + NebulaIcons.pack());
                 notice(f, text("Детали скопированы", "Details copied"));

@@ -17,6 +17,8 @@ def main():
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_text(text, encoding='utf-8')
         put('app/nebulagram/ui/NebulaTheme.java', SOURCE.read_text(encoding='utf-8'))
+        put('app/nebulagram/ui/NebulaMonetPalette.java', (SOURCE.parent / 'NebulaMonetPalette.java').read_text(encoding='utf-8'))
+        put('app/nebulagram/ui/NebulaText.java', 'package app.nebulagram.ui; public class NebulaText {public static String text(String ru,String en){return en;}}')
         colors = sorted(set(re.findall(r'android.R.color.(\w+)', SOURCE.read_text(encoding='utf-8'))))
         put('android/R.java', 'package android; public class R { public static class color { '
             + ' '.join(f'public static final int {color} = {i};' for i, color in enumerate(colors)) + ' }}')
@@ -32,6 +34,13 @@ def main():
             public int uiMode=32; }''')
         put('android/content/res/Resources.java', '''package android.content.res;
             public class Resources { public Configuration config=new Configuration();
+            public String getResourceEntryName(int id){return "system_accent1_600";}
+            public int getIdentifier(String name,String type,String pkg){
+                if(name.equals("system_accent2_600"))return 1002;
+                if(name.equals("system_accent3_600"))return 1003;
+                if(name.equals("system_neutral1_600"))return 1004;
+                return 0;
+            }
             public int reads; public Configuration getConfiguration() { reads++; return config; } }''')
         put('android/content/SharedPreferences.java', '''package android.content;
             public interface SharedPreferences {
@@ -150,7 +159,14 @@ def main():
                     eq(NebulaTheme.of(c).surface(),0xff229955);
                     eq(NebulaTheme.of(c).surfaceContainer(),0xff229955);
                     c.night(true); eq(NebulaTheme.of(c).primary(),0xff229955);
-                    android.os.Build.VERSION.SDK_INT=30; NebulaTheme.setMaterialYouEnabled(true); apply(c);
+                    app.nebulagram.ui.NebulaMonetPalette.select(0); eq(app.nebulagram.ui.NebulaMonetPalette.resource(c,42),42);
+                    for(int palette=1;palette<=3;palette++) {
+                        app.nebulagram.ui.NebulaMonetPalette.select(palette);
+                        eq(app.nebulagram.ui.NebulaMonetPalette.resource(c,42),1001+palette);
+                    }
+                    android.os.Build.VERSION.SDK_INT=30;
+                    eq(app.nebulagram.ui.NebulaMonetPalette.resource(c,42),42);
+                    NebulaTheme.setMaterialYouEnabled(true); apply(c);
                     eq(day.getAccent(false).accentColor,0xff229955);
                     System.out.println(checks+" palette/accent restoration checks passed");
                 }

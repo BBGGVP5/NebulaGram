@@ -35,7 +35,7 @@ public final class NebulaChatHistoryFragment extends BaseFragment {
     private final ArrayList<TLRPC.Message> messages = new ArrayList<>();
     public NebulaChatHistoryFragment(int account, long dialog, long topic, boolean protectedChat) {
         currentAccount = account; this.dialog = dialog;
-        this.topic = topic > 0 && topic <= Integer.MAX_VALUE ? (int) topic : 0;
+        this.topic = topic >= 0 && topic <= Integer.MAX_VALUE ? (int) topic : -1;
         this.protectedChat = protectedChat; owner = UserConfig.getInstance(account).getClientUserId();
     }
     private boolean current(int token) { return !destroyed && token == generation && owner != 0 && owner == UserConfig.getInstance(currentAccount).getClientUserId(); }

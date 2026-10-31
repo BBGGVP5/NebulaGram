@@ -1020,6 +1020,96 @@
       "min": 50,
       "max": 150,
       "literal_default_binding": true
+    },
+    {
+      "key": "font_system",
+      "type": "boolean",
+      "feature": "appearance.font",
+      "android_store": "nebulagram",
+      "android_source": "NebulaFont.java",
+      "transfer_v1": true,
+      "ios_status": "planned",
+      "ios_mapping": "adapt",
+      "default": false
+    },
+    {
+      "key": "font_custom",
+      "type": "boolean",
+      "feature": "appearance.font",
+      "android_store": "nebulagram",
+      "android_source": "NebulaFont.java",
+      "transfer_v1": false,
+      "ios_status": "planned",
+      "ios_mapping": "adapt",
+      "default": false
+    },
+    {
+      "key": "edge_compression",
+      "type": "boolean",
+      "feature": "appearance.motion",
+      "android_store": "nebulagram",
+      "android_source": "NebulaEdgeCompression.java",
+      "transfer_v1": true,
+      "ios_status": "planned",
+      "ios_mapping": "adapt",
+      "default": false
+    },
+    {
+      "key": "unlimited_selection",
+      "type": "boolean",
+      "feature": "chats.selection",
+      "android_store": "nebulagram",
+      "android_source": "NebulaFeatureSettings.java",
+      "transfer_v1": true,
+      "ios_status": "planned",
+      "ios_mapping": "adapt",
+      "default": false
+    },
+    {
+      "key": "slowmode_queue",
+      "type": "boolean",
+      "feature": "chats.sending",
+      "android_store": "nebulagram",
+      "android_source": "NebulaFeatureSettings.java",
+      "transfer_v1": true,
+      "ios_status": "planned",
+      "ios_mapping": "adapt",
+      "default": false
+    },
+    {
+      "key": "media_ambient",
+      "type": "boolean",
+      "feature": "appearance.media",
+      "android_store": "nebulagram",
+      "android_source": "NebulaFeatureSettings.java",
+      "transfer_v1": true,
+      "ios_status": "planned",
+      "ios_mapping": "adapt",
+      "default": false
+    },
+    {
+      "key": "message_edge_compression",
+      "type": "boolean",
+      "feature": "appearance.motion",
+      "android_store": "nebulagram",
+      "android_source": "NebulaFeatureSettings.java",
+      "transfer_v1": true,
+      "ios_status": "planned",
+      "ios_mapping": "adapt",
+      "default": false
+    },
+    {
+      "key": "monet_palette",
+      "type": "integer",
+      "feature": "appearance.theme",
+      "android_store": "nebulagram",
+      "android_source": "NebulaMonetPalette.java",
+      "transfer_v1": true,
+      "ios_status": "planned",
+      "ios_mapping": "adapt",
+      "default": 0,
+      "min": 0,
+      "max": 3
     }
   ]
 }
