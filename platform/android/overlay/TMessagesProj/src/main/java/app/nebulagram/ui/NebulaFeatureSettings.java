@@ -18,6 +18,7 @@ public final class NebulaFeatureSettings {
                 || "archive_user_stories".equals(key));
     }
     public static void set(String key, boolean value) { prefs().edit().putBoolean(key, value).apply(); }
+    public static boolean materialHeader() { return android.os.Build.VERSION.SDK_INT >= 31 && enabled("material_home_header"); }
     public static float fade(float progress) { return NebulaFeaturePolicy.fade(progress, enabled("smooth_fade")); }
     public static boolean haptic(android.view.View view, int feedback, int flags) {
         return !enabled("disable_chat_vibration") && view != null && view.performHapticFeedback(feedback, flags);

@@ -42,6 +42,9 @@ public final class NebulaFont {
             java.io.FileOutputStream out = null;
             try { out = store.startWrite(); out.write(data); store.finishWrite(out); }
             catch (java.io.IOException error) { if (out != null) store.failWrite(out); throw error; }
+            try (java.io.InputStream stored = store.openRead()) {
+                if (!java.util.Arrays.equals(data, NebulaFontFile.read(stored))) throw new java.io.IOException("Font installation did not complete");
+            }
             custom = checked; customLoaded = true;
         } finally { temporary.delete(); }
     }

@@ -63,6 +63,8 @@ public final class NebulaFeatureControls {
     public static void appearance(LinearLayout parent) {
         Context context = parent.getContext();
         NebulaCard media = new NebulaCard(context);
+        if (android.os.Build.VERSION.SDK_INT >= 31) media.add(toggle(parent, "material_home_header", "Шапка Material 3", "Material 3 header", "Размытый фон без преломления и скруглённый нижний край", "Blurred background without refraction and rounded bottom corners"));
+        media.add(toggle(parent, "message_text_fade", "Появление текста", "Text appearance", "Короткое затухание при появлении и обновлении текста", "A short fade when message text appears or changes"));
         media.add(toggle(parent, "media_ambient", "Свечение медиа", "Ambient media", "Мягкий цветной свет вокруг фото и видео в просмотрщике", "Soft image and video colours in the viewer background"));
         if (android.os.Build.VERSION.SDK_INT >= 33) media.add(toggle(parent, "message_edge_compression", "Сжатие сообщений у краёв", "Message edge compression", "Для отдельных сообщений; альбомы и активные анимации не меняются", "Individual messages; albums and active animations are unchanged"));
         if (NebulaTheme.supportsDynamic()) {

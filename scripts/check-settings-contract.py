@@ -22,7 +22,7 @@ java_types = {'boolean': 'Boolean', 'integer': 'Integer', 'string': 'String'}
 legacy = json.loads((ROOT / 'shared/settings/legacy-v1-types.json').read_text(encoding='utf-8'))
 transfer = {key: java_types[row['type']] for key, row in entries.items() if row['transfer_v1']}
 assert all(transfer.get(key) == value for key, value in legacy.items())
-assert set(transfer) - set(legacy) == {'fragment_transition_style', 'glass_quality', 'wide_posts', 'sticker_time_style', 'channel_forward_count', 'inline_math', 'folder_unmuted_only', 'swipe_actions', 'formatting_toolbar', 'sticker_percent', 'emoji_percent', 'gif_percent', 'font_system', 'edge_compression', 'unlimited_selection', 'slowmode_queue', 'media_ambient', 'message_edge_compression', 'monet_palette'}
+assert set(transfer) - set(legacy) == {'fragment_transition_style', 'glass_quality', 'wide_posts', 'sticker_time_style', 'channel_forward_count', 'inline_math', 'folder_unmuted_only', 'swipe_actions', 'formatting_toolbar', 'sticker_percent', 'emoji_percent', 'gif_percent', 'font_system', 'edge_compression', 'unlimited_selection', 'slowmode_queue', 'media_ambient', 'message_edge_compression', 'monet_palette', 'material_home_header', 'message_text_fade'}
 assert transfer['glass_quality'] == 'Integer'
 assert not any(row['ios_status'] == 'implemented' for row in entries.values()), 'Add native iOS acceptance tests before promoting status'
 bindings = 0

@@ -23,11 +23,17 @@ class ChatHistoryPolicyCheck {
   ok(NebulaSlowModePolicy.next(1700000000,0,1699999999,60)==1700000010);
   for(int bad:new int[]{0,-1,86401})try{NebulaSlowModePolicy.next(1700000000,0,0,bad);throw new AssertionError();}catch(IllegalArgumentException expected){}
   try{NebulaSlowModePolicy.next(Integer.MAX_VALUE-5,0,0,60);throw new AssertionError();}catch(IllegalArgumentException expected){}
+  var fade=new NebulaTextFade();ok(fade.alpha(0,10,1,0,1000,true)==0);
+  int previous=0;for(int t=1000;t<=1160;t++) {int alpha=fade.alpha(0,10,1,0,t,true);ok(alpha>=previous&&alpha<=255);previous=alpha;}
+  ok(previous==255&&fade.alpha(0,10,1,0,1200,true)==255);
+  ok(fade.alpha(0,10,1,1,1300,true)==0);ok(fade.alpha(0,10,1,1,1301,false)==255);
+  ok(fade.alpha(0,10,1,1,1302,true)==255);ok(fade.alpha(1,10,1,1,1400,true)==0);
+  ok(fade.alpha(1,20,1,1,1500,true)==0);ok(fade.alpha(1,20,2,1,1600,true)==0);
   System.out.println("History pagination/dedup boundary, 100000-message stream and 6000 queue slots passed");
  }
 }
 '''
 with tempfile.TemporaryDirectory(prefix='nebula-history-policy-') as directory:
     work=Path(directory);test=work/'ChatHistoryPolicyCheck.java';test.write_text(source,encoding='utf-8')
-    subprocess.run(['javac','-encoding','UTF-8','-d',str(work),str(test),str(ui/'NebulaHistoryPager.java'),str(ui/'NebulaSlowModePolicy.java')],check=True)
+    subprocess.run(['javac','-encoding','UTF-8','-d',str(work),str(test),str(ui/'NebulaHistoryPager.java'),str(ui/'NebulaSlowModePolicy.java'),str(ui/'NebulaTextFade.java')],check=True)
     subprocess.run(['java','-cp',str(work),'ChatHistoryPolicyCheck'],check=True)

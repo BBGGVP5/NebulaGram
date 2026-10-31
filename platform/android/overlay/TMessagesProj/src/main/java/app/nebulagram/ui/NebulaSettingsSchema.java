@@ -49,6 +49,7 @@ public final class NebulaSettingsSchema {
         map.put("ios_unread", Boolean.class);
         map.put("liquid_animations", Boolean.class);
         map.put("login_style", Boolean.class);
+        map.put("material_home_header", Boolean.class);
         map.put("material_you", Boolean.class);
         map.put("media_ambient", Boolean.class);
         map.put("menu_call", Boolean.class);
@@ -58,6 +59,7 @@ public final class NebulaSettingsSchema {
         map.put("message_edge_compression", Boolean.class);
         map.put("message_menu_below", Boolean.class);
         map.put("message_menu_blur", Boolean.class);
+        map.put("message_text_fade", Boolean.class);
         map.put("monet_palette", Integer.class);
         map.put("own_double_tap", Integer.class);
         map.put("profile_background", Boolean.class);

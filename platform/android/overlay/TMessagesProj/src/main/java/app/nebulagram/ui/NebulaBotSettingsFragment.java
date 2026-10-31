@@ -43,7 +43,7 @@ public final class NebulaBotSettingsFragment extends BaseFragment {
             row(c, text("Бизнес-подключение по ID", "Business connection by ID"), this::connection);
         }
         row(c, text("Звёзды", "Stars"), () -> {
-            BotStarsActivity stars = new BotStarsActivity(BotStarsActivity.TYPE_STARS, botId); stars.setCurrentAccount(currentAccount); presentFragment(stars);
+            BotStarsActivity stars = new BotStarsActivity(currentAccount, BotStarsActivity.TYPE_STARS, botId); presentFragment(stars);
         });
         body.addView(NebulaFormUi.note(c, botAccount()
             ? text("Изменения применяются к текущему боту. Права по умолчанию не меняют права в существующих чатах.", "Changes apply to the current bot. Default rights do not change existing chats.")

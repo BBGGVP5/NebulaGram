@@ -22,7 +22,7 @@ public final class NebulaFontFragment extends BaseFragment {
         NebulaFormUi.bar(this, actionBar, context, text("Шрифт приложения", "App font"));
         content = NebulaFormUi.column(context);
         ScrollView scroll = new ScrollView(context); scroll.setFillViewport(true); scroll.addView(content);
-        fragmentView = scroll; rebuild(); return scroll;
+        fragmentView = NebulaSettingsLayout.wrap(context, actionBar, scroll); rebuild(); return fragmentView;
     }
     private void rebuild() {
         if (content == null || destroyed) return;

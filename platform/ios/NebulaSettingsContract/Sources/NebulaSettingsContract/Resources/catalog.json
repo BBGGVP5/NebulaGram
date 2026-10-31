@@ -1110,6 +1110,28 @@
       "default": 0,
       "min": 0,
       "max": 3
+    },
+    {
+      "key": "material_home_header",
+      "type": "boolean",
+      "feature": "appearance.motion",
+      "android_store": "nebulagram",
+      "android_source": "NebulaFeatureSettings.java",
+      "transfer_v1": true,
+      "ios_status": "planned",
+      "ios_mapping": "adapt",
+      "default": false
+    },
+    {
+      "key": "message_text_fade",
+      "type": "boolean",
+      "feature": "appearance.motion",
+      "android_store": "nebulagram",
+      "android_source": "NebulaFeatureSettings.java",
+      "transfer_v1": true,
+      "ios_status": "planned",
+      "ios_mapping": "adapt",
+      "default": false
     }
   ]
 }
