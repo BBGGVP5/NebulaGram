@@ -105,22 +105,10 @@ public final class NebulaShapeFragment extends BaseFragment {
 
         content.addView(NebulaCard.header(context, text("Шрифт", "Font")));
         NebulaCard font = new NebulaCard(context);
-        String[] fonts = {"Telegram", text("Системный", "System")};
         NebulaRow fontRow = new NebulaRow(context).icon(R.drawable.msg_edit)
                 .title(text("Шрифт", "Font")).subtitle(NebulaFont.title(), true)
                 .trailing(NebulaRow.TRAIL_CHEVRON);
-        fontRow.withClick(v -> showDialog(new NebulaDialog.Builder(context).setTitle(text("Шрифт", "Font"))
-                .setSelectedIndex(NebulaFont.system() ? 1 : 0)
-                .setItems(fonts, (dialog, which) -> {
-                    NebulaFont.setSystem(which == 1);
-                    fontRow.subtitle(NebulaFont.title(), true);
-                    // Кэш начертаний держит старый шрифт, а темы — размеры и
-                    // краски, посчитанные по нему. Без обоих сбросов смена
-                    // видна лишь на том, что ещё не нарисовано.
-                    org.telegram.messenger.AndroidUtilities.nebulaClearTypefaces();
-                    org.telegram.ui.ActionBar.Theme.reloadAllResources(context);
-                    build(context);
-                }).create()));
+        fontRow.withClick(v -> presentFragment(new NebulaFontFragment()));
         font.add(fontRow);
         content.addView(font);
 

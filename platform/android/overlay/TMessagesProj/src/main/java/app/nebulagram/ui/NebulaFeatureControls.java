@@ -62,6 +62,20 @@ public final class NebulaFeatureControls {
     }
     public static void appearance(LinearLayout parent) {
         Context context = parent.getContext();
+        NebulaCard media = new NebulaCard(context);
+        media.add(toggle(parent, "media_ambient", "Свечение медиа", "Ambient media", "Мягкий цветной свет вокруг фото и видео в просмотрщике", "Soft image and video colours in the viewer background"));
+        if (android.os.Build.VERSION.SDK_INT >= 33) media.add(toggle(parent, "message_edge_compression", "Сжатие сообщений у краёв", "Message edge compression", "Для отдельных сообщений; альбомы и активные анимации не меняются", "Individual messages; albums and active animations are unchanged"));
+        if (NebulaTheme.supportsDynamic()) {
+            NebulaRow palette = new NebulaRow(context).title(text("Палитра Monet", "Monet palette")).subtitle(NebulaMonetPalette.names()[NebulaMonetPalette.selected()], true).trailing(NebulaRow.TRAIL_CHEVRON);
+            palette.withClick(v -> new NebulaDialog.Builder(context).setTitle(text("Палитра Monet", "Monet palette"))
+                .setSelectedIndex(NebulaMonetPalette.selected()).setItems(NebulaMonetPalette.names(), (d, index) -> {
+                    NebulaMonetPalette.select(index); NebulaTheme.applyMaterialYou(context);
+                    org.telegram.ui.ActionBar.Theme.reloadAllResources(context);
+                    palette.subtitle(NebulaMonetPalette.names()[index], true);
+                }).show()); media.add(palette);
+            media.add(new NebulaRow(context).title(text("Палитра применяется при включённом Material You", "Palette applies when Material You is enabled")));
+        }
+        add(parent, media);
         NebulaCard motion = new NebulaCard(context);
         NebulaRow style = new NebulaRow(context).title(text("Анимация", "Animation"))
                 .subtitle(NebulaMotion.title(), true).trailing(NebulaRow.TRAIL_CHEVRON);
@@ -103,6 +117,10 @@ public final class NebulaFeatureControls {
         add(parent, card);
     }
     public static void chats(BaseFragment host, LinearLayout parent) {
+        NebulaCard additions = new NebulaCard(parent.getContext());
+        additions.add(toggle(parent, "unlimited_selection", "Выделение без лимита 100", "Unlimited selection", "Для обычного чата; ограничения Telegram на действия сохраняются", "For normal chats; Telegram action limits still apply"));
+        additions.add(toggle(parent, "slowmode_queue", "Очередь медленного режима", "Slow mode queue", "Текст ставится в отложенные сообщения с интервалом чата", "Text is scheduled using the chat's slow mode interval"));
+        add(parent, additions);
         NebulaCard card = new NebulaCard(parent.getContext());
         card.add(toggle(parent, "custom_chat_wallpaper", "Фон отдельных чатов", "Per-chat wallpaper", "Показывать обои, установленные для отдельных переписок", "Show wallpaper set for individual conversations"));
         card.add(toggle(parent, "quote_full_reply", "Цитировать ответы", "Quote replies", "Цитировать текст сообщения в пределах лимита Telegram. Не работает в топиках", "Quote the message text up to Telegram's limit. Unavailable in topics"));

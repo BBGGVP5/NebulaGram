@@ -18,6 +18,11 @@ methods='\n'.join(method(x) for x in [signature,'private int nebulaHomeStoryPref
     'public void setTitleAnimated(CharSequence title, boolean fromBottom, long duration, Interpolator interpolator)'])
 clip_start=source.index('        boolean clip = shouldClipChild(child);')
 clip_prelude=source[clip_start:source.index('        boolean result = super.drawChild',clip_start)]
+layout_start=source.index('protected void onLayout(')
+layout_end=source.index('        if (avatarSearchImageView != null)',layout_start)
+# Execute the post-title layout notification, independently of Android's View layout.
+layout_hook=source[layout_start:layout_end].rstrip().splitlines()[-1]
+assert layout_hook.strip() in ('applyNebulaHomeStoryLayout();', 'updateNebulaHomeTitleLayout();')
 stories=(Path(sys.argv[1])/'TMessagesProj/src/main/java/org/telegram/ui/Stories/DialogStoriesCell.java').read_text(encoding='utf-8')
 begin=stories.index('    public void setActionBar(ActionBar actionBar)');end=stories.index('{',begin)+1;depth=1
 while depth:
@@ -80,12 +85,39 @@ class HeaderTitleMotionCheck {
  void clipTitle(Canvas canvas,Object child){''' + clip_prelude + '''
  if(clip || clipHomeTitle)canvas.restore();
  }
+ void completeTitleLayout(){''' + layout_hook + '''}
  static void check(boolean ok,String why){if(!ok)throw new AssertionError(why);}
  static void close(float a,float b,String why){check(Math.abs(a-b)<.01f,why+": "+a+" != "+b);}
  void pose(float p){titleTextView[0].alpha=p;if(titleTextView[1]!=null)titleTextView[1].alpha=1-p;
   if(titleTextView[0].animator.update!=null)titleTextView[0].animator.update.accept(null);}
  void finish(){pose(1);titleTextView[1].animator.listener.onAnimationEnd(new Animator());applyNebulaHomeStoryLayout();}
  public static void main(String[] args) {
+  int layoutCases=0;
+  for(int count=0;count<=3;count++)for(int width:new int[]{24,96,160}) {
+   var loaded=new HeaderTitleMotionCheck();final var owner=loaded;
+   loaded.titleTextView[0].width=0;loaded.nebulaHomeVisibleStories=0;
+   loaded.paintedStoryLeft=loaded.getNebulaHomeStoriesLeft();
+   loaded.nebulaHomeTitleLayoutChanged=()->{
+    owner.storyInvalidations++;owner.paintedStoryLeft=owner.getNebulaHomeStoriesLeft();
+    close(owner.titleTextView[0].left+owner.titleTextView[0].translation,
+      owner.getNebulaHomeTitleLeft(),"Story invalidated before title position settled");
+   };
+   for(int pass=0;pass<3;pass++) {
+    loaded.titleTextView[0].width=pass==1?24:width;
+    loaded.titleTextView[0].left=pass==1?84:110;
+    loaded.nebulaHomeVisibleStories=pass==1?0:count;
+    int before=loaded.storyInvalidations,layouts=loaded.layouts;
+    loaded.completeTitleLayout();
+    check(loaded.storyInvalidations==before+1,"Loaded header keeps stale story display list until next animation");
+    close(loaded.paintedStoryLeft,loaded.getNebulaHomeStoriesLeft(),"Stories use pre-load header coordinates");
+    check(loaded.layouts==layouts,"Layout notification recursively requests layout");
+    layoutCases++;
+   }
+   loaded.nebulaHomeLayout=false;int before=loaded.storyInvalidations;
+   loaded.completeTitleLayout();
+   check(loaded.storyInvalidations==before,"Classic header unnecessarily invalidates home stories");
+  }
+  System.out.println(layoutCases+" first/load/restore header layout notifications passed");
   var b=new HeaderTitleMotionCheck();b.setTitleAnimated("Emoji",false,220,null);
   b.pose(.5f);close(b.nebulaHomeTitleWidth(),92,"Width must move during fade, not after old text removal");
   b.pose(.999f);float before=b.getNebulaHomeStoriesLeft();b.finish();

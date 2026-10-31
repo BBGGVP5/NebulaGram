@@ -183,6 +183,8 @@ jobs:
           python3 scripts/check-input-controls.py vendor/telegram-android
           python3 scripts/check-header-text-clip.py --tree vendor/telegram-android
           python3 scripts/check-header-status.py --tree vendor/telegram-android
+          python3 scripts/check-font-import.py
+          python3 scripts/check-chat-history-policy.py
           python3 scripts/check-emoji-panel.py vendor/telegram-android
           python3 scripts/check-search-stories-pager.py vendor/telegram-android
           python3 scripts/check-formatting-toolbar.py

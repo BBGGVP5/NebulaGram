@@ -359,6 +359,6 @@ public final class NebulaTheme {
     // Context.getColor arrived in API 23 and Telegram still supports 21, so the
     // compat call is not decoration even though dynamic colour itself needs 31.
     private int system(int resource) {
-        return ContextCompat.getColor(context, resource);
+        return ContextCompat.getColor(context, NebulaMonetPalette.resource(context, resource));
     }
 }
