@@ -10,6 +10,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.ApplicationLoader;
+import org.telegram.messenger.R;
 import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.ActionBar.Theme;
 import static app.nebulagram.ui.NebulaText.text;
@@ -21,32 +22,39 @@ public final class NebulaFontFragment extends BaseFragment {
     @Override public View createView(Context context) {
         NebulaFormUi.bar(this, actionBar, context, text("Шрифт приложения", "App font"));
         content = NebulaFormUi.column(context);
-        ScrollView scroll = new ScrollView(context); scroll.setFillViewport(true); scroll.addView(content);
+        ScrollView scroll = NebulaFormUi.scroll(context, content);
         fragmentView = NebulaSettingsLayout.wrap(context, actionBar, scroll); rebuild(); return fragmentView;
     }
     private void rebuild() {
         if (content == null || destroyed) return;
         Context c = content.getContext(); content.removeAllViews();
+        content.addView(new NebulaSettingsHero(c, R.drawable.msg_edit, text("Шрифт приложения", "App font"),
+            text("Встроенный шрифт Telegram, системный шрифт устройства или свой файл TTF / OTF.",
+                "Built-in Telegram font, device system font or your own TTF / OTF file.")));
         NebulaCard card = new NebulaCard(c);
         String[] titles = {"Telegram", text("Системный", "System"), text("Свой шрифт", "Custom font")};
         int current = NebulaFont.customEnabled() ? 2 : NebulaFont.system() ? 1 : 0;
         for (int mode = 0; mode < titles.length; mode++) {
             final int choice = mode;
-            NebulaRow row = new NebulaRow(c).title(titles[mode]).trailing(NebulaRow.TRAIL_SWITCH).checked(current == mode);
+            NebulaRow row = new NebulaRow(c).icon(R.drawable.msg_edit).title(titles[mode]).trailing(NebulaRow.TRAIL_SWITCH).checked(current == mode);
             row.setEnabled(!busy && (mode != 2 || NebulaFont.hasCustom()));
             row.withClick(v -> { if (!busy) { NebulaFont.choose(choice); refresh(); } }); card.add(row);
         }
-        card.add(new NebulaRow(c).title(busy ? text("Загрузка…", "Importing…") : text("Добавить TTF / OTF", "Import TTF / OTF"))
+        card.add(new NebulaRow(c).icon(R.drawable.msg_download).title(busy ? text("Загрузка…", "Importing…") : text("Добавить TTF / OTF", "Import TTF / OTF"))
             .trailing(NebulaRow.TRAIL_CHEVRON).withClick(v -> {
                 if (busy) return;
                 try { startActivityForResult(new Intent(Intent.ACTION_OPEN_DOCUMENT).addCategory(Intent.CATEGORY_OPENABLE).setType("*/*"), IMPORT); }
                 catch (RuntimeException e) { notice(text("Не удалось открыть файлы", "Could not open documents")); }
             }));
-        content.addView(card);
+        NebulaFormUi.group(content, text("Источник шрифта", "Font source"), card);
+        NebulaCard previewCard = new NebulaCard(c);
         TextView preview = new TextView(c); preview.setText("Аа Бб Вв · Aa Bb Cc\nСъешь ещё этих мягких французских булок\nThe quick brown fox jumps over the lazy dog\n0123456789");
-        preview.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText)); preview.setTextSize(20);
+        preview.setTextColor(NebulaTheme.of(c).onSurface()); preview.setTextSize(18);
+        preview.setLineSpacing(AndroidUtilities.dp(3), 1f);
         preview.setTypeface(NebulaFont.substitute("fonts/rregular.ttf"));
-        preview.setPadding(AndroidUtilities.dp(16), AndroidUtilities.dp(24), AndroidUtilities.dp(16), AndroidUtilities.dp(24)); content.addView(preview);
+        preview.setPadding(AndroidUtilities.dp(18), AndroidUtilities.dp(20), AndroidUtilities.dp(18), AndroidUtilities.dp(20));
+        previewCard.add(preview);
+        NebulaFormUi.group(content, text("Предпросмотр", "Preview"), previewCard);
         content.addView(NebulaFormUi.note(c, text("TTF или OTF до 8 МБ. Код остаётся моноширинным. Некоторые уже открытые экраны обновятся после повторного открытия.", "TTF or OTF up to 8 MB. Code stays monospace. Some open screens update when reopened.")));
     }
     private void refresh() { AndroidUtilities.nebulaClearTypefaces(); Theme.reloadAllResources(content.getContext()); rebuild(); }

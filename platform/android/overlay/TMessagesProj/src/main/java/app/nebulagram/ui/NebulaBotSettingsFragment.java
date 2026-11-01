@@ -24,31 +24,42 @@ public final class NebulaBotSettingsFragment extends BaseFragment {
     public NebulaBotSettingsFragment(int account, long botId) { currentAccount = account; this.botId = botId; owner = UserConfig.getInstance(account).getClientUserId(); }
     private boolean botAccount() { TLRPC.User user = UserConfig.getInstance(currentAccount).getCurrentUser(); return user != null && user.bot && user.id == botId; }
     private boolean current(int token) { return !destroyed && generation == token && owner == UserConfig.getInstance(currentAccount).getClientUserId(); }
-    private EditText field(Context c, String hint, int max) {
-        EditText e = new EditText(c); e.setHint(hint); e.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText));
-        e.setFilters(new InputFilter[]{new InputFilter.LengthFilter(max)}); body.addView(e); return e;
+    private EditText field(NebulaCard card, Context c, String hint, int lines, int max) {
+        EditText e = NebulaFormUi.cardField(c, hint, lines, max);
+        card.add(e); return e;
     }
-    private void row(Context c, String title, Runnable action) { body.addView(new NebulaRow(c).title(title).trailing(NebulaRow.TRAIL_CHEVRON).withClick(v -> { if (!busy) action.run(); })); }
+    private void row(NebulaCard card, Context c, int icon, String title, Runnable action) {
+        card.add(new NebulaRow(c).icon(icon).title(title).trailing(NebulaRow.TRAIL_CHEVRON).withClick(v -> { if (!busy) action.run(); }));
+    }
     @Override public View createView(Context c) {
         NebulaFormUi.bar(this, actionBar, c, text("Настройки бота", "Bot settings"));
-        body = NebulaFormUi.column(c); ScrollView scroll = new ScrollView(c); scroll.addView(body);
-        language = field(c, text("Язык перевода: ru, en; пусто — основной", "Translation language: ru, en; empty for default"), 2); language.setSingleLine(true);
-        name = field(c, text("Имя", "Name"), 64); about = field(c, text("Краткое описание", "About"), 120); description = field(c, text("Описание при запуске", "Description"), 512);
-        row(c, text("Загрузить профиль для этого языка", "Load profile for this language"), this::loadProfile);
-        row(c, text("Сохранить профиль / перевод", "Save profile / translation"), this::saveProfile);
+        body = NebulaFormUi.column(c); ScrollView scroll = NebulaFormUi.scroll(c, body);
+        body.addView(new NebulaSettingsHero(c, R.drawable.msg_bot, text("Настройки бота", "Bot settings"),
+            text("Редактирование имени, описания на разных языках, прав администратора и баланса звёзд.",
+                "Edit name, localized descriptions, admin rights and Stars balance.")));
+        NebulaCard profileCard = new NebulaCard(c);
+        language = field(profileCard, c, text("Язык перевода: ru, en; пусто — основной", "Translation language: ru, en; empty for default"), 1, 2);
+        name = field(profileCard, c, text("Имя", "Name"), 1, 64);
+        about = field(profileCard, c, text("Краткое описание", "About"), 2, 120);
+        description = field(profileCard, c, text("Описание при запуске", "Description"), 3, 512);
+        row(profileCard, c, R.drawable.msg_download, text("Загрузить профиль для этого языка", "Load profile for this language"), this::loadProfile);
+        row(profileCard, c, R.drawable.msg_check_s, text("Сохранить профиль / перевод", "Save profile / translation"), this::saveProfile);
+        NebulaFormUi.group(body, text("Профиль и переводы", "Profile and translations"), profileCard);
+        NebulaCard toolsCard = new NebulaCard(c);
         if (botAccount()) {
-            row(c, text("Кнопка меню", "Menu button"), this::menu);
-            row(c, text("Права по умолчанию в группах", "Default group admin rights"), () -> rights(false));
-            row(c, text("Права по умолчанию в каналах", "Default channel admin rights"), () -> rights(true));
-            row(c, text("Бизнес-подключение по ID", "Business connection by ID"), this::connection);
+            row(toolsCard, c, R.drawable.msg_list, text("Кнопка меню", "Menu button"), this::menu);
+            row(toolsCard, c, R.drawable.msg_groups, text("Права по умолчанию в группах", "Default group admin rights"), () -> rights(false));
+            row(toolsCard, c, R.drawable.msg_channel, text("Права по умолчанию в каналах", "Default channel admin rights"), () -> rights(true));
+            row(toolsCard, c, R.drawable.msg_link2, text("Бизнес-подключение по ID", "Business connection by ID"), this::connection);
         }
-        row(c, text("Звёзды", "Stars"), () -> {
+        row(toolsCard, c, R.drawable.nebula_badge_star, text("Звёзды", "Stars"), () -> {
             BotStarsActivity stars = new BotStarsActivity(currentAccount, BotStarsActivity.TYPE_STARS, botId); presentFragment(stars);
         });
+        NebulaFormUi.group(body, text("Управление и баланс", "Controls and balance"), toolsCard);
         body.addView(NebulaFormUi.note(c, botAccount()
             ? text("Изменения применяются к текущему боту. Права по умолчанию не меняют права в существующих чатах.", "Changes apply to the current bot. Default rights do not change existing chats.")
             : text("Для управляемого бота доступны профиль, переводы и звёзды. Кнопка меню и права требуют входа аккаунтом бота.", "Managed bots support profiles, translations and stars. Menu buttons and default rights require a bot account.")));
-        status = new TextView(c); status.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteGrayText)); body.addView(status);
+        status = NebulaFormUi.note(c, ""); body.addView(status);
         fragmentView = NebulaSettingsLayout.wrap(c, actionBar, scroll); loadProfile(); return fragmentView;
     }
     private void call(TLObject query, Consumer<TLObject> done) {

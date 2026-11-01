@@ -16,11 +16,17 @@ public final class NebulaBotsFragment extends BaseFragment {
     public NebulaBotsFragment(int account) { currentAccount=account; }
     @Override public View createView(Context c) {
         NebulaFormUi.bar(this, actionBar, c, text("Мои боты", "My bots"));
-        LinearLayout body=NebulaFormUi.column(c);ScrollView scroll=new ScrollView(c);scroll.addView(body);
-        TextView status=new TextView(c);status.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteGrayText));body.addView(status);
+        LinearLayout body=NebulaFormUi.column(c);ScrollView scroll=NebulaFormUi.scroll(c,body);
+        body.addView(new NebulaSettingsHero(c, R.drawable.msg_bot, text("Мои боты", "My bots"),
+            text("Профиль, переводы описания, кнопка меню, права по умолчанию и звёзды управляемых ботов.",
+                "Profile, localized descriptions, menu button, default admin rights and stars for your bots.")));
+        NebulaCard card=new NebulaCard(c);
+        NebulaFormUi.group(body, text("Управляемые боты", "Managed bots"), card);
+        TextView status=NebulaFormUi.note(c, "");body.addView(status);
         TLRPC.User self=UserConfig.getInstance(currentAccount).getCurrentUser();final long owner=self==null?0:self.id;
         if (self!=null&&self.bot) {
-            body.addView(new NebulaRow(c).title(UserObject.getUserName(self)).trailing(NebulaRow.TRAIL_CHEVRON)
+            status.setText(text("Текущий аккаунт бота","Current bot account"));
+            card.add(new NebulaRow(c).icon(R.drawable.msg_bot).title(UserObject.getUserName(self)).trailing(NebulaRow.TRAIL_CHEVRON)
                 .withClick(v->presentFragment(new NebulaBotSettingsFragment(currentAccount,owner))));
         } else {
             status.setText(text("Загрузка…","Loading…"));
@@ -31,8 +37,8 @@ public final class NebulaBotsFragment extends BaseFragment {
                 java.util.ArrayList<TLRPC.User> bots=new java.util.ArrayList<>();
                 for(Object value:((Vector<?>)response).objects)if(value instanceof TLRPC.User&&((TLRPC.User)value).bot)bots.add((TLRPC.User)value);
                 getMessagesController().putUsers(bots,false);
-                status.setText(bots.isEmpty()?text("У этого аккаунта нет управляемых ботов","This account has no managed bots"):text("Выберите бота","Choose a bot"));
-                for(TLRPC.User bot:bots)body.addView(new NebulaRow(c).title(UserObject.getUserName(bot)).trailing(NebulaRow.TRAIL_CHEVRON)
+                status.setText(bots.isEmpty()?text("У этого аккаунта нет управляемых ботов","This account has no managed bots"):text("Выберите бота для настройки профиля, переводов и звёзд.","Choose a bot to configure its profile, translations and stars."));
+                for(TLRPC.User bot:bots)card.add(new NebulaRow(c).icon(R.drawable.msg_bot).title(UserObject.getUserName(bot)).trailing(NebulaRow.TRAIL_CHEVRON)
                     .withClick(v->presentFragment(new NebulaBotSettingsFragment(currentAccount,bot.id))));
             }));
         }
