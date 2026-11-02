@@ -6,7 +6,7 @@ require (
 	// The sibling modules are not published; every build resolves them locally so
 	// the repository stays self-contained.
 	github.com/nebulagram/nebulagram/core v0.0.0
-	github.com/xtls/xray-core v1.260327.1-0.20261027043146-1576e795632d
+	github.com/xtls/xray-core v1.260327.1-0.20261031132019-a4a3dff5b20c
 )
 
 require (
