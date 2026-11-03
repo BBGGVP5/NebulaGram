@@ -4,8 +4,8 @@
     <string name="NebulaIosComposerInfo">Separate attachment and voice buttons. Turn off to use the standard Telegram bar.</string>
     <string name="NebulaFloatingHeader">Floating chat header</string>
     <string name="NebulaFloatingHeaderInfo">Round back and menu buttons, with the chat title above the wallpaper.</string>
-    <string name="NebulaProfileStyle">Updated chat information</string>
-    <string name="NebulaProfileStyleInfo">Matching rounded cards for profiles, members and chat settings.</string>
+    <string name="NebulaProfileStyle">New profile design (beta)</string>
+    <string name="NebulaProfileStyleInfo">The profile colour fills the whole screen; cards, text and icons adapt to it.</string>
     <string name="NebulaProfilePhotoBanner">Chat photo banner</string>
     <string name="NebulaProfilePhotoBannerInfo">A darkened photo behind the avatar and group title. No photo means no banner.</string>
     <string name="NebulaCompactTabs">Compact bar</string>

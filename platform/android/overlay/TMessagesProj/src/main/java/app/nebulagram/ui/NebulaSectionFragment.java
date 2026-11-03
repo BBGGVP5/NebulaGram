@@ -432,9 +432,8 @@ public class NebulaSectionFragment extends BaseFragment {
 
     private void sample(Context context, int kind) {
         if (kind == NebulaControlsPreview.PROFILE) {
-            NebulaCard card = new NebulaCard(context);
-            card.add(profilePreview = new NebulaControlsPreview(context, kind));
-            content.addView(card, cardParams());
+            // Профиль рисует собственную скруглённую страницу целиком.
+            content.addView(profilePreview = new NebulaControlsPreview(context, kind), cardParams());
             return;
         }
         NebulaWallpaperPreview wallpaper = new NebulaWallpaperPreview(context);
@@ -593,31 +592,48 @@ public class NebulaSectionFragment extends BaseFragment {
                 .show();
     }
 
+    /**
+     * Как в Cherrygram: сверху живой профиль, ниже группы переключателей.
+     * Любой переключатель сразу перерисовывает превью.
+     */
     private void buildProfile(Context context) {
         sample(context, NebulaControlsPreview.PROFILE);
         content.addView(NebulaCard.header(context, NebulaText.text("Оформление", "Appearance")));
         NebulaCard card = new NebulaCard(context);
-        card.add(toggle(context, R.drawable.msg_openprofile, R.string.NebulaProfileStyle, R.string.NebulaProfileStyleInfo,
-                NebulaAppearance.profileStyle(), NebulaAppearance::setProfileStyle));
-        card.add(toggle(context, R.drawable.msg_photo_settings, R.string.NebulaProfilePhotoBanner, R.string.NebulaProfilePhotoBannerInfo,
-                NebulaAppearance.profilePhotoBanner(), NebulaAppearance::setProfilePhotoBanner));
-        content.addView(card, cardParams());
-        content.addView(NebulaCard.header(context, NebulaText.text("Показывать в профиле", "Show in profile")));
-        card = new NebulaCard(context);
-        card.add(NebulaMediaControls.toggle(context, "hide_profile_phone", false, "Скрывать номера телефонов", "Hide phone numbers"));
-        card.add(NebulaMediaControls.toggle(context, "profile_dc", true, "Дата-центр в профиле", "Data center in profile"));
-        card.add(toggle(context, R.drawable.nebula_cupertino_chat, R.string.NebulaProfileChannel, R.string.NebulaProfileChannelInfo,
-                NebulaAppearance.profileChannel(), NebulaAppearance::setProfileChannel));
-        card.add(toggle(context, R.drawable.msg_calendar, R.string.NebulaProfileBirthday, R.string.NebulaProfileBirthdayInfo,
-                NebulaAppearance.profileBirthday(), NebulaAppearance::setProfileBirthday));
-        card.add(toggle(context, R.drawable.nebula_cupertino_globe, R.string.NebulaProfileBusiness, R.string.NebulaProfileBusinessInfo,
-                NebulaAppearance.profileBusiness(), NebulaAppearance::setProfileBusiness));
+        NebulaRow style = toggle(context, R.drawable.msg_openprofile, R.string.NebulaProfileStyle, R.string.NebulaProfileStyleInfo,
+                NebulaAppearance.profileStyle(), NebulaAppearance::setProfileStyle);
+        style.subtitle(LocaleController.getString(R.string.NebulaProfileStyleInfo), false);
+        card.add(style);
         card.add(toggle(context, R.drawable.nebula_cupertino_photo, R.string.NebulaProfileBackground, R.string.NebulaProfileBackgroundInfo,
                 NebulaAppearance.profileBackground(), NebulaAppearance::setProfileBackground));
         card.add(toggle(context, R.drawable.msg_emoji_smiles, R.string.NebulaProfileEmoji, R.string.NebulaProfileEmojiInfo,
                 NebulaAppearance.profileEmoji(), NebulaAppearance::setProfileEmoji));
+        card.add(toggle(context, R.drawable.msg_photo_settings, R.string.NebulaProfilePhotoBanner, R.string.NebulaProfilePhotoBannerInfo,
+                NebulaAppearance.profilePhotoBanner(), NebulaAppearance::setProfilePhotoBanner));
+        content.addView(card, cardParams());
+        content.addView(NebulaCard.header(context, NebulaText.text("Информация", "Info")));
+        card = new NebulaCard(context);
+        card.add(toggle(context, R.drawable.nebula_cupertino_chat, R.string.NebulaProfileChannel, R.string.NebulaProfileChannelInfo,
+                NebulaAppearance.profileChannel(), NebulaAppearance::setProfileChannel));
+        card.add(preference(context, R.drawable.msg_calls, "hide_profile_phone", false, "Скрывать номера телефонов", "Hide phone numbers"));
+        card.add(preference(context, R.drawable.msg_calendar2, "profile_dc", true, "Дата-центр под ID", "Data center under ID"));
+        card.add(toggle(context, R.drawable.msg_calendar, R.string.NebulaProfileBirthday, R.string.NebulaProfileBirthdayInfo,
+                NebulaAppearance.profileBirthday(), NebulaAppearance::setProfileBirthday));
+        card.add(toggle(context, R.drawable.nebula_cupertino_globe, R.string.NebulaProfileBusiness, R.string.NebulaProfileBusinessInfo,
+                NebulaAppearance.profileBusiness(), NebulaAppearance::setProfileBusiness));
         content.addView(card, cardParams());
         buildDonation(context);
+    }
+
+    /** Переключатель из общих настроек сообщений, который тоже обновляет превью. */
+    private NebulaRow preference(Context context, int icon, String key, boolean fallback, String ru, String en) {
+        NebulaRow row = new NebulaRow(context).icon(icon).title(NebulaText.text(ru, en))
+                .trailing(NebulaRow.TRAIL_SWITCH).checked(NebulaMessagePreferences.enabled(key, fallback));
+        row.setOnClickListener(v -> {
+            NebulaMessagePreferences.set(key, row.toggleChecked());
+            refreshPreviews();
+        });
+        return row;
     }
 
     /**
