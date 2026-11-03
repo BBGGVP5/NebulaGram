@@ -1,0 +1,134 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Business/ProfileHoursCell.java b/TMessagesProj/src/main/java/org/telegram/ui/Business/ProfileHoursCell.java
+index 25d742df..b33c6ac1 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Business/ProfileHoursCell.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Business/ProfileHoursCell.java
+@@ -181,6 +181,8 @@ public class ProfileHoursCell extends LinearLayout {
+ 
+     private boolean firstAfterAttach = true;
+     private boolean needDivider;
++    /** NebulaGram: на карточках профиля строки разделяет отступ, а не линия. */
++    public boolean nebulaNoDivider;
+     private boolean expanded;
+     public void set(TL_account.TL_businessWorkHours value, boolean expanded, boolean showInMyTimezone, boolean divider) {
+         this.expanded = expanded;
+@@ -342,7 +344,7 @@ public class ProfileHoursCell extends LinearLayout {
+     protected void onDraw(Canvas canvas) {
+         super.onDraw(canvas);
+ 
+-        if (needDivider) {
++        if (needDivider && !nebulaNoDivider) {
+             Paint dividerPaint = Theme.getThemePaint(Theme.key_paint_divider, resourcesProvider);
+             if (dividerPaint == null) dividerPaint = Theme.dividerPaint;
+             canvas.drawRect(dp(LocaleController.isRTL ? 0 : 21.33f), getMeasuredHeight() - 1, getWidth() - dp(LocaleController.isRTL ? 21.33f : 0), getMeasuredHeight(), dividerPaint);
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Business/ProfileLocationCell.java b/TMessagesProj/src/main/java/org/telegram/ui/Business/ProfileLocationCell.java
+index 12f38d2d..7d469b9a 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Business/ProfileLocationCell.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Business/ProfileLocationCell.java
+@@ -85,6 +85,8 @@ public class ProfileLocationCell extends LinearLayout {
+     }
+ 
+     private boolean needDivider;
++    /** NebulaGram: на карточках профиля строки разделяет отступ, а не линия. */
++    public boolean nebulaNoDivider;
+     public void set(TLRPC.TL_businessLocation value, boolean divider) {
+         if (value != null) {
+             textView1.setText(value.address);
+@@ -112,7 +114,7 @@ public class ProfileLocationCell extends LinearLayout {
+ 
+         super.onDraw(canvas);
+ 
+-        if (needDivider) {
++        if (needDivider && !nebulaNoDivider) {
+             Paint dividerPaint = Theme.getThemePaint(Theme.key_paint_divider, resourcesProvider);
+             if (dividerPaint == null) dividerPaint = Theme.dividerPaint;
+             canvas.drawRect(dp(LocaleController.isRTL ? 0 : 21.33f), getMeasuredHeight() - 1, getWidth() - dp(LocaleController.isRTL ? 21.33f : 0), getMeasuredHeight(), dividerPaint);
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Cells/TextDetailCell.java b/TMessagesProj/src/main/java/org/telegram/ui/Cells/TextDetailCell.java
+index cd7466e0..a376593f 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Cells/TextDetailCell.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Cells/TextDetailCell.java
+@@ -45,6 +45,8 @@ public class TextDetailCell extends FrameLayout {
+     private final TextView showMoreTextView = null;
+     private final ImageView imageView;
+     private boolean needDivider;
++    /** NebulaGram: на карточках профиля строки разделяет отступ, а не линия. */
++    public boolean nebulaNoDivider;
+     private boolean contentDescriptionValueFirst;
+     private boolean multiline;
+ 
+@@ -268,7 +270,7 @@ public class TextDetailCell extends FrameLayout {
+ 
+     @Override
+     protected void onDraw(Canvas canvas) {
+-        if (needDivider) {
++        if (needDivider && !nebulaNoDivider) {
+             Paint paint = resourcesProvider != null ? resourcesProvider.getPaint(Theme.key_paint_divider) : Theme.dividerPaint;
+             if (paint == null) paint = Theme.dividerPaint;
+             canvas.drawLine(
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
+index 8cb93bd1..6d7a54fb 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
+@@ -4286,6 +4286,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+         app.nebulagram.ui.NebulaProfileStyle.sections(listView, resourcesProvider); // NebulaGram
+         listView.applyPaddingToSections = false;
+         listView.setBackgroundColor(getThemedColor(Theme.key_windowBackgroundGray));
++        app.nebulagram.ui.NebulaProfileStyle.page(listView, peerColor, resourcesProvider); // NebulaGram
+         listView.setVerticalScrollBarEnabled(false);
+         final IBlur3Capture listViewCapture = new ViewGroupPartRenderer(listView, (ViewGroup) fragmentView, (canvas, child, drawingTime) -> {
+             if (child == sharedMediaLayout) {
+@@ -5307,6 +5308,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+         avatarContainer2 = new FrameLayout(context) {
+ 
+             final app.nebulagram.ui.NebulaProfileArt.Hero nebulaHero = new app.nebulagram.ui.NebulaProfileArt.Hero();
++            { nebulaHero.page(() -> app.nebulagram.ui.NebulaProfileStyle.pageColor(listView)); } // NebulaGram
+             private boolean nebulaForegroundDrawn;
+             CanvasButton canvasButton;
+ 
+@@ -12143,6 +12145,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+         if (topView != null) {
+             topView.setBackgroundColorId(peerColor, true);
+         }
++        app.nebulagram.ui.NebulaProfileStyle.page(listView, peerColor, resourcesProvider); // NebulaGram
+         if (onlineTextView[1] != null) {
+             int statusColor;
+             if (onlineTextView[1].getTag() instanceof Integer) {
+@@ -13708,13 +13711,14 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+                                 : idChat != null && ChatObject.isChannel(idChat) && !idChat.megagroup
+                                 ? app.nebulagram.ui.NebulaText.text("ID канала", "Channel ID")
+                                 : app.nebulagram.ui.NebulaText.text("ID группы", "Group ID");
+-                        if (app.nebulagram.ui.NebulaMessagePreferences.enabled("profile_dc", false)) {
++                        int dc = 0;
++                        if (app.nebulagram.ui.NebulaMessagePreferences.enabled("profile_dc", true)) {
+                             TLRPC.User dcUser = getMessagesController().getUser(userId);
+-                            int dc = dcUser != null && dcUser.photo != null ? dcUser.photo.dc_id : idChat != null && idChat.photo != null ? idChat.photo.dc_id : 0;
+-                            label += dc > 0 ? app.nebulagram.ui.NebulaText.text(" · Фото: DC ", " · Photo: DC ") + dc
+-                                : app.nebulagram.ui.NebulaText.text(" · DC фото недоступен", " · Photo DC unavailable");
++                            dc = dcUser != null && dcUser.photo != null ? dcUser.photo.dc_id : idChat != null && idChat.photo != null ? idChat.photo.dc_id : 0;
+                         }
+-                        detailCell.setTextAndValue(nebulaVisibleProfileId(), label, position != infoEndRow);
++                        // NebulaGram: «ID: 1 694 811 956» и дата-центр под ним, как в Cherrygram.
++                        detailCell.setTextAndValue(app.nebulagram.ui.NebulaProfileStyle.idTitle(nebulaVisibleProfileId()),
++                                app.nebulagram.ui.NebulaProfileStyle.idSubtitle(label, dc), position != infoEndRow);
+                     } else if (position == noteRow) {
+                         final TLRPC.UserFull userInfo = getMessagesController().getUserFull(userId);
+                         if (userInfo == null) return;
+@@ -13855,6 +13859,11 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+                         drawable.setColorFilter(new PorterDuffColorFilter(dontApplyPeerColor(getThemedColor(Theme.key_actionBarDefaultIcon), false), PorterDuff.Mode.MULTIPLY));
+                         detailCell.setImage(drawable, LocaleController.getString(R.string.GetQRCode));
+                         detailCell.setImageClickListener(ProfileActivity.this::onTextDetailCellImageClicked);
++                    } else if (position == nebulaIdRow && userId != 0) { // NebulaGram: дата регистрации
++                        Drawable drawable = ContextCompat.getDrawable(detailCell.getContext(), R.drawable.msg_calendar2);
++                        drawable.setColorFilter(new PorterDuffColorFilter(dontApplyPeerColor(getThemedColor(Theme.key_actionBarDefaultIcon), false), PorterDuff.Mode.MULTIPLY));
++                        detailCell.setImage(drawable, app.nebulagram.ui.NebulaText.text("Дата регистрации", "Registration date"));
++                        detailCell.setImageClickListener(v -> app.nebulagram.ui.NebulaRegistrationDate.show(ProfileActivity.this, currentAccount, userId));
+                     } else {
+                         detailCell.setImage(null);
+                         detailCell.setImageClickListener(null);
+@@ -15491,6 +15500,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+                     }
+                 }
+                 listView.setBackgroundColor(getThemedColor(Theme.key_windowBackgroundGray));
++                app.nebulagram.ui.NebulaProfileStyle.page(listView, peerColor, resourcesProvider); // NebulaGram
+             }
+             if (!isPulledDown) {
+                 if (onlineTextView[1] != null) {

@@ -605,7 +605,7 @@ public class NebulaSectionFragment extends BaseFragment {
         content.addView(NebulaCard.header(context, NebulaText.text("Показывать в профиле", "Show in profile")));
         card = new NebulaCard(context);
         card.add(NebulaMediaControls.toggle(context, "hide_profile_phone", false, "Скрывать номера телефонов", "Hide phone numbers"));
-        card.add(NebulaMediaControls.toggle(context, "profile_dc", false, "Дата-центр фотографии", "Profile photo data center"));
+        card.add(NebulaMediaControls.toggle(context, "profile_dc", true, "Дата-центр в профиле", "Data center in profile"));
         card.add(toggle(context, R.drawable.nebula_cupertino_chat, R.string.NebulaProfileChannel, R.string.NebulaProfileChannelInfo,
                 NebulaAppearance.profileChannel(), NebulaAppearance::setProfileChannel));
         card.add(toggle(context, R.drawable.msg_calendar, R.string.NebulaProfileBirthday, R.string.NebulaProfileBirthdayInfo,

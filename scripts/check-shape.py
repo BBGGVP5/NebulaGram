@@ -121,8 +121,9 @@ assert 'private final int[] nebulaAvatarCorners' in image, \
     'the draw path must reuse one array rather than allocate per frame'
 assert 'new int[4]' in image and 'avatarRadii(Math.min' in image
 cell = (tree / 'TMessagesProj/src/main/java/org/telegram/ui/Cells/ChatMessageCell.java').read_text(encoding='utf-8')
-assert 'if (!app.nebulagram.ui.NebulaShape.tails()) drawPinnedBottom = true;' in cell, \
-    'turning tails off must reach the bubble that draws them'
+# Inside an album the tail is dropped; independent posts keep their spacing.
+assert 'if (!app.nebulagram.ui.NebulaShape.tails() && currentMessagesGroup != null) drawPinnedBottom = true;' in cell, \
+    'turning tails off must reach the bubble that draws them, only inside albums'
 card = (ui / 'NebulaCard.java').read_text(encoding='utf-8')
 assert 'NebulaShape.radius(20)' in card, 'settings cards must follow the uniform corner setting'
 menu = (ui / 'NebulaMenuStyle.java').read_text(encoding='utf-8')
