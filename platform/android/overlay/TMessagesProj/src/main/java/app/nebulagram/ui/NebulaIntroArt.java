@@ -235,7 +235,7 @@ public final class NebulaIntroArt extends View {
         }
         for(int i=0;i<12;i++) {
             float x=124+(i%3)*56, y=196+(i/3)*41;
-            if(i==9) { fingerprint(c,x,y,onHeader); continue; }
+            if(i==9) { circle(c,x,y,17,alpha(onHeader,.14f)); fingerprint(c,x,y,onHeader); continue; }
             if(i==11) { backspace(c,x,y,onHeader); continue; }
             float pressed=0;
             for(int j=0;j<keys.length;j++) if(keys[j]==i && t>=presses[j]) pressed=Math.max(pressed,1-clamp((t-presses[j])/260f));
@@ -369,22 +369,23 @@ public final class NebulaIntroArt extends View {
     }
     /**
      * Отпечаток пальца: вложенные гребни-арки с «ножками» разной длины и
-     * короткой линией в центре — как значок сканера в Android.
+     * короткой линией в центре — как значок сканера в Android. Сидит в
+     * круглой клавише, как и цифры.
      */
     private void fingerprint(Canvas c,float x,float y,int color){
-        stroke(color,1.6f);
-        float cy=y-2;
-        float[] radius={3.2f,6.4f,9.6f};
-        float[] left={7,9,6};
-        float[] right={10,6,9};
-        c.drawLine(x,cy+1,x,cy+7,p);
+        stroke(color,1.4f);
+        float cy=y+.5f;
+        float[] radius={2.4f,4.8f,7.2f};
+        float[] left={5,7,4.5f};
+        float[] right={7.5f,4.5f,7};
+        c.drawLine(x,cy+1,x,cy+5,p);
         for(int i=0;i<radius.length;i++){
             float rad=radius[i];
             r.set(x-rad,cy-rad,x+rad,cy+rad);c.drawArc(r,180,180,false,p);
             c.drawLine(x-rad,cy,x-rad,cy+left[i],p);
             c.drawLine(x+rad,cy,x+rad,cy+right[i],p);
         }
-        r.set(x-12.8f,cy-12.8f,x+12.8f,cy+12.8f);c.drawArc(r,205,130,false,p);
+        r.set(x-9.6f,cy-9.6f,x+9.6f,cy+9.6f);c.drawArc(r,205,130,false,p);
         fill();
     }
     private void backspace(Canvas c,float x,float y,int color){
