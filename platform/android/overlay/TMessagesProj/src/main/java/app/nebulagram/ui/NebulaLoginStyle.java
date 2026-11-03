@@ -213,11 +213,10 @@ public final class NebulaLoginStyle {
             badge.setBackground(surface(28));
         }
         badge.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
-        final int side = compact(step == 2 ? 168 : animated ? 112 : 84);
-        // Экрану номера высота квадрата ни к чему: там широкая полоса
-        // барабанов, и под ней с над ней оставалась пустота в треть картинки.
-        final int tall = step == 2 ? compact(84) : side;
-        LinearLayout.LayoutParams badgeParams = new LinearLayout.LayoutParams(side, tall);
+        // Все шаги входа и NebulaLink рисуют квадрат одного размера, чтобы
+        // заголовок не прыгал между экранами.
+        final int side = compact(animated ? 104 : 84);
+        LinearLayout.LayoutParams badgeParams = new LinearLayout.LayoutParams(side, side);
         badgeParams.gravity = Gravity.START;
         badgeParams.bottomMargin = compact(18);
         slide.addView(badge, 0, badgeParams);
@@ -249,7 +248,9 @@ public final class NebulaLoginStyle {
         subtitle.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14 + vertical());
         subtitle.setGravity(Gravity.START);
         subtitle.setLineSpacing(AndroidUtilities.dp(3), 1f);
-        margins(subtitle, 8, Math.round(10 * vertical()), 8, 0);
+        // Подпись стоит ровно под заголовком: сдвиг на восемь точек читался
+        // как ошибка вёрстки.
+        margins(subtitle, 0, Math.round(10 * vertical()), 0, 0);
     }
 
     private static void margins(View view, int left, int top, int right, int bottom) {

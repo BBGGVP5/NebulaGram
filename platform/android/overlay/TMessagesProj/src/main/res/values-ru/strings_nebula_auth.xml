@@ -6,7 +6,7 @@
     <string name="NebulaAuthWelcomeFeatureSub">Подключите свою подписку прямо здесь, а затем войдите в аккаунт.</string>
     <string name="NebulaAuthStart">Начать общение</string>
     <string name="NebulaIntroNext">Далее</string>
-    <string name="NebulaIntroSkip">Пропустить обзор</string>
+    <string name="NebulaIntroSkip">Пропустить</string>
     <string name="NebulaIntroDesignTitle">NebulaGram под тебя</string>
     <string name="NebulaIntroDesignSubtitle">Выбирай оформление чатов, настроек и нижних папок. Нужные действия всегда под рукой.</string>
     <string name="NebulaIntroPrivacyTitle">Больше контроля над чатами</string>
@@ -16,12 +16,12 @@
     <string name="NebulaIntroLinkTitle">NebulaLink, когда нужен</string>
     <string name="NebulaIntroLinkSubtitle">Добавь подписку Xray или ключ сервера. Настройка подключения необязательна и доступна прямо в приложении.</string>
     <string name="NebulaAuthLinkTitle">Подключите NebulaLink</string>
-    <string name="NebulaAuthLinkSubtitle">Добавьте свою подписку или ключ сервера, если нужно подключение. Этот шаг можно пропустить.</string>
+    <string name="NebulaAuthLinkSubtitle">Вставьте подписку или ключ сервера, чтобы подключаться через NebulaLink. Если он не нужен, просто продолжите.</string>
     <string name="NebulaAuthLinkField">Подписка или ключ сервера</string>
-    <string name="NebulaAuthLinkHint">Вставьте ссылку</string>
-    <string name="NebulaAuthLinkFormats">Подписки и ключи серверов · VLESS, VMess, Trojan, Shadowsocks, Hysteria2, TUIC</string>
+    <string name="NebulaAuthLinkHint">vless://, vmess://, https://…</string>
+    <string name="NebulaAuthLinkFormats">Поддерживаются подписки и ключи VLESS, VMess, Trojan, Shadowsocks, Hysteria2 и TUIC</string>
     <string name="NebulaAuthLinkEmpty">Вставьте ссылку на подписку или ключ сервера — либо продолжите без NebulaLink.</string>
-    <string name="NebulaAuthLinkOptional">Позже подключение можно изменить в настройках NebulaGram.</string>
+    <string name="NebulaAuthLinkOptional">Подключение можно настроить позже в настройках NebulaGram.</string>
     <string name="NebulaAuthDirectAction">Продолжить без NebulaLink</string>
     <string name="NebulaAuthPickTitle">Выберите сервер</string>
     <string name="NebulaAuthPickSubtitle">Подписка сохранена. Выберите сервер для подключения — позже его можно сменить.</string>
