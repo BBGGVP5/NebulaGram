@@ -65,14 +65,14 @@ public class NebulaConnectFragment extends BaseFragment {
         int badge = NebulaLoginStyle.compact(104);
         LinearLayout.LayoutParams badgeParams = new LinearLayout.LayoutParams(badge, badge);
         badgeParams.gravity = Gravity.START;
-        badgeParams.bottomMargin = NebulaLoginStyle.compact(12);
+        badgeParams.bottomMargin = NebulaLoginStyle.compact(18);
         root.content.addView(image, badgeParams);
 
         root.content.setGravity(Gravity.TOP);
         root.content.setPadding(0, NebulaLoginStyle.compact(12), 0, NebulaLoginStyle.compact(12));
-        TextView optionalStep = NebulaIntroFragment.text(context, 13, theme.primary(), true);
-        optionalStep.setText(NebulaText.text("Необязательный шаг", "Optional step"));
-        root.content.addView(optionalStep, NebulaIntroFragment.width());
+        TextView optionalStep = NebulaIntroFragment.eyebrow(context, theme.primary());
+        optionalStep.setText(NebulaText.text("НЕОБЯЗАТЕЛЬНЫЙ ШАГ", "OPTIONAL STEP"));
+        root.content.addView(optionalStep);
         title = NebulaIntroFragment.text(context, 30, theme.onSurface(), true);
         title.setGravity(Gravity.START);
         title.setText(NebulaIntroFragment.highlight(
