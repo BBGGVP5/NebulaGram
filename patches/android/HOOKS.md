@@ -991,3 +991,19 @@ alpha/scale самого View. Альбомы и активные ItemAnimator �
 по умолчанию. `TextDetailCell`, `ProfileHoursCell`, `ProfileLocationCell`: флаг
 `nebulaNoDivider` гасит линию-разделитель на карточках профиля, в остальных списках
 поведение прежнее. Проверка: `check-profile-banner.py` компилирует шапку и кнопки.
+
+### Результаты в поле ввода (без нового патча)
+
+Порт «inline results» exteraGram 13.1.1 обходится существующими хуками `0181`
+в `ChatActivityEnterView.java`: `nebulaMathHint.update(charSequence)` в
+`onTextChanged` и `nebulaMathHint.draw(this, canvas)` в `onDraw` поля ввода.
+Номера 0260–0269 зарезервированы за этой работой, но не заняты.
+`NebulaMathHint` при первой отрисовке сам вешает свой `TextWatcher` на то же
+поле: пробел сразу после «=» заменяется серым результатом, Backspace сразу после
+вставки возвращает выражение вместе со спанами. Движок чистый Java:
+`NebulaMath` (скобки, степени, функции, проценты, 5k/2m, hex/bin/oct/dec),
+`NebulaInlineCurrency` (курсы open.er-api.com раз в сутки, без крипты и звёзд),
+`NebulaInlineUnits`, `NebulaInlineTime`. Главный переключатель остаётся
+`inline_math`, новые ключи `inline_*` есть в каталоге. Экран
+`NebulaInlineResultsFragment` открывается из «Чатов» и из поиска (раздел -62).
+Проверка: `check-inline-results.py` исполняет движок и подсказку на реальных примерах.
