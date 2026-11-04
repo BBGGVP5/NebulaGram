@@ -18,62 +18,106 @@ public final class NebulaBotSettingsFragment extends BaseFragment {
     private boolean destroyed, busy;
     private int request, generation;
     private LinearLayout body;
-    private TextView status;
-    private EditText language, name, about, description;
-    private String loadedLanguage;
+    private NebulaSettingsHero hero;
+    private NebulaRow languageRow;
+    private EditText name, about, description;
+    private String languageCode = "", loadedLanguage;
+    private static final String[] LANGUAGES = {"", "ru", "en", "uk", "be", "kk", "uz", "de", "es", "fr", "it", "pt", "tr", "ar", "fa", "id", "ja", "ko", "zh"};
     public NebulaBotSettingsFragment(int account, long botId) { currentAccount = account; this.botId = botId; owner = UserConfig.getInstance(account).getClientUserId(); }
     private boolean botAccount() { TLRPC.User user = UserConfig.getInstance(currentAccount).getCurrentUser(); return user != null && user.bot && user.id == botId; }
     private boolean current(int token) { return !destroyed && generation == token && owner == UserConfig.getInstance(currentAccount).getClientUserId(); }
-    private EditText field(Context c, String hint, int max) {
-        EditText e = new EditText(c); e.setHint(hint); e.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText));
-        e.setFilters(new InputFilter[]{new InputFilter.LengthFilter(max)}); body.addView(e); return e;
+    private void status(String value) { if (hero != null) hero.setStatus(value); }
+    private static String languageTitle(String code) {
+        if (code.isEmpty()) return text("Основной", "Default");
+        java.util.Locale locale = new java.util.Locale(code);
+        String title = locale.getDisplayLanguage(java.util.Locale.getDefault());
+        return title.isEmpty() ? code : Character.toUpperCase(title.charAt(0)) + title.substring(1) + " · " + code;
     }
-    private void row(Context c, String title, Runnable action) { body.addView(new NebulaRow(c).title(title).trailing(NebulaRow.TRAIL_CHEVRON).withClick(v -> { if (!busy) action.run(); })); }
+    private EditText field(NebulaCard card, String hint, int lines, int max) {
+        EditText e = NebulaFormUi.cardField(card.getContext(), hint, lines, max); card.add(e); return e;
+    }
+    private NebulaRow action(int icon, String title, String subtitle, Runnable run) {
+        return NebulaFormUi.action(getContext(), icon, title, subtitle, v -> { if (!busy) run.run(); });
+    }
+    /**
+     * Шапка с аватаркой и именем бота, ниже карточки: язык профиля, сам
+     * профиль с кнопкой сохранения, управление и звёзды. Ход запросов виден в
+     * строке состояния шапки, а не отдельной надписью внизу.
+     */
     @Override public View createView(Context c) {
         NebulaFormUi.bar(this, actionBar, c, text("Настройки бота", "Bot settings"));
         body = NebulaFormUi.column(c); ScrollView scroll = new ScrollView(c); scroll.addView(body);
-        language = field(c, text("Язык перевода: ru, en; пусто — основной", "Translation language: ru, en; empty for default"), 2); language.setSingleLine(true);
-        name = field(c, text("Имя", "Name"), 64); about = field(c, text("Краткое описание", "About"), 120); description = field(c, text("Описание при запуске", "Description"), 512);
-        row(c, text("Загрузить профиль для этого языка", "Load profile for this language"), this::loadProfile);
-        row(c, text("Сохранить профиль / перевод", "Save profile / translation"), this::saveProfile);
+        TLRPC.User bot = getMessagesController().getUser(botId);
+        String username = bot == null ? null : UserObject.getPublicUsername(bot);
+        body.addView(new NebulaAccountRow(c, currentAccount, bot, bot == null ? text("Бот", "Bot") : UserObject.getUserName(bot),
+                username == null || username.isEmpty() ? "" : "@" + username, false, false));
+        hero = new NebulaSettingsHero(c, R.drawable.msg_bots, text("Профиль бота", "Bot profile"),
+                text("Имя, краткое и полное описание — для каждого языка отдельно.",
+                        "Name, about and description, separately for each language."));
+        body.addView(hero);
+
+        NebulaCard languageCard = new NebulaCard(c);
+        languageRow = new NebulaRow(c).icon(R.drawable.msg_language).title(text("Язык профиля", "Profile language"))
+                .value(languageTitle(languageCode)).trailing(NebulaRow.TRAIL_CHEVRON);
+        languageRow.setOnClickListener(v -> chooseLanguage());
+        languageCard.add(languageRow);
+        NebulaFormUi.group(body, text("Перевод", "Translation"), languageCard);
+
+        NebulaCard profile = new NebulaCard(c);
+        name = field(profile, text("Имя", "Name"), 1, 64);
+        about = field(profile, text("Краткое описание", "About"), 2, 120);
+        description = field(profile, text("Описание при запуске", "Description shown on start"), 3, 512);
+        NebulaFormUi.group(body, text("Профиль", "Profile"), profile);
+        body.addView(NebulaFormUi.primary(c, text("Сохранить", "Save"), v -> { if (!busy) saveProfile(); }));
+
+        NebulaCard manage = new NebulaCard(c);
         if (botAccount()) {
-            row(c, text("Кнопка меню", "Menu button"), this::menu);
-            row(c, text("Права по умолчанию в группах", "Default group admin rights"), () -> rights(false));
-            row(c, text("Права по умолчанию в каналах", "Default channel admin rights"), () -> rights(true));
-            row(c, text("Бизнес-подключение по ID", "Business connection by ID"), this::connection);
+            manage.add(action(R.drawable.msg_list, text("Кнопка меню", "Menu button"), text("Mini App или команды", "Mini App or commands"), this::menu));
+            manage.add(action(R.drawable.msg_groups, text("Права в группах", "Group admin rights"), text("Запрашиваются при добавлении", "Requested when added"), () -> rights(false)));
+            manage.add(action(R.drawable.msg_channel, text("Права в каналах", "Channel admin rights"), text("Запрашиваются при добавлении", "Requested when added"), () -> rights(true)));
+            manage.add(action(R.drawable.msg_link2, text("Бизнес-подключение", "Business connection"), text("Проверить по ID", "Inspect by ID"), this::connection));
         }
-        row(c, text("Звёзды", "Stars"), () -> {
+        manage.add(action(R.drawable.settings_stars, text("Звёзды", "Stars"), text("Баланс и вывод", "Balance and withdrawal"), () -> {
             BotStarsActivity stars = new BotStarsActivity(currentAccount, BotStarsActivity.TYPE_STARS, botId); presentFragment(stars);
-        });
+        }));
+        NebulaFormUi.group(body, text("Управление", "Management"), manage);
         body.addView(NebulaFormUi.note(c, botAccount()
             ? text("Изменения применяются к текущему боту. Права по умолчанию не меняют права в существующих чатах.", "Changes apply to the current bot. Default rights do not change existing chats.")
-            : text("Для управляемого бота доступны профиль, переводы и звёзды. Кнопка меню и права требуют входа аккаунтом бота.", "Managed bots support profiles, translations and stars. Menu buttons and default rights require a bot account.")));
-        status = new TextView(c); status.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteGrayText)); body.addView(status);
+            : text("Кнопка меню и права по умолчанию настраиваются, только когда вы вошли аккаунтом бота.", "Menu buttons and default rights are available only when signed in as the bot.")));
         fragmentView = NebulaSettingsLayout.wrap(c, actionBar, scroll); loadProfile(); return fragmentView;
+    }
+    private void chooseLanguage() {
+        CharSequence[] titles = new CharSequence[LANGUAGES.length];
+        int selected = 0;
+        for (int i = 0; i < LANGUAGES.length; i++) { titles[i] = languageTitle(LANGUAGES[i]); if (LANGUAGES[i].equals(languageCode)) selected = i; }
+        showDialog(new NebulaDialog.Builder(getContext()).setTitle(text("Язык профиля", "Profile language"))
+            .setSelectedIndex(selected).setItems(titles, (d, which) -> {
+                languageCode = LANGUAGES[which]; languageRow.value(languageTitle(languageCode)); loadProfile();
+            }).create());
     }
     private void call(TLObject query, Consumer<TLObject> done) {
         if (busy || destroyed || owner == 0 || owner != UserConfig.getInstance(currentAccount).getClientUserId()) return;
-        busy = true; final int token = ++generation; status.setText(text("Выполняется…", "Working…"));
+        busy = true; final int token = ++generation; status(text("Загрузка…", "Loading…"));
         request = getConnectionsManager().sendRequest(query, (result, error) -> AndroidUtilities.runOnUIThread(() -> {
             if (!current(token)) return; busy = false; request = 0;
-            if (error != null || result == null || result instanceof TLRPC.TL_boolFalse) { status.setText(text("Telegram отклонил запрос: ", "Telegram rejected the request: ") + (error == null ? "FAILED" : error.text)); return; }
-            status.setText(text("Готово", "Done")); done.accept(result);
+            if (error != null || result == null || result instanceof TLRPC.TL_boolFalse) { status(text("Telegram отклонил запрос: ", "Telegram rejected the request: ") + (error == null ? "FAILED" : error.text)); return; }
+            status(text("Готово", "Done")); done.accept(result);
         }));
     }
-    private String lang() { return language.getText().toString().trim().toLowerCase(java.util.Locale.ROOT); }
+    private String lang() { return languageCode; }
     private boolean validLanguage(String value) { return value.isEmpty() || value.matches("[a-z]{2}"); }
     private void loadProfile() {
-        String code = lang(); if (!validLanguage(code)) { status.setText(text("Нужен код языка из двух букв", "Use a two-letter language code")); return; }
+        String code = lang(); if (!validLanguage(code)) { status(text("Нужен код языка из двух букв", "Use a two-letter language code")); return; }
         NebulaBotApi.GetProfile query = new NebulaBotApi.GetProfile(); query.language = code;
         if (!botAccount()) query.bot = getMessagesController().getInputUser(botId);
         call(query, result -> {
             if (!(result instanceof NebulaBotApi.Profile)) return;
             NebulaBotApi.Profile profile = (NebulaBotApi.Profile) result;
-            language.setText(code); loadedLanguage = code; name.setText(profile.name); about.setText(profile.about); description.setText(profile.description);
+            loadedLanguage = code; name.setText(profile.name); about.setText(profile.about); description.setText(profile.description);
         });
     }
     private void saveProfile() {
-        String code = lang(); if (!validLanguage(code) || loadedLanguage == null) { status.setText(text("Сначала загрузите профиль", "Load a profile first")); return; }
+        String code = lang(); if (!validLanguage(code) || loadedLanguage == null) { status(text("Профиль ещё загружается", "The profile is still loading")); return; }
         TL_bots.setBotInfo q = new TL_bots.setBotInfo(); q.lang_code = code; q.name = name.getText().toString(); q.about = about.getText().toString(); q.description = description.getText().toString(); q.flags = 8 | 1 | 2;
         if (!botAccount()) { q.bot = getMessagesController().getInputUser(botId); q.flags |= 4; }
         showDialog(new NebulaDialog.Builder(getContext()).setTitle(text("Сохранить профиль?", "Save profile?"))
@@ -91,7 +135,7 @@ public final class NebulaBotSettingsFragment extends BaseFragment {
             showDialog(new NebulaDialog.Builder(getContext()).setTitle(text("Кнопка меню", "Menu button")).setView(form)
                 .setPositiveButton(text("Открывать Mini App", "Open Mini App"), (d, w) -> {
                     android.net.Uri uri = android.net.Uri.parse(url.getText().toString().trim());
-                    if (!"https".equalsIgnoreCase(uri.getScheme()) || uri.getHost() == null || uri.getUserInfo() != null || title.getText().toString().trim().isEmpty()) { status.setText(text("Укажите название и HTTPS-адрес", "Enter a label and HTTPS URL")); return; }
+                    if (!"https".equalsIgnoreCase(uri.getScheme()) || uri.getHost() == null || uri.getUserInfo() != null || title.getText().toString().trim().isEmpty()) { status(text("Укажите название и HTTPS-адрес", "Enter a label and HTTPS URL")); return; }
                     TL_bots.TL_botMenuButton button = new TL_bots.TL_botMenuButton(); button.text = title.getText().toString().trim(); button.url = uri.toString(); setMenu(button);
                 }).setNeutralButton(text("Команды", "Commands"), (d,w) -> setMenu(new TL_bots.TL_botMenuButtonCommands()))
                 .setNegativeButton(text("По умолчанию", "Default"), (d,w) -> setMenu(new TL_bots.TL_botMenuButtonDefault())).create());

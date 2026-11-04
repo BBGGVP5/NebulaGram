@@ -177,7 +177,8 @@ row = (ui / 'NebulaRow.java').read_text(encoding='utf-8')
 assert 'public NebulaRow tile(int resource, int color)' in row, 'section rows need a coloured tile'
 assert 'icon.setColorFilter(0xFFFFFFFF' in row, 'an icon inside a coloured tile must be white, not themed'
 root = (ui / 'NebulaSettingsFragment.java').read_text(encoding='utf-8')
-assert root.count('NebulaRow.TILE_') >= 7, 'every top-level section must carry its own tile colour'
+# The user chose plain theme-coloured icons on the root over coloured tiles (2026-11-04).
+assert 'NebulaRow.TILE_' not in root and '.tile(' not in root, 'root sections use plain icons, not coloured tiles'
 sheet = (ui / 'NebulaRoundCameraSheet.java').read_text(encoding='utf-8')
 assert 'RadioColorCell' in sheet, 'the camera choice is a choice, so it shows Telegram radios'
 assert 'key_dialogBackground' in sheet, 'the camera card must take the dialog surface'
