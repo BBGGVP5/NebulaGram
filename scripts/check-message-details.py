@@ -39,8 +39,8 @@ SNAPSHOT
         files = {
             'org/telegram/messenger/AndroidUtilities.java': 'package org.telegram.messenger; public class AndroidUtilities {public static String formatFileSize(long n) {return "size";}}',
             'org/telegram/messenger/FileLoader.java': 'package org.telegram.messenger; import org.telegram.tgnet.TLRPC; public class FileLoader {public static String getDocumentFileName(TLRPC.Document d) {return d.name;}}',
-            'org/telegram/tgnet/TLRPC.java': 'package org.telegram.tgnet; public class TLRPC {public static class Message {public int date,edit_date;public Message fwd_from;} public static class Document {public String name,mime_type;public long size;}}',
-            'org/telegram/messenger/MessageObject.java': 'package org.telegram.messenger; import org.telegram.tgnet.TLRPC; public class MessageObject {public TLRPC.Message messageOwner = new TLRPC.Message();public TLRPC.Document document;public int getId(){return Integer.MAX_VALUE;}public long getDialogId(){return 9223372036854775806L;}public long getFromChatId(){return 1000000000001L;}public TLRPC.Document getDocument(){return document;}}',
+            'org/telegram/tgnet/TLRPC.java': 'package org.telegram.tgnet; public class TLRPC {public static class Message {public int date,edit_date;public Message fwd_from;} public static class Document {public String name,mime_type;public long size;public java.util.ArrayList<DocumentAttribute> attributes=new java.util.ArrayList<>();} public static class DocumentAttribute {public boolean supports_streaming;public String file_name;public byte[] waveform;} public static class TL_documentAttributeFilename extends DocumentAttribute {} public static class TL_documentAttributeVideo extends DocumentAttribute {} public static class TL_documentAttributeAudio extends DocumentAttribute {}}',
+            'org/telegram/messenger/MessageObject.java': 'package org.telegram.messenger; import org.telegram.tgnet.TLRPC; public class MessageObject {public TLRPC.Message messageOwner = new TLRPC.Message();public TLRPC.Document document;public int getId(){return Integer.MAX_VALUE;}public long getDialogId(){return 9223372036854775806L;}public long getFromChatId(){return 1000000000001L;}public TLRPC.Document getDocument(){return document;}public boolean voice,round;public boolean isVoice(){return voice;}public boolean isRoundVideo(){return round;}}',
             'Check.java': '''import app.nebulagram.ui.NebulaMessageDetails;import org.telegram.messenger.MessageObject;import org.telegram.tgnet.TLRPC;import java.util.*;
 public class Check {static void check(boolean b){if(!b)throw new AssertionError();}public static void main(String[]args){
  check(NebulaMessageDetails.snapshot(null,false).isEmpty());
@@ -49,11 +49,15 @@ public class Check {static void check(boolean b){if(!b)throw new AssertionError(
  m.messageOwner.date=Integer.MAX_VALUE;m.messageOwner.edit_date=Integer.MAX_VALUE;m.messageOwner.fwd_from=new TLRPC.Message();m.messageOwner.fwd_from.date=Integer.MAX_VALUE;
  m.document=new TLRPC.Document();m.document.name="имя 🎵.ogg";m.document.mime_type="audio/ogg";m.document.size=5000000000L;
  List<NebulaMessageDetails.Field> full=NebulaMessageDetails.snapshot(m,true);check(full.size()==9);check(full.stream().anyMatch(f->f.value.equals("имя 🎵.ogg")));check(full.stream().anyMatch(f->f.value.contains("5000000000 байт")));check(full.stream().filter(f->f.value.startsWith("2038-")).count()==3);
+ m.voice=true;TLRPC.TL_documentAttributeAudio audio=new TLRPC.TL_documentAttributeAudio();audio.waveform=new byte[63];m.document.name=null;m.document.attributes.add(audio);
+ List<NebulaMessageDetails.Field> voice=NebulaMessageDetails.snapshot(m,true);check(voice.size()==9);check(voice.get(8).title.equals("Отправлено с")&&voice.get(8).value.contains("Android и iOS"));
+ m.voice=false;m.round=true;m.document.mime_type="video/mp4";m.document.attributes.clear();TLRPC.TL_documentAttributeFilename name=new TLRPC.TL_documentAttributeFilename();name.file_name="video.mp4";m.document.attributes.add(name);m.document.attributes.add(new TLRPC.TL_documentAttributeVideo());
+ check(NebulaMessageDetails.snapshot(m,false).stream().anyMatch(f->f.title.equals("Sent from")&&f.value.contains("iOS")));
  m.messageOwner=null;check(NebulaMessageDetails.snapshot(m,false).isEmpty());
- System.out.println("Java message details: null/sparse/full metadata, immutable snapshot, 64-bit identities and sizes, Unicode names and 2038 dates passed");}}
+ System.out.println("Java message details: null/sparse/full metadata, immutable snapshot, 64-bit identities and sizes, Unicode names, 2038 dates and voice/round sender platform passed");}}
 '''
         }
-        sources = [str(ui / 'NebulaMessageDetails.java')]
+        sources = [str(ui / 'NebulaMessageDetails.java'), str(ui / 'NebulaSentFromRules.java')]
         for name, content in files.items():
             path = work / name; path.parent.mkdir(parents=True, exist_ok=True); path.write_text(content, encoding='utf-8'); sources.append(str(path))
         home = Path(os.environ.get('JAVA_HOME', 'C:/Program Files/Java/jdk-26.0.2'))

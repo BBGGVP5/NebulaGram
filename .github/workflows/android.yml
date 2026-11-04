@@ -300,6 +300,7 @@ jobs:
           python3 scripts/check-home-button-contours.py vendor/telegram-android
           python3 scripts/check-telegram-updates.py
           python3 scripts/check-update-sheet.py
+          python3 scripts/check-exera-features.py vendor/telegram-android
 
       - name: Настройка доступа к Telegram API
         env:

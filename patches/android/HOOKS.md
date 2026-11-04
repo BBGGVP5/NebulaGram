@@ -1011,3 +1011,56 @@ alpha/scale самого View. Альбомы и активные ItemAnimator �
 `inline_math`, новые ключи `inline_*` есть в каталоге. Экран
 `NebulaInlineResultsFragment` открывается из «Чатов» и из поиска (раздел -62).
 Проверка: `check-inline-results.py` исполняет движок и подсказку на реальных примерах.
+
+### 0270 — фильтры медиа в поиске по чату
+
+`0270-chat-search-media-filters.patch`. `MediaDataController.searchMessagesInChat`:
+оба `messages.search` (основной и счётчик объединённого диалога) берут фильтр из
+`NebulaSearchMediaFilters.filter(currentAccount, guid)` вместо
+`TL_inputMessagesFilterEmpty`. `ChatActivity.createSearchContainer` (кроме
+`MODE_SEARCH`) добавляет в `chatInputViewsContainer` ряд чипов «Фото и видео /
+Файлы / Ссылки / Музыка / Голосовые / GIF»; он сам держится над панелью поиска через
+pre-draw и повторяет её видимость и прозрачность. Выбор — один фильтр (схема
+принимает один `MessagesFilter`): `PhotoVideo`, `Document`, `Url`, `Music`,
+`RoundVoice`, `Gif`. Он сочетается с «от пользователя» и с текстом запроса; без
+текста поиск идёт по одному фильтру. Состояние привязано к паре аккаунт + `classGuid`,
+так что поиск в другом чате того же аккаунта его не наследует; `onSearchCollapse`
+сбрасывает его без запроса. Проверка: `check-exera-features.py`.
+
+### 0271 — поиск по картинке во встроенном браузере
+
+`0271-photo-viewer-image-search.patch`, `PhotoViewer.java`: пункт меню
+`gallery_menu_nebula_image_search` (id 270) «Поиск по картинке», виден для фото
+(не видео) с загруженным кадром — проверка в `onShowSubMenu`. Своего поиска по
+картинке до этого не было. `NebulaImageSearch` спрашивает Google Lens или Яндекс
+Картинки, только после выбора пережимает показанный кадр в JPEG ≤1280 px, закрывает
+просмотрщик и загружает: Lens — multipart `encoded_image` на `/v3/upload`, берётся
+`Location` редиректа (только https-хосты google.com); Яндекс — сырой JPEG на
+`images-apphost/image-download`, из JSON берутся `url` и `cbir_id`. Результат
+открывается через `Browser.openInTelegramBrowser`. Это неофициальные эндпоинты; с
+машины разработки их ответ проверить не удалось, поэтому при любом отказе
+открывается страница загрузки самого сервиса. Разбор ответов —
+`NebulaImageSearchLinks`, его проверяет `check-exera-features.py`.
+
+### 0272 — наборы эмодзи из реакций и кнопок
+
+`0272-message-menu-emoji-packs.patch`, `ChatActivity.createMenu`: строка «Сообщение
+содержит эмодзи из N наборов» теперь учитывает и кастомные реакции сообщения, и
+иконки (`KeyboardButtonStyle.icon`) его инлайн- и обычных кнопок —
+`NebulaEmojiPacks.addExtra` после наборов из текста, без дублей. Берутся только уже
+загруженные документы (`AnimatedEmojiDrawable.findDocument`), меню ничего не
+запрашивает. Долгое нажатие на строку — список «Обновить все наборы» и по набору:
+`messages.getStickerSet` с `hash = 0` и `putStickerSet`, итог в булетине.
+
+### «Отправлено с» для голосовых и кружков (без патча)
+
+Полностью в overlay: `NebulaMessageDetails` (Инструменты Nebula → Подробности)
+добавляет поле «Отправлено с» для голосовых и кружков. Платформы в протоколе нет,
+`NebulaSentFromRules` смотрит только атрибуты документа, как их собирают исходники
+на нашем пине: кружок Android — `supports_streaming` и нет имени файла; кружок iOS —
+`FileName "video.mp4"` и нет `supports_streaming`; остальное — «не определить».
+Голосовые Android и iOS одинаковы (`audio/ogg`, waveform, без имени файла), поэтому
+различаем лишь «запись в приложении Telegram» и «нестандартную загрузку» (нет
+waveform, есть имя файла или не ogg — боты, скрипты, сторонние клиенты). Форки
+наследуют отпечаток своего приложения; Desktop и Web не сверялись. Проверка:
+`check-exera-features.py`.

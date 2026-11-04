@@ -33,8 +33,24 @@ public final class NebulaMessageDetails {
             if (name != null && !name.isEmpty()) fields.add(new Field(russian ? "Имя файла" : "File name", name));
             if (document.mime_type != null && !document.mime_type.isEmpty()) fields.add(new Field("MIME", document.mime_type));
             if (document.size > 0) fields.add(new Field(russian ? "Размер файла" : "File size", AndroidUtilities.formatFileSize(document.size) + " · " + document.size + (russian ? " байт" : " bytes")));
+            int sentFrom = sentFrom(message, document);
+            if (sentFrom >= 0) fields.add(new Field(russian ? "Отправлено с" : "Sent from", NebulaSentFromRules.label(sentFrom, russian)));
         }
         return Collections.unmodifiableList(fields);
+    }
+    /** A {@link NebulaSentFromRules} verdict for voice notes and round videos, or -1 for other media. */
+    static int sentFrom(MessageObject message, TLRPC.Document document) {
+        boolean round = message.isRoundVideo(), voice = message.isVoice();
+        if (!round && !voice) return -1;
+        String fileName = null;
+        boolean streaming = false;
+        byte[] waveform = null;
+        for (TLRPC.DocumentAttribute attribute : document.attributes) {
+            if (attribute instanceof TLRPC.TL_documentAttributeFilename) fileName = attribute.file_name;
+            else if (attribute instanceof TLRPC.TL_documentAttributeVideo) streaming |= attribute.supports_streaming;
+            else if (attribute instanceof TLRPC.TL_documentAttributeAudio && attribute.waveform != null) waveform = attribute.waveform;
+        }
+        return round ? NebulaSentFromRules.round(fileName, streaming) : NebulaSentFromRules.voice(document.mime_type, fileName, waveform);
     }
     private static void addDate(ArrayList<Field> fields, String title, int timestamp) {
         if (timestamp <= 0) return;
