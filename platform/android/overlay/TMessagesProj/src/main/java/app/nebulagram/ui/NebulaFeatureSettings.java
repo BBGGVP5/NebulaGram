@@ -15,7 +15,7 @@ public final class NebulaFeatureSettings {
     }
     public static boolean enabled(String key) {
         return prefs().getBoolean(key, "predictive_back".equals(key) || "custom_chat_wallpaper".equals(key)
-                || "archive_user_stories".equals(key));
+                || "archive_user_stories".equals(key) || "menu_drag_select".equals(key) || "tab_springs".equals(key));
     }
     public static void set(String key, boolean value) { prefs().edit().putBoolean(key, value).apply(); }
     public static boolean materialHeader() { return android.os.Build.VERSION.SDK_INT >= 31 && enabled("material_home_header"); }

@@ -1,0 +1,47 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/AndroidUtilities.java b/TMessagesProj/src/main/java/org/telegram/messenger/AndroidUtilities.java
+index 60b0044f..0391d426 100644
+--- a/TMessagesProj/src/main/java/org/telegram/messenger/AndroidUtilities.java
++++ b/TMessagesProj/src/main/java/org/telegram/messenger/AndroidUtilities.java
+@@ -3035,7 +3035,9 @@ public class AndroidUtilities {
+     }
+ 
+     public static int getTabletLeftFragmentSize(final int fullWidth, final int insetLeft, final int insetRight) {
+-        return insetLeft + Math.max(dp(320), (fullWidth - insetLeft - insetRight) * 35 / 100);
++        final int nebulaDefault = insetLeft + Math.max(dp(320), (fullWidth - insetLeft - insetRight) * 35 / 100);
++        // NebulaGram: ширину левой панели можно перетащить; она хранится долей.
++        return app.nebulagram.ui.NebulaTabletPanes.leftWidth(fullWidth, insetLeft, insetRight, nebulaDefault);
+     }
+ 
+     public static int getPhotoSize() {
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/LaunchActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/LaunchActivity.java
+index 0ced90f4..0489cf62 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/LaunchActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/LaunchActivity.java
+@@ -1005,6 +1005,27 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
+                         layersActionBarLayout.parentDraw(this, canvas);
+                     }
+                     super.dispatchDraw(canvas);
++                    nebulaDivider.draw(canvas, nebulaSplit(), AndroidUtilities.getTabletLeftFragmentSize(getMeasuredWidth(), insets.left, insets.right));
++                }
++
++                // NebulaGram: разделитель панелей, который можно тянуть.
++                private final app.nebulagram.ui.NebulaTabletPanes.Divider nebulaDivider = new app.nebulagram.ui.NebulaTabletPanes.Divider(this);
++
++                private boolean nebulaSplit() {
++                    return !tabletFullSize && (layersActionBarLayout == null || layersActionBarLayout.getView().getVisibility() != View.VISIBLE);
++                }
++
++                @Override
++                public boolean onInterceptTouchEvent(MotionEvent ev) {
++                    if (nebulaDivider.intercept(ev, nebulaSplit(), AndroidUtilities.getTabletLeftFragmentSize(getMeasuredWidth(), insets.left, insets.right), insets.left, insets.right)) {
++                        return true;
++                    }
++                    return super.onInterceptTouchEvent(ev);
++                }
++
++                @Override
++                public boolean onTouchEvent(MotionEvent ev) {
++                    return nebulaDivider.touch(ev) || super.onTouchEvent(ev);
+                 }
+             };
+             if (i != -1) {
