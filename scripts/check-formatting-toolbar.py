@@ -59,7 +59,7 @@ class SelectionCheck {
  static class Editor {int a,b,length=12,calls,batch; String getText(){return "hello world!";}int getSelectionStart(){return a;}int getSelectionEnd(){return b;}int length(){return length;}
  void beginBatchEdit(){batch++;}void endBatchEdit(){batch--;}void setSelection(int p){a=b=p;}void setSelection(int a,int b){this.a=a;this.b=b;}void setSelectionOverride(int a,int b){if(a>=0&&(a!=this.a||b!=this.b))throw new AssertionError();}void invalidate(){}}
  static class NebulaText {static String text(String a,String b){return b;}}
- Editor editor=new Editor();boolean needsSelection=true,expanded=true;int calls;Runnable action=()->calls++;void announceForAccessibility(String x){}
+ Editor editor=new Editor();boolean needsSelection=true,expanded=true;int calls;Runnable action=()->calls++;void announceForAccessibility(String x){}void highlightFormats(){}
  void click(){BODY}
  public static void main(String[]args){SelectionCheck t=new SelectionCheck();int cases=0;
  for(int a=-2;a<16;a++)for(int b=-2;b<16;b++){t.editor.a=a;t.editor.b=b;t.calls=0;t.click();

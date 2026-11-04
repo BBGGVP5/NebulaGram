@@ -16,7 +16,18 @@ import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.ApplicationLoader;
 import org.telegram.ui.Components.EditTextCaption;
 
-/** Source reference: Swiftgram SGInputToolbar (cf8b23be); independent native editor accessory. */
+/**
+ * Панель форматирования над полем ввода.
+ *
+ * <p>Раньше она стояла всегда, пока открыта клавиатура, и отнимала у
+ * переписки 47 точек, даже когда человек просто пишет. Теперь её не видно,
+ * пока она не нужна: она выезжает сама, когда в поле выделен текст, и её
+ * можно открыть кнопкой «Aa» в поле, чтобы включить формат заранее или
+ * вставить строку. Ручное открытие сбрасывается после отправки и при скрытии
+ * клавиатуры. Формат, который уже есть в выделении, подсвечен.
+ *
+ * <p>Source reference: Swiftgram SGInputToolbar (cf8b23be); independent native editor accessory.
+ */
 public final class NebulaFormattingToolbar extends HorizontalScrollView {
     public static final String KEY = "formatting_toolbar";
     /** Ниже прежних 52: панель стоит над полем ввода и отъедает у переписки. */
@@ -30,6 +41,10 @@ public final class NebulaFormattingToolbar extends HorizontalScrollView {
     private final LinearLayout row;
     private boolean preferenceEnabled;
     private boolean expanded;
+    private boolean eligible, manual, selection;
+    private Runnable eligibilityChanged;
+    private ImageView toggle;
+    private final java.util.Map<View, Integer> formatFlags = new java.util.HashMap<>();
     private int reservedHeight;
     private android.animation.ValueAnimator reveal;
     private int palette, paletteInk, paletteChip;
@@ -57,18 +72,30 @@ public final class NebulaFormattingToolbar extends HorizontalScrollView {
         addView(row, new LayoutParams(-2, -1));
         addIcon(R.drawable.nebula_format_newline, "Новая строка", "New line", this::insertNewLine, false);
         addIcon(R.drawable.nebula_format_clear, "Убрать форматирование", "Clear formatting", editor::makeSelectedRegular);
-        addIcon(R.drawable.nebula_format_quote, "Цитата", "Quote", editor::makeSelectedQuote);
-        addIcon(R.drawable.nebula_format_spoiler, "Спойлер", "Spoiler", editor::makeSelectedSpoiler);
-        add("B", "Жирный", "Bold", Typeface.BOLD, editor::makeSelectedBold);
-        add("I", "Курсив", "Italic", Typeface.ITALIC, editor::makeSelectedItalic);
-        add("M", "Моноширинный", "Monospace", Typeface.NORMAL, editor::makeSelectedMono);
-        addIcon(R.drawable.nebula_format_link, "Ссылка", "Link", editor::makeSelectedUrl);
-        addIcon(R.drawable.formatting_underline, "Подчёркнутый", "Underline", editor::makeSelectedUnderline);
-        addIcon(R.drawable.formatting_strikethrough, "Зачёркнутый", "Strikethrough", editor::makeSelectedStrike);
-        addIcon(R.drawable.nebula_format_code, "Блок кода", "Code block", editor::makeSelectedCode);
+        nextFlag = FLAG_QUOTE; addIcon(R.drawable.nebula_format_quote, "Цитата", "Quote", editor::makeSelectedQuote);
+        nextFlag = FLAG_SPOILER; addIcon(R.drawable.nebula_format_spoiler, "Спойлер", "Spoiler", editor::makeSelectedSpoiler);
+        nextFlag = FLAG_BOLD; add("B", "Жирный", "Bold", Typeface.BOLD, editor::makeSelectedBold);
+        nextFlag = FLAG_ITALIC; add("I", "Курсив", "Italic", Typeface.ITALIC, editor::makeSelectedItalic);
+        nextFlag = FLAG_MONO; add("M", "Моноширинный", "Monospace", Typeface.NORMAL, editor::makeSelectedMono);
+        nextFlag = FLAG_LINK; addIcon(R.drawable.nebula_format_link, "Ссылка", "Link", editor::makeSelectedUrl);
+        nextFlag = FLAG_UNDERLINE; addIcon(R.drawable.formatting_underline, "Подчёркнутый", "Underline", editor::makeSelectedUnderline);
+        nextFlag = FLAG_STRIKE; addIcon(R.drawable.formatting_strikethrough, "Зачёркнутый", "Strikethrough", editor::makeSelectedStrike);
+        nextFlag = FLAG_CODE; addIcon(R.drawable.nebula_format_code, "Блок кода", "Code block", editor::makeSelectedCode);
+        nextFlag = 0;
         updatePalette();
         setVisibility(GONE);
     }
+
+    /** Биты форматов: стили совпадают с TextStyleSpan, остальное — свои. */
+    public static final int FLAG_BOLD = 1, FLAG_ITALIC = 1 << 1, FLAG_MONO = 1 << 2, FLAG_STRIKE = 1 << 3,
+            FLAG_UNDERLINE = 1 << 4, FLAG_SPOILER = 1 << 8,
+            FLAG_QUOTE = 1 << 28, FLAG_LINK = 1 << 29, FLAG_CODE = 1 << 30;
+    /** Какие форматы целиком покрывают выделение. Даёт поле ввода: знает его спаны. */
+    public interface Formats { int present(android.text.Spanned text, int start, int end); }
+    private Formats formats;
+    private int toggleIdle;
+    private int nextFlag;
+    public void setFormats(Formats value) { formats = value; }
 
     private void add(String glyph, String ru, String en, int style, Runnable action) {
         add(glyph, ru, en, style, action, true);
@@ -127,8 +154,10 @@ public final class NebulaFormattingToolbar extends HorizontalScrollView {
                 editor.endBatchEdit();
             }
             editor.invalidate();
+            highlightFormats();
         });
         if (needsSelection) selectionButtons.add(button);
+        if (nextFlag != 0) formatFlags.put(button, nextFlag);
         // Отклик на касание: кнопка коротко поджимается и возвращается. Без
         // него нажатие на плитку ничем не отличается от промаха по панели.
         button.setOnTouchListener((view, event) -> {
@@ -169,8 +198,49 @@ public final class NebulaFormattingToolbar extends HorizontalScrollView {
         super.onMeasure(widthMeasureSpec, heightMeasureSpec);
     }
 
+    /** Кнопка «Aa» для поля ввода: открывает и закрывает панель вручную. */
+    public ImageView toggle(Context context, int icon, int idleColor) {
+        if (toggle != null) return toggle;
+        toggleIdle = idleColor;
+        toggle = new ImageView(context);
+        toggle.setImageResource(icon);
+        toggle.setScaleType(ImageView.ScaleType.CENTER);
+        toggle.setContentDescription(NebulaText.text("Форматирование", "Formatting"));
+        if (android.os.Build.VERSION.SDK_INT >= 26) toggle.setTooltipText(toggle.getContentDescription());
+        toggle.setFocusable(false);
+        toggle.setVisibility(GONE);
+        toggle.setOnClickListener(v -> { manual = !manual; tintToggle(); layoutChanged.run(); });
+        tintToggle();
+        return toggle;
+    }
+
+    /** «Aa» показывается, пока панель вообще может появиться. */
+    public boolean toggleVisible() { return toggle != null && eligible && preferenceEnabled; }
+
+    /** Вызывается, когда «Aa» должна появиться или пропасть: поле меняет ширину. */
+    public void setOnEligibilityChanged(Runnable value) { eligibilityChanged = value; }
+
+    /** Выделение в поле: непустое — панель выезжает сама. */
+    public void onSelection(int start, int end) {
+        boolean value = start != end && start >= 0;
+        if (value != selection) { selection = value; layoutChanged.run(); }
+        if (expanded) highlightFormats();
+    }
+
+    private void tintToggle() {
+        if (toggle == null) return;
+        NebulaTheme theme = NebulaTheme.of(getContext());
+        toggle.setColorFilter(manual ? theme.primary() : toggleIdle);
+    }
+
     public int prepare(boolean eligible) {
-        boolean visible = eligible && preferenceEnabled;
+        if (this.eligible != eligible) {
+            this.eligible = eligible;
+            // Клавиатура убрана — ручное открытие сбрасывается.
+            if (!eligible && manual) { manual = false; tintToggle(); }
+            if (eligibilityChanged != null) post(eligibilityChanged);
+        }
+        boolean visible = eligible && preferenceEnabled && (manual || selection);
         if (expanded != visible) {
             expanded = visible;
             if (reveal != null) { reveal.cancel(); reveal = null; }
@@ -193,7 +263,7 @@ public final class NebulaFormattingToolbar extends HorizontalScrollView {
                 reveal.start();
             }
         }
-        if (visible) { updatePalette(); refreshState(); }
+        if (visible) { updatePalette(); refreshState(); highlightFormats(); }
         return reservedHeight;
     }
 
@@ -216,6 +286,22 @@ public final class NebulaFormattingToolbar extends HorizontalScrollView {
         }
     }
 
+    /** Подсвечивает форматы, которые уже есть во всём выделении. */
+    private void highlightFormats() {
+        android.text.Editable text = editor.getText();
+        int start = editor.getSelectionStart(), end = editor.getSelectionEnd();
+        int present = text != null && formats != null && start >= 0 && end > start ? formats.present(text, start, end) : 0;
+        for (java.util.Map.Entry<View, Integer> entry : formatFlags.entrySet()) {
+            boolean on = (present & entry.getValue()) != 0;
+            View button = entry.getKey();
+            if (button.isSelected() == on) continue;
+            button.setSelected(on);
+            int ink = on ? NebulaTheme.of(getContext()).primary() : paletteInk;
+            if (button instanceof TextView) ((TextView) button).setTextColor(ink);
+            else ((ImageView) button).setColorFilter(ink);
+        }
+    }
+
     private void updatePalette() {
         NebulaTheme theme = NebulaTheme.of(getContext());
         int color = theme.surfaceContainer();
@@ -231,8 +317,9 @@ public final class NebulaFormattingToolbar extends HorizontalScrollView {
         setBackground(background);
         for (int i = 0; i < row.getChildCount(); i++) {
             View button = row.getChildAt(i);
-            if (button instanceof TextView) ((TextView) button).setTextColor(ink);
-            else ((ImageView) button).setColorFilter(ink);
+            int buttonInk = button.isSelected() ? NebulaTheme.of(getContext()).primary() : ink;
+            if (button instanceof TextView) ((TextView) button).setTextColor(buttonInk);
+            else ((ImageView) button).setColorFilter(buttonInk);
             GradientDrawable tile = new GradientDrawable();
             tile.setColor(chip);
             tile.setCornerRadius(NebulaShape.radius(11));
@@ -257,10 +344,19 @@ public final class NebulaFormattingToolbar extends HorizontalScrollView {
     private final android.text.TextWatcher emptiness = new android.text.TextWatcher() {
         @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) { }
         @Override public void onTextChanged(CharSequence s, int start, int before, int count) { }
-        @Override public void afterTextChanged(android.text.Editable s) { refreshState(); }
+        @Override public void afterTextChanged(android.text.Editable s) {
+            refreshState();
+            // Сообщение отправлено — поле опустело, ручное открытие закрывается.
+            if (manual && s.length() == 0) { manual = false; tintToggle(); layoutChanged.run(); }
+        }
     };
 
-    private void refreshPreference() { preferenceEnabled = enabled(); layoutChanged.run(); }
+    private void refreshPreference() {
+        boolean was = preferenceEnabled;
+        preferenceEnabled = enabled();
+        if (was != preferenceEnabled && eligibilityChanged != null) post(eligibilityChanged);
+        layoutChanged.run();
+    }
     @Override protected void onAttachedToWindow() {
         super.onAttachedToWindow();
         preferences().registerOnSharedPreferenceChangeListener(preferencesChanged);

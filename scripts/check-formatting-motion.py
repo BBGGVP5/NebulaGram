@@ -49,6 +49,8 @@ class Motion {
  // Подсветка состояния к движению панели не относится: эта фикстура
  // проверяет высоту и прозрачность, а состояние — check-formatting-toolbar.
  int states;void refreshState(){states++;}
+ // Панель открыта (выделение или «Aa»): здесь проверяется только движение.
+ boolean eligible,manual,selection=true;Runnable eligibilityChanged;void tintToggle(){}void highlightFormats(){}void post(Runnable r){}
  int prepare(boolean eligible){PREPARE}
 }
 class SystemClock {static long elapsedRealtime(){return 100;}}
