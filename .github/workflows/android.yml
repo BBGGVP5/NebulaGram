@@ -246,6 +246,8 @@ jobs:
           python3 scripts/check-auto-translation.py
           python3 scripts/check-translation-text.py
           python3 scripts/check-translation-format.py
+          python3 scripts/check-web-translation.py
+          python3 scripts/check-music-lyrics.py
           python3 scripts/check-draft-original.py
           python3 scripts/check-translation-api.py
           python3 scripts/check-local-translation-lifecycle.py
