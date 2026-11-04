@@ -1,0 +1,64 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/MediaDataController.java b/TMessagesProj/src/main/java/org/telegram/messenger/MediaDataController.java
+index 47f5e49a..53afe4c5 100644
+--- a/TMessagesProj/src/main/java/org/telegram/messenger/MediaDataController.java
++++ b/TMessagesProj/src/main/java/org/telegram/messenger/MediaDataController.java
+@@ -3937,7 +3937,7 @@ public class MediaDataController extends BaseController {
+                     req.saved_reaction.add(reaction.toTLReaction());
+                     req.flags |= 8;
+                 }
+-                req.filter = new TLRPC.TL_inputMessagesFilterEmpty();
++                req.filter = app.nebulagram.ui.NebulaSearchMediaFilters.filter(currentAccount, guid);
+                 mergeReqId = getConnectionsManager().sendRequest(req, (response, error) -> AndroidUtilities.runOnUIThread(() -> {
+                     if (lastMergeDialogId == mergeDialogId) {
+                         mergeReqId = 0;
+@@ -4022,7 +4022,7 @@ public class MediaDataController extends BaseController {
+             req.saved_reaction.add(reaction.toTLReaction());
+             req.flags |= 8;
+         }
+-        req.filter = new TLRPC.TL_inputMessagesFilterEmpty();
++        req.filter = app.nebulagram.ui.NebulaSearchMediaFilters.filter(currentAccount, guid);
+         lastSearchQuery = query;
+         long queryWithDialogFinal = queryWithDialog;
+         String finalQuery = query;
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
+index 3958b393..b5d04924 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
+@@ -10796,6 +10796,9 @@ public class ChatActivity extends BaseFragment implements
+         searchCountText.setGravity(Gravity.LEFT);
+         searchContainer.addView(searchCountText, LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, 30, Gravity.CENTER_VERTICAL, 0, -1, 97.33f, 0));
+         chatInputBubbleContainer.addView(searchContainer, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, searchContainerHeight, Gravity.BOTTOM, 7, 0, 7, 0));
++        if (chatMode != MODE_SEARCH) {
++            nebulaSearchFilters = app.nebulagram.ui.NebulaSearchMediaFilters.attach(chatInputViewsContainer, searchContainer, currentAccount, classGuid, themeDelegate, this::nebulaSearchByMedia);
++        }
+ 
+         searchExpandList = new AnimatedTextView(getContext(), true, false, true);
+         searchExpandList.setAnimationProperties(0, 0, 420, CubicBezierInterpolator.EASE_OUT_QUINT);
+@@ -10879,6 +10882,17 @@ public class ChatActivity extends BaseFragment implements
+         }
+     }
+ 
++    private app.nebulagram.ui.NebulaSearchMediaFilters.Strip nebulaSearchFilters;
++
++    private void nebulaSearchByMedia() {
++        if (app.nebulagram.ui.NebulaSearchMediaFilters.active(currentAccount, classGuid) || !TextUtils.isEmpty(searchingQuery) || searchingUserMessages != null || searchingChatMessages != null) {
++            getMediaDataController().searchMessagesInChat(searchingQuery == null ? "" : searchingQuery, dialog_id, mergeDialogId, classGuid, 0, threadMessageId, false, searchingUserMessages, searchingChatMessages, true, searchingReaction);
++        } else {
++            getMediaDataController().clearFoundMessageObjects();
++            updateSearchButtons(0, 0, -1);
++        }
++    }
++
+     private void showSearchShowOther(boolean show) {
+         searchOtherButton.setVisibility(View.VISIBLE);
+         searchOtherButton.animate().alpha(show ? 1f : 0f).withEndAction(() -> {
+@@ -39476,6 +39490,9 @@ public class ChatActivity extends BaseFragment implements
+         @Override
+         public void onSearchCollapse() {
+             searching = false;
++            if (nebulaSearchFilters != null) {
++                nebulaSearchFilters.reset();
++            }
+             updatePagedownButtonVisibility(true);
+             updateSearchUpDownButtonVisibility(true);
+             if (searchCalendarButton != null) {
