@@ -14,14 +14,16 @@ public final class NebulaTranslationFragment extends BaseFragment {
         NebulaFormUi.bar(this, actionBar, c, t("ИИ в чате", "AI in chats"));
         LinearLayout column = NebulaFormUi.column(c);
         NebulaCard tools = new NebulaCard(c);
+        CharSequence[] engines = engines();
         NebulaRow engine = new NebulaRow(c).title(t("Движок живого перевода", "Live translation engine"))
-            .subtitle(NebulaTranslationSettings.local() ? t("Быстрый · на устройстве", "Fast · on device") : t("Выбранный провайдер ИИ", "Selected AI provider"), true)
+            .subtitle(engines[NebulaTranslationSettings.engine()], true)
             .trailing(NebulaRow.TRAIL_CHEVRON);
         engine.withClick(v -> showDialog(new NebulaDialog.Builder(c, getResourceProvider()).setTitle(t("Движок живого перевода", "Live translation engine"))
-            .setSelectedIndex(NebulaTranslationSettings.local() ? 0 : 1)
-            .setItems(new CharSequence[]{t("Быстрый · на устройстве", "Fast · on device"), t("Выбранный провайдер ИИ", "Selected AI provider")}, (d, i) -> {
-                NebulaTranslationSettings.global().edit().putBoolean("live_translation_local", i == 0).apply();
-                engine.subtitle(i == 0 ? t("Быстрый · на устройстве", "Fast · on device") : t("Выбранный провайдер ИИ", "Selected AI provider"), true);
+            .setSelectedIndex(NebulaTranslationSettings.engine())
+            .setDescriptions(engineNotes())
+            .setItems(engines, (d, i) -> {
+                NebulaTranslationSettings.setEngine(i);
+                engine.subtitle(engines[i], true);
                 if (dialog != 0) NebulaAutoTranslate.retry(currentAccount, dialog);
             }).setNegativeButton(t("Отмена", "Cancel"), null).create()));
         tools.add(engine);
@@ -99,8 +101,8 @@ public final class NebulaTranslationFragment extends BaseFragment {
             draft.add(delay);
             LinearLayout.LayoutParams draftParams = new LinearLayout.LayoutParams(-1, -2);
             draftParams.topMargin = NebulaFormUi.dp(12); column.addView(draft, draftParams);
-            column.addView(NebulaFormUi.note(c, t("Быстрый режим переводит на устройстве после подготовки языковых пакетов по Wi-Fi. Режим ИИ использует вашего провайдера. Автоподстановка сохраняет оригинал; её можно выключить и применять перевод вручную.",
-                "Fast mode translates on device after language packs are prepared over Wi-Fi. AI mode uses your provider. Automatic insertion preserves the original; disable it to apply translations manually.")));
+            column.addView(NebulaFormUi.note(c, t("Быстрый режим переводит на устройстве после подготовки языковых пакетов по Wi-Fi. Режим ИИ использует вашего провайдера. Google, Microsoft и Яндекс получают текст переводимых сообщений; жирный, курсив, ссылки и премиум-эмодзи сохраняются. Автоподстановка сохраняет оригинал; её можно выключить и применять перевод вручную.",
+                "Fast mode translates on device after language packs are prepared over Wi-Fi. AI mode uses your provider. Google, Microsoft and Yandex receive the text of messages being translated; bold, italic, links and custom emoji are kept. Automatic insertion preserves the original; disable it to apply translations manually.")));
         } else {
             NebulaCard chats = new NebulaCard(c);
             chats.add(new NebulaRow(c).title(t("Перевод в реальном времени", "Real-time translation"))
@@ -110,6 +112,21 @@ public final class NebulaTranslationFragment extends BaseFragment {
             chatParams.topMargin = NebulaFormUi.dp(12); column.addView(chats, chatParams);
         }
         return fragmentView = NebulaSettingsLayout.wrap(c, actionBar, NebulaFormUi.scroll(c, column));
+    }
+    private CharSequence[] engines() {
+        CharSequence[] names = new CharSequence[2 + NebulaWebTranslation.PROVIDERS.length];
+        names[0] = t("Быстрый · на устройстве", "Fast · on device");
+        names[1] = t("Выбранный провайдер ИИ", "Selected AI provider");
+        for (int i = 0; i < NebulaWebTranslation.PROVIDERS.length; i++) names[2 + i] = NebulaWebTranslation.name(NebulaWebTranslation.PROVIDERS[i]);
+        return names;
+    }
+    private CharSequence[] engineNotes() {
+        CharSequence[] notes = new CharSequence[2 + NebulaWebTranslation.PROVIDERS.length];
+        notes[0] = t("Без интернета после загрузки языка", "Offline once the language is downloaded");
+        notes[1] = t("Через ваш ключ и модель", "Uses your key and model");
+        for (int i = 0; i < NebulaWebTranslation.PROVIDERS.length; i++)
+            notes[2 + i] = t("Текст отправляется на ", "Text is sent to ") + NebulaWebTranslation.host(NebulaWebTranslation.PROVIDERS[i]);
+        return notes;
     }
     private String delayTitle() { return t("Пауза после ввода", "Pause after typing"); }
     private boolean ready(Context c) {

@@ -117,6 +117,7 @@ public final class NebulaSettingsHubFragment extends BaseFragment {
             tools.add(row(context, R.drawable.nebula_settings_text_tools, "Инструменты текста", "Text tools", "Перевод, сокращение, озвучивание и задачи", "Translation, summaries, speech and tasks", () -> presentFragment(new NebulaMessageToolsFragment(null))));
             tools.add(row(context, R.drawable.menu_reply, "Быстрые ответы", "Quick replies", "Личные шаблоны для текущего аккаунта", "Personal templates for this account", () -> presentFragment(new NebulaQuickRepliesFragment(currentAccount, null, null))));
             tools.add(row(context, R.drawable.msg_calendar, "Список дел", "Tasks", "Задачи и напоминания", "Tasks and reminders", () -> presentFragment(new NebulaTasksFragment())));
+            tools.add(row(context, R.drawable.msg_filled_data_music, "Музыка и документы", "Music and documents", "Плеер, тексты песен и просмотр PDF", "Player, lyrics and PDF viewer", () -> presentFragment(new NebulaMediaFeaturesFragment())));
             tools.add(row(context, R.drawable.msg_saved, "Метки в Избранном", "Saved Messages labels", "Ваши метки и сохранённые сообщения", "Your labels and saved messages", () -> presentFragment(new NebulaSavedTagsFragment(currentAccount, 0, null))));
             NebulaFormUi.group(content, NebulaText.text("Инструменты сообщений", "Message tools"), tools);
         }

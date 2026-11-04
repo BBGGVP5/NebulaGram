@@ -1,0 +1,45 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/AudioPlayerAlert.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/AudioPlayerAlert.java
+index 88fe6a16..462ca681 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Components/AudioPlayerAlert.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/AudioPlayerAlert.java
+@@ -228,6 +228,7 @@ public class AudioPlayerAlert extends BottomSheet implements NotificationCenter.
+     long lastUpdateRewindingPlayerTime;
+ 
+     private boolean wasLight;
++    private app.nebulagram.ui.NebulaMusicPlayer nebulaPlayer;
+ 
+     private final static float[] speeds = new float[] {
+             .5f, 1f, 1.2f, 1.5f, 1.7f, 2f
+@@ -341,6 +342,7 @@ public class AudioPlayerAlert extends BottomSheet implements NotificationCenter.
+ 
+                 layoutParams = (LayoutParams) blurredView.getLayoutParams();
+                 layoutParams.topMargin = -getPaddingTop();
++                if (nebulaPlayer != null) nebulaPlayer.offsetTop(-getPaddingTop());
+ 
+                 int contentSize = dp(179 + (!isMyList() && !noforwards ? 52 : 0));
+                 if (playlist.size() > 1) {
+@@ -381,7 +383,7 @@ public class AudioPlayerAlert extends BottomSheet implements NotificationCenter.
+ 
+             @Override
+             public boolean onInterceptTouchEvent(MotionEvent ev) {
+-                if (ev.getAction() == MotionEvent.ACTION_DOWN && scrollOffsetY != 0 && actionBar.getAlpha() == 0.0f) {
++                if (ev.getAction() == MotionEvent.ACTION_DOWN && scrollOffsetY != 0 && actionBar.getAlpha() == 0.0f && (nebulaPlayer == null || !nebulaPlayer.covering())) {
+                     boolean dismiss;
+                     if (listAdapter.getItemCount() > 0) {
+                         dismiss = ev.getY() < scrollOffsetY + dp(12);
+@@ -1473,6 +1475,7 @@ public class AudioPlayerAlert extends BottomSheet implements NotificationCenter.
+         updateTitle(false);
+         updateRepeatButton();
+         updateEmptyView();
++        nebulaPlayer = app.nebulagram.ui.NebulaMusicPlayer.install(this, containerView, optionsButton, repeatButton, currentAccount);
+     }
+ 
+     @Override
+@@ -2058,6 +2061,7 @@ public class AudioPlayerAlert extends BottomSheet implements NotificationCenter.
+     @Override
+     public void dismiss() {
+         super.dismiss();
++        if (nebulaPlayer != null) nebulaPlayer.release();
+         NotificationCenter.getInstance(currentAccount).removeObserver(this, NotificationCenter.messagePlayingDidReset);
+         NotificationCenter.getInstance(currentAccount).removeObserver(this, NotificationCenter.messagePlayingPlayStateChanged);
+         NotificationCenter.getInstance(currentAccount).removeObserver(this, NotificationCenter.messagePlayingDidStart);

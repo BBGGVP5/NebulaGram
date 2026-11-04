@@ -20,11 +20,13 @@ public final class NebulaAutoTranslate {
     private static final Map<String, ArrayList<MessageObject>> visibleSnapshots = new HashMap<>();
     private static String scope(int a, long d) { return NebulaTasks.user(a) + ":" + d; }
     public static String providerName() {
+        String web = NebulaTranslationSettings.webName();
+        if (web != null) return web;
         int provider = NebulaTranslationSettings.global().getInt("provider", 0);
         return new String[]{"OpenAI", "Claude", "Gemini", NebulaText.text("ИИ", "AI"), "Gemini Nano"}[Math.max(0, Math.min(4, provider))];
     }
     public static String status(int a, long d) {
-        String provider = "Nebula AI";
+        String provider = NebulaTranslationSettings.webEngine() ? providerName() : "Nebula AI";
         for (Job job : jobs.values()) if (job.account == a && job.dialog == d && job.visible && !job.cancelled)
             return provider + " · " + (job.phase != null ? job.phase : NebulaText.text("переводим…", "translating…"));
         if (errors.containsKey(scope(a,d))) return provider + " · " + NebulaText.text("нужна проверка", "check required");
@@ -48,7 +50,7 @@ public final class NebulaAutoTranslate {
         return NebulaTranslationClient.errorText(error);
     }
     private static SharedPreferences prefs(int a){return NebulaTranslationSettings.prefs(a);}
-    public static boolean enabled(int a,long d){return d!=0&&!DialogObject.isEncryptedDialog(d)&&(NebulaTranslationSettings.local()||NebulaAiAvailability.enabled())&&NebulaTasks.user(a)>0&&(prefs(a).getBoolean("on_"+d,false)||NebulaTranslationSettings.outgoing(a,d));}
+    public static boolean enabled(int a,long d){return d!=0&&!DialogObject.isEncryptedDialog(d)&&(NebulaTranslationSettings.local()||NebulaTranslationSettings.webEngine()||NebulaAiAvailability.enabled())&&NebulaTasks.user(a)>0&&(prefs(a).getBoolean("on_"+d,false)||NebulaTranslationSettings.outgoing(a,d));}
     public static boolean enabledForMessage(int a, MessageObject message) {
         return enabled(a,message.getDialogId()) && (message.isOutOwner()
             ? NebulaTranslationSettings.outgoing(a,message.getDialogId()) : prefs(a).getBoolean("on_"+message.getDialogId(),false));
