@@ -176,6 +176,9 @@ public class NebulaSettingsFragment extends BaseFragment {
                 .subtitle(accountSummary(), false).trailing(NebulaRow.TRAIL_CHEVRON)
                 .withClick(v -> presentFragment(new NebulaAccountsFragment()));
         categories.add(accountsRow);
+        categories.add(new NebulaRow(context).tile(R.drawable.msg_channel, NebulaRow.TILE_ORANGE).title(NebulaText.text("Лента каналов", "Channel feed"))
+                .subtitle(NebulaText.text("Посты выбранных каналов и категории", "Posts from chosen channels, with categories"), false)
+                .trailing(NebulaRow.TRAIL_CHEVRON).withClick(v -> presentFragment(new NebulaFeedFragment(currentAccount))));
         categories.add(new NebulaRow(context).tile(R.drawable.msg_bots, NebulaRow.TILE_PINK).title(NebulaText.text("Мои боты", "My bots"))
                 .subtitle(NebulaText.text("Профиль, переводы и управление", "Profiles, translations and management"), false)
                 .trailing(NebulaRow.TRAIL_CHEVRON).withClick(v -> presentFragment(new NebulaBotsFragment(currentAccount))));

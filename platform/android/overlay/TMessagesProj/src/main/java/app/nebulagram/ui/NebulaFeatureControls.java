@@ -28,6 +28,7 @@ public final class NebulaFeatureControls {
     public static void general(BaseFragment host, LinearLayout parent) {
         NebulaCard card = new NebulaCard(parent.getContext());
         card.add(toggle(parent, "smooth_fade", "Плавное затухание", "Smooth fading", "Плавнее менять прозрачность при переходах", "Smooth opacity during navigation transitions"));
+        card.add(toggle(parent, "menu_drag_select", "Выбор протягиванием", "Press and drag in menus", "Нажмите, протяните палец к пункту меню и отпустите", "Press, slide to a menu item and release"));
         if (android.os.Build.VERSION.SDK_INT >= 34) card.add(toggle(parent, "predictive_back", "Predictive Back", "Predictive Back", "Предпросмотр возврата системным жестом", "Preview navigation with the system back gesture"));
         add(parent, card);
         parent.addView(NebulaCard.header(parent.getContext(), text("Уведомления", "Notifications")));

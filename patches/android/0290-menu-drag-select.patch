@@ -1,0 +1,59 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarMenuItem.java b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarMenuItem.java
+index f4dbbd9b..9a96cf79 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarMenuItem.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarMenuItem.java
+@@ -314,7 +314,7 @@ public class ActionBarMenuItem extends FrameLayout {
+                 AndroidUtilities.runOnUIThread(showMenuRunnable, 200);
+             }
+         } else if (event.getActionMasked() == MotionEvent.ACTION_MOVE) {
+-            if (showSubmenuByMove && hasSubMenu() && (popupWindow == null || !popupWindow.isShowing())) {
++            if ((showSubmenuByMove || app.nebulagram.ui.NebulaMenuDrag.openByDrag()) && hasSubMenu() && (popupWindow == null || !popupWindow.isShowing())) {
+                 if (event.getY() > getHeight()) {
+                     if (getParent() != null) {
+                         getParent().requestDisallowInterceptTouchEvent(true);
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarPopupWindow.java b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarPopupWindow.java
+index 207e5131..2dfdacdf 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarPopupWindow.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarPopupWindow.java
+@@ -892,6 +892,7 @@ public class ActionBarPopupWindow extends PopupWindow {
+         try {
+             super.showAsDropDown(anchor, xoff, yoff);
+             registerListener(anchor);
++            app.nebulagram.ui.NebulaMenuDrag.shown(this);
+         } catch (Exception e) {
+             FileLog.e(e);
+         }
+@@ -903,6 +904,7 @@ public class ActionBarPopupWindow extends PopupWindow {
+         try {
+             super.showAsDropDown(anchor, xoff, yoff, gravity);
+             registerListener(anchor);
++            app.nebulagram.ui.NebulaMenuDrag.shown(this);
+         } finally {
+             if (!isShowing()) nebulaViewport.restore();
+         }
+@@ -1091,6 +1093,7 @@ public class ActionBarPopupWindow extends PopupWindow {
+         try {
+             super.showAtLocation(parent, gravity, x, y);
+             unregisterListener();
++            app.nebulagram.ui.NebulaMenuDrag.shown(this);
+         } finally {
+             if (!isShowing()) nebulaViewport.restore();
+         }
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/LaunchActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/LaunchActivity.java
+index 88245d1b..0ced90f4 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/LaunchActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/LaunchActivity.java
+@@ -6778,6 +6778,13 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
+         NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.activityPermissionsGranted, requestCode, permissions, grantResults);
+     }
+ 
++    @Override
++    public boolean dispatchTouchEvent(MotionEvent ev) {
++        // NebulaGram: нажать, протянуть к пункту меню и отпустить.
++        if (app.nebulagram.ui.NebulaMenuDrag.intercept(ev, super::dispatchTouchEvent)) return true;
++        return super.dispatchTouchEvent(ev);
++    }
++
+     @Override
+     public void onUserInteraction() {
+         super.onUserInteraction();

@@ -991,3 +991,44 @@ alpha/scale самого View. Альбомы и активные ItemAnimator �
 по умолчанию. `TextDetailCell`, `ProfileHoursCell`, `ProfileLocationCell`: флаг
 `nebulaNoDivider` гасит линию-разделитель на карточках профиля, в остальных списках
 поведение прежнее. Проверка: `check-profile-banner.py` компилирует шапку и кнопки.
+
+### 0290–0293 — возможности exteraGram 13.1.1
+
+`0290-menu-drag-select.patch`: `ActionBarPopupWindow` после каждого показа
+(`showAsDropDown` ×2, `showAtLocation`) зовёт `NebulaMenuDrag.shown(this)`;
+`LaunchActivity.dispatchTouchEvent` отдаёт касание `NebulaMenuDrag.intercept`.
+Если меню показано, пока палец на экране (удержание сообщения, `ItemOptions`,
+долгое нажатие на кнопку), сдвиг дальше 10 dp отменяет касание экрана под меню,
+подсвечивает `ActionBarMenuSubItem` под пальцем и нажимает его при отпускании
+обычным `performClick`. Отпускание без сдвига оставляет меню открытым, как раньше.
+`ActionBarMenuItem`: протяжка вниз от кнопки с подменю открывает его для всех
+кнопок, а не только с `showSubmenuByMove`. Настройка `menu_drag_select` (вкл.).
+
+`0291-tab-bar-springs-and-scroll.patch`: `GlassTabView` масштабирует подложку
+выбора и нажатую вкладку пружинами `SpringAnimation` (`NebulaTabSpring`,
+настройка `tab_springs`, вкл.); цвет по-прежнему ведёт аниматор Telegram.
+`DialogsActivity`: прокрутка первой страницы списка идёт в `NebulaTabScroll`,
+а `checkUi_mainTabsVisible` учитывает его. В апстриме 13.1.1 панель при прокрутке
+не прячется вовсе, поэтому скрытие — опция `tabs_hide_on_scroll` (выкл.) с порогом:
+72 dp непрерывно вниз, чтобы спрятать, 32 dp назад или начало списка — чтобы
+показать; смена направления обнуляет путь. Подписи вкладок (`tab_labels`) не тронуты.
+
+`0292-tablet-resizable-panes.patch`: `AndroidUtilities.getTabletLeftFragmentSize`
+передаёт свою ширину в `NebulaTabletPanes.leftWidth`; без сохранённой доли она не
+меняется. Корневая раскладка планшета в `LaunchActivity` перехватывает касание в
+10 dp от границы панелей и тянет её (`NebulaTabletPanes.Divider`), рисуя ручку.
+Хранится доля ширины содержимого (`tablet_left_fraction`), зажатая в 0.22–0.62 и
+так, чтобы левая панель была не уже 280 dp, а правая — 360 dp.
+
+`0293-round-camera2-zoom-slider.patch`: в Telegram 13.1.1 новый движок кружков
+`InstantCameraView2` (`RoundVideoSession`) сделан на Camera2, не на CameraX;
+зависимость CameraX у NebulaGram своя и прежний движок уже ходит через
+`NebulaCameraXSession`. Экспозиция в новом движке уже была; теперь у него и
+`NebulaZoomSlider`: диапазон 1…`getMaximumZoomRatio()`, значение уходит в
+`session.setZoom` долей, щипок Telegram синхронизирует ползунок.
+
+Без патчей, в overlay: кнопки профиля пилюлями Material 3 с тональной заливкой
+(`profile_m3_buttons`, выкл.; поверх тона цвета профиля из `NebulaProfileArt.Actions`)
+и лента выбранных каналов (`NebulaFeed*`): вкладки категорий, порядок
+перетаскиванием, глазок скрытия, выбор каналов; хранится на устройстве.
+Проверка: `check-extera-ui.py`.

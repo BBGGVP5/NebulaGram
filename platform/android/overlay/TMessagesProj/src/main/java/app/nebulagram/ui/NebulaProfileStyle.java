@@ -183,7 +183,7 @@ public final class NebulaProfileStyle {
 
     /** All drawing, hit targets, accessibility and avatar blur remain native. */
     public static ProfileActionsView actions(Context context, int height, Theme.ResourcesProvider provider) {
-        return NebulaAppearance.profileStyle()
+        return NebulaAppearance.profileStyle() || NebulaProfileArt.materialButtons()
                 ? new NebulaProfileArt.Actions(context, height, provider)
                 : new ProfileActionsView(context, height);
     }

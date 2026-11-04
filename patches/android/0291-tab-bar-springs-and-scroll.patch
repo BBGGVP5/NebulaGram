@@ -1,0 +1,71 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/glass/GlassTabView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/glass/GlassTabView.java
+index 312d02f3..d6d31a3c 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Components/glass/GlassTabView.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/glass/GlassTabView.java
+@@ -152,13 +152,17 @@ public class GlassTabView extends FrameLayout implements MainTabsLayout.Tab, Fac
+     protected void dispatchDraw(@NonNull Canvas canvas) {
+         final float viewWidth = hasVisualWidth ? visualWidth : getWidth();
+         final float selectedFactor = hasGestureSelectedOverride ? gestureSelectedOverride : isSelectedAnimator.getFloatValue();
++        // NebulaGram: нажатая вкладка проседает на пружине.
++        final int nebulaPressSave = canvas.save();
++        final float nebulaPress = nebulaSpring.pressScale();
++        canvas.scale(nebulaPress, nebulaPress, viewWidth / 2f, getHeight() / 2f);
+         if (selectedFactor > 0 && !skipDrawSelector) {
+             final float alpha = AnimatorUtils.DECELERATE_INTERPOLATOR.getInterpolation(selectedFactor);
+ 
+             paintCounterBackground.setColor(Theme.multAlpha(colorSelected, 0.09f * alpha));
+             tmpRectF.set(0, 0, viewWidth, getHeight());
+             final float r = Math.min(tmpRectF.width(), tmpRectF.height()) / 2f;
+-            final float s = lerp(0.6f, 1, selectedFactor) * MathUtils.clamp(attachScale, 0, 1);
++            final float s = lerp(0.6f, 1, selectedFactor) * MathUtils.clamp(attachScale, 0, 1) * nebulaSpring.selectionScale();
+             canvas.save();
+             canvas.scale(s, s, tmpRectF.centerX(), tmpRectF.centerY());
+             canvas.drawRoundRect(tmpRectF, r, r, paintCounterBackground);
+@@ -217,6 +221,15 @@ public class GlassTabView extends FrameLayout implements MainTabsLayout.Tab, Fac
+         if (saveLayer) {
+             canvas.restore();
+         }
++        canvas.restoreToCount(nebulaPressSave);
++    }
++
++    private final app.nebulagram.ui.NebulaTabSpring nebulaSpring = new app.nebulagram.ui.NebulaTabSpring(this);
++
++    @Override
++    public void setPressed(boolean pressed) {
++        super.setPressed(pressed);
++        if (nebulaSpring != null) nebulaSpring.press(pressed);
+     }
+ 
+     private Drawable premiumStarDrawable;
+@@ -232,6 +245,7 @@ public class GlassTabView extends FrameLayout implements MainTabsLayout.Tab, Fac
+     }
+ 
+     public void setSelected(boolean selected, boolean animated) {
++        if (selected && !isSelectedAnimator.getValue()) nebulaSpring.select(animated);
+         isSelectedAnimator.setValue(selected, animated);
+         checkPlayAnimation(animated);
+ 
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
+index 5a91b2c8..2230514c 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
+@@ -4646,6 +4646,10 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+                         contentView.updateBlurContent();
+                     }
+                     app.nebulagram.ui.NebulaEdgeCompression.apply(recyclerView);
++                    if (viewPage == viewPages[0] && app.nebulagram.ui.NebulaTabScroll.onListScrolled(dy,
++                            !recyclerView.canScrollVertically(-1), wasManualScroll)) {
++                        checkUi_mainTabsVisible();
++                    }
+                     viewPage.dialogsItemAnimator.onListScroll(-dy);
+                     int firstVisiblePosition = -1;
+                     int lastVisiblePosition = -1;
+@@ -14381,7 +14385,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+     }
+ 
+     private void checkUi_mainTabsVisible() {
+-        final boolean mainTabsVisible = !searching && (blurredView == null || blurredView.getBackground() == null || blurredView.getAlpha() < 0.01f || blurredView.getVisibility() == View.GONE);
++        final boolean mainTabsVisible = !searching && app.nebulagram.ui.NebulaTabScroll.visible() && (blurredView == null || blurredView.getBackground() == null || blurredView.getAlpha() < 0.01f || blurredView.getVisibility() == View.GONE);
+         if (mainTabsActivityController != null) {
+             mainTabsActivityController.setTabsVisible(mainTabsVisible);
+         }

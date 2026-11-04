@@ -61,6 +61,7 @@ contracts = {
  'app/nebulagram/ui/NebulaTheme.java': """package app.nebulagram.ui;public class NebulaTheme {
  public static NebulaTheme of(android.content.Context c){return new NebulaTheme();}public boolean isDynamic(){return false;}public int surfaceContainer(){return 0xff112233;}}""",
  'app/nebulagram/ui/NebulaMenuStyle.java': 'package app.nebulagram.ui;public class NebulaMenuStyle {public static boolean enabled(){return true;}}',
+ 'app/nebulagram/ui/NebulaMessagePreferences.java': 'package app.nebulagram.ui;public class NebulaMessagePreferences {public static boolean enabled(String key,boolean fallback){return fallback;}}',
  'app/nebulagram/ui/NebulaProfileGlass.java': """package app.nebulagram.ui;class NebulaProfileGlass {
  static boolean enabled=true;static int captures,ends,draws;static CanvasSize last;static android.graphics.Canvas lastCanvas;
  static class CanvasSize {int w,h;CanvasSize(int w,int h){this.w=w;this.h=h;}}

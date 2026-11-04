@@ -413,6 +413,12 @@ public class NebulaSectionFragment extends BaseFragment {
                     NebulaBottomBar.setCompact(value);
                     editor.refresh();
                 }));
+        appearance.add(feature(context, R.drawable.msg_customize, "tab_springs",
+                "Пружинные анимации", "Spring animations",
+                "Выбор и нажатие вкладок с лёгким отскоком", "Tab selection and presses settle with a light bounce"));
+        appearance.add(feature(context, R.drawable.msg_list, "tabs_hide_on_scroll",
+                "Скрывать при прокрутке", "Hide on scroll",
+                "Только после заметной прокрутки вниз; лёгкое касание панель не прячет", "Only after a deliberate scroll down; a light touch keeps the bar"));
         appearance.add(toggle(context, R.drawable.msg_photo_settings,
                 R.string.NebulaTabLabels, R.string.NebulaTabLabelsSub,
                 NebulaBottomBar.tabLabels(), value -> {
@@ -610,6 +616,8 @@ public class NebulaSectionFragment extends BaseFragment {
                 NebulaAppearance.profileEmoji(), NebulaAppearance::setProfileEmoji));
         card.add(toggle(context, R.drawable.msg_photo_settings, R.string.NebulaProfilePhotoBanner, R.string.NebulaProfilePhotoBannerInfo,
                 NebulaAppearance.profilePhotoBanner(), NebulaAppearance::setProfilePhotoBanner));
+        card.add(preference(context, R.drawable.msg_customize, "profile_m3_buttons", false,
+                "Кнопки Material 3", "Material 3 buttons"));
         content.addView(card, cardParams());
         content.addView(NebulaCard.header(context, NebulaText.text("Информация", "Info")));
         card = new NebulaCard(context);
@@ -909,6 +917,18 @@ public class NebulaSectionFragment extends BaseFragment {
                 .checked(checked);
         row.setOnClickListener(v -> {
             setter.apply(row.toggleChecked());
+            refreshPreviews();
+        });
+        return row;
+    }
+
+    /** Переключатель из {@link NebulaFeatureSettings} со своими строками. */
+    private NebulaRow feature(Context context, int icon, String key, String ru, String en, String infoRu, String infoEn) {
+        NebulaRow row = new NebulaRow(context).icon(icon).title(NebulaText.text(ru, en))
+                .subtitle(NebulaText.text(infoRu, infoEn), false)
+                .trailing(NebulaRow.TRAIL_SWITCH).checked(NebulaFeatureSettings.enabled(key));
+        row.setOnClickListener(v -> {
+            NebulaFeatureSettings.set(key, row.toggleChecked());
             refreshPreviews();
         });
         return row;

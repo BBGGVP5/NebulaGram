@@ -175,6 +175,7 @@ jobs:
           python3 scripts/check-tab-release.py vendor/telegram-android
           python3 scripts/check-menu-colors.py vendor/telegram-android
           python3 scripts/check-menu-drag.py vendor/telegram-android
+          python3 scripts/check-extera-ui.py vendor/telegram-android
           python3 scripts/check-menu-preview.py
           python3 scripts/check-menu-state.py vendor/telegram-android
           python3 scripts/check-message-preview.py vendor/telegram-android

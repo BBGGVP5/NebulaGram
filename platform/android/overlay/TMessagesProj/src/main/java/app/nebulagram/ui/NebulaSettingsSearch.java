@@ -44,6 +44,7 @@ public final class NebulaSettingsSearch {
         else if (section == -33) f.presentFragment(new NebulaEditHistoryFragment(f.getCurrentAccount(), null));
         else if (section == -34) f.presentFragment(new NebulaFontFragment());
         else if (section == -35) f.presentFragment(new NebulaBotsFragment(f.getCurrentAccount()));
+        else if (section == -36) f.presentFragment(new NebulaFeedFragment(f.getCurrentAccount()));
         else if (section == -13) NebulaUpdateSettingsSheet.show(f);
         else if (section == -14) f.presentFragment(new NebulaMenuFragment(NebulaMenuFragment.SCREEN_ADVANCED));
         else if (section == -15) f.presentFragment(row >= 0 ? new NebulaPrivacyFragment().focusRowIndex(row) : new NebulaPrivacyFragment().focus(focus));
@@ -53,6 +54,7 @@ public final class NebulaSettingsSearch {
     public static ArrayList<Entry> all() {
         ArrayList<Entry> result = new ArrayList<>();
         result.add(new Entry(-34, NebulaText.text("Свой шрифт", "Custom font"), "TTF · OTF", R.drawable.msg_edit));
+        result.add(new Entry(-36, NebulaText.text("Лента каналов", "Channel feed"), NebulaText.text("Категории, вкладки и выбранные каналы", "Categories, tabs and chosen channels"), R.drawable.msg_channel));
         result.add(new Entry(-35, NebulaText.text("Мои боты", "My bots"), NebulaText.text("Переводы, меню, права, звёзды и бизнес", "Translations, menu, rights, stars and business"), R.drawable.msg_settings));
         result.add(new Entry(NebulaSectionFragment.SECTION_CHATS, NebulaText.text("Очередь медленного режима", "Slow mode queue"), NebulaText.text("Отложенные текстовые сообщения", "Scheduled text messages"), R.drawable.msg_calendar));
         result.add(new Entry(NebulaSectionFragment.SECTION_CHATS, NebulaText.text("Выделение без лимита 100", "Unlimited selection"), NebulaText.text("Выбрать загруженные сообщения", "Select loaded messages"), R.drawable.msg_select));

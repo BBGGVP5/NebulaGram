@@ -283,6 +283,25 @@ public final class NebulaProfileArt {
         }
     }
 
+    /** Кнопки действий профиля пилюлями Material 3 с тональной заливкой. */
+    public static boolean materialButtons() {
+        try {
+            return NebulaMessagePreferences.enabled("profile_m3_buttons", false);
+        } catch (Throwable e) {
+            return false;
+        }
+    }
+
+    /** secondaryContainer: акцент, растворённый в фоне страницы. */
+    static int materialTonal(Theme.ResourcesProvider provider) {
+        return ColorUtils.blendARGB(surface(provider), accent(provider), dark(provider) ? .30f : .20f);
+    }
+
+    /** onSecondaryContainer: тот же акцент, сдвинутый к контрасту с заливкой. */
+    static int materialOnTonal(Theme.ResourcesProvider provider) {
+        return ColorUtils.blendARGB(accent(provider), dark(provider) ? Color.WHITE : Color.BLACK, dark(provider) ? .62f : .55f);
+    }
+
     /** Native hit targets and press animation, with a shared photographic glass source. */
     public static final class Actions extends ProfileActionsView {
         private final Paint actionFill = new Paint(Paint.ANTI_ALIAS_FLAG);
@@ -305,10 +324,11 @@ public final class NebulaProfileArt {
                     !active && nativeHasColorById);
         }
         @Override protected boolean hasCustomActionSurface(Canvas canvas) {
-            return NebulaAppearance.profileStyle() && NebulaMenuStyle.enabled();
+            return materialButtons() || NebulaAppearance.profileStyle() && NebulaMenuStyle.enabled();
         }
-        @Override public float getRoundRadius() { return dp(18); }
+        @Override public float getRoundRadius() { return materialButtons() ? dp(28) : dp(18); }
         @Override protected int actionTextColor(int color) {
+            if (materialButtons() && !bannerActive && !nativeHasColorById) return materialOnTonal(provider);
             return bannerActive||nativeHasColorById?android.graphics.Color.WHITE:Theme.getColor(Theme.key_windowBackgroundWhiteBlackText,provider);
         }
 
@@ -322,6 +342,16 @@ public final class NebulaProfileArt {
         }
 
         @Override protected void drawActionSurface(Canvas canvas, RectF rect, int key, float radius, float alpha) {
+            if (materialButtons()) {
+                // Material 3: заполненная тональная пилюля. Цвет профиля сохраняется —
+                // на нём пилюля становится светлым тоном того же цвета.
+                actionFill.setColor(bannerActive ? 0x882b3337 : nativeHasColorById
+                        ? (dark(provider) ? 0x38ffffff : 0x40ffffff) : materialTonal(provider));
+                actionFill.setAlpha(Math.round(android.graphics.Color.alpha(actionFill.getColor()) * alpha));
+                float pill = rect.height() / 2f;
+                canvas.drawRoundRect(rect, pill, pill, actionFill);
+                return;
+            }
             if (!NebulaMenuStyle.enabled()) return;
             if (bannerReady && glass != null && canvas.isHardwareAccelerated() && NebulaProfileGlass.supported()) {
                 glass.draw(canvas, rect, key, radius, alpha, getX(), getY());

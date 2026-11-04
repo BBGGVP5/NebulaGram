@@ -1,0 +1,97 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/InstantCameraView2.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/InstantCameraView2.java
+index f47b2d52..2f0b71b9 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Components/InstantCameraView2.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/InstantCameraView2.java
+@@ -127,6 +127,8 @@ public final class InstantCameraView2 extends InstantCameraViewBase {
+     private int zoomPointerId2 = -1;
+ 
+     private boolean pinchZoomActive;
++    /** NebulaGram: тот же ползунок зума, что и у прежней камеры кружков. */
++    private app.nebulagram.ui.NebulaZoomSlider nebulaZoomSlider;
+     private boolean heavyOperationsStopped;
+     private float previousWindowBrightness = Float.NaN;
+     private int textureViewSize;
+@@ -282,6 +284,11 @@ public final class InstantCameraView2 extends InstantCameraViewBase {
+         addView(muteImageView, LayoutHelper.createFrame(48, 48, Gravity.CENTER));
+ 
+         textureView.setOnTouchListener(this::handleZoomTouch);
++        nebulaZoomSlider = new app.nebulagram.ui.NebulaZoomSlider(context, this::applyNebulaZoom, resourcesProvider);
++        nebulaZoomSlider.setVisibility(View.GONE);
++        FrameLayout.LayoutParams nebulaZoomParams = new FrameLayout.LayoutParams(LayoutParams.MATCH_PARENT, dp(96), Gravity.BOTTOM | Gravity.CENTER_HORIZONTAL);
++        nebulaZoomParams.bottomMargin = dp(116);
++        addView(nebulaZoomSlider, nebulaZoomParams);
+         super.setVisibility(INVISIBLE);
+     }
+ 
+@@ -290,6 +297,7 @@ public final class InstantCameraView2 extends InstantCameraViewBase {
+             BlurredBackgroundDrawableViewFactory factory,
+             BlurredBackgroundColorProvider colorProvider
+     ) {
++        nebulaZoomSlider.setGlass(factory, colorProvider);
+         BlurredBackgroundDrawable drawable = factory.create(buttonsLayout, colorProvider);
+         drawable.setPadding(dp(6));
+         drawable.setRadius(dp(21));
+@@ -963,6 +971,7 @@ public final class InstantCameraView2 extends InstantCameraViewBase {
+                 && stateInfo.canControlCamera()
+                 && !cameraFlipInProgress;
+         switchCameraButton.setEnabled(cameraControls);
++        updateNebulaZoomSlider(cameraControls);
+         flashButton.setEnabled(cameraControls
+                 && capabilities != null
+                 && capabilities.getFlashType() != RoundVideoSession.FlashType.NONE);
+@@ -1026,6 +1035,7 @@ public final class InstantCameraView2 extends InstantCameraViewBase {
+                             1f
+                     );
+             session.setZoom(zoomProgress);
++            syncNebulaZoomSlider();
+             return true;
+         }
+         if (event.getActionMasked() == MotionEvent.ACTION_POINTER_UP && pinchZoomActive) {
+@@ -1066,10 +1076,47 @@ public final class InstantCameraView2 extends InstantCameraViewBase {
+         zoomResetAnimator.addUpdateListener(animation -> {
+             zoomProgress = (float) animation.getAnimatedValue();
+             if (session != null) session.setZoom(zoomProgress);
++            syncNebulaZoomSlider();
+         });
+         zoomResetAnimator.start();
+     }
+ 
++    private float nebulaMaximumZoom() {
++        return capabilities == null ? 1f : capabilities.getMaximumZoomRatio();
++    }
++
++    private void updateNebulaZoomSlider(boolean cameraControls) {
++        if (nebulaZoomSlider == null) return;
++        float maximum = nebulaMaximumZoom();
++        if (!cameraControls || maximum <= 1.01f) {
++            // Во время переключения камеры ползунок не прячем: прыжок раздражает.
++            if (!cameraFlipInProgress || !isRecordingState()) nebulaZoomSlider.setVisibility(View.GONE);
++            return;
++        }
++        nebulaZoomSlider.setRange(1f, maximum);
++        nebulaZoomSlider.setCameraFacing(capabilities.getActiveFacing() == RoundVideoSession.CameraFacing.FRONT);
++        nebulaZoomSlider.setCameraStops(new float[]{1f});
++        syncNebulaZoomSlider();
++        nebulaZoomSlider.setVisibility(View.VISIBLE);
++    }
++
++    private void syncNebulaZoomSlider() {
++        if (nebulaZoomSlider == null) return;
++        float maximum = nebulaMaximumZoom();
++        nebulaZoomSlider.setCurrent(1f + zoomProgress * Math.max(0f, maximum - 1f));
++    }
++
++    private void applyNebulaZoom(float factor) {
++        if (session == null || stateInfo == null || !stateInfo.canControlCamera()) return;
++        if (Float.isNaN(factor) || Float.isInfinite(factor)) return;
++        float maximum = nebulaMaximumZoom();
++        if (maximum <= 1f) return;
++        if (zoomResetAnimator != null) zoomResetAnimator.cancel();
++        zoomProgress = clamp((factor - 1f) / (maximum - 1f), 0f, 1f);
++        session.setZoom(zoomProgress);
++        nebulaZoomSlider.setCurrent(factor);
++    }
++
+     private void setScreenFlashEnabled(boolean enabled) {
+         Activity activity = delegate.getParentActivity();
+         if (activity == null) return;

@@ -27,6 +27,8 @@ public final class NebulaMainMenu {
     }
 
     public static void addNavigation(BaseFragment host, ItemOptions menu) {
+        menu.add(R.drawable.msg_channel, NebulaText.text("Лента", "Feed"), () ->
+                host.presentFragment(new NebulaFeedFragment(host.getCurrentAccount())));
         menu.add(R.drawable.msg_calls, LocaleController.getString(R.string.Calls), () -> {
             Bundle args = new Bundle();
             args.putBoolean("needFinishFragment", false);
