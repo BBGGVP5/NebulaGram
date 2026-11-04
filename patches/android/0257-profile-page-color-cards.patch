@@ -42,6 +42,27 @@ index 12f38d2d..7d469b9a 100644
              Paint dividerPaint = Theme.getThemePaint(Theme.key_paint_divider, resourcesProvider);
              if (dividerPaint == null) dividerPaint = Theme.dividerPaint;
              canvas.drawRect(dp(LocaleController.isRTL ? 0 : 21.33f), getMeasuredHeight() - 1, getWidth() - dp(LocaleController.isRTL ? 21.33f : 0), getMeasuredHeight(), dividerPaint);
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Cells/AboutLinkCell.java b/TMessagesProj/src/main/java/org/telegram/ui/Cells/AboutLinkCell.java
+index dd07e657..25f9e38d 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Cells/AboutLinkCell.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Cells/AboutLinkCell.java
+@@ -280,12 +280,14 @@ public class AboutLinkCell extends FrameLayout {
+         if (viewAlpha > 0) {
+             canvas.save();
+             canvas.saveLayerAlpha(0, 0, getWidth(), getHeight(), (int) (viewAlpha * 255), Canvas.ALL_SAVE_FLAG);
+-            showMoreBackgroundDrawable.setAlpha((int) (alpha * 255));
++            // NebulaGram: на полупрозрачной карточке сплошная заливка под «ещё»
++            // проступала тёмной полосой; там остаётся только сама надпись.
++            showMoreBackgroundDrawable.setAlpha(nebulaSectionSurface ? 0 : (int) (alpha * 255));
+             canvas.translate(showMoreTextBackgroundView.getLeft(), showMoreTextBackgroundView.getTop());
+             showMoreTextBackgroundView.draw(canvas);
+             canvas.restore();
+         }
+-        viewAlpha = bottomShadow.getAlpha();
++        viewAlpha = nebulaSectionSurface ? 0 : bottomShadow.getAlpha();
+         if (viewAlpha > 0) {
+             canvas.save();
+             canvas.saveLayerAlpha(0, 0, getWidth(), getHeight(), (int) (viewAlpha * 255), Canvas.ALL_SAVE_FLAG);
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Cells/TextDetailCell.java b/TMessagesProj/src/main/java/org/telegram/ui/Cells/TextDetailCell.java
 index cd7466e0..a376593f 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Cells/TextDetailCell.java

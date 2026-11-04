@@ -97,51 +97,56 @@ public class NebulaAuthArt extends Drawable {
      * чужой номер, а не как подсказка.
      */
     private void drawPhone(Canvas canvas, float unit) {
-        // Сигнал: две дуги справа вверху загораются по очереди.
+        // Всё стоит по центру квадрата: мягкий круг, телефон посередине и
+        // волны сигнала поровну с обеих сторон. Раньше телефон сидел у левого
+        // края, а дуги торчали справа — значок выглядел сдвинутым.
+        paint.setStyle(Paint.Style.FILL);
+        paint.setColor(accent);
+        paint.setAlpha(28);
+        canvas.drawCircle(unit * 50, unit * 50, unit * 46, paint);
+
         paint.setStyle(Paint.Style.STROKE);
         paint.setStrokeCap(Paint.Cap.ROUND);
-        paint.setStrokeWidth(unit * 3.2f);
-        paint.setColor(accent);
+        paint.setStrokeWidth(unit * 3f);
         for (int i = 0; i < 2; i++) {
             float wave = (float) (0.5 - 0.5 * Math.cos((phase - i * 0.12f) * Math.PI * 2));
-            paint.setAlpha((int) (70 + 185 * wave));
-            float radius = unit * (10 + i * 9);
-            rect.set(unit * 60 - radius, unit * 22 - radius, unit * 60 + radius, unit * 22 + radius);
-            canvas.drawArc(rect, -60, 70, false, paint);
+            paint.setAlpha((int) (60 + 195 * wave));
+            float radius = unit * (24 + i * 8);
+            rect.set(unit * 50 - radius, unit * 44 - radius, unit * 50 + radius, unit * 44 + radius);
+            canvas.drawArc(rect, -35, 34, false, paint);
+            canvas.drawArc(rect, 181, 34, false, paint);
         }
-        paint.setAlpha(255);
 
         // Корпус.
-        rect.set(unit * 20, unit * 12, unit * 56, unit * 88);
+        rect.set(unit * 36, unit * 20, unit * 64, unit * 80);
         paint.setStyle(Paint.Style.FILL);
-        paint.setAlpha(40);
-        canvas.drawRoundRect(rect, unit * 10, unit * 10, paint);
+        paint.setAlpha(46);
+        canvas.drawRoundRect(rect, unit * 8, unit * 8, paint);
         paint.setAlpha(255);
         paint.setStyle(Paint.Style.STROKE);
-        paint.setStrokeWidth(unit * 3.2f);
-        canvas.drawRoundRect(rect, unit * 10, unit * 10, paint);
-        canvas.drawLine(unit * 33, unit * 19, unit * 43, unit * 19, paint);
+        paint.setStrokeWidth(unit * 3f);
+        canvas.drawRoundRect(rect, unit * 8, unit * 8, paint);
+        canvas.drawLine(unit * 46, unit * 26, unit * 54, unit * 26, paint);
 
-        // Сообщение выезжает снизу, держится и растворяется.
+        // Сообщение с кодом всплывает внутри экрана, держится и растворяется.
         float show = Math.min(1f, Math.max(0f, (phase - 0.08f) / 0.14f));
         float hide = Math.min(1f, Math.max(0f, (phase - 0.84f) / 0.12f));
         float visible = show * (1f - hide);
         if (visible > 0f) {
-            float lift = unit * 6 * (1f - show);
+            float lift = unit * 5 * (1f - show);
             paint.setStyle(Paint.Style.FILL);
-            paint.setAlpha((int) (80 * visible));
-            rect.set(unit * 26, unit * 40 + lift, unit * 50, unit * 56 + lift);
-            canvas.drawRoundRect(rect, unit * 6, unit * 6, paint);
+            paint.setAlpha((int) (90 * visible));
+            rect.set(unit * 40, unit * 42 + lift, unit * 60, unit * 56 + lift);
+            canvas.drawRoundRect(rect, unit * 5, unit * 5, paint);
             path.reset();
-            path.moveTo(unit * 30, unit * 55 + lift);
-            path.lineTo(unit * 28, unit * 61 + lift);
-            path.lineTo(unit * 36, unit * 55 + lift);
+            path.moveTo(unit * 43, unit * 55 + lift);
+            path.lineTo(unit * 41.5f, unit * 60 + lift);
+            path.lineTo(unit * 48, unit * 55 + lift);
             path.close();
             canvas.drawPath(path, paint);
-            // Точки — это код из сообщения: они чётче пузыря, чтобы читаться.
             paint.setAlpha((int) (255 * visible));
             for (int i = 0; i < 3; i++) {
-                canvas.drawCircle(unit * (32 + i * 6), unit * 48 + lift, unit * 2.2f, paint);
+                canvas.drawCircle(unit * (44.5f + i * 5.5f), unit * 49 + lift, unit * 1.9f, paint);
             }
             paint.setAlpha(255);
         }

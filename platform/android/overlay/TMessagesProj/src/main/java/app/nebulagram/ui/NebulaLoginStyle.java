@@ -215,29 +215,20 @@ public final class NebulaLoginStyle {
         badge.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
         // Все шаги входа и NebulaLink рисуют квадрат одного размера, чтобы
         // заголовок не прыгал между экранами.
-        final int side = compact(animated ? 104 : 84);
+        final int side = compact(animated ? 120 : 84);
         LinearLayout.LayoutParams badgeParams = new LinearLayout.LayoutParams(side, side);
-        badgeParams.gravity = Gravity.START;
+        badgeParams.gravity = Gravity.CENTER_HORIZONTAL;
         badgeParams.bottomMargin = compact(18);
         slide.addView(badge, 0, badgeParams);
-        TextView stepLabel = new TextView(slide.getContext());
-        stepLabel.setText(LocaleController.getString(eyebrow));
-        stepLabel.setTextSize(TypedValue.COMPLEX_UNIT_SP, 11);
-        stepLabel.setTypeface(AndroidUtilities.bold());
-        stepLabel.setLetterSpacing(0.06f);
-        stepLabel.setGravity(Gravity.START);
-        stepLabel.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlueText4));
-        stepLabel.setPadding(0, AndroidUtilities.dp(6), 0, AndroidUtilities.dp(6));
-        LinearLayout.LayoutParams stepParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        stepParams.gravity = Gravity.START;
-        stepParams.bottomMargin = compact(12);
-        slide.addView(stepLabel, 1, stepParams);
+        // Как в Telegram: рисунок по центру, заголовок и подпись под ним тоже
+        // по центру, без надписи-шага над заголовком — так же, как на
+        // страницах приветствия.
 
         // Кегль ужимается вдвое медленнее отступов: читаемость важнее места.
-        title.setTextSize(TypedValue.COMPLEX_UNIT_SP, 30);
+        title.setTextSize(TypedValue.COMPLEX_UNIT_SP, 26);
         title.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText));
         title.setTypeface(AndroidUtilities.bold());
-        title.setGravity(Gravity.START);
+        title.setGravity(Gravity.CENTER_HORIZONTAL);
         // Длинный заголовок обрезался: тридцать пунктов в одну строку не
         // помещаются на узком экране. Даём вторую строку вместо многоточия.
         title.setSingleLine(false);
@@ -246,7 +237,7 @@ public final class NebulaLoginStyle {
         title.setLineSpacing(AndroidUtilities.dp(2), 1f);
         margins(title, 0, 0, 0, 0);
         subtitle.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14 + vertical());
-        subtitle.setGravity(Gravity.START);
+        subtitle.setGravity(Gravity.CENTER_HORIZONTAL);
         subtitle.setLineSpacing(AndroidUtilities.dp(3), 1f);
         // Подпись стоит ровно под заголовком: сдвиг на восемь точек читался
         // как ошибка вёрстки.

@@ -250,17 +250,6 @@ public class NebulaIntroFragment extends BaseFragment {
         return highlighted;
     }
 
-    /** Надпись над заголовком — как «ВАШ АККАУНТ» на экранах входа. */
-    static TextView eyebrow(Context context, int color) {
-        TextView view = text(context, 11, color, true);
-        view.setLetterSpacing(0.06f);
-        view.setPadding(0, AndroidUtilities.dp(6), 0, AndroidUtilities.dp(6));
-        LinearLayout.LayoutParams params = width();
-        params.bottomMargin = NebulaLoginStyle.compact(10);
-        view.setLayoutParams(params);
-        return view;
-    }
-
     static TextView text(Context context, float size, int color, boolean bold) {
         TextView view = new TextView(context);
         view.setTextSize(TypedValue.COMPLEX_UNIT_SP, size);

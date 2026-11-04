@@ -3,6 +3,8 @@ package app.nebulagram.ui;
 import android.content.Context;
 import android.graphics.*;
 import android.os.SystemClock;
+import android.view.HapticFeedbackConstants;
+import android.view.MotionEvent;
 import android.view.View;
 import org.telegram.messenger.AndroidUtilities;
 
@@ -50,6 +52,19 @@ public final class NebulaIntroArt extends View {
     private int page;
     private long start = SystemClock.uptimeMillis();
     private boolean animated = true;
+
+    // Рисунки откликаются на нажатия. Пока их не трогали, идёт петля; после
+    // первого нажатия сцена слушается пальца: выбранный цвет и иконка,
+    // набранный код, включённое подключение.
+    private float originX, originY, unitScale;
+    private long interactUntil;
+    private int swatchChoice = -1, previousSwatch, iconChoice;
+    private long swatchAt;
+    private boolean privacyTouched;
+    private int typedDigits, keyPressed = -1;
+    private long keyAt, unlockAt = -1;
+    private boolean disconnected;
+    private long toggleAt;
     private final boolean dark;
     private final int ink, muted, accent, card, raised, edge, tint, header, onHeader;
     private final int inBubble, outBubble, outText, outCheck, wallTop, wallBottom, listCheck;
@@ -121,10 +136,65 @@ public final class NebulaIntroArt extends View {
         scale = Math.min(scale, AndroidUtilities.dp(380) / CANVAS);
         if (scale <= 0) return;
         long time = animated ? (SystemClock.uptimeMillis() - start) % LOOP[page] : STILL[page];
-        c.save(); c.translate((getWidth()-CANVAS*scale)/2, (getHeight()-CANVAS*scale)/2); c.scale(scale, scale);
+        originX = (getWidth()-CANVAS*scale)/2; originY = (getHeight()-CANVAS*scale)/2; unitScale = scale;
+        c.save(); c.translate(originX, originY); c.scale(scale, scale);
         if(page==0) welcome(c,time); else if(page==1) design(c,time); else if(page==2) privacy(c,time); else if(page==3) ai(c,time); else link(c,time);
         c.restore();
-        if (animated) postInvalidateOnAnimation();
+        if (animated || SystemClock.uptimeMillis() < interactUntil) postInvalidateOnAnimation();
+    }
+
+    @Override public boolean onTouchEvent(MotionEvent event) {
+        if (unitScale <= 0) return false;
+        float x = (event.getX() - originX) / unitScale, y = (event.getY() - originY) / unitScale;
+        int action = event.getActionMasked();
+        if (action == MotionEvent.ACTION_DOWN) return x >= 0 && y >= 0 && x <= CANVAS && y <= CANVAS;
+        if (action != MotionEvent.ACTION_UP) return true;
+        if (tap(x, y, SystemClock.uptimeMillis())) {
+            performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP);
+            interactUntil = SystemClock.uptimeMillis() + 1800;
+            invalidate();
+        }
+        return true;
+    }
+
+    private static boolean near(float x, float y, float cx, float cy, float radius) {
+        return (x - cx) * (x - cx) + (y - cy) * (y - cy) <= radius * radius;
+    }
+
+    /** Нажатие в координатах холста 360x360. true — сцена изменилась. */
+    private boolean tap(float x, float y, long now) {
+        if (page == 1) {
+            for (int i = 0; i < SWATCHES.length; i++) {
+                if (near(x, y, 58 + i * 49, 238, 24)) {
+                    previousSwatch = swatchChoice >= 0 ? swatchChoice : 0;
+                    swatchChoice = i; swatchAt = now; return true;
+                }
+            }
+            for (int i = 0; i < 5; i++) {
+                if (x >= 38 + i * 56 && x <= 90 + i * 56 && y >= 296 && y <= 348) { iconChoice = i; return true; }
+            }
+            return false;
+        }
+        if (page == 2) {
+            for (int i = 0; i < 12; i++) {
+                if (!near(x, y, 124 + (i % 3) * 56, 196 + (i / 3) * 41, 21)) continue;
+                privacyTouched = true;
+                if (unlockAt >= 0) return false;
+                keyPressed = i; keyAt = now;
+                if (i == 9) { typedDigits = 4; unlockAt = now; }
+                else if (i == 11) typedDigits = Math.max(0, typedDigits - 1);
+                else if (++typedDigits >= 4) { typedDigits = 4; unlockAt = now + 150; }
+                return true;
+            }
+            return false;
+        }
+        if (page == 4) {
+            if (near(x, y, 180, 128, 50)) { disconnected = !disconnected; toggleAt = now; return true; }
+            return false;
+        }
+        // Чаты и ИИ: нажатие проигрывает сцену заново.
+        if (page == 0 || page == 3) { start = now; return true; }
+        return false;
     }
 
     private static float clamp(float v) { return Math.max(0, Math.min(1, v)); }
@@ -185,6 +255,10 @@ public final class NebulaIntroArt extends View {
     private void design(Canvas c, long t) {
         int step=(int)(t/1600)%SWATCHES.length, previous=(step+SWATCHES.length-1)%SWATCHES.length;
         float k = t < 1600 ? 1 : span(t%1600,0,360);
+        if (swatchChoice >= 0) {
+            step = swatchChoice; previous = previousSwatch;
+            k = span(SystemClock.uptimeMillis() - swatchAt, 0, 300);
+        }
         int current=blend(swatch(previous),swatch(step),k);
         int save=clipCard(c,34,18,326,176,22,wallTop,wallBottom);
         round(c,52,36,226,76,16,inBubble);
@@ -211,7 +285,8 @@ public final class NebulaIntroArt extends View {
             else gradientRound(c,x,300,x+44,344,13,blend(color,0xffffffff,.25f),color);
             centeredText(c,"N",x+22,331,22,0xffffffff,true);
         }
-        p.setStyle(Paint.Style.STROKE);p.setStrokeWidth(2.4f);p.setColor(ink);r.set(37,295,91,349);c.drawRoundRect(r,17,17,p);p.setStyle(Paint.Style.FILL);
+        float iconX=42+iconChoice*56;
+        p.setStyle(Paint.Style.STROKE);p.setStrokeWidth(2.4f);p.setColor(ink);r.set(iconX-5,295,iconX+49,349);c.drawRoundRect(r,17,17,p);p.setStyle(Paint.Style.FILL);
     }
     private int swatch(int i) { return i==0 ? accent : SWATCHES[i]; }
 
@@ -224,6 +299,13 @@ public final class NebulaIntroArt extends View {
         int typed=0;for(long press:presses) if(t>=press) typed++;
         float unlocked=span(t,2200,2400)*(1-span(t,3700,3950));
         if(t>=3950) typed=0;
+        final long now=SystemClock.uptimeMillis();
+        if (privacyTouched) {
+            // Код принят: замок открыт, точки зеленеют, потом всё сбрасывается.
+            if (unlockAt >= 0 && now - unlockAt > 1500) { unlockAt = -1; typedDigits = 0; }
+            typed = typedDigits;
+            unlocked = unlockAt >= 0 && now >= unlockAt ? span(now - unlockAt, 0, 220) : 0;
+        }
         circle(c,180,62,24,alpha(onHeader,.16f));
         lock(c,180,62,onHeader,unlocked);
         centeredText(c,t("Код-пароль","Passcode"),180,110,16,onHeader,true);
@@ -235,10 +317,11 @@ public final class NebulaIntroArt extends View {
         }
         for(int i=0;i<12;i++) {
             float x=124+(i%3)*56, y=196+(i/3)*41;
-            if(i==9) { circle(c,x,y,17,alpha(onHeader,.14f)); fingerprint(c,x,y,onHeader); continue; }
+            if(i==9) { circle(c,x,y,17,alpha(onHeader,.14f+(privacyTouched&&keyPressed==9?.3f*(1-clamp((now-keyAt)/260f)):0))); fingerprint(c,x,y,onHeader); continue; }
             if(i==11) { backspace(c,x,y,onHeader); continue; }
             float pressed=0;
-            for(int j=0;j<keys.length;j++) if(keys[j]==i && t>=presses[j]) pressed=Math.max(pressed,1-clamp((t-presses[j])/260f));
+            if (privacyTouched) { if (keyPressed == i) pressed = 1-clamp((now-keyAt)/260f); }
+            else for(int j=0;j<keys.length;j++) if(keys[j]==i && t>=presses[j]) pressed=Math.max(pressed,1-clamp((t-presses[j])/260f));
             circle(c,x,y,17,alpha(onHeader,.14f+.3f*pressed));
             centeredText(c,i==10?"0":String.valueOf(i+1),x,y+5.5f,16,onHeader,false);
         }
@@ -293,21 +376,26 @@ public final class NebulaIntroArt extends View {
     private void link(Canvas c, long t) {
         int save=clipCard(c,46,14,314,340,28,card,card);
         text(c,"NebulaLink",70,52,18,ink,true);
-        // Расходящиеся волны: соединение живое.
+        // Кнопка включает и выключает подключение. Волны есть, только пока
+        // соединение живое.
+        float on = disconnected ? 1-span(SystemClock.uptimeMillis()-toggleAt,0,250) : span(SystemClock.uptimeMillis()-toggleAt,0,250);
+        if (toggleAt == 0) on = 1;
+        int power = blend(muted, accent, on);
         for(int i=0;i<2;i++) {
             float wave=((t+i*1200)%2400)/2400f;
-            circle(c,180,128,42+wave*30,alpha(accent,.22f*(1-wave)));
+            circle(c,180,128,42+wave*30,alpha(accent,.22f*(1-wave)*on));
         }
-        circle(c,180,128,42,tint);
-        p.setStyle(Paint.Style.STROKE);p.setStrokeWidth(5);p.setStrokeCap(Paint.Cap.ROUND);p.setColor(accent);
+        circle(c,180,128,42,blend(raised,tint,on));
+        p.setStyle(Paint.Style.STROKE);p.setStrokeWidth(5);p.setStrokeCap(Paint.Cap.ROUND);p.setColor(power);
         r.set(162,110,198,146);c.drawArc(r,-55,290,false,p);c.drawLine(180,102,180,126,p);
         p.setStyle(Paint.Style.FILL);p.setStrokeCap(Paint.Cap.BUTT);
         p.setTypeface(AndroidUtilities.bold());p.setTextSize(14);
-        String status=t("Подключено","Connected");
+        String status=disconnected?t("Отключено","Disconnected"):t("Подключено","Connected");
         float statusWidth=p.measureText(status)+20;
         float blink=.55f+.45f*(float)Math.cos(t/2400.0*Math.PI*2);
-        circle(c,180-statusWidth/2+4,197,4.5f,alpha(GREEN,blink));
-        text(c,status,180-statusWidth/2+16,202,14,GREEN,true);
+        int statusColor=disconnected?muted:GREEN;
+        circle(c,180-statusWidth/2+4,197,4.5f,alpha(statusColor,disconnected?1:blink));
+        text(c,status,180-statusWidth/2+16,202,14,statusColor,true);
         round(c,66,226,294,284,18,raised);
         flag(c,94,255);
         fitText(c,t("Финляндия","Finland"),116,253,13,92,ink,true);

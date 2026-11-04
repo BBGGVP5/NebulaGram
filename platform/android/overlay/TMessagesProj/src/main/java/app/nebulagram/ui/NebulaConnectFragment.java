@@ -62,24 +62,23 @@ public class NebulaConnectFragment extends BaseFragment {
         image.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
         // Плитки под рисунком нет: в макетах её не было, а здесь она ещё и
         // срезала расходящуюся волну по краям квадрата.
-        int badge = NebulaLoginStyle.compact(104);
+        int badge = NebulaLoginStyle.compact(120);
         LinearLayout.LayoutParams badgeParams = new LinearLayout.LayoutParams(badge, badge);
-        badgeParams.gravity = Gravity.START;
+        badgeParams.gravity = Gravity.CENTER_HORIZONTAL;
         badgeParams.bottomMargin = NebulaLoginStyle.compact(18);
         root.content.addView(image, badgeParams);
 
         root.content.setGravity(Gravity.TOP);
         root.content.setPadding(0, NebulaLoginStyle.compact(12), 0, NebulaLoginStyle.compact(12));
-        TextView optionalStep = NebulaIntroFragment.eyebrow(context, theme.primary());
-        optionalStep.setText(NebulaText.text("НЕОБЯЗАТЕЛЬНЫЙ ШАГ", "OPTIONAL STEP"));
-        root.content.addView(optionalStep);
-        title = NebulaIntroFragment.text(context, 30, theme.onSurface(), true);
-        title.setGravity(Gravity.START);
+        // Тот же вид, что у приветствия и шагов входа: всё по центру, без
+        // надписи над заголовком. Что шаг необязательный, говорит подпись.
+        title = NebulaIntroFragment.text(context, 26, theme.onSurface(), true);
+        title.setGravity(Gravity.CENTER_HORIZONTAL);
         title.setText(NebulaIntroFragment.highlight(
                 LocaleController.getString(R.string.NebulaAuthLinkTitle), "NebulaLink", theme.primary()));
         root.content.addView(title, NebulaIntroFragment.width());
         subtitle = NebulaIntroFragment.text(context, 16, theme.onSurfaceVariant(), false);
-        subtitle.setGravity(Gravity.START);
+        subtitle.setGravity(Gravity.CENTER_HORIZONTAL);
         subtitle.setMaxLines(6);
         subtitle.setText(LocaleController.getString(R.string.NebulaAuthLinkSubtitle));
         LinearLayout.LayoutParams subtitleParams = NebulaIntroFragment.width();
