@@ -6,7 +6,8 @@ client=(ui/'NebulaTranslationClient.java').read_text(encoding='utf-8').replace('
 stubs=r'''package app.nebulagram.ui;
 import java.util.*;
 class SharedPreferences {int provider=4;int getInt(String k,int d){return provider;}String getString(String k,String d){return "configured";}}
-class NebulaTranslationSettings {static boolean fast;static SharedPreferences p=new SharedPreferences();static SharedPreferences global(){return p;}static boolean local(){return fast;}}
+class NebulaTranslationSettings {static boolean fast;static SharedPreferences p=new SharedPreferences();static SharedPreferences global(){return p;}static boolean local(){return fast;}static String web(){return "";}}
+class NebulaWebTranslation {static int chunkLimit(String w){return 1000;}static String name(String w){return w;}static String translate(String w,String t,String l,boolean s,java.util.function.BooleanSupplier c){throw new AssertionError("web engine not selected");}}
 class NebulaAiSecrets {static int reads;static String read(int p){reads++;return "key";}}
 class NebulaText {static String text(String r,String e){return e;}}
 class NebulaAiClient {static final int NANO=4;static int calls;void cancel(){}String generate(int p,String e,String k,String m,String prompt,String input){calls++;return input;}}

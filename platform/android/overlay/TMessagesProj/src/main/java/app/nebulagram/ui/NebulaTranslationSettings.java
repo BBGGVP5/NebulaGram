@@ -22,8 +22,26 @@ public final class NebulaTranslationSettings {
                 + ":" + p.getString("selected_service", "") + ":" + p.getInt("connection_revision", 0);
     }
     public static boolean local() { return global().getBoolean("live_translation_local", false); }
-    public static String translationIdentity() { return local() ? "local:mlkit" : connectionIdentity(); }
-    public static boolean translationAvailable() { return local() || NebulaAiAvailability.available(); }
+    /** A keyless web translator, or "" when on-device or AI translation is selected. */
+    public static String web() {
+        String value = local() ? "" : global().getString("live_translation_web", "");
+        return NebulaWebTranslation.known(value) ? value : "";
+    }
+    public static boolean webEngine() { return !web().isEmpty(); }
+    public static String webName() { return webEngine() ? NebulaWebTranslation.name(web()) : null; }
+    /** 0 on device, 1 AI provider, then one per web translator in NebulaWebTranslation.PROVIDERS. */
+    public static int engine() {
+        if (local()) return 0;
+        String value = web();
+        for (int i = 0; i < NebulaWebTranslation.PROVIDERS.length; i++) if (NebulaWebTranslation.PROVIDERS[i].equals(value)) return 2 + i;
+        return 1;
+    }
+    public static void setEngine(int engine) {
+        global().edit().putBoolean("live_translation_local", engine == 0)
+            .putString("live_translation_web", engine >= 2 ? NebulaWebTranslation.PROVIDERS[engine - 2] : "").apply();
+    }
+    public static String translationIdentity() { return local() ? "local:mlkit" : webEngine() ? "web:" + web() : connectionIdentity(); }
+    public static boolean translationAvailable() { return local() || webEngine() || NebulaAiAvailability.available(); }
     public static boolean automatic(int a, long d) { return prefs(a).getBoolean("draft_automatic_" + d, true); }
     public static boolean shortcut() { return global().getBoolean("composer_shortcut", false); }
     public static boolean outgoing(int a, long d) { return prefs(a).getBoolean("outgoing_" + d, false); }

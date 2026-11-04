@@ -22,7 +22,7 @@ class ApplicationLoader { static Context applicationContext=new Context(); }
 class NebulaTranslationSettings {
  static final SharedPreferences p=new SharedPreferences(); static String identity="nano:stable";
  static SharedPreferences prefs(int a){return p;} static SharedPreferences global(){return p;}
- static String connectionIdentity(){return identity;} static String translationIdentity(){return identity;} static boolean local(){return false;} static String label(String s){return s;}
+ static String connectionIdentity(){return identity;} static String translationIdentity(){return identity;} static boolean local(){return false;} static boolean webEngine(){return false;} static String webName(){return null;} static String label(String s){return s;}
  static boolean outgoing(int a,long d){return p.getBoolean("outgoing_"+d,false);}
 }
 class NebulaTasks { static long user(int a){return a+100;} }

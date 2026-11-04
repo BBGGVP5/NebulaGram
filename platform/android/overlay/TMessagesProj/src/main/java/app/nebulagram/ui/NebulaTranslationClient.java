@@ -16,6 +16,8 @@ public final class NebulaTranslationClient {
         if (cancelled) throw new InterruptedIOException();
         SharedPreferences prefs = NebulaTranslationSettings.global();
         boolean local = NebulaTranslationSettings.local();
+        String web = NebulaTranslationSettings.web();
+        if (!web.isEmpty()) return translateWeb(web, source, language, structured);
         int provider = prefs.getInt("provider", 0);
         String key = local || provider == NebulaAiClient.NANO ? "" : NebulaAiSecrets.read(provider);
         String model = prefs.getString("model_" + provider, ""), endpoint = prefs.getString("endpoint", "");
@@ -35,7 +37,22 @@ public final class NebulaTranslationClient {
         }
         return answer.toString();
     }
+    private String translateWeb(String web, String source, String language, boolean structured) throws Exception {
+        StringBuilder answer = new StringBuilder();
+        for (String chunk : NebulaTranslationText.parts(source, NebulaWebTranslation.chunkLimit(web))) {
+            if (cancelled) throw new InterruptedIOException();
+            if (chunk.trim().isEmpty()) { answer.append(chunk); continue; }
+            String result = NebulaWebTranslation.translate(web, chunk.trim(), language, structured, () -> cancelled);
+            if (cancelled) throw new InterruptedIOException();
+            if (!structured) result = NebulaTranslationFormat.checkedPlain(chunk, result);
+            answer.append(NebulaTranslationText.surround(chunk, result));
+        }
+        return answer.toString();
+    }
     public static String errorText(Exception error) {
+        String web = NebulaTranslationSettings.web();
+        if (!web.isEmpty()) return NebulaText.text("Не удалось перевести через ", "Translation failed via ") + NebulaWebTranslation.name(web)
+            + NebulaText.text(". Проверьте подключение.", ". Check your connection.");
         if (NebulaTranslationSettings.local()) return NebulaLocalTranslation.errorText(error);
         return NebulaTranslationSettings.global().getInt("provider", 0) == NebulaAiClient.NANO
             ? NebulaNanoAi.responseErrorText(error)
