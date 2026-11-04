@@ -43,7 +43,15 @@ public final class NebulaSettingsSchema {
         map.put("hide_send_as", Boolean.class);
         map.put("hide_tab_counters", Boolean.class);
         map.put("icon_pack", Integer.class);
+        map.put("inline_angle_unit", Integer.class);
+        map.put("inline_calculator", Boolean.class);
+        map.put("inline_currency", Boolean.class);
+        map.put("inline_default_currency", String.class);
+        map.put("inline_group_digits", Boolean.class);
         map.put("inline_math", Boolean.class);
+        map.put("inline_measurement", Integer.class);
+        map.put("inline_timezones", Boolean.class);
+        map.put("inline_units", Boolean.class);
         map.put("ios_composer", Boolean.class);
         map.put("ios_icons", Boolean.class);
         map.put("ios_unread", Boolean.class);
