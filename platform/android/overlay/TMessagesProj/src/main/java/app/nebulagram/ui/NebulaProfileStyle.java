@@ -63,9 +63,54 @@ public final class NebulaProfileStyle {
         final int base = Theme.getColor(Theme.key_windowBackgroundGray, provider) | 0xff000000;
         final int page = NebulaAppearance.profileStyle() && color != null
                 ? color.getBgColor1(Theme.isCurrentThemeDark()) | 0xff000000 : 0;
+        peerPages.put(list, page);
+        bannerBitmaps.remove(list);
         pages.put(list, page);
         if (page == 0) list.setBackgroundColor(base);
         else list.setBackground(new PageBackground(page, base));
+        invalidateTree(list, 0);
+    }
+
+    private static final WeakHashMap<View, Integer> peerPages = new WeakHashMap<>();
+    private static final WeakHashMap<View, java.lang.ref.WeakReference<android.graphics.Bitmap>> bannerBitmaps = new WeakHashMap<>();
+
+    /**
+     * У профиля без своего цвета, но с фотобаннером, страница берёт тон из
+     * фото: средний цвет снимка, затемнённый ночью и высветленный днём. Так
+     * баннер перетекает в страницу, а карточки ложатся на неё полупрозрачными
+     * плашками — тот же вид, что и у цветного профиля. Вызывается шапкой на
+     * каждом кадре, поэтому пересчёт идёт только при смене снимка.
+     */
+    public static void bannerPage(RecyclerListView list, org.telegram.messenger.ImageReceiver photo,
+                                  Theme.ResourcesProvider provider) {
+        if (list == null || photo == null || !NebulaAppearance.profileStyle()) return;
+        Integer peer = peerPages.get(list);
+        if (peer != null && peer != 0) return;
+        android.graphics.Bitmap bitmap = photo.getBitmap();
+        if (bitmap == null || bitmap.isRecycled()) return;
+        java.lang.ref.WeakReference<android.graphics.Bitmap> known = bannerBitmaps.get(list);
+        if (known != null && known.get() == bitmap) return;
+        bannerBitmaps.put(list, new java.lang.ref.WeakReference<>(bitmap));
+        int average;
+        try {
+            android.graphics.Bitmap source = bitmap.getConfig() == android.graphics.Bitmap.Config.HARDWARE
+                    ? bitmap.copy(android.graphics.Bitmap.Config.ARGB_8888, false) : bitmap;
+            android.graphics.Bitmap dot = android.graphics.Bitmap.createScaledBitmap(source, 1, 1, true);
+            average = dot.getPixel(0, 0) | 0xff000000;
+            if (dot != source) dot.recycle();
+            if (source != bitmap) source.recycle();
+        } catch (Throwable ignored) {
+            return;
+        }
+        float[] hsl = new float[3];
+        ColorUtils.colorToHSL(average, hsl);
+        boolean dark = Theme.isCurrentThemeDark();
+        hsl[1] = Math.min(hsl[1], dark ? .42f : .38f);
+        hsl[2] = dark ? Math.min(Math.max(hsl[2] * .45f, .12f), .22f) : Math.max(hsl[2], .86f);
+        int page = ColorUtils.HSLToColor(hsl) | 0xff000000;
+        final int base = Theme.getColor(Theme.key_windowBackgroundGray, provider) | 0xff000000;
+        pages.put(list, page);
+        list.setBackground(new PageBackground(page, base));
         invalidateTree(list, 0);
     }
 

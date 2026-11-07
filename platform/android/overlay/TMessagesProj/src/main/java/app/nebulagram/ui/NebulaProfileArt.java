@@ -114,6 +114,10 @@ public final class NebulaProfileArt {
         /** Цвет страницы профиля: баннер перетекает в него, а не в серый фон. */
         public void page(java.util.function.IntSupplier value) { page = value; }
 
+        private java.util.function.Consumer<ImageReceiver> bannerPhoto;
+        /** Фото баннера: из него берётся цвет страницы, если у профиля нет своего. */
+        public void bannerPhoto(java.util.function.Consumer<ImageReceiver> value) { bannerPhoto = value; }
+
         public void draw(Canvas canvas, int width, View avatar, SimpleTextView title,
                          View subtitle, View actions, BackupImageView galleryPhoto, float headerBottom,
                          float progress, float expanded, float media, float opening,
@@ -142,6 +146,7 @@ public final class NebulaProfileArt {
             if (!banner) return;
             final ImageReceiver collapsedReceiver = (collapsedPhoto != null ? collapsedPhoto : galleryPhoto).getImageReceiver();
             final ImageReceiver galleryReceiver = galleryPhoto != null ? galleryPhoto.getImageReceiver() : collapsedReceiver;
+            if (bannerPhoto != null) bannerPhoto.accept(collapsedReceiver);
             final float expansion = clamp(expanded);
             final NebulaTheme material = NebulaTheme.of(avatar.getContext());
             final int accent = accent(provider);
