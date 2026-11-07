@@ -160,46 +160,57 @@ public class NebulaSettingsFragment extends BaseFragment {
                 .trailing(NebulaRow.TRAIL_CHEVRON)
                 .withClick(v -> presentFragment(new NebulaMenuFragment())));
         sections.addView(connection, cardParams());
-        sections.addView(NebulaCard.header(context, NebulaText.text("Настройки", "Settings")));
-        NebulaCard categories = new NebulaCard(context);
-        categories.add(hub(context, R.drawable.msg_settings, "Основные", "General",
-                "Подключение и поведение", "Connection and behavior", NebulaSettingsHubFragment.GENERAL));
-        categories.add(hub(context, R.drawable.msg_customize, "Внешний вид", "Appearance",
-                "Цвета, стекло, значки", "Colors, glass, icons", NebulaSettingsHubFragment.APPEARANCE));
-        categories.add(hub(context, R.drawable.msg_discussion, "Чаты и сообщения", "Chats and messages",
-                "Ввод, камера, действия и задачи", "Composer, camera, actions and tasks", NebulaSettingsHubFragment.CHATS));
-        categories.add(hub(context, R.drawable.nebula_ai_spark, "ИИ и аудио", "AI and audio",
-                "Ассистент, перевод, расшифровка и голоса", "Assistant, translation, transcription and voices", NebulaSettingsHubFragment.TOOLS));
-        categories.add(hub(context, R.drawable.msg_list, "Навигация", "Navigation",
-                "Панель и папки", "Bar and folders", NebulaSettingsHubFragment.NAVIGATION));
+        // Каждая группа отвечает на один вопрос: как выглядит, что умеет,
+        // чьё это и кто мы. Раньше всё шло одним списком вперемешку.
+        sections.addView(NebulaCard.header(context, NebulaText.text("Интерфейс", "Interface")));
+        NebulaCard look = new NebulaCard(context);
+        look.add(hub(context, R.drawable.msg_customize, "Внешний вид", "Appearance",
+                "Тема, стекло, иконки и анимации", "Theme, glass, icons and motion", NebulaSettingsHubFragment.APPEARANCE));
+        look.add(hub(context, R.drawable.msg_discussion, "Чаты", "Chats",
+                "Шапка, пузыри, поле ввода и меню сообщений", "Header, bubbles, composer and message menu", NebulaSettingsHubFragment.CHATS));
+        look.add(hub(context, R.drawable.msg_list, "Навигация", "Navigation",
+                "Нижняя панель и папки", "Bottom bar and folders", NebulaSettingsHubFragment.NAVIGATION));
+        sections.addView(look, cardParams());
+
+        sections.addView(NebulaCard.header(context, NebulaText.text("Функции", "Features")));
+        NebulaCard features = new NebulaCard(context);
+        features.add(hub(context, R.drawable.nebula_ai_spark, "ИИ и перевод", "AI and translation",
+                "Ассистент, локальные модели, перевод и голоса", "Assistant, local models, translation and voices", NebulaSettingsHubFragment.TOOLS));
+        features.add(new NebulaRow(context).icon(R.drawable.msg_channel).title(NebulaText.text("Лента каналов", "Channel feed"))
+                .subtitle(NebulaText.text("Посты выбранных каналов и категории", "Posts from chosen channels, with categories"), false)
+                .trailing(NebulaRow.TRAIL_CHEVRON).withClick(v -> presentFragment(new NebulaFeedFragment(currentAccount))));
+        features.add(new NebulaRow(context).icon(R.drawable.msg_bots).title(NebulaText.text("Мои боты", "My bots"))
+                .subtitle(NebulaText.text("Профиль, переводы и управление", "Profiles, translations and management"), false)
+                .trailing(NebulaRow.TRAIL_CHEVRON).withClick(v -> presentFragment(new NebulaBotsFragment(currentAccount))));
+        sections.addView(features, cardParams());
+
+        sections.addView(NebulaCard.header(context, NebulaText.text("Аккаунты и безопасность", "Accounts and security")));
+        NebulaCard security = new NebulaCard(context);
         accountsRow = new NebulaRow(context).icon(R.drawable.msg_openprofile).title(NebulaText.text("Аккаунты", "Accounts"))
                 .subtitle(accountSummary(), false).trailing(NebulaRow.TRAIL_CHEVRON)
                 .withClick(v -> presentFragment(new NebulaAccountsFragment()));
-        categories.add(accountsRow);
-        categories.add(new NebulaRow(context).icon(R.drawable.msg_channel).title(NebulaText.text("Лента каналов", "Channel feed"))
-                .subtitle(NebulaText.text("Посты выбранных каналов и категории", "Posts from chosen channels, with categories"), false)
-                .trailing(NebulaRow.TRAIL_CHEVRON).withClick(v -> presentFragment(new NebulaFeedFragment(currentAccount))));
-        categories.add(new NebulaRow(context).icon(R.drawable.msg_bots).title(NebulaText.text("Мои боты", "My bots"))
-                .subtitle(NebulaText.text("Профиль, переводы и управление", "Profiles, translations and management"), false)
-                .trailing(NebulaRow.TRAIL_CHEVRON).withClick(v -> presentFragment(new NebulaBotsFragment(currentAccount))));
-        categories.add(hub(context, R.drawable.msg_secret, "Конфиденциальность", "Privacy",
-                "Архив и защита", "Archive and protection", NebulaSettingsHubFragment.PRIVACY));
-        categories.add(new NebulaRow(context).icon(R.drawable.msg_info).title(NebulaText.text("О приложении", "About"))
-                .subtitle(NebulaText.text("Версия, обновления, сообщество и поддержка", "Version, updates, community and support"), false)
-                .trailing(NebulaRow.TRAIL_CHEVRON).withClick(v -> presentFragment(new NebulaSectionFragment(NebulaSectionFragment.SECTION_ABOUT))));
-        sections.addView(categories, cardParams());
+        security.add(accountsRow);
+        security.add(hub(context, R.drawable.msg_secret, "Конфиденциальность", "Privacy",
+                "Удалённые сообщения, пароли чатов и защита", "Deleted messages, chat passwords and protection", NebulaSettingsHubFragment.PRIVACY));
+        security.add(hub(context, R.drawable.msg_settings, "Основные", "General",
+                "Поведение приложения и копия настроек", "App behavior and settings backup", NebulaSettingsHubFragment.GENERAL));
+        sections.addView(security, cardParams());
 
-        sections.addView(NebulaCard.header(context, NebulaText.text("Ссылки", "Links")));
-        NebulaCard links = new NebulaCard(context);
+        sections.addView(NebulaCard.header(context, "NebulaGram"));
+        NebulaCard about = new NebulaCard(context);
+        about.add(new NebulaRow(context).icon(R.drawable.msg_info).title(NebulaText.text("О приложении", "About"))
+                .subtitle(NebulaText.text("Версия, обновления, значки и поддержка", "Version, updates, badges and support"), false)
+                .trailing(NebulaRow.TRAIL_CHEVRON).withClick(v -> presentFragment(new NebulaSectionFragment(NebulaSectionFragment.SECTION_ABOUT))));
+
         // Здесь только то, что существует. Канал у проекта один; бета-канал,
         // форум и аккаунт разработчика появятся, когда появятся сами, а не
         // ссылками в никуда.
-        links.add(new NebulaRow(context).icon(R.drawable.msg_channel)
+        about.add(new NebulaRow(context).icon(R.drawable.msg_channel)
                 .title(NebulaText.text("Канал", "Channel"))
                 .subtitle("@ngram_official", true).trailing(NebulaRow.TRAIL_CHEVRON)
                 .withClick(v -> org.telegram.messenger.browser.Browser.openUrl(
                         context, "https://t.me/ngram_official")));
-        sections.addView(links, cardParams());
+        sections.addView(about, cardParams());
     }
 
     private String accountSummary() {

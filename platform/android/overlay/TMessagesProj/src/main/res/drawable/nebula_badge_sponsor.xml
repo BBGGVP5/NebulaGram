@@ -1,0 +1,7 @@
+<!-- Generated from design/badges/roles.json. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android" android:width="28dp" android:height="28dp" android:viewportWidth="28" android:viewportHeight="28">
+    <path android:fillColor="#3D8BF2" android:pathData="M8,4 L20,4 L26,11 L14,25 L2,11 Z"/>
+    <path android:fillColor="#8CC3FF" android:pathData="M8,4 L20,4 L26,11 L2,11 Z"/>
+    <path android:fillColor="#2A6CC9" android:pathData="M14,25 L26,11 L17,11 Z"/>
+    <path android:fillColor="#00000000" android:strokeColor="#FFFFFF" android:strokeWidth="1.6" android:strokeLineCap="round" android:strokeLineJoin="round" android:pathData="M8,11 L14,4.5 L20,11 M8,11 L14,22"/>
+</vector>

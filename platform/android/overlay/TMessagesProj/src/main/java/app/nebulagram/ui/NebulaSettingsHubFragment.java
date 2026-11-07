@@ -52,7 +52,7 @@ public final class NebulaSettingsHubFragment extends BaseFragment {
         String[] details = {
                 NebulaText.text("Подключение и поведение приложения.", "Connection and app behavior."),
                 NebulaText.text("Цвета, стекло и значки мессенджера.", "Colors, glass and messenger icons."),
-                NebulaText.text("Ввод, сообщения, камера и задачи.", "Composer, messages, camera and tasks."),
+                NebulaText.text("Шапка, пузыри, меню, медиа и инструменты.", "Header, bubbles, menu, media and tools."),
                 NebulaText.text("Нижняя панель и папки чатов.", "The bottom bar and chat folders."),
                 NebulaText.text("Локальная защита и сохранение сообщений.", "Local protection and message retention."),
                 NebulaText.text("Ассистент, перевод, расшифровка и голоса.", "Assistant, translation, transcription and voices.")};
@@ -75,12 +75,12 @@ public final class NebulaSettingsHubFragment extends BaseFragment {
                         () -> presentFragment(new NebulaIconPickerFragment())));
                 break;
             case CHATS:
-                card.add(row(context, R.drawable.msg_videocall, "Камера", "Camera", "Съёмка и кружки", "Capture and round videos",
-                        () -> presentFragment(new NebulaCameraFragment())));
                 card.add(section(context, R.drawable.msg_discussion, "Оформление чата", "Chat appearance",
                         NebulaSectionFragment.SECTION_CHATS));
                 card.add(section(context, R.drawable.menu_reply, "Сообщения", "Messages",
                         NebulaSectionFragment.SECTION_MESSAGES));
+                card.add(row(context, R.drawable.msg_list, "Меню сообщения", "Message menu", "Быстрые действия, анимация и пункты", "Quick actions, animation and items",
+                        () -> presentFragment(new NebulaMessageMenuFragment())));
                 card.add(section(context, R.drawable.msg_openprofile, "Профиль", "Profile",
                         NebulaSectionFragment.SECTION_PROFILE));
                 break;
@@ -103,7 +103,7 @@ public final class NebulaSettingsHubFragment extends BaseFragment {
             default:
                 break;
         }
-        if (!card.isEmpty()) NebulaFormUi.group(content, category == CHATS ? NebulaText.text("Оформление переписки", "Conversation appearance") : title().toString(), card);
+        if (!card.isEmpty()) NebulaFormUi.group(content, category == CHATS ? NebulaText.text("Оформление", "Appearance") : title().toString(), card);
         if (category == TOOLS) {
             NebulaCard ai = new NebulaCard(context);
             ai.add(row(context, R.drawable.nebula_ai_spark, "Nebula AI", "Nebula AI", "Чат, модель и инструкции", "Chat, model and instructions", () -> presentFragment(new NebulaAiSettingsFragment())));
@@ -113,11 +113,14 @@ public final class NebulaSettingsHubFragment extends BaseFragment {
             NebulaFormUi.group(content, NebulaText.text("ИИ и аудио", "AI and audio"), ai);
         }
         if (category == CHATS) {
+            NebulaCard media = new NebulaCard(context);
+            media.add(row(context, R.drawable.msg_videocall, "Камера", "Camera", "Съёмка и кружки", "Capture and round videos", () -> presentFragment(new NebulaCameraFragment())));
+            media.add(row(context, R.drawable.msg_filled_data_music, "Музыка и документы", "Music and documents", "Плеер, тексты песен и просмотр PDF", "Player, lyrics and PDF viewer", () -> presentFragment(new NebulaMediaFeaturesFragment())));
+            NebulaFormUi.group(content, NebulaText.text("Медиа", "Media"), media);
             NebulaCard tools = new NebulaCard(context);
             tools.add(row(context, R.drawable.nebula_settings_text_tools, "Инструменты текста", "Text tools", "Перевод, сокращение, озвучивание и задачи", "Translation, summaries, speech and tasks", () -> presentFragment(new NebulaMessageToolsFragment(null))));
             tools.add(row(context, R.drawable.menu_reply, "Быстрые ответы", "Quick replies", "Личные шаблоны для текущего аккаунта", "Personal templates for this account", () -> presentFragment(new NebulaQuickRepliesFragment(currentAccount, null, null))));
             tools.add(row(context, R.drawable.msg_calendar, "Список дел", "Tasks", "Задачи и напоминания", "Tasks and reminders", () -> presentFragment(new NebulaTasksFragment())));
-            tools.add(row(context, R.drawable.msg_filled_data_music, "Музыка и документы", "Music and documents", "Плеер, тексты песен и просмотр PDF", "Player, lyrics and PDF viewer", () -> presentFragment(new NebulaMediaFeaturesFragment())));
             tools.add(row(context, R.drawable.msg_saved, "Метки в Избранном", "Saved Messages labels", "Ваши метки и сохранённые сообщения", "Your labels and saved messages", () -> presentFragment(new NebulaSavedTagsFragment(currentAccount, 0, null))));
             NebulaFormUi.group(content, NebulaText.text("Инструменты сообщений", "Message tools"), tools);
         }
@@ -128,10 +131,10 @@ public final class NebulaSettingsHubFragment extends BaseFragment {
         switch (category) {
             case GENERAL: return NebulaText.text("Основные", "General");
             case APPEARANCE: return NebulaText.text("Внешний вид", "Appearance");
-            case CHATS: return NebulaText.text("Чаты и сообщения", "Chats and messages");
+            case CHATS: return NebulaText.text("Чаты", "Chats");
             case NAVIGATION: return NebulaText.text("Навигация", "Navigation");
             case PRIVACY: return NebulaText.text("Конфиденциальность", "Privacy");
-            default: return NebulaText.text("ИИ и аудио", "AI and audio");
+            default: return NebulaText.text("ИИ и перевод", "AI and translation");
         }
     }
 

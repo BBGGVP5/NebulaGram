@@ -55,6 +55,9 @@ public final class NebulaSettingsSearch {
     public static ArrayList<Entry> all() {
         ArrayList<Entry> result = new ArrayList<>();
         result.add(new Entry(-62, NebulaText.text("Результаты в поле ввода", "Inline results"), NebulaText.text("Калькулятор, валюты, единицы, часовые пояса", "Calculator, currencies, units, time zones"), R.drawable.msg_edit));
+        result.add(new Entry(NebulaSectionFragment.SECTION_CHATS, NebulaText.text("Размытые сообщения", "Blurred messages"), NebulaText.text("Пузыри с размытыми обоями", "Bubbles with blurred wallpaper"), R.drawable.msg_photo_settings));
+        result.add(new Entry(NebulaSectionFragment.SECTION_CHATS, NebulaText.text("Адаптивная шапка", "Adaptive header"), NebulaText.text("Во всех чатах и в «Избранном»", "In every chat and Saved Messages"), R.drawable.msg_customize));
+        result.add(new Entry(-28, NebulaText.text("Строка быстрых действий", "Quick action row"), NebulaText.text("Ответ, копирование, пересылка иконками · анимация Cherrygram", "Reply, copy, forward as icons · Cherrygram animation"), R.drawable.msg_list));
         result.add(new Entry(-34, NebulaText.text("Свой шрифт", "Custom font"), "TTF · OTF", R.drawable.msg_edit));
         result.add(new Entry(-36, NebulaText.text("Лента каналов", "Channel feed"), NebulaText.text("Категории, вкладки и выбранные каналы", "Categories, tabs and chosen channels"), R.drawable.msg_channel));
         result.add(new Entry(-35, NebulaText.text("Мои боты", "My bots"), NebulaText.text("Переводы, меню, права, звёзды и бизнес", "Translations, menu, rights, stars and business"), R.drawable.msg_settings));
@@ -67,7 +70,7 @@ public final class NebulaSettingsSearch {
         result.add(new Entry(-33, NebulaText.text("История правок", "Edit history"), NebulaText.text("Предыдущие версии сообщений", "Previous message versions"), R.drawable.msg_edit));
         result.add(new Entry(-29, NebulaText.text("Аккаунты", "Accounts"), NebulaText.text("Поиск, порядок, переключение, добавить аккаунт", "Search, order, switch, add account"), R.drawable.msg_openprofile));
         result.add(new Entry(-30, NebulaText.text("Аудио и голоса", "Audio and voices"), NebulaText.text("Расшифровка голосовых, Aa, озвучивание, на устройстве", "Voice transcription, Aa, speech, on device"), R.drawable.msg_voicechat));
-        result.add(new Entry(-31, NebulaText.text("ИИ и аудио", "AI and audio"), NebulaText.text("Сервисы, модели, перевод и распознавание", "Services, models, translation and recognition"), R.drawable.nebula_ai_spark));
+        result.add(new Entry(-31, NebulaText.text("ИИ и перевод", "AI and translation"), NebulaText.text("Сервисы, модели, перевод и распознавание", "Services, models, translation and recognition"), R.drawable.nebula_ai_spark));
         result.add(new Entry(1, NebulaText.text("Панель форматирования", "Formatting toolbar"), NebulaText.text("Клавиатура, жирный, курсив, цитата, спойлер, ссылка", "Keyboard, bold, italic, quote, spoiler, link"), R.drawable.msg_edit));
         result.add(new Entry(-27, NebulaText.text("Фильтр сообщений", "Message filter"), NebulaText.text("Слова, транслитерация, исключения, заблокированные", "Words, transliteration, exceptions, blocked users"), R.drawable.msg_search));
         result.add(new Entry(-28, NebulaText.text("Меню сообщения", "Message menu"), NebulaText.text("Действия, высота, компактный вид и размытие", "Actions, height, compact appearance and blur"), R.drawable.msg_list));

@@ -110,7 +110,7 @@ assert chat.count("NebulaMessageMenuLayout.sourceY(") == 1
 assert "skipDraw && !nebulaLiftedMessage" in chat, "lifted original is rendered twice"
 assert "popupLayout.nebulaReveal.setAnchor(v)" in chat
 assert "scrimPopupWindow.startAnimation();" not in chat
-assert chat.count("popupLayout.nebulaReveal.setMorphEnabled(false);") == 3
+assert chat.count("popupLayout.nebulaReveal.setMorphEnabled(false);") == 4, "three placements plus the Cherrygram entrance switch the morph off"
 assert "if (app.nebulagram.ui.NebulaMenuStyle.animated()) scrimPopupWindow.setAnimationStyle(0);" not in chat
 assert ("if (app.nebulagram.ui.NebulaAppearance.messageMenuBelow()\n"
         "                    &&") in chat, "below placement should not depend on blur"

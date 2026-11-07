@@ -134,13 +134,15 @@ check(!NebulaDialogsTitle.sameTitle(new EmojiTitle(1,0),new EmojiTitle(2,0)),"Di
 check(!NebulaDialogsTitle.sameTitle(new EmojiTitle(1,0),new EmojiTitle(1,1)),"Emoji position must invalidate title");
 check(!NebulaDialogsTitle.sameTitle(new EmojiTitle(1,0),"**"),"Removing custom emoji must invalidate title");
 
-for(boolean material:new boolean[]{false,true})for(boolean normal:new boolean[]{false,true})for(boolean saved:new boolean[]{false,true}) {
- app.nebulagram.ui.NebulaTheme.enabled=material;
+for(boolean adaptive:new boolean[]{false,true})for(boolean material:new boolean[]{false,true})for(boolean normal:new boolean[]{false,true})for(boolean saved:new boolean[]{false,true}) {
+ app.nebulagram.ui.NebulaTheme.enabled=material; NebulaAppearance.enabled=adaptive;
  org.telegram.ui.ActionBar.ActionBar bar=new org.telegram.ui.ActionBar.ActionBar();
  NebulaChatStyle.header(bar,normal,saved);
- check(bar.savedClassic==(normal&&saved),"Saved Messages layout must not depend on palette");
- check(bar.floating==(normal&&!saved),"Saved Messages never uses floating header");
+ check(bar.savedClassic==(normal&&saved&&!adaptive),"Saved Messages keeps the classic layout only without the adaptive header");
+ check(bar.floating==(normal&&(!saved||adaptive)),"The adaptive header covers Saved Messages too");
+ check(bar.hidden==(normal&&adaptive),"The avatar opens the menu in every adaptive chat");
 }
+NebulaAppearance.enabled=true;
 app.nebulagram.ui.NebulaTheme.enabled=true;
 int cases=0;for(boolean bot:new boolean[]{false,true})for(float density:new float[]{1,2.25f,3})for(int width:new int[]{320,360,448,800})for(int height:new int[]{44,92,140}){
 AndroidUtilities.density=density; NebulaAppearance.enabled=true; int w=dp(width),d=dp(44),margin=dp(7),h=dp(height);

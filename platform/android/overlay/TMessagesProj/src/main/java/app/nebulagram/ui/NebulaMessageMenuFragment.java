@@ -16,6 +16,8 @@ public final class NebulaMessageMenuFragment extends BaseFragment {
         content.addView(preview);
         content.addView(NebulaFormUi.note(c,text("Нажмите на сообщение, чтобы проверить меню","Tap the message to preview the menu")));
         NebulaCard layout=new NebulaCard(c);
+        layout.add(toggle(c,"split",true,"Строка быстрых действий","Quick action row").subtitle(text("Ответ, копирование, изменение и пересылка — иконками под списком","Reply, copy, edit and forward as icons below the list"),false));
+        layout.add(toggle(c,"cherry_motion",true,"Анимация как в Cherrygram","Cherrygram animation").subtitle(text("Меню вырастает из сообщения с лёгкой пружиной","The menu grows out of the message with a light spring"),false));
         layout.add(toggle(c,"compact",false,"Компактный вид","Compact appearance"));
         layout.add(new NebulaRow(c).title(text("Размытие фона","Background blur")).trailing(NebulaRow.TRAIL_SWITCH).checked(NebulaAppearance.messageMenuBlur()).withClick(v->NebulaAppearance.setMessageMenuBlur(((NebulaRow)v).toggleChecked())));
         layout.add(new NebulaRow(c).title(text("Меню под сообщением","Menu below the message")).trailing(NebulaRow.TRAIL_SWITCH).checked(NebulaAppearance.messageMenuBelow()).withClick(v->NebulaAppearance.setMessageMenuBelow(((NebulaRow)v).toggleChecked())));
@@ -32,7 +34,7 @@ public final class NebulaMessageMenuFragment extends BaseFragment {
         items.add(toggle(c,"sound",true,"Сохранить звук","Save sound"));
         items.add(toggle(c,"tools",true,"Инструменты NebulaGram","NebulaGram tools"));
         NebulaFormUi.group(content,text("Действия","Actions"),items);
-        content.addView(NebulaFormUi.note(c,text("Появляются только действия, доступные для выбранного сообщения. Редактирование и удаление остаются в меню. Настройки применяются при следующем открытии меню.","Only actions available for the selected message are shown. Edit and delete remain in the menu. Changes apply the next time you open it.")));
+        content.addView(NebulaFormUi.note(c,text("Появляются только действия, доступные для выбранного сообщения. Редактирование и удаление всегда остаются доступны. Настройки применяются при следующем открытии меню.","Only actions available for the selected message are shown. Edit and delete always stay available. Changes apply the next time you open it.")));
         return fragmentView=NebulaSettingsLayout.wrap(c,actionBar,NebulaFormUi.scroll(c,content),-28);
     }
     private void previewMenu(View anchor){

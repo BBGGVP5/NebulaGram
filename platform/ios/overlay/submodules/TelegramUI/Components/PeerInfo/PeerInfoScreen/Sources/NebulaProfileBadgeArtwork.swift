@@ -12,7 +12,7 @@ enum NebulaProfileBadgeArtwork {
     }
     private static let vectorImages: [NebulaBadge: UIImage] = {
         var result: [NebulaBadge: UIImage] = [:]
-        for badge in [NebulaBadge.dev, .tester, .heart] {
+        for badge in [NebulaBadge.dev, .tester, .heart, .donor, .sponsor, .moderator] {
             let format = UIGraphicsImageRendererFormat()
             format.scale = 3
             format.opaque = false
@@ -186,6 +186,148 @@ enum NebulaProfileBadgeArtwork {
             path.addLine(to: CGPoint(x: 16.5, y: 10))
             path.close()
             color(0xFFF4F8).setFill()
+            path.fill()
+            }
+        case .donor:
+            do {
+            let path = UIBezierPath()
+            path.move(to: CGPoint(x: 14, y: 2))
+            path.addCurve(to: CGPoint(x: 26, y: 14), controlPoint1: CGPoint(x: 20.6, y: 2), controlPoint2: CGPoint(x: 26, y: 7.4))
+            path.addCurve(to: CGPoint(x: 14, y: 26), controlPoint1: CGPoint(x: 26, y: 20.6), controlPoint2: CGPoint(x: 20.6, y: 26))
+            path.addCurve(to: CGPoint(x: 2, y: 14), controlPoint1: CGPoint(x: 7.4, y: 26), controlPoint2: CGPoint(x: 2, y: 20.6))
+            path.addCurve(to: CGPoint(x: 14, y: 2), controlPoint1: CGPoint(x: 2, y: 7.4), controlPoint2: CGPoint(x: 7.4, y: 2))
+            path.close()
+            color(0xF2B33D).setFill()
+            path.fill()
+            }
+            do {
+            let path = UIBezierPath()
+            path.move(to: CGPoint(x: 14, y: 2))
+            path.addCurve(to: CGPoint(x: 2, y: 14), controlPoint1: CGPoint(x: 7.4, y: 2), controlPoint2: CGPoint(x: 2, y: 7.4))
+            path.addLine(to: CGPoint(x: 14, y: 14))
+            path.close()
+            color(0xF8D27A).setFill()
+            path.fill()
+            }
+            do {
+            let path = UIBezierPath()
+            path.move(to: CGPoint(x: 26, y: 14))
+            path.addCurve(to: CGPoint(x: 14, y: 26), controlPoint1: CGPoint(x: 26, y: 20.6), controlPoint2: CGPoint(x: 20.6, y: 26))
+            path.addLine(to: CGPoint(x: 14, y: 14))
+            path.close()
+            color(0xD68E22).setFill()
+            path.fill()
+            }
+            do {
+            let path = UIBezierPath()
+            path.move(to: CGPoint(x: 14, y: 20))
+            path.addCurve(to: CGPoint(x: 8, y: 12.3), controlPoint1: CGPoint(x: 10.2, y: 17.2), controlPoint2: CGPoint(x: 8, y: 15))
+            path.addCurve(to: CGPoint(x: 12.4, y: 10), controlPoint1: CGPoint(x: 8, y: 10), controlPoint2: CGPoint(x: 10.6, y: 8.7))
+            path.addLine(to: CGPoint(x: 14, y: 11.4))
+            path.addLine(to: CGPoint(x: 15.6, y: 10))
+            path.addCurve(to: CGPoint(x: 20, y: 12.3), controlPoint1: CGPoint(x: 17.4, y: 8.7), controlPoint2: CGPoint(x: 20, y: 10))
+            path.addCurve(to: CGPoint(x: 14, y: 20), controlPoint1: CGPoint(x: 20, y: 15), controlPoint2: CGPoint(x: 17.8, y: 17.2))
+            path.close()
+            color(0xFFFFFF).setFill()
+            path.fill()
+            }
+        case .sponsor:
+            do {
+            let path = UIBezierPath()
+            path.move(to: CGPoint(x: 8, y: 4))
+            path.addLine(to: CGPoint(x: 20, y: 4))
+            path.addLine(to: CGPoint(x: 26, y: 11))
+            path.addLine(to: CGPoint(x: 14, y: 25))
+            path.addLine(to: CGPoint(x: 2, y: 11))
+            path.close()
+            color(0x3D8BF2).setFill()
+            path.fill()
+            }
+            do {
+            let path = UIBezierPath()
+            path.move(to: CGPoint(x: 8, y: 4))
+            path.addLine(to: CGPoint(x: 20, y: 4))
+            path.addLine(to: CGPoint(x: 26, y: 11))
+            path.addLine(to: CGPoint(x: 2, y: 11))
+            path.close()
+            color(0x8CC3FF).setFill()
+            path.fill()
+            }
+            do {
+            let path = UIBezierPath()
+            path.move(to: CGPoint(x: 14, y: 25))
+            path.addLine(to: CGPoint(x: 26, y: 11))
+            path.addLine(to: CGPoint(x: 17, y: 11))
+            path.close()
+            color(0x2A6CC9).setFill()
+            path.fill()
+            }
+            do {
+            let path = UIBezierPath()
+            path.move(to: CGPoint(x: 8, y: 11))
+            path.addLine(to: CGPoint(x: 14, y: 4.5))
+            path.addLine(to: CGPoint(x: 20, y: 11))
+            path.move(to: CGPoint(x: 8, y: 11))
+            path.addLine(to: CGPoint(x: 14, y: 22))
+            path.lineWidth = 1.6
+            path.lineCapStyle = .round
+            path.lineJoinStyle = .round
+            color(0xFFFFFF).setStroke()
+            path.stroke()
+            }
+        case .moderator:
+            do {
+            let path = UIBezierPath()
+            path.move(to: CGPoint(x: 7, y: 2))
+            path.addLine(to: CGPoint(x: 21, y: 2))
+            path.addQuadCurve(to: CGPoint(x: 26, y: 7), controlPoint: CGPoint(x: 26, y: 2))
+            path.addLine(to: CGPoint(x: 26, y: 21))
+            path.addQuadCurve(to: CGPoint(x: 21, y: 26), controlPoint: CGPoint(x: 26, y: 26))
+            path.addLine(to: CGPoint(x: 7, y: 26))
+            path.addQuadCurve(to: CGPoint(x: 2, y: 21), controlPoint: CGPoint(x: 2, y: 26))
+            path.addLine(to: CGPoint(x: 2, y: 7))
+            path.addQuadCurve(to: CGPoint(x: 7, y: 2), controlPoint: CGPoint(x: 2, y: 2))
+            path.close()
+            color(0xF08A3C).setFill()
+            path.fill()
+            }
+            do {
+            let path = UIBezierPath()
+            path.move(to: CGPoint(x: 7, y: 2))
+            path.addLine(to: CGPoint(x: 21, y: 2))
+            path.addQuadCurve(to: CGPoint(x: 26, y: 7), controlPoint: CGPoint(x: 26, y: 2))
+            path.addLine(to: CGPoint(x: 14, y: 14))
+            path.addLine(to: CGPoint(x: 2, y: 7))
+            path.addQuadCurve(to: CGPoint(x: 7, y: 2), controlPoint: CGPoint(x: 2, y: 2))
+            path.close()
+            color(0xF7B06A).setFill()
+            path.fill()
+            }
+            do {
+            let path = UIBezierPath()
+            path.move(to: CGPoint(x: 14, y: 14))
+            path.addLine(to: CGPoint(x: 26, y: 21))
+            path.addQuadCurve(to: CGPoint(x: 21, y: 26), controlPoint: CGPoint(x: 26, y: 26))
+            path.addLine(to: CGPoint(x: 7, y: 26))
+            path.addQuadCurve(to: CGPoint(x: 2, y: 21), controlPoint: CGPoint(x: 2, y: 26))
+            path.close()
+            color(0xD46E22).setFill()
+            path.fill()
+            }
+            do {
+            let path = UIBezierPath()
+            path.move(to: CGPoint(x: 14, y: 6.5))
+            path.addLine(to: CGPoint(x: 15.9, y: 11))
+            path.addLine(to: CGPoint(x: 20.7, y: 11.4))
+            path.addLine(to: CGPoint(x: 17.1, y: 14.6))
+            path.addLine(to: CGPoint(x: 18.2, y: 19.3))
+            path.addLine(to: CGPoint(x: 14, y: 16.8))
+            path.addLine(to: CGPoint(x: 9.8, y: 19.3))
+            path.addLine(to: CGPoint(x: 10.9, y: 14.6))
+            path.addLine(to: CGPoint(x: 7.3, y: 11.4))
+            path.addLine(to: CGPoint(x: 12.1, y: 11))
+            path.close()
+            color(0xFFFFFF).setFill()
             path.fill()
             }
         default: break

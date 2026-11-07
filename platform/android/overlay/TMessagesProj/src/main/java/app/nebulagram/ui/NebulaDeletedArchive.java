@@ -298,7 +298,14 @@ public final class NebulaDeletedArchive {
     private static boolean protectedPeer(int account,long peer) {
         if(DialogObject.isEncryptedDialog(peer))return false;
         org.telegram.messenger.MessagesController controller=org.telegram.messenger.MessagesController.getInstance(account);
-        if(peer<0){TLRPC.Chat chat=controller.getChat(-peer);return chat==null||chat.noforwards;}
+        if(peer<0){
+            TLRPC.Chat chat=controller.getChat(-peer);
+            // A group or channel not yet loaded into memory is not "protected":
+            // read it from the database (we are on its queue) instead of
+            // silently dropping every deleted message of that chat.
+            if(chat==null)chat=MessagesStorage.getInstance(account).getChat(-peer);
+            return chat!=null&&chat.noforwards;
+        }
         TLRPC.UserFull full=controller.getUserFull(peer);
         return full!=null&&(full.noforwards_my_enabled||full.noforwards_peer_enabled);
     }

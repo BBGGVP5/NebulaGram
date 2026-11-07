@@ -5,7 +5,7 @@ import FoundationNetworking
 
 /// Wire values match the existing Android client and badge service.
 public enum NebulaBadge: String, CaseIterable {
-    case supporter, dev, tester, star, heart
+    case supporter, dev, tester, star, heart, donor, sponsor, moderator
 
     public var title: String {
         switch self {
@@ -14,6 +14,9 @@ public enum NebulaBadge: String, CaseIterable {
         case .tester: return "Tester"
         case .star: return "Mira"
         case .heart: return "Friend"
+        case .donor: return "Donor"
+        case .sponsor: return "Sponsor"
+        case .moderator: return "Moderator"
         }
     }
 }

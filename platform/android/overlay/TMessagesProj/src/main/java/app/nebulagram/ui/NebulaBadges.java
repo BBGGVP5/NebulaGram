@@ -99,6 +99,9 @@ public final class NebulaBadges {
             case "tester": return R.drawable.nebula_badge_tester;
             case "star": return R.drawable.nebula_badge_star;
             case "heart": return R.drawable.nebula_badge_heart;
+            case "donor": return R.drawable.nebula_badge_donor;
+            case "sponsor": return R.drawable.nebula_badge_sponsor;
+            case "moderator": return R.drawable.nebula_badge_moderator;
             default: return 0;
         }
     }
@@ -202,22 +205,39 @@ public final class NebulaBadges {
             // Keep the service key so existing assignments automatically receive Mira artwork.
             case "star": return "Mira";
             case "heart": return NebulaText.text("Спасибо", "Thanks");
+            case "donor": return NebulaText.text("Донатер", "Donor");
+            case "sponsor": return NebulaText.text("Спонсор", "Sponsor");
+            case "moderator": return NebulaText.text("Модератор", "Moderator");
             default: return null;
         }
     }
 
-    /** Popup shown when the badge beside a profile name is tapped. */
+    /** Bottom sheet shown when the badge beside a profile name is tapped. */
     public static void showInfo(BaseFragment fragment, long userId) {
         String kind = badge(userId);
-        String title = title(kind);
-        if (fragment == null || title == null) return;
-        String description = description(kind);
-        fragment.showDialog(new NebulaDialog.Builder(fragment.getParentActivity(), fragment.getResourceProvider())
-                .setTitle(title)
-                .setMessage(description)
-                .setPositiveButton(NebulaText.text("Подробнее", "More details"), (dialog, which) ->
-                        fragment.presentFragment(new NebulaBadgeInfoFragment(kind)))
-                .setNegativeButton(NebulaText.text("Закрыть", "Close"), null).create());
+        if (fragment == null || title(kind) == null || fragment.getParentActivity() == null) return;
+        NebulaBadgeSheet.show(fragment, kind);
+    }
+
+    /** How a badge is earned, shown under its description. */
+    public static String howToGet(String kind) {
+        if (kind == null) return "";
+        switch (kind) {
+            case "donor": return NebulaText.text("Выдаётся после любого доната проекту.", "Given after any donation to the project.");
+            case "sponsor": return NebulaText.text("Выдаётся за регулярную поддержку проекта.", "Given for regular support of the project.");
+            case "supporter": return NebulaText.text("Выдаётся тем, кто помогает проекту делом или донатом.", "Given to those who help the project with work or a donation.");
+            case "dev": return NebulaText.text("Только у разработчиков NebulaGram.", "Only NebulaGram developers have it.");
+            case "moderator": return NebulaText.text("Выдаётся модераторам чатов NebulaGram.", "Given to NebulaGram chat moderators.");
+            case "tester": return NebulaText.text("Выдаётся участникам бета-тестирования.", "Given to beta testers.");
+            case "star": return NebulaText.text("Особый значок сообщества, выдаётся командой.", "A special community badge given by the team.");
+            case "heart": return NebulaText.text("Выдаётся командой в знак благодарности.", "Given by the team as a thank-you.");
+            default: return "";
+        }
+    }
+
+    /** Badges anyone can earn by donating; their sheet offers to support the project. */
+    public static boolean donation(String kind) {
+        return "donor".equals(kind) || "sponsor".equals(kind) || "supporter".equals(kind);
     }
 
     public static String description(String kind) {
@@ -228,13 +248,16 @@ public final class NebulaBadges {
             case "tester": return NebulaText.text("Значок участника тестирования NebulaGram.", "A badge for a NebulaGram beta tester.");
             case "star": return NebulaText.text("Значок Mira — символ сообщества NebulaGram.", "The Mira badge, a symbol of the NebulaGram community.");
             case "heart": return NebulaText.text("Особый знак благодарности от команды NebulaGram.", "A special thank-you from the NebulaGram team.");
+            case "donor": return NebulaText.text("Этот человек поддержал NebulaGram донатом. Каждый донат помогает выпускать обновления.", "This person supported NebulaGram with a donation. Every donation helps ship updates.");
+            case "sponsor": return NebulaText.text("Спонсор NebulaGram — регулярно и заметно поддерживает развитие проекта.", "A NebulaGram sponsor who supports the project regularly and substantially.");
+            case "moderator": return NebulaText.text("Модератор сообщества NebulaGram: помогает в чатах поддержки и следит за порядком.", "A NebulaGram community moderator who helps in the support chats and keeps order.");
             default: return "";
         }
     }
 
     /** Виды, которые умеет выдавать панель. */
     public static String[] kinds() {
-        return new String[]{"supporter", "dev", "tester", "star", "heart"};
+        return new String[]{"donor", "sponsor", "supporter", "dev", "moderator", "tester", "star", "heart"};
     }
 
     /**

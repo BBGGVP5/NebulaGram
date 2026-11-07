@@ -292,6 +292,11 @@ public class NebulaSectionFragment extends BaseFragment {
                 LocaleController.getString(R.string.NebulaRestartHint)));
     }
 
+    private static String blurTintLabel(int[] values, String[] labels) {
+        for (int i = 0; i < values.length; i++) if (values[i] == NebulaMessageBlur.tintPercent()) return labels[i];
+        return labels[1];
+    }
+
     private static String transitionName(int style) {
         return style == NebulaTransitions.AOSP ? NebulaText.text("Системная AOSP", "AOSP system")
                 : style == NebulaTransitions.SPRING ? "Spring" : NebulaText.text("Стандартная", "Standard");
@@ -299,15 +304,25 @@ public class NebulaSectionFragment extends BaseFragment {
 
     private void buildChats(Context context) {
         NebulaCard header = new NebulaCard(context);
+        // Centring and capsule width only describe the adaptive header, so they
+        // appear with it instead of sitting next to it as dead switches.
+        final NebulaRow centered = toggle(context, R.drawable.msg_customize,
+                R.string.NebulaCenterHeader, R.string.NebulaCenterHeaderInfo,
+                NebulaAppearance.centeredHeader(), NebulaAppearance::setCenteredHeader);
+        final NebulaRow capsuleWidth = toggle(context, R.drawable.msg_photo_settings,
+                R.string.NebulaAdaptiveHeader, R.string.NebulaAdaptiveHeaderInfo,
+                NebulaAppearance.adaptiveHeader(), NebulaAppearance::setAdaptiveHeader);
         header.add(toggle(context, R.drawable.msg_customize,
                 R.string.NebulaFloatingHeader, R.string.NebulaFloatingHeaderInfo,
-                NebulaAppearance.chatHeader(), NebulaAppearance::setChatHeader));
-        header.add(toggle(context, R.drawable.msg_customize,
-                R.string.NebulaCenterHeader, R.string.NebulaCenterHeaderInfo,
-                NebulaAppearance.centeredHeader(), NebulaAppearance::setCenteredHeader));
-        header.add(toggle(context, R.drawable.msg_photo_settings,
-                R.string.NebulaAdaptiveHeader, R.string.NebulaAdaptiveHeaderInfo,
-                NebulaAppearance.adaptiveHeader(), NebulaAppearance::setAdaptiveHeader));
+                NebulaAppearance.chatHeader(), value -> {
+                    NebulaAppearance.setChatHeader(value);
+                    centered.setVisibility(value ? View.VISIBLE : View.GONE);
+                    capsuleWidth.setVisibility(value ? View.VISIBLE : View.GONE);
+                }));
+        centered.setVisibility(NebulaAppearance.chatHeader() ? View.VISIBLE : View.GONE);
+        capsuleWidth.setVisibility(NebulaAppearance.chatHeader() ? View.VISIBLE : View.GONE);
+        header.add(centered);
+        header.add(capsuleWidth);
         final NebulaRow iosCount = toggle(context, R.drawable.msg_customize,
                 R.string.NebulaUnreadIos, R.string.NebulaUnreadIosInfo,
                 NebulaAppearance.iosUnread(), NebulaAppearance::setIosUnread);
@@ -326,6 +341,37 @@ public class NebulaSectionFragment extends BaseFragment {
                     org.telegram.ui.ActionBar.Theme.reloadAllResources(context);
                 }));
         expandablePreview(context, "header", R.string.NebulaChatHeaderSection, headerPreview(context), header);
+
+        content.addView(NebulaCard.header(context, NebulaText.text("Пузыри сообщений", "Message bubbles")));
+        NebulaCard bubbles = new NebulaCard(context);
+        final int[] tintValues = {35, 55, 75};
+        final String[] tintLabels = {NebulaText.text("Слабый", "Light"), NebulaText.text("Средний", "Medium"), NebulaText.text("Плотный", "Dense")};
+        final NebulaRow tintRow = new NebulaRow(context).icon(R.drawable.msg_customize)
+                .title(NebulaText.text("Цвет поверх размытия", "Colour over the blur"))
+                .subtitle(blurTintLabel(tintValues, tintLabels), true).trailing(NebulaRow.TRAIL_CHEVRON);
+        tintRow.withClick(v -> {
+            int selected = 1;
+            for (int i = 0; i < tintValues.length; i++) if (tintValues[i] == NebulaMessageBlur.tintPercent()) selected = i;
+            showDialog(new NebulaDialog.Builder(context)
+                    .setTitle(NebulaText.text("Цвет поверх размытия", "Colour over the blur"))
+                    .setSelectedIndex(selected)
+                    .setItems(tintLabels, (dialog, which) -> {
+                        NebulaMessageBlur.setTintPercent(tintValues[which]);
+                        tintRow.subtitle(tintLabels[which], true);
+                    }).create());
+        });
+        bubbles.add(new NebulaRow(context).icon(R.drawable.msg_photo_settings)
+                .title(NebulaText.text("Размытые сообщения", "Blurred messages"))
+                .subtitle(NebulaText.text("Вместо заливки — размытые обои под пузырём. Работает с обоями-картинками и градиентами", "Bubbles show the blurred wallpaper instead of a solid fill. Works with picture and gradient wallpapers"), false)
+                .trailing(NebulaRow.TRAIL_SWITCH).checked(NebulaMessageBlur.enabled())
+                .withClick(v -> {
+                    boolean enabled = ((NebulaRow) v).toggleChecked();
+                    NebulaMessageBlur.setEnabled(enabled);
+                    tintRow.setVisibility(enabled ? View.VISIBLE : View.GONE);
+                }));
+        tintRow.setVisibility(NebulaMessageBlur.enabled() ? View.VISIBLE : View.GONE);
+        bubbles.add(tintRow);
+        content.addView(bubbles, cardParams());
 
         composerPreview = new NebulaComposerPreview(context);
         NebulaCard composer = new NebulaCard(context);
