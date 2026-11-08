@@ -57,3 +57,23 @@ final class NebulaParityPortTests: XCTestCase {
         XCTAssertEqual(NebulaBadge.allCases.filter { $0.isDonation }, [.supporter, .donor, .sponsor])
     }
 }
+
+final class NebulaSentFromTests: XCTestCase {
+    func testRoundVideoFingerprints() {
+        XCTAssertEqual(NebulaSentFrom.round(fileName: nil, supportsStreaming: true), .android)
+        XCTAssertEqual(NebulaSentFrom.round(fileName: "", supportsStreaming: true), .android)
+        XCTAssertEqual(NebulaSentFrom.round(fileName: "video.mp4", supportsStreaming: false), .ios)
+        XCTAssertEqual(NebulaSentFrom.round(fileName: "video.mp4", supportsStreaming: true), .unknown)
+        XCTAssertEqual(NebulaSentFrom.round(fileName: nil, supportsStreaming: false), .unknown)
+    }
+
+    func testVoiceFingerprints() {
+        let wave = Data([1, 2, 3])
+        XCTAssertEqual(NebulaSentFrom.voice(mimeType: "audio/ogg", fileName: nil, waveform: wave), .officialApp)
+        XCTAssertEqual(NebulaSentFrom.voice(mimeType: "AUDIO/OGG; codecs=opus", fileName: "", waveform: wave), .officialApp)
+        XCTAssertEqual(NebulaSentFrom.voice(mimeType: "audio/ogg", fileName: "a.ogg", waveform: wave), .nonStandard)
+        XCTAssertEqual(NebulaSentFrom.voice(mimeType: "audio/ogg", fileName: nil, waveform: nil), .nonStandard)
+        XCTAssertEqual(NebulaSentFrom.voice(mimeType: "audio/mpeg", fileName: nil, waveform: wave), .nonStandard)
+        XCTAssertFalse(NebulaSentFrom.unknown.label(russian: true).isEmpty)
+    }
+}
