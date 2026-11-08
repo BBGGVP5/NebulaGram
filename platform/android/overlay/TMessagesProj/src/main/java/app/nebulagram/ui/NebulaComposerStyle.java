@@ -83,7 +83,17 @@ public final class NebulaComposerStyle {
             baseRight = params.rightMargin;
             params.leftMargin = insetLeft = baseLeft + AndroidUtilities.dp(baseLeft > AndroidUtilities.dp(50) ? 20 : 14);
             // Emoji remains inside the input even when native code hides the paperclip.
-            params.rightMargin = insetRight = Math.max(baseRight, AndroidUtilities.dp(50)) + AndroidUtilities.dp(6);
+            // The «Aa» toggle sits between the text and the emoji, not over the emoji.
+            View toggle = formatToggle(editor);
+            int toggleSpace = toggle != null && toggle.getVisibility() == View.VISIBLE ? AndroidUtilities.dp(34) : 0;
+            int reserve = Math.max(baseRight - toggleSpace, AndroidUtilities.dp(50)) + AndroidUtilities.dp(6);
+            params.rightMargin = insetRight = reserve + toggleSpace;
+            if (toggleSpace > 0) placeToggle(toggle, reserve - AndroidUtilities.dp(2));
+        } else {
+            View toggle = formatToggle(editor);
+            if (toggle != null && toggle.getVisibility() == View.VISIBLE) {
+                placeToggle(toggle, Math.max(0, params.rightMargin - AndroidUtilities.dp(34)));
+            }
         }
         if (measuredEditor != editor || measuredLeft != params.leftMargin || measuredRight != params.rightMargin) {
             forceMeasure(editor);
@@ -123,6 +133,29 @@ public final class NebulaComposerStyle {
                 forceMeasure(replyClose);
             }
         }
+    }
+
+    // «Aa» buttons of open composers; each is found by sharing the editor's parent.
+    private static final java.util.Map<View, Boolean> formatToggles = new java.util.WeakHashMap<>();
+
+    public static void registerFormatToggle(View toggle) {
+        if (toggle != null) formatToggles.put(toggle, Boolean.TRUE);
+    }
+
+    private static View formatToggle(EditText editor) {
+        Object parent = editor.getParent();
+        if (parent == null) return null;
+        for (View toggle : formatToggles.keySet()) {
+            if (toggle != null && toggle.getParent() == parent) return toggle;
+        }
+        return null;
+    }
+
+    private void placeToggle(View toggle, int rightMargin) {
+        ViewGroup.MarginLayoutParams lp = (ViewGroup.MarginLayoutParams) toggle.getLayoutParams();
+        if (lp == null || lp.rightMargin == rightMargin) return;
+        lp.rightMargin = rightMargin;
+        forceMeasure(toggle);
     }
 
     private void forceMeasure(View view) {

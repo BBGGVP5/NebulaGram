@@ -119,7 +119,7 @@ public final class NebulaControlsPreview extends View {
 
     /** Строки карточки «Информация» — в том же наборе, что и настоящий профиль. */
     private int infoRows() {
-        return (NebulaMessagePreferences.enabled("hide_profile_phone", false) ? 0 : 1) + 1
+        return 1 + 1
                 + (NebulaAppearance.profileBirthday() ? 1 : 0) + (NebulaAppearance.profileBusiness() ? 1 : 0);
     }
 
@@ -224,9 +224,9 @@ public final class NebulaControlsPreview extends View {
         box(c, left, y, right, bottom, card, radius);
         text(c, NebulaText.text("Информация", "Info"), left + dp(16), y + dp(28), dp(160), 13, accent, true);
         y += dp(46);
-        if (!NebulaMessagePreferences.enabled("hide_profile_phone", false)) {
-            row(c, "+7 900 ••• •• ••", NebulaText.text("Мобильный", "Mobile"), left, right, y, ink, muted, 0, 0); y += dp(50);
-        }
+        // A hidden number stays in place, blurred, as in the real profile.
+        row(c, NebulaMessagePreferences.enabled("hide_profile_phone", false) ? "•••  •••  ••  ••" : "+7 900 ••• •• ••",
+                NebulaText.text("Мобильный", "Mobile"), left, right, y, ink, muted, 0, 0); y += dp(50);
         int dc = user != null && user.photo != null && NebulaMessagePreferences.enabled("profile_dc", true) ? user.photo.dc_id : 0;
         row(c, NebulaProfileStyle.idTitle(user != null ? NebulaIds.user(user.id) : "1 694 811 956"),
                 NebulaProfileStyle.idSubtitle(NebulaText.text("ID пользователя", "User ID"), dc),

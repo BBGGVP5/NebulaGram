@@ -223,14 +223,14 @@ public final class NebulaBadges {
     public static String howToGet(String kind) {
         if (kind == null) return "";
         switch (kind) {
-            case "donor": return NebulaText.text("Выдаётся после любого доната проекту.", "Given after any donation to the project.");
-            case "sponsor": return NebulaText.text("Выдаётся за регулярную поддержку проекта.", "Given for regular support of the project.");
-            case "supporter": return NebulaText.text("Выдаётся тем, кто помогает проекту делом или донатом.", "Given to those who help the project with work or a donation.");
-            case "dev": return NebulaText.text("Только у разработчиков NebulaGram.", "Only NebulaGram developers have it.");
-            case "moderator": return NebulaText.text("Выдаётся модераторам чатов NebulaGram.", "Given to NebulaGram chat moderators.");
-            case "tester": return NebulaText.text("Выдаётся участникам бета-тестирования.", "Given to beta testers.");
-            case "star": return NebulaText.text("Особый значок сообщества, выдаётся командой.", "A special community badge given by the team.");
-            case "heart": return NebulaText.text("Выдаётся командой в знак благодарности.", "Given by the team as a thank-you.");
+            case "donor": return NebulaText.text("Выдаётся после любого доната проекту", "Given after any donation to the project");
+            case "sponsor": return NebulaText.text("Выдаётся за регулярную поддержку проекта", "Given for regular support of the project");
+            case "supporter": return NebulaText.text("Выдаётся тем, кто помогает проекту делом или донатом", "Given to those who help the project with work or a donation");
+            case "dev": return NebulaText.text("Только у разработчиков NebulaGram", "Only NebulaGram developers have it");
+            case "moderator": return NebulaText.text("Выдаётся модераторам чатов NebulaGram", "Given to NebulaGram chat moderators");
+            case "tester": return NebulaText.text("Выдаётся участникам бета-тестирования", "Given to beta testers");
+            case "star": return NebulaText.text("Особый значок сообщества, выдаётся командой", "A special community badge given by the team");
+            case "heart": return NebulaText.text("Выдаётся командой в знак благодарности", "Given by the team as a thank-you");
             default: return "";
         }
     }
@@ -243,14 +243,14 @@ public final class NebulaBadges {
     public static String description(String kind) {
         if (kind == null) return "";
         switch (kind) {
-            case "supporter": return NebulaText.text("Значок участника, который поддерживает развитие NebulaGram.", "A community badge for someone supporting NebulaGram's development.");
-            case "dev": return NebulaText.text("Значок команды разработчиков NebulaGram.", "A badge for the NebulaGram development team.");
-            case "tester": return NebulaText.text("Значок участника тестирования NebulaGram.", "A badge for a NebulaGram beta tester.");
-            case "star": return NebulaText.text("Значок Mira — символ сообщества NebulaGram.", "The Mira badge, a symbol of the NebulaGram community.");
-            case "heart": return NebulaText.text("Особый знак благодарности от команды NebulaGram.", "A special thank-you from the NebulaGram team.");
-            case "donor": return NebulaText.text("Этот человек поддержал NebulaGram донатом. Каждый донат помогает выпускать обновления.", "This person supported NebulaGram with a donation. Every donation helps ship updates.");
-            case "sponsor": return NebulaText.text("Спонсор NebulaGram — регулярно и заметно поддерживает развитие проекта.", "A NebulaGram sponsor who supports the project regularly and substantially.");
-            case "moderator": return NebulaText.text("Модератор сообщества NebulaGram: помогает в чатах поддержки и следит за порядком.", "A NebulaGram community moderator who helps in the support chats and keeps order.");
+            case "supporter": return NebulaText.text("Значок участника, который поддерживает развитие NebulaGram", "A community badge for someone supporting NebulaGram's development");
+            case "dev": return NebulaText.text("Значок команды разработчиков NebulaGram", "A badge for the NebulaGram development team");
+            case "tester": return NebulaText.text("Значок участника тестирования NebulaGram", "A badge for a NebulaGram beta tester");
+            case "star": return NebulaText.text("Значок Mira — символ сообщества NebulaGram", "The Mira badge, a symbol of the NebulaGram community");
+            case "heart": return NebulaText.text("Особый знак благодарности от команды NebulaGram", "A special thank-you from the NebulaGram team");
+            case "donor": return NebulaText.text("Этот человек поддержал NebulaGram донатом. Каждый донат помогает выпускать обновления", "This person supported NebulaGram with a donation. Every donation helps ship updates");
+            case "sponsor": return NebulaText.text("Спонсор NebulaGram — регулярно и заметно поддерживает развитие проекта", "A NebulaGram sponsor who supports the project regularly and substantially");
+            case "moderator": return NebulaText.text("Модератор сообщества NebulaGram: помогает в чатах поддержки и следит за порядком", "A NebulaGram community moderator who helps in the support chats and keeps order");
             default: return "";
         }
     }

@@ -52,6 +52,8 @@ enum NebulaProfileBadgeArtwork {
         swift += f'        case .{role}:\n'
         for layer in layers:
             xml += f'    <path android:fillColor="#{layer.get("fill", "00000000")}" '
+            if 'alpha' in layer:
+                xml += f'android:fillAlpha="{layer["alpha"]}" '
             if 'stroke' in layer:
                 xml += f'android:strokeColor="#{layer["stroke"]}" android:strokeWidth="{layer["width"]}" android:strokeLineCap="round" android:strokeLineJoin="round" '
             xml += f'android:pathData="{layer["path"]}"/>\n'
@@ -60,7 +62,7 @@ enum NebulaProfileBadgeArtwork {
             if 'stroke' in layer:
                 swift += f'            path.lineWidth = {layer["width"]}\n            path.lineCapStyle = .round\n            path.lineJoinStyle = .round\n            color(0x{layer["stroke"]}).setStroke()\n            path.stroke()\n'
             else:
-                swift += f'            color(0x{layer["fill"]}).setFill()\n            path.fill()\n'
+                swift += f'            color(0x{layer["fill"]}).withAlphaComponent({layer.get("alpha", 1)}).setFill()\n            path.fill()\n'
             swift += '            }\n'
         outputs[ROOT / f'platform/android/overlay/TMessagesProj/src/main/res/drawable/nebula_badge_{role}.xml'] = xml + '</vector>\n'
     swift += '        default: break\n        }\n    }\n}\n'

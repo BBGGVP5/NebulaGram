@@ -208,6 +208,7 @@ public final class NebulaFormattingToolbar extends HorizontalScrollView {
         toggle.setContentDescription(NebulaText.text("Форматирование", "Formatting"));
         if (android.os.Build.VERSION.SDK_INT >= 26) toggle.setTooltipText(toggle.getContentDescription());
         toggle.setFocusable(false);
+        NebulaComposerStyle.registerFormatToggle(toggle);
         toggle.setVisibility(GONE);
         toggle.setOnClickListener(v -> { manual = !manual; tintToggle(); layoutChanged.run(); });
         tintToggle();
