@@ -37,6 +37,10 @@ public final class NebulaMessageToolsFragment extends BaseFragment {
         params.maxHeightFraction = .8f;
         params.maxHeightDp = 560;
         params.swipeDismiss = true;
+        // Glass needs the blurred chat behind it, not the container's solid fill.
+        params.glassBackground = android.os.Build.VERSION.SDK_INT >= 31
+                && org.telegram.messenger.LiteMode.isEnabled(org.telegram.messenger.LiteMode.FLAG_CHAT_BLUR)
+                && host.getFragmentView() != null;
         params.canSwipeDismiss = () -> tools.contentScroll == null || !tools.contentScroll.canScrollVertically(-1);
         params.onDismiss = () -> {
             if (onDismiss != null) onDismiss.run();

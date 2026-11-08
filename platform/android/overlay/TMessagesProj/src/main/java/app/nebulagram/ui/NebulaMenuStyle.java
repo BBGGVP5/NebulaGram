@@ -109,8 +109,10 @@ public final class NebulaMenuStyle {
     /** Large modal surfaces need stronger separation than a small popup menu. */
     public static BlurredBackgroundProvider sheetProvider(Theme.ResourcesProvider provider) {
         return new Material(provider)
+                // Real glass, not a dark slab: the blurred chat shows through,
+                // text stays readable on the tint.
                 .setBackgroundColor((r, dark) -> Theme.multAlpha(Theme.getColor(Theme.key_dialogBackground, r),
-                        Math.max(dark ? .92f : .94f, opacity())))
+                        Math.min(dark ? .76f : .82f, Math.max(.62f, opacity()))))
                 .setStrokeColorTop(0x30ffffff, 0x30ffffff)
                 .setStrokeColorBottom(0x12000000, 0x14ffffff)
                 .setStrokeWidth(AndroidUtilities.dpf2(.55f), AndroidUtilities.dpf2(.4f))

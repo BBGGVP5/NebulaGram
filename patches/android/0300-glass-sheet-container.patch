@@ -1,0 +1,21 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/BaseFragment.java b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/BaseFragment.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/BaseFragment.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/BaseFragment.java
+@@ -1169,7 +1169,7 @@ public abstract class BaseFragment {
+                     if (params.swipeDismiss) {
+                         bounded.setPadding(0, AndroidUtilities.dp(12), 0, 0);
+                         bounded.setClipToPadding(false);
+-                        bounded.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundGray, fragment.getResourceProvider()));
++                        if (!params.glassBackground) bounded.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundGray, fragment.getResourceProvider()));
+                         bounded.setClipToOutline(true);
+                         bounded.setOutlineProvider(new android.view.ViewOutlineProvider() {
+                             @Override public void getOutline(View v, android.graphics.Outline outline) {
+@@ -1671,6 +1671,8 @@ public abstract class BaseFragment {
+         public Runnable onOpenAnimationFinished;
+         public Runnable onPreFinished;
+         public boolean occupyNavigationBar;
++        /** NebulaGram: the fragment paints its own glass; the container stays clear. */
++        public boolean glassBackground;
+     }
+ 
+     public EdgeToEdgeSupportMode getEdgeToEdgeSupportMode() {
