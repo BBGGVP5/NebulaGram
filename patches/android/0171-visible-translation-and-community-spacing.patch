@@ -1,7 +1,7 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/MessageObject.java b/TMessagesProj/src/main/java/org/telegram/messenger/MessageObject.java
 --- a/TMessagesProj/src/main/java/org/telegram/messenger/MessageObject.java
 +++ b/TMessagesProj/src/main/java/org/telegram/messenger/MessageObject.java
-@@ -3683,7 +3683,8 @@ public class MessageObject {
+@@ -3835,7 +3835,8 @@ public class MessageObject {
              messageOwner != null &&
              messageOwner.summarizedOpen &&
              TranslateController.isSummarizable(this) &&
@@ -11,7 +11,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/MessageObject.ja
              translateController.isTranslatingDialog(getDialogId()) &&
              !translateController.isTranslateDialogHidden(getDialogId()) &&
              TextUtils.equals(translateController.getDialogTranslateTo(getDialogId()), messageOwner.translatedSummaryLanguage)
-@@ -3712,7 +3713,8 @@ public class MessageObject {
+@@ -3864,7 +3865,8 @@ public class MessageObject {
              return replyUpdated || true;
          } else if (
              messageOwner != null &&
@@ -24,7 +24,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/MessageObject.ja
 diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/TranslateController.java b/TMessagesProj/src/main/java/org/telegram/messenger/TranslateController.java
 --- a/TMessagesProj/src/main/java/org/telegram/messenger/TranslateController.java
 +++ b/TMessagesProj/src/main/java/org/telegram/messenger/TranslateController.java
-@@ -235,7 +235,7 @@ public class TranslateController extends BaseController {
+@@ -236,7 +236,7 @@ public class TranslateController extends BaseController {
  
      public boolean toggleTranslatingDialog(long dialogId, boolean value) {
          if (!value && app.nebulagram.ui.NebulaAutoTranslate.enabled(currentAccount, dialogId)) {
@@ -36,7 +36,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/TranslateControl
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
-@@ -25403,7 +25403,7 @@ public class ChatActivity extends BaseFragment implements
+@@ -25956,7 +25956,7 @@ public class ChatActivity extends BaseFragment implements
              force = true;
          }
          AndroidUtilities.cancelRunOnUIThread(checkTranslationRunnable);
@@ -45,7 +45,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
      }
      private Runnable checkTranslationRunnable = () -> {
          lastTranslationCheck = System.currentTimeMillis();
-@@ -25427,7 +25427,20 @@ public class ChatActivity extends BaseFragment implements
+@@ -25980,7 +25980,20 @@ public class ChatActivity extends BaseFragment implements
                  }
              }
  
@@ -70,7 +70,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
-@@ -8917,7 +8917,7 @@ public class ChatActivityEnterView extends FrameLayout implements
+@@ -9026,7 +9026,7 @@ public class ChatActivityEnterView extends FrameLayout implements
              if (visible) {
                  FrameLayout.LayoutParams toolsParams = (FrameLayout.LayoutParams) nebulaToolsButton.getLayoutParams();
                  int toolsInset = app.nebulagram.ui.NebulaComposerSlots.toolsInset(
@@ -82,7 +82,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivity
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/community/CommunitySheet.java b/TMessagesProj/src/main/java/org/telegram/ui/community/CommunitySheet.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/community/CommunitySheet.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/community/CommunitySheet.java
-@@ -354,7 +354,7 @@ public class CommunitySheet extends BottomSheet implements NotificationCenter.No
+@@ -356,7 +356,7 @@ public class CommunitySheet extends BottomSheet implements NotificationCenter.No
  
      private void fillItemsCommunity(ArrayList<UItem> items, UniversalAdapter adapter) {
          items.add(UItem.asSpace(ROW_ID_EMPTY_SPACE, Math.min(AndroidUtilities.statusBarHeight + dp(56 + 120), (int) (AndroidUtilities.displaySize.y * .25f))));
@@ -91,7 +91,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/community/CommunityShee
  
          if (CommunityUtils.COLLAPSED_SUPPORT) {
              items.add(UItem.asSwitchNoIcon(ROW_ID_TOGGLE_COLLAPSED, getString(R.string.CommunityShowAsOneChat)).setChecked(collapsedInDialogs));
-@@ -383,7 +383,7 @@ public class CommunitySheet extends BottomSheet implements NotificationCenter.No
+@@ -385,7 +385,7 @@ public class CommunitySheet extends BottomSheet implements NotificationCenter.No
  
      private void fillItemsRequests(ArrayList<UItem> items, UniversalAdapter adapter) {
          items.add(UItem.asSpace(ROW_ID_EMPTY_SPACE, (int) (AndroidUtilities.displaySize.y * .35f)   /*dp(12)*/));
@@ -100,7 +100,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/community/CommunityShee
  
          if (ChatObject.canBlockUsers(currentCommunity)) {
              items.add(UItem.asShadow(1, AndroidUtilities.replaceArrows(AndroidUtilities.replaceSingleTag(getString(R.string.CommunityPendingRequestsInfo), () -> {
-@@ -412,7 +412,7 @@ public class CommunitySheet extends BottomSheet implements NotificationCenter.No
+@@ -414,7 +414,7 @@ public class CommunitySheet extends BottomSheet implements NotificationCenter.No
      private void fillItemsChatsToAddImpl(ArrayList<UItem> items, UniversalAdapter adapter, final boolean search) {
          if (!search) {
              items.add(UItem.asSpace(ROW_ID_EMPTY_SPACE, (int) (AndroidUtilities.displaySize.y * .35f)   /*dp(12)*/));
@@ -109,7 +109,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/community/CommunityShee
          }
          if (chatsToAddToCommunity != null) {
              final String query = search && lastSearchChatsString != null ?
-@@ -1027,6 +1027,7 @@ public class CommunitySheet extends BottomSheet implements NotificationCenter.No
+@@ -1032,6 +1032,7 @@ public class CommunitySheet extends BottomSheet implements NotificationCenter.No
          protected void afterInit() {
              final boolean hasAvatar = this instanceof CommunityPage;
              nebulaHeader = app.nebulagram.ui.NebulaCommunityHeader.create(actionBar, hasAvatar, resourcesProvider);

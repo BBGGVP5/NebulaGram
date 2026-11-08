@@ -1,7 +1,7 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
-@@ -5488,6 +5488,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+@@ -5399,6 +5399,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
  
              @Override
              public void openAnimationStarted(boolean open) {
@@ -9,7 +9,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/
                  rightFragmentTransitionInProgress = true;
                  rightFragmentTransitionIsOpen = open;
                  contentView.requestLayout();
-@@ -5562,6 +5563,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+@@ -5477,6 +5478,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
  
              @Override
              public void openAnimationFinished(boolean backward) {

@@ -1,15 +1,15 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/LiquidGlassEffect.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/LiquidGlassEffect.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/LiquidGlassEffect.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/LiquidGlassEffect.java
-@@ -16,6 +16,7 @@ public class LiquidGlassEffect {
-     private final RenderNode node;
-     private final RuntimeShader shader;
+@@ -21,6 +21,7 @@ public class LiquidGlassEffect {
+     private RuntimeShader arrowShader;
+     private RuntimeShader shader;
      private RenderEffect effect;
 +    private boolean effectDirty;
  
-     public LiquidGlassEffect(RenderNode node) {
-         this.node = node;
-@@ -28,6 +29,10 @@ public class LiquidGlassEffect {
+     /** The effects by the phase of the node on the grid of the downsample, they keep the uniforms they were made with. */
+     private RenderEffect[] effectPool;
+@@ -38,6 +39,10 @@ public class LiquidGlassEffect {
      public void setEnabled(boolean enabled) {
          if (this.enabled == enabled) return;
          this.enabled = enabled;
@@ -20,18 +20,14 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/Liquid
          node.setRenderEffect(enabled ? effect : null);
      }
  
-@@ -102,7 +107,13 @@ public class LiquidGlassEffect {
-             shader.setFloatUniform("refract_intensity", this.intensity = intensity);
-             shader.setFloatUniform("refract_index", this.index = index);
-             shader.setFloatUniform("foreground_color_premultiplied", r, g, b, a);
--            node.setRenderEffect(effect = RenderEffect.createRuntimeShaderEffect(shader, "img"));
-+            // Geometry may still update while refraction is bypassed. Do not
-+            // reinstall it or allocate GPU effects until the feature is enabled.
-+            effectDirty = true;
-+            if (enabled) {
-+                node.setRenderEffect(effect = RenderEffect.createRuntimeShaderEffect(shader, "img"));
-+                effectDirty = false;
-+            }
+@@ -186,7 +191,9 @@ public class LiquidGlassEffect {
+             effectPoolCenterY[effectIndex] = centerY;
+         }
+         if (effect != phaseEffect) {
+-            node.setRenderEffect(effect = phaseEffect);
++            effect = phaseEffect;
++            // NebulaGram: while refraction is switched off the node keeps no effect.
++            if (enabled) node.setRenderEffect(effect);
          }
      }
  

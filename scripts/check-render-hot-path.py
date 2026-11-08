@@ -93,7 +93,7 @@ class GlassPrefsCheck {
     subprocess.run(['javac','-encoding','UTF-8','-d',str(work),*sources],check=True)
     subprocess.run(['java','-cp',str(work),'GlassPrefsCheck'],check=True)
 
-    source=(tree/'TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/source/BlurredBackgroundSourceRenderNode.java').read_text(encoding='utf-8')
+    source=(tree/'TMessagesProj/src/main/java/org/telegram/utils/glass/source/GlassSourceRenderNode.java').read_text(encoding='utf-8')
     methods='\n'.join(method(source,s) for s in ['public void setBlur(float radius)', 'public void setBlur(float radius, RenderEffect effect)', 'private void nebulaSetBlur(float radius, RenderEffect input)'])
     methods=methods.replace('app.nebulagram.ui.NebulaGlass.','Settings.').replace('org.telegram.messenger.AndroidUtilities.dpf2','dp')
     fields=source[source.index('    private float nebulaBlurRadius'):source.index('    @RequiresApi',source.index('    private float nebulaBlurRadius'))]
@@ -137,7 +137,7 @@ class GlassPrefsCheck {
     # Exercise the real shader controller: a slider tick is only .005, well
     # below the old .1 cutoff. Unchanged frames must still reuse the effect.
     liquid = (tree/'TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/LiquidGlassEffect.java').read_text(encoding='utf-8')
-    liquid = re.sub(r'^(package |import |@RequiresApi).*\n', '', liquid, flags=re.M)
+    liquid = re.sub(r'^(package |import (?!java[.])|@RequiresApi).*\n', '', liquid, flags=re.M)
     (work/'LiquidGlassEffect.java').write_text(liquid, encoding='utf-8')
     (work/'LiquidSliderCheck.java').write_text('''
 class RenderNode {
@@ -158,10 +158,10 @@ class Color {
  static int green(int c){return (c>>8)&255;} static int blue(int c){return c&255;}
 }
 class AndroidUtilities {static String readRes(int id){return "shader";}}
-class R {static class raw {static int liquid_glass_shader;}}
+class R {static class raw {static int liquid_glass_shader, liquid_glass_arrow_shader;}}
 class LiquidSliderCheck {
  static void check(boolean b,String why){if(!b)throw new AssertionError(why);}
- static void update(LiquidGlassEffect effect,float intensity){effect.update(0,0,300,64,32,32,32,32,11,intensity,1.2f,0x99000000);}
+ static void update(LiquidGlassEffect effect,float intensity){effect.update(300,64,0,0,32,32,32,32,11,intensity,1.2f,0x99000000,0,0,1);}
  public static void main(String[] args){
   RenderNode node=new RenderNode(); LiquidGlassEffect effect=new LiquidGlassEffect(node);
   update(effect,0);int installs=node.installs;

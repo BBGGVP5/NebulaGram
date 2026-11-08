@@ -1,8 +1,7 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/PhotoViewer.java b/TMessagesProj/src/main/java/org/telegram/ui/PhotoViewer.java
-index 2020d7af..698b0872 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/PhotoViewer.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/PhotoViewer.java
-@@ -2196,6 +2196,7 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
+@@ -2188,6 +2188,7 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
      private final static int gallery_menu_chromecast = 24;
      private final static int gallery_menu_create_sticker = 25;
      private final static int gallery_menu_delete2 = 26;
@@ -10,7 +9,7 @@ index 2020d7af..698b0872 100644
  
      private final static int ads_sponsor_info = 101;
      private final static int ads_about = 102;
-@@ -5727,6 +5728,8 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
+@@ -5726,6 +5727,8 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
                          thumb = null;
                      }
                      placeProvider.openPhotoForEdit(f.getAbsolutePath(), thumb, isVideo);
@@ -19,7 +18,7 @@ index 2020d7af..698b0872 100644
                  } else if (id == gallery_menu_translate) {
                      if (switchingToIndex < 0 || switchingToIndex >= imagesArr.size()) {
                          return;
-@@ -5926,6 +5929,7 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
+@@ -5925,6 +5928,7 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
          menuItem.addSubItem(gallery_menu_masks2, R.drawable.msg_sticker, getString(R.string.ShowStickers)).setColors(0xfffafafa, 0xfffafafa);
          //menuItem.addSubItem(gallery_menu_edit_avatar, R.drawable.photo_paint, LocaleController.getString(R.string.EditPhoto)).setColors(0xfffafafa, 0xfffafafa);
          menuItem.addSubItem(gallery_menu_set_as_main, R.drawable.msg_openprofile, getString(R.string.SetAsMain)).setColors(0xfffafafa, 0xfffafafa);
@@ -27,7 +26,7 @@ index 2020d7af..698b0872 100644
          menuItem.addSubItem(gallery_menu_translate, R.drawable.msg_translate, getString(R.string.TranslateMessage)).setColors(0xfffafafa, 0xfffafafa);
          menuItem.addSubItem(gallery_menu_hide_translation, R.drawable.msg_translate, getString(R.string.HideTranslation)).setColors(0xfffafafa, 0xfffafafa);
          menuItem.addSubItem(gallery_menu_delete, R.drawable.msg_delete, getString(R.string.Delete)).setColors(0xfffafafa, 0xfffafafa);
-@@ -5942,6 +5946,11 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
+@@ -5941,6 +5945,11 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
                  if (videoPlayerControlVisible && isPlaying) {
                      AndroidUtilities.cancelRunOnUIThread(hideActionBarRunnable);
                  }

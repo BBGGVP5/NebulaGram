@@ -1,5 +1,4 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/camera/Camera2Session.java b/TMessagesProj/src/main/java/org/telegram/messenger/camera/Camera2Session.java
-index cedaa76d..73d3bc25 100644
 --- a/TMessagesProj/src/main/java/org/telegram/messenger/camera/Camera2Session.java
 +++ b/TMessagesProj/src/main/java/org/telegram/messenger/camera/Camera2Session.java
 @@ -20,6 +20,7 @@ import android.media.ImageReader;
@@ -126,7 +125,6 @@ index cedaa76d..73d3bc25 100644
              captureRequestBuilder.addTarget(surface);
              captureSession.setRepeatingRequest(captureRequestBuilder.build(), null, handler);
 diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/camera/CameraSession.java b/TMessagesProj/src/main/java/org/telegram/messenger/camera/CameraSession.java
-index 59a3727e..61a4dedb 100644
 --- a/TMessagesProj/src/main/java/org/telegram/messenger/camera/CameraSession.java
 +++ b/TMessagesProj/src/main/java/org/telegram/messenger/camera/CameraSession.java
 @@ -478,10 +478,15 @@ public class CameraSession {
@@ -161,10 +159,9 @@ index 59a3727e..61a4dedb 100644
          setZoom(Math.min(1f, (best + .001f) / (ratios.size() - 1)));
      }
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
-index 92d88e01..f88d5645 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
-@@ -14588,6 +14588,27 @@ public class ChatActivityEnterView extends FrameLayout implements
+@@ -14804,6 +14804,27 @@ public class ChatActivityEnterView extends FrameLayout implements
      @Override
      protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
          nebulaComposerStyle.restoreInsets();
@@ -193,7 +190,6 @@ index 92d88e01..f88d5645 100644
                  && !isRecordingAudioVideo()
                  && (recordedAudioPanel == null || recordedAudioPanel.getVisibility() != VISIBLE)
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/InstantCameraView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/InstantCameraView.java
-index 6f0205c1..72ec2715 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/InstantCameraView.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/InstantCameraView.java
 @@ -340,7 +340,7 @@ public class InstantCameraView extends InstantCameraViewBase implements Notifica

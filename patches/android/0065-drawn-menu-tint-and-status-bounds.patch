@@ -69,10 +69,10 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/SendingFileD
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/drawable/BlurredBackgroundDrawable.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/drawable/BlurredBackgroundDrawable.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/drawable/BlurredBackgroundDrawable.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/drawable/BlurredBackgroundDrawable.java
-@@ -186,6 +186,9 @@ public abstract class BlurredBackgroundDrawable extends Drawable {
- 
-     protected BlurredBackgroundColorProvider colorProvider;
-     protected int shadowColor, backgroundColor, strokeColorTop, strokeColorBottom;
+@@ -259,6 +259,9 @@ public class BlurredBackgroundDrawable extends GlassDrawable implements Theme.Co
+     private float outlineWidth;
+     // the drawable's own shadow, back when a theme no longer overrides it
+     private float defaultShadowRadius = -1, defaultShadowDx, defaultShadowDy;
 +    /** Tint actually consumed by the drawable/render node, not the host theme. */
 +    public int getBackgroundTint() { return backgroundColor; }
 +    public BlurredBackgroundColorProvider getColorProvider() { return colorProvider; }

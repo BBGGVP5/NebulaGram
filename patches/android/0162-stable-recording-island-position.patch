@@ -1,8 +1,7 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
-index b975caf8..7f70ee4f 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
-@@ -18645,21 +18645,23 @@ public class ChatActivity extends BaseFragment implements
+@@ -19152,21 +19152,23 @@ public class ChatActivity extends BaseFragment implements
                      }
                  }
  
@@ -39,7 +38,7 @@ index b975caf8..7f70ee4f 100644
  
              if (scrimView != null || messageEnterTransitionContainer.isRunning()) {
                  if (mentionContainer == null || mentionContainer.getVisibility() != View.VISIBLE) {
-@@ -33436,6 +33438,21 @@ public class ChatActivity extends BaseFragment implements
+@@ -34072,6 +34074,21 @@ public class ChatActivity extends BaseFragment implements
                  }
              });
              scrimViewAlphaAnimator.setDuration(150);
@@ -62,10 +61,9 @@ index b975caf8..7f70ee4f 100644
          }
      }
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
-index ca14ac43..003da56d 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
-@@ -14594,6 +14594,12 @@ public class ChatActivityEnterView extends FrameLayout implements
+@@ -14810,6 +14810,12 @@ public class ChatActivityEnterView extends FrameLayout implements
                  && MeasureSpec.getSize(widthMeasureSpec) >= dp(260);
          nebulaComposerStyle.setRecordingPanels(recordPanel, recordedAudioPanel, nebulaRecordingSupported);
          boolean nebulaRecordingIslands = nebulaRecordingSupported && app.nebulagram.ui.NebulaAppearance.iosComposer();

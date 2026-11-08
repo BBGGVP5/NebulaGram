@@ -28,10 +28,10 @@ stubs = {
  public void setNebulaCommunityGlass(boolean enabled,boolean hasAvatar){shared=enabled;avatar=hasAvatar;}
  public android.view.View getTitleTextView(){return title;}}
  ''',
- 'org/telegram/ui/Components/blur3/source/BlurredBackgroundSourceColor.java': 'package org.telegram.ui.Components.blur3.source; public class BlurredBackgroundSourceColor {public int color;public void setColor(int c){color=c;}}',
- 'org/telegram/ui/Components/blur3/source/BlurredBackgroundSourceRenderNode.java': '''package org.telegram.ui.Components.blur3.source;
- public class BlurredBackgroundSourceRenderNode {public static BlurredBackgroundSourceRenderNode last;public int width,height,begins,ends,invalidations;public float blur;public boolean recording;public android.graphics.Canvas capture;
- public BlurredBackgroundSourceRenderNode(Object fallback){last=this;}public void setBlur(float n){blur=n;}
+ 'org/telegram/utils/glass/source/GlassSourceColor.java': 'package org.telegram.utils.glass.source; public class GlassSourceColor {public int color;public void setColor(int c){color=c;}}',
+ 'org/telegram/utils/glass/source/GlassSourceRenderNode.java': '''package org.telegram.utils.glass.source;
+ public class GlassSourceRenderNode {public static GlassSourceRenderNode last;public int width,height,begins,ends,invalidations;public float blur;public boolean recording;public android.graphics.Canvas capture;
+ public GlassSourceRenderNode(Object fallback){last=this;}public void setBlur(float n){blur=n;}
  public android.graphics.Canvas beginRecording(int w,int h){if(recording)throw new AssertionError("recursive capture");recording=true;width=w;height=h;begins++;return capture=new android.graphics.Canvas();}
  public void endRecording(){recording=false;ends++;}public void invalidateDisplayListForDrawables(){invalidations++;}}
  ''',
@@ -49,12 +49,12 @@ stubs = {
  'app/nebulagram/ui/NebulaMenuStyle.java': 'package app.nebulagram.ui; public class NebulaMenuStyle {public static boolean animated(){return true;}}',
  'app/nebulagram/ui/NebulaGlass.java': 'package app.nebulagram.ui; public class NebulaGlass {public static boolean reduced;public static boolean reduced(){return reduced;}public static float blur(){return 12;}}',
  'Check.java': '''import android.graphics.Canvas;import android.view.View;import org.telegram.ui.ActionBar.ActionBar;
- import org.telegram.ui.Components.blur3.source.BlurredBackgroundSourceRenderNode;import org.telegram.ui.Components.blur3.BlurredBackgroundDrawableViewFactory;import app.nebulagram.ui.*;
+ import org.telegram.utils.glass.source.GlassSourceRenderNode;import org.telegram.ui.Components.blur3.BlurredBackgroundDrawableViewFactory;import app.nebulagram.ui.*;
  class Check {static void check(boolean b,String why){if(!b)throw new AssertionError(why);}public static void main(String[] args){int cases=0;
  for(int api:new int[]{23,29,30,31,33,37})for(int w:new int[]{320,393,768})for(int h:new int[]{48,56,64})for(int y:new int[]{24,176,500})for(int mode=0;mode<4;mode++){
   android.os.Build.VERSION.SDK_INT=api;NebulaGlass.reduced=mode==1;org.telegram.messenger.LiteMode.enabled=mode!=2;
   ActionBar bar=new ActionBar();bar.width=w;bar.height=h;bar.x=12;bar.y=y;bar.title.x=-18;View list=new View();list.height=2400;list.x=0;list.y=8;
-  Canvas canvas=new Canvas();canvas.hardware=mode!=3;BlurredBackgroundSourceRenderNode.last=null;
+  Canvas canvas=new Canvas();canvas.hardware=mode!=3;GlassSourceRenderNode.last=null;
   NebulaCommunityHeader header=NebulaCommunityHeader.create(bar,true,null);
   check(bar.shared&&bar.avatar&&bar.title.x==0,"native community/title binding");header.draw(canvas,bar,list);
   var material=BlurredBackgroundDrawableViewFactory.last;check(material.left==0&&material.top==0&&material.right==w&&material.bottom==h,"shared bounds cover all header controls");
@@ -62,14 +62,14 @@ stubs = {
   check(material.tl==(y>24?14:0)&&material.tr==material.tl,"expanded corner follows sheet; collapsed corner becomes flat");
   check(canvas.saves==0&&canvas.x==0&&canvas.y==0,"drawing restores caller canvas");
   boolean blur=api>=31&&mode==0;check(list.draws==(blur?1:0),"no list capture on old API, low power, disabled blur or software canvas");
-  if(api>=31){var node=BlurredBackgroundSourceRenderNode.last;int padding=blur?32:0;
+  if(api>=31){var node=GlassSourceRenderNode.last;int padding=blur?32:0;
    check(node.width==w+padding*2&&node.height==h+padding*2,"capture is bounded to header, not screen");
    check(node.begins==1&&node.ends==1&&!node.recording,"capture closes every frame");
    check(material.ox==padding&&material.oy==padding,"material samples padded source correctly");
    if(blur)check(list.sampleX==padding-12&&list.sampleY==padding+8-y,"source tracks expanded/collapsed sheet origin");
    list.visibility=View.GONE;header.draw(canvas,bar,list);check(list.draws==(blur?1:0),"hidden list cannot leak into backdrop");
    check(node.begins==2&&node.ends==2,"next frame reuses source safely");
-  }else check(BlurredBackgroundSourceRenderNode.last==null,"old API does not construct RenderNode");cases++;
+  }else check(GlassSourceRenderNode.last==null,"old API does not construct RenderNode");cases++;
  }
  for(int mode=0;mode<7;mode++)for(int y:new int[]{24,176,500}){
   android.os.Build.VERSION.SDK_INT=mode==5?29:31;NebulaGlass.reduced=mode==4;org.telegram.messenger.LiteMode.enabled=mode!=6;
@@ -79,7 +79,7 @@ stubs = {
   check(backdrop.draws==(mode==0?1:0),"capture only visible attached parent from another window, with supported blur");
   if(mode==0){check(backdrop.sampleX==24 && backdrop.sampleY==56-y,"parent capture aligns screen coordinates");
    check(list.sampleX==16 && list.sampleY==40-y,"parent transform restored before list capture");
-   check(BlurredBackgroundSourceRenderNode.last.capture.saves==0,"nested parent capture balances saves");}
+   check(GlassSourceRenderNode.last.capture.saves==0,"nested parent capture balances saves");}
   cases++;
  }
  NebulaAppearance.enabled=false;check(NebulaCommunityHeader.create(new ActionBar(),false,null)==null,"native style fallback is preserved");

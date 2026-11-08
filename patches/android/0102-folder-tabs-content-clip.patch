@@ -1,8 +1,7 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/FilterTabsView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/FilterTabsView.java
-index 1c050e28..10d65517 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/FilterTabsView.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/FilterTabsView.java
-@@ -1661,7 +1661,9 @@ public class FilterTabsView extends FrameLayout {
+@@ -1662,7 +1662,9 @@ public class FilterTabsView extends FrameLayout {
      protected void onSizeChanged(int w, int h, int oldw, int oldh) {
          super.onSizeChanged(w, h, oldw, oldh);
          clipPath.rewind();

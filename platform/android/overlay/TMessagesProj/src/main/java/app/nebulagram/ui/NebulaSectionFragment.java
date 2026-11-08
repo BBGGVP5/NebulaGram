@@ -669,7 +669,7 @@ public class NebulaSectionFragment extends BaseFragment {
         card = new NebulaCard(context);
         card.add(toggle(context, R.drawable.nebula_cupertino_chat, R.string.NebulaProfileChannel, R.string.NebulaProfileChannelInfo,
                 NebulaAppearance.profileChannel(), NebulaAppearance::setProfileChannel));
-        card.add(preference(context, R.drawable.msg_calls, "hide_profile_phone", false, "Скрывать номера телефонов", "Hide phone numbers"));
+        card.add(preference(context, R.drawable.msg_calls, "hide_profile_phone", false, "Размывать номера телефонов", "Blur phone numbers"));
         card.add(preference(context, R.drawable.msg_calendar2, "profile_dc", true, "Дата-центр под ID", "Data center under ID"));
         card.add(toggle(context, R.drawable.msg_calendar, R.string.NebulaProfileBirthday, R.string.NebulaProfileBirthdayInfo,
                 NebulaAppearance.profileBirthday(), NebulaAppearance::setProfileBirthday));

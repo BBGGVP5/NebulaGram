@@ -1,7 +1,7 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/MessagesController.java b/TMessagesProj/src/main/java/org/telegram/messenger/MessagesController.java
 --- a/TMessagesProj/src/main/java/org/telegram/messenger/MessagesController.java
 +++ b/TMessagesProj/src/main/java/org/telegram/messenger/MessagesController.java
-@@ -21269,6 +21269,7 @@ public class MessagesController extends BaseController implements NotificationCe
+@@ -21326,6 +21326,7 @@ public class MessagesController extends BaseController implements NotificationCe
                  long key = deletedMessages.keyAt(a);
                  ArrayList<Integer> arrayList = deletedMessages.valueAt(a);
                  getMessagesStorage().getStorageQueue().postRunnable(() -> {

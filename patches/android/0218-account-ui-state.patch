@@ -1,7 +1,7 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/MessagesController.java b/TMessagesProj/src/main/java/org/telegram/messenger/MessagesController.java
 --- a/TMessagesProj/src/main/java/org/telegram/messenger/MessagesController.java
 +++ b/TMessagesProj/src/main/java/org/telegram/messenger/MessagesController.java
-@@ -6444,7 +6444,7 @@ public class MessagesController extends BaseController implements NotificationCe
+@@ -6429,7 +6429,7 @@ public class MessagesController extends BaseController implements NotificationCe
  
          showFiltersTooltip = false;
  
@@ -13,7 +13,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/MessagesControll
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/Theme.java b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/Theme.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/Theme.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/Theme.java
-@@ -2212,9 +2212,27 @@ public class Theme {
+@@ -2251,9 +2251,27 @@ public class Theme {
  
      private static int loadingCurrentTheme;
      private static int lastLoadingCurrentThemeTime;
@@ -44,7 +44,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/Theme.java b/
  
      public static ArrayList<ThemeInfo> themes;
      private static ArrayList<ThemeInfo> otherThemes;
-@@ -4020,12 +4038,6 @@ public class Theme {
+@@ -4102,12 +4120,6 @@ public class Theme {
  
          int remoteVersion = themeConfig.getInt("remote_version", 0);
          int appRemoteThemesVersion = 1;
@@ -57,7 +57,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/Theme.java b/
          themeConfig.edit().putInt("remote_version", appRemoteThemesVersion).apply();
          if (!TextUtils.isEmpty(themesString)) {
              try {
-@@ -6352,9 +6364,10 @@ public class Theme {
+@@ -6450,9 +6462,10 @@ public class Theme {
              }
              editor.putString("themes2", array.toString());
          }
@@ -71,7 +71,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/Theme.java b/
          }
  
          editor.putInt("lastLoadingCurrentThemeTime", lastLoadingCurrentThemeTime);
-@@ -6943,24 +6956,24 @@ public class Theme {
+@@ -7041,24 +7054,24 @@ public class Theme {
      }
  
      public static void loadRemoteThemes(final int currentAccount, boolean force) {
@@ -105,7 +105,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/Theme.java b/
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/FragmentContextView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/FragmentContextView.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/FragmentContextView.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/FragmentContextView.java
-@@ -1419,7 +1419,7 @@ public class FragmentContextView extends FrameLayout implements NotificationCent
+@@ -1442,7 +1442,7 @@ public class FragmentContextView extends FrameLayout implements NotificationCent
          wasDraw = false;
      }
  
@@ -114,7 +114,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/FragmentCont
      private NotificationCenter.ObserversGroup globalObserversGroup;
  
      private void removeObservers() {
-@@ -1427,12 +1427,10 @@ public class FragmentContextView extends FrameLayout implements NotificationCent
+@@ -1450,12 +1450,10 @@ public class FragmentContextView extends FrameLayout implements NotificationCent
              globalObserversGroup.removeAllObservers();
              globalObserversGroup = null;
          }
@@ -130,7 +130,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/FragmentCont
      }
  
  
-@@ -1449,7 +1447,7 @@ public class FragmentContextView extends FrameLayout implements NotificationCent
+@@ -1472,7 +1470,7 @@ public class FragmentContextView extends FrameLayout implements NotificationCent
              checkLiveLocation(true);
          } else {
              for (int a = 0; a < UserConfig.MAX_ACCOUNT_COUNT; a++) {
@@ -139,7 +139,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/FragmentCont
                      .createObserversGroup(this)
                      .add(NotificationCenter.messagePlayingDidReset)
                      .add(NotificationCenter.messagePlayingPlayStateChanged)
-@@ -1458,7 +1456,7 @@ public class FragmentContextView extends FrameLayout implements NotificationCent
+@@ -1481,7 +1479,7 @@ public class FragmentContextView extends FrameLayout implements NotificationCent
                      .add(NotificationCenter.groupCallTypingsUpdated)
                      .add(NotificationCenter.historyImportProgressChanged)
                      .add(NotificationCenter.liveStoryUpdated)
@@ -151,7 +151,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/FragmentCont
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
-@@ -650,7 +650,13 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+@@ -652,7 +652,13 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
      private String addToGroupAlertString;
      public boolean resetDelegate = true;
  
@@ -166,7 +166,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/
      private boolean searching;
      private boolean searchWas;
      private boolean onlySelect;
-@@ -3038,7 +3044,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+@@ -2954,7 +2960,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
  
      public static void loadDialogs(AccountInstance accountInstance) {
          int currentAccount = accountInstance.getCurrentAccount();
@@ -175,7 +175,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/
              MessagesController messagesController = accountInstance.getMessagesController();
              messagesController.loadGlobalNotificationsSettings();
              messagesController.loadDialogs(0, 0, 100, true);
-@@ -3050,7 +3056,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+@@ -2966,7 +2972,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
              for (String emoji : messagesController.diceEmojies) {
                  accountInstance.getMediaDataController().loadStickersByEmojiOrName(emoji, true, true);
              }
@@ -184,7 +184,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/
          }
      }
  
-@@ -10834,7 +10840,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+@@ -10758,7 +10764,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
              }
              updateStatus(UserConfig.getInstance(account).getCurrentUser(), true);
          } else if (id == NotificationCenter.appDidLogout) {
@@ -193,7 +193,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/
          } else if (id == NotificationCenter.encryptedChatUpdated) {
              updateVisibleRows(0);
          } else if (id == NotificationCenter.contactsDidLoad) {
-@@ -11047,7 +11053,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+@@ -10971,7 +10977,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
              updateStatus(UserConfig.getInstance(account).getCurrentUser(), true);
              updateStoriesPosting();
          } else if (id == NotificationCenter.onDatabaseReset) {
@@ -205,7 +205,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/SelectAnimatedEmojiDialog.java b/TMessagesProj/src/main/java/org/telegram/ui/SelectAnimatedEmojiDialog.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/SelectAnimatedEmojiDialog.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/SelectAnimatedEmojiDialog.java
-@@ -3638,13 +3638,13 @@ public class SelectAnimatedEmojiDialog extends FrameLayout implements Notificati
+@@ -3674,13 +3674,13 @@ public class SelectAnimatedEmojiDialog extends FrameLayout implements Notificati
          }
      }
  

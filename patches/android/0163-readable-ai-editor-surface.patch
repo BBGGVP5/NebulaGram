@@ -1,8 +1,7 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
-index 06f94160..62db1e1b 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
-@@ -654,6 +654,8 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
+@@ -786,6 +786,8 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
      }
  
      private boolean nebulaCenterTitle() {
@@ -12,20 +11,18 @@ index 06f94160..62db1e1b 100644
                  || (isSearchFieldVisible && !nebulaHomeTabsGlass)
                  || (getActionModeFactor() != 0 && !nebulaHomeTabsGlass)) return false;
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/BottomSheet.java b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/BottomSheet.java
-index 287091da..010d2797 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/BottomSheet.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/BottomSheet.java
-@@ -1328,6 +1328,9 @@ public class BottomSheet extends Dialog implements BaseFragment.AttachedSheet {
-         setOverlayNavBarColor(navBarColor = bgColor);
+@@ -1433,6 +1433,8 @@ public class BottomSheet extends Dialog implements BaseFragment.AttachedSheet {
+             }
+         }
      }
- 
 +    /** Dense text editors can keep an opaque native surface. */
 +    protected boolean useNebulaSheetGlass() { return true; }
-+
+ 
      @Override
      protected void onCreate(Bundle savedInstanceState) {
-         super.onCreate(savedInstanceState);
-@@ -1389,7 +1392,7 @@ public class BottomSheet extends Dialog implements BaseFragment.AttachedSheet {
+@@ -1495,7 +1497,7 @@ public class BottomSheet extends Dialog implements BaseFragment.AttachedSheet {
              containerView.setBackgroundDrawable(shadowDrawable);
              containerView.setPadding(backgroundPaddingLeft, (applyTopPadding ? dp(8) : 0) + backgroundPaddingTop - 1, backgroundPaddingLeft, (applyBottomPadding ? dp(8) : 0));
          }
@@ -35,10 +32,9 @@ index 287091da..010d2797 100644
              android.app.Activity owner = AndroidUtilities.findActivity(getContext());
              if (owner != null) {
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/AIEditorAlert.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/AIEditorAlert.java
-index ab86429e..f33c6bab 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/AIEditorAlert.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/AIEditorAlert.java
-@@ -150,6 +150,9 @@ public class AIEditorAlert extends BottomSheetWithRecyclerListView implements No
+@@ -152,6 +152,9 @@ public class AIEditorAlert extends BottomSheetWithRecyclerListView implements No
  
      private final FrameLayout bulletinContainer;
  
@@ -48,7 +44,7 @@ index ab86429e..f33c6bab 100644
      public AIEditorAlert(Context context, Theme.ResourcesProvider resourcesProvider) {
          super(context, null, true, false, false, false, ActionBarType.SLIDING, resourcesProvider);
  
-@@ -288,7 +291,9 @@ public class AIEditorAlert extends BottomSheetWithRecyclerListView implements No
+@@ -290,7 +293,9 @@ public class AIEditorAlert extends BottomSheetWithRecyclerListView implements No
          headerMoveTop = dp(12);
          topPadding = 0.35f;
  

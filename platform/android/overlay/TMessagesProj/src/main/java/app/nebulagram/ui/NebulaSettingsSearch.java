@@ -73,6 +73,7 @@ public final class NebulaSettingsSearch {
         result.add(new Entry(-31, NebulaText.text("ИИ и перевод", "AI and translation"), NebulaText.text("Сервисы, модели, перевод и распознавание", "Services, models, translation and recognition"), R.drawable.nebula_ai_spark));
         result.add(new Entry(1, NebulaText.text("Панель форматирования", "Formatting toolbar"), NebulaText.text("Клавиатура, жирный, курсив, цитата, спойлер, ссылка", "Keyboard, bold, italic, quote, spoiler, link"), R.drawable.msg_edit));
         result.add(new Entry(-27, NebulaText.text("Фильтр сообщений", "Message filter"), NebulaText.text("Слова, транслитерация, исключения, заблокированные", "Words, transliteration, exceptions, blocked users"), R.drawable.msg_search));
+        result.add(new Entry(-28, NebulaText.text("Редактирование перед пересылкой", "Edit before forwarding"), NebulaText.text("Меню сообщения · пересылка", "Message menu · forwarding"), R.drawable.msg_forward));
         result.add(new Entry(-28, NebulaText.text("Меню сообщения", "Message menu"), NebulaText.text("Действия, высота, компактный вид и размытие", "Actions, height, compact appearance and blur"), R.drawable.msg_list));
         result.add(new Entry(-26, NebulaText.text("Камера", "Camera"), NebulaText.text("Движок кружков, CameraX, качество, стабилизация, экспозиция и размытие", "Round-video engine, CameraX, quality, stabilization, exposure and blur"), R.drawable.msg_videocall));
         result.add(new Entry(-22, NebulaText.text("Поддержать проект", "Support the project"),
@@ -159,7 +160,7 @@ public final class NebulaSettingsSearch {
         result.add(new Entry(4, NebulaText.text("Истории в списке чатов", "Stories in the chat list"), NebulaText.text("Сторисы, главная, архив", "Stories, home, archive"), R.drawable.msg_photo_settings));
         result.add(new Entry(2, R.string.NebulaHideHomeCamera, R.string.NebulaHideHomeCameraInfo, R.drawable.outline_fab_story_24));
         result.add(new Entry(2, R.string.NebulaHideHomeCompose, R.string.NebulaHideHomeComposeInfo, R.drawable.filled_fab_compose_32));
-        result.add(new Entry(-15, NebulaText.text("Конфиденциальность", "Privacy"), NebulaText.text("Локальные копии, удалённые сообщения и пересылка", "Local copies, deleted messages and forwarding"), R.drawable.msg_secret));
+        result.add(new Entry(-15, NebulaText.text("Конфиденциальность", "Privacy"), NebulaText.text("Пароли чатов, удалённые сообщения и история правок", "Chat passwords, deleted messages and edit history"), R.drawable.msg_secret));
         result.add(new Entry(-16, NebulaText.text("Список дел", "Tasks"), NebulaText.text("Задачи и напоминания", "Tasks and reminders"), R.drawable.msg_calendar));
         result.add(new Entry(-17, NebulaText.text("Инструменты текста", "Text tools"), NebulaText.text("Перевод, голос, краткое содержание", "Translation, speech, summaries"), R.drawable.msg_customize));
         result.add(new Entry(-18, NebulaText.text("Синхронизация настроек", "Settings sync"), NebulaText.text("Через «Избранное» Telegram", "Via Telegram Saved Messages"), R.drawable.msg_saved));

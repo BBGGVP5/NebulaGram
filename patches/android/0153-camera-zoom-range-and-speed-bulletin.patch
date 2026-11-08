@@ -1,5 +1,4 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/camera/Camera2Session.java b/TMessagesProj/src/main/java/org/telegram/messenger/camera/Camera2Session.java
-index 207b15f9..75469e10 100644
 --- a/TMessagesProj/src/main/java/org/telegram/messenger/camera/Camera2Session.java
 +++ b/TMessagesProj/src/main/java/org/telegram/messenger/camera/Camera2Session.java
 @@ -72,6 +72,8 @@ public class Camera2Session {
@@ -67,10 +66,9 @@ index 207b15f9..75469e10 100644
 \ No newline at end of file
 +}
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/FragmentContextView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/FragmentContextView.java
-index 91f87c77..48ec9a5b 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/FragmentContextView.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/FragmentContextView.java
-@@ -1108,7 +1108,16 @@ public class FragmentContextView extends FrameLayout implements NotificationCent
+@@ -1131,7 +1131,16 @@ public class FragmentContextView extends FrameLayout implements NotificationCent
          return Math.abs(a - b) < 0.05f;
      }
  
@@ -87,7 +85,7 @@ index 91f87c77..48ec9a5b 100644
          if (equals(oldValue, newValue)) {
              return;
          }
-@@ -1116,9 +1125,6 @@ public class FragmentContextView extends FrameLayout implements NotificationCent
+@@ -1139,9 +1148,6 @@ public class FragmentContextView extends FrameLayout implements NotificationCent
          final String text;
          final int resId;
          if (Math.abs(newValue - 1f) < 0.05f) {
@@ -97,7 +95,7 @@ index 91f87c77..48ec9a5b 100644
              text = getString(R.string.AudioSpeedNormal);
              if (Math.abs(oldValue - 2f) < 0.05f) {
                  resId = R.raw.speed_2to1;
-@@ -1137,8 +1143,8 @@ public class FragmentContextView extends FrameLayout implements NotificationCent
+@@ -1160,8 +1166,8 @@ public class FragmentContextView extends FrameLayout implements NotificationCent
              text = LocaleController.formatString("AudioSpeedCustom", R.string.AudioSpeedCustom, SpeedIconDrawable.formatNumber(newValue));
              resId = newValue < 1 ? R.raw.speed_slow : R.raw.speed_fast;
          }
@@ -109,7 +107,6 @@ index 91f87c77..48ec9a5b 100644
  
      private void updateSilent() {
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/InstantCameraView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/InstantCameraView.java
-index 6f4bf59d..74224b90 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/InstantCameraView.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/InstantCameraView.java
 @@ -3809,11 +3809,15 @@ public class InstantCameraView extends InstantCameraViewBase implements Notifica

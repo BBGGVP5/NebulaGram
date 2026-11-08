@@ -1,5 +1,4 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/MediaDataController.java b/TMessagesProj/src/main/java/org/telegram/messenger/MediaDataController.java
-index 47f5e49a..53afe4c5 100644
 --- a/TMessagesProj/src/main/java/org/telegram/messenger/MediaDataController.java
 +++ b/TMessagesProj/src/main/java/org/telegram/messenger/MediaDataController.java
 @@ -3937,7 +3937,7 @@ public class MediaDataController extends BaseController {
@@ -21,10 +20,9 @@ index 47f5e49a..53afe4c5 100644
          long queryWithDialogFinal = queryWithDialog;
          String finalQuery = query;
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
-index 3958b393..b5d04924 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
-@@ -10796,6 +10796,9 @@ public class ChatActivity extends BaseFragment implements
+@@ -11224,6 +11224,9 @@ public class ChatActivity extends BaseFragment implements
          searchCountText.setGravity(Gravity.LEFT);
          searchContainer.addView(searchCountText, LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, 30, Gravity.CENTER_VERTICAL, 0, -1, 97.33f, 0));
          chatInputBubbleContainer.addView(searchContainer, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, searchContainerHeight, Gravity.BOTTOM, 7, 0, 7, 0));
@@ -34,7 +32,7 @@ index 3958b393..b5d04924 100644
  
          searchExpandList = new AnimatedTextView(getContext(), true, false, true);
          searchExpandList.setAnimationProperties(0, 0, 420, CubicBezierInterpolator.EASE_OUT_QUINT);
-@@ -10879,6 +10882,17 @@ public class ChatActivity extends BaseFragment implements
+@@ -11307,6 +11310,17 @@ public class ChatActivity extends BaseFragment implements
          }
      }
  
@@ -52,7 +50,7 @@ index 3958b393..b5d04924 100644
      private void showSearchShowOther(boolean show) {
          searchOtherButton.setVisibility(View.VISIBLE);
          searchOtherButton.animate().alpha(show ? 1f : 0f).withEndAction(() -> {
-@@ -39476,6 +39490,9 @@ public class ChatActivity extends BaseFragment implements
+@@ -40134,6 +40148,9 @@ public class ChatActivity extends BaseFragment implements
          @Override
          public void onSearchCollapse() {
              searching = false;

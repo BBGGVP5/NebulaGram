@@ -1,7 +1,7 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
-@@ -2983,12 +2983,23 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+@@ -2899,12 +2899,23 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
          }
  
          BirthdayController.getInstance(currentAccount).check();
@@ -27,7 +27,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/
      public static void loadDialogs(AccountInstance accountInstance) {
          int currentAccount = accountInstance.getCurrentAccount();
          if (!dialogsLoaded[currentAccount]) {
-@@ -5162,7 +5173,23 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+@@ -5072,7 +5083,23 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
              filterTabsViewBackground.setPadding(dp(6.666f));
              filterTabsView.setPadding(0, dp(7), 0, dp(7));
              filterTabsView.setBlurredBackground(filterTabsViewBackground);
@@ -52,7 +52,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/
          }
  
          if (fragmentSearchField != null) {
-@@ -6601,10 +6628,19 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+@@ -6521,10 +6548,19 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
          float fadeViewT = totalOffset;
  
          if (filterTabsView != null) {
@@ -76,7 +76,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/
          }
  
          if (topPanelLayout != null) {
-@@ -7068,8 +7104,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+@@ -6988,8 +7024,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
              app.nebulagram.ui.NebulaDialogsTitle.apply(actionBar,
                      getMessagesController(), selectedType, statusDrawable);
          }
@@ -86,7 +86,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/
          if (fragmentView != null) {
              ViewCompat.requestApplyInsets(fragmentView);
          }
-@@ -7237,7 +7272,8 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+@@ -7159,7 +7194,8 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
              public int getTopOffset(int tag) {
                  return (
                      (actionBar != null ? actionBar.getMeasuredHeight() : 0) +

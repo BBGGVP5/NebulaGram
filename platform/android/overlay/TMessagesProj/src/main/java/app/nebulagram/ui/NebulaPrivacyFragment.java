@@ -13,7 +13,9 @@ import org.telegram.ui.ActionBar.ActionBar;
 import org.telegram.ui.ActionBar.BaseFragment;
 
 /**
- * Локальная приватность: сохранение удалённых сообщений и их кэш.
+ * Конфиденциальность: защита чатов, удалённые и изменённые сообщения,
+ * ограничения отправителя. Порядок — от того, что видно посторонним, к
+ * локальным копиям.
  *
  * <p>Экран собран из тех же карточек и строк, что и остальные разделы
  * NebulaGram, а не из голого списка: разделы отделены шапками, у каждой строки
@@ -128,79 +130,94 @@ public final class NebulaPrivacyFragment extends BaseFragment {
     private void rebuild() {
         if (content == null) return;
         content.removeAllViews();
+        final boolean retention = NebulaDeletedArchive.enabled(owner);
         NebulaSettingsHero hero = new NebulaSettingsHero(content.getContext(), R.drawable.msg_secret,
                 text("Конфиденциальность", "Privacy"),
-                text("Защита чатов, локальные копии и управление сохранением сообщений.",
-                        "Chat protection, local copies and message retention."));
-        hero.setStatus(NebulaDeletedArchive.enabled(owner) ? text("Сохранение включено", "Retention on")
-                : text("Сохранение выключено", "Retention off"), NebulaDeletedArchive.enabled(owner));
+                text("Защита чатов от посторонних глаз и локальные копии сообщений. Всё хранится только на этом устройстве.",
+                        "Keep chats away from prying eyes and keep local copies of messages. Everything stays on this device."));
+        hero.setStatus(retention ? text("Удалённые сохраняются", "Deleted messages are kept")
+                : text("Удалённые не сохраняются", "Deleted messages are not kept"), retention);
         content.addView(hero);
-        NebulaFeatureControls.privacy(this, content);
+
+        // 1. Who can see what is on the screen.
+        header(text("Защита чатов", "Chat protection"));
         card(row(R.drawable.nebula_settings_chat_lock, text("Пароли чатов", "Chat passwords"))
+                .subtitle(text("Отдельный пароль или биометрия для выбранных чатов", "A separate passcode or biometrics for chosen chats"), false)
                 .trailing(NebulaRow.TRAIL_CHEVRON)
                 .withClick(v -> presentFragment(new NebulaLockedChatsFragment())));
+        NebulaFeatureControls.privacy(this, content);
+
+        // 2. Copies kept on this device.
+        header(text("Удалённые сообщения", "Deleted messages"));
+        NebulaRow master = row(R.drawable.msg_delete, text("Сохранять удалённые сообщения", "Save deleted messages"))
+                .subtitle(text("Остаются на своём месте в чате с отметкой", "They stay in place in the chat with a marker"), false)
+                .trailing(NebulaRow.TRAIL_SWITCH)
+                .checked(retention)
+                .withClick(v -> {
+                    if (NebulaDeletedArchive.enabled(owner)) { NebulaDeletedArchive.setEnabled(owner, false); rebuild(); return; }
+                    showDialog(new NebulaDialog.Builder(getParentActivity())
+                            .setTitle(text("Включить локальный архив?", "Enable local archive?"))
+                            .setMessage(text("Полученные сообщения останутся на своём месте в чате с отметкой удаления. Их содержимое и вложения остаются в обычном локальном кэше Telegram; на сервер ничего не отправляется. Секретные и исчезающие сообщения требуют отдельных переключателей. Защита от копирования сохраняется.", "Received messages stay in place with a deletion marker. Content and attachments remain in Telegram’s normal local cache; nothing is sent to the server. Secret and expiring messages require separate switches. Copy protection is respected."))
+                            .setNegativeButton(text("Отмена", "Cancel"), null)
+                            .setPositiveButton(text("Включить", "Enable"), (d, w) -> { NebulaDeletedArchive.setEnabled(owner, true); rebuild(); })
+                            .create());
+                });
+        if (retention) {
+            card(master, extraToggle(true), extraToggle(false));
+            note(text("Без лимита сообщений и срока хранения. Выключение не очищает прежние копии.",
+                    "No message or time limit. Turning this off keeps existing copies."));
+
+            header(text("Где сохранять", "Where to save"));
+            card(scopeToggle(NebulaDeletedStyle.PRIVATE), scopeToggle(NebulaDeletedStyle.GROUPS),
+                    scopeToggle(NebulaDeletedStyle.CHANNELS), scopeToggle(NebulaDeletedStyle.BOTS),
+                    scopeToggle(NebulaDeletedStyle.SAVED));
+            note(NebulaDeletedStyle.scopeCount() == 0
+                    ? text("Не выбрано ничего — сохранять будет нечего.",
+                            "Nothing is selected, so nothing will be kept.")
+                    : text("В «Избранном» сохраняются сообщения, удалённые на другом устройстве, если они уже загружены сюда. Удаление в этом приложении работает как обычно.",
+                            "Saved Messages deleted on another device are kept if already loaded here. Deleting in this app works as usual."));
+
+            header(text("Как выглядят в чате", "How they look in the chat"));
+            card(row(R.drawable.msg_emoji_smiles, text("Значок удалённого сообщения", "Deleted message icon"))
+                            .subtitle(NebulaDeletedArchive.icon(), true)
+                            .trailing(NebulaRow.TRAIL_CHEVRON)
+                            .withClick(v -> icons()),
+                    row(R.drawable.msg_palette, text("Как выделять", "How to mark"))
+                            .subtitle(NebulaDeletedStyle.markTitle(), true)
+                            .trailing(NebulaRow.TRAIL_CHEVRON)
+                            .withClick(v -> marks()),
+                    colourRow());
+            note(text("Значок показывается в чате вместо слова «Удалено».",
+                    "The icon replaces the word Deleted in the chat."));
+        } else {
+            card(master);
+            note(text("Включите, чтобы сообщение, которое удалил собеседник, оставалось в чате с отметкой. Настройки появятся после включения.",
+                    "Turn on to keep a message the other person deleted in the chat with a marker. Its options appear once it is on."));
+        }
+        card(row(R.drawable.msg_info, text("Как работает сохранение", "How retention works"))
+                        .subtitle(text("Медиа, фон и ограничения", "Media, background and limitations"), false)
+                        .trailing(NebulaRow.TRAIL_CHEVRON)
+                        .withClick(v -> showDialog(new NebulaDialog.Builder(getParentActivity())
+                                .setTitle(text("Как работает сохранение", "How retention works"))
+                                .setMessage(text("Архив хранится столько, сколько нужно вам: ни по числу сообщений, ни по сроку он не ограничен и очищается только вручную. Текст и уже полученные вложения. Медиа может удаляться стандартной очисткой кэша; недоступные файлы восстановить нельзя. Фоновое сохранение возможно лишь при получении приложением события удаления. Выключение не удаляет существующий архив. Клиент собеседника не определяется.",
+                        "The archive is kept for as long as you want it: no message-count or time limit, and it is cleared only by hand. Text and received attachments. Standard cache eviction can remove media; unavailable files cannot be recovered. Background capture requires the app to receive the deletion update. Disabling does not erase existing entries. Peer clients are not detected."))
+                                .setPositiveButton(text("Понятно", "Got it"), null).create())),
+                row(R.drawable.msg_clearcache, text("Очистить сохранённые копии", "Clear retained copies"))
+                        .destructive()
+                        .withClick(v -> confirmClear(this, currentAccount, 0, this::rebuild)));
+        if (NebulaDeletedArchive.hasError(owner)) {
+            note(text("Часть сообщений не удалось сохранить. Архив не сброшен.",
+                    "Some messages could not be saved. The archive was not reset."));
+        }
+
+        // 3. Edited messages: the earlier versions kept locally.
+        header(text("Изменённые сообщения", "Edited messages"));
         card(row(R.drawable.msg_edit, text("История правок", "Edit history"))
                 .subtitle(text("Предыдущие версии сообщений на устройстве", "Previous message versions on device"), false)
                 .trailing(NebulaRow.TRAIL_CHEVRON)
                 .withClick(v -> presentFragment(new NebulaEditHistoryFragment(currentAccount, null))));
-        header(text("Удалённые сообщения", "Deleted messages"));
-        card(row(R.drawable.msg_delete, text("Сохранять удалённые сообщения", "Save deleted messages"))
-                        .subtitle(text("Остаются на своём месте в чате", "They stay in place in the chat"), false)
-                        .trailing(NebulaRow.TRAIL_SWITCH)
-                        .checked(NebulaDeletedArchive.enabled(owner))
-                        .withClick(v -> {
-                            if (NebulaDeletedArchive.enabled(owner)) { NebulaDeletedArchive.setEnabled(owner, false); rebuild(); return; }
-                            showDialog(new NebulaDialog.Builder(getParentActivity())
-                                    .setTitle(text("Включить локальный архив?", "Enable local archive?"))
-                                    .setMessage(text("Полученные сообщения останутся на своём месте в чате с отметкой удаления. Их содержимое и вложения остаются в обычном локальном кэше Telegram; на сервер ничего не отправляется. Секретные и исчезающие сообщения требуют отдельных переключателей. Защита от копирования сохраняется.", "Received messages stay in place with a deletion marker. Content and attachments remain in Telegram’s normal local cache; nothing is sent to the server. Secret and expiring messages require separate switches. Copy protection is respected."))
-                                    .setNegativeButton(text("Отмена", "Cancel"), null)
-                                    .setPositiveButton(text("Включить", "Enable"), (d, w) -> { NebulaDeletedArchive.setEnabled(owner, true); rebuild(); })
-                                    .create());
-                        }),
-                extraToggle(true), extraToggle(false));
-        note(text("Без лимита сообщений и срока хранения. Выключение не очищает прежние копии.",
-                "No message or time limit. Turning this off keeps existing copies."));
 
-        header(text("Где сохранять", "Where to save"));
-        card(scopeToggle(NebulaDeletedStyle.PRIVATE), scopeToggle(NebulaDeletedStyle.GROUPS),
-                scopeToggle(NebulaDeletedStyle.CHANNELS), scopeToggle(NebulaDeletedStyle.BOTS),
-                scopeToggle(NebulaDeletedStyle.SAVED));
-        note(text("В «Избранном» сохраняются сообщения, удалённые на другом устройстве, если они уже загружены сюда. Удаление в этом приложении работает как обычно.",
-                "Saved Messages deleted on another device are kept if already loaded here. Deleting in this app works as usual."));
-        note(NebulaDeletedStyle.scopeCount() == 0
-                ? text("Не выбрано ничего — сохранять будет нечего.",
-                        "Nothing is selected, so nothing will be kept.")
-                : text("Удаление из остальных чатов проходит как обычно.",
-                        "Deletions elsewhere go through as usual."));
-        card(row(R.drawable.msg_info, text("Как работает сохранение", "How retention works"))
-                .subtitle(text("Медиа, фон и ограничения", "Media, background and limitations"), false)
-                .trailing(NebulaRow.TRAIL_CHEVRON)
-                .withClick(v -> showDialog(new NebulaDialog.Builder(getParentActivity())
-                        .setTitle(text("Как работает сохранение", "How retention works"))
-                        .setMessage(text("Архив хранится столько, сколько нужно вам: ни по числу сообщений, ни по сроку он не ограничен и очищается только вручную. Текст и уже полученные вложения. Медиа может удаляться стандартной очисткой кэша; недоступные файлы восстановить нельзя. Фоновое сохранение возможно лишь при получении приложением события удаления. Выключение не удаляет существующий архив. Клиент собеседника не определяется.",
-                "The archive is kept for as long as you want it: no message-count or time limit, and it is cleared only by hand. Text and received attachments. Standard cache eviction can remove media; unavailable files cannot be recovered. Background capture requires the app to receive the deletion update. Disabling does not erase existing entries. Peer clients are not detected."))
-                        .setPositiveButton(text("Понятно", "Got it"), null).create())));
-
-        header(text("Оформление", "Appearance"));
-        card(row(R.drawable.msg_emoji_smiles, text("Значок удалённого сообщения", "Deleted message icon"))
-                        .subtitle(NebulaDeletedArchive.icon(), true)
-                        .trailing(NebulaRow.TRAIL_CHEVRON)
-                        .withClick(v -> icons()),
-                row(R.drawable.msg_palette, text("Как выделять", "How to mark"))
-                        .subtitle(NebulaDeletedStyle.markTitle(), true)
-                        .trailing(NebulaRow.TRAIL_CHEVRON)
-                        .withClick(v -> marks()),
-                colourRow());
-        note(text("Значок показывается в чате вместо слова «Удалено».",
-                "The icon replaces the word Deleted in the chat."));
-
-        header(text("Пересылка", "Forwarding"));
-        card(row(R.drawable.msg_edit, text("Редактирование перед пересылкой", "Edit before forwarding"))
-                .subtitle(text("Меняйте текст и подписи до отправки. Несколько сообщений открываются по очереди; вложения и альбомы сохраняются.",
-                        "Edit text and captions before sending. Selected messages open one by one; media and albums stay intact."), false)
-                .trailing(NebulaRow.TRAIL_SWITCH).checked(NebulaForwardEditing.enabled())
-                .withClick(v -> { NebulaForwardEditing.setEnabled(!NebulaForwardEditing.enabled()); rebuild(); }));
-
+        // 4. What this client lets you do with protected content.
         header(text("Ограничения отправителя", "Sender restrictions"));
         card(row(R.drawable.msg_forward, text("Разрешить снимки и пересылку", "Allow screenshots and forwarding"))
                 .subtitle(text("В чатах, где включена защита содержимого", "In chats with content protection on"), false)
@@ -217,19 +234,6 @@ public final class NebulaPrivacyFragment extends BaseFragment {
                 }));
         note(text("Выключено по умолчанию. Настройка меняет только этот клиент и только на этом устройстве.",
                 "Off by default. The setting changes this client on this device and nothing else."));
-
-        header(text("Локальный кэш", "Local cache"));
-        card(row(R.drawable.msg_clearcache, text("Очистить удаленки", "Clear deleted messages"))
-                .destructive()
-                .withClick(v -> confirmClear(this, currentAccount, 0, this::rebuild)));
-
-        // The archive preview is gone: retained messages live in the chat
-        // itself, so a second copy of them here only duplicated the
-        // conversation and put other people's text on a settings screen.
-        if (NebulaDeletedArchive.hasError(owner)) {
-            note(text("Часть сообщений не удалось сохранить. Архив не сброшен.",
-                    "Some messages could not be saved. The archive was not reset."));
-        }
     }
 
     /** Один вид собеседника: сохранять из него удалённое или нет. */

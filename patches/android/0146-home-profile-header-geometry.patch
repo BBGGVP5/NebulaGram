@@ -1,7 +1,7 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
-@@ -652,7 +652,8 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
+@@ -784,7 +784,8 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
  
      private boolean nebulaCenterTitle() {
          if ((!nebulaHomeTabsGlass && !app.nebulagram.ui.NebulaAppearance.centerHome())
@@ -11,8 +11,8 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.jav
          if (parentFragment instanceof org.telegram.ui.DialogsActivity) {
              return ((org.telegram.ui.DialogsActivity) parentFragment).nebulaIsHeaderExpanded();
          }
-@@ -2574,7 +2575,15 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
-                     && !((nebulaClassicSavedHeader || nebulaFloatingChatHeader && !app.nebulagram.ui.NebulaAppearance.chatHeader()) && actionModeFactor == 0f && searchFactor == 0f)) glassDrawable.draw(canvas);
+@@ -2809,7 +2810,15 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
+             }
          }
          if (glassDrawableBack != null && hasBackButton) {
 -            glassDrawableBack.setBounds(0, t, nebulaBackWidth, b);

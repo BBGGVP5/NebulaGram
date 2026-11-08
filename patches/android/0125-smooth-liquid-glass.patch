@@ -1,7 +1,7 @@
 diff --git a/TMessagesProj/src/main/res/raw/liquid_glass_shader.agsl b/TMessagesProj/src/main/res/raw/liquid_glass_shader.agsl
 --- a/TMessagesProj/src/main/res/raw/liquid_glass_shader.agsl
 +++ b/TMessagesProj/src/main/res/raw/liquid_glass_shader.agsl
-@@ -22,11 +22,19 @@ half4 srcOver(half4 src, half4 dst) {
+@@ -21,6 +21,14 @@ half4 srcOver(half4 src, half4 dst) {
      return half4(outRGB, outA);
  }
  
@@ -15,21 +15,15 @@ diff --git a/TMessagesProj/src/main/res/raw/liquid_glass_shader.agsl b/TMessages
 +
  half4 main(in float2 fragCoord) {
    half2 p = fragCoord - center;
-   half sd = sdfRect(p, radius);
-   half2 uv = fragCoord;
--  if (sd < 0.0) {
-+  if (sd < 0.0 && sd > -thickness && refract_intensity > 0.0) {
-     half sdX = sdfRect(p + half2(1.0, 0.0), radius);
-     half sdY = sdfRect(p + half2(0.0, 1.0), radius);
- 
+   half sdRaw = sdfRect(p, radius);
 @@ -39,7 +47,9 @@ half4 main(in float2 fragCoord) {
-     half h = sd < -thickness ? thickness : sqrt(sd * (-2.0 * thickness - sd));
-     half refract_length = (h + 8.0 * thickness) / -refract_vec.z;
+   half h = sd < -thickness ? thickness : sqrt(sd * (-2.0 * thickness - sd));
+   half refract_length = (h + 8.0 * thickness) / -refract_vec.z;
  
--    uv += refract_vec.xy * refract_length * refract_intensity;
-+    float2 displacement = float2(refract_vec.xy) * refract_length * refract_intensity;
-+    float limit = nebulaEdgeLimit(float(sd), thickness, refract_intensity);
-+    uv += half2(displacement * min(1.0, limit / max(length(displacement), 0.001)));
-   }
+-  uv += refract_vec.xy * refract_length * refract_intensity;
++  float2 displacement = float2(refract_vec.xy) * refract_length * refract_intensity;
++  float limit = nebulaEdgeLimit(float(sd), thickness, refract_intensity);
++  uv += half2(displacement * min(1.0, limit / max(length(displacement), 0.001)));
+   // on a small shape the edge samples past the far side: stay within the shape, whatever the grid of a downsampled node
+   uv = clamp(uv, center - size + 0.5, center + size - 0.5);
  
-   return srcOver(half4(foreground_color_premultiplied), img.eval(uv));

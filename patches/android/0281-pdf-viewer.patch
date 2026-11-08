@@ -1,8 +1,7 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/AndroidUtilities.java b/TMessagesProj/src/main/java/org/telegram/messenger/AndroidUtilities.java
-index 60b0044f..3fecd95d 100644
 --- a/TMessagesProj/src/main/java/org/telegram/messenger/AndroidUtilities.java
 +++ b/TMessagesProj/src/main/java/org/telegram/messenger/AndroidUtilities.java
-@@ -4236,6 +4236,8 @@ public class AndroidUtilities {
+@@ -4319,6 +4319,8 @@ public class AndroidUtilities {
                      builder.setPositiveButton(getString(R.string.OK), null);
                      parentFragment.showDialog(builder.create());
                  }
@@ -11,7 +10,7 @@ index 60b0044f..3fecd95d 100644
              } else {
                  String realMimeType = null;
                  try {
-@@ -4296,6 +4298,9 @@ public class AndroidUtilities {
+@@ -4379,6 +4381,9 @@ public class AndroidUtilities {
  
      public static boolean openForView(File f, String fileName, String mimeType, final Activity activity, Theme.ResourcesProvider resourcesProvider, boolean restrict) {
          if (f != null && f.exists()) {
@@ -21,7 +20,7 @@ index 60b0044f..3fecd95d 100644
              String realMimeType = null;
              Intent intent = new Intent(Intent.ACTION_VIEW);
              intent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-@@ -4354,6 +4359,9 @@ public class AndroidUtilities {
+@@ -4437,6 +4442,9 @@ public class AndroidUtilities {
              f = FileLoader.getInstance(message.currentAccount).getPathToMessage(message.messageOwner);
          }
          String mimeType = message.type == MessageObject.TYPE_FILE || message.type == MessageObject.TYPE_TEXT ? message.getMimeType() : null;

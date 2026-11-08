@@ -1,7 +1,7 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ScrollSlidingTextTabStrip.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ScrollSlidingTextTabStrip.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ScrollSlidingTextTabStrip.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ScrollSlidingTextTabStrip.java
-@@ -708,6 +708,9 @@ public class ScrollSlidingTextTabStrip extends HorizontalScrollView implements T
+@@ -717,6 +717,9 @@ public class ScrollSlidingTextTabStrip extends HorizontalScrollView implements T
              canvas.translate(-getScrollX(), 0);
              canvas.translate(left.set(0), 0);
          }

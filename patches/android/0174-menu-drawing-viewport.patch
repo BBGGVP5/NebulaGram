@@ -10,7 +10,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarPopu
                          return false;
                      }
                      return super.drawChild(canvas, child, drawingTime);
-@@ -485,12 +485,14 @@ public class ActionBarPopupWindow extends PopupWindow {
+@@ -487,12 +487,14 @@ public class ActionBarPopupWindow extends PopupWindow {
              if (swipeBackGravityBottom) {
                  setTranslationY(getMeasuredHeight() * (1f - backScaleY));
              }
@@ -28,7 +28,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarPopu
                          hasGap = true;
                          break;
                      }
-@@ -504,7 +506,7 @@ public class ActionBarPopupWindow extends PopupWindow {
+@@ -506,7 +508,7 @@ public class ActionBarPopupWindow extends PopupWindow {
                      if (hasGap && backAlpha != 255) {
                          canvas.saveLayerAlpha(0, bgPaddings.top, getMeasuredWidth(), getMeasuredHeight(), backAlpha, Canvas.ALL_SAVE_FLAG);
                          applyAlpha = false;
@@ -37,7 +37,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarPopu
                          canvas.save();
                          canvas.clipRect(0, bgPaddings.top, getMeasuredWidth(), getMeasuredHeight());
                      }
-@@ -517,13 +519,13 @@ public class ActionBarPopupWindow extends PopupWindow {
+@@ -519,13 +521,13 @@ public class ActionBarPopupWindow extends PopupWindow {
                              int h = (int) (getMeasuredHeight() * backScaleY);
                              if (a == 0) {
                                  if (swipeBackLayout != null && swipeBackLayout.stickToRight) {
@@ -54,7 +54,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarPopu
                                          canvas.restore();
                                      }
                                      continue;
-@@ -536,9 +538,9 @@ public class ActionBarPopupWindow extends PopupWindow {
+@@ -538,9 +540,9 @@ public class ActionBarPopupWindow extends PopupWindow {
                              }
                          } else {
                              if (swipeBackLayout != null && swipeBackLayout.stickToRight) {
@@ -66,7 +66,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarPopu
                              }
                          }
                      }
-@@ -598,6 +600,7 @@ public class ActionBarPopupWindow extends PopupWindow {
+@@ -600,6 +602,7 @@ public class ActionBarPopupWindow extends PopupWindow {
                  }
              }
              int nebulaClipSave = canvas.save();
@@ -74,7 +74,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarPopu
              nebulaReveal.clip(canvas);
              if (reactionsEnterProgress != 1f) {
                  canvas.saveLayerAlpha((float) AndroidUtilities.rectTmp2.left, (float) AndroidUtilities.rectTmp2.top, AndroidUtilities.rectTmp2.right, AndroidUtilities.rectTmp2.bottom, (int) (255 * reactionsEnterProgress), Canvas.ALL_SAVE_FLAG);
-@@ -733,6 +736,8 @@ public class ActionBarPopupWindow extends PopupWindow {
+@@ -735,6 +738,8 @@ public class ActionBarPopupWindow extends PopupWindow {
          }
      }
  
@@ -83,7 +83,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarPopu
      public ActionBarPopupWindow() {
          super();
          init();
-@@ -893,6 +898,17 @@ public class ActionBarPopupWindow extends PopupWindow {
+@@ -895,6 +900,17 @@ public class ActionBarPopupWindow extends PopupWindow {
          }
      }
  
@@ -101,7 +101,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarPopu
      public static AnimatorSet startAnimation(ActionBarPopupWindowLayout content) {
          content.startAnimationPending = true;
          content.setTranslationY(0);
-@@ -1072,8 +1088,13 @@ public class ActionBarPopupWindow extends PopupWindow {
+@@ -1074,8 +1090,13 @@ public class ActionBarPopupWindow extends PopupWindow {
  
      @Override
      public void showAtLocation(View parent, int gravity, int x, int y) {

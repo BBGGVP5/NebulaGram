@@ -1,7 +1,7 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
-@@ -2178,6 +2178,10 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+@@ -2177,6 +2177,10 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
              lastTop = t;
              scrollAdditionalOffset = 0;
              parentPage.pageAdditionalOffset = 0;
@@ -12,7 +12,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/
          }
  
          @Override
-@@ -4630,6 +4634,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+@@ -4538,6 +4542,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                      if (contentView != null) {
                          contentView.updateBlurContent();
                      }

@@ -1,10 +1,9 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/MessageDrawable.java b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/MessageDrawable.java
-index 92421054..6d1ed307 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/MessageDrawable.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/MessageDrawable.java
-@@ -559,7 +559,9 @@ public class MessageDrawable extends Drawable {
- 
-     public void draw(Canvas canvas, Paint paintToUse) {
+@@ -588,7 +588,9 @@ public class MessageDrawable extends Drawable {
+             return;
+         }
          Rect bounds = getBounds();
 -        if (paintToUse == null && paint.getStyle() == Paint.Style.FILL && gradientShader == null && overrideRoundRadius == 0 && overrideRounding <= 0) {
 +        final boolean nebulaBlur = paintToUse == null && currentType != TYPE_PREVIEW
@@ -13,7 +12,7 @@ index 92421054..6d1ed307 100644
              Drawable background = getBackgroundDrawable();
              if (background != null) {
                  background.setBounds(bounds);
-@@ -617,7 +619,10 @@ public class MessageDrawable extends Drawable {
+@@ -646,7 +648,10 @@ public class MessageDrawable extends Drawable {
              generatePath(path, bounds, padding, rad, smallRad, nearRad, top, drawFullBottom, drawFullTop, paintToUse != null);
          }
  
@@ -26,10 +25,9 @@ index 92421054..6d1ed307 100644
              int color = getColor(Theme.key_chat_outBubbleGradientSelectedOverlay);
              selectedPaint.setColor(ColorUtils.setAlphaComponent(color, (int) (Color.alpha(color) * alpha / 255f)));
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/Theme.java b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/Theme.java
-index 72df6a74..0c2ce016 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/Theme.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/Theme.java
-@@ -8627,6 +8627,11 @@ public class Theme {
+@@ -8728,6 +8728,11 @@ public class Theme {
          }
      }
  
@@ -42,10 +40,9 @@ index 72df6a74..0c2ce016 100644
          applyServiceShaderMatrix(serviceBitmap, serviceBitmapShader, serviceBitmapMatrix, w, h, translationX, translationY);
      }
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChannelAdminLogActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ChannelAdminLogActivity.java
-index 58ea8034..4f67dabf 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ChannelAdminLogActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ChannelAdminLogActivity.java
-@@ -940,6 +940,10 @@ public class ChannelAdminLogActivity extends BaseFragment implements Notificatio
+@@ -938,6 +938,10 @@ public class ChannelAdminLogActivity extends BaseFragment implements Notificatio
          avatarContainer.setGlassMode();
          avatarContainer.setOccupyStatusBar(!AndroidUtilities.isTablet());
          actionBar.addView(avatarContainer, 0, LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, LayoutHelper.MATCH_PARENT, Gravity.TOP | Gravity.LEFT, 54, 0, 52, 0));
@@ -57,10 +54,9 @@ index 58ea8034..4f67dabf 100644
          ActionBarMenu menu = actionBar.createMenu();
          searchItem = menu.addItem(0, R.drawable.outline_header_search).setIsSearchField(true).setActionBarMenuItemSearchListener(new ActionBarMenuItem.ActionBarMenuItemSearchListener() {
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
-index 50133c66..e5170aff 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
-@@ -4234,7 +4234,6 @@ public class ChatActivity extends BaseFragment implements
+@@ -4157,7 +4157,6 @@ public class ChatActivity extends BaseFragment implements
              @Override
              protected boolean onAvatarClick() {
                  if (app.nebulagram.ui.NebulaAppearance.chatHeader()
@@ -68,7 +64,7 @@ index 50133c66..e5170aff 100644
                          && chatMode == 0 && !isInPreviewMode() && !inBubbleMode && !searching
                          && headerItem != null && headerItem.hasSubMenu()) {
                      headerItem.toggleSubMenu(null, avatarContainer.getAvatarImageView());
-@@ -4724,7 +4723,9 @@ public class ChatActivity extends BaseFragment implements
+@@ -4648,7 +4647,9 @@ public class ChatActivity extends BaseFragment implements
              actionBar.setForcedMenuWidth(dp(46));
              actionBar.doNotDrawGlassMenu = true;
              avatarContainer.setActionBar(actionBar);
@@ -79,7 +75,7 @@ index 50133c66..e5170aff 100644
              actionBar.setChatAvatarContainer(avatarContainer);
              actionBar.setForcedMenuMinWidth(dp(46));
              avatarContainer.setActionBar(actionBar);
-@@ -8723,7 +8724,7 @@ public class ChatActivity extends BaseFragment implements
+@@ -8726,7 +8727,7 @@ public class ChatActivity extends BaseFragment implements
              if (getParentActivity() == null || pullingDownOffset != 0) {
                  return;
              }
@@ -88,7 +84,7 @@ index 50133c66..e5170aff 100644
                  Bundle discussionArgs = new Bundle();
                  discussionArgs.putLong("chat_id", chatInfo.linked_chat_id);
                  presentFragment(new ChatActivity(discussionArgs));
-@@ -28804,6 +28805,9 @@ public class ChatActivity extends BaseFragment implements
+@@ -29359,6 +29360,9 @@ public class ChatActivity extends BaseFragment implements
          bottomOverlayChatText.setTextColorKey(accentTextButton ? Theme.key_featuredStickers_buttonText : Theme.key_glass_defaultText);
  
          boolean separateDiscussion = hasNebulaDiscussion() && bottomChannelButtonsLayout.getVisibility() == View.VISIBLE;
@@ -98,7 +94,7 @@ index 50133c66..e5170aff 100644
          bottomChannelButtonsLayout.setDiscussionMode(separateDiscussion,
                  getMessagesController().isDialogMuted(dialog_id, getTopicId()), animated);
          if (separateDiscussion) {
-@@ -28819,6 +28823,8 @@ public class ChatActivity extends BaseFragment implements
+@@ -29374,6 +29378,8 @@ public class ChatActivity extends BaseFragment implements
          checkRaiseSensors();
      }
  
@@ -107,15 +103,16 @@ index 50133c66..e5170aff 100644
      private boolean hasNebulaDiscussion() {
          return app.nebulagram.ui.NebulaAppearance.iosComposer() && chatMode == 0
                  && !isThreadChat() && !isComments && ChatObject.isChannelAndNotMegaGroup(currentChat)
-@@ -32627,12 +32633,17 @@ public class ChatActivity extends BaseFragment implements
+@@ -33247,6 +33253,8 @@ public class ChatActivity extends BaseFragment implements
                      }
                  }
                  app.nebulagram.ui.NebulaMessageMenuSettings.filter(items, icons, options);
 +                final int[] nebulaActionRow = app.nebulagram.ui.NebulaMessageMenuSplit.row(options,
 +                        app.nebulagram.ui.NebulaMessageMenuSplit.enabled());
                  scrimPopupWindowItems = new ActionBarMenuSubItem[items.size()];
+                 scrimPopupRedItem = null;
                  for (int a = 0, N = items.size(); a < N; a++) {
-                     final Integer option = options.get(a);
+@@ -33254,6 +33262,9 @@ public class ChatActivity extends BaseFragment implements
                      if (option == OPTION_DELETE && showWelcomeMessageRevertOption(selectedObject)) {
                          continue;
                      }
@@ -125,7 +122,7 @@ index 50133c66..e5170aff 100644
  
                      ActionBarMenuSubItem cell = new ActionBarMenuSubItem(getParentActivity(), a == 0, a == N - 1, themeDelegate);
                      cell.setMinimumWidth(AndroidUtilities.dp(200));
-@@ -32845,6 +32856,17 @@ public class ChatActivity extends BaseFragment implements
+@@ -33479,6 +33490,17 @@ public class ChatActivity extends BaseFragment implements
                          }
                      }
                  }
@@ -143,7 +140,7 @@ index 50133c66..e5170aff 100644
                  if (selectedObject != null && selectedObject.messageOwner != null && selectedObject.messageOwner.video_processing_pending) {
                      popupLayout.addView(new ActionBarPopupWindow.GapView(contentView.getContext(), themeDelegate), LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, 8));
                      FrameLayout layout = new FrameLayout(getParentActivity());
-@@ -33178,12 +33200,17 @@ public class ChatActivity extends BaseFragment implements
+@@ -33814,12 +33836,17 @@ public class ChatActivity extends BaseFragment implements
              scrimPopupWindow.setDismissAnimationDuration(220);
              scrimPopupWindow.setOutsideTouchable(true);
              scrimPopupWindow.setClippingEnabled(true);
@@ -162,7 +159,7 @@ index 50133c66..e5170aff 100644
              scrimPopupWindow.setFocusable(true);
              scrimPopupContainerLayout.measure(View.MeasureSpec.makeMeasureSpec(AndroidUtilities.dp(1000), View.MeasureSpec.AT_MOST), View.MeasureSpec.makeMeasureSpec(AndroidUtilities.dp(1000), View.MeasureSpec.AT_MOST));
              scrimPopupWindow.setInputMethodMode(ActionBarPopupWindow.INPUT_METHOD_NOT_NEEDED);
-@@ -33318,6 +33345,13 @@ public class ChatActivity extends BaseFragment implements
+@@ -33954,6 +33981,13 @@ public class ChatActivity extends BaseFragment implements
                      return;
                  }
                  scrimPopupWindow.showAtLocation(chatListView, Gravity.LEFT | Gravity.TOP, finalPopupX, finalPopupY);
@@ -175,12 +172,4 @@ index 50133c66..e5170aff 100644
 +                }
                  if (isReactionsAvailableFinal && finalReactionsLayout != null) {
                      finalReactionsLayout.startEnterAnimation(true);
-                 }
-@@ -43518,6 +43552,7 @@ public class ChatActivity extends BaseFragment implements
-             }
-             if (scrimPopupWindowItems != null) {
-                 for (int a = 0; a < scrimPopupWindowItems.length; a++) {
-+                    if (scrimPopupWindowItems[a] == null) continue;
-                     scrimPopupWindowItems[a].setColors(getThemedColor(Theme.key_actionBarDefaultSubmenuItem), getThemedColor(Theme.key_actionBarDefaultSubmenuItemIcon));
-                     scrimPopupWindowItems[a].setSelectorColor(getThemedColor(Theme.key_dialogButtonSelector));
                  }

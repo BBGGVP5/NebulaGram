@@ -1,0 +1,61 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
+--- a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
+@@ -4601,6 +4601,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+             } else if (position == bioRow) {
+                 presentFragment(new UserInfoActivity());
+             } else if (position == numberRow) {
++                if (app.nebulagram.ui.NebulaPhoneBlur.reveal(view)) return; // NebulaGram
+                 presentFragment(new ActionIntroActivity(ActionIntroActivity.ACTION_TYPE_CHANGE_PHONE_NUMBER));
+             } else if (position == setAvatarRow) {
+                 onWriteButtonClick();
+@@ -7623,6 +7624,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+         } else if (position == noteRow) {
+ 
+         } else if (position == phoneRow || position == numberRow) {
++            if (app.nebulagram.ui.NebulaPhoneBlur.reveal(view)) return true; // NebulaGram: first tap shows the number
+             if (editRow(view, position)) return true;
+ 
+             final TLRPC.User user = getMessagesController().getUser(userId);
+@@ -10989,7 +10991,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+                     setAvatarSectionRow = rowCount++;
+                 }
+                 numberSectionRow = rowCount++;
+-                if (!app.nebulagram.ui.NebulaMessagePreferences.enabled("hide_profile_phone", false)) numberRow = rowCount++;
++                numberRow = rowCount++;
+                 nebulaIdRow = rowCount++;
+                 setUsernameRow = rowCount++;
+                 bioRow = rowCount++;
+@@ -11076,7 +11078,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+                     }
+                 }
+                 infoStartRow = rowCount;
+-                if (!isBot && (hasPhone || !hasInfo) && !app.nebulagram.ui.NebulaMessagePreferences.enabled("hide_profile_phone", false)) {
++                if (!isBot && (hasPhone || !hasInfo)) {
+                     phoneRow = rowCount++;
+                 }
+                 if (userInfo != null && !TextUtils.isEmpty(userInfo.about)) {
+@@ -13661,6 +13663,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+                 case VIEW_TYPE_TEXT_DETAIL_MULTILINE_2:
+                 case VIEW_TYPE_TEXT_DETAIL:
+                     TextDetailCell detailCell = (TextDetailCell) holder.itemView;
++                    app.nebulagram.ui.NebulaPhoneBlur.reset(detailCell.textView); // NebulaGram
+                     boolean containsQr = false;
+                     boolean containsGift = false;
+                     if (position == birthdayRow) {
+@@ -13706,6 +13709,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+                         }
+                         isFragmentPhoneNumber = phoneNumber != null && phoneNumber.matches("888\\d{8}");
+                         detailCell.setTextAndValue(text, LocaleController.getString(isFragmentPhoneNumber ? R.string.AnonymousNumber : R.string.PhoneMobile), false);
++                        if (phoneNumber != null) app.nebulagram.ui.NebulaPhoneBlur.apply(detailCell.textView); // NebulaGram
+                     } else if (position == nebulaIdRow) {
+                         TLRPC.Chat idChat = currentChat != null ? currentChat : getMessagesController().getChat(chatId);
+                         String label = userId != 0
+@@ -13812,6 +13816,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+                             value = LocaleController.getString(R.string.NumberUnknown);
+                         }
+                         detailCell.setTextAndValue(value, LocaleController.getString(R.string.TapToChangePhone), true);
++                        app.nebulagram.ui.NebulaPhoneBlur.apply(detailCell.textView); // NebulaGram
+                         detailCell.setContentDescriptionValueFirst(false);
+                     } else if (position == setUsernameRow) {
+                         TLRPC.User user = UserConfig.getInstance(currentAccount).getCurrentUser();

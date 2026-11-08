@@ -1,8 +1,7 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
-index f3d1cd8..3958b39 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
-@@ -6129,6 +6129,13 @@ public class ChatActivity extends BaseFragment implements
+@@ -6130,6 +6130,13 @@ public class ChatActivity extends BaseFragment implements
  
              @Override
              public boolean drawChild(Canvas canvas, View child, long drawingTime) {
@@ -17,10 +16,9 @@ index f3d1cd8..3958b39 100644
                      invalidated = false;
                      invalidate();
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/PhotoViewer.java b/TMessagesProj/src/main/java/org/telegram/ui/PhotoViewer.java
-index a4b54fb..591f8c3 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/PhotoViewer.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/PhotoViewer.java
-@@ -19566,6 +19566,8 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
+@@ -19549,6 +19549,8 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
      }
  
      @SuppressLint({"NewApi", "DrawAllocation"})
@@ -29,7 +27,7 @@ index a4b54fb..591f8c3 100644
      private void onDraw(Canvas canvas) {
          Canvas realCanvas = canvas;
          if (BLUR_RENDERNODE()) {
-@@ -19813,6 +19815,9 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
+@@ -19796,6 +19798,9 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
              canvas.drawColor(0xff000000);
          }
  

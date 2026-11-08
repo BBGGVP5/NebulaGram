@@ -1,8 +1,7 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
-index da6dd2a1..ced3dd30 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
-@@ -194,6 +194,7 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
+@@ -200,6 +200,7 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
      }
  
      private boolean glassMode;
@@ -10,7 +9,7 @@ index da6dd2a1..ced3dd30 100644
      private boolean glassOnlyBack;
      private boolean glassModeIsForum;
  
-@@ -268,6 +269,11 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
+@@ -275,6 +276,11 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
          setupGlass(factory, colorProvider, false);
      }
  
@@ -22,7 +21,7 @@ index da6dd2a1..ced3dd30 100644
      public void setupGlass(BlurredBackgroundDrawableViewFactory factory,
                             BlurredBackgroundColorProvider colorProvider,
                             boolean isForum) {
-@@ -1539,11 +1545,11 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
+@@ -1728,11 +1734,11 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
                  availableWidth = Math.max(availableWidth, 0);
  
                  if (((fromBottom && i == 0) || (!fromBottom && i == 1)) && overlayTitleAnimation && titleAnimationRunning) {
@@ -36,7 +35,7 @@ index da6dd2a1..ced3dd30 100644
                          }
                          subtitleTextView.setTextSize(AndroidUtilities.isTablet() ? 16 : 14);
                          if (additionalSubtitleTextView != null) {
-@@ -1551,7 +1557,7 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
+@@ -1740,7 +1746,7 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
                          }
                      } else {
                          if (titleTextView[i] != null && titleTextView[i].getVisibility() != GONE) {
@@ -45,36 +44,36 @@ index da6dd2a1..ced3dd30 100644
                          }
                          if (subtitleTextView != null && subtitleTextView.getVisibility() != GONE) {
                              subtitleTextView.setTextSize(!AndroidUtilities.isTablet() && getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE ? 14 : 16);
-@@ -2465,7 +2471,7 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
-             final int leftDefault = lerp(hasBackButton ? nebulaBackWidth - p : 0, nebulaBackWidth - p, chatAvatarContainer == null? 0f : 1f - animatorAvatarContainerHasAvatar.getFloatValue());
-             final int rightDefault = getWidth() - rightOffset;
-             final int widthDefault = rightDefault - leftDefault;
--            final int left, right;
-+            int left, right;
-             final ChatAvatarContainer centeredNebulaAvatar = nebulaFloatingChatHeader
-                     ? nebulaChatAvatarContainer : null;
-             if (centeredNebulaAvatar != null) {
-@@ -2503,6 +2509,17 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
-                 right = rightDefault;
-             }
+@@ -2706,7 +2712,7 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
+                 final int leftDefault = lerp(hasBackButton ? nebulaBackWidth - p : 0, nebulaBackWidth - p, chatAvatarContainer == null? 0f : 1f - animatorAvatarContainerHasAvatar.getFloatValue());
+                 final int rightDefault = getWidth() - rightOffset;
+                 final int widthDefault = rightDefault - leftDefault;
+-                final int left, right;
++                int left, right;
+                 final ChatAvatarContainer centeredNebulaAvatar = nebulaFloatingChatHeader
+                         ? nebulaChatAvatarContainer : null;
+                 if (centeredNebulaAvatar != null) {
+@@ -2743,6 +2749,17 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
+                     left = leftDefault;
+                     right = rightDefault;
+                 }
++                if (nebulaHomeGlass && actionModeFactor < 0.01f && searchFactor < 0.01f && !isSearchFieldVisible
++                        && titleTextView[0] != null && titleTextView[0].getVisibility() == View.VISIBLE) {
++                    // Use the laid-out title, not a guessed width: folder names and
++                    // animated emoji keep the full free space without a giant pill.
++                    final int titleLeft = titleTextView[0].getLeft();
++                    final int titleRight = titleLeft + titleTextView[0].getMeasuredWidth();
++                    final int menuLeft = menu != null ? Math.round(menu.getX()) : getWidth();
++                    left = Math.max(0, titleLeft - dp(12));
++                    right = Math.min(menuLeft - dp(4), titleRight + dp(12));
++                    if (right <= left) { left = leftDefault; right = rightDefault; }
++                }
  
-+            if (nebulaHomeGlass && actionModeFactor < 0.01f && searchFactor < 0.01f && !isSearchFieldVisible
-+                    && titleTextView[0] != null && titleTextView[0].getVisibility() == View.VISIBLE) {
-+                // Use the laid-out title, not a guessed width: folder names and
-+                // animated emoji keep the full free space without a giant pill.
-+                final int titleLeft = titleTextView[0].getLeft();
-+                final int titleRight = titleLeft + titleTextView[0].getMeasuredWidth();
-+                final int menuLeft = menu != null ? Math.round(menu.getX()) : getWidth();
-+                left = Math.max(0, titleLeft - dp(12));
-+                right = Math.min(menuLeft - dp(4), titleRight + dp(12));
-+                if (right <= left) { left = leftDefault; right = rightDefault; }
-+            }
-             glassDrawable.setBounds(left, t, right, b);
-             if (nebulaFloatingChatHeader && app.nebulagram.ui.NebulaAppearance.centeredHeader()) {
-                 glassDrawable.setRadius(Math.min(glassDrawable.getPaddedBounds().height(), glassDrawable.getPaddedBounds().width()) / 2f);
-@@ -2526,10 +2543,25 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
+                 glassDrawable.setBounds(left, t, right, b);
+                 if (nebulaFloatingChatHeader && app.nebulagram.ui.NebulaAppearance.centeredHeader()) {
+@@ -2770,10 +2787,25 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
          // Fade the selection capsule in as the separate avatar backdrop fades out.
-         if (glassDrawableMenu != null && menuWidth > 0 && !glassOnlyBack && !doNotDrawGlassMenu
+         if (glassDrawableMenu != null && menuWidth > 0 && !glassOnlyBack && !doNotDrawGlassMenu && !isMenuPillInOverlay()
                  && (!separateAvatar || actionModeFactor > 0f)) {
 -            glassDrawableMenu.setBounds(getWidth() - Math.max(s, menuWidth) - p * 2, t, getWidth(), b);
              final float menuAlpha = hasForcedMenuWidth ? 1f : animatorHasMenuItems.getFloatValue();
@@ -102,13 +101,12 @@ index da6dd2a1..ced3dd30 100644
  
          if (blurredBackground && actionBarColor != Color.TRANSPARENT) {
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
-index 27ba56d1..19146b06 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
-@@ -3203,6 +3203,12 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
-         actionBar.setItemsBackgroundColor(getThemedColor(Theme.key_actionBarActionModeDefaultSelector), true);
-         actionBar.setItemsColor(getThemedColor(Theme.key_actionBarDefaultIcon), false);
-         actionBar.setItemsColor(getThemedColor(Theme.key_actionBarActionModeDefaultIcon), true);
+@@ -3120,6 +3120,12 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+         ThemeBind.actionBarItemsBackgroundColor(actionBar, Theme.key_actionBarActionModeDefaultSelector, getResourceProvider(), true);
+         ThemeBind.actionBarItemsColor(actionBar, Theme.key_actionBarDefaultIcon, getResourceProvider(), false);
+         ThemeBind.actionBarItemsColor(actionBar, Theme.key_actionBarActionModeDefaultIcon, getResourceProvider(), true);
 +        if (initialDialogsType == DIALOGS_TYPE_DEFAULT && !onlySelect && !inPreviewMode
 +                && folderId == 0 && communityId == 0 && TextUtils.isEmpty(searchString)
 +                && app.nebulagram.ui.NebulaAppearance.homeGlassHeader()) {

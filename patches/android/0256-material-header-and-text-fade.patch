@@ -1,8 +1,7 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Cells/ChatMessageCell.java b/TMessagesProj/src/main/java/org/telegram/ui/Cells/ChatMessageCell.java
-index d634c6d..dac684e 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Cells/ChatMessageCell.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Cells/ChatMessageCell.java
-@@ -16793,7 +16793,22 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
+@@ -13863,7 +13863,22 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
          }
      }
  
@@ -26,10 +25,9 @@ index d634c6d..dac684e 100644
              return;
          }
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
-index 87f4ed2..5a91b2c 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
-@@ -942,10 +942,21 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+@@ -944,10 +944,21 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
          }
  
          private BlurredBackgroundDrawable nebulaHeaderGlass;
@@ -51,7 +49,7 @@ index 87f4ed2..5a91b2c 100644
                  if (nebulaHeaderGlass == null) {
                      nebulaHeaderGlass = iBlur3FactoryLiquidGlass.create(this, BlurredBackgroundProviderImpl.topPanel(resourceProvider));
                      nebulaHeaderGlass.setPadding(0);
-@@ -3245,8 +3256,8 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+@@ -3162,8 +3173,8 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
          nebulaHomeEditButton = null;
          if (initialDialogsType == DIALOGS_TYPE_DEFAULT && !onlySelect && !inPreviewMode
                  && folderId == 0 && communityId == 0 && TextUtils.isEmpty(searchString)) {

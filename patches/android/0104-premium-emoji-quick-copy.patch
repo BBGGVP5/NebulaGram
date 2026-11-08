@@ -1,8 +1,7 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
-index a3ebf3fd..7063de7f 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
-@@ -1992,7 +1992,7 @@ public class ChatActivity extends BaseFragment implements
+@@ -2014,7 +2014,7 @@ public class ChatActivity extends BaseFragment implements
              if (action != 0) {
                  if (action == 1) startEditingMessageObject(messageObject);
                  else if (action == 2) showFieldPanelForReply(messageObject);
@@ -11,7 +10,7 @@ index a3ebf3fd..7063de7f 100644
                  return;
              }
              if (messageObject.isSecret() || !messageObject.canSetReaction() || messageObject.isExpiredStory() || messageObject.type == MessageObject.TYPE_JOINED_CHANNEL) {
-@@ -31258,7 +31258,7 @@ public class ChatActivity extends BaseFragment implements
+@@ -31878,7 +31878,7 @@ public class ChatActivity extends BaseFragment implements
              return messageObject.getVoiceTranscription();
          }
          if (messageObject.caption != null) {
@@ -20,7 +19,7 @@ index a3ebf3fd..7063de7f 100644
          }
          if (group == null) {
              return null;
-@@ -31270,7 +31270,7 @@ public class ChatActivity extends BaseFragment implements
+@@ -31890,7 +31890,7 @@ public class ChatActivity extends BaseFragment implements
                  if (caption != null) {
                      return null;
                  }
@@ -29,7 +28,7 @@ index a3ebf3fd..7063de7f 100644
                  if (msgId != null) {
                      msgId[0] = message.getId();
                  }
-@@ -33895,9 +33895,9 @@ public class ChatActivity extends BaseFragment implements
+@@ -34531,9 +34531,9 @@ public class ChatActivity extends BaseFragment implements
          if (!TextUtils.isEmpty(restrictionReason)) {
              str.append(restrictionReason);
          } else if (messageObject.caption != null) {

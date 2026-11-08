@@ -10,7 +10,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/MessagesControll
              if (channelBoostsControler != null) {
                  return channelBoostsControler;
              }
-@@ -23738,7 +23738,7 @@ public class MessagesController extends BaseController implements NotificationCe
+@@ -23796,7 +23796,7 @@ public class MessagesController extends BaseController implements NotificationCe
          if (storiesController != null) {
              return storiesController;
          }
@@ -19,7 +19,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/MessagesControll
              if (storiesController != null) {
                  return storiesController;
              }
-@@ -23751,7 +23751,7 @@ public class MessagesController extends BaseController implements NotificationCe
+@@ -23809,7 +23809,7 @@ public class MessagesController extends BaseController implements NotificationCe
          if (savedMessagesController != null) {
              return savedMessagesController;
          }
@@ -28,7 +28,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/MessagesControll
              if (savedMessagesController != null) {
                  return savedMessagesController;
              }
-@@ -23764,7 +23764,7 @@ public class MessagesController extends BaseController implements NotificationCe
+@@ -23822,7 +23822,7 @@ public class MessagesController extends BaseController implements NotificationCe
          if (unconfirmedAuthController != null) {
              return unconfirmedAuthController;
          }
@@ -40,7 +40,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/MessagesControll
 diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/NotificationCenter.java b/TMessagesProj/src/main/java/org/telegram/messenger/NotificationCenter.java
 --- a/TMessagesProj/src/main/java/org/telegram/messenger/NotificationCenter.java
 +++ b/TMessagesProj/src/main/java/org/telegram/messenger/NotificationCenter.java
-@@ -1030,7 +1030,7 @@ public class NotificationCenter {
+@@ -1139,7 +1139,7 @@ public class NotificationCenter {
  
      public static void sanitize() {
          sanitizeInternal(globalInstance);

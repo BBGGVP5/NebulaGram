@@ -37,7 +37,7 @@ diff --git a/TMessagesProj/jni/TgNetWrapper.cpp b/TMessagesProj/jni/TgNetWrapper
      }));
  }
  
-@@ -312,7 +312,7 @@ jlong checkProxy(JNIEnv *env, jclass c, jint instanceNum, jstring address, jint
+@@ -308,7 +308,7 @@ jlong checkProxy(JNIEnv *env, jclass c, jint instanceNum, jstring address, jint
  
      jlong result = ConnectionsManager::getInstance(instanceNum).checkProxy(addressStr, (uint16_t) port, usernameStr, passwordStr, secretStr, [instanceNum, requestTimeFunc](int64_t time) {
          if (requestTimeFunc != nullptr) {
@@ -46,7 +46,7 @@ diff --git a/TMessagesProj/jni/TgNetWrapper.cpp b/TMessagesProj/jni/TgNetWrapper
          }
      }, requestTimeFunc);
  
-@@ -335,83 +335,83 @@ jlong checkProxy(JNIEnv *env, jclass c, jint instanceNum, jstring address, jint
+@@ -331,83 +331,83 @@ jlong checkProxy(JNIEnv *env, jclass c, jint instanceNum, jstring address, jint
  class Delegate : public ConnectiosManagerDelegate {
      
      void onUpdate(int32_t instanceNum) {
@@ -142,21 +142,21 @@ diff --git a/TMessagesProj/jni/TgNetWrapper.cpp b/TMessagesProj/jni/TgNetWrapper
 +        jniEnv->DeleteLocalRef(nonceStr);
      }
  
-     void onCaptchaCheck(int32_t instanceNum, int32_t requestToken, std::string action, std::string key_id) {
+     void onCaptchaCheck(int32_t instanceNum, int32_t requestToken, int32_t generation, std::string action, std::string key_id) {
 -        jstring actionStr = jniEnv[instanceNum]->NewStringUTF(action.c_str());
 -        jstring keyIdStr = jniEnv[instanceNum]->NewStringUTF(key_id.c_str());
--        jniEnv[instanceNum]->CallStaticVoidMethod(jclass_ConnectionsManager, jclass_ConnectionsManager_onCaptchaCheck, instanceNum, requestToken, actionStr, keyIdStr);
+-        jniEnv[instanceNum]->CallStaticVoidMethod(jclass_ConnectionsManager, jclass_ConnectionsManager_onCaptchaCheck, instanceNum, requestToken, generation, actionStr, keyIdStr);
 -        jniEnv[instanceNum]->DeleteLocalRef(actionStr);
 -        jniEnv[instanceNum]->DeleteLocalRef(keyIdStr);
 +        jstring actionStr = jniEnv->NewStringUTF(action.c_str());
 +        jstring keyIdStr = jniEnv->NewStringUTF(key_id.c_str());
-+        jniEnv->CallStaticVoidMethod(jclass_ConnectionsManager, jclass_ConnectionsManager_onCaptchaCheck, instanceNum, requestToken, actionStr, keyIdStr);
++        jniEnv->CallStaticVoidMethod(jclass_ConnectionsManager, jclass_ConnectionsManager_onCaptchaCheck, instanceNum, requestToken, generation, actionStr, keyIdStr);
 +        jniEnv->DeleteLocalRef(actionStr);
 +        jniEnv->DeleteLocalRef(keyIdStr);
      }
  
  };
-@@ -515,11 +515,12 @@ void init(JNIEnv *env, jclass c, jint instanceNum, jint version, jint layer, jin
+@@ -511,11 +511,12 @@ void init(JNIEnv *env, jclass c, jint instanceNum, jint version, jint layer, jin
      }
  }
  
@@ -193,7 +193,7 @@ diff --git a/TMessagesProj/jni/tgnet/ConnectionsManager.cpp b/TMessagesProj/jni/
  jclass jclass_ByteBuffer = nullptr;
  jmethodID jclass_ByteBuffer_allocateDirect = nullptr;
  #endif
-@@ -137,42 +139,37 @@ ConnectionsManager::~ConnectionsManager() {
+@@ -138,42 +140,37 @@ ConnectionsManager::~ConnectionsManager() {
  }
  
  ConnectionsManager& ConnectionsManager::getInstance(int32_t instanceNum) {
@@ -267,7 +267,7 @@ diff --git a/TMessagesProj/jni/tgnet/ConnectionsManager.cpp b/TMessagesProj/jni/
  }
  
  int ConnectionsManager::callEvents(int64_t now) {
-@@ -365,7 +362,9 @@ void *ConnectionsManager::ThreadProc(void *data) {
+@@ -366,7 +363,9 @@ void *ConnectionsManager::ThreadProc(void *data) {
      if (LOGS_ENABLED) DEBUG_D("network thread started");
      auto networkManager = (ConnectionsManager *) (data);
  #ifdef ANDROID
@@ -278,7 +278,7 @@ diff --git a/TMessagesProj/jni/tgnet/ConnectionsManager.cpp b/TMessagesProj/jni/
  #endif
      if (networkManager->currentUserId != 0 && networkManager->pushConnectionEnabled) {
          Datacenter *datacenter = networkManager->getDatacenterWithId(networkManager->currentDatacenterId);
-@@ -377,6 +376,10 @@ void *ConnectionsManager::ThreadProc(void *data) {
+@@ -378,6 +377,10 @@ void *ConnectionsManager::ThreadProc(void *data) {
      do {
          networkManager->select();
      } while (!done);
@@ -292,7 +292,7 @@ diff --git a/TMessagesProj/jni/tgnet/ConnectionsManager.cpp b/TMessagesProj/jni/
 diff --git a/TMessagesProj/jni/tgnet/ConnectionsManager.h b/TMessagesProj/jni/tgnet/ConnectionsManager.h
 --- a/TMessagesProj/jni/tgnet/ConnectionsManager.h
 +++ b/TMessagesProj/jni/tgnet/ConnectionsManager.h
-@@ -270,7 +270,8 @@ private:
+@@ -272,7 +272,8 @@ private:
  
  #ifdef ANDROID
  extern JavaVM *javaVm;
@@ -305,9 +305,9 @@ diff --git a/TMessagesProj/jni/tgnet/ConnectionsManager.h b/TMessagesProj/jni/tg
 diff --git a/TMessagesProj/jni/tgnet/Defines.h b/TMessagesProj/jni/tgnet/Defines.h
 --- a/TMessagesProj/jni/tgnet/Defines.h
 +++ b/TMessagesProj/jni/tgnet/Defines.h
-@@ -27,7 +27,6 @@
+@@ -28,7 +28,6 @@
  #define DOWNLOAD_CONNECTIONS_COUNT 8
- #define UPLOAD_CONNECTIONS_COUNT 4
+ #define UPLOAD_CONNECTIONS_COUNT 8
  #define CONNECTION_BACKGROUND_KEEP_TIME 10000
 -#define MAX_ACCOUNT_COUNT 11 // Ten signed-in accounts plus the reserved native slot.
  #define USE_DELEGATE_HOST_RESOLVE
@@ -506,7 +506,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/DownloadControll
 diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/FactCheckController.java b/TMessagesProj/src/main/java/org/telegram/messenger/FactCheckController.java
 --- a/TMessagesProj/src/main/java/org/telegram/messenger/FactCheckController.java
 +++ b/TMessagesProj/src/main/java/org/telegram/messenger/FactCheckController.java
-@@ -56,25 +56,11 @@ import java.util.HashMap;
+@@ -57,25 +57,11 @@ import java.util.HashMap;
  
  public class FactCheckController {
  
@@ -728,7 +728,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/MemberRequestsCo
 diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/MessagesController.java b/TMessagesProj/src/main/java/org/telegram/messenger/MessagesController.java
 --- a/TMessagesProj/src/main/java/org/telegram/messenger/MessagesController.java
 +++ b/TMessagesProj/src/main/java/org/telegram/messenger/MessagesController.java
-@@ -1502,25 +1502,11 @@ public class MessagesController extends BaseController implements NotificationCe
+@@ -1501,25 +1501,11 @@ public class MessagesController extends BaseController implements NotificationCe
          return 0;
      };
  
@@ -774,7 +774,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/MessagesStorage.
 +    private static final org.telegram.messenger.AccountInstanceRegistry<MessagesStorage> Instance = new org.telegram.messenger.AccountInstanceRegistry<>();
 +
  
-     public final static int LAST_DB_VERSION = 179;
+     public final static int LAST_DB_VERSION = 181;
      private boolean databaseMigrationInProgress;
 @@ -131,16 +126,7 @@ public class MessagesStorage extends BaseController {
  
@@ -881,7 +881,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/SecretChatHelper
 diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/SendMessagesHelper.java b/TMessagesProj/src/main/java/org/telegram/messenger/SendMessagesHelper.java
 --- a/TMessagesProj/src/main/java/org/telegram/messenger/SendMessagesHelper.java
 +++ b/TMessagesProj/src/main/java/org/telegram/messenger/SendMessagesHelper.java
-@@ -955,18 +955,9 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
+@@ -956,18 +956,9 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
          }
      }
  
@@ -930,7 +930,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/StatsController.
 diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/UserConfig.java b/TMessagesProj/src/main/java/org/telegram/messenger/UserConfig.java
 --- a/TMessagesProj/src/main/java/org/telegram/messenger/UserConfig.java
 +++ b/TMessagesProj/src/main/java/org/telegram/messenger/UserConfig.java
-@@ -84,18 +84,9 @@ public class UserConfig extends BaseController {
+@@ -85,18 +85,9 @@ public class UserConfig extends BaseController {
      LongSparseArray<SaveToGallerySettingsHelper.DialogException> groupsSaveGalleryExceptions;
  
  
@@ -1002,7 +1002,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/voip/GroupCallMe
 diff --git a/TMessagesProj/src/main/java/org/telegram/tgnet/ConnectionsManager.java b/TMessagesProj/src/main/java/org/telegram/tgnet/ConnectionsManager.java
 --- a/TMessagesProj/src/main/java/org/telegram/tgnet/ConnectionsManager.java
 +++ b/TMessagesProj/src/main/java/org/telegram/tgnet/ConnectionsManager.java
-@@ -193,18 +193,9 @@ public class ConnectionsManager extends BaseController {
+@@ -196,18 +196,9 @@ public class ConnectionsManager extends BaseController {
  
      private static int lastClassGuid = 1;
      
@@ -1207,7 +1207,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Stars/BotStarsControlle
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Stars/StarsController.java b/TMessagesProj/src/main/java/org/telegram/ui/Stars/StarsController.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Stars/StarsController.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Stars/StarsController.java
-@@ -96,15 +96,8 @@ public class StarsController {
+@@ -125,15 +125,8 @@ public class StarsController {
      public static final int PERIOD_MINUTE = 60;
      public static final int PERIOD_5MINUTES = 300;
  
@@ -1225,7 +1225,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Stars/StarsController.j
  
      public static StarsController getTonInstance(int num) {
          return getInstance(num, true);
-@@ -119,16 +112,7 @@ public class StarsController {
+@@ -148,16 +141,7 @@ public class StarsController {
      }
  
      public static StarsController getInstance(int num, boolean ton) {

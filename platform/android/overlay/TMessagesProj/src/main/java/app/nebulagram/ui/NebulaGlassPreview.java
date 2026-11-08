@@ -15,8 +15,8 @@ import org.telegram.messenger.Utilities;
 import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.Components.blur3.BlurredBackgroundDrawableViewFactory;
 import org.telegram.ui.Components.blur3.drawable.BlurredBackgroundDrawable;
-import org.telegram.ui.Components.blur3.source.BlurredBackgroundSourceColor;
-import org.telegram.ui.Components.blur3.source.BlurredBackgroundSourceRenderNode;
+import org.telegram.utils.glass.source.GlassSourceColor;
+import org.telegram.utils.glass.source.GlassSourceRenderNode;
 import org.telegram.ui.Components.blur3.drawable.color.BlurredBackgroundProviderBuilder;
 
 /** A real chat-glass drawable over sample messages. Only the capsule moves. */
@@ -109,13 +109,13 @@ public final class NebulaGlassPreview extends View {
     @android.annotation.TargetApi(31)
     private static final class Hardware {
         final NebulaGlassPreview owner;
-        final BlurredBackgroundSourceRenderNode source;
+        final GlassSourceRenderNode source;
         final BlurredBackgroundDrawable glass;
         Hardware(NebulaGlassPreview owner) {
             this.owner = owner;
-            BlurredBackgroundSourceColor fallback = new BlurredBackgroundSourceColor();
+            GlassSourceColor fallback = new GlassSourceColor();
             fallback.setColor(NebulaMenuStyle.surface(null));
-            source = new BlurredBackgroundSourceRenderNode(fallback);
+            source = new GlassSourceRenderNode(fallback);
             BlurredBackgroundDrawableViewFactory factory = new BlurredBackgroundDrawableViewFactory(source);
             factory.setLiquidGlassEffectAllowed(LiteMode.isEnabled(LiteMode.FLAG_LIQUID_GLASS));
             glass = factory.create(owner, new BlurredBackgroundProviderBuilder(null)

@@ -1,13 +1,12 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
-index 28ecad1e..7d55e5fc 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
-@@ -11563,7 +11563,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
-                     // Р—РЅР°С‡РѕРє РїРѕРґРґРµСЂР¶Р°РІС€РµРіРѕ РґРѕРїРёСЃС‹РІР°РµС‚СЃСЏ Рє РёРјРµРЅРё СЃРїР°РЅРѕРј: СЃРїСЂР°РІР° РѕС‚
-                     // РёРјРµРЅРё Р¶РёРІСѓС‚ РѕС‚РјРµС‚РєР° РїСЂРѕРІРµСЂРµРЅРЅРѕРіРѕ Р°РєРєР°СѓРЅС‚Р° Рё СЌРјРѕРґР·Рё-СЃС‚Р°С‚СѓСЃ.
-                     nameTextView[a].setText(app.nebulagram.ui.NebulaBadges.decorate(
--                            newString, user.id, nameTextView[a].getTextPaint()));
-+                            newString, user.id, nameTextView[a].getTextPaint(), nameTextView[a]));
+@@ -11732,7 +11732,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+             {
+                 // NebulaGram: the supporter badge is appended to the name as a span;
+                 // verification and emoji status keep their places on the right.
+-                nameTextView.setText(app.nebulagram.ui.NebulaBadges.decorate(newString, user.id, nameTextView.getTextPaint()));
++                nameTextView.setText(app.nebulagram.ui.NebulaBadges.decorate(newString, user.id, nameTextView.getTextPaint(), nameTextView));
+                 if (simpleActionBar != null) {
+                     simpleActionBar.setTitle(newString);
                  }
-                 if (a == 0 && onlineTextOverride != null) {
-                     onlineTextView[a].setText(onlineTextOverride);
