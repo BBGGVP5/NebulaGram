@@ -479,3 +479,21 @@ steady 72-point drag down and shows it after a 32-point pull back or at the top;
 direction resets the distance and programmatic scrolling is ignored. Search keeps Telegram's own
 hide/show; turning the switch off shows the bar again. Switch: Navigation → Hide the bar while
 scrolling chats (default off).
+
+## 0132 — floating formatting "A"
+
+`ChatTextInputPanelNode`: with the formatting toolbar enabled, a `NebulaFormattingToggleButton` ("A")
+sits in the message field between the text and the emoji button (the accessory slot after the Nebula
+tools button; its 36 points are added to `accessoryButtonsWidth` in both measuring passes). The
+toolbar is reserved only after the "A" is tapped (`nebulaFormattingExpanded`) and unfolds from the
+button with a spring (`NebulaFormattingToolbar.setPresented(_:from:)`; Reduce Motion keeps the plain
+fade). Losing focus or turning the setting off folds it again. Port of Android 0297's format button.
+`check_formatting_placement.py` executes the eligibility with the folded state as a ninth bit.
+
+## 0133 — masked phone number in profiles
+
+`PeerInfoProfileItems.swift`: `hide_profile_phone` no longer removes the phone row. The number stays
+in place with its middle digits replaced by `•` (`NebulaPhoneMask`: the first two and last two digits
+remain); tapping or holding the row opens Telegram's own phone actions, which show the full number.
+Android 0297 blurs the text and reveals it for 15 seconds; iOS uses the mask because the profile list
+item has no per-row blur.

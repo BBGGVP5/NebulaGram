@@ -214,3 +214,12 @@ final class NebulaTabScrollTests: XCTestCase {
         XCTAssertTrue(state.scrolled(dy: 0, atTop: true, manual: false)); XCTAssertFalse(state.hidden)
     }
 }
+
+final class NebulaPhoneMaskTests: XCTestCase {
+    func testMaskKeepsShapeAndEdges() {
+        XCTAssertEqual(NebulaPhoneMask.mask("+7 912 345 67 89"), "+7 9•• ••• •• 89")
+        XCTAssertEqual(NebulaPhoneMask.mask("+888 0123 4567"), "+88• •••• ••67")
+        XCTAssertEqual(NebulaPhoneMask.mask("1234"), "••••")
+        XCTAssertEqual(NebulaPhoneMask.mask(""), "")
+    }
+}

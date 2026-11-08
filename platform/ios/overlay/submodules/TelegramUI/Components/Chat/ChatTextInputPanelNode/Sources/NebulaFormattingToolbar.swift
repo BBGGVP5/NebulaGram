@@ -41,12 +41,20 @@ enum NebulaFormattingFeedback {
 final class NebulaFormattingToolbar: UIView {
     var action: ((Int) -> Void)?
     private var presented = false
-    func setPresented(_ value: Bool) {
+    /// `origin` is the "A" toggle centre in the superview: the toolbar unfolds from it.
+    func setPresented(_ value: Bool, from origin: CGPoint? = nil) {
         guard presented != value else { return }
         presented = value
         isUserInteractionEnabled = value
         accessibilityElementsHidden = !value
-        if value { isHidden = false }
+        var folded = CGAffineTransform(translationX: 0, y: 8)
+        if let origin, value, bounds.width > 0 {
+            folded = CGAffineTransform(translationX: origin.x - center.x, y: origin.y - center.y).scaledBy(x: 0.12, y: 0.5)
+        }
+        if value {
+            isHidden = false
+            if !UIAccessibility.isReduceMotionEnabled { transform = folded }
+        }
         let changes = {
             self.alpha = value ? 1 : 0
             self.transform = value ? .identity : CGAffineTransform(translationX: 0, y: 8)
@@ -55,6 +63,8 @@ final class NebulaFormattingToolbar: UIView {
             layer.removeAllAnimations()
             changes()
             isHidden = !value
+        } else if value && origin != nil {
+            UIView.animate(withDuration: 0.34, delay: 0, usingSpringWithDamping: 0.82, initialSpringVelocity: 0, options: [.beginFromCurrentState], animations: changes)
         } else {
             UIView.animate(withDuration: 0.18, delay: 0, options: [.beginFromCurrentState, .curveEaseOut], animations: changes) { _ in
                 if !self.presented { self.isHidden = true }
@@ -162,5 +172,27 @@ private final class NebulaFormattingButton: UIButton {
             UIView.animate(withDuration: pressed ? 0.08 : 0.16, delay: 0,
                 options: [.beginFromCurrentState, .allowUserInteraction, .curveEaseOut], animations: changes)
         }
+    }
+}
+
+/// Floating "A" in the message field (Android `registerFormatToggle`): opens and closes the
+/// formatting toolbar, which unfolds from it.
+final class NebulaFormattingToggleButton: UIButton {
+    private var expanded = false
+
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+        setImage(UIImage(systemName: "textformat", withConfiguration: UIImage.SymbolConfiguration(pointSize: 17, weight: .medium)), for: .normal)
+        accessibilityLabel = Locale.preferredLanguages.first?.hasPrefix("ru") == true ? "Форматирование" : "Formatting"
+        accessibilityTraits.insert(.button)
+    }
+    required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
+
+    func setExpanded(_ value: Bool) {
+        guard expanded != value else { return }
+        expanded = value
+        accessibilityValue = value ? (Locale.preferredLanguages.first?.hasPrefix("ru") == true ? "открыто" : "open") : nil
+        let changes = { self.imageView?.transform = value ? CGAffineTransform(scaleX: 1.12, y: 1.12) : .identity; self.alpha = value ? 1 : 0.85 }
+        if UIAccessibility.isReduceMotionEnabled { changes() } else { UIView.animate(withDuration: 0.2, animations: changes) }
     }
 }
