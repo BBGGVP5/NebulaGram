@@ -91,3 +91,19 @@ final class NebulaSelectionAndDustTests: XCTestCase {
         prefs.set("delete_dust", false); XCTAssertFalse(NebulaMessagePreferences(defaults: defaults).enabled("delete_dust"))
     }
 }
+
+final class NebulaShapePreferencesTests: XCTestCase {
+    func testTailsAndAvatarPresets() {
+        let suite = "ShapeTests." + UUID().uuidString
+        let defaults = UserDefaults(suiteName: suite)!; defer { defaults.removePersistentDomain(forName: suite) }
+        XCTAssertTrue(NebulaShapePreferences.messageTails(defaults))
+        NebulaShapePreferences.setMessageTails(false, defaults)
+        XCTAssertFalse(NebulaShapePreferences.messageTails(defaults))
+        XCTAssertEqual(defaults.object(forKey: "nebula.shape.message_tails") as? Bool, false)
+        typealias Shape = NebulaShapePreferences.AvatarShape
+        XCTAssertEqual(Shape.allCases.map { $0.roundness }, [100, 78, 46, 0])
+        XCTAssertEqual(Shape.matching(roundness: 46), .rounded)
+        XCTAssertNil(Shape.matching(roundness: 50))
+        for shape in Shape.allCases { XCTAssertFalse(shape.title(russian: true).isEmpty) }
+    }
+}

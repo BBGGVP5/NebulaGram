@@ -407,3 +407,13 @@ Interface / Features / Accounts and security / NebulaGram, as on Android.
 the same path as Telegram's own `ios_killswitch_disable_dust_effect`: the message just disappears.
 Without a patch, "Select loaded" can drop its 100-message cap with the catalog key
 `unlimited_selection` (Android `NebulaSelectionPolicy`); manual selection is not capped on iOS.
+
+## 0124 — message tails switch ("Shape" page)
+
+`ChatMessageBubbleImages.swift`: the four `drawTail = true` branches of `messageBubbleArguments`
+and `messageBubbleImage` read `nebula.shape.message_tails` (default on, Android `message_tails`).
+Off draws every bubble with its plain corners. Bubble graphics are cached per theme, so the change
+applies after a restart. The former Avatars page becomes "Shape": avatar presets Circle / Squircle /
+Rounded / Square set `avatar_round` (Android leaf and drop need per-corner radii the iOS avatar clip
+does not take); Android's uniform roundness, section gap and separate rows style Android's own
+cards and have no iOS counterpart in native inset-grouped lists.
