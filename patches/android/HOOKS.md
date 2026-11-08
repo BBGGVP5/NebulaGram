@@ -1254,3 +1254,14 @@ waveform, есть имя файла или не ogg — боты, скрипт�
 раньше она стояла по родному отступу поля и ложилась на смайлик. Ролевые значки нарисованы
 заново в одном стиле (печать с волнистым краем, цвет роли, белый символ), описания значков —
 без точки в конце.
+
+### 0298 — компиляция на 13.2.1
+
+Первая полная сборка 13.2.1 нашла обращения к удалённому API: обновление размытия в
+`ChatActivity` и `DialogsActivity` идёт через `GlassEngine.invalidate()` (вместо
+`invalidateMergedVisibleBlurredPositionsAndSources` и `blur3_InvalidateBlur`), стеклянные кнопки
+профиля берут `scrimBlur3Factory` (фабрики `iBlur3FactoryLiquidGlass` в профиле больше нет),
+`MediaActivity` — полное имя `Canvas`, в `RecyclerListView` возвращён открытый `setSections`
+с собственной отрисовкой секций для карточек профиля. Оверлей: движок кружков читает
+`InstantCameraViewBase.isCamera2Enabled`, флага `roundVideoRecorder2Allowed` больше нет.
+`buildSrc/settings.gradle.kts` (оверлей) берёт инструменты Kotlin из Maven Central.
