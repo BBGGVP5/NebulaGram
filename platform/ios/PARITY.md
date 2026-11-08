@@ -1,5 +1,9 @@
 # iOS implementation inventory — 2026-10-13
 
+## November 8: Android 25134250 parity (patch 0122)
+
+Ported from Android: split message menu (icon row Reply/Copy/Edit/Forward/Copy link below the list), Cherrygram-style menu entrance from the message, blurred message bubbles with 35/55/75 % tint, badge information sheet (meaning, how to get it, all badges, Support), and the grouped NebulaGram settings root (Interface / Features / Accounts and security / NebulaGram). The adaptive glass header already reaches Saved Messages, threads, scheduled messages and Recent actions on iOS through the shared `ChatNavigationBarTitleView` (0064); tapping the avatar opens the profile and holding it opens the chat menu, as is native on iOS. A full inventory of remaining Android-only features is kept in the session notes; the largest are the Shape page, chat cards, custom fonts, chat history tools, channel feed and My bots. Verified only by bootstrap checks; full IPA build and iPhone acceptance are pending.
+
 This inventory distinguishes **wired source** from native build and device acceptance. A setting with a validated import format is not necessarily functional on iOS.
 
 ## October 12: complete chat-list toolbar and explicit clipboard import

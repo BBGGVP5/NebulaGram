@@ -372,3 +372,30 @@ target and 3-point top/bottom gaps. The overlay button gives transient scale/opa
 feedback, resets on release/reuse, and honors Reduce Motion. No selected-format chips.
 `check_formatting_placement.py` executes the actual height/frame expressions rather
 than duplicating the reserved height; selection tests exercise all feedback states.
+
+## 0122 — split message menu, menu entrance, blurred bubbles, badge sheet
+
+Port of Android 0294 / commit 25134250.
+
+- `ChatInterfaceStateContextMenus.swift`: both native Edit actions get the identifier
+  `NebulaMessageMenuSplit.editIdentifier`. Edit has no visibility switch; the identifier only lets
+  `NebulaMessageMenuPresentation.split` move Reply, Copy, Edit, Forward and Copy link into a
+  `ContextMenuCustomItem` icon row below the list. The rule matches Android: at least two icons and
+  at least one action left in the list, otherwise the menu stays as it was. Each icon runs the
+  original Telegram action, so eligibility and side effects stay native.
+- `ContextControllerExtractedPresentationNode.swift`, `.animateIn` without liquid morph: for an
+  extracted source (a message), the actions card grows from 72 % with a lighter spring (damping 88)
+  and travels only the remaining 28 % from the message side (Android `NebulaMenuPop`). The switch is
+  read from `nebula.messageMenu.cherryMotion` (default on); Reduce Motion keeps the native animation.
+  Reference sources (buttons) and liquid morphs are untouched.
+- `WallpaperBackgroundNode.swift`: with `nebula.messages.message_blur`, incoming/outgoing bubble
+  backgrounds use the blurred wallpaper (`blurredBackgroundContents`, the same copy service
+  messages use) under the bubble colour at 35/55/75 % (`message_blur_tint`). Plain colour wallpapers
+  have nothing to blur and stay solid. Takes effect when a chat is opened again.
+- `PeerInfoHeaderNode.nebulaBadgeTapped`: opens `NebulaBadgeSheet` directly (artwork, meaning, how to
+  get it, all badges, Support for donation badges). This also replaces a `switch` that did not cover
+  the new donor/sponsor/moderator cases.
+
+Settings: Message menu page gains "Icon row below the list" and "Grow from message"; Messages and
+media gains "Blurred messages" and tint density. The NebulaGram settings root is grouped into
+Interface / Features / Accounts and security / NebulaGram, as on Android.

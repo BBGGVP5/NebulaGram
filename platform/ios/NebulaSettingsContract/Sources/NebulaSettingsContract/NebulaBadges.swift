@@ -127,3 +127,51 @@ public final class NebulaBadges {
         }.resume()
     }
 }
+
+/// Texts of the badge sheet, shared with Android `NebulaBadges`/`NebulaBadgeSheet`.
+public extension NebulaBadge {
+    /// Order of the "All NebulaGram badges" row.
+    static let displayOrder: [NebulaBadge] = [.donor, .sponsor, .supporter, .dev, .moderator, .tester, .star, .heart]
+
+    /// Badges anyone can earn by donating; their sheet offers to support the project.
+    var isDonation: Bool { self == .donor || self == .sponsor || self == .supporter }
+
+    func localizedTitle(russian: Bool) -> String {
+        switch self {
+        case .supporter: return russian ? "Поддержал проект" : "Supporter"
+        case .dev: return russian ? "Разработчик" : "Developer"
+        case .tester: return russian ? "Тестировщик" : "Tester"
+        case .star: return "Mira"
+        case .heart: return russian ? "Спасибо" : "Thanks"
+        case .donor: return russian ? "Донатер" : "Donor"
+        case .sponsor: return russian ? "Спонсор" : "Sponsor"
+        case .moderator: return russian ? "Модератор" : "Moderator"
+        }
+    }
+
+    func localizedDescription(russian: Bool) -> String {
+        switch self {
+        case .supporter: return russian ? "Значок участника, который поддерживает развитие NebulaGram." : "A community badge for someone supporting NebulaGram's development."
+        case .dev: return russian ? "Значок команды разработчиков NebulaGram." : "A badge for the NebulaGram development team."
+        case .tester: return russian ? "Значок участника тестирования NebulaGram." : "A badge for a NebulaGram beta tester."
+        case .star: return russian ? "Значок Mira — символ сообщества NebulaGram." : "The Mira badge, a symbol of the NebulaGram community."
+        case .heart: return russian ? "Особый знак благодарности от команды NebulaGram." : "A special thank-you from the NebulaGram team."
+        case .donor: return russian ? "Этот человек поддержал NebulaGram донатом. Каждый донат помогает выпускать обновления." : "This person supported NebulaGram with a donation. Every donation helps ship updates."
+        case .sponsor: return russian ? "Спонсор NebulaGram — регулярно и заметно поддерживает развитие проекта." : "A NebulaGram sponsor who supports the project regularly and substantially."
+        case .moderator: return russian ? "Модератор сообщества NebulaGram: помогает в чатах поддержки и следит за порядком." : "A NebulaGram community moderator who helps in the support chats and keeps order."
+        }
+    }
+
+    func howToGet(russian: Bool) -> String {
+        switch self {
+        case .donor: return russian ? "Выдаётся после любого доната проекту." : "Given after any donation to the project."
+        case .sponsor: return russian ? "Выдаётся за регулярную поддержку проекта." : "Given for regular support of the project."
+        case .supporter: return russian ? "Выдаётся тем, кто помогает проекту делом или донатом." : "Given to those who help the project with work or a donation."
+        case .dev: return russian ? "Только у разработчиков NebulaGram." : "Only NebulaGram developers have it."
+        case .moderator: return russian ? "Выдаётся модераторам чатов NebulaGram." : "Given to NebulaGram chat moderators."
+        case .tester: return russian ? "Выдаётся участникам бета-тестирования." : "Given to beta testers."
+        case .star: return russian ? "Особый значок сообщества, выдаётся командой." : "A special community badge given by the team."
+        case .heart: return russian ? "Выдаётся командой в знак благодарности." : "Given by the team as a thank-you."
+        }
+    }
+}

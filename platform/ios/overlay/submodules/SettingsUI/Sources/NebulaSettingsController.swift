@@ -43,6 +43,8 @@ private final class NebulaSettingsArguments {
 private enum NebulaSettingsEntry: ItemListNodeEntry {
     case introduction(String, String, String)
     case category(Int, String, String, String)
+    /// Root page entry inside one of the Interface / Features / Accounts and security / NebulaGram groups.
+    case group(Int32, Int, String, String, String)
     case search(String, String)
     case empty(String)
     case toolsHeader(String)
@@ -79,6 +81,7 @@ private enum NebulaSettingsEntry: ItemListNodeEntry {
         switch self {
         case .introduction: return -2
         case .search, .empty: return -1
+        case let .group(section, _, _, _, _): return section
         case let .category(index, _, _, _): return index == 35 ? 3 : index == 34 ? 3 : index == 33 ? 2 : index == 30 || index == 31 ? 0 : index == 27 || index == 28 ? 2 : index == 26 ? 0 : index == 25 ? 4 : index == 23 ? 7 : index == 24 ? 5 : index == 22 ? 9 : index == 19 ? 0 : index == 20 ? 9 : index == 21 ? 5 : index == 18 ? 0 : index == 17 ? 8 : index == 10 || index == 12 || index == 16 ? 9 : index == 11 ? 10 : index >= 13 ? 1 : 0
         case .toolsHeader, .link, .ai, .buildInfo, .memory, .support, .community: return 0
         case let .chatHeader(section, _): return Int32(section)
@@ -101,6 +104,7 @@ private enum NebulaSettingsEntry: ItemListNodeEntry {
     private var order: Int {
         switch self {
         case .introduction: return -3
+        case let .group(_, index, _, _, _): return [2, 3, 7, 30, 31, 5, 1, 18].firstIndex(of: index) ?? index
         case let .category(index, _, _, _): return index == 35 ? 110 : index == 34 ? 115 : index == 33 ? 95 : index == 30 ? 35 : index == 7 ? 45 : index == 31 ? 48 : index == 8 ? 35 : index * 10
         case .search: return -2
         case .empty: return -1
@@ -161,6 +165,7 @@ private enum NebulaSettingsEntry: ItemListNodeEntry {
         switch self {
         case .introduction: return -3
         case let .category(index, _, _, _): return Int32(200 + index)
+        case let .group(_, index, _, _, _): return Int32(600 + index)
         case .search: return 19
         case .empty: return 20
         case .toolsHeader: return 16
@@ -243,6 +248,7 @@ private enum NebulaSettingsEntry: ItemListNodeEntry {
 
     var searchableText: String? {
         switch self {
+        case let .group(_, _, title, detail, _): return title + " " + detail
         case let .category(index, title, detail, _): return title + " " + detail + (index == 17 ? " автоперевод свои отправленные исходящие sent outgoing перевод при наборе черновик пауза AI live translation draft delay composer" : "")
         case let .navigation(title, detail), let .glass(title, detail), let .transitions(title, detail), let .folderStyle(title, detail): return title + " " + detail
         case let .widePosts(title, _, _), let .contacts(title, _, _), let .navigationToggle(_, title, _, _), let .stories(title, _, _), let .history(title, _, _),
@@ -286,6 +292,8 @@ private enum NebulaSettingsEntry: ItemListNodeEntry {
         case let .support(title):
             return disclosure(title, ru ? "Разработка и значок за поддержку" : "Development and a supporter badge", "heart", { arguments.openSupport?() })
         case let .category(index, title, detail, symbol):
+            return disclosure(title, detail, symbol, { arguments.openCategory?(index) })
+        case let .group(_, index, title, detail, symbol):
             return disclosure(title, detail, symbol, { arguments.openCategory?(index) })
         case let .search(value, placeholder):
             let magnifier = NSTextAttachment()
@@ -541,16 +549,21 @@ public func nebulaSettingsController(context: AccountContext, page: Int = 0, sea
         if page == 0 && query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
             entries = [
                 .search(query, ru ? "Поиск настроек" : "Search settings"),
-                .toolsHeader(ru ? "Разделы" : "Sections"),
                 .link("NebulaLink"),
-                .category(1, ru ? "Основные" : "General", ru ? "Поведение приложения и перенос настроек" : "App behavior and settings transfer", "gearshape"),
-                .category(2, ru ? "Оформление" : "Appearance", ru ? "Стекло, значки, анимации" : "Glass, icons, animations", "paintpalette"),
-                .category(7, ru ? "Навигация" : "Navigation", ru ? "Нижняя панель и кнопки" : "Bottom bar and buttons", "rectangle.bottomthird.inset.filled"),
-                .category(3, ru ? "Чаты и сообщения" : "Chats and messages", ru ? "Ввод, действия, камера и задачи" : "Composer, actions, camera and tasks", "bubble.left"),
-                .category(30, ru ? "ИИ и аудио" : "AI and audio", ru ? "Ассистент, перевод, расшифровка и голоса" : "Assistant, translation, transcription and voices", "sparkles"),
-                .category(31, ru ? "Аккаунты" : "Accounts", ru ? "Поиск, порядок и переключение" : "Search, order and switching", "person.2"),
-                .category(5, ru ? "Конфиденциальность" : "Privacy", ru ? "Архив, защита, поиск" : "Archive, protection, search", "hand.raised"),
-                .category(18, ru ? "О приложении" : "About", ru ? "Поддержка, сообщество и версия" : "Support, community and version", "info.circle")
+                // Each group answers one question, as on Android: how it looks,
+                // what it can do, whose it is and who we are.
+                .chatHeader(20, ru ? "Интерфейс" : "Interface"),
+                .group(20, 2, ru ? "Оформление" : "Appearance", ru ? "Тема, стекло, значки и анимации" : "Theme, glass, icons and motion", "paintpalette"),
+                .group(20, 3, ru ? "Чаты" : "Chats", ru ? "Шапка, пузыри, поле ввода и меню сообщений" : "Header, bubbles, composer and message menu", "bubble.left"),
+                .group(20, 7, ru ? "Навигация" : "Navigation", ru ? "Нижняя панель и папки" : "Bottom bar and folders", "rectangle.bottomthird.inset.filled"),
+                .chatHeader(21, ru ? "Функции" : "Features"),
+                .group(21, 30, ru ? "ИИ и перевод" : "AI and translation", ru ? "Ассистент, перевод, расшифровка и голоса" : "Assistant, translation, transcription and voices", "sparkles"),
+                .chatHeader(22, ru ? "Аккаунты и безопасность" : "Accounts and security"),
+                .group(22, 31, ru ? "Аккаунты" : "Accounts", ru ? "Поиск, порядок и переключение" : "Search, order and switching", "person.2"),
+                .group(22, 5, ru ? "Конфиденциальность" : "Privacy", ru ? "Удалённые сообщения, пароли чатов и защита" : "Deleted messages, chat passwords and protection", "hand.raised"),
+                .group(22, 1, ru ? "Основные" : "General", ru ? "Поведение приложения и копия настроек" : "App behavior and settings backup", "gearshape"),
+                .chatHeader(23, "NebulaGram"),
+                .group(23, 18, ru ? "О приложении" : "About", ru ? "Версия, значки, сообщество и поддержка" : "Version, badges, community and support", "info.circle")
             ]
         } else if page != 0 {
             entries = entries.filter { entry in

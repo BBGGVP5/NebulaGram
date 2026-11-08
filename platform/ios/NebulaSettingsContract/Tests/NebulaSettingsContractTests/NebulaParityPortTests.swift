@@ -1,0 +1,59 @@
+import XCTest
+@testable import NebulaSettingsContract
+
+final class NebulaParityPortTests: XCTestCase {
+    private func defaults() -> (UserDefaults, String) {
+        let suite = "ParityPortTests." + UUID().uuidString
+        return (UserDefaults(suiteName: suite)!, suite)
+    }
+
+    func testSplitRowFollowsAndroidRules() {
+        let reply = NebulaMessageMenuAction.reply.identifier, copy = NebulaMessageMenuAction.copy.identifier
+        let forward = NebulaMessageMenuAction.forward.identifier, link = NebulaMessageMenuAction.copyLink.identifier
+        let edit = NebulaMessageMenuSplit.editIdentifier
+        let menu: [String?] = [reply, copy, nil, edit, forward, link, "nebula.message.report", nil]
+        XCTAssertEqual(NebulaMessageMenuSplit.row(menu, enabled: true), [0, 1, 3, 4, 5])
+        XCTAssertEqual(NebulaMessageMenuSplit.row(menu, enabled: false), [])
+        // A lone icon is not worth a row.
+        XCTAssertEqual(NebulaMessageMenuSplit.row([reply, nil, nil], enabled: true), [])
+        // Nothing would stay in the list.
+        XCTAssertEqual(NebulaMessageMenuSplit.row([reply, copy], enabled: true), [])
+        // Row order is fixed, not menu order.
+        XCTAssertEqual(NebulaMessageMenuSplit.row([forward, nil, copy], enabled: true), [2, 0])
+    }
+
+    func testSplitAndMotionDefaultOnAndPersist() {
+        let (store, suite) = defaults(); defer { store.removePersistentDomain(forName: suite) }
+        let prefs = NebulaMessageMenuPreferences(defaults: store)
+        XCTAssertTrue(prefs.split); XCTAssertTrue(prefs.cherryMotion)
+        prefs.setSplit(false); prefs.setCherryMotion(false)
+        let restored = NebulaMessageMenuPreferences(defaults: store)
+        XCTAssertFalse(restored.split); XCTAssertFalse(restored.cherryMotion)
+        XCTAssertEqual(store.object(forKey: "nebula.messageMenu.cherryMotion") as? Bool, false)
+    }
+
+    func testMessageBlurDensities() {
+        let (store, suite) = defaults(); defer { store.removePersistentDomain(forName: suite) }
+        let prefs = NebulaMessagePreferences(defaults: store)
+        XCTAssertFalse(prefs.messageBlur); XCTAssertEqual(prefs.messageBlurTint, 55)
+        prefs.setMessageBlur(true); prefs.setMessageBlurTint(75)
+        XCTAssertTrue(store.bool(forKey: "nebula.messages.message_blur"))
+        XCTAssertEqual(store.integer(forKey: "nebula.messages.message_blur_tint"), 75)
+        prefs.setMessageBlurTint(40); XCTAssertEqual(prefs.messageBlurTint, 75)
+        store.set(12, forKey: NebulaMessagePreferences.messageBlurTintKey); XCTAssertEqual(prefs.messageBlurTint, 55)
+        XCTAssertEqual(NebulaMessagePreferences.tintAlpha(colorAlpha: 1.0, percent: 35), 0.35, accuracy: 0.0001)
+        XCTAssertEqual(NebulaMessagePreferences.tintAlpha(colorAlpha: 0.5, percent: 75), 0.375, accuracy: 0.0001)
+    }
+
+    func testEveryBadgeHasSheetTexts() {
+        XCTAssertEqual(Set(NebulaBadge.displayOrder), Set(NebulaBadge.allCases))
+        for badge in NebulaBadge.allCases {
+            for russian in [true, false] {
+                XCTAssertFalse(badge.localizedTitle(russian: russian).isEmpty)
+                XCTAssertFalse(badge.localizedDescription(russian: russian).isEmpty)
+                XCTAssertFalse(badge.howToGet(russian: russian).isEmpty)
+            }
+        }
+        XCTAssertEqual(NebulaBadge.allCases.filter { $0.isDonation }, [.supporter, .donor, .sponsor])
+    }
+}

@@ -138,13 +138,31 @@ def main():
         assert 'UITapGestureRecognizer(target: self, action: #selector(self.nebulaBadgeTapped))' in header
         assert header.index('super.init()', header.index('private let nebulaBadgeView')) < header.index('view.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(self.nebulaBadgeTapped)))')
         assert 'UIAccessibility.isReduceMotionEnabled' in header
-        assert 'customUndoText: isRussian ? "Подробнее" : "Learn more"' in header
-        assert 'ActionSheetTextItem(title: details)' in header
-        assert 'NebulaBadgeArtworkActionSheetItem(badge: badge)' in header
+        # The badge opens its sheet directly (Android NebulaBadgeSheet): artwork, meaning,
+        # how to get it, every badge and a support button for donation badges.
+        assert 'NebulaBadgeSheet.present(badge: badge, context: self.context' in header
+        assert 'customUndoText' not in header and 'switch badge {' not in header
+        badge_sheet = (peer / 'NebulaBadgeSheet.swift').read_text(encoding='utf-8')
+        assert 'NebulaBadgeArtworkActionSheetItem(badge: badge)' in badge_sheet
+        assert 'badge.howToGet(russian: russian)' in badge_sheet and 'NebulaBadge.displayOrder' in badge_sheet
+        assert 'if badge.isDonation' in badge_sheet and 'nebulaSupportScreen(context: context)' in badge_sheet
+        assert 'controller.present(sheet, in: .window(.root))' in badge_sheet
         details_artwork = (peer / 'NebulaBadgeArtworkActionSheetItem.swift').read_text(encoding='utf-8')
         assert 'NebulaProfileBadgeArtwork.image(for: badge)' in details_artwork
         assert 'UIAccessibility.isReduceMotionEnabled' in details_artwork
-        assert 'controller.present(sheet, in: .window(.root))' in header
+        # Split message menu, Cherrygram-style entrance and blurred bubbles (iOS 0122).
+        menu = (temp / 'submodules/SettingsUI/Sources/NebulaMessageMenuPresentation.swift').read_text(encoding='utf-8')
+        assert 'return split(result, enabled: prefs.split)' in menu and 'NebulaMessageMenuSplitRowItem(actions: rowActions)' in menu
+        menus = (temp / 'submodules/TelegramUI/Sources/ChatInterfaceStateContextMenus.swift').read_text(encoding='utf-8')
+        assert menus.count('ContextMenuActionItem(id: NebulaMessageMenuSplit.editIdentifier, text: chatPresentationInterfaceState.strings.Conversation_MessageDialogEdit') == 2
+        extracted = (temp / 'submodules/TelegramUI/Components/ContextControllerImpl/Sources/ContextControllerExtractedPresentationNode.swift').read_text(encoding='utf-8')
+        assert 'UserDefaults.standard.object(forKey: "nebula.messageMenu.cherryMotion") as? Bool ?? true' in extracted
+        assert '!UIAccessibility.isReduceMotionEnabled' in extracted and 'from: (nebulaPop ? 0.72 : 0.01) as NSNumber' in extracted
+        wallpaper = (temp / 'submodules/WallpaperBackgroundNode/Sources/WallpaperBackgroundNode.swift').read_text(encoding='utf-8')
+        assert wallpaper.count('if nebulaBlurredBubbles() && !hasPlainWallpaper {') == 2
+        assert 'case .incoming where nebulaBlur:' in wallpaper and 'case .outgoing where nebulaBlur:' in wallpaper
+        assert 'if case .outgoing = self.bubbleType, !nebulaBlur {' in wallpaper
+        assert '"nebula.messages.message_blur"' in wallpaper and '"nebula.messages.message_blur_tint"' in wallpaper
         ai_menu = (temp / 'submodules/TelegramUI/Sources/ChatInterfaceStateContextMenus.swift').read_text(encoding='utf-8')
         assert 'NebulaAiSettings.shared' in ai_menu
         assert 'NebulaAiEditorController(source: richSource' in ai_menu
