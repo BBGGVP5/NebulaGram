@@ -399,3 +399,11 @@ Port of Android 0294 / commit 25134250.
 Settings: Message menu page gains "Icon row below the list" and "Grow from message"; Messages and
 media gains "Blurred messages" and tint density. The NebulaGram settings root is grouped into
 Interface / Features / Accounts and security / NebulaGram, as on Android.
+
+## 0123 — switch for the dust delete effect
+
+`ChatHistoryListNode`: the dust effect for deleted messages additionally requires
+`NebulaMessagePreferences.enabled("delete_dust")` (default on, Android `delete_effect`). Off takes
+the same path as Telegram's own `ios_killswitch_disable_dust_effect`: the message just disappears.
+Without a patch, "Select loaded" can drop its 100-message cap with the catalog key
+`unlimited_selection` (Android `NebulaSelectionPolicy`); manual selection is not capped on iOS.

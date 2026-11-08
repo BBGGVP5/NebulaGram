@@ -77,3 +77,17 @@ final class NebulaSentFromTests: XCTestCase {
         XCTAssertFalse(NebulaSentFrom.unknown.label(russian: true).isEmpty)
     }
 }
+
+final class NebulaSelectionAndDustTests: XCTestCase {
+    func testSelectLoadedLimitAndDustDefault() {
+        XCTAssertEqual(NebulaSelectionPolicy.limit(unlimited: false), 100)
+        let many = Array(0 ..< 250)
+        XCTAssertEqual(NebulaSelectionPolicy.addingLoaded(many, to: [], limit: NebulaSelectionPolicy.limit(unlimited: false)).count, 100)
+        XCTAssertEqual(NebulaSelectionPolicy.addingLoaded(many, to: [], limit: NebulaSelectionPolicy.limit(unlimited: true)).count, 250)
+        let suite = "DustTests." + UUID().uuidString
+        let defaults = UserDefaults(suiteName: suite)!; defer { defaults.removePersistentDomain(forName: suite) }
+        let prefs = NebulaMessagePreferences(defaults: defaults)
+        XCTAssertTrue(prefs.enabled("delete_dust"))
+        prefs.set("delete_dust", false); XCTAssertFalse(NebulaMessagePreferences(defaults: defaults).enabled("delete_dust"))
+    }
+}

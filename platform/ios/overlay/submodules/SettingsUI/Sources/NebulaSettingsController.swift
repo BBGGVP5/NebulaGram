@@ -94,7 +94,7 @@ private enum NebulaSettingsEntry: ItemListNodeEntry {
             if ["hide_dividers", "hide_search_field"].contains(key) { return 6 }
             if key.hasPrefix("menu_") || ["centered_chat_header", "adaptive_chat_header", "floating_chat_header_v2", "header_unread", "message_menu_blur"].contains(key) { return 7 }
             if ["formatting_toolbar", "hide_send_as", "hide_attach_camera"].contains(key) { return 8 }
-            if key.hasPrefix("reply_") || ["seconds_in_time", "disable_next_channel"].contains(key) { return 9 }
+            if key.hasPrefix("reply_") || ["seconds_in_time", "disable_next_channel", "unlimited_selection"].contains(key) { return 9 }
             return 1
         case .header, .hideCounters, .folderStyle, .footer: return 2
         case .privacyHeader, .privacy, .history, .clearHistory: return 3
@@ -140,6 +140,7 @@ private enum NebulaSettingsEntry: ItemListNodeEntry {
             case "menu_video": return 77
             case "centered_chat_header": return 68
             case "disable_next_channel": return 69
+            case "unlimited_selection": return 71
             case "folder_title": return 86
             case "folder_outline": return 87
             case "hide_search_field": return 72
@@ -192,6 +193,7 @@ private enum NebulaSettingsEntry: ItemListNodeEntry {
             case "menu_video": return 45
             case "centered_chat_header": return 37
             case "disable_next_channel": return 38
+            case "unlimited_selection": return 90
             case "folder_title": return 40
             case "folder_outline": return 47
             case "hide_search_field": return 48
@@ -448,6 +450,7 @@ public func nebulaSettingsController(context: AccountContext, page: Int = 0, sea
             .navigationToggle("compact_bottom_bar", ru ? "Компактная нижняя панель" : "Compact bottom bar", store.compactBottomBar, !store.hasLoadError),
             .navigationToggle("hide_home_camera", ru ? "Скрыть камеру на главной" : "Hide camera on home", store.hideHomeCamera, !store.hasLoadError),
             .navigationToggle("hide_home_compose", ru ? "Скрыть кнопку нового чата" : "Hide new-chat button", store.hideHomeCompose, !store.hasLoadError),
+            .navigationToggle("unlimited_selection", ru ? "«Выделить загруженные» без лимита 100" : "Select loaded without the 100 limit", store.unlimitedSelection, !store.hasLoadError),
             .navigationToggle("hide_send_as", ru ? "Скрыть «Отправить от имени»" : "Hide Send As", store.hideSendAs, !store.hasLoadError),
             .navigationToggle("hide_attach_camera", ru ? "Скрыть камеру во вложениях" : "Hide camera in attachments", store.hideAttachCamera, !store.hasLoadError),
             .navigationToggle("hide_dividers", ru ? "Скрыть разделители чатов" : "Hide chat dividers", store.hideDividers, !store.hasLoadError),
@@ -518,7 +521,7 @@ public func nebulaSettingsController(context: AccountContext, page: Int = 0, sea
             case let .category(index, _, _, _): return index == 8 || index == 9 || index == 10 || index == 11 || index == 12 || index == 16 || index == 20 || index == 22 || index == 23 || index == 29
             case let .navigationToggle(key, _, _, _):
                 return key.hasPrefix("reply_") || ["formatting_toolbar", "hide_dividers", "hide_send_as", "hide_attach_camera", "menu_search", "menu_mute",
-                    "menu_call", "menu_video", "centered_chat_header", "adaptive_chat_header", "floating_chat_header_v2", "header_unread", "message_menu_blur", "disable_next_channel", "seconds_in_time", "hide_search_field"].contains(key)
+                    "menu_call", "menu_video", "unlimited_selection", "centered_chat_header", "adaptive_chat_header", "floating_chat_header_v2", "header_unread", "message_menu_blur", "disable_next_channel", "seconds_in_time", "hide_search_field"].contains(key)
             default:
                 return false
             }

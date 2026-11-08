@@ -80,7 +80,7 @@ extension ChatControllerImpl {
             }
             return true
         }
-        let added = NebulaSelectionPolicy.addingLoaded(loaded, to: selected).subtracting(selected)
+        let added = NebulaSelectionPolicy.addingLoaded(loaded, to: selected, limit: NebulaSelectionPolicy.limit(unlimited: NebulaSettingsStore.shared.unlimitedSelection)).subtracting(selected)
         guard !added.isEmpty else { return }
         self.updateChatPresentationInterfaceState(animated: !UIAccessibility.isReduceMotionEnabled, interactive: true,
             { $0.updatedInterfaceState { $0.withToggledSelectedMessages(Array(added), value: true) } })

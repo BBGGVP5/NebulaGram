@@ -1,0 +1,14 @@
+diff --git a/submodules/TelegramUI/Sources/ChatHistoryListNode.swift b/submodules/TelegramUI/Sources/ChatHistoryListNode.swift
+index 3f127da..a188251 100644
+--- a/submodules/TelegramUI/Sources/ChatHistoryListNode.swift
++++ b/submodules/TelegramUI/Sources/ChatHistoryListNode.swift
+@@ -4289,7 +4289,8 @@ public final class ChatHistoryListNodeImpl: ASDisplayNode, ChatHistoryNode, Chat
+         self.currentDeleteAnimationCorrelationIds.formUnion(expiredMessageStableIds)
+         
+         var appliedDeleteAnimationCorrelationIds = Set<UInt32>()
+-        if !self.currentDeleteAnimationCorrelationIds.isEmpty && self.allowDustEffect {
++        // NebulaGram: "Deleted messages turn to dust" can be switched off; the message then just disappears.
++        if !self.currentDeleteAnimationCorrelationIds.isEmpty && self.allowDustEffect && NebulaMessagePreferences.shared.enabled("delete_dust") {
+             var foundItemNodes: [ChatMessageItemView] = []
+             self.forEachItemNode { itemNode in
+                 if let itemNode = itemNode as? ChatMessageItemView, let item = itemNode.item {
