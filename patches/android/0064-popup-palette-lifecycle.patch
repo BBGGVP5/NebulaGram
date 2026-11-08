@@ -1,7 +1,7 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarMenuSubItem.java b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarMenuSubItem.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarMenuSubItem.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarMenuSubItem.java
-@@ -260,6 +260,15 @@ public class ActionBarMenuSubItem extends FrameLayout {
+@@ -283,6 +283,15 @@ public class ActionBarMenuSubItem extends FrameLayout implements Theme.Colorable
          }
      }
  
@@ -44,7 +44,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarPopu
  
              if (resId != 0) {
                  backgroundDrawable = getResources().getDrawable(resId).mutate();
-@@ -604,8 +614,15 @@ public class ActionBarPopupWindow extends PopupWindow {
+@@ -606,8 +616,15 @@ public class ActionBarPopupWindow extends PopupWindow {
              return super.dispatchTouchEvent(event);
          }
  

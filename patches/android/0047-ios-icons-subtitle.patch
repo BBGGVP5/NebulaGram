@@ -36,7 +36,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/BackDrawable.
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterViewAnimatedIconView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterViewAnimatedIconView.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterViewAnimatedIconView.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterViewAnimatedIconView.java
-@@ -47,6 +47,15 @@ public class ChatActivityEnterViewAnimatedIconView extends RLottieImageView {
+@@ -53,6 +53,15 @@ public class ChatActivityEnterViewAnimatedIconView extends RLottieImageView {
          }
          State fromState = currentState;
          currentState = state;
@@ -55,16 +55,16 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivity
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarContainer.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarContainer.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarContainer.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarContainer.java
-@@ -756,7 +756,7 @@ public class ChatAvatarContainer extends FrameLayout implements FactorAnimator.T
+@@ -760,7 +760,7 @@ public class ChatAvatarContainer extends FrameLayout implements FactorAnimator.T
          this.subtitleTextLargerCopyView.set(subtitleTextLargerCopyView);
-         subtitleTextLargerCopyView.setTextColor(getThemedColor(Theme.key_actionBarDefaultSubtitle));
+         ThemeBind.textColor(subtitleTextLargerCopyView, Theme.key_actionBarDefaultSubtitle, resourcesProvider);
          subtitleTextLargerCopyView.setTag(Theme.key_actionBarDefaultSubtitle);
 -        subtitleTextLargerCopyView.setTextSizePx(dp(glassMode ? 13.5f : 14));
 +        subtitleTextLargerCopyView.setTextSizePx(dp(glassMode ? 12.5f : 14));
          subtitleTextLargerCopyView.setGravity(Gravity.LEFT);
          if (subtitleTextView != null) {
              subtitleTextLargerCopyView.setText(subtitleTextView.getText());
-@@ -839,7 +839,12 @@ public class ChatAvatarContainer extends FrameLayout implements FactorAnimator.T
+@@ -843,7 +843,12 @@ public class ChatAvatarContainer extends FrameLayout implements FactorAnimator.T
              titleTextView.setTextSizePx(dp(17.5f));
          }
          if (subtitleTextView != null) {
@@ -81,7 +81,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarCo
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/glass/GlassTabView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/glass/GlassTabView.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/glass/GlassTabView.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/glass/GlassTabView.java
-@@ -283,6 +283,16 @@ public class GlassTabView extends FrameLayout implements MainTabsLayout.Tab, Fac
+@@ -300,6 +300,16 @@ public class GlassTabView extends FrameLayout implements MainTabsLayout.Tab, Fac
              updateColors();
              return;
          }
@@ -98,7 +98,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/glass/GlassT
          final boolean isSelected = isSelectedAnimator.getValue();
  
          if (tabAnimationBot !=  null) {
-@@ -641,6 +651,7 @@ public class GlassTabView extends FrameLayout implements MainTabsLayout.Tab, Fac
+@@ -660,6 +670,7 @@ public class GlassTabView extends FrameLayout implements MainTabsLayout.Tab, Fac
  
      /** NebulaGram: применить настройку подписей к этой вкладке. */
      public void nebulaApplyLabel() {
@@ -109,10 +109,10 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/glass/GlassT
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/LaunchActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/LaunchActivity.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/LaunchActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/LaunchActivity.java
-@@ -261,6 +261,14 @@ import java.util.zip.ZipEntry;
- import java.util.zip.ZipInputStream;
+@@ -266,6 +266,14 @@ import java.util.zip.ZipInputStream;
+ import java.util.HashSet;
  
- public class LaunchActivity extends BasePermissionsActivity implements INavigationLayout.INavigationLayoutDelegate, NotificationCenter.NotificationCenterDelegate, DialogsActivity.DialogsActivityDelegate, IPipActivity {
+ public class LaunchActivity extends BasePermissionsActivity implements INavigationLayout.INavigationLayoutDelegate, NotificationCenter.NotificationCenterDelegate, DialogsActivity.DialogsActivityDelegate {
 +    private android.content.res.Resources nebulaIconResources;
 +
 +    @Override
@@ -122,5 +122,5 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/LaunchActivity.java b/T
 +    }
 +
      public final static String EXTRA_FORCE_NOT_INTERNAL_APPS = "force_not_internal_apps";
-     public final static String EXTRA_FORCE_REQUEST = "force_request";
-     public final static Pattern PREFIX_T_ME_PATTERN = Pattern.compile("^(?:http(?:s|)://|)([A-z0-9-]+?)\\.t\\.me");
+     public final static String EXTRA_VOIP_ANSWER_TOKEN = "voip_answer_token";
+     // only our own call notifications know it, so other apps can't answer calls via the exported activity

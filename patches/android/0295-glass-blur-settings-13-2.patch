@@ -1,0 +1,54 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/utils/glass/source/GlassSourceRenderNode.java b/TMessagesProj/src/main/java/org/telegram/utils/glass/source/GlassSourceRenderNode.java
+--- a/TMessagesProj/src/main/java/org/telegram/utils/glass/source/GlassSourceRenderNode.java
++++ b/TMessagesProj/src/main/java/org/telegram/utils/glass/source/GlassSourceRenderNode.java
+@@ -73,14 +73,40 @@ public final class GlassSourceRenderNode implements GlassSource, BlurredBackgrou
+         this.underSource = underSource;
+     }
+ 
++    // NebulaGram: the glass settings may set the blur strength and reduced
++    // glass caps it; unchanged effects are not rebuilt on every frame.
++    private float nebulaBlurRadius = Float.NaN;
++    private RenderEffect nebulaBlurInput;
++    private float nebulaRequestedRadius;
++    private RenderEffect nebulaRequestedInput;
++    private boolean nebulaBlurConfigured;
++
+     @RequiresApi(api = Build.VERSION_CODES.S)
+     public void setBlur(float radius) {
+-        renderNode.setRenderEffect(radius > 0 ? RenderEffect.createBlurEffect(radius, radius, Shader.TileMode.CLAMP) : null);
++        nebulaRequestedRadius = radius; nebulaRequestedInput = null; nebulaBlurConfigured = true;
++        nebulaSetBlur(radius, null);
+     }
+ 
+     @RequiresApi(api = Build.VERSION_CODES.S)
+     public void setBlur(float radius, RenderEffect effect) {
+-        renderNode.setRenderEffect(RenderEffect.createChainEffect(RenderEffect.createBlurEffect(radius, radius, Shader.TileMode.CLAMP), effect));
++        nebulaRequestedRadius = radius; nebulaRequestedInput = effect; nebulaBlurConfigured = true;
++        nebulaSetBlur(radius, effect);
++    }
++
++    @RequiresApi(api = Build.VERSION_CODES.S)
++    private void nebulaSetBlur(float radius, RenderEffect input) {
++        if (app.nebulagram.ui.NebulaGlass.custom()) radius = org.telegram.messenger.AndroidUtilities.dpf2(app.nebulagram.ui.NebulaGlass.blur());
++        if (app.nebulagram.ui.NebulaGlass.reduced()) radius = Math.min(radius, org.telegram.messenger.AndroidUtilities.dpf2(6f));
++        radius = Math.max(0f, radius);
++        if (nebulaBlurRadius == radius && nebulaBlurInput == input) return;
++        RenderEffect effect = input;
++        if (radius > 0f) {
++            RenderEffect blur = RenderEffect.createBlurEffect(radius, radius, Shader.TileMode.CLAMP);
++            effect = input == null ? blur : RenderEffect.createChainEffect(blur, input);
++        }
++        renderNode.setRenderEffect(effect);
++        nebulaBlurRadius = radius;
++        nebulaBlurInput = input;
+     }
+ 
+ 
+@@ -128,6 +154,7 @@ public final class GlassSourceRenderNode implements GlassSource, BlurredBackgrou
+ 
+     @Override
+     public void draw(@NonNull Canvas canvas, float left, float top, float right, float bottom) {
++        if (Build.VERSION.SDK_INT >= 31 && nebulaBlurConfigured) nebulaSetBlur(nebulaRequestedRadius, nebulaRequestedInput);
+         if (!canvas.isHardwareAccelerated()) {
+             if (fallbackSource != null) {
+                 fallbackSource.draw(canvas, left, top, right, bottom);

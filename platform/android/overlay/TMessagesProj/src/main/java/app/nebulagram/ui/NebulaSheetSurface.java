@@ -11,14 +11,14 @@ import org.telegram.messenger.LiteMode;
 import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.Components.blur3.BlurredBackgroundDrawableViewFactory;
 import org.telegram.ui.Components.blur3.drawable.BlurredBackgroundDrawable;
-import org.telegram.ui.Components.blur3.source.BlurredBackgroundSourceColor;
-import org.telegram.ui.Components.blur3.source.BlurredBackgroundSourceRenderNode;
+import org.telegram.utils.glass.source.GlassSourceColor;
+import org.telegram.utils.glass.source.GlassSourceRenderNode;
 
 /** One backdrop per dialog, sampled only from the separate originating window. */
 @android.annotation.TargetApi(31)
 public final class NebulaSheetSurface implements View.OnAttachStateChangeListener, ViewTreeObserver.OnPreDrawListener {
     private final View host, root;
-    private final BlurredBackgroundSourceRenderNode source;
+    private final GlassSourceRenderNode source;
     private final BlurredBackgroundDrawable[] materials = new BlurredBackgroundDrawable[3];
     private final BlurredBackgroundDrawableViewFactory factory;
     private final Theme.ResourcesProvider provider;
@@ -43,9 +43,9 @@ public final class NebulaSheetSurface implements View.OnAttachStateChangeListene
         this.host = host;
         this.root = root;
         this.provider = provider;
-        BlurredBackgroundSourceColor fallback = new BlurredBackgroundSourceColor();
+        GlassSourceColor fallback = new GlassSourceColor();
         fallback.setColor(Theme.getColor(Theme.key_dialogBackground, provider));
-        source = new BlurredBackgroundSourceRenderNode(fallback);
+        source = new GlassSourceRenderNode(fallback);
         source.setBlur(AndroidUtilities.dpf2(Math.max(24, NebulaGlass.blur())));
         factory = new BlurredBackgroundDrawableViewFactory(source);
         factory.setLiquidGlassEffectAllowed(NebulaMenuStyle.animated());

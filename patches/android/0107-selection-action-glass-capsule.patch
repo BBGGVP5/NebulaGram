@@ -1,8 +1,7 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
-index 9b574966..da6dd2a1 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
-@@ -2515,16 +2515,20 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
+@@ -2759,16 +2759,20 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
          }
          final boolean separateAvatar = nebulaFloatingChatHeader && nebulaChatMenuHidden
                  && nebulaChatAvatarContainer != null;
@@ -14,10 +13,10 @@ index 9b574966..da6dd2a1 100644
                          searchFactor, actionModeFactor, nebulaChatAvatarContainer.getAlpha()));
                  glassDrawableMenu.draw(canvas);
              }
--        } else if (glassDrawableMenu != null && menuWidth > 0 && !glassOnlyBack && !doNotDrawGlassMenu) {
+-        } else if (glassDrawableMenu != null && menuWidth > 0 && !glassOnlyBack && !doNotDrawGlassMenu && !isMenuPillInOverlay()) {
 +        }
 +        // Fade the selection capsule in as the separate avatar backdrop fades out.
-+        if (glassDrawableMenu != null && menuWidth > 0 && !glassOnlyBack && !doNotDrawGlassMenu
++        if (glassDrawableMenu != null && menuWidth > 0 && !glassOnlyBack && !doNotDrawGlassMenu && !isMenuPillInOverlay()
 +                && (!separateAvatar || actionModeFactor > 0f)) {
              glassDrawableMenu.setBounds(getWidth() - Math.max(s, menuWidth) - p * 2, t, getWidth(), b);
 -            glassDrawableMenu.setAlpha(hasForcedMenuWidth ? 255 : (int) (255 * animatorHasMenuItems.getFloatValue()));

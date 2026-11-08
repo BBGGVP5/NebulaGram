@@ -1,7 +1,7 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/LogoutActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/LogoutActivity.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/LogoutActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/LogoutActivity.java
-@@ -125,10 +125,6 @@ public class LogoutActivity extends BaseFragment {
+@@ -133,10 +133,6 @@ public class LogoutActivity extends BaseFragment {
          listView.setOnItemClickListener((view, position, x, y) -> {
              if (position == addAccountRow) {
                  app.nebulagram.ui.NebulaNavigation.addAccount(LogoutActivity.this);

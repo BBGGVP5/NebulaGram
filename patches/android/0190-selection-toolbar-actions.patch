@@ -1,10 +1,10 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
-@@ -3768,6 +3768,10 @@ public class ChatActivity extends BaseFragment implements
-         actionBar.setActionBarMenuOnItemClick(new ActionBar.ActionBarMenuOnItemClick() {
-             @Override
-             public void onItemClick(final int id) {
+@@ -3739,6 +3739,10 @@ public class ChatActivity extends BaseFragment implements
+                 // the chat's menu is also opened from the sidebar: what it does is in the chat
+                 if (id != chat_menu_options && id != chat_menu_topics_panel && id != -1 && topicsPanel != null && topicsPanel.isOpen()) {
+                     topicsPanel.close();
 +                if (id == 0x4e5341) {
 +                    nebulaSelectAllLoadedMessages();
 +                    return;
@@ -12,7 +12,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
                  if (id == 0x4e4753) {
                      jumpToDate(1);
                      return;
-@@ -4406,7 +4410,7 @@ public class ChatActivity extends BaseFragment implements
+@@ -4330,7 +4334,7 @@ public class ChatActivity extends BaseFragment implements
              headerItem.setContentDescription(LocaleController.getString(R.string.AccDescrMoreOptions));
  
              if (currentUser != null && currentUser.self && chatMode != MODE_SAVED) {
@@ -21,7 +21,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
                  savedChatsGap = headerItem.lazilyAddColoredGap();
                  savedChatsItem.setVisibility(getMessagesController().getSavedMessagesController().hasDialogs() ? View.VISIBLE : View.GONE);
                  savedChatsGap.setVisibility(getMessagesController().getSavedMessagesController().hasDialogs() ? View.VISIBLE : View.GONE);
-@@ -4533,13 +4537,13 @@ public class ChatActivity extends BaseFragment implements
+@@ -4457,13 +4461,13 @@ public class ChatActivity extends BaseFragment implements
                  viewAsTopics = headerItem.lazilyAddSubItem(view_as_topics, R.drawable.msg_topics, LocaleController.getString(R.string.TopicViewAsTopics));
              }
              if (themeDelegate.isThemeChangeAvailable(true)) {
@@ -38,8 +38,8 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
                      LocaleController.getString(UserObject.isBotForum(currentUser) ? R.string.ClearAllHistory : R.string.ClearHistory));
              }
              boolean addedSettings = false;
-@@ -4567,7 +4571,7 @@ public class ChatActivity extends BaseFragment implements
-                         headerItem.lazilyAddSubItem(delete_chat, R.drawable.msg_block2, LocaleController.getString(R.string.DeleteAndBlock)).setColors(getThemedColor(Theme.key_text_RedRegular), getThemedColor(Theme.key_text_RedRegular));
+@@ -4491,7 +4495,7 @@ public class ChatActivity extends BaseFragment implements
+                         trackRedHeaderItem(headerItem.lazilyAddSubItem(delete_chat, R.drawable.msg_block2, LocaleController.getString(R.string.DeleteAndBlock)), false).setColors(getThemedColor(Theme.key_text_RedRegular), getThemedColor(Theme.key_text_RedRegular));
                          updateBotButtons();
                      } else {
 -                        headerItem.lazilyAddSubItem(delete_chat, R.drawable.msg_delete, LocaleController.getString(R.string.DeleteChatUser));
@@ -47,19 +47,19 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
                      }
                  }
              }
-@@ -4590,7 +4594,7 @@ public class ChatActivity extends BaseFragment implements
+@@ -4515,7 +4519,7 @@ public class ChatActivity extends BaseFragment implements
              headerItem.lazilyAddSubItem(copy_business_link, R.drawable.msg_copy, getString(R.string.Copy));
              headerItem.lazilyAddSubItem(share_business_link, R.drawable.msg_share, getString(R.string.LinkActionShare));
              headerItem.lazilyAddSubItem(rename_business_link, R.drawable.msg_edit, getString(R.string.Rename));
--            headerItem.lazilyAddSubItem(delete_business_link, R.drawable.msg_delete, getString(R.string.Delete)).setColors(Theme.getColor(Theme.key_text_RedRegular), Theme.getColor(Theme.key_text_RedRegular));
-+            headerItem.lazilyAddSubItem(delete_business_link, R.drawable.nebula_msg_delete_solar, getString(R.string.Delete)).setColors(Theme.getColor(Theme.key_text_RedRegular), Theme.getColor(Theme.key_text_RedRegular));
+-            trackRedHeaderItem(headerItem.lazilyAddSubItem(delete_business_link, R.drawable.msg_delete, getString(R.string.Delete)), true).setColors(Theme.getColor(Theme.key_text_RedRegular), Theme.getColor(Theme.key_text_RedRegular));
++            trackRedHeaderItem(headerItem.lazilyAddSubItem(delete_business_link, R.drawable.nebula_msg_delete_solar, getString(R.string.Delete)), true).setColors(Theme.getColor(Theme.key_text_RedRegular), Theme.getColor(Theme.key_text_RedRegular));
          }
          if (ChatObject.isForum(currentChat) && isTopic && getParentLayout() != null && getParentLayout().getFragmentStack() != null && chatMode == MODE_DEFAULT) {
              boolean hasMyForum = false;
-@@ -8276,8 +8280,13 @@ public class ChatActivity extends BaseFragment implements
+@@ -8260,8 +8264,13 @@ public class ChatActivity extends BaseFragment implements
          }
  
-         actionsButtonsLayout = new ChatActivityActionsButtonsLayout(context, resourceProvider, blurredBackgroundColorProvider, glassBackgroundDrawableFactory);
+         actionsButtonsLayout = new ChatActivityActionsButtonsLayout(context, resourceProvider, blurredBackgroundButtonsColorProvider, glassBackgroundDrawableFactory);
 +        actionsButtonsLayout.setWithoutAuthorMode(nebulaWithoutAuthorAction());
          actionsButtonsLayout.setForwardButtonOnClickListener(v -> openForward(false));
          actionsButtonsLayout.setReplyButtonOnClickListener(v -> {
@@ -70,7 +70,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
              MessageObject messageObject = null;
              for (int a = 1; a >= 0; a--) {
                  if (messageObject == null && selectedMessagesIds[a].size() != 0) {
-@@ -10482,7 +10491,7 @@ public class ChatActivity extends BaseFragment implements
+@@ -10910,7 +10919,7 @@ public class ChatActivity extends BaseFragment implements
          final ActionBarMenu actionMode = actionBar.createActionMode();
  
          LayoutTransition transition = new LayoutTransition();
@@ -79,7 +79,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
          transition.setInterpolator(LayoutTransition.APPEARING, CubicBezierInterpolator.EASE_OUT_QUINT);
          transition.setInterpolator(LayoutTransition.CHANGE_APPEARING, CubicBezierInterpolator.EASE_OUT_QUINT);
          transition.setInterpolator(LayoutTransition.CHANGING, CubicBezierInterpolator.EASE_OUT_QUINT);
-@@ -10530,26 +10539,31 @@ public class ChatActivity extends BaseFragment implements
+@@ -10958,26 +10967,31 @@ public class ChatActivity extends BaseFragment implements
          counterLayout.leftMargin = dp(52) - Math.round(actionMode.getX());
          actionMode.addView(selectedMessagesCountTextView, counterLayout);
          actionMode.setOnLayoutListener(actionBar::invalidate);
@@ -122,7 +122,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
          }
          actionMode.setItemVisibility(edit, canEditMessagesCount == 1 && selectedMessagesIds[0].size() + selectedMessagesIds[1].size() == 1 ? View.VISIBLE : View.GONE);
          actionMode.setItemVisibility(copy, !isPeerNoForwards() && selectedMessagesCanCopyIds[0].size() + selectedMessagesCanCopyIds[1].size() != 0 ? View.VISIBLE : View.GONE);
-@@ -12611,6 +12625,10 @@ public class ChatActivity extends BaseFragment implements
+@@ -13027,6 +13041,10 @@ public class ChatActivity extends BaseFragment implements
      }
  
      private void openForward(boolean fromActionBar) {
@@ -133,7 +133,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
          if (isPeerNoForwards() || hasSelectedNoforwardsMessage()) {
              // We should update text if user changed locale without re-opening chat activity
              String str;
-@@ -12689,7 +12707,8 @@ public class ChatActivity extends BaseFragment implements
+@@ -13099,7 +13117,8 @@ public class ChatActivity extends BaseFragment implements
          args.putBoolean("hasInvoice", hasInvoice);
          args.putBoolean("canSelectTopics", true);
          DialogsActivity fragment = new DialogsActivity(args);
@@ -143,7 +143,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
          presentFragment(fragment);
      }
  
-@@ -15183,6 +15202,17 @@ public class ChatActivity extends BaseFragment implements
+@@ -15659,6 +15678,17 @@ public class ChatActivity extends BaseFragment implements
          showFieldPanel(show, null, null, null, webPage, true, 0, null, cancel, 0, true);
      }
  
@@ -161,7 +161,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
      public void showFieldPanelForForward(boolean show, ArrayList<MessageObject> messageObjectsToForward) {
          showFieldPanel(show, null, null, messageObjectsToForward, null, true, 0, null, false, 0, true);
      }
-@@ -19642,6 +19672,32 @@ public class ChatActivity extends BaseFragment implements
+@@ -20160,6 +20190,32 @@ public class ChatActivity extends BaseFragment implements
          }
      }
  
@@ -194,7 +194,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
      private void addToSelectedMessages(MessageObject messageObject, boolean outside) {
          addToSelectedMessages(messageObject, outside, true);
      }
-@@ -19761,6 +19817,7 @@ public class ChatActivity extends BaseFragment implements
+@@ -20279,6 +20335,7 @@ public class ChatActivity extends BaseFragment implements
                  updatePinnedMessageView(true);
              } else {
                  createActionMode();
@@ -202,7 +202,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
                  ActionBarMenuItem saveItem = actionBar.createActionMode().getItem(save_to);
                  ActionBarMenuItem copyItem = actionBar.createActionMode().getItem(copy);
                  ActionBarMenuItem starItem = actionBar.createActionMode().getItem(star);
-@@ -19843,7 +19900,7 @@ public class ChatActivity extends BaseFragment implements
+@@ -20361,7 +20418,7 @@ public class ChatActivity extends BaseFragment implements
                      }
                  }
                  if (starItem != null) {
@@ -211,7 +211,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
                  }
                  final int newEditVisibility = canEditMessagesCount == 1 && selectedCount == 1 ? View.VISIBLE : View.GONE;
                  if (actionsButtonsLayout != null) {
-@@ -19892,7 +19949,13 @@ public class ChatActivity extends BaseFragment implements
+@@ -20410,7 +20467,13 @@ public class ChatActivity extends BaseFragment implements
                              }
                          }
                      }
@@ -226,7 +226,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
                  }
  
                  if (editItem != null) {
-@@ -33287,10 +33350,12 @@ public class ChatActivity extends BaseFragment implements
+@@ -33923,10 +33986,12 @@ public class ChatActivity extends BaseFragment implements
          for (int a = 0; a < actionModeViews.size(); a++) {
              View view = actionModeViews.get(a);
              AndroidUtilities.clearDrawableAnimation(view);
@@ -241,7 +241,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
          animatorSet.start();
  
          addToSelectedMessages(message, listView);
-@@ -35206,6 +35271,10 @@ public class ChatActivity extends BaseFragment implements
+@@ -35842,6 +35907,10 @@ public class ChatActivity extends BaseFragment implements
  
      @Override
      public boolean didSelectDialogs(DialogsActivity fragment, ArrayList<MessagesStorage.TopicKey> dids, CharSequence message, boolean param, boolean notify, int scheduleDate, int scheduleRepeatPeriod, TopicsFragment topicsFragment) {
@@ -252,7 +252,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
          if ((messagePreviewParams == null && (!fragment.isQuote || replyingMessageObject == null) || fragment.isQuote && replyingMessageObject == null) && forwardingMessage == null && selectedMessagesIds[0].size() == 0 && selectedMessagesIds[1].size() == 0) {
              return false;
          }
-@@ -35278,7 +35347,7 @@ public class ChatActivity extends BaseFragment implements
+@@ -35914,7 +35983,7 @@ public class ChatActivity extends BaseFragment implements
                          params.suggestionParams = messageSuggestionParams;
                          getSendMessagesHelper().sendMessage(params);
                      }
@@ -261,7 +261,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
                  }
                  fragment.finishFragment();
                  createUndoView();
-@@ -35365,7 +35434,7 @@ public class ChatActivity extends BaseFragment implements
+@@ -36001,7 +36070,7 @@ public class ChatActivity extends BaseFragment implements
                          };
                          chatActivity.showFieldPanelForReplyQuote(replyingMessageObject, replyingQuote);
                      } else {
@@ -270,7 +270,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
                      }
                      if (chatActivity.getDialogId() == getDialogId() && !AndroidUtilities.isTablet()) {
                          removeSelfFromStack();
-@@ -35393,7 +35462,7 @@ public class ChatActivity extends BaseFragment implements
+@@ -36029,7 +36098,7 @@ public class ChatActivity extends BaseFragment implements
                  if (fragment.isQuote && replyingMessageObject != null) {
                      showFieldPanelForReplyQuote(replyingMessageObject, replyingQuote);
                  } else {
@@ -279,9 +279,9 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
                  }
                  if (AndroidUtilities.isTablet()) {
                      hideActionMode();
-@@ -45216,7 +45285,7 @@ public class ChatActivity extends BaseFragment implements
+@@ -45520,7 +45589,7 @@ public class ChatActivity extends BaseFragment implements
                      } else if (currentUser != null && currentUser.bot) {
-                         headerItem.lazilyAddSubItem(delete_chat, R.drawable.msg_block2, LocaleController.getString(R.string.DeleteAndBlock)).setColors(getThemedColor(Theme.key_text_RedRegular), getThemedColor(Theme.key_text_RedRegular));
+                         trackRedHeaderItem(headerItem.lazilyAddSubItem(delete_chat, R.drawable.msg_block2, LocaleController.getString(R.string.DeleteAndBlock)), false).setColors(getThemedColor(Theme.key_text_RedRegular), getThemedColor(Theme.key_text_RedRegular));
                      } else {
 -                        headerItem.lazilyAddSubItem(delete_chat, R.drawable.msg_delete, LocaleController.getString(R.string.DeleteChatUser));
 +                        headerItem.lazilyAddSubItem(delete_chat, R.drawable.nebula_msg_delete_solar, LocaleController.getString(R.string.DeleteChatUser));
@@ -291,7 +291,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/chat/layouts/ChatActivityActionsButtonsLayout.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/chat/layouts/ChatActivityActionsButtonsLayout.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/chat/layouts/ChatActivityActionsButtonsLayout.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/chat/layouts/ChatActivityActionsButtonsLayout.java
-@@ -68,6 +68,31 @@ public class ChatActivityActionsButtonsLayout extends LinearLayout {
+@@ -69,6 +69,31 @@ public class ChatActivityActionsButtonsLayout extends LinearLayout {
          addView(forwardButton.button, LayoutHelper.createLinear(0, 56, 1f, -1, 0, 1, 0));
      }
  

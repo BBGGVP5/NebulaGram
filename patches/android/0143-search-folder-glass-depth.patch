@@ -1,8 +1,8 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/drawable/BlurredBackgroundDrawable.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/drawable/BlurredBackgroundDrawable.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/drawable/BlurredBackgroundDrawable.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/drawable/BlurredBackgroundDrawable.java
-@@ -228,7 +228,9 @@ public abstract class BlurredBackgroundDrawable extends Drawable {
-         if (colorProvider == null) return;
+@@ -327,7 +327,9 @@ public class BlurredBackgroundDrawable extends GlassDrawable implements Theme.Co
+         }
  
          backgroundColor = colorProvider.getBackgroundColor();
 -        shadowColor = colorProvider.getShadowColor();
@@ -11,11 +11,11 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/drawab
 +        setShadowParams(dpf2(1f + depth * 12f), 0f, dpf2(depth * 5f));
          strokeColorTop = app.nebulagram.ui.NebulaAppearance.glassHighlights() ? colorProvider.getStrokeColorTop() : 0;
          strokeColorBottom = app.nebulagram.ui.NebulaAppearance.glassHighlights() ? colorProvider.getStrokeColorBottom() : 0;
-     }
-@@ -578,6 +580,8 @@ public abstract class BlurredBackgroundDrawable extends Drawable {
-     /* Universal */
- 
-     protected void drawSource(Canvas canvas, BlurredBackgroundSource source) {
+         // the outline and the shadow may follow the theme too (e.g. compact mode's glass)
+@@ -818,6 +820,8 @@ public class BlurredBackgroundDrawable extends GlassDrawable implements Theme.Co
+     public void draw(@NonNull Canvas canvas) {
+         checkThemeColors();
+         checkGlassSettings();
 +        // Glass settings can change while a menu is open; update its cached shadow before rendering.
 +        if (colorProvider != null) updateColors();
          if (boundProps.boundsWithPadding.isEmpty()) {
@@ -24,7 +24,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/drawab
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
-@@ -1562,7 +1562,6 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+@@ -1561,7 +1561,6 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                                      viewPages[0] = viewPages[1];
                                      viewPages[1] = tempPage;
                                      filterTabsView.selectTabWithId(viewPages[0].selectedType, 1.0f);
@@ -32,7 +32,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/
                                      updateCounters(false);
                                      viewPages[0].dialogsAdapter.resume();
                                      viewPages[1].dialogsAdapter.pause();
-@@ -3684,8 +3683,6 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+@@ -3605,8 +3604,6 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                      if (!tab.isDefault && (tab.id < 0 || tab.id >= dialogFilters.size())) {
                          return;
                      }
@@ -41,7 +41,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/
                      viewPages[1].selectedType = tab.id;
                      viewPages[1].setVisibility(View.VISIBLE);
                      viewPages[1].setTranslationX(viewPages[0].getMeasuredWidth());
-@@ -6922,9 +6919,6 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+@@ -6835,9 +6832,6 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
              return;
          }
          MessagesController.DialogFilter filter = getMessagesController().getDialogFilters().get(viewPages[a].selectedType);
@@ -51,7 +51,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/
          if (filter.isDefault()) {
              viewPages[a].dialogsType = initialDialogsType;
              viewPages[a].listView.updatePullState();
-@@ -14396,7 +14390,9 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+@@ -14000,7 +13994,9 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
      }
  
      private int nebulaSearchSlotHeight() {

@@ -1,7 +1,7 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
-@@ -8580,6 +8580,8 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+@@ -8837,6 +8837,8 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                              expandAnimator.setDuration((long) ((1f - value) * 250f / durationFactor));
                          }
                          expandAnimator.addListener(new AnimatorListenerAdapter() {
@@ -10,7 +10,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java b/
                              @Override
                              public void onAnimationStart(Animator animation) {
                                  setForegroundImage(false);
-@@ -8589,9 +8591,10 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+@@ -8846,9 +8848,10 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
  
                              @Override
                              public void onAnimationEnd(Animator animation) {
@@ -22,7 +22,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java b/
                                  topView.setBackgroundColor(Color.BLACK);
                                  avatarContainer.setVisibility(View.GONE);
                                  avatarsViewPager.setVisibility(View.VISIBLE);
-@@ -8600,6 +8603,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+@@ -8857,6 +8860,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
  
                              @Override
                              public void onAnimationCancel(Animator animation) {
@@ -30,7 +30,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java b/
                                  justFullyExpanded = false;
                                  listView.canStopFlinger = true;
                              }
-@@ -8689,9 +8693,17 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+@@ -8944,9 +8948,17 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                              }
                          }
                          expandAnimator.addListener(new AnimatorListenerAdapter() {

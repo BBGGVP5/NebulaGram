@@ -1,7 +1,7 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
-@@ -954,6 +954,12 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
+@@ -1119,6 +1119,12 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
                  if (menu != null) {
                      animators.add(ObjectAnimator.ofFloat(menu, View.ALPHA, 0));
                  }
@@ -14,7 +14,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.jav
              }
              final int color = actionModeColor == 0 ? actionBarColor : actionModeColor;
              if (color == 0 || glassMode) {
-@@ -1055,6 +1061,9 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
+@@ -1220,6 +1226,9 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
                  AndroidUtilities.setLightStatusBar((Activity) getContext(), true);
              }
              actionMode.setVisibility(VISIBLE);
@@ -24,7 +24,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.jav
              if (titleTextView[0] != null) {
                  titleTextView[0].setVisibility(INVISIBLE);
              }
-@@ -1121,6 +1130,9 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
+@@ -1286,6 +1295,9 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
          if (menu != null) {
              animators.add(ObjectAnimator.ofFloat(menu, View.ALPHA, 1));
          }
@@ -34,64 +34,53 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.jav
          if (actionBarColor == 0 || glassMode) {
              NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.needCheckSystemBarColors);
          } else if (ColorUtils.calculateLuminance(actionBarColor) < 0.7f) {
-@@ -2455,13 +2467,23 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
-             final int widthDefault = rightDefault - leftDefault;
-             final int left, right;
-             final ChatAvatarContainer centeredNebulaAvatar = nebulaFloatingChatHeader
--                    && actionModeFactor == 0f && searchFactor == 0f ? nebulaChatAvatarContainer : null;
-+                    ? nebulaChatAvatarContainer : null;
-             if (centeredNebulaAvatar != null) {
-                 // The title, subtitle and image have independent places: a
-                 // compact real glass capsule stays centred, while the avatar
-                 // remains a reachable round control at the trailing edge.
--                final int width = Math.round(nebulaCapsuleWidth.set(centeredNebulaAvatar.getNebulaCenteredHeaderWidth(), !app.nebulagram.ui.NebulaAppearance.liquidAnimations()));
--                left = app.nebulagram.ui.NebulaChatStyle.headerLeft(getWidth(), width);
-+                final int capsule = Math.round(nebulaCapsuleWidth.set(centeredNebulaAvatar.getNebulaCenteredHeaderWidth(), !app.nebulagram.ui.NebulaAppearance.liquidAnimations()));
-+                // Р РµР¶РёРј РІС‹РґРµР»РµРЅРёСЏ Р·Р°РЅРёРјР°РµС‚ РІСЃСЋ РїР°РЅРµР»СЊ, Рё РЅР° РІСЂРµРјСЏ РїРµСЂРµС…РѕРґР°
-+                // РєР°РїСЃСѓР»Р° С‚СЏРЅРµС‚СЃСЏ Рє РЅРµР№ Рё РѕР±СЂР°С‚РЅРѕ. Р Р°РЅСЊС€Рµ РІРµС‚РєР° РІРєР»СЋС‡Р°Р»Р°СЃСЊ Р»РёС€СЊ
-+                // РїСЂРё РЅСѓР»РµРІРѕРј РєРѕСЌС„С„РёС†РёРµРЅС‚Рµ: РІСЃС‘ Р·Р°С‚СѓС…Р°РЅРёРµ РїР°РЅРµР»СЊ СЂРёСЃРѕРІР°Р»Р°СЃСЊ РІРѕ
-+                // РІСЃСЋ С€РёСЂРёРЅСѓ Рё РІ РїРѕСЃР»РµРґРЅРёР№ РєР°РґСЂ СЃС…Р»РѕРїС‹РІР°Р»Р°СЃСЊ РІ РєР°РїСЃСѓР»Сѓ вЂ” СЌС‚Рѕ Рё
-+                // РІС‹РіР»СЏРґРµР»Рѕ РєР°Рє В«СЂР°Р·РґСѓРІР°РµС‚ С€Р°РїРєСѓ Рё РїРѕС‚РѕРј РѕР±СЂР°С‚РЅРѕ РІ РїРёР»СЋР»СЋВ».
-+                // Поиск раскрывает панель так же, как режим выделения, и закрывается
-+                // так же — значит и возвращаться должен тем же переходом, а не
-+                // схлопываться в капсулу последним кадром.
-+                final float nebulaExpand = Math.max(searchFactor, actionModeFactor);
-+                final int width = lerp(capsule, widthDefault, nebulaExpand);
-+                left = lerp(app.nebulagram.ui.NebulaChatStyle.headerLeft(getWidth(), capsule), leftDefault, nebulaExpand);
-                 right = left + width;
-                 centeredNebulaAvatar.setTranslationX(0);
-                 centeredNebulaAvatar.setPivotX(centeredNebulaAvatar.getMeasuredWidth() / 2f);
+@@ -2696,13 +2708,23 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
+                 final int widthDefault = rightDefault - leftDefault;
+                 final int left, right;
+                 final ChatAvatarContainer centeredNebulaAvatar = nebulaFloatingChatHeader
+-                        && actionModeFactor == 0f && searchFactor == 0f ? nebulaChatAvatarContainer : null;
++                        ? nebulaChatAvatarContainer : null;
+                 if (centeredNebulaAvatar != null) {
+                     // The title, subtitle and image have independent places: a
+                     // compact real glass capsule stays centred, while the avatar
+                     // remains a reachable round control at the trailing edge.
+-                    final int width = Math.round(nebulaCapsuleWidth.set(centeredNebulaAvatar.getNebulaCenteredHeaderWidth(), !app.nebulagram.ui.NebulaAppearance.liquidAnimations()));
+-                    left = app.nebulagram.ui.NebulaChatStyle.headerLeft(getWidth(), width);
++                    final int capsule = Math.round(nebulaCapsuleWidth.set(centeredNebulaAvatar.getNebulaCenteredHeaderWidth(), !app.nebulagram.ui.NebulaAppearance.liquidAnimations()));
++                    // Р РµР¶РёРј РІС‹РґРµР»РµРЅРёСЏ Р·Р°РЅРёРјР°РµС‚ РІСЃСЋ РїР°РЅРµР»СЊ, Рё РЅР° РІСЂРµРјСЏ РїРµСЂРµС…РѕРґР°
++                    // РєР°РїСЃСѓР»Р° С‚СЏРЅРµС‚СЃСЏ Рє РЅРµР№ Рё РѕР±СЂР°С‚РЅРѕ. Р Р°РЅСЊС€Рµ РІРµС‚РєР° РІРєР»СЋС‡Р°Р»Р°СЃСЊ Р»РёС€СЊ
++                    // РїСЂРё РЅСѓР»РµРІРѕРј РєРѕСЌС„С„РёС†РёРµРЅС‚Рµ: РІСЃС‘ Р·Р°С‚СѓС…Р°РЅРёРµ РїР°РЅРµР»СЊ СЂРёСЃРѕРІР°Р»Р°СЃСЊ РІРѕ
++                    // РІСЃСЋ С€РёСЂРёРЅСѓ Рё РІ РїРѕСЃР»РµРґРЅРёР№ РєР°РґСЂ СЃС…Р»РѕРїС‹РІР°Р»Р°СЃСЊ РІ РєР°РїСЃСѓР»Сѓ вЂ” СЌС‚Рѕ Рё
++                    // РІС‹РіР»СЏРґРµР»Рѕ РєР°Рє В«СЂР°Р·РґСѓРІР°РµС‚ С€Р°РїРєСѓ Рё РїРѕС‚РѕРј РѕР±СЂР°С‚РЅРѕ РІ РїРёР»СЋР»СЋВ».
++                    // Поиск раскрывает панель так же, как режим выделения, и закрывается
++                    // так же — значит и возвращаться должен тем же переходом, а не
++                    // схлопываться в капсулу последним кадром.
++                    final float nebulaExpand = Math.max(searchFactor, actionModeFactor);
++                    final int width = lerp(capsule, widthDefault, nebulaExpand);
++                    left = lerp(app.nebulagram.ui.NebulaChatStyle.headerLeft(getWidth(), capsule), leftDefault, nebulaExpand);
+                     right = left + width;
+                     centeredNebulaAvatar.setTranslationX(0);
+                     centeredNebulaAvatar.setPivotX(centeredNebulaAvatar.getMeasuredWidth() / 2f);
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarContainer.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarContainer.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarContainer.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarContainer.java
-@@ -278,7 +278,7 @@ public class ChatAvatarContainer extends FrameLayout implements FactorAnimator.T
- 
+@@ -280,6 +280,7 @@ public class ChatAvatarContainer extends FrameLayout implements FactorAnimator.T
          titleTextView = new SimpleTextConnectedView(context, titleTextLargerCopyView);
          titleTextView.setEllipsizeByGradient(true);
--        titleTextView.setTextColor(getThemedColor(Theme.key_actionBarDefaultTitle));
+         ThemeBind.textColor(titleTextView, Theme.key_actionBarDefaultTitle, resourcesProvider);
 +        titleTextView.setTextColor(nebulaHeaderColor(Theme.key_actionBarDefaultTitle));
          titleTextView.setTextSize(18);
          titleTextView.setGravity(Gravity.LEFT);
          titleTextView.setTypeface(AndroidUtilities.bold());
-@@ -292,7 +292,7 @@ public class ChatAvatarContainer extends FrameLayout implements FactorAnimator.T
-             animatedSubtitleTextView = new AnimatedTextView(context, true, true, true);
-             animatedSubtitleTextView.setAnimationProperties(.3f, 0, 320, CubicBezierInterpolator.EASE_OUT_QUINT);
-             animatedSubtitleTextView.setEllipsizeByGradient(true);
--            animatedSubtitleTextView.setTextColor(getThemedColor(Theme.key_actionBarDefaultSubtitle));
-+            animatedSubtitleTextView.setTextColor(nebulaHeaderColor(Theme.key_actionBarDefaultSubtitle));
-             animatedSubtitleTextView.setTag(Theme.key_actionBarDefaultSubtitle);
-             animatedSubtitleTextView.setTextSize(dp(14));
-             animatedSubtitleTextView.setGravity(Gravity.LEFT);
-@@ -302,7 +302,7 @@ public class ChatAvatarContainer extends FrameLayout implements FactorAnimator.T
-         } else {
+@@ -304,6 +305,7 @@ public class ChatAvatarContainer extends FrameLayout implements FactorAnimator.T
              subtitleTextView = new SimpleTextConnectedView(context, subtitleTextLargerCopyView);
              subtitleTextView.setEllipsizeByGradient(true);
--            subtitleTextView.setTextColor(getThemedColor(Theme.key_actionBarDefaultSubtitle));
+             ThemeBind.textColor(subtitleTextView, Theme.key_actionBarDefaultSubtitle, resourcesProvider);
 +            subtitleTextView.setTextColor(nebulaHeaderColor(Theme.key_actionBarDefaultSubtitle));
              subtitleTextView.setTag(Theme.key_actionBarDefaultSubtitle);
              subtitleTextView.setTextSize(14);
              subtitleTextView.setGravity(Gravity.LEFT);
-@@ -690,6 +690,24 @@ public class ChatAvatarContainer extends FrameLayout implements FactorAnimator.T
+@@ -691,6 +693,24 @@ public class ChatAvatarContainer extends FrameLayout implements FactorAnimator.T
          occupyStatusBar = value;
      }
  
@@ -114,45 +103,41 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarCo
 +    }
 +
      public void setTitleColors(int title, int subtitle) {
-         titleTextView.setTextColor(title);
-         subtitleTextView.setTextColor(subtitle);
-@@ -1457,7 +1475,7 @@ public class ChatAvatarContainer extends FrameLayout implements FactorAnimator.T
-             if (subtitleTextView != null) {
+         // caller-owned colors (re-applied by the caller's theme hook): drop the default-key bindings
+         ThemeBind.clear(titleTextView);
+@@ -1462,6 +1482,7 @@ public class ChatAvatarContainer extends FrameLayout implements FactorAnimator.T
                  subtitleTextView.setText(newSubtitle);
                  if (overrideSubtitleColor == null) {
--                    subtitleTextView.setTextColor(getThemedColor(lastSubtitleColorKey));
+                     ThemeBind.textColor(subtitleTextView, lastSubtitleColorKey, resourcesProvider);
 +                    subtitleTextView.setTextColor(nebulaHeaderColor(lastSubtitleColorKey));
                      subtitleTextView.setTag(lastSubtitleColorKey);
                  } else {
                      subtitleTextView.setTextColor(overrideSubtitleColor);
-@@ -1465,7 +1483,7 @@ public class ChatAvatarContainer extends FrameLayout implements FactorAnimator.T
-             } else {
+@@ -1470,6 +1491,7 @@ public class ChatAvatarContainer extends FrameLayout implements FactorAnimator.T
                  animatedSubtitleTextView.setText(newSubtitle, animated);
                  if (overrideSubtitleColor == null) {
--                    animatedSubtitleTextView.setTextColor(getThemedColor(lastSubtitleColorKey));
+                     ThemeBind.textColor(animatedSubtitleTextView, lastSubtitleColorKey, resourcesProvider);
 +                    animatedSubtitleTextView.setTextColor(nebulaHeaderColor(lastSubtitleColorKey));
                      animatedSubtitleTextView.setTag(lastSubtitleColorKey);
                  } else {
                      animatedSubtitleTextView.setTextColor(overrideSubtitleColor);
-@@ -1768,7 +1786,7 @@ public class ChatAvatarContainer extends FrameLayout implements FactorAnimator.T
-                     if (overrideSubtitleColor != null) {
+@@ -1773,6 +1795,7 @@ public class ChatAvatarContainer extends FrameLayout implements FactorAnimator.T
                          subtitleTextView.setTextColor(overrideSubtitleColor);
                      } else if (lastSubtitleColorKey >= 0) {
--                        subtitleTextView.setTextColor(getThemedColor(lastSubtitleColorKey));
+                         ThemeBind.textColor(subtitleTextView, lastSubtitleColorKey, resourcesProvider);
 +                        subtitleTextView.setTextColor(nebulaHeaderColor(lastSubtitleColorKey));
                          subtitleTextView.setTag(lastSubtitleColorKey);
                      }
                  } else if (animatedSubtitleTextView != null) {
-@@ -1777,7 +1795,7 @@ public class ChatAvatarContainer extends FrameLayout implements FactorAnimator.T
-                     if (overrideSubtitleColor != null) {
+@@ -1782,6 +1805,7 @@ public class ChatAvatarContainer extends FrameLayout implements FactorAnimator.T
                          animatedSubtitleTextView.setTextColor(overrideSubtitleColor);
                      } else if (lastSubtitleColorKey >= 0) {
--                        animatedSubtitleTextView.setTextColor(getThemedColor(lastSubtitleColorKey));
+                         ThemeBind.textColor(animatedSubtitleTextView, lastSubtitleColorKey, resourcesProvider);
 +                        animatedSubtitleTextView.setTextColor(nebulaHeaderColor(lastSubtitleColorKey));
                          animatedSubtitleTextView.setTag(lastSubtitleColorKey);
                      }
                  }
-@@ -1910,6 +1928,9 @@ public class ChatAvatarContainer extends FrameLayout implements FactorAnimator.T
+@@ -1939,6 +1963,9 @@ public class ChatAvatarContainer extends FrameLayout implements FactorAnimator.T
          if (subtitleTextView != null) {
              width = Math.max(width, subtitleTextView.getExactWidthIncludeDrawables());
          }

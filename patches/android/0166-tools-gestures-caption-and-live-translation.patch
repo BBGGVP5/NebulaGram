@@ -1,8 +1,7 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/TranslateController.java b/TMessagesProj/src/main/java/org/telegram/messenger/TranslateController.java
-index 383a7a04..8a2a941d 100644
 --- a/TMessagesProj/src/main/java/org/telegram/messenger/TranslateController.java
 +++ b/TMessagesProj/src/main/java/org/telegram/messenger/TranslateController.java
-@@ -1616,6 +1616,7 @@ public class TranslateController extends BaseController {
+@@ -1617,6 +1617,7 @@ public class TranslateController extends BaseController {
      }
  
      public boolean isTranslating(MessageObject messageObject) {
@@ -10,7 +9,7 @@ index 383a7a04..8a2a941d 100644
          if (messageObject != null && messageObject.messageOwner != null && messageObject.messageOwner.summarizedOpen)
              return loadingSummarizations.contains(Objects.hash(messageObject.getDialogId(), messageObject.getId(), isTranslatingDialog(messageObject.getDialogId()) ? 1 : 0));
          synchronized (this) {
-@@ -1631,6 +1632,10 @@ public class TranslateController extends BaseController {
+@@ -1632,6 +1633,10 @@ public class TranslateController extends BaseController {
      }
  
      public boolean isTranslating(MessageObject messageObject, MessageObject.GroupedMessages group) {
@@ -22,10 +21,9 @@ index 383a7a04..8a2a941d 100644
              return false;
          }
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
-index 47c4c23e..6a535c39 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
-@@ -703,6 +703,25 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
+@@ -856,6 +856,25 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
          fromBottom = false;
      }
  
@@ -51,7 +49,7 @@ index 47c4c23e..6a535c39 100644
      public void setRightDrawableOnClick(OnClickListener onClickListener) {
          rightDrawableOnClickListener = onClickListener;
          if (titleTextView[0] != null) {
-@@ -1724,7 +1743,13 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
+@@ -1913,7 +1932,13 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
                      titleLeft = app.nebulagram.ui.NebulaHomeTitleGeometry.left(
                              getMeasuredWidth(), textLeft, nebulaTitleEndInset(), titleTextView[i].getMeasuredWidth());
                  }
@@ -66,7 +64,7 @@ index 47c4c23e..6a535c39 100644
              }
          }
          if (additionalSubTitleOverlayContainer != null) {
-@@ -1946,6 +1971,15 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
+@@ -2136,6 +2161,15 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
                      titleTextView[1] = null;
                      overlayTitleAnimationInProgress = false;
                      setTitleOverlayText((String) overlayTitleToSet[0], (int) overlayTitleToSet[1], (Runnable) overlayTitleToSet[2]);
@@ -82,7 +80,7 @@ index 47c4c23e..6a535c39 100644
                  }
              }).start();
          }
-@@ -2118,6 +2152,12 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
+@@ -2311,6 +2345,12 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
              setTitle(title);
              return;
          }
@@ -95,7 +93,7 @@ index 47c4c23e..6a535c39 100644
          boolean crossfade = overlayTitleAnimation && !TextUtils.isEmpty(subtitle);
          if (crossfade) {
              if (subtitleTextView.getVisibility() != View.VISIBLE) {
-@@ -2134,12 +2174,13 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
+@@ -2327,12 +2367,13 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
              titleTextView[1] = null;
          }
          titleTextView[1] = titleTextView[0];
@@ -110,7 +108,7 @@ index 47c4c23e..6a535c39 100644
          }
          ViewPropertyAnimator a1 = titleTextView[0].animate().alpha(1f).translationY(0).setDuration(duration);
          if (interpolator != null) {
-@@ -2150,7 +2191,7 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
+@@ -2343,7 +2384,7 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
          titleAnimationRunning = true;
          ViewPropertyAnimator a = titleTextView[1].animate().alpha(0);
          if (!crossfade) {
@@ -119,7 +117,7 @@ index 47c4c23e..6a535c39 100644
          }
          if (interpolator != null) {
              a.setInterpolator(interpolator);
-@@ -2158,6 +2199,7 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
+@@ -2351,6 +2392,7 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
          a.setDuration(duration).setListener(new AnimatorListenerAdapter() {
              @Override
              public void onAnimationEnd(Animator animation) {
@@ -127,16 +125,16 @@ index 47c4c23e..6a535c39 100644
                  if (titleTextView[1] != null && titleTextView[1].getParent() != null) {
                      ViewGroup viewGroup = (ViewGroup) titleTextView[1].getParent();
                      viewGroup.removeView(titleTextView[1]);
-@@ -2586,6 +2628,8 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
-                     && (!nebulaHomeTabsGlass || glassDrawable.getAlpha() > 0)
-                     && !((nebulaClassicSavedHeader || nebulaFloatingChatHeader && !app.nebulagram.ui.NebulaAppearance.chatHeader()) && actionModeFactor == 0f && searchFactor == 0f)) glassDrawable.draw(canvas);
+@@ -2819,6 +2861,8 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
+                 }
+             }
          }
 +        final boolean nebulaPlainHeaderButtons = nebulaHomeGlass || nebulaHomeTabsGlass
 +                || nebulaFloatingChatHeader || nebulaClassicSavedHeader || nebulaSavedMessagesHeader;
          if (glassDrawableBack != null && nebulaHomeTabsGlass && actionModeFactor > 0f
                  && actionMode != null && actionMode.getChildCount() > 0) {
              final View close = actionMode.getChildAt(0);
-@@ -2593,7 +2637,7 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
+@@ -2826,7 +2870,7 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
              final int cy = (t + b) / 2;
              glassDrawableBack.setBounds(cx - dp(23), cy - dp(23), cx + dp(23), cy + dp(23));
              glassDrawableBack.setAlpha(Math.round(255 * actionModeFactor));
@@ -145,7 +143,7 @@ index 47c4c23e..6a535c39 100644
          } else if (glassDrawableBack != null && hasBackButton) {
              glassDrawableBack.setAlpha(255);
              if (nebulaProfileGlass) {
-@@ -2605,7 +2649,7 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
+@@ -2838,7 +2882,7 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
              } else {
                  glassDrawableBack.setBounds(0, t, nebulaBackWidth, b);
              }
@@ -154,7 +152,7 @@ index 47c4c23e..6a535c39 100644
          }
          final boolean separateAvatar = nebulaFloatingChatHeader && nebulaChatMenuHidden
                  && nebulaChatAvatarContainer != null;
-@@ -2614,7 +2658,7 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
+@@ -2847,7 +2891,7 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
                  glassDrawableMenu.setBounds(getWidth() - s - p * 2, t, getWidth(), b);
                  glassDrawableMenu.setAlpha(app.nebulagram.ui.NebulaChatStyle.avatarBackdropAlpha(
                          searchFactor, actionModeFactor, nebulaChatAvatarContainer.getAlpha()));
@@ -163,7 +161,7 @@ index 47c4c23e..6a535c39 100644
              }
          }
          // Fade the selection capsule in as the separate avatar backdrop fades out.
-@@ -2634,7 +2678,7 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
+@@ -2867,7 +2911,7 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
                      glassDrawableMenu.setBounds(Math.max(0, first - dp(4)), t,
                              Math.min(getWidth() - dp(4), last + dp(4)), b);
                      glassDrawableMenu.setAlpha(Math.round(255 * actionModeFactor));
@@ -172,7 +170,7 @@ index 47c4c23e..6a535c39 100644
                  }
              } else if (nebulaHomeTabsGlass && actionModeFactor < 0.01f
                      && !isSearchFieldVisible && menu != null) {
-@@ -2654,7 +2698,7 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
+@@ -2887,7 +2931,7 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
                      glassDrawableMenu.setBounds(Math.max(0, first - dp(4)), t,
                              Math.min(getWidth(), last + dp(4)), b);
                      glassDrawableMenu.setAlpha(Math.round(255 * menuAlpha * (1f - searchFactor)));
@@ -181,7 +179,7 @@ index 47c4c23e..6a535c39 100644
                  }
              } else if (nebulaHomeGlass && actionModeFactor < 0.01f && searchFactor < 0.01f
                      && !isSearchFieldVisible && menu != null) {
-@@ -2667,12 +2711,12 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
+@@ -2900,12 +2944,12 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
                      final int cx = Math.round(menu.getX() + child.getX() + child.getWidth() / 2f);
                      glassDrawableMenu.setBounds(cx - dp(23), cy - dp(23), cx + dp(23), cy + dp(23));
                      glassDrawableMenu.setAlpha(Math.round(255 * menuAlpha * child.getAlpha()));
@@ -197,10 +195,9 @@ index 47c4c23e..6a535c39 100644
          }
  
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/BaseFragment.java b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/BaseFragment.java
-index 55cc3351..6dfca91b 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/BaseFragment.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/BaseFragment.java
-@@ -1015,10 +1015,29 @@ public abstract class BaseFragment {
+@@ -1156,10 +1156,29 @@ public abstract class BaseFragment {
                          @Override protected void onMeasure(int widthSpec, int heightSpec) {
                              int available = MeasureSpec.getSize(heightSpec);
                              int height = Math.min(available, Math.round(AndroidUtilities.displaySize.y * params.maxHeightFraction));
@@ -230,7 +227,7 @@ index 55cc3351..6dfca91b 100644
                      containerView = bounded;
                  } else {
                      containerView = view;
-@@ -1048,7 +1067,7 @@ public abstract class BaseFragment {
+@@ -1189,7 +1208,7 @@ public abstract class BaseFragment {
  
              @Override
              protected boolean canDismissWithSwipe() {
@@ -239,7 +236,7 @@ index 55cc3351..6dfca91b 100644
              }
  
              @Override
-@@ -1449,6 +1468,9 @@ public abstract class BaseFragment {
+@@ -1637,6 +1656,9 @@ public abstract class BaseFragment {
  
      public static class BottomSheetParams {
          public float maxHeightFraction;
@@ -250,10 +247,9 @@ index 55cc3351..6dfca91b 100644
          public boolean allowNestedScroll;
          public Runnable onDismiss;
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
-index 0485bec6..6b2f8364 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
-@@ -9982,6 +9982,10 @@ public class ChatActivity extends BaseFragment implements
+@@ -9998,6 +9998,10 @@ public class ChatActivity extends BaseFragment implements
          translateButton = new TranslateButton(getContext(), this, themeDelegate) {
              @Override
              protected void onButtonClick() {
@@ -264,7 +260,7 @@ index 0485bec6..6b2f8364 100644
                  if (getUserConfig().isPremium() || currentChat != null && currentChat.autotranslation) {
                      getMessagesController().getTranslateController().toggleTranslatingDialog(getDialogId());
                  } else {
-@@ -24906,6 +24910,7 @@ public class ChatActivity extends BaseFragment implements
+@@ -25452,6 +25456,7 @@ public class ChatActivity extends BaseFragment implements
                  return;
              }
              updateMessageTranslation(messageObject, summary);
@@ -272,7 +268,7 @@ index 0485bec6..6b2f8364 100644
              if (args.length > 2 && (boolean) args[2]) {
                  checkTranslation(true);
              }
-@@ -24914,6 +24919,7 @@ public class ChatActivity extends BaseFragment implements
+@@ -25460,6 +25465,7 @@ public class ChatActivity extends BaseFragment implements
              if (getDialogId() != messageObject.getDialogId()) {
                  return;
              }
@@ -281,7 +277,6 @@ index 0485bec6..6b2f8364 100644
                  return;
              }
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/CaptionPhotoViewer.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/CaptionPhotoViewer.java
-index a5c19a41..979227a1 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/CaptionPhotoViewer.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/CaptionPhotoViewer.java
 @@ -135,6 +135,7 @@ public class CaptionPhotoViewer extends CaptionContainerView {
@@ -341,10 +336,9 @@ index a5c19a41..979227a1 100644
          if (shownAiButton == show) return;
          if (show) {
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
-index 13fc11c8..4f89eb9d 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
-@@ -2882,7 +2882,7 @@ public class ChatActivityEnterView extends FrameLayout implements
+@@ -2916,7 +2916,7 @@ public class ChatActivityEnterView extends FrameLayout implements
              final long dialogId = parentFragment != null ? parentFragment.getDialogId() : dialog_id;
              if (richDraftActive) {
                  if (richDraftMessage == null) return;
@@ -353,7 +347,7 @@ index 13fc11c8..4f89eb9d 100644
                      .setText(richDraftMessage)
                      .setOnUseRich(this::saveRichDraft)
                      .setOnSendRich(dialogId, (rich, scheduleDate, scheduleRepeatPeriod, notify) -> {
-@@ -2902,7 +2902,7 @@ public class ChatActivityEnterView extends FrameLayout implements
+@@ -2936,7 +2936,7 @@ public class ChatActivityEnterView extends FrameLayout implements
                  return;
              }
              if (messageEditText == null) return;
@@ -362,7 +356,7 @@ index 13fc11c8..4f89eb9d 100644
                  .setText(messageEditText.getText())
                  .setOnUse(text -> {
                      messageEditText.setText(text);
-@@ -5864,7 +5864,7 @@ public class ChatActivityEnterView extends FrameLayout implements
+@@ -5922,7 +5922,7 @@ public class ChatActivityEnterView extends FrameLayout implements
                  nebulaToolsVisible = true;
                  app.nebulagram.ui.NebulaMessageToolsFragment.show(parentFragment, new app.nebulagram.ui.NebulaMessageToolsFragment(currentAccount, dialog_id, source, value -> {
                      if (source.equals(messageEditText.getText().toString())) setFieldText(value);
@@ -371,7 +365,7 @@ index 13fc11c8..4f89eb9d 100644
                      nebulaToolsVisible = false;
                      updateNebulaDraftTranslation();
                  });
-@@ -6128,9 +6128,21 @@ public class ChatActivityEnterView extends FrameLayout implements
+@@ -6186,9 +6186,21 @@ public class ChatActivityEnterView extends FrameLayout implements
          updateFieldRight(lastAttachVisible);
      }
  
@@ -394,7 +388,7 @@ index 13fc11c8..4f89eb9d 100644
  
          if (shownAiButton == show) return;
          if (show) {
-@@ -8909,6 +8921,7 @@ public class ChatActivityEnterView extends FrameLayout implements
+@@ -9018,6 +9030,7 @@ public class ChatActivityEnterView extends FrameLayout implements
                          app.nebulagram.ui.NebulaAppearance.iosComposer(),
                          giftButton != null && giftButton.getVisibility() == VISIBLE && attachVisible != 0 ? dp(DEFAULT_HEIGHT) : 0);
                  if (toolsParams.rightMargin != toolsInset) {
@@ -402,7 +396,7 @@ index 13fc11c8..4f89eb9d 100644
                      toolsParams.rightMargin = toolsInset; nebulaToolsButton.setLayoutParams(toolsParams);
                  }
                  nebulaToolsButton.setColorFilter(getThemedColor(Theme.key_glass_defaultIcon));
-@@ -14778,6 +14791,10 @@ public class ChatActivityEnterView extends FrameLayout implements
+@@ -14994,6 +15007,10 @@ public class ChatActivityEnterView extends FrameLayout implements
      protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
          super.onLayout(changed, left, top, right, bottom);
          nebulaComposerStyle.layout(emojiButton, attachButton, senderSelectView, aiButton, richButton);
@@ -413,7 +407,7 @@ index 13fc11c8..4f89eb9d 100644
          updateNebulaDraftTranslation();
          if (botCommandLastPosition != -1 && botCommandsMenuContainer != null) {
              LinearLayoutManager layoutManager = (LinearLayoutManager) botCommandsMenuContainer.listView.getLayoutManager();
-@@ -14790,6 +14807,7 @@ public class ChatActivityEnterView extends FrameLayout implements
+@@ -15006,6 +15023,7 @@ public class ChatActivityEnterView extends FrameLayout implements
  
      private void beginDelayedTransition() {
          animationParamsX.put(emojiButton, emojiButton.getX());
@@ -421,7 +415,7 @@ index 13fc11c8..4f89eb9d 100644
          if (messageEditText != null) {
              animationParamsX.put(messageEditText, messageEditText.getX());
          }
-@@ -14903,6 +14921,7 @@ public class ChatActivityEnterView extends FrameLayout implements
+@@ -15119,6 +15137,7 @@ public class ChatActivityEnterView extends FrameLayout implements
          emojiButtonPaddingAlpha = progress;
          updateEmojiButtonParams();
          emojiButton.setTranslationX(-leftPadding);
@@ -429,7 +423,7 @@ index 13fc11c8..4f89eb9d 100644
          messageTextPaddingTranslationX = -leftPadding - (messageEditText == null ? 0 : dp(40) + (senderSelectView != null && senderSelectView.getVisibility() == View.VISIBLE ? dp(18) : 0)) * (1f - progress);
          if (recordDeleteImageView != null) {
              recordDeleteImageView.setTranslationX(-leftPadding);
-@@ -14995,6 +15014,11 @@ public class ChatActivityEnterView extends FrameLayout implements
+@@ -15211,6 +15230,11 @@ public class ChatActivityEnterView extends FrameLayout implements
          emojiButton.setScaleX(emojiButtonPaddingScale * emojiButtonScale);
          emojiButton.setScaleY(emojiButtonPaddingScale * emojiButtonScale);
          emojiButton.setAlpha(emojiButtonPaddingAlpha * emojiButtonAlpha);
@@ -442,10 +436,9 @@ index 13fc11c8..4f89eb9d 100644
  
      public void setOverrideHint(CharSequence overrideHint) {
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAttachAlert.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAttachAlert.java
-index 67942dba..8952c9a0 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAttachAlert.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAttachAlert.java
-@@ -3137,7 +3137,7 @@ public class ChatAttachAlert extends BottomSheet implements NotificationCenter.N
+@@ -3111,7 +3111,7 @@ public class ChatAttachAlert extends BottomSheet implements NotificationCenter.N
                  final int aiButtonWasTop = lastHeight - aiButton.getTop();
                  super.onLayout(changed, left, top, right, bottom);
                  lastHeight = getHeight();
@@ -454,7 +447,7 @@ index 67942dba..8952c9a0 100644
                      aiButton.setTranslationY((getHeight() - aiButton.getTop()) - aiButtonWasTop + aiButton.getTranslationY());
                      aiButton.animate().translationY(0).setDuration(320).setInterpolator(CubicBezierInterpolator.EASE_OUT_QUINT).start();
                  }
-@@ -3182,6 +3182,7 @@ public class ChatAttachAlert extends BottomSheet implements NotificationCenter.N
+@@ -3156,6 +3156,7 @@ public class ChatAttachAlert extends BottomSheet implements NotificationCenter.N
          ScaleStateListAnimator.apply(aiButton);
          aiButton.setOnClickListener(v -> {
              if (commentTextView == null) return;
@@ -462,7 +455,7 @@ index 67942dba..8952c9a0 100644
              MessagesController.getGlobalMainSettings().edit().putInt("aihintshown", 3).apply();
              new AIEditorAlert(getContext(), resourcesProvider)
                  .setText(commentTextView.getText())
-@@ -3597,6 +3598,7 @@ public class ChatAttachAlert extends BottomSheet implements NotificationCenter.N
+@@ -3571,6 +3572,7 @@ public class ChatAttachAlert extends BottomSheet implements NotificationCenter.N
          ScaleStateListAnimator.apply(topAiButton);
          topAiButton.setOnClickListener(v -> {
              if (topCommentTextView == null) return;
@@ -470,7 +463,7 @@ index 67942dba..8952c9a0 100644
              MessagesController.getGlobalMainSettings().edit().putInt("aihintshown", 3).apply();
              new AIEditorAlert(getContext(), resourcesProvider)
                  .setText(topCommentTextView.getText())
-@@ -6567,9 +6569,48 @@ public class ChatAttachAlert extends BottomSheet implements NotificationCenter.N
+@@ -6629,9 +6631,48 @@ public class ChatAttachAlert extends BottomSheet implements NotificationCenter.N
      }
  
  
@@ -521,10 +514,9 @@ index 67942dba..8952c9a0 100644
          if (shownAiButton == show) return;
          if (show) {
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/TranslateButton.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/TranslateButton.java
-index c9e32889..74d5d999 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/TranslateButton.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/TranslateButton.java
-@@ -113,6 +113,10 @@ public class TranslateButton extends FrameLayout implements Theme.Colorable {
+@@ -115,6 +115,10 @@ public class TranslateButton extends FrameLayout implements Theme.Colorable {
          menuView.setScaleType(ImageView.ScaleType.CENTER);
          menuView.setImageResource(R.drawable.msg_mini_customize);
          menuView.setOnClickListener(e -> {
@@ -535,7 +527,7 @@ index c9e32889..74d5d999 100644
              final TLRPC.Chat chat = MessagesController.getInstance(currentAccount).getChat(-dialogId);
              if (UserConfig.getInstance(currentAccount).isPremium() || chat != null && chat.autotranslation) {
                  onMenuClick();
-@@ -147,6 +151,10 @@ public class TranslateButton extends FrameLayout implements Theme.Colorable {
+@@ -167,6 +171,10 @@ public class TranslateButton extends FrameLayout implements Theme.Colorable {
      }
  
      protected void onMenuClick() {
@@ -546,7 +538,7 @@ index c9e32889..74d5d999 100644
          TranslateController translateController = MessagesController.getInstance(currentAccount).getTranslateController();
  
          final ActionBarPopupWindow.ActionBarPopupWindowLayout popupLayout = new ActionBarPopupWindow.ActionBarPopupWindowLayout(getContext(), R.drawable.popup_fixed_alert4, resourcesProvider, ActionBarPopupWindow.ActionBarPopupWindowLayout.FLAG_USE_SWIPEBACK);
-@@ -395,6 +403,11 @@ public class TranslateButton extends FrameLayout implements Theme.Colorable {
+@@ -415,6 +423,11 @@ public class TranslateButton extends FrameLayout implements Theme.Colorable {
      }
  
      public void updateText() {
@@ -559,10 +551,9 @@ index c9e32889..74d5d999 100644
          final TLRPC.Chat chat = MessagesController.getInstance(currentAccount).getChat(-dialogId);
          if (translateController.isTranslatingDialog(dialogId)) {
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
-index 702d2dd1..7c40175e 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
-@@ -1536,6 +1536,9 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+@@ -1535,6 +1535,9 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                                  );
                              }
                          } else {
@@ -572,7 +563,7 @@ index 702d2dd1..7c40175e 100644
                              dx = viewPages[0].getMeasuredWidth() - Math.abs(x);
                              if (animatingForward) {
                                  tabsAnimation.playTogether(
-@@ -3232,11 +3235,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+@@ -3149,11 +3152,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
              nebulaHomeEditButton.setTextSize(16);
              nebulaHomeEditButton.setTextColor(getThemedColor(Theme.key_actionBarDefaultTitle));
              nebulaHomeEditButton.setGravity(Gravity.CENTER);
@@ -585,7 +576,7 @@ index 702d2dd1..7c40175e 100644
              nebulaHomeEditButton.setOnClickListener(v -> {
                  if (actionBar != null && !actionBar.isActionModeShowed()) {
                      nebulaHomeEditing = true;
-@@ -3703,6 +3702,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+@@ -3624,6 +3623,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                      viewPages[1].setTranslationX(viewPages[0].getMeasuredWidth());
                      showScrollbars(false);
                      switchToCurrentSelectedMode(true);
@@ -593,20 +584,19 @@ index 702d2dd1..7c40175e 100644
                      animatingForward = forward;
                  }
  
-@@ -5453,7 +5453,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+@@ -5356,7 +5356,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
          undoView[1] = null;
  
          if (hasMainTabs) {
 -            actionBar.getTitlesContainer().setTranslationX(dp(4));
 +            actionBar.getTitlesContainer().setTranslationX(nebulaHomeEditButton != null ? 0 : dp(4));
-             actionBar.setTitleColor(getThemedColor(Theme.key_telegram_color_dialogsLogo));
+             ThemeBind.actionBarTitleColor(actionBar, Theme.key_telegram_color_dialogsLogo, getResourceProvider());
          }
  
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/PhotoViewer.java b/TMessagesProj/src/main/java/org/telegram/ui/PhotoViewer.java
-index 0a28f926..2da9a192 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/PhotoViewer.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/PhotoViewer.java
-@@ -4743,6 +4743,7 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
+@@ -4735,6 +4735,7 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
          rightImage.setCurrentAccount(currentAccount);
          if (captionEdit != null) {
              captionEdit.setAccount(currentAccount);
@@ -614,7 +604,7 @@ index 0a28f926..2da9a192 100644
              captionEdit.editText.hidePopup(false);
          }
          if (topCaptionEdit != null) {
-@@ -6930,6 +6931,7 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
+@@ -6929,6 +6930,7 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
              topCaptionEdit.setTimer(seconds);
          });
          captionEdit.setAccount(currentAccount);
@@ -622,7 +612,7 @@ index 0a28f926..2da9a192 100644
          captionEdit.setOnHeightUpdate(height -> {
              if (videoTimelineViewContainer != null && videoTimelineViewContainer.getVisibility() != View.GONE) {
                  videoTimelineViewContainer.setTranslationY(pickerView.getTranslationY() - Math.max(0, captionEdit.getEditTextHeight() - dp(46)) * captionEdit.getAlpha());
-@@ -7066,6 +7068,7 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
+@@ -7065,6 +7067,7 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
              captionEdit.setTimer(seconds);
          });
          topCaptionEdit.setAccount(currentAccount);
@@ -630,7 +620,7 @@ index 0a28f926..2da9a192 100644
          topCaptionEdit.setOnHeightUpdate(height -> {
              if (topCaptionEdit.mentionContainer != null) {
                  topCaptionEdit.mentionContainer.setTranslationY(height);
-@@ -9919,6 +9922,22 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
+@@ -9906,6 +9909,22 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
      public boolean hasCaptionForAllMedia;
      public CharSequence captionForAllMedia;
  

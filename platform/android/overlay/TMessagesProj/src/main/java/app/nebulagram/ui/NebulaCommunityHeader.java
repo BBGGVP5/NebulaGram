@@ -10,14 +10,14 @@ import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.Components.blur3.BlurredBackgroundDrawableViewFactory;
 import org.telegram.ui.Components.blur3.drawable.BlurredBackgroundDrawable;
 import org.telegram.ui.Components.blur3.drawable.color.impl.BlurredBackgroundProviderImpl;
-import org.telegram.ui.Components.blur3.source.BlurredBackgroundSourceColor;
-import org.telegram.ui.Components.blur3.source.BlurredBackgroundSourceRenderNode;
+import org.telegram.utils.glass.source.GlassSourceColor;
+import org.telegram.utils.glass.source.GlassSourceRenderNode;
 
 /** Capture the underlying window and scrolling list without sampling sheet controls. */
 @android.annotation.TargetApi(31)
 public final class NebulaCommunityHeader {
-    private final BlurredBackgroundSourceColor fallback;
-    private final BlurredBackgroundSourceRenderNode source;
+    private final GlassSourceColor fallback;
+    private final GlassSourceRenderNode source;
     private final BlurredBackgroundDrawable material;
     private final Theme.ResourcesProvider provider;
     private View backdrop;
@@ -31,9 +31,9 @@ public final class NebulaCommunityHeader {
 
     private NebulaCommunityHeader(ActionBar bar, boolean hasAvatar, Theme.ResourcesProvider provider) {
         this.provider = provider;
-        fallback = new BlurredBackgroundSourceColor();
+        fallback = new GlassSourceColor();
         fallback.setColor(Theme.getColor(Theme.key_windowBackgroundGray, provider));
-        source = Build.VERSION.SDK_INT >= 31 ? new BlurredBackgroundSourceRenderNode(fallback) : null;
+        source = Build.VERSION.SDK_INT >= 31 ? new GlassSourceRenderNode(fallback) : null;
         BlurredBackgroundDrawableViewFactory factory = new BlurredBackgroundDrawableViewFactory(source != null ? source : fallback);
         factory.setLiquidGlassEffectAllowed(NebulaMenuStyle.animated());
         material = factory.create().setColorProvider(BlurredBackgroundProviderImpl.topPanel(provider));

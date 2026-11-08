@@ -18,7 +18,7 @@ class SavedMaterialCheck {
  static int dp(float value){return Math.round(value);}
  static int lerp(int a,int b,float p){return Math.round(a+(b-a)*p);}
  static class View {static final int VISIBLE=0;int getVisibility(){return VISIBLE;}int getLeft(){return 120;}
-  int getMeasuredWidth(){return 160;}float getX(){return 290;}}
+  int getMeasuredWidth(){return 160;}float getX(){return 290;}float getTextWidth(){return 100;}float getTranslationX(){return 0;}}
  static class MarginLayoutParams {int leftMargin=58;}
  static class ChatAvatarContainer extends View {
   int getNebulaCenteredHeaderWidth(){return 140;}void setTranslationX(float x){}void setPivotX(float x){}
@@ -36,7 +36,7 @@ class SavedMaterialCheck {
   void setAlpha(int a){alpha=a;}int getAlpha(){return alpha;}
   void draw(Object canvas){calls.add(new int[]{alpha,left,right});}
  }
- boolean drawGlassTitle=true;
+ boolean drawGlassTitle=true,centerTitleAndGlass,doNotDrawCenterGlass;
  boolean nebulaClassicSavedHeader,nebulaSavedMessagesHeader,nebulaFloatingChatHeader=true,glassOnlyBack;
  boolean hasForcedMenuWidth,hasForcedMenuMinWidth,nebulaHomeGlass,nebulaHomeTabsGlass,nebulaCommunityGlass,nebulaProfileGlass,isSearchFieldVisible;
  int menuWidth=92,p=6,s=46,nebulaBackWidth=58,t=0,b=60;boolean hasBackButton=true;

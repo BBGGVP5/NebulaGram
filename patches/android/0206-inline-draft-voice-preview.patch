@@ -1,8 +1,7 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
-index 45f52844..e3961148 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
-@@ -1152,6 +1152,9 @@ public class ChatActivityEnterView extends FrameLayout implements
+@@ -1160,6 +1160,9 @@ public class ChatActivityEnterView extends FrameLayout implements
      private app.nebulagram.ui.NebulaDraftVoiceTranscription nebulaVoiceSheet;
      private app.nebulagram.ui.NebulaDraftVoicePolicy.Snapshot nebulaVoiceResultSource;
      private String nebulaVoiceResult;
@@ -12,7 +11,7 @@ index 45f52844..e3961148 100644
  
      private app.nebulagram.ui.NebulaDraftVoicePolicy.Snapshot nebulaVoiceSnapshot() {
          if (parentFragment == null || isPaused || recordingAudioVideo || isInVideoMode() || audioToSend == null || audioToSendPath == null) return null;
-@@ -1165,6 +1168,8 @@ public class ChatActivityEnterView extends FrameLayout implements
+@@ -1173,6 +1176,8 @@ public class ChatActivityEnterView extends FrameLayout implements
      }
  
      private void nebulaCancelVoiceTranscription() {
@@ -21,7 +20,7 @@ index 45f52844..e3961148 100644
          ++nebulaVoiceRevision;
          nebulaVoicePending = false;
          if (nebulaVoiceSheet != null) { nebulaVoiceSheet.cancel(); nebulaVoiceSheet = null; }
-@@ -1194,10 +1199,24 @@ public class ChatActivityEnterView extends FrameLayout implements
+@@ -1202,10 +1207,24 @@ public class ChatActivityEnterView extends FrameLayout implements
              parentFragment.presentFragment(new app.nebulagram.ui.NebulaAudioSettingsFragment());
              return;
          }
@@ -48,7 +47,7 @@ index 45f52844..e3961148 100644
              text -> {
                  if (!source.equals(nebulaVoiceSnapshot())) return;
                  resetRecordedState();
-@@ -1207,7 +1226,42 @@ public class ChatActivityEnterView extends FrameLayout implements
+@@ -1215,7 +1234,42 @@ public class ChatActivityEnterView extends FrameLayout implements
                  if (!signature.equals(nebulaVoiceSnapshot())) return;
                  nebulaVoiceResultSource = signature;
                  nebulaVoiceResult = text;
@@ -92,7 +91,7 @@ index 45f52844..e3961148 100644
      }
  
      private android.graphics.Rect sendRect = new Rect();
-@@ -3798,8 +3852,10 @@ public class ChatActivityEnterView extends FrameLayout implements
+@@ -3856,8 +3910,10 @@ public class ChatActivityEnterView extends FrameLayout implements
          if (parentFragment != null && parentFragment.messagePreviewParams != null) {
              count += parentFragment.messagePreviewParams.getForwardedMessagesCount();
          }
@@ -105,7 +104,7 @@ index 45f52844..e3961148 100644
              final int limit = accountInstance.getMessagesController().getMaxMessageLength();
              if (textFinal.length() != 0) {
                  count += (int) Math.ceil(textFinal.length() / (float) limit);
-@@ -7490,9 +7546,14 @@ public class ChatActivityEnterView extends FrameLayout implements
+@@ -7597,9 +7653,14 @@ public class ChatActivityEnterView extends FrameLayout implements
      }
  
      protected boolean sendMessageInternal(boolean notify, int scheduleDate, int scheduleRepeatPeriod, long payStars, boolean allowConfirm) {
@@ -120,7 +119,7 @@ index 45f52844..e3961148 100644
              if (slowModeTimer == Integer.MAX_VALUE && !isInScheduleMode()) {
                  if (delegate != null) {
                      delegate.scrollToSendingMessage();
-@@ -7514,10 +7575,13 @@ public class ChatActivityEnterView extends FrameLayout implements
+@@ -7621,10 +7682,13 @@ public class ChatActivityEnterView extends FrameLayout implements
                  }
              }
              if (allowConfirmFinal && showConfirmAlert(() -> {
@@ -135,7 +134,7 @@ index 45f52844..e3961148 100644
              dismissSendPreviewSent = true;
              if (videoToSendMessageObject != null) {
                  delegate.needStartRecordVideo(4, notify, scheduleDate, 0, voiceOnce ? 0x7FFFFFFF : 0, effectId, payStars);
-@@ -7638,7 +7702,11 @@ public class ChatActivityEnterView extends FrameLayout implements
+@@ -7745,7 +7809,11 @@ public class ChatActivityEnterView extends FrameLayout implements
              updateSendButtonPaid();
          };
          if (allowConfirmFinal) {

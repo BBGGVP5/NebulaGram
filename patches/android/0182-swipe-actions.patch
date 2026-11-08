@@ -1,7 +1,7 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
-@@ -5088,7 +5088,16 @@ public class ChatActivity extends BaseFragment implements
+@@ -5016,7 +5016,16 @@ public class ChatActivity extends BaseFragment implements
                  }
  
                  int alpha = (int) (iconProgress * 0xFF);
@@ -19,8 +19,8 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
                  replyIconDrawable.setAlpha(alpha);
                  replyIconDrawable.setBounds((int) (x - replyIconDrawable.getIntrinsicWidth() / 2 * scale), (int) (y - replyIconDrawable.getIntrinsicHeight() / 2 * scale), (int) (x + replyIconDrawable.getIntrinsicWidth() / 2 * scale), (int) (y + replyIconDrawable.getIntrinsicHeight() / 2 * scale));
                  replyIconDrawable.draw(canvas);
-@@ -5098,6 +5107,9 @@ public class ChatActivity extends BaseFragment implements
-                 chatActionBackgroundDarkenPaint.setColor(wasDarkenColor);
+@@ -5095,6 +5104,9 @@ public class ChatActivity extends BaseFragment implements
+                 }
              }
  
 +            private int nebulaSwipeAction;

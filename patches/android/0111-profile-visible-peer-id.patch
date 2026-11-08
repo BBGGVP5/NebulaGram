@@ -1,7 +1,7 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
-@@ -665,6 +665,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+@@ -673,6 +673,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
      private int userInfoRow;
      private int channelInfoRow;
      private int usernameRow;
@@ -9,7 +9,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java b/
      private int notificationsDividerRow;
      private int notificationsRow;
      private int bizHoursRow;
-@@ -4529,6 +4530,12 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+@@ -4475,6 +4476,12 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                  openAddMember();
              } else if (position == usernameRow) {
                  processOnClickOrPress(position, view, x, y);
@@ -22,7 +22,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java b/
              } else if (position == linkedCommunityRow) {
                  if (currentChat != null) {
                      showDialog(new CommunitySheet(this, currentChat.linked_community_id));
-@@ -10524,6 +10531,19 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+@@ -10729,6 +10736,19 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                  ? chatInfo.linked_chat_id : 0;
      }
  
@@ -42,7 +42,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java b/
      private void updateRowsIds() {
          updateNotifications(false);
  
-@@ -10604,6 +10624,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+@@ -10809,6 +10829,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
          locationRow = -1;
          channelInfoRow = -1;
          usernameRow = -1;
@@ -50,7 +50,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java b/
          settingsTimerRow = -1;
          settingsKeyRow = -1;
          notificationsDividerRow = -1;
-@@ -10705,6 +10726,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+@@ -10910,6 +10931,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                  }
                  numberSectionRow = rowCount++;
                  numberRow = rowCount++;
@@ -58,7 +58,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java b/
                  setUsernameRow = rowCount++;
                  bioRow = rowCount++;
  
-@@ -10799,6 +10821,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+@@ -11004,6 +11026,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                  if (user != null && username != null) {
                      usernameRow = rowCount++;
                  }
@@ -66,7 +66,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java b/
                  if (userInfo != null) {
                      if (app.nebulagram.ui.NebulaAppearance.profileBirthday() && userInfo.birthday != null) {
                          birthdayRow = rowCount++;
-@@ -10923,6 +10946,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+@@ -11128,6 +11151,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                  }
              }
              usernameRow = rowCount++;
@@ -74,7 +74,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java b/
              if (actionsView == null) {
                  notificationsSimpleRow = rowCount++;
              }
-@@ -10983,6 +11007,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+@@ -11188,6 +11212,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                      emptyRow = rowCount++;
                  }
              }
@@ -82,7 +82,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java b/
              if (actionsView == null) {
                  if (infoHeaderRow != -1) {
                      notificationsDividerRow = rowCount++;
-@@ -13618,6 +13643,14 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+@@ -13615,6 +13640,14 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                          }
                          isFragmentPhoneNumber = phoneNumber != null && phoneNumber.matches("888\\d{8}");
                          detailCell.setTextAndValue(text, LocaleController.getString(isFragmentPhoneNumber ? R.string.AnonymousNumber : R.string.PhoneMobile), false);
@@ -114,7 +114,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java b/
                  return VIEW_TYPE_TEXT_DETAIL;
              } else if (position == usernameRow || position == setUsernameRow) {
                  return VIEW_TYPE_TEXT_DETAIL_MULTILINE;
-@@ -15795,6 +15829,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+@@ -15714,6 +15748,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
              put(++pointer, setAvatarSectionRow, sparseIntArray);
              put(++pointer, numberSectionRow, sparseIntArray);
              put(++pointer, numberRow, sparseIntArray);

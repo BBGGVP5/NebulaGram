@@ -1,8 +1,7 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
-index 7817fdd6..d6ebeebe 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
-@@ -4219,6 +4219,7 @@ public class ChatActivity extends BaseFragment implements
+@@ -4142,6 +4142,7 @@ public class ChatActivity extends BaseFragment implements
              @Override
              protected boolean onAvatarClick() {
                  if (app.nebulagram.ui.NebulaAppearance.chatHeader()
@@ -10,10 +9,10 @@ index 7817fdd6..d6ebeebe 100644
                          && chatMode == 0 && !isInPreviewMode() && !inBubbleMode && !searching
                          && headerItem != null && headerItem.hasSubMenu()) {
                      headerItem.toggleSubMenu(null, avatarContainer.getAvatarImageView());
-@@ -17716,6 +17717,12 @@ public class ChatActivity extends BaseFragment implements
-             shouldHaveLightNavigationBarIcons = navigationBarBrightness <= 0.9f;
+@@ -18194,6 +18195,12 @@ public class ChatActivity extends BaseFragment implements
  
              navbarContentSourceWallpaper.setSource(source);
+             invalidateGlassSources();
 +            // The wallpaper can arrive after the first frame. Repainting a View
 +            // alone keeps the drawable's cached RenderNode with the old fill.
 +            if (glassBackgroundSourceRenderNode != null) glassBackgroundSourceRenderNode.invalidateDisplayListForDrawables();
@@ -21,9 +20,9 @@ index 7817fdd6..d6ebeebe 100644
 +            if (actionBar != null) actionBar.invalidate();
 +            if (invalidateBlurredSourcesView != null) invalidateMergedVisibleBlurredPositionsAndSources(BLUR_INVALIDATE_FLAG_POSITIONS | BLUR_INVALIDATE_FLAG_SCROLL);
              if (chatActivityFadeView != null) {
+                 chatActivityFadeView.setOverlayColor(isCompactMode() ? getThemedColor(Theme.key_chat_compact_backgroundGradient) : 0);
                  chatActivityFadeView.invalidate();
-             }
-@@ -19136,6 +19143,7 @@ public class ChatActivity extends BaseFragment implements
+@@ -19639,6 +19646,7 @@ public class ChatActivity extends BaseFragment implements
              notifyHeightChanged();
  
              checkUi_topFade();

@@ -1,7 +1,7 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/LaunchActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/LaunchActivity.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/LaunchActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/LaunchActivity.java
-@@ -562,6 +562,11 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
+@@ -548,6 +548,11 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
          });
          actionBarLayout.setDelegate(this);
          app.nebulagram.ui.NebulaTheme.applyMaterialYou(this);
@@ -13,7 +13,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/LaunchActivity.java b/T
          Theme.loadWallpaper(true);
  
          checkCurrentAccount();
-@@ -1560,6 +1565,9 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
+@@ -1588,6 +1593,9 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
                  return false;
              }
          }
@@ -23,7 +23,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/LaunchActivity.java b/T
          boolean pushOpened = false;
          long push_user_id = 0;
          long push_chat_id = 0;
-@@ -3378,6 +3386,10 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
+@@ -3408,6 +3416,10 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
          }
  
          intent.setAction(null);
@@ -34,7 +34,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/LaunchActivity.java b/T
          return pushOpened;
      }
  
-@@ -6082,102 +6094,8 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
+@@ -6114,102 +6126,8 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
          return foundContacts;
      }
  

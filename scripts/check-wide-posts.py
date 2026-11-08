@@ -52,6 +52,7 @@ class WideCheck {
  static void check(boolean value,String why){if(!value)throw new AssertionError(why);}
  static float density=1;static int dp(int v){return (int)Math.ceil(v*density);}
  static final int TYPE_ARTICLE=1;
+ static class ChatActivity {static final int SIDE_MENU_SPACE=64+7;}
  static class TLRPC {static class TL_messageMediaGame {}}
  int generatedWithMinSize,type;boolean generatedWithWidePosts,sideMenuEnabled,isSaved,out,share,avatar,game;
  static class Owner {boolean isThreadMessage;}
@@ -83,7 +84,7 @@ class WideCheck {
    density=scale;WideCheck c=new WideCheck();c.generatedWithMinSize=dp(screen);
    c.sideMenuEnabled=(flags&1)!=0;c.avatar=(flags&2)!=0;c.share=(flags&4)!=0;c.out=(flags&8)!=0;c.isSaved=(flags&16)!=0;c.messageOwner.isThreadMessage=(flags&32)!=0;c.type=(flags&64)!=0?TYPE_ARTICLE:0;
    int expected=dp(screen)-dp(c.type==TYPE_ARTICLE?40:80);
-   expected-=c.sideMenuEnabled?dp(64):c.avatar&&!c.out&&!c.messageOwner.isThreadMessage?dp(52):0;
+   expected-=c.sideMenuEnabled?dp(c.type==TYPE_ARTICLE?64+7+52-48:64):c.avatar&&!c.out&&!c.messageOwner.isThreadMessage?dp(52):0;
    expected-=c.share&&(c.isSaved||!c.out)?dp(c.isSaved&&c.out?40:14):0;
    int normal=c.width();check(normal==expected,"disabled measurement drift");
    c.generatedWithWidePosts=true;int wide=c.width();
@@ -103,6 +104,6 @@ class WideCheck {
   System.out.println(cases+" native text geometry cases; preference cache/import/reset and cell invalidation passed");
  }
 }
-""".replace('WIDTH', width).replace('REFRESH', refresh))
+""".replace('WIDTH', width.replace('ChatActivity.SIDE_MENU_WIDTH', 'ChatActivity.SIDE_MENU_SPACE')).replace('REFRESH', refresh))
     subprocess.run(['javac', '-encoding', 'UTF-8', '-d', str(tree), *map(str, tree.rglob('*.java'))], check=True)
     subprocess.run(['java', '-cp', str(tree), 'WideCheck'], check=True)

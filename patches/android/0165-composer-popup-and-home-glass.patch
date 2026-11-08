@@ -1,8 +1,7 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
-index 62db1e1b..47c4c23e 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
-@@ -660,7 +660,7 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
+@@ -792,7 +792,7 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
                  || (isSearchFieldVisible && !nebulaHomeTabsGlass)
                  || (getActionModeFactor() != 0 && !nebulaHomeTabsGlass)) return false;
          if (parentFragment instanceof org.telegram.ui.DialogsActivity) {
@@ -12,10 +11,9 @@ index 62db1e1b..47c4c23e 100644
          return !(parentFragment instanceof org.telegram.ui.ChatActivity);
      }
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/BaseFragment.java b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/BaseFragment.java
-index 00c8fbd4..55cc3351 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/BaseFragment.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/BaseFragment.java
-@@ -1010,7 +1010,19 @@ public abstract class BaseFragment {
+@@ -1151,7 +1151,19 @@ public abstract class BaseFragment {
                  actionBarLayout[0].showLastFragment();
                  actionBarLayout[0].getView().setPadding(backgroundPaddingLeft, 0, backgroundPaddingLeft, 0);
                  ViewGroup view = actionBarLayout[0].getView();
@@ -36,7 +34,7 @@ index 00c8fbd4..55cc3351 100644
                  setApplyBottomPadding(false);
                  setOnDismissListener(dialog -> {
                      fragment.onPause();
-@@ -1436,6 +1448,7 @@ public abstract class BaseFragment {
+@@ -1624,6 +1636,7 @@ public abstract class BaseFragment {
      }
  
      public static class BottomSheetParams {
@@ -45,10 +43,9 @@ index 00c8fbd4..55cc3351 100644
          public boolean allowNestedScroll;
          public Runnable onDismiss;
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
-index 7f70ee4f..0485bec6 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
-@@ -34044,7 +34044,7 @@ public class ChatActivity extends BaseFragment implements
+@@ -34680,7 +34680,7 @@ public class ChatActivity extends BaseFragment implements
          boolean preserveDim = false;
          switch (option) {
              case 7912:
@@ -58,10 +55,9 @@ index 7f70ee4f..0485bec6 100644
              case 7913: {
                  ArrayList<MessageObject> saving = selectedObjectGroup != null
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
-index 16b9c093..13fc11c8 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
-@@ -638,6 +638,7 @@ public class ChatActivityEnterView extends FrameLayout implements
+@@ -639,6 +639,7 @@ public class ChatActivityEnterView extends FrameLayout implements
      private ViewPropertyAnimator attachButtonAnimator;
      private ImageView attachButton;
      private ImageView nebulaToolsButton;
@@ -69,7 +65,7 @@ index 16b9c093..13fc11c8 100644
      private app.nebulagram.ui.NebulaDraftTranslation nebulaDraftTranslation;
      private AiButtonDrawable aiButtonIcon;
      private ImageView aiButton;
-@@ -5850,7 +5851,7 @@ public class ChatActivityEnterView extends FrameLayout implements
+@@ -5908,7 +5909,7 @@ public class ChatActivityEnterView extends FrameLayout implements
          messageEditTextContainer.addView(messageEditText, 1, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.BOTTOM, 52, 0, isChat ? 50 : 2, 1.5f));
          if (parentFragment != null && isChat) {
              nebulaToolsButton = new ImageView(getContext());
@@ -78,7 +74,7 @@ index 16b9c093..13fc11c8 100644
              nebulaToolsButton.setScaleType(ImageView.ScaleType.CENTER);
              nebulaToolsButton.setContentDescription(app.nebulagram.ui.NebulaText.text("Инструменты ИИ", "AI tools"));
              nebulaToolsButton.setBackground(Theme.createSelectorDrawable(getThemedColor(Theme.key_listSelector), 1));
-@@ -5860,9 +5861,13 @@ public class ChatActivityEnterView extends FrameLayout implements
+@@ -5918,9 +5919,13 @@ public class ChatActivityEnterView extends FrameLayout implements
              nebulaToolsButton.setOnClickListener(v -> {
                  final String source = messageEditText.getText().toString();
                  nebulaDraftTranslation.stop();
@@ -94,7 +90,7 @@ index 16b9c093..13fc11c8 100644
              });
              nebulaToolsButton.setOnLongClickListener(v -> {
                  parentFragment.presentFragment(new app.nebulagram.ui.NebulaTranslationFragment(currentAccount, dialog_id)); return true;
-@@ -8852,7 +8857,7 @@ public class ChatActivityEnterView extends FrameLayout implements
+@@ -8961,7 +8966,7 @@ public class ChatActivityEnterView extends FrameLayout implements
  
      private void updateNebulaDraftTranslation() {
          if (nebulaDraftTranslation != null && messageEditText != null) {
@@ -103,7 +99,7 @@ index 16b9c093..13fc11c8 100644
                  && editingMessageObject == null && !richDraftActive && isAttachedToWindow() && getVisibility() == VISIBLE
                  && (recordedAudioPanel == null || recordedAudioPanel.getVisibility() != VISIBLE));
          }
-@@ -8861,6 +8866,7 @@ public class ChatActivityEnterView extends FrameLayout implements
+@@ -8970,6 +8975,7 @@ public class ChatActivityEnterView extends FrameLayout implements
      private int lastAttachVisible;
      private void updateFieldRight(int attachVisible) {
          lastAttachVisible = attachVisible;
@@ -111,7 +107,7 @@ index 16b9c093..13fc11c8 100644
          if (nebulaToolsButton != null && (editingMessageObject != null || richDraftActive || recordingAudioVideo || isPaused)) {
              nebulaToolsButton.setVisibility(GONE);
          }
-@@ -8898,11 +8904,15 @@ public class ChatActivityEnterView extends FrameLayout implements
+@@ -9007,11 +9013,15 @@ public class ChatActivityEnterView extends FrameLayout implements
              nebulaToolsButton.setVisibility(visible ? VISIBLE : GONE);
              if (visible) {
                  FrameLayout.LayoutParams toolsParams = (FrameLayout.LayoutParams) nebulaToolsButton.getLayoutParams();
@@ -130,7 +126,7 @@ index 16b9c093..13fc11c8 100644
              }
          }
          if (oldRightMargin != layoutParams.rightMargin) {
-@@ -14725,6 +14735,7 @@ public class ChatActivityEnterView extends FrameLayout implements
+@@ -14941,6 +14951,7 @@ public class ChatActivityEnterView extends FrameLayout implements
              }
          }
          updateBotCommandsMenuContainerTopPadding();
@@ -138,7 +134,7 @@ index 16b9c093..13fc11c8 100644
          nebulaComposerStyle.prepare(this, messageEditText, MeasureSpec.getSize(widthMeasureSpec), nebulaSupported);
          super.onMeasure(widthMeasureSpec, heightMeasureSpec);
  
-@@ -14767,7 +14778,6 @@ public class ChatActivityEnterView extends FrameLayout implements
+@@ -14983,7 +14994,6 @@ public class ChatActivityEnterView extends FrameLayout implements
      protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
          super.onLayout(changed, left, top, right, bottom);
          nebulaComposerStyle.layout(emojiButton, attachButton, senderSelectView, aiButton, richButton);
@@ -147,10 +143,9 @@ index 16b9c093..13fc11c8 100644
          if (botCommandLastPosition != -1 && botCommandsMenuContainer != null) {
              LinearLayoutManager layoutManager = (LinearLayoutManager) botCommandsMenuContainer.listView.getLayoutManager();
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
-index a0ef3733..702d2dd1 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
-@@ -932,8 +932,20 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+@@ -934,8 +934,20 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
              return result;
          }
  
@@ -171,7 +166,7 @@ index a0ef3733..702d2dd1 100644
              if (top && nebulaFlatHomeHeader()) {
                  int previousColor = blurScrimPaint.getColor();
                  blurScrimPaint.setColor(getThemedColor(Theme.key_windowBackgroundWhite));
-@@ -1683,6 +1695,8 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+@@ -1682,6 +1694,8 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
  
              actionBar.setTranslationY(0);
          }
@@ -180,7 +175,7 @@ index a0ef3733..702d2dd1 100644
          containersAlpha *= (1f - factorSearch);
          if (containersAlpha != 1f) {
              actionBar.getTitlesContainer().setPivotY(AndroidUtilities.statusBarHeight);
-@@ -14608,7 +14622,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+@@ -14207,7 +14221,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
      }
  
      private void drawHeaderShadow(Canvas canvas, int sy) {
@@ -190,10 +185,9 @@ index a0ef3733..702d2dd1 100644
              return;
          }
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Stories/DialogStoriesCell.java b/TMessagesProj/src/main/java/org/telegram/ui/Stories/DialogStoriesCell.java
-index 4f2b70a0..828efff4 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Stories/DialogStoriesCell.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Stories/DialogStoriesCell.java
-@@ -2206,7 +2206,7 @@ public class DialogStoriesCell extends FrameLayout implements NotificationCenter
+@@ -2222,7 +2222,7 @@ public class DialogStoriesCell extends FrameLayout implements NotificationCenter
      }
  
      private void checkUi_titleVisibility() {

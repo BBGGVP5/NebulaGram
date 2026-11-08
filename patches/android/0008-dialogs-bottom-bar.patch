@@ -1,7 +1,7 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
-@@ -2979,8 +2979,8 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+@@ -2895,8 +2895,8 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
          }
  
          BirthdayController.getInstance(currentAccount).check();
@@ -12,7 +12,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/
  
          return true;
      }
-@@ -7020,6 +7020,12 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+@@ -6942,6 +6942,12 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
      @Override
      public void onResume() {
          super.onResume();
@@ -25,7 +25,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/
          if (dialogStoriesCell != null) {
              dialogStoriesCell.onResume();
          }
-@@ -14115,6 +14121,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+@@ -13732,6 +13738,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
      }
  
      private void checkUi_menuItems() {
@@ -36,7 +36,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/MainTabsActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/MainTabsActivity.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/MainTabsActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/MainTabsActivity.java
-@@ -275,6 +275,12 @@ public class MainTabsActivity extends ViewPagerActivity implements NotificationC
+@@ -290,6 +290,12 @@ public class MainTabsActivity extends ViewPagerActivity implements NotificationC
          blur3_updateColors();
          checkContactsTabBadge();
          checkUnreadCount(true);
@@ -49,7 +49,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/MainTabsActivity.java b
  
          showAccountChangeHint();
      }
-@@ -394,6 +400,7 @@ public class MainTabsActivity extends ViewPagerActivity implements NotificationC
+@@ -412,6 +418,7 @@ public class MainTabsActivity extends ViewPagerActivity implements NotificationC
  
          updateLayout();
          checkUnreadCount(false);
@@ -57,7 +57,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/MainTabsActivity.java b
          return contentView;
      }
  
-@@ -1061,7 +1068,7 @@ public class MainTabsActivity extends ViewPagerActivity implements NotificationC
+@@ -1083,7 +1090,7 @@ public class MainTabsActivity extends ViewPagerActivity implements NotificationC
          final float isProfile = 1f - MathUtils.clamp(Math.abs(POSITION_PROFILE - animatedPosition), 0, 1);
          final float hide = 1f - AndroidUtilities.getNavigationBarThirdButtonsFactor(0, 1f, navigationBarHeight);
          float alpha = (1f - isProfile * hide) * animatorTabsVisible.getFloatValue();
@@ -66,7 +66,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/MainTabsActivity.java b
              alpha = 0.0f;
          }
  
-@@ -1076,10 +1083,11 @@ public class MainTabsActivity extends ViewPagerActivity implements NotificationC
+@@ -1098,10 +1105,11 @@ public class MainTabsActivity extends ViewPagerActivity implements NotificationC
          final int normalY = -(updateLayoutHeight);
          final int hiddenY = normalY + dp(40);
  
@@ -79,7 +79,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/MainTabsActivity.java b
          tabsView.setClickable(factor > 1);
          tabsView.setEnabled(factor > 1);
          tabsView.setAlpha(factor);
-@@ -1088,8 +1096,7 @@ public class MainTabsActivity extends ViewPagerActivity implements NotificationC
+@@ -1110,8 +1118,7 @@ public class MainTabsActivity extends ViewPagerActivity implements NotificationC
  
      private void checkUi_callTabVisible(boolean callTabsVisible, boolean animated) {
          if (tabsView != null) {

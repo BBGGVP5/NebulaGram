@@ -1,16 +1,15 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/AudioPlayerAlert.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/AudioPlayerAlert.java
-index 88fe6a16..462ca681 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/AudioPlayerAlert.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/AudioPlayerAlert.java
-@@ -228,6 +228,7 @@ public class AudioPlayerAlert extends BottomSheet implements NotificationCenter.
-     long lastUpdateRewindingPlayerTime;
+@@ -231,6 +231,7 @@ public class AudioPlayerAlert extends BottomSheet implements NotificationCenter.
  
      private boolean wasLight;
+     private float lastStatusBarRad = -1f;
 +    private app.nebulagram.ui.NebulaMusicPlayer nebulaPlayer;
  
      private final static float[] speeds = new float[] {
              .5f, 1f, 1.2f, 1.5f, 1.7f, 2f
-@@ -341,6 +342,7 @@ public class AudioPlayerAlert extends BottomSheet implements NotificationCenter.
+@@ -344,6 +345,7 @@ public class AudioPlayerAlert extends BottomSheet implements NotificationCenter.
  
                  layoutParams = (LayoutParams) blurredView.getLayoutParams();
                  layoutParams.topMargin = -getPaddingTop();
@@ -18,7 +17,7 @@ index 88fe6a16..462ca681 100644
  
                  int contentSize = dp(179 + (!isMyList() && !noforwards ? 52 : 0));
                  if (playlist.size() > 1) {
-@@ -381,7 +383,7 @@ public class AudioPlayerAlert extends BottomSheet implements NotificationCenter.
+@@ -384,7 +386,7 @@ public class AudioPlayerAlert extends BottomSheet implements NotificationCenter.
  
              @Override
              public boolean onInterceptTouchEvent(MotionEvent ev) {
@@ -27,7 +26,7 @@ index 88fe6a16..462ca681 100644
                      boolean dismiss;
                      if (listAdapter.getItemCount() > 0) {
                          dismiss = ev.getY() < scrollOffsetY + dp(12);
-@@ -1473,6 +1475,7 @@ public class AudioPlayerAlert extends BottomSheet implements NotificationCenter.
+@@ -1481,6 +1483,7 @@ public class AudioPlayerAlert extends BottomSheet implements NotificationCenter.
          updateTitle(false);
          updateRepeatButton();
          updateEmptyView();
@@ -35,7 +34,7 @@ index 88fe6a16..462ca681 100644
      }
  
      @Override
-@@ -2058,6 +2061,7 @@ public class AudioPlayerAlert extends BottomSheet implements NotificationCenter.
+@@ -2067,6 +2070,7 @@ public class AudioPlayerAlert extends BottomSheet implements NotificationCenter.
      @Override
      public void dismiss() {
          super.dismiss();

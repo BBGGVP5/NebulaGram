@@ -1,7 +1,7 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarMenuItem.java b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarMenuItem.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarMenuItem.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarMenuItem.java
-@@ -419,8 +419,8 @@ public class ActionBarMenuItem extends FrameLayout {
+@@ -498,8 +498,8 @@ public class ActionBarMenuItem extends FrameLayout {
  
          if (subMenuFactory != null) {
              popupLayout.setBackground(subMenuFactory.create(popupLayout, true)
@@ -12,7 +12,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarMenu
                      .setPadding(dp(8)));
          }
  
-@@ -757,10 +757,14 @@ public class ActionBarMenuItem extends FrameLayout {
+@@ -836,10 +836,14 @@ public class ActionBarMenuItem extends FrameLayout {
      public void setBlurredBackgroundFactory(BlurredBackgroundDrawableViewFactory subMenuFactory, BlurredBackgroundProvider subMenuProvider) {
          this.subMenuFactory = subMenuFactory;
          this.subMenuProvider = subMenuProvider;
@@ -29,7 +29,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarMenu
                      .setPadding(dp(8)));
          }
      }
-@@ -790,6 +794,7 @@ public class ActionBarMenuItem extends FrameLayout {
+@@ -947,6 +951,7 @@ public class ActionBarMenuItem extends FrameLayout {
              ((ViewGroup) popupLayout.getParent()).removeView(popupLayout);
          }
          ViewGroup container = popupLayout;
@@ -37,7 +37,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarMenu
          View setMinWidth = null;
          if (topView != null) {
              LinearLayout linearLayout = new LinearLayout(getContext()) {
-@@ -815,8 +820,8 @@ public class ActionBarMenuItem extends FrameLayout {
+@@ -972,8 +977,8 @@ public class ActionBarMenuItem extends FrameLayout {
              if (topView instanceof ActionBarMenuSubItem || topView instanceof LinearLayout) {
                  if (subMenuFactory != null) {
                      frameLayout.setBackground(subMenuFactory.create(popupLayout, true)
@@ -61,7 +61,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarPopu
              setWillNotDraw(false);
  
              if ((flags & FLAG_SHOWN_FROM_BOTTOM) > 0) {
-@@ -871,7 +874,12 @@ public class ActionBarPopupWindow extends PopupWindow {
+@@ -873,7 +876,12 @@ public class ActionBarPopupWindow extends PopupWindow {
              content.getSwipeBack().invalidateTransforms();
              finalScaleY = content.backScaleY;
          }
@@ -75,7 +75,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarPopu
          ValueAnimator childtranslations = ValueAnimator.ofFloat(0, 1);
          childtranslations.addUpdateListener(anm -> {
              final int count2 = content.getItemsCount();
-@@ -893,13 +901,7 @@ public class ActionBarPopupWindow extends PopupWindow {
+@@ -895,13 +903,7 @@ public class ActionBarPopupWindow extends PopupWindow {
                  ObjectAnimator.ofInt(content, "backAlpha", 0, 255),
                  childtranslations
          );
@@ -90,7 +90,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarPopu
          }
          windowAnimatorSet.addListener(new AnimatorListenerAdapter() {
              @Override
-@@ -965,18 +967,16 @@ public class ActionBarPopupWindow extends PopupWindow {
+@@ -967,18 +969,16 @@ public class ActionBarPopupWindow extends PopupWindow {
                  content.getSwipeBack().invalidateTransforms();
                  finalScaleY = content.backScaleY;
              }
@@ -117,7 +117,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarPopu
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
-@@ -31478,7 +31478,7 @@ public class ChatActivity extends BaseFragment implements
+@@ -32099,7 +32099,7 @@ public class ChatActivity extends BaseFragment implements
  
              popupLayout.setBackground(scrimBlur3Factory.create(popupLayout, true)
                  .setColorProvider(BlurredBackgroundProviderImpl.messageMenuBackground(resourceProvider))
@@ -126,7 +126,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
                  .setPadding(dp(8)));
  
              boolean addGap = false;
-@@ -32534,7 +32534,8 @@ public class ChatActivity extends BaseFragment implements
+@@ -33169,7 +33169,8 @@ public class ChatActivity extends BaseFragment implements
                      }));
                  }
                  if (isReactionsAvailable && (!tags || !getMessagesController().premiumFeaturesBlocked())) {
@@ -136,7 +136,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
                      int sPad = 24;
                      reactionsLayout.setPadding(dp(4) + (LocaleController.isRTL ? 0 : sPad), dp(4), dp(4) + (LocaleController.isRTL ? sPad : 0), dp(pad));
  
-@@ -32832,8 +32833,8 @@ public class ChatActivity extends BaseFragment implements
+@@ -33469,8 +33470,8 @@ public class ChatActivity extends BaseFragment implements
                      for (int i = 0; i < chatListView.getChildCount(); i++) {
                          View child = chatListView.getChildAt(i);
                          if (child instanceof ChatMessageCell && ((ChatMessageCell) child).getCurrentMessagesGroup() == group) {
@@ -147,7 +147,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
                          }
                      }
                  }
-@@ -32874,8 +32875,8 @@ public class ChatActivity extends BaseFragment implements
+@@ -33511,8 +33512,8 @@ public class ChatActivity extends BaseFragment implements
                              for (int i = 0; i < chatListView.getChildCount(); i++) {
                                  View child = chatListView.getChildAt(i);
                                  if (child instanceof ChatMessageCell && ((ChatMessageCell) child).getCurrentMessagesGroup() == group) {
@@ -158,7 +158,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
                                  }
                              }
                          }
-@@ -32888,6 +32889,7 @@ public class ChatActivity extends BaseFragment implements
+@@ -33525,6 +33526,7 @@ public class ChatActivity extends BaseFragment implements
                      }
                  }
              }
@@ -169,7 +169,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarContainer.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarContainer.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarContainer.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarContainer.java
-@@ -566,6 +566,8 @@ public class ChatAvatarContainer extends FrameLayout implements FactorAnimator.T
+@@ -567,6 +567,8 @@ public class ChatAvatarContainer extends FrameLayout implements FactorAnimator.T
      }
  
      public void openProfile(boolean byAvatar, boolean fromChatAnimation, boolean removeLast) {
@@ -181,7 +181,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarCo
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ItemOptions.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ItemOptions.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ItemOptions.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ItemOptions.java
-@@ -1270,7 +1270,7 @@ public class ItemOptions {
+@@ -1370,7 +1370,7 @@ public class ItemOptions {
              }
          }
  
@@ -189,8 +189,8 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ItemOptions.
 +        if (app.nebulagram.ui.NebulaMenuStyle.enabled()
                  && org.telegram.messenger.LiteMode.isEnabled(org.telegram.messenger.LiteMode.FLAG_CHAT_BLUR)) blurForMenu = true;
          if ((blur || blurForMenu) && scrimBlur3SourceBitmap == null) {
-             scrimBlur3SourceBitmap = new BlurredBackgroundSourceBitmap();
-@@ -1508,12 +1508,13 @@ public class ItemOptions {
+             scrimBlur3SourceBitmap = new GlassSourceBitmap();
+@@ -1609,12 +1609,13 @@ public class ItemOptions {
                  .setColorProvider(BlurredBackgroundProviderImpl.scrimMenuBackground(resourcesProvider))
                  .setPadding(dp(8))
                  .setHasPadding(true)
@@ -208,7 +208,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ItemOptions.
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/PopupSwipeBackLayout.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/PopupSwipeBackLayout.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/PopupSwipeBackLayout.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/PopupSwipeBackLayout.java
-@@ -291,7 +291,10 @@ public class PopupSwipeBackLayout extends FrameLayout {
+@@ -318,7 +318,10 @@ public class PopupSwipeBackLayout extends FrameLayout {
       */
      private void animateToState(float f, float flingVal) {
          ValueAnimator val = ValueAnimator.ofFloat(transitionProgress, f).setDuration((long) (DURATION * Math.max(0.5f, Math.abs(transitionProgress - f) - Math.min(0.2f, flingVal))));
@@ -242,7 +242,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/drawab
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
-@@ -1082,7 +1082,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+@@ -1081,7 +1081,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                  if (fragmentSearchField != null) {
                      fragmentSearchField.setTranslationY(lerp(
                          scrollYOffset + tabsYOffset + storiesOverscroll - dp(4),
@@ -254,7 +254,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
-@@ -5270,7 +5270,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+@@ -5216,7 +5216,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
              @Override
              protected void dispatchDraw(Canvas canvas) {
                  if (!isInLandscapeMode) {

@@ -1,7 +1,7 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Stories/DialogStoriesCell.java b/TMessagesProj/src/main/java/org/telegram/ui/Stories/DialogStoriesCell.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Stories/DialogStoriesCell.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Stories/DialogStoriesCell.java
-@@ -336,6 +336,8 @@ public class DialogStoriesCell extends FrameLayout implements NotificationCenter
+@@ -337,6 +337,8 @@ public class DialogStoriesCell extends FrameLayout implements NotificationCenter
          telegramLogoView.setContentDescription(getString(R.string.AppName));
          telegramLogoView.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
          telegramLogoView.setImageResource(R.drawable.telegram_logo_2);

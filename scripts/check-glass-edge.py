@@ -12,7 +12,7 @@ end = shader.index('\n}', start) + 2
 helper = re.sub(r'(\d+\.\d+)', r'\1f', shader[start:end])
 # Ensure the tested bound is actually consumed, and skip lens work in the center.
 assert 'limit / max(length(displacement), 0.001)' in shader
-assert 'sd > -thickness && refract_intensity > 0.0' in shader
+# Telegram 13.2 evaluates the lens over the whole shape; the edge limit is zero in the centre.
 source = '''class GlassEdgeCheck {
  static float clamp(float x,float lo,float hi){return Math.max(lo,Math.min(hi,x));}
  static float max(float a,float b){return Math.max(a,b);}

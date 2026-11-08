@@ -1,7 +1,7 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
-@@ -1273,6 +1273,9 @@ public class ChatActivity extends BaseFragment implements
+@@ -1303,6 +1303,9 @@ public class ChatActivity extends BaseFragment implements
      public final static int OPTION_SEND_MONEY = 117;
  
      private final static int[] allowedNotificationsDuringChatListAnimations = new int[]{
@@ -14,7 +14,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
-@@ -14983,7 +14983,7 @@ public class ChatActivityEnterView extends FrameLayout implements
+@@ -15199,7 +15199,7 @@ public class ChatActivityEnterView extends FrameLayout implements
          if (nebulaFormattingToolbar != null && nebulaFormattingHeight > 0) {
              // An overlay must not increase the native field's minimum measured height.
              nebulaFormattingToolbar.measure(MeasureSpec.makeMeasureSpec(Math.max(0, getMeasuredWidth() - dp(16)), MeasureSpec.EXACTLY),
@@ -23,7 +23,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivity
          }
  
          if (botWebViewButton != null) {
-@@ -15030,8 +15030,9 @@ public class ChatActivityEnterView extends FrameLayout implements
+@@ -15246,8 +15246,9 @@ public class ChatActivityEnterView extends FrameLayout implements
          super.onLayout(changed, left, top, right, bottom);
          nebulaComposerStyle.layout(emojiButton, attachButton, senderSelectView, aiButton, richButton);
          if (nebulaFormattingToolbar != null && nebulaFormattingHeight > 0) {

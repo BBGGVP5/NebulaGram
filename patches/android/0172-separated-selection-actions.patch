@@ -1,9 +1,9 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
-@@ -2630,11 +2630,12 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
-                 right = Math.min(menuLeft - dp(4), titleRight + dp(12));
-                 if (right <= left) { left = leftDefault; right = rightDefault; }
+@@ -2879,11 +2879,12 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
+                     glassDrawable.draw(canvas);
+                 }
              }
 -            // Selection actions share one continuous glass surface with the counter.
 -            // Keep normal header controls without separate background plates.
@@ -17,9 +17,9 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.jav
 +                right = Math.max(left, lerp(right,
 +                        app.nebulagram.ui.NebulaSelectionGlass.counterRight(actionMode, rightDefault), actionModeFactor));
              }
-             glassDrawable.setBounds(left, t, right, b);
-             if (nebulaFloatingChatHeader && app.nebulagram.ui.NebulaAppearance.centeredHeader()) {
-@@ -2674,7 +2675,11 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
+         }
+         final boolean nebulaPlainHeaderButtons = nebulaHomeGlass || isNebulaSharedHeaderGlass()
+@@ -2907,7 +2908,11 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
              } else {
                  glassDrawableBack.setBounds(0, t, nebulaBackWidth, b);
              }
@@ -32,7 +32,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.jav
          }
          final boolean separateAvatar = nebulaFloatingChatHeader && nebulaChatMenuHidden
                  && nebulaChatAvatarContainer != null;
-@@ -2686,9 +2691,15 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
+@@ -2919,9 +2924,15 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
                  if (!nebulaPlainHeaderButtons) glassDrawableMenu.draw(canvas);
              }
          }
@@ -43,7 +43,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.jav
 +                    getWidth(), t, b, actionModeFactor);
 +        }
 +        // Normal header controls remain without independent material.
-         if (glassDrawableMenu != null && menuWidth > 0 && !glassOnlyBack && !doNotDrawGlassMenu
+         if (glassDrawableMenu != null && menuWidth > 0 && !glassOnlyBack && !doNotDrawGlassMenu && !isMenuPillInOverlay()
 -                && (!separateAvatar || actionModeFactor > 0f)) {
 +                && (!separateAvatar || actionModeFactor > 0f)
 +                && !(actionModeFactor > 0f && (nebulaFloatingChatHeader || nebulaClassicSavedHeader || nebulaSavedMessagesHeader))) {

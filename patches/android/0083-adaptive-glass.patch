@@ -1,7 +1,7 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/ApplicationLoader.java b/TMessagesProj/src/main/java/org/telegram/messenger/ApplicationLoader.java
 --- a/TMessagesProj/src/main/java/org/telegram/messenger/ApplicationLoader.java
 +++ b/TMessagesProj/src/main/java/org/telegram/messenger/ApplicationLoader.java
-@@ -299,6 +299,7 @@ public class ApplicationLoader extends Application {
+@@ -301,6 +301,7 @@ public class ApplicationLoader extends Application {
          super.onCreate();
  
          app.nebulagram.nebulalink.NebulaLink.init(this); // NebulaGram
@@ -12,7 +12,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/ApplicationLoade
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/LiquidGlassEffect.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/LiquidGlassEffect.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/LiquidGlassEffect.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/LiquidGlassEffect.java
-@@ -24,6 +24,13 @@ public class LiquidGlassEffect {
+@@ -34,6 +34,13 @@ public class LiquidGlassEffect {
          node.setRenderEffect(effect = RenderEffect.createRuntimeShaderEffect(shader, "img"));
      }
  
@@ -23,86 +23,6 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/Liquid
 +        node.setRenderEffect(enabled ? effect : null);
 +    }
 +
-     private float resolutionX, resolutionY;
-     private float centerX, centerY;
-     private float sizeX, sizeY;
-diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/drawable/BlurredBackgroundDrawableRenderNode.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/drawable/BlurredBackgroundDrawableRenderNode.java
---- a/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/drawable/BlurredBackgroundDrawableRenderNode.java
-+++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/drawable/BlurredBackgroundDrawableRenderNode.java
-@@ -53,6 +53,7 @@ public class BlurredBackgroundDrawableRenderNode extends BlurredBackgroundDrawab
-     }
- 
-     private LiquidGlassEffect liquidGlassEffect;
-+    private boolean nebulaReduced;
- 
-     @RequiresApi(api = Build.VERSION_CODES.TIRAMISU)
-     public void setLiquidGlassEffectAllowed() {
-@@ -114,7 +115,8 @@ public class BlurredBackgroundDrawableRenderNode extends BlurredBackgroundDrawab
-         c = renderNodeFill.beginRecording();
-         c.save();
-         c.translate(-sL, -sT);
--        if (liquidGlassEffect != null && Build.VERSION.SDK_INT >= 33) {
-+        if (liquidGlassEffect != null && Build.VERSION.SDK_INT >= 33) liquidGlassEffect.setEnabled(!nebulaReduced);
-+        if (!nebulaReduced && liquidGlassEffect != null && Build.VERSION.SDK_INT >= 33) {
-             final int thickness = Math.max(Math.min(
-                 boundProps.liquidThickness <= 0 ? dp(11) : boundProps.liquidThickness,
-                 Math.min(boundProps.boundsWithPadding.width(), boundProps.boundsWithPadding.height()) / 5), 1);
-@@ -138,7 +140,7 @@ public class BlurredBackgroundDrawableRenderNode extends BlurredBackgroundDrawab
-             c.drawColor(backgroundColor);
-         } else {
-             c.drawRenderNode(renderNodeFill);
--            if (liquidGlassEffect == null && Color.alpha(backgroundColor) != 0) {
-+            if ((liquidGlassEffect == null || nebulaReduced) && Color.alpha(backgroundColor) != 0) {
-                 c.drawColor(backgroundColor);
-             }
-         }
-@@ -168,6 +170,8 @@ public class BlurredBackgroundDrawableRenderNode extends BlurredBackgroundDrawab
- 
-     @Override
-     public void draw(@NonNull Canvas canvas) {
-+        boolean reduced = app.nebulagram.ui.NebulaGlass.reduced();
-+        if (nebulaReduced != reduced) { nebulaReduced = reduced; renderNodeInvalidated = true; }
-         if (boundProps.boundsWithPadding.isEmpty()) {
-             return;
-         }
-diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/source/BlurredBackgroundSourceRenderNode.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/source/BlurredBackgroundSourceRenderNode.java
---- a/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/source/BlurredBackgroundSourceRenderNode.java
-+++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/source/BlurredBackgroundSourceRenderNode.java
-@@ -61,15 +61,19 @@ public class BlurredBackgroundSourceRenderNode implements BlurredBackgroundSourc
- 
-     private float nebulaBlurRadius = Float.NaN;
-     private RenderEffect nebulaBlurInput;
-+    private float nebulaRequestedRadius;
-+    private RenderEffect nebulaRequestedInput;
-+    private boolean nebulaBlurConfigured;
- 
-     @RequiresApi(api = Build.VERSION_CODES.S)
-     public void setBlur(float radius) {
--        if (app.nebulagram.ui.NebulaGlass.custom()) radius = org.telegram.messenger.AndroidUtilities.dpf2(app.nebulagram.ui.NebulaGlass.blur());
-+        nebulaRequestedRadius = radius; nebulaRequestedInput = null; nebulaBlurConfigured = true;
-         nebulaSetBlur(radius, null);
-     }
- 
-     @RequiresApi(api = Build.VERSION_CODES.S)
-     public void setBlur(float radius, RenderEffect effect) {
-+        nebulaRequestedRadius = radius; nebulaRequestedInput = effect; nebulaBlurConfigured = true;
-         nebulaSetBlur(radius, effect);
-     }
- 
-@@ -77,6 +81,8 @@ public class BlurredBackgroundSourceRenderNode implements BlurredBackgroundSourc
- 
-     @RequiresApi(api = Build.VERSION_CODES.S)
-     private void nebulaSetBlur(float radius, RenderEffect input) {
-+        if (app.nebulagram.ui.NebulaGlass.custom()) radius = org.telegram.messenger.AndroidUtilities.dpf2(app.nebulagram.ui.NebulaGlass.blur());
-+        if (app.nebulagram.ui.NebulaGlass.reduced()) radius = Math.min(radius, org.telegram.messenger.AndroidUtilities.dpf2(6f));
-         radius = Math.max(0f, radius);
-         if (nebulaBlurRadius == radius && nebulaBlurInput == input) return;
-         RenderEffect effect = input;
-@@ -132,6 +138,7 @@ public class BlurredBackgroundSourceRenderNode implements BlurredBackgroundSourc
- 
-     @Override
-     public void draw(Canvas canvas, float left, float top, float right, float bottom) {
-+        if (Build.VERSION.SDK_INT >= 31 && nebulaBlurConfigured) nebulaSetBlur(nebulaRequestedRadius, nebulaRequestedInput);
-         if (!canvas.isHardwareAccelerated()) {
-             if (fallbackSource != null) {
-                 fallbackSource.draw(canvas, left, top, right, bottom);
+     private int downsample;
+     private float width, height;
+     private float radiusLeftTop;

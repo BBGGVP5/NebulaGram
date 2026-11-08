@@ -1,8 +1,7 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
-index 77e28ec9..9b574966 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
-@@ -2514,11 +2514,12 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
+@@ -2758,11 +2758,12 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
              glassDrawableBack.draw(canvas);
          }
          final boolean separateAvatar = nebulaFloatingChatHeader && nebulaChatMenuHidden
@@ -16,12 +15,11 @@ index 77e28ec9..9b574966 100644
 +                        searchFactor, actionModeFactor, nebulaChatAvatarContainer.getAlpha()));
                  glassDrawableMenu.draw(canvas);
              }
-         } else if (glassDrawableMenu != null && menuWidth > 0 && !glassOnlyBack && !doNotDrawGlassMenu) {
+         } else if (glassDrawableMenu != null && menuWidth > 0 && !glassOnlyBack && !doNotDrawGlassMenu && !isMenuPillInOverlay()) {
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
-index 275654a2..0e4b6fb8 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
-@@ -1031,7 +1031,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+@@ -1030,7 +1030,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                          drawBlurRect(canvas, 0, blurBounds, actionBarSearchPaint, true);
                      }
                      if (fragmentSearchField != null) {
@@ -30,7 +28,7 @@ index 275654a2..0e4b6fb8 100644
                      }
                  }
              } else if (!inPreviewMode) {
-@@ -1059,7 +1059,8 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+@@ -1058,7 +1058,8 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                  if (dialogStoriesCellVisible) {
                      storiesAlpha = 1f - Utilities.clamp(rightSlidingProgress / 0.5f, 1f, 0f);
                  }
@@ -40,7 +38,7 @@ index 275654a2..0e4b6fb8 100644
                      tabsYOffset -= (1f - animatorFilterTabsVisible.getFloatValue()) * filterTabsView.getMeasuredHeight();
                  }
                  if (fragmentSearchField != null) {
-@@ -1310,7 +1311,12 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+@@ -1309,7 +1310,12 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                      childTop = actionBar.getMeasuredHeight();
                  } else if (child instanceof ViewPage) {
                      childTop = 0;
@@ -54,7 +52,7 @@ index 275654a2..0e4b6fb8 100644
                      childTop += actionBar.getMeasuredHeight();
                      childTop += dp(nebulaSearchSlotHeight());
                  } else if (dialogStoriesCell != null && dialogStoriesCell.getPremiumHint() == child) {
-@@ -2076,7 +2082,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+@@ -2075,7 +2081,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
              }
              additionalPadding = 0;
  
@@ -63,7 +61,7 @@ index 275654a2..0e4b6fb8 100644
              final float topPanelsVisibility = topPanelLayout != null ? topPanelLayout.getMetadata().getTotalVisibility() : 0f;
  
              t += (int) (dp(36 + 14) * filterTabsVisibility);
-@@ -2994,10 +3000,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+@@ -2910,10 +2916,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
       * под вкладками, а кнопка записи — на них.
       */
      private void nebulaApplyBottomReserve() {
@@ -75,7 +73,7 @@ index 275654a2..0e4b6fb8 100644
      }
  
      public static void loadDialogs(AccountInstance accountInstance) {
-@@ -6629,12 +6632,8 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+@@ -6549,12 +6552,8 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
  
          if (filterTabsView != null) {
              if (app.nebulagram.ui.NebulaFolderTabs.bottom()) {
@@ -90,7 +88,7 @@ index 275654a2..0e4b6fb8 100644
              } else {
                  filterTabsView.setTranslationY(totalOffset - searchOffset);
                  filtersTabVisibility = filterTabsView.getAlpha();
-@@ -7106,6 +7105,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+@@ -7026,6 +7025,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
          }
          nebulaApplyBottomReserve();
          if (fragmentView != null) {
@@ -98,7 +96,7 @@ index 275654a2..0e4b6fb8 100644
              ViewCompat.requestApplyInsets(fragmentView);
          }
          if (dialogStoriesCell != null) {
-@@ -14184,6 +14184,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+@@ -13799,6 +13799,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                  viewPages[0].listView.requestLayout();
              }
          }
@@ -106,8 +104,8 @@ index 275654a2..0e4b6fb8 100644
          updateContextViewPosition();
      }
  
-@@ -14382,6 +14383,25 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
-         }
+@@ -13988,6 +13989,25 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+         scrollableViewNoiseSuppressor.invalidateResultRenderNodes(iBlur3Capture, fragmentView.getMeasuredWidth(), fragmentView.getMeasuredHeight());
      }
  
 +    private int nebulaFolderTabsReserved() {

@@ -1,17 +1,16 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
-index 1c296c9f..b5499d21 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
-@@ -2726,7 +2726,7 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
-                     && (!isNebulaSharedHeaderGlass() || glassDrawable.getAlpha() > 0)
-                     && !((nebulaClassicSavedHeader || nebulaFloatingChatHeader && !app.nebulagram.ui.NebulaAppearance.chatHeader()) && actionModeFactor == 0f && searchFactor == 0f)) glassDrawable.draw(canvas);
+@@ -2959,7 +2959,7 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
+                         app.nebulagram.ui.NebulaSelectionGlass.counterRight(actionMode, rightDefault), actionModeFactor));
+             }
          }
 -        if (nebulaHomeTabsGlass && glassDrawableHomeLeading != null && nebulaHomeLeadingView != null
 +        if (nebulaHomeTabsGlass && glassDrawableHomeLeading != null && !nebulaHomeLayout && nebulaHomeLeadingView != null
                  && nebulaHomeLeadingView.getVisibility() == VISIBLE) {
              glassDrawableHomeLeading.setBounds(nebulaHomeLeadingView.getLeft(), nebulaHomeLeadingView.getTop(),
                      nebulaHomeLeadingView.getRight(), nebulaHomeLeadingView.getBottom());
-@@ -2734,7 +2734,7 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
+@@ -2967,7 +2967,7 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
              glassDrawableHomeLeading.setStrokeWidth(0f, 0f);
              glassDrawableHomeLeading.draw(canvas);
          }
@@ -21,10 +20,9 @@ index 1c296c9f..b5499d21 100644
          if (glassDrawableBack != null && nebulaHomeTabsGlass && actionModeFactor > 0f
                  && actionMode != null && actionMode.getChildCount() > 0) {
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
-index bbffdaa5..cb6d1c22 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
-@@ -937,7 +937,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+@@ -939,7 +939,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
  
          @Override
          public void drawBlurRect(Canvas canvas, float y, Rect rectTmp, Paint blurScrimPaint, boolean top) {

@@ -1,7 +1,7 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/web/BotWebViewContainer.java b/TMessagesProj/src/main/java/org/telegram/ui/web/BotWebViewContainer.java
 --- a/TMessagesProj/src/main/java/org/telegram/ui/web/BotWebViewContainer.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/web/BotWebViewContainer.java
-@@ -3914,6 +3914,7 @@ public abstract class BotWebViewContainer extends FrameLayout implements Notific
+@@ -3949,6 +3949,7 @@ public abstract class BotWebViewContainer extends FrameLayout implements Notific
      }
  
      public static class MyWebView extends WebView {
@@ -9,7 +9,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/web/BotWebViewContainer
          private final int tag = tags++;
          private boolean isPageLoaded;
          private Runnable whenPageLoaded;
-@@ -3958,6 +3959,7 @@ public abstract class BotWebViewContainer extends FrameLayout implements Notific
+@@ -3993,6 +3994,7 @@ public abstract class BotWebViewContainer extends FrameLayout implements Notific
  
          public MyWebView(Context context, boolean bot, long botId) {
              super(context);
@@ -17,7 +17,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/web/BotWebViewContainer
              this.bot = bot;
              d("created new webview " + this);
  
-@@ -4102,6 +4104,10 @@ public abstract class BotWebViewContainer extends FrameLayout implements Notific
+@@ -4137,6 +4139,10 @@ public abstract class BotWebViewContainer extends FrameLayout implements Notific
                          firstRequest = false;
                          return proxyTON(request);
                      }
@@ -28,7 +28,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/web/BotWebViewContainer
                      if (!bot && opener != null && firstRequest) {
                          HttpURLConnection connection = null;
                          try {
-@@ -4168,7 +4174,9 @@ public abstract class BotWebViewContainer extends FrameLayout implements Notific
+@@ -4203,7 +4209,9 @@ public abstract class BotWebViewContainer extends FrameLayout implements Notific
                          }
                      }
                      firstRequest = false;
@@ -39,7 +39,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/web/BotWebViewContainer
                  }
  
                  @Override
-@@ -4221,6 +4229,10 @@ public abstract class BotWebViewContainer extends FrameLayout implements Notific
+@@ -4256,6 +4264,10 @@ public abstract class BotWebViewContainer extends FrameLayout implements Notific
                          d("proxying ton");
                          return proxyTON("GET", url, null);
                      }
@@ -50,7 +50,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/web/BotWebViewContainer
                      return super.shouldInterceptRequest(view, url);
                  }
  
-@@ -4340,6 +4352,7 @@ public abstract class BotWebViewContainer extends FrameLayout implements Notific
+@@ -4375,6 +4387,7 @@ public abstract class BotWebViewContainer extends FrameLayout implements Notific
  
                  @Override
                  public void onPageStarted(WebView view, String url, Bitmap favicon) {
@@ -58,7 +58,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/web/BotWebViewContainer
                      if (bot && botWebViewContainer != null) {
                          botWebViewContainer.documentGeneration++;
                      }
-@@ -4369,6 +4382,7 @@ public abstract class BotWebViewContainer extends FrameLayout implements Notific
+@@ -4404,6 +4417,7 @@ public abstract class BotWebViewContainer extends FrameLayout implements Notific
  
                  @Override
                  public void onPageFinished(WebView view, String url) {
