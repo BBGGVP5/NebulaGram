@@ -132,7 +132,7 @@ public final class NebulaAiEditorController: UIViewController {
     @objc private func resetResult() { revision += 1; work?.cancel(); work = nil; result = nil; if isViewLoaded { refresh(animated: false) } }
     @objc private func run() {
         if work != nil { resetResult(); return }
-        if let result { if let apply { apply(result); if navigationController?.viewControllers.first === self { dismiss(animated: true) } else { navigationController?.popViewController(animated: true) } } else { storeInputTextInPasteboard(result) }; return }
+        if let result { if let apply { apply(self.composedOutput(result)); if navigationController?.viewControllers.first === self { dismiss(animated: true) } else { navigationController?.popViewController(animated: true) } } else { storeInputTextInPasteboard(result) }; return }
         guard NebulaLiveTranslation.ready else { settings(); return }
         let instruction: String
         if mode == 0 { instruction = "Translate into language code \(language)." }
@@ -185,5 +185,16 @@ enum NebulaRichEditorTransform {
             }
         }
         return try transform.combining(values)
+    }
+}
+
+extension NebulaAiEditorController {
+    /// Answer alone or after the source, optionally as a quote block (Android `NebulaAiReplacements.insert`).
+    fileprivate func composedOutput(_ result: NSAttributedString) -> NSAttributedString {
+        let composed = NebulaAiOutput.compose(source: self.source, result: result, responseOnly: NebulaAiOutput.responseOnly())
+        guard NebulaAiOutput.quoteAnswer(), composed.answer.length > 0 else { return composed.text }
+        let output = NSMutableAttributedString(attributedString: composed.text)
+        output.addAttribute(ChatTextInputAttributes.block, value: ChatTextInputTextQuoteAttribute(kind: .quote, isCollapsed: false), range: composed.answer)
+        return output
     }
 }

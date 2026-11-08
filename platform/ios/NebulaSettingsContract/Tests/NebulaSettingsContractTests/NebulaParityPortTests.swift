@@ -182,3 +182,20 @@ final class NebulaHomeLinkTests: XCTestCase {
         XCTAssertFalse(NebulaHomeLink.showsLink(aiShortcut: false, link: false))
     }
 }
+
+final class NebulaAiOutputTests: XCTestCase {
+    func testComposeKeepsAnswerRange() {
+        let source = NSAttributedString(string: "Привет"), result = NSAttributedString(string: "Hello")
+        let only = NebulaAiOutput.compose(source: source, result: result, responseOnly: true)
+        XCTAssertEqual(only.text.string, "Hello"); XCTAssertEqual(only.answer, NSRange(location: 0, length: 5))
+        let both = NebulaAiOutput.compose(source: source, result: result, responseOnly: false)
+        XCTAssertEqual(both.text.string, "Привет\n\nHello"); XCTAssertEqual(both.answer, NSRange(location: 8, length: 5))
+        let empty = NebulaAiOutput.compose(source: NSAttributedString(), result: result, responseOnly: false)
+        XCTAssertEqual(empty.text.string, "Hello")
+        let suite = "AiOutputTests." + UUID().uuidString
+        let defaults = UserDefaults(suiteName: suite)!; defer { defaults.removePersistentDomain(forName: suite) }
+        XCTAssertTrue(NebulaAiOutput.responseOnly(defaults)); XCTAssertFalse(NebulaAiOutput.quoteAnswer(defaults))
+        NebulaAiOutput.setResponseOnly(false, defaults); NebulaAiOutput.setQuoteAnswer(true, defaults)
+        XCTAssertFalse(NebulaAiOutput.responseOnly(defaults)); XCTAssertTrue(NebulaAiOutput.quoteAnswer(defaults))
+    }
+}
