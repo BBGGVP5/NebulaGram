@@ -110,3 +110,14 @@ final class NebulaShapePreferencesTests: XCTestCase {
         for shape in Shape.allCases { XCTAssertFalse(shape.title(russian: true).isEmpty) }
     }
 }
+
+final class NebulaBadgeTextStyleTests: XCTestCase {
+    func testBadgeTextsHaveNoTrailingPeriod() {
+        for badge in NebulaBadge.allCases {
+            for russian in [true, false] {
+                XCTAssertFalse(badge.localizedDescription(russian: russian).hasSuffix("."))
+                XCTAssertFalse(badge.howToGet(russian: russian).hasSuffix("."))
+            }
+        }
+    }
+}
