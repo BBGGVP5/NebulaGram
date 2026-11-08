@@ -7,8 +7,12 @@ final class NebulaArithmeticHint: UILabel {
     required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
     func update(input: UIView?, container: UIView, color: UIColor) {
         isHidden = true
-        guard NebulaSettingsStore.shared.inlineArithmetic, let input, let textView = findTextView(input),
-              textView.markedTextRange == nil, let source = textView.text, let result = NebulaArithmetic.result(source) else { return }
+        let store = NebulaSettingsStore.shared
+        guard store.inlineArithmetic || store.inlineUnits, let input, let textView = findTextView(input),
+              textView.markedTextRange == nil, let source = textView.text else { return }
+        let arithmetic = store.inlineArithmetic ? NebulaArithmetic.result(source) : nil
+        let metric = (Locale.current as NSLocale).object(forKey: .usesMetricSystem) as? Bool ?? true
+        guard let result = arithmetic ?? (store.inlineUnits ? NebulaInlineUnits.result(source, russian: Locale.preferredLanguages.first?.hasPrefix("ru") == true, imperial: !metric) : nil) else { return }
         if superview !== container { container.addSubview(self) }
         text = (source.trimmingCharacters(in: .whitespacesAndNewlines).hasSuffix("=") ? " " : " = ") + result
         font = textView.font ?? .preferredFont(forTextStyle: .body); textColor = color

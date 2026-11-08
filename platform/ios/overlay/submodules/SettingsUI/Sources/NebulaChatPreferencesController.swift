@@ -10,7 +10,7 @@ final class NebulaChatPreferencesController: UITableViewController {
     private let theme: PresentationTheme
     private let ru: Bool
     private var order: [NebulaSwipeAction] { store.swipeActions }
-    private let keys = ["inline_math", "channel_forward_count", "folder_unmuted_only", "sticker_time_style"]
+    private let keys = ["inline_math", "inline_units", "channel_forward_count", "folder_unmuted_only", "sticker_time_style"]
     private lazy var hero = NebulaSettingsHero(symbol: "💬", title: title ?? "", summary: t("Детали сообщений и действия жестов", "Message details and gesture actions"), context: context, theme: theme)
     init(context: AccountContext) {
         self.context = context
@@ -39,11 +39,11 @@ final class NebulaChatPreferencesController: UITableViewController {
         let cell = UITableViewCell(style: .subtitle, reuseIdentifier: nil)
         if indexPath.section == 0 {
             let key = keys[indexPath.row]
-            cell.textLabel?.text = (ru ? ["Вычисления при наборе", "Количество пересылок", "Счётчики только со звуком", "Время у стикеров"] : ["Inline arithmetic", "Forward count", "Unmuted folder counters", "Sticker time"])[indexPath.row]
+            cell.textLabel?.text = (ru ? ["Вычисления при наборе", "Единицы измерения при наборе", "Количество пересылок", "Счётчики только со звуком", "Время у стикеров"] : ["Inline arithmetic", "Unit conversion while typing", "Forward count", "Unmuted folder counters", "Sticker time"])[indexPath.row]
             if key == "sticker_time_style" {
                 cell.detailTextLabel?.text = timeNames[store.stickerTimeStyle]; cell.accessoryType = .disclosureIndicator
             } else {
-                let toggle = NebulaSwitchControl(); toggle.isOn = [store.inlineArithmetic, store.channelForwardCount, store.folderUnmutedOnly][indexPath.row]
+                let toggle = NebulaSwitchControl(); toggle.isOn = [store.inlineArithmetic, store.inlineUnits, store.channelForwardCount, store.folderUnmutedOnly][indexPath.row]
                 toggle.accessibilityIdentifier = key; toggle.accessibilityLabel = cell.textLabel?.text; toggle.isEnabled = !store.hasLoadError
                 toggle.addTarget(self, action: #selector(change(_:)), for: .valueChanged); cell.accessoryView = toggle; cell.selectionStyle = .none
             }

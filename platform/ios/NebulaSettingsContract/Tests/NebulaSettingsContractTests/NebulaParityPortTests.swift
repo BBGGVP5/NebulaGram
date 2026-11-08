@@ -223,3 +223,18 @@ final class NebulaPhoneMaskTests: XCTestCase {
         XCTAssertEqual(NebulaPhoneMask.mask(""), "")
     }
 }
+
+final class NebulaInlineUnitsTests: XCTestCase {
+    func testConversions() {
+        XCTAssertEqual(NebulaInlineUnits.result("5 km =", russian: false, imperial: false), "3.10686 mi")
+        XCTAssertEqual(NebulaInlineUnits.result("100 °F to °C =", russian: false, imperial: false), "37.7778°C")
+        XCTAssertEqual(NebulaInlineUnits.result("3,5 кг =", russian: true, imperial: false), "7.71618 фнт")
+        XCTAssertEqual(NebulaInlineUnits.result("90 min =", russian: false, imperial: false), "1 h 30 min")
+        XCTAssertEqual(NebulaInlineUnits.result("hello
+10 mi в км =", russian: true, imperial: false), "16.0934 км")
+        XCTAssertNil(NebulaInlineUnits.result("5 km", russian: false, imperial: false))
+        XCTAssertNil(NebulaInlineUnits.result("-500 °C to K =", russian: false, imperial: false))
+        XCTAssertNil(NebulaInlineUnits.result("5 M =", russian: false, imperial: false))
+        XCTAssertNil(NebulaInlineUnits.result("30 s =", russian: false, imperial: false))
+    }
+}

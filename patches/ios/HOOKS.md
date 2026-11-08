@@ -497,3 +497,12 @@ in place with its middle digits replaced by `•` (`NebulaPhoneMask`: the first 
 remain); tapping or holding the row opens Telegram's own phone actions, which show the full number.
 Android 0297 blurs the text and reveals it for 15 seconds; iOS uses the mask because the profile list
 item has no per-row blur.
+
+### Unit conversion while typing (no patch)
+
+`NebulaArithmeticHint` (overlay) also shows `NebulaInlineUnits.result` when the catalog key
+`inline_units` is on (default on, Android `NebulaInlineUnits`): a last line ending with "=" such as
+"5 km =", "100 °F to °C =" or "90 min =" gets the converted value as the same grey hint. Length,
+weight, temperature, speed and time; without a target the value moves to the other measurement
+system (imperial when the device locale is not metric). Arithmetic keeps precedence. Currency and
+time zones are not ported. Switch: Chats → Messages and gestures → Unit conversion while typing.
