@@ -484,6 +484,7 @@ public func nebulaSettingsController(context: AccountContext, page: Int = 0, sea
             .navigationToggle("reply_emoji", ru ? "Эмодзи в ответах" : "Emoji in replies", store.replyEmoji, !store.hasLoadError),
             .category(12, ru ? "Двойное нажатие на своё сообщение" : "Double tap your message",
                 (ru ? ["Реакция", "Редактировать", "Ответить", "Копировать", "Ничего"] : ["React", "Edit", "Reply", "Copy", "Nothing"])[store.ownDoubleTap], "hand.tap"),
+            .category(37, ru ? "Шрифт" : "Font", ru ? "Как в Telegram или свой TTF/OTF" : "Telegram default or your own TTF/OTF", "textformat"),
             .category(13, ru ? "Форма" : "Shape", ru ? "Аватары, хвосты, чаты карточками, вкладки профиля" : "Avatars, tails, chat cards, profile tabs", "person.crop.circle"),
             .category(14, ru ? "Значки интерфейса" : "Interface icons", (NebulaImportedIcons.activeName ?? ["Telegram", "Cupertino", "Solar"][store.iconPack]), "square.grid.2x2"),
             .category(15, ru ? "Переключатели" : "Switches", (ru ? ["Системные", "Округлые", "Компактные", "Минималистичные"] : ["System", "Rounded", "Compact", "Minimal"])[store.switchStyle], "switch.2"),
@@ -799,6 +800,11 @@ public func nebulaSettingsController(context: AccountContext, page: Int = 0, sea
                     do { try store.set(.integer(value), for: "own_double_tap"); writeFailed.set(false) }
                     catch { writeFailed.set(true) }
                 }
+            return
+        }
+        if index == 37 {
+            let data = context.sharedContext.currentPresentationData.with { $0 }
+            controller.present(UINavigationController(rootViewController: NebulaFontController(russian: data.strings.baseLanguageCode.hasPrefix("ru"), theme: data.theme)), animated: true)
             return
         }
         if index == 13 {

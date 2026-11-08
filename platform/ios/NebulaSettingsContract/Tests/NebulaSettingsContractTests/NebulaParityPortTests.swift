@@ -124,3 +124,26 @@ final class NebulaBadgeTextStyleTests: XCTestCase {
         }
     }
 }
+
+final class NebulaFontFileTests: XCTestCase {
+    private func font(tags: [UInt32], lengths: [UInt32], format: UInt32 = 0x0001_0000) -> Data {
+        var bytes: [UInt8] = []
+        func put32(_ v: UInt32) { bytes += [UInt8(v >> 24), UInt8(v >> 16 & 0xff), UInt8(v >> 8 & 0xff), UInt8(v & 0xff)] }
+        put32(format); bytes += [0, UInt8(tags.count), 0, 0, 0, 0, 0, 0]
+        var offset = UInt32(12 + tags.count * 16)
+        for (tag, length) in zip(tags, lengths) { put32(tag); put32(0); put32(offset); put32(length); offset += length }
+        bytes += [UInt8](repeating: 0, count: Int(lengths.reduce(0, +)))
+        return Data(bytes)
+    }
+
+    func testValidatesSfntDirectory() throws {
+        let cmap: UInt32 = 0x636d_6170, head: UInt32 = 0x6865_6164
+        XCTAssertNoThrow(try NebulaFontFile.validate(font(tags: [cmap, head], lengths: [4, 54])))
+        XCTAssertNoThrow(try NebulaFontFile.validate(font(tags: [cmap, head], lengths: [4, 54], format: 0x4f54_544f)))
+        XCTAssertThrowsError(try NebulaFontFile.validate(font(tags: [cmap], lengths: [4]))) { XCTAssertEqual($0 as? NebulaFontFile.Failure, .missingTables) }
+        XCTAssertThrowsError(try NebulaFontFile.validate(font(tags: [cmap, head], lengths: [4, 54], format: 0x7774_6666))) { XCTAssertEqual($0 as? NebulaFontFile.Failure, .format) }
+        XCTAssertThrowsError(try NebulaFontFile.validate(Data([0, 1, 0, 0]))) { XCTAssertEqual($0 as? NebulaFontFile.Failure, .size) }
+        var broken = [UInt8](font(tags: [cmap, head], lengths: [4, 54])); broken.removeLast(10)
+        XCTAssertThrowsError(try NebulaFontFile.validate(Data(broken))) { XCTAssertEqual($0 as? NebulaFontFile.Failure, .table) }
+    }
+}

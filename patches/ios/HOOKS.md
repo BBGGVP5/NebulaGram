@@ -434,3 +434,14 @@ regular tab view gets a 6 % primary-text tint capsule under its label. The liqui
 and animates the selected tab, so selection code is untouched. `PeerInfoPaneContainerNode` passes
 `NebulaShapePreferences.profileTabButtons()` (Android `profile_tab_buttons`); the switch is on the
 Shape page.
+
+## 0127 — custom interface font
+
+`Display/Font.swift`: `Font.with` (regular design only, before its cache) and `Font.regular`,
+`medium`, `semibold`, `bold`, `light` first ask `NebulaCustomFont.font(size:weight:)` (overlay in
+Display). It returns nil unless `nebula.font.custom` is on and the imported file registered at launch,
+so the default path is unchanged. Bold and italic come from the font's own symbolic traits;
+monospaced, serif and camera designs stay native. The file is validated by
+`NebulaFontFile.validate` (sfnt directory with `cmap` and `head`, 8 MB limit, Android
+`NebulaFontFile`), registered with `CTFontManagerRegisterGraphicsFont` and written atomically to
+Application Support only after it registers. Applies after a restart. Settings: Appearance → Font.
