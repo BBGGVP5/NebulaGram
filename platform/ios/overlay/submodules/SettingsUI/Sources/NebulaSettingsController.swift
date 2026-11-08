@@ -130,6 +130,7 @@ private enum NebulaSettingsEntry: ItemListNodeEntry {
             case "compact_bottom_bar": return 64
             case "hide_home_camera": return 65
             case "hide_home_compose": return 66
+            case "home_nebulalink": return 66
             case "formatting_toolbar": return 79
             case "hide_send_as": return 67
             case "hide_attach_camera": return 74
@@ -194,6 +195,7 @@ private enum NebulaSettingsEntry: ItemListNodeEntry {
             case "centered_chat_header": return 37
             case "disable_next_channel": return 38
             case "unlimited_selection": return 90
+            case "home_nebulalink": return 91
             case "folder_title": return 40
             case "folder_outline": return 47
             case "hide_search_field": return 48
@@ -449,6 +451,7 @@ public func nebulaSettingsController(context: AccountContext, page: Int = 0, sea
             .navigationToggle("tab_labels", ru ? "Подписи вкладок" : "Tab labels", store.showTabLabels, !store.hasLoadError),
             .navigationToggle("compact_bottom_bar", ru ? "Компактная нижняя панель" : "Compact bottom bar", store.compactBottomBar, !store.hasLoadError),
             .navigationToggle("hide_home_camera", ru ? "Скрыть камеру на главной" : "Hide camera on home", store.hideHomeCamera, !store.hasLoadError),
+            .navigationToggle("home_nebulalink", ru ? "NebulaLink на главной" : "NebulaLink on home", NebulaHomeLink.enabled(), true),
             .navigationToggle("hide_home_compose", ru ? "Скрыть кнопку нового чата" : "Hide new-chat button", store.hideHomeCompose, !store.hasLoadError),
             .navigationToggle("unlimited_selection", ru ? "«Выделить загруженные» без лимита 100" : "Select loaded without the 100 limit", store.unlimitedSelection, !store.hasLoadError),
             .navigationToggle("hide_send_as", ru ? "Скрыть «Отправить от имени»" : "Hide Send As", store.hideSendAs, !store.hasLoadError),
@@ -539,7 +542,7 @@ public func nebulaSettingsController(context: AccountContext, page: Int = 0, sea
             case .navigation, .contacts, .category(4, _, _, _): return true
             case let .navigationToggle(key, _, _, _):
                 return ["bottom_bar", "bottom_bar_profile", "bottom_bar_settings", "tab_labels", "compact_bottom_bar",
-                    "hide_home_camera", "hide_home_compose"].contains(key)
+                    "hide_home_camera", "hide_home_compose", "home_nebulalink"].contains(key)
             default: return false
             }
         }
@@ -831,6 +834,7 @@ public func nebulaSettingsController(context: AccountContext, page: Int = 0, sea
             nebulaSettingsController(context: context, page: index))
     }
     arguments.updateKey = { key, value in
+        if key == "home_nebulalink" { NebulaHomeLink.setEnabled(value); return }
         do { try store.set(.boolean(value), for: key);writeFailed.set(false) }
         catch { writeFailed.set(true) }
     }

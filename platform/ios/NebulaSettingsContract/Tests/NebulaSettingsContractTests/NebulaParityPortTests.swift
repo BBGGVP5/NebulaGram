@@ -169,3 +169,16 @@ final class NebulaRegistrationMonthTests: XCTestCase {
         prefs.set("profile_registration", false); XCTAssertFalse(prefs.enabled("profile_registration"))
     }
 }
+
+final class NebulaHomeLinkTests: XCTestCase {
+    func testLinkShortcutDefaultsOffAndYieldsToAi() {
+        let suite = "HomeLinkTests." + UUID().uuidString
+        let defaults = UserDefaults(suiteName: suite)!; defer { defaults.removePersistentDomain(forName: suite) }
+        XCTAssertFalse(NebulaHomeLink.enabled(defaults))
+        NebulaHomeLink.setEnabled(true, defaults)
+        XCTAssertTrue(NebulaHomeLink.enabled(defaults))
+        XCTAssertTrue(NebulaHomeLink.showsLink(aiShortcut: false, link: true))
+        XCTAssertFalse(NebulaHomeLink.showsLink(aiShortcut: true, link: true))
+        XCTAssertFalse(NebulaHomeLink.showsLink(aiShortcut: false, link: false))
+    }
+}

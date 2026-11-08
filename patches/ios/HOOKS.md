@@ -453,3 +453,12 @@ Telegram reported in `CachedUserData.peerStatusSettings.registrationDate`, forma
 `NebulaRegistrationMonth` ("YYYY-MM" or "MM.YYYY"; anything else is shown as is). Unlike Android
 0254 there are no ID-neighbour estimates and no history request: only Telegram's own value, no
 extra network traffic. Switch: Profile information → Registration month (default on).
+
+## 0129 — NebulaLink shortcut on the home screen
+
+`ChatListController`, home header story slot: with `NebulaHomeLink` on and the AI shortcut off, the
+slot shows a `network` symbol and posts `NebulaHomeLink.open` (Android `home_nebulalink`). The AI
+shortcut keeps the slot when both are on; the camera returns when both are off. The header re-renders
+through the existing `homeShortcutChanged` signal. `TelegramRootController.nebulaOpenLink` presents
+the NebulaLink screen (`SettingsUI.nebulaLinkController`, now public) only for its own tab host;
+presenting it starts no tunnel or probe. Switch: Navigation → NebulaLink on home.
