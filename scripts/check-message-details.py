@@ -18,7 +18,9 @@ struct Peer {let id: PeerId}
 struct MessageId {let id: Int32; let peerId: PeerId}
 struct MessageForwardInfo {let date: Int32}
 final class EditedMessageAttribute {let date: Int32; init(_ date: Int32) {self.date = date}}
-final class TelegramMediaFile {let fileName: String?; let mimeType: String; let size: Int64?; init(_ name: String?, _ mime: String, _ size: Int64?) {fileName = name; mimeType = mime; self.size = size}}
+struct TelegramMediaVideoFlags: OptionSet {let rawValue: Int32; static let instantRoundVideo = TelegramMediaVideoFlags(rawValue: 1 << 0); static let supportsStreaming = TelegramMediaVideoFlags(rawValue: 1 << 1)}
+enum TelegramMediaFileAttribute {case Audio(isVoice: Bool, duration: Int, title: String?, performer: String?, waveform: Data?); case Video(duration: Double, size: Int, flags: TelegramMediaVideoFlags, preloadSize: Int32?, coverTime: Double?, videoCodec: String?); case FileName(fileName: String)}
+final class TelegramMediaFile {let fileName: String?; let mimeType: String; let size: Int64?; let attributes: [TelegramMediaFileAttribute]; init(_ name: String?, _ mime: String, _ size: Int64?, _ attributes: [TelegramMediaFileAttribute] = []) {fileName = name; mimeType = mime; self.size = size; self.attributes = attributes}}
 struct Message {let id: MessageId; let author: Peer?; let timestamp: Int32; let attributes: [Any]; let forwardInfo: MessageForwardInfo?; let media: [Any]}
 struct Field {let title: String; let value: String}
 func snapshot(_ message: Message, _ russian: Bool) -> [Field] {
@@ -29,11 +31,18 @@ SNAPSHOT
  let fields = snapshot(plain, false); precondition(fields.count == 2 && fields[1].value == "9223372036854775806")
  let full = Message(id: plain.id, author: Peer(id: PeerId(value: 1000000000001)), timestamp: 2147483647, attributes: [EditedMessageAttribute(2147483647)], forwardInfo: MessageForwardInfo(date: 2147483647), media: [TelegramMediaFile("имя 🎵.ogg", "audio/ogg", 5_000_000_000), TelegramMediaFile(nil, "", .max)])
  let all = snapshot(full, true); precondition(all.count == 9); precondition(all.contains {$0.value == "имя 🎵.ogg"}); precondition(all.contains {$0.value.contains("5000000000 байт")}); precondition(all.filter {$0.value.hasPrefix("2038-")}.count == 3)
- print("Swift message details: sparse/full metadata, 64-bit identities and sizes, UTF-16 names and 2038 dates passed")
+ let voice = snapshot(Message(id: plain.id, author: nil, timestamp: 0, attributes: [], forwardInfo: nil, media: [TelegramMediaFile(nil, "audio/ogg", 10, [.Audio(isVoice: true, duration: 3, title: nil, performer: nil, waveform: Data(repeating: 1, count: 63))])]), true)
+ precondition(voice.last?.title == "Отправлено с" && voice.last!.value.contains("Android и iOS"))
+ let round = snapshot(Message(id: plain.id, author: nil, timestamp: 0, attributes: [], forwardInfo: nil, media: [TelegramMediaFile("video.mp4", "video/mp4", 10, [.Video(duration: 1, size: 240, flags: [.instantRoundVideo], preloadSize: nil, coverTime: nil, videoCodec: nil)])]), false)
+ precondition(round.contains {$0.title == "Sent from" && $0.value.contains("iOS")})
+ let plainVideo = snapshot(Message(id: plain.id, author: nil, timestamp: 0, attributes: [], forwardInfo: nil, media: [TelegramMediaFile(nil, "video/mp4", 10, [.Video(duration: 1, size: 240, flags: [.supportsStreaming], preloadSize: nil, coverTime: nil, videoCodec: nil)])]), false)
+ precondition(!plainVideo.contains {$0.title == "Sent from"})
+ print("Swift message details: sparse/full metadata, 64-bit identities and sizes, UTF-16 names, 2038 dates and voice/round sender platform passed")
 }}
 '''.replace('SNAPSHOT', snapshot), encoding='utf-8')
         binary = work / 'check'
-        subprocess.run(['swiftc', '-parse-as-library', str(test), '-o', str(binary)], check=True)
+        sent_from = root / 'platform/ios/NebulaSettingsContract/Sources/NebulaSettingsContract/NebulaSentFrom.swift'
+        subprocess.run(['swiftc', '-parse-as-library', str(test), str(sent_from), '-o', str(binary)], check=True)
         subprocess.run([str(binary)], check=True)
     else:
         files = {
