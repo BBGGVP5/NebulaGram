@@ -427,8 +427,10 @@ public final class NebulaFormattingToolbar extends HorizontalScrollView {
     }
 
     /**
-     * Круглая «A» над правым краем поля ввода. Живёт в контейнере экрана чата,
-     * чтобы висеть над перепиской, и каждый кадр встаёт над полем ввода.
+     * Круглая «A» над краем поля ввода. Живёт в контейнере экрана чата, чтобы
+     * висеть над перепиской, и каждый кадр встаёт над полем ввода. Небольшая и
+     * полупрозрачная в покое; её можно перетащить вверх-вниз и к любому краю —
+     * отпущенная, она прилипает к ближайшему краю, место запоминается.
      */
     private static final class FloatingOpener extends android.widget.FrameLayout
             implements android.view.ViewTreeObserver.OnPreDrawListener {
@@ -437,6 +439,14 @@ public final class NebulaFormattingToolbar extends HorizontalScrollView {
         private final ImageView icon;
         private final GradientDrawable circle = new GradientDrawable();
         private boolean shown;
+        private static final String SIDE = "formatting_opener_left", LIFT = "formatting_opener_lift";
+        private boolean left = preferences().getBoolean(SIDE, false);
+        private int lift = preferences().getInt(LIFT, 0);
+        private float downX, downY, dragX, dragY;
+        private boolean dragging;
+        private final int slop = android.view.ViewConfiguration.get(ApplicationLoader.applicationContext).getScaledTouchSlop();
+        private android.animation.ValueAnimator snap;
+        private float snapOffset;
 
         static FloatingOpener attach(NebulaFormattingToolbar toolbar) {
             android.view.ViewParent parent = toolbar.getParent();
@@ -449,7 +459,7 @@ public final class NebulaFormattingToolbar extends HorizontalScrollView {
             super(toolbar.getContext());
             this.toolbar = toolbar;
             this.host = host;
-            int size = AndroidUtilities.dp(40);
+            int size = AndroidUtilities.dp(34);
             circle.setShape(GradientDrawable.OVAL);
             setBackground(circle);
             setElevation(AndroidUtilities.dp(3));
@@ -468,6 +478,62 @@ public final class NebulaFormattingToolbar extends HorizontalScrollView {
             update();
         }
 
+        @Override public boolean onTouchEvent(android.view.MotionEvent event) {
+            switch (event.getActionMasked()) {
+                case android.view.MotionEvent.ACTION_DOWN:
+                    downX = event.getRawX(); downY = event.getRawY(); dragging = false;
+                    if (snap != null) { snap.cancel(); snap = null; snapOffset = 0; }
+                    animate().scaleX(.9f).scaleY(.9f).setDuration(80).start();
+                    return true;
+                case android.view.MotionEvent.ACTION_MOVE: {
+                    float dx = event.getRawX() - downX, dy = event.getRawY() - downY;
+                    if (!dragging && Math.hypot(dx, dy) > slop) {
+                        dragging = true;
+                        getParent().requestDisallowInterceptTouchEvent(true);
+                        animate().alpha(1f).scaleX(1.08f).scaleY(1.08f).setDuration(120).start();
+                        NebulaHaptics.tick(this);
+                    }
+                    if (dragging) { dragX = dx; dragY = dy; host.invalidate(); }
+                    return true;
+                }
+                case android.view.MotionEvent.ACTION_UP:
+                case android.view.MotionEvent.ACTION_CANCEL: {
+                    boolean click = !dragging && event.getActionMasked() == android.view.MotionEvent.ACTION_UP;
+                    if (dragging) finishDrag();
+                    dragging = false;
+                    animate().alpha(idleAlpha()).scaleX(1f).scaleY(1f).setDuration(140).start();
+                    if (click) performClick();
+                    return true;
+                }
+                default:
+                    return true;
+            }
+        }
+
+        private void finishDrag() {
+            float before = getX();
+            boolean toLeft = before + getWidth() / 2f < host.getWidth() / 2f;
+            lift = Math.max(0, Math.round(lift - dragY));
+            dragX = 0; dragY = 0;
+            boolean sideChanged = toLeft != left;
+            left = toLeft;
+            preferences().edit().putBoolean(SIDE, left).putInt(LIFT, lift).apply();
+            onPreDraw();
+            // Прилипание к краю: плавно доезжает от точки, где кнопку отпустили.
+            snapOffset = before - getX();
+            if (snapOffset == 0 && !sideChanged) return;
+            snap = android.animation.ValueAnimator.ofFloat(snapOffset, 0f);
+            snap.setDuration(320);
+            snap.setInterpolator(new android.view.animation.OvershootInterpolator(1.2f));
+            snap.addUpdateListener(a -> { snapOffset = (Float) a.getAnimatedValue(); onPreDraw(); });
+            snap.start();
+        }
+
+        @Override public boolean performClick() {
+            super.performClick();
+            return true;
+        }
+
         void detach() {
             host.getViewTreeObserver().removeOnPreDrawListener(this);
             animate().cancel();
@@ -475,9 +541,12 @@ public final class NebulaFormattingToolbar extends HorizontalScrollView {
         }
 
         /** Цвет, значок и видимость по состоянию панели. */
+        private float idleAlpha() { return toolbar.expanded || dragging ? 1f : .82f; }
+
         void update() {
             NebulaTheme theme = NebulaTheme.of(getContext());
             boolean open = toolbar.expanded;
+            if (shown && getAnimation() == null) setAlpha(idleAlpha());
             circle.setColor(open ? theme.primary() : theme.surfaceContainer());
             circle.setStroke(AndroidUtilities.dp(1), NebulaTheme.stateLayer(theme.onSurface(), open ? 0f : .12f));
             icon.setColorFilter(open ? theme.onPrimary() : theme.onSurface());
@@ -490,7 +559,7 @@ public final class NebulaFormattingToolbar extends HorizontalScrollView {
             if (visible) {
                 setVisibility(VISIBLE);
                 setScaleX(.4f); setScaleY(.4f);
-                animate().alpha(1f).scaleX(1f).scaleY(1f).setDuration(260)
+                animate().alpha(idleAlpha()).scaleX(1f).scaleY(1f).setDuration(260)
                         .setInterpolator(new android.view.animation.OvershootInterpolator(1.6f)).withEndAction(null).start();
             } else {
                 animate().alpha(0f).scaleX(.4f).scaleY(.4f).setDuration(160)
@@ -512,8 +581,15 @@ public final class NebulaFormattingToolbar extends HorizontalScrollView {
             int size = getLayoutParams().width;
             // Над полем ввода. Раскрытая панель — верхняя часть поля ввода, так
             // что кнопка поднимается вместе с ней и висит над ней.
-            float x = composerLocation[0] - hostLocation[0] + composer.getWidth() - size - AndroidUtilities.dp(12);
-            float y = composerLocation[1] - hostLocation[1] - size - AndroidUtilities.dp(6);
+            float edge = AndroidUtilities.dp(4);
+            float rightX = composerLocation[0] - hostLocation[0] + composer.getWidth() - size - edge;
+            float leftX = composerLocation[0] - hostLocation[0] + edge;
+            float x = (left ? leftX : rightX) + snapOffset + dragX;
+            float top = composerLocation[1] - hostLocation[1] - size - AndroidUtilities.dp(6);
+            // Не выше половины экрана: кнопка остаётся рядом с полем ввода.
+            int maxLift = Math.max(0, Math.round(top - host.getHeight() * .45f));
+            float y = top - Math.max(0, Math.min(maxLift, lift - dragY));
+            x = Math.max(leftX, Math.min(rightX, x));
             if (getX() != x) setX(x);
             if (getY() != y) setY(y);
             return true;

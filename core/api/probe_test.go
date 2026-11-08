@@ -3,6 +3,8 @@ package api
 import (
 	"context"
 	"encoding/json"
+	"errors"
+	"net"
 	"testing"
 	"time"
 
@@ -127,5 +129,59 @@ func TestNimboCancellationIDsPartialPersistenceAndPrecancel(t *testing.T) {
 	call(t, c, "probe.cancel", `{"request_id":"early"}`)
 	if string(call(t, c, "probe.servers", `{"request_id":"early","method":"nimbo"}`)) != `{}` {
 		t.Fatal("pre-cancel ignored")
+	}
+}
+
+func TestNimboFallsBackToEndpointWhenConfigCannotBeReplayed(t *testing.T) {
+	c := newCore(t)
+	listener, err := net.Listen("tcp", "127.0.0.1:0")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer listener.Close()
+	go func() {
+		for {
+			conn, err := listener.Accept()
+			if err != nil {
+				return
+			}
+			go func() {
+				defer conn.Close()
+				buf := make([]byte, 1024)
+				_, _ = conn.Read(buf)
+				_, _ = conn.Write([]byte("HTTP/1.1 204 No Content\r\nConnection: close\r\n\r\n"))
+			}()
+		}
+	}()
+	port := listener.Addr().(*net.TCPAddr).Port
+	_, err = c.st().AddServers([]model.Server{
+		{ID: "chain", Address: "127.0.0.1", Port: port, Security: "none"},
+		{ID: "dead", Address: "127.0.0.1", Port: 1, Security: "none"},
+		{ID: "down", Address: "127.0.0.1", Port: port, Security: "none"},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	probe.RegisterNimbo(func(ctx context.Context, s model.Server, url string, d time.Duration) (int, error) {
+		if s.ID == "down" {
+			return -1, errors.New("NIMBO_NETWORK")
+		}
+		return -1, errors.New("NIMBO_UNSAFE_ROUTE")
+	})
+	defer probe.RegisterNimbo(nil)
+	var response Response
+	json.Unmarshal([]byte(c.Call("probe.servers", `{"request_id":"fallback","method":"nimbo","timeout":3}`)), &response)
+	var data map[string]int
+	json.Unmarshal(response.Data, &data)
+	if !response.OK || data["chain"] <= 0 {
+		t.Fatalf("chained config reported dead instead of measured: %+v %v", response, data)
+	}
+	if data["dead"] != probe.Failed || data["down"] != probe.Failed {
+		t.Fatalf("real failures must stay failed: %v", data)
+	}
+	for _, s := range c.st().Servers() {
+		if s.ID == "chain" && s.LatencyMethod != "http" {
+			t.Fatalf("fallback must be labelled as endpoint ping: %+v", s)
+		}
 	}
 }

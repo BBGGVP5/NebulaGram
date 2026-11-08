@@ -140,11 +140,26 @@ func (c *Core) handleProbe(payload []byte) (any, error) {
 			if ctx.Err() != nil {
 				break
 			} // Cancellation is not a failed unvisited server.
+			usedMethod := string(measuredMethod)
+			if err != nil && nimboCannotMeasure(err) {
+				// The server's own config cannot be replayed privately (proxy
+				// chains, several proxy outbounds, another engine): measure the
+				// endpoint instead of reporting a working server as dead.
+				ms = probe.HTTPGet(ctx, server, timeout)
+				if ctx.Err() != nil {
+					break
+				}
+				usedMethod = string(settings.PingHTTP)
+				err = nil
+				if ms == probe.Failed {
+					err = errors.New("unreachable")
+				}
+			}
 			if err != nil {
 				ms = probe.Failed
 			}
 			checkedAt = time.Now().Unix()
-			if err := c.st().UpdateServerLatencyMethod(map[string]int{server.ID: ms}, string(measuredMethod), checkedAt); err != nil {
+			if err := c.st().UpdateServerLatencyMethod(map[string]int{server.ID: ms}, usedMethod, checkedAt); err != nil {
 				return nil, err
 			}
 			results[server.ID] = ms
@@ -174,4 +189,16 @@ func (c *Core) handleProbe(payload []byte) (any, error) {
 	}
 	progress("", 0, true)
 	return results, nil
+}
+
+// nimboCannotMeasure reports Nimbo refusals that say nothing about the server
+// being reachable: its configuration cannot be run as a private probe.
+func nimboCannotMeasure(err error) bool {
+	switch err.Error() {
+	case "NIMBO_UNSAFE_ROUTE", "NIMBO_AMBIGUOUS_ROUTE", "NIMBO_UNSUPPORTED_PROTOCOL",
+		"NIMBO_UNSUPPORTED_CORE", "NIMBO_CONFIG", "NIMBO_CONFIG_TOO_LARGE", "NIMBO_HANDLER",
+		"NIMBO_CONTEXT", "NIMBO_UNAVAILABLE":
+		return true
+	}
+	return false
 }
