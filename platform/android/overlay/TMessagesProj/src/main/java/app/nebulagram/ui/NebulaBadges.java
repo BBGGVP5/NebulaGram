@@ -132,31 +132,65 @@ public final class NebulaBadges {
     /** Profile names keep Telegram's premium emoji as the first right drawable. */
     public static Drawable profileSuffix(Drawable existing, long userId) {
         if (existing instanceof ProfileSuffix) existing = ((ProfileSuffix) existing).base;
-        int resource = iconResource(badge(userId));
+        String kind = badge(userId);
+        int resource = iconResource(kind);
         if (resource == 0) return existing;
         Drawable artwork = ContextCompat.getDrawable(ApplicationLoader.applicationContext, resource);
-        return artwork == null ? existing : new ProfileSuffix(existing, artwork);
+        return artwork == null ? existing : new ProfileSuffix(existing, artwork, accent(kind));
     }
 
+    /** Main colour of a badge: the glow behind it in the profile. */
+    public static int accent(String kind) {
+        if (kind == null) return 0xFFF2B33D;
+        switch (kind) {
+            case "dev": return 0xFF6C5CE7;
+            case "tester": return 0xFF16A89A;
+            case "heart": return 0xFFEB4F86;
+            case "donor": return 0xFFF29A1F;
+            case "sponsor": return 0xFF2F7FEA;
+            case "moderator": return 0xFFF06A2E;
+            case "supporter": return 0xFF8E7CF6;
+            default: return 0xFFF2B33D;
+        }
+    }
+
+    /**
+     * Badge beside the profile name: a little larger than the text, with a soft
+     * glow that breathes behind it and a few sparks circling it, as in
+     * exteraGram. Static when system animations are off.
+     */
     private static final class ProfileSuffix extends Drawable implements Drawable.Callback {
+        private static final long PERIOD = 2600, ORBIT = 7000;
         private final Drawable base;
         private final Drawable badge;
-        private final int badgeSize = AndroidUtilities.dp(15);
-        private final int gap = AndroidUtilities.dp(3);
+        private final int badgeSize = AndroidUtilities.dp(20);
+        private final int gap = AndroidUtilities.dp(5);
+        private final int accent;
+        private final android.graphics.Paint glow = new android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG);
+        private final android.graphics.Paint spark = new android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG);
+        private android.graphics.RadialGradient gradient;
+        private final android.graphics.Matrix matrix = new android.graphics.Matrix();
+        private final long start = android.os.SystemClock.uptimeMillis();
+        private int alpha = 255;
 
-        ProfileSuffix(Drawable base, Drawable badge) {
+        ProfileSuffix(Drawable base, Drawable badge, int accent) {
             this.base = base;
             this.badge = badge.mutate();
+            this.accent = accent;
             if (base != null) base.setCallback(this);
             this.badge.setCallback(this);
         }
 
         @Override public int getIntrinsicWidth() {
-            return (base == null ? 0 : base.getIntrinsicWidth() + gap) + badgeSize;
+            return (base == null ? 0 : base.getIntrinsicWidth() + gap) + badgeSize + gap;
         }
 
         @Override public int getIntrinsicHeight() {
             return Math.max(badgeSize, base == null ? 0 : base.getIntrinsicHeight());
+        }
+
+        private static boolean animate() {
+            return android.os.Build.VERSION.SDK_INT < 26 || android.animation.ValueAnimator.areAnimatorsEnabled();
         }
 
         @Override public void draw(Canvas canvas) {
@@ -172,12 +206,45 @@ public final class NebulaBadges {
                 base.draw(canvas);
                 x = width + gap;
             }
+            float cx = x + badgeSize / 2f, cy = height / 2f;
+            boolean moving = animate();
+            long now = android.os.SystemClock.uptimeMillis() - start;
+            float breath = moving ? (float) (0.5 - 0.5 * Math.cos(2 * Math.PI * (now % PERIOD) / PERIOD)) : 0.5f;
+            float radius = badgeSize * (0.62f + 0.12f * breath);
+            if (gradient == null) {
+                gradient = new android.graphics.RadialGradient(0, 0, 1f,
+                        new int[]{(accent & 0x00FFFFFF) | 0x8C000000, (accent & 0x00FFFFFF) | 0x33000000, accent & 0x00FFFFFF},
+                        new float[]{0f, 0.55f, 1f}, android.graphics.Shader.TileMode.CLAMP);
+            }
+            matrix.setScale(radius, radius);
+            matrix.postTranslate(cx, cy);
+            gradient.setLocalMatrix(matrix);
+            glow.setShader(gradient);
+            glow.setAlpha(Math.round(alpha * (0.55f + 0.45f * breath)));
+            canvas.drawCircle(cx, cy, radius, glow);
+            // Three sparks on a slow orbit, each twinkling on its own phase.
+            float orbit = badgeSize * 0.72f;
+            double turn = moving ? 2 * Math.PI * (now % ORBIT) / ORBIT : 0;
+            for (int i = 0; i < 3; i++) {
+                double angle = turn + i * 2 * Math.PI / 3;
+                float twinkle = moving ? (float) (0.5 + 0.5 * Math.sin(2 * Math.PI * (now % 1800) / 1800 + i * 2.1)) : 0.6f;
+                float sx = cx + (float) Math.cos(angle) * orbit, sy = cy + (float) Math.sin(angle) * orbit * 0.85f;
+                float r = AndroidUtilities.dp(1.1f) + AndroidUtilities.dp(0.9f) * twinkle;
+                spark.setColor(0xFFFFFFFF);
+                spark.setAlpha(Math.round(alpha * (0.35f + 0.55f * twinkle)));
+                canvas.drawCircle(sx, sy, r, spark);
+                spark.setColor(accent);
+                spark.setAlpha(Math.round(alpha * 0.35f * twinkle));
+                canvas.drawCircle(sx, sy, r * 2.2f, spark);
+            }
             badge.setBounds(x, (height - badgeSize) / 2, x + badgeSize, (height + badgeSize) / 2);
             badge.draw(canvas);
             canvas.restoreToCount(save);
+            if (moving) invalidateSelf();
         }
 
         @Override public void setAlpha(int alpha) {
+            this.alpha = alpha;
             if (base != null) base.setAlpha(alpha);
             badge.setAlpha(alpha);
         }
