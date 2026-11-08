@@ -470,3 +470,12 @@ item view and shows an enlarged, blurred, dimmed copy of the photo `imageUpdated
 catalog key `media_ambient` is on (Android `NebulaMediaAmbient`). It samples nothing per frame and
 does not touch zooming or dismissal. Videos keep the plain background. Switch: Appearance →
 Glow behind photos in the viewer.
+
+## 0131 — hide the bottom bar while scrolling chats
+
+`ChatListControllerNode.contentOffsetChanged`, primary list only: `NebulaTabScroll` (contract, Android
+`NebulaTabScroll`) hides the bar through Telegram's own `TabBarController.updateIsTabBarHidden` after a
+steady 72-point drag down and shows it after a 32-point pull back or at the top; a change of
+direction resets the distance and programmatic scrolling is ignored. Search keeps Telegram's own
+hide/show; turning the switch off shows the bar again. Switch: Navigation → Hide the bar while
+scrolling chats (default off).

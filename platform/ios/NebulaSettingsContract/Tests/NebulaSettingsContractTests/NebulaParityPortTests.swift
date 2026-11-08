@@ -199,3 +199,18 @@ final class NebulaAiOutputTests: XCTestCase {
         XCTAssertFalse(NebulaAiOutput.responseOnly(defaults)); XCTAssertTrue(NebulaAiOutput.quoteAnswer(defaults))
     }
 }
+
+final class NebulaTabScrollTests: XCTestCase {
+    func testThresholdsDirectionAndTop() {
+        var state = NebulaTabScroll()
+        XCTAssertFalse(state.scrolled(dy: 40, atTop: false, manual: true))
+        XCTAssertTrue(state.scrolled(dy: 40, atTop: false, manual: true)); XCTAssertTrue(state.hidden)
+        XCTAssertFalse(state.scrolled(dy: -20, atTop: false, manual: true))
+        XCTAssertFalse(state.scrolled(dy: 5, atTop: false, manual: true))
+        XCTAssertFalse(state.scrolled(dy: -20, atTop: false, manual: true))
+        XCTAssertTrue(state.scrolled(dy: -20, atTop: false, manual: true)); XCTAssertFalse(state.hidden)
+        XCTAssertFalse(state.scrolled(dy: 500, atTop: false, manual: false))
+        _ = state.scrolled(dy: 100, atTop: false, manual: true); XCTAssertTrue(state.hidden)
+        XCTAssertTrue(state.scrolled(dy: 0, atTop: true, manual: false)); XCTAssertFalse(state.hidden)
+    }
+}

@@ -197,6 +197,7 @@ private enum NebulaSettingsEntry: ItemListNodeEntry {
             case "unlimited_selection": return 90
             case "home_nebulalink": return 91
             case "media_ambient": return 92
+            case "tabs_hide_on_scroll": return 93
             case "folder_title": return 40
             case "folder_outline": return 47
             case "hide_search_field": return 48
@@ -453,6 +454,7 @@ public func nebulaSettingsController(context: AccountContext, page: Int = 0, sea
             .navigationToggle("compact_bottom_bar", ru ? "Компактная нижняя панель" : "Compact bottom bar", store.compactBottomBar, !store.hasLoadError),
             .navigationToggle("hide_home_camera", ru ? "Скрыть камеру на главной" : "Hide camera on home", store.hideHomeCamera, !store.hasLoadError),
             .navigationToggle("media_ambient", ru ? "Свечение за фото в просмотрщике" : "Glow behind photos in the viewer", store.mediaAmbient, !store.hasLoadError),
+            .navigationToggle("tabs_hide_on_scroll", ru ? "Скрывать панель при прокрутке чатов" : "Hide the bar while scrolling chats", NebulaTabScroll.enabled(), true),
             .navigationToggle("home_nebulalink", ru ? "NebulaLink на главной" : "NebulaLink on home", NebulaHomeLink.enabled(), true),
             .navigationToggle("hide_home_compose", ru ? "Скрыть кнопку нового чата" : "Hide new-chat button", store.hideHomeCompose, !store.hasLoadError),
             .navigationToggle("unlimited_selection", ru ? "«Выделить загруженные» без лимита 100" : "Select loaded without the 100 limit", store.unlimitedSelection, !store.hasLoadError),
@@ -544,7 +546,7 @@ public func nebulaSettingsController(context: AccountContext, page: Int = 0, sea
             case .navigation, .contacts, .category(4, _, _, _): return true
             case let .navigationToggle(key, _, _, _):
                 return ["bottom_bar", "bottom_bar_profile", "bottom_bar_settings", "tab_labels", "compact_bottom_bar",
-                    "hide_home_camera", "hide_home_compose", "home_nebulalink"].contains(key)
+                    "hide_home_camera", "hide_home_compose", "home_nebulalink", "tabs_hide_on_scroll"].contains(key)
             default: return false
             }
         }
@@ -837,6 +839,7 @@ public func nebulaSettingsController(context: AccountContext, page: Int = 0, sea
     }
     arguments.updateKey = { key, value in
         if key == "home_nebulalink" { NebulaHomeLink.setEnabled(value); return }
+        if key == "tabs_hide_on_scroll" { NebulaTabScroll.setEnabled(value); return }
         do { try store.set(.boolean(value), for: key);writeFailed.set(false) }
         catch { writeFailed.set(true) }
     }
