@@ -462,3 +462,11 @@ shortcut keeps the slot when both are on; the camera returns when both are off. 
 through the existing `homeShortcutChanged` signal. `TelegramRootController.nebulaOpenLink` presents
 the NebulaLink screen (`SettingsUI.nebulaLinkController`, now public) only for its own tab host;
 presenting it starts no tunnel or probe. Switch: Navigation → NebulaLink on home.
+
+## 0130 — glow behind photos in the media viewer
+
+`ChatImageGalleryItemNode`: a `NebulaMediaAmbientView` (GalleryUI overlay) sits at the bottom of the
+item view and shows an enlarged, blurred, dimmed copy of the photo `imageUpdated` delivers, when the
+catalog key `media_ambient` is on (Android `NebulaMediaAmbient`). It samples nothing per frame and
+does not touch zooming or dismissal. Videos keep the plain background. Switch: Appearance →
+Glow behind photos in the viewer.

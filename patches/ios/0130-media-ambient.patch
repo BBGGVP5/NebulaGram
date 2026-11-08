@@ -1,0 +1,36 @@
+diff --git a/submodules/GalleryUI/Sources/Items/ChatImageGalleryItem.swift b/submodules/GalleryUI/Sources/Items/ChatImageGalleryItem.swift
+index a1f9746..438d0e9 100644
+--- a/submodules/GalleryUI/Sources/Items/ChatImageGalleryItem.swift
++++ b/submodules/GalleryUI/Sources/Items/ChatImageGalleryItem.swift
+@@ -230,6 +230,8 @@ final class ChatImageGalleryItemNode: ZoomableContentGalleryItemNode {
+     private var sendSticker: ((FileMediaReference) -> Void)?
+     
+     private let imageNode: TransformImageNode
++    // NebulaGram media ambient: blurred copy of the photo behind it.
++    private lazy var nebulaAmbient = NebulaMediaAmbientView()
+     private var recognizedContentNode: RecognizedContentContainer?
+     
+     private let recognitionOverlayContentNode: ImageRecognitionOverlayContentNode
+@@ -297,8 +299,9 @@ final class ChatImageGalleryItemNode: ZoomableContentGalleryItemNode {
+         
+         self.clipsToBounds = true
+         
+-        self.imageNode.imageUpdated = { [weak self] _ in
++        self.imageNode.imageUpdated = { [weak self] image in
+             self?._ready.set(.single(Void()))
++            self?.nebulaAmbient.update(image: image)
+         }
+         
+         self.imageNode.view.contentMode = .scaleAspectFill
+@@ -357,6 +360,11 @@ final class ChatImageGalleryItemNode: ZoomableContentGalleryItemNode {
+     override func containerLayoutUpdated(_ layout: ContainerViewLayout, navigationBarHeight: CGFloat, transition: ContainedViewLayoutTransition) {
+         super.containerLayoutUpdated(layout, navigationBarHeight: navigationBarHeight, transition: transition)
+         
++        if self.nebulaAmbient.superview == nil {
++            self.view.insertSubview(self.nebulaAmbient, at: 0)
++        }
++        self.nebulaAmbient.frame = CGRect(origin: CGPoint(), size: layout.size)
++
+         let statusSize = CGSize(width: 50.0, height: 50.0)
+         transition.updateFrame(node: self.statusNodeContainer, frame: CGRect(origin: CGPoint(x: floor((layout.size.width - statusSize.width) / 2.0), y: floor((layout.size.height - statusSize.height) / 2.0)), size: statusSize))
+         transition.updateFrame(node: self.statusNode, frame: CGRect(origin: CGPoint(), size: statusSize))

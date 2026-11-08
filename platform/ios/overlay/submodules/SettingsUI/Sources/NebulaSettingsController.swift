@@ -196,6 +196,7 @@ private enum NebulaSettingsEntry: ItemListNodeEntry {
             case "disable_next_channel": return 38
             case "unlimited_selection": return 90
             case "home_nebulalink": return 91
+            case "media_ambient": return 92
             case "folder_title": return 40
             case "folder_outline": return 47
             case "hide_search_field": return 48
@@ -451,6 +452,7 @@ public func nebulaSettingsController(context: AccountContext, page: Int = 0, sea
             .navigationToggle("tab_labels", ru ? "Подписи вкладок" : "Tab labels", store.showTabLabels, !store.hasLoadError),
             .navigationToggle("compact_bottom_bar", ru ? "Компактная нижняя панель" : "Compact bottom bar", store.compactBottomBar, !store.hasLoadError),
             .navigationToggle("hide_home_camera", ru ? "Скрыть камеру на главной" : "Hide camera on home", store.hideHomeCamera, !store.hasLoadError),
+            .navigationToggle("media_ambient", ru ? "Свечение за фото в просмотрщике" : "Glow behind photos in the viewer", store.mediaAmbient, !store.hasLoadError),
             .navigationToggle("home_nebulalink", ru ? "NebulaLink на главной" : "NebulaLink on home", NebulaHomeLink.enabled(), true),
             .navigationToggle("hide_home_compose", ru ? "Скрыть кнопку нового чата" : "Hide new-chat button", store.hideHomeCompose, !store.hasLoadError),
             .navigationToggle("unlimited_selection", ru ? "«Выделить загруженные» без лимита 100" : "Select loaded without the 100 limit", store.unlimitedSelection, !store.hasLoadError),
