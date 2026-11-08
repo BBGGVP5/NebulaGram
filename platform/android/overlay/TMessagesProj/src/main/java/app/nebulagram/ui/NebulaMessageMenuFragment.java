@@ -35,6 +35,12 @@ public final class NebulaMessageMenuFragment extends BaseFragment {
         items.add(toggle(c,"tools",true,"Инструменты NebulaGram","NebulaGram tools"));
         NebulaFormUi.group(content,text("Действия","Actions"),items);
         content.addView(NebulaFormUi.note(c,text("Появляются только действия, доступные для выбранного сообщения. Редактирование и удаление всегда остаются доступны. Настройки применяются при следующем открытии меню.","Only actions available for the selected message are shown. Edit and delete always stay available. Changes apply the next time you open it.")));
+        NebulaCard forwarding=new NebulaCard(c);
+        forwarding.add(new NebulaRow(c).title(text("Редактирование перед пересылкой","Edit before forwarding"))
+                .subtitle(text("Меняйте текст и подписи до отправки. Несколько сообщений открываются по очереди; вложения и альбомы сохраняются.","Edit text and captions before sending. Selected messages open one by one; media and albums stay intact."),false)
+                .trailing(NebulaRow.TRAIL_SWITCH).checked(NebulaForwardEditing.enabled())
+                .withClick(v->NebulaForwardEditing.setEnabled(((NebulaRow)v).toggleChecked())));
+        NebulaFormUi.group(content,text("Пересылка","Forwarding"),forwarding);
         return fragmentView=NebulaSettingsLayout.wrap(c,actionBar,NebulaFormUi.scroll(c,content),-28);
     }
     private void previewMenu(View anchor){

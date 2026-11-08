@@ -24,7 +24,7 @@ public static class P implements SharedPreferences,SharedPreferences.Editor {Map
 static Map<String,String> values=new HashMap<>();public static void save(int p,String s){save("p"+p,s);}public static String read(int p){return read("p"+p);}public static boolean exists(int p){return !read(p).isEmpty();}
 public static void save(String k,String s){if(s.isEmpty())values.remove(k);else values.put(k,s);}public static String read(String k){return values.getOrDefault(k,"");}public static boolean exists(String k){return !read(k).isEmpty();}}
 ''',
-'app/nebulagram/ui/NebulaNanoAi.java':'''package app.nebulagram.ui;public class NebulaNanoAi {public static String generate(String p,String i,java.util.function.BooleanSupplier c){return i;}}''',
+'app/nebulagram/ui/NebulaNanoAi.java':'''package app.nebulagram.ui;public class NebulaNanoAi {public static String generate(String p,String i,java.util.function.BooleanSupplier c){return i;}public static String generate(String p,String i,java.util.function.BooleanSupplier c,boolean x,boolean t,NebulaAiClient.Progress g){return i;}}''',
 'CheckServices.java':'''import app.nebulagram.ui.*;import org.telegram.messenger.ApplicationLoader;public class CheckServices {
 static void check(boolean x,String n){if(!x)throw new AssertionError(n);}
 public static void main(String[] a)throws Exception{
