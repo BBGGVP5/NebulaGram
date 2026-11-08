@@ -484,7 +484,7 @@ public func nebulaSettingsController(context: AccountContext, page: Int = 0, sea
             .navigationToggle("reply_emoji", ru ? "Эмодзи в ответах" : "Emoji in replies", store.replyEmoji, !store.hasLoadError),
             .category(12, ru ? "Двойное нажатие на своё сообщение" : "Double tap your message",
                 (ru ? ["Реакция", "Редактировать", "Ответить", "Копировать", "Ничего"] : ["React", "Edit", "Reply", "Copy", "Nothing"])[store.ownDoubleTap], "hand.tap"),
-            .category(13, ru ? "Форма" : "Shape", ru ? "Форма аватаров и хвосты у сообщений" : "Avatar shape and message tails", "person.crop.circle"),
+            .category(13, ru ? "Форма" : "Shape", ru ? "Аватары, хвосты сообщений, чаты карточками" : "Avatars, message tails, chats as cards", "person.crop.circle"),
             .category(14, ru ? "Значки интерфейса" : "Interface icons", (NebulaImportedIcons.activeName ?? ["Telegram", "Cupertino", "Solar"][store.iconPack]), "square.grid.2x2"),
             .category(15, ru ? "Переключатели" : "Switches", (ru ? ["Системные", "Округлые", "Компактные", "Минималистичные"] : ["System", "Rounded", "Compact", "Minimal"])[store.switchStyle], "switch.2"),
             .navigationToggle("formatting_toolbar", ru ? "Панель форматирования" : "Formatting toolbar", store.formattingToolbar, !store.hasLoadError),

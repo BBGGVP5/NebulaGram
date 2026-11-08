@@ -417,3 +417,12 @@ applies after a restart. The former Avatars page becomes "Shape": avatar presets
 Rounded / Square set `avatar_round` (Android leaf and drop need per-corner radii the iOS avatar clip
 does not take); Android's uniform roundness, section gap and separate rows style Android's own
 cards and have no iOS counterpart in native inset-grouped lists.
+
+## 0125 — chats as cards
+
+`ChatListItemNode`: an extra `nebulaCardNode` above `backgroundNode` and below the content draws a
+5 % tint of the primary text colour with 16-point corners, inset 8 × 3 points, when
+`nebula.shape.chat_cards` is on (Android `NebulaChatCards`). The tint sits over whatever background
+is there, so it reads the same in light, dark and custom themes. Separators are hidden with cards;
+the archive row (`.groupReference`) keeps its native look. Row content and swipe geometry are not
+moved. The switch lives on the Shape page and applies as rows lay out again.

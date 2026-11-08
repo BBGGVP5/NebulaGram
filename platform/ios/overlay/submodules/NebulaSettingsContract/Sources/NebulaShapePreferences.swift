@@ -13,6 +13,17 @@ public enum NebulaShapePreferences {
         defaults.set(value, forKey: messageTailsKey)
     }
 
+    /// Every chat-list row on its own card (Android `chat_cards`), read by `ChatListItem`.
+    public static let chatCardsKey = "nebula.shape.chat_cards"
+
+    public static func chatCards(_ defaults: UserDefaults = .standard) -> Bool {
+        defaults.bool(forKey: chatCardsKey)
+    }
+
+    public static func setChatCards(_ value: Bool, _ defaults: UserDefaults = .standard) {
+        defaults.set(value, forKey: chatCardsKey)
+    }
+
     /// Avatar shapes that corner radii can express, with the roundness they map to
     /// (`avatar_round`, percent of a circle). Android's leaf and drop need
     /// per-corner radii, which the iOS avatar clip does not take.

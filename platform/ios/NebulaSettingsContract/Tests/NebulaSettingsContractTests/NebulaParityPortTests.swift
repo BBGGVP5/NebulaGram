@@ -100,6 +100,9 @@ final class NebulaShapePreferencesTests: XCTestCase {
         NebulaShapePreferences.setMessageTails(false, defaults)
         XCTAssertFalse(NebulaShapePreferences.messageTails(defaults))
         XCTAssertEqual(defaults.object(forKey: "nebula.shape.message_tails") as? Bool, false)
+        XCTAssertFalse(NebulaShapePreferences.chatCards(defaults))
+        NebulaShapePreferences.setChatCards(true, defaults)
+        XCTAssertTrue(NebulaShapePreferences.chatCards(defaults))
         typealias Shape = NebulaShapePreferences.AvatarShape
         XCTAssertEqual(Shape.allCases.map { $0.roundness }, [100, 78, 46, 0])
         XCTAssertEqual(Shape.matching(roundness: 46), .rounded)
