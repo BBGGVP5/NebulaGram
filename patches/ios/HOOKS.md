@@ -445,3 +445,11 @@ monospaced, serif and camera designs stay native. The file is validated by
 `NebulaFontFile.validate` (sfnt directory with `cmap` and `head`, 8 MB limit, Android
 `NebulaFontFile`), registered with `CTFontManagerRegisterGraphicsFont` and written atomically to
 Application Support only after it registers. Applies after a restart. Settings: Appearance → Font.
+
+## 0128 — registration month in the profile
+
+`PeerInfoProfileItems.swift`, user section, before the birthday: a "Registered" row with the month
+Telegram reported in `CachedUserData.peerStatusSettings.registrationDate`, formatted by
+`NebulaRegistrationMonth` ("YYYY-MM" or "MM.YYYY"; anything else is shown as is). Unlike Android
+0254 there are no ID-neighbour estimates and no history request: only Telegram's own value, no
+extra network traffic. Switch: Profile information → Registration month (default on).

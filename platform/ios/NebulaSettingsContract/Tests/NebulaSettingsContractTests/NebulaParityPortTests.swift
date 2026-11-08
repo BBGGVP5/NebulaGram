@@ -147,3 +147,25 @@ final class NebulaFontFileTests: XCTestCase {
         XCTAssertThrowsError(try NebulaFontFile.validate(Data(broken))) { XCTAssertEqual($0 as? NebulaFontFile.Failure, .table) }
     }
 }
+
+final class NebulaRegistrationMonthTests: XCTestCase {
+    func testParsesTelegramMonthShapes() {
+        XCTAssertEqual(NebulaRegistrationMonth.parse("2022-05")?.month, 5)
+        XCTAssertEqual(NebulaRegistrationMonth.parse("05.2022")?.year, 2022)
+        XCTAssertNil(NebulaRegistrationMonth.parse("2022-13"))
+        XCTAssertNil(NebulaRegistrationMonth.parse("1999-01"))
+        XCTAssertNil(NebulaRegistrationMonth.parse(""))
+        XCTAssertEqual(NebulaRegistrationMonth.display("2022-05", russian: false), "May 2022")
+        XCTAssertEqual(NebulaRegistrationMonth.display("05.2022", russian: true), "май 2022")
+        XCTAssertEqual(NebulaRegistrationMonth.display("spring", russian: false), "spring")
+        XCTAssertNil(NebulaRegistrationMonth.display(nil, russian: true))
+    }
+
+    func testRegistrationRowIsOnByDefault() {
+        let suite = "RegistrationTests." + UUID().uuidString
+        let defaults = UserDefaults(suiteName: suite)!; defer { defaults.removePersistentDomain(forName: suite) }
+        let prefs = NebulaMessagePreferences(defaults: defaults)
+        XCTAssertTrue(prefs.enabled("profile_registration"))
+        prefs.set("profile_registration", false); XCTAssertFalse(prefs.enabled("profile_registration"))
+    }
+}
