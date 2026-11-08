@@ -24,6 +24,17 @@ public enum NebulaShapePreferences {
         defaults.set(value, forKey: chatCardsKey)
     }
 
+    /// Profile tabs as separate buttons (Android `profile_tab_buttons`), read by the profile pane tabs.
+    public static let profileTabButtonsKey = "nebula.shape.profile_tab_buttons"
+
+    public static func profileTabButtons(_ defaults: UserDefaults = .standard) -> Bool {
+        defaults.bool(forKey: profileTabButtonsKey)
+    }
+
+    public static func setProfileTabButtons(_ value: Bool, _ defaults: UserDefaults = .standard) {
+        defaults.set(value, forKey: profileTabButtonsKey)
+    }
+
     /// Avatar shapes that corner radii can express, with the roundness they map to
     /// (`avatar_round`, percent of a circle). Android's leaf and drop need
     /// per-corner radii, which the iOS avatar clip does not take.

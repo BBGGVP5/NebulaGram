@@ -426,3 +426,11 @@ cards and have no iOS counterpart in native inset-grouped lists.
 is there, so it reads the same in light, dark and custom themes. Separators are hidden with cards;
 the archive row (`.groupReference`) keeps its native look. Row content and swipe geometry are not
 moved. The switch lives on the Shape page and applies as rows lay out again.
+
+## 0126 — profile tabs as buttons
+
+`HorizontalTabsComponent` gains `nebulaTabButtons` (default off, so folder tabs are unchanged): each
+regular tab view gets a 6 % primary-text tint capsule under its label. The liquid lens still marks
+and animates the selected tab, so selection code is untouched. `PeerInfoPaneContainerNode` passes
+`NebulaShapePreferences.profileTabButtons()` (Android `profile_tab_buttons`); the switch is on the
+Shape page.
