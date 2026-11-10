@@ -12,9 +12,9 @@ index 9e56a14..8a8e6a6 100644
                      let nebulaShortcut = NebulaAiSettings.shared.homeShortcut
                      self.storyButton = NavigationBarComponent.Button(id: "story",
 -                        content: nebulaShortcut ? .image(nebulaAiShortcutImage()) : .icon(imageName: "Chat List/AddStoryIcon"),
--                        overflow: nebulaShortcut ? NavigationBarComponent.Button.OverflowInfo(title: "Nebula AI", iconName: nil, priority: nil) : nil,
+-                        overflow: nebulaShortcut ? NavigationBarComponent.OverflowInfo(title: "Nebula AI", iconName: nil, priority: nil) : nil,
 +                        content: nebulaShortcut ? .image(nebulaAiShortcutImage()) : nebulaLinkShortcut ? .image(nebulaLinkShortcutImage()) : .icon(imageName: "Chat List/AddStoryIcon"),
-+                        overflow: nebulaShortcut ? NavigationBarComponent.Button.OverflowInfo(title: "Nebula AI", iconName: nil, priority: nil) : nebulaLinkShortcut ? NavigationBarComponent.Button.OverflowInfo(title: "NebulaLink", iconName: nil, priority: nil) : nil,
++                        overflow: nebulaShortcut ? NavigationBarComponent.OverflowInfo(title: "Nebula AI", iconName: nil, priority: nil) : nebulaLinkShortcut ? NavigationBarComponent.OverflowInfo(title: "NebulaLink", iconName: nil, priority: nil) : nil,
                          action: { [weak self] sourceView in
                              guard let self, let parentController = self.parentController else {
                                  return

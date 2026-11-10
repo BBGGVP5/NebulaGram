@@ -38,7 +38,7 @@ index 66fc3db..59a4cfd 100644
 +        }
 +        let dy = current.flatMap { value in self.nebulaLastListOffset.map { value - $0 } } ?? 0.0
 +        self.nebulaLastListOffset = current
-+        let manual = listView.isTracking || listView.isDragging || listView.isDeceleratingAfterTracking
++        let manual = listView.isTracking || listView.isDragging || listView.scroller.isDecelerating
 +        if self.nebulaTabScroll.scrolled(dy: Double(dy), atTop: atTop, manual: manual) {
 +            tabBarController.updateIsTabBarHidden(self.nebulaTabScroll.hidden, transition: transition)
 +        }

@@ -43,7 +43,7 @@ diff --git a/submodules/ChatListUI/Sources/ChatListController.swift b/submodules
                      self.storyButton = NavigationBarComponent.Button(id: "story",
 -                        content: .icon(imageName: "Chat List/AddStoryIcon"),
 +                        content: nebulaShortcut ? .image(nebulaAiShortcutImage()) : .icon(imageName: "Chat List/AddStoryIcon"),
-+                        overflow: nebulaShortcut ? NavigationBarComponent.Button.OverflowInfo(title: "Nebula AI", iconName: nil, priority: nil) : nil,
++                        overflow: nebulaShortcut ? NavigationBarComponent.OverflowInfo(title: "Nebula AI", iconName: nil, priority: nil) : nil,
                          action: { [weak self] sourceView in
                              guard let self, let parentController = self.parentController else {
                                  return
