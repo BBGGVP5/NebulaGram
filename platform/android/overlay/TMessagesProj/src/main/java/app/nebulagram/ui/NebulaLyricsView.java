@@ -55,6 +55,14 @@ public final class NebulaLyricsView extends View {
     }
     public void setOnSeek(LongConsumer seek) { this.seek = seek; }
     public void setColor(int color) { this.color = color; invalidate(); }
+    private boolean apple;
+    /** Крупные жирные строки, как в Apple Music: активная яркая, остальные притушены. */
+    public void setApple(boolean value) {
+        apple = value;
+        paint.setTextSize(AndroidUtilities.dp(value ? 30 : 24));
+        paint.setTypeface(value ? AndroidUtilities.bold() : null);
+        layoutWidth = -1; requestLayout(); invalidate();
+    }
     public void setLyrics(NebulaLrc lyrics, CharSequence message) {
         this.lyrics = lyrics; this.message = message; current = -1; scroll = 0; layoutWidth = -1;
         emphasis = new float[lyrics == null ? 0 : lyrics.lines.size()];
@@ -100,7 +108,7 @@ public final class NebulaLyricsView extends View {
                 StaticLayout layout = StaticLayout.Builder.obtain(message, 0, message.length(), paint, Math.max(1, getWidth() - getPaddingLeft() - getPaddingRight()))
                     .setAlignment(Layout.Alignment.ALIGN_CENTER).build();
                 canvas.save(); canvas.translate(getPaddingLeft(), (getHeight() - layout.getHeight()) / 2f); layout.draw(canvas); canvas.restore();
-                paint.setTextSize(AndroidUtilities.dp(24));
+                paint.setTextSize(AndroidUtilities.dp(apple ? 30 : 24));
             }
             return;
         }
@@ -124,8 +132,8 @@ public final class NebulaLyricsView extends View {
             if (Math.abs(goal - emphasis[i]) > 0.01f) animating = true;
             int top = tops.get(i);
             if (top - scroll > getHeight() || top + layouts.get(i).getHeight() - scroll < 0) continue;
-            float scale = 0.92f + 0.08f * emphasis[i];
-            paint.setColor(color); paint.setAlpha((int)(255 * (0.38f + 0.62f * emphasis[i])));
+            float scale = apple ? 1f : 0.92f + 0.08f * emphasis[i];
+            paint.setColor(color); paint.setAlpha((int)(255 * ((apple ? 0.3f : 0.38f) + (apple ? 0.7f : 0.62f) * emphasis[i])));
             canvas.save(); canvas.translate(0, top); canvas.scale(scale, scale, 0, 0);
             layouts.get(i).draw(canvas); canvas.restore();
         }
