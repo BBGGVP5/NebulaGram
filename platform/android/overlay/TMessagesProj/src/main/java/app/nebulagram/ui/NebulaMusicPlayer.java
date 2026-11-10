@@ -53,7 +53,7 @@ public final class NebulaMusicPlayer extends FrameLayout implements Notification
     private final TextView title, author, time, duration, lyricsButton, returnButton;
     private final NebulaWaveSeekBar seekBar;
     private final ImageView play;
-    private final PlayPauseDrawable playIcon = new PlayPauseDrawable(30);
+    private final PlayPauseDrawable playIcon = new PlayPauseDrawable(NebulaMediaPreferences.playerStyle() == NebulaMediaPreferences.STYLE_APPLE ? 44 : 30);
     private final GradientDrawable playShape = new GradientDrawable(), prevShape = new GradientDrawable(), nextShape = new GradientDrawable();
     private final RLottieImageView prev, next;
     private int top = BASE_TOP, bottom = BASE_BOTTOM, accent = 0xffe8def8, onAccent = 0xff1d192b;
@@ -63,6 +63,12 @@ public final class NebulaMusicPlayer extends FrameLayout implements Notification
     private String trackKey;
     private boolean showingLyrics, playlist, released;
     private int lastSecond = -1;
+    /** Вид Apple Music: размытая обложка фоном, тонкие шкалы, кнопки без подложек. */
+    private final boolean apple = NebulaMediaPreferences.playerStyle() == NebulaMediaPreferences.STYLE_APPLE;
+    private final NebulaAppleBackdrop backdrop = new NebulaAppleBackdrop();
+    private NebulaAppleSlider slider, volume;
+    private float dragStartY, dragStartX;
+    private boolean draggingDown;
 
     public static NebulaMusicPlayer install(BottomSheet sheet, ViewGroup container, ActionBarMenuItem options, ActionBarMenuItem repeat, int account) {
         if (!NebulaMediaPreferences.expressivePlayer()) return null;
@@ -75,7 +81,9 @@ public final class NebulaMusicPlayer extends FrameLayout implements Notification
     private NebulaMusicPlayer(Context context, BottomSheet sheet, ActionBarMenuItem options, ActionBarMenuItem repeat, int account) {
         super(context);
         this.sheet = sheet; this.options = options; this.repeat = repeat; this.account = account;
-        setBackground(background);
+        setBackground(apple ? backdrop : background);
+        backdrop.setCallback(this);
+        backdrop.setMoving(!NebulaGlass.reduced() && (android.os.Build.VERSION.SDK_INT < 26 || ValueAnimator.areAnimatorsEnabled()));
         setClickable(true);
 
         content = new LinearLayout(context);
@@ -94,7 +102,16 @@ public final class NebulaMusicPlayer extends FrameLayout implements Notification
         ImageView more = icon(context, R.drawable.ic_ab_other, NebulaText.text("Ещё", "More"));
         more.setOnClickListener(v -> { if (options != null && options.getVisibility() == VISIBLE) options.toggleSubMenu(); });
         header.addView(more, LayoutHelper.createFrame(48, 48, Gravity.RIGHT | Gravity.CENTER_VERTICAL, 0, 0, -12, 0));
-        content.addView(header, LayoutHelper.createLinear(-1, 52));
+        if (apple) {
+            // Вместо заголовка — «ручка» листа; закрывается и смахиванием вниз.
+            header.removeAllViews();
+            View grabber = new View(context);
+            grabber.setBackground(round(0x66ffffff, 3));
+            header.addView(grabber, LayoutHelper.createFrame(40, 5, Gravity.CENTER));
+            header.setOnClickListener(v -> sheet.dismiss());
+            header.setContentDescription(NebulaText.text("Свернуть", "Collapse"));
+        }
+        content.addView(header, LayoutHelper.createLinear(-1, apple ? 36 : 52));
 
         stage = new FrameLayout(context) {
             @Override protected void onMeasure(int w, int h) {
@@ -109,14 +126,18 @@ public final class NebulaMusicPlayer extends FrameLayout implements Notification
             }
         };
         cover = new BackupImageView(context);
-        cover.setRoundRadius(AndroidUtilities.dp(28));
-        cover.setBackground(round(0x33ffffff, 28));
+        cover.setRoundRadius(AndroidUtilities.dp(apple ? 14 : 28));
+        cover.setBackground(round(0x33ffffff, apple ? 14 : 28));
+        if (apple) { cover.setElevation(AndroidUtilities.dp(18)); cover.setOutlineProvider(new android.view.ViewOutlineProvider() {
+            @Override public void getOutline(View view, android.graphics.Outline outline) { outline.setRoundRect(0, 0, view.getWidth(), view.getHeight(), AndroidUtilities.dp(14)); }
+        }); }
         cover.getImageReceiver().setDelegate((receiver, set, thumb, memCache) -> {
-            if (set) tint(receiver.getBitmap());
+            if (set) { tint(receiver.getBitmap()); if (apple) backdrop.setCover(receiver.getBitmap()); }
         });
         stage.addView(cover, new FrameLayout.LayoutParams(AndroidUtilities.dp(280), AndroidUtilities.dp(280), Gravity.CENTER));
         lyricsView = new NebulaLyricsView(context);
         lyricsView.setAlpha(0f); lyricsView.setVisibility(GONE);
+        lyricsView.setApple(apple);
         lyricsView.setOnSeek(ms -> {
             MessageObject current = MediaController.getInstance().getPlayingMessageObject();
             double length = current == null ? 0 : current.getDuration();
@@ -125,12 +146,26 @@ public final class NebulaMusicPlayer extends FrameLayout implements Notification
         stage.addView(lyricsView, new FrameLayout.LayoutParams(-1, -1));
         content.addView(stage, LayoutHelper.createLinear(-1, 0, 1f, 0, 8, 0, 8));
 
-        title = text(context, 24, true);
+        title = text(context, apple ? 22 : 24, true);
         title.setSingleLine(true); title.setEllipsize(TextUtils.TruncateAt.MARQUEE); title.setMarqueeRepeatLimit(-1); title.setSelected(true);
-        content.addView(title, LayoutHelper.createLinear(-1, -2, 0, 8, 0, 0));
-        author = text(context, 16, false);
-        author.setSingleLine(true); author.setEllipsize(TextUtils.TruncateAt.END); author.setAlpha(0.72f);
-        content.addView(author, LayoutHelper.createLinear(-1, -2, 0, 2, 0, 8));
+        author = text(context, apple ? 20 : 16, false);
+        author.setSingleLine(true); author.setEllipsize(TextUtils.TruncateAt.END); author.setAlpha(apple ? 0.6f : 0.72f);
+        if (apple) {
+            // Название и исполнитель слева, круглая «…» справа — как в Apple Music.
+            FrameLayout info = new FrameLayout(context);
+            LinearLayout names = new LinearLayout(context); names.setOrientation(LinearLayout.VERTICAL);
+            names.addView(title, LayoutHelper.createLinear(-1, -2));
+            names.addView(author, LayoutHelper.createLinear(-1, -2, 0, 1, 0, 0));
+            info.addView(names, LayoutHelper.createFrame(-1, -2, Gravity.CENTER_VERTICAL, 0, 0, 48, 0));
+            ImageView dots = icon(context, R.drawable.ic_ab_other, NebulaText.text("Ещё", "More"));
+            dots.setBackground(round(0x26ffffff, 16));
+            dots.setOnClickListener(v -> { if (options != null && options.getVisibility() == VISIBLE) options.toggleSubMenu(); });
+            info.addView(dots, LayoutHelper.createFrame(32, 32, Gravity.RIGHT | Gravity.CENTER_VERTICAL));
+            content.addView(info, LayoutHelper.createLinear(-1, -2, 0, 16, 0, 14));
+        } else {
+            content.addView(title, LayoutHelper.createLinear(-1, -2, 0, 8, 0, 0));
+            content.addView(author, LayoutHelper.createLinear(-1, -2, 0, 2, 0, 8));
+        }
 
         seekBar = new NebulaWaveSeekBar(context);
         seekBar.setListener(new NebulaWaveSeekBar.Listener() {
@@ -142,13 +177,27 @@ public final class NebulaMusicPlayer extends FrameLayout implements Notification
                 if (track != null) time.setText(AndroidUtilities.formatShortDuration((int) (track.getDuration() * progress)));
             }
         });
-        content.addView(seekBar, LayoutHelper.createLinear(-1, 40, -12, 0, -12, 0));
+        if (apple) {
+            seekBar.setVisibility(GONE);
+            slider = new NebulaAppleSlider(context);
+            slider.setListener(new NebulaAppleSlider.Listener() {
+                @Override public void onDrag(float value) {
+                    if (track != null) { time.setText(AndroidUtilities.formatShortDuration((int) (track.getDuration() * value))); remaining(value); }
+                }
+                @Override public void onSeek(float value) {
+                    MessageObject current = MediaController.getInstance().getPlayingMessageObject();
+                    if (current != null) MediaController.getInstance().seekToProgress(current, value);
+                }
+            });
+            content.addView(slider, LayoutHelper.createLinear(-1, 28));
+        } else content.addView(seekBar, LayoutHelper.createLinear(-1, 40, -12, 0, -12, 0));
         FrameLayout times = new FrameLayout(context);
         time = text(context, 13, false); time.setAlpha(0.72f);
         duration = text(context, 13, false); duration.setAlpha(0.72f);
         times.addView(time, LayoutHelper.createFrame(-2, -2, Gravity.LEFT));
         times.addView(duration, LayoutHelper.createFrame(-2, -2, Gravity.RIGHT));
-        content.addView(times, LayoutHelper.createLinear(-1, -2, 0, 0, 0, 16));
+        if (apple) { time.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 12); duration.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 12); time.setAlpha(.55f); duration.setAlpha(.55f); }
+        content.addView(times, LayoutHelper.createLinear(-1, -2, 0, 0, 0, apple ? 8 : 16));
 
         LinearLayout controls = new LinearLayout(context);
         controls.setGravity(Gravity.CENTER);
@@ -169,19 +218,57 @@ public final class NebulaMusicPlayer extends FrameLayout implements Notification
         controls.addView(prev, LayoutHelper.createLinear(0, 64, 1f, 0, 0, 8, 0));
         controls.addView(play, LayoutHelper.createLinear(0, 88, 1.4f, 0, 0, 0, 0));
         controls.addView(next, LayoutHelper.createLinear(0, 64, 1f, 8, 0, 0, 0));
-        content.addView(controls, LayoutHelper.createLinear(-1, 88, 0, 0, 0, 16));
+        if (apple) {
+            // Крупные значки без подложек.
+            prev.setBackground(null); next.setBackground(null); play.setBackground(null);
+            prev.setAnimation(R.raw.player_prev, 34, 34); next.setAnimation(R.raw.player_prev, 34, 34);
+            for (RLottieImageView view : new RLottieImageView[]{prev, next})
+                for (String layer : new String[]{"Triangle 3", "Triangle 4", "Rectangle 4"}) view.setLayerColor(layer, 0xffffffff);
+        }
+        content.addView(controls, LayoutHelper.createLinear(-1, 88, 0, 0, 0, apple ? 8 : 16));
+        if (apple) {
+            // Громкость системы, как в Apple Music: тонкая шкала между значками.
+            LinearLayout volumeRow = new LinearLayout(context);
+            volumeRow.setGravity(Gravity.CENTER_VERTICAL);
+            ImageView quiet = icon(context, R.drawable.msg_mute, null); quiet.setAlpha(.6f); quiet.setBackground(null);
+            ImageView loud = icon(context, R.drawable.msg_unmute, null); loud.setAlpha(.6f); loud.setBackground(null);
+            volume = new NebulaAppleSlider(context);
+            final android.media.AudioManager audio = (android.media.AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
+            volume.setListener(new NebulaAppleSlider.Listener() {
+                @Override public void onDrag(float value) { setVolume(audio, value); }
+                @Override public void onSeek(float value) { setVolume(audio, value); }
+            });
+            volumeRow.addView(quiet, LayoutHelper.createLinear(28, 28));
+            volumeRow.addView(volume, LayoutHelper.createLinear(0, 28, 1f, 8, 0, 8, 0));
+            volumeRow.addView(loud, LayoutHelper.createLinear(28, 28));
+            content.addView(volumeRow, LayoutHelper.createLinear(-1, 32, 0, 0, 0, 14));
+            readVolume();
+        }
 
         LinearLayout actions = new LinearLayout(context);
         actions.setGravity(Gravity.CENTER);
-        lyricsButton = chip(context, NebulaText.text("Текст", "Lyrics"), R.drawable.msg_photo_text_regular);
+        lyricsButton = chip(context, apple ? "" : NebulaText.text("Текст", "Lyrics"), apple ? R.drawable.menu_quote_specific : R.drawable.msg_photo_text_regular);
         lyricsButton.setOnClickListener(v -> toggleLyrics());
-        TextView queue = chip(context, NebulaText.text("Очередь", "Queue"), R.drawable.msg_list);
+        TextView queue = chip(context, apple ? "" : NebulaText.text("Очередь", "Queue"), R.drawable.msg_list);
         queue.setOnClickListener(v -> setPlaylist(true));
-        TextView order = chip(context, NebulaText.text("Порядок", "Order"), R.drawable.player_new_order);
+        TextView order = chip(context, apple ? "" : NebulaText.text("Порядок", "Order"), R.drawable.player_new_order);
         order.setOnClickListener(v -> { if (repeat != null) repeat.toggleSubMenu(); });
-        actions.addView(lyricsButton, LayoutHelper.createLinear(-2, 40, 0, 0, 8, 0));
-        actions.addView(queue, LayoutHelper.createLinear(-2, 40, 0, 0, 8, 0));
-        actions.addView(order, LayoutHelper.createLinear(-2, 40));
+        if (apple) {
+            // Нижний ряд — только значки, разнесённые по ширине.
+            lyricsButton.setContentDescription(NebulaText.text("Текст", "Lyrics"));
+            queue.setContentDescription(NebulaText.text("Очередь", "Queue"));
+            order.setContentDescription(NebulaText.text("Порядок", "Order"));
+            for (TextView view : new TextView[]{lyricsButton, order, queue}) {
+                view.setCompoundDrawablePadding(0); view.setPadding(AndroidUtilities.dp(10), 0, AndroidUtilities.dp(10), 0);
+                view.setBackground(null);
+                actions.addView(view, LayoutHelper.createLinear(0, 44, 1f));
+                tintIcon(view, 0x99ffffff);
+            }
+        } else {
+            actions.addView(lyricsButton, LayoutHelper.createLinear(-2, 40, 0, 0, 8, 0));
+            actions.addView(queue, LayoutHelper.createLinear(-2, 40, 0, 0, 8, 0));
+            actions.addView(order, LayoutHelper.createLinear(-2, 40));
+        }
         content.addView(actions, LayoutHelper.createLinear(-1, 40));
 
         returnButton = chip(context, NebulaText.text("Плеер", "Player"), R.drawable.msg_filled_data_music);
@@ -197,6 +284,43 @@ public final class NebulaMusicPlayer extends FrameLayout implements Notification
         center.addObserver(this, NotificationCenter.messagePlayingPlayStateChanged);
         center.addObserver(this, NotificationCenter.messagePlayingProgressDidChanged);
         center.addObserver(this, NotificationCenter.messagePlayingDidReset);
+    }
+
+    private void remaining(float value) {
+        if (!apple || track == null) return;
+        int length = (int) track.getDuration();
+        duration.setText(length > 0 ? "-" + AndroidUtilities.formatShortDuration(Math.max(0, length - (int) (length * value))) : "-:--");
+    }
+    private void setVolume(android.media.AudioManager audio, float value) {
+        if (audio == null) return;
+        int max = audio.getStreamMaxVolume(android.media.AudioManager.STREAM_MUSIC);
+        audio.setStreamVolume(android.media.AudioManager.STREAM_MUSIC, Math.round(value * max), 0);
+    }
+    private void readVolume() {
+        if (volume == null || volume.isDragging()) return;
+        android.media.AudioManager audio = (android.media.AudioManager) getContext().getSystemService(Context.AUDIO_SERVICE);
+        if (audio == null) return;
+        int max = Math.max(1, audio.getStreamMaxVolume(android.media.AudioManager.STREAM_MUSIC));
+        volume.setProgress(audio.getStreamVolume(android.media.AudioManager.STREAM_MUSIC) / (float) max);
+    }
+
+    @Override protected boolean verifyDrawable(android.graphics.drawable.Drawable who) { return who == backdrop || super.verifyDrawable(who); }
+    @Override protected void dispatchDraw(android.graphics.Canvas canvas) {
+        super.dispatchDraw(canvas);
+        if (apple && !playlist && !released && backdrop.animating()) postInvalidateOnAnimation();
+    }
+
+    /** Apple: лист смахивается вниз за любое свободное место. */
+    @Override public boolean onInterceptTouchEvent(MotionEvent event) {
+        if (!apple || playlist) return super.onInterceptTouchEvent(event);
+        switch (event.getActionMasked()) {
+            case MotionEvent.ACTION_DOWN: dragStartX = event.getX(); dragStartY = event.getY(); draggingDown = false; break;
+            case MotionEvent.ACTION_MOVE:
+                float dy = event.getY() - dragStartY, dx = Math.abs(event.getX() - dragStartX);
+                if (dy > AndroidUtilities.dp(16) && dy > dx * 2) { draggingDown = true; return true; }
+                break;
+        }
+        return super.onInterceptTouchEvent(event);
     }
 
     /** True while the player covers Telegram's sheet, so the sheet must not treat taps as outside. */
@@ -220,7 +344,19 @@ public final class NebulaMusicPlayer extends FrameLayout implements Notification
         if (shape != null) shape.cancel();
     }
 
-    @Override public boolean onTouchEvent(MotionEvent event) { return covering() && super.onTouchEvent(event); }
+    @Override public boolean onTouchEvent(MotionEvent event) {
+        if (apple && draggingDown) {
+            float dy = Math.max(0, event.getY() - dragStartY);
+            if (event.getActionMasked() == MotionEvent.ACTION_MOVE) { setTranslationY(dy); return true; }
+            if (event.getActionMasked() == MotionEvent.ACTION_UP || event.getActionMasked() == MotionEvent.ACTION_CANCEL) {
+                draggingDown = false;
+                if (dy > AndroidUtilities.dp(120)) sheet.dismiss();
+                else animate().translationY(0).setDuration(220).start();
+                return true;
+            }
+        }
+        return covering() && super.onTouchEvent(event);
+    }
     @Override public boolean dispatchTouchEvent(MotionEvent event) {
         if (playlist) {
             // Only the return chip is interactive while Telegram's queue is in front.
@@ -236,7 +372,9 @@ public final class NebulaMusicPlayer extends FrameLayout implements Notification
         else if (id == NotificationCenter.messagePlayingPlayStateChanged) {
             boolean playing = !MediaController.getInstance().isMessagePaused();
             playIcon.setPause(playing, true); setPlayShape(playing, true); seekBar.setPlaying(playing);
-            cover.animate().scaleX(playing ? 1f : 0.9f).scaleY(playing ? 1f : 0.9f).setDuration(320).start();
+            float rest = apple ? 0.8f : 0.9f;
+            cover.animate().scaleX(playing ? 1f : rest).scaleY(playing ? 1f : rest).setDuration(apple ? 520 : 320)
+                .setInterpolator(apple && !NebulaGlass.reduced() ? new android.view.animation.OvershootInterpolator(1.4f) : new android.view.animation.DecelerateInterpolator()).start();
             update();
         } else update();
     }
@@ -244,7 +382,7 @@ public final class NebulaMusicPlayer extends FrameLayout implements Notification
     private void setPlaylist(boolean value) {
         playlist = value;
         content.setVisibility(value ? GONE : VISIBLE);
-        setBackground(value ? null : background);
+        setBackground(value ? null : apple ? backdrop : background);
         returnButton.setVisibility(value ? VISIBLE : GONE);
         setClickable(!value);
     }
@@ -255,13 +393,15 @@ public final class NebulaMusicPlayer extends FrameLayout implements Notification
         boolean playing = !MediaController.getInstance().isMessagePaused();
         playIcon.setPause(playing, false);
         seekBar.setPlaying(playing);
-        cover.setScaleX(playing ? 1f : 0.9f); cover.setScaleY(playing ? 1f : 0.9f);
+        float rest = apple ? 0.8f : 0.9f;
+        cover.setScaleX(playing ? 1f : rest); cover.setScaleY(playing ? 1f : rest);
         String artist = current.getMusicAuthor(), name = current.getMusicTitle();
         int length = (int) current.getDuration();
         String key = current.getDialogId() + ":" + current.getId() + ":" + name + ":" + artist;
         title.setText(name); author.setText(artist);
         duration.setText(length > 0 ? AndroidUtilities.formatShortDuration(length) : "-:--");
         progress();
+        readVolume();
         if (key.equals(trackKey)) return;
         track = current; trackKey = key;
         loadCover(current, artist, name, length);
@@ -272,9 +412,12 @@ public final class NebulaMusicPlayer extends FrameLayout implements Notification
         MessageObject current = MediaController.getInstance().getPlayingMessageObject();
         if (current == null) return;
         seekBar.setProgress(current.audioProgress);
-        if (!seekBar.isDragging() && current.audioProgressSec != lastSecond) {
+        if (slider != null) slider.setProgress(current.audioProgress);
+        boolean dragging = slider != null ? slider.isDragging() : seekBar.isDragging();
+        if (!dragging && current.audioProgressSec != lastSecond) {
             lastSecond = current.audioProgressSec;
             time.setText(AndroidUtilities.formatShortDuration(lastSecond));
+            remaining(current.audioProgress);
         }
         lyricsView.setPosition((long) (current.audioProgress * current.getDuration() * 1000));
     }
@@ -342,6 +485,7 @@ public final class NebulaMusicPlayer extends FrameLayout implements Notification
                 if (released || palette == null) return;
                 int base = palette.getDarkVibrantColor(palette.getDarkMutedColor(palette.getDominantColor(BASE_TOP)));
                 int light = palette.getLightVibrantColor(palette.getVibrantColor(palette.getLightMutedColor(0xffe8def8)));
+                if (apple) backdrop.setPalette(palette.getVibrantColor(base), palette.getMutedColor(base), palette.getDominantColor(base));
                 animateTo(shade(base, 0.62f), shade(base, 0.22f), lift(light));
             });
         } catch (Exception ignore) {
@@ -381,7 +525,7 @@ public final class NebulaMusicPlayer extends FrameLayout implements Notification
     private void applyColors() {
         background.setColors(new int[]{top, bottom});
         playShape.setColor(accent);
-        playIcon.setColorFilter(new PorterDuffColorFilter(onAccent, PorterDuff.Mode.SRC_IN));
+        playIcon.setColorFilter(new PorterDuffColorFilter(apple ? 0xffffffff : onAccent, PorterDuff.Mode.SRC_IN));
         int tonal = (accent & 0x00ffffff) | 0x33000000;
         prevShape.setColor(tonal); nextShape.setColor(tonal);
         seekBar.setColors(accent, 0x40ffffff);
@@ -392,6 +536,11 @@ public final class NebulaMusicPlayer extends FrameLayout implements Notification
     private void applyChip(TextView chip) {
         if (chip == null) return;
         boolean on = chip.isSelected();
+        if (apple) {
+            chip.setBackground(on ? round(0x33ffffff, 22) : null);
+            tintIcon(chip, on ? 0xffffffff : 0x99ffffff);
+            return;
+        }
         chip.setBackground(round(on ? accent : 0x26ffffff, 20));
         chip.setTextColor(on ? onAccent : 0xffffffff);
         tintIcon(chip, on ? onAccent : 0xffffffff);

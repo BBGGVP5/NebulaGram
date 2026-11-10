@@ -16,6 +16,14 @@ public final class NebulaMediaFeaturesFragment extends BaseFragment {
         player.add(toggle(c, t("Плеер Material 3 Expressive", "Material 3 Expressive player"),
             t("Большая обложка, цвета из обложки, волновая шкала", "Large cover, colours from the artwork, wavy seek bar"),
             "expressive_player", NebulaMediaPreferences.expressivePlayer()));
+        String[] styles = {"Material 3 Expressive", "Apple Music"};
+        NebulaRow style = new NebulaRow(c).title(t("Вид плеера", "Player style"))
+            .value(styles[Math.max(0, Math.min(1, NebulaMediaPreferences.playerStyle()))]).trailing(NebulaRow.TRAIL_CHEVRON);
+        style.setOnClickListener(v -> new NebulaDialog.Builder(c).setTitle(t("Вид плеера", "Player style"))
+            .setSelectedIndex(NebulaMediaPreferences.playerStyle()).setItems(styles, (d, which) -> {
+                NebulaMediaPreferences.setPlayerStyle(which); style.value(styles[which]);
+            }).show());
+        player.add(style);
         player.add(toggle(c, t("Текст песен", "Lyrics"),
             t("Синхронный текст с lrclib.net", "Synced lyrics from lrclib.net"),
             "player_lyrics", NebulaMediaPreferences.lyrics()));
