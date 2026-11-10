@@ -1,0 +1,12 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
+index 28ca939c..3bb0f803 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
+@@ -6120,6 +6120,7 @@ public class ChatActivityEnterView extends FrameLayout implements
+                     LayoutHelper.createFrame(36, DEFAULT_HEIGHT, Gravity.BOTTOM | Gravity.RIGHT, 0, 0, 0, 0));
+             nebulaFormattingToolbar.setOnEligibilityChanged(() -> updateFieldRight(lastAttachVisible));
+             nebulaFormattingToolbar.setFormats(new app.nebulagram.ui.NebulaFormattingFormats());
++            nebulaFormattingToolbar.setAnchor(() -> sendButtonContainer); // «A» стоит ровно над кнопкой отправки/голосового
+             nebulaDraftTranslation = new app.nebulagram.ui.NebulaDraftTranslation(parentFragment, messageEditText, this, this::setFieldText);
+             aiButton.setOnLongClickListener(v -> { openNebulaTools(); return true; });
+         }

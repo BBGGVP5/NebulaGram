@@ -100,6 +100,9 @@ public final class NebulaFormattingToolbar extends HorizontalScrollView {
     private int toggleIdle;
     private int nextFlag;
     public void setFormats(Formats value) { formats = value; }
+    private java.util.function.Supplier<View> anchor;
+    /** Кнопка отправки/голосового: «A» встаёт ровно над ней. */
+    public void setAnchor(java.util.function.Supplier<View> value) { anchor = value; }
 
     private void add(String glyph, String ru, String en, int style, Runnable action) {
         add(glyph, ru, en, style, action, true);
@@ -498,7 +501,7 @@ public final class NebulaFormattingToolbar extends HorizontalScrollView {
             }
         }
 
-        private final int[] hostLocation = new int[2], composerLocation = new int[2];
+        private final int[] hostLocation = new int[2], composerLocation = new int[2], anchorLocation = new int[2];
 
         @Override public boolean onPreDraw() {
             View composer = toolbar.getParent() instanceof View ? (View) toolbar.getParent() : null;
@@ -514,6 +517,13 @@ public final class NebulaFormattingToolbar extends HorizontalScrollView {
             // что кнопка поднимается вместе с ней и висит над ней.
             float x = composerLocation[0] - hostLocation[0] + composer.getWidth() - size - AndroidUtilities.dp(12);
             float y = composerLocation[1] - hostLocation[1] - size - AndroidUtilities.dp(6);
+            // По центру кнопки голосового/отправки, а не на глаз от края поля.
+            View target = toolbar.anchor != null ? toolbar.anchor.get() : null;
+            if (target != null && target.isShown() && target.getWidth() > 0) {
+                target.getLocationInWindow(anchorLocation);
+                x = anchorLocation[0] - hostLocation[0] + (target.getWidth() - size) / 2f;
+                y = Math.min(y, anchorLocation[1] - hostLocation[1] - size - AndroidUtilities.dp(8));
+            }
             if (getX() != x) setX(x);
             if (getY() != y) setY(y);
             return true;
