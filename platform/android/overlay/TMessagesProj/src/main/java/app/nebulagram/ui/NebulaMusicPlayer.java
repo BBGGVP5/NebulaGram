@@ -279,20 +279,30 @@ public final class NebulaMusicPlayer extends FrameLayout implements Notification
         lyricsView.setPosition((long) (current.audioProgress * current.getDuration() * 1000));
     }
 
+    /**
+     * Обложка в полном качестве. Мелкая превьюшка из Telegram (до 320 точек)
+     * и встроенная в файл картинка ниже 600 точек идут только заглушкой, пока
+     * грузится большая: из iTunes в 1200 точек или самая крупная копия файла.
+     */
     private void loadCover(MessageObject current, String artist, String name, int length) {
         AudioInfo info = MediaController.getInstance().getAudioInfo();
         TLRPC.Document document = current.getDocument();
-        TLRPC.PhotoSize size = document == null ? null : FileLoader.getClosestPhotoSizeWithSize(document.thumbs, 360);
-        if (!(size instanceof TLRPC.TL_photoSize) && !(size instanceof TLRPC.TL_photoSizeProgressive)) size = null;
-        ImageLocation thumb = size != null ? ImageLocation.getForDocument(size, document) : null;
-        if (info != null && info.getCover() != null) cover.setImageBitmap(info.getCover());
-        else {
+        TLRPC.PhotoSize small = document == null ? null : FileLoader.getClosestPhotoSizeWithSize(document.thumbs, 90);
+        TLRPC.PhotoSize large = document == null ? null : FileLoader.getClosestPhotoSizeWithSize(document.thumbs, 1280);
+        if (!(large instanceof TLRPC.TL_photoSize) && !(large instanceof TLRPC.TL_photoSizeProgressive)) large = null;
+        if (!(small instanceof TLRPC.TL_photoSize) && !(small instanceof TLRPC.TL_photoSizeProgressive)) small = large;
+        final ImageLocation thumb = small != null ? ImageLocation.getForDocument(small, document) : null;
+        final ImageLocation full = large != null ? ImageLocation.getForDocument(large, document) : null;
+        android.graphics.Bitmap embedded = info != null ? info.getCover() : null;
+        boolean sharpEmbedded = embedded != null && Math.min(embedded.getWidth(), embedded.getHeight()) >= 600;
+        if (embedded != null) cover.setImageBitmap(embedded);
+        if (!sharpEmbedded) {
             String artwork = current.getArtworkUrl(false);
             if (!TextUtils.isEmpty(artwork)) cover.setImage(ImageLocation.getForPath(artwork), null, thumb, null, null, 0, 1, current);
-            else if (thumb != null) cover.setImage(null, null, thumb, null, null, 0, 1, current);
-            else { cover.setImageDrawable(null); tint(null); }
+            else if (full != null) cover.setImage(full, null, thumb, null, null, 0, 1, current);
+            else if (embedded == null) { cover.setImageDrawable(null); tint(null); }
         }
-        if (!NebulaMediaPreferences.appleCovers()) return;
+        if (sharpEmbedded || !NebulaMediaPreferences.appleCovers()) return;
         final String key = trackKey;
         // Animated Apple Music artwork needs a developer token; the iTunes Search
         // API gives the store's static artwork at full resolution instead.
