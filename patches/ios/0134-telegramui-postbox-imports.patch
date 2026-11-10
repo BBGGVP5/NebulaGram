@@ -1,0 +1,24 @@
+diff --git a/submodules/TelegramUI/Sources/ApplicationContext.swift b/submodules/TelegramUI/Sources/ApplicationContext.swift
+index 4711396..a2dd60f 100644
+--- a/submodules/TelegramUI/Sources/ApplicationContext.swift
++++ b/submodules/TelegramUI/Sources/ApplicationContext.swift
+@@ -6,6 +6,7 @@ import TelegramPresentationData
+ import TelegramUIPreferences
+ import SwiftSignalKit
+ import TelegramCore
++import Postbox
+ import Display
+ import LegacyComponents
+ import DeviceAccess
+diff --git a/submodules/TelegramUI/Sources/SharedAccountContext.swift b/submodules/TelegramUI/Sources/SharedAccountContext.swift
+index e48e855..5cbde93 100644
+--- a/submodules/TelegramUI/Sources/SharedAccountContext.swift
++++ b/submodules/TelegramUI/Sources/SharedAccountContext.swift
+@@ -4,6 +4,7 @@ import NebulaLinkUI
+ import UIKit
+ import AsyncDisplayKit
+ import TelegramCore
++import Postbox
+ import SwiftSignalKit
+ import WebProxyTransport
+ import Display

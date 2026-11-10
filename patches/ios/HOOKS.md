@@ -506,3 +506,10 @@ item has no per-row blur.
 weight, temperature, speed and time; without a target the value moves to the other measurement
 system (imperial when the device locale is not metric). Arithmetic keeps precedence. Currency and
 time zones are not ported. Switch: Chats → Messages and gestures → Unit conversion while typing.
+
+### 0134 — Postbox в TelegramUI
+
+`0134-telegramui-postbox-imports.patch`: Telegram iOS 13.1.1 убрал `import Postbox` из
+`ApplicationContext.swift` и `SharedAccountContext.swift`, а наши хуки уведомлений и
+расшифровки голосовых используют `Message`, `PeerGroupId` и транзакции Postbox. Патч
+возвращает импорт; модуль уже зависит от `//submodules/Postbox`.
