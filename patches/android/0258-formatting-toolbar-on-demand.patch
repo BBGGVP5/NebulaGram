@@ -1,5 +1,5 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
-index 07277857..a6d5a6aa 100644
+index 07277857..d3960acc 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
 @@ -5724,6 +5724,7 @@ public class ChatActivityEnterView extends FrameLayout implements
@@ -42,3 +42,25 @@ index 07277857..a6d5a6aa 100644
  
          if (oldRightMargin != layoutParams.rightMargin) {
              messageEditText.setLayoutParams(layoutParams);
+@@ -15071,6 +15090,21 @@ public class ChatActivityEnterView extends FrameLayout implements
+         // FrameLayout applies the accessory padding before translating the reply preview.
+         checkUi_TopViewVisibility();
+         nebulaComposerStyle.layout(emojiButton, attachButton, senderSelectView, aiButton, richButton);
++        if (nebulaFormattingToolbar != null) {
++            // «Aa» стоит левее значка эмодзи, когда тот внутри поля справа,
++            // а не поверх него.
++            View nebulaToggle = nebulaFormattingToolbar.toggle(getContext(), R.drawable.msg_text_outlined, getThemedColor(Theme.key_glass_defaultIcon));
++            nebulaToggle.setTranslationX(0);
++            if (nebulaToggle.getVisibility() == VISIBLE && emojiButton != null && emojiButton.getVisibility() == VISIBLE) {
++                int[] toggleAt = new int[2], emojiAt = new int[2];
++                nebulaToggle.getLocationInWindow(toggleAt);
++                emojiButton.getLocationInWindow(emojiAt);
++                int toggleRight = toggleAt[0] + nebulaToggle.getWidth();
++                if (emojiAt[0] < toggleRight && emojiAt[0] + emojiButton.getWidth() > toggleAt[0]) {
++                    nebulaToggle.setTranslationX(emojiAt[0] - toggleRight);
++                }
++            }
++        }
+         if (nebulaFormattingToolbar != null && nebulaFormattingHeight > 0) {
+             int toolbarBottom = nebulaFormattingHeight - dp(app.nebulagram.ui.NebulaFormattingToolbar.GAP_DP);
+             nebulaFormattingToolbar.layout(dp(8), toolbarBottom - dp(app.nebulagram.ui.NebulaFormattingToolbar.HEIGHT_DP),
