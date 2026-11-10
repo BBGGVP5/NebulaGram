@@ -113,8 +113,8 @@ diff --git a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/Pe
 +            let badgeSize: CGFloat = 16.0
 +            let expandedBadgeSize: CGFloat = 14.0
 +            titleHorizontalOffset -= (badgeSize + 3.0) / 2.0
-+            let collapsedTransitionOffset = -10.0 * (self.navigationTransition?.fraction ?? 0.0)
-+            transition.updateFrame(view: self.nebulaBadgeView, frame: CGRect(x: nextIconX + 3.0 + collapsedTransitionOffset, y: floor((titleSize.height - badgeSize) / 2.0), width: badgeSize, height: badgeSize))
++            // Telegram iOS 13.1.1 no longer keeps the header's navigation transition; the badge follows the title frame.
++            transition.updateFrame(view: self.nebulaBadgeView, frame: CGRect(x: nextIconX + 3.0, y: floor((titleSize.height - badgeSize) / 2.0), width: badgeSize, height: badgeSize))
 +            transition.updateFrame(view: self.nebulaExpandedBadgeView, frame: CGRect(x: nextExpandedIconX + 3.0, y: floor((titleExpandedSize.height - expandedBadgeSize) / 2.0) + 1.0, width: expandedBadgeSize, height: expandedBadgeSize))
 +        }
 +
