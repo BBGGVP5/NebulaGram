@@ -244,6 +244,16 @@ public final class NebulaFormattingToolbar extends HorizontalScrollView {
     /** Плавающая «A» видна, пока панель вообще может появиться. */
     private boolean openerVisible() { return eligible && preferenceEnabled; }
 
+    /**
+     * Ряд «A» над полем, который ещё не занят самой панелью. Поле ввода
+     * добавляет его только к высоте для списка сообщений: список поднимается,
+     * и кнопка не ложится поверх последнего сообщения. Отступ самого поля и
+     * анимация вылета сообщения от него не зависят.
+     */
+    public int openerRow() {
+        return openerVisible() ? Math.max(0, AndroidUtilities.dp(HEIGHT_DP + GAP_DP) - reservedHeight) : 0;
+    }
+
     /** Нажатие на плавающую «A»: открыть или свернуть панель. */
     private void toggleManually() {
         if (expanded) {
