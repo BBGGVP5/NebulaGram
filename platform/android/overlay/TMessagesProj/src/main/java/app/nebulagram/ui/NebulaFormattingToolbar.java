@@ -521,7 +521,10 @@ public final class NebulaFormattingToolbar extends HorizontalScrollView {
             View target = toolbar.anchor != null ? toolbar.anchor.get() : null;
             if (target != null && target.isShown() && target.getWidth() > 0) {
                 target.getLocationInWindow(anchorLocation);
-                x = anchorLocation[0] - hostLocation[0] + (target.getWidth() - size) / 2f;
+                // Контейнер шире самой кнопки (100 точек под «Отправить»), а круглая
+                // кнопка голосового/отправки — его правые 48 точек.
+                float button = Math.min(target.getWidth(), AndroidUtilities.dp(48));
+                x = anchorLocation[0] - hostLocation[0] + target.getWidth() - (button + size) / 2f;
                 y = Math.min(y, anchorLocation[1] - hostLocation[1] - size - AndroidUtilities.dp(8));
             }
             if (getX() != x) setX(x);
