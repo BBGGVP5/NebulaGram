@@ -1296,3 +1296,10 @@ waveform, есть имя файла или не ogg — боты, скрипт�
 `0301-formatting-opener-anchor.patch`, `ChatActivityEnterView.java`: рядом с созданием панели
 форматирования передаёт ей `sendButtonContainer` как опору. Плавающая «A» встаёт ровно по
 центру над кнопкой отправки/голосового, а не со сдвигом от края поля.
+
+### 0302 — медиа на цвете страницы профиля
+
+`0302-profile-media-on-page-colour.patch`, `SharedMediaLayout.java`, `MediaPage.drawPageBackground`:
+сплошная заливка `windowBackgroundGray` пропускается, когда страница профиля окрашена
+(`NebulaProfileStyle.pageColor` не ноль). Цвет профиля идёт под вкладками и сеткой медиа без
+перехода в чёрный; на обычном профиле заливка прежняя.
