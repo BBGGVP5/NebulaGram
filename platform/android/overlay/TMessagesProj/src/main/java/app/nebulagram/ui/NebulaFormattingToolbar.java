@@ -69,7 +69,9 @@ public final class NebulaFormattingToolbar extends HorizontalScrollView {
         // Keep scrolling tiles inside the rounded bar's inner gutter.
         setClipToPadding(true);
         setClipToOutline(true);
-        setPadding(AndroidUtilities.dp(8), AndroidUtilities.dp(4), AndroidUtilities.dp(8), AndroidUtilities.dp(4));
+        // Справа место под «A»: открытая панель разворачивается из неё влево,
+        // и кнопка остаётся у правого конца панели.
+        setPadding(AndroidUtilities.dp(8), AndroidUtilities.dp(4), AndroidUtilities.dp(HEIGHT_DP + 8), AndroidUtilities.dp(4));
         setFocusable(false);
         row = new LinearLayout(context);
         row.setGravity(Gravity.CENTER_VERTICAL);
@@ -294,20 +296,20 @@ public final class NebulaFormattingToolbar extends HorizontalScrollView {
             } else {
                 setVisibility(VISIBLE);
                 setAlpha(1f);
-                final int from = reservedHeight;
+                // Ряд под панель занимается сразу, без сдвига поля вниз, а сама
+                // панель разворачивается из «A» влево и так же сворачивается в неё.
+                if (visible) reservedHeight = target;
                 final float fromProgress = revealProgress;
                 reveal = android.animation.ValueAnimator.ofFloat(0f, 1f);
-                reveal.setDuration(visible ? 320 : 240);
-                reveal.setInterpolator(visible ? new android.view.animation.OvershootInterpolator(.9f)
+                reveal.setDuration(visible ? 340 : 240);
+                reveal.setInterpolator(visible ? new android.view.animation.OvershootInterpolator(.8f)
                         : new android.view.animation.AccelerateDecelerateInterpolator());
                 reveal.addUpdateListener(animation -> {
                     float t = (Float) animation.getAnimatedValue();
-                    // Высота растёт без пружины, ширина — с лёгкой пружиной.
                     float linear = animation.getAnimatedFraction();
-                    reservedHeight = Math.round(from + (target - from) * Math.min(1f, linear * 1.4f));
                     revealProgress = Math.max(0f, fromProgress + ((visible ? 1f : 0f) - fromProgress) * t);
                     row.setAlpha(Math.max(0f, Math.min(1f, (revealProgress - .35f) / .65f)));
-                    if (!expanded && linear >= 1f) setVisibility(GONE);
+                    if (!visible && linear >= 1f) { reservedHeight = 0; setVisibility(GONE); }
                     invalidate();
                     layoutChanged.run();
                 });
@@ -501,7 +503,7 @@ public final class NebulaFormattingToolbar extends HorizontalScrollView {
             }
         }
 
-        private final int[] hostLocation = new int[2], composerLocation = new int[2], anchorLocation = new int[2];
+        private final int[] hostLocation = new int[2], composerLocation = new int[2], anchorLocation = new int[2], toolbarLocation = new int[2];
 
         @Override public boolean onPreDraw() {
             View composer = toolbar.getParent() instanceof View ? (View) toolbar.getParent() : null;
@@ -526,6 +528,17 @@ public final class NebulaFormattingToolbar extends HorizontalScrollView {
                 float button = Math.min(target.getWidth(), AndroidUtilities.dp(48));
                 x = anchorLocation[0] - hostLocation[0] + target.getWidth() - (button + size) / 2f;
                 y = Math.min(y, anchorLocation[1] - hostLocation[1] - size - AndroidUtilities.dp(8));
+            }
+            // Открытая панель: «A» стоит в её правом конце, панель разворачивается
+            // из кнопки влево. Между положениями кнопка едет вместе с разворотом.
+            float progress = Math.max(0f, Math.min(1f, toolbar.revealProgress));
+            if (progress > 0f && toolbar.getVisibility() == VISIBLE && toolbar.getWidth() > 0) {
+                toolbar.getLocationInWindow(toolbarLocation);
+                float cap = AndroidUtilities.dp(HEIGHT_DP);
+                float openX = toolbarLocation[0] - hostLocation[0] + toolbar.getWidth() - (cap + size) / 2f;
+                float openY = toolbarLocation[1] - hostLocation[1] + (toolbar.getHeight() - size) / 2f;
+                x += (openX - x) * progress;
+                y += (openY - y) * progress;
             }
             if (getX() != x) setX(x);
             if (getY() != y) setY(y);

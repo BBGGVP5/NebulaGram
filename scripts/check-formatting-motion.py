@@ -8,7 +8,7 @@ def method(s, token):
  start=s.index('{',s.index(token));end=start+1;depth=1
  while depth:depth+=(s[end]=='{')-(s[end]=='}');end+=1
  return s[start+1:end-1]
-prepare=method(bar,'public int prepare(').replace('android.animation.ValueAnimator','Animator').replace('new android.view.animation.DecelerateInterpolator()','new Object()').replace('new android.view.animation.OvershootInterpolator(.9f)','new Object()').replace('new android.view.animation.AccelerateDecelerateInterpolator()','new Object()')
+prepare=method(bar,'public int prepare(').replace('android.animation.ValueAnimator','Animator').replace('new android.view.animation.DecelerateInterpolator()','new Object()').replace('new android.view.animation.OvershootInterpolator(.8f)','new Object()').replace('new android.view.animation.AccelerateDecelerateInterpolator()','new Object()')
 chat=(tree/'TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java').read_text(encoding='utf-8')
 allowed=chat.split('allowedNotificationsDuringChatListAnimations = new int[]{',1)[1].split('};',1)[0]
 allowed=re.sub(r'//[^\n]*','',allowed).replace('NotificationCenter.','')
@@ -107,9 +107,10 @@ class Regression {
    check(SendInsertion.VoiceMessageEnterTransition.starts==(outgoing&&pending&&voice&&!far?1:0),"voice flight eligibility changed");
    s.insert();check(s.activity.editor.clears==(outgoing&&pending?1:0),"repeated row callback clears a new draft");
   }
-  Motion t=new Motion();check(t.prepare(true)==0&&t.reveal!=null,"first appearance snaps");
-  t.reveal.step(.5f);check(t.prepare(true)>0&&t.prepare(true)<=Motion.HEIGHT_DP+Motion.GAP_DP&&t.revealProgress>0&&t.revealProgress<1,"no intermediate motion");
-  Animator previous=t.reveal;t.prepare(false);previous.step(1);check(t.reservedHeight<Motion.HEIGHT_DP+Motion.GAP_DP,"cancelled reveal changes height");t.reveal.step(1);check(t.prepare(false)==0&&t.visibility==8,"hidden toolbar reserves space");
+  // The row is reserved at once; the bar then unfolds sideways out of the A.
+  Motion t=new Motion();check(t.prepare(true)==Motion.HEIGHT_DP+Motion.GAP_DP&&t.reveal!=null&&t.revealProgress==0,"first appearance does not unfold from the A");
+  t.reveal.step(.5f);check(t.prepare(true)==Motion.HEIGHT_DP+Motion.GAP_DP&&t.revealProgress>0&&t.revealProgress<1,"no intermediate motion");
+  Animator previous=t.reveal;t.prepare(false);previous.step(1);check(t.reservedHeight==Motion.HEIGHT_DP+Motion.GAP_DP,"cancelled reveal changes height");t.reveal.step(1);check(t.prepare(false)==0&&t.visibility==8,"hidden toolbar reserves space");
   for(int i=0;i<1000;i++){t.prepare(true);t.reveal.step(1);int starts=Animator.starts;check(t.prepare(true)==Motion.HEIGHT_DP+Motion.GAP_DP,"toolbar loses its gap");t.prepare(true);check(starts==Animator.starts,"typing restarts animation");t.prepare(false);t.reveal.step(1);}
   check(t.states>0,"a visible toolbar refreshes what it shows");
   NebulaGlass.reduced=true;check(t.prepare(true)==Motion.HEIGHT_DP+Motion.GAP_DP&&t.visibility==0&&t.alpha==1,"reduced motion not immediate");check(t.prepare(false)==0&&t.visibility==8,"reduced hide retains toolbar");
