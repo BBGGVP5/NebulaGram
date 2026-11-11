@@ -43,6 +43,7 @@ class CapsuleCheck {
   static void drawActions(Object c,Menu menu,Draw draw,int w,int t,int b,float f){}
  }
  NebulaSelectionGlass nebulaSelectionGlass=new NebulaSelectionGlass();
+ void nebulaActionsBacking(Object c,float f){} // NebulaGram: solid backing drawn after the actions glass
  int getWidth(){return 400;}
  int dp(int value){return value;}
  ALPHA

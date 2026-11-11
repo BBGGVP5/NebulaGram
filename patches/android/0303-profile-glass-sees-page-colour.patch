@@ -1,0 +1,37 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
+index 73b5b0d7..4d9b9296 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
+@@ -1434,7 +1434,8 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+                 // the pages reach up past their top by their overscan, the gap is only above it
+                 final float mediaTop = listView.getY() + sharedMediaLayout.getY() - pagesOverscanTop;
+                 if (mediaTop > y1) {
+-                    gapPaint.setColor(getThemedColor(Theme.key_windowBackgroundGray));
++                    final int nebulaGapColor = app.nebulagram.ui.NebulaProfileStyle.pageColor(listView);
++                    gapPaint.setColor(nebulaGapColor != 0 ? nebulaGapColor : getThemedColor(Theme.key_windowBackgroundGray));
+                     canvas.drawRect(0, y1, getMeasuredWidth(), Math.min(v, mediaTop), gapPaint);
+                 }
+             }
+@@ -5964,6 +5965,12 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+             final ViewGroup root = (ViewGroup) fragmentView;
+             // over the media only they are under the glass: the rows above them would show through the pages' overscan
+             final float mediaProgress = sharedMediaLayout != null && sharedMediaLayout.getParent() == listView ? mediaHeaderAnimationProgress : 0f;
++            // NebulaGram: цветной фон страницы тоже под стеклом. Без него стекло
++            // над цветной страницей размывало пустоту и резко темнело.
++            final android.graphics.drawable.Drawable nebulaPage = listView.getBackground();
++            if (nebulaPage instanceof app.nebulagram.ui.NebulaProfileStyle.PageBackground) {
++                Blur3Utils.captureRelativeParent((canvas, position) -> nebulaPage.draw(canvas), c, p, listView, root);
++            }
+             if (mediaProgress < 1f) {
+                 if (isUnderGlass(topView, p, root)) {
+                     Blur3Utils.captureRelativeParent((canvas, position) -> topView.drawForCapture(canvas), c, p, topView, root);
+@@ -5975,7 +5982,8 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+             if (mediaProgress > 0f) {
+                 // going over to the media: the rows above them fade into the background of the pages
+                 final float mediaTop = mediaProgress < 1f ? listView.getY() + sharedMediaLayout.getY() : Float.MAX_VALUE;
+-                captureFillPaint.setColor(getThemedColor(Theme.key_windowBackgroundGray));
++                final int nebulaPageColor = app.nebulagram.ui.NebulaProfileStyle.pageColor(listView);
++                captureFillPaint.setColor(nebulaPageColor != 0 ? nebulaPageColor : getThemedColor(Theme.key_windowBackgroundGray));
+                 captureFillPaint.setAlpha((int) (255 * mediaProgress));
+                 c.drawRect(p.left, p.top, p.right, Math.min(p.bottom, mediaTop), captureFillPaint);
+             }

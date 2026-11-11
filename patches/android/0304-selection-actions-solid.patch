@@ -1,0 +1,36 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
+index 19fb2eb0..d6db573e 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
+@@ -100,6 +100,23 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
+     private BlurredBackgroundDrawable glassDrawableMenu;
+     private BlurredBackgroundDrawable glassDrawableHomeLeading;
+     private final app.nebulagram.ui.NebulaSelectionGlass nebulaSelectionGlass = new app.nebulagram.ui.NebulaSelectionGlass();
++    private final android.graphics.Paint nebulaActionsPaint = new android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG);
++    private final android.graphics.RectF nebulaActionsRect = new android.graphics.RectF();
++
++    /**
++     * Одна плотная подложка цвета меню поверх стекла кнопок действий. Иначе над
++     * фиолетовым сообщением они были фиолетовыми, а над тёмными обоями — чёрными.
++     */
++    private void nebulaActionsBacking(Canvas canvas, float factor) {
++        if (glassDrawableMenu == null) return;
++        final android.graphics.Rect bounds = glassDrawableMenu.getBounds();
++        if (bounds.width() <= dp(12)) return;
++        nebulaActionsPaint.setColor(app.nebulagram.ui.NebulaMenuPalette.surface(Theme.isCurrentThemeDark()));
++        nebulaActionsPaint.setAlpha(Math.round(255 * .86f * factor));
++        nebulaActionsRect.set(bounds.left + dp(6), bounds.top + dp(6), bounds.right - dp(6), bounds.bottom - dp(6));
++        final float radius = nebulaActionsRect.height() / 2f;
++        canvas.drawRoundRect(nebulaActionsRect, radius, radius, nebulaActionsPaint);
++    }
+     private INavigationLayout.BackButtonState backButtonState = INavigationLayout.BackButtonState.BACK;
+     public ImageView backButtonImageView;
+     private BackupImageView avatarSearchImageView;
+@@ -3069,6 +3086,7 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
+                 && (nebulaFloatingChatHeader || nebulaClassicSavedHeader || nebulaSavedMessagesHeader)) {
+             nebulaSelectionGlass.drawActions(canvas, actionMode, glassDrawableMenu,
+                     getWidth(), t, b, actionModeFactor);
++            nebulaActionsBacking(canvas, actionModeFactor);
+         }
+         // Normal header controls remain without independent material.
+         if (glassDrawableMenu != null && menuWidth > 0 && !glassOnlyBack && !doNotDrawGlassMenu && !isMenuPillInOverlay()
