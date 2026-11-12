@@ -60,16 +60,31 @@ public enum NebulaInlineUnits {
 
     /// The converted value for the draft's last line, or nil.
     public static func result(_ draft: String, russian: Bool, imperial: Bool) -> String? {
+        guard let body = question(draft) else { return nil }
+        return explicit(body, russian: russian) ?? implicit(body, russian: russian, imperial: imperial)
+    }
+
+    /// The draft's last line without its final "=", when it asks for a conversion.
+    public static func question(_ draft: String) -> String? {
         let lastLine = draft.components(separatedBy: "\n").last ?? ""
         let line = lastLine.trimmingCharacters(in: .whitespaces)
         guard line.count <= 120, line.hasSuffix("=") else { return nil }
         let body = String(line.dropLast()).trimmingCharacters(in: .whitespaces)
-        guard !body.isEmpty else { return nil }
+        return body.isEmpty ? nil : body
+    }
+
+    /// "5 km to mi": a conversion with a named target unit.
+    public static func explicit(_ body: String, russian: Bool) -> String? {
         for split in splits(body) {
             if let target = find(split.right), let source = amount(split.left), source.unit.kind == target.kind, source.unit.id != target.id {
                 return show(source.value, source.unit, target, russian)
             }
         }
+        return nil
+    }
+
+    /// "5 km": the value in the other measurement system, or a duration broken down.
+    public static func implicit(_ body: String, russian: Bool, imperial: Bool) -> String? {
         guard let source = amount(body) else { return nil }
         let from = source.unit, value = source.value
         if from.kind == .time { return duration(value * from.factor, from: from, russian: russian) }
@@ -79,7 +94,7 @@ public enum NebulaInlineUnits {
         return show(value, from, target, russian)
     }
 
-    private static func splits(_ body: String) -> [(left: String, right: String)] {
+    static func splits(_ body: String) -> [(left: String, right: String)] {
         var result: [(left: String, right: String)] = []
         for connector in [" to ", " in ", " into ", " в ", " во ", " на ", "->", "→", "=>"] {
             var search = body.startIndex ..< body.endIndex
@@ -101,11 +116,25 @@ public enum NebulaInlineUnits {
             if character.isNumber || character.isWhitespace || character == "." || character == "," { continue }
             if character.isLetter && characters[index - 1].isLetter { continue }
             guard let unit = find(String(characters[index...])) else { continue }
-            let number = String(characters[..<index]).trimmingCharacters(in: .whitespaces).replacingOccurrences(of: ",", with: ".")
-            guard !number.isEmpty, number.allSatisfy({ $0.isNumber || $0 == "." || $0 == "-" }), let value = Double(number) else { continue }
+            guard let value = plain(String(characters[..<index])) else { continue }
             return (value: value, unit: unit)
         }
         return nil
+    }
+
+    private static func plain(_ text: String) -> Double? {
+        let number = text.trimmingCharacters(in: .whitespaces).replacingOccurrences(of: ",", with: ".")
+        guard !number.isEmpty, number.allSatisfy({ $0.isNumber || $0 == "." || $0 == "-" }) else { return nil }
+        return Double(number)
+    }
+
+    /// "1 500", "2,5", "5k" or "5к": an amount for currencies.
+    static func number(_ text: String) -> Double? {
+        var source = text.filter { !$0.isWhitespace }
+        var scale = 1.0
+        if let last = source.last, "kKкК".contains(last) { scale = 1000; source.removeLast() }
+        guard source.first?.isNumber == true || source.first == "-", let value = plain(source) else { return nil }
+        return value * scale
     }
 
     private static func best(_ kind: Kind, _ system: System, _ base: Double) -> Unit? {

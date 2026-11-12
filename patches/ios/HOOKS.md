@@ -504,8 +504,21 @@ item has no per-row blur.
 `inline_units` is on (default on, Android `NebulaInlineUnits`): a last line ending with "=" such as
 "5 km =", "100 °F to °C =" or "90 min =" gets the converted value as the same grey hint. Length,
 weight, temperature, speed and time; without a target the value moves to the other measurement
-system (imperial when the device locale is not metric). Arithmetic keeps precedence. Currency and
-time zones are not ported. Switch: Chats → Messages and gestures → Unit conversion while typing.
+system (imperial when the device locale is not metric). Arithmetic keeps precedence. Switch: Chats →
+Messages and gestures → Unit conversion while typing.
+
+### Currency and time zones while typing (no patch)
+
+The same hint follows Android `NebulaInlineResults.compute`: arithmetic, units with a named target,
+then `NebulaInlineCurrency` ("100€ =", "$100 to euros =", "5k ₽ to $ ="), then `NebulaInlineTime`
+("15:00 msk in tokyo =", "3pm est to utc+3 =", "now in london =", "токио ="), and last units moved to
+the other measurement system. `NebulaInlineRates` keeps a day-long cache of fiat rates per dollar
+from `open.er-api.com` (the Android source) in `UserDefaults`; only that public URL is fetched, never
+the draft, at most every ten minutes, and the hint redraws on `NebulaInlineRates.didUpdate`. Without
+a named target the amount goes to `inline_default_currency` (Auto = the device locale's currency;
+Android also tries the account phone prefix), or USD/EUR when it already is that currency. Switches:
+Chats → Messages and gestures → Currency conversion / Time zones while typing / Default currency
+(`inline_currency`, `inline_timezones`, `inline_default_currency`, defaults as on Android).
 
 ### 0134 — Postbox в TelegramUI
 
