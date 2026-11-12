@@ -63,7 +63,7 @@ index a1842eb..8888702 100644
          let isScrollingLockedAtTop = expansionFraction < 1.0 - CGFloat.ulpOfOne
  
 diff --git a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoScreen.swift b/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoScreen.swift
-index ad5d16a..758aa11 100644
+index ad5d16a..5788b6b 100644
 --- a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoScreen.swift
 +++ b/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoScreen.swift
 @@ -240,6 +240,7 @@ final class PeerInfoScreenNode: ViewControllerTracingNode, PeerInfoScreenNodePro
@@ -94,19 +94,22 @@ index ad5d16a..758aa11 100644
          
          if self.isSettings {
              let edgeEffectHeight: CGFloat = layout.intrinsicInsets.bottom
-@@ -6028,6 +6035,15 @@ final class PeerInfoScreenNode: ViewControllerTracingNode, PeerInfoScreenNodePro
+@@ -6028,6 +6035,18 @@ final class PeerInfoScreenNode: ViewControllerTracingNode, PeerInfoScreenNodePro
          } else {
              color = self.presentationData.theme.list.blocksBackgroundColor.mixedWith(self.presentationData.theme.list.plainBackgroundColor, alpha: self.effectiveAreaExpansionFraction)
          }
 +        // Cherrygram-style page: the profile colour runs on under the cards and the media tabs.
 +        let nebulaPage = self.headerNode.nebulaPageColor
 +        self.paneContainerNode.nebulaPageColor = nebulaPage.map { NebulaProfilePage.bottom($0, base: color, dark: self.presentationData.theme.overallDarkAppearance) }
++        CATransaction.begin()
++        CATransaction.setDisableActions(true)
 +        if let nebulaPage {
 +            self.nebulaPageGradient.isHidden = false
 +            self.nebulaPageGradient.colors = [nebulaPage.cgColor, (self.paneContainerNode.nebulaPageColor ?? nebulaPage).cgColor]
 +        } else {
 +            self.nebulaPageGradient.isHidden = true
 +        }
++        CATransaction.commit()
          if let expansionBackgroundView = self.expansionBackgroundView {
              expansionBackgroundView.backgroundColor = color
              return
