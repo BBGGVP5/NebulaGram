@@ -54,6 +54,7 @@ type Core struct {
 	probeMu     sync.Mutex
 	probing     *probeBatch
 	probeRecent map[string]time.Time
+	auto        autoPilot
 }
 
 // New returns an uninitialised core; call "core.init" before anything else.
@@ -155,6 +156,12 @@ var handlers = map[string]handler{
 	"probe.servers":           (*Core).handleProbe,
 	"probe.cancel":            (*Core).handleProbeCancel,
 	"probe.url":               (*Core).handleProbeURL,
+	"auto.status":             (*Core).handleAutoStatus,
+	"auto.set":                (*Core).handleAutoSet,
+	"auto.check":              (*Core).handleAutoCheck,
+	"routing.get":             (*Core).handleRoutingGet,
+	"routing.set":             (*Core).handleRoutingSet,
+	"routing.preset":          (*Core).handleRoutingPreset,
 	"tunnel.start":            (*Core).handleTunnelStart,
 	"tunnel.stop":             (*Core).handleTunnelStop,
 	"tunnel.status":           (*Core).handleTunnelStatus,
@@ -205,6 +212,7 @@ func (c *Core) handleInit(payload []byte) (any, error) {
 	}
 	c.ready = true
 	c.mu.Unlock()
+	c.startAutoPilot()
 
 	// A device-limited panel needs a stable id; mint one on first run.
 	current := st.Settings()
@@ -377,6 +385,13 @@ func (c *Core) handleServerSelect(payload []byte) (any, error) {
 	}
 	if err := c.st().Select(req.ID); err != nil {
 		return nil, err
+	}
+	// Picking a server by hand is the user overruling auto.
+	if c.st().Settings().AutoSelect {
+		if _, err := c.st().UpdateSettings(func(s *settings.Settings) { s.AutoSelect = false }); err != nil {
+			return nil, err
+		}
+		c.setAuto(func(s *AutoState) { s.State = "idle" })
 	}
 	selected := c.st().Selected()
 	if selected == nil {
@@ -635,6 +650,19 @@ func (c *Core) handleTunnelStart(payload []byte) (any, error) {
 	if req.ID != "" {
 		if err := c.st().Select(req.ID); err != nil {
 			return nil, err
+		}
+		if c.st().Settings().AutoSelect {
+			if _, err := c.st().UpdateSettings(func(s *settings.Settings) { s.AutoSelect = false }); err != nil {
+				return nil, err
+			}
+		}
+	} else if c.st().Settings().AutoSelect {
+		// Auto connects to the fastest server. When nothing answered the
+		// probes — no network yet, or probes filtered while tunnels are not —
+		// fall through to the last pick instead of refusing to connect.
+		state, err := c.autoCheck("connect", true, true)
+		if err == nil && state.State == "ready" && c.tunnel.Running() {
+			return c.tunnel.Status(), nil
 		}
 	}
 	server := c.st().Selected()
