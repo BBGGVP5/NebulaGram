@@ -50,6 +50,9 @@
     <string name="nl_reset">Reset NebulaLink settings</string>
     <string name="nl_route_calls">Calls through NebulaLink</string>
     <string name="nl_route_calls_sub">Call media goes through your server, with no third-party relays</string>
+    <string name="nl_routing">Routing</string>
+    <string name="nl_routing_info">Rules are edited on their own screen</string>
+    <string name="nl_routing_sub">What goes direct, through the proxy or nowhere</string>
     <string name="nl_search">Search</string>
     <string name="nl_search_sub">By server or source name</string>
     <string name="nl_sec_actions">ACTIONS</string>

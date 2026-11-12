@@ -50,6 +50,9 @@
     <string name="nl_reset">Сбросить настройки NebulaLink</string>
     <string name="nl_route_calls">Звонки через NebulaLink</string>
     <string name="nl_route_calls_sub">Медиа звонка идёт через ваш сервер, без сторонних релеев</string>
+    <string name="nl_routing">Маршрутизация</string>
+    <string name="nl_routing_info">Правила настраиваются на отдельном экране</string>
+    <string name="nl_routing_sub">Что идёт напрямую, что через прокси, что блокируется</string>
     <string name="nl_search">Поиск</string>
     <string name="nl_search_sub">По имени сервера или источника</string>
     <string name="nl_sec_actions">ДЕЙСТВИЯ</string>
