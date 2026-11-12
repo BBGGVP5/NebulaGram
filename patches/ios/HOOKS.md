@@ -539,3 +539,16 @@ full-screen `CAGradientLayer` behind the scroll node from the page colour to its
 background (30 % at night, 45 % by day, Android `PageBackground`), so the colour runs on under the
 cards; `PeerInfoPaneContainerNode.nebulaPageColor` paints the media tabs with the lower colour.
 Editing, Profile style off, or no colour/photo keep Telegram's own background. Android 0297/0302/0303.
+
+## 0136 — the "A" over the voice button; the toolbar unfolds sideways
+
+Supersedes 0132's placement (Android ddde6e0e/4be4c20a/ef54d403). The "A" leaves the message field
+(the field gets its 36 points back) and floats as a round 40-point button in its own row above the
+panel, centred on the round voice button — or on the send button while there is text — and clamped
+inside the panel. The 50-point row is reserved as soon as the "A" shows (focused text input with the
+formatting toolbar enabled), so the message list rises above it instead of being covered; tapping the
+"A" unfolds `NebulaFormattingToolbar` in the same row sideways out of it (a 40-point strip centred on
+the "A" grows leftwards to the full row with a spring) and folds it back into the "A". The toolbar's
+right end stays under the "A" and `trailingReserve` keeps its last tiles clear of it. Reduce Motion
+keeps the plain fade. `check_formatting_placement.py` now expects the row for both the folded and
+the open state.
