@@ -526,3 +526,16 @@ Chats → Messages and gestures → Currency conversion / Time zones while typin
 `ApplicationContext.swift` и `SharedAccountContext.swift`, а наши хуки уведомлений и
 расшифровки голосовых используют `Message`, `PeerGroupId` и транзакции Postbox. Патч
 возвращает импорт; модуль уже зависит от `//submodules/Postbox`.
+
+## 0135 — profile page colour (Cherrygram style)
+
+`PeerInfoHeaderNode` computes `nebulaPageColor` on every header update: the profile colour that ends
+the header cover (`getProfile(...).secondary ?? main`, or a star gift's outer colour) when Profile
+background is on, otherwise — for a profile with a photo and Photo banner on — the photo's average
+tone measured once per image (`NebulaProfilePage`, overlay) and clamped as on Android
+(`NebulaProfilePagePolicy.photoTone`: saturation ≤ 0.42/0.38, lightness 0.12…0.22 at night, ≥ 0.86 by
+day). The banner fade now fades into that colour. `PeerInfoScreenNode.updateBackgroundColor` shows a
+full-screen `CAGradientLayer` behind the scroll node from the page colour to its blend with the list
+background (30 % at night, 45 % by day, Android `PageBackground`), so the colour runs on under the
+cards; `PeerInfoPaneContainerNode.nebulaPageColor` paints the media tabs with the lower colour.
+Editing, Profile style off, or no colour/photo keep Telegram's own background. Android 0297/0302/0303.
