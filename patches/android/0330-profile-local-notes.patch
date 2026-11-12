@@ -1,0 +1,105 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
+index 4d9b9296..d1214538 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
+@@ -674,6 +674,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+     private int channelInfoRow;
+     private int usernameRow;
+     private int nebulaIdRow;
++    private int nebulaNoteRow; // NebulaGram: local note for groups, channels and non-contacts
+     private int notificationsDividerRow;
+     private int notificationsRow;
+     private int bizHoursRow;
+@@ -4678,6 +4679,8 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+                 }
+             } else if (position == noteRow) {
+                 editNotes(view, position);
++            } else if (position == nebulaNoteRow) {
++                nebulaEditNote();
+             } else {
+                 processOnClickOrPress(position, view, x, y);
+             }
+@@ -5064,6 +5067,9 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+                 } else if (position == noteRow) {
+                     editNotes(view, position);
+                     return true;
++                } else if (position == nebulaNoteRow) {
++                    nebulaEditNote();
++                    return true;
+                 } else {
+                     if (editRow(view, position)) return true;
+                     return processOnClickOrPress(position, view, view.getWidth() / 2f, (int) (view.getHeight() * .75f));
+@@ -10910,6 +10916,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+         channelInfoRow = -1;
+         usernameRow = -1;
+         nebulaIdRow = -1;
++        nebulaNoteRow = -1;
+         settingsTimerRow = -1;
+         settingsKeyRow = -1;
+         notificationsDividerRow = -1;
+@@ -11121,6 +11128,9 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+                         noteRow = rowCount++;
+                     }
+                 }
++                if (app.nebulagram.ui.NebulaNotes.row(currentAccount, userId, userInfo != null && userInfo.note != null)) {
++                    nebulaNoteRow = rowCount++;
++                }
+                 if (actionsView == null && userId != getUserConfig().getClientUserId()) {
+                     notificationsRow = rowCount++;
+                 }
+@@ -11293,6 +11303,9 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+                 }
+             }
+             nebulaIdRow = rowCount++;
++            if (app.nebulagram.ui.NebulaNotes.row(currentAccount, -chatId, false)) {
++                nebulaNoteRow = rowCount++;
++            }
+             if (actionsView == null) {
+                 if (infoHeaderRow != -1) {
+                     notificationsDividerRow = rowCount++;
+@@ -13764,6 +13777,14 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+                             getString(R.string.ProfileNotesInfo),
+                             false
+                         );
++                    } else if (position == nebulaNoteRow) {
++                        long noteDialog = userId != 0 ? userId : -chatId;
++                        detailCell.setTextAndValue(
++                            app.nebulagram.ui.NebulaNotes.rowText(currentAccount, noteDialog),
++                            app.nebulagram.ui.NebulaNotes.rowTitle(currentAccount, noteDialog),
++                            app.nebulagram.ui.NebulaNotes.rowInfo(currentAccount, noteDialog),
++                            false
++                        );
+                     } else if (position == usernameRow) {
+                         String username = null;
+                         CharSequence text;
+@@ -14576,7 +14597,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+                 return VIEW_TYPE_TEXT_DETAIL;
+             } else if (position == usernameRow || position == setUsernameRow) {
+                 return VIEW_TYPE_TEXT_DETAIL_MULTILINE;
+-            } else if (position == noteRow) {
++            } else if (position == noteRow || position == nebulaNoteRow) {
+                 return VIEW_TYPE_TEXT_DETAIL_MULTILINE_2;
+             } else if (position == userInfoRow || position == channelInfoRow || position == bioRow) {
+                 return VIEW_TYPE_ABOUT_LINK;
+@@ -15887,6 +15908,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+             put(++pointer, infoEndRowEmpty, sparseIntArray);
+             put(++pointer, phoneRow, sparseIntArray);
+             put(++pointer, noteRow, sparseIntArray);
++            put(++pointer, nebulaNoteRow, sparseIntArray);
+             put(++pointer, locationRow, sparseIntArray);
+             put(++pointer, userInfoRow, sparseIntArray);
+             put(++pointer, channelInfoRow, sparseIntArray);
+@@ -16408,6 +16430,13 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+ 
+     }
+ 
++    private void nebulaEditNote() {
++        app.nebulagram.ui.NebulaNotes.edit(this, currentAccount, userId != 0 ? userId : -chatId, () -> {
++            updateRowsIds();
++            if (listAdapter != null) listAdapter.notifyDataSetChanged();
++        });
++    }
++
+     private boolean editNotes(View view, int position) {
+         final ItemOptions o = ItemOptions.makeOptions(this, view);
+         o.setScrimViewBackground(listView.getClipBackground(view));
