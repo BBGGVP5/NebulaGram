@@ -1325,3 +1325,13 @@ waveform, есть имя файла или не ogg — боты, скрипт�
 ещё не занятый самой панелью. Список сообщений поднимается на эту высоту, и кнопка не ложится
 поверх последнего сообщения. Отступ поля (`nebulaFormattingHeight`) и проверка анимации вылета
 текста от ряда не зависят.
+
+### 0310 — акцент из аватарки или обоев
+
+`0310-picture-accent-watch.patch`, `LaunchActivity.java`, `onCreate`, сразу после
+`NebulaTheme.applyMaterialYou(this)`: вызов `NebulaPictureTheme.start()`. Он подписывается на
+`didSetNewWallpapper`, `activeAccountChanged` и на `updateInterfaces` / `mainUserInfoChanged` /
+`fileLoaded` аккаунтов, чтобы при смене аватарки или обоев заново прогнать androidx Palette и
+обновить акцент. Сам акцент передаётся Telegram прежним путём Material You
+(`NebulaTheme.applyMaterialYou` → `ThemeAccent.accentColor`), только источником выступает
+картинка; выбор цвета — `NebulaPictureAccent`, проверка — `scripts/check-picture-accent.py`.

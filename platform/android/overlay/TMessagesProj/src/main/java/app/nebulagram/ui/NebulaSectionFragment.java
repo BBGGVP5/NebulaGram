@@ -257,6 +257,7 @@ public class NebulaSectionFragment extends BaseFragment {
                         refreshPalette();
                     }));
         }
+        addPictureAccent(context, card);
         card.add(toggle(context, R.drawable.msg_edit,
                 R.string.NebulaLoginStyleTitle, R.string.NebulaLoginStyleSub,
                 NebulaLoginStyle.enabled(), NebulaLoginStyle::setEnabled));
@@ -290,6 +291,31 @@ public class NebulaSectionFragment extends BaseFragment {
         content.addView(list, cardParams());
         content.addView(NebulaMenuFragment.placeholder(context,
                 LocaleController.getString(R.string.NebulaRestartHint)));
+    }
+
+    /**
+     * «Цвета из аватарки / обоев»: another accent source next to Material You.
+     * The preview under the row repaints as soon as Palette has an answer.
+     */
+    private void addPictureAccent(Context context, NebulaCard card) {
+        String title = NebulaText.text("Цвета из аватарки / обоев", "Colours from avatar / wallpaper");
+        NebulaRow row = new NebulaRow(context).icon(R.drawable.msg_palette).title(title)
+                .subtitle(NebulaPictureTheme.names()[NebulaPictureTheme.source()], true)
+                .trailing(NebulaRow.TRAIL_CHEVRON);
+        NebulaPictureAccentPreview preview = new NebulaPictureAccentPreview(context);
+        preview.setOnChanged(() -> {
+            if (NebulaTheme.of(context).primary() != palettePrimary) refreshPalette();
+        });
+        row.withClick(v -> new NebulaDialog.Builder(context).setTitle(title)
+                .setSelectedIndex(NebulaPictureTheme.source())
+                .setItems(NebulaPictureTheme.names(), (dialog, which) -> {
+                    NebulaPictureTheme.setSource(context, which);
+                    row.subtitle(NebulaPictureTheme.names()[which], true);
+                    dialog.dismiss();
+                    refreshPalette(); // shows or hides the preview
+                }).setNegativeButton(NebulaText.text("Отмена", "Cancel"), null).show());
+        card.add(row);
+        if (NebulaPictureTheme.source() != NebulaPictureTheme.OFF) card.add(preview);
     }
 
     private static String blurTintLabel(int[] values, String[] labels) {

@@ -1,0 +1,12 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/LaunchActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/LaunchActivity.java
+index f6b44c81..d02e4be5 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/LaunchActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/LaunchActivity.java
+@@ -548,6 +548,7 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
+         });
+         actionBarLayout.setDelegate(this);
+         app.nebulagram.ui.NebulaTheme.applyMaterialYou(this);
++        app.nebulagram.ui.NebulaPictureTheme.start();
+         // Fork updates come from our channel, never Telegram's official update feed.
+         if (SharedConfig.pendingAppUpdate != null) {
+             SharedConfig.pendingAppUpdate = null;
