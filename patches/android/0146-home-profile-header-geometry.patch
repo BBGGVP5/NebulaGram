@@ -1,4 +1,5 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
+index c8e73e48..f2662392 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
 @@ -784,7 +784,8 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
@@ -11,7 +12,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.jav
          if (parentFragment instanceof org.telegram.ui.DialogsActivity) {
              return ((org.telegram.ui.DialogsActivity) parentFragment).nebulaIsHeaderExpanded();
          }
-@@ -2809,7 +2810,15 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
+@@ -2811,7 +2812,15 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
              }
          }
          if (glassDrawableBack != null && hasBackButton) {

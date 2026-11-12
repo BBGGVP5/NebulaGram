@@ -1,4 +1,5 @@
 diff --git a/TMessagesProj_AppStandalone/src/main/java/org/telegram/messenger/SMSJobController.java b/TMessagesProj_AppStandalone/src/main/java/org/telegram/messenger/SMSJobController.java
+index 5c82abc4..b0d6a6a9 100644
 --- a/TMessagesProj_AppStandalone/src/main/java/org/telegram/messenger/SMSJobController.java
 +++ b/TMessagesProj_AppStandalone/src/main/java/org/telegram/messenger/SMSJobController.java
 @@ -39,24 +39,9 @@ import java.util.List;
@@ -29,6 +30,7 @@ diff --git a/TMessagesProj_AppStandalone/src/main/java/org/telegram/messenger/SM
  
      public final static int STATE_NONE = 0;
 diff --git a/TMessagesProj_AppStandalone/src/main/java/org/telegram/messenger/SMSJobsNotification.java b/TMessagesProj_AppStandalone/src/main/java/org/telegram/messenger/SMSJobsNotification.java
+index 428a86f1..c3c3f552 100644
 --- a/TMessagesProj_AppStandalone/src/main/java/org/telegram/messenger/SMSJobsNotification.java
 +++ b/TMessagesProj_AppStandalone/src/main/java/org/telegram/messenger/SMSJobsNotification.java
 @@ -19,8 +19,8 @@ import org.telegram.ui.LaunchActivity;

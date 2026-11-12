@@ -1,4 +1,5 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
+index d622da09..a63d1684 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
 @@ -239,6 +239,7 @@ public class ChatActivityEnterView extends FrameLayout implements
@@ -9,7 +10,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivity
      public int getNebulaFormattingHeight() { return nebulaFormattingHeight; }
      private final app.nebulagram.ui.NebulaMathHint nebulaMathHint = new app.nebulagram.ui.NebulaMathHint();
  
-@@ -6808,6 +6809,12 @@ public class ChatActivityEnterView extends FrameLayout implements
+@@ -6813,6 +6814,12 @@ public class ChatActivityEnterView extends FrameLayout implements
      }
  
      private void onWindowSizeChanged() {
@@ -22,7 +23,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivity
          int size = sizeNotifierLayout.getHeight();
          if (!keyboardVisible) {
              size -= emojiPadding;
-@@ -7677,7 +7684,7 @@ public class ChatActivityEnterView extends FrameLayout implements
+@@ -7682,7 +7689,7 @@ public class ChatActivityEnterView extends FrameLayout implements
                  TLRPC.Chat chat = parentFragment.getCurrentChat();
                  TLRPC.User user = parentFragment.getCurrentUser();
                  if (user != null || ChatObject.isChannel(chat) && chat.megagroup || !ChatObject.isChannel(chat)) {
@@ -32,6 +33,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivity
              }
              if (stickersExpanded) {
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/EditTextCaption.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/EditTextCaption.java
+index 0442fdf4..840e9e03 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/EditTextCaption.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/EditTextCaption.java
 @@ -176,6 +176,19 @@ public class EditTextCaption extends EditTextBoldCursor implements FloatingToolb

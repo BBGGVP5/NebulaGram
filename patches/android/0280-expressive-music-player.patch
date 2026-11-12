@@ -1,4 +1,5 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/AudioPlayerAlert.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/AudioPlayerAlert.java
+index 3fa70426..fb5efa9d 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/AudioPlayerAlert.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/AudioPlayerAlert.java
 @@ -231,6 +231,7 @@ public class AudioPlayerAlert extends BottomSheet implements NotificationCenter.
@@ -26,7 +27,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/AudioPlayerA
                      boolean dismiss;
                      if (listAdapter.getItemCount() > 0) {
                          dismiss = ev.getY() < scrollOffsetY + dp(12);
-@@ -1481,6 +1483,7 @@ public class AudioPlayerAlert extends BottomSheet implements NotificationCenter.
+@@ -1483,6 +1485,7 @@ public class AudioPlayerAlert extends BottomSheet implements NotificationCenter.
          updateTitle(false);
          updateRepeatButton();
          updateEmptyView();
@@ -34,7 +35,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/AudioPlayerA
      }
  
      @Override
-@@ -2067,6 +2070,7 @@ public class AudioPlayerAlert extends BottomSheet implements NotificationCenter.
+@@ -2069,6 +2072,7 @@ public class AudioPlayerAlert extends BottomSheet implements NotificationCenter.
      @Override
      public void dismiss() {
          super.dismiss();

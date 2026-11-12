@@ -1,4 +1,5 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/MessageObject.java b/TMessagesProj/src/main/java/org/telegram/messenger/MessageObject.java
+index 373e4235..09465b62 100644
 --- a/TMessagesProj/src/main/java/org/telegram/messenger/MessageObject.java
 +++ b/TMessagesProj/src/main/java/org/telegram/messenger/MessageObject.java
 @@ -355,6 +355,7 @@ public class MessageObject {
@@ -37,9 +38,10 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/MessageObject.ja
                  // A rich message fills this width: the side menu shifts its bubble as far as the cell
                  // does (ChatMessageCell#getBackgroundDrawableLeft), one dp more as for the avatar.
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Cells/ChatMessageCell.java b/TMessagesProj/src/main/java/org/telegram/ui/Cells/ChatMessageCell.java
+index a350a8c7..3a8a0311 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Cells/ChatMessageCell.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Cells/ChatMessageCell.java
-@@ -6249,9 +6249,13 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
+@@ -6275,9 +6275,13 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
      }
  
      public MultiLayoutTypingAnimator botDraftTypingAnimator;
@@ -54,7 +56,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Cells/ChatMessageCell.j
              currentMessageObject = null;
          }
          messageObject.isOutOwnerCached = null;
-@@ -6913,10 +6917,12 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
+@@ -6939,10 +6943,12 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
                  boolean measuredReactions = false;
  
                  final boolean isArticle = messageObject.type == MessageObject.TYPE_ARTICLE;
@@ -69,7 +71,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Cells/ChatMessageCell.j
                  }
                  if (isCompactIn()) {
                      // matches MessageObject#getMaxMessageTextWidth: full chat width minus 16dp on each side
-@@ -9141,7 +9147,13 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
+@@ -9167,7 +9173,13 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
                          documentAttach = messageObject.getDocument();
                          documentAttachType = DOCUMENT_ATTACH_TYPE_ROUND;
                      } else {
@@ -85,9 +87,10 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Cells/ChatMessageCell.j
                          } else {
                              if (
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
+index db056eec..a31ef551 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
-@@ -30939,9 +30939,16 @@ public class ChatActivity extends BaseFragment implements
+@@ -30955,9 +30955,16 @@ public class ChatActivity extends BaseFragment implements
  
      Bulletin.Delegate bulletinDelegate;
  

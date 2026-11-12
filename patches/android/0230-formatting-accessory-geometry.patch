@@ -1,7 +1,8 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
+index ff9f335a..5e7537dc 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
-@@ -47768,6 +47768,8 @@ public class ChatActivity extends BaseFragment implements
+@@ -47845,6 +47845,8 @@ public class ChatActivity extends BaseFragment implements
          inputIslandHeightTarget = calculateInputIslandHeight(true);
  
          chatInputViewsContainer.setInputBubbleHeight(inputIslandHeightCurrent);
@@ -11,6 +12,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
          updateBotforumTabsBottomMargin();
          checkUi_botMenuPosition();
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
+index 91d54c20..b63d9fb1 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
 @@ -239,6 +239,7 @@ public class ChatActivityEnterView extends FrameLayout implements
@@ -31,6 +33,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivity
              if (child == textFieldContainer) {
                  // The split composer's AI row sits above the native text island.
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/chat/ChatInputViewsContainer.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/chat/ChatInputViewsContainer.java
+index 633d5b26..9ef877c1 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/chat/ChatInputViewsContainer.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/chat/ChatInputViewsContainer.java
 @@ -218,6 +218,15 @@ public class ChatInputViewsContainer extends FrameLayout implements Theme.Colora

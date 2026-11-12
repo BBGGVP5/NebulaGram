@@ -1,4 +1,5 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
+index d6a4151a..ef184d17 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
 @@ -1160,6 +1160,9 @@ public class ChatActivityEnterView extends FrameLayout implements
@@ -104,7 +105,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivity
              final int limit = accountInstance.getMessagesController().getMaxMessageLength();
              if (textFinal.length() != 0) {
                  count += (int) Math.ceil(textFinal.length() / (float) limit);
-@@ -7597,9 +7653,14 @@ public class ChatActivityEnterView extends FrameLayout implements
+@@ -7602,9 +7658,14 @@ public class ChatActivityEnterView extends FrameLayout implements
      }
  
      protected boolean sendMessageInternal(boolean notify, int scheduleDate, int scheduleRepeatPeriod, long payStars, boolean allowConfirm) {
@@ -119,7 +120,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivity
              if (slowModeTimer == Integer.MAX_VALUE && !isInScheduleMode()) {
                  if (delegate != null) {
                      delegate.scrollToSendingMessage();
-@@ -7621,10 +7682,13 @@ public class ChatActivityEnterView extends FrameLayout implements
+@@ -7626,10 +7687,13 @@ public class ChatActivityEnterView extends FrameLayout implements
                  }
              }
              if (allowConfirmFinal && showConfirmAlert(() -> {
@@ -134,7 +135,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivity
              dismissSendPreviewSent = true;
              if (videoToSendMessageObject != null) {
                  delegate.needStartRecordVideo(4, notify, scheduleDate, 0, voiceOnce ? 0x7FFFFFFF : 0, effectId, payStars);
-@@ -7745,7 +7809,11 @@ public class ChatActivityEnterView extends FrameLayout implements
+@@ -7750,7 +7814,11 @@ public class ChatActivityEnterView extends FrameLayout implements
              updateSendButtonPaid();
          };
          if (allowConfirmFinal) {

@@ -1,7 +1,8 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
+index 90aa9d43..1cdb2882 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
-@@ -11732,7 +11732,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+@@ -11845,7 +11845,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
              {
                  // NebulaGram: the supporter badge is appended to the name as a span;
                  // verification and emoji status keep their places on the right.

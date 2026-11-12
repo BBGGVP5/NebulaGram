@@ -1,7 +1,8 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
+index c6edf5b6..a544199d 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
-@@ -2863,6 +2863,12 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
+@@ -2865,6 +2865,12 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
                      glassDrawable.draw(canvas);
                  }
              }

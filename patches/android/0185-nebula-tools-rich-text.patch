@@ -1,4 +1,5 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
+index c8bb4420..2872c29f 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
 @@ -2913,6 +2913,7 @@ public class ChatActivityEnterView extends FrameLayout implements
@@ -44,6 +45,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivity
                  messageEditText != null && messageEditText.getText() != null && !TextUtils.isEmpty(messageEditText.getText().toString().trim()),
                  richDraftActive, parentFragment != null && !parentFragment.isSecretChat(),
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAttachAlert.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAttachAlert.java
+index 3b1ce844..f09576dd 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAttachAlert.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAttachAlert.java
 @@ -6633,14 +6633,15 @@ public class ChatAttachAlert extends BottomSheet implements NotificationCenter.N
@@ -65,6 +67,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAttachAl
                  active.setSelection(result.length(), result.length());
              }));
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/PhotoViewer.java b/TMessagesProj/src/main/java/org/telegram/ui/PhotoViewer.java
+index ca3fc0a0..b48952d5 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/PhotoViewer.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/PhotoViewer.java
 @@ -9912,14 +9912,15 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat

@@ -1,4 +1,5 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/MediaDataController.java b/TMessagesProj/src/main/java/org/telegram/messenger/MediaDataController.java
+index fb7e3483..a0182760 100644
 --- a/TMessagesProj/src/main/java/org/telegram/messenger/MediaDataController.java
 +++ b/TMessagesProj/src/main/java/org/telegram/messenger/MediaDataController.java
 @@ -3937,7 +3937,7 @@ public class MediaDataController extends BaseController {
@@ -20,9 +21,10 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/MediaDataControl
          long queryWithDialogFinal = queryWithDialog;
          String finalQuery = query;
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
+index c1b60796..4a90b8a6 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
-@@ -11224,6 +11224,9 @@ public class ChatActivity extends BaseFragment implements
+@@ -11228,6 +11228,9 @@ public class ChatActivity extends BaseFragment implements
          searchCountText.setGravity(Gravity.LEFT);
          searchContainer.addView(searchCountText, LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, 30, Gravity.CENTER_VERTICAL, 0, -1, 97.33f, 0));
          chatInputBubbleContainer.addView(searchContainer, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, searchContainerHeight, Gravity.BOTTOM, 7, 0, 7, 0));
@@ -32,7 +34,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
  
          searchExpandList = new AnimatedTextView(getContext(), true, false, true);
          searchExpandList.setAnimationProperties(0, 0, 420, CubicBezierInterpolator.EASE_OUT_QUINT);
-@@ -11307,6 +11310,17 @@ public class ChatActivity extends BaseFragment implements
+@@ -11311,6 +11314,17 @@ public class ChatActivity extends BaseFragment implements
          }
      }
  
@@ -50,7 +52,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
      private void showSearchShowOther(boolean show) {
          searchOtherButton.setVisibility(View.VISIBLE);
          searchOtherButton.animate().alpha(show ? 1f : 0f).withEndAction(() -> {
-@@ -40134,6 +40148,9 @@ public class ChatActivity extends BaseFragment implements
+@@ -40201,6 +40215,9 @@ public class ChatActivity extends BaseFragment implements
          @Override
          public void onSearchCollapse() {
              searching = false;

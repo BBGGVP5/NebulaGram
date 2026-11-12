@@ -1,4 +1,5 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
+index 6962b1b3..052d0260 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
 @@ -5782,6 +5782,7 @@ public class ChatActivityEnterView extends FrameLayout implements
@@ -21,7 +22,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivity
              nebulaDraftTranslation = new app.nebulagram.ui.NebulaDraftTranslation(parentFragment, messageEditText, this, this::setFieldText);
              aiButton.setOnLongClickListener(v -> { openNebulaTools(); return true; });
          }
-@@ -9276,6 +9282,19 @@ public class ChatActivityEnterView extends FrameLayout implements
+@@ -9281,6 +9287,19 @@ public class ChatActivityEnterView extends FrameLayout implements
          if (doneButton != null && doneButton.getVisibility() == VISIBLE) {
              layoutParams.rightMargin = Math.max(layoutParams.rightMargin, Math.max(0, doneButton.width() - dp(DEFAULT_HEIGHT)));
          }

@@ -1,4 +1,5 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/MessageObject.java b/TMessagesProj/src/main/java/org/telegram/messenger/MessageObject.java
+index 09465b62..a98cdf7e 100644
 --- a/TMessagesProj/src/main/java/org/telegram/messenger/MessageObject.java
 +++ b/TMessagesProj/src/main/java/org/telegram/messenger/MessageObject.java
 @@ -3835,7 +3835,8 @@ public class MessageObject {
@@ -22,6 +23,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/MessageObject.ja
              !translateController.isTranslateDialogHidden(getDialogId()) &&
              (translatedText != null || messageOwner.translatedPoll != null || messageOwner.translatedRichMessage != null) &&
 diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/TranslateController.java b/TMessagesProj/src/main/java/org/telegram/messenger/TranslateController.java
+index 765c832b..80c18f0c 100644
 --- a/TMessagesProj/src/main/java/org/telegram/messenger/TranslateController.java
 +++ b/TMessagesProj/src/main/java/org/telegram/messenger/TranslateController.java
 @@ -236,7 +236,7 @@ public class TranslateController extends BaseController {
@@ -34,9 +36,10 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/TranslateControl
              cancelTranslations(dialogId);
              saveTranslatingDialogsCache();
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
+index fd10d143..71d72308 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
-@@ -25956,7 +25956,7 @@ public class ChatActivity extends BaseFragment implements
+@@ -25972,7 +25972,7 @@ public class ChatActivity extends BaseFragment implements
              force = true;
          }
          AndroidUtilities.cancelRunOnUIThread(checkTranslationRunnable);
@@ -45,7 +48,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
      }
      private Runnable checkTranslationRunnable = () -> {
          lastTranslationCheck = System.currentTimeMillis();
-@@ -25980,7 +25980,20 @@ public class ChatActivity extends BaseFragment implements
+@@ -25996,7 +25996,20 @@ public class ChatActivity extends BaseFragment implements
                  }
              }
  
@@ -68,9 +71,10 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
                  for (int i = 0; i < messages.size(); ++i) {
                      MessageObject messageObject = messages.get(i);
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
+index 7e6fc746..5ac54d75 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
-@@ -9026,7 +9026,7 @@ public class ChatActivityEnterView extends FrameLayout implements
+@@ -9031,7 +9031,7 @@ public class ChatActivityEnterView extends FrameLayout implements
              if (visible) {
                  FrameLayout.LayoutParams toolsParams = (FrameLayout.LayoutParams) nebulaToolsButton.getLayoutParams();
                  int toolsInset = app.nebulagram.ui.NebulaComposerSlots.toolsInset(
@@ -80,6 +84,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivity
                          giftButton != null && giftButton.getVisibility() == VISIBLE && attachVisible != 0 ? dp(DEFAULT_HEIGHT) : 0);
                  if (toolsParams.rightMargin != toolsInset) {
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/community/CommunitySheet.java b/TMessagesProj/src/main/java/org/telegram/ui/community/CommunitySheet.java
+index 5dafad35..1e59c302 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/community/CommunitySheet.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/community/CommunitySheet.java
 @@ -356,7 +356,7 @@ public class CommunitySheet extends BottomSheet implements NotificationCenter.No

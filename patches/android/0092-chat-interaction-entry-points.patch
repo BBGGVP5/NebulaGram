@@ -1,7 +1,8 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
+index c89f2a61..f61159aa 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
-@@ -1964,29 +1964,24 @@ public class ChatActivity extends BaseFragment implements
+@@ -1967,29 +1967,24 @@ public class ChatActivity extends BaseFragment implements
              createMenu(view, true, false, x, y, false);
          }
  
@@ -39,7 +40,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
              MessageObject messageObject;
              if (view instanceof ChatMessageCell) {
                  messageObject = ((ChatMessageCell) view).getPrimaryMessageObject();
-@@ -1995,7 +1990,7 @@ public class ChatActivity extends BaseFragment implements
+@@ -1998,7 +1993,7 @@ public class ChatActivity extends BaseFragment implements
              } else {
                  return false;
              }
@@ -48,7 +49,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
          }
  
          @Override
-@@ -2014,9 +2009,10 @@ public class ChatActivity extends BaseFragment implements
+@@ -2017,9 +2012,10 @@ public class ChatActivity extends BaseFragment implements
              } else {
                  return;
              }
@@ -62,7 +63,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
                  else if (action == 2) showFieldPanelForReply(messageObject);
                  else if (action == 3) AndroidUtilities.addToClipboard(messageObject.messageOwner.message);
                  return;
-@@ -2028,14 +2024,24 @@ public class ChatActivity extends BaseFragment implements
+@@ -2031,14 +2027,24 @@ public class ChatActivity extends BaseFragment implements
                  return;
              }
  
@@ -92,7 +93,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
                      return;
                  }
                  selectReaction(view, messageObject, null, null, x, y, ReactionsLayoutInBubble.VisibleReaction.fromEmojicon(reactionString), true, false, false, false);
-@@ -2044,11 +2050,11 @@ public class ChatActivity extends BaseFragment implements
+@@ -2047,11 +2053,11 @@ public class ChatActivity extends BaseFragment implements
                  if (reaction == null || messageObject.isSponsored()) {
                      return;
                  }
@@ -109,6 +110,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
                  }
                  selectReaction(view, messageObject, null, null, x, y, ReactionsLayoutInBubble.VisibleReaction.fromEmojicon(reaction), true, false, false, false);
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAttachAlert.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAttachAlert.java
+index adf50fd7..a2301141 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAttachAlert.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAttachAlert.java
 @@ -6933,6 +6933,11 @@ public class ChatAttachAlert extends BottomSheet implements NotificationCenter.N

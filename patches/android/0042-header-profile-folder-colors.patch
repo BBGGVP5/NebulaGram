@@ -1,4 +1,5 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
+index d4f4e0b9..8acddcb5 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
 @@ -574,6 +574,7 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
@@ -28,7 +29,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.jav
          int width = MeasureSpec.getSize(widthMeasureSpec);
          int height = MeasureSpec.getSize(heightMeasureSpec);
          int actionBarHeight = getCurrentActionBarHeight();
-@@ -2628,7 +2632,7 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
+@@ -2630,7 +2634,7 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
                  glassDrawableMenu.setAlpha(255);
                  glassDrawableMenu.draw(canvas);
              }
@@ -38,6 +39,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.jav
              glassDrawableMenu.setAlpha(hasForcedMenuWidth ? 255 : (int) (255 * animatorHasMenuItems.getFloatValue()));
              glassDrawableMenu.draw(canvas);
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/SimpleTextView.java b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/SimpleTextView.java
+index e6098666..92fb3c09 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/SimpleTextView.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/SimpleTextView.java
 @@ -1119,6 +1119,7 @@ public class SimpleTextView extends View implements Drawable.Callback {
@@ -57,9 +59,10 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/SimpleTextVie
              int dh = (int) (rightDrawable2.getIntrinsicHeight() * rightDrawableScale);
              int y;
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
+index cb782829..f54df573 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
-@@ -44095,6 +44095,12 @@ public class ChatActivity extends BaseFragment implements
+@@ -44163,6 +44163,12 @@ public class ChatActivity extends BaseFragment implements
  
          @Override
          public int getColor(int key) {
@@ -72,7 +75,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
              if (animatingColors != null) {
                  int index = animatingColors.indexOfKey(key);
                  if (index >= 0) {
-@@ -44131,6 +44137,13 @@ public class ChatActivity extends BaseFragment implements
+@@ -44199,6 +44205,13 @@ public class ChatActivity extends BaseFragment implements
          }
  
          public int getCurrentColor(int key, boolean ignoreAnimation) {
@@ -87,9 +90,10 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
                  return Theme.getColor(key);
              }
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
+index 3c11997b..9ea40118 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
-@@ -8226,7 +8226,7 @@ public class ChatActivityEnterView extends FrameLayout implements
+@@ -8231,7 +8231,7 @@ public class ChatActivityEnterView extends FrameLayout implements
              } else {
                  color = getThemedColor(Theme.key_chat_messagePanelSend);
              }
@@ -99,6 +103,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivity
              final boolean recordShown = recordInterfaceState != 0 || audioToSend != null || videoToSendMessageObject != null;
              final boolean attachInInput = !captionNearAttach && !recordShown;
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarContainer.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarContainer.java
+index d9024e7e..9e262889 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarContainer.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarContainer.java
 @@ -695,7 +695,7 @@ public class ChatAvatarContainer extends FrameLayout implements FactorAnimator.T
@@ -131,9 +136,10 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarCo
          }
          requestLayout();
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
+index acafa5c1..c704690c 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
-@@ -1543,11 +1543,13 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+@@ -1544,11 +1544,13 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                                      viewPages[0] = viewPages[1];
                                      viewPages[1] = tempPage;
                                      filterTabsView.selectTabWithId(viewPages[0].selectedType, 1.0f);
@@ -147,7 +153,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/
                                  showScrollbars(true);
                                  tabsAnimationInProgress = false;
                                  maybeStartTracking = false;
-@@ -3576,6 +3578,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+@@ -3578,6 +3580,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                          viewPages[0] = viewPages[1];
                          viewPages[1] = tempPage;
                          viewPages[1].setVisibility(View.GONE);
@@ -155,7 +161,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/
                          showScrollbars(true);
                          updateCounters(false);
                          filterTabsView.stopAnimatingIndicator();
-@@ -6718,7 +6721,15 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+@@ -6720,7 +6723,15 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
          }
      }
  
@@ -172,9 +178,10 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/
              viewPages[a].listView.stopScroll();
          }
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
+index 87ca0605..a31fa35c 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
-@@ -5216,7 +5216,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+@@ -5222,7 +5222,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
              @Override
              protected void dispatchDraw(Canvas canvas) {
                  if (!isInLandscapeMode) {
@@ -184,6 +191,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java b/
                  super.dispatchDraw(canvas);
                  if (transitionOnlineText != null) {
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Stories/DialogStoriesCell.java b/TMessagesProj/src/main/java/org/telegram/ui/Stories/DialogStoriesCell.java
+index 0fef3fcf..2a4474f2 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Stories/DialogStoriesCell.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Stories/DialogStoriesCell.java
 @@ -159,7 +159,7 @@ public class DialogStoriesCell extends FrameLayout implements NotificationCenter

@@ -1,7 +1,8 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Cells/ChatMessageCell.java b/TMessagesProj/src/main/java/org/telegram/ui/Cells/ChatMessageCell.java
+index 830552cf..89289188 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Cells/ChatMessageCell.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Cells/ChatMessageCell.java
-@@ -5201,16 +5201,29 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
+@@ -5227,16 +5227,29 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
          overridenDuration = duration;
      }
  
@@ -32,7 +33,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Cells/ChatMessageCell.j
              fullyDraw = previousFullyDraw;
              firstVisibleBlockNum = previousFirst;
              lastVisibleBlockNum = previousLast;
-@@ -14020,10 +14033,10 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
+@@ -14054,10 +14067,10 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
                          if (caption) {
                              rect.set(getCurrentBackgroundLeft() - dp(10), top, currentBackgroundDrawable.getBounds().right + dp(10), bottom);
                          } else {
@@ -45,7 +46,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Cells/ChatMessageCell.j
                                  bottom = (int) (parentHeight - getY());
                              }
                              rect.set(getCurrentBackgroundLeft(), top, currentBackgroundDrawable.getBounds().right, bottom);
-@@ -17389,10 +17402,10 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
+@@ -17423,10 +17436,10 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
                      right += dp(8 + 32);
                  }
              }
@@ -59,9 +60,10 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Cells/ChatMessageCell.j
              }
              rect.set(left, top, right, bottom);
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
+index a0620330..d15999e2 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
-@@ -3357,6 +3357,7 @@ public class ChatActivity extends BaseFragment implements
+@@ -3360,6 +3360,7 @@ public class ChatActivity extends BaseFragment implements
  
      @Override
      public void onFragmentDestroy() {
@@ -69,7 +71,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
          super.onFragmentDestroy();
          if (messageMetricsView != null) {
              messageMetricsView.finish();
-@@ -6609,6 +6610,15 @@ public class ChatActivity extends BaseFragment implements
+@@ -6613,6 +6614,15 @@ public class ChatActivity extends BaseFragment implements
          }
  
          chatLayoutManager = new GridLayoutManagerFixed(context, 1000, LinearLayoutManager.VERTICAL, !reversed) {
@@ -85,7 +87,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
  
              boolean computingScroll;
  
-@@ -11252,7 +11262,81 @@ public class ChatActivity extends BaseFragment implements
+@@ -11256,7 +11266,81 @@ public class ChatActivity extends BaseFragment implements
          dimBehindView(value, false, view != sideControlsButtonsLayout);
      }
  
@@ -167,7 +169,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
          if (this.scrimView == scrimView) {
              return;
          }
-@@ -31011,6 +31095,7 @@ public class ChatActivity extends BaseFragment implements
+@@ -31027,6 +31111,7 @@ public class ChatActivity extends BaseFragment implements
  
      @Override
      public void onPause() {
@@ -175,7 +177,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
          super.onPause();
          scrolling = false;
          if (scrimPopupWindow != null) {
-@@ -31785,6 +31870,9 @@ public class ChatActivity extends BaseFragment implements
+@@ -31834,6 +31919,9 @@ public class ChatActivity extends BaseFragment implements
              factCheckHint.hide(false);
          }
          FileLog.d("open menu msg_id=" + message.getId() + (message.getDocument() != null ? " doc_id=" + message.getDocument().id : ""));
@@ -185,7 +187,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
          final int type = getMessageType(message);
          if (single) {
              boolean isGiveawayResultsMessage = false;
-@@ -33476,6 +33564,9 @@ public class ChatActivity extends BaseFragment implements
+@@ -33525,6 +33613,9 @@ public class ChatActivity extends BaseFragment implements
              }
              int popupY;
              int minY = (int) (chatListView.getY() + dp(24));
@@ -196,6 +198,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
              if (height < totalHeight) {
                  popupY = (int) (chatListView.getY() + v.getTop() + y);
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/PopupSwipeBackLayout.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/PopupSwipeBackLayout.java
+index 774f16bc..532788b7 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/PopupSwipeBackLayout.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/PopupSwipeBackLayout.java
 @@ -140,6 +140,10 @@ public class PopupSwipeBackLayout extends FrameLayout {

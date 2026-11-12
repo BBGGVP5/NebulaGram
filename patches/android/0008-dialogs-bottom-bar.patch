@@ -1,7 +1,8 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
+index e6478ee8..53b5065d 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
-@@ -2895,8 +2895,8 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+@@ -2897,8 +2897,8 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
          }
  
          BirthdayController.getInstance(currentAccount).check();
@@ -12,7 +13,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/
  
          return true;
      }
-@@ -6942,6 +6942,12 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+@@ -6944,6 +6944,12 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
      @Override
      public void onResume() {
          super.onResume();
@@ -25,7 +26,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/
          if (dialogStoriesCell != null) {
              dialogStoriesCell.onResume();
          }
-@@ -13732,6 +13738,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+@@ -13734,6 +13740,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
      }
  
      private void checkUi_menuItems() {
@@ -34,6 +35,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/
          checkUi_itemOptionsVisibility();
          checkUi_itemDownloadsVisibility();
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/MainTabsActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/MainTabsActivity.java
+index d1ac1176..42022034 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/MainTabsActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/MainTabsActivity.java
 @@ -290,6 +290,12 @@ public class MainTabsActivity extends ViewPagerActivity implements NotificationC

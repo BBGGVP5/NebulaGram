@@ -1,7 +1,8 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
+index 814c5e81..b39ddbdc 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
-@@ -18329,7 +18329,7 @@ public class ChatActivity extends BaseFragment implements
+@@ -18344,7 +18344,7 @@ public class ChatActivity extends BaseFragment implements
              if (glassBackgroundSourceRenderNode != null) glassBackgroundSourceRenderNode.invalidateDisplayListForDrawables();
              if (glassBackgroundSourceFrostedRenderNode != null) glassBackgroundSourceFrostedRenderNode.invalidateDisplayListForDrawables();
              if (actionBar != null) actionBar.invalidate();
@@ -10,7 +11,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
              if (chatActivityFadeView != null) {
                  chatActivityFadeView.setOverlayColor(isCompactMode() ? getThemedColor(Theme.key_chat_compact_backgroundGradient) : 0);
                  chatActivityFadeView.invalidate();
-@@ -19778,7 +19778,7 @@ public class ChatActivity extends BaseFragment implements
+@@ -19794,7 +19794,7 @@ public class ChatActivity extends BaseFragment implements
              notifyHeightChanged();
  
              checkUi_topFade();
@@ -19,7 +20,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
          }
  
          private void setNonNoveTranslation(float y) {
-@@ -31180,7 +31180,7 @@ public class ChatActivity extends BaseFragment implements
+@@ -31196,7 +31196,7 @@ public class ChatActivity extends BaseFragment implements
          }
          if (contentView != null) {
              contentView.onResume();
@@ -29,6 +30,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
          checkChecksHint();
  
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/MediaActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/MediaActivity.java
+index 6c3b4cd9..468764ed 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/MediaActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/MediaActivity.java
 @@ -193,7 +193,7 @@ public class MediaActivity extends BaseFragment implements SharedMediaLayout.Sha
@@ -41,6 +43,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/MediaActivit
                  super.dispatchDraw(canvas);
              }
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/RecyclerListView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/RecyclerListView.java
+index 16b5939c..5748b0cc 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/RecyclerListView.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/RecyclerListView.java
 @@ -3537,6 +3537,18 @@ public class RecyclerListView extends RecyclerView implements IBlur3Capture {
@@ -63,9 +66,10 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/RecyclerList
              Utilities.CallbackReturn<View, Boolean> isSectionView,
              Utilities.CallbackReturn<Integer, Boolean> isViewTypeSection,
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
+index 9ab77d57..a06aba6d 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
-@@ -7137,7 +7137,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+@@ -7139,7 +7139,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
      public void onResume() {
          super.onResume();
          updateNebulaAiShortcut();
@@ -75,9 +79,10 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/
          if (fragmentView != null) {
              setScrollY(Math.max(scrollYOffset, -getMaxScrollYOffset()));
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
+index 6aff0dee..87735b71 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
-@@ -3510,7 +3510,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+@@ -3511,7 +3511,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
          if (app.nebulagram.ui.NebulaAppearance.profileStyle()) {
              // Keep edit and overflow actions as separate glass controls over the
              // profile artwork, using the same source as the profile's menus.
@@ -86,7 +91,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java b/
              actionBar.setNebulaHomeGlass(true);
              actionBar.setNebulaProfileGlass(true);
          }
-@@ -4074,7 +4074,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+@@ -4080,7 +4080,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
          otherItem.addView(ttlIconView, LayoutHelper.createFrame(12, 12, Gravity.CENTER_VERTICAL | Gravity.LEFT, 8, 2, 0, 0));
          otherItem.setContentDescription(LocaleController.getString(R.string.AccDescrMoreOptions));
          otherItem.setBlurredBackgroundFactory(

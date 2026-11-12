@@ -1,8 +1,8 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/SharedMediaLayout.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/SharedMediaLayout.java
-index bd46a3e9..9f68c9f1 100644
+index 78b58318..36fccb43 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/SharedMediaLayout.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/SharedMediaLayout.java
-@@ -573,7 +573,8 @@ public class SharedMediaLayout extends FrameLayout implements Theme.Colorable, N
+@@ -575,7 +575,8 @@ public class SharedMediaLayout extends FrameLayout implements Theme.Colorable, N
                  wallpaper.setBounds(-side, top, getWidth() + side, bottom);
                  wallpaper.draw(canvas);
                  canvas.restore();

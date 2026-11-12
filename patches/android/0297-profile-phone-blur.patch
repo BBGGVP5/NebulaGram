@@ -1,7 +1,8 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
+index 5803db5c..6aff0dee 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
-@@ -4601,6 +4601,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+@@ -4607,6 +4607,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
              } else if (position == bioRow) {
                  presentFragment(new UserInfoActivity());
              } else if (position == numberRow) {
@@ -9,7 +10,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java b/
                  presentFragment(new ActionIntroActivity(ActionIntroActivity.ACTION_TYPE_CHANGE_PHONE_NUMBER));
              } else if (position == setAvatarRow) {
                  onWriteButtonClick();
-@@ -7623,6 +7624,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+@@ -7629,6 +7630,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
          } else if (position == noteRow) {
  
          } else if (position == phoneRow || position == numberRow) {
@@ -17,7 +18,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java b/
              if (editRow(view, position)) return true;
  
              final TLRPC.User user = getMessagesController().getUser(userId);
-@@ -10989,7 +10991,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+@@ -11099,7 +11101,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                      setAvatarSectionRow = rowCount++;
                  }
                  numberSectionRow = rowCount++;
@@ -26,7 +27,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java b/
                  nebulaIdRow = rowCount++;
                  setUsernameRow = rowCount++;
                  bioRow = rowCount++;
-@@ -11076,7 +11078,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+@@ -11186,7 +11188,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                      }
                  }
                  infoStartRow = rowCount;
@@ -35,7 +36,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java b/
                      phoneRow = rowCount++;
                  }
                  if (userInfo != null && !TextUtils.isEmpty(userInfo.about)) {
-@@ -13661,6 +13663,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+@@ -13774,6 +13776,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                  case VIEW_TYPE_TEXT_DETAIL_MULTILINE_2:
                  case VIEW_TYPE_TEXT_DETAIL:
                      TextDetailCell detailCell = (TextDetailCell) holder.itemView;
@@ -43,7 +44,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java b/
                      boolean containsQr = false;
                      boolean containsGift = false;
                      if (position == birthdayRow) {
-@@ -13706,6 +13709,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+@@ -13819,6 +13822,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                          }
                          isFragmentPhoneNumber = phoneNumber != null && phoneNumber.matches("888\\d{8}");
                          detailCell.setTextAndValue(text, LocaleController.getString(isFragmentPhoneNumber ? R.string.AnonymousNumber : R.string.PhoneMobile), false);
@@ -51,7 +52,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java b/
                      } else if (position == nebulaIdRow) {
                          TLRPC.Chat idChat = currentChat != null ? currentChat : getMessagesController().getChat(chatId);
                          String label = userId != 0
-@@ -13812,6 +13816,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+@@ -13925,6 +13929,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                              value = LocaleController.getString(R.string.NumberUnknown);
                          }
                          detailCell.setTextAndValue(value, LocaleController.getString(R.string.TapToChangePhone), true);

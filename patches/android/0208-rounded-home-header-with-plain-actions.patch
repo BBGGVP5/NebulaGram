@@ -1,7 +1,8 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
+index 14b77d0d..9aad7184 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
-@@ -2959,7 +2959,7 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
+@@ -2961,7 +2961,7 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
                          app.nebulagram.ui.NebulaSelectionGlass.counterRight(actionMode, rightDefault), actionModeFactor));
              }
          }
@@ -10,7 +11,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.jav
                  && nebulaHomeLeadingView.getVisibility() == VISIBLE) {
              glassDrawableHomeLeading.setBounds(nebulaHomeLeadingView.getLeft(), nebulaHomeLeadingView.getTop(),
                      nebulaHomeLeadingView.getRight(), nebulaHomeLeadingView.getBottom());
-@@ -2967,7 +2967,7 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
+@@ -2969,7 +2969,7 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
              glassDrawableHomeLeading.setStrokeWidth(0f, 0f);
              glassDrawableHomeLeading.draw(canvas);
          }
@@ -20,9 +21,10 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.jav
          if (glassDrawableBack != null && nebulaHomeTabsGlass && actionModeFactor > 0f
                  && actionMode != null && actionMode.getChildCount() > 0) {
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
+index 56797411..695cd82a 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
-@@ -939,7 +939,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+@@ -940,7 +940,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
  
          @Override
          public void drawBlurRect(Canvas canvas, float y, Rect rectTmp, Paint blurScrimPaint, boolean top) {

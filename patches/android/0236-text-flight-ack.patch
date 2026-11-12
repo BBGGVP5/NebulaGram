@@ -1,4 +1,5 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/TextMessageEnterTransition.java b/TMessagesProj/src/main/java/org/telegram/ui/TextMessageEnterTransition.java
+index d56a8e26..69309627 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/TextMessageEnterTransition.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/TextMessageEnterTransition.java
 @@ -38,6 +38,7 @@ import org.telegram.messenger.AndroidUtilities;

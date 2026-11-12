@@ -1,4 +1,5 @@
 diff --git a/TMessagesProj/build.gradle b/TMessagesProj/build.gradle
+index 9c2deb84..da24415f 100644
 --- a/TMessagesProj/build.gradle
 +++ b/TMessagesProj/build.gradle
 @@ -74,6 +74,9 @@ dependencies {

@@ -1,7 +1,8 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
+index 4a90b8a6..62672c29 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
-@@ -33718,7 +33718,7 @@ public class ChatActivity extends BaseFragment implements
+@@ -33767,7 +33767,7 @@ public class ChatActivity extends BaseFragment implements
                      CharSequence caption = getMessageCaption(selectedObject, selectedObjectGroup);
                      AnimatedEmojiSpan[] animatedEmojiSpans2 = caption instanceof Spanned ? ((Spanned) caption).getSpans(0, caption.length(), AnimatedEmojiSpan.class) : null;
                      int animatedEmojiCount = (animatedEmojiSpans1 == null ? 0 : animatedEmojiSpans1.length) + (animatedEmojiSpans2 == null ? 0 : animatedEmojiSpans2.length);
@@ -10,7 +11,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
                          ArrayList<TLRPC.InputStickerSet> stickerSets = new ArrayList<>();
                          int firstCount = (animatedEmojiSpans1 == null ? 0 : animatedEmojiSpans1.length);
                          for (int i = 0; i < animatedEmojiCount; ++i) {
-@@ -33743,6 +33743,7 @@ public class ChatActivity extends BaseFragment implements
+@@ -33792,6 +33792,7 @@ public class ChatActivity extends BaseFragment implements
                              }
                          }
  
@@ -18,7 +19,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
                          if (stickerSets.size() > 0 && !getMessagesController().premiumFeaturesBlocked()) {
                              popupLayout.addView(new ActionBarPopupWindow.GapView(contentView.getContext(), themeDelegate), LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, 8));
  
-@@ -33760,6 +33761,11 @@ public class ChatActivity extends BaseFragment implements
+@@ -33809,6 +33810,11 @@ public class ChatActivity extends BaseFragment implements
                                  closeMenu(false);
                                  showDialog(alert);
                              });

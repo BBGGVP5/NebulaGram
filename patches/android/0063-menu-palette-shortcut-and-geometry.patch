@@ -1,7 +1,8 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
+index 0f7baef1..7c2fd220 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
-@@ -2631,6 +2631,10 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
+@@ -2633,6 +2633,10 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
          final int s = dp(46);
  
          final float actionModeFactor = getActionModeFactor();
@@ -12,7 +13,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.jav
          final int menuWidthA = hasForcedMenuWidth ? forcedMenuWidth : (int) animatorMenuItemsWidth.getFactor();
          final int menuWidth = hasForcedMenuMinWidth ? Math.max((int) (forcedMenuMinWidth * (1f - searchFactor)), menuWidthA) : menuWidthA;
  
-@@ -2651,7 +2655,7 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
+@@ -2653,7 +2657,7 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
                  final int menuWidthWithPadding = menuWidth + ((hasForcedMenuWidth || hasForcedMenuMinWidth) ? (menuWidth > 0 ? p : 0) : (int) (p * animatorHasMenuItems.getFloatValue()));
                  final int rightOffset = lerp(menuWidthWithPadding, Math.max(menuWidthWithPadding, p + s), chatAvatarContainer == null ? 0f : 1f - animatorAvatarContainerHasAvatar.getFloatValue());
  
@@ -21,7 +22,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.jav
                  final int rightDefault = getWidth() - rightOffset;
                  final int widthDefault = rightDefault - leftDefault;
                  final int left, right;
-@@ -2692,7 +2696,7 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
+@@ -2694,7 +2698,7 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
              }
          }
          if (glassDrawableBack != null && hasBackButton) {
@@ -31,6 +32,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.jav
          }
          final boolean separateAvatar = nebulaFloatingChatHeader && nebulaChatMenuHidden
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarPopupWindow.java b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarPopupWindow.java
+index 091763f1..4d434649 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarPopupWindow.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarPopupWindow.java
 @@ -461,6 +461,7 @@ public class ActionBarPopupWindow extends PopupWindow {
@@ -42,9 +44,10 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarPopu
              if (swipeBackGravityRight) {
                  setTranslationX(getMeasuredWidth() * (1f - backScaleX));
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
+index da642b77..b7d5eec0 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
-@@ -437,6 +437,11 @@ public class ChatActivity extends BaseFragment implements
+@@ -439,6 +439,11 @@ public class ChatActivity extends BaseFragment implements
      private final @Nullable GlassSourceRenderNode glassBackgroundSourceFrostedRenderNode;
      private @NonNull BlurredBackgroundDrawableViewFactory glassBackgroundDrawableFactory;
      private @NonNull BlurredBackgroundDrawableViewFactory glassBackgroundDrawableFactoryFrosted;
@@ -57,6 +60,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
      private final @NonNull GlassSourceWrapped navbarContentSourceWallpaper;
      private @NonNull BlurredBackgroundDrawableViewFactory navbarContentDrawableFactory;
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/EmojiView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/EmojiView.java
+index 19defc88..92c69bca 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/EmojiView.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/EmojiView.java
 @@ -2873,6 +2873,12 @@ public class EmojiView extends FrameLayout implements
@@ -126,6 +130,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/EmojiView.ja
 \ No newline at end of file
 +}
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/FilterTabsView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/FilterTabsView.java
+index 1a728677..669ed807 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/FilterTabsView.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/FilterTabsView.java
 @@ -1129,6 +1129,7 @@ public class FilterTabsView extends FrameLayout {
@@ -162,9 +167,10 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/FilterTabsVi
              canvas.restore();
          }
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
+index 2df2caaf..129c1f96 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
-@@ -3364,6 +3364,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+@@ -3366,6 +3366,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
          fragmentSearchFieldWatcher.setDoNotCloseAfterFieldEmpty();
  
          if (initialDialogsType == DIALOGS_TYPE_DEFAULT) {
@@ -172,7 +178,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/
              optionsItem = menu.addItem(4, R.drawable.ic_ab_other);
              optionsItem.setContentDescription(LocaleController.getString(R.string.AccDescrMoreOptions));
              optionsItem.setOnClickListener(v -> {
-@@ -14455,4 +14456,4 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+@@ -14457,4 +14458,4 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
          keys.add(Theme.key_actionBarDefaultSubmenuItem);
          keys.add(Theme.key_actionBarDefaultSubmenuBackground);
      }
@@ -180,6 +186,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/
 \ No newline at end of file
 +}
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/MainTabsActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/MainTabsActivity.java
+index 24eb903b..76755d10 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/MainTabsActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/MainTabsActivity.java
 @@ -366,6 +366,7 @@ public class MainTabsActivity extends ViewPagerActivity implements NotificationC

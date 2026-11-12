@@ -1,4 +1,5 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
+index 0e242c24..91d54c20 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
 @@ -237,6 +237,8 @@ public class ChatActivityEnterView extends FrameLayout implements
@@ -20,7 +21,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivity
              nebulaDraftTranslation = new app.nebulagram.ui.NebulaDraftTranslation(parentFragment, messageEditText, this, this::setFieldText);
              aiButton.setOnLongClickListener(v -> { openNebulaTools(); return true; });
          }
-@@ -15116,6 +15121,14 @@ public class ChatActivityEnterView extends FrameLayout implements
+@@ -15121,6 +15126,14 @@ public class ChatActivityEnterView extends FrameLayout implements
                  && !isRecordingAudioVideo()
                  && (recordedAudioPanel == null || recordedAudioPanel.getVisibility() != VISIBLE)
                  && (richDraftPreview == null || richDraftPreview.getVisibility() != VISIBLE);
@@ -35,7 +36,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivity
          boolean compactBotMenu = nebulaSupported && app.nebulagram.ui.NebulaAppearance.iosComposer()
                  && MeasureSpec.getSize(widthMeasureSpec) >= dp(260);
          if (botCommandsMenuButton != null) {
-@@ -15217,6 +15230,11 @@ public class ChatActivityEnterView extends FrameLayout implements
+@@ -15222,6 +15235,11 @@ public class ChatActivityEnterView extends FrameLayout implements
      protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
          super.onLayout(changed, left, top, right, bottom);
          nebulaComposerStyle.layout(emojiButton, attachButton, senderSelectView, aiButton, richButton);
@@ -47,7 +48,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivity
  
          updateNebulaDraftTranslation();
          if (botCommandLastPosition != -1 && botCommandsMenuContainer != null) {
-@@ -16299,7 +16317,7 @@ public class ChatActivityEnterView extends FrameLayout implements
+@@ -16304,7 +16322,7 @@ public class ChatActivityEnterView extends FrameLayout implements
          final float visibility = animatorTopViewVisibility.getFloatValue();
  
          if (topView != null) {
@@ -56,7 +57,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivity
  
              topView.setTranslationY(y - topView.getMeasuredHeight() * visibility);
              topView.setVisibility(visibility > 0 ? VISIBLE : GONE);
-@@ -16319,7 +16337,7 @@ public class ChatActivityEnterView extends FrameLayout implements
+@@ -16324,7 +16342,7 @@ public class ChatActivityEnterView extends FrameLayout implements
              (animatorTopViewVisibility.getValue() ? 1 : 0):
              animatorTopViewVisibility.getFloatValue();
  

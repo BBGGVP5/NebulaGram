@@ -1,4 +1,5 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/QrShare/QrBackdrops.java b/TMessagesProj/src/main/java/org/telegram/ui/QrShare/QrBackdrops.java
+index d4358323..2e7cc054 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/QrShare/QrBackdrops.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/QrShare/QrBackdrops.java
 @@ -26,7 +26,8 @@ public final class QrBackdrops {
@@ -24,6 +25,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/QrShare/QrBackdrops.jav
  
      private QrBackdrops(int account) {
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/QrShare/QrShareServer.java b/TMessagesProj/src/main/java/org/telegram/ui/QrShare/QrShareServer.java
+index e0ec47f7..47df2ffc 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/QrShare/QrShareServer.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/QrShare/QrShareServer.java
 @@ -502,14 +502,11 @@ final class QrShareServer implements NotificationCenter.NotificationCenterDelega

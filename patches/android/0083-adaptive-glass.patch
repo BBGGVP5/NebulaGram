@@ -1,8 +1,9 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/ApplicationLoader.java b/TMessagesProj/src/main/java/org/telegram/messenger/ApplicationLoader.java
+index 20f7935f..b729b3da 100644
 --- a/TMessagesProj/src/main/java/org/telegram/messenger/ApplicationLoader.java
 +++ b/TMessagesProj/src/main/java/org/telegram/messenger/ApplicationLoader.java
-@@ -301,6 +301,7 @@ public class ApplicationLoader extends Application {
-         super.onCreate();
+@@ -310,6 +310,7 @@ public class ApplicationLoader extends Application {
+         }
  
          app.nebulagram.nebulalink.NebulaLink.init(this); // NebulaGram
 +        app.nebulagram.ui.NebulaGlassRuntime.init(this);
@@ -10,6 +11,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/ApplicationLoade
          // AndroidUtilities must be initialized before FileLog
          final String helloWorld = AndroidUtilities.getHelloWorld();
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/LiquidGlassEffect.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/LiquidGlassEffect.java
+index 9c4e5129..21111f2b 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/LiquidGlassEffect.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/LiquidGlassEffect.java
 @@ -34,6 +34,13 @@ public class LiquidGlassEffect {

@@ -1,7 +1,8 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
+index a9437d3e..4db675e1 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
-@@ -2812,7 +2812,16 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
+@@ -2814,7 +2814,16 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
                  }
              }
          }
@@ -19,7 +20,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.jav
              if (nebulaProfileGlass) {
                  // Match the individual 46dp liquid-glass menu controls instead
                  // of the wider default back capsule. Both share one material.
-@@ -2838,7 +2847,22 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
+@@ -2840,7 +2849,22 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
          if (glassDrawableMenu != null && menuWidth > 0 && !glassOnlyBack && !doNotDrawGlassMenu && !isMenuPillInOverlay()
                  && (!separateAvatar || actionModeFactor > 0f)) {
              final float menuAlpha = hasForcedMenuWidth ? 1f : animatorHasMenuItems.getFloatValue();

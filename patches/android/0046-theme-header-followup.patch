@@ -1,7 +1,8 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
+index 8acddcb5..c3dc7038 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
-@@ -2594,7 +2594,7 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
+@@ -2596,7 +2596,7 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
                      // compact real glass capsule stays centred, while the avatar
                      // remains a reachable round control at the trailing edge.
                      final int width = centeredNebulaAvatar.getNebulaCenteredHeaderWidth();
@@ -10,7 +11,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.jav
                      right = left + width;
                      centeredNebulaAvatar.setTranslationX(0);
                      centeredNebulaAvatar.setPivotX(centeredNebulaAvatar.getMeasuredWidth() / 2f);
-@@ -2604,9 +2604,9 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
+@@ -2606,9 +2606,9 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
                      right = left + width;
  
                      final float translationX = left
@@ -24,9 +25,10 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.jav
                      chatAvatarContainer.setPivotX((chatAvatarContainer.getMeasuredWidth()) / 2f - translationX );
                  } else {
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
+index f54df573..c9b92436 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
-@@ -4557,11 +4557,11 @@ public class ChatActivity extends BaseFragment implements
+@@ -4564,11 +4564,11 @@ public class ChatActivity extends BaseFragment implements
              BlurredBackgroundProviderImpl.topPanelChatActivity(themeDelegate),
              ChatObject.isForum(currentChat));
          setupHeaderMenuOverlay(parentView);
@@ -40,7 +42,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
                  UserObject.isUserSelf(currentUser));
  
          if (chatMode == MODE_PINNED) {
-@@ -30681,7 +30681,7 @@ public class ChatActivity extends BaseFragment implements
+@@ -30697,7 +30697,7 @@ public class ChatActivity extends BaseFragment implements
      public void onResume() {
          super.onResume();
          app.nebulagram.ui.NebulaChatStyle.header(actionBar,
@@ -50,6 +52,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
          if (chatActivityEnterView != null) chatActivityEnterView.requestLayout();
          checkShowBlur(false);
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarContainer.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarContainer.java
+index 9e262889..9c5dbe09 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarContainer.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarContainer.java
 @@ -462,7 +462,7 @@ public class ChatAvatarContainer extends FrameLayout implements FactorAnimator.T
@@ -75,6 +78,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarCo
                      1 + viewTop + avatarImageView.getMeasuredHeight());
              if (subtitle != null && subtitle.getVisibility() != GONE) {
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Stories/DialogStoriesCell.java b/TMessagesProj/src/main/java/org/telegram/ui/Stories/DialogStoriesCell.java
+index 2a4474f2..2798a1c2 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Stories/DialogStoriesCell.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Stories/DialogStoriesCell.java
 @@ -159,7 +159,7 @@ public class DialogStoriesCell extends FrameLayout implements NotificationCenter

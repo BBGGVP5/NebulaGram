@@ -1,7 +1,8 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
+index db6e9a3b..55e94a0a 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
-@@ -45613,11 +45613,16 @@ public class ChatActivity extends BaseFragment implements
+@@ -45681,11 +45681,16 @@ public class ChatActivity extends BaseFragment implements
      }
  
      public boolean supportsThanosEffect() {

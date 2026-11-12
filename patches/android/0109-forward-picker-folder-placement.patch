@@ -1,7 +1,8 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
+index fbde82d6..400d2eaa 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
-@@ -1320,7 +1320,8 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+@@ -1321,7 +1321,8 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                  } else if (child == filterTabsView) {
                      childTop = app.nebulagram.ui.NebulaFolderTabs.bottom()
                              ? app.nebulagram.ui.NebulaFolderTabs.bottomTop(H, height, navigationBarHeight,
@@ -11,7 +12,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/
                              : getPaddingTop() + actionBar.getMeasuredHeight() + dp(nebulaSearchSlotHeight());
                  } else if (child == topPanelLayout || child == topBubblesFadeView) {
                      childTop += actionBar.getMeasuredHeight();
-@@ -4837,6 +4838,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+@@ -4839,6 +4840,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                  protected void onChangedIslandTotalHeight(float h) {
                      chatInputViewsContainer.setInputBubbleHeight(h);
                      checkUi_chatListViewPaddingsBottom();
@@ -19,7 +20,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/
                      checkUi_fadeView();
                  }
  
-@@ -14020,6 +14022,16 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+@@ -14022,6 +14024,16 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                  ? Math.round(app.nebulagram.ui.NebulaFolderTabs.reserved() * getFilterTabsVisibilityFactor(true)) : 0;
      }
  
@@ -36,7 +37,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/
      private void updateNebulaBottomInsets() {
          int main = hasMainTabs && app.nebulagram.ui.NebulaBottomBar.enabled() ? dp(MAIN_TABS_HEIGHT_WITH_MARGINS) : 0;
          int folders = nebulaFolderTabsReserved();
-@@ -14036,11 +14048,12 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+@@ -14038,11 +14050,12 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
  
      private int calculateListViewPaddingBottom() {
          if (commentView != null) {
